@@ -7,7 +7,9 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 * [Download](#download)
 * [Usage](#usage)
 * [Build](#build)
+* [Common Issues](#common-issues)
 * [Other information](#other-information)
+* [Donations](#Donations)
 
 ## Features
 * High performance, faster than others (290+ H/s on i7 6700).
@@ -73,6 +75,11 @@ CMake options:
 cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCURL_INCLUDE_DIR="c:\<path>\curl-7.53.1\include" -DCURL_LIBRARY="c:\<path>\curl-7.53.1\lib\.libs"
 ```
 
+## Common Issues
+### HUGE PAGES unavailable
+* Run XMRig as Administrator.
+* Enable SeLockMemoryPrivilege. For Windows 7 pro, or Windows 8 and above see [this article](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+
 ## Other information
 * Now only support 64 bit operating systems (Windows/Linux).
 * No HTTP support, only stratum protocol support.
@@ -92,3 +99,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 * Use modern CPUs with AES-NI instructuon set.
 * Try setup optimal cpu affinity.
 * Enable fast memory (Large/Huge pages).
+
+## Donations
+* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
+* BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
