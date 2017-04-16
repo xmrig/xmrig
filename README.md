@@ -62,7 +62,7 @@ git clone https://github.com/xmrig/xmrig.git
 cd xmrig
 mkdir build
 cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
