@@ -30,7 +30,7 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 ## Usage
 ### Basic example
 ```
-xmrig.exe -o xmr-eu.dwarfpool.com:8005 -b xmr-usa.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
+xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
 ```
 
 ### Options
