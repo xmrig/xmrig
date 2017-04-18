@@ -29,7 +29,7 @@
 
 
 #ifdef __GNUC__
-static __always_inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
+static inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
 {
     unsigned __int128 r = (unsigned __int128)a * (unsigned __int128)b;
     *hi = r >> 64;
@@ -37,10 +37,20 @@ static __always_inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
 }
 #endif
 
+#define aes_genkey_sub(imm8) \
+    __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, (imm8)); \
+    xout1 = _mm_shuffle_epi32(xout1, 0xFF); \
+    *xout0 = sl_xor(*xout0); \
+    *xout0 = _mm_xor_si128(*xout0, xout1); \
+    xout1 = _mm_aeskeygenassist_si128(*xout0, 0x00);\
+    xout1 = _mm_shuffle_epi32(xout1, 0xAA); \
+    *xout2 = sl_xor(*xout2); \
+    *xout2 = _mm_xor_si128(*xout2, xout1); \
+
 
 // This will shift and xor tmp1 into itself as 4 32-bit vals such as
 // sl_xor(a1 a2 a3 a4) = a1 (a2^a1) (a3^a2^a1) (a4^a3^a2^a1)
-static __always_inline __m128i sl_xor(__m128i tmp1)
+static inline __m128i sl_xor(__m128i tmp1)
 {
     __m128i tmp4;
     tmp4 = _mm_slli_si128(tmp1, 0x04);
@@ -53,45 +63,56 @@ static __always_inline __m128i sl_xor(__m128i tmp1)
 }
 
 
-static __always_inline void aes_genkey_sub(__m128i* xout0, __m128i* xout2, const uint8_t imm8)
+static inline void aes_genkey_sub1(__m128i* xout0, __m128i* xout2)
 {
-    __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, imm8);
-    xout1 = _mm_shuffle_epi32(xout1, 0xFF); // see PSHUFD, set all elems to 4th elem
-    *xout0 = sl_xor(*xout0);
-    *xout0 = _mm_xor_si128(*xout0, xout1);
-    xout1 = _mm_aeskeygenassist_si128(*xout0, 0x00);
-    xout1 = _mm_shuffle_epi32(xout1, 0xAA); // see PSHUFD, set all elems to 3rd elem
-    *xout2 = sl_xor(*xout2);
-    *xout2 = _mm_xor_si128(*xout2, xout1);
+   aes_genkey_sub(0x1)
 }
 
 
-static __always_inline void aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i* k2, __m128i* k3, __m128i* k4, __m128i* k5, __m128i* k6, __m128i* k7, __m128i* k8, __m128i* k9)
+static inline void aes_genkey_sub2(__m128i* xout0, __m128i* xout2)
+{
+   aes_genkey_sub(0x2)
+}
+
+
+static inline void aes_genkey_sub4(__m128i* xout0, __m128i* xout2)
+{
+   aes_genkey_sub(0x4)
+}
+
+
+static inline void aes_genkey_sub8(__m128i* xout0, __m128i* xout2)
+{
+   aes_genkey_sub(0x8)
+}
+
+
+static inline void aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i* k2, __m128i* k3, __m128i* k4, __m128i* k5, __m128i* k6, __m128i* k7, __m128i* k8, __m128i* k9)
 {
     __m128i xout0 = _mm_load_si128(memory);
     __m128i xout2 = _mm_load_si128(memory + 1);
     *k0 = xout0;
     *k1 = xout2;
 
-     aes_genkey_sub(&xout0, &xout2, 0x01);
+     aes_genkey_sub1(&xout0, &xout2);
     *k2 = xout0;
     *k3 = xout2;
 
-     aes_genkey_sub(&xout0, &xout2, 0x02);
+     aes_genkey_sub2(&xout0, &xout2);
     *k4 = xout0;
     *k5 = xout2;
 
-     aes_genkey_sub(&xout0, &xout2, 0x04);
+     aes_genkey_sub4(&xout0, &xout2);
     *k6 = xout0;
     *k7 = xout2;
 
-     aes_genkey_sub(&xout0, &xout2, 0x08);
+     aes_genkey_sub8(&xout0, &xout2);
     *k8 = xout0;
     *k9 = xout2;
 }
 
 
-static __always_inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
+static inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
 {
     *x0 = _mm_aesenc_si128(*x0, key);
     *x1 = _mm_aesenc_si128(*x1, key);
