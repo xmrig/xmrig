@@ -20,7 +20,8 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
         cryptonight.c
         ../../algo/cryptonight/cryptonight_av1_aesni.c
         ../../algo/cryptonight/cryptonight_av2_aesni_wolf.c
-        ../../algo/cryptonight/cryptonight_av5_aesni_experimental.c
+        ../../algo/cryptonight/cryptonight_av5_aesni_stak.c
+        ../../algo/cryptonight/cryptonight_av6_aesni_experimental.c
     )
 
     target_link_libraries(cryptonight_app unity cryptonight_av3_aesni_bmi2)

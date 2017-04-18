@@ -8,7 +8,8 @@ void cryptonight_av1_aesni(void* output, const void* input, const char *memory, 
 void cryptonight_av2_aesni_wolf(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 void cryptonight_av3_aesni_bmi2(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 void cryptonight_av4_legacy(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av5_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+void cryptonight_av5_aesni_stak(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+void cryptonight_av6_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 
 
 char *bin2hex(const unsigned char *p, size_t len)
@@ -135,7 +136,26 @@ void test_cryptonight_av5_should_CalcHash(void)
     uint8_t *memory = (uint8_t *) malloc(MEMORY);
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
 
-    cryptonight_av5_aesni_experimental(&hash, data, memory, ctx);
+    cryptonight_av5_aesni_stak(&hash, data, memory, ctx);
+
+    free(memory);
+    free(ctx);
+
+    TEST_ASSERT_EQUAL_STRING("1a3ffbee909b420d91f7be6e5fb56db71b3110d886011e877ee5786afd080100", bin2hex(hash, 32));
+}
+
+
+void test_cryptonight_av6_should_CalcHash(void)
+{
+    char hash[32];
+    char data[76];
+
+    hex2bin((unsigned char *) &data, "0305a0dbd6bf05cf16e503f3a66f78007cbf34144332ecbfc22ed95c8700383b309ace1923a0964b00000008ba939a62724c0d7581fce5761e9d8a0e6a1c3f924fdd8493d1115649c05eb601", 76);
+
+    uint8_t *memory = (uint8_t *) malloc(MEMORY);
+    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
+
+    cryptonight_av6_aesni_experimental(&hash, data, memory, ctx);
 
     free(memory);
     free(ctx);
@@ -153,6 +173,7 @@ int main(void)
     RUN_TEST(test_cryptonight_av3_should_CalcHash);
     RUN_TEST(test_cryptonight_av4_should_CalcHash);
     RUN_TEST(test_cryptonight_av5_should_CalcHash);
+    RUN_TEST(test_cryptonight_av6_should_CalcHash);
 
     return UNITY_END();
 }
