@@ -4,6 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
+ * Copyright 2017      fireice-uk  <https://github.com/fireice-uk>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
  *
  *
@@ -221,7 +222,7 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 
-void cryptonight_av5_aesni_experimental(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av5_aesni_stak(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
 {
     keccak((const uint8_t *) input, 76, (uint8_t *) &ctx->state.hs, 200);
 

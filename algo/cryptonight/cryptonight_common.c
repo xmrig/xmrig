@@ -40,7 +40,8 @@
   void cryptonight_av1_aesni(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
   void cryptonight_av2_aesni_wolf(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
   void cryptonight_av3_aesni_bmi2(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-  void cryptonight_av5_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+  void cryptonight_av5_aesni_stak(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+  void cryptonight_av6_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 #elif defined(__i386__)
   void cryptonight_av1_aesni32(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 #endif
@@ -66,8 +67,12 @@ void cryptonight_init(int variant)
             cryptonight_hash_ctx = cryptonight_av3_aesni_bmi2;
             break;
 
+        case XMR_VARIANT_STAK:
+            cryptonight_hash_ctx = cryptonight_av5_aesni_stak;
+            break;
+
         case XMR_VARIANT_EXPERIMENTAL:
-            cryptonight_hash_ctx = cryptonight_av5_aesni_experimental;
+            cryptonight_hash_ctx = cryptonight_av6_aesni_experimental;
             break;
         #elif defined(__i386__)
         case XMR_VARIANT_AESNI:
