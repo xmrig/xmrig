@@ -125,7 +125,7 @@ static inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2,
 }
 
 
-static __always_inline void cn_explode_scratchpad(const __m128i* input, __m128i* output)
+static inline void cn_explode_scratchpad(const __m128i* input, __m128i* output)
 {
     // This is more than we have registers, compiler will assign 2 keys on the stack
     __m128i xin0, xin1, xin2, xin3, xin4, xin5, xin6, xin7;
@@ -168,7 +168,7 @@ static __always_inline void cn_explode_scratchpad(const __m128i* input, __m128i*
 }
 
 
-static __always_inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
+static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 {
     // This is more than we have registers, compiler will assign 2 keys on the stack
     __m128i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
