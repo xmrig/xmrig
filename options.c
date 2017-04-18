@@ -336,7 +336,7 @@ static char *parse_url(const char *arg)
         show_usage_and_exit(1);
     }
 
-    char *dest = malloc(strlen(arg) + 14);
+    char *dest = malloc(strlen(arg) + 16);
     sprintf(dest, "stratum+tcp://%s", arg);
 
     return dest;
