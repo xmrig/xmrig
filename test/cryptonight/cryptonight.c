@@ -7,7 +7,7 @@
 void cryptonight_av1_aesni(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 void cryptonight_av2_aesni_wolf(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 void cryptonight_av3_aesni_bmi2(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av4_legacy(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+void cryptonight_av4_softaes(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 void cryptonight_av5_aesni_stak(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 void cryptonight_av6_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 
@@ -117,7 +117,7 @@ void test_cryptonight_av4_should_CalcHash(void)
     uint8_t *memory = (uint8_t *) malloc(MEMORY);
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
 
-    cryptonight_av4_legacy(&hash, data, memory, ctx);
+    cryptonight_av4_softaes(&hash, data, memory, ctx);
 
     free(memory);
     free(ctx);

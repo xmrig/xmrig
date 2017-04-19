@@ -21,9 +21,6 @@ set(HEADERS_CRYPTO
     crypto/c_blake256.h
     crypto/c_jh.h
     crypto/c_skein.h
-    crypto/oaes_lib.h
-    crypto/oaes_config.h
-    crypto/aesb.h
    )
 
 set(HEADERS_COMPAT
@@ -53,8 +50,7 @@ set(SOURCES_CRYPTO
     crypto/c_blake256.c
     crypto/c_jh.c
     crypto/c_skein.c
-    crypto/oaes_lib.c
-    crypto/aesb.c
+    crypto/soft_aes.c
    )
 
 set(SOURCES_UTILS
@@ -106,7 +102,7 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CRYPTONIGHT64
         algo/cryptonight/cryptonight_av1_aesni.c
         algo/cryptonight/cryptonight_av2_aesni_wolf.c
-        algo/cryptonight/cryptonight_av4_legacy.c
+        algo/cryptonight/cryptonight_av4_softaes.c
         algo/cryptonight/cryptonight_av5_aesni_stak.c
         algo/cryptonight/cryptonight_av6_aesni_experimental.c
     )
@@ -116,7 +112,7 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 else()
     set(CRYPTONIGHT32
         algo/cryptonight/cryptonight_av1_aesni32.c
-        algo/cryptonight/cryptonight_av4_legacy.c
+        algo/cryptonight/cryptonight_av4_softaes.c
     )
 
     add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${CRYPTONIGHT32})

@@ -46,7 +46,7 @@
   void cryptonight_av1_aesni32(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 #endif
 
-void cryptonight_av4_legacy(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+void cryptonight_av4_softaes(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 
 void (*cryptonight_hash_ctx)(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx) = NULL;
 
@@ -81,7 +81,7 @@ void cryptonight_init(int variant)
         #endif
 
         case XMR_VARIANT_LEGACY:
-             cryptonight_hash_ctx = cryptonight_av4_legacy;
+             cryptonight_hash_ctx = cryptonight_av4_softaes;
              break;
 
         default:

@@ -1,16 +1,13 @@
 set(SOURCES
     ../../algo/cryptonight/cryptonight.h
     ../../algo/cryptonight/cryptonight_common.c
-    ../../algo/cryptonight/cryptonight_av4_legacy.c
+    ../../algo/cryptonight/cryptonight_av4_softaes.c
     ../../crypto/c_keccak.c
     ../../crypto/c_blake256.c
     ../../crypto/c_groestl.c
     ../../crypto/c_jh.c
     ../../crypto/c_skein.c
-    ../../crypto/oaes_config.h
-    ../../crypto/oaes_lib.h
-    ../../crypto/oaes_lib.c
-    ../../crypto/aesb.c
+    ../../crypto/soft_aes.c
    )
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
