@@ -59,7 +59,7 @@ set(SOURCES_UTILS
    )
 
 if (WIN32)
-    set(SOURCES_OS win/cpu_win.c win/memory_win.c win/xmrig_win.c compat/winansi.c)
+    set(SOURCES_OS win/cpu_win.c win/memory_win.c win/xmrig_win.c win/app.rc compat/winansi.c)
     set(EXTRA_LIBS ws2_32)
     add_definitions(/D_WIN32_WINNT=0x600)
 else()
