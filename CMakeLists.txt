@@ -102,7 +102,6 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CRYPTONIGHT64
         algo/cryptonight/cryptonight_av1_aesni.c
         algo/cryptonight/cryptonight_av2_aesni_stak.c
-        algo/cryptonight/cryptonight_av3_aesni_bmi2.c
         algo/cryptonight/cryptonight_av4_softaes.c
         algo/cryptonight/cryptonight_av5_aesni_experimental.c
     )

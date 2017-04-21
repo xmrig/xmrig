@@ -29,15 +29,6 @@
 #include "crypto/c_keccak.h"
 
 
-#ifdef __GNUC__
-static inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
-{
-    unsigned __int128 r = (unsigned __int128)a * (unsigned __int128)b;
-    *hi = r >> 64;
-    return (uint64_t)r;
-}
-#endif
-
 #define aes_genkey_sub(imm8) \
     __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, (imm8)); \
     xout1 = _mm_shuffle_epi32(xout1, 0xFF); \
@@ -249,7 +240,7 @@ void cryptonight_av3_aesni_bmi2(void *restrict output, const void *restrict inpu
         uint64_t hi, lo, cl, ch;
         cl = ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0];
         ch = ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1];
-        lo = _umul128(idx0, cl, &hi);
+        lo = _mulx_u64(idx0, cl, &hi);
 
         al0 += hi;
         ah0 += lo;

@@ -282,8 +282,6 @@ static void *miner_thread(void *userdata) {
     uint32_t max_nonce;
     uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 1) - 0x20;
 
-    applog(LOG_BLUE, "%d", sizeof(struct cryptonight_ctx));
-
     struct cryptonight_ctx *persistentctx = (struct cryptonight_ctx *) create_persistent_ctx(thr_id);
 
     if (cpu_info.count > 1 && opt_n_threads > 1 && opt_affinity != -1L) {
