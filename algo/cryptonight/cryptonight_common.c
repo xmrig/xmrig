@@ -36,17 +36,19 @@
 #include "options.h"
 
 
+void cryptonight_av1_aesni(void* output, const void* input, struct cryptonight_ctx* ctx);
+
 #if defined(__x86_64__)
-  void cryptonight_av1_aesni(void* output, const void* input, struct cryptonight_ctx* ctx);
+
   void cryptonight_av2_aesni_stak(void* output, const void* input, struct cryptonight_ctx* ctx);
   void cryptonight_av3_aesni_bmi2(void* output, const void* input, struct cryptonight_ctx* ctx);
   void cryptonight_av4_softaes(void* output, const void* input, struct cryptonight_ctx* ctx);
   void cryptonight_av5_aesni_experimental(void* output, const void* input, struct cryptonight_ctx* ctx);
 #elif defined(__i386__)
-  void cryptonight_av1_aesni32(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+//  void cryptonight_av1_aesni32(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 #endif
 
-void cryptonight_av4_softaes(void* output, const void* input, struct cryptonight_ctx* ctx);
+//void cryptonight_av4_softaes(void* output, const void* input, struct cryptonight_ctx* ctx);
 
 void (*cryptonight_hash_ctx)(void* output, const void* input, struct cryptonight_ctx* ctx) = NULL;
 
@@ -54,11 +56,11 @@ void (*cryptonight_hash_ctx)(void* output, const void* input, struct cryptonight
 void cryptonight_init(int variant)
 {
     switch (variant) {
-        #if defined(__x86_64__)
         case XMR_AV1_AESNI:
             cryptonight_hash_ctx = cryptonight_av1_aesni;
             break;
 
+#       if defined(__x86_64__)
         case XMR_AV2_STAK:
             cryptonight_hash_ctx = cryptonight_av2_aesni_stak;
             break;
@@ -70,16 +72,11 @@ void cryptonight_init(int variant)
         case XMR_AV5_EXPERIMENTAL:
             cryptonight_hash_ctx = cryptonight_av5_aesni_experimental;
             break;
+#       endif
 
-        #elif defined(__i386__)
-        case XMR_VARIANT_AESNI:
-            cryptonight_hash_ctx = cryptonight_av1_aesni32;
-            break;
-        #endif
-
-        case XMR_AV4_SOFT_AES:
-             cryptonight_hash_ctx = cryptonight_av4_softaes;
-             break;
+//        case XMR_AV4_SOFT_AES:
+//             cryptonight_hash_ctx = cryptonight_av4_softaes;
+//             break;
 
         default:
             break;

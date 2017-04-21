@@ -110,12 +110,11 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     target_link_libraries(xmrig jansson curl cryptonight_av3_aesni_bmi2 ${EXTRA_LIBS})
 else()
     set(CRYPTONIGHT32
-        algo/cryptonight/cryptonight_av1_aesni32.c
-        algo/cryptonight/cryptonight_av4_softaes.c
+        algo/cryptonight/i686/cryptonight_av1_aesni.c
     )
 
     add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${CRYPTONIGHT32})
-    target_link_libraries(xmrig32 jansson -L${CURL_LIBRARIES} ${EXTRA_LIBS})
+    target_link_libraries(xmrig32 jansson curl ${EXTRA_LIBS})
 endif()
 
 source_group("HEADERS" FILES ${HEADERS})
