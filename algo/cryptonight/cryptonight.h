@@ -27,34 +27,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MEMORY          2097152 /* 2 MiB */
-#define ITER            (1 << 20)
-#define AES_BLOCK_SIZE  16
-#define AES_KEY_SIZE    32 /*16*/
-#define INIT_SIZE_BLK   8
-#define INIT_SIZE_BYTE  (INIT_SIZE_BLK * AES_BLOCK_SIZE) // 128
-
-
-union hash_state {
-  uint8_t b[200];
-  uint64_t w[25];
-};
-
-union cn_slow_hash_state {
-    union hash_state hs;
-    struct {
-        uint8_t k[64];
-        uint8_t init[INIT_SIZE_BYTE];
-    };
-};
+#define MEMORY 2097152 /* 2 MiB */
 
 
 struct cryptonight_ctx {
-    union cn_slow_hash_state state;
-    uint8_t text[INIT_SIZE_BYTE] __attribute((aligned(16)));
-    uint64_t a[2] __attribute__((aligned(16)));
-    uint64_t b[2] __attribute__((aligned(16)));
-    uint64_t c[2] __attribute__((aligned(16)));
+    uint8_t state[200] __attribute__((aligned(16)));
+    uint8_t* memory    __attribute__((aligned(16)));
 };
 
 

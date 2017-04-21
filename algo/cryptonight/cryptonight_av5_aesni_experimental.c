@@ -215,10 +215,10 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 
 void cryptonight_av5_aesni_experimental(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
 {
-    uint64_t* state = ctx->state.hs.w;
+    keccak((const uint8_t *) input, 76, ctx->state, 200);
+    cn_explode_scratchpad((__m128i*) ctx->state, (__m128i*) memory);
 
-    keccak((const uint8_t *) input, 76, (uint8_t *) state, 200);
-    cn_explode_scratchpad((__m128i*) state, (__m128i*) memory);
+    uint64_t* state = (uint64_t*) ctx->state;
 
     uint64_t a[2] __attribute((aligned(16))) = { state[0] ^ state[4], state[1] ^ state[5] };
     uint64_t c    __attribute((aligned(16)));
@@ -254,5 +254,5 @@ void cryptonight_av5_aesni_experimental(void *restrict output, const void *restr
     cn_implode_scratchpad((__m128i*) memory, (__m128i*) state);
 
     keccakf(state, 24);
-    extra_hashes[ctx->state.hs.b[0] & 3](&ctx->state, 200, output);
+    extra_hashes[ctx->state[0] & 3](ctx->state, 200, output);
 }

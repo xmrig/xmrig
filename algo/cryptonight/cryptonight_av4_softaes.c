@@ -205,44 +205,46 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 
 void cryptonight_av4_softaes(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
 {
-    uint64_t* state = ctx->state.hs.w;
+    keccak((const uint8_t *) input, 76, ctx->state, 200);
 
-    keccak((const uint8_t *) input, 76, (uint8_t *) state, 200);
-    cn_explode_scratchpad((__m128i*) state, (__m128i*) memory);
+    cn_explode_scratchpad((__m128i*) ctx->state, (__m128i*) memory);
 
-    uint64_t a[2] __attribute((aligned(16))) = { state[0] ^ state[4], state[1] ^ state[5] };
-    uint64_t c    __attribute((aligned(16)));
-    uint64_t d[2] __attribute((aligned(16)));
+    const uint8_t* l0 = memory;
+    uint64_t* h0 = (uint64_t*) ctx->state;
 
-    __m128i a_x = _mm_load_si128((__m128i *) &memory[a[0] & 0x1FFFF0]);
-    __m128i b_x = _mm_set_epi64x(state[3] ^ state[7], state[2] ^ state[6]);
+    uint64_t al0 = h0[0] ^ h0[4];
+    uint64_t ah0 = h0[1] ^ h0[5];
+    __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
+
+    uint64_t idx0 = h0[0] ^ h0[4];
 
     for (size_t i = 0; __builtin_expect(i < 0x80000, 1); i++) {
-        __m128i c_x = soft_aesenc(a_x, _mm_load_si128((__m128i *) a));
-        c = _mm_cvtsi128_si64(c_x);
+        __m128i cx;
+        cx = _mm_load_si128((__m128i *)&l0[idx0 & 0x1FFFF0]);
+        cx = soft_aesenc(cx, _mm_set_epi64x(ah0, al0));
 
-        uint64_t *restrict d_ptr = (uint64_t *) &memory[c & 0x1FFFF0];
-        _mm_store_si128((__m128i *) &memory[a[0] & 0x1FFFF0], _mm_xor_si128(b_x, c_x));
-        b_x = c_x;
+        _mm_store_si128((__m128i *)&l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx0, cx));
+        idx0 = _mm_cvtsi128_si64(cx);
+        bx0 = cx;
 
-        d[0] = d_ptr[0];
-        d[1] = d_ptr[1];
+        uint64_t hi, lo, cl, ch;
+        cl = ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0];
+        ch = ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1];
+        lo = _umul128(idx0, cl, &hi);
 
-        {
-            unsigned __int128 res = (unsigned __int128) c * d[0];
+        al0 += hi;
+        ah0 += lo;
 
-            d_ptr[0] = a[0] += res >> 64;
-            d_ptr[1] = a[1] += (uint64_t) res;
-        }
+        ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0] = al0;
+        ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1] = ah0;
 
-        a[0] ^= d[0];
-        a[1] ^= d[1];
-
-        a_x = _mm_load_si128((__m128i *) &memory[a[0] & 0x1FFFF0]);
+        ah0 ^= ch;
+        al0 ^= cl;
+        idx0 = al0;
     }
 
-    cn_implode_scratchpad((__m128i*) memory, (__m128i*) state);
+    cn_implode_scratchpad((__m128i*) memory, (__m128i*) ctx->state);
 
-    keccakf(state, 24);
-    extra_hashes[ctx->state.hs.b[0] & 3](&ctx->state, 200, output);
+    keccakf(h0, 24);
+    extra_hashes[ctx->state[0] & 3](ctx->state, 200, output);
 }
