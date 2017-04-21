@@ -26,6 +26,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define MEMORY 2097152 /* 2 MiB */
 
@@ -38,7 +39,7 @@ struct cryptonight_ctx {
 
 extern void (* const extra_hashes[4])(const void *, size_t, char *);
 
-void cryptonight_init(int variant);
+bool cryptonight_init(int variant);
 void cryptonight_hash(void* output, const void* input, size_t input_len);
 int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict pdata, const uint32_t *restrict ptarget, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx);
 

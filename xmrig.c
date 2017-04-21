@@ -289,7 +289,7 @@ static void *miner_thread(void *userdata) {
     }
 
     uint32_t *nonceptr = (uint32_t*) (((char*)work.data) + 39);
-    uint32_t hash[32 / 4] __attribute__((aligned(32)));
+    uint32_t hash[8] __attribute__((aligned(32)));
 
     while (1) {
         unsigned long hashes_done;
