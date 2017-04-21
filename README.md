@@ -8,6 +8,7 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 * [Features](#features)
 * [Download](#download)
 * [Usage](#usage)
+* [Algorithm variations](#algorithm-variations)
 * [Build](#build)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
@@ -53,6 +54,13 @@ xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
   -h, --help            display this help and exit
   -V, --version         output version information and exit
 ```
+
+## Algorithm variations
+Since version 0.6.0.
+* `--av=1` Default for CPUs with hardware AES.
+* `--av=2` [XMR-Stak-CPU](https://github.com/fireice-uk/xmr-stak-cpu) algorithm.
+* `--av=3` Same as `1` but uses BMI2 instruction [mulx](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mulx_u64).
+* `--av=4` Software AES implementation.
 
 ## Build
 ### Ubuntu (Debian-based distros)
@@ -105,3 +113,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Donations
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+
+## Contacts
+* support@xmrig.com
+* [reddit](https://www.reddit.com/user/XMRig/)
