@@ -102,19 +102,15 @@ static struct option const options[] = {
 
 
 static int get_algo_variant(int variant) {
-   if (variant > XMR_VARIANT_AUTO && variant < XMR_VARIANT_MAX) {
+   if (variant > XMR_AV0_AUTO && variant < XMR_AV_MAX) {
        return variant;
    }
 
    if (cpu_info.flags & CPU_FLAG_AES) {
-       if (cpu_info.flags & CPU_FLAG_BMI2) {
-           return XMR_VARIANT_AESNI_BMI2;
-       }
-
-       return XMR_VARIANT_AESNI;
+       return XMR_AV1_AESNI;
    }
 
-   return XMR_VARIANT_LEGACY;
+   return XMR_AV4_SOFT_AES;
 }
 
 
@@ -237,7 +233,7 @@ static void parse_arg(int key, char *arg) {
 
     case 'v': /* --av */
         v = atoi(arg);
-        if (v < 0 || v > XMR_VARIANT_MAX) {
+        if (v < 0 || v > XMR_AV_MAX) {
             show_usage_and_exit(1);
         }
 

@@ -29,15 +29,6 @@
 #include "crypto/c_keccak.h"
 
 
-#ifdef __GNUC__
-static inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
-{
-    unsigned __int128 r = (unsigned __int128)a * (unsigned __int128)b;
-    *hi = r >> 64;
-    return (uint64_t)r;
-}
-#endif
-
 #define aes_genkey_sub(imm8) \
     __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, (imm8)); \
     xout1 = _mm_shuffle_epi32(xout1, 0xFF); \
@@ -222,7 +213,7 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 
-void cryptonight_av6_aesni_experimental(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av7_aesni_experimental(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
 {
     uint64_t* state = ctx->state.hs.w;
 

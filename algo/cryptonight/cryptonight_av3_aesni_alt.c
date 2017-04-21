@@ -108,12 +108,9 @@ static inline void ExpandAESKey256(char *keybuf)
     keys[14] = tmp1;
 }
 
-
-void cryptonight_av3_aesni_bmi2(void *restrict output, const void *restrict input, const char *restrict memory, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av3_aesni_alt(void *restrict output, const void *restrict input, const char *restrict memory, struct cryptonight_ctx *restrict ctx)
 {
-    uint64_t* state = ctx->state.hs.w;
-
-    keccak((const uint8_t *)input, 76, (uint8_t *) state, 200);
+    keccak((const uint8_t *)input, 76, (uint8_t *) &ctx->state.hs, 200);
     uint8_t ExpandedKey[256];
     size_t i, j;
 
@@ -149,32 +146,40 @@ void cryptonight_av3_aesni_bmi2(void *restrict output, const void *restrict inpu
         _mm_store_si128(&(longoutput[(i >> 4) + 7]), xmminput[7]);
     }
 
-    uint64_t a[2] __attribute((aligned(16))) = { state[0] ^ state[4], state[1] ^ state[5] };
-    uint64_t c    __attribute((aligned(16)));
-    uint64_t d[2] __attribute((aligned(16)));
-    uint64_t hi;
+    for (i = 0; i < 2; i++)
+    {
+        ctx->a[i] = ((uint64_t *)ctx->state.k)[i] ^  ((uint64_t *)ctx->state.k)[i+4];
+        ctx->b[i] = ((uint64_t *)ctx->state.k)[i+2] ^  ((uint64_t *)ctx->state.k)[i+6];
+    }
 
-    __m128i a_x = _mm_load_si128((__m128i *) &memory[a[0] & 0x1FFFF0]);
-    __m128i b_x = _mm_set_epi64x(state[3] ^ state[7], state[2] ^ state[6]);
+    __m128i a_x = _mm_load_si128((__m128i *) &memory[ctx->a[0] & 0x1FFFF0]);
+    __m128i b_x = _mm_load_si128((__m128i *) ctx->b);
+
+    uint64_t c[2] __attribute((aligned(16)));
+    uint64_t d[2] __attribute((aligned(16)));
 
     for (i = 0; __builtin_expect(i < 0x80000, 1); i++) {
-        __m128i c_x = _mm_aesenc_si128(a_x, _mm_load_si128((__m128i *) a));
-        c = _mm_cvtsi128_si64(c_x);
+        __m128i c_x = _mm_aesenc_si128(a_x, _mm_load_si128((__m128i *) ctx->a));
+        _mm_store_si128((__m128i *) c, c_x);
 
-        uint64_t *restrict d_ptr = (uint64_t *) &memory[c & 0x1FFFF0];
-        _mm_store_si128((__m128i *) &memory[a[0] & 0x1FFFF0], _mm_xor_si128(b_x, c_x));
+        uint64_t *restrict d_ptr = (uint64_t *) &memory[c[0] & 0x1FFFF0];
+        _mm_store_si128((__m128i *) &memory[ctx->a[0] & 0x1FFFF0], _mm_xor_si128(b_x, c_x));
         b_x = c_x;
 
         d[0] = d_ptr[0];
         d[1] = d_ptr[1];
 
-        d_ptr[1] = a[1] += _mulx_u64(c, d[0], &hi);
-        d_ptr[0] = a[0] += hi;
+        {
+            unsigned __int128 res = (unsigned __int128) c[0] * d[0];
 
-        a[0] ^= d[0];
-        a[1] ^= d[1];
+            d_ptr[0] = ctx->a[0] += res >> 64;
+            d_ptr[1] = ctx->a[1] += (uint64_t) res;
+        }
 
-        a_x = _mm_load_si128((__m128i *) &memory[a[0] & 0x1FFFF0]);
+        ctx->a[0] ^= d[0];
+        ctx->a[1] ^= d[1];
+
+        a_x = _mm_load_si128((__m128i *) &memory[ctx->a[0] & 0x1FFFF0]);
     }
 
     memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
@@ -206,6 +211,6 @@ void cryptonight_av3_aesni_bmi2(void *restrict output, const void *restrict inpu
     }
 
     memcpy(ctx->state.init, ctx->text, INIT_SIZE_BYTE);
-    keccakf((uint64_t *) state, 24);
+    keccakf((uint64_t *) &ctx->state.hs, 24);
     extra_hashes[ctx->state.hs.b[0] & 3](&ctx->state, 200, output);
 }
