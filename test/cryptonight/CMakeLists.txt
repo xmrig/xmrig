@@ -16,13 +16,11 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_executable(cryptonight_app ${SOURCES}
         cryptonight.c
         ../../algo/cryptonight/cryptonight_av1_aesni.c
-        ../../algo/cryptonight/cryptonight_av3_aesni_alt.c
-        ../../algo/cryptonight/cryptonight_av5_aesni_stak.c
-        ../../algo/cryptonight/cryptonight_av6_aesni_stak_no_prefetch.c
-        ../../algo/cryptonight/cryptonight_av7_aesni_experimental.c
+        ../../algo/cryptonight/cryptonight_av2_aesni_stak.c
+        ../../algo/cryptonight/cryptonight_av5_aesni_experimental.c
     )
 
-    target_link_libraries(cryptonight_app unity cryptonight_av2_aesni_bmi2)
+    target_link_libraries(cryptonight_app unity cryptonight_av3_aesni_bmi2)
 else()
     add_executable(cryptonight_app ${SOURCES}
         cryptonight32.c

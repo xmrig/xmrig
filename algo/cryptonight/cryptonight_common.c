@@ -38,11 +38,10 @@
 
 #if defined(__x86_64__)
   void cryptonight_av1_aesni(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-  void cryptonight_av2_aesni_bmi2(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-  void cryptonight_av3_aesni_alt(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-  void cryptonight_av5_aesni_stak(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-  void cryptonight_av6_aesni_stak_no_prefetch(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-  void cryptonight_av7_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+  void cryptonight_av2_aesni_stak(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+  void cryptonight_av3_aesni_bmi2(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+  void cryptonight_av4_softaes(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+  void cryptonight_av5_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 #elif defined(__i386__)
   void cryptonight_av1_aesni32(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 #endif
@@ -60,24 +59,16 @@ void cryptonight_init(int variant)
             cryptonight_hash_ctx = cryptonight_av1_aesni;
             break;
 
-        case XMR_AV2_AESNI_BMI2:
-            cryptonight_hash_ctx = cryptonight_av2_aesni_bmi2;
+        case XMR_AV2_STAK:
+            cryptonight_hash_ctx = cryptonight_av2_aesni_stak;
             break;
 
-        case XMR_AV3_AESNI_ALT:
-            cryptonight_hash_ctx = cryptonight_av3_aesni_alt;
+        case XMR_AV3_AESNI_BMI2:
+            cryptonight_hash_ctx = cryptonight_av3_aesni_bmi2;
             break;
 
-        case XMR_AV5_STAK:
-            cryptonight_hash_ctx = cryptonight_av5_aesni_stak;
-            break;
-
-        case XMR_AV6_STAK_NO_PREFETCH:
-            cryptonight_hash_ctx = cryptonight_av6_aesni_stak_no_prefetch;
-            break;
-
-        case XMR_AV7_EXPERIMENTAL:
-            cryptonight_hash_ctx = cryptonight_av7_aesni_experimental;
+        case XMR_AV5_EXPERIMENTAL:
+            cryptonight_hash_ctx = cryptonight_av5_aesni_experimental;
             break;
 
         #elif defined(__i386__)

@@ -101,11 +101,10 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 
     set(CRYPTONIGHT64
         algo/cryptonight/cryptonight_av1_aesni.c
-        algo/cryptonight/cryptonight_av3_aesni_alt.c
+        algo/cryptonight/cryptonight_av2_aesni_stak.c
+        algo/cryptonight/cryptonight_av3_aesni_bmi2.c
         algo/cryptonight/cryptonight_av4_softaes.c
-        algo/cryptonight/cryptonight_av5_aesni_stak.c
-        algo/cryptonight/cryptonight_av6_aesni_stak_no_prefetch.c
-        algo/cryptonight/cryptonight_av7_aesni_experimental.c
+        algo/cryptonight/cryptonight_av5_aesni_experimental.c
     )
 
     add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${CRYPTONIGHT64})

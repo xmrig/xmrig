@@ -5,12 +5,10 @@
 
 
 void cryptonight_av1_aesni(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av2_aesni_bmi2(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av3_aesni_alt(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+void cryptonight_av2_aesni_stak(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+void cryptonight_av3_aesni_bmi2(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 void cryptonight_av4_softaes(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av5_aesni_stak(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av6_aesni_stak_no_prefetch(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av7_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+void cryptonight_av5_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
 
 
 char hash[32];
@@ -77,7 +75,7 @@ void test_cryptonight_av2_should_CalcHash(void)
     uint8_t *memory = (uint8_t *) malloc(MEMORY);
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
 
-    cryptonight_av2_aesni_bmi2(&hash, data, memory, ctx);
+    cryptonight_av2_aesni_stak(&hash, data, memory, ctx);
 
     free(memory);
     free(ctx);
@@ -91,7 +89,7 @@ void test_cryptonight_av3_should_CalcHash(void)
     uint8_t *memory = (uint8_t *) malloc(MEMORY);
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) malloc(sizeof(struct cryptonight_ctx));
 
-    cryptonight_av3_aesni_alt(&hash, data, memory, ctx);
+    cryptonight_av3_aesni_bmi2(&hash, data, memory, ctx);
 
     free(memory);
     free(ctx);
@@ -119,35 +117,7 @@ void test_cryptonight_av5_should_CalcHash(void)
     uint8_t *memory = (uint8_t *) malloc(MEMORY);
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
 
-    cryptonight_av5_aesni_stak(&hash, data, memory, ctx);
-
-    free(memory);
-    free(ctx);
-
-    TEST_ASSERT_EQUAL_STRING(RESULT, bin2hex(hash, 32));
-}
-
-
-void test_cryptonight_av6_should_CalcHash(void)
-{
-    uint8_t *memory = (uint8_t *) malloc(MEMORY);
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
-
-    cryptonight_av6_aesni_stak_no_prefetch(&hash, data, memory, ctx);
-
-    free(memory);
-    free(ctx);
-
-    TEST_ASSERT_EQUAL_STRING(RESULT, bin2hex(hash, 32));
-}
-
-
-void test_cryptonight_av7_should_CalcHash(void)
-{
-    uint8_t *memory = (uint8_t *) malloc(MEMORY);
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
-
-    cryptonight_av7_aesni_experimental(&hash, data, memory, ctx);
+    cryptonight_av5_aesni_experimental(&hash, data, memory, ctx);
 
     free(memory);
     free(ctx);
@@ -167,8 +137,6 @@ int main(void)
     RUN_TEST(test_cryptonight_av3_should_CalcHash);
     RUN_TEST(test_cryptonight_av4_should_CalcHash);
     RUN_TEST(test_cryptonight_av5_should_CalcHash);
-    RUN_TEST(test_cryptonight_av6_should_CalcHash);
-    RUN_TEST(test_cryptonight_av7_should_CalcHash);
 
     return UNITY_END();
 }

@@ -222,7 +222,7 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 
-void cryptonight_av5_aesni_stak(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av2_aesni_stak(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
 {
     keccak((const uint8_t *) input, 76, (uint8_t *) &ctx->state.hs, 200);
 

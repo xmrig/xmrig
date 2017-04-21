@@ -29,15 +29,6 @@
 #include "crypto/c_keccak.h"
 
 
-#ifdef __GNUC__
-static inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
-{
-    unsigned __int128 r = (unsigned __int128)a * (unsigned __int128)b;
-    *hi = r >> 64;
-    return (uint64_t)r;
-}
-#endif
-
 #define aes_genkey_sub(imm8) \
     __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, (imm8)); \
     xout1 = _mm_shuffle_epi32(xout1, 0xFF); \
@@ -222,48 +213,46 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 
-void cryptonight_av6_aesni_stak_no_prefetch(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av5_aesni_experimental(void *restrict output, const void *restrict input, char *restrict memory, struct cryptonight_ctx *restrict ctx)
 {
-    keccak((const uint8_t *) input, 76, (uint8_t *) &ctx->state.hs, 200);
+    uint64_t* state = ctx->state.hs.w;
 
-    cn_explode_scratchpad((__m128i*) &ctx->state.hs, (__m128i*) memory);
+    keccak((const uint8_t *) input, 76, (uint8_t *) state, 200);
+    cn_explode_scratchpad((__m128i*) state, (__m128i*) memory);
 
-    const uint8_t* l0 = memory;
-    uint64_t* h0 = (uint64_t*) &ctx->state.hs;
+    uint64_t a[2] __attribute((aligned(16))) = { state[0] ^ state[4], state[1] ^ state[5] };
+    uint64_t c    __attribute((aligned(16)));
+    uint64_t d[2] __attribute((aligned(16)));
 
-    uint64_t al0 = h0[0] ^ h0[4];
-    uint64_t ah0 = h0[1] ^ h0[5];
-    __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
-
-    uint64_t idx0 = h0[0] ^ h0[4];
+    __m128i a_x = _mm_load_si128((__m128i *) &memory[a[0] & 0x1FFFF0]);
+    __m128i b_x = _mm_set_epi64x(state[3] ^ state[7], state[2] ^ state[6]);
 
     for (size_t i = 0; __builtin_expect(i < 0x80000, 1); i++) {
-        __m128i cx;
-        cx = _mm_load_si128((__m128i *)&l0[idx0 & 0x1FFFF0]);
-        cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
+        __m128i c_x = _mm_aesenc_si128(a_x, _mm_load_si128((__m128i *) a));
+        c = _mm_cvtsi128_si64(c_x);
 
-        _mm_store_si128((__m128i *)&l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx0, cx));
-        idx0 = _mm_cvtsi128_si64(cx);
-        bx0 = cx;
+        uint64_t *restrict d_ptr = (uint64_t *) &memory[c & 0x1FFFF0];
+        _mm_store_si128((__m128i *) &memory[a[0] & 0x1FFFF0], _mm_xor_si128(b_x, c_x));
+        b_x = c_x;
 
-        uint64_t hi, lo, cl, ch;
-        cl = ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0];
-        ch = ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1];
-        lo = _umul128(idx0, cl, &hi);
+        d[0] = d_ptr[0];
+        d[1] = d_ptr[1];
 
-        al0 += hi;
-        ah0 += lo;
+        {
+            unsigned __int128 res = (unsigned __int128) c * d[0];
 
-        ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0] = al0;
-        ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1] = ah0;
+            d_ptr[0] = a[0] += res >> 64;
+            d_ptr[1] = a[1] += (uint64_t) res;
+        }
 
-        ah0 ^= ch;
-        al0 ^= cl;
-        idx0 = al0;
+        a[0] ^= d[0];
+        a[1] ^= d[1];
+
+        a_x = _mm_load_si128((__m128i *) &memory[a[0] & 0x1FFFF0]);
     }
 
-    cn_implode_scratchpad((__m128i*) memory, (__m128i*) &ctx->state.hs);
+    cn_implode_scratchpad((__m128i*) memory, (__m128i*) state);
 
-    keccakf((uint64_t*) &ctx->state.hs, 24);
+    keccakf(state, 24);
     extra_hashes[ctx->state.hs.b[0] & 3](&ctx->state, 200, output);
 }
