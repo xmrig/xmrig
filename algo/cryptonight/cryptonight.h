@@ -40,6 +40,6 @@ extern void (* const extra_hashes[4])(const void *, size_t, char *);
 
 void cryptonight_init(int variant);
 void cryptonight_hash(void* output, const void* input, size_t input_len);
-int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict pdata, const uint32_t *restrict ptarget, uint32_t max_nonce, unsigned long *restrict hashes_done, const char *memory, struct cryptonight_ctx *persistentctx);
+int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict pdata, const uint32_t *restrict ptarget, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx);
 
 #endif /* __CRYPTONIGHT_H__ */

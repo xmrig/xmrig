@@ -38,7 +38,7 @@ int persistent_memory_flags = 0;
 
 
 const char * persistent_memory_allocate() {
-    const int size = TWO_MB_PAGE * (opt_n_threads + 1);
+    const int size = MEMORY * (opt_n_threads + 1);
     persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;
 
     persistent_memory = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
@@ -63,7 +63,7 @@ const char * persistent_memory_allocate() {
 
 
 void persistent_memory_free() {
-    const int size = TWO_MB_PAGE * (opt_n_threads + 1);
+    const int size = MEMORY * (opt_n_threads + 1);
 
     if (persistent_memory_flags & MEMORY_HUGEPAGES_ENABLED) {
         if (persistent_memory_flags & MEMORY_LOCK) {

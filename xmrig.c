@@ -284,7 +284,7 @@ static void *miner_thread(void *userdata) {
 
     applog(LOG_BLUE, "%d", sizeof(struct cryptonight_ctx));
 
-    struct cryptonight_ctx *persistentctx = (struct cryptonight_ctx *) &persistent_memory[MEMORY - sizeof(struct cryptonight_ctx) * (thr_id + 1)];
+    struct cryptonight_ctx *persistentctx = (struct cryptonight_ctx *) create_persistent_ctx(thr_id);
 
     if (cpu_info.count > 1 && opt_n_threads > 1 && opt_affinity != -1L) {
         affine_to_cpu_mask(thr_id, (unsigned long) opt_affinity);
@@ -337,7 +337,7 @@ static void *miner_thread(void *userdata) {
         gettimeofday(&tv_start, NULL );
 
         /* scan nonces for a proof-of-work hash */
-        rc = scanhash_cryptonight(thr_id, hash, work.data, work.target, max_nonce, &hashes_done, &persistent_memory[MEMORY * (thr_id + 1)], persistentctx);
+        rc = scanhash_cryptonight(thr_id, hash, work.data, work.target, max_nonce, &hashes_done, persistentctx);
         stats_add_hashes(thr_id, &tv_start, hashes_done);
 
         memcpy(work.hash, hash, 32);

@@ -34,7 +34,7 @@ enum memory_flags {
 };
 
 
-#define TWO_MB_PAGE 2097152
+#define MEMORY 2097152
 
 
 extern char *persistent_memory;
@@ -44,6 +44,7 @@ extern int persistent_memory_flags;
 const char * persistent_memory_allocate();
 void persistent_memory_free();
 void * persistent_calloc(size_t num, size_t size);
+void * create_persistent_ctx(int thr_id);
 
 
 #endif /* __PERSISTENT_MEMORY_H__ */

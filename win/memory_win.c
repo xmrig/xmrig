@@ -20,7 +20,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef __MEMORY_H__
 #define __MEMORY_H__
 
@@ -58,7 +58,6 @@ static BOOL SetLockPagesPrivilege(HANDLE hProcess, BOOL bEnable) {
     } Info;
 
     HANDLE Token;
-    BOOL result;
 
     if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &Token) != TRUE) {
         return FALSE;
@@ -86,7 +85,7 @@ static BOOL SetLockPagesPrivilege(HANDLE hProcess, BOOL bEnable) {
 
 
 const char * persistent_memory_allocate() {
-    const int size = TWO_MB_PAGE * (opt_n_threads + 1);
+    const int size = MEMORY * (opt_n_threads + 1);
 
     if (SetLockPagesPrivilege(GetCurrentProcess(), TRUE)) {
         persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;

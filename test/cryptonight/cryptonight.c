@@ -4,11 +4,11 @@
 #include <algo/cryptonight/cryptonight.h>
 
 
-void cryptonight_av1_aesni(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av2_aesni_stak(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av3_aesni_bmi2(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av4_softaes(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
-void cryptonight_av5_aesni_experimental(void* output, const void* input, const char *memory, struct cryptonight_ctx* ctx);
+void cryptonight_av1_aesni(void* output, const void* input, struct cryptonight_ctx* ctx);
+void cryptonight_av2_aesni_stak(void* output, const void* input, struct cryptonight_ctx* ctx);
+void cryptonight_av3_aesni_bmi2(void* output, const void* input, struct cryptonight_ctx* ctx);
+void cryptonight_av4_softaes(void* output, const void* input, struct cryptonight_ctx* ctx);
+void cryptonight_av5_aesni_experimental(void* output, const void* input, struct cryptonight_ctx* ctx);
 
 
 char hash[32];
@@ -17,7 +17,7 @@ char data[76];
 #define RESULT "1a3ffbee909b420d91f7be6e5fb56db71b3110d886011e877ee5786afd080100"
 
 
-char *bin2hex(const unsigned char *p, size_t len)
+static char *bin2hex(const unsigned char *p, size_t len)
 {
     char *s = malloc((len * 2) + 1);
     if (!s) {
@@ -31,7 +31,7 @@ char *bin2hex(const unsigned char *p, size_t len)
     return s;
 }
 
-bool hex2bin(unsigned char *p, const char *hexstr, size_t len)
+static bool hex2bin(unsigned char *p, const char *hexstr, size_t len)
 {
     char hex_byte[3];
     char *ep;
@@ -57,14 +57,26 @@ bool hex2bin(unsigned char *p, const char *hexstr, size_t len)
 }
 
 
-void test_cryptonight_av1_should_CalcHash(void) {
-    uint8_t *memory = (uint8_t *) malloc(MEMORY);
+static void * create_ctx() {
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) malloc(sizeof(struct cryptonight_ctx));
+    ctx->memory = (uint8_t *) malloc(MEMORY);
 
-    cryptonight_av1_aesni(&hash, data, memory, ctx);
+    return ctx;
+}
 
-    free(memory);
+
+static void free_ctx(struct cryptonight_ctx *ctx) {
+    free(ctx->memory);
     free(ctx);
+}
+
+
+void test_cryptonight_av1_should_CalcHash(void) {
+    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx();
+
+    cryptonight_av1_aesni(&hash, data, ctx);
+
+    free_ctx(ctx);
 
     TEST_ASSERT_EQUAL_STRING(RESULT, bin2hex(hash, 32));
 }
@@ -72,13 +84,11 @@ void test_cryptonight_av1_should_CalcHash(void) {
 
 void test_cryptonight_av2_should_CalcHash(void)
 {
-    uint8_t *memory = (uint8_t *) malloc(MEMORY);
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
+    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx();
 
-    cryptonight_av2_aesni_stak(&hash, data, memory, ctx);
+    cryptonight_av2_aesni_stak(&hash, data, ctx);
 
-    free(memory);
-    free(ctx);
+    free_ctx(ctx);
 
     TEST_ASSERT_EQUAL_STRING(RESULT, bin2hex(hash, 32));
 }
@@ -86,13 +96,11 @@ void test_cryptonight_av2_should_CalcHash(void)
 
 void test_cryptonight_av3_should_CalcHash(void)
 {
-    uint8_t *memory = (uint8_t *) malloc(MEMORY);
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) malloc(sizeof(struct cryptonight_ctx));
+    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx();
 
-    cryptonight_av3_aesni_bmi2(&hash, data, memory, ctx);
+    cryptonight_av3_aesni_bmi2(&hash, data, ctx);
 
-    free(memory);
-    free(ctx);
+    free_ctx(ctx);
 
     TEST_ASSERT_EQUAL_STRING(RESULT, bin2hex(hash, 32));
 }
@@ -100,13 +108,11 @@ void test_cryptonight_av3_should_CalcHash(void)
 
 void test_cryptonight_av4_should_CalcHash(void)
 {
-    uint8_t *memory = (uint8_t *) malloc(MEMORY);
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) malloc(sizeof(struct cryptonight_ctx));
+    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx();
 
-    cryptonight_av4_softaes(&hash, data, memory, ctx);
+    cryptonight_av4_softaes(&hash, data, ctx);
 
-    free(memory);
-    free(ctx);
+    free_ctx(ctx);
 
     TEST_ASSERT_EQUAL_STRING(RESULT, bin2hex(hash, 32));
 }
@@ -114,13 +120,11 @@ void test_cryptonight_av4_should_CalcHash(void)
 
 void test_cryptonight_av5_should_CalcHash(void)
 {
-    uint8_t *memory = (uint8_t *) malloc(MEMORY);
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*)malloc(sizeof(struct cryptonight_ctx));
+    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx();
 
-    cryptonight_av5_aesni_experimental(&hash, data, memory, ctx);
+    cryptonight_av5_aesni_experimental(&hash, data, ctx);
 
-    free(memory);
-    free(ctx);
+    free_ctx(ctx);
 
     TEST_ASSERT_EQUAL_STRING(RESULT, bin2hex(hash, 32));
 }
