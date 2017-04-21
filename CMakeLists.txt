@@ -111,6 +111,7 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 else()
     set(CRYPTONIGHT32
         algo/cryptonight/i686/cryptonight_av1_aesni.c
+        algo/cryptonight/i686/cryptonight_av4_softaes.c
     )
 
     add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${CRYPTONIGHT32})
