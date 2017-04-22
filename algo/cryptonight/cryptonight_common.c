@@ -136,7 +136,7 @@ void (* const extra_hashes[4])(const void *, size_t, char *) = {do_blake_hash, d
 
 
 #ifndef BUILD_TEST
-int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict pdata, const uint32_t *restrict ptarget, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx) {
+int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict pdata, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx) {
     uint32_t *nonceptr = (uint32_t*) (((char*)pdata) + 39);
     uint32_t n = *nonceptr - 1;
     const uint32_t first_nonce = n + 1;
@@ -145,7 +145,7 @@ int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict pdata, c
         *nonceptr = ++n;
         cryptonight_hash_ctx(hash, pdata, ctx);
 
-        if (unlikely(hash[7] < ptarget[7])) {
+        if (unlikely(hash[7] < target)) {
             *hashes_done = n - first_nonce + 1;
             return true;
         }

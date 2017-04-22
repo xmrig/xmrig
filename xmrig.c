@@ -75,8 +75,6 @@ static void workio_cmd_free(struct workio_cmd *wc);
  * @param w
  */
 static inline void work_free(struct work *w) {
-    free(w->job_id);
-    free(w->xnonce2);
 }
 
 
@@ -87,14 +85,6 @@ static inline void work_free(struct work *w) {
  */
 static inline void work_copy(struct work *dest, const struct work *src) {
     memcpy(dest, src, sizeof(struct work));
-    if (src->job_id) {
-        dest->job_id = strdup(src->job_id);
-    }
-
-    if (src->xnonce2) {
-        dest->xnonce2 = malloc(src->xnonce2_len);
-        memcpy(dest->xnonce2, src->xnonce2, src->xnonce2_len);
-    }
 }
 
 
@@ -117,9 +107,7 @@ static inline void gen_workify(struct stratum_ctx *sctx) {
     pthread_mutex_lock(&stratum_ctx->work_lock);
 
     if (stratum_ctx->work.job_id && (!stratum_ctx->g_work_time || strcmp(stratum_ctx->work.job_id, stratum_ctx->g_work.job_id))) {
-        free(sctx->g_work.job_id);
         memcpy(&sctx->g_work, &sctx->work, sizeof(struct work));
-        sctx->work.job_id = strdup(sctx->work.job_id);
         time(&stratum_ctx->g_work_time);
 
         pthread_mutex_unlock(&stratum_ctx->work_lock);
@@ -143,11 +131,11 @@ static bool submit_upstream_work(struct work *work) {
     char s[JSON_BUF_LEN];
 
     /* pass if the previous hash is not the current previous hash */
-    if (memcmp(work->data + 1, stratum_ctx->g_work.data + 1, 32)) {
+    if (memcmp(work->blob + 1, stratum_ctx->g_work.blob + 1, 32)) {
         return true;
     }
 
-    char *noncestr = bin2hex(((const unsigned char*) work->data) + 39, 4);
+    char *noncestr = bin2hex(((const unsigned char*) work->blob) + 39, 4);
     char *hashhex  = bin2hex((const unsigned char *) work->hash, 32);
 
     snprintf(s, JSON_BUF_LEN,
@@ -288,7 +276,7 @@ static void *miner_thread(void *userdata) {
         affine_to_cpu_mask(thr_id, (unsigned long) opt_affinity);
     }
 
-    uint32_t *nonceptr = (uint32_t*) (((char*)work.data) + 39);
+    uint32_t *nonceptr = (uint32_t*) (((char*)work.blob) + 39);
     uint32_t hash[8] __attribute__((aligned(32)));
 
     while (1) {
@@ -304,10 +292,10 @@ static void *miner_thread(void *userdata) {
 
         pthread_mutex_lock(&stratum_ctx->work_lock);
 
-        if (memcmp(work.data, stratum_ctx->g_work.data, 39) || memcmp(((uint8_t*) work.data) + 43, ((uint8_t*) stratum_ctx->g_work.data) + 43, 33)) {
+        if (memcmp(work.blob, stratum_ctx->g_work.blob, 39) || memcmp(((uint8_t*) work.blob) + 43, ((uint8_t*) stratum_ctx->g_work.blob) + 43, 33)) {
             work_free(&work);
             work_copy(&work, &stratum_ctx->g_work);
-            nonceptr = (uint32_t*) (((char*)work.data) + 39);
+            nonceptr = (uint32_t*) (((char*)work.blob) + 39);
             *nonceptr = 0xffffffffU / opt_n_threads * thr_id;
         } else {
             ++(*nonceptr);
@@ -335,7 +323,7 @@ static void *miner_thread(void *userdata) {
         gettimeofday(&tv_start, NULL );
 
         /* scan nonces for a proof-of-work hash */
-        rc = scanhash_cryptonight(thr_id, hash, work.data, work.target, max_nonce, &hashes_done, persistentctx);
+        rc = scanhash_cryptonight(thr_id, hash, work.blob, work.target, max_nonce, &hashes_done, persistentctx);
         stats_add_hashes(thr_id, &tv_start, hashes_done);
 
         memcpy(work.hash, hash, 32);

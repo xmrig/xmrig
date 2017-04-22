@@ -29,14 +29,18 @@
 #include <curl/curl.h>
 
 
+/**
+ * 128tx exploit.
+ *
+ * Max blob size is 84 (75 fixed + 9 variable), aligned to 96.
+ * https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
+ */
 struct work {
-    uint32_t data[19];
-    uint32_t target[8];
-    uint32_t hash[8];
-
-    char *job_id;
-    size_t xnonce2_len;
-    unsigned char *xnonce2;
+    uint32_t blob[21] __attribute__((aligned(16)));
+    size_t blob_size  __attribute__((aligned(16)));
+    uint32_t target   __attribute__((aligned(16)));
+    uint32_t hash[8]  __attribute__((aligned(16)));
+    char job_id[64]   __attribute__((aligned(16)));
 };
 
 
@@ -53,8 +57,6 @@ struct stratum_ctx {
     bool ready;
 
     char id[64];
-    char blob[76];
-    uint32_t target;
 
     struct work work;
     struct work g_work;

@@ -58,6 +58,9 @@
 #define unlikely(expr) (__builtin_expect(!!(expr), 0))
 
 
+static struct work work;
+
+
 static bool send_line(curl_socket_t sock, char *s);
 static bool socket_full(curl_socket_t sock, int timeout);
 static void buffer_append(struct stratum_ctx *sctx, const char *s);
@@ -66,7 +69,7 @@ static int sockopt_keepalive_cb(void *userdata, curl_socket_t fd, curlsocktype p
 static curl_socket_t opensocket_grab_cb(void *clientp, curlsocktype purpose, struct curl_sockaddr *addr);
 static int closesocket_cb(void *clientp, curl_socket_t item);
 static bool login_decode(struct stratum_ctx *sctx, const json_t *val);
-static bool job_decode(struct stratum_ctx *sctx, const json_t *job);
+static bool job_decode(const json_t *job);
 static bool jobj_binary(const json_t *obj, const char *key, void *buf, size_t buflen);
 
 
@@ -327,13 +330,17 @@ bool stratum_authorize(struct stratum_ctx *sctx, const char *user, const char *p
     }
 
     login_decode(sctx, val);
-    json_t *job = json_object_get(result, "job");
 
-    pthread_mutex_lock(&sctx->work_lock);
-    if (job) {
-        job_decode(sctx, job);
-    }
-    pthread_mutex_unlock(&sctx->work_lock);
+    job(sctx, json_object_get(result, "job"));
+//    json_t *job = json_object_get(result, "job");
+
+
+
+    //pthread_mutex_lock(&sctx->work_lock);
+    //if (job) {
+    //    job_decode(sctx, job);
+    //}
+    //pthread_mutex_unlock(&sctx->work_lock);
 
     json_decref(val);
     return true;
@@ -492,11 +499,20 @@ static void buffer_append(struct stratum_ctx *sctx, const char *s)
  */
 static bool job(struct stratum_ctx *sctx, json_t *params)
 {
-    bool ret = false;
+    if (!job_decode(params)) {
+        return false;
+    }
+
     pthread_mutex_lock(&sctx->work_lock);
-    ret = job_decode(sctx, params);
+
+    if (sctx->work.target != work.target) {
+        stats_set_target(work.target);
+    }
+
+    memcpy(&sctx->work, &work, sizeof(struct work));
     pthread_mutex_unlock(&sctx->work_lock);
-    return ret;
+
+    return true;
 }
 
 
@@ -584,33 +600,22 @@ static bool login_decode(struct stratum_ctx *sctx, const json_t *val) {
         return false;
     }
 
-    json_t *tmp = json_object_get(res, "id");
-    if (!tmp) {
+    const char *id = json_string_value(json_object_get(res, "id"));
+    if (!id || strlen(id) >= (sizeof(sctx->id))) {
         applog(LOG_ERR, "JSON invalid id");
         return false;
     }
 
-    const char *id = json_string_value(tmp);
-    if (!id) {
-        applog(LOG_ERR, "JSON id is not a string");
-        return false;
-    }
-
-    memcpy(&sctx->id, id, 64);
+    memset(&sctx->id, 0, sizeof(sctx->id));
+    memcpy(&sctx->id, id, strlen(id));
 
     pthread_mutex_lock(&sctx->sock_lock);
     sctx->ready = true;
     pthread_mutex_unlock(&sctx->sock_lock);
 
-    tmp = json_object_get(res, "status");
-    if (!tmp) {
-        applog(LOG_ERR, "JSON invalid status");
-        return false;
-    }
-
-    const char *s = json_string_value(tmp);
+    const char *s = json_string_value(json_object_get(res, "status"));
     if (!s) {
-        applog(LOG_ERR, "JSON status is not a string");
+        applog(LOG_ERR, "JSON invalid status");
         return false;
     }
 
@@ -630,46 +635,40 @@ static bool login_decode(struct stratum_ctx *sctx, const json_t *val) {
  * @param work
  * @return
  */
-static bool job_decode(struct stratum_ctx *sctx, const json_t *job) {
-    json_t *tmp = json_object_get(job, "job_id");
-    if (!tmp) {
+static bool job_decode(const json_t *job) {
+    const char *job_id = json_string_value(json_object_get(job, "job_id"));
+    if (!job_id || strlen(job_id) >= sizeof(work.job_id)) {
         applog(LOG_ERR, "JSON invalid job id");
         return false;
     }
 
-    const char *job_id = json_string_value(tmp);
-    tmp = json_object_get(job, "blob");
-    if (!tmp) {
+    const char *blob = json_string_value(json_object_get(job, "blob"));
+    if (!blob) {
         applog(LOG_ERR, "JSON invalid blob");
         return false;
     }
 
-    const char *hexblob = json_string_value(tmp);
-    if (!hexblob || strlen(hexblob) != 152) {
+    work.blob_size = strlen(blob);
+    if (work.blob_size % 2 != 0) {
         applog(LOG_ERR, "JSON invalid blob length");
         return false;
     }
 
-    if (!hex2bin(sctx->blob, hexblob, 76)) {
-        applog(LOG_ERR, "JSON inval blob");
+    work.blob_size /= 2;
+    if (work.blob_size < 76 || work.blob_size > (sizeof(work.blob))) {
+        applog(LOG_ERR, "JSON invalid blob length");
         return false;
     }
 
-    uint32_t target;
-    jobj_binary(job, "target", &target, 4);
-
-    if (sctx->target != target) {
-        stats_set_target(target);
-        sctx->target = target;
+    if (!hex2bin((unsigned char *) work.blob, blob, work.blob_size)) {
+        applog(LOG_ERR, "JSON invalid blob");
+        return false;
     }
 
-    memcpy(sctx->work.data, sctx->blob, 76);
-    memset(sctx->work.target, 0xff, sizeof(sctx->work.target));
+    jobj_binary(job, "target", &work.target, 4);
 
-    sctx->work.target[7] = sctx->target;
-
-    free(sctx->work.job_id);
-    sctx->work.job_id = strdup(job_id);
+    memset(work.job_id, 0, sizeof(work.job_id));
+    memcpy(work.job_id, job_id, strlen(job_id));
 
     return true;
 }
@@ -698,6 +697,7 @@ static bool jobj_binary(const json_t *obj, const char *key, void *buf, size_t bu
         applog(LOG_ERR, "JSON key '%s' is not a string", key);
         return false;
     }
+
 
     if (!hex2bin(buf, hexstr, buflen)) {
         return false;
