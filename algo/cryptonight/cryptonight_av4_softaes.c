@@ -203,9 +203,9 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 
-void cryptonight_av4_softaes(void *restrict output, const void *restrict input, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av4_softaes(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
 {
-    keccak((const uint8_t *) input, 76, ctx->state, 200);
+    keccak((const uint8_t *) input, size, ctx->state, 200);
 
     cn_explode_scratchpad((__m128i*) ctx->state, (__m128i*) ctx->memory);
 

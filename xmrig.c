@@ -295,7 +295,7 @@ static void *miner_thread(void *userdata) {
         if (memcmp(work.blob, stratum_ctx->g_work.blob, 39) || memcmp(((uint8_t*) work.blob) + 43, ((uint8_t*) stratum_ctx->g_work.blob) + 43, 33)) {
             work_free(&work);
             work_copy(&work, &stratum_ctx->g_work);
-            nonceptr = (uint32_t*) (((char*)work.blob) + 39);
+            nonceptr = (uint32_t*) (((char*) work.blob) + 39);
             *nonceptr = 0xffffffffU / opt_n_threads * thr_id;
         } else {
             ++(*nonceptr);
@@ -323,7 +323,7 @@ static void *miner_thread(void *userdata) {
         gettimeofday(&tv_start, NULL );
 
         /* scan nonces for a proof-of-work hash */
-        rc = scanhash_cryptonight(thr_id, hash, work.blob, work.target, max_nonce, &hashes_done, persistentctx);
+        rc = scanhash_cryptonight(thr_id, hash, work.blob, work.blob_size, work.target, max_nonce, &hashes_done, persistentctx);
         stats_add_hashes(thr_id, &tv_start, hashes_done);
 
         memcpy(work.hash, hash, 32);
