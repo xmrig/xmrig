@@ -23,6 +23,7 @@
 
 
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef BUILD_TEST
 #   include "xmrig.h"
@@ -52,16 +53,16 @@ const static char test_output[32] = {
 };
 
 
-void cryptonight_av1_aesni(void* output, const void* input, struct cryptonight_ctx* ctx);
-void cryptonight_av4_softaes(void* output, const void* input, struct cryptonight_ctx* ctx);
+void cryptonight_av1_aesni(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
+void cryptonight_av4_softaes(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
 
 #if defined(__x86_64__)
-  void cryptonight_av2_aesni_stak(void* output, const void* input, struct cryptonight_ctx* ctx);
-  void cryptonight_av3_aesni_bmi2(void* output, const void* input, struct cryptonight_ctx* ctx);
-  void cryptonight_av5_aesni_experimental(void* output, const void* input, struct cryptonight_ctx* ctx);
+  void cryptonight_av2_aesni_stak(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
+  void cryptonight_av3_aesni_bmi2(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
+  void cryptonight_av5_aesni_experimental(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
 #endif
 
-void (*cryptonight_hash_ctx)(void* output, const void* input, struct cryptonight_ctx* ctx) = NULL;
+void (*cryptonight_hash_ctx)(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx) = NULL;
 
 
 static bool self_test() {
@@ -70,7 +71,7 @@ static bool self_test() {
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) malloc(sizeof(struct cryptonight_ctx));
     ctx->memory = (uint8_t *) malloc(MEMORY);
 
-    cryptonight_hash_ctx(output, test_input, ctx);
+    cryptonight_hash_ctx(test_input, sizeof(test_input), output, ctx);
 
     free(ctx->memory);
     free(ctx);
@@ -136,16 +137,16 @@ void (* const extra_hashes[4])(const void *, size_t, char *) = {do_blake_hash, d
 
 
 #ifndef BUILD_TEST
-int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict pdata, const uint32_t *restrict ptarget, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx) {
-    uint32_t *nonceptr = (uint32_t*) (((char*)pdata) + 39);
+int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx) {
+    uint32_t *nonceptr = (uint32_t*) (((char*) blob) + 39);
     uint32_t n = *nonceptr - 1;
     const uint32_t first_nonce = n + 1;
 
     do {
         *nonceptr = ++n;
-        cryptonight_hash_ctx(hash, pdata, ctx);
+        cryptonight_hash_ctx(blob, blob_size, hash, ctx);
 
-        if (unlikely(hash[7] < ptarget[7])) {
+        if (unlikely(hash[7] < target)) {
             *hashes_done = n - first_nonce + 1;
             return true;
         }

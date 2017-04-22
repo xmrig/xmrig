@@ -213,11 +213,11 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 
-void cryptonight_av5_aesni_experimental(void *restrict output, const void *restrict input, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av5_aesni_experimental(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
 {
     const uint8_t* memory = ctx->memory;
 
-    keccak((const uint8_t *) input, 76, ctx->state, 200);
+    keccak((const uint8_t *) input, size, ctx->state, 200);
     cn_explode_scratchpad((__m128i*) ctx->state, (__m128i*) memory);
 
     uint64_t* state = (uint64_t*) ctx->state;
