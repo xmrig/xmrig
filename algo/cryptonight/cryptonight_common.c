@@ -53,16 +53,16 @@ const static char test_output[32] = {
 };
 
 
-void cryptonight_av1_aesni(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
-void cryptonight_av4_softaes(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
+void cryptonight_av1_aesni(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_av4_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
 
 #if defined(__x86_64__)
-  void cryptonight_av2_aesni_stak(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
-  void cryptonight_av3_aesni_bmi2(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
-  void cryptonight_av5_aesni_experimental(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx);
+  void cryptonight_av2_aesni_stak(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+  void cryptonight_av3_aesni_bmi2(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+  void cryptonight_av5_aesni_experimental(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
 #endif
 
-void (*cryptonight_hash_ctx)(void* input, size_t size, const void* output, struct cryptonight_ctx* ctx) = NULL;
+void (*cryptonight_hash_ctx)(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx) = NULL;
 
 
 static bool self_test() {
