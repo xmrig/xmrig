@@ -30,16 +30,6 @@
 #include "crypto/c_keccak.h"
 
 
-#ifndef __BMI2__
-static inline uint64_t _mulx_u64(uint64_t a, uint64_t b, uint64_t* hi)
-{
-    unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
-    *hi = r >> 64;
-    return (uint64_t) r;
-}
-#endif
-
-
 void cryptonight_av1_aesni(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
 {
     keccak((const uint8_t *) input, size, ctx->state, 200);
@@ -67,7 +57,7 @@ void cryptonight_av1_aesni(const void *restrict input, size_t size, void *restri
         uint64_t hi, lo, cl, ch;
         cl = ((uint64_t*) &l0[idx0 & 0x1FFFF0])[0];
         ch = ((uint64_t*) &l0[idx0 & 0x1FFFF0])[1];
-        lo = _mulx_u64(idx0, cl, &hi);
+        lo = _umul128(idx0, cl, &hi);
 
         al0 += hi;
         ah0 += lo;

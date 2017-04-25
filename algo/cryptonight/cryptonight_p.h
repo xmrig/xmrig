@@ -212,4 +212,12 @@ inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 
+inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
+{
+    unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
+    *hi = r >> 64;
+    return (uint64_t) r;
+}
+
+
 #endif /* __CRYPTONIGHT_P_H__ */
