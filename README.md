@@ -62,6 +62,8 @@ Since version 0.6.0.
 * `--av=3` Same as `1` but uses BMI2 instruction [mulx](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mulx_u64).
 * `--av=4` Software AES implementation.
 
+For 32 bit platform only available `1` and `4`.
+
 ## Build
 ### Ubuntu (Debian-based distros)
 ```
