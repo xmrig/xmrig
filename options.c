@@ -389,10 +389,6 @@ void parse_cmdline(int argc, char *argv[]) {
         opt_algo_variant = get_algo_variant(0);
     }
 
-    if (opt_donate_level < 1 || opt_donate_level > 99) {
-        opt_donate_level = 1;
-    }
-
     if (!cryptonight_init(opt_algo_variant)) {
         applog(LOG_ERR, "Cryptonight hash self-test failed. This might be caused by bad compiler optimizations.");
         proper_exit(1);
