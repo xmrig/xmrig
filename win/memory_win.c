@@ -93,7 +93,7 @@ const char * persistent_memory_allocate() {
 
     persistent_memory = VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE);
     if (!persistent_memory) {
-        persistent_memory = _mm_malloc(size, 4096);
+        persistent_memory = _mm_malloc(size, 16);
     }
     else {
         persistent_memory_flags |= MEMORY_HUGEPAGES_ENABLED;

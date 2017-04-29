@@ -329,18 +329,11 @@ bool stratum_authorize(struct stratum_ctx *sctx, const char *user, const char *p
         return false;
     }
 
-    login_decode(sctx, val);
-
-    job(sctx, json_object_get(result, "job"));
-//    json_t *job = json_object_get(result, "job");
-
-
-
-    //pthread_mutex_lock(&sctx->work_lock);
-    //if (job) {
-    //    job_decode(sctx, job);
-    //}
-    //pthread_mutex_unlock(&sctx->work_lock);
+    if (login_decode(sctx, val) && job(sctx, json_object_get(result, "job"))) {
+        pthread_mutex_lock(&sctx->sock_lock);
+        sctx->ready = true;
+        pthread_mutex_unlock(&sctx->sock_lock);
+    }
 
     json_decref(val);
     return true;
@@ -608,10 +601,6 @@ static bool login_decode(struct stratum_ctx *sctx, const json_t *val) {
 
     memset(&sctx->id, 0, sizeof(sctx->id));
     memcpy(&sctx->id, id, strlen(id));
-
-    pthread_mutex_lock(&sctx->sock_lock);
-    sctx->ready = true;
-    pthread_mutex_unlock(&sctx->sock_lock);
 
     const char *s = json_string_value(json_object_get(res, "status"));
     if (!s) {
