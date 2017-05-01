@@ -38,7 +38,8 @@ int persistent_memory_flags = 0;
 
 
 const char * persistent_memory_allocate() {
-    const int size = MEMORY * (opt_n_threads + 1);
+    const int ratio = opt_double_hash ? 2 : 1;
+    const int size = MEMORY * (opt_n_threads * ratio + 1);
     persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;
 
     persistent_memory = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);

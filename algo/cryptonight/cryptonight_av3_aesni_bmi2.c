@@ -26,18 +26,18 @@
 #include <string.h>
 
 #include "cryptonight.h"
-#include "cryptonight_p.h"
+#include "cryptonight_aesni.h"
 #include "crypto/c_keccak.h"
 
 
 void cryptonight_av3_aesni_bmi2(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
 {
-    keccak((const uint8_t *) input, size, ctx->state, 200);
+    keccak((const uint8_t *) input, size, ctx->state0, 200);
 
-    cn_explode_scratchpad((__m128i*) ctx->state, (__m128i*) ctx->memory);
+    cn_explode_scratchpad((__m128i*) ctx->state0, (__m128i*) ctx->memory);
 
     const uint8_t* l0 = ctx->memory;
-    uint64_t* h0 = (uint64_t*) ctx->state;
+    uint64_t* h0 = (uint64_t*) ctx->state0;
 
     uint64_t al0 = h0[0] ^ h0[4];
     uint64_t ah0 = h0[1] ^ h0[5];
@@ -70,8 +70,8 @@ void cryptonight_av3_aesni_bmi2(const void *restrict input, size_t size, void *r
         idx0 = al0;
     }
 
-    cn_implode_scratchpad((__m128i*) ctx->memory, (__m128i*) ctx->state);
+    cn_implode_scratchpad((__m128i*) ctx->memory, (__m128i*) ctx->state0);
 
     keccakf(h0, 24);
-    extra_hashes[ctx->state[0] & 3](ctx->state, 200, output);
+    extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, output);
 }

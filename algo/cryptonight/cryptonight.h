@@ -30,10 +30,10 @@
 
 #define MEMORY 2097152 /* 2 MiB */
 
-
 struct cryptonight_ctx {
-    uint8_t state[200] __attribute__((aligned(16)));
-    uint8_t* memory    __attribute__((aligned(16)));
+    uint8_t state0[200] __attribute__((aligned(16)));
+    uint8_t state1[200] __attribute__((aligned(16)));
+    uint8_t* memory     __attribute__((aligned(16)));
 };
 
 
@@ -41,5 +41,6 @@ extern void (* const extra_hashes[4])(const void *, size_t, char *);
 
 bool cryptonight_init(int variant);
 int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx);
+int scanhash_cryptonight_double(int thr_id, uint32_t *hash, uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx);
 
 #endif /* __CRYPTONIGHT_H__ */

@@ -4,7 +4,8 @@ project(xmrig C)
 set(HEADERS
     compat.h
     algo/cryptonight/cryptonight.h
-    algo/cryptonight/cryptonight_p.h
+    algo/cryptonight/cryptonight_aesni.h
+    algo/cryptonight/cryptonight_softaes.h
     elist.h
     xmrig.h
     version.h
@@ -37,6 +38,10 @@ set(HEADERS_UTILS
 set(SOURCES
     xmrig.c
     algo/cryptonight/cryptonight.c
+    algo/cryptonight/cryptonight_av1_aesni.c
+    algo/cryptonight/cryptonight_av2_aesni_double.c
+    algo/cryptonight/cryptonight_av4_softaes.c
+    algo/cryptonight/cryptonight_av5_softaes_double.c
     util.c
     options.c
     cpu.c
@@ -99,15 +104,7 @@ endif()
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_subdirectory(algo/cryptonight/bmi2)
-
-    set(CRYPTONIGHT64
-        algo/cryptonight/cryptonight_av1_aesni.c
-        algo/cryptonight/cryptonight_av2_aesni_stak.c
-        algo/cryptonight/cryptonight_av4_softaes.c
-        algo/cryptonight/cryptonight_av5_aesni_experimental.c
-    )
-
-    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${CRYPTONIGHT64})
+    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS})
     target_link_libraries(xmrig jansson curl cryptonight_av3_aesni_bmi2 ${EXTRA_LIBS})
 else()
     set(CRYPTONIGHT32

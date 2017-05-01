@@ -35,10 +35,10 @@
 enum xmr_algo_variant {
     XMR_AV0_AUTO,
     XMR_AV1_AESNI,
-    XMR_AV2_STAK,
+    XMR_AV2_AESNI_DOUBLE,
     XMR_AV3_AESNI_BMI2,
     XMR_AV4_SOFT_AES,
-    XMR_AV5_EXPERIMENTAL,
+    XMR_AV5_SOFT_AES_DOUBLE,
     XMR_AV_MAX
 };
 
@@ -46,6 +46,7 @@ enum xmr_algo_variant {
 extern bool opt_colors;
 extern bool opt_keepalive;
 extern bool opt_background;
+extern bool opt_double_hash;
 extern char *opt_url;
 extern char *opt_backup_url;
 extern char *opt_userpass;

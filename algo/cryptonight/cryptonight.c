@@ -38,7 +38,12 @@
 #include "options.h"
 
 
-const static char test_input[76] = {
+const static char test_input[152] = {
+    0x03, 0x05, 0xA0, 0xDB, 0xD6, 0xBF, 0x05, 0xCF, 0x16, 0xE5, 0x03, 0xF3, 0xA6, 0x6F, 0x78, 0x00,
+    0x7C, 0xBF, 0x34, 0x14, 0x43, 0x32, 0xEC, 0xBF, 0xC2, 0x2E, 0xD9, 0x5C, 0x87, 0x00, 0x38, 0x3B,
+    0x30, 0x9A, 0xCE, 0x19, 0x23, 0xA0, 0x96, 0x4B, 0x00, 0x00, 0x00, 0x08, 0xBA, 0x93, 0x9A, 0x62,
+    0x72, 0x4C, 0x0D, 0x75, 0x81, 0xFC, 0xE5, 0x76, 0x1E, 0x9D, 0x8A, 0x0E, 0x6A, 0x1C, 0x3F, 0x92,
+    0x4F, 0xDD, 0x84, 0x93, 0xD1, 0x11, 0x56, 0x49, 0xC0, 0x5E, 0xB6, 0x01,
     0x03, 0x05, 0xA0, 0xDB, 0xD6, 0xBF, 0x05, 0xCF, 0x16, 0xE5, 0x03, 0xF3, 0xA6, 0x6F, 0x78, 0x00,
     0x7C, 0xBF, 0x34, 0x14, 0x43, 0x32, 0xEC, 0xBF, 0xC2, 0x2E, 0xD9, 0x5C, 0x87, 0x00, 0x38, 0x3B,
     0x30, 0x9A, 0xCE, 0x19, 0x23, 0xA0, 0x96, 0x4B, 0x00, 0x00, 0x00, 0x08, 0xBA, 0x93, 0x9A, 0x62,
@@ -47,36 +52,38 @@ const static char test_input[76] = {
 };
 
 
-const static char test_output[32] = {
+const static char test_output[64] = {
+    0x1A, 0x3F, 0xFB, 0xEE, 0x90, 0x9B, 0x42, 0x0D, 0x91, 0xF7, 0xBE, 0x6E, 0x5F, 0xB5, 0x6D, 0xB7,
+    0x1B, 0x31, 0x10, 0xD8, 0x86, 0x01, 0x1E, 0x87, 0x7E, 0xE5, 0x78, 0x6A, 0xFD, 0x08, 0x01, 0x00,
     0x1A, 0x3F, 0xFB, 0xEE, 0x90, 0x9B, 0x42, 0x0D, 0x91, 0xF7, 0xBE, 0x6E, 0x5F, 0xB5, 0x6D, 0xB7,
     0x1B, 0x31, 0x10, 0xD8, 0x86, 0x01, 0x1E, 0x87, 0x7E, 0xE5, 0x78, 0x6A, 0xFD, 0x08, 0x01, 0x00
 };
 
 
 void cryptonight_av1_aesni(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_av2_aesni_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
 void cryptonight_av4_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_av5_softaes_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
 
 #if defined(__x86_64__)
-  void cryptonight_av2_aesni_stak(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
   void cryptonight_av3_aesni_bmi2(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
-  void cryptonight_av5_aesni_experimental(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
 #endif
 
 void (*cryptonight_hash_ctx)(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx) = NULL;
 
 
 static bool self_test() {
-    char output[32];
+    char output[64];
 
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
-    ctx->memory = (uint8_t *) _mm_malloc(MEMORY, 16);
+    ctx->memory = (uint8_t *) _mm_malloc(MEMORY * 2, 16);
 
-    cryptonight_hash_ctx(test_input, sizeof(test_input), output, ctx);
+    cryptonight_hash_ctx(test_input, 76, output, ctx);
 
     _mm_free(ctx->memory);
     _mm_free(ctx);
 
-    return memcmp(output, test_output, 32) == 0;
+    return memcmp(output, test_output, (opt_double_hash ? 64 : 32)) == 0;
 }
 
 
@@ -87,23 +94,25 @@ bool cryptonight_init(int variant)
             cryptonight_hash_ctx = cryptonight_av1_aesni;
             break;
 
-#       if defined(__x86_64__)
-        case XMR_AV2_STAK:
-            cryptonight_hash_ctx = cryptonight_av2_aesni_stak;
+        case XMR_AV2_AESNI_DOUBLE:
+            opt_double_hash = true;
+            cryptonight_hash_ctx = cryptonight_av2_aesni_double;
             break;
 
+#       if defined(__x86_64__)
         case XMR_AV3_AESNI_BMI2:
             cryptonight_hash_ctx = cryptonight_av3_aesni_bmi2;
-            break;
-
-        case XMR_AV5_EXPERIMENTAL:
-            cryptonight_hash_ctx = cryptonight_av5_aesni_experimental;
             break;
 #       endif
 
         case XMR_AV4_SOFT_AES:
-             cryptonight_hash_ctx = cryptonight_av4_softaes;
-             break;
+            cryptonight_hash_ctx = cryptonight_av4_softaes;
+            break;
+
+        case XMR_AV5_SOFT_AES_DOUBLE:
+            opt_double_hash = true;
+            cryptonight_hash_ctx = cryptonight_av5_softaes_double;
+            break;
 
         default:
             break;
@@ -152,5 +161,34 @@ int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict blob, si
     } while (likely(((*nonceptr) < max_nonce && !work_restart[thr_id].restart)));
 
     return 0;
+}
+
+
+int scanhash_cryptonight_double(int thr_id, uint32_t *hash, uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx) {
+    int rc = 0;
+    uint32_t *nonceptr0 = (uint32_t*) (((char*) blob) + 39);
+    uint32_t *nonceptr1 = (uint32_t*) (((char*) blob) + 39 + blob_size);
+
+    do {
+        cryptonight_hash_ctx(blob, blob_size, hash, ctx);
+        (*hashes_done) += 2;
+
+        if (unlikely(hash[7] < target)) {
+            return rc |= 1;
+        }
+
+        if (unlikely(hash[15] < target)) {
+            return rc |= 2;
+        }
+
+        if (rc) {
+            break;
+        }
+
+        (*nonceptr0)++;
+        (*nonceptr1)++;
+    } while (likely(((*nonceptr0) < max_nonce && !work_restart[thr_id].restart)));
+
+    return rc;
 }
 #endif

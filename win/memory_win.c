@@ -85,7 +85,8 @@ static BOOL SetLockPagesPrivilege(HANDLE hProcess, BOOL bEnable) {
 
 
 const char * persistent_memory_allocate() {
-    const int size = MEMORY * (opt_n_threads + 1);
+    const int ratio = opt_double_hash ? 2 : 1;
+    const int size = MEMORY * (opt_n_threads * ratio + 1);
 
     if (SetLockPagesPrivilege(GetCurrentProcess(), TRUE)) {
         persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;

@@ -316,6 +316,94 @@ static void *miner_thread(void *userdata) {
 }
 
 
+/**
+ * @brief miner_thread_double
+ * @param userdata
+ * @return
+ */
+static void *miner_thread_double(void *userdata) {
+    struct thr_info *mythr = userdata;
+    const int thr_id = mythr->id;
+    struct work work = { { 0 } };
+    uint32_t max_nonce;
+    uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 1) - 0x20;
+
+    struct cryptonight_ctx *persistentctx = (struct cryptonight_ctx *) create_persistent_ctx(thr_id);
+
+    if (cpu_info.count > 1 && opt_affinity != -1L) {
+        affine_to_cpu_mask(thr_id, (unsigned long) opt_affinity);
+    }
+
+    uint32_t *nonceptr0 = NULL;
+    uint32_t *nonceptr1 = NULL;
+    uint8_t double_hash[64];
+    uint8_t double_blob[sizeof(work.blob) * 2];
+
+    while (1) {
+        if (should_pause(thr_id)) {
+            sleep(1);
+            continue;
+        }
+
+        pthread_mutex_lock(&stratum_ctx->work_lock);
+
+        if (memcmp(work.job_id, stratum_ctx->g_work.job_id, 64)) {
+            work_copy(&work, &stratum_ctx->g_work);
+
+            memcpy(double_blob,                  work.blob, work.blob_size);
+            memcpy(double_blob + work.blob_size, work.blob, work.blob_size);
+
+            nonceptr0 = (uint32_t*) (((char*) double_blob) + 39);
+            nonceptr1 = (uint32_t*) (((char*) double_blob) + 39 + work.blob_size);
+
+            *nonceptr0 = 0xffffffffU / (opt_n_threads * 2) * thr_id;
+            *nonceptr1 = 0xffffffffU / (opt_n_threads * 2) * (thr_id + opt_n_threads);
+        }
+
+        pthread_mutex_unlock(&stratum_ctx->work_lock);
+
+        work_restart[thr_id].restart = 0;
+
+        if (*nonceptr0 + (LP_SCANTIME / 2) > end_nonce) {
+            max_nonce = end_nonce;
+        } else {
+            max_nonce = *nonceptr0 + (LP_SCANTIME / 2);
+        }
+
+        unsigned long hashes_done = 0;
+
+        struct timeval tv_start;
+        gettimeofday(&tv_start, NULL);
+
+        /* scan nonces for a proof-of-work hash */
+        const int rc = scanhash_cryptonight_double(thr_id, (uint32_t *) double_hash, double_blob, work.blob_size, work.target, max_nonce, &hashes_done, persistentctx);
+        stats_add_hashes(thr_id, &tv_start, hashes_done);
+
+        if (!rc) {
+            continue;
+        }
+
+        if (rc & 1) {
+            memcpy(work.hash, double_hash, 32);
+            memcpy(work.blob, double_blob, work.blob_size);
+            submit_work(mythr, &work);
+        }
+
+        if (rc & 2) {
+            memcpy(work.hash, double_hash + 32, 32);
+            memcpy(work.blob, double_blob + work.blob_size, work.blob_size);
+            submit_work(mythr, &work);
+        }
+
+        ++(*nonceptr0);
+        ++(*nonceptr1);
+    }
+
+    tq_freeze(mythr->q);
+    return NULL;
+}
+
+
 
 /**
  * @brief stratum_thread
@@ -522,7 +610,7 @@ static bool start_mining() {
         thr->id = i;
         thr->q = tq_new();
 
-        if (unlikely(!thr->q || pthread_create(&thr->pth, NULL, miner_thread, thr))) {
+        if (unlikely(!thr->q || pthread_create(&thr->pth, NULL, opt_double_hash ? miner_thread_double : miner_thread, thr))) {
             applog(LOG_ERR, "thread %d create failed", i);
             return false;
         }

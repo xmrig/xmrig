@@ -45,6 +45,7 @@ int     opt_donate_level = DONATE_LEVEL;
 bool    opt_colors       = true;
 bool    opt_keepalive    = false;
 bool    opt_background   = false;
+bool    opt_double_hash  = false;
 char    *opt_url         = NULL;
 char    *opt_backup_url  = NULL;
 char    *opt_userpass    = NULL;
