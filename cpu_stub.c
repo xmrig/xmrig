@@ -24,54 +24,84 @@
 #include <cpuid.h>
 #include <string.h>
 #include <stdbool.h>
-#include <libcpuid.h>
-
 #include "cpu.h"
 
 
+#define VENDOR_ID                  (0)
+#define PROCESSOR_INFO             (1)
+#define CACHE_TLB_DESCRIPTOR       (2)
+#define EXTENDED_FEATURES          (7)
+#define PROCESSOR_BRAND_STRING_1   (0x80000002)
+#define PROCESSOR_BRAND_STRING_2   (0x80000003)
+#define PROCESSOR_BRAND_STRING_3   (0x80000004)
+
+#define EAX_Reg  (0)
+#define EBX_Reg  (1)
+#define ECX_Reg  (2)
+#define EDX_Reg  (3)
+
+
+static inline void cpuid(int level, int output[4]) {
+    int a, b, c, d;
+    __cpuid_count(level, 0, a, b, c, d);
+
+    output[0] = a;
+    output[1] = b;
+    output[2] = c;
+    output[3] = d;
+}
+
+
+static void cpu_brand_string(char* s) {
+    int cpu_info[4] = { 0 };
+    cpuid(VENDOR_ID, cpu_info);
+
+    if (cpu_info[EAX_Reg] >= 4) {
+        for (int i = 0; i < 4; i++) {
+            cpuid(0x80000002 + i, cpu_info);
+            memcpy(s, cpu_info, sizeof(cpu_info));
+            s += 16;
+        }
+    }
+}
+
+
+static bool has_aes_ni()
+{
+    int cpu_info[4] = { 0 };
+    cpuid(PROCESSOR_INFO, cpu_info);
+
+    return cpu_info[ECX_Reg] & bit_AES;
+}
+
+
+static bool has_bmi2() {
+    int cpu_info[4] = { 0 };
+    cpuid(EXTENDED_FEATURES, cpu_info);
+
+    return cpu_info[EBX_Reg] & bit_BMI2;
+}
+
+
 void cpu_init_common() {
-    struct cpu_raw_data_t raw = { 0 };
-    struct cpu_id_t data = { 0 };
-
-    cpuid_get_raw_data(&raw);
-    cpu_identify(&raw, &data);
-
-    strncpy(cpu_info.brand, data.brand_str, sizeof(cpu_info.brand) - 1);
-
-    cpu_info.total_logical_cpus = data.total_logical_cpus;
-    cpu_info.sockets            = data.total_logical_cpus / data.num_logical_cpus;
-    cpu_info.total_cores        = data.num_cores * cpu_info.sockets;
-    cpu_info.l2_cache           = data.l2_cache > 0 ? data.l2_cache * cpu_info.sockets : 0;
-    cpu_info.l3_cache           = data.l3_cache > 0 ? data.l3_cache * cpu_info.sockets : 0;
+    cpu_info.sockets = 1;
+    cpu_brand_string(cpu_info.brand);
 
 #   ifdef __x86_64__
     cpu_info.flags |= CPU_FLAG_X86_64;
 #   endif
 
-    if (data.flags[CPU_FEATURE_AES]) {
+    if (has_aes_ni()) {
         cpu_info.flags |= CPU_FLAG_AES;
     }
 
-    if (data.flags[CPU_FEATURE_BMI2]) {
+    if (has_bmi2()) {
         cpu_info.flags |= CPU_FLAG_BMI2;
     }
 }
 
 
 int get_optimal_threads_count() {
-    int cache = cpu_info.l3_cache ? cpu_info.l3_cache : cpu_info.l2_cache;
-    int count = 0;
-
-    if (cache) {
-        count = cache / 2048;
-    }
-    else {
-        count = cpu_info.total_logical_cpus / 2;
-    }
-
-    if (count > cpu_info.total_logical_cpus) {
-        return cpu_info.total_logical_cpus;
-    }
-
+    int count = cpu_info.total_logical_cpus / 2;
     return count < 1 ? 1 : count;
 }

@@ -33,15 +33,11 @@ void cpu_init_common();
 
 
 void cpu_init() {
-    cpu_info.count = sysconf(_SC_NPROCESSORS_CONF);
+#   ifdef XMRIG_NO_LIBCPUID
+    cpu_info.total_logical_cpus = sysconf(_SC_NPROCESSORS_CONF);
+#   endif
 
     cpu_init_common();
-}
-
-
-int get_optimal_threads_count() {
-    int count = cpu_info.count / 2;
-    return count < 1 ? 1 : count;
 }
 
 
@@ -50,7 +46,7 @@ int affine_to_cpu_mask(int id, unsigned long mask)
     cpu_set_t set;
     CPU_ZERO(&set);
 
-    for (unsigned i = 0; i < cpu_info.count; i++) {
+    for (unsigned i = 0; i < cpu_info.total_logical_cpus; i++) {
         if (mask & (1UL << i)) {
             CPU_SET(i, &set);
         }

@@ -244,7 +244,7 @@ static void parse_arg(int key, char *arg) {
     case 1020: /* --cpu-affinity */
         p  = strstr(arg, "0x");
         ul = p ? strtoul(p, NULL, 16) : atol(arg);
-        if (ul > (1UL << cpu_info.count) -1) {
+        if (ul > (1UL << cpu_info.total_logical_cpus) -1) {
             ul = -1;
         }
 

@@ -25,9 +25,13 @@
 #define __CPU_H__
 
 struct cpu_info {
-    int count;
+    int total_cores;
+    int total_logical_cpus;
     int flags;
-    char brand[48];
+    int sockets;
+    int l2_cache;
+    int l3_cache;
+    char brand[64];
 };
 
 extern struct cpu_info cpu_info;
@@ -38,7 +42,6 @@ enum cpu_flags {
     CPU_FLAG_AES    = 2,
     CPU_FLAG_BMI2   = 4
 };
-
 
 
 void cpu_init();
