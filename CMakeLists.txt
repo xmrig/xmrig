@@ -103,10 +103,9 @@ add_definitions(/DCURL_STATICLIB)
 link_directories(${CURL_LIBRARIES})
 
 if (WITH_LIBCPUID)
-    find_package(CPUID REQUIRED)
-    include_directories(${CPUID_INCLUDE_DIRS})
-    link_directories(${CPUID_LIBRARIES})
+    add_subdirectory(compat/libcpuid)
 
+    include_directories(compat/libcpuid)
     set(CPUID_LIB cpuid)
     set(SOURCES_CPUID cpu.c)
 else()
