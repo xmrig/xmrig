@@ -46,7 +46,7 @@ int affine_to_cpu_mask(int id, unsigned long mask)
     cpu_set_t set;
     CPU_ZERO(&set);
 
-    for (unsigned i = 0; i < cpu_info.count; i++) {
+    for (unsigned i = 0; i < cpu_info.total_logical_cpus; i++) {
         if (mask & (1UL << i)) {
             CPU_SET(i, &set);
         }
