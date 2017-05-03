@@ -20,7 +20,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include <windows.h>
 #include <stdbool.h>
 
@@ -32,18 +32,14 @@ void cpu_init_common();
 
 
 void cpu_init() {
+#   ifdef XMRIG_NO_LIBCPUID
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
 
-    cpu_info.count = sysinfo.dwNumberOfProcessors;
+    cpu_info.total_logical_cpus = sysinfo.dwNumberOfProcessors;
+#   endif
 
     cpu_init_common();
-}
-
-
-int get_optimal_threads_count(int mining_algo) {
-    int count = cpu_info.count / 2;
-    return count < 1 ? 1 : count;
 }
 
 

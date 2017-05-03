@@ -262,7 +262,7 @@ static void *miner_thread(void *userdata) {
 
     struct cryptonight_ctx *persistentctx = (struct cryptonight_ctx *) create_persistent_ctx(thr_id);
 
-    if (cpu_info.count > 1 && opt_affinity != -1L) {
+    if (cpu_info.total_logical_cpus > 1 && opt_affinity != -1L) {
         affine_to_cpu_mask(thr_id, (unsigned long) opt_affinity);
     }
 
@@ -330,7 +330,7 @@ static void *miner_thread_double(void *userdata) {
 
     struct cryptonight_ctx *persistentctx = (struct cryptonight_ctx *) create_persistent_ctx(thr_id);
 
-    if (cpu_info.count > 1 && opt_affinity != -1L) {
+    if (cpu_info.total_logical_cpus > 1 && opt_affinity != -1L) {
         affine_to_cpu_mask(thr_id, (unsigned long) opt_affinity);
     }
 

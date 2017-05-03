@@ -46,7 +46,6 @@ set(SOURCES
     algo/cryptonight/cryptonight_av5_softaes_double.c
     util.c
     options.c
-    cpu.c
     stratum.c
     stats.c
     memory.c
@@ -109,13 +108,15 @@ if (WITH_LIBCPUID)
     link_directories(${CPUID_LIBRARIES})
 
     set(CPUID_LIB cpuid)
+    set(SOURCES_CPUID cpu.c)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
+    set(SOURCES_CPUID cpu_stub.c)
 endif()
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_subdirectory(algo/cryptonight/bmi2)
-    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS})
+    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID})
     target_link_libraries(xmrig jansson curl cryptonight_av3_aesni_bmi2 ${CPUID_LIB} ${EXTRA_LIBS})
 else()
     set(CRYPTONIGHT32

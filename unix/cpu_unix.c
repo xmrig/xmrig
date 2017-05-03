@@ -33,15 +33,11 @@ void cpu_init_common();
 
 
 void cpu_init() {
-    cpu_info.count = sysconf(_SC_NPROCESSORS_CONF);
+#   ifdef XMRIG_NO_LIBCPUID
+    cpu_info.total_logical_cpus = sysconf(_SC_NPROCESSORS_CONF);
+#   endif
 
     cpu_init_common();
-}
-
-
-int get_optimal_threads_count() {
-    int count = cpu_info.count / 2;
-    return count < 1 ? 1 : count;
 }
 
 
