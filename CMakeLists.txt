@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(xmrig C)
 
+option(WITH_LIBCPUID "Use Libcpuid library" ON)
+
 set(HEADERS
     compat.h
     algo/cryptonight/cryptonight.h
@@ -94,18 +96,27 @@ endif()
 include_directories(compat/jansson)
 add_subdirectory(compat/jansson)
 
-find_package(CURL REQUIRED)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-if (CURL_FOUND)
-    include_directories(${CURL_INCLUDE_DIRS})
-    add_definitions(/DCURL_STATICLIB)
-    link_directories(${CURL_LIBRARIES})
+find_package(CURL REQUIRED)
+include_directories(${CURL_INCLUDE_DIRS})
+add_definitions(/DCURL_STATICLIB)
+link_directories(${CURL_LIBRARIES})
+
+if (WITH_LIBCPUID)
+    find_package(CPUID REQUIRED)
+    include_directories(${CPUID_INCLUDE_DIRS})
+    link_directories(${CPUID_LIBRARIES})
+
+    set(CPUID_LIB cpuid)
+else()
+    add_definitions(/DXMRIG_NO_LIBCPUID)
 endif()
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_subdirectory(algo/cryptonight/bmi2)
     add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS})
-    target_link_libraries(xmrig jansson curl cryptonight_av3_aesni_bmi2 ${EXTRA_LIBS})
+    target_link_libraries(xmrig jansson curl cryptonight_av3_aesni_bmi2 ${CPUID_LIB} ${EXTRA_LIBS})
 else()
     set(CRYPTONIGHT32
         algo/cryptonight/i686/cryptonight_av1_aesni.c
