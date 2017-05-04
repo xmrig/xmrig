@@ -51,34 +51,27 @@ Return value: TRUE indicates success, FALSE failure.
  * AWE Example: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366531(v=vs.85).aspx
  * Creating a File Mapping Using Large Pages: https://msdn.microsoft.com/en-us/library/aa366543(VS.85).aspx
  */
-static BOOL SetLockPagesPrivilege(HANDLE hProcess, BOOL bEnable) {
-    struct {
-        DWORD Count;
-        LUID_AND_ATTRIBUTES Privilege[1];
-    } Info;
+static BOOL SetLockPagesPrivilege() {
+    HANDLE token;
 
-    HANDLE Token;
-
-    if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &Token) != TRUE) {
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token) != TRUE) {
         return FALSE;
     }
 
-    Info.Count = 1;
-    Info.Privilege[0].Attributes = bEnable ? SE_PRIVILEGE_ENABLED : 0;
+    TOKEN_PRIVILEGES tp;
+    tp.PrivilegeCount = 1;
+    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-    if (LookupPrivilegeValue(NULL, SE_LOCK_MEMORY_NAME, &(Info.Privilege[0].Luid)) != TRUE) {
+    if (LookupPrivilegeValue(NULL, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid)) != TRUE) {
         return FALSE;
     }
 
-    if (AdjustTokenPrivileges(Token, FALSE, (PTOKEN_PRIVILEGES) &Info, 0, NULL, NULL) != TRUE) {
+    BOOL rc = AdjustTokenPrivileges(token, FALSE, (PTOKEN_PRIVILEGES) &tp, 0, NULL, NULL);
+    if (rc != TRUE || GetLastError() != ERROR_SUCCESS) {
         return FALSE;
     }
 
-    if (GetLastError() != ERROR_SUCCESS) {
-        return FALSE;
-    }
-
-    CloseHandle(Token);
+    CloseHandle(token);
 
     return TRUE;
 }
@@ -88,7 +81,7 @@ const char * persistent_memory_allocate() {
     const int ratio = opt_double_hash ? 2 : 1;
     const int size = MEMORY * (opt_n_threads * ratio + 1);
 
-    if (SetLockPagesPrivilege(GetCurrentProcess(), TRUE)) {
+    if (SetLockPagesPrivilege()) {
         persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;
     }
 
