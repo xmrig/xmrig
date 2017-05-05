@@ -1,6 +1,7 @@
 # v0.7.0
 - Added double hash mode, also known as lower power mode. `--av=2` and `--av=5`.
 - Default threads count now depends on size of the L3 cache of CPU.
+- No more manual steps to enable huge pages on Windows. XMRig will do it automatically.
 
 # v0.6.0
 - Added automatic cryptonight self test.
