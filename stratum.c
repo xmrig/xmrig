@@ -244,7 +244,7 @@ bool stratum_handle_response(char *buf) {
 
     json_t *status = json_object_get(res_val, "status");
 
-    if (!strcmp(json_string_value(status), "KEEPALIVED") ) {
+    if (status && !strcmp(json_string_value(status), "KEEPALIVED") ) {
         applog(LOG_DEBUG, "Keepalived receveid");
         json_decref(val);
         return true;
