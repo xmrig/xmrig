@@ -25,8 +25,12 @@
 #define __MEMORY_H__
 
 #include <windows.h>
+#include <ntsecapi.h>
+#include <tchar.h>
+
 #include "options.h"
 #include "persistent_memory.h"
+#include "utils/applog.h"
 
 
 char *persistent_memory;
@@ -77,11 +81,72 @@ static BOOL SetLockPagesPrivilege() {
 }
 
 
+static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string) {
+    LSA_UNICODE_STRING lsaString;
+    DWORD dwLen = 0;
+
+    dwLen = wcslen(string);
+    lsaString.Buffer = (LPWSTR) string;
+    lsaString.Length = (USHORT)((dwLen) * sizeof(WCHAR));
+    lsaString.MaximumLength = (USHORT)((dwLen + 1) * sizeof(WCHAR));
+    return lsaString;
+}
+
+
+static BOOL ObtainLockPagesPrivilege() {
+    HANDLE token;
+    PTOKEN_USER user = NULL;
+
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == TRUE) {
+        DWORD size = 0;
+
+        GetTokenInformation(token, TokenUser, NULL, 0, &size);
+        if (size) {
+            user = (PTOKEN_USER) LocalAlloc(LPTR, size);
+        }
+
+        GetTokenInformation(token, TokenUser, user, size, &size);
+        CloseHandle(token);
+    }
+
+    if (!user) {
+        return FALSE;
+    }
+
+    LSA_HANDLE handle;
+    LSA_OBJECT_ATTRIBUTES attributes;
+    ZeroMemory(&attributes, sizeof(attributes));
+
+    BOOL result = FALSE;
+    if (LsaOpenPolicy(NULL, &attributes, POLICY_ALL_ACCESS, &handle) == 0) {
+        LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
+
+        if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
+            result = TRUE;
+        }
+
+        LsaClose(handle);
+    }
+
+    LocalFree(user);
+    return result;
+}
+
+
+static BOOL TrySetLockPagesPrivilege() {
+    if (SetLockPagesPrivilege()) {
+        return TRUE;
+    }
+
+    return ObtainLockPagesPrivilege() && SetLockPagesPrivilege();
+}
+
+
 const char * persistent_memory_allocate() {
     const int ratio = opt_double_hash ? 2 : 1;
-    const int size = MEMORY * (opt_n_threads * ratio + 1);
+    const int size  = MEMORY * (opt_n_threads * ratio + 1);
 
-    if (SetLockPagesPrivilege()) {
+    if (TrySetLockPagesPrivilege()) {
         persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;
     }
 

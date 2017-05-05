@@ -77,6 +77,7 @@ endif()
 include_directories(.)
 add_definitions(/DUSE_NATIVE_THREADS)
 add_definitions(/D_GNU_SOURCE)
+add_definitions(/DUNICODE)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Release)
