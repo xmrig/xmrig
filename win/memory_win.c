@@ -122,6 +122,7 @@ static BOOL ObtainLockPagesPrivilege() {
         LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
 
         if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
+            applog_notime(LOG_WARNING, "Huge pages support was successfully enabled, but reboot required to use it");
             result = TRUE;
         }
 
