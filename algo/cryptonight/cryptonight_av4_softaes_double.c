@@ -30,7 +30,7 @@
 #include "crypto/c_keccak.h"
 
 
-void cryptonight_av5_softaes_double(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av4_softaes_double(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
 {
     keccak((const uint8_t *) input,        size, ctx->state0, 200);
     keccak((const uint8_t *) input + size, size, ctx->state1, 200);

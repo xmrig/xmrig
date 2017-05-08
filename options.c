@@ -117,7 +117,7 @@ static int get_algo_variant(int variant) {
        return XMR_AV1_AESNI;
    }
 
-   return XMR_AV4_SOFT_AES;
+   return XMR_AV3_SOFT_AES;
 }
 
 
