@@ -47,6 +47,7 @@ extern bool opt_colors;
 extern bool opt_keepalive;
 extern bool opt_background;
 extern bool opt_double_hash;
+extern bool opt_safe;
 extern char *opt_url;
 extern char *opt_backup_url;
 extern char *opt_userpass;
@@ -57,6 +58,7 @@ extern int opt_algo_variant;
 extern int opt_retry_pause;
 extern int opt_retries;
 extern int opt_donate_level;
+extern int opt_max_cpu_usage;
 extern int64_t opt_affinity;
 
 void parse_cmdline(int argc, char *argv[]);

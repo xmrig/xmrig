@@ -36,21 +36,23 @@
 #include "algo/cryptonight/cryptonight.h"
 
 
-int64_t opt_affinity     = -1L;
-int     opt_n_threads    = 0;
-int     opt_algo_variant = 0;
-int     opt_retries      = 5;
-int     opt_retry_pause  = 5;
-int     opt_donate_level = DONATE_LEVEL;
-bool    opt_colors       = true;
-bool    opt_keepalive    = false;
-bool    opt_background   = false;
-bool    opt_double_hash  = false;
-char    *opt_url         = NULL;
-char    *opt_backup_url  = NULL;
-char    *opt_userpass    = NULL;
-char    *opt_user        = NULL;
-char    *opt_pass        = NULL;
+int64_t opt_affinity      = -1L;
+int     opt_n_threads     = 0;
+int     opt_algo_variant  = 0;
+int     opt_retries       = 5;
+int     opt_retry_pause   = 5;
+int     opt_donate_level  = DONATE_LEVEL;
+int     opt_max_cpu_usage = 75;
+bool    opt_colors        = true;
+bool    opt_keepalive     = false;
+bool    opt_background    = false;
+bool    opt_double_hash   = false;
+bool    opt_safe          = false;
+char    *opt_url          = NULL;
+char    *opt_backup_url   = NULL;
+char    *opt_userpass     = NULL;
+char    *opt_user         = NULL;
+char    *opt_pass         = NULL;
 
 
 static char const usage[] = "\
@@ -71,6 +73,8 @@ Options:\n\
       --donate-level=N  donate level, default 5%% (5 minutes in 100 minutes)\n\
   -B, --background      run the miner in the background\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
+      --max-cpu-usage=N maximum cpu usage for automatic threads mode (default 75)\n\
+      --safe            safe adjust threads and av settings for current cpu\n\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
 ";
@@ -80,24 +84,26 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vb:";
 
 
 static struct option const options[] = {
-    { "algo",         1, NULL, 'a'  },
-    { "av",           1, NULL, 'v'  },
-    { "background",   0, NULL, 'B'  },
-    { "backup-url",   1, NULL, 'b'  },
-    { "config",       1, NULL, 'c'  },
-    { "cpu-affinity", 1, NULL, 1020 },
-    { "donate-level", 1, NULL, 1003 },
-    { "help",         0, NULL, 'h'  },
-    { "keepalive",    0, NULL ,'k'  },
-    { "no-color",     0, NULL, 1002 },
-    { "pass",         1, NULL, 'p'  },
-    { "retries",      1, NULL, 'r'  },
-    { "retry-pause",  1, NULL, 'R'  },
-    { "threads",      1, NULL, 't'  },
-    { "url",          1, NULL, 'o'  },
-    { "user",         1, NULL, 'u'  },
-    { "userpass",     1, NULL, 'O'  },
-    { "version",      0, NULL, 'V'  },
+    { "algo",          1, NULL, 'a'  },
+    { "av",            1, NULL, 'v'  },
+    { "background",    0, NULL, 'B'  },
+    { "backup-url",    1, NULL, 'b'  },
+    { "config",        1, NULL, 'c'  },
+    { "cpu-affinity",  1, NULL, 1020 },
+    { "donate-level",  1, NULL, 1003 },
+    { "help",          0, NULL, 'h'  },
+    { "keepalive",     0, NULL ,'k'  },
+    { "max-cpu-usage", 1, NULL, 1004 },
+    { "no-color",      0, NULL, 1002 },
+    { "pass",          1, NULL, 'p'  },
+    { "retries",       1, NULL, 'r'  },
+    { "retry-pause",   1, NULL, 'R'  },
+    { "safe",          0, NULL, 1005 },
+    { "threads",       1, NULL, 't'  },
+    { "url",           1, NULL, 'o'  },
+    { "user",          1, NULL, 'u'  },
+    { "userpass",      1, NULL, 'O'  },
+    { "version",       0, NULL, 'V'  },
     { 0, 0, 0, 0 }
 };
 
@@ -197,7 +203,20 @@ static void parse_arg(int key, char *arg) {
         opt_n_threads = v;
         break;
 
-    case 'k':
+    case 1004: /* --max-cpu-usage */
+        v = atoi(arg);
+        if (v < 1 || v > 100) {
+            show_usage_and_exit(1);
+        }
+
+        opt_max_cpu_usage = v;
+        break;
+
+    case 1005: /* --safe */
+        opt_safe = true;
+        break;
+
+    case 'k': /* --keepalive */
         opt_keepalive = true;
         break;
 
@@ -227,7 +246,7 @@ static void parse_arg(int key, char *arg) {
         break;
     }
 
-    case 'B':
+    case 'B': /* --background */
         opt_background = true;
         opt_colors = false;
         break;
@@ -255,7 +274,7 @@ static void parse_arg(int key, char *arg) {
         opt_colors = false;
         break;
 
-    case 1003:
+    case 1003: /* --donate-level */
         v = atoi(arg);
         if (v < 1 || v > 99) {
             show_usage_and_exit(1);
