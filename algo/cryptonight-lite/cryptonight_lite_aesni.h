@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_AESNI_H__
-#define __CRYPTONIGHT_AESNI_H__
+#ifndef __CRYPTONIGHT_LITE_AESNI_H__
+#define __CRYPTONIGHT_LITE_AESNI_H__
 
 #include <x86intrin.h>
 
@@ -253,4 +253,4 @@ inline uint64_t _umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *p
 #endif
 
 
-#endif /* __CRYPTONIGHT_AESNI_H__ */
+#endif /* __CRYPTONIGHT_LITE_AESNI_H__ */
