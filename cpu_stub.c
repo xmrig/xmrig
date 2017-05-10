@@ -101,7 +101,7 @@ void cpu_init_common() {
 }
 
 
-int get_optimal_threads_count() {
+int get_optimal_threads_count(int algo, bool double_hash, int max_cpu_usage) {
     int count = cpu_info.total_logical_cpus / 2;
     return count < 1 ? 1 : count;
 }

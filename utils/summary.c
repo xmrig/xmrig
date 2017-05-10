@@ -54,10 +54,10 @@ static void print_cpu() {
 
  #   ifndef XMRIG_NO_LIBCPUID
     if (opt_colors) {
-        applog_notime(LOG_INFO, CL_LGR " * " CL_WHT "CPU L2/L3:    %dK/%dK", cpu_info.l2_cache, cpu_info.l3_cache);
+        applog_notime(LOG_INFO, CL_LGR " * " CL_WHT "CPU L2/L3:    %.1f MB/%.1f MB", cpu_info.l2_cache / 1024.0, cpu_info.l3_cache / 1024.0);
     }
     else {
-        applog_notime(LOG_INFO, " * CPU L2/L3:    %dK/%dK", cpu_info.l2_cache, cpu_info.l3_cache);
+        applog_notime(LOG_INFO, " * CPU L2/L3:    %.1f MB/%.1f MB", cpu_info.l2_cache / 1024.0, cpu_info.l3_cache / 1024.0);
     }
  #  endif
 

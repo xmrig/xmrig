@@ -447,15 +447,15 @@ void parse_cmdline(int argc, char *argv[]) {
         sprintf(opt_userpass, "%s:%s", opt_user, opt_pass);
     }
 
-    if (!opt_n_threads) {
-        opt_n_threads = get_optimal_threads_count();
-    }
-
     opt_algo_variant = get_algo_variant(opt_algo, opt_algo_variant);
 
     if (!cryptonight_init(opt_algo_variant)) {
         applog(LOG_ERR, "Cryptonight hash self-test failed. This might be caused by bad compiler optimizations.");
         proper_exit(1);
+    }
+
+    if (!opt_n_threads) {
+        opt_n_threads = get_optimal_threads_count(opt_algo, opt_double_hash, opt_max_cpu_usage);
     }
 }
 
