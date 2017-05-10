@@ -32,6 +32,12 @@
 #endif
 
 
+enum mining_algo {
+    ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
+    ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
+};
+
+
 enum xmr_algo_variant {
     XMR_AV0_AUTO,
     XMR_AV1_AESNI,
@@ -40,6 +46,18 @@ enum xmr_algo_variant {
     XMR_AV4_SOFT_AES_DOUBLE,
     XMR_AV_MAX
 };
+
+
+#ifndef XMRIG_NO_AEON
+enum aeon_algo_variant {
+    AEON_AV0_AUTO,
+    AEON_AV1_AESNI,
+    AEON_AV2_AESNI_DOUBLE,
+    AEON_AV3_SOFT_AES,
+    AEON_AV4_SOFT_AES_DOUBLE,
+    AEON_AV_MAX
+};
+#endif
 
 
 extern bool opt_colors;
@@ -59,10 +77,12 @@ extern int opt_retries;
 extern int opt_donate_level;
 extern int opt_max_cpu_usage;
 extern int64_t opt_affinity;
+extern enum mining_algo opt_algo;
 
 void parse_cmdline(int argc, char *argv[]);
 void show_usage_and_exit(int status);
 void show_version_and_exit(void);
+const char* get_current_algo_name(void);
 
 extern void proper_exit(int reason);
 

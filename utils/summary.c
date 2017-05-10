@@ -72,10 +72,10 @@ static void print_cpu() {
 
 static void print_threads() {
     if (opt_colors) {
-        applog_notime(LOG_INFO, CL_LGR " * " CL_WHT "THREADS:      " CL_WHT "%d" CL_WHT ", av=%d, donate=%d%%", opt_n_threads, opt_algo_variant, opt_donate_level);
+        applog_notime(LOG_INFO, CL_LGR " * " CL_WHT "THREADS:      " CL_WHT "%d" CL_WHT ", av=%d, %s, donate=%d%%", opt_n_threads, opt_algo_variant, get_current_algo_name(), opt_donate_level);
     }
     else {
-        applog_notime(LOG_INFO, " * THREADS:      %d, av=%d, donate=%d%%", opt_n_threads, opt_algo_variant, opt_donate_level);
+        applog_notime(LOG_INFO, " * THREADS:      %d, av=%d, %s, donate=%d%%", opt_n_threads, opt_algo_variant, get_current_algo_name(), opt_donate_level);
     }
 }
 

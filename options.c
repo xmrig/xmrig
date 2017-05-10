@@ -54,6 +54,8 @@ char    *opt_userpass     = NULL;
 char    *opt_user         = NULL;
 char    *opt_pass         = NULL;
 
+enum mining_algo opt_algo = ALGO_CRYPTONIGHT;
+
 
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
@@ -108,16 +110,45 @@ static struct option const options[] = {
 };
 
 
-static int get_algo_variant(int variant) {
-   if (variant > XMR_AV0_AUTO && variant < XMR_AV_MAX) {
-       return variant;
-   }
+static const char *algo_names[] = {
+    [ALGO_CRYPTONIGHT]      = "cryptonight",
+#   ifndef XMRIG_NO_AEON
+    [ALGO_CRYPTONIGHT_LITE] = "cryptonight-lite"
+#   endif
+};
 
-   if (cpu_info.flags & CPU_FLAG_AES) {
-       return XMR_AV1_AESNI;
-   }
 
-   return XMR_AV3_SOFT_AES;
+#ifndef XMRIG_NO_AEON
+static int get_cryptonight_lite_variant(int variant) {
+    if (variant > AEON_AV0_AUTO && variant < AEON_AV_MAX) {
+        return variant;
+    }
+
+    if (cpu_info.flags & CPU_FLAG_AES) {
+        return AEON_AV2_AESNI_DOUBLE;
+    }
+
+    return AEON_AV4_SOFT_AES_DOUBLE;
+}
+#endif
+
+
+static int get_algo_variant(int algo, int variant) {
+#   ifndef XMRIG_NO_AEON
+    if (algo == ALGO_CRYPTONIGHT_LITE) {
+        return get_cryptonight_lite_variant(variant);
+    }
+#   endif
+
+    if (variant > XMR_AV0_AUTO && variant < XMR_AV_MAX) {
+        return variant;
+    }
+
+    if (cpu_info.flags & CPU_FLAG_AES) {
+        return XMR_AV1_AESNI;
+    }
+
+    return XMR_AV3_SOFT_AES;
 }
 
 
@@ -133,6 +164,22 @@ static void parse_arg(int key, char *arg) {
     switch (key)
     {
     case 'a':
+        for (int i = 0; i < ARRAY_SIZE(algo_names); i++) {
+            if (algo_names[i] && !strcmp(arg, algo_names[i])) {
+                opt_algo = i;
+                break;
+            }
+
+#           ifndef XMRIG_NO_AEON
+            if (i == ARRAY_SIZE(algo_names) && !strcmp(arg, "cryptonight-light")) {
+                opt_algo = i = ALGO_CRYPTONIGHT_LITE;
+            }
+#           endif
+
+            if (i == ARRAY_SIZE(algo_names)) {
+                show_usage_and_exit(1);
+            }
+        }
         break;
 
     case 'O': /* --userpass */
@@ -253,7 +300,7 @@ static void parse_arg(int key, char *arg) {
 
     case 'v': /* --av */
         v = atoi(arg);
-        if (v < 0 || v > XMR_AV_MAX) {
+        if (v < 0 || v > 1000) {
             show_usage_and_exit(1);
         }
 
@@ -404,10 +451,7 @@ void parse_cmdline(int argc, char *argv[]) {
         opt_n_threads = get_optimal_threads_count();
     }
 
-    opt_algo_variant = get_algo_variant(opt_algo_variant);
-    if (!opt_algo_variant) {
-        opt_algo_variant = get_algo_variant(0);
-    }
+    opt_algo_variant = get_algo_variant(opt_algo, opt_algo_variant);
 
     if (!cryptonight_init(opt_algo_variant)) {
         applog(LOG_ERR, "Cryptonight hash self-test failed. This might be caused by bad compiler optimizations.");
@@ -453,4 +497,9 @@ void show_version_and_exit(void) {
     printf("libjansson/%s\n", JANSSON_VERSION);
     #endif
     proper_exit(0);
+}
+
+
+const char* get_current_algo_name(void) {
+    return algo_names[opt_algo];
 }

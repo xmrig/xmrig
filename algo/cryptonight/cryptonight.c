@@ -52,7 +52,7 @@ const static char test_input[152] = {
 };
 
 
-const static char test_output[64] = {
+const static char test_output0[64] = {
     0x1B, 0x60, 0x6A, 0x3F, 0x4A, 0x07, 0xD6, 0x48, 0x9A, 0x1B, 0xCD, 0x07, 0x69, 0x7B, 0xD1, 0x66,
     0x96, 0xB6, 0x1C, 0x8A, 0xE9, 0x82, 0xF6, 0x1A, 0x90, 0x16, 0x0F, 0x4E, 0x52, 0x82, 0x8A, 0x7F,
     0x1A, 0x3F, 0xFB, 0xEE, 0x90, 0x9B, 0x42, 0x0D, 0x91, 0xF7, 0xBE, 0x6E, 0x5F, 0xB5, 0x6D, 0xB7,
@@ -65,10 +65,28 @@ void cryptonight_av2_aesni_double(const void* input, size_t size, void* output, 
 void cryptonight_av3_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
 void cryptonight_av4_softaes_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
 
+#ifndef XMRIG_NO_AEON
+const static char test_output1[64] = {
+    0x28, 0xA2, 0x2B, 0xAD, 0x3F, 0x93, 0xD1, 0x40, 0x8F, 0xCA, 0x47, 0x2E, 0xB5, 0xAD, 0x1C, 0xBE,
+    0x75, 0xF2, 0x1D, 0x05, 0x3C, 0x8C, 0xE5, 0xB3, 0xAF, 0x10, 0x5A, 0x57, 0x71, 0x3E, 0x21, 0xDD,
+    0x36, 0x95, 0xB4, 0xB5, 0x3B, 0xB0, 0x03, 0x58, 0xB0, 0xAD, 0x38, 0xDC, 0x16, 0x0F, 0xEB, 0x9E,
+    0x00, 0x4E, 0xEC, 0xE0, 0x9B, 0x83, 0xA7, 0x2E, 0xF6, 0xBA, 0x98, 0x64, 0xD3, 0x51, 0x0C, 0x88,
+};
+
+void cryptonight_lite_av1_aesni(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_lite_av2_aesni_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_lite_av3_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_lite_av4_softaes_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+#endif
+
 void (*cryptonight_hash_ctx)(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx) = NULL;
 
 
 static bool self_test() {
+    if (cryptonight_hash_ctx == NULL) {
+        return false;
+    }
+
     char output[64];
 
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
@@ -79,12 +97,54 @@ static bool self_test() {
     _mm_free(ctx->memory);
     _mm_free(ctx);
 
-    return memcmp(output, test_output, (opt_double_hash ? 64 : 32)) == 0;
+#   ifndef XMRIG_NO_AEON
+    if (opt_algo == ALGO_CRYPTONIGHT_LITE) {
+        return memcmp(output, test_output1, (opt_double_hash ? 64 : 32)) == 0;
+    }
+#   endif
+
+    return memcmp(output, test_output0, (opt_double_hash ? 64 : 32)) == 0;
 }
+
+
+#ifndef XMRIG_NO_AEON
+bool cryptonight_lite_init(int variant) {
+    switch (variant) {
+        case AEON_AV1_AESNI:
+            cryptonight_hash_ctx = cryptonight_lite_av1_aesni;
+            break;
+
+        case AEON_AV2_AESNI_DOUBLE:
+            opt_double_hash = true;
+            cryptonight_hash_ctx = cryptonight_lite_av2_aesni_double;
+            break;
+
+        case AEON_AV3_SOFT_AES:
+            cryptonight_hash_ctx = cryptonight_lite_av3_softaes;
+            break;
+
+        case AEON_AV4_SOFT_AES_DOUBLE:
+            opt_double_hash = true;
+            cryptonight_hash_ctx = cryptonight_lite_av4_softaes_double;
+            break;
+
+        default:
+            break;
+    }
+
+    return self_test();
+}
+#endif
 
 
 bool cryptonight_init(int variant)
 {
+#   ifndef XMRIG_NO_AEON
+    if (opt_algo == ALGO_CRYPTONIGHT_LITE) {
+        return cryptonight_lite_init(variant);
+    }
+#   endif
+
     switch (variant) {
         case XMR_AV1_AESNI:
             cryptonight_hash_ctx = cryptonight_av1_aesni;

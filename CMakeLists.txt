@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(xmrig C)
 
-option(WITH_LIBCPUID "Use Libcpuid library" ON)
+option(WITH_LIBCPUID "Use Libcpuid" ON)
+option(WITH_AEON     "CryptoNight-Lite support" ON)
 
 set(HEADERS
     compat.h
@@ -114,8 +115,21 @@ else()
     set(SOURCES_CPUID cpu_stub.c)
 endif()
 
+if (WITH_AEON)
+    set(SOURCES_AEON
+    algo/cryptonight-lite/cryptonight_lite_av1_aesni.c
+    algo/cryptonight-lite/cryptonight_lite_av2_aesni_double.c
+    algo/cryptonight-lite/cryptonight_lite_av3_softaes.c
+    algo/cryptonight-lite/cryptonight_lite_av4_softaes_double.c
+    algo/cryptonight-lite/cryptonight_lite_aesni.h
+    algo/cryptonight-lite/cryptonight_lite_softaes.h
+    )
+else()
+    add_definitions(/DXMRIG_NO_AEON)
+endif()
+
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID})
+    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON})
     target_link_libraries(xmrig jansson curl ${CPUID_LIB} ${EXTRA_LIBS})
 else()
     add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID})
