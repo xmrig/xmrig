@@ -1,7 +1,12 @@
 set(SOURCES
+    cryptonight.c
+    ../../options.h
     ../../algo/cryptonight/cryptonight.h
-    ../../algo/cryptonight/cryptonight_common.c
-    ../../algo/cryptonight/cryptonight_av4_softaes.c
+    ../../algo/cryptonight/cryptonight.c
+    ../../algo/cryptonight/cryptonight_av1_aesni.c
+    ../../algo/cryptonight/cryptonight_av2_aesni_double.c
+    ../../algo/cryptonight/cryptonight_av3_softaes.c
+    ../../algo/cryptonight/cryptonight_av4_softaes_double.c
     ../../crypto/c_keccak.c
     ../../crypto/c_blake256.c
     ../../crypto/c_groestl.c
@@ -10,32 +15,14 @@ set(SOURCES
     ../../crypto/soft_aes.c
    )
 
-if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    add_subdirectory(bmi2)
-
-    add_executable(cryptonight_app ${SOURCES}
-        cryptonight.c
-        ../../algo/cryptonight/cryptonight_av1_aesni.c
-        ../../algo/cryptonight/cryptonight_av2_aesni_stak.c
-        ../../algo/cryptonight/cryptonight_av5_aesni_experimental.c
-    )
-
-    target_link_libraries(cryptonight_app unity cryptonight_av3_aesni_bmi2)
-else()
-    add_executable(cryptonight_app ${SOURCES}
-        cryptonight32.c
-        ../../algo/cryptonight/cryptonight_av1_aesni32.c
-    )
-
-    target_link_libraries(cryptonight_app unity)
-endif()
-
-
+add_executable(cryptonight_app ${SOURCES})
+target_link_libraries(cryptonight_app unity)
 
 include_directories(../..)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -fno-strict-aliasing")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2")
 add_definitions(-DBUILD_TEST)
+add_definitions(-DXMRIG_NO_AEON)
 
 add_test(cryptonight_test cryptonight_app)
