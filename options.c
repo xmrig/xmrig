@@ -120,15 +120,15 @@ static const char *algo_names[] = {
 
 #ifndef XMRIG_NO_AEON
 static int get_cryptonight_lite_variant(int variant) {
-    if (variant > AEON_AV0_AUTO && variant < AEON_AV_MAX) {
-        return variant;
+    if (variant <= AEON_AV0_AUTO || variant >= AEON_AV_MAX) {
+        return (cpu_info.flags & CPU_FLAG_AES) ? AEON_AV2_AESNI_DOUBLE : AEON_AV4_SOFT_AES_DOUBLE;
     }
 
-    if (cpu_info.flags & CPU_FLAG_AES) {
-        return AEON_AV2_AESNI_DOUBLE;
+    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= AEON_AV2_AESNI_DOUBLE) {
+        return variant + 2;
     }
 
-    return AEON_AV4_SOFT_AES_DOUBLE;
+    return variant;
 }
 #endif
 
@@ -140,15 +140,15 @@ static int get_algo_variant(int algo, int variant) {
     }
 #   endif
 
-    if (variant > XMR_AV0_AUTO && variant < XMR_AV_MAX) {
-        return variant;
+    if (variant <= XMR_AV0_AUTO || variant >= XMR_AV_MAX) {
+        return (cpu_info.flags & CPU_FLAG_AES) ? XMR_AV1_AESNI : XMR_AV3_SOFT_AES;
     }
 
-    if (cpu_info.flags & CPU_FLAG_AES) {
-        return XMR_AV1_AESNI;
+    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= XMR_AV2_AESNI_DOUBLE) {
+        return variant + 2;
     }
 
-    return XMR_AV3_SOFT_AES;
+    return variant;
 }
 
 
@@ -456,6 +456,13 @@ void parse_cmdline(int argc, char *argv[]) {
 
     if (!opt_n_threads) {
         opt_n_threads = get_optimal_threads_count(opt_algo, opt_double_hash, opt_max_cpu_usage);
+    }
+
+    if (opt_safe) {
+        const int count = get_optimal_threads_count(opt_algo, opt_double_hash, opt_max_cpu_usage);
+        if (opt_n_threads > count) {
+            opt_n_threads = count;
+        }
     }
 }
 
