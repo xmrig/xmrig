@@ -12,7 +12,8 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 * [Build](#build)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
-* [Donations](#Donations)
+* [Donations](#donations)
+* [Contacts](#contacts)
 
 ## Features
 * High performance (290+ H/s on i7 6700).
