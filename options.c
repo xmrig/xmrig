@@ -430,12 +430,8 @@ void parse_cmdline(int argc, char *argv[]) {
     }
 
     if (!opt_url) {
-        opt_url = strdup("stratum+tcp://proxy.xmrig.com:443");
-        opt_keepalive = true;
-
-        if (!opt_backup_url) {
-            opt_backup_url = strdup("stratum+tcp://failover.xmrig.com:80");
-        }
+        applog_notime(LOG_ERR, "No pool URL supplied. Exiting.\n", argv[0]);
+        proper_exit(1);
     }
 
     if (!opt_userpass) {
