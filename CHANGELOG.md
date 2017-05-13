@@ -1,7 +1,7 @@
 # v0.8.0
 - Added double hash mode, also known as lower power mode. `--av=2` and `--av=4`.
 - Added smart automatic CPU configuration. Default threads count now depends on size of the L3 cache of CPU.
-- Added CryptoNight-Lite support for AEON.
+- Added CryptoNight-Lite support for AEON `-a cryptonight-lite`.
 - Added `--max-cpu-usage` option for auto CPU configuration mode.
 - Added `--safe` option for adjust threads and algorithm variations to current CPU.
 - No more manual steps to enable huge pages on Windows. XMRig will do it automatically.
