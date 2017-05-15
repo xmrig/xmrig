@@ -39,6 +39,7 @@ xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
 
 ### Options
 ```
+  -a, --algo=ALGO       cryptonight (default) or cryptonight-lite
   -o, --url=URL         URL of mining server
   -b, --backup-url=URL  URL of backup mining server
   -O, --userpass=U:P    username:password pair for mining server
