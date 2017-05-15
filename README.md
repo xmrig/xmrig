@@ -12,15 +12,18 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 * [Build](#build)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
-* [Donations](#Donations)
+* [Donations](#donations)
+* [Contacts](#contacts)
 
 ## Features
 * High performance (290+ H/s on i7 6700).
 * Official Windows support.
-* Small Windows executable, only 430 KB without dependencies.
+* Small Windows executable, only 535 KB without dependencies.
 * Support for backup (failover) mining server.
 * keepalived support.
 * Command line options compatible with cpuminer.
+* CryptoNight-Lite support for AEON.
+* Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
 * It's open source software.
 
 ## Download
@@ -36,6 +39,7 @@ xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
 
 ### Options
 ```
+  -a, --algo=ALGO       cryptonight (default) or cryptonight-lite
   -o, --url=URL         URL of mining server
   -b, --backup-url=URL  URL of backup mining server
   -O, --userpass=U:P    username:password pair for mining server
@@ -51,18 +55,18 @@ xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
       --donate-level=N  donate level, default 5% (5 minutes in 100 minutes)
   -B, --background      run the miner in the background
   -c, --config=FILE     load a JSON-format configuration file
+      --max-cpu-usage=N maximum cpu usage for automatic threads mode (default 75)
+      --safe            safe adjust threads and av settings for current cpu
   -h, --help            display this help and exit
   -V, --version         output version information and exit
 ```
 
 ## Algorithm variations
-Since version 0.6.0.
-* `--av=1` Default for CPUs with hardware AES.
-* `--av=2` [XMR-Stak-CPU](https://github.com/fireice-uk/xmr-stak-cpu) algorithm.
-* `--av=3` Same as `1` but uses BMI2 instruction [mulx](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mulx_u64).
-* `--av=4` Software AES implementation.
-
-For 32 bit platform only available `1` and `4`.
+Since version 0.8.0.
+* `--av=1` For CPUs with hardware AES.
+* `--av=2` Lower power mode (double hash) of `1`.
+* `--av=3` Software AES implementation.
+* `--av=4` Lower power mode (double hash) of `3`.
 
 ## Build
 ### Ubuntu (Debian-based distros)
@@ -96,13 +100,16 @@ CMake options:
 cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCURL_INCLUDE_DIR="c:\<path>\curl-7.53.1\include" -DCURL_LIBRARY="c:\<path>\curl-7.53.1\lib\.libs"
 ```
 
+### Optional features
+`-DWITH_LIBCPUID=OFF` Disable libcpuid. Auto configuration of CPU after this will be very limited.
+`-DWITH_AEON=OFF` Disable CryptoNight-Lite support.
+
 ## Common Issues
 ### HUGE PAGES unavailable
 * Run XMRig as Administrator.
-* Enable SeLockMemoryPrivilege. For Windows 7 pro, or Windows 8 and above see [this article](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+* Since version 0.8.0 XMRig automatically enable SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
 
 ## Other information
-* Now only support 64 bit operating systems (Windows/Linux).
 * No HTTP support, only stratum protocol support.
 * No TLS support.
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.

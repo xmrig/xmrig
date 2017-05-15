@@ -446,7 +446,7 @@ static void switch_stratum() {
     static bool want_donate = false;
 
     if (g_want_donate && !want_donate) {
-        stratum_ctx->url = "stratum+tcp://donate.xmrig.com:443";
+        stratum_ctx->url = opt_algo == ALGO_CRYPTONIGHT ? "stratum+tcp://donate.xmrig.com:443" : "stratum+tcp://donate.xmrig.com:3333";
         applog(LOG_NOTICE, "Switching to dev pool");
         want_donate = true;
     }

@@ -25,12 +25,12 @@
 #include <x86intrin.h>
 #include <string.h>
 
-#include "cryptonight.h"
-#include "cryptonight_softaes.h"
+#include "algo/cryptonight/cryptonight.h"
+#include "cryptonight_lite_softaes.h"
 #include "crypto/c_keccak.h"
 
 
-void cryptonight_av4_softaes(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
+void cryptonight_lite_av3_softaes(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
 {
     keccak((const uint8_t *) input, size, ctx->state0, 200);
 
@@ -45,25 +45,25 @@ void cryptonight_av4_softaes(const void *restrict input, size_t size, void *rest
 
     uint64_t idx0 = h0[0] ^ h0[4];
 
-    for (size_t i = 0; __builtin_expect(i < 0x80000, 1); i++) {
+    for (size_t i = 0; __builtin_expect(i < 0x40000, 1); i++) {
         __m128i cx;
-        cx = _mm_load_si128((__m128i *)&l0[idx0 & 0x1FFFF0]);
+        cx = _mm_load_si128((__m128i *)&l0[idx0 & 0xFFFF0]);
         cx = soft_aesenc(cx, _mm_set_epi64x(ah0, al0));
 
-        _mm_store_si128((__m128i *)&l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx0, cx));
+        _mm_store_si128((__m128i *)&l0[idx0 & 0xFFFF0], _mm_xor_si128(bx0, cx));
         idx0 = EXTRACT64(cx);
         bx0 = cx;
 
         uint64_t hi, lo, cl, ch;
-        cl = ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0];
-        ch = ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1];
+        cl = ((uint64_t*)&l0[idx0 & 0xFFFF0])[0];
+        ch = ((uint64_t*)&l0[idx0 & 0xFFFF0])[1];
         lo = _umul128(idx0, cl, &hi);
 
         al0 += hi;
         ah0 += lo;
 
-        ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0] = al0;
-        ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1] = ah0;
+        ((uint64_t*)&l0[idx0 & 0xFFFF0])[0] = al0;
+        ((uint64_t*)&l0[idx0 & 0xFFFF0])[1] = ah0;
 
         ah0 ^= ch;
         al0 ^= cl;

@@ -36,26 +36,31 @@
 #include "algo/cryptonight/cryptonight.h"
 
 
-int64_t opt_affinity     = -1L;
-int     opt_n_threads    = 0;
-int     opt_algo_variant = 0;
-int     opt_retries      = 5;
-int     opt_retry_pause  = 5;
-int     opt_donate_level = DONATE_LEVEL;
-bool    opt_colors       = true;
-bool    opt_keepalive    = false;
-bool    opt_background   = false;
-bool    opt_double_hash  = false;
-char    *opt_url         = NULL;
-char    *opt_backup_url  = NULL;
-char    *opt_userpass    = NULL;
-char    *opt_user        = NULL;
-char    *opt_pass        = NULL;
+int64_t opt_affinity      = -1L;
+int     opt_n_threads     = 0;
+int     opt_algo_variant  = 0;
+int     opt_retries       = 5;
+int     opt_retry_pause   = 5;
+int     opt_donate_level  = DONATE_LEVEL;
+int     opt_max_cpu_usage = 75;
+bool    opt_colors        = true;
+bool    opt_keepalive     = false;
+bool    opt_background    = false;
+bool    opt_double_hash   = false;
+bool    opt_safe          = false;
+char    *opt_url          = NULL;
+char    *opt_backup_url   = NULL;
+char    *opt_userpass     = NULL;
+char    *opt_user         = NULL;
+char    *opt_pass         = NULL;
+
+enum mining_algo opt_algo = ALGO_CRYPTONIGHT;
 
 
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
+  -a, --algo=ALGO       cryptonight (default) or cryptonight-lite\n\
   -o, --url=URL         URL of mining server\n\
   -b, --backup-url=URL  URL of backup mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
@@ -66,11 +71,13 @@ Options:\n\
   -k, --keepalive       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N   time to pause between retries (default: 5)\n\
-      --cpu-affinity    set process affinity to cpu core(s), mask 0x3 for cores 0 and 1\n\
+      --cpu-affinity    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --no-color        disable colored output\n\
       --donate-level=N  donate level, default 5%% (5 minutes in 100 minutes)\n\
   -B, --background      run the miner in the background\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
+      --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)\n\
+      --safe            safe adjust threads and av settings for current CPU\n\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
 ";
@@ -80,38 +87,69 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vb:";
 
 
 static struct option const options[] = {
-    { "algo",         1, NULL, 'a'  },
-    { "av",           1, NULL, 'v'  },
-    { "background",   0, NULL, 'B'  },
-    { "backup-url",   1, NULL, 'b'  },
-    { "config",       1, NULL, 'c'  },
-    { "cpu-affinity", 1, NULL, 1020 },
-    { "donate-level", 1, NULL, 1003 },
-    { "help",         0, NULL, 'h'  },
-    { "keepalive",    0, NULL ,'k'  },
-    { "no-color",     0, NULL, 1002 },
-    { "pass",         1, NULL, 'p'  },
-    { "retries",      1, NULL, 'r'  },
-    { "retry-pause",  1, NULL, 'R'  },
-    { "threads",      1, NULL, 't'  },
-    { "url",          1, NULL, 'o'  },
-    { "user",         1, NULL, 'u'  },
-    { "userpass",     1, NULL, 'O'  },
-    { "version",      0, NULL, 'V'  },
+    { "algo",          1, NULL, 'a'  },
+    { "av",            1, NULL, 'v'  },
+    { "background",    0, NULL, 'B'  },
+    { "backup-url",    1, NULL, 'b'  },
+    { "config",        1, NULL, 'c'  },
+    { "cpu-affinity",  1, NULL, 1020 },
+    { "donate-level",  1, NULL, 1003 },
+    { "help",          0, NULL, 'h'  },
+    { "keepalive",     0, NULL ,'k'  },
+    { "max-cpu-usage", 1, NULL, 1004 },
+    { "no-color",      0, NULL, 1002 },
+    { "pass",          1, NULL, 'p'  },
+    { "retries",       1, NULL, 'r'  },
+    { "retry-pause",   1, NULL, 'R'  },
+    { "safe",          0, NULL, 1005 },
+    { "threads",       1, NULL, 't'  },
+    { "url",           1, NULL, 'o'  },
+    { "user",          1, NULL, 'u'  },
+    { "userpass",      1, NULL, 'O'  },
+    { "version",       0, NULL, 'V'  },
     { 0, 0, 0, 0 }
 };
 
 
-static int get_algo_variant(int variant) {
-   if (variant > XMR_AV0_AUTO && variant < XMR_AV_MAX) {
-       return variant;
-   }
+static const char *algo_names[] = {
+    [ALGO_CRYPTONIGHT]      = "cryptonight",
+#   ifndef XMRIG_NO_AEON
+    [ALGO_CRYPTONIGHT_LITE] = "cryptonight-lite"
+#   endif
+};
 
-   if (cpu_info.flags & CPU_FLAG_AES) {
-       return XMR_AV1_AESNI;
-   }
 
-   return XMR_AV4_SOFT_AES;
+#ifndef XMRIG_NO_AEON
+static int get_cryptonight_lite_variant(int variant) {
+    if (variant <= AEON_AV0_AUTO || variant >= AEON_AV_MAX) {
+        return (cpu_info.flags & CPU_FLAG_AES) ? AEON_AV2_AESNI_DOUBLE : AEON_AV4_SOFT_AES_DOUBLE;
+    }
+
+    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= AEON_AV2_AESNI_DOUBLE) {
+        return variant + 2;
+    }
+
+    return variant;
+}
+#endif
+
+
+static int get_algo_variant(int algo, int variant) {
+#   ifndef XMRIG_NO_AEON
+    if (algo == ALGO_CRYPTONIGHT_LITE) {
+        return get_cryptonight_lite_variant(variant);
+    }
+#   endif
+
+    if (variant <= XMR_AV0_AUTO || variant >= XMR_AV_MAX) {
+        return (cpu_info.flags & CPU_FLAG_AES) ? XMR_AV1_AESNI : XMR_AV3_SOFT_AES;
+    }
+
+    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= XMR_AV2_AESNI_DOUBLE) {
+        return variant + 2;
+    }
+
+    return variant;
 }
 
 
@@ -127,6 +165,22 @@ static void parse_arg(int key, char *arg) {
     switch (key)
     {
     case 'a':
+        for (int i = 0; i < ARRAY_SIZE(algo_names); i++) {
+            if (algo_names[i] && !strcmp(arg, algo_names[i])) {
+                opt_algo = i;
+                break;
+            }
+
+#           ifndef XMRIG_NO_AEON
+            if (i == ARRAY_SIZE(algo_names) && !strcmp(arg, "cryptonight-light")) {
+                opt_algo = i = ALGO_CRYPTONIGHT_LITE;
+            }
+#           endif
+
+            if (i == ARRAY_SIZE(algo_names)) {
+                show_usage_and_exit(1);
+            }
+        }
         break;
 
     case 'O': /* --userpass */
@@ -197,7 +251,20 @@ static void parse_arg(int key, char *arg) {
         opt_n_threads = v;
         break;
 
-    case 'k':
+    case 1004: /* --max-cpu-usage */
+        v = atoi(arg);
+        if (v < 1 || v > 100) {
+            show_usage_and_exit(1);
+        }
+
+        opt_max_cpu_usage = v;
+        break;
+
+    case 1005: /* --safe */
+        opt_safe = true;
+        break;
+
+    case 'k': /* --keepalive */
         opt_keepalive = true;
         break;
 
@@ -227,14 +294,14 @@ static void parse_arg(int key, char *arg) {
         break;
     }
 
-    case 'B':
+    case 'B': /* --background */
         opt_background = true;
         opt_colors = false;
         break;
 
     case 'v': /* --av */
         v = atoi(arg);
-        if (v < 0 || v > XMR_AV_MAX) {
+        if (v < 0 || v > 1000) {
             show_usage_and_exit(1);
         }
 
@@ -255,7 +322,7 @@ static void parse_arg(int key, char *arg) {
         opt_colors = false;
         break;
 
-    case 1003:
+    case 1003: /* --donate-level */
         v = atoi(arg);
         if (v < 1 || v > 99) {
             show_usage_and_exit(1);
@@ -364,12 +431,8 @@ void parse_cmdline(int argc, char *argv[]) {
     }
 
     if (!opt_url) {
-        opt_url = strdup("stratum+tcp://proxy.xmrig.com:443");
-        opt_keepalive = true;
-
-        if (!opt_backup_url) {
-            opt_backup_url = strdup("stratum+tcp://failover.xmrig.com:80");
-        }
+        applog_notime(LOG_ERR, "No pool URL supplied. Exiting.\n", argv[0]);
+        proper_exit(1);
     }
 
     if (!opt_userpass) {
@@ -381,18 +444,22 @@ void parse_cmdline(int argc, char *argv[]) {
         sprintf(opt_userpass, "%s:%s", opt_user, opt_pass);
     }
 
-    if (!opt_n_threads) {
-        opt_n_threads = get_optimal_threads_count();
-    }
-
-    opt_algo_variant = get_algo_variant(opt_algo_variant);
-    if (!opt_algo_variant) {
-        opt_algo_variant = get_algo_variant(0);
-    }
+    opt_algo_variant = get_algo_variant(opt_algo, opt_algo_variant);
 
     if (!cryptonight_init(opt_algo_variant)) {
         applog(LOG_ERR, "Cryptonight hash self-test failed. This might be caused by bad compiler optimizations.");
         proper_exit(1);
+    }
+
+    if (!opt_n_threads) {
+        opt_n_threads = get_optimal_threads_count(opt_algo, opt_double_hash, opt_max_cpu_usage);
+    }
+
+    if (opt_safe) {
+        const int count = get_optimal_threads_count(opt_algo, opt_double_hash, opt_max_cpu_usage);
+        if (opt_n_threads > count) {
+            opt_n_threads = count;
+        }
     }
 }
 
@@ -434,4 +501,9 @@ void show_version_and_exit(void) {
     printf("libjansson/%s\n", JANSSON_VERSION);
     #endif
     proper_exit(0);
+}
+
+
+const char* get_current_algo_name(void) {
+    return algo_names[opt_algo];
 }

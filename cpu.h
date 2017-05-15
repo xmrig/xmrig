@@ -24,6 +24,8 @@
 #ifndef __CPU_H__
 #define __CPU_H__
 
+#include <stdbool.h>
+
 struct cpu_info {
     int total_cores;
     int total_logical_cpus;
@@ -45,7 +47,7 @@ enum cpu_flags {
 
 
 void cpu_init();
-int get_optimal_threads_count();
+int get_optimal_threads_count(int algo, bool double_hash, int max_cpu_usage);
 int affine_to_cpu_mask(int id, unsigned long mask);
 
 #endif /* __CPU_H__ */

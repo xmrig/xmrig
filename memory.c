@@ -30,6 +30,26 @@
 static size_t offset = 0;
 
 
+#ifndef XMRIG_NO_AEON
+static void * create_persistent_ctx_lite(int thr_id) {
+    struct cryptonight_ctx *ctx = NULL;
+
+    if (!opt_double_hash) {
+        const size_t offset = MEMORY * (thr_id + 1);
+
+        ctx = (struct cryptonight_ctx *) &persistent_memory[offset + MEMORY_LITE];
+        ctx->memory = &persistent_memory[offset];
+        return ctx;
+    }
+
+    ctx = (struct cryptonight_ctx *) &persistent_memory[MEMORY - sizeof(struct cryptonight_ctx) * (thr_id + 1)];
+    ctx->memory = &persistent_memory[MEMORY * (thr_id + 1)];
+
+    return ctx;
+}
+#endif
+
+
 void * persistent_calloc(size_t num, size_t size) {
     void *mem = &persistent_memory[offset];
     offset += (num * size);
@@ -41,6 +61,12 @@ void * persistent_calloc(size_t num, size_t size) {
 
 
 void * create_persistent_ctx(int thr_id) {
+#   ifndef XMRIG_NO_AEON
+    if (opt_algo == ALGO_CRYPTONIGHT_LITE) {
+        return create_persistent_ctx_lite(thr_id);
+    }
+#   endif
+
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx *) &persistent_memory[MEMORY - sizeof(struct cryptonight_ctx) * (thr_id + 1)];
 
     const int ratio = opt_double_hash ? 2 : 1;

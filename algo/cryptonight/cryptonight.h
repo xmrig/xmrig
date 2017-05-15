@@ -28,7 +28,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MEMORY 2097152 /* 2 MiB */
+#define MEMORY      2097152 /* 2 MiB */
+#define MEMORY_LITE 1048576 /* 1 MiB */
 
 struct cryptonight_ctx {
     uint8_t state0[200] __attribute__((aligned(16)));

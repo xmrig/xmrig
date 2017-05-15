@@ -38,7 +38,7 @@ int persistent_memory_flags = 0;
 
 
 const char * persistent_memory_allocate() {
-    const int ratio = opt_double_hash ? 2 : 1;
+    const int ratio = (opt_double_hash && opt_algo != ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
     const int size = MEMORY * (opt_n_threads * ratio + 1);
     persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;
 

@@ -24,11 +24,17 @@
 #include <cpuid.h>
 #include <string.h>
 #include <stdbool.h>
-#include <libcpuid.h>
+#include <math.h>
+
+#ifndef BUILD_TEST
+#   include <libcpuid.h>
+#endif
 
 #include "cpu.h"
+#include "utils/applog.h"
 
 
+#ifndef BUILD_TEST
 void cpu_init_common() {
     struct cpu_raw_data_t raw = { 0 };
     struct cpu_id_t data = { 0 };
@@ -41,7 +47,7 @@ void cpu_init_common() {
     cpu_info.total_logical_cpus = data.total_logical_cpus;
     cpu_info.sockets            = data.total_logical_cpus / data.num_logical_cpus;
     cpu_info.total_cores        = data.num_cores * cpu_info.sockets;
-    cpu_info.l2_cache           = data.l2_cache > 0 ? data.l2_cache * cpu_info.sockets : 0;
+    cpu_info.l2_cache           = data.l2_cache > 0 ? data.l2_cache * cpu_info.total_cores * cpu_info.sockets : 0;
     cpu_info.l3_cache           = data.l3_cache > 0 ? data.l3_cache * cpu_info.sockets : 0;
 
 #   ifdef __x86_64__
@@ -56,21 +62,31 @@ void cpu_init_common() {
         cpu_info.flags |= CPU_FLAG_BMI2;
     }
 }
+#endif
 
 
-int get_optimal_threads_count() {
+int get_optimal_threads_count(int algo, bool double_hash, int max_cpu_usage) {
+    if (cpu_info.total_logical_cpus == 1) {
+        return 1;
+    }
+
     int cache = cpu_info.l3_cache ? cpu_info.l3_cache : cpu_info.l2_cache;
     int count = 0;
+    const int size = (algo ? 1024 : 2048) * (double_hash ? 2 : 1);
 
     if (cache) {
-        count = cache / 2048;
+        count = cache / size;
     }
     else {
         count = cpu_info.total_logical_cpus / 2;
     }
 
     if (count > cpu_info.total_logical_cpus) {
-        return cpu_info.total_logical_cpus;
+        count = cpu_info.total_logical_cpus;
+    }
+
+    if (((float) count / cpu_info.total_logical_cpus * 100) > max_cpu_usage) {
+        count = ceil((float) cpu_info.total_logical_cpus * (max_cpu_usage / 100.0));
     }
 
     return count < 1 ? 1 : count;

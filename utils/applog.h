@@ -30,7 +30,8 @@ enum {
     LOG_NOTICE,
     LOG_INFO,
     LOG_DEBUG,
-    LOG_BLUE = 0x10
+    LOG_BLUE = 0x10,
+    LOG_GREEN
 };
 
 #define CL_N    "\x1B[0m"
@@ -57,7 +58,7 @@ enum {
 #endif
 #define CL_LRD  "\x1B[01;31m" /* light red */
 #define CL_LGR  "\x1B[01;32m" /* light green */
-#define CL_YL2  "\x1B[01;33m" /* yellow */
+#define CL_LYL  "\x1B[01;33m" /* light yellow */
 #define CL_LBL  "\x1B[01;34m" /* light blue */
 #define CL_LMA  "\x1B[01;35m" /* light magenta */
 #define CL_LCY  "\x1B[01;36m" /* light cyan */

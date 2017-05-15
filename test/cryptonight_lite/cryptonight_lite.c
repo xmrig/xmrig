@@ -8,6 +8,7 @@
 #include "algo/cryptonight/cryptonight.h"
 
 bool opt_double_hash = false;
+enum mining_algo opt_algo = ALGO_CRYPTONIGHT_LITE;
 
 const static char input1[152] = {
     0x03, 0x05, 0xA0, 0xDB, 0xD6, 0xBF, 0x05, 0xCF, 0x16, 0xE5, 0x03, 0xF3, 0xA6, 0x6F, 0x78, 0x00,
@@ -22,21 +23,21 @@ const static char input1[152] = {
     0x12, 0x7C, 0x7A, 0x97, 0x41, 0x8F, 0x93, 0x48, 0x82, 0x8F, 0x0F, 0x02,
 };
 
-const static char input2[] = "This is a test";
-const static char input3[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus pellentesque metus.";
 
+void cryptonight_av1_aesni(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx)          {}
+void cryptonight_av2_aesni_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx)   {}
+void cryptonight_av3_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx)        {}
+void cryptonight_av4_softaes_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx) {}
 
-void cryptonight_av1_aesni(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
-void cryptonight_av2_aesni_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
-void cryptonight_av3_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
-void cryptonight_av4_softaes_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_lite_av1_aesni(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_lite_av2_aesni_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_lite_av3_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_lite_av4_softaes_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
 
 
 static char hash[64];
-#define RESULT1        "1a3ffbee909b420d91f7be6e5fb56db71b3110d886011e877ee5786afd080100"
-#define RESULT1_DOUBLE "1a3ffbee909b420d91f7be6e5fb56db71b3110d886011e877ee5786afd0801001b606a3f4a07d6489a1bcd07697bd16696b61c8ae982f61a90160f4e52828a7f"
-#define RESULT2        "a084f01d1437a09c6985401b60d43554ae105802c5f5d8a9b3253649c0be6605"
-#define RESULT3        "0bbe54bd26caa92a1d436eec71cbef02560062fa689fe14d7efcf42566b411cf"
+#define RESULT1        "3695b4b53bb00358b0ad38dc160feb9e004eece09b83a72ef6ba9864d3510c88"
+#define RESULT1_DOUBLE "3695b4b53bb00358b0ad38dc160feb9e004eece09b83a72ef6ba9864d3510c8828a22bad3f93d1408fca472eb5ad1cbe75f21d053c8ce5b3af105a57713e21dd"
 
 
 static char *bin2hex(const unsigned char *p, size_t len)
@@ -56,7 +57,7 @@ static char *bin2hex(const unsigned char *p, size_t len)
 
 static void * create_ctx(int ratio) {
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
-    ctx->memory = (uint8_t *) _mm_malloc(MEMORY * ratio, 16);
+    ctx->memory = (uint8_t *) _mm_malloc(MEMORY_LITE * ratio, 16);
 
     return ctx;
 }
@@ -68,55 +69,42 @@ static void free_ctx(struct cryptonight_ctx *ctx) {
 }
 
 
-void test_cryptonight_av1_should_CalcHash(void) {
+void test_cryptonight_lite_av1_should_CalcHash(void) {
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx(1);
 
-    cryptonight_av1_aesni(input1, 76, &hash, ctx);
+    cryptonight_lite_av1_aesni(input1, 76, &hash, ctx);
     TEST_ASSERT_EQUAL_STRING(RESULT1, bin2hex(hash, 32));
-
-    cryptonight_av1_aesni(input2, strlen(input2), &hash, ctx);
-    TEST_ASSERT_EQUAL_STRING(RESULT2, bin2hex(hash, 32));
-
-    cryptonight_av1_aesni(input3, strlen(input3), &hash, ctx);
-    TEST_ASSERT_EQUAL_STRING(RESULT3, bin2hex(hash, 32));
 
     free_ctx(ctx);
 }
 
 
-void test_cryptonight_av2_should_CalcHash(void)
+void test_cryptonight_lite_av2_should_CalcHash(void)
 {
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx(2);
 
-    cryptonight_av2_aesni_double(input1, 76, &hash, ctx);
+    cryptonight_lite_av2_aesni_double(input1, 76, &hash, ctx);
     TEST_ASSERT_EQUAL_STRING(RESULT1_DOUBLE, bin2hex(hash, 64));
 
     free_ctx(ctx);
 }
 
 
-void test_cryptonight_av3_should_CalcHash(void)
-{
+void test_cryptonight_lite_av3_should_CalcHash(void) {
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx(1);
 
-    cryptonight_av3_softaes(input1, 76, &hash, ctx);
+    cryptonight_lite_av3_softaes(input1, 76, &hash, ctx);
     TEST_ASSERT_EQUAL_STRING(RESULT1, bin2hex(hash, 32));
-
-    cryptonight_av3_softaes(input2, strlen(input2), &hash, ctx);
-    TEST_ASSERT_EQUAL_STRING(RESULT2, bin2hex(hash, 32));
-
-    cryptonight_av3_softaes(input3, strlen(input3), &hash, ctx);
-    TEST_ASSERT_EQUAL_STRING(RESULT3, bin2hex(hash, 32));
 
     free_ctx(ctx);
 }
 
 
-void test_cryptonight_av4_should_CalcHash(void)
+void test_cryptonight_lite_av4_should_CalcHash(void)
 {
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx(2);
 
-    cryptonight_av4_softaes_double(input1, 76, &hash, ctx);
+    cryptonight_lite_av4_softaes_double(input1, 76, &hash, ctx);
     TEST_ASSERT_EQUAL_STRING(RESULT1_DOUBLE, bin2hex(hash, 64));
 
     free_ctx(ctx);
@@ -127,10 +115,10 @@ int main(void)
 {
     UNITY_BEGIN();
 
-    RUN_TEST(test_cryptonight_av1_should_CalcHash);
-    RUN_TEST(test_cryptonight_av2_should_CalcHash);
-    RUN_TEST(test_cryptonight_av3_should_CalcHash);
-    RUN_TEST(test_cryptonight_av4_should_CalcHash);
+    RUN_TEST(test_cryptonight_lite_av1_should_CalcHash);
+    RUN_TEST(test_cryptonight_lite_av2_should_CalcHash);
+    RUN_TEST(test_cryptonight_lite_av3_should_CalcHash);
+    RUN_TEST(test_cryptonight_lite_av4_should_CalcHash);
 
     return UNITY_END();
 }

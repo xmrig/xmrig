@@ -75,6 +75,11 @@ void applog(int prio, const char *fmt, ...)
                 prio = LOG_NOTICE;
                 color = CL_CYN;
                 break;
+
+            case LOG_GREEN:
+                prio = LOG_NOTICE;
+                color = CL_LGR;
+                break;
         }
     }
 
@@ -116,7 +121,7 @@ void applog_notime(int prio, const char *fmt, ...)
     if (opt_colors) {
         switch (prio) {
             case LOG_ERR:     color = CL_RED; break;
-            case LOG_WARNING: color = CL_YLW; break;
+            case LOG_WARNING: color = CL_LYL; break;
             case LOG_NOTICE:  color = CL_WHT; break;
             case LOG_INFO:    color = ""; break;
             case LOG_DEBUG:   color = CL_GRY; break;
