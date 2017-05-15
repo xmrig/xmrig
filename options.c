@@ -60,6 +60,7 @@ enum mining_algo opt_algo = ALGO_CRYPTONIGHT;
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
+  -a, --algo=ALGO       cryptonight (default) or cryptonight-lite\n\
   -o, --url=URL         URL of mining server\n\
   -b, --backup-url=URL  URL of backup mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
@@ -70,13 +71,13 @@ Options:\n\
   -k, --keepalive       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N   time to pause between retries (default: 5)\n\
-      --cpu-affinity    set process affinity to cpu core(s), mask 0x3 for cores 0 and 1\n\
+      --cpu-affinity    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --no-color        disable colored output\n\
       --donate-level=N  donate level, default 5%% (5 minutes in 100 minutes)\n\
   -B, --background      run the miner in the background\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
-      --max-cpu-usage=N maximum cpu usage for automatic threads mode (default 75)\n\
-      --safe            safe adjust threads and av settings for current cpu\n\
+      --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)\n\
+      --safe            safe adjust threads and av settings for current CPU\n\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
 ";
