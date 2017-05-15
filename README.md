@@ -23,7 +23,7 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 * keepalived support.
 * Command line options compatible with cpuminer.
 * CryptoNight-Lite support for AEON.
-* Smart automatic CPU configuration.
+* Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
 * It's open source software.
 
 ## Download
