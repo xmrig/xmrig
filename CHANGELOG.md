@@ -1,3 +1,6 @@
+# v0.8.1
+- Added nicehash support, detects automaticaly by pool URL, for example `cryptonight.eu.nicehash.com:3355` or manually via option `--nicehash`.
+
 # v0.8.0
 - Added double hash mode, also known as lower power mode. `--av=2` and `--av=4`.
 - Added smart automatic CPU configuration. Default threads count now depends on size of the L3 cache of CPU.
