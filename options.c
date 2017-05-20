@@ -441,6 +441,10 @@ void parse_cmdline(int argc, char *argv[]) {
         proper_exit(1);
     }
 
+    if (strstr(opt_url, ".nicehash.com:") != NULL) {
+        opt_nicehash = true;
+    }
+
     if (!opt_userpass) {
         opt_userpass = malloc(strlen(opt_user) + strlen(opt_pass) + 2);
         if (!opt_userpass) {
