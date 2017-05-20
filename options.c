@@ -79,6 +79,7 @@ Options:\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
       --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)\n\
       --safe            safe adjust threads and av settings for current CPU\n\
+      --nicehash        enable nicehash support\n\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
 ";
