@@ -48,6 +48,7 @@ bool    opt_keepalive     = false;
 bool    opt_background    = false;
 bool    opt_double_hash   = false;
 bool    opt_safe          = false;
+bool    opt_nicehash      = false;
 char    *opt_url          = NULL;
 char    *opt_backup_url   = NULL;
 char    *opt_userpass     = NULL;
@@ -97,6 +98,7 @@ static struct option const options[] = {
     { "help",          0, NULL, 'h'  },
     { "keepalive",     0, NULL ,'k'  },
     { "max-cpu-usage", 1, NULL, 1004 },
+    { "nicehash",      0, NULL, 1006 },
     { "no-color",      0, NULL, 1002 },
     { "pass",          1, NULL, 'p'  },
     { "retries",       1, NULL, 'r'  },
@@ -329,6 +331,10 @@ static void parse_arg(int key, char *arg) {
         }
 
         opt_donate_level = v;
+        break;
+
+    case 1006: /* --nicehash */
+        opt_nicehash = true;
         break;
 
     default:

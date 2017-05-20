@@ -65,6 +65,7 @@ extern bool opt_keepalive;
 extern bool opt_background;
 extern bool opt_double_hash;
 extern bool opt_safe;
+extern bool opt_nicehash;
 extern char *opt_url;
 extern char *opt_backup_url;
 extern char *opt_userpass;
