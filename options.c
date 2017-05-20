@@ -48,6 +48,7 @@ bool    opt_keepalive     = false;
 bool    opt_background    = false;
 bool    opt_double_hash   = false;
 bool    opt_safe          = false;
+bool    opt_nicehash      = false;
 char    *opt_url          = NULL;
 char    *opt_backup_url   = NULL;
 char    *opt_userpass     = NULL;
@@ -78,6 +79,7 @@ Options:\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
       --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)\n\
       --safe            safe adjust threads and av settings for current CPU\n\
+      --nicehash        enable nicehash support\n\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
 ";
@@ -97,6 +99,7 @@ static struct option const options[] = {
     { "help",          0, NULL, 'h'  },
     { "keepalive",     0, NULL ,'k'  },
     { "max-cpu-usage", 1, NULL, 1004 },
+    { "nicehash",      0, NULL, 1006 },
     { "no-color",      0, NULL, 1002 },
     { "pass",          1, NULL, 'p'  },
     { "retries",       1, NULL, 'r'  },
@@ -331,6 +334,10 @@ static void parse_arg(int key, char *arg) {
         opt_donate_level = v;
         break;
 
+    case 1006: /* --nicehash */
+        opt_nicehash = true;
+        break;
+
     default:
         show_usage_and_exit(1);
     }
@@ -433,6 +440,10 @@ void parse_cmdline(int argc, char *argv[]) {
     if (!opt_url) {
         applog_notime(LOG_ERR, "No pool URL supplied. Exiting.\n", argv[0]);
         proper_exit(1);
+    }
+
+    if (strstr(opt_url, ".nicehash.com:") != NULL) {
+        opt_nicehash = true;
     }
 
     if (!opt_userpass) {

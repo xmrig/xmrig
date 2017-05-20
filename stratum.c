@@ -238,8 +238,14 @@ bool stratum_handle_response(char *buf) {
     json_t *id_val = json_object_get(val, "id");
 
     if (!id_val || json_is_null(id_val) || !res_val) {
-       json_decref(val);
-       return false;
+        const char* message;
+
+        if (json_is_object(err_val) && (message = json_string_value(json_object_get(err_val, "message")))) {
+            applog(LOG_ERR, "error: \"%s\"", message);
+        }
+
+        json_decref(val);
+        return false;
     }
 
     json_t *status = json_object_get(res_val, "status");
@@ -288,7 +294,6 @@ bool stratum_keepalived(struct stratum_ctx *sctx)
 bool stratum_authorize(struct stratum_ctx *sctx, const char *user, const char *pass)
 {
     char *sret;
-    json_error_t err;
 
     char *req = malloc(128 + strlen(user) + strlen(pass));
     sprintf(req, "{\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s/%s\"},\"id\":1}", user, pass, APP_NAME, APP_VERSION);
@@ -324,7 +329,15 @@ bool stratum_authorize(struct stratum_ctx *sctx, const char *user, const char *p
     json_t *error  = json_object_get(val, "error");
 
     if (!result || json_is_false(result) || (error && !json_is_null(error)))  {
-        applog(LOG_ERR, "Stratum authentication failed");
+        const char* message;
+
+        if (json_is_object(error) && (message = json_string_value(json_object_get(error, "message")))) {
+            applog(LOG_ERR, "Stratum authentication failed: \"%s\"", message);
+        }
+        else {
+            applog(LOG_ERR, "Stratum authentication failed");
+        }
+
         json_decref(val);
         return false;
     }

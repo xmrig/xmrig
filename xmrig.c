@@ -280,7 +280,14 @@ static void *miner_thread(void *userdata) {
         if (memcmp(work.job_id, stratum_ctx->g_work.job_id, 64)) {
             work_copy(&work, &stratum_ctx->g_work);
             nonceptr = (uint32_t*) (((char*) work.blob) + 39);
-            *nonceptr = 0xffffffffU / opt_n_threads * thr_id;
+
+            if (opt_nicehash) {
+                end_nonce = (*nonceptr & 0xff000000U) + (0xffffffU / opt_n_threads * (thr_id + 1) - 0x20);
+                *nonceptr = (*nonceptr & 0xff000000U) + (0xffffffU / opt_n_threads * thr_id);
+            }
+            else {
+                *nonceptr = 0xffffffffU / opt_n_threads * thr_id;
+            }
         }
 
         pthread_mutex_unlock(&stratum_ctx->work_lock);
@@ -356,8 +363,15 @@ static void *miner_thread_double(void *userdata) {
             nonceptr0 = (uint32_t*) (((char*) double_blob) + 39);
             nonceptr1 = (uint32_t*) (((char*) double_blob) + 39 + work.blob_size);
 
-            *nonceptr0 = 0xffffffffU / (opt_n_threads * 2) * thr_id;
-            *nonceptr1 = 0xffffffffU / (opt_n_threads * 2) * (thr_id + opt_n_threads);
+            if (opt_nicehash) {
+                end_nonce = (*nonceptr0 & 0xff000000U) + (0xffffffU / (opt_n_threads * 2) * (thr_id + 1) - 0x20);
+                *nonceptr0 = (*nonceptr0 & 0xff000000U) + (0xffffffU / (opt_n_threads * 2) * thr_id);
+                *nonceptr1 = (*nonceptr1 & 0xff000000U) + (0xffffffU / (opt_n_threads * 2) * (thr_id + opt_n_threads));
+            }
+            else {
+                *nonceptr0 = 0xffffffffU / (opt_n_threads * 2) * thr_id;
+                *nonceptr1 = 0xffffffffU / (opt_n_threads * 2) * (thr_id + opt_n_threads);
+            }
         }
 
         pthread_mutex_unlock(&stratum_ctx->work_lock);
