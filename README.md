@@ -24,6 +24,7 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 * Command line options compatible with cpuminer.
 * CryptoNight-Lite support for AEON.
 * Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
+* Nicehash support
 * It's open source software.
 
 ## Download
@@ -57,6 +58,7 @@ xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
   -c, --config=FILE     load a JSON-format configuration file
       --max-cpu-usage=N maximum cpu usage for automatic threads mode (default 75)
       --safe            safe adjust threads and av settings for current cpu
+      --nicehash        enable nicehash support
   -h, --help            display this help and exit
   -V, --version         output version information and exit
 ```
