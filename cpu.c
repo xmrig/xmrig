@@ -31,7 +31,6 @@
 #endif
 
 #include "cpu.h"
-#include "utils/applog.h"
 
 
 #ifndef BUILD_TEST
@@ -47,8 +46,16 @@ void cpu_init_common() {
     cpu_info.total_logical_cpus = data.total_logical_cpus;
     cpu_info.sockets            = data.total_logical_cpus / data.num_logical_cpus;
     cpu_info.total_cores        = data.num_cores * cpu_info.sockets;
-    cpu_info.l2_cache           = data.l2_cache > 0 ? data.l2_cache * cpu_info.total_cores * cpu_info.sockets : 0;
     cpu_info.l3_cache           = data.l3_cache > 0 ? data.l3_cache * cpu_info.sockets : 0;
+
+    // Workaround for AMD CPUs https://github.com/anrieff/libcpuid/issues/97
+    if (data.vendor == VENDOR_AMD && data.l3_cache <= 0 && data.l2_assoc == 16 && data.ext_family >= 21) {
+        cpu_info.l2_cache = data.l2_cache * (cpu_info.total_cores / 2) * cpu_info.sockets;
+    }
+    else {
+        cpu_info.l2_cache = data.l2_cache > 0 ? data.l2_cache * cpu_info.total_cores * cpu_info.sockets : 0;
+    }
+
 
 #   ifdef __x86_64__
     cpu_info.flags |= CPU_FLAG_X86_64;

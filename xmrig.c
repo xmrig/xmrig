@@ -641,8 +641,8 @@ static bool start_mining() {
  * @return
  */
 int main(int argc, char *argv[]) {
-    cpu_init();
     applog_init();
+    cpu_init();
     parse_cmdline(argc, argv);
     persistent_memory_allocate();
     print_summary();
