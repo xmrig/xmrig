@@ -116,7 +116,7 @@ inline void aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i*
 }
 
 
-inline void cn_explode_scratchpad(const __m128i* input, __m128i* output)
+static inline void cn_explode_scratchpad(const __m128i* input, __m128i* output)
 {
     // This is more than we have registers, compiler will assign 2 keys on the stack
     __m128i xin0, xin1, xin2, xin3, xin4, xin5, xin6, xin7;
@@ -157,7 +157,7 @@ inline void cn_explode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 
-inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
+static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 {
     // This is more than we have registers, compiler will assign 2 keys on the stack
     __m128i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
