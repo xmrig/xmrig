@@ -21,20 +21,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#include <stdlib.h>
+#include <mm_malloc.h>
+#include <sys/mman.h>
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "Monero (XMR) CPU miner"
-#define APP_VERSION   "0.8.3"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
+#include "persistent_memory.h"
+#include "options.h"
+#include "utils/applog.h"
 
-#define APP_VER_MAJOR  0
-#define APP_VER_MINOR  8
-#define APP_VER_BUILD  3
-#define APP_VER_REV    0
+char *persistent_memory;
+int persistent_memory_flags = 0;
 
-#endif /* __VERSION_H__ */
+
+const char * persistent_memory_allocate() {
+    const int ratio = (opt_double_hash && opt_algo != ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
+    const int size = MEMORY * (opt_n_threads * ratio + 1);
+    
+    persistent_memory = _mm_malloc(size, 16);
+    return persistent_memory;
+}
+
+
+void persistent_memory_free() {
+    _mm_free(persistent_memory);
+}

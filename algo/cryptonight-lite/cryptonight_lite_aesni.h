@@ -41,7 +41,7 @@
 
 // This will shift and xor tmp1 into itself as 4 32-bit vals such as
 // sl_xor(a1 a2 a3 a4) = a1 (a2^a1) (a3^a2^a1) (a4^a3^a2^a1)
-inline __m128i sl_xor(__m128i tmp1)
+static inline __m128i sl_xor(__m128i tmp1)
 {
     __m128i tmp4;
     tmp4 = _mm_slli_si128(tmp1, 0x04);
@@ -54,31 +54,31 @@ inline __m128i sl_xor(__m128i tmp1)
 }
 
 
-inline void aes_genkey_sub1(__m128i* xout0, __m128i* xout2)
+static inline void aes_genkey_sub1(__m128i* xout0, __m128i* xout2)
 {
    aes_genkey_sub(0x1)
 }
 
 
-inline void aes_genkey_sub2(__m128i* xout0, __m128i* xout2)
+static inline void aes_genkey_sub2(__m128i* xout0, __m128i* xout2)
 {
    aes_genkey_sub(0x2)
 }
 
 
-inline void aes_genkey_sub4(__m128i* xout0, __m128i* xout2)
+static inline void aes_genkey_sub4(__m128i* xout0, __m128i* xout2)
 {
    aes_genkey_sub(0x4)
 }
 
 
-inline void aes_genkey_sub8(__m128i* xout0, __m128i* xout2)
+static inline void aes_genkey_sub8(__m128i* xout0, __m128i* xout2)
 {
    aes_genkey_sub(0x8)
 }
 
 
-inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
+static inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
 {
     *x0 = _mm_aesenc_si128(*x0, key);
     *x1 = _mm_aesenc_si128(*x1, key);
@@ -91,7 +91,7 @@ inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128
 }
 
 
-inline void aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i* k2, __m128i* k3, __m128i* k4, __m128i* k5, __m128i* k6, __m128i* k7, __m128i* k8, __m128i* k9)
+static inline void aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i* k2, __m128i* k3, __m128i* k4, __m128i* k5, __m128i* k6, __m128i* k7, __m128i* k8, __m128i* k9)
 {
     __m128i xout0 = _mm_load_si128(memory);
     __m128i xout2 = _mm_load_si128(memory + 1);
@@ -211,7 +211,7 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 #if defined(__x86_64__)
 #   define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
-inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
+static inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
 {
     unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
     *hi = r >> 64;
@@ -226,7 +226,7 @@ inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
     ((uint64_t)(uint32_t)_mm_cvtsi128_si32(X) | \
     ((uint64_t)(uint32_t)_mm_cvtsi128_si32(HI32(X)) << 32))
 
-inline uint64_t _umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
+static inline uint64_t _umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
     // multiplier   = ab = a * 2^32 + b
     // multiplicand = cd = c * 2^32 + d
     // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d

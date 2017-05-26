@@ -21,20 +21,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#include <unistd.h>
+#include <sched.h>
+#include <pthread.h>
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "Monero (XMR) CPU miner"
-#define APP_VERSION   "0.8.3"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
+#include "cpu.h"
 
-#define APP_VER_MAJOR  0
-#define APP_VER_MINOR  8
-#define APP_VER_BUILD  3
-#define APP_VER_REV    0
 
-#endif /* __VERSION_H__ */
+struct cpu_info cpu_info = { 0 };
+void cpu_init_common();
+
+
+void cpu_init() {
+#   ifdef XMRIG_NO_LIBCPUID
+    cpu_info.total_logical_cpus = sysconf(_SC_NPROCESSORS_CONF);
+#   endif
+    
+    cpu_init_common();
+}
+
+
+int affine_to_cpu_mask(int id, unsigned long mask)
+{
+    return 0;
+}

@@ -36,6 +36,10 @@
 #   include <poll.h>
 #endif
 
+#ifdef __APPLE_CC__
+#   include <netinet/in.h>
+#endif
+
 #include "stratum.h"
 #include "version.h"
 #include "stats.h"
@@ -537,31 +541,36 @@ static int sockopt_keepalive_cb(void *userdata, curl_socket_t fd, curlsocktype p
     int tcp_keepintvl = 50;
 
 #ifndef WIN32
-    if (unlikely(setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepalive,
-        sizeof(keepalive))))
+    if (unlikely(setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)))) {
         return 1;
-#ifdef __linux
-    if (unlikely(setsockopt(fd, SOL_TCP, TCP_KEEPCNT,
-        &tcp_keepcnt, sizeof(tcp_keepcnt))))
+    }
+    
+#   ifdef __linux
+    if (unlikely(setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &tcp_keepcnt, sizeof(tcp_keepcnt)))) {
         return 1;
-    if (unlikely(setsockopt(fd, SOL_TCP, TCP_KEEPIDLE,
-        &tcp_keepidle, sizeof(tcp_keepidle))))
+    }
+    
+    if (unlikely(setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &tcp_keepidle, sizeof(tcp_keepidle)))) {
         return 1;
-    if (unlikely(setsockopt(fd, SOL_TCP, TCP_KEEPINTVL,
-        &tcp_keepintvl, sizeof(tcp_keepintvl))))
+    }
+    
+    if (unlikely(setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &tcp_keepintvl, sizeof(tcp_keepintvl)))) {
         return 1;
-#endif /* __linux */
-#ifdef __APPLE_CC__
-    if (unlikely(setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE,
-        &tcp_keepintvl, sizeof(tcp_keepintvl))))
+    }
+#   endif /* __linux */
+    
+#   ifdef __APPLE_CC__
+    if (unlikely(setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &tcp_keepintvl, sizeof(tcp_keepintvl)))) {
         return 1;
-#endif /* __APPLE_CC__ */
+    }
+#   endif /* __APPLE_CC__ */
 #else /* WIN32 */
     struct tcp_keepalive vals;
     vals.onoff = 1;
     vals.keepalivetime = tcp_keepidle * 1000;
     vals.keepaliveinterval = tcp_keepintvl * 1000;
     DWORD outputBytes;
+    
     if (unlikely(WSAIoctl(fd, SIO_KEEPALIVE_VALS, &vals, sizeof(vals), NULL, 0, &outputBytes, NULL, NULL))) {
         return 1;
     }

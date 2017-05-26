@@ -38,12 +38,12 @@ static void * create_persistent_ctx_lite(int thr_id) {
         const size_t offset = MEMORY * (thr_id + 1);
 
         ctx = (struct cryptonight_ctx *) &persistent_memory[offset + MEMORY_LITE];
-        ctx->memory = &persistent_memory[offset];
+        ctx->memory = (uint8_t*) &persistent_memory[offset];
         return ctx;
     }
 
     ctx = (struct cryptonight_ctx *) &persistent_memory[MEMORY - sizeof(struct cryptonight_ctx) * (thr_id + 1)];
-    ctx->memory = &persistent_memory[MEMORY * (thr_id + 1)];
+    ctx->memory = (uint8_t*) &persistent_memory[MEMORY * (thr_id + 1)];
 
     return ctx;
 }
@@ -70,7 +70,7 @@ void * create_persistent_ctx(int thr_id) {
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx *) &persistent_memory[MEMORY - sizeof(struct cryptonight_ctx) * (thr_id + 1)];
 
     const int ratio = opt_double_hash ? 2 : 1;
-    ctx->memory = &persistent_memory[MEMORY * (thr_id * ratio + 1)];
+    ctx->memory = (uint8_t*) &persistent_memory[MEMORY * (thr_id * ratio + 1)];
 
     return ctx;
 }
