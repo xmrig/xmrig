@@ -21,9 +21,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MEMORY_H__
-#define __MEMORY_H__
-
 #include <stdlib.h>
 #include <mm_malloc.h>
 #include <sys/mman.h>
@@ -45,7 +42,7 @@ const char * persistent_memory_allocate() {
     persistent_memory = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
 
     if (persistent_memory == MAP_FAILED) {
-        persistent_memory = _mm_malloc(size, 4096);
+        persistent_memory = _mm_malloc(size, 16);
         return persistent_memory;
     }
 
@@ -77,6 +74,3 @@ void persistent_memory_free() {
         _mm_free(persistent_memory);
     }
 }
-
-
-#endif /* __MEMORY_H__ */
