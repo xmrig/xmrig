@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <mm_malloc.h>
 #include <sys/mman.h>
+#include <mach/vm_statistics.h>
 
 #include "persistent_memory.h"
 #include "options.h"
@@ -36,12 +37,40 @@ int persistent_memory_flags = 0;
 const char * persistent_memory_allocate() {
     const int ratio = (opt_double_hash && opt_algo != ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
     const int size = MEMORY * (opt_n_threads * ratio + 1);
+    persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;
     
-    persistent_memory = _mm_malloc(size, 16);
+    persistent_memory = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
+    
+    if (persistent_memory == MAP_FAILED) {
+        persistent_memory = _mm_malloc(size, 16);
+        return persistent_memory;
+    }
+    
+    persistent_memory_flags |= MEMORY_HUGEPAGES_ENABLED;
+    
+    if (madvise(persistent_memory, size, MADV_RANDOM | MADV_WILLNEED) != 0) {
+        applog(LOG_ERR, "madvise failed");
+    }
+    
+    if (mlock(persistent_memory, size) == 0) {
+        persistent_memory_flags |= MEMORY_LOCK;
+    }
+    
     return persistent_memory;
 }
 
 
 void persistent_memory_free() {
-    _mm_free(persistent_memory);
+    const int size = MEMORY * (opt_n_threads + 1);
+    
+    if (persistent_memory_flags & MEMORY_HUGEPAGES_ENABLED) {
+        if (persistent_memory_flags & MEMORY_LOCK) {
+            munlock(persistent_memory, size);
+        }
+        
+        munmap(persistent_memory, size);
+    }
+    else {
+        _mm_free(persistent_memory);
+    }
 }
