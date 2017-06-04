@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <io.h>
 
-#include "compat/winansi.h"
+#include "winansi.h"
 /*
 * Copyright 2008 Peter Harris <git@peter.is-a-geek.org>
 */
@@ -344,8 +344,8 @@ int winansi_vfprintf(FILE *stream, const char *format, va_list list)
 #endif
     va_end(cp);
 
-    if (len > sizeof(small_buf) - 1) {
-        buf = malloc(len + 1);
+    if ((unsigned) len > sizeof(small_buf) - 1) {
+        buf = (char*)malloc(len + 1);
         if (!buf)
             goto abort;
 

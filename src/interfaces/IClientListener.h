@@ -21,20 +21,20 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#ifndef __ICLIENTLISTENER_H__
+#define __ICLIENTLISTENER_H__
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "Monero (XMR) CPU miner"
-#define APP_VERSION   "0.8.3"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
 
-#define APP_VER_MAJOR  0
-#define APP_VER_MINOR  8
-#define APP_VER_BUILD  3
-#define APP_VER_REV    0
+class Client;
 
-#endif /* __VERSION_H__ */
+
+class IClientListener
+{
+public:
+    virtual ~IClientListener() {}
+
+    virtual void onLoginCredentialsRequired(Client *client) = 0;
+};
+
+
+#endif // __ICLIENTLISTENER_H__

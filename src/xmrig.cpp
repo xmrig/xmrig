@@ -21,21 +21,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __THREADS_H__
-#define __THREADS_H__
+#include "App.h"
 
-#if defined(WIN32) && defined(USE_NATIVE_THREADS)
-# include <windows.h>
-# define MUTEX               CRITICAL_SECTION
-# define MUTEX_INIT(mutex)   InitializeCriticalSection(&mutex)
-# define MUTEX_LOCK(mutex)   EnterCriticalSection(&mutex)
-# define MUTEX_UNLOCK(mutex) LeaveCriticalSection(&mutex)
-#else
-# include <pthread.h>
-# define MUTEX               pthread_mutex_t
-# define MUTEX_INIT(mutex)   pthread_mutex_init(&mutex, NULL)
-# define MUTEX_LOCK(mutex)   pthread_mutex_lock(&mutex)
-# define MUTEX_UNLOCK(mutex) pthread_mutex_unlock(&mutex)
-#endif
 
-#endif /* __THREADS_H__ */
+int main(int argc, char **argv) {
+    auto app = new App(argc, argv);
+
+    return app->exec();
+}

@@ -1,12 +1,11 @@
 /*
  * ANSI emulation wrappers
  */
-#ifdef WIN32
+
 #include <windows.h>
 #include <stddef.h>
 #include <stdio.h>
 
-#define isatty(fd) _isatty(fd)
 #define fileno(fd) _fileno(fd)
 
 #ifdef __cplusplus
@@ -28,5 +27,3 @@ extern "C" {
 #define printf winansi_printf
 #define fprintf winansi_fprintf
 #define vfprintf winansi_vfprintf
-
-#endif
