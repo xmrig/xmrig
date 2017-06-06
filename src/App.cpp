@@ -48,7 +48,6 @@ App::App(int argc, char **argv)
 {
     Console::init();
     m_options = Options::parse(argc, argv);
-
     m_network = new Network(m_options);
 }
 

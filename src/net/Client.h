@@ -47,15 +47,17 @@ public:
         ClosingState
     };
 
-    Client(IClientListener *listener);
+    Client(int id, IClientListener *listener);
     ~Client();
 
-    void connect(const char *host, uint16_t port);
+    void connect();
     void connect(const Url *url);
     void disconnect();
     void login(const char *user, const char *pass, const char *agent);
     void send(char *data);
+    void setUrl(const Url *url);
 
+    inline int id() const            { return m_id; }
     inline SocketState state() const { return m_state; }
 
 private:
@@ -82,6 +84,7 @@ private:
     char *m_host;
     char m_rpcId[64];
     IClientListener *m_listener;
+    int m_id;
     int64_t m_retries;
     int64_t m_sequence;
     Job m_job;

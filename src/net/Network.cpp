@@ -23,30 +23,37 @@
 
 
 #include <uv.h>
+#include <memory>
 
 
 #include "Console.h"
 #include "net/Client.h"
 #include "net/Network.h"
+#include "net/Url.h"
 #include "Options.h"
 
 
 Network::Network(const Options *options) :
-    m_backupPool(nullptr),
-    m_donatePool(nullptr),
-    m_pool(nullptr),
-    m_options(options)
+    m_donate(false),
+    m_options(options),
+    m_pool(1)
 {
+    m_pools.reserve(2);
     m_agent = userAgent();
-    m_pool = new Client(this);
+
+    std::unique_ptr<Url> url(new Url("donate.xmrig.com", 443));
+
+    addPool(url.get());
+    addPool(m_options->url());
+    addPool(m_options->backupUrl());
 }
 
 
 Network::~Network()
 {
-    delete m_pool;
-    delete m_donatePool;
-    delete m_backupPool;
+    for (auto client : m_pools) {
+        delete client;
+    }
 
     free(m_agent);
 }
@@ -54,8 +61,7 @@ Network::~Network()
 
 void Network::connect()
 {
-    m_pool->connect(m_options->url());
-//    LOG_DEBUG("XX %s", m_options->url());
+    m_pools.at(m_pool)->connect();
 }
 
 
@@ -73,4 +79,17 @@ void Network::onLoginCredentialsRequired(Client *client)
 
 void Network::onLoginSuccess(Client *client)
 {
+}
+
+
+void Network::addPool(const Url *url)
+{
+    if (!url) {
+        return;
+    }
+
+    Client *client = new Client(m_pools.size(), this);
+    client->setUrl(url);
+
+    m_pools.push_back(client);
 }

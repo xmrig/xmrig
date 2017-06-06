@@ -51,10 +51,11 @@ public:
     static inline Options* i() { return m_self; }
     static Options *parse(int argc, char **argv);
 
-    inline bool isReady() const     { return m_ready; }
-    inline const char *pass() const { return m_pass; }
-    inline const char *user() const { return m_user; }
-    inline Url *url() const         { return m_url; }
+    inline bool isReady() const         { return m_ready; }
+    inline const char *pass() const     { return m_pass; }
+    inline const char *user() const     { return m_user; }
+    inline const Url *backupUrl() const { return m_backupUrl; }
+    inline const Url *url() const       { return m_url; }
 
 private:
     Options(int argc, char **argv);

@@ -25,10 +25,14 @@
 #define __NETWORK_H__
 
 
+#include <vector>
+
+
 #include "interfaces/IClientListener.h"
 
 
 class Options;
+class Url;
 
 
 class Network : public IClientListener
@@ -47,11 +51,13 @@ protected:
   void onLoginSuccess(Client *client) override;
 
 private:
+  void addPool(const Url *url);
+
+  bool m_donate;
   char *m_agent;
-  Client *m_backupPool;
-  Client *m_donatePool;
-  Client *m_pool;
   const Options *m_options;
+  int m_pool;
+  std::vector<Client*> m_pools;
 };
 
 

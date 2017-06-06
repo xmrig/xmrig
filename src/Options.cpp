@@ -128,7 +128,7 @@ Options::Options(int argc, char **argv) :
     m_user(nullptr),
     m_algo(0),
     m_algoVariant(0),
-    m_donateLevel(DONATE_LEVEL),
+    m_donateLevel(kDonateLevel),
     m_maxCpuUsage(75),
     m_retries(5),
     m_retryPause(5),

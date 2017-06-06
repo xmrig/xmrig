@@ -28,9 +28,10 @@
 #include "net/Url.h"
 
 
-Client::Client(IClientListener *listener) :
+Client::Client(int id, IClientListener *listener) :
     m_host(nullptr),
     m_listener(listener),
+    m_id(id),
     m_retries(0),
     m_sequence(1),
     m_recvBufPos(0),
@@ -59,20 +60,9 @@ Client::~Client()
 }
 
 
-/**
- * @brief Connect to server.
- *
- * @param host
- * @param port
- */
-void Client::connect(const char *host, uint16_t port)
+void Client::connect()
 {
-    m_host = strdup(host);
-    m_port = port;
-
-    LOG_DEBUG("[%s:%u] connect", m_host, m_port);
-
-    resolve(host);
+    resolve(m_host);
 }
 
 
@@ -83,7 +73,8 @@ void Client::connect(const char *host, uint16_t port)
  */
 void Client::connect(const Url *url)
 {
-    connect(url->host(), url->port());
+    setUrl(url);
+    resolve(m_host);
 }
 
 
@@ -133,6 +124,14 @@ void Client::send(char *data)
         free(req->data);
         free(req);
     });
+}
+
+
+void Client::setUrl(const Url *url)
+{
+    free(m_host);
+    m_host = strdup(url->host());
+    m_port = url->port();
 }
 
 
@@ -335,6 +334,8 @@ void Client::onClose(uv_handle_t *handle)
     client->m_stream = nullptr;
     client->m_socket = nullptr;
     client->setState(UnconnectedState);
+
+    LOG_NOTICE("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 }
 
 
@@ -344,6 +345,7 @@ void Client::onConnect(uv_connect_t *req, int status)
     if (status < 0) {
         LOG_ERR("[%s:%u] connect error: \"%s\"", client->m_host, client->m_port, uv_strerror(status));
         free(req);
+        client->close();
         return;
     }
 
@@ -366,8 +368,7 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
             LOG_ERR("[%s:%u] read error: \"%s\"", client->m_host, client->m_port, uv_strerror(nread));
         }
 
-        client->close();
-        return;
+        return client->close();;
     }
 
     client->m_recvBufPos += nread;
@@ -404,7 +405,7 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
     auto client = getClient(req->data);
     if (status < 0) {
         LOG_ERR("[%s:%u] DNS error: \"%s\"", client->m_host, client->m_port, uv_strerror(status));
-        return;
+        return client->close();;
     }
 
     client->connect(res->ai_addr);
