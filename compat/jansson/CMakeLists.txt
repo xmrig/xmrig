@@ -6,6 +6,8 @@ add_definitions(-DHAVE_CONFIG_H)
 # Add the lib sources.
 file(GLOB JANSSON_SRC *.c)
 
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Os")
+
 set(JANSSON_HDR_PRIVATE
    ${CMAKE_CURRENT_SOURCE_DIR}/hashtable.h
    ${CMAKE_CURRENT_SOURCE_DIR}/jansson_private.h
