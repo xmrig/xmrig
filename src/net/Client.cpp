@@ -22,9 +22,6 @@
  */
 
 
-#include <jansson.h>
-
-
 #include "Console.h"
 #include "interfaces/IClientListener.h"
 #include "net/Client.h"
@@ -34,6 +31,8 @@
 Client::Client(IClientListener *listener) :
     m_host(nullptr),
     m_listener(listener),
+    m_retries(0),
+    m_sequence(1),
     m_recvBufPos(0),
     m_state(UnconnectedState),
     m_port(0),
@@ -96,9 +95,11 @@ void Client::disconnect()
 
 void Client::login(const char *user, const char *pass, const char *agent)
 {
+    m_sequence = 1;
+
     const size_t size = 96 + strlen(user) + strlen(pass) + strlen(agent);
     char *req = static_cast<char*>(malloc(size));
-    snprintf(req, size, "{\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s\"},\"id\":1}\n", user, pass, agent);
+    snprintf(req, size, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s\"}}\n", m_sequence, user, pass, agent);
 
     send(req);
 }
@@ -117,6 +118,7 @@ void Client::send(char *data)
         return;
     }
 
+    m_sequence++;
     uv_buf_t buf = uv_buf_init(data, strlen(data));
 
     uv_write_t *req = static_cast<uv_write_t*>(malloc(sizeof(uv_write_t)));
@@ -193,6 +195,36 @@ void Client::parse(char *line, size_t len)
 
     if (!val) {
         LOG_ERR("[%s:%u] JSON decode failed: \"%s\"", m_host, m_port, err.text);
+        return;
+    }
+
+    const json_t *id = json_object_get(val, "id");
+    if (json_is_integer(id)) {
+        parseResponse(json_integer_value(id), json_object_get(val, "result"), json_object_get(val, "error"));
+    }
+    else {
+        parseNotification(json_string_value(json_object_get(val, "method")), json_object_get(val, "params"));
+    }
+
+    json_decref(val);
+}
+
+
+void Client::parseNotification(const char *method, const json_t *params)
+{
+
+}
+
+
+void Client::parseResponse(int64_t id, const json_t *result, const json_t *error)
+{
+    if (json_is_object(error)) {
+        LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_host, m_port, json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+
+        if (id == 1) {
+            close();
+        }
+
         return;
     }
 }
