@@ -25,7 +25,6 @@
 #include "Console.h"
 #include "interfaces/IClientListener.h"
 #include "net/Client.h"
-#include "net/Job.h"
 #include "net/Url.h"
 
 
@@ -160,8 +159,9 @@ bool Client::parseJob(const json_t *params, int *code)
         return false;
     }
 
-           LOG_NOTICE("PARSE JOB %d %lld %lld", job.size(), job.target(), job.diff());
+    m_job = job;
 
+    LOG_DEBUG("[%s:%u] job: \"%s\", diff: %lld", m_host, m_port, job.id(), job.diff());
     return true;
 }
 
@@ -257,7 +257,20 @@ void Client::parse(char *line, size_t len)
 
 void Client::parseNotification(const char *method, const json_t *params)
 {
+    if (!method) {
+        return;
+    }
 
+    if (strcmp(method, "job") == 0) {
+        int code = -1;
+        if (parseJob(params, &code)) {
+            m_listener->onJobReceived(this, m_job);
+        }
+
+        return;
+    }
+
+    LOG_WARN("[%s:%u] unsupported method: \"%s\"", m_host, m_port, method);
 }
 
 
@@ -284,6 +297,8 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
             return close();
         }
 
+        m_listener->onLoginSuccess(this);
+        m_listener->onJobReceived(this, m_job);
         return;
     }
 

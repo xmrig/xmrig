@@ -29,6 +29,9 @@
 #include <uv.h>
 
 
+#include "net/Job.h"
+
+
 class Url;
 class IClientListener;
 
@@ -81,6 +84,7 @@ private:
     IClientListener *m_listener;
     int64_t m_retries;
     int64_t m_sequence;
+    Job m_job;
     size_t m_recvBufPos;
     SocketState m_state;
     struct addrinfo m_hints;

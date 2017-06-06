@@ -59,7 +59,18 @@ void Network::connect()
 }
 
 
+void Network::onJobReceived(Client *client, const Job &job)
+{
+
+}
+
+
 void Network::onLoginCredentialsRequired(Client *client)
 {
     client->login(m_options->user(), m_options->pass(), m_agent);
+}
+
+
+void Network::onLoginSuccess(Client *client)
+{
 }
