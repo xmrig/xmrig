@@ -58,6 +58,7 @@ public:
 private:
     constexpr static size_t kRecvBufSize = 4096;
 
+    bool parseLogin(const json_t *result, int *code);
     int resolve(const char *host);
     void close();
     void connect(struct sockaddr *addr);
@@ -75,6 +76,7 @@ private:
     static Client *getClient(void *data);
 
     char *m_host;
+    char m_rpcId[64];
     IClientListener *m_listener;
     int64_t m_retries;
     int64_t m_sequence;

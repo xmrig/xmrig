@@ -136,6 +136,21 @@ void Client::send(char *data)
 }
 
 
+bool Client::parseLogin(const json_t *result, int *code)
+{
+    const char *id = json_string_value(json_object_get(result, "id"));
+    if (!id || strlen(id) >= sizeof(m_rpcId)) {
+        *code = 1;
+        return false;
+    }
+
+    memset(m_rpcId, 0, sizeof(m_rpcId));
+    memcpy(m_rpcId, id, strlen(id));
+
+    return true;
+}
+
+
 int Client::resolve(const char *host)
 {
     setState(HostLookupState);
@@ -227,6 +242,21 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
         return;
     }
+
+    if (!json_is_object(result)) {
+        return;
+    }
+
+    if (id == 1) {
+        int code = -1;
+        if (!parseLogin(result, &code)) {
+            LOG_ERR("[%s:%u] login error code: %d", m_host, m_port, code);
+            return close();
+        }
+
+        return;
+    }
+
 }
 
 
