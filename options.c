@@ -175,14 +175,10 @@ static void parse_arg(int key, char *arg) {
             }
 
 #           ifndef XMRIG_NO_AEON
-            if (i == ARRAY_SIZE(algo_names) && !strcmp(arg, "cryptonight-light")) {
+            if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(arg, "cryptonight-light")) {
                 opt_algo = i = ALGO_CRYPTONIGHT_LITE;
             }
 #           endif
-
-            if (i == ARRAY_SIZE(algo_names)) {
-                show_usage_and_exit(1);
-            }
         }
         break;
 
