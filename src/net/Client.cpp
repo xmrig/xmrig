@@ -25,6 +25,7 @@
 #include "Console.h"
 #include "interfaces/IClientListener.h"
 #include "net/Client.h"
+#include "net/Job.h"
 #include "net/Url.h"
 
 
@@ -136,6 +137,35 @@ void Client::send(char *data)
 }
 
 
+bool Client::parseJob(const json_t *params, int *code)
+{
+    if (!json_is_object(params)) {
+        *code = 2;
+        return false;
+    }
+
+    Job job;
+    if (!job.setId(json_string_value(json_object_get(params, "job_id")))) {
+        *code = 3;
+        return false;
+    }
+
+    if (!job.setBlob(json_string_value(json_object_get(params, "blob")))) {
+        *code = 4;
+        return false;
+    }
+
+    if (!job.setTarget(json_string_value(json_object_get(params, "target")))) {
+        *code = 5;
+        return false;
+    }
+
+           LOG_NOTICE("PARSE JOB %d %lld %lld", job.size(), job.target(), job.diff());
+
+    return true;
+}
+
+
 bool Client::parseLogin(const json_t *result, int *code)
 {
     const char *id = json_string_value(json_object_get(result, "id"));
@@ -147,7 +177,7 @@ bool Client::parseLogin(const json_t *result, int *code)
     memset(m_rpcId, 0, sizeof(m_rpcId));
     memcpy(m_rpcId, id, strlen(id));
 
-    return true;
+    return parseJob(json_object_get(result, "job"), code);
 }
 
 

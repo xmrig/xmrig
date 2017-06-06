@@ -5,6 +5,7 @@ set(HEADERS
     src/App.h
     src/interfaces/IClientListener.h
     src/net/Client.h
+    src/net/Job.h
     src/net/Network.h
     src/net/Url.h
     src/Options.h
@@ -15,6 +16,7 @@ set(HEADERS
 set(SOURCES
     src/App.cpp
     src/net/Client.cpp
+    src/net/Job.cpp
     src/net/Network.cpp
     src/net/Url.cpp
     src/Options.cpp
