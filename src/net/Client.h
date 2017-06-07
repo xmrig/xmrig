@@ -47,6 +47,9 @@ public:
         ClosingState
     };
 
+    constexpr static int kResponseTimeout  = 15 * 1000;
+    constexpr static int kKeepAliveTimeout = 60 * 1000;
+
     Client(int id, IClientListener *listener);
     ~Client();
 
@@ -57,9 +60,10 @@ public:
     void send(char *data);
     void setUrl(const Url *url);
 
-    inline int id() const               { return m_id; }
-    inline SocketState state() const    { return m_state; }
-    inline void setRetryPause(int ms)   { m_retryPause = ms; }
+    inline int id() const                    { return m_id; }
+    inline SocketState state() const         { return m_state; }
+    inline void setKeepAlive(bool keepAlive) { m_keepAlive = keepAlive; }
+    inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
 private:
     constexpr static size_t kRecvBufSize = 4096;
@@ -72,8 +76,10 @@ private:
     void parse(char *line, size_t len);
     void parseNotification(const char *method, const json_t *params);
     void parseResponse(int64_t id, const json_t *result, const json_t *error);
+    void ping();
     void reconnect();
     void setState(SocketState state);
+    void startTimeout();
 
     static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
     static void onClose(uv_handle_t *handle);
@@ -83,6 +89,7 @@ private:
 
     static Client *getClient(void *data);
 
+    bool m_keepAlive;
     char *m_host;
     char m_rpcId[64];
     IClientListener *m_listener;
@@ -99,6 +106,8 @@ private:
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
+    uv_timer_t m_keepAliveTimer;
+    uv_timer_t m_responseTimer;
     uv_timer_t m_retriesTimer;
 };
 

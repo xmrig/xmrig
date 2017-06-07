@@ -120,7 +120,7 @@ Options::Options(int argc, char **argv) :
     m_background(false),
     m_colors(true),
     m_doubleHash(false),
-    m_keepalive(false),
+    m_keepAlive(false),
     m_nicehash(false),
     m_ready(false),
     m_safe(false),
@@ -277,7 +277,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 'k': /* --keepalive */
-        m_keepalive = true;
+        m_keepAlive = true;
         break;
 
     case 'V': /* --version */

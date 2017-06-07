@@ -52,6 +52,7 @@ public:
     static Options *parse(int argc, char **argv);
 
     inline bool isReady() const         { return m_ready; }
+    inline bool keepAlive() const       { return m_keepAlive; }
     inline const char *pass() const     { return m_pass; }
     inline const char *user() const     { return m_user; }
     inline const Url *backupUrl() const { return m_backupUrl; }
@@ -75,7 +76,7 @@ private:
     bool m_background;
     bool m_colors;
     bool m_doubleHash;
-    bool m_keepalive;
+    bool m_keepAlive;
     bool m_nicehash;
     bool m_ready;
     bool m_safe;

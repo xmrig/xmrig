@@ -29,6 +29,7 @@
 
 
 Client::Client(int id, IClientListener *listener) :
+    m_keepAlive(false),
     m_host(nullptr),
     m_listener(listener),
     m_id(id),
@@ -41,7 +42,7 @@ Client::Client(int id, IClientListener *listener) :
     m_stream(nullptr),
     m_socket(nullptr)
 {
-    m_resolver.data = this;
+    m_resolver.data = m_responseTimer.data = m_retriesTimer.data = m_keepAliveTimer.data = this;
 
     m_hints.ai_family   = PF_INET;
     m_hints.ai_socktype = SOCK_STREAM;
@@ -51,8 +52,10 @@ Client::Client(int id, IClientListener *listener) :
     m_recvBuf.base = static_cast<char*>(malloc(kRecvBufSize));
     m_recvBuf.len  = kRecvBufSize;
 
-    m_retriesTimer.data = this;
-    uv_timer_init(uv_default_loop(), &m_retriesTimer);
+    auto loop = uv_default_loop();
+    uv_timer_init(loop, &m_retriesTimer);
+    uv_timer_init(loop, &m_responseTimer);
+    uv_timer_init(loop, &m_keepAliveTimer);
 }
 
 
@@ -122,14 +125,11 @@ void Client::send(char *data)
     req->data = buf.base;
 
     uv_write(req, m_stream, &buf, 1, [](uv_write_t *req, int status) {
-        if (status) {
-            auto client = getClient(req->data);
-            LOG_ERR("[%s:%u] write error: \"%s\"", client->m_host, client->m_port, uv_strerror(status));
-        }
-
         free(req->data);
         free(req);
     });
+
+    uv_timer_start(&m_responseTimer, [](uv_timer_t* handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
 }
 
 
@@ -236,6 +236,8 @@ void Client::connect(struct sockaddr *addr)
 
 void Client::parse(char *line, size_t len)
 {
+    startTimeout();
+
     line[len - 1] = '\0';
 
     LOG_DEBUG("[%s:%u] received (%d bytes): \"%s\"", m_host, m_port, len, line);
@@ -310,8 +312,22 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 }
 
 
+void Client::ping()
+{
+    char *req = static_cast<char*>(malloc(128));
+    snprintf(req, 128, "{\"id\":%lld,\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId);
+
+    send(req);
+}
+
+
 void Client::reconnect()
 {
+    uv_timer_stop(&m_responseTimer);
+    if (m_keepAlive) {
+        uv_timer_stop(&m_keepAliveTimer);
+    }
+
     if (m_failures == -1) {
         return m_listener->onClose(this, -1);
     }
@@ -332,6 +348,17 @@ void Client::setState(SocketState state)
     }
 
     m_state = state;
+}
+
+
+void Client::startTimeout()
+{
+    uv_timer_stop(&m_responseTimer);
+    if (!m_keepAlive) {
+        return;
+    }
+
+    uv_timer_start(&m_keepAliveTimer, [](uv_timer_t *handle) { getClient(handle->data)->ping(); }, kKeepAliveTimeout, 0);
 }
 
 

@@ -41,7 +41,7 @@ Network::Network(const Options *options) :
     m_pools.reserve(2);
     m_agent = userAgent();
 
-    std::unique_ptr<Url> url(new Url("donate.xmrig.com", 443));
+    auto url = std::make_unique<Url>("donate.xmrig.com", 443);
 
     addPool(url.get());
     addPool(m_options->url());
@@ -97,6 +97,7 @@ void Network::addPool(const Url *url)
     Client *client = new Client(m_pools.size(), this);
     client->setUrl(url);
     client->setRetryPause(m_options->retryPause() * 1000);
+    client->setKeepAlive(m_options->keepAlive());
 
     m_pools.push_back(client);
 }
