@@ -14,6 +14,7 @@ set(HEADERS
     src/Options.h
     src/Console.h
     src/Cpu.h
+    src/Summary.h
     src/version.h
    )
 
@@ -25,6 +26,7 @@ set(SOURCES
     src/net/Url.cpp
     src/Options.cpp
     src/Console.cpp
+    src/Summary.cpp
     src/xmrig.cpp
    )
 

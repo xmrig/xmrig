@@ -31,6 +31,7 @@
 #include "net/Client.h"
 #include "net/Network.h"
 #include "Options.h"
+#include "Summary.h"
 #include "version.h"
 
 
@@ -59,6 +60,8 @@ App::exec()
     if (!m_options->isReady()) {
         return 0;
     }
+
+    Summary::print();
 
     m_network->connect();
 

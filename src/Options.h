@@ -51,6 +51,7 @@ public:
     static inline Options* i() { return m_self; }
     static Options *parse(int argc, char **argv);
 
+    inline bool colors() const          { return m_colors; }
     inline bool isReady() const         { return m_ready; }
     inline bool keepAlive() const       { return m_keepAlive; }
     inline const char *pass() const     { return m_pass; }

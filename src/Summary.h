@@ -24,6 +24,12 @@
 #ifndef __SUMMARY_H__
 #define __SUMMARY_H__
 
-void print_summary();
+
+class Summary
+{
+public:
+    static void print();
+};
+
 
 #endif /* __SUMMARY_H__ */
