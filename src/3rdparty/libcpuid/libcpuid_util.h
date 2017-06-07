@@ -28,8 +28,6 @@
 
 #define COUNT_OF(array) (sizeof(array) / sizeof(array[0]))
 
-#define LBIT(x) (((long long) 1) << x)
-
 struct feature_map_t {
 	unsigned bit;
 	cpu_feature_t feature;

@@ -25,12 +25,11 @@
 #include <uv.h>
 
 
-#include "Summary.h"
 #include "Console.h"
 #include "Cpu.h"
 #include "Options.h"
+#include "Summary.h"
 #include "version.h"
-
 
 
 static void print_versions()

@@ -59,23 +59,6 @@ enum _intel_model_t {
 };
 typedef enum _intel_model_t intel_model_t;
 
-enum _intel_bits_t {
-	PENTIUM_                = LBIT(  0 ),
-	CELERON_                = LBIT(  1 ),
-	MOBILE_                 = LBIT(  2 ),
-	CORE_                   = LBIT(  3 ),
-	_I_                     = LBIT(  4 ),
-	_M_                     = LBIT(  5 ),
-	_3                      = LBIT(  6 ),
-	_5                      = LBIT(  7 ),
-	_7                      = LBIT(  8 ),
-	XEON_                   = LBIT(  9 ),
-	_MP                     = LBIT( 10 ),
-	ATOM_                   = LBIT( 11 ),
-	
-};
-typedef enum _intel_bits_t intel_bits_t;
-
 const struct match_entry_t cpudb_intel[] = {
 	{ -1, -1, -1, -1, -1,   1,    -1,    -1, NC, 0             ,     0, "Unknown Intel CPU"       },
 	
@@ -158,11 +141,11 @@ const struct match_entry_t cpudb_intel[] = {
 	{ 15,  0, -1, 15, -1,   1,    -1,    -1, NC, XEON_         ,     0, "Xeon (Foster)"           },
 	{ 15,  1, -1, 15, -1,   1,    -1,    -1, NC, XEON_         ,     0, "Xeon (Foster)"           },
 	{ 15,  2, -1, 15, -1,   1,    -1,    -1, NC, XEON_         ,     0, "Xeon (Prestonia)"        },
-	{ 15,  2, -1, 15, -1,   1,    -1,    -1, NC, XEON_|_MP     ,     0, "Xeon (Gallatin)"         },
+	{ 15,  2, -1, 15, -1,   1,    -1,    -1, NC, XEON_|_MP_    ,     0, "Xeon (Gallatin)"         },
 	{ 15,  3, -1, 15, -1,   1,    -1,    -1, NC, XEON_         ,     0, "Xeon (Nocona)"           },
 	{ 15,  4, -1, 15, -1,   1,    -1,    -1, NC, XEON_         ,     0, "Xeon (Nocona)"           },
 	{ 15,  4, -1, 15, -1,   1,    -1,    -1, IRWIN, XEON_      ,     0, "Xeon (Irwindale)"        },
-	{ 15,  4, -1, 15, -1,   1,    -1,    -1, NC, XEON_|_MP     ,     0, "Xeon (Cranford)"         },
+	{ 15,  4, -1, 15, -1,   1,    -1,    -1, NC, XEON_|_MP_    ,     0, "Xeon (Cranford)"         },
 	{ 15,  4, -1, 15, -1,   1,    -1,    -1, POTOMAC, XEON_    ,     0, "Xeon (Potomac)"          },
 	{ 15,  6, -1, 15, -1,   1,    -1,    -1, NC, XEON_         ,     0, "Xeon (Dempsey)"          },
 	
@@ -668,7 +651,7 @@ static intel_code_and_bits_t get_brand_code_and_bits(struct cpu_id_t* data)
 	
 	const struct { uint64_t bit; const char* search; } bit_matchtable[] = {
 		{ XEON_, "Xeon" },
-		{ _MP, " MP" },
+		{ _MP_, " MP" },
 		{ ATOM_, "Atom(TM) CPU" },
 		{ MOBILE_, "Mobile" },
 		{ CELERON_, "Celeron" },
@@ -710,7 +693,7 @@ static intel_code_and_bits_t get_brand_code_and_bits(struct cpu_id_t* data)
 			/* restrict by family, since later Xeons also have L3 ... */
 			code = IRWIN;
 	}
-	if (match_all(bits, XEON_ + _MP) && data->l3_cache > 0)
+	if (match_all(bits, XEON_ + _MP_) && data->l3_cache > 0)
 		code = POTOMAC;
 	if (code == CORE_SOLO) {
 		s = strstr(bs, "CPU");

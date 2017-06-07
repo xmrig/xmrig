@@ -44,26 +44,6 @@ struct amd_code_and_bits_t {
 	uint64_t bits;
 };
 
-enum _amd_bits_t {
-	ATHLON_      = LBIT(  0 ),
-	_XP_         = LBIT(  1 ),
-	_M_          = LBIT(  2 ),
-	_MP_         = LBIT(  3 ),
-	MOBILE_      = LBIT(  4 ),
-	DURON_       = LBIT(  5 ),
-	SEMPRON_     = LBIT(  6 ),
-	OPTERON_     = LBIT(  7 ),
-	TURION_      = LBIT(  8 ),
-	_LV_         = LBIT(  9 ),
-	_64_         = LBIT( 10 ),
-	_X2          = LBIT( 11 ),
-	_X3          = LBIT( 12 ),
-	_X4          = LBIT( 13 ),
-	_X6          = LBIT( 14 ),
-	_FX          = LBIT( 15 ),
-};
-typedef enum _amd_bits_t amd_bits_t;
-
 enum _amd_model_codes_t {
 	// Only for Ryzen CPUs:
 	_1400,
@@ -469,11 +449,12 @@ static struct amd_code_and_bits_t decode_amd_codename_part1(const char *bs)
 	if (strstr(bs, "XP")) bits |= _XP_;
 	if (strstr(bs, "XP-M")) bits |= _M_;
 	if (strstr(bs, "(LV)")) bits |= _LV_;
+	if (strstr(bs, " APU ")) bits |= _APU_;
 
 	if (match_pattern(bs, "C-##")) code = FUSION_C;
 	if (match_pattern(bs, "E-###")) code = FUSION_E;
 	if (match_pattern(bs, "Z-##")) code = FUSION_Z;
-	if (match_pattern(bs, "E#-####") || match_pattern(bs, "A#-####")) code = FUSION_EA;
+	if (match_pattern(bs, "[EA]#-####")) code = FUSION_EA;
 
 	result.code = code;
 	result.bits = bits;
