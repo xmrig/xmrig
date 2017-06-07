@@ -56,6 +56,7 @@ public:
     inline const char *user() const     { return m_user; }
     inline const Url *backupUrl() const { return m_backupUrl; }
     inline const Url *url() const       { return m_url; }
+    inline int retryPause() const       { return m_retryPause; }
 
 private:
     Options(int argc, char **argv);

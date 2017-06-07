@@ -65,6 +65,12 @@ void Network::connect()
 }
 
 
+void Network::onClose(Client *client, int failures)
+{
+    LOG_DEBUG("CLOSE %d %d", client->id(), failures);
+}
+
+
 void Network::onJobReceived(Client *client, const Job &job)
 {
 
@@ -90,6 +96,7 @@ void Network::addPool(const Url *url)
 
     Client *client = new Client(m_pools.size(), this);
     client->setUrl(url);
+    client->setRetryPause(m_options->retryPause() * 1000);
 
     m_pools.push_back(client);
 }

@@ -57,8 +57,9 @@ public:
     void send(char *data);
     void setUrl(const Url *url);
 
-    inline int id() const            { return m_id; }
-    inline SocketState state() const { return m_state; }
+    inline int id() const               { return m_id; }
+    inline SocketState state() const    { return m_state; }
+    inline void setRetryPause(int ms)   { m_retryPause = ms; }
 
 private:
     constexpr static size_t kRecvBufSize = 4096;
@@ -71,6 +72,7 @@ private:
     void parse(char *line, size_t len);
     void parseNotification(const char *method, const json_t *params);
     void parseResponse(int64_t id, const json_t *result, const json_t *error);
+    void reconnect();
     void setState(SocketState state);
 
     static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
@@ -85,7 +87,8 @@ private:
     char m_rpcId[64];
     IClientListener *m_listener;
     int m_id;
-    int64_t m_retries;
+    int m_retryPause;
+    int64_t m_failures;
     int64_t m_sequence;
     Job m_job;
     size_t m_recvBufPos;
@@ -96,6 +99,7 @@ private:
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
+    uv_timer_t m_retriesTimer;
 };
 
 

@@ -32,7 +32,8 @@ Client::Client(int id, IClientListener *listener) :
     m_host(nullptr),
     m_listener(listener),
     m_id(id),
-    m_retries(0),
+    m_retryPause(2000),
+    m_failures(0),
     m_sequence(1),
     m_recvBufPos(0),
     m_state(UnconnectedState),
@@ -49,6 +50,9 @@ Client::Client(int id, IClientListener *listener) :
 
     m_recvBuf.base = static_cast<char*>(malloc(kRecvBufSize));
     m_recvBuf.len  = kRecvBufSize;
+
+    m_retriesTimer.data = this;
+    uv_timer_init(uv_default_loop(), &m_retriesTimer);
 }
 
 
@@ -80,6 +84,8 @@ void Client::connect(const Url *url)
 
 void Client::disconnect()
 {
+    m_failures = -1;
+
     close();
 }
 
@@ -296,11 +302,24 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
             return close();
         }
 
+        m_failures = 0;
         m_listener->onLoginSuccess(this);
         m_listener->onJobReceived(this, m_job);
         return;
     }
+}
 
+
+void Client::reconnect()
+{
+    if (m_failures == -1) {
+        return m_listener->onClose(this, -1);
+    }
+
+    m_failures++;
+    m_listener->onClose(this, m_failures);
+
+    uv_timer_start(&m_retriesTimer, [](uv_timer_t *handle) { getClient(handle->data)->connect(); }, m_retryPause, 0);
 }
 
 
@@ -335,7 +354,7 @@ void Client::onClose(uv_handle_t *handle)
     client->m_socket = nullptr;
     client->setState(UnconnectedState);
 
-    LOG_NOTICE("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    client->reconnect();
 }
 
 
@@ -405,7 +424,7 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
     auto client = getClient(req->data);
     if (status < 0) {
         LOG_ERR("[%s:%u] DNS error: \"%s\"", client->m_host, client->m_port, uv_strerror(status));
-        return client->close();;
+        return client->reconnect();;
     }
 
     client->connect(res->ai_addr);

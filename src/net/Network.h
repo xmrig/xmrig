@@ -46,6 +46,7 @@ public:
   static char *userAgent();
 
 protected:
+  void onClose(Client *client, int failures) override;
   void onJobReceived(Client *client, const Job &job) override;
   void onLoginCredentialsRequired(Client *client) override;
   void onLoginSuccess(Client *client) override;
