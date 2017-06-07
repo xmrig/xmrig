@@ -31,6 +31,7 @@
 class Url
 {
 public:
+    Url();
     Url(const char *url);
     Url(const char *host, uint16_t port);
     ~Url();

@@ -129,12 +129,16 @@ void Client::send(char *data)
         free(req);
     });
 
-    uv_timer_start(&m_responseTimer, [](uv_timer_t* handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
+    uv_timer_start(&m_responseTimer, [](uv_timer_t *handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
 }
 
 
 void Client::setUrl(const Url *url)
 {
+    if (!url || !url->isValid()) {
+        return;
+    }
+
     free(m_host);
     m_host = strdup(url->host());
     m_port = url->port();

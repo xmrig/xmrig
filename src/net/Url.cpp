@@ -29,6 +29,13 @@
 #include "net/Url.h"
 
 
+Url::Url() :
+    m_host(nullptr),
+    m_port(3333)
+{
+}
+
+
 /**
  * @brief Parse url.
  *

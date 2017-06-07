@@ -26,6 +26,7 @@
 
 
 #include <vector>
+#include <uv.h>
 
 
 #include "interfaces/IClientListener.h"
@@ -53,12 +54,17 @@ protected:
 
 private:
   void addPool(const Url *url);
+  void startDonate();
+  void stopDonate();
+
+  static void onTimer(uv_timer_t *handle);
 
   bool m_donate;
   char *m_agent;
   const Options *m_options;
   int m_pool;
   std::vector<Client*> m_pools;
+  uv_timer_t m_timer;
 };
 
 
