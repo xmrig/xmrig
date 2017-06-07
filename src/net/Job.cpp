@@ -129,7 +129,6 @@ bool Job::setTarget(const char *target)
         return false;
     }
 
-
     m_diff = toDiff(m_target);
     return true;
 }

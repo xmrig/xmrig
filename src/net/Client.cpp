@@ -255,15 +255,20 @@ void Client::parse(char *line, size_t len)
         parseResponse(json_integer_value(id), json_object_get(val, "result"), json_object_get(val, "error"));
     }
     else {
-        parseNotification(json_string_value(json_object_get(val, "method")), json_object_get(val, "params"));
+        parseNotification(json_string_value(json_object_get(val, "method")), json_object_get(val, "params"), json_object_get(val, "error"));
     }
 
     json_decref(val);
 }
 
 
-void Client::parseNotification(const char *method, const json_t *params)
+void Client::parseNotification(const char *method, const json_t *params, const json_t *error)
 {
+    if (json_is_object(error)) {
+        LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_host, m_port, json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+        return;
+    }
+
     if (!method) {
         return;
     }

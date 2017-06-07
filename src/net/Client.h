@@ -74,7 +74,7 @@ private:
     void close();
     void connect(struct sockaddr *addr);
     void parse(char *line, size_t len);
-    void parseNotification(const char *method, const json_t *params);
+    void parseNotification(const char *method, const json_t *params, const json_t *error);
     void parseResponse(int64_t id, const json_t *result, const json_t *error);
     void ping();
     void reconnect();
