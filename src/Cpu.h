@@ -21,40 +21,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <unistd.h>
-#include <sched.h>
-#include <pthread.h>
-
-#include "cpu.h"
+#ifndef __CPU_H__
+#define __CPU_H__
 
 
-struct cpu_info cpu_info = { 0 };
-void cpu_init_common();
-
-
-void cpu_init() {
-#   ifdef XMRIG_NO_LIBCPUID
-    cpu_info.total_logical_cpus = sysconf(_SC_NPROCESSORS_CONF);
-#   endif
-
-    cpu_init_common();
-}
-
-
-int affine_to_cpu_mask(int id, unsigned long mask)
+class Cpu
 {
-    cpu_set_t set;
-    CPU_ZERO(&set);
+public:
+    enum Flags {
+        X86_64 = 1,
+        AES    = 2,
+        BMI2   = 4
+    };
 
-    for (unsigned i = 0; i < cpu_info.total_logical_cpus; i++) {
-        if (mask & (1UL << i)) {
-            CPU_SET(i, &set);
-        }
-    }
+    static int optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage);
+    static void init();
+    static void setAffinity(int id, unsigned long mask);
 
-    if (id == -1) {
-        sched_setaffinity(0, sizeof(&set), &set);
-    } else {
-        pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
-    }
-}
+    static inline bool hasAES()       { return m_flags & AES; }
+    static inline const char *brand() { return m_brand; }
+    static inline int cores()         { return m_totalCores; }
+    static inline int l2()            { return m_l2_cache; }
+    static inline int l3()            { return m_l3_cache; }
+    static inline int sockets()       { return m_sockets; }
+    static inline int threads()       { return m_totalThreads; }
+
+private:
+    static void initCommon();
+
+    static char m_brand[64];
+    static int m_flags;
+    static int m_l2_cache;
+    static int m_l3_cache;
+    static int m_sockets;
+    static int m_totalCores;
+    static int m_totalThreads;
+};
+
+
+#endif /* __CPU_H__ */

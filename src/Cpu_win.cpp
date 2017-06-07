@@ -22,48 +22,31 @@
  */
 
 
-#include <uv.h>
+#include <windows.h>
 
 
-#include "App.h"
-#include "Console.h"
 #include "Cpu.h"
-#include "net/Client.h"
-#include "net/Network.h"
-#include "Options.h"
-#include "version.h"
 
 
-
-App::App(int argc, char **argv)
+void Cpu::init()
 {
-    Console::init();
-    Cpu::init();
+#   ifdef XMRIG_NO_LIBCPUID
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
 
-    m_options = Options::parse(argc, argv);
-    m_network = new Network(m_options);
+    m_totalThreads = sysinfo.dwNumberOfProcessors;
+#   endif
+
+    initCommon();
 }
 
 
-App::~App()
+void Cpu::setAffinity(int id, unsigned long mask)
 {
-    LOG_DEBUG("~APP");
-
-    free(m_network);
-    free(m_options);
-}
-
-
-App::exec()
-{
-    if (!m_options->isReady()) {
-        return 0;
+    if (id == -1) {
+        SetProcessAffinityMask(GetCurrentProcess(), mask);
     }
-
-    m_network->connect();
-
-    const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-    uv_loop_close(uv_default_loop());
-
-    return r;
+    else {
+        SetThreadAffinityMask(GetCurrentThread(), mask);
+    }
 }

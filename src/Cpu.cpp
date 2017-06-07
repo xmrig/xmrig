@@ -21,33 +21,4 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CPU_H__
-#define __CPU_H__
 
-#include <stdbool.h>
-
-struct cpu_info {
-    int total_cores;
-    int total_logical_cpus;
-    int flags;
-    int sockets;
-    int l2_cache;
-    int l3_cache;
-    char brand[64];
-};
-
-extern struct cpu_info cpu_info;
-
-
-enum cpu_flags {
-    CPU_FLAG_X86_64 = 1,
-    CPU_FLAG_AES    = 2,
-    CPU_FLAG_BMI2   = 4
-};
-
-
-void cpu_init();
-int get_optimal_threads_count(int algo, bool double_hash, int max_cpu_usage);
-int affine_to_cpu_mask(int id, unsigned long mask);
-
-#endif /* __CPU_H__ */

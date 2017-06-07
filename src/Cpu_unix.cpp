@@ -21,34 +21,4 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <windows.h>
-#include <stdbool.h>
 
-#include "cpu.h"
-
-
-struct cpu_info cpu_info = { 0 };
-void cpu_init_common();
-
-
-void cpu_init() {
-#   ifdef XMRIG_NO_LIBCPUID
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-
-    cpu_info.total_logical_cpus = sysinfo.dwNumberOfProcessors;
-#   endif
-
-    cpu_init_common();
-}
-
-
-int affine_to_cpu_mask(int id, unsigned long mask)
-{
-    if (id == -1) {
-        SetProcessAffinityMask(GetCurrentProcess(), mask);
-    }
-    else {
-        SetThreadAffinityMask(GetCurrentThread(), mask);
-    }
-}

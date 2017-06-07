@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 project(xmrig)
 
+option(WITH_LIBCPUID "Use Libcpuid" ON)
+option(WITH_AEON     "CryptoNight-Lite support" ON)
+
 set(HEADERS
     src/App.h
     src/interfaces/IClientListener.h
@@ -10,6 +13,7 @@ set(HEADERS
     src/net/Url.h
     src/Options.h
     src/Console.h
+    src/Cpu.h
     src/version.h
    )
 
@@ -29,12 +33,13 @@ if (WIN32)
         res/app.rc
         src/3rdparty/winansi.cpp
         src/3rdparty/winansi.h
+        src/Cpu_win.cpp
         src/net/Network_win.cpp
         )
 
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 else()
-    set(SOURCES_OS unix/cpu_unix.c unix/memory_unix.c unix/xmrig_unix.c)
+    set(SOURCES_OS src/Cpu_unix.cpp)
     set(EXTRA_LIBS pthread)
 endif()
 
@@ -60,6 +65,17 @@ if (WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 endif()
 
+if (WITH_LIBCPUID)
+#    add_subdirectory(compat/libcpuid)
+
+#    include_directories(compat/libcpuid)
+#    set(CPUID_LIB cpuid)
+#    set(SOURCES_CPUID cpu.c)
+else()
+    add_definitions(/DXMRIG_NO_LIBCPUID)
+    set(SOURCES_CPUID src/Cpu_stub.cpp)
+endif()
+
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(src/3rdparty/jansson)
@@ -67,5 +83,5 @@ include_directories(${UV_INCLUDE_DIR})
 
 add_subdirectory(src/3rdparty/jansson)
 
-add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS})
+add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID})
 target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${EXTRA_LIBS})

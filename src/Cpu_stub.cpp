@@ -21,10 +21,12 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #include <cpuid.h>
 #include <string.h>
-#include <stdbool.h>
-#include "cpu.h"
+
+
+#include "Cpu.h"
 
 
 #define VENDOR_ID                  (0)
@@ -52,7 +54,7 @@ static inline void cpuid(int level, int output[4]) {
 }
 
 
-static void cpu_brand_string(char* s) {
+static inline void cpu_brand_string(char* s) {
     int cpu_info[4] = { 0 };
     cpuid(VENDOR_ID, cpu_info);
 
@@ -66,7 +68,7 @@ static void cpu_brand_string(char* s) {
 }
 
 
-static bool has_aes_ni()
+static inline bool has_aes_ni()
 {
     int cpu_info[4] = { 0 };
     cpuid(PROCESSOR_INFO, cpu_info);
@@ -75,7 +77,7 @@ static bool has_aes_ni()
 }
 
 
-static bool has_bmi2() {
+static inline bool has_bmi2() {
     int cpu_info[4] = { 0 };
     cpuid(EXTENDED_FEATURES, cpu_info);
 
@@ -83,25 +85,35 @@ static bool has_bmi2() {
 }
 
 
-void cpu_init_common() {
-    cpu_info.sockets = 1;
-    cpu_brand_string(cpu_info.brand);
+char Cpu::m_brand[64]   = { 0 };
+int Cpu::m_flags        = 0;
+int Cpu::m_l2_cache     = 0;
+int Cpu::m_l3_cache     = 0;
+int Cpu::m_sockets      = 1;
+int Cpu::m_totalCores   = 0;
+int Cpu::m_totalThreads = 0;
 
-#   ifdef __x86_64__
-    cpu_info.flags |= CPU_FLAG_X86_64;
-#   endif
 
-    if (has_aes_ni()) {
-        cpu_info.flags |= CPU_FLAG_AES;
-    }
-
-    if (has_bmi2()) {
-        cpu_info.flags |= CPU_FLAG_BMI2;
-    }
+int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
+{
+    int count = m_totalThreads / 2;
+    return count < 1 ? 1 : count;
 }
 
 
-int get_optimal_threads_count(int algo, bool double_hash, int max_cpu_usage) {
-    int count = cpu_info.total_logical_cpus / 2;
-    return count < 1 ? 1 : count;
+void Cpu::initCommon()
+{
+    cpu_brand_string(m_brand);
+
+#   ifdef __x86_64__
+    m_flags |= X86_64;
+#   endif
+
+    if (has_aes_ni()) {
+        m_flags |= AES;
+    }
+
+    if (has_bmi2()) {
+        m_flags |= BMI2;
+    }
 }
