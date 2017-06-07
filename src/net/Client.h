@@ -60,8 +60,10 @@ public:
     void send(char *data);
     void setUrl(const Url *url);
 
+    inline const char *host() const          { return m_host; }
     inline int id() const                    { return m_id; }
     inline SocketState state() const         { return m_state; }
+    inline uint16_t port() const             { return m_port; }
     inline void setKeepAlive(bool keepAlive) { m_keepAlive = keepAlive; }
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 

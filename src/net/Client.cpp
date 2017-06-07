@@ -33,7 +33,7 @@ Client::Client(int id, IClientListener *listener) :
     m_host(nullptr),
     m_listener(listener),
     m_id(id),
-    m_retryPause(2000),
+    m_retryPause(5000),
     m_failures(0),
     m_sequence(1),
     m_recvBufPos(0),

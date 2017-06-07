@@ -36,7 +36,7 @@
 Network::Network(const Options *options) :
     m_donate(false),
     m_options(options),
-    m_pool(1)
+    m_pool(0)
 {
     m_pools.reserve(2);
     m_agent = userAgent();
@@ -61,13 +61,25 @@ Network::~Network()
 
 void Network::connect()
 {
-    m_pools.at(m_pool)->connect();
+    m_pools.at(1)->connect();
 }
 
 
 void Network::onClose(Client *client, int failures)
 {
-    LOG_DEBUG("CLOSE %d %d", client->id(), failures);
+    const int id = client->id();
+    if (id == 0 && failures == -1) {
+        m_donate = false;
+        return;
+    }
+
+    if (m_pool == id) {
+        m_pool = 0;
+    }
+
+    if (id == 1 && m_pools.size() > 2 && failures == m_options->retries()) {
+        m_pools.at(2)->connect();
+    }
 }
 
 
@@ -85,6 +97,23 @@ void Network::onLoginCredentialsRequired(Client *client)
 
 void Network::onLoginSuccess(Client *client)
 {
+    const int id = client->id();
+    if (id == 0) {
+        m_donate = true;
+        return;
+    }
+
+    if (id == 2 && m_pool) { // primary pool is already active
+        m_pools.at(2)->disconnect();
+        return;
+    }
+
+    LOG_NOTICE("use pool: \"%s:%d\"", client->host(), client->port());
+    m_pool = id;
+
+    if (m_pool == 1 && m_pools.size() > 2) { // try disconnect from backup pool
+        m_pools.at(2)->disconnect();
+    }
 }
 
 

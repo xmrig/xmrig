@@ -71,11 +71,13 @@ private:
 #define LOG_INFO(x, ...)   Console::i()->message(Console::INFO,    x, ##__VA_ARGS__)
 
 #ifdef APP_DEBUG
-#   define LOG_DEBUG(x, ...)     Console::i()->message(Console::DEBUG,   x, ##__VA_ARGS__)
-#   define LOG_DEBUG_ERR(x, ...) Console::i()->message(Console::ERR,     x, ##__VA_ARGS__)
+#   define LOG_DEBUG(x, ...)      Console::i()->message(Console::DEBUG,   x, ##__VA_ARGS__)
+#   define LOG_DEBUG_ERR(x, ...)  Console::i()->message(Console::ERR,     x, ##__VA_ARGS__)
+#   define LOG_DEBUG_WARN(x, ...) Console::i()->message(Console::WARNING, x, ##__VA_ARGS__)
 #else
 #   define LOG_DEBUG(x, ...)
 #   define LOG_DEBUG_ERR(x, ...)
+#   define LOG_DEBUG_WARN(x, ...)
 #endif
 
 #endif /* __CONSOLE_H__ */
