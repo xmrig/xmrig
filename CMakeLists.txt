@@ -18,6 +18,17 @@ set(HEADERS
     src/version.h
    )
 
+set(HEADERS_CRYPTO
+    src/crypto/c_blake256.h
+    src/crypto/c_groestl.h
+    src/crypto/c_jh.h
+    src/crypto/c_keccak.h
+    src/crypto/c_skein.h
+    src/crypto/groestl_tables.h
+    src/crypto/hash.h
+    src/crypto/skein_port.h
+   )
+
 set(SOURCES
     src/App.cpp
     src/net/Client.cpp
@@ -28,6 +39,15 @@ set(SOURCES
     src/Console.cpp
     src/Summary.cpp
     src/xmrig.cpp
+   )
+
+set(SOURCES_CRYPTO
+    src/crypto/c_keccak.c
+    src/crypto/c_groestl.c
+    src/crypto/c_blake256.c
+    src/crypto/c_jh.c
+    src/crypto/c_skein.c
+    src/crypto/soft_aes.c
    )
 
 if (WIN32)
@@ -57,6 +77,9 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -gdwarf-2")
@@ -85,5 +108,5 @@ include_directories(${UV_INCLUDE_DIR})
 
 add_subdirectory(src/3rdparty/jansson)
 
-add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID})
+add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO})
 target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
