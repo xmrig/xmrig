@@ -28,10 +28,11 @@
 
 
 #include "Console.h"
-#include "Options.h"
-#include "version.h"
+#include "Cpu.h"
 #include "donate.h"
 #include "net/Url.h"
+#include "Options.h"
+#include "version.h"
 
 
 #ifndef ARRAY_SIZE
@@ -198,9 +199,9 @@ Options::~Options()
 
 bool Options::parseArg(int key, char *arg)
 {
-//    char *p;
+    char *p;
     int v;
-//    uint64_t ul;
+    uint64_t ul;
     Url *url;
 
     switch (key) {
@@ -243,7 +244,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 'r': /* --retries */
-        v = atoi(arg);
+        v = strtol(arg, nullptr, 10);
         if (v < 1 || v > 1000) {
             showUsage(1);
             return false;
@@ -253,7 +254,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 'R': /* --retry-pause */
-        v = atoi(arg);
+        v = strtol(arg, nullptr, 10);
         if (v < 1 || v > 3600) {
             showUsage(1);
             return false;
@@ -263,7 +264,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 't': /* --threads */
-        v = atoi(arg);
+        v = strtol(arg, nullptr, 10);
         if (v < 1 || v > 1024) {
             showUsage(1);
             return false;
@@ -273,7 +274,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 1004: /* --max-cpu-usage */
-        v = atoi(arg);
+        v = strtol(arg, nullptr, 10);
         if (v < 1 || v > 100) {
             showUsage(1);
             return false;
@@ -304,7 +305,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 'v': /* --av */
-        v = atoi(arg);
+        v = strtol(arg, nullptr, 10);
         if (v < 0 || v > 1000) {
             showUsage(1);
             return false;
@@ -314,13 +315,13 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 1020: /* --cpu-affinity */
-//        p  = strstr(arg, "0x");
-//        ul = p ? strtoul(p, NULL, 16) : atol(arg);
-//        if (ul > (1UL << cpu_info.total_logical_cpus) -1) {
-//            ul = -1;
-//        }
+        p  = strstr(arg, "0x");
+        ul = p ? strtoul(p, NULL, 16) : atol(arg);
+        if (ul > (1UL << Cpu::threads()) -1) {
+            ul = -1;
+        }
 
-//        opt_affinity = ul;
+        m_affinity = ul;
         break;
 
     case 1002: /* --no-color */
@@ -328,7 +329,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 1003: /* --donate-level */
-        v = atoi(arg);
+        v = strtol(arg, nullptr, 10);
         if (v < 1 || v > 99) {
             showUsage(1);
             return false;

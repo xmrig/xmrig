@@ -34,7 +34,7 @@
 
 static void print_versions()
 {
-    char *buf = static_cast<char*>(malloc(16));
+    char *buf = static_cast<char*>(alloca(16));
 
 #   ifdef __GNUC__
     snprintf(buf, 16, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
@@ -48,8 +48,6 @@ static void print_versions()
     } else {
         Console::i()->text(" * VERSIONS:     XMRig/%s libuv/%s%s", APP_VERSION, uv_version_string(), buf);
     }
-
-    free(buf);
 }
 
 
@@ -74,10 +72,40 @@ static void print_cpu()
 }
 
 
+static void print_threads()
+{
+    char *buf = static_cast<char*>(alloca(32));
+    if (Options::i()->affinity() != -1L) {
+        snprintf(buf, 32, ", affinity=0x%llX", Options::i()->affinity());
+    }
+    else {
+        buf[0] = '\0';
+    }
+
+    if (Options::i()->colors()) {
+        Console::i()->text("\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, donate=%d%%%s%s",
+                           Options::i()->threads(),
+                           Options::i()->algoName(),
+                           Options::i()->algoVariant(),
+                           Options::i()->donateLevel(),
+                           Options::i()->nicehash() ? ", nicehash" : "", buf);
+    }
+    else {
+        Console::i()->text(" * THREADS:      %d, %s, av=%d, donate=%d%%%s%s",
+                           Options::i()->threads(),
+                           Options::i()->algoName(),
+                           Options::i()->algoVariant(),
+                           Options::i()->donateLevel(),
+                           Options::i()->nicehash() ? ", nicehash" : "", buf);
+    }
+}
+
+
 void Summary::print()
 {
     print_versions();
     print_cpu();
+    print_threads();
 }
 
 

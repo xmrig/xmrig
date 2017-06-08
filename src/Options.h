@@ -55,6 +55,7 @@ public:
     inline bool doubleHash() const      { return m_doubleHash; }
     inline bool isReady() const         { return m_ready; }
     inline bool keepAlive() const       { return m_keepAlive; }
+    inline bool nicehash() const        { return m_nicehash; }
     inline const char *pass() const     { return m_pass; }
     inline const char *user() const     { return m_user; }
     inline const Url *backupUrl() const { return m_backupUrl; }
@@ -64,6 +65,8 @@ public:
     inline int donateLevel() const      { return m_donateLevel; }
     inline int retries() const          { return m_retries; }
     inline int retryPause() const       { return m_retryPause; }
+    inline int threads() const          { return m_threads; }
+    inline int64_t affinity() const     { return m_affinity; }
 
     const char *algoName() const;
 
