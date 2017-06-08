@@ -178,6 +178,10 @@ Options::Options(int argc, char **argv) :
         m_pass = strdup("x");
     }
 
+    if (m_algoVariant == AV2_AESNI_DOUBLE || m_algoVariant == AV4_SOFT_AES_DOUBLE) {
+        m_doubleHash = true;
+    }
+
     m_ready = true;
 }
 

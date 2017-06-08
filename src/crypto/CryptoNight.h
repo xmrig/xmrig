@@ -24,10 +24,13 @@
 #ifndef __CRYPTONIGHT_H__
 #define __CRYPTONIGHT_H__
 
+
 #include <stdint.h>
+
 
 #define MEMORY      2097152 /* 2 MiB */
 #define MEMORY_LITE 1048576 /* 1 MiB */
+
 
 struct cryptonight_ctx {
     uint8_t state0[200] __attribute__((aligned(16)));
@@ -40,6 +43,9 @@ class CryptoNight
 {
 public:
     static bool init(int algo, int variant);
+
+private:
+    static bool selfTest(int algo);
 };
 
 #endif /* __CRYPTONIGHT_H__ */
