@@ -116,6 +116,12 @@ Options *Options::parse(int argc, char **argv)
 }
 
 
+const char *Options::algoName() const
+{
+    return algo_names[m_algo];
+}
+
+
 Options::Options(int argc, char **argv) :
     m_background(false),
     m_colors(true),

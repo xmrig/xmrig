@@ -24,6 +24,8 @@ set(HEADERS_CRYPTO
     src/crypto/c_jh.h
     src/crypto/c_keccak.h
     src/crypto/c_skein.h
+    src/crypto/CryptoNight.h
+    src/crypto/CryptoNight_p.h
     src/crypto/groestl_tables.h
     src/crypto/hash.h
     src/crypto/skein_port.h
@@ -48,6 +50,8 @@ set(SOURCES_CRYPTO
     src/crypto/c_jh.c
     src/crypto/c_skein.c
     src/crypto/soft_aes.c
+    src/crypto/soft_aes.c
+    src/crypto/CryptoNight.cpp
    )
 
 if (WIN32)

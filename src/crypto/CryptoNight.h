@@ -21,58 +21,25 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __CRYPTONIGHT_H__
+#define __CRYPTONIGHT_H__
 
-#include <uv.h>
+#include <stdint.h>
+
+#define MEMORY      2097152 /* 2 MiB */
+#define MEMORY_LITE 1048576 /* 1 MiB */
+
+struct cryptonight_ctx {
+    uint8_t state0[200] __attribute__((aligned(16)));
+    uint8_t state1[200] __attribute__((aligned(16)));
+    uint8_t* memory     __attribute__((aligned(16)));
+};
 
 
-#include "App.h"
-#include "Console.h"
-#include "Cpu.h"
-#include "crypto/CryptoNight.h"
-#include "net/Client.h"
-#include "net/Network.h"
-#include "Options.h"
-#include "Summary.h"
-#include "version.h"
-
-
-
-App::App(int argc, char **argv)
+class CryptoNight
 {
-    Console::init();
-    Cpu::init();
+public:
+    static bool init(int algo, int variant);
+};
 
-    m_options = Options::parse(argc, argv);
-    m_network = new Network(m_options);
-}
-
-
-App::~App()
-{
-    LOG_DEBUG("~APP");
-
-    free(m_network);
-    free(m_options);
-}
-
-
-App::exec()
-{
-    if (!m_options->isReady()) {
-        return 0;
-    }
-
-    if (!CryptoNight::init(m_options->algo(), m_options->algoVariant())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
-        return 1;
-    }
-
-    Summary::print();
-
-    m_network->connect();
-
-    const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-    uv_loop_close(uv_default_loop());
-
-    return r;
-}
+#endif /* __CRYPTONIGHT_H__ */

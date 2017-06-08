@@ -52,15 +52,20 @@ public:
     static Options *parse(int argc, char **argv);
 
     inline bool colors() const          { return m_colors; }
+    inline bool doubleHash() const      { return m_doubleHash; }
     inline bool isReady() const         { return m_ready; }
     inline bool keepAlive() const       { return m_keepAlive; }
     inline const char *pass() const     { return m_pass; }
     inline const char *user() const     { return m_user; }
     inline const Url *backupUrl() const { return m_backupUrl; }
     inline const Url *url() const       { return m_url; }
+    inline int algo() const             { return m_algo; }
+    inline int algoVariant() const      { return m_algoVariant; }
     inline int donateLevel() const      { return m_donateLevel; }
     inline int retries() const          { return m_retries; }
     inline int retryPause() const       { return m_retryPause; }
+
+    const char *algoName() const;
 
 private:
     Options(int argc, char **argv);
