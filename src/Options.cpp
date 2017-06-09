@@ -179,8 +179,19 @@ Options::Options(int argc, char **argv) :
         m_pass = strdup("x");
     }
 
+    m_algoVariant = getAlgoVariant();
     if (m_algoVariant == AV2_AESNI_DOUBLE || m_algoVariant == AV4_SOFT_AES_DOUBLE) {
         m_doubleHash = true;
+    }
+
+    if (!m_threads) {
+        m_threads = Cpu::optimalThreadsCount(m_algo, m_doubleHash, m_maxCpuUsage);
+    }
+    else if (m_safe) {
+        const int count = Cpu::optimalThreadsCount(m_algo, m_doubleHash, m_maxCpuUsage);
+        if (m_threads > count) {
+            m_threads = count;
+        }
     }
 
     m_ready = true;
@@ -442,3 +453,39 @@ bool Options::setUserpass(const char *userpass)
 
     return true;
 }
+
+
+int Options::getAlgoVariant() const
+{
+#   ifndef XMRIG_NO_AEON
+    if (m_algo == ALGO_CRYPTONIGHT_LITE) {
+        return getAlgoVariantLite();
+    }
+#   endif
+
+    if (m_algoVariant <= AV0_AUTO || m_algoVariant >= AV_MAX) {
+        return Cpu::hasAES() ? AV1_AESNI : AV3_SOFT_AES;
+    }
+
+    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV2_AESNI_DOUBLE) {
+        return m_algoVariant + 2;
+    }
+
+    return m_algoVariant;
+}
+
+
+#ifndef XMRIG_NO_AEON
+int Options::getAlgoVariantLite() const
+{
+    if (m_algoVariant <= AV0_AUTO || m_algoVariant >= AV_MAX) {
+        return Cpu::hasAES() ? AV2_AESNI_DOUBLE : AV4_SOFT_AES_DOUBLE;
+    }
+
+    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV2_AESNI_DOUBLE) {
+        return m_algoVariant + 2;
+    }
+
+    return m_algoVariant;
+}
+#endif

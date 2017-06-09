@@ -84,6 +84,11 @@ private:
     bool setAlgo(const char *algo);
     bool setUserpass(const char *userpass);
 
+    int getAlgoVariant() const;
+#   ifndef XMRIG_NO_AEON
+    int getAlgoVariantLite() const;
+#   endif
+
     bool m_background;
     bool m_colors;
     bool m_doubleHash;
