@@ -6,14 +6,15 @@ option(WITH_AEON     "CryptoNight-Lite support" ON)
 
 set(HEADERS
     src/App.h
+    src/Console.h
+    src/Cpu.h
     src/interfaces/IClientListener.h
+    src/Mem.h
     src/net/Client.h
     src/net/Job.h
     src/net/Network.h
     src/net/Url.h
     src/Options.h
-    src/Console.h
-    src/Cpu.h
     src/Summary.h
     src/version.h
    )
@@ -34,12 +35,13 @@ set(HEADERS_CRYPTO
 
 set(SOURCES
     src/App.cpp
+    src/Console.cpp
+    src/Mem.cpp
     src/net/Client.cpp
     src/net/Job.cpp
     src/net/Network.cpp
     src/net/Url.cpp
     src/Options.cpp
-    src/Console.cpp
     src/Summary.cpp
     src/xmrig.cpp
    )
@@ -61,6 +63,7 @@ if (WIN32)
         src/3rdparty/winansi.cpp
         src/3rdparty/winansi.h
         src/Cpu_win.cpp
+        src/Mem_win.cpp
         src/net/Network_win.cpp
         )
 

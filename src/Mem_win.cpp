@@ -21,20 +21,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MEMORY_H__
-#define __MEMORY_H__
 
+#include <winsock2.h>
 #include <windows.h>
 #include <ntsecapi.h>
 #include <tchar.h>
 
-#include "options.h"
-#include "persistent_memory.h"
-#include "utils/applog.h"
 
-
-char *persistent_memory;
-int persistent_memory_flags = 0;
+#include "Mem.h"
+#include "Console.h"
+#include "Options.h"
 
 
 /*****************************************************************
@@ -122,7 +118,7 @@ static BOOL ObtainLockPagesPrivilege() {
         LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
 
         if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
-            applog_notime(LOG_WARNING, "Huge pages support was successfully enabled, but reboot required to use it");
+            LOG_DEBUG("Huge pages support was successfully enabled, but reboot required to use it");
             result = TRUE;
         }
 
@@ -143,33 +139,33 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-const char * persistent_memory_allocate() {
-    const int ratio = (opt_double_hash && opt_algo != ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
-    const int size  = MEMORY * (opt_n_threads * ratio + 1);
+bool Mem::allocate(int algo, int threads, bool doubleHash)
+{
+    const int ratio = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
+    const size_t size  = MEMORY * (threads * ratio + 1);
 
     if (TrySetLockPagesPrivilege()) {
-        persistent_memory_flags |= MEMORY_HUGEPAGES_AVAILABLE;
+        m_flags |= HUGEPAGES_AVAILABLE;
     }
 
-    persistent_memory = VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE);
-    if (!persistent_memory) {
-        persistent_memory = _mm_malloc(size, 16);
+    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
+    if (!m_memory) {
+        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
     }
     else {
-        persistent_memory_flags |= MEMORY_HUGEPAGES_ENABLED;
+        m_flags |= HUGEPAGES_ENABLED;
     }
 
-    return persistent_memory;
+    return true;
 }
 
 
-void persistent_memory_free() {
-    if (persistent_memory_flags & MEMORY_HUGEPAGES_ENABLED) {
-        VirtualFree(persistent_memory, 0, MEM_RELEASE);
+void Mem::release()
+{
+    if (m_flags & HUGEPAGES_ENABLED) {
+        VirtualFree(m_memory, 0, MEM_RELEASE);
     }
     else {
-        _mm_free(persistent_memory);
+        _mm_free(m_memory);
     }
 }
-
-#endif /* __MEMORY_H__ */
