@@ -35,9 +35,9 @@ class Mem
 {
 public:
     enum Flags {
-        HUGEPAGES_AVAILABLE = 1,
-        HUGEPAGES_ENABLED   = 2,
-        LOCK                = 4
+        HugepagesAvailable = 1,
+        HugepagesEnabled   = 2,
+        Lock               = 4
     };
 
     static bool allocate(int algo, int threads, bool doubleHash);
@@ -45,7 +45,9 @@ public:
     static void *calloc(size_t num, size_t size);
     static void release();
 
-    static inline int flags() { return m_flags; }
+    static inline bool isHugepagesAvailable() { return m_flags & HugepagesAvailable; }
+    static inline bool isHugepagesEnabled()   { return m_flags & HugepagesEnabled; }
+    static inline int flags()                 { return m_flags; }
 
 private:
     static bool m_doubleHash;

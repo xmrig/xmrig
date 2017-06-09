@@ -147,7 +147,7 @@ bool Mem::allocate(int algo, int threads, bool doubleHash)
     const size_t size  = MEMORY * (threads * ratio + 1);
 
     if (TrySetLockPagesPrivilege()) {
-        m_flags |= HUGEPAGES_AVAILABLE;
+        m_flags |= HugepagesAvailable;
     }
 
     m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
@@ -155,7 +155,7 @@ bool Mem::allocate(int algo, int threads, bool doubleHash)
         m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
     }
     else {
-        m_flags |= HUGEPAGES_ENABLED;
+        m_flags |= HugepagesEnabled;
     }
 
     return true;
@@ -164,7 +164,7 @@ bool Mem::allocate(int algo, int threads, bool doubleHash)
 
 void Mem::release()
 {
-    if (m_flags & HUGEPAGES_ENABLED) {
+    if (m_flags & HugepagesEnabled) {
         VirtualFree(m_memory, 0, MEM_RELEASE);
     }
     else {

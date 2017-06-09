@@ -27,6 +27,7 @@
 
 #include "Console.h"
 #include "Cpu.h"
+#include "Mem.h"
 #include "Options.h"
 #include "Summary.h"
 #include "version.h"
@@ -47,6 +48,18 @@ static void print_versions()
         Console::i()->text("\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s%s", APP_VERSION, uv_version_string(), buf);
     } else {
         Console::i()->text(" * VERSIONS:     XMRig/%s libuv/%s%s", APP_VERSION, uv_version_string(), buf);
+    }
+}
+
+
+static void print_memory() {
+    if (Options::i()->colors()) {
+        Console::i()->text("\x1B[01;32m * \x1B[01;37mHUGE PAGES:   %s, %s",
+                           Mem::isHugepagesAvailable() ? "\x1B[01;32mavailable" : "\x1B[01;31munavailable",
+                           Mem::isHugepagesEnabled() ? "\x1B[01;32menabled" : "\x1B[01;31mdisabled");
+    }
+    else {
+        Console::i()->text(" * HUGE PAGES:   %s, %s", Mem::isHugepagesAvailable() ? "available" : "unavailable", Mem::isHugepagesEnabled() ? "enabled" : "disabled");
     }
 }
 
@@ -104,6 +117,7 @@ static void print_threads()
 void Summary::print()
 {
     print_versions();
+    print_memory();
     print_cpu();
     print_threads();
 }
