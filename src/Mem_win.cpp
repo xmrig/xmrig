@@ -26,10 +26,12 @@
 #include <windows.h>
 #include <ntsecapi.h>
 #include <tchar.h>
+#include <mm_malloc.h>
 
 
-#include "Mem.h"
 #include "Console.h"
+#include "crypto/CryptoNight.h"
+#include "Mem.h"
 #include "Options.h"
 
 

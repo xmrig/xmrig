@@ -69,7 +69,7 @@ if (WIN32)
 
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 else()
-    set(SOURCES_OS src/Cpu_unix.cpp)
+    set(SOURCES_OS src/Cpu_unix.cpp src/Mem_unix.cpp)
     set(EXTRA_LIBS pthread)
 endif()
 

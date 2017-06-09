@@ -21,44 +21,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MEM_H__
-#define __MEM_H__
 
-
-#include <stdint.h>
-
-
-struct cryptonight_ctx;
-
-
-class Mem
-{
-public:
-    enum Flags {
-        HUGEPAGES_AVAILABLE = 1,
-        HUGEPAGES_ENABLED   = 2,
-        LOCK                = 4
-    };
-
-    static bool allocate(int algo, int threads, bool doubleHash);
-    static cryptonight_ctx *create(int algo, int threadId, bool doubleHash);
-    static void *calloc(size_t num, size_t size);
-    static void release();
-
-    static inline int flags() { return m_flags; }
-
-private:
-    static bool m_doubleHash;
-    static int m_algo;
-    static int m_flags;
-    static int m_threads;
-    static size_t m_offset;
-    static uint8_t *m_memory __attribute__((aligned(16)));
-
-#   ifndef XMRIG_NO_AEON
-    static cryptonight_ctx *createLite(int threadId, bool doubleHash);
-#   endif
-};
-
-
-#endif /* __MEM_H__ */
+#include "crypto/CryptoNight.h"
+#include "Mem.h"
