@@ -35,6 +35,8 @@ class SingleWorker : public Worker
 {
 public:
     SingleWorker(Handle *handle);
+
+    void start() override;
 };
 
 

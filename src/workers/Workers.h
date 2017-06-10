@@ -21,65 +21,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __WORKERS_H__
+#define __WORKERS_H__
 
+
+#include <vector>
 #include <uv.h>
 
 
-#include "App.h"
-#include "Console.h"
-#include "Cpu.h"
-#include "crypto/CryptoNight.h"
-#include "Mem.h"
-#include "net/Client.h"
-#include "net/Network.h"
-#include "Options.h"
-#include "Summary.h"
-#include "version.h"
-#include "workers/Workers.h"
+class Handle;
 
 
-
-App::App(int argc, char **argv)
+class Workers
 {
-    Console::init();
-    Cpu::init();
+public:
+    static void start(int threads);
+    static void submit();
 
-    m_options = Options::parse(argc, argv);
-    m_network = new Network(m_options);
+private:
+    static void *onReady(void *arg);
+    static void onResult(uv_async_t *handle);
 
-
-}
-
-
-App::~App()
-{
-    LOG_DEBUG("~APP");
-
-    free(m_network);
-    free(m_options);
-}
+    static std::vector<Handle*> m_workers;
+    static uv_async_t m_async;
+};
 
 
-App::exec()
-{
-    if (!m_options->isReady()) {
-        return 0;
-    }
-
-    if (!CryptoNight::init(m_options->algo(), m_options->algoVariant())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
-        return 1;
-    }
-
-    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
-    Summary::print();
-
-    Workers::start(m_options->threads());
-
-    m_network->connect();
-
-    const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-    uv_loop_close(uv_default_loop());
-
-    return r;
-}
+#endif /* __WORKERS_H__ */

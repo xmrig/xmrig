@@ -20,6 +20,7 @@ set(HEADERS
     src/workers/Handle.h
     src/workers/SingleWorker.h
     src/workers/Worker.h
+    src/workers/Workers.h
     src/version.h
    )
 
@@ -50,6 +51,7 @@ set(SOURCES
     src/workers/Handle.cpp
     src/workers/SingleWorker.cpp
     src/workers/Worker.cpp
+    src/workers/Workers.cpp
     src/xmrig.cpp
    )
 
@@ -95,7 +97,7 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -fno-exceptions")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions -fno-rtti")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -gdwarf-2")
 #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-generate")

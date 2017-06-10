@@ -40,9 +40,3 @@ Worker::Worker(Handle *handle) :
 Worker::~Worker()
 {
 }
-
-
-void Worker::start()
-{
-
-}

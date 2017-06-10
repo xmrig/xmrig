@@ -38,8 +38,6 @@ public:
     Worker(Handle *handle);
     ~Worker();
 
-    void start() override;
-
 protected:
     cryptonight_ctx *m_ctx;
     Handle *m_handle;

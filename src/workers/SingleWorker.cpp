@@ -22,14 +22,23 @@
  */
 
 
+#include <thread>
 #include <pthread.h>
+
 
 #include "Console.h"
 #include "workers/SingleWorker.h"
+#include "workers/Workers.h"
 
 
 SingleWorker::SingleWorker(Handle *handle)
     : Worker(handle)
 {
     LOG_WARN("SingleWorker %d", pthread_self());
+}
+
+
+void SingleWorker::start()
+{
+//    Workers::submit();
 }

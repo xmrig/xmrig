@@ -22,64 +22,51 @@
  */
 
 
-#include <uv.h>
+#include <pthread.h>
 
 
-#include "App.h"
 #include "Console.h"
-#include "Cpu.h"
-#include "crypto/CryptoNight.h"
-#include "Mem.h"
-#include "net/Client.h"
-#include "net/Network.h"
-#include "Options.h"
-#include "Summary.h"
-#include "version.h"
+#include "workers/Handle.h"
+#include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
 
+std::vector<Handle*> Workers::m_workers;
+uv_async_t Workers::m_async;
 
-App::App(int argc, char **argv)
+
+void Workers::start(int threads)
 {
-    Console::init();
-    Cpu::init();
+    LOG_NOTICE("start %d", pthread_self());
 
-    m_options = Options::parse(argc, argv);
-    m_network = new Network(m_options);
+    uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
 
-
+    for (int i = 0; i < threads; ++i) {
+        Handle *handle = new Handle(i);
+        m_workers.push_back(handle);
+        handle->start(Workers::onReady);
+    }
 }
 
 
-App::~App()
+void Workers::submit()
 {
-    LOG_DEBUG("~APP");
-
-    free(m_network);
-    free(m_options);
+    uv_async_send(&m_async);
 }
 
 
-App::exec()
+
+void *Workers::onReady(void *arg)
 {
-    if (!m_options->isReady()) {
-        return 0;
-    }
+    auto handle = static_cast<Handle*>(arg);
+    IWorker *worker = new SingleWorker(handle);
+    worker->start();
 
-    if (!CryptoNight::init(m_options->algo(), m_options->algoVariant())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
-        return 1;
-    }
+    return nullptr;
+}
 
-    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
-    Summary::print();
 
-    Workers::start(m_options->threads());
 
-    m_network->connect();
-
-    const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-    uv_loop_close(uv_default_loop());
-
-    return r;
+void Workers::onResult(uv_async_t *handle)
+{
 }

@@ -35,5 +35,4 @@ Handle::Handle(int id) :
 void Handle::start(void *(*callback) (void *))
 {
     pthread_create(&m_thread, nullptr, callback, this);
-//    m_thread = std::thread([]() {});
 }

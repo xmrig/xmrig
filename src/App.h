@@ -25,10 +25,6 @@
 #define __APP_H__
 
 
-#include <vector>
-
-
-class Handle;
 class Network;
 class Options;
 
@@ -42,13 +38,8 @@ public:
   int exec();
 
 private:
-  void startWorders();
-
-  static void* onWorkerStarted(void *arg);
-
   Network *m_network;
   Options *m_options;
-  std::vector<Handle*> m_workers;
 };
 
 
