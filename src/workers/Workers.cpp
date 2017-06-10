@@ -30,7 +30,6 @@
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
-
 std::vector<Handle*> Workers::m_workers;
 uv_async_t Workers::m_async;
 

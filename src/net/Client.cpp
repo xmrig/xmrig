@@ -22,6 +22,9 @@
  */
 
 
+#include <utility>
+
+
 #include "Console.h"
 #include "interfaces/IClientListener.h"
 #include "net/Client.h"
@@ -168,7 +171,8 @@ bool Client::parseJob(const json_t *params, int *code)
         return false;
     }
 
-    m_job = job;
+    job.setPoolId(m_id);
+    m_job = std::move(job);
 
     LOG_DEBUG("[%s:%u] job: \"%s\", diff: %lld", m_host, m_port, job.id(), job.diff());
     return true;

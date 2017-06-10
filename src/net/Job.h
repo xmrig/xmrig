@@ -31,22 +31,26 @@
 class Job
 {
 public:
-    Job();
+    Job(int poolId = -2);
     bool setBlob(const char *blob);
     bool setId(const char *id);
     bool setTarget(const char *target);
 
-    inline const uint8_t *blob() const { return m_blob; }
+    inline bool isValid() const        { return m_size > 0 && m_diff > 0; }
     inline const char *id() const      { return m_id; }
-    inline uint32_t size() const       { return m_size; }
+    inline const uint8_t *blob() const { return m_blob; }
+    inline int poolId() const          { return m_poolId; }
     inline uint32_t diff() const       { return m_diff; }
+    inline uint32_t size() const       { return m_size; }
     inline uint64_t target() const     { return m_target; }
+    inline void setPoolId(int poolId)  { m_poolId = poolId; }
 
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);
     static void toHex(const unsigned char* in, unsigned int len, char* out);
-    inline static uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
+    static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
 
 private:
+    int m_poolId;
     char m_id[64]      __attribute__((aligned(16)));
     uint8_t m_blob[84] __attribute__((aligned(16))); // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
     uint32_t m_size;

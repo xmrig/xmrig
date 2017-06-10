@@ -60,7 +60,9 @@ public:
     void send(char *data);
     void setUrl(const Url *url);
 
+    inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }
     inline const char *host() const          { return m_host; }
+    inline const Job &job() const            { return m_job; }
     inline int id() const                    { return m_id; }
     inline SocketState state() const         { return m_state; }
     inline uint16_t port() const             { return m_port; }

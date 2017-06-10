@@ -35,7 +35,8 @@
 Network::Network(const Options *options) :
     m_donate(false),
     m_options(options),
-    m_pool(0)
+    m_pool(0),
+    m_diff(0)
 {
     m_pools.reserve(2);
     m_agent = userAgent();
@@ -92,7 +93,11 @@ void Network::onClose(Client *client, int failures)
 
 void Network::onJobReceived(Client *client, const Job &job)
 {
+    if (m_donate && client->id() != 0) {
+        return;
+    }
 
+    setJob(client, job);
 }
 
 
@@ -138,6 +143,18 @@ void Network::addPool(const Url *url)
 }
 
 
+void Network::setJob(Client *client, const Job &job)
+{
+    if (m_options->colors()){
+        LOG_INFO("\x1B[01;33mnew job\x1B[0m from \"%s:%d\", diff: %d", client->host(), client->port(), job.diff());
+
+    }
+    else {
+        LOG_INFO("new job from \"%s:%d\", diff: %d", client->host(), client->port(), job.diff());
+    }
+}
+
+
 void Network::startDonate()
 {
     if (m_donate) {
@@ -159,6 +176,14 @@ void Network::stopDonate()
     LOG_NOTICE("dev donate finished");
 
     m_donate = false;
+    if (!m_pool) {
+        return;
+    }
+
+    Client *client = m_pools[m_pool];
+    if (client->isReady()) {
+        setJob(client, client->job());
+    }
 }
 
 

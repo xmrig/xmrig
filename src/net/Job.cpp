@@ -57,7 +57,8 @@ static inline char hf_bin2hex(unsigned char c)
 }
 
 
-Job::Job() :
+Job::Job(int poolId) :
+    m_poolId(poolId),
     m_size(0),
     m_diff(0),
     m_target(0)

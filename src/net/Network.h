@@ -54,6 +54,7 @@ protected:
 
 private:
   void addPool(const Url *url);
+  void setJob(Client *client, const Job &job);
   void startDonate();
   void stopDonate();
 
@@ -64,6 +65,7 @@ private:
   const Options *m_options;
   int m_pool;
   std::vector<Client*> m_pools;
+  uint64_t m_diff;
   uv_timer_t m_timer;
 };
 
