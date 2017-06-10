@@ -21,35 +21,28 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+
+#include "workers/Handle.h"
+#include "workers/Worker.h"
+#include "Mem.h"
 
 
-#include <vector>
-
-
-class Handle;
-class Network;
-class Options;
-
-
-class App
+Worker::Worker(Handle *handle) :
+    m_handle(handle),
+    m_id(handle->id())
 {
-public:
-  App(int argc, char **argv);
-  ~App();
+    m_handle->setWorker(this);
 
-  int exec();
-
-private:
-  void startWorders();
-
-  static void* onWorkerStarted(void *arg);
-
-  Network *m_network;
-  Options *m_options;
-  std::vector<Handle*> m_workers;
-};
+    m_ctx = Mem::create(m_id);
+}
 
 
-#endif /* __APP_H__ */
+Worker::~Worker()
+{
+}
+
+
+void Worker::start()
+{
+
+}

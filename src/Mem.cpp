@@ -38,17 +38,17 @@ size_t Mem::m_offset   = 0;
 uint8_t *Mem::m_memory = nullptr;
 
 
-cryptonight_ctx *Mem::create(int algo, int threadId, bool doubleHash)
+cryptonight_ctx *Mem::create(int threadId)
 {
 #   ifndef XMRIG_NO_AEON
-    if (algo == Options::ALGO_CRYPTONIGHT_LITE) {
-        return createLite(threadId, doubleHash);
+    if (m_algo == Options::ALGO_CRYPTONIGHT_LITE) {
+        return createLite(threadId);
     }
 #   endif
 
     cryptonight_ctx *ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
 
-    const int ratio = doubleHash ? 2 : 1;
+    const int ratio = m_doubleHash ? 2 : 1;
     ctx->memory = &m_memory[MEMORY * (threadId * ratio + 1)];
 
     return ctx;
@@ -68,10 +68,10 @@ void *Mem::calloc(size_t num, size_t size)
 
 
 #ifndef XMRIG_NO_AEON
-cryptonight_ctx *Mem::createLite(int threadId, bool doubleHash) {
+cryptonight_ctx *Mem::createLite(int threadId) {
     cryptonight_ctx *ctx;
 
-    if (!doubleHash) {
+    if (!m_doubleHash) {
         const size_t offset = MEMORY * (threadId + 1);
 
         ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset + MEMORY_LITE]);

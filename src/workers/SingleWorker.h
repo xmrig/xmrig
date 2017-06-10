@@ -21,35 +21,21 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __SINGLEWORKER_H__
+#define __SINGLEWORKER_H__
 
 
-#include <vector>
+#include "workers/Worker.h"
 
 
 class Handle;
-class Network;
-class Options;
 
 
-class App
+class SingleWorker : public Worker
 {
 public:
-  App(int argc, char **argv);
-  ~App();
-
-  int exec();
-
-private:
-  void startWorders();
-
-  static void* onWorkerStarted(void *arg);
-
-  Network *m_network;
-  Options *m_options;
-  std::vector<Handle*> m_workers;
+    SingleWorker(Handle *handle);
 };
 
 
-#endif /* __APP_H__ */
+#endif /* __SINGLEWORKER_H__ */

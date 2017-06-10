@@ -21,35 +21,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+
+#include <pthread.h>
+
+#include "Console.h"
+#include "workers/SingleWorker.h"
 
 
-#include <vector>
-
-
-class Handle;
-class Network;
-class Options;
-
-
-class App
+SingleWorker::SingleWorker(Handle *handle)
+    : Worker(handle)
 {
-public:
-  App(int argc, char **argv);
-  ~App();
-
-  int exec();
-
-private:
-  void startWorders();
-
-  static void* onWorkerStarted(void *arg);
-
-  Network *m_network;
-  Options *m_options;
-  std::vector<Handle*> m_workers;
-};
-
-
-#endif /* __APP_H__ */
+    LOG_WARN("SingleWorker %d", pthread_self());
+}

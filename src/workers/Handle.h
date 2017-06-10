@@ -21,35 +21,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __HANDLE_H__
+#define __HANDLE_H__
 
 
-#include <vector>
+#include <pthread.h>
 
 
-class Handle;
-class Network;
-class Options;
+class IWorker;
 
 
-class App
+class Handle
 {
 public:
-  App(int argc, char **argv);
-  ~App();
+    Handle(int id);
+    void start(void *(*callback) (void *));
 
-  int exec();
+    inline int id() const                  { return m_id; }
+    inline void setWorker(IWorker *worker) { m_worker = worker; }
 
 private:
-  void startWorders();
-
-  static void* onWorkerStarted(void *arg);
-
-  Network *m_network;
-  Options *m_options;
-  std::vector<Handle*> m_workers;
+    int m_id;
+    IWorker *m_worker;
+    pthread_t m_thread;
 };
 
 
-#endif /* __APP_H__ */
+#endif /* __HANDLE_H__ */

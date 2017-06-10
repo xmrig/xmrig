@@ -41,7 +41,7 @@ public:
     };
 
     static bool allocate(int algo, int threads, bool doubleHash);
-    static cryptonight_ctx *create(int algo, int threadId, bool doubleHash);
+    static cryptonight_ctx *create(int threadId);
     static void *calloc(size_t num, size_t size);
     static void release();
 
@@ -58,7 +58,7 @@ private:
     static uint8_t *m_memory __attribute__((aligned(16)));
 
 #   ifndef XMRIG_NO_AEON
-    static cryptonight_ctx *createLite(int threadId, bool doubleHash);
+    static cryptonight_ctx *createLite(int threadId);
 #   endif
 };
 

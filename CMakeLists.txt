@@ -9,6 +9,7 @@ set(HEADERS
     src/Console.h
     src/Cpu.h
     src/interfaces/IClientListener.h
+    src/interfaces/IWorker.h
     src/Mem.h
     src/net/Client.h
     src/net/Job.h
@@ -16,6 +17,9 @@ set(HEADERS
     src/net/Url.h
     src/Options.h
     src/Summary.h
+    src/workers/Handle.h
+    src/workers/SingleWorker.h
+    src/workers/Worker.h
     src/version.h
    )
 
@@ -43,6 +47,9 @@ set(SOURCES
     src/net/Url.cpp
     src/Options.cpp
     src/Summary.cpp
+    src/workers/Handle.cpp
+    src/workers/SingleWorker.cpp
+    src/workers/Worker.cpp
     src/xmrig.cpp
    )
 
@@ -85,11 +92,11 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -fno-exceptions")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -gdwarf-2")
 #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-generate")
 #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-use -fprofile-correction")

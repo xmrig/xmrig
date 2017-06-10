@@ -35,6 +35,8 @@
 #include "Options.h"
 #include "Summary.h"
 #include "version.h"
+#include "workers/Handle.h"
+#include "workers/SingleWorker.h"
 
 
 
@@ -45,6 +47,8 @@ App::App(int argc, char **argv)
 
     m_options = Options::parse(argc, argv);
     m_network = new Network(m_options);
+
+
 }
 
 
@@ -71,10 +75,32 @@ App::exec()
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
     Summary::print();
 
+    startWorders();
+
     m_network->connect();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
     return r;
+}
+
+
+void App::startWorders()
+{
+    for (int i = 0; i < m_options->threads(); ++i) {
+        Handle *handle = new Handle(i);
+        m_workers.push_back(handle);
+        handle->start(App::onWorkerStarted);
+    }
+}
+
+
+void *App::onWorkerStarted(void *arg)
+{
+    auto handle = static_cast<Handle*>(arg);
+    IWorker *worker = new SingleWorker(handle);
+    worker->start();
+
+    return nullptr;
 }

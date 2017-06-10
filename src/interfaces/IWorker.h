@@ -21,35 +21,17 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __IWORKER_H__
+#define __IWORKER_H__
 
 
-#include <vector>
-
-
-class Handle;
-class Network;
-class Options;
-
-
-class App
+class IWorker
 {
 public:
-  App(int argc, char **argv);
-  ~App();
+    virtual ~IWorker() {}
 
-  int exec();
-
-private:
-  void startWorders();
-
-  static void* onWorkerStarted(void *arg);
-
-  Network *m_network;
-  Options *m_options;
-  std::vector<Handle*> m_workers;
+    virtual void start() = 0;
 };
 
 
-#endif /* __APP_H__ */
+#endif // __IWORKER_H__

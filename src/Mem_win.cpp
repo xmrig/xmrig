@@ -143,6 +143,10 @@ static BOOL TrySetLockPagesPrivilege() {
 
 bool Mem::allocate(int algo, int threads, bool doubleHash)
 {
+    m_algo       = algo;
+    m_threads    = threads;
+    m_doubleHash = doubleHash;
+
     const int ratio = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
     const size_t size  = MEMORY * (threads * ratio + 1);
 
