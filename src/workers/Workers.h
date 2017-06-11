@@ -36,6 +36,7 @@
 
 
 class Handle;
+class IJobResultListener;
 
 
 class Workers
@@ -46,15 +47,17 @@ public:
     static void start(int threads, int64_t affinity, bool nicehash);
     static void submit(const JobResult &result);
 
-    static inline bool isOutdated(uint64_t sequence) { return m_sequence.load(std::memory_order_relaxed) != sequence; }
-    static inline bool isPaused()                    { return m_paused.load(std::memory_order_relaxed) == 1; }
-    static inline uint64_t sequence()                { return m_sequence.load(std::memory_order_relaxed); }
-    static inline void pause()                       { m_paused = 1; }
+    static inline bool isOutdated(uint64_t sequence)             { return m_sequence.load(std::memory_order_relaxed) != sequence; }
+    static inline bool isPaused()                                { return m_paused.load(std::memory_order_relaxed) == 1; }
+    static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
+    static inline void pause()                                   { m_paused = 1; }
+    static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
 
 private:
     static void *onReady(void *arg);
     static void onResult(uv_async_t *handle);
 
+    static IJobResultListener *m_listener;
     static Job m_job;
     static pthread_mutex_t m_mutex;
     static pthread_rwlock_t m_rwlock;

@@ -39,6 +39,8 @@ Network::Network(const Options *options) :
     m_pool(0),
     m_diff(0)
 {
+    Workers::setListener(this);
+
     m_pools.reserve(2);
     m_agent = userAgent();
 
@@ -100,6 +102,13 @@ void Network::onJobReceived(Client *client, const Job &job)
     }
 
     setJob(client, job);
+}
+
+
+void Network::onJobResult(const JobResult &result)
+{
+    LOG_NOTICE("SHARE FOUND");
+    m_pools[result.poolId]->submit(result);
 }
 
 

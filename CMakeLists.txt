@@ -9,6 +9,7 @@ set(HEADERS
     src/Console.h
     src/Cpu.h
     src/interfaces/IClientListener.h
+    src/interfaces/IJobResultListener.h
     src/interfaces/IWorker.h
     src/Mem.h
     src/net/Client.h

@@ -32,8 +32,9 @@
 #include "net/Job.h"
 
 
-class Url;
 class IClientListener;
+class JobResult;
+class Url;
 
 
 class Client
@@ -59,6 +60,7 @@ public:
     void login(const char *user, const char *pass, const char *agent);
     void send(char *data);
     void setUrl(const Url *url);
+    void submit(const JobResult &result);
 
     inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }
     inline const char *host() const          { return m_host; }

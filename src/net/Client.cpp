@@ -28,6 +28,7 @@
 #include "Console.h"
 #include "interfaces/IClientListener.h"
 #include "net/Client.h"
+#include "net/JobResult.h"
 #include "net/Url.h"
 
 
@@ -145,6 +146,25 @@ void Client::setUrl(const Url *url)
     free(m_host);
     m_host = strdup(url->host());
     m_port = url->port();
+}
+
+
+void Client::submit(const JobResult &result)
+{
+    char *req = static_cast<char*>(malloc(345));
+    char nonce[9];
+    char data[65];
+
+    Job::toHex(reinterpret_cast<const unsigned char*>(&result.nonce), 4, nonce);
+    nonce[8] = '\0';
+
+    Job::toHex(result.result, 32, data);
+    data[64] = '\0';
+
+    snprintf(req, 345, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
+             m_sequence, m_rpcId, result.jobId, nonce, data);
+
+    send(req);
 }
 
 

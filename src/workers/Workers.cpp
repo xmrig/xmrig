@@ -21,11 +21,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "interfaces/IJobResultListener.h"
 #include "workers/Handle.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
 
+IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
 pthread_mutex_t Workers::m_mutex;
 pthread_rwlock_t Workers::m_rwlock;
@@ -107,4 +109,10 @@ void Workers::onResult(uv_async_t *handle)
         m_queue.pop_front();
     }
     pthread_mutex_unlock(&m_mutex);
+
+    for (auto result : results) {
+        m_listener->onJobResult(result);
+    }
+
+    results.clear();
 }

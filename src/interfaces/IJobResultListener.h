@@ -21,55 +21,21 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
+#ifndef __IJOBRESULTLISTENER_H__
+#define __IJOBRESULTLISTENER_H__
 
 
-#include <vector>
-#include <uv.h>
+class Client;
+class JobResult;
 
 
-#include "interfaces/IClientListener.h"
-#include "interfaces/IJobResultListener.h"
-
-
-class Options;
-class Url;
-
-
-class Network : public IClientListener, public IJobResultListener
+class IJobResultListener
 {
 public:
-  Network(const Options *options);
-  ~Network();
+    virtual ~IJobResultListener() {}
 
-  void connect();
-
-  static char *userAgent();
-
-protected:
-  void onClose(Client *client, int failures) override;
-  void onJobReceived(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result);
-  void onLoginCredentialsRequired(Client *client) override;
-  void onLoginSuccess(Client *client) override;
-
-private:
-  void addPool(const Url *url);
-  void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
-
-  static void onTimer(uv_timer_t *handle);
-
-  bool m_donate;
-  char *m_agent;
-  const Options *m_options;
-  int m_pool;
-  std::vector<Client*> m_pools;
-  uint64_t m_diff;
-  uv_timer_t m_timer;
+    virtual void onJobResult(const JobResult &result) = 0;
 };
 
 
-#endif /* __NETWORK_H__ */
+#endif // __IJOBRESULTLISTENER_H__
