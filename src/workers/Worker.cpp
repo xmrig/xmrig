@@ -22,16 +22,22 @@
  */
 
 
+#include "Cpu.h"
+#include "Mem.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"
-#include "Mem.h"
 
 
 Worker::Worker(Handle *handle) :
+    m_nicehash(handle->nicehash()),
     m_handle(handle),
-    m_id(handle->id())
+    m_id(handle->threadId())
 {
     m_handle->setWorker(this);
+
+    if (Cpu::threads() > 1 && m_handle->affinity() != -1L) {
+        Cpu::setAffinity(m_id, m_handle->affinity());
+    }
 
     m_ctx = Mem::create(m_id);
 }

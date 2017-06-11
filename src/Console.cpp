@@ -97,12 +97,12 @@ void Console::message(Console::Level level, const char* fmt, ...)
             m_colors ? kCL_N : ""
         );
 
-    uv_mutex_lock(&m_mutex);
+    pthread_mutex_lock(&m_mutex);
 
     vfprintf(stdout, buf, ap);
     fflush(stdout);
 
-    uv_mutex_unlock(&m_mutex);
+    pthread_mutex_unlock(&m_mutex);
 
     va_end(ap);
 }
@@ -121,12 +121,12 @@ void Console::text(const char* fmt, ...)
             m_colors ? kCL_N : ""
         );
 
-    uv_mutex_lock(&m_mutex);
+    pthread_mutex_lock(&m_mutex);
 
     vfprintf(stdout, buf, ap);
     fflush(stdout);
 
-    uv_mutex_unlock(&m_mutex);
+    pthread_mutex_unlock(&m_mutex);
 
     va_end(ap);
 }
@@ -135,5 +135,5 @@ void Console::text(const char* fmt, ...)
 Console::Console() :
     m_colors(true)
 {
-    uv_mutex_init(&m_mutex);
+    pthread_mutex_init(&m_mutex, nullptr);
 }

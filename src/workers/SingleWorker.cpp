@@ -22,6 +22,7 @@
  */
 
 
+#include <atomic>
 #include <thread>
 #include <pthread.h>
 
@@ -40,5 +41,35 @@ SingleWorker::SingleWorker(Handle *handle)
 
 void SingleWorker::start()
 {
-//    Workers::submit();
+    while (true) {
+        if (Workers::isPaused()) {
+            do {
+                LOG_ERR("SLEEP WAIT FOR WORK");
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            }
+            while (Workers::isPaused());
+
+            consumeJob();
+        }
+
+        while (!Workers::isOutdated(m_sequence)) {
+            LOG_ERR("WORK %lld %lld", Workers::sequence(), m_sequence);
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+            sched_yield();
+        }
+
+        consumeJob();
+    }
+}
+
+
+
+void SingleWorker::consumeJob()
+{
+    m_job = Workers::job();
+    m_sequence = Workers::sequence();
+
+    LOG_WARN("consumeJob");
 }

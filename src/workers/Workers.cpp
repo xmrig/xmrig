@@ -21,27 +21,52 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <pthread.h>
-
-
 #include "Console.h"
 #include "workers/Handle.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
+
+Job Workers::m_job;
+pthread_rwlock_t Workers::m_rwlock;
+std::atomic<int> Workers::m_paused;
+std::atomic<uint64_t> Workers::m_sequence;
 std::vector<Handle*> Workers::m_workers;
 uv_async_t Workers::m_async;
 
 
-void Workers::start(int threads)
+Job Workers::job()
+{
+    pthread_rwlock_rdlock(&m_rwlock);
+    Job job = m_job;
+    pthread_rwlock_unlock(&m_rwlock);
+
+    return std::move(job);
+}
+
+
+void Workers::setJob(const Job &job)
+{
+    pthread_rwlock_wrlock(&m_rwlock);
+    m_job = job;
+    pthread_rwlock_unlock(&m_rwlock);
+
+    m_sequence++;
+    m_paused = 0;
+}
+
+
+void Workers::start(int threads, int64_t affinity, bool nicehash)
 {
     LOG_NOTICE("start %d", pthread_self());
+
+    m_sequence = 0;
+    m_paused   = 1;
 
     uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
 
     for (int i = 0; i < threads; ++i) {
-        Handle *handle = new Handle(i);
+        Handle *handle = new Handle(i, affinity, nicehash);
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }

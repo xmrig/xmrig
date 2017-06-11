@@ -25,8 +25,13 @@
 #define __WORKERS_H__
 
 
-#include <vector>
+#include <atomic>
+#include <pthread.h>
 #include <uv.h>
+#include <vector>
+
+
+#include "net/Job.h"
 
 
 class Handle;
@@ -35,13 +40,24 @@ class Handle;
 class Workers
 {
 public:
-    static void start(int threads);
+    static Job job();
+    static void setJob(const Job &job);
+    static void start(int threads, int64_t affinity, bool nicehash);
     static void submit();
+
+    static inline bool isOutdated(uint64_t sequence) { return m_sequence.load(std::memory_order_relaxed) != sequence; }
+    static inline bool isPaused()                    { return m_paused.load(std::memory_order_relaxed) == 1; }
+    static inline uint64_t sequence()                { return m_sequence.load(std::memory_order_relaxed); }
+    static inline void pause()                       { m_paused = 1; }
 
 private:
     static void *onReady(void *arg);
     static void onResult(uv_async_t *handle);
 
+    static Job m_job;
+    static pthread_rwlock_t m_rwlock;
+    static std::atomic<int> m_paused;
+    static std::atomic<uint64_t> m_sequence;
     static std::vector<Handle*> m_workers;
     static uv_async_t m_async;
 };

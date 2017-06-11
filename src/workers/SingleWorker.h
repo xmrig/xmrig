@@ -25,6 +25,7 @@
 #define __SINGLEWORKER_H__
 
 
+#include "net/Job.h"
 #include "workers/Worker.h"
 
 
@@ -37,6 +38,11 @@ public:
     SingleWorker(Handle *handle);
 
     void start() override;
+
+private:
+    void consumeJob();
+
+    Job m_job;
 };
 
 

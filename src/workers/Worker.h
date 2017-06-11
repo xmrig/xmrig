@@ -25,6 +25,9 @@
 #define __WORKER_H__
 
 
+#include <stdint.h>
+
+
 #include "interfaces/IWorker.h"
 
 
@@ -39,9 +42,11 @@ public:
     ~Worker();
 
 protected:
+    bool m_nicehash;
     cryptonight_ctx *m_ctx;
     Handle *m_handle;
     int m_id;
+    uint64_t m_sequence;
 };
 
 

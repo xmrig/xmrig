@@ -40,6 +40,7 @@ public:
     inline const char *id() const      { return m_id; }
     inline const uint8_t *blob() const { return m_blob; }
     inline int poolId() const          { return m_poolId; }
+    inline uint32_t *nonce()           { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const       { return m_diff; }
     inline uint32_t size() const       { return m_size; }
     inline uint64_t target() const     { return m_target; }

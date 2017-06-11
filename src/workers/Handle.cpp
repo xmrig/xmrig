@@ -25,8 +25,10 @@
 #include "workers/Handle.h"
 
 
-Handle::Handle(int id) :
-    m_id(id),
+Handle::Handle(int threadId, int64_t affinity, bool nicehash) :
+    m_nicehash(nicehash),
+    m_threadId(threadId),
+    m_affinity(affinity),
     m_worker(nullptr)
 {
 }

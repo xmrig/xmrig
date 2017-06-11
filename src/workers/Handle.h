@@ -26,6 +26,7 @@
 
 
 #include <pthread.h>
+#include <stdint.h>
 
 
 class IWorker;
@@ -34,14 +35,18 @@ class IWorker;
 class Handle
 {
 public:
-    Handle(int id);
+    Handle(int threadId, int64_t affinity, bool nicehash);
     void start(void *(*callback) (void *));
 
-    inline int id() const                  { return m_id; }
+    inline bool nicehash() const           { return m_nicehash; }
+    inline int threadId() const            { return m_threadId; }
+    inline int64_t affinity() const        { return m_affinity; }
     inline void setWorker(IWorker *worker) { m_worker = worker; }
 
 private:
-    int m_id;
+    bool m_nicehash;
+    int m_threadId;
+    int64_t m_affinity;
     IWorker *m_worker;
     pthread_t m_thread;
 };

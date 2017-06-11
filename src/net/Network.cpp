@@ -30,6 +30,7 @@
 #include "net/Network.h"
 #include "net/Url.h"
 #include "Options.h"
+#include "workers/Workers.h"
 
 
 Network::Network(const Options *options) :
@@ -83,6 +84,7 @@ void Network::onClose(Client *client, int failures)
 
     if (m_pool == id) {
         m_pool = 0;
+        Workers::pause();
     }
 
     if (id == 1 && m_pools.size() > 2 && failures == m_options->retries()) {
@@ -152,6 +154,8 @@ void Network::setJob(Client *client, const Job &job)
     else {
         LOG_INFO("new job from \"%s:%d\", diff: %d", client->host(), client->port(), job.diff());
     }
+
+    Workers::setJob(job);
 }
 
 
