@@ -21,34 +21,20 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WORKER_H__
-#define __WORKER_H__
+#ifndef __JOBRESULT_H__
+#define __JOBRESULT_H__
 
 
 #include <stdint.h>
 
 
-#include "interfaces/IWorker.h"
-
-
-struct cryptonight_ctx;
-class Handle;
-
-
-class Worker : public IWorker
+class JobResult
 {
 public:
-    Worker(Handle *handle);
-    ~Worker();
-
-protected:
-    bool m_nicehash;
-    cryptonight_ctx *m_ctx;
-    int m_id;
-    int m_threads;
-    uint64_t m_count;
-    uint64_t m_sequence;
+    char jobId[64];
+    int poolId;
+    uint32_t nonce;
+    uint8_t result[32];
 };
 
-
-#endif /* __WORKER_H__ */
+#endif /* __JOBRESULT_H__ */

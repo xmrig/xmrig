@@ -39,9 +39,14 @@ struct cryptonight_ctx {
 };
 
 
+class Job;
+class JobResult;
+
+
 class CryptoNight
 {
 public:
+    static bool hash(const Job &job, JobResult &result, cryptonight_ctx *ctx);
     static bool init(int algo, int variant);
 
 private:

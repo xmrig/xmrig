@@ -21,16 +21,17 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Console.h"
 #include "workers/Handle.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
 
 Job Workers::m_job;
+pthread_mutex_t Workers::m_mutex;
 pthread_rwlock_t Workers::m_rwlock;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
+std::list<JobResult> Workers::m_queue;
 std::vector<Handle*> Workers::m_workers;
 uv_async_t Workers::m_async;
 
@@ -58,7 +59,8 @@ void Workers::setJob(const Job &job)
 
 void Workers::start(int threads, int64_t affinity, bool nicehash)
 {
-    LOG_NOTICE("start %d", pthread_self());
+    pthread_mutex_init(&m_mutex, nullptr);
+    pthread_rwlock_init(&m_rwlock, nullptr);
 
     m_sequence = 0;
     m_paused   = 1;
@@ -66,15 +68,19 @@ void Workers::start(int threads, int64_t affinity, bool nicehash)
     uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
 
     for (int i = 0; i < threads; ++i) {
-        Handle *handle = new Handle(i, affinity, nicehash);
+        Handle *handle = new Handle(i, threads, affinity, nicehash);
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }
 }
 
 
-void Workers::submit()
+void Workers::submit(const JobResult &result)
 {
+    pthread_mutex_lock(&m_mutex);
+    m_queue.push_back(result);
+    pthread_mutex_unlock(&m_mutex);
+
     uv_async_send(&m_async);
 }
 
@@ -93,4 +99,12 @@ void *Workers::onReady(void *arg)
 
 void Workers::onResult(uv_async_t *handle)
 {
+    std::list<JobResult> results;
+
+    pthread_mutex_lock(&m_mutex);
+    while (!m_queue.empty()) {
+        results.push_back(std::move(m_queue.front()));
+        m_queue.pop_front();
+    }
+    pthread_mutex_unlock(&m_mutex);
 }

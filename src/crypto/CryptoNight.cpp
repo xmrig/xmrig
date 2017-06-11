@@ -25,6 +25,8 @@
 #include "crypto/CryptoNight.h"
 #include "crypto/CryptoNight_p.h"
 #include "crypto/CryptoNight_test.h"
+#include "net/Job.h"
+#include "net/JobResult.h"
 #include "Options.h"
 
 
@@ -89,6 +91,14 @@ void (*cryptonight_variations[4])(const void *input, size_t size, void *output, 
             cryptonight_av4_softaes_double
         };
 #endif
+
+
+bool CryptoNight::hash(const Job &job, JobResult &result, cryptonight_ctx *ctx)
+{
+    cryptonight_hash_ctx(job.blob(), job.size(), result.result, ctx);
+
+    return *reinterpret_cast<uint64_t*>(result.result + 24) < job.target();
+}
 
 
 bool CryptoNight::init(int algo, int variant)

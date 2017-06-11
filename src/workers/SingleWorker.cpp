@@ -24,10 +24,10 @@
 
 #include <atomic>
 #include <thread>
-#include <pthread.h>
 
 
 #include "Console.h"
+#include "crypto/CryptoNight.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
@@ -35,7 +35,6 @@
 SingleWorker::SingleWorker(Handle *handle)
     : Worker(handle)
 {
-    LOG_WARN("SingleWorker %d", pthread_self());
 }
 
 
@@ -44,7 +43,6 @@ void SingleWorker::start()
     while (true) {
         if (Workers::isPaused()) {
             do {
-                LOG_ERR("SLEEP WAIT FOR WORK");
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
             }
             while (Workers::isPaused());
@@ -53,9 +51,12 @@ void SingleWorker::start()
         }
 
         while (!Workers::isOutdated(m_sequence)) {
-            LOG_ERR("WORK %lld %lld", Workers::sequence(), m_sequence);
+            m_count++;
+            *m_job.nonce() = ++m_result.nonce;
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            if (CryptoNight::hash(m_job, m_result, m_ctx)) {
+                Workers::submit(m_result);
+            }
 
             sched_yield();
         }
@@ -71,5 +72,13 @@ void SingleWorker::consumeJob()
     m_job = Workers::job();
     m_sequence = Workers::sequence();
 
-    LOG_WARN("consumeJob");
+    memcpy(m_result.jobId, m_job.id(), sizeof(m_result.jobId));
+    m_result.poolId = m_job.poolId();
+
+    if (m_nicehash) {
+        m_result.nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / m_threads * m_id);
+    }
+    else {
+        m_result.nonce = 0xffffffffU / m_threads * m_id;
+    }
 }

@@ -30,13 +30,15 @@
 
 Worker::Worker(Handle *handle) :
     m_nicehash(handle->nicehash()),
-    m_handle(handle),
-    m_id(handle->threadId())
+    m_id(handle->threadId()),
+    m_threads(handle->threads()),
+    m_count(0),
+    m_sequence(0)
 {
-    m_handle->setWorker(this);
+    handle->setWorker(this);
 
-    if (Cpu::threads() > 1 && m_handle->affinity() != -1L) {
-        Cpu::setAffinity(m_id, m_handle->affinity());
+    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
+        Cpu::setAffinity(m_id, handle->affinity());
     }
 
     m_ctx = Mem::create(m_id);

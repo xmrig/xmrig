@@ -26,12 +26,13 @@
 
 
 #include <atomic>
+#include <list>
 #include <pthread.h>
 #include <uv.h>
 #include <vector>
 
-
 #include "net/Job.h"
+#include "net/JobResult.h"
 
 
 class Handle;
@@ -43,7 +44,7 @@ public:
     static Job job();
     static void setJob(const Job &job);
     static void start(int threads, int64_t affinity, bool nicehash);
-    static void submit();
+    static void submit(const JobResult &result);
 
     static inline bool isOutdated(uint64_t sequence) { return m_sequence.load(std::memory_order_relaxed) != sequence; }
     static inline bool isPaused()                    { return m_paused.load(std::memory_order_relaxed) == 1; }
@@ -55,9 +56,11 @@ private:
     static void onResult(uv_async_t *handle);
 
     static Job m_job;
+    static pthread_mutex_t m_mutex;
     static pthread_rwlock_t m_rwlock;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
+    static std::list<JobResult> m_queue;
     static std::vector<Handle*> m_workers;
     static uv_async_t m_async;
 };
