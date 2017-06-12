@@ -29,6 +29,11 @@
 #include "net/Url.h"
 
 
+#ifdef _MSC_VER
+#   define strncasecmp(x,y,z) _strnicmp(x,y,z)
+#endif
+
+
 Url::Url() :
     m_host(nullptr),
     m_port(3333)
@@ -66,7 +71,7 @@ Url::Url(const char *url) :
         return;
     }
 
-    char *port = strchr(base, ':');
+    const char *port = strchr(base, ':');
     if (!port) {
         m_host = strdup(base);
         return;

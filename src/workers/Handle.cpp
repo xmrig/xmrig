@@ -35,7 +35,7 @@ Handle::Handle(int threadId, int threads, int64_t affinity, bool nicehash) :
 }
 
 
-void Handle::start(void *(*callback) (void *))
+void Handle::start(void (*callback) (void *))
 {
-    pthread_create(&m_thread, nullptr, callback, this);
+    uv_thread_create(&m_thread, callback, this);
 }

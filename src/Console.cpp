@@ -22,7 +22,9 @@
  */
 
 
+#include <malloc.h>
 #include <time.h>
+
 
 #ifdef WIN32
 #   include <winsock2.h>
@@ -97,12 +99,12 @@ void Console::message(Console::Level level, const char* fmt, ...)
             m_colors ? kCL_N : ""
         );
 
-    pthread_mutex_lock(&m_mutex);
+    uv_mutex_lock(&m_mutex);
 
     vfprintf(stdout, buf, ap);
     fflush(stdout);
 
-    pthread_mutex_unlock(&m_mutex);
+    uv_mutex_unlock(&m_mutex);
 
     va_end(ap);
 }
@@ -121,12 +123,12 @@ void Console::text(const char* fmt, ...)
             m_colors ? kCL_N : ""
         );
 
-    pthread_mutex_lock(&m_mutex);
+    uv_mutex_lock(&m_mutex);
 
     vfprintf(stdout, buf, ap);
     fflush(stdout);
 
-    pthread_mutex_unlock(&m_mutex);
+    uv_mutex_unlock(&m_mutex);
 
     va_end(ap);
 }
@@ -135,5 +137,5 @@ void Console::text(const char* fmt, ...)
 Console::Console() :
     m_colors(true)
 {
-    pthread_mutex_init(&m_mutex, nullptr);
+    uv_mutex_init(&m_mutex);
 }

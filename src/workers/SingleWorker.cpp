@@ -22,11 +22,9 @@
  */
 
 
-#include <atomic>
 #include <thread>
 
 
-#include "Console.h"
 #include "crypto/CryptoNight.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
@@ -62,7 +60,7 @@ void SingleWorker::start()
                 Workers::submit(m_result);
             }
 
-            sched_yield();
+//            sched_yield();
         }
 
         consumeJob();

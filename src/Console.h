@@ -25,7 +25,7 @@
 #define __CONSOLE_H__
 
 
-#include <pthread.h>
+#include <uv.h>
 
 
 class Console
@@ -61,7 +61,7 @@ private:
 
     static Console *m_self;
     bool m_colors;
-    pthread_mutex_t m_mutex;
+    uv_mutex_t m_mutex;
 };
 
 

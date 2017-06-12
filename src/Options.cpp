@@ -24,8 +24,12 @@
 
 #include <uv.h>
 #include <jansson.h>
-#include <getopt.h>
 
+#ifdef _MSC_VER
+#include "getopt/getopt.h"
+#else
+#include <getopt.h>
+#endif
 
 #include "Console.h"
 #include "Cpu.h"
@@ -387,7 +391,7 @@ void Options::showUsage(int status) const
 
 void Options::showVersion()
 {
-    printf(APP_NAME " " APP_VERSION "\n built on " __DATE__
+ /*   printf(APP_NAME " " APP_VERSION "\n built on " __DATE__)
 
     #ifdef __GNUC__
     " with GCC");
@@ -404,7 +408,7 @@ void Options::showVersion()
     #ifdef __AES__
     " AES-NI"
     #endif
-    "\n");
+    "\n");*/
 
     printf("\nlibuv/%s\n", uv_version_string());
     printf("libjansson/%s\n", JANSSON_VERSION);
@@ -438,7 +442,7 @@ bool Options::setAlgo(const char *algo)
 
 bool Options::setUserpass(const char *userpass)
 {
-    char *p = strchr(userpass, ':');
+    const char *p = strchr(userpass, ':');
     if (!p) {
         showUsage(1);
         return false;

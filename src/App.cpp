@@ -60,7 +60,7 @@ App::~App()
 }
 
 
-App::exec()
+int App::exec()
 {
     if (!m_options->isReady()) {
         return 0;

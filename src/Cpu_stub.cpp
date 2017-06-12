@@ -22,7 +22,12 @@
  */
 
 
-#include <cpuid.h>
+#ifdef _MSC_VER
+#   include <intrin.h>
+#else
+#   include <cpuid.h>
+#endif
+
 #include <string.h>
 
 
@@ -45,7 +50,7 @@
 
 static inline void cpuid(int level, int output[4]) {
     int a, b, c, d;
-    __cpuid_count(level, 0, a, b, c, d);
+    //__cpuid_count(level, 0, a, b, c, d);
 
     output[0] = a;
     output[1] = b;
@@ -73,7 +78,8 @@ static inline bool has_aes_ni()
     int cpu_info[4] = { 0 };
     cpuid(PROCESSOR_INFO, cpu_info);
 
-    return cpu_info[ECX_Reg] & bit_AES;
+    return false;
+    //return cpu_info[ECX_Reg] & bit_AES;
 }
 
 
@@ -81,7 +87,8 @@ static inline bool has_bmi2() {
     int cpu_info[4] = { 0 };
     cpuid(EXTENDED_FEATURES, cpu_info);
 
-    return cpu_info[EBX_Reg] & bit_BMI2;
+    return false;
+    //return cpu_info[EBX_Reg] & bit_BMI2;
 }
 
 

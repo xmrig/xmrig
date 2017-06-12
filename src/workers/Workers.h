@@ -27,7 +27,6 @@
 
 #include <atomic>
 #include <list>
-#include <pthread.h>
 #include <uv.h>
 #include <vector>
 
@@ -55,14 +54,12 @@ public:
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
 
 private:
-    static void *onReady(void *arg);
-    static void onPerfTick(uv_timer_t *handle);
+    static void onReady(void *arg);
     static void onResult(uv_async_t *handle);
+    static void onTick(uv_timer_t *handle);
 
     static IJobResultListener *m_listener;
     static Job m_job;
-    static pthread_mutex_t m_mutex;
-    static pthread_rwlock_t m_rwlock;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
     static std::list<JobResult> m_queue;
@@ -70,6 +67,8 @@ private:
     static Telemetry *m_telemetry;
     static uint64_t m_ticks;
     static uv_async_t m_async;
+    static uv_mutex_t m_mutex;
+    static uv_rwlock_t m_rwlock;
     static uv_timer_t m_timer;
 };
 

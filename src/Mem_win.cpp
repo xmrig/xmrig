@@ -26,8 +26,12 @@
 #include <windows.h>
 #include <ntsecapi.h>
 #include <tchar.h>
-#include <mm_malloc.h>
 
+#ifdef __GNUC__
+#   include <mm_malloc.h>
+#else
+#   include <malloc.h>
+#endif
 
 #include "Console.h"
 #include "crypto/CryptoNight.h"

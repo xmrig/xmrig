@@ -5,6 +5,7 @@ option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 
 set(HEADERS
+    src/3rdparty/align.h
     src/App.h
     src/Console.h
     src/Cpu.h
@@ -19,12 +20,12 @@ set(HEADERS
     src/net/Url.h
     src/Options.h
     src/Summary.h
+    src/version.h
     src/workers/Handle.h
     src/workers/SingleWorker.h
     src/workers/Telemetry.h
     src/workers/Worker.h
     src/workers/Workers.h
-    src/version.h
    )
 
 set(HEADERS_CRYPTO
@@ -86,7 +87,6 @@ else()
     set(EXTRA_LIBS pthread)
 endif()
 
-add_definitions(/D_GNU_SOURCE)
 add_definitions(/DUNICODE)
 #add_definitions(/DAPP_DEBUG)
 
@@ -98,17 +98,31 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -fno-exceptions")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions -fno-rtti")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
-#set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
-#set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-generate")
-#set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-use -fprofile-correction")
+# https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
+if (CMAKE_C_COMPILER_ID STREQUAL GNU)
 
-if (WIN32)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -fno-exceptions")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions -fno-rtti")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+
+    add_definitions(/D_GNU_SOURCE)
+
+    #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
+
+elseif (CMAKE_C_COMPILER_ID STREQUAL MSVC)
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
+
+elseif (CMAKE_C_COMPILER_ID MATCHES "Clang")
+
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -fmerge-all-constants")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -fmerge-all-constants")
+
 endif()
 
 if (WITH_LIBCPUID)

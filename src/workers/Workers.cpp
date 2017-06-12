@@ -34,8 +34,6 @@
 
 IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
-pthread_mutex_t Workers::m_mutex;
-pthread_rwlock_t Workers::m_rwlock;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
 std::list<JobResult> Workers::m_queue;
@@ -43,14 +41,16 @@ std::vector<Handle*> Workers::m_workers;
 Telemetry *Workers::m_telemetry = nullptr;
 uint64_t Workers::m_ticks = 0;
 uv_async_t Workers::m_async;
+uv_mutex_t Workers::m_mutex;
+uv_rwlock_t Workers::m_rwlock;
 uv_timer_t Workers::m_timer;
 
 
 Job Workers::job()
 {
-    pthread_rwlock_rdlock(&m_rwlock);
+    uv_rwlock_rdlock(&m_rwlock);
     Job job = m_job;
-    pthread_rwlock_unlock(&m_rwlock);
+    uv_rwlock_rdunlock(&m_rwlock);
 
     return std::move(job);
 }
@@ -58,9 +58,9 @@ Job Workers::job()
 
 void Workers::setJob(const Job &job)
 {
-    pthread_rwlock_wrlock(&m_rwlock);
+    uv_rwlock_wrlock(&m_rwlock);
     m_job = job;
-    pthread_rwlock_unlock(&m_rwlock);
+    uv_rwlock_wrunlock(&m_rwlock);
 
     m_sequence++;
     m_paused = 0;
@@ -71,15 +71,15 @@ void Workers::start(int threads, int64_t affinity, bool nicehash)
 {
     m_telemetry = new Telemetry(threads);
 
-    pthread_mutex_init(&m_mutex, nullptr);
-    pthread_rwlock_init(&m_rwlock, nullptr);
+    uv_mutex_init(&m_mutex);
+    uv_rwlock_init(&m_rwlock);
 
     m_sequence = 0;
     m_paused   = 1;
 
     uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
     uv_timer_init(uv_default_loop(), &m_timer);
-    uv_timer_start(&m_timer, Workers::onPerfTick, 500, 500);
+    uv_timer_start(&m_timer, Workers::onTick, 500, 500);
 
     for (int i = 0; i < threads; ++i) {
         Handle *handle = new Handle(i, threads, affinity, nicehash);
@@ -91,26 +91,43 @@ void Workers::start(int threads, int64_t affinity, bool nicehash)
 
 void Workers::submit(const JobResult &result)
 {
-    pthread_mutex_lock(&m_mutex);
+    uv_mutex_lock(&m_mutex);
     m_queue.push_back(result);
-    pthread_mutex_unlock(&m_mutex);
+    uv_mutex_unlock(&m_mutex);
 
     uv_async_send(&m_async);
 }
 
 
 
-void *Workers::onReady(void *arg)
+void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
     IWorker *worker = new SingleWorker(handle);
     worker->start();
-
-    return nullptr;
 }
 
 
-void Workers::onPerfTick(uv_timer_t *handle)
+void Workers::onResult(uv_async_t *handle)
+{
+    std::list<JobResult> results;
+
+    uv_mutex_lock(&m_mutex);
+    while (!m_queue.empty()) {
+        results.push_back(std::move(m_queue.front()));
+        m_queue.pop_front();
+    }
+    uv_mutex_unlock(&m_mutex);
+
+    for (auto result : results) {
+        m_listener->onJobResult(result);
+    }
+
+    results.clear();
+}
+
+
+void Workers::onTick(uv_timer_t *handle)
 {
     for (Handle *handle : m_workers) {
         m_telemetry->add(handle->threadId(), handle->worker()->hashCount(), handle->worker()->timestamp());
@@ -136,23 +153,4 @@ void Workers::onPerfTick(uv_timer_t *handle)
             LOG_NOTICE("%03.1f H/s", hps);
         }
     }
-}
-
-
-void Workers::onResult(uv_async_t *handle)
-{
-    std::list<JobResult> results;
-
-    pthread_mutex_lock(&m_mutex);
-    while (!m_queue.empty()) {
-        results.push_back(std::move(m_queue.front()));
-        m_queue.pop_front();
-    }
-    pthread_mutex_unlock(&m_mutex);
-
-    for (auto result : results) {
-        m_listener->onJobResult(result);
-    }
-
-    results.clear();
 }

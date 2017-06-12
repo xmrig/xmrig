@@ -2,7 +2,9 @@
 /* jansson_private_config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if gcc's __atomic builtins are available */
-#define HAVE_ATOMIC_BUILTINS 1
+#ifndef _MSC_VER
+#   define HAVE_ATOMIC_BUILTINS 1
+#endif
 
 /* Define to 1 if you have the `close' function. */
 #define HAVE_CLOSE 1
@@ -20,7 +22,9 @@
 #define HAVE_GETPID 1
 
 /* Define to 1 if you have the `gettimeofday' function. */
-#define HAVE_GETTIMEOFDAY 1
+#ifndef _MSC_VER
+#   define HAVE_GETTIMEOFDAY 1
+#endif
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -44,10 +48,14 @@
 #define HAVE_READ 1
 
 /* Define to 1 if you have the <sched.h> header file. */
-#define HAVE_SCHED_H 1
+#ifndef _MSC_VER
+#   define HAVE_SCHED_H 1
+#endif
 
 /* Define to 1 if you have the `sched_yield' function. */
-#define HAVE_SCHED_YIELD 1
+#ifndef _MSC_VER
+#   define HAVE_SCHED_YIELD 1
+#endif
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -68,19 +76,25 @@
 #define HAVE_SYNC_BUILTINS 1
 
 /* Define to 1 if you have the <sys/param.h> header file. */
-#define HAVE_SYS_PARAM_H 1
+#ifndef _MSC_VER
+#   define HAVE_SYS_PARAM_H 1
+#endif
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
-#define HAVE_SYS_TIME_H 1
+#ifndef _MSC_VER
+#   define HAVE_SYS_TIME_H 1
+#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
-#define HAVE_UNISTD_H 1
+#ifndef _MSC_VER
+#   define HAVE_UNISTD_H 1
+#endif
 
 /* Define to 1 if the system has the type 'unsigned long long int'. */
 #define HAVE_UNSIGNED_LONG_LONG_INT 1

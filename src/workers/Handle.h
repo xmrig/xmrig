@@ -25,8 +25,8 @@
 #define __HANDLE_H__
 
 
-#include <pthread.h>
 #include <stdint.h>
+#include <uv.h>
 
 
 class IWorker;
@@ -36,7 +36,7 @@ class Handle
 {
 public:
     Handle(int threadId, int threads, int64_t affinity, bool nicehash);
-    void start(void *(*callback) (void *));
+    void start(void (*callback) (void *));
 
     inline bool nicehash() const           { return m_nicehash; }
     inline int threadId() const            { return m_threadId; }
@@ -51,7 +51,7 @@ private:
     int m_threads;
     int64_t m_affinity;
     IWorker *m_worker;
-    pthread_t m_thread;
+    uv_thread_t m_thread;
 };
 
 

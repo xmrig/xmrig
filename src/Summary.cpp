@@ -35,7 +35,7 @@
 
 static void print_versions()
 {
-    char *buf = static_cast<char*>(alloca(16));
+    char buf[16];
 
 #   ifdef __GNUC__
     snprintf(buf, 16, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
@@ -87,7 +87,7 @@ static void print_cpu()
 
 static void print_threads()
 {
-    char *buf = static_cast<char*>(alloca(32));
+    char buf[32];
     if (Options::i()->affinity() != -1L) {
         snprintf(buf, 32, ", affinity=0x%llX", Options::i()->affinity());
     }

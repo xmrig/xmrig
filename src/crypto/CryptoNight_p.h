@@ -25,7 +25,12 @@
 #define __CRYPTONIGHT_P_H__
 
 
-#include <x86intrin.h>
+#ifdef __GNUC__
+#   include <x86intrin.h>
+#else
+#   include <intrin.h>
+#   define __restrict__ __restrict
+#endif
 
 
 #include "crypto/CryptoNight.h"
@@ -68,15 +73,19 @@ void (* const extra_hashes[4])(const void *, size_t, char *) = {do_blake_hash, d
 
 
 
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(_WIN64)
 #   define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
+#   ifdef __GNUC__
 static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
 {
     unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
     *hi = r >> 64;
     return (uint64_t) r;
 }
+#   else
+    #define __umul128 _umul128
+#   endif
 #elif defined(__i386__)
 #   define HI32(X) \
     _mm_srli_si128((X), 4)
@@ -224,7 +233,7 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
     xin6 = _mm_load_si128(input + 10);
     xin7 = _mm_load_si128(input + 11);
 
-    for (size_t i = 0; __builtin_expect(i < MEM / sizeof(__m128i), 1); i += 8) {
+    for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
         aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
@@ -265,7 +274,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     xout6 = _mm_load_si128(output + 10);
     xout7 = _mm_load_si128(output + 11);
 
-    for (size_t i = 0; __builtin_expect(i < MEM / sizeof(__m128i), 1); i += 8)
+    for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8)
     {
         xout0 = _mm_xor_si128(_mm_load_si128(input + i + 0), xout0);
         xout1 = _mm_xor_si128(_mm_load_si128(input + i + 1), xout1);
@@ -315,7 +324,7 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
 
     uint64_t idx0 = h0[0] ^ h0[4];
 
-    for (size_t i = 0; __builtin_expect(i < ITERATIONS, 1); i++) {
+    for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx;
         cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
         cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
@@ -372,7 +381,7 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     uint64_t idx0 = h0[0] ^ h0[4];
     uint64_t idx1 = h1[0] ^ h1[4];
 
-    for (size_t i = 0; __builtin_expect(i < ITERATIONS, 1); i++) {
+    for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
         __m128i cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
 

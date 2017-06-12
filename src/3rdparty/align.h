@@ -21,39 +21,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_H__
-#define __CRYPTONIGHT_H__
+#ifndef __ALIGN_H__
+#define __ALIGN_H__
 
+#ifdef _MSC_VER
+#   define VAR_ALIGN(x, decl) __declspec(align(x)) decl
+#else
+#   define VAR_ALIGN(x, decl) decl __attribute__ ((aligned(x)))
+#endif
 
-#include <stdint.h>
-
-
-#include "align.h"
-
-
-#define MEMORY      2097152 /* 2 MiB */
-#define MEMORY_LITE 1048576 /* 1 MiB */
-
-
-struct cryptonight_ctx {
-    VAR_ALIGN(16, uint8_t state0[200]);
-    VAR_ALIGN(16, uint8_t state1[200]);
-    VAR_ALIGN(16, uint8_t* memory);
-};
-
-
-class Job;
-class JobResult;
-
-
-class CryptoNight
-{
-public:
-    static bool hash(const Job &job, JobResult &result, cryptonight_ctx *ctx);
-    static bool init(int algo, int variant);
-
-private:
-    static bool selfTest(int algo);
-};
-
-#endif /* __CRYPTONIGHT_H__ */
+#endif /* __ALIGN_H__ */
