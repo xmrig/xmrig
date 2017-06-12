@@ -21,6 +21,7 @@ set(HEADERS
     src/Summary.h
     src/workers/Handle.h
     src/workers/SingleWorker.h
+    src/workers/Telemetry.h
     src/workers/Worker.h
     src/workers/Workers.h
     src/version.h
@@ -52,6 +53,7 @@ set(SOURCES
     src/Summary.cpp
     src/workers/Handle.cpp
     src/workers/SingleWorker.cpp
+    src/workers/Telemetry.cpp
     src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp
@@ -86,7 +88,7 @@ endif()
 
 add_definitions(/D_GNU_SOURCE)
 add_definitions(/DUNICODE)
-add_definitions(/DAPP_DEBUG)
+#add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 

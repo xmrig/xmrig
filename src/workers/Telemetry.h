@@ -21,45 +21,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
-
-#include "Console.h"
-
-#include "Cpu.h"
-#include "Mem.h"
-#include "workers/Handle.h"
-#include "workers/Worker.h"
+#ifndef __TELEMETRY_H__
+#define __TELEMETRY_H__
 
 
-Worker::Worker(Handle *handle) :
-    m_nicehash(handle->nicehash()),
-    m_id(handle->threadId()),
-    m_threads(handle->threads()),
-    m_hashCount(0),
-    m_timestamp(0),
-    m_count(0),
-    m_sequence(0)
+#include <stdint.h>
+
+
+class Telemetry
 {
-    handle->setWorker(this);
+public:
+    Telemetry(int threads);
+    double calc(size_t threadId, size_t ms) const;
+    void add(size_t threadId, uint64_t count, uint64_t timestamp);
 
-    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
-        Cpu::setAffinity(m_id, handle->affinity());
-    }
+private:
+    constexpr static size_t kBucketSize = 2 << 11;
+    constexpr static size_t kBucketMask = kBucketSize - 1;
 
-    m_ctx = Mem::create(m_id);
-}
-
-
-Worker::~Worker()
-{
-}
+    int m_threads;
+    uint32_t* m_top;
+    uint64_t** m_counts;
+    uint64_t** m_timestamps;
+};
 
 
-void Worker::storeStats()
-{
-    using namespace std::chrono;
-
-    const uint64_t timestamp = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
-    m_hashCount.store(m_count, std::memory_order_relaxed);
-    m_timestamp.store(timestamp, std::memory_order_relaxed);
-}
+#endif /* __TELEMETRY_H__ */

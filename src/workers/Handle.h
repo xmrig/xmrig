@@ -42,6 +42,7 @@ public:
     inline int threadId() const            { return m_threadId; }
     inline int threads() const             { return m_threads; }
     inline int64_t affinity() const        { return m_affinity; }
+    inline IWorker *worker() const         { return m_worker; }
     inline void setWorker(IWorker *worker) { m_worker = worker; }
 
 private:

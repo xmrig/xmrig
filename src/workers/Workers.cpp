@@ -21,9 +21,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
+
+
+#include "Console.h"
 #include "interfaces/IJobResultListener.h"
 #include "workers/Handle.h"
 #include "workers/SingleWorker.h"
+#include "workers/Telemetry.h"
 #include "workers/Workers.h"
 
 
@@ -35,7 +40,10 @@ std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
 std::list<JobResult> Workers::m_queue;
 std::vector<Handle*> Workers::m_workers;
+Telemetry *Workers::m_telemetry = nullptr;
+uint64_t Workers::m_ticks = 0;
 uv_async_t Workers::m_async;
+uv_timer_t Workers::m_timer;
 
 
 Job Workers::job()
@@ -61,6 +69,8 @@ void Workers::setJob(const Job &job)
 
 void Workers::start(int threads, int64_t affinity, bool nicehash)
 {
+    m_telemetry = new Telemetry(threads);
+
     pthread_mutex_init(&m_mutex, nullptr);
     pthread_rwlock_init(&m_rwlock, nullptr);
 
@@ -68,6 +78,8 @@ void Workers::start(int threads, int64_t affinity, bool nicehash)
     m_paused   = 1;
 
     uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
+    uv_timer_init(uv_default_loop(), &m_timer);
+    uv_timer_start(&m_timer, Workers::onPerfTick, 500, 500);
 
     for (int i = 0; i < threads; ++i) {
         Handle *handle = new Handle(i, threads, affinity, nicehash);
@@ -97,6 +109,34 @@ void *Workers::onReady(void *arg)
     return nullptr;
 }
 
+
+void Workers::onPerfTick(uv_timer_t *handle)
+{
+    for (Handle *handle : m_workers) {
+        m_telemetry->add(handle->threadId(), handle->worker()->hashCount(), handle->worker()->timestamp());
+    }
+
+    if ((m_ticks++ & 0xF) == 0)  {
+        double hps = 0.0;
+        double telem;
+        bool normal = true;
+
+        for (Handle *handle : m_workers) {
+            telem = m_telemetry->calc(handle->threadId(), 2500);
+            if (!std::isnormal(telem)) {
+                normal = false;
+                break;
+            }
+            else {
+                hps += telem;
+            }
+        }
+
+        if (normal) {
+            LOG_NOTICE("%03.1f H/s", hps);
+        }
+    }
+}
 
 
 void Workers::onResult(uv_async_t *handle)

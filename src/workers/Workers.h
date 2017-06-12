@@ -37,6 +37,7 @@
 
 class Handle;
 class IJobResultListener;
+class Telemetry;
 
 
 class Workers
@@ -55,6 +56,7 @@ public:
 
 private:
     static void *onReady(void *arg);
+    static void onPerfTick(uv_timer_t *handle);
     static void onResult(uv_async_t *handle);
 
     static IJobResultListener *m_listener;
@@ -65,7 +67,10 @@ private:
     static std::atomic<uint64_t> m_sequence;
     static std::list<JobResult> m_queue;
     static std::vector<Handle*> m_workers;
+    static Telemetry *m_telemetry;
+    static uint64_t m_ticks;
     static uv_async_t m_async;
+    static uv_timer_t m_timer;
 };
 
 
