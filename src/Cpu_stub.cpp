@@ -24,6 +24,9 @@
 
 #ifdef _MSC_VER
 #   include <intrin.h>
+
+#   define bit_AES  (1 << 25)
+#   define bit_BMI2 (1 << 8)
 #else
 #   include <cpuid.h>
 #endif
@@ -48,15 +51,21 @@
 #define EDX_Reg  (3)
 
 
+#ifdef _MSC_VER
+static inline void cpuid(int level, int output[4]) {
+    __cpuid(output, level);
+}
+#else
 static inline void cpuid(int level, int output[4]) {
     int a, b, c, d;
-    //__cpuid_count(level, 0, a, b, c, d);
+    __cpuid_count(level, 0, a, b, c, d);
 
     output[0] = a;
     output[1] = b;
     output[2] = c;
     output[3] = d;
 }
+#endif
 
 
 static inline void cpu_brand_string(char* s) {
@@ -78,8 +87,7 @@ static inline bool has_aes_ni()
     int cpu_info[4] = { 0 };
     cpuid(PROCESSOR_INFO, cpu_info);
 
-    return false;
-    //return cpu_info[ECX_Reg] & bit_AES;
+    return cpu_info[ECX_Reg] & bit_AES;
 }
 
 
@@ -87,8 +95,7 @@ static inline bool has_bmi2() {
     int cpu_info[4] = { 0 };
     cpuid(EXTENDED_FEATURES, cpu_info);
 
-    return false;
-    //return cpu_info[EBX_Reg] & bit_BMI2;
+    return cpu_info[EBX_Reg] & bit_BMI2;
 }
 
 
@@ -112,7 +119,7 @@ void Cpu::initCommon()
 {
     cpu_brand_string(m_brand);
 
-#   ifdef __x86_64__
+#   if defined(__x86_64__) || defined(_M_AMD64)
     m_flags |= X86_64;
 #   endif
 

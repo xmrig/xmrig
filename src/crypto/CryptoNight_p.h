@@ -73,7 +73,7 @@ void (* const extra_hashes[4])(const void *, size_t, char *) = {do_blake_hash, d
 
 
 
-#if defined(__x86_64__) || defined(_WIN64)
+#if defined(__x86_64__) || defined(_M_AMD64)
 #   define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
 #   ifdef __GNUC__
@@ -86,7 +86,7 @@ static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
 #   else
     #define __umul128 _umul128
 #   endif
-#elif defined(__i386__)
+#elif defined(__i386__) || defined(_M_IX86)
 #   define HI32(X) \
     _mm_srli_si128((X), 4)
 
