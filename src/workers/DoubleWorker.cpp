@@ -26,17 +26,19 @@
 
 
 #include "crypto/CryptoNight.h"
-#include "workers/SingleWorker.h"
+#include "workers/DoubleWorker.h"
 #include "workers/Workers.h"
 
 
-SingleWorker::SingleWorker(Handle *handle)
-    : Worker(handle)
+DoubleWorker::DoubleWorker(Handle *handle)
+    : Worker(handle),
+    m_nonce1(0),
+    m_nonce2(0)
 {
 }
 
 
-void SingleWorker::start()
+void DoubleWorker::start()
 {
     while (true) {
         if (Workers::isPaused()) {
@@ -53,11 +55,18 @@ void SingleWorker::start()
                 storeStats();
             }
 
-            m_count++;
-            *m_job.nonce() = ++m_result.nonce;
+            m_count += 2;
+            *Job::nonce(m_blob)                = ++m_nonce1;
+            *Job::nonce(m_blob + m_job.size()) = ++m_nonce2;
 
-            if (CryptoNight::hash(m_job, m_result, m_ctx)) {
-                Workers::submit(m_result);
+            CryptoNight::hash(m_blob, m_job.size(), m_hash, m_ctx);
+
+            if (*reinterpret_cast<uint64_t*>(m_hash + 24) < m_job.target()) {
+                Workers::submit(JobResult(m_job.poolId(), m_job.id(), m_nonce1, m_hash));
+            }
+
+            if (*reinterpret_cast<uint64_t*>(m_hash + 32 + 24) < m_job.target()) {
+                Workers::submit(JobResult(m_job.poolId(), m_job.id(), m_nonce2, m_hash + 32));
             }
 
             std::this_thread::yield();
@@ -69,18 +78,20 @@ void SingleWorker::start()
 
 
 
-void SingleWorker::consumeJob()
+void DoubleWorker::consumeJob()
 {
     m_job = Workers::job();
     m_sequence = Workers::sequence();
 
-    memcpy(m_result.jobId, m_job.id(), sizeof(m_result.jobId));
-    m_result.poolId = m_job.poolId();
+    memcpy(m_blob,                m_job.blob(), m_job.size());
+    memcpy(m_blob + m_job.size(), m_job.blob(), m_job.size());
 
     if (m_nicehash) {
-        m_result.nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / m_threads * m_id);
+        m_nonce1 = (*Job::nonce(m_blob)                & 0xff000000U) + (0xffffffU / (m_threads * 2) * m_id);
+        m_nonce2 = (*Job::nonce(m_blob + m_job.size()) & 0xff000000U) + (0xffffffU / (m_threads * 2) * (m_id + m_threads));
     }
     else {
-        m_result.nonce = 0xffffffffU / m_threads * m_id;
+        m_nonce1 = 0xffffffffU / (m_threads * 2) * m_id;
+        m_nonce2 = 0xffffffffU / (m_threads * 2) * (m_id + m_threads);
     }
 }

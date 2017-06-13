@@ -44,7 +44,7 @@ class Workers
 public:
     static Job job();
     static void setJob(const Job &job);
-    static void start(int threads, int64_t affinity, bool nicehash);
+    static void start(int64_t affinity, bool nicehash);
     static void submit(const JobResult &result);
 
     static inline bool isOutdated(uint64_t sequence)             { return m_sequence.load(std::memory_order_relaxed) != sequence; }

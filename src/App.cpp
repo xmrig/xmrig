@@ -82,7 +82,7 @@ int App::exec()
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
     Summary::print();
 
-    Workers::start(m_options->threads(), m_options->affinity(), m_options->nicehash());
+    Workers::start(m_options->affinity(), m_options->nicehash());
 
     m_network->connect();
 

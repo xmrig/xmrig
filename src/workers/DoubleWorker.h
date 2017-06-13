@@ -21,43 +21,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
+#ifndef __DOUBLEWORKER_H__
+#define __DOUBLEWORKER_H__
 
-#include "Console.h"
 
-#include "Cpu.h"
-#include "Mem.h"
-#include "workers/Handle.h"
+#include "align.h"
+#include "net/Job.h"
+#include "net/JobResult.h"
 #include "workers/Worker.h"
 
 
-Worker::Worker(Handle *handle) :
-    m_nicehash(handle->nicehash()),
-    m_id(handle->threadId()),
-    m_threads(handle->threads()),
-    m_hashCount(0),
-    m_timestamp(0),
-    m_count(0),
-    m_sequence(0)
+class Handle;
+
+
+class DoubleWorker : public Worker
 {
-    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
-        Cpu::setAffinity(m_id, handle->affinity());
-    }
+public:
+    DoubleWorker(Handle *handle);
 
-    m_ctx = Mem::create(m_id);
-}
+    void start() override;
+
+private:
+    void consumeJob();
+
+    Job m_job;
+    uint32_t m_nonce1;
+    uint32_t m_nonce2;
+    uint8_t m_hash[64];
+    uint8_t	m_blob[84 * 2];
+};
 
 
-Worker::~Worker()
-{
-}
-
-
-void Worker::storeStats()
-{
-    using namespace std::chrono;
-
-    const uint64_t timestamp = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
-    m_hashCount.store(m_count, std::memory_order_relaxed);
-    m_timestamp.store(timestamp, std::memory_order_relaxed);
-}
+#endif /* __SINGLEWORKER_H__ */

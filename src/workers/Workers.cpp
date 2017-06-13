@@ -26,6 +26,8 @@
 
 #include "Console.h"
 #include "interfaces/IJobResultListener.h"
+#include "Mem.h"
+#include "workers/DoubleWorker.h"
 #include "workers/Handle.h"
 #include "workers/SingleWorker.h"
 #include "workers/Telemetry.h"
@@ -67,8 +69,9 @@ void Workers::setJob(const Job &job)
 }
 
 
-void Workers::start(int threads, int64_t affinity, bool nicehash)
+void Workers::start(int64_t affinity, bool nicehash)
 {
+    const int threads = Mem::threads();
     m_telemetry = new Telemetry(threads);
 
     uv_mutex_init(&m_mutex);
@@ -103,8 +106,14 @@ void Workers::submit(const JobResult &result)
 void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
-    IWorker *worker = new SingleWorker(handle);
-    worker->start();
+    if (Mem::isDoubleHash()) {
+        handle->setWorker(new DoubleWorker(handle));
+    }
+    else {
+        handle->setWorker(new SingleWorker(handle));
+    }
+
+    handle->worker()->start();
 }
 
 

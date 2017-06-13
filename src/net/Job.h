@@ -50,8 +50,9 @@ public:
     inline void setPoolId(int poolId)  { m_poolId = poolId; }
 
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);
-    static void toHex(const unsigned char* in, unsigned int len, char* out);
+    static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
     static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
+    static void toHex(const unsigned char* in, unsigned int len, char* out);
 
 private:
     int m_poolId;

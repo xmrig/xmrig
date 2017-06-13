@@ -51,6 +51,7 @@ class CryptoNight
 public:
     static bool hash(const Job &job, JobResult &result, cryptonight_ctx *ctx);
     static bool init(int algo, int variant);
+    static void hash(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx);
 
 private:
     static bool selfTest(int algo);

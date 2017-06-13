@@ -21,6 +21,7 @@ set(HEADERS
     src/Options.h
     src/Summary.h
     src/version.h
+    src/workers/DoubleWorker.h
     src/workers/Handle.h
     src/workers/SingleWorker.h
     src/workers/Telemetry.h
@@ -52,6 +53,7 @@ set(SOURCES
     src/net/Url.cpp
     src/Options.cpp
     src/Summary.cpp
+    src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
     src/workers/SingleWorker.cpp
     src/workers/Telemetry.cpp
@@ -113,7 +115,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     add_definitions(/D_GNU_SOURCE)
 
-    #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 

@@ -38,38 +38,38 @@ static void cryptonight_av1_aesni(const void *input, size_t size, void *output, 
 }
 
 
-static void cryptonight_av2_aesni_double(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx) {
+static void cryptonight_av2_aesni_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
     cryptonight_double_hash<0x80000, MEMORY, 0x1FFFF0, false>(input, size, output, ctx);
 }
 
 
-static void cryptonight_av3_softaes(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx) {
+static void cryptonight_av3_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
     cryptonight_hash<0x80000, MEMORY, 0x1FFFF0, true>(input, size, output, ctx);
 }
 
 
-static void cryptonight_av4_softaes_double(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx) {
+static void cryptonight_av4_softaes_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
     cryptonight_double_hash<0x80000, MEMORY, 0x1FFFF0, true>(input, size, output, ctx);
 }
 
 
 #ifndef XMRIG_NO_AEON
-static void cryptonight_lite_av1_aesni(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx) {
+static void cryptonight_lite_av1_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
     cryptonight_hash<0x40000, MEMORY_LITE, 0xFFFF0, false>(input, size, output, ctx);
 }
 
 
-static void cryptonight_lite_av2_aesni_double(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx) {
+static void cryptonight_lite_av2_aesni_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
     cryptonight_double_hash<0x40000, MEMORY_LITE, 0xFFFF0, false>(input, size, output, ctx);
 }
 
 
-static void cryptonight_lite_av3_softaes(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx) {
+static void cryptonight_lite_av3_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
     cryptonight_hash<0x40000, MEMORY_LITE, 0xFFFF0, true>(input, size, output, ctx);
 }
 
 
-static void cryptonight_lite_av4_softaes_double(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx) {
+static void cryptonight_lite_av4_softaes_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
     cryptonight_double_hash<0x40000, MEMORY_LITE, 0xFFFF0, true>(input, size, output, ctx);
 }
 
@@ -116,6 +116,12 @@ bool CryptoNight::init(int algo, int variant)
     cryptonight_hash_ctx = cryptonight_variations[index];
 
     return selfTest(algo);
+}
+
+
+void CryptoNight::hash(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx)
+{
+    cryptonight_hash_ctx(input, size, output, ctx);
 }
 
 

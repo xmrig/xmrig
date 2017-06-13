@@ -31,6 +31,13 @@
 class JobResult
 {
 public:
+    inline JobResult() : poolId(0), nonce(0) {}
+    inline JobResult(int poolId, const char *jobId, uint32_t nonce, const uint8_t *result) : poolId(poolId), nonce(nonce)
+    {
+        memcpy(this->jobId, jobId, sizeof(this->jobId));
+        memcpy(this->result, result, sizeof(this->result));
+    }
+
     char jobId[64];
     int poolId;
     uint32_t nonce;
