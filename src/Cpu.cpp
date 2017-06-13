@@ -91,7 +91,7 @@ void Cpu::initCommon()
         m_l2_cache = data.l2_cache > 0 ? data.l2_cache * m_totalCores * m_sockets : 0;
     }
 
-#   ifdef __x86_64__
+#   if defined(__x86_64__) || defined(_M_AMD64)
     m_flags |= X86_64;
 #   endif
 

@@ -21,37 +21,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+
+#include <winsock2.h>
+#include <windows.h>
 
 
-#include <uv.h>
+#include "App.h"
+#include "Options.h"
+#include "Cpu.h"
 
 
-class Network;
-class Options;
-
-
-class App
+void App::background()
 {
-public:
-  App(int argc, char **argv);
-  ~App();
+    if (m_options->affinity() != -1L) {
+        Cpu::setAffinity(-1, m_options->affinity());
+    }
 
-  int exec();
+    if (!m_options->background()) {
+        return;
+    }
 
-private:
-  void background();
-  void close();
-
-  static void onSignal(uv_signal_t *handle, int signum);
-
-  static App *m_self;
-
-  Network *m_network;
-  Options *m_options;
-  uv_signal_t m_signal;
-};
-
-
-#endif /* __APP_H__ */
+    HWND hcon = GetConsoleWindow();
+    if (hcon) {
+        ShowWindow(hcon, SW_HIDE);
+    } else {
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CloseHandle(h);
+        FreeConsole();
+    }
+}

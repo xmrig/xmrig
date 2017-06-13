@@ -30,7 +30,6 @@
 #include "Cpu.h"
 #include "crypto/CryptoNight.h"
 #include "Mem.h"
-#include "net/Client.h"
 #include "net/Network.h"
 #include "Options.h"
 #include "Summary.h"
@@ -38,25 +37,28 @@
 #include "workers/Workers.h"
 
 
+App *App::m_self = nullptr;
 
-App::App(int argc, char **argv)
+
+
+App::App(int argc, char **argv) :
+    m_network(nullptr),
+    m_options(nullptr)
 {
+    m_self = this;
+
     Console::init();
     Cpu::init();
 
     m_options = Options::parse(argc, argv);
     m_network = new Network(m_options);
 
-
+    uv_signal_init(uv_default_loop(), &m_signal);
 }
 
 
 App::~App()
 {
-    LOG_DEBUG("~APP");
-
-    free(m_network);
-    free(m_options);
 }
 
 
@@ -71,6 +73,12 @@ int App::exec()
         return 1;
     }
 
+    uv_signal_start(&m_signal, App::onSignal, SIGHUP);
+    uv_signal_start(&m_signal, App::onSignal, SIGTERM);
+    uv_signal_start(&m_signal, App::onSignal, SIGINT);
+
+    background();
+
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
     Summary::print();
 
@@ -81,5 +89,38 @@ int App::exec()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
+    free(m_network);
+    free(m_options);
+
     return r;
+}
+
+
+void App::close()
+{
+    uv_stop(uv_default_loop());
+}
+
+
+void App::onSignal(uv_signal_t *handle, int signum)
+{
+    switch (signum)
+    {
+    case SIGHUP:
+        LOG_WARN("SIGHUP received, exiting");
+        break;
+
+    case SIGTERM:
+        LOG_WARN("SIGTERM received, exiting");
+        break;
+
+    case SIGINT:
+        LOG_WARN("SIGINT received, exiting");
+        break;
+
+    default:
+        break;
+    }
+
+    m_self->close();
 }

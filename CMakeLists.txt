@@ -76,6 +76,7 @@ if (WIN32)
         res/app.rc
         src/3rdparty/winansi.cpp
         src/3rdparty/winansi.h
+        src/App_win.cpp
         src/Cpu_win.cpp
         src/Mem_win.cpp
         src/net/Network_win.cpp

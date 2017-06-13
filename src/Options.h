@@ -51,6 +51,7 @@ public:
     static inline Options* i() { return m_self; }
     static Options *parse(int argc, char **argv);
 
+    inline bool background() const      { return m_background; }
     inline bool colors() const          { return m_colors; }
     inline bool doubleHash() const      { return m_doubleHash; }
     inline bool isReady() const         { return m_ready; }
