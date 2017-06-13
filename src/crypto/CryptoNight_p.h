@@ -363,7 +363,7 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     keccak((const uint8_t *) input + size, size, ctx->state1, 200);
 
     const uint8_t* l0 = ctx->memory;
-    const uint8_t* l1 = ctx->memory + MEMORY;
+    const uint8_t* l1 = ctx->memory + MEM;
     uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state0);
     uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state1);
 
