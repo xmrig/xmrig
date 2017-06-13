@@ -25,11 +25,13 @@
 #include <uv.h>
 #include <jansson.h>
 
+
 #ifdef _MSC_VER
-#include "getopt/getopt.h"
+#   include "getopt/getopt.h"
 #else
-#include <getopt.h>
+#   include <getopt.h>
 #endif
+
 
 #include "Console.h"
 #include "Cpu.h"
@@ -391,24 +393,29 @@ void Options::showUsage(int status) const
 
 void Options::showVersion()
 {
- /*   printf(APP_NAME " " APP_VERSION "\n built on " __DATE__)
+    printf(APP_NAME " " APP_VERSION "\n built on " __DATE__
 
-    #ifdef __GNUC__
+#   if defined(__GNUC__)
     " with GCC");
     printf(" %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-    #endif
+#   elif defined(_MSC_VER)
+    " with MSVC");
+    printf(" %d", MSVC_VERSION);
+#   else
+    );
+#   endif
 
     printf("\n features:"
-    #ifdef __i386__
+#   if defined(__i386__) || defined(_M_IX86)
     " i386"
-    #endif
-    #ifdef __x86_64__
+#   elif defined(__x86_64__) || defined(_M_AMD64)
     " x86_64"
-    #endif
-    #ifdef __AES__
+#   endif
+
+#   if defined(__AES__) || defined(_MSC_VER)
     " AES-NI"
-    #endif
-    "\n");*/
+#   endif
+    "\n");
 
     printf("\nlibuv/%s\n", uv_version_string());
     printf("libjansson/%s\n", JANSSON_VERSION);

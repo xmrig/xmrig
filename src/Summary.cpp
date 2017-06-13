@@ -37,8 +37,10 @@ static void print_versions()
 {
     char buf[16];
 
-#   ifdef __GNUC__
+#   if defined(__GNUC__)
     snprintf(buf, 16, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#   elif defined(_MSC_VER)
+    snprintf(buf, 16, " MSVC/%d", MSVC_VERSION);
 #   else
     buf[0] = '\0';
 #   endif

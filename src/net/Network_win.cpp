@@ -22,7 +22,7 @@
  */
 
 
-#include <uv.h>
+#include <winsock2.h>
 #include <windows.h>
 
 
@@ -51,13 +51,21 @@ static inline OSVERSIONINFOEX winOsVersion()
 char *Network::userAgent()
 {
     const auto osver = winOsVersion();
+    const size_t max = 128;
 
-    char *buf = static_cast<char*>(malloc(128));
+    char *buf = static_cast<char*>(malloc(max));
+    int length = snprintf(buf, max, "%s/%s (Windows NT %lu.%lu", APP_NAME, APP_VERSION, osver.dwMajorVersion, osver.dwMinorVersion);
+
+#   if defined(__x86_64__) || defined(_M_AMD64)
+    length += snprintf(buf + length, max - length, "; Win64; x64) libuv/%s", uv_version_string());
+#   else
+    length += snprintf(buf + length, max - length, ") libuv/%s", uv_version_string());
+#   endif
 
 #   ifdef __GNUC__
-    snprintf(buf, 128, "%s/%s (Windows NT %lu.%lu; Win64; x64) libuv/%s gcc/%d.%d.%d", APP_NAME, APP_VERSION, osver.dwMajorVersion, osver.dwMinorVersion, uv_version_string(), __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   else
-    snprintf(buf, 128, "%s/%s (Windows NT %lu.%lu; Win64; x64) libuv/%s", APP_NAME, APP_VERSION, osver.dwMajorVersion, osver.dwMinorVersion, uv_version_string());
+    length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#elif _MSC_VER
+    length += snprintf(buf + length, max - length, " msvc/%d", MSVC_VERSION);
 #   endif
 
     return buf;
