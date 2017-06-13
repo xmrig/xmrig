@@ -100,7 +100,7 @@ endif()
 
 
 # https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
-if (CMAKE_C_COMPILER_ID STREQUAL GNU)
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -fno-exceptions")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
@@ -114,11 +114,12 @@ if (CMAKE_C_COMPILER_ID STREQUAL GNU)
 
     #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
 
-elseif (CMAKE_C_COMPILER_ID STREQUAL MSVC)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
 
-elseif (CMAKE_C_COMPILER_ID MATCHES "Clang")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
 
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -fmerge-all-constants")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -fmerge-all-constants")
