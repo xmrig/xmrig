@@ -26,7 +26,13 @@ set(SOURCES
     libcpuid_util.c
    )
 
+if (CMAKE_CL_64)
+    enable_language(ASM_MASM)
+    set(SOURCES_ASM masm-x64.asm)
+endif()
+
 add_library(cpuid STATIC
     ${HEADERS}
     ${SOURCES}
+    ${SOURCES_ASM}
     )
