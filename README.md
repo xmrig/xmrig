@@ -73,13 +73,23 @@ Since version 0.8.0.
 ## Build
 ### Ubuntu (Debian-based distros)
 ```
-sudo apt-get install git build-essential cmake libcurl4-openssl-dev
+sudo apt-get install git build-essential cmake libuv1-dev
 git clone https://github.com/xmrig/xmrig.git
 cd xmrig
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make
+```
+#### gcc 7.1
+```
+sudo add-apt-repository ppa:jonathonf/gcc-7.1
+sudo apt-get update
+apt-get install gcc-7 g++-7
+```
+When run cmake manually specify C and C++ compiler:
+```
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7
 ```
 
 ### Windows
