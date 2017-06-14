@@ -22,8 +22,9 @@
  */
 
 
-#include <uv.h>
 #include <jansson.h>
+#include <string.h>
+#include <uv.h>
 
 
 #ifdef _MSC_VER

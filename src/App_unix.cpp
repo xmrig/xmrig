@@ -22,38 +22,45 @@
  */
 
 
-#include <pthread.h>
-#include <sched.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <errno.h>
 #include <unistd.h>
 
 
+#include "App.h"
+#include "Console.h"
 #include "Cpu.h"
+#include "Options.h"
 
 
-void Cpu::init()
+void App::background()
 {
-#   ifdef XMRIG_NO_LIBCPUID
-    m_totalThreads = sysconf(_SC_NPROCESSORS_CONF);
-#   endif
-
-    initCommon();
-}
-
-
-void Cpu::setAffinity(int id, unsigned long mask)
-{
-    cpu_set_t set;
-    CPU_ZERO(&set);
-
-    for (int i = 0; i < m_totalThreads; i++) {
-        if (mask & (1UL << i)) {
-            CPU_SET(i, &set);
-        }
+    if (m_options->affinity() != -1L) {
+        Cpu::setAffinity(-1, m_options->affinity());
     }
 
-    if (id == -1) {
-        sched_setaffinity(0, sizeof(&set), &set);
-    } else {
-        pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
+    if (!m_options->background()) {
+        return;
+    }
+
+    int i = fork();
+    if (i < 0) {
+        exit(1);
+    }
+
+    if (i > 0) {
+        exit(0);
+    }
+
+    i = setsid();
+
+    if (i < 0) {
+        LOG_ERR("setsid() failed (errno = %d)", errno);
+    }
+
+    i = chdir("/");
+    if (i < 0) {
+        LOG_ERR("chdir() failed (errno = %d)", errno);
     }
 }

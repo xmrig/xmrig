@@ -22,38 +22,29 @@
  */
 
 
-#include <pthread.h>
-#include <sched.h>
-#include <unistd.h>
+#include <stdlib.h>
 
 
-#include "Cpu.h"
+#include "net/Network.h"
+#include "version.h"
 
 
-void Cpu::init()
+char *Network::userAgent()
 {
-#   ifdef XMRIG_NO_LIBCPUID
-    m_totalThreads = sysconf(_SC_NPROCESSORS_CONF);
+    const size_t max = 128;
+
+    char *buf = static_cast<char*>(malloc(max));
+    int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
+
+#   if defined(__x86_64__)
+    length += snprintf(buf + length, max - length, "x86_64) libuv/%s", uv_version_string());
+#   else
+    length += snprintf(buf + length, max - length, "i686) libuv/%s", uv_version_string());
 #   endif
 
-    initCommon();
-}
+#   ifdef __GNUC__
+    length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#   endif
 
-
-void Cpu::setAffinity(int id, unsigned long mask)
-{
-    cpu_set_t set;
-    CPU_ZERO(&set);
-
-    for (int i = 0; i < m_totalThreads; i++) {
-        if (mask & (1UL << i)) {
-            CPU_SET(i, &set);
-        }
-    }
-
-    if (id == -1) {
-        sched_setaffinity(0, sizeof(&set), &set);
-    } else {
-        pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
-    }
+    return buf;
 }

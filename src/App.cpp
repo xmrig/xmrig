@@ -22,6 +22,7 @@
  */
 
 
+#include <stdlib.h>
 #include <uv.h>
 
 
@@ -91,6 +92,8 @@ int App::exec()
 
     free(m_network);
     free(m_options);
+
+    Mem::release();
 
     return r;
 }

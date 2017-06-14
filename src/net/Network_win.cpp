@@ -64,7 +64,7 @@ char *Network::userAgent()
 
 #   ifdef __GNUC__
     length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#elif _MSC_VER
+#   elif _MSC_VER
     length += snprintf(buf + length, max - length, " msvc/%d", MSVC_VERSION);
 #   endif
 

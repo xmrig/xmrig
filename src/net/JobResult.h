@@ -25,6 +25,7 @@
 #define __JOBRESULT_H__
 
 
+#include <memory.h>
 #include <stdint.h>
 
 
