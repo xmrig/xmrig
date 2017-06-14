@@ -24,7 +24,6 @@
 
 #include <stdlib.h>
 
-
 #include "net/Network.h"
 #include "version.h"
 
@@ -34,7 +33,7 @@ char *Network::userAgent()
     const size_t max = 128;
 
     char *buf = static_cast<char*>(malloc(max));
-    snprintf(buf, max, "%s/%s", APP_NAME, APP_VERSION);
+    snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s clang/%d.%d.%d", APP_NAME, APP_VERSION, uv_version_string(), __clang_major__, __clang_minor__, __clang_patchlevel__);
 
     return buf;
 }

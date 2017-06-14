@@ -42,18 +42,4 @@ void Cpu::init()
 
 void Cpu::setAffinity(int id, unsigned long mask)
 {
-    cpu_set_t set;
-    CPU_ZERO(&set);
-
-    for (int i = 0; i < m_totalThreads; i++) {
-        if (mask & (1UL << i)) {
-            CPU_SET(i, &set);
-        }
-    }
-
-    if (id == -1) {
-        sched_setaffinity(0, sizeof(&set), &set);
-    } else {
-        pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
-    }
 }
