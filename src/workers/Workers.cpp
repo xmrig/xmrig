@@ -54,7 +54,7 @@ Job Workers::job()
     Job job = m_job;
     uv_rwlock_rdunlock(&m_rwlock);
 
-    return std::move(job);
+    return job;
 }
 
 
@@ -139,7 +139,9 @@ void Workers::onResult(uv_async_t *handle)
 void Workers::onTick(uv_timer_t *handle)
 {
     for (Handle *handle : m_workers) {
-        m_telemetry->add(handle->threadId(), handle->worker()->hashCount(), handle->worker()->timestamp());
+        if (handle->worker()) {
+            m_telemetry->add(handle->threadId(), handle->worker()->hashCount(), handle->worker()->timestamp());
+        }
     }
 
     if ((m_ticks++ & 0xF) == 0)  {

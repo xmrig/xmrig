@@ -396,7 +396,9 @@ void Options::showVersion()
 {
     printf(APP_NAME " " APP_VERSION "\n built on " __DATE__
 
-#   if defined(__GNUC__)
+#   if defined(__clang__)
+    " with clang " __clang_version__);
+#   elif defined(__GNUC__)
     " with GCC");
     printf(" %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #   elif defined(_MSC_VER)
