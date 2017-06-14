@@ -1,3 +1,7 @@
+# v1.0.0
+- Miner complete rewritten in C++ with libuv.
+- Removed dependency on libcurl.
+
 # v0.8.2
 - Fixed L2 cache size detection for AMD CPUs (Bulldozer/Piledriver/Steamroller/Excavator architecture).
 - Fixed gcc 7.1 support.
