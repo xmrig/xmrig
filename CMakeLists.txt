@@ -88,7 +88,7 @@ if (WIN32)
 elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
-        src/Cpu_unix.cpp
+        src/Cpu_mac.cpp
         src/Mem_unix.cpp
         src/net/Network_mac.cpp
         )
