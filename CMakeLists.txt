@@ -1,139 +1,168 @@
 cmake_minimum_required(VERSION 3.0)
-project(xmrig C)
+project(xmrig)
 
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 
 set(HEADERS
-    compat.h
-    algo/cryptonight/cryptonight.h
-    algo/cryptonight/cryptonight_aesni.h
-    algo/cryptonight/cryptonight_softaes.h
-    elist.h
-    xmrig.h
-    version.h
-    options.h
-    cpu.h
-    persistent_memory.h
-    stratum.h
-    stats.h
-    util.h
-    donate.h
+    src/3rdparty/align.h
+    src/App.h
+    src/Console.h
+    src/Cpu.h
+    src/interfaces/IClientListener.h
+    src/interfaces/IJobResultListener.h
+    src/interfaces/IWorker.h
+    src/Mem.h
+    src/net/Client.h
+    src/net/Job.h
+    src/net/JobResult.h
+    src/net/Network.h
+    src/net/Url.h
+    src/Options.h
+    src/Summary.h
+    src/version.h
+    src/workers/DoubleWorker.h
+    src/workers/Handle.h
+    src/workers/SingleWorker.h
+    src/workers/Telemetry.h
+    src/workers/Worker.h
+    src/workers/Workers.h
    )
 
 set(HEADERS_CRYPTO
-    crypto/c_groestl.h
-    crypto/c_blake256.h
-    crypto/c_jh.h
-    crypto/c_skein.h
-   )
-
-set(HEADERS_COMPAT
-    compat/winansi.h
-   )
-
-set(HEADERS_UTILS
-    utils/applog.h
-    utils/threads.h
-    utils/summary.h
+    src/crypto/c_blake256.h
+    src/crypto/c_groestl.h
+    src/crypto/c_jh.h
+    src/crypto/c_keccak.h
+    src/crypto/c_skein.h
+    src/crypto/CryptoNight.h
+    src/crypto/CryptoNight_p.h
+    src/crypto/CryptoNight_test.h
+    src/crypto/groestl_tables.h
+    src/crypto/hash.h
+    src/crypto/skein_port.h
    )
 
 set(SOURCES
-    xmrig.c
-    algo/cryptonight/cryptonight.c
-    algo/cryptonight/cryptonight_av1_aesni.c
-    algo/cryptonight/cryptonight_av2_aesni_double.c
-    algo/cryptonight/cryptonight_av3_softaes.c
-    algo/cryptonight/cryptonight_av4_softaes_double.c
-    util.c
-    options.c
-    stratum.c
-    stats.c
-    memory.c
+    src/App.cpp
+    src/Console.cpp
+    src/Mem.cpp
+    src/net/Client.cpp
+    src/net/Job.cpp
+    src/net/Network.cpp
+    src/net/Url.cpp
+    src/Options.cpp
+    src/Summary.cpp
+    src/workers/DoubleWorker.cpp
+    src/workers/Handle.cpp
+    src/workers/SingleWorker.cpp
+    src/workers/Telemetry.cpp
+    src/workers/Worker.cpp
+    src/workers/Workers.cpp
+    src/xmrig.cpp
    )
 
 set(SOURCES_CRYPTO
-    crypto/c_keccak.c
-    crypto/c_groestl.c
-    crypto/c_blake256.c
-    crypto/c_jh.c
-    crypto/c_skein.c
-    crypto/soft_aes.c
-   )
-
-set(SOURCES_UTILS
-    utils/applog.c
-    utils/summary.c
+    src/crypto/c_keccak.c
+    src/crypto/c_groestl.c
+    src/crypto/c_blake256.c
+    src/crypto/c_jh.c
+    src/crypto/c_skein.c
+    src/crypto/soft_aes.c
+    src/crypto/soft_aes.c
+    src/crypto/CryptoNight.cpp
    )
 
 if (WIN32)
-    set(SOURCES_OS win/cpu_win.c win/memory_win.c win/xmrig_win.c win/app.rc compat/winansi.c)
-    set(EXTRA_LIBS ws2_32)
-    add_definitions(/D_WIN32_WINNT=0x600)
+    set(SOURCES_OS
+        res/app.rc
+        src/3rdparty/winansi.cpp
+        src/3rdparty/winansi.h
+        src/App_win.cpp
+        src/Cpu_win.cpp
+        src/Mem_win.cpp
+        src/net/Network_win.cpp
+        )
+
+    add_definitions(/DWIN32)
+    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
+elseif (APPLE)
+    set(SOURCES_OS
+        src/App_unix.cpp
+        src/Cpu_mac.cpp
+        src/Mem_unix.cpp
+        src/net/Network_mac.cpp
+        )
 else()
-    set(SOURCES_OS unix/cpu_unix.c unix/memory_unix.c unix/xmrig_unix.c)
+    set(SOURCES_OS
+        src/App_unix.cpp
+        src/Cpu_unix.cpp
+        src/Mem_unix.cpp
+        src/net/Network_unix.cpp
+        )
+
     set(EXTRA_LIBS pthread)
 endif()
 
-include_directories(.)
-add_definitions(/DUSE_NATIVE_THREADS)
-add_definitions(/D_GNU_SOURCE)
 add_definitions(/DUNICODE)
+#add_definitions(/DAPP_DEBUG)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
+find_package(UV REQUIRED)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wno-pointer-to-int-cast")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
-#set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -gdwarf-2")
-#set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-generate")
-#set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fprofile-use -fprofile-correction")
 
-if (WIN32)
+# https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -std=c++14 -fno-exceptions -fno-rtti")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+
+    add_definitions(/D_GNU_SOURCE)
+
+    #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
+
+elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
+
+elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fmerge-all-constants")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -std=c++14 -fno-exceptions -fno-rtti")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -funroll-loops -fmerge-all-constants")
+
 endif()
-
-include_directories(compat/jansson)
-add_subdirectory(compat/jansson)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-
-find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIRS})
-add_definitions(/DCURL_STATICLIB)
-link_directories(${CURL_LIBRARIES})
 
 if (WITH_LIBCPUID)
-    add_subdirectory(compat/libcpuid)
+    add_subdirectory(src/3rdparty/libcpuid)
 
-    include_directories(compat/libcpuid)
+    include_directories(src/3rdparty/libcpuid)
     set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID cpu.c)
+    set(SOURCES_CPUID src/Cpu.cpp)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
-    set(SOURCES_CPUID cpu_stub.c)
+    set(SOURCES_CPUID src/Cpu_stub.cpp)
 endif()
 
-if (WITH_AEON)
-    set(SOURCES_AEON
-    algo/cryptonight-lite/cryptonight_lite_av1_aesni.c
-    algo/cryptonight-lite/cryptonight_lite_av2_aesni_double.c
-    algo/cryptonight-lite/cryptonight_lite_av3_softaes.c
-    algo/cryptonight-lite/cryptonight_lite_av4_softaes_double.c
-    algo/cryptonight-lite/cryptonight_lite_aesni.h
-    algo/cryptonight-lite/cryptonight_lite_softaes.h
-    )
-else()
-    add_definitions(/DXMRIG_NO_AEON)
-endif()
+include_directories(src)
+include_directories(src/3rdparty)
+include_directories(src/3rdparty/jansson)
+include_directories(${UV_INCLUDE_DIR})
 
-if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON})
-    target_link_libraries(xmrig jansson curl ${CPUID_LIB} ${EXTRA_LIBS})
-else()
-    add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID})
-    target_link_libraries(xmrig32 jansson curl ${CPUID_LIB} ${EXTRA_LIBS})
-endif()
+add_subdirectory(src/3rdparty/jansson)
 
-source_group("HEADERS" FILES ${HEADERS})
+add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO})
+target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})

@@ -1,3 +1,7 @@
+# v0.8.2
+- Fixed L2 cache size detection for AMD CPUs (Bulldozer/Piledriver/Steamroller/Excavator architecture).
+- Fixed gcc 7.1 support.
+
 # v0.8.1
 - Added nicehash support, detects automaticaly by pool URL, for example `cryptonight.eu.nicehash.com:3355` or manually via option `--nicehash`.
 
