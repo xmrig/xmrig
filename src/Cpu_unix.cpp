@@ -42,10 +42,6 @@ void Cpu::init()
 
 void Cpu::setAffinity(int id, unsigned long mask)
 {
-    if (id == -1) {
-        return;
-    }
-    
     cpu_set_t set;
     CPU_ZERO(&set);
 

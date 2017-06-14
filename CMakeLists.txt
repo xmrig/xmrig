@@ -84,6 +84,7 @@ if (WIN32)
         src/net/Network_win.cpp
         )
 
+    add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 elseif (APPLE)
     set(SOURCES_OS
