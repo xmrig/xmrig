@@ -77,7 +77,6 @@ void DoubleWorker::start()
 }
 
 
-
 void DoubleWorker::consumeJob()
 {
     m_job = Workers::job();

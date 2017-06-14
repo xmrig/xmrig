@@ -205,7 +205,7 @@ void Network::onTimer(uv_timer_t *handle)
     auto net = static_cast<Network*>(handle->data);
 
     if (!net->m_donate) {
-        auto url = std::make_unique<Url>("donate.xmrig.com", 443);
+        auto url = std::make_unique<Url>("donate.xmrig.com", net->m_options->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443);
         net->m_pools[0]->connect(url.get());
 
         uv_timer_start(&net->m_timer, Network::onTimer, net->m_options->donateLevel() * 60 * 1000, 0);
