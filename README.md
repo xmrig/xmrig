@@ -93,8 +93,9 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CX
 ```
 
 ### Windows
-It's complicated, you need [MSYS2](http://www.msys2.org/), custom libcurl build, and of course CMake too.
+There two options Microsoft Visual Studio 2015+ or [MSYS2](http://www.msys2.org/) both required [libuv](https://github.com/libuv/libuv) build and cmake.
 
+#### MSYS2
 Necessary MSYS2 packages:
 ```
 pacman -Sy
@@ -103,13 +104,15 @@ pacman -S make
 pacman -S mingw-w64-x86_64-cmake
 pacman -S mingw-w64-x86_64-pkg-config
 ```
-Configure options for libcurl:
+CMake build:
 ```
-./configure --disable-shared --enable-optimize --enable-threaded-resolver --disable-libcurl-option --disable-ares --disable-rt --disable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-manual --disable-ipv6 --disable-sspi --disable-crypto-auth --disable-ntlm-wb --disable-tls-srp --disable-unix-sockets --without-zlib --without-winssl --without-ssl --without-libssh2 --without-nghttp2 --disable-cookies --without-ca-bundle --without-librtmp
+cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DUV_INCLUDE_DIR="c:\<path>\libuv\include" -DUV_LIBRARY="c:\<path>\libuv\.libs\libuv.a"
+make
 ```
-CMake options:
+
+#### Microsoft Visual Studio
 ```
-cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCURL_INCLUDE_DIR="c:\<path>\curl-7.53.1\include" -DCURL_LIBRARY="c:\<path>\curl-7.53.1\lib\.libs"
+`cmake .. -G "Visual Studio 14 2015 Win64" -T v140_xp -DCMAKE_BUILD_TYPE=Release -DUV_INCLUDE_DIR=c:\<path>\libuv\include -DUV_LIBRARY=c:\<path>\libuv\Release\lib\libuv.lib`
 ```
 
 ### Optional features
