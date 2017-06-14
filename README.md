@@ -9,7 +9,7 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 * [Download](#download)
 * [Usage](#usage)
 * [Algorithm variations](#algorithm-variations)
-* [Build](#build)
+* [Build](https://github.com/xmrig/xmrig/wiki/Build)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
@@ -69,55 +69,6 @@ Since version 0.8.0.
 * `--av=2` Lower power mode (double hash) of `1`.
 * `--av=3` Software AES implementation.
 * `--av=4` Lower power mode (double hash) of `3`.
-
-## Build
-### Ubuntu (Debian-based distros)
-```
-sudo apt-get install git build-essential cmake libuv1-dev
-git clone https://github.com/xmrig/xmrig.git
-cd xmrig
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make
-```
-#### gcc 7.1
-```
-sudo add-apt-repository ppa:jonathonf/gcc-7.1
-sudo apt-get update
-apt-get install gcc-7 g++-7
-```
-When run cmake manually specify C and C++ compiler:
-```
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7
-```
-
-### Windows
-There two options Microsoft Visual Studio 2015+ or [MSYS2](http://www.msys2.org/) both required [libuv](https://github.com/libuv/libuv) build and cmake.
-
-#### MSYS2
-Necessary MSYS2 packages:
-```
-pacman -Sy
-pacman -S mingw-w64-x86_64-gcc
-pacman -S make
-pacman -S mingw-w64-x86_64-cmake
-pacman -S mingw-w64-x86_64-pkg-config
-```
-CMake build:
-```
-cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DUV_INCLUDE_DIR="c:\<path>\libuv\include" -DUV_LIBRARY="c:\<path>\libuv\.libs\libuv.a"
-make
-```
-
-#### Microsoft Visual Studio
-```
-`cmake .. -G "Visual Studio 14 2015 Win64" -T v140_xp -DCMAKE_BUILD_TYPE=Release -DUV_INCLUDE_DIR=c:\<path>\libuv\include -DUV_LIBRARY=c:\<path>\libuv\Release\lib\libuv.lib`
-```
-
-### Optional features
-`-DWITH_LIBCPUID=OFF` Disable libcpuid. Auto configuration of CPU after this will be very limited.
-`-DWITH_AEON=OFF` Disable CryptoNight-Lite support.
 
 ## Common Issues
 ### HUGE PAGES unavailable
