@@ -29,18 +29,18 @@
 #include "Mem.h"
 #include "workers/DoubleWorker.h"
 #include "workers/Handle.h"
+#include "workers/Hashrate.h"
 #include "workers/SingleWorker.h"
-#include "workers/Telemetry.h"
 #include "workers/Workers.h"
 
 
+Hashrate *Workers::m_hashrate = nullptr;
 IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
 std::list<JobResult> Workers::m_queue;
 std::vector<Handle*> Workers::m_workers;
-Telemetry *Workers::m_telemetry = nullptr;
 uint64_t Workers::m_ticks = 0;
 uv_async_t Workers::m_async;
 uv_mutex_t Workers::m_mutex;
@@ -72,7 +72,7 @@ void Workers::setJob(const Job &job)
 void Workers::start(int64_t affinity, bool nicehash)
 {
     const int threads = Mem::threads();
-    m_telemetry = new Telemetry(threads);
+    m_hashrate = new Hashrate(threads);
 
     uv_mutex_init(&m_mutex);
     uv_rwlock_init(&m_rwlock);
@@ -139,29 +139,14 @@ void Workers::onResult(uv_async_t *handle)
 void Workers::onTick(uv_timer_t *handle)
 {
     for (Handle *handle : m_workers) {
-        if (handle->worker()) {
-            m_telemetry->add(handle->threadId(), handle->worker()->hashCount(), handle->worker()->timestamp());
+        if (!handle->worker()) {
+            return;
         }
+
+        m_hashrate->add(handle->threadId(), handle->worker()->hashCount(), handle->worker()->timestamp());
     }
 
     if ((m_ticks++ & 0xF) == 0)  {
-        double hps = 0.0;
-        double telem;
-        bool normal = true;
-
-        for (Handle *handle : m_workers) {
-            telem = m_telemetry->calc(handle->threadId(), 2500);
-            if (!std::isnormal(telem)) {
-                normal = false;
-                break;
-            }
-            else {
-                hps += telem;
-            }
-        }
-
-        if (normal) {
-            LOG_NOTICE("%03.1f H/s", hps);
-        }
+        LOG_NOTICE("%03.1f H/s", m_hashrate->calc(2500));
     }
 }

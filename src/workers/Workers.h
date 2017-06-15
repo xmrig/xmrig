@@ -35,8 +35,8 @@
 
 
 class Handle;
+class Hashrate;
 class IJobResultListener;
-class Telemetry;
 
 
 class Workers
@@ -58,13 +58,13 @@ private:
     static void onResult(uv_async_t *handle);
     static void onTick(uv_timer_t *handle);
 
+    static Hashrate *m_hashrate;
     static IJobResultListener *m_listener;
     static Job m_job;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
     static std::list<JobResult> m_queue;
     static std::vector<Handle*> m_workers;
-    static Telemetry *m_telemetry;
     static uint64_t m_ticks;
     static uv_async_t m_async;
     static uv_mutex_t m_mutex;

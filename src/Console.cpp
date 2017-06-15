@@ -28,9 +28,9 @@
 #include <time.h>
 
 
-
 #ifdef WIN32
 #   include <winsock2.h>
+#   include <malloc.h>
 #   include "3rdparty/winansi.h"
 #endif
 

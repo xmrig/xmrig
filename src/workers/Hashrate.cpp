@@ -23,14 +23,14 @@
 
 
 #include <memory.h>
-#include <math.h>
+#include <cmath>
 #include <chrono>
 
 #include "Console.h"
-#include "workers/Telemetry.h"
+#include "workers/Hashrate.h"
 
 
-Telemetry::Telemetry(int threads) :
+Hashrate::Hashrate(int threads) :
     m_threads(threads)
 {
     m_counts     = new uint64_t*[threads];
@@ -48,7 +48,23 @@ Telemetry::Telemetry(int threads) :
 }
 
 
-double Telemetry::calc(size_t threadId, size_t ms) const
+double Hashrate::calc(size_t ms) const
+{
+    double result = .0;
+    double data;
+
+    for (int i = 0; i < m_threads; ++i) {
+        data = calc(i, ms);
+        if (std::isnormal(data)) {
+            result += data;
+        }
+    }
+
+    return result;
+}
+
+
+double Hashrate::calc(size_t threadId, size_t ms) const
 {
     using namespace std::chrono;
     const uint64_t now = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
@@ -97,7 +113,7 @@ double Telemetry::calc(size_t threadId, size_t ms) const
 }
 
 
-void Telemetry::add(size_t threadId, uint64_t count, uint64_t timestamp)
+void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 {
     const size_t top = m_top[threadId];
     m_counts[threadId][top]     = count;

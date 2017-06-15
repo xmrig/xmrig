@@ -23,8 +23,8 @@ set(HEADERS
     src/version.h
     src/workers/DoubleWorker.h
     src/workers/Handle.h
+    src/workers/Hashrate.h
     src/workers/SingleWorker.h
-    src/workers/Telemetry.h
     src/workers/Worker.h
     src/workers/Workers.h
    )
@@ -55,8 +55,8 @@ set(SOURCES
     src/Summary.cpp
     src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
+    src/workers/Hashrate.cpp
     src/workers/SingleWorker.cpp
-    src/workers/Telemetry.cpp
     src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp

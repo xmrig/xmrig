@@ -21,17 +21,18 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TELEMETRY_H__
-#define __TELEMETRY_H__
+#ifndef __HASHRATE_H__
+#define __HASHRATE_H__
 
 
 #include <stdint.h>
 
 
-class Telemetry
+class Hashrate
 {
 public:
-    Telemetry(int threads);
+    Hashrate(int threads);
+    double calc(size_t ms) const;
     double calc(size_t threadId, size_t ms) const;
     void add(size_t threadId, uint64_t count, uint64_t timestamp);
 
@@ -46,4 +47,4 @@ private:
 };
 
 
-#endif /* __TELEMETRY_H__ */
+#endif /* __HASHRATE_H__ */
