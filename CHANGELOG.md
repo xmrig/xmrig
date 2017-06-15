@@ -1,6 +1,12 @@
 # v1.0.0
 - Miner complete rewritten in C++ with libuv.
+- This version should be fully compatible (except config file) with previos versions, many new nice features will come in next versions.
+- This is still beta. If you found regression, stability or perfomance issues or have an idea for new feature please fell free to open new [issue](https://github.com/xmrig/xmrig/issues/new).
 - Removed dependency on libcurl.
+- To compile this version from source please switch to [dev](https://github.com/xmrig/xmrig/tree/dev) branch.
+
+# v0.8.2
+- Fixed L2 cache size detection for AMD CPUs (Bulldozer/Piledriver/Steamroller/Excavator architecture).
 
 # v0.8.2
 - Fixed L2 cache size detection for AMD CPUs (Bulldozer/Piledriver/Steamroller/Excavator architecture).
