@@ -32,6 +32,11 @@
 #include "net/Url.h"
 
 
+#ifdef _MSC_VER
+#   define strncasecmp(x,y,z) _strnicmp(x,y,z)
+#endif
+
+
 Client::Client(int id, IClientListener *listener) :
     m_keepAlive(false),
     m_host(nullptr),
@@ -317,9 +322,10 @@ void Client::parseNotification(const char *method, const json_t *params, const j
 void Client::parseResponse(int64_t id, const json_t *result, const json_t *error)
 {
     if (json_is_object(error)) {
-        LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_host, m_port, json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+        const char *message = json_string_value(json_object_get(error, "message"));
+        LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_host, m_port, message, json_integer_value(json_object_get(error, "code")));
 
-        if (id == 1) {
+        if (id == 1 || (message && strncasecmp(message, "Unauthenticated", 15) == 0)) {
             close();
         }
 
