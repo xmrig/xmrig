@@ -27,6 +27,7 @@
 #include "Console.h"
 #include "interfaces/IJobResultListener.h"
 #include "Mem.h"
+#include "Options.h"
 #include "workers/DoubleWorker.h"
 #include "workers/Handle.h"
 #include "workers/Hashrate.h"
@@ -102,7 +103,6 @@ void Workers::submit(const JobResult &result)
 }
 
 
-
 void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
@@ -148,6 +148,5 @@ void Workers::onTick(uv_timer_t *handle)
 
     if ((m_ticks++ & 0xF) == 0)  {
         m_hashrate->updateHighest();
-        m_hashrate->print();
     }
 }

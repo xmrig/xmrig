@@ -64,6 +64,7 @@ public:
     inline int algo() const             { return m_algo; }
     inline int algoVariant() const      { return m_algoVariant; }
     inline int donateLevel() const      { return m_donateLevel; }
+    inline int printTime() const        { return m_printTime; }
     inline int retries() const          { return m_retries; }
     inline int retryPause() const       { return m_retryPause; }
     inline int threads() const          { return m_threads; }
@@ -103,6 +104,7 @@ private:
     int m_algoVariant;
     int m_donateLevel;
     int m_maxCpuUsage;
+    int m_printTime;
     int m_retries;
     int m_retryPause;
     int m_threads;

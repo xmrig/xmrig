@@ -26,6 +26,7 @@
 
 
 #include <stdint.h>
+#include <uv.h>
 
 
 class Hashrate
@@ -41,6 +42,8 @@ public:
     inline double highest() const { return m_highest; }
 
 private:
+    static void onReport(uv_timer_t *handle);
+
     constexpr static size_t kBucketSize = 2 << 11;
     constexpr static size_t kBucketMask = kBucketSize - 1;
 
@@ -49,6 +52,7 @@ private:
     uint32_t* m_top;
     uint64_t** m_counts;
     uint64_t** m_timestamps;
+    uv_timer_t m_timer;
 };
 
 

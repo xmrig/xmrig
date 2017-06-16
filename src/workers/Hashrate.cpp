@@ -58,6 +58,15 @@ Hashrate::Hashrate(int threads) :
         memset(m_counts[0], 0, sizeof(uint64_t) * kBucketSize);
         memset(m_timestamps[0], 0, sizeof(uint64_t) * kBucketSize);
     }
+
+    const int printTime = Options::i()->printTime();
+
+    if (printTime > 0) {
+        uv_timer_init(uv_default_loop(), &m_timer);
+        m_timer.data = this;
+
+       uv_timer_start(&m_timer, Hashrate::onReport, (printTime + 4) * 1000, printTime * 1000);
+    }
 }
 
 
@@ -158,4 +167,10 @@ void Hashrate::updateHighest()
    if (std::isnormal(highest) && highest > m_highest) {
        m_highest = highest;
    }
+}
+
+
+void Hashrate::onReport(uv_timer_t *handle)
+{
+    static_cast<Hashrate*>(handle->data)->print();
 }

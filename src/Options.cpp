@@ -72,6 +72,7 @@ Options:\n\
       --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)\n\
       --safe            safe adjust threads and av settings for current CPU\n\
       --nicehash        enable nicehash support\n\
+      --print-time=N    print hashrate report every N seconds\n\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
 ";
@@ -94,6 +95,7 @@ static struct option const options[] = {
     { "nicehash",      0, nullptr, 1006 },
     { "no-color",      0, nullptr, 1002 },
     { "pass",          1, nullptr, 'p'  },
+    { "print-time",    1, nullptr, 1007 },
     { "retries",       1, nullptr, 'r'  },
     { "retry-pause",   1, nullptr, 'R'  },
     { "safe",          0, nullptr, 1005 },
@@ -144,6 +146,7 @@ Options::Options(int argc, char **argv) :
     m_algoVariant(0),
     m_donateLevel(kDonateLevel),
     m_maxCpuUsage(75),
+    m_printTime(60),
     m_retries(5),
     m_retryPause(5),
     m_threads(0),
@@ -358,6 +361,16 @@ bool Options::parseArg(int key, char *arg)
 
     case 1006: /* --nicehash */
         m_nicehash = true;
+        break;
+
+    case 1007: /* --print-time */
+        v = strtol(arg, nullptr, 10);
+        if (v < 0 || v > 1000) {
+            showUsage(1);
+            return false;
+        }
+
+        m_printTime = v;
         break;
 
     default:
