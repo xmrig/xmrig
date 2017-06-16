@@ -28,6 +28,7 @@
 #include "Console.h"
 #include "Cpu.h"
 #include "Mem.h"
+#include "net/Url.h"
 #include "Options.h"
 #include "Summary.h"
 #include "version.h"
@@ -99,22 +100,28 @@ static void print_threads()
         buf[0] = '\0';
     }
 
-    if (Options::i()->colors()) {
-        Console::i()->text("\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, donate=%d%%%s%s",
-                           Options::i()->threads(),
-                           Options::i()->algoName(),
-                           Options::i()->algoVariant(),
-                           Options::i()->donateLevel(),
-                           Options::i()->nicehash() ? ", nicehash" : "", buf);
+    Console::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, donate=%d%%%s%s" : " * THREADS:      %d, %s, av=%d, donate=%d%%%s%s",
+                       Options::i()->threads(),
+                       Options::i()->algoName(),
+                       Options::i()->algoVariant(),
+                       Options::i()->donateLevel(),
+                       Options::i()->nicehash() ? ", nicehash" : "", buf);
+}
+
+
+static void print_pools()
+{
+    Console::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #1:      \x1B[01;36m%s:%d" : " * POOL #1:      %s:%d",
+                       Options::i()->url()->host(),
+                       Options::i()->url()->port());
+
+    if (!Options::i()->backupUrl()) {
+        return;
     }
-    else {
-        Console::i()->text(" * THREADS:      %d, %s, av=%d, donate=%d%%%s%s",
-                           Options::i()->threads(),
-                           Options::i()->algoName(),
-                           Options::i()->algoVariant(),
-                           Options::i()->donateLevel(),
-                           Options::i()->nicehash() ? ", nicehash" : "", buf);
-    }
+
+    Console::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #2:      \x1B[01;36m%s:%d" : " * POOL #2:      %s:%d",
+                       Options::i()->backupUrl()->host(),
+                       Options::i()->backupUrl()->port());
 }
 
 
@@ -124,6 +131,7 @@ void Summary::print()
     print_memory();
     print_cpu();
     print_threads();
+    print_pools();
 }
 
 
