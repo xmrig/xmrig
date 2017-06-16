@@ -4,6 +4,7 @@
 - This is still beta. If you found regression, stability or perfomance issues or have an idea for new feature please fell free to open new [issue](https://github.com/xmrig/xmrig/issues/new).
 - Added new option `--print-time=N`, print hashrate report every N seconds.
 - New hashrate reports, by default every 60 secons.
+- Added Microsoft Visual C++ 2015 and 2017 support.
 - Removed dependency on libcurl.
 - To compile this version from source please switch to [dev](https://github.com/xmrig/xmrig/tree/dev) branch.
 
