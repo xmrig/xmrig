@@ -107,7 +107,13 @@ void Network::onJobReceived(Client *client, const Job &job)
 
 void Network::onJobResult(const JobResult &result)
 {
-    LOG_NOTICE("SHARE FOUND");
+    if (m_options->colors()) {
+        LOG_NOTICE("\x1B[01;32mSHARE FOUND");
+    }
+    else {
+        LOG_NOTICE("SHARE FOUND");
+    }
+
     m_pools[result.poolId]->submit(result);
 }
 
@@ -156,8 +162,8 @@ void Network::addPool(const Url *url)
 
 void Network::setJob(Client *client, const Job &job)
 {
-    if (m_options->colors()){
-        LOG_INFO("\x1B[01;33mnew job\x1B[0m from \"%s:%d\", diff: %d", client->host(), client->port(), job.diff());
+    if (m_options->colors()) {
+        LOG_INFO("\x1B[01;35mnew job\x1B[0m from \"%s:%d\", diff: %d", client->host(), client->port(), job.diff());
 
     }
     else {

@@ -22,15 +22,28 @@
  */
 
 
-#include <memory.h>
-#include <cmath>
 #include <chrono>
+#include <cmath>
+#include <memory.h>
 
 #include "Console.h"
+#include "Options.h"
 #include "workers/Hashrate.h"
 
 
+inline const char *format(double h, char* buf, size_t size)
+{
+    if (std::isnormal(h)) {
+        snprintf(buf, size, "%03.1f", h);
+        return buf;
+    }
+
+    return "n/a";
+}
+
+
 Hashrate::Hashrate(int threads) :
+    m_highest(0.0),
     m_threads(threads)
 {
     m_counts     = new uint64_t*[threads];
@@ -50,7 +63,7 @@ Hashrate::Hashrate(int threads) :
 
 double Hashrate::calc(size_t ms) const
 {
-    double result = .0;
+    double result = 0.0;
     double data;
 
     for (int i = 0; i < m_threads; ++i) {
@@ -120,4 +133,29 @@ void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
     m_timestamps[threadId][top] = timestamp;
 
     m_top[threadId] = (top + 1) & kBucketMask;
+}
+
+
+void Hashrate::print()
+{
+    char num1[8];
+    char num2[8];
+    char num3[8];
+    char num4[8];
+
+    LOG_INFO(Options::i()->colors() ? "\x1B[01;37mspeed\x1B[0m 2.5s/60s/15m \x1B[01;36m%s \x1B[22;36m%s %s \x1B[01;36mH/s\x1B[0m highest: \x1B[01;36m%s H/s" : "speed 2.5s/60s/15m %s %s %s H/s highest: %s H/s",
+             format(calc(2500),   num1, sizeof(num1)),
+             format(calc(60000),  num2, sizeof(num2)),
+             format(calc(900000), num3, sizeof(num3)),
+             format(m_highest,    num4, sizeof(num4))
+             );
+}
+
+
+void Hashrate::updateHighest()
+{
+   double highest = calc(2500);
+   if (std::isnormal(highest) && highest > m_highest) {
+       m_highest = highest;
+   }
 }

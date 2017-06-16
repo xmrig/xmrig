@@ -147,6 +147,7 @@ void Workers::onTick(uv_timer_t *handle)
     }
 
     if ((m_ticks++ & 0xF) == 0)  {
-        LOG_NOTICE("%03.1f H/s", m_hashrate->calc(2500));
+        m_hashrate->updateHighest();
+        m_hashrate->print();
     }
 }
