@@ -59,6 +59,7 @@ xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
       --max-cpu-usage=N maximum cpu usage for automatic threads mode (default 75)
       --safe            safe adjust threads and av settings for current cpu
       --nicehash        enable nicehash support
+      --print-time=N    print hashrate report every N seconds
   -h, --help            display this help and exit
   -V, --version         output version information and exit
 ```
