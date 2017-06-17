@@ -1,3 +1,6 @@
+# v1.0.1
+- Fix broken software AES implementation, app has crashed if CPU not support AES-NI, only version 1.0.0 affected.
+
 # v1.0.0
 - Miner complete rewritten in C++ with libuv.
 - This version should be fully compatible (except config file) with previos versions, many new nice features will come in next versions.
