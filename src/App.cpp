@@ -48,10 +48,10 @@ App::App(int argc, char **argv) :
 {
     m_self = this;
 
+    Cpu::init();
     m_options = Options::parse(argc, argv);
 
     Console::init(m_options->colors(), m_options->background());
-    Cpu::init();
 
     m_network = new Network(m_options);
 

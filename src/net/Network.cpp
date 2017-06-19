@@ -136,7 +136,7 @@ void Network::onLoginSuccess(Client *client)
         return;
     }
 
-    LOG_NOTICE("use pool: \"%s:%d\"", client->host(), client->port());
+    LOG_INFO(m_options->colors() ? "\x1B[01;37muse pool: \x1B[01;36m%s:%d" : "use pool: %s:%d", client->host(), client->port());
     m_pool = id;
 
     if (m_pool == 1 && m_pools.size() > 2) { // try disconnect from backup pool
@@ -163,11 +163,11 @@ void Network::addPool(const Url *url)
 void Network::setJob(Client *client, const Job &job)
 {
     if (m_options->colors()) {
-        LOG_INFO("\x1B[01;35mnew job\x1B[0m from \"%s:%d\", diff: %d", client->host(), client->port(), job.diff());
+        LOG_INFO("\x1B[01;35mnew job\x1B[0m from \x1B[01;37m%s:%d\x1B[0m diff: \x1B[01;37m%d", client->host(), client->port(), job.diff());
 
     }
     else {
-        LOG_INFO("new job from \"%s:%d\", diff: %d", client->host(), client->port(), job.diff());
+        LOG_INFO("new job from %s:%d diff: %d", client->host(), client->port(), job.diff());
     }
 
     Workers::setJob(job);

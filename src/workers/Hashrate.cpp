@@ -152,7 +152,7 @@ void Hashrate::print()
     char num3[8];
     char num4[8];
 
-    LOG_INFO(Options::i()->colors() ? "\x1B[01;37mspeed\x1B[0m 2.5s/60s/15m \x1B[01;36m%s \x1B[22;36m%s %s \x1B[01;36mH/s\x1B[0m highest: \x1B[01;36m%s H/s" : "speed 2.5s/60s/15m %s %s %s H/s highest: %s H/s",
+    LOG_INFO(Options::i()->colors() ? "\x1B[01;37mspeed\x1B[0m 2.5s/60s/15m \x1B[01;36m%s \x1B[22;36m%s %s \x1B[01;36mH/s\x1B[0m max: \x1B[01;36m%s H/s" : "speed 2.5s/60s/15m %s %s %s H/s highest: %s H/s",
              format(calc(2500),   num1, sizeof(num1)),
              format(calc(60000),  num2, sizeof(num2)),
              format(calc(900000), num3, sizeof(num3)),
