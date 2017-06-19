@@ -48,10 +48,11 @@ App::App(int argc, char **argv) :
 {
     m_self = this;
 
-    Console::init();
+    m_options = Options::parse(argc, argv);
+
+    Console::init(m_options->colors(), m_options->background());
     Cpu::init();
 
-    m_options = Options::parse(argc, argv);
     m_network = new Network(m_options);
 
     uv_signal_init(uv_default_loop(), &m_signal);
@@ -69,16 +70,16 @@ int App::exec()
         return 0;
     }
 
-    if (!CryptoNight::init(m_options->algo(), m_options->algoVariant())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
-        return 1;
-    }
-
     uv_signal_start(&m_signal, App::onSignal, SIGHUP);
     uv_signal_start(&m_signal, App::onSignal, SIGTERM);
     uv_signal_start(&m_signal, App::onSignal, SIGINT);
 
     background();
+
+    if (!CryptoNight::init(m_options->algo(), m_options->algoVariant())) {
+        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
+        return 1;
+    }
 
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
     Summary::print();

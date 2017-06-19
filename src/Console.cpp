@@ -40,10 +40,10 @@
 Console *Console::m_self = nullptr;
 
 
-void Console::init()
+void Console::init(bool colors, bool background)
 {
     if (!m_self) {
-        m_self = new Console();
+        m_self = new Console(colors, background);
     }
 }
 
@@ -97,7 +97,7 @@ void Console::message(Console::Level level, const char* fmt, ...)
             stime.tm_hour,
             stime.tm_min,
             stime.tm_sec,
-            color,
+            m_colors ? color : "",
             fmt,
             m_colors ? kCL_N : ""
         );
@@ -121,10 +121,7 @@ void Console::text(const char* fmt, ...)
     const int len = 64 + strlen(fmt) + 2;
     char *buf = static_cast<char *>(alloca(len));
 
-    sprintf(buf, "%s%s\n",
-            fmt,
-            m_colors ? kCL_N : ""
-        );
+    sprintf(buf, "%s%s\n", fmt, m_colors ? kCL_N : "");
 
     uv_mutex_lock(&m_mutex);
 
@@ -137,8 +134,9 @@ void Console::text(const char* fmt, ...)
 }
 
 
-Console::Console() :
-    m_colors(true)
+Console::Console(bool colors, bool background) :
+    m_background(background),
+    m_colors(colors)
 {
     uv_mutex_init(&m_mutex);
 }

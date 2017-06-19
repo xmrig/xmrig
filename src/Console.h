@@ -51,16 +51,17 @@ public:
 #   endif
 
     static inline Console* i() { return m_self; }
-    static void init();
+    static void init(bool colors, bool background);
 
     void message(Level level, const char* fmt, ...);
     void text(const char* fmt, ...);
 
 private:
-    Console();
+    Console(bool colors, bool background);
 
-    static Console *m_self;
+    bool m_background;
     bool m_colors;
+    static Console *m_self;
     uv_mutex_t m_mutex;
 };
 

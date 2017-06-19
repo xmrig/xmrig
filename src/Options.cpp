@@ -34,7 +34,6 @@
 #endif
 
 
-#include "Console.h"
 #include "Cpu.h"
 #include "donate.h"
 #include "net/Url.h"
@@ -173,7 +172,7 @@ Options::Options(int argc, char **argv) :
     }
 
     if (!m_url) {
-        LOG_ERR("No pool URL supplied. Exiting.", argv[0]);
+        fprintf(stderr, "No pool URL supplied. Exiting.");
         return;
     }
 
