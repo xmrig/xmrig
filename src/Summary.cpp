@@ -25,8 +25,8 @@
 #include <uv.h>
 
 
-#include "Console.h"
 #include "Cpu.h"
+#include "log/Log.h"
 #include "Mem.h"
 #include "net/Url.h"
 #include "Options.h"
@@ -50,21 +50,21 @@ static void print_versions()
 
 
     if (Options::i()->colors()) {
-        Console::i()->text("\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s%s", APP_VERSION, uv_version_string(), buf);
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s%s", APP_VERSION, uv_version_string(), buf);
     } else {
-        Console::i()->text(" * VERSIONS:     XMRig/%s libuv/%s%s", APP_VERSION, uv_version_string(), buf);
+        Log::i()->text(" * VERSIONS:     XMRig/%s libuv/%s%s", APP_VERSION, uv_version_string(), buf);
     }
 }
 
 
 static void print_memory() {
     if (Options::i()->colors()) {
-        Console::i()->text("\x1B[01;32m * \x1B[01;37mHUGE PAGES:   %s, %s",
-                           Mem::isHugepagesAvailable() ? "\x1B[01;32mavailable" : "\x1B[01;31munavailable",
-                           Mem::isHugepagesEnabled() ? "\x1B[01;32menabled" : "\x1B[01;31mdisabled");
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mHUGE PAGES:   %s, %s",
+                       Mem::isHugepagesAvailable() ? "\x1B[01;32mavailable" : "\x1B[01;31munavailable",
+                       Mem::isHugepagesEnabled() ? "\x1B[01;32menabled" : "\x1B[01;31mdisabled");
     }
     else {
-        Console::i()->text(" * HUGE PAGES:   %s, %s", Mem::isHugepagesAvailable() ? "available" : "unavailable", Mem::isHugepagesEnabled() ? "enabled" : "disabled");
+        Log::i()->text(" * HUGE PAGES:   %s, %s", Mem::isHugepagesAvailable() ? "available" : "unavailable", Mem::isHugepagesEnabled() ? "enabled" : "disabled");
     }
 }
 
@@ -72,19 +72,19 @@ static void print_memory() {
 static void print_cpu()
 {
     if (Options::i()->colors()) {
-        Console::i()->text("\x1B[01;32m * \x1B[01;37mCPU:          %s (%d) %sx64 %sAES-NI",
-                           Cpu::brand(),
-                           Cpu::sockets(),
-                           Cpu::isX64() ? "\x1B[01;32m" : "\x1B[01;31m-",
-                           Cpu::hasAES() ? "\x1B[01;32m" : "\x1B[01;31m-");
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU:          %s (%d) %sx64 %sAES-NI",
+                       Cpu::brand(),
+                       Cpu::sockets(),
+                       Cpu::isX64() ? "\x1B[01;32m" : "\x1B[01;31m-",
+                       Cpu::hasAES() ? "\x1B[01;32m" : "\x1B[01;31m-");
 #       ifndef XMRIG_NO_LIBCPUID
-        Console::i()->text("\x1B[01;32m * \x1B[01;37mCPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
 #       endif
     }
     else {
-        Console::i()->text(" * CPU:          %s (%d) %sx64 %sAES-NI", Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
+        Log::i()->text(" * CPU:          %s (%d) %sx64 %sAES-NI", Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
 #       ifndef XMRIG_NO_LIBCPUID
-        Console::i()->text(" * CPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
+        Log::i()->text(" * CPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
 #       endif
     }
 }
@@ -100,28 +100,28 @@ static void print_threads()
         buf[0] = '\0';
     }
 
-    Console::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, donate=%d%%%s%s" : " * THREADS:      %d, %s, av=%d, donate=%d%%%s%s",
-                       Options::i()->threads(),
-                       Options::i()->algoName(),
-                       Options::i()->algoVariant(),
-                       Options::i()->donateLevel(),
-                       Options::i()->nicehash() ? ", nicehash" : "", buf);
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, donate=%d%%%s%s" : " * THREADS:      %d, %s, av=%d, donate=%d%%%s%s",
+                   Options::i()->threads(),
+                   Options::i()->algoName(),
+                   Options::i()->algoVariant(),
+                   Options::i()->donateLevel(),
+                   Options::i()->nicehash() ? ", nicehash" : "", buf);
 }
 
 
 static void print_pools()
 {
-    Console::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #1:      \x1B[01;36m%s:%d" : " * POOL #1:      %s:%d",
-                       Options::i()->url()->host(),
-                       Options::i()->url()->port());
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #1:      \x1B[01;36m%s:%d" : " * POOL #1:      %s:%d",
+                   Options::i()->url()->host(),
+                   Options::i()->url()->port());
 
     if (!Options::i()->backupUrl()) {
         return;
     }
 
-    Console::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #2:      \x1B[01;36m%s:%d" : " * POOL #2:      %s:%d",
-                       Options::i()->backupUrl()->host(),
-                       Options::i()->backupUrl()->port());
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #2:      \x1B[01;36m%s:%d" : " * POOL #2:      %s:%d",
+                   Options::i()->backupUrl()->host(),
+                   Options::i()->backupUrl()->port());
 }
 
 

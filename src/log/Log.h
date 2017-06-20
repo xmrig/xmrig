@@ -21,14 +21,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONSOLE_H__
-#define __CONSOLE_H__
+#ifndef __LOG_H__
+#define __LOG_H__
 
 
 #include <uv.h>
 
 
-class Console
+class Log
 {
 public:
     enum Level {
@@ -50,35 +50,35 @@ public:
     constexpr static const char* kCL_GRAY = "\x1B[90m";
 #   endif
 
-    static inline Console* i() { return m_self; }
+    static inline Log* i() { return m_self; }
     static void init(bool colors, bool background);
 
     void message(Level level, const char* fmt, ...);
     void text(const char* fmt, ...);
 
 private:
-    Console(bool colors, bool background);
+    Log(bool colors, bool background);
 
     bool m_background;
     bool m_colors;
-    static Console *m_self;
+    static Log *m_self;
     uv_mutex_t m_mutex;
 };
 
 
-#define LOG_ERR(x, ...)    Console::i()->message(Console::ERR,     x, ##__VA_ARGS__)
-#define LOG_WARN(x, ...)   Console::i()->message(Console::WARNING, x, ##__VA_ARGS__)
-#define LOG_NOTICE(x, ...) Console::i()->message(Console::NOTICE,  x, ##__VA_ARGS__)
-#define LOG_INFO(x, ...)   Console::i()->message(Console::INFO,    x, ##__VA_ARGS__)
+#define LOG_ERR(x, ...)    Log::i()->message(Log::ERR,     x, ##__VA_ARGS__)
+#define LOG_WARN(x, ...)   Log::i()->message(Log::WARNING, x, ##__VA_ARGS__)
+#define LOG_NOTICE(x, ...) Log::i()->message(Log::NOTICE,  x, ##__VA_ARGS__)
+#define LOG_INFO(x, ...)   Log::i()->message(Log::INFO,    x, ##__VA_ARGS__)
 
 #ifdef APP_DEBUG
-#   define LOG_DEBUG(x, ...)      Console::i()->message(Console::DEBUG,   x, ##__VA_ARGS__)
-#   define LOG_DEBUG_ERR(x, ...)  Console::i()->message(Console::ERR,     x, ##__VA_ARGS__)
-#   define LOG_DEBUG_WARN(x, ...) Console::i()->message(Console::WARNING, x, ##__VA_ARGS__)
+#   define LOG_DEBUG(x, ...)      Log::i()->message(Log::DEBUG,   x, ##__VA_ARGS__)
+#   define LOG_DEBUG_ERR(x, ...)  Log::i()->message(Log::ERR,     x, ##__VA_ARGS__)
+#   define LOG_DEBUG_WARN(x, ...) Log::i()->message(Log::WARNING, x, ##__VA_ARGS__)
 #else
 #   define LOG_DEBUG(x, ...)
 #   define LOG_DEBUG_ERR(x, ...)
 #   define LOG_DEBUG_WARN(x, ...)
 #endif
 
-#endif /* __CONSOLE_H__ */
+#endif /* __LOG_H__ */

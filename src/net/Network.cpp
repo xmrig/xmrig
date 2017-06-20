@@ -25,7 +25,7 @@
 #include <memory>
 
 
-#include "Console.h"
+#include "log/Log.h"
 #include "net/Client.h"
 #include "net/Network.h"
 #include "net/Url.h"

@@ -25,7 +25,7 @@
 #include <utility>
 
 
-#include "Console.h"
+#include "log/Log.h"
 #include "interfaces/IClientListener.h"
 #include "net/Client.h"
 #include "net/JobResult.h"

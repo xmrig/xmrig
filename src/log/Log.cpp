@@ -34,21 +34,21 @@
 #   include "3rdparty/winansi.h"
 #endif
 
-#include "Console.h"
+#include "log/Log.h"
 
 
-Console *Console::m_self = nullptr;
+Log *Log::m_self = nullptr;
 
 
-void Console::init(bool colors, bool background)
+void Log::init(bool colors, bool background)
 {
     if (!m_self) {
-        m_self = new Console(colors, background);
+        m_self = new Log(colors, background);
     }
 }
 
 
-void Console::message(Console::Level level, const char* fmt, ...)
+void Log::message(Log::Level level, const char* fmt, ...)
 {
     time_t now = time(nullptr);
     tm stime;
@@ -113,7 +113,7 @@ void Console::message(Console::Level level, const char* fmt, ...)
 }
 
 
-void Console::text(const char* fmt, ...)
+void Log::text(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -134,7 +134,7 @@ void Console::text(const char* fmt, ...)
 }
 
 
-Console::Console(bool colors, bool background) :
+Log::Log(bool colors, bool background) :
     m_background(background),
     m_colors(colors)
 {

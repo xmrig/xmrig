@@ -26,7 +26,7 @@
 #include <cmath>
 #include <memory.h>
 
-#include "Console.h"
+#include "log/Log.h"
 #include "Options.h"
 #include "workers/Hashrate.h"
 

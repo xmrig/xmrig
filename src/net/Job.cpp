@@ -23,11 +23,10 @@
 
 
 #include <string.h>
-//#include <stdlib.h>
 
 
+#include "log/Log.h"
 #include "net/Job.h"
-#include "Console.h"
 
 
 static inline unsigned char hf_hex2bin(char c, bool &err)

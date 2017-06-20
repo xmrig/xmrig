@@ -24,7 +24,6 @@
 #include <cmath>
 
 
-#include "Console.h"
 #include "interfaces/IJobResultListener.h"
 #include "Mem.h"
 #include "Options.h"

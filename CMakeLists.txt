@@ -7,11 +7,11 @@ option(WITH_AEON     "CryptoNight-Lite support" ON)
 set(HEADERS
     src/3rdparty/align.h
     src/App.h
-    src/Console.h
     src/Cpu.h
     src/interfaces/IClientListener.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IWorker.h
+    src/log/Log.h
     src/Mem.h
     src/net/Client.h
     src/net/Job.h
@@ -45,7 +45,7 @@ set(HEADERS_CRYPTO
 
 set(SOURCES
     src/App.cpp
-    src/Console.cpp
+    src/log/Log.cpp
     src/Mem.cpp
     src/net/Client.cpp
     src/net/Job.cpp
