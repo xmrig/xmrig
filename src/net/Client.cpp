@@ -261,7 +261,10 @@ void Client::connect(struct sockaddr *addr)
 
     uv_tcp_init(uv_default_loop(), m_socket);
     uv_tcp_nodelay(m_socket, 1);
+
+#   ifndef WIN32
     uv_tcp_keepalive(m_socket, 1, 60);
+#   endif
 
     uv_tcp_connect(req, m_socket, (const sockaddr*) addr, Client::onConnect);
 }
