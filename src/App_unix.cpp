@@ -29,8 +29,8 @@
 
 
 #include "App.h"
-#include "Console.h"
 #include "Cpu.h"
+#include "log/Log.h"
 #include "Options.h"
 
 

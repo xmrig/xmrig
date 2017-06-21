@@ -28,9 +28,9 @@
 
 
 #include "crypto/CryptoNight.h"
+#include "log/Log.h"
 #include "Mem.h"
 #include "Options.h"
-#include "Console.h"
 
 
 bool Mem::allocate(int algo, int threads, bool doubleHash)

@@ -25,6 +25,7 @@
 #define __MEM_H__
 
 
+#include <stddef.h>
 #include <stdint.h>
 
 
