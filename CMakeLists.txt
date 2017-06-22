@@ -13,6 +13,7 @@ set(HEADERS
     src/interfaces/ILogBackend.h
     src/interfaces/IWorker.h
     src/log/ConsoleLog.h
+    src/log/FileLog.h
     src/log/Log.h
     src/Mem.h
     src/net/Client.h
@@ -48,6 +49,7 @@ set(HEADERS_CRYPTO
 set(SOURCES
     src/App.cpp
     src/log/ConsoleLog.cpp
+    src/log/FileLog.cpp
     src/log/Log.cpp
     src/Mem.cpp
     src/net/Client.cpp
