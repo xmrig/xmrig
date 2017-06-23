@@ -68,6 +68,12 @@ Options:\n\
       --donate-level=N  donate level, default 5%% (5 minutes in 100 minutes)\n\
   -B, --background      run the miner in the background\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
+  -l, --log-file=FILE   log all output to a file\n"
+# ifdef HAVE_SYSLOG_H
+"\
+  -S, --syslog          use system log for output messages\n"
+# endif
+"\
       --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)\n\
       --safe            safe adjust threads and av settings for current CPU\n\
       --nicehash        enable nicehash support\n\
@@ -77,7 +83,7 @@ Options:\n\
 ";
 
 
-static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vb:";
+static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vb:l:S";
 
 
 static struct option const options[] = {
@@ -90,6 +96,7 @@ static struct option const options[] = {
     { "donate-level",  1, nullptr, 1003 },
     { "help",          0, nullptr, 'h'  },
     { "keepalive",     0, nullptr ,'k'  },
+    { "log-file",      1, nullptr, 'l'  },
     { "max-cpu-usage", 1, nullptr, 1004 },
     { "nicehash",      0, nullptr, 1006 },
     { "no-color",      0, nullptr, 1002 },
@@ -98,6 +105,7 @@ static struct option const options[] = {
     { "retries",       1, nullptr, 'r'  },
     { "retry-pause",   1, nullptr, 'R'  },
     { "safe",          0, nullptr, 1005 },
+    { "syslog",        0, nullptr, 'S'  },
     { "threads",       1, nullptr, 't'  },
     { "url",           1, nullptr, 'o'  },
     { "user",          1, nullptr, 'u'  },
@@ -139,6 +147,8 @@ Options::Options(int argc, char **argv) :
     m_nicehash(false),
     m_ready(false),
     m_safe(false),
+    m_syslog(false),
+    m_logFile(nullptr),
     m_pass(nullptr),
     m_user(nullptr),
     m_algo(0),
@@ -263,6 +273,12 @@ bool Options::parseArg(int key, char *arg)
         m_pass = strdup(arg);
         break;
 
+    case 'l': /* --log-file */
+        free(m_logFile);
+        m_logFile = strdup(arg);
+        m_colors = false;
+        break;
+
     case 'r': /* --retries */
         v = strtol(arg, nullptr, 10);
         if (v < 1 || v > 1000) {
@@ -321,6 +337,11 @@ bool Options::parseArg(int key, char *arg)
 
     case 'B': /* --background */
         m_background = true;
+        m_colors = false;
+        break;
+
+    case 'S': /* --syslog */
+        m_syslog = true;
         m_colors = false;
         break;
 
