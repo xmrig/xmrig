@@ -44,23 +44,27 @@ Log *Log::m_self = nullptr;
 void Log::message(Log::Level level, const char* fmt, ...)
 {
     va_list args;
+    va_list copy;
     va_start(args, fmt);
 
     for (ILogBackend *backend : m_backends) {
-        backend->message(level, fmt, args);
+        va_copy(copy, args);
+        backend->message(level, fmt, copy);
+        va_end(copy);
     }
-
-    va_end(args);
 }
 
 
 void Log::text(const char* fmt, ...)
 {
     va_list args;
+    va_list copy;
     va_start(args, fmt);
 
     for (ILogBackend *backend : m_backends) {
-        backend->text(fmt, args);
+        va_copy(copy, args);
+        backend->text(fmt, copy);
+        va_end(copy);
     }
 
     va_end(args);
