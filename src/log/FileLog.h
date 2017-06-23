@@ -21,55 +21,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#ifndef __FILELOG_H__
+#define __FILELOG_H__
 
 
-#ifdef WIN32
-#   include <winsock2.h>
-#   include <malloc.h>
-#   include "3rdparty/winansi.h"
-#endif
+#include <uv.h>
+
 
 #include "interfaces/ILogBackend.h"
-#include "log/Log.h"
 
 
-Log *Log::m_self = nullptr;
-
-
-void Log::message(Log::Level level, const char* fmt, ...)
+class FileLog : public ILogBackend
 {
-    va_list args;
-    va_start(args, fmt);
+public:
+    FileLog(const char *fileName);
 
-    for (ILogBackend *backend : m_backends) {
-        backend->message(level, fmt, args);
-    }
+    void message(int level, const char* fmt, va_list args) override;
+    void text(const char* fmt, va_list args) override;
 
-    va_end(args);
-}
+private:
+    static void onWrite(uv_fs_t *req);
 
+    void write(char *data, size_t size);
 
-void Log::text(const char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
+    int m_file;
+};
 
-    for (ILogBackend *backend : m_backends) {
-        backend->text(fmt, args);
-    }
-
-    va_end(args);
-}
-
-
-Log::~Log()
-{
-    for (auto backend : m_backends) {
-        delete backend;
-    }
-}
+#endif /* __FILELOG_H__ */

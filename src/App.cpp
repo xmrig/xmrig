@@ -27,9 +27,11 @@
 
 
 #include "App.h"
-#include "log/Log.h"
 #include "Cpu.h"
 #include "crypto/CryptoNight.h"
+#include "log/ConsoleLog.h"
+#include "log/FileLog.h"
+#include "log/Log.h"
 #include "Mem.h"
 #include "net/Network.h"
 #include "Options.h"
@@ -51,7 +53,15 @@ App::App(int argc, char **argv) :
     Cpu::init();
     m_options = Options::parse(argc, argv);
 
-    Log::init(m_options->colors(), m_options->background());
+    Log::init();
+
+    if (!m_options->background()) {
+        Log::add(new ConsoleLog(m_options->colors()));
+    }
+
+    if (m_options->logFile()) {
+        Log::add(new FileLog(m_options->logFile()));
+    }
 
     m_network = new Network(m_options);
 

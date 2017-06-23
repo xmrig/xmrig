@@ -21,55 +21,20 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __SYSLOG_BACKEND_H__
+#define __SYSLOG_BACKEND_H__
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-
-#ifdef WIN32
-#   include <winsock2.h>
-#   include <malloc.h>
-#   include "3rdparty/winansi.h"
-#endif
 
 #include "interfaces/ILogBackend.h"
-#include "log/Log.h"
 
 
-Log *Log::m_self = nullptr;
-
-
-void Log::message(Log::Level level, const char* fmt, ...)
+class SysLog : public ILogBackend
 {
-    va_list args;
-    va_start(args, fmt);
+public:
+    SysLog();
 
-    for (ILogBackend *backend : m_backends) {
-        backend->message(level, fmt, args);
-    }
+    void message(int level, const char* fmt, va_list args) override;
+    void text(const char* fmt, va_list args) override;
+};
 
-    va_end(args);
-}
-
-
-void Log::text(const char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-
-    for (ILogBackend *backend : m_backends) {
-        backend->text(fmt, args);
-    }
-
-    va_end(args);
-}
-
-
-Log::~Log()
-{
-    for (auto backend : m_backends) {
-        delete backend;
-    }
-}
+#endif /* __SYSLOG_BACKEND_H__ */

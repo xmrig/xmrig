@@ -57,6 +57,8 @@ public:
     inline bool isReady() const         { return m_ready; }
     inline bool keepAlive() const       { return m_keepAlive; }
     inline bool nicehash() const        { return m_nicehash; }
+    inline bool syslog() const          { return m_syslog; }
+    inline const char *logFile() const  { return m_logFile; }
     inline const char *pass() const     { return m_pass; }
     inline const char *user() const     { return m_user; }
     inline const Url *backupUrl() const { return m_backupUrl; }
@@ -98,6 +100,8 @@ private:
     bool m_nicehash;
     bool m_ready;
     bool m_safe;
+    bool m_syslog;
+    char *m_logFile;
     char *m_pass;
     char *m_user;
     int m_algo;
