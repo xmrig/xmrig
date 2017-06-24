@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SYSLOG_BACKEND_H__
-#define __SYSLOG_BACKEND_H__
+#ifndef __SYSLOG_H__
+#define __SYSLOG_H__
 
 
 #include "interfaces/ILogBackend.h"
@@ -33,8 +33,8 @@ class SysLog : public ILogBackend
 public:
     SysLog();
 
-    void message(int level, const char* fmt, va_list args) override;
-    void text(const char* fmt, va_list args) override;
+    void message(int level, const char *fmt, va_list args) override;
+    void text(const char *fmt, va_list args) override;
 };
 
 #endif /* __SYSLOG_BACKEND_H__ */

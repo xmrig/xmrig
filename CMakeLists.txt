@@ -4,6 +4,10 @@ project(xmrig)
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 
+
+include (CheckIncludeFile)
+
+
 set(HEADERS
     src/3rdparty/align.h
     src/App.h
@@ -166,6 +170,12 @@ else()
     set(SOURCES_CPUID src/Cpu_stub.cpp)
 endif()
 
+CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
+if (HAVE_SYSLOG_H)
+    add_definitions(/DHAVE_SYSLOG_H)
+    set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
+endif()
+
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(src/3rdparty/jansson)
@@ -173,5 +183,5 @@ include_directories(${UV_INCLUDE_DIR})
 
 add_subdirectory(src/3rdparty/jansson)
 
-add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO})
+add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG})
 target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
