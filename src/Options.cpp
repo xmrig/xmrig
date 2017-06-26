@@ -231,7 +231,6 @@ bool Options::parseArg(int key, char *arg)
 {
     char *p;
     int v;
-    uint64_t ul;
     Url *url;
 
     switch (key) {
@@ -357,12 +356,7 @@ bool Options::parseArg(int key, char *arg)
 
     case 1020: /* --cpu-affinity */
         p  = strstr(arg, "0x");
-        ul = p ? strtoul(p, NULL, 16) : atol(arg);
-        if (ul > (1UL << Cpu::threads()) -1) {
-            ul = -1;
-        }
-
-        m_affinity = ul;
+        m_affinity = p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10);
         break;
 
     case 1002: /* --no-color */
