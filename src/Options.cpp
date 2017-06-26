@@ -150,7 +150,6 @@ Options::Options(int argc, char **argv) :
     m_syslog(false),
     m_logFile(nullptr),
     m_pass(nullptr),
-    m_user(nullptr),
     m_algo(0),
     m_algoVariant(0),
     m_donateLevel(kDonateLevel),
@@ -159,10 +158,10 @@ Options::Options(int argc, char **argv) :
     m_retries(5),
     m_retryPause(5),
     m_threads(0),
-    m_affinity(-1L),
-    m_backupUrl(nullptr),
-    m_url(nullptr)
+    m_affinity(-1L)
 {
+    m_pools.push_back(new Url());
+
     int key;
 
     while (1) {
@@ -181,18 +180,18 @@ Options::Options(int argc, char **argv) :
         return;
     }
 
-    if (!m_url) {
+    if (!m_pools[0]->isValid()) {
         fprintf(stderr, "No pool URL supplied. Exiting.");
         return;
     }
 
-    if (!m_nicehash && m_url->isNicehash()) {
-        m_nicehash = true;
-    }
+//    if (!m_nicehash && m_url->isNicehash()) {
+//        m_nicehash = true;
+//    }
 
-    if (!m_user) {
-        m_user = strdup("x");
-    }
+//    if (!m_user) {
+//        m_user = strdup("x");
+//    }
 
     if (!m_pass) {
         m_pass = strdup("x");
@@ -219,10 +218,6 @@ Options::Options(int argc, char **argv) :
 
 Options::~Options()
 {
-    delete m_url;
-    delete m_backupUrl;
-
-    free(m_user);
     free(m_pass);
 }
 
@@ -232,7 +227,6 @@ bool Options::parseArg(int key, char *arg)
     char *p;
     int v;
     uint64_t ul;
-    Url *url;
 
     switch (key) {
     case 'a': /* --algo */
@@ -248,29 +242,26 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 'o': /* --url */
-        url = parseUrl(arg);
-        if (url) {
-            free(m_url);
-            m_url = url;
+        if (m_pools[0]->isValid()) {
+            Url *url = new Url(arg);
+            if (url->isValid()) {
+                m_pools.push_back(url);
+            }
+            else {
+                delete url;
+            }
         }
-        break;
-
-    case 'b': /* --backup-url */
-        url = parseUrl(arg);
-        if (url) {
-            free(m_backupUrl);
-            m_backupUrl = url;
+        else {
+            m_pools[0]->parse(arg);
         }
         break;
 
     case 'u': /* --user */
-        free(m_user);
-        m_user = strdup(arg);
+        m_pools.back()->setUser(arg);
         break;
 
     case 'p': /* --pass */
-        free(m_pass);
-        m_pass = strdup(arg);
+        m_pools.back()->setPassword(arg);
         break;
 
     case 'l': /* --log-file */
@@ -485,18 +476,18 @@ bool Options::setAlgo(const char *algo)
 
 bool Options::setUserpass(const char *userpass)
 {
-    const char *p = strchr(userpass, ':');
-    if (!p) {
-        showUsage(1);
-        return false;
-    }
+//    const char *p = strchr(userpass, ':');
+//    if (!p) {
+//        showUsage(1);
+//        return false;
+//    }
 
-    free(m_user);
-    free(m_pass);
+////    free(m_user);
+//    free(m_pass);
 
-    m_user = static_cast<char*>(calloc(p - userpass + 1, 1));
-    strncpy(m_user, userpass, p - userpass);
-    m_pass = strdup(p + 1);
+////    m_user = static_cast<char*>(calloc(p - userpass + 1, 1));
+//    strncpy(m_user, userpass, p - userpass);
+//    m_pass = strdup(p + 1);
 
     return true;
 }

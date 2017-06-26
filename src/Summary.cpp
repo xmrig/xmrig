@@ -111,17 +111,20 @@ static void print_threads()
 
 static void print_pools()
 {
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #1:      \x1B[01;36m%s:%d" : " * POOL #1:      %s:%d",
-                   Options::i()->url()->host(),
-                   Options::i()->url()->port());
+    const std::vector<Url*> &pools = Options::i()->pools();
 
-    if (!Options::i()->backupUrl()) {
-        return;
+    for (size_t i = 0; i < pools.size(); ++i) {
+        Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #%d:      \x1B[01;36m%s:%d" : " * POOL #%d:      %s:%d",
+                       i + 1,
+                       pools[i]->host(),
+                       pools[i]->port());
     }
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #2:      \x1B[01;36m%s:%d" : " * POOL #2:      %s:%d",
-                   Options::i()->backupUrl()->host(),
-                   Options::i()->backupUrl()->port());
+#   ifdef APP_DEBUG
+    for (size_t i = 0; i < pools.size(); ++i) {
+        Log::i()->text("%s:%d, user: %s, pass: %s, ka: %d, nicehash: %d", pools[i]->host(), pools[i]->port(), pools[i]->user(), pools[i]->password(), pools[i]->isKeepAlive(), pools[i]->isNicehash());
+    }
+#   endif
 }
 
 
