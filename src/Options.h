@@ -56,11 +56,8 @@ public:
     inline bool colors() const                    { return m_colors; }
     inline bool doubleHash() const                { return m_doubleHash; }
     inline bool isReady() const                   { return m_ready; }
-    inline bool keepAlive() const                 { return m_keepAlive; }
-    inline bool nicehash() const                  { return m_nicehash; }
     inline bool syslog() const                    { return m_syslog; }
     inline const char *logFile() const            { return m_logFile; }
-    inline const char *pass() const               { return m_pass; }
     inline const std::vector<Url*> &pools() const { return m_pools; }
     inline int algo() const                       { return m_algo; }
     inline int algoVariant() const                { return m_algoVariant; }
@@ -85,7 +82,6 @@ private:
     void showVersion(void);
 
     bool setAlgo(const char *algo);
-    bool setUserpass(const char *userpass);
 
     int getAlgoVariant() const;
 #   ifndef XMRIG_NO_AEON
@@ -95,14 +91,10 @@ private:
     bool m_background;
     bool m_colors;
     bool m_doubleHash;
-    bool m_keepAlive;
-    bool m_nicehash;
     bool m_ready;
     bool m_safe;
     bool m_syslog;
     char *m_logFile;
-    char *m_pass;
-//    char *m_user;
     int m_algo;
     int m_algoVariant;
     int m_donateLevel;

@@ -45,7 +45,7 @@ Network::Network(const Options *options) :
     m_agent = userAgent();
 
     addPool(std::make_unique<Url>().get());
-//    addPool(m_options->url());
+    addPool(m_options->pools().front());
 //    addPool(m_options->backupUrl());
 
     m_timer.data = this;
@@ -120,7 +120,7 @@ void Network::onJobResult(const JobResult &result)
 
 void Network::onLoginCredentialsRequired(Client *client)
 {
-//    client->login(m_options->user(), m_options->pass(), m_agent);
+    client->login(m_options->pools().front()->password(), m_options->pools().front()->password(), m_agent);
 }
 
 
@@ -154,7 +154,7 @@ void Network::addPool(const Url *url)
     Client *client = new Client(m_pools.size(), this);
     client->setUrl(url);
     client->setRetryPause(m_options->retryPause() * 1000);
-    client->setKeepAlive(m_options->keepAlive());
+//    client->setKeepAlive(m_options->keepAlive());
 
     m_pools.push_back(client);
 }

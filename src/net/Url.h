@@ -51,9 +51,9 @@ public:
 
     bool isNicehash() const;
     bool parse(const char *url);
+    bool setUserpass(const char *userpass);
     void setPassword(const char *password, bool force = true);
     void setUser(const char *user, bool force = true);
-
 private:
     bool m_keepAlive;
     bool m_nicehash;
