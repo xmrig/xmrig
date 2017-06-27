@@ -41,7 +41,7 @@ void Cpu::init()
 }
 
 
-void Cpu::setAffinity(int id, unsigned long mask)
+void Cpu::setAffinity(int id, uint64_t mask)
 {
     if (id == -1) {
         SetProcessAffinityMask(GetCurrentProcess(), mask);

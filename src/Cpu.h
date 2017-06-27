@@ -25,6 +25,9 @@
 #define __CPU_H__
 
 
+#include <stdint.h>
+
+
 class Cpu
 {
 public:
@@ -36,7 +39,7 @@ public:
 
     static int optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage);
     static void init();
-    static void setAffinity(int id, unsigned long mask);
+    static void setAffinity(int id, uint64_t mask);
 
     static inline bool hasAES()       { return m_flags & AES; }
     static inline bool isX64()        { return m_flags & X86_64; }
