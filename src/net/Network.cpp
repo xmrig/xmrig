@@ -69,8 +69,19 @@ void Network::connect()
 }
 
 
-void Network::onClose(Client *client, int failures)
+void Network::onActive(Client *client)
 {
+    if (client->id() == -1) {
+        LOG_NOTICE("dev donate started");
+        return;
+    }
+
+    LOG_INFO(m_options->colors() ? "\x1B[01;37muse pool: \x1B[01;36m%s:%d" : "use pool: %s:%d", client->host(), client->port());
+}
+
+
+//void Network::onClose(Client *client, int failures)
+//{
 //    const int id = client->id();
 //    if (id == 0) {
 //        if (failures == -1) {
@@ -88,12 +99,12 @@ void Network::onClose(Client *client, int failures)
 //    if (id == 1 && m_pools.size() > 2 && failures == m_options->retries()) {
 //        m_pools[2]->connect();
 //    }
-}
+//}
 
 
-void Network::onJobReceived(Client *client, const Job &job)
+void Network::onJob(Client *client, const Job &job)
 {
-    if (m_donateActive && client->id() != 0) {
+    if (m_donate && m_donate->isActive() && client->id() != -1) {
         return;
     }
 
@@ -103,19 +114,18 @@ void Network::onJobReceived(Client *client, const Job &job)
 
 void Network::onJobResult(const JobResult &result)
 {
-//    if (m_options->colors()) {
-//        LOG_NOTICE("\x1B[01;32mSHARE FOUND");
-//    }
-//    else {
-//        LOG_NOTICE("SHARE FOUND");
-//    }
+    LOG_NOTICE(m_options->colors() ? "\x1B[01;32mSHARE FOUND" : "SHARE FOUND");
 
-//    m_pools[result.poolId]->submit(result);
+    if (result.poolId == -1 && m_donate) {
+        return m_donate->submit(result);
+    }
+
+    m_strategy->submit(result);
 }
 
 
-void Network::onLoginSuccess(Client *client)
-{
+//void Network::onLoginSuccess(Client *client)
+//{
 //    const int id = client->id();
 //    if (id == 0) {
 //        return startDonate();
@@ -132,6 +142,15 @@ void Network::onLoginSuccess(Client *client)
 //    if (m_pool == 1 && m_pools.size() > 2) { // try disconnect from backup pool
 //        m_pools[2]->disconnect();
 //    }
+//}
+
+
+void Network::onPause(IStrategy *strategy)
+{
+    if ((m_donate && !m_donate->isActive()) || !m_strategy->isActive()) {
+        LOG_ERR("no active pools, pause mining");
+        Workers::pause();
+    }
 }
 
 

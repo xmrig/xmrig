@@ -39,7 +39,7 @@ class Options;
 class Url;
 
 
-class Network : public IClientListener, public IJobResultListener, public IStrategyListener
+class Network : public IJobResultListener, public IStrategyListener
 {
 public:
   Network(const Options *options);
@@ -50,10 +50,10 @@ public:
   static char *userAgent();
 
 protected:
-  void onClose(Client *client, int failures) override;
-  void onJobReceived(Client *client, const Job &job) override;
+  void onActive(Client *client) override;
+  void onJob(Client *client, const Job &job) override;
   void onJobResult(const JobResult &result) override;
-  void onLoginSuccess(Client *client) override;
+  void onPause(IStrategy *strategy) override;
 
 private:
   void addPool(const Url *url);

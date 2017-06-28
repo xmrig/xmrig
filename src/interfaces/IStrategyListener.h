@@ -25,10 +25,19 @@
 #define __ISTRATEGYLISTENER_H__
 
 
+class Client;
+class IStrategy;
+class Job;
+
+
 class IStrategyListener
 {
 public:
     virtual ~IStrategyListener() {}
+
+    virtual void onActive(Client *client)              = 0;
+    virtual void onJob(Client *client, const Job &job) = 0;
+    virtual void onPause(IStrategy *strategy)          = 0;
 };
 
 

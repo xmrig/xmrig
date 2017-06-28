@@ -40,7 +40,9 @@ public:
     SinglePoolStrategy(const Url *url, const char *agent, IStrategyListener *listener);
 
 public:
+    bool isActive() const override;
     void connect() override;
+    void submit(const JobResult &result) override;
 
 protected:
     void onClose(Client *client, int failures) override;
@@ -48,6 +50,7 @@ protected:
     void onLoginSuccess(Client *client) override;
 
 private:
+    bool m_active;
     Client *m_client;
     IStrategyListener *m_listener;
 };

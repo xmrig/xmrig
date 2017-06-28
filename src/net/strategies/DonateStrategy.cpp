@@ -22,12 +22,14 @@
  */
 
 
+#include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
 #include "net/strategies/DonateStrategy.h"
 #include "Options.h"
 
 
 DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
+    m_active(false),
     m_listener(listener)
 {
     Url *url = new Url("donate.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, Options::i()->pools().front()->user());
@@ -45,8 +47,20 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
 }
 
 
+bool DonateStrategy::isActive() const
+{
+    return m_active;
+}
+
+
 void DonateStrategy::connect()
 {
+}
+
+
+void DonateStrategy::submit(const JobResult &result)
+{
+    m_client->submit(result);
 }
 
 
@@ -58,12 +72,14 @@ void DonateStrategy::onClose(Client *client, int failures)
 
 void DonateStrategy::onJobReceived(Client *client, const Job &job)
 {
-
+    m_listener->onJob(client, job);
 }
 
 
 void DonateStrategy::onLoginSuccess(Client *client)
 {
+    m_active = true;
+    m_listener->onActive(client);
 }
 
 

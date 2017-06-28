@@ -22,17 +22,25 @@
  */
 
 
+#include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
 #include "net/strategies/SinglePoolStrategy.h"
 #include "Options.h"
 
 
 SinglePoolStrategy::SinglePoolStrategy(const Url *url, const char *agent, IStrategyListener *listener) :
+    m_active(false),
     m_listener(listener)
 {
     m_client = new Client(0, agent, this);
     m_client->setUrl(url);
     m_client->setRetryPause(Options::i()->retryPause() * 1000);
+}
+
+
+bool SinglePoolStrategy::isActive() const
+{
+    return m_active;
 }
 
 
@@ -42,18 +50,31 @@ void SinglePoolStrategy::connect()
 }
 
 
+void SinglePoolStrategy::submit(const JobResult &result)
+{
+    m_client->submit(result);
+}
+
+
 void SinglePoolStrategy::onClose(Client *client, int failures)
 {
+    if (!isActive()) {
+        return;
+    }
 
+    m_active = false;
+    m_listener->onPause(this);
 }
 
 
 void SinglePoolStrategy::onJobReceived(Client *client, const Job &job)
 {
-
+    m_listener->onJob(client, job);
 }
 
 
 void SinglePoolStrategy::onLoginSuccess(Client *client)
 {
+    m_active = true;
+    m_listener->onActive(client);
 }

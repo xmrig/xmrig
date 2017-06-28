@@ -25,12 +25,17 @@
 #define __ISTRATEGY_H__
 
 
+class JobResult;
+
+
 class IStrategy
 {
 public:
     virtual ~IStrategy() {}
 
-    virtual void connect() = 0;
+    virtual bool isActive() const                = 0;
+    virtual void connect()                       = 0;
+    virtual void submit(const JobResult &result) = 0;
 };
 
 

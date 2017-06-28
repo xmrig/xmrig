@@ -43,7 +43,9 @@ public:
     DonateStrategy(const char *agent, IStrategyListener *listener);
 
 public:
+    bool isActive() const override;
     void connect() override;
+    void submit(const JobResult &result) override;
 
 protected:
     void onClose(Client *client, int failures) override;
@@ -53,6 +55,7 @@ protected:
 private:
     static void onTimer(uv_timer_t *handle);
 
+    bool m_active;
     Client *m_client;
     IStrategyListener *m_listener;
     uv_timer_t m_timer;

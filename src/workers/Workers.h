@@ -50,7 +50,7 @@ public:
     static inline bool isOutdated(uint64_t sequence)             { return m_sequence.load(std::memory_order_relaxed) != sequence; }
     static inline bool isPaused()                                { return m_paused.load(std::memory_order_relaxed) == 1; }
     static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
-    static inline void pause()                                   { m_paused = 1; }
+    static inline void pause()                                   { m_paused = 1; m_sequence++; }
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
 
 private:
