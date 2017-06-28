@@ -118,12 +118,6 @@ void Network::onJobResult(const JobResult &result)
 }
 
 
-void Network::onLoginCredentialsRequired(Client *client)
-{
-    client->login(m_options->pools().front()->password(), m_options->pools().front()->password(), m_agent);
-}
-
-
 void Network::onLoginSuccess(Client *client)
 {
     const int id = client->id();
@@ -151,7 +145,7 @@ void Network::addPool(const Url *url)
         return;
     }
 
-    Client *client = new Client(m_pools.size(), this);
+    Client *client = new Client(m_pools.size(), m_agent, this);
     client->setUrl(url);
     client->setRetryPause(m_options->retryPause() * 1000);
 //    client->setKeepAlive(m_options->keepAlive());

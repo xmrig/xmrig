@@ -144,23 +144,31 @@ bool Url::setUserpass(const char *userpass)
 }
 
 
-void Url::setPassword(const char *password, bool force)
+void Url::setPassword(const char *password)
 {
-    if (m_password != nullptr && !force) {
-        return;
-    }
-
     free(m_password);
     m_password = strdup(password);
 }
 
 
-void Url::setUser(const char *user, bool force)
+void Url::setUser(const char *user)
 {
-    if (m_user != nullptr && !force) {
-        return;
-    }
-
     free(m_user);
     m_user = strdup(user);
+}
+
+
+Url &Url::operator=(const Url *other)
+{
+    m_keepAlive = other->m_keepAlive;
+    m_nicehash  = other->m_nicehash;
+    m_port      = other->m_port;
+
+    free(m_host);
+    m_host = strdup(other->m_host);
+
+    setPassword(other->m_password);
+    setUser(other->m_user);
+
+    return *this;
 }

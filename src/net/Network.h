@@ -51,7 +51,6 @@ protected:
   void onClose(Client *client, int failures) override;
   void onJobReceived(Client *client, const Job &job) override;
   void onJobResult(const JobResult &result) override;
-  void onLoginCredentialsRequired(Client *client) override;
   void onLoginSuccess(Client *client) override;
 
 private:
