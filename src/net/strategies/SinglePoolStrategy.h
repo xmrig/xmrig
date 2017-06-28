@@ -21,52 +21,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
-
-
-#include <vector>
-#include <uv.h>
+#ifndef __SINGLEPOOLSTRATEGY_H__
+#define __SINGLEPOOLSTRATEGY_H__
 
 
 #include "interfaces/IClientListener.h"
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
+#include "interfaces/IStrategy.h"
 
 
-class IStrategy;
-class Options;
+class Client;
+class IStrategyListener;
 class Url;
 
 
-class Network : public IClientListener, public IJobResultListener, public IStrategyListener
+class SinglePoolStrategy : public IStrategy, public IClientListener
 {
 public:
-  Network(const Options *options);
-  ~Network();
+    SinglePoolStrategy(const Url *url, const char *agent, IStrategyListener *listener);
 
-  void connect();
-
-  static char *userAgent();
+public:
+    void connect() override;
 
 protected:
-  void onClose(Client *client, int failures) override;
-  void onJobReceived(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onLoginSuccess(Client *client) override;
+    void onClose(Client *client, int failures) override;
+    void onJobReceived(Client *client, const Job &job) override;
+    void onLoginSuccess(Client *client) override;
 
 private:
-  void addPool(const Url *url);
-  void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
-
-  bool m_donateActive;
-  char *m_agent;
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
+    Client *m_client;
+    IStrategyListener *m_listener;
 };
 
-
-#endif /* __NETWORK_H__ */
+#endif /* __SINGLEPOOLSTRATEGY_H__ */

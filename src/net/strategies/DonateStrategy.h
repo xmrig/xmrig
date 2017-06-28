@@ -21,52 +21,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
+#ifndef __DONATESTRATEGY_H__
+#define __DONATESTRATEGY_H__
 
 
-#include <vector>
 #include <uv.h>
 
 
 #include "interfaces/IClientListener.h"
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
+#include "interfaces/IStrategy.h"
 
 
-class IStrategy;
-class Options;
+class Client;
+class IStrategyListener;
 class Url;
 
 
-class Network : public IClientListener, public IJobResultListener, public IStrategyListener
+class DonateStrategy : public IStrategy, public IClientListener
 {
 public:
-  Network(const Options *options);
-  ~Network();
+    DonateStrategy(const char *agent, IStrategyListener *listener);
 
-  void connect();
-
-  static char *userAgent();
+public:
+    void connect() override;
 
 protected:
-  void onClose(Client *client, int failures) override;
-  void onJobReceived(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onLoginSuccess(Client *client) override;
+    void onClose(Client *client, int failures) override;
+    void onJobReceived(Client *client, const Job &job) override;
+    void onLoginSuccess(Client *client) override;
 
 private:
-  void addPool(const Url *url);
-  void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
+    static void onTimer(uv_timer_t *handle);
 
-  bool m_donateActive;
-  char *m_agent;
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
+    Client *m_client;
+    IStrategyListener *m_listener;
+    uv_timer_t m_timer;
 };
 
-
-#endif /* __NETWORK_H__ */
+#endif /* __DONATESTRATEGY_H__ */

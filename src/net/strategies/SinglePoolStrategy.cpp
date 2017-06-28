@@ -21,52 +21,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
+
+#include "net/Client.h"
+#include "net/strategies/SinglePoolStrategy.h"
+#include "Options.h"
 
 
-#include <vector>
-#include <uv.h>
-
-
-#include "interfaces/IClientListener.h"
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
-
-
-class IStrategy;
-class Options;
-class Url;
-
-
-class Network : public IClientListener, public IJobResultListener, public IStrategyListener
+SinglePoolStrategy::SinglePoolStrategy(const Url *url, const char *agent, IStrategyListener *listener) :
+    m_listener(listener)
 {
-public:
-  Network(const Options *options);
-  ~Network();
-
-  void connect();
-
-  static char *userAgent();
-
-protected:
-  void onClose(Client *client, int failures) override;
-  void onJobReceived(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onLoginSuccess(Client *client) override;
-
-private:
-  void addPool(const Url *url);
-  void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
-
-  bool m_donateActive;
-  char *m_agent;
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
-};
+    m_client = new Client(0, agent, this);
+    m_client->setUrl(url);
+    m_client->setRetryPause(Options::i()->retryPause() * 1000);
+}
 
 
-#endif /* __NETWORK_H__ */
+void SinglePoolStrategy::connect()
+{
+    m_client->connect();
+}
+
+
+void SinglePoolStrategy::onClose(Client *client, int failures)
+{
+
+}
+
+
+void SinglePoolStrategy::onJobReceived(Client *client, const Job &job)
+{
+
+}
+
+
+void SinglePoolStrategy::onLoginSuccess(Client *client)
+{
+}

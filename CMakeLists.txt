@@ -15,6 +15,8 @@ set(HEADERS
     src/interfaces/IClientListener.h
     src/interfaces/IJobResultListener.h
     src/interfaces/ILogBackend.h
+    src/interfaces/IStrategy.h
+    src/interfaces/IStrategyListener.h
     src/interfaces/IWorker.h
     src/log/ConsoleLog.h
     src/log/FileLog.h
@@ -25,6 +27,8 @@ set(HEADERS
     src/net/JobResult.h
     src/net/Network.h
     src/net/Url.h
+    src/net/strategies/DonateStrategy.h
+    src/net/strategies/SinglePoolStrategy.h
     src/Options.h
     src/Summary.h
     src/version.h
@@ -60,6 +64,8 @@ set(SOURCES
     src/net/Job.cpp
     src/net/Network.cpp
     src/net/Url.cpp
+    src/net/strategies/DonateStrategy.cpp
+    src/net/strategies/SinglePoolStrategy.cpp
     src/Options.cpp
     src/Summary.cpp
     src/workers/DoubleWorker.cpp
@@ -114,7 +120,7 @@ else()
 endif()
 
 add_definitions(/DUNICODE)
-#add_definitions(/DAPP_DEBUG)
+add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -128,7 +134,7 @@ endif()
 # https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -Wno-strict-aliasing")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -std=c++14 -fno-exceptions -fno-rtti")

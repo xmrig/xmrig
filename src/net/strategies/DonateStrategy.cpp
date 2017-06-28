@@ -21,52 +21,53 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
+
+#include "net/Client.h"
+#include "net/strategies/DonateStrategy.h"
+#include "Options.h"
 
 
-#include <vector>
-#include <uv.h>
-
-
-#include "interfaces/IClientListener.h"
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
-
-
-class IStrategy;
-class Options;
-class Url;
-
-
-class Network : public IClientListener, public IJobResultListener, public IStrategyListener
+DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
+    m_listener(listener)
 {
-public:
-  Network(const Options *options);
-  ~Network();
+    Url *url = new Url("donate.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, Options::i()->pools().front()->user());
 
-  void connect();
+    m_client = new Client(-1, agent, this);
+    m_client->setUrl(url);
+    m_client->setRetryPause(Options::i()->retryPause() * 1000);
 
-  static char *userAgent();
+    delete url;
 
-protected:
-  void onClose(Client *client, int failures) override;
-  void onJobReceived(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onLoginSuccess(Client *client) override;
+    m_timer.data = this;
+    uv_timer_init(uv_default_loop(), &m_timer);
 
-private:
-  void addPool(const Url *url);
-  void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
-
-  bool m_donateActive;
-  char *m_agent;
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
-};
+    uv_timer_start(&m_timer, DonateStrategy::onTimer, (100 - Options::i()->donateLevel()) * 60 * 1000, 0);
+}
 
 
-#endif /* __NETWORK_H__ */
+void DonateStrategy::connect()
+{
+}
+
+
+void DonateStrategy::onClose(Client *client, int failures)
+{
+
+}
+
+
+void DonateStrategy::onJobReceived(Client *client, const Job &job)
+{
+
+}
+
+
+void DonateStrategy::onLoginSuccess(Client *client)
+{
+}
+
+
+void DonateStrategy::onTimer(uv_timer_t *handle)
+{
+
+}

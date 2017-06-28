@@ -69,10 +69,10 @@ Url::Url(const char *url) :
 
 
 Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash) :
-    m_keepAlive(false),
-    m_nicehash(false),
-    m_password(nullptr),
-    m_user(nullptr),
+    m_keepAlive(keepAlive),
+    m_nicehash(nicehash),
+    m_password(password ? strdup(password) : nullptr),
+    m_user(user ? strdup(user) : nullptr),
     m_port(port)
 {
     m_host = strdup(host);
