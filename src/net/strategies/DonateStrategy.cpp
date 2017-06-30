@@ -30,6 +30,8 @@
 
 DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_active(false),
+    m_donateTime(Options::i()->donateLevel() * 60 * 1000),
+    m_idleTime((100 - Options::i()->donateLevel()) * 60 * 1000),
     m_listener(listener)
 {
     Url *url = new Url("donate.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, Options::i()->pools().front()->user());
@@ -37,24 +39,20 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_client = new Client(-1, agent, this);
     m_client->setUrl(url);
     m_client->setRetryPause(Options::i()->retryPause() * 1000);
+    m_client->setQuiet(true);
 
     delete url;
 
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);
 
-    uv_timer_start(&m_timer, DonateStrategy::onTimer, (100 - Options::i()->donateLevel()) * 60 * 1000, 0);
-}
-
-
-bool DonateStrategy::isActive() const
-{
-    return m_active;
+    idle();
 }
 
 
 void DonateStrategy::connect()
 {
+    m_client->connect();
 }
 
 
@@ -66,7 +64,6 @@ void DonateStrategy::submit(const JobResult &result)
 
 void DonateStrategy::onClose(Client *client, int failures)
 {
-
 }
 
 
@@ -78,12 +75,39 @@ void DonateStrategy::onJobReceived(Client *client, const Job &job)
 
 void DonateStrategy::onLoginSuccess(Client *client)
 {
+    if (!isActive()) {
+        uv_timer_start(&m_timer, DonateStrategy::onTimer, m_donateTime, 0);
+    }
+
     m_active = true;
     m_listener->onActive(client);
 }
 
 
+void DonateStrategy::idle()
+{
+    uv_timer_start(&m_timer, DonateStrategy::onTimer, m_idleTime, 0);
+}
+
+
+void DonateStrategy::stop()
+{
+    m_client->disconnect();
+
+    m_active = false;
+    m_listener->onPause(this);
+
+    idle();
+}
+
+
 void DonateStrategy::onTimer(uv_timer_t *handle)
 {
+    auto strategy = static_cast<DonateStrategy*>(handle->data);
 
+    if (!strategy->isActive()) {
+        return strategy->connect();
+    }
+
+    strategy->stop();
 }

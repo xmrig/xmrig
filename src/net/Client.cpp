@@ -38,6 +38,7 @@
 
 
 Client::Client(int id, const char *agent, IClientListener *listener) :
+    m_quiet(false),
     m_agent(agent),
     m_listener(listener),
     m_id(id),
@@ -93,6 +94,7 @@ void Client::connect(const Url *url)
 
 void Client::disconnect()
 {
+    uv_timer_stop(&m_retriesTimer);
     m_failures = -1;
 
     close();
@@ -207,10 +209,13 @@ int Client::resolve(const char *host)
     setState(HostLookupState);
 
     m_recvBufPos = 0;
+    m_failures   = 0;
 
     const int r = uv_getaddrinfo(uv_default_loop(), &m_resolver, Client::onResolved, host, NULL, &m_hints);
     if (r) {
-        LOG_ERR("[%s:%u] getaddrinfo error: \"%s\"", host, m_url.port(), uv_strerror(r));
+        if (!m_quiet) {
+            LOG_ERR("[%s:%u] getaddrinfo error: \"%s\"", host, m_url.port(), uv_strerror(r));
+        }
         return 1;
     }
 
@@ -277,7 +282,9 @@ void Client::parse(char *line, size_t len)
     json_t *val = json_loads(line, 0, &err);
 
     if (!val) {
-        LOG_ERR("[%s:%u] JSON decode failed: \"%s\"", m_url.host(), m_url.port(), err.text);
+        if (!m_quiet) {
+            LOG_ERR("[%s:%u] JSON decode failed: \"%s\"", m_url.host(), m_url.port(), err.text);
+        }
         return;
     }
 
@@ -296,7 +303,9 @@ void Client::parse(char *line, size_t len)
 void Client::parseNotification(const char *method, const json_t *params, const json_t *error)
 {
     if (json_is_object(error)) {
-        LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+        if (!m_quiet) {
+            LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+        }
         return;
     }
 
@@ -321,7 +330,10 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 {
     if (json_is_object(error)) {
         const char *message = json_string_value(json_object_get(error, "message"));
-        LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
+
+        if (!m_quiet) {
+            LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
+        }
 
         if (id == 1 || (message && strncasecmp(message, "Unauthenticated", 15) == 0)) {
             close();
@@ -337,7 +349,10 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
     if (id == 1) {
         int code = -1;
         if (!parseLogin(result, &code)) {
-            LOG_ERR("[%s:%u] login error code: %d", m_url.host(), m_url.port(), code);
+            if (!m_quiet) {
+                LOG_ERR("[%s:%u] login error code: %d", m_url.host(), m_url.port(), code);
+            }
+
             return close();
         }
 
@@ -426,7 +441,10 @@ void Client::onConnect(uv_connect_t *req, int status)
 {
     auto client = getClient(req->data);
     if (status < 0) {
-        LOG_ERR("[%s:%u] connect error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
+        if (!client->m_quiet) {
+            LOG_ERR("[%s:%u] connect error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
+        }
+
         free(req);
         client->close();
         return;
@@ -447,7 +465,7 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     auto client = getClient(stream->data);
     if (nread < 0) {
-        if (nread != UV_EOF) {
+        if (nread != UV_EOF && !client->m_quiet) {
             LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(nread));
         }
 

@@ -38,15 +38,19 @@ SinglePoolStrategy::SinglePoolStrategy(const Url *url, const char *agent, IStrat
 }
 
 
-bool SinglePoolStrategy::isActive() const
-{
-    return m_active;
-}
-
-
 void SinglePoolStrategy::connect()
 {
     m_client->connect();
+}
+
+
+void SinglePoolStrategy::resume()
+{
+    if (!isActive()) {
+        return;
+    }
+
+    m_listener->onJob(m_client, m_client->job());
 }
 
 

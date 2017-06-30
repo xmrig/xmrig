@@ -40,8 +40,10 @@ public:
     SinglePoolStrategy(const Url *url, const char *agent, IStrategyListener *listener);
 
 public:
-    bool isActive() const override;
+    inline bool isActive() const override  { return m_active; }
+
     void connect() override;
+    void resume() override;
     void submit(const JobResult &result) override;
 
 protected:

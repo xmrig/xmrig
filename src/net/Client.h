@@ -67,6 +67,7 @@ public:
     inline int id() const                    { return m_id; }
     inline SocketState state() const         { return m_state; }
     inline uint16_t port() const             { return m_url.port(); }
+    inline void setQuiet(bool quiet)         { m_quiet = quiet; }
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
 private:
@@ -94,6 +95,7 @@ private:
 
     static Client *getClient(void *data);
 
+    bool m_quiet;
     char m_rpcId[64];
     const char *m_agent;
     IClientListener *m_listener;

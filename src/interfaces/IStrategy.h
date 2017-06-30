@@ -35,6 +35,7 @@ public:
 
     virtual bool isActive() const                = 0;
     virtual void connect()                       = 0;
+    virtual void resume()                        = 0;
     virtual void submit(const JobResult &result) = 0;
 };
 

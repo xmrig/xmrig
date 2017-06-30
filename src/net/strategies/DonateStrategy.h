@@ -43,7 +43,9 @@ public:
     DonateStrategy(const char *agent, IStrategyListener *listener);
 
 public:
-    bool isActive() const override;
+    inline bool isActive() const override  { return m_active; }
+    inline void resume() override          {}
+
     void connect() override;
     void submit(const JobResult &result) override;
 
@@ -53,10 +55,15 @@ protected:
     void onLoginSuccess(Client *client) override;
 
 private:
+    void idle();
+    void stop();
+
     static void onTimer(uv_timer_t *handle);
 
     bool m_active;
     Client *m_client;
+    const int m_donateTime;
+    const int m_idleTime;
     IStrategyListener *m_listener;
     uv_timer_t m_timer;
 };

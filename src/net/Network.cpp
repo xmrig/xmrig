@@ -147,9 +147,14 @@ void Network::onJobResult(const JobResult &result)
 
 void Network::onPause(IStrategy *strategy)
 {
-    if ((m_donate && !m_donate->isActive()) || !m_strategy->isActive()) {
+    if (m_donate && m_donate == strategy) {
+        LOG_NOTICE("dev donate finished");
+        m_strategy->resume();
+    }
+
+    if (!m_strategy->isActive()) {
         LOG_ERR("no active pools, pause mining");
-        Workers::pause();
+        return Workers::pause();
     }
 }
 
@@ -165,18 +170,6 @@ void Network::setJob(Client *client, const Job &job)
     }
 
     Workers::setJob(job);
-}
-
-
-void Network::startDonate()
-{
-    if (m_donateActive) {
-        return;
-    }
-
-    LOG_NOTICE("dev donate started");
-
-    m_donateActive = true;
 }
 
 
