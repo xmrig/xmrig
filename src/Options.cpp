@@ -54,7 +54,6 @@ Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
   -a, --algo=ALGO       cryptonight (default) or cryptonight-lite\n\
   -o, --url=URL         URL of mining server\n\
-  -b, --backup-url=URL  URL of backup mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
   -u, --user=USERNAME   username for mining server\n\
   -p, --pass=PASSWORD   password for mining server\n\
@@ -83,14 +82,13 @@ Options:\n\
 ";
 
 
-static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vb:l:S";
+static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 
 
 static struct option const options[] = {
     { "algo",          1, nullptr, 'a'  },
     { "av",            1, nullptr, 'v'  },
     { "background",    0, nullptr, 'B'  },
-    { "backup-url",    1, nullptr, 'b'  },
     { "config",        1, nullptr, 'c'  },
     { "cpu-affinity",  1, nullptr, 1020 },
     { "donate-level",  1, nullptr, 1003 },
