@@ -63,6 +63,7 @@ public:
 
     inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }
     inline const char *host() const          { return m_url.host(); }
+    inline const char *ip() const            { return m_ip; }
     inline const Job &job() const            { return m_job; }
     inline int id() const                    { return m_id; }
     inline SocketState state() const         { return m_state; }
@@ -96,6 +97,7 @@ private:
     static Client *getClient(void *data);
 
     bool m_quiet;
+    char m_ip[17];
     char m_rpcId[64];
     const char *m_agent;
     IClientListener *m_listener;

@@ -50,6 +50,7 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_stream(nullptr),
     m_socket(nullptr)
 {
+    memset(m_ip, 0, sizeof(m_ip));
     m_resolver.data = m_responseTimer.data = m_retriesTimer.data = m_keepAliveTimer.data = this;
 
     m_hints.ai_family   = PF_INET;
@@ -512,6 +513,8 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
         LOG_ERR("[%s:%u] DNS error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
         return client->reconnect();;
     }
+
+    uv_ip4_name(reinterpret_cast<sockaddr_in*>(res->ai_addr), client->m_ip, 16);
 
     client->connect(res->ai_addr);
     uv_freeaddrinfo(res);
