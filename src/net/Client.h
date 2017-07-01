@@ -48,7 +48,7 @@ public:
         ClosingState
     };
 
-    constexpr static int kResponseTimeout  = 15 * 1000;
+    constexpr static int kResponseTimeout  = 20 * 1000;
     constexpr static int kKeepAliveTimeout = 60 * 1000;
 
     Client(int id, const char *agent, IClientListener *listener);
