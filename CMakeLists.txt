@@ -28,6 +28,7 @@ set(HEADERS
     src/net/Network.h
     src/net/Url.h
     src/net/strategies/DonateStrategy.h
+    src/net/strategies/FailoverStrategy.h
     src/net/strategies/SinglePoolStrategy.h
     src/Options.h
     src/Summary.h
@@ -65,6 +66,7 @@ set(SOURCES
     src/net/Network.cpp
     src/net/Url.cpp
     src/net/strategies/DonateStrategy.cpp
+    src/net/strategies/FailoverStrategy.cpp
     src/net/strategies/SinglePoolStrategy.cpp
     src/Options.cpp
     src/Summary.cpp
@@ -120,7 +122,7 @@ else()
 endif()
 
 add_definitions(/DUNICODE)
-#add_definitions(/DAPP_DEBUG)
+add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 

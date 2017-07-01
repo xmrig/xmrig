@@ -209,7 +209,10 @@ int Client::resolve(const char *host)
     setState(HostLookupState);
 
     m_recvBufPos = 0;
-    m_failures   = 0;
+
+    if (m_failures == -1) {
+        m_failures = 0;
+    }
 
     const int r = uv_getaddrinfo(uv_default_loop(), &m_resolver, Client::onResolved, host, NULL, &m_hints);
     if (r) {
@@ -375,6 +378,8 @@ void Client::ping()
 
 void Client::reconnect()
 {
+    setState(ConnectingState);
+
     uv_timer_stop(&m_responseTimer);
     if (m_url.isKeepAlive()) {
         uv_timer_stop(&m_keepAliveTimer);
