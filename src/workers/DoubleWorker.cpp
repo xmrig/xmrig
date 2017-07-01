@@ -85,7 +85,7 @@ void DoubleWorker::consumeJob()
     memcpy(m_blob,                m_job.blob(), m_job.size());
     memcpy(m_blob + m_job.size(), m_job.blob(), m_job.size());
 
-    if (m_nicehash) {
+    if (m_job.isNicehash()) {
         m_nonce1 = (*Job::nonce(m_blob)                & 0xff000000U) + (0xffffffU / (m_threads * 2) * m_id);
         m_nonce2 = (*Job::nonce(m_blob + m_job.size()) & 0xff000000U) + (0xffffffU / (m_threads * 2) * (m_id + m_threads));
     }

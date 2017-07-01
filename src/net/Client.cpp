@@ -165,7 +165,7 @@ bool Client::parseJob(const json_t *params, int *code)
         return false;
     }
 
-    Job job;
+    Job job(m_id, m_url.isNicehash());
     if (!job.setId(json_string_value(json_object_get(params, "job_id")))) {
         *code = 3;
         return false;
@@ -181,7 +181,6 @@ bool Client::parseJob(const json_t *params, int *code)
         return false;
     }
 
-    job.setPoolId(m_id);
     m_job = std::move(job);
 
     LOG_DEBUG("[%s:%u] job: \"%s\", diff: %lld", m_url.host(), m_url.port(), job.id(), job.diff());

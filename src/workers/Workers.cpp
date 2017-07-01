@@ -69,7 +69,7 @@ void Workers::setJob(const Job &job)
 }
 
 
-void Workers::start(int64_t affinity, bool nicehash)
+void Workers::start(int64_t affinity)
 {
     const int threads = Mem::threads();
     m_hashrate = new Hashrate(threads);
@@ -85,7 +85,7 @@ void Workers::start(int64_t affinity, bool nicehash)
     uv_timer_start(&m_timer, Workers::onTick, 500, 500);
 
     for (int i = 0; i < threads; ++i) {
-        Handle *handle = new Handle(i, threads, affinity, nicehash);
+        Handle *handle = new Handle(i, threads, affinity);
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }

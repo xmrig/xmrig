@@ -25,8 +25,7 @@
 #include "workers/Handle.h"
 
 
-Handle::Handle(int threadId, int threads, int64_t affinity, bool nicehash) :
-    m_nicehash(nicehash),
+Handle::Handle(int threadId, int threads, int64_t affinity) :
     m_threadId(threadId),
     m_threads(threads),
     m_affinity(affinity),

@@ -31,7 +31,6 @@
 
 
 Worker::Worker(Handle *handle) :
-    m_nicehash(handle->nicehash()),
     m_id(handle->threadId()),
     m_threads(handle->threads()),
     m_hashCount(0),

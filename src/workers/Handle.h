@@ -35,10 +35,9 @@ class IWorker;
 class Handle
 {
 public:
-    Handle(int threadId, int threads, int64_t affinity, bool nicehash);
+    Handle(int threadId, int threads, int64_t affinity);
     void start(void (*callback) (void *));
 
-    inline bool nicehash() const           { return m_nicehash; }
     inline int threadId() const            { return m_threadId; }
     inline int threads() const             { return m_threads; }
     inline int64_t affinity() const        { return m_affinity; }
@@ -46,7 +45,6 @@ public:
     inline void setWorker(IWorker *worker) { m_worker = worker; }
 
 private:
-    bool m_nicehash;
     int m_threadId;
     int m_threads;
     int64_t m_affinity;

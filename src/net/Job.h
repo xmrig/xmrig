@@ -34,20 +34,21 @@
 class Job
 {
 public:
-    Job(int poolId = -2);
+    Job(int poolId = -2, bool nicehash = false);
     bool setBlob(const char *blob);
     bool setId(const char *id);
     bool setTarget(const char *target);
 
-    inline bool isValid() const        { return m_size > 0 && m_diff > 0; }
-    inline const char *id() const      { return m_id; }
-    inline const uint8_t *blob() const { return m_blob; }
-    inline int poolId() const          { return m_poolId; }
-    inline uint32_t *nonce()           { return reinterpret_cast<uint32_t*>(m_blob + 39); }
-    inline uint32_t diff() const       { return m_diff; }
-    inline uint32_t size() const       { return m_size; }
-    inline uint64_t target() const     { return m_target; }
-    inline void setPoolId(int poolId)  { m_poolId = poolId; }
+    inline bool isNicehash() const         { return m_nicehash; }
+    inline bool isValid() const            { return m_size > 0 && m_diff > 0; }
+    inline const char *id() const          { return m_id; }
+    inline const uint8_t *blob() const     { return m_blob; }
+    inline int poolId() const              { return m_poolId; }
+    inline uint32_t *nonce()               { return reinterpret_cast<uint32_t*>(m_blob + 39); }
+    inline uint32_t diff() const           { return m_diff; }
+    inline uint32_t size() const           { return m_size; }
+    inline uint64_t target() const         { return m_target; }
+    inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
 
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
@@ -55,6 +56,7 @@ public:
     static void toHex(const unsigned char* in, unsigned int len, char* out);
 
 private:
+    bool m_nicehash;
     int m_poolId;
     VAR_ALIGN(16, char m_id[64]);
     VAR_ALIGN(16, uint8_t m_blob[84]); // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.

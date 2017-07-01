@@ -48,7 +48,6 @@ public:
 protected:
     void storeStats();
 
-    bool m_nicehash;
     cryptonight_ctx *m_ctx;
     int m_id;
     int m_threads;
