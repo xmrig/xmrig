@@ -30,11 +30,11 @@
 
 
 #include "net/Job.h"
+#include "net/Url.h"
 
 
 class IClientListener;
 class JobResult;
-class Url;
 
 
 class Client
@@ -48,27 +48,26 @@ public:
         ClosingState
     };
 
-    constexpr static int kResponseTimeout  = 15 * 1000;
+    constexpr static int kResponseTimeout  = 20 * 1000;
     constexpr static int kKeepAliveTimeout = 60 * 1000;
 
-    Client(int id, IClientListener *listener);
+    Client(int id, const char *agent, IClientListener *listener);
     ~Client();
 
     void connect();
     void connect(const Url *url);
     void disconnect();
-    void login(const char *user, const char *pass, const char *agent);
     void send(char *data);
     void setUrl(const Url *url);
     void submit(const JobResult &result);
 
     inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }
-    inline const char *host() const          { return m_host; }
+    inline const char *host() const          { return m_url.host(); }
     inline const Job &job() const            { return m_job; }
     inline int id() const                    { return m_id; }
     inline SocketState state() const         { return m_state; }
-    inline uint16_t port() const             { return m_port; }
-    inline void setKeepAlive(bool keepAlive) { m_keepAlive = keepAlive; }
+    inline uint16_t port() const             { return m_url.port(); }
+    inline void setQuiet(bool quiet)         { m_quiet = quiet; }
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
 private:
@@ -79,6 +78,7 @@ private:
     int resolve(const char *host);
     void close();
     void connect(struct sockaddr *addr);
+    void login();
     void parse(char *line, size_t len);
     void parseNotification(const char *method, const json_t *params, const json_t *error);
     void parseResponse(int64_t id, const json_t *result, const json_t *error);
@@ -95,9 +95,9 @@ private:
 
     static Client *getClient(void *data);
 
-    bool m_keepAlive;
-    char *m_host;
+    bool m_quiet;
     char m_rpcId[64];
+    const char *m_agent;
     IClientListener *m_listener;
     int m_id;
     int m_retryPause;
@@ -107,7 +107,7 @@ private:
     size_t m_recvBufPos;
     SocketState m_state;
     struct addrinfo m_hints;
-    uint16_t m_port;
+    Url m_url;
     uv_buf_t m_recvBuf;
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;

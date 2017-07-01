@@ -35,8 +35,12 @@
 
 
 Url::Url() :
+    m_keepAlive(false),
+    m_nicehash(false),
     m_host(nullptr),
-    m_port(3333)
+    m_password(nullptr),
+    m_user(nullptr),
+    m_port(kDefaultPort)
 {
 }
 
@@ -53,40 +57,22 @@ Url::Url() :
  * @param url
  */
 Url::Url(const char *url) :
+    m_keepAlive(false),
+    m_nicehash(false),
     m_host(nullptr),
-    m_port(3333)
+    m_password(nullptr),
+    m_user(nullptr),
+    m_port(kDefaultPort)
 {
-    const char *p = strstr(url, "://");
-    const char *base = url;
-
-    if (p) {
-        if (strncasecmp(url, "stratum+tcp://", 14)) {
-            return;
-        }
-
-        base = url + 14;
-    }
-
-    if (!strlen(base) || *base == '/') {
-        return;
-    }
-
-    const char *port = strchr(base, ':');
-    if (!port) {
-        m_host = strdup(base);
-        return;
-    }
-
-    const size_t size = port++ - base + 1;
-    m_host = static_cast<char*>(malloc(size));
-    memcpy(m_host, base, size - 1);
-    m_host[size - 1] = '\0';
-
-    m_port = strtol(port, nullptr, 10);
+    parse(url);
 }
 
 
-Url::Url(const char *host, uint16_t port) :
+Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash) :
+    m_keepAlive(keepAlive),
+    m_nicehash(nicehash),
+    m_password(password ? strdup(password) : nullptr),
+    m_user(user ? strdup(user) : nullptr),
     m_port(port)
 {
     m_host = strdup(host);
@@ -96,10 +82,93 @@ Url::Url(const char *host, uint16_t port) :
 Url::~Url()
 {
     free(m_host);
+    free(m_password);
+    free(m_user);
 }
 
 
 bool Url::isNicehash() const
 {
-    return isValid() && strstr(m_host, ".nicehash.com");
+    return isValid() && (m_nicehash || strstr(m_host, ".nicehash.com"));
+}
+
+
+bool Url::parse(const char *url)
+{
+    const char *p = strstr(url, "://");
+    const char *base = url;
+
+    if (p) {
+        if (strncasecmp(url, "stratum+tcp://", 14)) {
+            return false;
+        }
+
+        base = url + 14;
+    }
+
+    if (!strlen(base) || *base == '/') {
+        return false;
+    }
+
+    const char *port = strchr(base, ':');
+    if (!port) {
+        m_host = strdup(base);
+        return false;
+    }
+
+    const size_t size = port++ - base + 1;
+    m_host = static_cast<char*>(malloc(size));
+    memcpy(m_host, base, size - 1);
+    m_host[size - 1] = '\0';
+
+    m_port = strtol(port, nullptr, 10);
+    return true;
+}
+
+
+bool Url::setUserpass(const char *userpass)
+{
+    const char *p = strchr(userpass, ':');
+    if (!p) {
+        return false;
+    }
+
+    free(m_user);
+    free(m_password);
+
+    m_user = static_cast<char*>(calloc(p - userpass + 1, 1));
+    strncpy(m_user, userpass, p - userpass);
+    m_password = strdup(p + 1);
+
+    return true;
+}
+
+
+void Url::setPassword(const char *password)
+{
+    free(m_password);
+    m_password = strdup(password);
+}
+
+
+void Url::setUser(const char *user)
+{
+    free(m_user);
+    m_user = strdup(user);
+}
+
+
+Url &Url::operator=(const Url *other)
+{
+    m_keepAlive = other->m_keepAlive;
+    m_nicehash  = other->m_nicehash;
+    m_port      = other->m_port;
+
+    free(m_host);
+    m_host = strdup(other->m_host);
+
+    setPassword(other->m_password);
+    setUser(other->m_user);
+
+    return *this;
 }

@@ -36,7 +36,6 @@ public:
 
     virtual void onClose(Client *client, int failures)         = 0;
     virtual void onJobReceived(Client *client, const Job &job) = 0;
-    virtual void onLoginCredentialsRequired(Client *client)    = 0;
     virtual void onLoginSuccess(Client *client)                = 0;
 };
 

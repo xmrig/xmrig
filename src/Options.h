@@ -25,6 +25,7 @@
 #define __OPTIONS_H__
 
 
+#include <vector>
 #include <stdint.h>
 
 
@@ -51,26 +52,21 @@ public:
     static inline Options* i() { return m_self; }
     static Options *parse(int argc, char **argv);
 
-    inline bool background() const      { return m_background; }
-    inline bool colors() const          { return m_colors; }
-    inline bool doubleHash() const      { return m_doubleHash; }
-    inline bool isReady() const         { return m_ready; }
-    inline bool keepAlive() const       { return m_keepAlive; }
-    inline bool nicehash() const        { return m_nicehash; }
-    inline bool syslog() const          { return m_syslog; }
-    inline const char *logFile() const  { return m_logFile; }
-    inline const char *pass() const     { return m_pass; }
-    inline const char *user() const     { return m_user; }
-    inline const Url *backupUrl() const { return m_backupUrl; }
-    inline const Url *url() const       { return m_url; }
-    inline int algo() const             { return m_algo; }
-    inline int algoVariant() const      { return m_algoVariant; }
-    inline int donateLevel() const      { return m_donateLevel; }
-    inline int printTime() const        { return m_printTime; }
-    inline int retries() const          { return m_retries; }
-    inline int retryPause() const       { return m_retryPause; }
-    inline int threads() const          { return m_threads; }
-    inline int64_t affinity() const     { return m_affinity; }
+    inline bool background() const                { return m_background; }
+    inline bool colors() const                    { return m_colors; }
+    inline bool doubleHash() const                { return m_doubleHash; }
+    inline bool isReady() const                   { return m_ready; }
+    inline bool syslog() const                    { return m_syslog; }
+    inline const char *logFile() const            { return m_logFile; }
+    inline const std::vector<Url*> &pools() const { return m_pools; }
+    inline int algo() const                       { return m_algo; }
+    inline int algoVariant() const                { return m_algoVariant; }
+    inline int donateLevel() const                { return m_donateLevel; }
+    inline int printTime() const                  { return m_printTime; }
+    inline int retries() const                    { return m_retries; }
+    inline int retryPause() const                 { return m_retryPause; }
+    inline int threads() const                    { return m_threads; }
+    inline int64_t affinity() const               { return m_affinity; }
 
     const char *algoName() const;
 
@@ -86,7 +82,6 @@ private:
     void showVersion(void);
 
     bool setAlgo(const char *algo);
-    bool setUserpass(const char *userpass);
 
     int getAlgoVariant() const;
 #   ifndef XMRIG_NO_AEON
@@ -96,14 +91,10 @@ private:
     bool m_background;
     bool m_colors;
     bool m_doubleHash;
-    bool m_keepAlive;
-    bool m_nicehash;
     bool m_ready;
     bool m_safe;
     bool m_syslog;
     char *m_logFile;
-    char *m_pass;
-    char *m_user;
     int m_algo;
     int m_algoVariant;
     int m_donateLevel;
@@ -113,8 +104,7 @@ private:
     int m_retryPause;
     int m_threads;
     int64_t m_affinity;
-    Url *m_backupUrl;
-    Url *m_url;
+    std::vector<Url*> m_pools;
 };
 
 #endif /* __OPTIONS_H__ */

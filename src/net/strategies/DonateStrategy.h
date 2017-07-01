@@ -21,52 +21,51 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
+#ifndef __DONATESTRATEGY_H__
+#define __DONATESTRATEGY_H__
 
 
-#include <vector>
 #include <uv.h>
 
 
 #include "interfaces/IClientListener.h"
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
+#include "interfaces/IStrategy.h"
 
 
-class IStrategy;
-class Options;
+class Client;
+class IStrategyListener;
 class Url;
 
 
-class Network : public IJobResultListener, public IStrategyListener
+class DonateStrategy : public IStrategy, public IClientListener
 {
 public:
-  Network(const Options *options);
-  ~Network();
+    DonateStrategy(const char *agent, IStrategyListener *listener);
 
-  void connect();
+public:
+    inline bool isActive() const override  { return m_active; }
+    inline void resume() override          {}
 
-  static char *userAgent();
+    void connect() override;
+    void submit(const JobResult &result) override;
 
 protected:
-  void onActive(Client *client) override;
-  void onJob(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onPause(IStrategy *strategy) override;
+    void onClose(Client *client, int failures) override;
+    void onJobReceived(Client *client, const Job &job) override;
+    void onLoginSuccess(Client *client) override;
 
 private:
-  void addPool(const Url *url);
-  void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
+    void idle();
+    void stop();
 
-  bool m_donateActive;
-  char *m_agent;
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
+    static void onTimer(uv_timer_t *handle);
+
+    bool m_active;
+    Client *m_client;
+    const int m_donateTime;
+    const int m_idleTime;
+    IStrategyListener *m_listener;
+    uv_timer_t m_timer;
 };
 
-
-#endif /* __NETWORK_H__ */
+#endif /* __DONATESTRATEGY_H__ */

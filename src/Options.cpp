@@ -54,7 +54,6 @@ Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
   -a, --algo=ALGO       cryptonight (default) or cryptonight-lite\n\
   -o, --url=URL         URL of mining server\n\
-  -b, --backup-url=URL  URL of backup mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
   -u, --user=USERNAME   username for mining server\n\
   -p, --pass=PASSWORD   password for mining server\n\
@@ -83,14 +82,13 @@ Options:\n\
 ";
 
 
-static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vb:l:S";
+static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 
 
 static struct option const options[] = {
     { "algo",          1, nullptr, 'a'  },
     { "av",            1, nullptr, 'v'  },
     { "background",    0, nullptr, 'B'  },
-    { "backup-url",    1, nullptr, 'b'  },
     { "config",        1, nullptr, 'c'  },
     { "cpu-affinity",  1, nullptr, 1020 },
     { "donate-level",  1, nullptr, 1003 },
@@ -143,14 +141,10 @@ Options::Options(int argc, char **argv) :
     m_background(false),
     m_colors(true),
     m_doubleHash(false),
-    m_keepAlive(false),
-    m_nicehash(false),
     m_ready(false),
     m_safe(false),
     m_syslog(false),
     m_logFile(nullptr),
-    m_pass(nullptr),
-    m_user(nullptr),
     m_algo(0),
     m_algoVariant(0),
     m_donateLevel(kDonateLevel),
@@ -159,10 +153,10 @@ Options::Options(int argc, char **argv) :
     m_retries(5),
     m_retryPause(5),
     m_threads(0),
-    m_affinity(-1L),
-    m_backupUrl(nullptr),
-    m_url(nullptr)
+    m_affinity(-1L)
 {
+    m_pools.push_back(new Url());
+
     int key;
 
     while (1) {
@@ -181,21 +175,9 @@ Options::Options(int argc, char **argv) :
         return;
     }
 
-    if (!m_url) {
+    if (!m_pools[0]->isValid()) {
         fprintf(stderr, "No pool URL supplied. Exiting.");
         return;
-    }
-
-    if (!m_nicehash && m_url->isNicehash()) {
-        m_nicehash = true;
-    }
-
-    if (!m_user) {
-        m_user = strdup("x");
-    }
-
-    if (!m_pass) {
-        m_pass = strdup("x");
     }
 
     m_algoVariant = getAlgoVariant();
@@ -219,11 +201,6 @@ Options::Options(int argc, char **argv) :
 
 Options::~Options()
 {
-    delete m_url;
-    delete m_backupUrl;
-
-    free(m_user);
-    free(m_pass);
 }
 
 
@@ -231,7 +208,6 @@ bool Options::parseArg(int key, char *arg)
 {
     char *p;
     int v;
-    Url *url;
 
     switch (key) {
     case 'a': /* --algo */
@@ -241,35 +217,38 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 'O': /* --userpass */
-        if (!setUserpass(arg)) {
+        if (!m_pools.back()->setUserpass(arg)) {
             return false;
         }
+
         break;
 
     case 'o': /* --url */
-        url = parseUrl(arg);
-        if (url) {
-            free(m_url);
-            m_url = url;
+        if (m_pools.size() > 1 || m_pools[0]->isValid()) {
+            Url *url = new Url(arg);
+            if (url->isValid()) {
+                m_pools.push_back(url);
+            }
+            else {
+                delete url;
+            }
         }
-        break;
+        else {
+            m_pools[0]->parse(arg);
+        }
 
-    case 'b': /* --backup-url */
-        url = parseUrl(arg);
-        if (url) {
-            free(m_backupUrl);
-            m_backupUrl = url;
+        if (!m_pools.back()->isValid()) {
+            return false;
         }
+
         break;
 
     case 'u': /* --user */
-        free(m_user);
-        m_user = strdup(arg);
+        m_pools.back()->setUser(arg);
         break;
 
     case 'p': /* --pass */
-        free(m_pass);
-        m_pass = strdup(arg);
+        m_pools.back()->setPassword(arg);
         break;
 
     case 'l': /* --log-file */
@@ -323,7 +302,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 'k': /* --keepalive */
-        m_keepAlive = true;
+        m_pools.back()->setKeepAlive(true);
         break;
 
     case 'V': /* --version */
@@ -374,7 +353,7 @@ bool Options::parseArg(int key, char *arg)
         break;
 
     case 1006: /* --nicehash */
-        m_nicehash = true;
+        m_pools.back()->setNicehash(true);
         break;
 
     case 1007: /* --print-time */
@@ -472,25 +451,6 @@ bool Options::setAlgo(const char *algo)
             return false;
         }
     }
-
-    return true;
-}
-
-
-bool Options::setUserpass(const char *userpass)
-{
-    const char *p = strchr(userpass, ':');
-    if (!p) {
-        showUsage(1);
-        return false;
-    }
-
-    free(m_user);
-    free(m_pass);
-
-    m_user = static_cast<char*>(calloc(p - userpass + 1, 1));
-    strncpy(m_user, userpass, p - userpass);
-    m_pass = strdup(p + 1);
 
     return true;
 }

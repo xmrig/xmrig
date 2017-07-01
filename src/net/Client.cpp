@@ -37,9 +37,9 @@
 #endif
 
 
-Client::Client(int id, IClientListener *listener) :
-    m_keepAlive(false),
-    m_host(nullptr),
+Client::Client(int id, const char *agent, IClientListener *listener) :
+    m_quiet(false),
+    m_agent(agent),
     m_listener(listener),
     m_id(id),
     m_retryPause(5000),
@@ -47,7 +47,6 @@ Client::Client(int id, IClientListener *listener) :
     m_sequence(1),
     m_recvBufPos(0),
     m_state(UnconnectedState),
-    m_port(0),
     m_stream(nullptr),
     m_socket(nullptr)
 {
@@ -72,13 +71,12 @@ Client::~Client()
 {
     free(m_recvBuf.base);
     free(m_socket);
-    free(m_host);
 }
 
 
 void Client::connect()
 {
-    resolve(m_host);
+    resolve(m_url.host());
 }
 
 
@@ -90,27 +88,16 @@ void Client::connect()
 void Client::connect(const Url *url)
 {
     setUrl(url);
-    resolve(m_host);
+    resolve(m_url.host());
 }
 
 
 void Client::disconnect()
 {
+    uv_timer_stop(&m_retriesTimer);
     m_failures = -1;
 
     close();
-}
-
-
-void Client::login(const char *user, const char *pass, const char *agent)
-{
-    m_sequence = 1;
-
-    const size_t size = 96 + strlen(user) + strlen(pass) + strlen(agent);
-    char *req = static_cast<char*>(malloc(size));
-    snprintf(req, size, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s\"}}\n", m_sequence, user, pass, agent);
-
-    send(req);
 }
 
 
@@ -121,9 +108,9 @@ void Client::login(const char *user, const char *pass, const char *agent)
  */
 void Client::send(char *data)
 {
-    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_host, m_port, strlen(data), data);
+    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), strlen(data), data);
     if (state() != ConnectedState) {
-        LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_host, m_port, m_state);
+        LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
         return;
     }
 
@@ -148,9 +135,7 @@ void Client::setUrl(const Url *url)
         return;
     }
 
-    free(m_host);
-    m_host = strdup(url->host());
-    m_port = url->port();
+    m_url = url;
 }
 
 
@@ -199,7 +184,7 @@ bool Client::parseJob(const json_t *params, int *code)
     job.setPoolId(m_id);
     m_job = std::move(job);
 
-    LOG_DEBUG("[%s:%u] job: \"%s\", diff: %lld", m_host, m_port, job.id(), job.diff());
+    LOG_DEBUG("[%s:%u] job: \"%s\", diff: %lld", m_url.host(), m_url.port(), job.id(), job.diff());
     return true;
 }
 
@@ -225,9 +210,15 @@ int Client::resolve(const char *host)
 
     m_recvBufPos = 0;
 
+    if (m_failures == -1) {
+        m_failures = 0;
+    }
+
     const int r = uv_getaddrinfo(uv_default_loop(), &m_resolver, Client::onResolved, host, NULL, &m_hints);
     if (r) {
-        LOG_ERR("[%s:%u] getaddrinfo error: \"%s\"", host, m_port, uv_strerror(r));
+        if (!m_quiet) {
+            LOG_ERR("[%s:%u] getaddrinfo error: \"%s\"", host, m_url.port(), uv_strerror(r));
+        }
         return 1;
     }
 
@@ -250,7 +241,7 @@ void Client::connect(struct sockaddr *addr)
 {
     setState(ConnectingState);
 
-    reinterpret_cast<struct sockaddr_in*>(addr)->sin_port = htons(m_port);
+    reinterpret_cast<struct sockaddr_in*>(addr)->sin_port = htons(m_url.port());
     free(m_socket);
 
     uv_connect_t *req = (uv_connect_t*) malloc(sizeof(uv_connect_t));
@@ -270,19 +261,33 @@ void Client::connect(struct sockaddr *addr)
 }
 
 
+void Client::login()
+{
+    m_sequence = 1;
+
+    const size_t size = 96 + strlen(m_url.user()) + strlen(m_url.password()) + strlen(m_agent);
+    char *req = static_cast<char*>(malloc(size));
+    snprintf(req, size, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s\"}}\n", m_sequence, m_url.user(), m_url.password(), m_agent);
+
+    send(req);
+}
+
+
 void Client::parse(char *line, size_t len)
 {
     startTimeout();
 
     line[len - 1] = '\0';
 
-    LOG_DEBUG("[%s:%u] received (%d bytes): \"%s\"", m_host, m_port, len, line);
+    LOG_DEBUG("[%s:%u] received (%d bytes): \"%s\"", m_url.host(), m_url.port(), len, line);
 
     json_error_t err;
     json_t *val = json_loads(line, 0, &err);
 
     if (!val) {
-        LOG_ERR("[%s:%u] JSON decode failed: \"%s\"", m_host, m_port, err.text);
+        if (!m_quiet) {
+            LOG_ERR("[%s:%u] JSON decode failed: \"%s\"", m_url.host(), m_url.port(), err.text);
+        }
         return;
     }
 
@@ -301,7 +306,9 @@ void Client::parse(char *line, size_t len)
 void Client::parseNotification(const char *method, const json_t *params, const json_t *error)
 {
     if (json_is_object(error)) {
-        LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_host, m_port, json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+        if (!m_quiet) {
+            LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+        }
         return;
     }
 
@@ -318,7 +325,7 @@ void Client::parseNotification(const char *method, const json_t *params, const j
         return;
     }
 
-    LOG_WARN("[%s:%u] unsupported method: \"%s\"", m_host, m_port, method);
+    LOG_WARN("[%s:%u] unsupported method: \"%s\"", m_url.host(), m_url.port(), method);
 }
 
 
@@ -326,7 +333,10 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 {
     if (json_is_object(error)) {
         const char *message = json_string_value(json_object_get(error, "message"));
-        LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_host, m_port, message, json_integer_value(json_object_get(error, "code")));
+
+        if (!m_quiet) {
+            LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
+        }
 
         if (id == 1 || (message && strncasecmp(message, "Unauthenticated", 15) == 0)) {
             close();
@@ -342,7 +352,10 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
     if (id == 1) {
         int code = -1;
         if (!parseLogin(result, &code)) {
-            LOG_ERR("[%s:%u] login error code: %d", m_host, m_port, code);
+            if (!m_quiet) {
+                LOG_ERR("[%s:%u] login error code: %d", m_url.host(), m_url.port(), code);
+            }
+
             return close();
         }
 
@@ -365,8 +378,10 @@ void Client::ping()
 
 void Client::reconnect()
 {
+    setState(ConnectingState);
+
     uv_timer_stop(&m_responseTimer);
-    if (m_keepAlive) {
+    if (m_url.isKeepAlive()) {
         uv_timer_stop(&m_keepAliveTimer);
     }
 
@@ -383,7 +398,7 @@ void Client::reconnect()
 
 void Client::setState(SocketState state)
 {
-    LOG_DEBUG("[%s:%u] state: %d", m_host, m_port, state);
+    LOG_DEBUG("[%s:%u] state: %d", m_url.host(), m_url.port(), state);
 
     if (m_state == state) {
         return;
@@ -396,7 +411,7 @@ void Client::setState(SocketState state)
 void Client::startTimeout()
 {
     uv_timer_stop(&m_responseTimer);
-    if (!m_keepAlive) {
+    if (!m_url.isKeepAlive()) {
         return;
     }
 
@@ -431,7 +446,10 @@ void Client::onConnect(uv_connect_t *req, int status)
 {
     auto client = getClient(req->data);
     if (status < 0) {
-        LOG_ERR("[%s:%u] connect error: \"%s\"", client->m_host, client->m_port, uv_strerror(status));
+        if (!client->m_quiet) {
+            LOG_ERR("[%s:%u] connect error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
+        }
+
         free(req);
         client->close();
         return;
@@ -444,7 +462,7 @@ void Client::onConnect(uv_connect_t *req, int status)
     uv_read_start(client->m_stream, Client::onAllocBuffer, Client::onRead);
     free(req);
 
-    client->m_listener->onLoginCredentialsRequired(client);
+    client->login();
 }
 
 
@@ -452,8 +470,8 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     auto client = getClient(stream->data);
     if (nread < 0) {
-        if (nread != UV_EOF) {
-            LOG_ERR("[%s:%u] read error: \"%s\"", client->m_host, client->m_port, uv_strerror(nread));
+        if (nread != UV_EOF && !client->m_quiet) {
+            LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(nread));
         }
 
         return client->close();;
@@ -492,7 +510,7 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
 {
     auto client = getClient(req->data);
     if (status < 0) {
-        LOG_ERR("[%s:%u] DNS error: \"%s\"", client->m_host, client->m_port, uv_strerror(status));
+        LOG_ERR("[%s:%u] DNS error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
         return client->reconnect();;
     }
 

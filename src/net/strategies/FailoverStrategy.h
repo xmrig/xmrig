@@ -21,52 +21,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
+#ifndef __FAILOVERSTRATEGY_H__
+#define __FAILOVERSTRATEGY_H__
 
 
 #include <vector>
-#include <uv.h>
 
 
 #include "interfaces/IClientListener.h"
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
+#include "interfaces/IStrategy.h"
 
 
-class IStrategy;
-class Options;
+class Client;
+class IStrategyListener;
 class Url;
 
 
-class Network : public IJobResultListener, public IStrategyListener
+class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-  Network(const Options *options);
-  ~Network();
+    FailoverStrategy(const std::vector<Url*> &urls, const char *agent, IStrategyListener *listener);
 
-  void connect();
+public:
+    inline bool isActive() const override  { return m_active >= 0; }
 
-  static char *userAgent();
+    void connect() override;
+    void resume() override;
+    void submit(const JobResult &result) override;
 
 protected:
-  void onActive(Client *client) override;
-  void onJob(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onPause(IStrategy *strategy) override;
+    void onClose(Client *client, int failures) override;
+    void onJobReceived(Client *client, const Job &job) override;
+    void onLoginSuccess(Client *client) override;
 
 private:
-  void addPool(const Url *url);
-  void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
+    void add(const Url *url, const char *agent);
 
-  bool m_donateActive;
-  char *m_agent;
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
+    int m_active;
+    int m_index;
+    IStrategyListener *m_listener;
+    std::vector<Client*> m_pools;
 };
 
-
-#endif /* __NETWORK_H__ */
+#endif /* __FAILOVERSTRATEGY_H__ */

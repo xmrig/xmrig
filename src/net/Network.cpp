@@ -28,76 +28,63 @@
 #include "log/Log.h"
 #include "net/Client.h"
 #include "net/Network.h"
+#include "net/strategies/DonateStrategy.h"
+#include "net/strategies/FailoverStrategy.h"
+#include "net/strategies/SinglePoolStrategy.h"
 #include "net/Url.h"
 #include "Options.h"
 #include "workers/Workers.h"
 
 
 Network::Network(const Options *options) :
-    m_donate(false),
+    m_donateActive(false),
     m_options(options),
-    m_pool(0),
-    m_diff(0)
+    m_donate(nullptr)
 {
     Workers::setListener(this);
-
-    m_pools.reserve(2);
     m_agent = userAgent();
 
-    addPool(std::make_unique<Url>().get());
-    addPool(m_options->url());
-    addPool(m_options->backupUrl());
+    const std::vector<Url*> &pools = options->pools();
 
-    m_timer.data = this;
-    uv_timer_init(uv_default_loop(), &m_timer);
+    if (pools.size() > 1) {
+        m_strategy = new FailoverStrategy(pools, m_agent, this);
+    }
+    else {
+        m_strategy = new SinglePoolStrategy(pools.front(), m_agent, this);
+    }
+
+    if (m_options->donateLevel() > 0) {
+        m_donate = new DonateStrategy(m_agent, this);
+    }
 }
 
 
 Network::~Network()
 {
-    for (auto client : m_pools) {
-        delete client;
-    }
-
     free(m_agent);
 }
 
 
 void Network::connect()
 {
-    m_pools[1]->connect();
-
-    if (m_options->donateLevel()) {
-        uv_timer_start(&m_timer, Network::onTimer, (100 - m_options->donateLevel()) * 60 * 1000, 0);
-    }
+    m_strategy->connect();
 }
 
 
-void Network::onClose(Client *client, int failures)
+void Network::onActive(Client *client)
 {
-    const int id = client->id();
-    if (id == 0) {
-        if (failures == -1) {
-            stopDonate();
-        }
-
+    if (client->id() == -1) {
+        LOG_NOTICE("dev donate started");
         return;
     }
 
-    if (m_pool == id) {
-        m_pool = 0;
-        Workers::pause();
-    }
-
-    if (id == 1 && m_pools.size() > 2 && failures == m_options->retries()) {
-        m_pools[2]->connect();
-    }
+    LOG_INFO(m_options->colors() ? "\x1B[01;37muse pool: \x1B[01;36m%s:%d" : "use pool: %s:%d", client->host(), client->port());
 }
 
 
-void Network::onJobReceived(Client *client, const Job &job)
+void Network::onJob(Client *client, const Job &job)
 {
-    if (m_donate && client->id() != 0) {
+    if (m_donate && m_donate->isActive() && client->id() != -1) {
         return;
     }
 
@@ -107,56 +94,27 @@ void Network::onJobReceived(Client *client, const Job &job)
 
 void Network::onJobResult(const JobResult &result)
 {
-    if (m_options->colors()) {
-        LOG_NOTICE("\x1B[01;32mSHARE FOUND");
-    }
-    else {
-        LOG_NOTICE("SHARE FOUND");
+    LOG_NOTICE(m_options->colors() ? "\x1B[01;32mSHARE FOUND" : "SHARE FOUND");
+
+    if (result.poolId == -1 && m_donate) {
+        return m_donate->submit(result);
     }
 
-    m_pools[result.poolId]->submit(result);
+    m_strategy->submit(result);
 }
 
 
-void Network::onLoginCredentialsRequired(Client *client)
+void Network::onPause(IStrategy *strategy)
 {
-    client->login(m_options->user(), m_options->pass(), m_agent);
-}
-
-
-void Network::onLoginSuccess(Client *client)
-{
-    const int id = client->id();
-    if (id == 0) {
-        return startDonate();
+    if (m_donate && m_donate == strategy) {
+        LOG_NOTICE("dev donate finished");
+        m_strategy->resume();
     }
 
-    if (id == 2 && m_pool) { // primary pool is already active
-        m_pools[2]->disconnect();
-        return;
+    if (!m_strategy->isActive()) {
+        LOG_ERR("no active pools, pause mining");
+        return Workers::pause();
     }
-
-    LOG_INFO(m_options->colors() ? "\x1B[01;37muse pool: \x1B[01;36m%s:%d" : "use pool: %s:%d", client->host(), client->port());
-    m_pool = id;
-
-    if (m_pool == 1 && m_pools.size() > 2) { // try disconnect from backup pool
-        m_pools[2]->disconnect();
-    }
-}
-
-
-void Network::addPool(const Url *url)
-{
-    if (!url) {
-        return;
-    }
-
-    Client *client = new Client(m_pools.size(), this);
-    client->setUrl(url);
-    client->setRetryPause(m_options->retryPause() * 1000);
-    client->setKeepAlive(m_options->keepAlive());
-
-    m_pools.push_back(client);
 }
 
 
@@ -171,53 +129,4 @@ void Network::setJob(Client *client, const Job &job)
     }
 
     Workers::setJob(job);
-}
-
-
-void Network::startDonate()
-{
-    if (m_donate) {
-        return;
-    }
-
-    LOG_NOTICE("dev donate started");
-
-    m_donate = true;
-}
-
-
-void Network::stopDonate()
-{
-    if (!m_donate) {
-        return;
-    }
-
-    LOG_NOTICE("dev donate finished");
-
-    m_donate = false;
-    if (!m_pool) {
-        return;
-    }
-
-    Client *client = m_pools[m_pool];
-    if (client->isReady()) {
-        setJob(client, client->job());
-    }
-}
-
-
-void Network::onTimer(uv_timer_t *handle)
-{
-    auto net = static_cast<Network*>(handle->data);
-
-    if (!net->m_donate) {
-        auto url = std::make_unique<Url>("donate.xmrig.com", net->m_options->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443);
-        net->m_pools[0]->connect(url.get());
-
-        uv_timer_start(&net->m_timer, Network::onTimer, net->m_options->donateLevel() * 60 * 1000, 0);
-        return;
-    }
-
-    net->m_pools[0]->disconnect();
-    uv_timer_start(&net->m_timer, Network::onTimer, (100 - net->m_options->donateLevel()) * 60 * 1000, 0);
 }

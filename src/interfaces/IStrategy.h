@@ -21,52 +21,23 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
+#ifndef __ISTRATEGY_H__
+#define __ISTRATEGY_H__
 
 
-#include <vector>
-#include <uv.h>
+class JobResult;
 
 
-#include "interfaces/IClientListener.h"
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
-
-
-class IStrategy;
-class Options;
-class Url;
-
-
-class Network : public IJobResultListener, public IStrategyListener
+class IStrategy
 {
 public:
-  Network(const Options *options);
-  ~Network();
+    virtual ~IStrategy() {}
 
-  void connect();
-
-  static char *userAgent();
-
-protected:
-  void onActive(Client *client) override;
-  void onJob(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onPause(IStrategy *strategy) override;
-
-private:
-  void addPool(const Url *url);
-  void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
-
-  bool m_donateActive;
-  char *m_agent;
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
+    virtual bool isActive() const                = 0;
+    virtual void connect()                       = 0;
+    virtual void resume()                        = 0;
+    virtual void submit(const JobResult &result) = 0;
 };
 
 
-#endif /* __NETWORK_H__ */
+#endif // __ISTRATEGY_H__
