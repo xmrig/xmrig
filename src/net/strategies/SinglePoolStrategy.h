@@ -50,6 +50,7 @@ protected:
     void onClose(Client *client, int failures) override;
     void onJobReceived(Client *client, const Job &job) override;
     void onLoginSuccess(Client *client) override;
+    void onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error) override;
 
 private:
     bool m_active;

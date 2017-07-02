@@ -21,29 +21,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __JOBRESULT_H__
-#define __JOBRESULT_H__
+#ifndef __SUBMITRESULT_H__
+#define __SUBMITRESULT_H__
 
 
-#include <memory.h>
-#include <stdint.h>
+#include <uv.h>
 
 
-class JobResult
+class SubmitResult
 {
 public:
-    inline JobResult() : poolId(0), diff(0), nonce(0) {}
-    inline JobResult(int poolId, const char *jobId, uint32_t nonce, const uint8_t *result, uint32_t diff) : poolId(poolId), diff(diff), nonce(nonce)
+    inline SubmitResult() : diff(0), start(0) {}
+    inline SubmitResult(uint32_t diff) :
+        diff(diff)
     {
-        memcpy(this->jobId, jobId, sizeof(this->jobId));
-        memcpy(this->result, result, sizeof(this->result));
+        start = uv_hrtime();
     }
 
-    char jobId[64];
-    int poolId;
+    inline uint64_t elapsed() const { return (uv_hrtime() - start) / 1000000; }
+
     uint32_t diff;
-    uint32_t nonce;
-    uint8_t result[32];
+    uint64_t start;
 };
 
-#endif /* __JOBRESULT_H__ */
+#endif /* __SUBMITRESULT_H__ */

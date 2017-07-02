@@ -22,6 +22,7 @@
  */
 
 
+#include <iterator>
 #include <utility>
 
 
@@ -155,6 +156,7 @@ void Client::submit(const JobResult &result)
     snprintf(req, 345, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
              m_sequence, m_rpcId, result.jobId, nonce, data);
 
+    m_results[m_sequence] = SubmitResult(result.diff);
     send(req);
 }
 
@@ -264,6 +266,7 @@ void Client::connect(struct sockaddr *addr)
 void Client::login()
 {
     m_sequence = 1;
+    m_results.clear();
 
     const size_t size = 96 + strlen(m_url.user()) + strlen(m_url.password()) + strlen(m_agent);
     char *req = static_cast<char*>(malloc(size));
@@ -334,7 +337,12 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
     if (json_is_object(error)) {
         const char *message = json_string_value(json_object_get(error, "message"));
 
-        if (!m_quiet) {
+        auto it = m_results.find(id);
+        if (it != m_results.end()) {
+            m_listener->onResultAccepted(this, it->second.diff, it->second.elapsed(), message);
+            m_results.erase(it);
+        }
+        else if (!m_quiet) {
             LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
         }
 
@@ -363,6 +371,12 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
         m_listener->onLoginSuccess(this);
         m_listener->onJobReceived(this, m_job);
         return;
+    }
+
+    auto it = m_results.find(id);
+    if (it != m_results.end()) {
+        m_listener->onResultAccepted(this, it->second.diff, it->second.elapsed(), nullptr);
+        m_results.erase(it);
     }
 }
 

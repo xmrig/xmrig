@@ -111,6 +111,12 @@ void FailoverStrategy::onLoginSuccess(Client *client)
 }
 
 
+void FailoverStrategy::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+{
+    m_listener->onResultAccepted(client, diff, ms, error);
+}
+
+
 void FailoverStrategy::add(const Url *url, const char *agent)
 {
     Client *client = new Client(m_pools.size(), agent, this);

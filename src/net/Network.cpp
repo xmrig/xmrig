@@ -39,7 +39,9 @@
 Network::Network(const Options *options) :
     m_donateActive(false),
     m_options(options),
-    m_donate(nullptr)
+    m_donate(nullptr),
+    m_accepted(0),
+    m_rejected(0)
 {
     Workers::setListener(this);
     m_agent = userAgent();
@@ -94,8 +96,6 @@ void Network::onJob(Client *client, const Job &job)
 
 void Network::onJobResult(const JobResult &result)
 {
-    LOG_NOTICE(m_options->colors() ? "\x1B[01;32mSHARE FOUND" : "SHARE FOUND");
-
     if (result.poolId == -1 && m_donate) {
         return m_donate->submit(result);
     }
@@ -114,6 +114,21 @@ void Network::onPause(IStrategy *strategy)
     if (!m_strategy->isActive()) {
         LOG_ERR("no active pools, pause mining");
         return Workers::pause();
+    }
+}
+
+
+void Network::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+{
+    if (error) {
+        m_rejected++;
+
+        LOG_INFO(m_options->colors() ? "\x1B[01;31mrejected\x1B[0m (%lld/%lld) diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%llu ms)" : "accepted (%lld/%lld) diff %u \"%s\" (%llu ms)", m_accepted, m_rejected, diff, error, ms);
+    }
+    else {
+        m_accepted++;
+
+        LOG_INFO(m_options->colors() ? "\x1B[01;32maccepted\x1B[0m (%lld/%lld) diff \x1B[01;37m%u\x1B[0m \x1B[01;30m(%llu ms)" : "accepted (%lld/%lld) diff %u (%llu ms)", m_accepted, m_rejected, diff, ms);
     }
 }
 

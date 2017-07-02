@@ -82,3 +82,9 @@ void SinglePoolStrategy::onLoginSuccess(Client *client)
     m_active = true;
     m_listener->onActive(client);
 }
+
+
+void SinglePoolStrategy::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+{
+    m_listener->onResultAccepted(client, diff, ms, error);
+}

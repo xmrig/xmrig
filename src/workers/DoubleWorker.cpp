@@ -62,11 +62,11 @@ void DoubleWorker::start()
             CryptoNight::hash(m_blob, m_job.size(), m_hash, m_ctx);
 
             if (*reinterpret_cast<uint64_t*>(m_hash + 24) < m_job.target()) {
-                Workers::submit(JobResult(m_job.poolId(), m_job.id(), m_nonce1, m_hash));
+                Workers::submit(JobResult(m_job.poolId(), m_job.id(), m_nonce1, m_hash, m_job.diff()));
             }
 
             if (*reinterpret_cast<uint64_t*>(m_hash + 32 + 24) < m_job.target()) {
-                Workers::submit(JobResult(m_job.poolId(), m_job.id(), m_nonce2, m_hash + 32));
+                Workers::submit(JobResult(m_job.poolId(), m_job.id(), m_nonce2, m_hash + 32, m_job.diff()));
             }
 
             std::this_thread::yield();

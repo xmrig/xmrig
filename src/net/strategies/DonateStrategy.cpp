@@ -84,6 +84,12 @@ void DonateStrategy::onLoginSuccess(Client *client)
 }
 
 
+void DonateStrategy::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+{
+    m_listener->onResultAccepted(client, diff, ms, error);
+}
+
+
 void DonateStrategy::idle()
 {
     uv_timer_start(&m_timer, DonateStrategy::onTimer, m_idleTime, 0);

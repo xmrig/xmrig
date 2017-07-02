@@ -26,10 +26,12 @@
 
 
 #include <jansson.h>
+#include <map>
 #include <uv.h>
 
 
 #include "net/Job.h"
+#include "net/SubmitResult.h"
 #include "net/Url.h"
 
 
@@ -108,6 +110,7 @@ private:
     Job m_job;
     size_t m_recvBufPos;
     SocketState m_state;
+    std::map<int64_t, SubmitResult> m_results;
     struct addrinfo m_hints;
     Url m_url;
     uv_buf_t m_recvBuf;

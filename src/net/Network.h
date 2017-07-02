@@ -54,6 +54,7 @@ protected:
   void onJob(Client *client, const Job &job) override;
   void onJobResult(const JobResult &result) override;
   void onPause(IStrategy *strategy) override;
+  void onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error) override;
 
 private:
   void addPool(const Url *url);
@@ -66,6 +67,8 @@ private:
   const Options *m_options;
   IStrategy *m_donate;
   IStrategy *m_strategy;
+  uint64_t m_accepted;
+  uint64_t m_rejected;
 };
 
 

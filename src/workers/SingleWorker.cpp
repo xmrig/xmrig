@@ -76,6 +76,7 @@ void SingleWorker::consumeJob()
 
     memcpy(m_result.jobId, m_job.id(), sizeof(m_result.jobId));
     m_result.poolId = m_job.poolId();
+    m_result.diff   = m_job.diff();
 
     if (m_job.isNicehash()) {
         m_result.nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / m_threads * m_id);
