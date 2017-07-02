@@ -9,7 +9,7 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 * [Download](#download)
 * [Usage](#usage)
 * [Algorithm variations](#algorithm-variations)
-* [Build](#build)
+* [Build](https://github.com/xmrig/xmrig/wiki/Build)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
@@ -59,6 +59,7 @@ xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
       --max-cpu-usage=N maximum cpu usage for automatic threads mode (default 75)
       --safe            safe adjust threads and av settings for current cpu
       --nicehash        enable nicehash support
+      --print-time=N    print hashrate report every N seconds
   -h, --help            display this help and exit
   -V, --version         output version information and exit
 ```
@@ -69,42 +70,6 @@ Since version 0.8.0.
 * `--av=2` Lower power mode (double hash) of `1`.
 * `--av=3` Software AES implementation.
 * `--av=4` Lower power mode (double hash) of `3`.
-
-## Build
-### Ubuntu (Debian-based distros)
-```
-sudo apt-get install git build-essential cmake libcurl4-openssl-dev
-git clone https://github.com/xmrig/xmrig.git
-cd xmrig
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make
-```
-
-### Windows
-It's complicated, you need [MSYS2](http://www.msys2.org/), custom libcurl build, and of course CMake too.
-
-Necessary MSYS2 packages:
-```
-pacman -Sy
-pacman -S mingw-w64-x86_64-gcc
-pacman -S make
-pacman -S mingw-w64-x86_64-cmake
-pacman -S mingw-w64-x86_64-pkg-config
-```
-Configure options for libcurl:
-```
-./configure --disable-shared --enable-optimize --enable-threaded-resolver --disable-libcurl-option --disable-ares --disable-rt --disable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-manual --disable-ipv6 --disable-sspi --disable-crypto-auth --disable-ntlm-wb --disable-tls-srp --disable-unix-sockets --without-zlib --without-winssl --without-ssl --without-libssh2 --without-nghttp2 --disable-cookies --without-ca-bundle --without-librtmp
-```
-CMake options:
-```
-cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCURL_INCLUDE_DIR="c:\<path>\curl-7.53.1\include" -DCURL_LIBRARY="c:\<path>\curl-7.53.1\lib\.libs"
-```
-
-### Optional features
-`-DWITH_LIBCPUID=OFF` Disable libcpuid. Auto configuration of CPU after this will be very limited.
-`-DWITH_AEON=OFF` Disable CryptoNight-Lite support.
 
 ## Common Issues
 ### HUGE PAGES unavailable

@@ -1,0 +1,37 @@
+#include <windows.h>
+#include "../src/version.h"
+
+IDI_ICON1    ICON    DISCARDABLE    "app.ico"
+
+VS_VERSION_INFO VERSIONINFO
+  FILEVERSION APP_VER_MAJOR,APP_VER_MINOR,APP_VER_BUILD,APP_VER_REV
+  PRODUCTVERSION APP_VER_MAJOR,APP_VER_MINOR,APP_VER_BUILD,APP_VER_REV
+  FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+  FILEFLAGS VS_FF_DEBUG
+#else
+  FILEFLAGS 0x0L
+#endif
+  FILEOS VOS__WINDOWS32
+  FILETYPE VFT_APP
+  FILESUBTYPE 0x0L
+  BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+      BLOCK "000004b0"
+      BEGIN
+        VALUE "CompanyName",      APP_SITE
+        VALUE "FileDescription",  APP_DESC
+        VALUE "FileVersion",      APP_VERSION
+        VALUE "LegalCopyright",   APP_COPYRIGHT
+        VALUE "OriginalFilename", "xmrig.exe"
+        VALUE "ProductName",      APP_NAME
+        VALUE "ProductVersion",   APP_VERSION
+      END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+      VALUE "Translation", 0x0, 1200
+    END
+  END
+
