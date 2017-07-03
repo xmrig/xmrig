@@ -29,6 +29,9 @@
 #include <stdint.h>
 
 
+#include "Job.h"
+
+
 class JobResult
 {
 public:
@@ -38,6 +41,16 @@ public:
         memcpy(this->jobId, jobId, sizeof(this->jobId));
         memcpy(this->result, result, sizeof(this->result));
     }
+
+
+    inline JobResult &operator=(const Job &job) {
+        memcpy(jobId, job.id(), sizeof(jobId));
+        poolId = job.poolId();
+        diff   = job.diff();
+
+        return *this;
+    }
+
 
     char jobId[64];
     int poolId;

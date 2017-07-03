@@ -38,17 +38,20 @@ class DoubleWorker : public Worker
 {
 public:
     DoubleWorker(Handle *handle);
+    ~DoubleWorker();
 
     void start() override;
 
 private:
+    bool resume(const Job &job);
     void consumeJob();
+    void save(const Job &job);
 
-    Job m_job;
-    uint32_t m_nonce1;
-    uint32_t m_nonce2;
+    class State;
+
     uint8_t m_hash[64];
-    uint8_t	m_blob[84 * 2];
+    State *m_state;
+    State *m_pausedState;
 };
 
 
