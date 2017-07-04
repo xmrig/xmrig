@@ -146,6 +146,10 @@ bool Url::setUserpass(const char *userpass)
 
 void Url::setPassword(const char *password)
 {
+    if (!password) {
+        return;
+    }
+
     free(m_password);
     m_password = strdup(password);
 }
@@ -153,6 +157,10 @@ void Url::setPassword(const char *password)
 
 void Url::setUser(const char *user)
 {
+    if (!user) {
+        return;
+    }
+
     free(m_user);
     m_user = strdup(user);
 }

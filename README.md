@@ -2,7 +2,7 @@
 XMRig is high performance Monero (XMR) CPU miner, with the official full Windows support.
 Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code.
 
-<img src="http://i.imgur.com/GdRDnAu.png" width="596" >
+<img src="https://i.imgur.com/OXoB10D.png" width="628" >
 
 #### Table of contents
 * [Features](#features)
@@ -38,11 +38,16 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
 ```
 
+### Failover
+```
+xmrig.exe -o pool.supportxmr.com:5555 -u YOUR_WALLET1 -k -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET2 -p x -k
+```
+For failover you can add multiple pools, maximum count not limited.
+
 ### Options
 ```
   -a, --algo=ALGO       cryptonight (default) or cryptonight-lite
   -o, --url=URL         URL of mining server
-  -b, --backup-url=URL  URL of backup mining server
   -O, --userpass=U:P    username:password pair for mining server
   -u, --user=USERNAME   username for mining server
   -p, --pass=PASSWORD   password for mining server
