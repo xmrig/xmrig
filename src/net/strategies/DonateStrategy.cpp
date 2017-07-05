@@ -34,7 +34,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_idleTime((100 - Options::i()->donateLevel()) * 60 * 1000),
     m_listener(listener)
 {
-    Url *url = new Url("donate.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, Options::i()->pools().front()->user());
+    Url *url = new Url("donate2.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, Options::i()->pools().front()->user());
 
     m_client = new Client(-1, agent, this);
     m_client->setUrl(url);
