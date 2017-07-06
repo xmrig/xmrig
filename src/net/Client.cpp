@@ -52,12 +52,13 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_socket(nullptr)
 {
     memset(m_ip, 0, sizeof(m_ip));
+    memset(&m_hints, 0, sizeof(m_hints));
+
     m_resolver.data = m_responseTimer.data = m_retriesTimer.data = m_keepAliveTimer.data = this;
 
     m_hints.ai_family   = PF_INET;
     m_hints.ai_socktype = SOCK_STREAM;
     m_hints.ai_protocol = IPPROTO_TCP;
-    m_hints.ai_flags    = 0;
 
     m_recvBuf.base = static_cast<char*>(malloc(kRecvBufSize));
     m_recvBuf.len  = kRecvBufSize;

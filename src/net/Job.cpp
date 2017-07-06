@@ -82,7 +82,15 @@ bool Job::setBlob(const char *blob)
         return false;
     }
 
-    return fromHex(blob, m_size * 2, m_blob);
+    if (!fromHex(blob, m_size * 2, m_blob)) {
+        return false;
+    }
+
+    if (*nonce() != 0 && !m_nicehash) {
+        m_nicehash = true;
+    }
+
+    return true;
 }
 
 
