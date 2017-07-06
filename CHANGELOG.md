@@ -1,3 +1,6 @@
+# v2.0.1
+ - [#27](https://github.com/xmrig/xmrig/issues/27) Fixed possibility crash on 32bit systems.
+
 # v2.0.0
  - Option `--backup-url` removed, instead now possibility specify multiple pools for example: `-o example1.com:3333 -u user1 -p password1 -k -o example2.com:5555 -u user2 -o example3.com:4444 -u user3`
  - [#15](https://github.com/xmrig/xmrig/issues/15) Added option `-l, --log-file=FILE` to write log to file.
