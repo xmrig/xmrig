@@ -25,6 +25,7 @@
 #include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
+#include <string.h>
 
 
 #include "Cpu.h"
