@@ -164,3 +164,9 @@ void Job::toHex(const unsigned char* in, unsigned int len, char* out)
         out[i * 2 + 1] = hf_bin2hex(in[i] & 0x0F);
     }
 }
+
+
+bool Job::operator==(const Job &other) const
+{
+    return memcmp(m_id, other.m_id, sizeof(m_id)) == 0;
+}

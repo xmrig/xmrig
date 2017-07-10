@@ -43,14 +43,16 @@ class Workers
 {
 public:
     static Job job();
+    static void setEnabled(bool enabled);
     static void setJob(const Job &job);
     static void start(int64_t affinity);
     static void submit(const JobResult &result);
 
+    static inline bool isEnabled()                               { return m_enabled; }
     static inline bool isOutdated(uint64_t sequence)             { return m_sequence.load(std::memory_order_relaxed) != sequence; }
     static inline bool isPaused()                                { return m_paused.load(std::memory_order_relaxed) == 1; }
     static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
-    static inline void pause()                                   { m_paused = 1; m_sequence++; }
+    static inline void pause()                                   { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
 
 private:
@@ -58,6 +60,8 @@ private:
     static void onResult(uv_async_t *handle);
     static void onTick(uv_timer_t *handle);
 
+    static bool m_active;
+    static bool m_enabled;
     static Hashrate *m_hashrate;
     static IJobResultListener *m_listener;
     static Job m_job;
