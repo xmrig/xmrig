@@ -534,9 +534,3 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
     client->connect(res->ai_addr);
     uv_freeaddrinfo(res);
 }
-
-
-Client *Client::getClient(void *data)
-{
-    return static_cast<Client*>(data);
-}
