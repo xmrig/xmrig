@@ -114,6 +114,9 @@ void DoubleWorker::consumeJob()
 {
     Job job = Workers::job();
     m_sequence = Workers::sequence();
+    if (m_state->job == job) {
+        return;
+    }
 
     save(job);
 

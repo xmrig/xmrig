@@ -29,7 +29,6 @@
 #include <uv.h>
 
 
-#include "interfaces/IClientListener.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IStrategyListener.h"
 
@@ -57,10 +56,7 @@ protected:
   void onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error) override;
 
 private:
-  void addPool(const Url *url);
   void setJob(Client *client, const Job &job);
-  void startDonate();
-  void stopDonate();
 
   bool m_donateActive;
   char *m_agent;

@@ -34,6 +34,8 @@
 #include "workers/Workers.h"
 
 
+bool Workers::m_active = false;
+bool Workers::m_enabled = true;
 Hashrate *Workers::m_hashrate = nullptr;
 IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
@@ -58,11 +60,32 @@ Job Workers::job()
 }
 
 
+void Workers::setEnabled(bool enabled)
+{
+    if (m_enabled == enabled) {
+        return;
+    }
+
+    m_enabled = enabled;
+    if (!m_active) {
+        return;
+    }
+
+    m_paused = enabled ? 0 : 1;
+    m_sequence++;
+}
+
+
 void Workers::setJob(const Job &job)
 {
     uv_rwlock_wrlock(&m_rwlock);
     m_job = job;
     uv_rwlock_wrunlock(&m_rwlock);
+
+    m_active = true;
+    if (!m_enabled) {
+        return;
+    }
 
     m_sequence++;
     m_paused = 0;

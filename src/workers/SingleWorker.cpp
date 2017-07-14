@@ -85,6 +85,9 @@ void SingleWorker::consumeJob()
 {
     Job job = Workers::job();
     m_sequence = Workers::sequence();
+    if (m_job == job) {
+        return;
+    }
 
     save(job);
 
