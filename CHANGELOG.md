@@ -1,3 +1,7 @@
+# v2.0.2
+- Better deal with possible duplicate jobs from pool, show warning and ignore duplicates.
+- For Windows builds libuv updated to version 1.13.1 and gcc to 7.1.0.
+
 # v2.0.1
  - [#27](https://github.com/xmrig/xmrig/issues/27) Fixed possibility crash on 32bit systems.
 
