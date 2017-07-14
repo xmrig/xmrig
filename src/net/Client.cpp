@@ -185,6 +185,11 @@ bool Client::parseJob(const json_t *params, int *code)
         return false;
     }
 
+    if (m_job == job) {
+        LOG_WARN("[%s:%u] duplicate job received, ignore", m_url.host(), m_url.port());
+        return false;
+    }
+
     m_job = std::move(job);
 
     LOG_DEBUG("[%s:%u] job: \"%s\", diff: %lld", m_url.host(), m_url.port(), job.id(), job.diff());
