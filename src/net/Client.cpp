@@ -277,7 +277,7 @@ void Client::connect(struct sockaddr *addr)
     uv_tcp_keepalive(m_socket, 1, 60);
 #   endif
 
-    uv_tcp_connect(req, m_socket, (const sockaddr*) addr, Client::onConnect);
+    uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
 }
 
 
@@ -545,8 +545,26 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
         return client->reconnect();;
     }
 
-    uv_ip4_name(reinterpret_cast<sockaddr_in*>(res->ai_addr), client->m_ip, 16);
+    addrinfo *ptr = res;
+    std::vector<addrinfo*> ipv4;
 
-    client->connect(res->ai_addr);
+    while (ptr != nullptr) {
+        if (ptr->ai_family == AF_INET) {
+            ipv4.push_back(ptr);
+        }
+
+        ptr = ptr->ai_next;
+    }
+
+    if (ipv4.empty()) {
+        LOG_ERR("[%s:%u] DNS error: \"No IPv4 records found\"", client->m_url.host(), client->m_url.port());
+        return client->reconnect();
+    }
+
+    ptr = ipv4[rand() % ipv4.size()];
+
+    uv_ip4_name(reinterpret_cast<sockaddr_in*>(ptr->ai_addr), client->m_ip, 16);
+
+    client->connect(ptr->ai_addr);
     uv_freeaddrinfo(res);
 }
