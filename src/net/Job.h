@@ -50,6 +50,11 @@ public:
     inline uint64_t target() const         { return m_target; }
     inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
 
+#   ifdef XMRIG_PROXY_PROJECT
+    inline char *rawBlob()                 { return m_rawBlob; }
+    inline const char *rawTarget() const   { return m_rawTarget; }
+#   endif
+
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
     static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
@@ -65,6 +70,11 @@ private:
     uint32_t m_size;
     uint64_t m_diff;
     uint64_t m_target;
+
+#   ifdef XMRIG_PROXY_PROJECT
+    VAR_ALIGN(16, char m_rawBlob[169]);
+    VAR_ALIGN(16, char m_rawTarget[17]);
+#   endif
 };
 
 #endif /* __JOB_H__ */

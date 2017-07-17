@@ -38,10 +38,10 @@ class IStrategyListener
 public:
     virtual ~IStrategyListener() {}
 
-    virtual void onActive(Client *client)                                                        = 0;
-    virtual void onJob(Client *client, const Job &job)                                           = 0;
-    virtual void onPause(IStrategy *strategy)                                                    = 0;
-    virtual void onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error) = 0;
+    virtual void onActive(Client *client)                                                                     = 0;
+    virtual void onJob(Client *client, const Job &job)                                                        = 0;
+    virtual void onPause(IStrategy *strategy)                                                                 = 0;
+    virtual void onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error) = 0;
 };
 
 

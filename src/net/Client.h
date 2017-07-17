@@ -56,12 +56,12 @@ public:
     Client(int id, const char *agent, IClientListener *listener);
     ~Client();
 
+    int64_t send(char *data);
+    int64_t submit(const JobResult &result);
     void connect();
     void connect(const Url *url);
     void disconnect();
-    void send(char *data);
     void setUrl(const Url *url);
-    void submit(const JobResult &result);
 
     inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }
     inline const char *host() const          { return m_url.host(); }
@@ -98,6 +98,7 @@ private:
 
     static inline Client *getClient(void *data) { return static_cast<Client*>(data); }
 
+    addrinfo m_hints;
     bool m_quiet;
     char m_ip[17];
     char m_rpcId[64];
@@ -106,12 +107,11 @@ private:
     int m_id;
     int m_retryPause;
     int64_t m_failures;
-    int64_t m_sequence;
     Job m_job;
     size_t m_recvBufPos;
     SocketState m_state;
+    static int64_t m_sequence;
     std::map<int64_t, SubmitResult> m_results;
-    struct addrinfo m_hints;
     Url m_url;
     uv_buf_t m_recvBuf;
     uv_getaddrinfo_t m_resolver;

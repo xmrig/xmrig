@@ -97,7 +97,8 @@ void Network::onJob(Client *client, const Job &job)
 void Network::onJobResult(const JobResult &result)
 {
     if (result.poolId == -1 && m_donate) {
-        return m_donate->submit(result);
+        m_donate->submit(result);
+        return;
     }
 
     m_strategy->submit(result);
@@ -118,12 +119,12 @@ void Network::onPause(IStrategy *strategy)
 }
 
 
-void Network::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+void Network::onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error)
 {
     if (error) {
         m_rejected++;
 
-        LOG_INFO(m_options->colors() ? "\x1B[01;31mrejected\x1B[0m (%lld/%lld) diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%llu ms)" : "accepted (%lld/%lld) diff %u \"%s\" (%llu ms)", m_accepted, m_rejected, diff, error, ms);
+        LOG_INFO(m_options->colors() ? "\x1B[01;31mrejected\x1B[0m (%lld/%lld) diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%llu ms)" : "rejected (%lld/%lld) diff %u \"%s\" (%llu ms)", m_accepted, m_rejected, diff, error, ms);
     }
     else {
         m_accepted++;

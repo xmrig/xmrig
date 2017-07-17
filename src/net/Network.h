@@ -53,7 +53,7 @@ protected:
   void onJob(Client *client, const Job &job) override;
   void onJobResult(const JobResult &result) override;
   void onPause(IStrategy *strategy) override;
-  void onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error) override;
+  void onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error) override;
 
 private:
   void setJob(Client *client, const Job &job);

@@ -23,19 +23,29 @@
 
 
 #include <iterator>
+#include <string.h>
 #include <utility>
 
 
 #include "log/Log.h"
 #include "interfaces/IClientListener.h"
 #include "net/Client.h"
-#include "net/JobResult.h"
 #include "net/Url.h"
+
+
+#ifdef XMRIG_PROXY_PROJECT
+#   include "proxy/JobResult.h"
+#else
+#   include "net/JobResult.h"
+#endif
 
 
 #ifdef _MSC_VER
 #   define strncasecmp(x,y,z) _strnicmp(x,y,z)
 #endif
+
+
+int64_t Client::m_sequence = 1;
 
 
 Client::Client(int id, const char *agent, IClientListener *listener) :
@@ -45,7 +55,6 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_id(id),
     m_retryPause(5000),
     m_failures(0),
-    m_sequence(1),
     m_recvBufPos(0),
     m_state(UnconnectedState),
     m_stream(nullptr),
@@ -77,6 +86,35 @@ Client::~Client()
 }
 
 
+/**
+ * @brief Send raw data to server.
+ *
+ * @param data
+ */
+int64_t Client::send(char *data)
+{
+    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), strlen(data), data);
+    if (state() != ConnectedState) {
+        LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
+        return -1;
+    }
+
+    uv_buf_t buf = uv_buf_init(data, strlen(data));
+
+    uv_write_t *req = static_cast<uv_write_t*>(malloc(sizeof(uv_write_t)));
+    req->data = buf.base;
+
+    uv_write(req, m_stream, &buf, 1, [](uv_write_t *req, int status) {
+        free(req->data);
+        free(req);
+    });
+
+    uv_timer_start(&m_responseTimer, [](uv_timer_t *handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
+
+    return m_sequence++;
+}
+
+
 void Client::connect()
 {
     resolve(m_url.host());
@@ -104,34 +142,6 @@ void Client::disconnect()
 }
 
 
-/**
- * @brief Send raw data to server.
- *
- * @param data
- */
-void Client::send(char *data)
-{
-    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), strlen(data), data);
-    if (state() != ConnectedState) {
-        LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
-        return;
-    }
-
-    m_sequence++;
-    uv_buf_t buf = uv_buf_init(data, strlen(data));
-
-    uv_write_t *req = static_cast<uv_write_t*>(malloc(sizeof(uv_write_t)));
-    req->data = buf.base;
-
-    uv_write(req, m_stream, &buf, 1, [](uv_write_t *req, int status) {
-        free(req->data);
-        free(req);
-    });
-
-    uv_timer_start(&m_responseTimer, [](uv_timer_t *handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
-}
-
-
 void Client::setUrl(const Url *url)
 {
     if (!url || !url->isValid()) {
@@ -142,9 +152,14 @@ void Client::setUrl(const Url *url)
 }
 
 
-void Client::submit(const JobResult &result)
+int64_t Client::submit(const JobResult &result)
 {
     char *req = static_cast<char*>(malloc(345));
+
+#   ifdef XMRIG_PROXY_PROJECT
+    const char *nonce = result.nonce;
+    const char *data  = result.result;
+#   else
     char nonce[9];
     char data[65];
 
@@ -153,12 +168,13 @@ void Client::submit(const JobResult &result)
 
     Job::toHex(result.result, 32, data);
     data[64] = '\0';
+#   endif
 
     snprintf(req, 345, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
              m_sequence, m_rpcId, result.jobId, nonce, data);
 
-    m_results[m_sequence] = SubmitResult(result.diff);
-    send(req);
+    m_results[m_sequence] = SubmitResult(m_sequence, result.diff);
+    return send(req);
 }
 
 
@@ -186,8 +202,6 @@ bool Client::parseJob(const json_t *params, int *code)
     }
 
     m_job = std::move(job);
-
-    LOG_DEBUG("[%s:%u] job: \"%s\", diff: %lld", m_url.host(), m_url.port(), job.id(), job.diff());
     return true;
 }
 
@@ -236,7 +250,10 @@ void Client::close()
     }
 
     setState(ClosingState);
-    uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
+
+    if (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_socket)) == 0) {
+        uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
+    }
 }
 
 
@@ -266,12 +283,11 @@ void Client::connect(struct sockaddr *addr)
 
 void Client::login()
 {
-    m_sequence = 1;
     m_results.clear();
 
     const size_t size = 96 + strlen(m_url.user()) + strlen(m_url.password()) + strlen(m_agent);
     char *req = static_cast<char*>(malloc(size));
-    snprintf(req, size, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s\"}}\n", m_sequence, m_url.user(), m_url.password(), m_agent);
+    snprintf(req, size, "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s\"}}\n", m_url.user(), m_url.password(), m_agent);
 
     send(req);
 }
@@ -340,7 +356,7 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
         auto it = m_results.find(id);
         if (it != m_results.end()) {
-            m_listener->onResultAccepted(this, it->second.diff, it->second.elapsed(), message);
+            m_listener->onResultAccepted(this, it->second.seq, it->second.diff, it->second.elapsed(), message);
             m_results.erase(it);
         }
         else if (!m_quiet) {
@@ -376,7 +392,7 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
     auto it = m_results.find(id);
     if (it != m_results.end()) {
-        m_listener->onResultAccepted(this, it->second.diff, it->second.elapsed(), nullptr);
+        m_listener->onResultAccepted(this, it->second.seq, it->second.diff, it->second.elapsed(), nullptr);
         m_results.erase(it);
     }
 }

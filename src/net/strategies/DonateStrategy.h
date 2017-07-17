@@ -46,14 +46,14 @@ public:
     inline bool isActive() const override  { return m_active; }
     inline void resume() override          {}
 
+    int64_t submit(const JobResult &result) override;
     void connect() override;
-    void submit(const JobResult &result) override;
 
 protected:
     void onClose(Client *client, int failures) override;
     void onJobReceived(Client *client, const Job &job) override;
     void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error) override;
+    void onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error) override;
 
 private:
     void idle();

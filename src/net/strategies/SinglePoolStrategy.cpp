@@ -38,6 +38,12 @@ SinglePoolStrategy::SinglePoolStrategy(const Url *url, const char *agent, IStrat
 }
 
 
+int64_t SinglePoolStrategy::submit(const JobResult &result)
+{
+    return m_client->submit(result);
+}
+
+
 void SinglePoolStrategy::connect()
 {
     m_client->connect();
@@ -51,12 +57,6 @@ void SinglePoolStrategy::resume()
     }
 
     m_listener->onJob(m_client, m_client->job());
-}
-
-
-void SinglePoolStrategy::submit(const JobResult &result)
-{
-    m_client->submit(result);
 }
 
 
@@ -84,7 +84,7 @@ void SinglePoolStrategy::onLoginSuccess(Client *client)
 }
 
 
-void SinglePoolStrategy::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+void SinglePoolStrategy::onResultAccepted(Client *client,  int64_t seq, uint32_t diff, uint64_t ms, const char *error)
 {
-    m_listener->onResultAccepted(client, diff, ms, error);
+    m_listener->onResultAccepted(client, seq, diff, ms, error);
 }
