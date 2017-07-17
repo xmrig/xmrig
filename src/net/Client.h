@@ -56,7 +56,7 @@ public:
     Client(int id, const char *agent, IClientListener *listener);
     ~Client();
 
-    int64_t send(char *data);
+    int64_t send(char *data, size_t size = 0);
     int64_t submit(const JobResult &result);
     void connect();
     void connect(const Url *url);

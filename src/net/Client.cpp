@@ -91,15 +91,15 @@ Client::~Client()
  *
  * @param data
  */
-int64_t Client::send(char *data)
+int64_t Client::send(char *data, size_t size)
 {
-    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), strlen(data), data);
+    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size ? size : strlen(data), data);
     if (state() != ConnectedState) {
         LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
         return -1;
     }
 
-    uv_buf_t buf = uv_buf_init(data, strlen(data));
+    uv_buf_t buf = uv_buf_init(data, size ? size : strlen(data));
 
     uv_write_t *req = static_cast<uv_write_t*>(malloc(sizeof(uv_write_t)));
     req->data = buf.base;
@@ -285,11 +285,26 @@ void Client::login()
 {
     m_results.clear();
 
-    const size_t size = 96 + strlen(m_url.user()) + strlen(m_url.password()) + strlen(m_agent);
-    char *req = static_cast<char*>(malloc(size));
-    snprintf(req, size, "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s\"}}\n", m_url.user(), m_url.password(), m_agent);
+    json_t *req = json_object();
+    json_object_set(req, "id", json_integer(1));
+    json_object_set(req, "jsonrpc", json_string("2.0"));
+    json_object_set(req, "method", json_string("login"));
 
-    send(req);
+    json_t *params = json_object();
+    json_object_set(params, "login", json_string(m_url.user()));
+    json_object_set(params, "pass", json_string(m_url.password()));
+    json_object_set(params, "agent", json_string(m_agent));
+
+    json_object_set(req, "params", params);
+
+    char *buf = json_dumps(req, JSON_COMPACT);
+    const size_t size = strlen(buf);
+
+    buf[size] = '\n';
+
+    json_decref(req);
+
+    send(buf, size + 1);
 }
 
 
