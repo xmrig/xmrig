@@ -416,8 +416,8 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
 void Client::ping()
 {
-    char *req = static_cast<char*>(malloc(128));
-    snprintf(req, 128, "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId);
+    char *req = static_cast<char*>(malloc(160));
+    snprintf(req, 160, "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId);
 
     send(req);
 }
