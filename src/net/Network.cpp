@@ -22,6 +22,7 @@
  */
 
 
+#include <inttypes.h>
 #include <memory>
 #include <time.h>
 
@@ -137,12 +138,16 @@ void Network::onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint6
     if (error) {
         m_rejected++;
 
-        LOG_INFO(m_options->colors() ? "\x1B[01;31mrejected\x1B[0m (%lld/%lld) diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%llu ms)" : "rejected (%lld/%lld) diff %u \"%s\" (%llu ms)", m_accepted, m_rejected, diff, error, ms);
+        LOG_INFO(m_options->colors() ? "\x1B[01;31mrejected\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%" PRIu64 " ms)"
+                                     : "rejected (%" PRId64 "/%" PRId64 ") diff %u \"%s\" (%" PRIu64 " ms)",
+                 m_accepted, m_rejected, diff, error, ms);
     }
     else {
         m_accepted++;
 
-        LOG_INFO(m_options->colors() ? "\x1B[01;32maccepted\x1B[0m (%lld/%lld) diff \x1B[01;37m%u\x1B[0m \x1B[01;30m(%llu ms)" : "accepted (%lld/%lld) diff %u (%llu ms)", m_accepted, m_rejected, diff, ms);
+        LOG_INFO(m_options->colors() ? "\x1B[01;32maccepted\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[01;37m%u\x1B[0m \x1B[01;30m(%" PRIu64 " ms)"
+                                     : "accepted (%" PRId64 "/%" PRId64 ") diff %u (%" PRIu64 " ms)",
+                 m_accepted, m_rejected, diff, ms);
     }
 }
 

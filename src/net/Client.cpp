@@ -21,11 +21,10 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include <inttypes.h>
 #include <iterator>
 #include <string.h>
 #include <utility>
-
 
 #include "log/Log.h"
 #include "interfaces/IClientListener.h"
@@ -172,7 +171,7 @@ int64_t Client::submit(const JobResult &result)
     data[64] = '\0';
 #   endif
 
-    snprintf(req, 345, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
+    snprintf(req, 345, "{\"id\":%" PRIu64 ",\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
              m_sequence, m_rpcId, result.jobId, nonce, data);
 
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff);
@@ -344,7 +343,7 @@ void Client::parseNotification(const char *method, const json_t *params, const j
 {
     if (json_is_object(error)) {
         if (!m_quiet) {
-            LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+            LOG_ERR("[%s:%u] error: \"%s\", code: %" PRId64, m_url.host(), m_url.port(), json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
         }
         return;
     }
@@ -377,7 +376,7 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
             m_results.erase(it);
         }
         else if (!m_quiet) {
-            LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
+            LOG_ERR("[%s:%u] error: \"%s\", code: %" PRId64, m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
         }
 
         if (id == 1 || (message && strncasecmp(message, "Unauthenticated", 15) == 0)) {
@@ -418,7 +417,7 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 void Client::ping()
 {
     char *req = static_cast<char*>(malloc(128));
-    snprintf(req, 128, "{\"id\":%lld,\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId);
+    snprintf(req, 128, "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId);
 
     send(req);
 }

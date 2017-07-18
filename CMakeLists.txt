@@ -145,6 +145,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     if (WIN32)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+        add_definitions(/D__STDC_FORMAT_MACROS)
     else()
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
     endif()
