@@ -62,6 +62,13 @@ void DonateStrategy::connect()
 }
 
 
+void DonateStrategy::stop()
+{
+    uv_timer_stop(&m_timer);
+    m_client->disconnect();
+}
+
+
 void DonateStrategy::onClose(Client *client, int failures)
 {
 }
@@ -96,7 +103,7 @@ void DonateStrategy::idle()
 }
 
 
-void DonateStrategy::stop()
+void DonateStrategy::suspend()
 {
     m_client->disconnect();
 
@@ -115,5 +122,5 @@ void DonateStrategy::onTimer(uv_timer_t *handle)
         return strategy->connect();
     }
 
-    strategy->stop();
+    strategy->suspend();
 }

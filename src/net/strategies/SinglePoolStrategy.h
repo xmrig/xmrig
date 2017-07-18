@@ -45,6 +45,7 @@ public:
     int64_t submit(const JobResult &result) override;
     void connect() override;
     void resume() override;
+    void stop() override;
 
 protected:
     void onClose(Client *client, int failures) override;

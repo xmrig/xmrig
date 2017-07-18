@@ -40,6 +40,7 @@ public:
     virtual int64_t submit(const JobResult &result) = 0;
     virtual void connect()                          = 0;
     virtual void resume()                           = 0;
+    virtual void stop()                             = 0;
 };
 
 

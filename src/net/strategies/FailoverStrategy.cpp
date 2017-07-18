@@ -61,6 +61,14 @@ void FailoverStrategy::resume()
 }
 
 
+void FailoverStrategy::stop()
+{
+    for (size_t i = 0; i < m_pools.size(); ++i) {
+        m_pools[i]->disconnect();
+    }
+}
+
+
 void FailoverStrategy::onClose(Client *client, int failures)
 {
     if (failures == -1) {

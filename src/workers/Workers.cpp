@@ -115,6 +115,15 @@ void Workers::start(int64_t affinity)
 }
 
 
+void Workers::stop()
+{
+    uv_timer_stop(&m_timer);
+    m_hashrate->stop();
+
+    uv_close(reinterpret_cast<uv_handle_t*>(&m_async), nullptr);
+}
+
+
 void Workers::submit(const JobResult &result)
 {
     uv_mutex_lock(&m_mutex);

@@ -45,6 +45,7 @@ public:
   ~Network();
 
   void connect();
+  void stop();
 
   static char *userAgent();
 

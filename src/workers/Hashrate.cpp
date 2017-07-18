@@ -161,6 +161,12 @@ void Hashrate::print()
 }
 
 
+void Hashrate::stop()
+{
+    uv_timer_stop(&m_timer);
+}
+
+
 void Hashrate::updateHighest()
 {
    double highest = calc(2500);

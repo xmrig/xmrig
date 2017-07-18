@@ -48,6 +48,7 @@ public:
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
+    void stop() override;
 
 protected:
     void onClose(Client *client, int failures) override;
@@ -57,7 +58,7 @@ protected:
 
 private:
     void idle();
-    void stop();
+    void suspend();
 
     static void onTimer(uv_timer_t *handle);
 

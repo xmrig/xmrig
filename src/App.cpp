@@ -123,7 +123,10 @@ int App::exec()
 
 void App::close()
 {
-    uv_stop(uv_default_loop());
+    uv_signal_stop(&m_signal);
+
+    m_network->stop();
+    Workers::stop();
 }
 
 

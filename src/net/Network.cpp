@@ -76,6 +76,16 @@ void Network::connect()
 }
 
 
+void Network::stop()
+{
+    if (m_donate) {
+        m_donate->stop();
+    }
+
+    m_strategy->stop();
+}
+
+
 void Network::onActive(Client *client)
 {
     if (client->id() == -1) {

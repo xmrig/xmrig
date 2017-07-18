@@ -60,6 +60,12 @@ void SinglePoolStrategy::resume()
 }
 
 
+void SinglePoolStrategy::stop()
+{
+    m_client->disconnect();
+}
+
+
 void SinglePoolStrategy::onClose(Client *client, int failures)
 {
     if (!isActive()) {

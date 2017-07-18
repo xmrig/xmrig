@@ -135,6 +135,8 @@ void Client::connect(const Url *url)
 
 void Client::disconnect()
 {
+    uv_timer_stop(&m_keepAliveTimer);
+    uv_timer_stop(&m_responseTimer);
     uv_timer_stop(&m_retriesTimer);
     m_failures = -1;
 
