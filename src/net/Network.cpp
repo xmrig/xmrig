@@ -22,8 +22,8 @@
  */
 
 
-#include <ctime>
 #include <memory>
+#include <time.h>
 
 
 #include "log/Log.h"
@@ -44,7 +44,7 @@ Network::Network(const Options *options) :
     m_accepted(0),
     m_rejected(0)
 {
-    std::srand(std::time(0) ^ (uintptr_t) this);
+    srand(time(0) ^ (uintptr_t) this);
 
     Workers::setListener(this);
     m_agent = userAgent();
