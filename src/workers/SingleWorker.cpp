@@ -38,7 +38,7 @@ SingleWorker::SingleWorker(Handle *handle)
 
 void SingleWorker::start()
 {
-    while (true) {
+    while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
