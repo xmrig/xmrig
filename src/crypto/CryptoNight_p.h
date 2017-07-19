@@ -65,7 +65,7 @@ static inline void do_jh_hash(const void* input, size_t len, char* output) {
 
 
 static inline void do_skein_hash(const void* input, size_t len, char* output) {
-    skein_hash(8 * 32, static_cast<const uint8_t*>(input), 8 * len, reinterpret_cast<uint8_t*>(output));
+    xmr_skein(static_cast<const uint8_t*>(input), reinterpret_cast<uint8_t*>(output));
 }
 
 
