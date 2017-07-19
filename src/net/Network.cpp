@@ -22,7 +22,9 @@
  */
 
 
+#include <inttypes.h>
 #include <memory>
+#include <time.h>
 
 
 #include "log/Log.h"
@@ -43,6 +45,8 @@ Network::Network(const Options *options) :
     m_accepted(0),
     m_rejected(0)
 {
+    srand(time(0) ^ (uintptr_t) this);
+
     Workers::setListener(this);
     m_agent = userAgent();
 
@@ -73,6 +77,16 @@ void Network::connect()
 }
 
 
+void Network::stop()
+{
+    if (m_donate) {
+        m_donate->stop();
+    }
+
+    m_strategy->stop();
+}
+
+
 void Network::onActive(Client *client)
 {
     if (client->id() == -1) {
@@ -97,7 +111,8 @@ void Network::onJob(Client *client, const Job &job)
 void Network::onJobResult(const JobResult &result)
 {
     if (result.poolId == -1 && m_donate) {
-        return m_donate->submit(result);
+        m_donate->submit(result);
+        return;
     }
 
     m_strategy->submit(result);
@@ -112,23 +127,27 @@ void Network::onPause(IStrategy *strategy)
     }
 
     if (!m_strategy->isActive()) {
-        LOG_ERR("no active pools, pause mining");
+        LOG_ERR("no active pools, stop mining");
         return Workers::pause();
     }
 }
 
 
-void Network::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+void Network::onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error)
 {
     if (error) {
         m_rejected++;
 
-        LOG_INFO(m_options->colors() ? "\x1B[01;31mrejected\x1B[0m (%lld/%lld) diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%llu ms)" : "accepted (%lld/%lld) diff %u \"%s\" (%llu ms)", m_accepted, m_rejected, diff, error, ms);
+        LOG_INFO(m_options->colors() ? "\x1B[01;31mrejected\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%" PRIu64 " ms)"
+                                     : "rejected (%" PRId64 "/%" PRId64 ") diff %u \"%s\" (%" PRIu64 " ms)",
+                 m_accepted, m_rejected, diff, error, ms);
     }
     else {
         m_accepted++;
 
-        LOG_INFO(m_options->colors() ? "\x1B[01;32maccepted\x1B[0m (%lld/%lld) diff \x1B[01;37m%u\x1B[0m \x1B[01;30m(%llu ms)" : "accepted (%lld/%lld) diff %u (%llu ms)", m_accepted, m_rejected, diff, ms);
+        LOG_INFO(m_options->colors() ? "\x1B[01;32maccepted\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[01;37m%u\x1B[0m \x1B[01;30m(%" PRIu64 " ms)"
+                                     : "accepted (%" PRId64 "/%" PRId64 ") diff %u (%" PRIu64 " ms)",
+                 m_accepted, m_rejected, diff, ms);
     }
 }
 

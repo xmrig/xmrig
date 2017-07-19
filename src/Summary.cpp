@@ -22,6 +22,7 @@
  */
 
 
+#include <inttypes.h>
 #include <uv.h>
 
 
@@ -94,7 +95,7 @@ static void print_threads()
 {
     char buf[32];
     if (Options::i()->affinity() != -1L) {
-        snprintf(buf, 32, ", affinity=0x%llX", Options::i()->affinity());
+        snprintf(buf, 32, ", affinity=0x%" PRIX64, Options::i()->affinity());
     }
     else {
         buf[0] = '\0';

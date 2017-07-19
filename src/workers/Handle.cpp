@@ -34,6 +34,12 @@ Handle::Handle(int threadId, int threads, int64_t affinity) :
 }
 
 
+void Handle::join()
+{
+    uv_thread_join(&m_thread);
+}
+
+
 void Handle::start(void (*callback) (void *))
 {
     uv_thread_create(&m_thread, callback, this);

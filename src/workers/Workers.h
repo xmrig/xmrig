@@ -46,6 +46,7 @@ public:
     static void setEnabled(bool enabled);
     static void setJob(const Job &job);
     static void start(int64_t affinity);
+    static void stop();
     static void submit(const JobResult &result);
 
     static inline bool isEnabled()                               { return m_enabled; }

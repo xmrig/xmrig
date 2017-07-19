@@ -100,7 +100,7 @@ void Workers::start(int64_t affinity)
     uv_mutex_init(&m_mutex);
     uv_rwlock_init(&m_rwlock);
 
-    m_sequence = 0;
+    m_sequence = 1;
     m_paused   = 1;
 
     uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
@@ -111,6 +111,20 @@ void Workers::start(int64_t affinity)
         Handle *handle = new Handle(i, threads, affinity);
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
+    }
+}
+
+
+void Workers::stop()
+{
+    uv_timer_stop(&m_timer);
+    m_hashrate->stop();
+
+    uv_close(reinterpret_cast<uv_handle_t*>(&m_async), nullptr);
+    m_sequence = 0;
+
+    for (size_t i = 0; i < m_workers.size(); ++i) {
+        m_workers[i]->join();
     }
 }
 

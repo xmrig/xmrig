@@ -25,7 +25,7 @@
 
 
 int main(int argc, char **argv) {
-    auto app = new App(argc, argv);
+    App app(argc, argv);
 
-    return app->exec();
+    return app.exec();
 }

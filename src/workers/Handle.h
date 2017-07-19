@@ -36,6 +36,7 @@ class Handle
 {
 public:
     Handle(int threadId, int threads, int64_t affinity);
+    void join();
     void start(void (*callback) (void *));
 
     inline int threadId() const            { return m_threadId; }

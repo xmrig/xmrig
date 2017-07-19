@@ -34,7 +34,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_idleTime((100 - Options::i()->donateLevel()) * 60 * 1000),
     m_listener(listener)
 {
-    Url *url = new Url("donate2.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, Options::i()->pools().front()->user());
+    Url *url = new Url("fee.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, Options::i()->pools().front()->user(), nullptr, false, true);
 
     m_client = new Client(-1, agent, this);
     m_client->setUrl(url);
@@ -50,15 +50,22 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
 }
 
 
+int64_t DonateStrategy::submit(const JobResult &result)
+{
+    return m_client->submit(result);
+}
+
+
 void DonateStrategy::connect()
 {
     m_client->connect();
 }
 
 
-void DonateStrategy::submit(const JobResult &result)
+void DonateStrategy::stop()
 {
-    m_client->submit(result);
+    uv_timer_stop(&m_timer);
+    m_client->disconnect();
 }
 
 
@@ -84,9 +91,9 @@ void DonateStrategy::onLoginSuccess(Client *client)
 }
 
 
-void DonateStrategy::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+void DonateStrategy::onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error)
 {
-    m_listener->onResultAccepted(client, diff, ms, error);
+    m_listener->onResultAccepted(client, seq, diff, ms, error);
 }
 
 
@@ -96,7 +103,7 @@ void DonateStrategy::idle()
 }
 
 
-void DonateStrategy::stop()
+void DonateStrategy::suspend()
 {
     m_client->disconnect();
 
@@ -115,5 +122,5 @@ void DonateStrategy::onTimer(uv_timer_t *handle)
         return strategy->connect();
     }
 
-    strategy->stop();
+    strategy->suspend();
 }

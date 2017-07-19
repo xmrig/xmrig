@@ -21,21 +21,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include <inttypes.h>
 #include <iterator>
+#include <string.h>
 #include <utility>
-
 
 #include "log/Log.h"
 #include "interfaces/IClientListener.h"
 #include "net/Client.h"
-#include "net/JobResult.h"
 #include "net/Url.h"
+
+
+#ifdef XMRIG_PROXY_PROJECT
+#   include "proxy/JobResult.h"
+#else
+#   include "net/JobResult.h"
+#endif
 
 
 #ifdef _MSC_VER
 #   define strncasecmp(x,y,z) _strnicmp(x,y,z)
 #endif
+
+
+int64_t Client::m_sequence = 1;
 
 
 Client::Client(int id, const char *agent, IClientListener *listener) :
@@ -45,7 +54,6 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_id(id),
     m_retryPause(5000),
     m_failures(0),
-    m_sequence(1),
     m_recvBufPos(0),
     m_state(UnconnectedState),
     m_stream(nullptr),
@@ -77,6 +85,35 @@ Client::~Client()
 }
 
 
+/**
+ * @brief Send raw data to server.
+ *
+ * @param data
+ */
+int64_t Client::send(char *data, size_t size)
+{
+    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size ? size : strlen(data), data);
+    if (state() != ConnectedState) {
+        LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
+        return -1;
+    }
+
+    uv_buf_t buf = uv_buf_init(data, size ? size : strlen(data));
+
+    uv_write_t *req = static_cast<uv_write_t*>(malloc(sizeof(uv_write_t)));
+    req->data = buf.base;
+
+    uv_write(req, m_stream, &buf, 1, [](uv_write_t *req, int status) {
+        free(req->data);
+        free(req);
+    });
+
+    uv_timer_start(&m_responseTimer, [](uv_timer_t *handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
+
+    return m_sequence++;
+}
+
+
 void Client::connect()
 {
     resolve(m_url.host());
@@ -97,38 +134,12 @@ void Client::connect(const Url *url)
 
 void Client::disconnect()
 {
+    uv_timer_stop(&m_keepAliveTimer);
+    uv_timer_stop(&m_responseTimer);
     uv_timer_stop(&m_retriesTimer);
     m_failures = -1;
 
     close();
-}
-
-
-/**
- * @brief Send raw data to server.
- *
- * @param data
- */
-void Client::send(char *data)
-{
-    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), strlen(data), data);
-    if (state() != ConnectedState) {
-        LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
-        return;
-    }
-
-    m_sequence++;
-    uv_buf_t buf = uv_buf_init(data, strlen(data));
-
-    uv_write_t *req = static_cast<uv_write_t*>(malloc(sizeof(uv_write_t)));
-    req->data = buf.base;
-
-    uv_write(req, m_stream, &buf, 1, [](uv_write_t *req, int status) {
-        free(req->data);
-        free(req);
-    });
-
-    uv_timer_start(&m_responseTimer, [](uv_timer_t *handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
 }
 
 
@@ -142,9 +153,14 @@ void Client::setUrl(const Url *url)
 }
 
 
-void Client::submit(const JobResult &result)
+int64_t Client::submit(const JobResult &result)
 {
     char *req = static_cast<char*>(malloc(345));
+
+#   ifdef XMRIG_PROXY_PROJECT
+    const char *nonce = result.nonce;
+    const char *data  = result.result;
+#   else
     char nonce[9];
     char data[65];
 
@@ -153,12 +169,13 @@ void Client::submit(const JobResult &result)
 
     Job::toHex(result.result, 32, data);
     data[64] = '\0';
+#   endif
 
-    snprintf(req, 345, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
+    snprintf(req, 345, "{\"id\":%" PRIu64 ",\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
              m_sequence, m_rpcId, result.jobId, nonce, data);
 
-    m_results[m_sequence] = SubmitResult(result.diff);
-    send(req);
+    m_results[m_sequence] = SubmitResult(m_sequence, result.diff);
+    return send(req);
 }
 
 
@@ -191,8 +208,6 @@ bool Client::parseJob(const json_t *params, int *code)
     }
 
     m_job = std::move(job);
-
-    LOG_DEBUG("[%s:%u] job: \"%s\", diff: %lld", m_url.host(), m_url.port(), job.id(), job.diff());
     return true;
 }
 
@@ -241,7 +256,10 @@ void Client::close()
     }
 
     setState(ClosingState);
-    uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
+
+    if (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_socket)) == 0) {
+        uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
+    }
 }
 
 
@@ -265,20 +283,34 @@ void Client::connect(struct sockaddr *addr)
     uv_tcp_keepalive(m_socket, 1, 60);
 #   endif
 
-    uv_tcp_connect(req, m_socket, (const sockaddr*) addr, Client::onConnect);
+    uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
 }
 
 
 void Client::login()
 {
-    m_sequence = 1;
     m_results.clear();
 
-    const size_t size = 96 + strlen(m_url.user()) + strlen(m_url.password()) + strlen(m_agent);
-    char *req = static_cast<char*>(malloc(size));
-    snprintf(req, size, "{\"id\":%llu,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"%s\",\"pass\":\"%s\",\"agent\":\"%s\"}}\n", m_sequence, m_url.user(), m_url.password(), m_agent);
+    json_t *req = json_object();
+    json_object_set(req, "id", json_integer(1));
+    json_object_set(req, "jsonrpc", json_string("2.0"));
+    json_object_set(req, "method", json_string("login"));
 
-    send(req);
+    json_t *params = json_object();
+    json_object_set(params, "login", json_string(m_url.user()));
+    json_object_set(params, "pass", json_string(m_url.password()));
+    json_object_set(params, "agent", json_string(m_agent));
+
+    json_object_set(req, "params", params);
+
+    char *buf = json_dumps(req, JSON_COMPACT);
+    const size_t size = strlen(buf);
+
+    buf[size] = '\n';
+
+    json_decref(req);
+
+    send(buf, size + 1);
 }
 
 
@@ -316,7 +348,7 @@ void Client::parseNotification(const char *method, const json_t *params, const j
 {
     if (json_is_object(error)) {
         if (!m_quiet) {
-            LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
+            LOG_ERR("[%s:%u] error: \"%s\", code: %" PRId64, m_url.host(), m_url.port(), json_string_value(json_object_get(error, "message")), json_integer_value(json_object_get(error, "code")));
         }
         return;
     }
@@ -345,11 +377,11 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
         auto it = m_results.find(id);
         if (it != m_results.end()) {
-            m_listener->onResultAccepted(this, it->second.diff, it->second.elapsed(), message);
+            m_listener->onResultAccepted(this, it->second.seq, it->second.diff, it->second.elapsed(), message);
             m_results.erase(it);
         }
         else if (!m_quiet) {
-            LOG_ERR("[%s:%u] error: \"%s\", code: %lld", m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
+            LOG_ERR("[%s:%u] error: \"%s\", code: %" PRId64, m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
         }
 
         if (id == 1 || (message && strncasecmp(message, "Unauthenticated", 15) == 0)) {
@@ -381,7 +413,7 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
     auto it = m_results.find(id);
     if (it != m_results.end()) {
-        m_listener->onResultAccepted(this, it->second.diff, it->second.elapsed(), nullptr);
+        m_listener->onResultAccepted(this, it->second.seq, it->second.diff, it->second.elapsed(), nullptr);
         m_results.erase(it);
     }
 }
@@ -389,8 +421,8 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
 void Client::ping()
 {
-    char *req = static_cast<char*>(malloc(128));
-    snprintf(req, 128, "{\"id\":%lld,\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId);
+    char *req = static_cast<char*>(malloc(160));
+    snprintf(req, 160, "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId);
 
     send(req);
 }
@@ -534,8 +566,26 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
         return client->reconnect();;
     }
 
-    uv_ip4_name(reinterpret_cast<sockaddr_in*>(res->ai_addr), client->m_ip, 16);
+    addrinfo *ptr = res;
+    std::vector<addrinfo*> ipv4;
 
-    client->connect(res->ai_addr);
+    while (ptr != nullptr) {
+        if (ptr->ai_family == AF_INET) {
+            ipv4.push_back(ptr);
+        }
+
+        ptr = ptr->ai_next;
+    }
+
+    if (ipv4.empty()) {
+        LOG_ERR("[%s:%u] DNS error: \"No IPv4 records found\"", client->m_url.host(), client->m_url.port());
+        return client->reconnect();
+    }
+
+    ptr = ipv4[rand() % ipv4.size()];
+
+    uv_ip4_name(reinterpret_cast<sockaddr_in*>(ptr->ai_addr), client->m_ip, 16);
+
+    client->connect(ptr->ai_addr);
     uv_freeaddrinfo(res);
 }

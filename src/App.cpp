@@ -123,6 +123,9 @@ int App::exec()
 
 void App::close()
 {
+    m_network->stop();
+    Workers::stop();
+
     uv_stop(uv_default_loop());
 }
 
@@ -147,5 +150,6 @@ void App::onSignal(uv_signal_t *handle, int signum)
         break;
     }
 
+    uv_signal_stop(handle);
     m_self->close();
 }

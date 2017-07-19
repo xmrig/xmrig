@@ -39,6 +39,12 @@ FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, const char *ag
 }
 
 
+int64_t FailoverStrategy::submit(const JobResult &result)
+{
+    return m_pools[m_active]->submit(result);
+}
+
+
 void FailoverStrategy::connect()
 {
     m_pools[m_index]->connect();
@@ -55,9 +61,11 @@ void FailoverStrategy::resume()
 }
 
 
-void FailoverStrategy::submit(const JobResult &result)
+void FailoverStrategy::stop()
 {
-    m_pools[m_active]->submit(result);
+    for (size_t i = 0; i < m_pools.size(); ++i) {
+        m_pools[i]->disconnect();
+    }
 }
 
 
@@ -111,9 +119,9 @@ void FailoverStrategy::onLoginSuccess(Client *client)
 }
 
 
-void FailoverStrategy::onResultAccepted(Client *client, uint32_t diff, uint64_t ms, const char *error)
+void FailoverStrategy::onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error)
 {
-    m_listener->onResultAccepted(client, diff, ms, error);
+    m_listener->onResultAccepted(client, seq, diff, ms, error);
 }
 
 
