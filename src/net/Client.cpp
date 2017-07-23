@@ -100,12 +100,12 @@ int64_t Client::send(char *data, size_t size)
 
     uv_buf_t buf = uv_buf_init(data, size ? size : strlen(data));
 
-    uv_write_t *req = static_cast<uv_write_t*>(malloc(sizeof(uv_write_t)));
+    uv_write_t *req = new uv_write_t;
     req->data = buf.base;
 
     uv_write(req, m_stream, &buf, 1, [](uv_write_t *req, int status) {
         free(req->data);
-        free(req);
+        delete req;
     });
 
     uv_timer_start(&m_responseTimer, [](uv_timer_t *handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
@@ -199,6 +199,11 @@ bool Client::parseJob(const json_t *params, int *code)
 
     if (!job.setTarget(json_string_value(json_object_get(params, "target")))) {
         *code = 5;
+        return false;
+    }
+
+    if (m_job == job) {
+        LOG_WARN("[%s:%u] duplicate job received, ignore", m_url.host(), m_url.port());
         return false;
     }
 

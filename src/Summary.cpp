@@ -50,11 +50,8 @@ static void print_versions()
 #   endif
 
 
-    if (Options::i()->colors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s%s", APP_VERSION, uv_version_string(), buf);
-    } else {
-        Log::i()->text(" * VERSIONS:     XMRig/%s libuv/%s%s", APP_VERSION, uv_version_string(), buf);
-    }
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s%s" : " * VERSIONS:     XMRig/%s libuv/%s%s",
+                   APP_VERSION, uv_version_string(), buf);
 }
 
 
@@ -130,6 +127,17 @@ static void print_pools()
 }
 
 
+static void print_commands()
+{
+    if (Options::i()->colors()) {
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mh\x1B[01;37mashrate, \x1B[01;35mp\x1B[01;37mause, \x1B[01;35mr\x1B[01;37mesume");
+    }
+    else {
+        Log::i()->text(" * COMMANDS:     'h' hashrate, 'p' pause, 'r' resume");
+    }
+}
+
+
 void Summary::print()
 {
     print_versions();
@@ -137,6 +145,7 @@ void Summary::print()
     print_cpu();
     print_threads();
     print_pools();
+    print_commands();
 }
 
 

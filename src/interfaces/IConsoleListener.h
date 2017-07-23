@@ -21,53 +21,17 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#ifndef __ICONSOLELISTENER_H__
+#define __ICONSOLELISTENER_H__
 
 
-#include "interfaces/ILogBackend.h"
-#include "log/Log.h"
-
-
-Log *Log::m_self = nullptr;
-
-
-void Log::message(Log::Level level, const char* fmt, ...)
+class IConsoleListener
 {
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
+public:
+    virtual ~IConsoleListener() {}
 
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->message(level, fmt, copy);
-        va_end(copy);
-    }
-}
+    virtual void onConsoleCommand(char command) = 0;
+};
 
 
-void Log::text(const char* fmt, ...)
-{
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
-
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->text(fmt, copy);
-        va_end(copy);
-    }
-
-    va_end(args);
-}
-
-
-Log::~Log()
-{
-    for (auto backend : m_backends) {
-        delete backend;
-    }
-}
+#endif // __ICONSOLELISTENER_H__

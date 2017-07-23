@@ -1,3 +1,13 @@
+# v2.1.0
+- [#40](https://github.com/xmrig/xmrig/issues/40) Improved miner shutdown, fixed crash on exit for Linux and OS X.
+- Fixed, login request was contain malformed JSON if username or password has some special characters for example `\`. 
+- [#220](https://github.com/fireice-uk/xmr-stak-cpu/pull/220) Better support for Round Robin DNS, IP address now always chosen randomly instead of stuck on first one.
+- Changed donation address, new [xmrig-proxy](https://github.com/xmrig/xmrig-proxy) is coming soon.
+
+# v2.0.2
+- Better deal with possible duplicate jobs from pool, show warning and ignore duplicates.
+- For Windows builds libuv updated to version 1.13.1 and gcc to 7.1.0.
+
 # v2.0.1
  - [#27](https://github.com/xmrig/xmrig/issues/27) Fixed possibility crash on 32bit systems.
 
