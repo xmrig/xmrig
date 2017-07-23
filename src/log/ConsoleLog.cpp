@@ -28,12 +28,6 @@
 #include <time.h>
 
 
-#ifdef WIN32
-#   include <winsock2.h>
-#   include <malloc.h>
-#   include "3rdparty/winansi.h"
-#endif
-
 #include "log/ConsoleLog.h"
 #include "log/Log.h"
 
@@ -41,6 +35,8 @@
 ConsoleLog::ConsoleLog(bool colors) :
     m_colors(colors)
 {
+    uv_tty_init(uv_default_loop(), &m_tty, 1, 0);
+    uv_tty_set_mode(&m_tty, UV_TTY_MODE_NORMAL);
 }
 
 
@@ -81,7 +77,7 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
     }
 
     const size_t len = 64 + strlen(fmt) + 2;
-    char *buf = static_cast<char *>(alloca(len));
+    char *buf = new char[len];
 
     sprintf(buf, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s\n",
             stime.tm_year + 1900,
@@ -95,18 +91,35 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
             m_colors ? Log::kCL_N : ""
         );
 
-    vfprintf(stdout, buf, args);
-    fflush(stdout);
+    print(buf, args);
 }
 
 
 void ConsoleLog::text(const char* fmt, va_list args)
 {
     const int len = 64 + strlen(fmt) + 2;
-    char *buf = static_cast<char *>(alloca(len));
+    char *buf = new char[len];
 
     sprintf(buf, "%s%s\n", fmt, m_colors ? Log::kCL_N : "");
 
-    vfprintf(stdout, buf, args);
-    fflush(stdout);
+    print(buf, args);
+}
+
+
+void ConsoleLog::print(char *fmt, va_list args)
+{
+    vsnprintf(m_buf, sizeof(m_buf) - 1, fmt, args);
+    delete [] fmt;
+
+    uv_buf_t buf;
+    buf.base = strdup(m_buf);
+    buf.len  = strlen(buf.base);
+
+    uv_write_t *req = new uv_write_t;
+    req->data = buf.base;
+
+    uv_write(req, reinterpret_cast<uv_stream_t*>(&m_tty), &buf, 1, [](uv_write_t *req, int status) {
+        free(req->data);
+        delete req;
+    });
 }

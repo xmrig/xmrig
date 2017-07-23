@@ -94,8 +94,6 @@ set(SOURCES_CRYPTO
 if (WIN32)
     set(SOURCES_OS
         res/app.rc
-        src/3rdparty/winansi.cpp
-        src/3rdparty/winansi.h
         src/App_win.cpp
         src/Cpu_win.cpp
         src/Mem_win.cpp
