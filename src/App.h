@@ -28,18 +28,24 @@
 #include <uv.h>
 
 
+#include "interfaces/IConsoleListener.h"
+
+
 class Console;
 class Network;
 class Options;
 
 
-class App
+class App : public IConsoleListener
 {
 public:
   App(int argc, char **argv);
   ~App();
 
   int exec();
+
+protected:
+  void onConsoleCommand(char command) override;
 
 private:
   void background();

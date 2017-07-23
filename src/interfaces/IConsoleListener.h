@@ -21,37 +21,17 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __ICONSOLELISTENER_H__
+#define __ICONSOLELISTENER_H__
 
-#include "Console.h"
-#include "interfaces/IConsoleListener.h"
 
-
-Console::Console(IConsoleListener *listener)
-    : m_listener(listener)
+class IConsoleListener
 {
-    m_tty.data = this;
-    uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
-    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
+public:
+    virtual ~IConsoleListener() {}
 
-    uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
-}
-
-
-void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
-{
-    auto console = static_cast<Console*>(handle->data);
-    buf->len  = 1;
-    buf->base = console->m_buf;
-}
+    virtual void onConsoleCommand(char command) = 0;
+};
 
 
-void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
-{
-    if (nread < 0) {
-        return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);
-    }
-
-    if (nread == 1) {
-        static_cast<Console*>(stream->data)->m_listener->onConsoleCommand(buf->base[0]);
-    }
-}
+#endif // __ICONSOLELISTENER_H__

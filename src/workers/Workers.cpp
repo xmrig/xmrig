@@ -60,6 +60,12 @@ Job Workers::job()
 }
 
 
+void Workers::printHashrate(bool detail)
+{
+    m_hashrate->print();
+}
+
+
 void Workers::setEnabled(bool enabled)
 {
     if (m_enabled == enabled) {
@@ -121,6 +127,7 @@ void Workers::stop()
     m_hashrate->stop();
 
     uv_close(reinterpret_cast<uv_handle_t*>(&m_async), nullptr);
+    m_paused   = 0;
     m_sequence = 0;
 
     for (size_t i = 0; i < m_workers.size(); ++i) {

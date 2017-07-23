@@ -64,7 +64,7 @@ App::App(int argc, char **argv) :
 
     if (!m_options->background()) {
         Log::add(new ConsoleLog(m_options->colors()));
-        m_console = new Console();
+        m_console = new Console(this);
     }
 
     if (m_options->logFile()) {
@@ -122,6 +122,39 @@ int App::exec()
     Mem::release();
 
     return r;
+}
+
+
+void App::onConsoleCommand(char command)
+{
+    switch (command) {
+    case 'h':
+    case 'H':
+        Workers::printHashrate(true);
+        break;
+
+    case 'p':
+    case 'P':
+        LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
+        Workers::setEnabled(false);
+        break;
+
+    case 'r':
+    case 'R':
+        if (!Workers::isEnabled()) {
+            LOG_INFO(m_options->colors() ? "\x1B[01;32mresumed" : "resumed");
+            Workers::setEnabled(true);
+        }
+        break;
+
+    case 3:
+        LOG_WARN("Ctrl+C received, exiting");
+        close();
+        break;
+
+    default:
+        break;
+    }
 }
 
 
