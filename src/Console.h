@@ -21,39 +21,25 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __CONSOLE_H__
+#define __CONSOLE_H__
 
 
 #include <uv.h>
 
 
-class Console;
-class Network;
-class Options;
-
-
-class App
+class Console
 {
 public:
-  App(int argc, char **argv);
-  ~App();
-
-  int exec();
+    Console();
 
 private:
-  void background();
-  void close();
+    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+    static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 
-  static void onSignal(uv_signal_t *handle, int signum);
-
-  static App *m_self;
-
-  Console *m_console;
-  Network *m_network;
-  Options *m_options;
-  uv_signal_t m_signal;
+    char m_buf[1];
+    uv_tty_t m_tty;
 };
 
 
-#endif /* __APP_H__ */
+#endif /* __CONSOLE_H__ */

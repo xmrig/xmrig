@@ -21,39 +21,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+
+#include "Console.h"
 
 
-#include <uv.h>
-
-
-class Console;
-class Network;
-class Options;
-
-
-class App
+Console::Console()
 {
-public:
-  App(int argc, char **argv);
-  ~App();
+    m_tty.data = this;
+    uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
+    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
 
-  int exec();
-
-private:
-  void background();
-  void close();
-
-  static void onSignal(uv_signal_t *handle, int signum);
-
-  static App *m_self;
-
-  Console *m_console;
-  Network *m_network;
-  Options *m_options;
-  uv_signal_t m_signal;
-};
+    uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
+}
 
 
-#endif /* __APP_H__ */
+void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+{
+    auto console = static_cast<Console*>(handle->data);
+    buf->len  = 1;
+    buf->base = console->m_buf;
+}
+
+
+void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+{
+    if (nread < 0) {
+        return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);
+    }
+
+    if (nread == 1) {
+        printf("%c\n", buf->base[0]);
+    }
+}

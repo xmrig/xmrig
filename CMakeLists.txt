@@ -11,6 +11,7 @@ include (CheckIncludeFile)
 set(HEADERS
     src/3rdparty/align.h
     src/App.h
+    src/Console.h
     src/Cpu.h
     src/interfaces/IClientListener.h
     src/interfaces/IJobResultListener.h
@@ -58,6 +59,7 @@ set(HEADERS_CRYPTO
 
 set(SOURCES
     src/App.cpp
+    src/Console.cpp
     src/log/ConsoleLog.cpp
     src/log/FileLog.cpp
     src/log/Log.cpp
@@ -65,10 +67,10 @@ set(SOURCES
     src/net/Client.cpp
     src/net/Job.cpp
     src/net/Network.cpp
-    src/net/Url.cpp
     src/net/strategies/DonateStrategy.cpp
     src/net/strategies/FailoverStrategy.cpp
     src/net/strategies/SinglePoolStrategy.cpp
+    src/net/Url.cpp
     src/Options.cpp
     src/Summary.cpp
     src/workers/DoubleWorker.cpp

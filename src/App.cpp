@@ -27,6 +27,7 @@
 
 
 #include "App.h"
+#include "Console.h"
 #include "Cpu.h"
 #include "crypto/CryptoNight.h"
 #include "log/ConsoleLog.h"
@@ -50,6 +51,7 @@ App *App::m_self = nullptr;
 
 
 App::App(int argc, char **argv) :
+    m_console(nullptr),
     m_network(nullptr),
     m_options(nullptr)
 {
@@ -62,6 +64,7 @@ App::App(int argc, char **argv) :
 
     if (!m_options->background()) {
         Log::add(new ConsoleLog(m_options->colors()));
+        m_console = new Console();
     }
 
     if (m_options->logFile()) {
@@ -82,6 +85,7 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
+    delete m_console;
 }
 
 
