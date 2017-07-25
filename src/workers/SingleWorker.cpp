@@ -54,7 +54,11 @@ void SingleWorker::start()
             }
 
             m_count++;
-            *m_job.nonce() = ++m_result.nonce;
+            if (m_job.isRandNonce()) {
+                *m_job.nonce() = m_result.nonce += rand();
+            } else {
+                *m_job.nonce() = ++m_result.nonce;
+            }
 
             if (CryptoNight::hash(m_job, m_result, m_ctx)) {
                 Workers::submit(m_result);
