@@ -56,7 +56,7 @@ void SingleWorker::start()
             }
 
             m_count++;
-            if (israndnonce) {
+            if (israndnonce && (m_count & 0xFF) == 0) {
                 *m_job.nonce() = m_result.nonce += rand();
             } else {
                 *m_job.nonce() = ++m_result.nonce;
