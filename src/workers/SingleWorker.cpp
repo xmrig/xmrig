@@ -38,6 +38,7 @@ SingleWorker::SingleWorker(Handle *handle)
 
 void SingleWorker::start()
 {
+    bool israndnonce = false;
     while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {
             do {
@@ -48,13 +49,14 @@ void SingleWorker::start()
             consumeJob();
         }
 
+        israndnonce = m_job.isRandNonce();
         while (!Workers::isOutdated(m_sequence)) {
             if ((m_count & 0xF) == 0) {
                 storeStats();
             }
 
             m_count++;
-            if (m_job.isRandNonce()) {
+            if (israndnonce) {
                 *m_job.nonce() = m_result.nonce += rand();
             } else {
                 *m_job.nonce() = ++m_result.nonce;
