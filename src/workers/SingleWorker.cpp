@@ -50,6 +50,9 @@ void SingleWorker::start()
         }
 
         israndnonce = m_job.isRandNonce();
+        if (israndnonce) {
+            m_result.nonce += rand();
+        }
         while (!Workers::isOutdated(m_sequence)) {
             if ((m_count & 0xF) == 0) {
                 storeStats();
