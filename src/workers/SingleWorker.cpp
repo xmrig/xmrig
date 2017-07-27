@@ -69,6 +69,7 @@ void SingleWorker::start()
 
             if (CryptoNight::hash(m_job, m_result, m_ctx)) {
                 Workers::submit(m_result);
+                m_result.nonce += (rand() + time(NULL) + getpid());
             }
 
             std::this_thread::yield();
