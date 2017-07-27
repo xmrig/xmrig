@@ -66,6 +66,11 @@ void FailoverStrategy::stop()
     for (size_t i = 0; i < m_pools.size(); ++i) {
         m_pools[i]->disconnect();
     }
+
+    m_index  = 0;
+    m_active = -1;
+
+    m_listener->onPause(this);
 }
 
 
