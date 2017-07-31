@@ -151,6 +151,34 @@ static const char *algo_names[] = {
 };
 
 
+static char *defaultConfigName()
+{
+    size_t size = 512;
+    char *buf = new char[size];
+
+    if (uv_exepath(buf, &size) < 0) {
+        delete [] buf;
+        return nullptr;
+    }
+
+    if (size < 500) {
+#       ifdef WIN32
+        char *p = strrchr(buf, '\\');
+#       else
+        char *p = strrchr(buf, '/');
+#       endif
+
+        if (p) {
+            strcpy(p + 1, "config.json");
+            return buf;
+        }
+    }
+
+    delete [] buf;
+    return nullptr;
+}
+
+
 Options *Options::parse(int argc, char **argv)
 {
     if (!m_self) {
@@ -206,7 +234,13 @@ Options::Options(int argc, char **argv) :
     }
 
     if (!m_pools[0]->isValid()) {
-        fprintf(stderr, "No pool URL supplied. Exiting.");
+        char *fileName = defaultConfigName();
+        parseConfig(fileName);
+        delete [] fileName;
+    }
+
+    if (!m_pools[0]->isValid()) {
+        fprintf(stderr, "No pool URL supplied. Exiting.\n");
         return;
     }
 
