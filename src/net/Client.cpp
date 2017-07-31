@@ -529,6 +529,10 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
         return client->close();;
     }
 
+    if ((size_t) nread > (kRecvBufSize - 8 - client->m_recvBufPos)) {
+        return client->close();;
+    }
+
     client->m_recvBufPos += nread;
 
     char* end;
