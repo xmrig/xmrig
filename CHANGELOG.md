@@ -1,5 +1,12 @@
+# v2.2.0
+- [#46](https://github.com/xmrig/xmrig/issues/46) Restored config file support. Now possible use multiple config files and combine with command line options also added support for default config.
+- Improved colors support on Windows, now used uv_tty, legacy code removed.
+- QuickEdit Mode now disabled on Windows.
+- Added interactive commands in console window:: **h**ashrate, **p**ause, **r**esume.
+
 # v2.1.0
-- [#40](https://github.com/xmrig/xmrig/issues/40) Improved miner shutdown, fixed crash on exit for Linux and OS X.
+- [#40](https://github.com/xmrig/xmrig/issues/40)
+Improved miner shutdown, fixed crash on exit for Linux and OS X.
 - Fixed, login request was contain malformed JSON if username or password has some special characters for example `\`. 
 - [#220](https://github.com/fireice-uk/xmr-stak-cpu/pull/220) Better support for Round Robin DNS, IP address now always chosen randomly instead of stuck on first one.
 - Changed donation address, new [xmrig-proxy](https://github.com/xmrig/xmrig-proxy) is coming soon.
