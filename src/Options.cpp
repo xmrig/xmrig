@@ -316,22 +316,21 @@ bool Options::parseArg(int key, const char *arg)
         m_colors = false;
         break;
 
-    case 'r': /* --retries */
-        return parseArg(key, strtol(arg, nullptr, 10));
-
-    case 'R': /* --retry-pause */
-        return parseArg(key, strtol(arg, nullptr, 10));
-
-    case 't': /* --threads */
-        return parseArg(key, strtol(arg, nullptr, 10));
-
+    case 'r':  /* --retries */
+    case 'R':  /* --retry-pause */
+    case 't':  /* --threads */
+    case 'v':  /* --av */
+    case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
+    case 1007: /* --print-time */
         return parseArg(key, strtol(arg, nullptr, 10));
 
+    case 'B':  /* --background */
+    case 'k':  /* --keepalive */
+    case 'S':  /* --syslog */
+    case 1002: /* --no-color */
     case 1005: /* --safe */
-        return parseBoolean(key, true);
-
-    case 'k': /* --keepalive */
+    case 1006: /* --nicehash */
         return parseBoolean(key, true);
 
     case 'V': /* --version */
@@ -345,27 +344,6 @@ bool Options::parseArg(int key, const char *arg)
     case 'c': /* --config */
         parseConfig(arg);
         break;
-
-    case 'B': /* --background */
-        return parseBoolean(key, true);
-
-    case 'S': /* --syslog */
-        return parseBoolean(key, true);
-
-    case 'v': /* --av */
-        return parseArg(key, strtol(arg, nullptr, 10));
-
-    case 1002: /* --no-color */
-        return parseBoolean(key, false);
-
-    case 1003: /* --donate-level */
-        return parseArg(key, strtol(arg, nullptr, 10));
-
-    case 1006: /* --nicehash */
-        return parseBoolean(key, true);
-
-    case 1007: /* --print-time */
-        return parseArg(key, strtol(arg, nullptr, 10));
 
     case 1020: { /* --cpu-affinity */
             const char *p  = strstr(arg, "0x");
