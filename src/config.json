@@ -15,7 +15,7 @@
     "threads": 4,
     "pools": [
         {
-            "url": "pool.minemonero.pro",
+            "url": "pool.minemonero.pro:5555",
             "user": "",
             "pass": "x",
             "keepalive": true,
