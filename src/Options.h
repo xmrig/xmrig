@@ -25,11 +25,13 @@
 #define __OPTIONS_H__
 
 
-#include <vector>
+#include <jansson.h>
 #include <stdint.h>
+#include <vector>
 
 
 class Url;
+struct option;
 
 
 class Options
@@ -76,8 +78,12 @@ private:
 
     static Options *m_self;
 
-    bool parseArg(int key, char *arg);
+    bool parseArg(int key, const char *arg);
+    bool parseArg(int key, uint64_t arg);
+    bool parseBoolean(int key, bool enable);
     Url *parseUrl(const char *arg) const;
+    void parseConfig(const char *fileName);
+    void parseJSON(const struct option *option, json_t *object);
     void showUsage(int status) const;
     void showVersion(void);
 

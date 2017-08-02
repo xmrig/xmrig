@@ -21,36 +21,37 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "Monero (XMR) CPU miner"
-#define APP_VERSION   "2.2.0-dev"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
+#include "Console.h"
+#include "interfaces/IConsoleListener.h"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  2
-#define APP_VER_BUILD  0
-#define APP_VER_REV    0
 
-#ifdef _MSC_VER
-#   if _MSC_VER == 1910
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
+Console::Console(IConsoleListener *listener)
+    : m_listener(listener)
+{
+    m_tty.data = this;
+    uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
+    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
 
-#endif /* __VERSION_H__ */
+    uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
+}
+
+
+void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+{
+    auto console = static_cast<Console*>(handle->data);
+    buf->len  = 1;
+    buf->base = console->m_buf;
+}
+
+
+void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+{
+    if (nread < 0) {
+        return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);
+    }
+
+    if (nread == 1) {
+        static_cast<Console*>(stream->data)->m_listener->onConsoleCommand(buf->base[0]);
+    }
+}

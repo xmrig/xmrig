@@ -113,12 +113,70 @@ static struct option const options[] = {
 };
 
 
+static struct option const config_options[] = {
+    { "algo",          1, nullptr, 'a'  },
+    { "av",            1, nullptr, 'v'  },
+    { "background",    0, nullptr, 'B'  },
+    { "cpu-affinity",  1, nullptr, 1020 },
+    { "donate-level",  1, nullptr, 1003 },
+    { "log-file",      1, nullptr, 'l'  },
+    { "max-cpu-usage", 1, nullptr, 1004 },
+    { "print-time",    1, nullptr, 1007 },
+    { "retries",       1, nullptr, 'r'  },
+    { "retry-pause",   1, nullptr, 'R'  },
+    { "safe",          0, nullptr, 1005 },
+    { "syslog",        0, nullptr, 'S'  },
+    { "threads",       1, nullptr, 't'  },
+    { "colors",        0, nullptr, 2000 },
+    { 0, 0, 0, 0 }
+};
+
+
+static struct option const pool_options[] = {
+    { "url",           1, nullptr, 'o'  },
+    { "pass",          1, nullptr, 'p'  },
+    { "user",          1, nullptr, 'u'  },
+    { "userpass",      1, nullptr, 'O'  },
+    { "keepalive",     0, nullptr ,'k'  },
+    { "nicehash",      0, nullptr, 1006 },
+    { 0, 0, 0, 0 }
+};
+
+
 static const char *algo_names[] = {
     "cryptonight",
 #   ifndef XMRIG_NO_AEON
     "cryptonight-lite"
 #   endif
 };
+
+
+static char *defaultConfigName()
+{
+    size_t size = 512;
+    char *buf = new char[size];
+
+    if (uv_exepath(buf, &size) < 0) {
+        delete [] buf;
+        return nullptr;
+    }
+
+    if (size < 500) {
+#       ifdef WIN32
+        char *p = strrchr(buf, '\\');
+#       else
+        char *p = strrchr(buf, '/');
+#       endif
+
+        if (p) {
+            strcpy(p + 1, "config.json");
+            return buf;
+        }
+    }
+
+    delete [] buf;
+    return nullptr;
+}
 
 
 Options *Options::parse(int argc, char **argv)
@@ -176,7 +234,13 @@ Options::Options(int argc, char **argv) :
     }
 
     if (!m_pools[0]->isValid()) {
-        fprintf(stderr, "No pool URL supplied. Exiting.");
+        char *fileName = defaultConfigName();
+        parseConfig(fileName);
+        delete [] fileName;
+    }
+
+    if (!m_pools[0]->isValid()) {
+        fprintf(stderr, "No pool URL supplied. Exiting.\n");
         return;
     }
 
@@ -204,23 +268,13 @@ Options::~Options()
 }
 
 
-bool Options::parseArg(int key, char *arg)
+bool Options::parseArg(int key, const char *arg)
 {
-    char *p;
-    int v;
-
     switch (key) {
     case 'a': /* --algo */
         if (!setAlgo(arg)) {
             return false;
         }
-        break;
-
-    case 'O': /* --userpass */
-        if (!m_pools.back()->setUserpass(arg)) {
-            return false;
-        }
-
         break;
 
     case 'o': /* --url */
@@ -240,7 +294,12 @@ bool Options::parseArg(int key, char *arg)
         if (!m_pools.back()->isValid()) {
             return false;
         }
+        break;
 
+    case 'O': /* --userpass */
+        if (!m_pools.back()->setUserpass(arg)) {
+            return false;
+        }
         break;
 
     case 'u': /* --user */
@@ -257,53 +316,22 @@ bool Options::parseArg(int key, char *arg)
         m_colors = false;
         break;
 
-    case 'r': /* --retries */
-        v = strtol(arg, nullptr, 10);
-        if (v < 1 || v > 1000) {
-            showUsage(1);
-            return false;
-        }
-
-        m_retries = v;
-        break;
-
-    case 'R': /* --retry-pause */
-        v = strtol(arg, nullptr, 10);
-        if (v < 1 || v > 3600) {
-            showUsage(1);
-            return false;
-        }
-
-        m_retryPause = v;
-        break;
-
-    case 't': /* --threads */
-        v = strtol(arg, nullptr, 10);
-        if (v < 1 || v > 1024) {
-            showUsage(1);
-            return false;
-        }
-
-        m_threads = v;
-        break;
-
+    case 'r':  /* --retries */
+    case 'R':  /* --retry-pause */
+    case 't':  /* --threads */
+    case 'v':  /* --av */
+    case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
-        v = strtol(arg, nullptr, 10);
-        if (v < 1 || v > 100) {
-            showUsage(1);
-            return false;
-        }
+    case 1007: /* --print-time */
+        return parseArg(key, strtol(arg, nullptr, 10));
 
-        m_maxCpuUsage = v;
-        break;
-
+    case 'B':  /* --background */
+    case 'k':  /* --keepalive */
+    case 'S':  /* --syslog */
+    case 1002: /* --no-color */
     case 1005: /* --safe */
-        m_safe = true;
-        break;
-
-    case 'k': /* --keepalive */
-        m_pools.back()->setKeepAlive(true);
-        break;
+    case 1006: /* --nicehash */
+        return parseBoolean(key, true);
 
     case 'V': /* --version */
         showVersion();
@@ -313,62 +341,139 @@ bool Options::parseArg(int key, char *arg)
         showUsage(0);
         return false;
 
-    case 'B': /* --background */
-        m_background = true;
-        m_colors = false;
+    case 'c': /* --config */
+        parseConfig(arg);
         break;
 
-    case 'S': /* --syslog */
-        m_syslog = true;
-        m_colors = false;
-        break;
-
-    case 'v': /* --av */
-        v = strtol(arg, nullptr, 10);
-        if (v < 0 || v > 1000) {
-            showUsage(1);
-            return false;
+    case 1020: { /* --cpu-affinity */
+            const char *p  = strstr(arg, "0x");
+            return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
-
-        m_algoVariant = v;
-        break;
-
-    case 1020: /* --cpu-affinity */
-        p  = strstr(arg, "0x");
-        m_affinity = p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10);
-        break;
-
-    case 1002: /* --no-color */
-        m_colors = false;
-        break;
-
-    case 1003: /* --donate-level */
-        v = strtol(arg, nullptr, 10);
-        if (v < 1 || v > 99) {
-            showUsage(1);
-            return false;
-        }
-
-        m_donateLevel = v;
-        break;
-
-    case 1006: /* --nicehash */
-        m_pools.back()->setNicehash(true);
-        break;
-
-    case 1007: /* --print-time */
-        v = strtol(arg, nullptr, 10);
-        if (v < 0 || v > 1000) {
-            showUsage(1);
-            return false;
-        }
-
-        m_printTime = v;
-        break;
 
     default:
         showUsage(1);
         return false;
+    }
+
+    return true;
+}
+
+
+bool Options::parseArg(int key, uint64_t arg)
+{
+    switch (key) {
+        case 'r': /* --retries */
+        if (arg < 1 || arg > 1000) {
+            showUsage(1);
+            return false;
+        }
+
+        m_retries = arg;
+        break;
+
+    case 'R': /* --retry-pause */
+        if (arg < 1 || arg > 3600) {
+            showUsage(1);
+            return false;
+        }
+
+        m_retryPause = arg;
+        break;
+
+    case 't': /* --threads */
+        if (arg < 1 || arg > 1024) {
+            showUsage(1);
+            return false;
+        }
+
+        m_threads = arg;
+        break;
+
+    case 'v': /* --av */
+        if (arg > 1000) {
+            showUsage(1);
+            return false;
+        }
+
+        m_algoVariant = arg;
+        break;
+
+    case 1003: /* --donate-level */
+        if (arg < 1 || arg > 99) {
+            showUsage(1);
+            return false;
+        }
+
+        m_donateLevel = arg;
+        break;
+
+    case 1004: /* --max-cpu-usage */
+        if (arg < 1 || arg > 100) {
+            showUsage(1);
+            return false;
+        }
+
+        m_maxCpuUsage = arg;
+        break;
+
+    case 1007: /* --print-time */
+        if (arg > 1000) {
+            showUsage(1);
+            return false;
+        }
+
+        m_printTime = arg;
+        break;
+
+    case 1020: /* --cpu-affinity */
+        if (arg) {
+            m_affinity = arg;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    return true;
+}
+
+
+bool Options::parseBoolean(int key, bool enable)
+{
+    switch (key) {
+    case 'k': /* --keepalive */
+        m_pools.back()->setKeepAlive(enable);
+        break;
+
+    case 'B': /* --background */
+        m_background = enable;
+        m_colors = enable ? false : m_colors;
+        break;
+
+    case 'S': /* --syslog */
+        m_syslog = enable;
+        m_colors = enable ? false : m_colors;
+        break;
+
+    case 1002: /* --no-color */
+        m_colors = enable;
+        break;
+
+    case 1005: /* --safe */
+        m_safe = enable;
+        break;
+
+    case 1006: /* --nicehash */
+        m_pools.back()->setNicehash(enable);
+        break;
+
+    case 2000: /* colors */
+        m_colors = enable;
+        break;
+
+    default:
+        break;
     }
 
     return true;
@@ -384,6 +489,72 @@ Url *Options::parseUrl(const char *arg) const
     }
 
     return url;
+}
+
+
+void Options::parseConfig(const char *fileName)
+{
+    json_error_t err;
+    json_t *config = json_load_file(fileName, 0, &err);
+
+    if (!json_is_object(config)) {
+        if (config) {
+            json_decref(config);
+            return;
+        }
+
+        if (err.line < 0) {
+            fprintf(stderr, "%s\n", err.text);
+        }
+        else {
+            fprintf(stderr, "%s:%d: %s\n", fileName, err.line, err.text);
+        }
+
+        return;
+    }
+
+    for (size_t i = 0; i < ARRAY_SIZE(config_options); i++) {
+        parseJSON(&config_options[i], config);
+    }
+
+    json_t *pools = json_object_get(config, "pools");
+    if (json_is_array(pools)) {
+        size_t index;
+        json_t *value;
+
+        json_array_foreach(pools, index, value) {
+            if (json_is_object(value)) {
+                for (size_t i = 0; i < ARRAY_SIZE(pool_options); i++) {
+                    parseJSON(&pool_options[i], value);
+                }
+            }
+        }
+    }
+
+    json_decref(config);
+}
+
+
+void Options::parseJSON(const struct option *option, json_t *object)
+{
+    if (!option->name) {
+        return;
+    }
+
+    json_t *val = json_object_get(object, option->name);
+    if (!val) {
+        return;
+    }
+
+    if (option->has_arg && json_is_string(val)) {
+        parseArg(option->val, json_string_value(val));
+    }
+    else if (option->has_arg && json_is_integer(val)) {
+        parseArg(option->val, json_integer_value(val));
+    }
+    else if (!option->has_arg && json_is_boolean(val)) {
+        parseBoolean(option->val, json_is_true(val));
+    }
 }
 
 

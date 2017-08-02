@@ -100,12 +100,12 @@ int64_t Client::send(char *data, size_t size)
 
     uv_buf_t buf = uv_buf_init(data, size ? size : strlen(data));
 
-    uv_write_t *req = static_cast<uv_write_t*>(malloc(sizeof(uv_write_t)));
+    uv_write_t *req = new uv_write_t;
     req->data = buf.base;
 
     uv_write(req, m_stream, &buf, 1, [](uv_write_t *req, int status) {
         free(req->data);
-        free(req);
+        delete req;
     });
 
     uv_timer_start(&m_responseTimer, [](uv_timer_t *handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
@@ -526,6 +526,10 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
             LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(nread));
         }
 
+        return client->close();;
+    }
+
+    if ((size_t) nread > (kRecvBufSize - 8 - client->m_recvBufPos)) {
         return client->close();;
     }
 

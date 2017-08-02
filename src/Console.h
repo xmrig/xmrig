@@ -21,36 +21,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#ifndef __CONSOLE_H__
+#define __CONSOLE_H__
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "Monero (XMR) CPU miner"
-#define APP_VERSION   "2.2.0-dev"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  2
-#define APP_VER_BUILD  0
-#define APP_VER_REV    0
+#include <uv.h>
 
-#ifdef _MSC_VER
-#   if _MSC_VER == 1910
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
 
-#endif /* __VERSION_H__ */
+class IConsoleListener;
+
+
+class Console
+{
+public:
+    Console(IConsoleListener *listener);
+
+private:
+    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+    static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+
+    char m_buf[1];
+    IConsoleListener *m_listener;
+    uv_tty_t m_tty;
+};
+
+
+#endif /* __CONSOLE_H__ */
