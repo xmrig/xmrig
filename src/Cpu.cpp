@@ -29,13 +29,14 @@
 #include "Cpu.h"
 
 
-char Cpu::m_brand[64]   = { 0 };
-int Cpu::m_flags        = 0;
-int Cpu::m_l2_cache     = 0;
-int Cpu::m_l3_cache     = 0;
-int Cpu::m_sockets      = 1;
-int Cpu::m_totalCores   = 0;
-int Cpu::m_totalThreads = 0;
+bool Cpu::m_l2_exclusive = false;
+char Cpu::m_brand[64]    = { 0 };
+int Cpu::m_flags         = 0;
+int Cpu::m_l2_cache      = 0;
+int Cpu::m_l3_cache      = 0;
+int Cpu::m_sockets       = 1;
+int Cpu::m_totalCores    = 0;
+int Cpu::m_totalThreads  = 0;
 
 
 int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
@@ -44,7 +45,14 @@ int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
         return 1;
     }
 
-    int cache = m_l3_cache ? m_l3_cache : m_l2_cache;
+    int cache = 0;
+    if (m_l3_cache) {
+        cache = m_l2_exclusive ? (m_l2_cache + m_l3_cache) : m_l3_cache;
+    }
+    else {
+        cache = m_l2_cache;
+    }
+
     int count = 0;
     const int size = (algo ? 1024 : 2048) * (doubleHash ? 2 : 1);
 
@@ -84,8 +92,9 @@ void Cpu::initCommon()
     m_l3_cache = data.l3_cache > 0 ? data.l3_cache * m_sockets : 0;
 
     // Workaround for AMD CPUs https://github.com/anrieff/libcpuid/issues/97
-    if (data.vendor == VENDOR_AMD && data.l3_cache <= 0 && data.l2_assoc == 16 && data.ext_family >= 21) {
+    if (data.vendor == VENDOR_AMD && data.ext_family >= 0x15 && data.ext_family < 0x17) {
         m_l2_cache = data.l2_cache * (m_totalCores / 2) * m_sockets;
+        m_l2_exclusive = true;
     }
     else {
         m_l2_cache = data.l2_cache > 0 ? data.l2_cache * m_totalCores * m_sockets : 0;

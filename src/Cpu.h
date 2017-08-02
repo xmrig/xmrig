@@ -53,6 +53,7 @@ public:
 private:
     static void initCommon();
 
+    static bool m_l2_exclusive;
     static char m_brand[64];
     static int m_flags;
     static int m_l2_cache;

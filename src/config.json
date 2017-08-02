@@ -12,7 +12,7 @@
     "retry-pause": 5,
     "safe": false,
     "syslog": false,
-    "threads": 4,
+    "threads": null,
     "pools": [
         {
             "url": "pool.minemonero.pro:5555",
