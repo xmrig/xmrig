@@ -3,6 +3,7 @@
 - Improved colors support on Windows, now used uv_tty, legacy code removed.
 - QuickEdit Mode now disabled on Windows.
 - Added interactive commands in console window:: **h**ashrate, **p**ause, **r**esume.
+- Fixed autoconf mode for AMD FX CPUs.
 
 # v2.1.0
 - [#40](https://github.com/xmrig/xmrig/issues/40)
