@@ -1,3 +1,6 @@
+# v2.2.1
+- Fixed [terminal issues](https://github.com/xmrig/xmrig-proxy/issues/2#issuecomment-319914085) after exit on Linux and OS X.
+
 # v2.2.0
 - [#46](https://github.com/xmrig/xmrig/issues/46) Restored config file support. Now possible use multiple config files and combine with command line options also added support for default config.
 - Improved colors support on Windows, now used uv_tty, legacy code removed.
