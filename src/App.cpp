@@ -115,6 +115,7 @@ int App::exec()
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
+    uv_tty_reset_mode();
 
     free(m_network);
     free(m_options);
