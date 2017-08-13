@@ -27,6 +27,7 @@
 
 
 #include "App.h"
+#include "Console.h"
 #include "Cpu.h"
 #include "crypto/CryptoNight.h"
 #include "log/ConsoleLog.h"
@@ -50,6 +51,7 @@ App *App::m_self = nullptr;
 
 
 App::App(int argc, char **argv) :
+    m_console(nullptr),
     m_network(nullptr),
     m_options(nullptr)
 {
@@ -57,11 +59,15 @@ App::App(int argc, char **argv) :
 
     Cpu::init();
     m_options = Options::parse(argc, argv);
+    if (!m_options) {
+        return;
+    }
 
     Log::init();
 
     if (!m_options->background()) {
         Log::add(new ConsoleLog(m_options->colors()));
+        m_console = new Console(this);
     }
 
     if (m_options->logFile()) {
@@ -82,12 +88,13 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
+    delete m_console;
 }
 
 
 int App::exec()
 {
-    if (!m_options->isReady()) {
+    if (!m_options) {
         return 0;
     }
 
@@ -111,6 +118,7 @@ int App::exec()
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
+    uv_tty_reset_mode();
 
     free(m_network);
     free(m_options);
@@ -118,6 +126,39 @@ int App::exec()
     Mem::release();
 
     return r;
+}
+
+
+void App::onConsoleCommand(char command)
+{
+    switch (command) {
+    case 'h':
+    case 'H':
+        Workers::printHashrate(true);
+        break;
+
+    case 'p':
+    case 'P':
+        LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
+        Workers::setEnabled(false);
+        break;
+
+    case 'r':
+    case 'R':
+        if (!Workers::isEnabled()) {
+            LOG_INFO(m_options->colors() ? "\x1B[01;32mresumed" : "resumed");
+            Workers::setEnabled(true);
+        }
+        break;
+
+    case 3:
+        LOG_WARN("Ctrl+C received, exiting");
+        close();
+        break;
+
+    default:
+        break;
+    }
 }
 
 

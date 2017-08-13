@@ -28,17 +28,24 @@
 #include <uv.h>
 
 
+#include "interfaces/IConsoleListener.h"
+
+
+class Console;
 class Network;
 class Options;
 
 
-class App
+class App : public IConsoleListener
 {
 public:
   App(int argc, char **argv);
   ~App();
 
   int exec();
+
+protected:
+  void onConsoleCommand(char command) override;
 
 private:
   void background();
@@ -48,6 +55,7 @@ private:
 
   static App *m_self;
 
+  Console *m_console;
   Network *m_network;
   Options *m_options;
   uv_signal_t m_signal;

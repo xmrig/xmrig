@@ -69,6 +69,10 @@ void DoubleWorker::start()
             }
             while (Workers::isPaused());
 
+            if (Workers::sequence() == 0) {
+                break;
+            }
+
             consumeJob();
         }
 

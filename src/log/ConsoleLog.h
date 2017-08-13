@@ -25,6 +25,9 @@
 #define __CONSOLELOG_H__
 
 
+#include <uv.h>
+
+
 #include "interfaces/ILogBackend.h"
 
 
@@ -33,11 +36,15 @@ class ConsoleLog : public ILogBackend
 public:
     ConsoleLog(bool colors);
 
-    void message(int level, const char* fmt, va_list args) override;
-    void text(const char* fmt, va_list args) override;
+    void message(int level, const char *fmt, va_list args) override;
+    void text(const char *fmt, va_list args) override;
 
 private:
+    void print(char *fmt, va_list args);
+
     bool m_colors;
+    char m_buf[512];
+    uv_tty_t m_tty;
 };
 
 #endif /* __CONSOLELOG_H__ */

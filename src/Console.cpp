@@ -22,52 +22,40 @@
  */
 
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include "Console.h"
+#include "interfaces/IConsoleListener.h"
 
 
-#include "interfaces/ILogBackend.h"
-#include "log/Log.h"
-
-
-Log *Log::m_self = nullptr;
-
-
-void Log::message(Log::Level level, const char* fmt, ...)
+Console::Console(IConsoleListener *listener)
+    : m_listener(listener)
 {
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
+    m_tty.data = this;
+    uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
 
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->message(level, fmt, copy);
-        va_end(copy);
+    if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(&m_tty))) {
+        return;
     }
+
+    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
+    uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
 }
 
 
-void Log::text(const char* fmt, ...)
+void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
-
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->text(fmt, copy);
-        va_end(copy);
-    }
-
-    va_end(args);
+    auto console = static_cast<Console*>(handle->data);
+    buf->len  = 1;
+    buf->base = console->m_buf;
 }
 
 
-Log::~Log()
+void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
-    for (auto backend : m_backends) {
-        delete backend;
+    if (nread < 0) {
+        return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);
+    }
+
+    if (nread == 1) {
+        static_cast<Console*>(stream->data)->m_listener->onConsoleCommand(buf->base[0]);
     }
 }

@@ -21,53 +21,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#ifndef __CONSOLE_H__
+#define __CONSOLE_H__
 
 
-#include "interfaces/ILogBackend.h"
-#include "log/Log.h"
+#include <uv.h>
 
 
-Log *Log::m_self = nullptr;
+class IConsoleListener;
 
 
-void Log::message(Log::Level level, const char* fmt, ...)
+class Console
 {
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
+public:
+    Console(IConsoleListener *listener);
 
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->message(level, fmt, copy);
-        va_end(copy);
-    }
-}
+private:
+    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+    static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 
-
-void Log::text(const char* fmt, ...)
-{
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
-
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->text(fmt, copy);
-        va_end(copy);
-    }
-
-    va_end(args);
-}
+    char m_buf[1];
+    IConsoleListener *m_listener;
+    uv_tty_t m_tty;
+};
 
 
-Log::~Log()
-{
-    for (auto backend : m_backends) {
-        delete backend;
-    }
-}
+#endif /* __CONSOLE_H__ */
