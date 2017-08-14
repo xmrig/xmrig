@@ -5,7 +5,9 @@
  * it under the terms of the MIT license. See LICENSE for details.
  */
 
+#ifdef _MSC_VER
 #pragma warning(disable:4090)
+#endif
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE

@@ -5,7 +5,9 @@
  * it under the terms of the MIT license. See LICENSE for details.
  */
 
+#ifdef _MSC_VER
 #pragma warning(disable:4334)
+#endif
 
 #if HAVE_CONFIG_H
 #include <jansson_private_config.h>
