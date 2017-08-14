@@ -57,7 +57,6 @@ public:
     inline bool background() const                { return m_background; }
     inline bool colors() const                    { return m_colors; }
     inline bool doubleHash() const                { return m_doubleHash; }
-    inline bool isReady() const                   { return m_ready; }
     inline bool syslog() const                    { return m_syslog; }
     inline const char *logFile() const            { return m_logFile; }
     inline const std::vector<Url*> &pools() const { return m_pools; }
@@ -75,6 +74,8 @@ public:
 private:
     Options(int argc, char **argv);
     ~Options();
+
+    inline bool isReady() const { return m_ready; }
 
     static Options *m_self;
 

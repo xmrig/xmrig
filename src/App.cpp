@@ -59,6 +59,9 @@ App::App(int argc, char **argv) :
 
     Cpu::init();
     m_options = Options::parse(argc, argv);
+    if (!m_options) {
+        return;
+    }
 
     Log::init();
 
@@ -91,7 +94,7 @@ App::~App()
 
 int App::exec()
 {
-    if (!m_options->isReady()) {
+    if (!m_options) {
         return 0;
     }
 
@@ -115,6 +118,7 @@ int App::exec()
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
+    uv_tty_reset_mode();
 
     free(m_network);
     free(m_options);

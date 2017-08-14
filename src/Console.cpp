@@ -31,8 +31,12 @@ Console::Console(IConsoleListener *listener)
 {
     m_tty.data = this;
     uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
-    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
 
+    if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(&m_tty))) {
+        return;
+    }
+
+    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
     uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
 }
 

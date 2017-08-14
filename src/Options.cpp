@@ -181,11 +181,14 @@ static char *defaultConfigName()
 
 Options *Options::parse(int argc, char **argv)
 {
-    if (!m_self) {
-        m_self = new Options(argc, argv);
+    Options *options = new Options(argc, argv);
+    if (options->isReady()) {
+        m_self = options;
+        return m_self;
     }
 
-    return m_self;
+    delete options;
+    return nullptr;
 }
 
 
