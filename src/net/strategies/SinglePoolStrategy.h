@@ -46,6 +46,7 @@ public:
     void connect() override;
     void resume() override;
     void stop() override;
+    void tick(uint64_t now) override;
 
 protected:
     void onClose(Client *client, int failures) override;

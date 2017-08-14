@@ -77,10 +77,14 @@ private:
 
 #ifdef APP_DEBUG
 #   define LOG_DEBUG(x, ...)      Log::i()->message(Log::DEBUG,   x, ##__VA_ARGS__)
+#else
+#   define LOG_DEBUG(x, ...)
+#endif
+
+#if defined(APP_DEBUG) || defined(APP_DEVEL)
 #   define LOG_DEBUG_ERR(x, ...)  Log::i()->message(Log::ERR,     x, ##__VA_ARGS__)
 #   define LOG_DEBUG_WARN(x, ...) Log::i()->message(Log::WARNING, x, ##__VA_ARGS__)
 #else
-#   define LOG_DEBUG(x, ...)
 #   define LOG_DEBUG_ERR(x, ...)
 #   define LOG_DEBUG_WARN(x, ...)
 #endif

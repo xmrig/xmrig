@@ -74,6 +74,14 @@ void FailoverStrategy::stop()
 }
 
 
+void FailoverStrategy::tick(uint64_t now)
+{
+    for (Client *client : m_pools) {
+        client->tick(now);
+    }
+}
+
+
 void FailoverStrategy::onClose(Client *client, int failures)
 {
     if (failures == -1) {

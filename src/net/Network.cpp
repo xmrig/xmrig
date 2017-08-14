@@ -39,7 +39,6 @@
 
 
 Network::Network(const Options *options) :
-    m_donateActive(false),
     m_options(options),
     m_donate(nullptr),
     m_accepted(0),
@@ -62,6 +61,11 @@ Network::Network(const Options *options) :
     if (m_options->donateLevel() > 0) {
         m_donate = new DonateStrategy(m_agent, this);
     }
+
+    m_timer.data = this;
+    uv_timer_init(uv_default_loop(), &m_timer);
+
+    uv_timer_start(&m_timer, Network::onTick, kTickInterval, kTickInterval);
 }
 
 
@@ -163,4 +167,22 @@ void Network::setJob(Client *client, const Job &job)
     }
 
     Workers::setJob(job);
+}
+
+
+void Network::tick()
+{
+    const uint64_t now = uv_now(uv_default_loop());
+
+    m_strategy->tick(now);
+
+    if (m_donate) {
+        m_donate->tick(now);
+    }
+}
+
+
+void Network::onTick(uv_timer_t *handle)
+{
+    static_cast<Network*>(handle->data)->tick();
 }

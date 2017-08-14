@@ -69,6 +69,12 @@ void DonateStrategy::stop()
 }
 
 
+void DonateStrategy::tick(uint64_t now)
+{
+    m_client->tick(now);
+}
+
+
 void DonateStrategy::onClose(Client *client, int failures)
 {
 }
