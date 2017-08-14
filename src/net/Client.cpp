@@ -99,7 +99,7 @@ int64_t Client::send(char *data, size_t size)
         return -1;
     }
 
-    uv_buf_t buf = uv_buf_init(data, size ? size : strlen(data));
+    uv_buf_t buf = uv_buf_init(data, (unsigned int) (size ? size : strlen(data)));
 
     uv_write_t *req = new uv_write_t;
     req->data = buf.base;
@@ -464,7 +464,7 @@ void Client::reconnect()
     }
 
     m_failures++;
-    m_listener->onClose(this, m_failures);
+    m_listener->onClose(this, (int) m_failures);
 
     m_expire = uv_now(uv_default_loop()) + m_retryPause;
 }
@@ -501,7 +501,7 @@ void Client::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t 
     auto client = getClient(handle->data);
 
     buf->base = &client->m_recvBuf.base[client->m_recvBufPos];
-    buf->len  = client->m_recvBuf.len - client->m_recvBufPos;
+    buf->len  = client->m_recvBuf.len - (ULONG) client->m_recvBufPos;
 }
 
 
@@ -548,7 +548,7 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
     auto client = getClient(stream->data);
     if (nread < 0) {
         if (nread != UV_EOF && !client->m_quiet) {
-            LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(nread));
+            LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror((int) nread));
         }
 
         return client->close();;

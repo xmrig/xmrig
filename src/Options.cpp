@@ -371,7 +371,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_retries = arg;
+        m_retries = (int) arg;
         break;
 
     case 'R': /* --retry-pause */
@@ -380,7 +380,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_retryPause = arg;
+        m_retryPause = (int) arg;
         break;
 
     case 't': /* --threads */
@@ -389,7 +389,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_threads = arg;
+        m_threads = (int) arg;
         break;
 
     case 'v': /* --av */
@@ -398,7 +398,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_algoVariant = arg;
+        m_algoVariant = (int) arg;
         break;
 
     case 1003: /* --donate-level */
@@ -407,7 +407,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_donateLevel = arg;
+        m_donateLevel = (int) arg;
         break;
 
     case 1004: /* --max-cpu-usage */
@@ -416,7 +416,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_maxCpuUsage = arg;
+        m_maxCpuUsage = (int) arg;
         break;
 
     case 1007: /* --print-time */
@@ -425,7 +425,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_printTime = arg;
+        m_printTime = (int) arg;
         break;
 
     case 1020: /* --cpu-affinity */
@@ -609,7 +609,7 @@ bool Options::setAlgo(const char *algo)
 {
     for (size_t i = 0; i < ARRAY_SIZE(algo_names); i++) {
         if (algo_names[i] && !strcmp(algo, algo_names[i])) {
-            m_algo = i;
+            m_algo = (int) i;
             break;
         }
 

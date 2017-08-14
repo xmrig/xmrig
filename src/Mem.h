@@ -50,8 +50,8 @@ public:
     static void release();
 
     static inline bool isDoubleHash()         { return m_doubleHash; }
-    static inline bool isHugepagesAvailable() { return m_flags & HugepagesAvailable; }
-    static inline bool isHugepagesEnabled()   { return m_flags & HugepagesEnabled; }
+    static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
+    static inline bool isHugepagesEnabled()   { return (m_flags & HugepagesEnabled) != 0; }
     static inline int flags()                 { return m_flags; }
     static inline int threads()               { return m_threads; }
 

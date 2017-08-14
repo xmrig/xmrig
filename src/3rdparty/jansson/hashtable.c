@@ -5,6 +5,8 @@
  * it under the terms of the MIT license. See LICENSE for details.
  */
 
+#pragma warning(disable:4334)
+
 #if HAVE_CONFIG_H
 #include <jansson_private_config.h>
 #endif

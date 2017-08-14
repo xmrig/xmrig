@@ -85,9 +85,8 @@ static BOOL SetLockPagesPrivilege() {
 
 static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string) {
     LSA_UNICODE_STRING lsaString;
-    DWORD dwLen = 0;
 
-    dwLen = wcslen(string);
+    DWORD dwLen = (DWORD) wcslen(string);
     lsaString.Buffer = (LPWSTR) string;
     lsaString.Length = (USHORT)((dwLen) * sizeof(WCHAR));
     lsaString.MaximumLength = (USHORT)((dwLen + 1) * sizeof(WCHAR));

@@ -127,8 +127,8 @@ double Hashrate::calc(size_t threadId, size_t ms) const
     }
 
     double hashes, time;
-    hashes = lastestHashCnt - earliestHashCount;
-    time   = lastestStamp - earliestStamp;
+    hashes = (double) lastestHashCnt - earliestHashCount;
+    time   = (double) lastestStamp - earliestStamp;
     time  /= 1000.0;
 
     return hashes / time;

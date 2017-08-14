@@ -88,7 +88,7 @@ void FileLog::onWrite(uv_fs_t *req)
 
 void FileLog::write(char *data, size_t size)
 {
-    uv_buf_t buf = uv_buf_init(data, size);
+    uv_buf_t buf = uv_buf_init(data, (unsigned int) size);
     uv_fs_t *req = static_cast<uv_fs_t*>(malloc(sizeof(uv_fs_t)));
     req->data = buf.base;
 

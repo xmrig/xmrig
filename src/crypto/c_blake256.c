@@ -148,7 +148,7 @@ void blake256_update(state *S, const uint8_t *data, uint64_t datalen) {
 
     if (datalen > 0) {
         memcpy((void *) (S->buf + left), (void *) data, datalen >> 3);
-        S->buflen = (left << 3) + datalen;
+        S->buflen = (left << 3) + (int) datalen;
     } else {
         S->buflen = 0;
     }

@@ -41,8 +41,8 @@ public:
     static void init();
     static void setAffinity(int id, uint64_t mask);
 
-    static inline bool hasAES()       { return m_flags & AES; }
-    static inline bool isX64()        { return m_flags & X86_64; }
+    static inline bool hasAES()       { return (m_flags & AES) != 0; }
+    static inline bool isX64()        { return (m_flags & X86_64) != 0; }
     static inline const char *brand() { return m_brand; }
     static inline int cores()         { return m_totalCores; }
     static inline int l2()            { return m_l2_cache; }

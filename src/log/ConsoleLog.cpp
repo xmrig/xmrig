@@ -92,8 +92,7 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
         }
     }
 
-    const size_t len = 64 + strlen(fmt) + 2;
-    char *buf = new char[len];
+    char *buf = new char[64 + strlen(fmt) + 2];
 
     sprintf(buf, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s\n",
             stime.tm_year + 1900,
@@ -113,8 +112,7 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
 
 void ConsoleLog::text(const char* fmt, va_list args)
 {
-    const int len = 64 + strlen(fmt) + 2;
-    char *buf = new char[len];
+    char *buf = new char[64 + strlen(fmt) + 2];
 
     sprintf(buf, "%s%s\n", fmt, m_colors ? Log::kCL_N : "");
 
@@ -129,7 +127,7 @@ void ConsoleLog::print(char *fmt, va_list args)
 
     uv_buf_t buf;
     buf.base = strdup(m_buf);
-    buf.len  = strlen(buf.base);
+    buf.len  = (ULONG) strlen(buf.base);
 
     uv_write_t *req = new uv_write_t;
     req->data = buf.base;

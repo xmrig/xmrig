@@ -1034,8 +1034,8 @@ json_t *json_loadf(FILE *input, size_t flags, json_error_t *error)
 
 static int fd_get_func(int *fd)
 {
-    uint8_t c;
 #ifdef HAVE_UNISTD_H
+    uint8_t c;
     if (read(*fd, &c, 1) == 1)
         return c;
 #endif
