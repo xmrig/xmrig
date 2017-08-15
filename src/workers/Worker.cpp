@@ -26,6 +26,7 @@
 
 #include "Cpu.h"
 #include "Mem.h"
+#include "Platform.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"
 
@@ -42,6 +43,7 @@ Worker::Worker(Handle *handle) :
         Cpu::setAffinity(m_id, handle->affinity());
     }
 
+    Platform::setThreadPriority(handle->priority());
     m_ctx = Mem::create(m_id);
 }
 

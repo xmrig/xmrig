@@ -84,3 +84,77 @@ void Platform::release()
     delete [] m_userAgent;
 }
 
+
+void Platform::setProcessPriority(int priority)
+{
+    if (priority == -1) {
+        return;
+    }
+
+    DWORD prio = IDLE_PRIORITY_CLASS;
+    switch (priority)
+    {
+    case 1:
+        prio = BELOW_NORMAL_PRIORITY_CLASS;
+        break;
+
+    case 2:
+        prio = NORMAL_PRIORITY_CLASS;
+        break;
+
+    case 3:
+        prio = ABOVE_NORMAL_PRIORITY_CLASS;
+        break;
+
+    case 4:
+        prio = HIGH_PRIORITY_CLASS;
+        break;
+
+    case 5:
+        prio = REALTIME_PRIORITY_CLASS;
+
+    default:
+        break;
+    }
+
+    SetPriorityClass(GetCurrentProcess(), prio);
+}
+
+
+
+void Platform::setThreadPriority(int priority)
+{
+    if (priority == -1) {
+        return;
+    }
+
+    int prio = THREAD_PRIORITY_IDLE;
+    switch (priority)
+    {
+    case 1:
+        prio = THREAD_PRIORITY_BELOW_NORMAL;
+        break;
+
+    case 2:
+        prio = THREAD_PRIORITY_NORMAL;
+        break;
+
+    case 3:
+        prio = THREAD_PRIORITY_ABOVE_NORMAL;
+        break;
+
+    case 4:
+        prio = THREAD_PRIORITY_HIGHEST;
+        break;
+
+    case 5:
+        prio = THREAD_PRIORITY_TIME_CRITICAL;
+        break;
+
+    default:
+        break;
+    }
+
+    SetThreadPriority(GetCurrentThread(), prio);
+}
+

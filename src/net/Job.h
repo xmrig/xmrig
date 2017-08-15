@@ -42,6 +42,7 @@ public:
     inline bool isNicehash() const         { return m_nicehash; }
     inline bool isValid() const            { return m_size > 0 && m_diff > 0; }
     inline const char *id() const          { return m_id; }
+    inline const uint32_t *nonce() const   { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const     { return m_blob; }
     inline int poolId() const              { return m_poolId; }
     inline size_t size() const             { return m_size; }

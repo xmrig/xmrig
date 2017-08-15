@@ -63,6 +63,7 @@ Options:\n\
   -r, --retries=N       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N   time to pause between retries (default: 5)\n\
       --cpu-affinity    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
+      --cpu-priority    set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-color        disable colored output\n\
       --donate-level=N  donate level, default 5%% (5 minutes in 100 minutes)\n\
   -B, --background      run the miner in the background\n\
@@ -91,6 +92,7 @@ static struct option const options[] = {
     { "background",    0, nullptr, 'B'  },
     { "config",        1, nullptr, 'c'  },
     { "cpu-affinity",  1, nullptr, 1020 },
+    { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
     { "help",          0, nullptr, 'h'  },
     { "keepalive",     0, nullptr ,'k'  },
@@ -118,6 +120,7 @@ static struct option const config_options[] = {
     { "av",            1, nullptr, 'v'  },
     { "background",    0, nullptr, 'B'  },
     { "cpu-affinity",  1, nullptr, 1020 },
+    { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
     { "log-file",      1, nullptr, 'l'  },
     { "max-cpu-usage", 1, nullptr, 1004 },
@@ -211,6 +214,7 @@ Options::Options(int argc, char **argv) :
     m_donateLevel(kDonateLevel),
     m_maxCpuUsage(75),
     m_printTime(60),
+    m_priority(-1),
     m_retries(5),
     m_retryPause(5),
     m_threads(0),
@@ -326,6 +330,7 @@ bool Options::parseArg(int key, const char *arg)
     case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
+    case 1021: /* --cpu-priority */
         return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'B':  /* --background */
@@ -431,6 +436,12 @@ bool Options::parseArg(int key, uint64_t arg)
     case 1020: /* --cpu-affinity */
         if (arg) {
             m_affinity = arg;
+        }
+        break;
+
+    case 1021: /* --cpu-priority */
+        if (arg <= 5) {
+            m_priority = (int) arg;
         }
         break;
 

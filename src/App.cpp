@@ -82,6 +82,7 @@ App::App(int argc, char **argv) :
 #   endif
 
     Platform::init();
+    Platform::setProcessPriority(m_options->priority());
 
     m_network = new Network(m_options);
 
@@ -115,7 +116,7 @@ int App::exec()
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
     Summary::print();
 
-    Workers::start(m_options->affinity());
+    Workers::start(m_options->affinity(), m_options->priority());
 
     m_network->connect();
 

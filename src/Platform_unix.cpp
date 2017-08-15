@@ -62,3 +62,15 @@ void Platform::release()
     delete [] m_userAgent;
 }
 
+
+void Platform::setProcessPriority(int priority)
+{
+
+}
+
+
+
+void Platform::setThreadPriority(int priority)
+{
+
+}

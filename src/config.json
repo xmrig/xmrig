@@ -4,6 +4,7 @@
     "background": false,
     "colors": true,
     "cpu-affinity": null,
+    "cpu-priority": null,
     "donate-level": 5,
     "log-file": null,
     "max-cpu-usage": 75,

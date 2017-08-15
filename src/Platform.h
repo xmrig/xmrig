@@ -30,6 +30,8 @@ class Platform
 public:
     static void init();
     static void release();
+    static void setProcessPriority(int priority);
+    static void setThreadPriority(int priority);
 
     static inline const char *userAgent() { return m_userAgent; }
 
