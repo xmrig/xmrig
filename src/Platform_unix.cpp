@@ -22,7 +22,9 @@
  */
 
 
+#include <sched.h>
 #include <stdlib.h>
+#include <sys/resource.h>
 #include <uv.h>
 
 
@@ -65,12 +67,51 @@ void Platform::release()
 
 void Platform::setProcessPriority(int priority)
 {
-
 }
 
 
 
 void Platform::setThreadPriority(int priority)
 {
+    if (priority == -1) {
+        return;
+    }
 
+    int prio = 19;
+    switch (priority)
+    {
+    case 1:
+        prio = 5;
+        break;
+
+    case 2:
+        prio = 0;
+        break;
+
+    case 3:
+        prio = -5;
+        break;
+
+    case 4:
+        prio = -10;
+        break;
+
+    case 5:
+        prio = -15;
+        break;
+
+    default:
+        break;
+    }
+
+    setpriority(PRIO_PROCESS, 0, prio);
+
+    if (priority == 0) {
+        sched_param param;
+        param.sched_priority = 0;
+
+        if (sched_setscheduler(0, SCHED_IDLE, &param) != 0) {
+            sched_setscheduler(0, SCHED_BATCH, &param);
+        }
+    }
 }
