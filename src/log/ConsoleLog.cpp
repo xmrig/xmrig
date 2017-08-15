@@ -127,7 +127,7 @@ void ConsoleLog::print(char *fmt, va_list args)
 
     uv_buf_t buf;
     buf.base = strdup(m_buf);
-    buf.len  = (ULONG) strlen(buf.base);
+    buf.len  = strlen(buf.base);
 
     uv_write_t *req = new uv_write_t;
     req->data = buf.base;
