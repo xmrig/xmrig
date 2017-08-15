@@ -38,6 +38,7 @@
 #include "net/strategies/SinglePoolStrategy.h"
 #include "net/Url.h"
 #include "Options.h"
+#include "Platform.h"
 #include "workers/Workers.h"
 
 
@@ -50,19 +51,18 @@ Network::Network(const Options *options) :
     srand(time(0) ^ (uintptr_t) this);
 
     Workers::setListener(this);
-    m_agent = userAgent();
 
     const std::vector<Url*> &pools = options->pools();
 
     if (pools.size() > 1) {
-        m_strategy = new FailoverStrategy(pools, m_agent, this);
+        m_strategy = new FailoverStrategy(pools, Platform::userAgent(), this);
     }
     else {
-        m_strategy = new SinglePoolStrategy(pools.front(), m_agent, this);
+        m_strategy = new SinglePoolStrategy(pools.front(), Platform::userAgent(), this);
     }
 
     if (m_options->donateLevel() > 0) {
-        m_donate = new DonateStrategy(m_agent, this);
+        m_donate = new DonateStrategy(Platform::userAgent(), this);
     }
 
     m_timer.data = this;
@@ -74,7 +74,6 @@ Network::Network(const Options *options) :
 
 Network::~Network()
 {
-    free(m_agent);
 }
 
 

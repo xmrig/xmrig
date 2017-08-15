@@ -23,17 +23,32 @@
 
 
 #include <stdlib.h>
+#include <uv.h>
 
-#include "net/Network.h"
+
+#include "Platform.h"
 #include "version.h"
 
 
-char *Network::userAgent()
+static inline char *createUserAgent()
 {
     const size_t max = 128;
 
-    char *buf = static_cast<char*>(malloc(max));
+    char *buf = new char[max];
     snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s clang/%d.%d.%d", APP_NAME, APP_VERSION, uv_version_string(), __clang_major__, __clang_minor__, __clang_patchlevel__);
 
     return buf;
 }
+
+
+void Platform::init()
+{
+    m_userAgent = createUserAgent();
+}
+
+
+void Platform::release()
+{
+    delete [] m_userAgent;
+}
+

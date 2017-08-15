@@ -21,54 +21,21 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
+#ifndef __PLATFORM_H__
+#define __PLATFORM_H__
 
 
-#include <vector>
-#include <uv.h>
-
-
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
-
-
-class IStrategy;
-class Options;
-class Url;
-
-
-class Network : public IJobResultListener, public IStrategyListener
+class Platform
 {
 public:
-  Network(const Options *options);
-  ~Network();
+    static void init();
+    static void release();
 
-  void connect();
-  void stop();
-
-protected:
-  void onActive(Client *client) override;
-  void onJob(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onPause(IStrategy *strategy) override;
-  void onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error) override;
+    static inline const char *userAgent() { return m_userAgent; }
 
 private:
-  constexpr static int kTickInterval = 1 * 1000;
-
-  void setJob(Client *client, const Job &job);
-  void tick();
-
-  static void onTick(uv_timer_t *handle);
-
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
-  uint64_t m_accepted;
-  uint64_t m_rejected;
-  uv_timer_t m_timer;
+    static char *m_userAgent;
 };
 
 
-#endif /* __NETWORK_H__ */
+#endif /* __PLATFORM_H__ */

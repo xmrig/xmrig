@@ -69,6 +69,8 @@ public:
     inline int threads() const                    { return m_threads; }
     inline int64_t affinity() const               { return m_affinity; }
 
+    inline static void release()                  { delete m_self; }
+
     const char *algoName() const;
 
 private:

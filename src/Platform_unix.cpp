@@ -23,17 +23,18 @@
 
 
 #include <stdlib.h>
+#include <uv.h>
 
 
-#include "net/Network.h"
+#include "Platform.h"
 #include "version.h"
 
 
-char *Network::userAgent()
+static inline char *createUserAgent()
 {
     const size_t max = 128;
 
-    char *buf = static_cast<char*>(malloc(max));
+    char *buf = new char[max];
     int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
 
 #   if defined(__x86_64__)
@@ -48,3 +49,16 @@ char *Network::userAgent()
 
     return buf;
 }
+
+
+void Platform::init()
+{
+    m_userAgent = createUserAgent();
+}
+
+
+void Platform::release()
+{
+    delete [] m_userAgent;
+}
+

@@ -24,9 +24,10 @@
 
 #include <winsock2.h>
 #include <windows.h>
+#include <uv.h>
 
 
-#include "net/Network.h"
+#include "Platform.h"
 #include "version.h"
 
 
@@ -48,12 +49,12 @@ static inline OSVERSIONINFOEX winOsVersion()
 }
 
 
-char *Network::userAgent()
+static inline char *createUserAgent()
 {
     const auto osver = winOsVersion();
-    const size_t max = 128;
+    const size_t max = 160;
 
-    char *buf = static_cast<char*>(malloc(max));
+    char *buf = new char[max];
     int length = snprintf(buf, max, "%s/%s (Windows NT %lu.%lu", APP_NAME, APP_VERSION, osver.dwMajorVersion, osver.dwMinorVersion);
 
 #   if defined(__x86_64__) || defined(_M_AMD64)
@@ -70,3 +71,16 @@ char *Network::userAgent()
 
     return buf;
 }
+
+
+void Platform::init()
+{
+    m_userAgent = createUserAgent();
+}
+
+
+void Platform::release()
+{
+    delete [] m_userAgent;
+}
+
