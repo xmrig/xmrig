@@ -113,7 +113,7 @@ int App::exec()
         return 1;
     }
 
-    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
+    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
     Summary::print();
 
     Workers::start(m_options->affinity(), m_options->priority());

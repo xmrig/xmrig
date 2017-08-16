@@ -144,7 +144,7 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-bool Mem::allocate(int algo, int threads, bool doubleHash)
+bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 {
     m_algo       = algo;
     m_threads    = threads;
@@ -152,6 +152,11 @@ bool Mem::allocate(int algo, int threads, bool doubleHash)
 
     const int ratio = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
     const size_t size  = MEMORY * (threads * ratio + 1);
+
+    if (!enabled) {
+        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        return true;
+    }
 
     if (TrySetLockPagesPrivilege()) {
         m_flags |= HugepagesAvailable;

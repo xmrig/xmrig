@@ -65,6 +65,7 @@ Options:\n\
   -R, --retry-pause=N   time to pause between retries (default: 5)\n\
       --cpu-affinity    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority    set process priority (0 idle, 2 normal to 5 highest)\n\
+      --no-huge-pages   disable huge pages support\n\
       --no-color        disable colored output\n\
       --donate-level=N  donate level, default 5%% (5 minutes in 100 minutes)\n\
       --user-agent      set custom user-agent string for pool\n\
@@ -102,6 +103,7 @@ static struct option const options[] = {
     { "max-cpu-usage", 1, nullptr, 1004 },
     { "nicehash",      0, nullptr, 1006 },
     { "no-color",      0, nullptr, 1002 },
+    { "no-huge-pages", 0, nullptr, 1009 },
     { "pass",          1, nullptr, 'p'  },
     { "print-time",    1, nullptr, 1007 },
     { "retries",       1, nullptr, 'r'  },
@@ -126,6 +128,7 @@ static struct option const config_options[] = {
     { "cpu-affinity",  1, nullptr, 1020 },
     { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
+    { "huge-pages",    0, nullptr, 1009 },
     { "log-file",      1, nullptr, 'l'  },
     { "max-cpu-usage", 1, nullptr, 1004 },
     { "print-time",    1, nullptr, 1007 },
@@ -181,6 +184,7 @@ Options::Options(int argc, char **argv) :
     m_background(false),
     m_colors(true),
     m_doubleHash(false),
+    m_hugePages(true),
     m_ready(false),
     m_safe(false),
     m_syslog(false),
@@ -311,10 +315,13 @@ bool Options::parseArg(int key, const char *arg)
     case 'B':  /* --background */
     case 'k':  /* --keepalive */
     case 'S':  /* --syslog */
-    case 1002: /* --no-color */
     case 1005: /* --safe */
     case 1006: /* --nicehash */
         return parseBoolean(key, true);
+
+    case 1002: /* --no-color */
+    case 1009: /* --no-huge-pages */
+        return parseBoolean(key, false);
 
     case 'V': /* --version */
         showVersion();
@@ -460,6 +467,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 1006: /* --nicehash */
         m_pools.back()->setNicehash(enable);
+        break;
+
+    case 1009: /* --no-huge-pages */
+        m_hugePages = enable;
         break;
 
     case 2000: /* colors */
