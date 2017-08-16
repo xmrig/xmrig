@@ -77,6 +77,7 @@ public:
 private:
     constexpr static size_t kRecvBufSize = 4096;
 
+    bool isCriticalError(const char *message);
     bool parseJob(const json_t *params, int *code);
     bool parseLogin(const json_t *result, int *code);
     int resolve(const char *host);

@@ -199,6 +199,28 @@ int64_t Client::submit(const JobResult &result)
 }
 
 
+bool Client::isCriticalError(const char *message)
+{
+    if (!message) {
+        return false;
+    }
+
+    if (strncasecmp(message, "Unauthenticated", 15) == 0) {
+        return true;
+    }
+
+    if (strncasecmp(message, "your IP is banned", 17) == 0) {
+        return true;
+    }
+
+    if (strncasecmp(message, "IP Address currently banned", 27) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+
 bool Client::parseJob(const json_t *params, int *code)
 {
     if (!json_is_object(params)) {
@@ -405,7 +427,7 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
             LOG_ERR("[%s:%u] error: \"%s\", code: %" PRId64, m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
         }
 
-        if (id == 1 || (message && strncasecmp(message, "Unauthenticated", 15) == 0)) {
+        if (id == 1 || isCriticalError(message)) {
             close();
         }
 
