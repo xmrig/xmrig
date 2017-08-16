@@ -29,7 +29,7 @@ class Platform
 {
 public:
     static const char *defaultConfigName();
-    static void init();
+    static void init(const char *userAgent);
     static void release();
     static void setProcessPriority(int priority);
     static void setThreadPriority(int priority);

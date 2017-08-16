@@ -73,9 +73,9 @@ static inline char *createUserAgent()
 }
 
 
-void Platform::init()
+void Platform::init(const char *userAgent)
 {
-    m_userAgent = createUserAgent();
+    m_userAgent = userAgent ? strdup(userAgent) : createUserAgent();
 }
 
 

@@ -81,7 +81,7 @@ App::App(int argc, char **argv) :
     }
 #   endif
 
-    Platform::init();
+    Platform::init(m_options->userAgent());
     Platform::setProcessPriority(m_options->priority());
 
     m_network = new Network(m_options);

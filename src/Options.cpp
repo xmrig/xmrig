@@ -67,6 +67,7 @@ Options:\n\
       --cpu-priority    set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-color        disable colored output\n\
       --donate-level=N  donate level, default 5%% (5 minutes in 100 minutes)\n\
+      --user-agent      set custom user-agent string for pool\n\
   -B, --background      run the miner in the background\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
   -l, --log-file=FILE   log all output to a file\n"
@@ -110,6 +111,7 @@ static struct option const options[] = {
     { "threads",       1, nullptr, 't'  },
     { "url",           1, nullptr, 'o'  },
     { "user",          1, nullptr, 'u'  },
+    { "user-agent",    1, nullptr, 1008 },
     { "userpass",      1, nullptr, 'O'  },
     { "version",       0, nullptr, 'V'  },
     { 0, 0, 0, 0 }
@@ -120,6 +122,7 @@ static struct option const config_options[] = {
     { "algo",          1, nullptr, 'a'  },
     { "av",            1, nullptr, 'v'  },
     { "background",    0, nullptr, 'B'  },
+    { "colors",        0, nullptr, 2000 },
     { "cpu-affinity",  1, nullptr, 1020 },
     { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
@@ -131,7 +134,7 @@ static struct option const config_options[] = {
     { "safe",          0, nullptr, 1005 },
     { "syslog",        0, nullptr, 'S'  },
     { "threads",       1, nullptr, 't'  },
-    { "colors",        0, nullptr, 2000 },
+    { "user-agent",    1, nullptr, 1008 },
     { 0, 0, 0, 0 }
 };
 
@@ -182,6 +185,7 @@ Options::Options(int argc, char **argv) :
     m_safe(false),
     m_syslog(false),
     m_logFile(nullptr),
+    m_userAgent(nullptr),
     m_algo(0),
     m_algoVariant(0),
     m_donateLevel(kDonateLevel),
@@ -328,6 +332,11 @@ bool Options::parseArg(int key, const char *arg)
             const char *p  = strstr(arg, "0x");
             return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
+
+    case 1008: /* --user-agent */
+        free(m_userAgent);
+        m_userAgent = strdup(arg);
+        break;
 
     default:
         showUsage(1);

@@ -59,6 +59,7 @@ public:
     inline bool doubleHash() const                { return m_doubleHash; }
     inline bool syslog() const                    { return m_syslog; }
     inline const char *logFile() const            { return m_logFile; }
+    inline const char *userAgent() const          { return m_userAgent; }
     inline const std::vector<Url*> &pools() const { return m_pools; }
     inline int algo() const                       { return m_algo; }
     inline int algoVariant() const                { return m_algoVariant; }
@@ -105,6 +106,7 @@ private:
     bool m_safe;
     bool m_syslog;
     char *m_logFile;
+    char *m_userAgent;
     int m_algo;
     int m_algoVariant;
     int m_donateLevel;
