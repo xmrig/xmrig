@@ -24,6 +24,7 @@
 
 #include <sched.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/resource.h>
 #include <uv.h>
 
