@@ -38,6 +38,7 @@
 #include "donate.h"
 #include "net/Url.h"
 #include "Options.h"
+#include "Platform.h"
 #include "version.h"
 
 
@@ -154,34 +155,6 @@ static const char *algo_names[] = {
 };
 
 
-static char *defaultConfigName()
-{
-    size_t size = 512;
-    char *buf = new char[size];
-
-    if (uv_exepath(buf, &size) < 0) {
-        delete [] buf;
-        return nullptr;
-    }
-
-    if (size < 500) {
-#       ifdef WIN32
-        char *p = strrchr(buf, '\\');
-#       else
-        char *p = strrchr(buf, '/');
-#       endif
-
-        if (p) {
-            strcpy(p + 1, "config.json");
-            return buf;
-        }
-    }
-
-    delete [] buf;
-    return nullptr;
-}
-
-
 Options *Options::parse(int argc, char **argv)
 {
     Options *options = new Options(argc, argv);
@@ -241,9 +214,7 @@ Options::Options(int argc, char **argv) :
     }
 
     if (!m_pools[0]->isValid()) {
-        char *fileName = defaultConfigName();
-        parseConfig(fileName);
-        delete [] fileName;
+        parseConfig(Platform::defaultConfigName());
     }
 
     if (!m_pools[0]->isValid()) {
@@ -508,8 +479,18 @@ Url *Options::parseUrl(const char *arg) const
 
 void Options::parseConfig(const char *fileName)
 {
+    uv_fs_t req;
+    const int fd = uv_fs_open(uv_default_loop(), &req, fileName, O_RDONLY, 0644, nullptr);
+    if (fd < 0) {
+        fprintf(stderr, "unable to open %s: %s\n", fileName, uv_strerror(fd));
+        return;
+    }
+
     json_error_t err;
-    json_t *config = json_load_file(fileName, 0, &err);
+    json_t *config = json_loadfd(fd, 0, &err);
+
+    uv_fs_close(uv_default_loop(), &req, fd, nullptr);
+    uv_fs_req_cleanup(&req);
 
     if (!json_is_object(config)) {
         if (config) {

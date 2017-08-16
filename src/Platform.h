@@ -28,6 +28,7 @@
 class Platform
 {
 public:
+    static const char *defaultConfigName();
     static void init();
     static void release();
     static void setProcessPriority(int priority);
@@ -36,6 +37,7 @@ public:
     static inline const char *userAgent() { return m_userAgent; }
 
 private:
+    static char *m_defaultConfigName;
     static char *m_userAgent;
 };
 
