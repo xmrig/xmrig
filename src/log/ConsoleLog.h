@@ -40,6 +40,7 @@ public:
     void text(const char *fmt, va_list args) override;
 
 private:
+    bool isWritable() const;
     void print(char *fmt, va_list args);
 
     bool m_colors;
