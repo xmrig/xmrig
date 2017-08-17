@@ -20,13 +20,10 @@
 #include <string.h>
 #include <assert.h>
 
-#if defined(HAVE_UNISTD_H) && !defined(_MSC_VER)
-#include <unistd.h>
-#endif
-
-#if defined(_MSC_VER)
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
+#if defined(HAVE_UNISTD_H)
+#   include <unistd.h>
+#elif defined(_MSC_VER)
+#   include <io.h>
 #endif
 
 #include "jansson.h"
@@ -72,10 +69,13 @@ static int dump_to_file(const char *buffer, size_t size, void *data)
 static int dump_to_fd(const char *buffer, size_t size, void *data)
 {
     int *dest = (int *)data;
-#ifdef HAVE_UNISTD_H
+#   if defined(HAVE_UNISTD_H)
     if(write(*dest, buffer, size) == (ssize_t)size)
         return 0;
-#endif
+#   elif (defined(_MSC_VER))
+    if (write(*dest, buffer, (unsigned int) size) == (int) size)
+        return 0;
+#   endif
     return -1;
 }
 
