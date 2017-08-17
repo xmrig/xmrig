@@ -19,8 +19,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#ifdef HAVE_UNISTD_H
+
+#if defined(HAVE_UNISTD_H) && !defined(_MSC_VER)
 #include <unistd.h>
+#endif
+
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
 #endif
 
 #include "jansson.h"

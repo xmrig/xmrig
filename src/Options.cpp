@@ -506,6 +506,8 @@ void Options::parseConfig(const char *fileName)
         return;
     }
 
+    uv_fs_req_cleanup(&req);
+
     json_error_t err;
     json_t *config = json_loadfd(fd, 0, &err);
 

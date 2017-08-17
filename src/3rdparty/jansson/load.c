@@ -17,8 +17,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#ifdef HAVE_UNISTD_H
+
+#if defined(HAVE_UNISTD_H) && !defined(_MSC_VER)
 #include <unistd.h>
+#endif
+
+#ifdef _MSC_VER
+#define	STDIN_FILENO 0
 #endif
 
 #include "jansson.h"

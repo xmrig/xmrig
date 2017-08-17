@@ -21,7 +21,7 @@
 #include <sched.h>
 #endif
 
-#ifdef HAVE_UNISTD_H
+#if defined(HAVE_UNISTD_H) && !defined(_MSC_VER)
 #include <unistd.h>
 #endif
 
