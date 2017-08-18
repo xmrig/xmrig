@@ -30,17 +30,17 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 ## Download
 * Binary releases: https://github.com/xmrig/xmrig/releases
 * Git tree: https://github.com/xmrig/xmrig.git
-  * Clone with `git clone https://github.com/xmrig/xmrig.git`
+  * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
 
 ## Usage
 ### Basic example
 ```
-xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
+xmrig.exe -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k
 ```
 
 ### Failover
 ```
-xmrig.exe -o pool.supportxmr.com:5555 -u YOUR_WALLET1 -k -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET2 -p x -k
+xmrig.exe -o pool.minemonero.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
 ```
 For failover you can add multiple pools, maximum count not limited.
 
@@ -56,18 +56,24 @@ For failover you can add multiple pools, maximum count not limited.
   -k, --keepalive       send keepalived for prevent timeout (need pool support)
   -r, --retries=N       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N   time to pause between retries (default: 5)
-      --cpu-affinity    set process affinity to cpu core(s), mask 0x3 for cores 0 and 1
+      --cpu-affinity    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
+      --cpu-priority    set process priority (0 idle, 2 normal to 5 highest)
+      --no-huge-pages   disable huge pages support
       --no-color        disable colored output
       --donate-level=N  donate level, default 5% (5 minutes in 100 minutes)
+      --user-agent      set custom user-agent string for pool
   -B, --background      run the miner in the background
   -c, --config=FILE     load a JSON-format configuration file
-      --max-cpu-usage=N maximum cpu usage for automatic threads mode (default 75)
-      --safe            safe adjust threads and av settings for current cpu
+  -l, --log-file=FILE   log all output to a file
+      --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)
+      --safe            safe adjust threads and av settings for current CPU
       --nicehash        enable nicehash support
       --print-time=N    print hashrate report every N seconds
   -h, --help            display this help and exit
   -V, --version         output version information and exit
 ```
+
+Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
 Since version 0.8.0.
