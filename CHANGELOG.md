@@ -4,7 +4,8 @@
 - Added `--no-huge-pages` option, to disable huge pages support.
 - Force reconnect if pool block miner IP address. helps switch to backup pool.
 - Fixed: failed open default config file if path contains non English characters.
-- Fixed: message "Huge pages support was successfully enabled, but reboot required to use it" was not shown in release builds.
+- Fixed: error occurred if try use unavailable stdin or stdout, regression since version 2.2.0.
+- Fixed: message about huge pages support successfully enabled on Windows was not shown in release builds.
 
 # v2.2.1
 - Fixed [terminal issues](https://github.com/xmrig/xmrig-proxy/issues/2#issuecomment-319914085) after exit on Linux and OS X.
