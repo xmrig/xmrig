@@ -18,9 +18,10 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * [Contacts](#contacts)
 
 ## Features
-* High performance (290+ H/s on i7 6700).
+* High performance.
 * Official Windows support.
-* Small Windows executable, only 535 KB without dependencies.
+* Small Windows executable, without dependencies.
+* x86/x64 support.
 * Support for backup (failover) mining server.
 * keepalived support.
 * Command line options compatible with cpuminer.
