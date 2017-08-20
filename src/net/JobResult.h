@@ -43,6 +43,15 @@ public:
     }
 
 
+    inline JobResult(const Job &job) : poolId(0), diff(0), nonce(0)
+    {
+        memcpy(jobId, job.id(), sizeof(jobId));
+        poolId = job.poolId();
+        diff   = job.diff();
+        nonce  = *job.nonce();
+    }
+
+
     inline JobResult &operator=(const Job &job) {
         memcpy(jobId, job.id(), sizeof(jobId));
         poolId = job.poolId();

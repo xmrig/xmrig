@@ -56,13 +56,14 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_failures(0),
     m_recvBufPos(0),
     m_state(UnconnectedState),
+    m_expire(0),
     m_stream(nullptr),
     m_socket(nullptr)
 {
     memset(m_ip, 0, sizeof(m_ip));
     memset(&m_hints, 0, sizeof(m_hints));
 
-    m_resolver.data = m_responseTimer.data = m_retriesTimer.data = m_keepAliveTimer.data = this;
+    m_resolver.data = this;
 
     m_hints.ai_family   = PF_INET;
     m_hints.ai_socktype = SOCK_STREAM;
@@ -71,10 +72,10 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_recvBuf.base = static_cast<char*>(malloc(kRecvBufSize));
     m_recvBuf.len  = kRecvBufSize;
 
-    auto loop = uv_default_loop();
-    uv_timer_init(loop, &m_retriesTimer);
-    uv_timer_init(loop, &m_responseTimer);
-    uv_timer_init(loop, &m_keepAliveTimer);
+#   ifndef XMRIG_PROXY_PROJECT
+    m_keepAliveTimer.data = this;
+    uv_timer_init(uv_default_loop(), &m_keepAliveTimer);
+#   endif
 }
 
 
@@ -93,12 +94,12 @@ Client::~Client()
 int64_t Client::send(char *data, size_t size)
 {
     LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size ? size : strlen(data), data);
-    if (state() != ConnectedState) {
+    if (state() != ConnectedState || !uv_is_writable(m_stream)) {
         LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
         return -1;
     }
 
-    uv_buf_t buf = uv_buf_init(data, size ? size : strlen(data));
+    uv_buf_t buf = uv_buf_init(data, (unsigned int) (size ? size : strlen(data)));
 
     uv_write_t *req = new uv_write_t;
     req->data = buf.base;
@@ -108,8 +109,7 @@ int64_t Client::send(char *data, size_t size)
         delete req;
     });
 
-    uv_timer_start(&m_responseTimer, [](uv_timer_t *handle) { getClient(handle->data)->close(); }, kResponseTimeout, 0);
-
+    m_expire = uv_now(uv_default_loop()) + kResponseTimeout;
     return m_sequence++;
 }
 
@@ -134,9 +134,11 @@ void Client::connect(const Url *url)
 
 void Client::disconnect()
 {
+#   ifndef XMRIG_PROXY_PROJECT
     uv_timer_stop(&m_keepAliveTimer);
-    uv_timer_stop(&m_responseTimer);
-    uv_timer_stop(&m_retriesTimer);
+#   endif
+
+    m_expire   = 0;
     m_failures = -1;
 
     close();
@@ -150,6 +152,24 @@ void Client::setUrl(const Url *url)
     }
 
     m_url = url;
+}
+
+
+void Client::tick(uint64_t now)
+{
+    if (m_expire == 0 || now < m_expire) {
+        return;
+    }
+
+    if (m_state == ConnectedState) {
+        LOG_DEBUG_ERR("[%s:%u] timeout", m_url.host(), m_url.port());
+        close();
+    }
+
+
+    if (m_state == ConnectingState) {
+        connect();
+    }
 }
 
 
@@ -176,6 +196,28 @@ int64_t Client::submit(const JobResult &result)
 
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff);
     return send(req);
+}
+
+
+bool Client::isCriticalError(const char *message)
+{
+    if (!message) {
+        return false;
+    }
+
+    if (strncasecmp(message, "Unauthenticated", 15) == 0) {
+        return true;
+    }
+
+    if (strncasecmp(message, "your IP is banned", 17) == 0) {
+        return true;
+    }
+
+    if (strncasecmp(message, "IP Address currently banned", 27) == 0) {
+        return true;
+    }
+
+    return false;
 }
 
 
@@ -231,6 +273,7 @@ int Client::resolve(const char *host)
 {
     setState(HostLookupState);
 
+    m_expire     = 0;
     m_recvBufPos = 0;
 
     if (m_failures == -1) {
@@ -384,7 +427,7 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
             LOG_ERR("[%s:%u] error: \"%s\", code: %" PRId64, m_url.host(), m_url.port(), message, json_integer_value(json_object_get(error, "code")));
         }
 
-        if (id == 1 || (message && strncasecmp(message, "Unauthenticated", 15) == 0)) {
+        if (id == 1 || isCriticalError(message)) {
             close();
         }
 
@@ -432,19 +475,20 @@ void Client::reconnect()
 {
     setState(ConnectingState);
 
-    uv_timer_stop(&m_responseTimer);
+#   ifndef XMRIG_PROXY_PROJECT
     if (m_url.isKeepAlive()) {
         uv_timer_stop(&m_keepAliveTimer);
     }
+#   endif
 
     if (m_failures == -1) {
         return m_listener->onClose(this, -1);
     }
 
     m_failures++;
-    m_listener->onClose(this, m_failures);
+    m_listener->onClose(this, (int) m_failures);
 
-    uv_timer_start(&m_retriesTimer, [](uv_timer_t *handle) { getClient(handle->data)->connect(); }, m_retryPause, 0);
+    m_expire = uv_now(uv_default_loop()) + m_retryPause;
 }
 
 
@@ -462,12 +506,15 @@ void Client::setState(SocketState state)
 
 void Client::startTimeout()
 {
-    uv_timer_stop(&m_responseTimer);
+    m_expire = 0;
+
+#   ifndef XMRIG_PROXY_PROJECT
     if (!m_url.isKeepAlive()) {
         return;
     }
 
     uv_timer_start(&m_keepAliveTimer, [](uv_timer_t *handle) { getClient(handle->data)->ping(); }, kKeepAliveTimeout, 0);
+#   endif
 }
 
 
@@ -523,7 +570,7 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
     auto client = getClient(stream->data);
     if (nread < 0) {
         if (nread != UV_EOF && !client->m_quiet) {
-            LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(nread));
+            LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror((int) nread));
         }
 
         return client->close();;

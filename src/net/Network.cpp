@@ -21,6 +21,9 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef _MSC_VER
+#pragma warning(disable:4244)
+#endif
 
 #include <inttypes.h>
 #include <memory>
@@ -35,11 +38,11 @@
 #include "net/strategies/SinglePoolStrategy.h"
 #include "net/Url.h"
 #include "Options.h"
+#include "Platform.h"
 #include "workers/Workers.h"
 
 
 Network::Network(const Options *options) :
-    m_donateActive(false),
     m_options(options),
     m_donate(nullptr),
     m_accepted(0),
@@ -48,26 +51,29 @@ Network::Network(const Options *options) :
     srand(time(0) ^ (uintptr_t) this);
 
     Workers::setListener(this);
-    m_agent = userAgent();
 
     const std::vector<Url*> &pools = options->pools();
 
     if (pools.size() > 1) {
-        m_strategy = new FailoverStrategy(pools, m_agent, this);
+        m_strategy = new FailoverStrategy(pools, Platform::userAgent(), this);
     }
     else {
-        m_strategy = new SinglePoolStrategy(pools.front(), m_agent, this);
+        m_strategy = new SinglePoolStrategy(pools.front(), Platform::userAgent(), this);
     }
 
     if (m_options->donateLevel() > 0) {
-        m_donate = new DonateStrategy(m_agent, this);
+        m_donate = new DonateStrategy(Platform::userAgent(), this);
     }
+
+    m_timer.data = this;
+    uv_timer_init(uv_default_loop(), &m_timer);
+
+    uv_timer_start(&m_timer, Network::onTick, kTickInterval, kTickInterval);
 }
 
 
 Network::~Network()
 {
-    free(m_agent);
 }
 
 
@@ -163,4 +169,22 @@ void Network::setJob(Client *client, const Job &job)
     }
 
     Workers::setJob(job);
+}
+
+
+void Network::tick()
+{
+    const uint64_t now = uv_now(uv_default_loop());
+
+    m_strategy->tick(now);
+
+    if (m_donate) {
+        m_donate->tick(now);
+    }
+}
+
+
+void Network::onTick(uv_timer_t *handle)
+{
+    static_cast<Network*>(handle->data)->tick();
 }

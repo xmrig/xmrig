@@ -85,9 +85,8 @@ static BOOL SetLockPagesPrivilege() {
 
 static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string) {
     LSA_UNICODE_STRING lsaString;
-    DWORD dwLen = 0;
 
-    dwLen = wcslen(string);
+    DWORD dwLen = (DWORD) wcslen(string);
     lsaString.Buffer = (LPWSTR) string;
     lsaString.Length = (USHORT)((dwLen) * sizeof(WCHAR));
     lsaString.MaximumLength = (USHORT)((dwLen + 1) * sizeof(WCHAR));
@@ -124,7 +123,7 @@ static BOOL ObtainLockPagesPrivilege() {
         LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
 
         if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
-            LOG_DEBUG("Huge pages support was successfully enabled, but reboot required to use it");
+            LOG_NOTICE("Huge pages support was successfully enabled, but reboot required to use it");
             result = TRUE;
         }
 
@@ -145,7 +144,7 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-bool Mem::allocate(int algo, int threads, bool doubleHash)
+bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 {
     m_algo       = algo;
     m_threads    = threads;
@@ -153,6 +152,11 @@ bool Mem::allocate(int algo, int threads, bool doubleHash)
 
     const int ratio = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
     const size_t size  = MEMORY * (threads * ratio + 1);
+
+    if (!enabled) {
+        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        return true;
+    }
 
     if (TrySetLockPagesPrivilege()) {
         m_flags |= HugepagesAvailable;

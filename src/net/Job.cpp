@@ -82,7 +82,7 @@ bool Job::setBlob(const char *blob)
         return false;
     }
 
-    if (!fromHex(blob, m_size * 2, m_blob)) {
+    if (!fromHex(blob, (int) m_size * 2, m_blob)) {
         return false;
     }
 

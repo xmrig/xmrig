@@ -28,12 +28,13 @@ set(HEADERS
     src/net/Job.h
     src/net/JobResult.h
     src/net/Network.h
-    src/net/SubmitResult.h
-    src/net/Url.h
     src/net/strategies/DonateStrategy.h
     src/net/strategies/FailoverStrategy.h
     src/net/strategies/SinglePoolStrategy.h
+    src/net/SubmitResult.h
+    src/net/Url.h
     src/Options.h
+    src/Platform.h
     src/Summary.h
     src/version.h
     src/workers/DoubleWorker.h
@@ -73,6 +74,7 @@ set(SOURCES
     src/net/strategies/SinglePoolStrategy.cpp
     src/net/Url.cpp
     src/Options.cpp
+    src/Platform.cpp
     src/Summary.cpp
     src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
@@ -100,7 +102,7 @@ if (WIN32)
         src/App_win.cpp
         src/Cpu_win.cpp
         src/Mem_win.cpp
-        src/net/Network_win.cpp
+        src/Platform_win.cpp
         )
 
     add_definitions(/DWIN32)
@@ -110,14 +112,14 @@ elseif (APPLE)
         src/App_unix.cpp
         src/Cpu_mac.cpp
         src/Mem_unix.cpp
-        src/net/Network_mac.cpp
+        src/Platform_mac.cpp
         )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
         src/Cpu_unix.cpp
         src/Mem_unix.cpp
-        src/net/Network_unix.cpp
+        src/Platform_unix.cpp
         )
 
     set(EXTRA_LIBS pthread)
@@ -159,6 +161,8 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
+    add_definitions(/D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
 

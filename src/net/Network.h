@@ -47,8 +47,6 @@ public:
   void connect();
   void stop();
 
-  static char *userAgent();
-
 protected:
   void onActive(Client *client) override;
   void onJob(Client *client, const Job &job) override;
@@ -57,15 +55,19 @@ protected:
   void onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error) override;
 
 private:
-  void setJob(Client *client, const Job &job);
+  constexpr static int kTickInterval = 1 * 1000;
 
-  bool m_donateActive;
-  char *m_agent;
+  void setJob(Client *client, const Job &job);
+  void tick();
+
+  static void onTick(uv_timer_t *handle);
+
   const Options *m_options;
   IStrategy *m_donate;
   IStrategy *m_strategy;
   uint64_t m_accepted;
   uint64_t m_rejected;
+  uv_timer_t m_timer;
 };
 
 

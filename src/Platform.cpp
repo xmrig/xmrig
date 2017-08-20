@@ -22,18 +22,41 @@
  */
 
 
-#include <stdlib.h>
-
-#include "net/Network.h"
-#include "version.h"
+#include <string.h>
+#include <uv.h>
 
 
-char *Network::userAgent()
+#include "Platform.h"
+
+
+char *Platform::m_defaultConfigName = nullptr;
+char *Platform::m_userAgent         = nullptr;
+
+
+const char *Platform::defaultConfigName()
 {
-    const size_t max = 128;
+    size_t size = 520;
 
-    char *buf = static_cast<char*>(malloc(max));
-    snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s clang/%d.%d.%d", APP_NAME, APP_VERSION, uv_version_string(), __clang_major__, __clang_minor__, __clang_patchlevel__);
+    if (m_defaultConfigName == nullptr) {
+        m_defaultConfigName = new char[size];
+    }
 
-    return buf;
+    if (uv_exepath(m_defaultConfigName, &size) < 0) {
+        return nullptr;
+    }
+
+    if (size < 500) {
+#       ifdef WIN32
+        char *p = strrchr(m_defaultConfigName, '\\');
+#       else
+        char *p = strrchr(m_defaultConfigName, '/');
+#       endif
+
+        if (p) {
+            strcpy(p + 1, "config.json");
+            return m_defaultConfigName;
+        }
+    }
+
+    return nullptr;
 }

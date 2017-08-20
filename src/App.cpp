@@ -36,6 +36,7 @@
 #include "Mem.h"
 #include "net/Network.h"
 #include "Options.h"
+#include "Platform.h"
 #include "Summary.h"
 #include "version.h"
 #include "workers/Workers.h"
@@ -80,6 +81,9 @@ App::App(int argc, char **argv) :
     }
 #   endif
 
+    Platform::init(m_options->userAgent());
+    Platform::setProcessPriority(m_options->priority());
+
     m_network = new Network(m_options);
 
     uv_signal_init(uv_default_loop(), &m_signal);
@@ -109,10 +113,10 @@ int App::exec()
         return 1;
     }
 
-    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash());
+    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
     Summary::print();
 
-    Workers::start(m_options->affinity());
+    Workers::start(m_options->affinity(), m_options->priority());
 
     m_network->connect();
 
@@ -120,10 +124,11 @@ int App::exec()
     uv_loop_close(uv_default_loop());
     uv_tty_reset_mode();
 
-    free(m_network);
-    free(m_options);
+    delete m_network;
 
+    Options::release();
     Mem::release();
+    Platform::release();
 
     return r;
 }

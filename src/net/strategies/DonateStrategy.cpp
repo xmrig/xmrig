@@ -24,8 +24,15 @@
 
 #include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
+#include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
 #include "Options.h"
+
+
+extern "C"
+{
+#include "crypto/c_keccak.h"
+}
 
 
 DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
@@ -34,7 +41,14 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_idleTime((100 - Options::i()->donateLevel()) * 60 * 1000),
     m_listener(listener)
 {
-    Url *url = new Url("fee.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, Options::i()->pools().front()->user(), nullptr, false, true);
+    uint8_t hash[200];
+    char userId[65] = { 0 };
+    const char *user = Options::i()->pools().front()->user();
+
+    keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
+    Job::toHex(hash, 32, userId);
+
+    Url *url = new Url("fee.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, userId, nullptr, false, true);
 
     m_client = new Client(-1, agent, this);
     m_client->setUrl(url);
@@ -66,6 +80,12 @@ void DonateStrategy::stop()
 {
     uv_timer_stop(&m_timer);
     m_client->disconnect();
+}
+
+
+void DonateStrategy::tick(uint64_t now)
+{
+    m_client->tick(now);
 }
 
 

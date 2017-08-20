@@ -68,7 +68,7 @@ int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
     }
 
     if (((float) count / m_totalThreads * 100) > maxCpuUsage) {
-        count = ceil((float) m_totalThreads * (maxCpuUsage / 100.0));
+        count = (int) ceil((float) m_totalThreads * (maxCpuUsage / 100.0));
     }
 
     return count < 1 ? 1 : count;

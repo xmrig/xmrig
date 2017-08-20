@@ -38,6 +38,7 @@
 #include "donate.h"
 #include "net/Url.h"
 #include "Options.h"
+#include "Platform.h"
 #include "version.h"
 
 
@@ -63,8 +64,11 @@ Options:\n\
   -r, --retries=N       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N   time to pause between retries (default: 5)\n\
       --cpu-affinity    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
+      --cpu-priority    set process priority (0 idle, 2 normal to 5 highest)\n\
+      --no-huge-pages   disable huge pages support\n\
       --no-color        disable colored output\n\
       --donate-level=N  donate level, default 5%% (5 minutes in 100 minutes)\n\
+      --user-agent      set custom user-agent string for pool\n\
   -B, --background      run the miner in the background\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
   -l, --log-file=FILE   log all output to a file\n"
@@ -91,6 +95,7 @@ static struct option const options[] = {
     { "background",    0, nullptr, 'B'  },
     { "config",        1, nullptr, 'c'  },
     { "cpu-affinity",  1, nullptr, 1020 },
+    { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
     { "help",          0, nullptr, 'h'  },
     { "keepalive",     0, nullptr ,'k'  },
@@ -98,6 +103,7 @@ static struct option const options[] = {
     { "max-cpu-usage", 1, nullptr, 1004 },
     { "nicehash",      0, nullptr, 1006 },
     { "no-color",      0, nullptr, 1002 },
+    { "no-huge-pages", 0, nullptr, 1009 },
     { "pass",          1, nullptr, 'p'  },
     { "print-time",    1, nullptr, 1007 },
     { "retries",       1, nullptr, 'r'  },
@@ -107,6 +113,7 @@ static struct option const options[] = {
     { "threads",       1, nullptr, 't'  },
     { "url",           1, nullptr, 'o'  },
     { "user",          1, nullptr, 'u'  },
+    { "user-agent",    1, nullptr, 1008 },
     { "userpass",      1, nullptr, 'O'  },
     { "version",       0, nullptr, 'V'  },
     { 0, 0, 0, 0 }
@@ -117,8 +124,11 @@ static struct option const config_options[] = {
     { "algo",          1, nullptr, 'a'  },
     { "av",            1, nullptr, 'v'  },
     { "background",    0, nullptr, 'B'  },
+    { "colors",        0, nullptr, 2000 },
     { "cpu-affinity",  1, nullptr, 1020 },
+    { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
+    { "huge-pages",    0, nullptr, 1009 },
     { "log-file",      1, nullptr, 'l'  },
     { "max-cpu-usage", 1, nullptr, 1004 },
     { "print-time",    1, nullptr, 1007 },
@@ -127,7 +137,7 @@ static struct option const config_options[] = {
     { "safe",          0, nullptr, 1005 },
     { "syslog",        0, nullptr, 'S'  },
     { "threads",       1, nullptr, 't'  },
-    { "colors",        0, nullptr, 2000 },
+    { "user-agent",    1, nullptr, 1008 },
     { 0, 0, 0, 0 }
 };
 
@@ -149,34 +159,6 @@ static const char *algo_names[] = {
     "cryptonight-lite"
 #   endif
 };
-
-
-static char *defaultConfigName()
-{
-    size_t size = 512;
-    char *buf = new char[size];
-
-    if (uv_exepath(buf, &size) < 0) {
-        delete [] buf;
-        return nullptr;
-    }
-
-    if (size < 500) {
-#       ifdef WIN32
-        char *p = strrchr(buf, '\\');
-#       else
-        char *p = strrchr(buf, '/');
-#       endif
-
-        if (p) {
-            strcpy(p + 1, "config.json");
-            return buf;
-        }
-    }
-
-    delete [] buf;
-    return nullptr;
-}
 
 
 Options *Options::parse(int argc, char **argv)
@@ -202,15 +184,18 @@ Options::Options(int argc, char **argv) :
     m_background(false),
     m_colors(true),
     m_doubleHash(false),
+    m_hugePages(true),
     m_ready(false),
     m_safe(false),
     m_syslog(false),
     m_logFile(nullptr),
+    m_userAgent(nullptr),
     m_algo(0),
     m_algoVariant(0),
     m_donateLevel(kDonateLevel),
     m_maxCpuUsage(75),
     m_printTime(60),
+    m_priority(-1),
     m_retries(5),
     m_retryPause(5),
     m_threads(0),
@@ -237,9 +222,7 @@ Options::Options(int argc, char **argv) :
     }
 
     if (!m_pools[0]->isValid()) {
-        char *fileName = defaultConfigName();
-        parseConfig(fileName);
-        delete [] fileName;
+        parseConfig(Platform::defaultConfigName());
     }
 
     if (!m_pools[0]->isValid()) {
@@ -326,15 +309,19 @@ bool Options::parseArg(int key, const char *arg)
     case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
+    case 1021: /* --cpu-priority */
         return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'B':  /* --background */
     case 'k':  /* --keepalive */
     case 'S':  /* --syslog */
-    case 1002: /* --no-color */
     case 1005: /* --safe */
     case 1006: /* --nicehash */
         return parseBoolean(key, true);
+
+    case 1002: /* --no-color */
+    case 1009: /* --no-huge-pages */
+        return parseBoolean(key, false);
 
     case 'V': /* --version */
         showVersion();
@@ -352,6 +339,11 @@ bool Options::parseArg(int key, const char *arg)
             const char *p  = strstr(arg, "0x");
             return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
+
+    case 1008: /* --user-agent */
+        free(m_userAgent);
+        m_userAgent = strdup(arg);
+        break;
 
     default:
         showUsage(1);
@@ -371,7 +363,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_retries = arg;
+        m_retries = (int) arg;
         break;
 
     case 'R': /* --retry-pause */
@@ -380,7 +372,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_retryPause = arg;
+        m_retryPause = (int) arg;
         break;
 
     case 't': /* --threads */
@@ -389,7 +381,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_threads = arg;
+        m_threads = (int) arg;
         break;
 
     case 'v': /* --av */
@@ -398,7 +390,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_algoVariant = arg;
+        m_algoVariant = (int) arg;
         break;
 
     case 1003: /* --donate-level */
@@ -407,7 +399,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_donateLevel = arg;
+        m_donateLevel = (int) arg;
         break;
 
     case 1004: /* --max-cpu-usage */
@@ -416,7 +408,7 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_maxCpuUsage = arg;
+        m_maxCpuUsage = (int) arg;
         break;
 
     case 1007: /* --print-time */
@@ -425,12 +417,18 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_printTime = arg;
+        m_printTime = (int) arg;
         break;
 
     case 1020: /* --cpu-affinity */
         if (arg) {
             m_affinity = arg;
+        }
+        break;
+
+    case 1021: /* --cpu-priority */
+        if (arg <= 5) {
+            m_priority = (int) arg;
         }
         break;
 
@@ -471,6 +469,10 @@ bool Options::parseBoolean(int key, bool enable)
         m_pools.back()->setNicehash(enable);
         break;
 
+    case 1009: /* --no-huge-pages */
+        m_hugePages = enable;
+        break;
+
     case 2000: /* colors */
         m_colors = enable;
         break;
@@ -497,8 +499,20 @@ Url *Options::parseUrl(const char *arg) const
 
 void Options::parseConfig(const char *fileName)
 {
+    uv_fs_t req;
+    const int fd = uv_fs_open(uv_default_loop(), &req, fileName, O_RDONLY, 0644, nullptr);
+    if (fd < 0) {
+        fprintf(stderr, "unable to open %s: %s\n", fileName, uv_strerror(fd));
+        return;
+    }
+
+    uv_fs_req_cleanup(&req);
+
     json_error_t err;
-    json_t *config = json_load_file(fileName, 0, &err);
+    json_t *config = json_loadfd(fd, 0, &err);
+
+    uv_fs_close(uv_default_loop(), &req, fd, nullptr);
+    uv_fs_req_cleanup(&req);
 
     if (!json_is_object(config)) {
         if (config) {
@@ -609,7 +623,7 @@ bool Options::setAlgo(const char *algo)
 {
     for (size_t i = 0; i < ARRAY_SIZE(algo_names); i++) {
         if (algo_names[i] && !strcmp(algo, algo_names[i])) {
-            m_algo = i;
+            m_algo = (int) i;
             break;
         }
 

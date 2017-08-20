@@ -57,17 +57,22 @@ public:
     inline bool background() const                { return m_background; }
     inline bool colors() const                    { return m_colors; }
     inline bool doubleHash() const                { return m_doubleHash; }
+    inline bool hugePages() const                 { return m_hugePages; }
     inline bool syslog() const                    { return m_syslog; }
     inline const char *logFile() const            { return m_logFile; }
+    inline const char *userAgent() const          { return m_userAgent; }
     inline const std::vector<Url*> &pools() const { return m_pools; }
     inline int algo() const                       { return m_algo; }
     inline int algoVariant() const                { return m_algoVariant; }
     inline int donateLevel() const                { return m_donateLevel; }
     inline int printTime() const                  { return m_printTime; }
+    inline int priority() const                   { return m_priority; }
     inline int retries() const                    { return m_retries; }
     inline int retryPause() const                 { return m_retryPause; }
     inline int threads() const                    { return m_threads; }
     inline int64_t affinity() const               { return m_affinity; }
+
+    inline static void release()                  { delete m_self; }
 
     const char *algoName() const;
 
@@ -98,15 +103,18 @@ private:
     bool m_background;
     bool m_colors;
     bool m_doubleHash;
+    bool m_hugePages;
     bool m_ready;
     bool m_safe;
     bool m_syslog;
     char *m_logFile;
+    char *m_userAgent;
     int m_algo;
     int m_algoVariant;
     int m_donateLevel;
     int m_maxCpuUsage;
     int m_printTime;
+    int m_priority;
     int m_retries;
     int m_retryPause;
     int m_threads;

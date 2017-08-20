@@ -66,6 +66,12 @@ void SinglePoolStrategy::stop()
 }
 
 
+void SinglePoolStrategy::tick(uint64_t now)
+{
+    m_client->tick(now);
+}
+
+
 void SinglePoolStrategy::onClose(Client *client, int failures)
 {
     if (!isActive()) {

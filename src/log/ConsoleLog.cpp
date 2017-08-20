@@ -40,7 +40,10 @@
 ConsoleLog::ConsoleLog(bool colors) :
     m_colors(colors)
 {
-    uv_tty_init(uv_default_loop(), &m_tty, 1, 0);
+    if (uv_tty_init(uv_default_loop(), &m_tty, 1, 0) < 0) {
+        return;
+    }
+
     uv_tty_set_mode(&m_tty, UV_TTY_MODE_NORMAL);
 
 #   ifdef WIN32
@@ -58,6 +61,10 @@ ConsoleLog::ConsoleLog(bool colors) :
 
 void ConsoleLog::message(int level, const char* fmt, va_list args)
 {
+    if (!isWritable()) {
+        return;
+    }
+
     time_t now = time(nullptr);
     tm stime;
 
@@ -92,8 +99,7 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
         }
     }
 
-    const size_t len = 64 + strlen(fmt) + 2;
-    char *buf = new char[len];
+    char *buf = new char[64 + strlen(fmt) + 2];
 
     sprintf(buf, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s\n",
             stime.tm_year + 1900,
@@ -113,12 +119,21 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
 
 void ConsoleLog::text(const char* fmt, va_list args)
 {
-    const int len = 64 + strlen(fmt) + 2;
-    char *buf = new char[len];
+    if (!isWritable()) {
+        return;
+    }
+
+    char *buf = new char[64 + strlen(fmt) + 2];
 
     sprintf(buf, "%s%s\n", fmt, m_colors ? Log::kCL_N : "");
 
     print(buf, args);
+}
+
+
+bool ConsoleLog::isWritable() const
+{
+    return uv_is_writable(reinterpret_cast<const uv_stream_t*>(&m_tty)) == 1 && uv_guess_handle(1) == UV_TTY;
 }
 
 

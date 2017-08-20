@@ -46,7 +46,7 @@ public:
     static void printHashrate(bool detail);
     static void setEnabled(bool enabled);
     static void setJob(const Job &job);
-    static void start(int64_t affinity);
+    static void start(int64_t affinity, int priority);
     static void stop();
     static void submit(const JobResult &result);
 

@@ -17,8 +17,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
+
+#if defined(HAVE_UNISTD_H)
+#   include <unistd.h>
+#elif defined(_MSC_VER)
+#   include <io.h>
+#   define HAVE_UNISTD_H
+#   define STDIN_FILENO 0
 #endif
 
 #include "jansson.h"
@@ -1034,8 +1039,8 @@ json_t *json_loadf(FILE *input, size_t flags, json_error_t *error)
 
 static int fd_get_func(int *fd)
 {
-    uint8_t c;
 #ifdef HAVE_UNISTD_H
+    uint8_t c;
     if (read(*fd, &c, 1) == 1)
         return c;
 #endif

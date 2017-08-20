@@ -311,7 +311,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, cryptonight_ctx *__restrict__ ctx)
 {
-    keccak(static_cast<const uint8_t*>(input), size, ctx->state0, 200);
+    keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state0, 200);
 
     cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) ctx->state0, (__m128i*) ctx->memory);
 
@@ -365,8 +365,8 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 inline void cryptonight_double_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
 {
-    keccak((const uint8_t *) input,        size, ctx->state0, 200);
-    keccak((const uint8_t *) input + size, size, ctx->state1, 200);
+    keccak((const uint8_t *) input,        (int) size, ctx->state0, 200);
+    keccak((const uint8_t *) input + size, (int) size, ctx->state1, 200);
 
     const uint8_t* l0 = ctx->memory;
     const uint8_t* l1 = ctx->memory + MEM;

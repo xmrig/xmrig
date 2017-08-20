@@ -62,6 +62,7 @@ public:
     void connect(const Url *url);
     void disconnect();
     void setUrl(const Url *url);
+    void tick(uint64_t now);
 
     inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }
     inline const char *host() const          { return m_url.host(); }
@@ -76,6 +77,7 @@ public:
 private:
     constexpr static size_t kRecvBufSize = 4096;
 
+    bool isCriticalError(const char *message);
     bool parseJob(const json_t *params, int *code);
     bool parseLogin(const json_t *result, int *code);
     int resolve(const char *host);
@@ -112,14 +114,16 @@ private:
     SocketState m_state;
     static int64_t m_sequence;
     std::map<int64_t, SubmitResult> m_results;
+    uint64_t m_expire;
     Url m_url;
     uv_buf_t m_recvBuf;
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
+
+#   ifndef XMRIG_PROXY_PROJECT
     uv_timer_t m_keepAliveTimer;
-    uv_timer_t m_responseTimer;
-    uv_timer_t m_retriesTimer;
+#   endif
 };
 
 
