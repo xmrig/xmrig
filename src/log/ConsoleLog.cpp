@@ -133,7 +133,12 @@ void ConsoleLog::text(const char* fmt, va_list args)
 
 bool ConsoleLog::isWritable() const
 {
-    return uv_is_writable(reinterpret_cast<const uv_stream_t*>(&m_tty)) == 1 && uv_guess_handle(1) == UV_TTY;
+    if (uv_is_writable(reinterpret_cast<const uv_stream_t*>(&m_tty)) != 1) {
+        return false;
+    }
+
+    const uv_handle_type type = uv_guess_handle(1);
+    return type == UV_TTY || type == UV_NAMED_PIPE;
 }
 
 
