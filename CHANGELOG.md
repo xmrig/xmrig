@@ -1,3 +1,6 @@
+# v2.3.1
+- [#68](https://github.com/xmrig/xmrig/issues/68) Fixed compatibility with Docker containers, was nothing print on console.
+
 # v2.3.0
 - Added `--cpu-priority` option (0 idle, 2 normal to 5 highest).
 - Added `--user-agent` option, to set custom user-agent string for pool. For example `cpuminer-multi/0.1`.
