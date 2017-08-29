@@ -56,8 +56,9 @@ static inline char hf_bin2hex(unsigned char c)
 }
 
 
-Job::Job(int poolId, bool nicehash) :
+Job::Job(int poolId, bool nicehash, bool randnonce) :
     m_nicehash(nicehash),
+    m_randnonce(randnonce),
     m_poolId(poolId),
     m_size(0),
     m_diff(0),

@@ -228,7 +228,7 @@ bool Client::parseJob(const json_t *params, int *code)
         return false;
     }
 
-    Job job(m_id, m_url.isNicehash());
+    Job job(m_id, m_url.isNicehash(), m_url.isRandNonce());
     if (!job.setId(json_string_value(json_object_get(params, "job_id")))) {
         *code = 3;
         return false;

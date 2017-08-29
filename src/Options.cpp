@@ -83,6 +83,7 @@ Options:\n\
       --print-time=N    print hashrate report every N seconds\n\
   -h, --help            display this help and exit\n\
   -V, --version         output version information and exit\n\
+      --rand-nonce      generate random nonces instead of monotonically increasing ones\n\
 ";
 
 
@@ -116,6 +117,7 @@ static struct option const options[] = {
     { "user-agent",    1, nullptr, 1008 },
     { "userpass",      1, nullptr, 'O'  },
     { "version",       0, nullptr, 'V'  },
+    { "rand-nonce",    0, nullptr, 1008 },
     { 0, 0, 0, 0 }
 };
 
@@ -475,6 +477,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 2000: /* colors */
         m_colors = enable;
+        break;
+
+    case 1008: /* --rand-nonce */
+        m_pools.back()->setRandNonce(true);
         break;
 
     default:

@@ -25,7 +25,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-
 #include "net/Url.h"
 
 
@@ -37,6 +36,7 @@
 Url::Url() :
     m_keepAlive(false),
     m_nicehash(false),
+    m_randnonce(false),
     m_host(nullptr),
     m_password(nullptr),
     m_user(nullptr),
@@ -59,6 +59,7 @@ Url::Url() :
 Url::Url(const char *url) :
     m_keepAlive(false),
     m_nicehash(false),
+    m_randnonce(false),
     m_host(nullptr),
     m_password(nullptr),
     m_user(nullptr),
@@ -68,9 +69,10 @@ Url::Url(const char *url) :
 }
 
 
-Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash) :
+Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash, bool randnonce) :
     m_keepAlive(keepAlive),
     m_nicehash(nicehash),
+    m_randnonce(randnonce),
     m_password(password ? strdup(password) : nullptr),
     m_user(user ? strdup(user) : nullptr),
     m_port(port)
@@ -90,6 +92,10 @@ Url::~Url()
 bool Url::isNicehash() const
 {
     return isValid() && (m_nicehash || strstr(m_host, ".nicehash.com"));
+}
+bool Url::isRandNonce() const
+{
+    return m_randnonce;
 }
 
 
@@ -170,6 +176,7 @@ Url &Url::operator=(const Url *other)
 {
     m_keepAlive = other->m_keepAlive;
     m_nicehash  = other->m_nicehash;
+    m_randnonce = other->m_randnonce;
     m_port      = other->m_port;
 
     free(m_host);

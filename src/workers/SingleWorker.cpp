@@ -23,6 +23,7 @@
 
 
 #include <thread>
+#include <unistd.h>
 
 
 #include "crypto/CryptoNight.h"
@@ -38,6 +39,8 @@ SingleWorker::SingleWorker(Handle *handle)
 
 void SingleWorker::start()
 {
+    srand(getpid() * time(NULL));
+    bool israndnonce = false;
     while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {
             do {
@@ -52,16 +55,25 @@ void SingleWorker::start()
             consumeJob();
         }
 
+        israndnonce = m_job.isRandNonce();
+        if (israndnonce) {
+            m_result.nonce += rand();
+        }
         while (!Workers::isOutdated(m_sequence)) {
             if ((m_count & 0xF) == 0) {
                 storeStats();
             }
 
             m_count++;
-            *m_job.nonce() = ++m_result.nonce;
+            if (israndnonce && (m_count & 0xFF) == 0) {
+                *m_job.nonce() = m_result.nonce += (rand() + time(NULL) + getpid());
+            } else {
+                *m_job.nonce() = ++m_result.nonce;
+            }
 
             if (CryptoNight::hash(m_job, m_result, m_ctx)) {
                 Workers::submit(m_result);
+                m_result.nonce += (rand() + time(NULL) + getpid());
             }
 
             std::this_thread::yield();
