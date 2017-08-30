@@ -46,6 +46,10 @@
 #   include "log/SysLog.h"
 #endif
 
+#ifndef XMRIG_NO_HTTPD
+#   include "api/Httpd.h"
+#endif
+
 
 App *App::m_self = nullptr;
 
@@ -53,6 +57,7 @@ App *App::m_self = nullptr;
 
 App::App(int argc, char **argv) :
     m_console(nullptr),
+    m_httpd(nullptr),
     m_network(nullptr),
     m_options(nullptr)
 {
@@ -92,6 +97,9 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
+    uv_tty_reset_mode();
+
+    delete m_httpd;
     delete m_console;
 }
 
@@ -116,13 +124,17 @@ int App::exec()
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
     Summary::print();
 
+#   ifndef XMRIG_NO_HTTPD
+    m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken());
+    m_httpd->start();
+#   endif
+
     Workers::start(m_options->affinity(), m_options->priority());
 
     m_network->connect();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
-    uv_tty_reset_mode();
 
     delete m_network;
 

@@ -21,47 +21,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __HTTPD_H__
+#define __HTTPD_H__
 
 
 #include <uv.h>
 
 
-#include "interfaces/IConsoleListener.h"
+struct MHD_Daemon;
+struct MHD_Connection;
 
 
-class Console;
-class Httpd;
-class Network;
-class Options;
-
-
-class App : public IConsoleListener
+class Httpd
 {
 public:
-  App(int argc, char **argv);
-  ~App();
-
-  int exec();
-
-protected:
-  void onConsoleCommand(char command) override;
+    Httpd(int port, const char *accessToken);
+    bool start();
 
 private:
-  void background();
-  void close();
+    static int handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls);
 
-  static void onSignal(uv_signal_t *handle, int signum);
-
-  static App *m_self;
-
-  Console *m_console;
-  Httpd *m_httpd;
-  Network *m_network;
-  Options *m_options;
-  uv_signal_t m_signal;
+    const char *m_accessToken;
+    const int m_port;
+    MHD_Daemon *m_daemon;
 };
 
-
-#endif /* __APP_H__ */
+#endif /* __HTTPD_H__ */

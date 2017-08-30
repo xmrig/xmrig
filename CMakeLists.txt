@@ -3,7 +3,7 @@ project(xmrig)
 
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
-
+option(WITH_HTTPD    "HTTP REST API" ON)
 
 include (CheckIncludeFile)
 
@@ -191,6 +191,15 @@ if (HAVE_SYSLOG_H)
     set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
 endif()
 
+find_package(MHD REQUIRED)
+if (WITH_HTTPD AND MHD_FOUND)
+    include_directories(${MHD_INCLUDE_DIRS})
+
+    set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
+else()
+    add_definitions(/DXMRIG_NO_HTTPD)
+endif()
+
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(src/3rdparty/jansson)
@@ -198,5 +207,5 @@ include_directories(${UV_INCLUDE_DIR})
 
 add_subdirectory(src/3rdparty/jansson)
 
-add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG})
-target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
+add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
+target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})

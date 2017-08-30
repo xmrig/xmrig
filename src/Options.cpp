@@ -90,32 +90,35 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 
 
 static struct option const options[] = {
-    { "algo",          1, nullptr, 'a'  },
-    { "av",            1, nullptr, 'v'  },
-    { "background",    0, nullptr, 'B'  },
-    { "config",        1, nullptr, 'c'  },
-    { "cpu-affinity",  1, nullptr, 1020 },
-    { "cpu-priority",  1, nullptr, 1021 },
-    { "donate-level",  1, nullptr, 1003 },
-    { "help",          0, nullptr, 'h'  },
-    { "keepalive",     0, nullptr ,'k'  },
-    { "log-file",      1, nullptr, 'l'  },
-    { "max-cpu-usage", 1, nullptr, 1004 },
-    { "nicehash",      0, nullptr, 1006 },
-    { "no-color",      0, nullptr, 1002 },
-    { "no-huge-pages", 0, nullptr, 1009 },
-    { "pass",          1, nullptr, 'p'  },
-    { "print-time",    1, nullptr, 1007 },
-    { "retries",       1, nullptr, 'r'  },
-    { "retry-pause",   1, nullptr, 'R'  },
-    { "safe",          0, nullptr, 1005 },
-    { "syslog",        0, nullptr, 'S'  },
-    { "threads",       1, nullptr, 't'  },
-    { "url",           1, nullptr, 'o'  },
-    { "user",          1, nullptr, 'u'  },
-    { "user-agent",    1, nullptr, 1008 },
-    { "userpass",      1, nullptr, 'O'  },
-    { "version",       0, nullptr, 'V'  },
+    { "algo",             1, nullptr, 'a'  },
+    { "av",               1, nullptr, 'v'  },
+    { "background",       0, nullptr, 'B'  },
+    { "config",           1, nullptr, 'c'  },
+    { "cpu-affinity",     1, nullptr, 1020 },
+    { "cpu-priority",     1, nullptr, 1021 },
+    { "donate-level",     1, nullptr, 1003 },
+    { "help",             0, nullptr, 'h'  },
+    { "keepalive",        0, nullptr ,'k'  },
+    { "log-file",         1, nullptr, 'l'  },
+    { "max-cpu-usage",    1, nullptr, 1004 },
+    { "nicehash",         0, nullptr, 1006 },
+    { "no-color",         0, nullptr, 1002 },
+    { "no-huge-pages",    0, nullptr, 1009 },
+    { "pass",             1, nullptr, 'p'  },
+    { "print-time",       1, nullptr, 1007 },
+    { "retries",          1, nullptr, 'r'  },
+    { "retry-pause",      1, nullptr, 'R'  },
+    { "safe",             0, nullptr, 1005 },
+    { "syslog",           0, nullptr, 'S'  },
+    { "threads",          1, nullptr, 't'  },
+    { "url",              1, nullptr, 'o'  },
+    { "user",             1, nullptr, 'u'  },
+    { "user-agent",       1, nullptr, 1008 },
+    { "userpass",         1, nullptr, 'O'  },
+    { "version",          0, nullptr, 'V'  },
+    { "api-port",         1, nullptr, 3000 },
+    { "api-access-token", 1, nullptr, 3001 },
+    { "api-worker-id",    1, nullptr, 3002 },
     { 0, 0, 0, 0 }
 };
 
@@ -149,6 +152,14 @@ static struct option const pool_options[] = {
     { "userpass",      1, nullptr, 'O'  },
     { "keepalive",     0, nullptr ,'k'  },
     { "nicehash",      0, nullptr, 1006 },
+    { 0, 0, 0, 0 }
+};
+
+
+static struct option const api_options[] = {
+    { "port",          1, nullptr, 3000 },
+    { "access-token",  1, nullptr, 3001 },
+    { "worker-id",     1, nullptr, 3002 },
     { 0, 0, 0, 0 }
 };
 
@@ -188,10 +199,13 @@ Options::Options(int argc, char **argv) :
     m_ready(false),
     m_safe(false),
     m_syslog(false),
+    m_apiToken(nullptr),
+    m_apiWorkerId(nullptr),
     m_logFile(nullptr),
     m_userAgent(nullptr),
     m_algo(0),
     m_algoVariant(0),
+    m_apiPort(0),
     m_donateLevel(kDonateLevel),
     m_maxCpuUsage(75),
     m_printTime(60),
@@ -302,6 +316,16 @@ bool Options::parseArg(int key, const char *arg)
         m_colors = false;
         break;
 
+    case 3001: /* --access-token */
+        free(m_apiToken);
+        m_apiToken = strdup(arg);
+        break;
+
+    case 3002: /* --worker-id */
+        free(m_apiWorkerId);
+        m_apiWorkerId = strdup(arg);
+        break;
+
     case 'r':  /* --retries */
     case 'R':  /* --retry-pause */
     case 't':  /* --threads */
@@ -310,6 +334,7 @@ bool Options::parseArg(int key, const char *arg)
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
     case 1021: /* --cpu-priority */
+    case 3000: /* --api-port */
         return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'B':  /* --background */
@@ -432,6 +457,12 @@ bool Options::parseArg(int key, uint64_t arg)
         }
         break;
 
+    case 3000: /* --api-port */
+        if (arg <= 65536) {
+            m_apiPort = (int) arg;
+        }
+        break;
+
     default:
         break;
     }
@@ -545,6 +576,13 @@ void Options::parseConfig(const char *fileName)
                     parseJSON(&pool_options[i], value);
                 }
             }
+        }
+    }
+
+    json_t *api = json_object_get(config, "api");
+    if (json_is_object(api)) {
+        for (size_t i = 0; i < ARRAY_SIZE(api_options); i++) {
+            parseJSON(&api_options[i], api);
         }
     }
 
