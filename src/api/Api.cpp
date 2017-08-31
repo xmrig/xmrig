@@ -21,37 +21,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig CPU miner"
-#define APP_VERSION   "2.3.1"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
-#define APP_KIND      "cpu"
+#include "api/Api.h"
+#include "api/ApiState.h"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  3
-#define APP_VER_BUILD  1
-#define APP_VER_REV    0
 
-#ifdef _MSC_VER
-#   if _MSC_VER == 1910
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
+ApiState *Api::m_state = nullptr;
+char Api::m_buf[4096];
+uv_mutex_t Api::m_mutex;
 
-#endif /* __VERSION_H__ */
+
+bool Api::start()
+{
+    uv_mutex_init(&m_mutex);
+    m_state = new ApiState();
+
+    return true;
+}
+
+
+void Api::release()
+{
+    delete m_state;
+}
+
+
+const char *Api::get(const char *url, size_t *size, int *status)
+{
+    if (!m_state) {
+        *size = 0;
+        return nullptr;
+    }
+
+    uv_mutex_lock(&m_mutex);
+
+    const char *buf = m_state->get(url, size);
+    if (*size) {
+        memcpy(m_buf, buf, *size);
+    }
+    else {
+        *status = 500;
+    }
+
+    uv_mutex_unlock(&m_mutex);
+
+    return m_buf;
+}

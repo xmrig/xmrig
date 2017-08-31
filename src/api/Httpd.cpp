@@ -25,12 +25,13 @@
 #include <microhttpd.h>
 
 
+#include "api/Api.h"
 #include "api/Httpd.h"
 #include "log/Log.h"
 
 
-static const char kNotFound []    = "{\"error\":\"NOT_FOUND\"}";
-static const size_t kNotFoundSize = sizeof(kNotFound) - 1;
+static const char k500 []    = "{\"error\":\"INTERNAL_SERVER_ERROR\"}";
+static const size_t k500Size = sizeof(k500) - 1;
 
 
 Httpd::Httpd(int port, const char *accessToken) :
@@ -59,11 +60,26 @@ bool Httpd::start()
 
 int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls)
 {
-    struct MHD_Response *rsp = MHD_create_response_from_buffer(kNotFoundSize, (void*)kNotFound, MHD_RESPMEM_PERSISTENT);
+    if (strcmp(method, "GET") != 0) {
+        return MHD_NO;
+    }
+
+    struct MHD_Response *rsp;
+
+    size_t size = 0;
+    int status  = MHD_HTTP_OK;
+    const char *buf = Api::get(url, &size, &status);
+
+    if (size) {
+        rsp = MHD_create_response_from_buffer(size, (void*) buf, MHD_RESPMEM_PERSISTENT);
+    }
+    else {
+        rsp = MHD_create_response_from_buffer(k500Size, (void*) k500, MHD_RESPMEM_PERSISTENT);
+    }
 
     MHD_add_response_header(rsp, "Content-Type", "application/json");
 
-    const int ret = MHD_queue_response(connection, MHD_HTTP_NOT_FOUND, rsp);
+    const int ret = MHD_queue_response(connection, status, rsp);
     MHD_destroy_response(rsp);
     return ret;
 }

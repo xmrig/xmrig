@@ -10,6 +10,8 @@ include (CheckIncludeFile)
 
 set(HEADERS
     src/3rdparty/align.h
+    src/api/Api.h
+    src/api/ApiState.h
     src/App.h
     src/Console.h
     src/Cpu.h
@@ -60,6 +62,8 @@ set(HEADERS_CRYPTO
    )
 
 set(SOURCES
+    src/api/Api.cpp
+    src/api/ApiState.cpp
     src/App.cpp
     src/Console.cpp
     src/log/ConsoleLog.cpp
