@@ -38,8 +38,13 @@ public:
 
 private:
     const char *finalize(json_t *reply, size_t *size) const;
+    void genId();
+    void getIdentify(json_t *reply) const;
     void getMiner(json_t *reply) const;
 
+
+    char m_id[17];
+    char m_workerId[128];
     mutable char m_buf[4096];
 };
 

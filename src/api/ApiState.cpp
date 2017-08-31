@@ -22,18 +22,41 @@
  */
 
 #include <string.h>
+#include <uv.h>
+
+#if _WIN32
+#   include "winsock2.h"
+#else
+#   include "unistd.h"
+#endif
 
 
 #include "api/ApiState.h"
 #include "Cpu.h"
 #include "Mem.h"
+#include "net/Job.h"
 #include "Options.h"
 #include "Platform.h"
 #include "version.h"
 
 
+extern "C"
+{
+#include "crypto/c_keccak.h"
+}
+
+
 ApiState::ApiState()
 {
+    memset(m_workerId, 0, sizeof(m_workerId));
+    if (Options::i()->apiWorkerId()) {
+        strncpy(m_workerId, Options::i()->apiWorkerId(), sizeof(m_workerId) - 1);
+    }
+    else {
+        gethostname(m_workerId, sizeof(m_workerId) - 1);
+    }
+
+    genId();
 }
 
 
@@ -46,6 +69,7 @@ const char *ApiState::get(const char *url, size_t *size) const
 {
     json_t *reply = json_object();
 
+    getIdentify(reply);
     getMiner(reply);
 
     return finalize(reply, size);
@@ -58,6 +82,38 @@ const char *ApiState::finalize(json_t *reply, size_t *size) const
 
     json_decref(reply);
     return m_buf;
+}
+
+
+void ApiState::genId()
+{
+    memset(m_id, 0, sizeof(m_id));
+
+    uv_interface_address_t *interfaces;
+    int count = 0;
+
+    if (uv_interface_addresses(&interfaces, &count) < 0) {
+        return;
+    }
+
+    for (int i = 0; i < count; i++) {
+        if (!interfaces[i].is_internal && interfaces[i].address.address4.sin_family == AF_INET) {
+            uint8_t hash[200];
+
+            keccak(reinterpret_cast<const uint8_t *>(interfaces[i].phys_addr), static_cast<int>(sizeof(interfaces[i].phys_addr)), hash, sizeof(hash));
+            Job::toHex(hash, 8, m_id);
+            break;
+        }
+    }
+
+    uv_free_interface_addresses(interfaces, count);
+}
+
+
+void ApiState::getIdentify(json_t *reply) const
+{
+    json_object_set(reply, "id",        json_string(m_id));
+    json_object_set(reply, "worker_id", json_string(m_workerId));
 }
 
 
