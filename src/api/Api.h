@@ -29,6 +29,7 @@
 
 
 class ApiState;
+class Hashrate;
 
 
 class Api
@@ -38,6 +39,7 @@ public:
     static void release();
 
     static const char *get(const char *url, size_t *size, int *status);
+    static void tick(const Hashrate *hashrate);
 
 private:
     static ApiState *m_state;

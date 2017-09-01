@@ -21,6 +21,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
 #include <string.h>
 #include <uv.h>
 
@@ -38,6 +39,7 @@
 #include "Options.h"
 #include "Platform.h"
 #include "version.h"
+#include "workers/Hashrate.h"
 
 
 extern "C"
@@ -46,9 +48,24 @@ extern "C"
 }
 
 
+static inline double normalizeHs(double hashrate)
+{
+    if (!std::isnormal(hashrate)) {
+        return 0.0;
+    }
+
+    return std::floor(hashrate * 10.0) / 10.0;
+}
+
+
 ApiState::ApiState()
 {
+    m_threads  = Options::i()->threads();
+    m_hashrate = new double[m_threads * 3]();
+
+    memset(m_totalHashrate, 0, sizeof(m_totalHashrate));
     memset(m_workerId, 0, sizeof(m_workerId));
+
     if (Options::i()->apiWorkerId()) {
         strncpy(m_workerId, Options::i()->apiWorkerId(), sizeof(m_workerId) - 1);
     }
@@ -62,6 +79,7 @@ ApiState::ApiState()
 
 ApiState::~ApiState()
 {
+    delete [] m_hashrate;
 }
 
 
@@ -71,14 +89,30 @@ const char *ApiState::get(const char *url, size_t *size) const
 
     getIdentify(reply);
     getMiner(reply);
+    getHashrate(reply);
 
     return finalize(reply, size);
 }
 
 
+void ApiState::tick(const Hashrate *hashrate)
+{
+    for (int i = 0; i < m_threads; ++i) {
+        m_hashrate[i * 3]     = normalizeHs(hashrate->calc((size_t) i, Hashrate::ShortInterval));
+        m_hashrate[i * 3 + 1] = normalizeHs(hashrate->calc((size_t) i, Hashrate::MediumInterval));
+        m_hashrate[i * 3 + 2] = normalizeHs(hashrate->calc((size_t) i, Hashrate::LargeInterval));
+    }
+
+    m_totalHashrate[0] = normalizeHs(hashrate->calc(Hashrate::ShortInterval));
+    m_totalHashrate[1] = normalizeHs(hashrate->calc(Hashrate::MediumInterval));
+    m_totalHashrate[2] = normalizeHs(hashrate->calc(Hashrate::LargeInterval));
+    m_highestHashrate  = normalizeHs(hashrate->highest());
+}
+
+
 const char *ApiState::finalize(json_t *reply, size_t *size) const
 {
-    *size = json_dumpb(reply, m_buf, sizeof(m_buf) - 1, JSON_INDENT(4));
+    *size = json_dumpb(reply, m_buf, sizeof(m_buf) - 1, JSON_INDENT(4) | JSON_REAL_PRECISION(15));
 
     json_decref(reply);
     return m_buf;
@@ -107,6 +141,32 @@ void ApiState::genId()
     }
 
     uv_free_interface_addresses(interfaces, count);
+}
+
+
+void ApiState::getHashrate(json_t *reply) const
+{
+    json_t *hashrate = json_object();
+    json_t *threads  = json_array();
+    json_t *total    = json_array();
+
+    json_object_set(reply,    "hashrate", hashrate);
+    json_object_set(hashrate, "total",    total);
+    json_object_set(hashrate, "highest",  json_real(m_highestHashrate));
+    json_object_set(hashrate, "threads",  threads);
+
+    for (int i = 0; i < m_threads * 3; i += 3) {
+        json_t *thread  = json_array();
+        json_array_append(thread, json_real(m_hashrate[i]));
+        json_array_append(thread, json_real(m_hashrate[i + 1]));
+        json_array_append(thread, json_real(m_hashrate[i + 2]));
+
+        json_array_append(threads, thread);
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        json_array_append(total, json_real(m_totalHashrate[i]));
+    }
 }
 
 

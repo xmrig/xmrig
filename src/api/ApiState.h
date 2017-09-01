@@ -28,6 +28,9 @@
 #include "jansson.h"
 
 
+class Hashrate;
+
+
 class ApiState
 {
 public:
@@ -35,16 +38,21 @@ public:
     ~ApiState();
 
     const char *get(const char *url, size_t *size) const;
+    void tick(const Hashrate *hashrate);
 
 private:
     const char *finalize(json_t *reply, size_t *size) const;
     void genId();
+    void getHashrate(json_t *reply) const;
     void getIdentify(json_t *reply) const;
     void getMiner(json_t *reply) const;
 
-
     char m_id[17];
     char m_workerId[128];
+    double *m_hashrate;
+    double m_highestHashrate;
+    double m_totalHashrate[3];
+    int m_threads;
     mutable char m_buf[4096];
 };
 
