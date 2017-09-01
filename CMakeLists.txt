@@ -12,6 +12,7 @@ set(HEADERS
     src/3rdparty/align.h
     src/api/Api.h
     src/api/ApiState.h
+    src/api/Results.h
     src/App.h
     src/Console.h
     src/Cpu.h
@@ -64,6 +65,7 @@ set(HEADERS_CRYPTO
 set(SOURCES
     src/api/Api.cpp
     src/api/ApiState.cpp
+    src/api/Results.cpp
     src/App.cpp
     src/Console.cpp
     src/log/ConsoleLog.cpp
@@ -76,6 +78,7 @@ set(SOURCES
     src/net/strategies/DonateStrategy.cpp
     src/net/strategies/FailoverStrategy.cpp
     src/net/strategies/SinglePoolStrategy.cpp
+    src/net/SubmitResult.cpp
     src/net/Url.cpp
     src/Options.cpp
     src/Platform.cpp

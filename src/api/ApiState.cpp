@@ -48,13 +48,13 @@ extern "C"
 }
 
 
-static inline double normalizeHs(double hashrate)
+static inline double normalize(double d)
 {
-    if (!std::isnormal(hashrate)) {
+    if (!std::isnormal(d)) {
         return 0.0;
     }
 
-    return std::floor(hashrate * 10.0) / 10.0;
+    return std::floor(d * 10.0) / 10.0;
 }
 
 
@@ -90,6 +90,8 @@ const char *ApiState::get(const char *url, size_t *size) const
     getIdentify(reply);
     getMiner(reply);
     getHashrate(reply);
+    getResults(reply);
+    getConnection(reply);
 
     return finalize(reply, size);
 }
@@ -98,15 +100,21 @@ const char *ApiState::get(const char *url, size_t *size) const
 void ApiState::tick(const Hashrate *hashrate)
 {
     for (int i = 0; i < m_threads; ++i) {
-        m_hashrate[i * 3]     = normalizeHs(hashrate->calc((size_t) i, Hashrate::ShortInterval));
-        m_hashrate[i * 3 + 1] = normalizeHs(hashrate->calc((size_t) i, Hashrate::MediumInterval));
-        m_hashrate[i * 3 + 2] = normalizeHs(hashrate->calc((size_t) i, Hashrate::LargeInterval));
+        m_hashrate[i * 3]     = hashrate->calc((size_t) i, Hashrate::ShortInterval);
+        m_hashrate[i * 3 + 1] = hashrate->calc((size_t) i, Hashrate::MediumInterval);
+        m_hashrate[i * 3 + 2] = hashrate->calc((size_t) i, Hashrate::LargeInterval);
     }
 
-    m_totalHashrate[0] = normalizeHs(hashrate->calc(Hashrate::ShortInterval));
-    m_totalHashrate[1] = normalizeHs(hashrate->calc(Hashrate::MediumInterval));
-    m_totalHashrate[2] = normalizeHs(hashrate->calc(Hashrate::LargeInterval));
-    m_highestHashrate  = normalizeHs(hashrate->highest());
+    m_totalHashrate[0] = hashrate->calc(Hashrate::ShortInterval);
+    m_totalHashrate[1] = hashrate->calc(Hashrate::MediumInterval);
+    m_totalHashrate[2] = hashrate->calc(Hashrate::LargeInterval);
+    m_highestHashrate  = hashrate->highest();
+}
+
+
+void ApiState::tick(const Results &results)
+{
+    m_results = results;
 }
 
 
@@ -144,6 +152,14 @@ void ApiState::genId()
 }
 
 
+void ApiState::getConnection(json_t *reply) const
+{
+    json_t *connection = json_object();
+
+    json_object_set(reply, "connection", connection);
+}
+
+
 void ApiState::getHashrate(json_t *reply) const
 {
     json_t *hashrate = json_object();
@@ -152,20 +168,20 @@ void ApiState::getHashrate(json_t *reply) const
 
     json_object_set(reply,    "hashrate", hashrate);
     json_object_set(hashrate, "total",    total);
-    json_object_set(hashrate, "highest",  json_real(m_highestHashrate));
+    json_object_set(hashrate, "highest",  json_real(normalize(m_highestHashrate)));
     json_object_set(hashrate, "threads",  threads);
 
     for (int i = 0; i < m_threads * 3; i += 3) {
         json_t *thread  = json_array();
-        json_array_append(thread, json_real(m_hashrate[i]));
-        json_array_append(thread, json_real(m_hashrate[i + 1]));
-        json_array_append(thread, json_real(m_hashrate[i + 2]));
+        json_array_append(thread, json_real(normalize(m_hashrate[i])));
+        json_array_append(thread, json_real(normalize(m_hashrate[i + 1])));
+        json_array_append(thread, json_real(normalize(m_hashrate[i + 2])));
 
         json_array_append(threads, thread);
     }
 
     for (int i = 0; i < 3; ++i) {
-        json_array_append(total, json_real(m_totalHashrate[i]));
+        json_array_append(total, json_real(normalize(m_totalHashrate[i])));
     }
 }
 
@@ -192,4 +208,22 @@ void ApiState::getMiner(json_t *reply) const
     json_object_set(cpu, "aes",         json_boolean(Cpu::hasAES()));
     json_object_set(cpu, "x64",         json_boolean(Cpu::isX64()));
     json_object_set(cpu, "sockets",     json_integer(Cpu::sockets()));
+}
+
+
+void ApiState::getResults(json_t *reply) const
+{
+    json_t *results = json_object();
+    json_t *best    = json_array();
+
+    json_object_set(reply, "results", results);
+    json_object_set(results, "diff_current", json_integer(m_results.diff));
+    json_object_set(results, "shares_good",  json_integer(m_results.accepted));
+    json_object_set(results, "shares_total", json_integer(m_results.accepted + m_results.rejected));
+    json_object_set(results, "hashes_total", json_integer(m_results.total));
+    json_object_set(results, "best", best);
+
+    for (size_t i = 0; i < m_results.topDiff.size(); ++i) {
+        json_array_append(best, json_integer(m_results.topDiff[i]));
+    }
 }

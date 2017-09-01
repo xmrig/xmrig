@@ -21,54 +21,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORK_H__
-#define __NETWORK_H__
 
-
-#include <vector>
-#include <uv.h>
+#include <algorithm>
 
 
 #include "api/Results.h"
-#include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
+#include "net/SubmitResult.h"
 
 
-class IStrategy;
-class Options;
-class Url;
-
-
-class Network : public IJobResultListener, public IStrategyListener
+void Results::add(const SubmitResult &result, const char *error)
 {
-public:
-  Network(const Options *options);
-  ~Network();
+    if (error) {
+        rejected++;
+        return;
+    }
 
-  void connect();
-  void stop();
+    accepted++;
+    total += result.diff;
 
-protected:
-  void onActive(Client *client) override;
-  void onJob(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onPause(IStrategy *strategy) override;
-  void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
-
-private:
-  constexpr static int kTickInterval = 1 * 1000;
-
-  void setJob(Client *client, const Job &job);
-  void tick();
-
-  static void onTick(uv_timer_t *handle);
-
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
-  Results m_results;
-  uv_timer_t m_timer;
-};
-
-
-#endif /* __NETWORK_H__ */
+    const size_t ln = topDiff.size() - 1;
+    if (result.actualDiff > topDiff[ln]) {
+        topDiff[ln] = result.actualDiff;
+        std::sort(topDiff.rbegin(), topDiff.rend());
+    }
+}

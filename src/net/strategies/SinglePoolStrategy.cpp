@@ -96,7 +96,7 @@ void SinglePoolStrategy::onLoginSuccess(Client *client)
 }
 
 
-void SinglePoolStrategy::onResultAccepted(Client *client,  int64_t seq, uint32_t diff, uint64_t ms, const char *error)
+void SinglePoolStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
-    m_listener->onResultAccepted(client, seq, diff, ms, error);
+    m_listener->onResultAccepted(client, result, error);
 }

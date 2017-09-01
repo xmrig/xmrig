@@ -194,7 +194,7 @@ int64_t Client::submit(const JobResult &result)
     snprintf(req, 345, "{\"id\":%" PRIu64 ",\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
              m_sequence, m_rpcId, result.jobId, nonce, data);
 
-    m_results[m_sequence] = SubmitResult(m_sequence, result.diff);
+    m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff());
     return send(req);
 }
 
@@ -420,7 +420,8 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
         auto it = m_results.find(id);
         if (it != m_results.end()) {
-            m_listener->onResultAccepted(this, it->second.seq, it->second.diff, it->second.elapsed(), message);
+            it->second.done();
+            m_listener->onResultAccepted(this, it->second, message);
             m_results.erase(it);
         }
         else if (!m_quiet) {
@@ -456,7 +457,8 @@ void Client::parseResponse(int64_t id, const json_t *result, const json_t *error
 
     auto it = m_results.find(id);
     if (it != m_results.end()) {
-        m_listener->onResultAccepted(this, it->second.seq, it->second.diff, it->second.elapsed(), nullptr);
+        it->second.done();
+        m_listener->onResultAccepted(this, it->second, nullptr);
         m_results.erase(it);
     }
 }

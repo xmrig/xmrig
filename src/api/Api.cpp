@@ -79,3 +79,15 @@ void Api::tick(const Hashrate *hashrate)
     m_state->tick(hashrate);
     uv_mutex_unlock(&m_mutex);
 }
+
+
+void Api::tick(const Results &results)
+{
+    if (!m_state) {
+        return;
+    }
+
+    uv_mutex_lock(&m_mutex);
+    m_state->tick(results);
+    uv_mutex_unlock(&m_mutex);
+}
