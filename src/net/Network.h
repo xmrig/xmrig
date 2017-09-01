@@ -29,7 +29,7 @@
 #include <uv.h>
 
 
-#include "api/Results.h"
+#include "api/NetworkState.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IStrategyListener.h"
 
@@ -66,7 +66,7 @@ private:
   const Options *m_options;
   IStrategy *m_donate;
   IStrategy *m_strategy;
-  Results m_results;
+  NetworkState m_state;
   uv_timer_t m_timer;
 };
 

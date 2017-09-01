@@ -30,7 +30,7 @@
 
 class ApiState;
 class Hashrate;
-class Results;
+class NetworkState;
 
 
 class Api
@@ -41,7 +41,7 @@ public:
 
     static const char *get(const char *url, size_t *size, int *status);
     static void tick(const Hashrate *hashrate);
-    static void tick(const Results &results);
+    static void tick(const NetworkState &results);
 
 private:
     static ApiState *m_state;

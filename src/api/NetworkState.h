@@ -21,27 +21,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <algorithm>
-
-
-#include "api/Results.h"
-#include "net/SubmitResult.h"
+#ifndef __NETWORKSTATE_H__
+#define __NETWORKSTATE_H__
 
 
-void Results::add(const SubmitResult &result, const char *error)
+#include <stdint.h>
+#include <array>
+
+
+class SubmitResult;
+
+
+class NetworkState
 {
-    if (error) {
-        rejected++;
-        return;
-    }
+public:
+    inline NetworkState() :
+        diff(0),
+        accepted(0),
+        rejected(0),
+        total(0)
+    {}
 
-    accepted++;
-    total += result.diff;
+    void add(const SubmitResult &result, const char *error);
 
-    const size_t ln = topDiff.size() - 1;
-    if (result.actualDiff > topDiff[ln]) {
-        topDiff[ln] = result.actualDiff;
-        std::sort(topDiff.rbegin(), topDiff.rend());
-    }
-}
+    std::array<uint64_t, 10> topDiff { { } };
+    uint32_t diff;
+    uint64_t accepted;
+    uint64_t rejected;
+    uint64_t total;
+};
+
+#endif /* __NETWORKSTATE_H__ */

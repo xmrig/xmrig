@@ -81,13 +81,13 @@ void Api::tick(const Hashrate *hashrate)
 }
 
 
-void Api::tick(const Results &results)
+void Api::tick(const NetworkState &network)
 {
     if (!m_state) {
         return;
     }
 
     uv_mutex_lock(&m_mutex);
-    m_state->tick(results);
+    m_state->tick(network);
     uv_mutex_unlock(&m_mutex);
 }

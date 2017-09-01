@@ -25,7 +25,7 @@
 #define __APISTATE_H__
 
 
-#include "api/Results.h"
+#include "api/NetworkState.h"
 #include "jansson.h"
 
 
@@ -40,7 +40,7 @@ public:
 
     const char *get(const char *url, size_t *size) const;
     void tick(const Hashrate *hashrate);
-    void tick(const Results &results);
+    void tick(const NetworkState &results);
 
 private:
     const char *finalize(json_t *reply, size_t *size) const;
@@ -58,7 +58,7 @@ private:
     double m_totalHashrate[3];
     int m_threads;
     mutable char m_buf[4096];
-    Results m_results;
+    NetworkState m_network;
 };
 
 #endif /* __APISTATE_H__ */

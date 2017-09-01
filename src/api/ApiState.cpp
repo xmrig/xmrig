@@ -112,9 +112,9 @@ void ApiState::tick(const Hashrate *hashrate)
 }
 
 
-void ApiState::tick(const Results &results)
+void ApiState::tick(const NetworkState &network)
 {
-    m_results = results;
+    m_network = network;
 }
 
 
@@ -216,14 +216,15 @@ void ApiState::getResults(json_t *reply) const
     json_t *results = json_object();
     json_t *best    = json_array();
 
-    json_object_set(reply, "results", results);
-    json_object_set(results, "diff_current", json_integer(m_results.diff));
-    json_object_set(results, "shares_good",  json_integer(m_results.accepted));
-    json_object_set(results, "shares_total", json_integer(m_results.accepted + m_results.rejected));
-    json_object_set(results, "hashes_total", json_integer(m_results.total));
-    json_object_set(results, "best", best);
+    json_object_set(reply,   "results",      results);
+    json_object_set(results, "diff_current", json_integer(m_network.diff));
+    json_object_set(results, "shares_good",  json_integer(m_network.accepted));
+    json_object_set(results, "shares_total", json_integer(m_network.accepted + m_network.rejected));
+    json_object_set(results, "hashes_total", json_integer(m_network.total));
+    json_object_set(results, "best",         best);
+    json_object_set(results, "error_log",    json_array());
 
-    for (size_t i = 0; i < m_results.topDiff.size(); ++i) {
-        json_array_append(best, json_integer(m_results.topDiff[i]));
+    for (size_t i = 0; i < m_network.topDiff.size(); ++i) {
+        json_array_append(best, json_integer(m_network.topDiff[i]));
     }
 }
