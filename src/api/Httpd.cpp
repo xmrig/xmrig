@@ -23,6 +23,7 @@
 
 
 #include <microhttpd.h>
+#include <string.h>
 
 
 #include "api/Api.h"

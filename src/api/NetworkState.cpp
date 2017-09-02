@@ -23,6 +23,7 @@
 
 
 #include <algorithm>
+#include <string.h>
 #include <uv.h>
 
 
