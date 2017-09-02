@@ -205,6 +205,7 @@ if (WITH_HTTPD AND MHD_FOUND)
     set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
 else()
     add_definitions(/DXMRIG_NO_HTTPD)
+    add_definitions(/DXMRIG_NO_API)
 endif()
 
 include_directories(src)
