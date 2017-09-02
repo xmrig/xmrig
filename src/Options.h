@@ -54,7 +54,6 @@ public:
     static inline Options* i() { return m_self; }
     static Options *parse(int argc, char **argv);
 
-    inline apiPort() const                        { return m_apiPort; }
     inline bool background() const                { return m_background; }
     inline bool colors() const                    { return m_colors; }
     inline bool doubleHash() const                { return m_doubleHash; }
@@ -67,6 +66,7 @@ public:
     inline const std::vector<Url*> &pools() const { return m_pools; }
     inline int algo() const                       { return m_algo; }
     inline int algoVariant() const                { return m_algoVariant; }
+    inline int apiPort() const                    { return m_apiPort; }
     inline int donateLevel() const                { return m_donateLevel; }
     inline int printTime() const                  { return m_printTime; }
     inline int priority() const                   { return m_priority; }

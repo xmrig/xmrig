@@ -24,7 +24,7 @@ set(MHD_LIBRARIES ${MHD_LIBRARY})
 # same naming convention as in qt (appending debug library with d)
 # boost is using the same "hack" as us with "optimized" and "debug"
 # official MHD project actually uses _d suffix
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL MSVC)
     find_library(
         MHD_LIBRARY_DEBUG
         NAMES microhttpd_d microhttpd-10_d libmicrohttpd_d libmicrohttpd-dll_d
