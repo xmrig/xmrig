@@ -49,7 +49,7 @@ bool Httpd::start()
         return false;
     }
 
-    m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, 4455, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
+    m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, m_port, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
     if (!m_daemon) {
         LOG_ERR("HTTP Daemon failed to start.");
         return false;
