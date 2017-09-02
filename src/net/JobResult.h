@@ -61,6 +61,12 @@ public:
     }
 
 
+    inline uint64_t actualDiff() const
+    {
+        return Job::toDiff(reinterpret_cast<const uint64_t*>(result)[3]);
+    }
+
+
     char jobId[64];
     int poolId;
     uint32_t diff;

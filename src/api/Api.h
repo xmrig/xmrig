@@ -21,47 +21,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __HASHRATE_H__
-#define __HASHRATE_H__
+#ifndef __API_H__
+#define __API_H__
 
 
-#include <stdint.h>
 #include <uv.h>
 
 
-class Hashrate
+class ApiState;
+class Hashrate;
+class NetworkState;
+
+
+class Api
 {
 public:
-    enum Intervals {
-        ShortInterval  = 2500,
-        MediumInterval = 60000,
-        LargeInterval  = 900000
-    };
+    static bool start();
+    static void release();
 
-    Hashrate(int threads);
-    double calc(size_t ms) const;
-    double calc(size_t threadId, size_t ms) const;
-    void add(size_t threadId, uint64_t count, uint64_t timestamp);
-    void print();
-    void stop();
-    void updateHighest();
-
-    inline double highest() const { return m_highest; }
-    inline int threads() const    { return m_threads; }
+    static const char *get(const char *url, size_t *size, int *status);
+    static void tick(const Hashrate *hashrate);
+    static void tick(const NetworkState &results);
 
 private:
-    static void onReport(uv_timer_t *handle);
-
-    constexpr static size_t kBucketSize = 2 << 11;
-    constexpr static size_t kBucketMask = kBucketSize - 1;
-
-    double m_highest;
-    int m_threads;
-    uint32_t* m_top;
-    uint64_t** m_counts;
-    uint64_t** m_timestamps;
-    uv_timer_t m_timer;
+    static ApiState *m_state;
+    static char m_buf[4096];
+    static uv_mutex_t m_mutex;
 };
 
-
-#endif /* __HASHRATE_H__ */
+#endif /* __API_H__ */

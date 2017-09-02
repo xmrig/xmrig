@@ -21,47 +21,44 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __HASHRATE_H__
-#define __HASHRATE_H__
+#ifndef __APISTATE_H__
+#define __APISTATE_H__
 
 
-#include <stdint.h>
-#include <uv.h>
+#include "api/NetworkState.h"
+#include "jansson.h"
 
 
-class Hashrate
+class Hashrate;
+
+
+class ApiState
 {
 public:
-    enum Intervals {
-        ShortInterval  = 2500,
-        MediumInterval = 60000,
-        LargeInterval  = 900000
-    };
+    ApiState();
+    ~ApiState();
 
-    Hashrate(int threads);
-    double calc(size_t ms) const;
-    double calc(size_t threadId, size_t ms) const;
-    void add(size_t threadId, uint64_t count, uint64_t timestamp);
-    void print();
-    void stop();
-    void updateHighest();
-
-    inline double highest() const { return m_highest; }
-    inline int threads() const    { return m_threads; }
+    const char *get(const char *url, size_t *size) const;
+    void tick(const Hashrate *hashrate);
+    void tick(const NetworkState &results);
 
 private:
-    static void onReport(uv_timer_t *handle);
+    const char *finalize(json_t *reply, size_t *size) const;
+    void genId();
+    void getConnection(json_t *reply) const;
+    void getHashrate(json_t *reply) const;
+    void getIdentify(json_t *reply) const;
+    void getMiner(json_t *reply) const;
+    void getResults(json_t *reply) const;
 
-    constexpr static size_t kBucketSize = 2 << 11;
-    constexpr static size_t kBucketMask = kBucketSize - 1;
-
-    double m_highest;
+    char m_id[17];
+    char m_workerId[128];
+    double *m_hashrate;
+    double m_highestHashrate;
+    double m_totalHashrate[3];
     int m_threads;
-    uint32_t* m_top;
-    uint64_t** m_counts;
-    uint64_t** m_timestamps;
-    uv_timer_t m_timer;
+    mutable char m_buf[4096];
+    NetworkState m_network;
 };
 
-
-#endif /* __HASHRATE_H__ */
+#endif /* __APISTATE_H__ */

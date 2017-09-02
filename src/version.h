@@ -31,6 +31,7 @@
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
+#define APP_KIND      "cpu"
 
 #define APP_VER_MAJOR  2
 #define APP_VER_MINOR  3

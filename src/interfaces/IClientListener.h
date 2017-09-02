@@ -30,6 +30,7 @@
 
 class Client;
 class Job;
+class SubmitResult;
 
 
 class IClientListener
@@ -37,10 +38,10 @@ class IClientListener
 public:
     virtual ~IClientListener() {}
 
-    virtual void onClose(Client *client, int failures)                                                        = 0;
-    virtual void onJobReceived(Client *client, const Job &job)                                                = 0;
-    virtual void onLoginSuccess(Client *client)                                                               = 0;
-    virtual void onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error) = 0;
+    virtual void onClose(Client *client, int failures)                                           = 0;
+    virtual void onJobReceived(Client *client, const Job &job)                                   = 0;
+    virtual void onLoginSuccess(Client *client)                                                  = 0;
+    virtual void onResultAccepted(Client *client, const SubmitResult &result, const char *error) = 0;
 };
 
 
