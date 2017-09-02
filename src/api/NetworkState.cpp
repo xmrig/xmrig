@@ -26,7 +26,6 @@
 #include <uv.h>
 
 
-
 #include "api/NetworkState.h"
 #include "net/SubmitResult.h"
 

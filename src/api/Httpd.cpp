@@ -58,28 +58,64 @@ bool Httpd::start()
 }
 
 
-int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls)
+int Httpd::auth(const char *header)
 {
-    if (strcmp(method, "GET") != 0) {
-        return MHD_NO;
+    if (!m_accessToken) {
+        return MHD_HTTP_OK;
     }
 
-    struct MHD_Response *rsp;
-
-    size_t size = 0;
-    int status  = MHD_HTTP_OK;
-    const char *buf = Api::get(url, &size, &status);
-
-    if (size) {
-        rsp = MHD_create_response_from_buffer(size, (void*) buf, MHD_RESPMEM_PERSISTENT);
+    if (m_accessToken && !header) {
+        return MHD_HTTP_UNAUTHORIZED;
     }
-    else {
-        rsp = MHD_create_response_from_buffer(k500Size, (void*) k500, MHD_RESPMEM_PERSISTENT);
+
+    const size_t size = strlen(header);
+    if (size < 8 || strlen(m_accessToken) != size - 7 || memcmp("Bearer ", header, 7) != 0) {
+        return MHD_HTTP_FORBIDDEN;
+    }
+
+    return strncmp(m_accessToken, header + 7, strlen(m_accessToken)) == 0 ? MHD_HTTP_OK : MHD_HTTP_FORBIDDEN;
+}
+
+
+int Httpd::done(MHD_Connection *connection, int status, MHD_Response *rsp)
+{
+    if (!rsp) {
+        rsp = MHD_create_response_from_buffer(0, nullptr, MHD_RESPMEM_PERSISTENT);
     }
 
     MHD_add_response_header(rsp, "Content-Type", "application/json");
+    MHD_add_response_header(rsp, "Access-Control-Allow-Origin", "*");
+    MHD_add_response_header(rsp, "Access-Control-Allow-Methods", "GET");
+    MHD_add_response_header(rsp, "Access-Control-Allow-Headers", "Authorization");
 
     const int ret = MHD_queue_response(connection, status, rsp);
     MHD_destroy_response(rsp);
     return ret;
+}
+
+
+int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls)
+{
+    if (strcmp(method, "OPTIONS") == 0) {
+        return done(connection, MHD_HTTP_OK, nullptr);
+    }
+
+    if (strcmp(method, "GET") != 0) {
+        return MHD_NO;
+    }
+
+    int status = static_cast<Httpd*>(cls)->auth(MHD_lookup_connection_value(connection, MHD_HEADER_KIND, "Authorization"));
+    if (status != MHD_HTTP_OK) {
+        return done(connection, status, nullptr);
+    }
+
+    MHD_Response *rsp = nullptr;
+    size_t size       = 0;
+    const char *buf   = Api::get(url, &size, &status);
+
+    if (size) {
+        rsp = MHD_create_response_from_buffer(size, (void*) buf, MHD_RESPMEM_PERSISTENT);
+    }
+
+    return done(connection, status, rsp);
 }
