@@ -100,6 +100,8 @@ void Network::onActive(Client *client)
         return;
     }
 
+    m_state.setPool(client->host(), client->port(), client->ip());
+
     LOG_INFO(m_options->colors() ? "\x1B[01;37muse pool \x1B[01;36m%s:%d \x1B[01;30m%s" : "use pool %s:%d %s", client->host(), client->port(), client->ip());
 }
 
@@ -134,6 +136,7 @@ void Network::onPause(IStrategy *strategy)
 
     if (!m_strategy->isActive()) {
         LOG_ERR("no active pools, stop mining");
+        m_state.stop();
         return Workers::pause();
     }
 }

@@ -141,8 +141,14 @@ void ApiState::genId()
     for (int i = 0; i < count; i++) {
         if (!interfaces[i].is_internal && interfaces[i].address.address4.sin_family == AF_INET) {
             uint8_t hash[200];
+            const size_t addrSize = sizeof(interfaces[i].phys_addr);
+            const size_t inSize   = strlen(APP_KIND) + addrSize;
 
-            keccak(reinterpret_cast<const uint8_t *>(interfaces[i].phys_addr), static_cast<int>(sizeof(interfaces[i].phys_addr)), hash, sizeof(hash));
+            uint8_t *input = new uint8_t[inSize]();
+            memcpy(input, interfaces[i].phys_addr, addrSize);
+            memcpy(input + addrSize, APP_KIND, strlen(APP_KIND));
+
+            keccak(input, static_cast<int>(inSize), hash, sizeof(hash));
             Job::toHex(hash, 8, m_id);
             break;
         }
@@ -156,7 +162,12 @@ void ApiState::getConnection(json_t *reply) const
 {
     json_t *connection = json_object();
 
-    json_object_set(reply, "connection", connection);
+    json_object_set(reply,      "connection", connection);
+    json_object_set(connection, "pool",       json_string(m_network.pool));
+    json_object_set(connection, "uptime",     json_integer(m_network.connectionTime()));
+    json_object_set(connection, "ping",       json_integer(m_network.latency()));
+    json_object_set(connection, "failures",   json_integer(m_network.failures));
+    json_object_set(connection, "error_log",  json_array());
 }
 
 
@@ -220,6 +231,7 @@ void ApiState::getResults(json_t *reply) const
     json_object_set(results, "diff_current", json_integer(m_network.diff));
     json_object_set(results, "shares_good",  json_integer(m_network.accepted));
     json_object_set(results, "shares_total", json_integer(m_network.accepted + m_network.rejected));
+    json_object_set(results, "avg_time",     json_integer(m_network.avgTime()));
     json_object_set(results, "hashes_total", json_integer(m_network.total));
     json_object_set(results, "best",         best);
     json_object_set(results, "error_log",    json_array());
