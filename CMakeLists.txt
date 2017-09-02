@@ -198,7 +198,11 @@ if (HAVE_SYSLOG_H)
     set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
 endif()
 
-find_package(MHD REQUIRED)
+if (NOT WITH_AEON)
+    add_definitions(/DXMRIG_NO_AEON)
+endif()
+
+find_package(MHD)
 if (WITH_HTTPD AND MHD_FOUND)
     include_directories(${MHD_INCLUDE_DIRS})
 

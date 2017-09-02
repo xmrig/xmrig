@@ -116,9 +116,9 @@ static struct option const options[] = {
     { "user-agent",       1, nullptr, 1008 },
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
-    { "api-port",         1, nullptr, 3000 },
-    { "api-access-token", 1, nullptr, 3001 },
-    { "api-worker-id",    1, nullptr, 3002 },
+    { "api-port",         1, nullptr, 4000 },
+    { "api-access-token", 1, nullptr, 4001 },
+    { "api-worker-id",    1, nullptr, 4002 },
     { 0, 0, 0, 0 }
 };
 
@@ -157,9 +157,9 @@ static struct option const pool_options[] = {
 
 
 static struct option const api_options[] = {
-    { "port",          1, nullptr, 3000 },
-    { "access-token",  1, nullptr, 3001 },
-    { "worker-id",     1, nullptr, 3002 },
+    { "port",          1, nullptr, 4000 },
+    { "access-token",  1, nullptr, 4001 },
+    { "worker-id",     1, nullptr, 4002 },
     { 0, 0, 0, 0 }
 };
 
@@ -316,12 +316,12 @@ bool Options::parseArg(int key, const char *arg)
         m_colors = false;
         break;
 
-    case 3001: /* --access-token */
+    case 4001: /* --access-token */
         free(m_apiToken);
         m_apiToken = strdup(arg);
         break;
 
-    case 3002: /* --worker-id */
+    case 4002: /* --worker-id */
         free(m_apiWorkerId);
         m_apiWorkerId = strdup(arg);
         break;
@@ -334,7 +334,7 @@ bool Options::parseArg(int key, const char *arg)
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
     case 1021: /* --cpu-priority */
-    case 3000: /* --api-port */
+    case 4000: /* --api-port */
         return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'B':  /* --background */
@@ -457,7 +457,7 @@ bool Options::parseArg(int key, uint64_t arg)
         }
         break;
 
-    case 3000: /* --api-port */
+    case 4000: /* --api-port */
         if (arg <= 65536) {
             m_apiPort = (int) arg;
         }
