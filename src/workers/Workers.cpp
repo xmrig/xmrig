@@ -194,5 +194,7 @@ void Workers::onTick(uv_timer_t *handle)
         m_hashrate->updateHighest();
     }
 
+#   ifndef XMRIG_NO_API
     Api::tick(m_hashrate);
+#   endif
 }

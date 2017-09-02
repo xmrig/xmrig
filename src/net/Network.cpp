@@ -183,7 +183,9 @@ void Network::tick()
         m_donate->tick(now);
     }
 
+#   ifndef XMRIG_NO_API
     Api::tick(m_state);
+#   endif
 }
 
 

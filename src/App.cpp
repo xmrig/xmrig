@@ -100,7 +100,10 @@ App::~App()
 {
     uv_tty_reset_mode();
 
+#   ifndef XMRIG_NO_HTTPD
     delete m_httpd;
+#   endif
+
     delete m_console;
 }
 
@@ -125,7 +128,9 @@ int App::exec()
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
     Summary::print();
 
+#   ifndef XMRIG_NO_API
     Api::start();
+#   endif
 
 #   ifndef XMRIG_NO_HTTPD
     m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken());
