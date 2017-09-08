@@ -39,7 +39,7 @@
 #define APP_VER_REV    0
 
 #ifdef _MSC_VER
-#   if _MSC_VER == 1910
+#   if (_MSC_VER == 1910 || _MSC_VER == 1911)
 #       define MSVC_VERSION 2017
 #   elif _MSC_VER == 1900
 #       define MSVC_VERSION 2015
