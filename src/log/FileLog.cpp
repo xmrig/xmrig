@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
+#include <stdio.h>
 
 #include "log/FileLog.h"
 

@@ -27,7 +27,7 @@
 #include <string.h>
 #include <sys/resource.h>
 #include <uv.h>
-
+#include <stdio.h>
 
 #include "Platform.h"
 #include "version.h"

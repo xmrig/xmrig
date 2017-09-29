@@ -35,7 +35,7 @@
 
 #include "log/ConsoleLog.h"
 #include "log/Log.h"
-
+#include <stdio.h>
 
 ConsoleLog::ConsoleLog(bool colors) :
     m_colors(colors)
