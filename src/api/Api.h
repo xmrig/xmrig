@@ -39,13 +39,12 @@ public:
     static bool start();
     static void release();
 
-    static const char *get(const char *url, size_t *size, int *status);
+    static char *get(const char *url, int *status);
     static void tick(const Hashrate *hashrate);
     static void tick(const NetworkState &results);
 
 private:
     static ApiState *m_state;
-    static char m_buf[4096];
     static uv_mutex_t m_mutex;
 };
 

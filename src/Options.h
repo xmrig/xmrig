@@ -25,9 +25,11 @@
 #define __OPTIONS_H__
 
 
-#include <jansson.h>
 #include <stdint.h>
 #include <vector>
+
+
+#include "rapidjson/fwd.h"
 
 
 class Url;
@@ -87,12 +89,13 @@ private:
 
     static Options *m_self;
 
+    bool getJSON(const char *fileName, rapidjson::Document &doc);
     bool parseArg(int key, const char *arg);
     bool parseArg(int key, uint64_t arg);
     bool parseBoolean(int key, bool enable);
     Url *parseUrl(const char *arg) const;
     void parseConfig(const char *fileName);
-    void parseJSON(const struct option *option, json_t *object);
+    void parseJSON(const struct option *option, const rapidjson::Value &object);
     void showUsage(int status) const;
     void showVersion(void);
 

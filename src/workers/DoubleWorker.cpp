@@ -105,7 +105,7 @@ void DoubleWorker::start()
 
 bool DoubleWorker::resume(const Job &job)
 {
-    if (m_state->job.poolId() == -1 && job.poolId() >= 0 && memcmp(job.id(), m_pausedState->job.id(), 64) == 0) {
+    if (m_state->job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedState->job.id()) {
         *m_state = *m_pausedState;
         return true;
     }

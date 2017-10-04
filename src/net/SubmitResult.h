@@ -40,6 +40,8 @@ public:
     uint32_t diff;
     uint64_t actualDiff;
     uint64_t elapsed;
+
+private:
     uint64_t start;
 };
 

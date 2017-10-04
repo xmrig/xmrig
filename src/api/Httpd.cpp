@@ -110,13 +110,11 @@ int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url
         return done(connection, status, nullptr);
     }
 
-    MHD_Response *rsp = nullptr;
-    size_t size       = 0;
-    const char *buf   = Api::get(url, &size, &status);
-
-    if (size) {
-        rsp = MHD_create_response_from_buffer(size, (void*) buf, MHD_RESPMEM_PERSISTENT);
+    char *buf = Api::get(url, &status);
+    if (buf == nullptr) {
+        return MHD_NO;
     }
 
+    MHD_Response *rsp = MHD_create_response_from_buffer(strlen(buf), (void*) buf, MHD_RESPMEM_MUST_FREE);
     return done(connection, status, rsp);
 }

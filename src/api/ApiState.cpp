@@ -38,6 +38,9 @@
 #include "net/Job.h"
 #include "Options.h"
 #include "Platform.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/prettywriter.h"
 #include "version.h"
 #include "workers/Hashrate.h"
 
@@ -83,17 +86,18 @@ ApiState::~ApiState()
 }
 
 
-const char *ApiState::get(const char *url, size_t *size) const
+char *ApiState::get(const char *url, int *status) const
 {
-    json_t *reply = json_object();
+    rapidjson::Document doc;
+    doc.SetObject();
 
-    getIdentify(reply);
-    getMiner(reply);
-    getHashrate(reply);
-    getResults(reply);
-    getConnection(reply);
+    getIdentify(doc);
+    getMiner(doc);
+    getHashrate(doc);
+    getResults(doc);
+    getConnection(doc);
 
-    return finalize(reply, size);
+    return finalize(doc);
 }
 
 
@@ -118,12 +122,14 @@ void ApiState::tick(const NetworkState &network)
 }
 
 
-const char *ApiState::finalize(json_t *reply, size_t *size) const
+char *ApiState::finalize(rapidjson::Document &doc) const
 {
-    *size = json_dumpb(reply, m_buf, sizeof(m_buf) - 1, JSON_INDENT(4) | JSON_REAL_PRECISION(15));
+    rapidjson::StringBuffer buffer(0, 4096);
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    writer.SetMaxDecimalPlaces(10);
+    doc.Accept(writer);
 
-    json_decref(reply);
-    return m_buf;
+    return strdup(buffer.GetString());
 }
 
 
@@ -150,6 +156,8 @@ void ApiState::genId()
 
             keccak(input, static_cast<int>(inSize), hash, sizeof(hash));
             Job::toHex(hash, 8, m_id);
+
+            delete [] input;
             break;
         }
     }
@@ -158,85 +166,95 @@ void ApiState::genId()
 }
 
 
-void ApiState::getConnection(json_t *reply) const
+void ApiState::getConnection(rapidjson::Document &doc) const
 {
-    json_t *connection = json_object();
+    auto &allocator = doc.GetAllocator();
 
-    json_object_set(reply,      "connection", connection);
-    json_object_set(connection, "pool",       json_string(m_network.pool));
-    json_object_set(connection, "uptime",     json_integer(m_network.connectionTime()));
-    json_object_set(connection, "ping",       json_integer(m_network.latency()));
-    json_object_set(connection, "failures",   json_integer(m_network.failures));
-    json_object_set(connection, "error_log",  json_array());
+    rapidjson::Value connection(rapidjson::kObjectType);
+    connection.AddMember("pool",      rapidjson::StringRef(m_network.pool), allocator);
+    connection.AddMember("uptime",    m_network.connectionTime(), allocator);
+    connection.AddMember("ping",      m_network.latency(), allocator);
+    connection.AddMember("failures",  m_network.failures, allocator);
+    connection.AddMember("error_log", rapidjson::Value(rapidjson::kArrayType), allocator);
+
+    doc.AddMember("connection", connection, allocator);
 }
 
 
-void ApiState::getHashrate(json_t *reply) const
+void ApiState::getHashrate(rapidjson::Document &doc) const
 {
-    json_t *hashrate = json_object();
-    json_t *threads  = json_array();
-    json_t *total    = json_array();
+    auto &allocator = doc.GetAllocator();
 
-    json_object_set(reply,    "hashrate", hashrate);
-    json_object_set(hashrate, "total",    total);
-    json_object_set(hashrate, "highest",  json_real(normalize(m_highestHashrate)));
-    json_object_set(hashrate, "threads",  threads);
-
-    for (int i = 0; i < m_threads * 3; i += 3) {
-        json_t *thread  = json_array();
-        json_array_append(thread, json_real(normalize(m_hashrate[i])));
-        json_array_append(thread, json_real(normalize(m_hashrate[i + 1])));
-        json_array_append(thread, json_real(normalize(m_hashrate[i + 2])));
-
-        json_array_append(threads, thread);
-    }
+    rapidjson::Value hashrate(rapidjson::kObjectType);
+    rapidjson::Value total(rapidjson::kArrayType);
+    rapidjson::Value threads(rapidjson::kArrayType);
 
     for (int i = 0; i < 3; ++i) {
-        json_array_append(total, json_real(normalize(m_totalHashrate[i])));
+        total.PushBack(normalize(m_totalHashrate[i]), allocator);
     }
+
+    for (int i = 0; i < m_threads * 3; i += 3) {
+        rapidjson::Value thread(rapidjson::kArrayType);
+        thread.PushBack(normalize(m_hashrate[i]),     allocator);
+        thread.PushBack(normalize(m_hashrate[i + 1]), allocator);
+        thread.PushBack(normalize(m_hashrate[i + 2]), allocator);
+
+        threads.PushBack(thread, allocator);
+    }
+
+    hashrate.AddMember("total", total, allocator);
+    hashrate.AddMember("highest", normalize(m_highestHashrate), allocator);
+    hashrate.AddMember("threads", threads, allocator);
+    doc.AddMember("hashrate", hashrate, allocator);
 }
 
 
-void ApiState::getIdentify(json_t *reply) const
+void ApiState::getIdentify(rapidjson::Document &doc) const
 {
-    json_object_set(reply, "id",        json_string(m_id));
-    json_object_set(reply, "worker_id", json_string(m_workerId));
+    doc.AddMember("id",        rapidjson::StringRef(m_id),       doc.GetAllocator());
+    doc.AddMember("worker_id", rapidjson::StringRef(m_workerId), doc.GetAllocator());
 }
 
 
-void ApiState::getMiner(json_t *reply) const
+void ApiState::getMiner(rapidjson::Document &doc) const
 {
-    json_t *cpu = json_object();
-    json_object_set(reply, "version",   json_string(APP_VERSION));
-    json_object_set(reply, "kind",      json_string(APP_KIND));
-    json_object_set(reply, "ua",        json_string(Platform::userAgent()));
-    json_object_set(reply, "cpu",       cpu);
-    json_object_set(reply, "algo",      json_string(Options::i()->algoName()));
-    json_object_set(reply, "hugepages", json_boolean(Mem::isHugepagesEnabled()));
-    json_object_set(reply, "donate",    json_integer(Options::i()->donateLevel()));
+    auto &allocator = doc.GetAllocator();
 
-    json_object_set(cpu, "brand",       json_string(Cpu::brand()));
-    json_object_set(cpu, "aes",         json_boolean(Cpu::hasAES()));
-    json_object_set(cpu, "x64",         json_boolean(Cpu::isX64()));
-    json_object_set(cpu, "sockets",     json_integer(Cpu::sockets()));
+    rapidjson::Value cpu(rapidjson::kObjectType);
+    cpu.AddMember("brand",   rapidjson::StringRef(Cpu::brand()), allocator);
+    cpu.AddMember("aes",     Cpu::hasAES(), allocator);
+    cpu.AddMember("x64",     Cpu::isX64(), allocator);
+    cpu.AddMember("sockets", Cpu::sockets(), allocator);
+
+    doc.AddMember("version",      APP_VERSION, allocator);
+    doc.AddMember("kind",         APP_KIND, allocator);
+    doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent()), allocator);
+    doc.AddMember("cpu",          cpu, allocator);
+    doc.AddMember("algo",         rapidjson::StringRef(Options::i()->algoName()), allocator);
+    doc.AddMember("hugepages",    Mem::isHugepagesEnabled(), allocator);
+    doc.AddMember("donate_level", Options::i()->donateLevel(), allocator);
 }
 
 
-void ApiState::getResults(json_t *reply) const
+void ApiState::getResults(rapidjson::Document &doc) const
 {
-    json_t *results = json_object();
-    json_t *best    = json_array();
+    auto &allocator = doc.GetAllocator();
 
-    json_object_set(reply,   "results",      results);
-    json_object_set(results, "diff_current", json_integer(m_network.diff));
-    json_object_set(results, "shares_good",  json_integer(m_network.accepted));
-    json_object_set(results, "shares_total", json_integer(m_network.accepted + m_network.rejected));
-    json_object_set(results, "avg_time",     json_integer(m_network.avgTime()));
-    json_object_set(results, "hashes_total", json_integer(m_network.total));
-    json_object_set(results, "best",         best);
-    json_object_set(results, "error_log",    json_array());
+    rapidjson::Value results(rapidjson::kObjectType);
 
+    results.AddMember("diff_current",  m_network.diff, allocator);
+    results.AddMember("shares_good",   m_network.accepted, allocator);
+    results.AddMember("shares_total",  m_network.accepted + m_network.rejected, allocator);
+    results.AddMember("avg_time",      m_network.avgTime(), allocator);
+    results.AddMember("hashes_total",  m_network.total, allocator);
+
+    rapidjson::Value best(rapidjson::kArrayType);
     for (size_t i = 0; i < m_network.topDiff.size(); ++i) {
-        json_array_append(best, json_integer(m_network.topDiff[i]));
+        best.PushBack(m_network.topDiff[i], allocator);
     }
+
+    results.AddMember("best",      best, allocator);
+    results.AddMember("error_log", rapidjson::Value(rapidjson::kArrayType), allocator);
+
+    doc.AddMember("results", results, allocator);
 }

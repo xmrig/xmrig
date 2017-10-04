@@ -25,7 +25,6 @@
 #define __CLIENT_H__
 
 
-#include <jansson.h>
 #include <map>
 #include <uv.h>
 
@@ -33,6 +32,7 @@
 #include "net/Job.h"
 #include "net/SubmitResult.h"
 #include "net/Url.h"
+#include "rapidjson/fwd.h"
 
 
 class IClientListener;
@@ -56,7 +56,6 @@ public:
     Client(int id, const char *agent, IClientListener *listener);
     ~Client();
 
-    int64_t send(char *data, size_t size = 0);
     int64_t submit(const JobResult &result);
     void connect();
     void connect(const Url *url);
@@ -75,18 +74,17 @@ public:
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
 private:
-    constexpr static size_t kRecvBufSize = 4096;
-
     bool isCriticalError(const char *message);
-    bool parseJob(const json_t *params, int *code);
-    bool parseLogin(const json_t *result, int *code);
+    bool parseJob(const rapidjson::Value &params, int *code);
+    bool parseLogin(const rapidjson::Value &result, int *code);
     int resolve(const char *host);
+    int64_t send(size_t size);
     void close();
     void connect(struct sockaddr *addr);
     void login();
     void parse(char *line, size_t len);
-    void parseNotification(const char *method, const json_t *params, const json_t *error);
-    void parseResponse(int64_t id, const json_t *result, const json_t *error);
+    void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
+    void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
     void reconnect();
     void setState(SocketState state);
@@ -102,8 +100,10 @@ private:
 
     addrinfo m_hints;
     bool m_quiet;
+    char m_buf[2048];
     char m_ip[17];
     char m_rpcId[64];
+    char m_sendBuf[768];
     const char *m_agent;
     IClientListener *m_listener;
     int m_id;

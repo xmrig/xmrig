@@ -21,54 +21,63 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __JOBID_H__
+#define __JOBID_H__
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
+
 #include <string.h>
-#include <time.h>
 
 
-#include "interfaces/ILogBackend.h"
-#include "log/Log.h"
-
-
-Log *Log::m_self = nullptr;
-
-
-void Log::message(Log::Level level, const char* fmt, ...)
+class JobId
 {
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
-
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->message(level, fmt, copy);
-        va_end(copy);
-    }
-}
-
-
-void Log::text(const char* fmt, ...)
-{
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
-
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->text(fmt, copy);
-        va_end(copy);
+public:
+    inline JobId()
+    {
+        memset(m_data, 0, sizeof(m_data));
     }
 
-    va_end(args);
-}
 
-
-Log::~Log()
-{
-    for (auto backend : m_backends) {
-        delete backend;
+    inline JobId(const char *id, size_t sizeFix = 0)
+    {
+        setId(id, sizeFix);
     }
-}
+
+
+    inline bool operator==(const JobId &other) const
+    {
+        return memcmp(m_data, other.m_data, sizeof(m_data)) == 0;
+    }
+
+
+    inline bool operator!=(const JobId &other) const
+    {
+        return memcmp(m_data, other.m_data, sizeof(m_data)) != 0;
+    }
+
+
+    inline bool setId(const char *id, size_t sizeFix = 0)
+    {
+        memset(m_data, 0, sizeof(m_data));
+        if (!id) {
+            return false;
+        }
+
+        const size_t size = strlen(id);
+        if (size < 4 || size >= sizeof(m_data)) {
+            return false;
+        }
+
+        memcpy(m_data, id, size - sizeFix);
+        return true;
+    }
+
+
+    inline const char *data() const { return m_data; }
+    inline bool isValid() const     { return *m_data != '\0'; }
+
+
+private:
+    char m_data[64];
+};
+
+#endif /* __JOBID_H__ */

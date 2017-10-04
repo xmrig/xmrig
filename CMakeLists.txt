@@ -29,6 +29,7 @@ set(HEADERS
     src/Mem.h
     src/net/Client.h
     src/net/Job.h
+    src/net/JobId.h
     src/net/JobResult.h
     src/net/Network.h
     src/net/strategies/DonateStrategy.h
@@ -207,11 +208,15 @@ if (NOT WITH_AEON)
     add_definitions(/DXMRIG_NO_AEON)
 endif()
 
-find_package(MHD)
-if (WITH_HTTPD AND MHD_FOUND)
-    include_directories(${MHD_INCLUDE_DIRS})
+if (WITH_HTTPD)
+    find_package(MHD)
 
-    set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
+    if (MHD_FOUND)
+        include_directories(${MHD_INCLUDE_DIRS})
+        set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
+    else()
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
+    endif()
 else()
     add_definitions(/DXMRIG_NO_HTTPD)
     add_definitions(/DXMRIG_NO_API)
@@ -219,10 +224,7 @@ endif()
 
 include_directories(src)
 include_directories(src/3rdparty)
-include_directories(src/3rdparty/jansson)
 include_directories(${UV_INCLUDE_DIR})
 
-add_subdirectory(src/3rdparty/jansson)
-
 add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
-target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(xmrig ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
