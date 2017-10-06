@@ -1,5 +1,6 @@
 # v2.4.0
  - Added [HTTP API](https://github.com/xmrig/xmrig/wiki/API).
+ - Added comments support in config file.
  - libjansson replaced to rapidjson.
  - [#98](https://github.com/xmrig/xmrig/issues/98) Ignore `keepalive` option with minergate.com and nicehash.com.
  - [#101](https://github.com/xmrig/xmrig/issues/101) Fixed MSVC 2017 (15.3) compile time version detection.
