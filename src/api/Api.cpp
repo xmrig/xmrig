@@ -22,6 +22,8 @@
  */
 
 
+#include <cstring>
+
 #include "api/Api.h"
 #include "api/ApiState.h"
 

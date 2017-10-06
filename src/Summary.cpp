@@ -50,8 +50,8 @@ static void print_versions()
 #   endif
 
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s%s" : " * VERSIONS:     XMRig/%s libuv/%s%s",
-                   APP_VERSION, uv_version_string(), buf);
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36m%s/%s\x1B[01;37m libuv/%s%s" : " * VERSIONS:     %s/%s libuv/%s%s",
+                   APP_NAME, APP_VERSION, uv_version_string(), buf);
 }
 
 
@@ -147,6 +147,3 @@ void Summary::print()
     print_pools();
     print_commands();
 }
-
-
-
