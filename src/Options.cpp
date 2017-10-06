@@ -261,6 +261,10 @@ Options::Options(int argc, char **argv) :
         }
     }
 
+    for (Url *url : m_pools) {
+        url->applyExceptions();
+    }
+
     m_ready = true;
 }
 
