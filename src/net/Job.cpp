@@ -25,7 +25,6 @@
 #include <string.h>
 
 
-#include "log/Log.h"
 #include "net/Job.h"
 
 
@@ -59,9 +58,15 @@ static inline char hf_bin2hex(unsigned char c)
 Job::Job(int poolId, bool nicehash) :
     m_nicehash(nicehash),
     m_poolId(poolId),
+    m_threadId(-1),
     m_size(0),
     m_diff(0),
     m_target(0)
+{
+}
+
+
+Job::~Job()
 {
 }
 
@@ -95,18 +100,6 @@ bool Job::setBlob(const char *blob)
     memcpy(m_rawBlob, blob, m_size * 2);
 #   endif
 
-    return true;
-}
-
-
-bool Job::setId(const char *id)
-{
-    if (!id || strlen(id) >= sizeof(m_id)) {
-        return false;
-    }
-
-    memset(m_id, 0, sizeof(m_id));
-    memcpy(m_id, id, strlen(id));
     return true;
 }
 
@@ -178,5 +171,5 @@ void Job::toHex(const unsigned char* in, unsigned int len, char* out)
 
 bool Job::operator==(const Job &other) const
 {
-    return memcmp(m_id, other.m_id, sizeof(m_id)) == 0;
+    return m_id == other.m_id && memcmp(m_blob, other.m_blob, sizeof(m_blob) == 0);
 }

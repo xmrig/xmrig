@@ -74,7 +74,7 @@ void SingleWorker::start()
 
 bool SingleWorker::resume(const Job &job)
 {
-    if (m_job.poolId() == -1 && job.poolId() >= 0 && memcmp(job.id(), m_paused.id(), 64) == 0) {
+    if (m_job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_paused.id()) {
         m_job          = m_paused;
         m_result       = m_job;
         m_result.nonce = *m_job.nonce();

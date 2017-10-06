@@ -32,6 +32,7 @@
 
 
 class Console;
+class Httpd;
 class Network;
 class Options;
 
@@ -56,6 +57,7 @@ private:
   static App *m_self;
 
   Console *m_console;
+  Httpd *m_httpd;
   Network *m_network;
   Options *m_options;
   uv_signal_t m_signal;

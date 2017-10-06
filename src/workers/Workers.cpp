@@ -24,6 +24,7 @@
 #include <cmath>
 
 
+#include "api/Api.h"
 #include "interfaces/IJobResultListener.h"
 #include "Mem.h"
 #include "Options.h"
@@ -192,4 +193,8 @@ void Workers::onTick(uv_timer_t *handle)
     if ((m_ticks++ & 0xF) == 0)  {
         m_hashrate->updateHighest();
     }
+
+#   ifndef XMRIG_NO_API
+    Api::tick(m_hashrate);
+#   endif
 }
