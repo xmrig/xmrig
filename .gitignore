@@ -1,2 +1,8 @@
 /build
 /CMakeLists.txt.user
+/.idea
+/CMakeFiles
+/src/3rdparty
+CMakeCache.txt
+cmake_install.cmake
+Makefile

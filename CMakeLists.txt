@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 project(xmrig)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
+option(WITH_CC_SERVER "CC Server" ON)
 
 include (CheckIncludeFile)
 
@@ -14,19 +17,12 @@ set(HEADERS
     src/api/ApiState.h
     src/api/NetworkState.h
     src/App.h
-    src/Console.h
-    src/Cpu.h
     src/interfaces/IClientListener.h
-    src/interfaces/IConsoleListener.h
     src/interfaces/IJobResultListener.h
     src/interfaces/ILogBackend.h
     src/interfaces/IStrategy.h
     src/interfaces/IStrategyListener.h
     src/interfaces/IWorker.h
-    src/log/ConsoleLog.h
-    src/log/FileLog.h
-    src/log/Log.h
-    src/Mem.h
     src/net/Client.h
     src/net/Job.h
     src/net/JobResult.h
@@ -35,10 +31,6 @@ set(HEADERS
     src/net/strategies/FailoverStrategy.h
     src/net/strategies/SinglePoolStrategy.h
     src/net/SubmitResult.h
-    src/net/Url.h
-    src/Options.h
-    src/Platform.h
-    src/Summary.h
     src/version.h
     src/workers/DoubleWorker.h
     src/workers/Handle.h
@@ -67,11 +59,6 @@ set(SOURCES
     src/api/ApiState.cpp
     src/api/NetworkState.cpp
     src/App.cpp
-    src/Console.cpp
-    src/log/ConsoleLog.cpp
-    src/log/FileLog.cpp
-    src/log/Log.cpp
-    src/Mem.cpp
     src/net/Client.cpp
     src/net/Job.cpp
     src/net/Network.cpp
@@ -79,9 +66,6 @@ set(SOURCES
     src/net/strategies/FailoverStrategy.cpp
     src/net/strategies/SinglePoolStrategy.cpp
     src/net/SubmitResult.cpp
-    src/net/Url.cpp
-    src/Options.cpp
-    src/Platform.cpp
     src/Summary.cpp
     src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
@@ -101,6 +85,31 @@ set(SOURCES_CRYPTO
     src/crypto/soft_aes.c
     src/crypto/soft_aes.c
     src/crypto/CryptoNight.cpp
+   )
+
+set(HEADERS_COMMON
+    src/interfaces/IConsoleListener.h
+    src/Console.h
+    src/Mem.h
+    src/Cpu.h
+    src/net/Url.h
+    src/Options.h
+    src/log/ConsoleLog.h
+    src/log/FileLog.h
+    src/log/Log.h
+    src/Platform.h
+    src/Summary.h
+)
+
+set(SOURCES_COMMON
+    src/Console.cpp
+    src/Mem.cpp
+    src/net/Url.cpp
+    src/Options.cpp
+    src/log/ConsoleLog.cpp
+    src/log/FileLog.cpp
+    src/log/Log.cpp
+    src/Platform.cpp
    )
 
 if (WIN32)
@@ -134,7 +143,7 @@ endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
-#add_definitions(/DAPP_DEBUG)
+add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -207,6 +216,26 @@ else()
     add_definitions(/DXMRIG_NO_HTTPD)
 endif()
 
+if (WITH_CC_SERVER AND MHD_FOUND)
+    include_directories(${MHD_INCLUDE_DIRS})
+
+    set(CC_SERVER_SOURCES
+        src/server/ClientStatus.cpp
+        src/server/xmrigCC.cpp
+        src/server/CCServer.cpp
+        src/server/Service.cpp
+        src/server/Summary.cpp
+        src/server/Httpd.cpp)
+
+    set(CC_SERVER_HEADERS
+        src/server/ClientStatus.h
+        src/server/CCServer.h
+        src/server/Service.h
+        src/server/version.h
+        src/server/Httpd.h)
+
+endif()
+
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(src/3rdparty/jansson)
@@ -214,5 +243,10 @@ include_directories(${UV_INCLUDE_DIR})
 
 add_subdirectory(src/3rdparty/jansson)
 
-add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
+add_executable(xmrig ${HEADERS} ${SOURCES} ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
 target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+
+if (WITH_CC_SERVER AND MHD_FOUND)
+    add_executable(xmrigCC ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CC_SERVER} ${CC_SERVER_SOURCES} ${SOURCES_SYSLOG})
+    target_link_libraries(xmrigCC jansson ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+endif()
