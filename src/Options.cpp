@@ -363,7 +363,6 @@ bool Options::parseArg(int key, const char *arg)
 
     case 'r':  /* --retries */
     case 'R':  /* --retry-pause */
-    case 't':  /* --threads */
     case 'v':  /* --av */
     case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
@@ -382,6 +381,14 @@ bool Options::parseArg(int key, const char *arg)
     case 1002: /* --no-color */
     case 1009: /* --no-huge-pages */
         return parseBoolean(key, false);
+
+    case 't':  /* --threads */
+        if (strncmp(arg, "all", 3) == 0) {
+            m_threads = Cpu::threads();
+            return true;
+        }
+
+        return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'V': /* --version */
         showVersion();
