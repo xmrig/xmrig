@@ -1,6 +1,9 @@
 # v2.4.0
  - Added [HTTP API](https://github.com/xmrig/xmrig/wiki/API).
  - libjansson replaced to rapidjson.
+ - [#101](https://github.com/xmrig/xmrig/issues/101) Fixed MSVC 2017 (15.3) compile time version detection.
+ - [#108](https://github.com/xmrig/xmrig/issues/108) Silently ignore invalid values for `donate-level` option.
+ - [#111](https://github.com/xmrig/xmrig/issues/111) Fixed build without AEON support.
  
 # v2.3.1
 - [#68](https://github.com/xmrig/xmrig/issues/68) Fixed compatibility with Docker containers, was nothing print on console.
