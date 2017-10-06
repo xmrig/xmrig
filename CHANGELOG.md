@@ -1,3 +1,7 @@
+# v2.4.0
+ - Added [HTTP API](https://github.com/xmrig/xmrig/wiki/API).
+ - libjansson replaced to rapidjson.
+ 
 # v2.3.1
 - [#68](https://github.com/xmrig/xmrig/issues/68) Fixed compatibility with Docker containers, was nothing print on console.
 
