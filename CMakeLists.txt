@@ -181,6 +181,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
     add_definitions(/D_CRT_SECURE_NO_WARNINGS)
     add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
+    add_definitions(/DNOMINMAX)
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
 
