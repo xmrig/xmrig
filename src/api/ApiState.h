@@ -57,7 +57,6 @@ private:
     double m_highestHashrate;
     double m_totalHashrate[3];
     int m_threads;
-    mutable char m_buf[4096];
     NetworkState m_network;
 };
 
