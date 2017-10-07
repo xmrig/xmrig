@@ -23,15 +23,12 @@
 
 #include <cstring>
 #include <microhttpd.h>
+#include <string.h>
 
 
 #include "api/Api.h"
 #include "api/Httpd.h"
 #include "log/Log.h"
-
-
-static const char k500 []    = "{\"error\":\"INTERNAL_SERVER_ERROR\"}";
-static const size_t k500Size = sizeof(k500) - 1;
 
 
 Httpd::Httpd(int port, const char *accessToken) :
@@ -48,7 +45,7 @@ bool Httpd::start()
         return false;
     }
 
-    m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, 4455, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
+    m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, m_port, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
     if (!m_daemon) {
         LOG_ERR("HTTP Daemon failed to start.");
         return false;
@@ -109,13 +106,11 @@ int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url
         return done(connection, status, nullptr);
     }
 
-    MHD_Response *rsp = nullptr;
-    size_t size       = 0;
-    const char *buf   = Api::get(url, &size, &status);
-
-    if (size) {
-        rsp = MHD_create_response_from_buffer(size, (void*) buf, MHD_RESPMEM_PERSISTENT);
+    char *buf = Api::get(url, &status);
+    if (buf == nullptr) {
+        return MHD_NO;
     }
 
+    MHD_Response *rsp = MHD_create_response_from_buffer(strlen(buf), (void*) buf, MHD_RESPMEM_MUST_FREE);
     return done(connection, status, rsp);
 }

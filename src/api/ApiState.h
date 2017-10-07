@@ -26,7 +26,7 @@
 
 
 #include "api/NetworkState.h"
-#include "jansson.h"
+#include "rapidjson/fwd.h"
 
 
 class Hashrate;
@@ -38,18 +38,18 @@ public:
     ApiState();
     ~ApiState();
 
-    const char *get(const char *url, size_t *size) const;
+    char *get(const char *url, int *status) const;
     void tick(const Hashrate *hashrate);
     void tick(const NetworkState &results);
 
 private:
-    const char *finalize(json_t *reply, size_t *size) const;
+    char *finalize(rapidjson::Document &doc) const;
     void genId();
-    void getConnection(json_t *reply) const;
-    void getHashrate(json_t *reply) const;
-    void getIdentify(json_t *reply) const;
-    void getMiner(json_t *reply) const;
-    void getResults(json_t *reply) const;
+    void getConnection(rapidjson::Document &doc) const;
+    void getHashrate(rapidjson::Document &doc) const;
+    void getIdentify(rapidjson::Document &doc) const;
+    void getMiner(rapidjson::Document &doc) const;
+    void getResults(rapidjson::Document &doc) const;
 
     char m_id[17];
     char m_workerId[128];
@@ -57,7 +57,6 @@ private:
     double m_highestHashrate;
     double m_totalHashrate[3];
     int m_threads;
-    mutable char m_buf[4096];
     NetworkState m_network;
 };
 

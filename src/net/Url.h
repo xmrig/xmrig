@@ -41,6 +41,7 @@ public:
     ~Url();
 
     inline bool isKeepAlive() const          { return m_keepAlive; }
+    inline bool isNicehash() const           { return m_nicehash; }
     inline bool isValid() const              { return m_host && m_port > 0; }
     inline const char *host() const          { return m_host; }
     inline const char *password() const      { return m_password ? m_password : kDefaultPassword; }
@@ -49,9 +50,9 @@ public:
     inline void setKeepAlive(bool keepAlive) { m_keepAlive = keepAlive; }
     inline void setNicehash(bool nicehash)   { m_nicehash = nicehash; }
 
-    bool isNicehash() const;
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
+    void applyExceptions();
     void setPassword(const char *password);
     void setUser(const char *user);
 

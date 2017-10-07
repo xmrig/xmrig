@@ -23,6 +23,7 @@
 
 
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -54,7 +55,7 @@ void FileLog::message(int level, const char* fmt, va_list args)
     localtime_r(&now, &stime);
 #   endif
 
-    char *buf = static_cast<char*>(malloc(512));
+    char *buf = new char[512];
     int size = snprintf(buf, 23, "[%d-%02d-%02d %02d:%02d:%02d] ",
                         stime.tm_year + 1900,
                         stime.tm_mon + 1,
@@ -79,17 +80,17 @@ void FileLog::text(const char* fmt, va_list args)
 
 void FileLog::onWrite(uv_fs_t *req)
 {
-    free(req->data);
+    delete [] static_cast<char *>(req->data);
 
     uv_fs_req_cleanup(req);
-    free(req);
+    delete req;
 }
 
 
 void FileLog::write(char *data, size_t size)
 {
     uv_buf_t buf = uv_buf_init(data, (unsigned int) size);
-    uv_fs_t *req = static_cast<uv_fs_t*>(malloc(sizeof(uv_fs_t)));
+    uv_fs_t *req = new uv_fs_t;
     req->data = buf.base;
 
     uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, 0, FileLog::onWrite);

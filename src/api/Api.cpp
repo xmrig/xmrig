@@ -21,6 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
+
 
 #include <cstring>
 
@@ -29,7 +31,6 @@
 
 
 ApiState *Api::m_state = nullptr;
-char Api::m_buf[4096];
 uv_mutex_t Api::m_mutex;
 
 
@@ -48,26 +49,17 @@ void Api::release()
 }
 
 
-const char *Api::get(const char *url, size_t *size, int *status)
+char *Api::get(const char *url, int *status)
 {
     if (!m_state) {
-        *size = 0;
         return nullptr;
     }
 
     uv_mutex_lock(&m_mutex);
-
-    const char *buf = m_state->get(url, size);
-    if (*size) {
-        memcpy(m_buf, buf, *size);
-    }
-    else {
-        *status = 500;
-    }
-
+    char *buf = m_state->get(url, status);
     uv_mutex_unlock(&m_mutex);
 
-    return m_buf;
+    return buf;
 }
 
 

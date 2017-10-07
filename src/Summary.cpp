@@ -127,6 +127,18 @@ static void print_pools()
 }
 
 
+#ifndef XMRIG_NO_API
+static void print_api()
+{
+    if (Options::i()->apiPort() == 0) {
+        return;
+    }
+
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mAPI PORT:     \x1B[01;36m%d" : " * API PORT:     %d", Options::i()->apiPort());
+}
+#endif
+
+
 static void print_commands()
 {
     if (Options::i()->colors()) {
@@ -145,5 +157,10 @@ void Summary::print()
     print_cpu();
     print_threads();
     print_pools();
+
+#   ifndef XMRIG_NO_API
+    print_api();
+#   endif
+
     print_commands();
 }

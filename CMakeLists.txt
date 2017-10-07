@@ -25,6 +25,7 @@ set(HEADERS
     src/interfaces/IWorker.h
     src/net/Client.h
     src/net/Job.h
+    src/net/JobId.h
     src/net/JobResult.h
     src/net/Network.h
     src/net/strategies/DonateStrategy.h
@@ -143,7 +144,8 @@ endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
-add_definitions(/DAPP_DEBUG)
+add_definitions(/DRAPIDJSON_SSE2)
+#add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -154,13 +156,18 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
 endif()
 
 
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
+
+
 # https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -Wno-strict-aliasing")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -std=c++14 -fno-exceptions -fno-rtti")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions -fno-rtti")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 
     if (WIN32)
@@ -171,6 +178,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     add_definitions(/D_GNU_SOURCE)
 
+    if (${CMAKE_VERSION} VERSION_LESS "3.1.0")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    endif()
+
     #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
@@ -179,13 +190,14 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
     add_definitions(/D_CRT_SECURE_NO_WARNINGS)
     add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
+    add_definitions(/DNOMINMAX)
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fmerge-all-constants")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -std=c++14 -fno-exceptions -fno-rtti")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions -fno-rtti -Wno-missing-braces")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -funroll-loops -fmerge-all-constants")
 
 endif()
@@ -207,13 +219,22 @@ if (HAVE_SYSLOG_H)
     set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
 endif()
 
-find_package(MHD REQUIRED)
-if (WITH_HTTPD AND MHD_FOUND)
-    include_directories(${MHD_INCLUDE_DIRS})
+if (NOT WITH_AEON)
+    add_definitions(/DXMRIG_NO_AEON)
+endif()
 
-    set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
+if (WITH_HTTPD)
+    find_package(MHD)
+
+    if (MHD_FOUND)
+        include_directories(${MHD_INCLUDE_DIRS})
+        set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
+    else()
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
+    endif()
 else()
     add_definitions(/DXMRIG_NO_HTTPD)
+    add_definitions(/DXMRIG_NO_API)
 endif()
 
 if (WITH_CC_SERVER AND MHD_FOUND)
@@ -238,7 +259,6 @@ endif()
 
 include_directories(src)
 include_directories(src/3rdparty)
-include_directories(src/3rdparty/jansson)
 include_directories(${UV_INCLUDE_DIR})
 
 add_subdirectory(src/3rdparty/jansson)
