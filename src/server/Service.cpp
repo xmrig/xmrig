@@ -22,7 +22,7 @@
  */
 
 #include <cstring>
-#include <3rdparty/jansson/jansson.h>
+#include <3rdparty/rapidjson/document.h>
 #include "server/Service.h"
 #include "log/Log.h"
 
@@ -84,15 +84,11 @@ unsigned Service::post(const char *url, const std::string &data, std::string &re
 
     LOG_INFO("POST(%s, %s)", url, data.c_str());
 
-    json_error_t err;
-    json_t *val = json_loads(data.c_str(), 0, &err);
-
-    if (val) {
-        const char *miner = json_string_value(json_object_get(val, "miner"));
-        const char *currentPool = json_string_value(json_object_get(val, "currentPool"));
-        LOG_INFO("received = miner: %s on pool: %s", miner, currentPool);
+    rapidjson::Document document;
+    if (!document.Parse(data.c_str()).HasParseError()) {
+        LOG_ERR("Status from miner: %s", document['miner'].GetString());
     } else {
-        LOG_ERR("BAD POST REQUEST: %s", err.text);
+        LOG_ERR("Parse Error Occured: %d", document.GetParseError());
         return MHD_HTTP_BAD_REQUEST;
     }
 

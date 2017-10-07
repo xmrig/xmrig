@@ -25,9 +25,8 @@
 #ifndef __CLIENTSTATUS_H__
 #define __CLIENTSTATUS_H__
 
-
 #include <string>
-#include <3rdparty/jansson/jansson.h>
+#include "rapidjson/document.h"
 
 class ClientStatus
 {
@@ -66,7 +65,7 @@ public:
     void setLastStatusUpdate(uint32_t lastStatusUpdate);
 
     std::string toJson();
-    void parseFromJson(const json_t& json);
+    void parseFromJson(const rapidjson::Document &doc);
 
 private:
     std::string miner;

@@ -134,7 +134,7 @@ void ClientStatus::setLastStatusUpdate(uint32_t lastStatusUpdate)
     ClientStatus::lastStatusUpdate = lastStatusUpdate;
 }
 
-void ClientStatus::parseFromJson(const json_t &json)
+void ClientStatus::parseFromJson(const rapidjson::Document &doc)
 {
 
 }
