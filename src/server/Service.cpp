@@ -26,7 +26,6 @@
 #include "server/Service.h"
 #include "log/Log.h"
 
-char Service::m_buf[4096];
 uv_mutex_t Service::m_mutex;
 
 
@@ -40,98 +39,44 @@ bool Service::start()
 
 void Service::release()
 {
-
-}
-
-
-unsigned Service::get(const char *url, std::string &resp)
-{
-    //if (!m_state) {
-    //    *size = 0;
-    //    return nullptr;
-    //}
-
     uv_mutex_lock(&m_mutex);
 
-    LOG_INFO("GET(%s)", url);
+    m_clientStatus.clear();
+    m_clientCommand.clear();
 
-    /*
+    uv_mutex_unlock(&m_mutex);
+}
 
-    Handle request here
+unsigned Service::get(const std::string &url, std::string &resp)
+{
+    uv_mutex_lock(&m_mutex);
 
-    const char *buf = m_state->get(url, size);
-    if (*size) {
-        memcpy(m_buf, buf, *size);
-    }
-    else {
-        *status = 500;
-    }
-    */
+    LOG_INFO("GET(%s)", url.c_str());
 
     uv_mutex_unlock(&m_mutex);
 
     return 200;
 }
 
-unsigned Service::post(const char *url, const std::string &data, std::string &resp)
+unsigned Service::post(const std::string &url, const std::string &data, std::string &resp)
 {
-    //if (!m_state) {
-    //    *size = 0;
-    //    return nullptr;
-    //}
-
     uv_mutex_lock(&m_mutex);
 
-    LOG_INFO("POST(%s, %s)", url, data.c_str());
+    LOG_INFO("POST(url='%s', data='%s')", url.c_str(), data.c_str());
 
     rapidjson::Document document;
     if (!document.Parse(data.c_str()).HasParseError()) {
-        LOG_ERR("Status from miner: %s", document['miner'].GetString());
+        LOG_INFO("Status from miner: %s", document["miner"].GetString());
     } else {
         LOG_ERR("Parse Error Occured: %d", document.GetParseError());
         return MHD_HTTP_BAD_REQUEST;
     }
 
+    ControlCommand controlCommand;
+    resp = controlCommand.toJson();
 
-    /*
-
-    Handle request here
-
-    const char *buf = m_state->get(url, size);
-    if (*size) {
-        memcpy(m_buf, buf, *size);
-    }
-    else {
-        *status = 500;
-    }
-    */
 
     uv_mutex_unlock(&m_mutex);
 
     return 200;
 }
-
-/*
-void Service::tick(const Hashrate *hashrate)
-{
-    if (!m_state) {
-        return;
-    }
-
-    uv_mutex_lock(&m_mutex);
-    m_state->tick(hashrate);
-    uv_mutex_unlock(&m_mutex);
-}
-
-
-void Service::tick(const NetworkState &network)
-{
-    if (!m_state) {
-        return;
-    }
-
-    uv_mutex_lock(&m_mutex);
-    m_state->tick(network);
-    uv_mutex_unlock(&m_mutex);
-}
-*/

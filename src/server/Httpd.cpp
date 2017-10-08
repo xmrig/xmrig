@@ -181,10 +181,13 @@ int Httpd::handler(void *cls, MHD_Connection *connection, const char *url, const
     return MHD_NO;
 }
 
-int Httpd::handleGET(struct MHD_Connection *connection, const char *url)
-{LOG_INFO("HANDLE GET REQUEST");
+int Httpd::handleGET(struct MHD_Connection *connection, const char *urlPtr)
+{
+    LOG_INFO("HANDLE GET REQUEST");
 
     std::string resp;
+    std::string url(urlPtr, strlen(urlPtr));
+
     unsigned status = Service::get(url, resp);
 
     MHD_Response *rsp = nullptr;
@@ -195,7 +198,7 @@ int Httpd::handleGET(struct MHD_Connection *connection, const char *url)
     return sendJSONResponse(connection, status, rsp);
 }
 
-int Httpd::handlePOST(struct MHD_Connection *connection, const char* url, const char *upload_data,
+int Httpd::handlePOST(struct MHD_Connection *connection, const char* urlPtr, const char *upload_data,
                       size_t *upload_data_size, void **con_cls)
 {
     LOG_INFO("HANDLE POST REQUEST");
@@ -212,6 +215,8 @@ int Httpd::handlePOST(struct MHD_Connection *connection, const char* url, const 
         } else {
 
             std::string resp;
+            std::string url(urlPtr, strlen(urlPtr));
+
             unsigned status = Service::post(url, cc->data.str(), resp);
 
             MHD_Response *rsp = nullptr;

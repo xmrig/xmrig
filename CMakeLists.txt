@@ -3,9 +3,9 @@ project(xmrig)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-option(WITH_LIBCPUID "Use Libcpuid" ON)
-option(WITH_AEON     "CryptoNight-Lite support" ON)
-option(WITH_HTTPD    "HTTP REST API" ON)
+option(WITH_LIBCPUID  "Use Libcpuid" ON)
+option(WITH_AEON      "CryptoNight-Lite support" ON)
+option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_CC_SERVER "CC Server" ON)
 
 include (CheckIncludeFile)
@@ -237,24 +237,41 @@ else()
     add_definitions(/DXMRIG_NO_API)
 endif()
 
-if (WITH_CC_SERVER AND MHD_FOUND)
-    include_directories(${MHD_INCLUDE_DIRS})
+if (WITH_CC_SERVER)
+    find_package(MHD)
+
+    if (MHD_FOUND)
+        include_directories(${MHD_INCLUDE_DIRS})
+    else()
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
+    endif()
+
+    find_package(CURL)
+
+    if (CURL_FOUND)
+        include_directories(${CURL_INCLUDE_DIRS})
+    else()
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
+    endif()
 
     set(CC_SERVER_SOURCES
-        src/server/ClientStatus.cpp
-        src/server/xmrigCC.cpp
-        src/server/CCServer.cpp
-        src/server/Service.cpp
-        src/server/Summary.cpp
-        src/server/Httpd.cpp)
+            src/server/ControlCommand.cpp
+            src/server/ClientStatus.cpp
+            src/server/xmrigCC.cpp
+            src/server/CCServer.cpp
+            src/server/Service.cpp
+            src/server/Summary.cpp
+            src/server/Httpd.cpp)
 
     set(CC_SERVER_HEADERS
-        src/server/ClientStatus.h
-        src/server/CCServer.h
-        src/server/Service.h
-        src/server/version.h
-        src/server/Httpd.h)
-
+            src/server/ControlCommand.h
+            src/server/ClientStatus.h
+            src/server/CCServer.h
+            src/server/Service.h
+            src/server/version.h
+            src/server/Httpd.h)
+else()
+    add_definitions(/DXMRIG_NO_CC_SERVER)
 endif()
 
 include_directories(src)
@@ -262,9 +279,9 @@ include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
 
 add_executable(xmrig ${HEADERS} ${SOURCES} ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
-target_link_libraries(xmrig ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(xmrig ${UV_LIBRARIES} ${MHD_LIBRARY} ${CURL_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 
-if (WITH_CC_SERVER AND MHD_FOUND)
+if (WITH_CC_SERVER AND MHD_FOUND AND CURL_FOUND)
     add_executable(xmrigCC ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CC_SERVER} ${CC_SERVER_SOURCES} ${SOURCES_SYSLOG})
     target_link_libraries(xmrigCC ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 endif()

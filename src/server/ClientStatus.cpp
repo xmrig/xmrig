@@ -28,113 +28,113 @@
 #include "server/ClientStatus.h"
 
 ClientStatus::ClientStatus()
-    : hashrateShort(0), hashrateMedium(0), hashrateLong(0), sharesGood(0), sharedTotal(0), hashesTotal(0),
-      lastStatusUpdate(0)
+    : m_hashrateShort(0), m_hashrateMedium(0), m_hashrateLong(0), m_sharesGood(0), m_sharedTotal(0), m_hashesTotal(0),
+      m_lastStatusUpdate(0)
 {
 
 }
 
 const std::string ClientStatus::getMiner() const
 {
-    return miner;
+    return m_miner;
 }
 
 void ClientStatus::setMiner(const std::string &miner)
 {
-    ClientStatus::miner = miner;
+    m_miner = miner;
 }
 
 const std::string ClientStatus::getCurrentPool() const
 {
-    return currentPool;
+    return m_currentPool;
 }
 
 void ClientStatus::setCurrentPool(const std::string &currentPool)
 {
-    ClientStatus::currentPool = currentPool;
+    m_currentPool = currentPool;
 }
 
 const std::string ClientStatus::getCurrentStatus() const
 {
-    return currentStatus;
+    return m_currentStatus;
 }
 
 void ClientStatus::setCurrentStatus(const std::string &currentStatus)
 {
-    ClientStatus::currentStatus = currentStatus;
+    m_currentStatus = currentStatus;
 }
 
 double ClientStatus::getHashrateShort() const
 {
-    return hashrateShort;
+    return m_hashrateShort;
 }
 
 void ClientStatus::setHashrateShort(double hashrateShort)
 {
-    ClientStatus::hashrateShort = hashrateShort;
+    m_hashrateShort = hashrateShort;
 }
 
 double ClientStatus::getHashrateMedium() const
 {
-    return hashrateMedium;
+    return m_hashrateMedium;
 }
 
 void ClientStatus::setHashrateMedium(double hashrateMedium)
 {
-    ClientStatus::hashrateMedium = hashrateMedium;
+    m_hashrateMedium = hashrateMedium;
 }
 
 double ClientStatus::getHashrateLong() const
 {
-    return hashrateLong;
+    return m_hashrateLong;
 }
 
 void ClientStatus::setHashrateLong(double hashrateLong)
 {
-    ClientStatus::hashrateLong = hashrateLong;
+    m_hashrateLong = hashrateLong;
 }
 
 uint64_t ClientStatus::getSharesGood() const
 {
-    return sharesGood;
+    return m_sharesGood;
 }
 
 void ClientStatus::setSharesGood(uint64_t sharesGood)
 {
-    ClientStatus::sharesGood = sharesGood;
+    m_sharesGood = sharesGood;
 }
 
 uint64_t ClientStatus::getSharedTotal() const
 {
-    return sharedTotal;
+    return m_sharedTotal;
 }
 
 void ClientStatus::setSharedTotal(uint64_t sharedTotal)
 {
-    ClientStatus::sharedTotal = sharedTotal;
+    m_sharedTotal = sharedTotal;
 }
 
 uint64_t ClientStatus::getHashesTotal() const
 {
-    return hashesTotal;
+    return m_hashesTotal;
 }
 
 void ClientStatus::setHashesTotal(uint64_t hashesTotal)
 {
-    ClientStatus::hashesTotal = hashesTotal;
+    m_hashesTotal = hashesTotal;
 }
 
 const uint32_t ClientStatus::getLastStatusUpdate() const
 {
-    return lastStatusUpdate;
+    return m_lastStatusUpdate;
 }
 
 void ClientStatus::setLastStatusUpdate(uint32_t lastStatusUpdate)
 {
-    ClientStatus::lastStatusUpdate = lastStatusUpdate;
+    m_lastStatusUpdate = lastStatusUpdate;
 }
 
-void ClientStatus::parseFromJson(const rapidjson::Document &doc)
+void ClientStatus::parseFromJson(const rapidjson::Document &document)
 {
 
 }

@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CLIENTSTATUS_H__
-#define __CLIENTSTATUS_H__
+#ifndef __CLIENT_STATUS_H__
+#define __CLIENT_STATUS_H__
 
 #include <string>
 #include "rapidjson/document.h"
@@ -65,21 +65,21 @@ public:
     void setLastStatusUpdate(uint32_t lastStatusUpdate);
 
     std::string toJson();
-    void parseFromJson(const rapidjson::Document &doc);
+    void parseFromJson(const rapidjson::Document &document);
 
 private:
-    std::string miner;
-    std::string currentPool;
-    std::string currentStatus;
+    std::string m_miner;
+    std::string m_currentPool;
+    std::string m_currentStatus;
 
-    double hashrateShort;
-    double hashrateMedium;
-    double hashrateLong;
+    double m_hashrateShort;
+    double m_hashrateMedium;
+    double m_hashrateLong;
 
-    uint64_t sharesGood;
-    uint64_t sharedTotal;
-    uint64_t hashesTotal;
-    uint32_t lastStatusUpdate;
+    uint64_t m_sharesGood;
+    uint64_t m_sharedTotal;
+    uint64_t m_hashesTotal;
+    uint32_t m_lastStatusUpdate;
 };
 
-#endif /* __CLIENTSTATUS_H__ */
+#endif /* __CLIENT_STATUS_H__ */
