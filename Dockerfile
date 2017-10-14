@@ -1,14 +1,20 @@
+#
+# Dockerfile for xmrig
+# usage: docker build -t xmrig:latest.
+# run: docker run --name xmrig --restart unless-stopped -d xmrig:latest [XMRIG EXECUTABLE ARGUMENTS]
+#
+
 FROM ubuntu:16.04
+
+ENV HOME_DIR /root
+ENV XMRIG_DIR $HOME_DIR/xmrig
+ENV XMRIG_BUILD_DIR $XMRIG_DIR/build
 
 RUN apt-get update && apt-get install -y software-properties-common
 
 RUN add-apt-repository ppa:jonathonf/gcc-7.1 -y
 
 RUN apt-get update && apt-get install git build-essential cmake libuv1-dev libmicrohttpd-dev gcc-7 g++-7 -y
-
-ENV HOME_DIR /root
-ENV XMRIG_DIR $HOME_DIR/xmrig
-ENV XMRIG_BUILD_DIR $XMRIG_DIR/build
 
 WORKDIR $HOME_DIR
 
