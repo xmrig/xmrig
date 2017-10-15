@@ -1,3 +1,6 @@
+# v2.4.1
+  - [#147](https://github.com/xmrig/xmrig/issues/147) Fixed comparability with monero-stratum.
+
 # v2.4.0
  - Added [HTTP API](https://github.com/xmrig/xmrig/wiki/API).
  - Added comments support in config file.
