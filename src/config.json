@@ -27,5 +27,10 @@
         "port": 0,                             // port for the miner API https://github.com/xmrig/xmrig/wiki/API
         "access-token": null,                  // access token for API
         "worker-id": null                      // custom worker-id for API
+    },
+    "cc-client": {
+        "url": "localhost:3344",               // url of the CC Server
+        "access-token": null,                  // access token for CC Server
+        "worker-id": null                      // custom worker-id for CC Server
     }
 }
