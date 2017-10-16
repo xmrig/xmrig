@@ -5,8 +5,8 @@ set(CMAKE_BUILD_TYPE Debug)
 
 option(WITH_LIBCPUID  "Use Libcpuid" ON)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
-option(WITH_HTTPD     "HTTP REST API" ON)
-option(WITH_CC_SERVER "CC Server" ON)
+option(WITH_HTTPD     "HTTP REST API" OFF)
+option(WITH_CC        "CC Server" ON)
 
 include (CheckIncludeFile)
 
@@ -237,13 +237,13 @@ else()
     add_definitions(/DXMRIG_NO_API)
 endif()
 
-if (WITH_CC_SERVER)
+if (WITH_CC)
     find_package(MHD)
 
     if (MHD_FOUND)
         include_directories(${MHD_INCLUDE_DIRS})
     else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
     endif()
 
     find_package(CURL)
@@ -251,37 +251,48 @@ if (WITH_CC_SERVER)
     if (CURL_FOUND)
         include_directories(${CURL_INCLUDE_DIRS})
     else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
     endif()
 
-    set(CC_SERVER_SOURCES
-            src/server/ControlCommand.cpp
-            src/server/ClientStatus.cpp
-            src/server/xmrigCC.cpp
-            src/server/CCServer.cpp
-            src/server/Service.cpp
-            src/server/Summary.cpp
-            src/server/Httpd.cpp)
+    set(HEADERS_CC_COMMON
+            src/cc/ControlCommand.h
+            src/cc/ClientStatus.h)
 
-    set(CC_SERVER_HEADERS
-            src/server/ControlCommand.h
-            src/server/ClientStatus.h
-            src/server/CCServer.h
-            src/server/Service.h
-            src/server/version.h
-            src/server/Httpd.h)
+    set(SOURCES_CC_COMMON
+            src/cc/ControlCommand.cpp
+            src/cc/ClientStatus.cpp)
+
+    set(HEADERS_CC_CLIENT
+            src/cc/CCClient.h)
+
+    set(SOURCES_CC_CLIENT
+            src/cc/CCClient.cpp)
+
+    set(HEADERS_CC_SERVER
+            src/cc/CCServer.h
+            src/cc/Service.h
+            src/cc/Httpd.h)
+
+    set(SOURCES_CC_SERVER
+            src/cc/CCServer.cpp
+            src/cc/xmrigCC.cpp
+            src/cc/Service.cpp
+            src/cc/Summary.cpp
+            src/cc/Httpd.cpp)
 else()
-    add_definitions(/DXMRIG_NO_CC_SERVER)
+    add_definitions(/DXMRIG_NO_CC)
 endif()
 
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
 
-add_executable(xmrig ${HEADERS} ${SOURCES} ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
+add_executable(xmrig ${HEADERS} ${SOURCES} ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_COMMON} ${HEADERS_CC_COMMON} ${SOURCES_CC_CLIENT} ${HEADERS_CC_CLIENT})
 target_link_libraries(xmrig ${UV_LIBRARIES} ${MHD_LIBRARY} ${CURL_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 
-if (WITH_CC_SERVER AND MHD_FOUND AND CURL_FOUND)
-    add_executable(xmrigCC ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CC_SERVER} ${CC_SERVER_SOURCES} ${SOURCES_SYSLOG})
+
+if (WITH_CC AND MHD_FOUND AND CURL_FOUND)
+    add_executable(xmrigCC ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_SYSLOG} ${SOURCES_CC_COMMON} ${HEADERS_CC_COMMON} ${SOURCES_CC_SERVER} ${HEADERS_CC_SERVER})
     target_link_libraries(xmrigCC ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+    set_target_properties(xmrigCC PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
 endif()

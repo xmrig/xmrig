@@ -24,9 +24,16 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
+#ifdef XMRIG_CC_SERVER
+#define APP_ID        "xmrigCC"
+#define APP_NAME      "XMRigCC"
+#define APP_DESC      "XMRigCC Command'n'Control Server"
+# else
 #define APP_ID        "xmrig"
 #define APP_NAME      "XMRig"
 #define APP_DESC      "XMRig CPU miner"
+#endif
+
 #define APP_VERSION   "2.4.0"
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"

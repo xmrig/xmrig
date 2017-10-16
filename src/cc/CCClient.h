@@ -1,4 +1,4 @@
-/* XMRigCC
+/* XMRig
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -22,44 +22,50 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CC_SERVER_H__
-#define __CC_SERVER_H__
+#ifndef __CC_CLIENT_H__
+#define __CC_CLIENT_H__
 
 
 #include <uv.h>
+#include <curl/curl.h>
+#include "Options.h"
+#include "ClientStatus.h"
 
+class Hashrate;
+class NetworkState;
 
-#include "interfaces/IConsoleListener.h"
-
-
-class Console;
-class Httpd;
-class Options;
-
-class CCServer : public IConsoleListener
+class CCClient
 {
 public:
-  CCServer(int argc, char **argv);
-  ~CCServer();
+    CCClient(const Options *options);
+    ~CCClient();
 
-  int start();
-
-protected:
-  void onConsoleCommand(char command) override;
+    static void updateHashrate(const Hashrate *hashrate);
+    static void updateNetworkState(const NetworkState &results);
 
 private:
-  void stop();
-  void printCommands();
 
-  static void onSignal(uv_signal_t *handle, int signum);
+    static void publishClientStatusReport();
+    static void updateConfig();
+    static CURLcode performCurl(const std::string& requestUrl, const std::string& requestBuffer, const std::string& operation,
+                         std::string& responseBuffer);
 
-  static CCServer *m_self;
+    static void onReport(uv_timer_t *handle);
+    static int onResponse(char* data, size_t size, size_t nmemb, std::string* responseBuffer);
 
-  Console *m_console;
-  Httpd *m_httpd;
-  Options *m_options;
-  uv_signal_t m_signal;
+    constexpr static int kTickInterval = 10 * 1000;
+    const Options *m_options;
+
+    static CCClient* m_self;
+    static uv_mutex_t m_mutex;
+
+    ClientStatus m_clientStatus;
+
+    std::string m_serverURL;
+    std::string m_authorization;
+
+    uv_timer_t m_timer;
+
 };
 
-
-#endif /* __CC_SERVER_H__ */
+#endif /* __CC_CLIENT_H__ */

@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -25,7 +26,6 @@
 #include <stdlib.h>
 #include <uv.h>
 
-
 #include "api/Api.h"
 #include "App.h"
 #include "Console.h"
@@ -41,7 +41,7 @@
 #include "Summary.h"
 #include "version.h"
 #include "workers/Workers.h"
-
+#include "cc/CCClient.h"
 
 #ifdef HAVE_SYSLOG_H
 #   include "log/SysLog.h"
@@ -60,7 +60,8 @@ App::App(int argc, char **argv) :
     m_console(nullptr),
     m_httpd(nullptr),
     m_network(nullptr),
-    m_options(nullptr)
+    m_options(nullptr),
+    m_ccclient(nullptr)
 {
     m_self = this;
 
@@ -104,6 +105,10 @@ App::~App()
     delete m_httpd;
 #   endif
 
+#   ifndef XMRIG_NO_CC
+    delete m_ccclient;
+#   endif
+
     delete m_console;
 }
 
@@ -135,6 +140,10 @@ int App::exec()
 #   ifndef XMRIG_NO_HTTPD
     m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken());
     m_httpd->start();
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    m_ccclient = new CCClient(m_options);
 #   endif
 
     Workers::start(m_options->affinity(), m_options->priority());
@@ -195,6 +204,26 @@ void App::close()
     uv_stop(uv_default_loop());
 }
 
+void App::reloadConfig()
+{
+    // reload config
+    m_self->m_options->parseConfig(m_self->m_options->configFile());
+
+    Platform::release();
+    Platform::init(m_self->m_options->userAgent());
+    Platform::setProcessPriority(m_self->m_options->priority());
+
+    m_self->m_network->stop();
+    Workers::stop(); // free resources here
+
+    Mem::release();
+    Mem::allocate(m_self->m_options->algo(), m_self->m_options->threads(), m_self->m_options->doubleHash(), m_self->m_options->hugePages());
+    Summary::print();
+
+    Workers::start(m_self->m_options->affinity(), m_self->m_options->priority());
+
+    m_self->m_options
+}
 
 void App::onSignal(uv_signal_t *handle, int signum)
 {
@@ -219,3 +248,4 @@ void App::onSignal(uv_signal_t *handle, int signum)
     uv_signal_stop(handle);
     m_self->close();
 }
+

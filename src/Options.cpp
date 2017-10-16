@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -54,40 +55,60 @@ Options *Options::m_self = nullptr;
 
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
-Options:\n\
-  -a, --algo=ALGO          cryptonight (default) or cryptonight-lite\n\
-  -o, --url=URL            URL of mining server\n\
-  -O, --userpass=U:P       username:password pair for mining server\n\
-  -u, --user=USERNAME      username for mining server\n\
-  -p, --pass=PASSWORD      password for mining server\n\
-  -t, --threads=N          number of miner threads\n\
-  -v, --av=N               algorithm variation, 0 auto select\n\
-  -k, --keepalive          send keepalived for prevent timeout (need pool support)\n\
-  -r, --retries=N          number of times to retry before switch to backup server (default: 5)\n\
-  -R, --retry-pause=N      time to pause between retries (default: 5)\n\
-      --cpu-affinity       set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
-      --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)\n\
-      --no-huge-pages      disable huge pages support\n\
-      --no-color           disable colored output\n\
-      --donate-level=N     donate level, default 5%% (5 minutes in 100 minutes)\n\
-      --user-agent         set custom user-agent string for pool\n\
-  -B, --background         run the miner in the background\n\
-  -c, --config=FILE        load a JSON-format configuration file\n\
-  -l, --log-file=FILE      log all output to a file\n"
-# ifdef HAVE_SYSLOG_H
+Options:\n"
+# ifndef XMRIG_CC_SERVER
 "\
-  -S, --syslog             use system log for output messages\n"
+  -a, --algo=ALGO                       cryptonight (default) or cryptonight-lite\n\
+  -o, --url=URL                         URL of mining server\n\
+  -O, --userpass=U:P                    username:password pair for mining server\n\
+  -u, --user=USERNAME                   username for mining server\n\
+  -p, --pass=PASSWORD                   password for mining server\n\
+  -t, --threads=N                       number of miner threads\n\
+  -v, --av=N                            algorithm variation, 0 auto select\n\
+  -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
+  -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
+  -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
+      --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
+      --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)\n\
+      --no-huge-pages                   disable huge pages support\n\
+      --donate-level=N                  donate level, default 5%% (5 minutes in 100 minutes)\n\
+      --user-agent                      set custom user-agent string for pool\n\
+      --max-cpu-usage=N                 maximum CPU usage for automatic threads mode (default 75)\n\
+      --safe                            safe adjust threads and av settings for current CPU\n\
+      --nicehash                        enable nicehash/xmrig-proxy support\n\
+      --print-time=N                    print hashrate report every N seconds\n\
+      --api-port=N                      port for the miner API\n\
+      --api-access-token=T              access token for API\n\
+      --api-worker-id=ID                custom worker-id for API\n"
+# ifndef XMRIG_NO_CC
+"\
+      --cc-url=URL                      url of the CC Server\n\
+      --cc-access-token=T               access token for CC Server\n\
+      --cc-worker-id=ID                 custom worker-id for CC Server\n"
 # endif
+# endif
+      
+# ifdef XMRIG_CC_SERVER
 "\
-      --max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)\n\
-      --safe               safe adjust threads and av settings for current CPU\n\
-      --nicehash           enable nicehash/xmrig-proxy support\n\
-      --print-time=N       print hashrate report every N seconds\n\
-      --api-port=N         port for the miner API\n\
-      --api-access-token=T access token for API\n\
-      --api-worker-id=ID   custom worker-id for API\n\
-  -h, --help               display this help and exit\n\
-  -V, --version            output version information and exit\n\
+      --cc-user=USERNAME                CC Server admin user\n\
+      --cc-pass=PASSWORD                CC Server admin pass\n\
+      --cc-access-token=T               CC Server access token for CC Client\n\
+      --cc-port=N                       CC Server\n\
+      --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
+      --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
+# endif             
+"\              
+      --no-color                        disable colored output\n"
+# ifdef HAVE_SYSLOG_H               
+"\              
+  -S, --syslog                          use system log for output messages\n"
+# endif             
+"\              
+  -B, --background                      run the miner in the background\n\
+  -c, --config=FILE                     load a JSON-format configuration file\n\
+  -l, --log-file=FILE                   log all output to a file\n\
+  -h, --help                            display this help and exit\n\
+  -V, --version                         output version information and exit\n\
 ";
 
 
@@ -124,6 +145,14 @@ static struct option const options[] = {
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
+    { "cc-url",           1, nullptr, 4003 },
+    { "cc-access-token",  1, nullptr, 4004 },
+    { "cc-worker-id",     1, nullptr, 4005 },
+    { "cc-port",          1, nullptr, 4006 },
+    { "cc-user",          1, nullptr, 4007 },
+    { "cc-pass",          1, nullptr, 4008 },
+    { "cc-client-config-folder",    1, nullptr, 4009 },
+    { "cc-custom-dashboard",        1, nullptr, 4010 },
     { 0, 0, 0, 0 }
 };
 
@@ -169,6 +198,23 @@ static struct option const api_options[] = {
 };
 
 
+static struct option const cc_client_options[] = {
+    { "url",           1, nullptr, 4003 },
+    { "access-token",  1, nullptr, 4004 },
+    { "worker-id",     1, nullptr, 4005 },
+    { 0, 0, 0, 0 }
+};
+
+static struct option const cc_server_options[] = {
+    { "port",                   1, nullptr, 4006 },
+    { "access-token",           1, nullptr, 4004 },
+    { "user",                   1, nullptr, 4007 },
+    { "pass",                   1, nullptr, 4008 },
+    { "client-config-folder",   1, nullptr, 4009 },
+    { "custom-dashboard",       1, nullptr, 4010 },
+    { 0, 0, 0, 0 }
+};
+
 static const char *algo_names[] = {
     "cryptonight",
 #   ifndef XMRIG_NO_AEON
@@ -204,10 +250,18 @@ Options::Options(int argc, char **argv) :
     m_ready(false),
     m_safe(false),
     m_syslog(false),
+    m_configFile(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
     m_logFile(nullptr),
     m_userAgent(nullptr),
+    m_ccUrl(nullptr),
+    m_ccToken(nullptr),
+    m_ccWorkerId(nullptr),
+    m_ccAdminUser(nullptr),
+    m_ccAdminPass(nullptr),
+    m_ccClientConfigFolder(nullptr),
+    m_ccCustomDashboard(nullptr),
     m_algo(0),
     m_algoVariant(0),
     m_apiPort(0),
@@ -218,6 +272,7 @@ Options::Options(int argc, char **argv) :
     m_retries(5),
     m_retryPause(5),
     m_threads(0),
+    m_ccPort(0),
     m_affinity(-1L)
 {
     m_pools.push_back(new Url());
@@ -240,6 +295,17 @@ Options::Options(int argc, char **argv) :
         return;
     }
 
+
+#ifdef XMRIG_CC_SERVER
+    if (m_ccPort == 0) {
+        parseConfig(Platform::defaultConfigName());
+    }
+
+    if (m_ccPort == 0) {
+        fprintf(stderr, "No CC Server Port supplied. Exiting.\n");
+        return;
+    }
+#else
     if (!m_pools[0]->isValid()) {
         parseConfig(Platform::defaultConfigName());
     }
@@ -253,6 +319,7 @@ Options::Options(int argc, char **argv) :
     if (m_algoVariant == AV2_AESNI_DOUBLE || m_algoVariant == AV4_SOFT_AES_DOUBLE) {
         m_doubleHash = true;
     }
+#endif
 
     if (!m_threads) {
         m_threads = Cpu::optimalThreadsCount(m_algo, m_doubleHash, m_maxCpuUsage);
@@ -364,6 +431,41 @@ bool Options::parseArg(int key, const char *arg)
         m_apiWorkerId = strdup(arg);
         break;
 
+    case 4003: /* --cc-url */
+        free(m_ccUrl);
+        m_ccUrl = strdup(arg);
+        break;
+
+    case 4004: /* --cc-access-token */
+        free(m_ccToken);
+        m_ccToken = strdup(arg);
+        break;
+
+    case 4005: /* --cc-worker-id */
+        free(m_ccWorkerId);
+        m_ccWorkerId = strdup(arg);
+        break;
+
+    case 4007: /* --cc-user */
+        free(m_ccAdminUser);
+        m_ccAdminUser = strdup(arg);
+        break;
+
+    case 4008: /* --cc-pass */
+        free(m_ccAdminPass);
+        m_ccAdminPass = strdup(arg);
+        break;
+
+    case 4009: /* --cc-client-config-folder */
+        free(m_ccClientConfigFolder);
+        m_ccClientConfigFolder = strdup(arg);
+        break;
+
+    case 4010: /* --cc-custom-dashboard */
+        free(m_ccCustomDashboard);
+        m_ccCustomDashboard = strdup(arg);
+        break;
+
     case 'r':  /* --retries */
     case 'R':  /* --retry-pause */
     case 'v':  /* --av */
@@ -372,6 +474,8 @@ bool Options::parseArg(int key, const char *arg)
     case 1007: /* --print-time */
     case 1021: /* --cpu-priority */
     case 4000: /* --api-port */
+        return parseArg(key, strtol(arg, nullptr, 10));
+    case 4006: /* --cc-port */
         return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'B':  /* --background */
@@ -507,6 +611,12 @@ bool Options::parseArg(int key, uint64_t arg)
         }
         break;
 
+    case 4006: /* --cc-port */
+        if (arg <= 65536) {
+            m_ccPort = (int) arg;
+        }
+        break;
+
     default:
         break;
     }
@@ -574,6 +684,8 @@ Url *Options::parseUrl(const char *arg) const
 
 void Options::parseConfig(const char *fileName)
 {
+    m_configFile = fileName;
+
     rapidjson::Document doc;
     if (!getJSON(fileName, doc)) {
         return;
@@ -600,6 +712,20 @@ void Options::parseConfig(const char *fileName)
     if (api.IsObject()) {
         for (size_t i = 0; i < ARRAY_SIZE(api_options); i++) {
             parseJSON(&api_options[i], api);
+        }
+    }
+
+    const rapidjson::Value &ccClient = doc["cc-client"];
+    if (ccClient.IsObject()) {
+        for (size_t i = 0; i < ARRAY_SIZE(cc_client_options); i++) {
+            parseJSON(&cc_client_options[i], ccClient);
+        }
+    }
+
+    const rapidjson::Value &ccServer = doc["cc-server"];
+    if (ccServer.IsObject()) {
+        for (size_t i = 0; i < ARRAY_SIZE(cc_server_options); i++) {
+            parseJSON(&cc_server_options[i], ccServer);
         }
     }
 }

@@ -24,27 +24,24 @@
 
 #include <uv.h>
 
-#include "server/Service.h"
 #include "CCServer.h"
+#include "cc/Service.h"
+#include "cc/Httpd.h"
 #include "Console.h"
 #include "log/ConsoleLog.h"
 #include "log/FileLog.h"
 #include "log/Log.h"
 #include "Options.h"
 #include "Summary.h"
-#include "server/Httpd.h"
 
 #ifdef HAVE_SYSLOG_H
 #   include "log/SysLog.h"
 #endif
 
-
-
 CCServer *CCServer::m_self = nullptr;
 
 
-
-CCServer::CCServer(int argc, char **argv) :
+CCServer::CCServer(int argc, char** argv) :
     m_console(nullptr),
     m_httpd(nullptr),
     m_options(nullptr)
@@ -74,9 +71,7 @@ CCServer::CCServer(int argc, char **argv) :
 #   endif
 
     uv_signal_init(uv_default_loop(), &m_signal);
-
 }
-
 
 CCServer::~CCServer()
 {
@@ -85,7 +80,6 @@ CCServer::~CCServer()
     delete m_httpd;
     delete m_console;
 }
-
 
 int CCServer::start()
 {
@@ -101,7 +95,7 @@ int CCServer::start()
 
     Service::start();
 
-    m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken());
+    m_httpd = new Httpd(m_options);
     m_httpd->start();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
@@ -112,20 +106,12 @@ int CCServer::start()
     return r;
 }
 
-
 void CCServer::onConsoleCommand(char command)
 {
     switch (command) {
-    case 'c':
-    case 'C':
-        break;
-
-    case 'h':
-    case 'H':
-        break;
-
-    case 'r':
-    case 'R':
+    case 'q':
+    case 'Q':
+        stop();
         break;
 
     case 3:
@@ -138,14 +124,12 @@ void CCServer::onConsoleCommand(char command)
     }
 }
 
-
 void CCServer::stop()
 {
     uv_stop(uv_default_loop());
 }
 
-
-void CCServer::onSignal(uv_signal_t *handle, int signum)
+void CCServer::onSignal(uv_signal_t* handle, int signum)
 {
     switch (signum)
     {

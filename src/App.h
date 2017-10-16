@@ -35,7 +35,7 @@ class Console;
 class Httpd;
 class Network;
 class Options;
-
+class CCClient;
 
 class App : public IConsoleListener
 {
@@ -44,6 +44,8 @@ public:
   ~App();
 
   int exec();
+
+  static void reloadConfig();
 
 protected:
   void onConsoleCommand(char command) override;
@@ -60,6 +62,7 @@ private:
   Httpd *m_httpd;
   Network *m_network;
   Options *m_options;
+  CCClient *m_ccclient;
   uv_signal_t m_signal;
 };
 

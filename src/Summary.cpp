@@ -138,6 +138,16 @@ static void print_api()
 }
 #endif
 
+#ifndef XMRIG_NO_CC
+static void print_cc()
+{
+    if (Options::i()->ccUrl() == nullptr) {
+        return;
+    }
+
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mCC Server:    \x1B[01;36m%s" : " * CC Server:    %s", Options::i()->ccUrl());
+}
+#endif
 
 static void print_commands()
 {
@@ -160,6 +170,10 @@ void Summary::print()
 
 #   ifndef XMRIG_NO_API
     print_api();
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    print_cc();
 #   endif
 
     print_commands();

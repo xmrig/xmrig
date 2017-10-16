@@ -22,12 +22,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstring>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
 
 #include "log/Log.h"
-#include "server/ControlCommand.h"
+#include "ControlCommand.h"
 
 ControlCommand::ControlCommand()
     : m_command(Command::START)
@@ -41,49 +40,45 @@ ControlCommand::ControlCommand(ControlCommand::Command command)
 
 }
 
-bool ControlCommand::parseFromJson(const std::string &json)
+bool ControlCommand::parseFromJsonString(const std::string& json)
 {
     bool result = false;
 
     rapidjson::Document document;
     if (!document.Parse(json.c_str()).HasParseError()) {
-        if (document.HasMember("control_command"))
-        {
-            rapidjson::Value controlCommand = document["control_command"].GetObject();
-            if (controlCommand.HasMember("command")) {
-                m_command = static_cast<Command>(controlCommand["command"].GetUint());
-                result = true;
-            }
-            else {
-                LOG_ERR("Parse Error, JSON does not contain: command");
-            }
-        } else {
-            LOG_ERR("Parse Error, JSON does not contain: control_command");
-        }
-    }
-    else {
-        LOG_ERR("Parse Error Occured: %d", document.GetParseError());
+        result = parseFromJson(document);
     }
 
     return result;
 }
 
-std::string ControlCommand::toJson()
+bool ControlCommand::parseFromJson(const rapidjson::Document& document)
 {
-    rapidjson::Document document;
-    document.SetObject();
+    bool result = false;
 
+    if (document.HasMember("control_command")) {
+        rapidjson::Value::ConstObject controlCommand = document["control_command"].GetObject();
+        if (controlCommand.HasMember("command")) {
+            m_command = static_cast<Command>(controlCommand["command"].GetUint());
+            result = true;
+        }
+        else {
+            LOG_ERR("Parse Error, JSON does not contain: command");
+        }
+    } else {
+        LOG_ERR("Parse Error, JSON does not contain: control_command");
+    }
+
+    return result;
+}
+
+rapidjson::Value ControlCommand::toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator)
+{
     rapidjson::Value controlCommand(rapidjson::kObjectType);
-    controlCommand.AddMember("command", m_command, document.GetAllocator());
 
-    document.AddMember("control_command", controlCommand, document.GetAllocator());
+    controlCommand.AddMember("command", m_command, allocator);
 
-    rapidjson::StringBuffer buffer(0, 1024);
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    writer.SetMaxDecimalPlaces(10);
-    document.Accept(writer);
-
-    return strdup(buffer.GetString());;
+    return controlCommand;
 }
 
 void ControlCommand::setCommand(ControlCommand::Command command)

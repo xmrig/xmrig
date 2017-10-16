@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,31 +22,37 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SERVICE_H__
-#define __SERVICE_H__
-
+#ifndef __CONTROL_COMMAND_H__
+#define __CONTROL_COMMAND_H__
 
 #include <string>
-#include <uv.h>
-#include <microhttpd.h>
-#include <map>
-#include "ClientStatus.h"
-#include "ControlCommand.h"
+#include <vector>
+#include "rapidjson/document.h"
 
-class Service
+class ControlCommand
 {
 public:
-    static bool start();
-    static void release();
+    enum Command
+    {
+        START,
+        STOP,
+        RESTART,
+        UPDATE_CONFIG,
+        HALT
+    };
 
-    static unsigned get(const std::string &url, std::string &resp);
-    static unsigned post(const std::string &url, const std::string &data, std::string &resp);
+    ControlCommand();
+    explicit ControlCommand(Command command);
+
+    rapidjson::Value toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
+    bool parseFromJsonString(const std::string& json);
+    bool parseFromJson(const rapidjson::Document& document);
+
+    Command getCommand() const;
+    void setCommand(Command command);
 
 private:
-    static std::map<std::string, ClientStatus> m_clientStatus;
-    static std::map<std::string, ControlCommand> m_clientCommand;
-
-    static uv_mutex_t m_mutex;
+    Command m_command;
 };
 
-#endif /* __SERVICE_H__ */
+#endif /* __CONTROL_COMMAND_H__ */

@@ -6,6 +6,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -51,10 +52,10 @@ static void print_versions()
 static void print_commands()
 {
     if (Options::i()->colors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mm\x1B[01;37miners");
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mq\x1B[01;37muit");
     }
     else {
-        Log::i()->text(" * COMMANDS:     'm' miners");
+        Log::i()->text(" * COMMANDS:     'q' Quit");
     }
 }
 
@@ -62,5 +63,5 @@ static void print_commands()
 void Summary::print()
 {
     print_versions();
-    //print_commands();
+    print_commands();
 }

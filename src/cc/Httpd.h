@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -28,16 +29,17 @@
 #include <sstream>
 #include <uv.h>
 
+#include "Options.h"
+
 
 struct MHD_Connection;
 struct MHD_Daemon;
 struct MHD_Response;
 
-
 class Httpd
 {
 public:
-    Httpd(int port, const char *accessToken);
+    Httpd(const Options *options);
     bool start();
 
 private:
@@ -47,22 +49,17 @@ private:
 		std::stringstream data;
     } ConnectionContext;
 
-    static int sendHTMLResponse(MHD_Connection *connection, unsigned status, MHD_Response *rsp);
-    static int sendJSONResponse(MHD_Connection *connection, unsigned status, MHD_Response *rsp);
-    static int sendResponse(MHD_Connection *connection, unsigned status, MHD_Response *rsp, const char *contentType);
+    static int sendResponse(MHD_Connection* connection, unsigned status, MHD_Response* rsp, const char* contentType);
 
-    unsigned basicAuth(MHD_Connection *connection, std::string &resp);
-    unsigned tokenAuth(MHD_Connection *connection);
+    unsigned basicAuth(MHD_Connection* connection, std::string &resp);
+    unsigned tokenAuth(MHD_Connection* connection);
 
-    static int handler(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls);
-    static int handleGET(MHD_Connection *connection, const char *url);
-    static int handlePOST(MHD_Connection *connection, const char *url, const char *upload_data, size_t *upload_data_size, void **con_cls);
+    static int handler(void* httpd, MHD_Connection* connection, const char* url, const char* method, const char* version, const char* upload_data, size_t* upload_data_size, void**con_cls);
+    static int handleGET(const Httpd* httpd, MHD_Connection* connection, const char* url);
+    static int handlePOST(const Httpd* httpd, MHD_Connection* connection, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls);
 
-    const char *m_accessToken;
-    const char *m_adminUser;
-    const char *m_adminPassword;
-    const int m_port;
-    MHD_Daemon *m_daemon;
+    const Options* m_options;
+    MHD_Daemon* m_daemon;
 
 };
 

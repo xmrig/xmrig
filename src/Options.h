@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -56,28 +57,39 @@ public:
     static inline Options* i() { return m_self; }
     static Options *parse(int argc, char **argv);
 
-    inline bool background() const                { return m_background; }
-    inline bool colors() const                    { return m_colors; }
-    inline bool doubleHash() const                { return m_doubleHash; }
-    inline bool hugePages() const                 { return m_hugePages; }
-    inline bool syslog() const                    { return m_syslog; }
-    inline const char *apiToken() const           { return m_apiToken; }
-    inline const char *apiWorkerId() const        { return m_apiWorkerId; }
-    inline const char *logFile() const            { return m_logFile; }
-    inline const char *userAgent() const          { return m_userAgent; }
-    inline const std::vector<Url*> &pools() const { return m_pools; }
-    inline int algo() const                       { return m_algo; }
-    inline int algoVariant() const                { return m_algoVariant; }
-    inline int apiPort() const                    { return m_apiPort; }
-    inline int donateLevel() const                { return m_donateLevel; }
-    inline int printTime() const                  { return m_printTime; }
-    inline int priority() const                   { return m_priority; }
-    inline int retries() const                    { return m_retries; }
-    inline int retryPause() const                 { return m_retryPause; }
-    inline int threads() const                    { return m_threads; }
-    inline int64_t affinity() const               { return m_affinity; }
+    inline bool background() const                  { return m_background; }
+    inline bool colors() const                      { return m_colors; }
+    inline bool doubleHash() const                  { return m_doubleHash; }
+    inline bool hugePages() const                   { return m_hugePages; }
+    inline bool syslog() const                      { return m_syslog; }
+    inline const char *configFile() const           { return m_configFile; }
+    inline const char *apiToken() const             { return m_apiToken; }
+    inline const char *apiWorkerId() const          { return m_apiWorkerId; }
+    inline const char *logFile() const              { return m_logFile; }
+    inline const char *userAgent() const            { return m_userAgent; }
+    inline const char *ccUrl() const                { return m_ccUrl; }
+    inline const char *ccToken() const              { return m_ccToken; }
+    inline const char *ccWorkerId() const           { return m_ccWorkerId; }
+    inline const char *ccAdminUser() const          { return m_ccAdminUser; }
+    inline const char *ccAdminPass() const          { return m_ccAdminPass; }
+    inline const char *ccClientConfigFolder() const { return m_ccClientConfigFolder; }
+    inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard; }
+    inline const std::vector<Url*> &pools() const   { return m_pools; }
+    inline int algo() const                         { return m_algo; }
+    inline int algoVariant() const                  { return m_algoVariant; }
+    inline int apiPort() const                      { return m_apiPort; }
+    inline int donateLevel() const                  { return m_donateLevel; }
+    inline int printTime() const                    { return m_printTime; }
+    inline int priority() const                     { return m_priority; }
+    inline int retries() const                      { return m_retries; }
+    inline int retryPause() const                   { return m_retryPause; }
+    inline int threads() const                      { return m_threads; }
+    inline int ccPort() const                       { return m_ccPort; }
+    inline int64_t affinity() const                 { return m_affinity; }
 
-    inline static void release()                  { delete m_self; }
+    inline static void release()                    { delete m_self; }
+
+    void parseConfig(const char *fileName);
 
     const char *algoName() const;
 
@@ -94,7 +106,6 @@ private:
     bool parseArg(int key, uint64_t arg);
     bool parseBoolean(int key, bool enable);
     Url *parseUrl(const char *arg) const;
-    void parseConfig(const char *fileName);
     void parseJSON(const struct option *option, const rapidjson::Value &object);
     void showUsage(int status) const;
     void showVersion(void);
@@ -105,6 +116,8 @@ private:
 #   ifndef XMRIG_NO_AEON
     int getAlgoVariantLite() const;
 #   endif
+
+    const char* m_configFile;
 
     bool m_background;
     bool m_colors;
@@ -117,6 +130,13 @@ private:
     char *m_apiWorkerId;
     char *m_logFile;
     char *m_userAgent;
+    char *m_ccUrl;
+    char *m_ccToken;
+    char *m_ccWorkerId;
+    char *m_ccAdminUser;
+    char *m_ccAdminPass;
+    char *m_ccClientConfigFolder;
+    char *m_ccCustomDashboard;
     int m_algo;
     int m_algoVariant;
     int m_apiPort;
@@ -127,6 +147,7 @@ private:
     int m_retries;
     int m_retryPause;
     int m_threads;
+    int m_ccPort;
     int64_t m_affinity;
     std::vector<Url*> m_pools;
 };

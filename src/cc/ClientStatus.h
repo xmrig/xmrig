@@ -26,6 +26,7 @@
 #define __CLIENT_STATUS_H__
 
 #include <string>
+#include <ctime>
 #include "rapidjson/document.h"
 
 class ClientStatus
@@ -34,14 +35,14 @@ public:
 
     ClientStatus();
 
-    const std::string getMiner() const;
-    void setMiner(const std::string &miner);
+    const std::string getClientId() const;
+    void setClientId(const std::string& clientId);
 
     const std::string getCurrentPool() const;
-    void setCurrentPool(const std::string &currentPool);
+    void setCurrentPool(const std::string& currentPool);
 
     const std::string getCurrentStatus() const;
-    void setCurrentStatus(const std::string &currentStatus);
+    void setCurrentStatus(const std::string& currentStatus);
 
     double getHashrateShort() const;
     void setHashrateShort(double hashrateShort);
@@ -55,31 +56,42 @@ public:
     uint64_t getSharesGood() const;
     void setSharesGood(uint64_t sharesGood);
 
-    uint64_t getSharedTotal() const;
-    void setSharedTotal(uint64_t sharedTotal);
+    uint64_t getSharesTotal() const;
+    void setSharesTotal(uint64_t sharesTotal);
 
     uint64_t getHashesTotal() const;
     void setHashesTotal(uint64_t hashesTotal);
 
-    const uint32_t getLastStatusUpdate() const;
-    void setLastStatusUpdate(uint32_t lastStatusUpdate);
+    void setHashrateHighest(double hashrateHighest);
+    double getHashrateHighest() const;
 
-    std::string toJson();
-    void parseFromJson(const rapidjson::Document &document);
+    void setAvgTime(uint32_t avgTime);
+    uint32_t getAvgTime() const;
+
+    std::time_t getLastStatusUpdate() const;
+
+    std::string toJsonString();
+    rapidjson::Value toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
+    bool parseFromJson(const rapidjson::Document& document);
+
 
 private:
-    std::string m_miner;
+    std::string m_clientId;
     std::string m_currentPool;
     std::string m_currentStatus;
 
     double m_hashrateShort;
     double m_hashrateMedium;
     double m_hashrateLong;
+    double m_hashrateHighest;
 
     uint64_t m_sharesGood;
-    uint64_t m_sharedTotal;
+    uint64_t m_sharesTotal;
     uint64_t m_hashesTotal;
-    uint32_t m_lastStatusUpdate;
+
+    uint32_t m_avgTime;
+
+    std::time_t m_lastStatusUpdate;
 };
 
 #endif /* __CLIENT_STATUS_H__ */

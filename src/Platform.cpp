@@ -53,7 +53,11 @@ const char *Platform::defaultConfigName()
 #       endif
 
         if (p) {
+#ifdef XMRIG_CC_SERVER
+            strcpy(p + 1, "config_cc.json");
+#else
             strcpy(p + 1, "config.json");
+#endif
             return m_defaultConfigName;
         }
     }
