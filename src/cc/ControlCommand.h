@@ -36,7 +36,7 @@ public:
     {
         START,
         STOP,
-        RESTART,
+        RELOAD,
         UPDATE_CONFIG,
         HALT
     };

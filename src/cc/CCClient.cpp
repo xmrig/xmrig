@@ -123,9 +123,9 @@ void CCClient::publishClientStatusReport()
             } else if (controlCommand.getCommand() == ControlCommand::UPDATE_CONFIG) {
                 LOG_INFO("Command: UPDATE_CONFIG received -> Updating config");
                 updateConfig();
-            } else if (controlCommand.getCommand() == ControlCommand::RESTART) {
-                LOG_INFO("Command: RESTART received -> Restart");
-                App::restart();
+            } else if (controlCommand.getCommand() == ControlCommand::RELOAD) {
+                LOG_INFO("Command: RELOAD received -> Reload");
+                App::reloadConfig();
             } else {
                 LOG_ERR("Command: GET_CONFIG received -> NOT IMPLEMENTED YET!");
             }
@@ -157,8 +157,8 @@ void CCClient::updateConfig()
                 clientConfigFile << buffer.GetString();
                 clientConfigFile.close();
 
-                LOG_INFO("Config update done. Restarting.");
-                App::restart();
+                LOG_INFO("Config update done. Reload.");
+                App::reloadConfig();
             } else {
                 LOG_ERR("Not able to store client config to file %s.", m_self->m_options->configFile());
             }

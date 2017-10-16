@@ -225,16 +225,12 @@ unsigned Service::setClientStatus(const std::string& clientId, const std::string
         return MHD_HTTP_BAD_REQUEST;
     }
 
-    if (m_clientCommand.find(clientId) != m_clientCommand.end()) {
-        m_clientCommand[clientId] = ControlCommand();
-    }
-
     return getClientCommand(clientId, resp);
 }
 
 unsigned Service::getClientCommand(const std::string& clientId, std::string& resp)
 {
-    if (m_clientCommand.find(clientId) != m_clientCommand.end()) {
+    if (m_clientCommand.find(clientId) == m_clientCommand.end()) {
         m_clientCommand[clientId] = ControlCommand();
     }
 

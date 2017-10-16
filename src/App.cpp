@@ -206,7 +206,8 @@ void App::close()
 
 void App::reloadConfig()
 {
-    // reload config
+    // reload config WIP
+    /*
     m_self->m_options->parseConfig(m_self->m_options->configFile());
 
     Platform::release();
@@ -221,8 +222,7 @@ void App::reloadConfig()
     Summary::print();
 
     Workers::start(m_self->m_options->affinity(), m_self->m_options->priority());
-
-    m_self->m_options
+     */
 }
 
 void App::onSignal(uv_signal_t *handle, int signum)
