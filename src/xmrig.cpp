@@ -25,7 +25,13 @@
 
 
 int main(int argc, char **argv) {
-    App app(argc, argv);
+    for (;;) {
+        App* app = new App(argc, argv);
+        int res = app->start();
+        delete app;
 
-    return app.exec();
+        if (res != ERESTART) {
+            break;
+        }
+    }
 }

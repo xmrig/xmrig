@@ -31,9 +31,32 @@
 
 class ClientStatus
 {
-public:
 
+public:
+    enum Status {
+        RUNNING,
+        PAUSED,
+        CONFIG_UPDATED
+    };
+
+public:
     ClientStatus();
+
+    inline const char *toString (Status status)
+    {
+        return status_str[static_cast<int>(status)];
+    }
+
+    inline Status toStatus (const char *status)
+    {
+        const int n = sizeof(status_str) / sizeof(status_str[0]);
+        for (int i = 0; i < n; ++i)
+        {
+            if (strcmp(status_str[i], status) == 0)
+                return (Status) i;
+        }
+        return Status::RUNNING;
+    }
 
     const std::string getClientId() const;
     void setClientId(const std::string& clientId);
@@ -41,8 +64,8 @@ public:
     const std::string getCurrentPool() const;
     void setCurrentPool(const std::string& currentPool);
 
-    const std::string getCurrentStatus() const;
-    void setCurrentStatus(const std::string& currentStatus);
+    Status getCurrentStatus() const;
+    void setCurrentStatus(Status currentStatus);
 
     double getHashrateShort() const;
     void setHashrateShort(double hashrateShort);
@@ -76,9 +99,16 @@ public:
 
 
 private:
+    const char* status_str[3] = {
+            "RUNNING",
+            "PAUSED",
+            "CONFIG_UPDATED"
+    };
+
+    Status m_currentStatus;
+
     std::string m_clientId;
     std::string m_currentPool;
-    std::string m_currentStatus;
 
     double m_hashrateShort;
     double m_hashrateMedium;

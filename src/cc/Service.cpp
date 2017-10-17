@@ -60,7 +60,7 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
 {
     uv_mutex_lock(&m_mutex);
 
-    unsigned resultCode = MHD_HTTP_BAD_REQUEST;
+    unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
     LOG_INFO("GET(url='%s', clientId='%s')", url.c_str(), clientId.c_str());
 
@@ -72,12 +72,6 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
         if (!clientId.empty()) {
             if (url.rfind("/client/getConfig", 0) == 0 || url.rfind("/admin/getClientConfig", 0) == 0) {
                 resultCode = getClientConfig(options, clientId, resp);
-                if (url.rfind("/client/getConfig", 0) == 0) {
-                    std::map<std::string,ControlCommand>::iterator iter = m_clientCommand.find(clientId);
-                    if (iter != m_clientCommand.end()) {
-                        m_clientCommand.erase(iter);
-                    }
-                }
             } else if (url.rfind("/admin/getClientCommand", 0) == 0) {
                 resultCode = getClientCommand(clientId, resp);
             }
@@ -96,7 +90,7 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
 {
     uv_mutex_lock(&m_mutex);
 
-    unsigned resultCode = MHD_HTTP_BAD_REQUEST;
+    unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
     LOG_INFO("POST(url='%s', clientId='%s', data='%s')", url.c_str(), clientId.c_str(), data.c_str());
 
@@ -212,6 +206,8 @@ unsigned Service::getClientStatusList(std::string& resp)
 
 unsigned Service::setClientStatus(const std::string& clientId, const std::string& data, std::string& resp)
 {
+    int resultCode = MHD_HTTP_BAD_REQUEST;
+
     rapidjson::Document document;
     if (!document.Parse(data.c_str()).HasParseError()) {
         LOG_INFO("Status from client: %s", clientId.c_str());
@@ -220,12 +216,17 @@ unsigned Service::setClientStatus(const std::string& clientId, const std::string
         clientStatus.parseFromJson(document);
 
         m_clientStatus[clientId] = clientStatus;
+
+        resultCode = getClientCommand(clientId, resp);
+
+        if (m_clientCommand[clientId].isOneTimeCommand()) {
+            m_clientCommand.erase(clientId);
+        }
     } else {
         LOG_ERR("Parse Error Occured: %d", document.GetParseError());
-        return MHD_HTTP_BAD_REQUEST;
     }
 
-    return getClientCommand(clientId, resp);
+    return resultCode;
 }
 
 unsigned Service::getClientCommand(const std::string& clientId, std::string& resp)

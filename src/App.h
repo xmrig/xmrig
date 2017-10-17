@@ -43,20 +43,22 @@ public:
   App(int argc, char **argv);
   ~App();
 
-  int exec();
+  int start();
 
-  static void reloadConfig();
+  static void restart();
 
 protected:
   void onConsoleCommand(char command) override;
 
 private:
   void background();
-  void close();
+  void stop(bool restart);
 
   static void onSignal(uv_signal_t *handle, int signum);
 
   static App *m_self;
+
+  bool m_restart;
 
   Console *m_console;
   Httpd *m_httpd;

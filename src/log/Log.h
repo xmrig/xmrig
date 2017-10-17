@@ -57,7 +57,7 @@ public:
     static inline Log* i()                       { return m_self; }
     static inline void add(ILogBackend *backend) { i()->m_backends.push_back(backend); }
     static inline void init()                    { if (!m_self) { m_self = new Log();} }
-    static inline void release()                 { delete m_self; }
+    static inline void release()                 { delete m_self; m_self = nullptr; }
 
     void message(Level level, const char* fmt, ...);
     void text(const char* fmt, ...);

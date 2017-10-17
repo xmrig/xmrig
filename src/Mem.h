@@ -28,9 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-
 #include "align.h"
-
+#include "Options.h"
 
 struct cryptonight_ctx;
 
@@ -44,7 +43,7 @@ public:
         Lock               = 4
     };
 
-    static bool allocate(int algo, int threads, bool doubleHash, bool enabled);
+    static bool allocate(const Options* options);
     static cryptonight_ctx *create(int threadId);
     static void *calloc(size_t num, size_t size);
     static void release();

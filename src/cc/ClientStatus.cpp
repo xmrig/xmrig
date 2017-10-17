@@ -63,12 +63,12 @@ void ClientStatus::setCurrentPool(const std::string& currentPool)
     m_currentPool = currentPool;
 }
 
-const std::string ClientStatus::getCurrentStatus() const
+ClientStatus::Status ClientStatus::getCurrentStatus() const
 {
     return m_currentStatus;
 }
 
-void ClientStatus::setCurrentStatus(const std::string& currentStatus)
+void ClientStatus::setCurrentStatus(Status currentStatus)
 {
     m_currentStatus = currentStatus;
 }
@@ -175,7 +175,7 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
         }
 
         if (clientStatus.HasMember("current_status")) {
-            m_currentStatus = clientStatus["current_status"].GetString();
+            m_currentStatus = toStatus(clientStatus["current_status"].GetString());
         }
 
         if (clientStatus.HasMember("hashrate_short")) {
@@ -227,7 +227,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
 
     clientStatus.AddMember("client_id", rapidjson::StringRef(m_clientId.c_str()), allocator);
     clientStatus.AddMember("current_pool", rapidjson::StringRef(m_currentPool.c_str()), allocator);
-    clientStatus.AddMember("current_status", rapidjson::StringRef(m_currentStatus.c_str()), allocator);
+    clientStatus.AddMember("current_status", rapidjson::StringRef(toString(m_currentStatus)), allocator);
 
     clientStatus.AddMember("hashrate_short", m_hashrateShort, allocator);
     clientStatus.AddMember("hashrate_medium", m_hashrateMedium, allocator);

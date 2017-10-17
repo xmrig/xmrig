@@ -88,7 +88,7 @@ void CCClient::updateNetworkState(const NetworkState &network)
 {
     uv_mutex_lock(&m_mutex);
 
-    m_self->m_clientStatus.setCurrentStatus(Workers::isEnabled() ? "mining" : "paused");
+    m_self->m_clientStatus.setCurrentStatus(Workers::isEnabled() ? ClientStatus::RUNNING : ClientStatus::PAUSED);
     m_self->m_clientStatus.setCurrentPool(network.pool);
     m_self->m_clientStatus.setSharesGood(network.accepted);
     m_self->m_clientStatus.setSharesTotal(network.accepted + network.rejected);
@@ -100,50 +100,55 @@ void CCClient::updateNetworkState(const NetworkState &network)
 
 void CCClient::publishClientStatusReport()
 {
-    std::string requestUrl = m_self->m_serverURL + "/client/setClientStatus?clientId=" + m_self->m_clientStatus.getClientId();
+    std::string requestUrl = m_self->m_serverURL
+                             + "/client/setClientStatus?clientId="
+                             + m_self->m_clientStatus.getClientId();
+
     std::string requestBuffer = m_self->m_clientStatus.toJsonString();
     std::string responseBuffer;
 
     CURLcode res = performCurl(requestUrl, requestBuffer, "POST", responseBuffer);
     if (res != CURLE_OK) {
-        LOG_ERR("CCClient error: %s", curl_easy_strerror(res));
+        LOG_ERR("[CC-Client] error: \"%s\" -> %s",
+                curl_easy_strerror(res), requestUrl.c_str());
     } else {
         ControlCommand controlCommand;
         if (controlCommand.parseFromJsonString(responseBuffer)) {
             if (controlCommand.getCommand() == ControlCommand::START) {
                 if (!Workers::isEnabled()) {
-                    LOG_INFO("Command: START received -> Resuming");
+                    LOG_INFO("[CC-Client] Command: START received -> resume");
                     Workers::setEnabled(true);
                 }
             } else if (controlCommand.getCommand() == ControlCommand::STOP) {
-                if (!Workers::isEnabled()) {
-                    LOG_INFO("Command: STOP received -> Pausing");
-                    Workers::setEnabled(true);
+                if (Workers::isEnabled()) {
+                    LOG_INFO("[CC-Client] Command: STOP received -> pause");
+                    Workers::setEnabled(false);
                 }
             } else if (controlCommand.getCommand() == ControlCommand::UPDATE_CONFIG) {
-                LOG_INFO("Command: UPDATE_CONFIG received -> Updating config");
                 updateConfig();
-            } else if (controlCommand.getCommand() == ControlCommand::RELOAD) {
-                LOG_INFO("Command: RELOAD received -> Reload");
-                App::reloadConfig();
-            } else {
-                LOG_ERR("Command: GET_CONFIG received -> NOT IMPLEMENTED YET!");
+            } else if (controlCommand.getCommand() == ControlCommand::RESTART) {
+                App::restart();
+            } else if (controlCommand.getCommand() == ControlCommand::QUIT) {
+                // TODO
             }
         } else {
-            LOG_ERR("Unknown Command received from CC Server.");
+            LOG_ERR("[CC-Client] unknown command received from CC Server.");
         }
     }
 }
 
 void CCClient::updateConfig()
 {
-    std::string requestUrl = m_self->m_serverURL + "/client/getConfig?clientId=" + m_self->m_clientStatus.getClientId();
+    std::string requestUrl = m_self->m_serverURL
+                             + "/client/getConfig?clientId="
+                             + m_self->m_clientStatus.getClientId();
+
     std::string requestBuffer;
     std::string responseBuffer;
 
     CURLcode res = performCurl(requestUrl, requestBuffer, "GET", responseBuffer);
     if (res != CURLE_OK) {
-        LOG_ERR("CCClient error: %s", curl_easy_strerror(res));
+        LOG_ERR("[CC-Client] error: \"%s\" -> %s", curl_easy_strerror(res), requestUrl.c_str());
     } else {
         rapidjson::Document document;
         if (!document.Parse(responseBuffer.c_str()).HasParseError()) {
@@ -157,13 +162,13 @@ void CCClient::updateConfig()
                 clientConfigFile << buffer.GetString();
                 clientConfigFile.close();
 
-                LOG_INFO("Config update done. Reload.");
-                App::reloadConfig();
+                LOG_INFO("[CC-Client] config updated. restart.");
+                App::restart();
             } else {
-                LOG_ERR("Not able to store client config to file %s.", m_self->m_options->configFile());
+                LOG_ERR("[CC-Client] not able to store client config to file %s.", m_self->m_options->configFile());
             }
         } else{
-            LOG_ERR("Not able to store client config. The received client config is broken!");
+            LOG_ERR("[CC-Client] not able to store client config. received client config is broken!");
         }
     }
 }

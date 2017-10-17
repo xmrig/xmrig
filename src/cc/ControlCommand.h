@@ -32,17 +32,33 @@
 class ControlCommand
 {
 public:
-    enum Command
-    {
+    enum Command {
         START,
         STOP,
-        RELOAD,
         UPDATE_CONFIG,
-        HALT
+        RESTART,
+        QUIT
     };
 
+public:
     ControlCommand();
     explicit ControlCommand(Command command);
+
+    inline const char *toString (Command command)
+    {
+        return command_str[static_cast<int>(command)];
+    }
+
+    inline Command toCommand (const char *command)
+    {
+        const int n = sizeof(command_str) / sizeof(command_str[0]);
+        for (int i = 0; i < n; ++i)
+        {
+            if (strcmp(command_str[i], command) == 0)
+                return (Command) i;
+        }
+        return Command::START;
+    }
 
     rapidjson::Value toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
     bool parseFromJsonString(const std::string& json);
@@ -51,7 +67,17 @@ public:
     Command getCommand() const;
     void setCommand(Command command);
 
+    bool isOneTimeCommand() const;
+
 private:
+    const char* command_str[5] = {
+            "START",
+            "STOP",
+            "UPDATE_CONFIG",
+            "RESTART",
+            "QUIT"
+    };
+
     Command m_command;
 };
 

@@ -40,6 +40,11 @@ Console::Console(IConsoleListener *listener)
     uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
 }
 
+Console::~Console()
+{
+    uv_read_stop(reinterpret_cast<uv_stream_t*>(&m_tty));
+    uv_tty_reset_mode();
+}
 
 void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
@@ -47,7 +52,6 @@ void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t
     buf->len  = 1;
     buf->base = console->m_buf;
 }
-
 
 void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {

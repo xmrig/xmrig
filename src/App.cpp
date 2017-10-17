@@ -36,10 +36,8 @@
 #include "log/Log.h"
 #include "Mem.h"
 #include "net/Network.h"
-#include "Options.h"
 #include "Platform.h"
 #include "Summary.h"
-#include "version.h"
 #include "workers/Workers.h"
 #include "cc/CCClient.h"
 
@@ -57,6 +55,7 @@ App *App::m_self = nullptr;
 
 
 App::App(int argc, char **argv) :
+    m_restart(false),
     m_console(nullptr),
     m_httpd(nullptr),
     m_network(nullptr),
@@ -99,7 +98,12 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
-    uv_tty_reset_mode();
+    Log::release();
+    Options::release();
+    Mem::release();
+    Platform::release();
+
+    delete m_network;
 
 #   ifndef XMRIG_NO_HTTPD
     delete m_httpd;
@@ -110,10 +114,19 @@ App::~App()
 #   endif
 
     delete m_console;
+
+#   ifndef XMRIG_NO_API
+    Api::release();
+#   endif
+
+    uv_signal_stop(&m_signal);
+    uv_tty_reset_mode();
+
+    m_self = nullptr;
 }
 
 
-int App::exec()
+int App::start()
 {
     if (!m_options) {
         return 0;
@@ -130,7 +143,7 @@ int App::exec()
         return 1;
     }
 
-    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
+    Mem::allocate(m_options);
     Summary::print();
 
 #   ifndef XMRIG_NO_API
@@ -153,13 +166,7 @@ int App::exec()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
-    delete m_network;
-
-    Options::release();
-    Mem::release();
-    Platform::release();
-
-    return r;
+    return m_restart ? ERESTART : r;
 }
 
 
@@ -170,6 +177,11 @@ void App::onConsoleCommand(char command)
     case 'H':
         Workers::printHashrate(true);
         break;
+
+    case 'i':
+    case 'I':
+         restart();
+         break;
 
     case 'p':
     case 'P':
@@ -185,9 +197,10 @@ void App::onConsoleCommand(char command)
         }
         break;
 
+    case 'q':
+    case 'Q':
     case 3:
-        LOG_WARN("Ctrl+C received, exiting");
-        close();
+        stop(false);
         break;
 
     default:
@@ -196,33 +209,19 @@ void App::onConsoleCommand(char command)
 }
 
 
-void App::close()
+void App::stop(bool restart)
 {
+    m_restart = restart;
+
     m_network->stop();
     Workers::stop();
 
     uv_stop(uv_default_loop());
 }
 
-void App::reloadConfig()
+void App::restart()
 {
-    // reload config WIP
-    /*
-    m_self->m_options->parseConfig(m_self->m_options->configFile());
-
-    Platform::release();
-    Platform::init(m_self->m_options->userAgent());
-    Platform::setProcessPriority(m_self->m_options->priority());
-
-    m_self->m_network->stop();
-    Workers::stop(); // free resources here
-
-    Mem::release();
-    Mem::allocate(m_self->m_options->algo(), m_self->m_options->threads(), m_self->m_options->doubleHash(), m_self->m_options->hugePages());
-    Summary::print();
-
-    Workers::start(m_self->m_options->affinity(), m_self->m_options->priority());
-     */
+    m_self->stop(true);
 }
 
 void App::onSignal(uv_signal_t *handle, int signum)
@@ -245,7 +244,5 @@ void App::onSignal(uv_signal_t *handle, int signum)
         break;
     }
 
-    uv_signal_stop(handle);
-    m_self->close();
+    m_self->stop(false);
 }
-

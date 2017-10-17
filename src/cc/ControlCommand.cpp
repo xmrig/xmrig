@@ -34,7 +34,7 @@ ControlCommand::ControlCommand()
 
 }
 
-ControlCommand::ControlCommand(ControlCommand::Command command)
+ControlCommand::ControlCommand(Command command)
     : m_command(command)
 {
 
@@ -59,7 +59,7 @@ bool ControlCommand::parseFromJson(const rapidjson::Document& document)
     if (document.HasMember("control_command")) {
         rapidjson::Value::ConstObject controlCommand = document["control_command"].GetObject();
         if (controlCommand.HasMember("command")) {
-            m_command = static_cast<Command>(controlCommand["command"].GetUint());
+            m_command = toCommand(controlCommand["command"].GetString());
             result = true;
         }
         else {
@@ -76,12 +76,12 @@ rapidjson::Value ControlCommand::toJson(rapidjson::MemoryPoolAllocator<rapidjson
 {
     rapidjson::Value controlCommand(rapidjson::kObjectType);
 
-    controlCommand.AddMember("command", m_command, allocator);
+    controlCommand.AddMember("command", rapidjson::StringRef(toString(m_command)), allocator);
 
     return controlCommand;
 }
 
-void ControlCommand::setCommand(ControlCommand::Command command)
+void ControlCommand::setCommand(Command command)
 {
     m_command = command;
 }
@@ -89,4 +89,11 @@ void ControlCommand::setCommand(ControlCommand::Command command)
 ControlCommand::Command ControlCommand::getCommand() const
 {
     return m_command;
+}
+
+bool ControlCommand::isOneTimeCommand() const {
+
+    return m_command == ControlCommand::UPDATE_CONFIG ||
+           m_command == ControlCommand::RESTART ||
+           m_command == ControlCommand::QUIT;
 }
