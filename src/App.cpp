@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <uv.h>
+#include <zconf.h>
 
 #include "api/Api.h"
 #include "App.h"
@@ -51,7 +52,6 @@
 
 
 App *App::m_self = nullptr;
-
 
 
 App::App(int argc, char **argv) :
@@ -98,31 +98,7 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
-    Log::release();
-    Options::release();
-    Mem::release();
-    Platform::release();
 
-    delete m_network;
-
-#   ifndef XMRIG_NO_HTTPD
-    delete m_httpd;
-#   endif
-
-#   ifndef XMRIG_NO_CC
-    delete m_ccclient;
-#   endif
-
-    delete m_console;
-
-#   ifndef XMRIG_NO_API
-    Api::release();
-#   endif
-
-    uv_signal_stop(&m_signal);
-    uv_tty_reset_mode();
-
-    m_self = nullptr;
 }
 
 
@@ -166,9 +142,24 @@ int App::start()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
+    delete m_network;
+
+    Options::release();
+    Mem::release();
+    Platform::release();
+
+    uv_tty_reset_mode();
+
+#   ifndef XMRIG_NO_HTTPD
+    delete m_httpd;
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    delete m_ccclient;
+#   endif
+
     return m_restart ? ERESTART : r;
 }
-
 
 void App::onConsoleCommand(char command)
 {
@@ -177,11 +168,6 @@ void App::onConsoleCommand(char command)
     case 'H':
         Workers::printHashrate(true);
         break;
-
-    case 'i':
-    case 'I':
-         restart();
-         break;
 
     case 'p':
     case 'P':
@@ -200,7 +186,8 @@ void App::onConsoleCommand(char command)
     case 'q':
     case 'Q':
     case 3:
-        stop(false);
+        LOG_INFO(m_options->colors() ? "\x1B[01;33mquitting" : "quitting");
+        quit();
         break;
 
     default:
@@ -224,6 +211,11 @@ void App::restart()
     m_self->stop(true);
 }
 
+void App::quit()
+{
+    m_self->stop(false);
+}
+
 void App::onSignal(uv_signal_t *handle, int signum)
 {
     switch (signum)
@@ -244,5 +236,6 @@ void App::onSignal(uv_signal_t *handle, int signum)
         break;
     }
 
-    m_self->stop(false);
+    uv_signal_stop(handle);
+    App::quit();
 }

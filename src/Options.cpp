@@ -153,6 +153,7 @@ static struct option const options[] = {
     { "cc-pass",          1, nullptr, 4008 },
     { "cc-client-config-folder",    1, nullptr, 4009 },
     { "cc-custom-dashboard",        1, nullptr, 4010 },
+    { "daemonized",       0, nullptr, 4011 },
     { 0, 0, 0, 0 }
 };
 
@@ -250,6 +251,7 @@ Options::Options(int argc, char **argv) :
     m_ready(false),
     m_safe(false),
     m_syslog(false),
+    m_daemonized(false),
     m_configFile(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -295,7 +297,6 @@ Options::Options(int argc, char **argv) :
         return;
     }
 
-
 #ifdef XMRIG_CC_SERVER
     if (m_ccPort == 0) {
         parseConfig(Platform::defaultConfigName());
@@ -306,6 +307,14 @@ Options::Options(int argc, char **argv) :
         return;
     }
 #else
+
+    #ifndef XMRIG_NO_CC
+        if (!m_daemonized) {
+            fprintf(stderr, "\"" APP_ID "\" is compiled with CC support, please start the daemon instead.\n");
+            return;
+        }
+    #endif
+
     if (!m_pools[0]->isValid()) {
         parseConfig(Platform::defaultConfigName());
     }
@@ -464,6 +473,9 @@ bool Options::parseArg(int key, const char *arg)
     case 4010: /* --cc-custom-dashboard */
         free(m_ccCustomDashboard);
         m_ccCustomDashboard = strdup(arg);
+        break;
+    case 4011: /* --daemonized */
+        m_daemonized = true;
         break;
 
     case 'r':  /* --retries */

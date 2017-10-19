@@ -62,6 +62,7 @@ public:
     inline bool doubleHash() const                  { return m_doubleHash; }
     inline bool hugePages() const                   { return m_hugePages; }
     inline bool syslog() const                      { return m_syslog; }
+    inline bool daemonized() const                  { return m_daemonized; }
     inline const char *configFile() const           { return m_configFile; }
     inline const char *apiToken() const             { return m_apiToken; }
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
@@ -87,9 +88,7 @@ public:
     inline int ccPort() const                       { return m_ccPort; }
     inline int64_t affinity() const                 { return m_affinity; }
 
-    inline static void release()                    { delete m_self; }
-
-    void parseConfig(const char *fileName);
+    inline static void release()                  { delete m_self; }
 
     const char *algoName() const;
 
@@ -106,6 +105,7 @@ private:
     bool parseArg(int key, uint64_t arg);
     bool parseBoolean(int key, bool enable);
     Url *parseUrl(const char *arg) const;
+    void parseConfig(const char *fileName);
     void parseJSON(const struct option *option, const rapidjson::Value &object);
     void showUsage(int status) const;
     void showVersion(void);
@@ -126,6 +126,7 @@ private:
     bool m_ready;
     bool m_safe;
     bool m_syslog;
+    bool m_daemonized;
     char *m_apiToken;
     char *m_apiWorkerId;
     char *m_logFile;

@@ -118,9 +118,9 @@ uint64_t ClientStatus::getSharesTotal() const
     return m_sharesTotal;
 }
 
-void ClientStatus::setSharesTotal(uint64_t sharedTotal)
+void ClientStatus::setSharesTotal(uint64_t sharesTotal)
 {
-    m_sharesTotal = sharedTotal;
+    m_sharesTotal = sharesTotal;
 }
 
 uint64_t ClientStatus::getHashesTotal() const
@@ -198,8 +198,8 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_avgTime = clientStatus["avg_time"].GetUint();
         }
 
-        if (clientStatus.HasMember("shared_good")) {
-            m_sharesGood = clientStatus["shared_good"].GetUint64();
+        if (clientStatus.HasMember("shares_good")) {
+            m_sharesGood = clientStatus["shares_good"].GetUint64();
         }
 
         if (clientStatus.HasMember("shares_total")) {
@@ -235,7 +235,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("hashrate_highest", m_hashrateHighest, allocator);
     clientStatus.AddMember("avg_time", m_avgTime, allocator);
 
-    clientStatus.AddMember("shared_good", m_sharesGood, allocator);
+    clientStatus.AddMember("shares_good", m_sharesGood, allocator);
     clientStatus.AddMember("shares_total", m_sharesTotal, allocator);
     clientStatus.AddMember("hashes_total", m_hashesTotal, allocator);
 

@@ -58,6 +58,7 @@ private:
   Httpd* m_httpd;
   Options* m_options;
   uv_signal_t m_signal;
+
 };
 
 

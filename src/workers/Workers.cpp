@@ -24,6 +24,7 @@
 
 #include <cmath>
 #include <cc/CCClient.h>
+#include <thread>
 
 
 #include "api/Api.h"

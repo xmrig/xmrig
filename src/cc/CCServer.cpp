@@ -78,7 +78,6 @@ CCServer::~CCServer()
     uv_tty_reset_mode();
 
     delete m_httpd;
-    delete m_console;
 }
 
 int CCServer::start()

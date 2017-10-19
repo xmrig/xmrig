@@ -116,23 +116,26 @@ void CCClient::publishClientStatusReport()
         if (controlCommand.parseFromJsonString(responseBuffer)) {
             if (controlCommand.getCommand() == ControlCommand::START) {
                 if (!Workers::isEnabled()) {
-                    LOG_INFO("[CC-Client] Command: START received -> resume");
+                    LOG_WARN("[CC-Client] Command: START received -> resume");
                     Workers::setEnabled(true);
                 }
             } else if (controlCommand.getCommand() == ControlCommand::STOP) {
                 if (Workers::isEnabled()) {
-                    LOG_INFO("[CC-Client] Command: STOP received -> pause");
+                    LOG_WARN("[CC-Client] Command: STOP received -> pause");
                     Workers::setEnabled(false);
                 }
             } else if (controlCommand.getCommand() == ControlCommand::UPDATE_CONFIG) {
+                LOG_WARN("[CC-Client] Command: UPDATE_CONFIG received -> update config");
                 updateConfig();
             } else if (controlCommand.getCommand() == ControlCommand::RESTART) {
+                LOG_WARN("[CC-Client] Command: RESTART received -> restart");
                 App::restart();
             } else if (controlCommand.getCommand() == ControlCommand::QUIT) {
-                // TODO
+                LOG_WARN("[CC-Client] Command: QUIT received -> quit");
+                App::quit();
             }
         } else {
-            LOG_ERR("[CC-Client] unknown command received from CC Server.");
+            LOG_ERR("[CC-Client] Unknown command received from CC Server.");
         }
     }
 }
@@ -162,13 +165,13 @@ void CCClient::updateConfig()
                 clientConfigFile << buffer.GetString();
                 clientConfigFile.close();
 
-                LOG_INFO("[CC-Client] config updated. restart.");
+                LOG_WARN("[CC-Client] Config updated. -> restart");
                 App::restart();
             } else {
-                LOG_ERR("[CC-Client] not able to store client config to file %s.", m_self->m_options->configFile());
+                LOG_ERR("[CC-Client] Not able to store client config to file %s.", m_self->m_options->configFile());
             }
         } else{
-            LOG_ERR("[CC-Client] not able to store client config. received client config is broken!");
+            LOG_ERR("[CC-Client] Not able to store client config. received client config is broken!");
         }
     }
 }

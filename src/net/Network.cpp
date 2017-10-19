@@ -55,6 +55,7 @@ Network::Network(const Options *options) :
     Workers::setListener(this);
 
     const std::vector<Url*> &pools = options->pools();
+
     if (pools.size() > 1) {
         m_strategy = new FailoverStrategy(pools, Platform::userAgent(), this);
     }
@@ -75,13 +76,6 @@ Network::Network(const Options *options) :
 
 Network::~Network()
 {
-    uv_timer_stop(&m_timer);
-
-    if (m_donate) {
-        delete m_donate;
-    }
-
-    delete m_strategy;
 }
 
 
