@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+<meta charset=\"utf-8\">
+<title>XMRigCC Dashboard</title>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.3/css/select.dataTables.min.css">
+
+<script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.4.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.3/js/dataTables.select.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  refresh_tab();
+});
+
+function refresh_tab(){
+
+        $.getJSON('/admin/getClientStatusList', function(response) {
+        var table = $('#clientStatusList').dataTable({
+                dom: 'Bfrtip',
+                processing: true,
+                bPaginate: false,
+                data: response.client_status_list,
+                columns: [
+                        {
+                                data: null,
+                                defaultContent: '',
+                                className: 'select-checkbox',
+                                orderable: false
+                        },
+                        { data: "client_status.client_id"},
+                        { data: "client_status.current_pool"},
+                        { data: "client_status.current_status"},
+                        { data: "client_status.hashrate_short"},
+                        { data: "client_status.hashrate_medium"},
+                        { data: "client_status.hashrate_long"},
+                        { data: "client_status.hashrate_highest"},
+                        { data: "client_status.hashes_total"},
+                        { data: "client_status.avg_time"},
+                        { data: "client_status.shares_good"},
+                        { data: "client_status.shares_total"},
+                        { data: "client_status.last_status_update"}
+                ],
+                order: [ 1, 'asc' ],
+                select: {
+                        style:    'os',
+                        selector: 'td:first-child'
+                },
+                buttons: [
+                        {text: 'Start'},
+                        {text: 'Stop'},
+                        {text: 'Restart'},
+                        {text: 'Update Config'},
+                        {text: 'Quit'},
+                ]
+        } );
+    } );
+}
+
+</script>
+
+</head>
+<body>
+<br/>
+<h1><center>XMRigCC Dashboard</center></h1>
+<br/>
+    <table id="clientStatusList" class="display" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Client Id</th>
+            <th>Current Pool</th>
+            <th>Current Status</th>
+
+            <th>Hashrate 1m</th>
+            <th>Hashrate 5m</th>
+            <th>Hashrate 60m</th>
+
+            <th>Hashrate Highest</th>
+            <th>Hashes Total</th>
+            <th>Avg. Time</th>
+
+            <th>Shares Good</th>
+            <th>Shares Total</th>
+            <th>Last Update</th>
+        </tr>
+    </thead>
+    </table>
+</body>
+</html>
