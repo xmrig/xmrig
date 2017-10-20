@@ -122,6 +122,14 @@ elseif (APPLE)
         src/Mem_unix.cpp
         src/Platform_mac.cpp
         )
+elseif (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+    set(SOURCES_OS
+        src/App_unix.cpp
+        src/Cpu_unix.cpp
+        src/Mem_unix.cpp
+        src/Platform_unix.cpp
+        )
+set(EXTRA_LIBS pthread kvm)
 else()
     set(SOURCES_OS
         src/App_unix.cpp
