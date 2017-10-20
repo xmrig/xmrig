@@ -51,10 +51,11 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 
 #   if defined(__APPLE__)
     m_memory = static_cast<uint8_t*>(mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0));
+#   elif defined(__FreeBSD__)
+    m_memory = static_cast<uint8_t*>(mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0));
 #   else
     m_memory = static_cast<uint8_t*>(mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0));
 #   endif
-
     if (m_memory == MAP_FAILED) {
         m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
         return true;
