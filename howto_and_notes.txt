@@ -1,0 +1,161 @@
+installation:
+
+sudo apt-get install git build-essential cmake libuv1-dev libmicrohttpd-dev libcurl4-gnutls-dev
+
+(or any other libcurl)
+
+git clone https://github.com/Bendr0id/xmrigCC.git
+cd xmrigCC
+mkdir build
+cd build
+cmake ..
+make
+
+
+config cc server: 
+
+    sample is in src folder (config_cc.json):
+
+{
+    "background": false,                            // true to run the cc-server in the background (no console)
+    "colors": true,                                 // false to disable colored output
+    "log-file": null,                               // log all output to a file
+    "syslog": false,                                // use system log for output messages
+    "cc-server": {
+        "port": 3344,                               // port the CC Server will listens on
+        "access-token": null,                       // access token for CC Clients (should be set!!!)
+        "user": "admin",                            // admin user for access CC Dashboard
+        "pass": "pass",                             // admin pass for access CC Dashboard
+        "client-config-folder" : null,              // folder which contains the client-config files (null=current)
+        "custom-dashboard" : "index.html"           // dashboard html file
+    }
+}
+
+
+config cc client (miner):
+    
+    sample is in src folder (config.json):
+
+{
+    "algo": "cryptonight-light",
+    "av": 0,
+    "background": false,
+    "colors": true,
+    "cpu-affinity": null,
+    "cpu-priority": null,
+    "donate-level": 0,
+    "log-file": null,
+    "max-cpu-usage": 75,
+    "print-time": 60,
+    "retries": 5,
+    "retry-pause": 5,
+    "safe": false,
+    "syslog": false,
+    "threads": null,
+    "pools": [
+        {
+            "url": "pool.aeonmining.pro:3333", // your pool here
+            "user": "Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W", // your wallet here
+            "pass": "donate",
+            "keepalive": true,
+            "nicehash": false
+        }
+    ],
+    "api": {
+        "port": 3339,                          // port for the miner API https://github.com/xmrig/xmrig/wiki/API
+        "access-token": null,                  // access token for API
+        "worker-id": null                      // custom worker-id for API
+    },
+    "cc-client": {
+        "url": "localhost:3344",               // url of the CC Server (ip:port)
+        "access-token": null,                  // access token for CC Server (has to be the same in config_cc.json)
+        "worker-id": null                      // custom worker-id for CC Server (otherwise hostname is used)
+    }
+}
+    
+
+config to deploy / notes: 
+    
+    sample is in src folder (default_config.json) -> currently the same then the miner config.
+
+    miner specific config files have to be stored within the defined folder (defined in config_cc.json), or the root folder of the xmrigCCServer.
+ 
+    the client specific config filename has to be in the format "hostname_config.json" or if alternative worker-id is defined "myworkername_config.json".
+    if you dont provide a client specific config, the default_config.json is transfered to the client(miner) if you trigger the "update" action. the client will be automatically restarted, when the config is applied.
+
+running:
+    to start the cc server just start xmrigCCServer.
+    on the client execute xmrigDaemond (don't run the xmrigMiner it will not start). xmrigDaemon (miner) and xmrigCCServer can be runned on the same machine. xmrigDaemon will automatically connect every 10s to the xmrigCCServer and publish its results and will check for an outstanding command, which will be immediately executed.
+
+
+xmrigCCServer:
+
+    the dashboard is available via http://ip:port (the port is defined within config_cc.json, per default the port is bound to any available device [0.0.0.0]). You have to login with user/pass (defined in config_cc.json)
+
+    all the webservices return 200 OK as result code, or when there is an error, the specific result code.
+    
+    available rest webservices: 
+
+
+    (GET):
+
+    http://ip:port/getClientStatusList
+
+    request: 
+
+    curl -H "Content-Type: application/json" -X GET http://admin:pass@127.0.0.1:3344/admin/getClientStatusList
+    
+    response: 
+
+    {"client_status_list":[{"client_status":{"client_id":"TestClient","current_pool":"","current_status":"RUNNING","hashrate_short":0.0,"hashrate_medium":0.0,"hashrate_long":0.0,"hashrate_highest":0.0,"avg_time":0,"shares_good":0,"shares_total":0,"hashes_total":0,"last_status_update":1508526287}}]}
+    
+
+
+    http://ip:port/admin/getClientCommand?clientId=theMinerId (or the hostname, depends on your config) -> return the current command which 
+    is set for the client (miner)
+    
+    request: 
+
+    curl -H "Content-Type: application/json" -X GET http://admin:pass@127.0.0.1:3344/admin/getClientCommand?clientId=TestClient
+    
+    response: (command can be: START/STOP/RESTART/UPDATE_CONFIG/SHUTDOWN)
+
+    {"control_command":{"command":"START"}}
+
+
+
+    http://ip:port/admin/getClientConfig?clientId=theMinerId (or the hostname, depends on your config) -> returns the current config which is set for the client (miner) or if there is none, the default_config.json.
+
+    request:
+
+    curl -H "Content-Type: application/json" -X GET http://admin:pass@127.0.0.1:3344/admin/getClientConfig?clientId=TestClient
+    
+    response:  
+
+    a client config in json format
+
+
+
+    (POST)
+
+    http://ip:port/admin/setClientCommand?clientId=theMinerId (or the hostname, depends on your config) -> set the command for the client (miner) which has to be executed on the client.
+    
+    request: (command can be: START/STOP/RESTART/UPDATE_CONFIG/SHUTDOWN)
+
+    curl -H "Content-Type: application/json" -X POST -d '{"control_command":{"command":"QUIT"}}' http://admin:pass@127.0.0.1:3344/admin/setClientCommand?clientId=TestClient
+
+    response: 
+
+    OK (200)
+
+    
+
+    http://ip:port/admin/setClientConfig?clientId=theMinerId (or the hostname, depends on your config) -> set the config for the client (miner) which has to be executed on the client.
+
+    request:
+
+    curl -H "Content-Type: application/json" -X POST -d 'put device config json here' http://admin:pass@127.0.0.1:3344/admin/setClientConfig?clientId=TestClient
+
+    response: 
+
+    OK (200)

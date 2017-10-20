@@ -29,8 +29,8 @@
         "worker-id": null                      // custom worker-id for API
     },
     "cc-client": {
-        "url": "localhost:3344",               // url of the CC Server
-        "access-token": null,                  // access token for CC Server
-        "worker-id": null                      // custom worker-id for CC Server
+        "url": "localhost:3344",               // url of the CC Server (ip:port)
+        "access-token": null,                  // access token for CC Server (has to be the same in config_cc.json)
+        "worker-id": null                      // custom worker-id for CC Server (otherwise hostname is used)
     }
 }
