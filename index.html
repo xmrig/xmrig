@@ -5,61 +5,79 @@
 <title>XMRigCC Dashboard</title>
 
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.3/css/select.dataTables.min.css">
 
 <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.4.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.3/js/dataTables.select.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.1/jquery.timeago.min.js"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
-  refresh_tab();
+    var table = $('#clientStatusList').DataTable({
+        dom: 'Bfrtip',
+        processing : true,
+        bPaginate : false,
+        ajax : {
+            url : "/admin/getClientStatusList",
+            dataSrc : 'client_status_list'
+        },
+        columns: [
+            { data: "client_status.client_id"},
+            { data: "client_status.current_pool"},
+            { data: "client_status.current_status"},
+            { data: "client_status.hashrate_short", render: round},
+            { data: "client_status.hashrate_medium", render: round},
+            { data: "client_status.hashrate_long", render: round},
+            { data: "client_status.hashrate_highest", render: round},
+            { data: "client_status.hashes_total"},
+            { data: "client_status.avg_time"},
+            { data: "client_status.shares_good"},
+            { data: "client_status.shares_total"},
+            { data: "client_status.last_status_update", render: laststatus},
+            {
+                targets: -1,
+                data: null,
+                defaultContent:
+                    "<button id='START'>Start</button> " +
+                    "<button id='STOP'>Stop</button> " +
+                    "<button id='RESTART'>Restart</button> " +
+                    "<button id='UPDATE_CONFIG'>Update</button> " +
+                    "<button id='SHUTDOWN'>Shutdown</button>"
+            }
+        ],
+        order: [ 12, 'desc' ],
+        select: {
+            style:    'os',
+            selector: 'td:first-child'
+        }
+    });
+
+    $('#clientStatusList tbody').on( 'click', 'button', function () {
+        var data = table.row( $(this).parents('tr') ).data();
+        var clientId = data['client_status']['client_id'];
+        var action = this.id;
+
+        $.ajax({
+            type:    "POST",
+            url:     "/admin/setClientCommand?clientId="+clientId,
+            dataType:"json",
+            data:    '{"control_command":{"command": "' + action + '"}}',
+        });
+    });
+
+    setInterval(function () {
+        table.ajax.reload();
+    }, 10000);
 });
 
-function refresh_tab(){
+function laststatus( data, type, row ) {
+    var date = new Date(data*1000);
+    return '<span data-toggle="tooltip" title="' + date + '">' + jQuery.timeago(date) + '</span>';
+}
 
-        $.getJSON('/admin/getClientStatusList', function(response) {
-        var table = $('#clientStatusList').dataTable({
-                dom: 'Bfrtip',
-                processing: true,
-                bPaginate: false,
-                data: response.client_status_list,
-                columns: [
-                        {
-                                data: null,
-                                defaultContent: '',
-                                className: 'select-checkbox',
-                                orderable: false
-                        },
-                        { data: "client_status.client_id"},
-                        { data: "client_status.current_pool"},
-                        { data: "client_status.current_status"},
-                        { data: "client_status.hashrate_short"},
-                        { data: "client_status.hashrate_medium"},
-                        { data: "client_status.hashrate_long"},
-                        { data: "client_status.hashrate_highest"},
-                        { data: "client_status.hashes_total"},
-                        { data: "client_status.avg_time"},
-                        { data: "client_status.shares_good"},
-                        { data: "client_status.shares_total"},
-                        { data: "client_status.last_status_update"}
-                ],
-                order: [ 1, 'asc' ],
-                select: {
-                        style:    'os',
-                        selector: 'td:first-child'
-                },
-                buttons: [
-                        {text: 'Start'},
-                        {text: 'Stop'},
-                        {text: 'Restart'},
-                        {text: 'Update Config'},
-                        {text: 'Quit'},
-                ]
-        } );
-    } );
+function round( data, type, row ) {
+    return Math.round(data).toFixed();
 }
 
 </script>
@@ -67,17 +85,19 @@ function refresh_tab(){
 </head>
 <body>
 <br/>
-<h1><center>XMRigCC Dashboard</center></h1>
-<br/>
+<div style="width: 95%; margin:0 auto;">
+    <div style="text-align: center;">
+        <h1>XMRigCC Dashboard</h1>
+    </div>
+    <br/>
     <table id="clientStatusList" class="display" cellspacing="0" width="100%">
     <thead>
         <tr>
-            <th></th>
             <th>Client Id</th>
-            <th>Current Pool</th>
-            <th>Current Status</th>
+            <th>Pool</th>
+            <th>Status</th>
 
-            <th>Hashrate 1m</th>
+            <th>Hashrate</th>
             <th>Hashrate 5m</th>
             <th>Hashrate 60m</th>
 
@@ -88,8 +108,10 @@ function refresh_tab(){
             <th>Shares Good</th>
             <th>Shares Total</th>
             <th>Last Update</th>
+            <th>Action</th>
         </tr>
     </thead>
     </table>
+</div>
 </body>
 </html>
