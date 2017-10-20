@@ -95,5 +95,5 @@ bool ControlCommand::isOneTimeCommand() const {
 
     return m_command == ControlCommand::UPDATE_CONFIG ||
            m_command == ControlCommand::RESTART ||
-           m_command == ControlCommand::QUIT;
+           m_command == ControlCommand::SHUTDOWN;
 }

@@ -46,7 +46,7 @@ public:
   int start();
 
   static void restart();
-  static void quit();
+  static void shutdown();
 
 protected:
   void onConsoleCommand(char command) override;

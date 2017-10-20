@@ -98,7 +98,21 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
+    delete m_network;
 
+    Options::release();
+    Mem::release();
+    Platform::release();
+
+    uv_tty_reset_mode();
+
+#   ifndef XMRIG_NO_HTTPD
+    delete m_httpd;
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    delete m_ccclient;
+#   endif
 }
 
 
@@ -142,22 +156,6 @@ int App::start()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
-    delete m_network;
-
-    Options::release();
-    Mem::release();
-    Platform::release();
-
-    uv_tty_reset_mode();
-
-#   ifndef XMRIG_NO_HTTPD
-    delete m_httpd;
-#   endif
-
-#   ifndef XMRIG_NO_CC
-    delete m_ccclient;
-#   endif
-
     return m_restart ? ERESTART : r;
 }
 
@@ -187,7 +185,7 @@ void App::onConsoleCommand(char command)
     case 'Q':
     case 3:
         LOG_INFO(m_options->colors() ? "\x1B[01;33mquitting" : "quitting");
-        quit();
+        shutdown();
         break;
 
     default:
@@ -211,7 +209,7 @@ void App::restart()
     m_self->stop(true);
 }
 
-void App::quit()
+void App::shutdown()
 {
     m_self->stop(false);
 }
@@ -237,5 +235,5 @@ void App::onSignal(uv_signal_t *handle, int signum)
     }
 
     uv_signal_stop(handle);
-    App::quit();
+    App::shutdown();
 }

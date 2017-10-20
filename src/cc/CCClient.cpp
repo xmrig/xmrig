@@ -130,9 +130,9 @@ void CCClient::publishClientStatusReport()
             } else if (controlCommand.getCommand() == ControlCommand::RESTART) {
                 LOG_WARN("[CC-Client] Command: RESTART received -> restart");
                 App::restart();
-            } else if (controlCommand.getCommand() == ControlCommand::QUIT) {
-                LOG_WARN("[CC-Client] Command: QUIT received -> quit");
-                App::quit();
+            } else if (controlCommand.getCommand() == ControlCommand::SHUTDOWN) {
+                LOG_WARN("[CC-Client] Command: SHUTDOWN received -> shutdown");
+                App::shutdown();
             }
         } else {
             LOG_ERR("[CC-Client] Unknown command received from CC Server.");

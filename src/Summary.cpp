@@ -155,7 +155,7 @@ static void print_commands()
         Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mh\x1B[01;37mashrate, \x1B[01;35mp\x1B[01;37mause, \x1B[01;35mr\x1B[01;37mesume, \x1B[01;35mq\x1B[01;37muit");
     }
     else {
-        Log::i()->text(" * COMMANDS:     'h' hashrate, 'p' pause, 'r' resume, 'q' quit");
+        Log::i()->text(" * COMMANDS:     'h' hashrate, 'p' pause, 'r' resume, 'q' shutdown");
     }
 }
 

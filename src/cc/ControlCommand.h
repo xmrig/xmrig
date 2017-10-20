@@ -37,7 +37,7 @@ public:
         STOP,
         UPDATE_CONFIG,
         RESTART,
-        QUIT
+        SHUTDOWN
     };
 
 public:
@@ -75,7 +75,7 @@ private:
             "STOP",
             "UPDATE_CONFIG",
             "RESTART",
-            "QUIT"
+            "SHUTDOWN"
     };
 
     Command m_command;
