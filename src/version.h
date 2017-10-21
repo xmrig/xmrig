@@ -28,12 +28,13 @@
 #define APP_ID        "xmrigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC Command'n'Control Server"
+#define APP_VERSION   "1.0.0"
 # else
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig CPU miner"
-#endif
+#define APP_ID        "xmrigCC"
+#define APP_NAME      "XMRigCC"
+#define APP_DESC      "XMRigCC CPU miner"
 #define APP_VERSION   "2.4.1"
+#endif
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
