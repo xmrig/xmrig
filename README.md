@@ -1,9 +1,8 @@
 # XMRigCC
 
+[Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/feature_cc/howto_and_notes.txt)
 
-For Installation /Howto/Notes see (https://raw.githubusercontent.com/Bendr0id/xmrigCC/feature_cc/howto_and_notes.txt)
-
-Documentation will be here soon.
+Documentation will be added here soon.
 
 ##### About
 
@@ -25,7 +24,17 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * [Donations](#donations)
 * [Contacts](#contacts)
 
-## Features
+## Additional features of xmrigCC
+* Command and control server
+* CC Dashboard with:
+    * statistics 
+    * remote control (start/stop/restart/shutdown) miner
+    * remote configuration changes of miner
+* Added daemon to restart miner
+
+\+ All features of the latest xmrig
+
+## Features of xmrig
 * High performance.
 * Official Windows support.
 * Small Windows executable, without dependencies.
@@ -39,9 +48,9 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * It's open source software.
 
 ## Download
-* Binary releases: https://github.com/xmrig/xmrig/releases
-* Git tree: https://github.com/xmrig/xmrig.git
-  * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
+* Binary releases: soon
+* Git tree: https://github.com/Bendr0id/xmrigCC.git
+  * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/feature_cc/howto_and_notes.txt).
 
 ## Usage
 ### Basic example
@@ -101,7 +110,6 @@ Since version 0.8.0.
 ## Other information
 * No HTTP support, only stratum protocol support.
 * No TLS support.
-* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
 
 
 ### CPU mining performance
@@ -118,9 +126,21 @@ Please note performance is highly dependent on system load. The numbers above ar
 * Enable fast memory (Large/Huge pages).
 
 ## Donations
+* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
+* The donations will be automatically splitted (50/50) on my pool between xmrig and myself.
+
+##### BenDroid (xmrigCC):
+* XMR: `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
+* AEON `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
+* BTC: `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
+
+##### xmrig:
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 
-## Contacts
+## Contacts xmrigCC
+* ben [at] graef.in
+
+## Contacts xmrig
 * support@xmrig.com
 * [reddit](https://www.reddit.com/user/XMRig/)
