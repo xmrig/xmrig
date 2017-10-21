@@ -15,7 +15,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 <img src="http://i.imgur.com/OKZRVDh.png" width="619" >
 
 #### Table of contents
-* [Features](#features)
+* [Features](#features-additional-features-of-xmrigCC)
 * [Download](#download)
 * [Usage](#usage)
 * [Algorithm variations](#algorithm-variations)
