@@ -22,6 +22,14 @@
  */
 
 
+#ifdef __FreeBSD__
+#   include <sys/types.h>
+#   include <sys/param.h>
+#   include <sys/cpuset.h>
+#   include <pthread_np.h>
+#endif
+
+
 #include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
@@ -29,6 +37,11 @@
 
 
 #include "Cpu.h"
+
+
+#ifdef __FreeBSD__
+typedef cpuset_t cpu_set_t;
+#endif
 
 
 void Cpu::init()
@@ -53,7 +66,9 @@ void Cpu::setAffinity(int id, uint64_t mask)
     }
 
     if (id == -1) {
+#       ifndef __FreeBSD__
         sched_setaffinity(0, sizeof(&set), &set);
+#       endif
     } else {
         pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
     }

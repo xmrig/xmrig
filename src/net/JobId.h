@@ -63,7 +63,7 @@ public:
         }
 
         const size_t size = strlen(id);
-        if (size < 4 || size >= sizeof(m_data)) {
+        if (size >= sizeof(m_data)) {
             return false;
         }
 

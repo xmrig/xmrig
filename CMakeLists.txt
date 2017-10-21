@@ -142,6 +142,10 @@ else()
     set(EXTRA_LIBS pthread)
 endif()
 
+if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+    set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
+endif()
+
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 add_definitions(/DRAPIDJSON_SSE2)

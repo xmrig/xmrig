@@ -220,7 +220,8 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
     }
 
     if (m_job == job) {
-        LOG_WARN("[%s:%u] duplicate job received, ignore", m_url.host(), m_url.port());
+        LOG_WARN("[%s:%u] duplicate job received, reconnect", m_url.host(), m_url.port());
+        close();
         return false;
     }
 
