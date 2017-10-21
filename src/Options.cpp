@@ -97,13 +97,13 @@ Options:\n"
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif             
-"\              
+"\
       --no-color                        disable colored output\n"
 # ifdef HAVE_SYSLOG_H               
-"\              
+"\
   -S, --syslog                          use system log for output messages\n"
 # endif             
-"\              
+"\
   -B, --background                      run the miner in the background\n\
   -c, --config=FILE                     load a JSON-format configuration file\n\
   -l, --log-file=FILE                   log all output to a file\n\

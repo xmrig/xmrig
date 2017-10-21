@@ -1,6 +1,6 @@
 # XMRigCC
 
-[Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/feature_cc/howto_and_notes.txt)
+[Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt)
 
 Documentation will be added here soon.
 
@@ -51,7 +51,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 ## Download
 * Binary releases: soon
 * Git tree: https://github.com/Bendr0id/xmrigCC.git
-  * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/feature_cc/howto_and_notes.txt).
+  * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt).
 
 ## Usage
 ### Basic example

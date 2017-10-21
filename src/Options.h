@@ -117,7 +117,6 @@ private:
     int getAlgoVariantLite() const;
 #   endif
 
-    const char* m_configFile;
 
     bool m_background;
     bool m_colors;
@@ -127,6 +126,7 @@ private:
     bool m_safe;
     bool m_syslog;
     bool m_daemonized;
+    const char* m_configFile;
     char *m_apiToken;
     char *m_apiWorkerId;
     char *m_logFile;
