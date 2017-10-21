@@ -122,22 +122,22 @@ Please note performance is highly dependent on system load. The numbers above ar
 ### Maximum performance checklist
 * Idle operating system.
 * Do not exceed optimal thread count.
-* Use modern CPUs with AES-NI instructuon set.
+* Use modern CPUs with AES-NI instruction set.
 * Try setup optimal cpu affinity.
 * Enable fast memory (Large/Huge pages).
 
 ## Donations
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
-* The donations will be automatically splitted (50/50) on my pool between xmrig and myself.
+* The donations will be automatically splitted (50/50) on my pool between xmrig and me.
 
 ##### BenDroid (xmrigCC):
-* XMR: `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
-* AEON: `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
-* BTC: `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
+* XMR `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
+* AEON `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
+* BTC `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
 
 ##### xmrig:
-* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-* BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+* XMR `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
+* BTC `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 
 ## Contacts xmrigCC
 * ben [at] graef.in
