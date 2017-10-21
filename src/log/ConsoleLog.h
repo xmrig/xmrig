@@ -41,10 +41,13 @@ public:
 
 private:
     bool isWritable() const;
-    void print(char *fmt, va_list args);
+    void print(va_list args);
 
     bool m_colors;
     char m_buf[512];
+    char m_fmt[256];
+    uv_buf_t m_uvBuf;
+    uv_stream_t *m_stream;
     uv_tty_t m_tty;
 };
 

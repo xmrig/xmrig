@@ -48,7 +48,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
     Job::toHex(hash, 32, userId);
 
-    Url *url = new Url("fee.xmrig.com", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 443, userId, nullptr, false, true);
+    Url *url = new Url("donate.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 3333 : 4444, userId, nullptr, false, true);
 
     m_client = new Client(-1, agent, this);
     m_client->setUrl(url);
@@ -111,9 +111,9 @@ void DonateStrategy::onLoginSuccess(Client *client)
 }
 
 
-void DonateStrategy::onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error)
+void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
-    m_listener->onResultAccepted(client, seq, diff, ms, error);
+    m_listener->onResultAccepted(client, result, error);
 }
 
 

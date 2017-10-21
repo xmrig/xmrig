@@ -31,18 +31,17 @@
 class SubmitResult
 {
 public:
-    inline SubmitResult() : seq(0), diff(0), start(0) {}
-    inline SubmitResult(int64_t seq, uint32_t diff) :
-        seq(seq),
-        diff(diff)
-    {
-        start = uv_hrtime();
-    }
+    inline SubmitResult() : seq(0), diff(0), actualDiff(0), elapsed(0), start(0) {}
+    SubmitResult(int64_t seq, uint32_t diff, uint64_t actualDiff);
 
-    inline uint64_t elapsed() const { return (uv_hrtime() - start) / 1000000; }
+    void done();
 
     int64_t seq;
     uint32_t diff;
+    uint64_t actualDiff;
+    uint64_t elapsed;
+
+private:
     uint64_t start;
 };
 

@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -28,14 +29,17 @@
 #include <inttypes.h>
 #include <memory>
 #include <time.h>
+#include <cc/CCClient.h>
 
 
+#include "api/Api.h"
 #include "log/Log.h"
 #include "net/Client.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
 #include "net/strategies/FailoverStrategy.h"
 #include "net/strategies/SinglePoolStrategy.h"
+#include "net/SubmitResult.h"
 #include "net/Url.h"
 #include "Options.h"
 #include "Platform.h"
@@ -44,9 +48,7 @@
 
 Network::Network(const Options *options) :
     m_options(options),
-    m_donate(nullptr),
-    m_accepted(0),
-    m_rejected(0)
+    m_donate(nullptr)
 {
     srand(time(0) ^ (uintptr_t) this);
 
@@ -100,6 +102,8 @@ void Network::onActive(Client *client)
         return;
     }
 
+    m_state.setPool(client->host(), client->port(), client->ip());
+
     LOG_INFO(m_options->colors() ? "\x1B[01;37muse pool \x1B[01;36m%s:%d \x1B[01;30m%s" : "use pool %s:%d %s", client->host(), client->port(), client->ip());
 }
 
@@ -134,26 +138,25 @@ void Network::onPause(IStrategy *strategy)
 
     if (!m_strategy->isActive()) {
         LOG_ERR("no active pools, stop mining");
+        m_state.stop();
         return Workers::pause();
     }
 }
 
 
-void Network::onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error)
+void Network::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
-    if (error) {
-        m_rejected++;
+    m_state.add(result, error);
 
+    if (error) {
         LOG_INFO(m_options->colors() ? "\x1B[01;31mrejected\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%" PRIu64 " ms)"
                                      : "rejected (%" PRId64 "/%" PRId64 ") diff %u \"%s\" (%" PRIu64 " ms)",
-                 m_accepted, m_rejected, diff, error, ms);
+                 m_state.accepted, m_state.rejected, result.diff, error, result.elapsed);
     }
     else {
-        m_accepted++;
-
         LOG_INFO(m_options->colors() ? "\x1B[01;32maccepted\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[01;37m%u\x1B[0m \x1B[01;30m(%" PRIu64 " ms)"
                                      : "accepted (%" PRId64 "/%" PRId64 ") diff %u (%" PRIu64 " ms)",
-                 m_accepted, m_rejected, diff, ms);
+                 m_state.accepted, m_state.rejected, result.diff, result.elapsed);
     }
 }
 
@@ -162,12 +165,12 @@ void Network::setJob(Client *client, const Job &job)
 {
     if (m_options->colors()) {
         LOG_INFO("\x1B[01;35mnew job\x1B[0m from \x1B[01;37m%s:%d\x1B[0m diff \x1B[01;37m%d", client->host(), client->port(), job.diff());
-
     }
     else {
         LOG_INFO("new job from %s:%d diff %d", client->host(), client->port(), job.diff());
     }
 
+    m_state.diff = job.diff();
     Workers::setJob(job);
 }
 
@@ -181,6 +184,14 @@ void Network::tick()
     if (m_donate) {
         m_donate->tick(now);
     }
+
+#   ifndef XMRIG_NO_API
+    Api::tick(m_state);
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    CCClient::updateNetworkState(m_state);
+#   endif
 }
 
 

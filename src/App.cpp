@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -24,8 +25,9 @@
 
 #include <stdlib.h>
 #include <uv.h>
+#include <zconf.h>
 
-
+#include "api/Api.h"
 #include "App.h"
 #include "Console.h"
 #include "Cpu.h"
@@ -35,26 +37,30 @@
 #include "log/Log.h"
 #include "Mem.h"
 #include "net/Network.h"
-#include "Options.h"
 #include "Platform.h"
 #include "Summary.h"
-#include "version.h"
 #include "workers/Workers.h"
-
+#include "cc/CCClient.h"
 
 #ifdef HAVE_SYSLOG_H
 #   include "log/SysLog.h"
+#endif
+
+#ifndef XMRIG_NO_HTTPD
+#   include "api/Httpd.h"
 #endif
 
 
 App *App::m_self = nullptr;
 
 
-
 App::App(int argc, char **argv) :
+    m_restart(false),
     m_console(nullptr),
+    m_httpd(nullptr),
     m_network(nullptr),
-    m_options(nullptr)
+    m_options(nullptr),
+    m_ccclient(nullptr)
 {
     m_self = this;
 
@@ -92,11 +98,25 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
-    delete m_console;
+    delete m_network;
+
+    Options::release();
+    Mem::release();
+    Platform::release();
+
+    uv_tty_reset_mode();
+
+#   ifndef XMRIG_NO_HTTPD
+    delete m_httpd;
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    delete m_ccclient;
+#   endif
 }
 
 
-int App::exec()
+int App::start()
 {
     if (!m_options) {
         return 0;
@@ -113,8 +133,21 @@ int App::exec()
         return 1;
     }
 
-    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
+    Mem::allocate(m_options);
     Summary::print();
+
+#   ifndef XMRIG_NO_API
+    Api::start();
+#   endif
+
+#   ifndef XMRIG_NO_HTTPD
+    m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken());
+    m_httpd->start();
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    m_ccclient = new CCClient(m_options);
+#   endif
 
     Workers::start(m_options->affinity(), m_options->priority());
 
@@ -122,17 +155,9 @@ int App::exec()
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
-    uv_tty_reset_mode();
 
-    delete m_network;
-
-    Options::release();
-    Mem::release();
-    Platform::release();
-
-    return r;
+    return m_restart ? ERESTART : r;
 }
-
 
 void App::onConsoleCommand(char command)
 {
@@ -156,9 +181,11 @@ void App::onConsoleCommand(char command)
         }
         break;
 
+    case 'q':
+    case 'Q':
     case 3:
-        LOG_WARN("Ctrl+C received, exiting");
-        close();
+        LOG_INFO(m_options->colors() ? "\x1B[01;33mquitting" : "quitting");
+        shutdown();
         break;
 
     default:
@@ -167,14 +194,25 @@ void App::onConsoleCommand(char command)
 }
 
 
-void App::close()
+void App::stop(bool restart)
 {
+    m_restart = restart;
+
     m_network->stop();
     Workers::stop();
 
     uv_stop(uv_default_loop());
 }
 
+void App::restart()
+{
+    m_self->stop(true);
+}
+
+void App::shutdown()
+{
+    m_self->stop(false);
+}
 
 void App::onSignal(uv_signal_t *handle, int signum)
 {
@@ -197,5 +235,5 @@ void App::onSignal(uv_signal_t *handle, int signum)
     }
 
     uv_signal_stop(handle);
-    m_self->close();
+    App::shutdown();
 }

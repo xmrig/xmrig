@@ -32,9 +32,10 @@
 
 
 class Console;
+class Httpd;
 class Network;
 class Options;
-
+class CCClient;
 
 class App : public IConsoleListener
 {
@@ -42,22 +43,29 @@ public:
   App(int argc, char **argv);
   ~App();
 
-  int exec();
+  int start();
+
+  static void restart();
+  static void shutdown();
 
 protected:
   void onConsoleCommand(char command) override;
 
 private:
   void background();
-  void close();
+  void stop(bool restart);
 
   static void onSignal(uv_signal_t *handle, int signum);
 
   static App *m_self;
 
+  bool m_restart;
+
   Console *m_console;
+  Httpd *m_httpd;
   Network *m_network;
   Options *m_options;
+  CCClient *m_ccclient;
   uv_signal_t m_signal;
 };
 

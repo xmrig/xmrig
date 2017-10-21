@@ -50,8 +50,8 @@ static void print_versions()
 #   endif
 
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s%s" : " * VERSIONS:     XMRig/%s libuv/%s%s",
-                   APP_VERSION, uv_version_string(), buf);
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36m%s/%s\x1B[01;37m libuv/%s%s" : " * VERSIONS:     %s/%s libuv/%s%s",
+                   APP_NAME, APP_VERSION, uv_version_string(), buf);
 }
 
 
@@ -127,13 +127,35 @@ static void print_pools()
 }
 
 
+#ifndef XMRIG_NO_API
+static void print_api()
+{
+    if (Options::i()->apiPort() == 0) {
+        return;
+    }
+
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mAPI PORT:     \x1B[01;36m%d" : " * API PORT:     %d", Options::i()->apiPort());
+}
+#endif
+
+#ifndef XMRIG_NO_CC
+static void print_cc()
+{
+    if (Options::i()->ccUrl() == nullptr) {
+        return;
+    }
+
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mCC Server:    \x1B[01;36m%s" : " * CC Server:    %s", Options::i()->ccUrl());
+}
+#endif
+
 static void print_commands()
 {
     if (Options::i()->colors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mh\x1B[01;37mashrate, \x1B[01;35mp\x1B[01;37mause, \x1B[01;35mr\x1B[01;37mesume");
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mh\x1B[01;37mashrate, \x1B[01;35mp\x1B[01;37mause, \x1B[01;35mr\x1B[01;37mesume, \x1B[01;35mq\x1B[01;37muit");
     }
     else {
-        Log::i()->text(" * COMMANDS:     'h' hashrate, 'p' pause, 'r' resume");
+        Log::i()->text(" * COMMANDS:     'h' hashrate, 'p' pause, 'r' resume, 'q' shutdown");
     }
 }
 
@@ -145,8 +167,14 @@ void Summary::print()
     print_cpu();
     print_threads();
     print_pools();
+
+#   ifndef XMRIG_NO_API
+    print_api();
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    print_cc();
+#   endif
+
     print_commands();
 }
-
-
-

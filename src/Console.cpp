@@ -22,6 +22,7 @@
  */
 
 
+#include <zconf.h>
 #include "Console.h"
 #include "interfaces/IConsoleListener.h"
 
@@ -30,7 +31,10 @@ Console::Console(IConsoleListener *listener)
     : m_listener(listener)
 {
     m_tty.data = this;
-    uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
+
+    if (uv_tty_init(uv_default_loop(), &m_tty, 0, 1) < 0) {
+        return;
+    }
 
     if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(&m_tty))) {
         return;
@@ -55,7 +59,7 @@ void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
         return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);
     }
 
-    if (nread == 1) {
+    if (nread == 1 && static_cast<Console*>(stream->data)->m_listener && buf) {
         static_cast<Console*>(stream->data)->m_listener->onConsoleCommand(buf->base[0]);
     }
 }

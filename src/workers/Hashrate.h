@@ -32,6 +32,12 @@
 class Hashrate
 {
 public:
+    enum Intervals {
+        ShortInterval  = 2500,
+        MediumInterval = 60000,
+        LargeInterval  = 900000
+    };
+
     Hashrate(int threads);
     double calc(size_t ms) const;
     double calc(size_t threadId, size_t ms) const;
@@ -41,6 +47,7 @@ public:
     void updateHighest();
 
     inline double highest() const { return m_highest; }
+    inline int threads() const    { return m_threads; }
 
 private:
     static void onReport(uv_timer_t *handle);

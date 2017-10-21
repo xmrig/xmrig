@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -23,9 +24,10 @@
 
 #include "App.h"
 
-
 int main(int argc, char **argv) {
-    App app(argc, argv);
+    App* app = new App(argc, argv);
+    int res = app->start();
+    delete app;
 
-    return app.exec();
+    return res;
 }

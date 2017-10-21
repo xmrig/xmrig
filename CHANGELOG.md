@@ -1,3 +1,15 @@
+# v2.4.1
+  - [#147](https://github.com/xmrig/xmrig/issues/147) Fixed comparability with monero-stratum.
+
+# v2.4.0
+ - Added [HTTP API](https://github.com/xmrig/xmrig/wiki/API).
+ - Added comments support in config file.
+ - libjansson replaced to rapidjson.
+ - [#98](https://github.com/xmrig/xmrig/issues/98) Ignore `keepalive` option with minergate.com and nicehash.com.
+ - [#101](https://github.com/xmrig/xmrig/issues/101) Fixed MSVC 2017 (15.3) compile time version detection.
+ - [#108](https://github.com/xmrig/xmrig/issues/108) Silently ignore invalid values for `donate-level` option.
+ - [#111](https://github.com/xmrig/xmrig/issues/111) Fixed build without AEON support.
+ 
 # v2.3.1
 - [#68](https://github.com/xmrig/xmrig/issues/68) Fixed compatibility with Docker containers, was nothing print on console.
 
