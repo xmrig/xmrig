@@ -131,7 +131,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 
 ##### BenDroid (xmrigCC):
 * XMR: `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
-* AEON `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
+* AEON: `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
 * BTC: `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
 
 ##### xmrig:
@@ -140,6 +140,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 
 ## Contacts xmrigCC
 * ben [at] graef.in
+* [reddit](https://www.reddit.com/user/BenDr0id/)
 
 ## Contacts xmrig
 * support@xmrig.com
