@@ -7,6 +7,10 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.3/css/select.dataTables.min.css">
 
+<style>
+    .right{text-align:right;}
+</style>
+
 <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.4.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.3/js/dataTables.select.min.js"></script>
@@ -26,14 +30,14 @@ $(document).ready(function() {
             { data: "client_status.client_id"},
             { data: "client_status.current_pool"},
             { data: "client_status.current_status"},
-            { data: "client_status.hashrate_short", render: round},
-            { data: "client_status.hashrate_medium", render: round},
-            { data: "client_status.hashrate_long", render: round},
-            { data: "client_status.hashrate_highest", render: round},
-            { data: "client_status.hashes_total"},
-            { data: "client_status.avg_time"},
-            { data: "client_status.shares_good"},
-            { data: "client_status.shares_total"},
+            { data: "client_status.hashrate_short", render: round, className: "right"},
+            { data: "client_status.hashrate_medium", render: round, className: "right"},
+            { data: "client_status.hashrate_long", render: round, className: "right"},
+            { data: "client_status.hashrate_highest", render: round, className: "right"},
+            { data: "client_status.hashes_total", className: "right"},
+            { data: "client_status.avg_time", className: "right"},
+            { data: "client_status.shares_good", className: "right"},
+            { data: "client_status.shares_total", className: "right"},
             { data: "client_status.last_status_update", render: laststatus},
             {
                 targets: -1,
@@ -46,7 +50,7 @@ $(document).ready(function() {
                     "<button id='SHUTDOWN'>Shutdown</button>"
             }
         ],
-        order: [ 12, 'desc' ],
+        order: [ 11, 'desc' ],
         select: {
             style:    'os',
             selector: 'td:first-child'

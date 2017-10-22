@@ -1,10 +1,15 @@
 # XMRigCC
 
+### About XMRigCC
+
+XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
+This fork is based on XMRig (2.4.1) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
+The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
+
+
 [Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt)
 
-Documentation will be added here soon.
-
-##### About
+##### About XMRig
 
 XMRig is high performance Monero (XMR) / Aeon CPU miner, with the official full Windows support.
 Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 complete rewritten from scratch on C++.
@@ -19,7 +24,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * [Download](#download)
 * [Usage](#usage)
 * [Algorithm variations](#algorithm-variations)
-* [Build](https://github.com/xmrig/xmrig/wiki/Build)
+* [Build](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
@@ -53,44 +58,75 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
   * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt).
 
 ## Usage
-### Basic example
+### Basic example xmrigCCServer
 ```
-xmrig.exe -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k
+xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER
 ```
 
-### Failover
+### Options xmrigDaemon
 ```
-xmrig.exe -o pool.minemonero.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
+        --cc-user=USERNAME                CC Server admin user
+        --cc-pass=PASSWORD                CC Server admin pass
+        --cc-access-token=T               CC Server access token for CC Client
+        --cc-port=N                       CC Server
+        --cc-client-config-folder=FOLDER  Folder contains the client config files
+        --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'
+        --no-color                        disable colored output
+    -S, --syslog                          use system log for output messages
+    -B, --background                      run the miner in the background
+    -c, --config=FILE                     load a JSON-format configuration file
+    -l, --log-file=FILE                   log all output to a file
+    -h, --help                            display this help and exit
+    -V, --version                         output version information and exit
+
+```
+
+### Basic example xmrigDaemon
+```
+xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC_SERVER:PORT --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER --cc-worker-id=OPTIONAL_WORKER_NAME
+```
+
+### Failover xmrigDaemon
+```
+xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k --cc-url=IP_OF_CC_SERVER:PORT --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER --cc-worker-id=OPTIONAL_WORKER_NAME
 ```
 For failover you can add multiple pools, maximum count not limited.
 
-### Options
+### Options xmrigDaemon
 ```
-  -a, --algo=ALGO       cryptonight (default) or cryptonight-lite
-  -o, --url=URL         URL of mining server
-  -O, --userpass=U:P    username:password pair for mining server
-  -u, --user=USERNAME   username for mining server
-  -p, --pass=PASSWORD   password for mining server
-  -t, --threads=N       number of miner threads
-  -v, --av=N            algorithm variation, 0 auto select
-  -k, --keepalive       send keepalived for prevent timeout (need pool support)
-  -r, --retries=N       number of times to retry before switch to backup server (default: 5)
-  -R, --retry-pause=N   time to pause between retries (default: 5)
-      --cpu-affinity    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
-      --cpu-priority    set process priority (0 idle, 2 normal to 5 highest)
-      --no-huge-pages   disable huge pages support
-      --no-color        disable colored output
-      --donate-level=N  donate level, default 5% (5 minutes in 100 minutes)
-      --user-agent      set custom user-agent string for pool
-  -B, --background      run the miner in the background
-  -c, --config=FILE     load a JSON-format configuration file
-  -l, --log-file=FILE   log all output to a file
-      --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)
-      --safe            safe adjust threads and av settings for current CPU
-      --nicehash        enable nicehash support
-      --print-time=N    print hashrate report every N seconds
-  -h, --help            display this help and exit
-  -V, --version         output version information and exit
+  -a, --algo=ALGO                       cryptonight (default) or cryptonight-lite
+  -o, --url=URL                         URL of mining server
+  -O, --userpass=U:P                    username:password pair for mining server
+  -u, --user=USERNAME                   username for mining server
+  -p, --pass=PASSWORD                   password for mining server
+  -t, --threads=N                       number of miner threads
+  -v, --av=N                            algorithm variation, 0 auto select
+  -k, --keepalive                       send keepalived for prevent timeout (need pool support)
+  -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
+  -R, --retry-pause=N                   time to pause between retries (default: 5)
+      --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
+      --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)
+      --no-huge-pages                   disable huge pages support
+      --donate-level=N                  donate level, default 5% (5 minutes in 100 minutes)
+      --user-agent                      set custom user-agent string for pool
+      --max-cpu-usage=N                 maximum CPU usage for automatic threads mode (default 75)
+      --safe                            safe adjust threads and av settings for current CPU
+      --nicehash                        enable nicehash/xmrig-proxy support
+      --print-time=N                    print hashrate report every N seconds
+      --api-port=N                      port for the miner API
+      --api-access-token=T              access token for API
+      --api-worker-id=ID                custom worker-id for API
+      --cc-url=URL                      url of the CC Server
+      --cc-access-token=T               access token for CC Server
+      --cc-worker-id=ID                 custom worker-id for CC Server
+      --no-color                        disable colored output
+  -S, --syslog                          use system log for output messages
+  -B, --background                      run the miner in the background
+  -c, --config=FILE                     load a JSON-format configuration file
+  -l, --log-file=FILE                   log all output to a file
+  -h, --help                            display this help and exit
+  -V, --version                         output version information and exit
+
 ```
 
 Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.

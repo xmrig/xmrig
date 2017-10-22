@@ -263,7 +263,7 @@ Options::Options(int argc, char **argv) :
     m_ccAdminUser(nullptr),
     m_ccAdminPass(nullptr),
     m_ccClientConfigFolder(nullptr),
-    m_ccCustomDashboard(nullptr),
+    m_ccCustomDashboard("index.html"),
     m_algo(0),
     m_algoVariant(0),
     m_apiPort(0),
