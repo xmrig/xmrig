@@ -15,7 +15,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 <img src="http://i.imgur.com/OKZRVDh.png" width="619" >
 
 #### Table of contents
-* [Features](#features-additional-features-of-xmrigCC)
+* [Features](#additional-features-of-xmrigcc)
 * [Download](#download)
 * [Usage](#usage)
 * [Algorithm variations](#algorithm-variations)
@@ -28,12 +28,11 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 ## Additional features of xmrigCC
 * Command and control server
 * CC Dashboard with:
-    * statistics 
-    * remote control (start/stop/restart/shutdown) miner
-    * remote configuration changes of miner
-* Added daemon to restart miner
-
-\+ All features of the latest xmrig
+    * statistics of all connected miners
+    * remote control miners (start/stop/restart/shutdown)
+    * remote configuration changes of miners
+* Daemon around the miner to restart and apply config changes
+* AND all features of the latest xmrig
 
 ## Features of xmrig
 * High performance.
@@ -131,13 +130,13 @@ Please note performance is highly dependent on system load. The numbers above ar
 * The donations will be automatically splitted (50/50) on my pool between xmrig and me.
 
 ##### BenDroid (xmrigCC):
-* XMR `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
-* AEON `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
-* BTC `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
+XMR: `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
+AEON: `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
+BTC: `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
 
 ##### xmrig:
-* XMR `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-* BTC `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
+BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 
 ## Contacts xmrigCC
 * ben [at] graef.in
