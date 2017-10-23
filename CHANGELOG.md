@@ -1,3 +1,7 @@
+# v2.4.2
+ - [#60](https://github.com/xmrig/xmrig/issues/60) Added FreeBSD support, thanks [vcambur](https://github.com/vcambur).
+ - [#153](https://github.com/xmrig/xmrig/issues/153) Fixed issues with dwarfpool.com.
+ 
 # v2.4.1
   - [#147](https://github.com/xmrig/xmrig/issues/147) Fixed comparability with monero-stratum.
 
