@@ -291,8 +291,8 @@ unsigned Service::getAdminPage(const Options* options, std::string& resp)
         data << "<title>XMRigCC Dashboard</title>";
         data << "</head>";
         data << "<body>";
-        data << "    <div>";
-        data << "Work-In-Progress";
+        data << "    <div style=\"text-align: center;\">";
+        data << "       <h1>Please configure a Dashboard</h1>";
         data << "    </div>";
         data << "</body>";
         data << "</html>";
