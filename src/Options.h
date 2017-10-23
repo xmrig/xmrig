@@ -74,7 +74,7 @@ public:
     inline const char *ccAdminUser() const          { return m_ccAdminUser; }
     inline const char *ccAdminPass() const          { return m_ccAdminPass; }
     inline const char *ccClientConfigFolder() const { return m_ccClientConfigFolder; }
-    inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard; }
+    inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard == nullptr ? "index.html" : m_ccCustomDashboard; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline int algo() const                         { return m_algo; }
     inline int algoVariant() const                  { return m_algoVariant; }
