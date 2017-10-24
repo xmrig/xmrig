@@ -6,7 +6,7 @@ project(xmrig)
 option(WITH_LIBCPUID  "Use Libcpuid" ON)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_HTTPD     "HTTP REST API" OFF)
-option(WITH_CC        "CC Server" ON)
+option(WITH_CC        "CC Server" OFF)
 
 include (CheckIncludeFile)
 
