@@ -47,9 +47,11 @@ int main(int argc, char **argv) {
 
     int status = 0;
 
-    //do {
+    do {
         status = system(xmrigMinerPath.c_str());
-
-        printf("Status: %d", status);
-    //} while (WEXITSTATUS(status) == EINTR);
+#ifdef WIN32
+    } while (status == EINTR);
+#else
+    } while (WEXITSTATUS(status) == EINTR);
+#endif
 }
