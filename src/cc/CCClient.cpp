@@ -22,10 +22,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <zconf.h>
 #include <fstream>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
+
+#if _WIN32
+#   include "winsock2.h"
+#else
+#   include "unistd.h"
+#endif
 
 #include "CCClient.h"
 #include "App.h"
@@ -42,6 +47,8 @@ uv_mutex_t CCClient::m_mutex;
 CCClient::CCClient(const Options *options)
     : m_options(options)
 {
+    uv_mutex_init(&m_mutex);
+
     m_self = this;
 
     std::string clientId;
@@ -75,10 +82,12 @@ void CCClient::updateHashrate(const Hashrate *hashrate)
 {
     uv_mutex_lock(&m_mutex);
 
-    m_self->m_clientStatus.setHashrateShort(hashrate->calc(Hashrate::ShortInterval));
-    m_self->m_clientStatus.setHashrateMedium(hashrate->calc(Hashrate::MediumInterval));
-    m_self->m_clientStatus.setHashrateLong(hashrate->calc(Hashrate::LargeInterval));
-    m_self->m_clientStatus.setHashrateHighest(hashrate->highest());
+    if (m_self) {
+        m_self->m_clientStatus.setHashrateShort(hashrate->calc(Hashrate::ShortInterval));
+        m_self->m_clientStatus.setHashrateMedium(hashrate->calc(Hashrate::MediumInterval));
+        m_self->m_clientStatus.setHashrateLong(hashrate->calc(Hashrate::LargeInterval));
+        m_self->m_clientStatus.setHashrateHighest(hashrate->highest());
+    }
 
     uv_mutex_unlock(&m_mutex);
 }
@@ -88,13 +97,14 @@ void CCClient::updateNetworkState(const NetworkState &network)
 {
     uv_mutex_lock(&m_mutex);
 
-    m_self->m_clientStatus.setCurrentStatus(Workers::isEnabled() ? ClientStatus::RUNNING : ClientStatus::PAUSED);
-    m_self->m_clientStatus.setCurrentPool(network.pool);
-    m_self->m_clientStatus.setSharesGood(network.accepted);
-    m_self->m_clientStatus.setSharesTotal(network.accepted + network.rejected);
-    m_self->m_clientStatus.setHashesTotal(network.total);
-    m_self->m_clientStatus.setAvgTime(network.avgTime());
-
+    if (m_self) {
+        m_self->m_clientStatus.setCurrentStatus(Workers::isEnabled() ? ClientStatus::RUNNING : ClientStatus::PAUSED);
+        m_self->m_clientStatus.setCurrentPool(network.pool);
+        m_self->m_clientStatus.setSharesGood(network.accepted);
+        m_self->m_clientStatus.setSharesTotal(network.accepted + network.rejected);
+        m_self->m_clientStatus.setHashesTotal(network.total);
+        m_self->m_clientStatus.setAvgTime(network.avgTime());
+    }
     uv_mutex_unlock(&m_mutex);
 }
 
@@ -210,7 +220,9 @@ CURLcode CCClient::performCurl(const std::string& requestUrl, const std::string&
 
 void CCClient::onReport(uv_timer_t *handle)
 {
-    m_self->publishClientStatusReport();
+    if (m_self) {
+        m_self->publishClientStatusReport();
+    }
 }
 
 int CCClient::onResponse(char* data, size_t size, size_t nmemb, std::string* responseBuffer)
@@ -224,4 +236,3 @@ int CCClient::onResponse(char* data, size_t size, size_t nmemb, std::string* res
 
     return result;
 }
-

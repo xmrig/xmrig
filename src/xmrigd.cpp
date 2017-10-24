@@ -24,12 +24,19 @@
 
 #include <stdlib.h>
 #include <string>
-#include <regex>
 
-
+#ifdef WIN32
+    #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
+    #include <windows.h>
+    #include <signal.h>
+#endif
 int main(int argc, char **argv) {
+
     std::string ownPath(argv[0]);
-    std::string xmrigMinerPath = std::regex_replace(ownPath, std::regex(program_invocation_short_name), "xmrigMiner");
+    std::string xmrigDaemon("xmrigDaemon");
+    std::string xmrigMiner("xmrigMiner");
+
+    std::string xmrigMinerPath = ownPath.replace(ownPath.rfind(xmrigDaemon),xmrigDaemon.size(), xmrigMiner);
 
     for (int i=1; i < argc; i++){
         xmrigMinerPath += " ";
@@ -40,7 +47,9 @@ int main(int argc, char **argv) {
 
     int status = 0;
 
-    do {
+    //do {
         status = system(xmrigMinerPath.c_str());
-    } while (WEXITSTATUS(status) == ERESTART);
+
+        printf("Status: %d", status);
+    //} while (WEXITSTATUS(status) == EINTR);
 }

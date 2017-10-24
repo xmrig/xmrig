@@ -25,6 +25,7 @@
 #ifndef __CC_CLIENT_H__
 #define __CC_CLIENT_H__
 
+#ifndef XMRIG_NO_CC
 
 #include <uv.h>
 #include <curl/curl.h>
@@ -68,4 +69,5 @@ private:
 
 };
 
+#endif
 #endif /* __CC_CLIENT_H__ */

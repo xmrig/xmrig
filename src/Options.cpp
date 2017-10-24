@@ -307,7 +307,6 @@ Options::Options(int argc, char **argv) :
         return;
     }
 #else
-
     #ifndef XMRIG_NO_CC
         if (!m_daemonized) {
             fprintf(stderr, "\"" APP_ID "\" is compiled with CC support, please start the daemon instead.\n");

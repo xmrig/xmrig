@@ -1,0 +1,32 @@
+# image
+image: Visual Studio 2017
+
+# build platform
+platform: x64
+configuration: Release
+
+# clone directory
+clone_folder: c:\xmrigCC
+
+install:
+  - mkdir c:\xmrigCC-deps
+  - curl -sL https://github.com/xmrig/xmrig-deps/releases/download/v2/xmrig-deps-v2.zip -o xmrigCC-deps-v2.zip
+  - 7z x xmrigCC-deps-v2.zip -o"c:\xmrigCC-deps" -y > nul
+  - vcpkg install curl:x64-windows
+  
+build_script:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsMSBuildCmd.bat"
+  - cd c:\xmrigCC
+  - mkdir build
+  - cd build
+  - set CMAKE_PREFIX_PATH=c:\xmrigCC-deps\msvc2017\libuv\x64\;c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\;C:\Tools\vcpkg\installed\x64-windows\
+  - cmake -G "Visual Studio 15 2017 Win64" -T v141,host=x64 ..
+  - msbuild xmrig.sln /p:Configuration=Release
+
+after_build:
+- cd c:\xmrigCC
+- cmd: 7z a xmrigCC.zip "c:\xmrigCC\build\Release\*.*" "c:\xmrigCC\src\*config*" "C:\Tools\vcpkg\installed\x64-windows\lib\*.dll" "c:\xmrigCC\index.html"
+- cmd: dir
+
+artifacts:
+- path: xmrigCC.zip

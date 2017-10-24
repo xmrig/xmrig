@@ -25,7 +25,6 @@
 
 #include <stdlib.h>
 #include <uv.h>
-#include <zconf.h>
 
 #include "api/Api.h"
 #include "App.h"
@@ -111,7 +110,9 @@ App::~App()
 #   endif
 
 #   ifndef XMRIG_NO_CC
-    delete m_ccclient;
+    if (m_ccclient) {
+        delete m_ccclient;
+    }
 #   endif
 }
 
@@ -146,7 +147,11 @@ int App::start()
 #   endif
 
 #   ifndef XMRIG_NO_CC
-    m_ccclient = new CCClient(m_options);
+    if (m_options->ccUrl()) {
+        m_ccclient = new CCClient(m_options);
+    } else {
+        LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");
+    }
 #   endif
 
     Workers::start(m_options->affinity(), m_options->priority());
@@ -156,7 +161,7 @@ int App::start()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
-    return m_restart ? ERESTART : r;
+    return m_restart ? EINTR : r;
 }
 
 void App::onConsoleCommand(char command)

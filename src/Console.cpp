@@ -22,7 +22,6 @@
  */
 
 
-#include <zconf.h>
 #include "Console.h"
 #include "interfaces/IConsoleListener.h"
 

@@ -26,7 +26,6 @@
 #define __CONTROL_COMMAND_H__
 
 #include <string>
-#include <vector>
 #include "rapidjson/document.h"
 
 class ControlCommand
