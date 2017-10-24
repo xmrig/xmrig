@@ -1,5 +1,7 @@
 # XMRigCC
 
+[![Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
+
 ### About XMRigCC
 
 XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
@@ -53,7 +55,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * It's open source software.
 
 ## Download
-* Binary releases: soon
+* Binary releases: https://github.com/Bendr0id/xmrigCC/releases
 * Git tree: https://github.com/Bendr0id/xmrigCC.git
   * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions / Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt).
 
