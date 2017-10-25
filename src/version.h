@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -28,16 +29,17 @@
 #define APP_ID        "xmrigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC Command'n'Control Server"
-#define APP_VERSION   "1.0.0"
+#define APP_VERSION   "1.0.4"
+#define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 # else
 #define APP_ID        "xmrigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC CPU miner"
-#define APP_VERSION   "2.4.1"
+#define APP_VERSION   "2.4.2"
+#define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 #endif
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
+#define APP_DOMAIN    ""
+#define APP_SITE      "https://github.com/Bendr0id/xmrigCC"
 #define APP_KIND      "cpu"
 
 #define APP_VER_MAJOR  2

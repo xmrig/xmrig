@@ -49,6 +49,7 @@ protected:
 
 private:
   void stop();
+  void moveToBackground();
 
   static void onSignal(uv_signal_t* handle, int signum);
 
@@ -58,7 +59,6 @@ private:
   Httpd* m_httpd;
   Options* m_options;
   uv_signal_t m_signal;
-
 };
 
 
