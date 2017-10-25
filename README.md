@@ -16,39 +16,30 @@ The modified version can also handle commands like "update config", "start/stop 
 XMRig is high performance Monero (XMR) / Aeon CPU miner, with the official full Windows support.
 Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 complete rewritten from scratch on C++.
 
-* This is the CPU-mining version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
-* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
-
-<img src="http://i.imgur.com/OKZRVDh.png" width="619" >
-
 #### Table of contents
-* [Features](#additional-features-of-xmrigcc)
+* [Features](#features-of-xmrigcc)
 * [Download](#download)
 * [Usage](#usage)
 * [Algorithm variations](#algorithm-variations)
-* [Build](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt)
+* [Build on Debian/Ubuntu](https://github.com/Bendr0id/xmrigCC/wiki/Build-Debian%5CUbuntu)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
 * [Contacts](#contacts)
+* [Wiki](https://github.com/Bendr0id/xmrigCC/wiki/)
 
-## Additional features of xmrigCC
+## Features of xmrigCC
 * Command and control server
 * CC Dashboard with:
     * statistics of all connected miners
     * remote control miners (start/stop/restart/shutdown)
     * remote configuration changes of miners
 * Daemon around the miner to restart and apply config changes
-* AND all features of the latest xmrig
-
-## Features of xmrig
 * High performance.
 * Official Windows support.
 * Small Windows executable, without dependencies.
-* x86/x64 support.
 * Support for backup (failover) mining server.
 * keepalived support.
-* Command line options compatible with cpuminer.
 * CryptoNight-Lite support for AEON.
 * Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
 * Nicehash support
@@ -65,7 +56,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER
 ```
 
-### Options xmrigDaemon
+### Options xmrigCCServer
 ```
         --cc-user=USERNAME                CC Server admin user
         --cc-pass=PASSWORD                CC Server admin pass
@@ -83,16 +74,13 @@ xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SE
 
 ```
 
+Also you can use configuration via config file, default **[config_cc.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigCCServer)**. You can load multiple config files and combine it with command line options.
+
+
 ### Basic example xmrigDaemon
 ```
 xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC_SERVER:PORT --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER --cc-worker-id=OPTIONAL_WORKER_NAME
 ```
-
-### Failover xmrigDaemon
-```
-xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k --cc-url=IP_OF_CC_SERVER:PORT --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER --cc-worker-id=OPTIONAL_WORKER_NAME
-```
-For failover you can add multiple pools, maximum count not limited.
 
 ### Options xmrigDaemon
 ```
@@ -131,7 +119,7 @@ For failover you can add multiple pools, maximum count not limited.
 
 ```
 
-Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
+Also you can use configuration via config file, default **[config.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigMiner)**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
 Since version 0.8.0.
@@ -141,9 +129,24 @@ Since version 0.8.0.
 * `--av=4` Lower power mode (double hash) of `3`.
 
 ## Common Issues
-### HUGE PAGES unavailable
+### Windows only: DLL error on starting
+* Make sure that you installed latest Visual C++ Redistributable für Visual Studio 2015. Can be downloaded here: [microsoft.com](https://www.microsoft.com/de-de/download/details.aspx?id=48145)
+
+### Linux only: Background mode
+* The `--background` option will only work properly for the XMRigServer. But there is a simple workaround for the XMRigDaemon process. Just append an `&amp;` to the command and it will run smoothly in the background.
+
+    `./xmrigDaemon --config=my_config_cc.json &amp;`
+
+
+### HUGE PAGES unavailable (Windows)
 * Run XMRig as Administrator.
 * Since version 0.8.0 XMRig automatically enable SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+
+### HUGE PAGES unavailable (Linux)
+* Before starting XMRigDaemon set huge pages
+
+    `sudo sudo sysctl -w vm.nr_hugepages=256`
+
 
 ## Other information
 * No HTTP support, only stratum protocol support.
@@ -165,16 +168,16 @@ Please note performance is highly dependent on system load. The numbers above ar
 
 ## Donations
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
-* The donations will be automatically splitted (50/50) on my pool between xmrig and me.
+* The donations will be automatically splitted (50/50) on my pool to xmrig's and my wallet.
 
 ##### BenDroid (xmrigCC):
-XMR: `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
+XMR:  `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
 AEON: `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
-BTC: `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
+BTC:  `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
 
 ##### xmrig:
-XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+XMR:  `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
+BTC:  `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 
 ## Contacts xmrigCC
 * ben [at] graef.in

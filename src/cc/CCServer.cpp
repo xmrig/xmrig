@@ -34,6 +34,13 @@
 #include "Options.h"
 #include "Summary.h"
 
+#if _WIN32
+    #include <winsock2.h>
+    #include <windows.h>
+#else
+#   include "unistd.h"
+#endif
+
 #ifdef HAVE_SYSLOG_H
 #   include "log/SysLog.h"
 #endif
@@ -89,6 +96,10 @@ int CCServer::start()
     uv_signal_start(&m_signal, CCServer::onSignal, SIGHUP);
     uv_signal_start(&m_signal, CCServer::onSignal, SIGTERM);
     uv_signal_start(&m_signal, CCServer::onSignal, SIGINT);
+
+    if (m_options->background()) {
+        moveToBackground();
+    }
 
     Summary::print();
 
@@ -150,4 +161,38 @@ void CCServer::onSignal(uv_signal_t* handle, int signum)
 
     uv_signal_stop(handle);
     m_self->stop();
+}
+
+void CCServer::moveToBackground()
+{
+#ifdef WIN32
+    HWND hcon = GetConsoleWindow();
+    if (hcon) {
+        ShowWindow(hcon, SW_HIDE);
+    } else {
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        CloseHandle(h);
+        FreeConsole();
+    }
+#else
+    int i = fork();
+    if (i < 0) {
+        exit(1);
+    }
+
+    if (i > 0) {
+        exit(0);
+    }
+
+    i = setsid();
+
+    if (i < 0) {
+        LOG_ERR("setsid() failed (errno = %d)", errno);
+    }
+
+    i = chdir("/");
+    if (i < 0) {
+        LOG_ERR("chdir() failed (errno = %d)", errno);
+    }
+#endif
 }
