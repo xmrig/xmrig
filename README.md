@@ -121,16 +121,18 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
 
 ```
 
-Also you can use configuration via config file, default **[config.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigMiner)**. You can load multiple config files and combine it with command line options.
+Also you can use configuration via config file, default **[config.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigDaemon)**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
-Since version 0.8.0.
 * `--av=1` For CPUs with hardware AES.
 * `--av=2` Lower power mode (double hash) of `1`.
 * `--av=3` Software AES implementation.
 * `--av=4` Lower power mode (double hash) of `3`.
 
 ## Common Issues
+### XMRigMiner
+* XMRigMiner is just the worker, it is not designed to work standalone. Please start **XMRigDaemon** instead.
+
 ### Windows only: DLL error on starting
 * Make sure that you installed latest Visual C++ Redistributable für Visual Studio 2015. Can be downloaded here: [microsoft.com](https://www.microsoft.com/de-de/download/details.aspx?id=48145)
 
