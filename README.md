@@ -9,6 +9,19 @@ This fork is based on XMRig (2.4.1) and adds a "Command and Control" (C&amp;C) s
 The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
 
 
+**XMRigCC Daemon(miner)**
+
+![Screenshot of XMRig Daemon (miner)](https://i.imgur.com/gYq1QSP.png)
+
+**XMRigCC Server**
+
+![Screenshot of XMRigCC Server](https://i.imgur.com/0Ke9gIg.png)
+
+**XMRigCC Dashboard**
+
+![Screenshot of XMRigCC Dashboard](https://i.imgur.com/0Xmxh9F.png)
+
+
 [Wiki](https://github.com/Bendr0id/xmrigCC/wiki/)
 
 [Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt)
@@ -27,7 +40,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
-* [Contacts](#contacts)
+* [Contacts](#contacts-xmrigcc)
 * [Wiki](https://github.com/Bendr0id/xmrigCC/wiki/)
 
 ## Features of xmrigCC
