@@ -92,7 +92,7 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
 
     unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
-    LOG_INFO("POST(url='%s', clientId='%s', data='%s')", url.c_str(), clientId.c_str(), data.c_str());
+    LOG_INFO("POST(url='%s', clientId='%s', dataLen='%d')", url.c_str(), clientId.c_str(), data.length());
 
     if (url.rfind("/client/setClientStatus", 0) == 0) {
         resultCode = setClientStatus(clientId, data, resp);
@@ -160,7 +160,7 @@ unsigned Service::setClientConfig(const Options* options, const std::string &cli
 
         if (clientConfigFile){
             rapidjson::StringBuffer buffer(0, 4096);
-            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
             writer.SetMaxDecimalPlaces(10);
             document.Accept(writer);
 
