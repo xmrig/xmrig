@@ -162,7 +162,7 @@ Also you can use configuration via config file, default **[config.json](https://
 ### HUGE PAGES unavailable (Linux)
 * Before starting XMRigDaemon set huge pages
 
-    `sudo sudo sysctl -w vm.nr_hugepages=256`
+    `sudo sysctl -w vm.nr_hugepages=256`
 
 
 ## Other information
