@@ -22,9 +22,9 @@ The modified version can also handle commands like "update config", "start/stop 
 ![Screenshot of XMRigCC Dashboard](https://i.imgur.com/0Xmxh9F.png)
 
 
-[Wiki](https://github.com/Bendr0id/xmrigCC/wiki/)
+**[Find HELP/HOWTO](https://github.com/Bendr0id/xmrigCC/wiki/)**
 
-[Notes / Howto](https://raw.githubusercontent.com/Bendr0id/xmrigCC/master/howto_and_notes.txt)
+
 
 ##### About XMRig
 
@@ -41,7 +41,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * [Other information](#other-information)
 * [Donations](#donations)
 * [Contacts](#contacts-xmrigcc)
-* [Wiki](https://github.com/Bendr0id/xmrigCC/wiki/)
+* [Wiki/Howto](https://github.com/Bendr0id/xmrigCC/wiki/)
 
 ## Features of xmrigCC
 * Command and control server
