@@ -188,7 +188,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 * The donations will be automatically splitted (50/50) on my pool to xmrig's and my wallet.
 
 ##### BenDroid (xmrigCC):
-XMR:  `46FkYo7x6LqYjLQo4Jd84UTGBybW7tsWqJaQVLPhbUSK19ajSTMY9T2Sa2LH6CfWhSingjvQARtfeM4Feekpp2yFR1wsFNT`
+XMR:  `4BEn3sSa2SsHBcwa9dNdKnGvvbyHPABr2JzoY7omn7DA2hPv84pVFvwDrcwMCWgz3dQVcrkw3gE9aTC9Mi5HxzkfF9ev1eH`
 AEON: `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
 BTC:  `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
 
