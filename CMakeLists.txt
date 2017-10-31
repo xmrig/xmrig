@@ -139,7 +139,7 @@ else()
         src/Platform_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread)
+    set(EXTRA_LIBS pthread rt)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
