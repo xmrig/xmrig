@@ -43,7 +43,7 @@ ClientStatus::ClientStatus()
 
 }
 
-const std::string ClientStatus::getClientId() const
+std::string ClientStatus::getClientId() const
 {
     return m_clientId;
 }
@@ -53,7 +53,7 @@ void ClientStatus::setClientId(const std::string& clientId)
     m_clientId = clientId;
 }
 
-const std::string ClientStatus::getCurrentPool() const
+std::string ClientStatus::getCurrentPool() const
 {
     return m_currentPool;
 }
@@ -61,6 +61,16 @@ const std::string ClientStatus::getCurrentPool() const
 void ClientStatus::setCurrentPool(const std::string& currentPool)
 {
     m_currentPool = currentPool;
+}
+
+void ClientStatus::setCurrentAlgoName(const std::string& algoName)
+{
+    m_currentAlgoName = algoName;
+}
+
+std::string ClientStatus::getCurrentAlgoName() const
+{
+    return m_currentAlgoName;
 }
 
 ClientStatus::Status ClientStatus::getCurrentStatus() const
@@ -178,6 +188,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_currentStatus = toStatus(clientStatus["current_status"].GetString());
         }
 
+        if (clientStatus.HasMember("current_algo_name")) {
+            m_currentAlgoName = clientStatus["current_algo_name"].GetString();
+        }
+
         if (clientStatus.HasMember("hashrate_short")) {
             m_hashrateShort = clientStatus["hashrate_short"].GetDouble();
         }
@@ -228,6 +242,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("client_id", rapidjson::StringRef(m_clientId.c_str()), allocator);
     clientStatus.AddMember("current_pool", rapidjson::StringRef(m_currentPool.c_str()), allocator);
     clientStatus.AddMember("current_status", rapidjson::StringRef(toString(m_currentStatus)), allocator);
+    clientStatus.AddMember("current_algo_name", rapidjson::StringRef(m_currentAlgoName.c_str()), allocator);
 
     clientStatus.AddMember("hashrate_short", m_hashrateShort, allocator);
     clientStatus.AddMember("hashrate_medium", m_hashrateMedium, allocator);
@@ -261,5 +276,4 @@ std::string ClientStatus::toJsonString()
 
     return strdup(buffer.GetString());
 }
-
 

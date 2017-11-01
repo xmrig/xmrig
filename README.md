@@ -185,7 +185,6 @@ Please note performance is highly dependent on system load. The numbers above ar
 
 ## Donations
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
-* The donations will be automatically splitted (50/50) on my pool to xmrig's and my wallet.
 
 ##### BenDroid (xmrigCC):
 XMR:  `4BEn3sSa2SsHBcwa9dNdKnGvvbyHPABr2JzoY7omn7DA2hPv84pVFvwDrcwMCWgz3dQVcrkw3gE9aTC9Mi5HxzkfF9ev1eH`

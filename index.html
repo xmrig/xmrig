@@ -5,16 +5,18 @@
 <title>XMRigCC Dashboard</title>
 
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.3/css/select.dataTables.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
 <style>
     .right{text-align:right;}
+    .center{text-align:center;}
 </style>
 
 <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.4.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.3/js/dataTables.select.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.1/jquery.timeago.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
@@ -30,6 +32,7 @@ $(document).ready(function() {
             { data: "client_status.client_id"},
             { data: "client_status.current_pool"},
             { data: "client_status.current_status"},
+            { data: "client_status.current_algo_name"},
             { data: "client_status.hashrate_short", render: round, className: "right"},
             { data: "client_status.hashrate_medium", render: round, className: "right"},
             { data: "client_status.hashrate_long", render: round, className: "right"},
@@ -43,18 +46,18 @@ $(document).ready(function() {
                 targets: -1,
                 data: null,
                 defaultContent:
-                    "<button id='START'>Start</button> " +
-                    "<button id='STOP'>Stop</button> " +
-                    "<button id='RESTART'>Restart</button> " +
-                    "<button id='UPDATE_CONFIG'>Update</button> " +
-                    "<button id='SHUTDOWN'>Shutdown</button>"
+                    "<div class='btn-group btn-group-xs'>" +
+                    "<button type='button' id='START' class='btn btn-success' data-toggle='tooltip' title='Start'><i class='fa fa-play'></i></button>" +
+                    "<button type='button' id='STOP' class='btn btn-warning' data-toggle='tooltip' title='Stop'><i class='fa fa-pause'></i></button>" +
+                    "<button type='button' id='RESTART' class='btn' data-toggle='tooltip' title='Restart'><i class='fa fa-repeat'></i></button>" +
+                    "<button type='button' id='UPDATE_CONFIG' class='btn btn-info' data-toggle='tooltip' title='Update Config'><i class='fa fa-refresh'></i></button>" +
+                    "<button type='button' id='EDIT' class='btn btn-primary' data-toggle='tooltip' title='Edit Client Config'><i class='fa fa-cog'></i></button>" +
+                    "<button type='button' id='SHUTDOWN' class='btn btn-danger' data-toggle='tooltip' title='Stutdown Client'><i class='fa fa-power-off'></i></button>" +
+                    "</div>",
+                className: "center"
             }
         ],
         order: [ 11, 'desc' ],
-        select: {
-            style:    'os',
-            selector: 'td:first-child'
-        }
     });
 
     $('#clientStatusList tbody').on( 'click', 'button', function () {
@@ -62,11 +65,51 @@ $(document).ready(function() {
         var clientId = data['client_status']['client_id'];
         var action = this.id;
 
+        if (action != "EDIT"){
+            $.ajax({
+                type:    "POST",
+                url:     "/admin/setClientCommand?clientId=" + clientId,
+                dataType:"text",
+                data:    '{"control_command":{"command": "' + action + '"}}',
+                success: function(data){
+                    alert("Successfully send: " + action + " to: " + clientId);
+                },
+                error: function (data) {
+                    alert("Failed to send: " + action +" to: " + clientId + "\nError: " +  JSON.stringify(data,undefined, 2));
+                }
+            });
+        }
+        else {
+            $.get("/admin/getClientConfig?clientId="+clientId, function (jsonClientConfig) {
+                var htmlContent = "<div class='form-group' id='editor' data-value='" + clientId + "'>" +
+                                 "<label for='config'>Config for: " + clientId + "</label>"+
+                                 "<textarea class='form-control' rows='20' id='config'>" +
+                                    JSON.stringify(jsonClientConfig,undefined, 2); +
+                                 "</textarea>" +
+                                 "</div>";
+
+                $('#editConfig').find('.modal-body').html(htmlContent);
+                $('#editConfig').modal('show');
+            });
+        }
+    });
+
+    $('button.btn.btn-success').click(function(event)
+    {
+        var clientId = $('#editConfig').find('.form-group')["0"].dataset.value;
+
+        event.preventDefault();
         $.ajax({
-            type:    "POST",
-            url:     "/admin/setClientCommand?clientId="+clientId,
-            dataType:"json",
-            data:    '{"control_command":{"command": "' + action + '"}}',
+            url: "/admin/setClientConfig?clientId=" + clientId,
+            type: 'POST',
+            dataType: "text",
+            data: $('#config').val(),
+            success: function(data){
+                alert("Successfully saved config for: " + clientId);
+            },
+            error: function (data) {
+                alert("Failed to store config for: " + clientId + "\nError: " +  JSON.stringify(data,undefined, 2));
+            }
         });
     });
 
@@ -89,17 +132,17 @@ function round( data, type, row ) {
 </head>
 <body>
 <br/>
-<div style="width: 95%; margin:0 auto;">
-    <div style="text-align: center;">
+<div style="width: 90%; margin:0 auto;">
+    <div class="center">
         <h1>XMRigCC Dashboard</h1>
     </div>
-    <br/>
     <table id="clientStatusList" class="display" cellspacing="0" width="100%">
     <thead>
         <tr>
             <th>Client Id</th>
             <th>Pool</th>
             <th>Status</th>
+            <th>Algo</th>
 
             <th>Hashrate</th>
             <th>Hashrate 5m</th>
@@ -116,6 +159,24 @@ function round( data, type, row ) {
         </tr>
     </thead>
     </table>
+
+    <div class="modal fade" id="editConfig" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Config editor</h4>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
 </body>
 </html>
