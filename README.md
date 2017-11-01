@@ -150,9 +150,9 @@ Also you can use configuration via config file, default **[config.json](https://
 * Make sure that you installed latest Visual C++ Redistributable für Visual Studio 2015. Can be downloaded here: [microsoft.com](https://www.microsoft.com/de-de/download/details.aspx?id=48145)
 
 ### Linux only: Background mode
-* The `--background` option will only work properly for the XMRigServer. But there is a simple workaround for the XMRigDaemon process. Just append an `&amp;` to the command and it will run smoothly in the background.
+* The `--background` option will only work properly for the XMRigServer. But there is a simple workaround for the XMRigDaemon process. Just append an `&` to the command and it will run smoothly in the background.
 
-    `./xmrigDaemon --config=my_config_cc.json &amp;`
+    `./xmrigDaemon --config=my_config_cc.json &`
 
 
 ### HUGE PAGES unavailable (Windows)
