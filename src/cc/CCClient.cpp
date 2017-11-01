@@ -62,6 +62,11 @@ CCClient::CCClient(const Options *options)
     }
 
     m_clientStatus.setClientId(clientId);
+
+    if (m_options->algoName() != nullptr) {
+        m_clientStatus.setCurrentAlgoName(m_options->algoName());
+    }
+
     m_serverURL = std::string("http://") + options->ccUrl();
 
     if (m_options->ccToken() != nullptr) {

@@ -58,11 +58,14 @@ public:
         return Status::RUNNING;
     }
 
-    const std::string getClientId() const;
+    std::string getClientId() const;
     void setClientId(const std::string& clientId);
 
-    const std::string getCurrentPool() const;
+    std::string getCurrentPool() const;
     void setCurrentPool(const std::string& currentPool);
+
+    std::string getCurrentAlgoName() const;
+    void setCurrentAlgoName(const std::string &algoName);
 
     Status getCurrentStatus() const;
     void setCurrentStatus(Status currentStatus);
@@ -109,6 +112,7 @@ private:
 
     std::string m_clientId;
     std::string m_currentPool;
+    std::string m_currentAlgoName;
 
     double m_hashrateShort;
     double m_hashrateMedium;
