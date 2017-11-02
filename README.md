@@ -8,6 +8,7 @@ XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the abil
 This fork is based on XMRig (2.4.1) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
 The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
 
+Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 **XMRigCC Daemon(miner)**
 
@@ -49,6 +50,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
     * statistics of all connected miners
     * remote control miners (start/stop/restart/shutdown)
     * remote configuration changes of miners
+    * simple config editor for miners
 * Daemon around the miner to restart and apply config changes
 * High performance.
 * Official Windows support.
