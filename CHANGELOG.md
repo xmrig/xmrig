@@ -1,3 +1,5 @@
+# v1.0.6
+- Fixed launch in folder containing spaces (Win)
 # v1.0.5
 - Merged latest changes of XMRig
 - Added current algo to dashboard
