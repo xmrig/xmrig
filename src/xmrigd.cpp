@@ -38,6 +38,10 @@ int main(int argc, char **argv) {
 
     std::string xmrigMinerPath = ownPath.replace(ownPath.rfind(xmrigDaemon),xmrigDaemon.size(), xmrigMiner);
 
+#ifdef WIN32
+    xmrigMinerPath = "\"" + xmrigMinerPath + "\"";
+#endif
+
     for (int i=1; i < argc; i++){
         xmrigMinerPath += " ";
         xmrigMinerPath += argv[i];
