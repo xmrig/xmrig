@@ -31,6 +31,7 @@
     "cc-client": {
         "url": "localhost:3344",               // url of the CC Server (ip:port)
         "access-token": "mySecret",            // access token for CC Server (has to be the same in config_cc.json)
-        "worker-id": null                      // custom worker-id for CC Server (otherwise hostname is used)
+        "worker-id": null,                     // custom worker-id for CC Server (otherwise hostname is used)
+        "update-interval-s": 10                // status update interval in seconds (default: 10 min: 1)
     }
 }

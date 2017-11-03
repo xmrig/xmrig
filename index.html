@@ -46,18 +46,16 @@ $(document).ready(function() {
                 targets: -1,
                 data: null,
                 defaultContent:
-                    "<div class='btn-group btn-group-xs'>" +
-                    "<button type='button' id='START' class='btn btn-success' data-toggle='tooltip' title='Start'><i class='fa fa-play'></i></button>" +
-                    "<button type='button' id='STOP' class='btn btn-warning' data-toggle='tooltip' title='Stop'><i class='fa fa-pause'></i></button>" +
-                    "<button type='button' id='RESTART' class='btn' data-toggle='tooltip' title='Restart'><i class='fa fa-repeat'></i></button>" +
-                    "<button type='button' id='UPDATE_CONFIG' class='btn btn-info' data-toggle='tooltip' title='Update Config'><i class='fa fa-refresh'></i></button>" +
-                    "<button type='button' id='EDIT' class='btn btn-primary' data-toggle='tooltip' title='Edit Client Config'><i class='fa fa-cog'></i></button>" +
-                    "<button type='button' id='SHUTDOWN' class='btn btn-danger' data-toggle='tooltip' title='Stutdown Client'><i class='fa fa-power-off'></i></button>" +
-                    "</div>",
+                    "<td><button type='button' id='START' class='btn btn-xs btn-success' data-toggle='tooltip' title='Start'><i class='fa fa-play'></i></button></td>" +
+                    "<td><button type='button' id='STOP' class='btn btn-xs btn-warning' data-toggle='tooltip' title='Stop'><i class='fa fa-pause'></i></button></td>" +
+                    "<td><button type='button' id='RESTART' class='btn btn-xs' data-toggle='tooltip' title='Restart'><i class='fa fa-repeat'></i></button></td>" +
+                    "<td><button type='button' id='UPDATE_CONFIG' class='btn btn-xs btn-info' data-toggle='tooltip' title='Update Config'><i class='fa fa-refresh'></i></button></td>" +
+                    "<td><button type='button' id='EDIT' class='btn btn-xs btn-primary' data-toggle='tooltip' title='Edit Client Config'><i class='fa fa-cog'></i></button></td>" +
+                    "<td><button type='button' id='SHUTDOWN' class='btn btn-xs btn-danger' data-toggle='tooltip' title='Stutdown Client'><i class='fa fa-power-off'></i></button></td>",
                 className: "center"
             }
         ],
-        order: [ 11, 'desc' ],
+        order: [ 12, 'desc' ],
     });
 
     $('#clientStatusList tbody').on( 'click', 'button', function () {
@@ -155,7 +153,7 @@ function round( data, type, row ) {
             <th>Shares Good</th>
             <th>Shares Total</th>
             <th>Last Update</th>
-            <th>Action</th>
+            <th colspan="6" class="center">Action</th>
         </tr>
     </thead>
     </table>

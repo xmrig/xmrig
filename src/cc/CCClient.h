@@ -54,7 +54,6 @@ private:
     static void onReport(uv_timer_t *handle);
     static int onResponse(char* data, size_t size, size_t nmemb, std::string* responseBuffer);
 
-    constexpr static int kTickInterval = 10 * 1000;
     const Options *m_options;
 
     static CCClient* m_self;

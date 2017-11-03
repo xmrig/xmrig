@@ -85,6 +85,7 @@ public:
     inline int retries() const                      { return m_retries; }
     inline int retryPause() const                   { return m_retryPause; }
     inline int threads() const                      { return m_threads; }
+    inline int ccUpdateInterval() const             { return m_ccUpdateInterval; }
     inline int ccPort() const                       { return m_ccPort; }
     inline int64_t affinity() const                 { return m_affinity; }
 
@@ -148,6 +149,7 @@ private:
     int m_retries;
     int m_retryPause;
     int m_threads;
+    int m_ccUpdateInterval;
     int m_ccPort;
     int64_t m_affinity;
     std::vector<Url*> m_pools;

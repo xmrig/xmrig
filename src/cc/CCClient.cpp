@@ -74,7 +74,9 @@ CCClient::CCClient(const Options *options)
     }
 
     uv_timer_init(uv_default_loop(), &m_timer);
-    uv_timer_start(&m_timer, CCClient::onReport, kTickInterval, kTickInterval);
+    uv_timer_start(&m_timer, CCClient::onReport,
+                   static_cast<uint64_t>(m_options->ccUpdateInterval() * 1000),
+                   static_cast<uint64_t>(m_options->ccUpdateInterval() * 1000));
 }
 
 CCClient::~CCClient()
