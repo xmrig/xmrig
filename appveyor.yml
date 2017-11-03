@@ -1,3 +1,9 @@
+# version format
+version: 1.0.{build}
+
+# build only tags
+skip_non_tags: true
+
 # image
 image: Visual Studio 2017
 
