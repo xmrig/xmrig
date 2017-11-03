@@ -84,7 +84,8 @@ Options:\n"
 "\
       --cc-url=URL                      url of the CC Server\n\
       --cc-access-token=T               access token for CC Server\n\
-      --cc-worker-id=ID                 custom worker-id for CC Server\n"
+      --cc-worker-id=ID                 custom worker-id for CC Server\n\
+      --cc-update-interval-s            status update interval in seconds (default: 10 min: 1)\n"
 # endif
 # endif
       
@@ -148,6 +149,7 @@ static struct option const options[] = {
     { "cc-url",           1, nullptr, 4003 },
     { "cc-access-token",  1, nullptr, 4004 },
     { "cc-worker-id",     1, nullptr, 4005 },
+    { "cc-update-interval-s",       1, nullptr, 4012 },
     { "cc-port",          1, nullptr, 4006 },
     { "cc-user",          1, nullptr, 4007 },
     { "cc-pass",          1, nullptr, 4008 },
@@ -200,9 +202,10 @@ static struct option const api_options[] = {
 
 
 static struct option const cc_client_options[] = {
-    { "url",           1, nullptr, 4003 },
-    { "access-token",  1, nullptr, 4004 },
-    { "worker-id",     1, nullptr, 4005 },
+    { "url",                    1, nullptr, 4003 },
+    { "access-token",           1, nullptr, 4004 },
+    { "worker-id",              1, nullptr, 4005 },
+    { "update-interval-s",      1, nullptr, 4012 },
     { 0, 0, 0, 0 }
 };
 
@@ -274,6 +277,7 @@ Options::Options(int argc, char **argv) :
     m_retries(5),
     m_retryPause(5),
     m_threads(0),
+    m_ccUpdateInterval(10),
     m_ccPort(0),
     m_affinity(-1L)
 {
@@ -473,6 +477,7 @@ bool Options::parseArg(int key, const char *arg)
         free(m_ccCustomDashboard);
         m_ccCustomDashboard = strdup(arg);
         break;
+
     case 4011: /* --daemonized */
         m_daemonized = true;
         break;
@@ -488,6 +493,8 @@ bool Options::parseArg(int key, const char *arg)
         return parseArg(key, strtol(arg, nullptr, 10));
     case 4006: /* --cc-port */
         return parseArg(key, strtol(arg, nullptr, 10));
+    case 4012: /* --cc-update-interval-c */
+         return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'B':  /* --background */
     case 'k':  /* --keepalive */
@@ -627,7 +634,14 @@ bool Options::parseArg(int key, uint64_t arg)
             m_ccPort = (int) arg;
         }
         break;
+    case 4012: /* --cc-update-interval-s */
+        if (arg < 1) {
+            showUsage(1);
+            return false;
+        }
 
+        m_ccUpdateInterval = (int) arg;
+        break;
     default:
         break;
     }

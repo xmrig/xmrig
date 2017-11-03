@@ -1,3 +1,5 @@
+# v1.0.7
+- CCClient status update interval is now configurable
 # v1.0.6
 - Fixed launch in folder containing spaces (Win)
 # v1.0.5
