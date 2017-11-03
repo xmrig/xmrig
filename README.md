@@ -126,6 +126,7 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
       --cc-url=URL                      url of the CC Server
       --cc-access-token=T               access token for CC Server
       --cc-worker-id=ID                 custom worker-id for CC Server
+      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)
       --no-color                        disable colored output
   -S, --syslog                          use system log for output messages
   -B, --background                      run the miner in the background
@@ -204,3 +205,4 @@ BTC:  `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 ## Contacts xmrig
 * support@xmrig.com
 * [reddit](https://www.reddit.com/user/XMRig/)
+   
