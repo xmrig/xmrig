@@ -25,6 +25,7 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 
 **[Find HELP/HOWTO](https://github.com/Bendr0id/xmrigCC/wiki/)**
 
+**When cloning make sure to used the option `--recursive`**
 
 
 ##### About XMRig
@@ -146,6 +147,15 @@ Also you can use configuration via config file, default **[config.json](https://
 * `--av=4` Lower power mode (double hash) of `3`.
 
 ## Common Issues
+### "Cannot find source file.. src/cc/*"
+* Please make sure that you use `--recursive` when cloning, otherwise the subrepo will not be cloned. 
+
+```
+git clone --recursive https://github.com/Bendr0id/xmrigCC.git
+```
+
+* If you downloaded the source file package please download [xmrigCC-common](https://github.com/Bendr0id/xmrigCC-common) and extract to src/cc/ folder 
+
 ### XMRigMiner
 * XMRigMiner is just the worker, it is not designed to work standalone. Please start **XMRigDaemon** instead.
 
