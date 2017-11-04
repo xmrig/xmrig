@@ -65,7 +65,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 ## Download
 * Binary releases: https://github.com/Bendr0id/xmrigCC/releases
 * Git tree: https://github.com/Bendr0id/xmrigCC.git
-  * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions](https://github.com/Bendr0id/xmrigCC/wiki/Build-Debian%5CUbuntu).
+  * Clone with `git clone --recursive https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions](https://github.com/Bendr0id/xmrigCC/wiki/Build-Debian%5CUbuntu).
 
 ## Usage
 ### Basic example xmrigCCServer
