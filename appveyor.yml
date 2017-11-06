@@ -12,14 +12,10 @@ platform: x64
 configuration: Release
 
 # clone directory
-clone_script:
-  - cmd: >-
-    git clone -q --branch=%APPVEYOR_REPO_BRANCH% https://github.com/%APPVEYOR_REPO_NAME%.git %APPVEYOR_BUILD_FOLDER%
-    cd %APPVEYOR_BUILD_FOLDER%
-    git checkout -qf %APPVEYOR_REPO_COMMIT%
-    git submodule update --init --recursive
+clone_folder: c:\xmrigCC
 
 install:
+  - git submodule update --init --recursive
   - mkdir c:\xmrigCC-deps
   - curl -sL https://github.com/xmrig/xmrig-deps/releases/download/v2/xmrig-deps-v2.zip -o xmrigCC-deps-v2.zip
   - 7z x xmrigCC-deps-v2.zip -o"c:\xmrigCC-deps" -y > nul
