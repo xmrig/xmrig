@@ -14,7 +14,7 @@ configuration: Release
 # clone directory
 clone_script:
 - cmd: git clone -q --recursive --branch=%APPVEYOR_REPO_BRANCH% https://github.com/%APPVEYOR_REPO_NAME%.git c:\xmrigCC
-- cmd: git checkout -qf %APPVEYOR_REPO_COMMIT%
+- cmd: git checkout -qf %APPVEYOR_REPO_BRANCH%
 
 install:
   - mkdir c:\xmrigCC-deps
