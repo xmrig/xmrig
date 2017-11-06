@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
 <style>
+    .left{text-align:left;}
     .right{text-align:right;}
     .center{text-align:center;}
 </style>
@@ -55,7 +56,77 @@ $(document).ready(function() {
                 className: "center"
             }
         ],
-        order: [ 12, 'desc' ],
+        order: [ 0, 'asc' ],
+
+        "footerCallback": function ( row, data, start, end, display ) {
+            var api = this.api();
+
+            sumHashrateShort = round(api
+                .column(4)
+                .data()
+                .reduce( function (a, b) {
+                    return a + b;
+                }, 0 ));
+
+            sumHashrateMedium = round(api
+                .column(5)
+                .data()
+                .reduce( function (a, b) {
+                    return a + b;
+                }, 0 ));
+
+            sumHashrateLong = round(api
+                .column(6)
+                .data()
+                .reduce( function (a, b) {
+                    return a + b;
+                }, 0 ));
+
+            sumHashrateHighest = round(api
+                .column(7)
+                .data()
+                .reduce( function (a, b) {
+                    return a + b;
+                }, 0 ));
+
+            sumHashesTotal = api
+                .column(8)
+                .data()
+                .reduce( function (a, b) {
+                    return a + b;
+                }, 0 );
+
+            avgTimeTotal = api
+                .column(9)
+                .data()
+                .reduce( function (a, b) {
+                    return a + b;
+                }, 0 )/end;
+
+            sumSharesGood = api
+                .column(10)
+                .data()
+                .reduce( function (a, b) {
+                    return a + b;
+                }, 0 );
+
+            sumSharedTotal = api
+                .column(11)
+                .data()
+                .reduce( function (a, b) {
+                    return a + b;
+                }, 0 );
+
+            // Update footer
+            $( api.column(4).footer()).html(sumHashrateShort);
+            $( api.column(5).footer()).html(sumHashrateMedium);
+            $( api.column(6).footer()).html(sumHashrateLong);
+            $( api.column(7).footer()).html(sumHashrateHighest);
+            $( api.column(8).footer()).html(sumHashesTotal);
+            $( api.column(9).footer()).html(avgTimeTotal);
+            $( api.column(10).footer()).html(sumSharesGood);
+            $( api.column(11).footer()).html(sumSharedTotal);
+        }
     });
 
     $('#clientStatusList tbody').on( 'click', 'button', function () {
@@ -78,16 +149,24 @@ $(document).ready(function() {
             });
         }
         else {
-            $.get("/admin/getClientConfig?clientId="+clientId, function (jsonClientConfig) {
-                var htmlContent = "<div class='form-group' id='editor' data-value='" + clientId + "'>" +
-                                 "<label for='config'>Config for: " + clientId + "</label>"+
-                                 "<textarea class='form-control' rows='20' id='config'>" +
-                                    JSON.stringify(jsonClientConfig,undefined, 2); +
-                                 "</textarea>" +
-                                 "</div>";
+            $.ajax({
+                type:    "GET",
+                url:     "/admin/getClientConfig?clientId=" + clientId,
+                dataType:"json",
+                success: function(jsonClientConfig) {
+                    var htmlContent = "<div class='form-group' id='editor' data-value='" + clientId + "'>" +
+                        "<label for='config'>Config for: " + clientId + "</label>"+
+                        "<textarea class='form-control' rows='20' id='config'>" +
+                        JSON.stringify(jsonClientConfig,undefined, 2); +
+                        "</textarea>" +
+                    "</div>";
 
-                $('#editConfig').find('.modal-body').html(htmlContent);
-                $('#editConfig').modal('show');
+                    $('#editConfig').find('.modal-body').html(htmlContent);
+                    $('#editConfig').modal('show');
+                },
+                error: function (data) {
+                    alert("Unable to fetch " + clientId + "_config.json or default_config.json, please check your configuration!");
+                }
             });
         }
     });
@@ -122,7 +201,7 @@ function laststatus( data, type, row ) {
 }
 
 function round( data, type, row ) {
-    return Math.round(data).toFixed();
+    return Math.round(data * 100) / 100;
 }
 
 </script>
@@ -135,27 +214,45 @@ function round( data, type, row ) {
         <h1>XMRigCC Dashboard</h1>
     </div>
     <table id="clientStatusList" class="display" cellspacing="0" width="100%">
-    <thead>
+        <thead>
+            <tr>
+                <th>Client Id</th>
+                <th>Pool</th>
+                <th>Status</th>
+                <th>Algo</th>
+
+                <th>Hashrate</th>
+                <th>Hashrate 5m</th>
+                <th>Hashrate 60m</th>
+
+                <th>Hashrate Highest</th>
+                <th>Hashes Total</th>
+                <th>Avg. Time</th>
+
+                <th>Shares Good</th>
+                <th>Shares Total</th>
+                <th>Last Update</th>
+                <th colspan="6" class="center">Action</th>
+            </tr>
+        </thead>
+        <tfoot>
         <tr>
-            <th>Client Id</th>
-            <th>Pool</th>
-            <th>Status</th>
-            <th>Algo</th>
-
-            <th>Hashrate</th>
-            <th>Hashrate 5m</th>
-            <th>Hashrate 60m</th>
-
-            <th>Hashrate Highest</th>
-            <th>Hashes Total</th>
-            <th>Avg. Time</th>
-
-            <th>Shares Good</th>
-            <th>Shares Total</th>
-            <th>Last Update</th>
-            <th colspan="6" class="center">Action</th>
+            <th class="left">Total:</th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
         </tr>
-    </thead>
+        </tfoot>
     </table>
 
     <div class="modal fade" id="editConfig" role="dialog">
