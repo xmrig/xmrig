@@ -147,7 +147,7 @@ int App::start()
 #   endif
 
 #   ifndef XMRIG_NO_CC
-    if (m_options->ccUrl()) {
+    if (m_options->ccHost() && m_options->ccPort() > 0) {
         m_ccclient = new CCClient(m_options);
     } else {
         LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");

@@ -31,6 +31,8 @@
 #   include "getopt/getopt.h"
 #else
 #   include <getopt.h>
+#include <sstream>
+
 #endif
 
 
@@ -260,7 +262,7 @@ Options::Options(int argc, char **argv) :
     m_apiWorkerId(nullptr),
     m_logFile(nullptr),
     m_userAgent(nullptr),
-    m_ccUrl(nullptr),
+    m_ccHost(nullptr),
     m_ccToken(nullptr),
     m_ccWorkerId(nullptr),
     m_ccAdminUser(nullptr),
@@ -444,9 +446,7 @@ bool Options::parseArg(int key, const char *arg)
         break;
 
     case 4003: /* --cc-url */
-        free(m_ccUrl);
-        m_ccUrl = strdup(arg);
-        break;
+        return parseCCUrl(arg);
 
     case 4004: /* --cc-access-token */
         free(m_ccToken);
@@ -494,7 +494,7 @@ bool Options::parseArg(int key, const char *arg)
     case 4006: /* --cc-port */
         return parseArg(key, strtol(arg, nullptr, 10));
     case 4012: /* --cc-update-interval-c */
-         return parseArg(key, strtol(arg, nullptr, 10));
+        return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'B':  /* --background */
     case 'k':  /* --keepalive */
@@ -878,3 +878,30 @@ int Options::getAlgoVariantLite() const
     return m_algoVariant;
 }
 #endif
+
+bool Options::parseCCUrl(const char* url)
+{
+    free(m_ccHost);
+
+    const char *port = strchr(url, ':');
+    if (!port) {
+        m_ccHost = strdup(url);
+        m_ccPort = kDefaultCCPort;
+    } else {
+        const size_t size = port++ - url + 1;
+        m_ccHost = static_cast<char*>(malloc(size));
+        memcpy(m_ccHost, url, size - 1);
+        m_ccHost[size - 1] = '\0';
+
+        m_ccPort = (uint16_t) strtol(port, nullptr, 10);
+
+        if (m_ccPort < 0 || m_ccPort > 65536) {
+            m_ccPort = kDefaultCCPort;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+

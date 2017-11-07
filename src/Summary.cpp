@@ -141,11 +141,11 @@ static void print_api()
 #ifndef XMRIG_NO_CC
 static void print_cc()
 {
-    if (Options::i()->ccUrl() == nullptr) {
+    if (Options::i()->ccHost() == nullptr) {
         return;
     }
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mCC Server:    \x1B[01;36m%s" : " * CC Server:    %s", Options::i()->ccUrl());
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mCC Server:    \x1B[01;36m%s:%d" : " * CC Server:    %s:%d", Options::i()->ccHost(), Options::i()->ccPort());
 }
 #endif
 
