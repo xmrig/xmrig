@@ -68,7 +68,7 @@ public:
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
     inline const char *logFile() const              { return m_logFile; }
     inline const char *userAgent() const            { return m_userAgent; }
-    inline const char *ccUrl() const                { return m_ccUrl; }
+    inline const char *ccHost() const               { return m_ccHost; }
     inline const char *ccToken() const              { return m_ccToken; }
     inline const char *ccWorkerId() const           { return m_ccWorkerId; }
     inline const char *ccAdminUser() const          { return m_ccAdminUser; }
@@ -94,6 +94,8 @@ public:
     const char *algoName() const;
 
 private:
+    constexpr static uint16_t kDefaultCCPort        = 3344;
+
     Options(int argc, char **argv);
     ~Options();
 
@@ -105,6 +107,7 @@ private:
     bool parseArg(int key, const char *arg);
     bool parseArg(int key, uint64_t arg);
     bool parseBoolean(int key, bool enable);
+    bool parseCCUrl(const char *arg);
     Url *parseUrl(const char *arg) const;
     void parseConfig(const char *fileName);
     void parseJSON(const struct option *option, const rapidjson::Value &object);
@@ -132,7 +135,7 @@ private:
     char *m_apiWorkerId;
     char *m_logFile;
     char *m_userAgent;
-    char *m_ccUrl;
+    char *m_ccHost;
     char *m_ccToken;
     char *m_ccWorkerId;
     char *m_ccAdminUser;

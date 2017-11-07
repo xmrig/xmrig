@@ -96,12 +96,12 @@ $(document).ready(function() {
                     return a + b;
                 }, 0 );
 
-            avgTimeTotal = api
+            avgTimeTotal = round(api
                 .column(9)
                 .data()
                 .reduce( function (a, b) {
                     return a + b;
-                }, 0 )/end;
+                }, 0 )/end);
 
             sumSharesGood = api
                 .column(10)

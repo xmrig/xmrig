@@ -249,14 +249,6 @@ if (WITH_CC)
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
     endif()
 
-    find_package(CURL)
-
-    if (CURL_FOUND)
-        include_directories(${CURL_INCLUDE_DIRS})
-    else()
-        message(FATAL_ERROR "curl NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
-    endif()
-
     set(HEADERS_CC_COMMON
             src/cc/ControlCommand.h
             src/cc/ClientStatus.h)
@@ -292,11 +284,11 @@ include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
 
 add_executable(xmrigMiner ${HEADERS} ${SOURCES} ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_COMMON} ${HEADERS_CC_COMMON} ${SOURCES_CC_CLIENT} ${HEADERS_CC_CLIENT})
-target_link_libraries(xmrigMiner ${UV_LIBRARIES} ${MHD_LIBRARY} ${CURL_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(xmrigMiner ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
 
-if (WITH_CC AND MHD_FOUND AND CURL_FOUND)
+if (WITH_CC AND MHD_FOUND)
     add_executable(xmrigCCServer ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_SYSLOG} ${SOURCES_CC_COMMON} ${HEADERS_CC_COMMON} ${SOURCES_CC_SERVER} ${HEADERS_CC_SERVER})
     target_link_libraries(xmrigCCServer ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
