@@ -1,3 +1,0 @@
-[submodule "src/cc"]
-	path = src/cc
-	url = https://github.com/bendr0id/xmrigCC-common
