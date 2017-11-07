@@ -25,8 +25,6 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 
 **[Find HELP/HOWTO](https://github.com/Bendr0id/xmrigCC/wiki/)**
 
-**When cloning make sure to used the option `--recursive`**
-
 
 ##### About XMRig
 
@@ -66,7 +64,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 ## Download
 * Binary releases: https://github.com/Bendr0id/xmrigCC/releases
 * Git tree: https://github.com/Bendr0id/xmrigCC.git
-  * Clone with `git clone --recursive https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions](https://github.com/Bendr0id/xmrigCC/wiki/Build-Debian%5CUbuntu).
+  * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions](https://github.com/Bendr0id/xmrigCC/wiki/Build-Debian%5CUbuntu).
 
 ## Usage
 ### Basic example xmrigCCServer
@@ -147,15 +145,6 @@ Also you can use configuration via config file, default **[config.json](https://
 * `--av=4` Lower power mode (double hash) of `3`.
 
 ## Common Issues
-### "Cannot find source file.. src/cc/*"
-* Please make sure that you use `--recursive` when cloning, otherwise the subrepo will not be cloned. 
-
-```
-git clone --recursive https://github.com/Bendr0id/xmrigCC.git
-```
-
-* If you downloaded the source file package please download [xmrigCC-common](https://github.com/Bendr0id/xmrigCC-common) and extract to src/cc/ folder 
-
 ### XMRigMiner
 * XMRigMiner is just the worker, it is not designed to work standalone. Please start **XMRigDaemon** instead.
 
@@ -165,7 +154,7 @@ git clone --recursive https://github.com/Bendr0id/xmrigCC.git
 ### Linux only: Background mode
 * The `--background` option will only work properly for the XMRigServer. But there is a simple workaround for the XMRigDaemon process. Just append an `&` to the command and it will run smoothly in the background.
 
-    `./xmrigDaemon --config=my_config_cc.json &`
+    `./xmrigDaemon --config=my_config_cc.json &` or you just use `screen`
 
 
 ### HUGE PAGES unavailable (Windows)
@@ -175,7 +164,7 @@ git clone --recursive https://github.com/Bendr0id/xmrigCC.git
 ### HUGE PAGES unavailable (Linux)
 * Before starting XMRigDaemon set huge pages
 
-    `sudo sysctl -w vm.nr_hugepages=256`
+    `sudo sysctl -w vm.nr_hugepages=128`
 
 
 ## Other information
