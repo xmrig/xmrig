@@ -15,7 +15,6 @@ configuration: Release
 clone_folder: c:\xmrigCC
 
 install:
-  - git submodule update --init --recursive
   - mkdir c:\xmrigCC-deps
   - curl -sL https://github.com/xmrig/xmrig-deps/releases/download/v2/xmrig-deps-v2.zip -o xmrigCC-deps-v2.zip
   - 7z x xmrigCC-deps-v2.zip -o"c:\xmrigCC-deps" -y > nul
