@@ -29,7 +29,7 @@
 #define APP_ID        "xmrigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC Command'n'Control Server"
-#define APP_VERSION   "1.0.7"
+#define APP_VERSION   "1.0.9"
 #define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 # else
 #define APP_ID        "xmrigCC"

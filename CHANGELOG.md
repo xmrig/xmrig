@@ -1,3 +1,12 @@
+# v1.0.9
+- Integrated cpp-httplib as libcurl replacement 
+- Removed libcurl dependicies
+- Fixed round of avgTime in Dashboard
+- Removed subrepo dependencies for easier building
+# v1.0.8
+- Extracted common CC files to subrepo (xmrigCC-common)
+- Added sum row to Dashboard
+- Added dialogs (success/error) to all dashboard actions
 # v1.0.7
 - CCClient status update interval is now configurable
 - Updated to latest head of xmrig (Optimized soft aes)
