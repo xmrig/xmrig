@@ -61,6 +61,7 @@ set(HEADERS_CRYPTO
     src/crypto/groestl_tables.h
     src/crypto/hash.h
     src/crypto/skein_port.h
+    src/crypto/soft_aes.h
    )
 
 set(SOURCES
@@ -99,8 +100,6 @@ set(SOURCES_CRYPTO
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
-    src/crypto/soft_aes.c
-    src/crypto/soft_aes.c
     src/crypto/CryptoNight.cpp
    )
 
@@ -122,14 +121,6 @@ elseif (APPLE)
         src/Mem_unix.cpp
         src/Platform_mac.cpp
         )
-elseif (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    set(SOURCES_OS
-        src/App_unix.cpp
-        src/Cpu_unix.cpp
-        src/Mem_unix.cpp
-        src/Platform_unix.cpp
-        )
-set(EXTRA_LIBS pthread kvm)
 else()
     set(SOURCES_OS
         src/App_unix.cpp
@@ -138,7 +129,11 @@ else()
         src/Platform_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread)
+    set(EXTRA_LIBS pthread rt)
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+    set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
 endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)

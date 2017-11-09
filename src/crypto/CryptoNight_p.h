@@ -34,6 +34,7 @@
 
 
 #include "crypto/CryptoNight.h"
+#include "crypto/soft_aes.h"
 
 
 extern "C"
@@ -43,9 +44,6 @@ extern "C"
 #include "crypto/c_blake256.h"
 #include "crypto/c_jh.h"
 #include "crypto/c_skein.h"
-
-__m128i soft_aesenc(__m128i in, __m128i key);
-__m128i soft_aeskeygenassist(__m128i key, uint8_t rcon);
 }
 
 
@@ -151,13 +149,14 @@ static inline void aes_genkey_sub(__m128i* xout0, __m128i* xout2)
 }
 
 
-static inline void soft_aes_genkey_sub(__m128i* xout0, __m128i* xout2, uint8_t rcon)
+template<uint8_t rcon>
+static inline void soft_aes_genkey_sub(__m128i* xout0, __m128i* xout2)
 {
-    __m128i xout1 = soft_aeskeygenassist(*xout2, rcon);
+    __m128i xout1 = soft_aeskeygenassist<rcon>(*xout2);
     xout1  = _mm_shuffle_epi32(xout1, 0xFF); // see PSHUFD, set all elems to 4th elem
     *xout0 = sl_xor(*xout0);
     *xout0 = _mm_xor_si128(*xout0, xout1);
-    xout1  = soft_aeskeygenassist(*xout0, 0x00);
+    xout1  = soft_aeskeygenassist<0x00>(*xout0);
     xout1  = _mm_shuffle_epi32(xout1, 0xAA); // see PSHUFD, set all elems to 3rd elem
     *xout2 = sl_xor(*xout2);
     *xout2 = _mm_xor_si128(*xout2, xout1);
@@ -168,23 +167,23 @@ template<bool SOFT_AES>
 static inline void aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i* k2, __m128i* k3, __m128i* k4, __m128i* k5, __m128i* k6, __m128i* k7, __m128i* k8, __m128i* k9)
 {
     __m128i xout0 = _mm_load_si128(memory);
-    __m128i xout2 = _mm_load_si128(memory +1 );
+    __m128i xout2 = _mm_load_si128(memory + 1);
     *k0 = xout0;
     *k1 = xout2;
 
-    SOFT_AES ? soft_aes_genkey_sub(&xout0, &xout2, 0x01) : aes_genkey_sub<0x01>(&xout0, &xout2);
+    SOFT_AES ? soft_aes_genkey_sub<0x01>(&xout0, &xout2) : aes_genkey_sub<0x01>(&xout0, &xout2);
     *k2 = xout0;
     *k3 = xout2;
 
-    SOFT_AES ? soft_aes_genkey_sub(&xout0, &xout2, 0x02) : aes_genkey_sub<0x02>(&xout0, &xout2);
+    SOFT_AES ? soft_aes_genkey_sub<0x02>(&xout0, &xout2) : aes_genkey_sub<0x02>(&xout0, &xout2);
     *k4 = xout0;
     *k5 = xout2;
 
-    SOFT_AES ? soft_aes_genkey_sub(&xout0, &xout2, 0x04) : aes_genkey_sub<0x04>(&xout0, &xout2);
+    SOFT_AES ? soft_aes_genkey_sub<0x04>(&xout0, &xout2) : aes_genkey_sub<0x04>(&xout0, &xout2);
     *k6 = xout0;
     *k7 = xout2;
 
-    SOFT_AES ? soft_aes_genkey_sub(&xout0, &xout2, 0x08) : aes_genkey_sub<0x08>(&xout0, &xout2);
+    SOFT_AES ? soft_aes_genkey_sub<0x08>(&xout0, &xout2) : aes_genkey_sub<0x08>(&xout0, &xout2);
     *k8 = xout0;
     *k9 = xout2;
 }

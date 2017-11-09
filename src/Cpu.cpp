@@ -86,9 +86,13 @@ void Cpu::initCommon()
     strncpy(m_brand, data.brand_str, sizeof(m_brand) - 1);
 
     m_totalThreads = data.total_logical_cpus;
-    m_sockets = m_totalThreads / data.num_logical_cpus;
-    m_totalCores = data.num_cores *m_sockets;
+    m_sockets      = m_totalThreads / data.num_logical_cpus;
 
+    if (m_sockets == 0) {
+        m_sockets = 1;
+    }
+
+    m_totalCores = data.num_cores * m_sockets;
     m_l3_cache = data.l3_cache > 0 ? data.l3_cache * m_sockets : 0;
 
     // Workaround for AMD CPUs https://github.com/anrieff/libcpuid/issues/97
