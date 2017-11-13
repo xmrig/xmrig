@@ -1,3 +1,8 @@
+# v1.1.0
+- Added option to hide offline miners from Dashboard
+- Added online status indicator to Dashboard client id column (green:red)
+- JSON-Protocol changes to send miner info to XMRigCC server
+- Added Tooltip to Dashboard column id containing new miner info (CPU, CPU flags, Cores, Threads, Memory, External IP, ...)
 # v1.0.9
 - Integrated cpp-httplib as libcurl replacement 
 - Removed libcurl dependicies
