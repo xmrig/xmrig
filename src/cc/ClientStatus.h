@@ -27,7 +27,7 @@
 
 #include <string>
 #include <ctime>
-#include "rapidjson/document.h"
+#include <rapidjson/document.h>
 
 class ClientStatus
 {
@@ -58,6 +58,9 @@ public:
         return Status::RUNNING;
     }
 
+    Status getCurrentStatus() const;
+    void setCurrentStatus(Status currentStatus);
+
     std::string getClientId() const;
     void setClientId(const std::string& clientId);
 
@@ -67,8 +70,26 @@ public:
     std::string getCurrentAlgoName() const;
     void setCurrentAlgoName(const std::string &algoName);
 
-    Status getCurrentStatus() const;
-    void setCurrentStatus(Status currentStatus);
+    std::string getCpuBrand() const;
+    void setCpuBrand(const std::string &cpuBrand);
+
+    std::string getExternalIp() const;
+    void setExternalIp(const std::string &externalIp);
+
+    bool hasHugepages() const;
+    void setHugepages(bool hasHugepages);
+
+    bool isHugepagesEnabled() const;
+    void setHugepagesEnabled(bool hugepagesEnabled);
+
+    bool isDoubleHashMode() const;
+    void setDoubleHashMode(bool isDoubleHashMode);
+
+    bool isCpuX64() const;
+    void setCpuX64(bool isCpuX64);
+
+    bool hasCpuAES() const;
+    void setCpuAES(bool hasCpuAES);
 
     double getHashrateShort() const;
     void setHashrateShort(double hashrateShort);
@@ -79,6 +100,21 @@ public:
     double getHashrateLong() const;
     void setHashrateLong(double hashrateLong);
 
+    void setHashrateHighest(double hashrateHighest);
+    double getHashrateHighest() const;
+
+    int getCurrentThreads() const;
+    void setCurrentThreads(int currentThreads);
+
+    int getCpuCores() const;
+    void setCpuCores(int cpuCores);
+
+    int getCpuL2() const;
+    void setCpuL2(int cpuL2);
+
+    int getCpuL3() const;
+    void setCpuL3(int cpuL3);
+
     uint64_t getSharesGood() const;
     void setSharesGood(uint64_t sharesGood);
 
@@ -87,9 +123,6 @@ public:
 
     uint64_t getHashesTotal() const;
     void setHashesTotal(uint64_t hashesTotal);
-
-    void setHashrateHighest(double hashrateHighest);
-    double getHashrateHighest() const;
 
     void setAvgTime(uint32_t avgTime);
     uint32_t getAvgTime() const;
@@ -113,11 +146,24 @@ private:
     std::string m_clientId;
     std::string m_currentPool;
     std::string m_currentAlgoName;
+    std::string m_cpuBrand;
+    std::string m_externalIp;
+
+    bool m_hasHugepages;
+    bool m_isHugepagesEnabled;
+    bool m_isDoubleHashMode;
+    bool m_isCpuX64;
+    bool m_hasCpuAES;
 
     double m_hashrateShort;
     double m_hashrateMedium;
     double m_hashrateLong;
     double m_hashrateHighest;
+
+    int m_currentThreads;
+    int m_cpuCores;
+    int m_cpuL2;
+    int m_cpuL3;
 
     uint64_t m_sharesGood;
     uint64_t m_sharesTotal;

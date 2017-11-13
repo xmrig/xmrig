@@ -212,15 +212,26 @@ int Httpd::handlePOST(const Httpd* httpd, struct MHD_Connection* connection, con
         } else {
             std::string resp;
             std::string url(urlPtr);
+            std::string clientIp;
             std::string clientId;
 
+            const MHD_ConnectionInfo *info = MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
+            if (info) {
+                char clientHost[NI_MAXHOST];
+                int ec = getnameinfo(info->client_addr, sizeof(*info->client_addr), clientHost, sizeof(clientHost),
+                                     0, 0, NI_NUMERICHOST|NI_NUMERICSERV);
+
+                if (ec == 0) {
+                    clientIp = std::string(clientHost);
+                }
+            }
+
             const char* clientIdPtr = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "clientId");
-            if (clientIdPtr)
-            {
+            if (clientIdPtr) {
                 clientId = std::string(clientIdPtr);
             }
 
-            unsigned status = Service::handlePOST(httpd->m_options, url, clientId, cc->data.str(), resp);
+            unsigned status = Service::handlePOST(httpd->m_options, url, clientIp, clientId, cc->data.str(), resp);
 
             MHD_Response* rsp = nullptr;
             if (!resp.empty()) {
