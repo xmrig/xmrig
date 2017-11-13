@@ -82,7 +82,7 @@ CCClient::CCClient(const Options *options)
 
     m_clientStatus.setCpuL2(Cpu::l2());
     m_clientStatus.setCpuL3(Cpu::l3());
-    m_clientStatus.setCurrentThreads(Cpu::threads());
+    m_clientStatus.setCurrentThreads(m_options->threads());
 
     if (m_options->ccToken() != nullptr) {
         m_authorization = std::string("Bearer ") + m_self->m_options->ccToken();

@@ -227,7 +227,7 @@ function laststatus( data, type, row ) {
 }
 
 function clientInfo( data, type, row ) {
-   var  tooltip  = "CPU: " + row.client_status.cpu_brand;
+   var  tooltip  = "CPU: " + row.client_status.cpu_brand + " [" + row.client_status.cpu_cores + " cores]";
         tooltip += '\n';
         tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
         tooltip += (row.client_status.cpu_is_x64 ? "x64" : "");
@@ -237,7 +237,7 @@ function clientInfo( data, type, row ) {
         tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available, " : " unavailable, ");
         tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
         tooltip += '\n';
-        tooltip += "Threads: " + row.client_status.current_threads;
+        tooltip += "Used Threads: " + row.client_status.current_threads;
         tooltip += (row.client_status.double_hash_mode ? " [double hash mode]" :"");
         tooltip += '\n';
         tooltip += "Client IP: " + row.client_status.external_ip;
