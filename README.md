@@ -20,7 +20,7 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 
 **XMRigCC Dashboard**
 
-![Screenshot of XMRigCC Dashboard](https://i.imgur.com/4UXFMVf.png)
+![Screenshot of XMRigCC Dashboard](https://i.imgur.com/D2y4V0V.png)
 
 
 **[Find HELP/HOWTO](https://github.com/Bendr0id/xmrigCC/wiki/)**
