@@ -86,16 +86,18 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
     return resultCode;
 }
 
-unsigned Service::handlePOST(const Options* options, const std::string& url, const std::string& clientId, const std::string& data, std::string& resp)
+unsigned Service::handlePOST(const Options* options, const std::string& url, const std::string& clientIp,
+                             const std::string& clientId, const std::string& data, std::string& resp)
 {
     uv_mutex_lock(&m_mutex);
 
     unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
-    LOG_INFO("POST(url='%s', clientId='%s', dataLen='%d')", url.c_str(), clientId.c_str(), data.length());
+    LOG_INFO("POST(url='%s', clientIp='%s', clientId='%s', dataLen='%d')",
+             url.c_str(), clientId.c_str(), clientIp.c_str(), data.length());
 
     if (url.rfind("/client/setClientStatus", 0) == 0) {
-        resultCode = setClientStatus(clientId, data, resp);
+        resultCode = setClientStatus(clientIp, clientId, data, resp);
     } else if (url.rfind("/admin/setClientConfig", 0) == 0) {
         resultCode = setClientConfig(options, clientId, data, resp);
     } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
@@ -204,7 +206,7 @@ unsigned Service::getClientStatusList(std::string& resp)
     return MHD_HTTP_OK;
 }
 
-unsigned Service::setClientStatus(const std::string& clientId, const std::string& data, std::string& resp)
+unsigned Service::setClientStatus(const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp)
 {
     int resultCode = MHD_HTTP_BAD_REQUEST;
 
@@ -214,6 +216,7 @@ unsigned Service::setClientStatus(const std::string& clientId, const std::string
 
         ClientStatus clientStatus;
         clientStatus.parseFromJson(document);
+        clientStatus.setExternalIp(clientIp);
 
         m_clientStatus[clientId] = clientStatus;
 

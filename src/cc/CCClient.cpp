@@ -25,10 +25,12 @@
 #include <fstream>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
-#include <Platform.h>
 
 #include "CCClient.h"
 #include "App.h"
+#include "Platform.h"
+#include "Cpu.h"
+#include "Mem.h"
 #include "ControlCommand.h"
 
 #include "api/NetworkState.h"
@@ -68,6 +70,19 @@ CCClient::CCClient(const Options *options)
     if (m_options->algoName() != nullptr) {
         m_clientStatus.setCurrentAlgoName(m_options->algoName());
     }
+
+    m_clientStatus.setHugepagesEnabled(Mem::isHugepagesEnabled());
+    m_clientStatus.setHugepages(Mem::isHugepagesAvailable());
+    m_clientStatus.setDoubleHashMode(Mem::isDoubleHash());
+
+    m_clientStatus.setCpuBrand(Cpu::brand());
+    m_clientStatus.setCpuAES(Cpu::hasAES());
+    m_clientStatus.setCpuCores(Cpu::cores());
+    m_clientStatus.setCpuX64(Cpu::isX64());
+
+    m_clientStatus.setCpuL2(Cpu::l2());
+    m_clientStatus.setCpuL3(Cpu::l3());
+    m_clientStatus.setCurrentThreads(Cpu::threads());
 
     if (m_options->ccToken() != nullptr) {
         m_authorization = std::string("Bearer ") + m_self->m_options->ccToken();

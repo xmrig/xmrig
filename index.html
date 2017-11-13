@@ -12,6 +12,8 @@
     .right{text-align:right;}
     .center{text-align:center;}
     .toolbar { float: right; padding-left: 10pt;}
+    .online { color: green}
+    .offline { color: red}
 </style>
 
 <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.4.js"></script>
@@ -26,10 +28,7 @@ $.fn.dataTable.ext.search.push(
         var hide = document.getElementById("hideOffline").checked;
 
         var lastStatus = settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000;
-        var threshold = new Date().getTime() - 10*60*1000;
-
-        console.log("lastStatus: " + new Date(lastStatus));
-        console.log("threshold: " + new Date(threshold));
+        var threshold = new Date().getTime() - 60 * 1000;
 
         if (lastStatus > threshold || !hide) {
             return true;
@@ -50,7 +49,7 @@ $(document).ready(function() {
             dataSrc : 'client_status_list'
         },
         columns: [
-            { data: "client_status.client_id"},
+            { data: "client_status.client_id", render: clientInfo},
             { data: "client_status.current_pool"},
             { data: "client_status.current_status"},
             { data: "client_status.current_algo_name"},
@@ -138,14 +137,14 @@ $(document).ready(function() {
                 }, 0 );
 
             // Update footer
-            $( api.column(4).footer()).html(sumHashrateShort);
-            $( api.column(5).footer()).html(sumHashrateMedium);
-            $( api.column(6).footer()).html(sumHashrateLong);
-            $( api.column(7).footer()).html(sumHashrateHighest);
-            $( api.column(8).footer()).html(sumHashesTotal);
-            $( api.column(9).footer()).html(avgTimeTotal);
-            $( api.column(10).footer()).html(sumSharesGood);
-            $( api.column(11).footer()).html(sumSharedTotal);
+            $(api.column(4).footer()).html(sumHashrateShort);
+            $(api.column(5).footer()).html(sumHashrateMedium);
+            $(api.column(6).footer()).html(sumHashrateLong);
+            $(api.column(7).footer()).html(sumHashrateHighest);
+            $(api.column(8).footer()).html(sumHashesTotal);
+            $(api.column(9).footer()).html(avgTimeTotal);
+            $(api.column(10).footer()).html(sumSharesGood);
+            $(api.column(11).footer()).html(sumSharedTotal);
         }
     });
 
@@ -179,7 +178,7 @@ $(document).ready(function() {
                     var htmlContent = "<div class='form-group' id='editor' data-value='" + clientId + "'>" +
                         "<label for='config'>Config for: " + clientId + "</label>"+
                         "<textarea class='form-control' rows='20' id='config'>" +
-                        JSON.stringify(jsonClientConfig,undefined, 2); +
+                        JSON.stringify(jsonClientConfig,undefined, 2) +
                         "</textarea>" +
                     "</div>";
 
@@ -187,7 +186,7 @@ $(document).ready(function() {
                     $('#editConfig').modal('show');
                 },
                 error: function (data) {
-                    alert("Unable to fetch " + clientId + "_config.json or default_config.json, please check your configuration!");
+                    alert("Unable to fetch " + clientId + "_config.json or default_config.json, please check your Server configuration and the the config files are located on the Server!");
                 }
             });
         }
@@ -223,7 +222,38 @@ $(document).ready(function() {
 
 function laststatus( data, type, row ) {
     var date = new Date(data*1000);
+
     return '<span data-toggle="tooltip" title="' + date + '">' + jQuery.timeago(date) + '</span>';
+}
+
+function clientInfo( data, type, row ) {
+   var  tooltip  = "CPU: " + row.client_status.cpu_brand;
+        tooltip += '\n';
+        tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
+        tooltip += (row.client_status.cpu_is_x64 ? "x64" : "");
+        tooltip += '\n';
+        tooltip += "CPU Cache L2/L3: " + (row.client_status.cpu_l2 / 1024) + " MB/"+ (row.client_status.cpu_l3 / 1024) + " MB";
+        tooltip += '\n';
+        tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available, " : " unavailable, ");
+        tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
+        tooltip += '\n';
+        tooltip += "Threads: " + row.client_status.current_threads;
+        tooltip += (row.client_status.double_hash_mode ? " [double hash mode]" :"");
+        tooltip += '\n';
+        tooltip += "Client IP: " + row.client_status.external_ip;
+        tooltip += '\n';
+        tooltip += "Status: ";
+
+    var lastStatus = row.client_status.last_status_update * 1000;
+    var threshold = new Date().getTime() - 60 * 1000;
+    if (lastStatus > threshold) {
+        tooltip  += "Online";
+        return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
+    }
+    else {
+        tooltip  += "Offline";
+        return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="offline">' + data + '</div></span>';
+    }
 }
 
 function round( data, type, row ) {

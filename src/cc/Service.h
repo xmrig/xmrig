@@ -43,7 +43,7 @@ public:
     static void release();
 
     static unsigned handleGET(const Options* options, const std::string& url, const std::string& clientId, std::string& resp);
-    static unsigned handlePOST(const Options* options, const std::string& url, const std::string& clientId, const std::string& data, std::string& resp);
+    static unsigned handlePOST(const Options* options, const std::string& url, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
 
 private:
     static unsigned getClientConfig(const Options* options, const std::string& clientId, std::string& resp);
@@ -51,7 +51,7 @@ private:
     static unsigned getClientStatusList(std::string& resp);
     static unsigned getAdminPage(const Options* options, std::string& resp);
 
-    static unsigned setClientStatus(const std::string& clientId, const std::string& data, std::string& resp);
+    static unsigned setClientStatus(const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientCommand(const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientConfig(const Options* options, const std::string &clientId, const std::string &data, std::string &resp);
 
