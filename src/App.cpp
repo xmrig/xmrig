@@ -247,22 +247,20 @@ void App::onSignal(uv_signal_t* handle, int signum)
 
 void App::onCommandReceived(uv_async_t* async)
 {
-    if (async->data) {
-        auto command = reinterpret_cast<ControlCommand::Command &> (async->data);
-        switch (command) {
-            case ControlCommand::START:
-                Workers::setEnabled(true);
-                break;
-            case ControlCommand::STOP:
-                Workers::setEnabled(false);
-                break;
-            case ControlCommand::UPDATE_CONFIG:;
-            case ControlCommand::RESTART:
-                App::restart();
-                break;
-            case ControlCommand::SHUTDOWN:
-                App::shutdown();
-                break;
-        }
+    auto command = reinterpret_cast<ControlCommand::Command &> (async->data);
+    switch (command) {
+        case ControlCommand::START:
+            Workers::setEnabled(true);
+            break;
+        case ControlCommand::STOP:
+            Workers::setEnabled(false);
+            break;
+        case ControlCommand::UPDATE_CONFIG:;
+        case ControlCommand::RESTART:
+            App::restart();
+            break;
+        case ControlCommand::SHUTDOWN:
+            App::shutdown();
+            break;
     }
 }
