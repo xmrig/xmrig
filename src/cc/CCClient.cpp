@@ -48,8 +48,9 @@
 CCClient *CCClient::m_self = nullptr;
 uv_mutex_t CCClient::m_mutex;
 
-CCClient::CCClient(const Options *options)
-    : m_options(options)
+CCClient::CCClient(Options* options, uv_async_t* async)
+    : m_options(options),
+      m_async(async)
 {
     uv_mutex_init(&m_mutex);
 
@@ -88,10 +89,7 @@ CCClient::CCClient(const Options *options)
         m_authorization = std::string("Bearer ") + m_self->m_options->ccToken();
     }
 
-    uv_timer_init(uv_default_loop(), &m_timer);
-    uv_timer_start(&m_timer, CCClient::onReport,
-                   static_cast<uint64_t>(m_options->ccUpdateInterval() * 1000),
-                   static_cast<uint64_t>(m_options->ccUpdateInterval() * 1000));
+    uv_thread_create(&m_thread, CCClient::onThreadStarted, this);
 }
 
 CCClient::~CCClient()
@@ -102,32 +100,33 @@ CCClient::~CCClient()
 
 void CCClient::updateHashrate(const Hashrate *hashrate)
 {
-    uv_mutex_lock(&m_mutex);
-
     if (m_self) {
+        uv_mutex_lock(&m_mutex);
+
         m_self->m_clientStatus.setHashrateShort(hashrate->calc(Hashrate::ShortInterval));
         m_self->m_clientStatus.setHashrateMedium(hashrate->calc(Hashrate::MediumInterval));
         m_self->m_clientStatus.setHashrateLong(hashrate->calc(Hashrate::LargeInterval));
         m_self->m_clientStatus.setHashrateHighest(hashrate->highest());
-    }
 
-    uv_mutex_unlock(&m_mutex);
+        uv_mutex_unlock(&m_mutex);
+    }
 }
 
 
 void CCClient::updateNetworkState(const NetworkState &network)
 {
-    uv_mutex_lock(&m_mutex);
-
     if (m_self) {
+        uv_mutex_lock(&m_mutex);
+
         m_self->m_clientStatus.setCurrentStatus(Workers::isEnabled() ? ClientStatus::RUNNING : ClientStatus::PAUSED);
         m_self->m_clientStatus.setCurrentPool(network.pool);
         m_self->m_clientStatus.setSharesGood(network.accepted);
         m_self->m_clientStatus.setSharesTotal(network.accepted + network.rejected);
         m_self->m_clientStatus.setHashesTotal(network.total);
         m_self->m_clientStatus.setAvgTime(network.avgTime());
+
+        uv_mutex_unlock(&m_mutex);
     }
-    uv_mutex_unlock(&m_mutex);
 }
 
 void CCClient::publishClientStatusReport()
@@ -148,23 +147,22 @@ void CCClient::publishClientStatusReport()
             if (controlCommand.getCommand() == ControlCommand::START) {
                 if (!Workers::isEnabled()) {
                     LOG_WARN("[CC-Client] Command: START received -> resume");
-                    Workers::setEnabled(true);
                 }
             } else if (controlCommand.getCommand() == ControlCommand::STOP) {
                 if (Workers::isEnabled()) {
                     LOG_WARN("[CC-Client] Command: STOP received -> pause");
-                    Workers::setEnabled(false);
                 }
             } else if (controlCommand.getCommand() == ControlCommand::UPDATE_CONFIG) {
                 LOG_WARN("[CC-Client] Command: UPDATE_CONFIG received -> update config");
                 updateConfig();
             } else if (controlCommand.getCommand() == ControlCommand::RESTART) {
                 LOG_WARN("[CC-Client] Command: RESTART received -> restart");
-                App::restart();
             } else if (controlCommand.getCommand() == ControlCommand::SHUTDOWN) {
                 LOG_WARN("[CC-Client] Command: SHUTDOWN received -> shutdown");
-                App::shutdown();
             }
+
+            m_self->m_async->data = reinterpret_cast<void *>(controlCommand.getCommand());
+            uv_async_send(m_self->m_async);
         } else {
             LOG_ERR("[CC-Client] Unknown command received from CC Server.");
         }
@@ -196,8 +194,7 @@ void CCClient::updateConfig()
                 clientConfigFile << buffer.GetString();
                 clientConfigFile.close();
 
-                LOG_WARN("[CC-Client] Config updated. -> restart");
-                App::restart();
+                LOG_WARN("[CC-Client] Config updated. -> trigger restart");
             } else {
                 LOG_ERR("[CC-Client] Not able to store client config to file %s.", m_self->m_options->configFile());
             }
@@ -214,8 +211,8 @@ std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& r
     httplib::Client cli(m_self->m_options->ccHost(), m_self->m_options->ccPort());
 
     httplib::Request req;
-    req.method = operation.c_str();
-    req.path = requestUrl.c_str();
+    req.method = operation;
+    req.path = requestUrl;
     req.set_header("Host", "");
     req.set_header("Accept", "*/*");
     req.set_header("User-Agent", Platform::userAgent());
@@ -227,12 +224,24 @@ std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& r
     }
 
     if (!requestBuffer.empty()) {
-        req.body = requestBuffer.c_str();
+        req.body = requestBuffer;
     }
 
     auto res = std::make_shared<httplib::Response>();
 
     return cli.send(req, *res) ? res : nullptr;
+}
+
+void CCClient::onThreadStarted(void* handle)
+{
+    uv_loop_init(&m_self->m_client_loop);
+
+    uv_timer_init(&m_self->m_client_loop, &m_self->m_timer);
+    uv_timer_start(&m_self->m_timer, CCClient::onReport,
+                   static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000),
+                   static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000));
+
+    uv_run(&m_self->m_client_loop, UV_RUN_DEFAULT);
 }
 
 void CCClient::onReport(uv_timer_t *handle)
