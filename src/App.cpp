@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <uv.h>
+#include <cc/ControlCommand.h>
 
 #include "api/Api.h"
 #include "App.h"
@@ -94,7 +95,6 @@ App::App(int argc, char **argv) :
     uv_signal_init(uv_default_loop(), &m_signal);
 }
 
-
 App::~App()
 {
     delete m_network;
@@ -148,7 +148,9 @@ int App::start()
 
 #   ifndef XMRIG_NO_CC
     if (m_options->ccHost() && m_options->ccPort() > 0) {
-        m_ccclient = new CCClient(m_options);
+        uv_async_init(uv_default_loop(), &m_async, App::onCommandReceived);
+
+        m_ccclient = new CCClient(m_options, &m_async);
     } else {
         LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");
     }
@@ -219,7 +221,7 @@ void App::shutdown()
     m_self->stop(false);
 }
 
-void App::onSignal(uv_signal_t *handle, int signum)
+void App::onSignal(uv_signal_t* handle, int signum)
 {
     switch (signum)
     {
@@ -241,4 +243,26 @@ void App::onSignal(uv_signal_t *handle, int signum)
 
     uv_signal_stop(handle);
     App::shutdown();
+}
+
+void App::onCommandReceived(uv_async_t* async)
+{
+    if (async->data) {
+        auto command = reinterpret_cast<ControlCommand::Command &> (async->data);
+        switch (command) {
+            case ControlCommand::START:
+                Workers::setEnabled(true);
+                break;
+            case ControlCommand::STOP:
+                Workers::setEnabled(false);
+                break;
+            case ControlCommand::UPDATE_CONFIG:;
+            case ControlCommand::RESTART:
+                App::restart();
+                break;
+            case ControlCommand::SHUTDOWN:
+                App::shutdown();
+                break;
+        }
+    }
 }

@@ -38,7 +38,7 @@ class NetworkState;
 class CCClient
 {
 public:
-    CCClient(const Options *options);
+    CCClient(Options *options, uv_async_t* async);
     ~CCClient();
 
     static void updateHashrate(const Hashrate *hashrate);
@@ -52,9 +52,10 @@ private:
                                                              const std::string& requestBuffer,
                                                              const std::string& operation);
 
+    static void onThreadStarted(void *handle);
     static void onReport(uv_timer_t *handle);
 
-    const Options *m_options;
+    const Options* m_options;
 
     static CCClient* m_self;
     static uv_mutex_t m_mutex;
@@ -63,7 +64,10 @@ private:
 
     std::string m_authorization;
 
+    uv_async_t* m_async;
     uv_timer_t m_timer;
+    uv_loop_t m_client_loop;
+    uv_thread_t m_thread;
 
 };
 

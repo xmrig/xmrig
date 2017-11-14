@@ -55,7 +55,8 @@ private:
   void background();
   void stop(bool restart);
 
-  static void onSignal(uv_signal_t *handle, int signum);
+  static void onSignal(uv_signal_t* handle, int signum);
+  static void onCommandReceived(uv_async_t* handle);
 
   static App *m_self;
 
@@ -67,6 +68,7 @@ private:
   Options *m_options;
   CCClient *m_ccclient;
   uv_signal_t m_signal;
+  uv_async_t m_async;
 };
 
 

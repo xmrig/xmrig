@@ -32,12 +32,24 @@
 #include "ClientStatus.h"
 
 ClientStatus::ClientStatus()
-    : m_hashrateShort(0),
+    : m_currentStatus(Status::PAUSED),
+      m_hasHugepages(false),
+      m_isHugepagesEnabled(false),
+      m_isDoubleHashMode(false),
+      m_isCpuX64(false),
+      m_hasCpuAES(false),
+      m_hashrateShort(0),
       m_hashrateMedium(0),
       m_hashrateLong(0),
+      m_hashrateHighest(0),
+      m_currentThreads(0),
+      m_cpuCores(0),
+      m_cpuL2(0),
+      m_cpuL3(0),
       m_sharesGood(0),
       m_sharesTotal(0),
       m_hashesTotal(0),
+      m_avgTime(0),
       m_lastStatusUpdate(0)
 {
 
