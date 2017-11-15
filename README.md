@@ -1,24 +1,28 @@
 # XMRig
 XMRig is high performance Monero (XMR) CPU miner, with the official full Windows support.
-Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code.
+Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 complete rewritten from scratch on C++.
 
-<img src="http://i.imgur.com/GdRDnAu.png" width="596" >
+* This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
+* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
+
+<img src="http://i.imgur.com/OKZRVDh.png" width="619" >
 
 #### Table of contents
 * [Features](#features)
 * [Download](#download)
 * [Usage](#usage)
 * [Algorithm variations](#algorithm-variations)
-* [Build](#build)
+* [Build](https://github.com/xmrig/xmrig/wiki/Build)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
 * [Contacts](#contacts)
 
 ## Features
-* High performance (290+ H/s on i7 6700).
+* High performance.
 * Official Windows support.
-* Small Windows executable, only 535 KB without dependencies.
+* Small Windows executable, without dependencies.
+* x86/x64 support.
 * Support for backup (failover) mining server.
 * keepalived support.
 * Command line options compatible with cpuminer.
@@ -30,19 +34,24 @@ Based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of 
 ## Download
 * Binary releases: https://github.com/xmrig/xmrig/releases
 * Git tree: https://github.com/xmrig/xmrig.git
-  * Clone with `git clone https://github.com/xmrig/xmrig.git`
+  * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
 
 ## Usage
 ### Basic example
 ```
-xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
+xmrig.exe -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET -p x -k
 ```
+
+### Failover
+```
+xmrig.exe -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
+```
+For failover you can add multiple pools, maximum count not limited.
 
 ### Options
 ```
   -a, --algo=ALGO       cryptonight (default) or cryptonight-lite
   -o, --url=URL         URL of mining server
-  -b, --backup-url=URL  URL of backup mining server
   -O, --userpass=U:P    username:password pair for mining server
   -u, --user=USERNAME   username for mining server
   -p, --pass=PASSWORD   password for mining server
@@ -51,17 +60,24 @@ xmrig.exe -o xmr-eu.dwarfpool.com:8005 -u YOUR_WALLET -p x -k
   -k, --keepalive       send keepalived for prevent timeout (need pool support)
   -r, --retries=N       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N   time to pause between retries (default: 5)
-      --cpu-affinity    set process affinity to cpu core(s), mask 0x3 for cores 0 and 1
+      --cpu-affinity    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
+      --cpu-priority    set process priority (0 idle, 2 normal to 5 highest)
+      --no-huge-pages   disable huge pages support
       --no-color        disable colored output
       --donate-level=N  donate level, default 5% (5 minutes in 100 minutes)
+      --user-agent      set custom user-agent string for pool
   -B, --background      run the miner in the background
   -c, --config=FILE     load a JSON-format configuration file
-      --max-cpu-usage=N maximum cpu usage for automatic threads mode (default 75)
-      --safe            safe adjust threads and av settings for current cpu
+  -l, --log-file=FILE   log all output to a file
+      --max-cpu-usage=N maximum CPU usage for automatic threads mode (default 75)
+      --safe            safe adjust threads and av settings for current CPU
       --nicehash        enable nicehash support
+      --print-time=N    print hashrate report every N seconds
   -h, --help            display this help and exit
   -V, --version         output version information and exit
 ```
+
+Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
 Since version 0.8.0.
@@ -69,42 +85,6 @@ Since version 0.8.0.
 * `--av=2` Lower power mode (double hash) of `1`.
 * `--av=3` Software AES implementation.
 * `--av=4` Lower power mode (double hash) of `3`.
-
-## Build
-### Ubuntu (Debian-based distros)
-```
-sudo apt-get install git build-essential cmake libcurl4-openssl-dev
-git clone https://github.com/xmrig/xmrig.git
-cd xmrig
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make
-```
-
-### Windows
-It's complicated, you need [MSYS2](http://www.msys2.org/), custom libcurl build, and of course CMake too.
-
-Necessary MSYS2 packages:
-```
-pacman -Sy
-pacman -S mingw-w64-x86_64-gcc
-pacman -S make
-pacman -S mingw-w64-x86_64-cmake
-pacman -S mingw-w64-x86_64-pkg-config
-```
-Configure options for libcurl:
-```
-./configure --disable-shared --enable-optimize --enable-threaded-resolver --disable-libcurl-option --disable-ares --disable-rt --disable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-manual --disable-ipv6 --disable-sspi --disable-crypto-auth --disable-ntlm-wb --disable-tls-srp --disable-unix-sockets --without-zlib --without-winssl --without-ssl --without-libssh2 --without-nghttp2 --disable-cookies --without-ca-bundle --without-librtmp
-```
-CMake options:
-```
-cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCURL_INCLUDE_DIR="c:\<path>\curl-7.53.1\include" -DCURL_LIBRARY="c:\<path>\curl-7.53.1\lib\.libs"
-```
-
-### Optional features
-`-DWITH_LIBCPUID=OFF` Disable libcpuid. Auto configuration of CPU after this will be very limited.
-`-DWITH_AEON=OFF` Disable CryptoNight-Lite support.
 
 ## Common Issues
 ### HUGE PAGES unavailable
@@ -118,8 +98,8 @@ cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCURL_INCLUDE_DIR="c:\<
 
 
 ### CPU mining performance
-* **i7-6700** - 290+ H/s (4 threads, cpu affinity 0xAA)
-* **Dual E5620** - 377 H/s (12 threads, cpu affinity 0xEEEE)
+* **Intel i7-7700** - 307 H/s (4 threads)
+* **AMD Ryzen 7 1700X** - 560 H/s (8 threads)
 
 Please note performance is highly dependent on system load. The numbers above are obtained on an idle system. Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate. Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB of cache.
 
