@@ -62,6 +62,7 @@ Options:\n\
   -p, --pass=PASSWORD      password for mining server\n\
   -t, --threads=N          number of miner threads\n\
   -v, --av=N               algorithm variation, 0 auto select\n\
+  -b, --verbosity=N        verbosity level of logs (0-2), 2 auto select\n\
   -k, --keepalive          send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N          number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N      time to pause between retries (default: 5)\n\
@@ -91,12 +92,13 @@ Options:\n\
 ";
 
 
-static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
+static char const short_options[] = "a:b:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 
 
 static struct option const options[] = {
     { "algo",             1, nullptr, 'a'  },
     { "av",               1, nullptr, 'v'  },
+    { "verbosity",        1, nullptr, 'b'  },
     { "background",       0, nullptr, 'B'  },
     { "config",           1, nullptr, 'c'  },
     { "cpu-affinity",     1, nullptr, 1020 },
@@ -131,6 +133,7 @@ static struct option const options[] = {
 static struct option const config_options[] = {
     { "algo",          1, nullptr, 'a'  },
     { "av",            1, nullptr, 'v'  },
+    { "verbosity",     1, nullptr, 'b'  },
     { "background",    0, nullptr, 'B'  },
     { "colors",        0, nullptr, 2000 },
     { "cpu-affinity",  1, nullptr, 1020 },
@@ -210,6 +213,7 @@ Options::Options(int argc, char **argv) :
     m_userAgent(nullptr),
     m_algo(0),
     m_algoVariant(0),
+    m_verbosity(2),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
     m_maxCpuUsage(75),
@@ -367,6 +371,7 @@ bool Options::parseArg(int key, const char *arg)
     case 'r':  /* --retries */
     case 'R':  /* --retry-pause */
     case 'v':  /* --av */
+    case 'b':  /* --verbosity */
     case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
@@ -414,7 +419,7 @@ bool Options::parseArg(int key, const char *arg)
         free(m_userAgent);
         m_userAgent = strdup(arg);
         break;
-
+    
     default:
         showUsage(1);
         return false;
@@ -461,6 +466,15 @@ bool Options::parseArg(int key, uint64_t arg)
         }
 
         m_algoVariant = (int) arg;
+        break;
+        
+    case 'b': /* --verbosity */
+        if(arg < 0 || arg > 2) {
+            showUsage(1);
+            return false;
+        }
+
+        m_verbosity = (int) arg;
         break;
 
     case 1003: /* --donate-level */

@@ -53,7 +53,6 @@ private:
   void close();
 
   static void onSignal(uv_signal_t *handle, int signum);
-
   static App *m_self;
 
   Console *m_console;

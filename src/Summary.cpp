@@ -34,7 +34,6 @@
 #include "Summary.h"
 #include "version.h"
 
-
 static void print_versions()
 {
     char buf[16];
@@ -151,6 +150,19 @@ static void print_commands()
 
 
 void Summary::print()
+{
+    print_versions();
+    print_memory();
+    print_cpu();
+    print_threads();
+    print_pools();
+
+#   ifndef XMRIG_NO_API
+    print_api();
+#   endif
+}
+
+void Summary::printVerbose()
 {
     print_versions();
     print_memory();

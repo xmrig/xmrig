@@ -69,18 +69,15 @@ App::App(int argc, char **argv) :
     if (!m_options) {
         return;
     }
-
-    Log::init();
+    Log::init(m_options->verbosity());
 
     if (!m_options->background()) {
         Log::add(new ConsoleLog(m_options->colors()));
         m_console = new Console(this);
     }
-
     if (m_options->logFile()) {
         Log::add(new FileLog(m_options->logFile()));
     }
-
 #   ifdef HAVE_SYSLOG_H
     if (m_options->syslog()) {
         Log::add(new SysLog());
@@ -126,7 +123,12 @@ int App::exec()
     }
 
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
-    Summary::print();
+    if(m_options->verbosity() == 2) {
+        Summary::printVerbose();
+    }
+    else if(m_options->verbosity() == 1) {
+        Summary::print();
+    }
 
 #   ifndef XMRIG_NO_API
     Api::start();
@@ -138,7 +140,6 @@ int App::exec()
 #   endif
 
     Workers::start(m_options->affinity(), m_options->priority());
-
     m_network->connect();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);

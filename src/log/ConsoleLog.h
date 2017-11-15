@@ -27,9 +27,8 @@
 
 #include <uv.h>
 
-
 #include "interfaces/ILogBackend.h"
-
+#include "App.h"
 
 class ConsoleLog : public ILogBackend
 {
