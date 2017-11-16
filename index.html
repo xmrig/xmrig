@@ -16,7 +16,7 @@
     .offline { color: red}
 </style>
 
-<script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.4.js"></script>
+<script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.1/jquery.timeago.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -221,39 +221,47 @@ $(document).ready(function() {
 });
 
 function laststatus( data, type, row ) {
-    var date = new Date(data*1000);
+    if (type !== 'sort') {
+        var date = new Date(data*1000);
 
-    return '<span data-toggle="tooltip" title="' + date + '">' + jQuery.timeago(date) + '</span>';
+        return '<span data-toggle="tooltip" title="' + date + '">' + jQuery.timeago(date) + '</span>';
+    }
+
+    return data;
 }
 
 function clientInfo( data, type, row ) {
-   var  tooltip  = "CPU: " + row.client_status.cpu_brand + " [" + row.client_status.cpu_cores + " cores]";
-        tooltip += '\n';
-        tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
-        tooltip += (row.client_status.cpu_is_x64 ? "x64" : "");
-        tooltip += '\n';
-        tooltip += "CPU Cache L2/L3: " + (row.client_status.cpu_l2 / 1024) + " MB/"+ (row.client_status.cpu_l3 / 1024) + " MB";
-        tooltip += '\n';
-        tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available, " : " unavailable, ");
-        tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
-        tooltip += '\n';
-        tooltip += "Used Threads: " + row.client_status.current_threads;
-        tooltip += (row.client_status.double_hash_mode ? " [double hash mode]" :"");
-        tooltip += '\n';
-        tooltip += "Client IP: " + row.client_status.external_ip;
-        tooltip += '\n';
-        tooltip += "Status: ";
+    if (type !== 'sort') {
+        var  tooltip  = "CPU: " + row.client_status.cpu_brand + " [" + row.client_status.cpu_cores + " cores]";
+             tooltip += '\n';
+             tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
+             tooltip += (row.client_status.cpu_is_x64 ? "x64" : "");
+             tooltip += '\n';
+             tooltip += "CPU Cache L2/L3: " + (row.client_status.cpu_l2 / 1024) + " MB/"+ (row.client_status.cpu_l3 / 1024) + " MB";
+             tooltip += '\n';
+             tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available, " : " unavailable, ");
+             tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
+             tooltip += '\n';
+             tooltip += "Used Threads: " + row.client_status.current_threads;
+             tooltip += (row.client_status.double_hash_mode ? " [double hash mode]" :"");
+             tooltip += '\n';
+             tooltip += "Client IP: " + row.client_status.external_ip;
+             tooltip += '\n';
+             tooltip += "Status: ";
 
-    var lastStatus = row.client_status.last_status_update * 1000;
-    var threshold = new Date().getTime() - 60 * 1000;
-    if (lastStatus > threshold) {
-        tooltip  += "Online";
-        return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
+        var lastStatus = row.client_status.last_status_update * 1000;
+        var threshold = new Date().getTime() - 60 * 1000;
+        if (lastStatus > threshold) {
+            tooltip  += "Online";
+            return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
+        }
+        else {
+            tooltip  += "Offline";
+            return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="offline">' + data + '</div></span>';
+        }
     }
-    else {
-        tooltip  += "Offline";
-        return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="offline">' + data + '</div></span>';
-    }
+
+    return data;
 }
 
 function round( data, type, row ) {
