@@ -37,12 +37,18 @@ typedef SOCKET socket_t;
 #else
 #include <pthread.h>
 #include <unistd.h>
+
+#if WIN32
+#include <winsock2.h>
+#else
 #include <netdb.h>
-#include <cstring>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <signal.h>
 #include <sys/socket.h>
+#endif
+
+#include <cstring>
+#include <signal.h>
 
 typedef int socket_t;
 #endif
@@ -291,7 +297,7 @@ inline void socket_printf(Stream& strm, const char* fmt, const Args& ...args)
 
 inline int close_socket(socket_t sock)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(WIN32)
     return closesocket(sock);
 #else
     return close(sock);
@@ -309,7 +315,7 @@ inline bool read_and_close_socket(socket_t sock, T callback)
 
 inline int shutdown_socket(socket_t sock)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(WIN32)
     return shutdown(sock, SD_BOTH);
 #else
     return shutdown(sock, SHUT_RDWR);
@@ -319,7 +325,7 @@ inline int shutdown_socket(socket_t sock)
 template <typename Fn>
 socket_t create_socket(const char* host, int port, Fn fn, int socket_flags = 0)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(WIN32)
     int opt = SO_SYNCHRONOUS_NONALERT;
     setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char*)&opt, sizeof(opt));
 #endif
@@ -830,7 +836,7 @@ inline int SocketStream::write(const char* ptr)
 inline Server::Server()
     : svr_sock_(-1)
 {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(WIN32)
     signal(SIGPIPE, SIG_IGN);
 #endif
 }
