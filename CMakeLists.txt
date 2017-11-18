@@ -6,7 +6,8 @@ project(xmrig)
 option(WITH_LIBCPUID  "Use Libcpuid" ON)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_HTTPD     "HTTP REST API" OFF)
-option(WITH_CC        "CC Server" ON)
+option(WITH_CC_CLIENT "CC Client" ON)
+option(WITH_CC_SERVER "CC Server" ON)
 
 include (CheckIncludeFile)
 
@@ -240,7 +241,7 @@ else()
     add_definitions(/DXMRIG_NO_API)
 endif()
 
-if (WITH_CC)
+if (WITH_CC_SERVER)
     find_package(MHD)
 
     if (MHD_FOUND)
@@ -248,20 +249,6 @@ if (WITH_CC)
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
     endif()
-
-    set(HEADERS_CC_COMMON
-            src/cc/ControlCommand.h
-            src/cc/ClientStatus.h)
-
-    set(SOURCES_CC_COMMON
-            src/cc/ControlCommand.cpp
-            src/cc/ClientStatus.cpp)
-
-    set(HEADERS_CC_CLIENT
-            src/cc/CCClient.h)
-
-    set(SOURCES_CC_CLIENT
-            src/cc/CCClient.cpp)
 
     set(HEADERS_CC_SERVER
             src/cc/CCServer.h
@@ -275,6 +262,24 @@ if (WITH_CC)
             src/cc/Httpd.cpp
             src/cc/XMRigCC.cpp
             )
+endif()
+
+if (WITH_CC_CLIENT)
+    set(HEADERS_CC_CLIENT
+            src/cc/CCClient.h)
+
+    set(SOURCES_CC_CLIENT
+            src/cc/CCClient.cpp)
+endif()
+
+if (WITH_CC_SERVER OR WITH_CC_CLIENT)
+    set(HEADERS_CC_COMMON
+            src/cc/ControlCommand.h
+            src/cc/ClientStatus.h)
+
+    set(SOURCES_CC_COMMON
+            src/cc/ControlCommand.cpp
+            src/cc/ClientStatus.cpp)
 else()
     add_definitions(/DXMRIG_NO_CC)
 endif()
