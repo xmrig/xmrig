@@ -76,6 +76,7 @@ public:
     inline int retryPause() const                 { return m_retryPause; }
     inline int threads() const                    { return m_threads; }
     inline int64_t affinity() const               { return m_affinity; }
+    inline void setColors(bool colors)            { m_colors = colors; }
 
     inline static void release()                  { delete m_self; }
 
