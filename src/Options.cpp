@@ -42,6 +42,7 @@
 #include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
 #include "version.h"
+#include <fcntl.h>
 
 
 #ifndef ARRAY_SIZE

@@ -221,7 +221,7 @@ if (WITH_HTTPD)
     find_package(MHD)
 
     if (MHD_FOUND)
-        include_directories(${MHD_INCLUDE_DIRS})
+        include_directories(${MHD_INCLUDE_DIR})
         set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
