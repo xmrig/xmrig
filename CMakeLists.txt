@@ -293,7 +293,7 @@ target_link_libraries(xmrigMiner ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
 
-if (WITH_CC AND MHD_FOUND)
+if (WITH_CC_SERVER AND MHD_FOUND)
     add_executable(xmrigCCServer ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_SYSLOG} ${SOURCES_CC_COMMON} ${HEADERS_CC_COMMON} ${SOURCES_CC_SERVER} ${HEADERS_CC_SERVER})
     target_link_libraries(xmrigCCServer ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
