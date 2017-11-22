@@ -94,7 +94,7 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
     unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
     LOG_INFO("POST(url='%s', clientIp='%s', clientId='%s', dataLen='%d')",
-             url.c_str(), clientId.c_str(), clientIp.c_str(), data.length());
+             url.c_str(), clientIp.c_str(), clientId.c_str(), data.length());
 
     if (url.rfind("/client/setClientStatus", 0) == 0) {
         resultCode = setClientStatus(clientIp, clientId, data, resp);
