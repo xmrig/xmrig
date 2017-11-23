@@ -142,6 +142,13 @@ if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
     set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
 endif()
 
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    EXECUTE_PROCESS(COMMAND uname -o COMMAND tr -d '\n' OUTPUT_VARIABLE OPERATING_SYSTEM)
+    if (OPERATING_SYSTEM MATCHES "Android")
+        set(EXTRA_LIBS ${EXTRA_LIBS} log)
+    endif()
+endif()
+
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 #add_definitions(/DAPP_DEBUG)
