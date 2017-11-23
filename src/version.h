@@ -36,14 +36,14 @@
 #define APP_DESC      "XMRigCC CPU miner"
 #define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 #endif
-#define APP_VERSION   "1.1.0 (based on XMRig 2.4.2)"
+#define APP_VERSION   "1.1.1 (based on XMRig 2.4.2)"
 #define APP_DOMAIN    ""
 #define APP_SITE      "https://github.com/Bendr0id/xmrigCC"
 #define APP_KIND      "cpu"
 
 #define APP_VER_MAJOR  1
 #define APP_VER_MINOR  1
-#define APP_VER_BUILD  0
+#define APP_VER_BUILD  1
 #define APP_VER_REV    0
 
 #ifdef _MSC_VER
@@ -62,4 +62,24 @@
 #   endif
 #endif
 
+#include <string>
+
+class Version
+{
+public:
+    inline static std::string string()
+    {
+        std::string version = std::to_string(APP_VER_MAJOR) + std::string(".") + std::to_string(APP_VER_MINOR) +
+                              std::string(".") + std::to_string(APP_VER_BUILD);
+
+        return version;
+    }
+
+    inline static int code()
+    {
+        std::string version = std::to_string(APP_VER_MAJOR) + std::to_string(APP_VER_MINOR) + std::to_string(APP_VER_BUILD);
+
+        return std::stoi(version);
+    }
+};
 #endif /* __VERSION_H__ */

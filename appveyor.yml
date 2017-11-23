@@ -28,10 +28,11 @@ build_script:
   - cmake -G "Visual Studio 15 2017 Win64" -T v141,host=x64 ..
   - msbuild xmrig.sln /p:Configuration=Release
 
+
 after_build:
 - cd c:\xmrigCC
-- cmd: 7z a xmrigCC-win64.zip "c:\xmrigCC\build\Release\*.*" "c:\xmrigCC\src\*config*" "c:\xmrigCC\index.html"
+- cmd: 7z a xmrigCC-mvc-win64.zip "c:\xmrigCC\build\Release\*.*" "c:\xmrigCC\src\*config*" "c:\xmrigCC\index.html"
 - cmd: dir
 
 artifacts:
-- path: xmrigCC-win64.zip
+- path: xmrigCC-mvc-win64.zip
