@@ -62,6 +62,7 @@
 #   endif
 #endif
 
+#include <string.h>
 
 class Version
 {
