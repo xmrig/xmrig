@@ -62,7 +62,6 @@
 #   endif
 #endif
 
-#include <string>
 
 class Version
 {
