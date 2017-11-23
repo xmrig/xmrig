@@ -60,9 +60,9 @@
 #   else
 #       define MSVC_VERSION 0
 #   endif
+#include <string>
 #endif
 
-#include <string.h>
 
 class Version
 {
