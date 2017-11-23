@@ -22,8 +22,8 @@
  */
 
 #include <sched.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstring>
+#include <string>
 #include <sys/resource.h>
 #include <uv.h>
 

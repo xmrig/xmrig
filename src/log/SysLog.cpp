@@ -23,6 +23,7 @@
 
 
 #include <syslog.h>
+#include <string>
 
 
 #include "log/SysLog.h"

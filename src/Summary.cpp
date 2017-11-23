@@ -22,6 +22,7 @@
  */
 
 
+#include <string>
 #include <inttypes.h>
 #include <uv.h>
 
