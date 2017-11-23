@@ -25,6 +25,8 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <uv.h>
+#include <string.h>
+#include <string>
 
 
 #include "Platform.h"
