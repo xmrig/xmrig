@@ -27,19 +27,14 @@ $.fn.dataTable.ext.search.push(
     function( settings, data, dataIndex ) {
         var hide = document.getElementById("hideOffline").checked;
 
-        var lastStatus = settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000;
-        var threshold = new Date().getTime() - 60 * 1000;
-
-        if (lastStatus > threshold || !hide) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return (isOnline(settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000) || !hide);
     }
 );
 
 $(document).ready(function() {
+
+    var latestRelease = "";
+
     var table = $('#clientStatusList').DataTable({
         dom: '<"toolbar">frtip',
         processing : true,
@@ -80,63 +75,35 @@ $(document).ready(function() {
         "footerCallback": function ( row, data, start, end, display ) {
             var api = this.api();
 
-            sumHashrateShort = round(api
-                .column(4)
-                .data()
-                .reduce( function (a, b) {
-                    return a + b;
-                }, 0 ));
+            var sumHashrateShort = 0;
+            var sumHashrateMedium = 0;
+            var sumHashrateLong = 0;
+            var sumHashrateHighest = 0;
+            var sumHashesTotal = 0;
+            var avgTimeTotal = 0;
+            var sumSharesGood = 0;
+            var sumSharedTotal = 0;
 
-            sumHashrateMedium = round(api
-                .column(5)
-                .data()
-                .reduce( function (a, b) {
-                    return a + b;
-                }, 0 ));
+            for (var i = 0; i < data.length; ++i) {
+                if (isOnline(data[i].client_status.last_status_update * 1000)) {
+                    sumHashrateShort += data[i].client_status.hashrate_short;
+                    sumHashrateMedium += data[i].client_status.hashrate_medium;
+                    sumHashrateLong += data[i].client_status.hashrate_long;
+                    sumHashrateHighest += data[i].client_status.hashrate_highest;
+                    sumHashesTotal += data[i].client_status.hashes_total;
+                    avgTimeTotal = (avgTimeTotal + data[i].client_status.avg_time) / 2;
+                    sumSharesGood += data[i].client_status.shares_good;
+                    sumSharedTotal += data[i].client_status.shares_total;
+                }
+            }
 
-            sumHashrateLong = round(api
-                .column(6)
-                .data()
-                .reduce( function (a, b) {
-                    return a + b;
-                }, 0 ));
+            sumHashrateShort = round(sumHashrateShort);
+            sumHashrateMedium = round(sumHashrateMedium);
+            sumHashrateLong = round(sumHashrateLong);
+            sumHashrateHighest = round(sumHashrateHighest);
+            avgTimeTotal = round(avgTimeTotal);
 
-            sumHashrateHighest = round(api
-                .column(7)
-                .data()
-                .reduce( function (a, b) {
-                    return a + b;
-                }, 0 ));
-
-            sumHashesTotal = api
-                .column(8)
-                .data()
-                .reduce( function (a, b) {
-                    return a + b;
-                }, 0 );
-
-            avgTimeTotal = round(api
-                .column(9)
-                .data()
-                .reduce( function (a, b) {
-                    return a + b;
-                }, 0 )/end);
-
-            sumSharesGood = api
-                .column(10)
-                .data()
-                .reduce( function (a, b) {
-                    return a + b;
-                }, 0 );
-
-            sumSharedTotal = api
-                .column(11)
-                .data()
-                .reduce( function (a, b) {
-                    return a + b;
-                }, 0 );
-
-            // Update footer
+            // update footer
             $(api.column(4).footer()).html(sumHashrateShort);
             $(api.column(5).footer()).html(sumHashrateMedium);
             $(api.column(6).footer()).html(sumHashrateLong);
@@ -145,6 +112,24 @@ $(document).ready(function() {
             $(api.column(9).footer()).html(avgTimeTotal);
             $(api.column(10).footer()).html(sumSharesGood);
             $(api.column(11).footer()).html(sumSharedTotal);
+
+            // check version
+            if (latestRelease === "" && $(api).context[0].json !== undefined) {
+                $.ajax({
+                    url: "https://api.github.com/repos/Bendr0id/xmrigCC/releases/latest",
+                    type: 'GET',
+                    dataType: "json",
+                    success: function (release) {
+                        latestRelease = release.tag_name;
+                        if (latestRelease !== $(api).context[0].json.current_version) {
+                            $("#notificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
+                                '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                                '<a href="https://github.com/Bendr0id/xmrigCC/releases/latest"><strong>Update!</strong> XMRigCC v' + latestRelease + ' is available for download\n</a>' +
+                                '</div>');
+                        }
+                    }
+                });
+            }
         }
     });
 
@@ -232,26 +217,27 @@ function laststatus( data, type, row ) {
 
 function clientInfo( data, type, row ) {
     if (type !== 'sort') {
-        var  tooltip  = "CPU: " + row.client_status.cpu_brand + " [" + row.client_status.cpu_cores + " cores]";
-             tooltip += '\n';
-             tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
-             tooltip += (row.client_status.cpu_is_x64 ? "x64" : "");
-             tooltip += '\n';
-             tooltip += "CPU Cache L2/L3: " + (row.client_status.cpu_l2 / 1024) + " MB/"+ (row.client_status.cpu_l3 / 1024) + " MB";
-             tooltip += '\n';
-             tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available, " : " unavailable, ");
-             tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
-             tooltip += '\n';
-             tooltip += "Used Threads: " + row.client_status.current_threads;
-             tooltip += (row.client_status.double_hash_mode ? " [double hash mode]" :"");
-             tooltip += '\n';
-             tooltip += "Client IP: " + row.client_status.external_ip;
-             tooltip += '\n';
-             tooltip += "Status: ";
+        var tooltip  = "CPU: " + row.client_status.cpu_brand + " [" + row.client_status.cpu_cores + " cores]";
+            tooltip += '\n';
+            tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
+            tooltip += (row.client_status.cpu_is_x64 ? "x64" : "");
+            tooltip += '\n';
+            tooltip += "CPU Cache L2/L3: " + (row.client_status.cpu_l2 / 1024) + " MB/"+ (row.client_status.cpu_l3 / 1024) + " MB";
+            tooltip += '\n';
+            tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available, " : " unavailable, ");
+            tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
+            tooltip += '\n';
+            tooltip += "Used Threads: " + row.client_status.current_threads;
+            tooltip += (row.client_status.double_hash_mode ? " [double hash mode]" :"");
+            tooltip += '\n';
+            tooltip += "Client IP: " + row.client_status.external_ip;
+            tooltip += '\n';
+            tooltip += "Version: " + row.client_status.version;
+            tooltip += '\n';
+            tooltip += "Status: ";
 
         var lastStatus = row.client_status.last_status_update * 1000;
-        var threshold = new Date().getTime() - 60 * 1000;
-        if (lastStatus > threshold) {
+        if (isOnline(lastStatus)) {
             tooltip  += "Online";
             return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
         }
@@ -268,12 +254,22 @@ function round( data, type, row ) {
     return Math.round(data * 100) / 100;
 }
 
+function isOnline(lastStatus) {
+    var threshold = new Date().getTime() - 60 * 1000;
+    if (lastStatus > threshold) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 </script>
 
 </head>
 <body>
 <br/>
 <div style="width: 90%; margin:0 auto;">
+    <div id="notificationBar"></div>
     <div class="center">
         <h1>XMRigCC Dashboard</h1>
     </div>

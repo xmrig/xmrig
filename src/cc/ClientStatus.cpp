@@ -115,6 +115,16 @@ void ClientStatus::setExternalIp(const std::string& externalIp)
     m_externalIp = externalIp;
 }
 
+std::string ClientStatus::getVersion() const
+{
+    return m_version;
+}
+
+void ClientStatus::setVersion(const std::string& version)
+{
+    m_version = version;
+}
+
 bool ClientStatus::hasHugepages() const
 {
     return m_hasHugepages;
@@ -321,6 +331,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_externalIp = clientStatus["external_ip"].GetString();
         }
 
+        if (clientStatus.HasMember("version")) {
+            m_version = clientStatus["version"].GetString();
+        }
+
         if (clientStatus.HasMember("hugepages_available")) {
             m_hasHugepages = clientStatus["hugepages_available"].GetBool();
         }
@@ -411,6 +425,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("current_algo_name", rapidjson::StringRef(m_currentAlgoName.c_str()), allocator);
     clientStatus.AddMember("cpu_brand", rapidjson::StringRef(m_cpuBrand.c_str()), allocator);
     clientStatus.AddMember("external_ip", rapidjson::StringRef(m_externalIp.c_str()), allocator);
+    clientStatus.AddMember("version", rapidjson::StringRef(m_version.c_str()), allocator);
 
     clientStatus.AddMember("hugepages_available", m_hasHugepages, allocator);
     clientStatus.AddMember("hugepages_enabled", m_isHugepagesEnabled, allocator);

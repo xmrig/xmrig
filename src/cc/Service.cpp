@@ -32,6 +32,7 @@
 #include <3rdparty/rapidjson/filereadstream.h>
 #include <3rdparty/rapidjson/error/en.h>
 #include <3rdparty/rapidjson/prettywriter.h>
+#include <version.h>
 #include "log/Log.h"
 #include "Service.h"
 
@@ -194,6 +195,7 @@ unsigned Service::getClientStatusList(std::string& resp)
         clientStatusList.PushBack(clientStatusEntry, allocator);
     }
 
+    document.AddMember("current_version", rapidjson::StringRef(Version::string().c_str()), allocator);
     document.AddMember("client_status_list", clientStatusList, allocator);
 
     rapidjson::StringBuffer buffer(0, 4096);

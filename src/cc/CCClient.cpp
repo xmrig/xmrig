@@ -25,6 +25,7 @@
 #include <fstream>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
+#include <version.h>
 
 #include "CCClient.h"
 #include "App.h"
@@ -41,16 +42,18 @@
 #if _WIN32
 #   include "winsock2.h"
 #else
+
 #   include "unistd.h"
+
 #endif
 
 
-CCClient *CCClient::m_self = nullptr;
+CCClient* CCClient::m_self = nullptr;
 uv_mutex_t CCClient::m_mutex;
 
 CCClient::CCClient(Options* options, uv_async_t* async)
-    : m_options(options),
-      m_async(async)
+        : m_options(options),
+          m_async(async)
 {
     uv_mutex_init(&m_mutex);
 
@@ -59,10 +62,10 @@ CCClient::CCClient(Options* options, uv_async_t* async)
     std::string clientId;
     if (m_options->ccWorkerId()) {
         clientId = m_options->ccWorkerId();
-    } else{
+    } else {
         char hostname[128];
         memset(hostname, 0, sizeof(hostname));
-        gethostname(hostname, sizeof(hostname)-1);
+        gethostname(hostname, sizeof(hostname) - 1);
         clientId = std::string(hostname);
     }
 
@@ -76,6 +79,7 @@ CCClient::CCClient(Options* options, uv_async_t* async)
     m_clientStatus.setHugepages(Mem::isHugepagesAvailable());
     m_clientStatus.setDoubleHashMode(Mem::isDoubleHash());
 
+    m_clientStatus.setVersion(Version::string());
     m_clientStatus.setCpuBrand(Cpu::brand());
     m_clientStatus.setCpuAES(Cpu::hasAES());
     m_clientStatus.setCpuCores(Cpu::cores());
@@ -98,7 +102,7 @@ CCClient::~CCClient()
     m_self = nullptr;
 }
 
-void CCClient::updateHashrate(const Hashrate *hashrate)
+void CCClient::updateHashrate(const Hashrate* hashrate)
 {
     if (m_self) {
         uv_mutex_lock(&m_mutex);
@@ -113,7 +117,7 @@ void CCClient::updateHashrate(const Hashrate *hashrate)
 }
 
 
-void CCClient::updateNetworkState(const NetworkState &network)
+void CCClient::updateNetworkState(const NetworkState& network)
 {
     if (m_self) {
         uv_mutex_lock(&m_mutex);
@@ -139,7 +143,7 @@ void CCClient::publishClientStatusReport()
         LOG_ERR("[CC-Client] error: unable to performRequest POST -> http://%s:%d%s",
                 m_self->m_options->ccHost(), m_self->m_options->ccPort(), requestUrl.c_str());
     } else if (res->status != 200) {
-        LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status,  m_self->m_options->ccHost(),
+        LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_self->m_options->ccHost(),
                 m_self->m_options->ccPort(), requestUrl.c_str());
     } else {
         ControlCommand controlCommand;
@@ -161,7 +165,7 @@ void CCClient::publishClientStatusReport()
                 LOG_WARN("[CC-Client] Command: SHUTDOWN received -> shutdown");
             }
 
-            m_self->m_async->data = reinterpret_cast<void *>(controlCommand.getCommand());
+            m_self->m_async->data = reinterpret_cast<void*>(controlCommand.getCommand());
             uv_async_send(m_self->m_async);
         } else {
             LOG_ERR("[CC-Client] Unknown command received from CC Server.");
@@ -179,7 +183,7 @@ void CCClient::updateConfig()
         LOG_ERR("[CC-Client] error: unable to performRequest GET -> http://%s:%d%s",
                 m_self->m_options->ccHost(), m_self->m_options->ccPort(), requestUrl.c_str());
     } else if (res->status != 200) {
-        LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status,  m_self->m_options->ccHost(),
+        LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_self->m_options->ccHost(),
                 m_self->m_options->ccPort(), requestUrl.c_str());
     } else {
         rapidjson::Document document;
@@ -198,7 +202,7 @@ void CCClient::updateConfig()
             } else {
                 LOG_ERR("[CC-Client] Not able to store client config to file %s.", m_self->m_options->configFile());
             }
-        } else{
+        } else {
             LOG_ERR("[CC-Client] Not able to store client config. received client config is broken!");
         }
     }
@@ -244,7 +248,7 @@ void CCClient::onThreadStarted(void* handle)
     uv_run(&m_self->m_client_loop, UV_RUN_DEFAULT);
 }
 
-void CCClient::onReport(uv_timer_t *handle)
+void CCClient::onReport(uv_timer_t* handle)
 {
     if (m_self) {
         m_self->publishClientStatusReport();
