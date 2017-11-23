@@ -1,3 +1,9 @@
+# v1.1.1
+- Fixed table sorting for client id column on Dashboard
+- Fixed Windows compilation with msys2 (gcc)
+- Added ability to do static build of xmrigDaemon and xmrigMiner
+- Added client version to Dashboard client id tooltip
+- Added update checker to Dashboard with notification bar 
 # v1.1.0
 - Added option to hide offline miners from Dashboard
 - Added online status indicator to Dashboard client id column (green:red)
