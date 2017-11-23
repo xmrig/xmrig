@@ -70,6 +70,10 @@ void Cpu::setAffinity(int id, uint64_t mask)
         sched_setaffinity(0, sizeof(&set), &set);
 #       endif
     } else {
+#       ifndef __ANDROID__
         pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
+#       else
+        sched_setaffinity(gettid(), sizeof(&set), &set);
+#       endif
     }
 }
