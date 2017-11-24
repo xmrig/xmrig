@@ -23,7 +23,13 @@
 
 
 #include "crypto/CryptoNight.h"
-#include "crypto/CryptoNight_p.h"
+
+#if defined(__aarch64__)
+#   include "crypto/CryptoNight_arm64.h"
+#else
+#   include "crypto/CryptoNight_x86.h"
+#endif
+
 #include "crypto/CryptoNight_test.h"
 #include "net/Job.h"
 #include "net/JobResult.h"
