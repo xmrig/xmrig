@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_ARM64_H__
-#define __CRYPTONIGHT_ARM64_H__
+#ifndef __CRYPTONIGHT_ARM_H__
+#define __CRYPTONIGHT_ARM_H__
 
 
 #if defined(XMRIG_ARM) && !defined(__clang__)
@@ -86,12 +86,39 @@ static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i 
 #define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
 
+#if defined(XMRIG_ARMv8)
 static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
 {
     unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
     *hi = r >> 64;
     return (uint64_t) r;
 }
+#else
+static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
+    // multiplier   = ab = a * 2^32 + b
+    // multiplicand = cd = c * 2^32 + d
+    // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
+    uint64_t a = multiplier >> 32;
+    uint64_t b = multiplier & 0xFFFFFFFF;
+    uint64_t c = multiplicand >> 32;
+    uint64_t d = multiplicand & 0xFFFFFFFF;
+
+    //uint64_t ac = a * c;
+    uint64_t ad = a * d;
+    //uint64_t bc = b * c;
+    uint64_t bd = b * d;
+
+    uint64_t adbc = ad + (b * c);
+    uint64_t adbc_carry = adbc < ad ? 1 : 0;
+
+    // multiplier * multiplicand = product_hi * 2^64 + product_lo
+    uint64_t product_lo = bd + (adbc << 32);
+    uint64_t product_lo_carry = product_lo < bd ? 1 : 0;
+    *product_hi = (a * c) + (adbc >> 32) + (adbc_carry << 32) + product_lo_carry;
+
+    return product_lo;
+}
+#endif
 
 
 // This will shift and xor tmp1 into itself as 4 32-bit vals such as
@@ -176,6 +203,7 @@ static inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2,
         *x6 = soft_aesenc(*x6, key);
         *x7 = soft_aesenc(*x7, key);
     }
+#   ifndef XMRIG_ARMv7
     else {
         *x0 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x0), key));
         *x1 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x1), key));
@@ -186,6 +214,7 @@ static inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2,
         *x6 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x6), key));
         *x7 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x7), key));
     }
+#   endif
 }
 
 
@@ -338,7 +367,9 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
             cx = soft_aesenc(cx, _mm_set_epi64x(ah0, al0));
         }
         else {
+#           ifndef XMRIG_ARMv7
             cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
+#           endif
         }
 
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
@@ -402,8 +433,10 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
             cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
         }
         else {
+#           ifndef XMRIG_ARMv7
             cx0 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx0, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
             cx1 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx1, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah1, al1);
+#           endif
         }
 
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
@@ -455,4 +488,4 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     extra_hashes[ctx->state1[0] & 3](ctx->state1, 200, static_cast<char*>(output) + 32);
 }
 
-#endif /* __CRYPTONIGHT_ARM64_H__ */
+#endif /* __CRYPTONIGHT_ARM_H__ */
