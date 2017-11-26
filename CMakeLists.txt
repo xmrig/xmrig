@@ -64,8 +64,8 @@ set(HEADERS_CRYPTO
     src/crypto/soft_aes.h
    )
 
-if (XMRIG_ARM64)
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_arm64.h)
+if (XMRIG_ARM)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_arm.h)
 else()
     set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_x86.h)
 endif()
@@ -168,7 +168,7 @@ if (WITH_LIBCPUID)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
 
-    if (XMRIG_ARM64)
+    if (XMRIG_ARM)
         set(SOURCES_CPUID src/Cpu_arm.cpp)
     else()
         set(SOURCES_CPUID src/Cpu_stub.cpp)

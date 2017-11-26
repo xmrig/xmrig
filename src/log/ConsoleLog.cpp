@@ -145,7 +145,7 @@ void ConsoleLog::print(va_list args)
     }
 
     if (!isWritable()) {
-        fprintf(stdout, m_buf);
+        fputs(m_buf, stdout);
         fflush(stdout);
     }
     else {

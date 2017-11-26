@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_P_H__
-#define __CRYPTONIGHT_P_H__
+#ifndef __CRYPTONIGHT_X86_H__
+#define __CRYPTONIGHT_X86_H__
 
 
 #ifdef __GNUC__
@@ -448,4 +448,4 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     extra_hashes[ctx->state1[0] & 3](ctx->state1, 200, static_cast<char*>(output) + 32);
 }
 
-#endif /* __CRYPTONIGHT_P_H__ */
+#endif /* __CRYPTONIGHT_X86_H__ */
