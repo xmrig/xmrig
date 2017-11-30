@@ -28,6 +28,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "Options.h"
+
 #ifdef WIN32
 #   include <winsock2.h>
 #   include <windows.h>
@@ -39,16 +41,18 @@
 
 
 ConsoleLog::ConsoleLog(bool colors) :
-    m_colors(colors),
-    m_stream(nullptr)
+        m_colors(colors),
+        m_stream(nullptr)
 {
     if (uv_tty_init(uv_default_loop(), &m_tty, 1, 0) < 0) {
+        Options::i()->setColors(false);
+        m_colors = false;
         return;
     }
 
     uv_tty_set_mode(&m_tty, UV_TTY_MODE_NORMAL);
     m_uvBuf.base = m_buf;
-    m_stream     = reinterpret_cast<uv_stream_t*>(&m_tty);
+    m_stream = reinterpret_cast<uv_stream_t*>(&m_tty);
 
 #   ifdef WIN32
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
@@ -65,10 +69,6 @@ ConsoleLog::ConsoleLog(bool colors) :
 
 void ConsoleLog::message(int level, const char* fmt, va_list args)
 {
-    if (!isWritable()) {
-        return;
-    }
-
     time_t now = time(nullptr);
     tm stime;
 
@@ -113,7 +113,7 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
              m_colors ? color : "",
              fmt,
              m_colors ? Log::kCL_N : ""
-        );
+    );
 
     print(args);
 }
@@ -121,10 +121,6 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
 
 void ConsoleLog::text(const char* fmt, va_list args)
 {
-    if (!isWritable()) {
-        return;
-    }
-
     snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s\n", fmt, m_colors ? Log::kCL_N : "");
 
     print(args);
@@ -149,5 +145,10 @@ void ConsoleLog::print(va_list args)
         return;
     }
 
-    uv_try_write(m_stream, &m_uvBuf, 1);
+    if (!isWritable()) {
+        fprintf(stdout, m_buf);
+        fflush(stdout);
+    } else {
+        uv_try_write(m_stream, &m_uvBuf, 1);
+    }
 }

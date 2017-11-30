@@ -38,12 +38,22 @@ bool Mem::allocate(const Options* options)
     m_algo       = options->algo();
     m_threads    = options->threads();
     m_doubleHash = options->doubleHash();
+    m_doubleHashThreadMask = options->doubleHashThreadMask();
+    m_memorySize = 0;
 
-    const int ratio   = (m_doubleHash && m_algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
-    const size_t size = MEMORY * (m_threads * ratio + 1);
+    size_t scratchPadSize = m_algo == Options::ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
+    for (int i=0; i < m_threads; i++) {
+        m_memorySize += sizeof(cryptonight_ctx);
+
+        if (isDoubleHash(i)) {
+            m_memorySize += scratchPadSize*2;
+        } else {
+            m_memorySize += scratchPadSize;
+        }
+    }
 
     if (!options->hugePages()) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
         return true;
     }
 
@@ -54,20 +64,20 @@ bool Mem::allocate(const Options* options)
 #   elif defined(__FreeBSD__)
     m_memory = static_cast<uint8_t*>(mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0));
 #   else
-    m_memory = static_cast<uint8_t*>(mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0));
+    m_memory = static_cast<uint8_t*>(mmap(0, m_memorySize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0));
 #   endif
     if (m_memory == MAP_FAILED) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
         return true;
     }
 
     m_flags |= HugepagesEnabled;
 
-    if (madvise(m_memory, size, MADV_RANDOM | MADV_WILLNEED) != 0) {
+    if (madvise(m_memory, m_memorySize, MADV_RANDOM | MADV_WILLNEED) != 0) {
         LOG_ERR("madvise failed");
     }
 
-    if (mlock(m_memory, size) == 0) {
+    if (mlock(m_memory, m_memorySize) == 0) {
         m_flags |= Lock;
     }
 
@@ -77,14 +87,12 @@ bool Mem::allocate(const Options* options)
 
 void Mem::release()
 {
-    const int size = MEMORY * (m_threads + 1);
-
     if (m_flags & HugepagesEnabled) {
         if (m_flags & Lock) {
-            munlock(m_memory, size);
+            munlock(m_memory, m_memorySize);
         }
 
-        munmap(m_memory, size);
+        munmap(m_memory, m_memorySize);
     }
     else {
         _mm_free(m_memory);
