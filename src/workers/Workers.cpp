@@ -140,7 +140,7 @@ void Workers::stop()
 }
 
 
-void Workers::submit(const JobResult &result, int threadId)
+void Workers::submit(const JobResult &result)
 {
     uv_mutex_lock(&m_mutex);
     m_queue.push_back(result);
@@ -153,7 +153,7 @@ void Workers::submit(const JobResult &result, int threadId)
 void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
-    if (Mem::isDoubleHash(handle->threadId())) {
+    if (Mem::isDoubleHash()) {
         handle->setWorker(new DoubleWorker(handle));
     }
     else {

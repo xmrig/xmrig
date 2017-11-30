@@ -88,8 +88,6 @@ public:
     inline int ccUpdateInterval() const             { return m_ccUpdateInterval; }
     inline int ccPort() const                       { return m_ccPort; }
     inline int64_t affinity() const                 { return m_affinity; }
-    inline int64_t doubleHashThreadMask() const     { return m_doubleHashThreadMask; }
-    inline void setColors(bool colors)              { m_colors = colors; }
 
     inline static void release()                  { delete m_self; }
 
@@ -157,7 +155,6 @@ private:
     int m_ccUpdateInterval;
     int m_ccPort;
     int64_t m_affinity;
-    int64_t m_doubleHashThreadMask;
     std::vector<Url*> m_pools;
 };
 
