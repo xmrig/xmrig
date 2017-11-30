@@ -91,21 +91,30 @@ static void print_cpu()
 
 static void print_threads()
 {
-    char buf[32];
-    if (Options::i()->affinity() != -1L) {
-        snprintf(buf, 32, ", affinity=0x%" PRIX64, Options::i()->affinity());
+    char dhtMaskBuf[64];
+    if (Options::i()->doubleHashThreadMask() != -1L) {
+        snprintf(dhtMaskBuf, 64, ", doubleHashThreadMask=0x%" PRIX64, Options::i()->doubleHashThreadMask());
     }
     else {
-        buf[0] = '\0';
+        dhtMaskBuf[0] = '\0';
     }
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%%s" : " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s",
+    char affBuf[32];
+    if (Options::i()->affinity() != -1L) {
+        snprintf(affBuf, 32, ", affinity=0x%" PRIX64, Options::i()->affinity());
+    }
+    else {
+        affBuf[0] = '\0';
+    }
+
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%%s%s" : " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s%s",
                    Options::i()->threads(),
                    Options::i()->algoName(),
                    Options::i()->algoVariant(),
                    Options::i()->colors() && Options::i()->donateLevel() == 0 ? "\x1B[01;31m" : "",
                    Options::i()->donateLevel(),
-                   buf);
+                   affBuf,
+                   dhtMaskBuf);
 }
 
 
