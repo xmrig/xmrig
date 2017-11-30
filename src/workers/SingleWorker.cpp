@@ -60,8 +60,10 @@ void SingleWorker::start()
             m_count++;
             *m_job.nonce() = ++m_result.nonce;
 
-            if (CryptoNight::hash(m_job, m_result, m_ctx)) {
-                Workers::submit(m_result);
+            CryptoNight::hash(m_job.blob(), m_job.size(), m_result.result, m_ctx);
+
+            if (*reinterpret_cast<uint64_t*>(m_result.result + 24) < m_job.target()) {
+                Workers::submit(m_result, m_id);
             }
 
             std::this_thread::yield();
@@ -103,10 +105,10 @@ void SingleWorker::consumeJob()
     m_result = m_job;
 
     if (m_job.isNicehash()) {
-        m_result.nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / m_threads * m_id);
+        m_result.nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / (m_threads * 2) * m_id);
     }
     else {
-        m_result.nonce = 0xffffffffU / m_threads * m_id;
+        m_result.nonce = 0xffffffffU / (m_threads * 2) * m_id;
     }
 }
 

@@ -45,10 +45,9 @@ public:
 
     static bool allocate(const Options* options);
     static cryptonight_ctx *create(int threadId);
-    static void *calloc(size_t num, size_t size);
     static void release();
 
-    static inline bool isDoubleHash()         { return m_doubleHash; }
+    static inline bool isDoubleHash(int threadId) { return m_doubleHash && (m_doubleHashThreadMask == -1L || ((m_doubleHashThreadMask >> threadId) & 1)); }
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
     static inline bool isHugepagesEnabled()   { return (m_flags & HugepagesEnabled) != 0; }
     static inline int flags()                 { return m_flags; }
@@ -59,12 +58,9 @@ private:
     static int m_algo;
     static int m_flags;
     static int m_threads;
-    static size_t m_offset;
+    static int64_t m_doubleHashThreadMask;
+    static size_t m_memorySize;
     VAR_ALIGN(16, static uint8_t *m_memory);
-
-#   ifndef XMRIG_NO_AEON
-    static cryptonight_ctx *createLite(int threadId);
-#   endif
 };
 
 
