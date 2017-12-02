@@ -1,7 +1,7 @@
 {
     "algo": "cryptonight",                      // cryptonight (default) or cryptonight-lite
     "av": 0,                                    // algorithm variation, 0 auto select
-    "doublehash-thread-mask" : null,            // for av=2/4 only, limits doublehash to given threads (mask), (default: all threads)
+    "doublehash-thread-mask" : null,            // for av=2/4 only, limits doublehash to given threads (mask), mask "0x3" means run doublehash on thread 0 and 1 only (default: all threads)
     "background": false,                        // true to run the miner in the background
     "colors": true,                             // false to disable colored output
     "cpu-affinity": null,                       // set process affinity to CPU core(s), mask "0x3" for cores 0 and 1

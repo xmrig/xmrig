@@ -91,9 +91,30 @@ static void print_cpu()
 
 static void print_threads()
 {
-    char dhtMaskBuf[64];
+    char dhtMaskBuf[256];
     if (Options::i()->doubleHashThreadMask() != -1L) {
-        snprintf(dhtMaskBuf, 64, ", doubleHashThreadMask=0x%" PRIX64, Options::i()->doubleHashThreadMask());
+
+        std::string singleThreads;
+        std::string doubleThreads;
+
+        for (int i=0; i < Options::i()->threads(); i++) {
+            if (Mem::isDoubleHash(i)) {
+                if (!doubleThreads.empty()) {
+                    doubleThreads.append(", ");
+                }
+
+                doubleThreads.append(std::to_string(i));
+            } else {
+                if (!singleThreads.empty()) {
+                    singleThreads.append(" ");
+                }
+
+                singleThreads.append(std::to_string(i));
+            }
+        }
+
+        snprintf(dhtMaskBuf, 256, ", doubleHashThreadMask=0x%" PRIX64 " [single threads: %s; double threads: %s]",
+                 Options::i()->doubleHashThreadMask(), singleThreads.c_str(), doubleThreads.c_str());
     }
     else {
         dhtMaskBuf[0] = '\0';

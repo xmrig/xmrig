@@ -163,6 +163,8 @@ bool Mem::allocate(const Options* options)
         }
     }
 
+    m_memorySize = m_memorySize - (m_memorySize % MEMORY) + MEMORY;
+
     if (!options->hugePages()) {
         m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
         return true;
