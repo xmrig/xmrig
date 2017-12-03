@@ -10,6 +10,7 @@ option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
 
 include (CheckIncludeFile)
+include (cmake/cpu.cmake)
 
 
 set(HEADERS
@@ -49,13 +50,18 @@ set(HEADERS_CRYPTO
     src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
-    src/crypto/CryptoNight_p.h
     src/crypto/CryptoNight_test.h
     src/crypto/groestl_tables.h
     src/crypto/hash.h
     src/crypto/skein_port.h
     src/crypto/soft_aes.h
    )
+
+if (XMRIG_ARM)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_arm.h)
+else()
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_x86.h)
+endif()
 
 set(SOURCES
     src/api/Api.cpp
@@ -146,65 +152,22 @@ if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
     set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
 endif()
 
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    EXECUTE_PROCESS(COMMAND uname -o COMMAND tr -d '\n' OUTPUT_VARIABLE OPERATING_SYSTEM)
+    if (OPERATING_SYSTEM MATCHES "Android")
+        set(EXTRA_LIBS ${EXTRA_LIBS} log)
+    endif()
+endif()
+
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
-add_definitions(/DRAPIDJSON_SSE2)
 #add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 11)
-
-
-# https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -Wno-strict-aliasing")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions -fno-rtti")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
-
-    if (WIN32)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
-    else()
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-    endif()
-
-    add_definitions(/D_GNU_SOURCE)
-
-    if (${CMAKE_VERSION} VERSION_LESS "3.1.0")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    endif()
-
-    #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
-    add_definitions(/D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
-    add_definitions(/DNOMINMAX)
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
-
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fmerge-all-constants")
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -fno-exceptions -fno-rtti -Wno-missing-braces")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -funroll-loops -fmerge-all-constants")
-
-endif()
+include(cmake/flags.cmake)
 
 if (WITH_LIBCPUID)
     add_subdirectory(src/3rdparty/libcpuid)
@@ -214,7 +177,12 @@ if (WITH_LIBCPUID)
     set(SOURCES_CPUID src/Cpu.cpp)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
-    set(SOURCES_CPUID src/Cpu_stub.cpp)
+
+    if (XMRIG_ARM)
+        set(SOURCES_CPUID src/Cpu_arm.cpp)
+    else()
+        set(SOURCES_CPUID src/Cpu_stub.cpp)
+    endif()
 endif()
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)

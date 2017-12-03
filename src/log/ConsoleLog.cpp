@@ -38,6 +38,7 @@
 
 #include "log/ConsoleLog.h"
 #include "log/Log.h"
+#include "Options.h"
 
 
 ConsoleLog::ConsoleLog(bool colors) :
@@ -146,9 +147,10 @@ void ConsoleLog::print(va_list args)
     }
 
     if (!isWritable()) {
-        fprintf(stdout, m_buf);
+        fputs(m_buf, stdout);
         fflush(stdout);
-    } else {
+    }
+    else {
         uv_try_write(m_stream, &m_uvBuf, 1);
     }
 }
