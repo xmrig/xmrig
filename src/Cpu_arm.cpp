@@ -22,58 +22,33 @@
  */
 
 
-#ifdef __FreeBSD__
-#   include <sys/types.h>
-#   include <sys/param.h>
-#   include <sys/cpuset.h>
-#   include <pthread_np.h>
-#endif
-
-
-#include <pthread.h>
-#include <sched.h>
-#include <unistd.h>
 #include <string.h>
 
 
 #include "Cpu.h"
 
 
-#ifdef __FreeBSD__
-typedef cpuset_t cpu_set_t;
-#endif
+char Cpu::m_brand[64]   = { 0 };
+int Cpu::m_flags        = 0;
+int Cpu::m_l2_cache     = 0;
+int Cpu::m_l3_cache     = 0;
+int Cpu::m_sockets      = 1;
+int Cpu::m_totalCores   = 0;
+int Cpu::m_totalThreads = 0;
 
 
-void Cpu::init()
+int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
 {
-#   ifdef XMRIG_NO_LIBCPUID
-    m_totalThreads = sysconf(_SC_NPROCESSORS_CONF);
-#   endif
-
-    initCommon();
+    return m_totalThreads;
 }
 
 
-void Cpu::setAffinity(int id, uint64_t mask)
+void Cpu::initCommon()
 {
-    cpu_set_t set;
-    CPU_ZERO(&set);
+    memcpy(m_brand, "Unknown", 7);
 
-    for (int i = 0; i < m_totalThreads; i++) {
-        if (mask & (1UL << i)) {
-            CPU_SET(i, &set);
-        }
-    }
-
-    if (id == -1) {
-#       ifndef __FreeBSD__
-        sched_setaffinity(0, sizeof(&set), &set);
-#       endif
-    } else {
-#       ifndef __ANDROID__
-        pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
-#       else
-        sched_setaffinity(gettid(), sizeof(&set), &set);
-#       endif
-    }
+#   if defined(XMRIG_ARMv8)
+    m_flags |= X86_64;
+    m_flags |= AES;
+#   endif
 }

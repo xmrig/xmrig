@@ -24,6 +24,7 @@
 
 #include <string>
 #include <inttypes.h>
+#include <stdio.h>
 #include <uv.h>
 
 
@@ -92,7 +93,7 @@ static void print_cpu()
 static void print_threads()
 {
     char dhtMaskBuf[256];
-    if (Options::i()->doubleHashThreadMask() != -1L) {
+    if (Options::i()->doubleHash() && Options::i()->doubleHashThreadMask() != -1L) {
 
         std::string singleThreads;
         std::string doubleThreads;

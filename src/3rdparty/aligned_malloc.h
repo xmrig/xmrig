@@ -21,59 +21,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __ALIGNED_MALLOC_H__
+#define __ALIGNED_MALLOC_H__
 
-#ifdef __FreeBSD__
-#   include <sys/types.h>
-#   include <sys/param.h>
-#   include <sys/cpuset.h>
-#   include <pthread_np.h>
+
+#include <stdlib.h>
+
+
+#ifndef __cplusplus
+extern int posix_memalign(void **__memptr, size_t __alignment, size_t __size);
+#else
+// Some systems (e.g. those with GNU libc) declare posix_memalign with an
+// exception specifier. Via an "egregious workaround" in
+// Sema::CheckEquivalentExceptionSpec, Clang accepts the following as a valid
+// redeclaration of glibc's declaration.
+extern "C" int posix_memalign(void **__memptr, size_t __alignment, size_t __size);
 #endif
 
 
-#include <pthread.h>
-#include <sched.h>
-#include <unistd.h>
-#include <string.h>
-
-
-#include "Cpu.h"
-
-
-#ifdef __FreeBSD__
-typedef cpuset_t cpu_set_t;
-#endif
-
-
-void Cpu::init()
+static __inline__ void *__attribute__((__always_inline__, __malloc__)) _mm_malloc(size_t __size, size_t __align)
 {
-#   ifdef XMRIG_NO_LIBCPUID
-    m_totalThreads = sysconf(_SC_NPROCESSORS_CONF);
-#   endif
+  if (__align == 1) {
+    return malloc(__size);
+  }
 
-    initCommon();
+  if (!(__align & (__align - 1)) && __align < sizeof(void *))
+    __align = sizeof(void *);
+
+  void *__mallocedMemory;
+  if (posix_memalign(&__mallocedMemory, __align, __size)) {
+    return 0;
+  }
+
+  return __mallocedMemory;
 }
 
 
-void Cpu::setAffinity(int id, uint64_t mask)
+static __inline__ void __attribute__((__always_inline__)) _mm_free(void *__p)
 {
-    cpu_set_t set;
-    CPU_ZERO(&set);
-
-    for (int i = 0; i < m_totalThreads; i++) {
-        if (mask & (1UL << i)) {
-            CPU_SET(i, &set);
-        }
-    }
-
-    if (id == -1) {
-#       ifndef __FreeBSD__
-        sched_setaffinity(0, sizeof(&set), &set);
-#       endif
-    } else {
-#       ifndef __ANDROID__
-        pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
-#       else
-        sched_setaffinity(gettid(), sizeof(&set), &set);
-#       endif
-    }
+  free(__p);
 }
+
+#endif /* __ALIGNED_MALLOC_H__ */
