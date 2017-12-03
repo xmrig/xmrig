@@ -22,8 +22,9 @@
  */
 
 #include <sched.h>
-#include <cstring>
-#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/resource.h>
 #include <uv.h>
 

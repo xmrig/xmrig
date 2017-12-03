@@ -23,8 +23,14 @@
 
 
 #include <stdlib.h>
-#include <mm_malloc.h>
 #include <sys/mman.h>
+
+
+#if defined(XMRIG_ARM) && !defined(__clang__)
+#   include "aligned_malloc.h"
+#else
+#   include <mm_malloc.h>
+#endif
 
 
 #include "crypto/CryptoNight.h"
