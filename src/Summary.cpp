@@ -24,6 +24,7 @@
 
 #include <string>
 #include <inttypes.h>
+#include <stdio.h>
 #include <uv.h>
 
 
