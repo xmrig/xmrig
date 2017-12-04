@@ -144,7 +144,7 @@ bool CryptoNight::init(int algo, int variant)
 
 bool CryptoNight::selfTest(int algo)
 {
-    if (cryptonight_hash_ctx_d == nullptr) {
+    if (cryptonight_hash_ctx_s == nullptr || cryptonight_hash_ctx_d == nullptr) {
         return false;
     }
 
@@ -153,15 +153,9 @@ bool CryptoNight::selfTest(int algo)
     struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
     ctx->memory = (uint8_t *) _mm_malloc(MEMORY * 2, 16);
 
-    cryptonight_hash_ctx_d(test_input, 76, output, ctx);
-
-    _mm_free(ctx->memory);
-    _mm_free(ctx);
+    cryptonight_hash_ctx_s(test_input, 76, output, ctx);
 
     bool resultSingle = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 32) == 0;
-
-    ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
-    ctx->memory = (uint8_t *) _mm_malloc(MEMORY * 2, 16);
 
     cryptonight_hash_ctx_d(test_input, 76, output, ctx);
 
