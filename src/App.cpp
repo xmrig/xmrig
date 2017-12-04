@@ -120,7 +120,7 @@ App::~App()
 int App::start()
 {
     if (!m_options) {
-        return 0;
+        return EINVAL;
     }
 
     uv_signal_start(&m_signal, App::onSignal, SIGHUP);
@@ -131,7 +131,7 @@ int App::start()
 
     if (!CryptoNight::init(m_options->algo(), m_options->algoVariant())) {
         LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
-        return 1;
+        return EINVAL;
     }
 
     Mem::allocate(m_options);
