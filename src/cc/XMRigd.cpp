@@ -29,6 +29,8 @@
     #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
     #include <windows.h>
     #include <signal.h>
+	#include <chrono>
+	#include <thread>
 #endif
 int main(int argc, char **argv) {
 
@@ -55,7 +57,12 @@ int main(int argc, char **argv) {
         status = system(xmrigMinerPath.c_str());
 #ifdef WIN32
     } while (status == EINTR);
+
+	if (status == EINVAL) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+	}
 #else
     } while (WEXITSTATUS(status) == EINTR);
 #endif
 }
+
