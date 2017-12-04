@@ -149,12 +149,24 @@ bool Mem::allocate(const Options* options)
     m_algo       = options->algo();
     m_threads    = options->threads();
     m_doubleHash = options->doubleHash();
+    m_doubleHashThreadMask = options->doubleHashThreadMask();
+    m_memorySize = 0;
 
-    const int ratio = (m_doubleHash && m_algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
-    const size_t size  = MEMORY * (m_threads * ratio + 1);
+    size_t scratchPadSize = m_algo == Options::ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
+    for (int i=0; i < m_threads; i++) {
+        m_memorySize += sizeof(cryptonight_ctx);
+
+        if (isDoubleHash(i)) {
+            m_memorySize += scratchPadSize*2;
+        } else {
+            m_memorySize += scratchPadSize;
+        }
+    }
+
+    m_memorySize = m_memorySize - (m_memorySize % MEMORY) + MEMORY;
 
     if (!options->hugePages()) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
         return true;
     }
 
@@ -162,9 +174,9 @@ bool Mem::allocate(const Options* options)
         m_flags |= HugepagesAvailable;
     }
 
-    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
+    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, m_memorySize, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
     if (!m_memory) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
     }
     else {
         m_flags |= HugepagesEnabled;

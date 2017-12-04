@@ -26,13 +26,17 @@
  */
 #pragma once
 
-#ifdef __GNUC__
-#include <x86intrin.h>
+
+#if defined(XMRIG_ARM)
+#   include "crypto/SSE2NEON.h"
+#elif defined(__GNUC__)
+#   include <x86intrin.h>
 #else
-#include <intrin.h>
-#endif // __GNUC__
+#   include <intrin.h>
+#endif
 
 #include <inttypes.h>
+
 
 #define saes_data(w) {\
     w(0x63), w(0x7c), w(0x77), w(0x7b), w(0xf2), w(0x6b), w(0x6f), w(0xc5),\
@@ -109,7 +113,7 @@ static inline uint32_t sub_word(uint32_t key)
 		 saes_sbox[key & 0xff];
 }
 
-#ifdef __clang__
+#if defined(__clang__) || defined(XMRIG_ARM)
 static inline uint32_t _rotr(uint32_t value, uint32_t amount)
 {
 	return (value >> amount) | (value << ((32 - amount) & 31));

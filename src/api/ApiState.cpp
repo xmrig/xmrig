@@ -21,7 +21,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
+#include <math.h>
 #include <string.h>
 #include <uv.h>
 
@@ -53,11 +53,11 @@ extern "C"
 
 static inline double normalize(double d)
 {
-    if (!std::isnormal(d)) {
+    if (!isnormal(d)) {
         return 0.0;
     }
 
-    return std::floor(d * 100.0) / 100.0;
+    return floor(d * 100.0) / 100.0;
 }
 
 
