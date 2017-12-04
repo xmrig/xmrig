@@ -22,37 +22,33 @@
  */
 
 
-#include <memory.h>
+#include <string.h>
 
 
-#include "crypto/CryptoNight.h"
-#include "Mem.h"
-#include "Options.h"
+#include "Cpu.h"
 
 
-bool Mem::m_doubleHash   = false;
-int Mem::m_algo          = 0;
-int Mem::m_flags         = 0;
-int Mem::m_threads       = 0;
-size_t Mem::m_memorySize = 0;
-uint8_t *Mem::m_memory   = nullptr;
-int64_t Mem::m_doubleHashThreadMask = -1L;
+char Cpu::m_brand[64]   = { 0 };
+int Cpu::m_flags        = 0;
+int Cpu::m_l2_cache     = 0;
+int Cpu::m_l3_cache     = 0;
+int Cpu::m_sockets      = 1;
+int Cpu::m_totalCores   = 0;
+int Cpu::m_totalThreads = 0;
 
-cryptonight_ctx *Mem::create(int threadId)
+
+int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
 {
-    size_t scratchPadSize = m_algo == Options::ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
+    return m_totalThreads;
+}
 
-    size_t offset = 0;
-    for (int i=0; i < threadId; i++) {
-        offset += sizeof(cryptonight_ctx);
-        offset += isDoubleHash(i) ? scratchPadSize*2 : scratchPadSize;
-    }
 
-    auto* ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset]);
+void Cpu::initCommon()
+{
+    memcpy(m_brand, "Unknown", 7);
 
-    size_t memOffset = offset+sizeof(cryptonight_ctx);
-
-    ctx->memory = &m_memory[memOffset];
-
-    return ctx;
+#   if defined(XMRIG_ARMv8)
+    m_flags |= X86_64;
+    m_flags |= AES;
+#   endif
 }

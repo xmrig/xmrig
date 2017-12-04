@@ -21,38 +21,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <memory.h>
-
-
-#include "crypto/CryptoNight.h"
-#include "Mem.h"
-#include "Options.h"
+#ifndef __ALIGNED_MALLOC_H__
+#define __ALIGNED_MALLOC_H__
 
 
-bool Mem::m_doubleHash   = false;
-int Mem::m_algo          = 0;
-int Mem::m_flags         = 0;
-int Mem::m_threads       = 0;
-size_t Mem::m_memorySize = 0;
-uint8_t *Mem::m_memory   = nullptr;
-int64_t Mem::m_doubleHashThreadMask = -1L;
+#include <stdlib.h>
 
-cryptonight_ctx *Mem::create(int threadId)
+
+#ifndef __cplusplus
+extern int posix_memalign(void **__memptr, size_t __alignment, size_t __size);
+#else
+// Some systems (e.g. those with GNU libc) declare posix_memalign with an
+// exception specifier. Via an "egregious workaround" in
+// Sema::CheckEquivalentExceptionSpec, Clang accepts the following as a valid
+// redeclaration of glibc's declaration.
+extern "C" int posix_memalign(void **__memptr, size_t __alignment, size_t __size);
+#endif
+
+
+static __inline__ void *__attribute__((__always_inline__, __malloc__)) _mm_malloc(size_t __size, size_t __align)
 {
-    size_t scratchPadSize = m_algo == Options::ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
+  if (__align == 1) {
+    return malloc(__size);
+  }
 
-    size_t offset = 0;
-    for (int i=0; i < threadId; i++) {
-        offset += sizeof(cryptonight_ctx);
-        offset += isDoubleHash(i) ? scratchPadSize*2 : scratchPadSize;
-    }
+  if (!(__align & (__align - 1)) && __align < sizeof(void *))
+    __align = sizeof(void *);
 
-    auto* ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset]);
+  void *__mallocedMemory;
+  if (posix_memalign(&__mallocedMemory, __align, __size)) {
+    return 0;
+  }
 
-    size_t memOffset = offset+sizeof(cryptonight_ctx);
-
-    ctx->memory = &m_memory[memOffset];
-
-    return ctx;
+  return __mallocedMemory;
 }
+
+
+static __inline__ void __attribute__((__always_inline__)) _mm_free(void *__p)
+{
+  free(__p);
+}
+
+#endif /* __ALIGNED_MALLOC_H__ */

@@ -24,6 +24,7 @@
 
 #include <string>
 #include <inttypes.h>
+#include <stdio.h>
 #include <uv.h>
 
 
@@ -91,21 +92,51 @@ static void print_cpu()
 
 static void print_threads()
 {
-    char buf[32];
-    if (Options::i()->affinity() != -1L) {
-        snprintf(buf, 32, ", affinity=0x%" PRIX64, Options::i()->affinity());
+    char dhtMaskBuf[256];
+    if (Options::i()->doubleHash() && Options::i()->doubleHashThreadMask() != -1L) {
+
+        std::string singleThreads;
+        std::string doubleThreads;
+
+        for (int i=0; i < Options::i()->threads(); i++) {
+            if (Mem::isDoubleHash(i)) {
+                if (!doubleThreads.empty()) {
+                    doubleThreads.append(", ");
+                }
+
+                doubleThreads.append(std::to_string(i));
+            } else {
+                if (!singleThreads.empty()) {
+                    singleThreads.append(" ");
+                }
+
+                singleThreads.append(std::to_string(i));
+            }
+        }
+
+        snprintf(dhtMaskBuf, 256, ", doubleHashThreadMask=0x%" PRIX64 " [single threads: %s; double threads: %s]",
+                 Options::i()->doubleHashThreadMask(), singleThreads.c_str(), doubleThreads.c_str());
     }
     else {
-        buf[0] = '\0';
+        dhtMaskBuf[0] = '\0';
     }
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%%s" : " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s",
+    char affBuf[32];
+    if (Options::i()->affinity() != -1L) {
+        snprintf(affBuf, 32, ", affinity=0x%" PRIX64, Options::i()->affinity());
+    }
+    else {
+        affBuf[0] = '\0';
+    }
+
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%%s%s" : " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s%s",
                    Options::i()->threads(),
                    Options::i()->algoName(),
                    Options::i()->algoVariant(),
                    Options::i()->colors() && Options::i()->donateLevel() == 0 ? "\x1B[01;31m" : "",
                    Options::i()->donateLevel(),
-                   buf);
+                   affBuf,
+                   dhtMaskBuf);
 }
 
 

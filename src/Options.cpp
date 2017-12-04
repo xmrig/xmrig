@@ -70,6 +70,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
+      --doublehash-thread-mask          for av=2/4 only, limits doublehash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages                   disable huge pages support\n\
@@ -158,6 +159,7 @@ static struct option const options[] = {
     { "cc-client-config-folder",    1, nullptr, 4009 },
     { "cc-custom-dashboard",        1, nullptr, 4010 },
     { "daemonized",       0, nullptr, 4011 },
+    { "doublehash-thread-mask",     1, nullptr, 4013 },
     { 0, 0, 0, 0 }
 };
 
@@ -180,6 +182,7 @@ static struct option const config_options[] = {
     { "syslog",        0, nullptr, 'S'  },
     { "threads",       1, nullptr, 't'  },
     { "user-agent",    1, nullptr, 1008 },
+    { "doublehash-thread-mask",     1, nullptr, 4013 },
     { 0, 0, 0, 0 }
 };
 
@@ -281,7 +284,8 @@ Options::Options(int argc, char **argv) :
     m_threads(0),
     m_ccUpdateInterval(10),
     m_ccPort(0),
-    m_affinity(-1L)
+    m_affinity(-1L),
+    m_doubleHashThreadMask(-1L)
 {
     m_pools.push_back(new Url());
 
@@ -528,9 +532,14 @@ bool Options::parseArg(int key, const char *arg)
         break;
 
     case 1020: { /* --cpu-affinity */
-            const char *p  = strstr(arg, "0x");
-            return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
-        }
+        const char *p  = strstr(arg, "0x");
+        return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
+    }
+
+    case 4013: { /* --doublehash-thread-mask */
+        const char *p  = strstr(arg, "0x");
+        return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
+    }
 
     case 1008: /* --user-agent */
         free(m_userAgent);
@@ -634,6 +643,7 @@ bool Options::parseArg(int key, uint64_t arg)
             m_ccPort = (int) arg;
         }
         break;
+
     case 4012: /* --cc-update-interval-s */
         if (arg < 1) {
             showUsage(1);
@@ -641,6 +651,12 @@ bool Options::parseArg(int key, uint64_t arg)
         }
 
         m_ccUpdateInterval = (int) arg;
+        break;
+
+    case 4013: /* --doublehash-thread-mask */
+        if (arg) {
+            m_doubleHashThreadMask = arg;
+        }
         break;
     default:
         break;

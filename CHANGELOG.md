@@ -1,3 +1,7 @@
+# v1.2.0
+- Added configurability for thread based doublehash mode which helps you to use more of your l3 cache
+- Memory optimizations
+- Updated to latest XMRig (2.4.3) with ARM support
 # v1.1.1
 - Fixed table sorting for client id column on Dashboard
 - Fixed Windows compilation with msys2 (gcc)
