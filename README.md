@@ -1,9 +1,9 @@
-# XMRig
-XMRig is high performance Monero (XMR) CPU miner, with the official full Windows support.
-Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 complete rewritten from scratch on C++.
+# XMRig888
+XMRig is high performance Monero (XMR) CPU miner, with the official full Windows support. In following development of this code Windows support will be discarded.
+Originally based on xmrig/xmrig. Written in C++.
 
-* This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
-* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
+* This is the **CPU-mining** version with target to be optimized for RPi3 platform.
+* [Roadmap](https://github.com/xmrig/xmrig/issues/888) for next releases.
 
 <img src="http://i.imgur.com/OKZRVDh.png" width="619" >
 
@@ -111,9 +111,9 @@ Please note performance is highly dependent on system load. The numbers above ar
 * Enable fast memory (Large/Huge pages).
 
 ## Donations
-* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-* BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+* XMR: `44bF1RTZVcVc45wNiDQVTp7hwyZ5juMf8W78j1YrfChkP2og2Y44ph3WbwaVe4vUMveKAzAiA4j8xgUi29TpKXpm42GAEjd'
+
 
 ## Contacts
-* support@xmrig.com
-* [reddit](https://www.reddit.com/user/XMRig/)
+* xmr@eplus.systems
+#------------------------------------------------------------------------------------------------------
