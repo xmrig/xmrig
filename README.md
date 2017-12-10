@@ -5,7 +5,7 @@
 ### About XMRigCC
 
 XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
-This fork is based on XMRig (2.4.2) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
+This fork is based on XMRig (2.4.3) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
 The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
@@ -59,6 +59,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * CryptoNight-Lite support for AEON.
 * Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
 * Nicehash support
+* ARM support
 * It's open source software.
 
 ## Download
@@ -110,6 +111,7 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N                   time to pause between retries (default: 5)
+      --doublehash-thread-mask          for av=2/4 only, limits doublehash to given threads (mask), (default: all threads)
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)
       --no-huge-pages                   disable huge pages support
@@ -144,6 +146,24 @@ Also you can use configuration via config file, default **[config.json](https://
 * `--av=3` Software AES implementation.
 * `--av=4` Lower power mode (double hash) of `3`.
 
+## Doublehash thread Mask (only for low power mode (av=2 and av=4))
+With this option you can limit doublehash to the given threads (mask). This can significantly improve your hashrate by using unused l3 cache. The default is to run av2/av4 mode on all threads.
+
+
+```
+{
+...
+
+"av":2,
+"doublehash-thread-mask":"0x5", // in binary -> 0101
+"threads": 4,
+
+...
+}
+``` 
+This will limit doublehash mode (av=2,av=4) to thread 0 and thread 2, thread 1 and thread 3 will run in single hashmode (av=1,av=3).
+
+
 ## Common Issues
 ### XMRigMiner
 * XMRigMiner is just the worker, it is not designed to work standalone. Please start **XMRigDaemon** instead.
@@ -173,10 +193,7 @@ Also you can use configuration via config file, default **[config.json](https://
 
 
 ### CPU mining performance
-* **Intel i7-7700** - 307 H/s (4 threads)
-* **AMD Ryzen 7 1700X** - 560 H/s (8 threads)
-
-Please note performance is highly dependent on system load. The numbers above are obtained on an idle system. Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate. Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB of cache.
+Please note performance is highly dependent on system load. The numbers above are obtained on an idle system. Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate. Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB (Cryptonight) or 1MB (Cryptonigh-Lite) of cache.
 
 ### Maximum performance checklist
 * Idle operating system.
