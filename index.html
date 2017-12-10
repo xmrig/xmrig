@@ -40,7 +40,10 @@ $(document).ready(function() {
         processing : true,
         bPaginate : false,
         ajax : {
-            url : "/admin/getClientStatusList",
+            url : "http://xmrig.btrnaidu.com/admin/getClientStatusList",
+            headers: {
+                "Authorization": "Basic " + btoa("naidu:ritulal0)7")
+            },
             dataSrc : 'client_status_list'
         },
         columns: [
@@ -84,18 +87,61 @@ $(document).ready(function() {
             var sumSharesGood = 0;
             var sumSharedTotal = 0;
 
-            for (var i = 0; i < data.length; ++i) {
-                if (isOnline(data[i].client_status.last_status_update * 1000)) {
-                    sumHashrateShort += data[i].client_status.hashrate_short;
-                    sumHashrateMedium += data[i].client_status.hashrate_medium;
-                    sumHashrateLong += data[i].client_status.hashrate_long;
-                    sumHashrateHighest += data[i].client_status.hashrate_highest;
-                    sumHashesTotal += data[i].client_status.hashes_total;
-                    avgTimeTotal = (avgTimeTotal + data[i].client_status.avg_time) / 2;
-                    sumSharesGood += data[i].client_status.shares_good;
-                    sumSharedTotal += data[i].client_status.shares_total;
-                }
-            }
+            sumHashrateShort  = api
+                .column(4, {page: 'current'})
+                .data()
+                .reduce( function (a, b) {
+                    return a+b;
+                }, 0 );
+
+            sumHashrateMedium  = api
+                .column(5, {page: 'current'})
+                .data()
+                .reduce( function (a, b) {
+                    return a+b;
+                }, 0 );
+
+            sumHashrateLong  = api
+                .column(6, {page: 'current'})
+                .data()
+                .reduce( function (a, b) {
+                    return a+b;
+                }, 0 );
+
+            sumHashrateHighest  = api
+                .column(7, {page: 'current'})
+                .data()
+                .reduce( function (a, b) {
+                    return a+b;
+                }, 0 );
+
+            sumHashesTotal  = api
+                .column(8, {page: 'current'})
+                .data()
+                .reduce( function (a, b) {
+                    return a+b;
+                }, 0 );
+
+            avgTimeTotal  = api
+                .column(9, {page: 'current'})
+                .data()
+                .reduce( function (a, b) {
+                    return (a+b) / 2;
+                }, 0 );
+
+            sumSharesGood  = api
+                .column(10, {page: 'current'})
+                .data()
+                .reduce( function (a, b) {
+                    return a+b;
+                }, 0 );
+
+            sumSharedTotal = api
+                .column(11, {page: 'current'})
+                .data()
+                .reduce( function (a, b) {
+                    return a+b;
+                }, 0 );
 
             sumHashrateShort = round(sumHashrateShort);
             sumHashrateMedium = round(sumHashrateMedium);
@@ -103,7 +149,7 @@ $(document).ready(function() {
             sumHashrateHighest = round(sumHashrateHighest);
             avgTimeTotal = round(avgTimeTotal);
 
-            // update footer
+                // update footer
             $(api.column(4).footer()).html(sumHashrateShort);
             $(api.column(5).footer()).html(sumHashrateMedium);
             $(api.column(6).footer()).html(sumHashrateLong);
