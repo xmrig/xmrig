@@ -40,10 +40,7 @@ $(document).ready(function() {
         processing : true,
         bPaginate : false,
         ajax : {
-            url : "http://xmrig.btrnaidu.com/admin/getClientStatusList",
-            headers: {
-                "Authorization": "Basic " + btoa("naidu:ritulal0)7")
-            },
+            url : "/admin/getClientStatusList",
             dataSrc : 'client_status_list'
         },
         columns: [
