@@ -20,6 +20,8 @@ Originally based on xmrig/xmrig. Written in C++.
 
 ## Features
 * High performance.
+* Official Windows support.
+* Small Windows executable, without dependencies.
 * x86/x64 support.
 * Support for backup (failover) mining server.
 * keepalived support.
@@ -30,9 +32,9 @@ Originally based on xmrig/xmrig. Written in C++.
 * It's open source software.
 
 ## Download
-* Binary releases: https://github.com/avujic/xmrig888/releases
-* Git tree: https://github.com/avujic/xmrig888.git
-  * Clone with `git clone https://github.com/avujic/xmrig888.git` 
+* Binary releases: https://github.com/xmrig/xmrig/releases
+* Git tree: https://github.com/xmrig/xmrig.git
+  * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
 
 ## Usage
 ### Basic example
@@ -109,10 +111,9 @@ Please note performance is highly dependent on system load. The numbers above ar
 * Enable fast memory (Large/Huge pages).
 
 ## Donations
-* XMR: `44bF1RTZVcVc45wNiDQVTp7hwyZ5juMf8W78j1YrfChkP2og2Y44ph3WbwaVe4vUMveKAzAiA4j8xgUi29TpKXpm42GAEjd`
+* XMR: `44bF1RTZVcVc45wNiDQVTp7hwyZ5juMf8W78j1YrfChkP2og2Y44ph3WbwaVe4vUMveKAzAiA4j8xgUi29TpKXpm42GAEjd'
 
 
 ## Contacts
 * xmr@eplus.systems
-
 #------------------------------------------------------------------------------------------------------

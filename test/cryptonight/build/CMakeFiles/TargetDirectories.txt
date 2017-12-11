@@ -1,0 +1,3 @@
+/opt/cryptoValue/xmrig888/test/cryptonight/build/CMakeFiles/edit_cache.dir
+/opt/cryptoValue/xmrig888/test/cryptonight/build/CMakeFiles/rebuild_cache.dir
+/opt/cryptoValue/xmrig888/test/cryptonight/build/CMakeFiles/cryptonight_app.dir
