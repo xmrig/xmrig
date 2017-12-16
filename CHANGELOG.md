@@ -1,3 +1,8 @@
+# v1.2.1
+- Miner now publishs own config to XMRigCCServer on startup
+- Added command to trigger miner to upload config to XMRigCCServer
+- Refactored Dashboard to send one command to multiple miners and "beautified" dashboard
+- Added threads to miner info tooltip on client id
 # v1.2.0
 - Added configurability for thread based doublehash mode which helps you to use more of your l3 cache
 - Memory optimizations / speed improvements

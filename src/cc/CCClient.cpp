@@ -22,6 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstring>
+#include <sstream>
 #include <fstream>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
@@ -83,6 +85,7 @@ CCClient::CCClient(Options* options, uv_async_t* async)
     m_clientStatus.setCpuBrand(Cpu::brand());
     m_clientStatus.setCpuAES(Cpu::hasAES());
     m_clientStatus.setCpuCores(Cpu::cores());
+    m_clientStatus.setCpuThreads(Cpu::threads());
     m_clientStatus.setCpuX64(Cpu::isX64());
 
     m_clientStatus.setCpuL2(Cpu::l2());
@@ -159,7 +162,10 @@ void CCClient::publishClientStatusReport()
             } else if (controlCommand.getCommand() == ControlCommand::UPDATE_CONFIG) {
                 LOG_WARN("[CC-Client] Command: UPDATE_CONFIG received -> update config");
                 updateConfig();
-            } else if (controlCommand.getCommand() == ControlCommand::RESTART) {
+            } else if (controlCommand.getCommand() == ControlCommand::PUBLISH_CONFIG) {
+                LOG_WARN("[CC-Client] Command: PUBLISH_CONFIG received -> publish config");
+                publishConfig();
+            }else if (controlCommand.getCommand() == ControlCommand::RESTART) {
                 LOG_WARN("[CC-Client] Command: RESTART received -> restart");
             } else if (controlCommand.getCommand() == ControlCommand::SHUTDOWN) {
                 LOG_WARN("[CC-Client] Command: SHUTDOWN received -> shutdown");
@@ -208,6 +214,44 @@ void CCClient::updateConfig()
     }
 }
 
+void CCClient::publishConfig()
+{
+    std::string requestUrl = "/client/setClientConfig?clientId=" + m_self->m_clientStatus.getClientId();
+
+    std::stringstream data;
+    std::ifstream clientConfig(m_self->m_options->configFile());
+
+    if (clientConfig) {
+        data << clientConfig.rdbuf();
+        clientConfig.close();
+    }
+
+    if (data.tellp() > 0) {
+        rapidjson::Document document;
+        document.Parse(data.str().c_str());
+
+        if (!document.HasParseError()) {
+            rapidjson::StringBuffer buffer(0, 65536);
+            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            writer.SetMaxDecimalPlaces(10);
+            document.Accept(writer);
+
+            auto res = performRequest(requestUrl, buffer.GetString(), "POST");
+            if (!res) {
+                LOG_ERR("[CC-Client] error: unable to performRequest POST -> http://%s:%d%s",
+                        m_self->m_options->ccHost(), m_self->m_options->ccPort(), requestUrl.c_str());
+            } else if (res->status != 200) {
+                LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_self->m_options->ccHost(),
+                        m_self->m_options->ccPort(), requestUrl.c_str());
+            }
+        } else {
+            LOG_ERR("Not able to send config. Client config %s is broken!", m_self->m_options->configFile());
+        }
+    } else {
+        LOG_ERR("Not able to load client config %s. Please make sure it exists!", m_self->m_options->configFile());
+    }
+}
+
 std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& requestUrl,
                                                             const std::string& requestBuffer,
                                                             const std::string& operation)
@@ -244,6 +288,8 @@ void CCClient::onThreadStarted(void* handle)
     uv_timer_start(&m_self->m_timer, CCClient::onReport,
                    static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000),
                    static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000));
+
+    publishConfig();
 
     uv_run(&m_self->m_client_loop, UV_RUN_DEFAULT);
 }

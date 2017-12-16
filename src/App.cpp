@@ -262,5 +262,7 @@ void App::onCommandReceived(uv_async_t* async)
         case ControlCommand::SHUTDOWN:
             App::shutdown();
             break;
+        case ControlCommand::PUBLISH_CONFIG:;
+            break;
     }
 }

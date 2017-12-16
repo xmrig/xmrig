@@ -28,10 +28,11 @@
 #include <string>
 #include "rapidjson/document.h"
 
-static const char* command_str[5] = {
+static const char* command_str[6] = {
         "START",
         "STOP",
         "UPDATE_CONFIG",
+        "PUBLISH_CONFIG",
         "RESTART",
         "SHUTDOWN"
 };
@@ -43,6 +44,7 @@ public:
         START,
         STOP,
         UPDATE_CONFIG,
+        PUBLISH_CONFIG,
         RESTART,
         SHUTDOWN
     };

@@ -99,7 +99,7 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
 
     if (url.rfind("/client/setClientStatus", 0) == 0) {
         resultCode = setClientStatus(clientIp, clientId, data, resp);
-    } else if (url.rfind("/admin/setClientConfig", 0) == 0) {
+    } else if (url.rfind("/admin/setClientConfig", 0) == 0 || url.rfind("/client/setClientConfig", 0) == 0) {
         resultCode = setClientConfig(options, clientId, data, resp);
     } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
         resultCode = setClientCommand(clientId, data, resp);

@@ -112,6 +112,9 @@ public:
     int getCpuCores() const;
     void setCpuCores(int cpuCores);
 
+    int getCpuThreads() const;
+    void setCpuThreads(int cpuThreads);
+
     int getCpuL2() const;
     void setCpuL2(int cpuL2);
 
@@ -166,6 +169,7 @@ private:
 
     int m_currentThreads;
     int m_cpuCores;
+    int m_cpuThreads;
     int m_cpuL2;
     int m_cpuL3;
 
