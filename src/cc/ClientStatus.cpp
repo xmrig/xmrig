@@ -44,6 +44,7 @@ ClientStatus::ClientStatus()
       m_hashrateHighest(0),
       m_currentThreads(0),
       m_cpuCores(0),
+      m_cpuThreads(0),
       m_cpuL2(0),
       m_cpuL3(0),
       m_sharesGood(0),
@@ -235,6 +236,16 @@ void ClientStatus::setCpuCores(int cpuCores)
     m_cpuCores = cpuCores;
 }
 
+int ClientStatus::getCpuThreads() const
+{
+    return m_cpuThreads;
+}
+
+void ClientStatus::setCpuThreads(int cpuThreads)
+{
+    m_cpuThreads = cpuThreads;
+}
+
 int ClientStatus::getCpuL2() const
 {
     return m_cpuL2;
@@ -379,6 +390,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_cpuCores = clientStatus["cpu_cores"].GetInt();
         }
 
+        if (clientStatus.HasMember("cpu_threads")) {
+            m_cpuThreads = clientStatus["cpu_threads"].GetInt();
+        }
+
         if (clientStatus.HasMember("cpu_l2")) {
             m_cpuL2 = clientStatus["cpu_l2"].GetInt();
         }
@@ -440,6 +455,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
 
     clientStatus.AddMember("current_threads", m_currentThreads, allocator);
     clientStatus.AddMember("cpu_cores", m_cpuCores, allocator);
+    clientStatus.AddMember("cpu_threads", m_cpuThreads, allocator);
     clientStatus.AddMember("cpu_l2", m_cpuL2, allocator);
     clientStatus.AddMember("cpu_l3", m_cpuL3, allocator);
 

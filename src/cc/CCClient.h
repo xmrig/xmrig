@@ -48,6 +48,7 @@ private:
 
     static void publishClientStatusReport();
     static void updateConfig();
+    static void publishConfig();
     static std::shared_ptr<httplib::Response> performRequest(const std::string& requestUrl,
                                                              const std::string& requestBuffer,
                                                              const std::string& operation);

@@ -4,200 +4,299 @@
 <meta charset=\"utf-8\">
 <title>XMRigCC Dashboard</title>
 
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.0/css/buttons.bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.4/css/select.dataTables.min.css">
 
 <style>
     .left{text-align:left;}
-    .right{text-align:right;}
-    .center{text-align:center;}
-    .toolbar { float: right; padding-left: 10pt;}
+    .center{text-align:center; padding-bottom: 50pt}
+    .toolbar{text-align: right;}
+    .center-tab{text-align: center; vertical-align: middle;}
     .online { color: green}
     .offline { color: red}
 </style>
 
 <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.0/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.0/js/buttons.bootstrap.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.4/js/dataTables.select.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.1/jquery.timeago.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
 
 <script type="text/javascript">
-$.fn.dataTable.ext.search.push(
-    function( settings, data, dataIndex ) {
-        var hide = document.getElementById("hideOffline").checked;
+    $.fn.dataTable.ext.search.push(
+        function( settings, data, dataIndex ) {
+            var hide = document.getElementById("hideOffline").checked;
+            return (isOnline(settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000) || !hide);
+        }
+    );
 
-        return (isOnline(settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000) || !hide);
-    }
-);
+    $(document).ready(function() {
 
-$(document).ready(function() {
+        var latestRelease = "";
 
-    var latestRelease = "";
+        var table = $('#clientStatusList').DataTable({
+            dom: "<'toolbar'><'row'<'col-sm-9'B><'col-sm-3'f>><'row'<'col-sm-12't>><i>",
+            bPaginate : false,
+            ajax : {
+                url : "/admin/getClientStatusList",
+                dataSrc : 'client_status_list'
+            },
+            deferRender: true,
+            columns: [
+                {
+                    data: null,
+                    defaultContent: '',
+                    className: 'select-checkbox',
+                    orderable: false
+                },
+                { data: "client_status.client_id", render: clientInfo},
+                { data: "client_status.current_pool"},
+                { data: "client_status.current_status"},
+                { data: "client_status.current_algo_name"},
+                { data: "client_status.hashrate_short", render: round, className: "right"},
+                { data: "client_status.hashrate_medium", render: round, className: "right"},
+                { data: "client_status.hashrate_long", render: round, className: "right"},
+                { data: "client_status.hashrate_highest", render: round, className: "right"},
+                { data: "client_status.hashes_total", className: "right"},
+                { data: "client_status.avg_time", className: "right"},
+                { data: "client_status.shares_good", className: "right"},
+                { data: "client_status.shares_total", className: "right"},
+                { data: "client_status.last_status_update", render: laststatus},
+                {
+                    data: null,
+                    defaultContent:
+                        "<td class='center-tab'><button type='button' id='EDIT' class='btn btn-xs btn-primary' data-toggle='tooltip' title='Edit Client Config'><i class='fa fa-cog'></i></button></td>",
+                    orderable: false,
+                    className: "center-tab"
+                }
+            ],
+            rowId: 'client_status.client_id',
+            select: {
+                style : "multi"
+            },
+            order: [ 1, 'asc' ],
+            lengthChange: false,
+            buttons: [
+                {
+                    text: '<i class="fa fa-download"> Pull client config</i>',
+                    className: 'btn-default',
+                    enabled: false,
+                    action: function () {
+                        table.rows({ selected: true }).eq(0).each(function (index) {
+                            var row = table.row(index);
+                            var data = row.data();
 
-    var table = $('#clientStatusList').DataTable({
-        dom: '<"toolbar">frtip',
-        processing : true,
-        bPaginate : false,
-        ajax : {
-            url : "/admin/getClientStatusList",
-            dataSrc : 'client_status_list'
-        },
-        columns: [
-            { data: "client_status.client_id", render: clientInfo},
-            { data: "client_status.current_pool"},
-            { data: "client_status.current_status"},
-            { data: "client_status.current_algo_name"},
-            { data: "client_status.hashrate_short", render: round, className: "right"},
-            { data: "client_status.hashrate_medium", render: round, className: "right"},
-            { data: "client_status.hashrate_long", render: round, className: "right"},
-            { data: "client_status.hashrate_highest", render: round, className: "right"},
-            { data: "client_status.hashes_total", className: "right"},
-            { data: "client_status.avg_time", className: "right"},
-            { data: "client_status.shares_good", className: "right"},
-            { data: "client_status.shares_total", className: "right"},
-            { data: "client_status.last_status_update", render: laststatus},
-            {
-                targets: -1,
-                data: null,
-                defaultContent:
-                    "<td><button type='button' id='START' class='btn btn-xs btn-success' data-toggle='tooltip' title='Start'><i class='fa fa-play'></i></button></td>" +
-                    "<td><button type='button' id='STOP' class='btn btn-xs btn-warning' data-toggle='tooltip' title='Stop'><i class='fa fa-pause'></i></button></td>" +
-                    "<td><button type='button' id='RESTART' class='btn btn-xs' data-toggle='tooltip' title='Restart'><i class='fa fa-repeat'></i></button></td>" +
-                    "<td><button type='button' id='UPDATE_CONFIG' class='btn btn-xs btn-info' data-toggle='tooltip' title='Update Config'><i class='fa fa-refresh'></i></button></td>" +
-                    "<td><button type='button' id='EDIT' class='btn btn-xs btn-primary' data-toggle='tooltip' title='Edit Client Config'><i class='fa fa-cog'></i></button></td>" +
-                    "<td><button type='button' id='SHUTDOWN' class='btn btn-xs btn-danger' data-toggle='tooltip' title='Stutdown Client'><i class='fa fa-power-off'></i></button></td>",
-                className: "center"
-            }
-        ],
-        order: [ 0, 'asc' ],
+                            sendAction("PUBLISH_CONFIG", data.client_status.client_id);
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-upload"> Push client config</i>',
+                    className: 'btn-primary',
+                    enabled: false,
+                    action: function () {
+                        table.rows({ selected: true }).eq(0).each(function (index) {
+                            var row = table.row(index);
+                            var data = row.data();
 
-        "footerCallback": function ( row, data, start, end, display ) {
-            var api = this.api();
+                            sendAction("UPDATE_CONFIG", data.client_status.client_id);
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-play"> Start miner</i>',
+                    className: 'btn-success',
+                    enabled: false,
+                    action: function () {
+                        table.rows({ selected: true }).eq(0).each(function (index) {
+                            var row = table.row(index);
+                            var data = row.data();
 
-            var sumHashrateShort = 0;
-            var sumHashrateMedium = 0;
-            var sumHashrateLong = 0;
-            var sumHashrateHighest = 0;
-            var sumHashesTotal = 0;
-            var avgTimeTotal = 0;
-            var sumSharesGood = 0;
-            var sumSharedTotal = 0;
+                            sendAction("START", data.client_status.client_id);
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-pause"> Pause miner</i>',
+                    className: 'btn-warning',
+                    enabled: false,
+                    action: function () {
+                        table.rows({ selected: true }).eq(0).each(function (index) {
+                            var row = table.row(index);
+                            var data = row.data();
 
-            sumHashrateShort  = api
-                .column(4, {page: 'current'})
-                .data()
-                .reduce( function (a, b) {
-                    return a+b;
-                }, 0 );
+                            sendAction("STOP", data.client_status.client_id);
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-repeat"> Restart miner</i>',
+                    className: 'btn-info',
+                    enabled: false,
+                    action: function () {
+                        table.rows({ selected: true }).eq(0).each(function (index) {
+                            var row = table.row(index);
+                            var data = row.data();
 
-            sumHashrateMedium  = api
-                .column(5, {page: 'current'})
-                .data()
-                .reduce( function (a, b) {
-                    return a+b;
-                }, 0 );
+                            sendAction("RESTART", data.client_status.client_id);
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-power-off"> Shutdown miner</i>',
+                    className: 'btn-danger',
+                    enabled: false,
+                    action: function () {
+                        table.rows({ selected: true }).eq(0).each(function (index) {
+                            var row = table.row(index);
+                            var data = row.data();
 
-            sumHashrateLong  = api
-                .column(6, {page: 'current'})
-                .data()
-                .reduce( function (a, b) {
-                    return a+b;
-                }, 0 );
+                            sendAction("SHUTDOWN", data.client_status.client_id);
+                        });
+                    }
+                }
+            ],
 
-            sumHashrateHighest  = api
-                .column(7, {page: 'current'})
-                .data()
-                .reduce( function (a, b) {
-                    return a+b;
-                }, 0 );
+            "footerCallback": function ( row, data, start, end, display ) {
+                var api = this.api();
 
-            sumHashesTotal  = api
-                .column(8, {page: 'current'})
-                .data()
-                .reduce( function (a, b) {
-                    return a+b;
-                }, 0 );
+                var sumHashrateShort = 0;
+                var sumHashrateMedium = 0;
+                var sumHashrateLong = 0;
+                var sumHashrateHighest = 0;
+                var sumHashesTotal = 0;
+                var avgTimeTotal = 0;
+                var sumSharesGood = 0;
+                var sumSharedTotal = 0;
 
-            avgTimeTotal  = api
-                .column(9, {page: 'current'})
-                .data()
-                .reduce( function (a, b) {
-                    return (a+b) / 2;
-                }, 0 );
+                sumHashrateShort  = api
+                    .column(5, {page: 'current'})
+                    .data()
+                    .reduce( function (a, b) {
+                        return a+b;
+                    }, 0 );
 
-            sumSharesGood  = api
-                .column(10, {page: 'current'})
-                .data()
-                .reduce( function (a, b) {
-                    return a+b;
-                }, 0 );
+                sumHashrateMedium  = api
+                    .column(6, {page: 'current'})
+                    .data()
+                    .reduce( function (a, b) {
+                        return a+b;
+                    }, 0 );
 
-            sumSharedTotal = api
-                .column(11, {page: 'current'})
-                .data()
-                .reduce( function (a, b) {
-                    return a+b;
-                }, 0 );
+                sumHashrateLong  = api
+                    .column(7, {page: 'current'})
+                    .data()
+                    .reduce( function (a, b) {
+                        return a+b;
+                    }, 0 );
 
-            sumHashrateShort = round(sumHashrateShort);
-            sumHashrateMedium = round(sumHashrateMedium);
-            sumHashrateLong = round(sumHashrateLong);
-            sumHashrateHighest = round(sumHashrateHighest);
-            avgTimeTotal = round(avgTimeTotal);
+                sumHashrateHighest  = api
+                    .column(8, {page: 'current'})
+                    .data()
+                    .reduce( function (a, b) {
+                        return a+b;
+                    }, 0 );
+
+                sumHashesTotal  = api
+                    .column(9, {page: 'current'})
+                    .data()
+                    .reduce( function (a, b) {
+                        return a+b;
+                    }, 0 );
+
+                avgTimeTotal  = api
+                    .column(10, {page: 'current'})
+                    .data()
+                    .reduce( function (a, b) {
+                        return (a+b) / 2;
+                    }, 0 );
+
+                sumSharesGood  = api
+                    .column(11, {page: 'current'})
+                    .data()
+                    .reduce( function (a, b) {
+                        return a+b;
+                    }, 0 );
+
+                sumSharedTotal = api
+                    .column(12, {page: 'current'})
+                    .data()
+                    .reduce( function (a, b) {
+                        return a+b;
+                    }, 0 );
+
+                sumHashrateShort = round(sumHashrateShort);
+                sumHashrateMedium = round(sumHashrateMedium);
+                sumHashrateLong = round(sumHashrateLong);
+                sumHashrateHighest = round(sumHashrateHighest);
+                avgTimeTotal = round(avgTimeTotal);
 
                 // update footer
-            $(api.column(4).footer()).html(sumHashrateShort);
-            $(api.column(5).footer()).html(sumHashrateMedium);
-            $(api.column(6).footer()).html(sumHashrateLong);
-            $(api.column(7).footer()).html(sumHashrateHighest);
-            $(api.column(8).footer()).html(sumHashesTotal);
-            $(api.column(9).footer()).html(avgTimeTotal);
-            $(api.column(10).footer()).html(sumSharesGood);
-            $(api.column(11).footer()).html(sumSharedTotal);
+                $(api.column(5).footer()).html(sumHashrateShort);
+                $(api.column(6).footer()).html(sumHashrateMedium);
+                $(api.column(7).footer()).html(sumHashrateLong);
+                $(api.column(8).footer()).html(sumHashrateHighest);
+                $(api.column(9).footer()).html(sumHashesTotal);
+                $(api.column(10).footer()).html(avgTimeTotal);
+                $(api.column(11).footer()).html(sumSharesGood);
+                $(api.column(12).footer()).html(sumSharedTotal);
 
-            // check version
-            if (latestRelease === "" && $(api).context[0].json !== undefined) {
-                $.ajax({
-                    url: "https://api.github.com/repos/Bendr0id/xmrigCC/releases/latest",
-                    type: 'GET',
-                    dataType: "json",
-                    success: function (release) {
-                        latestRelease = release.tag_name;
-                        if (latestRelease !== $(api).context[0].json.current_version) {
-                            $("#notificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
-                                '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
-                                '<a href="https://github.com/Bendr0id/xmrigCC/releases/latest"><strong>Update!</strong> XMRigCC v' + latestRelease + ' is available for download\n</a>' +
-                                '</div>');
+                // check version
+                if (latestRelease === "" && $(api).context[0].json !== undefined) {
+                    $.ajax({
+                        url: "https://api.github.com/repos/Bendr0id/xmrigCC/releases/latest",
+                        type: 'GET',
+                        dataType: "json",
+                        success: function (release) {
+                            latestRelease = release.tag_name;
+                            if (latestRelease !== $(api).context[0].json.current_version) {
+                                $("#notificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
+                                    '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                                    '<a href="https://github.com/Bendr0id/xmrigCC/releases/latest"><strong>Update!</strong> XMRigCC v' + latestRelease + ' is available for download\n</a>' +
+                                    '</div>');
+                            }
                         }
-                    }
-                });
-            }
-        }
-    });
-
-    $("div.toolbar").html('<input type="checkbox" id="hideOffline" value="hide" checked style="margin-right: 5pt"><label>Hide offline miners</label>');
-
-    $('#clientStatusList tbody').on( 'click', 'button', function () {
-        var data = table.row( $(this).parents('tr') ).data();
-        var clientId = data['client_status']['client_id'];
-        var action = this.id;
-
-        if (action != "EDIT"){
-            $.ajax({
-                type:    "POST",
-                url:     "/admin/setClientCommand?clientId=" + clientId,
-                dataType:"text",
-                data:    '{"control_command":{"command": "' + action + '"}}',
-                success: function(data){
-                    alert("Successfully send: " + action + " to: " + clientId);
-                },
-                error: function (data) {
-                    alert("Failed to send: " + action +" to: " + clientId + "\nError: " +  JSON.stringify(data,undefined, 2));
+                    });
                 }
-            });
-        }
-        else {
+            }
+        });
+
+        table.on('select', function () {
+            var selectedRows = table.rows( { selected: true } ).count();
+
+            table.button(0).enable(selectedRows > 0);
+            table.button(1).enable(selectedRows > 0);
+            table.button(2).enable(selectedRows > 0);
+            table.button(3).enable(selectedRows > 0);
+            table.button(4).enable(selectedRows > 0);
+            table.button(5).enable(selectedRows > 0);
+        });
+
+        table.on('deselect', function () {
+            var selectedRows = table.rows( { selected: true } ).count();
+
+            table.button(0).enable(selectedRows > 0);
+            table.button(1).enable(selectedRows > 0);
+            table.button(2).enable(selectedRows > 0);
+            table.button(3).enable(selectedRows > 0);
+            table.button(4).enable(selectedRows > 0);
+            table.button(5).enable(selectedRows > 0);
+        });
+
+        table.buttons().container().appendTo( '#clientStatusList_wrapper .col-sm-6:eq(0)' );
+
+        $("div.toolbar").html('<input type="checkbox" id="hideOffline" value="hide" checked style="margin-right: 5pt"><label>Hide offline miners</label>');
+
+        $('#clientStatusList tbody').on( 'click', 'button', function () {
+            var data = table.row( $(this).parents('tr') ).data();
+            var clientId = data['client_status']['client_id'];
+
             $.ajax({
                 type:    "GET",
                 url:     "/admin/getClientConfig?clientId=" + clientId,
@@ -208,59 +307,112 @@ $(document).ready(function() {
                         "<textarea class='form-control' rows='20' id='config'>" +
                         JSON.stringify(jsonClientConfig,undefined, 2) +
                         "</textarea>" +
-                    "</div>";
+                        "</div>";
 
                     $('#editConfig').find('.modal-body').html(htmlContent);
                     $('#editConfig').modal('show');
                 },
                 error: function (data) {
-                    alert("Unable to fetch " + clientId + "_config.json or default_config.json, please check your Server configuration and the the config files are located on the Server!");
+                    $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                        '<strong>Unable to fetch ' + clientId + '_config.json or default_config.json, please check your Server configuration and the the config files are located on the Server!</strong></div>');
+
+                    window.setTimeout(function() {
+                        $(".alert-danger").fadeTo(500, 0).slideUp(500, function(){
+                            $(".alert-danger").alert('close');
+                        });
+                    }, 10000);
                 }
             });
-        }
+        });
+
+        $('button.btn.btn-success').click(function(event)
+        {
+            var clientId = $('#editConfig').find('.form-group')["0"].dataset.value;
+
+            event.preventDefault();
+            $.ajax({
+                url: "/admin/setClientConfig?clientId=" + clientId,
+                type: 'POST',
+                dataType: "text",
+                data: $('#config').val(),
+                success: function(data){
+                    $("#statusBar").html('<div class="alert alert-success" role="alert">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                        '<strong>Successfully saved config for: ' + clientId + '</strong></div>');
+
+                    window.setTimeout(function() {
+                        $(".alert-success").fadeTo(500, 0).slideUp(500, function(){
+                            $(".alert-success").alert('close');
+                        });
+                    }, 2500);
+                },
+                error: function (data) {
+                    $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                        '<strong>Failed to store config for: ' + clientId + '\nError: ' +  JSON.stringify(data,undefined, 2) + '</strong></div>');
+
+                    window.setTimeout(function() {
+                        $(".alert-danger").fadeTo(500, 0).slideUp(500, function(){
+                            $(".alert-danger").alert('close');
+                        });
+                    }, 10000);
+                }
+            });
+        });
+
+        $('#hideOffline').click( function() {
+            table.draw();
+        } );
+
+        setInterval(function () {
+            table.ajax.reload();
+        }, 10000);
     });
 
-    $('button.btn.btn-success').click(function(event)
-    {
-        var clientId = $('#editConfig').find('.form-group')["0"].dataset.value;
-
-        event.preventDefault();
+    function sendAction(action, clientId) {
         $.ajax({
-            url: "/admin/setClientConfig?clientId=" + clientId,
-            type: 'POST',
-            dataType: "text",
-            data: $('#config').val(),
+            type:    "POST",
+            url:     "/admin/setClientCommand?clientId=" + clientId,
+            dataType:"text",
+            data:    '{"control_command":{"command": "' + action + '"}}',
             success: function(data){
-                alert("Successfully saved config for: " + clientId);
+                $("#statusBar").html('<div class="alert alert-success" role="alert">' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                    '<strong>Successfully send ' + action + '</strong></div>');
+
+                window.setTimeout(function() {
+                    $(".alert-success").fadeTo(500, 0).slideUp(500, function(){
+                        $(".alert-success").alert('close');
+                    });
+                }, 2500);
             },
             error: function (data) {
-                alert("Failed to store config for: " + clientId + "\nError: " +  JSON.stringify(data,undefined, 2));
+                $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                    '<strong>Failed to send ' + action + '</strong></div>');
+
+                window.setTimeout(function() {
+                    $(".alert-danger").fadeTo(500, 0).slideUp(500, function(){
+                        $(".alert-danger").alert('close');
+                    });
+                }, 10000);
             }
         });
-    });
-
-    $('#hideOffline').click( function() {
-        table.draw();
-    } );
-
-    setInterval(function () {
-        table.ajax.reload();
-    }, 10000);
-});
-
-function laststatus( data, type, row ) {
-    if (type !== 'sort') {
-        var date = new Date(data*1000);
-
-        return '<span data-toggle="tooltip" title="' + date + '">' + jQuery.timeago(date) + '</span>';
     }
 
-    return data;
-}
+    function laststatus( data, type, row ) {
+        if (type !== 'sort') {
+            var date = new Date(data*1000);
+            return '<span data-toggle="tooltip" title="' + date + '">' + jQuery.timeago(date) + '</span>';
+        }
 
-function clientInfo( data, type, row ) {
-    if (type !== 'sort') {
-        var tooltip  = "CPU: " + row.client_status.cpu_brand + " [" + row.client_status.cpu_cores + " cores]";
+        return data;
+    }
+
+    function clientInfo( data, type, row ) {
+        if (type !== 'sort') {
+            var tooltip  = "CPU: " + row.client_status.cpu_brand + " [" + row.client_status.cpu_cores + " cores / " + row.client_status.cpu_threads + " threads]";
             tooltip += '\n';
             tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
             tooltip += (row.client_status.cpu_is_x64 ? "x64" : "");
@@ -279,67 +431,71 @@ function clientInfo( data, type, row ) {
             tooltip += '\n';
             tooltip += "Status: ";
 
-        var lastStatus = row.client_status.last_status_update * 1000;
-        if (isOnline(lastStatus)) {
-            tooltip  += "Online";
-            return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
+            var lastStatus = row.client_status.last_status_update * 1000;
+            if (isOnline(lastStatus)) {
+                tooltip  += "Online";
+                return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
+            }
+            else {
+                tooltip  += "Offline";
+                return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="offline">' + data + '</div></span>';
+            }
         }
-        else {
-            tooltip  += "Offline";
-            return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="offline">' + data + '</div></span>';
-        }
+
+        return data;
     }
 
-    return data;
-}
-
-function round( data, type, row ) {
-    return Math.round(data * 100) / 100;
-}
-
-function isOnline(lastStatus) {
-    var threshold = new Date().getTime() - 60 * 1000;
-    if (lastStatus > threshold) {
-        return true;
-    } else {
-        return false;
+    function round( data, type, row ) {
+        return Math.round(data * 100) / 100;
     }
-}
 
+    function isOnline(lastStatus) {
+        var threshold = new Date().getTime() - 60 * 1000;
+        if (lastStatus > threshold) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 </script>
 
 </head>
 <body>
 <br/>
-<div style="width: 90%; margin:0 auto;">
+<div style="width: 95%; margin:0 auto;">
     <div id="notificationBar"></div>
+    <div id="statusBar"></div>
+
     <div class="center">
         <h1>XMRigCC Dashboard</h1>
     </div>
-    <table id="clientStatusList" class="display" cellspacing="0" width="100%">
+
+    <table id="clientStatusList" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
-            <tr>
-                <th>Client Id</th>
-                <th>Pool</th>
-                <th>Status</th>
-                <th>Algo</th>
+        <tr>
+            <th width="2%"></th>
+            <th>Client Id</th>
+            <th>Pool</th>
+            <th>Status</th>
+            <th>Algo</th>
 
-                <th>Hashrate</th>
-                <th>Hashrate 1m</th>
-                <th>Hashrate 15m</th>
+            <th>Hashrate</th>
+            <th>Hashrate 1m</th>
+            <th>Hashrate 15m</th>
 
-                <th>Hashrate Highest</th>
-                <th>Hashes Total</th>
-                <th>Avg. Time</th>
+            <th>Hashrate Highest</th>
+            <th>Hashes Total</th>
+            <th>Avg. Time</th>
 
-                <th>Shares Good</th>
-                <th>Shares Total</th>
-                <th>Last Update</th>
-                <th colspan="6" class="center">Action</th>
-            </tr>
+            <th>Shares Good</th>
+            <th>Shares Total</th>
+            <th>Last Update</th>
+            <th>Edit</th>
+        </tr>
         </thead>
         <tfoot>
         <tr>
+            <th></th>
             <th class="left">Total:</th>
             <th></th>
             <th></th>
@@ -358,6 +514,8 @@ function isOnline(lastStatus) {
         </tfoot>
     </table>
 
+
+    <br/>
     <div class="modal fade" id="editConfig" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -378,3 +536,4 @@ function isOnline(lastStatus) {
 </div>
 </body>
 </html>
+

@@ -94,6 +94,7 @@ ControlCommand::Command ControlCommand::getCommand() const
 bool ControlCommand::isOneTimeCommand() const {
 
     return m_command == ControlCommand::UPDATE_CONFIG ||
+           m_command == ControlCommand::PUBLISH_CONFIG ||
            m_command == ControlCommand::RESTART ||
            m_command == ControlCommand::SHUTDOWN;
 }
