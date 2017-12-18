@@ -79,33 +79,43 @@ unsigned Httpd::tokenAuth(struct MHD_Connection* connection)
 
 unsigned Httpd::basicAuth(struct MHD_Connection* connection, std::string& resp)
 {
+    unsigned result = MHD_HTTP_OK;
+
     if (!m_options->ccAdminUser() || !m_options->ccAdminPass()) {
         resp = std::string("<html><body\\>"
                            "Please configure admin user and pass to view this Page."
                            "</body><html\\>");
 
         LOG_WARN("Admin user/password not set. Access Forbidden!");
-        return MHD_HTTP_FORBIDDEN;
+        result = MHD_HTTP_FORBIDDEN;
+    }
+    else {
+        const char* header = MHD_lookup_connection_value(connection, MHD_HEADER_KIND, MHD_HTTP_HEADER_AUTHORIZATION);
+        if (header) {
+            char* user;
+            char* pass;
+
+            user = MHD_basic_auth_get_username_password(connection, &pass);
+            if (user == nullptr || strcmp(user, m_options->ccAdminUser()) != 0 ||
+                pass == nullptr || strcmp(pass, m_options->ccAdminPass()) != 0) {
+
+                LOG_WARN("Admin user/password wrong. Access Unauthorized!");
+                result = MHD_HTTP_UNAUTHORIZED;
+            }
+
+            if (user) {
+                free(user);
+            }
+
+            if (pass) {
+                free(pass);
+            }
+        } else {
+            result = MHD_HTTP_UNAUTHORIZED;
+        }
     }
 
-    const char* header = MHD_lookup_connection_value(connection, MHD_HEADER_KIND, MHD_HTTP_HEADER_AUTHORIZATION);
-    if (!header) {
-        return MHD_HTTP_UNAUTHORIZED;
-    }
-
-    char* user;
-    char* pass;
-
-    user = MHD_basic_auth_get_username_password(connection, &pass);
-
-    if (user == nullptr || strcmp(user, m_options->ccAdminUser()) != 0 ||
-        pass == nullptr || strcmp(pass, m_options->ccAdminPass()) != 0) {
-
-        LOG_WARN("Admin user/password wrong. Access Unauthorized!");
-        return MHD_HTTP_UNAUTHORIZED;
-    }
-
-    return MHD_HTTP_OK;
+    return result;
 }
 
 int Httpd::sendResponse(MHD_Connection* connection, unsigned status, MHD_Response* rsp, const char* contentType)

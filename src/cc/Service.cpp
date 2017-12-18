@@ -139,7 +139,7 @@ unsigned Service::getClientConfig(const Options* options, const std::string& cli
             writer.SetMaxDecimalPlaces(10);
             document.Accept(writer);
 
-            resp = strdup(buffer.GetString());
+            resp = buffer.GetString();
 
             resultCode = MHD_HTTP_OK;
         } else {
@@ -203,7 +203,7 @@ unsigned Service::getClientStatusList(std::string& resp)
     writer.SetMaxDecimalPlaces(10);
     document.Accept(writer);
 
-    resp = strdup(buffer.GetString());
+    resp = buffer.GetString();
 
     return MHD_HTTP_OK;
 }
@@ -253,7 +253,7 @@ unsigned Service::getClientCommand(const std::string& clientId, std::string& res
     writer.SetMaxDecimalPlaces(10);
     respDocument.Accept(writer);
 
-    resp = strdup(buffer.GetString());
+    resp = buffer.GetString();
 
     return MHD_HTTP_OK;
 }
