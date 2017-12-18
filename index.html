@@ -339,13 +339,13 @@
                 success: function(data){
                     $("#statusBar").html('<div class="alert alert-success" role="alert">' +
                         '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                        '<strong>Successfully saved config for: ' + clientId + '</strong></div>');
+                        'Successfully saved config for: ' + clientId + '<strong> - You need push the config to the client to apply the config.</strong></div>');
 
                     window.setTimeout(function() {
                         $(".alert-success").fadeTo(500, 0).slideUp(500, function(){
                             $(".alert-success").alert('close');
                         });
-                    }, 2500);
+                    }, 5000);
                 },
                 error: function (data) {
                     $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
@@ -379,13 +379,13 @@
             success: function(data){
                 $("#statusBar").html('<div class="alert alert-success" role="alert">' +
                     '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                    '<strong>Successfully send ' + action + '</strong></div>');
+                    'Successfully send ' + action + '<strong> - It can take up to 30s until the command is processed.</strong></div>');
 
                 window.setTimeout(function() {
                     $(".alert-success").fadeTo(500, 0).slideUp(500, function(){
                         $(".alert-success").alert('close');
                     });
-                }, 2500);
+                }, 5000);
             },
             error: function (data) {
                 $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
