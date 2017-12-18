@@ -80,7 +80,7 @@ For failover you can add multiple pools, maximum count not limited.
 Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
-Since version 0.8.0.
+Since version 0.8.0.1
 * `--av=1` For CPUs with hardware AES.
 * `--av=2` Lower power mode (double hash) of `1`.
 * `--av=3` Software AES implementation.

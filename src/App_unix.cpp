@@ -26,8 +26,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
-
-
+//---
 #include "App.h"
 #include "Cpu.h"
 #include "log/Log.h"
