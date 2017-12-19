@@ -1,11 +1,12 @@
-# XMRig
-XMRig is high performance Monero (XMR) CPU miner, with the official full Windows support.
-Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 complete rewritten from scratch on C++.
+# XMR_Arch64
+XMRig is high performance Monero (XMR) CPU miner for Arch64 Linux on RPi3 board.  
+Windows support inherited from xmrig/xmrig will be discarded in further development.
 
-* This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
-* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
+Originally forked from xmrig/xmrig with full development in C++11.
 
-<img src="http://i.imgur.com/OKZRVDh.png" width="619" >
+* [Roadmap](https://github.com/avujic/xmr_arch64/issues/106) for next releases.
+
+<img src="http://eplus.systems/xmr.png" width="619" >
 
 #### Table of contents
 * [Features](#features)
@@ -32,9 +33,9 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * It's open source software.
 
 ## Download
-* Binary releases: https://github.com/xmrig/xmrig/releases
-* Git tree: https://github.com/xmrig/xmrig.git
-  * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
+* Binary releases: https://github.com/avujic/xmr_arch64/releases
+* Git tree: https://github.com/avujic/xmr_arch64.git
+  * Clone with `git clone https://github.com/avujic/xmr_arch64.git` :hammer: [Build instructions](https://github.com/avujic/xmr_arch64/wiki/Build).
 
 ## Usage
 ### Basic example
@@ -94,7 +95,7 @@ Since version 0.8.0.1
 ## Other information
 * No HTTP support, only stratum protocol support.
 * No TLS support.
-* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
+* Default donation 3% (3 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
 
 
 ### CPU mining performance
@@ -111,9 +112,9 @@ Please note performance is highly dependent on system load. The numbers above ar
 * Enable fast memory (Large/Huge pages).
 
 ## Donations
-* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-* BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+* XMR: `44bF1RTZVcVc45wNiDQVTp7hwyZ5juMf8W78j1YrfChkP2og2Y44ph3WbwaVe4vUMveKAzAiA4j8xgUi29TpKXpm42GAEjd`
+* LTC: 
 
 ## Contacts
-* support@xmrig.com
-* [reddit](https://www.reddit.com/user/XMRig/)
+* xmr@eplus.systems
+*----------------------------------------------------------------
