@@ -1,5 +1,5 @@
-# XMR_Arch64
-XMRig is high performance Monero (XMR) CPU miner for Arch64 Linux on RPi3 board.  
+# XMR_A64
+XMR_A64 is high performance Monero (XMR) CPU miner for Arch64 Linux on RPi3 board.  
 Windows support inherited from xmrig/xmrig will be discarded in further development.
 
 Originally forked from xmrig/xmrig with full development in C++11.
@@ -9,6 +9,7 @@ Originally forked from xmrig/xmrig with full development in C++11.
 <img src="http://eplus.systems/xmr.png" width="619" >
 
 #### Table of contents
+* [Version](#version)
 * [Features](#features)
 * [Download](#download)
 * [Usage](#usage)
@@ -19,11 +20,11 @@ Originally forked from xmrig/xmrig with full development in C++11.
 * [Donations](#donations)
 * [Contacts](#contacts)
 
+## Version
+* Code version: 0.0.1 
+
 ## Features
 * High performance.
-* Official Windows support.
-* Small Windows executable, without dependencies.
-* x86/x64 support.
 * Support for backup (failover) mining server.
 * keepalived support.
 * Command line options compatible with cpuminer.
@@ -40,12 +41,12 @@ Originally forked from xmrig/xmrig with full development in C++11.
 ## Usage
 ### Basic example
 ```
-xmrig.exe -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET -p x -k
+xmr_a64 -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET -p x -k
 ```
 
 ### Failover
 ```
-xmrig.exe -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
+xmr_a64 -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
 ```
 For failover you can add multiple pools, maximum count not limited.
 
@@ -81,7 +82,7 @@ For failover you can add multiple pools, maximum count not limited.
 Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
-Since version 0.8.0.1
+Since xmrig/xmrig version 0.8.0.1
 * `--av=1` For CPUs with hardware AES.
 * `--av=2` Lower power mode (double hash) of `1`.
 * `--av=3` Software AES implementation.
@@ -117,4 +118,6 @@ Please note performance is highly dependent on system load. The numbers above ar
 
 ## Contacts
 * xmr@eplus.systems
+
+
 *----------------------------------------------------------------
