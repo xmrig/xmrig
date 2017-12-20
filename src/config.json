@@ -1,24 +1,24 @@
 {
     "algo": "cryptonight",  // cryptonight (default) or cryptonight-lite
-    "av": 0,                // algorithm variation, 0 auto select
+    "av": 3,                // algorithm variation, 0 auto select
     "background": false,    // true to run the miner in the background
-    "colors": true,         // false to disable colored output    
-    "cpu-affinity": null,   // set process affinity to CPU core(s), mask "0x3" for cores 0 and 1
-    "cpu-priority": null,   // set process priority (0 idle, 2 normal to 5 highest)
-    "donate-level": 5,      // donate level, mininum 1%
-    "log-file": null,       // log all output to a file, example: "c:/some/path/xmrig.log"
-    "max-cpu-usage": 75,    // maximum CPU usage for automatic mode, usually limiting factor is CPU cache not this option.  
+    "colors": true,         // false to disable colored output
+    "cpu-affinity": null,   // set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
+    "cpu-priority": 2,      // set process priority (0 idle, 2 normal to 5 highest)
+    "donate-level": 1,      // donate level, mininum 1%
+    "log-file": "/var/log/monero.log",       // log all output to a file
+    "max-cpu-usage": 50,    // maximum CPU usage for automatic mode, usually limiting factor is CPU cache not this option.  
     "print-time": 60,       // print hashrate report every N seconds
     "retries": 5,           // number of times to retry before switch to backup server
     "retry-pause": 5,       // time to pause between retries
     "safe": false,          // true to safe adjust threads and av settings for current CPU
-    "syslog": false,        // use system log for output messages
-    "threads": null,        // number of miner threads
+    "syslog": true,        // use system log for output messages
+    "threads": 8,        // number of miner threads
     "pools": [
         {
-            "url": "pool.minemonero.pro:5555", // URL of mining server
-            "user": "",                        // username for mining server
-            "pass": "x",                       // password for mining server
+            "url": "pool.supportxmr.com:3333", // URL of mining server
+            "user": "44bF1RTZVcVc45wNiDQVTp7hwyZ5juMf8W78j1YrfChkP2og2Y44ph3WbwaVe4vUMveKAzAiA4j8xgUi29TpKXpm42GAEjd",  // username for mining server
+            "pass": "worker",                       // password for mining server
             "keepalive": true,                 // send keepalived for prevent timeout (need pool support)
             "nicehash": false                  // enable nicehash/xmrig-proxy support
         }
@@ -28,4 +28,5 @@
         "access-token": null,                  // access token for API
         "worker-id": null                      // custom worker-id for API
     }
-}
+} 
+
