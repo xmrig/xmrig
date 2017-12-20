@@ -1,5 +1,5 @@
-# XMR_A64
-XMR_A64 is high performance Monero (XMR) CPU miner for Arch64 Linux on RPi3 board.  
+# XMR_ARCH64
+XMR_ARCH64 is high performance Monero (XMR) CPU miner for Arch64 Linux on RPi3 board.  
 Windows support inherited from xmrig/xmrig will be discarded in further development.
 
 Originally forked from xmrig/xmrig with full development in C++11.
@@ -21,7 +21,7 @@ Originally forked from xmrig/xmrig with full development in C++11.
 * [Contacts](#contacts)
 
 ## Version
-* Code version: 0.0.1 
+* Code version: 0.0.2 
 
 ## Features
 * High performance.
@@ -39,14 +39,19 @@ Originally forked from xmrig/xmrig with full development in C++11.
   * Clone with `git clone https://github.com/avujic/xmr_arch64.git` :hammer: [Build instructions](https://github.com/avujic/xmr_arch64/wiki/Build).
 
 ## Usage
+### Quick start
+
+`./xmr_arch64`
+`config.json from working folder will be used. config.json examples can be found in src folder`
+
 ### Basic example
 ```
-xmr_a64 -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET -p x -k
+./xmr_arch64 -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET -p x -k
 ```
 
 ### Failover
 ```
-xmr_a64 -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
+./xmr_arch64 -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
 ```
 For failover you can add multiple pools, maximum count not limited.
 
@@ -82,16 +87,16 @@ For failover you can add multiple pools, maximum count not limited.
 Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
-Since xmrig/xmrig version 0.8.0.1
+Since avujic/xmr_arch64 version 0.0.2  
 * `--av=1` For CPUs with hardware AES.
 * `--av=2` Lower power mode (double hash) of `1`.
-* `--av=3` Software AES implementation.
+* `--av=3` Software AES implementation. `So far, only this option works on Arch64/Rpi3` 
 * `--av=4` Lower power mode (double hash) of `3`.
 
 ## Common Issues
 ### HUGE PAGES unavailable
-* Run XMRig as Administrator.
-* Since version 0.8.0 XMRig automatically enable SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+* TBD
+
 
 ## Other information
 * No HTTP support, only stratum protocol support.
@@ -100,7 +105,9 @@ Since xmrig/xmrig version 0.8.0.1
 
 
 ### CPU mining performance
-* **Intel i7-7700** - 307 H/s (4 threads)
+* **Rpi3  ARCH64**      - 7.3 H/s (8 threads)
+* **Rpi3  Raspbian**    - 5.3 H/s (4 threads)
+* **Intel i7-7700**     - 307 H/s (4 threads)
 * **AMD Ryzen 7 1700X** - 560 H/s (8 threads)
 
 Please note performance is highly dependent on system load. The numbers above are obtained on an idle system. Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate. Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB of cache.
@@ -117,7 +124,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 * LTC: 
 
 ## Contacts
-* xmr@eplus.systems
+* `xmr@eplus.systems`
 
 
-*----------------------------------------------------------------
+*-----------------end of document-------------------------------------------

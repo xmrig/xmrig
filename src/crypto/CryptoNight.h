@@ -32,8 +32,9 @@
 #include "align.h"
 
 
-#define MEMORY      2097152 /* 2 MiB */
-#define MEMORY_LITE 1048576 /* 1 MiB */
+#define MEMORY       2097152 /* 2 MiB */
+#define MEMORY_LITE  1048576 /* 1 MiB */
+#define MEMORY_HEAVY 6291456 /* 6 MiB */
 
 
 struct cryptonight_ctx {
