@@ -365,6 +365,20 @@
             table.draw();
         } );
 
+        $('#selectAllTop,#selectAllBottom').click( function() {
+            if ($("#selectAllTop").hasClass("fa fa-square-o"))   {
+                $("#selectAllTop").removeClass("fa fa-square-o").addClass("fa fa-check-square-o");
+                $("#selectAllBottom").removeClass("fa fa-square-o").addClass("fa fa-check-square-o");
+
+                table.rows().select();
+            } else {
+                $("#selectAllTop").removeClass("fa fa-check-square-o").addClass("fa fa-square-o");
+                $("#selectAllBottom").removeClass("fa fa-check-square-o").addClass("fa fa-square-o");
+
+                table.rows().deselect();
+            }
+        });
+
         setInterval(function () {
             table.ajax.reload();
         }, 10000);
@@ -473,7 +487,7 @@
     <table id="clientStatusList" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
         <tr>
-            <th width="2%"></th>
+            <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllTop"></i></th>
             <th>Client Id</th>
             <th>Pool</th>
             <th>Status</th>
@@ -495,7 +509,7 @@
         </thead>
         <tfoot>
         <tr>
-            <th></th>
+            <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllBottom"></i></th>
             <th class="left">Total:</th>
             <th></th>
             <th></th>
