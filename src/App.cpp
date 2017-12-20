@@ -24,8 +24,7 @@
 
 #include <stdlib.h>
 #include <uv.h>
-
-
+//---
 #include "api/Api.h"
 #include "App.h"
 #include "Console.h"
@@ -113,11 +112,9 @@ int App::exec()
     if (!m_options) {
         return 0;
     }
-
     uv_signal_start(&m_signal, App::onSignal, SIGHUP);
     uv_signal_start(&m_signal, App::onSignal, SIGTERM);
     uv_signal_start(&m_signal, App::onSignal, SIGINT);
-
     background();
 
     if (!CryptoNight::init(m_options->algo(), m_options->algoVariant())) {
@@ -136,16 +133,14 @@ int App::exec()
     m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken());
     m_httpd->start();
 #   endif
-
     Workers::start(m_options->affinity(), m_options->priority());
 
-    m_network->connect();
 
+    m_network->connect();
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
     delete m_network;
-
     Options::release();
     Mem::release();
     Platform::release();
