@@ -3,7 +3,9 @@
     "av": 3,                // algorithm variation, 0 auto select
     "background": false,    // true to run the miner in the background
     "colors": true,         // false to disable colored output
-    "cpu-affinity": null,   // set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
+    "cpu-affinity": null,   // set process affinity to CPU core(s) 
+                            // mask  3 for cores 0 and 1
+                            // mask 14 for cores 1,2,3
     "cpu-priority": 2,      // set process priority (0 idle, 2 normal to 5 highest)
     "donate-level": 1,      // donate level, mininum 1%
     "log-file": "/var/log/monero.log",       // log all output to a file

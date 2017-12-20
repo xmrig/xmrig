@@ -348,6 +348,9 @@ bool Options::parseArg(int key, const char *arg)
         m_pools.back()->setPassword(arg);
         break;
 
+    //case 'q': /* --quit */
+    //    break;
+
     case 'l': /* --log-file */
         free(m_logFile);
         m_logFile = strdup(arg);

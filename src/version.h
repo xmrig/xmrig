@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-2018 ePlus Systems Ltd. <xmr@eplus.systems>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -24,17 +25,17 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig CPU miner"
-#define APP_VERSION   "2.4.3"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
+#define APP_ID        "xmr_arh64"
+#define APP_NAME      "xmr_arh64"
+#define APP_DESC      "amr_arh64 CPU miner"
+#define APP_VERSION   "0.0.3"
+#define APP_DOMAIN    "eplus.systems"
+#define APP_SITE      "xmr.eplus.systems"
+#define APP_COPYRIGHT "Copyright (C) 2017-2018 ePlus Systems Ltd. [www.eplus.systems]"
 #define APP_KIND      "cpu"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  4
+#define APP_VER_MAJOR  0
+#define APP_VER_MINOR  0
 #define APP_VER_BUILD  3
 #define APP_VER_REV    0
 
