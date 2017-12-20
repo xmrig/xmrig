@@ -6,7 +6,7 @@ Originally forked from xmrig/xmrig with full development in C++11.
 
 * [Roadmap](https://github.com/avujic/xmr_arch64/issues/106) for next releases.
 
-<img src="http://eplus.systems/xmr.png" width="619" >
+<img src="http://www.eplus.systems/wp-content/uploads/2017/12/xmr.png" width="619" >
 
 #### Table of contents
 * [Version](#version)
