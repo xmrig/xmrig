@@ -1,3 +1,6 @@
+# v1.2.2
+- Added select/deselect all to dashboard
+- Fixed memory leaks in XmrigCCServer
 # v1.2.1
 - Refactored Dashboard to send one command to multiple miners and "beautified" dashboard
 - Miner now publishs own config to XMRigCCServer on startup
