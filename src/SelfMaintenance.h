@@ -35,6 +35,12 @@ public:
 
     static int getCPUTemperature();
     static int getFileSystemAvailable();
+
+private:
+    static int m_cpuSingleCoreSpeed;
+    static int m_cpuCoresCount;
+    static int m_cpuTemperatureC;
+    static int m_cpuTemperatureF;
 };
 
 
