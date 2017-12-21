@@ -28,12 +28,49 @@
 
 #include "SelfMaintenance.h"
 
+/*---------------------------------------------------------------------
+* NAME       : SelfMaintenance::getCPUTemperature()
+* SYNOPSIS   : Get CPU temperature working temperature (Celsius)
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 static int SelfMaintenance::getCPUTemperature(){
+
+    unsigned num_cpu = std::thread::hardware_concurrency();
+    m_cpuCoresCount = num_cpu;
+    //---
+    ifstream cpu_freq("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq");
+    ifstream cpu_temp("/sys/class/thermal/thermal_zone0/temp");
+    //---
+    strStream << cpu_freq.rdbuf();
+    strStream >> m_cpuSingleCoreSpeed;
+    //---
+    strStream.str("");
+    strStream << cpu_temp.rdbuf();
+    strStream >> m_cpuTemperatureC;
+    //---
 	return(0);
 }
 
-    
+/*---------------------------------------------------------------------
+* NAME       : SelfMaintenance::getFileSystemAvailable()
+* SYNOPSIS   : File system available in, [0-100%]
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 static int SelfMaintenance::getFileSystemAvailable(){
-    return(0);
+	    stringstream   strStream;
+	    double  hdd_size;
+	    double  hdd_free;
+	    double  fs_level;
+	    ostringstream  strConvert;
+	    //---
+	    struct sysinfo info;
+	    sysinfo( &info );
+	    //---
+	    struct statvfs fsinfo;
+	    statvfs("/", &fsinfo);
+	    //---
+	    return(0);
 }
 
