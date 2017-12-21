@@ -41,6 +41,7 @@ set(HEADERS
     src/Options.h
     src/Platform.h
     src/Summary.h
+    src/SelfMaintenance.h
     src/version.h
     src/workers/DoubleWorker.h
     src/workers/Handle.h
@@ -91,6 +92,7 @@ set(SOURCES
     src/Options.cpp
     src/Platform.cpp
     src/Summary.cpp
+    src/SelfMaintenance.cpp
     src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
