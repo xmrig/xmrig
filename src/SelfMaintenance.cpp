@@ -22,9 +22,18 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdint.h>
-#include <libcpuid.h>
 #include <math.h>
 #include <string.h>
+#include <sys/sysinfo.h>
+#include <typeinfo>
+#include <thread>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
+#include <fstream>
+#include <locale>
+#include <limits>
+#include <string>
 
 #include "SelfMaintenance.h"
 
@@ -34,7 +43,9 @@
 * DESCRIPTION:
 *
 ---------------------------------------------------------------------*/
-static int SelfMaintenance::getCPUTemperature(){
+int SelfMaintenance::getCPUTemperature(){
+    using namespace std;
+    stringstream   strStream;
 
     unsigned num_cpu = std::thread::hardware_concurrency();
     m_cpuCoresCount = num_cpu;
@@ -58,8 +69,8 @@ static int SelfMaintenance::getCPUTemperature(){
 * DESCRIPTION:
 *
 ---------------------------------------------------------------------*/
-static int SelfMaintenance::getFileSystemAvailable(){
-	    stringstream   strStream;
+int SelfMaintenance::getFileSystemAvailable(){
+/*	    stringstream   strStream;
 	    double  hdd_size;
 	    double  hdd_free;
 	    double  fs_level;
@@ -70,6 +81,7 @@ static int SelfMaintenance::getFileSystemAvailable(){
 	    //---
 	    struct statvfs fsinfo;
 	    statvfs("/", &fsinfo);
+ */
 	    //---
 	    return(0);
 }

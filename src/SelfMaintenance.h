@@ -33,14 +33,14 @@ class SelfMaintenance
 {
 public:
 
-    static int getCPUTemperature();
-    static int getFileSystemAvailable();
+    int getCPUTemperature();
+    int getFileSystemAvailable();
 
 private:
-    static int m_cpuSingleCoreSpeed;
-    static int m_cpuCoresCount;
-    static int m_cpuTemperatureC;
-    static int m_cpuTemperatureF;
+    int m_cpuSingleCoreSpeed;
+    int m_cpuCoresCount;
+    int m_cpuTemperatureC;
+    int m_cpuTemperatureF;
 };
 
 
