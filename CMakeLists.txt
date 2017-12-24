@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
 #set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 option(WITH_LIBCPUID  "Use Libcpuid" ON)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
