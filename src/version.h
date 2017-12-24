@@ -46,8 +46,14 @@
 #define APP_VER_BUILD  2
 #define APP_VER_REV    0
 
+#ifndef NDEBUG
+#define BUILD_TYPE   "DEBUG"
+#else
+#define BUILD_TYPE   "RELEASE"
+#endif
+
 #ifdef _MSC_VER
-#   if (_MSC_VER == 1910 || _MSC_VER == 1911)
+#   if (_MSC_VER >= 1910)
 #       define MSVC_VERSION 2017
 #   elif _MSC_VER == 1900
 #       define MSVC_VERSION 2015
