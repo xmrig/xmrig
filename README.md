@@ -216,6 +216,7 @@ BTC:  `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 
 ## Contacts xmrigCC
 * ben [at] graef.in
+* Telegram: @BenDr0id
 * [reddit](https://www.reddit.com/user/BenDr0id/)
 
 ## Contacts xmrig
