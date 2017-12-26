@@ -64,9 +64,8 @@ static void cryptonight_av4_softaes_double(const void *input, size_t size, void 
 }
 
 
-#ifndef XMRIG_NO_AEON
 static void cryptonight_lite_av1_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-    #   if !defined(XMRIG_ARMv7)
+#   if !defined(XMRIG_ARMv7)
     cryptonight_hash<0x40000, MEMORY_LITE, 0xFFFF0, false>(input, size, output, ctx);
 #endif
 }
@@ -97,15 +96,7 @@ void (*cryptonight_variations[8])(const void *input, size_t size, void *output, 
             cryptonight_lite_av2_aesni_double,
             cryptonight_lite_av3_softaes,
             cryptonight_lite_av4_softaes_double
-        };
-#else
-void (*cryptonight_variations[4])(const void *input, size_t size, void *output, cryptonight_ctx *ctx) = {
-            cryptonight_av1_aesni,
-            cryptonight_av2_aesni_double,
-            cryptonight_av3_softaes,
-            cryptonight_av4_softaes_double
-        };
-#endif
+};
 
 
 void CryptoNight::hash(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx)
@@ -127,13 +118,13 @@ bool CryptoNight::init(int algo, int variant)
 
     int index = 0;
 
-    if (variant == 3 || variant == 4)
-    {
-        index = 4;
-    }
-
     if (algo == Options::ALGO_CRYPTONIGHT_LITE) {
         index += 4;
+    }
+
+    if (variant == 3 || variant == 4)
+    {
+        index += 2;
     }
 
     cryptonight_hash_ctx_s = cryptonight_variations[index];
