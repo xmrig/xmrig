@@ -29,15 +29,32 @@
 <script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
 
 <script type="text/javascript">
+    var TRESHOLD_IN_MS = 60 * 1000;
+    var RELOAD_INTERVAL_IN_MS = 10 * 1000;
+
     $.fn.dataTable.ext.search.push(
         function( settings, data, dataIndex ) {
-            var hide = document.getElementById("hideOffline").checked;
-            return (isOnline(settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000) || !hide);
+            var hide = $('#hideOffline').hasClass("fa fa-check-square-o");
+
+            var clientId = settings.aoData[dataIndex]._aData.client_status.client_id;
+            var lastStatus = settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000;
+            var online = isOnline(lastStatus);
+
+            if (!online) {
+                var threshold = new Date().getTime() - (TRESHOLD_IN_MS + RELOAD_INTERVAL_IN_MS);
+                if (lastStatus > threshold) {
+                    $("#notificationBar").after('<div class="alert alert-danger alert-dismissable fade in">' +
+                        '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                        '<strong>Client ' + clientId + ' just went offline!</strong> Last update: ' + new Date(lastStatus) +
+                        '</div>');
+                }
+            }
+
+            return (online || !hide);
         }
     );
 
     $(document).ready(function() {
-
         var latestRelease = "";
 
         var table = $('#clientStatusList').DataTable({
@@ -71,7 +88,7 @@
                 {
                     data: null,
                     defaultContent:
-                        "<td class='center-tab'><button type='button' id='EDIT' class='btn btn-xs btn-primary' data-toggle='tooltip' title='Edit Client Config'><i class='fa fa-cog'></i></button></td>",
+                        "<td class='center-tab'><button type='button' id='EDIT' class='btn btn-xs btn-primary' data-toggle='tooltip' title='Edit Client Config'><i class='fa fa-edit'></i></button></td>",
                     orderable: false,
                     className: "center-tab"
                 }
@@ -159,6 +176,14 @@
 
                             sendAction("SHUTDOWN", data.client_status.client_id);
                         });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-edit"> Multi miner editor</i>',
+                    className: 'btn-primary',
+                    enabled: false,
+                    action: function () {
+                        $('#multiMinerEditor').modal('show');
                     }
                 }
             ],
@@ -256,7 +281,7 @@
                         success: function (release) {
                             latestRelease = release.tag_name;
                             if (latestRelease !== $(api).context[0].json.current_version) {
-                                $("#notificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
+                                $("#updateNotificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
                                     '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
                                     '<a href="https://github.com/Bendr0id/xmrigCC/releases/latest"><strong>Update!</strong> XMRigCC v' + latestRelease + ' is available for download\n</a>' +
                                     '</div>');
@@ -276,6 +301,7 @@
             table.button(3).enable(selectedRows > 0);
             table.button(4).enable(selectedRows > 0);
             table.button(5).enable(selectedRows > 0);
+            table.button(6).enable(selectedRows > 0);
         });
 
         table.on('deselect', function () {
@@ -287,11 +313,12 @@
             table.button(3).enable(selectedRows > 0);
             table.button(4).enable(selectedRows > 0);
             table.button(5).enable(selectedRows > 0);
+            table.button(6).enable(selectedRows > 0);
         });
 
         table.buttons().container().appendTo( '#clientStatusList_wrapper .col-sm-6:eq(0)' );
 
-        $("div.toolbar").html('<input type="checkbox" id="hideOffline" value="hide" checked style="margin-right: 5pt"><label>Hide offline miners</label>');
+        $("div.toolbar").html('<div class="col-sm-13 fa fa-check-square-o" id="hideOffline"></div><label style="margin-left: 5px">Hide offline miners</label>');
 
         $('#clientStatusList tbody').on( 'click', 'button', function () {
             var data = table.row( $(this).parents('tr') ).data();
@@ -309,59 +336,56 @@
                         "</textarea>" +
                         "</div>";
 
-                    $('#editConfig').find('.modal-body').html(htmlContent);
-                    $('#editConfig').modal('show');
+                    $('#minerEditor').find('.modal-body').html(htmlContent);
+                    $('#minerEditor').modal('show');
                 },
                 error: function (data) {
-                    $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
-                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                        '<strong>Unable to fetch ' + clientId + '_config.json or default_config.json, please check your Server configuration and the the config files are located on the Server!</strong></div>');
-
-                    window.setTimeout(function() {
-                        $(".alert-danger").fadeTo(500, 0).slideUp(500, function(){
-                            $(".alert-danger").alert('close');
-                        });
-                    }, 10000);
+                   setError('Unable to fetch <strong>' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
                 }
             });
         });
 
-        $('button.btn.btn-success').click(function(event)
-        {
-            var clientId = $('#editConfig').find('.form-group')["0"].dataset.value;
+        $('#minerEditorSave').click(function(event) {
+            var clientId = $('#minerEditor').find('.form-group')["0"].dataset.value;
+            var clientConfig = $('#config').val();
 
-            event.preventDefault();
-            $.ajax({
-                url: "/admin/setClientConfig?clientId=" + clientId,
-                type: 'POST',
-                dataType: "text",
-                data: $('#config').val(),
-                success: function(data){
-                    $("#statusBar").html('<div class="alert alert-success" role="alert">' +
-                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                        'Successfully saved config for: ' + clientId + '<strong> - You need push the config to the client to apply the config.</strong></div>');
+            setClientConfig(clientId, clientConfig, false);
+        });
 
-                    window.setTimeout(function() {
-                        $(".alert-success").fadeTo(500, 0).slideUp(500, function(){
-                            $(".alert-success").alert('close');
-                        });
-                    }, 5000);
-                },
-                error: function (data) {
-                    $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
-                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                        '<strong>Failed to store config for: ' + clientId + '\nError: ' +  JSON.stringify(data,undefined, 2) + '</strong></div>');
+        $('#multiMinerEditorReplace').click(function(event) {
+            table.rows({ selected: true }).eq(0).each(function (index) {
+                var row = table.row(index);
+                var data = row.data();
 
-                    window.setTimeout(function() {
-                        $(".alert-danger").fadeTo(500, 0).slideUp(500, function(){
-                            $(".alert-danger").alert('close');
-                        });
-                    }, 10000);
-                }
+                var clientId = data['client_status']['client_id'];
+                var search = $('#search').val();
+                var replacement = $('#replacement').val();
+
+                $.ajax({
+                    type:    "GET",
+                    url:     "/admin/getClientConfig?clientId=" + clientId,
+                    dataType:"json",
+                    success: function(jsonClientConfig) {
+                        jsonClientConfig = JSON.stringify(jsonClientConfig,undefined, 2);
+                        jsonClientConfig = jsonClientConfig.replace(new RegExp(search.trim(), 'g'), replacement.trim()).trim();
+
+                        setClientConfig(clientId, jsonClientConfig, true);
+                    },
+                    error: function (data) {
+                        setError('Unable to fetch <strong>' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
+                    }
+                });
             });
         });
+
 
         $('#hideOffline').click( function() {
+            if ($(this).hasClass("fa fa-square-o")) {
+                $(this).removeClass("fa fa-square-o").addClass("fa fa-check-square-o");
+            } else {
+                $(this).removeClass("fa fa-check-square-o").addClass("fa fa-square-o");
+            }
+
             table.draw();
         } );
 
@@ -381,7 +405,7 @@
 
         setInterval(function () {
             table.ajax.reload();
-        }, 10000);
+        }, RELOAD_INTERVAL_IN_MS);
     });
 
     function sendAction(action, clientId) {
@@ -391,26 +415,10 @@
             dataType:"text",
             data:    '{"control_command":{"command": "' + action + '"}}',
             success: function(data){
-                $("#statusBar").html('<div class="alert alert-success" role="alert">' +
-                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                    'Successfully send ' + action + '<strong> - It can take up to 30s until the command is processed.</strong></div>');
-
-                window.setTimeout(function() {
-                    $(".alert-success").fadeTo(500, 0).slideUp(500, function(){
-                        $(".alert-success").alert('close');
-                    });
-                }, 5000);
+                setSuccess('<strong>Successfully send ' + action + ' to ' + clientId +'</strong> - It can take up to 30s until the command is processed.');
             },
             error: function (data) {
-                $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
-                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                    '<strong>Failed to send ' + action + '</strong></div>');
-
-                window.setTimeout(function() {
-                    $(".alert-danger").fadeTo(500, 0).slideUp(500, function(){
-                        $(".alert-danger").alert('close');
-                    });
-                }, 10000);
+                setError('<strong>Failed to send ' + action + ' to ' + clientId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
             }
         });
     }
@@ -464,12 +472,59 @@
     }
 
     function isOnline(lastStatus) {
-        var threshold = new Date().getTime() - 60 * 1000;
+        var threshold = new Date().getTime() - TRESHOLD_IN_MS;
         if (lastStatus > threshold) {
             return true;
         } else {
             return false;
         }
+    }
+
+    function setSuccess(info) {
+        $("#statusBar").html('<div class="alert alert-success" role="alert">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+            info + '</div>');
+
+        window.setTimeout(function() {
+            $(".alert-success").fadeTo(500, 0).slideUp(500, function(){
+                $(".alert-success").alert('close');
+            });
+        }, 5000);
+    }
+
+    function setError(error) {
+        $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+            error + '</div>');
+
+        window.setTimeout(function() {
+            $(".alert-danger").fadeTo(500, 0).slideUp(500, function(){
+                $(".alert-danger").alert('close');
+            });
+        }, 10000);
+    }
+
+    function setClientConfig(clientId, clientConfig, isMultiConfigEdit) {
+        $.ajax({
+            url: "/admin/setClientConfig?clientId=" + clientId,
+            type: 'POST',
+            dataType: "text",
+            data: clientConfig,
+            success: function(data){
+                if (isMultiConfigEdit) {
+                    setSuccess('<strong>Successfully updated configs for the selected clients</strong> - You need push the config to the clients to apply the config.');
+                } else {
+                    setSuccess('<strong>Successfully updated config for: ' + clientId + '</strong> - You need push the config to the client to apply the config.');
+                }
+            },
+            error: function (data) {
+                if (isMultiConfigEdit) {
+                    setError('<strong>Failed to update configs for the selected clients</strong> \nError:' +  JSON.stringify(data,undefined, 2));
+                } else {
+                    setError('<strong>Failed to update config for: ' + clientId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
+                }
+            }
+        });
     }
 </script>
 
@@ -477,6 +532,7 @@
 <body>
 <br/>
 <div style="width: 95%; margin:0 auto;">
+    <div id="updateNotificationBar"></div>
     <div id="notificationBar"></div>
     <div id="statusBar"></div>
 
@@ -530,7 +586,7 @@
 
 
     <br/>
-    <div class="modal fade" id="editConfig" role="dialog">
+    <div class="modal fade" id="minerEditor" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -540,8 +596,41 @@
                 <div class="modal-body">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+                    <button id="minerEditorSave" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="multiMinerEditor" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Multi miner editor</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger fade in">
+                        <strong>Warning!</strong> - If you don't know what you are doing, [Cancel].
+                    </div>
+                    <h5 class="modal-title">
+                        This will search for <strong>"x"</strong> and replace with <strong>"y"</strong> in all selected miners config<br/><br/>
+                        <div class="alert alert-info fade in">
+                            <strong>If you accidentally pressed [Replace], no worries just PULL again all miner configs. Don't PUSH it!</strong>
+                        </div>
+                    </h5>
+                    <div class='form-group'>
+                        <label for='search'>Search for:</label>
+                        <textarea class='form-control' rows='2' cols="1" id='search'></textarea>
+                        <label for='replacement'>Replace with:</label>
+                        <textarea class='form-control' rows='2' id='replacement'></textarea>
+                    </div>
+                </h5>
+                <div class="modal-footer">
+                    <button id="multiMinerEditorReplace" type="button" class="btn btn-success" data-dismiss="modal">Replace</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
 
