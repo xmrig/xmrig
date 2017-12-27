@@ -1,3 +1,9 @@
+# v1.3.0
+- Fixed Soft-aes modes (av=3, av=4) Bug: #11
+- Added static build for linux with old libc (CentOs 5/6, debian, ...)
+- Added notification to Dashboard when miner went offline with toggleswitch
+- Added multi config editor to Dashboard to modify config of multiple miners at once
+- Fixed MSV_VER for latest Visual Studio builds
 # v1.2.2
 - Added select/deselect all to dashboard
 - Fixed memory leaks in XmrigCCServer
