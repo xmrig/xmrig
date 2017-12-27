@@ -8,14 +8,33 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.0/css/buttons.bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.4/css/select.dataTables.min.css">
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
 
 <style>
     .left{text-align:left;}
     .center{text-align:center; padding-bottom: 50pt}
-    .toolbar{text-align: right;}
     .center-tab{text-align: center; vertical-align: middle;}
     .online { color: green}
     .offline { color: red}
+    .toggle { border-radius: 2px;}
+    .toggle .toggle-handle { border-radius: 2px; }
+
+    form label
+    {
+        display:block;
+        margin-bottom: 5px;
+        text-align: left;
+    }
+
+    form label span {
+        display:inline-block;
+        margin-left: .5rem;
+        text-align: left;
+    }
+
+    form label input {
+        vertical-align: top;
+    }
 </style>
 
 <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -25,6 +44,7 @@
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.0/js/buttons.bootstrap.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.4/js/dataTables.select.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.1/jquery.timeago.min.js"></script>
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
 
@@ -34,7 +54,8 @@
 
     $.fn.dataTable.ext.search.push(
         function( settings, data, dataIndex ) {
-            var hide = $('#hideOffline').hasClass("fa fa-check-square-o");
+            var hideOffline = $('#hideOffline').prop('checked');
+            var showNotification = $('#showOfflineNotification').prop('checked');
 
             var clientId = settings.aoData[dataIndex]._aData.client_status.client_id;
             var lastStatus = settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000;
@@ -42,15 +63,15 @@
 
             if (!online) {
                 var threshold = new Date().getTime() - (TRESHOLD_IN_MS + RELOAD_INTERVAL_IN_MS);
-                if (lastStatus > threshold) {
+                if (lastStatus > threshold && showNotification) {
                     $("#notificationBar").after('<div class="alert alert-danger alert-dismissable fade in">' +
                         '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
-                        '<strong>Client ' + clientId + ' just went offline!</strong> Last update: ' + new Date(lastStatus) +
+                        '<strong>Miner ' + clientId + ' just went offline!</strong> Last update: ' + new Date(lastStatus) +
                         '</div>');
                 }
             }
 
-            return (online || !hide);
+            return (online || !hideOffline);
         }
     );
 
@@ -58,11 +79,11 @@
         var latestRelease = "";
 
         var table = $('#clientStatusList').DataTable({
-            dom: "<'toolbar'><'row'<'col-sm-9'B><'col-sm-3'f>><'row'<'col-sm-12't>><i>",
-            bPaginate : false,
-            ajax : {
-                url : "/admin/getClientStatusList",
-                dataSrc : 'client_status_list'
+            dom: "<'row'<'col-sm-9'B><'col-sm-3'f>><'row'<'col-sm-12't>><i>",
+            bPaginate: false,
+            ajax: {
+                url: "/admin/getClientStatusList",
+                dataSrc: 'client_status_list'
             },
             deferRender: true,
             columns: [
@@ -72,40 +93,40 @@
                     className: 'select-checkbox',
                     orderable: false
                 },
-                { data: "client_status.client_id", render: clientInfo},
-                { data: "client_status.current_pool"},
-                { data: "client_status.current_status"},
-                { data: "client_status.current_algo_name"},
-                { data: "client_status.hashrate_short", render: round, className: "right"},
-                { data: "client_status.hashrate_medium", render: round, className: "right"},
-                { data: "client_status.hashrate_long", render: round, className: "right"},
-                { data: "client_status.hashrate_highest", render: round, className: "right"},
-                { data: "client_status.hashes_total", className: "right"},
-                { data: "client_status.avg_time", className: "right"},
-                { data: "client_status.shares_good", className: "right"},
-                { data: "client_status.shares_total", className: "right"},
-                { data: "client_status.last_status_update", render: laststatus},
+                {data: "client_status.client_id", render: clientInfo},
+                {data: "client_status.current_pool"},
+                {data: "client_status.current_status"},
+                {data: "client_status.current_algo_name"},
+                {data: "client_status.hashrate_short", render: round, className: "right"},
+                {data: "client_status.hashrate_medium", render: round, className: "right"},
+                {data: "client_status.hashrate_long", render: round, className: "right"},
+                {data: "client_status.hashrate_highest", render: round, className: "right"},
+                {data: "client_status.hashes_total", className: "right"},
+                {data: "client_status.avg_time", className: "right"},
+                {data: "client_status.shares_good", className: "right"},
+                {data: "client_status.shares_total", className: "right"},
+                {data: "client_status.last_status_update", render: laststatus},
                 {
                     data: null,
                     defaultContent:
-                        "<td class='center-tab'><button type='button' id='EDIT' class='btn btn-xs btn-primary' data-toggle='tooltip' title='Edit Client Config'><i class='fa fa-edit'></i></button></td>",
+                        "<td class='center-tab'><button type='button' id='EDIT' class='btn btn-xs btn-primary' data-toggle='tooltip' title='Edit miner config'><i class='fa fa-edit'></i></button></td>",
                     orderable: false,
                     className: "center-tab"
                 }
             ],
             rowId: 'client_status.client_id',
             select: {
-                style : "multi"
+                style: "multi"
             },
-            order: [ 1, 'asc' ],
+            order: [1, 'asc'],
             lengthChange: false,
             buttons: [
                 {
-                    text: '<i class="fa fa-download"> Pull client config</i>',
+                    text: '<i class="fa fa-download"> Pull miner config</i>',
                     className: 'btn-default',
                     enabled: false,
                     action: function () {
-                        table.rows({ selected: true }).eq(0).each(function (index) {
+                        table.rows({selected: true}).eq(0).each(function (index) {
                             var row = table.row(index);
                             var data = row.data();
 
@@ -114,11 +135,11 @@
                     }
                 },
                 {
-                    text: '<i class="fa fa-upload"> Push client config</i>',
+                    text: '<i class="fa fa-upload"> Push miner config</i>',
                     className: 'btn-primary',
                     enabled: false,
                     action: function () {
-                        table.rows({ selected: true }).eq(0).each(function (index) {
+                        table.rows({selected: true}).eq(0).each(function (index) {
                             var row = table.row(index);
                             var data = row.data();
 
@@ -131,7 +152,7 @@
                     className: 'btn-success',
                     enabled: false,
                     action: function () {
-                        table.rows({ selected: true }).eq(0).each(function (index) {
+                        table.rows({selected: true}).eq(0).each(function (index) {
                             var row = table.row(index);
                             var data = row.data();
 
@@ -144,7 +165,7 @@
                     className: 'btn-warning',
                     enabled: false,
                     action: function () {
-                        table.rows({ selected: true }).eq(0).each(function (index) {
+                        table.rows({selected: true}).eq(0).each(function (index) {
                             var row = table.row(index);
                             var data = row.data();
 
@@ -157,7 +178,7 @@
                     className: 'btn-info',
                     enabled: false,
                     action: function () {
-                        table.rows({ selected: true }).eq(0).each(function (index) {
+                        table.rows({selected: true}).eq(0).each(function (index) {
                             var row = table.row(index);
                             var data = row.data();
 
@@ -170,7 +191,7 @@
                     className: 'btn-danger',
                     enabled: false,
                     action: function () {
-                        table.rows({ selected: true }).eq(0).each(function (index) {
+                        table.rows({selected: true}).eq(0).each(function (index) {
                             var row = table.row(index);
                             var data = row.data();
 
@@ -188,7 +209,7 @@
                 }
             ],
 
-            "footerCallback": function ( row, data, start, end, display ) {
+            "footerCallback": function (row, data, start, end, display) {
                 var api = this.api();
 
                 var sumHashrateShort = 0;
@@ -200,61 +221,61 @@
                 var sumSharesGood = 0;
                 var sumSharedTotal = 0;
 
-                sumHashrateShort  = api
+                sumHashrateShort = api
                     .column(5, {page: 'current'})
                     .data()
-                    .reduce( function (a, b) {
-                        return a+b;
-                    }, 0 );
+                    .reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
 
-                sumHashrateMedium  = api
+                sumHashrateMedium = api
                     .column(6, {page: 'current'})
                     .data()
-                    .reduce( function (a, b) {
-                        return a+b;
-                    }, 0 );
+                    .reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
 
-                sumHashrateLong  = api
+                sumHashrateLong = api
                     .column(7, {page: 'current'})
                     .data()
-                    .reduce( function (a, b) {
-                        return a+b;
-                    }, 0 );
+                    .reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
 
-                sumHashrateHighest  = api
+                sumHashrateHighest = api
                     .column(8, {page: 'current'})
                     .data()
-                    .reduce( function (a, b) {
-                        return a+b;
-                    }, 0 );
+                    .reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
 
-                sumHashesTotal  = api
+                sumHashesTotal = api
                     .column(9, {page: 'current'})
                     .data()
-                    .reduce( function (a, b) {
-                        return a+b;
-                    }, 0 );
+                    .reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
 
-                avgTimeTotal  = api
+                avgTimeTotal = api
                     .column(10, {page: 'current'})
                     .data()
-                    .reduce( function (a, b) {
-                        return (a+b) / 2;
-                    }, 0 );
+                    .reduce(function (a, b) {
+                        return (a + b) / 2;
+                    }, 0);
 
-                sumSharesGood  = api
+                sumSharesGood = api
                     .column(11, {page: 'current'})
                     .data()
-                    .reduce( function (a, b) {
-                        return a+b;
-                    }, 0 );
+                    .reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
 
                 sumSharedTotal = api
                     .column(12, {page: 'current'})
                     .data()
-                    .reduce( function (a, b) {
-                        return a+b;
-                    }, 0 );
+                    .reduce(function (a, b) {
+                        return a + b;
+                    }, 0);
 
                 sumHashrateShort = round(sumHashrateShort);
                 sumHashrateMedium = round(sumHashrateMedium);
@@ -293,7 +314,7 @@
         });
 
         table.on('select', function () {
-            var selectedRows = table.rows( { selected: true } ).count();
+            var selectedRows = table.rows({selected: true}).count();
 
             table.button(0).enable(selectedRows > 0);
             table.button(1).enable(selectedRows > 0);
@@ -305,7 +326,7 @@
         });
 
         table.on('deselect', function () {
-            var selectedRows = table.rows( { selected: true } ).count();
+            var selectedRows = table.rows({selected: true}).count();
 
             table.button(0).enable(selectedRows > 0);
             table.button(1).enable(selectedRows > 0);
@@ -316,9 +337,11 @@
             table.button(6).enable(selectedRows > 0);
         });
 
-        table.buttons().container().appendTo( '#clientStatusList_wrapper .col-sm-6:eq(0)' );
+        table.buttons().container().appendTo('#clientStatusList_wrapper .col-sm-6:eq(0)');
 
-        $("div.toolbar").html('<div class="col-sm-13 fa fa-check-square-o" id="hideOffline"></div><label style="margin-left: 5px">Hide offline miners</label>');
+        $('#hideOffline').change(function() {
+            table.draw();
+        });
 
         $('#clientStatusList tbody').on( 'click', 'button', function () {
             var data = table.row( $(this).parents('tr') ).data();
@@ -340,7 +363,7 @@
                     $('#minerEditor').modal('show');
                 },
                 error: function (data) {
-                   setError('Unable to fetch <strong>' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
+                   setError('<strong>Unable to fetch ' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
                 }
             });
         });
@@ -372,22 +395,11 @@
                         setClientConfig(clientId, jsonClientConfig, true);
                     },
                     error: function (data) {
-                        setError('Unable to fetch <strong>' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
+                        setError('<strong>Unable to fetch ' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
                     }
                 });
             });
         });
-
-
-        $('#hideOffline').click( function() {
-            if ($(this).hasClass("fa fa-square-o")) {
-                $(this).removeClass("fa fa-square-o").addClass("fa fa-check-square-o");
-            } else {
-                $(this).removeClass("fa fa-check-square-o").addClass("fa fa-square-o");
-            }
-
-            table.draw();
-        } );
 
         $('#selectAllTop,#selectAllBottom').click( function() {
             if ($("#selectAllTop").hasClass("fa fa-square-o"))   {
@@ -512,14 +524,14 @@
             data: clientConfig,
             success: function(data){
                 if (isMultiConfigEdit) {
-                    setSuccess('<strong>Successfully updated configs for the selected clients</strong> - You need push the config to the clients to apply the config.');
+                    setSuccess('<strong>Successfully updated configs for the selected miners</strong> - You need push the config to the miners to apply the config.');
                 } else {
-                    setSuccess('<strong>Successfully updated config for: ' + clientId + '</strong> - You need push the config to the client to apply the config.');
+                    setSuccess('<strong>Successfully updated config for: ' + clientId + '</strong> - You need push the config to the miner to apply the config.');
                 }
             },
             error: function (data) {
                 if (isMultiConfigEdit) {
-                    setError('<strong>Failed to update configs for the selected clients</strong> \nError:' +  JSON.stringify(data,undefined, 2));
+                    setError('<strong>Failed to update configs for the selected miners</strong> \nError:' +  JSON.stringify(data,undefined, 2));
                 } else {
                     setError('<strong>Failed to update config for: ' + clientId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
                 }
@@ -540,11 +552,16 @@
         <h1>XMRigCC Dashboard</h1>
     </div>
 
+    <form style="padding-bottom: 25px">
+        <label><input id="hideOffline" type="checkbox" checked  data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger"/><span>Hide offline miners</span></label>
+        <label><input id="showOfflineNotification" type="checkbox" checked data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger" /><span>Notify when miner went offline</span></label>
+    </form>
+
     <table id="clientStatusList" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
         <tr>
             <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllTop"></i></th>
-            <th>Client Id</th>
+            <th>Miner Id</th>
             <th>Pool</th>
             <th>Status</th>
             <th>Algo</th>
@@ -591,7 +608,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Config editor</h4>
+                    <h4 class="modal-title">Miner editor</h4>
                 </div>
                 <div class="modal-body">
                 </div>
