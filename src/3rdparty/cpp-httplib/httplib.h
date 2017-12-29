@@ -357,6 +357,13 @@ socket_t create_socket(const char* host, int port, Fn fn, int socket_flags = 0)
        int yes = 1;
        setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
 
+       struct timeval timeout;
+       timeout.tv_sec = 5;
+       timeout.tv_usec = 0;
+
+       setsockopt (sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+       setsockopt (sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout));
+
        // bind or connect
        if (fn(sock, *rp)) {
           freeaddrinfo(result);
