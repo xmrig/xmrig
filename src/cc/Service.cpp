@@ -82,8 +82,6 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
         }
     }
 
-    LOG_INFO("Resp. lengt: %d", resp.length());
-
     uv_mutex_unlock(&m_mutex);
 
     return resultCode;
