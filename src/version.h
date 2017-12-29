@@ -67,6 +67,8 @@
 #       define MSVC_VERSION 0
 #   endif
 #include <string>
+#else
+#include <string.h>
 #endif
 
 
