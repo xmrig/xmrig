@@ -48,6 +48,20 @@ struct match_entry_t {
 int match_cpu_codename(const struct match_entry_t* matchtable, int count,
                        struct cpu_id_t* data, int brand_code, uint64_t bits,
                        int model_code);
+
+void warnf(const char* format, ...)
+#ifdef __GNUC__
+__attribute__((format(printf, 1, 2)))
+#endif
+;
+void debugf(int verboselevel, const char* format, ...)
+#ifdef __GNUC__
+__attribute__((format(printf, 2, 3)))
+#endif
+;
+void generic_get_cpu_list(const struct match_entry_t* matchtable, int count,
+                          struct cpu_list_t* list);
+
 /*
  * Seek for a pattern in `haystack'.
  * Pattern may be an fixed string, or contain the special metacharacters
@@ -70,9 +84,15 @@ struct cpu_id_t* get_cached_cpuid(void);
 /* returns true if all bits of mask are present in `bits'. */
 int match_all(uint64_t bits, uint64_t mask);
 
+/* print what bits a mask consists of */
+void debug_print_lbits(int debuglevel, uint64_t mask);
+
 /*
  * Sets the current errno
  */
 int set_error(cpu_error_t err);
+
+extern libcpuid_warn_fn_t _warn_fun;
+extern int _current_verboselevel;
 
 #endif /* __LIBCPUID_UTIL_H__ */
