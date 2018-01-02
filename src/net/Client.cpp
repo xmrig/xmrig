@@ -582,11 +582,11 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
             LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror((int) nread));
         }
 
-        return client->close();;
+        return client->close();
     }
 
     if ((size_t) nread > (sizeof(m_buf) - 8 - client->m_recvBufPos)) {
-        return client->close();;
+        return client->close();
     }
 
     client->m_recvBufPos += nread;
@@ -623,7 +623,7 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
     auto client = getClient(req->data);
     if (status < 0) {
         LOG_ERR("[%s:%u] DNS error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
-        return client->reconnect();;
+        return client->reconnect();
     }
 
     addrinfo *ptr = res;
