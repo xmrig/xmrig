@@ -1,6 +1,6 @@
 # XMRig
-XMRig is high performance Monero (XMR) CPU miner, with the official full Windows support.
-Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 complete rewritten from scratch on C++.
+XMRig is a high performance Monero (XMR) CPU miner, with official support for Windows.
+Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 completely rewritten from scratch on C++.
 
 * This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
@@ -89,7 +89,7 @@ Since version 0.8.0.
 ## Common Issues
 ### HUGE PAGES unavailable
 * Run XMRig as Administrator.
-* Since version 0.8.0 XMRig automatically enable SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+* Since version 0.8.0 XMRig automatically enables SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
 
 ## Other information
 * No HTTP support, only stratum protocol support.
@@ -106,7 +106,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 ### Maximum performance checklist
 * Idle operating system.
 * Do not exceed optimal thread count.
-* Use modern CPUs with AES-NI instructuon set.
+* Use modern CPUs with AES-NI instruction set.
 * Try setup optimal cpu affinity.
 * Enable fast memory (Large/Huge pages).
 
