@@ -20,7 +20,7 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 
 **XMRigCC Dashboard**
 
-![Screenshot of XMRigCC Dashboard](https://i.imgur.com/D2y4V0V.png)
+![Screenshot of XMRigCC Dashboard](https://i.imgur.com/VwJaf26.png)
 
 
 **[Find HELP/HOWTO](https://github.com/Bendr0id/xmrigCC/wiki/)**
@@ -179,7 +179,7 @@ This will limit doublehash mode (av=2,av=4) to thread 0 and thread 2, thread 1 a
 
 ### HUGE PAGES unavailable (Windows)
 * Run XMRig as Administrator.
-* Since version 0.8.0 XMRig automatically enable SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+* Since version 0.8.0 XMRig automatically enables SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
 
 ### HUGE PAGES unavailable (Linux)
 * Before starting XMRigDaemon set huge pages

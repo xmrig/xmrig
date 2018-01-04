@@ -72,10 +72,14 @@ App::App(int argc, char **argv) :
 
     Log::init();
 
+#   ifdef WIN32
     if (!m_options->background()) {
+#   endif
         Log::add(new ConsoleLog(m_options->colors()));
         m_console = new Console(this);
+#   ifdef WIN32
     }
+#   endif
 
     if (m_options->logFile()) {
         Log::add(new FileLog(m_options->logFile()));
@@ -92,7 +96,9 @@ App::App(int argc, char **argv) :
 
     m_network = new Network(m_options);
 
-    uv_signal_init(uv_default_loop(), &m_signal);
+    uv_signal_init(uv_default_loop(), &m_sigHUP);
+    uv_signal_init(uv_default_loop(), &m_sigINT);
+    uv_signal_init(uv_default_loop(), &m_sigTERM);
 }
 
 App::~App()
@@ -123,9 +129,9 @@ int App::start()
         return EINVAL;
     }
 
-    uv_signal_start(&m_signal, App::onSignal, SIGHUP);
-    uv_signal_start(&m_signal, App::onSignal, SIGTERM);
-    uv_signal_start(&m_signal, App::onSignal, SIGINT);
+    uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
+    uv_signal_start(&m_sigINT,  App::onSignal, SIGINT);
+    uv_signal_start(&m_sigTERM, App::onSignal, SIGTERM);
 
     background();
 

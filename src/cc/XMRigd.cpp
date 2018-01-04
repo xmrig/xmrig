@@ -35,10 +35,16 @@
 int main(int argc, char **argv) {
 
     std::string ownPath(argv[0]);
-    std::string xmrigDaemon("xmrigDaemon");
-    std::string xmrigMiner("xmrigMiner");
 
-    std::string xmrigMinerPath = ownPath.replace(ownPath.rfind(xmrigDaemon),xmrigDaemon.size(), xmrigMiner);
+#if defined(_WIN32) || defined(WIN32)
+    int pos = ownPath.rfind('\\');
+    std::string xmrigMiner("xmrigMiner.exe");
+#else
+    int pos = ownPath.rfind('/');
+    std::string xmrigMiner("xmrigMiner");
+#endif
+
+    std::string xmrigMinerPath = ownPath.substr(0, pos+1) + xmrigMiner;
 
 #ifdef WIN32
     xmrigMinerPath = "\"" + xmrigMinerPath + "\"";

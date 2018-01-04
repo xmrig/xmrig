@@ -22,17 +22,12 @@
  */
 
 
-#include <stdlib.h>
-#include <signal.h>
-#include <errno.h>
-#include <unistd.h>
-
-
+#include <string>
 #include "App.h"
 #include "Cpu.h"
 #include "log/Log.h"
 #include "Options.h"
-
+#include "version.h"
 
 void App::background()
 {
@@ -40,27 +35,6 @@ void App::background()
         Cpu::setAffinity(-1, m_options->affinity());
     }
 
-    if (!m_options->background()) {
-        return;
-    }
-
-    int i = fork();
-    if (i < 0) {
-        exit(1);
-    }
-
-    if (i > 0) {
-        exit(0);
-    }
-
-    i = setsid();
-
-    if (i < 0) {
-        LOG_ERR("setsid() failed (errno = %d)", errno);
-    }
-
-    i = chdir("/");
-    if (i < 0) {
-        LOG_ERR("chdir() failed (errno = %d)", errno);
-    }
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;31m\nBackground mode is not supported by %s on *nix Systems. Please use screen/tmux or systemd service instead.\n"
+                                          : "\nBackground mode is not supported by %s on *nix Systems. Please use screen/tmux or systemd service instead.\n", APP_NAME);
 }
