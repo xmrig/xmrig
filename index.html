@@ -493,7 +493,7 @@
     }
 
     function setSuccess(info) {
-        $("#statusBar").html('<div class="alert alert-success" role="alert">' +
+        $("#statusBar").after('<div class="alert alert-success" role="alert">' +
             '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
             info + '</div>');
 
@@ -505,7 +505,7 @@
     }
 
     function setError(error) {
-        $("#statusBar").html('<div class="alert alert-danger" role="alert">' +
+        $("#statusBar").after('<div class="alert alert-danger" role="alert">' +
             '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
             error + '</div>');
 
@@ -644,16 +644,14 @@
                         <label for='replacement'>Replace with:</label>
                         <textarea class='form-control' rows='2' id='replacement'></textarea>
                     </div>
-                </h5>
+                </div>
                 <div class="modal-footer">
                     <button id="multiMinerEditorReplace" type="button" class="btn btn-success" data-dismiss="modal">Replace</button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 </body>
 </html>
-
