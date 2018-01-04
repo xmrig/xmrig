@@ -72,10 +72,14 @@ App::App(int argc, char **argv) :
 
     Log::init();
 
+#   ifdef WIN32
     if (!m_options->background()) {
+#   endif
         Log::add(new ConsoleLog(m_options->colors()));
         m_console = new Console(this);
+#   ifdef WIN32
     }
+#   endif
 
     if (m_options->logFile()) {
         Log::add(new FileLog(m_options->logFile()));

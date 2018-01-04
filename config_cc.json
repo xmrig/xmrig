@@ -1,0 +1,12 @@
+{
+    "background": false,
+    "colors": true,
+    "log-file": null,
+    "syslog": false,
+    "cc-server": {
+        "port": 3344,                  // port the CC Server will listens on
+        "access-token": "mySecret",        // access token for CC Clients
+        "user": "admin",              // admin user for access CC Dashboard
+        "pass": "pass"                // admin pass for access CC Dashboard
+    }
+}

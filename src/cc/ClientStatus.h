@@ -109,6 +109,9 @@ public:
     int getCurrentThreads() const;
     void setCurrentThreads(int currentThreads);
 
+    int getCpuSockets() const;
+    void setCpuSockets(int cpuSockets);
+
     int getCpuCores() const;
     void setCpuCores(int cpuCores);
 
@@ -168,6 +171,7 @@ private:
     double m_hashrateHighest;
 
     int m_currentThreads;
+    int m_cpuSockets;
     int m_cpuCores;
     int m_cpuThreads;
     int m_cpuL2;
