@@ -66,8 +66,10 @@ private:
   Httpd *m_httpd;
   Network *m_network;
   Options *m_options;
+  uv_signal_t m_sigHUP;
+  uv_signal_t m_sigINT;
+  uv_signal_t m_sigTERM;
   CCClient *m_ccclient;
-  uv_signal_t m_signal;
   uv_async_t m_async;
 };
 

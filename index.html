@@ -49,7 +49,7 @@
 <script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
 
 <script type="text/javascript">
-    var TRESHOLD_IN_MS = 60 * 1000;
+    var TRESHOLD_IN_MS = 90 * 1000;
     var RELOAD_INTERVAL_IN_MS = 10 * 1000;
 
     $.fn.dataTable.ext.search.push(
@@ -446,7 +446,7 @@
 
     function clientInfo( data, type, row ) {
         if (type !== 'sort') {
-            var tooltip  = "CPU: " + row.client_status.cpu_brand + " [" + row.client_status.cpu_cores + " cores / " + row.client_status.cpu_threads + " threads]";
+            var tooltip  = "CPU: " + row.client_status.cpu_brand + " (" + row.client_status.cpu_sockets + ") [" + row.client_status.cpu_cores + " cores / " + row.client_status.cpu_threads + " threads]";
             tooltip += '\n';
             tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
             tooltip += (row.client_status.cpu_is_x64 ? "x64" : "");
