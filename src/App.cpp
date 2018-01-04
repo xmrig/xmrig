@@ -92,7 +92,9 @@ App::App(int argc, char **argv) :
 
     m_network = new Network(m_options);
 
-    uv_signal_init(uv_default_loop(), &m_signal);
+    uv_signal_init(uv_default_loop(), &m_sigHUP);
+    uv_signal_init(uv_default_loop(), &m_sigINT);
+    uv_signal_init(uv_default_loop(), &m_sigTERM);
 }
 
 
@@ -114,9 +116,9 @@ int App::exec()
         return 0;
     }
 
-    uv_signal_start(&m_signal, App::onSignal, SIGHUP);
-    uv_signal_start(&m_signal, App::onSignal, SIGTERM);
-    uv_signal_start(&m_signal, App::onSignal, SIGINT);
+    uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
+    uv_signal_start(&m_sigINT,  App::onSignal, SIGINT);
+    uv_signal_start(&m_sigTERM, App::onSignal, SIGTERM);
 
     background();
 
