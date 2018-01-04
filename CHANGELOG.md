@@ -1,3 +1,11 @@
+# v1.3.1
+- Removed not working background mode for xmrigMiner/xmrigDaemon on *nix systems -> use screen/tmux or systemd service instead
+- Added cpu socket to client Id tooltip on dashboard
+- Fixed notification when sending command is successful or error
+- Fixed #16 FreeBSD build
+- Fixed miner to keep sending status to server when its not temp unavailable
+- Fixed #10 CCServer spontaneously freezes and holds CPU 100%
+- Merged latest xmrig master
 # v1.3.0
 - Fixed Soft-aes modes (av=3, av=4) Bug: #11
 - Added static build for linux with old libc (CentOs 5/6, debian, ...)
