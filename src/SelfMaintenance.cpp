@@ -43,7 +43,7 @@
 * DESCRIPTION:
 *
 ---------------------------------------------------------------------*/
-int SelfMaintenance::getCPUTemperature(){
+int SelfMaintenance::getCPUTemperature(int pT){
     using namespace std;
     stringstream   strStream;
 
@@ -59,8 +59,8 @@ int SelfMaintenance::getCPUTemperature(){
     strStream.str("");
     strStream << cpu_temp.rdbuf();
     strStream >> m_cpuTemperatureC;
-    //---
-	return(0);
+	//--
+	return(m_cpuTemperatureC);
 }
 
 /*---------------------------------------------------------------------

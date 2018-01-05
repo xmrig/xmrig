@@ -41,7 +41,6 @@
 #include "version.h"
 #include "workers/Workers.h"
 
-
 #ifdef HAVE_SYSLOG_H
 #   include "log/SysLog.h"
 #endif

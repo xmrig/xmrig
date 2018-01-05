@@ -36,7 +36,6 @@ class Httpd;
 class Network;
 class Options;
 
-
 class App : public IConsoleListener
 {
 public:
