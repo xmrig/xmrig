@@ -33,7 +33,7 @@ class SelfMaintenance
 {
 public:
 
-    int getCPUTemperature();
+    int getCPUTemperature(int );
     int getFileSystemAvailable();
 
 private:
