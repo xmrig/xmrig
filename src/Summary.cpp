@@ -51,7 +51,7 @@ static void print_versions()
 #   endif
 
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mxmr_arch64/%s\x1B[01;37m libuv/%s%s" : " * VERSIONS:     XMRig/%s libuv/%s%s",
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mxmr_arch64/%s\x1B[01;37m libuv/%s%s" : " * VERSIONS:     xmr_arch64/%s libuv/%s%s",
                    APP_VERSION, uv_version_string(), buf);
 }
 
