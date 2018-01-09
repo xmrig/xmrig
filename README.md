@@ -6,7 +6,7 @@ Originally forked from xmrig/xmrig with full development in C++11.
 
 * [Roadmap](https://github.com/avujic/xmr_arch64/issues/106) for next releases.
 
-<img src="http://www.eplus.systems/wp-content/uploads/2017/12/xmr.png" width="619" >
+<img src="http://www.eplus.systems/wp-content/uploads/2017/12/xmr_eplus_systems.png" width="619" >
 
 #### Table of contents
 * [Version](#version)
@@ -105,10 +105,9 @@ Since avujic/xmr_arch64 version 0.0.2
 
 
 ### CPU mining performance
-* **Rpi3  ARCH64**      - 7.3 H/s (8 threads)
-* **Rpi3  Raspbian**    - 5.3 H/s (4 threads)
-* **Intel i7-7700**     - 307 H/s (4 threads)
-* **AMD Ryzen 7 1700X** - 560 H/s (8 threads)
+* **Rpi3  ARCH64**      - 15.4 H/s (16 threads)
+* **Rpi3  ARCH64**      - 07.4 H/s (08 threads)
+* **Rpi3  Raspbian**    - 05.3 H/s (04 threads)
 
 Please note performance is highly dependent on system load. The numbers above are obtained on an idle system. Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate. Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB of cache.
 
@@ -121,7 +120,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 
 ## Donations
 * XMR: `44bF1RTZVcVc45wNiDQVTp7hwyZ5juMf8W78j1YrfChkP2og2Y44ph3WbwaVe4vUMveKAzAiA4j8xgUi29TpKXpm42GAEjd`
-* LTC: 
+* LTC: `LYRerm8eDwJ8vL6ctNPceGuv8dcUcMYQ6N`
 
 ## Contacts
 * `xmr@eplus.systems`
