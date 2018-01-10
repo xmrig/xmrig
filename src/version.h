@@ -35,7 +35,7 @@
 
 #define APP_VER_MAJOR  2
 #define APP_VER_MINOR  4
-#define APP_VER_BUILD  3
+#define APP_VER_BUILD  4
 #define APP_VER_REV    0
 
 #ifdef _MSC_VER
