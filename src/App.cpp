@@ -166,8 +166,10 @@ void App::onConsoleCommand(char command)
 
     case 'p':
     case 'P':
-        LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
-        Workers::setEnabled(false);
+        if (Workers::isEnabled()) {
+            LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
+            Workers::setEnabled(false);
+        }
         break;
 
     case 'r':
