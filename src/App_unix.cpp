@@ -35,6 +35,10 @@ void App::background()
         Cpu::setAffinity(-1, m_options->affinity());
     }
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;31m\nBackground mode is not supported by %s on *nix Systems. Please use screen/tmux or systemd service instead.\n"
-                                          : "\nBackground mode is not supported by %s on *nix Systems. Please use screen/tmux or systemd service instead.\n", APP_NAME);
+    if (m_options->background()) {
+        Log::i()->text(Options::i()->colors()
+                       ? "\x1B[01;31m\nBackground mode is not supported by %s on *nix Systems. Please use screen/tmux or systemd service instead.\n"
+                       : "\nBackground mode is not supported by %s on *nix Systems. Please use screen/tmux or systemd service instead.\n",
+                       APP_NAME);
+    }
 }
