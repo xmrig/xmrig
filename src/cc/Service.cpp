@@ -22,6 +22,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <chrono>
 #include <cstring>
 #include <sstream>
 #include <fstream>
@@ -39,6 +40,7 @@
 uv_mutex_t Service::m_mutex;
 std::map<std::string, ControlCommand> Service::m_clientCommand;
 std::map<std::string, ClientStatus> Service::m_clientStatus;
+int Service::m_currentServerTime = 0;
 
 bool Service::start()
 {
@@ -195,6 +197,10 @@ unsigned Service::getClientStatusList(std::string& resp)
         clientStatusList.PushBack(clientStatusEntry, allocator);
     }
 
+    auto time_point = std::chrono::system_clock::now();
+    m_currentServerTime = std::chrono::system_clock::to_time_t(time_point);
+
+    document.AddMember("current_server_time", m_currentServerTime, allocator);
     document.AddMember("current_version", rapidjson::StringRef(Version::string().c_str()), allocator);
     document.AddMember("client_status_list", clientStatusList, allocator);
 

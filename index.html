@@ -11,6 +11,7 @@
 <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
 
 <style>
+    .right{text-align:right;}
     .left{text-align:left;}
     .center{text-align:center; padding-bottom: 50pt}
     .center-tab{text-align: center; vertical-align: middle;}
@@ -49,20 +50,26 @@
 <script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
 
 <script type="text/javascript">
-    var TRESHOLD_IN_MS = 90 * 1000;
+    var TRESHOLD_IN_MS = 60 * 1000;
     var RELOAD_INTERVAL_IN_MS = 10 * 1000;
+
+    var latestRelease = "";
+    var currentServerTime = 0;
+    var clockDrift = 0;
 
     $.fn.dataTable.ext.search.push(
         function( settings, data, dataIndex ) {
+
             var hideOffline = $('#hideOffline').prop('checked');
             var showNotification = $('#showOfflineNotification').prop('checked');
 
             var clientId = settings.aoData[dataIndex]._aData.client_status.client_id;
             var lastStatus = settings.aoData[dataIndex]._aData.client_status.last_status_update * 1000;
+
             var online = isOnline(lastStatus);
 
             if (!online) {
-                var threshold = new Date().getTime() - (TRESHOLD_IN_MS + RELOAD_INTERVAL_IN_MS);
+                var threshold = currentServerTime - (TRESHOLD_IN_MS + RELOAD_INTERVAL_IN_MS);
                 if (lastStatus > threshold && showNotification) {
                     $("#notificationBar").after('<div class="alert alert-danger alert-dismissable fade in">' +
                         '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
@@ -76,10 +83,9 @@
     );
 
     $(document).ready(function() {
-        var latestRelease = "";
 
         var table = $('#clientStatusList').DataTable({
-            dom: "<'row'<'col-sm-9'B><'col-sm-3'f>><'row'<'col-sm-12't>><i>",
+            dom: "<'row'<'col-sm-9'B><'col-sm-3'f>><'row'<'col-sm-12't>><'row'<'col-sm-10'i><'col-sm-2'<'#serverTime'>>>",
             bPaginate: false,
             ajax: {
                 url: "/admin/getClientStatusList",
@@ -124,6 +130,7 @@
                 {
                     text: '<i class="fa fa-download"> Pull miner config</i>',
                     className: 'btn-default',
+                    enabled: false,
                     enabled: false,
                     action: function () {
                         table.rows({selected: true}).eq(0).each(function (index) {
@@ -292,25 +299,32 @@
                 $(api.column(10).footer()).html(avgTimeTotal);
                 $(api.column(11).footer()).html(sumSharesGood);
                 $(api.column(12).footer()).html(sumSharedTotal);
-
-                // check version
-                if (latestRelease === "" && $(api).context[0].json !== undefined) {
-                    $.ajax({
-                        url: "https://api.github.com/repos/Bendr0id/xmrigCC/releases/latest",
-                        type: 'GET',
-                        dataType: "json",
-                        success: function (release) {
-                            latestRelease = release.tag_name;
-                            if (latestRelease !== $(api).context[0].json.current_version) {
-                                $("#updateNotificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
-                                    '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
-                                    '<a href="https://github.com/Bendr0id/xmrigCC/releases/latest"><strong>Update!</strong> XMRigCC v' + latestRelease + ' is available for download\n</a>' +
-                                    '</div>');
-                            }
-                        }
-                    });
-                }
             }
+        });
+
+        table.on('xhr.dt', function ( e, settings, json, xhr ) {
+            // check version
+            if (latestRelease === "" && json !== undefined) {
+                $.ajax({
+                    url: "https://api.github.com/repos/Bendr0id/xmrigCC/releases/latest",
+                    type: 'GET',
+                    dataType: "json",
+                    success: function (release) {
+                        latestRelease = release.tag_name;
+                        if (latestRelease !== json.current_version) {
+                            $("#updateNotificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
+                                '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                                '<a href="https://github.com/Bendr0id/xmrigCC/releases/latest"><strong>Update!</strong> XMRigCC v' + latestRelease + ' is available for download\n</a>' +
+                                '</div>');
+                        }
+                    }
+                });
+            }
+
+            currentServerTime = settings.json.current_server_time * 1000;
+            clockDrift = new Date().getTime() - currentServerTime;
+
+            $('#serverTime').html("<div class='dataTables_info'>" + new Date(currentServerTime) + "</div>");
         });
 
         table.on('select', function () {
@@ -437,7 +451,7 @@
 
     function laststatus( data, type, row ) {
         if (type !== 'sort') {
-            var date = new Date(data*1000);
+            var date = new Date(data*1000 - clockDrift);
             return '<span data-toggle="tooltip" title="' + date + '">' + jQuery.timeago(date) + '</span>';
         }
 
@@ -466,6 +480,7 @@
             tooltip += "Status: ";
 
             var lastStatus = row.client_status.last_status_update * 1000;
+
             if (isOnline(lastStatus)) {
                 tooltip  += "Online";
                 return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
@@ -484,7 +499,7 @@
     }
 
     function isOnline(lastStatus) {
-        var threshold = new Date().getTime() - TRESHOLD_IN_MS;
+        var threshold = currentServerTime - TRESHOLD_IN_MS;
         if (lastStatus > threshold) {
             return true;
         } else {
@@ -600,7 +615,6 @@
         </tr>
         </tfoot>
     </table>
-
 
     <br/>
     <div class="modal fade" id="minerEditor" role="dialog">
