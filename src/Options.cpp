@@ -328,8 +328,8 @@ Options::Options(int argc, char **argv) :
         parseConfig(Platform::defaultConfigName());
     }
 
-    if (!m_pools[0]->isValid()) {
-        fprintf(stderr, "No pool URL supplied. Exiting.\n");
+    if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
+        fprintf(stderr, "Neither pool nor CCServer URL supplied. Exiting.\n");
         return;
     }
 
