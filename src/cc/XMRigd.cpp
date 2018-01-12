@@ -31,7 +31,10 @@
     #include <signal.h>
 	#include <chrono>
 	#include <thread>
+#else
+    #include <sys/wait.h>
 #endif
+
 int main(int argc, char **argv) {
 
     std::string ownPath(argv[0]);
@@ -46,7 +49,7 @@ int main(int argc, char **argv) {
 
     std::string xmrigMinerPath = ownPath.substr(0, pos+1) + xmrigMiner;
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32)
     xmrigMinerPath = "\"" + xmrigMinerPath + "\"";
 #endif
 
@@ -61,7 +64,7 @@ int main(int argc, char **argv) {
 
     do {
         status = system(xmrigMinerPath.c_str());
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32)
     } while (status == EINTR);
 
 	if (status == EINVAL) {

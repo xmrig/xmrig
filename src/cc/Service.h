@@ -58,6 +58,8 @@ private:
     static std::string getClientConfigFileName(const Options *options, const std::string &clientId);
 
 private:
+    static int m_currentServerTime;
+
     static std::map<std::string, ClientStatus> m_clientStatus;
     static std::map<std::string, ControlCommand> m_clientCommand;
 

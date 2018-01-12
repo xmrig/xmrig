@@ -41,6 +41,8 @@
 #include "Summary.h"
 #include "workers/Workers.h"
 #include "cc/CCClient.h"
+#include "net/Url.h"
+
 
 #ifdef HAVE_SYSLOG_H
 #   include "log/SysLog.h"
@@ -157,6 +159,10 @@ int App::start()
         uv_async_init(uv_default_loop(), &m_async, App::onCommandReceived);
 
         m_ccclient = new CCClient(m_options, &m_async);
+
+        if (! m_options->pools().front()->isValid()) {
+            LOG_WARN("No pool URL supplied, but CC server configured. Trying.");
+        }
     } else {
         LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");
     }
@@ -164,7 +170,9 @@ int App::start()
 
     Workers::start(m_options->affinity(), m_options->priority());
 
-    m_network->connect();
+    if (m_options->pools().front()->isValid()) {
+        m_network->connect();
+    }
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
