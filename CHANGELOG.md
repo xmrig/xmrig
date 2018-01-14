@@ -1,3 +1,7 @@
+# v1.3.2
+- Added start xmrigDaemonr without config file and only CCServer/auth token as params needed #14
+- Dashboard now uses servertime for calculation to avoid clock drifts and false offline detection
+- Finally fixed freebsd build
 # v1.3.1
 - Removed not working background mode for xmrigMiner/xmrigDaemon on *nix systems -> use screen/tmux or systemd service instead
 - Added cpu socket to client Id tooltip on dashboard
