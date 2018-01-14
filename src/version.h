@@ -66,9 +66,17 @@
 #   else
 #       define MSVC_VERSION 0
 #   endif
+#include <string>
+#else
+    #if defined(__FreeBSD__)
+        #include <string>
+    #else
+        #include <string.h>
+    #endif
 #endif
 
-#include <string>
+
+
 
 class Version
 {
