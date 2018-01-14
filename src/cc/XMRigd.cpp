@@ -31,7 +31,10 @@
     #include <signal.h>
 	#include <chrono>
 	#include <thread>
+#else
+#include <sys/wait.h>
 #endif
+
 int main(int argc, char **argv) {
 
     std::string ownPath(argv[0]);
