@@ -274,7 +274,7 @@ int Client::resolve(const char *host)
 int64_t Client::send(size_t size)
 {
     LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, m_sendBuf);
-    if (state() != ConnectedState || !uv_is_writable(m_stream)) {
+    if ((state() != ConnectedState && state() != ProxingState) || !uv_is_writable(m_stream)) {
         LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
         return -1;
     }
@@ -328,6 +328,27 @@ void Client::connect(struct sockaddr *addr)
     uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
 }
 
+void Client::prelogin()
+{
+    if (m_url.proxyHost())
+    {
+        setState (ProxingState);
+        const std::string buffer = std::string ("CONNECT ") + m_url.finalHost() + ":" + std::to_string(m_url.finalPort()) + " HTTP/1.1\n";
+
+        const size_t size = buffer.size();
+        memcpy (m_sendBuf, buffer.c_str(), size);
+        m_sendBuf[size]     = '\n';
+        m_sendBuf[size + 1] = '\0';
+
+        LOG_DEBUG("Prelogin send (%d bytes): \"%s\"", size, m_sendBuf);
+        send (size + 1);
+    }
+    else
+    {
+        setState (ConnectedState);
+        login();
+    }
+}
 
 void Client::login()
 {
@@ -565,12 +586,11 @@ void Client::onConnect(uv_connect_t *req, int status)
 
     client->m_stream = static_cast<uv_stream_t*>(req->handle);
     client->m_stream->data = req->data;
-    client->setState(ConnectedState);
 
     uv_read_start(client->m_stream, Client::onAllocBuffer, Client::onRead);
     delete req;
 
-    client->login();
+    client->prelogin();
 }
 
 
@@ -587,6 +607,22 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 
     if ((size_t) nread > (sizeof(m_buf) - 8 - client->m_recvBufPos)) {
         return client->close();
+    }
+
+    if (client->state() == ProxingState)
+    {
+        const char* const content = buf->base;
+        LOG_DEBUG("[%s:%u] received from proxy (%d bytes): \"%s\"",
+                  client->m_url.host(), client->m_url.port(),
+                  nread, content);
+
+        if(content == strstr(content, "HTTP/1.1 200"))
+        {
+            LOG_INFO("[%s:%u] Proxy connected to %s:%u!", client->m_url.host(), client->m_url.port(), client->m_url.finalHost(), client->m_url.finalPort());
+            client->setState(ConnectedState);
+            client->login();
+        }
+        return;
     }
 
     client->m_recvBufPos += nread;
