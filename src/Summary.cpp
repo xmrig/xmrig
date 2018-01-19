@@ -92,29 +92,29 @@ static void print_cpu()
 static void print_threads()
 {
     char dhtMaskBuf[256];
-    if (Options::i()->doubleHash() && Options::i()->doubleHashThreadMask() != -1L) {
+    if (Options::i()->hashFactor() > 1 && Options::i()->multiHashThreadMask() != -1L) {
 
         std::string singleThreads;
-        std::string doubleThreads;
+        std::string multiThreads;
+
+        auto addThread = [](std::string& threads, int id) {
+            if (!threads.empty()) {
+                threads.append(", ");
+            }
+            threads.append(std::to_string(id));
+        };
 
         for (int i=0; i < Options::i()->threads(); i++) {
-            if (Mem::isDoubleHash(i)) {
-                if (!doubleThreads.empty()) {
-                    doubleThreads.append(", ");
-                }
-
-                doubleThreads.append(std::to_string(i));
-            } else {
-                if (!singleThreads.empty()) {
-                    singleThreads.append(" ");
-                }
-
-                singleThreads.append(std::to_string(i));
+            if (Mem::getThreadHashFactor(i) > 1) {
+                addThread(multiThreads, i);
+            }
+            else {
+                addThread(singleThreads, i);
             }
         }
 
-        snprintf(dhtMaskBuf, 256, ", doubleHashThreadMask=0x%" PRIX64 " [single threads: %s; double threads: %s]",
-                 Options::i()->doubleHashThreadMask(), singleThreads.c_str(), doubleThreads.c_str());
+        snprintf(dhtMaskBuf, 256, ", multiHashThreadMask=0x%" PRIX64 " [single threads: %s; multihash threads: %s]",
+                 Options::i()->multiHashThreadMask(), singleThreads.c_str(), multiThreads.c_str());
     }
     else {
         dhtMaskBuf[0] = '\0';
@@ -128,10 +128,13 @@ static void print_threads()
         affBuf[0] = '\0';
     }
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%\x1B[01;37m%s%s" : " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s%s",
+    Log::i()->text(Options::i()->colors() ?
+                     "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, aes=%d, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s" :
+                     " * THREADS:      %d, %s, aes=%d, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s",
                    Options::i()->threads(),
                    Options::i()->algoName(),
-                   Options::i()->algoVariant(),
+                   Options::i()->aesni(),
+                   Options::i()->hashFactor(),
                    Options::i()->colors() && Options::i()->donateLevel() == 0 ? "\x1B[01;31m" : "",
                    Options::i()->donateLevel(),
                    affBuf,

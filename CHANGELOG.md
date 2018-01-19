@@ -1,3 +1,7 @@
+# 1.4.0
+- Fixed CPU affinity on Windows for NUMA and CPUs with lot of cores
+- Implemented per thread configurable Multihash mode (double, triple, quadruple, quintuple)
+- Rebased from XMRig 2.4.4
 # v1.3.2
 - Added start xmrigDaemonr without config file and only CCServer/auth token as params needed #14
 - Dashboard now uses servertime for calculation to avoid clock drifts and false offline detection

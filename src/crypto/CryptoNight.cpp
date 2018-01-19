@@ -5,6 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2018      Sebastian Stolzenberg <https://github.com/sebastianstolzenberg>
+ * Copyright 2018      BenDroid    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,7 +23,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "crypto/CryptoNight.h"
 
 #if defined(XMRIG_ARM)
@@ -31,129 +32,105 @@
 #endif
 
 #include "crypto/CryptoNight_test.h"
-#include "net/Job.h"
-#include "net/JobResult.h"
-#include "Options.h"
 
-
-void (*cryptonight_hash_ctx_s)(const void *input, size_t size, void *output, cryptonight_ctx *ctx) = nullptr;
-void (*cryptonight_hash_ctx_d)(const void *input, size_t size, void *output, cryptonight_ctx *ctx) = nullptr;
-
-
-static void cryptonight_av1_aesni(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx) {
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
 #   if !defined(XMRIG_ARMv7)
-    cryptonight_hash<0x80000, MEMORY, 0x1FFFF0, false>(input, size, output, ctx);
+    CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
 #   endif
 }
 
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+    CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+}
 
-static void cryptonight_av2_aesni_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_lite_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
 #   if !defined(XMRIG_ARMv7)
-    cryptonight_double_hash<0x80000, MEMORY, 0x1FFFF0, false>(input, size, output, ctx);
+    CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
 #   endif
 }
 
-
-static void cryptonight_av3_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-    cryptonight_hash<0x80000, MEMORY, 0x1FFFF0, true>(input, size, output, ctx);
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_lite_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+    CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
 }
 
+void (*cryptonight_hash_ctx[MAX_NUM_HASH_BLOCKS])(const void *input, size_t size, void *output, cryptonight_ctx *ctx);
 
-static void cryptonight_av4_softaes_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-    cryptonight_double_hash<0x80000, MEMORY, 0x1FFFF0, true>(input, size, output, ctx);
+template <size_t HASH_FACTOR>
+void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
+{
+
+    switch (algo) {
+        case Options::ALGO_CRYPTONIGHT:
+            if (aesni) {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_aesni<HASH_FACTOR>;
+            } else {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_softaes<HASH_FACTOR>;
+            }
+            break;
+
+        case Options::ALGO_CRYPTONIGHT_LITE:
+            if (aesni) {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_aesni<HASH_FACTOR>;
+            } else {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_softaes<HASH_FACTOR>;
+            }
+            break;
+    }
+    // next iteration
+    setCryptoNightHashMethods<HASH_FACTOR-1>(algo, aesni);
 }
 
-
-static void cryptonight_lite_av1_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-#   if !defined(XMRIG_ARMv7)
-    cryptonight_hash<0x40000, MEMORY_LITE, 0xFFFF0, false>(input, size, output, ctx);
-#endif
-}
-
-
-static void cryptonight_lite_av2_aesni_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-#   if !defined(XMRIG_ARMv7)
-    cryptonight_double_hash<0x40000, MEMORY_LITE, 0xFFFF0, false>(input, size, output, ctx);
-#   endif
-}
-
-
-static void cryptonight_lite_av3_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-    cryptonight_hash<0x40000, MEMORY_LITE, 0xFFFF0, true>(input, size, output, ctx);
-}
-
-
-static void cryptonight_lite_av4_softaes_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-    cryptonight_double_hash<0x40000, MEMORY_LITE, 0xFFFF0, true>(input, size, output, ctx);
-}
-
-void (*cryptonight_variations[8])(const void *input, size_t size, void *output, cryptonight_ctx *ctx) = {
-            cryptonight_av1_aesni,
-            cryptonight_av2_aesni_double,
-            cryptonight_av3_softaes,
-            cryptonight_av4_softaes_double,
-            cryptonight_lite_av1_aesni,
-            cryptonight_lite_av2_aesni_double,
-            cryptonight_lite_av3_softaes,
-            cryptonight_lite_av4_softaes_double
+template <>
+void setCryptoNightHashMethods<0>(Options::Algo algo, bool aesni)
+{
+    // template recursion abort
 };
 
-
-void CryptoNight::hash(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx)
+bool CryptoNight::init(int algo, bool aesni)
 {
-    cryptonight_hash_ctx_s(input, size, output, ctx);
-}
-
-void CryptoNight::hashDouble(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx)
-{
-    cryptonight_hash_ctx_d(input, size, output, ctx);
-}
-
-bool CryptoNight::init(int algo, int variant)
-{
-    if (variant < 1 || variant  > 4)
-    {
-        return false;
-    }
-
-    int index = 0;
-
-    if (algo == Options::ALGO_CRYPTONIGHT_LITE) {
-        index += 4;
-    }
-
-    if (variant == 3 || variant == 4)
-    {
-        index += 2;
-    }
-
-    cryptonight_hash_ctx_s = cryptonight_variations[index];
-    cryptonight_hash_ctx_d = cryptonight_variations[index+1];
-
+    setCryptoNightHashMethods<MAX_NUM_HASH_BLOCKS>(static_cast<Options::Algo>(algo), aesni);
     return selfTest(algo);
+}
+
+void CryptoNight::hash(size_t factor, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx)
+{
+    cryptonight_hash_ctx[factor-1](input, size, output, ctx);
 }
 
 bool CryptoNight::selfTest(int algo)
 {
-    if (cryptonight_hash_ctx_s == nullptr || cryptonight_hash_ctx_d == nullptr) {
+    if (cryptonight_hash_ctx[0] == nullptr || cryptonight_hash_ctx[2] == nullptr ||
+        cryptonight_hash_ctx[2] == nullptr || cryptonight_hash_ctx[3] == nullptr ||
+		cryptonight_hash_ctx[4] == nullptr) {
         return false;
     }
 
-    char output[64];
+    char output[160];
 
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
-    ctx->memory = (uint8_t *) _mm_malloc(MEMORY * 2, 16);
+    auto ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
+    ctx->memory = (uint8_t *) _mm_malloc(MEMORY * 6, 16);
 
-    cryptonight_hash_ctx_s(test_input, 76, output, ctx);
-
+    cryptonight_hash_ctx[0](test_input, 76, output, ctx);
     bool resultSingle = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 32) == 0;
 
-    cryptonight_hash_ctx_d(test_input, 76, output, ctx);
+    cryptonight_hash_ctx[1](test_input, 76, output, ctx);
+    bool resultDouble = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 64) == 0;
+
+    cryptonight_hash_ctx[2](test_input, 76, output, ctx);
+    bool resultTriple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 96) == 0;
+
+    cryptonight_hash_ctx[3](test_input, 76, output, ctx);
+    bool resultQuadruple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 128) == 0;
+
+    cryptonight_hash_ctx[4](test_input, 76, output, ctx);
+    bool resultQuintuple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 160) == 0;
 
     _mm_free(ctx->memory);
     _mm_free(ctx);
 
-    bool resultDouble = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 64) == 0;
-
-    return resultSingle && resultDouble;
+    return resultSingle && resultDouble && resultTriple && resultQuadruple && resultQuintuple;
 }

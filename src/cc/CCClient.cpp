@@ -79,7 +79,7 @@ CCClient::CCClient(Options* options, uv_async_t* async)
 
     m_clientStatus.setHugepagesEnabled(Mem::isHugepagesEnabled());
     m_clientStatus.setHugepages(Mem::isHugepagesAvailable());
-    m_clientStatus.setDoubleHashMode(m_options->doubleHash());
+    m_clientStatus.setHashFactor(Mem::hashFactor());
 
     m_clientStatus.setVersion(Version::string());
     m_clientStatus.setCpuBrand(Cpu::brand());

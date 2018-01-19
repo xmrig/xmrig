@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2018      BenDroid    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -25,10 +26,10 @@
 #include <windows.h>
 
 
-#include "Cpu.h"
+#include "CpuImpl.h"
+#include "Mem.h"
 
-
-void Cpu::init()
+void CpuImpl::init()
 {
 #   ifdef XMRIG_NO_LIBCPUID
     SYSTEM_INFO sysinfo;
@@ -41,12 +42,24 @@ void Cpu::init()
 }
 
 
-void Cpu::setAffinity(int id, uint64_t mask)
+void CpuImpl::setAffinity(int id, uint64_t mask)
 {
     if (id == -1) {
         SetProcessAffinityMask(GetCurrentProcess(), mask);
-    }
-    else {
-        SetThreadAffinityMask(GetCurrentThread(), mask);
+    } else {
+        Mem::ThreadBitSet threadAffinityMask = Mem::ThreadBitSet(mask);
+
+        int threadCount = 0;
+
+        for (int i = 0; i < m_totalThreads; i++) {
+            if (threadAffinityMask.test(i)) {
+                if (threadCount == id) {
+                    SetThreadAffinityMask(GetCurrentThread(), 1ULL << i);
+                    break;
+                }
+
+                threadCount++;
+            }
+        }
     }
 }

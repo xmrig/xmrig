@@ -23,9 +23,8 @@
  */
 
 
-#include <string.h>
+#include <cstring>
 #include <uv.h>
-
 
 #ifdef _MSC_VER
 #   include "getopt/getopt.h"
@@ -75,7 +74,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --doublehash-thread-mask          for av=2/4 only, limits doublehash to given threads (mask), (default: all threads)\n\
+      --multihash-thread-mask          for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages                   disable huge pages support\n\
@@ -127,6 +126,8 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 static struct option const options[] = {
     { "algo",             1, nullptr, 'a'  },
     { "av",               1, nullptr, 'v'  },
+    { "aesni",            1, nullptr, 'A'  },
+    { "multihash-factor",       1, nullptr, 'm'  },
     { "background",       0, nullptr, 'B'  },
     { "config",           1, nullptr, 'c'  },
     { "cpu-affinity",     1, nullptr, 1020 },
@@ -165,13 +166,16 @@ static struct option const options[] = {
     { "cc-custom-dashboard",        1, nullptr, 4010 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
-    { 0, 0, 0, 0 }
+    { "multihash-thread-mask",     1, nullptr, 4013 },
+    { nullptr, 0, nullptr, 0 }
 };
 
 
 static struct option const config_options[] = {
     { "algo",          1, nullptr, 'a'  },
     { "av",            1, nullptr, 'v'  },
+    { "aesni",         1, nullptr, 'A'  },
+    { "multihash-factor",    1, nullptr, 'm'  },
     { "background",    0, nullptr, 'B'  },
     { "colors",        0, nullptr, 2000 },
     { "cpu-affinity",  1, nullptr, 1020 },
@@ -188,7 +192,8 @@ static struct option const config_options[] = {
     { "threads",       1, nullptr, 't'  },
     { "user-agent",    1, nullptr, 1008 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
-    { 0, 0, 0, 0 }
+    { "multihash-thread-mask",     1, nullptr, 4013 },
+    { nullptr, 0, nullptr, 0 }
 };
 
 
@@ -199,7 +204,7 @@ static struct option const pool_options[] = {
     { "userpass",      1, nullptr, 'O'  },
     { "keepalive",     0, nullptr ,'k'  },
     { "nicehash",      0, nullptr, 1006 },
-    { 0, 0, 0, 0 }
+    { nullptr, 0, nullptr, 0 }
 };
 
 
@@ -207,7 +212,7 @@ static struct option const api_options[] = {
     { "port",          1, nullptr, 4000 },
     { "access-token",  1, nullptr, 4001 },
     { "worker-id",     1, nullptr, 4002 },
-    { 0, 0, 0, 0 }
+    { nullptr, 0, nullptr, 0 }
 };
 
 
@@ -216,7 +221,7 @@ static struct option const cc_client_options[] = {
     { "access-token",           1, nullptr, 4004 },
     { "worker-id",              1, nullptr, 4005 },
     { "update-interval-s",      1, nullptr, 4012 },
-    { 0, 0, 0, 0 }
+    { nullptr, 0, nullptr, 0 }
 };
 
 static struct option const cc_server_options[] = {
@@ -226,7 +231,7 @@ static struct option const cc_server_options[] = {
     { "pass",                   1, nullptr, 4008 },
     { "client-config-folder",   1, nullptr, 4009 },
     { "custom-dashboard",       1, nullptr, 4010 },
-    { 0, 0, 0, 0 }
+    { nullptr, 0, nullptr, 0 }
 };
 
 static const char *algo_names[] = {
@@ -239,7 +244,7 @@ static const char *algo_names[] = {
 
 Options *Options::parse(int argc, char **argv)
 {
-    Options *options = new Options(argc, argv);
+    auto options = new Options(argc, argv);
     if (options->isReady()) {
         m_self = options;
         return m_self;
@@ -259,7 +264,6 @@ const char *Options::algoName() const
 Options::Options(int argc, char **argv) :
     m_background(false),
     m_colors(true),
-    m_doubleHash(false),
     m_hugePages(true),
     m_ready(false),
     m_safe(false),
@@ -277,8 +281,10 @@ Options::Options(int argc, char **argv) :
     m_ccAdminPass(nullptr),
     m_ccClientConfigFolder(nullptr),
     m_ccCustomDashboard(nullptr),
-    m_algo(0),
-    m_algoVariant(0),
+    m_algo(ALGO_CRYPTONIGHT),
+    m_algoVariant(AV0_AUTO),
+    m_aesni(AESNI_AUTO),
+    m_hashFactor(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
     m_maxCpuUsage(75),
@@ -290,14 +296,14 @@ Options::Options(int argc, char **argv) :
     m_ccUpdateInterval(10),
     m_ccPort(0),
     m_affinity(-1L),
-    m_doubleHashThreadMask(-1L)
+    m_multiHashThreadMask(-1L)
 {
     m_pools.push_back(new Url());
 
     int key;
 
-    while (1) {
-        key = getopt_long(argc, argv, short_options, options, NULL);
+    while (true) {
+        key = getopt_long(argc, argv, short_options, options, nullptr);
         if (key < 0) {
             break;
         }
@@ -337,22 +343,9 @@ Options::Options(int argc, char **argv) :
         fprintf(stderr, "Neither pool nor CCServer URL supplied. Exiting.\n");
         return;
     }
-
-    m_algoVariant = getAlgoVariant();
-    if (m_algoVariant == AV2_AESNI_DOUBLE || m_algoVariant == AV4_SOFT_AES_DOUBLE) {
-        m_doubleHash = true;
-    }
 #endif
 
-    if (!m_threads) {
-        m_threads = Cpu::optimalThreadsCount(m_algo, m_doubleHash, m_maxCpuUsage);
-    }
-    else if (m_safe) {
-        const int count = Cpu::optimalThreadsCount(m_algo, m_doubleHash, m_maxCpuUsage);
-        if (m_threads > count) {
-            m_threads = count;
-        }
-    }
+    optimizeAlgorithmConfiguration();
 
     for (Url *url : m_pools) {
         url->applyExceptions();
@@ -407,7 +400,7 @@ bool Options::parseArg(int key, const char *arg)
 
     case 'o': /* --url */
         if (m_pools.size() > 1 || m_pools[0]->isValid()) {
-            Url *url = new Url(arg);
+            auto url = new Url(arg);
             if (url->isValid()) {
                 m_pools.push_back(url);
             }
@@ -494,6 +487,8 @@ bool Options::parseArg(int key, const char *arg)
     case 'r':  /* --retries */
     case 'R':  /* --retry-pause */
     case 'v':  /* --av */
+    case 'A':  /* --aesni */
+    case 'm':  /* --multihash-factor */
     case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
@@ -541,7 +536,7 @@ bool Options::parseArg(int key, const char *arg)
         return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
     }
 
-    case 4013: { /* --doublehash-thread-mask */
+    case 4013: { /* --multihash-thread-mask */
         const char *p  = strstr(arg, "0x");
         return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
     }
@@ -596,7 +591,23 @@ bool Options::parseArg(int key, uint64_t arg)
             return false;
         }
 
-        m_algoVariant = (int) arg;
+        m_algoVariant = static_cast<AlgoVariant>(arg);
+        break;
+
+    case 'A':  /* --aesni */
+        if (arg < AESNI_AUTO || arg > AESNI_OFF) {
+            showUsage(1);
+            return false;
+        }
+        m_aesni = static_cast<AesNi>(arg);
+        break;
+
+    case 'm':  /* --multihash-factor */
+        if (arg > MAX_NUM_HASH_BLOCKS) {
+            showUsage(1);
+            return false;
+        }
+        m_hashFactor = arg;
         break;
 
     case 1003: /* --donate-level */
@@ -658,9 +669,9 @@ bool Options::parseArg(int key, uint64_t arg)
         m_ccUpdateInterval = (int) arg;
         break;
 
-    case 4013: /* --doublehash-thread-mask */
+    case 4013: /* --multihash-thread-mask */
         if (arg) {
-            m_doubleHashThreadMask = arg;
+            m_multiHashThreadMask = arg;
         }
         break;
     default:
@@ -737,8 +748,8 @@ void Options::parseConfig(const char *fileName)
         return;
     }
 
-    for (size_t i = 0; i < ARRAY_SIZE(config_options); i++) {
-        parseJSON(&config_options[i], doc);
+    for (auto option : config_options) {
+        parseJSON(&option, doc);
     }
 
     const rapidjson::Value &pools = doc["pools"];
@@ -748,30 +759,30 @@ void Options::parseConfig(const char *fileName)
                 continue;
             }
 
-            for (size_t i = 0; i < ARRAY_SIZE(pool_options); i++) {
-                parseJSON(&pool_options[i], value);
+            for (auto option : pool_options) {
+                parseJSON(&option, value);
             }
         }
     }
 
     const rapidjson::Value &api = doc["api"];
     if (api.IsObject()) {
-        for (size_t i = 0; i < ARRAY_SIZE(api_options); i++) {
-            parseJSON(&api_options[i], api);
+        for (auto api_option : api_options) {
+            parseJSON(&api_option, api);
         }
     }
 
     const rapidjson::Value &ccClient = doc["cc-client"];
     if (ccClient.IsObject()) {
-        for (size_t i = 0; i < ARRAY_SIZE(cc_client_options); i++) {
-            parseJSON(&cc_client_options[i], ccClient);
+        for (auto cc_client_option : cc_client_options) {
+            parseJSON(&cc_client_option, ccClient);
         }
     }
 
     const rapidjson::Value &ccServer = doc["cc-server"];
     if (ccServer.IsObject()) {
-        for (size_t i = 0; i < ARRAY_SIZE(cc_server_options); i++) {
-            parseJSON(&cc_server_options[i], ccServer);
+        for (auto cc_server_option : cc_server_options) {
+            parseJSON(&cc_server_option, ccServer);
         }
     }
 }
@@ -848,7 +859,7 @@ bool Options::setAlgo(const char *algo)
 {
     for (size_t i = 0; i < ARRAY_SIZE(algo_names); i++) {
         if (algo_names[i] && !strcmp(algo, algo_names[i])) {
-            m_algo = (int) i;
+            m_algo = static_cast<Algo>(i);
             break;
         }
 
@@ -868,41 +879,50 @@ bool Options::setAlgo(const char *algo)
     return true;
 }
 
-
-int Options::getAlgoVariant() const
+void Options::optimizeAlgorithmConfiguration()
 {
-#   ifndef XMRIG_NO_AEON
-    if (m_algo == ALGO_CRYPTONIGHT_LITE) {
-        return getAlgoVariantLite();
+    // backwards compatibility for configs still setting algo variant (av)
+    // av overrides mutli-hash and aesni when they are either not set or when they are set to auto
+    if (m_algoVariant != AV0_AUTO) {
+        size_t hashFactor = m_hashFactor;
+        AesNi aesni = m_aesni;
+        switch (m_algoVariant) {
+            case AV1_AESNI:
+                hashFactor = 1;
+                aesni = AESNI_ON;
+                break;
+            case AV2_AESNI_DOUBLE:
+                hashFactor = 2;
+                aesni = AESNI_ON;
+                break;
+            case AV3_SOFT_AES:
+                hashFactor = 1;
+                aesni = AESNI_OFF;
+                break;
+            case AV4_SOFT_AES_DOUBLE:
+                hashFactor = 2;
+                aesni = AESNI_OFF;
+                break;
+            case AV0_AUTO:
+            default:
+                // no change
+                break;
+        }
+        if (m_hashFactor == 0) {
+            m_hashFactor = hashFactor;
+        }
+        if (m_aesni == AESNI_AUTO) {
+            m_aesni = aesni;
+        }
     }
-#   endif
 
-    if (m_algoVariant <= AV0_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV1_AESNI : AV3_SOFT_AES;
+    AesNi aesniFromCpu = Cpu::hasAES() ? AESNI_ON : AESNI_OFF;
+    if (m_aesni == AESNI_AUTO || m_safe) {
+        m_aesni = aesniFromCpu;
     }
 
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV2_AESNI_DOUBLE) {
-        return m_algoVariant + 2;
-    }
-
-    return m_algoVariant;
+    Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_maxCpuUsage, m_safe);
 }
-
-
-#ifndef XMRIG_NO_AEON
-int Options::getAlgoVariantLite() const
-{
-    if (m_algoVariant <= AV0_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV2_AESNI_DOUBLE : AV4_SOFT_AES_DOUBLE;
-    }
-
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV2_AESNI_DOUBLE) {
-        return m_algoVariant + 2;
-    }
-
-    return m_algoVariant;
-}
-#endif
 
 bool Options::parseCCUrl(const char* url)
 {

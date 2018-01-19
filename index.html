@@ -386,7 +386,7 @@
             var clientId = $('#minerEditor').find('.form-group')["0"].dataset.value;
             var clientConfig = $('#config').val();
 
-            setClientConfig(clientId, clientConfig, false);
+            setClientConfig(clientId, clientConfig);
         });
 
         $('#multiMinerEditorReplace').click(function(event) {
@@ -406,7 +406,7 @@
                         jsonClientConfig = JSON.stringify(jsonClientConfig,undefined, 2);
                         jsonClientConfig = jsonClientConfig.replace(new RegExp(search.trim(), 'g'), replacement.trim()).trim();
 
-                        setClientConfig(clientId, jsonClientConfig, true);
+                        setClientConfig(clientId, jsonClientConfig);
                     },
                     error: function (data) {
                         setError('<strong>Unable to fetch ' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
@@ -471,7 +471,7 @@
             tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
             tooltip += '\n';
             tooltip += "Used Threads: " + row.client_status.current_threads;
-            tooltip += (row.client_status.double_hash_mode ? " [double hash mode]" :"");
+            tooltip += (row.client_status.hash_factor > 1 ? " [" + row.client_status.hash_factor + "x multi hash mode]" :"");
             tooltip += '\n';
             tooltip += "Client IP: " + row.client_status.external_ip;
             tooltip += '\n';
@@ -531,25 +531,17 @@
         }, 10000);
     }
 
-    function setClientConfig(clientId, clientConfig, isMultiConfigEdit) {
+    function setClientConfig(clientId, clientConfig) {
         $.ajax({
             url: "/admin/setClientConfig?clientId=" + clientId,
             type: 'POST',
             dataType: "text",
             data: clientConfig,
             success: function(data){
-                if (isMultiConfigEdit) {
-                    setSuccess('<strong>Successfully updated configs for the selected miners</strong> - You need push the config to the miners to apply the config.');
-                } else {
-                    setSuccess('<strong>Successfully updated config for: ' + clientId + '</strong> - You need push the config to the miner to apply the config.');
-                }
+                setSuccess('<strong>Successfully updated config for: ' + clientId + '</strong> - You need push the config to the miner to apply the config.');
             },
             error: function (data) {
-                if (isMultiConfigEdit) {
-                    setError('<strong>Failed to update configs for the selected miners</strong> \nError:' +  JSON.stringify(data,undefined, 2));
-                } else {
-                    setError('<strong>Failed to update config for: ' + clientId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
-                }
+                setError('<strong>Failed to update config for: ' + clientId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
             }
         });
     }

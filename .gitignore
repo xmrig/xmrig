@@ -1,3 +1,5 @@
+/test/CMakeFiles
+/test/*/CMakeFiles
 /build
 /CMakeLists.txt.user
 /.idea
@@ -7,3 +9,4 @@
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+cmake-build-release/
