@@ -85,8 +85,8 @@ public:
     bool isHugepagesEnabled() const;
     void setHugepagesEnabled(bool hugepagesEnabled);
 
-    bool isDoubleHashMode() const;
-    void setDoubleHashMode(bool isDoubleHashMode);
+    int getHashFactor() const;
+    void setHashFactor(int hashFactor);
 
     bool isCpuX64() const;
     void setCpuX64(bool isCpuX64);
@@ -161,10 +161,10 @@ private:
 
     bool m_hasHugepages;
     bool m_isHugepagesEnabled;
-    bool m_isDoubleHashMode;
     bool m_isCpuX64;
     bool m_hasCpuAES;
 
+    int m_hashFactor;
     double m_hashrateShort;
     double m_hashrateMedium;
     double m_hashrateLong;

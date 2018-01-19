@@ -27,16 +27,15 @@
 
 #include "crypto/CryptoNight.h"
 #include "Mem.h"
-#include "Options.h"
 
 
-bool Mem::m_doubleHash   = false;
 int Mem::m_algo          = 0;
 int Mem::m_flags         = 0;
-int Mem::m_threads       = 0;
+size_t Mem::m_hashFactor = 1;
+size_t Mem::m_threads    = 0;
 size_t Mem::m_memorySize = 0;
 uint8_t *Mem::m_memory   = nullptr;
-int64_t Mem::m_doubleHashThreadMask = -1L;
+Mem::ThreadBitSet Mem::m_multiHashThreadMask = Mem::ThreadBitSet(-1L);
 
 cryptonight_ctx *Mem::create(int threadId)
 {
@@ -45,7 +44,7 @@ cryptonight_ctx *Mem::create(int threadId)
     size_t offset = 0;
     for (int i=0; i < threadId; i++) {
         offset += sizeof(cryptonight_ctx);
-        offset += isDoubleHash(i) ? scratchPadSize*2 : scratchPadSize;
+        offset += scratchPadSize * getThreadHashFactor(i);
     }
 
     auto* ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset]);

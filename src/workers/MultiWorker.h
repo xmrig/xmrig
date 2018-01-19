@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2018      Sebastian Stolzenberg <https://github.com/sebastianstolzenberg>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,10 +22,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SINGLEWORKER_H__
-#define __SINGLEWORKER_H__
+#ifndef __MULTIWORKER_H__
+#define __MULTIWORKER_H__
 
 
+#include "align.h"
 #include "net/Job.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
@@ -32,23 +34,7 @@
 
 class Handle;
 
-
-class SingleWorker : public Worker
-{
-public:
-    SingleWorker(Handle *handle);
-
-    void start() override;
-
-private:
-    bool resume(const Job &job);
-    void consumeJob();
-    void save(const Job &job);
-
-    Job m_job;
-    Job m_paused;
-    JobResult m_result;
-};
+Worker* createMultiWorker(size_t numHashes, Handle *handle);
 
 
 #endif /* __SINGLEWORKER_H__ */

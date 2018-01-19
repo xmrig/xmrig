@@ -26,24 +26,24 @@
 #define __VERSION_H__
 
 #ifdef XMRIG_CC_SERVER
-#define APP_ID        "xmrigCC"
+#define APP_ID        "XMRigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC Command'n'Control Server"
 #define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 # else
-#define APP_ID        "xmrigCC"
+#define APP_ID        "XMRigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC CPU miner"
 #define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 #endif
-#define APP_VERSION   "1.3.2 (based on XMRig 2.4.3)"
+#define APP_VERSION   "1.4.0 (based on XMRig 2.4.4)"
 #define APP_DOMAIN    ""
 #define APP_SITE      "https://github.com/Bendr0id/xmrigCC"
 #define APP_KIND      "cpu"
 
 #define APP_VER_MAJOR  1
-#define APP_VER_MINOR  3
-#define APP_VER_BUILD  2
+#define APP_VER_MINOR  4
+#define APP_VER_BUILD  0
 #define APP_VER_REV    0
 
 #ifndef NDEBUG

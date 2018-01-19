@@ -148,19 +148,14 @@ bool Mem::allocate(const Options* options)
 {
     m_algo       = options->algo();
     m_threads    = options->threads();
-    m_doubleHash = options->doubleHash();
-    m_doubleHashThreadMask = options->doubleHashThreadMask();
+    m_hashFactor = options->hashFactor();
+    m_multiHashThreadMask = Mem::ThreadBitSet(options->multiHashThreadMask());
     m_memorySize = 0;
 
     size_t scratchPadSize = m_algo == Options::ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
     for (int i=0; i < m_threads; i++) {
         m_memorySize += sizeof(cryptonight_ctx);
-
-        if (isDoubleHash(i)) {
-            m_memorySize += scratchPadSize*2;
-        } else {
-            m_memorySize += scratchPadSize;
-        }
+        m_memorySize += scratchPadSize * getThreadHashFactor(i);
     }
 
     m_memorySize = m_memorySize - (m_memorySize % MEMORY) + MEMORY;

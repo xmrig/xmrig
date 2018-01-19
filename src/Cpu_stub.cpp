@@ -108,13 +108,6 @@ int Cpu::m_totalCores   = 0;
 int Cpu::m_totalThreads = 0;
 
 
-int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
-{
-    int count = m_totalThreads / 2;
-    return count < 1 ? 1 : count;
-}
-
-
 void Cpu::initCommon()
 {
     cpu_brand_string(m_brand);

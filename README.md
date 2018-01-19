@@ -106,12 +106,13 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -O, --userpass=U:P                    username:password pair for mining server
   -u, --user=USERNAME                   username for mining server
   -p, --pass=PASSWORD                   password for mining server
-  -t, --threads=N                       number of miner threads
-  -v, --av=N                            algorithm variation, 0 auto select
+  -t, --threads=N                       number of miner threads (0 enables automatic selection of optimal number of threads, default: 0)
+  -m, --multihash-factor=N              number of hash blocks per thread to process at a time (0 enables automatic selection of optimal number of hash blocks, default: 0)
+  -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off, default: 0)
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N                   time to pause between retries (default: 5)
-      --doublehash-thread-mask          for av=2/4 only, limits doublehash to given threads (mask), (default: all threads)
+      --multihash-thread-mask           for multihash-factor > 1 only, limits multihash to given threads (mask), (default: all threads)
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)
       --no-huge-pages                   disable huge pages support
@@ -135,33 +136,51 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -l, --log-file=FILE                   log all output to a file
   -h, --help                            display this help and exit
   -V, --version                         output version information and exit
+  -v, --av=N                            DEPRECATED - algorithm variation, 0 auto select
+      --doublehash-thread-mask          DEPRECATED - same as multihash-thread-mask
 
 ```
 
 Also you can use configuration via config file, default **[config.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigDaemon)**. You can load multiple config files and combine it with command line options.
 
-## Algorithm variations
-* `--av=1` For CPUs with hardware AES.
-* `--av=2` Lower power mode (double hash) of `1`.
-* `--av=3` Software AES implementation.
-* `--av=4` Lower power mode (double hash) of `3`.
+## Multihash (multihash-factor)
+With this option it is possible to increase the number of hashblocks calculated by a single thread in each round.
+Selecting multihash-factors greater than 1 increases the L3 cache demands relative to the multihash-factor.
+E.g. at multihash-factor 2, each Cryptonight thread requires 4MB and each Cryptonight-lite thread requires 2 MB of L3 cache.
+With multihash-factor 3, they need 6MB or 3MB respectively.
 
-## Doublehash thread Mask (only for low power mode (av=2 and av=4))
-With this option you can limit doublehash to the given threads (mask). This can significantly improve your hashrate by using unused l3 cache. The default is to run av2/av4 mode on all threads.
+Setting multihash-factor to 0 will allow automatic detection of the optimal value.
+Xmrig will then try to utilize as much of the L3 cache as possible for the selected number of threads.
+If the threads parameter has been set to auto, Xmrig will detect the optimal number of threads first.
+After that it finds the greatest possible multihash-factor.
+
+### Multihash for low power operation
+Depending the CPU and its L3 caches, it can make sense to replace multiple single hash threads with single multi-hash counterparts.
+This change might come at the price of a minor drop in effective hash-rate, yet it will also reduce heat production and power consumption of the used CPU.
+
+### Multihash for optimal CPU exploitation
+In certain environments (e.g. vServer) the system running xmrig can have access to relatively large amounts of L3 cache, but may has access to only a few CPU cores.
+In such cases, running xmrig with higher multihash-factors can lead to improvements.
+
+
+## Multihash thread Mask (only for multihash-factor > 1)
+With this option you can limit multihash to the given threads (mask).
+This can significantly improve your hashrate by using unused l3 cache.
+The default is to run the configured multihash-factor on all threads.
 
 
 ```
 {
 ...
 
-"av":2,
-"doublehash-thread-mask":"0x5", // in binary -> 0101
+"multihash-factor":2,
+"multihash-thread-mask":"0x5", // in binary -> 0101
 "threads": 4,
 
 ...
 }
 ``` 
-This will limit doublehash mode (av=2,av=4) to thread 0 and thread 2, thread 1 and thread 3 will run in single hashmode (av=1,av=3).
+This will limit multihash mode (multihash-factor = 2) to thread 0 and thread 2, thread 1 and thread 3 will run in single hashmode.
 
 
 ## Common Issues
@@ -193,13 +212,18 @@ This will limit doublehash mode (av=2,av=4) to thread 0 and thread 2, thread 1 a
 
 
 ### CPU mining performance
-Please note performance is highly dependent on system load. The numbers above are obtained on an idle system. Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate. Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB (Cryptonight) or 1MB (Cryptonigh-Lite) of cache.
+Please note performance is highly dependent on system load.
+The numbers above are obtained on an idle system.
+Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate.
+Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB (Cryptonight) or 1MB (Cryptonigh-Lite) of cache.
 
 ### Maximum performance checklist
 * Idle operating system.
 * Do not exceed optimal thread count.
 * Use modern CPUs with AES-NI instruction set.
 * Try setup optimal cpu affinity.
+* Try decreasing number of threads while increasing multihash-factor.
+  Allocate unused cores and L3 cache with the help of multihash-thread-mask.
 * Enable fast memory (Large/Huge pages).
 
 ## Donations
