@@ -35,6 +35,7 @@
 
 
 #include "Cpu.h"
+#include "CpuImpl.h"
 
 
 #define VENDOR_ID                  (0)
@@ -99,28 +100,19 @@ static inline bool has_bmi2() {
 }
 
 
-char Cpu::m_brand[64]   = { 0 };
-int Cpu::m_flags        = 0;
-int Cpu::m_l2_cache     = 0;
-int Cpu::m_l3_cache     = 0;
-int Cpu::m_sockets      = 1;
-int Cpu::m_totalCores   = 0;
-int Cpu::m_totalThreads = 0;
-
-
-void Cpu::initCommon()
+void CpuImpl::initCommon()
 {
     cpu_brand_string(m_brand);
 
 #   if defined(__x86_64__) || defined(_M_AMD64)
-    m_flags |= X86_64;
+    m_flags |= Cpu::X86_64;
 #   endif
 
     if (has_aes_ni()) {
-        m_flags |= AES;
+        m_flags |= Cpu::AES;
     }
 
     if (has_bmi2()) {
-        m_flags |= BMI2;
+        m_flags |= Cpu::BMI2;
     }
 }

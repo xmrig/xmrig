@@ -27,17 +27,6 @@
 
 #include "Cpu.h"
 
-void CpuImpl::init()
-{
-    m_brand = {0};
-    m_flags = 0;
-    m_l2_cache = 0;
-    m_l3_cache = 0;
-    m_sockets = 1;
-    m_totalCores = 0;
-    m_totalThreads = 0;
-}
-
 void CpuImpl::initCommon()
 {
     memcpy(m_brand, "Unknown", 7);
