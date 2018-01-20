@@ -31,7 +31,7 @@ build_script:
 
 after_build:
 - cd c:\xmrigCC
-- cmd: 7z a xmrigCC-mvc-win64.zip "c:\xmrigCC\build\Release\*.*" "c:\xmrigCC\src\*config*" "c:\xmrigCC\index.html"
+- cmd: 7z a xmrigCC-mvc-win64.zip "c:\xmrigCC\build\Release\*.exe" "c:\xmrigCC\src\*config*" "c:\xmrigCC\index.html"
 - cmd: dir
 
 artifacts:
