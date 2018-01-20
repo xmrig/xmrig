@@ -113,7 +113,7 @@ App::~App()
 int App::exec()
 {
     if (!m_options) {
-        return 0;
+        return 2;
     }
 
     uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
