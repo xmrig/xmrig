@@ -59,6 +59,7 @@ public:
     inline bool background() const                { return m_background; }
     inline bool colors() const                    { return m_colors; }
     inline bool doubleHash() const                { return m_doubleHash; }
+    inline bool dryRun() const                    { return m_dryRun; }
     inline bool hugePages() const                 { return m_hugePages; }
     inline bool syslog() const                    { return m_syslog; }
     inline const char *apiToken() const           { return m_apiToken; }
@@ -110,6 +111,7 @@ private:
     bool m_background;
     bool m_colors;
     bool m_doubleHash;
+    bool m_dryRun;
     bool m_hugePages;
     bool m_ready;
     bool m_safe;
