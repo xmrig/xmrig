@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <algorithm>
 
 
 #include "net/Url.h"
@@ -43,7 +44,8 @@ Url::Url() :
     m_user(nullptr),
     m_port(kDefaultPort),
     m_proxy_host(nullptr),
-    m_proxy_port(kDefaultProxyPort)
+    m_proxy_port(kDefaultProxyPort),
+    m_keystream(nullptr)
 {
 }
 
@@ -66,8 +68,9 @@ Url::Url(const char *url) :
     m_password(nullptr),
     m_user(nullptr),
     m_port(kDefaultPort),
-    m_proxy_host (nullptr),
-    m_proxy_port (kDefaultProxyPort)
+    m_proxy_host(nullptr),
+    m_proxy_port(kDefaultProxyPort),
+    m_keystream(nullptr)
 {
     parse(url);
 }
@@ -79,8 +82,9 @@ Url::Url(const char *host, uint16_t port, const char *user, const char *password
     m_password(password ? strdup(password) : nullptr),
     m_user(user ? strdup(user) : nullptr),
     m_port(port),
-    m_proxy_host (nullptr),
-    m_proxy_port (kDefaultProxyPort)
+    m_proxy_host(nullptr),
+    m_proxy_port(kDefaultProxyPort),
+    m_keystream(nullptr)
 {
     m_host = strdup(host);
 }
@@ -91,8 +95,9 @@ Url::~Url()
     free(m_host);
     free(m_password);
     free(m_user);
+    free(m_proxy_host);
+    free(m_keystream);
 }
-
 
 bool Url::parse(const char *url)
 {
@@ -123,13 +128,30 @@ bool Url::parse(const char *url)
     m_host[size - 1] = '\0';
 
     const char* proxy = strchr(port, '@');
+    const char* keystream = strchr(port, '#');
+    if(keystream)
+    {
+        ++keystream;
+        if(!proxy)
+        {
+            m_keystream = strdup(keystream);
+        }
+        else
+        {
+            const size_t keystreamsize = proxy - keystream;
+            m_keystream = static_cast<char*>(malloc (keystreamsize + 1));
+            m_keystream[keystreamsize] = '\0';
+            memcpy(m_keystream, keystream, keystreamsize);
+        }
+    }
+
     m_port = (uint16_t) strtol(port, nullptr, 10);
     if (!proxy) {
         m_port = (uint16_t) strtol(port, nullptr, 10);
         return true;
     }
-
-	++proxy;
+    
+    ++proxy;
 
     const char* proxyport = strchr(proxy, ':');
     if (!port) {
@@ -203,6 +225,14 @@ void Url::setUser(const char *user)
     m_user = strdup(user);
 }
 
+void Url::copyKeystream(char *keystreamDest, const size_t keystreamLen) const
+{
+    if(hasKeystream())
+    {
+        memset(keystreamDest, 1, keystreamLen);
+        memcpy(keystreamDest, m_keystream, std::min(keystreamLen, strlen(m_keystream)));
+    }
+}
 
 Url &Url::operator=(const Url *other)
 {
@@ -217,7 +247,7 @@ Url &Url::operator=(const Url *other)
     free (m_proxy_host);
     if(other->m_proxy_host)
     {
-    m_proxy_host = strdup (other->m_proxy_host);
+        m_proxy_host = strdup (other->m_proxy_host);
     }
     else
     {
@@ -227,5 +257,14 @@ Url &Url::operator=(const Url *other)
     setPassword(other->m_password);
     setUser(other->m_user);
 
+    free (m_keystream);
+    if(other->m_keystream)
+    {
+        m_keystream = strdup (other->m_keystream);
+    }
+    else
+    {
+        m_keystream = nullptr;
+    }
     return *this;
 }

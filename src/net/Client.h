@@ -79,7 +79,7 @@ private:
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseLogin(const rapidjson::Value &result, int *code);
     int resolve(const char *host);
-    int64_t send(size_t size);
+    int64_t send(size_t size, const bool encrypted = true);
     void close();
     void connect(struct sockaddr *addr);
     void prelogin();
@@ -106,6 +106,8 @@ private:
     char m_ip[17];
     char m_rpcId[64];
     char m_sendBuf[768];
+    char m_keystream[sizeof(m_sendBuf)];
+    bool m_encrypted;
     const char *m_agent;
     IClientListener *m_listener;
     int m_id;

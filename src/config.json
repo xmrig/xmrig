@@ -1,5 +1,6 @@
 {
     "algo": "cryptonight",  // cryptonight (default) or cryptonight-lite
+    "user-agent": "",       // custom user-agent
     "av": 0,                // algorithm variation, 0 auto select
     "background": false,    // true to run the miner in the background
     "colors": true,         // false to disable colored output    
@@ -17,19 +18,15 @@
     "threads": null,        // number of miner threads
     "pools": [
         {
-            "url": "pool.minemonero.pro:5555", // URL of mining server
+            "url": "pool.minemonero.pro:3333",                   // ---------------  URL of mining server
+        /*  "url": "pool.minemonero.pro:443@localhost:8080",*/   // ---------------  URL of mining server over HTTP (CONNECT) proxy
+        /*  "url": "pool.minemonero.pro:7777#secret_keystream",*/                 // URL of mining xmrig-proxy with encrypted support
+        /*  "url": "pool.minemonero.pro:8080#secret_keystream@localhost:8080",*/  // URL of mining xmrig-proxy with encrypted support over HTTP (CONNECT) proxy
             "user": "",                        // username for mining server
             "pass": "x",                       // password for mining server
             "keepalive": true,                 // send keepalived for prevent timeout (need pool support)
             "nicehash": false                  // enable nicehash/xmrig-proxy support
-        },
-        {
-            "url": "pool.minemonero.pro:5555@localhost:8080",// URL of mining server with localhost proxy (example)
-            "user": "",                                      // username for mining server
-            "pass": "x",                                     // password for mining server
-            "keepalive": true,                               // send keepalived for prevent timeout (need pool support)
-            "nicehash": false                                // enable nicehash/xmrig-proxy support
-       }
+        }
     ],
     "api": {
         "port": 0,                             // port for the miner API https://github.com/xmrig/xmrig/wiki/API
