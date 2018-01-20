@@ -481,7 +481,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
 
     clientStatus.AddMember("avg_time", m_avgTime, allocator);
 
-    clientStatus.AddMember("last_status_update", m_lastStatusUpdate, allocator);
+    clientStatus.AddMember("last_status_update", static_cast<uint64_t >(m_lastStatusUpdate), allocator);
 
     return clientStatus;
 }
