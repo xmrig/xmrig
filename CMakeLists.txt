@@ -53,6 +53,7 @@ set(SOURCES_COMMON
     src/log/FileLog.cpp
     src/log/Log.cpp
     src/Platform.cpp
+    src/Cpu.cpp
    )
 
 if (WIN32)
@@ -110,7 +111,7 @@ if (WITH_LIBCPUID)
 
     include_directories(src/3rdparty/libcpuid)
     set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/Cpu.cpp)
+    set(SOURCES_CPUID src/Cpu_cpuid.cpp)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
 
@@ -190,7 +191,7 @@ endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
 
 add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} res/app.rc)
 
-target_link_libraries(xmrigMiner xmrig_common xmrig_cpuid xmrig_os_dependencies
+target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid
         ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 
 if (WITH_CC_CLIENT)
@@ -202,7 +203,7 @@ add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
 if (WITH_CC_SERVER AND MHD_FOUND)
     add_executable(xmrigCCServer ${SOURCES_CC_SERVER} res/app.rc)
     target_link_libraries(xmrigCCServer
-            xmrig_common xmrig_cpuid xmrig_os_dependencies xmrig_cc_common
+            xmrig_common xmrig_os_dependencies xmrig_cpuid xmrig_cc_common
             ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
 endif()
