@@ -17,6 +17,7 @@
     .center-tab{text-align: center; vertical-align: middle;}
     .online { color: green}
     .offline { color: red}
+    .paused { color: yellow}
     .toggle { border-radius: 2px;}
     .toggle .toggle-handle { border-radius: 2px; }
 
@@ -101,7 +102,7 @@
                 },
                 {data: "client_status.client_id", render: clientInfo},
                 {data: "client_status.current_pool"},
-                {data: "client_status.current_status"},
+                {data: "client_status.current_status", render: clientStatus},
                 {data: "client_status.current_algo_name"},
                 {data: "client_status.hashrate_short", render: round, className: "right"},
                 {data: "client_status.hashrate_medium", render: round, className: "right"},
@@ -456,6 +457,16 @@
         }
 
         return data;
+    }
+
+    function clientStatus( data, type, row ) {
+        var lastStatus = row.client_status.last_status_update * 1000;
+
+        if (isOnline(lastStatus)) {
+            return data;
+        } else {
+            return "OFFLINE";
+        }
     }
 
     function clientInfo( data, type, row ) {
