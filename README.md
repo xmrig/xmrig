@@ -227,20 +227,20 @@ Here are some result from users, feel free to share your results.
   * AMD Ryzen 1950x
         
         AEON: ~5300 h/s    (XMRig Stock: ~4900 h/s)
-        XMR: ~1320 h/s      (XMRig Stock: ~1200 h/s)
+        XMR: ~1320 h/s     (XMRig Stock: ~1200 h/s)
 
   * AMD Ryzen 1600
   
         AEON: ~2065 h/s    (XMRig Stock: ~1800 h/s)
-        XMR: ~565 h/s        (XMRig Stock: ~460 h/s)
+        XMR: ~565 h/s      (XMRig Stock: ~460 h/s)
   
   * 4x Intel XEON e7-4820
   
-        XMR: ~2500 h/s      (XMRig Stock ~2200h/s)
+        XMR: ~2500 h/s     (XMRig Stock ~2200h/s)
         
   * 2x Intel XEON 2x e5-2670
         
-        XMR: ~3300 h/s      (XMRig Stock ~2500h/s)
+        XMR: ~3300 h/s     (XMRig Stock ~2500h/s)
  
 ## Donations
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
