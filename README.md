@@ -180,7 +180,7 @@ This will limit multihash mode (multihash-factor = 2) to thread 0 and thread 2, 
 * XMRigMiner is just the worker, it is not designed to work standalone. Please start **XMRigDaemon** instead.
 
 ### Windows only: DLL error on starting
-* Make sure that you installed latest Visual C++ Redistributable für Visual Studio 2015. Can be downloaded here: [microsoft.com](https://www.microsoft.com/de-de/download/details.aspx?id=48145)
+* Make sure that you installed latest Visual C++ Redistributable for Visual Studio 2015. Can be downloaded here: [microsoft.com](https://www.microsoft.com/de-de/download/details.aspx?id=48145)
 
 ### Linux only: Background mode
 * The `--background` option will only work properly for the XMRigServer. But there is a simple workaround for the XMRigDaemon process. Just append an `&` to the command and it will run smoothly in the background.
