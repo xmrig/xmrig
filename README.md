@@ -10,6 +10,22 @@ The modified version can also handle commands like "update config", "start/stop 
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
+## Additional features of XMRigCC (on top of XMRig)
+* Command and control server
+* CC Dashboard with:
+    * statistics of all connected miners
+    * remote control miners (start/stop/restart/shutdown) 
+    * remote configuration changes of miners
+    * simple config editor for miner / mass editor for multiple miners 
+    * monitoring / offline notification
+* Daemon around the miner to restart and apply config changes
+* High optimized mining code ([Benchmarks](#benchmarks))
+* Working CPU affinity for NUMA Cores or CPU's with lots of cores
+* Multihash support (Double, Triple, Quadruple, Quituple)
+* Configuration of multihash per thread
+* Smarter automatic CPU configuration
+* It's still open source software :D
+
 **XMRigCC Daemon(miner)**
 
 ![Screenshot of XMRig Daemon (miner)](https://i.imgur.com/gYq1QSP.png)
@@ -26,41 +42,17 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 **[Find HELP/HOWTO](https://github.com/Bendr0id/xmrigCC/wiki/)**
 
 
-##### About XMRig
-
-XMRig is high performance Monero (XMR) / Aeon CPU miner, with the official full Windows support.
-Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 complete rewritten from scratch on C++.
-
 #### Table of contents
-* [Features](#features-of-xmrigcc)
 * [Download](#download)
+* [Wiki/Building/Howto](https://github.com/Bendr0id/xmrigCC/wiki/)
 * [Usage](#usage)
-* [Algorithm variations](#algorithm-variations)
-* [Build on Debian/Ubuntu](https://github.com/Bendr0id/xmrigCC/wiki/Build-Debian%5CUbuntu)
+* [Multihash factor](#multihash-multihash-factor)
+* [Multihash thread Mask](#multihash-thread-mask-only-for-multihash-factor--1)
 * [Common Issues](#common-issues)
-* [Other information](#other-information)
+* [Optimizations](#cpu-mining-performance)
+* [Benchmarks](#benchmarks)
 * [Donations](#donations)
-* [Contacts](#contacts-xmrigcc)
-* [Wiki/Howto](https://github.com/Bendr0id/xmrigCC/wiki/)
-
-## Features of xmrigCC
-* Command and control server
-* CC Dashboard with:
-    * statistics of all connected miners
-    * remote control miners (start/stop/restart/shutdown)
-    * remote configuration changes of miners
-    * simple config editor for miners
-* Daemon around the miner to restart and apply config changes
-* High performance.
-* Official Windows support.
-* Small Windows executable, without dependencies.
-* Support for backup (failover) mining server.
-* keepalived support.
-* CryptoNight-Lite support for AEON.
-* Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
-* Nicehash support
-* ARM support
-* It's open source software.
+* [Contacts](#contact)
 
 ## Download
 * Binary releases: https://github.com/Bendr0id/xmrigCC/releases
@@ -226,6 +218,30 @@ Optimal number of threads depends on the size of the L3 cache of a processor, 1 
   Allocate unused cores and L3 cache with the help of multihash-thread-mask.
 * Enable fast memory (Large/Huge pages).
 
+## Benchmarks
+
+Here are some result from users, feel free to share your results.
+
+### XMRigCC with max optimizations:
+
+  * AMD Ryzen 1950x
+        
+        AEON: ~5300 h/s    (XMRig Stock: ~4900 h/s)
+        XMR: ~1320 h/s      (XMRig Stock: ~1200 h/s)
+
+  * AMD Ryzen 1600
+  
+        AEON: ~2065 h/s    (XMRig Stock: ~1800 h/s)
+        XMR: ~565 h/s        (XMRig Stock: ~460 h/s)
+  
+  * 4x Intel XEON e7-4820
+  
+        XMR: ~2500 h/s      (XMRig Stock ~2200h/s)
+        
+  * 2x Intel XEON 2x e5-2670
+        
+        XMR: ~3300 h/s      (XMRig Stock ~2500h/s)
+ 
 ## Donations
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
 
@@ -238,12 +254,7 @@ BTC:  `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
 XMR:  `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 BTC:  `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 
-## Contacts xmrigCC
+## Contact
 * ben [at] graef.in
 * Telegram: @BenDr0id
 * [reddit](https://www.reddit.com/user/BenDr0id/)
-
-## Contacts xmrig
-* support@xmrig.com
-* [reddit](https://www.reddit.com/user/XMRig/)
-   

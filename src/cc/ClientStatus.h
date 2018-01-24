@@ -35,8 +35,7 @@ class ClientStatus
 public:
     enum Status {
         RUNNING,
-        PAUSED,
-        CONFIG_UPDATED
+        PAUSED
     };
 
 public:
