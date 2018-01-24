@@ -5,7 +5,7 @@
 ### About XMRigCC
 
 XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
-This fork is based on XMRig (2.4.3) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
+This fork is based on XMRig (2.4.4) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
 The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
@@ -26,6 +26,10 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 * Smarter automatic CPU configuration
 * It's still open source software :D
 
+
+**[Find HELP/HOWTO](https://github.com/Bendr0id/xmrigCC/wiki/)**
+
+
 **XMRigCC Daemon(miner)**
 
 ![Screenshot of XMRig Daemon (miner)](https://i.imgur.com/gYq1QSP.png)
@@ -37,9 +41,6 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 **XMRigCC Dashboard**
 
 ![Screenshot of XMRigCC Dashboard](https://i.imgur.com/VwJaf26.png)
-
-
-**[Find HELP/HOWTO](https://github.com/Bendr0id/xmrigCC/wiki/)**
 
 
 #### Table of contents
