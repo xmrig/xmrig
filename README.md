@@ -221,7 +221,7 @@ Optimal number of threads depends on the size of the L3 cache of a processor, 1 
 
 ## Benchmarks
 
-Here are some result from users, feel free to share your results.
+Here are some result reported by users. Feel free to share your results, i'll add them.
 
 ### XMRigCC with max optimizations:
 
