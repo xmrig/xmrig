@@ -30,7 +30,8 @@
 
 
 #include "log/FileLog.h"
-
+#include <uv.h>
+#include <fcntl.h>
 
 FileLog::FileLog(const char *fileName)
 {
