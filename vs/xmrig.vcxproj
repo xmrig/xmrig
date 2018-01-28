@@ -1,0 +1,273 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="make|Win32">
+      <Configuration>make</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="make|x64">
+      <Configuration>make</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{53285F83-3CB3-4BB7-B723-C2EFDBCEB785}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>xmrigproxy</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='make|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <OutDir>$(SolutionDir)\..\build\</OutDir>
+    <IntDir>$(SolutionDir)\..\build\CMakeFiles\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='make|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <OutDir>$(SolutionDir)\..\build</OutDir>
+    <IntDir>$(SolutionDir)\..\build\obj</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <OutDir>$(SolutionDir)\..\build</OutDir>
+    <IntDir>$(SolutionDir)\..\build\obj</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <OutDir>$(SolutionDir)\..\build</OutDir>
+    <IntDir>$(SolutionDir)\..\build\obj</IntDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='make|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='make|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='make|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <CustomBuildBeforeTargets>InitializeBuildStatus</CustomBuildBeforeTargets>
+    <NMakeReBuildCommandLine>cd $(OutDir) &amp;&amp; make clean &amp;&amp; make -j$(NUMBER_OF_PROCESSORS)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>cd $(OutDir) &amp;&amp; make clean</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>cd $(OutDir) &amp;&amp; make -j$(NUMBER_OF_PROCESSORS)</NMakeBuildCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='make|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <CustomBuildBeforeTargets>InitializeBuildStatus</CustomBuildBeforeTargets>
+    <NMakeReBuildCommandLine>cd $(OutDir) &amp;&amp; make clean &amp;&amp; make</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>cd $(OutDir) &amp;&amp; make clean</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>cd $(OutDir) &amp;&amp; make -j$(NUMBER_OF_PROCESSORS)</NMakeBuildCommandLine>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='make|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <CustomBuildStep>
+      <Command>cd $(SolutionDir)..\build\ &amp;&amp; make &amp;&amp; exit</Command>
+      <Outputs>xmrig-proxy;%(Outputs)</Outputs>
+      <Message>MAKE</Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='make|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <CustomBuildStep>
+      <Command>cd $(SolutionDir)..\build\ &amp;&amp; make &amp;&amp; exit</Command>
+      <Outputs>xmrig-proxy;%(Outputs)</Outputs>
+      <Message>MAKE</Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\res\app.ico" />
+    <None Include="..\src\3rdparty\libcpuid\masm-x64.asm" />
+    <None Include="..\src\config.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\res\app.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\3rdparty\libcpuid\asm-bits.c" />
+    <ClCompile Include="..\src\3rdparty\libcpuid\cpuid_main.c" />
+    <ClCompile Include="..\src\3rdparty\libcpuid\libcpuid_util.c" />
+    <ClCompile Include="..\src\3rdparty\libcpuid\recog_amd.c" />
+    <ClCompile Include="..\src\3rdparty\libcpuid\recog_intel.c" />
+    <ClCompile Include="..\src\api\Api.cpp" />
+    <ClCompile Include="..\src\api\ApiState.cpp" />
+    <ClCompile Include="..\src\api\Httpd.cpp" />
+    <ClCompile Include="..\src\api\NetworkState.cpp" />
+    <ClCompile Include="..\src\App.cpp" />
+    <ClCompile Include="..\src\App_unix.cpp" />
+    <ClCompile Include="..\src\App_win.cpp" />
+    <ClCompile Include="..\src\Console.cpp" />
+    <ClCompile Include="..\src\Cpu.cpp" />
+    <ClCompile Include="..\src\Cpu_arm.cpp" />
+    <ClCompile Include="..\src\Cpu_mac.cpp" />
+    <ClCompile Include="..\src\Cpu_stub.cpp" />
+    <ClCompile Include="..\src\Cpu_unix.cpp" />
+    <ClCompile Include="..\src\Cpu_win.cpp" />
+    <ClCompile Include="..\src\crypto\CryptoNight.cpp" />
+    <ClCompile Include="..\src\crypto\c_blake256.c" />
+    <ClCompile Include="..\src\crypto\c_groestl.c" />
+    <ClCompile Include="..\src\crypto\c_jh.c" />
+    <ClCompile Include="..\src\crypto\c_keccak.c" />
+    <ClCompile Include="..\src\crypto\c_skein.c" />
+    <ClCompile Include="..\src\log\ConsoleLog.cpp" />
+    <ClCompile Include="..\src\log\FileLog.cpp" />
+    <ClCompile Include="..\src\log\Log.cpp" />
+    <ClCompile Include="..\src\log\SysLog.cpp" />
+    <ClCompile Include="..\src\Mem.cpp" />
+    <ClCompile Include="..\src\Mem_unix.cpp" />
+    <ClCompile Include="..\src\Mem_win.cpp" />
+    <ClCompile Include="..\src\net\Client.cpp" />
+    <ClCompile Include="..\src\net\Job.cpp" />
+    <ClCompile Include="..\src\net\Network.cpp" />
+    <ClCompile Include="..\src\net\strategies\DonateStrategy.cpp" />
+    <ClCompile Include="..\src\net\strategies\FailoverStrategy.cpp" />
+    <ClCompile Include="..\src\net\strategies\SinglePoolStrategy.cpp" />
+    <ClCompile Include="..\src\net\SubmitResult.cpp" />
+    <ClCompile Include="..\src\net\Url.cpp" />
+    <ClCompile Include="..\src\Options.cpp" />
+    <ClCompile Include="..\src\Platform.cpp" />
+    <ClCompile Include="..\src\Platform_mac.cpp" />
+    <ClCompile Include="..\src\Platform_unix.cpp" />
+    <ClCompile Include="..\src\Platform_win.cpp" />
+    <ClCompile Include="..\src\Summary.cpp" />
+    <ClCompile Include="..\src\workers\DoubleWorker.cpp" />
+    <ClCompile Include="..\src\workers\Handle.cpp" />
+    <ClCompile Include="..\src\workers\Hashrate.cpp" />
+    <ClCompile Include="..\src\workers\SingleWorker.cpp" />
+    <ClCompile Include="..\src\workers\Worker.cpp" />
+    <ClCompile Include="..\src\workers\Workers.cpp" />
+    <ClCompile Include="..\src\xmrig.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\3rdparty\align.h" />
+    <ClInclude Include="..\src\3rdparty\aligned_malloc.h" />
+    <ClInclude Include="..\src\3rdparty\getopt\getopt.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\amd_code_t.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\asm-bits.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\intel_code_t.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid_constants.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid_internal.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid_types.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid_util.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\recog_amd.h" />
+    <ClInclude Include="..\src\3rdparty\libcpuid\recog_intel.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\allocators.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\document.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\encodedstream.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\encodings.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\error\en.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\error\error.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\filereadstream.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\filewritestream.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\fwd.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\biginteger.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\diyfp.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\dtoa.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\ieee754.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\itoa.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\meta.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\pow10.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\regex.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\stack.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\strfunc.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\strtod.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\swap.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\istreamwrapper.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\memorybuffer.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\memorystream.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\msinttypes\inttypes.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\msinttypes\stdint.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\ostreamwrapper.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\pointer.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\prettywriter.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\rapidjson.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\reader.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\schema.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\stream.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\stringbuffer.h" />
+    <ClInclude Include="..\src\3rdparty\rapidjson\writer.h" />
+    <ClInclude Include="..\src\api\Api.h" />
+    <ClInclude Include="..\src\api\ApiState.h" />
+    <ClInclude Include="..\src\api\Httpd.h" />
+    <ClInclude Include="..\src\api\NetworkState.h" />
+    <ClInclude Include="..\src\App.h" />
+    <ClInclude Include="..\src\Console.h" />
+    <ClInclude Include="..\src\Cpu.h" />
+    <ClInclude Include="..\src\crypto\CryptoNight.h" />
+    <ClInclude Include="..\src\crypto\CryptoNight_arm.h" />
+    <ClInclude Include="..\src\crypto\CryptoNight_test.h" />
+    <ClInclude Include="..\src\crypto\CryptoNight_x86.h" />
+    <ClInclude Include="..\src\crypto\c_blake256.h" />
+    <ClInclude Include="..\src\crypto\c_groestl.h" />
+    <ClInclude Include="..\src\crypto\c_jh.h" />
+    <ClInclude Include="..\src\crypto\c_keccak.h" />
+    <ClInclude Include="..\src\crypto\c_skein.h" />
+    <ClInclude Include="..\src\crypto\groestl_tables.h" />
+    <ClInclude Include="..\src\crypto\hash.h" />
+    <ClInclude Include="..\src\crypto\skein_port.h" />
+    <ClInclude Include="..\src\crypto\soft_aes.h" />
+    <ClInclude Include="..\src\crypto\SSE2NEON.h" />
+    <ClInclude Include="..\src\donate.h" />
+    <ClInclude Include="..\src\interfaces\IClientListener.h" />
+    <ClInclude Include="..\src\interfaces\IConsoleListener.h" />
+    <ClInclude Include="..\src\interfaces\IJobResultListener.h" />
+    <ClInclude Include="..\src\interfaces\ILogBackend.h" />
+    <ClInclude Include="..\src\interfaces\IStrategy.h" />
+    <ClInclude Include="..\src\interfaces\IStrategyListener.h" />
+    <ClInclude Include="..\src\interfaces\IWorker.h" />
+    <ClInclude Include="..\src\log\ConsoleLog.h" />
+    <ClInclude Include="..\src\log\FileLog.h" />
+    <ClInclude Include="..\src\log\Log.h" />
+    <ClInclude Include="..\src\log\SysLog.h" />
+    <ClInclude Include="..\src\Mem.h" />
+    <ClInclude Include="..\src\net\Client.h" />
+    <ClInclude Include="..\src\net\Job.h" />
+    <ClInclude Include="..\src\net\JobId.h" />
+    <ClInclude Include="..\src\net\JobResult.h" />
+    <ClInclude Include="..\src\net\Network.h" />
+    <ClInclude Include="..\src\net\strategies\DonateStrategy.h" />
+    <ClInclude Include="..\src\net\strategies\FailoverStrategy.h" />
+    <ClInclude Include="..\src\net\strategies\SinglePoolStrategy.h" />
+    <ClInclude Include="..\src\net\SubmitResult.h" />
+    <ClInclude Include="..\src\net\Url.h" />
+    <ClInclude Include="..\src\Options.h" />
+    <ClInclude Include="..\src\Platform.h" />
+    <ClInclude Include="..\src\Summary.h" />
+    <ClInclude Include="..\src\version.h" />
+    <ClInclude Include="..\src\workers\DoubleWorker.h" />
+    <ClInclude Include="..\src\workers\Handle.h" />
+    <ClInclude Include="..\src\workers\Hashrate.h" />
+    <ClInclude Include="..\src\workers\SingleWorker.h" />
+    <ClInclude Include="..\src\workers\Worker.h" />
+    <ClInclude Include="..\src\workers\Workers.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
