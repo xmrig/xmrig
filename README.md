@@ -17,6 +17,6 @@ This fork is originally based on the [CPU-mining](https://github.com/xmrig/xmrig
 
 ## Contacts
 * xmrig@enwillyado.com
-* [telegram](@enwillyado)
+* [telegram](https://telegram.me/enWILLYado)
 
 ¡Se habla español!
