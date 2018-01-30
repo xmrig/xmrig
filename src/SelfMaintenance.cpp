@@ -51,7 +51,7 @@ int SelfMaintenance::getCPUTemperature(int pT){
     m_cpuCoresCount = num_cpu;
     //---
     ifstream cpu_freq("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq");
-    ifstream cpu_temp("/sys/class/thermal/thermal_zone0/temp");
+    ifstream cpu_temp("/sys/class/thermal/thermal_zone0/temp1");
     //---
     strStream << cpu_freq.rdbuf();
     strStream >> m_cpuSingleCoreSpeed;
