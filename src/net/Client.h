@@ -46,6 +46,7 @@ public:
         UnconnectedState,
         HostLookupState,
         ConnectingState,
+        ProxingState,
         ConnectedState,
         ClosingState
     };
@@ -81,6 +82,7 @@ private:
     int64_t send(size_t size);
     void close();
     void connect(struct sockaddr *addr);
+    void prelogin();
     void login();
     void parse(char *line, size_t len);
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
