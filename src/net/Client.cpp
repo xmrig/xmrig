@@ -27,6 +27,8 @@
 #include <string.h>
 #include <utility>
 
+#include <string>
+#include <algorithm>
 
 #include "interfaces/IClientListener.h"
 #include "log/Log.h"
