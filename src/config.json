@@ -26,7 +26,14 @@
             "pass": "x",                       // password for mining server
             "keepalive": true,                 // send keepalived for prevent timeout (need pool support)
             "nicehash": false                  // enable nicehash/xmrig-proxy support
-        }
+        },
+        {
+            "url": "pool.minemonero.pro:5555@localhost:8080",// URL of mining server with localhost proxy (example)
+            "user": "",                                      // username for mining server
+            "pass": "x",                                     // password for mining server
+            "keepalive": true,                               // send keepalived for prevent timeout (need pool support)
+            "nicehash": false                                // enable nicehash/xmrig-proxy support
+       }
     ],
     "api": {
         "port": 0,                             // port for the miner API https://github.com/xmrig/xmrig/wiki/API
