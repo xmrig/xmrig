@@ -44,13 +44,14 @@ public:
     inline bool isKeepAlive() const          { return m_keepAlive; }
     inline bool isNicehash() const           { return m_nicehash; }
     inline bool isValid() const              { return m_host && m_port > 0; }
+    inline bool hasKeystream() const         { return m_keystream; }
     inline const char *host() const          { return isProxyed() ? proxyHost() : finalHost(); }
     inline const char *password() const      { return m_password ? m_password : kDefaultPassword; }
     inline const char *user() const          { return m_user ? m_user : kDefaultUser; }
     inline uint16_t port() const             { return isProxyed() ? proxyPort() : finalPort(); }
     inline bool isProxyed() const            { return proxyHost(); }
     inline const char* finalHost() const     { return m_host; }
-    inline uint16_t finalPort() const        { return m_port;}
+    inline uint16_t finalPort() const        { return m_port; }
     inline const char* proxyHost() const     { return m_proxy_host; }
     inline uint16_t proxyPort() const        { return m_proxy_port; }
     inline void setKeepAlive(bool keepAlive) { m_keepAlive = keepAlive; }
@@ -61,6 +62,7 @@ public:
     void applyExceptions();
     void setPassword(const char *password);
     void setUser(const char *user);
+    void copyKeystream(char *keystreamDest, const size_t keystreamLen) const;
 
     Url &operator=(const Url *other);
 
@@ -73,6 +75,7 @@ private:
     uint16_t m_port;
     char* m_proxy_host;
     uint16_t m_proxy_port;
+    char* m_keystream;
 };
 
 #endif /* __URL_H__ */
