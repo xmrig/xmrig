@@ -1,3 +1,9 @@
+# v2.4.4
+ - Added libmicrohttpd version to --version output.
+ - Fixed bug in singal handler, in some cases miner wasn't shutdown properly.
+ - Fixed recent MSVC 2017 version detection.
+ - [#279](https://github.com/xmrig/xmrig/pull/279) Fixed build on some macOS versions.
+
 # v2.4.3
  - [#94](https://github.com/xmrig/xmrig/issues/94#issuecomment-342019257) [#216](https://github.com/xmrig/xmrig/issues/216) Added **ARMv8** and **ARMv7** support. Hardware AES supported, thanks [Imran Yusuff](https://github.com/imranyusuff).
  - [#157](https://github.com/xmrig/xmrig/issues/157) [#196](https://github.com/xmrig/xmrig/issues/196) Fixed Linux compile issues.
