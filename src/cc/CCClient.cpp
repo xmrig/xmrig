@@ -92,6 +92,8 @@ CCClient::CCClient(Options* options, uv_async_t* async)
     m_clientStatus.setCpuL3(Cpu::l3());
     m_clientStatus.setCurrentThreads(m_options->threads());
 
+    m_startTime = std::chrono::system_clock::now();
+
     if (m_options->ccToken() != nullptr) {
         m_authorization = std::string("Bearer ") + m_self->m_options->ccToken();
     }
@@ -138,6 +140,8 @@ void CCClient::updateNetworkState(const NetworkState& network)
 
 void CCClient::publishClientStatusReport()
 {
+    refreshUptime();
+
     std::string requestUrl = "/client/setClientStatus?clientId=" + m_self->m_clientStatus.getClientId();
     std::string requestBuffer = m_self->m_clientStatus.toJsonString();
 
@@ -256,7 +260,17 @@ std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& r
                                                             const std::string& requestBuffer,
                                                             const std::string& operation)
 {
-    httplib::Client cli(m_self->m_options->ccHost(), m_self->m_options->ccPort());
+    std::shared_ptr<httplib::Client> cli;
+
+#   ifndef XMRIG_NO_SSL_TLS
+    if (m_self->m_options->ccUseTls()) {
+        cli = std::make_shared<httplib::SSLClient>(m_self->m_options->ccHost(), m_self->m_options->ccPort());
+    }
+#   endif
+
+    if (!cli) {
+        cli = std::make_shared<httplib::Client>(m_self->m_options->ccHost(), m_self->m_options->ccPort());
+    }
 
     httplib::Request req;
     req.method = operation;
@@ -277,7 +291,15 @@ std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& r
 
     auto res = std::make_shared<httplib::Response>();
 
-    return cli.send(req, *res) ? res : nullptr;
+    return cli->send(req, *res) ? res : nullptr;
+}
+
+void CCClient::refreshUptime()
+{
+    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+    auto uptime = std::chrono::duration_cast<std::chrono::milliseconds>(m_self->m_startTime - now);
+
+    m_self->m_clientStatus.setUptime(static_cast<uint64_t>(uptime.count()));
 }
 
 void CCClient::onThreadStarted(void* handle)

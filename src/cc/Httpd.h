@@ -58,9 +58,13 @@ private:
     static int handleGET(const Httpd* httpd, MHD_Connection* connection, const char* url);
     static int handlePOST(const Httpd* httpd, MHD_Connection* connection, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls);
 
-    const Options* m_options;
+	static std::string readFile(const std::string &fileName);
+
+	const Options* m_options;
     MHD_Daemon* m_daemon;
 
+	std::string m_keyPem;
+	std::string m_certPem;
 };
 
 #endif /* __HTTPD_H__ */

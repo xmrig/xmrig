@@ -90,7 +90,7 @@ CCServer::~CCServer()
 int CCServer::start()
 {
     if (!m_options) {
-        return 0;
+        return EINVAL;
     }
 
     uv_signal_start(&m_signal, CCServer::onSignal, SIGHUP);
@@ -106,7 +106,9 @@ int CCServer::start()
     Service::start();
 
     m_httpd = new Httpd(m_options);
-    m_httpd->start();
+    if (!m_httpd->start()) {
+        return EINVAL;
+    }
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());

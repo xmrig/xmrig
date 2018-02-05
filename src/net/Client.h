@@ -27,6 +27,7 @@
 
 #include <map>
 #include <uv.h>
+#include <memory>
 
 
 #include "net/Job.h"
@@ -124,6 +125,7 @@ private:
 #   ifndef XMRIG_PROXY_PROJECT
     uv_timer_t m_keepAliveTimer;
 #   endif
+
 };
 
 
