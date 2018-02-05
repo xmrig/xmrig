@@ -10,6 +10,7 @@ option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
+option(WITH_SSL_TLS   "SSL/TLS support" ON)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -54,6 +55,7 @@ set(SOURCES_COMMON
     src/log/Log.cpp
     src/Platform.cpp
     src/Cpu.cpp
+
    )
 
 if (WIN32)
@@ -105,6 +107,26 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
 
 include(cmake/flags.cmake)
+
+if (WITH_SSL_TLS)
+    find_package(OpenSSL REQUIRED)
+
+    add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
+
+    if (OPENSSL_FOUND)
+        include_directories(${OPENSSL_INCLUDE_DIR})
+
+        include_directories(src/3rdparty/evt-tls)
+        include_directories(src/3rdparty/evt-tls/api)
+        set(SOURCES_SSL_TLS
+                src/3rdparty/evt-tls/src/uv_tls.c
+                src/3rdparty/evt-tls/src/evt_tls.c)
+    else()
+        message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_SSL_TLS=OFF` to build without SSL/TLS support")
+    endif()
+else()
+    add_definitions(/DXMRIG_NO_SSL_TLS)
+endif()
 
 if (WITH_LIBCPUID)
     add_subdirectory(src/3rdparty/libcpuid)
@@ -189,10 +211,10 @@ if (WITH_CC_SERVER OR WITH_CC_CLIENT)
     add_library(xmrig_cc_common STATIC ${SOURCES_CC_COMMON})
 endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
 
-add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} res/app.rc)
+add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} ${SOURCES_SSL_TLS} res/app.rc)
 
 target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid
-        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} ${OPENSSL_LIBRARIES})
 
 if (WITH_CC_CLIENT)
     target_link_libraries(xmrigMiner xmrig_cc_common)

@@ -40,7 +40,7 @@ struct cryptonight_ctx;
 class Mem
 {
 public:
-    typedef std::bitset<64> ThreadBitSet;
+    typedef std::bitset<128> ThreadBitSet;
     enum Flags {
         HugepagesAvailable = 1,
         HugepagesEnabled   = 2,

@@ -51,6 +51,7 @@ ClientStatus::ClientStatus()
       m_sharesGood(0),
       m_sharesTotal(0),
       m_hashesTotal(0),
+      m_uptime(0),
       m_avgTime(0),
       m_lastStatusUpdate(0)
 {
@@ -321,6 +322,16 @@ std::time_t ClientStatus::getLastStatusUpdate() const
     return m_lastStatusUpdate;
 }
 
+uint64_t ClientStatus::getUptime() const
+{
+    return m_uptime;
+}
+
+void ClientStatus::setUptime(uint64_t uptime)
+{
+    m_uptime = uptime;
+}
+
 bool ClientStatus::parseFromJson(const rapidjson::Document& document)
 {
     bool result = false;
@@ -433,6 +444,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_avgTime = clientStatus["avg_time"].GetUint();
         }
 
+        if (clientStatus.HasMember("uptime")) {
+            m_uptime = clientStatus["uptime"].GetUint64();
+        }
+
         auto time_point = std::chrono::system_clock::now();
         m_lastStatusUpdate = std::chrono::system_clock::to_time_t(time_point);
 
@@ -480,6 +495,8 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("hashes_total", m_hashesTotal, allocator);
 
     clientStatus.AddMember("avg_time", m_avgTime, allocator);
+
+    clientStatus.AddMember("uptime", m_uptime, allocator);
 
     clientStatus.AddMember("last_status_update", static_cast<uint64_t >(m_lastStatusUpdate), allocator);
 

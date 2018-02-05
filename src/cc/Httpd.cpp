@@ -23,6 +23,8 @@
  */
 
 #include <cstring>
+#include <sstream>
+#include <fstream>
 #include <microhttpd.h>
 #include <memory>
 
@@ -43,8 +45,30 @@ bool Httpd::start()
         return false;
     }
 
-    m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, static_cast<uint16_t>(m_options->ccPort()), nullptr, nullptr, &Httpd::handler,
-                                this, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 10, MHD_OPTION_END);
+#   ifndef XMRIG_NO_SSL_TLS
+    if (m_options->ccUseTls()) {
+
+        m_keyPem = readFile(m_options->ccKeyFile());
+        m_certPem = readFile(m_options->ccCertFile());
+
+        if (m_keyPem.length() == 0 || m_certPem.length() == 0) {
+            LOG_ERR("HTTPS Daemon failed to start. Unable to load Key/Cert.");
+            return false;
+        }
+
+        m_daemon = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY | MHD_USE_SSL,
+                                   static_cast<uint16_t>(m_options->ccPort()), nullptr, nullptr, &Httpd::handler,
+                                   this, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 10,
+                                   MHD_OPTION_HTTPS_MEM_KEY, m_keyPem,
+                                   MHD_OPTION_HTTPS_MEM_CERT, m_certPem,
+                                   MHD_OPTION_END);
+    }
+#   endif
+
+    if (!m_daemon) {
+        m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, static_cast<uint16_t>(m_options->ccPort()), nullptr, nullptr, &Httpd::handler,
+                                    this, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 10,  MHD_OPTION_END);
+    }
 
     if (!m_daemon) {
         LOG_ERR("HTTP Daemon failed to start.");
@@ -54,6 +78,18 @@ bool Httpd::start()
     }
 
     return true;
+}
+
+std::string Httpd::readFile(const std::string &fileName)
+{
+    std::stringstream data;
+    std::ifstream file(fileName);
+    if (file) {
+        data << file.rdbuf();
+        file.close();
+    }
+
+    return data.str();
 }
 
 unsigned Httpd::tokenAuth(struct MHD_Connection* connection)
