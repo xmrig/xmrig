@@ -46,7 +46,7 @@
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.0/js/buttons.bootstrap.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.4/js/dataTables.select.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.1/jquery.timeago.min.js"></script>
-<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment-duration-format/2.2.1/moment-duration-format.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
@@ -113,7 +113,7 @@
                 {data: "client_status.avg_time", className: "right"},
                 {data: "client_status.shares_good", className: "right"},
                 {data: "client_status.shares_total", className: "right"},
-                {data: "client_status.uptime", render: uptime},
+                {data: "client_status.uptime", render: uptime, className: "right"},
                 {data: "client_status.last_status_update", render: laststatus},
                 {
                     data: null,
@@ -454,7 +454,13 @@
 
     function uptime( data, type, row ) {
         if (type !== 'sort') {
-            return moment.duration(data, "milliseconds");
+            var lastStatus = row.client_status.last_status_update * 1000;
+
+            if (isOnline(lastStatus)) {
+                return numeral(data/1000).format('00:00:00:00');
+            } else {
+                return "";
+            }
         }
 
         return data;
@@ -604,6 +610,7 @@
 
             <th>Shares Good</th>
             <th>Shares Total</th>
+            <th>Uptime</th>
             <th>Last Update</th>
             <th>Edit</th>
         </tr>
@@ -612,6 +619,7 @@
         <tr>
             <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllBottom"></i></th>
             <th class="left">Total:</th>
+            <th></th>
             <th></th>
             <th></th>
             <th></th>
