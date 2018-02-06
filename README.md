@@ -241,7 +241,7 @@ Here are some result reported by users. Feel free to share your results, i'll ad
         
   * 2x Intel XEON 2x e5-2670
         
-        XMR: ~3300 h/s     (XMRig Stock ~2500h/s)
+        AEON: ~3300 h/s     (XMRig Stock ~2500h/s)
  
 ## Donations
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
