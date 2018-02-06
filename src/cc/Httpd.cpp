@@ -59,8 +59,8 @@ bool Httpd::start()
         m_daemon = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY | MHD_USE_SSL,
                                    static_cast<uint16_t>(m_options->ccPort()), nullptr, nullptr, &Httpd::handler,
                                    this, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 10,
-                                   MHD_OPTION_HTTPS_MEM_KEY, m_keyPem,
-                                   MHD_OPTION_HTTPS_MEM_CERT, m_certPem,
+                                   MHD_OPTION_HTTPS_MEM_KEY, m_keyPem.c_str(),
+                                   MHD_OPTION_HTTPS_MEM_CERT, m_certPem.c_str(),
                                    MHD_OPTION_END);
     }
 #   endif

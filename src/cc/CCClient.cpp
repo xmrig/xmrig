@@ -297,7 +297,7 @@ std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& r
 void CCClient::refreshUptime()
 {
     std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-    auto uptime = std::chrono::duration_cast<std::chrono::milliseconds>(m_self->m_startTime - now);
+    auto uptime = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_self->m_startTime);
 
     m_self->m_clientStatus.setUptime(static_cast<uint64_t>(uptime.count()));
 }
