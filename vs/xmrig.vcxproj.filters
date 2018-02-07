@@ -519,24 +519,6 @@
     <ClInclude Include="..\src\net\strategies\SinglePoolStrategy.h">
       <Filter>Archivos de encabezado\net\strategies</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\workers\DoubleWorker.h">
-      <Filter>Archivos de encabezado\workers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\workers\Handle.h">
-      <Filter>Archivos de encabezado\workers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\workers\Hashrate.h">
-      <Filter>Archivos de encabezado\workers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\workers\SingleWorker.h">
-      <Filter>Archivos de encabezado\workers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\workers\Worker.h">
-      <Filter>Archivos de encabezado\workers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\workers\Workers.h">
-      <Filter>Archivos de encabezado\workers</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\3rdparty\libcpuid\amd_code_t.h">
       <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
     </ClInclude>
@@ -569,6 +551,24 @@
     </ClInclude>
     <ClInclude Include="..\src\3rdparty\libcpuid\recog_amd.h">
       <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\Workers.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\DoubleWorker.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\Handle.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\Hashrate.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\SingleWorker.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\Worker.h">
+      <Filter>Archivos de encabezado\workers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

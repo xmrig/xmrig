@@ -32,9 +32,9 @@ class JobResult;
 class IJobResultListener
 {
 public:
-    virtual ~IJobResultListener() {}
+	virtual ~IJobResultListener() {}
 
-    virtual void onJobResult(const JobResult &result) = 0;
+	virtual void onJobResult(const JobResult & result) = 0;
 };
 
 
