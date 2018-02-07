@@ -56,27 +56,30 @@ void Cpu::init()
 
 void Cpu::setAffinity(int id, uint64_t mask)
 {
-	/*
 	cpu_set_t set;
 	CPU_ZERO(&set);
 
-	for (int i = 0; i < m_totalThreads; i++) {
-	    if (mask & (1UL << i)) {
-	        CPU_SET(i, &set);
-	    }
+	for(int i = 0; i < m_totalThreads; i++)
+	{
+		if(mask & (1UL << i))
+		{
+			CPU_SET(i, &set);
+		}
 	}
 
-	if (id == -1) {
-	#       ifndef __FreeBSD__
-	    sched_setaffinity(0, sizeof(&set), &set);
-	#       endif
-	} else {
-	#       ifndef __ANDROID__
-	    pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
-	#       else
-	    sched_setaffinity(gettid(), sizeof(&set), &set);
-	#       endif
+	if(id == -1)
+	{
+#       ifndef __FreeBSD__
+		sched_setaffinity(0, sizeof(&set), &set);
+#       endif
 	}
-	*/
+	else
+	{
+#       ifndef __ANDROID__
+		pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
+#       else
+		sched_setaffinity(gettid(), sizeof(&set), &set);
+#       endif
+	}
 }
 #endif
