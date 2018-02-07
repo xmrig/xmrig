@@ -47,7 +47,7 @@
 #endif
 
 int cpuid_exists_by_eflags(void);
-void exec_cpuid(uint32_t *regs);
+void exec_cpuid(uint32_t* regs);
 void busy_sse_loop(int cycles);
 
 #endif /* __ASM_BITS_H__ */

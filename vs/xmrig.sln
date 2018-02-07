@@ -1,18 +1,30 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xmrig", "xmrig.vcxproj", "{53285F83-3CB3-4BB7-B723-C2EFDBCEB785}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xmrig", "xmrig.vcxproj", "{92BDBA37-96E3-4D85-B762-185E4407BB49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		make|Win32 = make|Win32
 		make|x64 = make|x64
+		vc-debug|Win32 = vc-debug|Win32
+		vc-debug|x64 = vc-debug|x64
+		vc-release|Win32 = vc-release|Win32
+		vc-release|x64 = vc-release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{53285F83-3CB3-4BB7-B723-C2EFDBCEB785}.make|Win32.ActiveCfg = make|Win32
-		{53285F83-3CB3-4BB7-B723-C2EFDBCEB785}.make|Win32.Build.0 = make|Win32
-		{53285F83-3CB3-4BB7-B723-C2EFDBCEB785}.make|x64.ActiveCfg = make|x64
-		{53285F83-3CB3-4BB7-B723-C2EFDBCEB785}.make|x64.Build.0 = make|x64
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.make|Win32.ActiveCfg = make|Win32
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.make|Win32.Build.0 = make|Win32
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.make|x64.ActiveCfg = make|x64
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.make|x64.Build.0 = make|x64
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.vc-debug|Win32.ActiveCfg = vc-debug|Win32
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.vc-debug|Win32.Build.0 = vc-debug|Win32
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.vc-debug|x64.ActiveCfg = vc-debug|x64
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.vc-debug|x64.Build.0 = vc-debug|x64
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.vc-release|Win32.ActiveCfg = vc-release|Win32
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.vc-release|Win32.Build.0 = vc-release|Win32
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.vc-release|x64.ActiveCfg = vc-release|x64
+		{92BDBA37-96E3-4D85-B762-185E4407BB49}.vc-release|x64.Build.0 = vc-release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

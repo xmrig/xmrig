@@ -24,27 +24,21 @@
 #ifndef __FILELOG_H__
 #define __FILELOG_H__
 
-
-#include <uv.h>
-
-
 #include "interfaces/ILogBackend.h"
-
 
 class FileLog : public ILogBackend
 {
 public:
-    FileLog(const char *fileName);
+	FileLog(const std::string & fileName);
 
-    void message(int level, const char* fmt, va_list args) override;
-    void text(const char* fmt, va_list args) override;
+	void message(Level level, const std::string & txt) override;
+	void text(const std::string & txt) override;
 
 private:
-    static void onWrite(uv_fs_t *req);
+	bool isWritable() const;
+	void write(const std::string & txt);
 
-    void write(char *data, size_t size);
-
-    int m_file;
+	const std::string m_file_name;
 };
 
 #endif /* __FILELOG_H__ */

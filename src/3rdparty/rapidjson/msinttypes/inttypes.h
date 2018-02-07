@@ -1,37 +1,37 @@
 // ISO C9x  compliant inttypes.h for Microsoft Visual Studio
-// Based on ISO/IEC 9899:TC2 Committee draft (May 6, 2005) WG14/N1124 
-// 
+// Based on ISO/IEC 9899:TC2 Committee draft (May 6, 2005) WG14/N1124
+//
 //  Copyright (c) 2006-2013 Alexander Chemeris
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 //   1. Redistributions of source code must retain the above copyright notice,
 //      this list of conditions and the following disclaimer.
-// 
+//
 //   2. Redistributions in binary form must reproduce the above copyright
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
-// 
+//
 //   3. Neither the name of the product nor the names of its contributors may
 //      be used to endorse or promote products derived from this software
 //      without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 // WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
 // EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
 // SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-// The above software in this distribution may have been modified by 
-// THL A29 Limited ("Tencent Modifications"). 
+// The above software in this distribution may have been modified by
+// THL A29 Limited ("Tencent Modifications").
 // All Tencent Modifications are Copyright (C) 2015 THL A29 Limited.
 
 #ifndef _MSC_VER // [
@@ -54,9 +54,10 @@
 
 // 7.8 Format conversion of integer types
 
-typedef struct {
-   intmax_t quot;
-   intmax_t rem;
+typedef struct
+{
+	intmax_t quot;
+	intmax_t rem;
 } imaxdiv_t;
 
 // 7.8.1 Macros for format specifiers
@@ -194,11 +195,11 @@ typedef struct {
 #define SCNiMAX     "I64i"
 
 #ifdef _WIN64 // [
-#  define SCNdPTR     "I64d"
-#  define SCNiPTR     "I64i"
+#define SCNdPTR     "I64d"
+#define SCNiPTR     "I64i"
 #else  // _WIN64 ][
-#  define SCNdPTR     "ld"
-#  define SCNiPTR     "li"
+#define SCNdPTR     "ld"
+#define SCNiPTR     "li"
 #endif  // _WIN64 ]
 
 // The fscanf macros for unsigned integers are:
@@ -260,15 +261,15 @@ typedef struct {
 #define SCNXMAX     "I64X"
 
 #ifdef _WIN64 // [
-#  define SCNoPTR     "I64o"
-#  define SCNuPTR     "I64u"
-#  define SCNxPTR     "I64x"
-#  define SCNXPTR     "I64X"
+#define SCNoPTR     "I64o"
+#define SCNuPTR     "I64u"
+#define SCNxPTR     "I64x"
+#define SCNXPTR     "I64X"
 #else  // _WIN64 ][
-#  define SCNoPTR     "lo"
-#  define SCNuPTR     "lu"
-#  define SCNxPTR     "lx"
-#  define SCNXPTR     "lX"
+#define SCNoPTR     "lo"
+#define SCNuPTR     "lu"
+#define SCNxPTR     "lx"
+#define SCNXPTR     "lX"
 #endif  // _WIN64 ]
 
 #endif // __STDC_FORMAT_MACROS ]
@@ -289,18 +290,19 @@ _inline
 #endif // STATIC_IMAXDIV ]
 imaxdiv_t __cdecl imaxdiv(intmax_t numer, intmax_t denom)
 {
-   imaxdiv_t result;
+	imaxdiv_t result;
 
-   result.quot = numer / denom;
-   result.rem = numer % denom;
+	result.quot = numer / denom;
+	result.rem = numer % denom;
 
-   if (numer < 0 && result.rem > 0) {
-      // did division wrong; must fix up
-      ++result.quot;
-      result.rem -= denom;
-   }
+	if(numer < 0 && result.rem > 0)
+	{
+		// did division wrong; must fix up
+		++result.quot;
+		result.rem -= denom;
+	}
 
-   return result;
+	return result;
 }
 
 // 7.8.2.3 The strtoimax and strtoumax functions

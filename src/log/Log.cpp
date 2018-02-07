@@ -28,47 +28,35 @@
 #include <string.h>
 #include <time.h>
 
-
 #include "interfaces/ILogBackend.h"
 #include "log/Log.h"
 
+Log* Log::m_self = nullptr;
 
-Log *Log::m_self = nullptr;
-
-
-void Log::message(Log::Level level, const char* fmt, ...)
+void Log::message(ILogBackend::Level level, const std::string & text)
 {
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
-
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->message(level, fmt, copy);
-        va_end(copy);
-    }
+	for(size_t i = 0; i < m_backends.size(); ++i)
+	{
+		auto backend = m_backends[i];
+		backend->message(level, text);
+	}
 }
 
-
-void Log::text(const char* fmt, ...)
+void Log::text(const std::string & text)
 {
-    va_list args;
-    va_list copy;
-    va_start(args, fmt);
+	for(size_t i = 0; i < m_backends.size(); ++i)
+	{
+		auto backend = m_backends[i];
+		backend->text(text);
+	}
 
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->text(fmt, copy);
-        va_end(copy);
-    }
-
-    va_end(args);
 }
-
 
 Log::~Log()
 {
-    for (auto backend : m_backends) {
-        delete backend;
-    }
+	for(size_t i = 0; i < m_backends.size(); ++i)
+	{
+		auto backend = m_backends[i];
+		delete backend;
+	}
 }

@@ -42,32 +42,35 @@ class Url;
 class Network : public IJobResultListener, public IStrategyListener
 {
 public:
-  Network(const Options *options);
-  ~Network();
+	Network(const Options* options);
+	~Network();
 
-  void connect();
-  void stop();
+	void connect();
+	void stop();
 
 protected:
-  void onActive(Client *client) override;
-  void onJob(Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onPause(IStrategy *strategy) override;
-  void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
+	void onActive(Client* client) override;
+	void onJob(Client* client, const Job & job) override;
+	void onJobResult(const JobResult & result) override;
+	void onPause(IStrategy* strategy) override;
+	void onResultAccepted(Client* client, const SubmitResult & result, const std::string & error) override;
 
 private:
-  constexpr static int kTickInterval = 1 * 1000;
+	enum
+	{
+		kTickInterval = 1 * 1000
+	};
 
-  void setJob(Client *client, const Job &job);
-  void tick();
+	void setJob(Client* client, const Job & job);
+	void tick();
 
-  static void onTick(uv_timer_t *handle);
+	static void onTick(uv_timer_t* handle);
 
-  const Options *m_options;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
-  NetworkState m_state;
-  uv_timer_t m_timer;
+	const Options* m_options;
+	IStrategy* m_donate;
+	IStrategy* m_strategy;
+	NetworkState m_state;
+	uv_timer_t m_timer;
 };
 
 

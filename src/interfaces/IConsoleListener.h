@@ -28,9 +28,9 @@
 class IConsoleListener
 {
 public:
-    virtual ~IConsoleListener() {}
+	virtual ~IConsoleListener() {}
 
-    virtual void onConsoleCommand(char command) = 0;
+	virtual void onConsoleCommand(char command) = 0;
 };
 
 
