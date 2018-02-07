@@ -57,129 +57,149 @@ Return value: TRUE indicates success, FALSE failure.
  * AWE Example: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366531(v=vs.85).aspx
  * Creating a File Mapping Using Large Pages: https://msdn.microsoft.com/en-us/library/aa366543(VS.85).aspx
  */
-static BOOL SetLockPagesPrivilege() {
-    HANDLE token;
+static BOOL SetLockPagesPrivilege()
+{
+	HANDLE token;
 
-    if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token) != TRUE) {
-        return FALSE;
-    }
+	if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token) != TRUE)
+	{
+		return FALSE;
+	}
 
-    TOKEN_PRIVILEGES tp;
-    tp.PrivilegeCount = 1;
-    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	TOKEN_PRIVILEGES tp;
+	tp.PrivilegeCount = 1;
+	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-    if (LookupPrivilegeValue(NULL, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid)) != TRUE) {
-        return FALSE;
-    }
+	if(LookupPrivilegeValue(NULL, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid)) != TRUE)
+	{
+		return FALSE;
+	}
 
-    BOOL rc = AdjustTokenPrivileges(token, FALSE, (PTOKEN_PRIVILEGES) &tp, 0, NULL, NULL);
-    if (rc != TRUE || GetLastError() != ERROR_SUCCESS) {
-        return FALSE;
-    }
+	BOOL rc = AdjustTokenPrivileges(token, FALSE, (PTOKEN_PRIVILEGES) &tp, 0, NULL, NULL);
+	if(rc != TRUE || GetLastError() != ERROR_SUCCESS)
+	{
+		return FALSE;
+	}
 
-    CloseHandle(token);
+	CloseHandle(token);
 
-    return TRUE;
+	return TRUE;
 }
 
 
-static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string) {
-    LSA_UNICODE_STRING lsaString;
+static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string)
+{
+	LSA_UNICODE_STRING lsaString;
 
-    DWORD dwLen = (DWORD) wcslen(string);
-    lsaString.Buffer = (LPWSTR) string;
-    lsaString.Length = (USHORT)((dwLen) * sizeof(WCHAR));
-    lsaString.MaximumLength = (USHORT)((dwLen + 1) * sizeof(WCHAR));
-    return lsaString;
+	DWORD dwLen = (DWORD) wcslen((WCHAR*)string);
+	lsaString.Buffer = (LPWSTR) string;
+	lsaString.Length = (USHORT)((dwLen) * sizeof(WCHAR));
+	lsaString.MaximumLength = (USHORT)((dwLen + 1) * sizeof(WCHAR));
+	return lsaString;
 }
 
 
-static BOOL ObtainLockPagesPrivilege() {
-    HANDLE token;
-    PTOKEN_USER user = NULL;
+static BOOL ObtainLockPagesPrivilege()
+{
+	HANDLE token;
+	PTOKEN_USER user = NULL;
 
-    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == TRUE) {
-        DWORD size = 0;
+	if(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == TRUE)
+	{
+		DWORD size = 0;
 
-        GetTokenInformation(token, TokenUser, NULL, 0, &size);
-        if (size) {
-            user = (PTOKEN_USER) LocalAlloc(LPTR, size);
-        }
+		GetTokenInformation(token, TokenUser, NULL, 0, &size);
+		if(size)
+		{
+			user = (PTOKEN_USER) LocalAlloc(LPTR, size);
+		}
 
-        GetTokenInformation(token, TokenUser, user, size, &size);
-        CloseHandle(token);
-    }
+		GetTokenInformation(token, TokenUser, user, size, &size);
+		CloseHandle(token);
+	}
 
-    if (!user) {
-        return FALSE;
-    }
+	if(!user)
+	{
+		return FALSE;
+	}
 
-    LSA_HANDLE handle;
-    LSA_OBJECT_ATTRIBUTES attributes;
-    ZeroMemory(&attributes, sizeof(attributes));
+	LSA_HANDLE handle;
+	LSA_OBJECT_ATTRIBUTES attributes;
+	ZeroMemory(&attributes, sizeof(attributes));
 
-    BOOL result = FALSE;
-    if (LsaOpenPolicy(NULL, &attributes, POLICY_ALL_ACCESS, &handle) == 0) {
-        LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
+	BOOL result = FALSE;
+	if(LsaOpenPolicy(NULL, &attributes, POLICY_ALL_ACCESS, &handle) == 0)
+	{
+		LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
 
-        if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
-            LOG_NOTICE("Huge pages support was successfully enabled, but reboot required to use it");
-            result = TRUE;
-        }
+		if(LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0)
+		{
+			LOG_NOTICE("Huge pages support was successfully enabled, but reboot required to use it");
+			result = TRUE;
+		}
 
-        LsaClose(handle);
-    }
+		LsaClose(handle);
+	}
 
-    LocalFree(user);
-    return result;
+	LocalFree(user);
+	return result;
 }
 
 
-static BOOL TrySetLockPagesPrivilege() {
-    if (SetLockPagesPrivilege()) {
-        return TRUE;
-    }
+static BOOL TrySetLockPagesPrivilege()
+{
+	if(SetLockPagesPrivilege())
+	{
+		return TRUE;
+	}
 
-    return ObtainLockPagesPrivilege() && SetLockPagesPrivilege();
+	return ObtainLockPagesPrivilege() && SetLockPagesPrivilege();
 }
 
 
 bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 {
-    m_algo       = algo;
-    m_threads    = threads;
-    m_doubleHash = doubleHash;
+	m_algo       = algo;
+	m_threads    = threads;
+	m_doubleHash = doubleHash;
 
-    const int ratio = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
-    const size_t size  = MEMORY * (threads * ratio + 1);
+	const int ratio = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
+	const size_t size  = MEMORY * (threads * ratio + 1);
 
-    if (!enabled) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
-        return true;
-    }
+	if(!enabled)
+	{
+		m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+		return true;
+	}
 
-    if (TrySetLockPagesPrivilege()) {
-        m_flags |= HugepagesAvailable;
-    }
+	if(TrySetLockPagesPrivilege())
+	{
+		m_flags |= HugepagesAvailable;
+	}
 
-    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
-    if (!m_memory) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
-    }
-    else {
-        m_flags |= HugepagesEnabled;
-    }
+	m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES,
+	                                 PAGE_READWRITE));
+	if(!m_memory)
+	{
+		m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+	}
+	else
+	{
+		m_flags |= HugepagesEnabled;
+	}
 
-    return true;
+	return true;
 }
 
 
 void Mem::release()
 {
-    if (m_flags & HugepagesEnabled) {
-        VirtualFree(m_memory, 0, MEM_RELEASE);
-    }
-    else {
-        _mm_free(m_memory);
-    }
+	if(m_flags & HugepagesEnabled)
+	{
+		VirtualFree(m_memory, 0, MEM_RELEASE);
+	}
+	else
+	{
+		_mm_free(m_memory);
+	}
 }

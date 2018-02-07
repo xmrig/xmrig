@@ -25,9 +25,6 @@
 #define __DONATESTRATEGY_H__
 
 
-#include <uv.h>
-
-
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
 
@@ -40,35 +37,34 @@ class Url;
 class DonateStrategy : public IStrategy, public IClientListener
 {
 public:
-    DonateStrategy(const char *agent, IStrategyListener *listener);
+	DonateStrategy(const std::string & agent, IStrategyListener* listener);
+	bool reschedule();
 
-public:
-    inline bool isActive() const override  { return m_active; }
-    inline void resume() override          {}
+	inline bool isActive() const override
+	{
+		return m_active;
+	}
+	inline void resume() override          {}
 
-    int64_t submit(const JobResult &result) override;
-    void connect() override;
-    void stop() override;
-    void tick(uint64_t now) override;
+	int64_t submit(const JobResult & result) override;
+	void connect() override;
+	void stop() override;
+	void tick(uint64_t now) override;
 
 protected:
-    void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job) override;
-    void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
+	void onClose(Client* client, int failures) override;
+	void onJobReceived(Client* client, const Job & job) override;
+	void onLoginSuccess(Client* client) override;
+	void onResultAccepted(Client* client, const SubmitResult & result, const std::string & error) override;
 
 private:
-    void idle();
-    void suspend();
-
-    static void onTimer(uv_timer_t *handle);
-
-    bool m_active;
-    Client *m_client;
-    const int m_donateTime;
-    const int m_idleTime;
-    IStrategyListener *m_listener;
-    uv_timer_t m_timer;
+	bool m_active;
+	bool m_suspended;
+	Client* m_client;
+	IStrategyListener* m_listener;
+	uint64_t m_donateTicks;
+	uint64_t m_target;
+	uint64_t m_ticks;
 };
 
-#endif /* __DONATESTRATEGY_H__ */
+#endif /* __SINGLEPOOLSTRATEGY_H__ */

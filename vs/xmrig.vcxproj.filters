@@ -1,0 +1,579 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Archivos de código fuente">
+      <UniqueIdentifier>{6955e425-641d-4a18-acb0-d78893a1871d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\api">
+      <UniqueIdentifier>{819f3a03-9a2c-4725-87ca-54efa7e5cb7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\crypto">
+      <UniqueIdentifier>{7e805124-d421-47b2-9d4a-74be33524010}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\log">
+      <UniqueIdentifier>{c5bfb5b8-6847-4ba7-8235-3ab13efb7f67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\net">
+      <UniqueIdentifier>{a0a4a5de-7c2b-412b-93f9-9a2947b4e4ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\net\strategies">
+      <UniqueIdentifier>{682b6780-b8c9-406d-a7a8-e128f334c4e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\workers">
+      <UniqueIdentifier>{5ff1d4d9-5095-43b5-b33b-d9b5ed7fea09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de recursos">
+      <UniqueIdentifier>{e6f77825-b090-41d5-a52d-ee71ceb43625}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado">
+      <UniqueIdentifier>{91d9785b-eb95-4697-aad4-64d7fa758c12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\3rdparty">
+      <UniqueIdentifier>{adcb1741-7564-4b29-b419-63faa19fabe0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\3rdparty\rapidjson">
+      <UniqueIdentifier>{884c03aa-8fac-4e5b-9f25-a2f926513e54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\3rdparty\rapidjson\error">
+      <UniqueIdentifier>{f3c852e4-5be7-47d3-b817-91f870a3a2bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\3rdparty\rapidjson\msinttypes">
+      <UniqueIdentifier>{6664e951-2c60-488f-9392-32a2d94cf01b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\3rdparty\rapidjson\internal">
+      <UniqueIdentifier>{d3e64bcc-89a2-4b9c-8862-50e6c3ea5838}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\3rdparty\getopt">
+      <UniqueIdentifier>{c316406e-88a3-4e4a-b831-729b2b3c23ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\api">
+      <UniqueIdentifier>{ce449acb-2e96-41b0-a80f-2895c8a9d157}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\crypto">
+      <UniqueIdentifier>{89d4683f-f5f4-4f23-a1da-c59d5ed9a30c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\interfaces">
+      <UniqueIdentifier>{f4b9e412-a76d-4b33-85b4-82f73b88dd4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\log">
+      <UniqueIdentifier>{4bb2ab95-8ae5-43ba-bc37-1db8ae56439e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\net">
+      <UniqueIdentifier>{c230f074-3bff-43bf-879c-0bf5f1bd5892}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\net\strategies">
+      <UniqueIdentifier>{41379fdf-aba8-47ea-b2d0-2a068fcb9087}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\workers">
+      <UniqueIdentifier>{c4db7ddc-49a1-41c6-80e8-b1e08e548c9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\3rdparty">
+      <UniqueIdentifier>{bbb1e351-89bd-4d9b-a41c-7b1a5963f322}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\3rdparty\libcpuid">
+      <UniqueIdentifier>{d962cd0c-dc8f-4bf5-a331-c58ddd89a02e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\3rdparty\libcpuid">
+      <UniqueIdentifier>{0bb34178-3f97-4639-8287-bea499f4f027}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\3rdparty\libcpuid\asm-bits.c">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\libcpuid\cpuid_main.c">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\libcpuid\libcpuid_util.c">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\libcpuid\msrdriver.c">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\libcpuid\rdmsr.c">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\libcpuid\rdtsc.c">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\libcpuid\recog_amd.c">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\3rdparty\libcpuid\recog_intel.c">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\App.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\App_unix.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\App_win.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Console.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Cpu.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Cpu_arm.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Cpu_mac.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Cpu_stub.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Cpu_unix.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Cpu_win.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mem.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mem_unix.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Mem_win.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Options.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Platform.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Platform_mac.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Platform_unix.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Platform_win.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Summary.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\xmrig.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\api\Api.cpp">
+      <Filter>Archivos de código fuente\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\api\ApiState.cpp">
+      <Filter>Archivos de código fuente\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\api\Httpd.cpp">
+      <Filter>Archivos de código fuente\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\api\NetworkState.cpp">
+      <Filter>Archivos de código fuente\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\crypto\CryptoNight.cpp">
+      <Filter>Archivos de código fuente\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\crypto\c_blake256.c">
+      <Filter>Archivos de código fuente\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\crypto\c_groestl.c">
+      <Filter>Archivos de código fuente\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\crypto\c_jh.c">
+      <Filter>Archivos de código fuente\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\crypto\c_keccak.c">
+      <Filter>Archivos de código fuente\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\crypto\c_skein.c">
+      <Filter>Archivos de código fuente\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\ConsoleLog.cpp">
+      <Filter>Archivos de código fuente\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\FileLog.cpp">
+      <Filter>Archivos de código fuente\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\Log.cpp">
+      <Filter>Archivos de código fuente\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\log\SysLog.cpp">
+      <Filter>Archivos de código fuente\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\net\Client.cpp">
+      <Filter>Archivos de código fuente\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\net\Job.cpp">
+      <Filter>Archivos de código fuente\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\net\Network.cpp">
+      <Filter>Archivos de código fuente\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\net\SubmitResult.cpp">
+      <Filter>Archivos de código fuente\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\net\Url.cpp">
+      <Filter>Archivos de código fuente\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\net\strategies\DonateStrategy.cpp">
+      <Filter>Archivos de código fuente\net\strategies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\net\strategies\FailoverStrategy.cpp">
+      <Filter>Archivos de código fuente\net\strategies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\net\strategies\SinglePoolStrategy.cpp">
+      <Filter>Archivos de código fuente\net\strategies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\workers\DoubleWorker.cpp">
+      <Filter>Archivos de código fuente\workers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\workers\Handle.cpp">
+      <Filter>Archivos de código fuente\workers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\workers\Hashrate.cpp">
+      <Filter>Archivos de código fuente\workers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\workers\SingleWorker.cpp">
+      <Filter>Archivos de código fuente\workers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\workers\Worker.cpp">
+      <Filter>Archivos de código fuente\workers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\workers\Workers.cpp">
+      <Filter>Archivos de código fuente\workers</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\res\app.rc">
+      <Filter>Archivos de recursos</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\res\app.ico">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\src\config.json">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\App.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Console.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Cpu.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\donate.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Mem.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Options.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Platform.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Summary.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\version.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\align.h">
+      <Filter>Archivos de encabezado\3rdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\aligned_malloc.h">
+      <Filter>Archivos de encabezado\3rdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\allocators.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\document.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\encodedstream.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\encodings.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\filereadstream.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\filewritestream.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\fwd.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\istreamwrapper.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\memorybuffer.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\memorystream.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\ostreamwrapper.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\pointer.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\prettywriter.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\rapidjson.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\reader.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\schema.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\stream.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\stringbuffer.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\writer.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\error\en.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\error\error.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\msinttypes\inttypes.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\msinttypes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\msinttypes\stdint.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\msinttypes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\biginteger.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\diyfp.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\dtoa.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\ieee754.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\itoa.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\meta.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\pow10.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\regex.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\stack.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\strfunc.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\strtod.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\rapidjson\internal\swap.h">
+      <Filter>Archivos de encabezado\3rdparty\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\getopt\getopt.h">
+      <Filter>Archivos de encabezado\3rdparty\getopt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\Api.h">
+      <Filter>Archivos de encabezado\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\ApiState.h">
+      <Filter>Archivos de encabezado\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\Httpd.h">
+      <Filter>Archivos de encabezado\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\NetworkState.h">
+      <Filter>Archivos de encabezado\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\CryptoNight.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\CryptoNight_arm.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\CryptoNight_test.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\CryptoNight_x86.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\c_blake256.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\c_groestl.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\c_jh.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\c_keccak.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\c_skein.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\groestl_tables.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\hash.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\skein_port.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\soft_aes.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto\SSE2NEON.h">
+      <Filter>Archivos de encabezado\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interfaces\IClientListener.h">
+      <Filter>Archivos de encabezado\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interfaces\IConsoleListener.h">
+      <Filter>Archivos de encabezado\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interfaces\IJobResultListener.h">
+      <Filter>Archivos de encabezado\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interfaces\ILogBackend.h">
+      <Filter>Archivos de encabezado\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interfaces\IStrategy.h">
+      <Filter>Archivos de encabezado\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interfaces\IStrategyListener.h">
+      <Filter>Archivos de encabezado\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interfaces\IWorker.h">
+      <Filter>Archivos de encabezado\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\log\ConsoleLog.h">
+      <Filter>Archivos de encabezado\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\log\FileLog.h">
+      <Filter>Archivos de encabezado\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\log\Log.h">
+      <Filter>Archivos de encabezado\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\log\SysLog.h">
+      <Filter>Archivos de encabezado\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\Client.h">
+      <Filter>Archivos de encabezado\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\Job.h">
+      <Filter>Archivos de encabezado\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\JobId.h">
+      <Filter>Archivos de encabezado\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\JobResult.h">
+      <Filter>Archivos de encabezado\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\Network.h">
+      <Filter>Archivos de encabezado\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\SubmitResult.h">
+      <Filter>Archivos de encabezado\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\Url.h">
+      <Filter>Archivos de encabezado\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\strategies\DonateStrategy.h">
+      <Filter>Archivos de encabezado\net\strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\strategies\FailoverStrategy.h">
+      <Filter>Archivos de encabezado\net\strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\net\strategies\SinglePoolStrategy.h">
+      <Filter>Archivos de encabezado\net\strategies</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\DoubleWorker.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\Handle.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\Hashrate.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\SingleWorker.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\Worker.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\workers\Workers.h">
+      <Filter>Archivos de encabezado\workers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\amd_code_t.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\recog_intel.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\asm-bits.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\intel_code_t.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid_constants.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid_internal.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid_types.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\libcpuid_util.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\rdtsc.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdparty\libcpuid\recog_amd.h">
+      <Filter>Archivos de encabezado\3rdparty\libcpuid</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="..\src\3rdparty\libcpuid\masm-x64.asm">
+      <Filter>Archivos de código fuente\3rdparty\libcpuid</Filter>
+    </MASM>
+  </ItemGroup>
+</Project>
