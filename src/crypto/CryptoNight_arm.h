@@ -361,13 +361,13 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
     uint64_t idx0 = h0[0] ^ h0[4];
 
     for (size_t i = 0; i < ITERATIONS; i++) {
-		__m128i cx;
+        __m128i cx;
 
         if (SOFT_AES) {
             cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
         }
         else {
-			cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+            cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
 #           ifndef XMRIG_ARMv7
             cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
 #           endif
@@ -433,8 +433,8 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
             cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
         }
         else {
-			cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
-			cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
+            cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+            cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
 #           ifndef XMRIG_ARMv7
             cx0 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx0, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
             cx1 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx1, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah1, al1);
