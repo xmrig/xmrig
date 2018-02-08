@@ -27,6 +27,8 @@
 #include <string.h>
 #include <utility>
 
+#include <string>
+#include <algorithm>
 
 #include "interfaces/IClientListener.h"
 #include "log/Log.h"
@@ -55,6 +57,8 @@ int64_t Client::m_sequence = 1;
 
 Client::Client(int id, const char *agent, IClientListener *listener) :
     m_quiet(false),
+    m_keystream(),
+    m_encrypted(false),
     m_agent(agent),
     m_listener(listener),
     m_id(id),
@@ -68,6 +72,7 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
 {
     memset(m_ip, 0, sizeof(m_ip));
     memset(&m_hints, 0, sizeof(m_hints));
+    memset(m_keystream, 0, sizeof(m_keystream));
 
     m_resolver.data = this;
 
@@ -126,6 +131,16 @@ void Client::setUrl(const Url *url)
 {
     if (!url || !url->isValid()) {
         return;
+    }
+
+    if (url->hasKeystream())
+    {
+        url->copyKeystream(m_keystream, sizeof(m_keystream));
+        m_encrypted = true;
+    }
+    else
+    {
+        m_encrypted = false;
     }
 
     m_url = url;
@@ -271,14 +286,30 @@ int Client::resolve(const char *host)
 }
 
 
-int64_t Client::send(size_t size)
+int64_t Client::send(size_t size, const bool encrypted)
 {
     LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, m_sendBuf);
-    if (state() != ConnectedState || !uv_is_writable(m_stream)) {
+    if ((state() != ConnectedState && state() != ProxingState) || !uv_is_writable(m_stream)) {
         LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
         return -1;
     }
 
+    if(encrypted && m_encrypted)
+    {
+        // Encrypt
+        for(size_t i = 0; i < std::min(size, sizeof(m_keystream)); ++i)
+        {
+            m_sendBuf[i] ^= m_keystream[i];
+        }
+
+		char * send_encr_hex = static_cast<char*>(malloc(size * 2 + 1));
+		memset(send_encr_hex, 0, size * 2 + 1);
+		Job::toHex((const unsigned char*)m_sendBuf, size, send_encr_hex);
+		send_encr_hex[size * 2] = '\0';
+		LOG_DEBUG("[%s:%u] send encr. (%d bytes): \"0x%s\"", m_url.host(), m_url.port(), size, send_encr_hex);
+		free(send_encr_hex);
+    }
+    
     uv_buf_t buf = uv_buf_init(m_sendBuf, (unsigned int) size);
 
     if (uv_try_write(m_stream, &buf, 1) < 0) {
@@ -328,6 +359,27 @@ void Client::connect(struct sockaddr *addr)
     uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
 }
 
+void Client::prelogin()
+{
+    if (m_url.proxyHost())
+    {
+        setState (ProxingState);
+        const std::string buffer = std::string ("CONNECT ") + m_url.finalHost() + ":" + std::to_string(m_url.finalPort()) + " HTTP/1.1\n";
+
+        const size_t size = buffer.size();
+        memcpy (m_sendBuf, buffer.c_str(), size);
+        m_sendBuf[size]     = '\n';
+        m_sendBuf[size + 1] = '\0';
+
+        LOG_DEBUG("Prelogin send (%d bytes): \"%s\"", size, m_sendBuf);
+        send (size + 1, false);
+    }
+    else
+    {
+        setState (ConnectedState);
+        login();
+    }
+}
 
 void Client::login()
 {
@@ -565,12 +617,11 @@ void Client::onConnect(uv_connect_t *req, int status)
 
     client->m_stream = static_cast<uv_stream_t*>(req->handle);
     client->m_stream->data = req->data;
-    client->setState(ConnectedState);
 
     uv_read_start(client->m_stream, Client::onAllocBuffer, Client::onRead);
     delete req;
 
-    client->login();
+    client->prelogin();
 }
 
 
@@ -589,11 +640,42 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
         return client->close();
     }
 
+    if (client->state() == ProxingState)
+    {
+        const char* const content = buf->base;
+        LOG_DEBUG("[%s:%u] received from proxy (%d bytes): \"%s\"",
+                  client->m_url.host(), client->m_url.port(),
+                  nread, content);
+
+        if(content == strstr(content, "HTTP/1.1 200"))
+        {
+            LOG_INFO("[%s:%u] Proxy connected to %s:%u!", client->m_url.host(), client->m_url.port(), client->m_url.finalHost(), client->m_url.finalPort());
+            client->setState(ConnectedState);
+            client->login();
+        }
+        return;
+    }
+
     client->m_recvBufPos += nread;
 
     char* end;
     char* start = buf->base;
     size_t remaining = client->m_recvBufPos;
+
+    if(client->m_encrypted)
+    {
+        char * read_encr_hex = static_cast<char*>(malloc(nread * 2 + 1));
+        memset(read_encr_hex, 0, nread * 2 + 1);
+        Job::toHex((const unsigned char*)start, nread, read_encr_hex);
+        LOG_DEBUG("[%s] read encr. (%d bytes): \"0x%s\"", client->m_ip, nread, read_encr_hex);
+        free(read_encr_hex);
+
+        // DeEncrypt
+        for(int i = 0; i < (int)nread; ++i)
+        {
+            start[i] ^= client->m_keystream[i];
+        }
+    }
 
     while ((end = static_cast<char*>(memchr(start, '\n', remaining))) != nullptr) {
         end++;
