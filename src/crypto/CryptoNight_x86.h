@@ -193,14 +193,14 @@ template<bool SOFT_AES>
 static inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
 {
     if (SOFT_AES) {
-        *x0 = soft_aesenc(*x0, key);
-        *x1 = soft_aesenc(*x1, key);
-        *x2 = soft_aesenc(*x2, key);
-        *x3 = soft_aesenc(*x3, key);
-        *x4 = soft_aesenc(*x4, key);
-        *x5 = soft_aesenc(*x5, key);
-        *x6 = soft_aesenc(*x6, key);
-        *x7 = soft_aesenc(*x7, key);
+        *x0 = soft_aesenc((uint32_t*)x0, key);
+        *x1 = soft_aesenc((uint32_t*)x1, key);
+        *x2 = soft_aesenc((uint32_t*)x2, key);
+        *x3 = soft_aesenc((uint32_t*)x3, key);
+        *x4 = soft_aesenc((uint32_t*)x4, key);
+        *x5 = soft_aesenc((uint32_t*)x5, key);
+        *x6 = soft_aesenc((uint32_t*)x6, key);
+        *x7 = soft_aesenc((uint32_t*)x7, key);
     }
     else {
         *x0 = _mm_aesenc_si128(*x0, key);
@@ -325,15 +325,14 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
 
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx;
-        cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
 
         if (SOFT_AES) {
-            cx = soft_aesenc(cx, _mm_set_epi64x(ah0, al0));
+            cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
         }
-        else {
+        else {  
+            cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
             cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
         }
-
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
         idx0 = EXTRACT64(cx);
         bx0 = cx;
@@ -387,14 +386,15 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     uint64_t idx1 = h1[0] ^ h1[4];
 
     for (size_t i = 0; i < ITERATIONS; i++) {
-        __m128i cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
-        __m128i cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
+        __m128i cx0, cx1;
 
         if (SOFT_AES) {
-            cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
-            cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
+            cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+            cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
         }
         else {
+            cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+            cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
             cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
             cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
         }
