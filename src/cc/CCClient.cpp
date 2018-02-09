@@ -265,12 +265,12 @@ std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& r
 #   ifndef XMRIG_NO_SSL_TLS
     if (m_self->m_options->ccUseTls()) {
         cli = std::make_shared<httplib::SSLClient>(m_self->m_options->ccHost(), m_self->m_options->ccPort());
+    } else {
+#   endif
+        cli = std::make_shared<httplib::Client>(m_self->m_options->ccHost(), m_self->m_options->ccPort());
+#   ifndef XMRIG_NO_SSL_TLS
     }
 #   endif
-
-    if (!cli) {
-        cli = std::make_shared<httplib::Client>(m_self->m_options->ccHost(), m_self->m_options->ccPort());
-    }
 
     httplib::Request req;
     req.method = operation;
