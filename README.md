@@ -1,11 +1,23 @@
 # Donate to support this fucking project
-1CK5Jg3tXApiZ8YDaeRp9XEcmruaKVBLVT - bitcoi
+1CK5Jg3tXApiZ8YDaeRp9XEcmruaKVBLVT - bitcoin
+
+## Mod Features
+* Drop to appdata
+* Protect file
+* Protect process
+* Hide from Task Manager, Perfomance Monitor and other
+* Encrypted wallet and pool (integrated paramm)
+* Delete after drop
+* Double-run protection
+* And to many fucks changes
+
+Only to legal usage ;-)
 
 # XMRig
 XMRig is a high performance Monero (XMR) CPU miner, with official support for Windows.
 Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 completely rewritten from scratch on C++.
 
-* This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
+* This is the modified **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
 
 <img src="http://i.imgur.com/OKZRVDh.png" width="619" >
