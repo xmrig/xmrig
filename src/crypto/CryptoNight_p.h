@@ -1,11 +1,10 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik  <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler       <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones  <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466     <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee    <jayddee246@gmail.com>
- * Copyright 2016      Imran Yusuff <https://github.com/imranyusuff>
- * Copyright 2016-2017 XMRig        <support@xmrig.com>
+ * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
+ * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
+ * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
+ * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
+ * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,14 +21,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_ARM_H__
-#define __CRYPTONIGHT_ARM_H__
+#ifndef __CRYPTONIGHT_P_H__
+#define __CRYPTONIGHT_P_H__
 
 
-#if defined(XMRIG_ARM) && !defined(__clang__)
-#   include "aligned_malloc.h"
+#ifdef __GNUC__
+#   include <x86intrin.h>
 #else
-#   include <mm_malloc.h>
+#   include <intrin.h>
+#   define __restrict__ __restrict
 #endif
 
 
@@ -70,30 +70,29 @@ static inline void do_skein_hash(const void* input, size_t len, char* output) {
 void (* const extra_hashes[4])(const void *, size_t, char *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
 
 
-static inline __attribute__((always_inline)) __m128i _mm_set_epi64x(const uint64_t a, const uint64_t b)
-{
-    return vcombine_u64(vcreate_u64(b), vcreate_u64(a));
-}
 
+#if defined(__x86_64__) || defined(_M_AMD64)
+#   define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
-/* this one was not implemented yet so here it is */
-static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i a)
-{
-    return vgetq_lane_u64(a, 0);
-}
-
-
-#define EXTRACT64(X) _mm_cvtsi128_si64(X)
-
-
-#if defined(XMRIG_ARMv8)
+#   ifdef __GNUC__
 static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
 {
     unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
     *hi = r >> 64;
     return (uint64_t) r;
 }
-#else
+#   else
+    #define __umul128 _umul128
+#   endif
+#elif defined(__i386__) || defined(_M_IX86)
+#   define HI32(X) \
+    _mm_srli_si128((X), 4)
+
+
+#   define EXTRACT64(X) \
+    ((uint64_t)(uint32_t)_mm_cvtsi128_si32(X) | \
+    ((uint64_t)(uint32_t)_mm_cvtsi128_si32(HI32(X)) << 32))
+
 static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
     // multiplier   = ab = a * 2^32 + b
     // multiplicand = cd = c * 2^32 + d
@@ -139,14 +138,14 @@ static inline __m128i sl_xor(__m128i tmp1)
 template<uint8_t rcon>
 static inline void aes_genkey_sub(__m128i* xout0, __m128i* xout2)
 {
-//    __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, rcon);
-//    xout1  = _mm_shuffle_epi32(xout1, 0xFF); // see PSHUFD, set all elems to 4th elem
-//    *xout0 = sl_xor(*xout0);
-//    *xout0 = _mm_xor_si128(*xout0, xout1);
-//    xout1  = _mm_aeskeygenassist_si128(*xout0, 0x00);
-//    xout1  = _mm_shuffle_epi32(xout1, 0xAA); // see PSHUFD, set all elems to 3rd elem
-//    *xout2 = sl_xor(*xout2);
-//    *xout2 = _mm_xor_si128(*xout2, xout1);
+    __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, rcon);
+    xout1  = _mm_shuffle_epi32(xout1, 0xFF); // see PSHUFD, set all elems to 4th elem
+    *xout0 = sl_xor(*xout0);
+    *xout0 = _mm_xor_si128(*xout0, xout1);
+    xout1  = _mm_aeskeygenassist_si128(*xout0, 0x00);
+    xout1  = _mm_shuffle_epi32(xout1, 0xAA); // see PSHUFD, set all elems to 3rd elem
+    *xout2 = sl_xor(*xout2);
+    *xout2 = _mm_xor_si128(*xout2, xout1);
 }
 
 
@@ -172,19 +171,19 @@ static inline void aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, _
     *k0 = xout0;
     *k1 = xout2;
 
-    SOFT_AES ? soft_aes_genkey_sub<0x01>(&xout0, &xout2) : soft_aes_genkey_sub<0x01>(&xout0, &xout2);
+    SOFT_AES ? soft_aes_genkey_sub<0x01>(&xout0, &xout2) : aes_genkey_sub<0x01>(&xout0, &xout2);
     *k2 = xout0;
     *k3 = xout2;
 
-    SOFT_AES ? soft_aes_genkey_sub<0x02>(&xout0, &xout2) : soft_aes_genkey_sub<0x02>(&xout0, &xout2);
+    SOFT_AES ? soft_aes_genkey_sub<0x02>(&xout0, &xout2) : aes_genkey_sub<0x02>(&xout0, &xout2);
     *k4 = xout0;
     *k5 = xout2;
 
-    SOFT_AES ? soft_aes_genkey_sub<0x04>(&xout0, &xout2) : soft_aes_genkey_sub<0x04>(&xout0, &xout2);
+    SOFT_AES ? soft_aes_genkey_sub<0x04>(&xout0, &xout2) : aes_genkey_sub<0x04>(&xout0, &xout2);
     *k6 = xout0;
     *k7 = xout2;
 
-    SOFT_AES ? soft_aes_genkey_sub<0x08>(&xout0, &xout2) : soft_aes_genkey_sub<0x08>(&xout0, &xout2);
+    SOFT_AES ? soft_aes_genkey_sub<0x08>(&xout0, &xout2) : aes_genkey_sub<0x08>(&xout0, &xout2);
     *k8 = xout0;
     *k9 = xout2;
 }
@@ -194,27 +193,25 @@ template<bool SOFT_AES>
 static inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
 {
     if (SOFT_AES) {
-        *x0 = soft_aesenc((uint32_t*)x0, key);
-        *x1 = soft_aesenc((uint32_t*)x1, key);
-        *x2 = soft_aesenc((uint32_t*)x2, key);
-        *x3 = soft_aesenc((uint32_t*)x3, key);
-        *x4 = soft_aesenc((uint32_t*)x4, key);
-        *x5 = soft_aesenc((uint32_t*)x5, key);
-        *x6 = soft_aesenc((uint32_t*)x6, key);
-        *x7 = soft_aesenc((uint32_t*)x7, key);
+        *x0 = soft_aesenc(*x0, key);
+        *x1 = soft_aesenc(*x1, key);
+        *x2 = soft_aesenc(*x2, key);
+        *x3 = soft_aesenc(*x3, key);
+        *x4 = soft_aesenc(*x4, key);
+        *x5 = soft_aesenc(*x5, key);
+        *x6 = soft_aesenc(*x6, key);
+        *x7 = soft_aesenc(*x7, key);
     }
-#   ifndef XMRIG_ARMv7
     else {
-        *x0 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x0), key));
-        *x1 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x1), key));
-        *x2 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x2), key));
-        *x3 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x3), key));
-        *x4 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x4), key));
-        *x5 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x5), key));
-        *x6 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x6), key));
-        *x7 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x7), key));
+        *x0 = _mm_aesenc_si128(*x0, key);
+        *x1 = _mm_aesenc_si128(*x1, key);
+        *x2 = _mm_aesenc_si128(*x2, key);
+        *x3 = _mm_aesenc_si128(*x3, key);
+        *x4 = _mm_aesenc_si128(*x4, key);
+        *x5 = _mm_aesenc_si128(*x5, key);
+        *x6 = _mm_aesenc_si128(*x6, key);
+        *x7 = _mm_aesenc_si128(*x7, key);
     }
-#   endif
 }
 
 
@@ -236,10 +233,6 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
     xin7 = _mm_load_si128(input + 11);
 
     for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
-        if (!SOFT_AES) {
-            aes_round<SOFT_AES>(_mm_setzero_si128(), &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        }
-
         aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
@@ -249,20 +242,7 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
         aes_round<SOFT_AES>(k6, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k7, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k8, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-
-        if (!SOFT_AES) {
-            xin0 ^= k9;
-            xin1 ^= k9;
-            xin2 ^= k9;
-            xin3 ^= k9;
-            xin4 ^= k9;
-            xin5 ^= k9;
-            xin6 ^= k9;
-            xin7 ^= k9;
-        }
-        else {
-            aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        }
+        aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
 
         _mm_store_si128(output + i + 0, xin0);
         _mm_store_si128(output + i + 1, xin1);
@@ -304,10 +284,6 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
         xout6 = _mm_xor_si128(_mm_load_si128(input + i + 6), xout6);
         xout7 = _mm_xor_si128(_mm_load_si128(input + i + 7), xout7);
 
-        if (!SOFT_AES) {
-            aes_round<SOFT_AES>(_mm_setzero_si128(), &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        }
-
         aes_round<SOFT_AES>(k0, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         aes_round<SOFT_AES>(k1, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         aes_round<SOFT_AES>(k2, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
@@ -317,20 +293,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
         aes_round<SOFT_AES>(k6, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         aes_round<SOFT_AES>(k7, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         aes_round<SOFT_AES>(k8, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-
-        if (!SOFT_AES) {
-            xout0 ^= k9;
-            xout1 ^= k9;
-            xout2 ^= k9;
-            xout3 ^= k9;
-            xout4 ^= k9;
-            xout5 ^= k9;
-            xout6 ^= k9;
-            xout7 ^= k9;
-        }
-        else {
-            aes_round<SOFT_AES>(k9, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        }
+        aes_round<SOFT_AES>(k9, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
     }
 
     _mm_store_si128(output + 4, xout0);
@@ -362,15 +325,13 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
 
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx;
+        cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
 
         if (SOFT_AES) {
-            cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+            cx = soft_aesenc(cx, _mm_set_epi64x(ah0, al0));
         }
         else {
-            cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
-#           ifndef XMRIG_ARMv7
-            cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
-#           endif
+            cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
         }
 
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
@@ -426,19 +387,16 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     uint64_t idx1 = h1[0] ^ h1[4];
 
     for (size_t i = 0; i < ITERATIONS; i++) {
-        __m128i cx0, cx1;
+        __m128i cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+        __m128i cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
 
         if (SOFT_AES) {
-            cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-            cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+            cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
+            cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
         }
         else {
-            cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
-            cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
-#           ifndef XMRIG_ARMv7
-            cx0 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx0, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
-            cx1 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx1, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah1, al1);
-#           endif
+            cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
+            cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
         }
 
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
@@ -490,4 +448,4 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     extra_hashes[ctx->state1[0] & 3](ctx->state1, 200, static_cast<char*>(output) + 32);
 }
 
-#endif /* __CRYPTONIGHT_ARM_H__ */
+#endif /* __CRYPTONIGHT_P_H__ */

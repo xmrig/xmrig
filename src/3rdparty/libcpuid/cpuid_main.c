@@ -1,28 +1,3 @@
-/*
- * Copyright 2008  Veselin Georgiev,
- * anrieffNOSPAM @ mgail_DOT.com (convert to gmail)
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 #include "libcpuid.h"
 #include "libcpuid_internal.h"
 #include "recog_intel.h"
@@ -36,7 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* Implementation: */
+
 
 static int _libcpiud_errno = ERR_OK;
 
@@ -55,7 +30,7 @@ static void cpu_id_t_constructor(struct cpu_id_t* id)
 	id->sse_size = -1;
 }
 
-/* get_total_cpus() system specific code: uses OS routines to determine total number of CPUs */
+
 #ifdef __APPLE__
 #include <unistd.h>
 #include <mach/clock_types.h>
@@ -118,13 +93,10 @@ static int get_total_cpus(void)
 	static int warning_printed = 0;
 	if (!warning_printed) {
 		warning_printed = 1;
-		warnf("Your system is not supported by libcpuid -- don't know how to detect the\n");
-		warnf("total number of CPUs on your system. It will be reported as 1.\n");
-		printf("Please use cpu_id_t.logical_cpus field instead.\n");
 	}
 	return 1;
 }
-#endif /* GET_TOTAL_CPUS_DEFINED */
+#endif 
 
 
 static void load_features_common(struct cpu_raw_data_t* raw, struct cpu_id_t* data)
@@ -203,7 +175,7 @@ static void load_features_common(struct cpu_raw_data_t* raw, struct cpu_id_t* da
 		match_features(matchtable_edx87, COUNT_OF(matchtable_edx87), raw->ext_cpuid[7][3], data);
 	}
 	if (data->flags[CPU_FEATURE_SSE]) {
-		/* apply guesswork to check if the SSE unit width is 128 bit */
+		
 		switch (data->vendor) {
 			case VENDOR_AMD:
 				data->sse_size = (data->ext_family >= 16 && data->ext_family != 17) ? 128 : 64;
@@ -214,8 +186,6 @@ static void load_features_common(struct cpu_raw_data_t* raw, struct cpu_id_t* da
 			default:
 				break;
 		}
-		/* leave the CPU_FEATURE_128BIT_SSE_AUTH 0; the advanced per-vendor detection routines
-		 * will set it accordingly if they detect the needed bit */
 	}
 }
 
@@ -225,7 +195,7 @@ static cpu_vendor_t cpuid_vendor_identify(const uint32_t *raw_vendor, char *vend
     cpu_vendor_t vendor = VENDOR_UNKNOWN;
     const struct { cpu_vendor_t vendor; char match[16]; }
     matchtable[NUM_CPU_VENDORS] = {
-        /* source: http://www.sandpile.org/ia32/cpuid.htm */
+        
         { VENDOR_INTEL		, "GenuineIntel" },
         { VENDOR_AMD		, "AuthenticAMD" },
         { VENDOR_CYRIX		, "CyrixInstead" },
@@ -243,7 +213,7 @@ static cpu_vendor_t cpuid_vendor_identify(const uint32_t *raw_vendor, char *vend
     memcpy(vendor_str + 8, &raw_vendor[2], 4);
     vendor_str[12] = 0;
 
-    /* Determine vendor: */
+    
     for (i = 0; i < NUM_CPU_VENDORS; i++)
         if (!strcmp(vendor_str, matchtable[i].match)) {
             vendor = matchtable[i].vendor;
@@ -275,7 +245,7 @@ static int cpuid_basic_identify(struct cpu_raw_data_t* raw, struct cpu_id_t* dat
 	}
 	ext = raw->ext_cpuid[0][0] - 0x8000000;
 	
-	/* obtain the brand string, if present: */
+	
 	if (ext >= 4) {
 		for (i = 0; i < 3; i++)
 			for (j = 0; j < 4; j++)
@@ -292,7 +262,7 @@ static int cpuid_basic_identify(struct cpu_raw_data_t* raw, struct cpu_id_t* dat
 	return set_error(ERR_OK);
 }
 
-/* Interface: */
+
 
 int cpuid_get_total_cpus(void)
 {

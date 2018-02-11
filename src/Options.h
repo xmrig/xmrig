@@ -1,47 +1,18 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
- *
- *   This program is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
 #ifndef __OPTIONS_H__
 #define __OPTIONS_H__
 
-
 #include <stdint.h>
 #include <vector>
-
-
 #include "rapidjson/fwd.h"
-
 
 class Url;
 struct option;
-
 
 class Options
 {
 public:
     enum Algo {
-        ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
-        ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
+        ALGO_CRYPTONIGHT
     };
 
     enum AlgoVariant {
@@ -59,7 +30,6 @@ public:
     inline bool background() const                { return m_background; }
     inline bool colors() const                    { return m_colors; }
     inline bool doubleHash() const                { return m_doubleHash; }
-    inline bool dryRun() const                    { return m_dryRun; }
     inline bool hugePages() const                 { return m_hugePages; }
     inline bool syslog() const                    { return m_syslog; }
     inline const char *apiToken() const           { return m_apiToken; }
@@ -77,7 +47,6 @@ public:
     inline int retryPause() const                 { return m_retryPause; }
     inline int threads() const                    { return m_threads; }
     inline int64_t affinity() const               { return m_affinity; }
-    inline void setColors(bool colors)            { m_colors = colors; }
 
     inline static void release()                  { delete m_self; }
 
@@ -91,27 +60,18 @@ private:
 
     static Options *m_self;
 
-    bool getJSON(const char *fileName, rapidjson::Document &doc);
     bool parseArg(int key, const char *arg);
     bool parseArg(int key, uint64_t arg);
     bool parseBoolean(int key, bool enable);
     Url *parseUrl(const char *arg) const;
-    void parseConfig(const char *fileName);
-    void parseJSON(const struct option *option, const rapidjson::Value &object);
-    void showUsage(int status) const;
-    void showVersion(void);
 
     bool setAlgo(const char *algo);
 
     int getAlgoVariant() const;
-#   ifndef XMRIG_NO_AEON
-    int getAlgoVariantLite() const;
-#   endif
 
     bool m_background;
     bool m_colors;
     bool m_doubleHash;
-    bool m_dryRun;
     bool m_hugePages;
     bool m_ready;
     bool m_safe;

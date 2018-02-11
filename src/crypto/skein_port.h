@@ -35,22 +35,6 @@
 #  endif
 #endif
 
-/*  These defines are used to declare buffers in a way that allows
-    faster operations on longer variables to be used.  In all these
-    defines 'size' must be a power of 2 and >= 8
-
-    dec_unit_type(size,x)       declares a variable 'x' of length
-                                'size' bits
-
-    dec_bufr_type(size,bsize,x) declares a buffer 'x' of length 'bsize'
-                                bytes defined as an array of variables
-                                each of 'size' bits (bsize must be a
-                                multiple of size / 8)
-
-    ptr_cast(x,size)            casts a pointer to a pointer to a
-                                varaiable of length 'size' bits
-*/
-
 #define ui_type(size)               uint##size##_t
 #define dec_unit_type(size,x)       typedef ui_type(size) x
 #define dec_bufr_type(size,bsize,x) typedef ui_type(size) x[bsize / (size >> 3)]
@@ -64,25 +48,6 @@ typedef uint64_t        u64b_t;             /* 64-bit unsigned integer */
 #define RotL_64(x,N)    (((x) << (N)) | ((x) >> (64-(N))))
 #endif
 
-/*
- * Skein is "natively" little-endian (unlike SHA-xxx), for optimal
- * performance on x86 CPUs.  The Skein code requires the following
- * definitions for dealing with endianness:
- *
- *    SKEIN_NEED_SWAP:  0 for little-endian, 1 for big-endian
- *    Skein_Put64_LSB_First
- *    Skein_Get64_LSB_First
- *    Skein_Swap64
- *
- * If SKEIN_NEED_SWAP is defined at compile time, it is used here
- * along with the portable versions of Put64/Get64/Swap64, which
- * are slow in general.
- *
- * Otherwise, an "auto-detect" of endianness is attempted below.
- * If the default handling doesn't work well, the user may insert
- * platform-specific code instead (e.g., for big-endian CPUs).
- *
- */
 #ifndef SKEIN_NEED_SWAP /* compile-time "override" for endianness? */
 
 #define IS_BIG_ENDIAN      4321 /* byte 0 is most significant (mc68k) */
@@ -126,11 +91,6 @@ typedef uint64_t        u64b_t;             /* 64-bit unsigned integer */
 
 #endif /* ifndef SKEIN_NEED_SWAP */
 
-/*
- ******************************************************************
- *      Provide any definitions still needed.
- ******************************************************************
- */
 #ifndef Skein_Swap64  /* swap for big-endian, nop for little-endian */
 #if     SKEIN_NEED_SWAP
 #define Skein_Swap64(w64)                       \

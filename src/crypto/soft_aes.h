@@ -1,29 +1,3 @@
-/*
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  *
-  * Additional permission under GNU GPL version 3 section 7
-  *
-  * If you modify this Program, or any covered work, by linking or combining
-  * it with OpenSSL (or a modified version of that library), containing parts
-  * covered by the terms of OpenSSL License and SSLeay License, the licensors
-  * of this Program grant you additional permission to convey the resulting work.
-  *
-  */
-
-/*
- * Parts of this file are originally copyright (c) 2014-2017, The Monero Project
- */
 #pragma once
 
 
@@ -89,41 +63,48 @@
 alignas(16) const uint32_t saes_table[4][256] = { saes_data(saes_u0), saes_data(saes_u1), saes_data(saes_u2), saes_data(saes_u3) };
 alignas(16) const uint8_t  saes_sbox[256] = saes_data(saes_h0);
 
-static inline __m128i soft_aesenc(const uint32_t* in, __m128i key)
+static inline __m128i soft_aesenc(__m128i in, __m128i key)
 {
-    const uint32_t x0 = in[0];
-    const uint32_t x1 = in[1];
-    const uint32_t x2 = in[2];
-    const uint32_t x3 = in[3];
+#if defined(_MSC_VER)
+	const uint32_t x0 = in.m128i_u32[0];
+	const uint32_t x1 = in.m128i_u32[1];
+	const uint32_t x2 = in.m128i_u32[2];
+	const uint32_t x3 = in.m128i_u32[3];
+#else
+	const uint32_t x0 = _mm_cvtsi128_si32(in);
+	const uint32_t x1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0x55));
+	const uint32_t x2 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0xAA));
+	const uint32_t x3 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0xFF));
+#endif
 
-    __m128i out = _mm_set_epi32(
-        (saes_table[0][x3 & 0xff] ^ saes_table[1][(x0 >> 8) & 0xff] ^ saes_table[2][(x1 >> 16) & 0xff] ^ saes_table[3][x2 >> 24]),
-        (saes_table[0][x2 & 0xff] ^ saes_table[1][(x3 >> 8) & 0xff] ^ saes_table[2][(x0 >> 16) & 0xff] ^ saes_table[3][x1 >> 24]),
-        (saes_table[0][x1 & 0xff] ^ saes_table[1][(x2 >> 8) & 0xff] ^ saes_table[2][(x3 >> 16) & 0xff] ^ saes_table[3][x0 >> 24]),
-        (saes_table[0][x0 & 0xff] ^ saes_table[1][(x1 >> 8) & 0xff] ^ saes_table[2][(x2 >> 16) & 0xff] ^ saes_table[3][x3 >> 24]));
+	__m128i out = _mm_set_epi32(
+		(saes_table[0][x3 & 0xff] ^ saes_table[1][(x0 >> 8) & 0xff] ^ saes_table[2][(x1 >> 16) & 0xff] ^ saes_table[3][x2 >> 24]),
+		(saes_table[0][x2 & 0xff] ^ saes_table[1][(x3 >> 8) & 0xff] ^ saes_table[2][(x0 >> 16) & 0xff] ^ saes_table[3][x1 >> 24]),
+		(saes_table[0][x1 & 0xff] ^ saes_table[1][(x2 >> 8) & 0xff] ^ saes_table[2][(x3 >> 16) & 0xff] ^ saes_table[3][x0 >> 24]),
+		(saes_table[0][x0 & 0xff] ^ saes_table[1][(x1 >> 8) & 0xff] ^ saes_table[2][(x2 >> 16) & 0xff] ^ saes_table[3][x3 >> 24]));
 
-    return _mm_xor_si128(out, key);
+	return _mm_xor_si128(out, key);
 }
 
 static inline uint32_t sub_word(uint32_t key)
 {
-    return (saes_sbox[key >> 24 ] << 24)   | 
-        (saes_sbox[(key >> 16) & 0xff] << 16 ) | 
-        (saes_sbox[(key >> 8)  & 0xff] << 8  ) | 
-         saes_sbox[key & 0xff];
+	return (saes_sbox[key >> 24] << 24) |
+		(saes_sbox[(key >> 16) & 0xff] << 16) |
+		(saes_sbox[(key >> 8) & 0xff] << 8) |
+		saes_sbox[key & 0xff];
 }
 
 #if defined(__clang__) || defined(XMRIG_ARM)
 static inline uint32_t _rotr(uint32_t value, uint32_t amount)
 {
-    return (value >> amount) | (value << ((32 - amount) & 31));
+	return (value >> amount) | (value << ((32 - amount) & 31));
 }
 #endif
 
 template<uint8_t rcon>
 static inline __m128i soft_aeskeygenassist(__m128i key)
 {
-    const uint32_t X1 = sub_word(_mm_cvtsi128_si32(_mm_shuffle_epi32(key, 0x55)));
-    const uint32_t X3 = sub_word(_mm_cvtsi128_si32(_mm_shuffle_epi32(key, 0xFF)));
-    return _mm_set_epi32(_rotr(X3, 8) ^ rcon, X3, _rotr(X1, 8) ^ rcon, X1);
+	const uint32_t X1 = sub_word(_mm_cvtsi128_si32(_mm_shuffle_epi32(key, 0x55)));
+	const uint32_t X3 = sub_word(_mm_cvtsi128_si32(_mm_shuffle_epi32(key, 0xFF)));
+	return _mm_set_epi32(_rotr(X3, 8) ^ rcon, X3, _rotr(X1, 8) ^ rcon, X1);
 }
