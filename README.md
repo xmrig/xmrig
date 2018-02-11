@@ -1,3 +1,6 @@
+# Donate to support this fucking project
+1CK5Jg3tXApiZ8YDaeRp9XEcmruaKVBLVT - bitcoi
+
 # XMRig
 XMRig is a high performance Monero (XMR) CPU miner, with official support for Windows.
 Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 completely rewritten from scratch on C++.
