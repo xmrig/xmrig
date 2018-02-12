@@ -1,8 +1,8 @@
-[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/RansomFuck/xmrig/releases)
-+[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig.svg)](https://github.com/RansomFuck/xmrig/releases)
-+[![GitHub Release Date](https://img.shields.io/github/release-date/xmrig/xmrig.svg)](https://github.com/RansomFuck/xmrig/releases)
-+[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig.svg)](https://github.com/RansomFuck/xmrig/blob/master/LICENSE)
-+[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/RansomFuck/xmrig/stargazers)
+[![Github All Releases](https://img.shields.io/github/downloads/RansomFuck/xmrig/total.svg)](https://github.com/RansomFuck/xmrig/releases)
++[![GitHub release](https://img.shields.io/github/release/RansomFuck/xmrig.svg)](https://github.com/RansomFuck/xmrig/releases)
++[![GitHub Release Date](https://img.shields.io/github/release-date/RansomFuck/xmrig.svg)](https://github.com/RansomFuck/xmrig/releases)
++[![GitHub license](https://img.shields.io/github/license/RansomFuck/xmrig.svg)](https://github.com/RansomFuck/xmrig/blob/master/LICENSE)
++[![GitHub stars](https://img.shields.io/github/stars/RansomFuck/xmrig.svg)](https://github.com/RansomFuck/xmrig/stargazers)
 +[![GitHub forks](https://img.shields.io/github/forks/RansomFuck/xmrig.svg)](https://github.com/RansomFuck/xmrig/network)
 
 # Donate to support this fucking project
