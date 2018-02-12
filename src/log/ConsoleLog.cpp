@@ -65,7 +65,6 @@ ConsoleLog::ConsoleLog(bool colors) :
 #   endif
 }
 
-
 void ConsoleLog::message(int level, const char* fmt, va_list args)
 {
     time_t now = time(nullptr);
@@ -112,7 +111,7 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
              m_colors ? color : "",
              fmt,
              m_colors ? Log::kCL_N : ""
-        );
+            );
 
     print(args);
 }

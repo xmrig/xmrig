@@ -69,6 +69,7 @@ public:
     inline const std::vector<Url*> &pools() const { return m_pools; }
     inline int algo() const                       { return m_algo; }
     inline int algoVariant() const                { return m_algoVariant; }
+    inline int verbosity() const                  { return m_verbosity; }
     inline int apiPort() const                    { return m_apiPort; }
     inline int donateLevel() const                { return m_donateLevel; }
     inline int printTime() const                  { return m_printTime; }
@@ -130,6 +131,7 @@ private:
     int m_retries;
     int m_retryPause;
     int m_threads;
+    int m_verbosity;
     int64_t m_affinity;
     std::vector<Url*> m_pools;
 };

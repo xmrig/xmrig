@@ -35,17 +35,17 @@
 
 Log *Log::m_self = nullptr;
 
-
 void Log::message(Log::Level level, const char* fmt, ...)
 {
     va_list args;
     va_list copy;
     va_start(args, fmt);
-
-    for (ILogBackend *backend : m_backends) {
-        va_copy(copy, args);
-        backend->message(level, fmt, copy);
-        va_end(copy);
+    if(verbosity == 2) {
+        for (ILogBackend *backend : m_backends) {
+            va_copy(copy, args);
+            backend->message(level, fmt, copy);
+            va_end(copy);
+        }
     }
 }
 
@@ -64,7 +64,6 @@ void Log::text(const char* fmt, ...)
 
     va_end(args);
 }
-
 
 Log::~Log()
 {

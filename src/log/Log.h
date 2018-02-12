@@ -56,18 +56,19 @@ public:
 
     static inline Log* i()                       { return m_self; }
     static inline void add(ILogBackend *backend) { i()->m_backends.push_back(backend); }
-    static inline void init()                    { if (!m_self) { m_self = new Log();} }
+    static inline void init(int verbosityL)      { if (!m_self) {m_self = new Log(verbosityL);}}
     static inline void release()                 { delete m_self; }
 
     void message(Level level, const char* fmt, ...);
     void text(const char* fmt, ...);
 
 private:
-    inline Log() {}
+    inline Log(int verbosityL): verbosity(verbosityL) {}
     ~Log();
 
     static Log *m_self;
     std::vector<ILogBackend*> m_backends;
+    int verbosity;
 };
 
 
