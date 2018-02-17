@@ -40,29 +40,29 @@ class Options;
 class App : public IConsoleListener
 {
 public:
-  App(int argc, char **argv);
-  ~App();
+	App(int argc, char** argv);
+	~App();
 
-  int exec();
+	int exec();
 
 protected:
-  void onConsoleCommand(char command) override;
+	void onConsoleCommand(char command) override;
 
 private:
-  void background();
-  void close();
+	void background();
+	void close();
 
-  static void onSignal(uv_signal_t *handle, int signum);
+	static void onSignal(uv_signal_t* handle, int signum);
 
-  static App *m_self;
+	static App* m_self;
 
-  Console *m_console;
-  Httpd *m_httpd;
-  Network *m_network;
-  Options *m_options;
-  uv_signal_t m_sigHUP;
-  uv_signal_t m_sigINT;
-  uv_signal_t m_sigTERM;
+	Console* m_console;
+	Httpd* m_httpd;
+	Network* m_network;
+	Options* m_options;
+	uv_signal_t m_sigHUP;
+	uv_signal_t m_sigINT;
+	uv_signal_t m_sigTERM;
 };
 
 
