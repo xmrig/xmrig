@@ -37,21 +37,21 @@ class Handle;
 class DoubleWorker : public Worker
 {
 public:
-    DoubleWorker(Handle *handle);
-    ~DoubleWorker();
+	DoubleWorker(Handle* handle);
+	~DoubleWorker();
 
-    void start() override;
+	void start() override;
 
 private:
-    bool resume(const Job &job);
-    void consumeJob();
-    void save(const Job &job);
+	bool resume(const Job & job);
+	void consumeJob();
+	void save(const Job & job);
 
-    class State;
+	class State;
 
-    uint8_t m_hash[64];
-    State *m_state;
-    State *m_pausedState;
+	uint8_t m_hash[64];
+	State* m_state;
+	State* m_pausedState;
 };
 
 

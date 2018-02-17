@@ -24,17 +24,25 @@
 #ifndef __ILOGBACKEND_H__
 #define __ILOGBACKEND_H__
 
-
-#include <stdarg.h>
-
+#include "interfaces/interface.h"
+#include <string>
 
 class ILogBackend
 {
 public:
-    virtual ~ILogBackend() {}
+	enum Level
+	{
+		ERR,
+		WARNING,
+		NOTICE,
+		INFO,
+		DEBUG
+	};
 
-    virtual void message(int level, const char* fmt, va_list args) = 0;
-    virtual void text(const char* fmt, va_list args)               = 0;
+	virtual ~ILogBackend() {}
+
+	virtual void message(Level level, const std::string & txt) = 0;
+	virtual void text(const std::string & txt) = 0;
 };
 
 

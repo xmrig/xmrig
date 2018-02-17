@@ -29,34 +29,40 @@
 #include "Platform.h"
 
 
-char *Platform::m_defaultConfigName = nullptr;
-char *Platform::m_userAgent         = nullptr;
+std::string Platform::m_defaultConfigName = "";
+std::string Platform::m_userAgent         = "";
 
 
-const char *Platform::defaultConfigName()
+const std::string & Platform::defaultConfigName()
 {
-    size_t size = 520;
+	enum
+	{
+		C_SIZE = 520,
+	};
 
-    if (m_defaultConfigName == nullptr) {
-        m_defaultConfigName = new char[size];
-    }
+	size_t size = C_SIZE ;
+	char defaultConfigName[C_SIZE];
+	if(uv_exepath(defaultConfigName, &size) < 0)
+	{
+		return m_defaultConfigName;
+	}
 
-    if (uv_exepath(m_defaultConfigName, &size) < 0) {
-        return nullptr;
-    }
+	m_defaultConfigName = defaultConfigName;
 
-    if (size < 500) {
-#       ifdef WIN32
-        char *p = strrchr(m_defaultConfigName, '\\');
-#       else
-        char *p = strrchr(m_defaultConfigName, '/');
-#       endif
+	if(size < 500)
+	{
+#ifdef WIN32
+		size_t p = m_defaultConfigName.find_last_of('\\');
+#else
+		size_t p = m_defaultConfigName.find_last_of('/');
+#endif
 
-        if (p) {
-            strcpy(p + 1, "config.json");
-            return m_defaultConfigName;
-        }
-    }
+		if(p != std::string::npos)
+		{
+			m_defaultConfigName.resize(p + 1);
+			m_defaultConfigName.append("config.json");
+		}
+	}
 
-    return nullptr;
+	return m_defaultConfigName;
 }

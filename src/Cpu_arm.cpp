@@ -20,7 +20,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef _WIN32
 
 #include <string.h>
 
@@ -39,16 +39,18 @@ int Cpu::m_totalThreads = 0;
 
 int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
 {
-    return m_totalThreads;
+	return m_totalThreads;
 }
 
 
 void Cpu::initCommon()
 {
-    memcpy(m_brand, "Unknown", 7);
+	memcpy(m_brand, "Unknown", 7);
 
 #   if defined(XMRIG_ARMv8)
-    m_flags |= X86_64;
-    m_flags |= AES;
+	m_flags |= X86_64;
+	m_flags |= AES;
 #   endif
 }
+
+#endif

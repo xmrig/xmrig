@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 #include <vector>
-
+#include <string>
 
 #include "rapidjson/fwd.h"
 
@@ -39,99 +39,176 @@ struct option;
 class Options
 {
 public:
-    enum Algo {
-        ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
-        ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
-    };
+	enum Algo
+	{
+		ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
+		ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
+	};
 
-    enum AlgoVariant {
-        AV0_AUTO,
-        AV1_AESNI,
-        AV2_AESNI_DOUBLE,
-        AV3_SOFT_AES,
-        AV4_SOFT_AES_DOUBLE,
-        AV_MAX
-    };
+	enum AlgoVariant
+	{
+		AV0_AUTO,
+		AV1_AESNI,
+		AV2_AESNI_DOUBLE,
+		AV3_SOFT_AES,
+		AV4_SOFT_AES_DOUBLE,
+		AV_MAX
+	};
 
-    static inline Options* i() { return m_self; }
-    static Options *parse(int argc, char **argv);
+	static inline Options* i()
+	{
+		return m_self;
+	}
+	static Options* parse(int argc, char** argv);
 
-    inline bool background() const                { return m_background; }
-    inline bool colors() const                    { return m_colors; }
-    inline bool doubleHash() const                { return m_doubleHash; }
-    inline bool dryRun() const                    { return m_dryRun; }
-    inline bool hugePages() const                 { return m_hugePages; }
-    inline bool syslog() const                    { return m_syslog; }
-    inline const char *apiToken() const           { return m_apiToken; }
-    inline const char *apiWorkerId() const        { return m_apiWorkerId; }
-    inline const char *logFile() const            { return m_logFile; }
-    inline const char *userAgent() const          { return m_userAgent; }
-    inline const std::vector<Url*> &pools() const { return m_pools; }
-    inline int algo() const                       { return m_algo; }
-    inline int algoVariant() const                { return m_algoVariant; }
-    inline int apiPort() const                    { return m_apiPort; }
-    inline int donateLevel() const                { return m_donateLevel; }
-    inline int printTime() const                  { return m_printTime; }
-    inline int priority() const                   { return m_priority; }
-    inline int retries() const                    { return m_retries; }
-    inline int retryPause() const                 { return m_retryPause; }
-    inline int threads() const                    { return m_threads; }
-    inline int64_t affinity() const               { return m_affinity; }
-    inline void setColors(bool colors)            { m_colors = colors; }
+	inline bool background() const
+	{
+		return m_background;
+	}
+	inline bool colors() const
+	{
+		return m_colors;
+	}
+	inline bool doubleHash() const
+	{
+		return m_doubleHash;
+	}
+	inline bool dryRun() const
+	{
+		return m_dryRun;
+	}
+	inline bool hugePages() const
+	{
+		return m_hugePages;
+	}
+	inline bool syslog() const
+	{
+		return m_syslog;
+	}
+	inline const std::string apiToken() const
+	{
+		return m_apiToken;
+	}
+	inline const std::string & apiWorkerId() const
+	{
+		return m_apiWorkerId;
+	}
+	inline const std::string & logFile() const
+	{
+		return m_logFile;
+	}
+	inline const std::string & userAgent() const
+	{
+		return m_userAgent;
+	}
+	inline const std::vector<Url> & pools() const
+	{
+		return m_pools;
+	}
+	inline int algo() const
+	{
+		return m_algo;
+	}
+	inline int algoVariant() const
+	{
+		return m_algoVariant;
+	}
+	inline int apiPort() const
+	{
+		return m_apiPort;
+	}
+	inline int donateLevel() const
+	{
+		return m_donateLevel;
+	}
+	inline int printTime() const
+	{
+		return m_printTime;
+	}
+	inline int priority() const
+	{
+		return m_priority;
+	}
+	inline int retries() const
+	{
+		return m_retries;
+	}
+	inline int retryPause() const
+	{
+		return m_retryPause;
+	}
+	inline int threads() const
+	{
+		return m_threads;
+	}
+	inline int64_t affinity() const
+	{
+		return m_affinity;
+	}
+	inline void setColors(bool colors)
+	{
+		m_colors = colors;
+	}
 
-    inline static void release()                  { delete m_self; }
+	inline static void release()
+	{
+		delete m_self;
+	}
 
-    const char *algoName() const;
+	const char* algoName() const;
 
 private:
-    Options(int argc, char **argv);
-    ~Options();
+	Options(int argc, char** argv);
+	~Options();
 
-    inline bool isReady() const { return m_ready; }
+	inline bool isReady() const
+	{
+		return m_ready;
+	}
 
-    static Options *m_self;
+	static Options* m_self;
 
-    bool getJSON(const char *fileName, rapidjson::Document &doc);
-    bool parseArg(int key, const char *arg);
-    bool parseArg(int key, uint64_t arg);
-    bool parseBoolean(int key, bool enable);
-    Url *parseUrl(const char *arg) const;
-    void parseConfig(const char *fileName);
-    void parseJSON(const struct option *option, const rapidjson::Value &object);
-    void showUsage(int status) const;
-    void showVersion(void);
+	bool getJSON(const std::string & fileName, rapidjson::Document & doc);
+	bool parseArg(int key, const std::string & arg);
+	bool parseArg(int key, uint64_t arg);
+	bool parseBoolean(int key, bool enable);
+	Url parseUrl(const std::string & arg) const;
+	void parseConfig(const std::string & fileName);
+	void parseJSON(const struct option* option, const rapidjson::Value & object);
+	void showUsage(int status) const;
+	void showVersion(void);
 
-    bool setAlgo(const char *algo);
+	bool setAlgo(const std::string & algo);
 
-    int getAlgoVariant() const;
+	int getAlgoVariant() const;
 #   ifndef XMRIG_NO_AEON
-    int getAlgoVariantLite() const;
+	int getAlgoVariantLite() const;
 #   endif
 
-    bool m_background;
-    bool m_colors;
-    bool m_doubleHash;
-    bool m_dryRun;
-    bool m_hugePages;
-    bool m_ready;
-    bool m_safe;
-    bool m_syslog;
-    char *m_apiToken;
-    char *m_apiWorkerId;
-    char *m_logFile;
-    char *m_userAgent;
-    int m_algo;
-    int m_algoVariant;
-    int m_apiPort;
-    int m_donateLevel;
-    int m_maxCpuUsage;
-    int m_printTime;
-    int m_priority;
-    int m_retries;
-    int m_retryPause;
-    int m_threads;
-    int64_t m_affinity;
-    std::vector<Url*> m_pools;
+	bool m_background;
+	bool m_colors;
+	bool m_doubleHash;
+	bool m_dryRun;
+	bool m_hugePages;
+	bool m_ready;
+	bool m_safe;
+	bool m_syslog;
+	std::string m_apiToken;
+	std::string m_apiWorkerId;
+	std::string m_logFile;
+	std::string m_userAgent;
+	int m_algo;
+	int m_algoVariant;
+	int m_apiPort;
+	int m_donateLevel;
+	int m_maxCpuUsage;
+	int m_printTime;
+	int m_priority;
+	int m_retries;
+	int m_retryPause;
+	int m_threads;
+	int64_t m_affinity;
+	std::vector<Url> m_pools;
 };
 
 #endif /* __OPTIONS_H__ */

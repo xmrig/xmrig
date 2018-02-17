@@ -20,7 +20,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef _WIN32
 
 #include <pthread.h>
 #include <sched.h>
@@ -33,13 +33,15 @@
 void Cpu::init()
 {
 #   ifdef XMRIG_NO_LIBCPUID
-    m_totalThreads = sysconf(_SC_NPROCESSORS_CONF);
+	m_totalThreads = sysconf(_SC_NPROCESSORS_CONF);
 #   endif
 
-    initCommon();
+	initCommon();
 }
 
 
 void Cpu::setAffinity(int id, uint64_t mask)
 {
 }
+
+#endif

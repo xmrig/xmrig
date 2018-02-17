@@ -1,5 +1,5 @@
 /*
- * Copyright 2016  Veselin Georgiev,
+ * Copyright 2010  Veselin Georgiev,
  * anrieffNOSPAM @ mgail_DOT.com (convert to gmail)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef __RDTSC_H__
+#define __RDTSC_H__
 
-/*
- * This file contains a list of internal codes we use in detection. It is
- * of no external use and isn't a complete list of AMD products.
- */
-CODE2(OPTERON_800, 1000),
-      CODE(PHENOM),
-      CODE(PHENOM2),
-      CODE(FUSION_C),
-      CODE(FUSION_E),
-      CODE(FUSION_EA),
-      CODE(FUSION_Z),
-      CODE(FUSION_A),
+void sys_precise_clock(uint64_t* result);
+int busy_loop_delay(int milliseconds);
 
+
+#endif /* __RDTSC_H__ */
