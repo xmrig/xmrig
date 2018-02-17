@@ -647,7 +647,7 @@ void Client::onAllocBuffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t*
 	auto client = getClient(handle->data);
 
 	buf->base = &client->m_recvBuf.base[client->m_recvBufPos];
-	buf->len  = client->m_recvBuf.len - client->m_recvBufPos;
+	buf->len  = client->m_recvBuf.len - (unsigned long)client->m_recvBufPos;
 }
 
 

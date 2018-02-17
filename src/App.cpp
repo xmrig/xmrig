@@ -118,7 +118,7 @@ int App::exec()
 {
 	if(!m_options)
 	{
-		return 0;
+		return 2;
 	}
 
 	uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
@@ -129,12 +129,19 @@ int App::exec()
 
 	if(!CryptoNight::init(m_options->algo(), m_options->algoVariant()))
 	{
-		LOG_ERR("\"" << m_options->algoName() << "\" hash self-test failed.");
 		return 1;
 	}
 
 	Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
 	Summary::print();
+
+	if(m_options->dryRun())
+	{
+		LOG_NOTICE("OK");
+		release();
+
+		return 0;
+	}
 
 #   ifndef XMRIG_NO_API
 	Api::start();
@@ -152,12 +159,7 @@ int App::exec()
 	const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 	uv_loop_close(uv_default_loop());
 
-	delete m_network;
-
-	Options::release();
-	Mem::release();
-	Platform::release();
-
+	release();
 	return r;
 }
 
@@ -184,7 +186,7 @@ void App::onConsoleCommand(char command)
 	case 'R':
 		if(!Workers::isEnabled())
 		{
-			LOG_INFO("resumed");
+			LOG_INFO((m_options->colors() ? "\x1B[01;32mresumed" : "resumed"));
 			Workers::setEnabled(true);
 		}
 		break;
@@ -206,6 +208,19 @@ void App::close()
 	Workers::stop();
 
 	uv_stop(uv_default_loop());
+}
+
+
+void App::release()
+{
+	if(m_network)
+	{
+		delete m_network;
+	}
+
+	Options::release();
+	Mem::release();
+	Platform::release();
 }
 
 

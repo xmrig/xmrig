@@ -157,13 +157,37 @@ void Network::onResultAccepted(Client* client, const SubmitResult & result, cons
 
 	if(0 < error.size())
 	{
-		LOG_INFO("rejected (" << m_state.accepted << "/" << m_state.rejected << ") diff " << result.diff << " \"" <<
-		         error << "\" (" << result.elapsed << " ms)");
+		if(m_options->colors())
+		{
+			/*
+			LOG_INFO("\x1B[01;31mrejected\x1B[0m (%" PRId64 "/%" PRId64
+			      ") diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%" PRIu64 " ms)",
+			      m_state.accepted, m_state.rejected, result.diff, error, result.elapsed);
+			*/
+
+		}
+		else
+		{
+			LOG_INFO("rejected (" << m_state.accepted << "/" << m_state.rejected << ") diff " << result.diff << " \"" <<
+			         error << "\" (" << result.elapsed << " ms)");
+		}
 	}
 	else
 	{
-		LOG_INFO("accepted (" << m_state.accepted << "/" << m_state.rejected << ") diff " << result.diff << " (" <<
-		         result.elapsed << " ms)");
+		if(m_options->colors())
+		{
+			/*
+			LOG_INFO("\x1B[01;32maccepted\x1B[0m (%" PRId64 "/%" PRId64
+			         ") diff \x1B[01;37m%u\x1B[0m \x1B[01;30m(%" PRIu64 " ms)",
+			         m_state.accepted, m_state.rejected, result.diff, result.elapsed);
+			*/
+
+		}
+		else
+		{
+			LOG_INFO("accepted (" << m_state.accepted << "/" << m_state.rejected << ") diff " << result.diff << " (" <<
+			         result.elapsed << " ms)");
+		}
 	}
 }
 

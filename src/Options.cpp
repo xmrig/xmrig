@@ -102,12 +102,16 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 static struct option const options[] =
 {
 	{ "algo",             1, nullptr, 'a'  },
+	{ "api-access-token", 1, nullptr, 4001 },
+	{ "api-port",         1, nullptr, 4000 },
+	{ "api-worker-id",    1, nullptr, 4002 },
 	{ "av",               1, nullptr, 'v'  },
 	{ "background",       0, nullptr, 'B'  },
 	{ "config",           1, nullptr, 'c'  },
 	{ "cpu-affinity",     1, nullptr, 1020 },
 	{ "cpu-priority",     1, nullptr, 1021 },
 	{ "donate-level",     1, nullptr, 1003 },
+	{ "dry-run",          0, nullptr, 5000 },
 	{ "help",             0, nullptr, 'h'  },
 	{ "keepalive",        0, nullptr , 'k'  },
 	{ "log-file",         1, nullptr, 'l'  },
@@ -127,9 +131,6 @@ static struct option const options[] =
 	{ "user-agent",       1, nullptr, 1008 },
 	{ "userpass",         1, nullptr, 'O'  },
 	{ "version",          0, nullptr, 'V'  },
-	{ "api-port",         1, nullptr, 4000 },
-	{ "api-access-token", 1, nullptr, 4001 },
-	{ "api-worker-id",    1, nullptr, 4002 },
 	{ 0, 0, 0, 0 }
 };
 
@@ -143,6 +144,7 @@ static struct option const config_options[] =
 	{ "cpu-affinity",  1, nullptr, 1020 },
 	{ "cpu-priority",  1, nullptr, 1021 },
 	{ "donate-level",  1, nullptr, 1003 },
+	{ "dry-run",       0, nullptr, 5000 },
 	{ "huge-pages",    0, nullptr, 1009 },
 	{ "log-file",      1, nullptr, 'l'  },
 	{ "max-cpu-usage", 1, nullptr, 1004 },
@@ -211,6 +213,7 @@ Options::Options(int argc, char** argv) :
 	m_background(false),
 	m_colors(true),
 	m_doubleHash(false),
+	m_dryRun(false),
 	m_hugePages(true),
 	m_ready(false),
 	m_safe(false),
@@ -591,6 +594,10 @@ bool Options::parseBoolean(int key, bool enable)
 
 	case 2000: /* colors */
 		m_colors = enable;
+		break;
+
+	case 5000: /* --dry-run */
+		m_dryRun = enable;
 		break;
 
 	default:

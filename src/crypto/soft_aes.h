@@ -89,19 +89,12 @@
 const uint32_t saes_table[4][256] = { saes_data(saes_u0), saes_data(saes_u1), saes_data(saes_u2), saes_data(saes_u3) };
 const uint8_t  saes_sbox[256] = saes_data(saes_h0);
 
-static inline __m128i soft_aesenc(__m128i in, __m128i key)
+static inline __m128i soft_aesenc(const uint32_t* in, __m128i key)
 {
-#if defined(_MSC_VER)
-	const uint32_t x0 = in.m128i_u32[0];
-	const uint32_t x1 = in.m128i_u32[1];
-	const uint32_t x2 = in.m128i_u32[2];
-	const uint32_t x3 = in.m128i_u32[3];
-#else
-	const uint32_t x0 = _mm_cvtsi128_si32(in);
-	const uint32_t x1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0x55));
-	const uint32_t x2 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0xAA));
-	const uint32_t x3 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0xFF));
-#endif
+	const uint32_t x0 = in[0];
+	const uint32_t x1 = in[1];
+	const uint32_t x2 = in[2];
+	const uint32_t x3 = in[3];
 
 	__m128i out = _mm_set_epi32(
 	                  (saes_table[0][x3 & 0xff] ^ saes_table[1][(x0 >> 8) & 0xff] ^ saes_table[2][(x1 >> 16) & 0xff] ^
