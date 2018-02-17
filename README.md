@@ -7,7 +7,10 @@ This fork is originally based on the [CPU-mining](https://github.com/xmrig/xmrig
 =======
 * This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
 * You can use [config.xmrig.com](https://config.xmrig.com/) to generate/edit/share your configurations. :new:
+<<<<<<< HEAD
 >>>>>>> c9acc2912e9e71d234648bec2595137bec355dfc
+=======
+>>>>>>> pr/3
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
 
 ## Own features
