@@ -252,6 +252,12 @@
     <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='make|x64'">cd $(OutDir) &amp;&amp; make -j$(NUMBER_OF_PROCESSORS)</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='make|x64'">cd $(OutDir) &amp;&amp; make clean &amp;&amp; make -j$(NUMBER_OF_PROCESSORS)</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='make|x64'">cd $(OutDir) &amp;&amp; make clean</NMakeCleanCommandLine>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='vc-debug|Win32'">$(SolutionDir)\..\build\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='vc-debug|Win32'">$(SolutionDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='vc-debug|Win32'">$(ProjectName)$(Platform)d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='vc-release|Win32'">$(ProjectName)$(Platform)</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='vc-release|Win32'">$(SolutionDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='vc-release|Win32'">$(SolutionDir)\..\build\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='make|Win32'">
     <ClCompile>
@@ -299,6 +305,7 @@
       <PreprocessorDefinitions>XMRIG_PROJECT;XMRIG_NO_HTTPD;XMRIG_NO_GOOGLE_BREAKPAD;XMRIG_NO_API;__STDC_FORMAT_MACROS;APP_DEBUG</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <OmitFramePointers>false</OmitFramePointers>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)\..\..\libuv-1.x\Release\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -336,6 +343,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\..\src\;$(SolutionDir)\..\src\3rdparty;$(SolutionDir)\..\src\3rdparty\libcpuid;$(SolutionDir)\..\src\3rdparty\rapidjson\msinttypes;$(SolutionDir)\..\..\libuv-1.x\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>XMRIG_PROJECT;XMRIG_NO_HTTPD;XMRIG_NO_GOOGLE_BREAKPAD;XMRIG_NO_API;__STDC_FORMAT_MACROS;APP_DEBUG</PreprocessorDefinitions>
+      <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
     </ClCompile>
     <Link>
