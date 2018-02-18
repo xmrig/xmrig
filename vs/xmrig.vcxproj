@@ -252,6 +252,12 @@
     <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='make|x64'">cd $(OutDir) &amp;&amp; make -j$(NUMBER_OF_PROCESSORS)</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='make|x64'">cd $(OutDir) &amp;&amp; make clean &amp;&amp; make -j$(NUMBER_OF_PROCESSORS)</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='make|x64'">cd $(OutDir) &amp;&amp; make clean</NMakeCleanCommandLine>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='vc-debug|Win32'">$(SolutionDir)\..\build\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='vc-debug|Win32'">$(SolutionDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='vc-debug|Win32'">$(ProjectName)$(Platform)d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='vc-release|Win32'">$(ProjectName)$(Platform)</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='vc-release|Win32'">$(SolutionDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='vc-release|Win32'">$(SolutionDir)\..\build\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='make|Win32'">
     <ClCompile>

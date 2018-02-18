@@ -316,6 +316,15 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 	_mm_store_si128(output + 11, xout7);
 }
 
+#if ! defined _WIN64  && defined _WIN32
+static inline __m128i _mm_set_epi64x(const uint64_t __a, const uint64_t __b)
+{
+	__m128i ret;
+	ret.m128i_u64[1] = __a;
+	ret.m128i_u64[0] = __b;
+	return ret;
+}
+#endif
 
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 inline void cryptonight_hash(const void* __restrict__ input, size_t size, void* __restrict__ output,
