@@ -10,7 +10,6 @@ XMRig is a high performance Monero (XMR) CPU miner, with official support for Wi
 Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 completely rewritten from scratch on C++.
 
 * This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
-* You can use [config.xmrig.com](https://config.xmrig.com/) to generate/edit/share your configurations. :new:
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
 
 <img src="http://i.imgur.com/OKZRVDh.png" width="619" >
@@ -45,16 +44,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
   * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
 
 ## Usage
-### Basic example
-```
-xmrig.exe -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET -p x -k
-```
-
-### Failover
-```
-xmrig.exe -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
-```
-For failover you can add multiple pools, maximum count not limited.
+Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or share configurations.
 
 ### Options
 ```
