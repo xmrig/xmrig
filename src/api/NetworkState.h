@@ -27,6 +27,7 @@
 
 #include <array>
 #include <vector>
+#include <string>
 
 
 class SubmitResult;

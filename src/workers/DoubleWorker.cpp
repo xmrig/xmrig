@@ -27,6 +27,7 @@
 
 #ifndef _WIN32
 #include <thread>
+#include <unistd.h>
 #endif
 
 class DoubleWorker::State
@@ -70,7 +71,7 @@ void DoubleWorker::start()
 #ifdef _WIN32
 				Sleep(200);
 #else
-				std::this_thread::sleep_for(std::chrono::milliseconds(200));
+				usleep(200 * 1000);
 #endif
 			}
 			while(Workers::isPaused());

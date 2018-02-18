@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <uv.h>
 
+#include "interfaces/interface.h"
 
 class IWorker;
 

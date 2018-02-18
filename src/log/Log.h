@@ -89,9 +89,10 @@ public:
 
 	static inline std::string TO_STRING(const std::basic_ostream<char> & i)
 	{
-		const std::stringstream & stream = static_cast<const std::stringstream &>(i);
+		const std::ostringstream & stream = static_cast<const std::ostringstream &>(i);
 		return stream.str();
 	}
+
 private:
 	inline Log() {}
 	~Log();
@@ -101,22 +102,22 @@ private:
 };
 
 
-#define PRINT_MSG(x)		 Log::i()->text(Log::TO_STRING(std::stringstream() << x))
+#define PRINT_MSG(x)		 Log::i()->text(Log::TO_STRING(std::ostringstream() << " " << x))
 
-#define LOG_ERR(x)			 Log::i()->message(ILogBackend::ERR,     Log::TO_STRING(std::stringstream() << x))
-#define LOG_WARN(x)			 Log::i()->message(ILogBackend::WARNING, Log::TO_STRING(std::stringstream() << x))
-#define LOG_NOTICE(x)		 Log::i()->message(ILogBackend::NOTICE,  Log::TO_STRING(std::stringstream() << x))
-#define LOG_INFO(x)			 Log::i()->message(ILogBackend::INFO,    Log::TO_STRING(std::stringstream() << x))
+#define LOG_ERR(x)			 Log::i()->message(ILogBackend::ERR,     Log::TO_STRING(std::ostringstream() << " " << x))
+#define LOG_WARN(x)			 Log::i()->message(ILogBackend::WARNING, Log::TO_STRING(std::ostringstream() << " " << x))
+#define LOG_NOTICE(x)		 Log::i()->message(ILogBackend::NOTICE,  Log::TO_STRING(std::ostringstream() << " " << x))
+#define LOG_INFO(x)			 Log::i()->message(ILogBackend::INFO,    Log::TO_STRING(std::ostringstream() << " " << x))
 
 #ifdef APP_DEBUG
-#define LOG_DEBUG(x)		 Log::i()->message(ILogBackend::DEBUG,   Log::TO_STRING(std::stringstream() << x))
+#define LOG_DEBUG(x)		 Log::i()->message(ILogBackend::DEBUG,   Log::TO_STRING(std::ostringstream() << " " << x))
 #else
 #define LOG_DEBUG(x)
 #endif
 
 #if defined(APP_DEBUG) || defined(APP_DEVEL)
-#define LOG_DEBUG_ERR(x)  Log::i()->message(ILogBackend::ERR,     Log::TO_STRING(std::stringstream() << x))
-#define LOG_DEBUG_WARN(x) Log::i()->message(ILogBackend::WARNING, Log::TO_STRING(std::stringstream() << x))
+#define LOG_DEBUG_ERR(x)  Log::i()->message(ILogBackend::ERR,     Log::TO_STRING(std::ostringstream() << " " << x))
+#define LOG_DEBUG_WARN(x) Log::i()->message(ILogBackend::WARNING, Log::TO_STRING(std::ostringstream() << " " << x))
 #else
 #define LOG_DEBUG_ERR(x)
 #define LOG_DEBUG_WARN(x)

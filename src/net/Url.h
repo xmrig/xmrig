@@ -28,6 +28,8 @@
 
 #include <string>
 
+#include "interfaces/interface.h"
+
 class Url
 {
 public:

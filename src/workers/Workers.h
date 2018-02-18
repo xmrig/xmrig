@@ -31,6 +31,7 @@
 #include "net/Job.h"
 #include "net/JobResult.h"
 
+#include "interfaces/interface.h"
 
 class Handle;
 class Hashrate;

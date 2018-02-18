@@ -16,11 +16,13 @@
 #ifndef __INTERFACE_H__
 #define __INTERFACE_H__
 
+#if __cplusplus <= 199711L
+#define override
+#define nullptr NULL
+#endif
+
 #ifdef _WIN32
 #if defined(_MSC_VER) && _MSC_VER < 1900
-
-// C++-11
-#define override
 
 // VS
 #include <vadefs.h>

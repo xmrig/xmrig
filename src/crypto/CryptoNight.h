@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "interfaces/interface.h"
 
 #include "align.h"
 
