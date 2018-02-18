@@ -55,6 +55,17 @@ public:
 		AV_MAX
 	};
 
+	struct Donate
+	{
+	public:
+		std::string m_url;
+		std::string m_user;
+		std::string m_pass;
+		bool m_keepAlive;
+		bool m_niceHash;
+		unsigned short m_minutesPh;
+	};
+
 	static inline Options* i()
 	{
 		return m_self;
@@ -117,9 +128,13 @@ public:
 	{
 		return m_apiPort;
 	}
-	inline int donateLevel() const
+	inline unsigned short donateLevel() const
 	{
-		return m_donateLevel;
+		return m_donateOpt.m_minutesPh;
+	}
+	inline const Donate & donate() const
+	{
+		return m_donateOpt;
 	}
 	inline int printTime() const
 	{
@@ -209,6 +224,7 @@ private:
 	int m_threads;
 	int64_t m_affinity;
 	std::vector<Url> m_pools;
+	Donate m_donateOpt;
 };
 
 #endif /* __OPTIONS_H__ */

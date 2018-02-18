@@ -3,10 +3,23 @@
     "user-agent": "",       // custom user-agent
     "av": 0,                // algorithm variation, 0 auto select
     "background": false,    // true to run the miner in the background
-    "colors": true,         // false to disable colored output    
+    "colors": false,        // true to enable colored output    
     "cpu-affinity": null,   // set process affinity to CPU core(s), mask "0x3" for cores 0 and 1
     "cpu-priority": null,   // set process priority (0 idle, 2 normal to 5 highest)
-    "donate-level": 5,      // donate level, mininum 1%
+/* Default donate setting:  */
+    "donate-level": 2,      // default donate minutes (each 1 hour)
+/* Custom donate settings:
+    "donate-level": [
+        {
+//          "donate-url": "proxy-fee.xmrig.com:3333", // custom donate pool
+//          "donate-user": "",                        // custom donate user
+//          "donate-pass": "",                        // custom donate pass
+//          "donate-keepalive": false,                // custom donate keepalive
+//          "donate-nicehash": true,                  // custom donate nicehash
+            "donate-minutes": 2                       // custom donate minutes (each 1 hour)
+        }
+    ],
+*/
     "debug": false,
     "log-file": null,       // log all output to a file, example: "c:/some/path/xmrig.log"
     "max-cpu-usage": 75,    // maximum CPU usage for automatic mode, usually limiting factor is CPU cache not this option.  

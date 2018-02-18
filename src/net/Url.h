@@ -38,7 +38,7 @@ public:
 	}
 	static const std::string & DefaultUser()
 	{
-		static const std::string kDefaultUser = "x";
+		static const std::string kDefaultUser = "";
 		return kDefaultUser;
 	}
 
@@ -58,10 +58,6 @@ public:
 	inline bool isKeepAlive() const
 	{
 		return m_keepAlive;
-	}
-	inline bool isNicehash() const
-	{
-		return m_nicehash;
 	}
 	inline bool isValid() const
 	{
@@ -107,6 +103,14 @@ public:
 	{
 		return m_proxy_port;
 	}
+	inline void setProxyHost(const std::string & value)
+	{
+		m_proxy_host = value;
+	}
+	inline void setProxyPort(const uint16_t value)
+	{
+		m_proxy_port = value;
+	}
 	inline void setKeepAlive(bool keepAlive)
 	{
 		m_keepAlive = keepAlive;
@@ -116,14 +120,13 @@ public:
 		m_nicehash = nicehash;
 	}
 
+	bool isNicehash() const;
 	bool parse(const std::string & url);
 	bool setUserpass(const std::string & userpass);
 	void applyExceptions();
 	void setPassword(const std::string & password);
 	void setUser(const std::string & user);
 	void copyKeystream(char* keystreamDest, const size_t keystreamLen) const;
-
-	Url & operator=(const Url* other);
 
 private:
 	bool m_keepAlive;

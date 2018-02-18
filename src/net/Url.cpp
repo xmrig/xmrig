@@ -80,6 +80,11 @@ Url::~Url()
 {
 }
 
+bool Url::isNicehash() const
+{
+	return isValid() && (m_nicehash || m_host.find(".nicehash.com") != std::string::npos);
+}
+
 /**
  * @brief Parse url.
  *
@@ -237,19 +242,4 @@ void Url::copyKeystream(char* keystreamDest, const size_t keystreamLen) const
 		memset(keystreamDest, 1, keystreamLen);
 		memcpy(keystreamDest, m_keystream.c_str(), std::min(keystreamLen, m_keystream.size()));
 	}
-}
-
-Url & Url::operator=(const Url* other)
-{
-	m_keepAlive = other->m_keepAlive;
-	m_nicehash = other->m_nicehash;
-	m_port = other->m_port;
-	m_proxy_port = other->m_proxy_port;
-	m_host = other->m_host;
-	m_proxy_host = other->m_proxy_host;
-	m_password = other->m_password;
-	m_user = other->m_user;
-	m_keystream = other->m_keystream;
-
-	return *this;
 }

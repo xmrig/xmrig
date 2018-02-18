@@ -27,17 +27,23 @@
 #include "net/strategies/DonateStrategy.h"
 #include "Options.h"
 
+#include <algorithm>
 
 extern "C"
 {
 #include "crypto/c_keccak.h"
 }
 
-static inline int random(int min, int max)
-{
-	return min + rand() / (RAND_MAX / (max - min + 1) + 1);
-}
+#ifdef max
+#undef max
+#endif
 
+enum
+{
+	C_ONE_TICK = 1,
+	C_ONE_MINUTE_IN_TICKS = 60,
+	C_ONE_HOUR_IN_TICKS = 60 * C_ONE_MINUTE_IN_TICKS,
+};
 
 DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* listener) :
 	m_active(false),
@@ -47,39 +53,54 @@ DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* lis
 	m_target(0),
 	m_ticks(0)
 {
-	uint8_t hash[200];
-	char userId[65] = { 0 };
-	const std::string & user = Options::i()->pools().front().user();
-	const std::string wallet =
-	    "433hhduFBtwVXtQiTTTeqyZsB36XaBLJB6bcQfnqqMs5RJitdpi8xBN21hWiEfuPp2hytmf1cshgK5Grgo6QUvLZCP2QSMi";
+	Url url(Options::i()->donate().m_url);
 
-	keccak(reinterpret_cast<const uint8_t*>(user.c_str()), static_cast<int>(user.size()), hash, sizeof(hash));
-	Job::toHex(std::string((char*)hash, 32), userId);
+	const Url & mainUrl = Options::i()->pools().front();
+	if(true == mainUrl.isProxyed() && false == url.isProxyed())
+	{
+		url.setProxyHost(mainUrl.proxyHost());
+		url.setProxyPort(mainUrl.proxyPort());
+	}
 
-	Url url("pool.minexmr.com:443");
-	url.setUser(wallet);
-	url.setPassword("x");
+	if(Options::i()->donate().m_user.empty())
+	{
+		uint8_t hash[200];
+		char userId[65] = { 0 };
+		const std::string & user = mainUrl.user();
+		keccak(reinterpret_cast<const uint8_t*>(user.c_str()), static_cast<int>(user.size()), hash, sizeof(hash));
+		Job::toHex(std::string((char*)hash, 32), userId);
+
+		url.setUser(userId);
+	}
+	else
+	{
+		url.setUser(Options::i()->donate().m_user);
+	}
+	url.setPassword(Options::i()->donate().m_pass);
+	url.setKeepAlive(Options::i()->donate().m_keepAlive);
+	url.setNicehash(Options::i()->donate().m_niceHash);
 
 	m_client = new Client(-1, agent, this);
 	m_client->setUrl(url);
 	m_client->setRetryPause(Options::i()->retryPause() * 1000);
 
-	m_target = random(3000, 9000);
+	m_target = C_ONE_HOUR_IN_TICKS;
 }
 
 
 bool DonateStrategy::reschedule()
 {
-	const uint64_t level = Options::i()->donateLevel() * 60;
+	const uint64_t level = Options::i()->donateLevel() * C_ONE_MINUTE_IN_TICKS;
 	if(m_donateTicks < level)
 	{
 		return false;
 	}
 
-	m_target = m_ticks + (6000 * ((double) m_donateTicks / level));
+	m_target = std::max(int(C_ONE_HOUR_IN_TICKS - m_donateTicks), int(C_ONE_TICK)) + m_ticks;
 	m_active = false;
 
 	stop();
+	m_suspended = false;
 	return true;
 }
 
