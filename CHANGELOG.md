@@ -1,7 +1,7 @@
 # v2.4.5
 - [#324](https://github.com/xmrig/xmrig/pull/324) Fixed build without libmicrohttpd (CMake cache issue).
 - [#341](https://github.com/xmrig/xmrig/issues/341) Fixed wrong exit code and added command line option `--dry-run`.
-- [#385](https://github.com/xmrig/xmrig/pull/385) Up to 20% performance increase with for non-AES CPU and fixed Intel Core 2 cache detection.
+- [#385](https://github.com/xmrig/xmrig/pull/385) Up to 20% performance increase for non-AES CPU and fixed Intel Core 2 cache detection.
 
 # v2.4.4
  - Added libmicrohttpd version to --version output.
