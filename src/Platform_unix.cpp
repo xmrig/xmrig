@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <sched.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/resource.h>
@@ -116,6 +116,7 @@ void Platform::setThreadPriority(int priority)
 
     setpriority(PRIO_PROCESS, 0, prio);
 
+#   ifdef SCHED_IDLE
     if (priority == 0) {
         sched_param param;
         param.sched_priority = 0;
@@ -124,4 +125,5 @@ void Platform::setThreadPriority(int priority)
             sched_setscheduler(0, SCHED_BATCH, &param);
         }
     }
+#   endif
 }

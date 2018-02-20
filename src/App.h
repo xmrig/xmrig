@@ -51,6 +51,7 @@ protected:
 private:
   void background();
   void close();
+  void release();
 
   static void onSignal(uv_signal_t *handle, int signum);
 
@@ -60,7 +61,9 @@ private:
   Httpd *m_httpd;
   Network *m_network;
   Options *m_options;
-  uv_signal_t m_signal;
+  uv_signal_t m_sigHUP;
+  uv_signal_t m_sigINT;
+  uv_signal_t m_sigTERM;
 };
 
 

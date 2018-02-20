@@ -23,6 +23,7 @@
 
 
 #include <algorithm>
+#include <stdio.h>
 #include <string.h>
 #include <uv.h>
 
@@ -45,7 +46,7 @@ NetworkState::NetworkState() :
 
 int NetworkState::connectionTime() const
 {
-    return m_active ? ((uv_now(uv_default_loop()) - m_connectionTime) / 1000) : 0;
+    return m_active ? (int)((uv_now(uv_default_loop()) - m_connectionTime) / 1000) : 0;
 }
 
 
@@ -55,7 +56,7 @@ uint32_t NetworkState::avgTime() const
         return 0;
     }
 
-    return (uint32_t) connectionTime() / m_latency.size();
+    return connectionTime() / (uint32_t)m_latency.size();
 }
 
 

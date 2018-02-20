@@ -31,10 +31,6 @@
 #include "log/Log.h"
 
 
-static const char k500 []    = "{\"error\":\"INTERNAL_SERVER_ERROR\"}";
-static const size_t k500Size = sizeof(k500) - 1;
-
-
 Httpd::Httpd(int port, const char *accessToken) :
     m_accessToken(accessToken),
     m_port(port),

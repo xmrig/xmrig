@@ -92,7 +92,9 @@ App::App(int argc, char **argv) :
 
     m_network = new Network(m_options);
 
-    uv_signal_init(uv_default_loop(), &m_signal);
+    uv_signal_init(uv_default_loop(), &m_sigHUP);
+    uv_signal_init(uv_default_loop(), &m_sigINT);
+    uv_signal_init(uv_default_loop(), &m_sigTERM);
 }
 
 
@@ -111,12 +113,12 @@ App::~App()
 int App::exec()
 {
     if (!m_options) {
-        return 0;
+        return 2;
     }
 
-    uv_signal_start(&m_signal, App::onSignal, SIGHUP);
-    uv_signal_start(&m_signal, App::onSignal, SIGTERM);
-    uv_signal_start(&m_signal, App::onSignal, SIGINT);
+    uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
+    uv_signal_start(&m_sigINT,  App::onSignal, SIGINT);
+    uv_signal_start(&m_sigTERM, App::onSignal, SIGTERM);
 
     background();
 
@@ -127,6 +129,13 @@ int App::exec()
 
     Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
     Summary::print();
+
+    if (m_options->dryRun()) {
+        LOG_NOTICE("OK");
+        release();
+
+        return 0;
+    }
 
 #   ifndef XMRIG_NO_API
     Api::start();
@@ -144,12 +153,7 @@ int App::exec()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
-    delete m_network;
-
-    Options::release();
-    Mem::release();
-    Platform::release();
-
+    release();
     return r;
 }
 
@@ -164,8 +168,10 @@ void App::onConsoleCommand(char command)
 
     case 'p':
     case 'P':
-        LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
-        Workers::setEnabled(false);
+        if (Workers::isEnabled()) {
+            LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
+            Workers::setEnabled(false);
+        }
         break;
 
     case 'r':
@@ -193,6 +199,18 @@ void App::close()
     Workers::stop();
 
     uv_stop(uv_default_loop());
+}
+
+
+void App::release()
+{
+    if (m_network) {
+        delete m_network;
+    }
+
+    Options::release();
+    Mem::release();
+    Platform::release();
 }
 
 

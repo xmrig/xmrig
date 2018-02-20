@@ -36,6 +36,7 @@
 
 #include "log/ConsoleLog.h"
 #include "log/Log.h"
+#include "Options.h"
 
 
 ConsoleLog::ConsoleLog(bool colors) :
@@ -43,6 +44,8 @@ ConsoleLog::ConsoleLog(bool colors) :
     m_stream(nullptr)
 {
     if (uv_tty_init(uv_default_loop(), &m_tty, 1, 0) < 0) {
+        Options::i()->setColors(false);
+        m_colors = false;
         return;
     }
 
@@ -65,10 +68,6 @@ ConsoleLog::ConsoleLog(bool colors) :
 
 void ConsoleLog::message(int level, const char* fmt, va_list args)
 {
-    if (!isWritable()) {
-        return;
-    }
-
     time_t now = time(nullptr);
     tm stime;
 
@@ -121,10 +120,6 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
 
 void ConsoleLog::text(const char* fmt, va_list args)
 {
-    if (!isWritable()) {
-        return;
-    }
-
     snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s\n", fmt, m_colors ? Log::kCL_N : "");
 
     print(args);
@@ -149,5 +144,11 @@ void ConsoleLog::print(va_list args)
         return;
     }
 
-    uv_try_write(m_stream, &m_uvBuf, 1);
+    if (!isWritable()) {
+        fputs(m_buf, stdout);
+        fflush(stdout);
+    }
+    else {
+        uv_try_write(m_stream, &m_uvBuf, 1);
+    }
 }

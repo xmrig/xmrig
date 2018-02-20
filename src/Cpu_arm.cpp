@@ -21,63 +21,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __JOBID_H__
-#define __JOBID_H__
-
 
 #include <string.h>
 
 
-class JobId
+#include "Cpu.h"
+
+
+char Cpu::m_brand[64]   = { 0 };
+int Cpu::m_flags        = 0;
+int Cpu::m_l2_cache     = 0;
+int Cpu::m_l3_cache     = 0;
+int Cpu::m_sockets      = 1;
+int Cpu::m_totalCores   = 0;
+int Cpu::m_totalThreads = 0;
+
+
+int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
 {
-public:
-    inline JobId()
-    {
-        memset(m_data, 0, sizeof(m_data));
-    }
+    return m_totalThreads;
+}
 
 
-    inline JobId(const char *id, size_t sizeFix = 0)
-    {
-        setId(id, sizeFix);
-    }
+void Cpu::initCommon()
+{
+    memcpy(m_brand, "Unknown", 7);
 
-
-    inline bool operator==(const JobId &other) const
-    {
-        return memcmp(m_data, other.m_data, sizeof(m_data)) == 0;
-    }
-
-
-    inline bool operator!=(const JobId &other) const
-    {
-        return memcmp(m_data, other.m_data, sizeof(m_data)) != 0;
-    }
-
-
-    inline bool setId(const char *id, size_t sizeFix = 0)
-    {
-        memset(m_data, 0, sizeof(m_data));
-        if (!id) {
-            return false;
-        }
-
-        const size_t size = strlen(id);
-        if (size >= sizeof(m_data)) {
-            return false;
-        }
-
-        memcpy(m_data, id, size - sizeFix);
-        return true;
-    }
-
-
-    inline const char *data() const { return m_data; }
-    inline bool isValid() const     { return *m_data != '\0'; }
-
-
-private:
-    char m_data[64];
-};
-
-#endif /* __JOBID_H__ */
+#   if defined(XMRIG_ARMv8)
+    m_flags |= X86_64;
+    m_flags |= AES;
+#   endif
+}
