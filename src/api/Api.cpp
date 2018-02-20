@@ -4,7 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -29,12 +29,10 @@
 
 
 ApiState *Api::m_state = nullptr;
-uv_mutex_t Api::m_mutex;
 
 
 bool Api::start()
 {
-    uv_mutex_init(&m_mutex);
     m_state = new ApiState();
 
     return true;
@@ -53,11 +51,7 @@ char *Api::get(const char *url, int *status)
         return nullptr;
     }
 
-    uv_mutex_lock(&m_mutex);
-    char *buf = m_state->get(url, status);
-    uv_mutex_unlock(&m_mutex);
-
-    return buf;
+    return m_state->get(url, status);
 }
 
 
@@ -67,9 +61,7 @@ void Api::tick(const Hashrate *hashrate)
         return;
     }
 
-    uv_mutex_lock(&m_mutex);
     m_state->tick(hashrate);
-    uv_mutex_unlock(&m_mutex);
 }
 
 
@@ -79,7 +71,5 @@ void Api::tick(const NetworkState &network)
         return;
     }
 
-    uv_mutex_lock(&m_mutex);
     m_state->tick(network);
-    uv_mutex_unlock(&m_mutex);
 }
