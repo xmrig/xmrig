@@ -33,6 +33,7 @@
 	#include <thread>
 #else
     #include <sys/wait.h>
+    #include <errno.h>
 #endif
 
 int main(int argc, char **argv) {
