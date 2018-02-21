@@ -4,7 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,7 @@ class Httpd
 {
 public:
     Httpd(int port, const char *accessToken);
+    ~Httpd();
     bool start();
 
 private:
@@ -44,10 +45,12 @@ private:
 
     static int done(MHD_Connection *connection, int status, MHD_Response *rsp);
     static int handler(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls);
+    static void onIdle(uv_idle_t *handle);
 
     const char *m_accessToken;
     const int m_port;
     MHD_Daemon *m_daemon;
+    uv_idle_t m_idle;
 };
 
 #endif /* __HTTPD_H__ */
