@@ -50,8 +50,9 @@ int SelfMaintenance::getCPUTemperature(int pT){
     unsigned num_cpu = std::thread::hardware_concurrency();
     m_cpuCoresCount = num_cpu;
     //---
-    ifstream cpu_freq("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq");
-    ifstream cpu_temp("/sys/class/thermal/thermal_zone0/temp1");
+    ifstream cpu_freq("/proc/cpuinfo");
+    ifstream cpu_temp("/sys/devices/virtual/thermal/thermal_zone0/temp");
+    //sys/class/thermal/thermal_zone0/temp1");
     //---
     strStream << cpu_freq.rdbuf();
     strStream >> m_cpuSingleCoreSpeed;
