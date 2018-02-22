@@ -47,7 +47,7 @@ bool Mem::allocate(const Options* options)
     m_memorySize = 0;
 
     size_t scratchPadSize = m_algo == Options::ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
-    for (int i=0; i < m_threads; i++) {
+    for (size_t i=0; i < m_threads; i++) {
         m_memorySize += sizeof(cryptonight_ctx);
         m_memorySize += scratchPadSize * getThreadHashFactor(i);
     }
@@ -60,6 +60,7 @@ bool Mem::allocate(const Options* options)
     m_flags |= HugepagesAvailable;
 
 #   if defined(__APPLE__)
+    m_memorySize = m_memorySize - (m_memorySize % MEMORY) + MEMORY;
     m_memory = static_cast<uint8_t*>(mmap(0, m_memorySize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0));
 #   elif defined(__FreeBSD__)
     m_memory = static_cast<uint8_t*>(mmap(0, m_memorySize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0));

@@ -59,7 +59,7 @@ void CpuImpl::setAffinity(int id, uint64_t mask)
     cpu_set_t set;
     CPU_ZERO(&set);
 
-    for (int i = 0; i < threads(); i++) {
+    for (size_t i = 0; i < threads(); i++) {
         if (mask & (1UL << i)) {
             CPU_SET(i, &set);
         }
