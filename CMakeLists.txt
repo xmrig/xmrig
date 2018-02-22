@@ -16,8 +16,6 @@ include (CheckIncludeFile)
 include (cmake/cpu.cmake)
 
 set(SOURCES
-    src/api/Api.cpp
-    src/api/ApiState.cpp
     src/api/NetworkState.cpp
     src/App.cpp
     src/net/Client.cpp
@@ -61,6 +59,8 @@ set(SOURCES_COMMON
 if (WIN32)
     set(SOURCES_OS
         res/app.rc
+        src/api/Api.cpp
+        src/api/ApiState.cpp
         src/App_win.cpp
         src/Cpu_win.cpp
         src/Mem_win.cpp
@@ -78,6 +78,8 @@ elseif (APPLE)
         )
 else()
     set(SOURCES_OS
+        src/api/Api.cpp
+        src/api/ApiState.cpp
         src/App_unix.cpp
         src/Cpu_unix.cpp
         src/Mem_unix.cpp

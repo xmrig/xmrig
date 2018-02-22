@@ -68,7 +68,7 @@
 #   endif
 #include <string>
 #else
-    #if defined(__FreeBSD__)
+    #if defined(__FreeBSD__) || defined(__APPLE__)
         #include <string>
     #else
         #include <string.h>

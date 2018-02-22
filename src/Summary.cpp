@@ -104,7 +104,7 @@ static void print_threads()
             threads.append(std::to_string(id));
         };
 
-        for (int i=0; i < Options::i()->threads(); i++) {
+        for (size_t i=0; i < Options::i()->threads(); i++) {
             if (Mem::getThreadHashFactor(i) > 1) {
                 addThread(multiThreads, i);
             }
