@@ -10,7 +10,7 @@ option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
-option(WITH_SSL_TLS   "SSL/TLS support" ON)
+option(WITH_TLS       "TLS support" ON)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -18,6 +18,8 @@ include (cmake/cpu.cmake)
 set(SOURCES
     src/api/NetworkState.cpp
     src/App.cpp
+    src/3rdparty/clib-net/deps/buffer/buffer.c
+    src/3rdparty/clib-net/src/net.c
     src/net/Client.cpp
     src/net/Job.cpp
     src/net/Network.cpp
@@ -110,24 +112,19 @@ find_package(UV REQUIRED)
 
 include(cmake/flags.cmake)
 
-if (WITH_SSL_TLS)
+if (WITH_TLS)
     find_package(OpenSSL REQUIRED)
 
     add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
 
     if (OPENSSL_FOUND)
         include_directories(${OPENSSL_INCLUDE_DIR})
-
-        include_directories(src/3rdparty/evt-tls)
-        include_directories(src/3rdparty/evt-tls/api)
-        set(SOURCES_SSL_TLS
-                src/3rdparty/evt-tls/src/uv_tls.c
-                src/3rdparty/evt-tls/src/evt_tls.c)
+        set(SOURCES_SSL_TLS src/3rdparty/clib-net/src/tls.c)
     else()
-        message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_SSL_TLS=OFF` to build without SSL/TLS support")
+        message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
     endif()
 else()
-    add_definitions(/DXMRIG_NO_SSL_TLS)
+    add_definitions(/DXMRIG_NO_TLS)
 endif()
 
 if (WITH_LIBCPUID)
@@ -176,7 +173,7 @@ if (WITH_CC_SERVER)
     if (MHD_FOUND)
         include_directories(${MHD_INCLUDE_DIRS})
     else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
     endif()
 
     set(SOURCES_CC_SERVER
@@ -204,18 +201,24 @@ endif()
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
+include_directories(src/3rdparty/clib-net/include)
+include_directories(src/3rdparty/clib-net/deps)
 
 add_library(xmrig_common STATIC ${SOURCES_COMMON})
 add_library(xmrig_os_dependencies STATIC ${SOURCES_OS} ${SOURCES_SYSLOG})
 add_library(xmrig_cpuid STATIC ${SOURCES_CPUID})
 
+if (WITH_TLS)
+    add_library(xmrig_tls STATIC ${SOURCES_SSL_TLS})
+endif (WITH_TLS)
+
 if (WITH_CC_SERVER OR WITH_CC_CLIENT)
     add_library(xmrig_cc_common STATIC ${SOURCES_CC_COMMON})
 endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
 
-add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} ${SOURCES_SSL_TLS} res/app.rc)
+add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} res/app.rc)
 
-target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid
+target_link_libraries(xmrigMiner xmrig_tls xmrig_common xmrig_os_dependencies xmrig_cpuid
         ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} ${OPENSSL_LIBRARIES})
 
 if (WITH_CC_CLIENT)
@@ -228,7 +231,7 @@ if (WITH_CC_SERVER AND MHD_FOUND)
     add_library(xmrig_common_cc STATIC ${SOURCES_COMMON})
     add_executable(xmrigCCServer ${SOURCES_CC_SERVER} res/app.rc)
     target_link_libraries(xmrigCCServer
-            xmrig_common_cc xmrig_os_dependencies xmrig_cpuid xmrig_cc_common
+            xmrig_common_cc xmrig_os_dependencies xmrig_cpuid xmrig_cc_common xmrig_tls
             ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
     set_target_properties(xmrig_common_cc PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")

@@ -74,7 +74,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --multihash-thread-mask          for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
+      --multihash-thread-mask           for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages                   disable huge pages support\n\
@@ -90,6 +90,7 @@ Options:\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url of the CC Server\n\
+      --cc-use-tls                      turn on tls encryption for CC communication\
       --cc-access-token=T               access token for CC Server\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s            status update interval in seconds (default: 10 min: 1)\n"
@@ -101,7 +102,10 @@ Options:\n"
       --cc-user=USERNAME                CC Server admin user\n\
       --cc-pass=PASSWORD                CC Server admin pass\n\
       --cc-access-token=T               CC Server access token for CC Client\n\
-      --cc-port=N                       CC Server\n\
+      --cc-port=N                       CC Server port\n\
+      --cc-use-tls                      turn on tls encryption for CC communication \
+      --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \
+      --cc-key-file                     when tls is turned on, use this to point to the right key file (default: server.key) \
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif             
@@ -164,6 +168,9 @@ static struct option const options[] = {
     { "cc-pass",          1, nullptr, 4008 },
     { "cc-client-config-folder",    1, nullptr, 4009 },
     { "cc-custom-dashboard",        1, nullptr, 4010 },
+    { "cc-cert-file",     1, nullptr, 4014 },
+    { "cc-key-file",      1, nullptr, 4015 },
+    { "cc-use-tls",       1, nullptr, 4016 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
@@ -231,6 +238,9 @@ static struct option const cc_server_options[] = {
     { "pass",                   1, nullptr, 4008 },
     { "client-config-folder",   1, nullptr, 4009 },
     { "custom-dashboard",       1, nullptr, 4010 },
+    { "cert-file",              1, nullptr, 4014 },
+    { "key-file",               1, nullptr, 4015 },
+    { "use-tls",                1, nullptr, 4016 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -269,8 +279,7 @@ Options::Options(int argc, char **argv) :
     m_safe(false),
     m_syslog(false),
     m_daemonized(false),
-    m_useTls(true),
-    m_ccUseTls(true),
+    m_ccUseTls(false),
     m_configFile(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -484,6 +493,16 @@ bool Options::parseArg(int key, const char *arg)
         m_ccCustomDashboard = strdup(arg);
         break;
 
+    case 4014: /* --cc-cert-file */
+        free(m_ccCertFile);
+            m_ccCertFile = strdup(arg);
+        break;
+
+    case 4015: /* --cc-key-file */
+        free(m_ccKeyFile);
+            m_ccKeyFile = strdup(arg);
+        break;
+
     case 4011: /* --daemonized */
         m_daemonized = true;
         break;
@@ -514,6 +533,9 @@ bool Options::parseArg(int key, const char *arg)
     case 1002: /* --no-color */
     case 1009: /* --no-huge-pages */
         return parseBoolean(key, false);
+
+    case 4016: /* --use-tls */
+        return parseBoolean(key, true);
 
     case 't':  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
@@ -719,8 +741,13 @@ bool Options::parseBoolean(int key, bool enable)
         m_hugePages = enable;
         break;
 
-    case 2000: /* colors */
+    case 2000: /* --colors */
         m_colors = enable;
+        break;
+
+    case 4016: /* --use-tls */
+        m_pools.back()->setUseTls(enable);
+        m_ccUseTls = enable;
         break;
 
     default:
