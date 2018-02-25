@@ -56,6 +56,10 @@ Network::Network(const Options *options) :
 
     const std::vector<Url*> &pools = options->pools();
 
+#ifndef XMRIG_NO_SSL_TLS
+    ssl_init();
+#endif
+
     if (pools.size() > 1) {
         m_strategy = new FailoverStrategy(pools, Platform::userAgent(), this);
     }
@@ -76,6 +80,9 @@ Network::Network(const Options *options) :
 
 Network::~Network()
 {
+#ifndef XMRIG_NO_SSL_TLS
+    ssl_destroy();
+#endif
 }
 
 
@@ -102,9 +109,8 @@ void Network::onActive(Client *client)
         return;
     }
 
-    m_state.setPool(client->host(), client->port(), client->ip());
-
-    LOG_INFO(m_options->colors() ? "\x1B[01;37muse pool \x1B[01;36m%s:%d \x1B[01;30m%s" : "use pool %s:%d %s", client->host(), client->port(), client->ip());
+    m_state.setPool(client->host(), client->port());
+    LOG_INFO(m_options->colors() ? "\x1B[01;37muse pool \x1B[01;36m%s:%d" : "use pool %s:%d", client->host(), client->port());
 }
 
 
