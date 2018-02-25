@@ -25,7 +25,7 @@ net_new(char * hostname, int port) {
   return net;
 }
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
 int
 net_set_tls(net_t * net, tls_ctx * ctx) {
   net->use_ssl = USE_SSL;
@@ -47,7 +47,7 @@ net_close(net_t * net, void (*cb)(uv_handle_t*)) {
     net->connected = 0;
     net->tls_established = 0;
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
     if (net->use_ssl) {
       tls_shutdown(net->tls);
     }
@@ -55,7 +55,7 @@ net_close(net_t * net, void (*cb)(uv_handle_t*)) {
 
     uv_close((uv_handle_t*)net->handle, cb);
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
     if (net->use_ssl) {
       tls_free(net->tls);
     }
@@ -204,7 +204,7 @@ net_connect_cb(uv_connect_t *conn, int err) {
     net->conn_cb(net);
   }
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
   /*
    * Handle TLS Partial
    */
@@ -246,7 +246,7 @@ net_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     return;
   }
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
   /* 
    * BIO Return rule:
    * All these functions return either the amount of data successfully
@@ -330,7 +330,7 @@ net_write2(net_t * net, char * buf, unsigned int len) {
 
   switch (net->use_ssl) {
   case USE_SSL:
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
     tls_write(net->tls, buf, (int)len);
     do {
       read = tls_bio_read(net->tls, 0);

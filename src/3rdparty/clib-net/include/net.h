@@ -9,7 +9,7 @@
 #include <uv.h>
 #include <buffer/buffer.h>
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
 #include "tls.h"
 #endif
 
@@ -43,7 +43,7 @@ typedef struct sockaddr_in socketPair_t;
   uv_tcp_t         *handle;           \
   uv_connect_t     *conn;             \
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
     #define NET_TLS_FIELDS              \
         int     use_ssl;                \
         int     tls_established;        \
@@ -71,7 +71,7 @@ net_t *
 net_new(char * hostname, int port);
 
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
 /*
  * Set SSL's Context
  */

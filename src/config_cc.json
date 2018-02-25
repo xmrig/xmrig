@@ -5,6 +5,9 @@
     "syslog": false,                                // use system log for output messages
     "cc-server": {
         "port": 3344,                               // port the CC Server will listens on
+        "useTls" : false,                           // use tls for CC communication (needs to be enabled on miners too)
+        "cert-file" : "server.pem",                 // when tls is turned on, use this to point to the right cert file
+        "key-file" : "server.key",                  // when tls is turned on, use this to point to the right key file
         "access-token": "mySecret",                 // access token for CC Clients (should be set!!!)
         "user": "admin",                            // admin user for access CC Dashboard
         "pass": "pass",                             // admin pass for access CC Dashboard

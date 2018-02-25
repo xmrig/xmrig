@@ -26,6 +26,7 @@
             "url": "",                          // URL of mining server
             "user": "",                         // username for mining server
             "pass": "x",                        // password for mining server
+            "useTls" : false,                   // use tls for pool communication (need pool support)
             "keepalive": true,                  // send keepalived for prevent timeout (need pool support)
             "nicehash": false                   // enable nicehash/xmrig-proxy support
         }
@@ -37,6 +38,7 @@
     },
     "cc-client": {
         "url": "localhost:3344",                // url of the CC Server (ip:port)
+        "useTls" : false,                       // use tls for CC communication (needs to be enabled on CC Server too)
         "access-token": "mySecret",             // access token for CC Server (has to be the same in config_cc.json)
         "worker-id": null,                      // custom worker-id for CC Server (otherwise hostname is used)
         "update-interval-s": 10                 // status update interval in seconds (default: 10 min: 1)

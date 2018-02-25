@@ -268,8 +268,8 @@ void Client::connect()
     m_net->read_cb = Client::onRead;
     m_net->error_cb = Client::onError;
 
-#ifndef XMRIG_NO_SSL_TLS
-    if (m_url.isTls()) {
+#ifndef XMRIG_NO_TLS
+    if (m_url.useTls()) {
         tls_ctx* tls_ctx = tls_ctx_new();
         net_set_tls(m_net, tls_ctx);
     }
