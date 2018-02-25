@@ -40,7 +40,7 @@ extern "C"
 {
 #include "net.h"
 
-#ifndef XMRIG_NO_SSL_TLS
+#ifndef XMRIG_NO_TLS
 #include "tls.h"
 #endif
 }

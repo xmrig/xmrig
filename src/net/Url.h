@@ -37,10 +37,10 @@ public:
 
     Url();
     Url(const char *url);
-    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, bool tls = false, bool keepAlive = false, bool nicehash = false );
+    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, bool useTls = false, bool keepAlive = false, bool nicehash = false );
     ~Url();
 
-    inline bool isTls() const                { return m_tls; }
+    inline bool useTls() const               { return m_useTls; }
     inline bool isKeepAlive() const          { return m_keepAlive; }
     inline bool isNicehash() const           { return m_nicehash; }
     inline bool isValid() const              { return m_host && m_port > 0; }
@@ -48,7 +48,7 @@ public:
     inline const char *password() const      { return m_password ? m_password : kDefaultPassword; }
     inline const char *user() const          { return m_user ? m_user : kDefaultUser; }
     inline uint16_t port() const             { return m_port; }
-    inline void setTls(bool tls)             { m_tls = tls; }
+    inline void setUseTls(bool tls)             { m_useTls = tls; }
     inline void setKeepAlive(bool keepAlive) { m_keepAlive = keepAlive; }
     inline void setNicehash(bool nicehash)   { m_nicehash = nicehash; }
 
@@ -61,7 +61,7 @@ public:
     Url &operator=(const Url *other);
 
 private:
-    bool m_tls;
+    bool m_useTls;
     bool m_keepAlive;
     bool m_nicehash;
     char *m_host;

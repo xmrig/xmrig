@@ -69,7 +69,6 @@ public:
     inline bool hugePages() const                   { return m_hugePages; }
     inline bool syslog() const                      { return m_syslog; }
     inline bool daemonized() const                  { return m_daemonized; }
-    inline bool useTls() const                      { return m_useTls; }
     inline bool ccUseTls() const                    { return m_ccUseTls; }
     inline const char *configFile() const           { return m_configFile; }
     inline const char *apiToken() const             { return m_apiToken; }
@@ -138,7 +137,6 @@ private:
     bool m_safe;
     bool m_syslog;
     bool m_daemonized;
-    bool m_useTls;
     bool m_ccUseTls;
     const char* m_configFile;
     char *m_apiToken;
