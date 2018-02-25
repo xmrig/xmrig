@@ -37,7 +37,7 @@ public:
 
     Url();
     Url(const char *url);
-    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, bool tls = false, bool keepAlive = false, bool nicehash = false  );
+    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, bool tls = false, bool keepAlive = false, bool nicehash = false );
     ~Url();
 
     inline bool isTls() const                { return m_tls; }
