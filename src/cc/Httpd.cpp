@@ -45,7 +45,7 @@ bool Httpd::start()
         return false;
     }
 
-#   ifndef XMRIG_NO_SSL_TLS
+#   ifndef XMRIG_NO_TLS
     if (m_options->ccUseTls()) {
 
         m_keyPem = readFile(m_options->ccKeyFile());
@@ -67,7 +67,7 @@ bool Httpd::start()
         m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, static_cast<uint16_t>(m_options->ccPort()), nullptr,
                                     nullptr, &Httpd::handler,
                                     this, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 10, MHD_OPTION_END);
-#   ifndef XMRIG_NO_SSL_TLS
+#   ifndef XMRIG_NO_TLS
     }
 #   endif
 
