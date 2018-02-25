@@ -1,0 +1,16 @@
+
+# Change Logs
+
+2014-4-13(v0.1.1):
+
+* add a fake function: tls_get_peer_cert
+
+* tls_handle_bio_error and tls_handle_ssl_error added for a common usage
+
+* fix a high cpu bug in uv lines
+
+* make SSL_MODE_RELEASE_BUFFERS be gracefully imported
+
+* correct onConnect and onRead for ssl
+
+* fix a memory leak in ssl part
