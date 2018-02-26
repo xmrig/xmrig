@@ -24,7 +24,6 @@
 #ifndef __ICONSOLELISTENER_H__
 #define __ICONSOLELISTENER_H__
 
-#include "interfaces/interface.h"
 
 class IConsoleListener
 {

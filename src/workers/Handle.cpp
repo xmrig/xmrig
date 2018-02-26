@@ -23,6 +23,7 @@
 
 
 #include "workers/Handle.h"
+#include "interfaces/interface.h"
 
 
 Handle::Handle(int threadId, int threads, int64_t affinity, int priority) :

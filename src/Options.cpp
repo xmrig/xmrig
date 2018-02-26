@@ -37,6 +37,7 @@
 #include <microhttpd.h>
 #endif
 
+#include "interfaces/interface.h"
 
 #include "Cpu.h"
 #include "donate.h"

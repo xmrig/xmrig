@@ -84,8 +84,8 @@ int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
 
 void Cpu::initCommon()
 {
-	struct cpu_raw_data_t raw = { 0 };
-	struct cpu_id_t data = { 0 };
+	struct cpu_raw_data_t raw;
+	struct cpu_id_t data;;
 
 	cpuid_get_raw_data(&raw);
 	cpu_identify(&raw, &data);

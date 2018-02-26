@@ -28,6 +28,7 @@
 #include <uv.h>
 #include <string>
 
+#include "interfaces/interface.h"
 
 class ApiState;
 class Hashrate;

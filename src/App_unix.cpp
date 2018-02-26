@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include "interfaces/interface.h"
 
 #include "App.h"
 #include "Cpu.h"
