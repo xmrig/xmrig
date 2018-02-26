@@ -236,7 +236,7 @@ void Url::applyExceptions()
 }
 
 
-static std::string & replace(std::string & str, const std::string & what, const std::string & other)
+static std::string & Replace(std::string & str, const std::string & what, const std::string & other)
 {
 	if(str.empty() || what.empty() || what == other)
 	{
@@ -256,7 +256,7 @@ static std::string & replace(std::string & str, const std::string & what, const 
 static std::string replaceWithTokens(const std::string & value)
 {
 	char hostname[1024] = {'\0'};
-	gethostname(hostname, sizeof(hostname));
+	gethostname(hostname, sizeof(hostname) - 1);
 	struct hostent* hostentry = gethostbyname(hostname);
 
 	// get ip
@@ -284,8 +284,8 @@ static std::string replaceWithTokens(const std::string & value)
 
 	// set user replacing tokens
 	std::string ret = value;
-	ret = replace(ret, "%HOST_NAME%", hostname);
-	ret = replace(ret, "%IP_ADD%", ipbuf == NULL ? "" : ipbuf);
+	ret = Replace(ret, "%HOST_NAME%", hostname);
+	ret = Replace(ret, "%IP_ADD%", ipbuf == NULL ? "" : ipbuf);
 	return ret;
 }
 
