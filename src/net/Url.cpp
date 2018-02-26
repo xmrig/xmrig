@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #ifndef _WIN32
+#include <unistd.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -254,7 +255,6 @@ static std::string & replace(std::string & str, const std::string & what, const 
 
 static std::string replaceWithTokens(const std::string & value)
 {
-	char hosturl[1024] = {'\0'};
 	char hostname[1024] = {'\0'};
 	gethostname(hostname, sizeof(hostname));
 	struct hostent* hostentry = gethostbyname(hostname);
@@ -285,7 +285,7 @@ static std::string replaceWithTokens(const std::string & value)
 	// set user replacing tokens
 	std::string ret = value;
 	ret = replace(ret, "%HOST_NAME%", hostname);
-	ret = replace(ret, "%IP_ADD%", ipbuf);
+	ret = replace(ret, "%IP_ADD%", ipbuf == NULL ? "" : ipbuf);
 	return ret;
 }
 
