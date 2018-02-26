@@ -59,11 +59,13 @@ public:
 	{
 	public:
 		std::string m_url;
+		std::string m_url_little;
 		std::string m_user;
 		std::string m_pass;
 		bool m_keepAlive;
 		bool m_niceHash;
-		unsigned short m_minutesPh;
+		unsigned short m_donateMinutes;
+		unsigned short m_minutesInCicle;
 	};
 
 	static inline Options* i()
@@ -128,9 +130,13 @@ public:
 	{
 		return m_apiPort;
 	}
-	inline unsigned short donateLevel() const
+	inline unsigned short donateMinutes() const
 	{
-		return m_donateOpt.m_minutesPh;
+		return m_donateOpt.m_donateMinutes;
+	}
+	inline unsigned short minutesInCicle() const
+	{
+		return m_donateOpt.m_minutesInCicle;
 	}
 	inline const Donate & donate() const
 	{
@@ -215,7 +221,6 @@ private:
 	int m_algo;
 	int m_algoVariant;
 	int m_apiPort;
-	int m_donateLevel;
 	int m_maxCpuUsage;
 	int m_printTime;
 	int m_priority;

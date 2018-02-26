@@ -36,17 +36,19 @@
  *
  * How it works:
  * Other connections switch to donation pool until the first 60 minutes, kDonateLevel minutes each hour
- * with overime compensation. In proxy no way to use precise donation time!
+ * with overime compensation; but the period can be customizable. In proxy no way to use precise donation time!
  * You can check actual donation via API.
  */
 enum
 {
-	kDonateLevel = 1,
+	kDonateMinutes = 3,
+	kMinutesInCicle = 60,
 	kDonateKeepAlive = false,
 	kDonateNiceHash = true,
 };
 
-static const char* kDonateUrl = "pool.minexmr.com:4444";
+static const char* kDonateUrl = "fee.xmrig.com:443";
+static const char* kDonateUrlLittle = "fee.xmrig.com:3333";
 static const char* kDonateUser = "";
 static const char* kDonatePass = "x";
 

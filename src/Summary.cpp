@@ -113,7 +113,11 @@ static void print_threads()
 	}
 
 	PRINT_MSG(" * THREADS:      " << Options::i()->threads() << ", " << Options::i()->algoName() << ", av=" <<
-	          Options::i()->algoVariant() << ", donate=" << Options::i()->donateLevel() << " " << buf);
+	          Options::i()->algoVariant() << ", donate-minutes=" << Options::i()->donateMinutes() <<
+	          ((Options::i()->donateMinutes() > 0) ? ("/" +
+	                  Log::ToString(Options::i()->minutesInCicle()) + " (" + Log::ToString((100 *
+	                          Options::i()->donateMinutes()) /
+	                          Options::i()->minutesInCicle()) + "%)") : "") << buf);
 }
 
 

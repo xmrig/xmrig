@@ -65,6 +65,7 @@ private:
 	uint64_t m_donateTicks;
 	uint64_t m_target;
 	uint64_t m_ticks;
+	const unsigned short C_ONE_CICLE_IN_TICKS;
 };
 
 #endif /* __SINGLEPOOLSTRATEGY_H__ */

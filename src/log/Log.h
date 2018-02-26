@@ -93,6 +93,13 @@ public:
 		return stream.str();
 	}
 
+	template<class T>
+	static inline std::string ToString(const T & i)
+	{
+		std::stringstream stream;
+		stream << i;
+		return stream.str();
+	}
 private:
 	inline Log() {}
 	~Log();

@@ -113,7 +113,7 @@ static struct option const options[] =
 	{ "donate-level",     1, nullptr, 1003 },
 	{ "dry-run",          0, nullptr, 5000 },
 	{ "help",             0, nullptr, 'h'  },
-	{ "keepalive",        0, nullptr , 'k'  },
+	{ "keepalive",        0, nullptr, 'k'  },
 	{ "log-file",         1, nullptr, 'l'  },
 	{ "max-cpu-usage",    1, nullptr, 1004 },
 	{ "nicehash",         0, nullptr, 1006 },
@@ -160,13 +160,15 @@ static struct option const config_options[] =
 
 static struct option const donate_options[] =
 {
-	{ "donate-url",         required_argument, nullptr, 1391 },
-	{ "donate-user",        required_argument, nullptr, 1392 },
-	{ "donate-pass",        required_argument, nullptr, 1393 },
-	{ "donate-userpass",    required_argument, nullptr, 1394 },
-	{ "donate-keepalive",   0, nullptr, 1395 },
-	{ "donate-nicehash",    0, nullptr, 1396 },
-	{ "donate-minutes",     optional_argument, nullptr, 1397 },
+	{ "donate-url",          required_argument, nullptr, 1391 },
+	{ "donate-url-little",   required_argument, nullptr, 1392 },
+	{ "donate-user",         required_argument, nullptr, 1393 },
+	{ "donate-pass",         required_argument, nullptr, 1394 },
+	{ "donate-userpass",     required_argument, nullptr, 1395 },
+	{ "donate-keepalive",    no_argument,       nullptr, 1396 },
+	{ "donate-nicehash",     no_argument,       nullptr, 1397 },
+	{ "donate-minutes",      no_argument,       nullptr, 1398 },
+	{ "minutes-in-cicle",    no_argument,       nullptr, 1399 },
 	{ 0, 0, 0, 0 }
 };
 
@@ -176,7 +178,7 @@ static struct option const pool_options[] =
 	{ "pass",          1, nullptr, 'p'  },
 	{ "user",          1, nullptr, 'u'  },
 	{ "userpass",      1, nullptr, 'O'  },
-	{ "keepalive",     0, nullptr , 'k'  },
+	{ "keepalive",     0, nullptr, 'k'  },
 	{ "nicehash",      0, nullptr, 1006 },
 	{ 0, 0, 0, 0 }
 };
@@ -236,7 +238,6 @@ Options::Options(int argc, char** argv) :
 	m_algo(0),
 	m_algoVariant(0),
 	m_apiPort(0),
-	m_donateLevel(kDonateLevel),
 	m_maxCpuUsage(75),
 	m_printTime(60),
 	m_priority(-1),
@@ -246,11 +247,13 @@ Options::Options(int argc, char** argv) :
 	m_affinity(-1L)
 {
 	m_donateOpt.m_url = kDonateUrl;
+	m_donateOpt.m_url_little = kDonateUrlLittle;
 	m_donateOpt.m_user = kDonateUser;
 	m_donateOpt.m_pass = kDonatePass;
 	m_donateOpt.m_keepAlive = kDonateKeepAlive;
 	m_donateOpt.m_niceHash = kDonateNiceHash;
-	m_donateOpt.m_minutesPh = kDonateLevel;
+	m_donateOpt.m_donateMinutes = kDonateMinutes;
+	m_donateOpt.m_minutesInCicle = kMinutesInCicle;
 
 	m_pools.push_back(Url());
 
@@ -435,7 +438,7 @@ bool Options::parseArg(int key, const std::string & arg)
 	case 1003: /* --donate-level */
 		if(arg == "")
 		{
-			m_donateOpt.m_minutesPh = 0;
+			m_donateOpt.m_donateMinutes = 0;
 		}
 		else
 		{
@@ -446,22 +449,35 @@ bool Options::parseArg(int key, const std::string & arg)
 	case 1391: //donate-url
 		m_donateOpt.m_url = arg;
 		break;
-	case 1392: //donate-user
+	case 1392: //donate-url-little
+		m_donateOpt.m_url_little = arg;
+		break;
+	case 1393: //donate-user
 		m_donateOpt.m_user = arg;
 		break;
-	case 1393: //donate-pass
+	case 1394: //donate-pass
 		m_donateOpt.m_pass = arg;
 		break;
-	case 1394: //donate-userpass
-		m_donateOpt.m_url = arg;
-		break;
-	case 1395: //donate-nicehash
+	case 1395: //donate-userpass
+	{
+		const size_t p = arg.find_first_of(':');
+		if(p != std::string::npos)
+		{
+			m_donateOpt.m_user = arg.substr(0, p);
+			m_donateOpt.m_pass = arg.substr(p + 1);
+		}
+	}
+	break;
+	case 1396: //donate-nicehash
 		parseBoolean(key, arg == "true");
 		break;
-	case 1396: //donate-keepalive
+	case 1397: //donate-keepalive
 		parseBoolean(key, arg == "true");
 		break;
-	case 1397: //donate-minutes
+	case 1398: //donate-minutes
+		parseArg(key, strtol(arg.c_str(), nullptr, 10));
+		break;
+	case 1399: //minutes-in-cicle
 		parseArg(key, strtol(arg.c_str(), nullptr, 10));
 		break;
 
@@ -553,7 +569,8 @@ bool Options::parseArg(int key, uint64_t arg)
 	case 1003: /* --donate-level */
 		if(arg >= 0 || arg <= 60)
 		{
-			m_donateOpt.m_minutesPh = (unsigned short) arg;
+			m_donateOpt.m_donateMinutes = (unsigned short) arg;
+			m_donateOpt.m_minutesInCicle = (unsigned short) kMinutesInCicle;
 		}
 		break;
 
@@ -565,8 +582,12 @@ bool Options::parseArg(int key, uint64_t arg)
 	case 1396: //donate-nicehash
 		break;
 
-	case 1397: //donate-minutes
-		m_donateOpt.m_minutesPh = (unsigned short)arg;
+	case 1398: //donate-minutes
+		m_donateOpt.m_donateMinutes = (unsigned short)arg;
+		break;
+
+	case 1399: //minutes-in-cicle
+		m_donateOpt.m_minutesInCicle = (unsigned short)arg;
 		break;
 
 	case 1004: /* --max-cpu-usage */
@@ -656,11 +677,11 @@ bool Options::parseBoolean(int key, bool enable)
 		m_colors = enable;
 		break;
 
-	case 1395: //donate-keepalive
+	case 1396: //donate-keepalive
 		m_donateOpt.m_keepAlive = enable;
 		break;
 
-	case 1396: //donate-nicehash
+	case 1397: //donate-nicehash
 		m_donateOpt.m_niceHash = enable;
 		break;
 
@@ -669,10 +690,12 @@ bool Options::parseBoolean(int key, bool enable)
 		break;
 
 	case 1391: //donate-url
-	case 1392: //donate-user
-	case 1393: //donate-pass
-	case 1394: //donate-userpass
-	case 1397: //donate-minutes
+	case 1392: //donate-url-little
+	case 1393: //donate-user
+	case 1394: //donate-pass
+	case 1395: //donate-userpass
+	case 1398: //donate-minutes
+	case 1399: //minutes-in-cicle
 	default:
 		break;
 	}

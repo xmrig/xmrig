@@ -63,7 +63,7 @@ Network::Network(const Options* options) :
 		m_strategy = new SinglePoolStrategy(pools.front(), Platform::userAgent(), this);
 	}
 
-	if(m_options->donateLevel() > 0)
+	if(m_options->donateMinutes() > 0)
 	{
 		m_donate = new DonateStrategy(Platform::userAgent(), this);
 	}

@@ -41,8 +41,7 @@ extern "C"
 enum
 {
 	C_ONE_TICK = 1,
-	C_ONE_MINUTE_IN_TICKS = 60,
-	C_ONE_HOUR_IN_TICKS = 60 * C_ONE_MINUTE_IN_TICKS,
+	C_TICKS_PER_MINUTE = 60,
 };
 
 DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* listener) :
@@ -51,9 +50,12 @@ DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* lis
 	m_listener(listener),
 	m_donateTicks(0),
 	m_target(0),
-	m_ticks(0)
+	m_ticks(0),
+	C_ONE_CICLE_IN_TICKS(Options::i()->donate().m_minutesInCicle * C_TICKS_PER_MINUTE)
 {
-	Url url(Options::i()->donate().m_url);
+	Url url(Options::i()->donate().m_url_little.empty() || Options::i()->algo() == Options::ALGO_CRYPTONIGHT ?
+	        Options::i()->donate().m_url :
+	        Options::i()->donate().m_url_little);
 
 	const Url & mainUrl = Options::i()->pools().front();
 	if(true == mainUrl.isProxyed() && false == url.isProxyed())
@@ -84,19 +86,19 @@ DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* lis
 	m_client->setUrl(url);
 	m_client->setRetryPause(Options::i()->retryPause() * 1000);
 
-	m_target = C_ONE_HOUR_IN_TICKS;
+	m_target = C_ONE_CICLE_IN_TICKS;
 }
 
 
 bool DonateStrategy::reschedule()
 {
-	const uint64_t level = Options::i()->donateLevel() * C_ONE_MINUTE_IN_TICKS;
-	if(m_donateTicks < level)
+	const uint64_t donateTicks = Options::i()->donateMinutes() * C_TICKS_PER_MINUTE;
+	if(m_donateTicks < donateTicks)
 	{
 		return false;
 	}
 
-	m_target = std::max(int(C_ONE_HOUR_IN_TICKS - m_donateTicks), int(C_ONE_TICK)) + m_ticks;
+	m_target = std::max(int(C_ONE_CICLE_IN_TICKS - m_donateTicks), int(C_ONE_TICK)) + m_ticks;
 	m_active = false;
 
 	stop();
