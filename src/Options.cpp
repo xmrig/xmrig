@@ -231,6 +231,7 @@ static struct option const cc_client_options[] = {
     { "access-token",           1, nullptr, 4004 },
     { "worker-id",              1, nullptr, 4005 },
     { "update-interval-s",      1, nullptr, 4012 },
+    { "use-tls",                0, nullptr, 4016 },
     { nullptr, 0, nullptr, 0 }
 };
 
