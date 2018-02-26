@@ -43,7 +43,7 @@ void SysLog::text(const std::string & txt)
 
 void SysLog::message(Level level, const std::string & txt)
 {
-	syslog(level == INFO ? LOG_INFO : LOG_NOTICE, "%s", txt);
+	syslog(level == INFO ? LOG_INFO : LOG_NOTICE, "%s", txt.c_str());
 }
 
 #endif
