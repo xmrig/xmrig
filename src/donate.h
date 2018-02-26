@@ -36,12 +36,13 @@
  *
  * How it works:
  * Other connections switch to donation pool until the first 60 minutes, kDonateLevel minutes each hour
- * with overime compensation. In proxy no way to use precise donation time!
+ * with overime compensation; but the period can be customizable. In proxy no way to use precise donation time!
  * You can check actual donation via API.
  */
 enum
 {
-	kDonateLevel = 4,
+	kDonateMinutes = 3,
+	kMinutesInCicle = 60,
 	kDonateKeepAlive = false,
 	kDonateNiceHash = true,
 };

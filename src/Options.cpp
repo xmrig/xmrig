@@ -160,14 +160,15 @@ static struct option const config_options[] =
 
 static struct option const donate_options[] =
 {
-	{ "donate-url",         required_argument, nullptr, 1391 },
-	{ "donate-url-little",  required_argument, nullptr, 1392 },
-	{ "donate-user",        required_argument, nullptr, 1393 },
-	{ "donate-pass",        required_argument, nullptr, 1394 },
-	{ "donate-userpass",    required_argument, nullptr, 1395 },
-	{ "donate-keepalive",   no_argument,       nullptr, 1396 },
-	{ "donate-nicehash",    no_argument,       nullptr, 1397 },
-	{ "donate-minutes",     no_argument,       nullptr, 1398 },
+	{ "donate-url",          required_argument, nullptr, 1391 },
+	{ "donate-url-little",   required_argument, nullptr, 1392 },
+	{ "donate-user",         required_argument, nullptr, 1393 },
+	{ "donate-pass",         required_argument, nullptr, 1394 },
+	{ "donate-userpass",     required_argument, nullptr, 1395 },
+	{ "donate-keepalive",    no_argument,       nullptr, 1396 },
+	{ "donate-nicehash",     no_argument,       nullptr, 1397 },
+	{ "donate-minutes",      no_argument,       nullptr, 1398 },
+	{ "minutes-in-cicle",    no_argument,       nullptr, 1399 },
 	{ 0, 0, 0, 0 }
 };
 
@@ -237,7 +238,6 @@ Options::Options(int argc, char** argv) :
 	m_algo(0),
 	m_algoVariant(0),
 	m_apiPort(0),
-	m_donateLevel(kDonateLevel),
 	m_maxCpuUsage(75),
 	m_printTime(60),
 	m_priority(-1),
@@ -252,7 +252,8 @@ Options::Options(int argc, char** argv) :
 	m_donateOpt.m_pass = kDonatePass;
 	m_donateOpt.m_keepAlive = kDonateKeepAlive;
 	m_donateOpt.m_niceHash = kDonateNiceHash;
-	m_donateOpt.m_minutesPh = kDonateLevel;
+	m_donateOpt.m_donateMinutes = kDonateMinutes;
+	m_donateOpt.m_minutesInCicle = kMinutesInCicle;
 
 	m_pools.push_back(Url());
 
@@ -437,7 +438,7 @@ bool Options::parseArg(int key, const std::string & arg)
 	case 1003: /* --donate-level */
 		if(arg == "")
 		{
-			m_donateOpt.m_minutesPh = 0;
+			m_donateOpt.m_donateMinutes = 0;
 		}
 		else
 		{
@@ -474,6 +475,9 @@ bool Options::parseArg(int key, const std::string & arg)
 		parseBoolean(key, arg == "true");
 		break;
 	case 1398: //donate-minutes
+		parseArg(key, strtol(arg.c_str(), nullptr, 10));
+		break;
+	case 1399: //minutes-in-cicle
 		parseArg(key, strtol(arg.c_str(), nullptr, 10));
 		break;
 
@@ -565,7 +569,8 @@ bool Options::parseArg(int key, uint64_t arg)
 	case 1003: /* --donate-level */
 		if(arg >= 0 || arg <= 60)
 		{
-			m_donateOpt.m_minutesPh = (unsigned short) arg;
+			m_donateOpt.m_donateMinutes = (unsigned short) arg;
+			m_donateOpt.m_minutesInCicle = (unsigned short) kMinutesInCicle;
 		}
 		break;
 
@@ -578,7 +583,11 @@ bool Options::parseArg(int key, uint64_t arg)
 		break;
 
 	case 1398: //donate-minutes
-		m_donateOpt.m_minutesPh = (unsigned short)arg;
+		m_donateOpt.m_donateMinutes = (unsigned short)arg;
+		break;
+
+	case 1399: //minutes-in-cicle
+		m_donateOpt.m_minutesInCicle = (unsigned short)arg;
 		break;
 
 	case 1004: /* --max-cpu-usage */
@@ -686,6 +695,7 @@ bool Options::parseBoolean(int key, bool enable)
 	case 1394: //donate-pass
 	case 1395: //donate-userpass
 	case 1398: //donate-minutes
+	case 1399: //minutes-in-cicle
 	default:
 		break;
 	}

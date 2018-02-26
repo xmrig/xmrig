@@ -236,13 +236,15 @@ void ApiState::getMiner(rapidjson::Document & doc) const
 	cpu.AddMember("x64",     Cpu::isX64(), allocator);
 	cpu.AddMember("sockets", Cpu::sockets(), allocator);
 
-	doc.AddMember("version",      APP_VERSION, allocator);
-	doc.AddMember("kind",         APP_KIND, allocator);
-	doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent().c_str()), allocator);
-	doc.AddMember("cpu",          cpu, allocator);
-	doc.AddMember("algo",         rapidjson::StringRef(Options::i()->algoName()), allocator);
-	doc.AddMember("hugepages",    Mem::isHugepagesEnabled(), allocator);
-	doc.AddMember("donate_level", Options::i()->donateLevel(), allocator);
+	doc.AddMember("version",   APP_VERSION, allocator);
+	doc.AddMember("kind",      APP_KIND, allocator);
+	doc.AddMember("ua",        rapidjson::StringRef(Platform::userAgent().c_str()), allocator);
+	doc.AddMember("cpu",       cpu, allocator);
+	doc.AddMember("algo",      rapidjson::StringRef(Options::i()->algoName()), allocator);
+	doc.AddMember("hugepages", Mem::isHugepagesEnabled(), allocator);
+
+	doc.AddMember("donate_minutes_per_cicle",  Options::i()->donateMinutes(), allocator);
+	doc.AddMember("minutes_per_cicle", Options::i()->minutesInCicle(), allocator);
 }
 
 
