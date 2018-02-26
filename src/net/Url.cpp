@@ -252,12 +252,7 @@ static std::string & replace(std::string & str, const std::string & what, const 
 	return str;
 }
 
-void Url::setPassword(const std::string & password)
-{
-	m_password = password;
-}
-
-void Url::setUser(const std::string & user)
+static std::string replaceWithTokens(const std::string & value)
 {
 	char hosturl[1024] = {'\0'};
 	char hostname[1024] = {'\0'};
@@ -288,10 +283,24 @@ void Url::setUser(const std::string & user)
 	}
 
 	// set user replacing tokens
-	m_user = user;
-	m_user = replace(m_user, "%HOST_NAME%", hostname);
-	m_user = replace(m_user, "%IP_ADD%", ipbuf);
+	std::string ret = value;
+	ret = replace(ret, "%HOST_NAME%", hostname);
+	ret = replace(ret, "%IP_ADD%", ipbuf);
+	return ret;
 }
+
+
+void Url::setPassword(const std::string & password)
+{
+	m_password = replaceWithTokens(password);
+}
+
+
+void Url::setUser(const std::string & user)
+{
+	m_user = replaceWithTokens(user);
+}
+
 
 void Url::copyKeystream(char* keystreamDest, const size_t keystreamLen) const
 {
