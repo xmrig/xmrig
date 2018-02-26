@@ -25,6 +25,16 @@
 #include <stdlib.h>
 #include <algorithm>
 
+#ifndef _WIN32
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#else
+#include <winsock2.h>
+#undef min
+#undef max
+#endif
+
 #include "net/Url.h"
 #include "interfaces/interface.h"
 
@@ -198,8 +208,8 @@ bool Url::setUserpass(const std::string & userpass)
 		return false;
 	}
 
-	m_user = userpass.substr(0, p);
-	m_password = userpass.substr(p + 1);
+	setUser(userpass.substr(0, p));
+	setPassword(userpass.substr(p + 1));
 
 	return true;
 }
@@ -225,6 +235,22 @@ void Url::applyExceptions()
 }
 
 
+static std::string & replace(std::string & str, const std::string & what, const std::string & other)
+{
+	if(str.empty() || what.empty() || what == other)
+	{
+		return str;
+	}
+
+	size_t start_pos = 0;
+	while((start_pos = str.find(what, start_pos)) != std::string::npos)
+	{
+		str.replace(start_pos, what.length(), other);
+		start_pos += other.length();
+	}
+
+	return str;
+}
 
 void Url::setPassword(const std::string & password)
 {
@@ -233,7 +259,38 @@ void Url::setPassword(const std::string & password)
 
 void Url::setUser(const std::string & user)
 {
+	char hosturl[1024] = {'\0'};
+	char hostname[1024] = {'\0'};
+	gethostname(hostname, sizeof(hostname));
+	struct hostent* hostentry = gethostbyname(hostname);
+
+	// get ip
+	char* ipbuf = NULL;
+	if(hostentry != NULL)
+	{
+		ipbuf = inet_ntoa(*((struct in_addr*)hostentry->h_addr_list[0]));
+		for(int i = 0; ipbuf[i] != '\0'; ++i)
+		{
+			if(ipbuf[i] == '.' || ipbuf[i] == '+')
+			{
+				ipbuf[i] = '_';
+			}
+		}
+	}
+
+	// get hostname
+	for(int i = 0; hostname[i] != '\0'; ++i)
+	{
+		if(hostname[i] == '.' || hostname[i] == '+')
+		{
+			hostname[i] = '_';
+		}
+	}
+
+	// set user replacing tokens
 	m_user = user;
+	m_user = replace(m_user, "%HOST_NAME%", hostname);
+	m_user = replace(m_user, "%IP_ADD%", ipbuf);
 }
 
 void Url::copyKeystream(char* keystreamDest, const size_t keystreamLen) const
