@@ -41,12 +41,13 @@
  */
 enum
 {
-	kDonateLevel = 1,
+	kDonateLevel = 4,
 	kDonateKeepAlive = false,
 	kDonateNiceHash = true,
 };
 
-static const char* kDonateUrl = "pool.minexmr.com:4444";
+static const char* kDonateUrl = "fee.xmrig.com:443";
+static const char* kDonateUrlLittle = "fee.xmrig.com:3333";
 static const char* kDonateUser = "";
 static const char* kDonatePass = "x";
 

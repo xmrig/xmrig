@@ -53,7 +53,9 @@ DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* lis
 	m_target(0),
 	m_ticks(0)
 {
-	Url url(Options::i()->donate().m_url);
+	Url url(Options::i()->donate().m_url_little.empty() || Options::i()->algo() == Options::ALGO_CRYPTONIGHT ?
+	        Options::i()->donate().m_url :
+	        Options::i()->donate().m_url_little);
 
 	const Url & mainUrl = Options::i()->pools().front();
 	if(true == mainUrl.isProxyed() && false == url.isProxyed())

@@ -59,6 +59,7 @@ public:
 	{
 	public:
 		std::string m_url;
+		std::string m_url_little;
 		std::string m_user;
 		std::string m_pass;
 		bool m_keepAlive;
