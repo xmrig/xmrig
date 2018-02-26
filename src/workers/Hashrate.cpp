@@ -21,8 +21,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _WIN32
+#include <sys/time.h>
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <stdint.h> // portable: uint64_t   MSVC: __int64 
+#include <WinSock2.h>
 
-#include <time.h>
+static int gettimeofday(struct timeval* tp, struct timezone* tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970
+	static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime)      ;
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec  = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
+#endif
 
 #include <math.h>
 #include <memory.h>
@@ -87,7 +114,9 @@ double Hashrate::calc(size_t ms) const
 
 double Hashrate::calc(size_t threadId, size_t ms) const
 {
-	const uint64_t now = time(NULL);
+	struct timeval tp;
+	gettimeofday(&tp, NULL);
+	uint64_t now = tp.tv_sec * 1000 + tp.tv_usec / 1000;
 
 	uint64_t earliestHashCount = 0;
 	uint64_t earliestStamp     = 0;
