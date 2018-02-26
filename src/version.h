@@ -27,7 +27,7 @@
 #define APP_ID        "xmrig-ewa"
 #define APP_NAME      "XMRig-ewa"
 #define APP_DESC      "XMRig CPU miner"
-#define APP_VERSION   "2.4.4"
+#define APP_VERSION   "3.0.0-1"
 #define APP_DOMAIN    "enWILLYado.com"
 #define APP_SITE      "www.enWILLYado.com"
 #define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com & enWILLYado.com"
