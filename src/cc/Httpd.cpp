@@ -75,7 +75,7 @@ bool Httpd::start()
         LOG_ERR("HTTP Daemon failed to start.");
         return false;
     } else {
-        LOG_INFO("%s Server started on Port: %d", APP_NAME, m_options->ccPort());
+        LOG_INFO("%s Server started on Port: %d %s", APP_NAME, m_options->ccPort(), m_options->ccUseTls() ? "with TLS" : "");
     }
 
     return true;
