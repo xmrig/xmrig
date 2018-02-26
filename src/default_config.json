@@ -1,10 +1,10 @@
 {
     "algo": "cryptonight",                      // cryptonight (default) or cryptonight-lite
     "av": null,                                 // DEPRECATED: algorithm variation, (0 auto,
-                                                //                                   1 -> (aesni=1, multihash-factor=1),
-                                                //                                   2 -> (aesni=1, multihash-factor=2),
-                                                //                                   3 -> (aesni=2, multihash-factor=1),
-                                                //                                   4 -> (aesni=2, multihash-factor=2))
+    //                                   1 -> (aesni=1, multihash-factor=1),
+    //                                   2 -> (aesni=1, multihash-factor=2),
+    //                                   3 -> (aesni=2, multihash-factor=1),
+    //                                   4 -> (aesni=2, multihash-factor=2))
     "aesni": 0,                                 // selection of AES-NI mode (0 auto, 1 on, 2 off)
     "threads": 0,                               // number of miner threads (not set or 0 enables automatic selection of optimal thread count)
     "multihash-factor": 0,                      // number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)
@@ -26,7 +26,7 @@
             "url": "",                          // URL of mining server
             "user": "",                         // username for mining server
             "pass": "x",                        // password for mining server
-            "useTls" : false,                   // use tls for pool communication (need pool support)
+            "use-tls" : false,                  // enable tls for pool communication (need pool support)
             "keepalive": true,                  // send keepalived for prevent timeout (need pool support)
             "nicehash": false                   // enable nicehash/xmrig-proxy support
         }
@@ -38,7 +38,7 @@
     },
     "cc-client": {
         "url": "localhost:3344",                // url of the CC Server (ip:port)
-        "useTls" : false,                       // use tls for CC communication (needs to be enabled on CC Server too)
+        "use-tls" : false,                      // enable tls for CC communication (needs to be enabled on CC Server too)
         "access-token": "mySecret",             // access token for CC Server (has to be the same in config_cc.json)
         "worker-id": null,                      // custom worker-id for CC Server (otherwise hostname is used)
         "update-interval-s": 10                 // status update interval in seconds (default: 10 min: 1)

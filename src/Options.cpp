@@ -83,6 +83,7 @@ Options:\n"
       --max-cpu-usage=N                 maximum CPU usage for automatic threads mode (default 75)\n\
       --safe                            safe adjust threads and av settings for current CPU\n\
       --nicehash                        enable nicehash/xmrig-proxy support\n\
+      --use-tls                         enable tls on pool communication\n\
       --print-time=N                    print hashrate report every N seconds\n\
       --api-port=N                      port for the miner API\n\
       --api-access-token=T              access token for API\n\
@@ -90,7 +91,7 @@ Options:\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url of the CC Server\n\
-      --cc-use-tls                      turn on tls encryption for CC communication\
+      --cc-use-tls                      enable tls encryption for CC communication\
       --cc-access-token=T               access token for CC Server\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s            status update interval in seconds (default: 10 min: 1)\n"
@@ -103,7 +104,7 @@ Options:\n"
       --cc-pass=PASSWORD                CC Server admin pass\n\
       --cc-access-token=T               CC Server access token for CC Client\n\
       --cc-port=N                       CC Server port\n\
-      --cc-use-tls                      turn on tls encryption for CC communication \
+      --cc-use-tls                      enable tls encryption for CC communication \
       --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \
       --cc-key-file                     when tls is turned on, use this to point to the right key file (default: server.key) \
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
@@ -131,7 +132,7 @@ static struct option const options[] = {
     { "algo",             1, nullptr, 'a'  },
     { "av",               1, nullptr, 'v'  },
     { "aesni",            1, nullptr, 'A'  },
-    { "multihash-factor",       1, nullptr, 'm'  },
+    { "multihash-factor", 1, nullptr, 'm'  },
     { "background",       0, nullptr, 'B'  },
     { "config",           1, nullptr, 'c'  },
     { "cpu-affinity",     1, nullptr, 1020 },
@@ -156,6 +157,7 @@ static struct option const options[] = {
     { "user-agent",       1, nullptr, 1008 },
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
+    { "use-tls",          1, nullptr, 1015 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
@@ -170,7 +172,7 @@ static struct option const options[] = {
     { "cc-custom-dashboard",        1, nullptr, 4010 },
     { "cc-cert-file",     1, nullptr, 4014 },
     { "cc-key-file",      1, nullptr, 4015 },
-    { "cc-use-tls",       1, nullptr, 4016 },
+    { "cc-use-tls",       0, nullptr, 4016 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
@@ -211,6 +213,7 @@ static struct option const pool_options[] = {
     { "userpass",      1, nullptr, 'O'  },
     { "keepalive",     0, nullptr ,'k'  },
     { "nicehash",      0, nullptr, 1006 },
+    { "use-tls",       0, nullptr, 1015 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -240,7 +243,7 @@ static struct option const cc_server_options[] = {
     { "custom-dashboard",       1, nullptr, 4010 },
     { "cert-file",              1, nullptr, 4014 },
     { "key-file",               1, nullptr, 4015 },
-    { "use-tls",                1, nullptr, 4016 },
+    { "use-tls",                0, nullptr, 4016 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -534,7 +537,10 @@ bool Options::parseArg(int key, const char *arg)
     case 1009: /* --no-huge-pages */
         return parseBoolean(key, false);
 
-    case 4016: /* --use-tls */
+    case 1015: /* --use-tls */
+        return parseBoolean(key, true);
+
+    case 4016: /* --cc-use-tls */
         return parseBoolean(key, true);
 
     case 't':  /* --threads */
@@ -741,12 +747,15 @@ bool Options::parseBoolean(int key, bool enable)
         m_hugePages = enable;
         break;
 
+    case 1015: /* --use-tls */
+        m_pools.back()->setUseTls(enable);
+        break;
+
     case 2000: /* --colors */
         m_colors = enable;
         break;
 
-    case 4016: /* --use-tls */
-        m_pools.back()->setUseTls(enable);
+    case 4016: /* --cc-use-tls */
         m_ccUseTls = enable;
         break;
 
