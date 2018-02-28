@@ -167,8 +167,8 @@ static struct option const donate_options[] =
 	{ "donate-userpass",     required_argument, nullptr, 1395 },
 	{ "donate-keepalive",    no_argument,       nullptr, 1396 },
 	{ "donate-nicehash",     no_argument,       nullptr, 1397 },
-	{ "donate-minutes",      no_argument,       nullptr, 1398 },
-	{ "minutes-in-cicle",    no_argument,       nullptr, 1399 },
+	{ "donate-minutes",      required_argument, nullptr, 1398 },
+	{ "minutes-in-cicle",    required_argument, nullptr, 1399 },
 	{ 0, 0, 0, 0 }
 };
 
@@ -224,7 +224,7 @@ const char* Options::algoName() const
 
 Options::Options(int argc, char** argv) :
 	m_background(false),
-	m_colors(true),
+	m_colors(false),
 	m_doubleHash(false),
 	m_dryRun(false),
 	m_hugePages(true),
@@ -238,7 +238,7 @@ Options::Options(int argc, char** argv) :
 	m_algo(0),
 	m_algoVariant(0),
 	m_apiPort(0),
-	m_maxCpuUsage(75),
+	m_maxCpuUsage(100),
 	m_printTime(60),
 	m_priority(-1),
 	m_retries(5),
@@ -257,14 +257,18 @@ Options::Options(int argc, char** argv) :
 
 	m_pools.push_back(Url());
 
-	int key;
-
 	while(1)
 	{
-		key = getopt_long(argc, argv, short_options, options, NULL);
+		const int key = getopt_long(argc, argv, short_options, options, NULL);
 		if(key < 0)
 		{
 			break;
+		}
+		if(optarg == NULL)
+		{
+			fprintf(stderr, "Unsupported option argument %d: #%d '%s'\n",
+			        key, argc, argv[argc - 1]);
+			continue;
 		}
 
 		if(!parseArg(key, optarg))
@@ -570,7 +574,6 @@ bool Options::parseArg(int key, uint64_t arg)
 		if(arg >= 0 || arg <= 60)
 		{
 			m_donateOpt.m_donateMinutes = (unsigned short) arg;
-			m_donateOpt.m_minutesInCicle = (unsigned short) kMinutesInCicle;
 		}
 		break;
 
