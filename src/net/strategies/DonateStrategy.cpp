@@ -24,6 +24,7 @@
 
 #include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
+#include "log/Log.h"
 #include "net/strategies/DonateStrategy.h"
 #include "Options.h"
 
@@ -124,6 +125,8 @@ void DonateStrategy::stop()
 	m_suspended   = true;
 	m_donateTicks = 0;
 	m_client->disconnect();
+
+	LOG_NOTICE("dev donate finished");
 }
 
 
@@ -140,6 +143,7 @@ void DonateStrategy::tick(uint64_t now)
 
 	if(m_ticks == m_target)
 	{
+		LOG_NOTICE("dev donate start");
 		m_client->connect();
 	}
 
