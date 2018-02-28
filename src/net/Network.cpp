@@ -101,7 +101,6 @@ void Network::onActive(Client* client)
 {
 	if(client->id() == -1)
 	{
-		LOG_NOTICE("dev donate started");
 		return;
 	}
 
@@ -113,7 +112,19 @@ void Network::onActive(Client* client)
 
 void Network::onJob(Client* client, const Job & job)
 {
-	if(m_donate && m_donate->isActive() && client->id() != -1)
+	if(m_options->colors())
+	{
+		/*
+		LOG_INFO("\x1B[01;35mnew job\x1B[0m from \x1B[01;37m%s:%d\x1B[0m diff \x1B[01;37m%d", client->host(),
+		         client->port(), job.diff());
+				 */
+	}
+	else
+	{
+		LOG_INFO("new job from " << client->host() << ":" << client->port() << " diff " << job.diff());
+	}
+
+	if(m_donate && m_donate->isActive() && client->id() != -1 && !m_donate->reschedule())
 	{
 		return;
 	}
@@ -138,7 +149,6 @@ void Network::onPause(IStrategy* strategy)
 {
 	if(m_donate && m_donate == strategy)
 	{
-		LOG_NOTICE("dev donate finished");
 		m_strategy->resume();
 	}
 
@@ -194,18 +204,6 @@ void Network::onResultAccepted(Client* client, const SubmitResult & result, cons
 
 void Network::setJob(Client* client, const Job & job)
 {
-	if(m_options->colors())
-	{
-		/*
-		LOG_INFO("\x1B[01;35mnew job\x1B[0m from \x1B[01;37m%s:%d\x1B[0m diff \x1B[01;37m%d", client->host(),
-		         client->port(), job.diff());
-				 */
-	}
-	else
-	{
-		LOG_INFO("new job from " << client->host() << ":" << client->port() << " diff " << job.diff());
-	}
-
 	m_state.diff = job.diff();
 	Workers::setJob(job);
 }
