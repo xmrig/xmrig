@@ -91,8 +91,9 @@ static void print_cpu()
 	}
 	else
 	{
-		PRINT_MSG(" * CPU:          " << Cpu::brand() << " (" << Cpu::sockets() << ") " << (Cpu::isX64() ? "" : "-") <<
-		          " " << (Cpu::hasAES() ? "" : "-") << "AES-NI");
+		PRINT_MSG(" * CPU:          " << Cpu::brand() << " (" << Cpu::threads() << "@" << Cpu::sockets() <<  ") " <<
+		          (Cpu::isX64() ? "" : "-") << "64 " <<
+		          (Cpu::hasAES() ? "" : "-") << "AES-NI");
 #       ifndef XMRIG_NO_LIBCPUID
 		PRINT_MSG(" * CPU L2/L3:    " << (Cpu::l2() / 1024.0) << " MB/" << Cpu::l3() / 1024.0 << " MB");
 #       endif
