@@ -24,7 +24,7 @@ build_script:
   - cd c:\xmrigCC
   - mkdir build
   - cd build
-  - cmake .. -G "Visual Studio 15 2017 Win64" -T v141,host=x64 -DUV_INCLUDE_DIR="c:\xmrigCC-deps\msvc2017\libuv\x64\include" -DUV_LIBRARY="c:\xmrigCC-deps\msvc2017\libuv\x64\lib\libuv.lib" -DMHD_INCLUDE_DIR="c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\include" -DMHD_LIBRARY="c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\lib\libmicrohttpd.lib" -DOPENSSL_INCLUDE_DIR="C:\xmrigCC-deps\msvc2017\openssl\x64\include" -DOPENSSL_LIBRARIES="c:\xmrigCC-deps\msvc2017\openssl\x64\lib\" -DOPENSSL_USE_STATIC_LIBS=TRUE
+  - cmake .. -G "Visual Studio 15 2017 Win64" -T v141,host=x64 -DUV_INCLUDE_DIR="c:\xmrigCC-deps\msvc2017\libuv\x64\include" -DUV_LIBRARY="c:\xmrigCC-deps\msvc2017\libuv\x64\lib\libuv.lib" -DMHD_INCLUDE_DIR="c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\include" -DMHD_LIBRARY="c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\lib\libmicrohttpd.lib" -DOPENSSL_MSVC_STATIC_RT=TRUE
   - msbuild xmrig.sln /p:Configuration=Release
 
 
