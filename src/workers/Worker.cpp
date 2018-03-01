@@ -28,7 +28,12 @@
 #include "workers/Worker.h"
 
 #ifndef _WIN32
+#if __cplusplus <= 199711L
 #include <sys/time.h>
+#else
+#include <chrono>
+#define USE_CHRONO
+#endif
 #else
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -82,10 +87,15 @@ Worker::~Worker()
 
 void Worker::storeStats()
 {
+#ifdef USE_CHRONO
+	using namespace std::chrono;
+	const uint64_t now = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
+#else
 	struct timeval tp;
 	gettimeofday(&tp, NULL);
-	uint64_t timestamp = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+	const uint64_t now = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+#endif
 
 	m_hashCount = m_count;
-	m_timestamp = timestamp;
+	m_timestamp = now;
 }
