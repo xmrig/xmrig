@@ -26,37 +26,22 @@ typedef struct net_s net_t;
 typedef struct addrinfo net_ai;
 typedef struct sockaddr_in socketPair_t;
 
-#define NET_FIELDS                    \
-  NET_CONNECTION_FIELDS               \
-  NET_UV_FIELDS                       \
-  NET_TLS_FIELDS                      \
-
-#define NET_CONNECTION_FIELDS         \
-  char *hostname;                     \
-  int   port;                         \
-  int   connected;                    \
-
-
-#define NET_UV_FIELDS                 \
-  uv_getaddrinfo_t *resolver;         \
-  uv_loop_t        *loop;             \
-  uv_tcp_t         *handle;           \
-  uv_connect_t     *conn;             \
-
-#ifndef XMRIG_NO_TLS
-    #define NET_TLS_FIELDS              \
-        int     use_ssl;                \
-        int     tls_established;        \
-        tls_t   *tls;
-#else
-    #define NET_TLS_FIELDS              \
-        int     use_ssl;                \
-        int     tls_established;
-#endif
-
 
 struct net_s {
-  NET_FIELDS;
+  char *hostname;
+  int   port;
+  int   connected;
+  uv_getaddrinfo_t *resolver;         
+  uv_loop_t        *loop;             
+  uv_tcp_t         *handle;           
+  uv_connect_t     *conn;            
+  int     use_ssl;
+  int     tls_established;
+  
+#ifndef XMRIG_NO_TLS
+  tls_t   *tls;	
+#endif		  
+ 
   void  *data;
   void (*conn_cb)(net_t*);
   void (*read_cb)(net_t*, size_t, char*);

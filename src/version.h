@@ -47,9 +47,17 @@
 #define APP_VER_REV    0
 
 #ifndef NDEBUG
-#define BUILD_TYPE   "DEBUG"
+	#ifndef XMRIG_NO_TLS
+		#define BUILD_TYPE   "DEBUG with TLS"
+	#else
+		#define BUILD_TYPE   "DEBUG"	
+	#endif	
 #else
-#define BUILD_TYPE   "RELEASE"
+	#ifndef XMRIG_NO_TLS
+		#define BUILD_TYPE   "RELEASE with TLS"
+	#else
+		#define BUILD_TYPE   "RELEASE"	
+	#endif	
 #endif
 
 #ifdef _MSC_VER

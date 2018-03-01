@@ -36,6 +36,7 @@
 
 
 Url::Url() :
+    m_useTls(false),
     m_keepAlive(false),
     m_nicehash(false),
     m_host(nullptr),

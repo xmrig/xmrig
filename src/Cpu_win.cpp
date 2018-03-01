@@ -51,7 +51,7 @@ void CpuImpl::setAffinity(int id, uint64_t mask)
 
         int threadCount = 0;
 
-        for (int i = 0; i < m_totalThreads; i++) {
+        for (size_t i = 0; i < m_totalThreads; i++) {
             if (threadAffinityMask.test(i)) {
                 if (threadCount == id) {
                     SetThreadAffinityMask(GetCurrentThread(), 1ULL << i);

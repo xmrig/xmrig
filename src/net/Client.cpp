@@ -282,7 +282,7 @@ void Client::onRead(net_t *net, size_t size, char *buf)
 {
     auto client = getClient(net->data);
 
-    if (size < 0) {
+    if (size == 0) {
         if (size != UV_EOF && !client->m_quiet) {
             LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror((int) size));
         }

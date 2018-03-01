@@ -70,7 +70,7 @@ if (WIN32)
         )
 
     add_definitions(/DWIN32)
-    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
+    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv crypt32)
 elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
@@ -113,7 +113,7 @@ find_package(UV REQUIRED)
 include(cmake/flags.cmake)
 
 if (WITH_TLS)
-    find_package(OpenSSL REQUIRED)
+    find_package(OpenSSL)
 
     add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
 
@@ -218,12 +218,16 @@ endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
 
 add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} res/app.rc)
 
-target_link_libraries(xmrigMiner xmrig_tls xmrig_common xmrig_os_dependencies xmrig_cpuid
-        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} ${OPENSSL_LIBRARIES})
+target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid
+        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 
 if (WITH_CC_CLIENT)
     target_link_libraries(xmrigMiner xmrig_cc_common)
 endif (WITH_CC_CLIENT)
+
+if (WITH_TLS)
+    target_link_libraries(xmrigMiner xmrig_tls OpenSSL::SSL OpenSSL::Crypto)
+endif (WITH_TLS)
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
 
@@ -231,8 +235,13 @@ if (WITH_CC_SERVER AND MHD_FOUND)
     add_library(xmrig_common_cc STATIC ${SOURCES_COMMON})
     add_executable(xmrigCCServer ${SOURCES_CC_SERVER} res/app.rc)
     target_link_libraries(xmrigCCServer
-            xmrig_common_cc xmrig_os_dependencies xmrig_cpuid xmrig_cc_common xmrig_tls
+            xmrig_common_cc xmrig_os_dependencies xmrig_cpuid xmrig_cc_common
             ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+
+    if (WITH_TLS)
+	    target_link_libraries(xmrigCCServer xmrig_tls OpenSSL::SSL OpenSSL::Crypto)
+    endif (WITH_TLS)
+
     set_target_properties(xmrig_common_cc PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
 endif()
