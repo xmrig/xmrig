@@ -16,7 +16,7 @@ clone_folder: c:\xmrigCC
 
 install:
   - mkdir c:\xmrigCC-deps
-  - curl -sL https://github.com/Bendr0id/xmrigCC-deps/archive/v1.zip -o xmrigCC-deps.zip
+  - curl -sL https://github.com/Bendr0id/xmrigCC-deps/releases/download/v1/xmrigCC-deps.zip -o xmrigCC-deps.zip
   - 7z x xmrigCC-deps.zip -o"c:\xmrigCC-deps" -y > nul
 
 build_script:
