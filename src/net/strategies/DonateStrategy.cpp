@@ -93,28 +93,31 @@ DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* lis
 
 bool DonateStrategy::reschedule(const bool isDonate)
 {
-	if(isDonate)
+	if(m_starting == true || m_active == true)
 	{
 		const uint64_t donateTargetTicks = Options::i()->donateMinutes() * C_TICKS_PER_MINUTE;
-		LOG_DEBUG("Dev donate ticks: " << m_donateTicks << "/" << donateTargetTicks);
+		LOG_DEBUG("Dev donate ticks: " << m_donateTicks << "->" << donateTargetTicks);
 		if(m_donateTicks < donateTargetTicks)
 		{
-			return false;
+			return !isDonate;
 		}
 
 		m_target = std::max(int(C_ONE_CICLE_IN_TICKS - m_donateTicks), int(C_ONE_TICK)) + m_ticks;
 
 		LOG_NOTICE("Dev donate: finished!");
 		stop();
+
+		return isDonate;
 	}
 	else
 	{
-		if(m_starting == true || m_active == true)
+		if(isDonate)
 		{
+			// WHY?
 			return false;
 		}
 
-		LOG_DEBUG("Non-Dev donate ticks: " << m_ticks << "/" << m_target);
+		LOG_DEBUG("Non-Dev donate ticks: " << m_ticks << "->" << m_target);
 		if(m_ticks < m_target)
 		{
 			return false;
@@ -122,9 +125,9 @@ bool DonateStrategy::reschedule(const bool isDonate)
 
 		LOG_NOTICE("Dev donate: start!");
 		connect();
-	}
 
-	return true;
+		return true;
+	}
 }
 
 int64_t DonateStrategy::submit(const JobResult & result)
