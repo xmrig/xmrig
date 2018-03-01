@@ -589,6 +589,11 @@ void Client::ping()
 
 void Client::reconnect()
 {
+	if(m_failures == -1)
+	{
+		return m_listener->onClose(this, -1);
+	}
+
 	setState(ConnectingState);
 
 #ifndef XMRIG_PROXY_PROJECT
@@ -597,11 +602,6 @@ void Client::reconnect()
 		uv_timer_stop(&m_keepAliveTimer);
 	}
 #endif
-
-	if(m_failures == -1)
-	{
-		return m_listener->onClose(this, -1);
-	}
 
 	m_failures++;
 	m_listener->onClose(this, (int) m_failures);

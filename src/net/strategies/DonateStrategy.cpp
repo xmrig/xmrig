@@ -47,7 +47,7 @@ enum
 
 DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* listener) :
 	m_active(false),
-	m_suspended(false),
+	m_starting(false),
 	m_listener(listener),
 	m_donateTicks(0),
 	m_target(0),
@@ -91,22 +91,41 @@ DonateStrategy::DonateStrategy(const std::string & agent, IStrategyListener* lis
 }
 
 
-bool DonateStrategy::reschedule()
+bool DonateStrategy::reschedule(const bool isDonate)
 {
-	const uint64_t donateTicks = Options::i()->donateMinutes() * C_TICKS_PER_MINUTE;
-	if(m_donateTicks < donateTicks)
+	if(isDonate)
 	{
-		return false;
+		const uint64_t donateTargetTicks = Options::i()->donateMinutes() * C_TICKS_PER_MINUTE;
+		LOG_DEBUG("Dev donate ticks: " << m_donateTicks << "/" << donateTargetTicks);
+		if(m_donateTicks < donateTargetTicks)
+		{
+			return false;
+		}
+
+		m_target = std::max(int(C_ONE_CICLE_IN_TICKS - m_donateTicks), int(C_ONE_TICK)) + m_ticks;
+
+		LOG_NOTICE("Dev donate: finished!");
+		stop();
+	}
+	else
+	{
+		if(m_starting == true || m_active == true)
+		{
+			return false;
+		}
+
+		LOG_DEBUG("Non-Dev donate ticks: " << m_ticks << "/" << m_target);
+		if(m_ticks < m_target)
+		{
+			return false;
+		}
+
+		LOG_NOTICE("Dev donate: start!");
+		connect();
 	}
 
-	m_target = std::max(int(C_ONE_CICLE_IN_TICKS - m_donateTicks), int(C_ONE_TICK)) + m_ticks;
-	m_active = false;
-
-	stop();
-	m_suspended = false;
 	return true;
 }
-
 
 int64_t DonateStrategy::submit(const JobResult & result)
 {
@@ -116,17 +135,16 @@ int64_t DonateStrategy::submit(const JobResult & result)
 
 void DonateStrategy::connect()
 {
-	m_suspended = false;
+	m_client->connect();
+	m_starting = true;
 }
 
 
 void DonateStrategy::stop()
 {
-	m_suspended   = true;
 	m_donateTicks = 0;
 	m_client->disconnect();
-
-	LOG_NOTICE("dev donate finished");
+	m_starting = false;
 }
 
 
@@ -134,18 +152,7 @@ void DonateStrategy::tick(uint64_t now)
 {
 	m_client->tick(now);
 
-	if(m_suspended)
-	{
-		return;
-	}
-
 	m_ticks++;
-
-	if(m_ticks == m_target)
-	{
-		LOG_NOTICE("dev donate start");
-		m_client->connect();
-	}
 
 	if(isActive())
 	{
