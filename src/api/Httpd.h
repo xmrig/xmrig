@@ -41,16 +41,21 @@ public:
     bool start();
 
 private:
+    constexpr static const int kIdleInterval   = 200;
+    constexpr static const int kActiveInterval = 50;
+
     int auth(const char *header);
+    void run();
 
     static int done(MHD_Connection *connection, int status, MHD_Response *rsp);
     static int handler(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls);
-    static void onIdle(uv_idle_t *handle);
+    static void onTimer(uv_timer_t *handle);
 
+    bool m_idle;
     const char *m_accessToken;
     const int m_port;
     MHD_Daemon *m_daemon;
-    uv_idle_t m_idle;
+    uv_timer_t m_timer;
 };
 
 #endif /* __HTTPD_H__ */
