@@ -36,16 +36,22 @@
     #include <errno.h>
 #endif
 
+#ifndef MINER_EXECUTABLE_NAME
+  #define MINER_EXECUTABLE_NAME xmrigMiner
+#endif
+#define VALUE_TO_STRING(x) #x
+#define VALUE(x) VALUE_TO_STRING(x)
+
 int main(int argc, char **argv) {
 
     std::string ownPath(argv[0]);
 
 #if defined(_WIN32) || defined(WIN32)
     int pos = ownPath.rfind('\\');
-    std::string xmrigMiner("xmrigMiner.exe");
+    std::string xmrigMiner( VALUE(MINER_EXECUTABLE_NAME) ".exe");
 #else
     int pos = ownPath.rfind('/');
-    std::string xmrigMiner("xmrigMiner");
+    std::string xmrigMiner( VALUE(MINER_EXECUTABLE_NAME) );
 #endif
 
     std::string xmrigMinerPath = ownPath.substr(0, pos+1) + xmrigMiner;
