@@ -11,6 +11,8 @@ option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
 option(WITH_TLS       "TLS support" ON)
+set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
+set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -104,6 +106,7 @@ endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
+add_definitions(/DMINER_EXECUTABLE_NAME=${MINER_EXECUTABLE_NAME})
 #add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -217,6 +220,7 @@ if (WITH_CC_SERVER OR WITH_CC_CLIENT)
 endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
 
 add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} res/app.rc)
+set_target_properties(xmrigMiner PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
 
 target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid
         ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
@@ -230,6 +234,7 @@ if (WITH_TLS)
 endif (WITH_TLS)
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
+set_target_properties(xmrigDaemon PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
 
 if (WITH_CC_SERVER AND MHD_FOUND)
     add_library(xmrig_common_cc STATIC ${SOURCES_COMMON})
