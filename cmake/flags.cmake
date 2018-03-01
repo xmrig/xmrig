@@ -8,11 +8,11 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-strict-aliasing")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -DFOUR_WAY -fomit-frame-pointer -Wno-strict-aliasing -msse -msse2 -msse3 -mmmx -m3dnow")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -ffast-math -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fno-exceptions -fno-rtti")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fpermissive -DFOUR_WAY -fomit-frame-pointer -Wno-strict-aliasing -msse -msse2 -msse3 -mmmx -m3dnow")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 
     if (XMRIG_ARMv8)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a+crypto")
@@ -21,20 +21,20 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpu=neon")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -flax-vector-conversions")
     else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -maes")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -maes")
     endif()
 
     if (WIN32)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -flto")
     else()
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -flto")
     endif()
 
     add_definitions(/D_GNU_SOURCE)
 
     if (${CMAKE_VERSION} VERSION_LESS "3.1.0")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
     endif()
 
     #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
