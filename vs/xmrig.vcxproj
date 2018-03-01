@@ -177,6 +177,7 @@
     <ClInclude Include="..\src\interfaces\IConsoleListener.h" />
     <ClInclude Include="..\src\interfaces\IJobResultListener.h" />
     <ClInclude Include="..\src\interfaces\ILogBackend.h" />
+    <ClInclude Include="..\src\interfaces\interface.h" />
     <ClInclude Include="..\src\interfaces\IStrategy.h" />
     <ClInclude Include="..\src\interfaces\IStrategyListener.h" />
     <ClInclude Include="..\src\interfaces\IWorker.h" />
