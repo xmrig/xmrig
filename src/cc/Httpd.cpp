@@ -51,7 +51,7 @@ bool Httpd::start()
         m_keyPem = readFile(m_options->ccKeyFile());
         m_certPem = readFile(m_options->ccCertFile());
 
-        if (m_keyPem.length() == 0 || m_certPem.length() == 0) {
+        if (m_keyPem.empty() || m_certPem.empty()) {
             LOG_ERR("HTTPS Daemon failed to start. Unable to load Key/Cert.");
             return false;
         }

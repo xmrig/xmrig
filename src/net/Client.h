@@ -36,14 +36,20 @@
 #include "net/Url.h"
 #include "rapidjson/fwd.h"
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
+
 #include "net.h"
 
 #ifndef XMRIG_NO_TLS
 #include "tls.h"
 #endif
+
+#ifdef __cplusplus
 }
+#endif
 
 class IClientListener;
 class JobResult;

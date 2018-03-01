@@ -213,14 +213,15 @@ net_connect_cb(uv_connect_t *conn, int err) {
     do {
       read = tls_bio_read(net->tls, 0);
       if (read > 0) {
-        char buf[read];
+        char* buf = (char *) calloc(read, 1);
         uv_write_t * req = malloc(sizeof(uv_write_t));
         req->data = net;
         memset(buf, 0, read);
         memcpy(buf, net->tls->buf, read);
         uv_buf_t uvbuf = uv_buf_init(buf, read);
         uv_write(req, (uv_stream_t*)net->handle, &uvbuf, 1, net_write_cb);
-      }
+        free(buf);
+      }	
     } while (read > 0);
   }
 #endif
@@ -267,13 +268,14 @@ net_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
       do {
         read = tls_bio_read(net->tls, 0);
         if (read > 0) {
-          char buf2[read];
+          char* buf2 = (char *) calloc(read, 1);
           uv_write_t * req = malloc(sizeof(uv_write_t));
           req->data = net;
           memset(buf2, 0, read);
           memcpy(buf2, net->tls->buf, read);
           uv_buf_t uvbuf = uv_buf_init(buf2, read);
           uv_write(req, (uv_stream_t*)net->handle, &uvbuf, 1, net_write_cb);
+          free(buf2);
         }
       } while (read > 0);
 

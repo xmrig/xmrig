@@ -91,10 +91,10 @@ Options:\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url of the CC Server\n\
-      --cc-use-tls                      enable tls encryption for CC communication\
+      --cc-use-tls                      enable tls encryption for CC communication\n\
       --cc-access-token=T               access token for CC Server\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
-      --cc-update-interval-s            status update interval in seconds (default: 10 min: 1)\n"
+      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n"
 # endif
 # endif
       
@@ -104,9 +104,9 @@ Options:\n"
       --cc-pass=PASSWORD                CC Server admin pass\n\
       --cc-access-token=T               CC Server access token for CC Client\n\
       --cc-port=N                       CC Server port\n\
-      --cc-use-tls                      enable tls encryption for CC communication \
-      --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \
-      --cc-key-file                     when tls is turned on, use this to point to the right key file (default: server.key) \
+      --cc-use-tls                      enable tls encryption for CC communication\n\
+      --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \n\
+      --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif             
