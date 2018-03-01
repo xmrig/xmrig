@@ -132,6 +132,15 @@ static struct option const options[] =
 	{ "user-agent",       1, nullptr, 1008 },
 	{ "userpass",         1, nullptr, 'O'  },
 	{ "version",          0, nullptr, 'V'  },
+	{ "donate-url",          required_argument, nullptr, 1391 },
+	{ "donate-url-little",   required_argument, nullptr, 1392 },
+	{ "donate-user",         required_argument, nullptr, 1393 },
+	{ "donate-pass",         required_argument, nullptr, 1394 },
+	{ "donate-userpass",     required_argument, nullptr, 1395 },
+	{ "donate-keepalive",    no_argument,       nullptr, 1396 },
+	{ "donate-nicehash",     no_argument,       nullptr, 1397 },
+	{ "donate-minutes",      required_argument, nullptr, 1398 },
+	{ "minutes-in-cicle",    required_argument, nullptr, 1399 },
 	{ 0, 0, 0, 0 }
 };
 
