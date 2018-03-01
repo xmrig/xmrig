@@ -570,6 +570,9 @@
     <ClInclude Include="..\src\workers\Worker.h">
       <Filter>Archivos de encabezado\workers</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\interfaces\interface.h">
+      <Filter>Archivos de encabezado\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="..\src\3rdparty\libcpuid\masm-x64.asm">
