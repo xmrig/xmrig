@@ -124,7 +124,7 @@ void Network::onJob(Client* client, const Job & job)
 		LOG_INFO("new job from " << client->host() << ":" << client->port() << " diff " << job.diff());
 	}
 
-	if(m_donate && m_donate->isActive() && client->id() != -1 && !m_donate->reschedule())
+	if(m_donate && m_donate->reschedule(client->id() == -1))
 	{
 		return;
 	}

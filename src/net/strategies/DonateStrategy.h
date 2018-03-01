@@ -38,7 +38,7 @@ class DonateStrategy : public IStrategy, public IClientListener
 {
 public:
 	DonateStrategy(const std::string & agent, IStrategyListener* listener);
-	bool reschedule();
+	bool reschedule(const bool isDonate);
 
 	inline bool isActive() const override
 	{
@@ -59,7 +59,7 @@ protected:
 
 private:
 	bool m_active;
-	bool m_suspended;
+	bool m_starting;
 	Client* m_client;
 	IStrategyListener* m_listener;
 	uint64_t m_donateTicks;
