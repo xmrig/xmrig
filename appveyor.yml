@@ -16,7 +16,7 @@ clone_folder: c:\xmrigCC
 
 install:
   - mkdir c:\xmrigCC-deps
-  - curl -sL https://github.com/Bendr0id/xmrigCC-deps/releases/download/v1/xmrigCC-deps.zip -o xmrigCC-deps.zip
+  - curl -sL https://github.com/Bendr0id/xmrigCC-deps/archive/v1.zip -o xmrigCC-deps.zip
   - 7z x xmrigCC-deps.zip -o"c:\xmrigCC-deps" -y > nul
 
 build_script:
@@ -24,9 +24,8 @@ build_script:
   - cd c:\xmrigCC
   - mkdir build
   - cd build
-  - cmake .. -G "Visual Studio 15 2017 Win64" -T v141,host=x64 -DUV_INCLUDE_DIR="c:\xmrigCC-deps\msvc2017\libuv\x64\include" -DUV_LIBRARY="c:\xmrigCC-deps\msvc2017\libuv\x64\lib\libuv.lib" -DMHD_INCLUDE_DIR="c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\include" -DMHD_LIBRARY="c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\lib\libmicrohttpd.lib" -DOPENSSL_MSVC_STATIC_RT=TRUE
-  - msbuild xmrig.sln /p:Configuration=Release
-
+  - set CMAKE_PREFIX_PATH=c:\xmrigCC-deps\msvc2017\libuv\x64\;c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\;c:\xmrigCC-deps\msvc2017\openssl\x64\
+  - cmake -G "Visual Studio 15 2017 Win64" -T v141,host=x64 ..
 
 after_build:
 - cd c:\xmrigCC
