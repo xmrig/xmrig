@@ -125,6 +125,9 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 
 static struct option const options[] = {
     { "algo",             1, nullptr, 'a'  },
+    { "api-access-token", 1, nullptr, 4001 },
+    { "api-port",         1, nullptr, 4000 },
+    { "api-worker-id",    1, nullptr, 4002 },
     { "av",               1, nullptr, 'v'  },
     { "aesni",            1, nullptr, 'A'  },
     { "multihash-factor",       1, nullptr, 'm'  },
@@ -133,6 +136,7 @@ static struct option const options[] = {
     { "cpu-affinity",     1, nullptr, 1020 },
     { "cpu-priority",     1, nullptr, 1021 },
     { "donate-level",     1, nullptr, 1003 },
+    { "dry-run",          0, nullptr, 5000 },
     { "help",             0, nullptr, 'h'  },
     { "keepalive",        0, nullptr ,'k'  },
     { "log-file",         1, nullptr, 'l'  },
@@ -181,6 +185,7 @@ static struct option const config_options[] = {
     { "cpu-affinity",  1, nullptr, 1020 },
     { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
+    { "dry-run",       0, nullptr, 5000 },
     { "huge-pages",    0, nullptr, 1009 },
     { "log-file",      1, nullptr, 'l'  },
     { "max-cpu-usage", 1, nullptr, 1004 },
@@ -505,6 +510,7 @@ bool Options::parseArg(int key, const char *arg)
     case 'S':  /* --syslog */
     case 1005: /* --safe */
     case 1006: /* --nicehash */
+    case 5000: /* --dry-run */
         return parseBoolean(key, true);
 
     case 1002: /* --no-color */
@@ -717,6 +723,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 2000: /* colors */
         m_colors = enable;
+        break;
+
+    case 5000: /* --dry-run */
+        m_dryRun = enable;
         break;
 
     default:
