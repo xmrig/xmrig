@@ -354,11 +354,11 @@ public:
         for (size_t i = 0; i < ITERATIONS; i++) {
             for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
                 __m128i cx;
-                cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
 
                 if (SOFT_AES) {
                     cx = soft_aesenc(cx, _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
                 } else {
+                    cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
                     cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
                 }
 
@@ -422,11 +422,12 @@ public:
         idx = h[0] ^ h[4];
 
         for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx = _mm_load_si128((__m128i*) &l[idx & MASK]);
+            __m128i cx;
 
             if (SOFT_AES) {
                 cx = soft_aesenc(cx, _mm_set_epi64x(ah, al));
             } else {
+                cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
                 cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah, al));
             }
 
@@ -488,13 +489,15 @@ public:
         uint64_t idx1 = h1[0] ^h1[4];
 
         for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
-            __m128i cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+            __m128i cx0;
+            __m128i cx1;
 
             if (SOFT_AES) {
                 cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
             } else {
+                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
             }
@@ -589,15 +592,18 @@ public:
         uint64_t idx2 = h2[0] ^h2[4];
 
         for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
-            __m128i cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
-            __m128i cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
+            __m128i cx0;
+            __m128i cx1;
+            __m128i cx2;
 
             if (SOFT_AES) {
                 cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
                 cx2 = soft_aesenc(cx2, _mm_set_epi64x(ah2, al2));
             } else {
+                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+                cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
                 cx2 = _mm_aesenc_si128(cx2, _mm_set_epi64x(ah2, al2));
@@ -724,10 +730,10 @@ public:
         uint64_t idx3 = h3[0] ^h3[4];
 
         for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
-            __m128i cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
-            __m128i cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
-            __m128i cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
+            __m128i cx0;
+            __m128i cx1;
+            __m128i cx2;
+            __m128i cx3;
 
             if (SOFT_AES) {
                 cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
@@ -735,6 +741,11 @@ public:
                 cx2 = soft_aesenc(cx2, _mm_set_epi64x(ah2, al2));
                 cx3 = soft_aesenc(cx3, _mm_set_epi64x(ah3, al3));
             } else {
+                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+                cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
+                cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
+
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
                 cx2 = _mm_aesenc_si128(cx2, _mm_set_epi64x(ah2, al2));
@@ -891,11 +902,11 @@ public:
         uint64_t idx4 = h4[0] ^h4[4];
 
         for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
-            __m128i cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
-            __m128i cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
-            __m128i cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
-            __m128i cx4 = _mm_load_si128((__m128i*) &l4[idx4 & MASK]);
+            __m128i cx0;
+            __m128i cx1;
+            __m128i cx2;
+            __m128i cx3;
+            __m128i cx4;
 
             if (SOFT_AES) {
                 cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
@@ -904,6 +915,12 @@ public:
                 cx3 = soft_aesenc(cx3, _mm_set_epi64x(ah3, al3));
                 cx4 = soft_aesenc(cx4, _mm_set_epi64x(ah4, al4));
             } else {
+                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+                cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
+                cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
+                cx4 = _mm_load_si128((__m128i*) &l4[idx4 & MASK]);
+
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
                 cx2 = _mm_aesenc_si128(cx2, _mm_set_epi64x(ah2, al2));

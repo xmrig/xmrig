@@ -136,7 +136,6 @@ static struct option const options[] = {
     { "cpu-affinity",     1, nullptr, 1020 },
     { "cpu-priority",     1, nullptr, 1021 },
     { "donate-level",     1, nullptr, 1003 },
-    { "dry-run",          0, nullptr, 5000 },
     { "help",             0, nullptr, 'h'  },
     { "keepalive",        0, nullptr ,'k'  },
     { "log-file",         1, nullptr, 'l'  },
@@ -185,7 +184,6 @@ static struct option const config_options[] = {
     { "cpu-affinity",  1, nullptr, 1020 },
     { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
-    { "dry-run",       0, nullptr, 5000 },
     { "huge-pages",    0, nullptr, 1009 },
     { "log-file",      1, nullptr, 'l'  },
     { "max-cpu-usage", 1, nullptr, 1004 },
@@ -510,8 +508,6 @@ bool Options::parseArg(int key, const char *arg)
     case 'S':  /* --syslog */
     case 1005: /* --safe */
     case 1006: /* --nicehash */
-    case 5000: /* --dry-run */
-        return parseBoolean(key, true);
 
     case 1002: /* --no-color */
     case 1009: /* --no-huge-pages */
@@ -723,10 +719,6 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 2000: /* colors */
         m_colors = enable;
-        break;
-
-    case 5000: /* --dry-run */
-        m_dryRun = enable;
         break;
 
     default:
