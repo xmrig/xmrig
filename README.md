@@ -21,7 +21,7 @@ Originally forked from xmrig/xmrig with full development in C++11.
 * [Contacts](#contacts)
 
 ## Version
-* Code version: 0.0.5 
+* Code version: 0.0.6 
 
 ## Features
 * High performance.
@@ -101,7 +101,7 @@ Since avujic/xmr_arch64 version 0.0.2
 ## Other information
 * No HTTP support, only stratum protocol support.
 * No TLS support.
-* Default donation 3% (3 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
+* Default donation 1% (1 minute in 100 minutes) can be reduced to 0% via command line option `--donate-level`.
 
 
 ### CPU mining performance
