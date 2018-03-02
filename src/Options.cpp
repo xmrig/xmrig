@@ -130,6 +130,9 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 
 static struct option const options[] = {
     { "algo",             1, nullptr, 'a'  },
+    { "api-access-token", 1, nullptr, 4001 },
+    { "api-port",         1, nullptr, 4000 },
+    { "api-worker-id",    1, nullptr, 4002 },
     { "av",               1, nullptr, 'v'  },
     { "aesni",            1, nullptr, 'A'  },
     { "multihash-factor", 1, nullptr, 'm'  },
@@ -532,7 +535,6 @@ bool Options::parseArg(int key, const char *arg)
     case 'S':  /* --syslog */
     case 1005: /* --safe */
     case 1006: /* --nicehash */
-        return parseBoolean(key, true);
 
     case 1002: /* --no-color */
     case 1009: /* --no-huge-pages */

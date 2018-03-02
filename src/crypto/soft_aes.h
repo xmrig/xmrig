@@ -89,34 +89,34 @@
 alignas(16) const uint32_t saes_table[4][256] = { saes_data(saes_u0), saes_data(saes_u1), saes_data(saes_u2), saes_data(saes_u3) };
 alignas(16) const uint8_t  saes_sbox[256] = saes_data(saes_h0);
 
-static inline __m128i soft_aesenc(__m128i in, __m128i key)
+static inline __m128i soft_aesenc(const uint32_t* in, __m128i key)
 {
-    const uint32_t x0 = _mm_cvtsi128_si32(in);
-    const uint32_t x1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0x55));
-    const uint32_t x2 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0xAA));
-    const uint32_t x3 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0xFF));
+    const uint32_t x0 = in[0];
+    const uint32_t x1 = in[1];
+    const uint32_t x2 = in[2];
+    const uint32_t x3 = in[3];
 
-	__m128i out = _mm_set_epi32(
-		(saes_table[0][x3 & 0xff] ^ saes_table[1][(x0 >> 8) & 0xff] ^ saes_table[2][(x1 >> 16) & 0xff] ^ saes_table[3][x2 >> 24]),
-		(saes_table[0][x2 & 0xff] ^ saes_table[1][(x3 >> 8) & 0xff] ^ saes_table[2][(x0 >> 16) & 0xff] ^ saes_table[3][x1 >> 24]),
-		(saes_table[0][x1 & 0xff] ^ saes_table[1][(x2 >> 8) & 0xff] ^ saes_table[2][(x3 >> 16) & 0xff] ^ saes_table[3][x0 >> 24]),
-		(saes_table[0][x0 & 0xff] ^ saes_table[1][(x1 >> 8) & 0xff] ^ saes_table[2][(x2 >> 16) & 0xff] ^ saes_table[3][x3 >> 24]));
+    __m128i out = _mm_set_epi32(
+        (saes_table[0][x3 & 0xff] ^ saes_table[1][(x0 >> 8) & 0xff] ^ saes_table[2][(x1 >> 16) & 0xff] ^ saes_table[3][x2 >> 24]),
+        (saes_table[0][x2 & 0xff] ^ saes_table[1][(x3 >> 8) & 0xff] ^ saes_table[2][(x0 >> 16) & 0xff] ^ saes_table[3][x1 >> 24]),
+        (saes_table[0][x1 & 0xff] ^ saes_table[1][(x2 >> 8) & 0xff] ^ saes_table[2][(x3 >> 16) & 0xff] ^ saes_table[3][x0 >> 24]),
+        (saes_table[0][x0 & 0xff] ^ saes_table[1][(x1 >> 8) & 0xff] ^ saes_table[2][(x2 >> 16) & 0xff] ^ saes_table[3][x3 >> 24]));
 
-	return _mm_xor_si128(out, key);
+    return _mm_xor_si128(out, key);
 }
 
 static inline uint32_t sub_word(uint32_t key)
 {
-	return (saes_sbox[key >> 24 ] << 24)   | 
-		(saes_sbox[(key >> 16) & 0xff] << 16 ) | 
-		(saes_sbox[(key >> 8)  & 0xff] << 8  ) | 
-		 saes_sbox[key & 0xff];
+    return (saes_sbox[key >> 24 ] << 24)   | 
+        (saes_sbox[(key >> 16) & 0xff] << 16 ) | 
+        (saes_sbox[(key >> 8)  & 0xff] << 8  ) | 
+         saes_sbox[key & 0xff];
 }
 
 #if defined(__clang__) || defined(XMRIG_ARM)
 static inline uint32_t _rotr(uint32_t value, uint32_t amount)
 {
-	return (value >> amount) | (value << ((32 - amount) & 31));
+    return (value >> amount) | (value << ((32 - amount) & 31));
 }
 #endif
 
