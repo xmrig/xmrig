@@ -147,6 +147,13 @@ int App::start()
 
     Summary::print();
 
+    if (m_options->dryRun()) {
+        LOG_NOTICE("OK");
+        release();
+
+        return 0;
+    }
+
 #   ifndef XMRIG_NO_API
     Api::start();
 #   endif

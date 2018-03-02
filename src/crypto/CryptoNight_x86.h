@@ -204,15 +204,16 @@ aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m12
           __m128i* x7)
 {
     if (SOFT_AES) {
-        *x0 = soft_aesenc(*x0, key);
-        *x1 = soft_aesenc(*x1, key);
-        *x2 = soft_aesenc(*x2, key);
-        *x3 = soft_aesenc(*x3, key);
-        *x4 = soft_aesenc(*x4, key);
-        *x5 = soft_aesenc(*x5, key);
-        *x6 = soft_aesenc(*x6, key);
-        *x7 = soft_aesenc(*x7, key);
-    } else {
+        *x0 = soft_aesenc((uint32_t*)x0, key);
+        *x1 = soft_aesenc((uint32_t*)x1, key);
+        *x2 = soft_aesenc((uint32_t*)x2, key);
+        *x3 = soft_aesenc((uint32_t*)x3, key);
+        *x4 = soft_aesenc((uint32_t*)x4, key);
+        *x5 = soft_aesenc((uint32_t*)x5, key);
+        *x6 = soft_aesenc((uint32_t*)x6, key);
+        *x7 = soft_aesenc((uint32_t*)x7, key);
+    }
+    else {
         *x0 = _mm_aesenc_si128(*x0, key);
         *x1 = _mm_aesenc_si128(*x1, key);
         *x2 = _mm_aesenc_si128(*x2, key);
