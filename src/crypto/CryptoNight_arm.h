@@ -468,7 +468,7 @@ public:
             else {
                 cx = _mm_load_si128((__m128i *) &l[idx & MASK]);
     #           ifndef XMRIG_ARMv7
-                cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
+                cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah, al);
     #           endif
            }
 
