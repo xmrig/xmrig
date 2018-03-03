@@ -71,15 +71,16 @@ static int gettimeofday(struct timeval* tp, struct timezone* tzp)
 #include "workers/Hashrate.h"
 
 
-inline std::string format(const double value)
+inline std::string format(double value)
 {
 	char buff[8];
-	if(false == isnormal(value) && 0 != value)
+	if(isnormal(value))
 	{
-		return "n/a";
+		snprintf(buff, sizeof(buff), "%03.1f", value);
+		return buff;
 	}
-	snprintf(buff, sizeof(buff), "%03.1f", value);
-	return buff;
+
+	return "n/a";
 }
 
 
@@ -121,7 +122,10 @@ double Hashrate::calc(size_t ms) const
 	for(int i = 0; i < m_threads; ++i)
 	{
 		data = calc(i, ms);
-		result += data;
+		if(isnormal(data))
+		{
+			result += data;
+		}
 	}
 
 	return result;
@@ -172,12 +176,12 @@ double Hashrate::calc(size_t threadId, size_t ms) const
 
 	if(!haveFullSet || earliestStamp == 0 || lastestStamp == 0)
 	{
-		return 0;
+		return std::numeric_limits<double>::quiet_NaN() ;
 	}
 
 	if(lastestStamp - earliestStamp == 0)
 	{
-		return 0;
+		return std::numeric_limits<double>::quiet_NaN() ;
 	}
 
 	double hashes, time;
