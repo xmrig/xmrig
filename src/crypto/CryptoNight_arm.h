@@ -463,7 +463,7 @@ public:
             __m128i cx;
 
             if (SOFT_AES) {
-                cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                cx = soft_aesenc((uint32_t*)&l[idx & MASK], _mm_set_epi64x(ah, al));
             }
             else {
                 cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
@@ -534,8 +534,8 @@ public:
             __m128i cx1;
 
             if (SOFT_AES) {
-                cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
+                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
             } else {
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
                 cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
@@ -783,10 +783,10 @@ public:
             __m128i cx3;
 
             if (SOFT_AES) {
-                cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
-                cx2 = soft_aesenc(cx2, _mm_set_epi64x(ah2, al2));
-                cx3 = soft_aesenc(cx3, _mm_set_epi64x(ah3, al3));
+                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+                cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
+                cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
             } else {
 # 			ifndef XMRIG_ARMv7
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
@@ -958,11 +958,11 @@ public:
             __m128i cx4;
 
             if (SOFT_AES) {
-                cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
-                cx2 = soft_aesenc(cx2, _mm_set_epi64x(ah2, al2));
-                cx3 = soft_aesenc(cx3, _mm_set_epi64x(ah3, al3));
-                cx4 = soft_aesenc(cx4, _mm_set_epi64x(ah4, al4));
+                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+                cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
+                cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
+                cx4 = soft_aesenc((uint32_t*)&l4[idx4 & MASK], _mm_set_epi64x(ah4, al4));
             } else {
 # 			ifndef XMRIG_ARMv7
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
@@ -976,7 +976,7 @@ public:
                 cx2 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx2, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah2, al2);
                 cx3 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx3, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah3, al3);
                 cx4 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx4, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah4, al4);
-#           endif;
+#           endif
             }
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
