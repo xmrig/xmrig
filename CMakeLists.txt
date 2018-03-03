@@ -90,7 +90,7 @@ else()
         src/Platform_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread rt dl)
+    set(EXTRA_LIBS pthread rt)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
@@ -119,6 +119,8 @@ if (WITH_TLS)
     find_package(OpenSSL)
 
     add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
+
+    set(EXTRA_LIBS ${EXTRA_LIBS} dl)
 
     if (OPENSSL_FOUND)
         include_directories(${OPENSSL_INCLUDE_DIR})
@@ -230,7 +232,7 @@ if (WITH_CC_CLIENT)
 endif (WITH_CC_CLIENT)
 
 if (WITH_TLS)
-    target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES})
+    target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
 endif (WITH_TLS)
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
