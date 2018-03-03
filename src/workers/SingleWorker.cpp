@@ -52,6 +52,8 @@ void SingleWorker::start()
             consumeJob();
         }
 
+        const uint8_t version = m_job.size() ? m_job.blob()[0] : 0;
+
         while (!Workers::isOutdated(m_sequence)) {
             if ((m_count & 0xF) == 0) {
                 storeStats();
@@ -60,7 +62,7 @@ void SingleWorker::start()
             m_count++;
             *m_job.nonce() = ++m_result.nonce;
 
-            if (CryptoNight::hash(m_job, m_result, m_ctx)) {
+            if (CryptoNight::hash(m_job, m_result, m_ctx, version)) {
                 Workers::submit(m_result);
             }
 
