@@ -36,6 +36,7 @@
 
 
 Url::Url() :
+    m_useTls(false),
     m_keepAlive(false),
     m_nicehash(false),
     m_host(nullptr),
@@ -58,6 +59,7 @@ Url::Url() :
  * @param url
  */
 Url::Url(const char *url) :
+    m_useTls(false),
     m_keepAlive(false),
     m_nicehash(false),
     m_host(nullptr),
@@ -69,7 +71,8 @@ Url::Url(const char *url) :
 }
 
 
-Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash) :
+Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool useTls, bool keepAlive, bool nicehash) :
+    m_useTls(useTls),
     m_keepAlive(keepAlive),
     m_nicehash(nicehash),
     m_password(password ? strdup(password) : nullptr),
@@ -180,6 +183,7 @@ void Url::setUser(const char *user)
 
 Url &Url::operator=(const Url *other)
 {
+    m_useTls       = other->m_useTls;
     m_keepAlive = other->m_keepAlive;
     m_nicehash  = other->m_nicehash;
     m_port      = other->m_port;

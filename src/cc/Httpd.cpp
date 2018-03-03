@@ -23,6 +23,8 @@
  */
 
 #include <cstring>
+#include <sstream>
+#include <fstream>
 #include <microhttpd.h>
 #include <memory>
 
@@ -43,17 +45,52 @@ bool Httpd::start()
         return false;
     }
 
-    m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, static_cast<uint16_t>(m_options->ccPort()), nullptr, nullptr, &Httpd::handler,
-                                this, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 30, MHD_OPTION_END);
+#   ifndef XMRIG_NO_TLS
+    if (m_options->ccUseTls()) {
+
+        m_keyPem = readFile(m_options->ccKeyFile());
+        m_certPem = readFile(m_options->ccCertFile());
+
+        if (m_keyPem.empty() || m_certPem.empty()) {
+            LOG_ERR("HTTPS Daemon failed to start. Unable to load Key/Cert.");
+            return false;
+        }
+
+        m_daemon = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY | MHD_USE_SSL,
+                                   static_cast<uint16_t>(m_options->ccPort()), nullptr, nullptr, &Httpd::handler,
+                                   this, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 25,
+                                   MHD_OPTION_HTTPS_MEM_KEY, m_keyPem.c_str(),
+                                   MHD_OPTION_HTTPS_MEM_CERT, m_certPem.c_str(),
+                                   MHD_OPTION_END);
+    } else {
+#   endif
+        m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, static_cast<uint16_t>(m_options->ccPort()), nullptr,
+                                    nullptr, &Httpd::handler,
+                                    this, MHD_OPTION_CONNECTION_TIMEOUT, (unsigned int) 25, MHD_OPTION_END);
+#   ifndef XMRIG_NO_TLS
+    }
+#   endif
 
     if (!m_daemon) {
         LOG_ERR("HTTP Daemon failed to start.");
         return false;
     } else {
-        LOG_INFO("%s Server started on Port: %d", APP_NAME, m_options->ccPort());
+        LOG_INFO("%s Server started on Port: %d %s", APP_NAME, m_options->ccPort(), m_options->ccUseTls() ? "with TLS" : "");
     }
 
     return true;
+}
+
+std::string Httpd::readFile(const std::string &fileName)
+{
+    std::stringstream data;
+    std::ifstream file(fileName);
+    if (file) {
+        data << file.rdbuf();
+        file.close();
+    }
+
+    return data.str();
 }
 
 unsigned Httpd::tokenAuth(struct MHD_Connection* connection)

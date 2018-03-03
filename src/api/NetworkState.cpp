@@ -94,7 +94,7 @@ void NetworkState::add(const SubmitResult &result, const char *error)
 }
 
 
-void NetworkState::setPool(const char *host, int port, const char *ip)
+void NetworkState::setPool(const char *host, int port)
 {
     snprintf(pool, sizeof(pool) - 1, "%s:%d", host, port);
 

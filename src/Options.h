@@ -69,6 +69,7 @@ public:
     inline bool hugePages() const                   { return m_hugePages; }
     inline bool syslog() const                      { return m_syslog; }
     inline bool daemonized() const                  { return m_daemonized; }
+    inline bool ccUseTls() const                    { return m_ccUseTls; }
     inline const char *configFile() const           { return m_configFile; }
     inline const char *apiToken() const             { return m_apiToken; }
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
@@ -81,6 +82,8 @@ public:
     inline const char *ccAdminPass() const          { return m_ccAdminPass; }
     inline const char *ccClientConfigFolder() const { return m_ccClientConfigFolder; }
     inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard == nullptr ? "index.html" : m_ccCustomDashboard; }
+    inline const char *ccKeyFile() const            { return m_ccKeyFile == nullptr ? "server.key" : m_ccKeyFile; }
+    inline const char *ccCertFile() const           { return m_ccCertFile == nullptr ? "server.pem" : m_ccCertFile; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
     inline bool aesni() const                       { return m_aesni == AESNI_ON; }
@@ -134,6 +137,7 @@ private:
     bool m_safe;
     bool m_syslog;
     bool m_daemonized;
+    bool m_ccUseTls;
     const char* m_configFile;
     char *m_apiToken;
     char *m_apiWorkerId;
@@ -146,6 +150,8 @@ private:
     char *m_ccAdminPass;
     char *m_ccClientConfigFolder;
     char *m_ccCustomDashboard;
+    char *m_ccKeyFile;
+    char *m_ccCertFile;
     Algo m_algo;
     AlgoVariant m_algoVariant;
     AesNi m_aesni;

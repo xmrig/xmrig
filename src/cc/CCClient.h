@@ -28,6 +28,8 @@
 #ifndef XMRIG_NO_CC
 
 #include <uv.h>
+#include <chrono>
+#include <ctime>
 #include <3rdparty/cpp-httplib/httplib.h>
 #include "Options.h"
 #include "ClientStatus.h"
@@ -65,11 +67,14 @@ private:
 
     std::string m_authorization;
 
+    std::chrono::time_point<std::chrono::system_clock> m_startTime;
+
     uv_async_t* m_async;
     uv_timer_t m_timer;
     uv_loop_t m_client_loop;
     uv_thread_t m_thread;
 
+    static void refreshUptime();
 };
 
 #endif
