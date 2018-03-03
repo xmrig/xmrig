@@ -1,3 +1,12 @@
+# 1.5.0
+- Full SSL/TLS support for the whole communication:
+    - XMRigCCServer Dashboard <-> Browser
+    - XMRigCCServer <-> XMRigMiner
+    - XMRigMiner <-> Pool
+- Easy rename of miner/daemon in CMakeList.txt by modifying `MINER_EXECUTABLE_NAME` and `DAEMON_EXECUTABLE_NAME` before compiling
+- Dockerfile and official DockerHub image
+- Added Miner uptime to Dashboard
+- Rebased from XMRig 2.4.5 RC
 # 1.4.0
 - Fixed CPU affinity on Windows for NUMA and CPUs with lot of cores
 - Implemented per thread configurable Multihash mode (double, triple, quadruple, quintuple)

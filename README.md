@@ -2,20 +2,23 @@
 
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
 [![Docker Build status](https://img.shields.io/docker/build/bendr0id/xmrigcc.svg)](https://hub.docker.com/r/bendr0id/xmrigcc/)
-[![Github All Releases](https://img.shields.io/github/downloads/bendr0id/xmrigCC/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![GitHub release](https://img.shields.io/github/release/bendr0id/xmrigCC/all.svg)](https://github.com/bendr0id/xmrigCC/releases)
+[![Github downloads release](https://img.shields.io/github/downloads/bendr0id/xmrigCC/latest/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![GitHub stars](https://img.shields.io/github/stars/bendr0id/xmrigCC.svg)](https://github.com/bendr0id/xmrigCC/stargazers)
 
 ### About XMRigCC
 
 XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
-This fork is based on XMRig (2.4.4) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
+This fork is based on XMRig (2.4.5 RC) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
 The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
-* **NEW: Full SSL/TLS support**
+* **NEW: Full SSL/TLS support for the whole communication:**
+    - XMRigCCServer Dashboard <-> Browser
+    - XMRigCCServer <-> XMRigMiner
+    - XMRigMiner <-> Pool
 * Command and control server
 * CC Dashboard with:
     * statistics of all connected miners
