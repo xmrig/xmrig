@@ -41,7 +41,7 @@ public:
     uint32_t avgTime() const;
     uint32_t latency() const;
     void add(const SubmitResult &result, const char *error);
-    void setPool(const char *host, int port, const char *ip);
+    void setPool(const char *host, int port);
     void stop();
 
     char pool[256];

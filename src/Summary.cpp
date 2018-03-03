@@ -147,10 +147,11 @@ static void print_pools()
     const std::vector<Url*> &pools = Options::i()->pools();
 
     for (size_t i = 0; i < pools.size(); ++i) {
-        Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #%d:      \x1B[01;36m%s:%d" : " * POOL #%d:      %s:%d",
-                       i + 1,
-                       pools[i]->host(),
-                       pools[i]->port());
+       Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #%d:      \x1B[01;36m%s:%d %s" : " * POOL #%d:      %s:%d %s",
+                      i + 1,
+                      pools[i]->host(),
+                      pools[i]->port(),
+                      pools[i]->useTls() ? "(TLS)" : "");
     }
 
 #   ifdef APP_DEBUG
@@ -179,7 +180,10 @@ static void print_cc()
         return;
     }
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mCC Server:    \x1B[01;36m%s:%d" : " * CC Server:    %s:%d", Options::i()->ccHost(), Options::i()->ccPort());
+    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mCC Server:    \x1B[01;36m%s:%d %s" : " * CC Server:    %s:%d %s",
+                   Options::i()->ccHost(),
+                   Options::i()->ccPort(),
+                   Options::i()->ccUseTls() ? "(TLS)" : "");
 }
 #endif
 
