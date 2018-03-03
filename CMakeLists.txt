@@ -90,7 +90,7 @@ else()
         src/Platform_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread rt)
+    set(EXTRA_LIBS pthread rt dl)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
@@ -119,8 +119,6 @@ if (WITH_TLS)
     find_package(OpenSSL)
 
     add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
-
-    set(EXTRA_LIBS ${EXTRA_LIBS} dl)
 
     if (OPENSSL_FOUND)
         include_directories(${OPENSSL_INCLUDE_DIR})
