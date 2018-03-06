@@ -21,12 +21,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef _WIN32
-#define isnormal(x) (_fpclass(x) == _FPCLASS_NN || _fpclass(x) == _FPCLASS_PN)
-#else
-#include <math.h>
-#endif
-
 #ifndef _WIN32
 #if __cplusplus <= 199711L
 #include <sys/time.h>
@@ -35,6 +29,7 @@
 #define USE_CHRONO
 #endif
 #else
+#define isnormal(x) (_fpclass(x) == _FPCLASS_NN || _fpclass(x) == _FPCLASS_PN)
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <stdint.h> // portable: uint64_t   MSVC: __int64 
@@ -63,6 +58,7 @@ static int gettimeofday(struct timeval* tp, struct timezone* tzp)
 #endif
 
 #include <math.h>
+#include <limits.h>
 #include <memory.h>
 #include <stdio.h>
 
