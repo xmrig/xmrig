@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -52,8 +53,6 @@ void SingleWorker::start()
             consumeJob();
         }
 
-        const uint8_t version = m_job.size() ? m_job.blob()[0] : 0;
-
         while (!Workers::isOutdated(m_sequence)) {
             if ((m_count & 0xF) == 0) {
                 storeStats();
@@ -62,7 +61,7 @@ void SingleWorker::start()
             m_count++;
             *m_job.nonce() = ++m_result.nonce;
 
-            if (CryptoNight::hash(m_job, m_result, m_ctx, version)) {
+            if (CryptoNight::hash(m_job, m_result, m_ctx)) {
                 Workers::submit(m_result);
             }
 
