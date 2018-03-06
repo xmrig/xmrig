@@ -35,6 +35,7 @@
 
 
 #include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_monero.h"
 #include "crypto/soft_aes.h"
 
 
@@ -313,7 +314,6 @@ inline bool cryptonight_hash(const void *__restrict__ input, size_t size, void *
 {
     keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state0, 200);
 
-    VARIANT1_CHECK();
     VARIANT1_INIT(0);
 
     cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) ctx->state0, (__m128i*) ctx->memory);
@@ -374,7 +374,6 @@ inline bool cryptonight_double_hash(const void *__restrict__ input, size_t size,
     keccak((const uint8_t *) input,        (int) size, ctx->state0, 200);
     keccak((const uint8_t *) input + size, (int) size, ctx->state1, 200);
 
-    VARIANT1_CHECK();
     VARIANT1_INIT(0);
     VARIANT1_INIT(1);
 

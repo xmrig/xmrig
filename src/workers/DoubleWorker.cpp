@@ -86,15 +86,15 @@ void DoubleWorker::start()
             *Job::nonce(m_state->blob)                       = ++m_state->nonce1;
             *Job::nonce(m_state->blob + m_state->job.size()) = ++m_state->nonce2;
 
-            if (CryptoNight::hash(m_state->blob, m_state->job.size(), m_hash, m_ctx, m_state->job.version())) {
-                if (*reinterpret_cast<uint64_t*>(m_hash + 24) < m_state->job.target()) {
-                    Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce1, m_hash, m_state->job.diff()));
-                }
+            CryptoNight::hash(m_state->blob, m_state->job.size(), m_hash, m_ctx, m_state->job.version());
 
-                if (*reinterpret_cast<uint64_t*>(m_hash + 32 + 24) < m_state->job.target()) {
-                    Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce2, m_hash + 32, m_state->job.diff()));
-                }
-            } // print on error ?
+            if (*reinterpret_cast<uint64_t*>(m_hash + 24) < m_state->job.target()) {
+                Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce1, m_hash, m_state->job.diff()));
+            }
+
+            if (*reinterpret_cast<uint64_t*>(m_hash + 32 + 24) < m_state->job.target()) {
+                Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce2, m_hash + 32, m_state->job.diff()));
+            }
 
             std::this_thread::yield();
         }
