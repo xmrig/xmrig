@@ -58,7 +58,7 @@ static int gettimeofday(struct timeval* tp, struct timezone* tzp)
 #endif
 
 #include <math.h>
-#include <limits.h>
+#include <limits>
 #include <memory.h>
 #include <stdio.h>
 
