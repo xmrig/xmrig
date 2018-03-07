@@ -56,7 +56,8 @@ static inline char hf_bin2hex(unsigned char c)
 }
 
 
-Job::Job(int poolId, bool nicehash) :
+Job::Job(int poolId, bool nicehash, bool monero) :
+    m_monero(monero),
     m_nicehash(nicehash),
     m_poolId(poolId),
     m_threadId(-1),

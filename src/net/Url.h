@@ -37,10 +37,11 @@ public:
 
     Url();
     Url(const char *url);
-    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, bool keepAlive = false, bool nicehash = false  );
+    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, bool keepAlive = false, bool nicehash = false, bool monero = true);
     ~Url();
 
     inline bool isKeepAlive() const          { return m_keepAlive; }
+    inline bool isMonero() const             { return m_monero; }
     inline bool isNicehash() const           { return m_nicehash; }
     inline bool isValid() const              { return m_host && m_port > 0; }
     inline const char *host() const          { return m_host; }
@@ -48,6 +49,7 @@ public:
     inline const char *user() const          { return m_user ? m_user : kDefaultUser; }
     inline uint16_t port() const             { return m_port; }
     inline void setKeepAlive(bool keepAlive) { m_keepAlive = keepAlive; }
+    inline void setMonero(bool monero)       { m_monero = monero; }
     inline void setNicehash(bool nicehash)   { m_nicehash = nicehash; }
 
     bool parse(const char *url);
@@ -64,6 +66,7 @@ private:
     bool parseIPv6(const char *addr);
 
     bool m_keepAlive;
+    bool m_monero;
     bool m_nicehash;
     char *m_host;
     char *m_password;

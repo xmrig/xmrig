@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ Options:\n\
       --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages      disable huge pages support\n\
       --no-color           disable colored output\n\
+      --no-monero          disable Monero v7 PoW\n\
       --donate-level=N     donate level, default 5%% (5 minutes in 100 minutes)\n\
       --user-agent         set custom user-agent string for pool\n\
   -B, --background         run the miner in the background\n\
@@ -118,6 +119,7 @@ static struct option const options[] = {
     { "nicehash",         0, nullptr, 1006 },
     { "no-color",         0, nullptr, 1002 },
     { "no-huge-pages",    0, nullptr, 1009 },
+    { "no-monero",        0, nullptr, 1010 },
     { "pass",             1, nullptr, 'p'  },
     { "print-time",       1, nullptr, 1007 },
     { "retries",          1, nullptr, 'r'  },
@@ -158,11 +160,12 @@ static struct option const config_options[] = {
 
 
 static struct option const pool_options[] = {
-    { "url",           1, nullptr, 'o'  },
     { "pass",          1, nullptr, 'p'  },
+    { "url",           1, nullptr, 'o'  },
     { "user",          1, nullptr, 'u'  },
     { "userpass",      1, nullptr, 'O'  },
     { "keepalive",     0, nullptr ,'k'  },
+    { "monero",        0, nullptr, 1010 },
     { "nicehash",      0, nullptr, 1006 },
     { 0, 0, 0, 0 }
 };
@@ -392,6 +395,7 @@ bool Options::parseArg(int key, const char *arg)
 
     case 1002: /* --no-color */
     case 1009: /* --no-huge-pages */
+    case 1010: /* --no-monero */
         return parseBoolean(key, false);
 
     case 't':  /* --threads */
@@ -555,6 +559,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 1009: /* --no-huge-pages */
         m_hugePages = enable;
+        break;
+
+    case 1010: /* monero */
+        m_pools.back()->setMonero(enable);
         break;
 
     case 2000: /* colors */

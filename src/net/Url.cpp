@@ -37,6 +37,7 @@
 
 Url::Url() :
     m_keepAlive(false),
+    m_monero(true),
     m_nicehash(false),
     m_host(nullptr),
     m_password(nullptr),
@@ -60,6 +61,7 @@ Url::Url() :
  */
 Url::Url(const char *url) :
     m_keepAlive(false),
+    m_monero(true),
     m_nicehash(false),
     m_host(nullptr),
     m_password(nullptr),
@@ -71,8 +73,9 @@ Url::Url(const char *url) :
 }
 
 
-Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash) :
+Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash, bool monero) :
     m_keepAlive(keepAlive),
+    m_monero(monero),
     m_nicehash(nicehash),
     m_password(password ? strdup(password) : nullptr),
     m_user(user ? strdup(user) : nullptr),
@@ -218,6 +221,7 @@ bool Url::operator==(const Url &other) const
 Url &Url::operator=(const Url *other)
 {
     m_keepAlive = other->m_keepAlive;
+    m_monero    = other->m_monero;
     m_nicehash  = other->m_nicehash;
     m_port      = other->m_port;
 
@@ -226,6 +230,11 @@ Url &Url::operator=(const Url *other)
 
     setPassword(other->m_password);
     setUser(other->m_user);
+
+    if (m_url) {
+        delete [] m_url;
+        m_url = nullptr;
+    }
 
     return *this;
 }
