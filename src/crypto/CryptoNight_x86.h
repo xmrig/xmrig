@@ -317,6 +317,7 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 }
 
 #if ! defined _WIN64  && defined _WIN32
+#if defined(_MSC_VER) && _MSC_VER < 1900
 static inline __m128i _mm_set_epi64x(const uint64_t __a, const uint64_t __b)
 {
 	__m128i ret;
@@ -324,6 +325,7 @@ static inline __m128i _mm_set_epi64x(const uint64_t __a, const uint64_t __b)
 	ret.m128i_u64[0] = __b;
 	return ret;
 }
+#endif
 #endif
 
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>

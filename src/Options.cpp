@@ -274,14 +274,8 @@ Options::Options(int argc, char** argv) :
 		{
 			break;
 		}
-		if(optarg == NULL)
-		{
-			fprintf(stderr, "Unsupported option argument %d: #%d '%s'\n",
-			        key, argc, argv[argc - 1]);
-			continue;
-		}
 
-		if(!parseArg(key, optarg))
+		if(!parseArg(key, optarg == NULL ? "" : optarg))
 		{
 			return;
 		}
