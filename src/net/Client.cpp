@@ -55,6 +55,7 @@ int64_t Client::m_sequence = 1;
 
 Client::Client(int id, const char *agent, IClientListener *listener) :
     m_ipv6(false),
+    m_nicehash(false),
     m_quiet(false),
     m_agent(agent),
     m_listener(listener),
@@ -220,7 +221,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, m_url.isNicehash(), m_url.isMonero());
+    Job job(m_id, m_nicehash, m_url.isMonero());
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
         return false;
@@ -255,6 +256,12 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
     if (!m_rpcId.setId(result["id"].GetString())) {
         *code = 1;
         return false;
+    }
+
+    m_nicehash = m_url.isNicehash();
+
+    if (result.HasMember("extensions")) {
+        parseExtensions(result["extensions"]);
     }
 
     return parseJob(result["job"], code);
@@ -415,6 +422,24 @@ void Client::parse(char *line, size_t len)
     }
     else {
         parseNotification(doc["method"].GetString(), doc["params"], doc["error"]);
+    }
+}
+
+
+void Client::parseExtensions(const rapidjson::Value &value)
+{
+    if (!value.IsArray()) {
+        return;
+    }
+
+    for (const rapidjson::Value &ext : value.GetArray()) {
+        if (!ext.IsString()) {
+            continue;
+        }
+
+        if (strcmp(ext.GetString(), "nicehash") == 0) {
+            m_nicehash = true;
+        }
     }
 }
 
