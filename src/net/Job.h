@@ -31,7 +31,7 @@
 
 
 #include "align.h"
-#include "net/JobId.h"
+#include "net/Id.h"
 
 
 class Job
@@ -46,9 +46,9 @@ public:
     inline bool isNicehash() const         { return m_nicehash; }
     inline bool isValid() const            { return m_size > 0 && m_diff > 0; }
     inline bool setId(const char *id)      { return m_id.setId(id); }
-    inline const JobId &id() const         { return m_id; }
     inline const uint32_t *nonce() const   { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const     { return m_blob; }
+    inline const xmrig::Id &id() const     { return m_id; }
     inline int poolId() const              { return m_poolId; }
     inline int threadId() const            { return m_threadId; }
     inline size_t size() const             { return m_size; }
@@ -77,10 +77,10 @@ private:
     bool m_nicehash;
     int m_poolId;
     int m_threadId;
-    JobId m_id;
     size_t m_size;
     uint64_t m_diff;
     uint64_t m_target;
+    xmrig::Id m_id;
 
 #   ifdef XMRIG_PROXY_PROJECT
     VAR_ALIGN(16, char m_rawBlob[169]);
