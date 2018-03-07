@@ -39,30 +39,50 @@
 
 
 
-void (*cryptonight_hash_ctx)(const void *input, size_t size, void *output, cryptonight_ctx *ctx, uint8_t) = nullptr;
+void (*cryptonight_hash_ctx)(const void *input, size_t size, void *output, cryptonight_ctx *ctx, uint8_t version) = nullptr;
 
 
 static void cryptonight_av1_aesni(const void *input, size_t size, void *output, struct cryptonight_ctx *ctx, uint8_t version) {
 #   if !defined(XMRIG_ARMv7)
-    cryptonight_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, false, true>(input, size, output, ctx, version);
+    if (version > 6) {
+        cryptonight_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, false, true>(input, size, output, ctx, version);
+    }
+    else {
+        cryptonight_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, false, false>(input, size, output, ctx, version);
+    }
 #   endif
 }
 
 
 static void cryptonight_av2_aesni_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx, uint8_t version) {
 #   if !defined(XMRIG_ARMv7)
-    cryptonight_double_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, false, true>(input, size, output, ctx, version);
+    if (version > 6) {
+        cryptonight_double_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, false, true>(input, size, output, ctx, version);
+    }
+    else {
+        cryptonight_double_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, false, false>(input, size, output, ctx, version);
+    }
 #   endif
 }
 
 
 static void cryptonight_av3_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx, uint8_t version) {
-    cryptonight_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, true, true>(input, size, output, ctx, version);
+    if (version > 6) {
+        cryptonight_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, true, true>(input, size, output, ctx, version);
+    }
+    else {
+        cryptonight_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, true, true>(input, size, output, ctx, version);
+    }
 }
 
 
 static void cryptonight_av4_softaes_double(const void *input, size_t size, void *output, cryptonight_ctx *ctx, uint8_t version) {
-    cryptonight_double_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, true, true>(input, size, output, ctx, version);
+    if (version > 6) {
+        cryptonight_double_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, true, true>(input, size, output, ctx, version);
+    }
+    else {
+        cryptonight_double_hash<MONERO_ITER, MONERO_MEMORY, MONERO_MASK, true, false>(input, size, output, ctx, version);
+    }
 }
 
 
@@ -154,12 +174,20 @@ bool CryptoNight::selfTest(int algo) {
 
     cryptonight_hash_ctx(test_input, 76, output, ctx, 0);
 
+#   ifndef XMRIG_NO_AEON
+    bool rc = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, (Options::i()->doubleHash() ? 64 : 32)) == 0;
+#   else
+    bool rc = memcmp(output, test_output0, (Options::i()->doubleHash() ? 64 : 32)) == 0;
+#   endif
+
+    if (rc && algo == Options::ALGO_CRYPTONIGHT) {
+        cryptonight_hash_ctx(test_input, 76, output, ctx, 7);
+
+        rc = memcmp(output, test_output2, (Options::i()->doubleHash() ? 64 : 32)) == 0;
+    }
+
     _mm_free(ctx->memory);
     _mm_free(ctx);
 
-#   ifndef XMRIG_NO_AEON
-    return memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, (Options::i()->doubleHash() ? 64 : 32)) == 0;
-#   else
-    return memcmp(output, test_output0, (Options::i()->doubleHash() ? 64 : 32)) == 0;
-#   endif
+    return rc;
 }
