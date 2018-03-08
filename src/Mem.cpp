@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -46,10 +47,10 @@ cryptonight_ctx *Mem::create(int threadId)
     }
 #   endif
 
-    cryptonight_ctx *ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
+    cryptonight_ctx *ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MONERO_MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
 
     const int ratio = m_doubleHash ? 2 : 1;
-    ctx->memory = &m_memory[MEMORY * (threadId * ratio + 1)];
+    ctx->memory = &m_memory[MONERO_MEMORY * (threadId * ratio + 1)];
 
     return ctx;
 }
@@ -72,15 +73,15 @@ cryptonight_ctx *Mem::createLite(int threadId) {
     cryptonight_ctx *ctx;
 
     if (!m_doubleHash) {
-        const size_t offset = MEMORY * (threadId + 1);
+        const size_t offset = MONERO_MEMORY * (threadId + 1);
 
-        ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset + MEMORY_LITE]);
+        ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset + AEON_MEMORY]);
         ctx->memory = &m_memory[offset];
         return ctx;
     }
 
-    ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
-    ctx->memory = &m_memory[MEMORY * (threadId + 1)];
+    ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MONERO_MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
+    ctx->memory = &m_memory[MONERO_MEMORY * (threadId + 1)];
 
     return ctx;
 }

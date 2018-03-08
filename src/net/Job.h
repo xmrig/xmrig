@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,30 +31,34 @@
 
 
 #include "align.h"
-#include "net/JobId.h"
+#include "net/Id.h"
 
 
 class Job
 {
 public:
-    Job(int poolId = -2, bool nicehash = false);
+    Job(int poolId = -2, bool nicehash = false, bool monero = true);
     ~Job();
 
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
+    void setCoin(const char *coin);
 
+    inline bool isMonero() const           { return m_monero; }
     inline bool isNicehash() const         { return m_nicehash; }
     inline bool isValid() const            { return m_size > 0 && m_diff > 0; }
     inline bool setId(const char *id)      { return m_id.setId(id); }
-    inline const JobId &id() const         { return m_id; }
+    inline const char *coin() const        { return m_coin; }
     inline const uint32_t *nonce() const   { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const     { return m_blob; }
+    inline const xmrig::Id &id() const     { return m_id; }
     inline int poolId() const              { return m_poolId; }
     inline int threadId() const            { return m_threadId; }
     inline size_t size() const             { return m_size; }
     inline uint32_t *nonce()               { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const           { return (uint32_t) m_diff; }
     inline uint64_t target() const         { return m_target; }
+    inline uint8_t version() const         { return isMonero() ? m_blob[0] : 0; }
     inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
     inline void setThreadId(int threadId)  { m_threadId = threadId; }
 
@@ -72,13 +77,15 @@ public:
 private:
     VAR_ALIGN(16, uint8_t m_blob[84]); // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
 
+    bool m_monero;
     bool m_nicehash;
+    char m_coin[5];
     int m_poolId;
     int m_threadId;
-    JobId m_id;
     size_t m_size;
     uint64_t m_diff;
     uint64_t m_target;
+    xmrig::Id m_id;
 
 #   ifdef XMRIG_PROXY_PROJECT
     VAR_ALIGN(16, char m_rawBlob[169]);

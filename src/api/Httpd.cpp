@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2018 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,25 +32,10 @@
 
 
 Httpd::Httpd(int port, const char *accessToken) :
-    m_idle(true),
-    m_accessToken(accessToken ? strdup(accessToken) : nullptr),
+    m_accessToken(accessToken),
     m_port(port),
     m_daemon(nullptr)
 {
-    uv_timer_init(uv_default_loop(), &m_timer);
-    m_timer.data = this;
-}
-
-
-Httpd::~Httpd()
-{
-    uv_timer_stop(&m_timer);
-
-    if (m_daemon) {
-        MHD_stop_daemon(m_daemon);
-    }
-
-    delete m_accessToken;
 }
 
 
@@ -62,7 +47,14 @@ bool Httpd::start()
 
     unsigned int flags = 0;
     if (MHD_is_feature_supported(MHD_FEATURE_EPOLL)) {
-        flags |= MHD_USE_EPOLL_LINUX_ONLY;
+        flags = MHD_USE_EPOLL_LINUX_ONLY | MHD_USE_EPOLL_INTERNALLY_LINUX_ONLY;
+    }
+    else {
+        flags = MHD_USE_SELECT_INTERNALLY;
+    }
+
+    if (MHD_is_feature_supported(MHD_FEATURE_IPv6)) {
+        flags |= MHD_USE_DUAL_STACK;
     }
 
     m_daemon = MHD_start_daemon(flags, m_port, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
@@ -71,7 +63,6 @@ bool Httpd::start()
         return false;
     }
 
-    uv_timer_start(&m_timer, Httpd::onTimer, kIdleInterval, kIdleInterval);
     return true;
 }
 
@@ -92,22 +83,6 @@ int Httpd::auth(const char *header)
     }
 
     return strncmp(m_accessToken, header + 7, strlen(m_accessToken)) == 0 ? MHD_HTTP_OK : MHD_HTTP_FORBIDDEN;
-}
-
-
-void Httpd::run()
-{
-    MHD_run(m_daemon);
-
-    const MHD_DaemonInfo *info = MHD_get_daemon_info(m_daemon, MHD_DAEMON_INFO_CURRENT_CONNECTIONS);
-    if (m_idle && info->num_connections) {
-        uv_timer_set_repeat(&m_timer, kActiveInterval);
-        m_idle = false;
-    }
-    else if (!m_idle && !info->num_connections) {
-        uv_timer_set_repeat(&m_timer, kIdleInterval);
-        m_idle = true;
-    }
 }
 
 
@@ -150,10 +125,4 @@ int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url
 
     MHD_Response *rsp = MHD_create_response_from_buffer(strlen(buf), (void*) buf, MHD_RESPMEM_MUST_FREE);
     return done(connection, status, rsp);
-}
-
-
-void Httpd::onTimer(uv_timer_t *handle)
-{
-    static_cast<Httpd*>(handle->data)->run();
 }

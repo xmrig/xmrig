@@ -5,8 +5,9 @@
  * Copyright 2014-2016 Wolf9466     <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee    <jayddee246@gmail.com>
  * Copyright 2016      Imran Yusuff <https://github.com/imranyusuff>
- * Copyright 2016-2017 XMRig        <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,6 +35,7 @@
 
 
 #include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_monero.h"
 #include "crypto/soft_aes.h"
 
 
@@ -133,20 +135,6 @@ static inline __m128i sl_xor(__m128i tmp1)
     tmp4 = _mm_slli_si128(tmp4, 0x04);
     tmp1 = _mm_xor_si128(tmp1, tmp4);
     return tmp1;
-}
-
-
-template<uint8_t rcon>
-static inline void aes_genkey_sub(__m128i* xout0, __m128i* xout2)
-{
-//    __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, rcon);
-//    xout1  = _mm_shuffle_epi32(xout1, 0xFF); // see PSHUFD, set all elems to 4th elem
-//    *xout0 = sl_xor(*xout0);
-//    *xout0 = _mm_xor_si128(*xout0, xout1);
-//    xout1  = _mm_aeskeygenassist_si128(*xout0, 0x00);
-//    xout1  = _mm_shuffle_epi32(xout1, 0xAA); // see PSHUFD, set all elems to 3rd elem
-//    *xout2 = sl_xor(*xout2);
-//    *xout2 = _mm_xor_si128(*xout2, xout1);
 }
 
 
@@ -344,10 +332,12 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
-inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, cryptonight_ctx *__restrict__ ctx)
+template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, bool MONERO>
+inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, cryptonight_ctx *__restrict__ ctx, uint8_t version)
 {
     keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state0, 200);
+
+    VARIANT1_INIT(0);
 
     cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) ctx->state0, (__m128i*) ctx->memory);
 
@@ -374,6 +364,7 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
         }
 
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
+        VARIANT1_1(&l0[idx0 & MASK]);
         idx0 = EXTRACT64(cx);
         bx0 = cx;
 
@@ -385,8 +376,10 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
         al0 += hi;
         ah0 += lo;
 
+        VARIANT1_2(ah0, 0);
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
         ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
+        VARIANT1_2(ah0, 0);
 
         ah0 ^= ch;
         al0 ^= cl;
@@ -400,11 +393,14 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
 }
 
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
-inline void cryptonight_double_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, bool MONERO>
+inline void cryptonight_double_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx, uint8_t version)
 {
     keccak((const uint8_t *) input,        (int) size, ctx->state0, 200);
     keccak((const uint8_t *) input + size, (int) size, ctx->state1, 200);
+
+    VARIANT1_INIT(0);
+    VARIANT1_INIT(1);
 
     const uint8_t* l0 = ctx->memory;
     const uint8_t* l1 = ctx->memory + MEM;
@@ -443,6 +439,8 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
 
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
         _mm_store_si128((__m128i *) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+        VARIANT1_1(&l0[idx0 & MASK]);
+        VARIANT1_1(&l1[idx1 & MASK]);
 
         idx0 = EXTRACT64(cx0);
         idx1 = EXTRACT64(cx1);
@@ -458,8 +456,10 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
         al0 += hi;
         ah0 += lo;
 
+        VARIANT1_2(ah0, 0);
         ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
         ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
+        VARIANT1_2(ah0, 0);
 
         ah0 ^= ch;
         al0 ^= cl;
@@ -472,8 +472,10 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
         al1 += hi;
         ah1 += lo;
 
+        VARIANT1_2(ah1, 1);
         ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
         ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
+        VARIANT1_2(ah1, 1);
 
         ah1 ^= ch;
         al1 ^= cl;
