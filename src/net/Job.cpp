@@ -65,6 +65,7 @@ Job::Job(int poolId, bool nicehash, bool monero) :
     m_diff(0),
     m_target(0)
 {
+    memset(m_coin, 0, sizeof(m_coin));
 }
 
 
@@ -145,6 +146,18 @@ bool Job::setTarget(const char *target)
 
     m_diff = toDiff(m_target);
     return true;
+}
+
+
+void Job::setCoin(const char *coin)
+{
+    if (!coin || strlen(coin) > 4) {
+        memset(m_coin, 0, sizeof(m_coin));
+        return;
+    }
+
+    strncpy(m_coin, coin, sizeof(m_coin));
+    m_monero = strcmp(m_coin, "XMR") == 0;
 }
 
 

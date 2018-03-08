@@ -237,6 +237,10 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
+    if (params.HasMember("coin")) {
+        job.setCoin(params["coin"].GetString());
+    }
+
     if (m_job == job) {
         if (!m_quiet) {
             LOG_WARN("[%s:%u] duplicate job received, reconnect", m_url.host(), m_url.port());

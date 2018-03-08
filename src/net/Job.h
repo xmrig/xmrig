@@ -42,11 +42,13 @@ public:
 
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
+    void setCoin(const char *coin);
 
     inline bool isMonero() const           { return m_monero; }
     inline bool isNicehash() const         { return m_nicehash; }
     inline bool isValid() const            { return m_size > 0 && m_diff > 0; }
     inline bool setId(const char *id)      { return m_id.setId(id); }
+    inline const char *coin() const        { return m_coin; }
     inline const uint32_t *nonce() const   { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const     { return m_blob; }
     inline const xmrig::Id &id() const     { return m_id; }
@@ -77,6 +79,7 @@ private:
 
     bool m_monero;
     bool m_nicehash;
+    char m_coin[5];
     int m_poolId;
     int m_threadId;
     size_t m_size;
