@@ -105,7 +105,7 @@ bool CryptoNight::selfTest(int algo)
 {
     if (cryptonight_hash_ctx[0] == nullptr || cryptonight_hash_ctx[2] == nullptr ||
         cryptonight_hash_ctx[2] == nullptr || cryptonight_hash_ctx[3] == nullptr ||
-		cryptonight_hash_ctx[4] == nullptr) {
+		    cryptonight_hash_ctx[4] == nullptr) {
         return false;
     }
 
@@ -115,19 +115,19 @@ bool CryptoNight::selfTest(int algo)
     ctx->memory = (uint8_t *) _mm_malloc(MEMORY * 6, 16);
 
     cryptonight_hash_ctx[0](test_input, 76, output, ctx);
-    bool resultSingle = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 32) == 0;
+    bool resultSingle = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 32) == 0;
 
     cryptonight_hash_ctx[1](test_input, 76, output, ctx);
-    bool resultDouble = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 64) == 0;
+    bool resultDouble = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 64) == 0;
 
     cryptonight_hash_ctx[2](test_input, 76, output, ctx);
-    bool resultTriple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 96) == 0;
+    bool resultTriple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 96) == 0;
 
     cryptonight_hash_ctx[3](test_input, 76, output, ctx);
-    bool resultQuadruple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 128) == 0;
+    bool resultQuadruple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 128) == 0;
 
     cryptonight_hash_ctx[4](test_input, 76, output, ctx);
-    bool resultQuintuple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, 160) == 0;
+    bool resultQuintuple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 160) == 0;
 
     _mm_free(ctx->memory);
     _mm_free(ctx);
