@@ -129,8 +129,21 @@ bool CryptoNight::selfTest(int algo)
     cryptonight_hash_ctx[4](test_input, 76, output, ctx);
     bool resultQuintuple = memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 160) == 0;
 
+    // monero v1 pow
+    bool resultV1Pow = true;
+    if (algo == Options::ALGO_CRYPTONIGHT)
+    {
+        cryptonight_hash_ctx[0](test_input_monero_v1_pow_0, sizeof(test_input_monero_v1_pow_0), output, ctx);
+        resultV1Pow = resultV1Pow &&memcmp(output, test_output_monero_v1_pow[0], 32) == 0;
+        cryptonight_hash_ctx[1](test_input_monero_v1_pow_1, sizeof(test_input_monero_v1_pow_1), output, ctx);
+        resultV1Pow = resultV1Pow &&memcmp(output, test_output_monero_v1_pow[1], 32) == 0;
+        cryptonight_hash_ctx[2](test_input_monero_v1_pow_2, sizeof(test_input_monero_v1_pow_2), output, ctx);
+        resultV1Pow = resultV1Pow &&memcmp(output, test_output_monero_v1_pow[2], 32) == 0;
+        //TODO test multihashs
+    }
+
     _mm_free(ctx->memory);
     _mm_free(ctx);
 
-    return resultSingle && resultDouble && resultTriple && resultQuadruple && resultQuintuple;
+    return resultSingle && resultDouble && resultTriple && resultQuadruple && resultQuintuple && resultV1Pow;
 }

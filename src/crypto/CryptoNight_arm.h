@@ -36,6 +36,7 @@
 
 
 #include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_monero.h"
 #include "crypto/soft_aes.h"
 
 
@@ -370,10 +371,19 @@ public:
         uint64_t ah[NUM_HASH_BLOCKS];
         __m128i bx[NUM_HASH_BLOCKS];
         uint64_t idx[NUM_HASH_BLOCKS];
+        uint64_t tweak1_2[NUM_HASH_BLOCKS];
+        uint64_t version[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size,
                    ctx->state[hashBlock], 200);
+            version[hashBlock] = static_cast<const uint8_t*>(input)[hashBlock * size];
+            /*if (MONERO)*/ {
+                if (version[hashBlock] > 6) {
+                    tweak1_2[hashBlock] = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + hashBlock * size) ^
+                                           *(reinterpret_cast<const uint64_t*>(ctx->state[hashBlock]) + 24));
+                }
+            }
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
@@ -402,6 +412,16 @@ public:
 
                 _mm_store_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK],
                                 _mm_xor_si128(bx[hashBlock], cx));
+
+                /*if (MONERO)*/ {
+                    if (version[hashBlock] > 6) {
+                        const uint8_t tmp = reinterpret_cast<const uint8_t*>(&l[hashBlock][idx[hashBlock] & MASK])[11];
+                        static const uint32_t table = 0x75310;
+                        const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+                        ((uint8_t*)(&l[hashBlock][idx[hashBlock] & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
+                    }
+                }
+
                 idx[hashBlock] = EXTRACT64(cx);
                 bx[hashBlock] = cx;
 
@@ -413,8 +433,20 @@ public:
                 al[hashBlock] += hi;
                 ah[hashBlock] += lo;
 
+                /*if (MONERO)*/ {
+                    if (version[hashBlock] > 6) {
+                        ah[hashBlock] ^= tweak1_2[hashBlock];
+                    }
+                }
+
                 ((uint64_t*) &l[hashBlock][idx[hashBlock] & MASK])[0] = al[hashBlock];
                 ((uint64_t*) &l[hashBlock][idx[hashBlock] & MASK])[1] = ah[hashBlock];
+
+                /*if (MONERO)*/ {
+                    if (version[hashBlock] > 6) {
+                        ah[hashBlock] ^= tweak1_2[hashBlock];
+                    }
+                  }
 
                 ah[hashBlock] ^= ch;
                 al[hashBlock] ^= cl;
@@ -449,6 +481,8 @@ public:
 
         keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state[0], 200);
 
+        VARIANT1_INIT(0);
+
         l = ctx->memory;
         h = reinterpret_cast<uint64_t*>(ctx->state[0]);
 
@@ -473,6 +507,7 @@ public:
            }
 
             _mm_store_si128((__m128i*) &l[idx & MASK], _mm_xor_si128(bx, cx));
+            VARIANT1_1(&l[idx & MASK], 0);
             idx = EXTRACT64(cx);
             bx = cx;
 
@@ -484,8 +519,10 @@ public:
             al += hi;
             ah += lo;
 
+            VARIANT1_2(ah, 0);
             ((uint64_t*) &l[idx & MASK])[0] = al;
             ((uint64_t*) &l[idx & MASK])[1] = ah;
+            VARIANT1_2(ah, 0);
 
             ah ^= ch;
             al ^= cl;
@@ -509,6 +546,9 @@ public:
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
         keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+
+        VARIANT1_INIT(0);
+        VARIANT1_INIT(1);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -549,6 +589,9 @@ public:
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
 
+            VARIANT1_1(&l0[idx0 & MASK], 0);
+            VARIANT1_1(&l1[idx1 & MASK], 1);
+
             idx0 = EXTRACT64(cx0);
             idx1 = EXTRACT64(cx1);
 
@@ -563,8 +606,10 @@ public:
             al0 += hi;
             ah0 += lo;
 
+            VARIANT1_2(ah0, 0);
             ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
             ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
+            VARIANT1_2(ah0, 0);
 
             ah0 ^= ch;
             al0 ^= cl;
@@ -577,8 +622,10 @@ public:
             al1 += hi;
             ah1 += lo;
 
+            VARIANT1_2(ah1, 1);
             ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
             ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
+            VARIANT1_2(ah1, 1);
 
             ah1 ^= ch;
             al1 ^= cl;
@@ -608,6 +655,10 @@ public:
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
         keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
         keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+
+        VARIANT1_INIT(0);
+        VARIANT1_INIT(1);
+        VARIANT1_INIT(2);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -660,6 +711,10 @@ public:
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
             _mm_store_si128((__m128i*) &l2[idx2 & MASK], _mm_xor_si128(bx2, cx2));
 
+            VARIANT1_1(&l0[idx0 & MASK], 0);
+            VARIANT1_1(&l1[idx1 & MASK], 1);
+            VARIANT1_1(&l2[idx2 & MASK], 2);
+
             idx0 = EXTRACT64(cx0);
             idx1 = EXTRACT64(cx1);
             idx2 = EXTRACT64(cx2);
@@ -677,8 +732,10 @@ public:
             al0 += hi;
             ah0 += lo;
 
+            VARIANT1_2(ah0, 0);
             ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
             ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
+            VARIANT1_2(ah0, 0);
 
             ah0 ^= ch;
             al0 ^= cl;
@@ -692,8 +749,10 @@ public:
             al1 += hi;
             ah1 += lo;
 
+            VARIANT1_2(ah1, 1);
             ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
             ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
+            VARIANT1_2(ah1, 1);
 
             ah1 ^= ch;
             al1 ^= cl;
@@ -707,8 +766,10 @@ public:
             al2 += hi;
             ah2 += lo;
 
+            VARIANT1_2(ah2, 2);
             ((uint64_t*) &l2[idx2 & MASK])[0] = al2;
             ((uint64_t*) &l2[idx2 & MASK])[1] = ah2;
+            VARIANT1_2(ah2, 2);
 
             ah2 ^= ch;
             al2 ^= cl;
@@ -742,6 +803,11 @@ public:
         keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
         keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
         keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
+
+        VARIANT1_INIT(0);
+        VARIANT1_INIT(1);
+        VARIANT1_INIT(2);
+        VARIANT1_INIT(3);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -806,6 +872,11 @@ public:
             _mm_store_si128((__m128i*) &l2[idx2 & MASK], _mm_xor_si128(bx2, cx2));
             _mm_store_si128((__m128i*) &l3[idx3 & MASK], _mm_xor_si128(bx3, cx3));
 
+            VARIANT1_1(&l0[idx0 & MASK], 0);
+            VARIANT1_1(&l1[idx1 & MASK], 1);
+            VARIANT1_1(&l2[idx2 & MASK], 2);
+            VARIANT1_1(&l3[idx3 & MASK], 3);
+
             idx0 = EXTRACT64(cx0);
             idx1 = EXTRACT64(cx1);
             idx2 = EXTRACT64(cx2);
@@ -825,8 +896,10 @@ public:
             al0 += hi;
             ah0 += lo;
 
+            VARIANT1_2(ah0, 0);
             ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
             ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
+            VARIANT1_2(ah0, 0);
 
             ah0 ^= ch;
             al0 ^= cl;
@@ -840,8 +913,10 @@ public:
             al1 += hi;
             ah1 += lo;
 
+            VARIANT1_2(ah1, 1);
             ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
             ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
+            VARIANT1_2(ah1, 1);
 
             ah1 ^= ch;
             al1 ^= cl;
@@ -855,8 +930,10 @@ public:
             al2 += hi;
             ah2 += lo;
 
+            VARIANT1_2(ah2, 2);
             ((uint64_t*) &l2[idx2 & MASK])[0] = al2;
             ((uint64_t*) &l2[idx2 & MASK])[1] = ah2;
+            VARIANT1_2(ah2, 2);
 
             ah2 ^= ch;
             al2 ^= cl;
@@ -870,8 +947,10 @@ public:
             al3 += hi;
             ah3 += lo;
 
+            VARIANT1_2(ah3, 3);
             ((uint64_t*) &l3[idx3 & MASK])[0] = al3;
             ((uint64_t*) &l3[idx3 & MASK])[1] = ah3;
+            VARIANT1_2(ah3, 3);
 
             ah3 ^= ch;
             al3 ^= cl;
@@ -909,6 +988,12 @@ public:
         keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
         keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
         keccak((const uint8_t*) input + 4 * size, (int) size, ctx->state[4], 200);
+
+        VARIANT1_INIT(0);
+        VARIANT1_INIT(1);
+        VARIANT1_INIT(2);
+        VARIANT1_INIT(3);
+        VARIANT1_INIT(4);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -985,6 +1070,12 @@ public:
             _mm_store_si128((__m128i*) &l3[idx3 & MASK], _mm_xor_si128(bx3, cx3));
             _mm_store_si128((__m128i*) &l4[idx4 & MASK], _mm_xor_si128(bx4, cx4));
 
+            VARIANT1_1(&l0[idx0 & MASK], 0);
+            VARIANT1_1(&l1[idx1 & MASK], 1);
+            VARIANT1_1(&l2[idx2 & MASK], 2);
+            VARIANT1_1(&l3[idx3 & MASK], 3);
+            VARIANT1_1(&l4[idx4 & MASK], 4);
+
             idx0 = EXTRACT64(cx0);
             idx1 = EXTRACT64(cx1);
             idx2 = EXTRACT64(cx2);
@@ -1005,8 +1096,10 @@ public:
             al0 += hi;
             ah0 += lo;
 
+            VARIANT1_2(ah0, 0);
             ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
             ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
+            VARIANT1_2(ah0, 0);
 
             ah0 ^= ch;
             al0 ^= cl;
@@ -1020,8 +1113,10 @@ public:
             al1 += hi;
             ah1 += lo;
 
+            VARIANT1_2(ah1, 1);
             ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
             ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
+            VARIANT1_2(ah1, 1);
 
             ah1 ^= ch;
             al1 ^= cl;
@@ -1035,8 +1130,10 @@ public:
             al2 += hi;
             ah2 += lo;
 
+            VARIANT1_2(ah2, 2);
             ((uint64_t*) &l2[idx2 & MASK])[0] = al2;
             ((uint64_t*) &l2[idx2 & MASK])[1] = ah2;
+            VARIANT1_2(ah2, 2);
 
             ah2 ^= ch;
             al2 ^= cl;
@@ -1050,8 +1147,10 @@ public:
             al3 += hi;
             ah3 += lo;
 
+            VARIANT1_2(ah3, 3);
             ((uint64_t*) &l3[idx3 & MASK])[0] = al3;
             ((uint64_t*) &l3[idx3 & MASK])[1] = ah3;
+            VARIANT1_2(ah3, 3);
 
             ah3 ^= ch;
             al3 ^= cl;
@@ -1065,8 +1164,10 @@ public:
             al4 += hi;
             ah4 += lo;
 
+            VARIANT1_2(ah4, 4);
             ((uint64_t*) &l4[idx4 & MASK])[0] = al4;
             ((uint64_t*) &l4[idx4 & MASK])[1] = ah4;
+            VARIANT1_2(ah4, 4);
 
             ah4 ^= ch;
             al4 ^= cl;
