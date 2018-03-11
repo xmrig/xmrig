@@ -5,8 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017      fireice-uk  <https://github.com/fireice-uk>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,15 +26,19 @@
 #include <x86intrin.h>
 #include <string.h>
 
+#include "crypto/c_keccak.h"
 #include "cryptonight.h"
 #include "cryptonight_aesni.h"
-#include "crypto/c_keccak.h"
+#include "cryptonight_monero.h"
 
 
-void cryptonight_av2_aesni_double(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av2_aesni_double(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx, uint8_t version)
 {
     keccak((const uint8_t *) input,        size, ctx->state0, 200);
     keccak((const uint8_t *) input + size, size, ctx->state1, 200);
+
+    VARIANT1_INIT(0);
+    VARIANT1_INIT(1);
 
     const uint8_t* l0 = ctx->memory;
     const uint8_t* l1 = ctx->memory + MEMORY;
@@ -64,6 +69,9 @@ void cryptonight_av2_aesni_double(const void *restrict input, size_t size, void 
         _mm_store_si128((__m128i *) &l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx0, cx0));
         _mm_store_si128((__m128i *) &l1[idx1 & 0x1FFFF0], _mm_xor_si128(bx1, cx1));
 
+        VARIANT1_1(&l0[idx0 & 0x1FFFF0]);
+        VARIANT1_1(&l1[idx1 & 0x1FFFF0]);
+
         idx0 = EXTRACT64(cx0);
         idx1 = EXTRACT64(cx1);
 
@@ -78,8 +86,10 @@ void cryptonight_av2_aesni_double(const void *restrict input, size_t size, void 
         al0 += hi;
         ah0 += lo;
 
+        VARIANT1_2(ah0, 0);
         ((uint64_t*) &l0[idx0 & 0x1FFFF0])[0] = al0;
         ((uint64_t*) &l0[idx0 & 0x1FFFF0])[1] = ah0;
+        VARIANT1_2(ah0, 0);
 
         ah0 ^= ch;
         al0 ^= cl;
@@ -92,8 +102,10 @@ void cryptonight_av2_aesni_double(const void *restrict input, size_t size, void 
         al1 += hi;
         ah1 += lo;
 
+        VARIANT1_2(ah1, 1);
         ((uint64_t*) &l1[idx1 & 0x1FFFF0])[0] = al1;
         ((uint64_t*) &l1[idx1 & 0x1FFFF0])[1] = ah1;
+        VARIANT1_2(ah1, 1);
 
         ah1 ^= ch;
         al1 ^= cl;

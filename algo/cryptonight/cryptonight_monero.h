@@ -22,27 +22,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_H__
-#define __CRYPTONIGHT_H__
-
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-#define MEMORY      2097152 /* 2 MiB */
-#define MEMORY_LITE 1048576 /* 1 MiB */
-
-struct cryptonight_ctx {
-    uint8_t state0[200] __attribute__((aligned(16)));
-    uint8_t state1[200] __attribute__((aligned(16)));
-    uint8_t* memory     __attribute__((aligned(16)));
-};
+#ifndef __CRYPTONIGHT_MONERO_H__
+#define __CRYPTONIGHT_MONERO_H__
 
 
-extern void (* const extra_hashes[4])(const void *, size_t, char *);
+// VARIANT ALTERATIONS
+#define VARIANT1_INIT(part) \
+    uint64_t tweak1_2_##part = 0; \
+    if (version > 6) { \
+        tweak1_2_##part = (*(const uint64_t*)(((const uint8_t*) input) + 35 + part * size) ^ \
+                          *((const uint64_t*)(ctx->state##part) + 24)); \
+    }
 
-bool cryptonight_init(int variant);
-int scanhash_cryptonight(int thr_id, uint32_t *hash, uint32_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx);
-int scanhash_cryptonight_double(int thr_id, uint32_t *hash, uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx *restrict ctx);
+#define VARIANT1_1(p) \
+    if (version > 6) { \
+        const uint8_t tmp = ((const uint8_t*)(p))[11]; \
+        static const uint32_t table = 0x75310; \
+        const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1; \
+        ((uint8_t*)(p))[11] = tmp ^ ((table >> index) & 0x30); \
+    }
 
-#endif /* __CRYPTONIGHT_H__ */
+#define VARIANT1_2(p, part) \
+    if (version > 6) { \
+        (p) ^= tweak1_2_##part; \
+    }
+
+
+#endif /* __CRYPTONIGHT_MONERO_H__ */

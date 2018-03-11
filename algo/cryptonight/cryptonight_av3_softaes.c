@@ -5,8 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017      fireice-uk  <https://github.com/fireice-uk>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,14 +26,17 @@
 #include <x86intrin.h>
 #include <string.h>
 
-#include "cryptonight.h"
-#include "cryptonight_softaes.h"
 #include "crypto/c_keccak.h"
+#include "cryptonight.h"
+#include "cryptonight_monero.h"
+#include "cryptonight_softaes.h"
 
 
-void cryptonight_av3_softaes(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx)
+void cryptonight_av3_softaes(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx, uint8_t version)
 {
     keccak((const uint8_t *) input, size, ctx->state0, 200);
+
+    VARIANT1_INIT(0);
 
     cn_explode_scratchpad((__m128i*) ctx->state0, (__m128i*) ctx->memory);
 
@@ -51,6 +55,7 @@ void cryptonight_av3_softaes(const void *restrict input, size_t size, void *rest
         cx = soft_aesenc(cx, _mm_set_epi64x(ah0, al0));
 
         _mm_store_si128((__m128i *)&l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx0, cx));
+        VARIANT1_1(&l0[idx0 & 0x1FFFF0]);
         idx0 = EXTRACT64(cx);
         bx0 = cx;
 
@@ -62,8 +67,10 @@ void cryptonight_av3_softaes(const void *restrict input, size_t size, void *rest
         al0 += hi;
         ah0 += lo;
 
+        VARIANT1_2(ah0, 0);
         ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0] = al0;
         ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1] = ah0;
+        VARIANT1_2(ah0, 0);
 
         ah0 ^= ch;
         al0 ^= cl;

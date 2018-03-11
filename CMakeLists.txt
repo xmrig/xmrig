@@ -5,20 +5,22 @@ option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 
 set(HEADERS
-    compat.h
     algo/cryptonight/cryptonight.h
     algo/cryptonight/cryptonight_aesni.h
+    algo/cryptonight/cryptonight_monero.h
     algo/cryptonight/cryptonight_softaes.h
-    elist.h
-    xmrig.h
-    version.h
-    options.h
+    algo/cryptonight/cryptonight_test.h
+    compat.h
     cpu.h
-    persistent_memory.h
-    stratum.h
-    stats.h
-    util.h
     donate.h
+    elist.h
+    options.h
+    persistent_memory.h
+    stats.h
+    stratum.h
+    util.h
+    version.h
+    xmrig.h
    )
 
 set(HEADERS_CRYPTO
@@ -68,7 +70,7 @@ set(SOURCES_UTILS
 
 if (WIN32)
     set(SOURCES_OS win/cpu_win.c win/memory_win.c win/xmrig_win.c win/app.rc compat/winansi.c)
-    set(EXTRA_LIBS ws2_32)
+    set(EXTRA_LIBS ws2_32 crypt32)
     add_definitions(/D_WIN32_WINNT=0x600)
 elseif (APPLE)
     set(SOURCES_OS mac/cpu_mac.c mac/memory_mac.c mac/xmrig_mac.c)
