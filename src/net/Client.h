@@ -120,7 +120,8 @@ private:
 	void prelogin();
 	void login();
 	void parse(char* line, size_t len);
-	void parseNotification(const char* method, const rapidjson::Value & params, const rapidjson::Value & error);
+	void parseNotification(const std::string & method, const rapidjson::Value & params,
+	                       const rapidjson::Value & error);
 	void parseResponse(int64_t id, const rapidjson::Value & result, const rapidjson::Value & error);
 	void ping();
 	void reconnect();

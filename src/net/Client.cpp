@@ -485,7 +485,7 @@ void Client::parse(char* line, size_t len)
 }
 
 
-void Client::parseNotification(const char* method, const rapidjson::Value & params,
+void Client::parseNotification(const std::string & method, const rapidjson::Value & params,
                                const rapidjson::Value & error)
 {
 	if(error.IsObject())
@@ -498,12 +498,12 @@ void Client::parseNotification(const char* method, const rapidjson::Value & para
 		return;
 	}
 
-	if(!method)
+	if(0 == method.size())
 	{
 		return;
 	}
 
-	if(strcmp(method, "job") == 0)
+	if(method == "job")
 	{
 		int code = -1;
 		if(parseJob(params, &code))
@@ -522,7 +522,7 @@ void Client::parseResponse(int64_t id, const rapidjson::Value & result, const ra
 {
 	if(error.IsObject())
 	{
-		const char* message = error["message"].GetString();
+		const std::string message = error["message"].GetString();
 
 		auto it = m_results.find(id);
 		if(it != m_results.end())
@@ -582,8 +582,8 @@ void Client::parseResponse(int64_t id, const rapidjson::Value & result, const ra
 void Client::ping()
 {
 	send(snprintf(m_sendBuf, sizeof(m_sendBuf),
-	              "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence,
-	              m_rpcId));
+	              "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n",
+	              m_sequence, m_rpcId));
 }
 
 
