@@ -27,6 +27,7 @@
 
 
 #include "net/Job.h"
+#include "xmrig.h"
 
 
 static inline unsigned char hf_hex2bin(char c, bool &err)
@@ -56,11 +57,26 @@ static inline char hf_bin2hex(unsigned char c)
 }
 
 
-Job::Job(int poolId, bool nicehash, bool monero) :
-    m_monero(monero),
+Job::Job() :
+    m_nicehash(false),
+    m_algo(xmrig::ALGO_CRYPTONIGHT),
+    m_poolId(-2),
+    m_threadId(-1),
+    m_variant(xmrig::VARIANT_AUTO),
+    m_size(0),
+    m_diff(0),
+    m_target(0)
+{
+    memset(m_coin, 0, sizeof(m_coin));
+}
+
+
+Job::Job(int poolId, bool nicehash, int algo, int variant) :
     m_nicehash(nicehash),
+    m_algo(algo),
     m_poolId(poolId),
     m_threadId(-1),
+    m_variant(variant),
     m_size(0),
     m_diff(0),
     m_target(0)
@@ -149,6 +165,26 @@ bool Job::setTarget(const char *target)
 }
 
 
+int Job::variant() const
+{
+    if (m_variant != xmrig::VARIANT_AUTO) {
+        return m_variant;
+    }
+
+    const uint8_t version = m_blob[0];
+
+#   if !defined(XMRIG_NO_AEON)
+    if (m_algo == xmrig::ALGO_CRYPTONIGHT) {
+        return version > 6 ? 1 : 0;
+    }
+
+    return version > 1 ? 1 : 0;
+#   else
+    return version > 6 ? 1 : 0;
+#   endif
+}
+
+
 void Job::setCoin(const char *coin)
 {
     if (!coin || strlen(coin) > 4) {
@@ -157,7 +193,22 @@ void Job::setCoin(const char *coin)
     }
 
     strncpy(m_coin, coin, sizeof(m_coin));
-    m_monero = strcmp(m_coin, "XMR") == 0;
+    m_algo = strcmp(m_coin, "AEON") == 0 ? xmrig::ALGO_CRYPTONIGHT_LITE : xmrig::ALGO_CRYPTONIGHT;
+}
+
+
+void Job::setVariant(int variant)
+{
+    switch (variant) {
+    case xmrig::VARIANT_AUTO:
+    case xmrig::VARIANT_NONE:
+    case xmrig::VARIANT_V1:
+        m_variant = variant;
+        break;
+
+    default:
+        break;
+    }
 }
 
 
