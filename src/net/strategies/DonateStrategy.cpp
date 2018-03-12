@@ -49,7 +49,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
     Job::toHex(hash, 32, userId);
 
-    Url *url = new Url("thanks.xmrig.com", Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE ? 3333 : 80, userId, nullptr, false, true);
+    Url *url = new Url("thanks.xmrig.com", Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE ? 5555 : 80, userId, nullptr, false, true);
 
     m_client = new Client(-1, agent, this);
     m_client->setUrl(url);
