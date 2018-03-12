@@ -28,6 +28,7 @@
 
 
 #include "net/Url.h"
+#include "xmrig.h"
 
 
 #ifdef _MSC_VER
@@ -37,11 +38,12 @@
 
 Url::Url() :
     m_keepAlive(false),
-    m_monero(true),
     m_nicehash(false),
     m_host(nullptr),
     m_password(nullptr),
     m_user(nullptr),
+    m_algo(xmrig::ALGO_CRYPTONIGHT),
+    m_variant(xmrig::VARIANT_AUTO),
     m_url(nullptr),
     m_port(kDefaultPort)
 {
@@ -61,11 +63,12 @@ Url::Url() :
  */
 Url::Url(const char *url) :
     m_keepAlive(false),
-    m_monero(true),
     m_nicehash(false),
     m_host(nullptr),
     m_password(nullptr),
     m_user(nullptr),
+    m_algo(xmrig::ALGO_CRYPTONIGHT),
+    m_variant(xmrig::VARIANT_AUTO),
     m_url(nullptr),
     m_port(kDefaultPort)
 {
@@ -73,12 +76,13 @@ Url::Url(const char *url) :
 }
 
 
-Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash, bool monero) :
+Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash, int variant) :
     m_keepAlive(keepAlive),
-    m_monero(monero),
     m_nicehash(nicehash),
     m_password(password ? strdup(password) : nullptr),
     m_user(user ? strdup(user) : nullptr),
+    m_algo(xmrig::ALGO_CRYPTONIGHT),
+    m_variant(variant),
     m_url(nullptr),
     m_port(port)
 {
@@ -165,11 +169,13 @@ const char *Url::url() const
 }
 
 
-void Url::applyExceptions()
+void Url::adjust(int algo)
 {
     if (!isValid()) {
         return;
     }
+
+    m_algo = algo;
 
     if (strstr(m_host, ".nicehash.com")) {
         m_keepAlive = false;
@@ -204,6 +210,21 @@ void Url::setUser(const char *user)
 }
 
 
+void Url::setVariant(int variant)
+{
+   switch (variant) {
+   case xmrig::VARIANT_AUTO:
+   case xmrig::VARIANT_NONE:
+   case xmrig::VARIANT_V1:
+       m_variant = variant;
+       break;
+
+   default:
+       break;
+   }
+}
+
+
 bool Url::operator==(const Url &other) const
 {
     if (m_port != other.m_port || m_keepAlive != other.m_keepAlive || m_nicehash != other.m_nicehash) {
@@ -221,7 +242,8 @@ bool Url::operator==(const Url &other) const
 Url &Url::operator=(const Url *other)
 {
     m_keepAlive = other->m_keepAlive;
-    m_monero    = other->m_monero;
+    m_algo      = other->m_algo;
+    m_variant   = other->m_variant;
     m_nicehash  = other->m_nicehash;
     m_port      = other->m_port;
 

@@ -38,6 +38,7 @@
 #include "log/Log.h"
 #include "Mem.h"
 #include "Options.h"
+#include "xmrig.h"
 
 
 bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
@@ -46,7 +47,7 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
     m_threads    = threads;
     m_doubleHash = doubleHash;
 
-    const int ratio   = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
+    const int ratio   = (doubleHash && algo != xmrig::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
     const size_t size = MONERO_MEMORY * (threads * ratio + 1);
 
     if (!enabled) {

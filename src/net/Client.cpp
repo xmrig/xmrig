@@ -221,7 +221,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, m_nicehash, m_url.isMonero());
+    Job job(m_id, m_nicehash, m_url.algo(), m_url.variant());
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
         return false;
@@ -239,6 +239,10 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
 
     if (params.HasMember("coin")) {
         job.setCoin(params["coin"].GetString());
+    }
+
+    if (params.HasMember("variant")) {
+        job.setVariant(params["variant"].GetInt());
     }
 
     if (m_job == job) {

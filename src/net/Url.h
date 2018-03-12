@@ -37,27 +37,29 @@ public:
 
     Url();
     Url(const char *url);
-    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, bool keepAlive = false, bool nicehash = false, bool monero = true);
+    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, bool keepAlive = false, bool nicehash = false, int variant = -1);
     ~Url();
 
     inline bool isKeepAlive() const          { return m_keepAlive; }
-    inline bool isMonero() const             { return m_monero; }
     inline bool isNicehash() const           { return m_nicehash; }
     inline bool isValid() const              { return m_host && m_port > 0; }
     inline const char *host() const          { return m_host; }
     inline const char *password() const      { return m_password ? m_password : kDefaultPassword; }
     inline const char *user() const          { return m_user ? m_user : kDefaultUser; }
+    inline int algo() const                  { return m_algo; }
+    inline int variant() const               { return m_variant; }
     inline uint16_t port() const             { return m_port; }
     inline void setKeepAlive(bool keepAlive) { m_keepAlive = keepAlive; }
-    inline void setMonero(bool monero)       { m_monero = monero; }
     inline void setNicehash(bool nicehash)   { m_nicehash = nicehash; }
+    inline void setVariant(bool monero)      { m_variant = monero; }
 
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
     const char *url() const;
-    void applyExceptions();
+    void adjust(int algo);
     void setPassword(const char *password);
     void setUser(const char *user);
+    void setVariant(int variant);
 
     bool operator==(const Url &other) const;
     Url &operator=(const Url *other);
@@ -66,11 +68,12 @@ private:
     bool parseIPv6(const char *addr);
 
     bool m_keepAlive;
-    bool m_monero;
     bool m_nicehash;
     char *m_host;
     char *m_password;
     char *m_user;
+    int m_algo;
+    int m_variant;
     mutable char *m_url;
     uint16_t m_port;
 };

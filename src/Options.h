@@ -39,11 +39,6 @@ struct option;
 class Options
 {
 public:
-    enum Algo {
-        ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
-        ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
-    };
-
     enum AlgoVariant {
         AV0_AUTO,
         AV1_AESNI,
@@ -96,6 +91,7 @@ private:
     bool parseArg(int key, uint64_t arg);
     bool parseBoolean(int key, bool enable);
     Url *parseUrl(const char *arg) const;
+    void adjust();
     void parseConfig(const char *fileName);
     void parseJSON(const struct option *option, const rapidjson::Value &object);
     void showUsage(int status) const;
