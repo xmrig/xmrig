@@ -173,11 +173,15 @@ int Job::variant() const
 
     const uint8_t version = m_blob[0];
 
+#   if !defined(XMRIG_NO_AEON)
     if (m_algo == xmrig::ALGO_CRYPTONIGHT) {
         return version > 6 ? 1 : 0;
     }
 
     return version > 1 ? 1 : 0;
+#   else
+    return version > 6 ? 1 : 0;
+#   endif
 }
 
 

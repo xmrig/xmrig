@@ -167,16 +167,22 @@ bool CryptoNight::selfTest(int algo) {
 
     cryptonight_hash_ctx(test_input, 76, output, ctx, 0);
 
+    const bool doubleHash = Options::i()->doubleHash();
+
 #   ifndef XMRIG_NO_AEON
-    bool rc = memcmp(output, algo == xmrig::ALGO_CRYPTONIGHT_LITE ? test_output1 : test_output0, (Options::i()->doubleHash() ? 64 : 32)) == 0;
+    bool rc = memcmp(output, algo == xmrig::ALGO_CRYPTONIGHT_LITE ? test_output_v0_lite : test_output_v0, (doubleHash ? 64 : 32)) == 0;
 #   else
-    bool rc = memcmp(output, test_output0, (Options::i()->doubleHash() ? 64 : 32)) == 0;
+    bool rc = memcmp(output, test_output_v0, (doubleHash ? 64 : 32)) == 0;
 #   endif
 
-    if (rc && algo == xmrig::ALGO_CRYPTONIGHT) {
+    if (rc) {
         cryptonight_hash_ctx(test_input, 76, output, ctx, 1);
 
-        rc = memcmp(output, test_output2, (Options::i()->doubleHash() ? 64 : 32)) == 0;
+#       ifndef XMRIG_NO_AEON
+        rc = memcmp(output, algo == xmrig::ALGO_CRYPTONIGHT_LITE ? test_output_v1_lite : test_output_v1, (doubleHash ? 64 : 32)) == 0;
+#       else
+        rc = memcmp(output, test_output_v1, (doubleHash ? 64 : 32)) == 0;
+#       endif
     }
 
     _mm_free(ctx->memory);
