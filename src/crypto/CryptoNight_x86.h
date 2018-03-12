@@ -310,7 +310,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 
 
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, bool MONERO>
-inline bool cryptonight_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, cryptonight_ctx *__restrict__ ctx, uint8_t version)
+inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, cryptonight_ctx *__restrict__ ctx, uint8_t version)
 {
     keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state0, 200);
 
@@ -364,12 +364,11 @@ inline bool cryptonight_hash(const void *__restrict__ input, size_t size, void *
 
     keccakf(h0, 24);
     extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, static_cast<char*>(output));
-    return true;
 }
 
 
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, bool MONERO>
-inline bool cryptonight_double_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx, uint8_t version)
+inline void cryptonight_double_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx, uint8_t version)
 {
     keccak((const uint8_t *) input,        (int) size, ctx->state0, 200);
     keccak((const uint8_t *) input + size, (int) size, ctx->state1, 200);
@@ -463,7 +462,6 @@ inline bool cryptonight_double_hash(const void *__restrict__ input, size_t size,
 
     extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, static_cast<char*>(output));
     extra_hashes[ctx->state1[0] & 3](ctx->state1, 200, static_cast<char*>(output) + 32);
-    return true;
 }
 
 #endif /* __CRYPTONIGHT_X86_H__ */
