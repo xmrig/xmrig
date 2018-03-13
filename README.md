@@ -15,6 +15,7 @@ The modified version can also handle commands like "update config", "start/stop 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
+* **NEW: Ready for Monero v7 PoW changes on 03/28/18**
 * **NEW: Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)**
     - XMRigCCServer Dashboard <-> Browser
     - XMRigCCServer <-> XMRigMiner
@@ -80,6 +81,9 @@ xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SE
         --cc-pass=PASSWORD                CC Server admin pass
         --cc-access-token=T               CC Server access token for CC Client
         --cc-port=N                       CC Server
+        --cc-use-tls                      enable tls encryption for CC communication
+        --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) 
+        --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) 
         --cc-client-config-folder=FOLDER  Folder contains the client config files
         --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'
         --no-color                        disable colored output
@@ -89,7 +93,6 @@ xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SE
     -l, --log-file=FILE                   log all output to a file
     -h, --help                            display this help and exit
     -V, --version                         output version information and exit
-
 ```
 
 Also you can use configuration via config file, default **[config_cc.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigCCServer)**. You can load multiple config files and combine it with command line options.
@@ -122,11 +125,13 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
       --max-cpu-usage=N                 maximum CPU usage for automatic threads mode (default 75)
       --safe                            safe adjust threads and av settings for current CPU
       --nicehash                        enable nicehash/xmrig-proxy support
+      --use-tls                         enable tls on pool communication
       --print-time=N                    print hashrate report every N seconds
       --api-port=N                      port for the miner API
       --api-access-token=T              access token for API
       --api-worker-id=ID                custom worker-id for API
       --cc-url=URL                      url of the CC Server
+      --cc-use-tls                      enable tls encryption for CC communication
       --cc-access-token=T               access token for CC Server
       --cc-worker-id=ID                 custom worker-id for CC Server
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)
@@ -234,17 +239,17 @@ Here are some result reported by users. Feel free to share your results, i'll ad
 
   * AMD Ryzen 1950x
         
-        AEON: ~5300 h/s    (XMRig Stock: ~4900 h/s)
-        XMR: ~1320 h/s     (XMRig Stock: ~1200 h/s)
+        AEON: ~5300 h/s     (XMRig Stock: ~4900 h/s)
+        XMR: ~1320 h/s      (XMRig Stock: ~1200 h/s)
 
   * AMD Ryzen 1600
   
-        AEON: ~2065 h/s    (XMRig Stock: ~1800 h/s)
-        XMR: ~565 h/s      (XMRig Stock: ~460 h/s)
+        AEON: ~2065 h/s     (XMRig Stock: ~1800 h/s)
+        XMR: ~565 h/s       (XMRig Stock: ~460 h/s)
   
   * 4x Intel XEON e7-4820
   
-        XMR: ~2500 h/s     (XMRig Stock ~2200h/s)
+        AEON: ~2500 h/s     (XMRig Stock ~2200h/s)
         
   * 2x Intel XEON 2x e5-2670
         
