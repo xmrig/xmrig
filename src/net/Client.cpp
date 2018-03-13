@@ -230,7 +230,7 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
 
 int64_t Client::send(size_t size)
 {
-    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, buf);
+    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, m_sendBuf);
     if (!m_net) {
         LOG_DEBUG_ERR("[%s:%u] send failed", m_url.host(), m_url.port());
         return -1;
