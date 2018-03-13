@@ -13,6 +13,8 @@ find_path(
     DOC "microhttpd include dir"
 )
 
+find_path(MHD_INCLUDE_DIR NAMES microhttpd.h)
+
 find_library(
     MHD_LIBRARY
     NAMES microhttpd libmicrohttpd
@@ -20,6 +22,8 @@ find_library(
     PATH_SUFFIXES "lib"
     DOC "microhttpd library"
 )
+
+find_library(MHD_LIBRARY NAMES microhttpd libmicrohttpd)
 
 set(MHD_INCLUDE_DIRS ${MHD_INCLUDE_DIR})
 set(MHD_LIBRARIES ${MHD_LIBRARY})
