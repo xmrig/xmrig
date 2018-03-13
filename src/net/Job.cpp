@@ -27,7 +27,6 @@
 
 
 #include "net/Job.h"
-#include "xmrig.h"
 
 
 static inline unsigned char hf_hex2bin(char c, bool &err)
@@ -162,26 +161,6 @@ bool Job::setTarget(const char *target)
 
     m_diff = toDiff(m_target);
     return true;
-}
-
-
-int Job::variant() const
-{
-    if (m_variant != xmrig::VARIANT_AUTO) {
-        return m_variant;
-    }
-
-    const uint8_t version = m_blob[0];
-
-#   if !defined(XMRIG_NO_AEON)
-    if (m_algo == xmrig::ALGO_CRYPTONIGHT) {
-        return version > 6 ? 1 : 0;
-    }
-
-    return version > 1 ? 1 : 0;
-#   else
-    return version > 6 ? 1 : 0;
-#   endif
 }
 
 

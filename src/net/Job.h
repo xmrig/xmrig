@@ -32,6 +32,7 @@
 
 #include "align.h"
 #include "net/Id.h"
+#include "xmrig.h"
 
 
 class Job
@@ -43,7 +44,6 @@ public:
 
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
-    int variant() const;
     void setCoin(const char *coin);
     void setVariant(int variant);
 
@@ -56,6 +56,7 @@ public:
     inline const xmrig::Id &id() const     { return m_id; }
     inline int poolId() const              { return m_poolId; }
     inline int threadId() const            { return m_threadId; }
+    inline int variant() const             { return (m_variant == xmrig::VARIANT_AUTO ? (m_blob[0] > 6 ? 1 : 0) : m_variant); }
     inline size_t size() const             { return m_size; }
     inline uint32_t *nonce()               { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const           { return (uint32_t) m_diff; }
