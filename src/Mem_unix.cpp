@@ -51,7 +51,7 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
     m_size          = MONERO_MEMORY * (threads * ratio + 1);
 
     if (!enabled) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));
         return true;
     }
 
