@@ -5,7 +5,7 @@
 /.idea
 /CMakeFiles
 /src/3rdparty
-/cmake-build-debug
+/cmake-build-*
 CMakeCache.txt
 cmake_install.cmake
 Makefile
