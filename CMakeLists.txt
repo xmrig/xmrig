@@ -29,8 +29,8 @@ set(HEADERS
     src/log/Log.h
     src/Mem.h
     src/net/Client.h
+    src/net/Id.h
     src/net/Job.h
-    src/net/JobId.h
     src/net/JobResult.h
     src/net/Network.h
     src/net/strategies/DonateStrategy.h
@@ -48,6 +48,7 @@ set(HEADERS
     src/workers/SingleWorker.h
     src/workers/Worker.h
     src/workers/Workers.h
+    src/xmrig.h
    )
 
 set(HEADERS_CRYPTO
@@ -57,6 +58,7 @@ set(HEADERS_CRYPTO
     src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
+    src/crypto/CryptoNight_monero.h
     src/crypto/CryptoNight_test.h
     src/crypto/groestl_tables.h
     src/crypto/hash.h

@@ -27,8 +27,10 @@
 
 #include <map>
 #include <uv.h>
+#include <vector>
 
 
+#include "net/Id.h"
 #include "net/Job.h"
 #include "net/SubmitResult.h"
 #include "net/Url.h"
@@ -56,10 +58,10 @@ public:
     Client(int id, const char *agent, IClientListener *listener);
     ~Client();
 
+    bool disconnect();
     int64_t submit(const JobResult &result);
     void connect();
     void connect(const Url *url);
-    void disconnect();
     void setUrl(const Url *url);
     void tick(uint64_t now);
 
@@ -74,15 +76,17 @@ public:
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
 private:
+    bool close();
     bool isCriticalError(const char *message);
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseLogin(const rapidjson::Value &result, int *code);
     int resolve(const char *host);
     int64_t send(size_t size);
-    void close();
-    void connect(struct sockaddr *addr);
+    void connect(const std::vector<addrinfo*> &ipv4, const std::vector<addrinfo*> &ipv6);
+    void connect(sockaddr *addr);
     void login();
     void parse(char *line, size_t len);
+    void parseExtensions(const rapidjson::Value &value);
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
@@ -99,10 +103,11 @@ private:
     static inline Client *getClient(void *data) { return static_cast<Client*>(data); }
 
     addrinfo m_hints;
+    bool m_ipv6;
+    bool m_nicehash;
     bool m_quiet;
     char m_buf[2048];
-    char m_ip[17];
-    char m_rpcId[64];
+    char m_ip[46];
     char m_sendBuf[768];
     const char *m_agent;
     IClientListener *m_listener;
@@ -120,6 +125,7 @@ private:
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
+    xmrig::Id m_rpcId;
 
 #   ifndef XMRIG_PROXY_PROJECT
     uv_timer_t m_keepAliveTimer;

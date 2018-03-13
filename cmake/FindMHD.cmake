@@ -8,12 +8,16 @@
 find_path(
     MHD_INCLUDE_DIR
     NAMES microhttpd.h
+    PATHS "${XMRIG_DEPS}" ENV "XMRIG_DEPS"
+    PATH_SUFFIXES "include"
     DOC "microhttpd include dir"
 )
 
 find_library(
     MHD_LIBRARY
-    NAMES microhttpd microhttpd-10 libmicrohttpd libmicrohttpd-dll
+    NAMES microhttpd libmicrohttpd
+    PATHS "${XMRIG_DEPS}" ENV "XMRIG_DEPS"
+    PATH_SUFFIXES "lib"
     DOC "microhttpd library"
 )
 
@@ -34,6 +38,6 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
 endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(mhd DEFAULT_MSG MHD_INCLUDE_DIR MHD_LIBRARY)
+find_package_handle_standard_args(MHD DEFAULT_MSG MHD_LIBRARY MHD_INCLUDE_DIR)
 mark_as_advanced(MHD_INCLUDE_DIR MHD_LIBRARY)
 

@@ -21,54 +21,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DONATESTRATEGY_H__
-#define __DONATESTRATEGY_H__
+#ifndef __XMRIG_H__
+#define __XMRIG_H__
 
 
-#include <uv.h>
-
-
-#include "interfaces/IClientListener.h"
-#include "interfaces/IStrategy.h"
-
-
-class Client;
-class IStrategyListener;
-class Url;
-
-
-class DonateStrategy : public IStrategy, public IClientListener
+namespace xmrig
 {
-public:
-    DonateStrategy(const char *agent, IStrategyListener *listener);
 
-public:
-    inline bool isActive() const override  { return m_active; }
-    inline void resume() override          {}
 
-    int64_t submit(const JobResult &result) override;
-    void connect() override;
-    void stop() override;
-    void tick(uint64_t now) override;
-
-protected:
-    void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job) override;
-    void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
-
-private:
-    void idle();
-    void suspend();
-
-    static void onTimer(uv_timer_t *handle);
-
-    bool m_active;
-    Client *m_client;
-    const int m_donateTime;
-    const int m_idleTime;
-    IStrategyListener *m_listener;
-    uv_timer_t m_timer;
+enum Algo {
+    ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
+    ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
 };
 
-#endif /* __DONATESTRATEGY_H__ */
+
+enum Variant {
+    VARIANT_AUTO = -1,
+    VARIANT_NONE = 0,
+    VARIANT_V1   = 1
+};
+
+} /* xmrig */
+
+
+#endif /* __XMRIG_H__ */

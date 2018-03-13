@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,54 +22,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DONATESTRATEGY_H__
-#define __DONATESTRATEGY_H__
+#ifndef __CRYPTONIGHT_MONERO_H__
+#define __CRYPTONIGHT_MONERO_H__
 
 
-#include <uv.h>
+// VARIANT ALTERATIONS
+#define VARIANT1_INIT(part) \
+    uint64_t tweak1_2_##part = 0; \
+    if (VARIANT > 0) { \
+        tweak1_2_##part = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + part * size) ^ \
+                          *(reinterpret_cast<const uint64_t*>(ctx->state##part) + 24)); \
+    }
+
+#define VARIANT1_1(p) \
+    if (VARIANT > 0) { \
+        const uint8_t tmp = reinterpret_cast<const uint8_t*>(p)[11]; \
+        static const uint32_t table = 0x75310; \
+        const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1; \
+        ((uint8_t*)(p))[11] = tmp ^ ((table >> index) & 0x30); \
+    }
+
+#define VARIANT1_2(p, part) \
+    if (VARIANT > 0) { \
+        (p) ^= tweak1_2_##part; \
+    }
 
 
-#include "interfaces/IClientListener.h"
-#include "interfaces/IStrategy.h"
-
-
-class Client;
-class IStrategyListener;
-class Url;
-
-
-class DonateStrategy : public IStrategy, public IClientListener
-{
-public:
-    DonateStrategy(const char *agent, IStrategyListener *listener);
-
-public:
-    inline bool isActive() const override  { return m_active; }
-    inline void resume() override          {}
-
-    int64_t submit(const JobResult &result) override;
-    void connect() override;
-    void stop() override;
-    void tick(uint64_t now) override;
-
-protected:
-    void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job) override;
-    void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
-
-private:
-    void idle();
-    void suspend();
-
-    static void onTimer(uv_timer_t *handle);
-
-    bool m_active;
-    Client *m_client;
-    const int m_donateTime;
-    const int m_idleTime;
-    IStrategyListener *m_listener;
-    uv_timer_t m_timer;
-};
-
-#endif /* __DONATESTRATEGY_H__ */
+#endif /* __CRYPTONIGHT_MONERO_H__ */
