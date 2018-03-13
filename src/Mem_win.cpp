@@ -153,10 +153,10 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
     m_doubleHash = doubleHash;
 
     const int ratio = (doubleHash && algo != xmrig::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
-    const size_t size  = MONERO_MEMORY * (threads * ratio + 1);
+    m_size          = MONERO_MEMORY * (threads * ratio + 1);
 
     if (!enabled) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));
         return true;
     }
 
@@ -164,9 +164,9 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
         m_flags |= HugepagesAvailable;
     }
 
-    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
+    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, m_size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
     if (!m_memory) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
+        m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));
     }
     else {
         m_flags |= HugepagesEnabled;

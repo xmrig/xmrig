@@ -62,6 +62,7 @@ private:
     static int m_flags;
     static int m_threads;
     static size_t m_offset;
+    static size_t m_size;
     VAR_ALIGN(16, static uint8_t *m_memory);
 
 #   ifndef XMRIG_NO_AEON
