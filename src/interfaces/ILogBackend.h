@@ -7,7 +7,6 @@
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
  *
  *
- *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
@@ -31,10 +30,10 @@
 class ILogBackend
 {
 public:
-    virtual ~ILogBackend() {}
+	virtual ~ILogBackend() {}
 
-    virtual void message(int level, const char* fmt, va_list args) = 0;
-    virtual void text(const char* fmt, va_list args)               = 0;
+	virtual void message(int level, const char* fmt, va_list args) = 0;
+	virtual void text(const char* fmt, va_list args)               = 0;
 };
 
 

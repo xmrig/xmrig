@@ -33,10 +33,10 @@
 void Cpu::init()
 {
 #   ifdef XMRIG_NO_LIBCPUID
-    m_totalThreads = sysconf(_SC_NPROCESSORS_CONF);
+	m_totalThreads = sysconf(_SC_NPROCESSORS_CONF);
 #   endif
 
-    initCommon();
+	initCommon();
 }
 
 

@@ -28,15 +28,17 @@
 
 #define COUNT_OF(array) (sizeof(array) / sizeof(array[0]))
 
-struct feature_map_t {
+struct feature_map_t
+{
 	unsigned bit;
 	cpu_feature_t feature;
 };
- 
+
 void match_features(const struct feature_map_t* matchtable, int count,
                     uint32_t reg, struct cpu_id_t* data);
 
-struct match_entry_t {
+struct match_entry_t
+{
 	int family, model, stepping, ext_family, ext_model;
 	int ncores, l2cache, l3cache, brand_code;
 	uint64_t model_bits;

@@ -37,8 +37,8 @@
 
 bool Workers::m_active = false;
 bool Workers::m_enabled = true;
-Hashrate *Workers::m_hashrate = nullptr;
-IJobResultListener *Workers::m_listener = nullptr;
+Hashrate* Workers::m_hashrate = nullptr;
+IJobResultListener* Workers::m_listener = nullptr;
 Job Workers::m_job;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
@@ -53,148 +53,160 @@ uv_timer_t Workers::m_timer;
 
 Job Workers::job()
 {
-    uv_rwlock_rdlock(&m_rwlock);
-    Job job = m_job;
-    uv_rwlock_rdunlock(&m_rwlock);
+	uv_rwlock_rdlock(&m_rwlock);
+	Job job = m_job;
+	uv_rwlock_rdunlock(&m_rwlock);
 
-    return job;
+	return job;
 }
 
 
 void Workers::printHashrate(bool detail)
 {
-    m_hashrate->print();
+	m_hashrate->print();
 }
 
 
 void Workers::setEnabled(bool enabled)
 {
-    if (m_enabled == enabled) {
-        return;
-    }
+	if(m_enabled == enabled)
+	{
+		return;
+	}
 
-    m_enabled = enabled;
-    if (!m_active) {
-        return;
-    }
+	m_enabled = enabled;
+	if(!m_active)
+	{
+		return;
+	}
 
-    m_paused = enabled ? 0 : 1;
-    m_sequence++;
+	m_paused = enabled ? 0 : 1;
+	m_sequence++;
 }
 
 
-void Workers::setJob(const Job &job)
+void Workers::setJob(const Job & job)
 {
-    uv_rwlock_wrlock(&m_rwlock);
-    m_job = job;
-    uv_rwlock_wrunlock(&m_rwlock);
+	uv_rwlock_wrlock(&m_rwlock);
+	m_job = job;
+	uv_rwlock_wrunlock(&m_rwlock);
 
-    m_active = true;
-    if (!m_enabled) {
-        return;
-    }
+	m_active = true;
+	if(!m_enabled)
+	{
+		return;
+	}
 
-    m_sequence++;
-    m_paused = 0;
+	m_sequence++;
+	m_paused = 0;
 }
 
 
 void Workers::start(int64_t affinity, int priority)
 {
-    const int threads = Mem::threads();
-    m_hashrate = new Hashrate(threads);
+	const int threads = Mem::threads();
+	m_hashrate = new Hashrate(threads);
 
-    uv_mutex_init(&m_mutex);
-    uv_rwlock_init(&m_rwlock);
+	uv_mutex_init(&m_mutex);
+	uv_rwlock_init(&m_rwlock);
 
-    m_sequence = 1;
-    m_paused   = 1;
+	m_sequence = 1;
+	m_paused   = 1;
 
-    uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
-    uv_timer_init(uv_default_loop(), &m_timer);
-    uv_timer_start(&m_timer, Workers::onTick, 500, 500);
+	uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
+	uv_timer_init(uv_default_loop(), &m_timer);
+	uv_timer_start(&m_timer, Workers::onTick, 500, 500);
 
-    for (int i = 0; i < threads; ++i) {
-        Handle *handle = new Handle(i, threads, affinity, priority);
-        m_workers.push_back(handle);
-        handle->start(Workers::onReady);
-    }
+	for(int i = 0; i < threads; ++i)
+	{
+		Handle* handle = new Handle(i, threads, affinity, priority);
+		m_workers.push_back(handle);
+		handle->start(Workers::onReady);
+	}
 }
 
 
 void Workers::stop()
 {
-    uv_timer_stop(&m_timer);
-    m_hashrate->stop();
+	uv_timer_stop(&m_timer);
+	m_hashrate->stop();
 
-    uv_close(reinterpret_cast<uv_handle_t*>(&m_async), nullptr);
-    m_paused   = 0;
-    m_sequence = 0;
+	uv_close(reinterpret_cast<uv_handle_t*>(&m_async), nullptr);
+	m_paused   = 0;
+	m_sequence = 0;
 
-    for (size_t i = 0; i < m_workers.size(); ++i) {
-        m_workers[i]->join();
-    }
+	for(size_t i = 0; i < m_workers.size(); ++i)
+	{
+		m_workers[i]->join();
+	}
 }
 
 
-void Workers::submit(const JobResult &result)
+void Workers::submit(const JobResult & result)
 {
-    uv_mutex_lock(&m_mutex);
-    m_queue.push_back(result);
-    uv_mutex_unlock(&m_mutex);
+	uv_mutex_lock(&m_mutex);
+	m_queue.push_back(result);
+	uv_mutex_unlock(&m_mutex);
 
-    uv_async_send(&m_async);
+	uv_async_send(&m_async);
 }
 
 
-void Workers::onReady(void *arg)
+void Workers::onReady(void* arg)
 {
-    auto handle = static_cast<Handle*>(arg);
-    if (Mem::isDoubleHash()) {
-        handle->setWorker(new DoubleWorker(handle));
-    }
-    else {
-        handle->setWorker(new SingleWorker(handle));
-    }
+	auto handle = static_cast<Handle*>(arg);
+	if(Mem::isDoubleHash())
+	{
+		handle->setWorker(new DoubleWorker(handle));
+	}
+	else
+	{
+		handle->setWorker(new SingleWorker(handle));
+	}
 
-    handle->worker()->start();
+	handle->worker()->start();
 }
 
 
-void Workers::onResult(uv_async_t *handle)
+void Workers::onResult(uv_async_t* handle)
 {
-    std::list<JobResult> results;
+	std::list<JobResult> results;
 
-    uv_mutex_lock(&m_mutex);
-    while (!m_queue.empty()) {
-        results.push_back(std::move(m_queue.front()));
-        m_queue.pop_front();
-    }
-    uv_mutex_unlock(&m_mutex);
+	uv_mutex_lock(&m_mutex);
+	while(!m_queue.empty())
+	{
+		results.push_back(std::move(m_queue.front()));
+		m_queue.pop_front();
+	}
+	uv_mutex_unlock(&m_mutex);
 
-    for (auto result : results) {
-        m_listener->onJobResult(result);
-    }
+	for(auto result : results)
+	{
+		m_listener->onJobResult(result);
+	}
 
-    results.clear();
+	results.clear();
 }
 
 
-void Workers::onTick(uv_timer_t *handle)
+void Workers::onTick(uv_timer_t* handle)
 {
-    for (Handle *handle : m_workers) {
-        if (!handle->worker()) {
-            return;
-        }
+	for(Handle* handle : m_workers)
+	{
+		if(!handle->worker())
+		{
+			return;
+		}
 
-        m_hashrate->add(handle->threadId(), handle->worker()->hashCount(), handle->worker()->timestamp());
-    }
+		m_hashrate->add(handle->threadId(), handle->worker()->hashCount(), handle->worker()->timestamp());
+	}
 
-    if ((m_ticks++ & 0xF) == 0)  {
-        m_hashrate->updateHighest();
-    }
+	if((m_ticks++ & 0xF) == 0)
+	{
+		m_hashrate->updateHighest();
+	}
 
 #   ifndef XMRIG_NO_API
-    Api::tick(m_hashrate);
+	Api::tick(m_hashrate);
 #   endif
 }

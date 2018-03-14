@@ -37,51 +37,105 @@
 class Job
 {
 public:
-    Job();
-    Job(int poolId, bool nicehash, int algo, int variant);
-    ~Job();
+	Job();
+	Job(int poolId, bool nicehash, int algo, int variant);
+	~Job();
 
-    bool setBlob(const char *blob);
-    bool setTarget(const char *target);
-    void setCoin(const char *coin);
-    void setVariant(int variant);
+	bool setBlob(const char* blob);
+	bool setTarget(const char* target);
+	void setCoin(const char* coin);
+	void setVariant(int variant);
 
-    inline bool isNicehash() const         { return m_nicehash; }
-    inline bool isValid() const            { return m_size > 0 && m_diff > 0; }
-    inline bool setId(const char *id)      { return m_id.setId(id); }
-    inline const char *coin() const        { return m_coin; }
-    inline const uint32_t *nonce() const   { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
-    inline const uint8_t *blob() const     { return m_blob; }
-    inline const xmrig::Id &id() const     { return m_id; }
-    inline int poolId() const              { return m_poolId; }
-    inline int threadId() const            { return m_threadId; }
-    inline int variant() const             { return (m_variant == xmrig::VARIANT_AUTO ? (m_blob[0] > 6 ? 1 : 0) : m_variant); }
-    inline size_t size() const             { return m_size; }
-    inline uint32_t *nonce()               { return reinterpret_cast<uint32_t*>(m_blob + 39); }
-    inline uint32_t diff() const           { return (uint32_t) m_diff; }
-    inline uint64_t target() const         { return m_target; }
-    inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
-    inline void setThreadId(int threadId)  { m_threadId = threadId; }
+	inline bool isNicehash() const
+	{
+		return m_nicehash;
+	}
+	inline bool isValid() const
+	{
+		return m_size > 0 && m_diff > 0;
+	}
+	inline bool setId(const char* id)
+	{
+		return m_id.setId(id);
+	}
+	inline const char* coin() const
+	{
+		return m_coin;
+	}
+	inline const uint32_t* nonce() const
+	{
+		return reinterpret_cast<const uint32_t*>(m_blob + 39);
+	}
+	inline const uint8_t* blob() const
+	{
+		return m_blob;
+	}
+	inline const xmrig::Id & id() const
+	{
+		return m_id;
+	}
+	inline int poolId() const
+	{
+		return m_poolId;
+	}
+	inline int threadId() const
+	{
+		return m_threadId;
+	}
+	inline int variant() const
+	{
+		return (m_variant == xmrig::VARIANT_AUTO ? (m_blob[0] > 6 ? 1 : 0) : m_variant);
+	}
+	inline size_t size() const
+	{
+		return m_size;
+	}
+	inline uint32_t* nonce()
+	{
+		return reinterpret_cast<uint32_t*>(m_blob + 39);
+	}
+	inline uint32_t diff() const
+	{
+		return (uint32_t) m_diff;
+	}
+	inline uint64_t target() const
+	{
+		return m_target;
+	}
+	inline void setNicehash(bool nicehash)
+	{
+		m_nicehash = nicehash;
+	}
+	inline void setThreadId(int threadId)
+	{
+		m_threadId = threadId;
+	}
 
-    static bool fromHex(const char* in, unsigned int len, unsigned char* out);
-    static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
-    static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
-    static void toHex(const unsigned char* in, unsigned int len, char* out);
+	static bool fromHex(const char* in, unsigned int len, unsigned char* out);
+	static inline uint32_t* nonce(uint8_t* blob)
+	{
+		return reinterpret_cast<uint32_t*>(blob + 39);
+	}
+	static inline uint64_t toDiff(uint64_t target)
+	{
+		return 0xFFFFFFFFFFFFFFFFULL / target;
+	}
+	static void toHex(const unsigned char* in, unsigned int len, char* out);
 
-    bool operator==(const Job &other) const;
+	bool operator==(const Job & other) const;
 
 private:
-    bool m_nicehash;
-    char m_coin[5];
-    int m_algo;
-    int m_poolId;
-    int m_threadId;
-    int m_variant;
-    size_t m_size;
-    uint64_t m_diff;
-    uint64_t m_target;
-    uint8_t m_blob[96]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
-    xmrig::Id m_id;
+	bool m_nicehash;
+	char m_coin[5];
+	int m_algo;
+	int m_poolId;
+	int m_threadId;
+	int m_variant;
+	size_t m_size;
+	uint64_t m_diff;
+	uint64_t m_target;
+	uint8_t m_blob[96]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
+	xmrig::Id m_id;
 };
 
 #endif /* __JOB_H__ */

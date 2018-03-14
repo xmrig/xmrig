@@ -31,98 +31,113 @@
 #include "log/Log.h"
 
 
-Httpd::Httpd(int port, const char *accessToken) :
-    m_accessToken(accessToken),
-    m_port(port),
-    m_daemon(nullptr)
+Httpd::Httpd(int port, const char* accessToken) :
+	m_accessToken(accessToken),
+	m_port(port),
+	m_daemon(nullptr)
 {
 }
 
 
 bool Httpd::start()
 {
-    if (!m_port) {
-        return false;
-    }
+	if(!m_port)
+	{
+		return false;
+	}
 
-    unsigned int flags = 0;
-    if (MHD_is_feature_supported(MHD_FEATURE_EPOLL)) {
-        flags = MHD_USE_EPOLL_LINUX_ONLY | MHD_USE_EPOLL_INTERNALLY_LINUX_ONLY;
-    }
-    else {
-        flags = MHD_USE_SELECT_INTERNALLY;
-    }
+	unsigned int flags = 0;
+	if(MHD_is_feature_supported(MHD_FEATURE_EPOLL))
+	{
+		flags = MHD_USE_EPOLL_LINUX_ONLY | MHD_USE_EPOLL_INTERNALLY_LINUX_ONLY;
+	}
+	else
+	{
+		flags = MHD_USE_SELECT_INTERNALLY;
+	}
 
-    if (MHD_is_feature_supported(MHD_FEATURE_IPv6)) {
-        flags |= MHD_USE_DUAL_STACK;
-    }
+	if(MHD_is_feature_supported(MHD_FEATURE_IPv6))
+	{
+		flags |= MHD_USE_DUAL_STACK;
+	}
 
-    m_daemon = MHD_start_daemon(flags, m_port, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
-    if (!m_daemon) {
-        LOG_ERR("HTTP Daemon failed to start.");
-        return false;
-    }
+	m_daemon = MHD_start_daemon(flags, m_port, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
+	if(!m_daemon)
+	{
+		LOG_ERR("HTTP Daemon failed to start.");
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 
-int Httpd::auth(const char *header)
+int Httpd::auth(const char* header)
 {
-    if (!m_accessToken) {
-        return MHD_HTTP_OK;
-    }
+	if(!m_accessToken)
+	{
+		return MHD_HTTP_OK;
+	}
 
-    if (m_accessToken && !header) {
-        return MHD_HTTP_UNAUTHORIZED;
-    }
+	if(m_accessToken && !header)
+	{
+		return MHD_HTTP_UNAUTHORIZED;
+	}
 
-    const size_t size = strlen(header);
-    if (size < 8 || strlen(m_accessToken) != size - 7 || memcmp("Bearer ", header, 7) != 0) {
-        return MHD_HTTP_FORBIDDEN;
-    }
+	const size_t size = strlen(header);
+	if(size < 8 || strlen(m_accessToken) != size - 7 || memcmp("Bearer ", header, 7) != 0)
+	{
+		return MHD_HTTP_FORBIDDEN;
+	}
 
-    return strncmp(m_accessToken, header + 7, strlen(m_accessToken)) == 0 ? MHD_HTTP_OK : MHD_HTTP_FORBIDDEN;
+	return strncmp(m_accessToken, header + 7, strlen(m_accessToken)) == 0 ? MHD_HTTP_OK : MHD_HTTP_FORBIDDEN;
 }
 
 
-int Httpd::done(MHD_Connection *connection, int status, MHD_Response *rsp)
+int Httpd::done(MHD_Connection* connection, int status, MHD_Response* rsp)
 {
-    if (!rsp) {
-        rsp = MHD_create_response_from_buffer(0, nullptr, MHD_RESPMEM_PERSISTENT);
-    }
+	if(!rsp)
+	{
+		rsp = MHD_create_response_from_buffer(0, nullptr, MHD_RESPMEM_PERSISTENT);
+	}
 
-    MHD_add_response_header(rsp, "Content-Type", "application/json");
-    MHD_add_response_header(rsp, "Access-Control-Allow-Origin", "*");
-    MHD_add_response_header(rsp, "Access-Control-Allow-Methods", "GET");
-    MHD_add_response_header(rsp, "Access-Control-Allow-Headers", "Authorization");
+	MHD_add_response_header(rsp, "Content-Type", "application/json");
+	MHD_add_response_header(rsp, "Access-Control-Allow-Origin", "*");
+	MHD_add_response_header(rsp, "Access-Control-Allow-Methods", "GET");
+	MHD_add_response_header(rsp, "Access-Control-Allow-Headers", "Authorization");
 
-    const int ret = MHD_queue_response(connection, status, rsp);
-    MHD_destroy_response(rsp);
-    return ret;
+	const int ret = MHD_queue_response(connection, status, rsp);
+	MHD_destroy_response(rsp);
+	return ret;
 }
 
 
-int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls)
+int Httpd::handler(void* cls, struct MHD_Connection* connection, const char* url, const char* method,
+                   const char* version, const char* upload_data, size_t* upload_data_size, void** con_cls)
 {
-    if (strcmp(method, "OPTIONS") == 0) {
-        return done(connection, MHD_HTTP_OK, nullptr);
-    }
+	if(strcmp(method, "OPTIONS") == 0)
+	{
+		return done(connection, MHD_HTTP_OK, nullptr);
+	}
 
-    if (strcmp(method, "GET") != 0) {
-        return MHD_NO;
-    }
+	if(strcmp(method, "GET") != 0)
+	{
+		return MHD_NO;
+	}
 
-    int status = static_cast<Httpd*>(cls)->auth(MHD_lookup_connection_value(connection, MHD_HEADER_KIND, "Authorization"));
-    if (status != MHD_HTTP_OK) {
-        return done(connection, status, nullptr);
-    }
+	int status = static_cast<Httpd*>(cls)->auth(MHD_lookup_connection_value(connection, MHD_HEADER_KIND,
+	             "Authorization"));
+	if(status != MHD_HTTP_OK)
+	{
+		return done(connection, status, nullptr);
+	}
 
-    char *buf = Api::get(url, &status);
-    if (buf == nullptr) {
-        return MHD_NO;
-    }
+	char* buf = Api::get(url, &status);
+	if(buf == nullptr)
+	{
+		return MHD_NO;
+	}
 
-    MHD_Response *rsp = MHD_create_response_from_buffer(strlen(buf), (void*) buf, MHD_RESPMEM_MUST_FREE);
-    return done(connection, status, rsp);
+	MHD_Response* rsp = MHD_create_response_from_buffer(strlen(buf), (void*) buf, MHD_RESPMEM_MUST_FREE);
+	return done(connection, status, rsp);
 }

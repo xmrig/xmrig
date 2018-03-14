@@ -29,17 +29,19 @@ namespace xmrig
 {
 
 
-enum Algo {
-    ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
-    ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
-};
+	enum Algo
+	{
+		ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
+		ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
+	};
 
 
-enum Variant {
-    VARIANT_AUTO = -1,
-    VARIANT_NONE = 0,
-    VARIANT_V1   = 1
-};
+	enum Variant
+	{
+		VARIANT_AUTO = -1,
+		VARIANT_NONE = 0,
+		VARIANT_V1   = 1
+	};
 
 } /* xmrig */
 

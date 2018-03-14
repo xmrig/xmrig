@@ -28,12 +28,12 @@
  * This file contains a list of internal codes we use in detection. It is
  * of no external use and isn't a complete list of AMD products.
  */
-	CODE2(OPTERON_800, 1000),
-	CODE(PHENOM),
-	CODE(PHENOM2),
-	CODE(FUSION_C),
-	CODE(FUSION_E),
-	CODE(FUSION_EA),
-	CODE(FUSION_Z),
-	CODE(FUSION_A),
-	
+CODE2(OPTERON_800, 1000),
+      CODE(PHENOM),
+      CODE(PHENOM2),
+      CODE(FUSION_C),
+      CODE(FUSION_E),
+      CODE(FUSION_EA),
+      CODE(FUSION_Z),
+      CODE(FUSION_A),
+

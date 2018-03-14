@@ -38,53 +38,57 @@ int Mem::m_flags                   = 0;
 int Mem::m_threads                 = 0;
 size_t Mem::m_offset               = 0;
 size_t Mem::m_size                 = 0;
-alignas(16) uint8_t *Mem::m_memory = nullptr;
+alignas(16) uint8_t* Mem::m_memory = nullptr;
 
 
-cryptonight_ctx *Mem::create(int threadId)
+cryptonight_ctx* Mem::create(int threadId)
 {
 #   ifndef XMRIG_NO_AEON
-    if (m_algo == xmrig::ALGO_CRYPTONIGHT_LITE) {
-        return createLite(threadId);
-    }
+	if(m_algo == xmrig::ALGO_CRYPTONIGHT_LITE)
+	{
+		return createLite(threadId);
+	}
 #   endif
 
-    cryptonight_ctx *ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MONERO_MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
+	cryptonight_ctx* ctx = reinterpret_cast<cryptonight_ctx*>(&m_memory[MONERO_MEMORY - sizeof(cryptonight_ctx) *
+	                                     (threadId + 1)]);
 
-    const int ratio = m_doubleHash ? 2 : 1;
-    ctx->memory = &m_memory[MONERO_MEMORY * (threadId * ratio + 1)];
+	const int ratio = m_doubleHash ? 2 : 1;
+	ctx->memory = &m_memory[MONERO_MEMORY * (threadId * ratio + 1)];
 
-    return ctx;
+	return ctx;
 }
 
 
 
-void *Mem::calloc(size_t num, size_t size)
+void* Mem::calloc(size_t num, size_t size)
 {
-    void *mem = &m_memory[m_offset];
-    m_offset += (num * size);
+	void* mem = &m_memory[m_offset];
+	m_offset += (num * size);
 
-    memset(mem, 0, num * size);
+	memset(mem, 0, num * size);
 
-    return mem;
+	return mem;
 }
 
 
 #ifndef XMRIG_NO_AEON
-cryptonight_ctx *Mem::createLite(int threadId) {
-    cryptonight_ctx *ctx;
+cryptonight_ctx* Mem::createLite(int threadId)
+{
+	cryptonight_ctx* ctx;
 
-    if (!m_doubleHash) {
-        const size_t offset = MONERO_MEMORY * (threadId + 1);
+	if(!m_doubleHash)
+	{
+		const size_t offset = MONERO_MEMORY * (threadId + 1);
 
-        ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset + AEON_MEMORY]);
-        ctx->memory = &m_memory[offset];
-        return ctx;
-    }
+		ctx = reinterpret_cast<cryptonight_ctx*>(&m_memory[offset + AEON_MEMORY]);
+		ctx->memory = &m_memory[offset];
+		return ctx;
+	}
 
-    ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MONERO_MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
-    ctx->memory = &m_memory[MONERO_MEMORY * (threadId + 1)];
+	ctx = reinterpret_cast<cryptonight_ctx*>(&m_memory[MONERO_MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
+	ctx->memory = &m_memory[MONERO_MEMORY * (threadId + 1)];
 
-    return ctx;
+	return ctx;
 }
 #endif

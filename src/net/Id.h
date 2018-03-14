@@ -28,68 +28,77 @@
 #include <string.h>
 
 
-namespace xmrig {
-
-
-class Id
+namespace xmrig
 {
-public:
-    inline Id() :
-        m_data()
-    {
-    }
 
 
-    inline Id(const char *id, size_t sizeFix = 0)
-    {
-        setId(id, sizeFix);
-    }
+	class Id
+	{
+	public:
+		inline Id() :
+			m_data()
+		{
+		}
 
 
-    inline bool operator==(const Id &other) const
-    {
-        return memcmp(m_data, other.m_data, sizeof(m_data)) == 0;
-    }
+		inline Id(const char* id, size_t sizeFix = 0)
+		{
+			setId(id, sizeFix);
+		}
 
 
-    inline bool operator!=(const Id &other) const
-    {
-        return memcmp(m_data, other.m_data, sizeof(m_data)) != 0;
-    }
+		inline bool operator==(const Id & other) const
+		{
+			return memcmp(m_data, other.m_data, sizeof(m_data)) == 0;
+		}
 
 
-    Id &operator=(const Id &other)
-    {
-        memcpy(m_data, other.m_data, sizeof(m_data));
-
-        return *this;
-    }
+		inline bool operator!=(const Id & other) const
+		{
+			return memcmp(m_data, other.m_data, sizeof(m_data)) != 0;
+		}
 
 
-    inline bool setId(const char *id, size_t sizeFix = 0)
-    {
-        memset(m_data, 0, sizeof(m_data));
-        if (!id) {
-            return false;
-        }
+		Id & operator=(const Id & other)
+		{
+			memcpy(m_data, other.m_data, sizeof(m_data));
 
-        const size_t size = strlen(id);
-        if (size >= sizeof(m_data)) {
-            return false;
-        }
-
-        memcpy(m_data, id, size - sizeFix);
-        return true;
-    }
+			return *this;
+		}
 
 
-    inline const char *data() const { return m_data; }
-    inline bool isValid() const     { return *m_data != '\0'; }
+		inline bool setId(const char* id, size_t sizeFix = 0)
+		{
+			memset(m_data, 0, sizeof(m_data));
+			if(!id)
+			{
+				return false;
+			}
+
+			const size_t size = strlen(id);
+			if(size >= sizeof(m_data))
+			{
+				return false;
+			}
+
+			memcpy(m_data, id, size - sizeFix);
+			return true;
+		}
 
 
-private:
-    char m_data[64];
-};
+		inline const char* data() const
+		{
+			return m_data;
+		}
+		inline bool isValid() const
+		{
+			return *m_data != '\0';
+		}
+
+
+	private:
+		char m_data[64];
+	};
 
 
 } /* namespace xmrig */

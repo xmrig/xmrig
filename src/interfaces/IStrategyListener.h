@@ -37,12 +37,12 @@ class SubmitResult;
 class IStrategyListener
 {
 public:
-    virtual ~IStrategyListener() {}
+	virtual ~IStrategyListener() {}
 
-    virtual void onActive(Client *client)                                                        = 0;
-    virtual void onJob(Client *client, const Job &job)                                           = 0;
-    virtual void onPause(IStrategy *strategy)                                                    = 0;
-    virtual void onResultAccepted(Client *client, const SubmitResult &result, const char *error) = 0;
+	virtual void onActive(Client* client)                                                        = 0;
+	virtual void onJob(Client* client, const Job & job)                                           = 0;
+	virtual void onPause(IStrategy* strategy)                                                    = 0;
+	virtual void onResultAccepted(Client* client, const SubmitResult & result, const char* error) = 0;
 };
 
 

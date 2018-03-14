@@ -49,7 +49,7 @@
 // A struct is now defined in this header file called 'SIMDVec' which can be used by applications which
 // attempt to access the contents of an _m128 struct directly.  It is important to note that accessing the __m128
 // struct directly is bad coding practice by Microsoft: @see: https://msdn.microsoft.com/en-us/library/ayeb3ayc.aspx
-// 
+//
 // However, some legacy source code may try to access the contents of an __m128 struct directly so the developer
 // can use the SIMDVec as an alias for it.  Any casting must be done manually by the developer, as you cannot
 // cast or otherwise alias the base NEON data type for intrinsic operations.
@@ -66,7 +66,7 @@
 //
 // Support for a number of new intrinsics was added, however, none of them yet have unit-tests to 100% confirm they are
 // producing the correct results on NEON.  These unit tests will be added as soon as possible.
-// 
+//
 // Here is the list of new instrinsics which have been added:
 //
 // _mm_cvtss_f32     :  extracts the lower order floating point value from the parameter
@@ -338,9 +338,9 @@ FORCE_INLINE __m128 _mm_set_ps(float w, float z, float y, float x)
 }
 
 // Sets the four single-precision, floating-point values to the four inputs in reverse order. https://msdn.microsoft.com/en-us/library/vstudio/d2172ct3(v=vs.100).aspx
-FORCE_INLINE __m128 _mm_setr_ps(float w, float z , float y , float x ) 
+FORCE_INLINE __m128 _mm_setr_ps(float w, float z, float y, float x)
 {
-	float __attribute__ ((aligned (16))) data[4] = { w, z, y, x };
+	float __attribute__((aligned(16))) data[4] = { w, z, y, x };
 	return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
@@ -358,25 +358,25 @@ FORCE_INLINE __m128i _mm_set_epi32(int i3, int i2, int i1, int i0)
 }
 
 // Stores four single-precision, floating-point values. https://msdn.microsoft.com/en-us/library/vstudio/s3h4ay6y(v=vs.100).aspx
-FORCE_INLINE void _mm_store_ps(float *p, __m128 a)
+FORCE_INLINE void _mm_store_ps(float* p, __m128 a)
 {
 	vst1q_f32(p, vreinterpretq_f32_m128(a));
 }
 
 // Stores four single-precision, floating-point values. https://msdn.microsoft.com/en-us/library/44e30x22(v=vs.100).aspx
-FORCE_INLINE void _mm_storeu_ps(float *p, __m128 a)
+FORCE_INLINE void _mm_storeu_ps(float* p, __m128 a)
 {
 	vst1q_f32(p, vreinterpretq_f32_m128(a));
 }
 
 // Stores four 32-bit integer values as (as a __m128i value) at the address p. https://msdn.microsoft.com/en-us/library/vstudio/edk11s13(v=vs.100).aspx
-FORCE_INLINE void _mm_store_si128(__m128i *p, __m128i a)
+FORCE_INLINE void _mm_store_si128(__m128i* p, __m128i a)
 {
 	vst1q_s32((int32_t*) p, vreinterpretq_s32_m128i(a));
 }
 
 // Stores the lower single - precision, floating - point value. https://msdn.microsoft.com/en-us/library/tzz10fbx(v=vs.100).aspx
-FORCE_INLINE void _mm_store_ss(float *p, __m128 a)
+FORCE_INLINE void _mm_store_ss(float* p, __m128 a)
 {
 	vst1q_lane_f32(p, vreinterpretq_f32_m128(a), 0);
 }
@@ -390,26 +390,26 @@ FORCE_INLINE void _mm_storel_epi64(__m128i* a, __m128i b)
 }
 
 // Loads a single single-precision, floating-point value, copying it into all four words https://msdn.microsoft.com/en-us/library/vstudio/5cdkf716(v=vs.100).aspx
-FORCE_INLINE __m128 _mm_load1_ps(const float * p)
+FORCE_INLINE __m128 _mm_load1_ps(const float* p)
 {
 	return vreinterpretq_m128_f32(vld1q_dup_f32(p));
 }
 
 // Loads four single-precision, floating-point values. https://msdn.microsoft.com/en-us/library/vstudio/zzd50xxt(v=vs.100).aspx
-FORCE_INLINE __m128 _mm_load_ps(const float * p)
+FORCE_INLINE __m128 _mm_load_ps(const float* p)
 {
 	return vreinterpretq_m128_f32(vld1q_f32(p));
 }
 
 // Loads four single-precision, floating-point values.  https://msdn.microsoft.com/en-us/library/x1b16s7z%28v=vs.90%29.aspx
-FORCE_INLINE __m128 _mm_loadu_ps(const float * p)
+FORCE_INLINE __m128 _mm_loadu_ps(const float* p)
 {
 	// for neon, alignment doesn't matter, so _mm_load_ps and _mm_loadu_ps are equivalent for neon
 	return vreinterpretq_m128_f32(vld1q_f32(p));
 }
 
 // Loads an single - precision, floating - point value into the low word and clears the upper three words.  https://msdn.microsoft.com/en-us/library/548bb9h4%28v=vs.90%29.aspx
-FORCE_INLINE __m128 _mm_load_ss(const float * p)
+FORCE_INLINE __m128 _mm_load_ss(const float* p)
 {
 	return vreinterpretq_m128_f32(vsetq_lane_f32(*p, vdupq_n_f32(0), 0));
 }
@@ -422,55 +422,57 @@ FORCE_INLINE __m128 _mm_load_ss(const float * p)
 // Compares for inequality.  https://msdn.microsoft.com/en-us/library/sf44thbx(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_cmpneq_ps(__m128 a, __m128 b)
 {
-	return vreinterpretq_m128_u32( vmvnq_u32( vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)) ) );
+	return vreinterpretq_m128_u32(vmvnq_u32(vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b))));
 }
 
 // Computes the bitwise AND-NOT of the four single-precision, floating-point values of a and b. https://msdn.microsoft.com/en-us/library/vstudio/68h7wd02(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_andnot_ps(__m128 a, __m128 b)
 {
-	return vreinterpretq_m128_s32( vbicq_s32(vreinterpretq_s32_m128(b), vreinterpretq_s32_m128(a)) ); // *NOTE* argument swap
+	return vreinterpretq_m128_s32(vbicq_s32(vreinterpretq_s32_m128(b),
+	                                        vreinterpretq_s32_m128(a)));   // *NOTE* argument swap
 }
 
 // Computes the bitwise AND of the 128-bit value in b and the bitwise NOT of the 128-bit value in a. https://msdn.microsoft.com/en-us/library/vstudio/1beaceh8(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_andnot_si128(__m128i a, __m128i b)
 {
-	return vreinterpretq_m128i_s32( vbicq_s32(vreinterpretq_s32_m128i(b), vreinterpretq_s32_m128i(a)) ); // *NOTE* argument swap
+	return vreinterpretq_m128i_s32(vbicq_s32(vreinterpretq_s32_m128i(b),
+	                               vreinterpretq_s32_m128i(a)));   // *NOTE* argument swap
 }
 
 // Computes the bitwise AND of the 128-bit value in a and the 128-bit value in b. https://msdn.microsoft.com/en-us/library/vstudio/6d1txsa8(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_and_si128(__m128i a, __m128i b)
 {
-	return vreinterpretq_m128i_s32( vandq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)) );
+	return vreinterpretq_m128i_s32(vandq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
 // Computes the bitwise AND of the four single-precision, floating-point values of a and b. https://msdn.microsoft.com/en-us/library/vstudio/73ck1xc5(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_and_ps(__m128 a, __m128 b)
 {
-	return vreinterpretq_m128_s32( vandq_s32(vreinterpretq_s32_m128(a), vreinterpretq_s32_m128(b)) );
+	return vreinterpretq_m128_s32(vandq_s32(vreinterpretq_s32_m128(a), vreinterpretq_s32_m128(b)));
 }
 
 // Computes the bitwise OR of the four single-precision, floating-point values of a and b. https://msdn.microsoft.com/en-us/library/vstudio/7ctdsyy0(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_or_ps(__m128 a, __m128 b)
 {
-	return vreinterpretq_m128_s32( vorrq_s32(vreinterpretq_s32_m128(a), vreinterpretq_s32_m128(b)) );
+	return vreinterpretq_m128_s32(vorrq_s32(vreinterpretq_s32_m128(a), vreinterpretq_s32_m128(b)));
 }
 
 // Computes bitwise EXOR (exclusive-or) of the four single-precision, floating-point values of a and b. https://msdn.microsoft.com/en-us/library/ss6k3wk8(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_xor_ps(__m128 a, __m128 b)
 {
-	return vreinterpretq_m128_s32( veorq_s32(vreinterpretq_s32_m128(a), vreinterpretq_s32_m128(b)) );
+	return vreinterpretq_m128_s32(veorq_s32(vreinterpretq_s32_m128(a), vreinterpretq_s32_m128(b)));
 }
 
 // Computes the bitwise OR of the 128-bit value in a and the 128-bit value in b. https://msdn.microsoft.com/en-us/library/vstudio/ew8ty0db(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_or_si128(__m128i a, __m128i b)
 {
-	return vreinterpretq_m128i_s32( vorrq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)) );
+	return vreinterpretq_m128i_s32(vorrq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
 // Computes the bitwise XOR of the 128-bit value in a and the 128-bit value in b.  https://msdn.microsoft.com/en-us/library/fzt08www(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
 {
-	return vreinterpretq_m128i_s32( veorq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)) );
+	return vreinterpretq_m128i_s32(veorq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
 // NEON does not provide this method
@@ -478,7 +480,7 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
 FORCE_INLINE int _mm_movemask_ps(__m128 a)
 {
 #if ENABLE_CPP_VERSION // I am not yet convinced that the NEON version is faster than the C version of this
-	uint32x4_t &ia = *(uint32x4_t *)&a;
+	uint32x4_t & ia = *(uint32x4_t*)&a;
 	return (ia[0] >> 31) | ((ia[1] >> 30) & 2) | ((ia[2] >> 29) & 4) | ((ia[3] >> 28) & 8);
 #else
 	static const uint32x4_t movemask = { 1, 2, 4, 8 };
@@ -622,7 +624,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_2032(__m128 a, __m128 b)
 // The same is true on SSE as well.
 // Selects four specific single-precision, floating-point values from a and b, based on the mask i. https://msdn.microsoft.com/en-us/library/vstudio/5f0858x0(v=vs.100).aspx
 #if ENABLE_CPP_VERSION // I am not convinced that the NEON version is faster than the C version yet.
-FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a, __m128 b, __constrange(0,255) int imm)
+FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a, __m128 b, __constrange(0, 255) int imm)
 {
 	__m128 ret;
 	ret[0] = a[imm & 0x3];
@@ -633,22 +635,22 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a, __m128 b, __constrange(0,25
 }
 #else
 #define _mm_shuffle_ps_default(a, b, imm) \
-({ \
-	float32x4_t ret; \
-	ret = vmovq_n_f32(vgetq_lane_f32(vreinterpretq_f32_m128(a), (imm) & 0x3)); \
-	ret = vsetq_lane_f32(vgetq_lane_f32(vreinterpretq_f32_m128(a), ((imm) >> 2) & 0x3), ret, 1); \
-	ret = vsetq_lane_f32(vgetq_lane_f32(vreinterpretq_f32_m128(b), ((imm) >> 4) & 0x3), ret, 2); \
-	ret = vsetq_lane_f32(vgetq_lane_f32(vreinterpretq_f32_m128(b), ((imm) >> 6) & 0x3), ret, 3); \
-	vreinterpretq_m128_f32(ret); \
-})
+	({ \
+		float32x4_t ret; \
+		ret = vmovq_n_f32(vgetq_lane_f32(vreinterpretq_f32_m128(a), (imm) & 0x3)); \
+		ret = vsetq_lane_f32(vgetq_lane_f32(vreinterpretq_f32_m128(a), ((imm) >> 2) & 0x3), ret, 1); \
+		ret = vsetq_lane_f32(vgetq_lane_f32(vreinterpretq_f32_m128(b), ((imm) >> 4) & 0x3), ret, 2); \
+		ret = vsetq_lane_f32(vgetq_lane_f32(vreinterpretq_f32_m128(b), ((imm) >> 6) & 0x3), ret, 3); \
+		vreinterpretq_m128_f32(ret); \
+	})
 #endif
 
 //FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, __constrange(0,255) int imm)
 #define _mm_shuffle_ps(a, b, imm) \
-({ \
-	__m128 ret; \
-	switch (imm) \
-	{ \
+	({ \
+		__m128 ret; \
+		switch (imm) \
+		{ \
 		case _MM_SHUFFLE(1, 0, 3, 2): ret = _mm_shuffle_ps_1032((a), (b)); break; \
 		case _MM_SHUFFLE(2, 3, 0, 1): ret = _mm_shuffle_ps_2301((a), (b)); break; \
 		case _MM_SHUFFLE(0, 3, 2, 1): ret = _mm_shuffle_ps_0321((a), (b)); break; \
@@ -666,9 +668,9 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a, __m128 b, __constrange(0,25
 		case _MM_SHUFFLE(2, 0, 0, 1): ret = _mm_shuffle_ps_2001((a), (b)); break; \
 		case _MM_SHUFFLE(2, 0, 3, 2): ret = _mm_shuffle_ps_2032((a), (b)); break; \
 		default: ret = _mm_shuffle_ps_default((a), (b), (imm)); break; \
-	} \
-	ret; \
-})
+		} \
+		ret; \
+	})
 
 // Takes the upper 64 bits of a and places it in the low end of the result
 // Takes the lower 64 bits of a and places it into the high end of the result.
@@ -748,7 +750,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 
 //FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255) int imm)
 #if ENABLE_CPP_VERSION
-FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255) int imm)
+FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0, 255) int imm)
 {
 	__m128i ret;
 	ret[0] = a[imm & 0x3];
@@ -759,36 +761,36 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255) in
 }
 #else
 #define _mm_shuffle_epi32_default(a, imm) \
-({ \
-	int32x4_t ret; \
-	ret = vmovq_n_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm) & 0x3)); \
-	ret = vsetq_lane_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 2) & 0x3), ret, 1); \
-	ret = vsetq_lane_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 4) & 0x3), ret, 2); \
-	ret = vsetq_lane_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 6) & 0x3), ret, 3); \
-	vreinterpretq_m128i_s32(ret); \
-})
+	({ \
+		int32x4_t ret; \
+		ret = vmovq_n_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm) & 0x3)); \
+		ret = vsetq_lane_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 2) & 0x3), ret, 1); \
+		ret = vsetq_lane_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 4) & 0x3), ret, 2); \
+		ret = vsetq_lane_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 6) & 0x3), ret, 3); \
+		vreinterpretq_m128i_s32(ret); \
+	})
 #endif
 
 //FORCE_INLINE __m128i _mm_shuffle_epi32_splat(__m128i a, __constrange(0,255) int imm)
 #if defined(__aarch64__)
 #define _mm_shuffle_epi32_splat(a, imm) \
-({ \
-	vreinterpretq_m128i_s32(vdupq_laneq_s32(vreinterpretq_s32_m128i(a), (imm))); \
-})
+	({ \
+		vreinterpretq_m128i_s32(vdupq_laneq_s32(vreinterpretq_s32_m128i(a), (imm))); \
+	})
 #else
 #define _mm_shuffle_epi32_splat(a, imm) \
-({ \
-	vreinterpretq_m128i_s32(vdupq_n_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm)))); \
-})
+	({ \
+		vreinterpretq_m128i_s32(vdupq_n_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm)))); \
+	})
 #endif
 
 // Shuffles the 4 signed or unsigned 32-bit integers in a as specified by imm.	https://msdn.microsoft.com/en-us/library/56f67xbk%28v=vs.90%29.aspx
 //FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a, __constrange(0,255) int imm)
 #define _mm_shuffle_epi32(a, imm) \
-({ \
-	__m128i ret; \
-	switch (imm) \
-	{ \
+	({ \
+		__m128i ret; \
+		switch (imm) \
+		{ \
 		case _MM_SHUFFLE(1, 0, 3, 2): ret = _mm_shuffle_epi_1032((a)); break; \
 		case _MM_SHUFFLE(2, 3, 0, 1): ret = _mm_shuffle_epi_2301((a)); break; \
 		case _MM_SHUFFLE(0, 3, 2, 1): ret = _mm_shuffle_epi_0321((a)); break; \
@@ -804,22 +806,22 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255) in
 		case _MM_SHUFFLE(2, 2, 2, 2): ret = _mm_shuffle_epi32_splat((a),2); break; \
 		case _MM_SHUFFLE(3, 3, 3, 3): ret = _mm_shuffle_epi32_splat((a),3); break; \
 		default: ret = _mm_shuffle_epi32_default((a), (imm)); break; \
-	} \
-	ret; \
-})
+		} \
+		ret; \
+	})
 
 // Shuffles the upper 4 signed or unsigned 16 - bit integers in a as specified by imm.  https://msdn.microsoft.com/en-us/library/13ywktbs(v=vs.100).aspx
 //FORCE_INLINE __m128i _mm_shufflehi_epi16_function(__m128i a, __constrange(0,255) int imm)
 #define _mm_shufflehi_epi16_function(a, imm) \
-({ \
-	int16x8_t ret = vreinterpretq_s16_s32(a); \
-	int16x4_t highBits = vget_high_s16(ret); \
-	ret = vsetq_lane_s16(vget_lane_s16(highBits, (imm) & 0x3), ret, 4); \
-	ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 2) & 0x3), ret, 5); \
-	ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 4) & 0x3), ret, 6); \
-	ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 6) & 0x3), ret, 7); \
-	vreinterpretq_s32_s16(ret); \
-})
+	({ \
+		int16x8_t ret = vreinterpretq_s16_s32(a); \
+		int16x4_t highBits = vget_high_s16(ret); \
+		ret = vsetq_lane_s16(vget_lane_s16(highBits, (imm) & 0x3), ret, 4); \
+		ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 2) & 0x3), ret, 5); \
+		ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 4) & 0x3), ret, 6); \
+		ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 6) & 0x3), ret, 7); \
+		vreinterpretq_s32_s16(ret); \
+	})
 
 //FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a, __constrange(0,255) int imm)
 #define _mm_shufflehi_epi16(a, imm) \
@@ -829,88 +831,88 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255) in
 // Shifts the 4 signed or unsigned 32-bit integers in a left by count bits while shifting in zeros. : https://msdn.microsoft.com/en-us/library/z2k3bbtb%28v=vs.90%29.aspx
 //FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, __constrange(0,255) int imm)
 #define _mm_slli_epi32(a, imm) \
-({ \
-	__m128i ret; \
-	if ((imm) <= 0) {\
-		ret = a; \
-	} \
-	else if ((imm) > 31) { \
-		ret = _mm_setzero_si128(); \
-	} \
-	else { \
-		ret = vreinterpretq_m128i_s32(vshlq_n_s32(vreinterpretq_s32_m128i(a), (imm))); \
-	} \
-	ret; \
-})
+	({ \
+		__m128i ret; \
+		if ((imm) <= 0) {\
+			ret = a; \
+		} \
+		else if ((imm) > 31) { \
+			ret = _mm_setzero_si128(); \
+		} \
+		else { \
+			ret = vreinterpretq_m128i_s32(vshlq_n_s32(vreinterpretq_s32_m128i(a), (imm))); \
+		} \
+		ret; \
+	})
 
 //Shifts the 4 signed or unsigned 32-bit integers in a right by count bits while shifting in zeros.  https://msdn.microsoft.com/en-us/library/w486zcfa(v=vs.100).aspx
 //FORCE_INLINE __m128i _mm_srli_epi32(__m128i a, __constrange(0,255) int imm)
 #define _mm_srli_epi32(a, imm) \
-({ \
-	__m128i ret; \
-	if ((imm) <= 0) { \
-		ret = a; \
-	} \
-	else if ((imm)> 31) { \
-		ret = _mm_setzero_si128(); \
-	} \
-	else { \
-		ret = vreinterpretq_m128i_u32(vshrq_n_u32(vreinterpretq_u32_m128i(a), (imm))); \
-	} \
-	ret; \
-})
+	({ \
+		__m128i ret; \
+		if ((imm) <= 0) { \
+			ret = a; \
+		} \
+		else if ((imm)> 31) { \
+			ret = _mm_setzero_si128(); \
+		} \
+		else { \
+			ret = vreinterpretq_m128i_u32(vshrq_n_u32(vreinterpretq_u32_m128i(a), (imm))); \
+		} \
+		ret; \
+	})
 
 // Shifts the 4 signed 32 - bit integers in a right by count bits while shifting in the sign bit.  https://msdn.microsoft.com/en-us/library/z1939387(v=vs.100).aspx
 //FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, __constrange(0,255) int imm)
 #define _mm_srai_epi32(a, imm) \
-({ \
-	__m128i ret; \
-	if ((imm) <= 0) { \
-		ret = a; \
-	} \
-	else if ((imm) > 31) { \
-		ret = vreinterpretq_m128i_s32(vshrq_n_s32(vreinterpretq_s32_m128i(a), 16)); \
-		ret = vreinterpretq_m128i_s32(vshrq_n_s32(vreinterpretq_s32_m128i(ret), 16)); \
-	} \
-	else { \
-		ret = vreinterpretq_m128i_s32(vshrq_n_s32(vreinterpretq_s32_m128i(a), (imm))); \
-	} \
-	ret; \
-})
+	({ \
+		__m128i ret; \
+		if ((imm) <= 0) { \
+			ret = a; \
+		} \
+		else if ((imm) > 31) { \
+			ret = vreinterpretq_m128i_s32(vshrq_n_s32(vreinterpretq_s32_m128i(a), 16)); \
+			ret = vreinterpretq_m128i_s32(vshrq_n_s32(vreinterpretq_s32_m128i(ret), 16)); \
+		} \
+		else { \
+			ret = vreinterpretq_m128i_s32(vshrq_n_s32(vreinterpretq_s32_m128i(a), (imm))); \
+		} \
+		ret; \
+	})
 
 // Shifts the 128 - bit value in a right by imm bytes while shifting in zeros.imm must be an immediate. https://msdn.microsoft.com/en-us/library/305w28yz(v=vs.100).aspx
 //FORCE_INLINE _mm_srli_si128(__m128i a, __constrange(0,255) int imm)
 #define _mm_srli_si128(a, imm) \
-({ \
-	__m128i ret; \
-	if ((imm) <= 0) { \
-		ret = a; \
-	} \
-	else if ((imm) > 15) { \
-		ret = _mm_setzero_si128(); \
-	} \
-	else { \
-		ret = vreinterpretq_m128i_s8(vextq_s8(vreinterpretq_s8_m128i(a), vdupq_n_s8(0), (imm))); \
-	} \
-	ret; \
-})
+	({ \
+		__m128i ret; \
+		if ((imm) <= 0) { \
+			ret = a; \
+		} \
+		else if ((imm) > 15) { \
+			ret = _mm_setzero_si128(); \
+		} \
+		else { \
+			ret = vreinterpretq_m128i_s8(vextq_s8(vreinterpretq_s8_m128i(a), vdupq_n_s8(0), (imm))); \
+		} \
+		ret; \
+	})
 
 // Shifts the 128-bit value in a left by imm bytes while shifting in zeros. imm must be an immediate.  https://msdn.microsoft.com/en-us/library/34d3k2kt(v=vs.100).aspx
 //FORCE_INLINE __m128i _mm_slli_si128(__m128i a, __constrange(0,255) int imm)
 #define _mm_slli_si128(a, imm) \
-({ \
-	__m128i ret; \
-	if ((imm) <= 0) { \
-		ret = a; \
-	} \
-	else if ((imm) > 15) { \
-		ret = _mm_setzero_si128(); \
-	} \
-	else { \
-		ret = vreinterpretq_m128i_s8(vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(a), 16 - (imm))); \
-	} \
-	ret; \
-})
+	({ \
+		__m128i ret; \
+		if ((imm) <= 0) { \
+			ret = a; \
+		} \
+		else if ((imm) > 15) { \
+			ret = _mm_setzero_si128(); \
+		} \
+		else { \
+			ret = vreinterpretq_m128i_s8(vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(a), 16 - (imm))); \
+		} \
+		ret; \
+	})
 
 // NEON does not provide a version of this function, here is an article about some ways to repro the results.
 // http://stackoverflow.com/questions/11870910/sse-mm-movemask-epi8-equivalent-method-for-arm-neon
@@ -1000,7 +1002,7 @@ FORCE_INLINE __m128i _mm_mullo_epi16(__m128i a, __m128i b)
 // Multiplies the 4 signed or unsigned 32-bit integers from a by the 4 signed or unsigned 32-bit integers from b. https://msdn.microsoft.com/en-us/library/vstudio/bb531409(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_mullo_epi32(__m128i a, __m128i b)
 {
-	return vreinterpretq_m128i_s32(vmulq_s32(vreinterpretq_s32_m128i(a),vreinterpretq_s32_m128i(b)));
+	return vreinterpretq_m128i_s32(vmulq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
 // Multiplies the four single-precision, floating-point values of a and b. https://msdn.microsoft.com/en-us/library/vstudio/22kbk6t9(v=vs.100).aspx
@@ -1030,7 +1032,7 @@ FORCE_INLINE __m128 recipq_newton(__m128 in, int n)
 {
 	int i;
 	float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(in));
-	for (i = 0; i < n; ++i)
+	for(i = 0; i < n; ++i)
 	{
 		recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
 	}
@@ -1128,9 +1130,9 @@ FORCE_INLINE __m128i _mm_mulhi_epi16(__m128i a, __m128i b)
 	return vreinterpretq_m128i_u16(r.val[1]);
 }
 
-// Computes pairwise add of each argument as single-precision, floating-point values a and b. 
+// Computes pairwise add of each argument as single-precision, floating-point values a and b.
 //https://msdn.microsoft.com/en-us/library/yd9wecaa.aspx
-FORCE_INLINE __m128 _mm_hadd_ps(__m128 a, __m128 b ) 
+FORCE_INLINE __m128 _mm_hadd_ps(__m128 a, __m128 b)
 {
 #if defined(__aarch64__)
 	return vreinterpretq_m128_f32(vpaddq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b))); //AArch64
@@ -1193,7 +1195,7 @@ FORCE_INLINE __m128i _mm_cmpgt_epi32(__m128i a, __m128i b)
 // see also:
 // http://stackoverflow.com/questions/8627331/what-does-ordered-unordered-comparison-mean
 // http://stackoverflow.com/questions/29349621/neon-isnanval-intrinsics
-FORCE_INLINE __m128 _mm_cmpord_ps(__m128 a, __m128 b ) 
+FORCE_INLINE __m128 _mm_cmpord_ps(__m128 a, __m128 b)
 {
 	// Note: NEON does not have ordered compare builtin
 	// Need to compare a eq a and b eq b to check for NaN
@@ -1309,22 +1311,25 @@ FORCE_INLINE __m128i _mm_cvtepi16_epi32(__m128i a)
 }
 
 // Converts the four single-precision, floating-point values of a to signed 32-bit integer values. https://msdn.microsoft.com/en-us/library/vstudio/xdc42k5e(v=vs.100).aspx
-// *NOTE*. The default rounding mode on SSE is 'round to even', which ArmV7 does not support!  
+// *NOTE*. The default rounding mode on SSE is 'round to even', which ArmV7 does not support!
 // It is supported on ARMv8 however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
 #if defined(__aarch64__)
 	return vcvtnq_s32_f32(a);
 #else
-    uint32x4_t signmask = vdupq_n_u32(0x80000000);
-    float32x4_t half = vbslq_f32(signmask, vreinterpretq_f32_m128(a), vdupq_n_f32(0.5f)); /* +/- 0.5 */
-    int32x4_t r_normal = vcvtq_s32_f32(vaddq_f32(vreinterpretq_f32_m128(a), half)); /* round to integer: [a + 0.5]*/
-    int32x4_t r_trunc = vcvtq_s32_f32(vreinterpretq_f32_m128(a)); /* truncate to integer: [a] */
-    int32x4_t plusone = vreinterpretq_s32_u32(vshrq_n_u32(vreinterpretq_u32_s32(vnegq_s32(r_trunc)), 31)); /* 1 or 0 */
-    int32x4_t r_even = vbicq_s32(vaddq_s32(r_trunc, plusone), vdupq_n_s32(1)); /* ([a] + {0,1}) & ~1 */
-    float32x4_t delta = vsubq_f32(vreinterpretq_f32_m128(a), vcvtq_f32_s32(r_trunc)); /* compute delta: delta = (a - [a]) */
-    uint32x4_t is_delta_half = vceqq_f32(delta, half); /* delta == +/- 0.5 */
-    return vreinterpretq_m128i_s32(vbslq_s32(is_delta_half, r_even, r_normal));
+	uint32x4_t signmask = vdupq_n_u32(0x80000000);
+	float32x4_t half = vbslq_f32(signmask, vreinterpretq_f32_m128(a), vdupq_n_f32(0.5f)); /* +/- 0.5 */
+	int32x4_t r_normal = vcvtq_s32_f32(vaddq_f32(vreinterpretq_f32_m128(a),
+	                                   half)); /* round to integer: [a + 0.5]*/
+	int32x4_t r_trunc = vcvtq_s32_f32(vreinterpretq_f32_m128(a)); /* truncate to integer: [a] */
+	int32x4_t plusone = vreinterpretq_s32_u32(vshrq_n_u32(vreinterpretq_u32_s32(vnegq_s32(r_trunc)),
+	                    31)); /* 1 or 0 */
+	int32x4_t r_even = vbicq_s32(vaddq_s32(r_trunc, plusone), vdupq_n_s32(1)); /* ([a] + {0,1}) & ~1 */
+	float32x4_t delta = vsubq_f32(vreinterpretq_f32_m128(a),
+	                              vcvtq_f32_s32(r_trunc)); /* compute delta: delta = (a - [a]) */
+	uint32x4_t is_delta_half = vceqq_f32(delta, half); /* delta == +/- 0.5 */
+	return vreinterpretq_m128i_s32(vbslq_s32(is_delta_half, r_even, r_normal));
 #endif
 }
 
@@ -1354,9 +1359,9 @@ FORCE_INLINE __m128 _mm_castsi128_ps(__m128i a)
 }
 
 // Loads 128-bit value. : https://msdn.microsoft.com/en-us/library/atzzad1h(v=vs.80).aspx
-FORCE_INLINE __m128i _mm_load_si128(const __m128i *p)
+FORCE_INLINE __m128i _mm_load_si128(const __m128i* p)
 {
-	return vreinterpretq_m128i_s32(vld1q_s32((int32_t *)p));
+	return vreinterpretq_m128i_s32(vld1q_s32((int32_t*)p));
 }
 
 // ******************************************
@@ -1366,19 +1371,22 @@ FORCE_INLINE __m128i _mm_load_si128(const __m128i *p)
 // Packs the 16 signed 16-bit integers from a and b into 8-bit integers and saturates. https://msdn.microsoft.com/en-us/library/k4y4f7w5%28v=vs.90%29.aspx
 FORCE_INLINE __m128i _mm_packs_epi16(__m128i a, __m128i b)
 {
-	return vreinterpretq_m128i_s8(vcombine_s8(vqmovn_s16(vreinterpretq_s16_m128i(a)), vqmovn_s16(vreinterpretq_s16_m128i(b))));
+	return vreinterpretq_m128i_s8(vcombine_s8(vqmovn_s16(vreinterpretq_s16_m128i(a)),
+	                              vqmovn_s16(vreinterpretq_s16_m128i(b))));
 }
 
 // Packs the 16 signed 16 - bit integers from a and b into 8 - bit unsigned integers and saturates. https://msdn.microsoft.com/en-us/library/07ad1wx4(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_packus_epi16(const __m128i a, const __m128i b)
 {
-	return vreinterpretq_m128i_u8(vcombine_u8(vqmovun_s16(vreinterpretq_s16_m128i(a)), vqmovun_s16(vreinterpretq_s16_m128i(b))));
+	return vreinterpretq_m128i_u8(vcombine_u8(vqmovun_s16(vreinterpretq_s16_m128i(a)),
+	                              vqmovun_s16(vreinterpretq_s16_m128i(b))));
 }
 
 // Packs the 8 signed 32-bit integers from a and b into signed 16-bit integers and saturates. https://msdn.microsoft.com/en-us/library/393t56f9%28v=vs.90%29.aspx
 FORCE_INLINE __m128i _mm_packs_epi32(__m128i a, __m128i b)
 {
-	return vreinterpretq_m128i_s16(vcombine_s16(vqmovn_s32(vreinterpretq_s32_m128i(a)), vqmovn_s32(vreinterpretq_s32_m128i(b))));
+	return vreinterpretq_m128i_s16(vcombine_s16(vqmovn_s32(vreinterpretq_s32_m128i(a)),
+	                               vqmovn_s32(vreinterpretq_s32_m128i(b))));
 }
 
 // Interleaves the lower 8 signed or unsigned 8-bit integers in a with the lower 8 signed or unsigned 8-bit integers in b.  https://msdn.microsoft.com/en-us/library/xf7k860c%28v=vs.90%29.aspx
@@ -1456,16 +1464,16 @@ FORCE_INLINE __m128i _mm_unpackhi_epi32(__m128i a, __m128i b)
 // Extracts the selected signed or unsigned 16-bit integer from a and zero extends.  https://msdn.microsoft.com/en-us/library/6dceta0c(v=vs.100).aspx
 //FORCE_INLINE int _mm_extract_epi16(__m128i a, __constrange(0,8) int imm)
 #define _mm_extract_epi16(a, imm) \
-({ \
-	(vgetq_lane_s16(vreinterpretq_s16_m128i(a), (imm)) & 0x0000ffffUL); \
-})
+	({ \
+		(vgetq_lane_s16(vreinterpretq_s16_m128i(a), (imm)) & 0x0000ffffUL); \
+	})
 
 // Inserts the least significant 16 bits of b into the selected 16-bit integer of a. https://msdn.microsoft.com/en-us/library/kaze8hz1%28v=vs.100%29.aspx
 //FORCE_INLINE __m128i _mm_insert_epi16(__m128i a, const int b, __constrange(0,8) int imm)
 #define _mm_insert_epi16(a, b, imm) \
-({ \
-	vreinterpretq_m128i_s16(vsetq_lane_s16((b), vreinterpretq_s16_m128i(a), (imm))); \
-})
+	({ \
+		vreinterpretq_m128i_s16(vsetq_lane_s16((b), vreinterpretq_s16_m128i(a), (imm))); \
+	})
 
 // ******************************************
 // Streaming Extensions
@@ -1478,13 +1486,13 @@ FORCE_INLINE void _mm_sfence(void)
 }
 
 // Stores the data in a to the address p without polluting the caches.  If the cache line containing address p is already in the cache, the cache will be updated.Address p must be 16 - byte aligned.  https://msdn.microsoft.com/en-us/library/ba08y07y%28v=vs.90%29.aspx
-FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
+FORCE_INLINE void _mm_stream_si128(__m128i* p, __m128i a)
 {
 	*p = a;
 }
 
 // Cache line containing p is flushed and invalidated from all caches in the coherency domain. : https://msdn.microsoft.com/en-us/library/ba08y07y(v=vs.100).aspx
-FORCE_INLINE void _mm_clflush(void const*p) 
+FORCE_INLINE void _mm_clflush(void const* p)
 {
 	// no corollary for Neon?
 }

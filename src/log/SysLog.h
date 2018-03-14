@@ -31,10 +31,10 @@
 class SysLog : public ILogBackend
 {
 public:
-    SysLog();
+	SysLog();
 
-    void message(int level, const char *fmt, va_list args) override;
-    void text(const char *fmt, va_list args) override;
+	void message(int level, const char* fmt, va_list args) override;
+	void text(const char* fmt, va_list args) override;
 };
 
 #endif /* __SYSLOG_BACKEND_H__ */

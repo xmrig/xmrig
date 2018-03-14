@@ -28,17 +28,20 @@
 class Platform
 {
 public:
-    static const char *defaultConfigName();
-    static void init(const char *userAgent);
-    static void release();
-    static void setProcessPriority(int priority);
-    static void setThreadPriority(int priority);
+	static const char* defaultConfigName();
+	static void init(const char* userAgent);
+	static void release();
+	static void setProcessPriority(int priority);
+	static void setThreadPriority(int priority);
 
-    static inline const char *userAgent() { return m_userAgent; }
+	static inline const char* userAgent()
+	{
+		return m_userAgent;
+	}
 
 private:
-    static char *m_defaultConfigName;
-    static char *m_userAgent;
+	static char* m_defaultConfigName;
+	static char* m_userAgent;
 };
 
 

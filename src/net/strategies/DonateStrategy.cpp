@@ -36,112 +36,115 @@ extern "C"
 }
 
 
-DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
-    m_active(false),
-    m_donateTime(Options::i()->donateLevel() * 60 * 1000),
-    m_idleTime((100 - Options::i()->donateLevel()) * 60 * 1000),
-    m_listener(listener)
+DonateStrategy::DonateStrategy(const char* agent, IStrategyListener* listener) :
+	m_active(false),
+	m_donateTime(Options::i()->donateLevel() * 60 * 1000),
+	m_idleTime((100 - Options::i()->donateLevel()) * 60 * 1000),
+	m_listener(listener)
 {
-    uint8_t hash[200];
-    char userId[65] = { 0 };
-    const char *user = Options::i()->pools().front()->user();
+	uint8_t hash[200];
+	char userId[65] = { 0 };
+	const char* user = Options::i()->pools().front()->user();
 
-    keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
-    Job::toHex(hash, 32, userId);
+	keccak(reinterpret_cast<const uint8_t*>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
+	Job::toHex(hash, 32, userId);
 
-    Url *url = new Url("thanks.xmrig.com", Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE ? 5555 : 80, userId, nullptr, false, true);
+	Url* url = new Url("thanks.xmrig.com", Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE ? 5555 : 80,
+	                   userId, nullptr, false, true);
 
-    m_client = new Client(-1, agent, this);
-    m_client->setUrl(url);
-    m_client->setRetryPause(Options::i()->retryPause() * 1000);
-    m_client->setQuiet(true);
+	m_client = new Client(-1, agent, this);
+	m_client->setUrl(url);
+	m_client->setRetryPause(Options::i()->retryPause() * 1000);
+	m_client->setQuiet(true);
 
-    delete url;
+	delete url;
 
-    m_timer.data = this;
-    uv_timer_init(uv_default_loop(), &m_timer);
+	m_timer.data = this;
+	uv_timer_init(uv_default_loop(), &m_timer);
 
-    idle();
+	idle();
 }
 
 
-int64_t DonateStrategy::submit(const JobResult &result)
+int64_t DonateStrategy::submit(const JobResult & result)
 {
-    return m_client->submit(result);
+	return m_client->submit(result);
 }
 
 
 void DonateStrategy::connect()
 {
-    m_client->connect();
+	m_client->connect();
 }
 
 
 void DonateStrategy::stop()
 {
-    uv_timer_stop(&m_timer);
-    m_client->disconnect();
+	uv_timer_stop(&m_timer);
+	m_client->disconnect();
 }
 
 
 void DonateStrategy::tick(uint64_t now)
 {
-    m_client->tick(now);
+	m_client->tick(now);
 }
 
 
-void DonateStrategy::onClose(Client *client, int failures)
+void DonateStrategy::onClose(Client* client, int failures)
 {
 }
 
 
-void DonateStrategy::onJobReceived(Client *client, const Job &job)
+void DonateStrategy::onJobReceived(Client* client, const Job & job)
 {
-    m_listener->onJob(client, job);
+	m_listener->onJob(client, job);
 }
 
 
-void DonateStrategy::onLoginSuccess(Client *client)
+void DonateStrategy::onLoginSuccess(Client* client)
 {
-    if (!isActive()) {
-        uv_timer_start(&m_timer, DonateStrategy::onTimer, m_donateTime, 0);
-    }
+	if(!isActive())
+	{
+		uv_timer_start(&m_timer, DonateStrategy::onTimer, m_donateTime, 0);
+	}
 
-    m_active = true;
-    m_listener->onActive(client);
+	m_active = true;
+	m_listener->onActive(client);
 }
 
 
-void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void DonateStrategy::onResultAccepted(Client* client, const SubmitResult & result, const char* error)
 {
-    m_listener->onResultAccepted(client, result, error);
+	m_listener->onResultAccepted(client, result, error);
 }
 
 
 void DonateStrategy::idle()
 {
-    uv_timer_start(&m_timer, DonateStrategy::onTimer, m_idleTime, 0);
+	uv_timer_start(&m_timer, DonateStrategy::onTimer, m_idleTime, 0);
 }
 
 
 void DonateStrategy::suspend()
 {
-    m_client->disconnect();
+	m_client->disconnect();
 
-    m_active = false;
-    m_listener->onPause(this);
+	m_active = false;
+	m_listener->onPause(this);
 
-    idle();
+	idle();
 }
 
 
-void DonateStrategy::onTimer(uv_timer_t *handle)
+void DonateStrategy::onTimer(uv_timer_t* handle)
 {
-    auto strategy = static_cast<DonateStrategy*>(handle->data);
+	auto strategy = static_cast<DonateStrategy*>(handle->data);
 
-    if (!strategy->isActive()) {
-        return strategy->connect();
-    }
+	if(!strategy->isActive())
+	{
+		return strategy->connect();
+	}
 
-    strategy->suspend();
+	strategy->suspend();
 }

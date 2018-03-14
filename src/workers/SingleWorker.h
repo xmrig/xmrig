@@ -37,18 +37,18 @@ class Handle;
 class SingleWorker : public Worker
 {
 public:
-    SingleWorker(Handle *handle);
+	SingleWorker(Handle* handle);
 
-    void start() override;
+	void start() override;
 
 private:
-    bool resume(const Job &job);
-    void consumeJob();
-    void save(const Job &job);
+	bool resume(const Job & job);
+	void consumeJob();
+	void save(const Job & job);
 
-    Job m_job;
-    Job m_paused;
-    JobResult m_result;
+	Job m_job;
+	Job m_paused;
+	JobResult m_result;
 };
 
 

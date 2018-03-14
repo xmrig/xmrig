@@ -57,50 +57,56 @@
 
 
 #ifdef _MSC_VER
-static inline void cpuid(int level, int output[4]) {
-    __cpuid(output, level);
+static inline void cpuid(int level, int output[4])
+{
+	__cpuid(output, level);
 }
 #else
-static inline void cpuid(int level, int output[4]) {
-    int a, b, c, d;
-    __cpuid_count(level, 0, a, b, c, d);
+static inline void cpuid(int level, int output[4])
+{
+	int a, b, c, d;
+	__cpuid_count(level, 0, a, b, c, d);
 
-    output[0] = a;
-    output[1] = b;
-    output[2] = c;
-    output[3] = d;
+	output[0] = a;
+	output[1] = b;
+	output[2] = c;
+	output[3] = d;
 }
 #endif
 
 
-static inline void cpu_brand_string(char* s) {
-    int cpu_info[4] = { 0 };
-    cpuid(VENDOR_ID, cpu_info);
+static inline void cpu_brand_string(char* s)
+{
+	int cpu_info[4] = { 0 };
+	cpuid(VENDOR_ID, cpu_info);
 
-    if (cpu_info[EAX_Reg] >= 4) {
-        for (int i = 0; i < 4; i++) {
-            cpuid(0x80000002 + i, cpu_info);
-            memcpy(s, cpu_info, sizeof(cpu_info));
-            s += 16;
-        }
-    }
+	if(cpu_info[EAX_Reg] >= 4)
+	{
+		for(int i = 0; i < 4; i++)
+		{
+			cpuid(0x80000002 + i, cpu_info);
+			memcpy(s, cpu_info, sizeof(cpu_info));
+			s += 16;
+		}
+	}
 }
 
 
 static inline bool has_aes_ni()
 {
-    int cpu_info[4] = { 0 };
-    cpuid(PROCESSOR_INFO, cpu_info);
+	int cpu_info[4] = { 0 };
+	cpuid(PROCESSOR_INFO, cpu_info);
 
-    return (cpu_info[ECX_Reg] & bit_AES) != 0;
+	return (cpu_info[ECX_Reg] & bit_AES) != 0;
 }
 
 
-static inline bool has_bmi2() {
-    int cpu_info[4] = { 0 };
-    cpuid(EXTENDED_FEATURES, cpu_info);
+static inline bool has_bmi2()
+{
+	int cpu_info[4] = { 0 };
+	cpuid(EXTENDED_FEATURES, cpu_info);
 
-    return (cpu_info[EBX_Reg] & bit_BMI2) != 0;
+	return (cpu_info[EBX_Reg] & bit_BMI2) != 0;
 }
 
 
@@ -115,24 +121,26 @@ int Cpu::m_totalThreads = 0;
 
 int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
 {
-    int count = m_totalThreads / 2;
-    return count < 1 ? 1 : count;
+	int count = m_totalThreads / 2;
+	return count < 1 ? 1 : count;
 }
 
 
 void Cpu::initCommon()
 {
-    cpu_brand_string(m_brand);
+	cpu_brand_string(m_brand);
 
 #   if defined(__x86_64__) || defined(_M_AMD64)
-    m_flags |= X86_64;
+	m_flags |= X86_64;
 #   endif
 
-    if (has_aes_ni()) {
-        m_flags |= AES;
-    }
+	if(has_aes_ni())
+	{
+		m_flags |= AES;
+	}
 
-    if (has_bmi2()) {
-        m_flags |= BMI2;
-    }
+	if(has_bmi2())
+	{
+		m_flags |= BMI2;
+	}
 }

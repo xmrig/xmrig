@@ -34,17 +34,17 @@
 class FileLog : public ILogBackend
 {
 public:
-    FileLog(const char *fileName);
+	FileLog(const char* fileName);
 
-    void message(int level, const char* fmt, va_list args) override;
-    void text(const char* fmt, va_list args) override;
+	void message(int level, const char* fmt, va_list args) override;
+	void text(const char* fmt, va_list args) override;
 
 private:
-    static void onWrite(uv_fs_t *req);
+	static void onWrite(uv_fs_t* req);
 
-    void write(char *data, size_t size);
+	void write(char* data, size_t size);
 
-    int m_file;
+	int m_file;
 };
 
 #endif /* __FILELOG_H__ */
