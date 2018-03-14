@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,9 +28,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
-
-#include "align.h"
 
 
 struct cryptonight_ctx;
@@ -61,7 +59,8 @@ private:
     static int m_flags;
     static int m_threads;
     static size_t m_offset;
-    VAR_ALIGN(16, static uint8_t *m_memory);
+    static size_t m_size;
+    alignas(16) static uint8_t *m_memory;
 
 #   ifndef XMRIG_NO_AEON
     static cryptonight_ctx *createLite(int threadId);

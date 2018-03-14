@@ -100,7 +100,13 @@ void Cpu::initCommon()
         m_l2_cache = data.l2_cache * (m_totalCores / 2) * m_sockets;
         m_l2_exclusive = true;
     }
-    else {
+    // Workaround for Intel Pentium Dual-Core, Core Duo, Core 2 Duo, Core 2 Quad and their Xeon homologue
+    // These processors have L2 cache shared by 2 cores.
+    else if (data.vendor == VENDOR_INTEL && data.ext_family == 0x06 && (data.ext_model == 0x0E || data.ext_model == 0x0F || data.ext_model == 0x17)) {
+        int l2_count_per_socket = m_totalCores > 1 ? m_totalCores / 2 : 1;
+        m_l2_cache = data.l2_cache > 0 ? data.l2_cache * l2_count_per_socket * m_sockets : 0;
+    }
+    else{
         m_l2_cache = data.l2_cache > 0 ? data.l2_cache * m_totalCores * m_sockets : 0;
     }
 

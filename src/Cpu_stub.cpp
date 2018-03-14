@@ -24,11 +24,16 @@
 
 #ifdef _MSC_VER
 #   include <intrin.h>
-
-#   define bit_AES  (1 << 25)
-#   define bit_BMI2 (1 << 8)
 #else
 #   include <cpuid.h>
+#endif
+
+#ifndef bit_AES
+#   define bit_AES (1 << 25)
+#endif
+
+#ifndef bit_BMI2
+#   define bit_BMI2 (1 << 8)
 #endif
 
 #include <string.h>
@@ -87,7 +92,7 @@ static inline bool has_aes_ni()
     int cpu_info[4] = { 0 };
     cpuid(PROCESSOR_INFO, cpu_info);
 
-    return cpu_info[ECX_Reg] & bit_AES;
+    return (cpu_info[ECX_Reg] & bit_AES) != 0;
 }
 
 
@@ -95,7 +100,7 @@ static inline bool has_bmi2() {
     int cpu_info[4] = { 0 };
     cpuid(EXTENDED_FEATURES, cpu_info);
 
-    return cpu_info[EBX_Reg] & bit_BMI2;
+    return (cpu_info[EBX_Reg] & bit_BMI2) != 0;
 }
 
 

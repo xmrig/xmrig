@@ -1,4 +1,14 @@
 # XMRig
+
+:warning: **You must update miners to version 2.5 before March 28 due [Monero PoW change](https://getmonero.org/2018/02/11/PoW-change-and-key-reuse.html).**
+
+[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
+[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
+[![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/releases)
+[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/blob/master/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/network)
+
 XMRig is a high performance Monero (XMR) CPU miner, with official support for Windows.
 Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 completely rewritten from scratch on C++.
 
@@ -16,6 +26,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
+* [Release checksums](#release-checksums)
 * [Contacts](#contacts)
 
 ## Features
@@ -37,16 +48,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
   * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
 
 ## Usage
-### Basic example
-```
-xmrig.exe -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET -p x -k
-```
-
-### Failover
-```
-xmrig.exe -o pool.monero.hashvault.pro:5555 -u YOUR_WALLET1 -p x -k -o pool.supportxmr.com:5555 -u YOUR_WALLET2 -p x -k
-```
-For failover you can add multiple pools, maximum count not limited.
+Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or share configurations.
 
 ### Options
 ```
@@ -116,6 +118,15 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Donations
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+
+## Release checksums
+### SHA-256
+```
+232ea929f7219c8de81c7e6fcae7437d40d8128cf55b597a6e1fca0cd77f9f5b xmrig-2.5.0-xenial-amd64.tar.gz/xmrig-2.5.0/xmrig
+6149ffed21e740cac12aa61b2fdd17248cbd3e51bab2289d2766aad1d29df910 xmrig-2.5.0-gcc-win32.zip/xmrig.exe
+9c89f80e21db906439a7a1b333b8215dbe07d8e42f98a63f6c10c954288a7108 xmrig-2.5.0-gcc-win64.zip/xmrig.exe
+b50773c5a74ca9921597a1152e2469ec266cc89eb9765038db7e876f0bcece73 xmrig-2.5.0-msvc-win64.zip/xmrig.exe
+```
 
 ## Contacts
 * support@xmrig.com

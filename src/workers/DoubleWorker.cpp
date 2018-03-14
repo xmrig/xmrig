@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -85,7 +86,7 @@ void DoubleWorker::start()
             *Job::nonce(m_state->blob)                       = ++m_state->nonce1;
             *Job::nonce(m_state->blob + m_state->job.size()) = ++m_state->nonce2;
 
-            CryptoNight::hash(m_state->blob, m_state->job.size(), m_hash, m_ctx);
+            CryptoNight::hash(m_state->blob, m_state->job.size(), m_hash, m_ctx, m_state->job.variant());
 
             if (*reinterpret_cast<uint64_t*>(m_hash + 24) < m_state->job.target()) {
                 Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce1, m_hash, m_state->job.diff()));

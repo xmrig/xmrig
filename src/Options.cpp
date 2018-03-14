@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
 #include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
 #include "version.h"
+#include "xmrig.h"
 
 
 #ifndef ARRAY_SIZE
@@ -74,6 +75,7 @@ Options:\n\
       --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages      disable huge pages support\n\
       --no-color           disable colored output\n\
+      --variant            algorithm PoW variant\n\
       --donate-level=N     donate level, default 5%% (5 minutes in 100 minutes)\n\
       --user-agent         set custom user-agent string for pool\n\
   -B, --background         run the miner in the background\n\
@@ -101,12 +103,16 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 
 static struct option const options[] = {
     { "algo",             1, nullptr, 'a'  },
+    { "api-access-token", 1, nullptr, 4001 },
+    { "api-port",         1, nullptr, 4000 },
+    { "api-worker-id",    1, nullptr, 4002 },
     { "av",               1, nullptr, 'v'  },
     { "background",       0, nullptr, 'B'  },
     { "config",           1, nullptr, 'c'  },
     { "cpu-affinity",     1, nullptr, 1020 },
     { "cpu-priority",     1, nullptr, 1021 },
     { "donate-level",     1, nullptr, 1003 },
+    { "dry-run",          0, nullptr, 5000 },
     { "help",             0, nullptr, 'h'  },
     { "keepalive",        0, nullptr ,'k'  },
     { "log-file",         1, nullptr, 'l'  },
@@ -114,6 +120,7 @@ static struct option const options[] = {
     { "nicehash",         0, nullptr, 1006 },
     { "no-color",         0, nullptr, 1002 },
     { "no-huge-pages",    0, nullptr, 1009 },
+    { "variant",          1, nullptr, 1010 },
     { "pass",             1, nullptr, 'p'  },
     { "print-time",       1, nullptr, 1007 },
     { "retries",          1, nullptr, 'r'  },
@@ -126,9 +133,6 @@ static struct option const options[] = {
     { "user-agent",       1, nullptr, 1008 },
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
-    { "api-port",         1, nullptr, 4000 },
-    { "api-access-token", 1, nullptr, 4001 },
-    { "api-worker-id",    1, nullptr, 4002 },
     { 0, 0, 0, 0 }
 };
 
@@ -141,6 +145,7 @@ static struct option const config_options[] = {
     { "cpu-affinity",  1, nullptr, 1020 },
     { "cpu-priority",  1, nullptr, 1021 },
     { "donate-level",  1, nullptr, 1003 },
+    { "dry-run",       0, nullptr, 5000 },
     { "huge-pages",    0, nullptr, 1009 },
     { "log-file",      1, nullptr, 'l'  },
     { "max-cpu-usage", 1, nullptr, 1004 },
@@ -161,6 +166,7 @@ static struct option const pool_options[] = {
     { "user",          1, nullptr, 'u'  },
     { "userpass",      1, nullptr, 'O'  },
     { "keepalive",     0, nullptr ,'k'  },
+    { "variant",       1, nullptr, 1010 },
     { "nicehash",      0, nullptr, 1006 },
     { 0, 0, 0, 0 }
 };
@@ -205,6 +211,7 @@ Options::Options(int argc, char **argv) :
     m_background(false),
     m_colors(true),
     m_doubleHash(false),
+    m_dryRun(false),
     m_hugePages(true),
     m_ready(false),
     m_safe(false),
@@ -269,9 +276,7 @@ Options::Options(int argc, char **argv) :
         }
     }
 
-    for (Url *url : m_pools) {
-        url->applyExceptions();
-    }
+    adjust();
 
     m_ready = true;
 }
@@ -377,6 +382,7 @@ bool Options::parseArg(int key, const char *arg)
     case 1007: /* --print-time */
     case 1021: /* --cpu-priority */
     case 4000: /* --api-port */
+    case 1010: /* --variant */
         return parseArg(key, strtol(arg, nullptr, 10));
 
     case 'B':  /* --background */
@@ -384,6 +390,7 @@ bool Options::parseArg(int key, const char *arg)
     case 'S':  /* --syslog */
     case 1005: /* --safe */
     case 1006: /* --nicehash */
+    case 5000: /* --dry-run */
         return parseBoolean(key, true);
 
     case 1002: /* --no-color */
@@ -494,6 +501,10 @@ bool Options::parseArg(int key, uint64_t arg)
         m_printTime = (int) arg;
         break;
 
+    case 1010: /* --variant */
+        m_pools.back()->setVariant((int) arg);
+        break;
+
     case 1020: /* --cpu-affinity */
         if (arg) {
             m_affinity = arg;
@@ -557,6 +568,10 @@ bool Options::parseBoolean(int key, bool enable)
         m_colors = enable;
         break;
 
+    case 5000: /* --dry-run */
+        m_dryRun = enable;
+        break;
+
     default:
         break;
     }
@@ -574,6 +589,14 @@ Url *Options::parseUrl(const char *arg) const
     }
 
     return url;
+}
+
+
+void Options::adjust()
+{
+    for (Url *url : m_pools) {
+        url->adjust(m_algo);
+    }
 }
 
 
@@ -621,7 +644,7 @@ void Options::parseJSON(const struct option *option, const rapidjson::Value &obj
     if (option->has_arg && value.IsString()) {
         parseArg(option->val, value.GetString());
     }
-    else if (option->has_arg && value.IsUint64()) {
+    else if (option->has_arg && value.IsInt64()) {
         parseArg(option->val, value.GetUint64());
     }
     else if (!option->has_arg && value.IsBool()) {
@@ -687,7 +710,7 @@ bool Options::setAlgo(const char *algo)
 
 #       ifndef XMRIG_NO_AEON
         if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light")) {
-            m_algo = ALGO_CRYPTONIGHT_LITE;
+            m_algo = xmrig::ALGO_CRYPTONIGHT_LITE;
             break;
         }
 #       endif
@@ -705,7 +728,7 @@ bool Options::setAlgo(const char *algo)
 int Options::getAlgoVariant() const
 {
 #   ifndef XMRIG_NO_AEON
-    if (m_algo == ALGO_CRYPTONIGHT_LITE) {
+    if (m_algo == xmrig::ALGO_CRYPTONIGHT_LITE) {
         return getAlgoVariantLite();
     }
 #   endif
