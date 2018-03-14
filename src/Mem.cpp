@@ -32,13 +32,13 @@
 #include "xmrig.h"
 
 
-bool Mem::m_doubleHash = false;
-int Mem::m_algo        = 0;
-int Mem::m_flags       = 0;
-int Mem::m_threads     = 0;
-size_t Mem::m_offset   = 0;
-size_t Mem::m_size     = 0;
-uint8_t *Mem::m_memory = nullptr;
+bool Mem::m_doubleHash             = false;
+int Mem::m_algo                    = 0;
+int Mem::m_flags                   = 0;
+int Mem::m_threads                 = 0;
+size_t Mem::m_offset               = 0;
+size_t Mem::m_size                 = 0;
+alignas(16) uint8_t *Mem::m_memory = nullptr;
 
 
 cryptonight_ctx *Mem::create(int threadId)
