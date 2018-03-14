@@ -11,7 +11,6 @@ include (cmake/cpu.cmake)
 
 
 set(HEADERS
-    src/3rdparty/align.h
     src/api/Api.h
     src/api/ApiState.h
     src/api/NetworkState.h
