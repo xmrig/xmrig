@@ -90,11 +90,13 @@ else()
         src/Platform_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread rt dl)
-endif()
-
-if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
+    set(EXTRA_LIBS pthread rt)
+    
+    if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+    	set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
+    else()
+    	set(EXTRA_LIBS ${EXTRA_LIBS} dl)
+    endif()
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
