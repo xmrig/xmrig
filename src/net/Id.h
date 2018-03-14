@@ -34,9 +34,9 @@ namespace xmrig {
 class Id
 {
 public:
-    inline Id()
+    inline Id() :
+        m_data()
     {
-        memset(m_data, 0, sizeof(m_data));
     }
 
 
