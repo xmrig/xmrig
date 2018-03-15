@@ -36,13 +36,22 @@
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
 #   if !defined(XMRIG_ARMv7)
-    CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+    if (reinterpret_cast<const uint8_t*>(input)[0] > 6) {
+        CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashV7(input, size, output, ctx);
+    } else {
+        CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+    }
 #   endif
 }
 
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-    CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+    if (reinterpret_cast<const uint8_t*>(input)[0] > 6)
+    {
+        CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashV7(input, size, output, ctx);
+    } else {
+        CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+    }
 }
 
 template <size_t NUM_HASH_BLOCKS>
