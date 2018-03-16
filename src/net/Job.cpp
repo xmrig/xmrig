@@ -58,29 +58,31 @@ static inline char hf_bin2hex(unsigned char c)
 
 Job::Job() :
     m_nicehash(false),
+    m_coin(),
     m_algo(xmrig::ALGO_CRYPTONIGHT),
     m_poolId(-2),
     m_threadId(-1),
     m_variant(xmrig::VARIANT_AUTO),
     m_size(0),
     m_diff(0),
-    m_target(0)
+    m_target(0),
+    m_blob()
 {
-    memset(m_coin, 0, sizeof(m_coin));
 }
 
 
 Job::Job(int poolId, bool nicehash, int algo, int variant) :
     m_nicehash(nicehash),
+    m_coin(),
     m_algo(algo),
     m_poolId(poolId),
     m_threadId(-1),
     m_variant(variant),
     m_size(0),
     m_diff(0),
-    m_target(0)
+    m_target(0),
+    m_blob()
 {
-    memset(m_coin, 0, sizeof(m_coin));
 }
 
 
@@ -112,11 +114,6 @@ bool Job::setBlob(const char *blob)
     if (*nonce() != 0 && !m_nicehash) {
         m_nicehash = true;
     }
-
-#   ifdef XMRIG_PROXY_PROJECT
-    memset(m_rawBlob, 0, sizeof(m_rawBlob));
-    memcpy(m_rawBlob, blob, m_size * 2);
-#   endif
 
     return true;
 }
@@ -153,11 +150,6 @@ bool Job::setTarget(const char *target)
     else {
         return false;
     }
-
-#   ifdef XMRIG_PROXY_PROJECT
-    memset(m_rawTarget, 0, sizeof(m_rawTarget));
-    memcpy(m_rawTarget, target, len);
-#   endif
 
     m_diff = toDiff(m_target);
     return true;

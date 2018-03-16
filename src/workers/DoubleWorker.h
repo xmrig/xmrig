@@ -26,7 +26,6 @@
 #define __DOUBLEWORKER_H__
 
 
-#include "align.h"
 #include "net/Job.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"

@@ -23,6 +23,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * [Common Issues](#common-issues)
 * [Other information](#other-information)
 * [Donations](#donations)
+* [Release checksums](#release-checksums)
 * [Contacts](#contacts)
 
 ## Features
@@ -114,6 +115,15 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Donations
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+
+## Release checksums
+### SHA-256
+```
+232ea929f7219c8de81c7e6fcae7437d40d8128cf55b597a6e1fca0cd77f9f5b xmrig-2.5.0-xenial-amd64.tar.gz/xmrig-2.5.0/xmrig
+6149ffed21e740cac12aa61b2fdd17248cbd3e51bab2289d2766aad1d29df910 xmrig-2.5.0-gcc-win32.zip/xmrig.exe
+9c89f80e21db906439a7a1b333b8215dbe07d8e42f98a63f6c10c954288a7108 xmrig-2.5.0-gcc-win64.zip/xmrig.exe
+b50773c5a74ca9921597a1152e2469ec266cc89eb9765038db7e876f0bcece73 xmrig-2.5.0-msvc-win64.zip/xmrig.exe
+```
 
 ## Contacts
 * support@xmrig.com

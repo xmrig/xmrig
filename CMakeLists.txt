@@ -4,13 +4,13 @@ project(xmrig)
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
+option(BUILD_STATIC  "Build static binary" OFF)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
 
 
 set(HEADERS
-    src/3rdparty/align.h
     src/api/Api.h
     src/api/ApiState.h
     src/api/NetworkState.h
@@ -205,6 +205,10 @@ endif()
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
+
+if (BUILD_STATIC)
+    set(CMAKE_EXE_LINKER_FLAGS " -static")
+endif()
 
 add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
 target_link_libraries(xmrig ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
