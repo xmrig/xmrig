@@ -421,7 +421,7 @@ public:
         }
     }
 
-    inline static void hashV7(const void* __restrict__ input,
+    inline static void hashPowV2(const void* __restrict__ input,
                             size_t size,
                             void* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
@@ -493,7 +493,7 @@ public:
         extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
     }
 
-      inline static void hashV7(const void* __restrict__ input,
+      inline static void hashPowV2(const void* __restrict__ input,
                               size_t size,
                               void* __restrict__ output,
                               cryptonight_ctx* __restrict__ ctx)
@@ -656,7 +656,7 @@ public:
         extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
     }
 
-    inline static void hashV7(const void* __restrict__ input,
+    inline static void hashPowV2(const void* __restrict__ input,
                               size_t size,
                               void* __restrict__ output,
                               cryptonight_ctx* __restrict__ ctx)
@@ -895,7 +895,7 @@ public:
         extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
     }
 
-  inline static void hashV7(const void* __restrict__ input,
+  inline static void hashPowV2(const void* __restrict__ input,
                           size_t size,
                           void* __restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
@@ -1209,7 +1209,7 @@ public:
         extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
     }
 
-  inline static void hashV7(const void* __restrict__ input,
+  inline static void hashPowV2(const void* __restrict__ input,
                             size_t size,
                             void* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
@@ -1595,7 +1595,7 @@ public:
         extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, static_cast<char*>(output) + 128);
     }
 
-  inline static void hashV7(const void* __restrict__ input,
+  inline static void hashPowV2(const void* __restrict__ input,
                             size_t size,
                             void* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
