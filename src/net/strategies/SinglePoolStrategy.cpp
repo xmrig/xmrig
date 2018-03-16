@@ -25,15 +25,23 @@
 #include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
 #include "net/strategies/SinglePoolStrategy.h"
+#include "Platform.h"
 
 
-SinglePoolStrategy::SinglePoolStrategy(const Url *url, int retryPause, const char *agent, IStrategyListener *listener) :
+SinglePoolStrategy::SinglePoolStrategy(const Url *url, int retryPause, IStrategyListener *listener) :
     m_active(false),
+    m_release(false),
     m_listener(listener)
 {
-    m_client = new Client(0, agent, this);
+    m_client = new Client(0, Platform::userAgent(), this);
     m_client->setUrl(url);
     m_client->setRetryPause(retryPause * 1000);
+}
+
+
+SinglePoolStrategy::~SinglePoolStrategy()
+{
+    delete m_client;
 }
 
 
@@ -49,13 +57,20 @@ void SinglePoolStrategy::connect()
 }
 
 
+void SinglePoolStrategy::release()
+{
+    m_release = true;
+    m_client->disconnect();
+}
+
+
 void SinglePoolStrategy::resume()
 {
     if (!isActive()) {
         return;
     }
 
-    m_listener->onJob(m_client, m_client->job());
+    m_listener->onJob(this, m_client, m_client->job());
 }
 
 
@@ -73,6 +88,11 @@ void SinglePoolStrategy::tick(uint64_t now)
 
 void SinglePoolStrategy::onClose(Client *client, int failures)
 {
+    if (m_release) {
+        delete this;
+        return;
+    }
+
     if (!isActive()) {
         return;
     }
@@ -84,18 +104,18 @@ void SinglePoolStrategy::onClose(Client *client, int failures)
 
 void SinglePoolStrategy::onJobReceived(Client *client, const Job &job)
 {
-    m_listener->onJob(client, job);
+    m_listener->onJob(this, client, job);
 }
 
 
 void SinglePoolStrategy::onLoginSuccess(Client *client)
 {
     m_active = true;
-    m_listener->onActive(client);
+    m_listener->onActive(this, client);
 }
 
 
 void SinglePoolStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
-    m_listener->onResultAccepted(client, result, error);
+    m_listener->onResultAccepted(this, client, result, error);
 }

@@ -26,6 +26,7 @@
 #include "net/Client.h"
 #include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
+#include "Platform.h"
 #include "xmrig.h"
 
 
@@ -35,7 +36,7 @@ extern "C"
 }
 
 
-DonateStrategy::DonateStrategy(int level, const char *user, int algo, const char *agent, IStrategyListener *listener) :
+DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener) :
     m_active(false),
     m_donateTime(level * 60 * 1000),
     m_idleTime((100 - level) * 60 * 1000),
@@ -49,7 +50,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, const char
 
     Url *url = new Url("thanks.xmrig.com", algo == xmrig::ALGO_CRYPTONIGHT_LITE ? 5555 : 80, userId, nullptr, false, true);
 
-    m_client = new Client(-1, agent, this);
+    m_client = new Client(-1, Platform::userAgent(), this);
     m_client->setUrl(url);
     m_client->setRetryPause(1000);
     m_client->setQuiet(true);
@@ -75,6 +76,11 @@ void DonateStrategy::connect()
 }
 
 
+void DonateStrategy::release()
+{
+}
+
+
 void DonateStrategy::stop()
 {
     uv_timer_stop(&m_timer);
@@ -95,7 +101,7 @@ void DonateStrategy::onClose(Client *client, int failures)
 
 void DonateStrategy::onJobReceived(Client *client, const Job &job)
 {
-    m_listener->onJob(client, job);
+    m_listener->onJob(this, client, job);
 }
 
 
@@ -106,13 +112,13 @@ void DonateStrategy::onLoginSuccess(Client *client)
     }
 
     m_active = true;
-    m_listener->onActive(client);
+    m_listener->onActive(this, client);
 }
 
 
 void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
-    m_listener->onResultAccepted(client, result, error);
+    m_listener->onResultAccepted(this, client, result, error);
 }
 
 

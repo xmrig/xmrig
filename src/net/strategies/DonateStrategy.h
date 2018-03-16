@@ -40,7 +40,7 @@ class Url;
 class DonateStrategy : public IStrategy, public IClientListener
 {
 public:
-    DonateStrategy(int level, const char *user, int algo, const char *agent, IStrategyListener *listener);
+    DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener);
 
 public:
     inline bool isActive() const override  { return m_active; }
@@ -48,6 +48,7 @@ public:
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
+    void release() override;
     void stop() override;
     void tick(uint64_t now) override;
 
