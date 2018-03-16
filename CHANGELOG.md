@@ -1,6 +1,8 @@
 # 1.5.1
 - Applied changes for Monero v7 PoW starting 03/28/18 (No changes in config needed) 
-- Applied new design / icons
+- Applied changes for upcoming AEON PoW changes. (No changes in config needed)
+- Added option to force PoW version 
+- Added new design / icons
 # 1.5.0
 - Full SSL/TLS support for the whole communication:
     - XMRigCCServer Dashboard <-> Browser
