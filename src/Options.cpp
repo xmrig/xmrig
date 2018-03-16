@@ -71,9 +71,11 @@ Options:\n"
   -p, --pass=PASSWORD                   password for mining server\n\
   -t, --threads=N                       number of miner threads\n\
   -v, --av=N                            algorithm variation, 0 auto select\n\
+  -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off)\n\
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
+      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V1, 2 POW_V2)\n\
       --multihash-thread-mask           for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)\n\
@@ -304,9 +306,9 @@ Options::Options(int argc, char **argv) :
     m_ccKeyFile(nullptr),
     m_ccCertFile(nullptr),
     m_algo(ALGO_CRYPTONIGHT),
-    m_forcePowVersion(POW_AUTODETECT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
+    m_forcePowVersion(POW_AUTODETECT),
     m_hashFactor(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
