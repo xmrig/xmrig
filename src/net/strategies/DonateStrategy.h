@@ -40,7 +40,7 @@ class Url;
 class DonateStrategy : public IStrategy, public IClientListener
 {
 public:
-    DonateStrategy(const char *agent, IStrategyListener *listener);
+    DonateStrategy(int level, const char *user, int algo, const char *agent, IStrategyListener *listener);
 
 public:
     inline bool isActive() const override  { return m_active; }

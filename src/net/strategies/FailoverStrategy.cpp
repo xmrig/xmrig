@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,10 +25,11 @@
 #include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
 #include "net/strategies/FailoverStrategy.h"
-#include "Options.h"
 
 
-FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, const char *agent, IStrategyListener *listener) :
+FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, int retryPause, int retries, const char *agent, IStrategyListener *listener) :
+    m_retries(retries),
+    m_retryPause(retryPause),
     m_active(-1),
     m_index(0),
     m_listener(listener)
@@ -93,7 +94,7 @@ void FailoverStrategy::onClose(Client *client, int failures)
         m_listener->onPause(this);
     }
 
-    if (m_index == 0 && failures < Options::i()->retries()) {
+    if (m_index == 0 && failures < m_retries) {
         return;
     }
 
@@ -142,7 +143,7 @@ void FailoverStrategy::add(const Url *url, const char *agent)
 {
     Client *client = new Client((int) m_pools.size(), agent, this);
     client->setUrl(url);
-    client->setRetryPause(Options::i()->retryPause() * 1000);
+    client->setRetryPause(m_retryPause * 1000);
 
     m_pools.push_back(client);
 }

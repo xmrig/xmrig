@@ -55,14 +55,14 @@ Network::Network(const Options *options) :
     const std::vector<Url*> &pools = options->pools();
 
     if (pools.size() > 1) {
-        m_strategy = new FailoverStrategy(pools, Platform::userAgent(), this);
+        m_strategy = new FailoverStrategy(pools, options->retryPause(), options->retries(), Platform::userAgent(), this);
     }
     else {
-        m_strategy = new SinglePoolStrategy(pools.front(), Platform::userAgent(), this);
+        m_strategy = new SinglePoolStrategy(pools.front(), options->retryPause(), Platform::userAgent(), this);
     }
 
     if (m_options->donateLevel() > 0) {
-        m_donate = new DonateStrategy(Platform::userAgent(), this);
+        m_donate = new DonateStrategy(options->donateLevel(), options->pools().front()->user(), options->algo(), Platform::userAgent(), this);
     }
 
     m_timer.data = this;

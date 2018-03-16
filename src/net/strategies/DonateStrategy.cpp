@@ -26,7 +26,6 @@
 #include "net/Client.h"
 #include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
-#include "Options.h"
 #include "xmrig.h"
 
 
@@ -36,24 +35,23 @@ extern "C"
 }
 
 
-DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
+DonateStrategy::DonateStrategy(int level, const char *user, int algo, const char *agent, IStrategyListener *listener) :
     m_active(false),
-    m_donateTime(Options::i()->donateLevel() * 60 * 1000),
-    m_idleTime((100 - Options::i()->donateLevel()) * 60 * 1000),
+    m_donateTime(level * 60 * 1000),
+    m_idleTime((100 - level) * 60 * 1000),
     m_listener(listener)
 {
     uint8_t hash[200];
     char userId[65] = { 0 };
-    const char *user = Options::i()->pools().front()->user();
 
     keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
     Job::toHex(hash, 32, userId);
 
-    Url *url = new Url("thanks.xmrig.com", Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE ? 5555 : 80, userId, nullptr, false, true);
+    Url *url = new Url("thanks.xmrig.com", algo == xmrig::ALGO_CRYPTONIGHT_LITE ? 5555 : 80, userId, nullptr, false, true);
 
     m_client = new Client(-1, agent, this);
     m_client->setUrl(url);
-    m_client->setRetryPause(Options::i()->retryPause() * 1000);
+    m_client->setRetryPause(1000);
     m_client->setQuiet(true);
 
     delete url;

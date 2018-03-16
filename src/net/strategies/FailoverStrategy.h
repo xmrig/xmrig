@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ class Url;
 class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-    FailoverStrategy(const std::vector<Url*> &urls, const char *agent, IStrategyListener *listener);
+    FailoverStrategy(const std::vector<Url*> &urls, int retryPause, int retries, const char *agent, IStrategyListener *listener);
 
 public:
     inline bool isActive() const override  { return m_active >= 0; }
@@ -60,6 +60,8 @@ protected:
 private:
     void add(const Url *url, const char *agent);
 
+    const int m_retries;
+    const int m_retryPause;
     int m_active;
     int m_index;
     IStrategyListener *m_listener;
