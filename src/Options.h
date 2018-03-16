@@ -61,6 +61,12 @@ public:
         AESNI_OFF
     };
 
+    enum PowVersion {
+        POW_AUTODETECT,     /* Default, automatic detect by block version */
+        POW_V1,             /* Force to use PoW algo before 28.03.2018 */
+        POW_V2,             /* Force to use PoW algo used by Monero V7 (after 28.03.2018) and AEON */
+    };
+
     static inline Options* i() { return m_self; }
     static Options *parse(int argc, char **argv);
 
@@ -86,19 +92,20 @@ public:
     inline const char *ccCertFile() const           { return m_ccCertFile == nullptr ? "server.pem" : m_ccCertFile; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
+    inline PowVersion forcePowVersion() const       { return m_forcePowVersion; }
     inline bool aesni() const                       { return m_aesni == AESNI_ON; }
-    inline size_t hashFactor() const                   { return m_hashFactor; }
+    inline size_t hashFactor() const                { return m_hashFactor; }
     inline int apiPort() const                      { return m_apiPort; }
     inline int donateLevel() const                  { return m_donateLevel; }
     inline int printTime() const                    { return m_printTime; }
     inline int priority() const                     { return m_priority; }
     inline int retries() const                      { return m_retries; }
     inline int retryPause() const                   { return m_retryPause; }
-    inline size_t threads() const                      { return m_threads; }
+    inline size_t threads() const                   { return m_threads; }
     inline int ccUpdateInterval() const             { return m_ccUpdateInterval; }
     inline int ccPort() const                       { return m_ccPort; }
     inline int64_t affinity() const                 { return m_affinity; }
-    inline int64_t multiHashThreadMask() const     { return m_multiHashThreadMask; }
+    inline int64_t multiHashThreadMask() const      { return m_multiHashThreadMask; }
     inline void setColors(bool colors)              { m_colors = colors; }
 
     inline static void release()                  { delete m_self; }
@@ -155,6 +162,7 @@ private:
     Algo m_algo;
     AlgoVariant m_algoVariant;
     AesNi m_aesni;
+    PowVersion m_forcePowVersion;
     size_t m_hashFactor;
     int m_apiPort;
     int m_donateLevel;

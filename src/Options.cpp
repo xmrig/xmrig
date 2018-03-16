@@ -160,7 +160,8 @@ static struct option const options[] = {
     { "user-agent",       1, nullptr, 1008 },
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
-    { "use-tls",          1, nullptr, 1015 },
+    { "use-tls",          0, nullptr, 1015 },
+    { "force-pow-version",1, nullptr, 1016 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
@@ -203,6 +204,7 @@ static struct option const config_options[] = {
     { "syslog",        0, nullptr, 'S'  },
     { "threads",       1, nullptr, 't'  },
     { "user-agent",    1, nullptr, 1008 },
+    { "force-pow-version", 1, nullptr, 1016 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
     { nullptr, 0, nullptr, 0 }
@@ -302,6 +304,7 @@ Options::Options(int argc, char **argv) :
     m_ccKeyFile(nullptr),
     m_ccCertFile(nullptr),
     m_algo(ALGO_CRYPTONIGHT),
+    m_forcePowVersion(POW_AUTODETECT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
     m_hashFactor(0),
@@ -522,11 +525,10 @@ bool Options::parseArg(int key, const char *arg)
     case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
+    case 1016: /* --force-pow-version */
     case 1021: /* --cpu-priority */
     case 4000: /* --api-port */
-        return parseArg(key, strtol(arg, nullptr, 10));
     case 4006: /* --cc-port */
-        return parseArg(key, strtol(arg, nullptr, 10));
     case 4012: /* --cc-update-interval-c */
         return parseArg(key, strtol(arg, nullptr, 10));
 
@@ -669,6 +671,15 @@ bool Options::parseArg(int key, uint64_t arg)
         }
 
         m_printTime = (int) arg;
+        break;
+
+    case 1016: /* --force-pow-version */
+        if (arg < POW_AUTODETECT || arg > POW_V2) {
+            showUsage(1);
+            return false;
+        }
+
+        m_forcePowVersion = static_cast<PowVersion>(arg);
         break;
 
     case 1020: /* --cpu-affinity */

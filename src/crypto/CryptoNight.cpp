@@ -36,8 +36,8 @@
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
 #   if !defined(XMRIG_ARMv7)
-    if (reinterpret_cast<const uint8_t*>(input)[0] > 6) {
-        CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashV7(input, size, output, ctx);
+    if (reinterpret_cast<const uint8_t*>(input)[0] > 6 || Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
+        CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, ctx);
     } else {
         CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
     }
@@ -46,9 +46,8 @@ static void cryptonight_aesni(const void *input, size_t size, void *output, cryp
 
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-    if (reinterpret_cast<const uint8_t*>(input)[0] > 6)
-    {
-        CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashV7(input, size, output, ctx);
+    if (reinterpret_cast<const uint8_t*>(input)[0] > 6 || Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
+        CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, ctx);
     } else {
         CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
     }
@@ -57,13 +56,21 @@ static void cryptonight_softaes(const void *input, size_t size, void *output, cr
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_lite_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
 #   if !defined(XMRIG_ARMv7)
-    CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+    if (reinterpret_cast<const uint8_t*>(input)[0] > 1 || Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
+        CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, ctx);
+    } else {
+        CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+    }
 #   endif
 }
 
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_lite_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
-    CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+    if (reinterpret_cast<const uint8_t*>(input)[0] > 1 || Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
+        CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, ctx);
+    } else {
+        CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, ctx);
+    }
 }
 
 void (*cryptonight_hash_ctx[MAX_NUM_HASH_BLOCKS])(const void *input, size_t size, void *output, cryptonight_ctx *ctx);
@@ -71,7 +78,6 @@ void (*cryptonight_hash_ctx[MAX_NUM_HASH_BLOCKS])(const void *input, size_t size
 template <size_t HASH_FACTOR>
 void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
 {
-
     switch (algo) {
         case Options::ALGO_CRYPTONIGHT:
             if (aesni) {
