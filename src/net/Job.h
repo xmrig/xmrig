@@ -69,6 +69,7 @@ public:
     static void toHex(const unsigned char* in, unsigned int len, char* out);
 
     bool operator==(const Job &other) const;
+    bool operator!=(const Job &other) const;
 
 private:
     bool m_nicehash;

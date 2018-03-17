@@ -120,6 +120,7 @@ private:
     static int64_t m_sequence;
     std::map<int64_t, SubmitResult> m_results;
     uint64_t m_expire;
+    uint64_t m_jobs;
     Url m_url;
     uv_buf_t m_recvBuf;
     uv_getaddrinfo_t m_resolver;
