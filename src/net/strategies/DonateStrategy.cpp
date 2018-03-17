@@ -26,6 +26,7 @@
 #include "net/Client.h"
 #include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
+#include "net/strategies/FailoverStrategy.h"
 #include "Platform.h"
 #include "xmrig.h"
 
@@ -36,10 +37,14 @@ extern "C"
 }
 
 
+const static char *kDonatePool = "thanks.xmrig.com";
+
+
 DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener) :
     m_active(false),
     m_donateTime(level * 60 * 1000),
     m_idleTime((100 - level) * 60 * 1000),
+    m_strategy(nullptr),
     m_listener(listener)
 {
     uint8_t hash[200];
@@ -48,14 +53,17 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyL
     keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
     Job::toHex(hash, 32, userId);
 
-    Url *url = new Url("thanks.xmrig.com", algo == xmrig::ALGO_CRYPTONIGHT_LITE ? 5555 : 80, userId, nullptr, false, true);
+    if (algo == xmrig::ALGO_CRYPTONIGHT) {
+        m_pools.push_back(new Url(kDonatePool, 80,  userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePool, 443, userId, nullptr, false, true));
+        m_pools.push_back(new Url("emergency.xmrig.com", 5555, "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD", "emergency", false, false));
+    }
+    else {
+        m_pools.push_back(new Url(kDonatePool, 3333, userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePool, 5555, userId, nullptr, false, true));
+    }
 
-    m_client = new Client(-1, Platform::userAgent(), this);
-    m_client->setUrl(url);
-    m_client->setRetryPause(1000);
-    m_client->setQuiet(true);
-
-    delete url;
+    m_strategy = new FailoverStrategy(m_pools, 1, 1, this, true);
 
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);
@@ -64,15 +72,20 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyL
 }
 
 
+DonateStrategy::~DonateStrategy()
+{
+}
+
+
 int64_t DonateStrategy::submit(const JobResult &result)
 {
-    return m_client->submit(result);
+    return m_strategy->submit(result);
 }
 
 
 void DonateStrategy::connect()
 {
-    m_client->connect();
+    m_strategy->connect();
 }
 
 
@@ -84,28 +97,17 @@ void DonateStrategy::release()
 void DonateStrategy::stop()
 {
     uv_timer_stop(&m_timer);
-    m_client->disconnect();
+    m_strategy->stop();
 }
 
 
 void DonateStrategy::tick(uint64_t now)
 {
-    m_client->tick(now);
+    m_strategy->tick(now);
 }
 
 
-void DonateStrategy::onClose(Client *client, int failures)
-{
-}
-
-
-void DonateStrategy::onJobReceived(Client *client, const Job &job)
-{
-    m_listener->onJob(this, client, job);
-}
-
-
-void DonateStrategy::onLoginSuccess(Client *client)
+void DonateStrategy::onActive(IStrategy *strategy, Client *client)
 {
     if (!isActive()) {
         uv_timer_start(&m_timer, DonateStrategy::onTimer, m_donateTime, 0);
@@ -116,7 +118,18 @@ void DonateStrategy::onLoginSuccess(Client *client)
 }
 
 
-void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void DonateStrategy::onJob(IStrategy *strategy, Client *client, const Job &job)
+{
+    m_listener->onJob(this, client, job);
+}
+
+
+void DonateStrategy::onPause(IStrategy *strategy)
+{
+}
+
+
+void DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
 }
@@ -130,7 +143,7 @@ void DonateStrategy::idle()
 
 void DonateStrategy::suspend()
 {
-    m_client->disconnect();
+    m_strategy->stop();
 
     m_active = false;
     m_listener->onPause(this);

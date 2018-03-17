@@ -40,7 +40,7 @@ class Url;
 class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-    FailoverStrategy(const std::vector<Url*> &urls, int retryPause, int retries, IStrategyListener *listener);
+    FailoverStrategy(const std::vector<Url*> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     ~FailoverStrategy();
 
 public:
@@ -63,6 +63,7 @@ private:
     void add(const Url *url);
 
     bool m_release;
+    const bool m_quiet;
     const int m_retries;
     const int m_retryPause;
     int m_active;

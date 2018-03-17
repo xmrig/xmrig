@@ -61,6 +61,7 @@ public:
     inline uint32_t diff() const           { return (uint32_t) m_diff; }
     inline uint64_t target() const         { return m_target; }
     inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
+    inline void setPoolId(int poolId)      { m_poolId = poolId; }
     inline void setThreadId(int threadId)  { m_threadId = threadId; }
 
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);

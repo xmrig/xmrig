@@ -58,7 +58,7 @@ protected:
 private:
   constexpr static int kTickInterval = 1 * 1000;
 
-  void setJob(Client *client, const Job &job);
+  void setJob(Client *client, const Job &job, bool donate);
   void tick();
 
   static void onTick(uv_timer_t *handle);
