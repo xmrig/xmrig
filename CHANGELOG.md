@@ -1,3 +1,6 @@
+# v2.5.1
+- [#459](https://github.com/xmrig/xmrig/issues/459) Fixed regression (version 2.5.0 affected) with connection to **xmr.f2pool.com**.
+
 # v2.5.0
 - [#434](https://github.com/xmrig/xmrig/issues/434) **Added support for Monero v7 PoW, scheduled on March 28.**
 - Added full IPv6 support.
