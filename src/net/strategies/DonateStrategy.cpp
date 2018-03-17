@@ -37,7 +37,8 @@ extern "C"
 }
 
 
-const static char *kDonatePool = "thanks.xmrig.com";
+const static char *kDonatePool   = "thanks.xmrig.com";
+const static char *kDonatePoolIP = "45.76.34.221";
 
 
 DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener) :
@@ -54,13 +55,15 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyL
     Job::toHex(hash, 32, userId);
 
     if (algo == xmrig::ALGO_CRYPTONIGHT) {
-        m_pools.push_back(new Url(kDonatePool, 80,  userId, nullptr, false, true));
-        m_pools.push_back(new Url(kDonatePool, 443, userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePool,   80,  userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePool,   443, userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePoolIP, 80,  userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePoolIP, 443, userId, nullptr, false, true));
         m_pools.push_back(new Url("emergency.xmrig.com", 5555, "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD", "emergency", false, false));
     }
     else {
-        m_pools.push_back(new Url(kDonatePool, 3333, userId, nullptr, false, true));
-        m_pools.push_back(new Url(kDonatePool, 5555, userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePool,   5555, userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePoolIP, 5555, userId, nullptr, false, true));
     }
 
     m_strategy = new FailoverStrategy(m_pools, 1, 1, this, true);
