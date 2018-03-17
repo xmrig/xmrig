@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,7 +40,6 @@
 #include "net/SubmitResult.h"
 #include "net/Url.h"
 #include "Options.h"
-#include "Platform.h"
 #include "workers/Workers.h"
 
 
@@ -55,14 +54,14 @@ Network::Network(const Options *options) :
     const std::vector<Url*> &pools = options->pools();
 
     if (pools.size() > 1) {
-        m_strategy = new FailoverStrategy(pools, Platform::userAgent(), this);
+        m_strategy = new FailoverStrategy(pools, options->retryPause(), options->retries(), this);
     }
     else {
-        m_strategy = new SinglePoolStrategy(pools.front(), Platform::userAgent(), this);
+        m_strategy = new SinglePoolStrategy(pools.front(), options->retryPause(), this);
     }
 
     if (m_options->donateLevel() > 0) {
-        m_donate = new DonateStrategy(Platform::userAgent(), this);
+        m_donate = new DonateStrategy(options->donateLevel(), options->pools().front()->user(), options->algo(), this);
     }
 
     m_timer.data = this;
@@ -93,9 +92,9 @@ void Network::stop()
 }
 
 
-void Network::onActive(Client *client)
+void Network::onActive(IStrategy *strategy, Client *client)
 {
-    if (client->id() == -1) {
+    if (m_donate && m_donate == strategy) {
         LOG_NOTICE("dev donate started");
         return;
     }
@@ -106,13 +105,13 @@ void Network::onActive(Client *client)
 }
 
 
-void Network::onJob(Client *client, const Job &job)
+void Network::onJob(IStrategy *strategy, Client *client, const Job &job)
 {
-    if (m_donate && m_donate->isActive() && client->id() != -1) {
+    if (m_donate && m_donate->isActive() && m_donate != strategy) {
         return;
     }
 
-    setJob(client, job);
+    setJob(client, job, m_donate == strategy);
 }
 
 
@@ -142,7 +141,7 @@ void Network::onPause(IStrategy *strategy)
 }
 
 
-void Network::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void Network::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
 {
     m_state.add(result, error);
 
@@ -159,7 +158,7 @@ void Network::onResultAccepted(Client *client, const SubmitResult &result, const
 }
 
 
-void Network::setJob(Client *client, const Job &job)
+void Network::setJob(Client *client, const Job &job, bool donate)
 {
     if (m_options->colors()) {
         LOG_INFO("\x1B[01;35mnew job\x1B[0m from \x1B[01;37m%s:%d\x1B[0m diff \x1B[01;37m%d", client->host(), client->port(), job.diff());
@@ -169,7 +168,7 @@ void Network::setJob(Client *client, const Job &job)
     }
 
     m_state.diff = job.diff();
-    Workers::setJob(job);
+    Workers::setJob(job, donate);
 }
 
 

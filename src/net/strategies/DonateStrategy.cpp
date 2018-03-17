@@ -26,7 +26,8 @@
 #include "net/Client.h"
 #include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
-#include "Options.h"
+#include "net/strategies/FailoverStrategy.h"
+#include "Platform.h"
 #include "xmrig.h"
 
 
@@ -36,27 +37,36 @@ extern "C"
 }
 
 
-DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
+const static char *kDonatePool   = "thanks.xmrig.com";
+const static char *kDonatePoolIP = "45.76.34.221";
+
+
+DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener) :
     m_active(false),
-    m_donateTime(Options::i()->donateLevel() * 60 * 1000),
-    m_idleTime((100 - Options::i()->donateLevel()) * 60 * 1000),
+    m_donateTime(level * 60 * 1000),
+    m_idleTime((100 - level) * 60 * 1000),
+    m_strategy(nullptr),
     m_listener(listener)
 {
     uint8_t hash[200];
     char userId[65] = { 0 };
-    const char *user = Options::i()->pools().front()->user();
 
     keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
     Job::toHex(hash, 32, userId);
 
-    Url *url = new Url("thanks.xmrig.com", Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE ? 5555 : 80, userId, nullptr, false, true);
+    if (algo == xmrig::ALGO_CRYPTONIGHT) {
+        m_pools.push_back(new Url(kDonatePool,   80,  userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePool,   443, userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePoolIP, 80,  userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePoolIP, 443, userId, nullptr, false, true));
+        m_pools.push_back(new Url("emergency.xmrig.com", 5555, "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD", "emergency", false, false));
+    }
+    else {
+        m_pools.push_back(new Url(kDonatePool,   5555, userId, nullptr, false, true));
+        m_pools.push_back(new Url(kDonatePoolIP, 5555, userId, nullptr, false, true));
+    }
 
-    m_client = new Client(-1, agent, this);
-    m_client->setUrl(url);
-    m_client->setRetryPause(Options::i()->retryPause() * 1000);
-    m_client->setQuiet(true);
-
-    delete url;
+    m_strategy = new FailoverStrategy(m_pools, 1, 1, this, true);
 
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);
@@ -65,56 +75,66 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
 }
 
 
+DonateStrategy::~DonateStrategy()
+{
+}
+
+
 int64_t DonateStrategy::submit(const JobResult &result)
 {
-    return m_client->submit(result);
+    return m_strategy->submit(result);
 }
 
 
 void DonateStrategy::connect()
 {
-    m_client->connect();
+    m_strategy->connect();
+}
+
+
+void DonateStrategy::release()
+{
 }
 
 
 void DonateStrategy::stop()
 {
     uv_timer_stop(&m_timer);
-    m_client->disconnect();
+    m_strategy->stop();
 }
 
 
 void DonateStrategy::tick(uint64_t now)
 {
-    m_client->tick(now);
+    m_strategy->tick(now);
 }
 
 
-void DonateStrategy::onClose(Client *client, int failures)
-{
-}
-
-
-void DonateStrategy::onJobReceived(Client *client, const Job &job)
-{
-    m_listener->onJob(client, job);
-}
-
-
-void DonateStrategy::onLoginSuccess(Client *client)
+void DonateStrategy::onActive(IStrategy *strategy, Client *client)
 {
     if (!isActive()) {
         uv_timer_start(&m_timer, DonateStrategy::onTimer, m_donateTime, 0);
     }
 
     m_active = true;
-    m_listener->onActive(client);
+    m_listener->onActive(this, client);
 }
 
 
-void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void DonateStrategy::onJob(IStrategy *strategy, Client *client, const Job &job)
 {
-    m_listener->onResultAccepted(client, result, error);
+    m_listener->onJob(this, client, job);
+}
+
+
+void DonateStrategy::onPause(IStrategy *strategy)
+{
+}
+
+
+void DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
+{
+    m_listener->onResultAccepted(this, client, result, error);
 }
 
 
@@ -126,7 +146,7 @@ void DonateStrategy::idle()
 
 void DonateStrategy::suspend()
 {
-    m_client->disconnect();
+    m_strategy->stop();
 
     m_active = false;
     m_listener->onPause(this);

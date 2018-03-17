@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,13 +37,15 @@ class Url;
 class SinglePoolStrategy : public IStrategy, public IClientListener
 {
 public:
-    SinglePoolStrategy(const Url *url, const char *agent, IStrategyListener *listener);
+    SinglePoolStrategy(const Url *url, int retryPause, IStrategyListener *listener, bool quiet = false);
+    ~SinglePoolStrategy();
 
 public:
     inline bool isActive() const override  { return m_active; }
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
+    void release() override;
     void resume() override;
     void stop() override;
     void tick(uint64_t now) override;
@@ -56,6 +58,7 @@ protected:
 
 private:
     bool m_active;
+    bool m_release;
     Client *m_client;
     IStrategyListener *m_listener;
 };

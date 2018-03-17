@@ -26,10 +26,12 @@
 
 
 #include <uv.h>
+#include <vector>
 
 
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
+#include "interfaces/IStrategyListener.h"
 
 
 class Client;
@@ -37,10 +39,11 @@ class IStrategyListener;
 class Url;
 
 
-class DonateStrategy : public IStrategy, public IClientListener
+class DonateStrategy : public IStrategy, public IStrategyListener
 {
 public:
-    DonateStrategy(const char *agent, IStrategyListener *listener);
+    DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener);
+    ~DonateStrategy();
 
 public:
     inline bool isActive() const override  { return m_active; }
@@ -48,14 +51,15 @@ public:
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
+    void release() override;
     void stop() override;
     void tick(uint64_t now) override;
 
 protected:
-    void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job) override;
-    void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
+    void onActive(IStrategy *strategy, Client *client) override;
+    void onJob(IStrategy *strategy, Client *client, const Job &job) override;
+    void onPause(IStrategy *strategy) override;
+    void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
 
 private:
     void idle();
@@ -64,10 +68,11 @@ private:
     static void onTimer(uv_timer_t *handle);
 
     bool m_active;
-    Client *m_client;
     const int m_donateTime;
     const int m_idleTime;
+    IStrategy *m_strategy;
     IStrategyListener *m_listener;
+    std::vector<Url*> m_pools;
     uv_timer_t m_timer;
 };
 

@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,16 +25,24 @@
 #include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
 #include "net/strategies/SinglePoolStrategy.h"
-#include "Options.h"
+#include "Platform.h"
 
 
-SinglePoolStrategy::SinglePoolStrategy(const Url *url, const char *agent, IStrategyListener *listener) :
+SinglePoolStrategy::SinglePoolStrategy(const Url *url, int retryPause, IStrategyListener *listener, bool quiet) :
     m_active(false),
+    m_release(false),
     m_listener(listener)
 {
-    m_client = new Client(0, agent, this);
+    m_client = new Client(0, Platform::userAgent(), this);
     m_client->setUrl(url);
-    m_client->setRetryPause(Options::i()->retryPause() * 1000);
+    m_client->setRetryPause(retryPause * 1000);
+    m_client->setQuiet(quiet);
+}
+
+
+SinglePoolStrategy::~SinglePoolStrategy()
+{
+    delete m_client;
 }
 
 
@@ -50,13 +58,20 @@ void SinglePoolStrategy::connect()
 }
 
 
+void SinglePoolStrategy::release()
+{
+    m_release = true;
+    m_client->disconnect();
+}
+
+
 void SinglePoolStrategy::resume()
 {
     if (!isActive()) {
         return;
     }
 
-    m_listener->onJob(m_client, m_client->job());
+    m_listener->onJob(this, m_client, m_client->job());
 }
 
 
@@ -74,6 +89,11 @@ void SinglePoolStrategy::tick(uint64_t now)
 
 void SinglePoolStrategy::onClose(Client *client, int failures)
 {
+    if (m_release) {
+        delete this;
+        return;
+    }
+
     if (!isActive()) {
         return;
     }
@@ -85,18 +105,18 @@ void SinglePoolStrategy::onClose(Client *client, int failures)
 
 void SinglePoolStrategy::onJobReceived(Client *client, const Job &job)
 {
-    m_listener->onJob(client, job);
+    m_listener->onJob(this, client, job);
 }
 
 
 void SinglePoolStrategy::onLoginSuccess(Client *client)
 {
     m_active = true;
-    m_listener->onActive(client);
+    m_listener->onActive(this, client);
 }
 
 
 void SinglePoolStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
-    m_listener->onResultAccepted(client, result, error);
+    m_listener->onResultAccepted(this, client, result, error);
 }
