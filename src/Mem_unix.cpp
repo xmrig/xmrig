@@ -99,8 +99,6 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 
 void Mem::release()
 {
-	const int size = MEMORY * (m_threads + 1);
-
 	if(m_flags & HugepagesEnabled)
 	{
 		if(m_flags & Lock)

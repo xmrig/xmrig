@@ -31,6 +31,7 @@
 #include <string>
 
 
+#include "align.h"
 #include "net/Id.h"
 #include "xmrig.h"
 
@@ -44,7 +45,7 @@ public:
 
 	bool setBlob(const char* blob);
 	bool setTarget(const char* target);
-	void setCoin(const char* coin);
+	void setCoin(const std::string & coin);
 	void setVariant(int variant);
 
 	inline bool isNicehash() const
@@ -55,11 +56,11 @@ public:
 	{
 		return m_size > 0 && m_diff > 0;
 	}
-	inline bool setId(const char* id)
+	inline bool setId(const std::string & id)
 	{
 		return m_id.setId(id);
 	}
-	inline const char* coin() const
+	inline const std::string & coin() const
 	{
 		return m_coin;
 	}
@@ -127,7 +128,7 @@ public:
 
 private:
 	bool m_nicehash;
-	char m_coin[5];
+	std::string m_coin;
 	int m_algo;
 	int m_poolId;
 	int m_threadId;
@@ -135,7 +136,7 @@ private:
 	size_t m_size;
 	uint64_t m_diff;
 	uint64_t m_target;
-	uint8_t m_blob[96]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
+	VAR_ALIGN(16, uint8_t m_blob[96]); // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
 	xmrig::Id m_id;
 };
 

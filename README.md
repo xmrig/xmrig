@@ -7,6 +7,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 
 * This software is like the [CPU-mining](https://github.com/xmrig/xmrig) version; but there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
 * This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
+* You can use [config.xmrig.com](https://config.xmrig.com/) to generate/edit/share your configurations. :new:
 
 ## Own features
 
@@ -22,4 +23,4 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * xmrig@enwillyado.com
 * [telegram](https://telegram.me/enWILLYado)
 
-¡Se habla español!
+Â¡Se habla espaÃ±ol!

@@ -61,6 +61,7 @@ static inline char hf_bin2hex(unsigned char c)
 
 Job::Job() :
 	m_nicehash(false),
+	m_coin(),
 	m_algo(xmrig::ALGO_CRYPTONIGHT),
 	m_poolId(-2),
 	m_threadId(-1),
@@ -75,6 +76,7 @@ Job::Job() :
 
 Job::Job(int poolId, bool nicehash, int algo, int variant) :
 	m_nicehash(nicehash),
+	m_coin(),
 	m_algo(algo),
 	m_poolId(poolId),
 	m_threadId(-1),
@@ -168,16 +170,16 @@ bool Job::setTarget(const char* target)
 }
 
 
-void Job::setCoin(const char* coin)
+void Job::setCoin(const std::string & coin)
 {
-	if(!coin || strlen(coin) > 4)
+	if(m_coin.size() == 0 || m_coin.size() > 4)
 	{
-		memset(m_coin, 0, sizeof(m_coin));
+		m_coin.clear();
 		return;
 	}
 
-	strncpy(m_coin, coin, sizeof(m_coin));
-	m_algo = strcmp(m_coin, "AEON") == 0 ? xmrig::ALGO_CRYPTONIGHT_LITE : xmrig::ALGO_CRYPTONIGHT;
+	m_coin = coin;
+	m_algo = (m_coin != "AEON") ? xmrig::ALGO_CRYPTONIGHT_LITE : xmrig::ALGO_CRYPTONIGHT;
 }
 
 
