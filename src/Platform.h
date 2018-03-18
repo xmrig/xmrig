@@ -24,24 +24,25 @@
 #ifndef __PLATFORM_H__
 #define __PLATFORM_H__
 
+#include <string>
 
 class Platform
 {
 public:
-	static const char* defaultConfigName();
-	static void init(const char* userAgent);
+	static const std::string & defaultConfigName();
+	static void init(const std::string & userAgent);
 	static void release();
 	static void setProcessPriority(int priority);
 	static void setThreadPriority(int priority);
 
-	static inline const char* userAgent()
+	static inline const std::string & userAgent()
 	{
 		return m_userAgent;
 	}
 
 private:
-	static char* m_defaultConfigName;
-	static char* m_userAgent;
+	static std::string m_defaultConfigName;
+	static std::string m_userAgent;
 };
 
 

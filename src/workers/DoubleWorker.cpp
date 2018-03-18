@@ -22,14 +22,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <thread>
-
-
 #include "crypto/CryptoNight.h"
 #include "workers/DoubleWorker.h"
 #include "workers/Workers.h"
 
+#ifndef _WIN32
+#include <thread>
+#include <unistd.h>
+#endif
 
 class DoubleWorker::State
 {
@@ -69,7 +69,11 @@ void DoubleWorker::start()
 		{
 			do
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(200));
+#ifdef _WIN32
+				Sleep(200);
+#else
+				usleep(200 * 1000);
+#endif
 			}
 			while(Workers::isPaused());
 
@@ -105,8 +109,6 @@ void DoubleWorker::start()
 				Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce2, m_hash + 32,
 				                          m_state->job.diff()));
 			}
-
-			std::this_thread::yield();
 		}
 
 		consumeJob();

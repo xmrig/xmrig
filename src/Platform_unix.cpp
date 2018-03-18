@@ -20,6 +20,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef _WIN32
 
 #include <sched.h>
 #include <stdio.h>
@@ -27,59 +28,57 @@
 #include <string.h>
 #include <sys/resource.h>
 #include <uv.h>
+#include <sched.h>
 
+#include "log/Log.h"
 
 #include "Platform.h"
 #include "version.h"
 
 #ifdef XMRIG_NVIDIA_PROJECT
-#   include "nvidia/cryptonight.h"
+#include "nvidia/cryptonight.h"
 #endif
 
 
-static inline char* createUserAgent()
+static inline std::string createUserAgent()
 {
 	const size_t max = 160;
 
-	char* buf = new char[max];
+	char buf[max];
 	int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
 
-#   if defined(__x86_64__)
+#if defined(__x86_64__)
 	length += snprintf(buf + length, max - length, "x86_64) libuv/%s", uv_version_string());
-#   else
+#else
 	length += snprintf(buf + length, max - length, "i686) libuv/%s", uv_version_string());
-#   endif
+#endif
 
-#   ifdef XMRIG_NVIDIA_PROJECT
+#ifdef XMRIG_NVIDIA_PROJECT
 	const int cudaVersion = cuda_get_runtime_version();
 	length += snprintf(buf + length, max - length, " CUDA/%d.%d", cudaVersion / 1000, cudaVersion % 100);
-#   endif
+#endif
 
-#   ifdef __GNUC__
+#ifdef __GNUC__
 	length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   endif
+#endif
 
 	return buf;
 }
 
 
-void Platform::init(const char* userAgent)
+void Platform::init(const std::string & userAgent)
 {
-	m_userAgent = userAgent ? strdup(userAgent) : createUserAgent();
+	m_userAgent = (0 < userAgent.size()) ? userAgent : createUserAgent();
 }
-
 
 void Platform::release()
 {
-	delete [] m_userAgent;
+	m_userAgent.clear();
 }
-
 
 void Platform::setProcessPriority(int priority)
 {
 }
-
-
 
 void Platform::setThreadPriority(int priority)
 {
@@ -117,7 +116,7 @@ void Platform::setThreadPriority(int priority)
 
 	setpriority(PRIO_PROCESS, 0, prio);
 
-#   ifdef SCHED_IDLE
+#ifdef SCHED_IDLE
 	if(priority == 0)
 	{
 		sched_param param;
@@ -125,8 +124,13 @@ void Platform::setThreadPriority(int priority)
 
 		if(sched_setscheduler(0, SCHED_IDLE, &param) != 0)
 		{
-			sched_setscheduler(0, SCHED_BATCH, &param);
+			const int err = sched_setscheduler(0, SCHED_BATCH, &param);
+			LOG_WARN("SCHED_BATCH priority: " << err << ".");
 		}
 	}
+#else
+	LOG_INFO("NONE priority.");
 #   endif
 }
+
+#endif

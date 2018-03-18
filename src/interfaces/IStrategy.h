@@ -24,9 +24,8 @@
 #ifndef __ISTRATEGY_H__
 #define __ISTRATEGY_H__
 
-
+#include "interfaces/interface.h"
 #include <stdint.h>
-
 
 class JobResult;
 

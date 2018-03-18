@@ -24,36 +24,45 @@
 #ifndef __LOG_H__
 #define __LOG_H__
 
-
-#include <uv.h>
 #include <vector>
+#include <sstream>
 
-
-class ILogBackend;
-
+#include "interfaces/ILogBackend.h"
 
 class Log
 {
 public:
-	enum Level
+
+	static const std::string & CL_N()
 	{
-		ERR,
-		WARNING,
-		NOTICE,
-		INFO,
-		DEBUG
-	};
+		static const std::string kCL_N = "\x1B[0m";
+		return kCL_N;
+	}
+	static const std::string & CL_RED()
+	{
+		static const std::string kCL_RED = "\x1B[31m";
+		return kCL_RED;
+	}
+	static const std::string & CL_YELLOW()
+	{
+		static const std::string kCL_YELLOW = "\x1B[33m";
+		return kCL_YELLOW;
+	}
+	static const std::string & CL_WHITE()
+	{
+		static const std::string kCL_WHITE  = "\x1B[01;37m";
+		return kCL_WHITE;
+	}
+	static const std::string & CL_GRAY()
+	{
 
-	constexpr static const char* kCL_N      = "\x1B[0m";
-	constexpr static const char* kCL_RED    = "\x1B[31m";
-	constexpr static const char* kCL_YELLOW = "\x1B[33m";
-	constexpr static const char* kCL_WHITE  = "\x1B[01;37m";
-
-#   ifdef WIN32
-	constexpr static const char* kCL_GRAY = "\x1B[01;30m";
-#   else
-	constexpr static const char* kCL_GRAY = "\x1B[90m";
-#   endif
+#ifdef WIN32
+		static const std::string kCL_GRAY = "\x1B[01;30m";
+#else
+		static const std::string kCL_GRAY = "\x1B[90m";
+#endif
+		return kCL_GRAY;
+	}
 
 	static inline Log* i()
 	{
@@ -75,9 +84,22 @@ public:
 		delete m_self;
 	}
 
-	void message(Level level, const char* fmt, ...);
-	void text(const char* fmt, ...);
+	void message(ILogBackend::Level level, const std::string & text);
+	void text(const std::string & text);
 
+	static inline std::string TO_STRING(const std::basic_ostream<char> & i)
+	{
+		const std::ostringstream & stream = static_cast<const std::ostringstream &>(i);
+		return stream.str();
+	}
+
+	template<class T>
+	static inline std::string ToString(const T & i)
+	{
+		std::stringstream stream;
+		stream << i;
+		return stream.str();
+	}
 private:
 	inline Log() {}
 	~Log();
@@ -87,23 +109,25 @@ private:
 };
 
 
-#define LOG_ERR(x, ...)    Log::i()->message(Log::ERR,     x, ##__VA_ARGS__)
-#define LOG_WARN(x, ...)   Log::i()->message(Log::WARNING, x, ##__VA_ARGS__)
-#define LOG_NOTICE(x, ...) Log::i()->message(Log::NOTICE,  x, ##__VA_ARGS__)
-#define LOG_INFO(x, ...)   Log::i()->message(Log::INFO,    x, ##__VA_ARGS__)
+#define PRINT_MSG(x)		 Log::i()->text(Log::TO_STRING(std::ostringstream() << " " << x))
+
+#define LOG_ERR(x)			 Log::i()->message(ILogBackend::ERR,     Log::TO_STRING(std::ostringstream() << " " << x))
+#define LOG_WARN(x)			 Log::i()->message(ILogBackend::WARNING, Log::TO_STRING(std::ostringstream() << " " << x))
+#define LOG_NOTICE(x)		 Log::i()->message(ILogBackend::NOTICE,  Log::TO_STRING(std::ostringstream() << " " << x))
+#define LOG_INFO(x)			 Log::i()->message(ILogBackend::INFO,    Log::TO_STRING(std::ostringstream() << " " << x))
 
 #ifdef APP_DEBUG
-#   define LOG_DEBUG(x, ...)      Log::i()->message(Log::DEBUG,   x, ##__VA_ARGS__)
+#define LOG_DEBUG(x)		 Log::i()->message(ILogBackend::DEBUG,   Log::TO_STRING(std::ostringstream() << " " << x))
 #else
-#   define LOG_DEBUG(x, ...)
+#define LOG_DEBUG(x)
 #endif
 
 #if defined(APP_DEBUG) || defined(APP_DEVEL)
-#   define LOG_DEBUG_ERR(x, ...)  Log::i()->message(Log::ERR,     x, ##__VA_ARGS__)
-#   define LOG_DEBUG_WARN(x, ...) Log::i()->message(Log::WARNING, x, ##__VA_ARGS__)
+#define LOG_DEBUG_ERR(x)  Log::i()->message(ILogBackend::ERR,     Log::TO_STRING(std::ostringstream() << " " << x))
+#define LOG_DEBUG_WARN(x) Log::i()->message(ILogBackend::WARNING, Log::TO_STRING(std::ostringstream() << " " << x))
 #else
-#   define LOG_DEBUG_ERR(x, ...)
-#   define LOG_DEBUG_WARN(x, ...)
+#define LOG_DEBUG_ERR(x)
+#define LOG_DEBUG_WARN(x)
 #endif
 
 #endif /* __LOG_H__ */

@@ -93,7 +93,7 @@ static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string)
 {
 	LSA_UNICODE_STRING lsaString;
 
-	DWORD dwLen = (DWORD) wcslen(string);
+	DWORD dwLen = (DWORD) wcslen((WCHAR*)string);
 	lsaString.Buffer = (LPWSTR) string;
 	lsaString.Length = (USHORT)((dwLen) * sizeof(WCHAR));
 	lsaString.MaximumLength = (USHORT)((dwLen + 1) * sizeof(WCHAR));

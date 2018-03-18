@@ -20,7 +20,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef _WIN32
 
 #ifdef __FreeBSD__
 #   include <sys/types.h>
@@ -29,6 +29,7 @@
 #   include <pthread_np.h>
 #endif
 
+#include <sched.h>
 
 #include <pthread.h>
 #include <sched.h>
@@ -56,6 +57,8 @@ void Cpu::init()
 
 void Cpu::setAffinity(int id, uint64_t mask)
 {
+#if __GNU_VISIBLE && defined(__rtems__) 
+
 	cpu_set_t set;
 	CPU_ZERO(&set);
 
@@ -81,4 +84,6 @@ void Cpu::setAffinity(int id, uint64_t mask)
 		sched_setaffinity(gettid(), sizeof(&set), &set);
 #       endif
 	}
+#endif
 }
+#endif

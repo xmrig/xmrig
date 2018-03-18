@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,9 +25,6 @@
 #define __DONATESTRATEGY_H__
 
 
-#include <uv.h>
-
-
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
 
@@ -40,9 +37,9 @@ class Url;
 class DonateStrategy : public IStrategy, public IClientListener
 {
 public:
-	DonateStrategy(const char* agent, IStrategyListener* listener);
+	DonateStrategy(const std::string & agent, IStrategyListener* listener);
+	bool reschedule(const bool isDonate);
 
-public:
 	inline bool isActive() const override
 	{
 		return m_active;
@@ -58,20 +55,17 @@ protected:
 	void onClose(Client* client, int failures) override;
 	void onJobReceived(Client* client, const Job & job) override;
 	void onLoginSuccess(Client* client) override;
-	void onResultAccepted(Client* client, const SubmitResult & result, const char* error) override;
+	void onResultAccepted(Client* client, const SubmitResult & result, const std::string & error) override;
 
 private:
-	void idle();
-	void suspend();
-
-	static void onTimer(uv_timer_t* handle);
-
 	bool m_active;
+	bool m_starting;
 	Client* m_client;
-	const int m_donateTime;
-	const int m_idleTime;
 	IStrategyListener* m_listener;
-	uv_timer_t m_timer;
+	uint64_t m_donateTicks;
+	uint64_t m_target;
+	uint64_t m_ticks;
+	const unsigned short C_ONE_CICLE_IN_TICKS;
 };
 
-#endif /* __DONATESTRATEGY_H__ */
+#endif /* __SINGLEPOOLSTRATEGY_H__ */

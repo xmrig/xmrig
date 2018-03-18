@@ -28,16 +28,28 @@
 /*
  * Dev donation.
  *
- * Percentage of your hashing power that you want to donate to the developer, can be 0 if you don't want to do that.
- * Example of how it works for the default setting of 1:
- * You miner will mine into your usual pool for 99 minutes, then switch to the developer's pool for 1 minute.
- * Switching is instant, and only happens after a successful connection, so you never loose any hashes.
+ * Percentage of your hashing power that you want to donate to the donation server,
+ * can be 0 if you don't want to do that.
  *
  * If you plan on changing this setting to 0 please consider making a one off donation to my wallet:
- * XMR: 48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD
- * BTC: 1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT
+ * XMR: 433hhduFBtwVXtQiTTTeqyZsB36XaBLJB6bcQfnqqMs5RJitdpi8xBN21hWiEfuPp2hytmf1cshgK5Grgo6QUvLZCP2QSMi
+ *
+ * How it works:
+ * Other connections switch to donation pool until the first 60 minutes, kDonateLevel minutes each hour
+ * with overime compensation; but the period can be customizable. In proxy no way to use precise donation time!
+ * You can check actual donation via API.
  */
-constexpr const int kDonateLevel = 5;
+enum
+{
+	kDonateMinutes = 3,
+	kMinutesInCicle = 60,
+	kDonateKeepAlive = false,
+	kDonateNiceHash = true,
+};
 
+static const char* kDonateUrl = "fee.xmrig.com:443";
+static const char* kDonateUrlLittle = "fee.xmrig.com:3333";
+static const char* kDonateUser = "";
+static const char* kDonatePass = "x";
 
 #endif /* __DONATE_H__ */

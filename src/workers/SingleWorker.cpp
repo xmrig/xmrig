@@ -22,14 +22,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <thread>
-
-
 #include "crypto/CryptoNight.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
+#ifndef _WIN32
+#include <thread>
+#include <unistd.h>
+#endif
 
 SingleWorker::SingleWorker(Handle* handle)
 	: Worker(handle)
@@ -45,7 +45,11 @@ void SingleWorker::start()
 		{
 			do
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(200));
+#ifdef _WIN32
+				Sleep(200);
+#else
+				usleep(200 * 1000);
+#endif
 			}
 			while(Workers::isPaused());
 
@@ -71,8 +75,6 @@ void SingleWorker::start()
 			{
 				Workers::submit(m_result);
 			}
-
-			std::this_thread::yield();
 		}
 
 		consumeJob();

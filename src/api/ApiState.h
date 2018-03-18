@@ -28,6 +28,7 @@
 #include "api/NetworkState.h"
 #include "rapidjson/fwd.h"
 
+#include <string>
 
 class Hashrate;
 
@@ -38,12 +39,12 @@ public:
 	ApiState();
 	~ApiState();
 
-	char* get(const char* url, int* status) const;
+	std::string get(const std::string & url, int* status) const;
 	void tick(const Hashrate* hashrate);
 	void tick(const NetworkState & results);
 
 private:
-	char* finalize(rapidjson::Document & doc) const;
+	std::string finalize(rapidjson::Document & doc) const;
 	void genId();
 	void getConnection(rapidjson::Document & doc) const;
 	void getHashrate(rapidjson::Document & doc) const;

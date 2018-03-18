@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,34 +21,83 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
+#include <algorithm>
 
+#ifndef _WIN32
+#include <sys/types.h>
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#else
+#include <winsock2.h>
+#undef min
+#undef max
+#endif
 
 #include "net/Url.h"
 #include "xmrig.h"
-
+#include "interfaces/interface.h"
 
 #ifdef _MSC_VER
-#   define strncasecmp(x,y,z) _strnicmp(x,y,z)
+#define strncasecmp(x,y,z) _strnicmp(x,y,z)
 #endif
 
-
-Url::Url() :
-	m_keepAlive(false),
-	m_nicehash(false),
-	m_host(nullptr),
-	m_password(nullptr),
-	m_user(nullptr),
-	m_algo(xmrig::ALGO_CRYPTONIGHT),
-	m_variant(xmrig::VARIANT_AUTO),
-	m_url(nullptr),
-	m_port(kDefaultPort)
+Url::Url()
+	: m_keepAlive(false),
+	  m_nicehash(false),
+	  m_host(),
+	  m_password(),
+	  m_user(),
+	  m_port(kDefaultPort),
+	  m_proxy_host(),
+	  m_proxy_port(kDefaultProxyPort),
+	  m_keystream()
 {
 }
 
+Url::Url(const std::string & url)
+	: m_keepAlive(false),
+	  m_nicehash(false),
+	  m_host(),
+	  m_password(),
+	  m_user(),
+	  m_algo(xmrig::ALGO_CRYPTONIGHT),
+	  m_variant(xmrig::VARIANT_AUTO),
+	  m_port(kDefaultPort),
+	  m_proxy_host(),
+	  m_proxy_port(kDefaultProxyPort),
+	  m_keystream()
+{
+	parse(url);
+}
+
+Url::Url(const std::string & host,
+         uint16_t port,
+         const std::string & user,
+         const std::string & password,
+         bool keepAlive,
+         bool nicehash,
+         int variant)
+	: m_keepAlive(keepAlive),
+	  m_nicehash(nicehash),
+	  m_host(host),
+	  m_password(password),
+	  m_user(user),
+	  m_algo(xmrig::ALGO_CRYPTONIGHT),
+	  m_variant(variant),
+	  m_port(port),
+	  m_proxy_host(),
+	  m_proxy_port(kDefaultProxyPort),
+	  m_keystream()
+{
+}
+
+Url::~Url()
+{
+}
 
 /**
  * @brief Parse url.
@@ -56,127 +105,117 @@ Url::Url() :
  * Valid urls:
  * example.com
  * example.com:3333
+ * example.com:3333#keystream
+ * example.com:3333@proxy
+ * example.com:3333@proxy:8080
+ * example.com:3333#keystream@proxy
+ * example.com:3333#keystream@proxy:8080
  * stratum+tcp://example.com
  * stratum+tcp://example.com:3333
+ * stratum+tcp://example.com:3333#keystream
+ * stratum+tcp://example.com:3333@proxy
+ * stratum+tcp://example.com:3333@proxy:8080
+ * stratum+tcp://example.com:3333#keystream@proxy
+ * stratum+tcp://example.com:3333#keystream@proxy:8080
  *
  * @param url
  */
-Url::Url(const char* url) :
-	m_keepAlive(false),
-	m_nicehash(false),
-	m_host(nullptr),
-	m_password(nullptr),
-	m_user(nullptr),
-	m_algo(xmrig::ALGO_CRYPTONIGHT),
-	m_variant(xmrig::VARIANT_AUTO),
-	m_url(nullptr),
-	m_port(kDefaultPort)
+bool Url::parse(const std::string & url)
 {
-	parse(url);
-}
+	size_t base = 0;
 
-
-Url::Url(const char* host, uint16_t port, const char* user, const char* password, bool keepAlive,
-         bool nicehash, int variant) :
-	m_keepAlive(keepAlive),
-	m_nicehash(nicehash),
-	m_password(password ? strdup(password) : nullptr),
-	m_user(user ? strdup(user) : nullptr),
-	m_algo(xmrig::ALGO_CRYPTONIGHT),
-	m_variant(variant),
-	m_url(nullptr),
-	m_port(port)
-{
-	m_host = strdup(host);
-}
-
-
-Url::~Url()
-{
-	free(m_host);
-	free(m_password);
-	free(m_user);
-
-	if(m_url)
+	const size_t p = url.find("://");
+	if(p != std::string::npos)
 	{
-		delete [] m_url;
-	}
-}
-
-
-bool Url::parse(const char* url)
-{
-	const char* p = strstr(url, "://");
-	const char* base = url;
-
-	if(p)
-	{
-		if(strncasecmp(url, "stratum+tcp://", 14))
+		static const std::string STRATUM_PREFIX = "stratum+tcp://";
+		if(strncasecmp(url.c_str(), STRATUM_PREFIX.c_str(), STRATUM_PREFIX.size()))
 		{
 			return false;
 		}
 
-		base = url + 14;
+		base = STRATUM_PREFIX.size();
 	}
 
-	if(!strlen(base) || *base == '/')
+	const std::string path = url.substr(base);
+	if(path.empty() || path[0] == '/')
 	{
 		return false;
 	}
 
-	if(base[0] == '[')
+	const size_t port = path.find_first_of(':');
+	size_t portini = port;
+	if(port != std::string::npos)
 	{
-		return parseIPv6(base);
+		m_host = path.substr(0, port);
+		m_port = (uint16_t) strtol(path.substr(port + 1).c_str(), nullptr, 10);
+	}
+	else
+	{
+		portini = 0;
 	}
 
-	const char* port = strchr(base, ':');
-	if(!port)
+	const size_t proxy = path.find_first_of('@', portini);
+	const size_t keystream = path.find_first_of('#', portini);
+	if(keystream != std::string::npos)
 	{
-		m_host = strdup(base);
+		if(port == std::string::npos)
+		{
+			m_host = path.substr(0, keystream);
+		}
+		if(proxy != std::string::npos)
+		{
+			m_keystream = path.substr(keystream + 1, proxy - keystream - 1);
+		}
+		else
+		{
+			m_keystream = path.substr(keystream + 1);
+		}
+	}
+
+	if(proxy == std::string::npos)
+	{
+		if(port == std::string::npos && keystream == std::string::npos)
+		{
+			m_host = path;
+		}
+		return true;
+	}
+	else
+	{
+		if(port == std::string::npos && keystream == std::string::npos)
+		{
+			m_host = path.substr(0, proxy);
+		}
+	}
+
+	const size_t proxyini = proxy + 1;
+
+	const size_t proxyport = path.find_first_of(':', proxyini);
+	if(proxyport == std::string::npos)
+	{
+		m_proxy_host = path.substr(proxyini);
 		return false;
 	}
 
-	const size_t size = port++ - base + 1;
-	m_host = new char[size]();
-	memcpy(m_host, base, size - 1);
+	m_proxy_host = path.substr(proxyini, proxyport - proxyini);
+	m_proxy_port = (uint16_t) strtol(path.substr(proxyport + 1).c_str(), nullptr, 10);
 
-	m_port = (uint16_t) strtol(port, nullptr, 10);
 	return true;
 }
 
-
-bool Url::setUserpass(const char* userpass)
+bool Url::setUserpass(const std::string & userpass)
 {
-	const char* p = strchr(userpass, ':');
-	if(!p)
+	const size_t p = userpass.find_first_of(':');
+	if(p == std::string::npos)
 	{
 		return false;
 	}
 
-	free(m_user);
-	free(m_password);
-
-	m_user = static_cast<char*>(calloc(p - userpass + 1, 1));
-	strncpy(m_user, userpass, p - userpass);
-	m_password = strdup(p + 1);
+	setUser(userpass.substr(0, p));
+	setPassword(userpass.substr(p + 1));
 
 	return true;
 }
-
-
-const char* Url::url() const
-{
-	if(!m_url)
-	{
-		const size_t size = strlen(m_host) + 8;
-		m_url = new char[size];
-
-		snprintf(m_url, size - 1, "%s:%d", m_host, m_port);
-	}
-
-	return m_url;
-}
-
 
 void Url::adjust(int algo)
 {
@@ -187,43 +226,141 @@ void Url::adjust(int algo)
 
 	m_algo = algo;
 
-	if(strstr(m_host, ".nicehash.com"))
+
+	if(m_host.find(".nicehash.com") != std::string::npos)
 	{
 		m_keepAlive = false;
 		m_nicehash  = true;
 	}
 
-	if(strstr(m_host, ".minergate.com"))
+	if(m_host.find(".minergate.com") != std::string::npos)
 	{
 		m_keepAlive = false;
 	}
 }
 
-
-void Url::setPassword(const char* password)
+static std::string & Replace(std::string & str, const std::string & what, const std::string & other)
 {
-	if(!password)
+	if(str.empty() || what.empty() || what == other)
 	{
-		return;
+		return str;
 	}
 
-	free(m_password);
-	m_password = strdup(password);
+	size_t start_pos = 0;
+	while((start_pos = str.find(what, start_pos)) != std::string::npos)
+	{
+		str.replace(start_pos, what.length(), other);
+		start_pos += other.length();
+	}
+
+	return str;
+}
+
+static std::string GetHostName()
+{
+	char hostname[1024] = {'\0'};
+	if(0 == gethostname(hostname, sizeof(hostname) - 1))
+	{
+		// get hostname
+		for(int i = 0; hostname[i] != '\0'; ++i)
+		{
+			if(hostname[i] == '.' || hostname[i] == '+')
+			{
+				hostname[i] = '_';
+			}
+		}
+	}
+
+	return hostname;
+}
+
+static std::string GetIpAddrs()
+{
+	std::string ret;
+#ifndef _WIN32
+	struct ifaddrs* ifAddrStruct = NULL;
+	struct ifaddrs* ifa = NULL;
+	void* tmpAddrPtr = NULL;
+
+	if(0 == getifaddrs(&ifAddrStruct))
+	{
+		for(ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next)
+		{
+			if(!ifa->ifa_addr)
+			{
+				continue;
+			}
+			if(ifa->ifa_addr->sa_family == AF_INET)    // check it is IP4
+			{
+				// is a valid IP4 Address
+				tmpAddrPtr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
+				char addressBuffer[INET_ADDRSTRLEN];
+				inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+				ret = addressBuffer;
+			}
+			else if(ifa->ifa_addr->sa_family == AF_INET6)      // check it is IP6
+			{
+				// is a valid IP6 Address
+				tmpAddrPtr = &((struct sockaddr_in6*)ifa->ifa_addr)->sin6_addr;
+				char addressBuffer[INET6_ADDRSTRLEN];
+				inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
+				ret = addressBuffer;
+			}
+		}
+	}
+	if(ifAddrStruct != NULL)
+	{
+		freeifaddrs(ifAddrStruct);
+	}
+#else
+	char hostname[1024] = {'\0'};
+	gethostname(hostname, sizeof(hostname) - 1);
+	struct hostent* hostentry = gethostbyname(hostname);
+
+	// get ip
+	if(hostentry != NULL)
+	{
+		const char* const ipbuf = inet_ntoa(*((struct in_addr*)hostentry->h_addr_list[0]));
+		if(ipbuf != NULL)
+		{
+			ret = ipbuf;
+		}
+	}
+#endif
+	for(size_t i = 0; i < ret.size(); ++i)
+	{
+		if(ret[i] == '.' || ret[i] == '+' || ret[i] == '_')
+		{
+			ret[i] = '_';
+		}
+	}
+	return ret;
+}
+
+static std::string replaceWithTokens(const std::string & value)
+{
+	static const std::string HOST_NAME = GetHostName();
+	static const std::string IP_ADDRS = GetIpAddrs();
+
+	// set user replacing tokens
+	std::string ret = value;
+	ret = Replace(ret, "%HOST_NAME%", HOST_NAME);
+	ret = Replace(ret, "%IP_ADDRS%", IP_ADDRS);
+	return ret;
+}
+
+void Url::setPassword(const std::string & password)
+{
+	m_password = replaceWithTokens(password);
 }
 
 
-void Url::setUser(const char* user)
+void Url::setUser(const std::string & user)
 {
-	if(!user)
-	{
-		return;
-	}
-
-	free(m_user);
-	m_user = strdup(user);
+	m_user = replaceWithTokens(user);
 }
 
-
+/*
 void Url::setVariant(int variant)
 {
 	switch(variant)
@@ -238,68 +375,13 @@ void Url::setVariant(int variant)
 		break;
 	}
 }
+*/
 
-
-bool Url::operator==(const Url & other) const
+void Url::copyKeystream(char* keystreamDest, const size_t keystreamLen) const
 {
-	if(m_port != other.m_port || m_keepAlive != other.m_keepAlive || m_nicehash != other.m_nicehash)
+	if(hasKeystream())
 	{
-		return false;
+		memset(keystreamDest, 1, keystreamLen);
+		memcpy(keystreamDest, m_keystream.c_str(), std::min(keystreamLen, m_keystream.size()));
 	}
-
-	if(strcmp(host(), other.host()) != 0 || strcmp(user(), other.user()) != 0 ||
-	        strcmp(password(), other.password()) != 0)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-
-Url & Url::operator=(const Url* other)
-{
-	m_keepAlive = other->m_keepAlive;
-	m_algo      = other->m_algo;
-	m_variant   = other->m_variant;
-	m_nicehash  = other->m_nicehash;
-	m_port      = other->m_port;
-
-	free(m_host);
-	m_host = strdup(other->m_host);
-
-	setPassword(other->m_password);
-	setUser(other->m_user);
-
-	if(m_url)
-	{
-		delete [] m_url;
-		m_url = nullptr;
-	}
-
-	return *this;
-}
-
-
-bool Url::parseIPv6(const char* addr)
-{
-	const char* end = strchr(addr, ']');
-	if(!end)
-	{
-		return false;
-	}
-
-	const char* port = strchr(end, ':');
-	if(!port)
-	{
-		return false;
-	}
-
-	const size_t size = end - addr;
-	m_host = new char[size]();
-	memcpy(m_host, addr + 1, size - 1);
-
-	m_port = (uint16_t) strtol(port + 1, nullptr, 10);
-
-	return true;
 }

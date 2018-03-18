@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,23 +21,20 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#ifndef XMRIG_NO_HTTPD
 #include <microhttpd.h>
 #include <string.h>
-
 
 #include "api/Api.h"
 #include "api/Httpd.h"
 #include "log/Log.h"
 
-
-Httpd::Httpd(int port, const char* accessToken) :
+Httpd::Httpd(int port, const std::string & accessToken) :
 	m_accessToken(accessToken),
 	m_port(port),
 	m_daemon(nullptr)
 {
 }
-
 
 bool Httpd::start()
 {
@@ -46,22 +43,8 @@ bool Httpd::start()
 		return false;
 	}
 
-	unsigned int flags = 0;
-	if(MHD_is_feature_supported(MHD_FEATURE_EPOLL))
-	{
-		flags = MHD_USE_EPOLL_LINUX_ONLY | MHD_USE_EPOLL_INTERNALLY_LINUX_ONLY;
-	}
-	else
-	{
-		flags = MHD_USE_SELECT_INTERNALLY;
-	}
-
-	if(MHD_is_feature_supported(MHD_FEATURE_IPv6))
-	{
-		flags |= MHD_USE_DUAL_STACK;
-	}
-
-	m_daemon = MHD_start_daemon(flags, m_port, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
+	m_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, m_port, nullptr, nullptr, &Httpd::handler, this,
+	                            MHD_OPTION_END);
 	if(!m_daemon)
 	{
 		LOG_ERR("HTTP Daemon failed to start.");
@@ -72,25 +55,25 @@ bool Httpd::start()
 }
 
 
-int Httpd::auth(const char* header)
+int Httpd::auth(const std::string & header)
 {
-	if(!m_accessToken)
+	if(m_accessToken.empty())
 	{
 		return MHD_HTTP_OK;
 	}
 
-	if(m_accessToken && !header)
+	if(0 < m_accessToken.size() && header.empty())
 	{
 		return MHD_HTTP_UNAUTHORIZED;
 	}
 
-	const size_t size = strlen(header);
-	if(size < 8 || strlen(m_accessToken) != size - 7 || memcmp("Bearer ", header, 7) != 0)
+	const size_t size = header.size();
+	if(size < 8 || m_accessToken.size() != size - 7 || "Bearer " == header.substr(0, 7))
 	{
 		return MHD_HTTP_FORBIDDEN;
 	}
 
-	return strncmp(m_accessToken, header + 7, strlen(m_accessToken)) == 0 ? MHD_HTTP_OK : MHD_HTTP_FORBIDDEN;
+	return (m_accessToken == header.substr(7)) ? MHD_HTTP_OK : MHD_HTTP_FORBIDDEN;
 }
 
 
@@ -112,15 +95,16 @@ int Httpd::done(MHD_Connection* connection, int status, MHD_Response* rsp)
 }
 
 
-int Httpd::handler(void* cls, struct MHD_Connection* connection, const char* url, const char* method,
-                   const char* version, const char* upload_data, size_t* upload_data_size, void** con_cls)
+int Httpd::handlerStd(void* cls, struct MHD_Connection* connection, const std::string & url,
+                      const std::string & method, const std::string & version, const std::string & upload_data,
+                      size_t* upload_data_size, void** con_cls)
 {
-	if(strcmp(method, "OPTIONS") == 0)
+	if(method == "OPTIONS")
 	{
 		return done(connection, MHD_HTTP_OK, nullptr);
 	}
 
-	if(strcmp(method, "GET") != 0)
+	if(method != "GET")
 	{
 		return MHD_NO;
 	}
@@ -132,12 +116,21 @@ int Httpd::handler(void* cls, struct MHD_Connection* connection, const char* url
 		return done(connection, status, nullptr);
 	}
 
-	char* buf = Api::get(url, &status);
-	if(buf == nullptr)
+	std::string buf = Api::get(url, &status);
+	if(buf.empty())
 	{
 		return MHD_NO;
 	}
 
-	MHD_Response* rsp = MHD_create_response_from_buffer(strlen(buf), (void*) buf, MHD_RESPMEM_MUST_FREE);
+	MHD_Response* rsp = MHD_create_response_from_buffer(buf.size(), (void*) buf.c_str(), MHD_RESPMEM_MUST_FREE);
 	return done(connection, status, rsp);
 }
+
+int Httpd::handler(void* cls, MHD_Connection* connection, const char* url, const char* method,
+                   const char* version, const char* upload_data, size_t* upload_data_size,
+                   void** con_cls)
+{
+	return handlerStd(cls, connection, url, method, version, upload_data, upload_data_size, con_cls);
+}
+
+#endif

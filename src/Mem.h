@@ -30,6 +30,9 @@
 #include <stdint.h>
 
 
+#include "align.h"
+
+
 struct cryptonight_ctx;
 
 
@@ -76,7 +79,7 @@ private:
 	static int m_threads;
 	static size_t m_offset;
 	static size_t m_size;
-	alignas(16) static uint8_t* m_memory;
+	VAR_ALIGN(16, static uint8_t* m_memory);
 
 #   ifndef XMRIG_NO_AEON
 	static cryptonight_ctx* createLite(int threadId);

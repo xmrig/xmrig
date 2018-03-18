@@ -4,9 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -62,7 +61,6 @@ static inline char hf_bin2hex(unsigned char c)
 
 Job::Job() :
 	m_nicehash(false),
-	m_coin(),
 	m_algo(xmrig::ALGO_CRYPTONIGHT),
 	m_poolId(-2),
 	m_threadId(-1),
@@ -70,14 +68,13 @@ Job::Job() :
 	m_size(0),
 	m_diff(0),
 	m_target(0),
-	m_blob()
+	m_id()
 {
 }
 
 
 Job::Job(int poolId, bool nicehash, int algo, int variant) :
 	m_nicehash(nicehash),
-	m_coin(),
 	m_algo(algo),
 	m_poolId(poolId),
 	m_threadId(-1),
@@ -85,7 +82,7 @@ Job::Job(int poolId, bool nicehash, int algo, int variant) :
 	m_size(0),
 	m_diff(0),
 	m_target(0),
-	m_blob()
+	m_id()
 {
 }
 
@@ -216,9 +213,9 @@ bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 }
 
 
-void Job::toHex(const unsigned char* in, unsigned int len, char* out)
+void Job::toHex(const std::string & in, char* out)
 {
-	for(unsigned int i = 0; i < len; i++)
+	for(size_t i = 0; i < in.size(); ++i)
 	{
 		out[i * 2] = hf_bin2hex((in[i] & 0xF0) >> 4);
 		out[i * 2 + 1] = hf_bin2hex(in[i] & 0x0F);

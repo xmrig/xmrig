@@ -40,8 +40,8 @@ bool Workers::m_enabled = true;
 Hashrate* Workers::m_hashrate = nullptr;
 IJobResultListener* Workers::m_listener = nullptr;
 Job Workers::m_job;
-std::atomic<int> Workers::m_paused;
-std::atomic<uint64_t> Workers::m_sequence;
+int Workers::m_paused;
+uint64_t Workers::m_sequence;
 std::list<JobResult> Workers::m_queue;
 std::vector<Handle*> Workers::m_workers;
 uint64_t Workers::m_ticks = 0;
@@ -180,8 +180,9 @@ void Workers::onResult(uv_async_t* handle)
 	}
 	uv_mutex_unlock(&m_mutex);
 
-	for(auto result : results)
+	for(std::list<JobResult>::iterator itr = results.begin(); itr != results.end(); ++itr)
 	{
+		auto result = *itr;
 		m_listener->onJobResult(result);
 	}
 
@@ -191,8 +192,9 @@ void Workers::onResult(uv_async_t* handle)
 
 void Workers::onTick(uv_timer_t* handle)
 {
-	for(Handle* handle : m_workers)
+	for(size_t i = 0; i < m_workers.size(); ++i)
 	{
+		Handle* handle = m_workers[i];
 		if(!handle->worker())
 		{
 			return;

@@ -77,7 +77,7 @@ void (* const extra_hashes[4])(const void*, size_t, char*) = {do_blake_hash, do_
 
 
 
-#if defined(__x86_64__) || defined(_M_AMD64)
+#if (defined(__x86_64__) || defined(_M_AMD64)) && __cplusplus > 199711L
 #   define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
 #   ifdef __GNUC__
@@ -90,7 +90,7 @@ static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
 #   else
 #define __umul128 _umul128
 #   endif
-#elif defined(__i386__) || defined(_M_IX86)
+#elif defined(__i386__) || defined(_M_IX86) || __cplusplus <= 199711L
 #   define HI32(X) \
 	_mm_srli_si128((X), 4)
 
@@ -318,6 +318,17 @@ static inline void cn_implode_scratchpad(const __m128i* input, __m128i* output)
 	_mm_store_si128(output + 11, xout7);
 }
 
+#if ! defined _WIN64  && defined _WIN32
+#if defined(_MSC_VER) && _MSC_VER < 1900
+static inline __m128i _mm_set_epi64x(const uint64_t __a, const uint64_t __b)
+{
+	__m128i ret;
+	ret.m128i_u64[1] = __a;
+	ret.m128i_u64[0] = __b;
+	return ret;
+}
+#endif
+#endif
 
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, int VARIANT>
 inline void cryptonight_single_hash(const void* __restrict__ input, size_t size, void* __restrict__ output,
@@ -352,7 +363,9 @@ inline void cryptonight_single_hash(const void* __restrict__ input, size_t size,
 			cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
 		}
 		_mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
+
 		VARIANT1_1(&l0[idx0 & MASK]);
+
 		idx0 = EXTRACT64(cx);
 		bx0 = cx;
 
@@ -429,6 +442,7 @@ inline void cryptonight_double_hash(const void* __restrict__ input, size_t size,
 
 		_mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
 		_mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+
 		VARIANT1_1(&l0[idx0 & MASK]);
 		VARIANT1_1(&l1[idx1 & MASK]);
 

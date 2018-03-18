@@ -21,15 +21,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
-
-
 #include "Cpu.h"
 #include "Mem.h"
 #include "Platform.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"
 
+#ifndef _WIN32
+#if __cplusplus <= 199711L
+#include <sys/time.h>
+#else
+#include <chrono>
+#define USE_CHRONO
+#endif
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <stdint.h> // portable: uint64_t   MSVC: __int64 
+#include <WinSock2.h>
+
+static int gettimeofday(struct timeval* tp, struct timezone* tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970
+	static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime)      ;
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec  = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
+#endif
 
 Worker::Worker(Handle* handle) :
 	m_id(handle->threadId()),
@@ -56,10 +87,15 @@ Worker::~Worker()
 
 void Worker::storeStats()
 {
+#ifdef USE_CHRONO
 	using namespace std::chrono;
+	const uint64_t now = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
+#else
+	struct timeval tp;
+	gettimeofday(&tp, NULL);
+	const uint64_t now = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+#endif
 
-	const uint64_t timestamp = time_point_cast<milliseconds>
-	                           (high_resolution_clock::now()).time_since_epoch().count();
-	m_hashCount.store(m_count, std::memory_order_relaxed);
-	m_timestamp.store(timestamp, std::memory_order_relaxed);
+	m_hashCount = m_count;
+	m_timestamp = now;
 }

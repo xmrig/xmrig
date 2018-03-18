@@ -28,6 +28,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string>
 
 
 #include "net/Id.h"
@@ -120,7 +121,7 @@ public:
 	{
 		return 0xFFFFFFFFFFFFFFFFULL / target;
 	}
-	static void toHex(const unsigned char* in, unsigned int len, char* out);
+	static void toHex(const std::string & in, char* out);
 
 	bool operator==(const Job & other) const;
 

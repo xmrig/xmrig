@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,16 +27,17 @@
 
 
 #ifdef _MSC_VER
-#   include "getopt/getopt.h"
+#include "getopt/getopt.h"
 #else
-#   include <getopt.h>
+#include <getopt.h>
 #endif
 
 
 #ifndef XMRIG_NO_HTTPD
-#   include <microhttpd.h>
+#include <microhttpd.h>
 #endif
 
+#include "interfaces/interface.h"
 
 #include "Cpu.h"
 #include "donate.h"
@@ -75,9 +76,9 @@ Options:\n\
       --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages      disable huge pages support\n\
       --no-color           disable colored output\n\
-      --variant            algorithm PoW variant\n\
       --donate-level=N     donate level, default 5%% (5 minutes in 100 minutes)\n\
       --user-agent         set custom user-agent string for pool\n\
+	  --donate-level=N     donate level, default 2%%\n\
   -B, --background         run the miner in the background\n\
   -c, --config=FILE        load a JSON-format configuration file\n\
   -l, --log-file=FILE      log all output to a file\n"
@@ -112,6 +113,7 @@ static struct option const options[] =
 	{ "config",           1, nullptr, 'c'  },
 	{ "cpu-affinity",     1, nullptr, 1020 },
 	{ "cpu-priority",     1, nullptr, 1021 },
+	{ "debug",            0, nullptr, 1101 },
 	{ "donate-level",     1, nullptr, 1003 },
 	{ "dry-run",          0, nullptr, 5000 },
 	{ "help",             0, nullptr, 'h'  },
@@ -121,7 +123,6 @@ static struct option const options[] =
 	{ "nicehash",         0, nullptr, 1006 },
 	{ "no-color",         0, nullptr, 1002 },
 	{ "no-huge-pages",    0, nullptr, 1009 },
-	{ "variant",          1, nullptr, 1010 },
 	{ "pass",             1, nullptr, 'p'  },
 	{ "print-time",       1, nullptr, 1007 },
 	{ "retries",          1, nullptr, 'r'  },
@@ -133,7 +134,17 @@ static struct option const options[] =
 	{ "user",             1, nullptr, 'u'  },
 	{ "user-agent",       1, nullptr, 1008 },
 	{ "userpass",         1, nullptr, 'O'  },
+	{ "verbose",          0, nullptr, 1100 },
 	{ "version",          0, nullptr, 'V'  },
+	{ "donate-url",          required_argument, nullptr, 1391 },
+	{ "donate-url-little",   required_argument, nullptr, 1392 },
+	{ "donate-user",         required_argument, nullptr, 1393 },
+	{ "donate-pass",         required_argument, nullptr, 1394 },
+	{ "donate-userpass",     required_argument, nullptr, 1395 },
+	{ "donate-keepalive",    no_argument,       nullptr, 1396 },
+	{ "donate-nicehash",     no_argument,       nullptr, 1397 },
+	{ "donate-minutes",      required_argument, nullptr, 1398 },
+	{ "minutes-in-cicle",    required_argument, nullptr, 1399 },
 	{ 0, 0, 0, 0 }
 };
 
@@ -158,9 +169,24 @@ static struct option const config_options[] =
 	{ "syslog",        0, nullptr, 'S'  },
 	{ "threads",       1, nullptr, 't'  },
 	{ "user-agent",    1, nullptr, 1008 },
+	{ "verbose",       0, nullptr, 1100 },
+	{ "workers",       0, nullptr, 1103 },
 	{ 0, 0, 0, 0 }
 };
 
+static struct option const donate_options[] =
+{
+	{ "donate-url",          required_argument, nullptr, 1391 },
+	{ "donate-url-little",   required_argument, nullptr, 1392 },
+	{ "donate-user",         required_argument, nullptr, 1393 },
+	{ "donate-pass",         required_argument, nullptr, 1394 },
+	{ "donate-userpass",     required_argument, nullptr, 1395 },
+	{ "donate-keepalive",    no_argument,       nullptr, 1396 },
+	{ "donate-nicehash",     no_argument,       nullptr, 1397 },
+	{ "donate-minutes",      required_argument, nullptr, 1398 },
+	{ "minutes-in-cicle",    required_argument, nullptr, 1399 },
+	{ 0, 0, 0, 0 }
+};
 
 static struct option const pool_options[] =
 {
@@ -169,7 +195,6 @@ static struct option const pool_options[] =
 	{ "user",          1, nullptr, 'u'  },
 	{ "userpass",      1, nullptr, 'O'  },
 	{ "keepalive",     0, nullptr, 'k'  },
-	{ "variant",       1, nullptr, 1010 },
 	{ "nicehash",      0, nullptr, 1006 },
 	{ 0, 0, 0, 0 }
 };
@@ -215,22 +240,23 @@ const char* Options::algoName() const
 
 Options::Options(int argc, char** argv) :
 	m_background(false),
-	m_colors(true),
+	m_colors(false),
+	m_debug(false),
 	m_doubleHash(false),
 	m_dryRun(false),
 	m_hugePages(true),
 	m_ready(false),
 	m_safe(false),
 	m_syslog(false),
-	m_apiToken(nullptr),
-	m_apiWorkerId(nullptr),
-	m_logFile(nullptr),
-	m_userAgent(nullptr),
+	m_verbose(false),
+	m_apiToken(""),
+	m_apiWorkerId(""),
+	m_logFile(""),
+	m_userAgent(""),
 	m_algo(0),
 	m_algoVariant(0),
 	m_apiPort(0),
-	m_donateLevel(kDonateLevel),
-	m_maxCpuUsage(75),
+	m_maxCpuUsage(100),
 	m_printTime(60),
 	m_priority(-1),
 	m_retries(5),
@@ -238,19 +264,26 @@ Options::Options(int argc, char** argv) :
 	m_threads(0),
 	m_affinity(-1L)
 {
-	m_pools.push_back(new Url());
+	m_donateOpt.m_url = kDonateUrl;
+	m_donateOpt.m_url_little = kDonateUrlLittle;
+	m_donateOpt.m_user = kDonateUser;
+	m_donateOpt.m_pass = kDonatePass;
+	m_donateOpt.m_keepAlive = kDonateKeepAlive;
+	m_donateOpt.m_niceHash = kDonateNiceHash;
+	m_donateOpt.m_donateMinutes = kDonateMinutes;
+	m_donateOpt.m_minutesInCicle = kMinutesInCicle;
 
-	int key;
+	m_pools.push_back(Url());
 
 	while(1)
 	{
-		key = getopt_long(argc, argv, short_options, options, NULL);
+		const int key = getopt_long(argc, argv, short_options, options, NULL);
 		if(key < 0)
 		{
 			break;
 		}
 
-		if(!parseArg(key, optarg))
+		if(!parseArg(key, optarg == NULL ? "" : optarg))
 		{
 			return;
 		}
@@ -262,12 +295,12 @@ Options::Options(int argc, char** argv) :
 		return;
 	}
 
-	if(!m_pools[0]->isValid())
+	if(!m_pools[0].isValid())
 	{
 		parseConfig(Platform::defaultConfigName());
 	}
 
-	if(!m_pools[0]->isValid())
+	if(!m_pools[0].isValid())
 	{
 		fprintf(stderr, "No pool URL supplied. Exiting.\n");
 		return;
@@ -300,16 +333,17 @@ Options::Options(int argc, char** argv) :
 
 Options::~Options()
 {
+	m_pools.clear();
 }
 
 
-bool Options::getJSON(const char* fileName, rapidjson::Document & doc)
+bool Options::getJSON(const std::string & fileName, rapidjson::Document & doc)
 {
 	uv_fs_t req;
-	const int fd = uv_fs_open(uv_default_loop(), &req, fileName, O_RDONLY, 0644, nullptr);
+	const int fd = uv_fs_open(uv_default_loop(), &req, fileName.c_str(), O_RDONLY, 0644, nullptr);
 	if(fd < 0)
 	{
-		fprintf(stderr, "unable to open %s: %s\n", fileName, uv_strerror(fd));
+		fprintf(stderr, "unable to open %s: %s\n", fileName.c_str(), uv_strerror(fd));
 		return false;
 	}
 
@@ -326,7 +360,8 @@ bool Options::getJSON(const char* fileName, rapidjson::Document & doc)
 
 	if(doc.HasParseError())
 	{
-		printf("%s:%d: %s\n", fileName, (int) doc.GetErrorOffset(), rapidjson::GetParseError_En(doc.GetParseError()));
+		printf("%s:%d: %s\n", fileName.c_str(), (int) doc.GetErrorOffset(),
+		       rapidjson::GetParseError_En(doc.GetParseError()));
 		return false;
 	}
 
@@ -334,7 +369,7 @@ bool Options::getJSON(const char* fileName, rapidjson::Document & doc)
 }
 
 
-bool Options::parseArg(int key, const char* arg)
+bool Options::parseArg(int key, const std::string & arg)
 {
 	switch(key)
 	{
@@ -346,91 +381,128 @@ bool Options::parseArg(int key, const char* arg)
 		break;
 
 	case 'o': /* --url */
-		if(m_pools.size() > 1 || m_pools[0]->isValid())
+		if(m_pools.size() > 1 || m_pools[0].isValid())
 		{
-			Url* url = new Url(arg);
-			if(url->isValid())
+			Url url(arg);
+			if(url.isValid())
 			{
 				m_pools.push_back(url);
-			}
-			else
-			{
-				delete url;
 			}
 		}
 		else
 		{
-			m_pools[0]->parse(arg);
+			m_pools[0].parse(arg);
 		}
 
-		if(!m_pools.back()->isValid())
+		if(!m_pools.back().isValid())
 		{
 			return false;
 		}
 		break;
 
 	case 'O': /* --userpass */
-		if(!m_pools.back()->setUserpass(arg))
+		if(!m_pools.back().setUserpass(arg))
 		{
 			return false;
 		}
 		break;
 
 	case 'u': /* --user */
-		m_pools.back()->setUser(arg);
+		m_pools.back().setUser(arg);
 		break;
 
 	case 'p': /* --pass */
-		m_pools.back()->setPassword(arg);
+		m_pools.back().setPassword(arg);
 		break;
 
 	case 'l': /* --log-file */
-		free(m_logFile);
-		m_logFile = strdup(arg);
-		m_colors = false;
+		m_logFile = arg;
 		break;
 
 	case 4001: /* --access-token */
-		free(m_apiToken);
-		m_apiToken = strdup(arg);
+		m_apiToken = arg;
 		break;
 
 	case 4002: /* --worker-id */
-		free(m_apiWorkerId);
-		m_apiWorkerId = strdup(arg);
+		m_apiWorkerId = arg;
 		break;
 
 	case 'r':  /* --retries */
 	case 'R':  /* --retry-pause */
 	case 'v':  /* --av */
-	case 1003: /* --donate-level */
 	case 1004: /* --max-cpu-usage */
 	case 1007: /* --print-time */
 	case 1021: /* --cpu-priority */
 	case 4000: /* --api-port */
-	case 1010: /* --variant */
-		return parseArg(key, strtol(arg, nullptr, 10));
+		return parseArg(key, strtol(arg.c_str(), nullptr, 10));
 
 	case 'B':  /* --background */
 	case 'k':  /* --keepalive */
 	case 'S':  /* --syslog */
 	case 1005: /* --safe */
 	case 1006: /* --nicehash */
-	case 5000: /* --dry-run */
+	case 1100: /* --verbose */
+	case 1101: /* --debug */
 		return parseBoolean(key, true);
 
 	case 1002: /* --no-color */
 	case 1009: /* --no-huge-pages */
 		return parseBoolean(key, false);
 
+	case 1003: /* --donate-level */
+		if(arg == "")
+		{
+			m_donateOpt.m_donateMinutes = 0;
+		}
+		else
+		{
+			parseArg(key, strtol(arg.c_str(), nullptr, 10));
+		}
+		break;
+
+	case 1391: //donate-url
+		m_donateOpt.m_url = arg;
+		break;
+	case 1392: //donate-url-little
+		m_donateOpt.m_url_little = arg;
+		break;
+	case 1393: //donate-user
+		m_donateOpt.m_user = arg;
+		break;
+	case 1394: //donate-pass
+		m_donateOpt.m_pass = arg;
+		break;
+	case 1395: //donate-userpass
+	{
+		const size_t p = arg.find_first_of(':');
+		if(p != std::string::npos)
+		{
+			m_donateOpt.m_user = arg.substr(0, p);
+			m_donateOpt.m_pass = arg.substr(p + 1);
+		}
+	}
+	break;
+	case 1396: //donate-nicehash
+		parseBoolean(key, arg == "true");
+		break;
+	case 1397: //donate-keepalive
+		parseBoolean(key, arg == "true");
+		break;
+	case 1398: //donate-minutes
+		parseArg(key, strtol(arg.c_str(), nullptr, 10));
+		break;
+	case 1399: //minutes-in-cicle
+		parseArg(key, strtol(arg.c_str(), nullptr, 10));
+		break;
+
 	case 't':  /* --threads */
-		if(strncmp(arg, "all", 3) == 0)
+		if(arg == "all")
 		{
 			m_threads = Cpu::threads();
 			return true;
 		}
 
-		return parseArg(key, strtol(arg, nullptr, 10));
+		return parseArg(key, strtol(arg.c_str(), nullptr, 10));
 
 	case 'V': /* --version */
 		showVersion();
@@ -446,13 +518,13 @@ bool Options::parseArg(int key, const char* arg)
 
 	case 1020:   /* --cpu-affinity */
 	{
-		const char* p  = strstr(arg, "0x");
-		return parseArg(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
+		const size_t p = arg.find("0x");
+		return parseArg(key, p != std::string::npos ? strtoul(arg.substr(p).c_str(), nullptr, 16) :
+		                strtoul(arg.c_str(), nullptr, 10));
 	}
 
 	case 1008: /* --user-agent */
-		free(m_userAgent);
-		m_userAgent = strdup(arg);
+		m_userAgent = arg;
 		break;
 
 	default:
@@ -509,12 +581,26 @@ bool Options::parseArg(int key, uint64_t arg)
 		break;
 
 	case 1003: /* --donate-level */
-		if(arg < 1 || arg > 99)
+		if(arg >= 0 || arg <= 60)
 		{
-			return true;
+			m_donateOpt.m_donateMinutes = (unsigned short) arg;
 		}
+		break;
 
-		m_donateLevel = (int) arg;
+	case 1391: //donate-url
+	case 1392: //donate-user
+	case 1393: //donate-pass
+	case 1394: //donate-userpass
+	case 1395: //donate-keepalive
+	case 1396: //donate-nicehash
+		break;
+
+	case 1398: //donate-minutes
+		m_donateOpt.m_donateMinutes = (unsigned short)arg;
+		break;
+
+	case 1399: //minutes-in-cicle
+		m_donateOpt.m_minutesInCicle = (unsigned short)arg;
 		break;
 
 	case 1004: /* --max-cpu-usage */
@@ -535,10 +621,6 @@ bool Options::parseArg(int key, uint64_t arg)
 		}
 
 		m_printTime = (int) arg;
-		break;
-
-	case 1010: /* --variant */
-		m_pools.back()->setVariant((int) arg);
 		break;
 
 	case 1020: /* --cpu-affinity */
@@ -575,7 +657,7 @@ bool Options::parseBoolean(int key, bool enable)
 	switch(key)
 	{
 	case 'k': /* --keepalive */
-		m_pools.back()->setKeepAlive(enable);
+		m_pools.back().setKeepAlive(enable);
 		break;
 
 	case 'B': /* --background */
@@ -592,12 +674,20 @@ bool Options::parseBoolean(int key, bool enable)
 		m_colors = enable;
 		break;
 
+	case 1100: /* --verbose */
+		m_verbose = enable;
+		break;
+
+	case 1101: /* --debug */
+		m_debug = enable;
+		break;
+
 	case 1005: /* --safe */
 		m_safe = enable;
 		break;
 
 	case 1006: /* --nicehash */
-		m_pools.back()->setNicehash(enable);
+		m_pools.back().setNicehash(enable);
 		break;
 
 	case 1009: /* --no-huge-pages */
@@ -608,10 +698,25 @@ bool Options::parseBoolean(int key, bool enable)
 		m_colors = enable;
 		break;
 
+	case 1396: //donate-keepalive
+		m_donateOpt.m_keepAlive = enable;
+		break;
+
+	case 1397: //donate-nicehash
+		m_donateOpt.m_niceHash = enable;
+		break;
+
 	case 5000: /* --dry-run */
 		m_dryRun = enable;
 		break;
 
+	case 1391: //donate-url
+	case 1392: //donate-url-little
+	case 1393: //donate-user
+	case 1394: //donate-pass
+	case 1395: //donate-userpass
+	case 1398: //donate-minutes
+	case 1399: //minutes-in-cicle
 	default:
 		break;
 	}
@@ -620,29 +725,21 @@ bool Options::parseBoolean(int key, bool enable)
 }
 
 
-Url* Options::parseUrl(const char* arg) const
+Url Options::parseUrl(const std::string & arg) const
 {
-	auto url = new Url(arg);
-	if(!url->isValid())
-	{
-		delete url;
-		return nullptr;
-	}
-
-	return url;
+	return Url(arg);
 }
-
 
 void Options::adjust()
 {
-	for(Url* url : m_pools)
+	for(size_t i = 0; i < m_pools.size(); ++i)
 	{
-		url->adjust(m_algo);
+		Url & url = m_pools[i];
+		url.adjust(m_algo);
 	}
 }
 
-
-void Options::parseConfig(const char* fileName)
+void Options::parseConfig(const std::string & fileName)
 {
 	rapidjson::Document doc;
 	if(!getJSON(fileName, doc))
@@ -655,11 +752,30 @@ void Options::parseConfig(const char* fileName)
 		parseJSON(&config_options[i], doc);
 	}
 
+	const rapidjson::Value & donate = doc["donate-level"];
+	if(donate.IsArray())
+	{
+		for(size_t i = 0; i < donate.GetArray().Size(); ++i)
+		{
+			const rapidjson::Value & value = donate.GetArray()[i];
+			if(!value.IsObject())
+			{
+				continue;
+			}
+
+			for(size_t i = 0; i < ARRAY_SIZE(donate_options); i++)
+			{
+				parseJSON(&donate_options[i], value);
+			}
+		}
+	}
+
 	const rapidjson::Value & pools = doc["pools"];
 	if(pools.IsArray())
 	{
-		for(const rapidjson::Value & value : pools.GetArray())
+		for(size_t i = 0; i < pools.GetArray().Size(); ++i)
 		{
+			const rapidjson::Value & value = pools.GetArray()[i];
 			if(!value.IsObject())
 			{
 				continue;
@@ -696,7 +812,7 @@ void Options::parseJSON(const struct option* option, const rapidjson::Value & ob
 	{
 		parseArg(option->val, value.GetString());
 	}
-	else if(option->has_arg && value.IsInt64())
+	else if(option->has_arg && value.IsUint64())
 	{
 		parseArg(option->val, value.GetUint64());
 	}
@@ -756,18 +872,18 @@ void Options::showVersion()
 }
 
 
-bool Options::setAlgo(const char* algo)
+bool Options::setAlgo(const std::string & algo)
 {
 	for(size_t i = 0; i < ARRAY_SIZE(algo_names); i++)
 	{
-		if(algo_names[i] && !strcmp(algo, algo_names[i]))
+		if(algo_names[i] && algo == algo_names[i])
 		{
 			m_algo = (int) i;
 			break;
 		}
 
 #       ifndef XMRIG_NO_AEON
-		if(i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light"))
+		if(i == ARRAY_SIZE(algo_names) - 1 && algo == "cryptonight-light")
 		{
 			m_algo = xmrig::ALGO_CRYPTONIGHT_LITE;
 			break;

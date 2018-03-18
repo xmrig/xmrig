@@ -26,12 +26,13 @@
 #include <windows.h>
 #include <uv.h>
 
+#include "log/Log.h"
 
 #include "Platform.h"
 #include "version.h"
 
 #ifdef XMRIG_NVIDIA_PROJECT
-#   include "nvidia/cryptonight.h"
+#include "nvidia/cryptonight.h"
 #endif
 
 
@@ -56,46 +57,45 @@ static inline OSVERSIONINFOEX winOsVersion()
 }
 
 
-static inline char* createUserAgent()
+static inline std::string createUserAgent()
 {
 	const auto osver = winOsVersion();
 	const size_t max = 160;
 
-	char* buf = new char[max];
+	char buf[max];
 	int length = snprintf(buf, max, "%s/%s (Windows NT %lu.%lu", APP_NAME, APP_VERSION, osver.dwMajorVersion,
 	                      osver.dwMinorVersion);
 
-#   if defined(__x86_64__) || defined(_M_AMD64)
+#if defined(__x86_64__) || defined(_M_AMD64)
 	length += snprintf(buf + length, max - length, "; Win64; x64) libuv/%s", uv_version_string());
-#   else
+#else
 	length += snprintf(buf + length, max - length, ") libuv/%s", uv_version_string());
-#   endif
+#endif
 
-#   ifdef XMRIG_NVIDIA_PROJECT
+#ifdef XMRIG_NVIDIA_PROJECT
 	const int cudaVersion = cuda_get_runtime_version();
 	length += snprintf(buf + length, max - length, " CUDA/%d.%d", cudaVersion / 1000, cudaVersion % 100);
-#   endif
+#endif
 
-#   ifdef __GNUC__
+#ifdef __GNUC__
 	length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   elif _MSC_VER
+#elif _MSC_VER
 	length += snprintf(buf + length, max - length, " msvc/%d", MSVC_VERSION);
-#   endif
+#endif
 
 	return buf;
 }
 
 
-void Platform::init(const char* userAgent)
+void Platform::init(const std::string & userAgent)
 {
-	m_userAgent = userAgent ? strdup(userAgent) : createUserAgent();
+	m_userAgent = (0 < userAgent.size()) ? userAgent : createUserAgent();
 }
 
 
 void Platform::release()
 {
-	delete [] m_defaultConfigName;
-	delete [] m_userAgent;
+	m_userAgent.clear();
 }
 
 

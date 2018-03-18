@@ -27,6 +27,7 @@
 
 #include <array>
 #include <vector>
+#include <string>
 
 
 class SubmitResult;
@@ -40,12 +41,12 @@ public:
 	int connectionTime() const;
 	uint32_t avgTime() const;
 	uint32_t latency() const;
-	void add(const SubmitResult & result, const char* error);
-	void setPool(const char* host, int port, const char* ip);
+	void add(const SubmitResult & result, const std::string & error);
+	void setPool(const std::string & host, int port, const std::string & ip);
 	void stop();
 
 	char pool[256];
-	std::array<uint64_t, 10> topDiff { { } };
+	std::array<uint64_t, 10> topDiff;
 	uint32_t diff;
 	uint64_t accepted;
 	uint64_t failures;

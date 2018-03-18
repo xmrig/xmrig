@@ -21,9 +21,44 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#ifndef _WIN32
+#if __cplusplus <= 199711L
+#include <sys/time.h>
+#else
 #include <chrono>
+#define USE_CHRONO
+#endif
+#else
+#define isnormal(x) (_fpclass(x) == _FPCLASS_NN || _fpclass(x) == _FPCLASS_PN)
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <stdint.h> // portable: uint64_t   MSVC: __int64 
+#include <WinSock2.h>
+
+static int gettimeofday(struct timeval* tp, struct timezone* tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970
+	static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime)      ;
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec  = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
+#endif
+
 #include <math.h>
+#include <limits>
 #include <memory.h>
 #include <stdio.h>
 
@@ -32,11 +67,12 @@
 #include "workers/Hashrate.h"
 
 
-inline const char* format(double h, char* buf, size_t size)
+inline std::string format(double value)
 {
-	if(isnormal(h))
+	char buf[8];
+	if(isnormal(value))
 	{
-		snprintf(buf, size, "%03.1f", h);
+		snprintf(buf, sizeof(buf), "%03.1f", value);
 		return buf;
 	}
 
@@ -94,8 +130,14 @@ double Hashrate::calc(size_t ms) const
 
 double Hashrate::calc(size_t threadId, size_t ms) const
 {
+#ifdef USE_CHRONO
 	using namespace std::chrono;
 	const uint64_t now = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
+#else
+	struct timeval tp;
+	gettimeofday(&tp, NULL);
+	const uint64_t now = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+#endif
 
 	uint64_t earliestHashCount = 0;
 	uint64_t earliestStamp     = 0;
@@ -130,12 +172,12 @@ double Hashrate::calc(size_t threadId, size_t ms) const
 
 	if(!haveFullSet || earliestStamp == 0 || lastestStamp == 0)
 	{
-		return nan("");
+		return std::numeric_limits<double>::quiet_NaN() ;
 	}
 
 	if(lastestStamp - earliestStamp == 0)
 	{
-		return nan("");
+		return std::numeric_limits<double>::quiet_NaN() ;
 	}
 
 	double hashes, time;
@@ -159,19 +201,11 @@ void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 
 void Hashrate::print()
 {
-	char num1[8];
-	char num2[8];
-	char num3[8];
-	char num4[8];
-
-	LOG_INFO(Options::i()->colors() ?
-	         "\x1B[01;37mspeed\x1B[0m 2.5s/60s/15m \x1B[01;36m%s \x1B[22;36m%s %s \x1B[01;36mH/s\x1B[0m max: \x1B[01;36m%s H/s" :
-	         "speed 2.5s/60s/15m %s %s %s H/s max: %s H/s",
-	         format(calc(ShortInterval),  num1, sizeof(num1)),
-	         format(calc(MediumInterval), num2, sizeof(num2)),
-	         format(calc(LargeInterval),  num3, sizeof(num3)),
-	         format(m_highest,            num4, sizeof(num4))
-	        );
+	LOG_INFO("speed 2.5s/60s/15m " <<
+	         format(calc(ShortInterval)) << " " <<
+	         format(calc(MediumInterval)) << " " <<
+	         format(calc(LargeInterval)) << " H/s max: " <<
+	         format(m_highest) << " H/s");
 }
 
 

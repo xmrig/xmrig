@@ -31,7 +31,6 @@
 #   include "unistd.h"
 #endif
 
-
 #include "api/ApiState.h"
 #include "Cpu.h"
 #include "Mem.h"
@@ -50,14 +49,14 @@ extern "C"
 #include "crypto/c_keccak.h"
 }
 
-
 static inline double normalize(double d)
 {
+#ifndef _WIN32
 	if(!isnormal(d))
 	{
 		return 0.0;
 	}
-
+#endif
 	return floor(d * 100.0) / 100.0;
 }
 
@@ -70,9 +69,9 @@ ApiState::ApiState()
 	memset(m_totalHashrate, 0, sizeof(m_totalHashrate));
 	memset(m_workerId, 0, sizeof(m_workerId));
 
-	if(Options::i()->apiWorkerId())
+	if(0 < Options::i()->apiWorkerId().size())
 	{
-		strncpy(m_workerId, Options::i()->apiWorkerId(), sizeof(m_workerId) - 1);
+		strncpy(m_workerId, Options::i()->apiWorkerId().c_str(), sizeof(m_workerId) - 1);
 	}
 	else
 	{
@@ -89,7 +88,7 @@ ApiState::~ApiState()
 }
 
 
-char* ApiState::get(const char* url, int* status) const
+std::string ApiState::get(const std::string & url, int* status) const
 {
 	rapidjson::Document doc;
 	doc.SetObject();
@@ -126,14 +125,14 @@ void ApiState::tick(const NetworkState & network)
 }
 
 
-char* ApiState::finalize(rapidjson::Document & doc) const
+std::string ApiState::finalize(rapidjson::Document & doc) const
 {
 	rapidjson::StringBuffer buffer(0, 4096);
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
 	writer.SetMaxDecimalPlaces(10);
 	doc.Accept(writer);
 
-	return strdup(buffer.GetString());
+	return buffer.GetString();
 }
 
 
@@ -162,7 +161,9 @@ void ApiState::genId()
 			memcpy(input + addrSize, APP_KIND, strlen(APP_KIND));
 
 			keccak(input, static_cast<int>(inSize), hash, sizeof(hash));
-			Job::toHex(hash, 8, m_id);
+
+			char* hashChar = (char*)hash;
+			Job::toHex(std::string(hashChar, 8), m_id);
 
 			delete [] input;
 			break;
@@ -237,11 +238,13 @@ void ApiState::getMiner(rapidjson::Document & doc) const
 
 	doc.AddMember("version",      APP_VERSION, allocator);
 	doc.AddMember("kind",         APP_KIND, allocator);
-	doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent()), allocator);
+	doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent().c_str()), allocator);
 	doc.AddMember("cpu",          cpu, allocator);
 	doc.AddMember("algo",         rapidjson::StringRef(Options::i()->algoName()), allocator);
 	doc.AddMember("hugepages",    Mem::isHugepagesEnabled(), allocator);
-	doc.AddMember("donate_level", Options::i()->donateLevel(), allocator);
+
+	doc.AddMember("donate_minutes_per_cicle",  Options::i()->donateMinutes(), allocator);
+	doc.AddMember("minutes_per_cicle", Options::i()->minutesInCicle(), allocator);
 }
 
 

@@ -59,8 +59,11 @@ public:
 private:
 	static void onReport(uv_timer_t* handle);
 
-	constexpr static size_t kBucketSize = 2 << 11;
-	constexpr static size_t kBucketMask = kBucketSize - 1;
+	enum
+	{
+		kBucketSize = 2 << 11,
+		kBucketMask = kBucketSize - 1,
+	};
 
 	double m_highest;
 	int m_threads;

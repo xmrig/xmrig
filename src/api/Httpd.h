@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,29 +24,32 @@
 #ifndef __HTTPD_H__
 #define __HTTPD_H__
 
-
 #include <uv.h>
-
 
 struct MHD_Connection;
 struct MHD_Daemon;
 struct MHD_Response;
 
-
 class Httpd
 {
 public:
-	Httpd(int port, const char* accessToken);
+	Httpd(int port, const std::string & accessToken);
 	bool start();
 
 private:
-	int auth(const char* header);
+	int auth(const std::string & header);
 
 	static int done(MHD_Connection* connection, int status, MHD_Response* rsp);
-	static int handler(void* cls, MHD_Connection* connection, const char* url, const char* method,
-	                   const char* version, const char* upload_data, size_t* upload_data_size, void** con_cls);
+	static int handlerStd(void* cls, MHD_Connection* connection, const std::string & url,
+	                      const std::string & method,
+	                      const std::string & version, const std::string & upload_data, size_t* upload_data_size,
+	                      void** con_cls);
 
-	const char* m_accessToken;
+	static int handler(void* cls, MHD_Connection* connection, const char* url, const char* method,
+	                   const char* version, const char* upload_data, size_t* upload_data_size,
+	                   void** con_cls);
+
+	const std::string & m_accessToken;
 	const int m_port;
 	MHD_Daemon* m_daemon;
 };

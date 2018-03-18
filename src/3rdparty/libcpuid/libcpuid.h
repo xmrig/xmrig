@@ -85,7 +85,11 @@
  @{ */
 
 /* Include some integer type specifications: */
+#ifdef _WIN32
 #include "libcpuid_types.h"
+#else
+#  include <stdint.h>
+#endif
 
 /* Some limits and other constants */
 #include "libcpuid_constants.h"
@@ -620,6 +624,39 @@ void cpu_exec_cpuid_ext(uint32_t* regs);
 int cpuid_get_raw_data(struct cpu_raw_data_t* data);
 
 /**
+ * @brief Writes the raw CPUID data to a text file
+ * @param data - a pointer to cpu_raw_data_t structure
+ * @param filename - the path of the file, where the serialized data should be
+ *                   written. If empty, stdout will be used.
+ * @note This is intended primarily for debugging. On some processor, which is
+ *       not currently supported or not completely recognized by cpu_identify,
+ *       one can still successfully get the raw data and write it to a file.
+ *       libcpuid developers can later import this file and debug the detection
+ *       code as if running on the actual hardware.
+ *       The file is simple text format of "something=value" pairs. Version info
+ *       is also written, but the format is not intended to be neither backward-
+ *       nor forward compatible.
+ * @returns zero if successful, and some negative number on error.
+ *          The error message can be obtained by calling \ref cpuid_error.
+ *          @see cpu_error_t
+ */
+int cpuid_serialize_raw_data(struct cpu_raw_data_t* data, const char* filename);
+
+/**
+ * @brief Reads raw CPUID data from file
+ * @param data - a pointer to cpu_raw_data_t structure. The deserialized data will
+ *               be written here.
+ * @param filename - the path of the file, containing the serialized raw data.
+ *                   If empty, stdin will be used.
+ * @note This function may fail, if the file is created by different version of
+ *       the library. Also, see the notes on cpuid_serialize_raw_data.
+ * @returns zero if successful, and some negative number on error.
+ *          The error message can be obtained by calling \ref cpuid_error.
+ *          @see cpu_error_t
+*/
+int cpuid_deserialize_raw_data(struct cpu_raw_data_t* data, const char* filename);
+
+/**
  * @brief Identifies the CPU
  * @param raw - Input - a pointer to the raw CPUID data, which is obtained
  *              either by cpuid_get_raw_data or cpuid_deserialize_raw_data.
@@ -643,6 +680,222 @@ int cpuid_get_raw_data(struct cpu_raw_data_t* data);
  *          @see cpu_error_t
  */
 int cpu_identify(struct cpu_raw_data_t* raw, struct cpu_id_t* data);
+
+/**
+ * @brief Returns the short textual representation of a CPU flag
+ * @param feature - the feature, whose textual representation is wanted.
+ * @returns a constant string like "fpu", "tsc", "sse2", etc.
+ * @note the names of the returned flags are compatible with those from
+ *       /proc/cpuinfo in Linux, with the exception of `tm_amd'
+ */
+const char* cpu_feature_str(cpu_feature_t feature);
+
+/**
+ * @brief Returns textual description of the last error
+ *
+ * libcpuid stores an `errno'-style error status, whose description
+ * can be obtained with this function.
+ * @note This function is not thread-safe
+ * @see cpu_error_t
+ */
+const char* cpuid_error(void);
+
+/**
+ * @brief Executes RDTSC
+ *
+ * The RDTSC (ReaD Time Stamp Counter) instruction gives access to an
+ * internal 64-bit counter, which usually increments at each clock cycle.
+ * This can be used for various timing routines, and as a very precise
+ * clock source. It is set to zero on system startup. Beware that may not
+ * increment at the same frequency as the CPU. Consecutive calls of RDTSC
+ * are, however, guaranteed to return monotonically-increasing values.
+ *
+ * @param result - a pointer to a 64-bit unsigned integer, where the TSC value
+ *                 will be stored
+ *
+ * @note  If 100% compatibility is a concern, you must first check if the
+ * RDTSC instruction is present (if it is not, your program will crash
+ * with "invalid opcode" exception). Only some very old processors (i486,
+ * early AMD K5 and some Cyrix CPUs) lack that instruction - they should
+ * have become exceedingly rare these days. To verify RDTSC presence,
+ * run cpu_identify() and check flags[CPU_FEATURE_TSC].
+ *
+ * @note The monotonically increasing nature of the TSC may be violated
+ * on SMP systems, if their TSC clocks run at different rate. If the OS
+ * doesn't account for that, the TSC drift may become arbitrary large.
+ */
+void cpu_rdtsc(uint64_t* result);
+
+/**
+ * @brief Store TSC and timing info
+ *
+ * This function stores the current TSC value and current
+ * time info from a precise OS-specific clock source in the cpu_mark_t
+ * structure. The sys_clock field contains time with microsecond resolution.
+ * The values can later be used to measure time intervals, number of clocks,
+ * FPU frequency, etc.
+ * @see cpu_rdtsc
+ *
+ * @param mark [out] - a pointer to a cpu_mark_t structure
+ */
+void cpu_tsc_mark(struct cpu_mark_t* mark);
+
+/**
+ * @brief Calculate TSC and timing difference
+ *
+ * @param mark - input/output: a pointer to a cpu_mark_t sturcture, which has
+ *               already been initialized by cpu_tsc_mark. The difference in
+ *               TSC and time will be written here.
+ *
+ * This function calculates the TSC and time difference, by obtaining the
+ * current TSC and timing values and subtracting the contents of the `mark'
+ * structure from them. Results are written in the same structure.
+ *
+ * Example:
+ * @code
+ * ...
+ * struct cpu_mark_t mark;
+ * cpu_tsc_mark(&mark);
+ * foo();
+ * cpu_tsc_unmark(&mark);
+ * printf("Foo finished. Executed in %llu cycles and %llu usecs\n",
+ *        mark.tsc, mark.sys_clock);
+ * ...
+ * @endcode
+ */
+void cpu_tsc_unmark(struct cpu_mark_t* mark);
+
+/**
+ * @brief Calculates the CPU clock
+ *
+ * @param mark - pointer to a cpu_mark_t structure, which has been initialized
+ *   with cpu_tsc_mark and later `stopped' with cpu_tsc_unmark.
+ *
+ * @note For reliable results, the marked time interval should be at least about
+ * 10 ms.
+ *
+ * @returns the CPU clock frequency, in MHz. Due to measurement error, it will
+ * differ from the true value in a few least-significant bits. Accuracy depends
+ * on the timing interval - the more, the better. If the timing interval is
+ * insufficient, the result is -1. Also, see the comment on cpu_clock_measure
+ * for additional issues and pitfalls in using RDTSC for CPU frequency
+ * measurements.
+ */
+int cpu_clock_by_mark(struct cpu_mark_t* mark);
+
+/**
+ * @brief Returns the CPU clock, as reported by the OS
+ *
+ * This function uses OS-specific functions to obtain the CPU clock. It may
+ * differ from the true clock for several reasons:<br><br>
+ *
+ * i) The CPU might be in some power saving state, while the OS reports its
+ *    full-power frequency, or vice-versa.<br>
+ * ii) In some cases you can raise or lower the CPU frequency with overclocking
+ *     utilities and the OS will not notice.
+ *
+ * @returns the CPU clock frequency in MHz. If the OS is not (yet) supported
+ * or lacks the necessary reporting machinery, the return value is -1
+ */
+int cpu_clock_by_os(void);
+
+/**
+ * @brief Measure the CPU clock frequency
+ *
+ * @param millis - How much time to waste in the busy-wait cycle. In millisecs.
+ *                 Useful values 10 - 1000
+ * @param quad_check - Do a more thorough measurement if nonzero
+ *                     (see the explanation).
+ *
+ * The function performs a busy-wait cycle for the given time and calculates
+ * the CPU frequency by the difference of the TSC values. The accuracy of the
+ * calculation depends on the length of the busy-wait cycle: more is better,
+ * but 100ms should be enough for most purposes.
+ *
+ * While this will calculate the CPU frequency correctly in most cases, there are
+ * several reasons why it might be incorrect:<br>
+ *
+ * i) RDTSC doesn't guarantee it will run at the same clock as the CPU.
+ *    Apparently there aren't CPUs at the moment, but still, there's no
+ *    guarantee.<br>
+ * ii) The CPU might be in a low-frequency power saving mode, and the CPU
+ *     might be switched to higher frequency at any time. If this happens
+ *     during the measurement, the result can be anywhere between the
+ *     low and high frequencies. Also, if you're interested in the
+ *     high frequency value only, this function might return the low one
+ *     instead.<br>
+ * iii) On SMP systems exhibiting TSC drift (see \ref cpu_rdtsc)
+ *
+ * the quad_check option will run four consecutive measurements and
+ * then return the average of the two most-consistent results. The total
+ * runtime of the function will still be `millis' - consider using
+ * a bit more time for the timing interval.
+ *
+ * Finally, for benchmarking / CPU intensive applications, the best strategy is
+ * to use the cpu_tsc_mark() / cpu_tsc_unmark() / cpu_clock_by_mark() method.
+ * Begin by mark()-ing about one second after application startup (allowing the
+ * power-saving manager to kick in and rise the frequency during that time),
+ * then unmark() just before application finishing. The result will most
+ * acurately represent at what frequency your app was running.
+ *
+ * @returns the CPU clock frequency in MHz (within some measurement error
+ * margin). If RDTSC is not supported, the result is -1.
+ */
+int cpu_clock_measure(int millis, int quad_check);
+
+/**
+ * @brief Measure the CPU clock frequency using instruction-counting
+ *
+ * @param millis - how much time to allocate for each run, in milliseconds
+ * @param runs - how many runs to perform
+ *
+ * The function performs a busy-wait cycle using a known number of "heavy" (SSE)
+ * instructions. These instructions run at (more or less guaranteed) 1 IPC rate,
+ * so by running a busy loop for a fixed amount of time, and measuring the
+ * amount of instructions done, the CPU clock is accurately measured.
+ *
+ * Of course, this function is still affected by the power-saving schemes, so
+ * the warnings as of cpu_clock_measure() still apply. However, this function is
+ * immune to problems with detection, related to the Intel Nehalem's "Turbo"
+ * mode, where the internal clock is raised, but the RDTSC rate is unaffected.
+ *
+ * The function will run for about (millis * runs) milliseconds.
+ * You can make only a single busy-wait run (runs == 1); however, this can
+ * be affected by task scheduling (which will break the counting), so allowing
+ * more than one run is recommended. As run length is not imperative for
+ * accurate readings (e.g., 50ms is sufficient), you can afford a lot of short
+ * runs, e.g. 10 runs of 50ms or 20 runs of 25ms.
+ *
+ * Recommended values - millis = 50, runs = 4. For more robustness,
+ * increase the number of runs.
+ *
+ * NOTE: on Bulldozer and later CPUs, the busy-wait cycle runs at 1.4 IPC, thus
+ * the results are skewed. This is corrected internally by dividing the resulting
+ * value by 1.4.
+ * However, this only occurs if the thread is executed on a single CMT
+ * module - if there are other threads competing for resources, the results are
+ * unpredictable. Make sure you run cpu_clock_by_ic() on a CPU that is free from
+ * competing threads, or if there are such threads, they shouldn't exceed the
+ * number of modules. On a Bulldozer X8, that means 4 threads.
+ *
+ * @returns the CPU clock frequency in MHz (within some measurement error
+ * margin). If SSE is not supported, the result is -1. If the input parameters
+ * are incorrect, or some other internal fault is detected, the result is -2.
+ */
+int cpu_clock_by_ic(int millis, int runs);
+
+/**
+ * @brief Get the CPU clock frequency (all-in-one method)
+ *
+ * This is an all-in-one method for getting the CPU clock frequency.
+ * It tries to use the OS for that. If the OS doesn't have this info, it
+ * uses cpu_clock_measure with 200ms time interval and quadruple checking.
+ *
+ * @returns the CPU clock frequency in MHz. If every possible method fails,
+ * the result is -1.
+ */
+int cpu_clock(void);
+
 
 /**
  * @brief The return value of cpuid_get_epc().
@@ -676,6 +929,232 @@ struct cpu_epc_t cpuid_get_epc(int index, const struct cpu_raw_data_t* raw);
  * @returns the string representation of the libcpuid version, like "0.1.1"
  */
 const char* cpuid_lib_version(void);
+
+typedef void (*libcpuid_warn_fn_t)(const char* msg);
+/**
+ * @brief Sets the warning print function
+ *
+ * In some cases, the internal libcpuid machinery would like to emit useful
+ * debug warnings. By default, these warnings are written to stderr. However,
+ * you can set a custom function that will receive those warnings.
+ *
+ * @param warn_fun - the warning function you want to set. If NULL, warnings
+ *                   are disabled. The function takes const char* argument.
+ *
+ * @returns the current warning function. You can use the return value to
+ * keep the previous warning function and restore it at your discretion.
+ */
+libcpuid_warn_fn_t cpuid_set_warn_function(libcpuid_warn_fn_t warn_fun);
+
+/**
+ * @brief Sets the verbosiness level
+ *
+ * When the verbosiness level is above zero, some functions might print
+ * diagnostic information about what are they doing. The higher the level is,
+ * the more detail is printed. Level zero is guaranteed to omit all such
+ * output. The output is written using the same machinery as the warnings,
+ * @see cpuid_set_warn_function()
+ *
+ * @param level the desired verbosiness level. Useful values 0..2 inclusive
+ */
+void cpuid_set_verbosiness_level(int level);
+
+
+/**
+ * @brief Obtains the CPU vendor from CPUID from the current CPU
+ * @note The result is cached.
+ * @returns VENDOR_UNKNOWN if failed, otherwise the CPU vendor type.
+ *          @see cpu_vendor_t
+ */
+cpu_vendor_t cpuid_get_vendor(void);
+
+/**
+ * @brief a structure that holds a list of processor names
+ */
+struct cpu_list_t
+{
+	/** Number of entries in the list */
+	int num_entries;
+	/** Pointers to names. There will be num_entries of them */
+	char** names;
+};
+
+/**
+ * @brief Gets a list of all known CPU names from a specific vendor.
+ *
+ * This function compiles a list of all known CPU (code)names
+ * (i.e. the possible values of cpu_id_t::cpu_codename) for the given vendor.
+ *
+ * There are about 100 entries for Intel and AMD, and a few for the other
+ * vendors. The list is written out in approximate chronological introduction
+ * order of the parts.
+ *
+ * @param vendor the vendor to be queried
+ * @param list [out] the resulting list will be written here.
+ * NOTE: As the memory is dynamically allocated, be sure to call
+ *       cpuid_free_cpu_list() after you're done with the data
+ * @see cpu_list_t
+ */
+void cpuid_get_cpu_list(cpu_vendor_t vendor, struct cpu_list_t* list);
+
+/**
+ * @brief Frees a CPU list
+ *
+ * This function deletes all the memory associated with a CPU list, as obtained
+ * by cpuid_get_cpu_list()
+ *
+ * @param list - the list to be free()'d.
+ */
+void cpuid_free_cpu_list(struct cpu_list_t* list);
+
+struct msr_driver_t;
+/**
+ * @brief Starts/opens a driver, needed to read MSRs (Model Specific Registers)
+ *
+ * On systems that support it, this function will create a temporary
+ * system driver, that has privileges to execute the RDMSR instruction.
+ * After the driver is created, you can read MSRs by calling \ref cpu_rdmsr
+ *
+ * @returns a handle to the driver on success, and NULL on error.
+ *          The error message can be obtained by calling \ref cpuid_error.
+ *          @see cpu_error_t
+ */
+struct msr_driver_t* cpu_msr_driver_open(void);
+
+/**
+ * @brief Similar to \ref cpu_msr_driver_open, but accept one parameter
+ *
+ * This function works on certain operating systems (GNU/Linux, FreeBSD)
+ *
+ * @param core_num specify the core number for MSR.
+ *          The first core number is 0.
+ *          The last core number is \ref cpuid_get_total_cpus - 1.
+ *
+ * @returns a handle to the driver on success, and NULL on error.
+ *          The error message can be obtained by calling \ref cpuid_error.
+ *          @see cpu_error_t
+ */
+struct msr_driver_t* cpu_msr_driver_open_core(unsigned core_num);
+
+/**
+ * @brief Reads a Model-Specific Register (MSR)
+ *
+ * If the CPU has MSRs (as indicated by the CPU_FEATURE_MSR flag), you can
+ * read a MSR with the given index by calling this function.
+ *
+ * There are several prerequisites you must do before reading MSRs:
+ * 1) You must ensure the CPU has RDMSR. Check the CPU_FEATURE_MSR flag
+ *    in cpu_id_t::flags
+ * 2) You must ensure that the CPU implements the specific MSR you intend to
+ *    read.
+ * 3) You must open a MSR-reader driver. RDMSR is a privileged instruction and
+ *    needs ring-0 access in order to work. This temporary driver is created
+ *    by calling \ref cpu_msr_driver_open
+ *
+ * @param handle - a handle to the MSR reader driver, as created by
+ *                 cpu_msr_driver_open
+ * @param msr_index - the numeric ID of the MSR you want to read
+ * @param result - a pointer to a 64-bit integer, where the MSR value is stored
+ *
+ * @returns zero if successful, and some negative number on error.
+ *          The error message can be obtained by calling \ref cpuid_error.
+ *          @see cpu_error_t
+ */
+int cpu_rdmsr(struct msr_driver_t* handle, uint32_t msr_index, uint64_t* result);
+
+
+typedef enum
+{
+	INFO_MPERF,                /*!< Maximum performance frequency clock. This
+                                    is a counter, which increments as a
+                                    proportion of the actual processor speed. */
+	INFO_APERF,                /*!< Actual performance frequency clock. This
+                                    accumulates the core clock counts when the
+                                    core is active. */
+	INFO_MIN_MULTIPLIER,       /*!< Minimum CPU:FSB ratio for this CPU,
+                                    multiplied by 100. */
+	INFO_CUR_MULTIPLIER,       /*!< Current CPU:FSB ratio, multiplied by 100.
+                                    e.g., a CPU:FSB value of 18.5 reads as
+                                    "1850". */
+	INFO_MAX_MULTIPLIER,       /*!< Maximum CPU:FSB ratio for this CPU,
+                                    multiplied by 100. */
+	INFO_TEMPERATURE,          /*!< The current core temperature in Celsius. */
+	INFO_THROTTLING,           /*!< 1 if the current logical processor is
+                                    throttling. 0 if it is running normally. */
+	INFO_VOLTAGE,              /*!< The current core voltage in Volt,
+	                            multiplied by 100. */
+	INFO_BCLK,                 /*!< See \ref INFO_BUS_CLOCK. */
+	INFO_BUS_CLOCK,            /*!< The main bus clock in MHz,
+	                            e.g., FSB/QPI/DMI/HT base clock,
+	                            multiplied by 100. */
+} cpu_msrinfo_request_t;
+
+/**
+ * @brief Similar to \ref cpu_rdmsr, but extract a range of bits
+ *
+ * @param handle - a handle to the MSR reader driver, as created by
+ *                 cpu_msr_driver_open
+ * @param msr_index - the numeric ID of the MSR you want to read
+ * @param highbit - the high bit in range, must be inferior to 64
+ * @param lowbit - the low bit in range, must be equal or superior to 0
+ * @param result - a pointer to a 64-bit integer, where the MSR value is stored
+ *
+ * @returns zero if successful, and some negative number on error.
+ *          The error message can be obtained by calling \ref cpuid_error.
+ *          @see cpu_error_t
+ */
+int cpu_rdmsr_range(struct msr_driver_t* handle, uint32_t msr_index, uint8_t highbit,
+                    uint8_t lowbit, uint64_t* result);
+
+/**
+ * @brief Reads extended CPU information from Model-Specific Registers.
+ * @param handle - a handle to an open MSR driver, @see cpu_msr_driver_open
+ * @param which - which info field should be returned. A list of
+ *                available information entities is listed in the
+ *                cpu_msrinfo_request_t enum.
+ * @retval - if the requested information is available for the current
+ *           processor model, the respective value is returned.
+ *           if no information is available, or the CPU doesn't support
+ *           the query, the special value CPU_INVALID_VALUE is returned
+ * @note This function is not MT-safe. If you intend to call it from multiple
+ *       threads, guard it through a mutex or a similar primitive.
+ */
+int cpu_msrinfo(struct msr_driver_t* handle, cpu_msrinfo_request_t which);
+#define CPU_INVALID_VALUE 0x3fffffff
+
+/**
+ * @brief Writes the raw MSR data to a text file
+ * @param data - a pointer to msr_driver_t structure
+ * @param filename - the path of the file, where the serialized data should be
+ *                   written. If empty, stdout will be used.
+ * @note This is intended primarily for debugging. On some processor, which is
+ *       not currently supported or not completely recognized by cpu_identify,
+ *       one can still successfully get the raw data and write it to a file.
+ *       libcpuid developers can later import this file and debug the detection
+ *       code as if running on the actual hardware.
+ *       The file is simple text format of "something=value" pairs. Version info
+ *       is also written, but the format is not intended to be neither backward-
+ *       nor forward compatible.
+ * @returns zero if successful, and some negative number on error.
+ *          The error message can be obtained by calling \ref cpuid_error.
+ *          @see cpu_error_t
+ */
+int msr_serialize_raw_data(struct msr_driver_t* handle, const char* filename);
+
+/**
+ * @brief Closes an open MSR driver
+ *
+ * This function unloads the MSR driver opened by cpu_msr_driver_open and
+ * frees any resources associated with it.
+ *
+ * @param handle - a handle to the MSR reader driver, as created by
+ *                 cpu_msr_driver_open
+ *
+ * @returns zero if successful, and some negative number on error.
+ *          The error message can be obtained by calling \ref cpuid_error.
+ *          @see cpu_error_t
+ */
+int cpu_msr_driver_close(struct msr_driver_t* handle);
 
 #ifdef __cplusplus
 }; /* extern "C" */

@@ -37,6 +37,8 @@
 
 #include <inttypes.h>
 
+#include "align.h"
+
 
 #define saes_data(w) {\
 		w(0x63), w(0x7c), w(0x77), w(0x7b), w(0xf2), w(0x6b), w(0x6f), w(0xc5),\
@@ -86,8 +88,8 @@
 #define saes_u2(p)   saes_b2w(         p, saes_f3(p), saes_f2(p),          p)
 #define saes_u3(p)   saes_b2w(         p,          p, saes_f3(p), saes_f2(p))
 
-alignas(16) const uint32_t saes_table[4][256] = { saes_data(saes_u0), saes_data(saes_u1), saes_data(saes_u2), saes_data(saes_u3) };
-alignas(16) const uint8_t  saes_sbox[256] = saes_data(saes_h0);
+VAR_ALIGN(16, const uint32_t saes_table[4][256]) = { saes_data(saes_u0), saes_data(saes_u1), saes_data(saes_u2), saes_data(saes_u3) };
+VAR_ALIGN(16, const uint8_t  saes_sbox[256]) = saes_data(saes_h0);
 
 static inline __m128i soft_aesenc(const uint32_t* in, __m128i key)
 {
@@ -117,7 +119,7 @@ static inline uint32_t sub_word(uint32_t key)
 	       saes_sbox[key & 0xff];
 }
 
-#if defined(__clang__) || defined(XMRIG_ARM)
+#if defined(__clang__) || defined(XMRIG_ARM) || __cplusplus <= 199711L
 static inline uint32_t _rotr(uint32_t value, uint32_t amount)
 {
 	return (value >> amount) | (value << ((32 - amount) & 31));

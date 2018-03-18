@@ -21,6 +21,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_NO_API
 #include <string.h>
 
 
@@ -47,15 +48,15 @@ void Api::release()
 }
 
 
-char* Api::get(const char* url, int* status)
+std::string Api::get(const std::string & url, int* status)
 {
 	if(!m_state)
 	{
-		return nullptr;
+		return "";
 	}
 
 	uv_mutex_lock(&m_mutex);
-	char* buf = m_state->get(url, status);
+	std::string buf = m_state->get(url, status);
 	uv_mutex_unlock(&m_mutex);
 
 	return buf;
@@ -86,3 +87,5 @@ void Api::tick(const NetworkState & network)
 	m_state->tick(network);
 	uv_mutex_unlock(&m_mutex);
 }
+
+#endif

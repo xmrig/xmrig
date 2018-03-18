@@ -29,6 +29,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "align.h"
+#include "interfaces/interface.h"
 
 #define AEON_MEMORY   1048576
 #define AEON_MASK     0xFFFF0
@@ -41,9 +43,9 @@
 
 struct cryptonight_ctx
 {
-	alignas(16) uint8_t state0[200];
-	alignas(16) uint8_t state1[200];
-	alignas(16) uint8_t* memory;
+	VAR_ALIGN(16, uint8_t state0[200]);
+	VAR_ALIGN(16, uint8_t state1[200]);
+	VAR_ALIGN(16, uint8_t* memory);
 };
 
 

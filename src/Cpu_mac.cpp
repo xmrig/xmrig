@@ -20,7 +20,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef _WIN32
 
 #include <pthread.h>
 #include <sched.h>
@@ -43,3 +43,5 @@ void Cpu::init()
 void Cpu::setAffinity(int id, uint64_t mask)
 {
 }
+
+#endif

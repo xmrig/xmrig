@@ -24,17 +24,13 @@
 #ifndef __XMRIG_H__
 #define __XMRIG_H__
 
-
 namespace xmrig
 {
-
-
 	enum Algo
 	{
 		ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
 		ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
 	};
-
 
 	enum Variant
 	{
@@ -44,6 +40,5 @@ namespace xmrig
 	};
 
 } /* xmrig */
-
 
 #endif /* __XMRIG_H__ */

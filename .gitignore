@@ -1,2 +1,5 @@
-/build
+/build*
 /CMakeLists.txt.user
+/vs/*/
+*.opensdf
+*.sdf

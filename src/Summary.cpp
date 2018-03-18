@@ -51,10 +51,7 @@ static void print_versions()
 #   endif
 
 
-	Log::i()->text(Options::i()->colors() ?
-	               "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s%s" :
-	               " * VERSIONS:     XMRig/%s libuv/%s%s",
-	               APP_VERSION, uv_version_string(), buf);
+	PRINT_MSG(" * VERSIONS:     XMRig/" << APP_VERSION << " libuv/" << uv_version_string() << buf);
 }
 
 
@@ -62,14 +59,16 @@ static void print_memory()
 {
 	if(Options::i()->colors())
 	{
+		/*
 		Log::i()->text("\x1B[01;32m * \x1B[01;37mHUGE PAGES:   %s, %s",
 		               Mem::isHugepagesAvailable() ? "\x1B[01;32mavailable" : "\x1B[01;31munavailable",
 		               Mem::isHugepagesEnabled() ? "\x1B[01;32menabled" : "\x1B[01;31mdisabled");
+					   */
 	}
 	else
 	{
-		Log::i()->text(" * HUGE PAGES:   %s, %s", Mem::isHugepagesAvailable() ? "available" : "unavailable",
-		               Mem::isHugepagesEnabled() ? "enabled" : "disabled");
+		PRINT_MSG(" * HUGE PAGES:   " << (Mem::isHugepagesAvailable() ? "available" : "unavailable") << ", " <<
+		          (Mem::isHugepagesEnabled() ? "enabled" : "disabled"));
 	}
 }
 
@@ -78,22 +77,25 @@ static void print_cpu()
 {
 	if(Options::i()->colors())
 	{
+		/*
 		Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU:          %s (%d) %sx64 %sAES-NI",
 		               Cpu::brand(),
 		               Cpu::sockets(),
 		               Cpu::isX64() ? "\x1B[01;32m" : "\x1B[01;31m-",
 		               Cpu::hasAES() ? "\x1B[01;32m" : "\x1B[01;31m-");
-#       ifndef XMRIG_NO_LIBCPUID
+		#       ifndef XMRIG_NO_LIBCPUID
 		Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0,
 		               Cpu::l3() / 1024.0);
-#       endif
+		#       endif
+		*/
 	}
 	else
 	{
-		Log::i()->text(" * CPU:          %s (%d) %sx64 %sAES-NI", Cpu::brand(), Cpu::sockets(),
-		               Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
+		PRINT_MSG(" * CPU:          " << Cpu::brand() << " (" << Cpu::threads() << "@" << Cpu::sockets() <<  ") " <<
+		          (Cpu::isX64() ? "" : "-") << "64 " <<
+		          (Cpu::hasAES() ? "" : "-") << "AES-NI");
 #       ifndef XMRIG_NO_LIBCPUID
-		Log::i()->text(" * CPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
+		PRINT_MSG(" * CPU L2/L3:    " << (Cpu::l2() / 1024.0) << " MB/" << Cpu::l3() / 1024.0 << " MB");
 #       endif
 	}
 }
@@ -111,36 +113,29 @@ static void print_threads()
 		buf[0] = '\0';
 	}
 
-	Log::i()->text(Options::i()->colors() ?
-	               "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%%s" :
-	               " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s",
-	               Options::i()->threads(),
-	               Options::i()->algoName(),
-	               Options::i()->algoVariant(),
-	               Options::i()->colors() && Options::i()->donateLevel() == 0 ? "\x1B[01;31m" : "",
-	               Options::i()->donateLevel(),
-	               buf);
+	PRINT_MSG(" * THREADS:      " << Options::i()->threads() << ", " << Options::i()->algoName() << ", av=" <<
+	          Options::i()->algoVariant() << ", donate-minutes=" << Options::i()->donateMinutes() <<
+	          ((Options::i()->donateMinutes() > 0) ? ("/" +
+	                  Log::ToString(Options::i()->minutesInCicle()) + " (" + Log::ToString((100 *
+	                          Options::i()->donateMinutes()) /
+	                          Options::i()->minutesInCicle()) + "%)") : "") << buf);
 }
 
 
 static void print_pools()
 {
-	const std::vector<Url*> & pools = Options::i()->pools();
+	const std::vector<Url> & pools = Options::i()->pools();
 
 	for(size_t i = 0; i < pools.size(); ++i)
 	{
-		Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #%d:      \x1B[01;36m%s:%d" :
-		               " * POOL #%d:      %s:%d",
-		               i + 1,
-		               pools[i]->host(),
-		               pools[i]->port());
+		PRINT_MSG(" * POOL #" << (i + 1) << ":      " <<  pools[i].host() << ":" << pools[i].port());
 	}
 
 #   ifdef APP_DEBUG
 	for(size_t i = 0; i < pools.size(); ++i)
 	{
-		Log::i()->text("%s:%d, user: %s, pass: %s, ka: %d, nicehash: %d", pools[i]->host(), pools[i]->port(),
-		               pools[i]->user(), pools[i]->password(), pools[i]->isKeepAlive(), pools[i]->isNicehash());
+		PRINT_MSG(pools[i].host() << ":" << pools[i].port() << ", user: " << pools[i].user() << ", pass: " <<
+		          pools[i].password() << ", ka: " << pools[i].isKeepAlive() << ", nicehash: " << pools[i].isNicehash());
 	}
 #   endif
 }
@@ -154,8 +149,17 @@ static void print_api()
 		return;
 	}
 
-	Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mAPI PORT:     \x1B[01;36m%d" :
-	               " * API PORT:     %d", Options::i()->apiPort());
+	if(Options::i()->colors())
+	{
+		/*TODO LOG
+		Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mAPI PORT:     \x1B[01;36m%d" :
+		               " * API PORT:     %d", Options::i()->apiPort());
+		*/
+	}
+	else
+	{
+		PRINT_MSG(" * API PORT:     " << Options::i()->apiPort());
+	}
 }
 #endif
 
@@ -164,11 +168,13 @@ static void print_commands()
 {
 	if(Options::i()->colors())
 	{
+		/*
 		Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mh\x1B[01;37mashrate, \x1B[01;35mp\x1B[01;37mause, \x1B[01;35mr\x1B[01;37mesume");
+		*/
 	}
 	else
 	{
-		Log::i()->text(" * COMMANDS:     'h' hashrate, 'p' pause, 'r' resume");
+		PRINT_MSG(" * COMMANDS:     'h' hashrate, 'p' pause, 'r' resume");
 	}
 }
 

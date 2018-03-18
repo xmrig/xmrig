@@ -20,13 +20,14 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef _WIN32
 
 #include <stdlib.h>
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
 
+#include "interfaces/interface.h"
 
 #include "App.h"
 #include "Cpu.h"
@@ -61,12 +62,14 @@ void App::background()
 
 	if(i < 0)
 	{
-		LOG_ERR("setsid() failed (errno = %d)", errno);
+		LOG_ERR("setsid() failed (errno = " << errno << ")");
 	}
 
 	i = chdir("/");
 	if(i < 0)
 	{
-		LOG_ERR("chdir() failed (errno = %d)", errno);
+		LOG_ERR("chdir() failed (errno = " << errno << ")");
 	}
 }
+
+#endif

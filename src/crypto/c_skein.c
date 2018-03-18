@@ -654,7 +654,7 @@ static SkeinHashReturn Update(hashState* state, const SkeinBitSequence* data, Sk
 		b    = (u08b_t)((data[bCnt - 1] & (0 - mask)) | mask); /* apply bit padding on final byte */
 
 		Skein_512_Update(&state->u.ctx_512, data, bCnt - 1); /* process all but the final byte    */
-		Skein_512_Update(&state->u.ctx_512, &b,  1);     /* process the (masked) partial byte */
+		Skein_512_Update(&state->u.ctx_512, &b, 1);     /* process the (masked) partial byte */
 		Skein_Set_Bit_Pad_Flag(state->u.h);                    /* set tweak flag for the final call */
 
 		return SKEIN_SUCCESS;
@@ -697,8 +697,7 @@ void xmr_skein(const SkeinBitSequence* data, SkeinBitSequence* hashval)
 	// Skein_512_Init(&state.u.ctx_512, (size_t)XMR_HASHBITLEN);
 	state.u.ctx_512.h.hashBitLen = XMR_HASHBITLEN;
 	memcpy(state.u.ctx_512.X, SKEIN_512_IV_256, sizeof(state.u.ctx_512.X));
-	Skein_512_Ctxt_t* ctx = &(state.u.ctx_512);
-	Skein_Start_New_Type(ctx, MSG);
+	Skein_Start_New_Type(&state.u.ctx_512, MSG);
 
 	// Update
 	if((XMR_DATABITLEN & 7) == 0)    /* partial bytes? */

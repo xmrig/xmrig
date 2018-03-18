@@ -1,5 +1,5 @@
 /*
- * Copyright 2008  Veselin Georgiev,
+ * Copyright 2010  Veselin Georgiev,
  * anrieffNOSPAM @ mgail_DOT.com (convert to gmail)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,10 +23,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __RECOG_AMD_H__
-#define __RECOG_AMD_H__
+#ifndef __RDTSC_H__
+#define __RDTSC_H__
 
-int cpuid_identify_amd(struct cpu_raw_data_t* raw, struct cpu_id_t* data, struct internal_id_info_t* internal);
-void cpuid_get_list_amd(struct cpu_list_t* list);
+void sys_precise_clock(uint64_t* result);
+int busy_loop_delay(int milliseconds);
 
-#endif /* __RECOG_AMD_H__ */
+
+#endif /* __RDTSC_H__ */

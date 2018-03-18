@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,26 +37,26 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-
 #ifdef XMRIG_PROXY_PROJECT
-#   include "proxy/JobResult.h"
+#include "proxy/JobResult.h"
 #else
-#   include "net/JobResult.h"
+#include "net/JobResult.h"
 #endif
 
 
 #ifdef _MSC_VER
-#   define strncasecmp(x,y,z) _strnicmp(x,y,z)
+#define strncasecmp(x,y,z) _strnicmp(x,y,z)
 #endif
 
 
 int64_t Client::m_sequence = 1;
 
 
-Client::Client(int id, const char* agent, IClientListener* listener) :
+Client::Client(int id, const std::string & agent, IClientListener* listener) :
 	m_ipv6(false),
 	m_nicehash(false),
 	m_quiet(false),
+	m_encrypted(false),
 	m_agent(agent),
 	m_listener(listener),
 	m_id(id),
@@ -68,8 +68,8 @@ Client::Client(int id, const char* agent, IClientListener* listener) :
 	m_stream(nullptr),
 	m_socket(nullptr)
 {
-	memset(m_ip, 0, sizeof(m_ip));
 	memset(&m_hints, 0, sizeof(m_hints));
+	memset(m_keystream, 0, sizeof(m_keystream));
 
 	m_resolver.data = this;
 
@@ -80,10 +80,10 @@ Client::Client(int id, const char* agent, IClientListener* listener) :
 	m_recvBuf.base = m_buf;
 	m_recvBuf.len  = sizeof(m_buf);
 
-#   ifndef XMRIG_PROXY_PROJECT
+#ifndef XMRIG_PROXY_PROJECT
 	m_keepAliveTimer.data = this;
 	uv_timer_init(uv_default_loop(), &m_keepAliveTimer);
-#   endif
+#endif
 }
 
 
@@ -104,18 +104,28 @@ void Client::connect()
  *
  * @param url
  */
-void Client::connect(const Url* url)
+void Client::connect(const Url & url)
 {
 	setUrl(url);
 	resolve(m_url.host());
 }
 
 
-void Client::setUrl(const Url* url)
+void Client::setUrl(const Url & url)
 {
-	if(!url || !url->isValid())
+	if(false == url.isValid())
 	{
 		return;
+	}
+
+	if(url.hasKeystream())
+	{
+		url.copyKeystream(m_keystream, sizeof(m_keystream));
+		m_encrypted = true;
+	}
+	else
+	{
+		m_encrypted = false;
 	}
 
 	m_url = url;
@@ -131,7 +141,7 @@ void Client::tick(uint64_t now)
 
 	if(m_state == ConnectedState)
 	{
-		LOG_DEBUG_ERR("[%s:%u] timeout", m_url.host(), m_url.port());
+		LOG_DEBUG_ERR("[" << m_url.host() << ":" << m_url.port() << "] timeout");
 		close();
 	}
 
@@ -142,12 +152,11 @@ void Client::tick(uint64_t now)
 	}
 }
 
-
 bool Client::disconnect()
 {
-#   ifndef XMRIG_PROXY_PROJECT
+#ifndef XMRIG_PROXY_PROJECT
 	uv_timer_stop(&m_keepAliveTimer);
-#   endif
+#endif
 
 	m_expire   = 0;
 	m_failures = -1;
@@ -158,24 +167,29 @@ bool Client::disconnect()
 
 int64_t Client::submit(const JobResult & result)
 {
-#   ifdef XMRIG_PROXY_PROJECT
-	const char* nonce = result.nonce;
-	const char* data  = result.result;
-#   else
-	char nonce[9];
-	char data[65];
+#ifdef XMRIG_PROXY_PROJECT
+	const std::string nonce = result.nonce;
+	const std::string data  = result.result;
+#else
+	char nonce_buffer[9];
+	char data_buffer[65];
 
-	Job::toHex(reinterpret_cast<const unsigned char*>(&result.nonce), 4, nonce);
-	nonce[8] = '\0';
+	char* nonceChar = (char*)(&result.nonce);
+	Job::toHex(std::string(nonceChar, 4), nonce_buffer);
+	nonce_buffer[8] = '\0';
 
-	Job::toHex(result.result, 32, data);
-	data[64] = '\0';
-#   endif
+	char* resultChar = (char*)(&result.result);
+	Job::toHex(std::string(resultChar, 32), data_buffer);
+	data_buffer[64] = '\0';
+
+	const std::string nonce = nonce_buffer;
+	const std::string data  = data_buffer;
+#endif
 
 	const size_t size = snprintf(m_sendBuf, sizeof(m_sendBuf),
 	                             "{\"id\":%" PRIu64
 	                             ",\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
-	                             m_sequence, m_rpcId.data(), result.jobId.data(), nonce, data);
+	                             m_sequence, m_rpcId.data().c_str(), result.jobId.data().c_str(), nonce.c_str(), data.c_str());
 
 	m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff());
 	return send(size);
@@ -200,24 +214,24 @@ bool Client::close()
 }
 
 
-bool Client::isCriticalError(const char* message)
+bool Client::isCriticalError(const std::string & message)
 {
-	if(!message)
+	if(message.empty())
 	{
 		return false;
 	}
 
-	if(strncasecmp(message, "Unauthenticated", 15) == 0)
+	if(message == "Unauthenticated")
 	{
 		return true;
 	}
 
-	if(strncasecmp(message, "your IP is banned", 17) == 0)
+	if(message == "your IP is banned")
 	{
 		return true;
 	}
 
-	if(strncasecmp(message, "IP Address currently banned", 27) == 0)
+	if(message == "IP Address currently banned")
 	{
 		return true;
 	}
@@ -267,7 +281,7 @@ bool Client::parseJob(const rapidjson::Value & params, int* code)
 	{
 		if(!m_quiet)
 		{
-			LOG_WARN("[%s:%u] duplicate job received, reconnect", m_url.host(), m_url.port());
+			LOG_WARN("[" << m_url.host() << ":" << m_url.port() << "] duplicate job received, reconnect");
 		}
 
 		close();
@@ -289,6 +303,14 @@ bool Client::parseLogin(const rapidjson::Value & result, int* code)
 
 	m_nicehash = m_url.isNicehash();
 
+	const rapidjson::Value & keystream = result["keystream"];
+	if(true == keystream.IsString())
+	{
+		const std::string newkeystream = keystream.GetString();
+		memcpy(m_keystream, newkeystream.c_str(), std::min(sizeof(m_keystream), newkeystream.size()));
+		m_encrypted = true;
+	}
+
 	if(result.HasMember("extensions"))
 	{
 		parseExtensions(result["extensions"]);
@@ -298,7 +320,7 @@ bool Client::parseLogin(const rapidjson::Value & result, int* code)
 }
 
 
-int Client::resolve(const char* host)
+int Client::resolve(const std::string & host)
 {
 	setState(HostLookupState);
 
@@ -310,12 +332,12 @@ int Client::resolve(const char* host)
 		m_failures = 0;
 	}
 
-	const int r = uv_getaddrinfo(uv_default_loop(), &m_resolver, Client::onResolved, host, NULL, &m_hints);
+	const int r = uv_getaddrinfo(uv_default_loop(), &m_resolver, Client::onResolved, host.c_str(), NULL, &m_hints);
 	if(r)
 	{
 		if(!m_quiet)
 		{
-			LOG_ERR("[%s:%u] getaddrinfo error: \"%s\"", host, m_url.port(), uv_strerror(r));
+			LOG_ERR("[" << host << ":" << m_url.port() << "] getaddrinfo error: \"" << uv_strerror(r) << "\"");
 		}
 		return 1;
 	}
@@ -324,13 +346,31 @@ int Client::resolve(const char* host)
 }
 
 
-int64_t Client::send(size_t size)
+int64_t Client::send(size_t size, const bool encrypted)
 {
-	LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, m_sendBuf);
-	if(state() != ConnectedState || !uv_is_writable(m_stream))
+	LOG_DEBUG("[" << m_url.host() << ":" << m_url.port() << "] send(" << size << " bytes): \"" << m_sendBuf <<
+	          "\"");
+	if((state() != ConnectedState && state() != ProxingState) || !uv_is_writable(m_stream))
 	{
-		LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
+		LOG_DEBUG_ERR("[" << m_url.host() << ":" << m_url.port() << "] send failed, invalid state: " << m_state);
 		return -1;
+	}
+
+	if(encrypted && m_encrypted)
+	{
+		// Encrypt
+		for(size_t i = 0; i < std::min(size, sizeof(SendBuf)); ++i)
+		{
+			m_sendBuf[i] ^= m_keystream[i];
+		}
+
+		char* send_encr_hex = static_cast<char*>(malloc(size * 2 + 1));
+		memset(send_encr_hex, 0, size * 2 + 1);
+		Job::toHex(std::string(m_sendBuf, size), send_encr_hex);
+		send_encr_hex[size * 2] = '\0';
+		LOG_DEBUG("[" << m_url.host() << ":" << m_url.port() << "] send encr.(" << size << " bytes): \"0x"  <<
+		          send_encr_hex << "\"");
+		free(send_encr_hex);
 	}
 
 	uv_buf_t buf = uv_buf_init(m_sendBuf, (unsigned int) size);
@@ -354,19 +394,19 @@ void Client::connect(const std::vector<addrinfo*> & ipv4, const std::vector<addr
 	if(m_ipv6)
 	{
 		addr = ipv6[ipv6.size() == 1 ? 0 : rand() % ipv6.size()];
-		uv_ip6_name(reinterpret_cast<sockaddr_in6*>(addr->ai_addr), m_ip, 45);
+		uv_ip6_name(reinterpret_cast<sockaddr_in6*>(addr->ai_addr), (char*)m_ip.c_str(), 45);
 	}
 	else
 	{
 		addr = ipv4[ipv4.size() == 1 ? 0 : rand() % ipv4.size()];
-		uv_ip4_name(reinterpret_cast<sockaddr_in*>(addr->ai_addr), m_ip, 16);
+		uv_ip4_name(reinterpret_cast<sockaddr_in*>(addr->ai_addr), (char*)m_ip.c_str(), 16);
 	}
 
 	connect(addr->ai_addr);
 }
 
 
-void Client::connect(sockaddr* addr)
+void Client::connect(struct sockaddr* addr)
 {
 	setState(ConnectingState);
 
@@ -382,13 +422,35 @@ void Client::connect(sockaddr* addr)
 	uv_tcp_init(uv_default_loop(), m_socket);
 	uv_tcp_nodelay(m_socket, 1);
 
-#   ifndef WIN32
+#ifndef WIN32
 	uv_tcp_keepalive(m_socket, 1, 60);
-#   endif
+#endif
 
 	uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
 }
 
+void Client::prelogin()
+{
+	if(m_url.isProxyed())
+	{
+		setState(ProxingState);
+		const std::string buffer = std::string("CONNECT ") + m_url.finalHost() + ":" +
+		                           std::to_string((unsigned long long)(m_url.finalPort())) + " HTTP/1.1\n";
+
+		const size_t size = buffer.size();
+		memcpy(m_sendBuf, buffer.c_str(), size);
+		m_sendBuf[size]     = '\n';
+		m_sendBuf[size + 1] = '\0';
+
+		LOG_DEBUG("Prelogin send (" << size << " bytes): \"" << m_sendBuf << "\"");
+		send(size + 1, false);
+	}
+	else
+	{
+		setState(ConnectedState);
+		login();
+	}
+}
 
 void Client::login()
 {
@@ -404,9 +466,9 @@ void Client::login()
 	doc.AddMember("method",  "login", allocator);
 
 	rapidjson::Value params(rapidjson::kObjectType);
-	params.AddMember("login", rapidjson::StringRef(m_url.user()),     allocator);
-	params.AddMember("pass",  rapidjson::StringRef(m_url.password()), allocator);
-	params.AddMember("agent", rapidjson::StringRef(m_agent),          allocator);
+	params.AddMember("login", rapidjson::StringRef(m_url.user().c_str()),     allocator);
+	params.AddMember("pass",  rapidjson::StringRef(m_url.password().c_str()), allocator);
+	params.AddMember("agent", rapidjson::StringRef(m_agent.c_str()),	      allocator);
 
 	doc.AddMember("params", params, allocator);
 
@@ -434,11 +496,12 @@ void Client::parse(char* line, size_t len)
 
 	line[len - 1] = '\0';
 
-	LOG_DEBUG("[%s:%u] received (%d bytes): \"%s\"", m_url.host(), m_url.port(), len, line);
+	LOG_DEBUG("[" << m_url.host() << ":" << m_url.port() << "] received (" << len << " bytes): \"" << line <<
+	          "\"");
 
 	if(len < 32 || line[0] != '{')
 	{
-		LOG_ERR("[%s:%u] JSON decode failed", m_url.host(), m_url.port());
+		LOG_ERR("[" << m_url.host() << ":" << m_url.port() << "] JSON decode failed");
 		return;
 	}
 
@@ -447,8 +510,8 @@ void Client::parse(char* line, size_t len)
 	{
 		if(!m_quiet)
 		{
-			LOG_ERR("[%s:%u] JSON decode failed: \"%s\"", m_url.host(), m_url.port(),
-			        rapidjson::GetParseError_En(doc.GetParseError()));
+			LOG_ERR("[" << m_url.host() << ":" << m_url.port() << "] JSON decode failed: \"" <<
+			        rapidjson::GetParseError_En(doc.GetParseError()) << "\"");
 		}
 
 		return;
@@ -478,8 +541,9 @@ void Client::parseExtensions(const rapidjson::Value & value)
 		return;
 	}
 
-	for(const rapidjson::Value & ext : value.GetArray())
+	for(size_t i = 0; i < value.GetArray().Size(); ++i)
 	{
+		const rapidjson::Value & ext = value.GetArray()[i];
 		if(!ext.IsString())
 		{
 			continue;
@@ -493,25 +557,25 @@ void Client::parseExtensions(const rapidjson::Value & value)
 }
 
 
-void Client::parseNotification(const char* method, const rapidjson::Value & params,
+void Client::parseNotification(const std::string & method, const rapidjson::Value & params,
                                const rapidjson::Value & error)
 {
 	if(error.IsObject())
 	{
 		if(!m_quiet)
 		{
-			LOG_ERR("[%s:%u] error: \"%s\", code: %d", m_url.host(), m_url.port(), error["message"].GetString(),
-			        error["code"].GetInt());
+			LOG_ERR("[" << m_url.host() << ":" << m_url.port() << "] error: \"" << error["message"].GetString() <<
+			        "\", code: " << error["code"].GetInt());
 		}
 		return;
 	}
 
-	if(!method)
+	if(0 == method.size())
 	{
 		return;
 	}
 
-	if(strcmp(method, "job") == 0)
+	if(method == "job")
 	{
 		int code = -1;
 		if(parseJob(params, &code))
@@ -522,7 +586,7 @@ void Client::parseNotification(const char* method, const rapidjson::Value & para
 		return;
 	}
 
-	LOG_WARN("[%s:%u] unsupported method: \"%s\"", m_url.host(), m_url.port(), method);
+	LOG_WARN("[" << m_url.host() << ":" << m_url.port() << "] unsupported method: \"" << method << "\"");
 }
 
 
@@ -530,7 +594,7 @@ void Client::parseResponse(int64_t id, const rapidjson::Value & result, const ra
 {
 	if(error.IsObject())
 	{
-		const char* message = error["message"].GetString();
+		const std::string message = error["message"].GetString();
 
 		auto it = m_results.find(id);
 		if(it != m_results.end())
@@ -541,7 +605,8 @@ void Client::parseResponse(int64_t id, const rapidjson::Value & result, const ra
 		}
 		else if(!m_quiet)
 		{
-			LOG_ERR("[%s:%u] error: \"%s\", code: %d", m_url.host(), m_url.port(), message, error["code"].GetInt());
+			LOG_ERR("[" << m_url.host() << ":" << m_url.port() << "] error: \"" << message << "\", code: " <<
+			        error["code"].GetInt());
 		}
 
 		if(id == 1 || isCriticalError(message))
@@ -564,7 +629,7 @@ void Client::parseResponse(int64_t id, const rapidjson::Value & result, const ra
 		{
 			if(!m_quiet)
 			{
-				LOG_ERR("[%s:%u] login error code: %d", m_url.host(), m_url.port(), code);
+				LOG_ERR("[" << m_url.host() << ":" << m_url.port() << "] login error code: " << code);
 			}
 
 			close();
@@ -581,7 +646,7 @@ void Client::parseResponse(int64_t id, const rapidjson::Value & result, const ra
 	if(it != m_results.end())
 	{
 		it->second.done();
-		m_listener->onResultAccepted(this, it->second, nullptr);
+		m_listener->onResultAccepted(this, it->second, "");
 		m_results.erase(it);
 	}
 }
@@ -590,26 +655,26 @@ void Client::parseResponse(int64_t id, const rapidjson::Value & result, const ra
 void Client::ping()
 {
 	send(snprintf(m_sendBuf, sizeof(m_sendBuf),
-	              "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence,
-	              m_rpcId.data()));
+	              "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n",
+	              m_sequence, m_rpcId.data().c_str()));
 }
 
 
 void Client::reconnect()
 {
-	setState(ConnectingState);
-
-#   ifndef XMRIG_PROXY_PROJECT
-	if(m_url.isKeepAlive())
-	{
-		uv_timer_stop(&m_keepAliveTimer);
-	}
-#   endif
-
 	if(m_failures == -1)
 	{
 		return m_listener->onClose(this, -1);
 	}
+
+	setState(ConnectingState);
+
+#ifndef XMRIG_PROXY_PROJECT
+	if(m_url.isKeepAlive())
+	{
+		uv_timer_stop(&m_keepAliveTimer);
+	}
+#endif
 
 	m_failures++;
 	m_listener->onClose(this, (int) m_failures);
@@ -620,7 +685,7 @@ void Client::reconnect()
 
 void Client::setState(SocketState state)
 {
-	LOG_DEBUG("[%s:%u] state: %d", m_url.host(), m_url.port(), state);
+	LOG_DEBUG("[" << m_url.host() << ":" << m_url.port() << "] state: " << state);
 
 	if(m_state == state)
 	{
@@ -635,26 +700,27 @@ void Client::startTimeout()
 {
 	m_expire = 0;
 
-#   ifndef XMRIG_PROXY_PROJECT
+#ifndef XMRIG_PROXY_PROJECT
 	if(!m_url.isKeepAlive())
 	{
 		return;
 	}
 
-	uv_timer_start(&m_keepAliveTimer, [](uv_timer_t* handle)
-	{
-		getClient(handle->data)->ping();
-	}, kKeepAliveTimeout, 0);
-#   endif
+	uv_timer_start(&m_keepAliveTimer, &Client::onTimeout, kKeepAliveTimeout, 0);
+#endif
 }
 
+void Client::onTimeout(uv_timer_t* handle)
+{
+	getClient(handle->data)->ping();
+}
 
 void Client::onAllocBuffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
 {
 	auto client = getClient(handle->data);
 
 	buf->base = &client->m_recvBuf.base[client->m_recvBufPos];
-	buf->len  = client->m_recvBuf.len - client->m_recvBufPos;
+	buf->len  = client->m_recvBuf.len - (unsigned long)client->m_recvBufPos;
 }
 
 
@@ -679,7 +745,8 @@ void Client::onConnect(uv_connect_t* req, int status)
 	{
 		if(!client->m_quiet)
 		{
-			LOG_ERR("[%s:%u] connect error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
+			LOG_ERR("[" << client->m_url.host() << ":" << client->m_url.port() << "] connect error: \"" << uv_strerror(
+			            status) << "\"");
 		}
 
 		delete req;
@@ -689,12 +756,11 @@ void Client::onConnect(uv_connect_t* req, int status)
 
 	client->m_stream = static_cast<uv_stream_t*>(req->handle);
 	client->m_stream->data = req->data;
-	client->setState(ConnectedState);
 
 	uv_read_start(client->m_stream, Client::onAllocBuffer, Client::onRead);
 	delete req;
 
-	client->login();
+	client->prelogin();
 }
 
 
@@ -705,16 +771,33 @@ void Client::onRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
 	{
 		if(nread != UV_EOF && !client->m_quiet)
 		{
-			LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror((int) nread));
+			LOG_ERR("[" << client->m_url.host() << ":" << client->m_url.port() << "] read error: \"" << uv_strerror((
+			            int) nread) << "\"");
 		}
 
 		client->close();
 		return;
 	}
 
-	if((size_t) nread > (sizeof(m_buf) - 8 - client->m_recvBufPos))
+	if((size_t) nread > (sizeof(Buf) - 8 - client->m_recvBufPos))
 	{
 		client->close();
+		return;
+	}
+
+	if(client->state() == ProxingState)
+	{
+		const char* const content = buf->base;
+		LOG_DEBUG("[" << client->m_url.host() << ":" << client->m_url.port() << "] received from proxy (" << nread <<
+		          " bytes): \"" << content << "\"");
+
+		if(content == strstr(content, "HTTP/1.1 200"))
+		{
+			LOG_INFO("[" << client->m_url.host() << ":" << client->m_url.port() << "] Proxy connected to " <<
+			         client->m_url.finalHost() << ":" << client->m_url.finalPort() << "!");
+			client->setState(ConnectedState);
+			client->login();
+		}
 		return;
 	}
 
@@ -723,6 +806,21 @@ void Client::onRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
 	char* end;
 	char* start = client->m_recvBuf.base;
 	size_t remaining = client->m_recvBufPos;
+
+	if(client->m_encrypted)
+	{
+		char* read_encr_hex = static_cast<char*>(malloc(nread * 2 + 1));
+		memset(read_encr_hex, 0, nread * 2 + 1);
+		Job::toHex(std::string(start, nread), read_encr_hex);
+		LOG_DEBUG("[" <<  client->m_ip << "] read encr. (" << nread << "  bytes): \"0x" << read_encr_hex << "\"");
+		free(read_encr_hex);
+
+		// DeEncrypt
+		for(int i = 0; i < (int)nread; ++i)
+		{
+			start[i] ^= client->m_keystream[i];
+		}
+	}
 
 	while((end = static_cast<char*>(memchr(start, '\n', remaining))) != nullptr)
 	{
@@ -755,7 +853,8 @@ void Client::onResolved(uv_getaddrinfo_t* req, int status, struct addrinfo* res)
 	auto client = getClient(req->data);
 	if(status < 0)
 	{
-		LOG_ERR("[%s:%u] DNS error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
+		LOG_ERR("[" << client->m_url.host() << ":" << client->m_url.port() << "] DNS error: \"" << uv_strerror(
+		            status) << "\"");
 		return client->reconnect();
 	}
 
@@ -780,8 +879,8 @@ void Client::onResolved(uv_getaddrinfo_t* req, int status, struct addrinfo* res)
 
 	if(ipv4.empty() && ipv6.empty())
 	{
-		LOG_ERR("[%s:%u] DNS error: \"No IPv4 (A) or IPv6 (AAAA) records found\"", client->m_url.host(),
-		        client->m_url.port());
+		LOG_ERR("[" << client->m_url.host() << ":" << client->m_url.port() <<
+		        "] DNS error: \"No IPv4 (A) or IPv6 (AAAA) records found\"");
 
 		uv_freeaddrinfo(res);
 		return client->reconnect();

@@ -99,12 +99,12 @@ public:
 	*/
 	explicit
 	Writer(OutputStream & os, StackAllocator* stackAllocator = 0, size_t levelDepth = kDefaultLevelDepth) :
-		os_(&os), level_stack_(stackAllocator, levelDepth * sizeof(Level)),
-		maxDecimalPlaces_(kDefaultMaxDecimalPlaces), hasRoot_(false) {}
+		os_(&os), level_stack_(stackAllocator, levelDepth* sizeof(Level)), maxDecimalPlaces_(kDefaultMaxDecimalPlaces),
+		hasRoot_(false) {}
 
 	explicit
 	Writer(StackAllocator* allocator = 0, size_t levelDepth = kDefaultLevelDepth) :
-		os_(0), level_stack_(allocator, levelDepth * sizeof(Level)), maxDecimalPlaces_(kDefaultMaxDecimalPlaces),
+		os_(0), level_stack_(allocator, levelDepth* sizeof(Level)), maxDecimalPlaces_(kDefaultMaxDecimalPlaces),
 		hasRoot_(false) {}
 
 	//! Reset the writer with a new stream.

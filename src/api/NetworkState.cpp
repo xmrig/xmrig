@@ -27,6 +27,8 @@
 #include <string.h>
 #include <uv.h>
 
+#include "interfaces/interface.h"
+
 
 #include "api/NetworkState.h"
 #include "net/SubmitResult.h"
@@ -76,9 +78,9 @@ uint32_t NetworkState::latency() const
 }
 
 
-void NetworkState::add(const SubmitResult & result, const char* error)
+void NetworkState::add(const SubmitResult & result, const std::string & error)
 {
-	if(error)
+	if(0 < error.size())
 	{
 		rejected++;
 		return;
@@ -98,9 +100,9 @@ void NetworkState::add(const SubmitResult & result, const char* error)
 }
 
 
-void NetworkState::setPool(const char* host, int port, const char* ip)
+void NetworkState::setPool(const std::string & host, int port, const std::string & ip)
 {
-	snprintf(pool, sizeof(pool) - 1, "%s:%d", host, port);
+	snprintf(pool, sizeof(pool) - 1, "%s:%d", host.c_str(), port);
 
 	m_active = true;
 	m_connectionTime = uv_now(uv_default_loop());

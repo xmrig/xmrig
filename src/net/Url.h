@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,20 +24,36 @@
 #ifndef __URL_H__
 #define __URL_H__
 
-
 #include <stdint.h>
 
+#include <string>
+
+#include "interfaces/interface.h"
 
 class Url
 {
 public:
-	constexpr static const char* kDefaultPassword = "x";
-	constexpr static const char* kDefaultUser     = "x";
-	constexpr static uint16_t kDefaultPort        = 3333;
+	static const std::string & DefaultPassword()
+	{
+		static const std::string kDefaultPassword = "x";
+		return kDefaultPassword;
+	}
+	static const std::string & DefaultUser()
+	{
+		static const std::string kDefaultUser = "";
+		return kDefaultUser;
+	}
+
+	enum
+	{
+		kDefaultPort        = 3333,
+		kDefaultProxyPort   = 8080,
+	};
 
 	Url();
-	Url(const char* url);
-	Url(const char* host, uint16_t port, const char* user = nullptr, const char* password = nullptr,
+	Url(const std::string & url);
+	Url(const std::string & host, uint16_t port, const std::string & user = "",
+	    const std::string & password = "",
 	    bool keepAlive = false, bool nicehash = false, int variant = -1);
 	~Url();
 
@@ -51,19 +67,23 @@ public:
 	}
 	inline bool isValid() const
 	{
-		return m_host && m_port > 0;
+		return m_host.size() > 0 && m_port > 0;
 	}
-	inline const char* host() const
+	inline const std::string & host() const
 	{
-		return m_host;
+		return isProxyed() ? proxyHost() : finalHost();
 	}
-	inline const char* password() const
+	inline bool hasKeystream() const
 	{
-		return m_password ? m_password : kDefaultPassword;
+		return m_keystream.size() > 0;
 	}
-	inline const char* user() const
+	inline const std::string & password() const
 	{
-		return m_user ? m_user : kDefaultUser;
+		return m_password.empty() ? DefaultPassword() : m_password;
+	}
+	inline const std::string & user() const
+	{
+		return m_user.empty() ? DefaultUser() : m_user;
 	}
 	inline int algo() const
 	{
@@ -75,44 +95,69 @@ public:
 	}
 	inline uint16_t port() const
 	{
+		return isProxyed() ? proxyPort() : finalPort();
+	}
+	inline bool isProxyed() const
+	{
+		return proxyHost().size() > 0;
+	}
+	inline const std::string & finalHost() const
+	{
+		return m_host;
+	}
+	inline uint16_t finalPort() const
+	{
 		return m_port;
 	}
+	inline const std::string & proxyHost() const
+	{
+		return m_proxy_host;
+	}
+	inline uint16_t proxyPort() const
+	{
+		return m_proxy_port;
+	}
+	inline void setProxyHost(const std::string & value)
+	{
+		m_proxy_host = value;
+	}
+	inline void setProxyPort(const uint16_t value)
+	{
+		m_proxy_port = value;
+	}
+
 	inline void setKeepAlive(bool keepAlive)
 	{
 		m_keepAlive = keepAlive;
-	}
-	inline void setNicehash(bool nicehash)
-	{
-		m_nicehash = nicehash;
 	}
 	inline void setVariant(bool monero)
 	{
 		m_variant = monero;
 	}
+	inline void setNicehash(bool nicehash)
+	{
+		m_nicehash = nicehash;
+	}
 
-	bool parse(const char* url);
-	bool setUserpass(const char* userpass);
-	const char* url() const;
+	bool parse(const std::string & url);
+	bool setUserpass(const std::string & userpass);
 	void adjust(int algo);
-	void setPassword(const char* password);
-	void setUser(const char* user);
-	void setVariant(int variant);
-
-	bool operator==(const Url & other) const;
-	Url & operator=(const Url* other);
+	void setPassword(const std::string & password);
+	void setUser(const std::string & user);
+	void copyKeystream(char* keystreamDest, const size_t keystreamLen) const;
 
 private:
-	bool parseIPv6(const char* addr);
-
 	bool m_keepAlive;
 	bool m_nicehash;
-	char* m_host;
-	char* m_password;
-	char* m_user;
+	std::string m_host;
+	std::string m_password;
+	std::string m_user;
 	int m_algo;
 	int m_variant;
-	mutable char* m_url;
 	uint16_t m_port;
+	std::string m_proxy_host;
+	uint16_t m_proxy_port;
+	std::string m_keystream;
 };
 
 #endif /* __URL_H__ */

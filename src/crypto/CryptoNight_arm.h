@@ -463,6 +463,7 @@ inline void cryptonight_double_hash(const void* __restrict__ input, size_t size,
 
 		_mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
 		_mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+
 		VARIANT1_1(&l0[idx0 & MASK]);
 		VARIANT1_1(&l1[idx1 & MASK]);
 

@@ -24,8 +24,6 @@
 #ifndef __WORKERS_H__
 #define __WORKERS_H__
 
-
-#include <atomic>
 #include <list>
 #include <uv.h>
 #include <vector>
@@ -56,15 +54,15 @@ public:
 	}
 	static inline bool isOutdated(uint64_t sequence)
 	{
-		return m_sequence.load(std::memory_order_relaxed) != sequence;
+		return m_sequence != sequence;
 	}
 	static inline bool isPaused()
 	{
-		return m_paused.load(std::memory_order_relaxed) == 1;
+		return m_paused == 1;
 	}
 	static inline uint64_t sequence()
 	{
-		return m_sequence.load(std::memory_order_relaxed);
+		return m_sequence;
 	}
 	static inline void pause()
 	{
@@ -87,8 +85,8 @@ private:
 	static Hashrate* m_hashrate;
 	static IJobResultListener* m_listener;
 	static Job m_job;
-	static std::atomic<int> m_paused;
-	static std::atomic<uint64_t> m_sequence;
+	static int m_paused;
+	static uint64_t m_sequence;
 	static std::list<JobResult> m_queue;
 	static std::vector<Handle*> m_workers;
 	static uint64_t m_ticks;

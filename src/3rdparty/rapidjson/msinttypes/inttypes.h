@@ -195,11 +195,11 @@ typedef struct
 #define SCNiMAX     "I64i"
 
 #ifdef _WIN64 // [
-#  define SCNdPTR     "I64d"
-#  define SCNiPTR     "I64i"
+#define SCNdPTR     "I64d"
+#define SCNiPTR     "I64i"
 #else  // _WIN64 ][
-#  define SCNdPTR     "ld"
-#  define SCNiPTR     "li"
+#define SCNdPTR     "ld"
+#define SCNiPTR     "li"
 #endif  // _WIN64 ]
 
 // The fscanf macros for unsigned integers are:
@@ -261,15 +261,15 @@ typedef struct
 #define SCNXMAX     "I64X"
 
 #ifdef _WIN64 // [
-#  define SCNoPTR     "I64o"
-#  define SCNuPTR     "I64u"
-#  define SCNxPTR     "I64x"
-#  define SCNXPTR     "I64X"
+#define SCNoPTR     "I64o"
+#define SCNuPTR     "I64u"
+#define SCNxPTR     "I64x"
+#define SCNXPTR     "I64X"
 #else  // _WIN64 ][
-#  define SCNoPTR     "lo"
-#  define SCNuPTR     "lu"
-#  define SCNxPTR     "lx"
-#  define SCNXPTR     "lX"
+#define SCNoPTR     "lo"
+#define SCNuPTR     "lu"
+#define SCNxPTR     "lx"
+#define SCNXPTR     "lX"
 #endif  // _WIN64 ]
 
 #endif // __STDC_FORMAT_MACROS ]

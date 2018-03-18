@@ -20,37 +20,14 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _WIN32
 
-#include <string.h>
+#ifndef __ALIGN_H__
+#define __ALIGN_H__
 
-
-#include "Cpu.h"
-
-
-char Cpu::m_brand[64]   = { 0 };
-int Cpu::m_flags        = 0;
-int Cpu::m_l2_cache     = 0;
-int Cpu::m_l3_cache     = 0;
-int Cpu::m_sockets      = 1;
-int Cpu::m_totalCores   = 0;
-int Cpu::m_totalThreads = 0;
-
-
-int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
-{
-	return m_totalThreads;
-}
-
-
-void Cpu::initCommon()
-{
-	memcpy(m_brand, "Unknown", 7);
-
-#   if defined(XMRIG_ARMv8)
-	m_flags |= X86_64;
-	m_flags |= AES;
-#   endif
-}
-
+#ifdef _MSC_VER
+#   define VAR_ALIGN(x, decl) __declspec(align(x)) decl
+#else
+#   define VAR_ALIGN(x, decl) decl __attribute__ ((aligned(x)))
 #endif
+
+#endif /* __ALIGN_H__ */

@@ -1,7 +1,7 @@
 // ISO C9x  compliant stdint.h for Microsoft Visual Studio
 // Based on ISO/IEC 9899:TC2 Committee draft (May 6, 2005) WG14/N1124
 //
-//  Copyright (c) 2006-2013 Alexander Chemeris
+//  Copyright (c) 2006-2008 Alexander Chemeris
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -13,9 +13,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//   3. Neither the name of the product nor the names of its contributors may
-//      be used to endorse or promote products derived from this software
-//      without specific prior written permission.
+//   3. The name of the author may be used to endorse or promote products
+//      derived from this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 // WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -30,10 +29,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-// The above software in this distribution may have been modified by
-// THL A29 Limited ("Tencent Modifications").
-// All Tencent Modifications are Copyright (C) 2015 THL A29 Limited.
-
 #ifndef _MSC_VER // [
 #error "Use this header only with Microsoft Visual C++ compilers!"
 #endif // _MSC_VER ]
@@ -45,68 +40,27 @@
 #pragma once
 #endif
 
-// miloyip: Originally Visual Studio 2010 uses its own stdint.h. However it generates warning with INT64_C(), so change to use this file for vs2010.
-#if _MSC_VER >= 1600 // [
-#include <stdint.h>
-
-#if !defined(__cplusplus) || defined(__STDC_CONSTANT_MACROS) // [   See footnote 224 at page 260
-
-#undef INT8_C
-#undef INT16_C
-#undef INT32_C
-#undef INT64_C
-#undef UINT8_C
-#undef UINT16_C
-#undef UINT32_C
-#undef UINT64_C
-
-// 7.18.4.1 Macros for minimum-width integer constants
-
-#define INT8_C(val)  val##i8
-#define INT16_C(val) val##i16
-#define INT32_C(val) val##i32
-#define INT64_C(val) val##i64
-
-#define UINT8_C(val)  val##ui8
-#define UINT16_C(val) val##ui16
-#define UINT32_C(val) val##ui32
-#define UINT64_C(val) val##ui64
-
-// 7.18.4.2 Macros for greatest-width integer constants
-// These #ifndef's are needed to prevent collisions with <boost/cstdint.hpp>.
-// Check out Issue 9 for the details.
-#ifndef INTMAX_C //   [
-#  define INTMAX_C   INT64_C
-#endif // INTMAX_C    ]
-#ifndef UINTMAX_C //  [
-#  define UINTMAX_C  UINT64_C
-#endif // UINTMAX_C   ]
-
-#endif // __STDC_CONSTANT_MACROS ]
-
-#else // ] _MSC_VER >= 1700 [
-
 #include <limits.h>
 
 // For Visual Studio 6 in C++ mode and for many Visual Studio versions when
-// compiling for ARM we have to wrap <wchar.h> include with 'extern "C++" {}'
-// or compiler would give many errors like this:
+// compiling for ARM we should wrap <wchar.h> include with 'extern "C++" {}'
+// or compiler give many errors like this:
 //   error C2733: second C linkage of overloaded function 'wmemchr' not allowed
-#if defined(__cplusplus) && !defined(_M_ARM)
+#ifdef __cplusplus
 extern "C" {
 #endif
-#  include <wchar.h>
-#if defined(__cplusplus) && !defined(_M_ARM)
+#include <wchar.h>
+#ifdef __cplusplus
 }
 #endif
 
 // Define _W64 macros to mark types changing their size, like intptr_t.
 #ifndef _W64
-#  if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300
-#     define _W64 __w64
-#  else
-#     define _W64
-#  endif
+#if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300
+#define _W64 __w64
+#else
+#define _W64
+#endif
 #endif
 
 
@@ -218,13 +172,13 @@ typedef uint64_t  uintmax_t;
 
 // 7.18.2.4 Limits of integer types capable of holding object pointers
 #ifdef _WIN64 // [
-#  define INTPTR_MIN   INT64_MIN
-#  define INTPTR_MAX   INT64_MAX
-#  define UINTPTR_MAX  UINT64_MAX
+#define INTPTR_MIN   INT64_MIN
+#define INTPTR_MAX   INT64_MAX
+#define UINTPTR_MAX  UINT64_MAX
 #else // _WIN64 ][
-#  define INTPTR_MIN   INT32_MIN
-#  define INTPTR_MAX   INT32_MAX
-#  define UINTPTR_MAX  UINT32_MAX
+#define INTPTR_MIN   INT32_MIN
+#define INTPTR_MAX   INT32_MAX
+#define UINTPTR_MAX  UINT32_MAX
 #endif // _WIN64 ]
 
 // 7.18.2.5 Limits of greatest-width integer types
@@ -235,30 +189,30 @@ typedef uint64_t  uintmax_t;
 // 7.18.3 Limits of other integer types
 
 #ifdef _WIN64 // [
-#  define PTRDIFF_MIN  _I64_MIN
-#  define PTRDIFF_MAX  _I64_MAX
+#define PTRDIFF_MIN  _I64_MIN
+#define PTRDIFF_MAX  _I64_MAX
 #else  // _WIN64 ][
-#  define PTRDIFF_MIN  _I32_MIN
-#  define PTRDIFF_MAX  _I32_MAX
+#define PTRDIFF_MIN  _I32_MIN
+#define PTRDIFF_MAX  _I32_MAX
 #endif  // _WIN64 ]
 
 #define SIG_ATOMIC_MIN  INT_MIN
 #define SIG_ATOMIC_MAX  INT_MAX
 
 #ifndef SIZE_MAX // [
-#  ifdef _WIN64 // [
-#     define SIZE_MAX  _UI64_MAX
-#  else // _WIN64 ][
-#     define SIZE_MAX  _UI32_MAX
-#  endif // _WIN64 ]
+#ifdef _WIN64 // [
+#define SIZE_MAX  _UI64_MAX
+#else // _WIN64 ][
+#define SIZE_MAX  _UI32_MAX
+#endif // _WIN64 ]
 #endif // SIZE_MAX ]
 
 // WCHAR_MIN and WCHAR_MAX are also defined in <wchar.h>
 #ifndef WCHAR_MIN // [
-#  define WCHAR_MIN  0
+#define WCHAR_MIN  0
 #endif  // WCHAR_MIN ]
 #ifndef WCHAR_MAX // [
-#  define WCHAR_MAX  _UI16_MAX
+#define WCHAR_MAX  _UI16_MAX
 #endif  // WCHAR_MAX ]
 
 #define WINT_MIN  0
@@ -284,17 +238,10 @@ typedef uint64_t  uintmax_t;
 #define UINT64_C(val) val##ui64
 
 // 7.18.4.2 Macros for greatest-width integer constants
-// These #ifndef's are needed to prevent collisions with <boost/cstdint.hpp>.
-// Check out Issue 9 for the details.
-#ifndef INTMAX_C //   [
-#  define INTMAX_C   INT64_C
-#endif // INTMAX_C    ]
-#ifndef UINTMAX_C //  [
-#  define UINTMAX_C  UINT64_C
-#endif // UINTMAX_C   ]
+#define INTMAX_C   INT64_C
+#define UINTMAX_C  UINT64_C
 
 #endif // __STDC_CONSTANT_MACROS ]
 
-#endif // _MSC_VER >= 1600 ]
 
 #endif // _MSC_STDINT_H_ ]

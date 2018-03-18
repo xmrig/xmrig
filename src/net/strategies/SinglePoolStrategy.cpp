@@ -28,7 +28,8 @@
 #include "Options.h"
 
 
-SinglePoolStrategy::SinglePoolStrategy(const Url* url, const char* agent, IStrategyListener* listener) :
+SinglePoolStrategy::SinglePoolStrategy(const Url & url, const std::string & agent,
+                                       IStrategyListener* listener) :
 	m_active(false),
 	m_listener(listener)
 {
@@ -98,7 +99,8 @@ void SinglePoolStrategy::onLoginSuccess(Client* client)
 }
 
 
-void SinglePoolStrategy::onResultAccepted(Client* client, const SubmitResult & result, const char* error)
+void SinglePoolStrategy::onResultAccepted(Client* client, const SubmitResult & result,
+        const std::string & error)
 {
 	m_listener->onResultAccepted(client, result, error);
 }

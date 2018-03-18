@@ -52,6 +52,13 @@ RAPIDJSON_DIAG_OFF(switch - enum)
 #include <utility> // std::move
 #endif
 
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
 	RAPIDJSON_NAMESPACE_BEGIN
 
 	// Forward declaration.
@@ -484,8 +491,8 @@ namespace internal
 
 	// select candidates according to nested encoding and allocator types
 	template <typename T> struct
-		IsGenericValueImpl<T, typename Void<typename T::EncodingType>::Type, typename Void<typename T::AllocatorType>::Type>
-		: IsBaseOf<GenericValue<typename T::EncodingType, typename T::AllocatorType>, T>::Type {};
+			IsGenericValueImpl<T, typename Void<typename T::EncodingType>::Type, typename Void<typename T::AllocatorType>::Type>
+			: IsBaseOf<GenericValue<typename T::EncodingType, typename T::AllocatorType>, T>::Type {};
 
 	// helper to match arbitrary GenericValue instantiations, including derived classes
 	template <typename T> struct IsGenericValue : IsGenericValueImpl<T>::Type {};
@@ -868,7 +875,7 @@ explicit GenericValue(Type type) RAPIDJSON_NOEXCEPT :
 	    \param allocator Allocator for allocating copied elements and buffers. Commonly use GenericDocument::GetAllocator().
 	    \see CopyFrom()
 	*/
-	template< typename SourceAllocator >
+	template<typename SourceAllocator>
 	GenericValue(const GenericValue<Encoding, SourceAllocator> & rhs, Allocator & allocator);
 
 	//! Constructor for boolean value.

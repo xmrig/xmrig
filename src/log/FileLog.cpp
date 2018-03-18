@@ -28,36 +28,37 @@
 #include <string.h>
 #include <time.h>
 
+#include <fstream>
+#include <iostream>
 
+#include "log/Log.h"
 #include "log/FileLog.h"
 
-
-FileLog::FileLog(const char* fileName)
+FileLog::FileLog(const std::string & fileName)
+	: m_file_name(fileName)
 {
-	uv_fs_t req;
-	m_file = uv_fs_open(uv_default_loop(), &req, fileName, O_CREAT | O_APPEND | O_WRONLY, 0644, nullptr);
-	uv_fs_req_cleanup(&req);
 }
 
-
-void FileLog::message(int level, const char* fmt, va_list args)
+void FileLog::message(Level level, const std::string & txt)
 {
-	if(m_file < 0)
+	if(!isWritable())
 	{
 		return;
 	}
 
+	//
+	//
 	time_t now = time(nullptr);
 	tm stime;
 
-#   ifdef _WIN32
+#ifdef _WIN32
 	localtime_s(&stime, &now);
-#   else
+#else
 	localtime_r(&now, &stime);
-#   endif
+#endif
 
-	char* buf = new char[512];
-	int size = snprintf(buf, 23, "[%d-%02d-%02d %02d:%02d:%02d] ",
+	char buf[25];
+	int size = snprintf(buf, sizeof(buf), "[%d-%02d-%02d %02d:%02d:%02d] ",
 	                    stime.tm_year + 1900,
 	                    stime.tm_mon + 1,
 	                    stime.tm_mday,
@@ -65,34 +66,30 @@ void FileLog::message(int level, const char* fmt, va_list args)
 	                    stime.tm_min,
 	                    stime.tm_sec);
 
-	size = vsnprintf(buf + size, 512 - size - 1, fmt, args) + size;
-	buf[size] = '\n';
-
-	write(buf, size + 1);
+	//
+	//
+	write(std::string(buf, size) + txt);
 }
 
-
-void FileLog::text(const char* fmt, va_list args)
+void FileLog::text(const std::string & txt)
 {
-	message(0, fmt, args);
+	if(!isWritable())
+	{
+		return;
+	}
+
+	write(txt);
 }
 
-
-
-void FileLog::onWrite(uv_fs_t* req)
+bool FileLog::isWritable() const
 {
-	delete [] static_cast<char*>(req->data);
-
-	uv_fs_req_cleanup(req);
-	delete req;
+	return (m_file_name != "") && std::ofstream(m_file_name, std::ios_base::app).good();
 }
 
-
-void FileLog::write(char* data, size_t size)
+void FileLog::write(const std::string & txt)
 {
-	uv_buf_t buf = uv_buf_init(data, (unsigned int) size);
-	uv_fs_t* req = new uv_fs_t;
-	req->data = buf.base;
+	std::ofstream outfile;
 
-	uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, 0, FileLog::onWrite);
+	outfile.open(m_file_name, std::ios_base::app);
+	outfile << txt << std::endl;
 }

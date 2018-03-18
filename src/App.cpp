@@ -79,7 +79,7 @@ App::App(int argc, char** argv) :
 		m_console = new Console(this);
 	}
 
-	if(m_options->logFile())
+	if(0 < m_options->logFile().size())
 	{
 		Log::add(new FileLog(m_options->logFile()));
 	}
@@ -129,7 +129,7 @@ int App::exec()
 
 	if(!CryptoNight::init(m_options->algo(), m_options->algoVariant()))
 	{
-		LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
+		LOG_ERR("\"" << m_options->algoName() << "\" hash self-test failed.");
 		return 1;
 	}
 
@@ -178,8 +178,7 @@ void App::onConsoleCommand(char command)
 	case 'P':
 		if(Workers::isEnabled())
 		{
-			LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" :
-			         "paused, press 'r' to resume");
+			LOG_INFO("paused, press 'r' to resume");
 			Workers::setEnabled(false);
 		}
 		break;
@@ -188,7 +187,7 @@ void App::onConsoleCommand(char command)
 	case 'R':
 		if(!Workers::isEnabled())
 		{
-			LOG_INFO(m_options->colors() ? "\x1B[01;32mresumed" : "resumed");
+			LOG_INFO((m_options->colors() ? "\x1B[01;32mresumed" : "resumed"));
 			Workers::setEnabled(true);
 		}
 		break;

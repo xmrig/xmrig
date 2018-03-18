@@ -25,6 +25,8 @@
 #include "Console.h"
 #include "interfaces/IConsoleListener.h"
 
+#include "interfaces/interface.h"
+
 
 Console::Console(IConsoleListener* listener)
 	: m_listener(listener)

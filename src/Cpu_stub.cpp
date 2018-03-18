@@ -20,7 +20,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef _WIN32
 
 #ifdef _MSC_VER
 #   include <intrin.h>
@@ -144,3 +144,5 @@ void Cpu::initCommon()
 		m_flags |= BMI2;
 	}
 }
+
+#endif

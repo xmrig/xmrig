@@ -33,8 +33,8 @@ class SysLog : public ILogBackend
 public:
 	SysLog();
 
-	void message(int level, const char* fmt, va_list args) override;
-	void text(const char* fmt, va_list args) override;
+	void message(Level level, const std::string & txt) override;
+	void text(const std::string & txt) override;
 };
 
 #endif /* __SYSLOG_BACKEND_H__ */

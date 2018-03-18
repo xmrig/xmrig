@@ -26,7 +26,9 @@
 
 
 #include <uv.h>
+#include <string>
 
+#include "interfaces/interface.h"
 
 class ApiState;
 class Hashrate;
@@ -39,7 +41,7 @@ public:
 	static bool start();
 	static void release();
 
-	static char* get(const char* url, int* status);
+	static std::string get(const std::string & url, int* status);
 	static void tick(const Hashrate* hashrate);
 	static void tick(const NetworkState & results);
 

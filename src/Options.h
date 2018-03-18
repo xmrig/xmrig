@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 #include <vector>
-
+#include <string>
 
 #include "rapidjson/fwd.h"
 
@@ -49,6 +49,19 @@ public:
 		AV_MAX
 	};
 
+	struct Donate
+	{
+	public:
+		std::string m_url;
+		std::string m_url_little;
+		std::string m_user;
+		std::string m_pass;
+		bool m_keepAlive;
+		bool m_niceHash;
+		unsigned short m_donateMinutes;
+		unsigned short m_minutesInCicle;
+	};
+
 	static inline Options* i()
 	{
 		return m_self;
@@ -62,6 +75,14 @@ public:
 	inline bool colors() const
 	{
 		return m_colors;
+	}
+	inline bool isDebug() const
+	{
+		return m_debug;
+	}
+	inline void toggleDebug()
+	{
+		m_debug = !m_debug;
 	}
 	inline bool doubleHash() const
 	{
@@ -79,23 +100,23 @@ public:
 	{
 		return m_syslog;
 	}
-	inline const char* apiToken() const
+	inline const std::string apiToken() const
 	{
 		return m_apiToken;
 	}
-	inline const char* apiWorkerId() const
+	inline const std::string & apiWorkerId() const
 	{
 		return m_apiWorkerId;
 	}
-	inline const char* logFile() const
+	inline const std::string & logFile() const
 	{
 		return m_logFile;
 	}
-	inline const char* userAgent() const
+	inline const std::string & userAgent() const
 	{
 		return m_userAgent;
 	}
-	inline const std::vector<Url*> & pools() const
+	inline const std::vector<Url> & pools() const
 	{
 		return m_pools;
 	}
@@ -111,9 +132,17 @@ public:
 	{
 		return m_apiPort;
 	}
-	inline int donateLevel() const
+	inline unsigned short donateMinutes() const
 	{
-		return m_donateLevel;
+		return m_donateOpt.m_donateMinutes;
+	}
+	inline unsigned short minutesInCicle() const
+	{
+		return m_donateOpt.m_minutesInCicle;
+	}
+	inline const Donate & donate() const
+	{
+		return m_donateOpt;
 	}
 	inline int printTime() const
 	{
@@ -143,6 +172,14 @@ public:
 	{
 		m_colors = colors;
 	}
+	inline void setVerbose(bool verbose)
+	{
+		m_verbose = verbose;
+	}
+	inline void toggleVerbose()
+	{
+		m_verbose = !m_verbose;
+	}
 
 	inline static void release()
 	{
@@ -162,18 +199,18 @@ private:
 
 	static Options* m_self;
 
-	bool getJSON(const char* fileName, rapidjson::Document & doc);
-	bool parseArg(int key, const char* arg);
+	bool getJSON(const std::string & fileName, rapidjson::Document & doc);
+	bool parseArg(int key, const std::string & arg);
 	bool parseArg(int key, uint64_t arg);
 	bool parseBoolean(int key, bool enable);
-	Url* parseUrl(const char* arg) const;
+	Url parseUrl(const std::string & arg) const;
 	void adjust();
-	void parseConfig(const char* fileName);
+	void parseConfig(const std::string & fileName);
 	void parseJSON(const struct option* option, const rapidjson::Value & object);
 	void showUsage(int status) const;
 	void showVersion(void);
 
-	bool setAlgo(const char* algo);
+	bool setAlgo(const std::string & algo);
 
 	int getAlgoVariant() const;
 #   ifndef XMRIG_NO_AEON
@@ -182,20 +219,21 @@ private:
 
 	bool m_background;
 	bool m_colors;
+	bool m_debug;
 	bool m_doubleHash;
 	bool m_dryRun;
 	bool m_hugePages;
 	bool m_ready;
 	bool m_safe;
 	bool m_syslog;
-	char* m_apiToken;
-	char* m_apiWorkerId;
-	char* m_logFile;
-	char* m_userAgent;
+	bool m_verbose;
+	std::string m_apiToken;
+	std::string m_apiWorkerId;
+	std::string m_logFile;
+	std::string m_userAgent;
 	int m_algo;
 	int m_algoVariant;
 	int m_apiPort;
-	int m_donateLevel;
 	int m_maxCpuUsage;
 	int m_printTime;
 	int m_priority;
@@ -203,7 +241,8 @@ private:
 	int m_retryPause;
 	int m_threads;
 	int64_t m_affinity;
-	std::vector<Url*> m_pools;
+	std::vector<Url> m_pools;
+	Donate m_donateOpt;
 };
 
 #endif /* __OPTIONS_H__ */

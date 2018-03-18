@@ -21,7 +21,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#ifndef _WIN32
 
 #include <stdlib.h>
 #include <sys/mman.h>
@@ -40,6 +40,12 @@
 #include "Options.h"
 #include "xmrig.h"
 
+#ifndef MAP_HUGETLB
+#define MAP_HUGETLB  0x40000 /* create a huge page mapping */
+#endif
+#ifndef MAP_POPULATE
+#define MAP_POPULATE 0x8000  /* populate (prefault) pagetables */
+#endif
 
 bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 {
@@ -53,6 +59,7 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 	if(!enabled)
 	{
 		m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));
+
 		return true;
 	}
 
@@ -92,6 +99,8 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 
 void Mem::release()
 {
+	const int size = MEMORY * (m_threads + 1);
+
 	if(m_flags & HugepagesEnabled)
 	{
 		if(m_flags & Lock)
@@ -106,3 +115,5 @@ void Mem::release()
 		_mm_free(m_memory);
 	}
 }
+
+#endif

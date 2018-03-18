@@ -24,82 +24,60 @@
 #ifndef __ID_H__
 #define __ID_H__
 
-
-#include <string.h>
-
+#include <string>
 
 namespace xmrig
 {
-
-
 	class Id
 	{
 	public:
-		inline Id() :
-			m_data()
+		inline Id()
+			: m_data()
 		{
 		}
 
-
-		inline Id(const char* id, size_t sizeFix = 0)
+		inline Id(const std::string & id, size_t sizeFix = 0)
+			: m_data(id.substr(0, id.size() - sizeFix))
 		{
-			setId(id, sizeFix);
 		}
-
 
 		inline bool operator==(const Id & other) const
 		{
-			return memcmp(m_data, other.m_data, sizeof(m_data)) == 0;
+			return m_data == other.m_data;
 		}
-
 
 		inline bool operator!=(const Id & other) const
 		{
-			return memcmp(m_data, other.m_data, sizeof(m_data)) != 0;
+			return !operator!=(other);
 		}
 
-
-		Id & operator=(const Id & other)
+		inline bool setId(const std::string & id, size_t sizeFix = 0)
 		{
-			memcpy(m_data, other.m_data, sizeof(m_data));
+			m_data.clear();
 
-			return *this;
-		}
-
-
-		inline bool setId(const char* id, size_t sizeFix = 0)
-		{
-			memset(m_data, 0, sizeof(m_data));
-			if(!id)
+			if(true == id.empty())
 			{
 				return false;
 			}
 
-			const size_t size = strlen(id);
-			if(size >= sizeof(m_data))
-			{
-				return false;
-			}
-
-			memcpy(m_data, id, size - sizeFix);
+			const size_t size = id.size();
+			m_data = id.substr(0, size - sizeFix);
 			return true;
 		}
 
-
-		inline const char* data() const
+		inline const std::string & data() const
 		{
 			return m_data;
 		}
 		inline bool isValid() const
 		{
-			return *m_data != '\0';
+			return 0 < m_data.size() && m_data[0] != '\0';
 		}
 
 
 	private:
-		char m_data[64];
+		std::string m_data;
 	};
-
 
 } /* namespace xmrig */
 
