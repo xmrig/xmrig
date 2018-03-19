@@ -46,11 +46,7 @@ const char *Platform::defaultConfigName()
     }
 
     if (size < 500) {
-#       ifdef WIN32
-        char *p = strrchr(m_defaultConfigName, '\\');
-#       else
         char *p = strrchr(m_defaultConfigName, '/');
-#       endif
 
         if (p) {
             strcpy(p + 1, "config.json");

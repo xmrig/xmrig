@@ -69,7 +69,7 @@ Options:\n\
       --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages      disable huge pages support\n\
       --no-color           disable colored output\n\
-      --donate-level=N     donate level, default 5%% (5 minutes in 100 minutes)\n\
+      --donate-level=N     donate level, default 1%% (1 minute in 100 minutes)\n\
       --user-agent         set custom user-agent string for pool\n\
   -B, --background         run the miner in the background\n\
   -c, --config=FILE        load a JSON-format configuration file\n\
