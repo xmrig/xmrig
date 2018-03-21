@@ -36,7 +36,6 @@
 
 
 #include "crypto/CryptoNight.h"
-#include "crypto/CryptoNight_monero.h"
 #include "crypto/soft_aes.h"
 
 
