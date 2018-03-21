@@ -306,7 +306,6 @@ Options::Options(int argc, char **argv) :
     m_ccKeyFile(nullptr),
     m_ccCertFile(nullptr),
     m_algo(ALGO_CRYPTONIGHT),
-    m_forcePowVersion(POW_AUTODETECT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
     m_forcePowVersion(POW_AUTODETECT),
