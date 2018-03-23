@@ -26,11 +26,7 @@
 #include <uv.h>
 
 
-#ifdef _MSC_VER
-#   include "getopt/getopt.h"
-#else
-#   include <getopt.h>
-#endif
+include <getopt.h>
 
 
 #include "Cpu.h"
@@ -276,7 +272,12 @@ Options::~Options()
 {
 }
 
-
+/*---------------------------------------------------------------------
+* NAME       : Options::getJSON(const char *fileName, rapidjson::Document &doc)
+* SYNOPSIS   : Open config.json file from working folder
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 bool Options::getJSON(const char *fileName, rapidjson::Document &doc)
 {
     uv_fs_t req;
@@ -298,14 +299,20 @@ bool Options::getJSON(const char *fileName, rapidjson::Document &doc)
     uv_fs_req_cleanup(&req);
 
     if (doc.HasParseError()) {
-        printf("%s:%d: %s\n", fileName, (int) doc.GetErrorOffset(), rapidjson::GetParseError_En(doc.GetParseError()));
+        std::cout << fileName << "  " << (int) doc.GetErrorOffset() \
+        		  << "  " << rapidjson::GetParseError_En(doc.GetParseError()) << '\n"';
         return false;
     }
 
     return doc.IsObject();
 }
 
-
+/*---------------------------------------------------------------------
+* NAME       : Options::parseArg(int key, const char *arg)
+* SYNOPSIS   : Arguments parsing
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 bool Options::parseArg(int key, const char *arg)
 {
     switch (key) {

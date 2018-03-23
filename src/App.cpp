@@ -53,7 +53,12 @@
 App *App::m_self = nullptr;
 
 
-
+/*---------------------------------------------------------------------
+* NAME       : App::~App
+* SYNOPSIS   : App constructor
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 App::App(int argc, char **argv) :
     m_console(nullptr),
     m_httpd(nullptr),
@@ -94,6 +99,13 @@ App::App(int argc, char **argv) :
 }
 
 
+
+/*---------------------------------------------------------------------
+* NAME       : App::~App
+* SYNOPSIS   : App destructor
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 App::~App()
 {
     uv_tty_reset_mode();
@@ -106,6 +118,12 @@ App::~App()
 }
 
 
+/*---------------------------------------------------------------------
+* NAME       : App::exec()
+* SYNOPSIS   :
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 int App::exec()
 {
     if (!m_options) {
@@ -147,7 +165,12 @@ int App::exec()
     return r;
 }
 
-
+/*---------------------------------------------------------------------
+* NAME       : onConsoleCommand(char command)
+* SYNOPSIS   : Process commands from console
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 void App::onConsoleCommand(char command)
 {
     switch (command) {
@@ -181,6 +204,12 @@ void App::onConsoleCommand(char command)
 }
 
 
+/*---------------------------------------------------------------------
+* NAME       : close()
+* SYNOPSIS   : CTRL+C is pressed, exit application
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 void App::close()
 {
     m_network->stop();
@@ -213,3 +242,5 @@ void App::onSignal(uv_signal_t *handle, int signum)
     uv_signal_stop(handle);
     m_self->close();
 }
+
+/*-----------------end of file------------------------------------------------*/
