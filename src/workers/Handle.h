@@ -47,11 +47,11 @@ public:
     inline void setWorker(IWorker *worker) { m_worker = worker; }
 
 private:
-    int m_priority;
-    int m_threadId;
-    int m_threads;
-    int64_t m_affinity;
-    IWorker *m_worker;
+    int 		m_priority;
+    int 		m_threadId;
+    int 		m_threads;
+    int64_t 	m_affinity;
+    IWorker 	*m_worker;
     uv_thread_t m_thread;
 };
 
