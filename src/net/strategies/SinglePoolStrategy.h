@@ -45,7 +45,6 @@ public:
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
-    void release() override;
     void resume() override;
     void stop() override;
     void tick(uint64_t now) override;
@@ -58,7 +57,6 @@ protected:
 
 private:
     bool m_active;
-    bool m_release;
     Client *m_client;
     IStrategyListener *m_listener;
 };

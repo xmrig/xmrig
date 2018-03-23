@@ -29,7 +29,6 @@
 
 
 FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
-    m_release(false),
     m_quiet(quiet),
     m_retries(retries),
     m_retryPause(retryPause),
@@ -47,13 +46,17 @@ FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, int retryPause
 FailoverStrategy::~FailoverStrategy()
 {
     for (Client *client : m_pools) {
-        delete client;
+        client->deleteLater();
     }
 }
 
 
 int64_t FailoverStrategy::submit(const JobResult &result)
 {
+    if (m_active == -1) {
+        return -1;
+    }
+
     return m_pools[m_active]->submit(result);
 }
 
@@ -61,18 +64,6 @@ int64_t FailoverStrategy::submit(const JobResult &result)
 void FailoverStrategy::connect()
 {
     m_pools[m_index]->connect();
-}
-
-
-void FailoverStrategy::release()
-{
-    m_release = true;
-
-    for (size_t i = 0; i < m_pools.size(); ++i) {
-        if (m_pools[i]->disconnect()) {
-            m_remaining++;
-        }
-    }
 }
 
 
@@ -110,14 +101,6 @@ void FailoverStrategy::tick(uint64_t now)
 void FailoverStrategy::onClose(Client *client, int failures)
 {
     if (failures == -1) {
-        if (m_release) {
-            m_remaining--;
-
-            if (m_remaining == 0) {
-                delete this;
-            }
-        }
-
         return;
     }
 

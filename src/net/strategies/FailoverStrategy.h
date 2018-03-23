@@ -48,7 +48,6 @@ public:
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
-    void release() override;
     void resume() override;
     void stop() override;
     void tick(uint64_t now) override;
@@ -62,7 +61,6 @@ protected:
 private:
     void add(const Url *url);
 
-    bool m_release;
     const bool m_quiet;
     const int m_retries;
     const int m_retryPause;

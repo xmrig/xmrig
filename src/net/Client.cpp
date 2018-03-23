@@ -112,6 +112,20 @@ void Client::connect(const Url *url)
 }
 
 
+void Client::deleteLater()
+{
+    if (!m_listener) {
+        return;
+    }
+
+    m_listener = nullptr;
+
+    if (!disconnect()) {
+        delete this;
+    }
+}
+
+
 void Client::setUrl(const Url *url)
 {
     if (!url || !url->isValid()) {
@@ -172,7 +186,12 @@ int64_t Client::submit(const JobResult &result)
     const size_t size = snprintf(m_sendBuf, sizeof(m_sendBuf), "{\"id\":%" PRIu64 ",\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
                                  m_sequence, m_rpcId.data(), result.jobId.data(), nonce, data);
 
+#   ifdef XMRIG_PROXY_PROJECT
+    m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), result.id);
+#   else
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff());
+#   endif
+
     return send(size);
 }
 
@@ -185,9 +204,16 @@ bool Client::close()
 
     setState(ClosingState);
 
-    if (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_socket)) == 0) {
-        uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
-    }
+    uv_read_stop(reinterpret_cast<uv_stream_t*>(m_socket));
+
+    uv_shutdown(new uv_shutdown_t, reinterpret_cast<uv_stream_t*>(m_socket), [](uv_shutdown_t* req, int status) {
+
+        if (uv_is_closing(reinterpret_cast<uv_handle_t*>(req->handle)) == 0) {
+            uv_close(reinterpret_cast<uv_handle_t*>(req->handle), Client::onClose);
+        }
+
+        delete req;
+    });
 
     return true;
 }
@@ -222,7 +248,14 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
+#   ifdef XMRIG_PROXY_PROJECT
+    Job job(m_id, m_url.variant());
+    job.setClientId(m_rpcId);
+    job.setCoin(m_url.coin());
+#   else
     Job job(m_id, m_nicehash, m_url.algo(), m_url.variant());
+#   endif
+
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
         return false;
@@ -272,7 +305,9 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
         return false;
     }
 
+#   ifndef XMRIG_PROXY_PROJECT
     m_nicehash = m_url.isNicehash();
+#   endif
 
     if (result.HasMember("extensions")) {
         parseExtensions(result["extensions"]);
@@ -296,7 +331,7 @@ int Client::resolve(const char *host)
         m_failures = 0;
     }
 
-    const int r = uv_getaddrinfo(uv_default_loop(), &m_resolver, Client::onResolved, host, NULL, &m_hints);
+    const int r = uv_getaddrinfo(uv_default_loop(), &m_resolver, Client::onResolved, host, nullptr, &m_hints);
     if (r) {
         if (!m_quiet) {
             LOG_ERR("[%s:%u] getaddrinfo error: \"%s\"", host, m_url.port(), uv_strerror(r));
@@ -550,6 +585,12 @@ void Client::ping()
 
 void Client::reconnect()
 {
+    if (!m_listener) {
+        delete this;
+
+        return;
+    }
+
     setState(ConnectingState);
 
 #   ifndef XMRIG_PROXY_PROJECT
@@ -598,6 +639,9 @@ void Client::startTimeout()
 void Client::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
     auto client = getClient(handle->data);
+    if (!client) {
+        return;
+    }
 
     buf->base = &client->m_recvBuf.base[client->m_recvBufPos];
     buf->len  = client->m_recvBuf.len - client->m_recvBufPos;
@@ -607,6 +651,9 @@ void Client::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t 
 void Client::onClose(uv_handle_t *handle)
 {
     auto client = getClient(handle->data);
+    if (!client) {
+        return;
+    }
 
     delete client->m_socket;
 
@@ -621,6 +668,10 @@ void Client::onClose(uv_handle_t *handle)
 void Client::onConnect(uv_connect_t *req, int status)
 {
     auto client = getClient(req->data);
+    if (!client) {
+        return;
+    }
+
     if (status < 0) {
         if (!client->m_quiet) {
             LOG_ERR("[%s:%u] connect error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));
@@ -645,6 +696,10 @@ void Client::onConnect(uv_connect_t *req, int status)
 void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     auto client = getClient(stream->data);
+    if (!client) {
+        return;
+    }
+
     if (nread < 0) {
         if (nread != UV_EOF && !client->m_quiet) {
             LOG_ERR("[%s:%u] read error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror((int) nread));
@@ -691,6 +746,10 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
 {
     auto client = getClient(req->data);
+    if (!client) {
+        return;
+    }
+
     if (status < 0) {
         if (!client->m_quiet) {
             LOG_ERR("[%s:%u] DNS error: \"%s\"", client->m_url.host(), client->m_url.port(), uv_strerror(status));

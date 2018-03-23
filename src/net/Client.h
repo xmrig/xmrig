@@ -56,12 +56,12 @@ public:
     constexpr static int kKeepAliveTimeout = 60 * 1000;
 
     Client(int id, const char *agent, IClientListener *listener);
-    ~Client();
 
     bool disconnect();
     int64_t submit(const JobResult &result);
     void connect();
     void connect(const Url *url);
+    void deleteLater();
     void setUrl(const Url *url);
     void tick(uint64_t now);
 
@@ -76,6 +76,8 @@ public:
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
 private:
+    ~Client();
+
     bool close();
     bool isCriticalError(const char *message);
     bool parseJob(const rapidjson::Value &params, int *code);

@@ -30,7 +30,6 @@
 
 SinglePoolStrategy::SinglePoolStrategy(const Url *url, int retryPause, IStrategyListener *listener, bool quiet) :
     m_active(false),
-    m_release(false),
     m_listener(listener)
 {
     m_client = new Client(0, Platform::userAgent(), this);
@@ -42,7 +41,7 @@ SinglePoolStrategy::SinglePoolStrategy(const Url *url, int retryPause, IStrategy
 
 SinglePoolStrategy::~SinglePoolStrategy()
 {
-    delete m_client;
+    m_client->deleteLater();
 }
 
 
@@ -55,13 +54,6 @@ int64_t SinglePoolStrategy::submit(const JobResult &result)
 void SinglePoolStrategy::connect()
 {
     m_client->connect();
-}
-
-
-void SinglePoolStrategy::release()
-{
-    m_release = true;
-    m_client->disconnect();
 }
 
 
@@ -89,11 +81,6 @@ void SinglePoolStrategy::tick(uint64_t now)
 
 void SinglePoolStrategy::onClose(Client *client, int failures)
 {
-    if (m_release) {
-        delete this;
-        return;
-    }
-
     if (!isActive()) {
         return;
     }
