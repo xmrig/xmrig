@@ -16,11 +16,12 @@
     "threads": null,        // number of miner threads
     "pools": [
         {
-            "url": "pool.minemonero.pro:5555", // URL of mining server
-            "user": "",                        // username for mining server
-            "pass": "x",                       // password for mining server
-            "keepalive": true,                 // send keepalived for prevent timeout (need pool support)
-            "nicehash": false                  // enable nicehash/xmrig-proxy support
+            "url": "failover.xmrig.com:443", // URL of mining server
+            "user": "YOUR_WALLET",           // username for mining server
+            "pass": "x",                     // password for mining server
+            "keepalive": true,               // send keepalived for prevent timeout (need pool support)
+            "nicehash": false                // enable nicehash/xmrig-proxy support
+            "variant": -1                    // algorithm PoW variant
         }
     ],
     "api": {
