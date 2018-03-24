@@ -20,7 +20,7 @@
             "user": "YOUR_WALLET",           // username for mining server
             "pass": "x",                     // password for mining server
             "keepalive": true,               // send keepalived for prevent timeout (need pool support)
-            "nicehash": false                // enable nicehash/xmrig-proxy support
+            "nicehash": false,               // enable nicehash/xmrig-proxy support
             "variant": -1                    // algorithm PoW variant
         }
     ],
