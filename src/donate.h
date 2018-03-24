@@ -4,7 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2018 XMRig       <support@xmrig.com>
  * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
@@ -32,6 +33,8 @@
  * Percentage of your hashing power that you want to donate to the developer, can be 0 if you don't want to do that.
  * Example of how it works for the default setting of 1:
  * You miner will mine into your usual pool for 99 minutes, then switch to the developer's pool for 1 minute.
+ * Since v1.5.2 start time randomized in range from 50 to 150 minutes minus donation time, to reduce peaks on donation
+ * pool when restarting a bunch of miners.
  * Switching is instant, and only happens after a successful connection, so you never loose any hashes.
  *
  * If you plan on changing this setting to 0 please consider making a one off donation to my wallet:

@@ -11,13 +11,13 @@
 ### About XMRigCC
 
 XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
-This fork is based on XMRig (2.4.5 RC) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
+This fork is based on XMRig (2.4.5) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
 The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
-* **NEW: Ready for Monero v7 PoW changes on 03/28/18**
+* **NEW: Ready for Monero v7 PoW changes on 04/07/18 and AEON v7 PoW on 04/??/18**
 * **NEW: Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)**
     - XMRigCCServer Dashboard <-> Browser
     - XMRigCCServer <-> XMRigMiner
@@ -118,6 +118,7 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N                   time to pause between retries (default: 5)
+      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V1, 2 POW_V2)      
       --multihash-thread-mask           for multihash-factor > 1 only, limits multihash to given threads (mask), (default: all threads)
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)
