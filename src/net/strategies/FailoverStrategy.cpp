@@ -34,7 +34,6 @@ FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, int retryPause
     m_retryPause(retryPause),
     m_active(-1),
     m_index(0),
-    m_remaining(0),
     m_listener(listener)
 {
     for (const Url *url : urls) {

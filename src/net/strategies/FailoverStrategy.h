@@ -66,7 +66,6 @@ private:
     const int m_retryPause;
     int m_active;
     int m_index;
-    int m_remaining;
     IStrategyListener *m_listener;
     std::vector<Client*> m_pools;
 };
