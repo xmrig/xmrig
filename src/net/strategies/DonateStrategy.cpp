@@ -4,7 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
@@ -35,6 +35,9 @@ extern "C"
 #include "crypto/c_keccak.h"
 }
 
+static inline int random(int min, int max) {
+    return min + rand() / (RAND_MAX / (max - min + 1) + 1);
+}
 
 DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_active(false),
@@ -65,7 +68,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);
 
-    idle();
+    idle(random(3000, 9000) * 1000 - m_donateTime);
 }
 
 
@@ -122,9 +125,9 @@ void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result
 }
 
 
-void DonateStrategy::idle()
+void DonateStrategy::idle(int timeout)
 {
-    uv_timer_start(&m_timer, DonateStrategy::onTimer, m_idleTime, 0);
+    uv_timer_start(&m_timer, DonateStrategy::onTimer, static_cast<uint64_t>(timeout), 0);
 }
 
 
@@ -135,7 +138,7 @@ void DonateStrategy::suspend()
     m_active = false;
     m_listener->onPause(this);
 
-    idle();
+    idle(m_idleTime);
 }
 
 
