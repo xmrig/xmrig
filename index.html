@@ -89,7 +89,7 @@
     $(document).ready(function() {
 
         var table = $('#clientStatusList').DataTable({
-            dom: "<'row'<'col-sm-9'B><'col-sm-3'f>><'row'<'col-sm-12't>><'row'<'col-sm-10'i><'col-sm-2'<'#serverTime'>>>",
+            dom: "<'row'<'col-sm-9'B><'col-sm-3'f>><'row'<'col-sm-12't>><'row'<'col-sm-4'i><'col-sm-8'<'#serverTime'>>>",
             bPaginate: false,
             ajax: {
                 url: "/admin/getClientStatusList",
@@ -329,7 +329,7 @@
             currentServerTime = settings.json.current_server_time * 1000;
             clockDrift = new Date().getTime() - currentServerTime;
 
-            $('#serverTime').html("<div class='dataTables_info'>" + new Date(currentServerTime) + "</div>");
+            $('#serverTime').html("<div class='dataTables_info text-right'>" + new Date(currentServerTime) + "</div>");
         });
 
         table.on('select', function () {

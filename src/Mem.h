@@ -27,8 +27,8 @@
 #define __MEM_H__
 
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 #include <bitset>
 
 #include "Options.h"
