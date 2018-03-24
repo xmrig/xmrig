@@ -41,6 +41,11 @@ const static char *kDonatePool1   = "miner.fee.xmrig.com";
 const static char *kDonatePool2   = "emergency.fee.xmrig.com";
 
 
+static inline int random(int min, int max){
+   return min + rand() / (RAND_MAX / (max - min + 1) + 1);
+}
+
+
 DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener) :
     m_active(false),
     m_donateTime(level * 60 * 1000),
@@ -69,7 +74,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyL
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);
 
-    idle();
+    idle(random(3000, 9000) * 1000 - m_donateTime);
 }
 
 
@@ -132,9 +137,9 @@ void DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client, const
 }
 
 
-void DonateStrategy::idle()
+void DonateStrategy::idle(uint64_t timeout)
 {
-    uv_timer_start(&m_timer, DonateStrategy::onTimer, m_idleTime, 0);
+    uv_timer_start(&m_timer, DonateStrategy::onTimer, timeout, 0);
 }
 
 
@@ -145,7 +150,7 @@ void DonateStrategy::suspend()
     m_active = false;
     m_listener->onPause(this);
 
-    idle();
+    idle(m_idleTime);
 }
 
 
