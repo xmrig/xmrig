@@ -3,6 +3,7 @@
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
 [![Docker Build status](https://img.shields.io/docker/build/bendr0id/xmrigcc.svg)](https://hub.docker.com/r/bendr0id/xmrigcc/)
 [![GitHub release](https://img.shields.io/github/release/bendr0id/xmrigCC/all.svg)](https://github.com/bendr0id/xmrigCC/releases)
+[![Github downloads 1.5.1](https://img.shields.io/github/downloads/bendr0id/xmrigCC/1.5.1/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![Github downloads release](https://img.shields.io/github/downloads/bendr0id/xmrigCC/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![GitHub stars](https://img.shields.io/github/stars/bendr0id/xmrigCC.svg)](https://github.com/bendr0id/xmrigCC/stargazers)
 
@@ -17,7 +18,8 @@ The modified version can also handle commands like "update config", "start/stop 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
-* **NEW: Ready for Monero v7 PoW changes on 04/07/18 and AEON v7 PoW on 04/??/18**
+* **NEW: Ready for Monero v7 PoW changes on April 6 2018**
+* **NEW: Ready for Aeon v7 PoW changes on April 7? 2018**
 * **NEW: Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)**
     - XMRigCCServer Dashboard <-> Browser
     - XMRigCCServer <-> XMRigMiner
