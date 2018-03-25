@@ -68,7 +68,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);
 
-    idle(random(3000, 9000) * 1000 - m_donateTime);
+    idle(random(1500, 3600) * 1000);
 }
 
 
@@ -125,9 +125,9 @@ void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result
 }
 
 
-void DonateStrategy::idle(int timeout)
+void DonateStrategy::idle(uint64_t timeout)
 {
-    uv_timer_start(&m_timer, DonateStrategy::onTimer, static_cast<uint64_t>(timeout), 0);
+    uv_timer_start(&m_timer, DonateStrategy::onTimer, timeout, 0);
 }
 
 

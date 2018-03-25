@@ -33,7 +33,7 @@
  * Percentage of your hashing power that you want to donate to the developer, can be 0 if you don't want to do that.
  * Example of how it works for the default setting of 1:
  * You miner will mine into your usual pool for 99 minutes, then switch to the developer's pool for 1 minute.
- * Since v1.5.2 start time randomized in range from 50 to 150 minutes minus donation time, to reduce peaks on donation
+ * Since v1.5.2 start time randomized in range from 30 to 60 minutes minus donation time, to reduce peaks on donation
  * pool when restarting a bunch of miners.
  * Switching is instant, and only happens after a successful connection, so you never loose any hashes.
  *
