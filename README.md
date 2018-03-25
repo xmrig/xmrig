@@ -124,7 +124,7 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Release checksums
 ### SHA-256
 ```
-232ea929f7219c8de81c7e6fcae7437d40d8128cf55b597a6e1fca0cd77f9f5b xmrig-2.5.0-xenial-amd64.tar.gz/xmrig-2.5.0/xmrig
+8e30d51cccf8f32e26648fd54da9a39146c4b15ea69284c5e7c974780dfdab4a xmrig-2.5.1-xenial-amd64.tar.gz/xmrig-2.5.1/xmrig
 d2e53adb26f01ff786aab75433f8deb36beeb4e85d567428b1a596ce6a4b9034 xmrig-2.5.1-gcc-win32.zip/xmrig.exe
 10740d66732f7cc48b619db2c26756e0238b6ab5e85cd6901906635ecc30af13 xmrig-2.5.1-gcc-win64.zip/xmrig.exe
 33d46714b664e8e0c85c26f636ec87cb60def7008c75249a8cc09a586ec6dd5a xmrig-2.5.1-msvc-win64.zip/xmrig.exe
