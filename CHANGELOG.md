@@ -2,7 +2,7 @@
 - Fixed OSX Build
 - Fixed force PoW algo version 
 - Added AEON test vectors for new PoW Algo
-- Changed DonateStrategy to latest XMRig to avoid peaks on donate pool when restarting multiple miners 
+- Changed DonateStrategy to avoid peaks on donate pool when restarting multiple miners 
 # 1.5.1
 - Applied changes for upcoming Monero v7 PoW changes starting 03/28/18 (No changes in config needed) 
 - Applied changes for upcoming AEON PoW changes starting 04/07/18  (No changes in config needed)

@@ -68,7 +68,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);
 
-    idle(random(1500, 3600) * 1000);
+    idle(random(1800, 3600) * 1000);
 }
 
 
