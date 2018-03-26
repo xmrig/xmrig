@@ -21,6 +21,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <inttypes.h>
 #include <iterator>
 #include <stdio.h>
@@ -204,16 +205,30 @@ bool Client::close()
 
     setState(ClosingState);
 
-    uv_read_stop(reinterpret_cast<uv_stream_t*>(m_socket));
+    uv_stream_t *stream = reinterpret_cast<uv_stream_t*>(m_socket);
 
-    uv_shutdown(new uv_shutdown_t, reinterpret_cast<uv_stream_t*>(m_socket), [](uv_shutdown_t* req, int status) {
+    if (uv_is_readable(stream) == 1) {
+        uv_read_stop(stream);
+    }
 
-        if (uv_is_closing(reinterpret_cast<uv_handle_t*>(req->handle)) == 0) {
-            uv_close(reinterpret_cast<uv_handle_t*>(req->handle), Client::onClose);
+    if (uv_is_writable(stream) == 1) {
+        const int rc = uv_shutdown(new uv_shutdown_t, stream, [](uv_shutdown_t* req, int status) {
+            if (uv_is_closing(reinterpret_cast<uv_handle_t*>(req->handle)) == 0) {
+                uv_close(reinterpret_cast<uv_handle_t*>(req->handle), Client::onClose);
+            }
+
+            delete req;
+        });
+
+        assert(rc == 0);
+
+        if (rc != 0) {
+            onClose();
         }
-
-        delete req;
-    });
+    }
+    else {
+        uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
+    }
 
     return true;
 }
@@ -442,6 +457,18 @@ void Client::login()
 }
 
 
+void Client::onClose()
+{
+    delete m_socket;
+
+    m_stream = nullptr;
+    m_socket = nullptr;
+    setState(UnconnectedState);
+
+    reconnect();
+}
+
+
 void Client::parse(char *line, size_t len)
 {
     startTimeout();
@@ -655,13 +682,7 @@ void Client::onClose(uv_handle_t *handle)
         return;
     }
 
-    delete client->m_socket;
-
-    client->m_stream = nullptr;
-    client->m_socket = nullptr;
-    client->setState(UnconnectedState);
-
-    client->reconnect();
+    client->onClose();
 }
 
 

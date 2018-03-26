@@ -87,6 +87,7 @@ private:
     void connect(const std::vector<addrinfo*> &ipv4, const std::vector<addrinfo*> &ipv6);
     void connect(sockaddr *addr);
     void login();
+    void onClose();
     void parse(char *line, size_t len);
     void parseExtensions(const rapidjson::Value &value);
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);

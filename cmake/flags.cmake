@@ -6,6 +6,10 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_definitions(/DNDEBUG)
+endif()
+
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-strict-aliasing")
