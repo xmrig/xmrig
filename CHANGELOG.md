@@ -1,3 +1,6 @@
+# v2.5.2
+- [#448](https://github.com/xmrig/xmrig/issues/478) Fixed broken reconnect.
+
 # v2.5.1
 - [#454](https://github.com/xmrig/xmrig/issues/454) Fixed build with libmicrohttpd version below v0.9.35.
 - [#456](https://github.com/xmrig/xmrig/issues/459) Verbose errors related to donation pool was not fully silenced.
