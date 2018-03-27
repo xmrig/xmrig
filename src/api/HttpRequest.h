@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
@@ -21,37 +22,63 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __API_H__
-#define __API_H__
+#ifndef __HTTPREQUEST_H__
+#define __HTTPREQUEST_H__
 
 
-#include <uv.h>
+#include <stdint.h>
 
 
-class ApiRouter;
-class Hashrate;
-class NetworkState;
+struct MHD_Connection;
+struct MHD_Response;
 
 
 namespace xmrig {
-    class Controller;
-    class HttpReply;
-    class HttpRequest;
-}
 
 
-class Api
+class HttpBody;
+class HttpReply;
+
+
+class HttpRequest
 {
 public:
-    static bool start(xmrig::Controller *controller);
-    static void release();
+    enum Method {
+        Unsupported,
+        Options,
+        Get,
+        Put
+    };
 
-    static void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
-    static void tick(const Hashrate *hashrate);
-    static void tick(const NetworkState &results);
+    HttpRequest(MHD_Connection *connection, const char *url, const char *method, const char *uploadData, size_t *uploadSize, void **cls);
+    ~HttpRequest();
+
+    inline bool isFulfilled() const  { return m_fulfilled; }
+    inline bool isRestricted() const { return m_restricted; }
+    inline Method method() const     { return m_method; }
+
+    bool match(const char *path) const;
+    bool process(const char *accessToken, bool restricted, xmrig::HttpReply &reply);
+    const char *body() const;
+    int end(const HttpReply &reply);
+    int end(int status, MHD_Response *rsp);
 
 private:
-    static ApiRouter *m_router;
+    int auth(const char *accessToken);
+
+    bool m_fulfilled;
+    bool m_restricted;
+    const char *m_uploadData;
+    const char *m_url;
+    HttpBody *m_body;
+    Method m_method;
+    MHD_Connection *m_connection;
+    size_t *m_uploadSize;
+    void **m_cls;
 };
 
-#endif /* __API_H__ */
+
+} /* namespace xmrig */
+
+
+#endif /* __HTTPREQUEST_H__ */

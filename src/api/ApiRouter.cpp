@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,9 @@
 #endif
 
 
-#include "api/ApiState.h"
+#include "api/ApiRouter.h"
+#include "api/HttpReply.h"
+#include "api/HttpRequest.h"
 #include "Cpu.h"
 #include "Mem.h"
 #include "net/Job.h"
@@ -61,7 +63,8 @@ static inline double normalize(double d)
 }
 
 
-ApiState::ApiState()
+ApiRouter::ApiRouter(xmrig::Controller *controller) :
+    m_controller(controller)
 {
     m_threads  = Options::i()->threads();
     m_hashrate = new double[m_threads * 3]();
@@ -69,24 +72,18 @@ ApiState::ApiState()
     memset(m_totalHashrate, 0, sizeof(m_totalHashrate));
     memset(m_workerId, 0, sizeof(m_workerId));
 
-    if (Options::i()->apiWorkerId()) {
-        strncpy(m_workerId, Options::i()->apiWorkerId(), sizeof(m_workerId) - 1);
-    }
-    else {
-        gethostname(m_workerId, sizeof(m_workerId) - 1);
-    }
-
+    setWorkerId(Options::i()->apiWorkerId());
     genId();
 }
 
 
-ApiState::~ApiState()
+ApiRouter::~ApiRouter()
 {
     delete [] m_hashrate;
 }
 
 
-char *ApiState::get(const char *url, int *status) const
+void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &reply) const
 {
     rapidjson::Document doc;
     doc.SetObject();
@@ -97,11 +94,22 @@ char *ApiState::get(const char *url, int *status) const
     getResults(doc);
     getConnection(doc);
 
-    return finalize(doc);
+    return finalize(reply, doc);
 }
 
 
-void ApiState::tick(const Hashrate *hashrate)
+void ApiRouter::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
+{
+//    if (req.method() == xmrig::HttpRequest::Put && req.match("/1/config")) {
+//        m_controller->config()->reload(req.body());
+//        return;
+//    }
+
+    reply.status = 404;
+}
+
+
+void ApiRouter::tick(const Hashrate *hashrate)
 {
     for (int i = 0; i < m_threads; ++i) {
         m_hashrate[i * 3]     = hashrate->calc((size_t) i, Hashrate::ShortInterval);
@@ -116,24 +124,32 @@ void ApiState::tick(const Hashrate *hashrate)
 }
 
 
-void ApiState::tick(const NetworkState &network)
+void ApiRouter::tick(const NetworkState &network)
 {
     m_network = network;
 }
 
 
-char *ApiState::finalize(rapidjson::Document &doc) const
+void ApiRouter::onConfigChanged(xmrig::Config *config, xmrig::Config *previousConfig)
+{
+//    updateWorkerId(config->apiWorkerId(), previousConfig->apiWorkerId());
+}
+
+
+void ApiRouter::finalize(xmrig::HttpReply &reply, rapidjson::Document &doc) const
 {
     rapidjson::StringBuffer buffer(0, 4096);
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     writer.SetMaxDecimalPlaces(10);
     doc.Accept(writer);
 
-    return strdup(buffer.GetString());
+    reply.status = 200;
+    reply.buf    = strdup(buffer.GetString());
+    reply.size   = buffer.GetSize();
 }
 
 
-void ApiState::genId()
+void ApiRouter::genId()
 {
     memset(m_id, 0, sizeof(m_id));
 
@@ -166,7 +182,7 @@ void ApiState::genId()
 }
 
 
-void ApiState::getConnection(rapidjson::Document &doc) const
+void ApiRouter::getConnection(rapidjson::Document &doc) const
 {
     auto &allocator = doc.GetAllocator();
 
@@ -181,7 +197,7 @@ void ApiState::getConnection(rapidjson::Document &doc) const
 }
 
 
-void ApiState::getHashrate(rapidjson::Document &doc) const
+void ApiRouter::getHashrate(rapidjson::Document &doc) const
 {
     auto &allocator = doc.GetAllocator();
 
@@ -209,14 +225,14 @@ void ApiState::getHashrate(rapidjson::Document &doc) const
 }
 
 
-void ApiState::getIdentify(rapidjson::Document &doc) const
+void ApiRouter::getIdentify(rapidjson::Document &doc) const
 {
     doc.AddMember("id",        rapidjson::StringRef(m_id),       doc.GetAllocator());
     doc.AddMember("worker_id", rapidjson::StringRef(m_workerId), doc.GetAllocator());
 }
 
 
-void ApiState::getMiner(rapidjson::Document &doc) const
+void ApiRouter::getMiner(rapidjson::Document &doc) const
 {
     auto &allocator = doc.GetAllocator();
 
@@ -236,7 +252,7 @@ void ApiState::getMiner(rapidjson::Document &doc) const
 }
 
 
-void ApiState::getResults(rapidjson::Document &doc) const
+void ApiRouter::getResults(rapidjson::Document &doc) const
 {
     auto &allocator = doc.GetAllocator();
 
@@ -257,4 +273,31 @@ void ApiState::getResults(rapidjson::Document &doc) const
     results.AddMember("error_log", rapidjson::Value(rapidjson::kArrayType), allocator);
 
     doc.AddMember("results", results, allocator);
+}
+
+
+void ApiRouter::setWorkerId(const char *id)
+{
+    memset(m_workerId, 0, sizeof(m_workerId));
+
+    if (id && strlen(id) > 0) {
+        strncpy(m_workerId, id, sizeof(m_workerId) - 1);
+    }
+    else {
+        gethostname(m_workerId, sizeof(m_workerId) - 1);
+    }
+}
+
+
+void ApiRouter::updateWorkerId(const char *id, const char *previousId)
+{
+    if (id == previousId) {
+        return;
+    }
+
+    if (id != nullptr && previousId != nullptr && strcmp(id, previousId) == 0) {
+        return;
+    }
+
+    setWorkerId(id);
 }

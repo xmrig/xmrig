@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "api/Api.h"
 #include "App.h"
 #include "Console.h"
+#include "core/Controller.h"
 #include "Cpu.h"
 #include "crypto/CryptoNight.h"
 #include "log/ConsoleLog.h"
@@ -63,6 +64,8 @@ App::App(int argc, char **argv) :
     m_options(nullptr)
 {
     m_self = this;
+
+    m_controller = new xmrig::Controller();
 
     Cpu::init();
     m_options = Options::parse(argc, argv);
@@ -138,11 +141,11 @@ int App::exec()
     }
 
 #   ifndef XMRIG_NO_API
-    Api::start();
+    Api::start(m_controller);
 #   endif
 
 #   ifndef XMRIG_NO_HTTPD
-    m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken());
+    m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken(), true, true);
     m_httpd->start();
 #   endif
 

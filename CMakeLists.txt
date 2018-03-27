@@ -12,17 +12,19 @@ include (cmake/cpu.cmake)
 
 set(HEADERS
     src/api/Api.h
-    src/api/ApiState.h
     src/api/NetworkState.h
     src/App.h
     src/Console.h
+    src/core/Controller.h
     src/Cpu.h
     src/interfaces/IClientListener.h
     src/interfaces/IConsoleListener.h
+    src/interfaces/IControllerListener.h
     src/interfaces/IJobResultListener.h
     src/interfaces/ILogBackend.h
     src/interfaces/IStrategy.h
     src/interfaces/IStrategyListener.h
+    src/interfaces/IWatcherListener.h
     src/interfaces/IWorker.h
     src/log/ConsoleLog.h
     src/log/FileLog.h
@@ -74,10 +76,10 @@ endif()
 
 set(SOURCES
     src/api/Api.cpp
-    src/api/ApiState.cpp
     src/api/NetworkState.cpp
     src/App.cpp
     src/Console.cpp
+    src/core/Controller.cpp
     src/log/ConsoleLog.cpp
     src/log/FileLog.cpp
     src/log/Log.cpp
@@ -192,7 +194,16 @@ if (WITH_HTTPD)
 
     if (MHD_FOUND)
         include_directories(${MHD_INCLUDE_DIRS})
-        set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
+        set(HTTPD_SOURCES
+            src/api/ApiRouter.h
+            src/api/HttpBody.h
+            src/api/Httpd.h
+            src/api/HttpReply.h
+            src/api/HttpRequest.h
+            src/api/ApiRouter.cpp
+            src/api/Httpd.cpp
+            src/api/HttpRequest.cpp
+            )
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
     endif()

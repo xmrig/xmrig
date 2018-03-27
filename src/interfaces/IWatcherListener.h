@@ -21,62 +21,26 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#ifndef __IWATCHERLISTENER_H__
+#define __IWATCHERLISTENER_H__
 
 
-#include "api/Api.h"
-#include "api/ApiRouter.h"
-#include "api/HttpReply.h"
-#include "api/HttpRequest.h"
+namespace xmrig {
 
 
-ApiRouter *Api::m_router = nullptr;
+class Config;
 
 
-bool Api::start(xmrig::Controller *controller)
+class IWatcherListener
 {
-    m_router = new ApiRouter(controller);
+public:
+    virtual ~IWatcherListener() {}
 
-    return true;
-}
-
-
-void Api::release()
-{
-    delete m_router;
-}
+    virtual void onNewConfig(Config *config) = 0;
+};
 
 
-void Api::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
-{
-    if (!m_router) {
-        reply.status = 500;
-        return;
-    }
-
-    if (req.method() == xmrig::HttpRequest::Get) {
-        return m_router->get(req, reply);
-    }
-
-    m_router->exec(req, reply);
-}
+} /* namespace xmrig */
 
 
-void Api::tick(const Hashrate *hashrate)
-{
-    if (!m_router) {
-        return;
-    }
-
-    m_router->tick(hashrate);
-}
-
-
-void Api::tick(const NetworkState &network)
-{
-    if (!m_router) {
-        return;
-    }
-
-    m_router->tick(network);
-}
+#endif // __IWATCHERLISTENER_H__

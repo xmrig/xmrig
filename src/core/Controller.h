@@ -21,62 +21,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#ifndef __CONTROLLER_H__
+#define __CONTROLLER_H__
 
 
-#include "api/Api.h"
-#include "api/ApiRouter.h"
-#include "api/HttpReply.h"
-#include "api/HttpRequest.h"
+#include "interfaces/IWatcherListener.h"
 
 
-ApiRouter *Api::m_router = nullptr;
+class Proxy;
+class StatsData;
 
 
-bool Api::start(xmrig::Controller *controller)
+namespace xmrig {
+
+
+class Config;
+class ControllerPrivate;
+class IControllerListener;
+
+
+class Controller : public IWatcherListener
 {
-    m_router = new ApiRouter(controller);
+public:
+    Controller();
+    ~Controller();
 
-    return true;
-}
+    Config *config() const;
+    int init(int argc, char **argv);
+    Proxy *proxy() const;
+    void addListener(IControllerListener *listener);
 
+protected:
+    void onNewConfig(Config *config) override;
 
-void Api::release()
-{
-    delete m_router;
-}
+private:
+    ControllerPrivate *d_ptr;
+};
 
+} /* namespace xmrig */
 
-void Api::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
-{
-    if (!m_router) {
-        reply.status = 500;
-        return;
-    }
-
-    if (req.method() == xmrig::HttpRequest::Get) {
-        return m_router->get(req, reply);
-    }
-
-    m_router->exec(req, reply);
-}
-
-
-void Api::tick(const Hashrate *hashrate)
-{
-    if (!m_router) {
-        return;
-    }
-
-    m_router->tick(hashrate);
-}
-
-
-void Api::tick(const NetworkState &network)
-{
-    if (!m_router) {
-        return;
-    }
-
-    m_router->tick(network);
-}
+#endif /* __CONTROLLER_H__ */
