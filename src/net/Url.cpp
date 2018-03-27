@@ -25,14 +25,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <sstream>
 
 #include "net/Url.h"
-
-
-#ifdef _MSC_VER
-#   define strncasecmp(x,y,z) _strnicmp(x,y,z)
-#endif
 
 
 Url::Url() :
@@ -87,7 +82,12 @@ Url::~Url()
     free(m_user);
 }
 
-
+/*---------------------------------------------------------------------
+* NAME       : bool Url::parse(const char *url)
+* SYNOPSIS   : Parse URL string, xmrig original version
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
 bool Url::parse(const char *url)
 {
     const char *p = strstr(url, "://");
@@ -118,6 +118,37 @@ bool Url::parse(const char *url)
 
     m_port = (uint16_t) strtol(port, nullptr, 10);
     return true;
+}
+
+/*---------------------------------------------------------------------
+* NAME       : bool Url::parseCpp(const char *url)
+* SYNOPSIS   : Parse url string, C++ version
+* DESCRIPTION:
+*
+---------------------------------------------------------------------*/
+bool Url::parseCpp(const char *url)
+{
+    std::stringstream   strStream;
+    std::string   strURL;
+    std::size_t found, il, ir;
+    //---
+
+    strStream << url;
+    strStream >> strURL;
+
+    found = strURL.find("//");
+    if (found == std::string::npos) il = 0;
+    else il = found + 2;
+
+    found = strURL.rfind(":");
+    if (found == std::string::npos) return(false);
+    else ir = found;
+
+
+    m_host_cpp.assign(  strURL.substr(il, ir-il) );
+    m_port = std::stoi( strURL.substr( ir+1, strURL.length() - ir) );
+    //---
+    return(true);
 }
 
 

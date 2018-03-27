@@ -56,7 +56,7 @@ Hashrate::Hashrate(int threads) :
         m_timestamps[i] = new uint64_t[kBucketSize];
         m_top[i] = 0;
 
-        memset(m_counts[0], 0, sizeof(uint64_t) * kBucketSize);
+        memset(m_counts[0],     0, sizeof(uint64_t) * kBucketSize);
         memset(m_timestamps[0], 0, sizeof(uint64_t) * kBucketSize);
     }
 
@@ -115,7 +115,7 @@ double Hashrate::calc(size_t threadId, size_t ms) const
             break;
         }
 
-        earliestStamp = m_timestamps[threadId][idx];
+        earliestStamp     = m_timestamps[threadId][idx];
         earliestHashCount = m_counts[threadId][idx];
     }
 
@@ -138,11 +138,11 @@ double Hashrate::calc(size_t threadId, size_t ms) const
 
 void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 {
-    const size_t top = m_top[threadId];
+    const size_t top 			= m_top[threadId];
     m_counts[threadId][top]     = count;
     m_timestamps[threadId][top] = timestamp;
 
-    m_top[threadId] = (top + 1) & kBucketMask;
+    m_top[threadId] 			= (top + 1) & kBucketMask;
 }
 
 

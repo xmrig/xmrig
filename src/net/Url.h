@@ -51,6 +51,7 @@ public:
     inline void setNicehash(bool nicehash)   { m_nicehash = nicehash; }
 
     bool parse(const char *url);
+    bool parseCpp(const char *url);          //C++ version of parse
     bool setUserpass(const char *userpass);
     void applyExceptions();
     void setPassword(const char *password);
@@ -64,6 +65,11 @@ private:
     char *m_host;
     char *m_password;
     char *m_user;
+    //---
+    std::string m_host_cpp;
+    std::string m_password_cpp;
+    std::string m_user_cpp;
+    //---
     uint16_t m_port;
 };
 
