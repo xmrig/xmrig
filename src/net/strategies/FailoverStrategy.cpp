@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,22 +25,37 @@
 #include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
 #include "net/strategies/FailoverStrategy.h"
-#include "Options.h"
+#include "Platform.h"
 
 
-FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, const char *agent, IStrategyListener *listener) :
+FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
+    m_quiet(quiet),
+    m_retries(retries),
+    m_retryPause(retryPause),
     m_active(-1),
     m_index(0),
     m_listener(listener)
 {
     for (const Url *url : urls) {
-        add(url, agent);
+        add(url);
+    }
+}
+
+
+FailoverStrategy::~FailoverStrategy()
+{
+    for (Client *client : m_pools) {
+        client->deleteLater();
     }
 }
 
 
 int64_t FailoverStrategy::submit(const JobResult &result)
 {
+    if (m_active == -1) {
+        return -1;
+    }
+
     return m_pools[m_active]->submit(result);
 }
 
@@ -57,7 +72,7 @@ void FailoverStrategy::resume()
         return;
     }
 
-    m_listener->onJob( m_pools[m_active],  m_pools[m_active]->job());
+    m_listener->onJob(this, m_pools[m_active],  m_pools[m_active]->job());
 }
 
 
@@ -93,7 +108,7 @@ void FailoverStrategy::onClose(Client *client, int failures)
         m_listener->onPause(this);
     }
 
-    if (m_index == 0 && failures < Options::i()->retries()) {
+    if (m_index == 0 && failures < m_retries) {
         return;
     }
 
@@ -106,7 +121,7 @@ void FailoverStrategy::onClose(Client *client, int failures)
 void FailoverStrategy::onJobReceived(Client *client, const Job &job)
 {
     if (m_active == client->id()) {
-        m_listener->onJob(client, job);
+        m_listener->onJob(this, client, job);
     }
 }
 
@@ -127,22 +142,23 @@ void FailoverStrategy::onLoginSuccess(Client *client)
 
     if (active >= 0 && active != m_active) {
         m_index = m_active = active;
-        m_listener->onActive(client);
+        m_listener->onActive(this, client);
     }
 }
 
 
 void FailoverStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
-    m_listener->onResultAccepted(client, result, error);
+    m_listener->onResultAccepted(this, client, result, error);
 }
 
 
-void FailoverStrategy::add(const Url *url, const char *agent)
+void FailoverStrategy::add(const Url *url)
 {
-    Client *client = new Client((int) m_pools.size(), agent, this);
+    Client *client = new Client((int) m_pools.size(), Platform::userAgent(), this);
     client->setUrl(url);
-    client->setRetryPause(Options::i()->retryPause() * 1000);
+    client->setRetryPause(m_retryPause * 1000);
+    client->setQuiet(m_quiet);
 
     m_pools.push_back(client);
 }

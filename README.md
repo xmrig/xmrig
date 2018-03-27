@@ -1,4 +1,7 @@
 # XMRig
+
+:warning: **You must update miners to version 2.5 before April 6 due [Monero PoW change](https://getmonero.org/2018/02/11/PoW-change-and-key-reuse.html).**
+
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/releases)
@@ -63,11 +66,13 @@ Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or shar
       --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)
       --no-huge-pages      disable huge pages support
       --no-color           disable colored output
+      --variant            algorithm PoW variant
       --donate-level=N     donate level, default 5% (5 minutes in 100 minutes)
       --user-agent         set custom user-agent string for pool
   -B, --background         run the miner in the background
   -c, --config=FILE        load a JSON-format configuration file
   -l, --log-file=FILE      log all output to a file
+  -S, --syslog             use system log for output messages
       --max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)
       --safe               safe adjust threads and av settings for current CPU
       --nicehash           enable nicehash/xmrig-proxy support
@@ -119,10 +124,10 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Release checksums
 ### SHA-256
 ```
-232ea929f7219c8de81c7e6fcae7437d40d8128cf55b597a6e1fca0cd77f9f5b xmrig-2.5.0-xenial-amd64.tar.gz/xmrig-2.5.0/xmrig
-6149ffed21e740cac12aa61b2fdd17248cbd3e51bab2289d2766aad1d29df910 xmrig-2.5.0-gcc-win32.zip/xmrig.exe
-9c89f80e21db906439a7a1b333b8215dbe07d8e42f98a63f6c10c954288a7108 xmrig-2.5.0-gcc-win64.zip/xmrig.exe
-b50773c5a74ca9921597a1152e2469ec266cc89eb9765038db7e876f0bcece73 xmrig-2.5.0-msvc-win64.zip/xmrig.exe
+b070d06a3615f3db67ad3beab43d6d21f3c88026aa2b4726a93df47145cd30ec xmrig-2.5.2-xenial-amd64.tar.gz/xmrig-2.5.2/xmrig
+4852135d3f04fd450ba39abce51ca40ff9131d222220c8b30804be05f6679295 xmrig-2.5.2-gcc-win32.zip/xmrig.exe
+284309d07f08261af19c937ece6d2031910d9124a7359c207ded65890b2d7c5f xmrig-2.5.2-gcc-win64.zip/xmrig.exe
+e1dc46158a578fb030538fb06e5663a6acc5763545fb447a00ce0a6b388c5226 xmrig-2.5.2-msvc-win64.zip/xmrig.exe
 ```
 
 ## Contacts
