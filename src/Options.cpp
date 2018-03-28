@@ -23,6 +23,8 @@
 
 
 #include <string.h>
+#include <string>
+#include <iostream>
 #include <uv.h>
 #include <getopt.h>
 //---
