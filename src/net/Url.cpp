@@ -122,17 +122,19 @@ bool Url::parse(const char *url)
 
 /*---------------------------------------------------------------------
 * NAME       : bool Url::parseCpp(const char *url)
-* SYNOPSIS   : Parse url string, C++ version
-* DESCRIPTION:
+* SYNOPSIS   : Parse url string, C++ version will replace parse method in further development.
+* DESCRIPTION: From url input string extract and update m_host_cpp and m_port atributes
 *
 ---------------------------------------------------------------------*/
 bool Url::parseCpp(const char *url)
 {
     std::stringstream   strStream;
-    std::string   strURL;
-    std::size_t found, il, ir;
+    std::string         strURL;
+    std::size_t         found, il, ir;
     //---
 
+    il = 0;
+    ir = 0;
     strStream << url;
     strStream >> strURL;
 

@@ -24,11 +24,8 @@
 
 #include <string.h>
 #include <uv.h>
-
-
-include <getopt.h>
-
-
+#include <getopt.h>
+//---
 #include "Cpu.h"
 #include "donate.h"
 #include "net/Url.h"
