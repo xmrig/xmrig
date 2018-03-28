@@ -52,6 +52,8 @@ bool Mem::allocate(const Options* options)
         m_memorySize += scratchPadSize * getThreadHashFactor(i);
     }
 
+    m_memorySize = m_memorySize - (m_memorySize % MEMORY) + MEMORY;
+
     if (!options->hugePages()) {
         m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
         return true;
@@ -60,7 +62,6 @@ bool Mem::allocate(const Options* options)
     m_flags |= HugepagesAvailable;
 
 #   if defined(__APPLE__)
-    m_memorySize = m_memorySize - (m_memorySize % MEMORY) + MEMORY;
     m_memory = static_cast<uint8_t*>(mmap(0, m_memorySize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0));
 #   elif defined(__FreeBSD__)
     m_memory = static_cast<uint8_t*>(mmap(0, m_memorySize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0));
