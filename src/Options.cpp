@@ -1005,4 +1005,9 @@ bool Options::parseCCUrl(const char* url)
     return true;
 }
 
+void Options::setForcePowVersion(Options::PowVersion powVersion)
+{
+    m_forcePowVersion = powVersion;
+}
+
 
