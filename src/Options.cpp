@@ -299,7 +299,7 @@ bool Options::getJSON(const char *fileName, rapidjson::Document &doc)
 
     if (doc.HasParseError()) {
         std::cout << fileName << "  " << (int) doc.GetErrorOffset() \
-        		  << "  " << rapidjson::GetParseError_En(doc.GetParseError()) << '\n"';
+        		  << "  " << rapidjson::GetParseError_En(doc.GetParseError()) << "\n";
         return false;
     }
 
