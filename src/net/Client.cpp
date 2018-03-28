@@ -27,6 +27,7 @@
 #include <string.h>
 #include <utility>
 #include <uv.h>
+#include <Options.h>
 
 #include "interfaces/IClientListener.h"
 #include "log/Log.h"
@@ -198,6 +199,26 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
     if (!job.setTarget(params["target"].GetString())) {
         *code = 5;
         return false;
+    }
+
+    if (params.HasMember("variant")) {
+        int variantFromProxy = params["variant"].GetInt();
+
+        if (Options::i()->forcePowVersion() == Options::POW_AUTODETECT) {
+            switch (variantFromProxy) {
+                case -1:
+                    Options::i()->setForcePowVersion(Options::POW_AUTODETECT);
+                    break;
+                case 0:
+                    Options::i()->setForcePowVersion(Options::POW_V1);
+                    break;
+                case 1:
+                    Options::i()->setForcePowVersion(Options::POW_V2);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     if (m_job == job) {

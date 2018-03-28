@@ -112,6 +112,8 @@ public:
 
     const char *algoName() const;
 
+    void setForcePowVersion(PowVersion version);
+
 private:
     constexpr static uint16_t kDefaultCCPort        = 3344;
 
