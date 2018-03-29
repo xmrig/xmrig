@@ -55,13 +55,15 @@ int64_t Client::m_sequence = 1;
 
 Client::Client(int id, const char *agent, IClientListener *listener) :
     m_quiet(false),
+    m_nicehash(false),
     m_agent(agent),
     m_listener(listener),
     m_id(id),
     m_retryPause(5000),
     m_failures(0),
     m_recvBufPos(0),
-    m_expire(0)
+    m_expire(0),
+    m_jobs(0)
 {
     m_recvBuf.base = m_buf;
     m_recvBuf.len  = sizeof(m_buf);
@@ -95,6 +97,8 @@ void Client::connect(const Url *url)
 
 void Client::disconnect()
 {
+    LOG_DEBUG("Client::disconnect");
+
 #   ifndef XMRIG_PROXY_PROJECT
     uv_timer_stop(&m_keepAliveTimer);
 #   endif
@@ -123,10 +127,11 @@ void Client::tick(uint64_t now)
     }
 
     if (m_net) {
-        LOG_DEBUG_ERR("[%s:%u] timeout", m_url.host(), m_url.port());
-        reconnect();
+        LOG_WARN("[%s:%u] timeout", m_url.host(), m_url.port());
+        close();
     }
     else {
+        LOG_DEBUG("Client::tick -> connect");
         connect();
     }
 }
@@ -185,7 +190,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, m_url.isNicehash());
+    Job job(m_id, m_nicehash);
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
         return false;
@@ -221,17 +226,22 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         }
     }
 
-    if (m_job == job) {
-        if (!m_quiet) {
-            LOG_WARN("[%s:%u] duplicate job received, reconnect", m_url.host(), m_url.port());
-        }
+    if (m_job != job) {
+        m_jobs++;
+        m_job = std::move(job);
+        return true;
+    }
 
-        close();
+    if (m_jobs == 0) { // https://github.com/xmrig/xmrig/issues/459
         return false;
     }
 
-    m_job = std::move(job);
-    return true;
+    if (!m_quiet) {
+        LOG_WARN("[%s:%u] duplicate job received, reconnect", m_url.host(), m_url.port());
+    }
+
+    close();
+    return false;
 }
 
 
@@ -243,14 +253,27 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
         return false;
     }
 
+#   ifndef XMRIG_PROXY_PROJECT
+    m_nicehash = m_url.isNicehash();
+#   endif
+
+    if (result.HasMember("extensions")) {
+        parseExtensions(result["extensions"]);
+    }
+
     memset(m_rpcId, 0, sizeof(m_rpcId));
     memcpy(m_rpcId, id, strlen(id));
 
-    return parseJob(result["job"], code);
+    const bool rc = parseJob(result["job"], code);
+    m_jobs = 0;
+
+    return rc;
 }
 
 int64_t Client::send(size_t size)
 {
+    LOG_DEBUG("Client::send");
+
     LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, m_sendBuf);
     if (!m_net) {
         LOG_DEBUG_ERR("[%s:%u] send failed", m_url.host(), m_url.port());
@@ -269,6 +292,8 @@ int64_t Client::send(size_t size)
 
 void Client::close()
 {
+    LOG_DEBUG("Client::close");
+
     if (m_net) {
         auto client = getClient(m_net->data);
 
@@ -283,6 +308,8 @@ void Client::close()
 
 void Client::connect()
 {
+    LOG_DEBUG("Client::connect");
+
     m_net = net_new(const_cast<char *>(m_url.host()), m_url.port());
     m_net->data = this;
     m_net->conn_cb = Client::onConnect;
@@ -301,6 +328,8 @@ void Client::connect()
 
 void Client::onRead(net_t *net, size_t size, char *buf)
 {
+    LOG_DEBUG("Client::onRead");
+
     auto client = getClient(net->data);
 
     if (size == 0) {
@@ -340,12 +369,15 @@ void Client::onRead(net_t *net, size_t size, char *buf)
 }
 
 void Client::onConnect(net_t *net) {
+    LOG_DEBUG("Client::onConnect");
     auto client = getClient(net->data);
     client->login();
 }
 
 void Client::onError(net_t *net, int err, char *errStr)
 {
+    LOG_DEBUG("Client::onError");
+
     if (net) {
         auto client = getClient(net->data);
         if (!client->m_quiet) {
@@ -358,6 +390,8 @@ void Client::onError(net_t *net, int err, char *errStr)
 
 void Client::login()
 {
+    LOG_DEBUG("Client::login");
+
     m_results.clear();
 
     rapidjson::Document doc;
@@ -395,6 +429,8 @@ void Client::login()
 
 void Client::parse(char *line, size_t len)
 {
+    LOG_DEBUG("Client::parse");
+
     startTimeout();
 
     line[len - 1] = '\0';
@@ -423,6 +459,23 @@ void Client::parse(char *line, size_t len)
     }
 }
 
+
+void Client::parseExtensions(const rapidjson::Value &value)
+{
+    if (!value.IsArray()) {
+        return;
+    }
+
+    for (const rapidjson::Value &ext : value.GetArray()) {
+        if (!ext.IsString()) {
+            continue;
+        }
+
+        if (strcmp(ext.GetString(), "nicehash") == 0) {
+            m_nicehash = true;
+        }
+    }
+}
 
 void Client::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error)
 {
@@ -503,11 +556,14 @@ void Client::parseResponse(int64_t id, const rapidjson::Value &result, const rap
 
 void Client::ping()
 {
+    LOG_DEBUG("Client::ping");
     send(snprintf(m_sendBuf, sizeof(m_sendBuf), "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId));
 }
 
 
 void Client::reconnect() {
+
+    LOG_DEBUG("Client::reconnect");
 
 #   ifndef XMRIG_PROXY_PROJECT
     if (m_url.isKeepAlive()) {
@@ -516,6 +572,7 @@ void Client::reconnect() {
 #   endif
 
     if (m_failures == -1) {
+        LOG_DEBUG("Client::onConnect -> m_failures == -1");
         return m_listener->onClose(this, -1);
     }
 
@@ -527,6 +584,8 @@ void Client::reconnect() {
 
 void Client::startTimeout()
 {
+    LOG_DEBUG("Client::startTimeout");
+
     m_expire = 0;
 
 #   ifndef XMRIG_PROXY_PROJECT

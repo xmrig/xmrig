@@ -360,11 +360,12 @@ public:
 
         for (size_t i = 0; i < ITERATIONS; i++) {
             for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-                __m128i cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
+                __m128i cx;
 
                 if (SOFT_AES) {
-                    cx = soft_aesenc(cx, _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
+                    cx = soft_aesenc((uint32_t*) &l[hashBlock][idx[hashBlock] & MASK], _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
                 } else {
+                    cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
                     cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
                 }
 
