@@ -1,6 +1,7 @@
 # 1.5.3
 - Fixed Bad/Invalid shares and high share transmit latency
 - Fixed hugepages for some older linux versions
+- Fixed compatibility to xmrig-proxy 2.5.x+
 - Added force algo variant by xmrig-proxy 2.5.x+
 - Added auto force of nicehash param by xmrig-proxy 2.5.x+
 - Partial rebase of XMRig 2.5.2
