@@ -70,6 +70,7 @@ public:
     bool operator!=(const Job &other) const;
 
 private:
+    alignas(16) uint8_t m_blob[84]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
 
     bool m_nicehash;
     int m_poolId;
@@ -78,8 +79,6 @@ private:
     size_t m_size;
     uint64_t m_diff;
     uint64_t m_target;
-
-    alignas(16) uint8_t m_blob[84]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
 
 #   ifdef XMRIG_PROXY_PROJECT
     VAR_ALIGN(16, char m_rawBlob[169]);

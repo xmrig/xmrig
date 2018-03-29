@@ -61,8 +61,7 @@ Job::Job(int poolId, bool nicehash) :
     m_threadId(-1),
     m_size(0),
     m_diff(0),
-    m_target(0),
-    m_blob()
+    m_target(0)
 {
 }
 
