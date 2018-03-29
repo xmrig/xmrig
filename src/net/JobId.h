@@ -31,15 +31,15 @@
 class JobId
 {
 public:
-    inline JobId() :
-            m_data()
+    inline JobId()
     {
+        memset(m_data, 0, sizeof(m_data));
     }
 
 
-    inline JobId(const char *jobId, size_t sizeFix = 0)
+    inline JobId(const char *id, size_t sizeFix = 0)
     {
-        setId(jobId, sizeFix);
+        setId(id, sizeFix);
     }
 
 
@@ -55,27 +55,19 @@ public:
     }
 
 
-    JobId &operator=(const JobId &other)
-    {
-        memcpy(m_data, other.m_data, sizeof(m_data));
-
-        return *this;
-    }
-
-
-    inline bool setId(const char *jobId, size_t sizeFix = 0)
+    inline bool setId(const char *id, size_t sizeFix = 0)
     {
         memset(m_data, 0, sizeof(m_data));
-        if (!jobId) {
+        if (!id) {
             return false;
         }
 
-        const size_t size = strlen(jobId);
+        const size_t size = strlen(id);
         if (size >= sizeof(m_data)) {
             return false;
         }
 
-        memcpy(m_data, jobId, size - sizeFix);
+        memcpy(m_data, id, size - sizeFix);
         return true;
     }
 
