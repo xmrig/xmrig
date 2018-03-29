@@ -33,21 +33,38 @@ struct MHD_Daemon;
 struct MHD_Response;
 
 
+class UploadCtx;
+
+
+namespace xmrig {
+    class HttpRequest;
+}
+
+
 class Httpd
 {
 public:
-    Httpd(int port, const char *accessToken);
+    Httpd(int port, const char *accessToken, bool IPv6, bool restricted);
+    ~Httpd();
     bool start();
 
 private:
-    int auth(const char *header);
+    constexpr static const int kIdleInterval   = 200;
+    constexpr static const int kActiveInterval = 25;
 
-    static int done(MHD_Connection *connection, int status, MHD_Response *rsp);
-    static int handler(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls);
+    int process(xmrig::HttpRequest &req);
+    void run();
 
+    static int handler(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *uploadData, size_t *uploadSize, void **con_cls);
+    static void onTimer(uv_timer_t *handle);
+
+    bool m_idle;
+    bool m_IPv6;
+    bool m_restricted;
     const char *m_accessToken;
     const int m_port;
     MHD_Daemon *m_daemon;
+    uv_timer_t m_timer;
 };
 
 #endif /* __HTTPD_H__ */

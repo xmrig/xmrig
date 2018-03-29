@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
@@ -21,62 +22,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#ifndef __HTTPREPLY_H__
+#define __HTTPREPLY_H__
 
 
-#include "api/Api.h"
-#include "api/ApiRouter.h"
-#include "api/HttpReply.h"
-#include "api/HttpRequest.h"
+#include <stdint.h>
 
 
-ApiRouter *Api::m_router = nullptr;
+namespace xmrig {
 
 
-bool Api::start(xmrig::Controller *controller)
+class HttpReply
 {
-    m_router = new ApiRouter(controller);
+public:
+    HttpReply() :
+        buf(nullptr),
+        status(200),
+        size(0)
+    {}
 
-    return true;
-}
-
-
-void Api::release()
-{
-    delete m_router;
-}
-
-
-void Api::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
-{
-    if (!m_router) {
-        reply.status = 500;
-        return;
-    }
-
-    if (req.method() == xmrig::HttpRequest::Get) {
-        return m_router->get(req, reply);
-    }
-
-    m_router->exec(req, reply);
-}
+    char *buf;
+    int status;
+    size_t size;
+};
 
 
-void Api::tick(const Hashrate *hashrate)
-{
-    if (!m_router) {
-        return;
-    }
-
-    m_router->tick(hashrate);
-}
+} /* namespace xmrig */
 
 
-void Api::tick(const NetworkState &network)
-{
-    if (!m_router) {
-        return;
-    }
-
-    m_router->tick(network);
-}
+#endif /* __HTTPREPLY_H__ */
