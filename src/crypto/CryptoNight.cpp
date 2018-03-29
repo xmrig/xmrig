@@ -122,9 +122,20 @@ void CryptoNight::hash(size_t factor, const uint8_t* input, size_t size, uint8_t
 
 bool CryptoNight::selfTest(int algo)
 {
-    if (cryptonight_hash_ctx[0] == nullptr || cryptonight_hash_ctx[2] == nullptr ||
-            cryptonight_hash_ctx[2] == nullptr || cryptonight_hash_ctx[3] == nullptr ||
-            cryptonight_hash_ctx[4] == nullptr) {
+    if (cryptonight_hash_ctx[0] == nullptr
+#if MAX_NUM_HASH_BLOCKS > 1
+        || cryptonight_hash_ctx[1] == nullptr
+#endif
+#if MAX_NUM_HASH_BLOCKS > 2
+        || cryptonight_hash_ctx[2] == nullptr
+#endif
+#if MAX_NUM_HASH_BLOCKS > 3
+        || cryptonight_hash_ctx[3] == nullptr
+#endif
+#if MAX_NUM_HASH_BLOCKS > 4
+        || cryptonight_hash_ctx[4] == nullptr
+#endif
+    ) {
         return false;
     }
 
@@ -138,17 +149,25 @@ bool CryptoNight::selfTest(int algo)
         cryptonight_hash_ctx[0](test_input, 76, output, ctx);
         resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 32) == 0;
 
+#if MAX_NUM_HASH_BLOCKS > 1
         cryptonight_hash_ctx[1](test_input, 76, output, ctx);
         resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 64) == 0;
+#endif
 
+#if MAX_NUM_HASH_BLOCKS > 2
         cryptonight_hash_ctx[2](test_input, 76, output, ctx);
         resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 96) == 0;
+#endif
 
+#if MAX_NUM_HASH_BLOCKS > 3
         cryptonight_hash_ctx[3](test_input, 76, output, ctx);
         resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 128) == 0;
+#endif
 
+#if MAX_NUM_HASH_BLOCKS > 4
         cryptonight_hash_ctx[4](test_input, 76, output, ctx);
         resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 160) == 0;
+#endif
     }
 
     // monero/aeon v2 pow (monero/aeon blockchain version 7)
@@ -157,12 +176,15 @@ bool CryptoNight::selfTest(int algo)
         cryptonight_hash_ctx[0](test_input_monero_v2_pow_0, sizeof(test_input_monero_v2_pow_0), output, ctx);
         resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_monero_v2_pow_light[0] : test_output_monero_v2_pow[0], 32) == 0;
 
+#if MAX_NUM_HASH_BLOCKS > 1
         cryptonight_hash_ctx[1](test_input_monero_v2_pow_1, sizeof(test_input_monero_v2_pow_1), output, ctx);
         resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_monero_v2_pow_light[1] : test_output_monero_v2_pow[1], 32) == 0;
+#endif
 
+#if MAX_NUM_HASH_BLOCKS > 2
         cryptonight_hash_ctx[2](test_input_monero_v2_pow_2, sizeof(test_input_monero_v2_pow_2), output, ctx);
         resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_monero_v2_pow_light[2] : test_output_monero_v2_pow[2], 32) == 0;
-        //TODO test multihashs
+#endif
     }
 
     _mm_free(ctx->memory);

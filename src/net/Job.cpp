@@ -61,7 +61,8 @@ Job::Job(int poolId, bool nicehash) :
     m_threadId(-1),
     m_size(0),
     m_diff(0),
-    m_target(0)
+    m_target(0),
+    m_blob()
 {
 }
 
@@ -172,4 +173,9 @@ void Job::toHex(const unsigned char* in, unsigned int len, char* out)
 bool Job::operator==(const Job &other) const
 {
     return m_id == other.m_id && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;
+}
+
+bool Job::operator!=(const Job &other) const
+{
+    return m_id != other.m_id || memcmp(m_blob, other.m_blob, sizeof(m_blob)) != 0;
 }

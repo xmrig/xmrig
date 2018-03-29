@@ -153,10 +153,4 @@ net_pause(net_t * net);
 int
 net_set_error_cb(net_t * net, void * cb);
 
-/*
- * write buffer, and call `net_write_cb`.
- */
-void
-net_write_cb(uv_write_t *writer, int stat);
-
 #endif /* __NET_H__ */
