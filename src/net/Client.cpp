@@ -295,13 +295,9 @@ void Client::close()
     LOG_DEBUG("Client::close");
 
     if (m_net) {
-        auto client = getClient(m_net->data);
-
-        net_free(m_net);
-
-        m_net = nullptr;
-
-        client->reconnect();
+        net_close(m_net, nullptr);
+    } else {
+        reconnect();
     }
 }
 
@@ -314,6 +310,7 @@ void Client::connect()
     m_net->data = this;
     m_net->conn_cb = Client::onConnect;
     m_net->read_cb = Client::onRead;
+    m_net->close_cb = Client::onClose;
     m_net->error_cb = Client::onError;
 
 #ifndef XMRIG_NO_TLS
@@ -385,6 +382,21 @@ void Client::onError(net_t *net, int err, char *errStr)
         }
 
         client->close();
+    }
+}
+
+void Client::onClose(net_t *net)
+{
+    LOG_DEBUG("Client::onClose");
+
+    if (net) {
+        auto client = getClient(net->data);
+
+        net_free(net);
+
+        client->m_net = nullptr;
+
+        client->reconnect();
     }
 }
 
