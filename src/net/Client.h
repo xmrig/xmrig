@@ -96,6 +96,7 @@ private:
     static void onRead(net_t *net, size_t read, char *buf);
     static void onConnect(net_t *net);
     static void onError(net_t *net, int err, char *errStr);
+    static void onClose(net_t *net);
 
     static inline Client *getClient(void *data) { return static_cast<Client*>(data); }
 

@@ -46,7 +46,7 @@ struct net_s {
   void (*conn_cb)(net_t*);
   void (*read_cb)(net_t*, size_t, char*);
   void (*error_cb)(net_t*, int, char*);
-  void (*close_cb)(uv_handle_t*);
+  void (*close_cb)(net_t*);
 };
 
 /*
