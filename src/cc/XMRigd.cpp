@@ -24,13 +24,13 @@
 
 #include <stdlib.h>
 #include <string>
+#include <chrono>
+#include <thread>
 
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
     #include <windows.h>
     #include <signal.h>
-	#include <chrono>
-	#include <thread>
 #else
     #include <sys/wait.h>
     #include <errno.h>
@@ -71,14 +71,24 @@ int main(int argc, char **argv) {
 
     do {
         status = system(xmrigMinerPath.c_str());
+
+        if (WEXITSTATUS(status) == 139) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            printf("Restarting.");
+        }
 #if defined(_WIN32) || defined(WIN32)
-    } while (status == EINTR);
+    } while (status == EINTR || status == 139);
+
+    if (WEXITSTATUS(status) == 139) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        printf("Restarting.");
+    }
 
 	if (status == EINVAL) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 	}
 #else
-    } while (WEXITSTATUS(status) == EINTR);
+    } while (WEXITSTATUS(status) == EINTR || WEXITSTATUS(status) == 139); // segfault
 #endif
 }
 
