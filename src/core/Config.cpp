@@ -40,7 +40,6 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_dryRun(false),
     m_hugePages(true),
     m_safe(false),
-    m_algo(0),
     m_algoVariant(0),
     m_maxCpuUsage(75),
     m_printTime(60),
@@ -151,10 +150,10 @@ bool xmrig::Config::adjust()
     }
 
     if (!m_threads) {
-        m_threads = Cpu::optimalThreadsCount(m_algo, m_doubleHash, m_maxCpuUsage);
+        m_threads = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
     }
     else if (m_safe) {
-        const int count = Cpu::optimalThreadsCount(m_algo, m_doubleHash, m_maxCpuUsage);
+        const int count = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
         if (m_threads > count) {
             m_threads = count;
         }
@@ -296,7 +295,7 @@ bool xmrig::Config::parseInt(int key, int arg)
 int xmrig::Config::getAlgoVariant() const
 {
 #   ifndef XMRIG_NO_AEON
-    if (m_algo == xmrig::ALGO_CRYPTONIGHT_LITE) {
+    if (m_algorithm == xmrig::ALGO_CRYPTONIGHT_LITE) {
         return getAlgoVariantLite();
     }
 #   endif

@@ -48,7 +48,6 @@ set(HEADERS
     src/net/strategies/SinglePoolStrategy.h
     src/net/SubmitResult.h
     src/net/Url.h
-    src/Options.h
     src/Platform.h
     src/Summary.h
     src/version.h
@@ -104,7 +103,6 @@ set(SOURCES
     src/net/strategies/SinglePoolStrategy.cpp
     src/net/SubmitResult.cpp
     src/net/Url.cpp
-    src/Options.cpp
     src/Platform.cpp
     src/Summary.cpp
     src/workers/DoubleWorker.cpp

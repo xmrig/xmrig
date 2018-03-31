@@ -79,7 +79,6 @@ public:
     inline bool isDoubleHash() const              { return m_doubleHash; }
     inline bool isDryRun() const                  { return m_dryRun; }
     inline bool isHugePages() const               { return m_hugePages; }
-    inline int algo() const                       { return m_algo; }
     inline int algoVariant() const                { return m_algoVariant; }
     inline int printTime() const                  { return m_printTime; }
     inline int priority() const                   { return m_priority; }
@@ -107,7 +106,6 @@ private:
     bool m_dryRun;
     bool m_hugePages;
     bool m_safe;
-    int m_algo;
     int m_algoVariant;
     int m_maxCpuUsage;
     int m_printTime;

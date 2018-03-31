@@ -28,7 +28,7 @@
 #include "interfaces/IWatcherListener.h"
 
 
-class Proxy;
+class Network;
 class StatsData;
 
 
@@ -48,7 +48,7 @@ public:
 
     Config *config() const;
     int init(int argc, char **argv);
-    Proxy *proxy() const;
+    Network *network() const;
     void addListener(IControllerListener *listener);
 
 protected:

@@ -64,8 +64,6 @@ private:
 
   Console *m_console;
   Httpd *m_httpd;
-  Network *m_network;
-  Options *m_options;
   uv_signal_t m_sigHUP;
   uv_signal_t m_sigINT;
   uv_signal_t m_sigTERM;

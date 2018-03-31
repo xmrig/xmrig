@@ -35,7 +35,6 @@
 #include "crypto/CryptoNight_test.h"
 #include "net/Job.h"
 #include "net/JobResult.h"
-#include "Options.h"
 #include "xmrig.h"
 
 
@@ -131,7 +130,7 @@ bool CryptoNight::hash(const Job &job, JobResult &result, cryptonight_ctx *ctx)
 }
 
 
-bool CryptoNight::init(int algo, int variant)
+bool CryptoNight::init(int algo, int variant, bool doubleHash)
 {
     if (variant < 1 || variant > 4) {
         return false;
@@ -145,7 +144,7 @@ bool CryptoNight::init(int algo, int variant)
 
     cryptonight_hash_ctx = cryptonight_variations[index];
 
-    return selfTest(algo);
+    return selfTest(algo, doubleHash);
 }
 
 
@@ -155,7 +154,7 @@ void CryptoNight::hash(const uint8_t *input, size_t size, uint8_t *output, crypt
 }
 
 
-bool CryptoNight::selfTest(int algo) {
+bool CryptoNight::selfTest(int algo, bool doubleHash) {
     if (cryptonight_hash_ctx == nullptr) {
         return false;
     }
@@ -166,8 +165,6 @@ bool CryptoNight::selfTest(int algo) {
     ctx->memory = static_cast<uint8_t *>(_mm_malloc(MONERO_MEMORY * 2, 16));
 
     cryptonight_hash_ctx(test_input, 76, output, ctx, 0);
-
-    const bool doubleHash = Options::i()->doubleHash();
 
 #   ifndef XMRIG_NO_AEON
     bool rc = memcmp(output, algo == xmrig::ALGO_CRYPTONIGHT_LITE ? test_output_v0_lite : test_output_v0, (doubleHash ? 64 : 32)) == 0;

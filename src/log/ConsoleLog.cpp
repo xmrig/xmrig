@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,18 +34,18 @@
 #endif
 
 
+#include "core/Config.h"
+#include "core/Controller.h"
 #include "log/ConsoleLog.h"
 #include "log/Log.h"
-#include "Options.h"
 
 
-ConsoleLog::ConsoleLog(bool colors) :
-    m_colors(colors),
-    m_stream(nullptr)
+ConsoleLog::ConsoleLog(xmrig::Controller *controller) :
+    m_stream(nullptr),
+    m_controller(controller)
 {
     if (uv_tty_init(uv_default_loop(), &m_tty, 1, 0) < 0) {
-        Options::i()->setColors(false);
-        m_colors = false;
+        controller->config()->setColors(false);
         return;
     }
 
@@ -78,7 +78,9 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
 #   endif
 
     const char* color = nullptr;
-    if (m_colors) {
+    const bool colors = m_controller->config()->isColors();
+
+    if (colors) {
         switch (level) {
         case Log::ERR:
             color = Log::kCL_RED;
@@ -109,9 +111,9 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
              stime.tm_hour,
              stime.tm_min,
              stime.tm_sec,
-             m_colors ? color : "",
+             colors ? color : "",
              fmt,
-             m_colors ? Log::kCL_N : ""
+             colors ? Log::kCL_N : ""
         );
 
     print(args);
@@ -120,7 +122,7 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
 
 void ConsoleLog::text(const char* fmt, va_list args)
 {
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s\n", fmt, m_colors ? Log::kCL_N : "");
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s\n", fmt, m_controller->config()->isColors() ? Log::kCL_N : "");
 
     print(args);
 }
