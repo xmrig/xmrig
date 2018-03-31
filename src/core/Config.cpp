@@ -139,7 +139,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("user-agent",    userAgent() ? rapidjson::Value(rapidjson::StringRef(userAgent())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
 
 #   ifdef HAVE_SYSLOG_H
-    doc.AddMember("syslog", syslog(), allocator);
+    doc.AddMember("syslog", isSyslog(), allocator);
 #   endif
 
     doc.AddMember("watch", m_watch, allocator);
