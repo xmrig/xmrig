@@ -1,3 +1,12 @@
+# v2.6.0-beta1
+ - HTTP server now runs in main loop, it make possible easy extend API without worry about thread synchronization.
+ - Added initial graceful reload support, miner will reload configuration if config file changed, disabled by default until it will be fully implemented and tested.
+ - Added API endpoint `PUT /1/config` to update current config.
+ - Added API endpoint `GET /1/config` to get current active config.
+ - API endpoint `GET /` now deprecated, use `GET /1/summary` instead.
+ - Added `--api-no-ipv6` and similar config option to disable IPv6 support for HTTP API.
+ - Added `--api-no-restricted` to enable full access to api, this option has no effect if `--api-access-token` not specified.
+
 # v2.5.2
 - [#448](https://github.com/xmrig/xmrig/issues/478) Fixed broken reconnect.
 
