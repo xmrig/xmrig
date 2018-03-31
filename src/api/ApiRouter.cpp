@@ -89,6 +89,17 @@ void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &
     rapidjson::Document doc;
     doc.SetObject();
 
+    if (req.match("/1/config")) {
+        if (req.isRestricted()) {
+            reply.status = 403;
+            return;
+        }
+
+        m_controller->config()->getJSON(doc);
+
+        return finalize(reply, doc);
+    }
+
     getIdentify(doc);
     getMiner(doc);
     getHashrate(doc);

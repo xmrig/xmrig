@@ -23,16 +23,21 @@
 
 #include <string.h>
 #include <uv.h>
+#include <inttypes.h>
 
 
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
 #include "core/ConfigLoader.h"
 #include "Cpu.h"
+#include "net/Url.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 #include "xmrig.h"
+
+
+static char affinity_tmp[20] = { 0 };
 
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
@@ -66,69 +71,78 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 {
     doc.SetObject();
 
-//    auto &allocator = doc.GetAllocator();
+    auto &allocator = doc.GetAllocator();
 
-//    doc.AddMember("access-log-file", accessLog() ? rapidjson::Value(rapidjson::StringRef(accessLog())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
-//    doc.AddMember("algo",            rapidjson::StringRef(algoName()), allocator);
+    doc.AddMember("algo", rapidjson::StringRef(algoName()), allocator);
 
-//    rapidjson::Value api(rapidjson::kObjectType);
-//    api.AddMember("port",         apiPort(), allocator);
-//    api.AddMember("access-token", apiToken() ? rapidjson::Value(rapidjson::StringRef(apiToken())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
-//    api.AddMember("worker-id",    apiWorkerId() ? rapidjson::Value(rapidjson::StringRef(apiWorkerId())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
-//    api.AddMember("ipv6",         isApiIPv6(), allocator);
-//    api.AddMember("restricted",   isApiRestricted(), allocator);
-//    doc.AddMember("api",          api, allocator);
+    rapidjson::Value api(rapidjson::kObjectType);
+    api.AddMember("port",         apiPort(), allocator);
+    api.AddMember("access-token", apiToken() ? rapidjson::Value(rapidjson::StringRef(apiToken())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
+    api.AddMember("worker-id",    apiWorkerId() ? rapidjson::Value(rapidjson::StringRef(apiWorkerId())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
+    api.AddMember("ipv6",         isApiIPv6(), allocator);
+    api.AddMember("restricted",   isApiRestricted(), allocator);
+    doc.AddMember("api",          api, allocator);
 
-//    doc.AddMember("background",   isBackground(), allocator);
+    doc.AddMember("av",           algoVariant(), allocator);
+    doc.AddMember("background",   isBackground(), allocator);
 
-//    rapidjson::Value bind(rapidjson::kArrayType);
-//    for (const Addr *addr : m_addrs) {
-//        bind.PushBack(rapidjson::StringRef(addr->addr()), allocator);
-//    }
+    doc.AddMember("colors", isColors(), allocator);
 
-//    doc.AddMember("bind",         bind, allocator);
-//    doc.AddMember("colors",       isColors(), allocator);
-//    doc.AddMember("custom-diff",  diff(), allocator);
-//    doc.AddMember("donate-level", donateLevel(), allocator);
-//    doc.AddMember("log-file",     logFile() ? rapidjson::Value(rapidjson::StringRef(logFile())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
-//    doc.AddMember("mode",         rapidjson::StringRef(modeName()), allocator);
+    if (affinity() != -1L) {
+        snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, affinity());
+        doc.AddMember("cpu-affinity", rapidjson::StringRef(affinity_tmp), allocator);
+    }
+    else {
+        doc.AddMember("cpu-affinity", rapidjson::kNullType, allocator);
+    }
 
-//    rapidjson::Value pools(rapidjson::kArrayType);
+    if (priority() != -1) {
+        doc.AddMember("cpu-priority", priority(), allocator);
+    }
+    else {
+       doc.AddMember("cpu-priority", rapidjson::kNullType, allocator);
+    }
 
-//    for (const Url *url : m_pools) {
-//        rapidjson::Value obj(rapidjson::kObjectType);
+    doc.AddMember("donate-level",  donateLevel(), allocator);
+    doc.AddMember("huge-pages",    isHugePages(), allocator);
+    doc.AddMember("log-file",      logFile() ? rapidjson::Value(rapidjson::StringRef(logFile())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
+    doc.AddMember("max-cpu-usage", m_maxCpuUsage, allocator);
 
-//        obj.AddMember("url",     rapidjson::StringRef(url->url()), allocator);
-//        obj.AddMember("user",    rapidjson::StringRef(url->user()), allocator);
-//        obj.AddMember("pass",    rapidjson::StringRef(url->password()), allocator);
-//        obj.AddMember("coin",    rapidjson::StringRef(url->coin()), allocator);
+    rapidjson::Value pools(rapidjson::kArrayType);
 
-//        if (url->keepAlive() == 0 || url->keepAlive() == Url::kKeepAliveTimeout) {
-//            obj.AddMember("keepalive", url->keepAlive() > 0, allocator);
-//        }
-//        else {
-//            obj.AddMember("keepalive", url->keepAlive(), allocator);
-//        }
+    for (const Url *url : m_pools) {
+        rapidjson::Value obj(rapidjson::kObjectType);
 
-//        obj.AddMember("variant", url->variant(), allocator);
+        obj.AddMember("url",     rapidjson::StringRef(url->url()), allocator);
+        obj.AddMember("user",    rapidjson::StringRef(url->user()), allocator);
+        obj.AddMember("pass",    rapidjson::StringRef(url->password()), allocator);
 
-//        pools.PushBack(obj, allocator);
-//    }
+        if (url->keepAlive() == 0 || url->keepAlive() == Url::kKeepAliveTimeout) {
+            obj.AddMember("keepalive", url->keepAlive() > 0, allocator);
+        }
+        else {
+            obj.AddMember("keepalive", url->keepAlive(), allocator);
+        }
 
-//    doc.AddMember("pools", pools, allocator);
+        obj.AddMember("nicehash", url->isNicehash(), allocator);
+        obj.AddMember("variant",  url->variant(), allocator);
 
-//    doc.AddMember("retries",       retries(), allocator);
-//    doc.AddMember("retry-pause",   retryPause(), allocator);
-//    doc.AddMember("reuse-timeout", reuseTimeout(), allocator);
-//    doc.AddMember("user-agent",    userAgent() ? rapidjson::Value(rapidjson::StringRef(userAgent())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
+        pools.PushBack(obj, allocator);
+    }
 
-//#   ifdef HAVE_SYSLOG_H
-//    doc.AddMember("syslog", syslog(), allocator);
-//#   endif
+    doc.AddMember("pools",         pools, allocator);
+    doc.AddMember("print-time",    printTime(), allocator);
+    doc.AddMember("retries",       retries(), allocator);
+    doc.AddMember("retry-pause",   retryPause(), allocator);
+    doc.AddMember("safe",          m_safe, allocator);
+    doc.AddMember("threads",       threads(), allocator);
+    doc.AddMember("user-agent",    userAgent() ? rapidjson::Value(rapidjson::StringRef(userAgent())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
 
-//    doc.AddMember("verbose",      isVerbose(), allocator);
-//    doc.AddMember("watch",        m_watch,     allocator);
-//    doc.AddMember("workers",      isWorkers(), allocator);
+#   ifdef HAVE_SYSLOG_H
+    doc.AddMember("syslog", syslog(), allocator);
+#   endif
+
+    doc.AddMember("watch", m_watch, allocator);
 }
 
 

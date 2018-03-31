@@ -138,7 +138,7 @@ static struct option const config_options[] = {
     { "retry-pause",   1, nullptr, xmrig::IConfig::RetryPauseKey  },
     { "safe",          0, nullptr, xmrig::IConfig::SafeKey        },
     { "syslog",        0, nullptr, xmrig::IConfig::SyslogKey      },
-    { "threads",       1, nullptr, xmrig::IConfig::SafeKey        },
+    { "threads",       1, nullptr, xmrig::IConfig::ThreadsKey     },
     { "user-agent",    1, nullptr, xmrig::IConfig::UserAgentKey   },
     { 0, 0, 0, 0 }
 };
