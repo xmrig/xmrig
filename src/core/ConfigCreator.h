@@ -4,8 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,54 +20,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __CONFIGCREATOR_H__
+#define __CONFIGCREATOR_H__
 
 
-#include <uv.h>
-
-
-#include "interfaces/IConsoleListener.h"
-
-
-class Console;
-class Httpd;
-class Network;
-class Options;
+#include "core/Config.h"
+#include "interfaces/IConfigCreator.h"
 
 
 namespace xmrig {
-    class Controller;
-}
 
 
-class App : public IConsoleListener
+class IConfig;
+
+
+class ConfigCreator : public IConfigCreator
 {
 public:
-  App(int argc, char **argv);
-  ~App();
-
-  int exec();
-
-protected:
-  void onConsoleCommand(char command) override;
-
-private:
-  void background();
-  void close();
-  void release();
-
-  static void onSignal(uv_signal_t *handle, int signum);
-
-  static App *m_self;
-
-  Console *m_console;
-  Httpd *m_httpd;
-  uv_signal_t m_sigHUP;
-  uv_signal_t m_sigINT;
-  uv_signal_t m_sigTERM;
-  xmrig::Controller *m_controller;
+    inline IConfig *create() const override
+    {
+        return new Config();
+    }
 };
 
 
-#endif /* __APP_H__ */
+} /* namespace xmrig */
+
+
+#endif // __CONFIGCREATOR_H__

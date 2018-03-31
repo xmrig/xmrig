@@ -21,54 +21,51 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __CONFIGLOADER_H__
+#define __CONFIGLOADER_H__
 
 
-#include <uv.h>
+#include <stdint.h>
 
 
-#include "interfaces/IConsoleListener.h"
+#include "rapidjson/fwd.h"
 
 
-class Console;
-class Httpd;
-class Network;
-class Options;
+struct option;
 
 
 namespace xmrig {
-    class Controller;
-}
 
 
-class App : public IConsoleListener
+class ConfigWatcher;
+class IConfigCreator;
+class IWatcherListener;
+class IConfig;
+
+
+class ConfigLoader
 {
 public:
-  App(int argc, char **argv);
-  ~App();
-
-  int exec();
-
-protected:
-  void onConsoleCommand(char command) override;
+    static bool loadFromFile(IConfig *config, const char *fileName);
+    static bool loadFromJSON(IConfig *config, const char *json);
+    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
+    static bool reload(IConfig *oldConfig, const char *json);
+    static IConfig *load(int argc, char **argv, IConfigCreator *creator, IWatcherListener *listener);
+    static void release();
 
 private:
-  void background();
-  void close();
-  void release();
+    static bool getJSON(const char *fileName, rapidjson::Document &doc);
+    static bool parseArg(IConfig *config, int key, const char *arg);
+    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
+    static void showUsage();
+    static void showVersion();
 
-  static void onSignal(uv_signal_t *handle, int signum);
-
-  static App *m_self;
-
-  Console *m_console;
-  Httpd *m_httpd;
-  uv_signal_t m_sigHUP;
-  uv_signal_t m_sigINT;
-  uv_signal_t m_sigTERM;
-  xmrig::Controller *m_controller;
+    static ConfigWatcher *m_watcher;
+    static IConfigCreator *m_creator;
+    static IWatcherListener *m_listener;
 };
 
 
-#endif /* __APP_H__ */
+} /* namespace xmrig */
+
+#endif /* __CONFIGLOADER_H__ */

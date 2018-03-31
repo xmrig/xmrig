@@ -28,7 +28,7 @@
 #include "interfaces/IWatcherListener.h"
 
 
-class Proxy;
+class Network;
 class StatsData;
 
 
@@ -46,13 +46,14 @@ public:
     Controller();
     ~Controller();
 
+    bool isReady() const;
     Config *config() const;
     int init(int argc, char **argv);
-    Proxy *proxy() const;
+    Network *network() const;
     void addListener(IControllerListener *listener);
 
 protected:
-    void onNewConfig(Config *config) override;
+    void onNewConfig(IConfig *config) override;
 
 private:
     ControllerPrivate *d_ptr;

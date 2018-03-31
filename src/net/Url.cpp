@@ -37,12 +37,12 @@
 
 
 Url::Url() :
-    m_keepAlive(false),
     m_nicehash(false),
     m_host(nullptr),
     m_password(nullptr),
     m_user(nullptr),
     m_algo(xmrig::ALGO_CRYPTONIGHT),
+    m_keepAlive(0),
     m_variant(xmrig::VARIANT_AUTO),
     m_url(nullptr),
     m_port(kDefaultPort)
@@ -62,12 +62,12 @@ Url::Url() :
  * @param url
  */
 Url::Url(const char *url) :
-    m_keepAlive(false),
     m_nicehash(false),
     m_host(nullptr),
     m_password(nullptr),
     m_user(nullptr),
     m_algo(xmrig::ALGO_CRYPTONIGHT),
+    m_keepAlive(0),
     m_variant(xmrig::VARIANT_AUTO),
     m_url(nullptr),
     m_port(kDefaultPort)
@@ -76,12 +76,12 @@ Url::Url(const char *url) :
 }
 
 
-Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash, int variant) :
-    m_keepAlive(keepAlive),
+Url::Url(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, int variant) :
     m_nicehash(nicehash),
     m_password(password ? strdup(password) : nullptr),
     m_user(user ? strdup(user) : nullptr),
     m_algo(xmrig::ALGO_CRYPTONIGHT),
+    m_keepAlive(keepAlive),
     m_variant(variant),
     m_url(nullptr),
     m_port(port)

@@ -29,6 +29,7 @@
 #include "api/Api.h"
 #include "App.h"
 #include "Console.h"
+#include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"
 #include "crypto/CryptoNight.h"
@@ -37,16 +38,11 @@
 #include "log/Log.h"
 #include "Mem.h"
 #include "net/Network.h"
-#include "Options.h"
 #include "Platform.h"
 #include "Summary.h"
 #include "version.h"
 #include "workers/Workers.h"
 
-
-#ifdef HAVE_SYSLOG_H
-#   include "log/SysLog.h"
-#endif
 
 #ifndef XMRIG_NO_HTTPD
 #   include "api/Httpd.h"
@@ -59,41 +55,18 @@ App *App::m_self = nullptr;
 
 App::App(int argc, char **argv) :
     m_console(nullptr),
-    m_httpd(nullptr),
-    m_network(nullptr),
-    m_options(nullptr)
+    m_httpd(nullptr)
 {
     m_self = this;
 
     m_controller = new xmrig::Controller();
-
-    Cpu::init();
-    m_options = Options::parse(argc, argv);
-    if (!m_options) {
+    if (m_controller->init(argc, argv) != 0) {
         return;
     }
 
-    Log::init();
-
-    if (!m_options->background()) {
-        Log::add(new ConsoleLog(m_options->colors()));
+    if (!m_controller->config()->isBackground()) {
         m_console = new Console(this);
     }
-
-    if (m_options->logFile()) {
-        Log::add(new FileLog(m_options->logFile()));
-    }
-
-#   ifdef HAVE_SYSLOG_H
-    if (m_options->syslog()) {
-        Log::add(new SysLog());
-    }
-#   endif
-
-    Platform::init(m_options->userAgent());
-    Platform::setProcessPriority(m_options->priority());
-
-    m_network = new Network(m_options);
 
     uv_signal_init(uv_default_loop(), &m_sigHUP);
     uv_signal_init(uv_default_loop(), &m_sigINT);
@@ -103,19 +76,22 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
+    Mem::release();
+
     uv_tty_reset_mode();
+
+    delete m_console;
+    delete m_controller;
 
 #   ifndef XMRIG_NO_HTTPD
     delete m_httpd;
 #   endif
-
-    delete m_console;
 }
 
 
 int App::exec()
 {
-    if (!m_options) {
+    if (!m_controller->isReady()) {
         return 2;
     }
 
@@ -125,15 +101,20 @@ int App::exec()
 
     background();
 
-    if (!CryptoNight::init(m_options->algo(), m_options->algoVariant())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
+    if (!CryptoNight::init(m_controller->config()->algorithm(), m_controller->config()->algoVariant(), m_controller->config()->isDoubleHash())) {
+        LOG_ERR("\"%s\" hash self-test failed.", m_controller->config()->algoName());
         return 1;
     }
 
-    Mem::allocate(m_options->algo(), m_options->threads(), m_options->doubleHash(), m_options->hugePages());
-    Summary::print();
+    Mem::allocate(m_controller->config()->algorithm(),
+                  m_controller->config()->threads(),
+                  m_controller->config()->isDoubleHash(),
+                  m_controller->config()->isHugePages()
+                  );
 
-    if (m_options->dryRun()) {
+    Summary::print(m_controller);
+
+    if (m_controller->config()->isDryRun()) {
         LOG_NOTICE("OK");
         release();
 
@@ -145,13 +126,19 @@ int App::exec()
 #   endif
 
 #   ifndef XMRIG_NO_HTTPD
-    m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken(), true, true);
+    m_httpd = new Httpd(
+                m_controller->config()->apiPort(),
+                m_controller->config()->apiToken(),
+                m_controller->config()->isApiIPv6(),
+                m_controller->config()->isApiRestricted()
+                );
+
     m_httpd->start();
 #   endif
 
-    Workers::start(m_options->affinity(), m_options->priority());
+    Workers::start(m_controller->config()->affinity(), m_controller->config()->priority(), m_controller);
 
-    m_network->connect();
+    m_controller->network()->connect();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
@@ -172,7 +159,7 @@ void App::onConsoleCommand(char command)
     case 'p':
     case 'P':
         if (Workers::isEnabled()) {
-            LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
+            LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
             Workers::setEnabled(false);
         }
         break;
@@ -180,7 +167,7 @@ void App::onConsoleCommand(char command)
     case 'r':
     case 'R':
         if (!Workers::isEnabled()) {
-            LOG_INFO(m_options->colors() ? "\x1B[01;32mresumed" : "resumed");
+            LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;32mresumed" : "resumed");
             Workers::setEnabled(true);
         }
         break;
@@ -198,7 +185,7 @@ void App::onConsoleCommand(char command)
 
 void App::close()
 {
-    m_network->stop();
+    m_controller->network()->stop();
     Workers::stop();
 
     uv_stop(uv_default_loop());
@@ -207,13 +194,6 @@ void App::close()
 
 void App::release()
 {
-    if (m_network) {
-        delete m_network;
-    }
-
-    Options::release();
-    Mem::release();
-    Platform::release();
 }
 
 

@@ -21,54 +21,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __CONFIGWATCHER_H__
+#define __CONFIGWATCHER_H__
 
 
+#include <stdint.h>
 #include <uv.h>
 
+#include "rapidjson/fwd.h"
 
-#include "interfaces/IConsoleListener.h"
 
-
-class Console;
-class Httpd;
-class Network;
-class Options;
+struct option;
 
 
 namespace xmrig {
-    class Controller;
-}
 
 
-class App : public IConsoleListener
+class IConfigCreator;
+class IWatcherListener;
+
+
+class ConfigWatcher
 {
 public:
-  App(int argc, char **argv);
-  ~App();
-
-  int exec();
-
-protected:
-  void onConsoleCommand(char command) override;
+    ConfigWatcher(const char *path, IConfigCreator *creator, IWatcherListener *listener);
+    ~ConfigWatcher();
 
 private:
-  void background();
-  void close();
-  void release();
+    constexpr static int kDelay = 500;
 
-  static void onSignal(uv_signal_t *handle, int signum);
+    static void onFsEvent(uv_fs_event_t* handle, const char *filename, int events, int status);
+    static void onTimer(uv_timer_t* handle);
+    void queueUpdate();
+    void reload();
+    void start();
 
-  static App *m_self;
-
-  Console *m_console;
-  Httpd *m_httpd;
-  uv_signal_t m_sigHUP;
-  uv_signal_t m_sigINT;
-  uv_signal_t m_sigTERM;
-  xmrig::Controller *m_controller;
+    char *m_path;
+    IConfigCreator *m_creator;
+    IWatcherListener *m_listener;
+    uv_fs_event_t m_fsEvent;
+    uv_timer_t m_timer;
 };
 
 
-#endif /* __APP_H__ */
+} /* namespace xmrig */
+
+#endif /* __CONFIGWATCHER_H__ */

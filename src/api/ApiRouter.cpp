@@ -35,14 +35,15 @@
 #include "api/ApiRouter.h"
 #include "api/HttpReply.h"
 #include "api/HttpRequest.h"
+#include "core/Config.h"
+#include "core/Controller.h"
 #include "Cpu.h"
 #include "Mem.h"
 #include "net/Job.h"
-#include "Options.h"
 #include "Platform.h"
 #include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
 #include "version.h"
 #include "workers/Hashrate.h"
 
@@ -66,13 +67,13 @@ static inline double normalize(double d)
 ApiRouter::ApiRouter(xmrig::Controller *controller) :
     m_controller(controller)
 {
-    m_threads  = Options::i()->threads();
+    m_threads  = controller->config()->threads();
     m_hashrate = new double[m_threads * 3]();
 
     memset(m_totalHashrate, 0, sizeof(m_totalHashrate));
     memset(m_workerId, 0, sizeof(m_workerId));
 
-    setWorkerId(Options::i()->apiWorkerId());
+    setWorkerId(controller->config()->apiWorkerId());
     genId();
 }
 
@@ -88,6 +89,17 @@ void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &
     rapidjson::Document doc;
     doc.SetObject();
 
+    if (req.match("/1/config")) {
+        if (req.isRestricted()) {
+            reply.status = 403;
+            return;
+        }
+
+        m_controller->config()->getJSON(doc);
+
+        return finalize(reply, doc);
+    }
+
     getIdentify(doc);
     getMiner(doc);
     getHashrate(doc);
@@ -100,10 +112,10 @@ void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &
 
 void ApiRouter::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
 {
-//    if (req.method() == xmrig::HttpRequest::Put && req.match("/1/config")) {
-//        m_controller->config()->reload(req.body());
-//        return;
-//    }
+    if (req.method() == xmrig::HttpRequest::Put && req.match("/1/config")) {
+        m_controller->config()->reload(req.body());
+        return;
+    }
 
     reply.status = 404;
 }
@@ -246,9 +258,9 @@ void ApiRouter::getMiner(rapidjson::Document &doc) const
     doc.AddMember("kind",         APP_KIND, allocator);
     doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent()), allocator);
     doc.AddMember("cpu",          cpu, allocator);
-    doc.AddMember("algo",         rapidjson::StringRef(Options::i()->algoName()), allocator);
+    doc.AddMember("algo",         rapidjson::StringRef(m_controller->config()->algoName()), allocator);
     doc.AddMember("hugepages",    Mem::isHugepagesEnabled(), allocator);
-    doc.AddMember("donate_level", Options::i()->donateLevel(), allocator);
+    doc.AddMember("donate_level", m_controller->config()->donateLevel(), allocator);
 }
 
 

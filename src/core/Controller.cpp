@@ -22,15 +22,19 @@
  */
 
 
-//#include "core/Config.h"
-//#include "core/ConfigLoader.h"
+#include <assert.h>
+
+
+#include "core/Config.h"
+#include "core/ConfigLoader.h"
 #include "core/Controller.h"
+#include "Cpu.h"
+#include "interfaces/IControllerListener.h"
 #include "log/ConsoleLog.h"
 #include "log/FileLog.h"
 #include "log/Log.h"
+#include "net/Network.h"
 #include "Platform.h"
-//#include "proxy/Proxy.h"
-#include "interfaces/IControllerListener.h"
 
 
 #ifdef HAVE_SYSLOG_H
@@ -42,18 +46,21 @@ class xmrig::ControllerPrivate
 {
 public:
     inline ControllerPrivate() :
+        network(nullptr),
         config(nullptr)
     {}
 
 
     inline ~ControllerPrivate()
     {
-//        delete config;
+        delete network;
+        delete config;
     }
 
 
-    xmrig::Config *config;
+    Network *network;
     std::vector<xmrig::IControllerListener *> listeners;
+    xmrig::Config *config;
 };
 
 
@@ -65,44 +72,64 @@ xmrig::Controller::Controller()
 
 xmrig::Controller::~Controller()
 {
-//    ConfigLoader::release();
+    ConfigLoader::release();
+    Platform::release();
 
     delete d_ptr;
 }
 
 
+bool xmrig::Controller::isReady() const
+{
+    return d_ptr->config && d_ptr->network;
+}
+
+
 xmrig::Config *xmrig::Controller::config() const
 {
+    assert(d_ptr->config != nullptr);
+
     return d_ptr->config;
 }
 
 
 int xmrig::Controller::init(int argc, char **argv)
 {
-//    d_ptr->config = xmrig::Config::load(argc, argv, this);
-//    if (!d_ptr->config) {
-//        return 1;
-//    }
+    Cpu::init();
 
-//    Log::init();
-//    Platform::init(config()->userAgent());
+    d_ptr->config = xmrig::Config::load(argc, argv, this);
+    if (!d_ptr->config) {
+        return 1;
+    }
 
-//    if (!config()->background()) {
-//        Log::add(new ConsoleLog(this));
-//    }
+    Log::init();
+    Platform::init(config()->userAgent());
+    Platform::setProcessPriority(d_ptr->config->priority());
 
-//    if (config()->logFile()) {
-//        Log::add(new FileLog(config()->logFile()));
-//    }
+    if (!config()->isBackground()) {
+        Log::add(new ConsoleLog(this));
+    }
 
-//#   ifdef HAVE_SYSLOG_H
-//    if (config()->syslog()) {
-//        Log::add(new SysLog());
-//    }
-//#   endif
+    if (config()->logFile()) {
+        Log::add(new FileLog(config()->logFile()));
+    }
 
-//    d_ptr->proxy = new Proxy(this);
+#   ifdef HAVE_SYSLOG_H
+    if (config()->isSyslog()) {
+        Log::add(new SysLog());
+    }
+#   endif
+
+    d_ptr->network = new Network(this);
     return 0;
+}
+
+
+Network *xmrig::Controller::network() const
+{
+    assert(d_ptr->network != nullptr);
+
+    return d_ptr->network;
 }
 
 
@@ -112,14 +139,14 @@ void xmrig::Controller::addListener(IControllerListener *listener)
 }
 
 
-void xmrig::Controller::onNewConfig(Config *config)
+void xmrig::Controller::onNewConfig(IConfig *config)
 {
-//    xmrig::Config *previousConfig = d_ptr->config;
-//    d_ptr->config = config;
+    Config *previousConfig = d_ptr->config;
+    d_ptr->config = static_cast<Config*>(config);
 
-//    for (xmrig::IControllerListener *listener : d_ptr->listeners) {
-//        listener->onConfigChanged(config, previousConfig);
-//    }
+    for (xmrig::IControllerListener *listener : d_ptr->listeners) {
+        listener->onConfigChanged(d_ptr->config, previousConfig);
+    }
 
-//    delete previousConfig;
+    delete previousConfig;
 }

@@ -15,9 +15,17 @@ set(HEADERS
     src/api/NetworkState.h
     src/App.h
     src/Console.h
+    src/core/CommonConfig.h
+    src/core/Config.cpp
+    src/core/ConfigLoader.cpp
+    src/core/ConfigLoader.h
+    src/core/ConfigLoader_platform.h
+    src/core/ConfigWatcher.cpp
     src/core/Controller.h
     src/Cpu.h
     src/interfaces/IClientListener.h
+    src/interfaces/IConfig.h
+    src/interfaces/IConfigCreator.h
     src/interfaces/IConsoleListener.h
     src/interfaces/IControllerListener.h
     src/interfaces/IJobResultListener.h
@@ -35,12 +43,12 @@ set(HEADERS
     src/net/Job.h
     src/net/JobResult.h
     src/net/Network.h
+    src/net/Storage.h
     src/net/strategies/DonateStrategy.h
     src/net/strategies/FailoverStrategy.h
     src/net/strategies/SinglePoolStrategy.h
     src/net/SubmitResult.h
     src/net/Url.h
-    src/Options.h
     src/Platform.h
     src/Summary.h
     src/version.h
@@ -79,6 +87,10 @@ set(SOURCES
     src/api/NetworkState.cpp
     src/App.cpp
     src/Console.cpp
+    src/core/CommonConfig.cpp
+    src/core/Config.cpp
+    src/core/ConfigLoader.cpp
+    src/core/ConfigWatcher.cpp
     src/core/Controller.cpp
     src/log/ConsoleLog.cpp
     src/log/FileLog.cpp
@@ -92,7 +104,6 @@ set(SOURCES
     src/net/strategies/SinglePoolStrategy.cpp
     src/net/SubmitResult.cpp
     src/net/Url.cpp
-    src/Options.cpp
     src/Platform.cpp
     src/Summary.cpp
     src/workers/DoubleWorker.cpp
