@@ -61,9 +61,9 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_id(id),
     m_retryPause(5000),
     m_failures(0),
+    m_jobs(0),
     m_recvBufPos(0),
-    m_expire(0),
-    m_jobs(0)
+    m_expire(0)
 {
     m_recvBuf.base = m_buf;
     m_recvBuf.len  = sizeof(m_buf);
