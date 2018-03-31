@@ -1,10 +1,4 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+/* XMRigd
  * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
@@ -71,24 +65,22 @@ int main(int argc, char **argv) {
 
     do {
         status = system(xmrigMinerPath.c_str());
-
-        if (WEXITSTATUS(status) == 139) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            printf("Restarting.");
-        }
 #if defined(_WIN32) || defined(WIN32)
-    } while (status == EINTR || status == 139);
+		if (status == 255) { // 255 segfault on windows
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			printf("Crashed. Restarting in 1s.\n");
+		}
+    } while (status == EINTR || status == 255); // 255 segfault on windows
 
-    if (WEXITSTATUS(status) == 139) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        printf("Restarting.");
-    }
 
 	if (status == EINVAL) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 	}
 #else
-    } while (WEXITSTATUS(status) == EINTR || WEXITSTATUS(status) == 139); // segfault
+		if (WEXITSTATUS(status) == 139) { // 139 segfault on *nix
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			printf("Crashed. Restarting in 1s.\n");
+        }
+    } while (WEXITSTATUS(status) == EINTR || WEXITSTATUS(status) == 139); // 139 segfault on *nix
 #endif
 }
-
