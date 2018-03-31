@@ -109,7 +109,7 @@ int xmrig::Controller::init(int argc, char **argv)
     }
 
 #   ifdef HAVE_SYSLOG_H
-    if (config()->syslog()) {
+    if (config()->isSyslog()) {
         Log::add(new SysLog());
     }
 #   endif
