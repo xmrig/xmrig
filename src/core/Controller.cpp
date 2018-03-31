@@ -112,7 +112,7 @@ void xmrig::Controller::addListener(IControllerListener *listener)
 }
 
 
-void xmrig::Controller::onNewConfig(Config *config)
+void xmrig::Controller::onNewConfig(IConfig *config)
 {
 //    xmrig::Config *previousConfig = d_ptr->config;
 //    d_ptr->config = config;

@@ -4,8 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,43 +20,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
+#ifndef __CONFIGCREATOR_H__
+#define __CONFIGCREATOR_H__
 
 
-#include "interfaces/IWatcherListener.h"
-
-
-class Proxy;
-class StatsData;
+#include "core/Config.h"
+#include "interfaces/IConfigCreator.h"
 
 
 namespace xmrig {
 
 
-class Config;
-class ControllerPrivate;
-class IControllerListener;
+class IConfig;
 
 
-class Controller : public IWatcherListener
+class ConfigCreator : public IConfigCreator
 {
 public:
-    Controller();
-    ~Controller();
-
-    Config *config() const;
-    int init(int argc, char **argv);
-    Proxy *proxy() const;
-    void addListener(IControllerListener *listener);
-
-protected:
-    void onNewConfig(IConfig *config) override;
-
-private:
-    ControllerPrivate *d_ptr;
+    inline IConfig *create() const override
+    {
+        return new Config();
+    }
 };
+
 
 } /* namespace xmrig */
 
-#endif /* __CONTROLLER_H__ */
+
+#endif // __CONFIGCREATOR_H__

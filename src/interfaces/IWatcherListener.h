@@ -28,7 +28,7 @@
 namespace xmrig {
 
 
-class Config;
+class IConfig;
 
 
 class IWatcherListener
@@ -36,7 +36,7 @@ class IWatcherListener
 public:
     virtual ~IWatcherListener() {}
 
-    virtual void onNewConfig(Config *config) = 0;
+    virtual void onNewConfig(IConfig *config) = 0;
 };
 
 

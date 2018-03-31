@@ -21,43 +21,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
+#ifndef __CONFIGWATCHER_H__
+#define __CONFIGWATCHER_H__
 
 
-#include "interfaces/IWatcherListener.h"
+#include <stdint.h>
+#include <uv.h>
+
+#include "rapidjson/fwd.h"
 
 
-class Proxy;
-class StatsData;
+struct option;
 
 
 namespace xmrig {
 
 
-class Config;
-class ControllerPrivate;
-class IControllerListener;
+class IConfigCreator;
+class IWatcherListener;
 
 
-class Controller : public IWatcherListener
+class ConfigWatcher
 {
 public:
-    Controller();
-    ~Controller();
-
-    Config *config() const;
-    int init(int argc, char **argv);
-    Proxy *proxy() const;
-    void addListener(IControllerListener *listener);
-
-protected:
-    void onNewConfig(IConfig *config) override;
+    ConfigWatcher(const char *path, IConfigCreator *creator, IWatcherListener *listener);
+    ~ConfigWatcher();
 
 private:
-    ControllerPrivate *d_ptr;
+    constexpr static int kDelay = 500;
+
+    static void onFsEvent(uv_fs_event_t* handle, const char *filename, int events, int status);
+    static void onTimer(uv_timer_t* handle);
+    void queueUpdate();
+    void reload();
+    void start();
+
+    char *m_path;
+    IConfigCreator *m_creator;
+    IWatcherListener *m_listener;
+    uv_fs_event_t m_fsEvent;
+    uv_timer_t m_timer;
 };
+
 
 } /* namespace xmrig */
 
-#endif /* __CONTROLLER_H__ */
+#endif /* __CONFIGWATCHER_H__ */

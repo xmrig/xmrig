@@ -21,43 +21,51 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
+#ifndef __CONFIGLOADER_H__
+#define __CONFIGLOADER_H__
 
 
-#include "interfaces/IWatcherListener.h"
+#include <stdint.h>
 
 
-class Proxy;
-class StatsData;
+#include "rapidjson/fwd.h"
+
+
+struct option;
 
 
 namespace xmrig {
 
 
-class Config;
-class ControllerPrivate;
-class IControllerListener;
+class ConfigWatcher;
+class IConfigCreator;
+class IWatcherListener;
+class IConfig;
 
 
-class Controller : public IWatcherListener
+class ConfigLoader
 {
 public:
-    Controller();
-    ~Controller();
-
-    Config *config() const;
-    int init(int argc, char **argv);
-    Proxy *proxy() const;
-    void addListener(IControllerListener *listener);
-
-protected:
-    void onNewConfig(IConfig *config) override;
+    static bool loadFromFile(IConfig *config, const char *fileName);
+    static bool loadFromJSON(IConfig *config, const char *json);
+    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
+    static bool reload(IConfig *oldConfig, const char *json);
+    static IConfig *load(int argc, char **argv, IConfigCreator *creator, IWatcherListener *listener);
+    static void release();
 
 private:
-    ControllerPrivate *d_ptr;
+    static bool getJSON(const char *fileName, rapidjson::Document &doc);
+    static bool parseArg(IConfig *config, int key, const char *arg);
+    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
+    static void showUsage();
+    static void showVersion();
+
+    static ConfigWatcher *m_watcher;
+    static IConfigCreator *m_creator;
+    static IWatcherListener *m_listener;
 };
+
 
 } /* namespace xmrig */
 
-#endif /* __CONTROLLER_H__ */
+#endif /* __CONFIGLOADER_H__ */
