@@ -41,7 +41,6 @@ public:
     Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, int keepAlive = 0, bool nicehash = false, int variant = -1);
     ~Url();
 
-    inline bool isKeepAlive() const          { return m_keepAlive > 0; } // FIXME: replace isKeepAlive to keepAlive
     inline bool isNicehash() const           { return m_nicehash; }
     inline bool isValid() const              { return m_host && m_port > 0; }
     inline const char *host() const          { return m_host; }
