@@ -1,10 +1,13 @@
 # XMRigCC 
 
+:warning: **To be prepared for the upcoming PoW changes you need to update your miners to at least version 1.5.\* or higher. The latest release 1.5.5 is recommended**
+
+
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
 [![Docker Build status](https://img.shields.io/docker/build/bendr0id/xmrigcc.svg)](https://hub.docker.com/r/bendr0id/xmrigcc/)
 [![GitHub release](https://img.shields.io/github/release/bendr0id/xmrigCC/all.svg)](https://github.com/bendr0id/xmrigCC/releases)
-[![Github downloads 1.5.2](https://img.shields.io/github/downloads/bendr0id/xmrigCC/1.5.2/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
-[![Github downloads release](https://img.shields.io/github/downloads/bendr0id/xmrigCC/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
+[![Github downloads latest](https://img.shields.io/github/downloads/bendr0id/xmrigCC/latest/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
+[![Github downloads total](https://img.shields.io/github/downloads/bendr0id/xmrigCC/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![GitHub stars](https://img.shields.io/github/stars/bendr0id/xmrigCC.svg)](https://github.com/bendr0id/xmrigCC/stargazers)
 
 ![XMRigCC Logo](https://i.imgur.com/7mi0WCe.png)
