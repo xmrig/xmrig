@@ -1,6 +1,6 @@
 # XMRigCC 
 
-:warning: **To be prepared for the upcoming PoW changes you need to update your miners to at least version 1.5.\* or higher. The latest release 1.5.5 is recommended**
+:warning: **To be prepared for the upcoming PoW changes you need to update your miners to at least release (1.5.5).**
 
 
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
