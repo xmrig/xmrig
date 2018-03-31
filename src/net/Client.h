@@ -110,12 +110,12 @@ private:
     int m_id;
     int m_retryPause;
     int64_t m_failures;
+    int64_t m_jobs;
     Job m_job;
     size_t m_recvBufPos;
     static int64_t m_sequence;
     std::map<int64_t, SubmitResult> m_results;
     uint64_t m_expire;
-    uint64_t m_jobs;
     Url m_url;
     uv_buf_t m_recvBuf;
 
