@@ -132,11 +132,13 @@ static void print_pools(xmrig::Config *config)
 #ifndef XMRIG_NO_API
 static void print_api(xmrig::Config *config)
 {
-    if (config->apiPort() == 0) {
+    const int port = config->apiPort();
+    if (port == 0) {
         return;
     }
 
-    Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mAPI PORT:     \x1B[01;36m%d" : " * API PORT:     %d", config->apiPort());
+    Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mAPI BIND:     \x1B[01;36m%s:%d" : " * API BIND:     %s:%d",
+                   config->isApiIPv6() ? "[::]" : "0.0.0.0", port);
 }
 #endif
 

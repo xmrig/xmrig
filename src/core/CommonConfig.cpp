@@ -56,6 +56,8 @@ xmrig::CommonConfig::CommonConfig() :
     m_apiRestricted(true),
     m_background(false),
     m_colors(true),
+    m_syslog(false),
+    m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
     m_fileName(nullptr),

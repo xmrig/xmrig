@@ -91,7 +91,7 @@ App::~App()
 
 int App::exec()
 {
-    if (!m_controller->config()) {
+    if (!m_controller->isReady()) {
         return 2;
     }
 

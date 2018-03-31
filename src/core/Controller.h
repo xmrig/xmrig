@@ -46,6 +46,7 @@ public:
     Controller();
     ~Controller();
 
+    bool isReady() const;
     Config *config() const;
     int init(int argc, char **argv);
     Network *network() const;

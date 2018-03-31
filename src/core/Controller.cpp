@@ -79,6 +79,12 @@ xmrig::Controller::~Controller()
 }
 
 
+bool xmrig::Controller::isReady() const
+{
+    return d_ptr->config && d_ptr->network;
+}
+
+
 xmrig::Config *xmrig::Controller::config() const
 {
     assert(d_ptr->config != nullptr);
