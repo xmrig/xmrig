@@ -63,6 +63,7 @@ private:
     void getIdentify(rapidjson::Document &doc) const;
     void getMiner(rapidjson::Document &doc) const;
     void getResults(rapidjson::Document &doc) const;
+    void getThreads(rapidjson::Document &doc) const;
     void setWorkerId(const char *id);
     void updateWorkerId(const char *id, const char *previousId);
 

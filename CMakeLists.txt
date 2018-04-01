@@ -32,6 +32,7 @@ set(HEADERS
     src/interfaces/ILogBackend.h
     src/interfaces/IStrategy.h
     src/interfaces/IStrategyListener.h
+    src/interfaces/IThread.h
     src/interfaces/IWatcherListener.h
     src/interfaces/IWorker.h
     src/log/ConsoleLog.h
@@ -52,6 +53,7 @@ set(HEADERS
     src/Platform.h
     src/Summary.h
     src/version.h
+    src/workers/CpuThread.h
     src/workers/DoubleWorker.h
     src/workers/Handle.h
     src/workers/Hashrate.h
@@ -106,6 +108,7 @@ set(SOURCES
     src/net/Url.cpp
     src/Platform.cpp
     src/Summary.cpp
+    src/workers/CpuThread.cpp
     src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp

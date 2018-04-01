@@ -34,6 +34,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
+#include "workers/CpuThread.h"
 #include "xmrig.h"
 
 
@@ -41,18 +42,17 @@ static char affinity_tmp[20] = { 0 };
 
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
+    m_algoVariant(AV_AUTO),
     m_doubleHash(false),
     m_dryRun(false),
     m_hugePages(true),
     m_safe(false),
-    m_algoVariant(0),
     m_maxCpuUsage(75),
     m_printTime(60),
     m_priority(-1),
-    m_threads(0),
-    m_affinity(-1L)
+    m_affinity(-1L),
+    m_threadsCount(0)
 {
-
 }
 
 
@@ -135,7 +135,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retries",       retries(), allocator);
     doc.AddMember("retry-pause",   retryPause(), allocator);
     doc.AddMember("safe",          m_safe, allocator);
-    doc.AddMember("threads",       threads(), allocator);
+    doc.AddMember("threads",       threadsCount(), allocator);
     doc.AddMember("user-agent",    userAgent() ? rapidjson::Value(rapidjson::StringRef(userAgent())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
 
 #   ifdef HAVE_SYSLOG_H
@@ -159,18 +159,22 @@ bool xmrig::Config::adjust()
     }
 
     m_algoVariant = getAlgoVariant();
-    if (m_algoVariant == AV2_AESNI_DOUBLE || m_algoVariant == AV4_SOFT_AES_DOUBLE) {
+    if (m_algoVariant == AV_DOUBLE || m_algoVariant == AV_DOUBLE_SOFT) {
         m_doubleHash = true;
     }
 
-    if (!m_threads) {
-        m_threads = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
+    if (!m_threadsCount) {
+        m_threadsCount = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
     }
     else if (m_safe) {
-        const int count = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
-        if (m_threads > count) {
-            m_threads = count;
+        const size_t count = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
+        if (m_threadsCount > count) {
+            m_threadsCount = count;
         }
+    }
+
+    for (size_t i = 0; i < m_threadsCount; ++i) {
+        m_threads.push_back(CpuThread::createFromAV(i, m_algorithm, m_algoVariant, m_affinity, m_priority));
     }
 
     return true;
@@ -225,7 +229,7 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
     case xmrig::IConfig::ThreadsKey:  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
-            m_threads = Cpu::threads();
+            m_threadsCount = Cpu::threads();
             return true;
         }
 
@@ -275,14 +279,14 @@ bool xmrig::Config::parseInt(int key, int arg)
 {
     switch (key) {
     case xmrig::IConfig::ThreadsKey: /* --threads */
-        if (m_threads >= 0 && arg < 1024) {
-            m_threads = arg;
+        if (m_threadsCount >= 0 && arg < 1024) {
+            m_threadsCount = arg;
         }
         break;
 
     case xmrig::IConfig::AVKey: /* --av */
-        if (arg >= AV0_AUTO && arg < AV_MAX) {
-            m_algoVariant = arg;
+        if (arg >= AV_AUTO && arg < AV_MAX) {
+            m_algoVariant = static_cast<AlgoVariant>(arg);
         }
         break;
 
@@ -306,20 +310,20 @@ bool xmrig::Config::parseInt(int key, int arg)
 }
 
 
-int xmrig::Config::getAlgoVariant() const
+xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 {
 #   ifndef XMRIG_NO_AEON
-    if (m_algorithm == xmrig::ALGO_CRYPTONIGHT_LITE) {
+    if (m_algorithm == xmrig::CRYPTONIGHT_LITE) {
         return getAlgoVariantLite();
     }
 #   endif
 
-    if (m_algoVariant <= AV0_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV1_AESNI : AV3_SOFT_AES;
+    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
+        return Cpu::hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
     }
 
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV2_AESNI_DOUBLE) {
-        return m_algoVariant + 2;
+    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV_DOUBLE) {
+        return static_cast<AlgoVariant>(m_algoVariant + 2);
     }
 
     return m_algoVariant;
@@ -327,14 +331,14 @@ int xmrig::Config::getAlgoVariant() const
 
 
 #ifndef XMRIG_NO_AEON
-int xmrig::Config::getAlgoVariantLite() const
+xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
 {
-    if (m_algoVariant <= AV0_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV2_AESNI_DOUBLE : AV4_SOFT_AES_DOUBLE;
+    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
+        return Cpu::hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
     }
 
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV2_AESNI_DOUBLE) {
-        return m_algoVariant + 2;
+    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV_DOUBLE) {
+        return static_cast<AlgoVariant>(m_algoVariant + 2);
     }
 
     return m_algoVariant;

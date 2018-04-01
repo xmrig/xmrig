@@ -51,6 +51,7 @@ static const char *algoNames[] = {
 
 
 xmrig::CommonConfig::CommonConfig() :
+    m_algorithm(CRYPTONIGHT),
     m_adjusted(false),
     m_apiIPv6(true),
     m_apiRestricted(true),
@@ -63,7 +64,6 @@ xmrig::CommonConfig::CommonConfig() :
     m_fileName(nullptr),
     m_logFile(nullptr),
     m_userAgent(nullptr),
-    m_algorithm(ALGO_CRYPTONIGHT),
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
@@ -367,7 +367,7 @@ void xmrig::CommonConfig::setAlgo(const char *algo)
     if (strcasecmp(algo, "cryptonight-light") == 0) {
         fprintf(stderr, "Algorithm \"cryptonight-light\" is deprecated, use \"cryptonight-lite\" instead\n");
 
-        m_algorithm = ALGO_CRYPTONIGHT_LITE;
+        m_algorithm = CRYPTONIGHT_LITE;
         return;
     }
 
@@ -375,7 +375,7 @@ void xmrig::CommonConfig::setAlgo(const char *algo)
 
     for (size_t i = 0; i < size; i++) {
         if (algoNames[i] && strcasecmp(algo, algoNames[i]) == 0) {
-            m_algorithm = (int) i;
+            m_algorithm = static_cast<Algo>(i);
             break;
         }
     }

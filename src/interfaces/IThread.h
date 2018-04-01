@@ -4,8 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,45 +20,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XMRIG_H__
-#define __XMRIG_H__
+#ifndef __ITHREAD_H__
+#define __ITHREAD_H__
 
 
-namespace xmrig
+#include <stdint.h>
+
+
+#include "rapidjson/fwd.h"
+#include "xmrig.h"
+
+
+namespace xmrig {
+
+
+class IThread
 {
+public:
+    enum Type {
+        CPU,
+        OpenCL,
+        CUDA
+    };
 
+    virtual ~IThread() {}
 
-enum Algo {
-    CRYPTONIGHT,       /* CryptoNight (Monero) */
-    CRYPTONIGHT_LITE,  /* CryptoNight-Lite (AEON) */
-    CRYPTONIGHT_HEAVY, /* CryptoNight-Heavy (SUMO) */
+    virtual Algo algorithm() const   = 0;
+    virtual int multiway() const     = 0;
+    virtual int priority() const     = 0;
+    virtual int64_t affinity() const = 0;
+    virtual size_t index() const     = 0;
+    virtual Type type() const        = 0;
+
+#   ifndef XMRIG_NO_API
+    virtual rapidjson::Value toAPI(rapidjson::Document &doc) const = 0;
+#   endif
 };
 
 
-enum AlgoVariant {
-    AV_AUTO,
-    AV_SINGLE,
-    AV_DOUBLE,
-    AV_SINGLE_SOFT,
-    AV_DOUBLE_SOFT,
-    AV_TRIPLE,
-    AV_QUAD,
-    AV_PENTA,
-    AV_TRIPLE_SOFT,
-    AV_QUAD_SOFT,
-    AV_PENTA_SOFT,
-    AV_MAX
-};
+} /* namespace xmrig */
 
 
-enum Variant {
-    VARIANT_AUTO = -1, // Autodetect
-    VARIANT_NONE = 0,  // Original CryptoNight
-    VARIANT_V1   = 1   // Monero v7 PoW
-};
-
-
-} /* xmrig */
-
-
-#endif /* __XMRIG_H__ */
+#endif // __ITHREAD_H__

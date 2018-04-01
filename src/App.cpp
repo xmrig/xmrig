@@ -107,7 +107,7 @@ int App::exec()
     }
 
     Mem::allocate(m_controller->config()->algorithm(),
-                  m_controller->config()->threads(),
+                  m_controller->config()->threadsCount(),
                   m_controller->config()->isDoubleHash(),
                   m_controller->config()->isHugePages()
                   );

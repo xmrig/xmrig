@@ -43,7 +43,7 @@ alignas(16) uint8_t *Mem::m_memory = nullptr;
 cryptonight_ctx *Mem::create(int threadId)
 {
 #   ifndef XMRIG_NO_AEON
-    if (m_algo == xmrig::ALGO_CRYPTONIGHT_LITE) {
+    if (m_algo == xmrig::CRYPTONIGHT_LITE) {
         return createLite(threadId);
     }
 #   endif
