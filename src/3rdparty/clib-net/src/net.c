@@ -68,7 +68,9 @@ net_close(net_t * net, void (*cb)(uv_handle_t*)) {
       uv_read_stop((uv_stream_t*)net->handle);
     }
 
-    uv_close((uv_handle_t *) net->handle, net_close_cb);
+    if (uv_is_closing((const uv_handle_t *) net->handle) == 0) {
+      uv_close((uv_handle_t *)net->handle, net_close_cb);
+    }
 
 #ifndef XMRIG_NO_TLS
     if (net->use_ssl) {
@@ -86,18 +88,11 @@ net_close(net_t * net, void (*cb)(uv_handle_t*)) {
 
 int
 net_free(net_t * net) {
-  if (net->conn != NULL) {
-    free(net->conn);
-    net->conn = NULL;
-  }
-  if (net->resolver != NULL) {
-    free(net->resolver);
-    net->resolver = NULL;
-  }
   if (net != NULL) {
     free(net);
     net = NULL;
   }
+
   return NET_OK;
 }
 
