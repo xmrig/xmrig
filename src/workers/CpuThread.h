@@ -36,7 +36,7 @@ class CpuThread : public IThread
 {
 public:
     enum Multiway {
-        SingleWay,
+        SingleWay = 1,
         DoubleWay,
         TripleWay,
         QuadWay,
@@ -55,7 +55,7 @@ public:
     inline int multiway() const override      { return m_multiway; }
     inline int priority() const override      { return m_priority; }
     inline int64_t affinity() const override  { return m_affinity; }
-    inline size_t index() const override      { return m_affinity; }
+    inline size_t index() const override      { return m_index; }
     inline Type type() const override         { return CPU; }
 
 #   ifndef XMRIG_NO_API

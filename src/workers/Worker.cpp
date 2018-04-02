@@ -33,17 +33,17 @@
 
 Worker::Worker(Handle *handle) :
     m_id(handle->threadId()),
-    m_threads(handle->threads()),
+    m_totalWays(handle->totalWays()),
     m_hashCount(0),
     m_timestamp(0),
     m_count(0),
     m_sequence(0)
 {
-    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
-        Cpu::setAffinity(m_id, handle->affinity());
-    }
+//    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
+//        Cpu::setAffinity(m_id, handle->affinity());
+//    }
 
-    Platform::setThreadPriority(handle->priority());
+    Platform::setThreadPriority(handle->config()->priority());
     m_ctx = Mem::create(m_id);
 }
 

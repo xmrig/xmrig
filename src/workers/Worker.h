@@ -49,8 +49,8 @@ protected:
     void storeStats();
 
     cryptonight_ctx *m_ctx;
-    int m_id;
-    int m_threads;
+    size_t m_id;
+    size_t m_totalWays;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
     uint64_t m_count;

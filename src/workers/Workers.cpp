@@ -25,13 +25,18 @@
 
 
 #include "api/Api.h"
+#include "core/Config.h"
+#include "core/Controller.h"
 #include "interfaces/IJobResultListener.h"
+#include "interfaces/IThread.h"
 #include "Mem.h"
 #include "workers/DoubleWorker.h"
 #include "workers/Handle.h"
 #include "workers/Hashrate.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
+
+#include "log/Log.h"
 
 
 bool Workers::m_active = false;
@@ -104,8 +109,14 @@ void Workers::setJob(const Job &job, bool donate)
 
 void Workers::start(int64_t affinity, int priority, xmrig::Controller *controller)
 {
-    const int threads = Mem::threads();
-    m_hashrate = new Hashrate(threads, controller);
+    const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
+
+    size_t totalWays = 0;
+    for (const xmrig::IThread *thread : threads) {
+       totalWays += thread->multiway();
+    }
+
+    m_hashrate = new Hashrate(threads.size(), controller);
 
     uv_mutex_init(&m_mutex);
     uv_rwlock_init(&m_rwlock);
@@ -117,8 +128,8 @@ void Workers::start(int64_t affinity, int priority, xmrig::Controller *controlle
     uv_timer_init(uv_default_loop(), &m_timer);
     uv_timer_start(&m_timer, Workers::onTick, 500, 500);
 
-    for (int i = 0; i < threads; ++i) {
-        Handle *handle = new Handle(i, threads, affinity, priority);
+    for (xmrig::IThread *thread : threads) {
+        Handle *handle = new Handle(thread, totalWays);
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }
