@@ -51,7 +51,7 @@ public:
     static void printHashrate(bool detail);
     static void setEnabled(bool enabled);
     static void setJob(const Job &job, bool donate);
-    static void start(int64_t affinity, int priority, xmrig::Controller *controller);
+    static void start(xmrig::Controller *controller);
     static void stop();
     static void submit(const JobResult &result);
 

@@ -107,7 +107,7 @@ void Workers::setJob(const Job &job, bool donate)
 }
 
 
-void Workers::start(int64_t affinity, int priority, xmrig::Controller *controller)
+void Workers::start(xmrig::Controller *controller)
 {
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
 
@@ -129,7 +129,7 @@ void Workers::start(int64_t affinity, int priority, xmrig::Controller *controlle
     uv_timer_start(&m_timer, Workers::onTick, 500, 500);
 
     for (xmrig::IThread *thread : threads) {
-        Handle *handle = new Handle(thread, totalWays);
+        Handle *handle = new Handle(thread, threads.size(), totalWays);
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }

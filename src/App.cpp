@@ -136,7 +136,7 @@ int App::exec()
     m_httpd->start();
 #   endif
 
-    Workers::start(m_controller->config()->affinity(), m_controller->config()->priority(), m_controller);
+    Workers::start(m_controller);
 
     m_controller->network()->connect();
 

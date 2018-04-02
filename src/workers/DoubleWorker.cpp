@@ -135,11 +135,11 @@ void DoubleWorker::consumeJob()
 
     if (m_state->job.isNicehash()) {
         m_state->nonce1 = (*Job::nonce(m_state->blob)                       & 0xff000000U) + (0xffffffU / m_totalWays * m_id);
-        m_state->nonce2 = (*Job::nonce(m_state->blob + m_state->job.size()) & 0xff000000U) + (0xffffffU / m_totalWays * (m_id + m_totalWays));
+        m_state->nonce2 = (*Job::nonce(m_state->blob + m_state->job.size()) & 0xff000000U) + (0xffffffU / m_totalWays * (m_id + m_totalThreads));
     }
     else {
         m_state->nonce1 = 0xffffffffU / m_totalWays * m_id;
-        m_state->nonce2 = 0xffffffffU / m_totalWays * (m_id + m_totalWays);
+        m_state->nonce2 = 0xffffffffU / m_totalWays * (m_id + m_totalThreads);
     }
 }
 

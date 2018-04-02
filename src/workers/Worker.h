@@ -55,6 +55,7 @@ protected:
 
     cryptonight_ctx *m_ctx;
     size_t m_id;
+    size_t m_totalThreads;
     size_t m_totalWays;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
