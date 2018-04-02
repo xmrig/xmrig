@@ -36,18 +36,22 @@ enum Algo {
 };
 
 
+//--av=1 For CPUs with hardware AES.
+//--av=2 Lower power mode (double hash) of 1.
+//--av=3 Software AES implementation.
+//--av=4 Lower power mode (double hash) of 3.
 enum AlgoVariant {
-    AV_AUTO,
-    AV_SINGLE,
-    AV_DOUBLE,
-    AV_SINGLE_SOFT,
-    AV_DOUBLE_SOFT,
-    AV_TRIPLE,
-    AV_QUAD,
-    AV_PENTA,
-    AV_TRIPLE_SOFT,
-    AV_QUAD_SOFT,
-    AV_PENTA_SOFT,
+    AV_AUTO,        // --av=0 Automatic mode.
+    AV_SINGLE,      // --av=1  Single hash mode
+    AV_DOUBLE,      // --av=2  Double hash mode
+    AV_SINGLE_SOFT, // --av=3  Single hash mode (Software AES)
+    AV_DOUBLE_SOFT, // --av=4  Double hash mode (Software AES)
+    AV_TRIPLE,      // --av=5  Triple hash mode
+    AV_QUAD,        // --av=6  Quard hash mode
+    AV_PENTA,       // --av=7  Penta hash mode
+    AV_TRIPLE_SOFT, // --av=8  Triple hash mode (Software AES)
+    AV_QUAD_SOFT,   // --av=9  Quard hash mode  (Software AES)
+    AV_PENTA_SOFT,  // --av=10 Penta hash mode  (Software AES)
     AV_MAX
 };
 

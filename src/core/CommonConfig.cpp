@@ -95,9 +95,9 @@ xmrig::CommonConfig::~CommonConfig()
 }
 
 
-const char *xmrig::CommonConfig::algoName() const
+const char *xmrig::CommonConfig::algoName(Algo algorithm)
 {
-    return algoNames[m_algorithm];
+    return algoNames[algorithm];
 }
 
 

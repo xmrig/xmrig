@@ -35,7 +35,15 @@ namespace xmrig {
 class CpuThread : public IThread
 {
 public:
-    CpuThread(size_t index, Algo algorithm, int multiway, int64_t affinity, int priority, bool softAES, bool prefetch);
+    enum Multiway {
+        SingleWay,
+        DoubleWay,
+        TripleWay,
+        QuadWay,
+        PentaWay
+    };
+
+    CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch);
     ~CpuThread();
 
     static CpuThread *createFromAV(size_t index, Algo algorithm, AlgoVariant av, int64_t affinity, int priority);
@@ -56,11 +64,12 @@ public:
 
 private:
     const Algo m_algorithm;
+    const AlgoVariant m_av;
     const bool m_prefetch;
     const bool m_softAES;
-    const int m_multiway;
     const int m_priority;
     const int64_t m_affinity;
+    const Multiway m_multiway;
     const size_t m_index;
 };
 

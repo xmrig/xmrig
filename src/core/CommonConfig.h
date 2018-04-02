@@ -44,7 +44,7 @@ public:
     CommonConfig();
     ~CommonConfig();
 
-    const char *algoName() const;
+    static const char *algoName(Algo algorithm);
 
     inline Algo algorithm() const                  { return m_algorithm; }
     inline bool isApiIPv6() const                  { return m_apiIPv6; }
@@ -52,6 +52,7 @@ public:
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
     inline bool isSyslog() const                   { return m_syslog; }
+    inline const char *algoName() const            { return algoName(m_algorithm); }
     inline const char *apiToken() const            { return m_apiToken; }
     inline const char *apiWorkerId() const         { return m_apiWorkerId; }
     inline const char *logFile() const             { return m_logFile; }

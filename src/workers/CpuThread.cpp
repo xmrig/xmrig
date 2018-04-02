@@ -21,18 +21,22 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 
+
+#include "core/CommonConfig.h"
 #include "rapidjson/document.h"
 #include "workers/CpuThread.h"
 
 
-xmrig::CpuThread::CpuThread(size_t index, Algo algorithm, int multiway, int64_t affinity, int priority, bool softAES, bool prefetch) :
+xmrig::CpuThread::CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch) :
     m_algorithm(algorithm),
+    m_av(av),
     m_prefetch(prefetch),
     m_softAES(softAES),
-    m_multiway(multiway),
     m_priority(priority),
     m_affinity(affinity),
+    m_multiway(multiway),
     m_index(index)
 {
 }
@@ -45,7 +49,64 @@ xmrig::CpuThread::~CpuThread()
 
 xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, Algo algorithm, AlgoVariant av, int64_t affinity, int priority)
 {
-    return new CpuThread(index, algorithm, 1, affinity, priority, false, false);
+    assert(av > AV_AUTO && av < AV_MAX);
+
+    Multiway multiway = SingleWay;
+    bool softAES = false;
+
+    switch (av) {
+    case AV_SINGLE_SOFT:
+        softAES  = true;
+        break;
+
+    case AV_DOUBLE:
+        multiway = DoubleWay;
+    case AV_DOUBLE_SOFT:
+        softAES  = true;
+        break;
+
+    case AV_TRIPLE:
+        multiway = TripleWay;
+    case AV_TRIPLE_SOFT:
+        softAES  = true;
+        break;
+
+    case AV_QUAD:
+        multiway = QuadWay;
+    case AV_QUAD_SOFT:
+        softAES  = true;
+        break;
+
+    case AV_PENTA:
+        multiway = PentaWay;
+    case AV_PENTA_SOFT:
+        softAES  = true;
+        break;
+
+    default:
+        break;
+    }
+
+    int64_t cpuId = -1L;
+
+    if (affinity != -1L) {
+        size_t idx = 0;
+
+        for (size_t i = 0; i < 64; i++) {
+            if (!(affinity & (1ULL << i))) {
+                continue;
+            }
+
+            if (idx == index) {
+                cpuId = i;
+                break;
+            }
+
+            idx++;
+        }
+    }
+
+    return new CpuThread(index, algorithm, av, multiway, cpuId, priority, softAES, false);
 }
 
 
@@ -56,11 +117,11 @@ rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
     auto &allocator = doc.GetAllocator();
 
     obj.AddMember("type",          "cpu", allocator);
-    obj.AddMember("algo",           algorithm(), allocator);
+    obj.AddMember("algo",           rapidjson::StringRef(CommonConfig::algoName(algorithm())), allocator);
+    obj.AddMember("av",             m_av, allocator);
     obj.AddMember("low_power_mode", multiway(), allocator);
     obj.AddMember("affine_to_cpu",  affinity(), allocator);
     obj.AddMember("priority",       priority(), allocator);
-    obj.AddMember("prefetch",       isPrefetch(), allocator);
     obj.AddMember("soft_aes",       isSoftAES(), allocator);
 
     return obj;
