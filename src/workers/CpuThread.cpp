@@ -29,6 +29,13 @@
 #include "workers/CpuThread.h"
 
 
+#if defined(XMRIG_ARM)
+#   include "crypto/CryptoNight_arm.h"
+#else
+#   include "crypto/CryptoNight_x86.h"
+#endif
+
+
 xmrig::CpuThread::CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch) :
     m_algorithm(algorithm),
     m_av(av),
@@ -44,6 +51,86 @@ xmrig::CpuThread::CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiw
 
 xmrig::CpuThread::~CpuThread()
 {
+}
+
+
+xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant av, Variant variant)
+{
+    assert(variant == VARIANT_NONE || variant == VARIANT_V1);
+
+    static const cn_hash_fun func_table[50] = {
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_NONE>,
+        cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_NONE>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_NONE>,
+        cryptonight_double_hash<CRYPTONIGHT, true,  VARIANT_NONE>,
+        cryptonight_triple_hash<CRYPTONIGHT, false, VARIANT_NONE>,
+        cryptonight_quad_hash<CRYPTONIGHT,   false, VARIANT_NONE>,
+        cryptonight_penta_hash<CRYPTONIGHT,  false, VARIANT_NONE>,
+        cryptonight_triple_hash<CRYPTONIGHT, true,  VARIANT_NONE>,
+        cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_NONE>,
+        cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_NONE>,
+
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_V1>,
+        cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_V1>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_V1>,
+        cryptonight_double_hash<CRYPTONIGHT, true,  VARIANT_V1>,
+        cryptonight_triple_hash<CRYPTONIGHT, false, VARIANT_V1>,
+        cryptonight_quad_hash<CRYPTONIGHT,   false, VARIANT_V1>,
+        cryptonight_penta_hash<CRYPTONIGHT,  false, VARIANT_V1>,
+        cryptonight_triple_hash<CRYPTONIGHT, true,  VARIANT_V1>,
+        cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_V1>,
+        cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_V1>,
+
+#       ifndef XMRIG_NO_AEON
+        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_NONE>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_NONE>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_NONE>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_NONE>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_NONE>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_NONE>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_NONE>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_NONE>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_NONE>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_NONE>,
+
+        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_V1>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_V1>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_V1>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_V1>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_V1>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_V1>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_V1>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_V1>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_V1>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_V1>,
+#       else
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+#       endif
+
+#       ifndef XMRIG_NO_SUMO
+        cryptonight_single_hash<CRYPTONIGHT_HEAVY, false, VARIANT_NONE>,
+        cryptonight_double_hash<CRYPTONIGHT_HEAVY, false, VARIANT_NONE>,
+        cryptonight_single_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_NONE>,
+        cryptonight_double_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_NONE>,
+        cryptonight_triple_hash<CRYPTONIGHT_HEAVY, false, VARIANT_NONE>,
+        cryptonight_quad_hash<CRYPTONIGHT_HEAVY,   false, VARIANT_NONE>,
+        cryptonight_penta_hash<CRYPTONIGHT_HEAVY,  false, VARIANT_NONE>,
+        cryptonight_triple_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_NONE>,
+        cryptonight_quad_hash<CRYPTONIGHT_HEAVY,   true,  VARIANT_NONE>,
+        cryptonight_penta_hash<CRYPTONIGHT_HEAVY,  true,  VARIANT_NONE>,
+#       else
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+#       endif
+    };
+
+#   ifndef XMRIG_NO_SUMO
+    if (algorithm == CRYPTONIGHT_HEAVY) {
+        variant = VARIANT_NONE;
+    }
+#   endif
+
+    return func_table[20 * algorithm + 10 * variant + av - 1];
 }
 
 

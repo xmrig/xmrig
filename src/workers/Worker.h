@@ -36,6 +36,11 @@ struct cryptonight_ctx;
 class Handle;
 
 
+namespace xmrig {
+    class CpuThread;
+}
+
+
 class Worker : public IWorker
 {
 public:
@@ -55,6 +60,7 @@ protected:
     std::atomic<uint64_t> m_timestamp;
     uint64_t m_count;
     uint64_t m_sequence;
+    xmrig::CpuThread *m_thread;
 };
 
 

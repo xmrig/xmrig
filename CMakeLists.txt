@@ -3,6 +3,7 @@ project(xmrig)
 
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
+option(WITH_SUMO     "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
 
@@ -70,6 +71,7 @@ set(HEADERS_CRYPTO
     src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
+    src/crypto/CryptoNight_constants.h
     src/crypto/CryptoNight_monero.h
     src/crypto/CryptoNight_test.h
     src/crypto/groestl_tables.h
@@ -201,6 +203,10 @@ endif()
 
 if (NOT WITH_AEON)
     add_definitions(/DXMRIG_NO_AEON)
+endif()
+
+if (NOT WITH_SUMO)
+    add_definitions(/DXMRIG_NO_SUMO)
 endif()
 
 if (WITH_HTTPD)

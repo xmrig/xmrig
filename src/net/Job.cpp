@@ -23,6 +23,7 @@
  */
 
 
+#include <assert.h>
 #include <string.h>
 
 
@@ -62,11 +63,11 @@ Job::Job() :
     m_algo(xmrig::CRYPTONIGHT),
     m_poolId(-2),
     m_threadId(-1),
-    m_variant(xmrig::VARIANT_AUTO),
     m_size(0),
     m_diff(0),
     m_target(0),
-    m_blob()
+    m_blob(),
+    m_variant(xmrig::VARIANT_AUTO)
 {
 }
 
@@ -77,12 +78,12 @@ Job::Job(int poolId, bool nicehash, int algo, int variant) :
     m_algo(algo),
     m_poolId(poolId),
     m_threadId(-1),
-    m_variant(variant),
     m_size(0),
     m_diff(0),
     m_target(0),
     m_blob()
 {
+    setVariant(variant);
 }
 
 
@@ -174,10 +175,12 @@ void Job::setVariant(int variant)
     case xmrig::VARIANT_AUTO:
     case xmrig::VARIANT_NONE:
     case xmrig::VARIANT_V1:
-        m_variant = variant;
+        m_variant = static_cast<xmrig::Variant>(variant);
         break;
 
     default:
+        assert(false);
+        m_variant = xmrig::VARIANT_AUTO;
         break;
     }
 }

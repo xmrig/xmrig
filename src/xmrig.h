@@ -63,7 +63,7 @@ enum Variant {
 };
 
 
-} /* xmrig */
+} /* namespace xmrig */
 
 
 #endif /* __XMRIG_H__ */

@@ -27,6 +27,7 @@
 #include "Cpu.h"
 #include "Mem.h"
 #include "Platform.h"
+#include "workers/CpuThread.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"
 
@@ -37,7 +38,8 @@ Worker::Worker(Handle *handle) :
     m_hashCount(0),
     m_timestamp(0),
     m_count(0),
-    m_sequence(0)
+    m_sequence(0),
+    m_thread(static_cast<xmrig::CpuThread *>(handle->config()))
 {
 //    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
 //        Cpu::setAffinity(m_id, handle->affinity());

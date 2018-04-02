@@ -35,6 +35,7 @@
 
 
 #include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_constants.h"
 #include "crypto/CryptoNight_monero.h"
 #include "crypto/soft_aes.h"
 
@@ -309,9 +310,13 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, int VARIANT>
+template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
 inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx *__restrict__ ctx)
 {
+    constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
+    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
+    constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
+
     keccak(input, (int) size, ctx->state0, 200);
 
     VARIANT1_INIT(0);
@@ -367,9 +372,13 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, int VARIANT>
+template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
 inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
 {
+    constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
+    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
+    constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
+
     keccak(input,        (int) size, ctx->state0, 200);
     keccak(input + size, (int) size, ctx->state1, 200);
 
@@ -462,6 +471,24 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
     extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, output);
     extra_hashes[ctx->state1[0] & 3](ctx->state1, 200, output + 32);
+}
+
+
+template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
+inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+{
+}
+
+
+template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
+inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+{
+}
+
+
+template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
+inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+{
 }
 
 #endif /* __CRYPTONIGHT_X86_H__ */

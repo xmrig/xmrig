@@ -26,7 +26,7 @@
 #include <thread>
 
 
-#include "crypto/CryptoNight.h"
+#include "workers/CpuThread.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
@@ -61,7 +61,8 @@ void SingleWorker::start()
             m_count++;
             *m_job.nonce() = ++m_result.nonce;
 
-            if (CryptoNight::hash(m_job, m_result, m_ctx)) {
+            m_thread->fn(m_job.variant())(m_job.blob(), m_job.size(), m_result.result, m_ctx);
+            if (*reinterpret_cast<uint64_t*>(m_result.result + 24) < m_job.target()) {
                 Workers::submit(m_result);
             }
 
