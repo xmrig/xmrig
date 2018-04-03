@@ -42,9 +42,9 @@ Worker::Worker(Handle *handle) :
     m_sequence(0),
     m_thread(static_cast<xmrig::CpuThread *>(handle->config()))
 {
-//    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
-//        Cpu::setAffinity(m_id, handle->affinity());
-//    }
+    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
+        Cpu::setAffinity(m_id, handle->affinity());
+    }
 
     Platform::setThreadPriority(handle->config()->priority());
     m_ctx = Mem::create(m_id);
