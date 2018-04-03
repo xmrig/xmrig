@@ -116,7 +116,7 @@ bool SingleWorker::selfTest()
     }
 #   endif
 
-    return true;
+    return memcmp(m_result.result, test_output_heavy, 32) == 0;
 }
 
 

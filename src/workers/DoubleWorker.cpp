@@ -144,7 +144,7 @@ bool DoubleWorker::selfTest()
     }
 #   endif
 
-    return true;
+    return memcmp(m_hash, test_output_heavy, 64) == 0;
 }
 
 
