@@ -30,6 +30,9 @@
 #include <stdint.h>
 
 
+#include "xmrig.h"
+
+
 struct cryptonight_ctx;
 
 
@@ -42,7 +45,7 @@ public:
         Lock               = 4
     };
 
-    static bool allocate(int algo, int threads, bool doubleHash, bool enabled);
+    static bool allocate(xmrig::Algo algo, int threads, bool doubleHash, bool enabled);
     static cryptonight_ctx *create(int threadId);
     static void *calloc(size_t num, size_t size);
     static void release();

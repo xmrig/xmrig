@@ -40,7 +40,7 @@
 #include "xmrig.h"
 
 
-bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
+bool Mem::allocate(xmrig::Algo algo, int threads, bool doubleHash, bool enabled)
 {
     m_algo       = algo;
     m_threads    = threads;
@@ -48,6 +48,10 @@ bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
 
     const int ratio = (doubleHash && algo != xmrig::CRYPTONIGHT_LITE) ? 2 : 1;
     m_size          = MONERO_MEMORY * (threads * ratio + 1);
+
+    if (algo == xmrig::CRYPTONIGHT_HEAVY) {
+        m_size *= 2;
+    }
 
     if (!enabled) {
         m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));

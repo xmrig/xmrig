@@ -116,7 +116,7 @@ bool SingleWorker::selfTest()
     }
 #   endif
 
-    return false;
+    return true;
 }
 
 
