@@ -144,7 +144,7 @@ bool DoubleWorker::selfTest()
     }
 #   endif
 
-    return false;
+    return true;
 }
 
 
