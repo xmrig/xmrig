@@ -233,6 +233,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case VariantKey:     /* --variant */
     case ApiPort:        /* --api-port */
     case PrintTimeKey:   /* --cpu-priority */
+    case DonateLevelKey: /* --donate-level */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
     case BackgroundKey: /* --background */
@@ -248,7 +249,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         return parseBoolean(key, false);
 
 #   ifdef XMRIG_PROXY_PROJECT
-    case 1003: /* --donate-level */
+    case DonateLevelKey: /* --donate-level */
         if (strncmp(arg, "minemonero.pro", 14) == 0) {
             m_donateLevel = 0;
         }
