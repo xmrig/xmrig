@@ -124,10 +124,10 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Release checksums
 ### SHA-256
 ```
-b070d06a3615f3db67ad3beab43d6d21f3c88026aa2b4726a93df47145cd30ec xmrig-2.5.2-xenial-amd64.tar.gz/xmrig-2.5.2/xmrig
-4852135d3f04fd450ba39abce51ca40ff9131d222220c8b30804be05f6679295 xmrig-2.5.2-gcc-win32.zip/xmrig.exe
-284309d07f08261af19c937ece6d2031910d9124a7359c207ded65890b2d7c5f xmrig-2.5.2-gcc-win64.zip/xmrig.exe
-e1dc46158a578fb030538fb06e5663a6acc5763545fb447a00ce0a6b388c5226 xmrig-2.5.2-msvc-win64.zip/xmrig.exe
+bd14bc3cfd9528e4a7583ab39aecc876250333e1e0faab83781584bb7f65e3eb xmrig-2.6.0-beta1-xenial-amd64.tar.gz/xmrig-2.6.0-beta1/xmrig
+32eebf71e5631029202ae5cbf6f03caad912f1722aa86a1be01a26d491801aba xmrig-2.6.0-beta1-gcc-win32.zip/xmrig.exe
+1cc08844ff019408e2e2c9560fee0c4e0b2dbc2a72bcc1c1da4a847a1787eca3 xmrig-2.6.0-beta1-gcc-win64.zip/xmrig.exe
+fdf99aa8e7792a34b1be0cc6c77e4e83ff9a4b21abb27989f7927dcfed82f6e2 xmrig-2.6.0-beta1-msvc-win64.zip/xmrig.exe
 ```
 
 ## Contacts
