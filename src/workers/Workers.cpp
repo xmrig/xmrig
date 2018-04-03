@@ -22,6 +22,7 @@
  */
 
 #include <cmath>
+#include <thread>
 
 
 #include "api/Api.h"
@@ -171,7 +172,13 @@ void Workers::onReady(void *arg)
         handle->setWorker(new SingleWorker(handle));
     }
 
-    handle->worker()->start();
+    const bool rc = handle->worker()->start();
+
+    if (!rc) {
+        uv_mutex_lock(&m_mutex);
+        LOG_ERR("thread %zu error: \"hash self-test failed\".", handle->worker()->id());
+        uv_mutex_unlock(&m_mutex);
+    }
 }
 
 

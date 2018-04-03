@@ -26,6 +26,7 @@
 #include <thread>
 
 
+#include "crypto/CryptoNight_test.h"
 #include "workers/CpuThread.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
@@ -37,8 +38,12 @@ SingleWorker::SingleWorker(Handle *handle)
 }
 
 
-void SingleWorker::start()
+bool SingleWorker::start()
 {
+    if (!selfTest()) {
+        return false;
+    }
+
     while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {
             do {
@@ -71,6 +76,8 @@ void SingleWorker::start()
 
         consumeJob();
     }
+
+    return true;
 }
 
 
@@ -82,6 +89,32 @@ bool SingleWorker::resume(const Job &job)
         m_result.nonce = *m_job.nonce();
         return true;
     }
+
+    return false;
+}
+
+
+bool SingleWorker::selfTest()
+{
+    if (m_thread->fn(xmrig::VARIANT_NONE) == nullptr) {
+        return false;
+    }
+
+    m_thread->fn(xmrig::VARIANT_NONE)(test_input, 76, m_result.result, m_ctx);
+
+    if (m_thread->algorithm() == xmrig::CRYPTONIGHT && memcmp(m_result.result, test_output_v0, 32) == 0) {
+        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_result.result, m_ctx);
+
+        return memcmp(m_result.result, test_output_v1, 32) == 0;
+    }
+
+#   ifndef XMRIG_NO_AEON
+    if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE && memcmp(m_result.result, test_output_v0_lite, 32) == 0) {
+        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_result.result, m_ctx);
+
+        return memcmp(m_result.result, test_output_v1_lite, 32) == 0;
+    }
+#   endif
 
     return false;
 }

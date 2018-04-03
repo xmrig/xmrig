@@ -40,10 +40,11 @@ public:
     DoubleWorker(Handle *handle);
     ~DoubleWorker();
 
-    void start() override;
+    bool start() override;
 
 private:
     bool resume(const Job &job);
+    bool selfTest();
     void consumeJob();
     void save(const Job &job);
 

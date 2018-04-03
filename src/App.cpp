@@ -101,11 +101,6 @@ int App::exec()
 
     background();
 
-    if (!CryptoNight::init(m_controller->config()->algorithm(), m_controller->config()->algoVariant(), m_controller->config()->isDoubleHash())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_controller->config()->algoName());
-        return 1;
-    }
-
     Mem::allocate(m_controller->config()->algorithm(),
                   m_controller->config()->threadsCount(),
                   m_controller->config()->isDoubleHash(),

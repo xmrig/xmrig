@@ -126,7 +126,6 @@ set(SOURCES_CRYPTO
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
-    src/crypto/CryptoNight.cpp
    )
 
 if (WIN32)

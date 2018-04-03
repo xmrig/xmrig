@@ -26,6 +26,7 @@
 #include <thread>
 
 
+#include "crypto/CryptoNight_test.h"
 #include "workers/CpuThread.h"
 #include "workers/DoubleWorker.h"
 #include "workers/Workers.h"
@@ -61,8 +62,12 @@ DoubleWorker::~DoubleWorker()
 }
 
 
-void DoubleWorker::start()
+bool DoubleWorker::start()
 {
+    if (!selfTest()) {
+        return false;
+    }
+
     while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {
             do {
@@ -101,6 +106,8 @@ void DoubleWorker::start()
 
         consumeJob();
     }
+
+    return true;
 }
 
 
@@ -110,6 +117,32 @@ bool DoubleWorker::resume(const Job &job)
         *m_state = *m_pausedState;
         return true;
     }
+
+    return false;
+}
+
+
+bool DoubleWorker::selfTest()
+{
+    if (m_thread->fn(xmrig::VARIANT_NONE) == nullptr) {
+        return false;
+    }
+
+    m_thread->fn(xmrig::VARIANT_NONE)(test_input, 76, m_hash, m_ctx);
+
+    if (m_thread->algorithm() == xmrig::CRYPTONIGHT && memcmp(m_hash, test_output_v0, 64) == 0) {
+        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_hash, m_ctx);
+
+        return memcmp(m_hash, test_output_v1, 64) == 0;
+    }
+
+#   ifndef XMRIG_NO_AEON
+    if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE && memcmp(m_hash, test_output_v0_lite, 64) == 0) {
+        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_hash, m_ctx);
+
+        return memcmp(m_hash, test_output_v1_lite, 64) == 0;
+    }
+#   endif
 
     return false;
 }

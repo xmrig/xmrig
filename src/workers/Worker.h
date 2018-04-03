@@ -47,6 +47,7 @@ public:
     Worker(Handle *handle);
     ~Worker();
 
+    inline size_t id() const override          { return m_id; }
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
     inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
 
