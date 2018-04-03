@@ -101,13 +101,8 @@ int App::exec()
 
     background();
 
-    if (!CryptoNight::init(m_controller->config()->algorithm(), m_controller->config()->algoVariant(), m_controller->config()->isDoubleHash())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_controller->config()->algoName());
-        return 1;
-    }
-
     Mem::allocate(m_controller->config()->algorithm(),
-                  m_controller->config()->threads(),
+                  m_controller->config()->threadsCount(),
                   m_controller->config()->isDoubleHash(),
                   m_controller->config()->isHugePages()
                   );
@@ -136,7 +131,7 @@ int App::exec()
     m_httpd->start();
 #   endif
 
-    Workers::start(m_controller->config()->affinity(), m_controller->config()->priority(), m_controller);
+    Workers::start(m_controller);
 
     m_controller->network()->connect();
 

@@ -38,6 +38,7 @@
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"
+#include "interfaces/IThread.h"
 #include "Mem.h"
 #include "net/Job.h"
 #include "Platform.h"
@@ -67,7 +68,7 @@ static inline double normalize(double d)
 ApiRouter::ApiRouter(xmrig::Controller *controller) :
     m_controller(controller)
 {
-    m_threads  = controller->config()->threads();
+    m_threads  = controller->config()->threadsCount();
     m_hashrate = new double[m_threads * 3]();
 
     memset(m_totalHashrate, 0, sizeof(m_totalHashrate));
@@ -87,7 +88,6 @@ ApiRouter::~ApiRouter()
 void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &reply) const
 {
     rapidjson::Document doc;
-    doc.SetObject();
 
     if (req.match("/1/config")) {
         if (req.isRestricted()) {
@@ -99,6 +99,14 @@ void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &
 
         return finalize(reply, doc);
     }
+
+    if (req.match("/1/threads")) {
+        getThreads(doc);
+
+        return finalize(reply, doc);
+    }
+
+    doc.SetObject();
 
     getIdentify(doc);
     getMiner(doc);
@@ -144,7 +152,7 @@ void ApiRouter::tick(const NetworkState &network)
 
 void ApiRouter::onConfigChanged(xmrig::Config *config, xmrig::Config *previousConfig)
 {
-//    updateWorkerId(config->apiWorkerId(), previousConfig->apiWorkerId());
+    updateWorkerId(config->apiWorkerId(), previousConfig->apiWorkerId());
 }
 
 
@@ -285,6 +293,18 @@ void ApiRouter::getResults(rapidjson::Document &doc) const
     results.AddMember("error_log", rapidjson::Value(rapidjson::kArrayType), allocator);
 
     doc.AddMember("results", results, allocator);
+}
+
+
+void ApiRouter::getThreads(rapidjson::Document &doc) const
+{
+    doc.SetArray();
+
+    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
+
+    for (const xmrig::IThread *thread : threads) {
+       doc.PushBack(thread->toAPI(doc), doc.GetAllocator());
+    }
 }
 
 

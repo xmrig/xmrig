@@ -4,8 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,27 +20,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __ITHREAD_H__
+#define __ITHREAD_H__
 
-#include "workers/Handle.h"
+
+#include <stdint.h>
 
 
-Handle::Handle(xmrig::IThread *config, size_t totalThreads, size_t totalWays, int64_t affinity) :
-    m_affinity(affinity),
-    m_worker(nullptr),
-    m_totalThreads(totalThreads),
-    m_totalWays(totalWays),
-    m_config(config)
+#include "rapidjson/fwd.h"
+#include "xmrig.h"
+
+
+namespace xmrig {
+
+
+class IThread
 {
-}
+public:
+    enum Type {
+        CPU,
+        OpenCL,
+        CUDA
+    };
+
+    virtual ~IThread() {}
+
+    virtual Algo algorithm() const   = 0;
+    virtual int multiway() const     = 0;
+    virtual int priority() const     = 0;
+    virtual int64_t affinity() const = 0;
+    virtual size_t index() const     = 0;
+    virtual Type type() const        = 0;
+
+#   ifndef XMRIG_NO_API
+    virtual rapidjson::Value toAPI(rapidjson::Document &doc) const = 0;
+#   endif
+};
 
 
-void Handle::join()
-{
-    uv_thread_join(&m_thread);
-}
+} /* namespace xmrig */
 
 
-void Handle::start(void (*callback) (void *))
-{
-    uv_thread_create(&m_thread, callback, this);
-}
+#endif // __ITHREAD_H__

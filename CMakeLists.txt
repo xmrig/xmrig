@@ -3,6 +3,7 @@ project(xmrig)
 
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
+option(WITH_SUMO     "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
 
@@ -32,6 +33,7 @@ set(HEADERS
     src/interfaces/ILogBackend.h
     src/interfaces/IStrategy.h
     src/interfaces/IStrategyListener.h
+    src/interfaces/IThread.h
     src/interfaces/IWatcherListener.h
     src/interfaces/IWorker.h
     src/log/ConsoleLog.h
@@ -52,6 +54,7 @@ set(HEADERS
     src/Platform.h
     src/Summary.h
     src/version.h
+    src/workers/CpuThread.h
     src/workers/DoubleWorker.h
     src/workers/Handle.h
     src/workers/Hashrate.h
@@ -68,6 +71,7 @@ set(HEADERS_CRYPTO
     src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
+    src/crypto/CryptoNight_constants.h
     src/crypto/CryptoNight_monero.h
     src/crypto/CryptoNight_test.h
     src/crypto/groestl_tables.h
@@ -106,6 +110,7 @@ set(SOURCES
     src/net/Url.cpp
     src/Platform.cpp
     src/Summary.cpp
+    src/workers/CpuThread.cpp
     src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
@@ -121,7 +126,6 @@ set(SOURCES_CRYPTO
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
-    src/crypto/CryptoNight.cpp
    )
 
 if (WIN32)
@@ -198,6 +202,10 @@ endif()
 
 if (NOT WITH_AEON)
     add_definitions(/DXMRIG_NO_AEON)
+endif()
+
+if (NOT WITH_SUMO)
+    add_definitions(/DXMRIG_NO_SUMO)
 endif()
 
 if (WITH_HTTPD)

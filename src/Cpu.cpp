@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ int Cpu::m_totalCores    = 0;
 int Cpu::m_totalThreads  = 0;
 
 
-int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
+int Cpu::optimalThreadsCount(xmrig::Algo algo, bool doubleHash, int maxCpuUsage)
 {
     if (m_totalThreads == 1) {
         return 1;
@@ -54,7 +54,18 @@ int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
     }
 
     int count = 0;
-    const int size = (algo ? 1024 : 2048) * (doubleHash ? 2 : 1);
+    int size  = 2048;
+
+    if (algo == xmrig::CRYPTONIGHT_LITE) {
+        size = 1024;
+    }
+    else if (algo == xmrig::CRYPTONIGHT_HEAVY) {
+        size = 4096;
+    }
+
+    if (doubleHash) {
+        size *= 2;
+    }
 
     if (cache) {
         count = cache / size;

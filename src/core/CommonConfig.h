@@ -29,6 +29,7 @@
 
 
 #include "interfaces/IConfig.h"
+#include "xmrig.h"
 
 
 class Url;
@@ -43,19 +44,20 @@ public:
     CommonConfig();
     ~CommonConfig();
 
-    const char *algoName() const;
+    static const char *algoName(Algo algorithm);
 
+    inline Algo algorithm() const                  { return m_algorithm; }
     inline bool isApiIPv6() const                  { return m_apiIPv6; }
     inline bool isApiRestricted() const            { return m_apiRestricted; }
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
     inline bool isSyslog() const                   { return m_syslog; }
+    inline const char *algoName() const            { return algoName(m_algorithm); }
     inline const char *apiToken() const            { return m_apiToken; }
     inline const char *apiWorkerId() const         { return m_apiWorkerId; }
     inline const char *logFile() const             { return m_logFile; }
     inline const char *userAgent() const           { return m_userAgent; }
     inline const std::vector<Url*> &pools() const  { return m_pools; }
-    inline int algorithm() const                   { return m_algorithm; }
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
@@ -75,6 +77,7 @@ protected:
     bool save() override;
     void setFileName(const char *fileName) override;
 
+    Algo m_algorithm;
     bool m_adjusted;
     bool m_apiIPv6;
     bool m_apiRestricted;
@@ -87,7 +90,6 @@ protected:
     char *m_fileName;
     char *m_logFile;
     char *m_userAgent;
-    int m_algorithm;
     int m_apiPort;
     int m_donateLevel;
     int m_printTime;

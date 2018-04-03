@@ -46,19 +46,4 @@ struct cryptonight_ctx {
 };
 
 
-class Job;
-class JobResult;
-
-
-class CryptoNight
-{
-public:
-    static bool hash(const Job &job, JobResult &result, cryptonight_ctx *ctx);
-    static bool init(int algo, int variant, bool doubleHash);
-    static void hash(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx, int variant);
-
-private:
-    static bool selfTest(int algo, bool doubleHash);
-};
-
 #endif /* __CRYPTONIGHT_H__ */

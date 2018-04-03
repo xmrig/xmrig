@@ -29,8 +29,9 @@
 #include <vector>
 
 
-#include "rapidjson/fwd.h"
 #include "core/CommonConfig.h"
+#include "rapidjson/fwd.h"
+#include "xmrig.h"
 
 
 class Addr;
@@ -41,6 +42,7 @@ namespace xmrig {
 
 
 class ConfigLoader;
+class IThread;
 class IWatcherListener;
 
 
@@ -57,18 +59,7 @@ class IWatcherListener;
  */
 class Config : public CommonConfig
 {
-    friend class ConfigLoader;
-
 public:
-    enum AlgoVariant {
-        AV0_AUTO,
-        AV1_AESNI,
-        AV2_AESNI_DOUBLE,
-        AV3_SOFT_AES,
-        AV4_SOFT_AES_DOUBLE,
-        AV_MAX
-    };
-
     Config();
     ~Config();
 
@@ -76,14 +67,15 @@ public:
 
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline bool isDoubleHash() const              { return m_doubleHash; }
-    inline bool isDryRun() const                  { return m_dryRun; }
-    inline bool isHugePages() const               { return m_hugePages; }
-    inline int algoVariant() const                { return m_algoVariant; }
-    inline int printTime() const                  { return m_printTime; }
-    inline int priority() const                   { return m_priority; }
-    inline int threads() const                    { return m_threads; }
-    inline int64_t affinity() const               { return m_affinity; }
+    inline AlgoVariant algoVariant() const               { return m_algoVariant; }
+    inline bool isDoubleHash() const                     { return m_doubleHash; }
+    inline bool isDryRun() const                         { return m_dryRun; }
+    inline bool isHugePages() const                      { return m_hugePages; }
+    inline const std::vector<IThread *> &threads() const { return m_threads; }
+    inline int printTime() const                         { return m_printTime; }
+    inline int priority() const                          { return m_priority; }
+    inline int threadsCount() const                      { return m_threadsCount; }
+    inline int64_t affinity() const                      { return m_affinity; }
 
     static Config *load(int argc, char **argv, IWatcherListener *listener);
 
@@ -97,21 +89,22 @@ protected:
 private:
     bool parseInt(int key, int arg);
 
-    int getAlgoVariant() const;
+    AlgoVariant getAlgoVariant() const;
 #   ifndef XMRIG_NO_AEON
-    int getAlgoVariantLite() const;
+    AlgoVariant getAlgoVariantLite() const;
 #   endif
 
+    AlgoVariant m_algoVariant;
     bool m_doubleHash;
     bool m_dryRun;
     bool m_hugePages;
     bool m_safe;
-    int m_algoVariant;
     int m_maxCpuUsage;
     int m_printTime;
     int m_priority;
-    int m_threads;
     int64_t m_affinity;
+    size_t m_threadsCount;
+    std::vector<IThread *> m_threads;
 };
 
 

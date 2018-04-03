@@ -27,8 +27,8 @@
 
 
 #include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_constants.h"
 #include "Mem.h"
-#include "xmrig.h"
 
 
 bool Mem::m_doubleHash             = false;
@@ -43,15 +43,18 @@ alignas(16) uint8_t *Mem::m_memory = nullptr;
 cryptonight_ctx *Mem::create(int threadId)
 {
 #   ifndef XMRIG_NO_AEON
-    if (m_algo == xmrig::ALGO_CRYPTONIGHT_LITE) {
+    if (m_algo == xmrig::CRYPTONIGHT_LITE) {
         return createLite(threadId);
     }
 #   endif
 
-    cryptonight_ctx *ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MONERO_MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
+    const size_t size = m_algo == xmrig::CRYPTONIGHT_HEAVY ? xmrig::cn_select_memory<xmrig::CRYPTONIGHT_HEAVY>()
+                                                           : xmrig::cn_select_memory<xmrig::CRYPTONIGHT>();
+
+    cryptonight_ctx *ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[size - sizeof(cryptonight_ctx) * (threadId + 1)]);
 
     const int ratio = m_doubleHash ? 2 : 1;
-    ctx->memory = &m_memory[MONERO_MEMORY * (threadId * ratio + 1)];
+    ctx->memory = &m_memory[size * (threadId * ratio + 1)];
 
     return ctx;
 }

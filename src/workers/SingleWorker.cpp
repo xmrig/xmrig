@@ -26,7 +26,8 @@
 #include <thread>
 
 
-#include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_test.h"
+#include "workers/CpuThread.h"
 #include "workers/SingleWorker.h"
 #include "workers/Workers.h"
 
@@ -37,8 +38,12 @@ SingleWorker::SingleWorker(Handle *handle)
 }
 
 
-void SingleWorker::start()
+bool SingleWorker::start()
 {
+    if (!selfTest()) {
+        return false;
+    }
+
     while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {
             do {
@@ -61,7 +66,8 @@ void SingleWorker::start()
             m_count++;
             *m_job.nonce() = ++m_result.nonce;
 
-            if (CryptoNight::hash(m_job, m_result, m_ctx)) {
+            m_thread->fn(m_job.variant())(m_job.blob(), m_job.size(), m_result.result, m_ctx);
+            if (*reinterpret_cast<uint64_t*>(m_result.result + 24) < m_job.target()) {
                 Workers::submit(m_result);
             }
 
@@ -70,6 +76,8 @@ void SingleWorker::start()
 
         consumeJob();
     }
+
+    return true;
 }
 
 
@@ -83,6 +91,32 @@ bool SingleWorker::resume(const Job &job)
     }
 
     return false;
+}
+
+
+bool SingleWorker::selfTest()
+{
+    if (m_thread->fn(xmrig::VARIANT_NONE) == nullptr) {
+        return false;
+    }
+
+    m_thread->fn(xmrig::VARIANT_NONE)(test_input, 76, m_result.result, m_ctx);
+
+    if (m_thread->algorithm() == xmrig::CRYPTONIGHT && memcmp(m_result.result, test_output_v0, 32) == 0) {
+        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_result.result, m_ctx);
+
+        return memcmp(m_result.result, test_output_v1, 32) == 0;
+    }
+
+#   ifndef XMRIG_NO_AEON
+    if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE && memcmp(m_result.result, test_output_v0_lite, 32) == 0) {
+        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_result.result, m_ctx);
+
+        return memcmp(m_result.result, test_output_v1_lite, 32) == 0;
+    }
+#   endif
+
+    return memcmp(m_result.result, test_output_heavy, 32) == 0;
 }
 
 
@@ -104,10 +138,10 @@ void SingleWorker::consumeJob()
     m_result = m_job;
 
     if (m_job.isNicehash()) {
-        m_result.nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / m_threads * m_id);
+        m_result.nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / m_totalWays * m_id);
     }
     else {
-        m_result.nonce = 0xffffffffU / m_threads * m_id;
+        m_result.nonce = 0xffffffffU / m_totalWays * m_id;
     }
 }
 
