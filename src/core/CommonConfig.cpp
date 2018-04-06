@@ -53,7 +53,7 @@ static const char *algoNames[] = {
 xmrig::CommonConfig::CommonConfig() :
     m_algorithm(CRYPTONIGHT),
     m_adjusted(false),
-    m_apiIPv6(true),
+    m_apiIPv6(false),
     m_apiRestricted(true),
     m_background(false),
     m_colors(true),

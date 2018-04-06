@@ -27,6 +27,8 @@
     "api": {
         "port": 0,                             // port for the miner API https://github.com/xmrig/xmrig/wiki/API
         "access-token": null,                  // access token for API
-        "worker-id": null                      // custom worker-id for API
+        "worker-id": null,                     // custom worker-id for API
+        "ipv6": false,
+        "restricted": true
     }
 }
