@@ -1,3 +1,8 @@
+# v2.6.0-beta2
+- Fixed regressions (v2.6.0-beta1 affected)
+  - [#494](https://github.com/xmrig/xmrig/issues/494) Command line option `--donate-level` was broken.
+  - [#502](https://github.com/xmrig/xmrig/issues/502) Build without libmicrohttpd was broken.
+
 # v2.6.0-beta1
  - [#476](https://github.com/xmrig/xmrig/issues/476) **Added Cryptonight-Heavy support for Sumokoin ASIC resistance fork.**
  - HTTP server now runs in main loop, it make possible easy extend API without worry about thread synchronization.
