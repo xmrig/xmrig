@@ -66,6 +66,8 @@ inline size_t cn_select_memory(Algo algorithm)
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_MEMORY;
     }
+
+    return 0;
 }
 
 
@@ -87,6 +89,8 @@ inline uint32_t cn_select_mask(Algo algorithm)
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_MASK;
     }
+
+    return 0;
 }
 
 
@@ -108,6 +112,8 @@ inline uint32_t cn_select_iter(Algo algorithm)
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_ITER;
     }
+
+    return 0;
 }
 
 

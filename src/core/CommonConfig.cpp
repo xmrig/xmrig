@@ -58,7 +58,13 @@ xmrig::CommonConfig::CommonConfig() :
     m_background(false),
     m_colors(true),
     m_syslog(false),
+
+#   ifdef XMRIG_PROXY_PROJECT
+    m_watch(true),
+#   else
     m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
+#   endif
+
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
     m_fileName(nullptr),
@@ -233,7 +239,6 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case VariantKey:     /* --variant */
     case ApiPort:        /* --api-port */
     case PrintTimeKey:   /* --cpu-priority */
-    case DonateLevelKey: /* --donate-level */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
     case BackgroundKey: /* --background */
@@ -248,16 +253,14 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case ApiIPv6Key:       /* --api-no-ipv6 */
         return parseBoolean(key, false);
 
-#   ifdef XMRIG_PROXY_PROJECT
     case DonateLevelKey: /* --donate-level */
+#       ifdef XMRIG_PROXY_PROJECT
         if (strncmp(arg, "minemonero.pro", 14) == 0) {
             m_donateLevel = 0;
+            return true;
         }
-        else {
-            parseUint64(key, strtol(arg, nullptr, 10));
-        }
-        break;
-#   endif
+#       endif
+        return parseUint64(key, strtol(arg, nullptr, 10));
 
     default:
         break;
