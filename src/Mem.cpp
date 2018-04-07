@@ -39,7 +39,21 @@ Mem::ThreadBitSet Mem::m_multiHashThreadMask = Mem::ThreadBitSet(-1L);
 
 cryptonight_ctx *Mem::create(int threadId)
 {
-    size_t scratchPadSize = m_algo == Options::ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
+    size_t scratchPadSize;
+
+    switch (m_algo)
+    {
+        case Options::ALGO_CRYPTONIGHT_LITE:
+            scratchPadSize = MEMORY_LITE;
+            break;
+        case Options::ALGO_CRYPTONIGHT_HEAVY:
+            scratchPadSize = MEMORY_HEAVY;
+            break;
+        case Options::ALGO_CRYPTONIGHT:
+        default:
+            scratchPadSize = MEMORY;
+            break;
+    }
 
     size_t offset = 0;
     for (int i=0; i < threadId; i++) {

@@ -46,7 +46,21 @@ bool Mem::allocate(const Options* options)
     m_multiHashThreadMask = Mem::ThreadBitSet(options->multiHashThreadMask());
     m_memorySize = 0;
 
-    size_t scratchPadSize = m_algo == Options::ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
+    size_t scratchPadSize;
+    switch (m_algo)
+    {
+        case Options::ALGO_CRYPTONIGHT_LITE:
+            scratchPadSize = MEMORY_LITE;
+            break;
+        case Options::ALGO_CRYPTONIGHT_HEAVY:
+            scratchPadSize = MEMORY_HEAVY;
+            break;
+        case Options::ALGO_CRYPTONIGHT:
+        default:
+            scratchPadSize = MEMORY;
+            break;
+    }
+
     for (size_t i=0; i < m_threads; i++) {
         m_memorySize += sizeof(cryptonight_ctx);
         m_memorySize += scratchPadSize * getThreadHashFactor(i);
