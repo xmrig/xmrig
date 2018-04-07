@@ -1,5 +1,5 @@
 {
-    "algo": "cryptonight",                      // cryptonight (default) or cryptonight-lite
+    "algo": "cryptonight",                      // cryptonight (default), cryptonight-lite or cryptopnight-heavy
     "av": null,                                 // DEPRECATED: algorithm variation, (0 auto,
     //                                   1 -> (aesni=1, multihash-factor=1),
     //                                   2 -> (aesni=1, multihash-factor=2),
