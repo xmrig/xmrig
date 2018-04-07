@@ -388,16 +388,9 @@ void xmrig::CommonConfig::setAlgo(const char *algo)
     assert(size == (sizeof(algoNamesShort) / sizeof(algoNamesShort[0])));
 
     for (size_t i = 0; i < size; i++) {
-        if (algoNames[i] && strcasecmp(algo, algoNames[i]) == 0) {
+        if (strcasecmp(algo, algoNames[i]) == 0 || strcasecmp(algo, algoNamesShort[i]) == 0) {
             m_algorithm = static_cast<Algo>(i);
-            return;
-        }
-    }
-
-    for (size_t i = 0; i < size; i++) {
-        if (algoNamesShort[i] && strcasecmp(algo, algoNamesShort[i]) == 0) {
-            m_algorithm = static_cast<xmrig::Algo>(i);
-            return;
+            break;
         }
     }
 }
