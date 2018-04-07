@@ -22,6 +22,7 @@
  */
 
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +43,13 @@ static const char *algoNames[] = {
     "cryptonight",
     "cryptonight-lite",
     "cryptonight-heavy"
+};
+
+
+static const char *algoNamesShort[] = {
+    "cn",
+    "cn-lite",
+    "cn-heavy"
 };
 
 
@@ -375,12 +383,21 @@ void xmrig::CommonConfig::setAlgo(const char *algo)
         return;
     }
 
-    const size_t size = sizeof(algoNames) / sizeof((algoNames)[0]);
+    const size_t size = sizeof(algoNames) / sizeof(algoNames[0]);
+
+    assert(size == (sizeof(algoNamesShort) / sizeof(algoNamesShort[0])));
 
     for (size_t i = 0; i < size; i++) {
         if (algoNames[i] && strcasecmp(algo, algoNames[i]) == 0) {
             m_algorithm = static_cast<Algo>(i);
-            break;
+            return;
+        }
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        if (algoNamesShort[i] && strcasecmp(algo, algoNamesShort[i]) == 0) {
+            m_algorithm = static_cast<xmrig::Algo>(i);
+            return;
         }
     }
 }

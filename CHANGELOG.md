@@ -1,5 +1,6 @@
 # v2.6.0-beta2
 - [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 disabled for internal HTTP API by default, was cause issues on some systems.
+- Added short aliases for algorithm names: `cn`, `cn-lite` and `cn-heavy`.
 - Fixed regressions (v2.6.0-beta1 affected)
   - [#494](https://github.com/xmrig/xmrig/issues/494) Command line option `--donate-level` was broken.
   - [#502](https://github.com/xmrig/xmrig/issues/502) Build without libmicrohttpd was broken.
