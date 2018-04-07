@@ -34,7 +34,7 @@
 #include "crypto/CryptoNight_test.h"
 
 template <size_t NUM_HASH_BLOCKS>
-static void cryptonight_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+static void cryptonight_aesni(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
 #   if !defined(XMRIG_ARMv7)
     if ((reinterpret_cast<const uint8_t*>(input)[0] > 6 && Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT) ||
             Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
@@ -46,7 +46,7 @@ static void cryptonight_aesni(const void *input, size_t size, void *output, cryp
 }
 
 template <size_t NUM_HASH_BLOCKS>
-static void cryptonight_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+static void cryptonight_softaes(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
     if ((reinterpret_cast<const uint8_t*>(input)[0] > 6 && Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT) ||
             Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
         CryptoNightMultiHash<0x80000, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, ctx);
@@ -56,7 +56,7 @@ static void cryptonight_softaes(const void *input, size_t size, void *output, cr
 }
 
 template <size_t NUM_HASH_BLOCKS>
-static void cryptonight_lite_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+static void cryptonight_lite_aesni(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
 #   if !defined(XMRIG_ARMv7)
     if ((reinterpret_cast<const uint8_t*>(input)[0] > 1 && Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT) ||
             Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
@@ -68,7 +68,7 @@ static void cryptonight_lite_aesni(const void *input, size_t size, void *output,
 }
 
 template <size_t NUM_HASH_BLOCKS>
-static void cryptonight_lite_softaes(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+static void cryptonight_lite_softaes(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
     if ((reinterpret_cast<const uint8_t*>(input)[0] > 1 && Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT) ||
             Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
         CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, ctx);
@@ -77,7 +77,20 @@ static void cryptonight_lite_softaes(const void *input, size_t size, void *outpu
     }
 }
 
-void (*cryptonight_hash_ctx[MAX_NUM_HASH_BLOCKS])(const void *input, size_t size, void *output, cryptonight_ctx *ctx);
+
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_heavy_aesni(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
+#   if !defined(XMRIG_ARMv7)
+    CryptoNightMultiHash<0x40000, MEMORY_HEAVY, 0x3FFFF0, false, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, ctx);
+#   endif
+}
+
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_heavy_softaes(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
+    CryptoNightMultiHash<0x40000, MEMORY_HEAVY, 0x3FFFF0, true, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, ctx);
+}
+
+void (*cryptonight_hash_ctx[MAX_NUM_HASH_BLOCKS])(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx);
 
 template <size_t HASH_FACTOR>
 void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
@@ -96,6 +109,14 @@ void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_aesni<HASH_FACTOR>;
             } else {
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_softaes<HASH_FACTOR>;
+            }
+            break;
+
+        case Options::ALGO_CRYPTONIGHT_HEAVY:
+            if (aesni) {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_heavy_aesni<HASH_FACTOR>;
+            } else {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_heavy_softaes<HASH_FACTOR>;
             }
             break;
     }
@@ -139,56 +160,92 @@ bool CryptoNight::selfTest(int algo)
         return false;
     }
 
-    char output[160];
+    uint8_t output[160];
 
     auto ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
     ctx->memory = (uint8_t *) _mm_malloc(MEMORY * 6, 16);
 
     bool resultV1Pow = true;
-    if (Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT || Options::i()->forcePowVersion() == Options::PowVersion::POW_V1) {
-        cryptonight_hash_ctx[0](test_input, 76, output, ctx);
-        resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 32) == 0;
-
-#if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](test_input, 76, output, ctx);
-        resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 64) == 0;
-#endif
-
-#if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](test_input, 76, output, ctx);
-        resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 96) == 0;
-#endif
-
-#if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](test_input, 76, output, ctx);
-        resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 128) == 0;
-#endif
-
-#if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](test_input, 76, output, ctx);
-        resultV1Pow = resultV1Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output, 160) == 0;
-#endif
-    }
-
-    // monero/aeon v2 pow (monero/aeon blockchain version 7)
     bool resultV2Pow = true;
-    if (Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT || Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
-        cryptonight_hash_ctx[0](test_input_monero_v2_pow_0, sizeof(test_input_monero_v2_pow_0), output, ctx);
-        resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_monero_v2_pow_light[0] : test_output_monero_v2_pow[0], 32) == 0;
+    bool resultHeavy = true;
 
-#if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](test_input_monero_v2_pow_1, sizeof(test_input_monero_v2_pow_1), output, ctx);
-        resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_monero_v2_pow_light[1] : test_output_monero_v2_pow[1], 32) == 0;
-#endif
+    if (algo == Options::ALGO_CRYPTONIGHT_HEAVY)
+    {
+        cryptonight_hash_ctx[0](test_input, 76, output, ctx);
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 32) == 0;
 
-#if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](test_input_monero_v2_pow_2, sizeof(test_input_monero_v2_pow_2), output, ctx);
-        resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_monero_v2_pow_light[2] : test_output_monero_v2_pow[2], 32) == 0;
-#endif
+        #if MAX_NUM_HASH_BLOCKS > 1
+        cryptonight_hash_ctx[1](test_input, 76, output, ctx);
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 64) == 0;
+        #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 2
+        cryptonight_hash_ctx[2](test_input, 76, output, ctx);
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 96) == 0;
+        #endif
     }
+    else {
+        if (Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT ||
+            Options::i()->forcePowVersion() == Options::PowVersion::POW_V1) {
+            cryptonight_hash_ctx[0](test_input, 76, output, ctx);
+            resultV1Pow = resultV1Pow &&
+                          memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output,
+                                 32) == 0;
 
+            #if MAX_NUM_HASH_BLOCKS > 1
+            cryptonight_hash_ctx[1](test_input, 76, output, ctx);
+            resultV1Pow = resultV1Pow &&
+                          memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output,
+                                 64) == 0;
+            #endif
+
+            #if MAX_NUM_HASH_BLOCKS > 2
+            cryptonight_hash_ctx[2](test_input, 76, output, ctx);
+            resultV1Pow = resultV1Pow &&
+                          memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output,
+                                 96) == 0;
+            #endif
+
+            #if MAX_NUM_HASH_BLOCKS > 3
+            cryptonight_hash_ctx[3](test_input, 76, output, ctx);
+            resultV1Pow = resultV1Pow &&
+                          memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output,
+                                 128) == 0;
+            #endif
+
+            #if MAX_NUM_HASH_BLOCKS > 4
+            cryptonight_hash_ctx[4](test_input, 76, output, ctx);
+            resultV1Pow = resultV1Pow &&
+                          memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE ? test_output_light : test_output,
+                                 160) == 0;
+            #endif
+        }
+
+        // monero/aeon v2 pow (monero/aeon blockchain version 7)
+        if (Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT ||
+            Options::i()->forcePowVersion() == Options::PowVersion::POW_V2) {
+            cryptonight_hash_ctx[0](test_input_monero_v2_pow_0, sizeof(test_input_monero_v2_pow_0), output, ctx);
+            resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE
+                                                        ? test_output_monero_v2_pow_light[0]
+                                                        : test_output_monero_v2_pow[0], 32) == 0;
+
+            #if MAX_NUM_HASH_BLOCKS > 1
+            cryptonight_hash_ctx[1](test_input_monero_v2_pow_1, sizeof(test_input_monero_v2_pow_1), output, ctx);
+            resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE
+                                                        ? test_output_monero_v2_pow_light[1]
+                                                        : test_output_monero_v2_pow[1], 32) == 0;
+            #endif
+
+            #if MAX_NUM_HASH_BLOCKS > 2
+            cryptonight_hash_ctx[2](test_input_monero_v2_pow_2, sizeof(test_input_monero_v2_pow_2), output, ctx);
+            resultV2Pow = resultV2Pow && memcmp(output, algo == Options::ALGO_CRYPTONIGHT_LITE
+                                                        ? test_output_monero_v2_pow_light[2]
+                                                        : test_output_monero_v2_pow[2], 32) == 0;
+            #endif
+        }
+    }
     _mm_free(ctx->memory);
     _mm_free(ctx);
 
-    return resultV1Pow && resultV2Pow;
+    return resultV1Pow && resultV2Pow & resultHeavy;
 }

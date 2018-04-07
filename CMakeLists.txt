@@ -6,7 +6,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 
 option(WITH_LIBCPUID  "Use Libcpuid" ON)
-option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
@@ -91,7 +90,7 @@ else()
         )
 
     set(EXTRA_LIBS pthread rt)
-    
+
     if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
     	set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
     else()
@@ -152,10 +151,6 @@ CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
     set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
-endif()
-
-if (NOT WITH_AEON)
-    add_definitions(/DXMRIG_NO_AEON)
 endif()
 
 if (WITH_HTTPD)

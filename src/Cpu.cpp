@@ -55,7 +55,7 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
                                  Options::Algo algo, size_t maxCpuUsage, bool safeMode)
 {
     // limits hashfactor to maximum possible value defined by compiler flag
-    hashFactor = std::min(hashFactor, static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
+    hashFactor = std::min(hashFactor, algo == Options::ALGO_CRYPTONIGHT_HEAVY ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
 
     if (!safeMode && threadsCount > 0 && hashFactor > 0)
     {
@@ -69,6 +69,9 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
         case Options::ALGO_CRYPTONIGHT_LITE:
             algoBlockSize = 1024;
             break;
+        case Options::ALGO_CRYPTONIGHT_HEAVY:
+            algoBlockSize = 4096;
+            break;
         case Options::ALGO_CRYPTONIGHT:
         default:
             algoBlockSize = 2048;
@@ -77,7 +80,7 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
 
     size_t maximumReasonableFactor = std::max(cache / algoBlockSize, static_cast<size_t>(1ul));
     size_t maximumReasonableThreadCount = std::min(maximumReasonableFactor, m_totalThreads);
-    size_t maximumReasonableHashFactor = std::min(maximumReasonableFactor, static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
+    size_t maximumReasonableHashFactor = std::min(maximumReasonableFactor, algo == Options::ALGO_CRYPTONIGHT_HEAVY ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
 
     if (safeMode) {
         if (threadsCount > maximumReasonableThreadCount) {

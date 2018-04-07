@@ -186,9 +186,9 @@ net_resolve_cb(uv_getaddrinfo_t *rv, int err, net_ai * ai) {
   ret = uv_tcp_connect(net->conn, net->handle, (const struct sockaddr*) &dest, net_connect_cb);
   if (ret != NET_OK) {
     if (net->error_cb) {
-      net->error_cb(net, ret, (char *) uv_strerror(err));
+      net->error_cb(net, ret, (char *) uv_strerror(ret));
     } else {
-      printf("error(%s:%d) %s", net->hostname, net->port, (char *) uv_strerror(err));
+      printf("error(%s:%d) %s", net->hostname, net->port, (char *) uv_strerror(ret));
       net_free(net);
     }
     return;
@@ -206,12 +206,7 @@ net_connect_cb(uv_connect_t *conn, int err) {
   int read;
 
   if (err < 0) {
-    if (net->error_cb) {
-      net->error_cb(net, err, (char *) uv_strerror(err));
-    } else {
-      printf("error(%s:%d) %s", net->hostname, net->port, (char *) uv_strerror(err));
-      net_free(net);
-    }
+    net_free(net);
     return;
   }
 

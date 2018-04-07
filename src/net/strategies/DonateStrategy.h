@@ -62,6 +62,7 @@ private:
     void suspend();
 
     static void onTimer(uv_timer_t *handle);
+    static void onSuspendTimer(uv_timer_t *handle);
 
     bool m_active;
     Client *m_client;

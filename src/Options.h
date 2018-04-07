@@ -44,6 +44,7 @@ public:
     enum Algo {
         ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
         ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
+        ALGO_CRYPTONIGHT_HEAVY /* CryptoNight-Heavy (SUMO) */
     };
 
     enum AlgoVariant {
