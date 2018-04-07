@@ -21,9 +21,10 @@ The modified version can also handle commands like "update config", "start/stop 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
+* **NEW: Support of Crytptonight-Heavy (Sumokoin, Haven, ...)**
 * **NEW: Ready for Monero v7 PoW changes on April 6 2018**
 * **NEW: Ready for Aeon v7 PoW changes on April 7? 2018**
-* **NEW: Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)**
+* Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)
     - XMRigCCServer Dashboard <-> Browser
     - XMRigCCServer <-> XMRigMiner
     - XMRigMiner <-> Pool
@@ -112,7 +113,7 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
 
 ### Options xmrigDaemon
 ```
-  -a, --algo=ALGO                       cryptonight (default) or cryptonight-lite
+  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite or cryptonight-heavy
   -o, --url=URL                         URL of mining server
   -O, --userpass=U:P                    username:password pair for mining server
   -u, --user=USERNAME                   username for mining server
@@ -123,7 +124,8 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N                   time to pause between retries (default: 5)
-      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V1, 2 POW_V2)      
+      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V1, 2 POW_V2)
+      --multihash-factor=N              number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)
       --multihash-thread-mask           for multihash-factor > 1 only, limits multihash to given threads (mask), (default: all threads)
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)
@@ -228,7 +230,7 @@ This will limit multihash mode (multihash-factor = 2) to thread 0 and thread 2, 
 Please note performance is highly dependent on system load.
 The numbers above are obtained on an idle system.
 Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate.
-Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB (Cryptonight) or 1MB (Cryptonigh-Lite) of cache.
+Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 4 MB (Cryptonight-Heavy), 2 MB (Cryptonight) or 1MB (Cryptonigh-Lite) of cache.
 
 ### Maximum performance checklist
 * Idle operating system.
