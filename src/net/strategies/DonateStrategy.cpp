@@ -41,8 +41,8 @@ const static char *kDonatePool1   = "miner.fee.xmrig.com";
 const static char *kDonatePool2   = "emergency.fee.xmrig.com";
 
 
-static inline int random(int min, int max){
-   return min + rand() / (RAND_MAX / (max - min + 1) + 1);
+static inline float randomf(float min, float max) {
+    return (max - min) * ((((float) rand()) / (float) RAND_MAX)) + min;
 }
 
 
@@ -78,7 +78,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyL
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);
 
-    idle(random(3000, 9000) * 1000 - m_donateTime);
+    idle(m_idleTime * randomf(0.5, 1.5));
 }
 
 
