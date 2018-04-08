@@ -266,7 +266,9 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
         }
     }
 
-    for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
+    __m128i *outputTmpLimit = output + (MEM / sizeof(__m128i));
+
+    for (__m128i *outputTmp = output; outputTmp < outputTmpLimit; outputTmp += 8) {
         aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
@@ -278,14 +280,14 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
         aes_round<SOFT_AES>(k8, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
 
-        _mm_store_si128(output + i + 0, xin0);
-        _mm_store_si128(output + i + 1, xin1);
-        _mm_store_si128(output + i + 2, xin2);
-        _mm_store_si128(output + i + 3, xin3);
-        _mm_store_si128(output + i + 4, xin4);
-        _mm_store_si128(output + i + 5, xin5);
-        _mm_store_si128(output + i + 6, xin6);
-        _mm_store_si128(output + i + 7, xin7);
+        _mm_store_si128(outputTmp,     xin0);
+        _mm_store_si128(outputTmp + 1, xin1);
+        _mm_store_si128(outputTmp + 2, xin2);
+        _mm_store_si128(outputTmp + 3, xin3);
+        _mm_store_si128(outputTmp + 4, xin4);
+        _mm_store_si128(outputTmp + 5, xin5);
+        _mm_store_si128(outputTmp + 6, xin6);
+        _mm_store_si128(outputTmp + 7, xin7);
     }
 }
 
@@ -307,16 +309,18 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     xout6 = _mm_load_si128(output + 10);
     xout7 = _mm_load_si128(output + 11);
 
-    for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8)
+    __m128i *inputTmpLimit = (__m128i*) input + MEM / sizeof(__m128i);
+
+    for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8)
     {
-        xout0 = _mm_xor_si128(_mm_load_si128(input + i + 0), xout0);
-        xout1 = _mm_xor_si128(_mm_load_si128(input + i + 1), xout1);
-        xout2 = _mm_xor_si128(_mm_load_si128(input + i + 2), xout2);
-        xout3 = _mm_xor_si128(_mm_load_si128(input + i + 3), xout3);
-        xout4 = _mm_xor_si128(_mm_load_si128(input + i + 4), xout4);
-        xout5 = _mm_xor_si128(_mm_load_si128(input + i + 5), xout5);
-        xout6 = _mm_xor_si128(_mm_load_si128(input + i + 6), xout6);
-        xout7 = _mm_xor_si128(_mm_load_si128(input + i + 7), xout7);
+        xout0 = _mm_xor_si128(_mm_load_si128(inputTmp), xout0);
+        xout1 = _mm_xor_si128(_mm_load_si128(inputTmp + 1), xout1);
+        xout2 = _mm_xor_si128(_mm_load_si128(inputTmp + 2), xout2);
+        xout3 = _mm_xor_si128(_mm_load_si128(inputTmp + 3), xout3);
+        xout4 = _mm_xor_si128(_mm_load_si128(inputTmp + 4), xout4);
+        xout5 = _mm_xor_si128(_mm_load_si128(inputTmp + 5), xout5);
+        xout6 = _mm_xor_si128(_mm_load_si128(inputTmp + 6), xout6);
+        xout7 = _mm_xor_si128(_mm_load_si128(inputTmp + 7), xout7);
 
         aes_round<SOFT_AES>(k0, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         aes_round<SOFT_AES>(k1, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
@@ -335,15 +339,18 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     }
 
     if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-        for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
-            xout0 = _mm_xor_si128(_mm_load_si128(input + i + 0), xout0);
-            xout1 = _mm_xor_si128(_mm_load_si128(input + i + 1), xout1);
-            xout2 = _mm_xor_si128(_mm_load_si128(input + i + 2), xout2);
-            xout3 = _mm_xor_si128(_mm_load_si128(input + i + 3), xout3);
-            xout4 = _mm_xor_si128(_mm_load_si128(input + i + 4), xout4);
-            xout5 = _mm_xor_si128(_mm_load_si128(input + i + 5), xout5);
-            xout6 = _mm_xor_si128(_mm_load_si128(input + i + 6), xout6);
-            xout7 = _mm_xor_si128(_mm_load_si128(input + i + 7), xout7);
+        __m128i *inputTmpLimit = (__m128i*) input + MEM / sizeof(__m128i);
+
+        for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8)
+        {
+            xout0 = _mm_xor_si128(_mm_load_si128(inputTmp), xout0);
+            xout1 = _mm_xor_si128(_mm_load_si128(inputTmp + 1), xout1);
+            xout2 = _mm_xor_si128(_mm_load_si128(inputTmp + 2), xout2);
+            xout3 = _mm_xor_si128(_mm_load_si128(inputTmp + 3), xout3);
+            xout4 = _mm_xor_si128(_mm_load_si128(inputTmp + 4), xout4);
+            xout5 = _mm_xor_si128(_mm_load_si128(inputTmp + 5), xout5);
+            xout6 = _mm_xor_si128(_mm_load_si128(inputTmp + 6), xout6);
+            xout7 = _mm_xor_si128(_mm_load_si128(inputTmp + 7), xout7);
 
             aes_round<SOFT_AES>(k0, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
             aes_round<SOFT_AES>(k1, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
