@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      aegroto     <https://github.com/aegroto>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -37,7 +38,6 @@
 #include "crypto/CryptoNight.h"
 #include "crypto/CryptoNight_constants.h"
 #include "crypto/CryptoNight_monero.h"
-#include "crypto/CryptoNight_x86_loop.h"
 #include "crypto/soft_aes.h"
 
 
@@ -417,37 +417,45 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
 
     uint64_t idx0 = h0[0] ^ h0[4];
-    void* memoryPointer = ((uint8_t*) l0) + ((idx0) & MASK);
+    void* mp = ((uint8_t*) l0) + ((idx0) & MASK);
+  
+    for (size_t i = 0; i < ITERATIONS; i++) {
+        __m128i cx;
 
-    if(SOFT_AES && ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-        for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx;
-            SINGLEHASH_LOOP_SOFTAES
-            SINGLEHASH_LOOP_COMMON
-            SINGLEHASH_LOOP_CNHEAVY
+        if (SOFT_AES) {
+            cx = soft_aesenc((uint32_t*) mp, _mm_set_epi64x(ah0, al0)); 
+        } else {  
+            cx = _mm_load_si128((__m128i *) mp);
+            cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
         }
-    } else if(!SOFT_AES && ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-        for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx;
-            SINGLEHASH_LOOP_HARDAES
-            SINGLEHASH_LOOP_COMMON
-            SINGLEHASH_LOOP_CNHEAVY
-        }
-    } else {
-        for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx;
 
-            if (SOFT_AES) {
-                SINGLEHASH_LOOP_SOFTAES
-            } else {  
-                SINGLEHASH_LOOP_HARDAES
-            }
+        _mm_store_si128((__m128i *) mp, _mm_xor_si128(bx0, cx));
+        VARIANT1_1(mp);        
+        mp = ((uint8_t*) l0) + ((idx0 = EXTRACT64(cx)) & MASK);        
+        bx0 = cx;
 
-            SINGLEHASH_LOOP_COMMON
+        uint64_t hi, lo, cl, ch;
+        cl = ((uint64_t*) mp)[0];
+        ch = ((uint64_t*) mp)[1];
+        lo = __umul128(idx0, cl, &hi);
 
-            if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-                SINGLEHASH_LOOP_CNHEAVY
-            }
+        al0 += hi;
+        ah0 += lo;
+
+        VARIANT1_2(ah0, 0);
+        ((uint64_t*) mp)[0] = al0;
+        ((uint64_t*) mp)[1] = ah0;
+        VARIANT1_2(ah0, 0);
+
+        ah0 ^= ch;
+        al0 ^= cl;
+        mp = ((uint8_t*) l0) + ((al0) & MASK); 
+
+        if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
+            int64_t n  = ((int64_t*)mp)[0];
+            int32_t d  = ((int32_t*)mp)[2];
+            int64_t q = n / (d | 0x5);
+            ((int64_t*) mp)[0] = n ^ q; 
         }
     }
 
