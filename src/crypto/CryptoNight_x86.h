@@ -416,7 +416,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
     uint64_t idx0 = h0[0] ^ h0[4];
     void* mp = ((uint8_t*) l0) + ((idx0) & MASK);
-  
+    
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx;
 
