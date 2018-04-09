@@ -37,6 +37,7 @@
 #include "crypto/CryptoNight.h"
 #include "crypto/CryptoNight_constants.h"
 #include "crypto/CryptoNight_monero.h"
+#include "crypto/CryptoNight_x86_loop.h"
 #include "crypto/soft_aes.h"
 
 
@@ -121,7 +122,6 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
     return product_lo;
 }
 #endif
-
 
 // This will shift and xor tmp1 into itself as 4 32-bit vals such as
 // sl_xor(a1 a2 a3 a4) = a1 (a2^a1) (a3^a2^a1) (a4^a3^a2^a1)
@@ -266,7 +266,7 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
         }
     }
 
-    __m128i *outputTmpLimit = output + (MEM / sizeof(__m128i));
+    const __m128i *outputTmpLimit = output + (MEM / sizeof(__m128i));
 
     for (__m128i *outputTmp = output; outputTmp < outputTmpLimit; outputTmp += 8) {
         aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
@@ -309,7 +309,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     xout6 = _mm_load_si128(output + 10);
     xout7 = _mm_load_si128(output + 11);
 
-    __m128i *inputTmpLimit = (__m128i*) input + MEM / sizeof(__m128i);
+    const __m128i *inputTmpLimit = (__m128i*) input + MEM / sizeof(__m128i);
 
     for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8)
     {
@@ -339,8 +339,6 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     }
 
     if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-        __m128i *inputTmpLimit = (__m128i*) input + MEM / sizeof(__m128i);
-
         for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8)
         {
             xout0 = _mm_xor_si128(_mm_load_si128(inputTmp), xout0);
@@ -419,46 +417,37 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
 
     uint64_t idx0 = h0[0] ^ h0[4];
+    void* memoryPointer = ((uint8_t*) l0) + ((idx0) & MASK);
 
-    for (size_t i = 0; i < ITERATIONS; i++) {
-        __m128i cx;
-
-        if (SOFT_AES) {
-            cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+    if(SOFT_AES && ALGO == xmrig::CRYPTONIGHT_HEAVY) {
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            __m128i cx;
+            SINGLEHASH_LOOP_SOFTAES
+            SINGLEHASH_LOOP_COMMON
+            SINGLEHASH_LOOP_CNHEAVY
         }
-        else {  
-            cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
-            cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
+    } else if(!SOFT_AES && ALGO == xmrig::CRYPTONIGHT_HEAVY) {
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            __m128i cx;
+            SINGLEHASH_LOOP_HARDAES
+            SINGLEHASH_LOOP_COMMON
+            SINGLEHASH_LOOP_CNHEAVY
         }
-        _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
-        VARIANT1_1(&l0[idx0 & MASK]);
-        idx0 = EXTRACT64(cx);
-        bx0 = cx;
+    } else {
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            __m128i cx;
 
-        uint64_t hi, lo, cl, ch;
-        cl = ((uint64_t*) &l0[idx0 & MASK])[0];
-        ch = ((uint64_t*) &l0[idx0 & MASK])[1];
-        lo = __umul128(idx0, cl, &hi);
+            if (SOFT_AES) {
+                SINGLEHASH_LOOP_SOFTAES
+            } else {  
+                SINGLEHASH_LOOP_HARDAES
+            }
 
-        al0 += hi;
-        ah0 += lo;
+            SINGLEHASH_LOOP_COMMON
 
-        VARIANT1_2(ah0, 0);
-        ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
-        ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
-        VARIANT1_2(ah0, 0);
-
-        ah0 ^= ch;
-        al0 ^= cl;
-        idx0 = al0;
-
-        if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-            int64_t n  = ((int64_t*)&l0[idx0 & MASK])[0];
-            int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
-            int64_t q = n / (d | 0x5);
-
-            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
-            idx0 = d ^ q;
+            if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
+                SINGLEHASH_LOOP_CNHEAVY
+            }
         }
     }
 
