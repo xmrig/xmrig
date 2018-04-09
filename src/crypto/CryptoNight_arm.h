@@ -7,6 +7,7 @@
  * Copyright 2016      Imran Yusuff <https://github.com/imranyusuff>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      aegroto     <https://github.com/aegroto>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -272,7 +273,9 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
         }
     }
 
-    for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
+    const __m128i *outputTmpLimit = output + (MEM / sizeof(__m128i));
+
+    for (__m128i *outputTmp = output; outputTmp < outputTmpLimit; outputTmp += 8) {
         if (!SOFT_AES) {
             aes_round<SOFT_AES>(_mm_setzero_si128(), &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         }
@@ -301,14 +304,14 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
             aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         }
 
-        _mm_store_si128(output + i + 0, xin0);
-        _mm_store_si128(output + i + 1, xin1);
-        _mm_store_si128(output + i + 2, xin2);
-        _mm_store_si128(output + i + 3, xin3);
-        _mm_store_si128(output + i + 4, xin4);
-        _mm_store_si128(output + i + 5, xin5);
-        _mm_store_si128(output + i + 6, xin6);
-        _mm_store_si128(output + i + 7, xin7);
+        _mm_store_si128(outputTmp,     xin0);
+        _mm_store_si128(outputTmp + 1, xin1);
+        _mm_store_si128(outputTmp + 2, xin2);
+        _mm_store_si128(outputTmp + 3, xin3);
+        _mm_store_si128(outputTmp + 4, xin4);
+        _mm_store_si128(outputTmp + 5, xin5);
+        _mm_store_si128(outputTmp + 6, xin6);
+        _mm_store_si128(outputTmp + 7, xin7);
     }
 }
 
@@ -330,16 +333,18 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     xout6 = _mm_load_si128(output + 10);
     xout7 = _mm_load_si128(output + 11);
 
-    for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8)
+    const __m128i *inputTmpLimit = (__m128i*) input + MEM / sizeof(__m128i);
+
+    for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8)
     {
-        xout0 = _mm_xor_si128(_mm_load_si128(input + i + 0), xout0);
-        xout1 = _mm_xor_si128(_mm_load_si128(input + i + 1), xout1);
-        xout2 = _mm_xor_si128(_mm_load_si128(input + i + 2), xout2);
-        xout3 = _mm_xor_si128(_mm_load_si128(input + i + 3), xout3);
-        xout4 = _mm_xor_si128(_mm_load_si128(input + i + 4), xout4);
-        xout5 = _mm_xor_si128(_mm_load_si128(input + i + 5), xout5);
-        xout6 = _mm_xor_si128(_mm_load_si128(input + i + 6), xout6);
-        xout7 = _mm_xor_si128(_mm_load_si128(input + i + 7), xout7);
+        xout0 = _mm_xor_si128(_mm_load_si128(inputTmp), xout0);
+        xout1 = _mm_xor_si128(_mm_load_si128(inputTmp + 1), xout1);
+        xout2 = _mm_xor_si128(_mm_load_si128(inputTmp + 2), xout2);
+        xout3 = _mm_xor_si128(_mm_load_si128(inputTmp + 3), xout3);
+        xout4 = _mm_xor_si128(_mm_load_si128(inputTmp + 4), xout4);
+        xout5 = _mm_xor_si128(_mm_load_si128(inputTmp + 5), xout5);
+        xout6 = _mm_xor_si128(_mm_load_si128(inputTmp + 6), xout6);
+        xout7 = _mm_xor_si128(_mm_load_si128(inputTmp + 7), xout7);
 
         if (!SOFT_AES) {
             aes_round<SOFT_AES>(_mm_setzero_si128(), &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
@@ -375,15 +380,15 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     }
 
     if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-        for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
-            xout0 = _mm_xor_si128(_mm_load_si128(input + i + 0), xout0);
-            xout1 = _mm_xor_si128(_mm_load_si128(input + i + 1), xout1);
-            xout2 = _mm_xor_si128(_mm_load_si128(input + i + 2), xout2);
-            xout3 = _mm_xor_si128(_mm_load_si128(input + i + 3), xout3);
-            xout4 = _mm_xor_si128(_mm_load_si128(input + i + 4), xout4);
-            xout5 = _mm_xor_si128(_mm_load_si128(input + i + 5), xout5);
-            xout6 = _mm_xor_si128(_mm_load_si128(input + i + 6), xout6);
-            xout7 = _mm_xor_si128(_mm_load_si128(input + i + 7), xout7);
+        for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8) {
+            xout0 = _mm_xor_si128(_mm_load_si128(inputTmp), xout0);
+            xout1 = _mm_xor_si128(_mm_load_si128(inputTmp + 1), xout1);
+            xout2 = _mm_xor_si128(_mm_load_si128(inputTmp + 2), xout2);
+            xout3 = _mm_xor_si128(_mm_load_si128(inputTmp + 3), xout3);
+            xout4 = _mm_xor_si128(_mm_load_si128(inputTmp + 4), xout4);
+            xout5 = _mm_xor_si128(_mm_load_si128(inputTmp + 5), xout5);
+            xout6 = _mm_xor_si128(_mm_load_si128(inputTmp + 6), xout6);
+            xout7 = _mm_xor_si128(_mm_load_si128(inputTmp + 7), xout7);
 
             if (!SOFT_AES) {
                 aes_round<SOFT_AES>(_mm_setzero_si128(), &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
@@ -486,49 +491,47 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
 
     uint64_t idx0 = h0[0] ^ h0[4];
+    void* mp = ((uint8_t*) l0) + ((idx0) & MASK);
 
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx;
 
         if (SOFT_AES) {
-            cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-        }
-        else {
-            cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+            cx = soft_aesenc((uint32_t*) mp, _mm_set_epi64x(ah0, al0));
+        } else {
+            cx = _mm_load_si128((__m128i *) mp);
 #           ifndef XMRIG_ARMv7
-            cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
+                cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
 #           endif
         }
 
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
-        VARIANT1_1(&l0[idx0 & MASK]);
-        idx0 = EXTRACT64(cx);
+        VARIANT1_1(mp);
+        mp = ((uint8_t*) l0) + ((idx0 = EXTRACT64(cx)) & MASK);  
         bx0 = cx;
 
         uint64_t hi, lo, cl, ch;
-        cl = ((uint64_t*) &l0[idx0 & MASK])[0];
-        ch = ((uint64_t*) &l0[idx0 & MASK])[1];
+        cl = ((uint64_t*) mp)[0];
+        ch = ((uint64_t*) mp)[1];
         lo = __umul128(idx0, cl, &hi);
 
         al0 += hi;
         ah0 += lo;
 
         VARIANT1_2(ah0, 0);
-        ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
-        ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
+        ((uint64_t*) mp)[0] = al0;
+        ((uint64_t*) mp)[1] = ah0;
         VARIANT1_2(ah0, 0);
 
         ah0 ^= ch;
         al0 ^= cl;
-        idx0 = al0;
 
         if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-            int64_t n  = ((int64_t*)&l0[idx0 & MASK])[0];
-            int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
+            int64_t n  = ((int64_t*) mp)[0];
+            int32_t d  = ((int32_t*) mp)[2];
             int64_t q = n / (d | 0x5);
 
-            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
-            idx0 = d ^ q;
+            ((int64_t*)mp)[0] = n ^ q;
         }
     }
 

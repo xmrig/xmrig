@@ -311,8 +311,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 
     const __m128i *inputTmpLimit = (__m128i*) input + MEM / sizeof(__m128i);
 
-    for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8)
-    {
+    for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8) {
         xout0 = _mm_xor_si128(_mm_load_si128(inputTmp), xout0);
         xout1 = _mm_xor_si128(_mm_load_si128(inputTmp + 1), xout1);
         xout2 = _mm_xor_si128(_mm_load_si128(inputTmp + 2), xout2);
@@ -339,8 +338,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     }
 
     if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-        for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8)
-        {
+        for (__m128i *inputTmp = (__m128i*) input; inputTmp < inputTmpLimit; inputTmp += 8) {
             xout0 = _mm_xor_si128(_mm_load_si128(inputTmp), xout0);
             xout1 = _mm_xor_si128(_mm_load_si128(inputTmp + 1), xout1);
             xout2 = _mm_xor_si128(_mm_load_si128(inputTmp + 2), xout2);
