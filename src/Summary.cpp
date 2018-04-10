@@ -32,7 +32,7 @@
 #include "Cpu.h"
 #include "log/Log.h"
 #include "Mem.h"
-#include "net/Url.h"
+#include "net/Pool.h"
 #include "Summary.h"
 #include "version.h"
 
@@ -112,13 +112,13 @@ static void print_threads(xmrig::Config *config)
 
 static void print_pools(xmrig::Config *config)
 {
-    const std::vector<Url*> &pools = config->pools();
+    const std::vector<Pool> &pools = config->pools();
 
     for (size_t i = 0; i < pools.size(); ++i) {
-        Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mPOOL #%d:      \x1B[01;36m%s:%d" : " * POOL #%d:      %s:%d",
+        Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mPOOL #%d:      \x1B[01;36m%s" : " * POOL #%d:      %s",
                        i + 1,
-                       pools[i]->host(),
-                       pools[i]->port());
+                       pools[i].url()
+                       );
     }
 
 #   ifdef APP_DEBUG

@@ -45,12 +45,12 @@ set(HEADERS
     src/net/Job.h
     src/net/JobResult.h
     src/net/Network.h
+    src/net/Pool.h
     src/net/Storage.h
     src/net/strategies/DonateStrategy.h
     src/net/strategies/FailoverStrategy.h
     src/net/strategies/SinglePoolStrategy.h
     src/net/SubmitResult.h
-    src/net/Url.h
     src/Platform.h
     src/Summary.h
     src/version.h
@@ -102,11 +102,11 @@ set(SOURCES
     src/net/Client.cpp
     src/net/Job.cpp
     src/net/Network.cpp
+    src/net/Pool.cpp
     src/net/strategies/DonateStrategy.cpp
     src/net/strategies/FailoverStrategy.cpp
     src/net/strategies/SinglePoolStrategy.cpp
     src/net/SubmitResult.cpp
-    src/net/Url.cpp
     src/Platform.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp

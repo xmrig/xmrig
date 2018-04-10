@@ -38,7 +38,7 @@
 #include "core/ConfigWatcher.h"
 #include "interfaces/IConfig.h"
 #include "interfaces/IWatcherListener.h"
-#include "net/Url.h"
+#include "net/Pool.h"
 #include "Platform.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"

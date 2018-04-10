@@ -31,9 +31,7 @@
 #include "core/utils/c_str.h"
 #include "interfaces/IConfig.h"
 #include "xmrig.h"
-
-
-class Url;
+#include "net/Pool.h"
 
 
 namespace xmrig {
@@ -58,7 +56,7 @@ public:
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
     inline const char *logFile() const             { return m_logFile.data(); }
     inline const char *userAgent() const           { return m_userAgent.data(); }
-    inline const std::vector<Url*> &pools() const  { return m_pools; }
+    inline const std::vector<Pool> &pools() const  { return m_pools; }
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
@@ -91,7 +89,7 @@ protected:
     int m_printTime;
     int m_retries;
     int m_retryPause;
-    std::vector<Url*> m_pools;
+    std::vector<Pool> m_pools;
     xmrig::c_str m_apiToken;
     xmrig::c_str m_apiWorkerId;
     xmrig::c_str m_fileName;

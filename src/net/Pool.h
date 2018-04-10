@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __URL_H__
-#define __URL_H__
+#ifndef __POOL_H__
+#define __POOL_H__
 
 
 #include <stdint.h>
@@ -32,7 +32,7 @@
 #include "xmrig.h"
 
 
-class Url
+class Pool
 {
 public:
     constexpr static const char *kDefaultPassword = "x";
@@ -40,9 +40,9 @@ public:
     constexpr static uint16_t kDefaultPort        = 3333;
     constexpr static int kKeepAliveTimeout        = 60;
 
-    Url();
-    Url(const char *url);
-    Url(const char *host,
+    Pool();
+    Pool(const char *url);
+    Pool(const char *host,
         uint16_t port,
         const char *user       = nullptr,
         const char *password   = nullptr,
@@ -66,10 +66,15 @@ public:
     inline xmrig::Algo algo() const               { return m_algo; }
     inline xmrig::Variant variant() const         { return m_variant; }
 
+    inline bool operator!=(const Pool &other) const  { return !isEqual(other); }
+    inline bool operator==(const Pool &other) const  { return isEqual(other); }
+
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
     void adjust(xmrig::Algo algo);
     void setVariant(int variant);
+
+    bool isEqual(const Pool &other) const;
 
 private:
     bool parseIPv6(const char *addr);
@@ -85,4 +90,4 @@ private:
     xmrig::Variant m_variant;
 };
 
-#endif /* __URL_H__ */
+#endif /* __POOL_H__ */

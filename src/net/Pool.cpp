@@ -28,7 +28,7 @@
 #include <stdio.h>
 
 
-#include "net/Url.h"
+#include "net/Pool.h"
 
 
 #ifdef _MSC_VER
@@ -36,7 +36,7 @@
 #endif
 
 
-Url::Url() :
+Pool::Pool() :
     m_nicehash(false),
     m_keepAlive(0),
     m_port(kDefaultPort),
@@ -57,7 +57,7 @@ Url::Url() :
  *
  * @param url
  */
-Url::Url(const char *url) :
+Pool::Pool(const char *url) :
     m_nicehash(false),
     m_keepAlive(0),
     m_port(kDefaultPort),
@@ -69,7 +69,7 @@ Url::Url(const char *url) :
 }
 
 
-Url::Url(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, xmrig::Variant variant) :
+Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, xmrig::Variant variant) :
     m_nicehash(nicehash),
     m_keepAlive(keepAlive),
     m_port(port),
@@ -89,7 +89,7 @@ Url::Url(const char *host, uint16_t port, const char *user, const char *password
 }
 
 
-bool Url::parse(const char *url)
+bool Pool::parse(const char *url)
 {
     assert(url != nullptr);
 
@@ -114,7 +114,7 @@ bool Url::parse(const char *url)
 
     const char *port = strchr(base, ':');
     if (!port) {
-        m_host = strdup(base);
+        m_host = base;
         return false;
     }
 
@@ -129,7 +129,7 @@ bool Url::parse(const char *url)
 }
 
 
-bool Url::setUserpass(const char *userpass)
+bool Pool::setUserpass(const char *userpass)
 {
     const char *p = strchr(userpass, ':');
     if (!p) {
@@ -146,7 +146,7 @@ bool Url::setUserpass(const char *userpass)
 }
 
 
-void Url::adjust(xmrig::Algo algo)
+void Pool::adjust(xmrig::Algo algo)
 {
     if (!isValid()) {
         return;
@@ -165,7 +165,7 @@ void Url::adjust(xmrig::Algo algo)
 }
 
 
-void Url::setVariant(int variant)
+void Pool::setVariant(int variant)
 {
    switch (variant) {
    case xmrig::VARIANT_AUTO:
@@ -181,7 +181,21 @@ void Url::setVariant(int variant)
 }
 
 
-bool Url::parseIPv6(const char *addr)
+bool Pool::isEqual(const Pool &other) const
+{
+    return (m_nicehash     == other.m_nicehash
+            && m_keepAlive == other.m_keepAlive
+            && m_port      == other.m_port
+            && m_algo      == other.m_algo
+            && m_host      == other.m_host
+            && m_password  == other.m_password
+            && m_url       == other.m_url
+            && m_user      == other.m_user
+            && m_variant   == other.m_variant);
+}
+
+
+bool Pool::parseIPv6(const char *addr)
 {
     const char *end = strchr(addr, ']');
     if (!end) {

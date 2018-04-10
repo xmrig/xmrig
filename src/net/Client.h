@@ -30,12 +30,11 @@
 #include <vector>
 
 
-#include "core/utils/c_str.h"
 #include "net/Id.h"
 #include "net/Job.h"
 #include "net/Storage.h"
 #include "net/SubmitResult.h"
-#include "net/Url.h"
+#include "net/Pool.h"
 #include "rapidjson/fwd.h"
 
 
@@ -62,18 +61,18 @@ public:
     bool disconnect();
     int64_t submit(const JobResult &result);
     void connect();
-    void connect(const Url *url);
+    void connect(const Pool &pool);
     void deleteLater();
-    void setUrl(const Url *url);
+    void setUrl(const Pool &pool);
     void tick(uint64_t now);
 
     inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }
-    inline const char *host() const          { return m_url.host(); }
+    inline const char *host() const          { return m_pool.host(); }
     inline const char *ip() const            { return m_ip; }
     inline const Job &job() const            { return m_job; }
     inline int id() const                    { return m_id; }
     inline SocketState state() const         { return m_state; }
-    inline uint16_t port() const             { return m_url.port(); }
+    inline uint16_t port() const             { return m_pool.port(); }
     inline void setQuiet(bool quiet)         { m_quiet = quiet; }
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
@@ -118,6 +117,7 @@ private:
     int m_retryPause;
     int64_t m_failures;
     Job m_job;
+    Pool m_pool;
     size_t m_recvBufPos;
     SocketState m_state;
     std::map<int64_t, SubmitResult> m_results;
@@ -125,7 +125,6 @@ private:
     uint64_t m_jobs;
     uint64_t m_keepAlive;
     uintptr_t m_key;
-    Url m_url;
     uv_buf_t m_recvBuf;
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;

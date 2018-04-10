@@ -28,7 +28,7 @@
 #include "Platform.h"
 
 
-FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
+FailoverStrategy::FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
     m_quiet(quiet),
     m_retries(retries),
     m_retryPause(retryPause),
@@ -36,7 +36,7 @@ FailoverStrategy::FailoverStrategy(const std::vector<Url*> &urls, int retryPause
     m_index(0),
     m_listener(listener)
 {
-    for (const Url *url : urls) {
+    for (const Pool &url : urls) {
         add(url);
     }
 }
@@ -153,10 +153,10 @@ void FailoverStrategy::onResultAccepted(Client *client, const SubmitResult &resu
 }
 
 
-void FailoverStrategy::add(const Url *url)
+void FailoverStrategy::add(const Pool &pool)
 {
     Client *client = new Client((int) m_pools.size(), Platform::userAgent(), this);
-    client->setUrl(url);
+    client->setUrl(pool);
     client->setRetryPause(m_retryPause * 1000);
     client->setQuiet(m_quiet);
 

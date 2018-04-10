@@ -32,7 +32,7 @@
 #include "core/CommonConfig.h"
 #include "donate.h"
 #include "log/Log.h"
-#include "net/Url.h"
+#include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -79,7 +79,7 @@ xmrig::CommonConfig::CommonConfig() :
     m_retries(5),
     m_retryPause(5)
 {
-    m_pools.push_back(new Url());
+    m_pools.push_back(Pool());
 
 #   ifdef XMRIG_PROXY_PROJECT
     m_retries    = 2;
@@ -90,11 +90,6 @@ xmrig::CommonConfig::CommonConfig() :
 
 xmrig::CommonConfig::~CommonConfig()
 {
-    for (Url *url : m_pools) {
-        delete url;
-    }
-
-    m_pools.clear();
 }
 
 
@@ -112,8 +107,8 @@ bool xmrig::CommonConfig::adjust()
 
     m_adjusted = true;
 
-    for (Url *url : m_pools) {
-        url->adjust(algorithm());
+    for (Pool &pool : m_pools) {
+        pool.adjust(algorithm());
     }
 
     return true;
@@ -122,7 +117,7 @@ bool xmrig::CommonConfig::adjust()
 
 bool xmrig::CommonConfig::isValid() const
 {
-    return m_pools[0]->isValid();
+    return m_pools[0].isValid();
 }
 
 
@@ -138,12 +133,12 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        m_pools.back()->setKeepAlive(enable ? Url::kKeepAliveTimeout : 0);
+        m_pools.back().setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0);
         break;
 
 #   ifndef XMRIG_PROXY_PROJECT
     case NicehashKey: /* --nicehash */
-        m_pools.back()->setNicehash(enable);
+        m_pools.back().setNicehash(enable);
         break;
 #   endif
 
@@ -177,38 +172,36 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         break;
 
     case UserpassKey: /* --userpass */
-        if (!m_pools.back()->setUserpass(arg)) {
+        if (!m_pools.back().setUserpass(arg)) {
             return false;
         }
 
         break;
 
     case UrlKey: /* --url */
-        if (m_pools.size() > 1 || m_pools[0]->isValid()) {
-            Url *url = new Url(arg);
-            if (url->isValid()) {
-                m_pools.push_back(url);
-            }
-            else {
-                delete url;
+        if (m_pools.size() > 1 || m_pools[0].isValid()) {
+            Pool pool(arg);
+
+            if (pool.isValid()) {
+                m_pools.push_back(std::move(pool));
             }
         }
         else {
-            m_pools[0]->parse(arg);
+            m_pools[0].parse(arg);
         }
 
-        if (!m_pools.back()->isValid()) {
+        if (!m_pools.back().isValid()) {
             return false;
         }
 
         break;
 
     case UserKey: /* --user */
-        m_pools.back()->setUser(arg);
+        m_pools.back().setUser(arg);
         break;
 
     case PasswordKey: /* --pass */
-        m_pools.back()->setPassword(arg);
+        m_pools.back().setPassword(arg);
         break;
 
     case LogFileKey: /* --log-file */
@@ -325,11 +318,11 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        m_pools.back()->setKeepAlive(arg);
+        m_pools.back().setKeepAlive(arg);
         break;
 
     case VariantKey: /* --variant */
-        m_pools.back()->setVariant(arg);
+        m_pools.back().setVariant(arg);
         break;
 
     case DonateLevelKey: /* --donate-level */

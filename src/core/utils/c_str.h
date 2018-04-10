@@ -43,9 +43,11 @@ namespace xmrig {
 class c_str
 {
 public:
-    inline c_str() : m_data(nullptr)                {}
-    inline c_str(const char *str) : m_data(nullptr) { set(str); }
-    inline ~c_str()                                 { free(m_data); }
+    inline c_str() : m_data(nullptr)                   {}
+    inline c_str(c_str &&other)                        { m_data = other.m_data; other.m_data = nullptr; }
+    inline c_str(const c_str &other) : m_data(nullptr) { set(other.data()); }
+    inline c_str(const char *str) : m_data(nullptr)    { set(str); }
+    inline ~c_str()                                    { free(m_data); }
 
 
     inline void set(const char *str)
