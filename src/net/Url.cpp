@@ -22,13 +22,13 @@
  */
 
 
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 
 #include "net/Url.h"
-#include "xmrig.h"
 
 
 #ifdef _MSC_VER
@@ -38,14 +38,10 @@
 
 Url::Url() :
     m_nicehash(false),
-    m_host(nullptr),
-    m_password(nullptr),
-    m_user(nullptr),
-    m_algo(xmrig::CRYPTONIGHT),
     m_keepAlive(0),
-    m_variant(xmrig::VARIANT_AUTO),
-    m_url(nullptr),
-    m_port(kDefaultPort)
+    m_port(kDefaultPort),
+    m_algo(xmrig::CRYPTONIGHT),
+    m_variant(xmrig::VARIANT_AUTO)
 {
 }
 
@@ -63,47 +59,40 @@ Url::Url() :
  */
 Url::Url(const char *url) :
     m_nicehash(false),
-    m_host(nullptr),
-    m_password(nullptr),
-    m_user(nullptr),
-    m_algo(xmrig::CRYPTONIGHT),
     m_keepAlive(0),
-    m_variant(xmrig::VARIANT_AUTO),
-    m_url(nullptr),
-    m_port(kDefaultPort)
+    m_port(kDefaultPort),
+    m_algo(xmrig::CRYPTONIGHT),
+    m_url(url),
+    m_variant(xmrig::VARIANT_AUTO)
 {
     parse(url);
 }
 
 
-Url::Url(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, int variant) :
+Url::Url(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, xmrig::Variant variant) :
     m_nicehash(nicehash),
-    m_password(password ? strdup(password) : nullptr),
-    m_user(user ? strdup(user) : nullptr),
-    m_algo(xmrig::CRYPTONIGHT),
     m_keepAlive(keepAlive),
-    m_variant(variant),
-    m_url(nullptr),
-    m_port(port)
+    m_port(port),
+    m_algo(xmrig::CRYPTONIGHT),
+    m_host(host),
+    m_password(password),
+    m_user(user),
+        m_variant(variant)
 {
-    m_host = strdup(host);
-}
+    const size_t size = m_host.size() + 8;
+    assert(size > 8);
 
+    char *url = new char[size]();
+    snprintf(url, size - 1, "%s:%d", m_host.data(), m_port);
 
-Url::~Url()
-{
-    free(m_host);
-    free(m_password);
-    free(m_user);
-
-    if (m_url) {
-        delete [] m_url;
-    }
+    m_url = url;
 }
 
 
 bool Url::parse(const char *url)
 {
+    assert(url != nullptr);
+
     const char *p = strstr(url, "://");
     const char *base = url;
 
@@ -130,10 +119,12 @@ bool Url::parse(const char *url)
     }
 
     const size_t size = port++ - base + 1;
-    m_host = new char[size]();
-    memcpy(m_host, base, size - 1);
+    char *host        = new char[size]();
+    memcpy(host, base, size - 1);
 
-    m_port = (uint16_t) strtol(port, nullptr, 10);
+    m_host = host;
+    m_port = static_cast<uint16_t>(strtol(port, nullptr, 10));
+
     return true;
 }
 
@@ -145,31 +136,17 @@ bool Url::setUserpass(const char *userpass)
         return false;
     }
 
-    free(m_user);
-    free(m_password);
+    char *user = new char[p - userpass + 1]();
+    strncpy(user, userpass, p - userpass);
 
-    m_user = static_cast<char*>(calloc(p - userpass + 1, 1));
-    strncpy(m_user, userpass, p - userpass);
-    m_password = strdup(p + 1);
+    m_user     = user;
+    m_password = p + 1;
 
     return true;
 }
 
 
-const char *Url::url() const
-{
-    if (!m_url) {
-        const size_t size = strlen(m_host) + 8;
-        m_url = new char[size];
-
-        snprintf(m_url, size - 1, "%s:%d", m_host, m_port);
-    }
-
-    return m_url;
-}
-
-
-void Url::adjust(int algo)
+void Url::adjust(xmrig::Algo algo)
 {
     if (!isValid()) {
         return;
@@ -177,36 +154,14 @@ void Url::adjust(int algo)
 
     m_algo = algo;
 
-    if (strstr(m_host, ".nicehash.com")) {
+    if (strstr(m_host.data(), ".nicehash.com")) {
         m_keepAlive = false;
         m_nicehash  = true;
     }
 
-    if (strstr(m_host, ".minergate.com")) {
+    if (strstr(m_host.data(), ".minergate.com")) {
         m_keepAlive = false;
     }
-}
-
-
-void Url::setPassword(const char *password)
-{
-    if (!password) {
-        return;
-    }
-
-    free(m_password);
-    m_password = strdup(password);
-}
-
-
-void Url::setUser(const char *user)
-{
-    if (!user) {
-        return;
-    }
-
-    free(m_user);
-    m_user = strdup(user);
 }
 
 
@@ -216,49 +171,13 @@ void Url::setVariant(int variant)
    case xmrig::VARIANT_AUTO:
    case xmrig::VARIANT_NONE:
    case xmrig::VARIANT_V1:
-       m_variant = variant;
+       m_variant = static_cast<xmrig::Variant>(variant);
        break;
 
    default:
+       assert(false);
        break;
    }
-}
-
-
-bool Url::operator==(const Url &other) const
-{
-    if (m_port != other.m_port || m_keepAlive != other.m_keepAlive || m_nicehash != other.m_nicehash) {
-        return false;
-    }
-
-    if (strcmp(host(), other.host()) != 0 || strcmp(user(), other.user()) != 0 || strcmp(password(), other.password()) != 0) {
-        return false;
-    }
-
-    return true;
-}
-
-
-Url &Url::operator=(const Url *other)
-{
-    m_keepAlive = other->m_keepAlive;
-    m_algo      = other->m_algo;
-    m_variant   = other->m_variant;
-    m_nicehash  = other->m_nicehash;
-    m_port      = other->m_port;
-
-    free(m_host);
-    m_host = strdup(other->m_host);
-
-    setPassword(other->m_password);
-    setUser(other->m_user);
-
-    if (m_url) {
-        delete [] m_url;
-        m_url = nullptr;
-    }
-
-    return *this;
 }
 
 
@@ -275,10 +194,11 @@ bool Url::parseIPv6(const char *addr)
     }
 
     const size_t size = end - addr;
-    m_host = new char[size]();
-    memcpy(m_host, addr + 1, size - 1);
+    char *host        = new char[size]();
+    memcpy(host, addr + 1, size - 1);
 
-    m_port = (uint16_t) strtol(port + 1, nullptr, 10);
+    m_host = host;
+    m_port = static_cast<uint16_t>(strtol(port + 1, nullptr, 10));
 
     return true;
 }

@@ -30,6 +30,7 @@
 #include <vector>
 
 
+#include "core/utils/c_str.h"
 #include "net/Id.h"
 #include "net/Job.h"
 #include "net/Storage.h"

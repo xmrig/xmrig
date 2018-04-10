@@ -73,11 +73,6 @@ xmrig::CommonConfig::CommonConfig() :
     m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
 #   endif
 
-    m_apiToken(nullptr),
-    m_apiWorkerId(nullptr),
-    m_fileName(nullptr),
-    m_logFile(nullptr),
-    m_userAgent(nullptr),
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
@@ -100,12 +95,6 @@ xmrig::CommonConfig::~CommonConfig()
     }
 
     m_pools.clear();
-
-    free(m_fileName);
-    free(m_apiToken);
-    free(m_apiWorkerId);
-    free(m_logFile);
-    free(m_userAgent);
 }
 
 
@@ -223,23 +212,19 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         break;
 
     case LogFileKey: /* --log-file */
-        free(m_logFile);
-        m_logFile = strdup(arg);
+        m_logFile = arg;
         break;
 
     case ApiAccessTokenKey: /* --api-access-token */
-        free(m_apiToken);
-        m_apiToken = strdup(arg);
+        m_apiToken = arg;
         break;
 
     case ApiWorkerIdKey: /* --api-worker-id */
-        free(m_apiWorkerId);
-        m_apiWorkerId = strdup(arg);
+        m_apiWorkerId = arg;
         break;
 
     case UserAgentKey: /* --user-agent */
-        free(m_userAgent);
-        m_userAgent = strdup(arg);
+        m_userAgent = arg;
         break;
 
     case RetriesKey:     /* --retries */
@@ -286,12 +271,12 @@ bool xmrig::CommonConfig::parseUint64(int key, uint64_t arg)
 
 bool xmrig::CommonConfig::save()
 {
-    if (!m_fileName) {
+    if (m_fileName.isNull()) {
         return false;
     }
 
     uv_fs_t req;
-    const int fd = uv_fs_open(uv_default_loop(), &req, m_fileName, O_WRONLY | O_CREAT | O_TRUNC, 0644, nullptr);
+    const int fd = uv_fs_open(uv_default_loop(), &req, m_fileName.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644, nullptr);
     if (fd < 0) {
         return false;
     }
@@ -320,8 +305,7 @@ bool xmrig::CommonConfig::save()
 
 void xmrig::CommonConfig::setFileName(const char *fileName)
 {
-    free(m_fileName);
-    m_fileName = fileName ? strdup(fileName) : nullptr;
+    m_fileName = fileName;
 }
 
 

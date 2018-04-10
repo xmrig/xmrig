@@ -33,9 +33,9 @@
 
 
 xmrig::ConfigWatcher::ConfigWatcher(const char *path, IConfigCreator *creator, IWatcherListener *listener) :
-    m_path(strdup(path)),
     m_creator(creator),
-    m_listener(listener)
+    m_listener(listener),
+    m_path(path)
 {
     uv_fs_event_init(uv_default_loop(), &m_fsEvent);
     uv_timer_init(uv_default_loop(), &m_timer);
@@ -50,8 +50,6 @@ xmrig::ConfigWatcher::~ConfigWatcher()
 {
     uv_timer_stop(&m_timer);
     uv_fs_event_stop(&m_fsEvent);
-
-    free(m_path);
 }
 
 
@@ -80,10 +78,10 @@ void xmrig::ConfigWatcher::queueUpdate()
 
 void xmrig::ConfigWatcher::reload()
 {
-    LOG_WARN("\"%s\" was changed, reloading configuration", m_path);
+    LOG_WARN("\"%s\" was changed, reloading configuration", m_path.data());
 
     IConfig *config = m_creator->create();
-    ConfigLoader::loadFromFile(config, m_path);
+    ConfigLoader::loadFromFile(config, m_path.data());
 
     if (!config->isValid()) {
         LOG_ERR("reloading failed");
@@ -103,5 +101,5 @@ void xmrig::ConfigWatcher::reload()
 
 void xmrig::ConfigWatcher::start()
 {
-    uv_fs_event_start(&m_fsEvent, xmrig::ConfigWatcher::onFsEvent, m_path, 0);
+    uv_fs_event_start(&m_fsEvent, xmrig::ConfigWatcher::onFsEvent, m_path.data(), 0);
 }

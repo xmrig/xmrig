@@ -138,7 +138,7 @@ void Client::setUrl(const Url *url)
         return;
     }
 
-    m_url = url;
+    m_url = *url;
 }
 
 

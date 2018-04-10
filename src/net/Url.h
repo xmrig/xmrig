@@ -28,6 +28,10 @@
 #include <stdint.h>
 
 
+#include "core/utils/c_str.h"
+#include "xmrig.h"
+
+
 class Url
 {
 public:
@@ -38,45 +42,47 @@ public:
 
     Url();
     Url(const char *url);
-    Url(const char *host, uint16_t port, const char *user = nullptr, const char *password = nullptr, int keepAlive = 0, bool nicehash = false, int variant = -1);
-    ~Url();
+    Url(const char *host,
+        uint16_t port,
+        const char *user       = nullptr,
+        const char *password   = nullptr,
+        int keepAlive          = 0,
+        bool nicehash          = false,
+        xmrig::Variant variant = xmrig::VARIANT_AUTO
+       );
 
-    inline bool isNicehash() const           { return m_nicehash; }
-    inline bool isValid() const              { return m_host && m_port > 0; }
-    inline const char *host() const          { return m_host; }
-    inline const char *password() const      { return m_password ? m_password : kDefaultPassword; }
-    inline const char *user() const          { return m_user ? m_user : kDefaultUser; }
-    inline int algo() const                  { return m_algo; }
-    inline int keepAlive() const             { return m_keepAlive; }
-    inline int variant() const               { return m_variant; }
-    inline uint16_t port() const             { return m_port; }
-    inline void setKeepAlive(int keepAlive)  { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
-    inline void setNicehash(bool nicehash)   { m_nicehash = nicehash; }
-    inline void setVariant(bool monero)      { m_variant = monero; }
+    inline bool isNicehash() const                { return m_nicehash; }
+    inline bool isValid() const                   { return !m_host.isNull() && m_port > 0; }
+    inline const char *host() const               { return m_host.data(); }
+    inline const char *password() const           { return !m_password.isNull() ? m_password.data() : kDefaultPassword; }
+    inline const char *url() const                { return m_url.data(); }
+    inline const char *user() const               { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
+    inline int keepAlive() const                  { return m_keepAlive; }
+    inline uint16_t port() const                  { return m_port; }
+    inline void setKeepAlive(int keepAlive)       { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
+    inline void setNicehash(bool nicehash)        { m_nicehash = nicehash; }
+    inline void setPassword(const char *password) { m_password = password; }
+    inline void setUser(const char *user)         { m_user = user; }
+    inline xmrig::Algo algo() const               { return m_algo; }
+    inline xmrig::Variant variant() const         { return m_variant; }
 
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
-    const char *url() const;
-    void adjust(int algo);
-    void setPassword(const char *password);
-    void setUser(const char *user);
+    void adjust(xmrig::Algo algo);
     void setVariant(int variant);
-
-    bool operator==(const Url &other) const;
-    Url &operator=(const Url *other);
 
 private:
     bool parseIPv6(const char *addr);
 
     bool m_nicehash;
-    char *m_host;
-    char *m_password;
-    char *m_user;
-    int m_algo;
     int m_keepAlive;
-    int m_variant;
-    mutable char *m_url;
     uint16_t m_port;
+    xmrig::Algo m_algo;
+    xmrig::c_str m_host;
+    xmrig::c_str m_password;
+    xmrig::c_str m_url;
+    xmrig::c_str m_user;
+    xmrig::Variant m_variant;
 };
 
 #endif /* __URL_H__ */

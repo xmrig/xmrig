@@ -22,6 +22,7 @@ set(HEADERS
     src/core/ConfigLoader_platform.h
     src/core/ConfigWatcher.cpp
     src/core/Controller.h
+    src/core/utils/c_str.h
     src/Cpu.h
     src/interfaces/IClientListener.h
     src/interfaces/IConfig.h
