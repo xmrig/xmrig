@@ -39,25 +39,6 @@
 #include "xmrig.h"
 
 
-static const char *algoNames[] = {
-    "cryptonight",
-    "cryptonight-lite",
-    "cryptonight-heavy"
-};
-
-
-static const char *algoNamesShort[] = {
-    "cn",
-    "cn-lite",
-    "cn-heavy"
-};
-
-
-#if defined(_WIN32) && !defined(strcasecmp)
-#   define strcasecmp _stricmp
-#endif
-
-
 xmrig::CommonConfig::CommonConfig() :
     m_algorithm(CRYPTONIGHT),
     m_adjusted(false),
@@ -90,12 +71,6 @@ xmrig::CommonConfig::CommonConfig() :
 
 xmrig::CommonConfig::~CommonConfig()
 {
-}
-
-
-const char *xmrig::CommonConfig::algoName(Algo algorithm)
-{
-    return algoNames[algorithm];
 }
 
 
@@ -353,21 +328,5 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
 
 void xmrig::CommonConfig::setAlgo(const char *algo)
 {
-    if (strcasecmp(algo, "cryptonight-light") == 0) {
-        fprintf(stderr, "Algorithm \"cryptonight-light\" is deprecated, use \"cryptonight-lite\" instead\n");
-
-        m_algorithm = CRYPTONIGHT_LITE;
-        return;
-    }
-
-    const size_t size = sizeof(algoNames) / sizeof(algoNames[0]);
-
-    assert(size == (sizeof(algoNamesShort) / sizeof(algoNamesShort[0])));
-
-    for (size_t i = 0; i < size; i++) {
-        if (strcasecmp(algo, algoNames[i]) == 0 || strcasecmp(algo, algoNamesShort[i]) == 0) {
-            m_algorithm = static_cast<Algo>(i);
-            break;
-        }
-    }
+    m_algorithm = Pool::algorithm(algo);
 }

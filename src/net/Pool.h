@@ -51,6 +51,9 @@ public:
         xmrig::Variant variant = xmrig::VARIANT_AUTO
        );
 
+    static const char *algoName(xmrig::Algo algorithm);
+    static xmrig::Algo algorithm(const char *algo);
+
     inline bool isNicehash() const                { return m_nicehash; }
     inline bool isValid() const                   { return !m_host.isNull() && m_port > 0; }
     inline const char *host() const               { return m_host.data(); }

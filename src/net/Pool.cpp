@@ -36,6 +36,20 @@
 #endif
 
 
+static const char *algoNames[] = {
+    "cryptonight",
+    "cryptonight-lite",
+    "cryptonight-heavy"
+};
+
+
+static const char *algoNamesShort[] = {
+    "cn",
+    "cn-lite",
+    "cn-heavy"
+};
+
+
 Pool::Pool() :
     m_nicehash(false),
     m_keepAlive(0),
@@ -86,6 +100,34 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
     snprintf(url, size - 1, "%s:%d", m_host.data(), m_port);
 
     m_url = url;
+}
+
+
+const char *Pool::algoName(xmrig::Algo algorithm)
+{
+    return algoNames[algorithm];
+}
+
+
+xmrig::Algo Pool::algorithm(const char *algo)
+{
+    if (strcasecmp(algo, "cryptonight-light") == 0) {
+        fprintf(stderr, "Algorithm \"cryptonight-light\" is deprecated, use \"cryptonight-lite\" instead\n");
+
+        return xmrig::CRYPTONIGHT_LITE;
+    }
+
+    const size_t size = sizeof(algoNames) / sizeof(algoNames[0]);
+
+    assert(size == (sizeof(algoNamesShort) / sizeof(algoNamesShort[0])));
+
+    for (size_t i = 0; i < size; i++) {
+        if (strcasecmp(algo, algoNames[i]) == 0 || strcasecmp(algo, algoNamesShort[i]) == 0) {
+            return static_cast<xmrig::Algo>(i);
+        }
+    }
+
+    return xmrig::CRYPTONIGHT;
 }
 
 

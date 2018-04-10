@@ -30,8 +30,8 @@
 
 #include "core/utils/c_str.h"
 #include "interfaces/IConfig.h"
-#include "xmrig.h"
 #include "net/Pool.h"
+#include "xmrig.h"
 
 
 namespace xmrig {
@@ -43,15 +43,13 @@ public:
     CommonConfig();
     ~CommonConfig();
 
-    static const char *algoName(Algo algorithm);
-
     inline Algo algorithm() const                  { return m_algorithm; }
     inline bool isApiIPv6() const                  { return m_apiIPv6; }
     inline bool isApiRestricted() const            { return m_apiRestricted; }
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
     inline bool isSyslog() const                   { return m_syslog; }
-    inline const char *algoName() const            { return algoName(m_algorithm); }
+    inline const char *algoName() const            { return Pool::algoName(m_algorithm); }
     inline const char *apiToken() const            { return m_apiToken.data(); }
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
     inline const char *logFile() const             { return m_logFile.data(); }

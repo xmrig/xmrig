@@ -204,7 +204,7 @@ rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
     auto &allocator = doc.GetAllocator();
 
     obj.AddMember("type",          "cpu", allocator);
-    obj.AddMember("algo",           rapidjson::StringRef(CommonConfig::algoName(algorithm())), allocator);
+    obj.AddMember("algo",           rapidjson::StringRef(Pool::algoName(algorithm())), allocator);
     obj.AddMember("av",             m_av, allocator);
     obj.AddMember("low_power_mode", multiway(), allocator);
     obj.AddMember("affine_to_cpu",  affinity(), allocator);
