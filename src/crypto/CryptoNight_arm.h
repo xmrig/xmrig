@@ -491,49 +491,49 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
 
     uint64_t idx0 = h0[0] ^ h0[4];
+    void* mp = (uint8_t*) l0 + (idx0 & MASK); 
 
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx;
 
         if (SOFT_AES) {
-            cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+            cx = soft_aesenc((uint32_t*) mp, _mm_set_epi64x(ah0, al0));
         }
         else {
-            cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+            cx = _mm_load_si128((__m128i *) mp);
 #           ifndef XMRIG_ARMv7
             cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
 #           endif
         }
 
-        _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
-        VARIANT1_1(&l0[idx0 & MASK]);
-        idx0 = EXTRACT64(cx);
+        _mm_store_si128((__m128i *) mp, _mm_xor_si128(bx0, cx));
+        VARIANT1_1(mp);
+        mp = (uint8_t*) l0 + ((idx0 = EXTRACT64(cx)) & MASK);
         bx0 = cx;
 
         uint64_t hi, lo, cl, ch;
-        cl = ((uint64_t*) &l0[idx0 & MASK])[0];
-        ch = ((uint64_t*) &l0[idx0 & MASK])[1];
+        cl = ((uint64_t*) mp)[0];
+        ch = ((uint64_t*) mp)[1];
         lo = __umul128(idx0, cl, &hi);
 
         al0 += hi;
         ah0 += lo;
 
         VARIANT1_2(ah0, 0);
-        ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
-        ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
+        ((uint64_t*) mp)[0] = al0;
+        ((uint64_t*) mp)[1] = ah0;
         VARIANT1_2(ah0, 0);
 
         ah0 ^= ch;
         al0 ^= cl;
-        idx0 = al0;
+        mp = (uint8_t*) l0 + (al0 & MASK);
 
         if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-            int64_t n  = ((int64_t*)&l0[idx0 & MASK])[0];
-            int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
+            int64_t n  = ((int64_t*) mp)[0];
+            int32_t d  = ((int32_t*) mp)[2];
             int64_t q = n / (d | 0x5);
 
-            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
-            idx0 = d ^ q;
+            ((int64_t*) mp)[0] = n ^ q;
         }
     }
 
