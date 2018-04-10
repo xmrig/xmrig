@@ -146,28 +146,28 @@ xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, Algo algorithm, A
         softAES  = true;
         break;
 
-    case AV_DOUBLE:
-        multiway = DoubleWay;
     case AV_DOUBLE_SOFT:
         softAES  = true;
+    case AV_DOUBLE:
+        multiway = DoubleWay;
         break;
 
-    case AV_TRIPLE:
-        multiway = TripleWay;
     case AV_TRIPLE_SOFT:
         softAES  = true;
+    case AV_TRIPLE:
+        multiway = TripleWay;
         break;
 
-    case AV_QUAD:
-        multiway = QuadWay;
     case AV_QUAD_SOFT:
         softAES  = true;
+    case AV_QUAD:
+        multiway = QuadWay;
         break;
 
-    case AV_PENTA:
-        multiway = PentaWay;
     case AV_PENTA_SOFT:
         softAES  = true;
+    case AV_PENTA:
+        multiway = PentaWay;
         break;
 
     default:
