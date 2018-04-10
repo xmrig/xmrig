@@ -517,83 +517,83 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     uint64_t idx0 = h0[0] ^ h0[4];
     uint64_t idx1 = h1[0] ^ h1[4];
 
+    void* mp0 = ((uint8_t*) l0) + ((idx0) & MASK);
+    void* mp1 = ((uint8_t*) l1) + ((idx1) & MASK);
+
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx0, cx1;
 
         if (SOFT_AES) {
-            cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-            cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
-        }
-        else {
-            cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
-            cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
+            cx0 = soft_aesenc((uint32_t*) mp0, _mm_set_epi64x(ah0, al0));
+            cx1 = soft_aesenc((uint32_t*) mp1, _mm_set_epi64x(ah1, al1));
+        } else {
+            cx0 = _mm_load_si128((__m128i *) mp0);
+            cx1 = _mm_load_si128((__m128i *)mp1);
             cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
             cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
         }
 
         if (VARIANT > 0) {
-            cryptonight_monero_tweak((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
-            cryptonight_monero_tweak((uint64_t*)&l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+            cryptonight_monero_tweak((uint64_t*)mp0, _mm_xor_si128(bx0, cx0));
+            cryptonight_monero_tweak((uint64_t*)mp1, _mm_xor_si128(bx1, cx1));
         } else {
-            _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
-            _mm_store_si128((__m128i *) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+            _mm_store_si128((__m128i *) mp0, _mm_xor_si128(bx0, cx0));
+            _mm_store_si128((__m128i *) mp1, _mm_xor_si128(bx1, cx1));
         }
 
-        idx0 = EXTRACT64(cx0);
-        idx1 = EXTRACT64(cx1);
+        mp0 = ((uint8_t*) l0) + ((idx0 = EXTRACT64(cx0)) & MASK);
+        mp1 = ((uint8_t*) l1) + ((idx1 = EXTRACT64(cx1)) & MASK);
 
         bx0 = cx0;
         bx1 = cx1;
 
         uint64_t hi, lo, cl, ch;
-        cl = ((uint64_t*) &l0[idx0 & MASK])[0];
-        ch = ((uint64_t*) &l0[idx0 & MASK])[1];
+        cl = ((uint64_t*) mp0)[0];
+        ch = ((uint64_t*) mp0)[1];
         lo = __umul128(idx0, cl, &hi);
 
         al0 += hi;
         ah0 += lo;
 
         VARIANT1_2(ah0, 0);
-        ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
-        ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
+        ((uint64_t*) mp0)[0] = al0;
+        ((uint64_t*) mp0)[1] = ah0;
         VARIANT1_2(ah0, 0);
 
         ah0 ^= ch;
         al0 ^= cl;
-        idx0 = al0;
+        mp0 = ((uint8_t*) l0) + ((al0) & MASK);
 
         if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-            int64_t n  = ((int64_t*)&l0[idx0 & MASK])[0];
-            int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
+            int64_t n  = ((int64_t*)mp0)[0];
+            int32_t d  = ((int32_t*)mp0)[2];
             int64_t q = n / (d | 0x5);
 
-            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
-            idx0 = d ^ q;
+            ((int64_t*) mp0)[0] = n ^ q;
         }
 
-        cl = ((uint64_t*) &l1[idx1 & MASK])[0];
-        ch = ((uint64_t*) &l1[idx1 & MASK])[1];
+        cl = ((uint64_t*) mp1)[0];
+        ch = ((uint64_t*) mp1)[1];
         lo = __umul128(idx1, cl, &hi);
 
         al1 += hi;
         ah1 += lo;
 
         VARIANT1_2(ah1, 1);
-        ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
-        ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
+        ((uint64_t*) mp1)[0] = al1;
+        ((uint64_t*) mp1)[1] = ah1;
         VARIANT1_2(ah1, 1);
 
         ah1 ^= ch;
         al1 ^= cl;
-        idx1 = al1;
+        mp1 = ((uint8_t*) l1) + ((al1) & MASK);
 
         if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-            int64_t n  = ((int64_t*)&l1[idx1 & MASK])[0];
-            int32_t d  = ((int32_t*)&l1[idx1 & MASK])[2];
+            int64_t n  = ((int64_t*)mp1)[0];
+            int32_t d  = ((int32_t*)mp1)[2];
             int64_t q = n / (d | 0x5);
 
-            ((int64_t*)&l1[idx1 & MASK])[0] = n ^ q;
-            idx1 = d ^ q;
+            ((int64_t*)mp1)[0] = n ^ q;
         }
     }
 
