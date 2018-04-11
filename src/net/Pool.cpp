@@ -76,7 +76,6 @@ Pool::Pool(const char *url) :
     m_keepAlive(0),
     m_port(kDefaultPort),
     m_algo(xmrig::CRYPTONIGHT),
-    m_url(url),
     m_variant(xmrig::VARIANT_AUTO)
 {
     parse(url);
@@ -150,6 +149,7 @@ bool Pool::parse(const char *url)
         return false;
     }
 
+    m_url = url;
     if (base[0] == '[') {
         return parseIPv6(base);
     }
@@ -157,7 +157,7 @@ bool Pool::parse(const char *url)
     const char *port = strchr(base, ':');
     if (!port) {
         m_host = base;
-        return false;
+        return true;
     }
 
     const size_t size = port++ - base + 1;

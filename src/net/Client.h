@@ -63,7 +63,7 @@ public:
     void connect();
     void connect(const Pool &pool);
     void deleteLater();
-    void setUrl(const Pool &pool);
+    void setPool(const Pool &pool);
     void tick(uint64_t now);
 
     inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }

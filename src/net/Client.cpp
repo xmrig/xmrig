@@ -107,7 +107,7 @@ void Client::connect()
  */
 void Client::connect(const Pool &url)
 {
-    setUrl(url);
+    setPool(url);
     connect();
 }
 
@@ -131,7 +131,7 @@ void Client::deleteLater()
 }
 
 
-void Client::setUrl(const Pool &pool)
+void Client::setPool(const Pool &pool)
 {
     if (!pool.isValid()) {
         return;
@@ -360,9 +360,9 @@ int Client::resolve(const char *host)
 
 int64_t Client::send(size_t size)
 {
-    LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, m_sendBuf);
+    LOG_DEBUG("[%s] send (%d bytes): \"%s\"", m_pool.url(), size, m_sendBuf);
     if (state() != ConnectedState || !uv_is_writable(m_stream)) {
-        LOG_DEBUG_ERR("[%s:%u] send failed, invalid state: %d", m_url.host(), m_url.port(), m_state);
+        LOG_DEBUG_ERR("[%s] send failed, invalid state: %d", m_pool.url(), m_state);
         return -1;
     }
 
@@ -475,7 +475,7 @@ void Client::parse(char *line, size_t len)
 
     line[len - 1] = '\0';
 
-    LOG_DEBUG("[%s:%u] received (%d bytes): \"%s\"", m_url.host(), m_url.port(), len, line);
+    LOG_DEBUG("[%s] received (%d bytes): \"%s\"", m_pool.url(), len, line);
 
     if (len < 32 || line[0] != '{') {
         if (!m_quiet) {
@@ -634,7 +634,7 @@ void Client::reconnect()
 
 void Client::setState(SocketState state)
 {
-    LOG_DEBUG("[%s:%u] state: %d", m_url.host(), m_url.port(), state);
+    LOG_DEBUG("[%s] state: %d", m_pool.url(), state);
 
     if (m_state == state) {
         return;

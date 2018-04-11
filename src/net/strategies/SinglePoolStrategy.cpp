@@ -33,7 +33,7 @@ SinglePoolStrategy::SinglePoolStrategy(const Pool &pool, int retryPause, IStrate
     m_listener(listener)
 {
     m_client = new Client(0, Platform::userAgent(), this);
-    m_client->setUrl(pool);
+    m_client->setPool(pool);
     m_client->setRetryPause(retryPause * 1000);
     m_client->setQuiet(quiet);
 }
