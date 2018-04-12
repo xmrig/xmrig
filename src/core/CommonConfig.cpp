@@ -92,7 +92,7 @@ bool xmrig::CommonConfig::adjust()
 
 bool xmrig::CommonConfig::isValid() const
 {
-    return m_pools[0].isValid();
+    return m_pools[0].isValid() && m_algorithm != INVALID_ALGO;
 }
 
 

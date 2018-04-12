@@ -168,7 +168,7 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
     }
 
     if (!config->isValid()) {
-        fprintf(stderr, "No pool URL supplied. Exiting.\n");
+        fprintf(stderr, "No valid configuration found. Exiting.\n");
         delete config;
         return nullptr;
     }
@@ -293,13 +293,13 @@ void xmrig::ConfigLoader::showVersion()
 
     printf("\n features:"
 #   if defined(__i386__) || defined(_M_IX86)
-    " i386"
+    " 32-bit"
 #   elif defined(__x86_64__) || defined(_M_AMD64)
-    " x86_64"
+    " 64-bit"
 #   endif
 
 #   if defined(__AES__) || defined(_MSC_VER)
-    " AES-NI"
+    " AES"
 #   endif
     "\n");
 

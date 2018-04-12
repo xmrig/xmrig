@@ -116,7 +116,11 @@ bool SingleWorker::selfTest()
     }
 #   endif
 
+#   ifndef XMRIG_NO_SUMO
     return m_thread->algorithm() == xmrig::CRYPTONIGHT_HEAVY && memcmp(m_result.result, test_output_heavy, 32) == 0;
+#   else
+    return false;
+#   endif
 }
 
 

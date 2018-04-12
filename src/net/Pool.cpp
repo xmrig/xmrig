@@ -38,15 +38,31 @@
 
 static const char *algoNames[] = {
     "cryptonight",
+#   ifndef XMRIG_NO_AEON
     "cryptonight-lite",
+#   else
+    nullptr,
+#   endif
+#   ifndef XMRIG_NO_SUMO
     "cryptonight-heavy"
+#   else
+    nullptr
+#   endif
 };
 
 
 static const char *algoNamesShort[] = {
     "cn",
+#   ifndef XMRIG_NO_AEON
     "cn-lite",
+#   else
+    nullptr,
+#   endif
+#   ifndef XMRIG_NO_SUMO
     "cn-heavy"
+#   else
+    nullptr
+#   endif
 };
 
 
@@ -110,23 +126,26 @@ const char *Pool::algoName(xmrig::Algo algorithm)
 
 xmrig::Algo Pool::algorithm(const char *algo)
 {
+#   ifndef XMRIG_NO_AEON
     if (strcasecmp(algo, "cryptonight-light") == 0) {
         fprintf(stderr, "Algorithm \"cryptonight-light\" is deprecated, use \"cryptonight-lite\" instead\n");
 
         return xmrig::CRYPTONIGHT_LITE;
     }
+#   endif
 
     const size_t size = sizeof(algoNames) / sizeof(algoNames[0]);
 
     assert(size == (sizeof(algoNamesShort) / sizeof(algoNamesShort[0])));
 
     for (size_t i = 0; i < size; i++) {
-        if (strcasecmp(algo, algoNames[i]) == 0 || strcasecmp(algo, algoNamesShort[i]) == 0) {
+        if ((algoNames[i] && strcasecmp(algo, algoNames[i]) == 0) || (algoNamesShort[i] && strcasecmp(algo, algoNamesShort[i]) == 0)) {
             return static_cast<xmrig::Algo>(i);
         }
     }
 
-    return xmrig::CRYPTONIGHT;
+    fprintf(stderr, "Unknown algorithm \"%s\" specified.\n", algo);
+    return xmrig::INVALID_ALGO;
 }
 
 
