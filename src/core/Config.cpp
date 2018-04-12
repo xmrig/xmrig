@@ -279,7 +279,7 @@ bool xmrig::Config::parseInt(int key, int arg)
 {
     switch (key) {
     case xmrig::IConfig::ThreadsKey: /* --threads */
-        if (m_threadsCount >= 0 && arg < 1024) {
+        if (arg >= 0 && arg < 1024) {
             m_threadsCount = arg;
         }
         break;

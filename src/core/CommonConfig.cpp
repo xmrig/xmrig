@@ -266,7 +266,7 @@ bool xmrig::CommonConfig::save()
     uv_fs_close(uv_default_loop(), &req, fd, nullptr);
     uv_fs_req_cleanup(&req);
 
-    LOG_NOTICE("configuration saved to: \"%s\"", m_fileName);
+    LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
     return true;
 }
 
