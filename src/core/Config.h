@@ -29,7 +29,7 @@
 #include <vector>
 
 
-#include "core/CommonConfig.h"
+#include "common/config/CommonConfig.h"
 #include "rapidjson/fwd.h"
 #include "xmrig.h"
 

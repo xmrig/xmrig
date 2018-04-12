@@ -28,7 +28,7 @@
 #include <vector>
 
 
-#include "core/utils/c_str.h"
+#include "common/utils/c_str.h"
 #include "interfaces/IConfig.h"
 #include "net/Pool.h"
 #include "xmrig.h"

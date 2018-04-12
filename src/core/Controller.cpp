@@ -25,8 +25,8 @@
 #include <assert.h>
 
 
+#include "common/config/ConfigLoader.h"
 #include "core/Config.h"
-#include "core/ConfigLoader.h"
 #include "core/Controller.h"
 #include "Cpu.h"
 #include "interfaces/IControllerListener.h"

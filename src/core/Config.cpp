@@ -26,9 +26,9 @@
 #include <inttypes.h>
 
 
+#include "common/config/ConfigLoader.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
-#include "core/ConfigLoader.h"
 #include "Cpu.h"
 #include "net/Pool.h"
 #include "rapidjson/document.h"

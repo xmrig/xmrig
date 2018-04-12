@@ -24,7 +24,7 @@
 #include <assert.h>
 
 
-#include "core/CommonConfig.h"
+#include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "workers/CpuThread.h"
 

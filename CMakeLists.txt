@@ -14,15 +14,14 @@ include (cmake/cpu.cmake)
 set(HEADERS
     src/api/NetworkState.h
     src/App.h
+    src/common/config/CommonConfig.h
+    src/common/config/ConfigLoader.h
+    src/common/config/ConfigWatcher.h
+    src/common/utils/c_str.h
     src/Console.h
-    src/core/CommonConfig.h
     src/core/Config.cpp
-    src/core/ConfigLoader.cpp
-    src/core/ConfigLoader.h
     src/core/ConfigLoader_platform.h
-    src/core/ConfigWatcher.cpp
     src/core/Controller.h
-    src/core/utils/c_str.h
     src/Cpu.h
     src/interfaces/IClientListener.h
     src/interfaces/IConfig.h
@@ -89,11 +88,11 @@ endif()
 set(SOURCES
     src/api/NetworkState.cpp
     src/App.cpp
+    src/common/config/CommonConfig.cpp
+    src/common/config/ConfigLoader.cpp
+    src/common/config/ConfigWatcher.cpp
     src/Console.cpp
-    src/core/CommonConfig.cpp
     src/core/Config.cpp
-    src/core/ConfigLoader.cpp
-    src/core/ConfigWatcher.cpp
     src/core/Controller.cpp
     src/log/ConsoleLog.cpp
     src/log/FileLog.cpp

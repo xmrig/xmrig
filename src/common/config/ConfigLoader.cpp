@@ -32,10 +32,10 @@
 #endif
 
 
+#include "common/config/ConfigLoader.h"
+#include "common/config/ConfigWatcher.h"
 #include "core/ConfigCreator.h"
-#include "core/ConfigLoader.h"
 #include "core/ConfigLoader_platform.h"
-#include "core/ConfigWatcher.h"
 #include "interfaces/IConfig.h"
 #include "interfaces/IWatcherListener.h"
 #include "net/Pool.h"
