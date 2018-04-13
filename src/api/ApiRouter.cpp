@@ -33,8 +33,8 @@
 
 
 #include "api/ApiRouter.h"
-#include "api/HttpReply.h"
-#include "api/HttpRequest.h"
+#include "common/api/HttpReply.h"
+#include "common/api/HttpRequest.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"

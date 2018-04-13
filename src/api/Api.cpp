@@ -26,8 +26,8 @@
 
 #include "api/Api.h"
 #include "api/ApiRouter.h"
-#include "api/HttpReply.h"
-#include "api/HttpRequest.h"
+#include "common/api/HttpReply.h"
+#include "common/api/HttpRequest.h"
 
 
 ApiRouter *Api::m_router = nullptr;

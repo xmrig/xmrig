@@ -214,14 +214,14 @@ if (WITH_HTTPD)
         set(HTTPD_SOURCES
             src/api/Api.h
             src/api/ApiRouter.h
-            src/api/HttpBody.h
-            src/api/Httpd.h
-            src/api/HttpReply.h
-            src/api/HttpRequest.h
+            src/common/api/HttpBody.h
+            src/common/api/Httpd.h
+            src/common/api/HttpReply.h
+            src/common/api/HttpRequest.h
             src/api/Api.cpp
             src/api/ApiRouter.cpp
-            src/api/Httpd.cpp
-            src/api/HttpRequest.cpp
+            src/common/api/Httpd.cpp
+            src/common/api/HttpRequest.cpp
             )
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
