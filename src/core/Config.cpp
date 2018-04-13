@@ -41,6 +41,7 @@ static char affinity_tmp[20] = { 0 };
 
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
+    m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
     m_doubleHash(false),
     m_dryRun(false),
@@ -48,9 +49,7 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_safe(false),
     m_maxCpuUsage(75),
     m_printTime(60),
-    m_priority(-1),
-    m_affinity(-1L),
-    m_threadsCount(0)
+    m_priority(-1)
 {
 }
 
@@ -162,18 +161,18 @@ bool xmrig::Config::adjust()
         m_doubleHash = true;
     }
 
-    if (!m_threadsCount) {
-        m_threadsCount = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
+    if (!m_threads.count) {
+        m_threads.count = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
     }
     else if (m_safe) {
         const size_t count = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
-        if (m_threadsCount > count) {
-            m_threadsCount = count;
+        if (m_threads.count > count) {
+            m_threads.count = count;
         }
     }
 
-    for (size_t i = 0; i < m_threadsCount; ++i) {
-        m_threads.push_back(CpuThread::createFromAV(i, m_algorithm, m_algoVariant, m_affinity, m_priority));
+    for (size_t i = 0; i < m_threads.count; ++i) {
+        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm, m_algoVariant, m_threads.mask, m_priority));
     }
 
     return true;
@@ -228,7 +227,7 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
     case xmrig::IConfig::ThreadsKey:  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
-            m_threadsCount = Cpu::threads();
+            m_threads.count = Cpu::threads();
             return true;
         }
 
@@ -257,7 +256,7 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     switch (key) {
     case xmrig::IConfig::CPUAffinityKey: /* --cpu-affinity */
         if (arg) {
-            m_affinity = arg;
+            m_threads.mask = arg;
         }
         break;
 
@@ -271,6 +270,23 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
 
 void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
+    const rapidjson::Value &threads = doc["threads"];
+
+    if (threads.IsArray()) {
+        for (const rapidjson::Value &value : threads.GetArray()) {
+            if (!value.IsObject()) {
+                continue;
+            }
+
+            if (value.HasMember("low_power_mode")) {
+                auto data = CpuThread::parse(value);
+
+                if (data.valid) {
+                    m_threads.cpu.push_back(std::move(data));
+                }
+            }
+        }
+    }
 }
 
 
@@ -279,7 +295,7 @@ bool xmrig::Config::parseInt(int key, int arg)
     switch (key) {
     case xmrig::IConfig::ThreadsKey: /* --threads */
         if (arg >= 0 && arg < 1024) {
-            m_threadsCount = arg;
+            m_threads.count = arg;
         }
         break;
 

@@ -64,6 +64,13 @@ enum Variant {
 };
 
 
+enum AesMode {
+    AES_AUTO,
+    AES_HW,
+    AES_SOFT
+};
+
+
 } /* namespace xmrig */
 
 

@@ -46,6 +46,25 @@ public:
         PentaWay
     };
 
+
+    struct Data
+    {
+        inline Data() : valid(false), affinity(-1L), multiway(SingleWay) {}
+
+        inline void setMultiway(int value)
+        {
+            if (value >= SingleWay && value <= PentaWay) {
+                multiway = static_cast<Multiway>(value);
+                valid    = true;
+            }
+        }
+
+        bool valid;
+        int64_t affinity;
+        Multiway multiway;
+    };
+
+
     CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch);
     ~CpuThread();
 
@@ -53,6 +72,7 @@ public:
 
     static cn_hash_fun fn(Algo algorithm, AlgoVariant av, Variant variant);
     static CpuThread *createFromAV(size_t index, Algo algorithm, AlgoVariant av, int64_t affinity, int priority);
+    static Data parse(const rapidjson::Value &object);
 
     inline bool isPrefetch() const               { return m_prefetch; }
     inline bool isSoftAES() const                { return m_softAES; }

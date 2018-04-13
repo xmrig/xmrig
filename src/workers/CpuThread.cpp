@@ -197,6 +197,33 @@ xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, Algo algorithm, A
 }
 
 
+xmrig::CpuThread::Data xmrig::CpuThread::parse(const rapidjson::Value &object)
+{
+    Data data;
+
+    const auto &multiway = object["low_power_mode"];
+    if (multiway.IsBool()) {
+        data.multiway = multiway.IsTrue() ? DoubleWay : SingleWay;
+        data.valid    = true;
+    }
+    else if (multiway.IsUint()) {
+        data.setMultiway(multiway.GetInt());
+    }
+
+    if (!data.valid) {
+        return data;
+    }
+
+    const auto &affinity = object["affine_to_cpu"];
+
+    if (affinity.IsUint64()) {
+        data.affinity = affinity.GetInt64();
+    }
+
+    return data;
+}
+
+
 #ifndef XMRIG_NO_API
 rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
 {
