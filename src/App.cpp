@@ -28,6 +28,7 @@
 
 #include "api/Api.h"
 #include "App.h"
+#include "common/Platform.h"
 #include "Console.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -38,7 +39,6 @@
 #include "log/Log.h"
 #include "Mem.h"
 #include "net/Network.h"
-#include "Platform.h"
 #include "Summary.h"
 #include "version.h"
 #include "workers/Workers.h"

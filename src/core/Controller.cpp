@@ -26,6 +26,7 @@
 
 
 #include "common/config/ConfigLoader.h"
+#include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"
@@ -34,7 +35,6 @@
 #include "log/FileLog.h"
 #include "log/Log.h"
 #include "net/Network.h"
-#include "Platform.h"
 
 
 #ifdef HAVE_SYSLOG_H

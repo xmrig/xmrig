@@ -17,6 +17,7 @@ set(HEADERS
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
+    src/common/Platform.h
     src/common/utils/c_str.h
     src/common/xmrig.h
     src/Console.h
@@ -51,7 +52,6 @@ set(HEADERS
     src/net/strategies/FailoverStrategy.h
     src/net/strategies/SinglePoolStrategy.h
     src/net/SubmitResult.h
-    src/Platform.h
     src/Summary.h
     src/version.h
     src/workers/CpuThread.h
@@ -91,6 +91,7 @@ set(SOURCES
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
     src/common/config/ConfigWatcher.cpp
+    src/common/Platform.cpp
     src/Console.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
@@ -106,7 +107,6 @@ set(SOURCES
     src/net/strategies/FailoverStrategy.cpp
     src/net/strategies/SinglePoolStrategy.cpp
     src/net/SubmitResult.cpp
-    src/Platform.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp
     src/workers/DoubleWorker.cpp
@@ -130,9 +130,9 @@ if (WIN32)
     set(SOURCES_OS
         res/app.rc
         src/App_win.cpp
+        src/common/Platform_win.cpp
         src/Cpu_win.cpp
         src/Mem_win.cpp
-        src/Platform_win.cpp
         )
 
     add_definitions(/DWIN32)
@@ -140,16 +140,16 @@ if (WIN32)
 elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
+        src/common/Platform_mac.cpp
         src/Cpu_mac.cpp
         src/Mem_unix.cpp
-        src/Platform_mac.cpp
         )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
+        src/common/Platform_unix.cpp
         src/Cpu_unix.cpp
         src/Mem_unix.cpp
-        src/Platform_unix.cpp
         )
 
     set(EXTRA_LIBS pthread rt)

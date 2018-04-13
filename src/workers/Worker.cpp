@@ -24,9 +24,9 @@
 #include <chrono>
 
 
+#include "common/Platform.h"
 #include "Cpu.h"
 #include "Mem.h"
-#include "Platform.h"
 #include "workers/CpuThread.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"

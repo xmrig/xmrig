@@ -22,13 +22,13 @@
  */
 
 
+#include "common/Platform.h"
 #include "common/xmrig.h"
 #include "interfaces/IStrategyListener.h"
 #include "net/Client.h"
 #include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
 #include "net/strategies/FailoverStrategy.h"
-#include "Platform.h"
 
 
 extern "C"
