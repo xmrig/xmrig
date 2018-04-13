@@ -33,37 +33,6 @@
 #include "log/Log.h"
 
 
-class UploadCtx
-{
-public:
-    inline UploadCtx() :
-        m_pos(0)
-    {}
-
-
-    inline bool write(const char *data, size_t size)
-    {
-        if (size > (sizeof(m_data) - m_pos - 1)) {
-            return false;
-        }
-
-        memcpy(m_data + m_pos, data, size);
-
-        m_pos += size;
-        m_data[m_pos] = '\0';
-
-        return true;
-    }
-
-
-    inline const char *data() const { return m_data; }
-
-private:
-    char m_data[32768];
-    size_t m_pos;
-};
-
-
 Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :
     m_idle(true),
     m_IPv6(IPv6),

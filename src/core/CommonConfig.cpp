@@ -32,30 +32,11 @@
 #include "core/CommonConfig.h"
 #include "donate.h"
 #include "log/Log.h"
-#include "net/Url.h"
+#include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 #include "xmrig.h"
-
-
-static const char *algoNames[] = {
-    "cryptonight",
-    "cryptonight-lite",
-    "cryptonight-heavy"
-};
-
-
-static const char *algoNamesShort[] = {
-    "cn",
-    "cn-lite",
-    "cn-heavy"
-};
-
-
-#if defined(_WIN32) && !defined(strcasecmp)
-#   define strcasecmp _stricmp
-#endif
 
 
 xmrig::CommonConfig::CommonConfig() :
@@ -73,18 +54,13 @@ xmrig::CommonConfig::CommonConfig() :
     m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
 #   endif
 
-    m_apiToken(nullptr),
-    m_apiWorkerId(nullptr),
-    m_fileName(nullptr),
-    m_logFile(nullptr),
-    m_userAgent(nullptr),
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
     m_retries(5),
     m_retryPause(5)
 {
-    m_pools.push_back(new Url());
+    m_pools.push_back(Pool());
 
 #   ifdef XMRIG_PROXY_PROJECT
     m_retries    = 2;
@@ -95,23 +71,6 @@ xmrig::CommonConfig::CommonConfig() :
 
 xmrig::CommonConfig::~CommonConfig()
 {
-    for (Url *url : m_pools) {
-        delete url;
-    }
-
-    m_pools.clear();
-
-    free(m_fileName);
-    free(m_apiToken);
-    free(m_apiWorkerId);
-    free(m_logFile);
-    free(m_userAgent);
-}
-
-
-const char *xmrig::CommonConfig::algoName(Algo algorithm)
-{
-    return algoNames[algorithm];
 }
 
 
@@ -123,8 +82,8 @@ bool xmrig::CommonConfig::adjust()
 
     m_adjusted = true;
 
-    for (Url *url : m_pools) {
-        url->adjust(algorithm());
+    for (Pool &pool : m_pools) {
+        pool.adjust(algorithm());
     }
 
     return true;
@@ -133,7 +92,7 @@ bool xmrig::CommonConfig::adjust()
 
 bool xmrig::CommonConfig::isValid() const
 {
-    return m_pools[0]->isValid();
+    return m_pools[0].isValid() && m_algorithm != INVALID_ALGO;
 }
 
 
@@ -149,12 +108,12 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        m_pools.back()->setKeepAlive(enable ? Url::kKeepAliveTimeout : 0);
+        m_pools.back().setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0);
         break;
 
 #   ifndef XMRIG_PROXY_PROJECT
     case NicehashKey: /* --nicehash */
-        m_pools.back()->setNicehash(enable);
+        m_pools.back().setNicehash(enable);
         break;
 #   endif
 
@@ -188,58 +147,52 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         break;
 
     case UserpassKey: /* --userpass */
-        if (!m_pools.back()->setUserpass(arg)) {
+        if (!m_pools.back().setUserpass(arg)) {
             return false;
         }
 
         break;
 
     case UrlKey: /* --url */
-        if (m_pools.size() > 1 || m_pools[0]->isValid()) {
-            Url *url = new Url(arg);
-            if (url->isValid()) {
-                m_pools.push_back(url);
-            }
-            else {
-                delete url;
+        if (m_pools.size() > 1 || m_pools[0].isValid()) {
+            Pool pool(arg);
+
+            if (pool.isValid()) {
+                m_pools.push_back(std::move(pool));
             }
         }
         else {
-            m_pools[0]->parse(arg);
+            m_pools[0].parse(arg);
         }
 
-        if (!m_pools.back()->isValid()) {
+        if (!m_pools.back().isValid()) {
             return false;
         }
 
         break;
 
     case UserKey: /* --user */
-        m_pools.back()->setUser(arg);
+        m_pools.back().setUser(arg);
         break;
 
     case PasswordKey: /* --pass */
-        m_pools.back()->setPassword(arg);
+        m_pools.back().setPassword(arg);
         break;
 
     case LogFileKey: /* --log-file */
-        free(m_logFile);
-        m_logFile = strdup(arg);
+        m_logFile = arg;
         break;
 
     case ApiAccessTokenKey: /* --api-access-token */
-        free(m_apiToken);
-        m_apiToken = strdup(arg);
+        m_apiToken = arg;
         break;
 
     case ApiWorkerIdKey: /* --api-worker-id */
-        free(m_apiWorkerId);
-        m_apiWorkerId = strdup(arg);
+        m_apiWorkerId = arg;
         break;
 
     case UserAgentKey: /* --user-agent */
-        free(m_userAgent);
-        m_userAgent = strdup(arg);
+        m_userAgent = arg;
         break;
 
     case RetriesKey:     /* --retries */
@@ -286,12 +239,12 @@ bool xmrig::CommonConfig::parseUint64(int key, uint64_t arg)
 
 bool xmrig::CommonConfig::save()
 {
-    if (!m_fileName) {
+    if (m_fileName.isNull()) {
         return false;
     }
 
     uv_fs_t req;
-    const int fd = uv_fs_open(uv_default_loop(), &req, m_fileName, O_WRONLY | O_CREAT | O_TRUNC, 0644, nullptr);
+    const int fd = uv_fs_open(uv_default_loop(), &req, m_fileName.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644, nullptr);
     if (fd < 0) {
         return false;
     }
@@ -313,15 +266,14 @@ bool xmrig::CommonConfig::save()
     uv_fs_close(uv_default_loop(), &req, fd, nullptr);
     uv_fs_req_cleanup(&req);
 
-    LOG_NOTICE("configuration saved to: \"%s\"", m_fileName);
+    LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
     return true;
 }
 
 
 void xmrig::CommonConfig::setFileName(const char *fileName)
 {
-    free(m_fileName);
-    m_fileName = fileName ? strdup(fileName) : nullptr;
+    m_fileName = fileName;
 }
 
 
@@ -341,11 +293,11 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        m_pools.back()->setKeepAlive(arg);
+        m_pools.back().setKeepAlive(arg);
         break;
 
     case VariantKey: /* --variant */
-        m_pools.back()->setVariant(arg);
+        m_pools.back().setVariant(arg);
         break;
 
     case DonateLevelKey: /* --donate-level */
@@ -376,21 +328,5 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
 
 void xmrig::CommonConfig::setAlgo(const char *algo)
 {
-    if (strcasecmp(algo, "cryptonight-light") == 0) {
-        fprintf(stderr, "Algorithm \"cryptonight-light\" is deprecated, use \"cryptonight-lite\" instead\n");
-
-        m_algorithm = CRYPTONIGHT_LITE;
-        return;
-    }
-
-    const size_t size = sizeof(algoNames) / sizeof(algoNames[0]);
-
-    assert(size == (sizeof(algoNamesShort) / sizeof(algoNamesShort[0])));
-
-    for (size_t i = 0; i < size; i++) {
-        if (strcasecmp(algo, algoNames[i]) == 0 || strcasecmp(algo, algoNamesShort[i]) == 0) {
-            m_algorithm = static_cast<Algo>(i);
-            break;
-        }
-    }
+    m_algorithm = Pool::algorithm(algo);
 }

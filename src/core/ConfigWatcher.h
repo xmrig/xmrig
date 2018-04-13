@@ -28,6 +28,8 @@
 #include <stdint.h>
 #include <uv.h>
 
+
+#include "core/utils/c_str.h"
 #include "rapidjson/fwd.h"
 
 
@@ -56,11 +58,11 @@ private:
     void reload();
     void start();
 
-    char *m_path;
     IConfigCreator *m_creator;
     IWatcherListener *m_listener;
     uv_fs_event_t m_fsEvent;
     uv_timer_t m_timer;
+    xmrig::c_str m_path;
 };
 
 

@@ -28,11 +28,10 @@
 #include <vector>
 
 
+#include "core/utils/c_str.h"
 #include "interfaces/IConfig.h"
+#include "net/Pool.h"
 #include "xmrig.h"
-
-
-class Url;
 
 
 namespace xmrig {
@@ -44,20 +43,18 @@ public:
     CommonConfig();
     ~CommonConfig();
 
-    static const char *algoName(Algo algorithm);
-
     inline Algo algorithm() const                  { return m_algorithm; }
     inline bool isApiIPv6() const                  { return m_apiIPv6; }
     inline bool isApiRestricted() const            { return m_apiRestricted; }
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
     inline bool isSyslog() const                   { return m_syslog; }
-    inline const char *algoName() const            { return algoName(m_algorithm); }
-    inline const char *apiToken() const            { return m_apiToken; }
-    inline const char *apiWorkerId() const         { return m_apiWorkerId; }
-    inline const char *logFile() const             { return m_logFile; }
-    inline const char *userAgent() const           { return m_userAgent; }
-    inline const std::vector<Url*> &pools() const  { return m_pools; }
+    inline const char *algoName() const            { return Pool::algoName(m_algorithm); }
+    inline const char *apiToken() const            { return m_apiToken.data(); }
+    inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
+    inline const char *logFile() const             { return m_logFile.data(); }
+    inline const char *userAgent() const           { return m_userAgent.data(); }
+    inline const std::vector<Pool> &pools() const  { return m_pools; }
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
@@ -65,8 +62,8 @@ public:
     inline int retryPause() const                  { return m_retryPause; }
     inline void setColors(bool colors)             { m_colors = colors; }
 
-    inline bool isWatch() const override           { return m_watch && m_fileName; }
-    inline const char *fileName() const override   { return m_fileName; }
+    inline bool isWatch() const override           { return m_watch && !m_fileName.isNull(); }
+    inline const char *fileName() const override   { return m_fileName.data(); }
 
 protected:
     bool adjust() override;
@@ -85,17 +82,17 @@ protected:
     bool m_colors;
     bool m_syslog;
     bool m_watch;
-    char *m_apiToken;
-    char *m_apiWorkerId;
-    char *m_fileName;
-    char *m_logFile;
-    char *m_userAgent;
     int m_apiPort;
     int m_donateLevel;
     int m_printTime;
     int m_retries;
     int m_retryPause;
-    std::vector<Url*> m_pools;
+    std::vector<Pool> m_pools;
+    xmrig::c_str m_apiToken;
+    xmrig::c_str m_apiWorkerId;
+    xmrig::c_str m_fileName;
+    xmrig::c_str m_logFile;
+    xmrig::c_str m_userAgent;
 
 private:
     bool parseInt(int key, int arg);

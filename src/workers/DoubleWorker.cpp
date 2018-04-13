@@ -144,7 +144,11 @@ bool DoubleWorker::selfTest()
     }
 #   endif
 
-    return memcmp(m_hash, test_output_heavy, 64) == 0;
+#   ifndef XMRIG_NO_SUMO
+    return m_thread->algorithm() == xmrig::CRYPTONIGHT_HEAVY && memcmp(m_hash, test_output_heavy, 64) == 0;
+#   else
+    return false;
+#   endif
 }
 
 
