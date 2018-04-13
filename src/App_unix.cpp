@@ -31,18 +31,12 @@
 #include "App.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
 #include "log/Log.h"
 
 
 void App::background()
 {
     signal(SIGPIPE, SIG_IGN);
-
-    const int64_t affinity = m_controller->config()->affinity();
-    if (affinity != -1L) {
-        Cpu::setAffinity(-1, affinity);
-    }
 
     if (!m_controller->config()->isBackground()) {
         return;

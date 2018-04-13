@@ -42,7 +42,6 @@ public:
 
     static int optimalThreadsCount(xmrig::Algo algo, bool doubleHash, int maxCpuUsage);
     static void init();
-    static void setAffinity(int id, uint64_t mask);
 
     static inline bool hasAES()       { return (m_flags & AES) != 0; }
     static inline bool isX64()        { return (m_flags & X86_64) != 0; }

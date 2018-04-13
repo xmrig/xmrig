@@ -73,7 +73,6 @@ xmrig::Controller::Controller()
 xmrig::Controller::~Controller()
 {
     ConfigLoader::release();
-    Platform::release();
 
     delete d_ptr;
 }

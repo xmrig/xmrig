@@ -21,6 +21,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef __FreeBSD__
+#   include <sys/types.h>
+#   include <sys/param.h>
+#   include <sys/cpuset.h>
+#   include <pthread_np.h>
+#endif
+
+
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +42,11 @@
 
 #ifdef XMRIG_NVIDIA_PROJECT
 #   include "nvidia/cryptonight.h"
+#endif
+
+
+#ifdef __FreeBSD__
+typedef cpuset_t cpu_set_t;
 #endif
 
 
@@ -63,15 +76,28 @@ static inline char *createUserAgent()
 }
 
 
-void Platform::init(const char *userAgent)
+bool Platform::setThreadAffinity(uint64_t cpu_id)
 {
-    m_userAgent = userAgent ? strdup(userAgent) : createUserAgent();
+    cpu_set_t mn;
+    CPU_ZERO(&mn);
+    CPU_SET(cpu_id, &mn);
+
+#   ifndef __ANDROID__
+    return pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) == 0;
+#   else
+    return sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0;
+#   endif
 }
 
 
-void Platform::release()
+void Platform::init(const char *userAgent)
 {
-    delete [] m_userAgent;
+    if (userAgent) {
+        m_userAgent = userAgent;
+    }
+    else {
+        m_userAgent = createUserAgent();
+    }
 }
 
 

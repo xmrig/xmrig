@@ -25,8 +25,7 @@
 #include "workers/Handle.h"
 
 
-Handle::Handle(xmrig::IThread *config, size_t totalThreads, size_t totalWays, int64_t affinity) :
-    m_affinity(affinity),
+Handle::Handle(xmrig::IThread *config, size_t totalThreads, size_t totalWays) :
     m_worker(nullptr),
     m_totalThreads(totalThreads),
     m_totalWays(totalWays),

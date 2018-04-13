@@ -34,10 +34,10 @@
 #endif
 
 
+#include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
 #include "log/Log.h"
 #include "Mem.h"
-#include "xmrig.h"
 
 
 bool Mem::allocate(xmrig::Algo algo, int threads, bool doubleHash, bool enabled)

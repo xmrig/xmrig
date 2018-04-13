@@ -29,16 +29,16 @@
 #include "Platform.h"
 
 
-char *Platform::m_defaultConfigName = nullptr;
-char *Platform::m_userAgent         = nullptr;
+char Platform::m_defaultConfigName[520] = { 0 };
+xmrig::c_str Platform::m_userAgent;
 
 
 const char *Platform::defaultConfigName()
 {
     size_t size = 520;
 
-    if (m_defaultConfigName == nullptr) {
-        m_defaultConfigName = new char[size];
+    if (*m_defaultConfigName) {
+        return m_defaultConfigName;
     }
 
     if (uv_exepath(m_defaultConfigName, &size) < 0) {
@@ -58,5 +58,6 @@ const char *Platform::defaultConfigName()
         }
     }
 
+    *m_defaultConfigName = '\0';
     return nullptr;
 }

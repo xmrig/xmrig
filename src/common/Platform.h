@@ -25,20 +25,26 @@
 #define __PLATFORM_H__
 
 
+#include <stdint.h>
+
+
+#include "common/utils/c_str.h"
+
+
 class Platform
 {
 public:
+    static bool setThreadAffinity(uint64_t cpu_id);
     static const char *defaultConfigName();
     static void init(const char *userAgent);
-    static void release();
     static void setProcessPriority(int priority);
     static void setThreadPriority(int priority);
 
-    static inline const char *userAgent() { return m_userAgent; }
+    static inline const char *userAgent() { return m_userAgent.data(); }
 
 private:
-    static char *m_defaultConfigName;
-    static char *m_userAgent;
+    static char m_defaultConfigName[520];
+    static xmrig::c_str m_userAgent;
 };
 
 

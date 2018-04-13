@@ -38,11 +38,10 @@ class IWorker;
 class Handle
 {
 public:
-    Handle(xmrig::IThread *config, size_t totalThreads, size_t totalWays, int64_t affinity);
+    Handle(xmrig::IThread *config, size_t totalThreads, size_t totalWays);
     void join();
     void start(void (*callback) (void *));
 
-    inline int64_t affinity() const        { return m_affinity; }
     inline IWorker *worker() const         { return m_worker; }
     inline size_t threadId() const         { return m_config->index(); }
     inline size_t totalThreads() const     { return m_totalThreads; }
@@ -51,7 +50,6 @@ public:
     inline xmrig::IThread *config() const  { return m_config; }
 
 private:
-    int64_t m_affinity;
     IWorker *m_worker;
     size_t m_totalThreads;
     size_t m_totalWays;

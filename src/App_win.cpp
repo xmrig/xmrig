@@ -27,18 +27,12 @@
 
 
 #include "App.h"
-#include "Cpu.h"
 #include "core/Controller.h"
 #include "core/Config.h"
 
 
 void App::background()
 {
-    const int64_t affinity = m_controller->config()->affinity();
-    if (affinity != -1L) {
-        Cpu::setAffinity(-1, affinity);
-    }
-
     if (!m_controller->config()->isBackground()) {
         return;
     }
