@@ -18,6 +18,7 @@ set(HEADERS
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
     src/common/utils/c_str.h
+    src/common/xmrig.h
     src/Console.h
     src/core/Config.cpp
     src/core/ConfigLoader_platform.h
@@ -60,7 +61,6 @@ set(HEADERS
     src/workers/SingleWorker.h
     src/workers/Worker.h
     src/workers/Workers.h
-    src/xmrig.h
    )
 
 set(HEADERS_CRYPTO

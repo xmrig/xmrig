@@ -34,10 +34,10 @@
 #   include <malloc.h>
 #endif
 
-#include "log/Log.h"
+#include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
+#include "log/Log.h"
 #include "Mem.h"
-#include "xmrig.h"
 
 
 /*****************************************************************

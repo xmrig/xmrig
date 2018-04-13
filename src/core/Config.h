@@ -30,8 +30,8 @@
 
 
 #include "common/config/CommonConfig.h"
+#include "common/xmrig.h"
 #include "rapidjson/fwd.h"
-#include "xmrig.h"
 
 
 class Addr;

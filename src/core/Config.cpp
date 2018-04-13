@@ -35,7 +35,6 @@
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 #include "workers/CpuThread.h"
-#include "xmrig.h"
 
 
 static char affinity_tmp[20] = { 0 };

@@ -25,8 +25,8 @@
 #define __CPUTHREAD_H__
 
 
+#include "common/xmrig.h"
 #include "interfaces/IThread.h"
-#include "xmrig.h"
 
 
 struct cryptonight_ctx;

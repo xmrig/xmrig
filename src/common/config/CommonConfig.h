@@ -29,9 +29,9 @@
 
 
 #include "common/utils/c_str.h"
+#include "common/xmrig.h"
 #include "interfaces/IConfig.h"
 #include "net/Pool.h"
-#include "xmrig.h"
 
 
 namespace xmrig {

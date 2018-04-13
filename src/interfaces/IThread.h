@@ -27,8 +27,8 @@
 #include <stdint.h>
 
 
+#include "common/xmrig.h"
 #include "rapidjson/fwd.h"
-#include "xmrig.h"
 
 
 namespace xmrig {

@@ -29,7 +29,7 @@
 
 
 #include "common/utils/c_str.h"
-#include "xmrig.h"
+#include "common/xmrig.h"
 
 
 class Pool

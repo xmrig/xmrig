@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 
-#include "xmrig.h"
+#include "common/xmrig.h"
 
 
 class Cpu

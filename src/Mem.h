@@ -30,7 +30,7 @@
 #include <stdint.h>
 
 
-#include "xmrig.h"
+#include "common/xmrig.h"
 
 
 struct cryptonight_ctx;
