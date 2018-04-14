@@ -1,8 +1,11 @@
 FROM ubuntu:latest
 
+RUN apt-get update && \
+	apt-get install software-properties-common git build-essential libbz2-dev cmake libuv1-dev libssl-dev wget -y
+
 RUN add-apt-repository ppa:jonathonf/gcc-7.1 && \
 	apt-get update && \
-	apt-get install gcc-7 g++-7 software-properties-common git build-essential libbz2-dev cmake libuv1-dev libssl-dev wget -y && \
+	apt-get install gcc-7 g++-7 && \
 	apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
