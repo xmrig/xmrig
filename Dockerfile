@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 
 RUN apt-get update && \
-	apt-get install software-properties-common git build-essential cmake libuv1-dev libssl-dev -y
+	apt-get install software-properties-common git build-essential cmake libuv1-dev libssl-dev libboost-system-dev -y
 
 RUN add-apt-repository ppa:jonathonf/gcc-7.1 && \
 	apt-get update && \
