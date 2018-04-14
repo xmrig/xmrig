@@ -55,10 +55,9 @@ set(HEADERS
     src/Summary.h
     src/version.h
     src/workers/CpuThread.h
-    src/workers/DoubleWorker.h
     src/workers/Handle.h
     src/workers/Hashrate.h
-    src/workers/SingleWorker.h
+    src/workers/MultiWorker.h
     src/workers/Worker.h
     src/workers/Workers.h
    )
@@ -109,10 +108,9 @@ set(SOURCES
     src/net/SubmitResult.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp
-    src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
-    src/workers/SingleWorker.cpp
+    src/workers/MultiWorker.cpp
     src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp

@@ -34,8 +34,8 @@
 
 Worker::Worker(Handle *handle) :
     m_id(handle->threadId()),
-    m_totalThreads(handle->totalThreads()),
     m_totalWays(handle->totalWays()),
+    m_offset(handle->offset()),
     m_hashCount(0),
     m_timestamp(0),
     m_count(0),
@@ -47,7 +47,7 @@ Worker::Worker(Handle *handle) :
     }
 
     Platform::setThreadPriority(m_thread->priority());
-    m_ctx = Mem::create(m_id);
+    m_ctxLegacy = Mem::create(m_id);
 }
 
 

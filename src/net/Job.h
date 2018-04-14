@@ -69,6 +69,10 @@ public:
     static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
     static void toHex(const unsigned char* in, unsigned int len, char* out);
 
+#   ifdef APP_DEBUG
+    static char *toHex(const unsigned char* in, unsigned int len);
+#   endif
+
     bool operator==(const Job &other) const;
     bool operator!=(const Job &other) const;
 

@@ -30,14 +30,12 @@
 #include "core/Controller.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IThread.h"
+#include "log/Log.h"
 #include "Mem.h"
-#include "workers/DoubleWorker.h"
 #include "workers/Handle.h"
 #include "workers/Hashrate.h"
-#include "workers/SingleWorker.h"
+#include "workers/MultiWorker.h"
 #include "workers/Workers.h"
-
-#include "log/Log.h"
 
 
 bool Workers::m_active = false;
@@ -112,8 +110,6 @@ void Workers::start(xmrig::Controller *controller)
 {
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
 
-    LOG_NOTICE("- %d", std::this_thread::get_id());
-
     size_t totalWays = 0;
     for (const xmrig::IThread *thread : threads) {
        totalWays += thread->multiway();
@@ -131,8 +127,12 @@ void Workers::start(xmrig::Controller *controller)
     uv_timer_init(uv_default_loop(), &m_timer);
     uv_timer_start(&m_timer, Workers::onTick, 500, 500);
 
+    uint32_t offset = 0;
+
     for (xmrig::IThread *thread : threads) {
-        Handle *handle = new Handle(thread, threads.size(), totalWays);
+        Handle *handle = new Handle(thread, offset, totalWays);
+        offset += thread->multiway();
+
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }
@@ -168,20 +168,42 @@ void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
 
-    LOG_NOTICE("%zu %d", handle->threadId(), std::this_thread::get_id());
+    IWorker *worker = nullptr;
 
-    if (Mem::isDoubleHash()) {
-        handle->setWorker(new DoubleWorker(handle));
+    switch (handle->config()->multiway()) {
+    case 1:
+        worker = new MultiWorker<1>(handle);
+        break;
+
+    case 2:
+        worker = new MultiWorker<2>(handle);
+        break;
+
+    case 3:
+        worker = new MultiWorker<3>(handle);
+        break;
+
+    case 4:
+        worker = new MultiWorker<4>(handle);
+        break;
+
+    case 5:
+        worker = new MultiWorker<5>(handle);
+        break;
+
+    default:
+        break;
     }
-    else {
-        handle->setWorker(new SingleWorker(handle));
-    }
 
-    const bool rc = handle->worker()->start();
+    handle->setWorker(worker);
 
-    if (!rc) {
+    if (!worker->selfTest()) {
         LOG_ERR("thread %zu error: \"hash self-test failed\".", handle->worker()->id());
+
+        return;
     }
+
+    worker->start();
 }
 
 

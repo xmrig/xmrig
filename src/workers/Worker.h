@@ -54,10 +54,10 @@ public:
 protected:
     void storeStats();
 
-    cryptonight_ctx *m_ctx;
-    size_t m_id;
-    size_t m_totalThreads;
-    size_t m_totalWays;
+    const size_t m_id;
+    const size_t m_totalWays;
+    const uint32_t m_offset;
+    cryptonight_ctx *m_ctxLegacy;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
     uint64_t m_count;
