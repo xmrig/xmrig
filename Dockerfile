@@ -8,11 +8,10 @@ RUN add-apt-repository ppa:jonathonf/gcc-7.1 && \
 
 RUN wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz \
     && tar xfz boost_1_66_0.tar.gz \
-    && rm boost_1_66_0.tar.gz \
     && cd boost_1_66_0 \
     && ./bootstrap.sh \
     && ./b2 --with-libraries=system -j 4 link=shared runtime-link=shared install \
-    && cd .. && rm -rf boost_1_66_0 && ldconfig
+    && cd .. && rm -rf boost_1_66_0 && rm boost_1_66_0.tar.gz &&ldconfig
 
 RUN  git clone https://github.com/Bendr0id/xmrigCC.git && \
 	cd xmrigCC && \
