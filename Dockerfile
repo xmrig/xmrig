@@ -7,7 +7,7 @@ RUN add-apt-repository ppa:jonathonf/gcc-7.1 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz \
-    && tar xfz oost_1_66_0.tar.gz \
+    && tar xfz boost_1_66_0.tar.gz \
     && rm boost_1_66_0.tar.gz \
     && cd boost_1_66_0 \
     && ./bootstrap.sh \
