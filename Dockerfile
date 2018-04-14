@@ -5,7 +5,7 @@ RUN apt-get update && \
 
 RUN add-apt-repository ppa:jonathonf/gcc-7.1 && \
 	apt-get update && \
-	apt-get install gcc-7 g++-7 && \
+	apt-get install gcc-7 g++-7 -y && \
 	apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
