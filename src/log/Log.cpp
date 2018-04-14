@@ -36,8 +36,24 @@
 Log *Log::m_self = nullptr;
 
 
+Log::Log()
+{
+    uv_mutex_init(&m_mutex);
+}
+
+Log::~Log()
+{
+    for (auto backend : m_backends) {
+        delete backend;
+    }
+
+    uv_mutex_destroy(&m_mutex);
+}
+
 void Log::message(Log::Level level, const char* fmt, ...)
 {
+    uv_mutex_lock(&m_mutex);
+
     va_list args;
     va_list copy;
     va_start(args, fmt);
@@ -47,11 +63,15 @@ void Log::message(Log::Level level, const char* fmt, ...)
         backend->message(level, fmt, copy);
         va_end(copy);
     }
+
+    uv_mutex_unlock(&m_mutex);
 }
 
 
 void Log::text(const char* fmt, ...)
 {
+    uv_mutex_lock(&m_mutex);
+
     va_list args;
     va_list copy;
     va_start(args, fmt);
@@ -63,12 +83,6 @@ void Log::text(const char* fmt, ...)
     }
 
     va_end(args);
-}
 
-
-Log::~Log()
-{
-    for (auto backend : m_backends) {
-        delete backend;
-    }
+    uv_mutex_unlock(&m_mutex);
 }

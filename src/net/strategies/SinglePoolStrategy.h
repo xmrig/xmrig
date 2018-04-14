@@ -56,7 +56,7 @@ protected:
 
 private:
     bool m_active;
-    Client *m_client;
+    Client::Ptr m_client;
     IStrategyListener *m_listener;
 };
 

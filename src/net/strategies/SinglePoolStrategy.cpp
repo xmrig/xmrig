@@ -32,7 +32,7 @@ SinglePoolStrategy::SinglePoolStrategy(const Url *url, const char *agent, IStrat
     m_active(false),
     m_listener(listener)
 {
-    m_client = new Client(0, agent, this);
+    m_client = std::make_shared<Client>(0, agent, this);
     m_client->setUrl(url);
     m_client->setRetryPause(Options::i()->retryPause() * 1000);
 }
@@ -56,7 +56,7 @@ void SinglePoolStrategy::resume()
         return;
     }
 
-    m_listener->onJob(m_client, m_client->job());
+    m_listener->onJob(m_client.get(), m_client->job());
 }
 
 

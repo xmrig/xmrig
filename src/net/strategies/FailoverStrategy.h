@@ -63,7 +63,7 @@ private:
     int m_active;
     int m_index;
     IStrategyListener *m_listener;
-    std::vector<Client*> m_pools;
+    std::vector<Client::Ptr> m_pools;
 };
 
 #endif /* __FAILOVERSTRATEGY_H__ */

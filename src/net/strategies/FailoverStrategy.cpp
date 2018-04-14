@@ -57,7 +57,7 @@ void FailoverStrategy::resume()
         return;
     }
 
-    m_listener->onJob( m_pools[m_active],  m_pools[m_active]->job());
+    m_listener->onJob(m_pools[m_active].get(),  m_pools[m_active]->job());
 }
 
 
@@ -76,7 +76,7 @@ void FailoverStrategy::stop()
 
 void FailoverStrategy::tick(uint64_t now)
 {
-    for (Client *client : m_pools) {
+    for (auto client : m_pools) {
         client->tick(now);
     }
 }
@@ -140,7 +140,7 @@ void FailoverStrategy::onResultAccepted(Client *client, const SubmitResult &resu
 
 void FailoverStrategy::add(const Url *url, const char *agent)
 {
-    Client *client = new Client((int) m_pools.size(), agent, this);
+    Client::Ptr client = std::make_shared<Client>((int) m_pools.size(), agent, this);
     client->setUrl(url);
     client->setRetryPause(Options::i()->retryPause() * 1000);
 

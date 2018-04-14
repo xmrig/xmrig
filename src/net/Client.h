@@ -29,34 +29,25 @@
 #include <map>
 #include <uv.h>
 #include <memory>
+#include <list>
 
-
+#include "net/Connection.h"
 #include "net/Job.h"
 #include "net/SubmitResult.h"
 #include "net/Url.h"
 #include "rapidjson/fwd.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-#include "net.h"
-
-#ifndef XMRIG_NO_TLS
-#include "tls.h"
-#endif
-
-#ifdef __cplusplus
-}
-#endif
 
 class IClientListener;
 class JobResult;
 
 
-class Client
+class Client : public ConnectionListener,
+               public std::enable_shared_from_this<Client>
 {
+public:
+    typedef std::shared_ptr<Client> Ptr;
+
 public:
     constexpr static int kResponseTimeout  = 20 * 1000;
     constexpr static int kKeepAliveTimeout = 60 * 1000;
@@ -78,25 +69,29 @@ public:
     inline void setQuiet(bool quiet)         { m_quiet = quiet; }
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
+    static void onConnected(uv_async_t *handle);
+    static void onReceived(uv_async_t *handle);
+    static void onError(uv_async_t *handle);
+
 private:
     bool isCriticalError(const char *message);
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseLogin(const rapidjson::Value &result, int *code);
-    int64_t send(size_t size);
+    int64_t send(char* buf, size_t size);
     void close();
+    void reconnect();
     void login();
+    void processReceivedData(char* data, size_t size);
     void parse(char *line, size_t len);
-    void parseExtensions(const rapidjson::Value &value);
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
+    void parseExtensions(const rapidjson::Value &value);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
-    void reconnect();
     void startTimeout();
 
-    static void onRead(net_t *net, size_t read, char *buf);
-    static void onConnect(net_t *net);
-    static void onError(net_t *net, int err, char *errStr);
-    static void onClose(net_t *net);
+    virtual void scheduleOnConnected();
+    virtual void scheduleOnReceived(char *data, size_t size);
+    virtual void scheduleOnError(const std::string &error);
 
     static inline Client *getClient(void *data) { return static_cast<Client*>(data); }
 
@@ -119,11 +114,16 @@ private:
     Url m_url;
     uv_buf_t m_recvBuf;
 
-    net_t* m_net;
+    uv_mutex_t m_mutex;
+    std::list<std::string> m_readQueue;
 
-#   ifndef XMRIG_PROXY_PROJECT
+    Connection::Ptr m_connection;
+
+    uv_async_t onConnectedAsync;
+    uv_async_t onReceivedAsync;
+    uv_async_t onErrorAsync;
+
     uv_timer_t m_keepAliveTimer;
-#   endif
 
 };
 

@@ -65,7 +65,7 @@ private:
     static void onSuspendTimer(uv_timer_t *handle);
 
     bool m_active;
-    Client *m_client;
+    Client::Ptr m_client;
     const int m_donateTime;
     const int m_idleTime;
     IStrategyListener *m_listener;

@@ -48,7 +48,7 @@ class CryptoNight
 public:
     static bool init(int algo, bool aesni);
 
-    static void hash(size_t factor, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx);
+    static void hash(size_t factor, Options::PowVersion powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx);
 
 private:
     static bool selfTest(int algo);

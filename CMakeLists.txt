@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -19,9 +19,9 @@ include (cmake/cpu.cmake)
 set(SOURCES
     src/api/NetworkState.cpp
     src/App.cpp
-    src/3rdparty/clib-net/deps/buffer/buffer.c
-    src/3rdparty/clib-net/src/net.c
+    src/net/BoostTcpConnection.cpp
     src/net/Client.cpp
+    src/net/Connection.cpp
     src/net/Job.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
@@ -109,10 +109,12 @@ add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 add_definitions(/DMINER_EXECUTABLE_NAME=${MINER_EXECUTABLE_NAME})
 #add_definitions(/DAPP_DEBUG)
+add_definitions(-fexceptions)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
+find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
 
 include(cmake/flags.cmake)
 
@@ -123,7 +125,7 @@ if (WITH_TLS)
 
     if (OPENSSL_FOUND)
         include_directories(${OPENSSL_INCLUDE_DIR})
-        set(SOURCES_SSL_TLS src/3rdparty/clib-net/src/tls.c)
+        set(SOURCES_SSL_TLS src/net/BoostTlsConnection.cpp)
     else()
         message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
     endif()
@@ -201,8 +203,8 @@ endif()
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
-include_directories(src/3rdparty/clib-net/include)
-include_directories(src/3rdparty/clib-net/deps)
+include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(xmrig_common STATIC ${SOURCES_COMMON})
 add_library(xmrig_os_dependencies STATIC ${SOURCES_OS} ${SOURCES_SYSLOG})
@@ -219,7 +221,7 @@ endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
 add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} res/app.rc)
 set_target_properties(xmrigMiner PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
 
-target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid
+target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid ${Boost_LIBRARIES}
         ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 
 if (WITH_CC_CLIENT)
@@ -227,6 +229,7 @@ if (WITH_CC_CLIENT)
 endif (WITH_CC_CLIENT)
 
 if (WITH_TLS)
+    target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
     target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
 endif (WITH_TLS)
 

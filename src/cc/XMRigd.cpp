@@ -20,6 +20,7 @@
 #include <string>
 #include <chrono>
 #include <thread>
+#include <uv.h>
 
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
@@ -66,21 +67,15 @@ int main(int argc, char **argv) {
     do {
         status = system(xmrigMinerPath.c_str());
 #if defined(_WIN32) || defined(WIN32)
-		if (status == 255) { // 255 segfault on windows
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-			printf("Crashed. Restarting in 1s.\n");
-		}
-    } while (status == EINTR || status == 255); // 255 segfault on windows
-
+    } while (status != EINVAL && status != SIGHUP && status != SIGINT);
 
 	if (status == EINVAL) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 	}
 #else
-		if (WEXITSTATUS(status) == 139) { // 139 segfault on *nix
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-			printf("Crashed. Restarting in 1s.\n");
-        }
-    } while (WEXITSTATUS(status) == EINTR || WEXITSTATUS(status) == 139); // 139 segfault on *nix
+
+        printf("Exit: %d converted WEXITSTATUS: %d\n", status, WEXITSTATUS(status));
+
+    } while (WEXITSTATUS(status) != EINVAL && WEXITSTATUS(status) != SIGHUP && WEXITSTATUS(status) != SIGINT);
 #endif
 }
