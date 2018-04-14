@@ -76,7 +76,7 @@ public:
     inline const std::vector<IThread *> &threads() const { return m_threads.list; }
     inline int printTime() const                         { return m_printTime; }
     inline int priority() const                          { return m_priority; }
-    inline int threadsCount() const                      { return m_threads.count; }
+    inline int threadsCount() const                      { return m_threads.list.size(); }
     inline int64_t affinity() const                      { return m_threads.mask; }
 
     static Config *load(int argc, char **argv, IWatcherListener *listener);

@@ -72,6 +72,7 @@ public:
 
     static cn_hash_fun fn(Algo algorithm, AlgoVariant av, Variant variant);
     static CpuThread *createFromAV(size_t index, Algo algorithm, AlgoVariant av, int64_t affinity, int priority);
+    static CpuThread *createFromData(size_t index, Algo algorithm, const CpuThread::Data &data, int priority, bool softAES);
     static Data parse(const rapidjson::Value &object);
 
     inline bool isPrefetch() const               { return m_prefetch; }

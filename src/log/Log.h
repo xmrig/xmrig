@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #define __LOG_H__
 
 
+#include <assert.h>
 #include <uv.h>
 #include <vector>
 
@@ -54,20 +55,28 @@ public:
     constexpr static const char* kCL_GRAY = "\x1B[90m";
 #   endif
 
-    static inline Log* i()                       { return m_self; }
+    static inline Log* i()                       { assert(m_self != nullptr); return m_self; }
     static inline void add(ILogBackend *backend) { i()->m_backends.push_back(backend); }
-    static inline void init()                    { if (!m_self) { m_self = new Log();} }
-    static inline void release()                 { delete m_self; }
+    static inline void init()                    { if (!m_self) { new Log(); } }
+    static inline void release()                 { assert(m_self != nullptr); delete m_self; }
 
     void message(Level level, const char* fmt, ...);
     void text(const char* fmt, ...);
 
 private:
-    inline Log() {}
+    inline Log() {
+        assert(m_self == nullptr);
+
+        uv_mutex_init(&m_mutex);
+
+        m_self = this;
+    }
+
     ~Log();
 
     static Log *m_self;
     std::vector<ILogBackend*> m_backends;
+    uv_mutex_t m_mutex;
 };
 
 

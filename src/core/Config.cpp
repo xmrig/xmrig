@@ -156,6 +156,18 @@ bool xmrig::Config::adjust()
         return false;
     }
 
+    if (m_aesMode == AES_AUTO) {
+        m_aesMode = Cpu::hasAES() ? AES_SOFT : AES_SOFT;
+    }
+
+    if (!m_threads.cpu.empty()) {
+        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
+            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm, m_threads.cpu[i], m_priority, m_aesMode == AES_SOFT));
+        }
+
+        return true;
+    }
+
     m_algoVariant = getAlgoVariant();
     if (m_algoVariant == AV_DOUBLE || m_algoVariant == AV_DOUBLE_SOFT) {
         m_doubleHash = true;

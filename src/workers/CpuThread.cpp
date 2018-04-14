@@ -197,6 +197,24 @@ xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, Algo algorithm, A
 }
 
 
+xmrig::CpuThread *xmrig::CpuThread::createFromData(size_t index, Algo algorithm, const CpuThread::Data &data, int priority, bool softAES)
+{
+    int av                  = AV_AUTO;
+    const Multiway multiway = data.multiway;
+
+    if (multiway <= DoubleWay) {
+        av = softAES ? (multiway + 2) : multiway;
+    }
+    else {
+        av = softAES ? (multiway + 5) : (multiway + 2);
+    }
+
+    assert(av > AV_AUTO && av < AV_MAX);
+
+    return new CpuThread(index, algorithm, static_cast<AlgoVariant>(av), multiway, data.affinity, priority, softAES, false);
+}
+
+
 xmrig::CpuThread::Data xmrig::CpuThread::parse(const rapidjson::Value &object)
 {
     Data data;

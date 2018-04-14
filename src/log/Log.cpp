@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,6 +38,8 @@ Log *Log::m_self = nullptr;
 
 void Log::message(Log::Level level, const char* fmt, ...)
 {
+    uv_mutex_lock(&m_mutex);
+
     va_list args;
     va_list copy;
     va_start(args, fmt);
@@ -47,11 +49,15 @@ void Log::message(Log::Level level, const char* fmt, ...)
         backend->message(level, fmt, copy);
         va_end(copy);
     }
+
+    uv_mutex_unlock(&m_mutex);
 }
 
 
 void Log::text(const char* fmt, ...)
 {
+    uv_mutex_lock(&m_mutex);
+
     va_list args;
     va_list copy;
     va_start(args, fmt);
@@ -63,6 +69,8 @@ void Log::text(const char* fmt, ...)
     }
 
     va_end(args);
+
+    uv_mutex_unlock(&m_mutex);
 }
 
 

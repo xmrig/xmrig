@@ -112,6 +112,8 @@ void Workers::start(xmrig::Controller *controller)
 {
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
 
+    LOG_NOTICE("- %d", std::this_thread::get_id());
+
     size_t totalWays = 0;
     for (const xmrig::IThread *thread : threads) {
        totalWays += thread->multiway();
@@ -165,6 +167,9 @@ void Workers::submit(const JobResult &result)
 void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
+
+    LOG_NOTICE("%zu %d", handle->threadId(), std::this_thread::get_id());
+
     if (Mem::isDoubleHash()) {
         handle->setWorker(new DoubleWorker(handle));
     }
@@ -175,9 +180,7 @@ void Workers::onReady(void *arg)
     const bool rc = handle->worker()->start();
 
     if (!rc) {
-        uv_mutex_lock(&m_mutex);
         LOG_ERR("thread %zu error: \"hash self-test failed\".", handle->worker()->id());
-        uv_mutex_unlock(&m_mutex);
     }
 }
 
