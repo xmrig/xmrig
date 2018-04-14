@@ -36,7 +36,7 @@ public:
 
     ~BoostConnection()
     {
-
+        disconnect();
     }
 
     void connect(const std::string& server, uint16_t port) override
@@ -69,8 +69,11 @@ public:
 
     void disconnect() override
     {
-        LOG_DEBUG("[%s:%d] Disconnecting", getConnectedIp().c_str(), getConnectedPort());
-        socket_.get().lowest_layer().close();
+        if (isConnected()) {
+            LOG_DEBUG("[%s:%d] Disconnecting", getConnectedIp().c_str(), getConnectedPort());
+            socket_.get().lowest_layer().close();
+        }
+
         ioService_.stop();
     }
 
