@@ -322,6 +322,11 @@ void Client::close()
 {
     LOG_DEBUG("close");
 
+    if (m_connection && m_connection) {
+        LOG_DEBUG("disconnecting");
+        m_connection->disconnect();
+    }
+
     m_connection.reset();
 }
 

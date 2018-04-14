@@ -36,7 +36,7 @@ public:
 
     ~BoostConnection()
     {
-        disconnect();
+
     }
 
     void connect(const std::string& server, uint16_t port) override
@@ -50,6 +50,8 @@ public:
         socket_.connect(iterator,
                         boost::bind(&BoostConnection::handleConnect, this->shared_from_this(),
                                     boost::asio::placeholders::error));
+
+
 
         std::thread([this]() { ioService_.run(); }).detach();
     }
@@ -67,11 +69,8 @@ public:
 
     void disconnect() override
     {
-        if (isConnected()) {
-            LOG_DEBUG("[%s:%d] Disconnecting", getConnectedIp().c_str(), getConnectedPort());
-            socket_.get().lowest_layer().close();
-        }
-
+        LOG_DEBUG("[%s:%d] Disconnecting", getConnectedIp().c_str(), getConnectedPort());
+        socket_.get().lowest_layer().close();
         ioService_.stop();
     }
 
