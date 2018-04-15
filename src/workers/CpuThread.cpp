@@ -245,7 +245,9 @@ xmrig::CpuThread::Data xmrig::CpuThread::parse(const rapidjson::Value &object)
 #ifndef XMRIG_NO_API
 rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
 {
-    rapidjson::Value obj(rapidjson::kObjectType);
+    using namespace rapidjson;
+
+    Value obj(kObjectType);
     auto &allocator = doc.GetAllocator();
 
     obj.AddMember("type",          "cpu", allocator);
@@ -259,3 +261,17 @@ rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
     return obj;
 }
 #endif
+
+
+rapidjson::Value xmrig::CpuThread::toConfig(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+
+    Value obj(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    obj.AddMember("low_power_mode", multiway(), allocator);
+    obj.AddMember("affine_to_cpu",  affinity() == -1L ? Value(kFalseType) : Value(affinity()), allocator);
+
+    return obj;
+}

@@ -43,12 +43,10 @@ static char affinity_tmp[20] = { 0 };
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
-    m_doubleHash(false),
     m_dryRun(false),
     m_hugePages(true),
     m_safe(false),
     m_maxCpuUsage(75),
-    m_printTime(60),
     m_priority(-1)
 {
 }
@@ -129,8 +127,21 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retries",       retries(), allocator);
     doc.AddMember("retry-pause",   retryPause(), allocator);
     doc.AddMember("safe",          m_safe, allocator);
-    doc.AddMember("threads",       threadsCount(), allocator);
-    doc.AddMember("user-agent",    userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
+
+    if (threadsMode() == Advanced) {
+        Value threads(kArrayType);
+
+        for (const IThread *thread : m_threads.list) {
+            threads.PushBack(thread->toConfig(doc), doc.GetAllocator());
+        }
+
+        doc.AddMember("threads", threads, allocator);
+    }
+    else {
+        doc.AddMember("threads", threadsMode() == Automatic ? Value(kNullType) : Value(threadsCount()), allocator);
+    }
+
+    doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
 
 #   ifdef HAVE_SYSLOG_H
     doc.AddMember("syslog", isSyslog(), allocator);
@@ -153,6 +164,7 @@ bool xmrig::Config::adjust()
     }
 
     if (!m_threads.cpu.empty()) {
+        m_threads.mode     = Advanced;
         const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
 
         for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
@@ -162,16 +174,16 @@ bool xmrig::Config::adjust()
         return true;
     }
 
-    m_algoVariant = getAlgoVariant();
-    if (m_algoVariant == AV_DOUBLE || m_algoVariant == AV_DOUBLE_SOFT) {
-        m_doubleHash = true;
-    }
+    m_algoVariant  = getAlgoVariant();
+    m_threads.mode = m_threads.count ? Simple : Automatic;
+
+    const bool doubleHash = m_algoVariant == AV_DOUBLE || m_algoVariant == AV_DOUBLE_SOFT;
 
     if (!m_threads.count) {
-        m_threads.count = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
+        m_threads.count = Cpu::optimalThreadsCount(m_algorithm, doubleHash, m_maxCpuUsage);
     }
     else if (m_safe) {
-        const size_t count = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
+        const size_t count = Cpu::optimalThreadsCount(m_algorithm, doubleHash, m_maxCpuUsage);
         if (m_threads.count > count) {
             m_threads.count = count;
         }

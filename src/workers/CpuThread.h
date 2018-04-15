@@ -77,9 +77,12 @@ public:
     inline size_t index() const override         { return m_index; }
     inline Type type() const override            { return CPU; }
 
+protected:
 #   ifndef XMRIG_NO_API
     rapidjson::Value toAPI(rapidjson::Document &doc) const override;
 #   endif
+
+    rapidjson::Value toConfig(rapidjson::Document &doc) const override;
 
 private:
     const Algo m_algorithm;

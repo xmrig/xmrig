@@ -61,6 +61,13 @@ class IWatcherListener;
 class Config : public CommonConfig
 {
 public:
+    enum ThreadsMode {
+        Automatic,
+        Simple,
+        Advanced
+    };
+
+
     Config();
     ~Config();
 
@@ -70,14 +77,13 @@ public:
 
     inline AesMode aesMode() const                       { return m_aesMode; }
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
-    inline bool isDoubleHash() const                     { return m_doubleHash; }
     inline bool isDryRun() const                         { return m_dryRun; }
     inline bool isHugePages() const                      { return m_hugePages; }
     inline const std::vector<IThread *> &threads() const { return m_threads.list; }
-    inline int printTime() const                         { return m_printTime; }
     inline int priority() const                          { return m_priority; }
     inline int threadsCount() const                      { return m_threads.list.size(); }
     inline int64_t affinity() const                      { return m_threads.mask; }
+    inline ThreadsMode threadsMode() const               { return m_threads.mode; }
 
     static Config *load(int argc, char **argv, IWatcherListener *listener);
 
@@ -99,23 +105,22 @@ private:
 
     struct Threads
     {
-       inline Threads() : mask(-1L), count(0) {}
+       inline Threads() : mask(-1L), count(0), mode(Automatic) {}
 
        int64_t mask;
        size_t count;
        std::vector<CpuThread::Data> cpu;
        std::vector<IThread *> list;
+       ThreadsMode mode;
     };
 
 
     AesMode m_aesMode;
     AlgoVariant m_algoVariant;
-    bool m_doubleHash;
     bool m_dryRun;
     bool m_hugePages;
     bool m_safe;
     int m_maxCpuUsage;
-    int m_printTime;
     int m_priority;
     Threads m_threads;
 };
