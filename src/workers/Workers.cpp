@@ -43,6 +43,7 @@ bool Workers::m_enabled = true;
 Hashrate *Workers::m_hashrate = nullptr;
 IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
+Workers::LaunchStatus Workers::m_status;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
 std::list<JobResult> Workers::m_queue;
@@ -109,10 +110,12 @@ void Workers::setJob(const Job &job, bool donate)
 void Workers::start(xmrig::Controller *controller)
 {
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
+    m_status.algo    = controller->config()->algorithm();
+    m_status.colors  = controller->config()->isHugePages();
+    m_status.threads = threads.size();
 
-    size_t totalWays = 0;
     for (const xmrig::IThread *thread : threads) {
-       totalWays += thread->multiway();
+       m_status.ways += thread->multiway();
     }
 
     m_hashrate = new Hashrate(threads.size(), controller);
@@ -130,7 +133,7 @@ void Workers::start(xmrig::Controller *controller)
     uint32_t offset = 0;
 
     for (xmrig::IThread *thread : threads) {
-        Handle *handle = new Handle(thread, offset, totalWays);
+        Handle *handle = new Handle(thread, offset, m_status.ways);
         offset += thread->multiway();
 
         m_workers.push_back(handle);
@@ -203,7 +206,7 @@ void Workers::onReady(void *arg)
         return;
     }
 
-    worker->start();
+    start(worker);
 }
 
 
@@ -243,4 +246,34 @@ void Workers::onTick(uv_timer_t *handle)
 #   ifndef XMRIG_NO_API
     Api::tick(m_hashrate);
 #   endif
+}
+
+
+void Workers::start(IWorker *worker)
+{
+    const Worker *w = static_cast<const Worker *>(worker);
+
+    uv_mutex_lock(&m_mutex);
+    m_status.started++;
+    m_status.pages     += w->memory().pages;
+    m_status.hugePages += w->memory().hugePages;
+
+    if (m_status.started == m_status.threads) {
+        const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
+
+        if (m_status.colors) {
+            LOG_INFO("\x1B[01;32mREADY (CPU)\x1B[0m threads \x1B[01;36m%zu(%zu)\x1B[0m huge pages %s%zu/%zu %1.0f%%\x1B[0m memory \x1B[01;36m%zu.0 MB",
+                     m_status.threads, m_status.ways,
+                     (m_status.hugePages == m_status.pages ? "\x1B[01;32m" : (m_status.hugePages == 0 ? "\x1B[01;31m" : "\x1B[01;33m")),
+                     m_status.hugePages, m_status.pages, percent, m_status.pages * 2);
+        }
+        else {
+            LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %f%% memory %zu.0 MB",
+                     m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, m_status.pages * 2);
+        }
+    }
+
+    uv_mutex_unlock(&m_mutex);
+
+    worker->start();
 }

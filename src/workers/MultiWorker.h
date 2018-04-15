@@ -64,7 +64,6 @@ private:
 
 
     cryptonight_ctx *m_ctx[N];
-    MemInfo m_memory;
     State m_pausedState;
     State m_state;
     uint8_t m_hash[N * 32];
