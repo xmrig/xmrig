@@ -28,6 +28,7 @@
 #include "api/Api.h"
 #include "core/Config.h"
 #include "core/Controller.h"
+#include "crypto/CryptoNight_constants.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IThread.h"
 #include "log/Log.h"
@@ -260,17 +261,17 @@ void Workers::start(IWorker *worker)
 
     if (m_status.started == m_status.threads) {
         const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
-        const size_t ratio   = m_status.algo == xmrig::CRYPTONIGHT_LITE ? 1 : 2;
+        const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1048576;
 
         if (m_status.colors) {
             LOG_INFO("\x1B[01;32mREADY (CPU)\x1B[0m threads \x1B[01;36m%zu(%zu)\x1B[0m huge pages %s%zu/%zu %1.0f%%\x1B[0m memory \x1B[01;36m%zu.0 MB",
                      m_status.threads, m_status.ways,
                      (m_status.hugePages == m_status.pages ? "\x1B[01;32m" : (m_status.hugePages == 0 ? "\x1B[01;31m" : "\x1B[01;33m")),
-                     m_status.hugePages, m_status.pages, percent, m_status.pages * ratio);
+                     m_status.hugePages, m_status.pages, percent, memory);
         }
         else {
             LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %f%% memory %zu.0 MB",
-                     m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, m_status.pages * ratio);
+                     m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, memory);
         }
     }
 
