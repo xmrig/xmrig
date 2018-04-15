@@ -76,8 +76,6 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
-    Mem::release();
-
     uv_tty_reset_mode();
 
     delete m_console;
@@ -101,11 +99,7 @@ int App::exec()
 
     background();
 
-    Mem::allocate(m_controller->config()->algorithm(),
-                  m_controller->config()->threadsCount(),
-                  m_controller->config()->isDoubleHash(),
-                  m_controller->config()->isHugePages()
-                  );
+    Mem::init(m_controller->config()->isHugePages());
 
     Summary::print(m_controller);
 

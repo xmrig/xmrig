@@ -21,47 +21,23 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WORKER_H__
-#define __WORKER_H__
+#ifndef __MM_MALLOC_PORTABLE_H__
+#define __MM_MALLOC_PORTABLE_H__
 
 
-#include <atomic>
-#include <stdint.h>
+#ifdef _WIN32
+#   ifdef __GNUC__
+#       include <mm_malloc.h>
+#   else
+#       include <malloc.h>
+#   endif
+#else
+#   if defined(XMRIG_ARM) && !defined(__clang__)
+#       include "aligned_malloc.h"
+#   else
+#       include <mm_malloc.h>
+#   endif
+#endif
 
 
-#include "interfaces/IWorker.h"
-
-
-struct cryptonight_ctx;
-class Handle;
-
-
-namespace xmrig {
-    class CpuThread;
-}
-
-
-class Worker : public IWorker
-{
-public:
-    Worker(Handle *handle);
-
-    inline size_t id() const override          { return m_id; }
-    inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
-    inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
-
-protected:
-    void storeStats();
-
-    const size_t m_id;
-    const size_t m_totalWays;
-    const uint32_t m_offset;
-    std::atomic<uint64_t> m_hashCount;
-    std::atomic<uint64_t> m_timestamp;
-    uint64_t m_count;
-    uint64_t m_sequence;
-    xmrig::CpuThread *m_thread;
-};
-
-
-#endif /* __WORKER_H__ */
+#endif /* __MM_MALLOC_PORTABLE_H__ */

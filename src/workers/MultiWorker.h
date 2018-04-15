@@ -26,6 +26,7 @@
 #define __MULTIWORKER_H__
 
 
+#include "Mem.h"
 #include "net/Job.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
@@ -39,6 +40,7 @@ class MultiWorker : public Worker
 {
 public:
     MultiWorker(Handle *handle);
+    ~MultiWorker();
 
 protected:
     bool selfTest() override;
@@ -61,15 +63,11 @@ private:
     };
 
 
-//    cryptonight_ctx *m_ctx[N];
-
-    uint8_t m_hash[N * 32];
-    State m_state;
+    cryptonight_ctx *m_ctx[N];
+    MemInfo m_memory;
     State m_pausedState;
-
-    Job m_job;
-    Job m_paused;
-    JobResult m_result;
+    State m_state;
+    uint8_t m_hash[N * 32];
 };
 
 

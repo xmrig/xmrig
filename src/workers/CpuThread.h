@@ -38,15 +38,6 @@ namespace xmrig {
 class CpuThread : public IThread
 {
 public:
-    enum Multiway {
-        SingleWay = 1,
-        DoubleWay,
-        TripleWay,
-        QuadWay,
-        PentaWay
-    };
-
-
     struct Data
     {
         inline Data() : valid(false), affinity(-1L), multiway(SingleWay) {}
@@ -68,7 +59,7 @@ public:
     CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch);
     ~CpuThread();
 
-    typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx);
+    typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx);
 
     static cn_hash_fun fn(Algo algorithm, AlgoVariant av, Variant variant);
     static CpuThread *createFromAV(size_t index, Algo algorithm, AlgoVariant av, int64_t affinity, int priority);
@@ -80,9 +71,9 @@ public:
     inline cn_hash_fun fn(Variant variant) const { return fn(m_algorithm, m_av, variant); }
 
     inline Algo algorithm() const override       { return m_algorithm; }
-    inline int multiway() const override         { return m_multiway; }
     inline int priority() const override         { return m_priority; }
     inline int64_t affinity() const override     { return m_affinity; }
+    inline Multiway multiway() const override    { return m_multiway; }
     inline size_t index() const override         { return m_index; }
     inline Type type() const override            { return CPU; }
 

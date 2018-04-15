@@ -32,7 +32,7 @@
     uint64_t tweak1_2_##part = 0; \
     if (VARIANT > 0) { \
         tweak1_2_##part = (*reinterpret_cast<const uint64_t*>(input + 35 + part * size) ^ \
-                          *(reinterpret_cast<const uint64_t*>(ctx->state##part) + 24)); \
+                          *(reinterpret_cast<const uint64_t*>(ctx[part]->state) + 24)); \
     }
 #else
 #   define VARIANT1_INIT(part) \

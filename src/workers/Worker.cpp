@@ -26,7 +26,6 @@
 
 #include "common/Platform.h"
 #include "Cpu.h"
-#include "Mem.h"
 #include "workers/CpuThread.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"
@@ -47,12 +46,6 @@ Worker::Worker(Handle *handle) :
     }
 
     Platform::setThreadPriority(m_thread->priority());
-    m_ctxLegacy = Mem::create(m_id);
-}
-
-
-Worker::~Worker()
-{
 }
 
 

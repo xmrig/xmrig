@@ -43,14 +43,22 @@ public:
         CUDA
     };
 
+    enum Multiway {
+        SingleWay = 1,
+        DoubleWay,
+        TripleWay,
+        QuadWay,
+        PentaWay
+    };
+
     virtual ~IThread() {}
 
-    virtual Algo algorithm() const   = 0;
-    virtual int multiway() const     = 0;
-    virtual int priority() const     = 0;
-    virtual int64_t affinity() const = 0;
-    virtual size_t index() const     = 0;
-    virtual Type type() const        = 0;
+    virtual Algo algorithm() const    = 0;
+    virtual int priority() const      = 0;
+    virtual int64_t affinity() const  = 0;
+    virtual Multiway multiway() const = 0;
+    virtual size_t index() const      = 0;
+    virtual Type type() const         = 0;
 
 #   ifndef XMRIG_NO_API
     virtual rapidjson::Value toAPI(rapidjson::Document &doc) const = 0;

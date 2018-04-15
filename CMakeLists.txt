@@ -19,6 +19,7 @@ set(HEADERS
     src/common/config/ConfigWatcher.h
     src/common/Platform.h
     src/common/utils/c_str.h
+    src/common/utils/mm_malloc.h
     src/common/xmrig.h
     src/Console.h
     src/core/Config.cpp

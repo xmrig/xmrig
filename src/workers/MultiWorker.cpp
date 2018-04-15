@@ -36,6 +36,14 @@ template<size_t N>
 MultiWorker<N>::MultiWorker(Handle *handle)
     : Worker(handle)
 {
+    m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
+}
+
+
+template<size_t N>
+MultiWorker<N>::~MultiWorker()
+{
+    Mem::release(m_ctx, N, m_memory);
 }
 
 
@@ -46,24 +54,24 @@ bool MultiWorker<N>::selfTest()
         return false;
     }
 
-    m_thread->fn(xmrig::VARIANT_NONE)(test_input, 76, m_result.result, m_ctxLegacy);
+    m_thread->fn(xmrig::VARIANT_NONE)(test_input, 76, m_hash, m_ctx);
 
-    if (m_thread->algorithm() == xmrig::CRYPTONIGHT && memcmp(m_result.result, test_output_v0, 32) == 0) {
-        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_result.result, m_ctxLegacy);
+    if (m_thread->algorithm() == xmrig::CRYPTONIGHT && memcmp(m_hash, test_output_v0, sizeof m_hash) == 0) {
+        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_hash, m_ctx);
 
-        return memcmp(m_result.result, test_output_v1, 32) == 0;
+        return memcmp(m_hash, test_output_v1, sizeof m_hash) == 0;
     }
 
 #   ifndef XMRIG_NO_AEON
-    if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE && memcmp(m_result.result, test_output_v0_lite, 32) == 0) {
-        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_result.result, m_ctxLegacy);
+    if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE && memcmp(m_hash, test_output_v0_lite, sizeof m_hash) == 0) {
+        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_hash, m_ctx);
 
-        return memcmp(m_result.result, test_output_v1_lite, 32) == 0;
+        return memcmp(m_hash, test_output_v1_lite, sizeof m_hash) == 0;
     }
 #   endif
 
 #   ifndef XMRIG_NO_SUMO
-    return m_thread->algorithm() == xmrig::CRYPTONIGHT_HEAVY && memcmp(m_result.result, test_output_heavy, 32) == 0;
+    return m_thread->algorithm() == xmrig::CRYPTONIGHT_HEAVY && memcmp(m_hash, test_output_heavy, sizeof m_hash) == 0;
 #   else
     return false;
 #   endif
@@ -92,7 +100,7 @@ void MultiWorker<N>::start()
                 storeStats();
             }
 
-            m_thread->fn(m_state.job.variant())(m_state.blob, m_state.job.size(), m_hash, m_ctxLegacy);
+            m_thread->fn(m_state.job.variant())(m_state.blob, m_state.job.size(), m_hash, m_ctx);
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < m_state.job.target()) {
