@@ -260,16 +260,17 @@ void Workers::start(IWorker *worker)
 
     if (m_status.started == m_status.threads) {
         const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
+        const size_t ratio   = m_status.algo == xmrig::CRYPTONIGHT_LITE ? 1 : 2;
 
         if (m_status.colors) {
             LOG_INFO("\x1B[01;32mREADY (CPU)\x1B[0m threads \x1B[01;36m%zu(%zu)\x1B[0m huge pages %s%zu/%zu %1.0f%%\x1B[0m memory \x1B[01;36m%zu.0 MB",
                      m_status.threads, m_status.ways,
                      (m_status.hugePages == m_status.pages ? "\x1B[01;32m" : (m_status.hugePages == 0 ? "\x1B[01;31m" : "\x1B[01;33m")),
-                     m_status.hugePages, m_status.pages, percent, m_status.pages * 2);
+                     m_status.hugePages, m_status.pages, percent, m_status.pages * ratio);
         }
         else {
             LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %f%% memory %zu.0 MB",
-                     m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, m_status.pages * 2);
+                     m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, m_status.pages * ratio);
         }
     }
 
