@@ -45,7 +45,7 @@ void Mem::allocate(MemInfo &info, bool enabled)
     info.hugePages = 0;
 
     if (!enabled) {
-        info.memory = static_cast<uint8_t*>(_mm_malloc(info.size, 16));
+        info.memory = static_cast<uint8_t*>(_mm_malloc(info.size, 4096));
 
         return;
     }

@@ -455,7 +455,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 
 
 template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
-inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx *__restrict__ ctx)
+inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {
     constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
     constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
@@ -466,14 +466,14 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         return;
     }
 
-    keccak(input, (int) size, ctx->state0, 200);
+    keccak(input, (int) size, ctx[0]->state, 200);
 
     VARIANT1_INIT(0);
 
-    cn_explode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) ctx->state0, (__m128i*) ctx->memory);
+    cn_explode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
 
-    const uint8_t* l0 = ctx->memory;
-    uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state0);
+    const uint8_t* l0 = ctx[0]->memory;
+    uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx[0]->state);
 
     uint64_t al0 = h0[0] ^ h0[4];
     uint64_t ah0 = h0[1] ^ h0[5];
@@ -526,15 +526,15 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         }
     }
 
-    cn_implode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) ctx->memory, (__m128i*) ctx->state0);
+    cn_implode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
 
     keccakf(h0, 24);
-    extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, output);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
 
 
 template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
-inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx **__restrict__ ctx)
 {
     constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
     constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
@@ -545,16 +545,16 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         return;
     }
 
-    keccak(input,        (int) size, ctx->state0, 200);
-    keccak(input + size, (int) size, ctx->state1, 200);
+    keccak(input,        (int) size, ctx[0]->state, 200);
+    keccak(input + size, (int) size, ctx[1]->state, 200);
 
     VARIANT1_INIT(0);
     VARIANT1_INIT(1);
 
-    const uint8_t* l0 = ctx->memory;
-    const uint8_t* l1 = ctx->memory + MEM;
-    uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state0);
-    uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state1);
+    const uint8_t* l0 = ctx[0]->memory;
+    const uint8_t* l1 = ctx[1]->memory;
+    uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx[0]->state);
+    uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx[1]->state);
 
     cn_explode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
     cn_explode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -655,25 +655,25 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     keccakf(h0, 24);
     keccakf(h1, 24);
 
-    extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, output);
-    extra_hashes[ctx->state1[0] & 3](ctx->state1, 200, output + 32);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+    extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
 }
 
 
 template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
-inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx **__restrict__ ctx)
 {
 }
 
 
 template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
-inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx **__restrict__ ctx)
 {
 }
 
 
 template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
-inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx **__restrict__ ctx)
 {
 }
 
