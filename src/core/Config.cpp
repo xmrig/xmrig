@@ -157,7 +157,7 @@ bool xmrig::Config::adjust()
     }
 
     if (m_aesMode == AES_AUTO) {
-        m_aesMode = Cpu::hasAES() ? AES_SOFT : AES_SOFT;
+        m_aesMode = Cpu::hasAES() ? AES_HW : AES_SOFT;
     }
 
     if (!m_threads.cpu.empty()) {
