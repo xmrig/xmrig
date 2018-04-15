@@ -150,6 +150,7 @@ static struct option const config_options[] = {
     { "syslog",        0, nullptr, xmrig::IConfig::SyslogKey      },
     { "threads",       1, nullptr, xmrig::IConfig::ThreadsKey     },
     { "user-agent",    1, nullptr, xmrig::IConfig::UserAgentKey   },
+    { "hw-aes",        0, nullptr, xmrig::IConfig::HardwareAESKey },
     { 0, 0, 0, 0 }
 };
 
