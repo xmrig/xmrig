@@ -114,7 +114,12 @@ add_definitions(-fexceptions)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
-find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
+
+if (WIN32)
+    find_package(Boost 1.62.0 COMPONENTS system date_time regex REQUIRED)
+else()
+    find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
+endif()
 
 include(cmake/flags.cmake)
 
