@@ -298,13 +298,17 @@ void ApiRouter::getResults(rapidjson::Document &doc) const
 
 void ApiRouter::getThreads(rapidjson::Document &doc) const
 {
-    doc.SetArray();
+    doc.SetObject();
+    auto &allocator = doc.GetAllocator();
 
     const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
+    rapidjson::Value list(rapidjson::kArrayType);
 
     for (const xmrig::IThread *thread : threads) {
-       doc.PushBack(thread->toAPI(doc), doc.GetAllocator());
+       list.PushBack(thread->toAPI(doc), allocator);
     }
+
+    doc.AddMember("threads", list, allocator);
 }
 
 
