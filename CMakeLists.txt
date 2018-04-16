@@ -13,6 +13,9 @@ option(WITH_TLS       "TLS support" ON)
 set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
 set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
 
+set(Boost_USE_STATIC_RUNTIME ON)
+set(Boost_USE_STATIC_LIBS ON)
+
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
 
