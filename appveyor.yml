@@ -1,5 +1,5 @@
 # version format
-version: 1.5.{build}
+version: 1.6.{build}
 
 # build only tags
 skip_non_tags: true
@@ -25,7 +25,7 @@ build_script:
   - mkdir build
   - cd build
   - set CMAKE_PREFIX_PATH=c:\xmrigCC-deps\msvc2017\libuv\x64\;c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\;c:\xmrigCC-deps\msvc2017\openssl\x64\
-  - cmake -G "Visual Studio 15 2017 Win64" -T v141,host=x64 ..
+  - cmake -G "Visual Studio 15 2017 Win64" -T v141,host=x64 .. -DBOOST_ROOT=C:\Libraries\boost_1_66_0
   - msbuild xmrig.sln /p:Configuration=Release
 
 after_build:
