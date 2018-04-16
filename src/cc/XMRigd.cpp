@@ -74,8 +74,6 @@ int main(int argc, char **argv) {
 	}
 #else
 
-        printf("Exit: %d converted WEXITSTATUS: %d\n", status, WEXITSTATUS(status));
-
     } while (WEXITSTATUS(status) != EINVAL && WEXITSTATUS(status) != SIGHUP && WEXITSTATUS(status) != SIGINT);
 #endif
 }
