@@ -13,8 +13,8 @@ RUN wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.
     && tar xfz boost_1_66_0.tar.gz \
     && cd boost_1_66_0 \
     && ./bootstrap.sh --with-libraries=system \
-    && ./b2 link=shared runtime-link=shared install \
-    && cd .. && rm -rf boost_1_66_0 && rm boost_1_66_0.tar.gz &&ldconfig
+    && ./b2 link=static runtime-link=static install \
+    && cd .. && rm -rf boost_1_66_0 && rm boost_1_66_0.tar.gz && ldconfig
 
 RUN  git clone https://github.com/Bendr0id/xmrigCC.git && \
 	cd xmrigCC && \
