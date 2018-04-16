@@ -116,10 +116,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
 
 if (WIN32)
-    find_package(Boost 1.62.0 COMPONENTS system date_time regex REQUIRED)
-else()
-    find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
+    add_definitions(-DBOOST_ALL_NO_LIB)
 endif()
+
+find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
 
 include(cmake/flags.cmake)
 
