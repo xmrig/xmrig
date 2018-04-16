@@ -112,7 +112,8 @@ add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 add_definitions(/DMINER_EXECUTABLE_NAME=${MINER_EXECUTABLE_NAME})
 #add_definitions(/DAPP_DEBUG)
-add_definitions(-fexceptions)
+
+add_compile_options(-fexceptions)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -122,7 +123,7 @@ if (WIN32)
     add_definitions(-DBOOST_ALL_NO_LIB)
 endif()
 
-find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
+find_package(Boost 1.63.0 COMPONENTS system REQUIRED)
 
 include(cmake/flags.cmake)
 
@@ -211,7 +212,6 @@ endif()
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(xmrig_common STATIC ${SOURCES_COMMON})

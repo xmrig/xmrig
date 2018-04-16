@@ -1,3 +1,8 @@
+# 1.6.0
+- Complete rewrite of the stratum TCP/TLS network communication using boost::asio to fix connection issues and crashs 
+- Force of PoW via "variant" parameter in xmrg-proxy 2.5.2+, it now overrules local settings
+- Implementation of CN-Heavy algo used by Sumokoin / Haven / ... 
+- XMRigDaemon now keeps the miner running event when the miner crashs
 # 1.5.5
 - Fixed Bad/Invalid shares and high share transmit latency
 - Fixed hugepages for some older linux versions
