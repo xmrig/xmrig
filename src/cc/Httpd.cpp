@@ -129,8 +129,8 @@ unsigned Httpd::basicAuth(struct MHD_Connection* connection, std::string& resp)
     else {
         const char* header = MHD_lookup_connection_value(connection, MHD_HEADER_KIND, MHD_HTTP_HEADER_AUTHORIZATION);
         if (header) {
-            char* user;
-            char* pass;
+            char* user = nullptr;
+            char* pass = nullptr;
 
             user = MHD_basic_auth_get_username_password(connection, &pass);
             if (user == nullptr || strcmp(user, m_options->ccAdminUser()) != 0 ||
