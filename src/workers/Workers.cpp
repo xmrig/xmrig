@@ -66,6 +66,26 @@ Job Workers::job()
 }
 
 
+size_t Workers::hugePages()
+{
+    uv_mutex_lock(&m_mutex);
+    const size_t hugePages = m_status.hugePages;
+    uv_mutex_unlock(&m_mutex);
+
+    return hugePages;
+}
+
+
+size_t Workers::threads()
+{
+    uv_mutex_lock(&m_mutex);
+    const size_t threads = m_status.threads;
+    uv_mutex_unlock(&m_mutex);
+
+    return threads;
+}
+
+
 void Workers::printHashrate(bool detail)
 {
     m_hashrate->print();

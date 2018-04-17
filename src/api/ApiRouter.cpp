@@ -250,7 +250,7 @@ void ApiRouter::getMiner(rapidjson::Document &doc) const
     doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent()), allocator);
     doc.AddMember("cpu",          cpu, allocator);
     doc.AddMember("algo",         rapidjson::StringRef(m_controller->config()->algoName()), allocator);
-    doc.AddMember("hugepages",    false, allocator);
+    doc.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
     doc.AddMember("donate_level", m_controller->config()->donateLevel(), allocator);
 }
 
@@ -283,12 +283,21 @@ void ApiRouter::getThreads(rapidjson::Document &doc) const
 {
     doc.SetObject();
     auto &allocator = doc.GetAllocator();
+    const Hashrate *hr = Workers::hashrate();
 
     const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
     rapidjson::Value list(rapidjson::kArrayType);
 
     for (const xmrig::IThread *thread : threads) {
-       list.PushBack(thread->toAPI(doc), allocator);
+        rapidjson::Value value = thread->toAPI(doc);
+
+        rapidjson::Value hashrate(rapidjson::kArrayType);
+        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::ShortInterval)),  allocator);
+        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::MediumInterval)), allocator);
+        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::LargeInterval)),  allocator);
+
+        value.AddMember("hashrate", hashrate, allocator);
+        list.PushBack(value, allocator);
     }
 
     doc.AddMember("threads", list, allocator);
