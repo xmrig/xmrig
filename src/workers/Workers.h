@@ -59,6 +59,8 @@ public:
     static inline bool isEnabled()                               { return m_enabled; }
     static inline bool isOutdated(uint64_t sequence)             { return m_sequence.load(std::memory_order_relaxed) != sequence; }
     static inline bool isPaused()                                { return m_paused.load(std::memory_order_relaxed) == 1; }
+    static inline Hashrate *hashrate()                           { return m_hashrate; }
+    static inline size_t threads()                               { return m_status.threads; }
     static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
     static inline void pause()                                   { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }

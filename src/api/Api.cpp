@@ -62,16 +62,6 @@ void Api::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
 }
 
 
-void Api::tick(const Hashrate *hashrate)
-{
-    if (!m_router) {
-        return;
-    }
-
-    m_router->tick(hashrate);
-}
-
-
 void Api::tick(const NetworkState &network)
 {
     if (!m_router) {

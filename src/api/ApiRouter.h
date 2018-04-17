@@ -49,7 +49,6 @@ public:
     void get(const xmrig::HttpRequest &req, xmrig::HttpReply &reply) const;
     void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
 
-    void tick(const Hashrate *hashrate);
     void tick(const NetworkState &results);
 
 protected:
@@ -69,10 +68,6 @@ private:
 
     char m_id[17];
     char m_workerId[128];
-    double *m_hashrate;
-    double m_highestHashrate;
-    double m_totalHashrate[3];
-    int m_threads;
     NetworkState m_network;
     xmrig::Controller *m_controller;
 };
