@@ -33,6 +33,7 @@
 #include "interfaces/IThread.h"
 #include "log/Log.h"
 #include "Mem.h"
+#include "rapidjson/document.h"
 #include "workers/Handle.h"
 #include "workers/Hashrate.h"
 #include "workers/MultiWorker.h"
@@ -186,6 +187,26 @@ void Workers::submit(const JobResult &result)
 
     uv_async_send(&m_async);
 }
+
+
+#ifndef XMRIG_NO_API
+void Workers::threadsSummary(rapidjson::Document &doc)
+{
+    uv_mutex_lock(&m_mutex);
+    const size_t pages[2] = { m_status.hugePages, m_status.pages };
+    const size_t memory   = m_status.ways * xmrig::cn_select_memory(m_status.algo);
+    uv_mutex_unlock(&m_mutex);
+
+    auto &allocator = doc.GetAllocator();
+
+    rapidjson::Value hugepages(rapidjson::kArrayType);
+    hugepages.PushBack(pages[0], allocator);
+    hugepages.PushBack(pages[1], allocator);
+
+    doc.AddMember("hugepages", hugepages, allocator);
+    doc.AddMember("memory", memory, allocator);
+}
+#endif
 
 
 void Workers::onReady(void *arg)

@@ -32,6 +32,7 @@
 
 #include "net/Job.h"
 #include "net/JobResult.h"
+#include "rapidjson/fwd.h"
 
 
 class Handle;
@@ -65,6 +66,10 @@ public:
     static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
     static inline void pause()                                   { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
+
+#   ifndef XMRIG_NO_API
+    static void threadsSummary(rapidjson::Document &doc);
+#   endif
 
 private:
     static void onReady(void *arg);

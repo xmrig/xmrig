@@ -285,6 +285,8 @@ void ApiRouter::getThreads(rapidjson::Document &doc) const
     auto &allocator = doc.GetAllocator();
     const Hashrate *hr = Workers::hashrate();
 
+    Workers::threadsSummary(doc);
+
     const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
     rapidjson::Value list(rapidjson::kArrayType);
 
