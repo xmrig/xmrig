@@ -26,26 +26,27 @@
 #include <math.h>
 #include <string.h>
 
+
 #include "Cpu.h"
 
 
-bool Cpu::m_l2_exclusive = false;
-char Cpu::m_brand[64]    = { 0 };
-int Cpu::m_flags         = 0;
-int Cpu::m_l2_cache      = 0;
-int Cpu::m_l3_cache      = 0;
-int Cpu::m_sockets       = 1;
-int Cpu::m_totalCores    = 0;
-int Cpu::m_totalThreads  = 0;
+bool Cpu::m_l2_exclusive    = false;
+char Cpu::m_brand[64]       = { 0 };
+int Cpu::m_flags            = 0;
+int Cpu::m_l2_cache         = 0;
+int Cpu::m_l3_cache         = 0;
+int Cpu::m_sockets          = 1;
+int Cpu::m_totalCores       = 0;
+size_t Cpu::m_totalThreads  = 0;
 
 
-int Cpu::optimalThreadsCount(xmrig::Algo algo, bool doubleHash, int maxCpuUsage)
+size_t Cpu::optimalThreadsCount(size_t size, int maxCpuUsage)
 {
     if (m_totalThreads == 1) {
         return 1;
     }
 
-    int cache = 0;
+    size_t cache = 0;
     if (m_l3_cache) {
         cache = m_l2_exclusive ? (m_l2_cache + m_l3_cache) : m_l3_cache;
     }
@@ -53,22 +54,14 @@ int Cpu::optimalThreadsCount(xmrig::Algo algo, bool doubleHash, int maxCpuUsage)
         cache = m_l2_cache;
     }
 
-    int count = 0;
-    int size  = 2048;
-
-    if (algo == xmrig::CRYPTONIGHT_LITE) {
-        size = 1024;
-    }
-    else if (algo == xmrig::CRYPTONIGHT_HEAVY) {
-        size = 4096;
-    }
-
-    if (doubleHash) {
-        size *= 2;
-    }
+    size_t count = 0;
 
     if (cache) {
         count = cache / size;
+
+        if (cache % size >= size / 2) {
+            count++;
+        }
     }
     else {
         count = m_totalThreads / 2;

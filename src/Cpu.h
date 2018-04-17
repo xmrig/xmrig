@@ -28,9 +28,6 @@
 #include <stdint.h>
 
 
-#include "common/xmrig.h"
-
-
 class Cpu
 {
 public:
@@ -40,7 +37,7 @@ public:
         BMI2   = 4
     };
 
-    static int optimalThreadsCount(xmrig::Algo algo, bool doubleHash, int maxCpuUsage);
+    static size_t optimalThreadsCount(size_t size, int maxCpuUsage);
     static void init();
 
     static inline bool hasAES()       { return (m_flags & AES) != 0; }
@@ -62,7 +59,7 @@ private:
     static int m_l3_cache;
     static int m_sockets;
     static int m_totalCores;
-    static int m_totalThreads;
+    static size_t m_totalThreads;
 };
 
 

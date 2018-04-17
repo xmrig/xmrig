@@ -54,6 +54,12 @@ xmrig::CpuThread::~CpuThread()
 }
 
 
+bool xmrig::CpuThread::isSoftAES(AlgoVariant av)
+{
+    return av == AV_SINGLE_SOFT || av == AV_DOUBLE_SOFT || av > AV_PENTA;
+}
+
+
 xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant av, Variant variant)
 {
     assert(variant == VARIANT_NONE || variant == VARIANT_V1);
@@ -138,42 +144,6 @@ xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, Algo algorithm, A
 {
     assert(av > AV_AUTO && av < AV_MAX);
 
-    Multiway multiway = SingleWay;
-    bool softAES = false;
-
-    switch (av) {
-    case AV_SINGLE_SOFT:
-        softAES  = true;
-        break;
-
-    case AV_DOUBLE_SOFT:
-        softAES  = true;
-    case AV_DOUBLE:
-        multiway = DoubleWay;
-        break;
-
-    case AV_TRIPLE_SOFT:
-        softAES  = true;
-    case AV_TRIPLE:
-        multiway = TripleWay;
-        break;
-
-    case AV_QUAD_SOFT:
-        softAES  = true;
-    case AV_QUAD:
-        multiway = QuadWay;
-        break;
-
-    case AV_PENTA_SOFT:
-        softAES  = true;
-    case AV_PENTA:
-        multiway = PentaWay;
-        break;
-
-    default:
-        break;
-    }
-
     int64_t cpuId = -1L;
 
     if (affinity != -1L) {
@@ -193,7 +163,7 @@ xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, Algo algorithm, A
         }
     }
 
-    return new CpuThread(index, algorithm, av, multiway, cpuId, priority, softAES, false);
+    return new CpuThread(index, algorithm, av, multiway(av), cpuId, priority, isSoftAES(av), false);
 }
 
 
@@ -239,6 +209,37 @@ xmrig::CpuThread::Data xmrig::CpuThread::parse(const rapidjson::Value &object)
     }
 
     return data;
+}
+
+
+xmrig::IThread::Multiway xmrig::CpuThread::multiway(AlgoVariant av)
+{
+    switch (av) {
+    case AV_SINGLE:
+    case AV_SINGLE_SOFT:
+        return SingleWay;
+
+    case AV_DOUBLE_SOFT:
+    case AV_DOUBLE:
+        return DoubleWay;
+
+    case AV_TRIPLE_SOFT:
+    case AV_TRIPLE:
+        return TripleWay;
+
+    case AV_QUAD_SOFT:
+    case AV_QUAD:
+        return QuadWay;
+
+    case AV_PENTA_SOFT:
+    case AV_PENTA:
+        return PentaWay;
+
+    default:
+        break;
+    }
+
+    return SingleWay;
 }
 
 

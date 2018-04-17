@@ -30,6 +30,7 @@
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
 #include "Cpu.h"
+#include "crypto/CryptoNight_constants.h"
 #include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -177,13 +178,13 @@ bool xmrig::Config::adjust()
     m_algoVariant  = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const bool doubleHash = m_algoVariant == AV_DOUBLE || m_algoVariant == AV_DOUBLE_SOFT;
+    const size_t size = CpuThread::multiway(m_algoVariant) * cn_select_memory(m_algorithm) / 1024;
 
     if (!m_threads.count) {
-        m_threads.count = Cpu::optimalThreadsCount(m_algorithm, doubleHash, m_maxCpuUsage);
+        m_threads.count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
     }
     else if (m_safe) {
-        const size_t count = Cpu::optimalThreadsCount(m_algorithm, doubleHash, m_maxCpuUsage);
+        const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
         if (m_threads.count > count) {
             m_threads.count = count;
         }
