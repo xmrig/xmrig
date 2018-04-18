@@ -1,3 +1,7 @@
+# 1.6.1
+- Implementation of CN-Lite-IPBC algo
+- Fixed Windows 32bit build
+- Fixed XMRigCCServer crash when auth header is manipulated 
 # 1.6.0
 - Complete rewrite of the stratum TCP/TLS network communication using boost::asio to fix connection issues and crashs 
 - Force of PoW via "variant" parameter in xmrg-proxy 2.5.2+, it now overrules local settings

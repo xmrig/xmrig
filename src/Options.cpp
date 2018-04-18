@@ -64,7 +64,7 @@ Usage: " APP_ID " [OPTIONS]\n\
 Options:\n"
 # ifndef XMRIG_CC_SERVER
 "\
-  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite or cryptonight-heavy\n\
+  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite, cryptonight-lite-ipbc or cryptonight-heavy\n\
   -o, --url=URL                         URL of mining server\n\
   -O, --userpass=U:P                    username:password pair for mining server\n\
   -u, --user=USERNAME                   username for mining server\n\

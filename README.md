@@ -21,6 +21,7 @@ The modified version can also handle commands like "update config", "start/stop 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
+* **NEW: Support of Crytptonight-Lite-IPBC**
 * **NEW: Support of Crytptonight-Heavy (Sumokoin, Haven, ...)**
 * **NEW: Ready for Monero v7 PoW changes on April 6 2018**
 * **NEW: Ready for Aeon v7 PoW changes on April 7? 2018**
