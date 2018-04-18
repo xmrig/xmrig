@@ -1,0 +1,63 @@
+{
+    "algo": "cryptonight",
+    "api": {
+        "port": 44444,
+        "access-token": "TOKEN",
+        "worker-id": null,
+        "ipv6": false,
+        "restricted": false
+    },
+    "av": 1,
+    "background": false,
+    "colors": true,
+    "cpu-affinity": null,
+    "cpu-priority": null,
+    "donate-level": 5,
+    "huge-pages": true,
+    "hw-aes": null,
+    "log-file": null,
+    "max-cpu-usage": 75,
+    "pools": [
+        {
+            "url": "pool.monero.hashvault.pro:3333",
+            "user": "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD",
+            "pass": "x",
+            "keepalive": false,
+            "nicehash": false,
+            "variant": -1
+        },
+        {
+            "url": "pool.supportxmr.com:3333",
+            "user": "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD",
+            "pass": "x",
+            "keepalive": false,
+            "nicehash": false,
+            "variant": -1
+        }
+    ],
+    "print-time": 60,
+    "retries": 5,
+    "retry-pause": 5,
+    "safe": false,
+    "threads": [
+        {
+            "low_power_mode": 1,
+            "affine_to_cpu": 0
+        },
+        {
+            "low_power_mode": 1,
+            "affine_to_cpu": 1
+        },
+        {
+            "low_power_mode": 1,
+            "affine_to_cpu": 2
+        },
+        {
+            "low_power_mode": 1,
+            "affine_to_cpu": 3
+        }
+    ],
+    "user-agent": null,
+    "syslog": false,
+    "watch": false
+}

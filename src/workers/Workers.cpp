@@ -193,8 +193,8 @@ void Workers::submit(const JobResult &result)
 void Workers::threadsSummary(rapidjson::Document &doc)
 {
     uv_mutex_lock(&m_mutex);
-    const size_t pages[2] = { m_status.hugePages, m_status.pages };
-    const size_t memory   = m_status.ways * xmrig::cn_select_memory(m_status.algo);
+    const uint64_t pages[2] = { m_status.hugePages, m_status.pages };
+    const uint64_t memory   = m_status.ways * xmrig::cn_select_memory(m_status.algo);
     uv_mutex_unlock(&m_mutex);
 
     auto &allocator = doc.GetAllocator();

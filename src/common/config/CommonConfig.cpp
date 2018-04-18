@@ -205,12 +205,12 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case SyslogKey:     /* --syslog */
     case KeepAliveKey:  /* --keepalive */
     case NicehashKey:   /* --nicehash */
+    case ApiIPv6Key:       /* --api-ipv6 */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
     case WatchKey:         /* --no-watch */
     case ApiRestrictedKey: /* --api-no-restricted */
-    case ApiIPv6Key:       /* --api-no-ipv6 */
         return parseBoolean(key, false);
 
     case DonateLevelKey: /* --donate-level */
