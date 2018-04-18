@@ -58,6 +58,8 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
 #ifndef XMRIG_NO_TLS
     if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_HEAVY) {
         url = new Url("donate2.graef.in", 8443, userId, nullptr, true, false, true);
+    } else if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE_IPBC) {
+        url = new Url("donate2.graef.in", 1080, userId, nullptr, true, false, true);
     } else {
         if (Options::i()->forcePowVersion() == Options::POW_V1) {
             url = new Url("donate.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 8080 : 8081, userId, nullptr, true, false, true);
@@ -70,6 +72,8 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
 #else
     if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_HEAVY) {
         url = new Url("donate.graef.in", 8443, userId, nullptr, false, false, true);
+    } else if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE_IPBC) {
+        url = new Url("donate.graef.in", 1080, userId, nullptr, false, false, true);
     } else {
         if (Options::i()->forcePowVersion() == Options::POW_V1) {
             url = new Url("donate.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 80 : 443, userId, nullptr, false, false, true);
@@ -153,7 +157,7 @@ void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result
 }
 
 
-void DonateStrategy::idle(uint64_t timeout)
+void DonateStrategy::idle(int64_t timeout)
 {
     uv_timer_start(&m_timer, DonateStrategy::onTimer, timeout, 0);
 }

@@ -259,6 +259,7 @@ static struct option const cc_server_options[] = {
 static const char *algo_names[] = {
     "cryptonight",
     "cryptonight-lite",
+    "cryptonight-lite-ipbc",
     "cryptonight-heavy"
 };
 
@@ -921,6 +922,11 @@ bool Options::setAlgo(const char *algo)
 
         if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light")) {
             m_algo = ALGO_CRYPTONIGHT_LITE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light-ipbc")) {
+            m_algo = ALGO_CRYPTONIGHT_LITE_IPBC;
             break;
         }
 

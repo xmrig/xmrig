@@ -77,6 +77,17 @@ static void cryptonight_lite_softaes(Options::PowVersion powVersion, const uint8
     }
 }
 
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_lite_ipbc_aesni(Options::PowVersion powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
+#   if !defined(XMRIG_ARMv7)
+    CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, ctx);
+#   endif
+}
+
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_lite_ipbc_softaes(Options::PowVersion powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
+    CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, ctx);
+}
 
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_heavy_aesni(Options::PowVersion powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
@@ -109,6 +120,14 @@ void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_aesni<HASH_FACTOR>;
             } else {
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_softaes<HASH_FACTOR>;
+            }
+            break;
+
+        case Options::ALGO_CRYPTONIGHT_LITE_IPBC:
+            if (aesni) {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_ipbc_aesni<HASH_FACTOR>;
+            } else {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_ipbc_softaes<HASH_FACTOR>;
             }
             break;
 
@@ -167,6 +186,7 @@ bool CryptoNight::selfTest(int algo)
 
     bool resultV1Pow = true;
     bool resultV2Pow = true;
+    bool resultLiteIpbc = true;
     bool resultHeavy = true;
 
     if (algo == Options::ALGO_CRYPTONIGHT_HEAVY) {
@@ -184,8 +204,32 @@ bool CryptoNight::selfTest(int algo)
         cryptonight_hash_ctx[2](Options::PowVersion::POW_AUTODETECT, test_input, 76, output, ctx);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 96) == 0;
         #endif
-    }
-    else {
+    } else if (algo == Options::ALGO_CRYPTONIGHT_LITE_IPBC) {
+        // cn-lite-ipbc tests
+
+        cryptonight_hash_ctx[0](Options::PowVersion::POW_AUTODETECT, test_input_lite_ipbc, 43, output, ctx);
+        resultLiteIpbc = resultLiteIpbc && memcmp(output, test_output_lite_ipbc, 32) == 0;
+
+        #if MAX_NUM_HASH_BLOCKS > 1
+        cryptonight_hash_ctx[1](Options::PowVersion::POW_AUTODETECT, test_input_lite_ipbc, 43, output, ctx);
+        resultLiteIpbc = resultLiteIpbc && memcmp(output, test_output_lite_ipbc, 64) == 0;
+        #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 2
+        cryptonight_hash_ctx[2](Options::PowVersion::POW_AUTODETECT, test_input_lite_ipbc, 43, output, ctx);
+        resultLiteIpbc = resultLiteIpbc && memcmp(output, test_output_lite_ipbc, 96) == 0;
+        #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 3
+        cryptonight_hash_ctx[3](Options::PowVersion::POW_AUTODETECT, test_input_lite_ipbc, 43, output, ctx);
+        resultLiteIpbc = resultLiteIpbc && memcmp(output, test_output_lite_ipbc, 128) == 0;
+        #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 4
+        cryptonight_hash_ctx[4](Options::PowVersion::POW_AUTODETECT, test_input_lite_ipbc, 43, output, ctx);
+        resultLiteIpbc = resultLiteIpbc && memcmp(output, test_output_lite_ipbc, 160) == 0;
+        #endif
+    } else {
         // < v7 tests autodetect
         cryptonight_hash_ctx[0](Options::PowVersion::POW_AUTODETECT,test_input, 76, output, ctx);
         resultV1Pow = resultV1Pow &&
@@ -248,5 +292,5 @@ bool CryptoNight::selfTest(int algo)
     _mm_free(ctx->memory);
     _mm_free(ctx);
 
-    return resultV1Pow && resultV2Pow & resultHeavy;
+    return resultV1Pow && resultV2Pow & resultLiteIpbc & resultHeavy;
 }

@@ -58,7 +58,7 @@ protected:
     void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-    void idle(uint64_t timeout);
+    void idle(int64_t timeout);
     void suspend();
 
     static void onTimer(uv_timer_t *handle);
