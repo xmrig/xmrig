@@ -73,11 +73,17 @@ static inline __attribute__((always_inline)) __m128i _mm_set_epi64x(const uint64
 }
 
 
+#ifdef XMRIG_ARMv8
 static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
 {
     alignas(16) const __m128i zero = { 0 };
     return veorq_u8(vaesmcq_u8(vaeseq_u8(v, zero)), rkey );
 }
+#else
+static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
+{
+}
+#endif
 
 
 /* this one was not implemented yet so here it is */
