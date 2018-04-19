@@ -1,6 +1,6 @@
 # 1.6.1
 - Implementation of CN-Lite-IPBC algo
-- Fixed Windows 32bit build
+- Fixed Windows 32bit build / crashes
 - Fixed XMRigCCServer crash when auth header is manipulated 
 # 1.6.0
 - Complete rewrite of the stratum TCP/TLS network communication using boost::asio to fix connection issues and crashs 
