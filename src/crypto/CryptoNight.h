@@ -30,15 +30,6 @@
 #include <stdint.h>
 
 
-#define AEON_MEMORY   1048576
-#define AEON_MASK     0xFFFF0
-#define AEON_ITER     0x40000
-
-#define MONERO_MEMORY 2097152
-#define MONERO_MASK   0x1FFFF0
-#define MONERO_ITER   0x80000
-
-
 struct cryptonight_ctx {
     alignas(16) uint8_t state[200];
     alignas(16) uint8_t* memory;
