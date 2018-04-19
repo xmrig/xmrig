@@ -157,7 +157,7 @@ void DonateStrategy::onResultAccepted(Client *client, const SubmitResult &result
 }
 
 
-void DonateStrategy::idle(int64_t timeout)
+void DonateStrategy::idle(uint64_t timeout)
 {
     uv_timer_start(&m_timer, DonateStrategy::onTimer, timeout, 0);
 }

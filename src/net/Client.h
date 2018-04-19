@@ -105,7 +105,7 @@ private:
     int m_id;
     int m_retryPause;
     int64_t m_failures;
-    int64_t m_jobs;
+    uint64_t m_jobs;
     Job m_job;
     size_t m_recvBufPos;
     static int64_t m_sequence;

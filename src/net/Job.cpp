@@ -96,11 +96,6 @@ bool Job::setBlob(const char *blob)
         m_nicehash = true;
     }
 
-#   ifdef XMRIG_PROXY_PROJECT
-    memset(m_rawBlob, 0, sizeof(m_rawBlob));
-    memcpy(m_rawBlob, blob, m_size * 2);
-#   endif
-
     return true;
 }
 
@@ -136,11 +131,6 @@ bool Job::setTarget(const char *target)
     else {
         return false;
     }
-
-#   ifdef XMRIG_PROXY_PROJECT
-    memset(m_rawTarget, 0, sizeof(m_rawTarget));
-    memcpy(m_rawTarget, target, len);
-#   endif
 
     m_diff = toDiff(m_target);
     return true;
