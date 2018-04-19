@@ -21,25 +21,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PLATFORM_H__
-#define __PLATFORM_H__
+
+#include <string.h>
+#include <uv.h>
 
 
-class Platform
+#include "Platform.h"
+
+
+char Platform::m_defaultConfigName[520] = { 0 };
+xmrig::c_str Platform::m_userAgent;
+
+
+const char *Platform::defaultConfigName()
 {
-public:
-    static const char *defaultConfigName();
-    static void init(const char *userAgent);
-    static void release();
-    static void setProcessPriority(int priority);
-    static void setThreadPriority(int priority);
+    size_t size = 520;
 
-    static inline const char *userAgent() { return m_userAgent; }
+    if (*m_defaultConfigName) {
+        return m_defaultConfigName;
+    }
 
-private:
-    static char *m_defaultConfigName;
-    static char *m_userAgent;
-};
+    if (uv_exepath(m_defaultConfigName, &size) < 0) {
+        return nullptr;
+    }
 
+    if (size < 500) {
+#       ifdef WIN32
+        char *p = strrchr(m_defaultConfigName, '\\');
+#       else
+        char *p = strrchr(m_defaultConfigName, '/');
+#       endif
 
-#endif /* __PLATFORM_H__ */
+        if (p) {
+            strcpy(p + 1, "config.json");
+            return m_defaultConfigName;
+        }
+    }
+
+    *m_defaultConfigName = '\0';
+    return nullptr;
+}

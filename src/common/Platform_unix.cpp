@@ -21,9 +21,18 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef __FreeBSD__
+#   include <sys/types.h>
+#   include <sys/param.h>
+#   include <sys/cpuset.h>
+#   include <pthread_np.h>
+#endif
 
+
+#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/resource.h>
 #include <uv.h>
 
@@ -36,39 +45,66 @@
 #endif
 
 
+#ifdef __FreeBSD__
+typedef cpuset_t cpu_set_t;
+#endif
+
+
 static inline char *createUserAgent()
 {
     const size_t max = 160;
 
     char *buf = new char[max];
+    int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
+
+#   if defined(__x86_64__)
+    length += snprintf(buf + length, max - length, "x86_64) libuv/%s", uv_version_string());
+#   else
+    length += snprintf(buf + length, max - length, "i686) libuv/%s", uv_version_string());
+#   endif
 
 #   ifdef XMRIG_NVIDIA_PROJECT
     const int cudaVersion = cuda_get_runtime_version();
-    snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s CUDA/%d.%d clang/%d.%d.%d", APP_NAME, APP_VERSION, uv_version_string(), cudaVersion / 1000, cudaVersion % 100, __clang_major__, __clang_minor__, __clang_patchlevel__);
-#   else
-    snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s clang/%d.%d.%d", APP_NAME, APP_VERSION, uv_version_string(), __clang_major__, __clang_minor__, __clang_patchlevel__);
+    length += snprintf(buf + length, max - length, " CUDA/%d.%d", cudaVersion / 1000, cudaVersion % 100);
+#   endif
+
+#   ifdef __GNUC__
+    length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #   endif
 
     return buf;
 }
 
 
-void Platform::init(const char *userAgent)
+bool Platform::setThreadAffinity(uint64_t cpu_id)
 {
-    m_userAgent = userAgent ? strdup(userAgent) : createUserAgent();
+    cpu_set_t mn;
+    CPU_ZERO(&mn);
+    CPU_SET(cpu_id, &mn);
+
+#   ifndef __ANDROID__
+    return pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) == 0;
+#   else
+    return sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0;
+#   endif
 }
 
 
-void Platform::release()
+void Platform::init(const char *userAgent)
 {
-    delete [] m_userAgent;
+    if (userAgent) {
+        m_userAgent = userAgent;
+    }
+    else {
+        m_userAgent = createUserAgent();
+    }
 }
 
 
 void Platform::setProcessPriority(int priority)
 {
-
 }
+
 
 
 void Platform::setThreadPriority(int priority)
@@ -105,5 +141,15 @@ void Platform::setThreadPriority(int priority)
     }
 
     setpriority(PRIO_PROCESS, 0, prio);
-}
 
+#   ifdef SCHED_IDLE
+    if (priority == 0) {
+        sched_param param;
+        param.sched_priority = 0;
+
+        if (sched_setscheduler(0, SCHED_IDLE, &param) != 0) {
+            sched_setscheduler(0, SCHED_BATCH, &param);
+        }
+    }
+#   endif
+}

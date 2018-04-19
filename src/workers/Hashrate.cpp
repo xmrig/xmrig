@@ -22,6 +22,7 @@
  */
 
 
+#include <assert.h>
 #include <chrono>
 #include <math.h>
 #include <memory.h>
@@ -45,7 +46,7 @@ inline const char *format(double h, char* buf, size_t size)
 }
 
 
-Hashrate::Hashrate(int threads, xmrig::Controller *controller) :
+Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     m_highest(0.0),
     m_threads(threads),
     m_controller(controller)
@@ -54,13 +55,10 @@ Hashrate::Hashrate(int threads, xmrig::Controller *controller) :
     m_timestamps = new uint64_t*[threads];
     m_top        = new uint32_t[threads];
 
-    for (int i = 0; i < threads; i++) {
-        m_counts[i] = new uint64_t[kBucketSize];
-        m_timestamps[i] = new uint64_t[kBucketSize];
-        m_top[i] = 0;
-
-        memset(m_counts[0], 0, sizeof(uint64_t) * kBucketSize);
-        memset(m_timestamps[0], 0, sizeof(uint64_t) * kBucketSize);
+    for (size_t i = 0; i < threads; i++) {
+        m_counts[i]     = new uint64_t[kBucketSize]();
+        m_timestamps[i] = new uint64_t[kBucketSize]();
+        m_top[i]        = 0;
     }
 
     const int printTime = controller->config()->printTime();
@@ -79,7 +77,7 @@ double Hashrate::calc(size_t ms) const
     double result = 0.0;
     double data;
 
-    for (int i = 0; i < m_threads; ++i) {
+    for (size_t i = 0; i < m_threads; ++i) {
         data = calc(i, ms);
         if (isnormal(data)) {
             result += data;
@@ -92,6 +90,8 @@ double Hashrate::calc(size_t ms) const
 
 double Hashrate::calc(size_t threadId, size_t ms) const
 {
+    assert(threadId < m_threads);
+
     using namespace std::chrono;
     const uint64_t now = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
 

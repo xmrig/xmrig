@@ -25,6 +25,7 @@
 #define __HANDLE_H__
 
 
+#include <assert.h>
 #include <stdint.h>
 #include <uv.h>
 
@@ -38,23 +39,21 @@ class IWorker;
 class Handle
 {
 public:
-    Handle(xmrig::IThread *config, size_t totalThreads, size_t totalWays, int64_t affinity);
+    Handle(xmrig::IThread *config, uint32_t offset, size_t totalWays);
     void join();
     void start(void (*callback) (void *));
 
-    inline int64_t affinity() const        { return m_affinity; }
     inline IWorker *worker() const         { return m_worker; }
     inline size_t threadId() const         { return m_config->index(); }
-    inline size_t totalThreads() const     { return m_totalThreads; }
     inline size_t totalWays() const        { return m_totalWays; }
-    inline void setWorker(IWorker *worker) { m_worker = worker; }
+    inline uint32_t offset() const         { return m_offset; }
+    inline void setWorker(IWorker *worker) { assert(worker != nullptr); m_worker = worker; }
     inline xmrig::IThread *config() const  { return m_config; }
 
 private:
-    int64_t m_affinity;
     IWorker *m_worker;
-    size_t m_totalThreads;
     size_t m_totalWays;
+    uint32_t m_offset;
     uv_thread_t m_thread;
     xmrig::IThread *m_config;
 };

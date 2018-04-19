@@ -26,32 +26,29 @@
 #include <inttypes.h>
 
 
+#include "common/config/ConfigLoader.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
-#include "core/ConfigLoader.h"
 #include "Cpu.h"
+#include "crypto/CryptoNight_constants.h"
 #include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 #include "workers/CpuThread.h"
-#include "xmrig.h"
 
 
 static char affinity_tmp[20] = { 0 };
 
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
+    m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
-    m_doubleHash(false),
     m_dryRun(false),
     m_hugePages(true),
     m_safe(false),
     m_maxCpuUsage(75),
-    m_printTime(60),
-    m_priority(-1),
-    m_affinity(-1L),
-    m_threadsCount(0)
+    m_priority(-1)
 {
 }
 
@@ -69,53 +66,49 @@ bool xmrig::Config::reload(const char *json)
 
 void xmrig::Config::getJSON(rapidjson::Document &doc) const
 {
+    using namespace rapidjson;
+
     doc.SetObject();
 
     auto &allocator = doc.GetAllocator();
 
-    doc.AddMember("algo", rapidjson::StringRef(algoName()), allocator);
+    doc.AddMember("algo", StringRef(algoName()), allocator);
 
-    rapidjson::Value api(rapidjson::kObjectType);
+    Value api(kObjectType);
     api.AddMember("port",         apiPort(), allocator);
-    api.AddMember("access-token", apiToken() ? rapidjson::Value(rapidjson::StringRef(apiToken())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
-    api.AddMember("worker-id",    apiWorkerId() ? rapidjson::Value(rapidjson::StringRef(apiWorkerId())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
+    api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("worker-id",    apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
     api.AddMember("ipv6",         isApiIPv6(), allocator);
     api.AddMember("restricted",   isApiRestricted(), allocator);
     doc.AddMember("api",          api, allocator);
 
     doc.AddMember("av",           algoVariant(), allocator);
     doc.AddMember("background",   isBackground(), allocator);
-
-    doc.AddMember("colors", isColors(), allocator);
+    doc.AddMember("colors",       isColors(), allocator);
 
     if (affinity() != -1L) {
         snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, affinity());
-        doc.AddMember("cpu-affinity", rapidjson::StringRef(affinity_tmp), allocator);
+        doc.AddMember("cpu-affinity", StringRef(affinity_tmp), allocator);
     }
     else {
-        doc.AddMember("cpu-affinity", rapidjson::kNullType, allocator);
+        doc.AddMember("cpu-affinity", kNullType, allocator);
     }
 
-    if (priority() != -1) {
-        doc.AddMember("cpu-priority", priority(), allocator);
-    }
-    else {
-       doc.AddMember("cpu-priority", rapidjson::kNullType, allocator);
-    }
-
+    doc.AddMember("cpu-priority",  priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
     doc.AddMember("donate-level",  donateLevel(), allocator);
     doc.AddMember("huge-pages",    isHugePages(), allocator);
-    doc.AddMember("log-file",      logFile() ? rapidjson::Value(rapidjson::StringRef(logFile())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
+    doc.AddMember("hw-aes",        m_aesMode == AES_AUTO ? Value(kNullType) : Value(m_aesMode == AES_HW), allocator);
+    doc.AddMember("log-file",      logFile()             ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("max-cpu-usage", m_maxCpuUsage, allocator);
 
-    rapidjson::Value pools(rapidjson::kArrayType);
+    Value pools(kArrayType);
 
     for (const Pool &pool : m_pools) {
-        rapidjson::Value obj(rapidjson::kObjectType);
+        Value obj(kObjectType);
 
-        obj.AddMember("url",     rapidjson::StringRef(pool.url()), allocator);
-        obj.AddMember("user",    rapidjson::StringRef(pool.user()), allocator);
-        obj.AddMember("pass",    rapidjson::StringRef(pool.password()), allocator);
+        obj.AddMember("url",     StringRef(pool.url()), allocator);
+        obj.AddMember("user",    StringRef(pool.user()), allocator);
+        obj.AddMember("pass",    StringRef(pool.password()), allocator);
 
         if (pool.keepAlive() == 0 || pool.keepAlive() == Pool::kKeepAliveTimeout) {
             obj.AddMember("keepalive", pool.keepAlive() > 0, allocator);
@@ -135,8 +128,21 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retries",       retries(), allocator);
     doc.AddMember("retry-pause",   retryPause(), allocator);
     doc.AddMember("safe",          m_safe, allocator);
-    doc.AddMember("threads",       threadsCount(), allocator);
-    doc.AddMember("user-agent",    userAgent() ? rapidjson::Value(rapidjson::StringRef(userAgent())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
+
+    if (threadsMode() == Advanced) {
+        Value threads(kArrayType);
+
+        for (const IThread *thread : m_threads.list) {
+            threads.PushBack(thread->toConfig(doc), doc.GetAllocator());
+        }
+
+        doc.AddMember("threads", threads, allocator);
+    }
+    else {
+        doc.AddMember("threads", threadsMode() == Automatic ? Value(kNullType) : Value(threadsCount()), allocator);
+    }
+
+    doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
 
 #   ifdef HAVE_SYSLOG_H
     doc.AddMember("syslog", isSyslog(), allocator);
@@ -158,23 +164,34 @@ bool xmrig::Config::adjust()
         return false;
     }
 
-    m_algoVariant = getAlgoVariant();
-    if (m_algoVariant == AV_DOUBLE || m_algoVariant == AV_DOUBLE_SOFT) {
-        m_doubleHash = true;
+    if (!m_threads.cpu.empty()) {
+        m_threads.mode     = Advanced;
+        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
+
+        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
+            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm, m_threads.cpu[i], m_priority, softAES));
+        }
+
+        return true;
     }
 
-    if (!m_threadsCount) {
-        m_threadsCount = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
+    m_algoVariant  = getAlgoVariant();
+    m_threads.mode = m_threads.count ? Simple : Automatic;
+
+    const size_t size = CpuThread::multiway(m_algoVariant) * cn_select_memory(m_algorithm) / 1024;
+
+    if (!m_threads.count) {
+        m_threads.count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
     }
     else if (m_safe) {
-        const size_t count = Cpu::optimalThreadsCount(m_algorithm, m_doubleHash, m_maxCpuUsage);
-        if (m_threadsCount > count) {
-            m_threadsCount = count;
+        const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
+        if (m_threads.count > count) {
+            m_threads.count = count;
         }
     }
 
-    for (size_t i = 0; i < m_threadsCount; ++i) {
-        m_threads.push_back(CpuThread::createFromAV(i, m_algorithm, m_algoVariant, m_affinity, m_priority));
+    for (size_t i = 0; i < m_threads.count; ++i) {
+        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm, m_algoVariant, m_threads.mask, m_priority));
     }
 
     return true;
@@ -188,16 +205,20 @@ bool xmrig::Config::parseBoolean(int key, bool enable)
     }
 
     switch (key) {
-    case xmrig::IConfig::SafeKey: /* --safe */
+    case IConfig::SafeKey: /* --safe */
         m_safe = enable;
         break;
 
-    case xmrig::IConfig::HugePagesKey: /* --no-huge-pages */
+    case IConfig::HugePagesKey: /* --no-huge-pages */
         m_hugePages = enable;
         break;
 
-    case xmrig::IConfig::DryRunKey: /* --dry-run */
+    case IConfig::DryRunKey: /* --dry-run */
         m_dryRun = enable;
+        break;
+
+    case IConfig::HardwareAESKey: /* hw-aes config only */
+        m_aesMode = enable ? AES_HW : AES_SOFT;
         break;
 
     default:
@@ -229,7 +250,7 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
     case xmrig::IConfig::ThreadsKey:  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
-            m_threadsCount = Cpu::threads();
+            m_threads.count = Cpu::threads();
             return true;
         }
 
@@ -258,7 +279,7 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     switch (key) {
     case xmrig::IConfig::CPUAffinityKey: /* --cpu-affinity */
         if (arg) {
-            m_affinity = arg;
+            m_threads.mask = arg;
         }
         break;
 
@@ -272,6 +293,23 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
 
 void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
+    const rapidjson::Value &threads = doc["threads"];
+
+    if (threads.IsArray()) {
+        for (const rapidjson::Value &value : threads.GetArray()) {
+            if (!value.IsObject()) {
+                continue;
+            }
+
+            if (value.HasMember("low_power_mode")) {
+                auto data = CpuThread::parse(value);
+
+                if (data.valid) {
+                    m_threads.cpu.push_back(std::move(data));
+                }
+            }
+        }
+    }
 }
 
 
@@ -280,7 +318,7 @@ bool xmrig::Config::parseInt(int key, int arg)
     switch (key) {
     case xmrig::IConfig::ThreadsKey: /* --threads */
         if (arg >= 0 && arg < 1024) {
-            m_threadsCount = arg;
+            m_threads.count = arg;
         }
         break;
 

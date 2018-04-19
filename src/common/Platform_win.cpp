@@ -27,8 +27,10 @@
 #include <uv.h>
 
 
+#include "log/Log.h"
 #include "Platform.h"
 #include "version.h"
+
 
 #ifdef XMRIG_NVIDIA_PROJECT
 #   include "nvidia/cryptonight.h"
@@ -82,16 +84,24 @@ static inline char *createUserAgent()
 }
 
 
-void Platform::init(const char *userAgent)
+bool Platform::setThreadAffinity(uint64_t cpu_id)
 {
-    m_userAgent = userAgent ? strdup(userAgent) : createUserAgent();
+    if (cpu_id >= 64) {
+        LOG_ERR("Unable to set affinity. Windows supports only affinity up to 63.");
+    }
+
+    return SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu_id) != 0;
 }
 
 
-void Platform::release()
+void Platform::init(const char *userAgent)
 {
-    delete [] m_defaultConfigName;
-    delete [] m_userAgent;
+    if (userAgent) {
+        m_userAgent = userAgent;
+    }
+    else {
+        m_userAgent = createUserAgent();
+    }
 }
 
 
@@ -129,7 +139,6 @@ void Platform::setProcessPriority(int priority)
 
     SetPriorityClass(GetCurrentProcess(), prio);
 }
-
 
 
 void Platform::setThreadPriority(int priority)

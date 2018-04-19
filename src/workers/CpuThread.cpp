@@ -24,7 +24,7 @@
 #include <assert.h>
 
 
-#include "core/CommonConfig.h"
+#include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "workers/CpuThread.h"
 
@@ -51,6 +51,12 @@ xmrig::CpuThread::CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiw
 
 xmrig::CpuThread::~CpuThread()
 {
+}
+
+
+bool xmrig::CpuThread::isSoftAES(AlgoVariant av)
+{
+    return av == AV_SINGLE_SOFT || av == AV_DOUBLE_SOFT || av > AV_PENTA;
 }
 
 
@@ -138,42 +144,6 @@ xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, Algo algorithm, A
 {
     assert(av > AV_AUTO && av < AV_MAX);
 
-    Multiway multiway = SingleWay;
-    bool softAES = false;
-
-    switch (av) {
-    case AV_SINGLE_SOFT:
-        softAES  = true;
-        break;
-
-    case AV_DOUBLE_SOFT:
-        softAES  = true;
-    case AV_DOUBLE:
-        multiway = DoubleWay;
-        break;
-
-    case AV_TRIPLE_SOFT:
-        softAES  = true;
-    case AV_TRIPLE:
-        multiway = TripleWay;
-        break;
-
-    case AV_QUAD_SOFT:
-        softAES  = true;
-    case AV_QUAD:
-        multiway = QuadWay;
-        break;
-
-    case AV_PENTA_SOFT:
-        softAES  = true;
-    case AV_PENTA:
-        multiway = PentaWay;
-        break;
-
-    default:
-        break;
-    }
-
     int64_t cpuId = -1L;
 
     if (affinity != -1L) {
@@ -193,14 +163,92 @@ xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, Algo algorithm, A
         }
     }
 
-    return new CpuThread(index, algorithm, av, multiway, cpuId, priority, softAES, false);
+    return new CpuThread(index, algorithm, av, multiway(av), cpuId, priority, isSoftAES(av), false);
+}
+
+
+xmrig::CpuThread *xmrig::CpuThread::createFromData(size_t index, Algo algorithm, const CpuThread::Data &data, int priority, bool softAES)
+{
+    int av                  = AV_AUTO;
+    const Multiway multiway = data.multiway;
+
+    if (multiway <= DoubleWay) {
+        av = softAES ? (multiway + 2) : multiway;
+    }
+    else {
+        av = softAES ? (multiway + 5) : (multiway + 2);
+    }
+
+    assert(av > AV_AUTO && av < AV_MAX);
+
+    return new CpuThread(index, algorithm, static_cast<AlgoVariant>(av), multiway, data.affinity, priority, softAES, false);
+}
+
+
+xmrig::CpuThread::Data xmrig::CpuThread::parse(const rapidjson::Value &object)
+{
+    Data data;
+
+    const auto &multiway = object["low_power_mode"];
+    if (multiway.IsBool()) {
+        data.multiway = multiway.IsTrue() ? DoubleWay : SingleWay;
+        data.valid    = true;
+    }
+    else if (multiway.IsUint()) {
+        data.setMultiway(multiway.GetInt());
+    }
+
+    if (!data.valid) {
+        return data;
+    }
+
+    const auto &affinity = object["affine_to_cpu"];
+
+    if (affinity.IsUint64()) {
+        data.affinity = affinity.GetInt64();
+    }
+
+    return data;
+}
+
+
+xmrig::IThread::Multiway xmrig::CpuThread::multiway(AlgoVariant av)
+{
+    switch (av) {
+    case AV_SINGLE:
+    case AV_SINGLE_SOFT:
+        return SingleWay;
+
+    case AV_DOUBLE_SOFT:
+    case AV_DOUBLE:
+        return DoubleWay;
+
+    case AV_TRIPLE_SOFT:
+    case AV_TRIPLE:
+        return TripleWay;
+
+    case AV_QUAD_SOFT:
+    case AV_QUAD:
+        return QuadWay;
+
+    case AV_PENTA_SOFT:
+    case AV_PENTA:
+        return PentaWay;
+
+    default:
+        break;
+    }
+
+    return SingleWay;
 }
 
 
 #ifndef XMRIG_NO_API
 rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
 {
-    rapidjson::Value obj(rapidjson::kObjectType);
+    using namespace rapidjson;
+
+    Value obj(kObjectType);
     auto &allocator = doc.GetAllocator();
 
     obj.AddMember("type",          "cpu", allocator);
@@ -214,3 +262,17 @@ rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
     return obj;
 }
 #endif
+
+
+rapidjson::Value xmrig::CpuThread::toConfig(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+
+    Value obj(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    obj.AddMember("low_power_mode", multiway(), allocator);
+    obj.AddMember("affine_to_cpu",  affinity() == -1L ? Value(kFalseType) : Value(affinity()), allocator);
+
+    return obj;
+}

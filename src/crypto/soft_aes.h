@@ -105,6 +105,23 @@ static inline __m128i soft_aesenc(const uint32_t* in, __m128i key)
     return _mm_xor_si128(out, key);
 }
 
+static inline __m128i soft_aesenc(__m128i in, __m128i key)
+{
+    uint32_t x0, x1, x2, x3;
+    x0 = _mm_cvtsi128_si32(in);
+    x1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0x55));
+    x2 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0xAA));
+    x3 = _mm_cvtsi128_si32(_mm_shuffle_epi32(in, 0xFF));
+
+    __m128i out = _mm_set_epi32(
+        (saes_table[0][x3 & 0xff] ^ saes_table[1][(x0 >> 8) & 0xff] ^ saes_table[2][(x1 >> 16) & 0xff] ^ saes_table[3][x2 >> 24]),
+        (saes_table[0][x2 & 0xff] ^ saes_table[1][(x3 >> 8) & 0xff] ^ saes_table[2][(x0 >> 16) & 0xff] ^ saes_table[3][x1 >> 24]),
+        (saes_table[0][x1 & 0xff] ^ saes_table[1][(x2 >> 8) & 0xff] ^ saes_table[2][(x3 >> 16) & 0xff] ^ saes_table[3][x0 >> 24]),
+        (saes_table[0][x0 & 0xff] ^ saes_table[1][(x1 >> 8) & 0xff] ^ saes_table[2][(x2 >> 16) & 0xff] ^ saes_table[3][x3 >> 24]));
+
+    return _mm_xor_si128(out, key);
+}
+
 static inline uint32_t sub_word(uint32_t key)
 {
     return (saes_sbox[key >> 24 ] << 24)   | 

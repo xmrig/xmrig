@@ -30,10 +30,20 @@
 #include <stdint.h>
 
 
-#include "xmrig.h"
+#include "common/xmrig.h"
 
 
 struct cryptonight_ctx;
+
+
+struct MemInfo
+{
+    alignas(16) uint8_t *memory;
+
+    size_t hugePages;
+    size_t pages;
+    size_t size;
+};
 
 
 class Mem
@@ -45,29 +55,18 @@ public:
         Lock               = 4
     };
 
-    static bool allocate(xmrig::Algo algo, int threads, bool doubleHash, bool enabled);
-    static cryptonight_ctx *create(int threadId);
-    static void *calloc(size_t num, size_t size);
-    static void release();
+    static MemInfo create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count);
+    static void init(bool enabled);
+    static void release(cryptonight_ctx **ctx, size_t count, MemInfo &info);
 
-    static inline bool isDoubleHash()         { return m_doubleHash; }
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
-    static inline bool isHugepagesEnabled()   { return (m_flags & HugepagesEnabled) != 0; }
-    static inline int flags()                 { return m_flags; }
-    static inline int threads()               { return m_threads; }
 
 private:
-    static bool m_doubleHash;
-    static int m_algo;
-    static int m_flags;
-    static int m_threads;
-    static size_t m_offset;
-    static size_t m_size;
-    alignas(16) static uint8_t *m_memory;
+    static void allocate(MemInfo &info, bool enabled);
+    static void release(MemInfo &info);
 
-#   ifndef XMRIG_NO_AEON
-    static cryptonight_ctx *createLite(int threadId);
-#   endif
+    static int m_flags;
+    static bool m_enabled;
 };
 
 

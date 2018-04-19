@@ -33,20 +33,21 @@
 
 
 #include "api/ApiRouter.h"
-#include "api/HttpReply.h"
-#include "api/HttpRequest.h"
+#include "common/api/HttpReply.h"
+#include "common/api/HttpRequest.h"
+#include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"
 #include "interfaces/IThread.h"
 #include "Mem.h"
 #include "net/Job.h"
-#include "Platform.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "version.h"
 #include "workers/Hashrate.h"
+#include "workers/Workers.h"
 
 
 extern "C"
@@ -68,10 +69,6 @@ static inline double normalize(double d)
 ApiRouter::ApiRouter(xmrig::Controller *controller) :
     m_controller(controller)
 {
-    m_threads  = controller->config()->threadsCount();
-    m_hashrate = new double[m_threads * 3]();
-
-    memset(m_totalHashrate, 0, sizeof(m_totalHashrate));
     memset(m_workerId, 0, sizeof(m_workerId));
 
     setWorkerId(controller->config()->apiWorkerId());
@@ -81,7 +78,6 @@ ApiRouter::ApiRouter(xmrig::Controller *controller) :
 
 ApiRouter::~ApiRouter()
 {
-    delete [] m_hashrate;
 }
 
 
@@ -126,21 +122,6 @@ void ApiRouter::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
     }
 
     reply.status = 404;
-}
-
-
-void ApiRouter::tick(const Hashrate *hashrate)
-{
-    for (int i = 0; i < m_threads; ++i) {
-        m_hashrate[i * 3]     = hashrate->calc((size_t) i, Hashrate::ShortInterval);
-        m_hashrate[i * 3 + 1] = hashrate->calc((size_t) i, Hashrate::MediumInterval);
-        m_hashrate[i * 3 + 2] = hashrate->calc((size_t) i, Hashrate::LargeInterval);
-    }
-
-    m_totalHashrate[0] = hashrate->calc(Hashrate::ShortInterval);
-    m_totalHashrate[1] = hashrate->calc(Hashrate::MediumInterval);
-    m_totalHashrate[2] = hashrate->calc(Hashrate::LargeInterval);
-    m_highestHashrate  = hashrate->highest();
 }
 
 
@@ -225,21 +206,23 @@ void ApiRouter::getHashrate(rapidjson::Document &doc) const
     rapidjson::Value total(rapidjson::kArrayType);
     rapidjson::Value threads(rapidjson::kArrayType);
 
-    for (int i = 0; i < 3; ++i) {
-        total.PushBack(normalize(m_totalHashrate[i]), allocator);
-    }
+    const Hashrate *hr = Workers::hashrate();
 
-    for (int i = 0; i < m_threads * 3; i += 3) {
+    total.PushBack(normalize(hr->calc(Hashrate::ShortInterval)),  allocator);
+    total.PushBack(normalize(hr->calc(Hashrate::MediumInterval)), allocator);
+    total.PushBack(normalize(hr->calc(Hashrate::LargeInterval)),  allocator);
+
+    for (size_t i = 0; i < Workers::threads(); i++) {
         rapidjson::Value thread(rapidjson::kArrayType);
-        thread.PushBack(normalize(m_hashrate[i]),     allocator);
-        thread.PushBack(normalize(m_hashrate[i + 1]), allocator);
-        thread.PushBack(normalize(m_hashrate[i + 2]), allocator);
+        thread.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
+        thread.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
+        thread.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
 
         threads.PushBack(thread, allocator);
     }
 
-    hashrate.AddMember("total", total, allocator);
-    hashrate.AddMember("highest", normalize(m_highestHashrate), allocator);
+    hashrate.AddMember("total",   total, allocator);
+    hashrate.AddMember("highest", normalize(hr->highest()), allocator);
     hashrate.AddMember("threads", threads, allocator);
     doc.AddMember("hashrate", hashrate, allocator);
 }
@@ -267,7 +250,7 @@ void ApiRouter::getMiner(rapidjson::Document &doc) const
     doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent()), allocator);
     doc.AddMember("cpu",          cpu, allocator);
     doc.AddMember("algo",         rapidjson::StringRef(m_controller->config()->algoName()), allocator);
-    doc.AddMember("hugepages",    Mem::isHugepagesEnabled(), allocator);
+    doc.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
     doc.AddMember("donate_level", m_controller->config()->donateLevel(), allocator);
 }
 
@@ -298,13 +281,28 @@ void ApiRouter::getResults(rapidjson::Document &doc) const
 
 void ApiRouter::getThreads(rapidjson::Document &doc) const
 {
-    doc.SetArray();
+    doc.SetObject();
+    auto &allocator = doc.GetAllocator();
+    const Hashrate *hr = Workers::hashrate();
+
+    Workers::threadsSummary(doc);
 
     const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
+    rapidjson::Value list(rapidjson::kArrayType);
 
     for (const xmrig::IThread *thread : threads) {
-       doc.PushBack(thread->toAPI(doc), doc.GetAllocator());
+        rapidjson::Value value = thread->toAPI(doc);
+
+        rapidjson::Value hashrate(rapidjson::kArrayType);
+        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::ShortInterval)),  allocator);
+        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::MediumInterval)), allocator);
+        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::LargeInterval)),  allocator);
+
+        value.AddMember("hashrate", hashrate, allocator);
+        list.PushBack(value, allocator);
     }
+
+    doc.AddMember("threads", list, allocator);
 }
 
 

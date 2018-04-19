@@ -30,8 +30,8 @@
 #include <stdint.h>
 
 
+#include "common/xmrig.h"
 #include "net/Id.h"
-#include "xmrig.h"
 
 
 class Job
@@ -68,6 +68,10 @@ public:
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
     static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
     static void toHex(const unsigned char* in, unsigned int len, char* out);
+
+#   ifdef APP_DEBUG
+    static char *toHex(const unsigned char* in, unsigned int len);
+#   endif
 
     bool operator==(const Job &other) const;
     bool operator!=(const Job &other) const;

@@ -1,0 +1,65 @@
+{
+    "hugepages": [
+        4,
+        4
+    ],
+    "memory": 8388608,
+    "threads": [
+        {
+            "type": "cpu",
+            "algo": "cryptonight",
+            "av": 1,
+            "low_power_mode": 1,
+            "affine_to_cpu": 0,
+            "priority": -1,
+            "soft_aes": false,
+            "hashrate": [
+                73.39,
+                73.4,
+                73.28
+            ]
+        },
+        {
+            "type": "cpu",
+            "algo": "cryptonight",
+            "av": 1,
+            "low_power_mode": 1,
+            "affine_to_cpu": 1,
+            "priority": -1,
+            "soft_aes": false,
+            "hashrate": [
+                74.72,
+                74.72,
+                74.7
+            ]
+        },
+        {
+            "type": "cpu",
+            "algo": "cryptonight",
+            "av": 1,
+            "low_power_mode": 1,
+            "affine_to_cpu": 2,
+            "priority": -1,
+            "soft_aes": false,
+            "hashrate": [
+                74.71,
+                74.72,
+                74.7
+            ]
+        },
+        {
+            "type": "cpu",
+            "algo": "cryptonight",
+            "av": 1,
+            "low_power_mode": 1,
+            "affine_to_cpu": 3,
+            "priority": -1,
+            "soft_aes": false,
+            "hashrate": [
+                73.39,
+                73.4,
+                73.28
+            ]
+        }
+    ]
+}
