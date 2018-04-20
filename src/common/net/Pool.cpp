@@ -45,9 +45,14 @@ static const char *algoNames[] = {
     nullptr,
 #   endif
 #   ifndef XMRIG_NO_SUMO
-    "cryptonight-heavy"
+    "cryptonight-heavy",
 #   else
-    nullptr
+    nullptr,
+#   endif
+#   ifndef XMRIG_NO_IPBC
+    "cryptonight-ipbc",
+#   else
+    nullptr,
 #   endif
 };
 
@@ -60,9 +65,14 @@ static const char *algoNamesShort[] = {
     nullptr,
 #   endif
 #   ifndef XMRIG_NO_SUMO
-    "cn-heavy"
+    "cn-heavy",
 #   else
-    nullptr
+    nullptr,
+#   endif
+#   ifndef XMRIG_NO_IPBC
+    "cn-ipbc",
+#   else
+    nullptr,
 #   endif
 };
 
@@ -119,9 +129,9 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
 }
 
 
-const char *Pool::algoName(xmrig::Algo algorithm)
+const char *Pool::algoName(xmrig::Algo algorithm, bool shortName)
 {
-    return algoNames[algorithm];
+    return (shortName ? algoNamesShort : algoNames)[algorithm];
 }
 
 
