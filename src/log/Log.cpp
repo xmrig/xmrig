@@ -50,6 +50,8 @@ void Log::message(Log::Level level, const char* fmt, ...)
         va_end(copy);
     }
 
+    va_end(args);
+
     uv_mutex_unlock(&m_mutex);
 }
 

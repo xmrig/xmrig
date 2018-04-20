@@ -30,11 +30,11 @@
 #include <vector>
 
 
-#include "net/Id.h"
+#include "common/net/Id.h"
+#include "common/net/Pool.h"
+#include "common/net/Storage.h"
+#include "common/net/SubmitResult.h"
 #include "net/Job.h"
-#include "net/Storage.h"
-#include "net/SubmitResult.h"
-#include "net/Pool.h"
 #include "rapidjson/fwd.h"
 
 

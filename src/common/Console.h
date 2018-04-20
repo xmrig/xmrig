@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,28 +21,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SUBMITRESULT_H__
-#define __SUBMITRESULT_H__
+#ifndef __CONSOLE_H__
+#define __CONSOLE_H__
 
 
 #include <uv.h>
 
 
-class SubmitResult
+class IConsoleListener;
+
+
+class Console
 {
 public:
-    inline SubmitResult() : seq(0), diff(0), actualDiff(0), elapsed(0), start(0) {}
-    SubmitResult(int64_t seq, uint32_t diff, uint64_t actualDiff);
-
-    void done();
-
-    int64_t seq;
-    uint32_t diff;
-    uint64_t actualDiff;
-    uint64_t elapsed;
+    Console(IConsoleListener *listener);
 
 private:
-    uint64_t start;
+    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+    static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+
+    char m_buf[1];
+    IConsoleListener *m_listener;
+    uv_tty_t m_tty;
 };
 
-#endif /* __SUBMITRESULT_H__ */
+
+#endif /* __CONSOLE_H__ */

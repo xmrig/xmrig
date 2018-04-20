@@ -28,8 +28,8 @@
 
 #include "api/Api.h"
 #include "App.h"
+#include "common/Console.h"
 #include "common/Platform.h"
-#include "Console.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"

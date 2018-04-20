@@ -30,8 +30,8 @@
 #include <stdint.h>
 
 
+#include "common/net/Id.h"
 #include "common/xmrig.h"
-#include "net/Id.h"
 
 
 class Job

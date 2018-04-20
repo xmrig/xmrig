@@ -22,10 +22,10 @@
  */
 
 
+#include "common/net/Client.h"
+#include "common/net/strategies/SinglePoolStrategy.h"
 #include "common/Platform.h"
 #include "interfaces/IStrategyListener.h"
-#include "net/Client.h"
-#include "net/strategies/SinglePoolStrategy.h"
 
 
 SinglePoolStrategy::SinglePoolStrategy(const Pool &pool, int retryPause, IStrategyListener *listener, bool quiet) :

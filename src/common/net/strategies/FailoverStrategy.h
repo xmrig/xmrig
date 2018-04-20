@@ -28,9 +28,9 @@
 #include <vector>
 
 
+#include "common/net/Pool.h"
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
-#include "net/Pool.h"
 
 
 class Client;

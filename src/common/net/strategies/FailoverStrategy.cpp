@@ -22,10 +22,10 @@
  */
 
 
+#include "common/net/Client.h"
+#include "common/net/strategies/FailoverStrategy.h"
 #include "common/Platform.h"
 #include "interfaces/IStrategyListener.h"
-#include "net/Client.h"
-#include "net/strategies/FailoverStrategy.h"
 
 
 FailoverStrategy::FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet) :

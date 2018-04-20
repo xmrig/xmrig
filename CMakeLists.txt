@@ -17,11 +17,18 @@ set(HEADERS
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
+    src/common/Console.h
+    src/common/net/Client.h
+    src/common/net/Id.h
+    src/common/net/Pool.h
+    src/common/net/Storage.h
+    src/common/net/strategies/FailoverStrategy.h
+    src/common/net/strategies/SinglePoolStrategy.h
+    src/common/net/SubmitResult.h
     src/common/Platform.h
     src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
-    src/Console.h
     src/core/Config.cpp
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
@@ -42,17 +49,10 @@ set(HEADERS
     src/log/FileLog.h
     src/log/Log.h
     src/Mem.h
-    src/net/Client.h
-    src/net/Id.h
     src/net/Job.h
     src/net/JobResult.h
     src/net/Network.h
-    src/net/Pool.h
-    src/net/Storage.h
     src/net/strategies/DonateStrategy.h
-    src/net/strategies/FailoverStrategy.h
-    src/net/strategies/SinglePoolStrategy.h
-    src/net/SubmitResult.h
     src/Summary.h
     src/version.h
     src/workers/CpuThread.h
@@ -91,22 +91,22 @@ set(SOURCES
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
     src/common/config/ConfigWatcher.cpp
+    src/common/Console.cpp
+    src/common/net/Client.cpp
+    src/common/net/Pool.cpp
+    src/common/net/strategies/FailoverStrategy.cpp
+    src/common/net/strategies/SinglePoolStrategy.cpp
+    src/common/net/SubmitResult.cpp
     src/common/Platform.cpp
-    src/Console.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
     src/log/ConsoleLog.cpp
     src/log/FileLog.cpp
     src/log/Log.cpp
     src/Mem.cpp
-    src/net/Client.cpp
     src/net/Job.cpp
     src/net/Network.cpp
-    src/net/Pool.cpp
     src/net/strategies/DonateStrategy.cpp
-    src/net/strategies/FailoverStrategy.cpp
-    src/net/strategies/SinglePoolStrategy.cpp
-    src/net/SubmitResult.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp
     src/workers/Handle.cpp

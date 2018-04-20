@@ -32,7 +32,6 @@
 #include "common/config/CommonConfig.h"
 #include "donate.h"
 #include "log/Log.h"
-#include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"

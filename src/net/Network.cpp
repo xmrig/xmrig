@@ -31,16 +31,16 @@
 
 
 #include "api/Api.h"
+#include "common/net/Client.h"
+#include "common/net/strategies/FailoverStrategy.h"
+#include "common/net/strategies/SinglePoolStrategy.h"
+#include "common/net/SubmitResult.h"
+#include "core/Config.h"
+#include "core/Controller.h"
 #include "log/Log.h"
-#include "net/Client.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
-#include "net/strategies/FailoverStrategy.h"
-#include "net/strategies/SinglePoolStrategy.h"
-#include "net/SubmitResult.h"
 #include "workers/Workers.h"
-#include "core/Controller.h"
-#include "core/Config.h"
 
 
 Network::Network(xmrig::Controller *controller) :
