@@ -22,6 +22,7 @@
  */
 
 
+#include "common/crypto/keccak.h"
 #include "common/net/Client.h"
 #include "common/net/strategies/FailoverStrategy.h"
 #include "common/Platform.h"
@@ -29,12 +30,6 @@
 #include "interfaces/IStrategyListener.h"
 #include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
-
-
-extern "C"
-{
-#include "crypto/c_keccak.h"
-}
 
 
 const static char *kDonatePool1   = "miner.fee.xmrig.com";
@@ -56,7 +51,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyL
     uint8_t hash[200];
     char userId[65] = { 0 };
 
-    keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
+    xmrig::keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
     Job::toHex(hash, 32, userId);
 
     if (algo == xmrig::CRYPTONIGHT) {

@@ -18,6 +18,7 @@ set(HEADERS
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
     src/common/Console.h
+    src/common/crypto/keccak.h
     src/common/net/Client.h
     src/common/net/Id.h
     src/common/net/Pool.h
@@ -67,7 +68,6 @@ set(HEADERS_CRYPTO
     src/crypto/c_blake256.h
     src/crypto/c_groestl.h
     src/crypto/c_jh.h
-    src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
     src/crypto/CryptoNight_constants.h
@@ -92,6 +92,7 @@ set(SOURCES
     src/common/config/ConfigLoader.cpp
     src/common/config/ConfigWatcher.cpp
     src/common/Console.cpp
+    src/common/crypto/keccak.cpp
     src/common/net/Client.cpp
     src/common/net/Pool.cpp
     src/common/net/strategies/FailoverStrategy.cpp
@@ -118,7 +119,6 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/c_keccak.c
     src/crypto/c_groestl.c
     src/crypto/c_blake256.c
     src/crypto/c_jh.c

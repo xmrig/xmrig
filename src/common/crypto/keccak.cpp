@@ -1,9 +1,34 @@
-// keccak.c
-// 19-Nov-11  Markku-Juhani O. Saarinen <mjos@iki.fi>
-// A baseline Keccak (3rd round) implementation.
+/* XMRig
+ * Copyright 2010      Jeff Garzik               <jgarzik@pobox.com>
+ * Copyright 2011      Markku-Juhani O. Saarinen <mjos@iki.fi>
+ * Copyright 2012-2014 pooler                    <pooler@litecoinpool.org>
+ * Copyright 2014      Lucas Jones               <https://github.com/lucasjones>
+ * Copyright 2014-2016 Wolf9466                  <https://github.com/OhGodAPet>
+ * Copyright 2016      Jay D Dee                 <jayddee246@gmail.com>
+ * Copyright 2017-2018 XMR-Stak                  <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig                     <https://github.com/xmrig>, <support@xmrig.com>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #include <stdint.h>
 #include <memory.h>
+
+
+#include "common/crypto/keccak.h"
+
 
 #define HASH_DATA_AREA 136
 #define KECCAK_ROUNDS 24
@@ -26,7 +51,7 @@ const uint64_t keccakf_rndc[24] =
 
 // update the state with given number of rounds
 
-void keccakf(uint64_t st[25], int rounds)
+void xmrig::keccakf(uint64_t st[25], int rounds)
 {
     int i, j, round;
     uint64_t t, bc[5];
@@ -139,7 +164,8 @@ void keccakf(uint64_t st[25], int rounds)
 // compute a keccak hash (md) of given byte length from "in"
 typedef uint64_t state_t[25];
 
-void keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
+
+void xmrig::keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
 {
     state_t st;
     uint8_t temp[144];
@@ -151,9 +177,11 @@ void keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
     memset(st, 0, sizeof(st));
 
     for ( ; inlen >= rsiz; inlen -= rsiz, in += rsiz) {
-        for (i = 0; i < rsizw; i++)
+        for (i = 0; i < rsizw; i++) {
             st[i] ^= ((uint64_t *) in)[i];
-        keccakf(st, KECCAK_ROUNDS);
+        }
+
+        xmrig::keccakf(st, KECCAK_ROUNDS);
     }
     
     // last block and padding
@@ -162,15 +190,11 @@ void keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
     memset(temp + inlen, 0, rsiz - inlen);
     temp[rsiz - 1] |= 0x80;
 
-    for (i = 0; i < rsizw; i++)
+    for (i = 0; i < rsizw; i++) {
         st[i] ^= ((uint64_t *) temp)[i];
+    }
 
     keccakf(st, KECCAK_ROUNDS);
 
     memcpy(md, st, mdlen);
-}
-
-void keccak1600(const uint8_t *in, int inlen, uint8_t *md)
-{
-    keccak(in, inlen, md, sizeof(state_t));
 }

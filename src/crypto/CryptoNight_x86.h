@@ -34,6 +34,7 @@
 #endif
 
 
+#include "common/crypto/keccak.h"
 #include "crypto/CryptoNight.h"
 #include "crypto/CryptoNight_constants.h"
 #include "crypto/CryptoNight_monero.h"
@@ -42,7 +43,6 @@
 
 extern "C"
 {
-#include "crypto/c_keccak.h"
 #include "crypto/c_groestl.h"
 #include "crypto/c_blake256.h"
 #include "crypto/c_jh.h"
@@ -414,7 +414,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         return;
     }
 
-    keccak(input, (int) size, ctx[0]->state, 200);
+    xmrig::keccak(input, size, ctx[0]->state);
 
     VARIANT1_INIT(0)
 
@@ -478,7 +478,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
     cn_implode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
 
-    keccakf(h0, 24);
+    xmrig::keccakf(h0, 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
 
@@ -495,8 +495,8 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         return;
     }
 
-    keccak(input,        (int) size, ctx[0]->state, 200);
-    keccak(input + size, (int) size, ctx[1]->state, 200);
+    xmrig::keccak(input,        size, ctx[0]->state);
+    xmrig::keccak(input + size, size, ctx[1]->state);
 
     VARIANT1_INIT(0);
     VARIANT1_INIT(1);
@@ -603,8 +603,8 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     cn_implode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
     cn_implode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
 
-    keccakf(h0, 24);
-    keccakf(h1, 24);
+    xmrig::keccakf(h0, 24);
+    xmrig::keccakf(h1, 24);
 
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
     extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
@@ -681,7 +681,7 @@ inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t si
     }
 
     for (size_t i = 0; i < 3; i++) {
-        keccak(input + size * i, static_cast<int>(size), ctx[i]->state, 200);
+        xmrig::keccak(input + size * i, size, ctx[i]->state);
         cn_explode_scratchpad<ALGO, MEM, SOFT_AES>(reinterpret_cast<__m128i*>(ctx[i]->state), reinterpret_cast<__m128i*>(ctx[i]->memory));
     }
 
@@ -752,7 +752,7 @@ inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t si
 
     for (size_t i = 0; i < 3; i++) {
         cn_implode_scratchpad<ALGO, MEM, SOFT_AES>(reinterpret_cast<__m128i*>(ctx[i]->memory), reinterpret_cast<__m128i*>(ctx[i]->state));
-        keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
+        xmrig::keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
         extra_hashes[ctx[i]->state[0] & 3](ctx[i]->state, 200, output + 32 * i);
     }
 }
@@ -771,7 +771,7 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
     }
 
     for (size_t i = 0; i < 4; i++) {
-        keccak(input + size * i, static_cast<int>(size), ctx[i]->state, 200);
+        xmrig::keccak(input + size * i, size, ctx[i]->state);
         cn_explode_scratchpad<ALGO, MEM, SOFT_AES>(reinterpret_cast<__m128i*>(ctx[i]->state), reinterpret_cast<__m128i*>(ctx[i]->memory));
     }
 
@@ -858,7 +858,7 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
 
     for (size_t i = 0; i < 4; i++) {
         cn_implode_scratchpad<ALGO, MEM, SOFT_AES>(reinterpret_cast<__m128i*>(ctx[i]->memory), reinterpret_cast<__m128i*>(ctx[i]->state));
-        keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
+        xmrig::keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
         extra_hashes[ctx[i]->state[0] & 3](ctx[i]->state, 200, output + 32 * i);
     }
 }
@@ -877,7 +877,7 @@ inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t siz
     }
 
     for (size_t i = 0; i < 5; i++) {
-        keccak(input + size * i, static_cast<int>(size), ctx[i]->state, 200);
+        xmrig::keccak(input + size * i, size, ctx[i]->state);
         cn_explode_scratchpad<ALGO, MEM, SOFT_AES>(reinterpret_cast<__m128i*>(ctx[i]->state), reinterpret_cast<__m128i*>(ctx[i]->memory));
     }
 
@@ -979,7 +979,7 @@ inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t siz
 
     for (size_t i = 0; i < 5; i++) {
         cn_implode_scratchpad<ALGO, MEM, SOFT_AES>(reinterpret_cast<__m128i*>(ctx[i]->memory), reinterpret_cast<__m128i*>(ctx[i]->state));
-        keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
+        xmrig::keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
         extra_hashes[ctx[i]->state[0] & 3](ctx[i]->state, 200, output + 32 * i);
     }
 }
