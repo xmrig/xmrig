@@ -803,10 +803,10 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
     __m128i cx3 = _mm_set_epi64x(0, 0);
 
     uint64_t idx0, idx1, idx2, idx3;
-    idx0 = _mm_cvtsi128_si64(ax0);
-    idx1 = _mm_cvtsi128_si64(ax1);
-    idx2 = _mm_cvtsi128_si64(ax2);
-    idx3 = _mm_cvtsi128_si64(ax3);
+    idx0 = EXTRACT64(ax0);
+    idx1 = EXTRACT64(ax1);
+    idx2 = EXTRACT64(ax2);
+    idx3 = EXTRACT64(ax3);
 
     for (size_t i = 0; i < ITERATIONS / 2; i++)
     {
@@ -915,11 +915,11 @@ inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t siz
     __m128i cx4 = _mm_set_epi64x(0, 0);
 
     uint64_t idx0, idx1, idx2, idx3, idx4;
-    idx0 = _mm_cvtsi128_si64(ax0);
-    idx1 = _mm_cvtsi128_si64(ax1);
-    idx2 = _mm_cvtsi128_si64(ax2);
-    idx3 = _mm_cvtsi128_si64(ax3);
-    idx4 = _mm_cvtsi128_si64(ax4);
+    idx0 = EXTRACT64(ax0);
+    idx1 = EXTRACT64(ax1);
+    idx2 = EXTRACT64(ax2);
+    idx3 = EXTRACT64(ax3);
+    idx4 = EXTRACT64(ax4);
 
     for (size_t i = 0; i < ITERATIONS / 2; i++)
     {
