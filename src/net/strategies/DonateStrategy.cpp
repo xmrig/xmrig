@@ -24,11 +24,11 @@
 
 #include "common/crypto/keccak.h"
 #include "common/net/Client.h"
+#include "common/net/Job.h"
 #include "common/net/strategies/FailoverStrategy.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
 #include "interfaces/IStrategyListener.h"
-#include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
 
 

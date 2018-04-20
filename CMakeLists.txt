@@ -19,8 +19,12 @@ set(HEADERS
     src/common/config/ConfigWatcher.h
     src/common/Console.h
     src/common/crypto/keccak.h
+    src/common/log/ConsoleLog.h
+    src/common/log/FileLog.h
+    src/common/log/Log.h
     src/common/net/Client.h
     src/common/net/Id.h
+    src/common/net/Job.h
     src/common/net/Pool.h
     src/common/net/Storage.h
     src/common/net/strategies/FailoverStrategy.h
@@ -46,11 +50,7 @@ set(HEADERS
     src/interfaces/IThread.h
     src/interfaces/IWatcherListener.h
     src/interfaces/IWorker.h
-    src/common/log/ConsoleLog.h
-    src/common/log/FileLog.h
-    src/common/log/Log.h
     src/Mem.h
-    src/net/Job.h
     src/net/JobResult.h
     src/net/Network.h
     src/net/strategies/DonateStrategy.h
@@ -93,7 +93,11 @@ set(SOURCES
     src/common/config/ConfigWatcher.cpp
     src/common/Console.cpp
     src/common/crypto/keccak.cpp
+    src/common/log/ConsoleLog.cpp
+    src/common/log/FileLog.cpp
+    src/common/log/Log.cpp
     src/common/net/Client.cpp
+    src/common/net/Job.cpp
     src/common/net/Pool.cpp
     src/common/net/strategies/FailoverStrategy.cpp
     src/common/net/strategies/SinglePoolStrategy.cpp
@@ -101,11 +105,7 @@ set(SOURCES
     src/common/Platform.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
-    src/common/log/ConsoleLog.cpp
-    src/common/log/FileLog.cpp
-    src/common/log/Log.cpp
     src/Mem.cpp
-    src/net/Job.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp

@@ -32,17 +32,11 @@
 #include "common/log/Log.h"
 #include "common/net/Client.h"
 #include "interfaces/IClientListener.h"
+#include "net/JobResult.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-
-
-#ifdef XMRIG_PROXY_PROJECT
-#   include "proxy/JobResult.h"
-#else
-#   include "net/JobResult.h"
-#endif
 
 
 #ifdef _MSC_VER
@@ -238,12 +232,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-#   ifdef XMRIG_PROXY_PROJECT
-    Job job(m_id, m_pool.variant());
-    job.setClientId(m_rpcId);
-#   else
-    Job job(m_id, m_nicehash, m_pool.algo(), m_pool.variant());
-#   endif
+    Job job(m_id, m_nicehash, m_pool.algo(), m_pool.variant(), m_rpcId);
 
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
@@ -258,10 +247,6 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
     if (!job.setTarget(params["target"].GetString())) {
         *code = 5;
         return false;
-    }
-
-    if (params.HasMember("coin")) {
-        job.setCoin(params["coin"].GetString());
     }
 
     if (params.HasMember("variant")) {

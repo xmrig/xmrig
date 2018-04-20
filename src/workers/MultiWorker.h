@@ -26,8 +26,8 @@
 #define __MULTIWORKER_H__
 
 
+#include "common/net/Job.h"
 #include "Mem.h"
-#include "net/Job.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
 

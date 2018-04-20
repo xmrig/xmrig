@@ -29,7 +29,7 @@
 #include <stdint.h>
 
 
-#include "Job.h"
+#include "common/net/Job.h"
 
 
 class JobResult
