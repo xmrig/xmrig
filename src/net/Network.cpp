@@ -31,13 +31,13 @@
 
 
 #include "api/Api.h"
+#include "common/log/Log.h"
 #include "common/net/Client.h"
 #include "common/net/strategies/FailoverStrategy.h"
 #include "common/net/strategies/SinglePoolStrategy.h"
 #include "common/net/SubmitResult.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "log/Log.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
 #include "workers/Workers.h"

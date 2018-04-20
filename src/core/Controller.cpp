@@ -26,14 +26,14 @@
 
 
 #include "common/config/ConfigLoader.h"
+#include "common/log/ConsoleLog.h"
+#include "common/log/FileLog.h"
+#include "common/log/Log.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"
 #include "interfaces/IControllerListener.h"
-#include "log/ConsoleLog.h"
-#include "log/FileLog.h"
-#include "log/Log.h"
 #include "net/Network.h"
 
 

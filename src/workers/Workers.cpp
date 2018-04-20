@@ -26,12 +26,12 @@
 
 
 #include "api/Api.h"
+#include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "crypto/CryptoNight_constants.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IThread.h"
-#include "log/Log.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
 #include "workers/Handle.h"

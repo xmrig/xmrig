@@ -25,7 +25,7 @@
 #include <syslog.h>
 
 
-#include "log/SysLog.h"
+#include "common/log/SysLog.h"
 #include "version.h"
 
 

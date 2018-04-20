@@ -46,9 +46,9 @@ set(HEADERS
     src/interfaces/IThread.h
     src/interfaces/IWatcherListener.h
     src/interfaces/IWorker.h
-    src/log/ConsoleLog.h
-    src/log/FileLog.h
-    src/log/Log.h
+    src/common/log/ConsoleLog.h
+    src/common/log/FileLog.h
+    src/common/log/Log.h
     src/Mem.h
     src/net/Job.h
     src/net/JobResult.h
@@ -101,9 +101,9 @@ set(SOURCES
     src/common/Platform.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
-    src/log/ConsoleLog.cpp
-    src/log/FileLog.cpp
-    src/log/Log.cpp
+    src/common/log/ConsoleLog.cpp
+    src/common/log/FileLog.cpp
+    src/common/log/Log.cpp
     src/Mem.cpp
     src/net/Job.cpp
     src/net/Network.cpp
@@ -194,7 +194,7 @@ endif()
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
-    set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
+    set(SOURCES_SYSLOG src/common/log/SysLog.h src/common/log/SysLog.cpp)
 endif()
 
 if (NOT WITH_AEON)

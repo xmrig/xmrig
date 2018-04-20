@@ -29,8 +29,8 @@
 #include <time.h>
 
 
+#include "common/log/Log.h"
 #include "interfaces/ILogBackend.h"
-#include "log/Log.h"
 
 
 Log *Log::m_self = nullptr;

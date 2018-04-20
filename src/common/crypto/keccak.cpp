@@ -183,7 +183,7 @@ void xmrig::keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
 
         xmrig::keccakf(st, KECCAK_ROUNDS);
     }
-    
+
     // last block and padding
     memcpy(temp, in, inlen);
     temp[inlen++] = 1;

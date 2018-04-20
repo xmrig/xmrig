@@ -30,8 +30,8 @@
 
 
 #include "common/config/CommonConfig.h"
+#include "common/log/Log.h"
 #include "donate.h"
-#include "log/Log.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"

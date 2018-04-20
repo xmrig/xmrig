@@ -28,7 +28,8 @@
 #include <assert.h>
 #include <map>
 
-#include "log/Log.h"
+
+#include "common/log/Log.h"
 
 
 namespace xmrig {
