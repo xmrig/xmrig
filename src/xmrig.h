@@ -30,6 +30,7 @@ namespace xmrig
 
 
 enum Algo {
+    INVALID_ALGO = -1,
     CRYPTONIGHT,       /* CryptoNight (Monero) */
     CRYPTONIGHT_LITE,  /* CryptoNight-Lite (AEON) */
     CRYPTONIGHT_HEAVY, /* CryptoNight-Heavy (SUMO) */

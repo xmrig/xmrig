@@ -1,11 +1,11 @@
 # v2.6.0-beta2
 - Improved performance for `cryptonight v7` especially in double hash mode.
-- [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 disabled for internal HTTP API by default, was cause issues on some systems.
+- [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 disabled for internal HTTP API by default, was causing issues on some systems.
 - Added short aliases for algorithm names: `cn`, `cn-lite` and `cn-heavy`.
 - Fixed regressions (v2.6.0-beta1 affected)
   - [#494](https://github.com/xmrig/xmrig/issues/494) Command line option `--donate-level` was broken.
   - [#502](https://github.com/xmrig/xmrig/issues/502) Build without libmicrohttpd was broken.
-  - Fixed nonce calculation for `--av 4` (software AES, double hash) was cause reduction of effective hashrate and rejected shares on nicehash.
+  - Fixed nonce calculation for `--av 4` (software AES, double hash) was causing reduction of effective hashrate and rejected shares on nicehash.
 
 # v2.6.0-beta1
  - [#476](https://github.com/xmrig/xmrig/issues/476) **Added Cryptonight-Heavy support for Sumokoin ASIC resistance fork.**

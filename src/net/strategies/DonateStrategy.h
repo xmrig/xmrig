@@ -32,6 +32,7 @@
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
 #include "interfaces/IStrategyListener.h"
+#include "net/Pool.h"
 
 
 class Client;
@@ -71,7 +72,7 @@ private:
     const int m_idleTime;
     IStrategy *m_strategy;
     IStrategyListener *m_listener;
-    std::vector<Url*> m_pools;
+    std::vector<Pool> m_pools;
     uv_timer_t m_timer;
 };
 

@@ -479,7 +479,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
     keccak(input, (int) size, ctx->state0, 200);
 
-    VARIANT1_INIT(0);
+    VARIANT1_INIT(0)
 
     cn_explode_scratchpad<ALGO, MEM, SOFT_AES>((__m128i*) ctx->state0, (__m128i*) ctx->memory);
 
@@ -491,15 +491,15 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
 
     uint64_t idx0 = h0[0] ^ h0[4];
-    void* mp = (uint8_t*) l0 + (idx0 & MASK); 
 
+    void* mp = ((uint8_t*) l0) + ((idx0) & MASK);
+    
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx;
 
         if (SOFT_AES) {
-            cx = soft_aesenc((uint32_t*) mp, _mm_set_epi64x(ah0, al0));
-        }
-        else {
+            cx = soft_aesenc((uint32_t*) mp, _mm_set_epi64x(ah0, al0)); 
+        } else {  
             cx = _mm_load_si128((__m128i *) mp);
 #           ifndef XMRIG_ARMv7
             cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
@@ -507,8 +507,8 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         }
 
         _mm_store_si128((__m128i *) mp, _mm_xor_si128(bx0, cx));
-        VARIANT1_1(mp);
-        mp = (uint8_t*) l0 + ((idx0 = EXTRACT64(cx)) & MASK);
+        VARIANT1_1(mp);        
+        mp = ((uint8_t*) l0) + ((idx0 = EXTRACT64(cx)) & MASK);        
         bx0 = cx;
 
         uint64_t hi, lo, cl, ch;
@@ -526,14 +526,13 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
         ah0 ^= ch;
         al0 ^= cl;
-        mp = (uint8_t*) l0 + (al0 & MASK);
+        mp = ((uint8_t*) l0) + ((al0) & MASK); 
 
         if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
-            int64_t n  = ((int64_t*) mp)[0];
-            int32_t d  = ((int32_t*) mp)[2];
+            int64_t n  = ((int64_t*)mp)[0];
+            int32_t d  = ((int32_t*)mp)[2];
             int64_t q = n / (d | 0x5);
-
-            ((int64_t*) mp)[0] = n ^ q;
+            ((int64_t*) mp)[0] = n ^ q; 
         }
     }
 
@@ -542,7 +541,6 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     keccakf(h0, 24);
     extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, output);
 }
-
 
 template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
 inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)

@@ -30,7 +30,7 @@
 #include "core/ConfigCreator.h"
 #include "core/ConfigLoader.h"
 #include "Cpu.h"
-#include "net/Url.h"
+#include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -110,22 +110,22 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     rapidjson::Value pools(rapidjson::kArrayType);
 
-    for (const Url *url : m_pools) {
+    for (const Pool &pool : m_pools) {
         rapidjson::Value obj(rapidjson::kObjectType);
 
-        obj.AddMember("url",     rapidjson::StringRef(url->url()), allocator);
-        obj.AddMember("user",    rapidjson::StringRef(url->user()), allocator);
-        obj.AddMember("pass",    rapidjson::StringRef(url->password()), allocator);
+        obj.AddMember("url",     rapidjson::StringRef(pool.url()), allocator);
+        obj.AddMember("user",    rapidjson::StringRef(pool.user()), allocator);
+        obj.AddMember("pass",    rapidjson::StringRef(pool.password()), allocator);
 
-        if (url->keepAlive() == 0 || url->keepAlive() == Url::kKeepAliveTimeout) {
-            obj.AddMember("keepalive", url->keepAlive() > 0, allocator);
+        if (pool.keepAlive() == 0 || pool.keepAlive() == Pool::kKeepAliveTimeout) {
+            obj.AddMember("keepalive", pool.keepAlive() > 0, allocator);
         }
         else {
-            obj.AddMember("keepalive", url->keepAlive(), allocator);
+            obj.AddMember("keepalive", pool.keepAlive(), allocator);
         }
 
-        obj.AddMember("nicehash", url->isNicehash(), allocator);
-        obj.AddMember("variant",  url->variant(), allocator);
+        obj.AddMember("nicehash", pool.isNicehash(), allocator);
+        obj.AddMember("variant",  pool.variant(), allocator);
 
         pools.PushBack(obj, allocator);
     }
@@ -279,7 +279,7 @@ bool xmrig::Config::parseInt(int key, int arg)
 {
     switch (key) {
     case xmrig::IConfig::ThreadsKey: /* --threads */
-        if (m_threadsCount >= 0 && arg < 1024) {
+        if (arg >= 0 && arg < 1024) {
             m_threadsCount = arg;
         }
         break;

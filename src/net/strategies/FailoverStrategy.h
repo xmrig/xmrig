@@ -30,6 +30,7 @@
 
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
+#include "net/Pool.h"
 
 
 class Client;
@@ -40,7 +41,7 @@ class Url;
 class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-    FailoverStrategy(const std::vector<Url*> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     ~FailoverStrategy();
 
 public:
@@ -59,7 +60,7 @@ protected:
     void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-    void add(const Url *url);
+    void add(const Pool &pool);
 
     const bool m_quiet;
     const int m_retries;

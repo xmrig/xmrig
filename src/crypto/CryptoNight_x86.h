@@ -398,8 +398,7 @@ static inline void cryptonight_monero_tweak(uint64_t* mem_out, __m128i tmp)
 
     uint8_t x = vh >> 24;
     static const uint16_t table = 0x7531;
-    const uint8_t index = (((x >> 3) & 6) | (x & 1)) << 1;
-    vh ^= ((table >> index) & 0x3) << 28;
+    vh ^= ((table >> ((((x >> 3) & 6) | (x & 1)) << 1)) & 0x3) << 28;
 
     mem_out[1] = vh;
 }
