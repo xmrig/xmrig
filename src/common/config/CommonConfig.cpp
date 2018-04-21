@@ -141,7 +141,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
 {
     switch (key) {
     case AlgorithmKey: /* --algo */
-        setAlgo(arg);
+        m_algorithm = Pool::algorithm(arg);
         break;
 
     case UserpassKey: /* --userpass */
@@ -204,7 +204,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case SyslogKey:     /* --syslog */
     case KeepAliveKey:  /* --keepalive */
     case NicehashKey:   /* --nicehash */
-    case ApiIPv6Key:       /* --api-ipv6 */
+    case ApiIPv6Key:    /* --api-ipv6 */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
@@ -321,10 +321,4 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     }
 
     return true;
-}
-
-
-void xmrig::CommonConfig::setAlgo(const char *algo)
-{
-    m_algorithm = Pool::algorithm(algo);
 }

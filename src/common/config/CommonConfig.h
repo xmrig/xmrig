@@ -96,7 +96,6 @@ protected:
 
 private:
     bool parseInt(int key, int arg);
-    void setAlgo(const char *algo);
 };
 
 

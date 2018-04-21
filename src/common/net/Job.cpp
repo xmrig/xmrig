@@ -65,7 +65,7 @@ Job::Job() :
     m_diff(0),
     m_target(0),
     m_blob(),
-    m_algo(xmrig::INVALID_ALGO),
+    m_algorithm(xmrig::INVALID_ALGO),
     m_variant(xmrig::VARIANT_AUTO)
 {
 }
@@ -79,7 +79,7 @@ Job::Job(int poolId, bool nicehash, xmrig::Algo algo, xmrig::Variant variant, co
     m_diff(0),
     m_target(0),
     m_blob(),
-    m_algo(algo),
+    m_algorithm(algo),
     m_clientId(clientId),
     m_variant(variant)
 {
@@ -170,7 +170,7 @@ void Job::setVariant(int variant)
 {
     switch (variant) {
     case xmrig::VARIANT_AUTO:
-    case xmrig::VARIANT_NONE:
+    case xmrig::VARIANT_V0:
     case xmrig::VARIANT_V1:
         m_variant = static_cast<xmrig::Variant>(variant);
         break;

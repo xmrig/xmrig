@@ -166,12 +166,9 @@ bool Network::isColors() const
 
 void Network::setJob(Client *client, const Job &job, bool donate)
 {
-    if (isColors()) {
-        LOG_INFO("\x1B[01;35mnew job\x1B[0m from \x1B[01;37m%s:%d\x1B[0m diff \x1B[01;37m%d", client->host(), client->port(), job.diff());
-    }
-    else {
-        LOG_INFO("new job from %s:%d diff %d", client->host(), client->port(), job.diff());
-    }
+    LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s/%d")
+                        : "new job from %s:%d diff %d algo %s/%d",
+             client->host(), client->port(), job.diff(), Pool::algoName(job.algorithm(), true), static_cast<int>(job.variant()));
 
     m_state.diff = job.diff();
     Workers::setJob(job, donate);

@@ -232,7 +232,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, m_nicehash, m_pool.algo(), m_pool.variant(), m_rpcId);
+    Job job(m_id, m_nicehash, m_pool.algorithm(), m_pool.variant(), m_rpcId);
 
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;

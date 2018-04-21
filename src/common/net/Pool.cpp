@@ -81,7 +81,7 @@ Pool::Pool() :
     m_nicehash(false),
     m_keepAlive(0),
     m_port(kDefaultPort),
-    m_algo(xmrig::CRYPTONIGHT),
+    m_algorithm(xmrig::INVALID_ALGO),
     m_variant(xmrig::VARIANT_AUTO)
 {
 }
@@ -102,7 +102,7 @@ Pool::Pool(const char *url) :
     m_nicehash(false),
     m_keepAlive(0),
     m_port(kDefaultPort),
-    m_algo(xmrig::CRYPTONIGHT),
+    m_algorithm(xmrig::INVALID_ALGO),
     m_variant(xmrig::VARIANT_AUTO)
 {
     parse(url);
@@ -113,11 +113,11 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
     m_nicehash(nicehash),
     m_keepAlive(keepAlive),
     m_port(port),
-    m_algo(xmrig::CRYPTONIGHT),
+    m_algorithm(xmrig::INVALID_ALGO),
     m_host(host),
     m_password(password),
     m_user(user),
-        m_variant(variant)
+    m_variant(variant)
 {
     const size_t size = m_host.size() + 8;
     assert(size > 8);
@@ -131,6 +131,10 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
 
 const char *Pool::algoName(xmrig::Algo algorithm, bool shortName)
 {
+    if (algorithm == xmrig::INVALID_ALGO) {
+        return "invalid";
+    }
+
     return (shortName ? algoNamesShort : algoNames)[algorithm];
 }
 
@@ -157,6 +161,20 @@ xmrig::Algo Pool::algorithm(const char *algo)
 
     fprintf(stderr, "Unknown algorithm \"%s\" specified.\n", algo);
     return xmrig::INVALID_ALGO;
+}
+
+
+bool Pool::isEqual(const Pool &other) const
+{
+    return (m_nicehash     == other.m_nicehash
+            && m_keepAlive == other.m_keepAlive
+            && m_port      == other.m_port
+            && m_algorithm == other.m_algorithm
+            && m_host      == other.m_host
+            && m_password  == other.m_password
+            && m_url       == other.m_url
+            && m_user      == other.m_user
+            && m_variant   == other.m_variant);
 }
 
 
@@ -218,13 +236,15 @@ bool Pool::setUserpass(const char *userpass)
 }
 
 
-void Pool::adjust(xmrig::Algo algo)
+void Pool::adjust(xmrig::Algo algorithm)
 {
     if (!isValid()) {
         return;
     }
 
-    m_algo = algo;
+    if (m_algorithm == xmrig::INVALID_ALGO) {
+        m_algorithm = algorithm;
+    }
 
     if (strstr(m_host.data(), ".nicehash.com")) {
         m_keepAlive = false;
@@ -241,7 +261,7 @@ void Pool::setVariant(int variant)
 {
    switch (variant) {
    case xmrig::VARIANT_AUTO:
-   case xmrig::VARIANT_NONE:
+   case xmrig::VARIANT_V0:
    case xmrig::VARIANT_V1:
        m_variant = static_cast<xmrig::Variant>(variant);
        break;
@@ -253,17 +273,20 @@ void Pool::setVariant(int variant)
 }
 
 
-bool Pool::isEqual(const Pool &other) const
+xmrig::Variant Pool::variant() const
 {
-    return (m_nicehash     == other.m_nicehash
-            && m_keepAlive == other.m_keepAlive
-            && m_port      == other.m_port
-            && m_algo      == other.m_algo
-            && m_host      == other.m_host
-            && m_password  == other.m_password
-            && m_url       == other.m_url
-            && m_user      == other.m_user
-            && m_variant   == other.m_variant);
+    switch (m_algorithm) {
+    case xmrig::CRYPTONIGHT_HEAVY:
+        return xmrig::VARIANT_V0;
+
+    case xmrig::CRYPTONIGHT_IPBC:
+        return xmrig::VARIANT_V1;
+
+    default:
+        break;
+    }
+
+    return m_variant;
 }
 
 

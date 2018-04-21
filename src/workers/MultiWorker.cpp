@@ -50,11 +50,11 @@ MultiWorker<N>::~MultiWorker()
 template<size_t N>
 bool MultiWorker<N>::selfTest()
 {
-    if (m_thread->fn(xmrig::VARIANT_NONE) == nullptr) {
+    if (m_thread->fn(xmrig::VARIANT_V0) == nullptr) {
         return false;
     }
 
-    m_thread->fn(xmrig::VARIANT_NONE)(test_input, 76, m_hash, m_ctx);
+    m_thread->fn(xmrig::VARIANT_V0)(test_input, 76, m_hash, m_ctx);
 
     if (m_thread->algorithm() == xmrig::CRYPTONIGHT && memcmp(m_hash, test_output_v0, sizeof m_hash) == 0) {
         m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_hash, m_ctx);

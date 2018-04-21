@@ -62,22 +62,23 @@ public:
     inline const char *user() const               { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
     inline int keepAlive() const                  { return m_keepAlive; }
     inline uint16_t port() const                  { return m_port; }
+    inline void setAlgo(const char *algo)         { m_algorithm = algorithm(algo); }
+    inline void setAlgo(xmrig::Algo algorithm)    { m_algorithm = algorithm; }
     inline void setKeepAlive(int keepAlive)       { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
     inline void setNicehash(bool nicehash)        { m_nicehash = nicehash; }
     inline void setPassword(const char *password) { m_password = password; }
     inline void setUser(const char *user)         { m_user = user; }
-    inline xmrig::Algo algo() const               { return m_algo; }
-    inline xmrig::Variant variant() const         { return m_variant; }
+    inline xmrig::Algo algorithm() const          { return m_algorithm; }
 
     inline bool operator!=(const Pool &other) const  { return !isEqual(other); }
     inline bool operator==(const Pool &other) const  { return isEqual(other); }
 
+    bool isEqual(const Pool &other) const;
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
-    void adjust(xmrig::Algo algo);
+    void adjust(xmrig::Algo algorithm);
     void setVariant(int variant);
-
-    bool isEqual(const Pool &other) const;
+    xmrig::Variant variant() const;
 
 private:
     bool parseIPv6(const char *addr);
@@ -85,7 +86,7 @@ private:
     bool m_nicehash;
     int m_keepAlive;
     uint16_t m_port;
-    xmrig::Algo m_algo;
+    xmrig::Algo m_algorithm;
     xmrig::c_str m_host;
     xmrig::c_str m_password;
     xmrig::c_str m_url;
