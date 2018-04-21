@@ -51,10 +51,6 @@ bool Httpd::start()
     if (MHD_is_feature_supported(MHD_FEATURE_EPOLL)) {
         flags = MHD_USE_EPOLL_LINUX_ONLY | MHD_USE_EPOLL_INTERNALLY_LINUX_ONLY;
     }
-
-    if (MHD_is_feature_supported(MHD_FEATURE_IPv6)) {
-        flags |= MHD_USE_DUAL_STACK;
-    }
 #   endif
 
     m_daemon = MHD_start_daemon(flags, m_port, nullptr, nullptr, &Httpd::handler, this, MHD_OPTION_END);
