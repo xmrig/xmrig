@@ -205,28 +205,7 @@ bool Client::close()
 
     setState(ClosingState);
 
-    uv_stream_t *stream = reinterpret_cast<uv_stream_t*>(m_socket);
-
-    if (uv_is_readable(stream) == 1) {
-        uv_read_stop(stream);
-    }
-
-    if (uv_is_writable(stream) == 1) {
-        const int rc = uv_shutdown(new uv_shutdown_t, stream, [](uv_shutdown_t* req, int status) {
-            if (uv_is_closing(reinterpret_cast<uv_handle_t*>(req->handle)) == 0) {
-                uv_close(reinterpret_cast<uv_handle_t*>(req->handle), Client::onClose);
-            }
-
-            delete req;
-        });
-
-        assert(rc == 0);
-
-        if (rc != 0) {
-            onClose();
-        }
-    }
-    else {
+    if (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_socket)) == 0) {
         uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
     }
 
