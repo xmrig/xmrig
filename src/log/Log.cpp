@@ -47,6 +47,8 @@ void Log::message(Log::Level level, const char* fmt, ...)
         backend->message(level, fmt, copy);
         va_end(copy);
     }
+
+    va_end(args);
 }
 
 
