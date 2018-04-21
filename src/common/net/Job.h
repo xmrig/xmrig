@@ -58,6 +58,7 @@ public:
     inline uint32_t *nonce()                     { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const                 { return static_cast<uint32_t>(m_diff); }
     inline uint64_t target() const               { return m_target; }
+    inline void reset()                          { m_size = 0; m_diff = 0; }
     inline void setClientId(const xmrig::Id &id) { m_clientId = id; }
     inline void setPoolId(int poolId)            { m_poolId = poolId; }
     inline void setThreadId(int threadId)        { m_threadId = threadId; }

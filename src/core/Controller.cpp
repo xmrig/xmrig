@@ -38,7 +38,7 @@
 
 
 #ifdef HAVE_SYSLOG_H
-#   include "log/SysLog.h"
+#   include "common/log/SysLog.h"
 #endif
 
 

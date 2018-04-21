@@ -29,9 +29,9 @@
 
 
 #include "App.h"
+#include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "log/Log.h"
 
 
 void App::background()
