@@ -45,7 +45,7 @@
 #endif
 
 #define VARIANT1_1(p) \
-  if (variant > 1) \
+  if (VARIANT > 1) \
   { \
     const uint8_t tmp = reinterpret_cast<const uint8_t*>(p)[11]; \
     static const uint32_t table = 0x75312; \
