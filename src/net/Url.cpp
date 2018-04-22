@@ -225,7 +225,7 @@ void Url::setVariant(int variant)
    case xmrig::VARIANT_V2:
        m_variant = variant;
        break;
-
+           
    default:
        break;
    }
