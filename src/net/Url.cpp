@@ -180,6 +180,10 @@ void Url::adjust(int algo)
     if (strstr(m_host, ".nicehash.com")) {
         m_keepAlive = false;
         m_nicehash  = true;
+
+        if (strstr(m_host, "cryptonightv7.")) {
+            m_variant = xmrig::VARIANT_V1;
+        }
     }
 
     if (strstr(m_host, ".minergate.com")) {
