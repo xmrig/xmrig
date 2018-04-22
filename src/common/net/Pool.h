@@ -80,6 +80,10 @@ public:
     void setVariant(int variant);
     xmrig::Variant variant() const;
 
+#   ifdef APP_DEBUG
+    void print() const;
+#   endif
+
 private:
     bool parseIPv6(const char *addr);
 

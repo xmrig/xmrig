@@ -81,7 +81,12 @@ bool Httpd::start()
         return false;
     }
 
+#   if MHD_VERSION >= 0x00093900
     uv_timer_start(&m_timer, Httpd::onTimer, kIdleInterval, kIdleInterval);
+#   else
+    uv_timer_start(&m_timer, Httpd::onTimer, kActiveInterval, kActiveInterval);
+#   endif
+
     return true;
 }
 
@@ -107,6 +112,7 @@ void Httpd::run()
 {
     MHD_run(m_daemon);
 
+#   if MHD_VERSION >= 0x00093900
     const MHD_DaemonInfo *info = MHD_get_daemon_info(m_daemon, MHD_DAEMON_INFO_CURRENT_CONNECTIONS);
     if (m_idle && info->num_connections) {
         uv_timer_set_repeat(&m_timer, kActiveInterval);
@@ -116,6 +122,7 @@ void Httpd::run()
         uv_timer_set_repeat(&m_timer, kIdleInterval);
         m_idle = true;
     }
+#   endif
 }
 
 

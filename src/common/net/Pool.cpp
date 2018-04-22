@@ -31,6 +31,11 @@
 #include "common/net/Pool.h"
 
 
+#ifdef APP_DEBUG
+#   include "common/log/Log.h"
+#endif
+
+
 #ifdef _MSC_VER
 #   define strncasecmp _strnicmp
 #   define strcasecmp  _stricmp
@@ -288,6 +293,21 @@ xmrig::Variant Pool::variant() const
 
     return m_variant;
 }
+
+
+#ifdef APP_DEBUG
+void Pool::print() const
+{
+    LOG_NOTICE("url:       %s", m_url.data());
+    LOG_DEBUG ("host:      %s", m_host.data());
+    LOG_DEBUG ("port:      %d", static_cast<int>(m_port));
+    LOG_DEBUG ("user:      %s", m_user.data());
+    LOG_DEBUG ("pass:      %s", m_password.data());
+    LOG_DEBUG ("algo:      %s/%d", algoName(m_algorithm), static_cast<int>(variant()));
+    LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_nicehash));
+    LOG_DEBUG ("keepAlive: %d", m_keepAlive);
+}
+#endif
 
 
 bool Pool::parseIPv6(const char *addr)
