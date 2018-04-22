@@ -33,10 +33,11 @@ class IWorker
 public:
     virtual ~IWorker() {}
 
-    virtual bool start()               = 0;
+    virtual bool selfTest()            = 0;
     virtual size_t id() const          = 0;
     virtual uint64_t hashCount() const = 0;
     virtual uint64_t timestamp() const = 0;
+    virtual void start()               = 0;
 };
 
 

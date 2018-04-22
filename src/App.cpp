@@ -28,6 +28,7 @@
 
 #include "api/Api.h"
 #include "App.h"
+#include "common/Platform.h"
 #include "Console.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -38,14 +39,13 @@
 #include "log/Log.h"
 #include "Mem.h"
 #include "net/Network.h"
-#include "Platform.h"
 #include "Summary.h"
 #include "version.h"
 #include "workers/Workers.h"
 
 
 #ifndef XMRIG_NO_HTTPD
-#   include "api/Httpd.h"
+#   include "common/api/Httpd.h"
 #endif
 
 
@@ -76,8 +76,6 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
-    Mem::release();
-
     uv_tty_reset_mode();
 
     delete m_console;
@@ -101,11 +99,7 @@ int App::exec()
 
     background();
 
-    Mem::allocate(m_controller->config()->algorithm(),
-                  m_controller->config()->threadsCount(),
-                  m_controller->config()->isDoubleHash(),
-                  m_controller->config()->isHugePages()
-                  );
+    Mem::init(m_controller->config()->isHugePages());
 
     Summary::print(m_controller);
 

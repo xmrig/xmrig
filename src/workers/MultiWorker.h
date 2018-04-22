@@ -22,10 +22,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SINGLEWORKER_H__
-#define __SINGLEWORKER_H__
+#ifndef __MULTIWORKER_H__
+#define __MULTIWORKER_H__
 
 
+#include "Mem.h"
 #include "net/Job.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
@@ -34,23 +35,39 @@
 class Handle;
 
 
-class SingleWorker : public Worker
+template<size_t N>
+class MultiWorker : public Worker
 {
 public:
-    SingleWorker(Handle *handle);
+    MultiWorker(Handle *handle);
+    ~MultiWorker();
 
-    bool start() override;
+protected:
+    bool selfTest() override;
+    void start() override;
 
 private:
     bool resume(const Job &job);
-    bool selfTest();
     void consumeJob();
     void save(const Job &job);
 
-    Job m_job;
-    Job m_paused;
-    JobResult m_result;
+    inline uint32_t *nonce(size_t index)
+    {
+        return reinterpret_cast<uint32_t*>(m_state.blob + (index * m_state.job.size()) + 39);
+    }
+
+    struct State
+    {
+        alignas(16) uint8_t blob[96 * N];
+        Job job;
+    };
+
+
+    cryptonight_ctx *m_ctx[N];
+    State m_pausedState;
+    State m_state;
+    uint8_t m_hash[N * 32];
 };
 
 
-#endif /* __SINGLEWORKER_H__ */
+#endif /* __MULTIWORKER_H__ */

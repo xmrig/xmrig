@@ -27,75 +27,63 @@
 #include <sys/mman.h>
 
 
-#if defined(XMRIG_ARM) && !defined(__clang__)
-#   include "aligned_malloc.h"
-#else
-#   include <mm_malloc.h>
-#endif
-
-
+#include "common/utils/mm_malloc.h"
+#include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
 #include "log/Log.h"
 #include "Mem.h"
-#include "xmrig.h"
 
 
-bool Mem::allocate(xmrig::Algo algo, int threads, bool doubleHash, bool enabled)
+void Mem::init(bool enabled)
 {
-    m_algo       = algo;
-    m_threads    = threads;
-    m_doubleHash = doubleHash;
-
-    const int ratio = (doubleHash && algo != xmrig::CRYPTONIGHT_LITE) ? 2 : 1;
-    m_size          = MONERO_MEMORY * (threads * ratio + 1);
-
-    if (algo == xmrig::CRYPTONIGHT_HEAVY) {
-        m_size *= 2;
-    }
-
-    if (!enabled) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));
-        return true;
-    }
-
-    m_flags |= HugepagesAvailable;
-
-#   if defined(__APPLE__)
-    m_memory = static_cast<uint8_t*>(mmap(0, m_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0));
-#   elif defined(__FreeBSD__)
-    m_memory = static_cast<uint8_t*>(mmap(0, m_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0));
-#   else
-    m_memory = static_cast<uint8_t*>(mmap(0, m_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0));
-#   endif
-    if (m_memory == MAP_FAILED) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));
-        return true;
-    }
-
-    m_flags |= HugepagesEnabled;
-
-    if (madvise(m_memory, m_size, MADV_RANDOM | MADV_WILLNEED) != 0) {
-        LOG_ERR("madvise failed");
-    }
-
-    if (mlock(m_memory, m_size) == 0) {
-        m_flags |= Lock;
-    }
-
-    return true;
+    m_enabled = enabled;
 }
 
 
-void Mem::release()
+void Mem::allocate(MemInfo &info, bool enabled)
 {
-    if (m_flags & HugepagesEnabled) {
+    info.hugePages = 0;
+
+    if (!enabled) {
+        info.memory = static_cast<uint8_t*>(_mm_malloc(info.size, 4096));
+
+        return;
+    }
+
+#   if defined(__APPLE__)
+    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0));
+#   elif defined(__FreeBSD__)
+    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0));
+#   else
+    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0));
+#   endif
+
+    if (info.memory == MAP_FAILED) {
+        return allocate(info, false);;
+    }
+
+    info.hugePages = info.pages;
+
+    if (madvise(info.memory, info.size, MADV_RANDOM | MADV_WILLNEED) != 0) {
+        LOG_ERR("madvise failed");
+    }
+
+    if (mlock(info.memory, info.size) == 0) {
+        m_flags |= Lock;
+    }
+}
+
+
+void Mem::release(MemInfo &info)
+{
+    if (info.hugePages) {
         if (m_flags & Lock) {
-            munlock(m_memory, m_size);
+            munlock(info.memory, info.size);
         }
 
-        munmap(m_memory, m_size);
+        munmap(info.memory, info.size);
     }
     else {
-        _mm_free(m_memory);
+        _mm_free(info.memory);
     }
 }

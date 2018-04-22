@@ -25,8 +25,9 @@
 #include <assert.h>
 
 
+#include "common/config/ConfigLoader.h"
+#include "common/Platform.h"
 #include "core/Config.h"
-#include "core/ConfigLoader.h"
 #include "core/Controller.h"
 #include "Cpu.h"
 #include "interfaces/IControllerListener.h"
@@ -34,7 +35,6 @@
 #include "log/FileLog.h"
 #include "log/Log.h"
 #include "net/Network.h"
-#include "Platform.h"
 
 
 #ifdef HAVE_SYSLOG_H
@@ -73,7 +73,6 @@ xmrig::Controller::Controller()
 xmrig::Controller::~Controller()
 {
     ConfigLoader::release();
-    Platform::release();
 
     delete d_ptr;
 }

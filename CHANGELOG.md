@@ -1,3 +1,9 @@
+# v2.6.0-beta3
+- [#563](https://github.com/xmrig/xmrig/issues/563) **Added [advanced threads mode](https://github.com/xmrig/xmrig/issues/563), now possible configure each thread individually.**
+- [#255](https://github.com/xmrig/xmrig/issues/563) Low power mode extended to **triple**, **quard** and **penta** modes.
+- [#519](https://github.com/xmrig/xmrig/issues/519) Fixed high donation levels, improved donation start time randomization.
+- [#554](https://github.com/xmrig/xmrig/issues/554) Fixed regression with `print-time` option.
+
 # v2.6.0-beta2
 - Improved performance for `cryptonight v7` especially in double hash mode.
 - [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 disabled for internal HTTP API by default, was causing issues on some systems.

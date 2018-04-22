@@ -47,7 +47,6 @@ public:
     static void release();
 
     static void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
-    static void tick(const Hashrate *hashrate);
     static void tick(const NetworkState &results);
 
 private:

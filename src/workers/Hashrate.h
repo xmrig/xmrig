@@ -43,7 +43,7 @@ public:
         LargeInterval  = 900000
     };
 
-    Hashrate(int threads, xmrig::Controller *controller);
+    Hashrate(size_t threads, xmrig::Controller *controller);
     double calc(size_t ms) const;
     double calc(size_t threadId, size_t ms) const;
     void add(size_t threadId, uint64_t count, uint64_t timestamp);
@@ -52,7 +52,7 @@ public:
     void updateHighest();
 
     inline double highest() const { return m_highest; }
-    inline int threads() const    { return m_threads; }
+    inline size_t threads() const { return m_threads; }
 
 private:
     static void onReport(uv_timer_t *handle);
@@ -61,7 +61,7 @@ private:
     constexpr static size_t kBucketMask = kBucketSize - 1;
 
     double m_highest;
-    int m_threads;
+    size_t m_threads;
     uint32_t* m_top;
     uint64_t** m_counts;
     uint64_t** m_timestamps;

@@ -25,9 +25,9 @@
 #include <stdio.h>
 
 
+#include "common/config/ConfigLoader.h"
+#include "common/config/ConfigWatcher.h"
 #include "core/ConfigCreator.h"
-#include "core/ConfigLoader.h"
-#include "core/ConfigWatcher.h"
 #include "interfaces/IWatcherListener.h"
 #include "log/Log.h"
 

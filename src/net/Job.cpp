@@ -209,6 +209,17 @@ void Job::toHex(const unsigned char* in, unsigned int len, char* out)
 }
 
 
+#ifdef APP_DEBUG
+char *Job::toHex(const unsigned char* in, unsigned int len)
+{
+    char *out = new char[len * 2 + 1]();
+    toHex(in, len, out);
+
+    return out;
+}
+#endif
+
+
 bool Job::operator==(const Job &other) const
 {
     return m_id == other.m_id && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;

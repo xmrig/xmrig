@@ -29,14 +29,13 @@
 #include <uv.h>
 
 
-#include "core/CommonConfig.h"
+#include "common/config/CommonConfig.h"
 #include "donate.h"
 #include "log/Log.h"
 #include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
-#include "xmrig.h"
 
 
 xmrig::CommonConfig::CommonConfig() :
@@ -206,12 +205,12 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case SyslogKey:     /* --syslog */
     case KeepAliveKey:  /* --keepalive */
     case NicehashKey:   /* --nicehash */
+    case ApiIPv6Key:       /* --api-ipv6 */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
     case WatchKey:         /* --no-watch */
     case ApiRestrictedKey: /* --api-no-restricted */
-    case ApiIPv6Key:       /* --api-no-ipv6 */
         return parseBoolean(key, false);
 
     case DonateLevelKey: /* --donate-level */

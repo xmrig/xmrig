@@ -32,11 +32,13 @@
 
 #include "net/Job.h"
 #include "net/JobResult.h"
+#include "rapidjson/fwd.h"
 
 
 class Handle;
 class Hashrate;
 class IJobResultListener;
+class IWorker;
 
 
 namespace xmrig {
@@ -48,6 +50,8 @@ class Workers
 {
 public:
     static Job job();
+    static size_t hugePages();
+    static size_t threads();
     static void printHashrate(bool detail);
     static void setEnabled(bool enabled);
     static void setJob(const Job &job, bool donate);
@@ -58,20 +62,49 @@ public:
     static inline bool isEnabled()                               { return m_enabled; }
     static inline bool isOutdated(uint64_t sequence)             { return m_sequence.load(std::memory_order_relaxed) != sequence; }
     static inline bool isPaused()                                { return m_paused.load(std::memory_order_relaxed) == 1; }
+    static inline Hashrate *hashrate()                           { return m_hashrate; }
     static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
     static inline void pause()                                   { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
+
+#   ifndef XMRIG_NO_API
+    static void threadsSummary(rapidjson::Document &doc);
+#   endif
 
 private:
     static void onReady(void *arg);
     static void onResult(uv_async_t *handle);
     static void onTick(uv_timer_t *handle);
+    static void start(IWorker *worker);
+
+    class LaunchStatus
+    {
+    public:
+        inline LaunchStatus() :
+            colors(true),
+            hugePages(0),
+            pages(0),
+            started(0),
+            threads(0),
+            ways(0),
+            algo(xmrig::CRYPTONIGHT)
+        {}
+
+        bool colors;
+        size_t hugePages;
+        size_t pages;
+        size_t started;
+        size_t threads;
+        size_t ways;
+        xmrig::Algo algo;
+    };
 
     static bool m_active;
     static bool m_enabled;
     static Hashrate *m_hashrate;
     static IJobResultListener *m_listener;
     static Job m_job;
+    static LaunchStatus m_status;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
     static std::list<JobResult> m_queue;

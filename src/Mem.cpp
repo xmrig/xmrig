@@ -23,70 +23,49 @@
  */
 
 
-#include <memory.h>
-
-
+#include "common/utils/mm_malloc.h"
 #include "crypto/CryptoNight.h"
 #include "crypto/CryptoNight_constants.h"
 #include "Mem.h"
 
 
-bool Mem::m_doubleHash             = false;
-int Mem::m_algo                    = 0;
-int Mem::m_flags                   = 0;
-int Mem::m_threads                 = 0;
-size_t Mem::m_offset               = 0;
-size_t Mem::m_size                 = 0;
-alignas(16) uint8_t *Mem::m_memory = nullptr;
+bool Mem::m_enabled = true;
+int Mem::m_flags    = 0;
 
 
-cryptonight_ctx *Mem::create(int threadId)
+
+MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
 {
+    using namespace xmrig;
+
+    MemInfo info;
+    info.size = cn_select_memory(algorithm) * count;
+
 #   ifndef XMRIG_NO_AEON
-    if (m_algo == xmrig::CRYPTONIGHT_LITE) {
-        return createLite(threadId);
-    }
+    info.size += info.size % cn_select_memory<CRYPTONIGHT>();
 #   endif
 
-    const size_t size = m_algo == xmrig::CRYPTONIGHT_HEAVY ? xmrig::cn_select_memory<xmrig::CRYPTONIGHT_HEAVY>()
-                                                           : xmrig::cn_select_memory<xmrig::CRYPTONIGHT>();
+    info.pages = info.size / cn_select_memory<CRYPTONIGHT>();
 
-    cryptonight_ctx *ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[size - sizeof(cryptonight_ctx) * (threadId + 1)]);
+    allocate(info, m_enabled);
 
-    const int ratio = m_doubleHash ? 2 : 1;
-    ctx->memory = &m_memory[size * (threadId * ratio + 1)];
+    for (size_t i = 0; i < count; ++i) {
+        cryptonight_ctx *c = static_cast<cryptonight_ctx *>(_mm_malloc(sizeof(cryptonight_ctx), 4096));
+        c->memory          = info.memory + (i * cn_select_memory(algorithm));
 
-    return ctx;
-}
-
-
-
-void *Mem::calloc(size_t num, size_t size)
-{
-    void *mem = &m_memory[m_offset];
-    m_offset += (num * size);
-
-    memset(mem, 0, num * size);
-
-    return mem;
-}
-
-
-#ifndef XMRIG_NO_AEON
-cryptonight_ctx *Mem::createLite(int threadId) {
-    cryptonight_ctx *ctx;
-
-    if (!m_doubleHash) {
-        const size_t offset = MONERO_MEMORY * (threadId + 1);
-
-        ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset + AEON_MEMORY]);
-        ctx->memory = &m_memory[offset];
-        return ctx;
+        ctx[i] = c;
     }
 
-    ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MONERO_MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
-    ctx->memory = &m_memory[MONERO_MEMORY * (threadId + 1)];
-
-    return ctx;
+    return info;
 }
-#endif
+
+
+void Mem::release(cryptonight_ctx **ctx, size_t count, MemInfo &info)
+{
+    release(info);
+
+    for (size_t i = 0; i < count; ++i) {
+        _mm_free(ctx[i]);
+    }
+}
+

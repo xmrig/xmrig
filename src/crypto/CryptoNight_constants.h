@@ -29,7 +29,7 @@
 #include <stdint.h>
 
 
-#include "xmrig.h"
+#include "common/xmrig.h"
 
 
 namespace xmrig

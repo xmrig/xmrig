@@ -22,6 +22,7 @@
  */
 
 
+#include <assert.h>
 #include <chrono>
 #include <math.h>
 #include <memory.h>
@@ -45,7 +46,7 @@ inline const char *format(double h, char* buf, size_t size)
 }
 
 
-Hashrate::Hashrate(int threads, xmrig::Controller *controller) :
+Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     m_highest(0.0),
     m_threads(threads),
     m_controller(controller)
@@ -54,13 +55,10 @@ Hashrate::Hashrate(int threads, xmrig::Controller *controller) :
     m_timestamps = new uint64_t*[threads];
     m_top        = new uint32_t[threads];
 
-    for (int i = 0; i < threads; i++) {
-        m_counts[i] = new uint64_t[kBucketSize];
-        m_timestamps[i] = new uint64_t[kBucketSize];
-        m_top[i] = 0;
-
-        memset(m_counts[0], 0, sizeof(uint64_t) * kBucketSize);
-        memset(m_timestamps[0], 0, sizeof(uint64_t) * kBucketSize);
+    for (size_t i = 0; i < threads; i++) {
+        m_counts[i]     = new uint64_t[kBucketSize]();
+        m_timestamps[i] = new uint64_t[kBucketSize]();
+        m_top[i]        = 0;
     }
 
     const int printTime = controller->config()->printTime();
@@ -79,7 +77,7 @@ double Hashrate::calc(size_t ms) const
     double result = 0.0;
     double data;
 
-    for (int i = 0; i < m_threads; ++i) {
+    for (size_t i = 0; i < m_threads; ++i) {
         data = calc(i, ms);
         if (isnormal(data)) {
             result += data;
@@ -92,6 +90,8 @@ double Hashrate::calc(size_t ms) const
 
 double Hashrate::calc(size_t threadId, size_t ms) const
 {
+    assert(threadId < m_threads);
+
     using namespace std::chrono;
     const uint64_t now = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
 
@@ -151,10 +151,10 @@ void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 
 void Hashrate::print()
 {
-    char num1[8];
-    char num2[8];
-    char num3[8];
-    char num4[8];
+    char num1[8] = { 0 };
+    char num2[8] = { 0 };
+    char num3[8] = { 0 };
+    char num4[8] = { 0 };
 
     LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;37mspeed\x1B[0m 2.5s/60s/15m \x1B[01;36m%s \x1B[22;36m%s %s \x1B[01;36mH/s\x1B[0m max: \x1B[01;36m%s H/s" : "speed 2.5s/60s/15m %s %s %s H/s max: %s H/s",
              format(calc(ShortInterval),  num1, sizeof(num1)),

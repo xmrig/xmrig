@@ -85,6 +85,8 @@ Options:\n\
       --api-port=N         port for the miner API\n\
       --api-access-token=T access token for API\n\
       --api-worker-id=ID   custom worker-id for API\n\
+      --api-ipv6           enable IPv6 support for API\n\
+      --api-no-restricted  enable full remote access (only if API token set)\n\
   -h, --help               display this help and exit\n\
   -V, --version            output version information and exit\n\
 ";
@@ -98,7 +100,7 @@ static struct option const options[] = {
     { "api-access-token",  1, nullptr, xmrig::IConfig::ApiAccessTokenKey },
     { "api-port",          1, nullptr, xmrig::IConfig::ApiPort           },
     { "api-worker-id",     1, nullptr, xmrig::IConfig::ApiWorkerIdKey    },
-    { "api-no-ipv6",       0, nullptr, xmrig::IConfig::ApiIPv6Key        },
+    { "api-ipv6",          0, nullptr, xmrig::IConfig::ApiIPv6Key        },
     { "api-no-restricted", 0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
     { "av",                1, nullptr, xmrig::IConfig::AVKey             },
     { "background",        0, nullptr, xmrig::IConfig::BackgroundKey     },
@@ -150,6 +152,7 @@ static struct option const config_options[] = {
     { "syslog",        0, nullptr, xmrig::IConfig::SyslogKey      },
     { "threads",       1, nullptr, xmrig::IConfig::ThreadsKey     },
     { "user-agent",    1, nullptr, xmrig::IConfig::UserAgentKey   },
+    { "hw-aes",        0, nullptr, xmrig::IConfig::HardwareAESKey },
     { 0, 0, 0, 0 }
 };
 

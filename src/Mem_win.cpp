@@ -28,16 +28,13 @@
 #include <ntsecapi.h>
 #include <tchar.h>
 
-#ifdef __GNUC__
-#   include <mm_malloc.h>
-#else
-#   include <malloc.h>
-#endif
 
-#include "log/Log.h"
+#include "common/utils/mm_malloc.h"
+#include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_constants.h"
+#include "log/Log.h"
 #include "Mem.h"
-#include "xmrig.h"
 
 
 /*****************************************************************
@@ -145,46 +142,43 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-bool Mem::allocate(xmrig::Algo algo, int threads, bool doubleHash, bool enabled)
+void Mem::init(bool enabled)
 {
-    m_algo       = algo;
-    m_threads    = threads;
-    m_doubleHash = doubleHash;
+    m_enabled = enabled;
 
-    const int ratio = (doubleHash && algo != xmrig::CRYPTONIGHT_LITE) ? 2 : 1;
-    m_size          = MONERO_MEMORY * (threads * ratio + 1);
-
-    if (algo == xmrig::CRYPTONIGHT_HEAVY) {
-        m_size *= 2;
-    }
-
-    if (!enabled) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));
-        return true;
-    }
-
-    if (TrySetLockPagesPrivilege()) {
+    if (enabled && TrySetLockPagesPrivilege()) {
         m_flags |= HugepagesAvailable;
     }
-
-    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, m_size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
-    if (!m_memory) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(m_size, 16));
-    }
-    else {
-        m_flags |= HugepagesEnabled;
-    }
-
-    return true;
 }
 
 
-void Mem::release()
+void Mem::allocate(MemInfo &info, bool enabled)
 {
-    if (m_flags & HugepagesEnabled) {
-        VirtualFree(m_memory, 0, MEM_RELEASE);
+    info.hugePages = 0;
+
+    if (!enabled) {
+        info.memory = static_cast<uint8_t*>(_mm_malloc(info.size, 4096));
+
+        return;
+    }
+
+    info.memory = static_cast<uint8_t*>(VirtualAlloc(nullptr, info.size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
+    if (info.memory) {
+        info.hugePages = info.pages;
+
+        return;
+    }
+
+    allocate(info, false);
+}
+
+
+void Mem::release(MemInfo &info)
+{
+    if (info.hugePages) {
+        VirtualFree(info.memory, 0, MEM_RELEASE);
     }
     else {
-        _mm_free(m_memory);
+        _mm_free(info.memory);
     }
 }

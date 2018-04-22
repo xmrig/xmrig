@@ -1,0 +1,73 @@
+{
+    "id": "92f3104f9a2ee78c",
+    "worker_id": "Ubuntu-1604-xenial-64-minimal",
+    "version": "2.6.0-beta3",
+    "kind": "cpu",
+    "ua": "XMRig/2.6.0-beta3 (Linux x86_64) libuv/1.8.0 gcc/5.4.0",
+    "cpu": {
+        "brand": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+        "aes": true,
+        "x64": true,
+        "sockets": 1
+    },
+    "algo": "cryptonight",
+    "hugepages": true,
+    "donate_level": 5,
+    "hashrate": {
+        "total": [
+            296.24,
+            296.23,
+            295.97
+        ],
+        "highest": 296.5,
+        "threads": [
+            [
+                73.39,
+                73.39,
+                73.28
+            ],
+            [
+                74.72,
+                74.72,
+                74.71
+            ],
+            [
+                74.72,
+                74.72,
+                74.71
+            ],
+            [
+                73.39,
+                73.39,
+                73.27
+            ]
+        ]
+    },
+    "results": {
+        "diff_current": 9990,
+        "shares_good": 30,
+        "shares_total": 30,
+        "avg_time": 31,
+        "hashes_total": 311833,
+        "best": [
+            278199,
+            181923,
+            103717,
+            96632,
+            56154,
+            51580,
+            45667,
+            33159,
+            29581,
+            29514
+        ],
+        "error_log": []
+    },
+    "connection": {
+        "pool": "pool.monero.hashvault.pro:3333",
+        "uptime": 953,
+        "ping": 35,
+        "failures": 0,
+        "error_log": []
+    }
+}

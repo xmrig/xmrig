@@ -25,9 +25,9 @@
 #include <microhttpd.h>
 #include <string.h>
 
-#include "api/HttpBody.h"
-#include "api/HttpRequest.h"
-#include "api/HttpReply.h"
+#include "common/api/HttpBody.h"
+#include "common/api/HttpRequest.h"
+#include "common/api/HttpReply.h"
 
 
 #ifndef MHD_HTTP_PAYLOAD_TOO_LARGE

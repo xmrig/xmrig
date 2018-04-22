@@ -58,14 +58,15 @@ static void print_versions(xmrig::Config *config)
 
 
 static void print_memory(xmrig::Config *config) {
+#   ifdef _WIN32
     if (config->isColors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mHUGE PAGES:   %s, %s",
-                       Mem::isHugepagesAvailable() ? "\x1B[01;32mavailable" : "\x1B[01;31munavailable",
-                       Mem::isHugepagesEnabled() ? "\x1B[01;32menabled" : "\x1B[01;31mdisabled");
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mHUGE PAGES:   %s",
+                       Mem::isHugepagesAvailable() ? "\x1B[01;32mavailable" : "\x1B[01;31munavailable");
     }
     else {
-        Log::i()->text(" * HUGE PAGES:   %s, %s", Mem::isHugepagesAvailable() ? "available" : "unavailable", Mem::isHugepagesEnabled() ? "enabled" : "disabled");
+        Log::i()->text(" * HUGE PAGES:   %s", Mem::isHugepagesAvailable() ? "available" : "unavailable");
     }
+#   endif
 }
 
 
@@ -92,21 +93,30 @@ static void print_cpu(xmrig::Config *config)
 
 static void print_threads(xmrig::Config *config)
 {
-    char buf[32];
-    if (config->affinity() != -1L) {
-        snprintf(buf, 32, ", affinity=0x%" PRIX64, config->affinity());
+    if (config->threadsMode() != xmrig::Config::Advanced) {
+        char buf[32];
+        if (config->affinity() != -1L) {
+            snprintf(buf, 32, ", affinity=0x%" PRIX64, config->affinity());
+        }
+        else {
+            buf[0] = '\0';
+        }
+
+        Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%%s" : " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s",
+                       config->threadsCount(),
+                       config->algoName(),
+                       config->algoVariant(),
+                       config->isColors() && config->donateLevel() == 0 ? "\x1B[01;31m" : "",
+                       config->donateLevel(),
+                       buf);
     }
     else {
-        buf[0] = '\0';
+        Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, %sdonate=%d%%" : " * THREADS:      %d, %s, %sdonate=%d%%",
+                       config->threadsCount(),
+                       config->algoName(),
+                       config->isColors() && config->donateLevel() == 0 ? "\x1B[01;31m" : "",
+                       config->donateLevel());
     }
-
-    Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%%s" : " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s",
-                   config->threadsCount(),
-                   config->algoName(),
-                   config->algoVariant(),
-                   config->isColors() && config->donateLevel() == 0 ? "\x1B[01;31m" : "",
-                   config->donateLevel(),
-                   buf);
 }
 
 

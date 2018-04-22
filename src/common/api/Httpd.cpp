@@ -27,9 +27,9 @@
 
 
 #include "api/Api.h"
-#include "api/Httpd.h"
-#include "api/HttpReply.h"
-#include "api/HttpRequest.h"
+#include "common/api/Httpd.h"
+#include "common/api/HttpReply.h"
+#include "common/api/HttpRequest.h"
 #include "log/Log.h"
 
 

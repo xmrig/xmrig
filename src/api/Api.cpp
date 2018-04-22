@@ -26,8 +26,8 @@
 
 #include "api/Api.h"
 #include "api/ApiRouter.h"
-#include "api/HttpReply.h"
-#include "api/HttpRequest.h"
+#include "common/api/HttpReply.h"
+#include "common/api/HttpRequest.h"
 
 
 ApiRouter *Api::m_router = nullptr;
@@ -59,16 +59,6 @@ void Api::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
     }
 
     m_router->exec(req, reply);
-}
-
-
-void Api::tick(const Hashrate *hashrate)
-{
-    if (!m_router) {
-        return;
-    }
-
-    m_router->tick(hashrate);
 }
 
 
