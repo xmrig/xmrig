@@ -24,6 +24,11 @@
  - Added `--api-no-ipv6` and similar config option to disable IPv6 support for HTTP API.
  - Added `--api-no-restricted` to enable full access to api, this option has no effect if `--api-access-token` not specified.
 
+# v2.5.3
+- Fixed critical bug, in some cases miner was can't recovery connection and switch to failover pool, version 2.5.2 affected. If you use v2.6.0-beta3 this issue doesn't concern you.
+- [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 support disabled for internal HTTP API.
+- Added workaround for nicehash.com if you use `cryptonightv7.<region>.nicehash.com` option `variant=1` will be set automatically.
+
 # v2.5.2
 - [#448](https://github.com/xmrig/xmrig/issues/478) Fixed broken reconnect.
 
