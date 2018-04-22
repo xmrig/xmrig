@@ -38,7 +38,8 @@ enum Algo {
 enum Variant {
     VARIANT_AUTO = -1,
     VARIANT_NONE = 0,
-    VARIANT_V1   = 1
+    VARIANT_V1   = 1,
+    VARIANT_V2   = 1
 };
 
 } /* xmrig */
