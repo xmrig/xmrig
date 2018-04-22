@@ -176,7 +176,9 @@ void Job::setVariant(int variant)
     case xmrig::VARIANT_V1:
         m_variant = variant;
         break;
-
+    case xmrig::VARIANT_V2:
+        m_variant = variant;
+        break;
     default:
         break;
     }
