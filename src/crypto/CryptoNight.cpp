@@ -47,6 +47,9 @@ void (*cryptonight_hash_ctx)(const uint8_t *input, size_t size, uint8_t *output,
     case xmrig::VARIANT_V1: \
         return cryptonight_##NAME##_hash<ITERATIONS, MEM, MASK, SOFT_AES, xmrig::VARIANT_V1>(input, size, output, ctx); \
     \
+    case xmrig::VARIANT_V2: \
+        return cryptonight_##NAME##_hash<ITERATIONS, MEM, MASK, SOFT_AES, xmrig::VARIANT_V2>(input, size, output, ctx); \
+    \
     case xmrig::VARIANT_NONE: \
         return cryptonight_##NAME##_hash<ITERATIONS, MEM, MASK, SOFT_AES, xmrig::VARIANT_NONE>(input, size, output, ctx); \
     \
@@ -61,6 +64,11 @@ static void cryptonight_av1_aesni(const uint8_t *input, size_t size, uint8_t *ou
 #   endif
 }
 
+static void cryptonight_av2_aesni(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx *ctx, int variant) {
+#   if !defined(XMRIG_ARMv7)
+    CRYPTONIGHT_HASH(single, MONERO_ITER, MONERO_MEMORY, MONERO_MASK, false)
+#   endif
+}
 
 static void cryptonight_av2_aesni_double(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx, int variant) {
 #   if !defined(XMRIG_ARMv7)
@@ -103,8 +111,9 @@ static void cryptonight_lite_av4_softaes_double(const uint8_t *input, size_t siz
     CRYPTONIGHT_HASH(double, AEON_ITER, AEON_MEMORY, AEON_MASK, true)
 }
 
-void (*cryptonight_variations[8])(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx, int variant) = {
+void (*cryptonight_variations[9])(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx, int variant) = {
             cryptonight_av1_aesni,
+            cryptonight_av2_aesni,
             cryptonight_av2_aesni_double,
             cryptonight_av3_softaes,
             cryptonight_av4_softaes_double,
@@ -114,8 +123,9 @@ void (*cryptonight_variations[8])(const uint8_t *input, size_t size, uint8_t *ou
             cryptonight_lite_av4_softaes_double
         };
 #else
-void (*cryptonight_variations[4])(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx, int variant) = {
+void (*cryptonight_variations[5])(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx, int variant) = {
             cryptonight_av1_aesni,
+            cryptonight_av2_aesni,
             cryptonight_av2_aesni_double,
             cryptonight_av3_softaes,
             cryptonight_av4_softaes_double
@@ -145,7 +155,7 @@ bool CryptoNight::init(int algo, int variant)
 
     cryptonight_hash_ctx = cryptonight_variations[index];
 
-    return selfTest(algo);
+    return true;
 }
 
 
