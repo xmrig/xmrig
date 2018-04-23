@@ -1,0 +1,34 @@
+# build only tags
+skip_non_tags: true
+
+# image
+image: Visual Studio 2017
+
+# build platform
+platform: x64
+configuration: Release
+
+# clone directory
+clone_folder: c:\xmrig
+
+install:
+  - mkdir c:\xmrig-deps-3.0
+  - curl -sL https://github.com/xmrig/xmrig-deps/archive/v3.0.zip -o xmrig-deps-3.0.zip
+  - 7z x xmrig-deps-3.0.zip -o"c:\" -y > nul
+
+build_script:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsMSBuildCmd.bat"
+  - cd c:\xmrig
+  - mkdir build
+  - cd build
+  - set CMAKE_PREFIX_PATH=c:\xmrig-deps-3.0\msvc2017\x64\
+  - cmake .. -G "Visual Studio 15 2017 Win64" -DXMRIG_DEPS=c:\xmrig-deps-3.0\msvc2017\x64
+  - msbuild xmrig.sln /p:Configuration=Release
+
+test_script:
+  - cd c:\xmrig
+  - 7z a c:\xmrig\xmrig.zip "c:\xmrig\build\Release\*.exe" "c:\xmrig\src\config.json"
+
+artifacts:
+  - path: xmrig.zip
+  
