@@ -177,6 +177,7 @@ bool Pool::isEqual(const Pool &other) const
             && m_algorithm == other.m_algorithm
             && m_host      == other.m_host
             && m_password  == other.m_password
+            && m_rigId     == other.m_rigId
             && m_url       == other.m_url
             && m_user      == other.m_user
             && m_variant   == other.m_variant);
@@ -254,9 +255,14 @@ void Pool::adjust(xmrig::Algo algorithm)
     if (strstr(m_host.data(), ".nicehash.com")) {
         m_keepAlive = false;
         m_nicehash  = true;
+
+        if (strstr(m_host.data(), "cryptonightv7.")) {
+            m_variant = xmrig::VARIANT_V1;
+        }
     }
 
     if (strstr(m_host.data(), ".minergate.com")) {
+        m_variant   = xmrig::VARIANT_V1;
         m_keepAlive = false;
     }
 }
@@ -303,6 +309,7 @@ void Pool::print() const
     LOG_DEBUG ("port:      %d", static_cast<int>(m_port));
     LOG_DEBUG ("user:      %s", m_user.data());
     LOG_DEBUG ("pass:      %s", m_password.data());
+    LOG_DEBUG ("rig_id     %s", m_rigId.data());
     LOG_DEBUG ("algo:      %s/%d", algoName(m_algorithm), static_cast<int>(variant()));
     LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_nicehash));
     LOG_DEBUG ("keepAlive: %d", m_keepAlive);

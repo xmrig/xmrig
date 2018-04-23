@@ -133,7 +133,7 @@ void Workers::start(xmrig::Controller *controller)
 {
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
     m_status.algo    = controller->config()->algorithm();
-    m_status.colors  = controller->config()->isHugePages();
+    m_status.colors  = controller->config()->isColors();
     m_status.threads = threads.size();
 
     for (const xmrig::IThread *thread : threads) {
@@ -301,9 +301,9 @@ void Workers::start(IWorker *worker)
         const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1048576;
 
         if (m_status.colors) {
-            LOG_INFO("\x1B[01;32mREADY (CPU)\x1B[0m threads \x1B[01;36m%zu(%zu)\x1B[0m huge pages %s%zu/%zu %1.0f%%\x1B[0m memory \x1B[01;36m%zu.0 MB",
+            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\e[0m memory " CYAN_BOLD("%zu.0 MB") "",
                      m_status.threads, m_status.ways,
-                     (m_status.hugePages == m_status.pages ? "\x1B[01;32m" : (m_status.hugePages == 0 ? "\x1B[01;31m" : "\x1B[01;33m")),
+                     (m_status.hugePages == m_status.pages ? "\e[1;32m" : (m_status.hugePages == 0 ? "\e[1;31m" : "\e[1;33m")),
                      m_status.hugePages, m_status.pages, percent, memory);
         }
         else {

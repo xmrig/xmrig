@@ -177,6 +177,10 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_pools.back().setPassword(arg);
         break;
 
+    case RigIdKey: /* --rig-id */
+        m_pools.back().setRigId(arg);
+        break;
+
     case LogFileKey: /* --log-file */
         m_logFile = arg;
         break;

@@ -397,6 +397,10 @@ void Client::login()
     params.AddMember("pass",  rapidjson::StringRef(m_pool.password()), allocator);
     params.AddMember("agent", rapidjson::StringRef(m_agent),           allocator);
 
+    if (m_pool.rigId()) {
+        params.AddMember("rigid", rapidjson::StringRef(m_pool.rigId()), allocator);
+    }
+
     doc.AddMember("params", params, allocator);
 
     rapidjson::StringBuffer buffer(0, 512);

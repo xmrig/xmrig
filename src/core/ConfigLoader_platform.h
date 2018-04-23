@@ -58,6 +58,7 @@ Options:\n\
   -O, --userpass=U:P       username:password pair for mining server\n\
   -u, --user=USERNAME      username for mining server\n\
   -p, --pass=PASSWORD      password for mining server\n\
+      --rig-id=ID          rig identifier for pool-side statistics (needs pool support)\n\
   -t, --threads=N          number of miner threads\n\
   -v, --av=N               algorithm variation, 0 auto select\n\
   -k, --keepalive          send keepalived for prevent timeout (need pool support)\n\
@@ -128,6 +129,7 @@ static struct option const options[] = {
     { "user",              1, nullptr, xmrig::IConfig::UserKey           },
     { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey      },
     { "userpass",          1, nullptr, xmrig::IConfig::UserpassKey       },
+    { "rig-id",            1, nullptr, xmrig::IConfig::RigIdKey          },
     { "version",           0, nullptr, xmrig::IConfig::VersionKey        },
     { 0, 0, 0, 0 }
 };
@@ -165,6 +167,7 @@ static struct option const pool_options[] = {
     { "nicehash",      0, nullptr, xmrig::IConfig::NicehashKey   },
     { "keepalive",     2, nullptr, xmrig::IConfig::KeepAliveKey  },
     { "variant",       1, nullptr, xmrig::IConfig::VariantKey    },
+    { "rig-id",        1, nullptr, xmrig::IConfig::RigIdKey      },
     { 0, 0, 0, 0 }
 };
 

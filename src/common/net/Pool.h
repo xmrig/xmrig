@@ -58,6 +58,7 @@ public:
     inline bool isValid() const                   { return !m_host.isNull() && m_port > 0; }
     inline const char *host() const               { return m_host.data(); }
     inline const char *password() const           { return !m_password.isNull() ? m_password.data() : kDefaultPassword; }
+    inline const char *rigId() const              { return m_rigId.data(); }
     inline const char *url() const                { return m_url.data(); }
     inline const char *user() const               { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
     inline int keepAlive() const                  { return m_keepAlive; }
@@ -67,6 +68,7 @@ public:
     inline void setKeepAlive(int keepAlive)       { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
     inline void setNicehash(bool nicehash)        { m_nicehash = nicehash; }
     inline void setPassword(const char *password) { m_password = password; }
+    inline void setRigId(const char *rigId)       { m_rigId = rigId; }
     inline void setUser(const char *user)         { m_user = user; }
     inline xmrig::Algo algorithm() const          { return m_algorithm; }
 
@@ -93,6 +95,7 @@ private:
     xmrig::Algo m_algorithm;
     xmrig::c_str m_host;
     xmrig::c_str m_password;
+    xmrig::c_str m_rigId;
     xmrig::c_str m_url;
     xmrig::c_str m_user;
     xmrig::Variant m_variant;

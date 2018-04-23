@@ -108,6 +108,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
         obj.AddMember("url",     StringRef(pool.url()), allocator);
         obj.AddMember("user",    StringRef(pool.user()), allocator);
         obj.AddMember("pass",    StringRef(pool.password()), allocator);
+        obj.AddMember("rig-id",  pool.rigId() ? Value(StringRef(pool.rigId())).Move() : Value(kNullType).Move(), allocator);
 
         if (pool.keepAlive() == 0 || pool.keepAlive() == Pool::kKeepAliveTimeout) {
             obj.AddMember("keepalive", pool.keepAlive() > 0, allocator);
