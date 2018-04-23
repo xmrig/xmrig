@@ -27,8 +27,7 @@ build_script:
 
 test_script:
   - cd c:\xmrig
-  - 7z a c:\xmrig\xmrig.zip "c:\xmrig\build\Release\*.exe" "c:\xmrig\src\config.json"
+  - 7z a c:\xmrig\xmrig-msvc-win64.zip "c:\xmrig\build\Release\*.exe" "c:\xmrig\src\config.json"
 
 artifacts:
-  - path: xmrig.zip
-  
+  - path: xmrig-msvc-win64.zip
