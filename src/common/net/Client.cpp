@@ -249,6 +249,10 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
+    if (params.HasMember("algo")) {
+        job.algorithm().parseAlgorithm(params["algo"].GetString());
+    }
+
     if (params.HasMember("variant")) {
         job.algorithm().parseVariant(params["variant"].GetInt());
     }
