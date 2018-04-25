@@ -64,7 +64,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
 {
     assert(variant == VARIANT_NONE || variant == VARIANT_V1);
 
-    static const cn_hash_fun func_table[50] = {
+    static const cn_hash_fun func_table[80] = {
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_NONE>,
         cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_NONE>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_NONE>,
@@ -125,9 +125,28 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         cryptonight_triple_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_NONE>,
         cryptonight_quad_hash<CRYPTONIGHT_HEAVY,   true,  VARIANT_NONE>,
         cryptonight_penta_hash<CRYPTONIGHT_HEAVY,  true,  VARIANT_NONE>,
-#       else
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+#       else
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 #       endif
+
+#		ifndef XMRIG_NO_IPBC
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		cryptonight_single_hash<CRYPTONIGHT_IPBC, false, VARIANT_V1>,
+		cryptonight_double_hash<CRYPTONIGHT_IPBC, false, VARIANT_V1>,
+		cryptonight_single_hash<CRYPTONIGHT_IPBC, true,  VARIANT_V1>,
+		cryptonight_double_hash<CRYPTONIGHT_IPBC, true,  VARIANT_V1>,
+		cryptonight_triple_hash<CRYPTONIGHT_IPBC, false, VARIANT_V1>,
+		cryptonight_quad_hash<CRYPTONIGHT_IPBC,   false, VARIANT_V1>,
+		cryptonight_penta_hash<CRYPTONIGHT_IPBC,  false, VARIANT_V1>,
+		cryptonight_triple_hash<CRYPTONIGHT_IPBC, true,  VARIANT_V1>,
+		cryptonight_quad_hash<CRYPTONIGHT_IPBC,   true,  VARIANT_V1>,
+		cryptonight_penta_hash<CRYPTONIGHT_IPBC,  true,  VARIANT_V1>,
+#		else
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+#		endif
     };
 
 #   ifndef XMRIG_NO_SUMO
@@ -135,6 +154,11 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         variant = VARIANT_NONE;
     }
 #   endif
+#	ifndef XMRIG_NO_IPBC
+	if (algorithm == CRYPTONIGHT_IPBC) {
+		variant = VARIANT_V1;
+	}
+#	endif
 
     return func_table[20 * algorithm + 10 * variant + av - 1];
 }

@@ -461,6 +461,9 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
         ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
         VARIANT1_2(ah0, 0);
+		if (ALGO == xmrig::CRYPTONIGHT_IPBC) {
+			((uint64_t*)&l0[idx0 & MASK])[1] ^= ((uint64_t*)&l0[idx0 & MASK])[0];
+		}
 
         ah0 ^= ch;
         al0 ^= cl;
@@ -560,6 +563,9 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
         ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
         VARIANT1_2(ah0, 0);
+		if (ALGO == xmrig::CRYPTONIGHT_IPBC) {
+			((uint64_t*)&l0[idx0 & MASK])[1] ^= ((uint64_t*)&l0[idx0 & MASK])[0];
+		}
 
         ah0 ^= ch;
         al0 ^= cl;
@@ -585,6 +591,9 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
         ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
         VARIANT1_2(ah1, 1);
+		if (ALGO == xmrig::CRYPTONIGHT_IPBC) {
+			((uint64_t*)&l1[idx1 & MASK])[1] ^= ((uint64_t*)&l1[idx1 & MASK])[0];
+		}
 
         ah1 ^= ch;
         al1 ^= cl;
@@ -647,6 +656,10 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     } else {                                            \
         _mm_store_si128(ptr, a);                        \
     }                                                   \
+                                                        \
+	if (ALGO == xmrig::CRYPTONIGHT_IPBC) {              \
+		((uint64_t*)&l[idx & MASK])[1] ^= ((uint64_t*)&l[idx & MASK])[0]; \
+	}                                                   \
                                                         \
     a = _mm_xor_si128(a, b);                            \
     idx = EXTRACT64(a);                                 \
