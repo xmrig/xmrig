@@ -4,6 +4,7 @@ project(xmrig)
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_SUMO     "CryptoNight-Heavy support" ON)
+option(WITH_IPBC     "CryptoNight-IPBC support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
 
@@ -203,6 +204,10 @@ endif()
 
 if (NOT WITH_SUMO)
     add_definitions(/DXMRIG_NO_SUMO)
+endif()
+
+if (NOT WITH_IPBC)
+    add_definitions(/DXMRIG_NO_IPBC)
 endif()
 
 if (WITH_HTTPD)

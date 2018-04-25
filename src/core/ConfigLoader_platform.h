@@ -53,6 +53,10 @@ Options:\n\
 "\
                              cryptonight-heavy\n"
 #endif
+#ifndef XMRIG_NO_IPBC
+"\
+                             cryptonight-ipbc\n"
+#endif
 "\
   -o, --url=URL            URL of mining server\n\
   -O, --userpass=U:P       username:password pair for mining server\n\
