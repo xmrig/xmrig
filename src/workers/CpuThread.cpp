@@ -164,7 +164,18 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
     }
 #   endif
 
-    return func_table[40 * algorithm + 10 * variant + av - 1];
+    const size_t index = 40 * algorithm + 10 * variant + av - 1;
+
+#   ifndef NDEBUG
+    cn_hash_fun func = func_table[index];
+
+    assert(index < sizeof(func_table) / sizeof(func_table[0]));
+    assert(func != nullptr);
+
+    return func;
+#   else
+    return func_table[index];
+#   endif
 }
 
 

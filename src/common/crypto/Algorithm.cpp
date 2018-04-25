@@ -79,6 +79,22 @@ static const char *variants[] = {
 };
 
 
+bool xmrig::Algorithm::isValid() const
+{
+    if (m_algo == INVALID_ALGO) {
+        return false;
+    }
+
+    for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
+        if (algorithms[i].algo == m_algo && algorithms[i].variant == m_variant) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 const char *xmrig::Algorithm::variantName() const
 {
     if (m_variant == VARIANT_AUTO) {

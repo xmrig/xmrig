@@ -48,7 +48,6 @@ public:
 
     bool isEqual(const Algorithm &other) const { return m_algo == other.m_algo && m_variant == other.m_variant; }
     inline Algo algo() const                   { return m_algo; }
-    inline bool isValid() const                { return m_algo != INVALID_ALGO; }
     inline const char *name() const            { return name(false); }
     inline const char *shortName() const       { return name(true); }
     inline Variant variant() const             { return m_variant; }
@@ -57,6 +56,7 @@ public:
     inline bool operator!=(const Algorithm &other) const  { return !isEqual(other); }
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
 
+    bool isValid() const;
     const char *variantName() const;
     void parseAlgorithm(const char *algo);
     void parseVariant(const char *variant);
