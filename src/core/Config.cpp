@@ -141,9 +141,13 @@ xmrig::Config *xmrig::Config::load(int argc, char **argv, IWatcherListener *list
 }
 
 
-bool xmrig::Config::adjust()
+bool xmrig::Config::finalize()
 {
-    if (!CommonConfig::adjust()) {
+    if (m_state != NoneState) {
+        return CommonConfig::finalize();
+    }
+
+    if (!CommonConfig::finalize()) {
         return false;
     }
 

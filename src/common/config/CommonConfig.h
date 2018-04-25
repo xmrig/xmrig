@@ -53,7 +53,7 @@ public:
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
     inline const char *logFile() const             { return m_logFile.data(); }
     inline const char *userAgent() const           { return m_userAgent.data(); }
-    inline const std::vector<Pool> &pools() const  { return m_pools; }
+    inline const std::vector<Pool> &pools() const  { return m_activePools; }
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
@@ -65,8 +65,13 @@ public:
     inline const char *fileName() const override   { return m_fileName.data(); }
 
 protected:
-    bool adjust() override;
-    bool isValid() const override;
+    enum State {
+        NoneState,
+        ReadyState,
+        ErrorState
+    };
+
+    bool finalize() override;
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
@@ -86,6 +91,8 @@ protected:
     int m_printTime;
     int m_retries;
     int m_retryPause;
+    State m_state;
+    std::vector<Pool> m_activePools;
     std::vector<Pool> m_pools;
     xmrig::c_str m_apiToken;
     xmrig::c_str m_apiWorkerId;

@@ -55,7 +55,8 @@ xmrig::CommonConfig::CommonConfig() :
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
     m_retries(5),
-    m_retryPause(5)
+    m_retryPause(5),
+    m_state(NoneState)
 {
     m_pools.push_back(Pool());
 
@@ -71,13 +72,15 @@ xmrig::CommonConfig::~CommonConfig()
 }
 
 
-bool xmrig::CommonConfig::adjust()
+bool xmrig::CommonConfig::finalize()
 {
-    if (m_adjusted) {
-        return false;
+    if (m_state == ReadyState) {
+        return true;
     }
 
-    m_adjusted = true;
+    if (m_state == ErrorState) {
+        return false;
+    }
 
     if (!m_algorithm.isValid()) {
         m_algorithm.setAlgo(CRYPTONIGHT);
@@ -85,15 +88,21 @@ bool xmrig::CommonConfig::adjust()
 
     for (Pool &pool : m_pools) {
         pool.adjust(m_algorithm.algo());
+
+        if (pool.isValid() && pool.algorithm().isValid()) {
+            m_activePools.push_back(std::move(pool));
+        }
     }
 
+    m_pools.clear();
+
+    if (m_activePools.empty()) {
+        m_state = ErrorState;
+        return false;
+    }
+
+    m_state = ReadyState;
     return true;
-}
-
-
-bool xmrig::CommonConfig::isValid() const
-{
-    return m_pools[0].isValid() && m_algorithm.isValid();
 }
 
 

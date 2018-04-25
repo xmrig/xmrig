@@ -91,8 +91,7 @@ public:
 
     virtual ~IConfig() {}
 
-    virtual bool adjust()                                  = 0;
-    virtual bool isValid() const                           = 0;
+    virtual bool finalize()                                = 0;
     virtual bool isWatch() const                           = 0;
     virtual bool parseBoolean(int key, bool enable)        = 0;
     virtual bool parseString(int key, const char *arg)     = 0;

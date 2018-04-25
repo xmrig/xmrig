@@ -83,7 +83,7 @@ void xmrig::ConfigWatcher::reload()
     IConfig *config = m_creator->create();
     ConfigLoader::loadFromFile(config, m_path.data());
 
-    if (!config->isValid()) {
+    if (!config->finalize()) {
         LOG_ERR("reloading failed");
 
         delete config;
