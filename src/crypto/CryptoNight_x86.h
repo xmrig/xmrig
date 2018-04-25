@@ -457,13 +457,22 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         al0 += hi;
         ah0 += lo;
 
-        VARIANT1_2(ah0, 0);
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
-        ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
-        VARIANT1_2(ah0, 0);
 
-        ah0 ^= ch;
+        if (VARIANT > 0) {
+            if (VARIANT == xmrig::VARIANT_IBPC) {
+                ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0 ^ al0;
+            }
+            else {
+                ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0;
+            }
+        }
+        else {
+            ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
+        }
+
         al0 ^= cl;
+        ah0 ^= ch;
         idx0 = al0;
 
         if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
@@ -556,13 +565,22 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         al0 += hi;
         ah0 += lo;
 
-        VARIANT1_2(ah0, 0);
-        ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
-        ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
-        VARIANT1_2(ah0, 0);
+        ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
 
-        ah0 ^= ch;
+        if (VARIANT > 0) {
+            if (VARIANT == xmrig::VARIANT_IBPC) {
+                ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0 ^ al0;
+            }
+            else {
+                ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0;
+            }
+        }
+        else {
+            ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
+        }
+
         al0 ^= cl;
+        ah0 ^= ch;
         idx0 = al0;
 
         if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
@@ -581,13 +599,22 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         al1 += hi;
         ah1 += lo;
 
-        VARIANT1_2(ah1, 1);
-        ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
-        ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
-        VARIANT1_2(ah1, 1);
+        ((uint64_t*)&l1[idx1 & MASK])[0] = al1;
 
-        ah1 ^= ch;
+        if (VARIANT > 0) {
+            if (VARIANT == xmrig::VARIANT_IBPC) {
+                ((uint64_t*)&l1[idx1 & MASK])[1] = ah1 ^ tweak1_2_1 ^ al1;
+            }
+            else {
+                ((uint64_t*)&l1[idx1 & MASK])[1] = ah1 ^ tweak1_2_1;
+            }
+        }
+        else {
+            ((uint64_t*)&l1[idx1 & MASK])[1] = ah1;
+        }
+
         al1 ^= cl;
+        ah1 ^= ch;
         idx1 = al1;
 
         if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {
@@ -644,6 +671,10 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
                                                         \
     if (VARIANT > 0) {                                  \
         _mm_store_si128(ptr, _mm_xor_si128(a, mc));     \
+                                                        \
+        if (VARIANT == xmrig::VARIANT_IBPC) {           \
+            ((uint64_t*)ptr)[1] ^= ((uint64_t*)ptr)[0]; \
+        }                                               \
     } else {                                            \
         _mm_store_si128(ptr, a);                        \
     }                                                   \

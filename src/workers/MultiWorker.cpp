@@ -65,8 +65,12 @@ bool MultiWorker<N>::selfTest()
 #   ifndef XMRIG_NO_AEON
     if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE && memcmp(m_hash, test_output_v0_lite, sizeof m_hash) == 0) {
         m_thread->fn(xmrig::VARIANT_1)(test_input, 76, m_hash, m_ctx);
+        if (memcmp(m_hash, test_output_v1_lite, sizeof m_hash) != 0) {
+            return false;
+        }
 
-        return memcmp(m_hash, test_output_v1_lite, sizeof m_hash) == 0;
+        m_thread->fn(xmrig::VARIANT_IBPC)(test_input, 76, m_hash, m_ctx);
+        return memcmp(m_hash, test_output_ipbc_lite, sizeof m_hash) == 0;
     }
 #   endif
 

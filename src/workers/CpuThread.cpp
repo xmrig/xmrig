@@ -62,9 +62,9 @@ bool xmrig::CpuThread::isSoftAES(AlgoVariant av)
 
 xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant av, Variant variant)
 {
-    assert(variant == VARIANT_0 || variant == VARIANT_1);
+    assert(variant == VARIANT_0 || variant == VARIANT_1 || variant == VARIANT_IBPC || variant == VARIANT_XTL);
 
-    static const cn_hash_fun func_table[50] = {
+    static const cn_hash_fun func_table[90] = {
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_0>,
         cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_0>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_0>,
@@ -86,6 +86,19 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         cryptonight_triple_hash<CRYPTONIGHT, true,  VARIANT_1>,
         cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_1>,
         cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_1>,
+
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_XTL>,
+        cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_XTL>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_XTL>,
+        cryptonight_double_hash<CRYPTONIGHT, true,  VARIANT_XTL>,
+        cryptonight_triple_hash<CRYPTONIGHT, false, VARIANT_XTL>,
+        cryptonight_quad_hash<CRYPTONIGHT,   false, VARIANT_XTL>,
+        cryptonight_penta_hash<CRYPTONIGHT,  false, VARIANT_XTL>,
+        cryptonight_triple_hash<CRYPTONIGHT, true,  VARIANT_XTL>,
+        cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_XTL>,
+        cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_XTL>,
 
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
@@ -109,7 +122,22 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_1>,
         cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_1>,
         cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_1>,
+
+        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_IBPC>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_IBPC>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_IBPC>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_IBPC>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_IBPC>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_IBPC>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_IBPC>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_IBPC>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_IBPC>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_IBPC>,
+
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 #       else
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 #       endif
@@ -136,7 +164,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
     }
 #   endif
 
-    return func_table[20 * algorithm + 10 * variant + av - 1];
+    return func_table[40 * algorithm + 10 * variant + av - 1];
 }
 
 
