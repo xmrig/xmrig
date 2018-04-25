@@ -71,7 +71,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     auto &allocator = doc.GetAllocator();
 
-    doc.AddMember("algo", StringRef(algoName()), allocator);
+    doc.AddMember("algo", StringRef(algorithm().name()), allocator);
 
     Value api(kObjectType);
     api.AddMember("port",         apiPort(), allocator);
@@ -103,24 +103,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     Value pools(kArrayType);
 
     for (const Pool &pool : m_pools) {
-        Value obj(kObjectType);
-
-        obj.AddMember("url",     StringRef(pool.url()), allocator);
-        obj.AddMember("user",    StringRef(pool.user()), allocator);
-        obj.AddMember("pass",    StringRef(pool.password()), allocator);
-        obj.AddMember("rig-id",  pool.rigId() ? Value(StringRef(pool.rigId())).Move() : Value(kNullType).Move(), allocator);
-
-        if (pool.keepAlive() == 0 || pool.keepAlive() == Pool::kKeepAliveTimeout) {
-            obj.AddMember("keepalive", pool.keepAlive() > 0, allocator);
-        }
-        else {
-            obj.AddMember("keepalive", pool.keepAlive(), allocator);
-        }
-
-        obj.AddMember("nicehash", pool.isNicehash(), allocator);
-        obj.AddMember("variant",  pool.variant(), allocator);
-
-        pools.PushBack(obj, allocator);
+        pools.PushBack(pool.toJSON(doc), allocator);
     }
 
     doc.AddMember("pools",         pools, allocator);
@@ -169,7 +152,7 @@ bool xmrig::Config::adjust()
         const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
 
         for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm, m_threads.cpu[i], m_priority, softAES));
+            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
         }
 
         return true;
@@ -178,7 +161,7 @@ bool xmrig::Config::adjust()
     m_algoVariant  = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const size_t size = CpuThread::multiway(m_algoVariant) * cn_select_memory(m_algorithm) / 1024;
+    const size_t size = CpuThread::multiway(m_algoVariant) * cn_select_memory(m_algorithm.algo()) / 1024;
 
     if (!m_threads.count) {
         m_threads.count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
@@ -191,7 +174,7 @@ bool xmrig::Config::adjust()
     }
 
     for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm, m_algoVariant, m_threads.mask, m_priority));
+        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), m_algoVariant, m_threads.mask, m_priority));
     }
 
     return true;
@@ -351,7 +334,7 @@ bool xmrig::Config::parseInt(int key, int arg)
 xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 {
 #   ifndef XMRIG_NO_AEON
-    if (m_algorithm == xmrig::CRYPTONIGHT_LITE) {
+    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
         return getAlgoVariantLite();
     }
 #   endif

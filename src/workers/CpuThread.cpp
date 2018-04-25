@@ -62,69 +62,69 @@ bool xmrig::CpuThread::isSoftAES(AlgoVariant av)
 
 xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant av, Variant variant)
 {
-    assert(variant == VARIANT_V0 || variant == VARIANT_V1);
+    assert(variant == VARIANT_0 || variant == VARIANT_1);
 
     static const cn_hash_fun func_table[50] = {
-        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_V0>,
-        cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_V0>,
-        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_V0>,
-        cryptonight_double_hash<CRYPTONIGHT, true,  VARIANT_V0>,
-        cryptonight_triple_hash<CRYPTONIGHT, false, VARIANT_V0>,
-        cryptonight_quad_hash<CRYPTONIGHT,   false, VARIANT_V0>,
-        cryptonight_penta_hash<CRYPTONIGHT,  false, VARIANT_V0>,
-        cryptonight_triple_hash<CRYPTONIGHT, true,  VARIANT_V0>,
-        cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_V0>,
-        cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_V0>,
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_0>,
+        cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_0>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_0>,
+        cryptonight_double_hash<CRYPTONIGHT, true,  VARIANT_0>,
+        cryptonight_triple_hash<CRYPTONIGHT, false, VARIANT_0>,
+        cryptonight_quad_hash<CRYPTONIGHT,   false, VARIANT_0>,
+        cryptonight_penta_hash<CRYPTONIGHT,  false, VARIANT_0>,
+        cryptonight_triple_hash<CRYPTONIGHT, true,  VARIANT_0>,
+        cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_0>,
+        cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_0>,
 
-        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_V1>,
-        cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_V1>,
-        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_V1>,
-        cryptonight_double_hash<CRYPTONIGHT, true,  VARIANT_V1>,
-        cryptonight_triple_hash<CRYPTONIGHT, false, VARIANT_V1>,
-        cryptonight_quad_hash<CRYPTONIGHT,   false, VARIANT_V1>,
-        cryptonight_penta_hash<CRYPTONIGHT,  false, VARIANT_V1>,
-        cryptonight_triple_hash<CRYPTONIGHT, true,  VARIANT_V1>,
-        cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_V1>,
-        cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_V1>,
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_1>,
+        cryptonight_double_hash<CRYPTONIGHT, false, VARIANT_1>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_1>,
+        cryptonight_double_hash<CRYPTONIGHT, true,  VARIANT_1>,
+        cryptonight_triple_hash<CRYPTONIGHT, false, VARIANT_1>,
+        cryptonight_quad_hash<CRYPTONIGHT,   false, VARIANT_1>,
+        cryptonight_penta_hash<CRYPTONIGHT,  false, VARIANT_1>,
+        cryptonight_triple_hash<CRYPTONIGHT, true,  VARIANT_1>,
+        cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_1>,
+        cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_1>,
 
 #       ifndef XMRIG_NO_AEON
-        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_V0>,
-        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_V0>,
-        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_V0>,
-        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_V0>,
-        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_V0>,
-        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_V0>,
-        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_V0>,
-        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_V0>,
-        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_V0>,
-        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_V0>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_0>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_0>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_0>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_0>,
 
-        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_V1>,
-        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_V1>,
-        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_V1>,
-        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_V1>,
-        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_V1>,
-        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_V1>,
-        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_V1>,
-        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_V1>,
-        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_V1>,
-        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_V1>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_1>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_1>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_1>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_1>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_1>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_1>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_1>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_1>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_1>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_1>,
 #       else
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 #       endif
 
 #       ifndef XMRIG_NO_SUMO
-        cryptonight_single_hash<CRYPTONIGHT_HEAVY, false, VARIANT_V0>,
-        cryptonight_double_hash<CRYPTONIGHT_HEAVY, false, VARIANT_V0>,
-        cryptonight_single_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_V0>,
-        cryptonight_double_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_V0>,
-        cryptonight_triple_hash<CRYPTONIGHT_HEAVY, false, VARIANT_V0>,
-        cryptonight_quad_hash<CRYPTONIGHT_HEAVY,   false, VARIANT_V0>,
-        cryptonight_penta_hash<CRYPTONIGHT_HEAVY,  false, VARIANT_V0>,
-        cryptonight_triple_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_V0>,
-        cryptonight_quad_hash<CRYPTONIGHT_HEAVY,   true,  VARIANT_V0>,
-        cryptonight_penta_hash<CRYPTONIGHT_HEAVY,  true,  VARIANT_V0>,
+        cryptonight_single_hash<CRYPTONIGHT_HEAVY, false, VARIANT_0>,
+        cryptonight_double_hash<CRYPTONIGHT_HEAVY, false, VARIANT_0>,
+        cryptonight_single_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_0>,
+        cryptonight_double_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_0>,
+        cryptonight_triple_hash<CRYPTONIGHT_HEAVY, false, VARIANT_0>,
+        cryptonight_quad_hash<CRYPTONIGHT_HEAVY,   false, VARIANT_0>,
+        cryptonight_penta_hash<CRYPTONIGHT_HEAVY,  false, VARIANT_0>,
+        cryptonight_triple_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_0>,
+        cryptonight_quad_hash<CRYPTONIGHT_HEAVY,   true,  VARIANT_0>,
+        cryptonight_penta_hash<CRYPTONIGHT_HEAVY,  true,  VARIANT_0>,
 #       else
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 #       endif
@@ -132,7 +132,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
 
 #   ifndef XMRIG_NO_SUMO
     if (algorithm == CRYPTONIGHT_HEAVY) {
-        variant = VARIANT_V0;
+        variant = VARIANT_0;
     }
 #   endif
 
@@ -252,7 +252,6 @@ rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
     auto &allocator = doc.GetAllocator();
 
     obj.AddMember("type",          "cpu", allocator);
-    obj.AddMember("algo",           rapidjson::StringRef(Pool::algoName(algorithm())), allocator);
     obj.AddMember("av",             m_av, allocator);
     obj.AddMember("low_power_mode", multiway(), allocator);
     obj.AddMember("affine_to_cpu",  affinity(), allocator);

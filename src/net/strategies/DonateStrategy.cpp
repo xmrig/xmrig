@@ -63,15 +63,12 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
     else if (algo == xmrig::CRYPTONIGHT_HEAVY) {
         m_pools.push_back(Pool(kDonatePool1, 8888, userId, nullptr, false, true));
     }
-    else if (algo == xmrig::CRYPTONIGHT_IPBC) {
-        m_pools.push_back(Pool(kDonatePool1, 13333, userId, nullptr, false, true));
-    }
     else {
         m_pools.push_back(Pool(kDonatePool1, 5555, userId, nullptr, false, true));
     }
 
     for (Pool &pool : m_pools) {
-        pool.setAlgo(algo);
+        pool.algorithm().setAlgo(algo);
     }
 
     if (m_pools.size() > 1) {

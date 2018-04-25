@@ -232,7 +232,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, m_nicehash, m_pool.algorithm(), m_pool.variant(), m_rpcId);
+    Job job(m_id, m_nicehash, m_pool.algorithm(), m_rpcId);
 
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
@@ -250,7 +250,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
     }
 
     if (params.HasMember("variant")) {
-        job.setVariant(params["variant"].GetInt());
+        job.algorithm().parseVariant(params["variant"].GetInt());
     }
 
     if (m_job != job) {

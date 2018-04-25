@@ -132,7 +132,7 @@ void Workers::setJob(const Job &job, bool donate)
 void Workers::start(xmrig::Controller *controller)
 {
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
-    m_status.algo    = controller->config()->algorithm();
+    m_status.algo    = controller->config()->algorithm().algo();
     m_status.colors  = controller->config()->isColors();
     m_status.threads = threads.size();
 

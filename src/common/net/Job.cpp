@@ -64,14 +64,12 @@ Job::Job() :
     m_size(0),
     m_diff(0),
     m_target(0),
-    m_blob(),
-    m_algorithm(xmrig::INVALID_ALGO),
-    m_variant(xmrig::VARIANT_AUTO)
+    m_blob()
 {
 }
 
 
-Job::Job(int poolId, bool nicehash, xmrig::Algo algo, xmrig::Variant variant, const xmrig::Id &clientId) :
+Job::Job(int poolId, bool nicehash, xmrig::Algorithm algorithm, const xmrig::Id &clientId) :
     m_nicehash(nicehash),
     m_poolId(poolId),
     m_threadId(-1),
@@ -79,9 +77,8 @@ Job::Job(int poolId, bool nicehash, xmrig::Algo algo, xmrig::Variant variant, co
     m_diff(0),
     m_target(0),
     m_blob(),
-    m_algorithm(algo),
-    m_clientId(clientId),
-    m_variant(variant)
+    m_algorithm(algorithm),
+    m_clientId(clientId)
 {
 }
 
@@ -163,23 +160,6 @@ bool Job::setTarget(const char *target)
 
     m_diff = toDiff(m_target);
     return true;
-}
-
-
-void Job::setVariant(int variant)
-{
-    switch (variant) {
-    case xmrig::VARIANT_AUTO:
-    case xmrig::VARIANT_V0:
-    case xmrig::VARIANT_V1:
-        m_variant = static_cast<xmrig::Variant>(variant);
-        break;
-
-    default:
-        assert(false);
-        m_variant = xmrig::VARIANT_AUTO;
-        break;
-    }
 }
 
 

@@ -30,40 +30,44 @@
 #include <stdint.h>
 
 
+#include "common/crypto/Algorithm.h"
 #include "common/net/Id.h"
-#include "common/xmrig.h"
 
 
 class Job
 {
 public:
     Job();
-    Job(int poolId, bool nicehash, xmrig::Algo algo, xmrig::Variant variant, const xmrig::Id &clientId);
+    Job(int poolId, bool nicehash, xmrig::Algorithm algorithm, const xmrig::Id &clientId);
     ~Job();
 
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
-    void setVariant(int variant);
 
-    inline bool isNicehash() const               { return m_nicehash; }
-    inline bool isValid() const                  { return m_size > 0 && m_diff > 0; }
-    inline bool setId(const char *id)            { return m_id.setId(id); }
-    inline const uint32_t *nonce() const         { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
-    inline const uint8_t *blob() const           { return m_blob; }
-    inline const xmrig::Id &clientId() const     { return m_clientId; }
-    inline const xmrig::Id &id() const           { return m_id; }
-    inline int poolId() const                    { return m_poolId; }
-    inline int threadId() const                  { return m_threadId; }
-    inline size_t size() const                   { return m_size; }
-    inline uint32_t *nonce()                     { return reinterpret_cast<uint32_t*>(m_blob + 39); }
-    inline uint32_t diff() const                 { return static_cast<uint32_t>(m_diff); }
-    inline uint64_t target() const               { return m_target; }
-    inline void reset()                          { m_size = 0; m_diff = 0; }
-    inline void setClientId(const xmrig::Id &id) { m_clientId = id; }
-    inline void setPoolId(int poolId)            { m_poolId = poolId; }
-    inline void setThreadId(int threadId)        { m_threadId = threadId; }
-    inline xmrig::Algo algorithm() const         { return m_algorithm; }
-    inline xmrig::Variant variant() const        { return (m_variant == xmrig::VARIANT_AUTO ? (m_blob[0] > 6 ? xmrig::VARIANT_V1 : xmrig::VARIANT_V0) : m_variant); }
+    inline bool isNicehash() const                    { return m_nicehash; }
+    inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
+    inline bool setId(const char *id)                 { return m_id.setId(id); }
+    inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
+    inline const uint8_t *blob() const                { return m_blob; }
+    inline const xmrig::Algorithm &algorithm() const  { return m_algorithm; }
+    inline const xmrig::Id &clientId() const          { return m_clientId; }
+    inline const xmrig::Id &id() const                { return m_id; }
+    inline int poolId() const                         { return m_poolId; }
+    inline int threadId() const                       { return m_threadId; }
+    inline size_t size() const                        { return m_size; }
+    inline uint32_t *nonce()                          { return reinterpret_cast<uint32_t*>(m_blob + 39); }
+    inline uint32_t diff() const                      { return static_cast<uint32_t>(m_diff); }
+    inline uint64_t target() const                    { return m_target; }
+    inline void reset()                               { m_size = 0; m_diff = 0; }
+    inline void setClientId(const xmrig::Id &id)      { m_clientId = id; }
+    inline void setPoolId(int poolId)                 { m_poolId = poolId; }
+    inline void setThreadId(int threadId)             { m_threadId = threadId; }
+    inline xmrig::Algorithm &algorithm()              { return m_algorithm; }
+
+    inline xmrig::Variant variant() const
+    {
+        return (m_algorithm.variant() == xmrig::VARIANT_AUTO ? (m_blob[0] > 6 ? xmrig::VARIANT_1 : xmrig::VARIANT_0) : m_algorithm.variant());
+    }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                 { return m_rawBlob; }
@@ -90,10 +94,9 @@ private:
     uint64_t m_diff;
     uint64_t m_target;
     uint8_t m_blob[96]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
-    xmrig::Algo m_algorithm;
+    xmrig::Algorithm m_algorithm;
     xmrig::Id m_clientId;
     xmrig::Id m_id;
-    xmrig::Variant m_variant;
 
 #   ifdef XMRIG_PROXY_PROJECT
     char m_rawBlob[176];

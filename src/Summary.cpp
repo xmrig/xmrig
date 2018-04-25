@@ -104,7 +104,7 @@ static void print_threads(xmrig::Config *config)
 
         Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, av=%d, %sdonate=%d%%%s" : " * THREADS:      %d, %s, av=%d, %sdonate=%d%%%s",
                        config->threadsCount(),
-                       config->algoName(),
+                       config->algorithm().name(),
                        config->algoVariant(),
                        config->isColors() && config->donateLevel() == 0 ? "\x1B[01;31m" : "",
                        config->donateLevel(),
@@ -113,7 +113,7 @@ static void print_threads(xmrig::Config *config)
     else {
         Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, %sdonate=%d%%" : " * THREADS:      %d, %s, %sdonate=%d%%",
                        config->threadsCount(),
-                       config->algoName(),
+                       config->algorithm().name(),
                        config->isColors() && config->donateLevel() == 0 ? "\x1B[01;31m" : "",
                        config->donateLevel());
     }

@@ -29,6 +29,7 @@
 
 
 #include "common/net/Pool.h"
+#include "rapidjson/document.h"
 
 
 #ifdef APP_DEBUG
@@ -42,52 +43,10 @@
 #endif
 
 
-static const char *algoNames[] = {
-    "cryptonight",
-#   ifndef XMRIG_NO_AEON
-    "cryptonight-lite",
-#   else
-    nullptr,
-#   endif
-#   ifndef XMRIG_NO_SUMO
-    "cryptonight-heavy",
-#   else
-    nullptr,
-#   endif
-#   ifndef XMRIG_NO_IPBC
-    "cryptonight-ipbc",
-#   else
-    nullptr,
-#   endif
-};
-
-
-static const char *algoNamesShort[] = {
-    "cn",
-#   ifndef XMRIG_NO_AEON
-    "cn-lite",
-#   else
-    nullptr,
-#   endif
-#   ifndef XMRIG_NO_SUMO
-    "cn-heavy",
-#   else
-    nullptr,
-#   endif
-#   ifndef XMRIG_NO_IPBC
-    "cn-ipbc",
-#   else
-    nullptr,
-#   endif
-};
-
-
 Pool::Pool() :
     m_nicehash(false),
     m_keepAlive(0),
-    m_port(kDefaultPort),
-    m_algorithm(xmrig::INVALID_ALGO),
-    m_variant(xmrig::VARIANT_AUTO)
+    m_port(kDefaultPort)
 {
 }
 
@@ -106,23 +65,19 @@ Pool::Pool() :
 Pool::Pool(const char *url) :
     m_nicehash(false),
     m_keepAlive(0),
-    m_port(kDefaultPort),
-    m_algorithm(xmrig::INVALID_ALGO),
-    m_variant(xmrig::VARIANT_AUTO)
+    m_port(kDefaultPort)
 {
     parse(url);
 }
 
 
-Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, xmrig::Variant variant) :
+Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash) :
     m_nicehash(nicehash),
     m_keepAlive(keepAlive),
     m_port(port),
-    m_algorithm(xmrig::INVALID_ALGO),
     m_host(host),
     m_password(password),
-    m_user(user),
-    m_variant(variant)
+    m_user(user)
 {
     const size_t size = m_host.size() + 8;
     assert(size > 8);
@@ -131,41 +86,6 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
     snprintf(url, size - 1, "%s:%d", m_host.data(), m_port);
 
     m_url = url;
-}
-
-
-const char *Pool::algoName(xmrig::Algo algorithm, bool shortName)
-{
-    if (algorithm == xmrig::INVALID_ALGO) {
-        return "invalid";
-    }
-
-    return (shortName ? algoNamesShort : algoNames)[algorithm];
-}
-
-
-xmrig::Algo Pool::algorithm(const char *algo)
-{
-#   ifndef XMRIG_NO_AEON
-    if (strcasecmp(algo, "cryptonight-light") == 0) {
-        fprintf(stderr, "Algorithm \"cryptonight-light\" is deprecated, use \"cryptonight-lite\" instead\n");
-
-        return xmrig::CRYPTONIGHT_LITE;
-    }
-#   endif
-
-    const size_t size = sizeof(algoNames) / sizeof(algoNames[0]);
-
-    assert(size == (sizeof(algoNamesShort) / sizeof(algoNamesShort[0])));
-
-    for (size_t i = 0; i < size; i++) {
-        if ((algoNames[i] && strcasecmp(algo, algoNames[i]) == 0) || (algoNamesShort[i] && strcasecmp(algo, algoNamesShort[i]) == 0)) {
-            return static_cast<xmrig::Algo>(i);
-        }
-    }
-
-    fprintf(stderr, "Unknown algorithm \"%s\" specified.\n", algo);
-    return xmrig::INVALID_ALGO;
 }
 
 
@@ -179,8 +99,7 @@ bool Pool::isEqual(const Pool &other) const
             && m_password  == other.m_password
             && m_rigId     == other.m_rigId
             && m_url       == other.m_url
-            && m_user      == other.m_user
-            && m_variant   == other.m_variant);
+            && m_user      == other.m_user);
 }
 
 
@@ -242,14 +161,54 @@ bool Pool::setUserpass(const char *userpass)
 }
 
 
+rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+
+    auto &allocator = doc.GetAllocator();
+
+    Value obj(kObjectType);
+
+    obj.AddMember("url",    StringRef(url()), allocator);
+    obj.AddMember("user",   StringRef(user()), allocator);
+    obj.AddMember("pass",   StringRef(password()), allocator);
+    obj.AddMember("rig-id", rigId() ? Value(StringRef(rigId())).Move() : Value(kNullType).Move(), allocator);
+
+#   ifndef XMRIG_PROXY_PROJECT
+    obj.AddMember("nicehash", isNicehash(), allocator);
+#   endif
+
+    if (m_keepAlive == 0 || m_keepAlive == kKeepAliveTimeout) {
+        obj.AddMember("keepalive", m_keepAlive > 0, allocator);
+    }
+    else {
+        obj.AddMember("keepalive", m_keepAlive, allocator);
+    }
+
+    switch (m_algorithm.variant()) {
+    case xmrig::VARIANT_AUTO:
+    case xmrig::VARIANT_0:
+    case xmrig::VARIANT_1:
+        obj.AddMember("variant", m_algorithm.variant(), allocator);
+        break;
+
+    default:
+        obj.AddMember("variant", StringRef(m_algorithm.variantName()), allocator);
+        break;
+    }
+
+    return obj;
+}
+
+
 void Pool::adjust(xmrig::Algo algorithm)
 {
     if (!isValid()) {
         return;
     }
 
-    if (m_algorithm == xmrig::INVALID_ALGO) {
-        m_algorithm = algorithm;
+    if (!m_algorithm.isValid()) {
+        m_algorithm.setAlgo(algorithm);
     }
 
     if (strstr(m_host.data(), ".nicehash.com")) {
@@ -257,47 +216,14 @@ void Pool::adjust(xmrig::Algo algorithm)
         m_nicehash  = true;
 
         if (strstr(m_host.data(), "cryptonightv7.")) {
-            m_variant = xmrig::VARIANT_V1;
+            m_algorithm.setVariant(xmrig::VARIANT_1);
         }
     }
 
     if (strstr(m_host.data(), ".minergate.com")) {
-        m_variant   = xmrig::VARIANT_V1;
         m_keepAlive = false;
+        m_algorithm.setVariant(xmrig::VARIANT_1);
     }
-}
-
-
-void Pool::setVariant(int variant)
-{
-   switch (variant) {
-   case xmrig::VARIANT_AUTO:
-   case xmrig::VARIANT_V0:
-   case xmrig::VARIANT_V1:
-       m_variant = static_cast<xmrig::Variant>(variant);
-       break;
-
-   default:
-       assert(false);
-       break;
-   }
-}
-
-
-xmrig::Variant Pool::variant() const
-{
-    switch (m_algorithm) {
-    case xmrig::CRYPTONIGHT_HEAVY:
-        return xmrig::VARIANT_V0;
-
-    case xmrig::CRYPTONIGHT_IPBC:
-        return xmrig::VARIANT_V1;
-
-    default:
-        break;
-    }
-
-    return m_variant;
 }
 
 
@@ -309,8 +235,8 @@ void Pool::print() const
     LOG_DEBUG ("port:      %d", static_cast<int>(m_port));
     LOG_DEBUG ("user:      %s", m_user.data());
     LOG_DEBUG ("pass:      %s", m_password.data());
-    LOG_DEBUG ("rig_id     %s", m_rigId.data());
-    LOG_DEBUG ("algo:      %s/%d", algoName(m_algorithm), static_cast<int>(variant()));
+    LOG_DEBUG ("rig-id     %s", m_rigId.data());
+    LOG_DEBUG ("algo:      %s", m_algorithm.name());
     LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_nicehash));
     LOG_DEBUG ("keepAlive: %d", m_keepAlive);
 }

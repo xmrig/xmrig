@@ -61,7 +61,7 @@ Network::Network(xmrig::Controller *controller) :
     }
 
     if (controller->config()->donateLevel() > 0) {
-        m_donate = new DonateStrategy(controller->config()->donateLevel(), controller->config()->pools().front().user(), controller->config()->algorithm(), this);
+        m_donate = new DonateStrategy(controller->config()->donateLevel(), controller->config()->pools().front().user(), controller->config()->algorithm().algo(), this);
     }
 
     m_timer.data = this;
@@ -166,9 +166,9 @@ bool Network::isColors() const
 
 void Network::setJob(Client *client, const Job &job, bool donate)
 {
-    LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s/%d")
-                        : "new job from %s:%d diff %d algo %s/%d",
-             client->host(), client->port(), job.diff(), Pool::algoName(job.algorithm(), true), static_cast<int>(job.variant()));
+    LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s")
+                        : "new job from %s:%d diff %d algo %s",
+             client->host(), client->port(), job.diff(), job.algorithm().shortName());
 
     m_state.diff = job.diff();
     Workers::setJob(job, donate);

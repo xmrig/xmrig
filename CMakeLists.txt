@@ -19,6 +19,7 @@ set(HEADERS
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
     src/common/Console.h
+    src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
@@ -93,6 +94,7 @@ set(SOURCES
     src/common/config/ConfigLoader.cpp
     src/common/config/ConfigWatcher.cpp
     src/common/Console.cpp
+    src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/log/ConsoleLog.cpp
     src/common/log/FileLog.cpp

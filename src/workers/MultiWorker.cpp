@@ -50,21 +50,21 @@ MultiWorker<N>::~MultiWorker()
 template<size_t N>
 bool MultiWorker<N>::selfTest()
 {
-    if (m_thread->fn(xmrig::VARIANT_V0) == nullptr) {
+    if (m_thread->fn(xmrig::VARIANT_0) == nullptr) {
         return false;
     }
 
-    m_thread->fn(xmrig::VARIANT_V0)(test_input, 76, m_hash, m_ctx);
+    m_thread->fn(xmrig::VARIANT_0)(test_input, 76, m_hash, m_ctx);
 
     if (m_thread->algorithm() == xmrig::CRYPTONIGHT && memcmp(m_hash, test_output_v0, sizeof m_hash) == 0) {
-        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_hash, m_ctx);
+        m_thread->fn(xmrig::VARIANT_1)(test_input, 76, m_hash, m_ctx);
 
         return memcmp(m_hash, test_output_v1, sizeof m_hash) == 0;
     }
 
 #   ifndef XMRIG_NO_AEON
     if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE && memcmp(m_hash, test_output_v0_lite, sizeof m_hash) == 0) {
-        m_thread->fn(xmrig::VARIANT_V1)(test_input, 76, m_hash, m_ctx);
+        m_thread->fn(xmrig::VARIANT_1)(test_input, 76, m_hash, m_ctx);
 
         return memcmp(m_hash, test_output_v1_lite, sizeof m_hash) == 0;
     }

@@ -38,7 +38,6 @@
 
 
 xmrig::CommonConfig::CommonConfig() :
-    m_algorithm(CRYPTONIGHT),
     m_adjusted(false),
     m_apiIPv6(false),
     m_apiRestricted(true),
@@ -80,8 +79,12 @@ bool xmrig::CommonConfig::adjust()
 
     m_adjusted = true;
 
+    if (!m_algorithm.isValid()) {
+        m_algorithm.setAlgo(CRYPTONIGHT);
+    }
+
     for (Pool &pool : m_pools) {
-        pool.adjust(algorithm());
+        pool.adjust(m_algorithm.algo());
     }
 
     return true;
@@ -90,7 +93,7 @@ bool xmrig::CommonConfig::adjust()
 
 bool xmrig::CommonConfig::isValid() const
 {
-    return m_pools[0].isValid() && m_algorithm != INVALID_ALGO;
+    return m_pools[0].isValid() && m_algorithm.isValid();
 }
 
 
@@ -141,7 +144,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
 {
     switch (key) {
     case AlgorithmKey: /* --algo */
-        m_algorithm = Pool::algorithm(arg);
+        m_algorithm.parseAlgorithm(arg);
         break;
 
     case UserpassKey: /* --userpass */
@@ -181,6 +184,10 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_pools.back().setRigId(arg);
         break;
 
+    case VariantKey: /* --variant */
+        m_pools.back().algorithm().parseVariant(arg);
+        break;
+
     case LogFileKey: /* --log-file */
         m_logFile = arg;
         break;
@@ -199,7 +206,6 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
 
     case RetriesKey:     /* --retries */
     case RetryPauseKey:  /* --retry-pause */
-    case VariantKey:     /* --variant */
     case ApiPort:        /* --api-port */
     case PrintTimeKey:   /* --cpu-priority */
         return parseUint64(key, strtol(arg, nullptr, 10));
@@ -299,7 +305,7 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         break;
 
     case VariantKey: /* --variant */
-        m_pools.back().setVariant(arg);
+        m_pools.back().algorithm().parseVariant(arg);
         break;
 
     case DonateLevelKey: /* --donate-level */

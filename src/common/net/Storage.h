@@ -29,9 +29,6 @@
 #include <map>
 
 
-#include "common/log/Log.h"
-
-
 namespace xmrig {
 
 
