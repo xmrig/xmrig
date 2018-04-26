@@ -78,11 +78,18 @@ public:
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
 private:
+    enum Extensions {
+        NicehashExt  = 1,
+        AlgoExt      = 2
+    };
+
     bool close();
     bool isCriticalError(const char *message);
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseLogin(const rapidjson::Value &result, int *code);
+    bool verifyAlgorithm(const xmrig::Algorithm &algorithm) const;
     int resolve(const char *host);
+    int64_t send(const rapidjson::Document &doc);
     int64_t send(size_t size);
     void connect(const std::vector<addrinfo*> &ipv4, const std::vector<addrinfo*> &ipv6);
     void connect(sockaddr *addr);
@@ -116,6 +123,7 @@ private:
     char m_sendBuf[768];
     const char *m_agent;
     IClientListener *m_listener;
+    int m_extensions;
     int m_id;
     int m_retries;
     int m_retryPause;

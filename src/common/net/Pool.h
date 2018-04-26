@@ -72,6 +72,7 @@ public:
     inline bool operator!=(const Pool &other) const  { return !isEqual(other); }
     inline bool operator==(const Pool &other) const  { return isEqual(other); }
 
+    bool isCompatible(const xmrig::Algorithm &algorithm) const;
     bool isEqual(const Pool &other) const;
     bool parse(const char *url);
     bool setUserpass(const char *userpass);

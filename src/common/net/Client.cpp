@@ -54,6 +54,7 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_quiet(false),
     m_agent(agent),
     m_listener(listener),
+    m_extensions(0),
     m_id(id),
     m_retries(5),
     m_retryPause(5000),
@@ -161,12 +162,14 @@ bool Client::disconnect()
 
 int64_t Client::submit(const JobResult &result)
 {
+    using namespace rapidjson;
+
 #   ifdef XMRIG_PROXY_PROJECT
     const char *nonce = result.nonce;
     const char *data  = result.result;
 #   else
-    char nonce[9];
-    char data[65];
+    char *nonce = m_sendBuf;
+    char *data  = m_sendBuf + 16;
 
     Job::toHex(reinterpret_cast<const unsigned char*>(&result.nonce), 4, nonce);
     nonce[8] = '\0';
@@ -175,8 +178,24 @@ int64_t Client::submit(const JobResult &result)
     data[64] = '\0';
 #   endif
 
-    const size_t size = snprintf(m_sendBuf, sizeof(m_sendBuf), "{\"id\":%" PRIu64 ",\"jsonrpc\":\"2.0\",\"method\":\"submit\",\"params\":{\"id\":\"%s\",\"job_id\":\"%s\",\"nonce\":\"%s\",\"result\":\"%s\"}}\n",
-                                 m_sequence, m_rpcId.data(), result.jobId.data(), nonce, data);
+    Document doc(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    doc.AddMember("id",      m_sequence, allocator);
+    doc.AddMember("jsonrpc", "2.0", allocator);
+    doc.AddMember("method",  "submit", allocator);
+
+    Value params(kObjectType);
+    params.AddMember("id",     StringRef(m_rpcId.data()), allocator);
+    params.AddMember("job_id", StringRef(result.jobId.data()), allocator);
+    params.AddMember("nonce",  StringRef(nonce), allocator);
+    params.AddMember("result", StringRef(data), allocator);
+
+    if (m_extensions & AlgoExt) {
+        params.AddMember("algo", StringRef(result.algorithm.shortName()), allocator);
+    }
+
+    doc.AddMember("params", params, allocator);
 
 #   ifdef XMRIG_PROXY_PROJECT
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), result.id);
@@ -184,7 +203,7 @@ int64_t Client::submit(const JobResult &result)
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff());
 #   endif
 
-    return send(size);
+    return send(doc);
 }
 
 
@@ -258,6 +277,13 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         job.algorithm().parseVariant(params["variant"].GetInt());
     }
 
+    if (!verifyAlgorithm(job.algorithm())) {
+        *code = 6;
+
+        close();
+        return false;
+    }
+
     if (m_job != job) {
         m_jobs++;
         m_job = std::move(job);
@@ -284,9 +310,7 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
         return false;
     }
 
-#   ifndef XMRIG_PROXY_PROJECT
     m_nicehash = m_pool.isNicehash();
-#   endif
 
     if (result.HasMember("extensions")) {
         parseExtensions(result["extensions"]);
@@ -296,6 +320,27 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
     m_jobs = 0;
 
     return rc;
+}
+
+
+bool Client::verifyAlgorithm(const xmrig::Algorithm &algorithm) const
+{
+    if (m_pool.isCompatible(algorithm)) {
+        return true;
+    }
+
+    if (isQuiet()) {
+        return false;
+    }
+
+    if (algorithm.isValid()) {
+        LOG_ERR("Incompatible algorithm \"%s\" detected, reconnect", algorithm.name());
+    }
+    else {
+        LOG_ERR("Unknown/unsupported algorithm detected, reconnect");
+    }
+
+    return false;
 }
 
 
@@ -319,6 +364,27 @@ int Client::resolve(const char *host)
     }
 
     return 0;
+}
+
+
+int64_t Client::send(const rapidjson::Document &doc)
+{
+    using namespace rapidjson;
+
+    StringBuffer buffer(0, 512);
+    Writer<StringBuffer> writer(buffer);
+    doc.Accept(writer);
+
+    const size_t size = buffer.GetSize();
+    if (size > (sizeof(m_buf) - 2)) {
+        return -1;
+    }
+
+    memcpy(m_sendBuf, buffer.GetString(), size);
+    m_sendBuf[size]     = '\n';
+    m_sendBuf[size + 1] = '\0';
+
+    return send(size + 1);
 }
 
 
@@ -389,9 +455,7 @@ void Client::login()
     using namespace rapidjson;
     m_results.clear();
 
-    Document doc;
-    doc.SetObject();
-
+    Document doc(kObjectType);
     auto &allocator = doc.GetAllocator();
 
     doc.AddMember("id",      1,       allocator);
@@ -416,20 +480,7 @@ void Client::login()
     params.AddMember("algo", algo, allocator);
     doc.AddMember("params", params, allocator);
 
-    StringBuffer buffer(0, 512);
-    Writer<StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    const size_t size = buffer.GetSize();
-    if (size > (sizeof(m_buf) - 2)) {
-        return;
-    }
-
-    memcpy(m_sendBuf, buffer.GetString(), size);
-    m_sendBuf[size]     = '\n';
-    m_sendBuf[size + 1] = '\0';
-
-    send(size + 1);
+    send(doc);
 }
 
 
@@ -486,6 +537,8 @@ void Client::parse(char *line, size_t len)
 
 void Client::parseExtensions(const rapidjson::Value &value)
 {
+    m_extensions = 0;
+
     if (!value.IsArray()) {
         return;
     }
@@ -495,8 +548,15 @@ void Client::parseExtensions(const rapidjson::Value &value)
             continue;
         }
 
+        if (strcmp(ext.GetString(), "algo") == 0) {
+            m_extensions |= AlgoExt;
+            continue;
+        }
+
         if (strcmp(ext.GetString(), "nicehash") == 0) {
+            m_extensions |= NicehashExt;
             m_nicehash = true;
+            continue;
         }
     }
 }

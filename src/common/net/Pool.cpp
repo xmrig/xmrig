@@ -92,6 +92,18 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
 }
 
 
+bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
+{
+    for (const auto &a : m_algorithms) {
+        if (algorithm == a) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 bool Pool::isEqual(const Pool &other) const
 {
     return (m_nicehash     == other.m_nicehash
