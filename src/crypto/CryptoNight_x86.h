@@ -386,6 +386,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
+template<int SHIFT>
 static inline void cryptonight_monero_tweak(uint64_t* mem_out, __m128i tmp)
 {
     mem_out[0] = EXTRACT64(tmp);
@@ -395,7 +396,7 @@ static inline void cryptonight_monero_tweak(uint64_t* mem_out, __m128i tmp)
 
     uint8_t x = vh >> 24;
     static const uint16_t table = 0x7531;
-    const uint8_t index = (((x >> 3) & 6) | (x & 1)) << 1;
+    const uint8_t index = (((x >> SHIFT) & 6) | (x & 1)) << 1;
     vh ^= ((table >> index) & 0x3) << 28;
 
     mem_out[1] = vh;
@@ -441,7 +442,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         }
 
         if (VARIANT > 0) {
-            cryptonight_monero_tweak((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
+            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : 3>((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
         } else {
             _mm_store_si128((__m128i *)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
         }
@@ -544,8 +545,8 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         }
 
         if (VARIANT > 0) {
-            cryptonight_monero_tweak((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
-            cryptonight_monero_tweak((uint64_t*)&l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : 3>((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
+            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : 3>((uint64_t*)&l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
         } else {
             _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
             _mm_store_si128((__m128i *) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
@@ -653,7 +654,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     b = _mm_xor_si128(b, c);                                           \
                                                                        \
     if (VARIANT > 0) {                                                 \
-        cryptonight_monero_tweak(reinterpret_cast<uint64_t*>(ptr), b); \
+        cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : 3>(reinterpret_cast<uint64_t*>(ptr), b); \
     } else {                                                           \
         _mm_store_si128(ptr, b);                                       \
     }
