@@ -127,6 +127,7 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
 void xmrig::Algorithm::parseVariant(const char *variant)
 {
     if (m_algo == CRYPTONIGHT_HEAVY) {
+        m_variant = VARIANT_0;
         return;
     }
 

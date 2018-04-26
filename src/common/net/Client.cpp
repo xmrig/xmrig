@@ -274,7 +274,14 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
     }
 
     if (params.HasMember("variant")) {
-        job.algorithm().parseVariant(params["variant"].GetInt());
+        const rapidjson::Value &variant = params["variant"];
+
+        if (variant.IsInt()) {
+            job.algorithm().parseVariant(variant.GetInt());
+        }
+        else if (variant.IsString()){
+            job.algorithm().parseVariant(variant.GetString());
+        }
     }
 
     if (!verifyAlgorithm(job.algorithm())) {
