@@ -55,6 +55,7 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_agent(agent),
     m_listener(listener),
     m_id(id),
+    m_retries(5),
     m_retryPause(5000),
     m_failures(0),
     m_recvBufPos(0),
@@ -267,7 +268,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    if (!m_quiet) {
+    if (!isQuiet()) {
         LOG_WARN("[%s] duplicate job received, reconnect", m_pool.url());
     }
 
@@ -311,7 +312,7 @@ int Client::resolve(const char *host)
 
     const int r = uv_getaddrinfo(uv_default_loop(), &m_resolver, Client::onResolved, host, nullptr, &m_hints);
     if (r) {
-        if (!m_quiet) {
+        if (!isQuiet()) {
             LOG_ERR("[%s:%u] getaddrinfo error: \"%s\"", host, m_pool.port(), uv_strerror(r));
         }
         return 1;
@@ -453,7 +454,7 @@ void Client::parse(char *line, size_t len)
     LOG_DEBUG("[%s] received (%d bytes): \"%s\"", m_pool.url(), len, line);
 
     if (len < 32 || line[0] != '{') {
-        if (!m_quiet) {
+        if (!isQuiet()) {
             LOG_ERR("[%s] JSON decode failed", m_pool.url());
         }
 
@@ -462,7 +463,7 @@ void Client::parse(char *line, size_t len)
 
     rapidjson::Document doc;
     if (doc.ParseInsitu(line).HasParseError()) {
-        if (!m_quiet) {
+        if (!isQuiet()) {
             LOG_ERR("[%s] JSON decode failed: \"%s\"", m_pool.url(), rapidjson::GetParseError_En(doc.GetParseError()));
         }
 
@@ -504,7 +505,7 @@ void Client::parseExtensions(const rapidjson::Value &value)
 void Client::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error)
 {
     if (error.IsObject()) {
-        if (!m_quiet) {
+        if (!isQuiet()) {
             LOG_ERR("[%s] error: \"%s\", code: %d", m_pool.url(), error["message"].GetString(), error["code"].GetInt());
         }
         return;
@@ -538,7 +539,7 @@ void Client::parseResponse(int64_t id, const rapidjson::Value &result, const rap
             m_listener->onResultAccepted(this, it->second, message);
             m_results.erase(it);
         }
-        else if (!m_quiet) {
+        else if (!isQuiet()) {
             LOG_ERR("[%s] error: \"%s\", code: %d", m_pool.url(), message, error["code"].GetInt());
         }
 
@@ -556,7 +557,7 @@ void Client::parseResponse(int64_t id, const rapidjson::Value &result, const rap
     if (id == 1) {
         int code = -1;
         if (!parseLogin(result, &code)) {
-            if (!m_quiet) {
+            if (!isQuiet()) {
                 LOG_ERR("[%s] login error code: %d", m_pool.url(), code);
             }
 
@@ -661,7 +662,7 @@ void Client::onConnect(uv_connect_t *req, int status)
     }
 
     if (status < 0) {
-        if (!client->m_quiet) {
+        if (!client->isQuiet()) {
             LOG_ERR("[%s] connect error: \"%s\"", client->m_pool.url(), uv_strerror(status));
         }
 
@@ -689,7 +690,7 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
     }
 
     if (nread < 0) {
-        if (nread != UV_EOF && !client->m_quiet) {
+        if (nread != UV_EOF && !client->isQuiet()) {
             LOG_ERR("[%s] read error: \"%s\"", client->m_pool.url(), uv_strerror((int) nread));
         }
 
@@ -749,7 +750,7 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
     }
 
     if (status < 0) {
-        if (!client->m_quiet) {
+        if (!client->isQuiet()) {
             LOG_ERR("[%s] DNS error: \"%s\"", client->m_pool.url(), uv_strerror(status));
         }
 
@@ -773,7 +774,7 @@ void Client::onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
     }
 
     if (ipv4.empty() && ipv6.empty()) {
-        if (!client->m_quiet) {
+        if (!client->isQuiet()) {
             LOG_ERR("[%s] DNS error: \"No IPv4 (A) or IPv6 (AAAA) records found\"", client->m_pool.url());
         }
 

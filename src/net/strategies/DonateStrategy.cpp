@@ -75,7 +75,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
         m_strategy = new FailoverStrategy(m_pools, 1, 2, this, true);
     }
     else {
-        m_strategy = new SinglePoolStrategy(m_pools.front(), 1, this, true);
+        m_strategy = new SinglePoolStrategy(m_pools.front(), 1, 2, this, true);
     }
 
     m_timer.data = this;

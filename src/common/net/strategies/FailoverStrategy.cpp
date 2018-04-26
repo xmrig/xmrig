@@ -157,6 +157,7 @@ void FailoverStrategy::add(const Pool &pool)
 {
     Client *client = new Client((int) m_pools.size(), Platform::userAgent(), this);
     client->setPool(pool);
+    client->setRetries(m_retries);
     client->setRetryPause(m_retryPause * 1000);
     client->setQuiet(m_quiet);
 

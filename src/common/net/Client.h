@@ -74,6 +74,7 @@ public:
     inline SocketState state() const         { return m_state; }
     inline uint16_t port() const             { return m_pool.port(); }
     inline void setQuiet(bool quiet)         { m_quiet = quiet; }
+    inline void setRetries(int retries)      { m_retries = retries; }
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
 private:
@@ -96,6 +97,8 @@ private:
     void setState(SocketState state);
     void startTimeout();
 
+    inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }
+
     static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
     static void onClose(uv_handle_t *handle);
     static void onConnect(uv_connect_t *req, int status);
@@ -114,6 +117,7 @@ private:
     const char *m_agent;
     IClientListener *m_listener;
     int m_id;
+    int m_retries;
     int m_retryPause;
     int64_t m_failures;
     Job m_job;

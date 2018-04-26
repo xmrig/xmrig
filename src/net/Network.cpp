@@ -57,7 +57,7 @@ Network::Network(xmrig::Controller *controller) :
         m_strategy = new FailoverStrategy(pools, controller->config()->retryPause(), controller->config()->retries(), this);
     }
     else {
-        m_strategy = new SinglePoolStrategy(pools.front(), controller->config()->retryPause(), this);
+        m_strategy = new SinglePoolStrategy(pools.front(), controller->config()->retryPause(), controller->config()->retries(), this);
     }
 
     if (controller->config()->donateLevel() > 0) {
