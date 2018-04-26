@@ -37,6 +37,9 @@
 #endif
 
 
+#define ADD_VARIANT(variant) m_algorithms.push_back(xmrig::Algorithm(m_algorithm.algo(), variant));
+
+
 #ifdef _MSC_VER
 #   define strncasecmp _strnicmp
 #   define strcasecmp  _stricmp
@@ -224,6 +227,33 @@ void Pool::adjust(xmrig::Algo algorithm)
         m_keepAlive = false;
         m_algorithm.setVariant(xmrig::VARIANT_1);
     }
+
+#   ifndef XMRIG_PROXY_PROJECT
+    switch (m_algorithm.algo()) {
+    case xmrig::CRYPTONIGHT:
+        ADD_VARIANT(xmrig::VARIANT_AUTO);
+        ADD_VARIANT(xmrig::VARIANT_0);
+        ADD_VARIANT(xmrig::VARIANT_1);
+        ADD_VARIANT(xmrig::VARIANT_XTL);
+        break;
+
+    case xmrig::CRYPTONIGHT_LITE:
+        ADD_VARIANT(xmrig::VARIANT_AUTO);
+        ADD_VARIANT(xmrig::VARIANT_0);
+        ADD_VARIANT(xmrig::VARIANT_1);
+        ADD_VARIANT(xmrig::VARIANT_IPBC);
+        break;
+
+    case xmrig::CRYPTONIGHT_HEAVY:
+        ADD_VARIANT(xmrig::VARIANT_0);
+        break;
+
+    default:
+        break;
+    }
+#   else
+    m_algorithms.push_back(m_algorithm);
+#   endif
 }
 
 

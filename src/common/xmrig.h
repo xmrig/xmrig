@@ -61,7 +61,7 @@ enum Variant {
     VARIANT_AUTO = -1, // Autodetect
     VARIANT_0    = 0,  // Original CryptoNight or CryptoNight-Heavy
     VARIANT_1    = 1,  // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
-    VARIANT_IBPC = 2,  // CryptoNight Lite variant 1 with XOR (IPBC only)
+    VARIANT_IPBC = 2,  // CryptoNight Lite variant 1 with XOR (IPBC only)
     VARIANT_XTL  = 3   // CryptoNight variant 1 (Stellite only)
 };
 

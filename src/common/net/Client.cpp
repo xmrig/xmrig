@@ -385,9 +385,10 @@ void Client::connect(sockaddr *addr)
 
 void Client::login()
 {
+    using namespace rapidjson;
     m_results.clear();
 
-    rapidjson::Document doc;
+    Document doc;
     doc.SetObject();
 
     auto &allocator = doc.GetAllocator();
@@ -396,19 +397,26 @@ void Client::login()
     doc.AddMember("jsonrpc", "2.0",   allocator);
     doc.AddMember("method",  "login", allocator);
 
-    rapidjson::Value params(rapidjson::kObjectType);
-    params.AddMember("login", rapidjson::StringRef(m_pool.user()),     allocator);
-    params.AddMember("pass",  rapidjson::StringRef(m_pool.password()), allocator);
-    params.AddMember("agent", rapidjson::StringRef(m_agent),           allocator);
+    Value params(kObjectType);
+    params.AddMember("login", StringRef(m_pool.user()),     allocator);
+    params.AddMember("pass",  StringRef(m_pool.password()), allocator);
+    params.AddMember("agent", StringRef(m_agent),           allocator);
 
     if (m_pool.rigId()) {
-        params.AddMember("rigid", rapidjson::StringRef(m_pool.rigId()), allocator);
+        params.AddMember("rigid", StringRef(m_pool.rigId()), allocator);
     }
 
+    Value algo(kArrayType);
+
+    for (const auto &a : m_pool.algorithms()) {
+        algo.PushBack(StringRef(a.shortName()), allocator);
+    }
+
+    params.AddMember("algo", algo, allocator);
     doc.AddMember("params", params, allocator);
 
-    rapidjson::StringBuffer buffer(0, 512);
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    StringBuffer buffer(0, 512);
+    Writer<StringBuffer> writer(buffer);
     doc.Accept(writer);
 
     const size_t size = buffer.GetSize();

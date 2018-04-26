@@ -69,7 +69,7 @@ bool MultiWorker<N>::selfTest()
             return false;
         }
 
-        m_thread->fn(xmrig::VARIANT_IBPC)(test_input, 76, m_hash, m_ctx);
+        m_thread->fn(xmrig::VARIANT_IPBC)(test_input, 76, m_hash, m_ctx);
         return memcmp(m_hash, test_output_ipbc_lite, sizeof m_hash) == 0;
     }
 #   endif

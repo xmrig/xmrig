@@ -62,7 +62,7 @@ bool xmrig::CpuThread::isSoftAES(AlgoVariant av)
 
 xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant av, Variant variant)
 {
-    assert(variant == VARIANT_0 || variant == VARIANT_1 || variant == VARIANT_IBPC || variant == VARIANT_XTL);
+    assert(variant == VARIANT_0 || variant == VARIANT_1 || variant == VARIANT_IPBC || variant == VARIANT_XTL);
 
     static const cn_hash_fun func_table[90] = {
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_0>,
@@ -123,16 +123,16 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_1>,
         cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_1>,
 
-        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_IBPC>,
-        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_IBPC>,
-        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_IBPC>,
-        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_IBPC>,
-        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_IBPC>,
-        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_IBPC>,
-        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_IBPC>,
-        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_IBPC>,
-        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_IBPC>,
-        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_IBPC>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_IPBC>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_IPBC>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_IPBC>,
+        cryptonight_double_hash<CRYPTONIGHT_LITE, true,  VARIANT_IPBC>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, false, VARIANT_IPBC>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   false, VARIANT_IPBC>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  false, VARIANT_IPBC>,
+        cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_IPBC>,
+        cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_IPBC>,
+        cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_IPBC>,
 
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
 #       else

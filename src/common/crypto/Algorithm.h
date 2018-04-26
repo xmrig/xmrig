@@ -26,6 +26,9 @@
 #define __ALGORITHM_H__
 
 
+#include <vector>
+
+
 #include "common/xmrig.h"
 
 
@@ -69,6 +72,9 @@ private:
     Algo m_algo;
     Variant m_variant;
 };
+
+
+typedef std::vector<xmrig::Algorithm> Algorithms;
 
 
 } /* namespace xmrig */
