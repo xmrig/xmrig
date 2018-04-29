@@ -102,7 +102,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     Value pools(kArrayType);
 
-    for (const Pool &pool : m_pools) {
+    for (const Pool &pool : m_activePools) {
         pools.PushBack(pool.toJSON(doc), allocator);
     }
 

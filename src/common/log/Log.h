@@ -80,6 +80,8 @@ private:
 };
 
 
+#define RED_BOLD(x)     "\e[1;31m" x "\e[0m"
+#define RED(x)          "\e[0;31m" x "\e[0m"
 #define GREEN_BOLD(x)   "\e[1;32m" x "\e[0m"
 #define GREEN(x)        "\e[0;32m" x "\e[0m"
 #define MAGENTA_BOLD(x) "\e[1;35m" x "\e[0m"
