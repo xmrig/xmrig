@@ -85,6 +85,7 @@ public:
 
 private:
     bool parseIPv6(const char *addr);
+    void addVariant(xmrig::Variant variant);
 
     bool m_nicehash;
     int m_keepAlive;
@@ -97,5 +98,8 @@ private:
     xmrig::c_str m_url;
     xmrig::c_str m_user;
 };
+
+
+typedef std::vector<Pool> Pools;
 
 #endif /* __POOL_H__ */

@@ -123,6 +123,11 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
     m_algo    = INVALID_ALGO;
     m_variant = VARIANT_AUTO;
 
+    assert(algo != nullptr);
+    if (algo == nullptr) {
+        return;
+    }
+
     for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
         if ((strcasecmp(algo, algorithms[i].name) == 0) || (strcasecmp(algo, algorithms[i].shortName) == 0)) {
             m_algo    = algorithms[i].algo;
@@ -181,6 +186,11 @@ void xmrig::Algorithm::parseXmrStakAlgorithm(const char *algo)
 {
     m_algo    = INVALID_ALGO;
     m_variant = VARIANT_AUTO;
+
+    assert(algo != nullptr);
+    if (algo == nullptr) {
+        return;
+    }
 
     for (size_t i = 0; i < ARRAY_SIZE(xmrStakAlgorithms); i++) {
         if (strcasecmp(algo, xmrStakAlgorithms[i].name) == 0) {
