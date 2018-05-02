@@ -34,10 +34,10 @@
 #endif
 
 
+#include "common/log/ConsoleLog.h"
+#include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "log/ConsoleLog.h"
-#include "log/Log.h"
 
 
 ConsoleLog::ConsoleLog(xmrig::Controller *controller) :

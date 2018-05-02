@@ -80,6 +80,18 @@ private:
 };
 
 
+#define RED_BOLD(x)     "\e[1;31m" x "\e[0m"
+#define RED(x)          "\e[0;31m" x "\e[0m"
+#define GREEN_BOLD(x)   "\e[1;32m" x "\e[0m"
+#define GREEN(x)        "\e[0;32m" x "\e[0m"
+#define MAGENTA_BOLD(x) "\e[1;35m" x "\e[0m"
+#define MAGENTA(x)      "\e[0;35m" x "\e[0m"
+#define CYAN_BOLD(x)    "\e[1;36m" x "\e[0m"
+#define CYAN(x)         "\e[0;36m" x "\e[0m"
+#define WHITE_BOLD(x)   "\e[1;37m" x "\e[0m"
+#define WHITE(x)        "\e[0;37m" x "\e[0m"
+
+
 #define LOG_ERR(x, ...)    Log::i()->message(Log::ERR,     x, ##__VA_ARGS__)
 #define LOG_WARN(x, ...)   Log::i()->message(Log::WARNING, x, ##__VA_ARGS__)
 #define LOG_NOTICE(x, ...) Log::i()->message(Log::NOTICE,  x, ##__VA_ARGS__)

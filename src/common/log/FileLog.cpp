@@ -29,7 +29,7 @@
 #include <time.h>
 
 
-#include "log/FileLog.h"
+#include "common/log/FileLog.h"
 
 
 FileLog::FileLog(const char *fileName)

@@ -27,10 +27,10 @@
 #include <sys/mman.h>
 
 
+#include "common/log/Log.h"
 #include "common/utils/mm_malloc.h"
 #include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
-#include "log/Log.h"
 #include "Mem.h"
 
 

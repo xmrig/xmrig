@@ -27,9 +27,9 @@
 
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
+#include "common/log/Log.h"
 #include "core/ConfigCreator.h"
 #include "interfaces/IWatcherListener.h"
-#include "log/Log.h"
 
 
 xmrig::ConfigWatcher::ConfigWatcher(const char *path, IConfigCreator *creator, IWatcherListener *listener) :
@@ -83,7 +83,7 @@ void xmrig::ConfigWatcher::reload()
     IConfig *config = m_creator->create();
     ConfigLoader::loadFromFile(config, m_path.data());
 
-    if (!config->isValid()) {
+    if (!config->finalize()) {
         LOG_ERR("reloading failed");
 
         delete config;

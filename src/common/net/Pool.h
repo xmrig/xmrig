@@ -25,11 +25,12 @@
 #define __POOL_H__
 
 
-#include <stdint.h>
+#include <vector>
 
 
+#include "common/crypto/Algorithm.h"
 #include "common/utils/c_str.h"
-#include "common/xmrig.h"
+#include "rapidjson/fwd.h"
 
 
 class Pool
@@ -47,50 +48,58 @@ public:
         const char *user       = nullptr,
         const char *password   = nullptr,
         int keepAlive          = 0,
-        bool nicehash          = false,
-        xmrig::Variant variant = xmrig::VARIANT_AUTO
+        bool nicehash          = false
        );
 
-    static const char *algoName(xmrig::Algo algorithm);
-    static xmrig::Algo algorithm(const char *algo);
-
-    inline bool isNicehash() const                { return m_nicehash; }
-    inline bool isValid() const                   { return !m_host.isNull() && m_port > 0; }
-    inline const char *host() const               { return m_host.data(); }
-    inline const char *password() const           { return !m_password.isNull() ? m_password.data() : kDefaultPassword; }
-    inline const char *url() const                { return m_url.data(); }
-    inline const char *user() const               { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
-    inline int keepAlive() const                  { return m_keepAlive; }
-    inline uint16_t port() const                  { return m_port; }
-    inline void setKeepAlive(int keepAlive)       { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
-    inline void setNicehash(bool nicehash)        { m_nicehash = nicehash; }
-    inline void setPassword(const char *password) { m_password = password; }
-    inline void setUser(const char *user)         { m_user = user; }
-    inline xmrig::Algo algo() const               { return m_algo; }
-    inline xmrig::Variant variant() const         { return m_variant; }
+    inline bool isNicehash() const                     { return m_nicehash; }
+    inline bool isValid() const                        { return !m_host.isNull() && m_port > 0; }
+    inline const char *host() const                    { return m_host.data(); }
+    inline const char *password() const                { return !m_password.isNull() ? m_password.data() : kDefaultPassword; }
+    inline const char *rigId() const                   { return m_rigId.data(); }
+    inline const char *url() const                     { return m_url.data(); }
+    inline const char *user() const                    { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
+    inline const xmrig::Algorithm &algorithm() const   { return m_algorithm; }
+    inline const xmrig::Algorithms &algorithms() const { return m_algorithms; }
+    inline int keepAlive() const                       { return m_keepAlive; }
+    inline uint16_t port() const                       { return m_port; }
+    inline void setKeepAlive(int keepAlive)            { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
+    inline void setNicehash(bool nicehash)             { m_nicehash = nicehash; }
+    inline void setPassword(const char *password)      { m_password = password; }
+    inline void setRigId(const char *rigId)            { m_rigId = rigId; }
+    inline void setUser(const char *user)              { m_user = user; }
+    inline xmrig::Algorithm &algorithm()               { return m_algorithm; }
 
     inline bool operator!=(const Pool &other) const  { return !isEqual(other); }
     inline bool operator==(const Pool &other) const  { return isEqual(other); }
 
+    bool isCompatible(const xmrig::Algorithm &algorithm) const;
+    bool isEqual(const Pool &other) const;
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
-    void adjust(xmrig::Algo algo);
-    void setVariant(int variant);
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    void adjust(xmrig::Algo algorithm);
 
-    bool isEqual(const Pool &other) const;
+#   ifdef APP_DEBUG
+    void print() const;
+#   endif
 
 private:
     bool parseIPv6(const char *addr);
+    void addVariant(xmrig::Variant variant);
 
     bool m_nicehash;
     int m_keepAlive;
     uint16_t m_port;
-    xmrig::Algo m_algo;
+    xmrig::Algorithm m_algorithm;
+    xmrig::Algorithms m_algorithms;
     xmrig::c_str m_host;
     xmrig::c_str m_password;
+    xmrig::c_str m_rigId;
     xmrig::c_str m_url;
     xmrig::c_str m_user;
-    xmrig::Variant m_variant;
 };
+
+
+typedef std::vector<Pool> Pools;
 
 #endif /* __POOL_H__ */

@@ -21,44 +21,75 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SINGLEPOOLSTRATEGY_H__
-#define __SINGLEPOOLSTRATEGY_H__
+#ifndef __STORAGE_H__
+#define __STORAGE_H__
 
 
-#include "interfaces/IClientListener.h"
-#include "interfaces/IStrategy.h"
+#include <assert.h>
+#include <map>
 
 
-class Client;
-class IStrategyListener;
-class Url;
+namespace xmrig {
 
 
-class SinglePoolStrategy : public IStrategy, public IClientListener
+template <class TYPE>
+class Storage
 {
 public:
-    SinglePoolStrategy(const Pool &pool, int retryPause, IStrategyListener *listener, bool quiet = false);
-    ~SinglePoolStrategy();
+    inline Storage() :
+        m_counter(0)
+    {
+    }
 
-public:
-    inline bool isActive() const override  { return m_active; }
 
-    int64_t submit(const JobResult &result) override;
-    void connect() override;
-    void resume() override;
-    void stop() override;
-    void tick(uint64_t now) override;
+    inline uintptr_t add(TYPE *ptr)
+    {
+        m_data[m_counter] = ptr;
 
-protected:
-    void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job) override;
-    void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
+        return m_counter++;
+    }
+
+
+    inline static void *ptr(uintptr_t id) { return reinterpret_cast<void *>(id); }
+
+
+    inline TYPE *get(void *id) const { return get(reinterpret_cast<uintptr_t>(id)); }
+    inline TYPE *get(uintptr_t id) const
+    {
+        assert(m_data.count(id) > 0);
+
+        if (m_data.count(id) == 0) {
+            return nullptr;
+        }
+
+        return m_data.at(id);
+    }
+
+
+    inline void remove(void *id) { remove(reinterpret_cast<uintptr_t>(id)); }
+    inline void remove(uintptr_t id)
+    {
+        TYPE *obj = get(id);
+        if (obj == nullptr) {
+            return;
+        }
+
+        auto it = m_data.find(id);
+        if (it != m_data.end()) {
+            m_data.erase(it);
+        }
+
+        delete obj;
+    }
+
 
 private:
-    bool m_active;
-    Client *m_client;
-    IStrategyListener *m_listener;
+    std::map<uintptr_t, TYPE *> m_data;
+    uint64_t m_counter;
 };
 
-#endif /* __SINGLEPOOLSTRATEGY_H__ */
+
+} /* namespace xmrig */
+
+
+#endif /* __STORAGE_H__ */

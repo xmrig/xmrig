@@ -21,77 +21,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STORAGE_H__
-#define __STORAGE_H__
+
+#include "common/Console.h"
+#include "interfaces/IConsoleListener.h"
 
 
-#include <assert.h>
-#include <map>
-
-#include "log/Log.h"
-
-
-namespace xmrig {
-
-
-template <class TYPE>
-class Storage
+Console::Console(IConsoleListener *listener)
+    : m_listener(listener)
 {
-public:
-    inline Storage() :
-        m_counter(0)
-    {
+    m_tty.data = this;
+    uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
+
+    if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(&m_tty))) {
+        return;
     }
 
+    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
+    uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
+}
 
-    inline uintptr_t add(TYPE *ptr)
-    {
-        m_data[m_counter] = ptr;
 
-        return m_counter++;
+void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+{
+    auto console = static_cast<Console*>(handle->data);
+    buf->len  = 1;
+    buf->base = console->m_buf;
+}
+
+
+void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+{
+    if (nread < 0) {
+        return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);
     }
 
-
-    inline static void *ptr(uintptr_t id) { return reinterpret_cast<void *>(id); }
-
-
-    inline TYPE *get(void *id) const { return get(reinterpret_cast<uintptr_t>(id)); }
-    inline TYPE *get(uintptr_t id) const
-    {
-        assert(m_data.count(id) > 0);
-
-        if (m_data.count(id) == 0) {
-            return nullptr;
-        }
-
-        return m_data.at(id);
+    if (nread == 1) {
+        static_cast<Console*>(stream->data)->m_listener->onConsoleCommand(buf->base[0]);
     }
-
-
-    inline void remove(void *id) { remove(reinterpret_cast<uintptr_t>(id)); }
-    inline void remove(uintptr_t id)
-    {
-        TYPE *obj = get(id);
-        if (obj == nullptr) {
-            return;
-        }
-
-        auto it = m_data.find(id);
-        if (it != m_data.end()) {
-            m_data.erase(it);
-        }
-
-        delete obj;
-    }
-
-
-private:
-    std::map<uintptr_t, TYPE *> m_data;
-    uint64_t m_counter;
-};
-
-
-} /* namespace xmrig */
-
-
-#endif /* __STORAGE_H__ */
+}

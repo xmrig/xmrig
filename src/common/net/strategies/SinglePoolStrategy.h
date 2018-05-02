@@ -21,16 +21,12 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __FAILOVERSTRATEGY_H__
-#define __FAILOVERSTRATEGY_H__
-
-
-#include <vector>
+#ifndef __SINGLEPOOLSTRATEGY_H__
+#define __SINGLEPOOLSTRATEGY_H__
 
 
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
-#include "net/Pool.h"
 
 
 class Client;
@@ -38,14 +34,14 @@ class IStrategyListener;
 class Url;
 
 
-class FailoverStrategy : public IStrategy, public IClientListener
+class SinglePoolStrategy : public IStrategy, public IClientListener
 {
 public:
-    FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
-    ~FailoverStrategy();
+    SinglePoolStrategy(const Pool &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    ~SinglePoolStrategy();
 
 public:
-    inline bool isActive() const override  { return m_active >= 0; }
+    inline bool isActive() const override  { return m_active; }
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -60,15 +56,9 @@ protected:
     void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-    void add(const Pool &pool);
-
-    const bool m_quiet;
-    const int m_retries;
-    const int m_retryPause;
-    int m_active;
-    int m_index;
+    bool m_active;
+    Client *m_client;
     IStrategyListener *m_listener;
-    std::vector<Client*> m_pools;
 };
 
-#endif /* __FAILOVERSTRATEGY_H__ */
+#endif /* __SINGLEPOOLSTRATEGY_H__ */

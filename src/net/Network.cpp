@@ -31,16 +31,16 @@
 
 
 #include "api/Api.h"
-#include "log/Log.h"
-#include "net/Client.h"
+#include "common/log/Log.h"
+#include "common/net/Client.h"
+#include "common/net/strategies/FailoverStrategy.h"
+#include "common/net/strategies/SinglePoolStrategy.h"
+#include "common/net/SubmitResult.h"
+#include "core/Config.h"
+#include "core/Controller.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
-#include "net/strategies/FailoverStrategy.h"
-#include "net/strategies/SinglePoolStrategy.h"
-#include "net/SubmitResult.h"
 #include "workers/Workers.h"
-#include "core/Controller.h"
-#include "core/Config.h"
 
 
 Network::Network(xmrig::Controller *controller) :
@@ -57,11 +57,11 @@ Network::Network(xmrig::Controller *controller) :
         m_strategy = new FailoverStrategy(pools, controller->config()->retryPause(), controller->config()->retries(), this);
     }
     else {
-        m_strategy = new SinglePoolStrategy(pools.front(), controller->config()->retryPause(), this);
+        m_strategy = new SinglePoolStrategy(pools.front(), controller->config()->retryPause(), controller->config()->retries(), this);
     }
 
     if (controller->config()->donateLevel() > 0) {
-        m_donate = new DonateStrategy(controller->config()->donateLevel(), controller->config()->pools().front().user(), controller->config()->algorithm(), this);
+        m_donate = new DonateStrategy(controller->config()->donateLevel(), controller->config()->pools().front().user(), controller->config()->algorithm().algo(), this);
     }
 
     m_timer.data = this;
@@ -166,12 +166,9 @@ bool Network::isColors() const
 
 void Network::setJob(Client *client, const Job &job, bool donate)
 {
-    if (isColors()) {
-        LOG_INFO("\x1B[01;35mnew job\x1B[0m from \x1B[01;37m%s:%d\x1B[0m diff \x1B[01;37m%d", client->host(), client->port(), job.diff());
-    }
-    else {
-        LOG_INFO("new job from %s:%d diff %d", client->host(), client->port(), job.diff());
-    }
+    LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s")
+                        : "new job from %s:%d diff %d algo %s",
+             client->host(), client->port(), job.diff(), job.algorithm().shortName());
 
     m_state.diff = job.diff();
     Workers::setJob(job, donate);

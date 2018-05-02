@@ -22,40 +22,26 @@
  */
 
 
-#include "Console.h"
-#include "interfaces/IConsoleListener.h"
+#include <syslog.h>
 
 
-Console::Console(IConsoleListener *listener)
-    : m_listener(listener)
+#include "common/log/SysLog.h"
+#include "version.h"
+
+
+SysLog::SysLog()
 {
-    m_tty.data = this;
-    uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
-
-    if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(&m_tty))) {
-        return;
-    }
-
-    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
-    uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
+    openlog(APP_ID, LOG_PID, LOG_USER);
 }
 
 
-void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+void SysLog::message(int level, const char *fmt, va_list args)
 {
-    auto console = static_cast<Console*>(handle->data);
-    buf->len  = 1;
-    buf->base = console->m_buf;
+    vsyslog(level, fmt, args);
 }
 
 
-void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+void SysLog::text(const char *fmt, va_list args)
 {
-    if (nread < 0) {
-        return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);
-    }
-
-    if (nread == 1) {
-        static_cast<Console*>(stream->data)->m_listener->onConsoleCommand(buf->base[0]);
-    }
+    message(LOG_INFO, fmt, args);
 }

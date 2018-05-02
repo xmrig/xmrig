@@ -30,7 +30,7 @@
 #include <uv.h>
 #include <vector>
 
-#include "net/Job.h"
+#include "common/net/Job.h"
 #include "net/JobResult.h"
 #include "rapidjson/fwd.h"
 

@@ -21,18 +21,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DONATESTRATEGY_H__
-#define __DONATESTRATEGY_H__
+#ifndef __FAILOVERSTRATEGY_H__
+#define __FAILOVERSTRATEGY_H__
 
 
-#include <uv.h>
 #include <vector>
 
 
 #include "common/net/Pool.h"
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
-#include "interfaces/IStrategyListener.h"
 
 
 class Client;
@@ -40,40 +38,37 @@ class IStrategyListener;
 class Url;
 
 
-class DonateStrategy : public IStrategy, public IStrategyListener
+class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-    DonateStrategy(int level, const char *user, xmrig::Algo algo, IStrategyListener *listener);
-    ~DonateStrategy();
+    FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    ~FailoverStrategy();
 
 public:
-    inline bool isActive() const override  { return m_active; }
-    inline void resume() override          {}
+    inline bool isActive() const override  { return m_active >= 0; }
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
+    void resume() override;
     void stop() override;
     void tick(uint64_t now) override;
 
 protected:
-    void onActive(IStrategy *strategy, Client *client) override;
-    void onJob(IStrategy *strategy, Client *client, const Job &job) override;
-    void onPause(IStrategy *strategy) override;
-    void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
+    void onClose(Client *client, int failures) override;
+    void onJobReceived(Client *client, const Job &job) override;
+    void onLoginSuccess(Client *client) override;
+    void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-    void idle(uint64_t timeout);
-    void suspend();
+    void add(const Pool &pool);
 
-    static void onTimer(uv_timer_t *handle);
-
-    bool m_active;
-    const int m_donateTime;
-    const int m_idleTime;
-    IStrategy *m_strategy;
+    const bool m_quiet;
+    const int m_retries;
+    const int m_retryPause;
+    int m_active;
+    int m_index;
     IStrategyListener *m_listener;
-    std::vector<Pool> m_pools;
-    uv_timer_t m_timer;
+    std::vector<Client*> m_pools;
 };
 
-#endif /* __DONATESTRATEGY_H__ */
+#endif /* __FAILOVERSTRATEGY_H__ */

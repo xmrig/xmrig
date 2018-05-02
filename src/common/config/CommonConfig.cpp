@@ -30,16 +30,14 @@
 
 
 #include "common/config/CommonConfig.h"
+#include "common/log/Log.h"
 #include "donate.h"
-#include "log/Log.h"
-#include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 
 
 xmrig::CommonConfig::CommonConfig() :
-    m_algorithm(CRYPTONIGHT),
     m_adjusted(false),
     m_apiIPv6(false),
     m_apiRestricted(true),
@@ -57,7 +55,8 @@ xmrig::CommonConfig::CommonConfig() :
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
     m_retries(5),
-    m_retryPause(5)
+    m_retryPause(5),
+    m_state(NoneState)
 {
     m_pools.push_back(Pool());
 
@@ -73,25 +72,37 @@ xmrig::CommonConfig::~CommonConfig()
 }
 
 
-bool xmrig::CommonConfig::adjust()
+bool xmrig::CommonConfig::finalize()
 {
-    if (m_adjusted) {
+    if (m_state == ReadyState) {
+        return true;
+    }
+
+    if (m_state == ErrorState) {
         return false;
     }
 
-    m_adjusted = true;
-
-    for (Pool &pool : m_pools) {
-        pool.adjust(algorithm());
+    if (!m_algorithm.isValid()) {
+        m_algorithm.setAlgo(CRYPTONIGHT);
     }
 
+    for (Pool &pool : m_pools) {
+        pool.adjust(m_algorithm.algo());
+
+        if (pool.isValid() && pool.algorithm().isValid()) {
+            m_activePools.push_back(std::move(pool));
+        }
+    }
+
+    m_pools.clear();
+
+    if (m_activePools.empty()) {
+        m_state = ErrorState;
+        return false;
+    }
+
+    m_state = ReadyState;
     return true;
-}
-
-
-bool xmrig::CommonConfig::isValid() const
-{
-    return m_pools[0].isValid() && m_algorithm != INVALID_ALGO;
 }
 
 
@@ -142,7 +153,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
 {
     switch (key) {
     case AlgorithmKey: /* --algo */
-        setAlgo(arg);
+        m_algorithm.parseAlgorithm(arg);
         break;
 
     case UserpassKey: /* --userpass */
@@ -178,6 +189,14 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_pools.back().setPassword(arg);
         break;
 
+    case RigIdKey: /* --rig-id */
+        m_pools.back().setRigId(arg);
+        break;
+
+    case VariantKey: /* --variant */
+        m_pools.back().algorithm().parseVariant(arg);
+        break;
+
     case LogFileKey: /* --log-file */
         m_logFile = arg;
         break;
@@ -196,7 +215,6 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
 
     case RetriesKey:     /* --retries */
     case RetryPauseKey:  /* --retry-pause */
-    case VariantKey:     /* --variant */
     case ApiPort:        /* --api-port */
     case PrintTimeKey:   /* --cpu-priority */
         return parseUint64(key, strtol(arg, nullptr, 10));
@@ -205,7 +223,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case SyslogKey:     /* --syslog */
     case KeepAliveKey:  /* --keepalive */
     case NicehashKey:   /* --nicehash */
-    case ApiIPv6Key:       /* --api-ipv6 */
+    case ApiIPv6Key:    /* --api-ipv6 */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
@@ -296,7 +314,7 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         break;
 
     case VariantKey: /* --variant */
-        m_pools.back().setVariant(arg);
+        m_pools.back().algorithm().parseVariant(arg);
         break;
 
     case DonateLevelKey: /* --donate-level */
@@ -322,10 +340,4 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     }
 
     return true;
-}
-
-
-void xmrig::CommonConfig::setAlgo(const char *algo)
-{
-    m_algorithm = Pool::algorithm(algo);
 }

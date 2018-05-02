@@ -88,7 +88,7 @@ public:
     static Config *load(int argc, char **argv, IWatcherListener *listener);
 
 protected:
-    bool adjust() override;
+    bool finalize() override;
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
