@@ -239,6 +239,7 @@ void Pool::adjust(xmrig::Algo algorithm)
 
     m_algorithms.push_back(m_algorithm);
 
+#   ifndef XMRIG_PROXY_PROJECT
     if (m_algorithm.algo() != xmrig::CRYPTONIGHT_HEAVY) {
         addVariant(xmrig::VARIANT_1);
         addVariant(xmrig::VARIANT_0);
@@ -246,6 +247,7 @@ void Pool::adjust(xmrig::Algo algorithm)
         addVariant(xmrig::VARIANT_IPBC);
         addVariant(xmrig::VARIANT_AUTO);
     }
+#   endif
 }
 
 
