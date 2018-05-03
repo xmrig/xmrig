@@ -221,6 +221,12 @@ void Pool::adjust(xmrig::Algo algorithm)
 
     if (!m_algorithm.isValid()) {
         m_algorithm.setAlgo(algorithm);
+
+        if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
+            if (algorithm == xmrig::CRYPTONIGHT)  {
+                m_algorithm.setVariant(xmrig::VARIANT_1);
+            }
+        }
     }
 
     if (strstr(m_host.data(), ".nicehash.com")) {
