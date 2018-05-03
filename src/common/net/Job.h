@@ -43,6 +43,7 @@ public:
 
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
+    xmrig::Variant variant() const;
 
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
@@ -63,11 +64,6 @@ public:
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
     inline void setThreadId(int threadId)             { m_threadId = threadId; }
     inline xmrig::Algorithm &algorithm()              { return m_algorithm; }
-
-    inline xmrig::Variant variant() const
-    {
-        return (m_algorithm.variant() == xmrig::VARIANT_AUTO ? (m_blob[0] > 6 ? xmrig::VARIANT_1 : xmrig::VARIANT_0) : m_algorithm.variant());
-    }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                 { return m_rawBlob; }
