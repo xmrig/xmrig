@@ -162,10 +162,10 @@ bool xmrig::Config::finalize()
         return true;
     }
 
-    m_algoVariant  = getAlgoVariant();
+    const AlgoVariant av = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const size_t size = CpuThread::multiway(m_algoVariant) * cn_select_memory(m_algorithm.algo()) / 1024;
+    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
 
     if (!m_threads.count) {
         m_threads.count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
@@ -178,7 +178,7 @@ bool xmrig::Config::finalize()
     }
 
     for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), m_algoVariant, m_threads.mask, m_priority));
+        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority));
     }
 
     return true;
