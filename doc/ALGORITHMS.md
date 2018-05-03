@@ -27,8 +27,9 @@ For `cryptonight-heavy` currently no variants.
 You mine **Sumokoin** or **Haven Protocol**?
 Your algorithm is `cryptonight-heavy` no variant option need.
 
-You mine **Aeon**, **TurtleCoin** or **IPBC**?.
+You mine **Aeon**, **TurtleCoin** or **IPBC**?
 Your base algorithm is `cryptonight-lite`:
+
 Variants:
  * Aeon: `-1` autodetect. `0` right now, `1` after fork.
  * TurtleCoin: `1`.
