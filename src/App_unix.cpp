@@ -29,20 +29,16 @@
 
 
 #include "App.h"
-#include "Cpu.h"
-#include "log/Log.h"
-#include "Options.h"
+#include "common/log/Log.h"
+#include "core/Config.h"
+#include "core/Controller.h"
 
 
 void App::background()
 {
     signal(SIGPIPE, SIG_IGN);
 
-    if (m_options->affinity() != -1L) {
-        Cpu::setAffinity(-1, m_options->affinity());
-    }
-
-    if (!m_options->background()) {
+    if (!m_controller->config()->isBackground()) {
         return;
     }
 

@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,26 +26,27 @@
 #include <math.h>
 #include <string.h>
 
+
 #include "Cpu.h"
 
 
-bool Cpu::m_l2_exclusive = false;
-char Cpu::m_brand[64]    = { 0 };
-int Cpu::m_flags         = 0;
-int Cpu::m_l2_cache      = 0;
-int Cpu::m_l3_cache      = 0;
-int Cpu::m_sockets       = 1;
-int Cpu::m_totalCores    = 0;
-int Cpu::m_totalThreads  = 0;
+bool Cpu::m_l2_exclusive    = false;
+char Cpu::m_brand[64]       = { 0 };
+int Cpu::m_flags            = 0;
+int Cpu::m_l2_cache         = 0;
+int Cpu::m_l3_cache         = 0;
+int Cpu::m_sockets          = 1;
+int Cpu::m_totalCores       = 0;
+size_t Cpu::m_totalThreads  = 0;
 
 
-int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
+size_t Cpu::optimalThreadsCount(size_t size, int maxCpuUsage)
 {
     if (m_totalThreads == 1) {
         return 1;
     }
 
-    int cache = 0;
+    size_t cache = 0;
     if (m_l3_cache) {
         cache = m_l2_exclusive ? (m_l2_cache + m_l3_cache) : m_l3_cache;
     }
@@ -53,11 +54,14 @@ int Cpu::optimalThreadsCount(int algo, bool doubleHash, int maxCpuUsage)
         cache = m_l2_cache;
     }
 
-    int count = 0;
-    const int size = (algo ? 1024 : 2048) * (doubleHash ? 2 : 1);
+    size_t count = 0;
 
     if (cache) {
         count = cache / size;
+
+        if (cache % size >= size / 2) {
+            count++;
+        }
     }
     else {
         count = m_totalThreads / 2;

@@ -39,14 +39,3 @@ void Cpu::init()
 
     initCommon();
 }
-
-
-void Cpu::setAffinity(int id, uint64_t mask)
-{
-    if (id == -1) {
-        SetProcessAffinityMask(GetCurrentProcess(), mask);
-    }
-    else {
-        SetThreadAffinityMask(GetCurrentThread(), mask);
-    }
-}

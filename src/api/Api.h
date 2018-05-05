@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,24 +28,29 @@
 #include <uv.h>
 
 
-class ApiState;
+class ApiRouter;
 class Hashrate;
 class NetworkState;
+
+
+namespace xmrig {
+    class Controller;
+    class HttpReply;
+    class HttpRequest;
+}
 
 
 class Api
 {
 public:
-    static bool start();
+    static bool start(xmrig::Controller *controller);
     static void release();
 
-    static char *get(const char *url, int *status);
-    static void tick(const Hashrate *hashrate);
+    static void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
     static void tick(const NetworkState &results);
 
 private:
-    static ApiState *m_state;
-    static uv_mutex_t m_mutex;
+    static ApiRouter *m_router;
 };
 
 #endif /* __API_H__ */

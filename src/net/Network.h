@@ -35,14 +35,18 @@
 
 
 class IStrategy;
-class Options;
 class Url;
+
+
+namespace xmrig {
+    class Controller;
+}
 
 
 class Network : public IJobResultListener, public IStrategyListener
 {
 public:
-  Network(const Options *options);
+  Network(xmrig::Controller *controller);
   ~Network();
 
   void connect();
@@ -58,16 +62,17 @@ protected:
 private:
   constexpr static int kTickInterval = 1 * 1000;
 
+  bool isColors() const;
   void setJob(Client *client, const Job &job, bool donate);
   void tick();
 
   static void onTick(uv_timer_t *handle);
 
-  const Options *m_options;
   IStrategy *m_donate;
   IStrategy *m_strategy;
   NetworkState m_state;
   uv_timer_t m_timer;
+  xmrig::Controller *m_controller;
 };
 
 

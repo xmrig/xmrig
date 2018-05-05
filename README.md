@@ -1,6 +1,6 @@
 # XMRig
 
-:warning: **If you mine Monero, Aeon, Sumokoin, Turtlecoin, Stellite, GRAFT, Haven Protocol, IPBC, [PLEASE READ](https://github.com/xmrig/xmrig/issues/482)!** :warning:
+:warning: **You must update miners to version 2.5 before April 6 due [Monero PoW change](https://getmonero.org/2018/02/11/PoW-change-and-key-reuse.html).**
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
@@ -124,10 +124,10 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Release checksums
 ### SHA-256
 ```
-5ae25d05b7735dd6e2482e8dba0cf0f5d10f9738855c4ad4eaf449b8ccd2e5be xmrig-2.5.3-xenial-amd64.tar.gz/xmrig-2.5.3/xmrig
-f11f3b381425ca4181c425d5b693407431f964759bb903f66b7cd2345fcdd786 xmrig-2.5.3-gcc-win32.zip/xmrig.exe
-67df8b89714e2921931092861361dbae4716c4ab872c767c92adae24dca01514 xmrig-2.5.3-gcc-win64.zip/xmrig.exe
-52bf6e0ef72c84282f4df411125384444c521ed9143e5d8c7e7e445d7d55e143 xmrig-2.5.3-msvc-win64.zip/xmrig.exe
+6b32fefb356b27caa2180be17755d09639f0654096a1a0c61e8f10f4f2ac1626 xmrig-2.6.0-beta3-xenial-amd64.tar.gz/xmrig-2.6.0-beta3/xmrig
+c8b40f4d7aac9d0cc7c3d02cadeac91b0bdb034aae2fb6b415d503272eabb987 xmrig-2.6.0-beta3-gcc-win32.zip/xmrig.exe
+32cf7958f97a23296186e38a4addb9cf234adcbd9c7914b15e4209a87fe272e7 xmrig-2.6.0-beta3-gcc-win64.zip/xmrig.exe
+4f176ee4c4be52701edc0d573cf9647c4aacbb4ff14975b80b98e6fe63068542 xmrig-2.6.0-beta3-msvc-win64.zip/xmrig.exe
 ```
 
 ## Contacts

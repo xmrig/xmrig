@@ -1,3 +1,37 @@
+# v2.6.1-beta
+ - [#168](https://github.com/xmrig/xmrig-proxy/issues/168) Added support for [mining algorithm negotiation](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#1-mining-algorithm-negotiation).
+ - Added IPBC coin support, base algorithm `cn-lite` variant `ipbc`.
+ - [#581](https://github.com/xmrig/xmrig/issues/581) Added support for upcoming Stellite (XTL) fork, base algorithm `cn` variant `xtl`, variant can set now, no need do it after fork.
+ - Added support for **rig-id** stratum protocol extensions, compatible with xmr-stak.
+ - Changed behavior for option `variant=-1` for `cryptonight`, now variant is `1` by default, if you mine old coins need change `variant` to `0`.
+ - A lot of small fixes and better unification with proxy code.
+
+# v2.6.0-beta3
+- [#563](https://github.com/xmrig/xmrig/issues/563) **Added [advanced threads mode](https://github.com/xmrig/xmrig/issues/563), now possible configure each thread individually.**
+- [#255](https://github.com/xmrig/xmrig/issues/563) Low power mode extended to **triple**, **quard** and **penta** modes.
+- [#519](https://github.com/xmrig/xmrig/issues/519) Fixed high donation levels, improved donation start time randomization.
+- [#554](https://github.com/xmrig/xmrig/issues/554) Fixed regression with `print-time` option.
+
+# v2.6.0-beta2
+- Improved performance for `cryptonight v7` especially in double hash mode.
+- [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 disabled for internal HTTP API by default, was causing issues on some systems.
+- Added short aliases for algorithm names: `cn`, `cn-lite` and `cn-heavy`.
+- Fixed regressions (v2.6.0-beta1 affected)
+  - [#494](https://github.com/xmrig/xmrig/issues/494) Command line option `--donate-level` was broken.
+  - [#502](https://github.com/xmrig/xmrig/issues/502) Build without libmicrohttpd was broken.
+  - Fixed nonce calculation for `--av 4` (software AES, double hash) was causing reduction of effective hashrate and rejected shares on nicehash.
+
+# v2.6.0-beta1
+ - [#476](https://github.com/xmrig/xmrig/issues/476) **Added Cryptonight-Heavy support for Sumokoin ASIC resistance fork.**
+ - HTTP server now runs in main loop, it make possible easy extend API without worry about thread synchronization.
+ - Added initial graceful reload support, miner will reload configuration if config file changed, disabled by default until it will be fully implemented and tested.
+ - Added API endpoint `PUT /1/config` to update current config.
+ - Added API endpoint `GET /1/config` to get current active config.
+ - Added API endpoint `GET /1/threads` to get current active threads configuration.
+ - API endpoint `GET /` now deprecated, use `GET /1/summary` instead.
+ - Added `--api-no-ipv6` and similar config option to disable IPv6 support for HTTP API.
+ - Added `--api-no-restricted` to enable full access to api, this option has no effect if `--api-access-token` not specified.
+
 # v2.5.3
 - Fixed critical bug, in some cases miner was can't recovery connection and switch to failover pool, version 2.5.2 affected. If you use v2.6.0-beta3 this issue doesn't concern you.
 - [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 support disabled for internal HTTP API.

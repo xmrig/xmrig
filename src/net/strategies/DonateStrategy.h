@@ -29,6 +29,7 @@
 #include <vector>
 
 
+#include "common/net/Pool.h"
 #include "interfaces/IClientListener.h"
 #include "interfaces/IStrategy.h"
 #include "interfaces/IStrategyListener.h"
@@ -42,7 +43,7 @@ class Url;
 class DonateStrategy : public IStrategy, public IStrategyListener
 {
 public:
-    DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener);
+    DonateStrategy(int level, const char *user, xmrig::Algo algo, IStrategyListener *listener);
     ~DonateStrategy();
 
 public:
@@ -71,7 +72,7 @@ private:
     const int m_idleTime;
     IStrategy *m_strategy;
     IStrategyListener *m_listener;
-    std::vector<Url*> m_pools;
+    std::vector<Pool> m_pools;
     uv_timer_t m_timer;
 };
 

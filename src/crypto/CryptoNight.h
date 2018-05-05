@@ -30,35 +30,10 @@
 #include <stdint.h>
 
 
-#define AEON_MEMORY   1048576
-#define AEON_MASK     0xFFFF0
-#define AEON_ITER     0x40000
-
-#define MONERO_MEMORY 2097152
-#define MONERO_MASK   0x1FFFF0
-#define MONERO_ITER   0x80000
-
-
 struct cryptonight_ctx {
-    alignas(16) uint8_t state0[200];
-    alignas(16) uint8_t state1[200];
+    alignas(16) uint8_t state[200];
     alignas(16) uint8_t* memory;
 };
 
-
-class Job;
-class JobResult;
-
-
-class CryptoNight
-{
-public:
-    static bool hash(const Job &job, JobResult &result, cryptonight_ctx *ctx);
-    static bool init(int algo, int variant);
-    static void hash(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx *ctx, int variant);
-
-private:
-    static bool selfTest(int algo);
-};
 
 #endif /* __CRYPTONIGHT_H__ */
