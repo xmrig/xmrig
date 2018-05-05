@@ -1,4 +1,4 @@
-# v2.6.1-beta
+# v2.6.1
  - [#168](https://github.com/xmrig/xmrig-proxy/issues/168) Added support for [mining algorithm negotiation](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#1-mining-algorithm-negotiation).
  - Added IPBC coin support, base algorithm `cn-lite` variant `ipbc`.
  - [#581](https://github.com/xmrig/xmrig/issues/581) Added support for upcoming Stellite (XTL) fork, base algorithm `cn` variant `xtl`, variant can set now, no need do it after fork.
