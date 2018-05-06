@@ -91,6 +91,10 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
 
 bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
 {
+    if (m_algorithms.empty()) {
+        return true;
+    }
+
     for (const auto &a : m_algorithms) {
         if (algorithm == a) {
             return true;
