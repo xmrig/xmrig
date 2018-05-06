@@ -1,3 +1,7 @@
+# v2.6.2
+ - [#607](https://github.com/xmrig/xmrig/issues/607) Fixed donation bug.
+ - [#610](https://github.com/xmrig/xmrig/issues/610) Fixed ARM build.
+
 # v2.6.1
  - [#168](https://github.com/xmrig/xmrig-proxy/issues/168) Added support for [mining algorithm negotiation](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#1-mining-algorithm-negotiation).
  - Added IPBC coin support, base algorithm `cn-lite` variant `ipbc`.
