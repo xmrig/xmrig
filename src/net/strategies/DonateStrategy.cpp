@@ -22,19 +22,15 @@
  */
 
 
+#include "common/crypto/keccak.h"
+#include "common/net/Client.h"
+#include "common/net/Job.h"
+#include "common/net/strategies/FailoverStrategy.h"
+#include "common/net/strategies/SinglePoolStrategy.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
 #include "interfaces/IStrategyListener.h"
-#include "net/Client.h"
-#include "net/Job.h"
 #include "net/strategies/DonateStrategy.h"
-#include "net/strategies/FailoverStrategy.h"
-
-
-extern "C"
-{
-#include "crypto/c_keccak.h"
-}
 
 
 const static char *kDonatePool1   = "miner.fee.xmrig.com";
@@ -46,7 +42,7 @@ static inline float randomf(float min, float max) {
 }
 
 
-DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyListener *listener) :
+DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IStrategyListener *listener) :
     m_active(false),
     m_donateTime(level * 60 * 1000),
     m_idleTime((100 - level) * 60 * 1000),
@@ -56,7 +52,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyL
     uint8_t hash[200];
     char userId[65] = { 0 };
 
-    keccak(reinterpret_cast<const uint8_t *>(user), static_cast<int>(strlen(user)), hash, sizeof(hash));
+    xmrig::keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
     Job::toHex(hash, 32, userId);
 
     if (algo == xmrig::CRYPTONIGHT) {
@@ -66,14 +62,21 @@ DonateStrategy::DonateStrategy(int level, const char *user, int algo, IStrategyL
     }
     else if (algo == xmrig::CRYPTONIGHT_HEAVY) {
         m_pools.push_back(Pool(kDonatePool1, 8888, userId, nullptr, false, true));
-        m_pools.push_back(Pool(kDonatePool1, 8889, userId, nullptr, false, true));
     }
     else {
         m_pools.push_back(Pool(kDonatePool1, 5555, userId, nullptr, false, true));
-        m_pools.push_back(Pool(kDonatePool1, 7777, userId, nullptr, false, true));
     }
 
-    m_strategy = new FailoverStrategy(m_pools, 1, 1, this, true);
+    for (Pool &pool : m_pools) {
+        pool.algorithm().setAlgo(algo);
+    }
+
+    if (m_pools.size() > 1) {
+        m_strategy = new FailoverStrategy(m_pools, 1, 2, this, true);
+    }
+    else {
+        m_strategy = new SinglePoolStrategy(m_pools.front(), 1, 2, this, true);
+    }
 
     m_timer.data = this;
     uv_timer_init(uv_default_loop(), &m_timer);

@@ -1,3 +1,11 @@
+# v2.6.1
+ - [#168](https://github.com/xmrig/xmrig-proxy/issues/168) Added support for [mining algorithm negotiation](https://github.com/xmrig/xmrig-proxy/blob/dev/doc/STRATUM_EXT.md#1-mining-algorithm-negotiation).
+ - Added IPBC coin support, base algorithm `cn-lite` variant `ipbc`.
+ - [#581](https://github.com/xmrig/xmrig/issues/581) Added support for upcoming Stellite (XTL) fork, base algorithm `cn` variant `xtl`, variant can set now, no need do it after fork.
+ - Added support for **rig-id** stratum protocol extensions, compatible with xmr-stak.
+ - Changed behavior for option `variant=-1` for `cryptonight`, now variant is `1` by default, if you mine old coins need change `variant` to `0`.
+ - A lot of small fixes and better unification with proxy code.
+
 # v2.6.0-beta3
 - [#563](https://github.com/xmrig/xmrig/issues/563) **Added [advanced threads mode](https://github.com/xmrig/xmrig/issues/563), now possible configure each thread individually.**
 - [#255](https://github.com/xmrig/xmrig/issues/563) Low power mode extended to **triple**, **quard** and **penta** modes.
@@ -23,6 +31,11 @@
  - API endpoint `GET /` now deprecated, use `GET /1/summary` instead.
  - Added `--api-no-ipv6` and similar config option to disable IPv6 support for HTTP API.
  - Added `--api-no-restricted` to enable full access to api, this option has no effect if `--api-access-token` not specified.
+
+# v2.5.3
+- Fixed critical bug, in some cases miner was can't recovery connection and switch to failover pool, version 2.5.2 affected. If you use v2.6.0-beta3 this issue doesn't concern you.
+- [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 support disabled for internal HTTP API.
+- Added workaround for nicehash.com if you use `cryptonightv7.<region>.nicehash.com` option `variant=1` will be set automatically.
 
 # v2.5.2
 - [#448](https://github.com/xmrig/xmrig/issues/478) Fixed broken reconnect.

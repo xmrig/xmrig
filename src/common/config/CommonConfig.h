@@ -28,10 +28,10 @@
 #include <vector>
 
 
+#include "common/net/Pool.h"
 #include "common/utils/c_str.h"
 #include "common/xmrig.h"
 #include "interfaces/IConfig.h"
-#include "net/Pool.h"
 
 
 namespace xmrig {
@@ -43,18 +43,17 @@ public:
     CommonConfig();
     ~CommonConfig();
 
-    inline Algo algorithm() const                  { return m_algorithm; }
     inline bool isApiIPv6() const                  { return m_apiIPv6; }
     inline bool isApiRestricted() const            { return m_apiRestricted; }
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
     inline bool isSyslog() const                   { return m_syslog; }
-    inline const char *algoName() const            { return Pool::algoName(m_algorithm); }
+    inline const Algorithm &algorithm() const      { return m_algorithm; }
     inline const char *apiToken() const            { return m_apiToken.data(); }
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
     inline const char *logFile() const             { return m_logFile.data(); }
     inline const char *userAgent() const           { return m_userAgent.data(); }
-    inline const std::vector<Pool> &pools() const  { return m_pools; }
+    inline const std::vector<Pool> &pools() const  { return m_activePools; }
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
@@ -66,15 +65,20 @@ public:
     inline const char *fileName() const override   { return m_fileName.data(); }
 
 protected:
-    bool adjust() override;
-    bool isValid() const override;
+    enum State {
+        NoneState,
+        ReadyState,
+        ErrorState
+    };
+
+    bool finalize() override;
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
     bool save() override;
     void setFileName(const char *fileName) override;
 
-    Algo m_algorithm;
+    Algorithm m_algorithm;
     bool m_adjusted;
     bool m_apiIPv6;
     bool m_apiRestricted;
@@ -87,6 +91,8 @@ protected:
     int m_printTime;
     int m_retries;
     int m_retryPause;
+    State m_state;
+    std::vector<Pool> m_activePools;
     std::vector<Pool> m_pools;
     xmrig::c_str m_apiToken;
     xmrig::c_str m_apiWorkerId;
@@ -96,7 +102,6 @@ protected:
 
 private:
     bool parseInt(int key, int arg);
-    void setAlgo(const char *algo);
 };
 
 

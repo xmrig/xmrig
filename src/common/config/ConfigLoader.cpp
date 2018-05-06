@@ -34,12 +34,12 @@
 
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
+#include "common/net/Pool.h"
 #include "common/Platform.h"
 #include "core/ConfigCreator.h"
 #include "core/ConfigLoader_platform.h"
 #include "interfaces/IConfig.h"
 #include "interfaces/IWatcherListener.h"
-#include "net/Pool.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
@@ -108,9 +108,8 @@ bool xmrig::ConfigLoader::loadFromJSON(xmrig::IConfig *config, const rapidjson::
     }
 
     config->parseJSON(doc);
-    config->adjust();
 
-    return config->isValid();
+    return config->finalize();
 }
 
 
@@ -163,11 +162,14 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
         return nullptr;
     }
 
-    if (!config->isValid()) {
+    if (!config->finalize()) {
+        delete config;
+
+        config = m_creator->create();
         loadFromFile(config, Platform::defaultConfigName());
     }
 
-    if (!config->isValid()) {
+    if (!config->finalize()) {
         fprintf(stderr, "No valid configuration found. Exiting.\n");
         delete config;
         return nullptr;
@@ -177,7 +179,6 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
         m_watcher = new xmrig::ConfigWatcher(config->fileName(), creator, listener);
     }
 
-    config->adjust();
     return config;
 }
 

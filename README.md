@@ -1,7 +1,5 @@
 # XMRig
 
-:warning: **You must update miners to version 2.5 before April 6 due [Monero PoW change](https://getmonero.org/2018/02/11/PoW-change-and-key-reuse.html).**
-
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/releases)
@@ -124,10 +122,10 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Release checksums
 ### SHA-256
 ```
-6b32fefb356b27caa2180be17755d09639f0654096a1a0c61e8f10f4f2ac1626 xmrig-2.6.0-beta3-xenial-amd64.tar.gz/xmrig-2.6.0-beta3/xmrig
-c8b40f4d7aac9d0cc7c3d02cadeac91b0bdb034aae2fb6b415d503272eabb987 xmrig-2.6.0-beta3-gcc-win32.zip/xmrig.exe
-32cf7958f97a23296186e38a4addb9cf234adcbd9c7914b15e4209a87fe272e7 xmrig-2.6.0-beta3-gcc-win64.zip/xmrig.exe
-4f176ee4c4be52701edc0d573cf9647c4aacbb4ff14975b80b98e6fe63068542 xmrig-2.6.0-beta3-msvc-win64.zip/xmrig.exe
+ca60d04204aa3195e8cd72887c7deced1a7c664e538256f138b5698d381ceb00 xmrig-2.6.2-xenial-amd64.tar.gz/xmrig-2.6.2/xmrig
+49dc64eeecdbfffb452ad3cd7a0118d8640208b0b898b2901464d0be6183c169 xmrig-2.6.2-gcc-win32.zip/xmrig.exe
+56141544ac6d03565909b3043fab104bf40cadb32d53a12d821e1328bc50f087 xmrig-2.6.2-gcc-win64.zip/xmrig.exe
+24661a8807f4b991c79e587e846aaea589720ed84d79afb41d14709a6fb908ce xmrig-2.6.2-msvc-win64.zip/xmrig.exe
 ```
 
 ## Contacts

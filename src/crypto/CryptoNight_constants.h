@@ -53,6 +53,7 @@ template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT>()       { retur
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_MEMORY; }
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_MEMORY; }
 
+
 inline size_t cn_select_memory(Algo algorithm)
 {
     switch(algorithm)
@@ -79,6 +80,7 @@ template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT>()       { retur
 template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_MASK; }
 template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_MASK; }
 
+
 inline uint32_t cn_select_mask(Algo algorithm)
 {
     switch(algorithm)
@@ -104,6 +106,7 @@ template<Algo ALGO> inline constexpr uint32_t cn_select_iter()           { retur
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT>()       { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_ITER; }
+
 
 inline uint32_t cn_select_iter(Algo algorithm)
 {

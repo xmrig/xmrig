@@ -35,25 +35,20 @@
 #include "api/ApiRouter.h"
 #include "common/api/HttpReply.h"
 #include "common/api/HttpRequest.h"
+#include "common/crypto/keccak.h"
+#include "common/net/Job.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"
 #include "interfaces/IThread.h"
 #include "Mem.h"
-#include "net/Job.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "version.h"
 #include "workers/Hashrate.h"
 #include "workers/Workers.h"
-
-
-extern "C"
-{
-#include "crypto/c_keccak.h"
-}
 
 
 static inline double normalize(double d)
@@ -171,7 +166,7 @@ void ApiRouter::genId()
             memcpy(input, interfaces[i].phys_addr, addrSize);
             memcpy(input + addrSize, APP_KIND, strlen(APP_KIND));
 
-            keccak(input, static_cast<int>(inSize), hash, sizeof(hash));
+            xmrig::keccak(input, inSize, hash);
             Job::toHex(hash, 8, m_id);
 
             delete [] input;
@@ -249,7 +244,7 @@ void ApiRouter::getMiner(rapidjson::Document &doc) const
     doc.AddMember("kind",         APP_KIND, allocator);
     doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent()), allocator);
     doc.AddMember("cpu",          cpu, allocator);
-    doc.AddMember("algo",         rapidjson::StringRef(m_controller->config()->algoName()), allocator);
+    doc.AddMember("algo",         rapidjson::StringRef(m_controller->config()->algorithm().name()), allocator);
     doc.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
     doc.AddMember("donate_level", m_controller->config()->donateLevel(), allocator);
 }

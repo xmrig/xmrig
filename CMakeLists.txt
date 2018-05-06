@@ -4,6 +4,7 @@ project(xmrig)
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_SUMO     "CryptoNight-Heavy support" ON)
+option(WITH_IPBC     "CryptoNight-IPBC support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
 
@@ -17,11 +18,24 @@ set(HEADERS
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
+    src/common/Console.h
+    src/common/crypto/Algorithm.h
+    src/common/crypto/keccak.h
+    src/common/log/ConsoleLog.h
+    src/common/log/FileLog.h
+    src/common/log/Log.h
+    src/common/net/Client.h
+    src/common/net/Id.h
+    src/common/net/Job.h
+    src/common/net/Pool.h
+    src/common/net/Storage.h
+    src/common/net/strategies/FailoverStrategy.h
+    src/common/net/strategies/SinglePoolStrategy.h
+    src/common/net/SubmitResult.h
     src/common/Platform.h
     src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
-    src/Console.h
     src/core/Config.cpp
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
@@ -38,21 +52,10 @@ set(HEADERS
     src/interfaces/IThread.h
     src/interfaces/IWatcherListener.h
     src/interfaces/IWorker.h
-    src/log/ConsoleLog.h
-    src/log/FileLog.h
-    src/log/Log.h
     src/Mem.h
-    src/net/Client.h
-    src/net/Id.h
-    src/net/Job.h
     src/net/JobResult.h
     src/net/Network.h
-    src/net/Pool.h
-    src/net/Storage.h
     src/net/strategies/DonateStrategy.h
-    src/net/strategies/FailoverStrategy.h
-    src/net/strategies/SinglePoolStrategy.h
-    src/net/SubmitResult.h
     src/Summary.h
     src/version.h
     src/workers/CpuThread.h
@@ -67,7 +70,6 @@ set(HEADERS_CRYPTO
     src/crypto/c_blake256.h
     src/crypto/c_groestl.h
     src/crypto/c_jh.h
-    src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
     src/crypto/CryptoNight_constants.h
@@ -91,22 +93,24 @@ set(SOURCES
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
     src/common/config/ConfigWatcher.cpp
+    src/common/Console.cpp
+    src/common/crypto/Algorithm.cpp
+    src/common/crypto/keccak.cpp
+    src/common/log/ConsoleLog.cpp
+    src/common/log/FileLog.cpp
+    src/common/log/Log.cpp
+    src/common/net/Client.cpp
+    src/common/net/Job.cpp
+    src/common/net/Pool.cpp
+    src/common/net/strategies/FailoverStrategy.cpp
+    src/common/net/strategies/SinglePoolStrategy.cpp
+    src/common/net/SubmitResult.cpp
     src/common/Platform.cpp
-    src/Console.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
-    src/log/ConsoleLog.cpp
-    src/log/FileLog.cpp
-    src/log/Log.cpp
     src/Mem.cpp
-    src/net/Client.cpp
-    src/net/Job.cpp
     src/net/Network.cpp
-    src/net/Pool.cpp
     src/net/strategies/DonateStrategy.cpp
-    src/net/strategies/FailoverStrategy.cpp
-    src/net/strategies/SinglePoolStrategy.cpp
-    src/net/SubmitResult.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp
     src/workers/Handle.cpp
@@ -118,7 +122,6 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/c_keccak.c
     src/crypto/c_groestl.c
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
@@ -194,7 +197,7 @@ endif()
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
-    set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
+    set(SOURCES_SYSLOG src/common/log/SysLog.h src/common/log/SysLog.cpp)
 endif()
 
 if (NOT WITH_AEON)
@@ -203,6 +206,10 @@ endif()
 
 if (NOT WITH_SUMO)
     add_definitions(/DXMRIG_NO_SUMO)
+endif()
+
+if (NOT WITH_IPBC)
+    add_definitions(/DXMRIG_NO_IPBC)
 endif()
 
 if (WITH_HTTPD)
