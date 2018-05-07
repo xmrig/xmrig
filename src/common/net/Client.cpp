@@ -168,12 +168,14 @@ int64_t Client::submit(const JobResult &result)
     const char *nonce = result.nonce;
     const char *data  = result.result;
 #   else
-    char *nonce = m_sendBuf;
-    char *data  = m_sendBuf + 16;
+    char nonce[9];
+    char data[65];
 
+    memset(nonce, 0, 9);
     Job::toHex(reinterpret_cast<const unsigned char*>(&result.nonce), 4, nonce);
     nonce[8] = '\0';
 
+    memset(data, 0, 65);
     Job::toHex(result.result, 32, data);
     data[64] = '\0';
 #   endif
