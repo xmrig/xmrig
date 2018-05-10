@@ -222,6 +222,23 @@ bool Client::close()
     return true;
 }
 
+bool Client::handleAnnouncement(const rapidjson::Value &params)
+{
+    if (!params.IsObject())
+    {
+        return false;
+    }
+
+    if (params.HasMember("message"))
+    {
+        LOG_INFO("[%s] announcement: \"%s\"", m_pool.url(),
+          params["message"].GetString());
+        
+        return true;
+    }
+    
+    return false;
+}
 
 bool Client::isCriticalError(const char *message)
 {
@@ -588,6 +605,9 @@ void Client::parseNotification(const char *method, const rapidjson::Value &param
             m_listener->onJobReceived(this, m_job);
         }
 
+        return;
+    } else if (strcmp(method, "announcement") == 0) {
+        handleAnnouncement(params);
         return;
     }
 

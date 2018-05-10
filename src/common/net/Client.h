@@ -84,6 +84,7 @@ private:
     };
 
     bool close();
+    bool handleAnnouncement(const rapidjson::Value &params);
     bool isCriticalError(const char *message);
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseLogin(const rapidjson::Value &result, int *code);
