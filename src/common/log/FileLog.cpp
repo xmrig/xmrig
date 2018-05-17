@@ -93,5 +93,5 @@ void FileLog::write(char *data, size_t size)
     uv_fs_t *req = new uv_fs_t;
     req->data = buf.base;
 
-    uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, 0, FileLog::onWrite);
+    uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, -1, FileLog::onWrite);
 }
