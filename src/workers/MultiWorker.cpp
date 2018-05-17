@@ -115,7 +115,7 @@ void MultiWorker<N>::start()
                     Workers::submit(JobResult(m_state.job.poolId(), m_state.job.id(), *nonce(i), m_hash + (i * 32), m_state.job.diff(), m_state.job.algorithm()));
                 }
 
-                *nonce(i) += ;
+                *nonce(i) += rand();
             }
 
             m_count += N;
