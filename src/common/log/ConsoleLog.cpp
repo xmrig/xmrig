@@ -66,7 +66,7 @@ ConsoleLog::ConsoleLog(xmrig::Controller *controller) :
 }
 
 
-void ConsoleLog::message(int level, const char* fmt, va_list args)
+void ConsoleLog::message(Level level, const char* fmt, va_list args)
 {
     time_t now = time(nullptr);
     tm stime;
@@ -77,43 +77,18 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
     localtime_r(&now, &stime);
 #   endif
 
-    const char* color = nullptr;
-    const bool colors = m_controller->config()->isColors();
+    const bool isColors = m_controller->config()->isColors();
 
-    if (colors) {
-        switch (level) {
-        case Log::ERR:
-            color = Log::kCL_RED;
-            break;
-
-        case Log::WARNING:
-            color = Log::kCL_YELLOW;
-            break;
-
-        case Log::NOTICE:
-            color = Log::kCL_WHITE;
-            break;
-
-        case Log::DEBUG:
-            color = Log::kCL_GRAY;
-            break;
-
-        default:
-            color = "";
-            break;
-        }
-    }
-
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s\n",
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
              stime.tm_year + 1900,
              stime.tm_mon + 1,
              stime.tm_mday,
              stime.tm_hour,
              stime.tm_min,
              stime.tm_sec,
-             colors ? color : "",
+             Log::colorByLevel(level, isColors),
              fmt,
-             colors ? Log::kCL_N : ""
+             Log::endl(isColors)
         );
 
     print(args);
@@ -122,7 +97,7 @@ void ConsoleLog::message(int level, const char* fmt, va_list args)
 
 void ConsoleLog::text(const char* fmt, va_list args)
 {
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s\n", fmt, m_controller->config()->isColors() ? Log::kCL_N : "");
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(m_controller->config()->isColors()));
 
     print(args);
 }
