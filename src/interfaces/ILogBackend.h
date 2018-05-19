@@ -26,6 +26,7 @@
 
 
 #include <stdarg.h>
+#include <stddef.h>
 
 
 class ILogBackend
