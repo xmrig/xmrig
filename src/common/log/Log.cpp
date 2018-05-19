@@ -36,7 +36,16 @@
 Log *Log::m_self = nullptr;
 
 
-void Log::message(Log::Level level, const char* fmt, ...)
+static const char *colors[5] = {
+    Log::kCL_RED,    /* ERR     */
+    Log::kCL_YELLOW, /* WARNING */
+    Log::kCL_WHITE,  /* NOTICE  */
+    "",              /* INFO    */
+    Log::kCL_GRAY    /* DEBUG   */
+};
+
+
+void Log::message(ILogBackend::Level level, const char* fmt, ...)
 {
     uv_mutex_lock(&m_mutex);
 
@@ -73,6 +82,26 @@ void Log::text(const char* fmt, ...)
     va_end(args);
 
     uv_mutex_unlock(&m_mutex);
+}
+
+
+const char *Log::colorByLevel(ILogBackend::Level level, bool isColors)
+{
+    if (!isColors) {
+        return "";
+    }
+
+    return colors[level];
+}
+
+
+const char *Log::endl(bool isColors)
+{
+#   ifdef _WIN32
+    return isColors ? "\x1B[0m\r\n" : "\r\n";
+#   else
+    return isColors ? "\x1B[0m\n" : "\n";
+#   endif
 }
 
 

@@ -30,20 +30,12 @@
 #include <vector>
 
 
-class ILogBackend;
+#include "interfaces/ILogBackend.h"
 
 
 class Log
 {
 public:
-    enum Level {
-        ERR,
-        WARNING,
-        NOTICE,
-        INFO,
-        DEBUG
-    };
-
     constexpr static const char* kCL_N      = "\x1B[0m";
     constexpr static const char* kCL_RED    = "\x1B[31m";
     constexpr static const char* kCL_YELLOW = "\x1B[33m";
@@ -60,8 +52,11 @@ public:
     static inline void init()                    { if (!m_self) { new Log(); } }
     static inline void release()                 { assert(m_self != nullptr); delete m_self; }
 
-    void message(Level level, const char* fmt, ...);
+    void message(ILogBackend::Level level, const char* fmt, ...);
     void text(const char* fmt, ...);
+
+    static const char *colorByLevel(ILogBackend::Level level, bool isColors = true);
+    static const char *endl(bool isColors = true);
 
 private:
     inline Log() {
@@ -92,20 +87,20 @@ private:
 #define WHITE(x)        "\x1B[0;37m" x "\x1B[0m"
 
 
-#define LOG_ERR(x, ...)    Log::i()->message(Log::ERR,     x, ##__VA_ARGS__)
-#define LOG_WARN(x, ...)   Log::i()->message(Log::WARNING, x, ##__VA_ARGS__)
-#define LOG_NOTICE(x, ...) Log::i()->message(Log::NOTICE,  x, ##__VA_ARGS__)
-#define LOG_INFO(x, ...)   Log::i()->message(Log::INFO,    x, ##__VA_ARGS__)
+#define LOG_ERR(x, ...)    Log::i()->message(ILogBackend::ERR,     x, ##__VA_ARGS__)
+#define LOG_WARN(x, ...)   Log::i()->message(ILogBackend::WARNING, x, ##__VA_ARGS__)
+#define LOG_NOTICE(x, ...) Log::i()->message(ILogBackend::NOTICE,  x, ##__VA_ARGS__)
+#define LOG_INFO(x, ...)   Log::i()->message(ILogBackend::INFO,    x, ##__VA_ARGS__)
 
 #ifdef APP_DEBUG
-#   define LOG_DEBUG(x, ...)      Log::i()->message(Log::DEBUG,   x, ##__VA_ARGS__)
+#   define LOG_DEBUG(x, ...)      Log::i()->message(ILogBackend::DEBUG,   x, ##__VA_ARGS__)
 #else
 #   define LOG_DEBUG(x, ...)
 #endif
 
 #if defined(APP_DEBUG) || defined(APP_DEVEL)
-#   define LOG_DEBUG_ERR(x, ...)  Log::i()->message(Log::ERR,     x, ##__VA_ARGS__)
-#   define LOG_DEBUG_WARN(x, ...) Log::i()->message(Log::WARNING, x, ##__VA_ARGS__)
+#   define LOG_DEBUG_ERR(x, ...)  Log::i()->message(ILogBackend::ERR,     x, ##__VA_ARGS__)
+#   define LOG_DEBUG_WARN(x, ...) Log::i()->message(ILogBackend::WARNING, x, ##__VA_ARGS__)
 #else
 #   define LOG_DEBUG_ERR(x, ...)
 #   define LOG_DEBUG_WARN(x, ...)

@@ -41,7 +41,7 @@ class ConsoleLog : public ILogBackend
 public:
     ConsoleLog(xmrig::Controller *controller);
 
-    void message(int level, const char *fmt, va_list args) override;
+    void message(Level level, const char *fmt, va_list args) override;
     void text(const char *fmt, va_list args) override;
 
 private:
