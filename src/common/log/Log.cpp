@@ -37,11 +37,15 @@ Log *Log::m_self = nullptr;
 
 
 static const char *colors[5] = {
-    Log::kCL_RED,    /* ERR     */
-    Log::kCL_YELLOW, /* WARNING */
-    Log::kCL_WHITE,  /* NOTICE  */
-    "",              /* INFO    */
-    Log::kCL_GRAY    /* DEBUG   */
+    "\x1B[0;31m",  /* ERR     */
+    "\x1B[0;33m",  /* WARNING */
+    "\x1B[1;37m",  /* NOTICE  */
+    "",            /* INFO    */
+#   ifdef WIN32
+    "\x1B[1;30m"   /* DEBUG   */
+#   else
+    "\x1B[90m"     /* DEBUG   */
+#   endif
 };
 
 

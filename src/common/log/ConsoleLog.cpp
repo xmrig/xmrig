@@ -97,7 +97,7 @@ void ConsoleLog::message(Level level, const char* fmt, va_list args)
 
 void ConsoleLog::text(const char* fmt, va_list args)
 {
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s\n", fmt, m_controller->config()->isColors() ? Log::kCL_N : "");
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(m_controller->config()->isColors()));
 
     print(args);
 }

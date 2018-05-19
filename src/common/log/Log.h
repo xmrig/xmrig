@@ -36,17 +36,6 @@
 class Log
 {
 public:
-    constexpr static const char* kCL_N      = "\x1B[0m";
-    constexpr static const char* kCL_RED    = "\x1B[31m";
-    constexpr static const char* kCL_YELLOW = "\x1B[33m";
-    constexpr static const char* kCL_WHITE  = "\x1B[01;37m";
-
-#   ifdef WIN32
-    constexpr static const char* kCL_GRAY = "\x1B[01;30m";
-#   else
-    constexpr static const char* kCL_GRAY = "\x1B[90m";
-#   endif
-
     static inline Log* i()                       { assert(m_self != nullptr); return m_self; }
     static inline void add(ILogBackend *backend) { i()->m_backends.push_back(backend); }
     static inline void init()                    { if (!m_self) { new Log(); } }

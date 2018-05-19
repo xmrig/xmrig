@@ -31,10 +31,15 @@
 #include "interfaces/ILogBackend.h"
 
 
+namespace xmrig {
+    class Controller;
+}
+
+
 class FileLog : public ILogBackend
 {
 public:
-    FileLog(const char *fileName);
+    FileLog(xmrig::Controller *controller, const char *fileName);
 
     void message(Level level, const char* fmt, va_list args) override;
     void text(const char* fmt, va_list args) override;
@@ -44,7 +49,9 @@ private:
 
     void write(char *data, size_t size);
 
+    char m_fmt[256];
     int m_file;
+    xmrig::Controller *m_controller;
 };
 
 #endif /* __FILELOG_H__ */

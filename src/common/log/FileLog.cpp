@@ -30,9 +30,13 @@
 
 
 #include "common/log/FileLog.h"
+#include "common/log/Log.h"
+#include "core/Config.h"
+#include "core/Controller.h"
 
 
-FileLog::FileLog(const char *fileName)
+FileLog::FileLog(xmrig::Controller *controller, const char *fileName) :
+    m_controller(controller)
 {
     uv_fs_t req;
     m_file = uv_fs_open(uv_default_loop(), &req, fileName, O_CREAT | O_APPEND | O_WRONLY, 0644, nullptr);
@@ -55,19 +59,24 @@ void FileLog::message(Level level, const char* fmt, va_list args)
     localtime_r(&now, &stime);
 #   endif
 
-    char *buf = new char[512];
-    int size = snprintf(buf, 23, "[%d-%02d-%02d %02d:%02d:%02d] ",
-                        stime.tm_year + 1900,
-                        stime.tm_mon + 1,
-                        stime.tm_mday,
-                        stime.tm_hour,
-                        stime.tm_min,
-                        stime.tm_sec);
+    const bool isColors = m_controller->config()->isColors();
 
-    size = vsnprintf(buf + size, 512 - size - 1, fmt, args) + size;
-    buf[size] = '\n';
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
+             stime.tm_year + 1900,
+             stime.tm_mon + 1,
+             stime.tm_mday,
+             stime.tm_hour,
+             stime.tm_min,
+             stime.tm_sec,
+             Log::colorByLevel(level, isColors),
+             fmt,
+             Log::endl(isColors)
+        );
 
-    write(buf, size + 1);
+    char *buf = new char[kBufferSize];
+    const int size = vsnprintf(buf, kBufferSize - 1, m_fmt, args);
+
+    write(buf, size);
 }
 
 
@@ -75,7 +84,6 @@ void FileLog::text(const char* fmt, va_list args)
 {
     message(INFO, fmt, args);
 }
-
 
 
 void FileLog::onWrite(uv_fs_t *req)

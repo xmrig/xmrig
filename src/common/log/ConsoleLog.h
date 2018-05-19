@@ -48,7 +48,7 @@ private:
     bool isWritable() const;
     void print(va_list args);
 
-    char m_buf[512];
+    char m_buf[kBufferSize];
     char m_fmt[256];
     uv_buf_t m_uvBuf;
     uv_stream_t *m_stream;

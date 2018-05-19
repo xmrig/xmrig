@@ -37,11 +37,11 @@ SysLog::SysLog()
 
 void SysLog::message(Level level, const char *fmt, va_list args)
 {
-    vsyslog(level, fmt, args);
+    vsyslog(static_cast<int>(level), fmt, args);
 }
 
 
 void SysLog::text(const char *fmt, va_list args)
 {
-    message(LOG_INFO, fmt, args);
+    vsyslog(LOG_INFO, fmt, args);
 }

@@ -39,6 +39,8 @@ public:
         DEBUG
     };
 
+    constexpr static const size_t kBufferSize = 512;
+
     virtual ~ILogBackend() {}
 
     virtual void message(Level level, const char* fmt, va_list args) = 0;
