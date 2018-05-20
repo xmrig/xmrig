@@ -36,7 +36,6 @@ set(HEADERS
     src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
-    src/core/Config.cpp
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
     src/Cpu.h
