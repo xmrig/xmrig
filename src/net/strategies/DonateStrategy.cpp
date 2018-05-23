@@ -58,30 +58,18 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
 #ifndef XMRIG_NO_TLS
     if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_HEAVY) {
         url = new Url("donate2.graef.in", 8443, userId, nullptr, true, false, true);
-    } else if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE_IPBC) {
+    } else if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE) {
         url = new Url("donate2.graef.in", 1080, userId, nullptr, true, false, true);
     } else {
-        if (Options::i()->forcePowVersion() == Options::POW_V1) {
-            url = new Url("donate.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 8080 : 8081, userId, nullptr, true, false, true);
-        } else if (Options::i()->forcePowVersion() == Options::POW_V2) {
-            url = new Url("donate2.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 995 : 993, userId, nullptr, true, false, true);
-        } else {
-            url = new Url("donate2.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 8081 : 443, userId, nullptr, true, false, true);
-        }
+        url = new Url("donate2.graef.in", 443, userId, nullptr, true, false, true);
     }
 #else
     if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_HEAVY) {
         url = new Url("donate.graef.in", 8443, userId, nullptr, false, false, true);
-    } else if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE_IPBC) {
+    } else if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE) {
         url = new Url("donate.graef.in", 1080, userId, nullptr, false, false, true);
     } else {
-        if (Options::i()->forcePowVersion() == Options::POW_V1) {
-            url = new Url("donate.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 80 : 443, userId, nullptr, false, false, true);
-        } else if (Options::i()->forcePowVersion() == Options::POW_V2) {
-            url = new Url("donate.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 995 : 993, userId, nullptr, false, false, true);
-        } else {
-            url = new Url("donate2.graef.in", Options::i()->algo() == Options::ALGO_CRYPTONIGHT_LITE ? 8080 : 80, userId, nullptr, false, false, true);
-        }
+        url = new Url("donate2.graef.in", 80, userId, nullptr, false, false, true);
     }
 #endif
 

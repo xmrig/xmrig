@@ -67,7 +67,6 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
     size_t algoBlockSize;
     switch (algo) {
         case Options::ALGO_CRYPTONIGHT_LITE:
-        case Options::ALGO_CRYPTONIGHT_LITE_IPBC:
             algoBlockSize = 1024;
             break;
         case Options::ALGO_CRYPTONIGHT_HEAVY:

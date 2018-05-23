@@ -1,6 +1,6 @@
 # XMRigCC 
 
-:warning: **To be prepared for the upcoming PoW changes you need to update your miners to at least release (1.5.5).**
+:warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
 
 
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
@@ -21,10 +21,15 @@ The modified version can also handle commands like "update config", "start/stop 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
-* **NEW: Support of Crytptonight-Lite-IPBC**
+
+Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
+
+* **NEW: Support of Crytptonight Stellite (XTL) v4 variant**
+* **NEW: Support of Crytptonight Alloy (XAO) variant**
+* **NEW: Support of Crytptonight-Lite IPBC/TUBE variant**
 * **NEW: Support of Crytptonight-Heavy (Sumokoin, Haven, ...)**
-* **NEW: Ready for Monero v7 PoW changes on April 6 2018**
-* **NEW: Ready for Aeon v7 PoW changes on April 7? 2018**
+* **Support of Crytptonight v7 PoW changes**
+* **Support of Crytptonight-Lite v7 PoW changes**
 * Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)
     - XMRigCCServer Dashboard <-> Browser
     - XMRigCCServer <-> XMRigMiner

@@ -30,6 +30,8 @@
 #include <uv.h>
 #include <Options.h>
 
+#include "PowVariant.h"
+
 #include "interfaces/IClientListener.h"
 #include "log/Log.h"
 #include "net/Client.h"
@@ -224,25 +226,33 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    if (params.HasMember("variant")) {
-        int variantFromProxy = params["variant"].GetInt();
+    PowVariant powVariant = Options::i()->powVariant();
 
-        switch (variantFromProxy) {
-            case -1:
-                job.setPowVersion(Options::POW_AUTODETECT);
-                break;
-            case 0:
-                job.setPowVersion(Options::POW_V1);
-                break;
-            case 1:
-                job.setPowVersion(Options::POW_V2);
-                break;
-            default:
-                break;
+    if (params.HasMember("algo")) {
+        std::string algo = params["algo"].GetString();
+
+        if (algo.find("/") != std::string::npos) {
+            powVariant = parseVariant(algo.substr(algo.find("/")+1));
         }
-    } else {
-        job.setPowVersion(Options::i()->forcePowVersion());
     }
+
+    if (params.HasMember("variant")) {
+        const rapidjson::Value &variant = params["variant"];
+
+        PowVariant parsedVariant = powVariant;
+
+        if (variant.IsInt()) {
+            parsedVariant = parseVariant(variant.GetInt());
+        } else if (variant.IsString()) {
+            parsedVariant = parseVariant(variant.GetString());
+        }
+
+        if (parsedVariant != POW_AUTODETECT) {
+            powVariant = parsedVariant;
+        }
+    }
+
+    job.setPowVariant(powVariant);
 
     if (m_job != job) {
         m_jobs++;
@@ -349,6 +359,15 @@ void Client::login()
     params.AddMember("login", rapidjson::StringRef(m_url.user()),     allocator);
     params.AddMember("pass",  rapidjson::StringRef(m_url.password()), allocator);
     params.AddMember("agent", rapidjson::StringRef(m_agent),          allocator);
+
+    params.AddMember("algo", rapidjson::StringRef(Options::i()->algoShortName()), allocator);
+
+    rapidjson::Value supportedPowVariantsList(rapidjson::kArrayType);
+    for (auto& supportedPowVariant : getSupportedPowVariants()) {
+        supportedPowVariantsList.PushBack(rapidjson::StringRef(supportedPowVariant.c_str()), allocator);
+    }
+
+    params.AddMember("supported-variants", supportedPowVariantsList, allocator);
 
     doc.AddMember("params", params, allocator);
 

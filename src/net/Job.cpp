@@ -62,7 +62,7 @@ Job::Job(int poolId, bool nicehash) :
     m_size(0),
     m_diff(0),
     m_target(0),
-    m_powVersion(Options::POW_AUTODETECT)
+    m_powVariant(PowVariant::POW_AUTODETECT)
 {
 }
 
@@ -136,6 +136,21 @@ bool Job::setTarget(const char *target)
     return true;
 }
 
+PowVariant Job::powVariant() const
+{
+    if (m_powVariant == PowVariant::POW_AUTODETECT)
+    {
+        return (m_blob[0] > 6 ? PowVariant::POW_V1 : PowVariant::POW_V0);
+    }
+    else if (m_powVariant == PowVariant::POW_XTL && m_blob[0] < 4)
+    {
+        return POW_V1;
+    }
+    else
+    {
+        return m_powVariant;
+    }
+}
 
 bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 {
@@ -150,7 +165,6 @@ bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
     return true;
 }
 
-
 void Job::toHex(const unsigned char* in, unsigned int len, char* out)
 {
     for (unsigned int i = 0; i < len; i++) {
@@ -158,7 +172,6 @@ void Job::toHex(const unsigned char* in, unsigned int len, char* out)
         out[i * 2 + 1] = hf_bin2hex(in[i] & 0x0F);
     }
 }
-
 
 bool Job::operator==(const Job &other) const
 {

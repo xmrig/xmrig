@@ -44,7 +44,6 @@ cryptonight_ctx *Mem::create(int threadId)
     switch (m_algo)
     {
         case Options::ALGO_CRYPTONIGHT_LITE:
-        case Options::ALGO_CRYPTONIGHT_LITE_IPBC:
             scratchPadSize = MEMORY_LITE;
             break;
         case Options::ALGO_CRYPTONIGHT_HEAVY:

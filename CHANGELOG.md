@@ -1,3 +1,10 @@
+# 1.6.3
+- Added shift+click function for multi row selection to Dashboard
+- Added -DBUILD_STATIC=ON/OFF option to CMake configuration to create fully static builds
+- Added current algo and list of supported_varaints to login message for future usage on proxy
+- Added support for latest Stellite (XTL) and Alloy (XAO) variants
+- Simplification of configuration, "force-pow-variant" and "cryptonight-lite-ipbc" parameters are now deprecated see [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) for guidance
+- Fixed leaks in transport shutdown
 # 1.6.2
 - Implementation of CN-Lite-IPBC algo
 - Fixed Windows 32bit build / crashes

@@ -10,6 +10,7 @@ option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
 option(WITH_TLS       "TLS support" ON)
+option(BUILD_STATIC   "Build static binary" OFF)
 set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
 set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
 
@@ -207,6 +208,10 @@ if (WITH_CC_SERVER OR WITH_CC_CLIENT)
             src/cc/ClientStatus.cpp)
 else()
     add_definitions(/DXMRIG_NO_CC)
+endif()
+
+if (BUILD_STATIC)
+    set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif()
 
 include_directories(src)

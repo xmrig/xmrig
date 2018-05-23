@@ -58,13 +58,12 @@
 
 Options *Options::m_self = nullptr;
 
-
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n"
 # ifndef XMRIG_CC_SERVER
 "\
-  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite, cryptonight-lite-ipbc or cryptonight-heavy\n\
+  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite or cryptonight-heavy\n\
   -o, --url=URL                         URL of mining server\n\
   -O, --userpass=U:P                    username:password pair for mining server\n\
   -u, --user=USERNAME                   username for mining server\n\
@@ -75,7 +74,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V1, 2 POW_V2)\n\
+      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V0, 2 POW_MONERO_V7)\n\
       --multihash-factor=N              number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)\n\
       --multihash-thread-mask           for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
@@ -165,6 +164,7 @@ static struct option const options[] = {
     { "version",          0, nullptr, 'V'  },
     { "use-tls",          0, nullptr, 1015 },
     { "force-pow-version",1, nullptr, 1016 },
+    { "pow-variant"      ,1, nullptr, 1017 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
@@ -208,6 +208,7 @@ static struct option const config_options[] = {
     { "threads",       1, nullptr, 't'  },
     { "user-agent",    1, nullptr, 1008 },
     { "force-pow-version", 1, nullptr, 1016 },
+    { "pow-variant",   1, nullptr, 1017 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
     { nullptr, 0, nullptr, 0 }
@@ -259,10 +260,23 @@ static struct option const cc_server_options[] = {
 static const char *algo_names[] = {
     "cryptonight",
     "cryptonight-lite",
-    "cryptonight-lite-ipbc",
     "cryptonight-heavy"
 };
 
+static const char *algo_short_names[] = {
+        "cn",
+        "cn-lite",
+        "cn-heavy"
+};
+
+constexpr static const char *pow_variant_names[] = {
+        "auto",
+        "0",
+        "1",
+        "ipbc",
+        "alloy",
+        "xtl"
+};
 
 Options *Options::parse(int argc, char **argv)
 {
@@ -282,6 +296,10 @@ const char *Options::algoName() const
     return algo_names[m_algo];
 }
 
+const char *Options::algoShortName() const
+{
+    return algo_short_names[m_algo];
+}
 
 Options::Options(int argc, char **argv) :
     m_background(false),
@@ -309,7 +327,7 @@ Options::Options(int argc, char **argv) :
     m_algo(ALGO_CRYPTONIGHT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
-    m_forcePowVersion(POW_AUTODETECT),
+    m_powVariant(POW_AUTODETECT),
     m_hashFactor(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
@@ -548,6 +566,9 @@ bool Options::parseArg(int key, const char *arg)
     case 1015: /* --use-tls */
         return parseBoolean(key, true);
 
+    case 1017: /* --pow-variant */
+        return parsePowVariant(arg);
+
     case 4016: /* --cc-use-tls */
         return parseBoolean(key, true);
 
@@ -626,6 +647,7 @@ bool Options::parseArg(int key, uint64_t arg)
         break;
 
     case 'v': /* --av */
+        showDeprecateWarning("av", "aesni");
         if (arg > 1000) {
             showUsage(1);
             return false;
@@ -677,12 +699,13 @@ bool Options::parseArg(int key, uint64_t arg)
         break;
 
     case 1016: /* --force-pow-version */
-        if (arg < POW_AUTODETECT || arg > POW_V2) {
+        showDeprecateWarning("force-pow-version", "pow-variant");
+        if (arg != POW_AUTODETECT && arg != POW_V0 && arg != POW_V1) {
             showUsage(1);
             return false;
         }
 
-        m_forcePowVersion = static_cast<PowVersion>(arg);
+        m_powVariant = static_cast<PowVariant>(arg);
         break;
 
     case 1020: /* --cpu-affinity */
@@ -875,6 +898,10 @@ void Options::showUsage(int status) const
     }
 }
 
+void Options::showDeprecateWarning(const char* deprecated, const char* newParam) const
+{
+    fprintf(stderr, "Parameter \"%s\" is deprecated, please used \"%s\" instead.\n", deprecated, newParam);
+}
 
 void Options::showVersion()
 {
@@ -920,22 +947,56 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light")) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-lite") || !strcmp(algo, "cryptonight-light"))) {
             m_algo = ALGO_CRYPTONIGHT_LITE;
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light-ipbc")) {
-            m_algo = ALGO_CRYPTONIGHT_LITE_IPBC;
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-lite-ipbc") || !strcmp(algo, "cryptonight-light-ipbc") || !strcmp(algo, "cn-lite-ipbc"))) {
+            showDeprecateWarning("cryptonight-light-ipbc", "cryptonight-light (with variant \"ipbc\")");
+            m_algo = ALGO_CRYPTONIGHT_LITE;
+            m_powVariant = POW_IPBC;
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-heavy")) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-heavy") || !strcmp(algo, "cn-heavy"))) {
             m_algo = ALGO_CRYPTONIGHT_HEAVY;
             break;
         }
 
         if (i == ARRAY_SIZE(algo_names) - 1) {
+            showUsage(1);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Options::parsePowVariant(const char *powVariant)
+{
+    for (size_t i = 0; i < ARRAY_SIZE(pow_variant_names); i++) {
+        if (pow_variant_names[i] && !strcmp(powVariant, pow_variant_names[i])) {
+            m_powVariant = static_cast<PowVariant>(i);
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "auto")) {
+            m_powVariant = POW_AUTODETECT;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "monerov7") || !strcmp(powVariant, "aeonv7") || !strcmp(powVariant, "v7"))) {
+            m_powVariant = POW_V1;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "stellite")) {
+            m_powVariant = POW_XTL;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1) {
             showUsage(1);
             return false;
         }

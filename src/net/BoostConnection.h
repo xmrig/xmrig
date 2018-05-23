@@ -71,10 +71,14 @@ public:
     {
         if (isConnected()) {
             LOG_DEBUG("[%s:%d] Disconnecting", getConnectedIp().c_str(), getConnectedPort());
+
+            boost::system::error_code ec;
+            socket_.get().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
             socket_.get().lowest_layer().close();
         }
 
         ioService_.stop();
+        ioService_.reset();
     }
 
     bool isConnected() const override

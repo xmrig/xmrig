@@ -120,7 +120,7 @@ void MultiWorker::start()
                 *Job::nonce(m_state->blob + i * m_state->job.size()) = ++m_state->nonces[i];
             }
 
-            CryptoNight::hash(m_hashMultiplier, m_state->job.powVersion(), m_state->blob, m_state->job.size(), m_hash, m_ctx);
+            CryptoNight::hash(m_hashMultiplier, m_state->job.powVariant(), m_state->blob, m_state->job.size(), m_hash, m_ctx);
 
             for (size_t i=0; i < m_hashMultiplier; ++i) {
                 if (*reinterpret_cast<uint64_t *>(m_hash + 24 + i * 32) < m_state->job.target()) {

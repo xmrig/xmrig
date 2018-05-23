@@ -34,6 +34,9 @@
 #define MEMORY_LITE  1048576 /* 1 MiB */
 #define MEMORY_HEAVY 4194304 /* 4 MiB */
 
+#define POW_DEFAULT_INDEX_SHIFT 3
+#define POW_XLT_V4_INDEX_SHIFT 4
+
 struct cryptonight_ctx {
     alignas(16) uint8_t state[MAX_NUM_HASH_BLOCKS][208]; // 208 instead of 200 to maintain aligned to 16 byte boundaries
     alignas(16) uint8_t* memory;
@@ -48,7 +51,7 @@ class CryptoNight
 public:
     static bool init(int algo, bool aesni);
 
-    static void hash(size_t factor, Options::PowVersion powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx);
+    static void hash(size_t factor, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx);
 
 private:
     static bool selfTest(int algo);

@@ -570,7 +570,7 @@ static inline void cn_implode_scratchpad_heavy(const __m128i* input, __m128i* ou
 }
 
 // n-Loop version. Seems to be little bit slower then the hardcoded one.
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, size_t NUM_HASH_BLOCKS>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, size_t NUM_HASH_BLOCKS>
 class CryptoNightMultiHash
 {
 public:
@@ -697,7 +697,7 @@ public:
 
                 const uint8_t tmp = reinterpret_cast<const uint8_t*>(&l[hashBlock][idx[hashBlock] & MASK])[11];
                 static const uint32_t table = 0x75310;
-                const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+                const uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
                 ((uint8_t*)(&l[hashBlock][idx[hashBlock] & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
                 idx[hashBlock] = EXTRACT64(cx);
@@ -782,7 +782,7 @@ public:
 
                 const uint8_t tmp = reinterpret_cast<const uint8_t*>(&l[hashBlock][idx[hashBlock] & MASK])[11];
                 static const uint32_t table = 0x75310;
-                const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+                const uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
                 ((uint8_t*)(&l[hashBlock][idx[hashBlock] & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
                 idx[hashBlock] = EXTRACT64(cx);
@@ -900,8 +900,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 1>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 1>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -1008,7 +1008,7 @@ public:
       _mm_store_si128((__m128i*) &l[idx & MASK], _mm_xor_si128(bx, cx));
       const uint8_t tmp = reinterpret_cast<const uint8_t*>(&l[idx & MASK])[11];
       static const uint32_t table = 0x75310;
-      const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+      const uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
       ((uint8_t*)(&l[idx & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
       idx = EXTRACT64(cx);
       bx = cx;
@@ -1078,7 +1078,7 @@ public:
             _mm_store_si128((__m128i*) &l[idx & MASK], _mm_xor_si128(bx, cx));
             const uint8_t tmp = reinterpret_cast<const uint8_t*>(&l[idx & MASK])[11];
             static const uint32_t table = 0x75310;
-            const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            const uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l[idx & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             idx = EXTRACT64(cx);
             bx = cx;
@@ -1178,8 +1178,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 2>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 2>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -1329,10 +1329,10 @@ public:
 
             static const uint32_t table = 0x75310;
             uint8_t tmp = reinterpret_cast<const uint8_t*>(&l0[idx0 & MASK])[11];
-            uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l0[idx0 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l1[idx1 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l1[idx1 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
       idx0 = EXTRACT64(cx0);
@@ -1439,10 +1439,10 @@ public:
 
             static const uint32_t table = 0x75310;
             uint8_t tmp = reinterpret_cast<const uint8_t*>(&l0[idx0 & MASK])[11];
-            uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l0[idx0 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l1[idx1 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l1[idx1 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
             idx0 = EXTRACT64(cx0);
@@ -1607,8 +1607,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 3>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 3>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -1808,13 +1808,13 @@ public:
 
           static const uint32_t table = 0x75310;
           uint8_t tmp = reinterpret_cast<const uint8_t*>(&l0[idx0 & MASK])[11];
-          uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l0[idx0 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l1[idx1 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l1[idx1 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l2[idx2 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l2[idx2 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
       idx0 = EXTRACT64(cx0);
@@ -1960,13 +1960,13 @@ public:
 
             static const uint32_t table = 0x75310;
             uint8_t tmp = reinterpret_cast<const uint8_t*>(&l0[idx0 & MASK])[11];
-            uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l0[idx0 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l1[idx1 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l1[idx1 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l2[idx2 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l2[idx2 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
             idx0 = EXTRACT64(cx0);
@@ -2199,8 +2199,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 4>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 4>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -2448,16 +2448,16 @@ public:
 
           static const uint32_t table = 0x75310;
           uint8_t tmp = reinterpret_cast<const uint8_t*>(&l0[idx0 & MASK])[11];
-          uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l0[idx0 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l1[idx1 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l1[idx1 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l2[idx2 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l2[idx2 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l3[idx3 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l3[idx3 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
       idx0 = EXTRACT64(cx0);
@@ -2640,16 +2640,16 @@ public:
 
             static const uint32_t table = 0x75310;
             uint8_t tmp = reinterpret_cast<const uint8_t*>(&l0[idx0 & MASK])[11];
-            uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l0[idx0 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l1[idx1 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l1[idx1 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l2[idx2 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l2[idx2 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l3[idx3 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l3[idx3 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
             idx0 = EXTRACT64(cx0);
@@ -2946,8 +2946,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 5>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 5>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -3243,19 +3243,19 @@ public:
 
           static const uint32_t table = 0x75310;
           uint8_t tmp = reinterpret_cast<const uint8_t*>(&l0[idx0 & MASK])[11];
-          uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l0[idx0 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l1[idx1 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l1[idx1 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l2[idx2 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l2[idx2 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l3[idx3 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l3[idx3 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
           tmp = reinterpret_cast<const uint8_t*>(&l4[idx4 & MASK])[11];
-          index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+          index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
           ((uint8_t*)(&l4[idx4 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
       idx0 = EXTRACT64(cx0);
@@ -3475,19 +3475,19 @@ public:
 
             static const uint32_t table = 0x75310;
             uint8_t tmp = reinterpret_cast<const uint8_t*>(&l0[idx0 & MASK])[11];
-            uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l0[idx0 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l1[idx1 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l1[idx1 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l2[idx2 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l2[idx2 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l3[idx3 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l3[idx3 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
             tmp = reinterpret_cast<const uint8_t*>(&l4[idx4 & MASK])[11];
-            index = (((tmp >> 3) & 6) | (tmp & 1)) << 1;
+            index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
             ((uint8_t*)(&l4[idx4 & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
 
             idx0 = EXTRACT64(cx0);
