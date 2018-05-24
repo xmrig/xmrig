@@ -1,13 +1,9 @@
 FROM ubuntu:latest
 
 RUN apt-get update && \
-	apt-get install software-properties-common git build-essential libbz2-dev cmake libuv1-dev libssl-dev wget -y
-
-RUN add-apt-repository ppa:jonathonf/gcc-7.1 && \
-	apt-get update && \
-	apt-get install gcc-7 g++-7 -y && \
+	apt-get install software-properties-common git build-essential libbz2-dev cmake libuv1-dev libssl-dev wget gcc g++ -y \
 	apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+   	rm -rf /var/lib/apt/lists/*
 
 RUN wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz \
     && tar xfz boost_1_66_0.tar.gz \
@@ -18,7 +14,7 @@ RUN wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.
 
 RUN  git clone https://github.com/Bendr0id/xmrigCC.git && \
 	cd xmrigCC && \
-	cmake . -DCMAKE_C_COMPILER=gcc-7 -DCMAKE_CXX_COMPILER=g++-7 -DWITH_CC_SERVER=OFF -DWITH_HTTPD=OFF && \
+	cmake . -DWITH_CC_SERVER=OFF -DWITH_HTTPD=OFF && \
 	make 
 	
 COPY Dockerfile /Dockerfile
