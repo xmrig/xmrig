@@ -69,14 +69,14 @@ Options:\n"
   -u, --user=USERNAME                   username for mining server\n\
   -p, --pass=PASSWORD                   password for mining server\n\
   -t, --threads=N                       number of miner threads\n\
-  -v, --av=N                            algorithm variation, 0 auto select\n\
   -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off)\n\
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V0, 2 POW_MONERO_V7)\n\
-      --multihash-factor=N              number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)\n\
-      --multihash-thread-mask           for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
+      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), ipbc (tube), alloy, xtl (including autodetect for v5)\n\
+                                        for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
+      --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
+      --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages                   disable huge pages support\n\
@@ -981,7 +981,7 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "auto")) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "auto") || !strcmp(powVariant, "-1"))) {
             m_powVariant = POW_AUTODETECT;
             break;
         }
@@ -993,6 +993,12 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "stellite")) {
             m_powVariant = POW_XTL;
+            break;
+        }
+
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "tube")) {
+            m_powVariant = POW_IPBC;
             break;
         }
 
