@@ -1,8 +1,8 @@
 FROM ubuntu:latest
 
 RUN apt-get update && \
-	apt-get install software-properties-common git build-essential libbz2-dev cmake libuv1-dev libssl-dev wget gcc g++ -y \
-	apt-get clean && \
+	apt install software-properties-common git build-essential libbz2-dev cmake libuv1-dev libssl-dev wget gcc g++ -y && \
+	apt clean && \
    	rm -rf /var/lib/apt/lists/*
 
 RUN wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz \
