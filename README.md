@@ -15,8 +15,10 @@
 ### About XMRigCC
 
 XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
-This fork is based on XMRig (2.4.5) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
-The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
+This fork is based on XMRig and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRigCCMiner on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
+The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server.
+
+**AND MANY MORE**
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
@@ -124,15 +126,15 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -O, --userpass=U:P                    username:password pair for mining server
   -u, --user=USERNAME                   username for mining server
   -p, --pass=PASSWORD                   password for mining server
-  -t, --threads=N                       number of miner threads (0 enables automatic selection of optimal number of threads, default: 0)
-  -m, --multihash-factor=N              number of hash blocks per thread to process at a time (0 enables automatic selection of optimal number of hash blocks, default: 0)
-  -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off, default: 0)
+  -t, --threads=N                       number of miner threads
+  -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off)
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N                   time to pause between retries (default: 5)
-      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V1, 2 POW_V2)
-      --multihash-factor=N              number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)
-      --multihash-thread-mask           for multihash-factor > 1 only, limits multihash to given threads (mask), (default: all threads)
+      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), ipbc (tube), alloy, xtl (including autodetect for v5)
+                                        for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations
+      --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)
+      --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)
       --no-huge-pages                   disable huge pages support
@@ -158,9 +160,6 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -l, --log-file=FILE                   log all output to a file
   -h, --help                            display this help and exit
   -V, --version                         output version information and exit
-  -v, --av=N                            DEPRECATED - algorithm variation, 0 auto select
-      --doublehash-thread-mask          DEPRECATED - same as multihash-thread-mask
-
 ```
 
 Also you can use configuration via config file, default **[config.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigDaemon)**. You can load multiple config files and combine it with command line options.
