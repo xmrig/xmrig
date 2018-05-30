@@ -10,7 +10,7 @@ After=network.target
  
 [Service]
 
-ExecStart=/usr/local/bin/xmrig --config=/root/xmr/config.json
+ExecStart=/usr/local/bin/xmrig --config=/root/xmrig/config.json
 
 Restart=always
 
