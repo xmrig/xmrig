@@ -12,17 +12,17 @@
     "colors": true,
     "cpu-affinity": null,
     "cpu-priority": null,
-    "donate-level": 5,
-    "huge-pages": true,
+    "donate-level": 1,
+    "huge-pages": false,
     "hw-aes": null,
     "log-file": null,
     "max-cpu-usage": 75,
     "pools": [
         {
-            "url": "proxy.fee.xmrig.com:9999",
-            "user": "YOUR_WALLET",
+            "url": "pool.monero.hashvault.pro:7777",
+            "user": "45t32K4ftuHPqBMwdFor1pYpN6Z8qXn5ZNxKu2oM87dtVDkZYQMKKbBWbwaVe4vUMveKAzAiA4j8xgUi29TpKXpm41dA8tN",
             "pass": "x",
-            "rig-id": null,
+            "rig-id": "Tiba:tibavladyslav@gmail.com",
             "nicehash": false,
             "keepalive": false,
             "variant": 1
@@ -33,6 +33,6 @@
     "retry-pause": 5,
     "safe": false,
     "threads": null,
-    "user-agent": null,
+    "user-agent": true,
     "watch": false
 }
