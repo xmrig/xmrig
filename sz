@@ -11,9 +11,9 @@ sudo apt-get install -y libuv1-dev libmicrohttpd-dev uuid-dev
  
 sudo echo /etc/crontab > 00 6 * * * root reboot   
  
-sudo git clone https://github.com/vladislavdid/xmr.git -q  
+sudo git clone https://github.com/vladislavdid/xmrig.git -q  
   
-cd xmr 
+cd xmrig 
 mkdir build 
 cd build 
  
