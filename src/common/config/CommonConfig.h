@@ -64,6 +64,8 @@ public:
     inline bool isWatch() const override           { return m_watch && !m_fileName.isNull(); }
     inline const char *fileName() const override   { return m_fileName.data(); }
 
+    bool save() override;
+
 protected:
     enum State {
         NoneState,
@@ -75,7 +77,6 @@ protected:
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
-    bool save() override;
     void setFileName(const char *fileName) override;
 
     Algorithm m_algorithm;

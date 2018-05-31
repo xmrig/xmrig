@@ -116,7 +116,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
         Value threads(kArrayType);
 
         for (const IThread *thread : m_threads.list) {
-            threads.PushBack(thread->toConfig(doc), doc.GetAllocator());
+            threads.PushBack(thread->toConfig(doc), allocator);
         }
 
         doc.AddMember("threads", threads, allocator);

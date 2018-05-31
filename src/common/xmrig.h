@@ -66,6 +66,12 @@ enum Variant {
 };
 
 
+enum AlgoVerify {
+    VERIFY_HW_AES   = 1,
+    VERIFY_SOFT_AES = 2
+};
+
+
 enum AesMode {
     AES_AUTO,
     AES_HW,
