@@ -73,7 +73,7 @@ static inline __attribute__((always_inline)) __m128i _mm_set_epi64x(const uint64
 }
 
 
-#ifdef XMRIG_ARMv8
+#if __ARM_FEATURE_CRYPTO
 static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
 {
     alignas(16) const __m128i zero = { 0 };
@@ -82,6 +82,8 @@ static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v,
 #else
 static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
 {
+    alignas(16) const __m128i zero = { 0 };
+    return zero;
 }
 #endif
 
@@ -96,7 +98,7 @@ static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i 
 #define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
 
-#if defined(XMRIG_ARMv8)
+#if defined (__arm64__) || defined (__aarch64__)
 static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
 {
     unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
