@@ -38,10 +38,8 @@
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
     if (VARIANT > 0) { \
-        uint64_t a, b; \
-        memcpy(&a, input + 35 + part * size, sizeof a); \
-        memcpy(&b, ctx[part]->state + 192, sizeof b); \
-        tweak1_2_##part = a ^ b; \
+        memcpy(&tweak1_2_##part, input + 35 + part * size, sizeof tweak1_2_##part); \
+        tweak1_2_##part ^= *(reinterpret_cast<const uint64_t*>(ctx[part]->state) + 24); \
     }
 #endif
 
