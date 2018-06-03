@@ -170,7 +170,13 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
     }
 
     if (!config->finalize()) {
-        fprintf(stderr, "No valid configuration found. Exiting.\n");
+        if (!config->algorithm().isValid()) {
+            fprintf(stderr, "No valid algorithm specified. Exiting.\n");
+        }
+        else {
+            fprintf(stderr, "No valid configuration found. Exiting.\n");
+        }
+
         delete config;
         return nullptr;
     }

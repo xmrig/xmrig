@@ -38,6 +38,7 @@
 
 
 xmrig::CommonConfig::CommonConfig() :
+    m_algorithm(CRYPTONIGHT, VARIANT_AUTO),
     m_adjusted(false),
     m_apiIPv6(false),
     m_apiRestricted(true),
@@ -117,7 +118,7 @@ bool xmrig::CommonConfig::finalize()
     }
 
     if (!m_algorithm.isValid()) {
-        m_algorithm.setAlgo(CRYPTONIGHT);
+        return false;
     }
 
     for (Pool &pool : m_pools) {

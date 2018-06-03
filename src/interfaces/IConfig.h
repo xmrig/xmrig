@@ -24,6 +24,7 @@
 #define __ICONFIG_H__
 
 
+#include "common/crypto/Algorithm.h"
 #include "rapidjson/fwd.h"
 
 
@@ -97,6 +98,7 @@ public:
     virtual bool parseString(int key, const char *arg)     = 0;
     virtual bool parseUint64(int key, uint64_t arg)        = 0;
     virtual bool save()                                    = 0;
+    virtual const Algorithm &algorithm() const             = 0;
     virtual const char *fileName() const                   = 0;
     virtual void getJSON(rapidjson::Document &doc) const   = 0;
     virtual void parseJSON(const rapidjson::Document &doc) = 0;
