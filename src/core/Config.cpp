@@ -43,7 +43,6 @@ static char affinity_tmp[20] = { 0 };
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
-    m_dryRun(false),
     m_hugePages(true),
     m_safe(false),
     m_maxCpuUsage(75),
@@ -192,19 +191,15 @@ bool xmrig::Config::parseBoolean(int key, bool enable)
     }
 
     switch (key) {
-    case IConfig::SafeKey: /* --safe */
+    case SafeKey: /* --safe */
         m_safe = enable;
         break;
 
-    case IConfig::HugePagesKey: /* --no-huge-pages */
+    case HugePagesKey: /* --no-huge-pages */
         m_hugePages = enable;
         break;
 
-    case IConfig::DryRunKey: /* --dry-run */
-        m_dryRun = enable;
-        break;
-
-    case IConfig::HardwareAESKey: /* hw-aes config only */
+    case HardwareAESKey: /* hw-aes config only */
         m_aesMode = enable ? AES_HW : AES_SOFT;
         break;
 
@@ -223,19 +218,18 @@ bool xmrig::Config::parseString(int key, const char *arg)
     }
 
     switch (key) {
-    case xmrig::IConfig::AVKey:          /* --av */
-    case xmrig::IConfig::MaxCPUUsageKey: /* --max-cpu-usage */
-    case xmrig::IConfig::CPUPriorityKey: /* --cpu-priority */
+    case AVKey:          /* --av */
+    case MaxCPUUsageKey: /* --max-cpu-usage */
+    case CPUPriorityKey: /* --cpu-priority */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
-    case xmrig::IConfig::SafeKey:   /* --safe */
-    case xmrig::IConfig::DryRunKey: /* --dry-run */
+    case SafeKey: /* --safe */
         return parseBoolean(key, true);
 
-    case xmrig::IConfig::HugePagesKey: /* --no-huge-pages */
+    case HugePagesKey: /* --no-huge-pages */
         return parseBoolean(key, false);
 
-    case xmrig::IConfig::ThreadsKey:  /* --threads */
+    case ThreadsKey:  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
             m_threads.count = Cpu::threads();
             return true;
@@ -243,7 +237,7 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
         return parseUint64(key, strtol(arg, nullptr, 10));
 
-    case xmrig::IConfig::CPUAffinityKey: /* --cpu-affinity */
+    case CPUAffinityKey: /* --cpu-affinity */
         {
             const char *p  = strstr(arg, "0x");
             return parseUint64(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
@@ -264,7 +258,7 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     }
 
     switch (key) {
-    case xmrig::IConfig::CPUAffinityKey: /* --cpu-affinity */
+    case CPUAffinityKey: /* --cpu-affinity */
         if (arg) {
             m_threads.mask = arg;
         }
@@ -303,25 +297,25 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 bool xmrig::Config::parseInt(int key, int arg)
 {
     switch (key) {
-    case xmrig::IConfig::ThreadsKey: /* --threads */
+    case ThreadsKey: /* --threads */
         if (arg >= 0 && arg < 1024) {
             m_threads.count = arg;
         }
         break;
 
-    case xmrig::IConfig::AVKey: /* --av */
+    case AVKey: /* --av */
         if (arg >= AV_AUTO && arg < AV_MAX) {
             m_algoVariant = static_cast<AlgoVariant>(arg);
         }
         break;
 
-    case xmrig::IConfig::MaxCPUUsageKey: /* --max-cpu-usage */
+    case MaxCPUUsageKey: /* --max-cpu-usage */
         if (m_maxCpuUsage > 0 && arg <= 100) {
             m_maxCpuUsage = arg;
         }
         break;
 
-    case xmrig::IConfig::CPUPriorityKey: /* --cpu-priority */
+    case CPUPriorityKey: /* --cpu-priority */
         if (arg >= 0 && arg <= 5) {
             m_priority = arg;
         }

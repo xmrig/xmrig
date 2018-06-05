@@ -47,6 +47,7 @@ public:
     inline bool isApiRestricted() const            { return m_apiRestricted; }
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
+    inline bool isDryRun() const                   { return m_dryRun; }
     inline bool isSyslog() const                   { return m_syslog; }
     inline const char *apiToken() const            { return m_apiToken.data(); }
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
@@ -85,6 +86,7 @@ protected:
     bool m_apiRestricted;
     bool m_background;
     bool m_colors;
+    bool m_dryRun;
     bool m_syslog;
     bool m_watch;
     int m_apiPort;
