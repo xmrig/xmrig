@@ -28,10 +28,10 @@
 #include <vector>
 
 
+#include "common/interfaces/IConfig.h"
 #include "common/net/Pool.h"
 #include "common/utils/c_str.h"
 #include "common/xmrig.h"
-#include "interfaces/IConfig.h"
 
 
 namespace xmrig {

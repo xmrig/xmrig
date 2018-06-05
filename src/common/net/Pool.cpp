@@ -101,6 +101,12 @@ bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
         }
     }
 
+#   ifdef XMRIG_PROXY_PROJECT
+    if (m_algorithm.algo() == xmrig::CRYPTONIGHT && algorithm.algo() == xmrig::CRYPTONIGHT && m_algorithm.variant() == xmrig::VARIANT_XTL) {
+        return true;
+    }
+#   endif
+
     return false;
 }
 

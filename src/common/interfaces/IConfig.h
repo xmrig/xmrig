@@ -78,6 +78,12 @@ public:
         ThreadsKey        = 't',
         HardwareAESKey    = 1011,
 
+        // xmrig amd
+        OclPlatform       = 1400,
+        OclAffinity       = 1401,
+        OclDevices        = 1402,
+        OclLaunch         = 1403,
+
         // xmrig-proxy
         AccessLogFileKey  = 'A',
         BindKey           = 'b',

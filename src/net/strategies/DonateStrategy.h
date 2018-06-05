@@ -30,9 +30,9 @@
 
 
 #include "common/net/Pool.h"
-#include "interfaces/IClientListener.h"
-#include "interfaces/IStrategy.h"
-#include "interfaces/IStrategyListener.h"
+#include "common/interfaces/IClientListener.h"
+#include "common/interfaces/IStrategy.h"
+#include "common/interfaces/IStrategyListener.h"
 
 
 class Client;

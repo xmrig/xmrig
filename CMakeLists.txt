@@ -20,6 +20,15 @@ set(HEADERS
     src/common/Console.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
+    src/common/interfaces/IClientListener.h
+    src/common/interfaces/IConfig.h
+    src/common/interfaces/IConfigCreator.h
+    src/common/interfaces/IConsoleListener.h
+    src/common/interfaces/IControllerListener.h
+    src/common/interfaces/ILogBackend.h
+    src/common/interfaces/IStrategy.h
+    src/common/interfaces/IStrategyListener.h
+    src/common/interfaces/IWatcherListener.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
     src/common/log/Log.h
@@ -38,17 +47,8 @@ set(HEADERS
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
     src/Cpu.h
-    src/interfaces/IClientListener.h
-    src/interfaces/IConfig.h
-    src/interfaces/IConfigCreator.h
-    src/interfaces/IConsoleListener.h
-    src/interfaces/IControllerListener.h
     src/interfaces/IJobResultListener.h
-    src/interfaces/ILogBackend.h
-    src/interfaces/IStrategy.h
-    src/interfaces/IStrategyListener.h
     src/interfaces/IThread.h
-    src/interfaces/IWatcherListener.h
     src/interfaces/IWorker.h
     src/Mem.h
     src/net/JobResult.h

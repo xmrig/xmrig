@@ -26,6 +26,7 @@
 
 
 #include "common/config/ConfigLoader.h"
+#include "common/interfaces/IControllerListener.h"
 #include "common/log/ConsoleLog.h"
 #include "common/log/FileLog.h"
 #include "common/log/Log.h"
@@ -33,7 +34,6 @@
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"
-#include "interfaces/IControllerListener.h"
 #include "net/Network.h"
 
 

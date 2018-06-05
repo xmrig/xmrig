@@ -40,7 +40,11 @@ public:
         DEBUG
     };
 
+#   ifdef APP_DEBUG
+    constexpr static const size_t kBufferSize = 1024;
+#   else
     constexpr static const size_t kBufferSize = 512;
+#   endif
 
     virtual ~ILogBackend() {}
 

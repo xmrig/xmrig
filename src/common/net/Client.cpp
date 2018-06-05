@@ -29,9 +29,9 @@
 #include <utility>
 
 
+#include "common/interfaces/IClientListener.h"
 #include "common/log/Log.h"
 #include "common/net/Client.h"
-#include "interfaces/IClientListener.h"
 #include "net/JobResult.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
