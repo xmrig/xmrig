@@ -25,7 +25,7 @@
 #define __SYSLOG_H__
 
 
-#include "interfaces/ILogBackend.h"
+#include "common/interfaces/ILogBackend.h"
 
 
 class SysLog : public ILogBackend
