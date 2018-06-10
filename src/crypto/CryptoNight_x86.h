@@ -403,11 +403,11 @@ static inline void cryptonight_monero_tweak(uint64_t* mem_out, __m128i tmp)
 }
 
 
-template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
+template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
 inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {
     constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
-    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
+    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO, VARIANT>();
     constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
 
     if (VARIANT > 0 && size < 43) {
@@ -493,11 +493,11 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
-template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
+template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
 inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {
     constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
-    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
+    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO, VARIANT>();
     constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
 
     if (VARIANT > 0 && size < 43) {
@@ -700,11 +700,11 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     }
 
 
-template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
+template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
 inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {
     constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
-    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
+    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO, VARIANT>();
     constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
 
     if (VARIANT > 0 && size < 43) {
@@ -790,11 +790,11 @@ inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
-template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
+template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
 inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {
     constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
-    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
+    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO, VARIANT>();
     constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
 
     if (VARIANT > 0 && size < 43) {
@@ -896,11 +896,11 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
 }
 
 
-template<xmrig::Algo ALGO, bool SOFT_AES, int VARIANT>
+template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
 inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {
     constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
-    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO>();
+    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO, VARIANT>();
     constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
 
     if (VARIANT > 0 && size < 43) {

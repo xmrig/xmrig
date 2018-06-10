@@ -38,6 +38,7 @@ namespace xmrig
 constexpr const size_t   CRYPTONIGHT_MEMORY       = 2 * 1024 * 1024;
 constexpr const uint32_t CRYPTONIGHT_MASK         = 0x1FFFF0;
 constexpr const uint32_t CRYPTONIGHT_ITER         = 0x80000;
+constexpr const uint32_t CRYPTONIGHT_MSR_ITER     = 0x40000;
 
 constexpr const size_t   CRYPTONIGHT_LITE_MEMORY  = 1 * 1024 * 1024;
 constexpr const uint32_t CRYPTONIGHT_LITE_MASK    = 0xFFFF0;
@@ -102,18 +103,24 @@ inline uint32_t cn_select_mask(Algo algorithm)
 }
 
 
-template<Algo ALGO> inline constexpr uint32_t cn_select_iter()           { return 0; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT>()       { return CRYPTONIGHT_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_ITER; }
+template<Algo ALGO, Variant variant> inline constexpr uint32_t cn_select_iter()       { return 0; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_0>()         { return CRYPTONIGHT_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_1>()         { return CRYPTONIGHT_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XTL>()       { return CRYPTONIGHT_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_MSR>()       { return CRYPTONIGHT_MSR_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_0>()    { return CRYPTONIGHT_LITE_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_1>()    { return CRYPTONIGHT_LITE_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_IPBC>() { return CRYPTONIGHT_LITE_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_0>()   { return CRYPTONIGHT_HEAVY_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_XHV>() { return CRYPTONIGHT_HEAVY_ITER; }
 
 
-inline uint32_t cn_select_iter(Algo algorithm)
+inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
 {
     switch(algorithm)
     {
     case CRYPTONIGHT:
-        return CRYPTONIGHT_ITER;
+        return variant == VARIANT_MSR ? CRYPTONIGHT_MSR_ITER : CRYPTONIGHT_ITER;
 
     case CRYPTONIGHT_LITE:
         return CRYPTONIGHT_LITE_ITER;

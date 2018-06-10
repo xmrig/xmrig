@@ -321,12 +321,12 @@ void Pool::rebuild()
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
-    if (m_algorithm.algo() != xmrig::CRYPTONIGHT_HEAVY) {
-        addVariant(xmrig::VARIANT_1);
-        addVariant(xmrig::VARIANT_0);
-        addVariant(xmrig::VARIANT_XTL);
-        addVariant(xmrig::VARIANT_IPBC);
-        addVariant(xmrig::VARIANT_AUTO);
-    }
+    addVariant(xmrig::VARIANT_1);
+    addVariant(xmrig::VARIANT_0);
+    addVariant(xmrig::VARIANT_XTL);
+    addVariant(xmrig::VARIANT_IPBC);
+    addVariant(xmrig::VARIANT_MSR);
+    addVariant(xmrig::VARIANT_XHV);
+    addVariant(xmrig::VARIANT_AUTO);
 #   endif
 }

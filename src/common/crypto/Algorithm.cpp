@@ -57,6 +57,7 @@ static AlgoData const algorithms[] = {
     { "cryptonight/0",         "cn/0",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_0    },
     { "cryptonight/1",         "cn/1",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_1    },
     { "cryptonight/xtl",       "cn/xtl",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL  },
+    { "cryptonight/msr",       "cn/msr",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -68,6 +69,8 @@ static AlgoData const algorithms[] = {
 
 #   ifndef XMRIG_NO_SUMO
     { "cryptonight-heavy",     "cn-heavy",     xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0    },
+    { "cryptonight-heavy/0",   "cn-heavy/0",   xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0    },
+    { "cryptonight-heavy/xhv", "cn-heavy/xhv", xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_XHV  },
 #   endif
 };
 
@@ -89,7 +92,9 @@ static const char *variants[] = {
     "0",
     "1",
     "ipbc",
-    "xtl"
+    "xtl",
+    "msr",
+    "xhv"
 };
 
 
@@ -145,11 +150,6 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
 
 void xmrig::Algorithm::parseVariant(const char *variant)
 {
-    if (m_algo == CRYPTONIGHT_HEAVY) {
-        m_variant = VARIANT_0;
-        return;
-    }
-
     m_variant = VARIANT_AUTO;
 
     for (size_t i = 0; i < ARRAY_SIZE(variants); i++) {
@@ -163,7 +163,7 @@ void xmrig::Algorithm::parseVariant(const char *variant)
 
 void xmrig::Algorithm::parseVariant(int variant)
 {
-    if (variant >= VARIANT_AUTO && variant <= VARIANT_XTL) {
+    if (variant >= VARIANT_AUTO && variant < VARIANT_MAX) {
        m_variant = static_cast<Variant>(variant);
     }
     else {
@@ -175,10 +175,6 @@ void xmrig::Algorithm::parseVariant(int variant)
 void xmrig::Algorithm::setAlgo(Algo algo)
 {
     m_algo = algo;
-
-    if (m_algo == CRYPTONIGHT_HEAVY) {
-        m_variant = VARIANT_0;
-    }
 }
 
 
