@@ -233,7 +233,10 @@ void Pool::adjust(xmrig::Algo algorithm)
         m_algorithm.setAlgo(algorithm);
 
         if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
-            if (algorithm == xmrig::CRYPTONIGHT)  {
+            if (algorithm == xmrig::CRYPTONIGHT_HEAVY)  {
+                m_algorithm.setVariant(xmrig::VARIANT_0);
+            }
+            else {
                 m_algorithm.setVariant(xmrig::VARIANT_1);
             }
         }
