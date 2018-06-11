@@ -136,6 +136,21 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
 }
 
 
+template<Variant variant> inline constexpr bool cn_is_monero() { return false; }
+template<> inline constexpr bool cn_is_monero<VARIANT_0>()     { return false; }
+template<> inline constexpr bool cn_is_monero<VARIANT_1>()     { return true; }
+template<> inline constexpr bool cn_is_monero<VARIANT_IPBC>()  { return true; }
+template<> inline constexpr bool cn_is_monero<VARIANT_XTL>()   { return true; }
+template<> inline constexpr bool cn_is_monero<VARIANT_MSR>()   { return true; }
+template<> inline constexpr bool cn_is_monero<VARIANT_XHV>()   { return false; }
+
+
+inline bool cn_is_monero(Variant variant)
+{
+    return variant > VARIANT_0 && variant < VARIANT_XHV;
+}
+
+
 } /* namespace xmrig */
 
 

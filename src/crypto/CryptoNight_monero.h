@@ -30,21 +30,21 @@
 #ifndef XMRIG_ARM
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
-    if (VARIANT > 0) { \
+    if (IS_MONERO) { \
         tweak1_2_##part = (*reinterpret_cast<const uint64_t*>(input + 35 + part * size) ^ \
                           *(reinterpret_cast<const uint64_t*>(ctx[part]->state) + 24)); \
     }
 #else
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
-    if (VARIANT > 0) { \
+    if (IS_MONERO) { \
         memcpy(&tweak1_2_##part, input + 35 + part * size, sizeof tweak1_2_##part); \
         tweak1_2_##part ^= *(reinterpret_cast<const uint64_t*>(ctx[part]->state) + 24); \
     }
 #endif
 
 #define VARIANT1_1(p) \
-    if (VARIANT > 0) { \
+    if (IS_MONERO) { \
         const uint8_t tmp = reinterpret_cast<const uint8_t*>(p)[11]; \
         static const uint32_t table = 0x75310; \
         const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1; \
@@ -52,7 +52,7 @@
     }
 
 #define VARIANT1_2(p, part) \
-    if (VARIANT > 0) { \
+    if (IS_MONERO) { \
         (p) ^= tweak1_2_##part; \
     }
 
