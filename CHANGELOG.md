@@ -1,6 +1,7 @@
 # v2.6.3
 - **Added support for new cryptonight-heavy variant xhv** (`cn-heavy/xhv`) for upcoming Haven Protocol fork.
 - **Added support for new cryptonight variant msr** (`cn/msr`) also known as `cryptonight-fast` for upcoming Masari fork.
+- Added new detailed hashrate report.
 - [#446](https://github.com/xmrig/xmrig/issues/446) Likely fixed SIGBUS error on 32 bit ARM CPUs.
 - [#551](https://github.com/xmrig/xmrig/issues/551) Fixed `cn-heavy` algorithm on ARMv8.
 - [#614](https://github.com/xmrig/xmrig/issues/614) Fixed display issue with huge pages percentage when colors disabled.
