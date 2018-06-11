@@ -33,8 +33,8 @@
 #endif
 
 
+#include "common/interfaces/IConfig.h"
 #include "version.h"
-#include "interfaces/IConfig.h"
 
 
 namespace xmrig {

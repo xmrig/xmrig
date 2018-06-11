@@ -25,8 +25,8 @@
 #define __SINGLEPOOLSTRATEGY_H__
 
 
-#include "interfaces/IClientListener.h"
-#include "interfaces/IStrategy.h"
+#include "common/interfaces/IClientListener.h"
+#include "common/interfaces/IStrategy.h"
 
 
 class Client;

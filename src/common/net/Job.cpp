@@ -165,20 +165,20 @@ bool Job::setTarget(const char *target)
 
 xmrig::Variant Job::variant() const
 {
-    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_HEAVY) {
-        return xmrig::VARIANT_0;
-    }
-
     if (m_algorithm.variant() == xmrig::VARIANT_XTL && m_blob[0] < 4) {
         return xmrig::VARIANT_1;
     }
 
-    if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
-        if (m_algorithm.algo() == xmrig::CRYPTONIGHT) {
-            return xmrig::VARIANT_1;
-        }
+    if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] < 7) {
+        return xmrig::VARIANT_1;
+    }
 
-        return (m_blob[0] > 6 ? xmrig::VARIANT_1 : xmrig::VARIANT_0);
+    if (m_algorithm.variant() == xmrig::VARIANT_XHV && m_blob[0] < 3) {
+        return xmrig::VARIANT_0;
+    }
+
+    if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
+        return m_algorithm.algo() == xmrig::CRYPTONIGHT_HEAVY ? xmrig::VARIANT_0 : xmrig::VARIANT_1;
     }
 
     return m_algorithm.variant();

@@ -47,8 +47,11 @@ void Cpu::initCommon()
 {
     memcpy(m_brand, "Unknown", 7);
 
-#   if defined(XMRIG_ARMv8)
+#   if defined (__arm64__) || defined (__aarch64__)
     m_flags |= X86_64;
+#   endif
+
+#   if __ARM_FEATURE_CRYPTO
     m_flags |= AES;
 #   endif
 }

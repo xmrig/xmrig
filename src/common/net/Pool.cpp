@@ -101,6 +101,12 @@ bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
         }
     }
 
+#   ifdef XMRIG_PROXY_PROJECT
+    if (m_algorithm.algo() == xmrig::CRYPTONIGHT && algorithm.algo() == xmrig::CRYPTONIGHT && m_algorithm.variant() == xmrig::VARIANT_XTL) {
+        return true;
+    }
+#   endif
+
     return false;
 }
 
@@ -227,7 +233,10 @@ void Pool::adjust(xmrig::Algo algorithm)
         m_algorithm.setAlgo(algorithm);
 
         if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
-            if (algorithm == xmrig::CRYPTONIGHT)  {
+            if (algorithm == xmrig::CRYPTONIGHT_HEAVY)  {
+                m_algorithm.setVariant(xmrig::VARIANT_0);
+            }
+            else {
                 m_algorithm.setVariant(xmrig::VARIANT_1);
             }
         }
@@ -247,17 +256,15 @@ void Pool::adjust(xmrig::Algo algorithm)
         m_algorithm.setVariant(xmrig::VARIANT_1);
     }
 
-    m_algorithms.push_back(m_algorithm);
+    rebuild();
+}
 
-#   ifndef XMRIG_PROXY_PROJECT
-    if (m_algorithm.algo() != xmrig::CRYPTONIGHT_HEAVY) {
-        addVariant(xmrig::VARIANT_1);
-        addVariant(xmrig::VARIANT_0);
-        addVariant(xmrig::VARIANT_XTL);
-        addVariant(xmrig::VARIANT_IPBC);
-        addVariant(xmrig::VARIANT_AUTO);
-    }
-#   endif
+
+void Pool::setAlgo(const xmrig::Algorithm &algorithm)
+{
+    m_algorithm = algorithm;
+
+    rebuild();
 }
 
 
@@ -308,4 +315,21 @@ void Pool::addVariant(xmrig::Variant variant)
     }
 
     m_algorithms.push_back(algorithm);
+}
+
+
+void Pool::rebuild()
+{
+    m_algorithms.clear();
+    m_algorithms.push_back(m_algorithm);
+
+#   ifndef XMRIG_PROXY_PROJECT
+    addVariant(xmrig::VARIANT_1);
+    addVariant(xmrig::VARIANT_0);
+    addVariant(xmrig::VARIANT_XTL);
+    addVariant(xmrig::VARIANT_IPBC);
+    addVariant(xmrig::VARIANT_MSR);
+    addVariant(xmrig::VARIANT_XHV);
+    addVariant(xmrig::VARIANT_AUTO);
+#   endif
 }

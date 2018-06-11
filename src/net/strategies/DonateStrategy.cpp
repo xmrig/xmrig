@@ -23,13 +23,13 @@
 
 
 #include "common/crypto/keccak.h"
+#include "common/interfaces/IStrategyListener.h"
 #include "common/net/Client.h"
 #include "common/net/Job.h"
 #include "common/net/strategies/FailoverStrategy.h"
 #include "common/net/strategies/SinglePoolStrategy.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
-#include "interfaces/IStrategyListener.h"
 #include "net/strategies/DonateStrategy.h"
 
 

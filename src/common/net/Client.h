@@ -30,6 +30,7 @@
 #include <vector>
 
 
+#include "common/crypto/Algorithm.h"
 #include "common/net/Id.h"
 #include "common/net/Job.h"
 #include "common/net/Pool.h"
@@ -66,16 +67,17 @@ public:
     void setPool(const Pool &pool);
     void tick(uint64_t now);
 
-    inline bool isReady() const              { return m_state == ConnectedState && m_failures == 0; }
-    inline const char *host() const          { return m_pool.host(); }
-    inline const char *ip() const            { return m_ip; }
-    inline const Job &job() const            { return m_job; }
-    inline int id() const                    { return m_id; }
-    inline SocketState state() const         { return m_state; }
-    inline uint16_t port() const             { return m_pool.port(); }
-    inline void setQuiet(bool quiet)         { m_quiet = quiet; }
-    inline void setRetries(int retries)      { m_retries = retries; }
-    inline void setRetryPause(int ms)        { m_retryPause = ms; }
+    inline bool isReady() const                       { return m_state == ConnectedState && m_failures == 0; }
+    inline const char *host() const                   { return m_pool.host(); }
+    inline const char *ip() const                     { return m_ip; }
+    inline const Job &job() const                     { return m_job; }
+    inline int id() const                             { return m_id; }
+    inline SocketState state() const                  { return m_state; }
+    inline uint16_t port() const                      { return m_pool.port(); }
+    inline void setAlgo(const xmrig::Algorithm &algo) { m_pool.setAlgo(algo); }
+    inline void setQuiet(bool quiet)                  { m_quiet = quiet; }
+    inline void setRetries(int retries)               { m_retries = retries; }
+    inline void setRetryPause(int ms)                 { m_retryPause = ms; }
 
 private:
     enum Extensions {

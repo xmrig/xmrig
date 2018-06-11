@@ -24,8 +24,8 @@
 #define __CONFIGCREATOR_H__
 
 
+#include "common/interfaces/IConfigCreator.h"
 #include "core/Config.h"
-#include "interfaces/IConfigCreator.h"
 
 
 namespace xmrig {

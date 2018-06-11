@@ -34,12 +34,12 @@
 
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
+#include "common/interfaces/IConfig.h"
+#include "common/interfaces/IWatcherListener.h"
 #include "common/net/Pool.h"
 #include "common/Platform.h"
 #include "core/ConfigCreator.h"
 #include "core/ConfigLoader_platform.h"
-#include "interfaces/IConfig.h"
-#include "interfaces/IWatcherListener.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
@@ -170,7 +170,13 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
     }
 
     if (!config->finalize()) {
-        fprintf(stderr, "No valid configuration found. Exiting.\n");
+        if (!config->algorithm().isValid()) {
+            fprintf(stderr, "No valid algorithm specified. Exiting.\n");
+        }
+        else {
+            fprintf(stderr, "No valid configuration found. Exiting.\n");
+        }
+
         delete config;
         return nullptr;
     }

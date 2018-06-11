@@ -38,11 +38,13 @@
 
 
 xmrig::CommonConfig::CommonConfig() :
+    m_algorithm(CRYPTONIGHT, VARIANT_AUTO),
     m_adjusted(false),
     m_apiIPv6(false),
     m_apiRestricted(true),
     m_background(false),
     m_colors(true),
+    m_dryRun(false),
     m_syslog(false),
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -72,6 +74,40 @@ xmrig::CommonConfig::~CommonConfig()
 }
 
 
+bool xmrig::CommonConfig::save()
+{
+    if (m_fileName.isNull()) {
+        return false;
+    }
+
+    uv_fs_t req;
+    const int fd = uv_fs_open(uv_default_loop(), &req, m_fileName.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644, nullptr);
+    if (fd < 0) {
+        return false;
+    }
+
+    uv_fs_req_cleanup(&req);
+
+    rapidjson::Document doc;
+    getJSON(doc);
+
+    FILE *fp = fdopen(fd, "w");
+
+    char buf[4096];
+    rapidjson::FileWriteStream os(fp, buf, sizeof(buf));
+    rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
+    doc.Accept(writer);
+
+    fclose(fp);
+
+    uv_fs_close(uv_default_loop(), &req, fd, nullptr);
+    uv_fs_req_cleanup(&req);
+
+    LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
+    return true;
+}
+
+
 bool xmrig::CommonConfig::finalize()
 {
     if (m_state == ReadyState) {
@@ -83,7 +119,7 @@ bool xmrig::CommonConfig::finalize()
     }
 
     if (!m_algorithm.isValid()) {
-        m_algorithm.setAlgo(CRYPTONIGHT);
+        return false;
     }
 
     for (Pool &pool : m_pools) {
@@ -137,9 +173,15 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
 
     case ApiIPv6Key: /* ipv6 */
         m_apiIPv6 = enable;
+        break;
 
     case ApiRestrictedKey: /* restricted */
         m_apiRestricted = enable;
+        break;
+
+    case IConfig::DryRunKey: /* --dry-run */
+        m_dryRun = enable;
+        break;
 
     default:
         break;
@@ -224,6 +266,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case KeepAliveKey:  /* --keepalive */
     case NicehashKey:   /* --nicehash */
     case ApiIPv6Key:    /* --api-ipv6 */
+    case DryRunKey:     /* --dry-run */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
@@ -251,40 +294,6 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
 bool xmrig::CommonConfig::parseUint64(int key, uint64_t arg)
 {
     return parseInt(key, static_cast<int>(arg));
-}
-
-
-bool xmrig::CommonConfig::save()
-{
-    if (m_fileName.isNull()) {
-        return false;
-    }
-
-    uv_fs_t req;
-    const int fd = uv_fs_open(uv_default_loop(), &req, m_fileName.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644, nullptr);
-    if (fd < 0) {
-        return false;
-    }
-
-    uv_fs_req_cleanup(&req);
-
-    rapidjson::Document doc;
-    getJSON(doc);
-
-    FILE *fp = fdopen(fd, "w");
-
-    char buf[4096];
-    rapidjson::FileWriteStream os(fp, buf, sizeof(buf));
-    rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
-    doc.Accept(writer);
-
-    fclose(fp);
-
-    uv_fs_close(uv_default_loop(), &req, fd, nullptr);
-    uv_fs_req_cleanup(&req);
-
-    LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
-    return true;
 }
 
 

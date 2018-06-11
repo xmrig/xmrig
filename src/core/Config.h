@@ -77,7 +77,6 @@ public:
 
     inline AesMode aesMode() const                       { return m_aesMode; }
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
-    inline bool isDryRun() const                         { return m_dryRun; }
     inline bool isHugePages() const                      { return m_hugePages; }
     inline const std::vector<IThread *> &threads() const { return m_threads.list; }
     inline int priority() const                          { return m_priority; }
@@ -117,7 +116,6 @@ private:
 
     AesMode m_aesMode;
     AlgoVariant m_algoVariant;
-    bool m_dryRun;
     bool m_hugePages;
     bool m_safe;
     int m_maxCpuUsage;

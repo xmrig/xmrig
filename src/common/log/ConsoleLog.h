@@ -28,7 +28,7 @@
 #include <uv.h>
 
 
-#include "interfaces/ILogBackend.h"
+#include "common/interfaces/ILogBackend.h"
 
 
 namespace xmrig {
@@ -41,14 +41,14 @@ class ConsoleLog : public ILogBackend
 public:
     ConsoleLog(xmrig::Controller *controller);
 
-    void message(int level, const char *fmt, va_list args) override;
+    void message(Level level, const char *fmt, va_list args) override;
     void text(const char *fmt, va_list args) override;
 
 private:
     bool isWritable() const;
     void print(va_list args);
 
-    char m_buf[512];
+    char m_buf[kBufferSize];
     char m_fmt[256];
     uv_buf_t m_uvBuf;
     uv_stream_t *m_stream;

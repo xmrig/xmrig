@@ -48,6 +48,7 @@ protected:
 
 private:
     bool resume(const Job &job);
+    bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
     void consumeJob();
     void save(const Job &job);
 

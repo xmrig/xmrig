@@ -4,7 +4,6 @@ project(xmrig)
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_SUMO     "CryptoNight-Heavy support" ON)
-option(WITH_IPBC     "CryptoNight-IPBC support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
 
@@ -21,6 +20,15 @@ set(HEADERS
     src/common/Console.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
+    src/common/interfaces/IClientListener.h
+    src/common/interfaces/IConfig.h
+    src/common/interfaces/IConfigCreator.h
+    src/common/interfaces/IConsoleListener.h
+    src/common/interfaces/IControllerListener.h
+    src/common/interfaces/ILogBackend.h
+    src/common/interfaces/IStrategy.h
+    src/common/interfaces/IStrategyListener.h
+    src/common/interfaces/IWatcherListener.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
     src/common/log/Log.h
@@ -36,21 +44,11 @@ set(HEADERS
     src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
-    src/core/Config.cpp
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
     src/Cpu.h
-    src/interfaces/IClientListener.h
-    src/interfaces/IConfig.h
-    src/interfaces/IConfigCreator.h
-    src/interfaces/IConsoleListener.h
-    src/interfaces/IControllerListener.h
     src/interfaces/IJobResultListener.h
-    src/interfaces/ILogBackend.h
-    src/interfaces/IStrategy.h
-    src/interfaces/IStrategyListener.h
     src/interfaces/IThread.h
-    src/interfaces/IWatcherListener.h
     src/interfaces/IWorker.h
     src/Mem.h
     src/net/JobResult.h
@@ -246,5 +244,5 @@ if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif()
 
-add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
-target_link_libraries(xmrig ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
