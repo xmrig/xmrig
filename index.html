@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang=\"en\" xmlns="http://www.w3.org/1999/html">
 <head>
 <meta charset=\"utf-8\">
 <title>XMRigCC Dashboard</title>
@@ -314,23 +314,6 @@
             }
         });
 
-        new $.fn.dataTable.Buttons(table, {
-            buttons: [
-                {  text: '<i class="fa fa-trash-o"> Reset ClientStatusList</i>',
-                    className: 'btn-danger',
-                    enabled: true,
-                    action: function () {
-                        resetClientStatusList();
-                    }
-                }
-            ]
-        });
-
-        table.buttons(1, null ).container().appendTo(
-            table.table().container()
-        );
-
-
         table.on('xhr.dt', function ( e, settings, json, xhr ) {
             // check version
             if (latestRelease === "" && json !== undefined) {
@@ -384,6 +367,10 @@
 
         $('#hideOffline').change(function() {
             table.draw();
+        });
+
+        $('#resetClientStatusList').click(function() {
+            resetClientStatusList();
         });
 
         $('#clientStatusList tbody ').on( 'click', 'button#EDIT', function () {
@@ -668,6 +655,7 @@
     <form style="padding-bottom: 25px; margin-top: -50px">
         <label><input id="hideOffline" type="checkbox" checked  data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger"/><span>Hide offline miners</span></label>
         <label><input id="showOfflineNotification" type="checkbox" checked data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger" /><span>Notify when miner went offline</span></label>
+        <br/><button id="resetClientStatusList" type="button" class="btn btn-danger fa fa-trash-o"> Reset ClientStatusList</button>
     </form>
 
     <table id="clientStatusList" class="table table-striped table-bordered" cellspacing="0" width="100%">
