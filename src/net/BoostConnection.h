@@ -57,8 +57,10 @@ public:
                        boost::asio::ip::tcp::resolver::iterator endpointIterator)
     {
         if (!error) {
+            #ifdef APP_DEBUG
             boost::asio::ip::tcp::endpoint endpoint = *endpointIterator;
-
+            #endif
+            
             LOG_DEBUG("[%s:%d] DNS resolved ", endpoint.address().to_string().c_str(), endpoint.port());
             m_socket.connect(endpointIterator, boost::bind(&BoostConnection::handleConnect, this->shared_from_this(),
                             boost::asio::placeholders::error));
