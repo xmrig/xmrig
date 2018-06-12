@@ -322,8 +322,10 @@
                     type: 'GET',
                     dataType: "json",
                     success: function (release) {
-                        latestRelease = release.tag_name;
-                        if (latestRelease !== json.current_version) {
+                        latestRelease = release.tag_name
+                        latestVersion = parseInt(release.tag_name.split('.').join(""));
+                        currentVersion = parseInt(json.current_version.split('.').join(""));
+                        if (latestVersion > currentVersion) {
                             $("#updateNotificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
                                 '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
                                 '<a href="https://github.com/Bendr0id/xmrigCC/releases/latest"><strong>Update!</strong> XMRigCC v' + latestRelease + ' is available for download\n</a>' +
