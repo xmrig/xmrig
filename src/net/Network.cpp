@@ -177,6 +177,7 @@ void Network::setJob(Client *client, const Job &job)
         LOG_INFO("new job from %s:%d with diff %d and PoW %s", client->host(), client->port(), job.diff(), getPowVariantName(job.powVariant()).c_str());
     }
 
+    m_state.powVariant = job.powVariant();
     m_state.diff = job.diff();
     Workers::setJob(job);
 }

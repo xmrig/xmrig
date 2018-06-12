@@ -69,6 +69,9 @@ public:
     std::string getCurrentAlgoName() const;
     void setCurrentAlgoName(const std::string& algoName);
 
+    std::string getCurrentPowVariantName() const;
+    void setCurrentPowVariantName(const std::string& powVariantName);
+
     std::string getCpuBrand() const;
     void setCpuBrand(const std::string& cpuBrand);
 
@@ -77,6 +80,9 @@ public:
 
     std::string getVersion() const;
     void setVersion(const std::string& version);
+
+    std::string getLog() const;
+    void setLog(const std::string& version);
 
     bool hasHugepages() const;
     void setHugepages(bool hasHugepages);
@@ -157,9 +163,11 @@ private:
     std::string m_clientId;
     std::string m_currentPool;
     std::string m_currentAlgoName;
+    std::string m_currentPowVariantName;
     std::string m_cpuBrand;
     std::string m_externalIp;
     std::string m_version;
+    std::string m_log;
 
     bool m_hasHugepages;
     bool m_isHugepagesEnabled;

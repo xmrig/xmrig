@@ -34,5 +34,7 @@
         "access-token": "mySecret",             // access token for CC Server (has to be the same in config_cc.json)
         "worker-id": null,                      // custom worker-id for CC Server (otherwise hostname is used)
         "update-interval-s": 10                 // status update interval in seconds (default: 10 min: 1)
+        "use-remote-logging" : true,            // enable remote logging on CC Server
+        "remote-logging-max-rows" : 20          // maximum last n-log rows to send CC Server
     }
 }

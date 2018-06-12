@@ -81,11 +81,11 @@ Connection::Ptr establishConnection(const ConnectionListener::Ptr& listener,
         connection->connect(host, port);
     }
     catch (...) {
-        LOG_ERR("[%s:%d] Failed to establish connection: %s", host.c_str(), port, boost::current_exception_diagnostic_information().c_str());
-
         if (connection) {
             connection->disconnect();
         }
+
+        connection->notifyError(std::string("[EstablishConnection] ") + boost::current_exception_diagnostic_information());
     }
 
 

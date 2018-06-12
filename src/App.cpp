@@ -27,13 +27,13 @@
 #include <uv.h>
 #include <cc/ControlCommand.h>
 
-#include "api/Api.h"
 #include "App.h"
 #include "Console.h"
 #include "Cpu.h"
 #include "crypto/CryptoNight.h"
 #include "log/ConsoleLog.h"
 #include "log/FileLog.h"
+#include "log/RemoteLog.h"
 #include "log/Log.h"
 #include "Mem.h"
 #include "net/Network.h"
@@ -86,6 +86,10 @@ App::App(int argc, char **argv) :
 
     if (m_options->logFile()) {
         Log::add(new FileLog(m_options->logFile()));
+    }
+
+    if (m_options->ccUseRemoteLogging()) {
+        Log::add(new RemoteLog(m_options->ccRemoteLoggingMaxRows()));
     }
 
 #   ifdef HAVE_SYSLOG_H

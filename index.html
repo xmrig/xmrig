@@ -10,7 +10,7 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.5/css/select.dataTables.min.css">
 <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
 
-<link rel="shortcut icon" href="http://root.graef.in/static/xmrigcc/favicon.ico">
+<link rel="shortcut icon" href="https://root.graef.in:8443/static/xmrigcc/favicon.ico">
 
 <style>
     .right{text-align:right;}
@@ -106,7 +106,7 @@
                 {data: "client_status.client_id", render: clientInfo},
                 {data: "client_status.current_pool"},
                 {data: "client_status.current_status", render: clientStatus},
-                {data: "client_status.current_algo_name"},
+                {data: "client_status.current_algo_name", render: algoAndPowVariantName},
                 {data: "client_status.hashrate_short", render: round, className: "right"},
                 {data: "client_status.hashrate_medium", render: round, className: "right"},
                 {data: "client_status.hashrate_long", render: round, className: "right"},
@@ -117,6 +117,13 @@
                 {data: "client_status.shares_total", className: "right"},
                 {data: "client_status.uptime", render: uptime, className: "right"},
                 {data: "client_status.last_status_update", render: laststatus},
+                {
+                    data: null,
+                    defaultContent:
+                        "<td class='center-tab'><button type='button' id='LOG' class='btn btn-xs btn-info' data-toggle='tooltip' title='View miner log'><i class='fa fa-file-text-o'></i></button></td>",
+                    orderable: false,
+                    className: "center-tab"
+                },
                 {
                     data: null,
                     defaultContent:
@@ -362,7 +369,7 @@
             table.draw();
         });
 
-        $('#clientStatusList tbody').on( 'click', 'button', function () {
+        $('#clientStatusList tbody ').on( 'click', 'button#EDIT', function () {
             var data = table.row( $(this).parents('tr') ).data();
             var clientId = data['client_status']['client_id'];
 
@@ -392,6 +399,33 @@
             var clientConfig = $('#config').val();
 
             setClientConfig(clientId, clientConfig);
+        });
+
+        $('#clientStatusList tbody').on( 'click', 'button#LOG', function () {
+            var data = table.row( $(this).parents('tr') ).data();
+            var clientId = data['client_status']['client_id'];
+            var log = data['client_status']['log'];
+
+            var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
+                "<label for='config'>Log of: " + clientId + "</label>"+
+                "<textarea class='form-control' rows='20' id='log'>" + log + "</textarea>" +
+                "</div>";
+
+            $('#minerLog').find('.modal-body').html(htmlContent);
+            $('#minerLog').modal('show');
+        });
+
+        $('#minerLogRefresh').click(function(event) {
+            var clientId = $('#minerLog').find('.form-group')["0"].dataset.value;
+
+            table.rows().eq(0).each(function (index) {
+                var row = table.row(index);
+                var data = row.data();
+
+                if (clientId === data.client_status.client_id) {
+                    $('#log').val(data.client_status.log);
+                }
+            });
         });
 
         $('#multiMinerEditorReplace').click(function(event) {
@@ -477,6 +511,18 @@
         return data;
     }
 
+    function algoAndPowVariantName( data, type, row ) {
+        var algo = row.client_status.current_algo_name;
+        var powVariant = row.client_status.current_pow_variant_name;
+
+        if (powVariant !== "") {
+            return algo + " / " + powVariant
+        }
+        else {
+            return algo;
+        }
+    }
+
     function clientStatus( data, type, row ) {
         var lastStatus = row.client_status.last_status_update * 1000;
 
@@ -489,6 +535,9 @@
 
     function clientInfo( data, type, row ) {
         if (type !== 'sort') {
+            var lastStatus = row.client_status.last_status_update * 1000;
+            var online = isOnline(lastStatus);
+
             var tooltip  = "CPU: " + row.client_status.cpu_brand + " (" + row.client_status.cpu_sockets + ") [" + row.client_status.cpu_cores + " cores / " + row.client_status.cpu_threads + " threads]";
             tooltip += '\n';
             tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
@@ -506,16 +555,12 @@
             tooltip += '\n';
             tooltip += "Version: " + row.client_status.version;
             tooltip += '\n';
-            tooltip += "Status: ";
+            tooltip += "Status: " + online ? "Online" : "Offline";
 
-            var lastStatus = row.client_status.last_status_update * 1000;
-
-            if (isOnline(lastStatus)) {
-                tooltip  += "Online";
+            if (online) {
                 return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
             }
             else {
-                tooltip  += "Offline";
                 return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="offline">' + data + '</div></span>';
             }
         }
@@ -585,7 +630,7 @@
     <div id="statusBar"></div>
 
     <div class="center">
-        <img src="http://root.graef.in/static/xmrigcc/banner.png"/>
+        <img src="https://root.graef.in:8443/static/xmrigcc/banner.png"/>
     </div>
 
     <form style="padding-bottom: 25px; margin-top: -50px">
@@ -600,7 +645,7 @@
             <th>Miner Id</th>
             <th>Pool</th>
             <th>Status</th>
-            <th>Algo</th>
+            <th>Algo / PoW</th>
 
             <th>Hashrate</th>
             <th>Hashrate 1m</th>
@@ -614,6 +659,7 @@
             <th>Shares Total</th>
             <th>Uptime</th>
             <th>Last Update</th>
+            <th>Log</th>
             <th>Edit</th>
         </tr>
         </thead>
@@ -621,6 +667,7 @@
         <tr>
             <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllBottom"></i></th>
             <th class="left">Total:</th>
+            <th></th>
             <th></th>
             <th></th>
             <th></th>
@@ -651,6 +698,24 @@
                 </div>
                 <div class="modal-footer">
                     <button id="minerEditorSave" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="minerLog" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Miner log</h4>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button id="minerLogRefresh" type="button" class="btn btn-success">Refresh</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>

@@ -28,6 +28,8 @@
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
 #include <version.h>
+#include <log/RemoteLog.h>
+#include <api/NetworkState.h>
 
 #include "CCClient.h"
 #include "App.h"
@@ -133,6 +135,7 @@ void CCClient::updateNetworkState(const NetworkState& network)
         m_self->m_clientStatus.setSharesTotal(network.accepted + network.rejected);
         m_self->m_clientStatus.setHashesTotal(network.total);
         m_self->m_clientStatus.setAvgTime(network.avgTime());
+        m_self->m_clientStatus.setCurrentPowVariantName(getPowVariantName(network.powVariant));
 
         uv_mutex_unlock(&m_mutex);
     }
@@ -140,8 +143,6 @@ void CCClient::updateNetworkState(const NetworkState& network)
 
 void CCClient::publishClientStatusReport()
 {
-    refreshUptime();
-
     std::string requestUrl = "/client/setClientStatus?clientId=" + m_self->m_clientStatus.getClientId();
     std::string requestBuffer = m_self->m_clientStatus.toJsonString();
 
@@ -302,23 +303,33 @@ void CCClient::refreshUptime()
     m_self->m_clientStatus.setUptime(static_cast<uint64_t>(uptime.count()));
 }
 
+void CCClient::refreshLog()
+{
+    m_self->m_clientStatus.setLog(RemoteLog::getRows());
+}
+
 void CCClient::onThreadStarted(void* handle)
 {
-    uv_loop_init(&m_self->m_client_loop);
+    if (m_self) {
+        uv_loop_init(&m_self->m_client_loop);
 
-    uv_timer_init(&m_self->m_client_loop, &m_self->m_timer);
-    uv_timer_start(&m_self->m_timer, CCClient::onReport,
-                   static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000),
-                   static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000));
+        uv_timer_init(&m_self->m_client_loop, &m_self->m_timer);
+        uv_timer_start(&m_self->m_timer, CCClient::onReport,
+                       static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000),
+                       static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000));
 
-    publishConfig();
+        m_self->publishConfig();
 
-    uv_run(&m_self->m_client_loop, UV_RUN_DEFAULT);
+        uv_run(&m_self->m_client_loop, UV_RUN_DEFAULT);
+    }
 }
 
 void CCClient::onReport(uv_timer_t* handle)
 {
     if (m_self) {
+        m_self->refreshUptime();
+        m_self->refreshLog();
+
         m_self->publishClientStatusReport();
     }
 }

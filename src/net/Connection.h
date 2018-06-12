@@ -49,9 +49,6 @@ public:
 protected:
     Connection(const ConnectionListener::Ptr& listener);
     virtual ~Connection() {};
-    void notifyConnected();
-    void notifyRead(char* data, size_t size);
-    void notifyError(const std::string& error);
 
 public:
     virtual void connect(const std::string& server, uint16_t port) = 0;
@@ -60,6 +57,10 @@ public:
     virtual std::string getConnectedIp() const = 0;
     virtual uint16_t getConnectedPort() const = 0;
     virtual void send(const char* data, std::size_t size) = 0;
+
+    void notifyConnected();
+    void notifyRead(char* data, size_t size);
+    void notifyError(const std::string& error);
 
 private:
     ConnectionListener::WeakPtr listener_;

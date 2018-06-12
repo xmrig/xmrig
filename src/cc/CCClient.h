@@ -48,13 +48,15 @@ public:
 
 private:
 
-    static void publishClientStatusReport();
-    static void updateConfig();
-    static void publishConfig();
-    static std::shared_ptr<httplib::Response> performRequest(const std::string& requestUrl,
+    void publishClientStatusReport();
+    void updateConfig();
+    void publishConfig();
+    void refreshUptime();
+    void refreshLog();
+
+    std::shared_ptr<httplib::Response> performRequest(const std::string& requestUrl,
                                                              const std::string& requestBuffer,
                                                              const std::string& operation);
-
     static void onThreadStarted(void *handle);
     static void onReport(uv_timer_t *handle);
 
@@ -73,8 +75,6 @@ private:
     uv_timer_t m_timer;
     uv_loop_t m_client_loop;
     uv_thread_t m_thread;
-
-    static void refreshUptime();
 };
 
 #endif

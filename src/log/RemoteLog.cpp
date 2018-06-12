@@ -1,11 +1,5 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2018-     BenDr0id <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,31 +16,25 @@
  */
 
 
+#include <sstream>
 #include <regex>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include "log/RemoteLog.h"
 
+RemoteLog* RemoteLog::m_self = nullptr;
 
-#include "log/FileLog.h"
-
-
-FileLog::FileLog(const char *fileName)
+RemoteLog::RemoteLog(size_t maxRows)
+    : maxRows_(maxRows)
 {
-    uv_fs_t req;
-    m_file = uv_fs_open(uv_default_loop(), &req, fileName, O_CREAT | O_APPEND | O_WRONLY, 0644, nullptr);
-    uv_fs_req_cleanup(&req);
+    m_self = this;
 }
 
-
-void FileLog::message(int level, const char* fmt, va_list args)
+RemoteLog::~RemoteLog()
 {
-    if (m_file < 0) {
-        return;
-    }
+    m_self = nullptr;
+}
 
+void RemoteLog::message(int level, const char* fmt, va_list args)
+{
     time_t now = time(nullptr);
     tm stime;
 
@@ -68,33 +56,38 @@ void FileLog::message(int level, const char* fmt, va_list args)
     size = vsnprintf(buf + size, 512 - size - 1, fmt, args) + size;
     buf[size] = '\n';
 
+    if (rows_.size() == maxRows_) {
+        rows_.pop_front();
+    }
+
     std::string row = std::regex_replace(std::string(buf, size+1), std::regex("\x1B\\[[0-9;]*[a-zA-Z]"), "");
 
-    write(const_cast<char*>(row.c_str()), size + 1);
+    rows_.push_back(row);
 }
 
 
-void FileLog::text(const char* fmt, va_list args)
+void RemoteLog::text(const char* fmt, va_list args)
 {
     message(0, fmt, args);
 }
 
-
-
-void FileLog::onWrite(uv_fs_t *req)
+void RemoteLog::flushRows()
 {
-    delete [] static_cast<char *>(req->data);
-
-    uv_fs_req_cleanup(req);
-    delete req;
+    if (m_self) {
+        m_self->rows_.clear();
+    }
 }
 
 
-void FileLog::write(char *data, size_t size)
+std::string RemoteLog::getRows()
 {
-    uv_buf_t buf = uv_buf_init(data, (unsigned int) size);
-    uv_fs_t *req = new uv_fs_t;
-    req->data = buf.base;
+    std::stringstream data;
 
-    uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, 0, FileLog::onWrite);
+    if (m_self) {
+        for (std::list<std::string>::iterator it = m_self->rows_.begin(); it != m_self->rows_.end(); it++) {
+            data << it->c_str();
+        }
+    }
+
+    return data.str();
 }

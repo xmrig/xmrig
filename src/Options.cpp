@@ -96,7 +96,9 @@ Options:\n"
       --cc-use-tls                      enable tls encryption for CC communication\n\
       --cc-access-token=T               access token for CC Server\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
-      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n"
+      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
+      --cc-use-remote-logging           enable remote logging on CC Server\n\
+      --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server\n"
 # endif
 # endif
 
@@ -180,9 +182,11 @@ static struct option const options[] = {
     { "cc-cert-file",     1, nullptr, 4014 },
     { "cc-key-file",      1, nullptr, 4015 },
     { "cc-use-tls",       0, nullptr, 4016 },
+    { "cc-use-remote-logging",      0, nullptr, 4017 },
+    { "cc-remote-logging-max-rows", 1, nullptr, 4018 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
-    { "multihash-thread-mask",     1, nullptr, 4013 },
+    { "multihash-thread-mask",      1, nullptr, 4013 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -241,6 +245,8 @@ static struct option const cc_client_options[] = {
     { "worker-id",              1, nullptr, 4005 },
     { "update-interval-s",      1, nullptr, 4012 },
     { "use-tls",                0, nullptr, 4016 },
+    { "use-remote-logging",     0, nullptr, 4017 },
+    { "remote-logging-max-rows",1, nullptr, 4018 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -310,6 +316,7 @@ Options::Options(int argc, char **argv) :
     m_syslog(false),
     m_daemonized(false),
     m_ccUseTls(false),
+    m_ccUseRemoteLogging(true),
     m_configFile(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -339,6 +346,7 @@ Options::Options(int argc, char **argv) :
     m_threads(0),
     m_ccUpdateInterval(10),
     m_ccPort(0),
+    m_ccRemoteLoggingMaxRows(25),
     m_affinity(-1L),
     m_multiHashThreadMask(-1L)
 {
@@ -478,7 +486,6 @@ bool Options::parseArg(int key, const char *arg)
     case 'l': /* --log-file */
         free(m_logFile);
         m_logFile = strdup(arg);
-        m_colors = false;
         break;
 
     case 4001: /* --access-token */
@@ -552,6 +559,8 @@ bool Options::parseArg(int key, const char *arg)
     case 4006: /* --cc-port */
     case 4012: /* --cc-update-interval-c */
         return parseArg(key, strtol(arg, nullptr, 10));
+    case 4018: /* --cc-remote-logging-max-rows */
+        return parseArg(key, strtol(arg, nullptr, 25));
 
     case 'B':  /* --background */
     case 'k':  /* --keepalive */
@@ -570,6 +579,9 @@ bool Options::parseArg(int key, const char *arg)
         return parsePowVariant(arg);
 
     case 4016: /* --cc-use-tls */
+        return parseBoolean(key, true);
+
+    case 4017: /* --cc-use-remote-logging */
         return parseBoolean(key, true);
 
     case 't':  /* --threads */
@@ -746,6 +758,16 @@ bool Options::parseArg(int key, uint64_t arg)
             m_multiHashThreadMask = arg;
         }
         break;
+
+    case 4018: /* --cc-remote-logging-max-rows */
+        if (arg < 1) {
+            m_ccUseRemoteLogging = false;
+        }
+        else {
+            m_ccRemoteLoggingMaxRows = (int) arg;
+        }
+        break;
+
     default:
         break;
     }
@@ -797,6 +819,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 4016: /* --cc-use-tls */
         m_ccUseTls = enable;
+        break;
+
+    case 4017: /* --cc-use-remote-logging */
+        m_ccUseRemoteLogging = enable;
         break;
 
     default:

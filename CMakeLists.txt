@@ -57,6 +57,7 @@ set(SOURCES_COMMON
     src/Options.cpp
     src/log/ConsoleLog.cpp
     src/log/FileLog.cpp
+    src/log/RemoteLog.cpp
     src/log/Log.cpp
     src/Platform.cpp
     src/Cpu.cpp

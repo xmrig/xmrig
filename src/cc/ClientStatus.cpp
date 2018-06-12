@@ -98,6 +98,16 @@ std::string ClientStatus::getCurrentAlgoName() const
     return m_currentAlgoName;
 }
 
+void ClientStatus::setCurrentPowVariantName(const std::string& powVariantName)
+{
+    m_currentPowVariantName = powVariantName;
+}
+
+std::string ClientStatus::getCurrentPowVariantName() const
+{
+    return m_currentPowVariantName;
+}
+
 std::string ClientStatus::getCpuBrand() const
 {
     return m_cpuBrand;
@@ -126,6 +136,16 @@ std::string ClientStatus::getVersion() const
 void ClientStatus::setVersion(const std::string& version)
 {
     m_version = version;
+}
+
+std::string ClientStatus::getLog() const
+{
+    return m_log;
+}
+
+void ClientStatus::setLog(const std::string& log)
+{
+    m_log = log;
 }
 
 bool ClientStatus::hasHugepages() const
@@ -356,6 +376,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_currentAlgoName = clientStatus["current_algo_name"].GetString();
         }
 
+        if (clientStatus.HasMember("current_pow_variant_name")) {
+            m_currentPowVariantName = clientStatus["current_pow_variant_name"].GetString();
+        }
+
         if (clientStatus.HasMember("cpu_brand")) {
             m_cpuBrand = clientStatus["cpu_brand"].GetString();
         }
@@ -366,6 +390,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
 
         if (clientStatus.HasMember("version")) {
             m_version = clientStatus["version"].GetString();
+        }
+
+        if (clientStatus.HasMember("log")) {
+            m_log = clientStatus["log"].GetString();
         }
 
         if (clientStatus.HasMember("hugepages_available")) {
@@ -468,6 +496,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("client_id", rapidjson::StringRef(m_clientId.c_str()), allocator);
     clientStatus.AddMember("current_pool", rapidjson::StringRef(m_currentPool.c_str()), allocator);
     clientStatus.AddMember("current_algo_name", rapidjson::StringRef(m_currentAlgoName.c_str()), allocator);
+    clientStatus.AddMember("current_pow_variant_name", rapidjson::StringRef(m_currentPowVariantName.c_str()), allocator);
     clientStatus.AddMember("cpu_brand", rapidjson::StringRef(m_cpuBrand.c_str()), allocator);
     clientStatus.AddMember("external_ip", rapidjson::StringRef(m_externalIp.c_str()), allocator);
     clientStatus.AddMember("version", rapidjson::StringRef(m_version.c_str()), allocator);
@@ -499,6 +528,9 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("uptime", m_uptime, allocator);
 
     clientStatus.AddMember("last_status_update", static_cast<uint64_t >(m_lastStatusUpdate), allocator);
+
+    clientStatus.AddMember("log", rapidjson::StringRef(m_log.c_str()), allocator);
+
 
     return clientStatus;
 }
