@@ -105,6 +105,8 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
         resultCode = setClientConfig(options, clientId, data, resp);
     } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
         resultCode = setClientCommand(clientId, data, resp);
+    } else if (url.rfind("/admin/resetClientStatusList", 0) == 0) {
+        resultCode = resetClientStatusList(data, resp);
     }
 
     uv_mutex_unlock(&m_mutex);
@@ -278,6 +280,13 @@ unsigned Service::setClientCommand(const std::string& clientId, const std::strin
     } else {
         return MHD_HTTP_BAD_REQUEST;
     }
+}
+
+unsigned Service::resetClientStatusList(const std::string& data, std::string& resp)
+{
+    m_clientStatus.clear();
+
+    return MHD_HTTP_OK;
 }
 
 unsigned Service::getAdminPage(const Options* options, std::string& resp)

@@ -54,6 +54,7 @@ private:
     static unsigned setClientStatus(const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientCommand(const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientConfig(const Options* options, const std::string &clientId, const std::string &data, std::string &resp);
+    static unsigned resetClientStatusList(const std::string& data, std::string& resp);
 
     static std::string getClientConfigFileName(const Options *options, const std::string &clientId);
 

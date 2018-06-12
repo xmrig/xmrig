@@ -314,6 +314,23 @@
             }
         });
 
+        new $.fn.dataTable.Buttons(table, {
+            buttons: [
+                {  text: '<i class="fa fa-trash-o"> Reset ClientStatusList</i>',
+                    className: 'btn-danger',
+                    enabled: true,
+                    action: function () {
+                        resetClientStatusList();
+                    }
+                }
+            ]
+        });
+
+        table.buttons(1, null ).container().appendTo(
+            table.table().container()
+        );
+
+
         table.on('xhr.dt', function ( e, settings, json, xhr ) {
             // check version
             if (latestRelease === "" && json !== undefined) {
@@ -484,6 +501,21 @@
             },
             error: function (data) {
                 setError('<strong>Failed to send ' + action + ' to ' + clientId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
+            }
+        });
+    }
+
+    function resetClientStatusList() {
+        $.ajax({
+            type:    "POST",
+            url:     "/admin/resetClientStatusList",
+            dataType:"text",
+            data:    '',
+            success: function(data){
+                setSuccess('<strong>Successfully send the reset client status list request to the Server.</strong> - Now just wait for the next refresh.');
+            },
+            error: function (data) {
+                setError('<strong>Failed to send the reset client status list request to the Server.</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
             }
         });
     }
