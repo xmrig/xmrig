@@ -898,6 +898,86 @@ public:
                                                        output + hashBlock * 32);
         }
     }
+
+    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
+                                 size_t size,
+                                 uint8_t *__restrict__ output,
+                                 cryptonight_ctx* __restrict__ ctx)
+    {
+        const uint8_t* l[NUM_HASH_BLOCKS];
+        uint64_t* h[NUM_HASH_BLOCKS];
+        uint64_t al[NUM_HASH_BLOCKS];
+        uint64_t ah[NUM_HASH_BLOCKS];
+        __m128i bx[NUM_HASH_BLOCKS];
+        uint64_t idx[NUM_HASH_BLOCKS];
+
+        for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size,
+                   ctx->state[hashBlock], 200);
+        }
+
+        for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+            l[hashBlock] = ctx->memory + hashBlock * MEM;
+            h[hashBlock] = reinterpret_cast<uint64_t*>(ctx->state[hashBlock]);
+
+            cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
+
+            al[hashBlock] = h[hashBlock][0] ^ h[hashBlock][4];
+            ah[hashBlock] = h[hashBlock][1] ^ h[hashBlock][5];
+            bx[hashBlock] = _mm_set_epi64x(h[hashBlock][3] ^ h[hashBlock][7], h[hashBlock][2] ^ h[hashBlock][6]);
+            idx[hashBlock] = h[hashBlock][0] ^ h[hashBlock][4];
+        }
+
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+                __m128i cx;
+
+                if (SOFT_AES) {
+                    cx = soft_aesenc((uint32_t*)&l[hashBlock][idx[hashBlock] & MASK], _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
+                } else {
+                    cx = _mm_load_si128((__m128i *) &l[hashBlock][idx[hashBlock] & MASK]);
+#           ifndef XMRIG_ARMv7
+                    cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah[hashBlock], al[hashBlock]);
+#           endif
+                }
+
+                _mm_store_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK],
+                                _mm_xor_si128(bx[hashBlock], cx));
+
+                idx[hashBlock] = EXTRACT64(cx);
+                bx[hashBlock] = cx;
+
+                uint64_t hi, lo, cl, ch;
+                cl = ((uint64_t*) &l[hashBlock][idx[hashBlock] & MASK])[0];
+                ch = ((uint64_t*) &l[hashBlock][idx[hashBlock] & MASK])[1];
+                lo = __umul128(idx[hashBlock], cl, &hi);
+
+                al[hashBlock] += hi;
+                ah[hashBlock] += lo;
+
+                ((uint64_t*) &l[hashBlock][idx[hashBlock] & MASK])[0] = al[hashBlock];
+                ((uint64_t*) &l[hashBlock][idx[hashBlock] & MASK])[1] = ah[hashBlock];
+
+                ah[hashBlock] ^= ch;
+                al[hashBlock] ^= cl;
+                idx[hashBlock] = al[hashBlock];
+
+                int64_t n  = ((int64_t*)&l[hashBlock][idx[hashBlock] & MASK])[0];
+                int32_t d  = ((int32_t*)&l[hashBlock][idx[hashBlock] & MASK])[2];
+                int64_t q = n / (d | 0x5);
+
+                ((int64_t*)&l[hashBlock][idx[hashBlock] & MASK])[0] = n ^ q;
+                idx[hashBlock] = (~d) ^ q;
+            }
+        }
+
+        for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+            cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
+            keccakf(h[hashBlock], 24);
+            extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
+                                                       output + hashBlock * 32);
+        }
+    }
 };
 
 template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
@@ -1170,6 +1250,75 @@ public:
 
             ((int64_t*)&l[idx & MASK])[0] = n ^ q;
             idx = d ^ q;
+        }
+
+        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
+        keccakf(h, 24);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+    }
+
+    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
+                                 size_t size,
+                                 uint8_t *__restrict__ output,
+                                 cryptonight_ctx* __restrict__ ctx)
+    {
+        const uint8_t* l;
+        uint64_t* h;
+        uint64_t al;
+        uint64_t ah;
+        __m128i bx;
+        uint64_t idx;
+
+        keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state[0], 200);
+
+        l = ctx->memory;
+        h = reinterpret_cast<uint64_t*>(ctx->state[0]);
+
+        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
+
+        al = h[0] ^ h[4];
+        ah = h[1] ^ h[5];
+        bx = _mm_set_epi64x(h[3] ^ h[7], h[2] ^ h[6]);
+        idx = h[0] ^ h[4];
+
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            __m128i cx;
+
+            if (SOFT_AES) {
+                cx = soft_aesenc((uint32_t*)&l[idx & MASK], _mm_set_epi64x(ah, al));
+            }
+            else {
+                cx = _mm_load_si128((__m128i *) &l[idx & MASK]);
+#           ifndef XMRIG_ARMv7
+                cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah, al);
+#           endif
+            }
+
+            _mm_store_si128((__m128i*) &l[idx & MASK], _mm_xor_si128(bx, cx));
+            idx = EXTRACT64(cx);
+            bx = cx;
+
+            uint64_t hi, lo, cl, ch;
+            cl = ((uint64_t*) &l[idx & MASK])[0];
+            ch = ((uint64_t*) &l[idx & MASK])[1];
+            lo = __umul128(idx, cl, &hi);
+
+            al += hi;
+            ah += lo;
+
+            ((uint64_t*) &l[idx & MASK])[0] = al;
+            ((uint64_t*) &l[idx & MASK])[1] = ah;
+
+            ah ^= ch;
+            al ^= cl;
+            idx = al;
+
+            int64_t n  = ((int64_t*)&l[idx & MASK])[0];
+            int32_t d  = ((int32_t*)&l[idx & MASK])[2];
+            int64_t q = n / (d | 0x5);
+
+            ((int64_t*)&l[idx & MASK])[0] = n ^ q;
+            idx = (~d) ^ q;
         }
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
@@ -1594,6 +1743,113 @@ public:
 
             ((int64_t*)&l1[idx1 & MASK])[0] = n ^ q;
             idx1 = d ^ q;
+        }
+
+        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
+        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
+
+        keccakf(h0, 24);
+        keccakf(h1, 24);
+
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+    }
+
+    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
+                                 size_t size,
+                                 uint8_t *__restrict__ output,
+                                 cryptonight_ctx* __restrict__ ctx)
+    {
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
+
+        const uint8_t* l0 = ctx->memory;
+        const uint8_t* l1 = ctx->memory + MEM;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
+
+        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
+        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
+
+        uint64_t al0 = h0[0] ^h0[4];
+        uint64_t al1 = h1[0] ^h1[4];
+        uint64_t ah0 = h0[1] ^h0[5];
+        uint64_t ah1 = h1[1] ^h1[5];
+
+        __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
+        __m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
+
+        uint64_t idx0 = h0[0] ^h0[4];
+        uint64_t idx1 = h1[0] ^h1[4];
+
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            __m128i cx0;
+            __m128i cx1;
+
+            if (SOFT_AES) {
+                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+            } else {
+                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+
+# 			ifndef XMRIG_ARMv7
+                cx0 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx0, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
+                cx1 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx1, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah1, al1);
+#           endif
+            }
+
+            _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
+            _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+
+            idx0 = EXTRACT64(cx0);
+            idx1 = EXTRACT64(cx1);
+
+            bx0 = cx0;
+            bx1 = cx1;
+
+            uint64_t hi, lo, cl, ch;
+            cl = ((uint64_t*) &l0[idx0 & MASK])[0];
+            ch = ((uint64_t*) &l0[idx0 & MASK])[1];
+            lo = __umul128(idx0, cl, &hi);
+
+            al0 += hi;
+            ah0 += lo;
+
+            ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
+            ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
+
+            ah0 ^= ch;
+            al0 ^= cl;
+            idx0 = al0;
+
+            int64_t n  = ((int64_t*)&l0[idx0 & MASK])[0];
+            int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
+            int64_t q = n / (d | 0x5);
+
+            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
+            idx0 = (~d) ^ q;
+
+            cl = ((uint64_t*) &l1[idx1 & MASK])[0];
+            ch = ((uint64_t*) &l1[idx1 & MASK])[1];
+            lo = __umul128(idx1, cl, &hi);
+
+            al1 += hi;
+            ah1 += lo;
+
+            ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
+            ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
+
+            ah1 ^= ch;
+            al1 ^= cl;
+            idx1 = al1;
+
+            n  = ((int64_t*)&l1[idx1 & MASK])[0];
+            d  = ((int32_t*)&l1[idx1 & MASK])[2];
+            q = n / (d | 0x5);
+
+            ((int64_t*)&l1[idx1 & MASK])[0] = n ^ q;
+            idx1 = (~d) ^ q;
         }
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
@@ -2197,6 +2453,155 @@ public:
         extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
         extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
     }
+
+    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
+                                 size_t size,
+                                 uint8_t *__restrict__ output,
+                                 cryptonight_ctx* __restrict__ ctx)
+    {
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
+        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
+
+        const uint8_t* l0 = ctx->memory;
+        const uint8_t* l1 = ctx->memory + MEM;
+        const uint8_t* l2 = ctx->memory + 2 * MEM;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
+
+        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
+        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
+        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h2, (__m128i*) l2);
+
+        uint64_t al0 = h0[0] ^h0[4];
+        uint64_t al1 = h1[0] ^h1[4];
+        uint64_t al2 = h2[0] ^h2[4];
+        uint64_t ah0 = h0[1] ^h0[5];
+        uint64_t ah1 = h1[1] ^h1[5];
+        uint64_t ah2 = h2[1] ^h2[5];
+
+        __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
+        __m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
+        __m128i bx2 = _mm_set_epi64x(h2[3] ^ h2[7], h2[2] ^ h2[6]);
+
+        uint64_t idx0 = h0[0] ^h0[4];
+        uint64_t idx1 = h1[0] ^h1[4];
+        uint64_t idx2 = h2[0] ^h2[4];
+
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            __m128i cx0;
+            __m128i cx1;
+            __m128i cx2;
+
+            if (SOFT_AES) {
+                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+                cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
+            }
+            else {
+                cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+                cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
+                cx2 = _mm_load_si128((__m128i *) &l2[idx2 & MASK]);
+#           ifndef XMRIG_ARMv7
+                cx0 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx0, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
+                cx1 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx1, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah1, al1);
+                cx2 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx2, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah2, al2);
+#           endif
+            }
+
+            _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
+            _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+            _mm_store_si128((__m128i*) &l2[idx2 & MASK], _mm_xor_si128(bx2, cx2));
+
+            idx0 = EXTRACT64(cx0);
+            idx1 = EXTRACT64(cx1);
+            idx2 = EXTRACT64(cx2);
+
+            bx0 = cx0;
+            bx1 = cx1;
+            bx2 = cx2;
+
+
+            uint64_t hi, lo, cl, ch;
+            cl = ((uint64_t*) &l0[idx0 & MASK])[0];
+            ch = ((uint64_t*) &l0[idx0 & MASK])[1];
+            lo = __umul128(idx0, cl, &hi);
+
+            al0 += hi;
+            ah0 += lo;
+
+            ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
+            ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
+
+            ah0 ^= ch;
+            al0 ^= cl;
+            idx0 = al0;
+
+            int64_t n  = ((int64_t*)&l0[idx0 & MASK])[0];
+            int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
+            int64_t q = n / (d | 0x5);
+
+            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
+            idx0 = (~d) ^ q;
+
+
+            cl = ((uint64_t*) &l1[idx1 & MASK])[0];
+            ch = ((uint64_t*) &l1[idx1 & MASK])[1];
+            lo = __umul128(idx1, cl, &hi);
+
+            al1 += hi;
+            ah1 += lo;
+
+            ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
+            ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
+
+            ah1 ^= ch;
+            al1 ^= cl;
+            idx1 = al1;
+
+            n  = ((int64_t*)&l1[idx1 & MASK])[0];
+            d  = ((int32_t*)&l1[idx1 & MASK])[2];
+            q = n / (d | 0x5);
+
+            ((int64_t*)&l1[idx1 & MASK])[0] = n ^ q;
+            idx1 = (~d) ^ q;
+
+
+            cl = ((uint64_t*) &l2[idx2 & MASK])[0];
+            ch = ((uint64_t*) &l2[idx2 & MASK])[1];
+            lo = __umul128(idx2, cl, &hi);
+
+            al2 += hi;
+            ah2 += lo;
+
+            ((uint64_t*) &l2[idx2 & MASK])[0] = al2;
+            ((uint64_t*) &l2[idx2 & MASK])[1] = ah2;
+
+            ah2 ^= ch;
+            al2 ^= cl;
+            idx2 = al2;
+
+            n  = ((int64_t*)&l2[idx2 & MASK])[0];
+            d  = ((int32_t*)&l2[idx2 & MASK])[2];
+            q = n / (d | 0x5);
+
+            ((int64_t*)&l2[idx2 & MASK])[0] = n ^ q;
+            idx2 = (~d) ^ q;
+        }
+
+        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
+        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
+        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l2, (__m128i*) h2);
+
+        keccakf(h0, 24);
+        keccakf(h1, 24);
+        keccakf(h2, 24);
+
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+    }
 };
 
 template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
@@ -2761,188 +3166,15 @@ public:
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak(input, (int) size, ctx->state[0], 200);
-        keccak(input + size, (int) size, ctx->state[1], 200);
-        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak(input + 3 * size, (int) size, ctx->state[3], 200);
+        // not supported
+    }
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        const uint8_t* l3 = ctx->memory + 3 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
-        uint64_t* h3 = reinterpret_cast<uint64_t*>(ctx->state[3]);
-
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h2, (__m128i*) l2);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h3, (__m128i*) l3);
-
-        uint64_t al0 = h0[0] ^h0[4];
-        uint64_t al1 = h1[0] ^h1[4];
-        uint64_t al2 = h2[0] ^h2[4];
-        uint64_t al3 = h3[0] ^h3[4];
-        uint64_t ah0 = h0[1] ^h0[5];
-        uint64_t ah1 = h1[1] ^h1[5];
-        uint64_t ah2 = h2[1] ^h2[5];
-        uint64_t ah3 = h3[1] ^h3[5];
-
-        __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
-        __m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
-        __m128i bx2 = _mm_set_epi64x(h2[3] ^ h2[7], h2[2] ^ h2[6]);
-        __m128i bx3 = _mm_set_epi64x(h3[3] ^ h3[7], h3[2] ^ h3[6]);
-
-        uint64_t idx0 = h0[0] ^h0[4];
-        uint64_t idx1 = h1[0] ^h1[4];
-        uint64_t idx2 = h2[0] ^h2[4];
-        uint64_t idx3 = h3[0] ^h3[4];
-
-        for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx0;
-            __m128i cx1;
-            __m128i cx2;
-            __m128i cx3;
-
-            if (SOFT_AES) {
-                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
-                cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
-                cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
-            } else {
-# 			ifndef XMRIG_ARMv7
-                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
-                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
-                cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
-                cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
-
-                cx0 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx0, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
-                cx1 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx1, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah1, al1);
-                cx2 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx2, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah2, al2);
-                cx3 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx3, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah3, al3);
-#           endif
-            }
-
-            _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
-            _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
-            _mm_store_si128((__m128i*) &l2[idx2 & MASK], _mm_xor_si128(bx2, cx2));
-            _mm_store_si128((__m128i*) &l3[idx3 & MASK], _mm_xor_si128(bx3, cx3));
-
-            idx0 = EXTRACT64(cx0);
-            idx1 = EXTRACT64(cx1);
-            idx2 = EXTRACT64(cx2);
-            idx3 = EXTRACT64(cx3);
-
-            bx0 = cx0;
-            bx1 = cx1;
-            bx2 = cx2;
-            bx3 = cx3;
-
-
-            uint64_t hi, lo, cl, ch;
-            cl = ((uint64_t*) &l0[idx0 & MASK])[0];
-            ch = ((uint64_t*) &l0[idx0 & MASK])[1];
-            lo = __umul128(idx0, cl, &hi);
-
-            al0 += hi;
-            ah0 += lo;
-
-            ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
-            ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
-
-            ah0 ^= ch;
-            al0 ^= cl;
-            idx0 = al0;
-
-            int64_t n  = ((int64_t*)&l0[idx0 & MASK])[0];
-            int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
-            int64_t q = n / (d | 0x5);
-
-            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
-            idx0 = d ^ q;
-
-
-            cl = ((uint64_t*) &l1[idx1 & MASK])[0];
-            ch = ((uint64_t*) &l1[idx1 & MASK])[1];
-            lo = __umul128(idx1, cl, &hi);
-
-            al1 += hi;
-            ah1 += lo;
-
-            ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
-            ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
-
-            ah1 ^= ch;
-            al1 ^= cl;
-            idx1 = al1;
-
-            n  = ((int64_t*)&l1[idx1 & MASK])[0];
-            d  = ((int32_t*)&l1[idx1 & MASK])[2];
-            q = n / (d | 0x5);
-
-            ((int64_t*)&l1[idx1 & MASK])[0] = n ^ q;
-            idx1 = d ^ q;
-
-
-            cl = ((uint64_t*) &l2[idx2 & MASK])[0];
-            ch = ((uint64_t*) &l2[idx2 & MASK])[1];
-            lo = __umul128(idx2, cl, &hi);
-
-            al2 += hi;
-            ah2 += lo;
-
-            ((uint64_t*) &l2[idx2 & MASK])[0] = al2;
-            ((uint64_t*) &l2[idx2 & MASK])[1] = ah2;
-
-            ah2 ^= ch;
-            al2 ^= cl;
-            idx2 = al2;
-
-            n  = ((int64_t*)&l2[idx2 & MASK])[0];
-            d  = ((int32_t*)&l2[idx2 & MASK])[2];
-            q = n / (d | 0x5);
-
-            ((int64_t*)&l2[idx2 & MASK])[0] = n ^ q;
-            idx2 = d ^ q;
-
-
-            cl = ((uint64_t*) &l3[idx3 & MASK])[0];
-            ch = ((uint64_t*) &l3[idx3 & MASK])[1];
-            lo = __umul128(idx3, cl, &hi);
-
-            al3 += hi;
-            ah3 += lo;
-
-            ((uint64_t*) &l3[idx3 & MASK])[0] = al3;
-            ((uint64_t*) &l3[idx3 & MASK])[1] = ah3;
-
-            ah3 ^= ch;
-            al3 ^= cl;
-            idx3 = al3;
-
-            n  = ((int64_t*)&l3[idx3 & MASK])[0];
-            d  = ((int32_t*)&l3[idx3 & MASK])[2];
-            q = n / (d | 0x5);
-
-            ((int64_t*)&l3[idx3 & MASK])[0] = n ^ q;
-            idx3 = d ^ q;
-        }
-
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l2, (__m128i*) h2);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l3, (__m128i*) h3);
-
-        keccakf(h0, 24);
-        keccakf(h1, 24);
-        keccakf(h2, 24);
-        keccakf(h3, 24);
-
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
+                                 size_t size,
+                                 uint8_t *__restrict__ output,
+                                 cryptonight_ctx* __restrict__ ctx)
+    {
+        // not supported
     }
 };
 
@@ -3618,231 +3850,19 @@ public:
     }
 
     inline static void hashHeavy(const uint8_t* __restrict__ input,
-                            size_t size,
-                            uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                                 size_t size,
+                                 uint8_t *__restrict__ output,
+                                 cryptonight_ctx* __restrict__ ctx)
     {
-        keccak(input, (int) size, ctx->state[0], 200);
-        keccak(input + size, (int) size, ctx->state[1], 200);
-        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak(input + 3 * size, (int) size, ctx->state[3], 200);
-        keccak(input + 4 * size, (int) size, ctx->state[4], 200);
+        // not supported
+    }
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        const uint8_t* l3 = ctx->memory + 3 * MEM;
-        const uint8_t* l4 = ctx->memory + 4 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
-        uint64_t* h3 = reinterpret_cast<uint64_t*>(ctx->state[3]);
-        uint64_t* h4 = reinterpret_cast<uint64_t*>(ctx->state[4]);
-
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h2, (__m128i*) l2);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h3, (__m128i*) l3);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h4, (__m128i*) l4);
-
-        uint64_t al0 = h0[0] ^h0[4];
-        uint64_t al1 = h1[0] ^h1[4];
-        uint64_t al2 = h2[0] ^h2[4];
-        uint64_t al3 = h3[0] ^h3[4];
-        uint64_t al4 = h4[0] ^h4[4];
-        uint64_t ah0 = h0[1] ^h0[5];
-        uint64_t ah1 = h1[1] ^h1[5];
-        uint64_t ah2 = h2[1] ^h2[5];
-        uint64_t ah3 = h3[1] ^h3[5];
-        uint64_t ah4 = h4[1] ^h4[5];
-
-        __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
-        __m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
-        __m128i bx2 = _mm_set_epi64x(h2[3] ^ h2[7], h2[2] ^ h2[6]);
-        __m128i bx3 = _mm_set_epi64x(h3[3] ^ h3[7], h3[2] ^ h3[6]);
-        __m128i bx4 = _mm_set_epi64x(h4[3] ^ h4[7], h4[2] ^ h4[6]);
-
-        uint64_t idx0 = h0[0] ^h0[4];
-        uint64_t idx1 = h1[0] ^h1[4];
-        uint64_t idx2 = h2[0] ^h2[4];
-        uint64_t idx3 = h3[0] ^h3[4];
-        uint64_t idx4 = h4[0] ^h4[4];
-
-        for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx0;
-            __m128i cx1;
-            __m128i cx2;
-            __m128i cx3;
-            __m128i cx4;
-
-            if (SOFT_AES) {
-                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
-                cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
-                cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
-                cx4 = soft_aesenc((uint32_t*)&l4[idx4 & MASK], _mm_set_epi64x(ah4, al4));
-            } else {
-# 			ifndef XMRIG_ARMv7
-                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
-                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
-                cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
-                cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
-                cx4 = _mm_load_si128((__m128i*) &l4[idx4 & MASK]);
-
-                cx0 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx0, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah0, al0);
-                cx1 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx1, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah1, al1);
-                cx2 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx2, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah2, al2);
-                cx3 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx3, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah3, al3);
-                cx4 = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx4, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah4, al4);
-#           endif
-            }
-
-            _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
-            _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
-            _mm_store_si128((__m128i*) &l2[idx2 & MASK], _mm_xor_si128(bx2, cx2));
-            _mm_store_si128((__m128i*) &l3[idx3 & MASK], _mm_xor_si128(bx3, cx3));
-            _mm_store_si128((__m128i*) &l4[idx4 & MASK], _mm_xor_si128(bx4, cx4));
-
-            idx0 = EXTRACT64(cx0);
-            idx1 = EXTRACT64(cx1);
-            idx2 = EXTRACT64(cx2);
-            idx3 = EXTRACT64(cx3);
-            idx4 = EXTRACT64(cx4);
-
-            bx0 = cx0;
-            bx1 = cx1;
-            bx2 = cx2;
-            bx3 = cx3;
-            bx4 = cx4;
-
-            uint64_t hi, lo, cl, ch;
-            cl = ((uint64_t*) &l0[idx0 & MASK])[0];
-            ch = ((uint64_t*) &l0[idx0 & MASK])[1];
-            lo = __umul128(idx0, cl, &hi);
-
-            al0 += hi;
-            ah0 += lo;
-
-            ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
-            ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
-
-            ah0 ^= ch;
-            al0 ^= cl;
-            idx0 = al0;
-
-            int64_t n  = ((int64_t*)&l0[idx0 & MASK])[0];
-            int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
-            int64_t q = n / (d | 0x5);
-
-            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
-            idx0 = d ^ q;
-
-
-            cl = ((uint64_t*) &l1[idx1 & MASK])[0];
-            ch = ((uint64_t*) &l1[idx1 & MASK])[1];
-            lo = __umul128(idx1, cl, &hi);
-
-            al1 += hi;
-            ah1 += lo;
-
-            ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
-            ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
-
-            ah1 ^= ch;
-            al1 ^= cl;
-            idx1 = al1;
-
-            n  = ((int64_t*)&l1[idx1 & MASK])[0];
-            d  = ((int32_t*)&l1[idx1 & MASK])[2];
-            q = n / (d | 0x5);
-
-            ((int64_t*)&l1[idx1 & MASK])[0] = n ^ q;
-            idx1 = d ^ q;
-
-
-            cl = ((uint64_t*) &l2[idx2 & MASK])[0];
-            ch = ((uint64_t*) &l2[idx2 & MASK])[1];
-            lo = __umul128(idx2, cl, &hi);
-
-            al2 += hi;
-            ah2 += lo;
-
-            ((uint64_t*) &l2[idx2 & MASK])[0] = al2;
-            ((uint64_t*) &l2[idx2 & MASK])[1] = ah2;
-
-            ah2 ^= ch;
-            al2 ^= cl;
-            idx2 = al2;
-
-            n  = ((int64_t*)&l2[idx2 & MASK])[0];
-            d  = ((int32_t*)&l2[idx2 & MASK])[2];
-            q = n / (d | 0x5);
-
-            ((int64_t*)&l2[idx2 & MASK])[0] = n ^ q;
-            idx2 = d ^ q;
-
-
-            cl = ((uint64_t*) &l3[idx3 & MASK])[0];
-            ch = ((uint64_t*) &l3[idx3 & MASK])[1];
-            lo = __umul128(idx3, cl, &hi);
-
-            al3 += hi;
-            ah3 += lo;
-
-            ((uint64_t*) &l3[idx3 & MASK])[0] = al3;
-            ((uint64_t*) &l3[idx3 & MASK])[1] = ah3;
-
-            ah3 ^= ch;
-            al3 ^= cl;
-            idx3 = al3;
-
-            n  = ((int64_t*)&l3[idx3 & MASK])[0];
-            d  = ((int32_t*)&l3[idx3 & MASK])[2];
-            q = n / (d | 0x5);
-
-            ((int64_t*)&l3[idx3 & MASK])[0] = n ^ q;
-            idx3 = d ^ q;
-
-
-            cl = ((uint64_t*) &l4[idx4 & MASK])[0];
-            ch = ((uint64_t*) &l4[idx4 & MASK])[1];
-            lo = __umul128(idx4, cl, &hi);
-
-            al4 += hi;
-            ah4 += lo;
-
-            ((uint64_t*) &l4[idx4 & MASK])[0] = al4;
-            ((uint64_t*) &l4[idx4 & MASK])[1] = ah4;
-
-            ah4 ^= ch;
-            al4 ^= cl;
-            idx4 = al4;
-
-            n  = ((int64_t*)&l4[idx4 & MASK])[0];
-            d  = ((int32_t*)&l4[idx4 & MASK])[2];
-            q = n / (d | 0x5);
-
-            ((int64_t*)&l4[idx4 & MASK])[0] = n ^ q;
-            idx4 = d ^ q;
-        }
-
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l2, (__m128i*) h2);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l3, (__m128i*) h3);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l4, (__m128i*) h4);
-
-        keccakf(h0, 24);
-        keccakf(h1, 24);
-        keccakf(h2, 24);
-        keccakf(h3, 24);
-        keccakf(h4, 24);
-
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
-        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
+    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
+                                      size_t size,
+                                      uint8_t *__restrict__ output,
+                                      cryptonight_ctx* __restrict__ ctx)
+    {
+        // not supported
     }
 };
 
