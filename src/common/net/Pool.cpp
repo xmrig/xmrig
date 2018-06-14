@@ -232,6 +232,7 @@ void Pool::adjust(xmrig::Algo algorithm)
     if (!m_algorithm.isValid()) {
         m_algorithm.setAlgo(algorithm);
 
+#       ifndef XMRIG_PROXY_PROJECT
         if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
             if (algorithm == xmrig::CRYPTONIGHT_HEAVY)  {
                 m_algorithm.setVariant(xmrig::VARIANT_0);
@@ -240,6 +241,7 @@ void Pool::adjust(xmrig::Algo algorithm)
                 m_algorithm.setVariant(xmrig::VARIANT_1);
             }
         }
+#       endif
     }
 
     if (strstr(m_host.data(), ".nicehash.com")) {

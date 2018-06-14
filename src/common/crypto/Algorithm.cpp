@@ -68,7 +68,7 @@ static AlgoData const algorithms[] = {
 #   endif
 
 #   ifndef XMRIG_NO_SUMO
-    { "cryptonight-heavy",     "cn-heavy",     xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0    },
+    { "cryptonight-heavy",     "cn-heavy",     xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_AUTO },
     { "cryptonight-heavy/0",   "cn-heavy/0",   xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0    },
     { "cryptonight-heavy/xhv", "cn-heavy/xhv", xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_XHV  },
 #   endif
@@ -77,13 +77,16 @@ static AlgoData const algorithms[] = {
 
 #ifdef XMRIG_PROXY_PROJECT
 static AlgoData const xmrStakAlgorithms[] = {
-    { "cryptonight-monerov7",    nullptr, xmrig::CRYPTONIGHT,      xmrig::VARIANT_1    },
-    { "cryptonight_v7",          nullptr, xmrig::CRYPTONIGHT,      xmrig::VARIANT_1    },
-    { "cryptonight_v7_stellite", nullptr, xmrig::CRYPTONIGHT,      xmrig::VARIANT_XTL  },
-    { "cryptonight_lite",        nullptr, xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_0    },
-    { "cryptonight-aeonv7",      nullptr, xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_1    },
-    { "cryptonight_lite_v7",     nullptr, xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_1    },
-    { "cryptonight_lite_v7_xor", nullptr, xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_IPBC },
+    { "cryptonight-monerov7",    nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_1    },
+    { "cryptonight_v7",          nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_1    },
+    { "cryptonight_v7_stellite", nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL  },
+    { "cryptonight_lite",        nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_0    },
+    { "cryptonight-aeonv7",      nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
+    { "cryptonight_lite_v7",     nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
+    { "cryptonight_lite_v7_xor", nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_IPBC },
+    { "cryptonight_heavy",       nullptr, xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0    },
+    { "cryptonight_haven",       nullptr, xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_XHV  },
+    { "cryptonight_masari",      nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
 };
 #endif
 
