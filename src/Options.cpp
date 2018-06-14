@@ -282,7 +282,8 @@ constexpr static const char *pow_variant_names[] = {
         "ipbc",
         "alloy",
         "xtl",
-        "msr"
+        "msr",
+        "xhv"
 };
 
 Options *Options::parse(int argc, char **argv)
@@ -1025,6 +1026,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "tube")) {
             m_powVariant = POW_IPBC;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "haven")) {
+            m_powVariant = POW_XHV;
             break;
         }
 
