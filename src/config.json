@@ -1,5 +1,5 @@
 {
-    "algo": "cryptonight",                      // cryptonight (default), cryptonight-lite or cryptopnight-heavy
+    "algo": "cryptonight",                      // cryptonight (default), cryptonight-lite or cryptonight-heavy
     "aesni": 0,                                 // selection of AES-NI mode (0 auto, 1 on, 2 off)
     "threads": 0,                               // number of miner threads (not set or 0 enables automatic selection of optimal thread count)
     "multihash-factor": 0,                      // number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)
@@ -33,7 +33,7 @@
         "use-tls" : false,                      // enable tls for CC communication (needs to be enabled on CC Server too)
         "access-token": "mySecret",             // access token for CC Server (has to be the same in config_cc.json)
         "worker-id": null,                      // custom worker-id for CC Server (otherwise hostname is used)
-        "update-interval-s": 10                 // status update interval in seconds (default: 10 min: 1)
+        "update-interval-s": 10,                // status update interval in seconds (default: 10 min: 1)
         "use-remote-logging" : true,            // enable remote logging on CC Server
         "remote-logging-max-rows" : 20          // maximum last n-log rows to send CC Server
     }
