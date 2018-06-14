@@ -223,22 +223,27 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
 }
 
 
-void Pool::adjust(xmrig::Algo algorithm)
+void Pool::adjust(const xmrig::Algorithm &algorithm)
 {
+    using namespace xmrig;
+
     if (!isValid()) {
         return;
     }
 
     if (!m_algorithm.isValid()) {
-        m_algorithm.setAlgo(algorithm);
+        m_algorithm.setAlgo(algorithm.algo());
 
 #       ifndef XMRIG_PROXY_PROJECT
-        if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
-            if (algorithm == xmrig::CRYPTONIGHT_HEAVY)  {
-                m_algorithm.setVariant(xmrig::VARIANT_0);
+        if (m_algorithm.variant() == VARIANT_AUTO) {
+            if (algorithm.variant() != VARIANT_AUTO) {
+                m_algorithm.setVariant(algorithm.variant());
+            }
+            else if (algorithm.algo() == CRYPTONIGHT_HEAVY)  {
+                m_algorithm.setVariant(VARIANT_0);
             }
             else {
-                m_algorithm.setVariant(xmrig::VARIANT_1);
+                m_algorithm.setVariant(VARIANT_1);
             }
         }
 #       endif
@@ -249,13 +254,13 @@ void Pool::adjust(xmrig::Algo algorithm)
         m_nicehash  = true;
 
         if (strstr(m_host.data(), "cryptonightv7.")) {
-            m_algorithm.setVariant(xmrig::VARIANT_1);
+            m_algorithm.setVariant(VARIANT_1);
         }
     }
 
     if (strstr(m_host.data(), ".minergate.com")) {
         m_keepAlive = false;
-        m_algorithm.setVariant(xmrig::VARIANT_1);
+        m_algorithm.setVariant(VARIANT_1);
     }
 
     rebuild();

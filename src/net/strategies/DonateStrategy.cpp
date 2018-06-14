@@ -68,7 +68,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
     }
 
     for (Pool &pool : m_pools) {
-        pool.adjust(algo);
+        pool.adjust(xmrig::Algorithm(algo, xmrig::VARIANT_AUTO));
     }
 
     if (m_pools.size() > 1) {

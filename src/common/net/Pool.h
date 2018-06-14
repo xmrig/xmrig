@@ -77,7 +77,7 @@ public:
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    void adjust(xmrig::Algo algorithm);
+    void adjust(const xmrig::Algorithm &algorithm);
     void setAlgo(const xmrig::Algorithm &algorithm);
 
 #   ifdef APP_DEBUG

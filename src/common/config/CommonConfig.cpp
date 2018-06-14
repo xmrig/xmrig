@@ -123,7 +123,7 @@ bool xmrig::CommonConfig::finalize()
     }
 
     for (Pool &pool : m_pools) {
-        pool.adjust(m_algorithm.algo());
+        pool.adjust(m_algorithm);
 
         if (pool.isValid() && pool.algorithm().isValid()) {
             m_activePools.push_back(std::move(pool));
