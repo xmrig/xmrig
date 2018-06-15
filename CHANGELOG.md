@@ -1,5 +1,6 @@
 # 1.6.4
-- Fix connection issues and add enhancement to the Dashboard #130
+- Fix connection issues #130
+- Remote logging (Miner log on the Dashboard)
 - Add resetClientStatusList button to Dashboard #129
 - Fix new version notification #132
 - Add Masari (MSR) v7 support
