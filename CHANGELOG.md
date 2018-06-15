@@ -2,8 +2,8 @@
 - Fix connection issues and add enhancement to the Dashboard #130
 - Add resetClientStatusList button to Dashboard #129
 - Fix new version notification #132
-- Add masari v7 support (MSR)
-- Add Haven Protocol v3 support (XHV)
+- Add Masari (MSR) v7 support
+- Add Haven Protocol (XHV) v3 support
 # 1.6.3
 - Added shift+click function for multi row selection to Dashboard
 - Added -DBUILD_STATIC=ON/OFF option to CMake configuration to create fully static builds
