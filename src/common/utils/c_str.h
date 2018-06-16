@@ -72,6 +72,12 @@ public:
     }
 
 
+    inline bool contains(const char *str) const
+    {
+        return strstr(m_data, str) != nullptr;
+    }
+
+
     inline bool isNull() const           { return m_data == nullptr; }
     inline const char *data() const      { return m_data; }
     inline size_t size() const           { return m_data == nullptr ? 0 : strlen(m_data); }

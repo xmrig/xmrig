@@ -225,42 +225,13 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
 
 void Pool::adjust(const xmrig::Algorithm &algorithm)
 {
-    using namespace xmrig;
-
     if (!isValid()) {
         return;
     }
 
     if (!m_algorithm.isValid()) {
         m_algorithm.setAlgo(algorithm.algo());
-
-#       ifndef XMRIG_PROXY_PROJECT
-        if (m_algorithm.variant() == VARIANT_AUTO) {
-            if (algorithm.variant() != VARIANT_AUTO) {
-                m_algorithm.setVariant(algorithm.variant());
-            }
-            else if (algorithm.algo() == CRYPTONIGHT_HEAVY)  {
-                m_algorithm.setVariant(VARIANT_0);
-            }
-            else {
-                m_algorithm.setVariant(VARIANT_1);
-            }
-        }
-#       endif
-    }
-
-    if (strstr(m_host.data(), ".nicehash.com")) {
-        m_keepAlive = false;
-        m_nicehash  = true;
-
-        if (strstr(m_host.data(), "cryptonightv7.")) {
-            m_algorithm.setVariant(VARIANT_1);
-        }
-    }
-
-    if (strstr(m_host.data(), ".minergate.com")) {
-        m_keepAlive = false;
-        m_algorithm.setVariant(VARIANT_1);
+        adjustVariant(algorithm.variant());
     }
 
     rebuild();
@@ -325,9 +296,80 @@ void Pool::addVariant(xmrig::Variant variant)
 }
 
 
+void Pool::adjustVariant(const xmrig::Variant variantHint)
+{
+#   ifndef XMRIG_PROXY_PROJECT
+    using namespace xmrig;
+
+    if (m_host.contains(".nicehash.com")) {
+        m_keepAlive = false;
+        m_nicehash  = true;
+        bool valid  = true;
+
+        if (m_host.contains("cryptonight.") && m_port == 3355) {
+            valid = m_algorithm.algo() == CRYPTONIGHT;
+            m_algorithm.setVariant(VARIANT_0);
+        }
+        else if (m_host.contains("cryptonightv7.") && m_port == 3363) {
+            valid = m_algorithm.algo() == CRYPTONIGHT;
+            m_algorithm.setVariant(VARIANT_1);
+        }
+        else if (m_host.contains("cryptonightheavy.") && m_port == 3364) {
+            valid = m_algorithm.algo() == CRYPTONIGHT_HEAVY;
+            m_algorithm.setVariant(VARIANT_0);
+        }
+
+        if (!valid) {
+            m_algorithm.setAlgo(INVALID_ALGO);
+        }
+
+        return;
+    }
+
+    if (m_host.contains(".minergate.com")) {
+        m_keepAlive = false;
+        bool valid  = true;
+        m_algorithm.setVariant(VARIANT_1);
+
+        if (m_host.contains("xmr.pool.")) {
+            valid = m_algorithm.algo() == CRYPTONIGHT;
+            m_algorithm.setVariant(m_port == 45700 ? VARIANT_1 : VARIANT_0);
+        }
+        else if (m_host.contains("aeon.pool.") && m_port == 45690) {
+            valid = m_algorithm.algo() == CRYPTONIGHT_LITE;
+            m_algorithm.setVariant(VARIANT_1);
+        }
+
+        if (!valid) {
+            m_algorithm.setAlgo(INVALID_ALGO);
+        }
+
+        return;
+    }
+
+    if (variantHint != VARIANT_AUTO) {
+        m_algorithm.setVariant(variantHint);
+        return;
+    }
+
+    if (m_algorithm.algo() == CRYPTONIGHT_HEAVY)  {
+        m_algorithm.setVariant(VARIANT_0);
+    }
+    else {
+        m_algorithm.setVariant(VARIANT_1);
+    }
+#   endif
+}
+
+
 void Pool::rebuild()
 {
     m_algorithms.clear();
+
+    if (!m_algorithm.isValid()) {
+        return;
+    }
+
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
