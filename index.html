@@ -410,10 +410,11 @@
         $('#clientStatusList tbody').on( 'click', 'button#LOG', function () {
             var data = table.row( $(this).parents('tr') ).data();
             var clientId = data['client_status']['client_id'];
+            var clientIp = data['client_status']['external_ip'];
             var log = data['client_status']['log'];
 
             var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
-                "<label for='config'>Log of: " + clientId + "</label>"+
+                "<label for='config'>Log of: " + clientId + " (" + clientIp + ")</label>"+
                 "<textarea class='form-control' rows='20' id='log'>" + log + "</textarea>" +
                 "</div>";
 
