@@ -32,6 +32,7 @@ enum PowVariant
     POW_XTL,
     POW_MSR,
     POW_XHV,
+    POW_RTO,
     LAST_ITEM
 };
 
@@ -53,6 +54,8 @@ inline std::string getPowVariantName(PowVariant powVariant)
             return "msr";
         case POW_XHV:
             return "xhv";
+        case POW_RTO:
+            return "rto";
         case POW_AUTODETECT:
         default:
             return "-1";
@@ -111,6 +114,8 @@ inline PowVariant parseVariant(const std::string variant)
         powVariant = PowVariant::POW_MSR;
     } else if (variant == "xhv" || variant == "haven") {
         powVariant = PowVariant::POW_XHV;
+    } else if (variant == "rto" || variant == "arto") {
+        powVariant = PowVariant::POW_RTO;
     }
 
     return powVariant;
