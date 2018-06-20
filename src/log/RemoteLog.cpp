@@ -44,7 +44,7 @@ void RemoteLog::message(int level, const char* fmt, va_list args)
     localtime_r(&now, &stime);
 #   endif
 
-    char *buf = new char[512];
+    auto *buf = new char[512];
     int size = snprintf(buf, 23, "[%d-%02d-%02d %02d:%02d:%02d] ",
                         stime.tm_year + 1900,
                         stime.tm_mon + 1,
@@ -63,6 +63,8 @@ void RemoteLog::message(int level, const char* fmt, va_list args)
     std::string row = std::regex_replace(std::string(buf, size+1), std::regex("\x1B\\[[0-9;]*[a-zA-Z]"), "");
 
     rows_.push_back(row);
+
+    delete[](buf);
 }
 
 
