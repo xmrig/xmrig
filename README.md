@@ -25,8 +25,10 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
-* **NEW: Support of Crytptonight Masari (MSR) v7 variant (use variant "msr" to be ready for the fork, with autodetect)**
-* **NEW: Support of Crytptonight-Heavy Haven Protocol (XHV) v3 variant (use variant "xhv")**
+* **NEW: Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (will fork on Block 110000)**
+* **NEW: Support of Crytptonight Arto (RTO) variant**
+* **Support of Crytptonight Masari (MSR) v7 variant (use variant "msr" to be ready for the fork, with autodetect)**
+* **Support of Crytptonight-Heavy Haven Protocol (XHV) v3 variant (use variant "xhv")**
 * **Support of Crytptonight Stellite (XTL) v4 variant**
 * **Support of Crytptonight Alloy (XAO) variant**
 * **Support of Crytptonight-Lite IPBC/TUBE variant**
@@ -132,7 +134,7 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N                   time to pause between retries (default: 5)
-      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), ipbc (tube), alloy, xtl (including autodetect for v5)
+      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), tube (ipbc), alloy, xtl (including autodetect for v5), msr, xhv, rto 
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)
       --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)
