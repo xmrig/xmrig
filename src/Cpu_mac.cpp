@@ -22,13 +22,15 @@
  */
 
 
+#include <mach/thread_act.h>
+#include <mach/thread_policy.h>
 #include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
 
 
-#include "Cpu.h"
 #include "CpuImpl.h"
+#include "Cpu.h"
 
 void CpuImpl::init()
 {
@@ -39,7 +41,23 @@ void CpuImpl::init()
     initCommon();
 }
 
-
-void CpuImpl::setAffinity(int id, uint64_t mask)
+int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
+    int cpuId = -1;
+
+    if (affinityMask != -1L) {
+        cpuId = Cpu::getAssignedCpuId(threadId, affinityMask);
+    } else {
+        cpuId = static_cast<int>(threadId);
+    }
+
+    if (cpuId > -1) {
+        thread_port_t mach_thread;
+        thread_affinity_policy_data_t policy = {static_cast<integer_t>(cpuId)};
+        mach_thread = pthread_mach_thread_np(pthread_self());
+
+        thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t) & policy, 1);
+    }
+
+    return cpuId;
 }

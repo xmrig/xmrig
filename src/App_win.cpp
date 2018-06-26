@@ -33,10 +33,6 @@
 
 void App::background()
 {
-    if (m_options->affinity() != -1L) {
-        Cpu::setAffinity(-1, m_options->affinity());
-    }
-
     if (!m_options->background()) {
         return;
     }

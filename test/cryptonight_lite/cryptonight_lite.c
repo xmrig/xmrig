@@ -24,15 +24,15 @@ const static char input1[152] = {
 };
 
 
-void cryptonight_av1_aesni(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx)          {}
-void cryptonight_av2_aesni_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx)   {}
-void cryptonight_av3_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx)        {}
-void cryptonight_av4_softaes_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx) {}
+void cryptonight_av1_aesni(const void* input, size_t size, void* output, struct ScratchPad* ctx)          {}
+void cryptonight_av2_aesni_double(const void* input, size_t size, void* output, struct ScratchPad* ctx)   {}
+void cryptonight_av3_softaes(const void* input, size_t size, void* output, struct ScratchPad* ctx)        {}
+void cryptonight_av4_softaes_double(const void* input, size_t size, void* output, struct ScratchPad* ctx) {}
 
-void cryptonight_lite_av1_aesni(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
-void cryptonight_lite_av2_aesni_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
-void cryptonight_lite_av3_softaes(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
-void cryptonight_lite_av4_softaes_double(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx);
+void cryptonight_lite_av1_aesni(const void* input, size_t size, void* output, struct ScratchPad* ctx);
+void cryptonight_lite_av2_aesni_double(const void* input, size_t size, void* output, struct ScratchPad* ctx);
+void cryptonight_lite_av3_softaes(const void* input, size_t size, void* output, struct ScratchPad* ctx);
+void cryptonight_lite_av4_softaes_double(const void* input, size_t size, void* output, struct ScratchPad* ctx);
 
 
 static char hash[64];
@@ -56,21 +56,21 @@ static char *bin2hex(const unsigned char *p, size_t len)
 
 
 static void * create_ctx(int ratio) {
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) _mm_malloc(sizeof(struct cryptonight_ctx), 16);
+    struct ScratchPad *ctx = (struct ScratchPad*) _mm_malloc(sizeof(struct ScratchPad), 16);
     ctx->memory = (uint8_t *) _mm_malloc(MEMORY_LITE * ratio, 16);
 
     return ctx;
 }
 
 
-static void free_ctx(struct cryptonight_ctx *ctx) {
+static void free_ctx(struct ScratchPad *ctx) {
     _mm_free(ctx->memory);
     _mm_free(ctx);
 }
 
 
 void test_cryptonight_lite_av1_should_CalcHash(void) {
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx(1);
+    struct ScratchPad *ctx = (struct ScratchPad*) create_ctx(1);
 
     cryptonight_lite_av1_aesni(input1, 76, &hash, ctx);
     TEST_ASSERT_EQUAL_STRING(RESULT1, bin2hex(hash, 32));
@@ -81,7 +81,7 @@ void test_cryptonight_lite_av1_should_CalcHash(void) {
 
 void test_cryptonight_lite_av2_should_CalcHash(void)
 {
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx(2);
+    struct ScratchPad *ctx = (struct ScratchPad*) create_ctx(2);
 
     cryptonight_lite_av2_aesni_double(input1, 76, &hash, ctx);
     TEST_ASSERT_EQUAL_STRING(RESULT1_DOUBLE, bin2hex(hash, 64));
@@ -91,7 +91,7 @@ void test_cryptonight_lite_av2_should_CalcHash(void)
 
 
 void test_cryptonight_lite_av3_should_CalcHash(void) {
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx(1);
+    struct ScratchPad *ctx = (struct ScratchPad*) create_ctx(1);
 
     cryptonight_lite_av3_softaes(input1, 76, &hash, ctx);
     TEST_ASSERT_EQUAL_STRING(RESULT1, bin2hex(hash, 32));
@@ -102,7 +102,7 @@ void test_cryptonight_lite_av3_should_CalcHash(void) {
 
 void test_cryptonight_lite_av4_should_CalcHash(void)
 {
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx*) create_ctx(2);
+    struct ScratchPad *ctx = (struct ScratchPad*) create_ctx(2);
 
     cryptonight_lite_av4_softaes_double(input1, 76, &hash, ctx);
     TEST_ASSERT_EQUAL_STRING(RESULT1_DOUBLE, bin2hex(hash, 64));

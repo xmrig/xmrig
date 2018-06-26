@@ -27,7 +27,7 @@ enum PowVariant
     POW_AUTODETECT,
     POW_V0,
     POW_V1,
-    POW_IPBC,
+    POW_TUBE,
     POW_ALLOY,
     POW_XTL,
     POW_MSR,
@@ -44,8 +44,8 @@ inline std::string getPowVariantName(PowVariant powVariant)
             return "0";
         case POW_V1:
             return "1";
-        case POW_IPBC:
-            return "ipbc";
+        case POW_TUBE:
+            return "tube";
         case POW_ALLOY:
             return "alloy";
         case POW_XTL:
@@ -104,8 +104,8 @@ inline PowVariant parseVariant(const std::string variant)
         powVariant = PowVariant::POW_V0;
     } else if (variant == "1") {
         powVariant = PowVariant::POW_V1;
-    } else if (variant == "ipbc" || variant == "tube") {
-        powVariant = PowVariant::POW_IPBC;
+    } else if (variant == "ipbc" || variant == "tube" || variant == "bittube") {
+        powVariant = PowVariant::POW_TUBE;
     } else if (variant == "xao" || variant == "alloy") {
         powVariant = PowVariant::POW_ALLOY;
     } else if (variant == "xtl" || variant == "stellite") {

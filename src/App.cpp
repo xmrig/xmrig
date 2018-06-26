@@ -113,7 +113,6 @@ App::~App()
     delete m_network;
 
     Options::release();
-    Mem::release();
     Platform::release();
 
     uv_tty_reset_mode();
@@ -142,12 +141,26 @@ int App::start()
 
     background();
 
-    if (!CryptoNight::init(m_options->algo(), m_options->aesni())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
-        return EINVAL;
+    if (Options::i()->colors()) {
+        LOG_INFO(WHITE_BOLD("%s hash self-test"), m_options->algoName());
+    }
+    else {
+        LOG_INFO("%s hash self-test", m_options->algoName());
     }
 
-    Mem::allocate(m_options);
+    if (!CryptoNight::init(m_options->algo(), m_options->aesni())) {
+        LOG_ERR("%s hash self-test... failed.", m_options->algoName());
+        return EINVAL;
+    } else {
+        if (Options::i()->colors()) {
+            LOG_INFO(WHITE_BOLD("%s hash self-test... ") GREEN_BOLD("successful") ".", m_options->algoName());
+        }
+        else {
+            LOG_INFO("%s hash self-test... successful.", m_options->algoName());
+        }
+    }
+
+    Mem::init(m_options);
 
     Summary::print();
 
@@ -174,7 +187,7 @@ int App::start()
     }
 #   endif
 
-    Workers::start(m_options->affinity(), m_options->priority());
+    Workers::start(m_options->threads(), m_options->affinity(), m_options->priority());
 
     if (m_options->pools().front()->isValid()) {
         m_network->connect();

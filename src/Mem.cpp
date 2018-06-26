@@ -24,25 +24,20 @@
 
 #include <memory.h>
 
-
 #include "crypto/CryptoNight.h"
 #include "Mem.h"
 
-
-int Mem::m_algo          = 0;
-int Mem::m_flags         = 0;
+bool Mem::m_useHugePages = true;
 size_t Mem::m_hashFactor = 1;
-size_t Mem::m_threads    = 0;
-size_t Mem::m_memorySize = 0;
-alignas(16) uint8_t *Mem::m_memory = nullptr;
+int Mem::m_flags         = 0;
+Options::Algo Mem::m_algo = Options::ALGO_CRYPTONIGHT;
 Mem::ThreadBitSet Mem::m_multiHashThreadMask = Mem::ThreadBitSet(-1L);
 
-cryptonight_ctx *Mem::create(int threadId)
+ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
 {
     size_t scratchPadSize;
 
-    switch (m_algo)
-    {
+    switch (m_algo) {
         case Options::ALGO_CRYPTONIGHT_LITE:
             scratchPadSize = MEMORY_LITE;
             break;
@@ -55,17 +50,29 @@ cryptonight_ctx *Mem::create(int threadId)
             break;
     }
 
-    size_t offset = 0;
-    for (int i=0; i < threadId; i++) {
-        offset += sizeof(cryptonight_ctx);
-        offset += scratchPadSize * getThreadHashFactor(i);
+    ScratchPadMem scratchPadMem;
+    scratchPadMem.realSize = scratchPadSize * getThreadHashFactor(threadId);
+    scratchPadMem.size = scratchPadSize * getThreadHashFactor(threadId);
+    scratchPadMem.size += scratchPadMem.size % MEMORY;
+    scratchPadMem.pages = scratchPadMem.size / MEMORY;
+
+    allocate(scratchPadMem, m_useHugePages);
+
+    for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
+        ScratchPad* scratchPad = static_cast<ScratchPad *>(_mm_malloc(sizeof(ScratchPad), 4096));
+        scratchPad->memory     = scratchPadMem.memory + (i * scratchPadSize);
+
+        scratchPads[i] = scratchPad;
     }
 
-    auto* ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset]);
+    return scratchPadMem;
+}
 
-    size_t memOffset = offset+sizeof(cryptonight_ctx);
+void Mem::release(ScratchPad** scratchPads, ScratchPadMem& scratchPadMem, int threadId)
+{
+    release(scratchPadMem);
 
-    ctx->memory = &m_memory[memOffset];
-
-    return ctx;
+    for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
+        _mm_free(scratchPads[i]);
+    }
 }

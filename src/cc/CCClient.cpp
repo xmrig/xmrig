@@ -79,7 +79,6 @@ CCClient::CCClient(Options* options, uv_async_t* async)
         m_clientStatus.setCurrentAlgoName(m_options->algoName());
     }
 
-    m_clientStatus.setHugepagesEnabled(Mem::isHugepagesEnabled());
     m_clientStatus.setHugepages(Mem::isHugepagesAvailable());
     m_clientStatus.setHashFactor(Mem::hashFactor());
 
@@ -265,10 +264,10 @@ std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& r
 
 #   ifndef XMRIG_NO_TLS
     if (m_self->m_options->ccUseTls()) {
-        cli = std::make_shared<httplib::SSLClient>(m_self->m_options->ccHost(), m_self->m_options->ccPort());
+        cli = std::make_shared<httplib::SSLClient>(m_self->m_options->ccHost(), m_self->m_options->ccPort(), 10);
     } else {
 #   endif
-        cli = std::make_shared<httplib::Client>(m_self->m_options->ccHost(), m_self->m_options->ccPort());
+        cli = std::make_shared<httplib::Client>(m_self->m_options->ccHost(), m_self->m_options->ccPort(), 10);
 #   ifndef XMRIG_NO_TLS
     }
 #   endif

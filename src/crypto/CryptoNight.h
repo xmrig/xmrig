@@ -37,8 +37,8 @@
 #define POW_DEFAULT_INDEX_SHIFT 3
 #define POW_XLT_V4_INDEX_SHIFT 4
 
-struct cryptonight_ctx {
-    alignas(16) uint8_t state[MAX_NUM_HASH_BLOCKS][208]; // 208 instead of 200 to maintain aligned to 16 byte boundaries
+struct ScratchPad {
+    alignas(16) uint8_t state[208]; // 208 instead of 200 to maintain aligned to 16 byte boundaries
     alignas(16) uint8_t* memory;
 };
 
@@ -51,7 +51,7 @@ class CryptoNight
 public:
     static bool init(int algo, bool aesni);
 
-    static void hash(size_t factor, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx);
+    static void hash(size_t factor, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
 
 private:
     static bool selfTest(int algo);

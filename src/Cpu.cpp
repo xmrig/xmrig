@@ -145,9 +145,9 @@ void Cpu::optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::
     CpuImpl::instance().optimizeParameters(threadsCount, hashFactor, algo, maxCpuUsage, safeMode);
 }
 
-void Cpu::setAffinity(int id, uint64_t mask)
+int Cpu::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
-    CpuImpl::instance().setAffinity(id, mask);
+    return CpuImpl::instance().setThreadAffinity(threadId, affinityMask);
 }
 
 bool Cpu::hasAES()
@@ -193,4 +193,25 @@ size_t Cpu::threads()
 size_t Cpu::availableCache()
 {
     return CpuImpl::instance().availableCache();
+}
+
+int Cpu::getAssignedCpuId(size_t threadId, int64_t affinityMask)
+{
+    int cpuId = -1;
+
+    Mem::ThreadBitSet threadAffinityMask = Mem::ThreadBitSet(affinityMask);
+    size_t threadCount = 0;
+
+    for (size_t i = 0; i < CpuImpl::instance().threads(); i++) {
+        if (threadAffinityMask.test(i)) {
+            if (threadCount == threadId) {
+                cpuId = i;
+                break;
+            }
+
+            threadCount++;
+        }
+    }
+
+    return cpuId;
 }

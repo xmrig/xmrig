@@ -35,9 +35,8 @@
 #include <unistd.h>
 #include <string.h>
 
-
 #include "CpuImpl.h"
-
+#include "Cpu.h"
 
 #ifdef __FreeBSD__
 typedef cpuset_t cpu_set_t;
@@ -54,26 +53,31 @@ void CpuImpl::init()
 }
 
 
-void CpuImpl::setAffinity(int id, uint64_t mask)
+int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
-    cpu_set_t set;
-    CPU_ZERO(&set);
+    int cpuId = -1;
 
-    for (size_t i = 0; i < threads(); i++) {
-        if (mask & (1UL << i)) {
-            CPU_SET(i, &set);
-        }
-    }
-
-    if (id == -1) {
-#       ifndef __FreeBSD__
-        sched_setaffinity(0, sizeof(&set), &set);
-#       endif
+    if (affinityMask != -1L) {
+        cpuId = Cpu::getAssignedCpuId(threadId, affinityMask);
     } else {
-#       ifndef __ANDROID__
-        pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
-#       else
-        sched_setaffinity(gettid(), sizeof(&set), &set);
-#       endif
+        cpuId = static_cast<int>(threadId);
     }
+
+    if (cpuId > -1) {
+        cpu_set_t mn;
+        CPU_ZERO(&mn);
+        CPU_SET(cpuId, &mn);
+
+#   ifndef __ANDROID__
+        if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) != 0) {
+            cpuId = -1;
+        }
+#   else
+        if (sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == -1) {
+            cpuId = -1;
+        }
+#   endif
+    }
+
+    return cpuId;
 }

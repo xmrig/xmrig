@@ -27,12 +27,6 @@
 #include <ntsecapi.h>
 #include <tchar.h>
 
-#ifdef __GNUC__
-#   include <mm_malloc.h>
-#else
-#   include <malloc.h>
-#endif
-
 #include "log/Log.h"
 #include "crypto/CryptoNight.h"
 #include "Mem.h"
@@ -144,63 +138,44 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-bool Mem::allocate(const Options* options)
+void Mem::init(const Options* options)
 {
-    m_algo       = options->algo();
-    m_threads    = options->threads();
     m_hashFactor = options->hashFactor();
-    m_multiHashThreadMask = Mem::ThreadBitSet(options->multiHashThreadMask());
-    m_memorySize = 0;
+    m_useHugePages = options->hugePages();
+    m_algo = options->algo();
+    m_multiHashThreadMask = Mem::ThreadBitSet(static_cast<unsigned long long int>(options->multiHashThreadMask()));
 
-    size_t scratchPadSize;
-    switch (m_algo)
-    {
-        case Options::ALGO_CRYPTONIGHT_LITE:
-            scratchPadSize = MEMORY_LITE;
-            break;
-        case Options::ALGO_CRYPTONIGHT_HEAVY:
-            scratchPadSize = MEMORY_HEAVY;
-            break;
-        case Options::ALGO_CRYPTONIGHT:
-        default:
-            scratchPadSize = MEMORY;
-            break;
+    if (m_useHugePages && TrySetLockPagesPrivilege()) {
+	    m_flags |= HugepagesAvailable;
+    }
+}
+
+void Mem::allocate(ScratchPadMem& scratchPadMem, bool useHugePages)
+{
+    scratchPadMem.hugePages = 0;
+
+    if (!useHugePages) {
+        scratchPadMem.memory = static_cast<uint8_t*>(_mm_malloc(scratchPadMem.size, 4096));
+        return;
     }
 
-    for (size_t i=0; i < m_threads; i++) {
-        m_memorySize += sizeof(cryptonight_ctx);
-        m_memorySize += scratchPadSize * getThreadHashFactor(i);
+    scratchPadMem.memory = static_cast<uint8_t*>(VirtualAlloc(nullptr, scratchPadMem.size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
+    if (scratchPadMem.memory) {
+        scratchPadMem.hugePages = scratchPadMem.pages;
+
+        return;
     }
 
-    m_memorySize = m_memorySize - (m_memorySize % MEMORY) + MEMORY;
-
-    if (!options->hugePages()) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
-        return true;
-    }
-
-    if (TrySetLockPagesPrivilege()) {
-        m_flags |= HugepagesAvailable;
-    }
-
-    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, m_memorySize, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
-    if (!m_memory) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
-    }
-    else {
-        m_flags |= HugepagesEnabled;
-    }
-
-    return true;
+    allocate(scratchPadMem, false);
 }
 
 
-void Mem::release()
+void Mem::release(ScratchPadMem &scratchPadMem)
 {
-    if (m_flags & HugepagesEnabled) {
-        VirtualFree(m_memory, 0, MEM_RELEASE);
+    if (scratchPadMem.hugePages) {
+        VirtualFree(scratchPadMem.memory, 0, MEM_RELEASE);
     }
     else {
-        _mm_free(m_memory);
+        _mm_free(scratchPadMem.memory);
     }
 }
