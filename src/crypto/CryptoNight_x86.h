@@ -485,11 +485,10 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
 
             if (VARIANT == xmrig::VARIANT_XHV) {
-                idx0 = (~d) ^ q;
+                d = ~d;
             }
-            else {
-                idx0 = d ^ q;
-            }
+
+            idx0 = d ^ q;
         }
     }
 
@@ -600,11 +599,10 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
 
             if (VARIANT == xmrig::VARIANT_XHV) {
-                idx0 = (~d) ^ q;
+                d = ~d;
             }
-            else {
-                idx0 = d ^ q;
-            }
+
+            idx0 = d ^ q;
         }
 
         cl = ((uint64_t*) &l1[idx1 & MASK])[0];
@@ -640,11 +638,10 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             ((int64_t*)&l1[idx1 & MASK])[0] = n ^ q;
 
             if (VARIANT == xmrig::VARIANT_XHV) {
-                idx1 = (~d) ^ q;
+                d = ~d;
             }
-            else {
-                idx1 = d ^ q;
-            }
+
+            idx1 = d ^ q;
         }
     }
 
@@ -690,7 +687,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     lo = __umul128(idx, EXTRACT64(b), &hi);             \
     a = _mm_add_epi64(a, _mm_set_epi64x(lo, hi));       \
                                                         \
-    if (IS_MONERO) {                                  \
+    if (IS_MONERO) {                                    \
         _mm_store_si128(ptr, _mm_xor_si128(a, mc));     \
                                                         \
         if (VARIANT == xmrig::VARIANT_IPBC) {           \
@@ -709,11 +706,10 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         int64_t q = n / (d | 0x5);                      \
         ((int64_t*)&l[idx & MASK])[0] = n ^ q;          \
         if (VARIANT == xmrig::VARIANT_XHV) {            \
-            idx = (~d) ^ q;                            \
+            d = ~d;                                     \
         }                                               \
-        else {                                          \
-            idx = d ^ q;                               \
-        }                                               \
+                                                        \
+        idx = d ^ q;                                    \
     }
 
 
