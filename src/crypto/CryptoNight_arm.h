@@ -382,6 +382,28 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
+static inline __m128i aes_round_tweak_div(const __m128i &in, const __m128i &key)
+{
+    alignas(16) uint32_t k[4];
+    alignas(16) uint32_t x[4];
+
+    _mm_store_si128((__m128i*) k, key);
+    _mm_store_si128((__m128i*) x, _mm_xor_si128(in, _mm_set_epi64x(0xffffffffffffffff, 0xffffffffffffffff)));
+
+    #define BYTE(p, i) ((unsigned char*)&x[p])[i]
+    k[0] ^= saes_table[0][BYTE(0, 0)] ^ saes_table[1][BYTE(1, 1)] ^ saes_table[2][BYTE(2, 2)] ^ saes_table[3][BYTE(3, 3)];
+    x[0] ^= k[0];
+    k[1] ^= saes_table[0][BYTE(1, 0)] ^ saes_table[1][BYTE(2, 1)] ^ saes_table[2][BYTE(3, 2)] ^ saes_table[3][BYTE(0, 3)];
+    x[1] ^= k[1];
+    k[2] ^= saes_table[0][BYTE(2, 0)] ^ saes_table[1][BYTE(3, 1)] ^ saes_table[2][BYTE(0, 2)] ^ saes_table[3][BYTE(1, 3)];
+    x[2] ^= k[2];
+    k[3] ^= saes_table[0][BYTE(3, 0)] ^ saes_table[1][BYTE(0, 1)] ^ saes_table[2][BYTE(1, 2)] ^ saes_table[3][BYTE(2, 3)];
+    #undef BYTE
+
+    return _mm_load_si128((__m128i*)k);
+}
+
+
 template<int SHIFT>
 static inline void cryptonight_monero_tweak(uint64_t* mem_out, __m128i tmp)
 {
@@ -428,12 +450,17 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx;
+        if (VARIANT == xmrig::VARIANT_TUBE || !SOFT_AES) {
+            cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+        }
 
-        if (SOFT_AES) {
+        if (VARIANT == xmrig::VARIANT_TUBE) {
+            cx = aes_round_tweak_div(cx, _mm_set_epi64x(ah0, al0));
+        }
+        else if (SOFT_AES) {
             cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
         }
         else {
-            cx = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
             cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
         }
 
@@ -457,7 +484,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
 
         if (IS_MONERO) {
-            if (VARIANT == xmrig::VARIANT_IPBC) {
+            if (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO) {
                 ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0 ^ al0;
             }
             else {
@@ -536,14 +563,20 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
     for (size_t i = 0; i < ITERATIONS; i++) {
         __m128i cx0, cx1;
+        if (VARIANT == xmrig::VARIANT_TUBE || !SOFT_AES) {
+            cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+            cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
+        }
 
-        if (SOFT_AES) {
+        if (VARIANT == xmrig::VARIANT_TUBE) {
+            cx0 = aes_round_tweak_div(cx0, _mm_set_epi64x(ah0, al0));
+            cx1 = aes_round_tweak_div(cx1, _mm_set_epi64x(ah1, al1));
+        }
+        else if (SOFT_AES) {
             cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
             cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
         }
         else {
-            cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
-            cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
             cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
             cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
         }
@@ -573,7 +606,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
 
         if (IS_MONERO) {
-            if (VARIANT == xmrig::VARIANT_IPBC) {
+            if (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO) {
                 ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0 ^ al0;
             }
             else {
@@ -614,7 +647,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*)&l1[idx1 & MASK])[0] = al1;
 
         if (IS_MONERO) {
-            if (VARIANT == xmrig::VARIANT_IPBC) {
+            if (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO) {
                 ((uint64_t*)&l1[idx1 & MASK])[1] = ah1 ^ tweak1_2_1 ^ al1;
             }
             else {
