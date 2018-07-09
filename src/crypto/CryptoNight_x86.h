@@ -386,25 +386,26 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
-static inline __m128i aes_round_tweak_div(__m128i& val, const __m128i& key)
+static inline __m128i aes_round_tweak_div(const __m128i &in, const __m128i &key)
 {
     alignas(16) uint32_t k[4];
     alignas(16) uint32_t x[4];
 
-    _mm_store_si128((__m128i*)k, key);
-    val = _mm_xor_si128(val, _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128())); // val = ~val;
-    _mm_store_si128((__m128i*)x, val);
-    #define BYTE(p, i) ((unsigned char*)&p)[i]
-    k[0] ^= saes_table[0][BYTE(x[0], 0)] ^ saes_table[1][BYTE(x[1], 1)] ^ saes_table[2][BYTE(x[2], 2)] ^ saes_table[3][BYTE(x[3], 3)];
+    _mm_store_si128((__m128i*) k, key);
+    _mm_store_si128((__m128i*) x, _mm_xor_si128(in, _mm_set_epi64x(0xffffffffffffffff, 0xffffffffffffffff)));
+
+    #define BYTE(p, i) ((unsigned char*)&x[p])[i]
+    k[0] ^= saes_table[0][BYTE(0, 0)] ^ saes_table[1][BYTE(1, 1)] ^ saes_table[2][BYTE(2, 2)] ^ saes_table[3][BYTE(3, 3)];
     x[0] ^= k[0];
-    k[1] ^= saes_table[0][BYTE(x[1], 0)] ^ saes_table[1][BYTE(x[2], 1)] ^ saes_table[2][BYTE(x[3], 2)] ^ saes_table[3][BYTE(x[0], 3)];
+    k[1] ^= saes_table[0][BYTE(1, 0)] ^ saes_table[1][BYTE(2, 1)] ^ saes_table[2][BYTE(3, 2)] ^ saes_table[3][BYTE(0, 3)];
     x[1] ^= k[1];
-    k[2] ^= saes_table[0][BYTE(x[2], 0)] ^ saes_table[1][BYTE(x[3], 1)] ^ saes_table[2][BYTE(x[0], 2)] ^ saes_table[3][BYTE(x[1], 3)];
+    k[2] ^= saes_table[0][BYTE(2, 0)] ^ saes_table[1][BYTE(3, 1)] ^ saes_table[2][BYTE(0, 2)] ^ saes_table[3][BYTE(1, 3)];
     x[2] ^= k[2];
-    k[3] ^= saes_table[0][BYTE(x[3], 0)] ^ saes_table[1][BYTE(x[0], 1)] ^ saes_table[2][BYTE(x[1], 2)] ^ saes_table[3][BYTE(x[2], 3)];
+    k[3] ^= saes_table[0][BYTE(3, 0)] ^ saes_table[1][BYTE(0, 1)] ^ saes_table[2][BYTE(1, 2)] ^ saes_table[3][BYTE(2, 3)];
     #undef BYTE
 
-    return _mm_load_si128((__m128i*)k);}
+    return _mm_load_si128((__m128i*)k);
+}
 
 
 template<int SHIFT>
