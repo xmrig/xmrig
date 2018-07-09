@@ -462,7 +462,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
 
         if (IS_MONERO) {
-            if (VARIANT == xmrig::VARIANT_IPBC) {
+            if (VARIANT == xmrig::VARIANT_RTO) {
                 ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0 ^ al0;
             }
             else {
@@ -576,7 +576,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
 
         if (IS_MONERO) {
-            if (VARIANT == xmrig::VARIANT_IPBC) {
+            if (VARIANT == xmrig::VARIANT_RTO) {
                 ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0 ^ al0;
             }
             else {
@@ -615,7 +615,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ((uint64_t*)&l1[idx1 & MASK])[0] = al1;
 
         if (IS_MONERO) {
-            if (VARIANT == xmrig::VARIANT_IPBC) {
+            if (VARIANT == xmrig::VARIANT_RTO) {
                 ((uint64_t*)&l1[idx1 & MASK])[1] = ah1 ^ tweak1_2_1 ^ al1;
             }
             else {
@@ -690,7 +690,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     if (IS_MONERO) {                                    \
         _mm_store_si128(ptr, _mm_xor_si128(a, mc));     \
                                                         \
-        if (VARIANT == xmrig::VARIANT_IPBC) {           \
+        if (VARIANT == xmrig::VARIANT_RTO) {           \
             ((uint64_t*)ptr)[1] ^= ((uint64_t*)ptr)[0]; \
         }                                               \
     } else {                                            \

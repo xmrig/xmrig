@@ -61,7 +61,7 @@ bool MultiWorker<N>::selfTest()
     if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE) {
         return verify(xmrig::VARIANT_0,    test_output_v0_lite) &&
                verify(xmrig::VARIANT_1,    test_output_v1_lite) &&
-               verify(xmrig::VARIANT_IPBC, test_output_ipbc_lite);
+               verify(xmrig::VARIANT_TUBE, test_output_ipbc_lite);
     }
 #   endif
 
