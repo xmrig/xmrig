@@ -50,25 +50,28 @@ MultiWorker<N>::~MultiWorker()
 template<size_t N>
 bool MultiWorker<N>::selfTest()
 {
-    if (m_thread->algorithm() == xmrig::CRYPTONIGHT) {
-        return verify(xmrig::VARIANT_0,   test_output_v0) &&
-               verify(xmrig::VARIANT_1,   test_output_v1) &&
-               verify(xmrig::VARIANT_XTL, test_output_xtl) &&
-               verify(xmrig::VARIANT_MSR, test_output_msr);
+    using namespace xmrig;
+
+    if (m_thread->algorithm() == CRYPTONIGHT) {
+        return verify(VARIANT_0,   test_output_v0)  &&
+               verify(VARIANT_1,   test_output_v1)  &&
+               verify(VARIANT_XTL, test_output_xtl) &&
+               verify(VARIANT_MSR, test_output_msr) &&
+               verify(VARIANT_XAO, test_output_xao) &&
+               verify(VARIANT_RTO, test_output_rto);
     }
 
 #   ifndef XMRIG_NO_AEON
-    if (m_thread->algorithm() == xmrig::CRYPTONIGHT_LITE) {
-        return verify(xmrig::VARIANT_0,    test_output_v0_lite) &&
-               verify(xmrig::VARIANT_1,    test_output_v1_lite) &&
-               verify(xmrig::VARIANT_TUBE, test_output_ipbc_lite);
+    if (m_thread->algorithm() == CRYPTONIGHT_LITE) {
+        return verify(VARIANT_0,    test_output_v0_lite) &&
+               verify(VARIANT_1,    test_output_v1_lite);
     }
 #   endif
 
 #   ifndef XMRIG_NO_SUMO
-    if (m_thread->algorithm() == xmrig::CRYPTONIGHT_HEAVY) {
-        return verify(xmrig::VARIANT_0,   test_output_v0_heavy) &&
-               verify(xmrig::VARIANT_XHV, test_output_xhv_heavy);
+    if (m_thread->algorithm() == CRYPTONIGHT_HEAVY) {
+        return verify(VARIANT_0,   test_output_v0_heavy) &&
+               verify(VARIANT_XHV, test_output_xhv_heavy);
     }
 #   endif
 
