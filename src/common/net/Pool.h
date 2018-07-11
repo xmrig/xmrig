@@ -77,7 +77,7 @@ public:
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    void adjust(xmrig::Algo algorithm);
+    void adjust(const xmrig::Algorithm &algorithm);
     void setAlgo(const xmrig::Algorithm &algorithm);
 
 #   ifdef APP_DEBUG
@@ -87,6 +87,7 @@ public:
 private:
     bool parseIPv6(const char *addr);
     void addVariant(xmrig::Variant variant);
+    void adjustVariant(const xmrig::Variant variantHint);
     void rebuild();
 
     bool m_nicehash;
