@@ -50,6 +50,7 @@
 
 #ifndef XMRIG_NO_HTTPD
 #   include "api/Httpd.h"
+#   include "api/Api.h"
 #endif
 
 
