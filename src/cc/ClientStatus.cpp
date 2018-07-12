@@ -34,7 +34,6 @@
 ClientStatus::ClientStatus()
     : m_currentStatus(Status::PAUSED),
       m_hasHugepages(false),
-      m_isHugepagesEnabled(false),
       m_isCpuX64(false),
       m_hasCpuAES(false),
       m_hashFactor(1),
@@ -156,16 +155,6 @@ bool ClientStatus::hasHugepages() const
 void ClientStatus::setHugepages(bool hasHugepages)
 {
     m_hasHugepages = hasHugepages;
-}
-
-bool ClientStatus::isHugepagesEnabled() const
-{
-    return m_isHugepagesEnabled;
-}
-
-void ClientStatus::setHugepagesEnabled(bool hugepagesEnabled)
-{
-    m_isHugepagesEnabled = hugepagesEnabled;
 }
 
 int ClientStatus::getHashFactor() const
@@ -400,10 +389,6 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_hasHugepages = clientStatus["hugepages_available"].GetBool();
         }
 
-        if (clientStatus.HasMember("hugepages_enabled")) {
-            m_isHugepagesEnabled = clientStatus["hugepages_enabled"].GetBool();
-        }
-
         if (clientStatus.HasMember("hash_factor")) {
             m_hashFactor = clientStatus["hash_factor"].GetInt();
         }
@@ -502,7 +487,6 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("version", rapidjson::StringRef(m_version.c_str()), allocator);
 
     clientStatus.AddMember("hugepages_available", m_hasHugepages, allocator);
-    clientStatus.AddMember("hugepages_enabled", m_isHugepagesEnabled, allocator);
     clientStatus.AddMember("hash_factor", m_hashFactor, allocator);
     clientStatus.AddMember("cpu_is_x64", m_isCpuX64, allocator);
     clientStatus.AddMember("cpu_has_aes", m_hasCpuAES, allocator);

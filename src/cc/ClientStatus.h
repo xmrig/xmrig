@@ -87,9 +87,6 @@ public:
     bool hasHugepages() const;
     void setHugepages(bool hasHugepages);
 
-    bool isHugepagesEnabled() const;
-    void setHugepagesEnabled(bool hugepagesEnabled);
-
     int getHashFactor() const;
     void setHashFactor(int hashFactor);
 
@@ -170,7 +167,6 @@ private:
     std::string m_log;
 
     bool m_hasHugepages;
-    bool m_isHugepagesEnabled;
     bool m_isCpuX64;
     bool m_hasCpuAES;
 

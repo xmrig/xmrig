@@ -1,7 +1,7 @@
 # 1.6.5
 - Hashrate improve -> add autodetection mode for cpu-affinity
 - Hashrate improve, more stable hashrates -> refactor memory allocation
-- Add Arto (RTO) support (cn [2mb scratchpag] + ipbc mod)
+- Add Arto (RTO) support (cn [2mb scratchpad] + ipbc mod)
 - Add TubeV4 (TUBE) support (cn-heavy [4mb scratchpad] + ipbc mod + soft-aes mod)
 - Add external IP to log view
 - Fix memory leak in RemoteLog
