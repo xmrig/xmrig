@@ -34,13 +34,16 @@
 ClientStatus::ClientStatus()
     : m_currentStatus(Status::PAUSED),
       m_hasHugepages(false),
+      m_isHugepagesEnabled(false),
       m_isCpuX64(false),
       m_hasCpuAES(false),
-      m_hashFactor(1),
       m_hashrateShort(0),
       m_hashrateMedium(0),
       m_hashrateLong(0),
       m_hashrateHighest(0),
+      m_hashFactor(1),
+      m_totalPages(0),
+      m_totalHugepages(0),
       m_currentThreads(0),
       m_cpuSockets(0),
       m_cpuCores(0),
@@ -157,14 +160,14 @@ void ClientStatus::setHugepages(bool hasHugepages)
     m_hasHugepages = hasHugepages;
 }
 
-int ClientStatus::getHashFactor() const
+bool ClientStatus::isHugepagesEnabled() const
 {
-    return m_hashFactor;
+    return m_isHugepagesEnabled;
 }
 
-void ClientStatus::setHashFactor(int hashFactor)
+void ClientStatus::setHugepagesEnabled(bool hugepagesEnabled)
 {
-    m_hashFactor = hashFactor;
+    m_isHugepagesEnabled = hugepagesEnabled;
 }
 
 bool ClientStatus::isCpuX64() const
@@ -225,6 +228,36 @@ void ClientStatus::setHashrateHighest(double hashrateHighest)
 double ClientStatus::getHashrateHighest() const
 {
     return m_hashrateHighest;
+}
+
+int ClientStatus::getHashFactor() const
+{
+    return m_hashFactor;
+}
+
+void ClientStatus::setHashFactor(int hashFactor)
+{
+    m_hashFactor = hashFactor;
+}
+
+int ClientStatus::getTotalPages() const
+{
+    return m_totalPages;
+}
+
+void ClientStatus::setTotalPages(int totalPages)
+{
+    m_totalPages = totalPages;
+}
+
+int ClientStatus::getTotalHugepages() const
+{
+    return m_totalHugepages;
+}
+
+void ClientStatus::setTotalHugepages(int totalHugepages)
+{
+    m_totalHugepages = totalHugepages;
 }
 
 int ClientStatus::getCurrentThreads() const
@@ -389,6 +422,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_hasHugepages = clientStatus["hugepages_available"].GetBool();
         }
 
+        if (clientStatus.HasMember("hugepages_enabled")) {
+            m_isHugepagesEnabled = clientStatus["hugepages_enabled"].GetBool();
+        }
+
         if (clientStatus.HasMember("hash_factor")) {
             m_hashFactor = clientStatus["hash_factor"].GetInt();
         }
@@ -487,6 +524,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("version", rapidjson::StringRef(m_version.c_str()), allocator);
 
     clientStatus.AddMember("hugepages_available", m_hasHugepages, allocator);
+    clientStatus.AddMember("hugepages_enabled", m_isHugepagesEnabled, allocator);
     clientStatus.AddMember("hash_factor", m_hashFactor, allocator);
     clientStatus.AddMember("cpu_is_x64", m_isCpuX64, allocator);
     clientStatus.AddMember("cpu_has_aes", m_hasCpuAES, allocator);
@@ -536,4 +574,3 @@ std::string ClientStatus::toJsonString()
 
     return strdup(buffer.GetString());
 }
-

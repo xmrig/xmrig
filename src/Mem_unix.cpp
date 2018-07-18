@@ -59,9 +59,10 @@ void Mem::allocate(ScratchPadMem& scratchPadMem, bool useHugePages)
         return allocate(scratchPadMem, false);
     }
 
-    m_flags |= HugepagesAvailable;
-
     scratchPadMem.hugePages = scratchPadMem.pages;
+
+    m_flags |= HugepagesAvailable;
+    m_flags |= HugepagesEnabled;
 
     if (madvise(scratchPadMem.memory, scratchPadMem.size, MADV_RANDOM | MADV_WILLNEED) != 0) {
         LOG_ERR("madvise failed");

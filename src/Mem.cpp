@@ -30,6 +30,8 @@
 bool Mem::m_useHugePages = true;
 size_t Mem::m_hashFactor = 1;
 int Mem::m_flags         = 0;
+int Mem::m_totalPages = 0;
+int Mem::m_totalHugepages = 0;
 Options::Algo Mem::m_algo = Options::ALGO_CRYPTONIGHT;
 Mem::ThreadBitSet Mem::m_multiHashThreadMask = Mem::ThreadBitSet(-1L);
 
@@ -65,11 +67,17 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
         scratchPads[i] = scratchPad;
     }
 
+    m_totalPages += scratchPadMem.pages;
+    m_totalHugepages += scratchPadMem.hugePages;
+
     return scratchPadMem;
 }
 
 void Mem::release(ScratchPad** scratchPads, ScratchPadMem& scratchPadMem, int threadId)
 {
+    m_totalPages -= scratchPadMem.pages;
+    m_totalHugepages -= scratchPadMem.hugePages;
+
     release(scratchPadMem);
 
     for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
