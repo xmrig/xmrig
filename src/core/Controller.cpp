@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -96,7 +97,8 @@ int xmrig::Controller::init(int argc, char **argv)
 {
     Cpu::init();
 
-    d_ptr->config = xmrig::Config::load(argc, argv, this);
+    // init pconfig global pointer to config
+    pconfig = d_ptr->config = xmrig::Config::load(argc, argv, this);
     if (!d_ptr->config) {
         return 1;
     }
