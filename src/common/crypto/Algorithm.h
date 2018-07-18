@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -49,6 +50,9 @@ public:
         setAlgo(algo);
     }
 
+    // constructs Algorithm from PerfAlgo
+    Algorithm(const xmrig::PerfAlgo);
+
     inline Algorithm(const char *algo)
     {
         parseAlgorithm(algo);
@@ -56,8 +60,10 @@ public:
 
     bool isEqual(const Algorithm &other) const { return m_algo == other.m_algo && m_variant == other.m_variant; }
     inline Algo algo() const                   { return m_algo; }
+    xmrig::PerfAlgo perf_algo() const; // returns PerfAlgo that corresponds to current Algorithm
     inline const char *name() const            { return name(false); }
     inline const char *shortName() const       { return name(true); }
+    static const char *perfAlgoName(xmrig::PerfAlgo); // returns string name of the PerfAlgo
     inline Variant variant() const             { return m_variant; }
     inline void setVariant(Variant variant)    { m_variant = variant; }
 
