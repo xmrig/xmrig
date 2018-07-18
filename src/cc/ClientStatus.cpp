@@ -426,10 +426,6 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_isHugepagesEnabled = clientStatus["hugepages_enabled"].GetBool();
         }
 
-        if (clientStatus.HasMember("hash_factor")) {
-            m_hashFactor = clientStatus["hash_factor"].GetInt();
-        }
-
         if (clientStatus.HasMember("cpu_is_x64")) {
             m_isCpuX64 = clientStatus["cpu_is_x64"].GetBool();
         }
@@ -452,6 +448,18 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
 
         if (clientStatus.HasMember("hashrate_highest")) {
             m_hashrateHighest = clientStatus["hashrate_highest"].GetDouble();
+        }
+
+        if (clientStatus.HasMember("hash_factor")) {
+            m_hashFactor = clientStatus["hash_factor"].GetInt();
+        }
+
+        if (clientStatus.HasMember("total_pages")) {
+            m_totalPages = clientStatus["total_pages"].GetInt();
+        }
+
+        if (clientStatus.HasMember("total_hugepages")) {
+            m_totalHugepages = clientStatus["total_hugepages"].GetInt();
         }
 
         if (clientStatus.HasMember("current_threads")) {
@@ -525,7 +533,6 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
 
     clientStatus.AddMember("hugepages_available", m_hasHugepages, allocator);
     clientStatus.AddMember("hugepages_enabled", m_isHugepagesEnabled, allocator);
-    clientStatus.AddMember("hash_factor", m_hashFactor, allocator);
     clientStatus.AddMember("cpu_is_x64", m_isCpuX64, allocator);
     clientStatus.AddMember("cpu_has_aes", m_hasCpuAES, allocator);
 
@@ -534,6 +541,9 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("hashrate_long", m_hashrateLong, allocator);
     clientStatus.AddMember("hashrate_highest", m_hashrateHighest, allocator);
 
+    clientStatus.AddMember("hash_factor", m_hashFactor, allocator);
+    clientStatus.AddMember("total_pages", m_totalPages, allocator);
+    clientStatus.AddMember("total_hugepages", m_totalHugepages, allocator);
     clientStatus.AddMember("current_threads", m_currentThreads, allocator);
     clientStatus.AddMember("cpu_sockets", m_cpuSockets, allocator);
     clientStatus.AddMember("cpu_cores", m_cpuCores, allocator);
