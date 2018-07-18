@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -78,11 +79,25 @@ public:
     inline AesMode aesMode() const                       { return m_aesMode; }
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
     inline bool isHugePages() const                      { return m_hugePages; }
-    inline const std::vector<IThread *> &threads() const { return m_threads.list; }
     inline int priority() const                          { return m_priority; }
-    inline int threadsCount() const                      { return m_threads.list.size(); }
-    inline int64_t affinity() const                      { return m_threads.mask; }
-    inline ThreadsMode threadsMode() const               { return m_threads.mode; }
+
+    // access to m_threads taking into accoun that it is now separated for each perf algo
+    inline const std::vector<IThread *> &threads(const xmrig::PerfAlgo pa = PA_INVALID) const {
+        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].list;
+    }
+    inline int threadsCount(const xmrig::PerfAlgo pa = PA_INVALID) const {
+        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].list.size();
+    }
+    inline int64_t affinity(const xmrig::PerfAlgo pa = PA_INVALID) const {
+        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].mask;
+    }
+    inline ThreadsMode threadsMode(const xmrig::PerfAlgo pa = PA_INVALID) const {
+        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].mode;
+    }
+
+    // access to perf algo results
+    inline float get_algo_perf(const xmrig::PerfAlgo pa) const             { return m_algo_perf[pa]; }
+    inline void set_algo_perf(const xmrig::PerfAlgo pa, const float value) { m_algo_perf[pa] = value; }
 
     static Config *load(int argc, char **argv, IWatcherListener *listener);
 
@@ -92,6 +107,8 @@ protected:
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
     void parseJSON(const rapidjson::Document &doc) override;
+    // parse specific perf algo (or generic) threads config
+    void parseThreadsJSON(const rapidjson::Value &threads, xmrig::PerfAlgo);
 
 private:
     bool parseInt(int key, int arg);
@@ -120,8 +137,13 @@ private:
     bool m_safe;
     int m_maxCpuUsage;
     int m_priority;
-    Threads m_threads;
+    // threads config for each perf algo
+    Threads m_threads[xmrig::PerfAlgo::PA_MAX];
+    // perf algo hashrate results
+    float m_algo_perf[xmrig::PerfAlgo::PA_MAX];
 };
+
+extern Config* pconfig;
 
 
 } /* namespace xmrig */

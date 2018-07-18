@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -222,4 +223,52 @@ const char *xmrig::Algorithm::name(bool shortName) const
     }
 
     return "invalid";
+}
+
+
+// returns string name of the PerfAlgo
+const char *xmrig::Algorithm::perfAlgoName(const xmrig::PerfAlgo pa) {
+    static const char* perf_algo_names[xmrig::PerfAlgo::PA_MAX] = {
+        "cn",
+        "cn-fast",
+        "cn-lite",
+        "cn-heavy",
+    };
+    return perf_algo_names[pa];
+}
+
+// constructs Algorithm from PerfAlgo
+xmrig::Algorithm::Algorithm(const xmrig::PerfAlgo pa) {
+    switch (pa) {
+       case PA_CN:
+           m_algo    = xmrig::CRYPTONIGHT;
+           m_variant = xmrig::VARIANT_1;
+           break;
+       case PA_CN_FAST:
+           m_algo    = xmrig::CRYPTONIGHT;
+           m_variant = xmrig::VARIANT_MSR;
+           break;
+       case PA_CN_LITE:
+           m_algo    = xmrig::CRYPTONIGHT_LITE;
+           m_variant = xmrig::VARIANT_1;
+           break;
+       case PA_CN_HEAVY:
+           m_algo    = xmrig::CRYPTONIGHT_HEAVY;
+           m_variant = xmrig::VARIANT_0;
+           break;
+       default:
+           m_algo    = xmrig::INVALID_ALGO;
+           m_variant = xmrig::VARIANT_AUTO;
+    }
+}
+
+// returns PerfAlgo that corresponds to current Algorithm
+xmrig::PerfAlgo xmrig::Algorithm::perf_algo() const {
+    if (m_variant == VARIANT_MSR) return PA_CN_FAST;
+    switch (m_algo) {
+       case CRYPTONIGHT:       return PA_CN;
+       case CRYPTONIGHT_LITE:  return PA_CN_LITE;
+       case CRYPTONIGHT_HEAVY: return PA_CN_HEAVY;
+       default: return PA_INVALID;
+    }
 }

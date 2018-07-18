@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -42,7 +43,10 @@ public:
     ~Job();
 
     bool setBlob(const char *blob);
+    void setRawBlob(const uint8_t *blob, const size_t size); // for algo benchmarking
     bool setTarget(const char *target);
+    // for algo benchmarking to set PoW variant
+    void setAlgorithm(const xmrig::Algorithm& algorithm) { m_algorithm = algorithm; }
     xmrig::Variant variant() const;
 
     inline bool isNicehash() const                    { return m_nicehash; }

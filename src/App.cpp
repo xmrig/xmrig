@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,6 +41,7 @@
 #include "Summary.h"
 #include "version.h"
 #include "workers/Workers.h"
+#include "workers/Benchmark.h"
 
 
 #ifndef XMRIG_NO_HTTPD
@@ -84,6 +86,8 @@ App::~App()
 #   endif
 }
 
+// this should be global since we register onJobResult using this object method
+static Benchmark benchmark;
 
 int App::exec()
 {
@@ -125,7 +129,16 @@ int App::exec()
 
     Workers::start(m_controller);
 
-    m_controller->network()->connect();
+    // run benchmark before pool mining or not?
+    if (m_controller->config()->isCalibrateAlgo()) {
+        benchmark.set_controller(m_controller); // we need controller there to access config and network objects
+        Workers::setListener(&benchmark); // register benchmark as job reault listener to compute hashrates there
+        benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN); // start benchmarking from first PerfAlgo in the list
+    } else {
+        // save config here to have option to store automatically generated "threads"
+        if (m_controller->config()->isSaveConfig()) m_controller->config()->save();
+        m_controller->network()->connect();
+    }
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
