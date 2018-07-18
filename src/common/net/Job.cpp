@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -118,6 +119,12 @@ bool Job::setBlob(const char *blob)
 #   endif
 
     return true;
+}
+
+// for algo benchmarking
+void Job::setRawBlob(const uint8_t *blob, const size_t size)
+{
+    memcpy(m_blob, blob, m_size = size);
 }
 
 

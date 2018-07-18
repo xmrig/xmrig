@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -182,6 +183,69 @@ void Workers::start(xmrig::Controller *controller)
     uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
     uv_timer_init(uv_default_loop(), &m_timer);
     uv_timer_start(&m_timer, Workers::onTick, 500, 500);
+
+    uint32_t offset = 0;
+
+    for (xmrig::IThread *thread : threads) {
+        Handle *handle = new Handle(thread, offset, m_status.ways);
+        offset += thread->multiway();
+
+        m_workers.push_back(handle);
+        handle->start(Workers::onReady);
+    }
+}
+
+void Workers::soft_stop() // stop current workers leaving uv stuff intact (used in switch_algo)
+{
+    if (m_hashrate) {
+        m_hashrate->stop();
+        delete m_hashrate;
+    }
+
+    m_sequence = 0;
+    m_paused   = 0;
+
+    for (size_t i = 0; i < m_workers.size(); ++i) {
+        m_workers[i]->join();
+        delete m_workers[i];
+    }
+    m_workers.clear();
+}
+
+// setups workers based on specified algorithm (or its basic perf algo more specifically)
+void Workers::switch_algo(const xmrig::Algorithm algorithm)
+{
+    if (m_status.algo == algorithm.algo()) return;
+
+    soft_stop();
+
+    m_sequence = 1;
+    m_paused   = 1;
+
+    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads(algorithm.perf_algo());
+    m_status.algo    = algorithm.algo();
+    m_status.threads = threads.size();
+
+    // string with multiway thread info
+    std::string str_threads;
+    for (const xmrig::IThread *thread : threads) {
+       if (!str_threads.empty()) str_threads = str_threads + ", ";
+       str_threads = str_threads + "x" + std::to_string(thread->multiway());
+    }
+    Log::i()->text(m_controller->config()->isColors()
+        ? GREEN_BOLD(" >>> ") WHITE_BOLD("ALGO CHANGE: ") CYAN_BOLD("%s") ", " CYAN_BOLD("%d (%s)") " thread(s)"
+        : " >>> ALGO CHANGE: %s, %d (%s) thread(s)",
+        algorithm.name(),
+        threads.size(),
+        str_threads.c_str()
+    );
+
+    m_status.ways = 0;
+    for (const xmrig::IThread *thread : threads) {
+       m_status.ways += thread->multiway();
+    }
+
+    m_hashrate = new Hashrate(threads.size(), m_controller);
 
     uint32_t offset = 0;
 

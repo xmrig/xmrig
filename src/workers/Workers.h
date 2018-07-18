@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,6 +57,8 @@ public:
     static void setEnabled(bool enabled);
     static void setJob(const Job &job, bool donate);
     static void start(xmrig::Controller *controller);
+    // setups workers based on specified algorithm (or its basic perf algo more specifically)
+    static void switch_algo(xmrig::Algorithm);
     static void stop();
     static void submit(const JobResult &result);
 
@@ -76,6 +79,7 @@ private:
     static void onResult(uv_async_t *handle);
     static void onTick(uv_timer_t *handle);
     static void start(IWorker *worker);
+    static void soft_stop(); // stop current workers leaving uv stuff intact (used in switch_algo)
 
     class LaunchStatus
     {

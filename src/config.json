@@ -33,6 +33,12 @@
     "retry-pause": 5,
     "safe": false,
     "threads": null,
+    "algo-perf": {
+        "cn":      1000,
+        "cn-fast": 2000,
+        "cn-lite": 2000,
+        "cn-heavy": 700
+    },
     "user-agent": null,
     "watch": false
 }
