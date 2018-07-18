@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -48,6 +49,20 @@ Pool::Pool() :
     m_keepAlive(0),
     m_port(kDefaultPort)
 {
+    // here xmrig now resuts all possible supported algorithms
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_1));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_0));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_XTL));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_MSR));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_XAO));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_RTO));
+
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_1));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_0));
+
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_XHV));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_TUBE));
 }
 
 
@@ -233,18 +248,7 @@ void Pool::adjust(const xmrig::Algorithm &algorithm)
         m_algorithm.setAlgo(algorithm.algo());
         adjustVariant(algorithm.variant());
     }
-
-    rebuild();
 }
-
-
-void Pool::setAlgo(const xmrig::Algorithm &algorithm)
-{
-    m_algorithm = algorithm;
-
-    rebuild();
-}
-
 
 #ifdef APP_DEBUG
 void Pool::print() const
@@ -283,18 +287,6 @@ bool Pool::parseIPv6(const char *addr)
 
     return true;
 }
-
-
-void Pool::addVariant(xmrig::Variant variant)
-{
-    const xmrig::Algorithm algorithm(m_algorithm.algo(), variant);
-    if (!algorithm.isValid() || m_algorithm == algorithm) {
-        return;
-    }
-
-    m_algorithms.push_back(algorithm);
-}
-
 
 void Pool::adjustVariant(const xmrig::Variant variantHint)
 {
@@ -362,29 +354,5 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
     else {
         m_algorithm.setVariant(VARIANT_1);
     }
-#   endif
-}
-
-
-void Pool::rebuild()
-{
-    m_algorithms.clear();
-
-    if (!m_algorithm.isValid()) {
-        return;
-    }
-
-    m_algorithms.push_back(m_algorithm);
-
-#   ifndef XMRIG_PROXY_PROJECT
-    addVariant(xmrig::VARIANT_1);
-    addVariant(xmrig::VARIANT_0);
-    addVariant(xmrig::VARIANT_XTL);
-    addVariant(xmrig::VARIANT_TUBE);
-    addVariant(xmrig::VARIANT_MSR);
-    addVariant(xmrig::VARIANT_XHV);
-    addVariant(xmrig::VARIANT_XAO);
-    addVariant(xmrig::VARIANT_RTO);
-    addVariant(xmrig::VARIANT_AUTO);
 #   endif
 }
