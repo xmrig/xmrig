@@ -83,6 +83,10 @@ public:
     }
 
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
+    static inline bool isHugepagesEnabled() { return (m_flags & HugepagesEnabled) != 0; }
+
+    static inline int getTotalPages()            { return m_totalPages; }
+    static inline int getTotalHugepages()        { return m_totalHugepages; }
 
 private:
     static void allocate(ScratchPadMem& scratchPadMem, bool useHugePages);
@@ -92,6 +96,8 @@ private:
     static bool m_useHugePages;
     static size_t m_hashFactor;
     static int m_flags;
+    static int m_totalPages;
+    static int m_totalHugepages;
     static Options::Algo m_algo;
     static ThreadBitSet m_multiHashThreadMask;
 };

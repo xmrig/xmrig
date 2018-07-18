@@ -163,6 +163,8 @@ void Mem::allocate(ScratchPadMem& scratchPadMem, bool useHugePages)
     if (scratchPadMem.memory) {
         scratchPadMem.hugePages = scratchPadMem.pages;
 
+        m_flags |= HugepagesEnabled;
+
         return;
     }
 

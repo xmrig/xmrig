@@ -567,7 +567,8 @@
             tooltip += '\n';
             tooltip += "CPU Cache L2/L3: " + (row.client_status.cpu_l2 / 1024) + " MB/"+ (row.client_status.cpu_l3 / 1024) + " MB";
             tooltip += '\n';
-            tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available" : " unavailable");
+            tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available, " : " unavailable, ");
+            tooltip += (row.client_status.hugepages_enabled ? "enabled (" + row.client_status.total_hugepages + "/" + row.client_status.total_pages + ")"  : "disabled");
             tooltip += '\n';
             tooltip += "Used Threads: " + row.client_status.current_threads;
             tooltip += (row.client_status.hash_factor > 1 ? " [" + row.client_status.hash_factor + "x multi hash mode]" :"");
