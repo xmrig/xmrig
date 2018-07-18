@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -48,6 +49,8 @@ public:
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
     inline bool isDryRun() const                   { return m_dryRun; }
+    inline bool isCalibrateAlgo() const            { return m_calibrateAlgo; }
+    inline bool isSaveConfig() const               { return m_saveConfig; }
     inline bool isSyslog() const                   { return m_syslog; }
     inline const char *apiToken() const            { return m_apiToken.data(); }
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
@@ -87,6 +90,8 @@ protected:
     bool m_background;
     bool m_colors;
     bool m_dryRun;
+    bool m_calibrateAlgo;
+    bool m_saveConfig;
     bool m_syslog;
     bool m_watch;
     int m_apiPort;
