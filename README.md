@@ -96,7 +96,8 @@ Since version 0.8.0.
 ## Common Issues
 ### HUGE PAGES unavailable
 * Run XMRig as Administrator.
-* Since version 0.8.0 XMRig automatically enables SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+* On Linux, try to allocate some huge pages with `sysctl -w nr.hugepages=32`. [Detailed instruction](https://wiki.debian.org/Hugepages).
+* Since version 0.8.0 XMRig on Windows automatically enables SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
 
 ## Other information
 * No HTTP support, only stratum protocol support.
