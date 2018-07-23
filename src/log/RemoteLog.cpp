@@ -22,15 +22,19 @@
 
 RemoteLog* RemoteLog::m_self = nullptr;
 
-RemoteLog::RemoteLog(size_t maxRows)
-    : maxRows_(maxRows)
+RemoteLog::RemoteLog()
+    : m_maxRows(100)
 {
+    uv_mutex_init(&m_mutex);
+
     m_self = this;
 }
 
 RemoteLog::~RemoteLog()
 {
     m_self = nullptr;
+
+    uv_mutex_destroy(&m_mutex);
 }
 
 void RemoteLog::message(int level, const char* fmt, va_list args)
@@ -56,13 +60,17 @@ void RemoteLog::message(int level, const char* fmt, va_list args)
     size = vsnprintf(buf + size, 512 - size - 1, fmt, args) + size;
     buf[size] = '\n';
 
-    if (rows_.size() == maxRows_) {
-        rows_.pop_front();
+    uv_mutex_lock(&m_mutex);
+
+    if (m_rows.size() == m_maxRows) {
+        m_rows.pop_front();
     }
 
     std::string row = std::regex_replace(std::string(buf, size+1), std::regex("\x1B\\[[0-9;]*[a-zA-Z]"), "");
 
-    rows_.push_back(row);
+    m_rows.push_back(row);
+
+    uv_mutex_unlock(&m_mutex);
 
     delete[](buf);
 }
@@ -73,23 +81,21 @@ void RemoteLog::text(const char* fmt, va_list args)
     message(0, fmt, args);
 }
 
-void RemoteLog::flushRows()
-{
-    if (m_self) {
-        m_self->rows_.clear();
-    }
-}
-
-
 std::string RemoteLog::getRows()
 {
     std::stringstream data;
 
+    uv_mutex_lock(&m_self->m_mutex);
+
     if (m_self) {
-        for (std::list<std::string>::iterator it = m_self->rows_.begin(); it != m_self->rows_.end(); it++) {
-            data << it->c_str();
+        for (auto& m_row : m_self->m_rows) {
+            data << m_row.c_str();
         }
     }
+
+    m_self->m_rows.clear();
+
+    uv_mutex_unlock(&m_self->m_mutex);
 
     return data.str();
 }

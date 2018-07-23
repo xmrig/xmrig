@@ -21,6 +21,7 @@
 
 #include <list>
 #include <string>
+#include <uv.h>
 
 #include "interfaces/ILogBackend.h"
 
@@ -28,21 +29,21 @@
 class RemoteLog : public ILogBackend
 {
 public:
-    RemoteLog(size_t maxRows);
+    RemoteLog();
     ~RemoteLog();
 
     void message(int level, const char* fmt, va_list args) override;
     void text(const char* fmt, va_list args) override;
 
-    static void flushRows();
     static std::string getRows();
 
 
 private:
     static RemoteLog* m_self;
 
-    size_t maxRows_;
-    std::list<std::string> rows_;
+    uv_mutex_t m_mutex;
+    size_t m_maxRows;
+    std::list<std::string> m_rows;
 };
 
 #endif /* __REMOTELOG_H__ */

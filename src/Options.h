@@ -101,7 +101,6 @@ public:
     inline size_t threads() const                   { return m_threads; }
     inline int ccUpdateInterval() const             { return m_ccUpdateInterval; }
     inline int ccPort() const                       { return m_ccPort; }
-    inline size_t ccRemoteLoggingMaxRows() const    { return m_ccRemoteLoggingMaxRows; }
     inline int64_t affinity() const                 { return m_affinity; }
     inline int64_t multiHashThreadMask() const      { return m_multiHashThreadMask; }
     inline void setColors(bool colors)              { m_colors = colors; }
@@ -176,7 +175,6 @@ private:
     size_t m_threads;
     int m_ccUpdateInterval;
     int m_ccPort;
-    size_t m_ccRemoteLoggingMaxRows;
     int64_t m_affinity;
     int64_t m_multiHashThreadMask;
     std::vector<Url*> m_pools;

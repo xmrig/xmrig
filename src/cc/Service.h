@@ -48,6 +48,7 @@ public:
 private:
     static unsigned getClientConfig(const Options* options, const std::string& clientId, std::string& resp);
     static unsigned getClientCommand(const std::string& clientId, std::string& resp);
+    static unsigned getClientLog(const std::string& clientId, std::string& resp);
     static unsigned getClientStatusList(std::string& resp);
     static unsigned getAdminPage(const Options* options, std::string& resp);
 
@@ -63,6 +64,7 @@ private:
 
     static std::map<std::string, ClientStatus> m_clientStatus;
     static std::map<std::string, ControlCommand> m_clientCommand;
+    static std::map<std::string, std::list<std::string>> m_remoteLog;
 
     static uv_mutex_t m_mutex;
 

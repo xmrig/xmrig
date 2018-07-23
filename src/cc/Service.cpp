@@ -40,6 +40,8 @@
 uv_mutex_t Service::m_mutex;
 std::map<std::string, ControlCommand> Service::m_clientCommand;
 std::map<std::string, ClientStatus> Service::m_clientStatus;
+std::map<std::string, std::list<std::string>> Service::m_remoteLog;
+
 int Service::m_currentServerTime = 0;
 
 bool Service::start()
@@ -55,6 +57,7 @@ void Service::release()
 
     m_clientCommand.clear();
     m_clientStatus.clear();
+    m_remoteLog.clear();
 
     uv_mutex_unlock(&m_mutex);
 }
@@ -77,6 +80,8 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
                 resultCode = getClientConfig(options, clientId, resp);
             } else if (url.rfind("/admin/getClientCommand", 0) == 0) {
                 resultCode = getClientCommand(clientId, resp);
+            } else if (url.rfind("/admin/getClientLog", 0) == 0) {
+                //resultCode = getClientCommand(clientId, resp);
             }
         }
         else {
@@ -228,10 +233,6 @@ unsigned Service::setClientStatus(const std::string& clientIp, const std::string
         clientStatus.parseFromJson(document);
         clientStatus.setExternalIp(clientIp);
 
-        if (m_clientStatus.find(clientId) == m_clientStatus.end()) {
-            m_clientCommand[clientId] = ControlCommand(ControlCommand::RESTART);
-        }
-
         m_clientStatus[clientId] = clientStatus;
 
         resultCode = getClientCommand(clientId, resp);
@@ -289,6 +290,29 @@ unsigned Service::setClientCommand(const std::string& clientId, const std::strin
 unsigned Service::resetClientStatusList(const std::string& data, std::string& resp)
 {
     m_clientStatus.clear();
+
+    return MHD_HTTP_OK;
+}
+
+unsigned Service::getClientLog(const std::string& clientId, std::string& resp)
+{
+    if (m_remoteLog.find(clientId) != m_remoteLog.end()) {
+
+        rapidjson::Document respDocument;
+        respDocument.SetObject();
+
+        auto& allocator = respDocument.GetAllocator();
+
+        rapidjson::Value controlCommand = m_clientCommand[clientId].toJson(allocator);
+        respDocument.AddMember("client_log", controlCommand, allocator);
+
+        rapidjson::StringBuffer buffer(0, 4096);
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        writer.SetMaxDecimalPlaces(10);
+        respDocument.Accept(writer);
+
+        resp = buffer.GetString();
+    }
 
     return MHD_HTTP_OK;
 }
