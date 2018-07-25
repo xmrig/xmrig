@@ -66,6 +66,7 @@ static AlgoData const algorithms[] = {
     { "cryptonight-light",     "cn-light",     xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
     { "cryptonight-lite/0",    "cn-lite/0",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_0    },
     { "cryptonight-lite/1",    "cn-lite/1",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
+    { "cryptonight/mox",       "cn/mox",       xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_MOX  },
 #   endif
 
 #   ifndef XMRIG_NO_SUMO
@@ -91,6 +92,7 @@ static AlgoData const xmrStakAlgorithms[] = {
     { "cryptonight_masari",      nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
     { "cryptonight-bittube2",    nullptr, xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_TUBE }, // bittube-miner
     { "cryptonight_alloy",       nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO  }, // xmr-stak-alloy
+    { "cryptonight_mox",         nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_MOX  },
 };
 #endif
 
@@ -103,7 +105,8 @@ static const char *variants[] = {
     "msr",
     "xhv",
     "xao",
-    "rto"
+    "rto",
+    "mox"
 };
 
 
