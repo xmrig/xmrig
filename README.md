@@ -69,7 +69,7 @@ Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-con
 
 **XMRigCC Dashboard**
 
-![Screenshot of XMRigCC Dashboard](https://i.imgur.com/EciC0gW)
+![Screenshot of XMRigCC Dashboard](https://i.imgur.com/EciC0gW.png)
 
 #### Table of contents
 * [Download](#download)
