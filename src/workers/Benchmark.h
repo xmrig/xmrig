@@ -32,7 +32,6 @@
 
 class Benchmark : public IJobResultListener {
     const uint64_t m_bench_secs = 5; // time in seconds to benchmark each perf algo
-    bool m_is_benchmark_time; // true is we benchmark some perf algo now
     xmrig::PerfAlgo m_pa;  // current perf algo we benchmark
     uint64_t m_hash_count; // number of hashes calculated for current perf algo
     uint64_t m_time_start; // time of measurements start for current perf algo (in ms)
@@ -43,7 +42,7 @@ class Benchmark : public IJobResultListener {
     void onJobResult(const JobResult&) override; // onJobResult is called after each computed benchmark hash
 
     public:
-        Benchmark() : m_is_benchmark_time(false) {}
+        Benchmark() {}
         virtual ~Benchmark() {}
 
         void set_controller(xmrig::Controller* controller) { m_controller = controller; }

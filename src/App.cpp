@@ -133,6 +133,11 @@ int App::exec()
     if (m_controller->config()->isCalibrateAlgo()) {
         benchmark.set_controller(m_controller); // we need controller there to access config and network objects
         Workers::setListener(&benchmark); // register benchmark as job reault listener to compute hashrates there
+        // write text before first benchmark round
+        Log::i()->text(m_controller->config()->isColors()
+            ? GREEN_BOLD(" >>>>> ") WHITE_BOLD("STARTING ALGO PERFORMANCE CALIBRATION")
+            : " >>>>> STARTING ALGO PERFORMANCE CALIBRATION"
+        );
         benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN); // start benchmarking from first PerfAlgo in the list
     } else {
         // save config here to have option to store automatically generated "threads"
