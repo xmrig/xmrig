@@ -82,7 +82,8 @@ public:
     void setVersion(const std::string& version);
 
     std::string getLog() const;
-    void setLog(const std::string& version);
+    void setLog(const std::string& log);
+    void clearLog();
 
     bool hasHugepages() const;
     void setHugepages(bool hasHugepages);

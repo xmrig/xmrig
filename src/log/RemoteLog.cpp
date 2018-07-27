@@ -22,8 +22,8 @@
 
 RemoteLog* RemoteLog::m_self = nullptr;
 
-RemoteLog::RemoteLog()
-    : m_maxRows(100)
+RemoteLog::RemoteLog(size_t maxRows)
+    : m_maxRows(maxRows)
 {
     uv_mutex_init(&m_mutex);
 

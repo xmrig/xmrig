@@ -52,10 +52,12 @@ private:
     static unsigned getClientStatusList(std::string& resp);
     static unsigned getAdminPage(const Options* options, std::string& resp);
 
-    static unsigned setClientStatus(const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
+    static unsigned setClientStatus(const Options* options, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientCommand(const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientConfig(const Options* options, const std::string &clientId, const std::string &data, std::string &resp);
     static unsigned resetClientStatusList(const std::string& data, std::string& resp);
+
+    static void setClientLog(size_t maxRows, const std::string& clientId, const std::string& log);
 
     static std::string getClientConfigFileName(const Options *options, const std::string &clientId);
 
@@ -64,7 +66,7 @@ private:
 
     static std::map<std::string, ClientStatus> m_clientStatus;
     static std::map<std::string, ControlCommand> m_clientCommand;
-    static std::map<std::string, std::list<std::string>> m_remoteLog;
+    static std::map<std::string, std::list<std::string>> m_clientLog;
 
     static uv_mutex_t m_mutex;
 

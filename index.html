@@ -411,15 +411,24 @@
             var data = table.row( $(this).parents('tr') ).data();
             var clientId = data['client_status']['client_id'];
             var clientIp = data['client_status']['external_ip'];
-            var log = data['client_status']['log'];
 
-            var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
-                "<label for='config'>Log of: " + clientId + " (" + clientIp + ")</label>"+
-                "<textarea class='form-control' rows='20' id='log'>" + log + "</textarea>" +
-                "</div>";
+            $.ajax({
+                type:    "GET",
+                url:     "/admin/getClientLog?clientId=" + clientId,
+                dataType:"json",
+                success: function(jsonClientLog) {
+                    var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
+                        "<label for='config'>Log of: " + clientId + " (" + clientIp + ")</label>"+
+                        "<textarea class='form-control' rows='20' id='log'>" + JSON.stringify(jsonClientLog,undefined, 2) + "</textarea>" +
+                        "</div>";
 
-            $('#minerLog').find('.modal-body').html(htmlContent);
-            $('#minerLog').modal('show');
+                    $('#minerLog').find('.modal-body').html(htmlContent);
+                    $('#minerLog').modal('show');
+                },
+                error: function (data) {
+                    setError('<strong>Unable to fetch ' + clientId + ' log.</strong> - Please make sure it is enabled on the miner!');
+                }
+            });
         });
 
         $('#minerLogRefresh').click(function(event) {
@@ -429,9 +438,17 @@
                 var row = table.row(index);
                 var data = row.data();
 
-                if (clientId === data.client_status.client_id) {
-                    $('#log').val(data.client_status.log);
-                }
+                $.ajax({
+                    type:    "GET",
+                    url:     "/admin/getClientLog?clientId=" + clientId,
+                    dataType:"json",
+                    success: function(jsonClientLog) {
+                        $('#log').val(JSON.stringify(jsonClientLog,undefined, 2));
+                    },
+                    error: function (data) {
+                        setError('<strong>Unable to fetch ' + clientId + ' log.</strong> - Please make sure it is enabled on the miner!');
+                    }
+                });
             });
         });
 

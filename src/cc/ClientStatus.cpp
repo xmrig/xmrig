@@ -150,6 +150,11 @@ void ClientStatus::setLog(const std::string& log)
     m_log = log;
 }
 
+void ClientStatus::clearLog()
+{
+    m_log.clear();
+}
+
 bool ClientStatus::hasHugepages() const
 {
     return m_hasHugepages;

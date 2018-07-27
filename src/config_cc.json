@@ -12,6 +12,7 @@
         "user": "admin",                            // admin user for access CC Dashboard
         "pass": "pass",                             // admin pass for access CC Dashboard
         "client-config-folder" : null,              // folder which contains the client-config files (null=current)
+        "client-log-lines-history" : 100,           // maximum lines of log history kept per miner
         "custom-dashboard" : "index.html"           // dashboard html file
     }
 }

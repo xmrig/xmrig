@@ -29,7 +29,7 @@
 class RemoteLog : public ILogBackend
 {
 public:
-    RemoteLog();
+    RemoteLog(size_t maxRows);
     ~RemoteLog();
 
     void message(int level, const char* fmt, va_list args) override;

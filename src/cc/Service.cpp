@@ -40,7 +40,7 @@
 uv_mutex_t Service::m_mutex;
 std::map<std::string, ControlCommand> Service::m_clientCommand;
 std::map<std::string, ClientStatus> Service::m_clientStatus;
-std::map<std::string, std::list<std::string>> Service::m_remoteLog;
+std::map<std::string, std::list<std::string>> Service::m_clientLog;
 
 int Service::m_currentServerTime = 0;
 
@@ -57,7 +57,7 @@ void Service::release()
 
     m_clientCommand.clear();
     m_clientStatus.clear();
-    m_remoteLog.clear();
+    m_clientLog.clear();
 
     uv_mutex_unlock(&m_mutex);
 }
@@ -81,7 +81,7 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
             } else if (url.rfind("/admin/getClientCommand", 0) == 0) {
                 resultCode = getClientCommand(clientId, resp);
             } else if (url.rfind("/admin/getClientLog", 0) == 0) {
-                //resultCode = getClientCommand(clientId, resp);
+                resultCode = getClientLog(clientId, resp);
             }
         }
         else {
@@ -105,7 +105,7 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
              url.c_str(), clientIp.c_str(), clientId.c_str(), data.length());
 
     if (url.rfind("/client/setClientStatus", 0) == 0) {
-        resultCode = setClientStatus(clientIp, clientId, data, resp);
+        resultCode = setClientStatus(options, clientIp, clientId, data, resp);
     } else if (url.rfind("/admin/setClientConfig", 0) == 0 || url.rfind("/client/setClientConfig", 0) == 0) {
         resultCode = setClientConfig(options, clientId, data, resp);
     } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
@@ -221,7 +221,7 @@ unsigned Service::getClientStatusList(std::string& resp)
     return MHD_HTTP_OK;
 }
 
-unsigned Service::setClientStatus(const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp)
+unsigned Service::setClientStatus(const Options* options, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp)
 {
     int resultCode = MHD_HTTP_BAD_REQUEST;
 
@@ -232,6 +232,10 @@ unsigned Service::setClientStatus(const std::string& clientIp, const std::string
         ClientStatus clientStatus;
         clientStatus.parseFromJson(document);
         clientStatus.setExternalIp(clientIp);
+
+        setClientLog(options->ccClientLogLinesHistory(), clientId, clientStatus.getLog());
+
+        clientStatus.clearLog();
 
         m_clientStatus[clientId] = clientStatus;
 
@@ -271,40 +275,22 @@ unsigned Service::getClientCommand(const std::string& clientId, std::string& res
     return MHD_HTTP_OK;
 }
 
-unsigned Service::setClientCommand(const std::string& clientId, const std::string& data, std::string& resp)
-{
-    ControlCommand controlCommand;
-
-    rapidjson::Document document;
-    if (!document.Parse(data.c_str()).HasParseError()) {
-        controlCommand.parseFromJson(document);
-
-        m_clientCommand[clientId] = controlCommand;
-
-        return MHD_HTTP_OK;
-    } else {
-        return MHD_HTTP_BAD_REQUEST;
-    }
-}
-
-unsigned Service::resetClientStatusList(const std::string& data, std::string& resp)
-{
-    m_clientStatus.clear();
-
-    return MHD_HTTP_OK;
-}
-
 unsigned Service::getClientLog(const std::string& clientId, std::string& resp)
 {
-    if (m_remoteLog.find(clientId) != m_remoteLog.end()) {
-
+    if (m_clientLog.find(clientId) != m_clientLog.end()) {
         rapidjson::Document respDocument;
         respDocument.SetObject();
 
         auto& allocator = respDocument.GetAllocator();
 
-        rapidjson::Value controlCommand = m_clientCommand[clientId].toJson(allocator);
-        respDocument.AddMember("client_log", controlCommand, allocator);
+        std::stringstream data;
+        for (auto& m_row : m_clientLog[clientId]) {
+            data << m_row.c_str() << std::endl;
+        }
+
+        LOG_INFO("LOG: %s", data.str().c_str());
+
+        respDocument.AddMember("client_log", rapidjson::StringRef(data.str().c_str()), allocator);
 
         rapidjson::StringBuffer buffer(0, 4096);
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -347,6 +333,49 @@ unsigned Service::getAdminPage(const Options* options, std::string& resp)
     }
 
     resp = data.str();
+
+    return MHD_HTTP_OK;
+}
+
+unsigned Service::setClientCommand(const std::string& clientId, const std::string& data, std::string& resp)
+{
+    ControlCommand controlCommand;
+
+    rapidjson::Document document;
+    if (!document.Parse(data.c_str()).HasParseError()) {
+        controlCommand.parseFromJson(document);
+
+        m_clientCommand[clientId] = controlCommand;
+
+        return MHD_HTTP_OK;
+    } else {
+        return MHD_HTTP_BAD_REQUEST;
+    }
+}
+
+void Service::setClientLog(size_t maxRows, const std::string& clientId, const std::string& log)
+{
+    if (m_clientLog.find(clientId) == m_clientLog.end()) {
+        m_clientLog[clientId] = std::list<std::string>();
+    }
+
+    auto* clientLog = &m_clientLog[clientId];
+    std::istringstream logStream(log);
+
+    std::string logLine;
+    while (std::getline(logStream, logLine))
+    {
+        if (clientLog->size() == maxRows) {
+            clientLog->pop_front();
+        }
+
+        clientLog->push_back(logLine);
+    }
+}
+
+unsigned Service::resetClientStatusList(const std::string& data, std::string& resp)
+{
+    m_clientStatus.clear();
 
     return MHD_HTTP_OK;
 }

@@ -110,6 +110,7 @@ Options:\n"
       --cc-use-tls                      enable tls encryption for CC communication\n\
       --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \n\
       --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
+      --client-log-lines-history=N      maximum lines of log history kept per miner \n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif
@@ -182,6 +183,7 @@ static struct option const options[] = {
     { "cc-key-file",      1, nullptr, 4015 },
     { "cc-use-tls",       0, nullptr, 4016 },
     { "cc-use-remote-logging",      0, nullptr, 4017 },
+    { "cc-client-log-lines-history",    1, nullptr, 4018 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",      1, nullptr, 4013 },
@@ -257,6 +259,7 @@ static struct option const cc_server_options[] = {
     { "cert-file",              1, nullptr, 4014 },
     { "key-file",               1, nullptr, 4015 },
     { "use-tls",                0, nullptr, 4016 },
+    { "client-log-lines-history",   1, nullptr, 4018 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -346,6 +349,7 @@ Options::Options(int argc, char **argv) :
     m_threads(0),
     m_ccUpdateInterval(10),
     m_ccPort(0),
+    m_ccClientLogLinesHistory(100),
     m_affinity(-1L),
     m_multiHashThreadMask(-1L)
 {
@@ -558,6 +562,8 @@ bool Options::parseArg(int key, const char *arg)
     case 4006: /* --cc-port */
     case 4012: /* --cc-update-interval-c */
         return parseArg(key, strtol(arg, nullptr, 10));
+    case 4018: /* --cc-client-log-lines-history */
+        return parseArg(key, strtol(arg, nullptr, 25));
 
     case 'B':  /* --background */
     case 'k':  /* --keepalive */
@@ -754,6 +760,10 @@ bool Options::parseArg(int key, uint64_t arg)
         if (arg) {
             m_multiHashThreadMask = arg;
         }
+        break;
+
+    case 4018: /* --cc-client-log-lines-history */
+        m_ccClientLogLinesHistory = (int) arg;
         break;
 
     default:

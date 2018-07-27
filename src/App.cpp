@@ -90,7 +90,8 @@ App::App(int argc, char **argv) :
     }
 
     if (m_options->ccUseRemoteLogging()) {
-        Log::add(new RemoteLog());
+        // 20 lines per second should be enough
+        Log::add(new RemoteLog(static_cast<size_t>(m_options->ccUpdateInterval() * 20)));
     }
 
 #   ifdef HAVE_SYSLOG_H

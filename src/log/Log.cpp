@@ -35,7 +35,6 @@
 
 Log *Log::m_self = nullptr;
 
-
 Log::Log()
 {
     uv_mutex_init(&m_mutex);
