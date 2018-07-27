@@ -416,10 +416,10 @@
                 type:    "GET",
                 url:     "/admin/getClientLog?clientId=" + clientId,
                 dataType:"json",
-                success: function(jsonClientLog) {
+                success: function(data) {
                     var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
                         "<label for='config'>Log of: " + clientId + " (" + clientIp + ")</label>"+
-                        "<textarea class='form-control' rows='20' id='log'>" + JSON.stringify(jsonClientLog,undefined, 2) + "</textarea>" +
+                        "<textarea class='form-control' rows='20' id='log'>" + data.client_log + "</textarea>" +
                         "</div>";
 
                     $('#minerLog').find('.modal-body').html(htmlContent);
@@ -442,8 +442,8 @@
                     type:    "GET",
                     url:     "/admin/getClientLog?clientId=" + clientId,
                     dataType:"json",
-                    success: function(jsonClientLog) {
-                        $('#log').val(JSON.stringify(jsonClientLog,undefined, 2));
+                    success: function(data) {
+                        $('#log').val(data.client_log);
                     },
                     error: function (data) {
                         setError('<strong>Unable to fetch ' + clientId + ' log.</strong> - Please make sure it is enabled on the miner!');
