@@ -58,7 +58,7 @@ public:
     static void setJob(const Job &job, bool donate);
     static void start(xmrig::Controller *controller);
     // setups workers based on specified algorithm (or its basic perf algo more specifically)
-    static void switch_algo(xmrig::Algorithm);
+    static void switch_algo(const xmrig::Algorithm&);
     static void stop();
     static void submit(const JobResult &result);
 
