@@ -25,6 +25,7 @@
 #include <cmath>
 #include <inttypes.h>
 #include <thread>
+#include <string> // for MSVS std::to_string
 
 
 #include "api/Api.h"
