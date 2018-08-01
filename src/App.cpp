@@ -130,7 +130,7 @@ int App::exec()
     Workers::start(m_controller);
 
     // run benchmark before pool mining or not?
-    if (m_controller->config()->isCalibrateAlgo()) {
+    if (m_controller->config()->get_algo_perf(xmrig::PA_CN) == 0.0f || m_controller->config()->isCalibrateAlgo()) {
         benchmark.set_controller(m_controller); // we need controller there to access config and network objects
         Workers::setListener(&benchmark); // register benchmark as job reault listener to compute hashrates there
         // write text before first benchmark round
@@ -141,7 +141,7 @@ int App::exec()
         benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN); // start benchmarking from first PerfAlgo in the list
     } else {
         // save config here to have option to store automatically generated "threads"
-        if (m_controller->config()->isSaveConfig()) m_controller->config()->save();
+        if (m_controller->config()->isShouldSave() || m_controller->config()->isSaveConfig()) m_controller->config()->save();
         m_controller->network()->connect();
     }
 

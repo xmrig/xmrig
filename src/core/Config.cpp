@@ -46,6 +46,7 @@ static char affinity_tmp[20] = { 0 };
 
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
+    m_shouldSave(false),
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
     m_hugePages(true),
@@ -56,7 +57,7 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     // not defined algo performance is considered to be 0
     for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
         const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
-        m_algo_perf[pa] = 0;
+        m_algo_perf[pa] = 0.0f;
     }
 }
 
@@ -176,7 +177,7 @@ bool xmrig::Config::finalize()
         return false;
     }
 
-    // parse "threads" into m_threads
+    // auto configure m_threads
     for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
         const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
         if (!m_threads[pa].cpu.empty()) {
@@ -205,6 +206,8 @@ bool xmrig::Config::finalize()
             for (size_t i = 0; i < m_threads[pa].count; ++i) {
                 m_threads[pa].list.push_back(CpuThread::createFromAV(i, xmrig::Algorithm(pa).algo(), av, m_threads[pa].mask, m_priority));
             }
+
+            m_shouldSave = true;
         }
     }
 
@@ -346,6 +349,8 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
             }
         }
     }
+
+    if (m_algo_perf[xmrig::PA_CN] == 0.0f) m_shouldSave = true;
 }
 
 

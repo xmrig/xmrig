@@ -76,6 +76,7 @@ public:
 
     void getJSON(rapidjson::Document &doc) const override;
 
+    inline bool isShouldSave() const                     { return m_shouldSave; }
     inline AesMode aesMode() const                       { return m_aesMode; }
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
     inline bool isHugePages() const                      { return m_hugePages; }
@@ -131,6 +132,7 @@ private:
     };
 
 
+    bool m_shouldSave;
     AesMode m_aesMode;
     AlgoVariant m_algoVariant;
     bool m_hugePages;
