@@ -46,6 +46,7 @@ xmrig::CommonConfig::CommonConfig() :
     m_background(false),
     m_colors(true),
     m_dryRun(false),
+    m_calibrateAlgo(false),
     m_syslog(false),
 
 #   ifdef XMRIG_PROXY_PROJECT
