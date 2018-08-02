@@ -158,7 +158,7 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
       --cc-worker-id=ID                 custom worker-id for CC Server
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)
       --cc-use-remote-logging           enable remote logging on CC Server
-      --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup
       --no-color                        disable colored output
   -S, --syslog                          use system log for output messages
   -B, --background                      run the miner in the background
