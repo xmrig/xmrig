@@ -97,7 +97,8 @@ Options:\n"
       --cc-access-token=T               access token for CC Server\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
-      --cc-use-remote-logging           enable remote logging on CC Server\n"
+      --cc-use-remote-logging           enable remote logging on CC Server\n\
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n"
 # endif
 # endif
 
@@ -182,8 +183,9 @@ static struct option const options[] = {
     { "cc-cert-file",     1, nullptr, 4014 },
     { "cc-key-file",      1, nullptr, 4015 },
     { "cc-use-tls",       0, nullptr, 4016 },
-    { "cc-use-remote-logging",      0, nullptr, 4017 },
+    { "cc-use-remote-logging",          0, nullptr, 4017 },
     { "cc-client-log-lines-history",    1, nullptr, 4018 },
+    { "cc-upload-config-on-startup",    0, nullptr, 4019 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",      1, nullptr, 4013 },
@@ -246,6 +248,7 @@ static struct option const cc_client_options[] = {
     { "update-interval-s",      1, nullptr, 4012 },
     { "use-tls",                0, nullptr, 4016 },
     { "use-remote-logging",     0, nullptr, 4017 },
+    { "upload-config-on-startup",  0, nullptr, 4019 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -320,6 +323,7 @@ Options::Options(int argc, char **argv) :
     m_daemonized(false),
     m_ccUseTls(false),
     m_ccUseRemoteLogging(true),
+    m_ccUploadConfigOnStartup(true),
     m_configFile(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -587,6 +591,9 @@ bool Options::parseArg(int key, const char *arg)
     case 4017: /* --cc-use-remote-logging */
         return parseBoolean(key, true);
 
+    case 4019: /* --cc-upload-config-on-startup */
+        return parseBoolean(key, true);
+
     case 't':  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
             m_threads = Cpu::threads();
@@ -821,6 +828,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 4017: /* --cc-use-remote-logging */
         m_ccUseRemoteLogging = enable;
+        break;
+
+    case 4019: /* --cc-upload-config-on-startup */
+        m_ccUploadConfigOnStartup = enable;
         break;
 
     default:

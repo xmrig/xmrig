@@ -288,8 +288,6 @@ unsigned Service::getClientLog(const std::string& clientId, std::string& resp)
             data << m_row.c_str() << std::endl;
         }
 
-        LOG_INFO("LOG: %s", data.str().c_str());
-
         respDocument.AddMember("client_log", rapidjson::StringRef(data.str().c_str()), allocator);
 
         rapidjson::StringBuffer buffer(0, 4096);

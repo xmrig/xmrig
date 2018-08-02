@@ -73,6 +73,7 @@ public:
     inline bool daemonized() const                  { return m_daemonized; }
     inline bool ccUseTls() const                    { return m_ccUseTls; }
     inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
+    inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
     inline const char *configFile() const           { return m_configFile; }
     inline const char *apiToken() const             { return m_apiToken; }
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
@@ -147,6 +148,7 @@ private:
     bool m_daemonized;
     bool m_ccUseTls;
     bool m_ccUseRemoteLogging;
+    bool m_ccUploadConfigOnStartup;
     const char* m_configFile;
     char *m_apiToken;
     char *m_apiWorkerId;

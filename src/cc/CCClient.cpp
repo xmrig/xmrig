@@ -320,7 +320,9 @@ void CCClient::onThreadStarted(void* handle)
                        static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000),
                        static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000));
 
-        m_self->publishConfig();
+        if (m_self->m_options->ccUploadConfigOnStartup()) {
+            m_self->publishConfig();
+        }
 
         uv_run(&m_self->m_client_loop, UV_RUN_DEFAULT);
     }
