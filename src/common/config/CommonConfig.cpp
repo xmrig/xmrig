@@ -275,7 +275,6 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case ApiIPv6Key:    /* --api-ipv6 */
     case DryRunKey:     /* --dry-run */
     case CalibrateAlgoKey: /* --calibrate-algo */
-    case SaveConfigKey: /* --save-config */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
