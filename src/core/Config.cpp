@@ -198,19 +198,19 @@ bool xmrig::Config::finalize()
 
             if (!m_threads[pa].count) {
                 m_threads[pa].count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
+                m_shouldSave = true;
             }
             else if (m_safe) {
                 const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
                 if (m_threads[pa].count > count) {
                     m_threads[pa].count = count;
+                    m_shouldSave = true;
                 }
             }
 
             for (size_t i = 0; i < m_threads[pa].count; ++i) {
                 m_threads[pa].list.push_back(CpuThread::createFromAV(i, xmrig::Algorithm(pa).algo(), av, m_threads[pa].mask, m_priority));
             }
-
-            m_shouldSave = true;
         }
     }
 
