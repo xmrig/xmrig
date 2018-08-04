@@ -56,6 +56,7 @@ Options:\n\
 #endif
 "\
   --calibrate-algo         run benchmarks before mining to measure hashrates of all supported algos\n\
+  --calibrate-algo-time=N  time in seconds to run each algo benchmark round (default: 60)\n\
   -o, --url=URL            URL of mining server\n\
   -O, --userpass=U:P       username:password pair for mining server\n\
   -u, --user=USERNAME      username for mining server\n\
@@ -114,6 +115,7 @@ static struct option const options[] = {
     { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey    },
     { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey         },
     { "calibrate-algo",    0, nullptr, xmrig::IConfig::CalibrateAlgoKey  },
+    { "calibrate-algo-time", 1, nullptr, xmrig::IConfig::CalibrateAlgoTimeKey  },
     { "save-config",       0, nullptr, xmrig::IConfig::SaveConfigKey     },
     { "help",              0, nullptr, xmrig::IConfig::HelpKey           },
     { "keepalive",         0, nullptr, xmrig::IConfig::KeepAliveKey      },

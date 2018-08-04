@@ -47,6 +47,7 @@ xmrig::CommonConfig::CommonConfig() :
     m_colors(true),
     m_dryRun(false),
     m_calibrateAlgo(false),
+    m_calibrateAlgoTime(60),
     m_saveConfig(false),
     m_syslog(false),
 
@@ -354,6 +355,12 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     case PrintTimeKey: /* --print-time */
         if (arg >= 0 && arg <= 3600) {
             m_printTime = arg;
+        }
+        break;
+
+    case CalibrateAlgoTimeKey: /* --calibrate-algo-time */
+        if (arg >= 5 && arg <= 3600) {
+            m_calibrateAlgoTime = arg;
         }
         break;
 

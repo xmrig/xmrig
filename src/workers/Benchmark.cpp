@@ -66,7 +66,7 @@ void Benchmark::onJobResult(const JobResult& result) {
     ++ m_hash_count;
     const uint64_t now = get_now();
     if (!m_time_start) m_time_start = now; // time of measurements start (in ms)
-    else if (now - m_time_start > m_bench_secs*1000) { // end of becnhmark round for m_pa
+    else if (now - m_time_start > static_cast<unsigned>(m_controller->config()->calibrateAlgoTime())*1000) { // end of becnhmark round for m_pa
         const float hashrate = static_cast<float>(m_hash_count) * result.diff / (now - m_time_start) * 1000.0f;
         m_controller->config()->set_algo_perf(m_pa, hashrate); // store hashrate result
         Log::i()->text(m_controller->config()->isColors()

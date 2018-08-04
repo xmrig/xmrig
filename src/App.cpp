@@ -135,8 +135,9 @@ int App::exec()
         Workers::setListener(&benchmark); // register benchmark as job reault listener to compute hashrates there
         // write text before first benchmark round
         Log::i()->text(m_controller->config()->isColors()
-            ? GREEN_BOLD(" >>>>> ") WHITE_BOLD("STARTING ALGO PERFORMANCE CALIBRATION")
-            : " >>>>> STARTING ALGO PERFORMANCE CALIBRATION"
+            ? GREEN_BOLD(" >>>>> ") WHITE_BOLD("STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)")
+            : " >>>>> STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)",
+            m_controller->config()->calibrateAlgoTime()
         );
         benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN); // start benchmarking from first PerfAlgo in the list
     } else {

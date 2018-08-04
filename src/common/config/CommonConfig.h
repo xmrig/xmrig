@@ -50,6 +50,7 @@ public:
     inline bool isColors() const                   { return m_colors; }
     inline bool isDryRun() const                   { return m_dryRun; }
     inline bool isCalibrateAlgo() const            { return m_calibrateAlgo; }
+    inline int  calibrateAlgoTime() const          { return m_calibrateAlgoTime; }
     inline bool isSaveConfig() const               { return m_saveConfig; }
     inline bool isSyslog() const                   { return m_syslog; }
     inline const char *apiToken() const            { return m_apiToken.data(); }
@@ -91,6 +92,7 @@ protected:
     bool m_colors;
     bool m_dryRun;
     bool m_calibrateAlgo;
+    int  m_calibrateAlgoTime;
     bool m_saveConfig;
     bool m_syslog;
     bool m_watch;

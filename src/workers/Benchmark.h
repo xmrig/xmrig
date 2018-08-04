@@ -31,7 +31,6 @@
 #include "core/Controller.h"
 
 class Benchmark : public IJobResultListener {
-    const uint64_t m_bench_secs = 5; // time in seconds to benchmark each perf algo
     xmrig::PerfAlgo m_pa;  // current perf algo we benchmark
     uint64_t m_hash_count; // number of hashes calculated for current perf algo
     uint64_t m_time_start; // time of measurements start for current perf algo (in ms)
