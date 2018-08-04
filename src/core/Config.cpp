@@ -198,13 +198,11 @@ bool xmrig::Config::finalize()
 
             if (!m_threads[pa].count) {
                 m_threads[pa].count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
-                m_shouldSave = true;
             }
             else if (m_safe) {
                 const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
                 if (m_threads[pa].count > count) {
                     m_threads[pa].count = count;
-                    m_shouldSave = true;
                 }
             }
 
