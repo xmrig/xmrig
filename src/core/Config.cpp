@@ -151,6 +151,9 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     }
     doc.AddMember("algo-perf", algo_perf, allocator);
 
+    doc.AddMember("calibrate-algo", isCalibrateAlgo(), allocator);
+    doc.AddMember("calibrate-algo-time", calibrateAlgoTime(), allocator);
+
     doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
 
 #   ifdef HAVE_SYSLOG_H
