@@ -297,6 +297,9 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
 #       endif
         return parseUint64(key, strtol(arg, nullptr, 10));
 
+    case CalibrateAlgoTimeKey: /* --calibrate-algo-time */
+        return parseUint64(key, strtol(arg, nullptr, 10));
+
     default:
         break;
     }
