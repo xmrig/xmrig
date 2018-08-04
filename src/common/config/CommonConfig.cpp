@@ -48,7 +48,6 @@ xmrig::CommonConfig::CommonConfig() :
     m_dryRun(false),
     m_calibrateAlgo(false),
     m_calibrateAlgoTime(60),
-    m_saveConfig(false),
     m_syslog(false),
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -189,10 +188,6 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
 
     case IConfig::CalibrateAlgoKey: /* --calibrate-algo */
         m_calibrateAlgo = enable;
-        break;
-
-    case IConfig::SaveConfigKey: /* --save-config */
-        m_saveConfig = enable;
         break;
 
     default:

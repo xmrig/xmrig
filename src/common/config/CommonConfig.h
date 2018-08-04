@@ -51,7 +51,6 @@ public:
     inline bool isDryRun() const                   { return m_dryRun; }
     inline bool isCalibrateAlgo() const            { return m_calibrateAlgo; }
     inline int  calibrateAlgoTime() const          { return m_calibrateAlgoTime; }
-    inline bool isSaveConfig() const               { return m_saveConfig; }
     inline bool isSyslog() const                   { return m_syslog; }
     inline const char *apiToken() const            { return m_apiToken.data(); }
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
@@ -93,7 +92,6 @@ protected:
     bool m_dryRun;
     bool m_calibrateAlgo;
     int  m_calibrateAlgoTime;
-    bool m_saveConfig;
     bool m_syslog;
     bool m_watch;
     int m_apiPort;

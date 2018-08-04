@@ -80,7 +80,7 @@ void Benchmark::onJobResult(const JobResult& result) {
             start_perf_bench(next_pa);
         } else { // end of benchmarks and switching to jobs from the pool (network)
             m_pa = xmrig::PA_INVALID;
-            if (m_controller->config()->isShouldSave() || m_controller->config()->isSaveConfig()) m_controller->config()->save(); // save config with measured algo-perf
+            if (m_controller->config()->isShouldSave()) m_controller->config()->save(); // save config with measured algo-perf
             Workers::pause(); // do not compute anything before job from the pool
             m_controller->network()->connect();
         }

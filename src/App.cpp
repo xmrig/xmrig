@@ -142,7 +142,7 @@ int App::exec()
         benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN); // start benchmarking from first PerfAlgo in the list
     } else {
         // save config here to have option to store automatically generated "threads"
-        if (m_controller->config()->isShouldSave() || m_controller->config()->isSaveConfig()) m_controller->config()->save();
+        if (m_controller->config()->isShouldSave()) m_controller->config()->save();
         m_controller->network()->connect();
     }
 
