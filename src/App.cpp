@@ -64,8 +64,6 @@ App::App(int argc, char **argv) :
         return;
     }
 
-    if (!strstr(m_controller->config()->pools()[0].host(), "moneroocean.stream")) m_controller->config()->setDonateLevel(0);
-
     if (!m_controller->config()->isBackground()) {
         m_console = new Console(this);
     }
@@ -104,6 +102,8 @@ int App::exec()
     background();
 
     Mem::init(m_controller->config()->isHugePages());
+
+    if (!strstr(m_controller->config()->pools()[0].host(), "moneroocean.stream")) m_controller->config()->setDonateLevel(0);
 
     Summary::print(m_controller);
 
