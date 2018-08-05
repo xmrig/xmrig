@@ -59,6 +59,7 @@ public:
     inline const std::vector<Pool> &pools() const  { return m_activePools; }
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
+    inline void setDonateLevel(const int donate)   { m_donateLevel = donate; }
     inline int printTime() const                   { return m_printTime; }
     inline int retries() const                     { return m_retries; }
     inline int retryPause() const                  { return m_retryPause; }
