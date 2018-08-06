@@ -46,6 +46,6 @@ class Benchmark : public IJobResultListener {
         virtual ~Benchmark() {}
 
         void set_controller(xmrig::Controller* controller) { m_controller = controller; }
-        void shoud_save_config() { m_shouldSaveConfig = true; }
+        void should_save_config() { m_shouldSaveConfig = true; }
         void start_perf_bench(const xmrig::PerfAlgo); // start benchmark for specified perf algo
 };
