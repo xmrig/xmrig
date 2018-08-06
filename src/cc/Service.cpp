@@ -228,10 +228,6 @@ unsigned Service::setClientStatus(const std::string& clientIp, const std::string
         clientStatus.parseFromJson(document);
         clientStatus.setExternalIp(clientIp);
 
-        if (m_clientStatus.find(clientId) == m_clientStatus.end()) {
-            m_clientCommand[clientId] = ControlCommand(ControlCommand::RESTART);
-        }
-
         m_clientStatus[clientId] = clientStatus;
 
         resultCode = getClientCommand(clientId, resp);
