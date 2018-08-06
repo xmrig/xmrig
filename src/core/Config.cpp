@@ -46,7 +46,6 @@ static char affinity_tmp[20] = { 0 };
 
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
-    m_shouldSave(false),
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
     m_hugePages(true),
@@ -350,8 +349,6 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
             }
         }
     }
-
-    if (m_algo_perf[xmrig::PA_CN] == 0.0f) m_shouldSave = true;
 }
 
 

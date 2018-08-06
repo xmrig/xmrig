@@ -139,7 +139,9 @@ int App::exec()
             : " >>>>> STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)",
             m_controller->config()->calibrateAlgoTime()
         );
-        benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN); // start benchmarking from first PerfAlgo in the list
+        // start benchmarking from first PerfAlgo in the list
+        if (m_controller->config()->get_algo_perf(xmrig::PA_CN) == 0.0f) benchmark.shoud_save_config();
+        benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN);
     } else {
         m_controller->network()->connect();
     }

@@ -31,9 +31,10 @@
 #include "core/Controller.h"
 
 class Benchmark : public IJobResultListener {
-    xmrig::PerfAlgo m_pa;  // current perf algo we benchmark
-    uint64_t m_hash_count; // number of hashes calculated for current perf algo
-    uint64_t m_time_start; // time of measurements start for current perf algo (in ms)
+    bool m_shouldSaveConfig; // should save config after all benchmark rounds
+    xmrig::PerfAlgo m_pa;    // current perf algo we benchmark
+    uint64_t m_hash_count;   // number of hashes calculated for current perf algo
+    uint64_t m_time_start;   // time of measurements start for current perf algo (in ms)
     xmrig::Controller* m_controller; // to get access to config and network
 
     uint64_t get_now() const; // get current time in ms
@@ -41,9 +42,10 @@ class Benchmark : public IJobResultListener {
     void onJobResult(const JobResult&) override; // onJobResult is called after each computed benchmark hash
 
     public:
-        Benchmark() {}
+        Benchmark() : m_shouldSaveConfig(false) {}
         virtual ~Benchmark() {}
 
         void set_controller(xmrig::Controller* controller) { m_controller = controller; }
+        void shoud_save_config() { m_shouldSaveConfig = true; }
         void start_perf_bench(const xmrig::PerfAlgo); // start benchmark for specified perf algo
 };
