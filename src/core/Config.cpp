@@ -346,7 +346,9 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
             const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
             const rapidjson::Value &key = algo_perf[xmrig::Algorithm::perfAlgoName(pa)];
             if (key.IsDouble()) {
-                m_algo_perf[pa] = key.GetDouble();
+                m_algo_perf[pa] = static_cast<float>(key.GetDouble());
+            } else if (key.IsInt()) {
+                m_algo_perf[pa] = static_cast<float>(key.GetInt());
             }
         }
     }
