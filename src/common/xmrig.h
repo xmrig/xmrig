@@ -34,7 +34,8 @@ enum Algo {
     INVALID_ALGO = -1,
     CRYPTONIGHT,       /* CryptoNight (Monero) */
     CRYPTONIGHT_LITE,  /* CryptoNight-Lite (AEON) */
-    CRYPTONIGHT_HEAVY  /* CryptoNight-Heavy (SUMO) */
+    CRYPTONIGHT_HEAVY, /* CryptoNight-Heavy (SUMO) */
+    ALGO_MAX
 };
 
 // algorithms that can has different performance

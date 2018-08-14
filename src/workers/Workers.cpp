@@ -223,7 +223,7 @@ void Workers::switch_algo(const xmrig::Algorithm& algorithm)
     m_sequence = 1;
     m_paused   = 1;
 
-    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads(algorithm.perf_algo());
+    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads(algorithm.algo());
     m_status.algo    = algorithm.algo();
     m_status.threads = threads.size();
 

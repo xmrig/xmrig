@@ -76,24 +76,23 @@ public:
 
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline bool isShouldSave() const                     { return m_shouldSave; }
     inline AesMode aesMode() const                       { return m_aesMode; }
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
     inline bool isHugePages() const                      { return m_hugePages; }
     inline int priority() const                          { return m_priority; }
 
     // access to m_threads taking into accoun that it is now separated for each perf algo
-    inline const std::vector<IThread *> &threads(const xmrig::PerfAlgo pa = PA_INVALID) const {
-        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].list;
+    inline const std::vector<IThread *> &threads(const xmrig::Algo algo = INVALID_ALGO) const {
+        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo].list;
     }
-    inline int threadsCount(const xmrig::PerfAlgo pa = PA_INVALID) const {
-        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].list.size();
+    inline int threadsCount(const xmrig::Algo algo = INVALID_ALGO) const {
+        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo].list.size();
     }
-    inline int64_t affinity(const xmrig::PerfAlgo pa = PA_INVALID) const {
-        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].mask;
+    inline int64_t affinity(const xmrig::Algo algo = INVALID_ALGO) const {
+        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo].mask;
     }
-    inline ThreadsMode threadsMode(const xmrig::PerfAlgo pa = PA_INVALID) const {
-        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].mode;
+    inline ThreadsMode threadsMode(const xmrig::Algo algo = INVALID_ALGO) const {
+        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo].mode;
     }
 
     // access to perf algo results
@@ -109,7 +108,7 @@ protected:
     bool parseUint64(int key, uint64_t arg) override;
     void parseJSON(const rapidjson::Document &doc) override;
     // parse specific perf algo (or generic) threads config
-    void parseThreadsJSON(const rapidjson::Value &threads, xmrig::PerfAlgo);
+    void parseThreadsJSON(const rapidjson::Value &threads, xmrig::Algo);
 
 private:
     bool parseInt(int key, int arg);
@@ -132,15 +131,14 @@ private:
     };
 
 
-    bool m_shouldSave;
     AesMode m_aesMode;
     AlgoVariant m_algoVariant;
     bool m_hugePages;
     bool m_safe;
     int m_maxCpuUsage;
     int m_priority;
-    // threads config for each perf algo
-    Threads m_threads[xmrig::PerfAlgo::PA_MAX];
+    // threads config for each algo
+    Threads m_threads[xmrig::Algo::ALGO_MAX];
     // perf algo hashrate results
     float m_algo_perf[xmrig::PerfAlgo::PA_MAX];
 };
