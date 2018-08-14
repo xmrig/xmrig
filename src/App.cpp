@@ -103,8 +103,6 @@ int App::exec()
 
     Mem::init(m_controller->config()->isHugePages());
 
-    if (strstr(m_controller->config()->pools()[0].host(), "moneroocean.stream")) m_controller->config()->setDonateLevel(0);
-
     Summary::print(m_controller);
 
     if (m_controller->config()->isDryRun()) {
