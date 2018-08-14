@@ -324,7 +324,7 @@ Options::Options(int argc, char **argv) :
     m_ccUseTls(false),
     m_ccUseRemoteLogging(true),
     m_ccUploadConfigOnStartup(true),
-    m_configFile(Platform::defaultConfigName()),
+    m_fileName(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
     m_logFile(nullptr),
@@ -856,7 +856,7 @@ Url *Options::parseUrl(const char *arg) const
 
 void Options::parseConfig(const char *fileName)
 {
-    m_configFile = fileName;
+    m_fileName = fileName;
 
     rapidjson::Document doc;
     if (!getJSON(fileName, doc)) {

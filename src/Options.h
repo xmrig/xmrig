@@ -74,7 +74,7 @@ public:
     inline bool ccUseTls() const                    { return m_ccUseTls; }
     inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
     inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
-    inline const char *configFile() const           { return m_configFile; }
+    inline const char *fileName() const             { return m_fileName; }
     inline const char *apiToken() const             { return m_apiToken; }
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
     inline const char *logFile() const              { return m_logFile; }
@@ -149,7 +149,7 @@ private:
     bool m_ccUseTls;
     bool m_ccUseRemoteLogging;
     bool m_ccUploadConfigOnStartup;
-    const char* m_configFile;
+    const char* m_fileName;
     char *m_apiToken;
     char *m_apiWorkerId;
     char *m_logFile;

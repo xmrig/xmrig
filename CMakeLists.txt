@@ -206,7 +206,8 @@ endif()
 if (WITH_CC_SERVER OR WITH_CC_CLIENT)
     set(SOURCES_CC_COMMON
             src/cc/ControlCommand.cpp
-            src/cc/ClientStatus.cpp)
+            src/cc/ClientStatus.cpp
+            src/cc/GPUInfo.cpp)
 else()
     add_definitions(/DXMRIG_NO_CC)
 endif()
