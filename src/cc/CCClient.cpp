@@ -21,8 +21,9 @@
 #include <fstream>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
-#include <version.h>
-#include <api/NetworkState.h>
+
+#include "version.h"
+#include "api/NetworkState.h"
 
 #include "CCClient.h"
 #include "App.h"
@@ -141,7 +142,7 @@ void CCClient::updateNetworkState(const NetworkState& network)
         m_self->m_clientStatus.setAvgTime(network.avgTime());
 
 #ifdef TYPE_AMD_GPU
-        m_clientStatus.setHashFactor(0);
+        m_self->m_clientStatus.setHashFactor(0);
         m_self->m_clientStatus.setHugepagesEnabled(false);
         m_self->m_clientStatus.setHugepages(false);
         m_self->m_clientStatus.setTotalPages(0);
