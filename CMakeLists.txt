@@ -11,11 +11,16 @@ option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
 option(WITH_TLS       "TLS support" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
-set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
-set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
-
 set(Boost_USE_STATIC_RUNTIME ON)
 set(Boost_USE_STATIC_LIBS ON)
+
+if(NOT MINER_EXECUTABLE_NAME)
+set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
+endif(MINER_EXECUTABLE_NAME)
+
+if(NOT DAEMON_EXECUTABLE_NAME)
+set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
+endif(DAEMON_EXECUTABLE_NAME)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
