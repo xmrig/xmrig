@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 
 RUN apt-get update && \
-	apt install software-properties-common git build-essential libbz2-dev cmake libuv1-dev libssl-dev wget gcc g++ -y && \
+	apt install git build-essential libbz2-dev cmake libuv1-dev libssl-dev wget gcc g++ -y && \
 	apt clean && \
    	rm -rf /var/lib/apt/lists/*
 
