@@ -111,7 +111,7 @@ Options:\n"
       --cc-use-tls                      enable tls encryption for CC communication\n\
       --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \n\
       --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
-      --client-log-lines-history=N      maximum lines of log history kept per miner \n\
+      --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)\n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif

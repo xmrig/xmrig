@@ -5,6 +5,7 @@
 - Refactoring of remote logging feature: #143
     - Only deltas will be send to the XMRigCCServer
     - Fetching miner log on dashboard upon need
+    - Maximum lines of log history kept per miner can be configured on XMRigCCServer 
 - Fix correct hugepages status on Dashboard
 - Fix cpu affinity for single thread usage
 # 1.6.5
