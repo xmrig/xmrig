@@ -73,7 +73,8 @@ public:
     inline bool daemonized() const                  { return m_daemonized; }
     inline bool ccUseTls() const                    { return m_ccUseTls; }
     inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
-    inline const char *configFile() const           { return m_configFile; }
+    inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
+    inline const char *fileName() const             { return m_fileName; }
     inline const char *apiToken() const             { return m_apiToken; }
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
     inline const char *logFile() const              { return m_logFile; }
@@ -101,7 +102,7 @@ public:
     inline size_t threads() const                   { return m_threads; }
     inline int ccUpdateInterval() const             { return m_ccUpdateInterval; }
     inline int ccPort() const                       { return m_ccPort; }
-    inline size_t ccRemoteLoggingMaxRows() const    { return m_ccRemoteLoggingMaxRows; }
+    inline size_t ccClientLogLinesHistory() const   { return m_ccClientLogLinesHistory; }
     inline int64_t affinity() const                 { return m_affinity; }
     inline int64_t multiHashThreadMask() const      { return m_multiHashThreadMask; }
     inline void setColors(bool colors)              { m_colors = colors; }
@@ -147,7 +148,8 @@ private:
     bool m_daemonized;
     bool m_ccUseTls;
     bool m_ccUseRemoteLogging;
-    const char* m_configFile;
+    bool m_ccUploadConfigOnStartup;
+    const char* m_fileName;
     char *m_apiToken;
     char *m_apiWorkerId;
     char *m_logFile;
@@ -176,7 +178,7 @@ private:
     size_t m_threads;
     int m_ccUpdateInterval;
     int m_ccPort;
-    size_t m_ccRemoteLoggingMaxRows;
+    size_t m_ccClientLogLinesHistory;
     int64_t m_affinity;
     int64_t m_multiHashThreadMask;
     std::vector<Url*> m_pools;

@@ -98,7 +98,7 @@ Options:\n"
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
       --cc-use-remote-logging           enable remote logging on CC Server\n\
-      --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server\n"
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n"
 # endif
 # endif
 
@@ -111,6 +111,7 @@ Options:\n"
       --cc-use-tls                      enable tls encryption for CC communication\n\
       --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \n\
       --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
+      --client-log-lines-history=N      maximum lines of log history kept per miner \n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif
@@ -182,8 +183,9 @@ static struct option const options[] = {
     { "cc-cert-file",     1, nullptr, 4014 },
     { "cc-key-file",      1, nullptr, 4015 },
     { "cc-use-tls",       0, nullptr, 4016 },
-    { "cc-use-remote-logging",      0, nullptr, 4017 },
-    { "cc-remote-logging-max-rows", 1, nullptr, 4018 },
+    { "cc-use-remote-logging",          0, nullptr, 4017 },
+    { "cc-client-log-lines-history",    1, nullptr, 4018 },
+    { "cc-upload-config-on-startup",    0, nullptr, 4019 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",      1, nullptr, 4013 },
@@ -246,7 +248,7 @@ static struct option const cc_client_options[] = {
     { "update-interval-s",      1, nullptr, 4012 },
     { "use-tls",                0, nullptr, 4016 },
     { "use-remote-logging",     0, nullptr, 4017 },
-    { "remote-logging-max-rows",1, nullptr, 4018 },
+    { "upload-config-on-startup",  0, nullptr, 4019 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -260,6 +262,7 @@ static struct option const cc_server_options[] = {
     { "cert-file",              1, nullptr, 4014 },
     { "key-file",               1, nullptr, 4015 },
     { "use-tls",                0, nullptr, 4016 },
+    { "client-log-lines-history",   1, nullptr, 4018 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -320,7 +323,8 @@ Options::Options(int argc, char **argv) :
     m_daemonized(false),
     m_ccUseTls(false),
     m_ccUseRemoteLogging(true),
-    m_configFile(Platform::defaultConfigName()),
+    m_ccUploadConfigOnStartup(true),
+    m_fileName(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
     m_logFile(nullptr),
@@ -349,7 +353,7 @@ Options::Options(int argc, char **argv) :
     m_threads(0),
     m_ccUpdateInterval(10),
     m_ccPort(0),
-    m_ccRemoteLoggingMaxRows(25),
+    m_ccClientLogLinesHistory(100),
     m_affinity(-1L),
     m_multiHashThreadMask(-1L)
 {
@@ -562,7 +566,7 @@ bool Options::parseArg(int key, const char *arg)
     case 4006: /* --cc-port */
     case 4012: /* --cc-update-interval-c */
         return parseArg(key, strtol(arg, nullptr, 10));
-    case 4018: /* --cc-remote-logging-max-rows */
+    case 4018: /* --cc-client-log-lines-history */
         return parseArg(key, strtol(arg, nullptr, 25));
 
     case 'B':  /* --background */
@@ -585,6 +589,9 @@ bool Options::parseArg(int key, const char *arg)
         return parseBoolean(key, true);
 
     case 4017: /* --cc-use-remote-logging */
+        return parseBoolean(key, true);
+
+    case 4019: /* --cc-upload-config-on-startup */
         return parseBoolean(key, true);
 
     case 't':  /* --threads */
@@ -762,13 +769,8 @@ bool Options::parseArg(int key, uint64_t arg)
         }
         break;
 
-    case 4018: /* --cc-remote-logging-max-rows */
-        if (arg < 1) {
-            m_ccUseRemoteLogging = false;
-        }
-        else {
-            m_ccRemoteLoggingMaxRows = (int) arg;
-        }
+    case 4018: /* --cc-client-log-lines-history */
+        m_ccClientLogLinesHistory = (int) arg;
         break;
 
     default:
@@ -828,6 +830,10 @@ bool Options::parseBoolean(int key, bool enable)
         m_ccUseRemoteLogging = enable;
         break;
 
+    case 4019: /* --cc-upload-config-on-startup */
+        m_ccUploadConfigOnStartup = enable;
+        break;
+
     default:
         break;
     }
@@ -850,7 +856,7 @@ Url *Options::parseUrl(const char *arg) const
 
 void Options::parseConfig(const char *fileName)
 {
-    m_configFile = fileName;
+    m_fileName = fileName;
 
     rapidjson::Document doc;
     if (!getJSON(fileName, doc)) {

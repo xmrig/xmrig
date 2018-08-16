@@ -5,7 +5,7 @@
     "multihash-factor": 0,                      // number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)
     "multihash-thread-mask" : null,             // for multihash-factors>0 only, limits multihash to given threads (mask), mask "0x3" means run multihash on thread 0 and 1 only (default: all threads)
     "pow-variant" : "auto",                     // specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), tube (ipbc), alloy, xtl (including autodetect for v5), msr, xhv, rto
-                                                // for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations
+    // for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations
     "background": false,                        // true to run the miner in the background (Windows only, for *nix plase use screen/tmux or systemd service instead)
     "colors": true,                             // false to disable colored output
     "cpu-affinity": null,                       // set process affinity to CPU core(s), mask "0x3" for cores 0 and 1
@@ -35,6 +35,6 @@
         "worker-id": null,                      // custom worker-id for CC Server (otherwise hostname is used)
         "update-interval-s": 10,                // status update interval in seconds (default: 10 min: 1)
         "use-remote-logging" : true,            // enable remote logging on CC Server
-        "remote-logging-max-rows" : 20          // maximum last n-log rows to send CC Server
+        "upload-config-on-startup" : true       // upload current miner config to CC Server on startup
     }
 }

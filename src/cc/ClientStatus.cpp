@@ -1,12 +1,5 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+/* XMRigCC
  * Copyright 2017-     BenDr0id    <ben@graef.in>
- *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,7 +20,6 @@
 #include <cstring>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
-#include <log/Log.h>
 
 #include "ClientStatus.h"
 
@@ -148,6 +140,11 @@ std::string ClientStatus::getLog() const
 void ClientStatus::setLog(const std::string& log)
 {
     m_log = log;
+}
+
+void ClientStatus::clearLog()
+{
+    m_log.clear();
 }
 
 bool ClientStatus::hasHugepages() const
@@ -486,6 +483,18 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_cpuL3 = clientStatus["cpu_l3"].GetInt();
         }
 
+        if (clientStatus.HasMember("gpu_info_list") && clientStatus["gpu_info_list"].IsArray()) {
+            m_gpuInfoList.clear();
+
+            auto gpuInfoList = clientStatus["gpu_info_list"].GetArray();
+            for (rapidjson::Value::ConstValueIterator itr = gpuInfoList.Begin(); itr != gpuInfoList.End(); ++itr) {
+                GPUInfo gpuInfo;
+                gpuInfo.parseFromJson((*itr)["gpu_info"]);
+
+                m_gpuInfoList.push_back(gpuInfo);
+            }
+        }
+
         if (clientStatus.HasMember("shares_good")) {
             m_sharesGood = clientStatus["shares_good"].GetUint64();
         }
@@ -510,8 +519,6 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
         m_lastStatusUpdate = std::chrono::system_clock::to_time_t(time_point);
 
         result = true;
-    } else {
-        LOG_ERR("Parse Error, JSON does not contain: control_command");
     }
 
     return result;
@@ -551,6 +558,14 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("cpu_l2", m_cpuL2, allocator);
     clientStatus.AddMember("cpu_l3", m_cpuL3, allocator);
 
+    rapidjson::Value gpuInfoList(rapidjson::kArrayType);
+    for (auto& gpuInfo : m_gpuInfoList) {
+        rapidjson::Value gpuInfoEntry(rapidjson::kObjectType);
+        gpuInfoEntry.AddMember("gpu_info", gpuInfo.toJson(allocator), allocator);
+        gpuInfoList.PushBack(gpuInfoEntry, allocator);
+    }
+    clientStatus.AddMember("gpu_info_list", gpuInfoList, allocator);
+
     clientStatus.AddMember("shares_good", m_sharesGood, allocator);
     clientStatus.AddMember("shares_total", m_sharesTotal, allocator);
     clientStatus.AddMember("hashes_total", m_hashesTotal, allocator);
@@ -558,9 +573,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("avg_time", m_avgTime, allocator);
 
     clientStatus.AddMember("uptime", m_uptime, allocator);
-
     clientStatus.AddMember("last_status_update", static_cast<uint64_t >(m_lastStatusUpdate), allocator);
-
     clientStatus.AddMember("log", rapidjson::StringRef(m_log.c_str()), allocator);
 
 
@@ -583,4 +596,14 @@ std::string ClientStatus::toJsonString()
     respDocument.Accept(writer);
 
     return strdup(buffer.GetString());
+}
+
+void ClientStatus::clearGPUInfoList()
+{
+    m_gpuInfoList.clear();
+}
+
+void ClientStatus::addGPUInfo(const GPUInfo gpuInfo)
+{
+    m_gpuInfoList.push_back(gpuInfo);
 }
