@@ -58,7 +58,7 @@ bool ControlCommand::parseFromJson(const rapidjson::Document& document)
     bool result = false;
 
     if (document.HasMember("control_command")) {
-        rapidjson::Value::ConstObject controlCommand = document["control_command"].GetObject();
+        const rapidjson::Value& controlCommand = document["control_command"];
         if (controlCommand.HasMember("command")) {
             m_command = toCommand(controlCommand["command"].GetString());
             result = true;

@@ -377,7 +377,7 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
 
     if (document.HasMember("client_status"))
     {
-        rapidjson::Value::ConstObject clientStatus = document["client_status"].GetObject();
+        const rapidjson::Value& clientStatus = document["client_status"];
 
         if (clientStatus.HasMember("current_status")) {
             m_currentStatus = toStatus(clientStatus["current_status"].GetString());
