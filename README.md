@@ -105,6 +105,7 @@ xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SE
         --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) 
         --cc-client-config-folder=FOLDER  Folder contains the client config files
         --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'
+        --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)
         --no-color                        disable colored output
     -S, --syslog                          use system log for output messages
     -B, --background                      run the miner in the background
@@ -157,7 +158,7 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
       --cc-worker-id=ID                 custom worker-id for CC Server
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)
       --cc-use-remote-logging           enable remote logging on CC Server
-      --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup
       --no-color                        disable colored output
   -S, --syslog                          use system log for output messages
   -B, --background                      run the miner in the background

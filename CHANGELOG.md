@@ -1,3 +1,13 @@
+# 1.7.0
+- First official Release of XMRigCC-amd #33 #3
+- Full integration of xmrigCC-amd into XMRigCCServer/Dashboard with GPUInfo / remote logging
+- Config property to enable/disable config upload on startup (--cc-upload-config-on-startup) #80
+- Refactoring of remote logging feature: #143
+    - Only deltas will be send to the XMRigCCServer
+    - Fetching miner log on dashboard upon need
+    - Maximum lines of log history kept per miner can be configured on XMRigCCServer 
+- Fix correct hugepages status on Dashboard
+- Fix cpu affinity for single thread usage
 # 1.6.5
 - Hashrate improve -> add autodetection mode for cpu-affinity
 - Hashrate improve, more stable hashrates -> refactor memory allocation
