@@ -411,15 +411,24 @@
             var data = table.row( $(this).parents('tr') ).data();
             var clientId = data['client_status']['client_id'];
             var clientIp = data['client_status']['external_ip'];
-            var log = data['client_status']['log'];
 
-            var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
-                "<label for='config'>Log of: " + clientId + " (" + clientIp + ")</label>"+
-                "<textarea class='form-control' rows='20' id='log'>" + log + "</textarea>" +
-                "</div>";
+            $.ajax({
+                type:    "GET",
+                url:     "/admin/getClientLog?clientId=" + clientId,
+                dataType:"json",
+                success: function(data) {
+                    var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
+                        "<label for='config'>Log of: " + clientId + " (" + clientIp + ")</label>"+
+                        "<textarea class='form-control' rows='20' id='log'>" + data.client_log + "</textarea>" +
+                        "</div>";
 
-            $('#minerLog').find('.modal-body').html(htmlContent);
-            $('#minerLog').modal('show');
+                    $('#minerLog').find('.modal-body').html(htmlContent);
+                    $('#minerLog').modal('show');
+                },
+                error: function (data) {
+                    setError('<strong>Unable to fetch ' + clientId + ' log.</strong> - Please make sure it is enabled on the miner!');
+                }
+            });
         });
 
         $('#minerLogRefresh').click(function(event) {
@@ -429,9 +438,17 @@
                 var row = table.row(index);
                 var data = row.data();
 
-                if (clientId === data.client_status.client_id) {
-                    $('#log').val(data.client_status.log);
-                }
+                $.ajax({
+                    type:    "GET",
+                    url:     "/admin/getClientLog?clientId=" + clientId,
+                    dataType:"json",
+                    success: function(data) {
+                        $('#log').val(data.client_log);
+                    },
+                    error: function (data) {
+                        setError('<strong>Unable to fetch ' + clientId + ' log.</strong> - Please make sure it is enabled on the miner!');
+                    }
+                });
             });
         });
 
@@ -573,6 +590,18 @@
             tooltip += "Used Threads: " + row.client_status.current_threads;
             tooltip += (row.client_status.hash_factor > 1 ? " [" + row.client_status.hash_factor + "x multi hash mode]" :"");
             tooltip += '\n';
+
+            if (row.client_status.gpu_info_list) {
+                for (var id in row.client_status.gpu_info_list) {
+                    tooltip += "GPU #" + row.client_status.gpu_info_list[id].gpu_info.device_idx + ": ";
+                    tooltip += row.client_status.gpu_info_list[id].gpu_info.name + ", "
+                    tooltip += "intensity: " + row.client_status.gpu_info_list[id].gpu_info.raw_intensity + " ";
+                    tooltip += "("+ row.client_status.gpu_info_list[id].gpu_info.work_size + "/" + row.client_status.gpu_info_list[id].gpu_info.max_work_size + "), ";
+                    tooltip += "cu: " + row.client_status.gpu_info_list[id].gpu_info.compute_units;
+                    tooltip += '\n';
+                }
+            }
+
             tooltip += "Client IP: " + row.client_status.external_ip;
             tooltip += '\n';
             tooltip += "Version: " + row.client_status.version;
