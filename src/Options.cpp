@@ -359,6 +359,8 @@ Options::Options(int argc, char **argv) :
 {
     m_pools.push_back(new Url());
 
+    parseConfig(Platform::defaultConfigName());
+
     int key;
 
     while (true) {
@@ -379,10 +381,6 @@ Options::Options(int argc, char **argv) :
 
 #ifdef XMRIG_CC_SERVER
     if (m_ccPort == 0) {
-        parseConfig(Platform::defaultConfigName());
-    }
-
-    if (m_ccPort == 0) {
         fprintf(stderr, "No CC Server Port supplied. Exiting.\n");
         return;
     }
@@ -393,10 +391,6 @@ Options::Options(int argc, char **argv) :
             return;
         }
     #endif
-
-    if (!m_pools[0]->isValid()) {
-        parseConfig(Platform::defaultConfigName());
-    }
 
     if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
         fprintf(stderr, "Neither pool nor CCServer URL supplied. Exiting.\n");
