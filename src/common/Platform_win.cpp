@@ -60,7 +60,7 @@ static inline char *createUserAgent()
     const auto osver = winOsVersion();
     const size_t max = 160;
 
-    char *buf = new char[max];
+    char *buf = static_cast<char *>(malloc(max));
     int length = snprintf(buf, max, "%s/%s (Windows NT %lu.%lu", APP_NAME, APP_VERSION, osver.dwMajorVersion, osver.dwMinorVersion);
 
 #   if defined(__x86_64__) || defined(_M_AMD64)

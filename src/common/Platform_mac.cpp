@@ -42,7 +42,7 @@ static inline char *createUserAgent()
 {
     const size_t max = 160;
 
-    char *buf = new char[max];
+    char *buf = static_cast<char *>(malloc(max));
 
 #   ifdef XMRIG_NVIDIA_PROJECT
     const int cudaVersion = cuda_get_runtime_version();
