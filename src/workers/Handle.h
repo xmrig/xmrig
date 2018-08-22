@@ -40,6 +40,7 @@ class Handle
 {
 public:
     Handle(xmrig::IThread *config, uint32_t offset, size_t totalWays);
+    ~Handle();
     void join();
     void start(void (*callback) (void *));
 

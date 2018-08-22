@@ -23,6 +23,7 @@
 
 
 #include "workers/Handle.h"
+#include "interfaces/IWorker.h"
 
 
 Handle::Handle(xmrig::IThread *config, uint32_t offset, size_t totalWays) :
@@ -33,6 +34,7 @@ Handle::Handle(xmrig::IThread *config, uint32_t offset, size_t totalWays) :
 {
 }
 
+Handle::~Handle() { if (m_worker) delete m_worker; }
 
 void Handle::join()
 {

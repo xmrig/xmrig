@@ -71,6 +71,17 @@ Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     }
 }
 
+Hashrate::~Hashrate()
+{
+    for (size_t i = 0; i < m_threads; i++) {
+        delete [] m_counts[i];
+        delete [] m_timestamps[i];
+    }
+    delete [] m_counts;
+    delete [] m_timestamps;
+    delete [] m_top;
+}
+
 
 double Hashrate::calc(size_t ms) const
 {

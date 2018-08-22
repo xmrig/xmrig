@@ -97,7 +97,7 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
     const size_t size = m_host.size() + 8;
     assert(size > 8);
 
-    char *url = new char[size]();
+    char *url = static_cast<char *>(malloc(size));
     snprintf(url, size - 1, "%s:%d", m_host.data(), m_port);
 
     m_url = url;
@@ -171,8 +171,9 @@ bool Pool::parse(const char *url)
     }
 
     const size_t size = port++ - base + 1;
-    char *host        = new char[size]();
+    char *host        = static_cast<char *>(malloc(size));
     memcpy(host, base, size - 1);
+    host[size - 1] = 0;
 
     m_host = host;
     m_port = static_cast<uint16_t>(strtol(port, nullptr, 10));
@@ -188,7 +189,7 @@ bool Pool::setUserpass(const char *userpass)
         return false;
     }
 
-    char *user = new char[p - userpass + 1]();
+    char *user = static_cast<char *>(malloc(p - userpass + 1));
     strncpy(user, userpass, p - userpass);
 
     m_user     = user;
@@ -279,7 +280,7 @@ bool Pool::parseIPv6(const char *addr)
     }
 
     const size_t size = end - addr;
-    char *host        = new char[size]();
+    char *host        = static_cast<char *>(malloc(size));
     memcpy(host, addr + 1, size - 1);
 
     m_host = host;
