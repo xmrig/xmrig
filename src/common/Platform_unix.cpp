@@ -56,7 +56,7 @@ static inline char *createUserAgent()
 {
     const size_t max = 160;
 
-    char *buf = new char[max];
+    char *buf = static_cast<char *>(malloc(max));
     int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
 
 #   if defined(__x86_64__)
