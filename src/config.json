@@ -19,7 +19,7 @@
     "max-cpu-usage": 75,
     "pools": [
         {
-            "url": "proxy.fee.xmrig.com:9999",
+            "url": "gulf.moneroocean.stream:10001",
             "user": "YOUR_WALLET",
             "pass": "x",
             "rig-id": null,
@@ -35,7 +35,7 @@
     "threads": null,
     "algo-perf": null,
     "calibrate-algo": false,
-    "calibrate-algo-time": 60,
+    "calibrate-algo-time": 10,
     "user-agent": null,
     "watch": false
 }
