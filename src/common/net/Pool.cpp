@@ -282,6 +282,7 @@ bool Pool::parseIPv6(const char *addr)
     const size_t size = end - addr;
     char *host        = static_cast<char *>(malloc(size));
     memcpy(host, addr + 1, size - 1);
+    host[size - 1] = 0;
 
     m_host = host;
     m_port = static_cast<uint16_t>(strtol(port + 1, nullptr, 10));
