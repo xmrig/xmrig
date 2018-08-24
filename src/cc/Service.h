@@ -42,7 +42,7 @@ public:
     static bool start();
     static void release();
 
-    static unsigned handleGET(const Options* options, const std::string& url, const std::string& clientId, std::string& resp);
+    static unsigned handleGET(const Options* options, const std::string& url, const std::string& clientIp, const std::string& clientId, std::string& resp);
     static unsigned handlePOST(const Options* options, const std::string& url, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
 
 private:

@@ -93,28 +93,29 @@ std::string Httpd::readFile(const std::string &fileName)
     return data.str();
 }
 
-unsigned Httpd::tokenAuth(struct MHD_Connection* connection)
+unsigned Httpd::tokenAuth(struct MHD_Connection* connection, const std::string& clientIp)
 {
     if (!m_options->ccToken()) {
-        LOG_WARN("AccessToken not set. Access Granted!");
+        LOG_WARN("[%s] AccessToken not set. Access Granted!", clientIp.c_str());
         return MHD_HTTP_OK;
     }
 
     const char* header = MHD_lookup_connection_value(connection, MHD_HEADER_KIND, MHD_HTTP_HEADER_AUTHORIZATION);
     if (m_options->ccToken() && !header) {
+        LOG_WARN("[%s] No auth header. Access Forbidden!", clientIp.c_str());
         return MHD_HTTP_UNAUTHORIZED;
     }
 
     const size_t size = strlen(header);
     if (size < 8 || strlen(m_options->ccToken()) != size - 7 || memcmp("Bearer ", header, 7) != 0) {
-        LOG_WARN("AccessToken wrong. Access Forbidden!");
+        LOG_ERR("[%s] AccessToken wrong. Access Forbidden!", clientIp.c_str());
         return MHD_HTTP_FORBIDDEN;
     }
 
     return strncmp(m_options->ccToken(), header + 7, strlen(m_options->ccToken())) == 0 ? MHD_HTTP_OK : MHD_HTTP_FORBIDDEN;
 }
 
-unsigned Httpd::basicAuth(struct MHD_Connection* connection, std::string& resp)
+unsigned Httpd::basicAuth(struct MHD_Connection* connection, const std::string& clientIp, std::string& resp)
 {
     unsigned result = MHD_HTTP_OK;
 
@@ -123,7 +124,7 @@ unsigned Httpd::basicAuth(struct MHD_Connection* connection, std::string& resp)
                            "Please configure admin user and pass to view this Page."
                            "</body><html\\>");
 
-        LOG_WARN("Admin user/password not set. Access Forbidden!");
+        LOG_WARN("[%s] Admin user/password not set. Access Forbidden!",  clientIp.c_str());
         result = MHD_HTTP_FORBIDDEN;
     }
     else {
@@ -136,7 +137,7 @@ unsigned Httpd::basicAuth(struct MHD_Connection* connection, std::string& resp)
             if (user == nullptr || strcmp(user, m_options->ccAdminUser()) != 0 ||
                 pass == nullptr || strcmp(pass, m_options->ccAdminPass()) != 0) {
 
-                LOG_WARN("Admin user/password wrong. Access Unauthorized!");
+                LOG_ERR("[%s] Admin user/password wrong. Access Forbidden!",  clientIp.c_str());
                 result = MHD_HTTP_UNAUTHORIZED;
             }
 
@@ -148,6 +149,7 @@ unsigned Httpd::basicAuth(struct MHD_Connection* connection, std::string& resp)
                 free(pass);
             }
         } else {
+            LOG_WARN("[%s] No auth header. Access Forbidden!",  clientIp.c_str());
             result = MHD_HTTP_UNAUTHORIZED;
         }
     }
@@ -179,24 +181,36 @@ int Httpd::sendResponse(MHD_Connection* connection, unsigned status, MHD_Respons
 int Httpd::handler(void* httpd, MHD_Connection* connection, const char* url, const char* method,
                    const char* version, const char* upload_data, size_t* upload_data_size, void** con_cls)
 {
+    std::string clientIp;
+    const MHD_ConnectionInfo *info = MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
+    if (info) {
+        char clientHost[NI_MAXHOST];
+        int ec = getnameinfo(info->client_addr, sizeof(*info->client_addr), clientHost, sizeof(clientHost),
+                             0, 0, NI_NUMERICHOST|NI_NUMERICSERV);
+
+        if (ec == 0) {
+            clientIp = std::string(clientHost);
+        }
+    }
+
     if (strcmp(method, MHD_HTTP_METHOD_OPTIONS) == 0) {
-        LOG_INFO("OPTIONS Requested");
+        LOG_INFO("[%s] OPTIONS Requested",  clientIp.c_str());
         return sendResponse(connection, MHD_HTTP_OK, nullptr, CONTENT_TYPE_HTML);
     }
 
     if (strcmp(method, MHD_HTTP_METHOD_GET) != 0 && strcmp(method, MHD_HTTP_METHOD_POST) != 0) {
-        LOG_ERR("HTTP_METHOD_NOT_ALLOWED");
+        LOG_ERR("[%s] HTTP_METHOD_NOT_ALLOWED (%s)",  clientIp.c_str(), method);
         return sendResponse(connection, MHD_HTTP_METHOD_NOT_ALLOWED, nullptr, CONTENT_TYPE_HTML);
     }
 
     if (strstr(url, "/client/")) {
-        unsigned status = static_cast<Httpd*>(httpd)->tokenAuth(connection);
+        unsigned status = static_cast<Httpd*>(httpd)->tokenAuth(connection, clientIp);
         if (status != MHD_HTTP_OK) {
             return sendResponse(connection, status, nullptr, CONTENT_TYPE_JSON);
         }
     } else {
         std::string resp;
-        unsigned status = static_cast<Httpd*>(httpd)->basicAuth(connection, resp);
+        unsigned status = static_cast<Httpd*>(httpd)->basicAuth(connection, clientIp, resp);
         if (status != MHD_HTTP_OK) {
             MHD_Response* rsp = nullptr;
             if (!resp.empty()) {
@@ -207,15 +221,15 @@ int Httpd::handler(void* httpd, MHD_Connection* connection, const char* url, con
     }
 
     if (strcmp(method, MHD_HTTP_METHOD_GET) == 0) {
-        return handleGET(static_cast<Httpd*>(httpd), connection, url);
+        return handleGET(static_cast<Httpd*>(httpd), connection, clientIp, url);
     } else {
-        return handlePOST(static_cast<Httpd*>(httpd), connection, url, upload_data, upload_data_size, con_cls);
+        return handlePOST(static_cast<Httpd*>(httpd), connection, clientIp, url, upload_data, upload_data_size, con_cls);
     }
 
     return MHD_NO;
 }
 
-int Httpd::handleGET(const Httpd* httpd, struct MHD_Connection* connection, const char* urlPtr)
+int Httpd::handleGET(const Httpd* httpd, struct MHD_Connection* connection, const std::string& clientIp, const char* urlPtr)
 {
     std::string resp;
     std::string url(urlPtr);
@@ -227,7 +241,7 @@ int Httpd::handleGET(const Httpd* httpd, struct MHD_Connection* connection, cons
         clientId = std::string(clientIdPtr);
     }
 
-    unsigned status = Service::handleGET(httpd->m_options, url, clientId, resp);
+    unsigned status = Service::handleGET(httpd->m_options, url, clientIp, clientId, resp);
 
     MHD_Response* rsp = nullptr;
     if (!resp.empty()) {
@@ -244,7 +258,7 @@ int Httpd::handleGET(const Httpd* httpd, struct MHD_Connection* connection, cons
     return sendResponse(connection, status, rsp, contentType);
 }
 
-int Httpd::handlePOST(const Httpd* httpd, struct MHD_Connection* connection, const char* urlPtr, const char* upload_data,
+int Httpd::handlePOST(const Httpd* httpd, struct MHD_Connection* connection, const std::string& clientIp, const char* urlPtr, const char* upload_data,
                       size_t* upload_data_size, void** con_cls)
 {
     auto* cc = (ConnectionContext*)* con_cls;
@@ -259,19 +273,7 @@ int Httpd::handlePOST(const Httpd* httpd, struct MHD_Connection* connection, con
         } else {
             std::string resp;
             std::string url(urlPtr);
-            std::string clientIp;
             std::string clientId;
-
-            const MHD_ConnectionInfo *info = MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
-            if (info) {
-                char clientHost[NI_MAXHOST];
-                int ec = getnameinfo(info->client_addr, sizeof(*info->client_addr), clientHost, sizeof(clientHost),
-                                     0, 0, NI_NUMERICHOST|NI_NUMERICSERV);
-
-                if (ec == 0) {
-                    clientIp = std::string(clientHost);
-                }
-            }
 
             const char* clientIdPtr = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "clientId");
             if (clientIdPtr) {
