@@ -65,7 +65,7 @@ Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-con
 
 **XMRigCC Server**
 
-![Screenshot of XMRigCC Server](https://i.imgur.com/0Ke9gIg.png)
+![Screenshot of XMRigCC Server](https://i.imgur.com/iS1RzgO.png)
 
 **XMRigCC Dashboard**
 
