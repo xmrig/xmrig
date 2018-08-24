@@ -96,19 +96,19 @@ std::string Httpd::readFile(const std::string &fileName)
 unsigned Httpd::tokenAuth(struct MHD_Connection* connection, const std::string& clientIp)
 {
     if (!m_options->ccToken()) {
-        LOG_WARN("[%s] AccessToken not set. Access Granted!", clientIp.c_str());
+        LOG_WARN("[%s] 200 OK - WARNING AccessToken not set!", clientIp.c_str());
         return MHD_HTTP_OK;
     }
 
     const char* header = MHD_lookup_connection_value(connection, MHD_HEADER_KIND, MHD_HTTP_HEADER_AUTHORIZATION);
     if (m_options->ccToken() && !header) {
-        LOG_WARN("[%s] No auth header. Access Forbidden!", clientIp.c_str());
+        LOG_WARN("[%s] 401 UNAUTHORIZED", clientIp.c_str());
         return MHD_HTTP_UNAUTHORIZED;
     }
 
     const size_t size = strlen(header);
     if (size < 8 || strlen(m_options->ccToken()) != size - 7 || memcmp("Bearer ", header, 7) != 0) {
-        LOG_ERR("[%s] AccessToken wrong. Access Forbidden!", clientIp.c_str());
+        LOG_ERR("[%s] 403 FORBIDDEN - AccessToken wrong!", clientIp.c_str());
         return MHD_HTTP_FORBIDDEN;
     }
 
@@ -124,7 +124,7 @@ unsigned Httpd::basicAuth(struct MHD_Connection* connection, const std::string& 
                            "Please configure admin user and pass to view this Page."
                            "</body><html\\>");
 
-        LOG_WARN("[%s] Admin user/password not set. Access Forbidden!",  clientIp.c_str());
+        LOG_ERR("[%s] 403 FORBIDDEN - Admin user/password not set!",  clientIp.c_str());
         result = MHD_HTTP_FORBIDDEN;
     }
     else {
@@ -137,7 +137,7 @@ unsigned Httpd::basicAuth(struct MHD_Connection* connection, const std::string& 
             if (user == nullptr || strcmp(user, m_options->ccAdminUser()) != 0 ||
                 pass == nullptr || strcmp(pass, m_options->ccAdminPass()) != 0) {
 
-                LOG_ERR("[%s] Admin user/password wrong. Access Forbidden!",  clientIp.c_str());
+                LOG_ERR("[%s] 403 FORBIDDEN - Admin user/password wrong!",  clientIp.c_str());
                 result = MHD_HTTP_UNAUTHORIZED;
             }
 
@@ -149,7 +149,7 @@ unsigned Httpd::basicAuth(struct MHD_Connection* connection, const std::string& 
                 free(pass);
             }
         } else {
-            LOG_WARN("[%s] No auth header. Access Forbidden!",  clientIp.c_str());
+            LOG_WARN("[%s] 401 UNAUTHORIZED",  clientIp.c_str());
             result = MHD_HTTP_UNAUTHORIZED;
         }
     }
@@ -199,7 +199,7 @@ int Httpd::handler(void* httpd, MHD_Connection* connection, const char* url, con
     }
 
     if (strcmp(method, MHD_HTTP_METHOD_GET) != 0 && strcmp(method, MHD_HTTP_METHOD_POST) != 0) {
-        LOG_ERR("[%s] HTTP_METHOD_NOT_ALLOWED (%s)",  clientIp.c_str(), method);
+        LOG_ERR("[%s] 405 METHOD NOT ALLOWED (%s)",  clientIp.c_str(), method);
         return sendResponse(connection, MHD_HTTP_METHOD_NOT_ALLOWED, nullptr, CONTENT_TYPE_HTML);
     }
 
@@ -225,8 +225,6 @@ int Httpd::handler(void* httpd, MHD_Connection* connection, const char* url, con
     } else {
         return handlePOST(static_cast<Httpd*>(httpd), connection, clientIp, url, upload_data, upload_data_size, con_cls);
     }
-
-    return MHD_NO;
 }
 
 int Httpd::handleGET(const Httpd* httpd, struct MHD_Connection* connection, const std::string& clientIp, const char* urlPtr)

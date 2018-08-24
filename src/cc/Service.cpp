@@ -90,11 +90,12 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
             } else if (url.rfind("/admin/getClientLog", 0) == 0) {
                 resultCode = getClientLog(clientId, resp);
             } else {
-                LOG_WARN("[%s] METHOD_NOT_FOUND (%s)", clientIp.c_str(), url.c_str());
+                LOG_WARN("[%s] 404 NOT FOUND (%s)", clientIp.c_str(), url.c_str());
             }
         }
         else {
-            LOG_ERR("[%s] Request does not contain clientId: %s", clientIp.c_str(), url.c_str());
+            resultCode = MHD_HTTP_BAD_REQUEST;
+            LOG_ERR("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", clientIp.c_str(), url.c_str());
         }
     }
 
@@ -128,13 +129,13 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
         } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
             resultCode = setClientCommand(clientId, data, resp);
         } else {
-            LOG_WARN("[%s] METHOD_NOT_FOUND (%s)", clientIp.c_str(), url.c_str());
+            LOG_WARN("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", clientIp.c_str(), url.c_str());
         }
     } else {
         if (url.rfind("/admin/resetClientStatusList", 0) == 0) {
             resultCode = resetClientStatusList(data, resp);
         } else {
-            LOG_WARN("[%s] METHOD_NOT_FOUND (%s)", clientIp.c_str(), url.c_str());
+            LOG_WARN("[%s] 404 NOT FOUND (%s)", clientIp.c_str(), url.c_str());
         }
     }
 
