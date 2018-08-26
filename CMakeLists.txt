@@ -16,11 +16,11 @@ set(Boost_USE_STATIC_LIBS ON)
 
 if(NOT MINER_EXECUTABLE_NAME)
 set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
-endif(MINER_EXECUTABLE_NAME)
+endif(NOT MINER_EXECUTABLE_NAME)
 
 if(NOT DAEMON_EXECUTABLE_NAME)
 set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
-endif(DAEMON_EXECUTABLE_NAME)
+endif(NOT DAEMON_EXECUTABLE_NAME)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
