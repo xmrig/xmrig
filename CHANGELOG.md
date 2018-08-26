@@ -8,6 +8,7 @@
     - Maximum lines of log history kept per miner can be configured on XMRigCCServer 
 - Fix correct hugepages status on Dashboard
 - Fix cpu affinity for single thread usage
+- Add all needed security infos to XMRigCCServer logging to harden the server (f.e. fail2ban)
 # 1.6.5
 - Hashrate improve -> add autodetection mode for cpu-affinity
 - Hashrate improve, more stable hashrates -> refactor memory allocation
