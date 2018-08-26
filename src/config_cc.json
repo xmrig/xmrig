@@ -1,7 +1,7 @@
 {
     "background": false,                            // true to run the cc-server in the background (no console)
     "colors": true,                                 // false to disable colored output
-    "log-file": null,                               // log all output to a file
+    "log-file": "server.log",                               // log all output to a file
     "syslog": false,                                // use system log for output messages
     "cc-server": {
         "port": 3344,                               // port the CC Server will listens on

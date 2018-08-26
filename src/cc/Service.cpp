@@ -62,13 +62,20 @@ void Service::release()
     uv_mutex_unlock(&m_mutex);
 }
 
-unsigned Service::handleGET(const Options* options, const std::string& url, const std::string& clientId, std::string& resp)
+unsigned Service::handleGET(const Options* options, const std::string& url, const std::string& clientIp, const std::string& clientId, std::string& resp)
 {
     uv_mutex_lock(&m_mutex);
 
     unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
-    LOG_INFO("GET(url='%s', clientId='%s')", url.c_str(), clientId.c_str());
+    std::string params;
+    if (!clientId.empty())
+    {
+        params += "?clientId=";
+        params += clientId;
+    }
+
+    LOG_INFO("[%s] GET '%s%s'", clientIp.c_str(), url.c_str(), params.c_str());
 
     if (url == "/") {
         resultCode = getAdminPage(options, resp);
@@ -82,10 +89,13 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
                 resultCode = getClientCommand(clientId, resp);
             } else if (url.rfind("/admin/getClientLog", 0) == 0) {
                 resultCode = getClientLog(clientId, resp);
+            } else {
+                LOG_WARN("[%s] 404 NOT FOUND (%s)", clientIp.c_str(), url.c_str());
             }
         }
         else {
-            LOG_ERR("Request does not contain clientId: %s", url.c_str());
+            resultCode = MHD_HTTP_BAD_REQUEST;
+            LOG_ERR("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", clientIp.c_str(), url.c_str());
         }
     }
 
@@ -101,17 +111,32 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
 
     unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
-    LOG_INFO("POST(url='%s', clientIp='%s', clientId='%s', dataLen='%d')",
-             url.c_str(), clientIp.c_str(), clientId.c_str(), data.length());
+    std::string params;
+    if (!clientId.empty())
+    {
+        params += "?clientId=";
+        params += clientId;
+    }
 
-    if (url.rfind("/client/setClientStatus", 0) == 0) {
-        resultCode = setClientStatus(options, clientIp, clientId, data, resp);
-    } else if (url.rfind("/admin/setClientConfig", 0) == 0 || url.rfind("/client/setClientConfig", 0) == 0) {
-        resultCode = setClientConfig(options, clientId, data, resp);
-    } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
-        resultCode = setClientCommand(clientId, data, resp);
-    } else if (url.rfind("/admin/resetClientStatusList", 0) == 0) {
-        resultCode = resetClientStatusList(data, resp);
+    LOG_INFO("[%s] POST '%s%s', dataLen='%d'",
+             clientIp.c_str(), url.c_str(), params.c_str(), data.length());
+
+    if (!clientId.empty()) {
+        if (url.rfind("/client/setClientStatus", 0) == 0) {
+            resultCode = setClientStatus(options, clientIp, clientId, data, resp);
+        } else if (url.rfind("/admin/setClientConfig", 0) == 0 || url.rfind("/client/setClientConfig", 0) == 0) {
+            resultCode = setClientConfig(options, clientId, data, resp);
+        } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
+            resultCode = setClientCommand(clientId, data, resp);
+        } else {
+            LOG_WARN("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", clientIp.c_str(), url.c_str());
+        }
+    } else {
+        if (url.rfind("/admin/resetClientStatusList", 0) == 0) {
+            resultCode = resetClientStatusList(data, resp);
+        } else {
+            LOG_WARN("[%s] 404 NOT FOUND (%s)", clientIp.c_str(), url.c_str());
+        }
     }
 
     uv_mutex_unlock(&m_mutex);
@@ -227,8 +252,6 @@ unsigned Service::setClientStatus(const Options* options, const std::string& cli
 
     rapidjson::Document document;
     if (!document.Parse(data.c_str()).HasParseError()) {
-        LOG_INFO("Status from client: %s", clientId.c_str());
-
         ClientStatus clientStatus;
         clientStatus.parseFromJson(document);
         clientStatus.setExternalIp(clientIp);
@@ -245,7 +268,8 @@ unsigned Service::setClientStatus(const Options* options, const std::string& cli
             m_clientCommand.erase(clientId);
         }
     } else {
-        LOG_ERR("Parse Error Occured: %d", document.GetParseError());
+        LOG_ERR("[%s] ClientStatus for client '%s' - Parse Error Occured: %d",
+                clientIp.c_str(), clientId.c_str(), document.GetParseError());
     }
 
     return resultCode;
