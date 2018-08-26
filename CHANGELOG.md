@@ -9,6 +9,8 @@
 - Fix correct hugepages status on Dashboard
 - Fix cpu affinity for single thread usage
 - Add all needed security infos to XMRigCCServer logging to harden the server (f.e. fail2ban)
+- Fix commandline params overwrite config.json #157
+- Fix bulding of miner with API support Cannot #145
 # 1.6.5
 - Hashrate improve -> add autodetection mode for cpu-affinity
 - Hashrate improve, more stable hashrates -> refactor memory allocation
