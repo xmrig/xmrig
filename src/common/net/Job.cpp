@@ -178,7 +178,12 @@ xmrig::Variant Job::variant() const
     }
 
     if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
-        return m_algorithm.algo() == xmrig::CRYPTONIGHT_HEAVY ? xmrig::VARIANT_0 : xmrig::VARIANT_1;
+        if (m_algorithm.algo() == xmrig::CRYPTONIGHT_HEAVY) {
+            return xmrig::VARIANT_0;
+        } else if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
+            return xmrig::VARIANT_1;
+        }
+        return (m_blob[0] >= 8) ? xmrig::VARIANT_2 : xmrig::VARIANT_1;
     }
 
     return m_algorithm.variant();
