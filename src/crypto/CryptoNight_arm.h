@@ -527,7 +527,9 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
                 idx0 = d ^ q;
             }
         }
-        bx1 = bx0;
+        if (VARIANT == xmrig::VARIANT_2) {
+            bx1 = bx0;
+        }
         bx0 = cx;
     }
 
@@ -699,9 +701,11 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
                 idx1 = d ^ q;
             }
         }
-        bx01 = bx00;
+        if (VARIANT == xmrig::VARIANT_2) {
+            bx01 = bx00;
+            bx11 = bx10;
+        }
         bx00 = cx0;
-        bx11 = bx10;
         bx10 = cx1;
     }
 
