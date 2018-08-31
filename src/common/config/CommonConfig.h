@@ -49,6 +49,7 @@ public:
     inline bool isColors() const                   { return m_colors; }
     inline bool isDryRun() const                   { return m_dryRun; }
     inline bool isSyslog() const                   { return m_syslog; }
+    inline const char *apiId() const               { return m_apiId.data(); }
     inline const char *apiToken() const            { return m_apiToken.data(); }
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
     inline const char *logFile() const             { return m_logFile.data(); }
@@ -97,6 +98,7 @@ protected:
     State m_state;
     std::vector<Pool> m_activePools;
     std::vector<Pool> m_pools;
+    xmrig::c_str m_apiId;
     xmrig::c_str m_apiToken;
     xmrig::c_str m_apiWorkerId;
     xmrig::c_str m_fileName;

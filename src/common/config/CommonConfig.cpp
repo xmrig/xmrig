@@ -251,6 +251,10 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_apiWorkerId = arg;
         break;
 
+    case ApiIdKey: /* --api-id */
+        m_apiId = arg;
+        break;
+
     case UserAgentKey: /* --user-agent */
         m_userAgent = arg;
         break;

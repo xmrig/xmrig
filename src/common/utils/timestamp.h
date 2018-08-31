@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TIMESTAMP_H__
-#define __TIMESTAMP_H__
+#ifndef XMRIG_TIMESTAMP_H
+#define XMRIG_TIMESTAMP_H
 
 
 #include <chrono>
@@ -31,7 +31,7 @@
 namespace xmrig {
 
 
-int64_t currentMSecsSinceEpoch()
+static inline int64_t currentMSecsSinceEpoch()
 {
     using namespace std::chrono;
     if (high_resolution_clock::is_steady) {
@@ -44,4 +44,4 @@ int64_t currentMSecsSinceEpoch()
 
 } /* namespace xmrig */
 
-#endif /* __TIMESTAMP_H__ */
+#endif /* XMRIG_TIMESTAMP_H */
