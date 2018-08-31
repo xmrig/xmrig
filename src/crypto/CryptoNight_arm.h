@@ -7,6 +7,7 @@
  * Copyright 2016      Imran Yusuff <https://github.com/imranyusuff>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -23,8 +24,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_ARM_H__
-#define __CRYPTONIGHT_ARM_H__
+#ifndef XMRIG_CRYPTONIGHT_ARM_H
+#define XMRIG_CRYPTONIGHT_ARM_H
 
 
 #include "common/crypto/keccak.h"
@@ -93,9 +94,6 @@ static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i 
 {
     return vgetq_lane_u64(a, 0);
 }
-
-
-#define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
 
 #if defined (__arm64__) || defined (__aarch64__)
@@ -404,7 +402,7 @@ static inline __m128i aes_round_tweak_div(const __m128i &in, const __m128i &key)
 }
 
 
-template<int VARIANT>
+template<xmrig::Variant VARIANT>
 static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i cx)
 {
     uint64_t* mem_out = (uint64_t*)&l[idx];
@@ -414,7 +412,7 @@ static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m1
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
-        mem_out[0] = EXTRACT64(tmp);
+        mem_out[0] = _mm_cvtsi128_si64(tmp);
 
         uint64_t vh = vgetq_lane_u64(tmp, 1);
 
@@ -481,7 +479,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             _mm_store_si128((__m128i *)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
         }
 
-        idx0 = EXTRACT64(cx);
+        idx0 = _mm_cvtsi128_si64(cx);
 
         uint64_t hi, lo, cl, ch;
         cl = ((uint64_t*) &l0[idx0 & MASK])[0];
@@ -612,8 +610,8 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             _mm_store_si128((__m128i *) &l1[idx1 & MASK], _mm_xor_si128(bx10, cx1));
         }
 
-        idx0 = EXTRACT64(cx0);
-        idx1 = EXTRACT64(cx1);
+        idx0 = _mm_cvtsi128_si64(cx0);
+        idx1 = _mm_cvtsi128_si64(cx1);
 
         uint64_t hi, lo, cl, ch;
         cl = ((uint64_t*) &l0[idx0 & MASK])[0];
