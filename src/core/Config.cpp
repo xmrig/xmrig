@@ -75,6 +75,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     Value api(kObjectType);
     api.AddMember("port",         apiPort(), allocator);
     api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("id",           apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
     api.AddMember("worker-id",    apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
     api.AddMember("ipv6",         isApiIPv6(), allocator);
     api.AddMember("restricted",   isApiRestricted(), allocator);
