@@ -211,6 +211,7 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
     case xmrig::VARIANT_AUTO:
     case xmrig::VARIANT_0:
     case xmrig::VARIANT_1:
+    case xmrig::VARIANT_2:
         obj.AddMember("variant", m_algorithm.variant(), allocator);
         break;
 
@@ -377,6 +378,7 @@ void Pool::rebuild()
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
+    addVariant(xmrig::VARIANT_2);
     addVariant(xmrig::VARIANT_1);
     addVariant(xmrig::VARIANT_0);
     addVariant(xmrig::VARIANT_XTL);
