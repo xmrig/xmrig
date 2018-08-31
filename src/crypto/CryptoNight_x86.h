@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_X86_H__
-#define __CRYPTONIGHT_X86_H__
+#ifndef XMRIG_CRYPTONIGHT_X86_H
+#define XMRIG_CRYPTONIGHT_X86_H
 
 
 #ifdef __GNUC__
@@ -73,10 +74,7 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
 void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
 
 
-
 #if defined(__x86_64__) || defined(_M_AMD64)
-#   define EXTRACT64(X) _mm_cvtsi128_si64(X)
-
 #   ifdef __GNUC__
 static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
 {
@@ -88,13 +86,14 @@ static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
     #define __umul128 _umul128
 #   endif
 #elif defined(__i386__) || defined(_M_IX86)
-#   define HI32(X) \
-    _mm_srli_si128((X), 4)
+static inline int64_t _mm_cvtsi128_si64(__m128i a)
+{
+    return ((uint64_t)(uint32_t)_mm_cvtsi128_si32(a) | ((uint64_t)(uint32_t)_mm_cvtsi128_si32(_mm_srli_si128(a, 4)) << 32));
+}
 
-
-#   define EXTRACT64(X) \
-    ((uint64_t)(uint32_t)_mm_cvtsi128_si32(X) | \
-    ((uint64_t)(uint32_t)_mm_cvtsi128_si32(HI32(X)) << 32))
+static inline __m128i _mm_cvtsi64_si128(int64_t a) {
+    return _mm_set_epi64x(0, a);
+}
 
 static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
     // multiplier   = ab = a * 2^32 + b
@@ -418,11 +417,11 @@ static inline __m128i int_sqrt_v2(const uint64_t n0)
     r >>= 19;
 
     uint64_t x2 = (s - (1022ULL << 32)) * (r - s - (1022ULL << 32) + 1);
-#if defined _MSC_VER || (__GNUC__ >= 7)
+#   if (defined _MSC_VER || (__GNUC__ >= 7)) && (defined(__x86_64__) || defined(_M_AMD64))
     _addcarry_u64(_subborrow_u64(0, x2, n0, (unsigned long long int*)&x2), r, 0, (unsigned long long int*)&r);
-#else
+#   else
     if (x2 < n0) ++r;
-#endif
+#   endif
 
     return _mm_cvtsi64_si128(r);
 }
@@ -436,10 +435,10 @@ static inline void cryptonight_monero_tweak(uint64_t* mem_out, const uint8_t* l,
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
-        mem_out[0] = EXTRACT64(tmp);
+        mem_out[0] = _mm_cvtsi128_si64(tmp);
 
         tmp = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(tmp), _mm_castsi128_ps(tmp)));
-        uint64_t vh = EXTRACT64(tmp);
+        uint64_t vh = _mm_cvtsi128_si64(tmp);
 
         uint8_t x = static_cast<uint8_t>(vh >> 24);
         static const uint16_t table = 0x7531;
@@ -505,7 +504,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             _mm_store_si128((__m128i *)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
         }
 
-        idx0 = EXTRACT64(cx);
+        idx0 = _mm_cvtsi128_si64(cx);
 
         uint64_t hi, lo, cl, ch;
         cl = ((uint64_t*) &l0[idx0 & MASK])[0];
@@ -635,8 +634,8 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             _mm_store_si128((__m128i *) &l1[idx1 & MASK], _mm_xor_si128(bx10, cx1));
         }
 
-        idx0 = EXTRACT64(cx0);
-        idx1 = EXTRACT64(cx1);
+        idx0 = _mm_cvtsi128_si64(cx0);
+        idx1 = _mm_cvtsi128_si64(cx1);
 
         uint64_t hi, lo, cl, ch;
         cl = ((uint64_t*) &l0[idx0 & MASK])[0];
@@ -763,7 +762,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
 
 #define CN_STEP3(part, a, b0, b1, c, l, ptr, idx)     \
-    idx = EXTRACT64(c);                               \
+    idx = _mm_cvtsi128_si64(c);                       \
     ptr = reinterpret_cast<__m128i*>(&l[idx & MASK]); \
     uint64_t cl##part = ((uint64_t*)ptr)[0];          \
     uint64_t ch##part = ((uint64_t*)ptr)[1];
@@ -791,7 +790,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     }                                                   \
                                                         \
     a = _mm_xor_si128(a, _mm_set_epi64x(ch##part, cl##part)); \
-    idx = EXTRACT64(a);                                 \
+    idx = _mm_cvtsi128_si64(a);                         \
                                                         \
     if (ALGO == xmrig::CRYPTONIGHT_HEAVY) {             \
         int64_t n = ((int64_t*)&l[idx & MASK])[0];      \
@@ -859,9 +858,9 @@ inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t si
     VARIANT2_SET_ROUNDING_MODE();
 
     uint64_t idx0, idx1, idx2;
-    idx0 = EXTRACT64(ax0);
-    idx1 = EXTRACT64(ax1);
-    idx2 = EXTRACT64(ax2);
+    idx0 = _mm_cvtsi128_si64(ax0);
+    idx1 = _mm_cvtsi128_si64(ax1);
+    idx2 = _mm_cvtsi128_si64(ax2);
 
     for (size_t i = 0; i < ITERATIONS; i++) {
         uint64_t hi, lo;
@@ -926,10 +925,10 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
     VARIANT2_SET_ROUNDING_MODE();
 
     uint64_t idx0, idx1, idx2, idx3;
-    idx0 = EXTRACT64(ax0);
-    idx1 = EXTRACT64(ax1);
-    idx2 = EXTRACT64(ax2);
-    idx3 = EXTRACT64(ax3);
+    idx0 = _mm_cvtsi128_si64(ax0);
+    idx1 = _mm_cvtsi128_si64(ax1);
+    idx2 = _mm_cvtsi128_si64(ax2);
+    idx3 = _mm_cvtsi128_si64(ax3);
 
     for (size_t i = 0; i < ITERATIONS; i++)
     {
@@ -1002,11 +1001,11 @@ inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t siz
     VARIANT2_SET_ROUNDING_MODE();
 
     uint64_t idx0, idx1, idx2, idx3, idx4;
-    idx0 = EXTRACT64(ax0);
-    idx1 = EXTRACT64(ax1);
-    idx2 = EXTRACT64(ax2);
-    idx3 = EXTRACT64(ax3);
-    idx4 = EXTRACT64(ax4);
+    idx0 = _mm_cvtsi128_si64(ax0);
+    idx1 = _mm_cvtsi128_si64(ax1);
+    idx2 = _mm_cvtsi128_si64(ax2);
+    idx3 = _mm_cvtsi128_si64(ax3);
+    idx4 = _mm_cvtsi128_si64(ax4);
 
     for (size_t i = 0; i < ITERATIONS; i++)
     {
@@ -1045,4 +1044,4 @@ inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t siz
     }
 }
 
-#endif /* __CRYPTONIGHT_X86_H__ */
+#endif /* XMRIG_CRYPTONIGHT_X86_H */
