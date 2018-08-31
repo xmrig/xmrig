@@ -166,9 +166,12 @@ bool Network::isColors() const
 
 void Network::setJob(Client *client, const Job &job, bool donate)
 {
+    xmrig::Algorithm algorithm = job.algorithm();
+    algorithm.setVariant(job.variant());
+
     LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s")
                         : "new job from %s:%d diff %d algo %s",
-             client->host(), client->port(), job.diff(), job.algorithm().shortName());
+             client->host(), client->port(), job.diff(), algorithm.shortName());
 
     m_state.diff = job.diff();
     Workers::setJob(job, donate);

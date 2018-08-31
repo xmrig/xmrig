@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -165,24 +166,13 @@ bool Job::setTarget(const char *target)
 
 xmrig::Variant Job::variant() const
 {
-    if (m_algorithm.variant() == xmrig::VARIANT_XTL && m_blob[0] < 4) {
-        return xmrig::VARIANT_1;
-    }
-
-    if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] < 7) {
-        return xmrig::VARIANT_1;
-    }
-
-    if (m_algorithm.variant() == xmrig::VARIANT_XHV && m_blob[0] < 3) {
-        return xmrig::VARIANT_0;
-    }
-
     if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
         if (m_algorithm.algo() == xmrig::CRYPTONIGHT_HEAVY) {
             return xmrig::VARIANT_0;
         } else if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
             return xmrig::VARIANT_1;
         }
+
         return (m_blob[0] >= 8) ? xmrig::VARIANT_2 : xmrig::VARIANT_1;
     }
 
