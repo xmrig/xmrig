@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -176,11 +177,21 @@ void xmrig::Algorithm::parseVariant(const char *variant)
 
 void xmrig::Algorithm::parseVariant(int variant)
 {
-    if (variant >= VARIANT_AUTO && variant < VARIANT_MAX) {
-       m_variant = static_cast<Variant>(variant);
-    }
-    else {
-        assert(false);
+    assert(variant >= -1 && variant <= 2);
+
+    switch (variant) {
+    case -1:
+    case 0:
+    case 1:
+        m_variant = static_cast<Variant>(variant);
+        break;
+
+    case 2:
+        m_variant = VARIANT_2;
+        break;
+
+    default:
+        break;
     }
 }
 
