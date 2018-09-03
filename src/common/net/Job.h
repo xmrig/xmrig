@@ -39,12 +39,11 @@ class Job
 {
 public:
     Job();
-    Job(int poolId, bool nicehash, xmrig::Algorithm algorithm, const xmrig::Id &clientId);
+    Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId);
     ~Job();
 
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
-    xmrig::Variant variant() const;
 
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
@@ -61,10 +60,12 @@ public:
     inline uint32_t diff() const                      { return static_cast<uint32_t>(m_diff); }
     inline uint64_t target() const                    { return m_target; }
     inline void reset()                               { m_size = 0; m_diff = 0; }
+    inline void setAlgorithm(const char *algo)        { m_algorithm.parseAlgorithm(algo); }
     inline void setClientId(const xmrig::Id &id)      { m_clientId = id; }
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
     inline void setThreadId(int threadId)             { m_threadId = threadId; }
-    inline xmrig::Algorithm &algorithm()              { return m_algorithm; }
+    inline void setVariant(const char *variant)       { m_algorithm.parseVariant(variant); }
+    inline void setVariant(int variant)               { m_algorithm.parseVariant(variant); }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                 { return m_rawBlob; }
@@ -84,6 +85,9 @@ public:
     bool operator!=(const Job &other) const;
 
 private:
+    xmrig::Variant variant() const;
+
+    bool m_autoVariant;
     bool m_nicehash;
     int m_poolId;
     int m_threadId;

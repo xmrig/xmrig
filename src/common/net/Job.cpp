@@ -59,6 +59,7 @@ static inline char hf_bin2hex(unsigned char c)
 
 
 Job::Job() :
+    m_autoVariant(false),
     m_nicehash(false),
     m_poolId(-2),
     m_threadId(-1),
@@ -70,7 +71,8 @@ Job::Job() :
 }
 
 
-Job::Job(int poolId, bool nicehash, xmrig::Algorithm algorithm, const xmrig::Id &clientId) :
+Job::Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId) :
+    m_autoVariant(algorithm.variant() == xmrig::VARIANT_AUTO),
     m_nicehash(nicehash),
     m_poolId(poolId),
     m_threadId(-1),
@@ -111,6 +113,10 @@ bool Job::setBlob(const char *blob)
 
     if (*nonce() != 0 && !m_nicehash) {
         m_nicehash = true;
+    }
+
+    if (m_autoVariant) {
+        m_algorithm.setVariant(variant());
     }
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -164,22 +170,6 @@ bool Job::setTarget(const char *target)
 }
 
 
-xmrig::Variant Job::variant() const
-{
-    if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
-        if (m_algorithm.algo() == xmrig::CRYPTONIGHT_HEAVY) {
-            return xmrig::VARIANT_0;
-        } else if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
-            return xmrig::VARIANT_1;
-        }
-
-        return (m_blob[0] >= 8) ? xmrig::VARIANT_2 : xmrig::VARIANT_1;
-    }
-
-    return m_algorithm.variant();
-}
-
-
 bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 {
     bool error = false;
@@ -223,4 +213,26 @@ bool Job::operator==(const Job &other) const
 bool Job::operator!=(const Job &other) const
 {
     return m_id != other.m_id || memcmp(m_blob, other.m_blob, sizeof(m_blob)) != 0;
+}
+
+
+xmrig::Variant Job::variant() const
+{
+    using namespace xmrig;
+
+    switch (m_algorithm.algo()) {
+    case CRYPTONIGHT:
+        return (m_blob[0] >= 8) ? VARIANT_2 : VARIANT_1;
+
+    case CRYPTONIGHT_LITE:
+        return VARIANT_1;
+
+    case CRYPTONIGHT_HEAVY:
+        return VARIANT_0;
+
+    default:
+        break;
+    }
+
+    return m_algorithm.variant();
 }
