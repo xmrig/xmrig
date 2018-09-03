@@ -111,6 +111,7 @@ template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XTL>() 
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_MSR>()        { return CRYPTONIGHT_MSR_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XAO>()        { return CRYPTONIGHT_XAO_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_RTO>()        { return CRYPTONIGHT_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_MOX>()   { return CRYPTONIGHT_LITE_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_0>()     { return CRYPTONIGHT_LITE_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_1>()     { return CRYPTONIGHT_LITE_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_0>()    { return CRYPTONIGHT_HEAVY_ITER; }
@@ -159,6 +160,7 @@ template<> inline constexpr bool cn_is_monero<VARIANT_MSR>()   { return true; }
 template<> inline constexpr bool cn_is_monero<VARIANT_XHV>()   { return false; }
 template<> inline constexpr bool cn_is_monero<VARIANT_XAO>()   { return false; }
 template<> inline constexpr bool cn_is_monero<VARIANT_RTO>()   { return true; }
+template<> inline constexpr bool cn_is_monero<VARIANT_MOX>()   { return true; }
 
 
 inline bool cn_is_monero(Variant variant)

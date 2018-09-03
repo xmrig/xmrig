@@ -470,7 +470,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         }
 
         if (IS_MONERO) {
-            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : 3>((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
+            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : VARIANT == xmrig::VARIANT_MOX ? 8 : 3>((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
         } else {
             _mm_store_si128((__m128i *)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
         }
@@ -585,8 +585,8 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         }
 
         if (IS_MONERO) {
-            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : 3>((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
-            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : 3>((uint64_t*)&l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
+            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : VARIANT == xmrig::VARIANT_MOX ? 8 : 3>((uint64_t*)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
+            cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : VARIANT == xmrig::VARIANT_MOX ? 8 : 3>((uint64_t*)&l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
         } else {
             _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
             _mm_store_si128((__m128i *) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
@@ -707,7 +707,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     b = _mm_xor_si128(b, c);                                           \
                                                                        \
     if (IS_MONERO) {                                                 \
-        cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : 3>(reinterpret_cast<uint64_t*>(ptr), b); \
+      cryptonight_monero_tweak<VARIANT == xmrig::VARIANT_XTL ? 4 : VARIANT == xmrig::VARIANT_MOX ? 8 : 3>(reinterpret_cast<uint64_t*>(ptr), b); \
     } else {                                                           \
         _mm_store_si128(ptr, b);                                       \
     }
