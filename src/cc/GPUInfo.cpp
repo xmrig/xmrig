@@ -40,13 +40,13 @@ rapidjson::Value GPUInfo::toJson(rapidjson::MemoryPoolAllocator <rapidjson::CrtA
     rapidjson::Value gpuInfo(rapidjson::kObjectType);
 
     gpuInfo.AddMember("name", rapidjson::StringRef(m_name.c_str()), allocator);
-    gpuInfo.AddMember("device_idx", m_deviceIdx, allocator);
-    gpuInfo.AddMember("raw_intensity", m_rawIntensity, allocator);
-    gpuInfo.AddMember("work_size", m_workSize, allocator);
-    gpuInfo.AddMember("max_work_size", m_maxWorkSize, allocator);
-    gpuInfo.AddMember("free_mem", m_freeMem, allocator);
-    gpuInfo.AddMember("mem_chunk", m_memChunk, allocator);
-    gpuInfo.AddMember("comp_mode", m_memChunk, allocator);
+    gpuInfo.AddMember("device_idx", static_cast<uint32_t>(m_deviceIdx), allocator); 
+    gpuInfo.AddMember("raw_intensity", static_cast<uint32_t>(m_rawIntensity), allocator); 
+    gpuInfo.AddMember("work_size", static_cast<uint32_t>(m_workSize), allocator); 
+    gpuInfo.AddMember("max_work_size", static_cast<uint32_t>(m_maxWorkSize), allocator); 
+    gpuInfo.AddMember("free_mem", static_cast<uint32_t>(m_freeMem), allocator); 
+    gpuInfo.AddMember("mem_chunk", m_memChunk, allocator); 
+    gpuInfo.AddMember("comp_mode", m_memChunk, allocator); 
     gpuInfo.AddMember("compute_units", m_memChunk, allocator);
 
     return gpuInfo;
