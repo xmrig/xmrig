@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MULTIWORKER_H__
-#define __MULTIWORKER_H__
+#ifndef XMRIG_MULTIWORKER_H
+#define XMRIG_MULTIWORKER_H
 
 
 #include "common/net/Job.h"
@@ -71,4 +72,4 @@ private:
 };
 
 
-#endif /* __MULTIWORKER_H__ */
+#endif /* XMRIG_MULTIWORKER_H */

@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -211,6 +212,7 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
     case xmrig::VARIANT_AUTO:
     case xmrig::VARIANT_0:
     case xmrig::VARIANT_1:
+    case xmrig::VARIANT_2:
         obj.AddMember("variant", m_algorithm.variant(), allocator);
         break;
 
@@ -359,7 +361,7 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
     if (m_algorithm.algo() == CRYPTONIGHT_HEAVY)  {
         m_algorithm.setVariant(VARIANT_0);
     }
-    else {
+    else if (m_algorithm.algo() == CRYPTONIGHT_LITE) {
         m_algorithm.setVariant(VARIANT_1);
     }
 #   endif
@@ -377,6 +379,7 @@ void Pool::rebuild()
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
+    addVariant(xmrig::VARIANT_2);
     addVariant(xmrig::VARIANT_1);
     addVariant(xmrig::VARIANT_0);
     addVariant(xmrig::VARIANT_XTL);

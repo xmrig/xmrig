@@ -67,6 +67,7 @@ enum Variant {
     VARIANT_XHV  = 5,  // Modified CryptoNight-Heavy (Haven Protocol only)
     VARIANT_XAO  = 6,  // Modified CryptoNight variant 0 (Alloy only)
     VARIANT_RTO  = 7,  // Modified CryptoNight variant 1 (Arto only)
+    VARIANT_2    = 8,  // CryptoNight variant 2
     VARIANT_MAX
 };
 
