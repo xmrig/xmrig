@@ -24,6 +24,7 @@
 #include <assert.h>
 
 
+#include "common/log/Log.h"
 #include "common/net/Pool.h"
 #include "rapidjson/document.h"
 #include "workers/CpuThread.h"
@@ -359,6 +360,17 @@ xmrig::IThread::Multiway xmrig::CpuThread::multiway(AlgoVariant av)
 
     return SingleWay;
 }
+
+
+#ifdef APP_DEBUG
+void xmrig::CpuThread::print() const
+{
+    LOG_DEBUG(GREEN_BOLD("CPU thread:   ") " index " WHITE_BOLD("%zu") ", multiway " WHITE_BOLD("%d") ", av " WHITE_BOLD("%d") ",",
+              index(), static_cast<int>(multiway()), static_cast<int>(m_av));
+
+    LOG_DEBUG("               affine_to_cpu: %" PRId64, affinity());
+}
+#endif
 
 
 #ifndef XMRIG_NO_API

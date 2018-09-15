@@ -80,13 +80,17 @@ public:
         HardwareAESKey    = 1011,
 
         // xmrig amd
-        OclPlatform       = 1400,
-        OclAffinity       = 1401,
-        OclDevices        = 1402,
-        OclLaunch         = 1403,
-        OclCache          = 1404,
-        OclPrint          = 1405,
-        OclLoader         = 1406,
+        OclPlatformKey    = 1400,
+        OclAffinityKey    = 1401,
+        OclDevicesKey     = 1402,
+        OclLaunchKey      = 1403,
+        OclCacheKey       = 1404,
+        OclPrintKey       = 1405,
+        OclLoaderKey      = 1406,
+        OclSridedIndexKey = 1407,
+        OclMemChunkKey    = 1408,
+        OclUnrollKey      = 1409,
+        OclCompModeKey    = 1410,
 
         // xmrig-proxy
         AccessLogFileKey  = 'A',

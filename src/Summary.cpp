@@ -134,9 +134,11 @@ static void print_pools(xmrig::Config *config)
     }
 
 #   ifdef APP_DEBUG
+    LOG_NOTICE("POOLS --------------------------------------------------------------------");
     for (const Pool &pool : pools) {
         pool.print();
     }
+    LOG_NOTICE("--------------------------------------------------------------------------");
 #   endif
 }
 

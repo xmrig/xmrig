@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CPUTHREAD_H__
-#define __CPUTHREAD_H__
+#ifndef XMRIG_CPUTHREAD_H
+#define XMRIG_CPUTHREAD_H
 
 
 #include "common/xmrig.h"
@@ -80,6 +80,10 @@ public:
     inline Type type() const override            { return CPU; }
 
 protected:
+#   ifdef APP_DEBUG
+    void print() const override;
+#   endif
+
 #   ifndef XMRIG_NO_API
     rapidjson::Value toAPI(rapidjson::Document &doc) const override;
 #   endif
@@ -101,4 +105,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* __CPUTHREAD_H__ */
+#endif /* XMRIG_CPUTHREAD_H */
