@@ -117,15 +117,17 @@ bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
 
 bool Pool::isEqual(const Pool &other) const
 {
-    return (m_nicehash     == other.m_nicehash
-            && m_keepAlive == other.m_keepAlive
-            && m_port      == other.m_port
-            && m_algorithm == other.m_algorithm
-            && m_host      == other.m_host
-            && m_password  == other.m_password
-            && m_rigId     == other.m_rigId
-            && m_url       == other.m_url
-            && m_user      == other.m_user);
+    return (m_nicehash       == other.m_nicehash
+            && m_tls         == other.m_tls
+            && m_keepAlive   == other.m_keepAlive
+            && m_port        == other.m_port
+            && m_algorithm   == other.m_algorithm
+            && m_fingerprint == other.m_fingerprint
+            && m_host        == other.m_host
+            && m_password    == other.m_password
+            && m_rigId       == other.m_rigId
+            && m_url         == other.m_url
+            && m_user        == other.m_user);
 }
 
 

@@ -229,6 +229,12 @@ bool xmrig::CommonConfig::finalize()
         pool.adjust(m_algorithm);
 
         if (pool.isValid() && pool.algorithm().isValid()) {
+#           ifdef XMRIG_NO_TLS
+            if (pool.isTLS()) {
+                continue;
+            }
+#           endif
+
             m_activePools.push_back(std::move(pool));
         }
     }
