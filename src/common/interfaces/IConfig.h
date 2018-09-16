@@ -63,6 +63,8 @@ public:
         VerboseKey        = 1100,
         VersionKey        = 'V',
         WatchKey          = 1105,
+        TlsKey            = 1013,
+        FingerprintKey    = 1014,
 
         // xmrig common
         CPUPriorityKey    = 1021,
@@ -80,17 +82,13 @@ public:
         HardwareAESKey    = 1011,
 
         // xmrig amd
-        OclPlatformKey    = 1400,
-        OclAffinityKey    = 1401,
-        OclDevicesKey     = 1402,
-        OclLaunchKey      = 1403,
-        OclCacheKey       = 1404,
-        OclPrintKey       = 1405,
-        OclLoaderKey      = 1406,
-        OclSridedIndexKey = 1407,
-        OclMemChunkKey    = 1408,
-        OclUnrollKey      = 1409,
-        OclCompModeKey    = 1410,
+        OclPlatform       = 1400,
+        OclAffinity       = 1401,
+        OclDevices        = 1402,
+        OclLaunch         = 1403,
+        OclCache          = 1404,
+        OclPrint          = 1405,
+        OclLoader         = 1406,
 
         // xmrig-proxy
         AccessLogFileKey  = 'A',

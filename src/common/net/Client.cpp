@@ -29,6 +29,13 @@
 #include <utility>
 
 
+#ifndef XMRIG_NO_TLS
+#   include <openssl/ssl.h>
+#   include <openssl/err.h>
+#   include "common/net/Tls.h"
+#endif
+
+
 #include "common/interfaces/IClientListener.h"
 #include "common/log/Log.h"
 #include "common/net/Client.h"
@@ -48,6 +55,17 @@ int64_t Client::m_sequence = 1;
 xmrig::Storage<Client> Client::m_storage;
 
 
+#ifdef APP_DEBUG
+static const char *states[] = {
+    "unconnected",
+    "host-lookup",
+    "connecting",
+    "connected",
+    "closing"
+};
+#endif
+
+
 Client::Client(int id, const char *agent, IClientListener *listener) :
     m_ipv6(false),
     m_nicehash(false),
@@ -61,6 +79,7 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_failures(0),
     m_recvBufPos(0),
     m_state(UnconnectedState),
+    m_tls(nullptr),
     m_expire(0),
     m_jobs(0),
     m_keepAlive(0),
@@ -92,6 +111,12 @@ Client::~Client()
 
 void Client::connect()
 {
+#   ifndef XMRIG_NO_TLS
+    if (m_pool.isTLS()) {
+        m_tls = new Tls(this);
+    }
+#   endif
+
     resolve(m_pool.host());
 }
 
@@ -120,6 +145,7 @@ void Client::deleteLater()
         m_storage.remove(m_key);
     }
 }
+
 
 
 void Client::setPool(const Pool &pool)
@@ -157,6 +183,12 @@ bool Client::disconnect()
     m_failures  = -1;
 
     return close();
+}
+
+
+bool Client::isTLS() const
+{
+    return m_pool.isTLS() && m_tls;
 }
 
 
@@ -330,6 +362,39 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
 }
 
 
+bool Client::send(BIO *bio)
+{
+#   ifndef XMRIG_NO_TLS
+    uv_buf_t buf;
+    buf.len = BIO_get_mem_data(bio, &buf.base);
+
+    if (buf.len == 0) {
+        return true;
+    }
+
+    LOG_DEBUG("[%s] TLS send     (%d bytes)", m_pool.url(), static_cast<int>(buf.len));
+
+    bool result = false;
+    if (state() == ConnectedState && uv_is_writable(m_stream)) {
+        result = uv_try_write(m_stream, &buf, 1) > 0;
+
+        if (!result) {
+            close();
+        }
+    }
+    else {
+        LOG_DEBUG_ERR("[%s] send failed, invalid state: %d", m_pool.url(), m_state);
+    }
+
+    BIO_reset(bio);
+
+    return result;
+#   else
+    return false;
+#   endif
+}
+
+
 bool Client::verifyAlgorithm(const xmrig::Algorithm &algorithm) const
 {
 #   ifdef XMRIG_PROXY_PROJECT
@@ -404,16 +469,27 @@ int64_t Client::send(const rapidjson::Document &doc)
 int64_t Client::send(size_t size)
 {
     LOG_DEBUG("[%s] send (%d bytes): \"%s\"", m_pool.url(), size, m_sendBuf);
-    if (state() != ConnectedState || !uv_is_writable(m_stream)) {
-        LOG_DEBUG_ERR("[%s] send failed, invalid state: %d", m_pool.url(), m_state);
-        return -1;
+
+#   ifndef XMRIG_NO_TLS
+    if (isTLS()) {
+        if (!m_tls->send(m_sendBuf, size)) {
+            return -1;
+        }
     }
+    else
+#   endif
+    {
+        if (state() != ConnectedState || !uv_is_writable(m_stream)) {
+            LOG_DEBUG_ERR("[%s] send failed, invalid state: %d", m_pool.url(), m_state);
+            return -1;
+        }
 
-    uv_buf_t buf = uv_buf_init(m_sendBuf, (unsigned int) size);
+        uv_buf_t buf = uv_buf_init(m_sendBuf, (unsigned int) size);
 
-    if (uv_try_write(m_stream, &buf, 1) < 0) {
-        close();
-        return -1;
+        if (uv_try_write(m_stream, &buf, 1) < 0) {
+            close();
+            return -1;
+        }
     }
 
     m_expire = uv_now(uv_default_loop()) + kResponseTimeout;
@@ -460,6 +536,22 @@ void Client::connect(sockaddr *addr)
 #   endif
 
     uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
+}
+
+
+void Client::handshake()
+{
+#   ifndef XMRIG_NO_TLS
+    if (isTLS()) {
+        m_expire = uv_now(uv_default_loop()) + kResponseTimeout;
+
+        m_tls->handshake();
+    }
+    else
+#   endif
+    {
+        login();
+    }
 }
 
 
@@ -510,6 +602,13 @@ void Client::onClose()
     m_stream = nullptr;
     m_socket = nullptr;
     setState(UnconnectedState);
+
+#   ifndef XMRIG_NO_TLS
+    if (m_tls) {
+        delete m_tls;
+        m_tls = nullptr;
+    }
+#   endif
 
     reconnect();
 }
@@ -665,6 +764,35 @@ void Client::ping()
 }
 
 
+void Client::read()
+{
+    char* end;
+    char* start = m_recvBuf.base;
+    size_t remaining = m_recvBufPos;
+
+    while ((end = static_cast<char*>(memchr(start, '\n', remaining))) != nullptr) {
+        end++;
+        size_t len = end - start;
+        parse(start, len);
+
+        remaining -= len;
+        start = end;
+    }
+
+    if (remaining == 0) {
+        m_recvBufPos = 0;
+        return;
+    }
+
+    if (start == m_recvBuf.base) {
+        return;
+    }
+
+    memcpy(m_recvBuf.base, start, remaining);
+    m_recvBufPos = remaining;
+}
+
+
 void Client::reconnect()
 {
     if (!m_listener) {
@@ -689,7 +817,7 @@ void Client::reconnect()
 
 void Client::setState(SocketState state)
 {
-    LOG_DEBUG("[%s] state: %d", m_pool.url(), state);
+    LOG_DEBUG("[%s] state: \"%s\"", m_pool.url(), states[state]);
 
     if (m_state == state) {
         return;
@@ -757,7 +885,7 @@ void Client::onConnect(uv_connect_t *req, int status)
     uv_read_start(client->m_stream, Client::onAllocBuffer, Client::onRead);
     delete req;
 
-    client->login();
+    client->handshake();
 }
 
 
@@ -789,30 +917,18 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 
     client->m_recvBufPos += nread;
 
-    char* end;
-    char* start = client->m_recvBuf.base;
-    size_t remaining = client->m_recvBufPos;
+#   ifndef XMRIG_NO_TLS
+    if (client->isTLS()) {
+        LOG_DEBUG("[%s] TLS received (%d bytes)", client->m_pool.url(), static_cast<int>(nread));
 
-    while ((end = static_cast<char*>(memchr(start, '\n', remaining))) != nullptr) {
-        end++;
-        size_t len = end - start;
-        client->parse(start, len);
-
-        remaining -= len;
-        start = end;
-    }
-
-    if (remaining == 0) {
+        client->m_tls->read(client->m_recvBuf.base, client->m_recvBufPos);
         client->m_recvBufPos = 0;
-        return;
     }
-
-    if (start == client->m_recvBuf.base) {
-        return;
+    else
+#   endif
+    {
+        client->read();
     }
-
-    memcpy(client->m_recvBuf.base, start, remaining);
-    client->m_recvBufPos = remaining;
 }
 
 

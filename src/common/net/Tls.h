@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,33 +21,38 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_PLATFORM_H
-#define XMRIG_PLATFORM_H
+#ifndef XMRIG_TLS_H
+#define XMRIG_TLS_H
 
 
-#include <stdint.h>
+#include <openssl/ssl.h>
 
 
-#include "common/utils/c_str.h"
+#include "common/net/Client.h"
 
 
-class Platform
+class Client::Tls
 {
 public:
-    static bool setThreadAffinity(uint64_t cpu_id);
-    static const char *defaultConfigName();
-    static void init(const char *userAgent);
-    static void setProcessPriority(int priority);
-    static void setThreadPriority(int priority);
+    Tls(Client *client);
+    ~Tls();
 
-    static inline const char *userAgent() { return m_userAgent.data(); }
+    bool handshake();
+    bool send(const char *data, size_t size);
+
+    void read(const char *data, size_t size);
 
 private:
-    static char *createUserAgent();
+    bool send();
+    bool verify();
 
-    static char m_defaultConfigName[520];
-    static xmrig::c_str m_userAgent;
+    BIO *m_readBio;
+    BIO *m_writeBio;
+    char m_buf[1024 * 2];
+    Client *m_client;
+    SSL *m_ssl;
+    SSL_CTX *m_ctx;
 };
 
 
-#endif /* XMRIG_PLATFORM_H */
+#endif /* XMRIG_TLS_H */

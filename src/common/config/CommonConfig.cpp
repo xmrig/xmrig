@@ -157,6 +157,10 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         m_pools.back().setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0);
         break;
 
+    case TlsKey: /* --tls */
+        m_pools.back().setTLS(enable);
+        break;
+
 #   ifndef XMRIG_PROXY_PROJECT
     case NicehashKey: /* --nicehash */
         m_pools.back().setNicehash(enable);
@@ -235,6 +239,10 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_pools.back().setRigId(arg);
         break;
 
+    case FingerprintKey: /* --tls-fingerprint */
+        m_pools.back().setFingerprint(arg);
+        break;
+
     case VariantKey: /* --variant */
         m_pools.back().algorithm().parseVariant(arg);
         break;
@@ -269,6 +277,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case SyslogKey:     /* --syslog */
     case KeepAliveKey:  /* --keepalive */
     case NicehashKey:   /* --nicehash */
+    case TlsKey:        /* --tls */
     case ApiIPv6Key:    /* --api-ipv6 */
     case DryRunKey:     /* --dry-run */
         return parseBoolean(key, true);

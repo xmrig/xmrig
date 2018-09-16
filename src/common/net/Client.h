@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef XMRIG_CLIENT_H
+#define XMRIG_CLIENT_H
 
 
 #include <map>
@@ -43,6 +43,9 @@ class IClientListener;
 class JobResult;
 
 
+typedef struct bio_st BIO;
+
+
 class Client
 {
 public:
@@ -54,12 +57,19 @@ public:
         ClosingState
     };
 
-    constexpr static int kResponseTimeout  = 20 * 1000;
+    constexpr static int kResponseTimeout = 20 * 1000;
+
+#   ifndef XMRIG_NO_TLS
+    constexpr static int kInputBufferSize = 1024 * 16;
+#   else
+    constexpr static int kInputBufferSize = 1024 * 2;
+#   endif
 
     Client(int id, const char *agent, IClientListener *listener);
     ~Client();
 
     bool disconnect();
+    bool isTLS() const;
     int64_t submit(const JobResult &result);
     void connect();
     void connect(const Pool &pool);
@@ -80,6 +90,9 @@ public:
     inline void setRetryPause(int ms)                 { m_retryPause = ms; }
 
 private:
+    class Tls;
+
+
     enum Extensions {
         NicehashExt  = 1,
         AlgoExt      = 2
@@ -89,12 +102,14 @@ private:
     bool isCriticalError(const char *message);
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseLogin(const rapidjson::Value &result, int *code);
+    bool send(BIO *bio);
     bool verifyAlgorithm(const xmrig::Algorithm &algorithm) const;
     int resolve(const char *host);
     int64_t send(const rapidjson::Document &doc);
     int64_t send(size_t size);
     void connect(const std::vector<addrinfo*> &ipv4, const std::vector<addrinfo*> &ipv6);
     void connect(sockaddr *addr);
+    void handshake();
     void login();
     void onClose();
     void parse(char *line, size_t len);
@@ -102,6 +117,7 @@ private:
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
+    void read();
     void reconnect();
     void setState(SocketState state);
     void startTimeout();
@@ -120,9 +136,9 @@ private:
     bool m_ipv6;
     bool m_nicehash;
     bool m_quiet;
-    char m_buf[2048];
+    char m_buf[kInputBufferSize];
     char m_ip[46];
-    char m_sendBuf[768];
+    char m_sendBuf[1024];
     const char *m_agent;
     IClientListener *m_listener;
     int m_extensions;
@@ -135,6 +151,7 @@ private:
     size_t m_recvBufPos;
     SocketState m_state;
     std::map<int64_t, SubmitResult> m_results;
+    Tls *m_tls;
     uint64_t m_expire;
     uint64_t m_jobs;
     uint64_t m_keepAlive;
@@ -150,4 +167,4 @@ private:
 };
 
 
-#endif /* __CLIENT_H__ */
+#endif /* XMRIG_CLIENT_H */
