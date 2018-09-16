@@ -33,6 +33,7 @@
 
 
 Client::Tls::Tls(Client *client) :
+    m_ready(false),
     m_buf(),
     m_client(client),
     m_ssl(nullptr)
@@ -87,26 +88,31 @@ bool Client::Tls::send(const char *data, size_t size)
 }
 
 
+const char *Client::Tls::tlsVersion() const
+{
+    return m_ready ? SSL_get_version(m_ssl) : nullptr;
+}
+
+
 void Client::Tls::read(const char *data, size_t size)
 {
     BIO_write(m_readBio, data, size);
 
     if (!SSL_is_init_finished(m_ssl)) {
-      const int rc = SSL_connect(m_ssl);
+        const int rc = SSL_connect(m_ssl);
 
-      if (rc < 0 && SSL_get_error(m_ssl, rc) == SSL_ERROR_WANT_READ) {
-          send();
-      }
+        if (rc < 0 && SSL_get_error(m_ssl, rc) == SSL_ERROR_WANT_READ) {
+            send();
+        } else if (rc == 1) {
+            if (!verify()) {
+                LOG_ERR("[%s] TLS certificate verification failed", m_client->m_pool.url());
+                m_client->close();
 
-      if (rc == 1) {
-          if (!verify()) {
-              LOG_ERR("[%s] TLS certificate verification failed", m_client->m_pool.url());
-              m_client->close();
+                return;
+            }
 
-              return;
-          }
-
-          m_client->login();
+            m_ready = true;
+            m_client->login();
       }
 
       return;

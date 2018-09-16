@@ -53,18 +53,18 @@ static void print_memory(xmrig::Config *config) {
 static void print_cpu(xmrig::Config *config)
 {
     if (config->isColors()) {
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s (%d) %sx64 %sAES-NI",
+        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES",
                        "CPU",
                        Cpu::brand(),
                        Cpu::sockets(),
                        Cpu::isX64() ? "\x1B[1;32m" : "\x1B[1;31m-",
                        Cpu::hasAES() ? "\x1B[1;32m" : "\x1B[1;31m-");
 #       ifndef XMRIG_NO_LIBCPUID
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%.1f MB/%.1f MB", "CPU L2/L3", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
+        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
 #       endif
     }
     else {
-        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES-NI", "CPU", Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
+        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES", "CPU", Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
 #       ifndef XMRIG_NO_LIBCPUID
         Log::i()->text(" * %-13s%.1f MB/%.1f MB", "CPU L2/L3", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
 #       endif

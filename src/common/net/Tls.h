@@ -39,7 +39,7 @@ public:
 
     bool handshake();
     bool send(const char *data, size_t size);
-
+    const char *tlsVersion() const;
     void read(const char *data, size_t size);
 
 private:
@@ -48,6 +48,7 @@ private:
 
     BIO *m_readBio;
     BIO *m_writeBio;
+    bool m_ready;
     char m_buf[1024 * 2];
     Client *m_client;
     SSL *m_ssl;

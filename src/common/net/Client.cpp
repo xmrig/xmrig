@@ -186,9 +186,15 @@ bool Client::disconnect()
 }
 
 
-bool Client::isTLS() const
+const char *Client::tlsVersion() const
 {
-    return m_pool.isTLS() && m_tls;
+#   ifndef XMRIG_NO_TLS
+    if (isTLS()) {
+        return m_tls->tlsVersion();
+    }
+#   endif
+
+    return nullptr;
 }
 
 
@@ -274,6 +280,16 @@ bool Client::isCriticalError(const char *message)
     }
 
     return false;
+}
+
+
+bool Client::isTLS() const
+{
+#   ifndef XMRIG_NO_TLS
+    return m_pool.isTLS() && m_tls;
+#   else
+    return false;
+#   endif
 }
 
 
