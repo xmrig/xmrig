@@ -186,11 +186,23 @@ bool Client::disconnect()
 }
 
 
+const char *Client::tlsFingerprint() const
+{
+#   ifndef XMRIG_NO_TLS
+    if (isTLS() && m_pool.fingerprint() == nullptr) {
+        return m_tls->fingerprint();
+    }
+#   endif
+
+    return nullptr;
+}
+
+
 const char *Client::tlsVersion() const
 {
 #   ifndef XMRIG_NO_TLS
     if (isTLS()) {
-        return m_tls->tlsVersion();
+        return m_tls->version();
     }
 #   endif
 

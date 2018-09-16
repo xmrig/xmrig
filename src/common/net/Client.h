@@ -69,6 +69,7 @@ public:
     ~Client();
 
     bool disconnect();
+    const char *tlsFingerprint() const;
     const char *tlsVersion() const;
     int64_t submit(const JobResult &result);
     void connect();
