@@ -414,7 +414,7 @@ bool Client::send(BIO *bio)
         LOG_DEBUG_ERR("[%s] send failed, invalid state: %d", m_pool.url(), m_state);
     }
 
-    BIO_reset(bio);
+    (void) BIO_reset(bio);
 
     return result;
 #   else
