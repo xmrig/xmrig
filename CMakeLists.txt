@@ -6,7 +6,7 @@ option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
-option(WITH_TLS       "Enable OpenSSL support"  OFF)
+option(WITH_TLS       "Enable OpenSSL support" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
 
 include (CheckIncludeFile)
