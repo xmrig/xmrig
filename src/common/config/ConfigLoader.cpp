@@ -32,6 +32,11 @@
 #endif
 
 
+#ifndef XMRIG_NO_TLS
+#   include <openssl/opensslv.h>
+#endif
+
+
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
 #include "common/interfaces/IConfig.h"
@@ -313,6 +318,13 @@ void xmrig::ConfigLoader::showVersion()
     printf("\nlibuv/%s\n", uv_version_string());
 
 #   ifndef XMRIG_NO_HTTPD
-    printf("libmicrohttpd/%s\n", MHD_get_version());
+    printf("microhttpd/%s\n", MHD_get_version());
+#   endif
+
+#   if !defined(XMRIG_NO_TLS) && defined(OPENSSL_VERSION_TEXT)
+    {
+        constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
+        printf("OpenSSL/%.*s\n", static_cast<int>(strchr(v, ' ') - v), v);
+    }
 #   endif
 }

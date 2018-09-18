@@ -46,6 +46,7 @@
 
 Pool::Pool() :
     m_nicehash(false),
+    m_tls(false),
     m_keepAlive(0),
     m_port(kDefaultPort)
 {
@@ -65,6 +66,7 @@ Pool::Pool() :
  */
 Pool::Pool(const char *url) :
     m_nicehash(false),
+    m_tls(false),
     m_keepAlive(0),
     m_port(kDefaultPort)
 {
@@ -72,8 +74,9 @@ Pool::Pool(const char *url) :
 }
 
 
-Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash) :
+Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
     m_nicehash(nicehash),
+    m_tls(tls),
     m_keepAlive(keepAlive),
     m_port(port),
     m_host(host),
@@ -114,15 +117,17 @@ bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
 
 bool Pool::isEqual(const Pool &other) const
 {
-    return (m_nicehash     == other.m_nicehash
-            && m_keepAlive == other.m_keepAlive
-            && m_port      == other.m_port
-            && m_algorithm == other.m_algorithm
-            && m_host      == other.m_host
-            && m_password  == other.m_password
-            && m_rigId     == other.m_rigId
-            && m_url       == other.m_url
-            && m_user      == other.m_user);
+    return (m_nicehash       == other.m_nicehash
+            && m_tls         == other.m_tls
+            && m_keepAlive   == other.m_keepAlive
+            && m_port        == other.m_port
+            && m_algorithm   == other.m_algorithm
+            && m_fingerprint == other.m_fingerprint
+            && m_host        == other.m_host
+            && m_password    == other.m_password
+            && m_rigId       == other.m_rigId
+            && m_url         == other.m_url
+            && m_user        == other.m_user);
 }
 
 
@@ -134,7 +139,13 @@ bool Pool::parse(const char *url)
     const char *base = url;
 
     if (p) {
-        if (strncasecmp(url, "stratum+tcp://", 14)) {
+        if (strncasecmp(url, "stratum+tcp://", 14) == 0) {
+            m_tls = false;
+        }
+        else if (strncasecmp(url, "stratum+ssl://", 14) == 0) {
+            m_tls = true;
+        }
+        else {
             return false;
         }
 
@@ -220,6 +231,9 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
         obj.AddMember("variant", StringRef(m_algorithm.variantName()), allocator);
         break;
     }
+
+    obj.AddMember("tls",             isTLS(), allocator);
+    obj.AddMember("tls-fingerprint", fingerprint() ? Value(StringRef(fingerprint())).Move() : Value(kNullType).Move(), allocator);
 
     return obj;
 }

@@ -29,12 +29,37 @@
 #include <uv.h>
 
 
+#ifndef XMRIG_NO_HTTPD
+#   include <microhttpd.h>
+#endif
+
+
+#ifndef XMRIG_NO_TLS
+#   include <openssl/opensslv.h>
+#endif
+
+
+#ifdef XMRIG_AMD_PROJECT
+#   if defined(__APPLE__)
+#       include <OpenCL/cl.h>
+#   else
+#       include "3rdparty/CL/cl.h"
+#   endif
+#endif
+
+
+#ifdef XMRIG_NVIDIA_PROJECT
+#   include "nvidia/cryptonight.h"
+#endif
+
+
 #include "common/config/CommonConfig.h"
 #include "common/log/Log.h"
 #include "donate.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
+#include "version.h"
 
 
 xmrig::CommonConfig::CommonConfig() :
@@ -69,8 +94,102 @@ xmrig::CommonConfig::CommonConfig() :
 }
 
 
-xmrig::CommonConfig::~CommonConfig()
+void xmrig::CommonConfig::printAPI()
 {
+#   ifndef XMRIG_NO_API
+    if (apiPort() == 0) {
+        return;
+    }
+
+    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN("%s:") CYAN_BOLD("%d")
+                              : " * %-13s%s:%d",
+                   "API BIND", isApiIPv6() ? "[::]" : "0.0.0.0", apiPort());
+#   endif
+}
+
+
+void xmrig::CommonConfig::printPools()
+{
+    for (size_t i = 0; i < m_activePools.size(); ++i) {
+        if (!isColors()) {
+            Log::i()->text(" * POOL #%-7zu%s variant=%s, TLS=%d",
+                           i + 1,
+                           m_activePools[i].url(),
+                           m_activePools[i].algorithm().variantName(),
+                           static_cast<int>(m_activePools[i].isTLS())
+                           );
+        }
+        else {
+            Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m variant " WHITE_BOLD("%s"),
+                           i + 1,
+                           m_activePools[i].isTLS() ? 32 : 36,
+                           m_activePools[i].url(),
+                           m_activePools[i].algorithm().variantName()
+                           );
+        }
+    }
+
+#   ifdef APP_DEBUG
+    LOG_NOTICE("POOLS --------------------------------------------------------------------");
+    for (const Pool &pool : m_activePools) {
+        pool.print();
+    }
+    LOG_NOTICE("--------------------------------------------------------------------------");
+#   endif
+}
+
+
+void xmrig::CommonConfig::printVersions()
+{
+    char buf[256] = { 0 };
+
+#   if defined(__clang__)
+    snprintf(buf, sizeof buf, "clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
+#   elif defined(__GNUC__)
+    snprintf(buf, sizeof buf, "gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#   elif defined(_MSC_VER)
+    snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
+#   endif
+
+    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s")
+                              : " * %-13s%s/%s %s",
+                   "ABOUT", APP_NAME, APP_VERSION, buf);
+
+#   if defined(XMRIG_AMD_PROJECT)
+#   if CL_VERSION_2_0
+    const char *ocl = "2.0";
+#   elif CL_VERSION_1_2
+    const char *ocl = "1.2";
+#   elif CL_VERSION_1_1
+    const char *ocl = "1.1";
+#   elif CL_VERSION_1_0
+    const char *ocl = "1.0";
+#   else
+    const char *ocl = "0.0";
+#   endif
+    int length = snprintf(buf, sizeof buf, "OpenCL/%s ", ocl);
+#   elif defined(XMRIG_NVIDIA_PROJECT)
+    const int cudaVersion = cuda_get_runtime_version();
+    int length = snprintf(buf, sizeof buf, "CUDA/%d.%d ", cudaVersion / 1000, cudaVersion % 100);
+#   else
+    memset(buf, 0, 16);
+    int length = 0;
+#   endif
+
+#   if !defined(XMRIG_NO_TLS) && defined(OPENSSL_VERSION_TEXT)
+    {
+        constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
+        length += snprintf(buf + length, (sizeof buf) - length, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
+    }
+#   endif
+
+#   ifndef XMRIG_NO_HTTPD
+    length += snprintf(buf + length, (sizeof buf) - length, "microhttpd/%s ", MHD_get_version());
+#   endif
+
+    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s")
+                              : " * %-13slibuv/%s %s",
+                   "LIBS", uv_version_string(), buf);
 }
 
 
@@ -126,6 +245,12 @@ bool xmrig::CommonConfig::finalize()
         pool.adjust(m_algorithm);
 
         if (pool.isValid() && pool.algorithm().isValid()) {
+#           ifdef XMRIG_NO_TLS
+            if (pool.isTLS()) {
+                continue;
+            }
+#           endif
+
             m_activePools.push_back(std::move(pool));
         }
     }
@@ -155,6 +280,10 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
 
     case KeepAliveKey: /* --keepalive */
         m_pools.back().setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0);
+        break;
+
+    case TlsKey: /* --tls */
+        m_pools.back().setTLS(enable);
         break;
 
 #   ifndef XMRIG_PROXY_PROJECT
@@ -235,6 +364,10 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_pools.back().setRigId(arg);
         break;
 
+    case FingerprintKey: /* --tls-fingerprint */
+        m_pools.back().setFingerprint(arg);
+        break;
+
     case VariantKey: /* --variant */
         m_pools.back().algorithm().parseVariant(arg);
         break;
@@ -269,6 +402,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case SyslogKey:     /* --syslog */
     case KeepAliveKey:  /* --keepalive */
     case NicehashKey:   /* --nicehash */
+    case TlsKey:        /* --tls */
     case ApiIPv6Key:    /* --api-ipv6 */
     case DryRunKey:     /* --dry-run */
         return parseBoolean(key, true);

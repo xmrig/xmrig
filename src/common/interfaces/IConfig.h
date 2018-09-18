@@ -63,6 +63,8 @@ public:
         VerboseKey        = 1100,
         VersionKey        = 'V',
         WatchKey          = 1105,
+        TlsKey            = 1013,
+        FingerprintKey    = 1014,
 
         // xmrig common
         CPUPriorityKey    = 1021,

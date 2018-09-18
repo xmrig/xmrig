@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __COMMONCONFIG_H__
-#define __COMMONCONFIG_H__
+#ifndef XMRIG_COMMONCONFIG_H
+#define XMRIG_COMMONCONFIG_H
 
 
 #include <vector>
@@ -41,7 +41,6 @@ class CommonConfig : public IConfig
 {
 public:
     CommonConfig();
-    ~CommonConfig();
 
     inline bool isApiIPv6() const                  { return m_apiIPv6; }
     inline bool isApiRestricted() const            { return m_apiRestricted; }
@@ -67,6 +66,10 @@ public:
     inline const char *fileName() const override       { return m_fileName.data(); }
 
     bool save() override;
+
+    void printAPI();
+    void printPools();
+    void printVersions();
 
 protected:
     enum State {

@@ -37,24 +37,6 @@
 #include "version.h"
 
 
-static void print_versions(xmrig::Config *config)
-{
-    char buf[16] = { 0 };
-
-#   if defined(__clang__)
-    snprintf(buf, 16, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
-#   elif defined(__GNUC__)
-    snprintf(buf, 16, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   elif defined(_MSC_VER)
-    snprintf(buf, 16, " MSVC/%d", MSVC_VERSION);
-#   endif
-
-    Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" libuv/%s%s")
-                                      : " * %-13s%s/%s libuv/%s%s",
-                   "VERSIONS", APP_NAME, APP_VERSION, uv_version_string(), buf);
-}
-
-
 static void print_memory(xmrig::Config *config) {
 #   ifdef _WIN32
     if (config->isColors()) {
@@ -71,18 +53,18 @@ static void print_memory(xmrig::Config *config) {
 static void print_cpu(xmrig::Config *config)
 {
     if (config->isColors()) {
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s (%d) %sx64 %sAES-NI",
+        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES",
                        "CPU",
                        Cpu::brand(),
                        Cpu::sockets(),
                        Cpu::isX64() ? "\x1B[1;32m" : "\x1B[1;31m-",
                        Cpu::hasAES() ? "\x1B[1;32m" : "\x1B[1;31m-");
 #       ifndef XMRIG_NO_LIBCPUID
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%.1f MB/%.1f MB", "CPU L2/L3", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
+        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
 #       endif
     }
     else {
-        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES-NI", "CPU", Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
+        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES", "CPU", Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
 #       ifndef XMRIG_NO_LIBCPUID
         Log::i()->text(" * %-13s%.1f MB/%.1f MB", "CPU L2/L3", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
 #       endif
@@ -120,44 +102,6 @@ static void print_threads(xmrig::Config *config)
 }
 
 
-static void print_pools(xmrig::Config *config)
-{
-    const std::vector<Pool> &pools = config->pools();
-
-    for (size_t i = 0; i < pools.size(); ++i) {
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") CYAN_BOLD("%s") " variant " WHITE_BOLD("%s")
-                                          : " * POOL #%-7d%s variant %s",
-                       i + 1,
-                       pools[i].url(),
-                       pools[i].algorithm().variantName()
-                       );
-    }
-
-#   ifdef APP_DEBUG
-    LOG_NOTICE("POOLS --------------------------------------------------------------------");
-    for (const Pool &pool : pools) {
-        pool.print();
-    }
-    LOG_NOTICE("--------------------------------------------------------------------------");
-#   endif
-}
-
-
-#ifndef XMRIG_NO_API
-static void print_api(xmrig::Config *config)
-{
-    const int port = config->apiPort();
-    if (port == 0) {
-        return;
-    }
-
-    Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN("%s:") CYAN_BOLD("%d")
-                                      : " * %-13s%s:%d",
-                   "API BIND", config->isApiIPv6() ? "[::]" : "0.0.0.0", port);
-}
-#endif
-
-
 static void print_commands(xmrig::Config *config)
 {
     if (config->isColors()) {
@@ -173,15 +117,12 @@ static void print_commands(xmrig::Config *config)
 
 void Summary::print(xmrig::Controller *controller)
 {
-    print_versions(controller->config());
+    controller->config()->printVersions();
     print_memory(controller->config());
     print_cpu(controller->config());
     print_threads(controller->config());
-    print_pools(controller->config());
-
-#   ifndef XMRIG_NO_API
-    print_api(controller->config());
-#   endif
+    controller->config()->printPools();
+    controller->config()->printAPI();
 
     print_commands(controller->config());
 }
