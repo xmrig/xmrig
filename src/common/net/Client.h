@@ -140,7 +140,7 @@ private:
     bool m_quiet;
     char m_buf[kInputBufferSize];
     char m_ip[46];
-    char m_sendBuf[1024];
+    char m_sendBuf[2048];
     const char *m_agent;
     IClientListener *m_listener;
     int m_extensions;

@@ -482,7 +482,9 @@ int64_t Client::send(const rapidjson::Document &doc)
     doc.Accept(writer);
 
     const size_t size = buffer.GetSize();
-    if (size > (sizeof(m_buf) - 2)) {
+    if (size > (sizeof(m_sendBuf) - 2)) {
+        LOG_ERR("[%s] send failed: \"send buffer overflow: %zu > %zu\"", m_pool.url(), size, (sizeof(m_sendBuf) - 2));
+        close();
         return -1;
     }
 
