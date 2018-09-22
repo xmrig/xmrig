@@ -170,6 +170,16 @@ bool Job::setTarget(const char *target)
 }
 
 
+void Job::setAlgorithm(const char *algo)
+{
+    m_algorithm.parseAlgorithm(algo);
+
+    if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
+        m_algorithm.setVariant(variant());
+    }
+}
+
+
 bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 {
     bool error = false;

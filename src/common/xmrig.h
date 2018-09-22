@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XMRIG_H__
-#define __XMRIG_H__
+#ifndef XMRIG_XMRIG_H
+#define XMRIG_XMRIG_H
 
 
 namespace xmrig
@@ -85,7 +85,16 @@ enum AesMode {
 };
 
 
+enum OclVendor {
+    OCL_VENDOR_UNKNOWN = -2,
+    OCL_VENDOR_MANUAL  = -1,
+    OCL_VENDOR_AMD     = 0,
+    OCL_VENDOR_NVIDIA  = 1,
+    OCL_VENDOR_INTEL   = 2
+};
+
+
 } /* namespace xmrig */
 
 
-#endif /* __XMRIG_H__ */
+#endif /* XMRIG_XMRIG_H */
