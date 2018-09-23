@@ -32,7 +32,7 @@ int cpuid_exists_by_eflags(void)
 #if defined(PLATFORM_X64)
 	return 1; /* CPUID is always present on the x86_64 */
 #elif defined(PLATFORM_X86)
-#  if defined(COMPILER_GCC)
+#  if defined(COMPILER_GCC) || defined(COMPILER_CLANG)
 	int result;
 	__asm __volatile(
 		"	pushfl\n"
@@ -70,6 +70,8 @@ int cpuid_exists_by_eflags(void)
 #  else
 	return 0;
 #  endif /* COMPILER_MICROSOFT */
+#elif defined(PLATFORM_ARM)
+  return 0;
 #else
 	return 0;
 #endif /* PLATFORM_X86 */
@@ -82,7 +84,7 @@ int cpuid_exists_by_eflags(void)
  */
 void exec_cpuid(uint32_t *regs)
 {
-#ifdef COMPILER_GCC
+#  if defined(COMPILER_GCC) || defined(COMPILER_CLANG)
 #	ifdef PLATFORM_X64
 	__asm __volatile(
 		"	mov	%0,	%%rdi\n"
@@ -109,7 +111,7 @@ void exec_cpuid(uint32_t *regs)
 		:"m"(regs)
 		:"memory", "eax", "rdi"
 	);
-#	else
+#	elif defined(PLATFORM_X86)
 	__asm __volatile(
 		"	mov	%0,	%%edi\n"
 
@@ -135,6 +137,7 @@ void exec_cpuid(uint32_t *regs)
 		:"m"(regs)
 		:"memory", "eax", "edi"
 	);
+#	elif defined(PLATFORM_ARM)
 #	endif /* COMPILER_GCC */
 #else
 #  ifdef COMPILER_MICROSOFT
@@ -173,13 +176,18 @@ void exec_cpuid(uint32_t *regs)
 void cpu_rdtsc(uint64_t* result)
 {
 	uint32_t low_part, hi_part;
-#ifdef COMPILER_GCC
+#if defined(COMPILER_GCC) || defined(COMPILER_CLANG)
+#ifdef PLATFORM_ARM
+  low_part = 0;
+  hi_part = 0;
+#else
 	__asm __volatile (
 		"	rdtsc\n"
 		"	mov	%%eax,	%0\n"
 		"	mov	%%edx,	%1\n"
 		:"=m"(low_part), "=m"(hi_part)::"memory", "eax", "edx"
 	);
+#endif
 #else
 #  ifdef COMPILER_MICROSOFT
 	__asm {
@@ -198,12 +206,14 @@ void cpu_rdtsc(uint64_t* result)
 #ifdef INLINE_ASM_SUPPORTED
 void busy_sse_loop(int cycles)
 {
-#ifdef COMPILER_GCC
+#  if defined(COMPILER_GCC) || defined(COMPILER_CLANG)
 #ifndef __APPLE__
 #	define XALIGN ".balign 16\n"
 #else
 #	define XALIGN ".align 4\n"
 #endif
+#ifdef PLATFORM_ARM
+#else
 	__asm __volatile (
 		"	xorps	%%xmm0,	%%xmm0\n"
 		"	xorps	%%xmm1,	%%xmm1\n"
@@ -510,6 +520,7 @@ void busy_sse_loop(int cycles)
 		"	jnz	1b\n"
 		::"a"(cycles)
 	);
+#endif
 #else
 #  ifdef COMPILER_MICROSOFT
 	__asm {
