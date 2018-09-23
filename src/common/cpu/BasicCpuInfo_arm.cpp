@@ -21,37 +21,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <string.h>
+#include <thread>
 
 
-#include "Cpu.h"
+#include "common/cpu/BasicCpuInfo.h"
 
 
-char Cpu::m_brand[64]      = { 0 };
-int Cpu::m_flags           = 0;
-int Cpu::m_l2_cache        = 0;
-int Cpu::m_l3_cache        = 0;
-int Cpu::m_sockets         = 1;
-int Cpu::m_totalCores      = 0;
-size_t Cpu::m_totalThreads = 0;
-
-
-size_t Cpu::optimalThreadsCount(size_t size, int maxCpuUsage)
-{
-    return m_totalThreads;
-}
-
-
-void Cpu::initCommon()
+xmrig::BasicCpuInfo::BasicCpuInfo() :
+    m_aes(false),
+    m_brand(),
+    m_threads(std::thread::hardware_concurrency())
 {
     memcpy(m_brand, "Unknown", 7);
-
-#   if defined (__arm64__) || defined (__aarch64__)
-    m_flags |= X86_64;
-#   endif
 
 #   if __ARM_FEATURE_CRYPTO
     m_flags |= AES;
 #   endif
+}
+
+
+size_t xmrig::BasicCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsage) const
+{
+    return threads();
 }

@@ -94,6 +94,14 @@ enum OclVendor {
 };
 
 
+enum Assembly {
+    ASM_NONE,
+    ASM_AUTO,
+    ASM_INTEL,
+    ASM_RYZEN
+};
+
+
 } /* namespace xmrig */
 
 

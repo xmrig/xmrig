@@ -20,6 +20,7 @@ set(HEADERS
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
     src/common/Console.h
+    src/common/cpu/Cpu.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/IClientListener.h
@@ -27,6 +28,7 @@ set(HEADERS
     src/common/interfaces/IConfigCreator.h
     src/common/interfaces/IConsoleListener.h
     src/common/interfaces/IControllerListener.h
+    src/common/interfaces/ICpuInfo.h
     src/common/interfaces/ILogBackend.h
     src/common/interfaces/IStrategy.h
     src/common/interfaces/IStrategyListener.h
@@ -49,7 +51,6 @@ set(HEADERS
     src/common/xmrig.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
-    src/Cpu.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
@@ -135,7 +136,6 @@ if (WIN32)
         res/app.rc
         src/App_win.cpp
         src/common/Platform_win.cpp
-        src/Cpu_win.cpp
         src/Mem_win.cpp
         )
 
@@ -145,14 +145,12 @@ elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
         src/common/Platform_mac.cpp
-        src/Cpu_mac.cpp
         src/Mem_unix.cpp
         )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
         src/common/Platform_unix.cpp
-        src/Cpu_unix.cpp
         src/Mem_unix.cpp
         )
 
@@ -184,14 +182,15 @@ if (WITH_LIBCPUID)
 
     include_directories(src/3rdparty/libcpuid)
     set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/Cpu.cpp)
+    set(SOURCES_CPUID src/core/cpu/AdvancedCpuInfo.h src/core/cpu/AdvancedCpuInfo.cpp src/core/cpu/Cpu.cpp)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
+    set(SOURCES_CPUID src/common/cpu/BasicCpuInfo.h src/common/cpu/Cpu.cpp)
 
     if (XMRIG_ARM)
-        set(SOURCES_CPUID src/Cpu_arm.cpp)
+        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo_arm.cpp)
     else()
-        set(SOURCES_CPUID src/Cpu_stub.cpp)
+        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo.cpp)
     endif()
 endif()
 
