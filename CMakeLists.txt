@@ -7,6 +7,7 @@ option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 option(WITH_TLS       "Enable OpenSSL support" ON)
+option(WITH_ASM       "Enable ASM PoW implementations" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
 
 include (CheckIncludeFile)
@@ -195,6 +196,7 @@ else()
 endif()
 
 include(cmake/OpenSSL.cmake)
+include(cmake/asm.cmake)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
@@ -254,4 +256,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${PROJECT_NAME} ${${XMRIG_ASM_LIBRARY}} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
