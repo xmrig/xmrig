@@ -36,7 +36,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     memcpy(m_brand, "Unknown", 7);
 
 #   if __ARM_FEATURE_CRYPTO
-    m_flags |= AES;
+    m_aes = true;
 #   endif
 }
 

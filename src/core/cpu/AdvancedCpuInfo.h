@@ -7,7 +7,6 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
- *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
@@ -40,7 +39,7 @@ public:
 protected:
     size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const override;
 
-    inline Assembly assembly() const override       { return ASM_NONE; }
+    inline Assembly assembly() const override       { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
     inline bool isSupported() const override        { return true; }
     inline const char *brand() const override       { return m_brand; }
@@ -58,6 +57,7 @@ protected:
 #   endif
 
 private:
+    Assembly m_assembly;
     bool m_aes;
     bool m_L2_exclusive;
     char m_brand[64];

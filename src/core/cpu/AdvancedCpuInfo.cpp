@@ -31,6 +31,7 @@
 
 
 xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
+    m_assembly(ASM_NONE),
     m_aes(false),
     m_L2_exclusive(false),
     m_brand(),
@@ -71,7 +72,16 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
         m_L2 = data.l2_cache > 0 ? data.l2_cache * cores() * m_sockets : 0;
     }
 
-    m_aes = data.flags[CPU_FEATURE_AES];
+    if (data.flags[CPU_FEATURE_AES]) {
+        m_aes = true;
+
+        if (data.vendor == VENDOR_AMD && data.ext_family >= 23) {
+            m_assembly = ASM_RYZEN;
+        }
+        else if (data.vendor == VENDOR_INTEL && data.ext_model >= 42) {
+            m_assembly = ASM_INTEL;
+        }
+    }
 }
 
 
