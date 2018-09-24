@@ -80,6 +80,7 @@ public:
         SafeKey           = 1005,
         ThreadsKey        = 't',
         HardwareAESKey    = 1011,
+        AssemblyKey       = 1015,
 
         // xmrig amd
         OclPlatformKey    = 1400,

@@ -30,6 +30,7 @@
 #include "common/cpu/Cpu.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
+#include "crypto/Asm.h"
 #include "crypto/CryptoNight_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -43,15 +44,11 @@ static char affinity_tmp[20] = { 0 };
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
+    m_assembly(ASM_AUTO),
     m_hugePages(true),
     m_safe(false),
     m_maxCpuUsage(75),
     m_priority(-1)
-{
-}
-
-
-xmrig::Config::~Config()
 {
 }
 
@@ -178,7 +175,7 @@ bool xmrig::Config::finalize()
     }
 
     for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority));
+        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority, m_assembly));
     }
 
     return true;
@@ -203,6 +200,12 @@ bool xmrig::Config::parseBoolean(int key, bool enable)
     case HardwareAESKey: /* hw-aes config only */
         m_aesMode = enable ? AES_HW : AES_SOFT;
         break;
+
+#   ifndef XMRIG_NO_ASM
+    case AssemblyKey:
+        m_assembly = Asm::parse(enable);
+        break;
+#   endif
 
     default:
         break;
@@ -243,6 +246,12 @@ bool xmrig::Config::parseString(int key, const char *arg)
             const char *p  = strstr(arg, "0x");
             return parseUint64(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
+
+#   ifndef XMRIG_NO_ASM
+    case AssemblyKey: /* --asm */
+        m_assembly = Asm::parse(arg);
+        break;
+#   endif
 
     default:
         break;

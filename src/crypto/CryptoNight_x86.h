@@ -561,6 +561,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
+#ifndef XMRIG_NO_ASM
 extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx *ctx);
 
@@ -584,6 +585,7 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
     xmrig::keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
+#endif
 
 
 template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>

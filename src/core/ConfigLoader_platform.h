@@ -135,6 +135,7 @@ static struct option const options[] = {
     { "tls",               0, nullptr, xmrig::IConfig::TlsKey            },
     { "tls-fingerprint",   1, nullptr, xmrig::IConfig::FingerprintKey    },
     { "version",           0, nullptr, xmrig::IConfig::VersionKey        },
+    { "asm",               1, nullptr, xmrig::IConfig::AssemblyKey       },
     { nullptr,             0, nullptr, 0 }
 };
 
@@ -159,6 +160,7 @@ static struct option const config_options[] = {
     { "threads",       1, nullptr, xmrig::IConfig::ThreadsKey     },
     { "user-agent",    1, nullptr, xmrig::IConfig::UserAgentKey   },
     { "hw-aes",        0, nullptr, xmrig::IConfig::HardwareAESKey },
+    { "asm",           1, nullptr, xmrig::IConfig::AssemblyKey    },
     { nullptr,         0, nullptr, 0 }
 };
 

@@ -47,7 +47,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     cpuid_get_raw_data(&raw);
     cpu_identify(&raw, &data);
 
-    strncpy(m_brand, data.brand_str, sizeof(m_brand) - 1);
+    strncpy(m_brand, data.brand_str, sizeof(m_brand));
 
     m_sockets = threads() / data.num_logical_cpus;
     if (m_sockets == 0) {

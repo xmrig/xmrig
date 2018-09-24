@@ -32,9 +32,26 @@
 #include "common/net/Pool.h"
 #include "core/Config.h"
 #include "core/Controller.h"
+#include "crypto/Asm.h"
 #include "Mem.h"
 #include "Summary.h"
 #include "version.h"
+
+
+#ifndef XMRIG_NO_ASM
+static const char *coloredAsmNames[] = {
+    "\x1B[1;31mnone\x1B[0m",
+    "auto",
+    "\x1B[1;32mintel\x1B[0m",
+    "\x1B[1;32mryzen\x1B[0m"
+};
+
+
+inline static const char *asmName(xmrig::Assembly assembly, bool colors)
+{
+    return colors ? coloredAsmNames[assembly] : xmrig::Asm::toString(assembly);
+}
+#endif
 
 
 static void print_memory(xmrig::Config *config) {
@@ -101,6 +118,18 @@ static void print_threads(xmrig::Config *config)
                        config->isColors() && config->donateLevel() == 0 ? "\x1B[1;31m" : "",
                        config->donateLevel());
     }
+
+#   ifndef XMRIG_NO_ASM
+    if (config->assembly() == xmrig::ASM_AUTO) {
+        const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
+
+        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s")
+                                          : " * %-13sauto:%s", "ASSEMBLY", asmName(assembly, config->isColors()));
+    }
+    else {
+        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s") : " * %-13s%s", "ASSEMBLY", asmName(config->assembly(), config->isColors()));
+    }
+#   endif
 }
 
 

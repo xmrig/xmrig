@@ -98,7 +98,8 @@ enum Assembly {
     ASM_NONE,
     ASM_AUTO,
     ASM_INTEL,
-    ASM_RYZEN
+    ASM_RYZEN,
+    ASM_MAX
 };
 
 
