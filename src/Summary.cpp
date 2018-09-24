@@ -27,14 +27,31 @@
 #include <uv.h>
 
 
+#include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
 #include "common/net/Pool.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
+#include "crypto/Asm.h"
 #include "Mem.h"
 #include "Summary.h"
 #include "version.h"
+
+
+#ifndef XMRIG_NO_ASM
+static const char *coloredAsmNames[] = {
+    "\x1B[1;31mnone\x1B[0m",
+    "auto",
+    "\x1B[1;32mintel\x1B[0m",
+    "\x1B[1;32mryzen\x1B[0m"
+};
+
+
+inline static const char *asmName(xmrig::Assembly assembly, bool colors)
+{
+    return colors ? coloredAsmNames[assembly] : xmrig::Asm::toString(assembly);
+}
+#endif
 
 
 static void print_memory(xmrig::Config *config) {
@@ -52,21 +69,23 @@ static void print_memory(xmrig::Config *config) {
 
 static void print_cpu(xmrig::Config *config)
 {
+    using namespace xmrig;
+
     if (config->isColors()) {
         Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES",
                        "CPU",
-                       Cpu::brand(),
-                       Cpu::sockets(),
-                       Cpu::isX64() ? "\x1B[1;32m" : "\x1B[1;31m-",
-                       Cpu::hasAES() ? "\x1B[1;32m" : "\x1B[1;31m-");
+                       Cpu::info()->brand(),
+                       Cpu::info()->sockets(),
+                       Cpu::info()->isX64() ? "\x1B[1;32m" : "\x1B[1;31m-",
+                       Cpu::info()->hasAES() ? "\x1B[1;32m" : "\x1B[1;31m-");
 #       ifndef XMRIG_NO_LIBCPUID
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
+        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
 #       endif
     }
     else {
-        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES", "CPU", Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
+        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES", "CPU", Cpu::info()->brand(), Cpu::info()->sockets(), Cpu::info()->isX64() ? "" : "-", Cpu::info()->hasAES() ? "" : "-");
 #       ifndef XMRIG_NO_LIBCPUID
-        Log::i()->text(" * %-13s%.1f MB/%.1f MB", "CPU L2/L3", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
+        Log::i()->text(" * %-13s%.1f MB/%.1f MB", "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
 #       endif
     }
 }
@@ -99,6 +118,18 @@ static void print_threads(xmrig::Config *config)
                        config->isColors() && config->donateLevel() == 0 ? "\x1B[1;31m" : "",
                        config->donateLevel());
     }
+
+#   ifndef XMRIG_NO_ASM
+    if (config->assembly() == xmrig::ASM_AUTO) {
+        const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
+
+        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s")
+                                          : " * %-13sauto:%s", "ASSEMBLY", asmName(assembly, config->isColors()));
+    }
+    else {
+        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s") : " * %-13s%s", "ASSEMBLY", asmName(config->assembly(), config->isColors()));
+    }
+#   endif
 }
 
 

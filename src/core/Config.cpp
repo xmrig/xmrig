@@ -27,9 +27,10 @@
 
 
 #include "common/config/ConfigLoader.h"
+#include "common/cpu/Cpu.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
-#include "Cpu.h"
+#include "crypto/Asm.h"
 #include "crypto/CryptoNight_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -43,15 +44,11 @@ static char affinity_tmp[20] = { 0 };
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
+    m_assembly(ASM_AUTO),
     m_hugePages(true),
     m_safe(false),
     m_maxCpuUsage(75),
     m_priority(-1)
-{
-}
-
-
-xmrig::Config::~Config()
 {
 }
 
@@ -153,7 +150,7 @@ bool xmrig::Config::finalize()
 
     if (!m_threads.cpu.empty()) {
         m_threads.mode     = Advanced;
-        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
+        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
 
         for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
             m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
@@ -168,17 +165,17 @@ bool xmrig::Config::finalize()
     const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
 
     if (!m_threads.count) {
-        m_threads.count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
+        m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
     }
     else if (m_safe) {
-        const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
+        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
         if (m_threads.count > count) {
             m_threads.count = count;
         }
     }
 
     for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority));
+        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority, m_assembly));
     }
 
     return true;
@@ -203,6 +200,12 @@ bool xmrig::Config::parseBoolean(int key, bool enable)
     case HardwareAESKey: /* hw-aes config only */
         m_aesMode = enable ? AES_HW : AES_SOFT;
         break;
+
+#   ifndef XMRIG_NO_ASM
+    case AssemblyKey:
+        m_assembly = Asm::parse(enable);
+        break;
+#   endif
 
     default:
         break;
@@ -232,7 +235,7 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
     case ThreadsKey:  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
-            m_threads.count = Cpu::threads();
+            m_threads.count = Cpu::info()->threads();
             return true;
         }
 
@@ -243,6 +246,12 @@ bool xmrig::Config::parseString(int key, const char *arg)
             const char *p  = strstr(arg, "0x");
             return parseUint64(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
+
+#   ifndef XMRIG_NO_ASM
+    case AssemblyKey: /* --asm */
+        m_assembly = Asm::parse(arg);
+        break;
+#   endif
 
     default:
         break;
@@ -339,10 +348,10 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 #   endif
 
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
+        return Cpu::info()->hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
     }
 
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV_DOUBLE) {
+    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
         return static_cast<AlgoVariant>(m_algoVariant + 2);
     }
 
@@ -354,10 +363,10 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
 {
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
+        return Cpu::info()->hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
     }
 
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV_DOUBLE) {
+    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
         return static_cast<AlgoVariant>(m_algoVariant + 2);
     }
 

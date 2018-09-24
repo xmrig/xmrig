@@ -22,20 +22,40 @@
  */
 
 
-#include <windows.h>
+#include <assert.h>
 
 
-#include "Cpu.h"
+#include "common/cpu/Cpu.h"
 
 
-void Cpu::init()
+#ifndef XMRIG_NO_LIBCPUID
+#   include "core/cpu/AdvancedCpuInfo.h"
+#endif
+
+
+static xmrig::ICpuInfo *cpuInfo = nullptr;
+
+
+xmrig::ICpuInfo *xmrig::Cpu::info()
 {
-#   ifdef XMRIG_NO_LIBCPUID
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
+    assert(cpuInfo != nullptr);
 
-    m_totalThreads = sysinfo.dwNumberOfProcessors;
-#   endif
+    return cpuInfo;
+}
 
-    initCommon();
+
+void xmrig::Cpu::init()
+{
+    assert(cpuInfo == nullptr);
+
+    cpuInfo = new AdvancedCpuInfo();
+}
+
+
+void xmrig::Cpu::release()
+{
+    assert(cpuInfo != nullptr);
+
+    delete cpuInfo;
+    cpuInfo = nullptr;
 }

@@ -561,6 +561,33 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
+#ifndef XMRIG_NO_ASM
+extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx *ctx);
+extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx *ctx);
+
+
+template<xmrig::Algo ALGO, xmrig::Variant VARIANT, xmrig::Assembly ASM>
+inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
+{
+    constexpr size_t MEM = xmrig::cn_select_memory<ALGO>();
+
+    xmrig::keccak(input, size, ctx[0]->state);
+    cn_explode_scratchpad<ALGO, MEM, false>((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
+
+    if (ASM == xmrig::ASM_INTEL) {
+        cnv2_mainloop_ivybridge_asm(ctx[0]);
+    }
+    else {
+        cnv2_mainloop_ryzen_asm(ctx[0]);
+    }
+
+    cn_implode_scratchpad<ALGO, MEM, false>((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+    xmrig::keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
+#endif
+
+
 template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
 inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {

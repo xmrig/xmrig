@@ -7,6 +7,7 @@ option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 option(WITH_TLS       "Enable OpenSSL support" ON)
+option(WITH_ASM       "Enable ASM PoW implementations" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
 
 include (CheckIncludeFile)
@@ -20,6 +21,7 @@ set(HEADERS
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
     src/common/Console.h
+    src/common/cpu/Cpu.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/IClientListener.h
@@ -27,6 +29,7 @@ set(HEADERS
     src/common/interfaces/IConfigCreator.h
     src/common/interfaces/IConsoleListener.h
     src/common/interfaces/IControllerListener.h
+    src/common/interfaces/ICpuInfo.h
     src/common/interfaces/ILogBackend.h
     src/common/interfaces/IStrategy.h
     src/common/interfaces/IStrategyListener.h
@@ -49,7 +52,6 @@ set(HEADERS
     src/common/xmrig.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
-    src/Cpu.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
@@ -135,7 +137,6 @@ if (WIN32)
         res/app.rc
         src/App_win.cpp
         src/common/Platform_win.cpp
-        src/Cpu_win.cpp
         src/Mem_win.cpp
         )
 
@@ -145,14 +146,12 @@ elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
         src/common/Platform_mac.cpp
-        src/Cpu_mac.cpp
         src/Mem_unix.cpp
         )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
         src/common/Platform_unix.cpp
-        src/Cpu_unix.cpp
         src/Mem_unix.cpp
         )
 
@@ -184,18 +183,20 @@ if (WITH_LIBCPUID)
 
     include_directories(src/3rdparty/libcpuid)
     set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/Cpu.cpp)
+    set(SOURCES_CPUID src/core/cpu/AdvancedCpuInfo.h src/core/cpu/AdvancedCpuInfo.cpp src/core/cpu/Cpu.cpp)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
+    set(SOURCES_CPUID src/common/cpu/BasicCpuInfo.h src/common/cpu/Cpu.cpp)
 
     if (XMRIG_ARM)
-        set(SOURCES_CPUID src/Cpu_arm.cpp)
+        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo_arm.cpp)
     else()
-        set(SOURCES_CPUID src/Cpu_stub.cpp)
+        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo.cpp)
     endif()
 endif()
 
 include(cmake/OpenSSL.cmake)
+include(cmake/asm.cmake)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
@@ -254,5 +255,5 @@ if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})

@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WORKER_H__
-#define __WORKER_H__
+#ifndef XMRIG_WORKER_H
+#define XMRIG_WORKER_H
 
 
 #include <atomic>
@@ -33,7 +33,6 @@
 #include "Mem.h"
 
 
-struct cryptonight_ctx;
 class Handle;
 
 
@@ -67,4 +66,4 @@ protected:
 };
 
 
-#endif /* __WORKER_H__ */
+#endif /* XMRIG_WORKER_H */

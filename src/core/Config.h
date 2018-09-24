@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef XMRIG_CONFIG_H
+#define XMRIG_CONFIG_H
 
 
 #include <stdint.h>
@@ -69,7 +69,6 @@ public:
 
 
     Config();
-    ~Config();
 
     bool reload(const char *json);
 
@@ -77,6 +76,7 @@ public:
 
     inline AesMode aesMode() const                       { return m_aesMode; }
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
+    inline Assembly assembly() const                     { return m_assembly; }
     inline bool isHugePages() const                      { return m_hugePages; }
     inline const std::vector<IThread *> &threads() const { return m_threads.list; }
     inline int priority() const                          { return m_priority; }
@@ -116,6 +116,7 @@ private:
 
     AesMode m_aesMode;
     AlgoVariant m_algoVariant;
+    Assembly m_assembly;
     bool m_hugePages;
     bool m_safe;
     int m_maxCpuUsage;
@@ -126,4 +127,4 @@ private:
 
 } /* namespace xmrig */
 
-#endif /* __CONFIG_H__ */
+#endif /* XMRIG_CONFIG_H */
