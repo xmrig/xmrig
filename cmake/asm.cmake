@@ -13,6 +13,9 @@ if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         add_library(${XMRIG_ASM_LIBRARY} STATIC
             "src/crypto/asm/cnv2_main_loop.S"
             )
+        if (MSYS OR MINGW)
+           add_definitions(/DXMRIG_WINDOWS)
+        endif()
     endif()
 
     set(XMRIG_ASM_SOURCES src/crypto/Asm.h src/crypto/Asm.cpp)
