@@ -17,7 +17,6 @@ if (WITH_ASM AND NOT XMRIG_ARM)
 
     set_property(TARGET ${XMRIG_ASM_LIBRARY} PROPERTY LINKER_LANGUAGE C)
 else()
-#    set(XMRIG_ASM_SOURCES "")
     set(XMRIG_ASM_LIBRARY "")
     add_definitions(/DXMRIG_NO_ASM)
 endif()
