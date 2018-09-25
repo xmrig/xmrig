@@ -588,7 +588,7 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
 }
 
 
-template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Assembly ASM>
+template<xmrig::Algo ALGO, xmrig::Variant VARIANT, xmrig::Assembly ASM>
 inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {
     constexpr size_t MEM = xmrig::cn_select_memory<ALGO>();
