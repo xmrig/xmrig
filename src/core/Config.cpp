@@ -69,6 +69,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     doc.AddMember("algo", StringRef(algorithm().name()), allocator);
 
+#   ifndef XMRIG_NO_ASM
+    doc.AddMember("asm",  Asm::toJSON(m_assembly), allocator);
+#   endif
+
     Value api(kObjectType);
     api.AddMember("port",         apiPort(), allocator);
     api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
