@@ -44,6 +44,7 @@ public:
 
     inline bool isApiIPv6() const                  { return m_apiIPv6; }
     inline bool isApiRestricted() const            { return m_apiRestricted; }
+    inline bool isAutoSave() const                 { return m_autoSave; }
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
     inline bool isDryRun() const                   { return m_dryRun; }
@@ -88,6 +89,7 @@ protected:
     bool m_adjusted;
     bool m_apiIPv6;
     bool m_apiRestricted;
+    bool m_autoSave;
     bool m_background;
     bool m_colors;
     bool m_dryRun;

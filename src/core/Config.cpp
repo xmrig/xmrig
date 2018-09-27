@@ -47,6 +47,7 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_assembly(ASM_AUTO),
     m_hugePages(true),
     m_safe(false),
+    m_shouldSave(false),
     m_maxCpuUsage(75),
     m_priority(-1)
 {
@@ -69,10 +70,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     doc.AddMember("algo", StringRef(algorithm().name()), allocator);
 
-#   ifndef XMRIG_NO_ASM
-    doc.AddMember("asm",  Asm::toJSON(m_assembly), allocator);
-#   endif
-
     Value api(kObjectType);
     api.AddMember("port",         apiPort(), allocator);
     api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
@@ -82,6 +79,11 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     api.AddMember("restricted",   isApiRestricted(), allocator);
     doc.AddMember("api",          api, allocator);
 
+#   ifndef XMRIG_NO_ASM
+    doc.AddMember("asm",          Asm::toJSON(m_assembly), allocator);
+#   endif
+
+    doc.AddMember("autosave",     isAutoSave(), allocator);
     doc.AddMember("av",           algoVariant(), allocator);
     doc.AddMember("background",   isBackground(), allocator);
     doc.AddMember("colors",       isColors(), allocator);
@@ -113,7 +115,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retry-pause",   retryPause(), allocator);
     doc.AddMember("safe",          m_safe, allocator);
 
-    if (threadsMode() == Advanced) {
+    if (threadsMode() != Simple) {
         Value threads(kArrayType);
 
         for (const IThread *thread : m_threads.list) {
@@ -123,7 +125,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
         doc.AddMember("threads", threads, allocator);
     }
     else {
-        doc.AddMember("threads", threadsMode() == Automatic ? Value(kNullType) : Value(threadsCount()), allocator);
+        doc.AddMember("threads", threadsCount(), allocator);
     }
 
     doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
@@ -163,7 +165,7 @@ bool xmrig::Config::finalize()
         return true;
     }
 
-    const AlgoVariant av = getAlgoVariant();
+    const AlgoVariant av = getAlgoVariant();   
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
     const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
@@ -182,6 +184,7 @@ bool xmrig::Config::finalize()
         m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority, m_assembly));
     }
 
+    m_shouldSave = m_threads.mode == Automatic;
     return true;
 }
 

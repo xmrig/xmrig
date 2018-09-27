@@ -200,6 +200,10 @@ void Workers::start(xmrig::Controller *controller)
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }
+
+    if (controller->config()->isShouldSave()) {
+        controller->config()->save();
+    }
 }
 
 

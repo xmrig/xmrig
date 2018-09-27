@@ -161,6 +161,7 @@ static struct option const config_options[] = {
     { "user-agent",    1, nullptr, xmrig::IConfig::UserAgentKey   },
     { "hw-aes",        0, nullptr, xmrig::IConfig::HardwareAESKey },
     { "asm",           1, nullptr, xmrig::IConfig::AssemblyKey    },
+    { "autosave",      0, nullptr, xmrig::IConfig::AutoSaveKey    },
     { nullptr,         0, nullptr, 0 }
 };
 

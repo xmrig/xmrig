@@ -65,6 +65,7 @@ public:
         WatchKey          = 1105,
         TlsKey            = 1013,
         FingerprintKey    = 1014,
+        AutoSaveKey       = 1016,
 
         // xmrig common
         CPUPriorityKey    = 1021,
