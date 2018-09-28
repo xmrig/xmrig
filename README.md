@@ -111,8 +111,7 @@ Also you can use configuration via config file, default **config.json**. You can
 
 ## Other information
 * No HTTP support, only stratum protocol support.
-* No TLS support.
-* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
+* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `donate-level`.
 
 
 ### CPU mining performance
