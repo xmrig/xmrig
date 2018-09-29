@@ -6,7 +6,7 @@
         "id": null,
         "worker-id": null,
         "ipv6": false,
-        "restricted": false
+        "restricted": true
     },
     "asm": true,
     "autosave": true,
