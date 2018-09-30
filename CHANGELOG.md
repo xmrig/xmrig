@@ -3,6 +3,7 @@
   - Added global and per thread option `"asm"` and and command line equivalent.
 - **[#758](https://github.com/xmrig/xmrig/issues/758) Added SSL/TLS support for secure connections to pools.**
   - Added per pool options `"tls"` and `"tls-fingerprint"` and command line equivalents.
+- [#767](https://github.com/xmrig/xmrig/issues/767) Added config autosave feature, same with GPU miners.  
 - [#245](https://github.com/xmrig/xmrig-proxy/issues/245) Fixed API ID collision when run multiple miners on same machine.
 - [#757](https://github.com/xmrig/xmrig/issues/757) Fixed send buffer overflow.
 
