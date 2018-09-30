@@ -28,7 +28,7 @@
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
-            "variant": 1,
+            "variant": -1,
             "tls": false,
             "tls-fingerprint": null
         }
