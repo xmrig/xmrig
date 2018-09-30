@@ -67,7 +67,7 @@ xmrig::Assembly xmrig::Asm::parse(const char *assembly, Assembly defaultValue)
 xmrig::Assembly xmrig::Asm::parse(const rapidjson::Value &value, Assembly defaultValue)
 {
     if (value.IsBool()) {
-        return parse(value.IsBool());
+        return parse(value.GetBool());
     }
 
     if (value.IsString()) {
