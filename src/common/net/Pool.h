@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __POOL_H__
-#define __POOL_H__
+#ifndef XMRIG_POOL_H
+#define XMRIG_POOL_H
 
 
 #include <vector>
@@ -44,30 +45,35 @@ public:
     Pool();
     Pool(const char *url);
     Pool(const char *host,
-        uint16_t port,
-        const char *user       = nullptr,
-        const char *password   = nullptr,
-        int keepAlive          = 0,
-        bool nicehash          = false
+         uint16_t port,
+         const char *user       = nullptr,
+         const char *password   = nullptr,
+         int keepAlive          = 0,
+         bool nicehash          = false,
+         bool tls               = false
        );
 
-    inline bool isNicehash() const                     { return m_nicehash; }
-    inline bool isValid() const                        { return !m_host.isNull() && m_port > 0; }
-    inline const char *host() const                    { return m_host.data(); }
-    inline const char *password() const                { return !m_password.isNull() ? m_password.data() : kDefaultPassword; }
-    inline const char *rigId() const                   { return m_rigId.data(); }
-    inline const char *url() const                     { return m_url.data(); }
-    inline const char *user() const                    { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
-    inline const xmrig::Algorithm &algorithm() const   { return m_algorithm; }
-    inline const xmrig::Algorithms &algorithms() const { return m_algorithms; }
-    inline int keepAlive() const                       { return m_keepAlive; }
-    inline uint16_t port() const                       { return m_port; }
-    inline void setKeepAlive(int keepAlive)            { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
-    inline void setNicehash(bool nicehash)             { m_nicehash = nicehash; }
-    inline void setPassword(const char *password)      { m_password = password; }
-    inline void setRigId(const char *rigId)            { m_rigId = rigId; }
-    inline void setUser(const char *user)              { m_user = user; }
-    inline xmrig::Algorithm &algorithm()               { return m_algorithm; }
+    inline bool isNicehash() const                      { return m_nicehash; }
+    inline bool isTLS() const                           { return m_tls; }
+    inline bool isValid() const                         { return !m_host.isNull() && m_port > 0; }
+    inline const char *fingerprint() const              { return m_fingerprint.data(); }
+    inline const char *host() const                     { return m_host.data(); }
+    inline const char *password() const                 { return !m_password.isNull() ? m_password.data() : kDefaultPassword; }
+    inline const char *rigId() const                    { return m_rigId.data(); }
+    inline const char *url() const                      { return m_url.data(); }
+    inline const char *user() const                     { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
+    inline const xmrig::Algorithm &algorithm() const    { return m_algorithm; }
+    inline const xmrig::Algorithms &algorithms() const  { return m_algorithms; }
+    inline int keepAlive() const                        { return m_keepAlive; }
+    inline uint16_t port() const                        { return m_port; }
+    inline void setFingerprint(const char *fingerprint) { m_fingerprint = fingerprint; }
+    inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
+    inline void setNicehash(bool nicehash)              { m_nicehash = nicehash; }
+    inline void setPassword(const char *password)       { m_password = password; }
+    inline void setRigId(const char *rigId)             { m_rigId = rigId; }
+    inline void setTLS(bool tls)                        { m_tls = tls; }
+    inline void setUser(const char *user)               { m_user = user; }
+    inline xmrig::Algorithm &algorithm()                { return m_algorithm; }
 
     inline bool operator!=(const Pool &other) const  { return !isEqual(other); }
     inline bool operator==(const Pool &other) const  { return isEqual(other); }
@@ -91,10 +97,12 @@ private:
     void rebuild();
 
     bool m_nicehash;
+    bool m_tls;
     int m_keepAlive;
     uint16_t m_port;
     xmrig::Algorithm m_algorithm;
     xmrig::Algorithms m_algorithms;
+    xmrig::c_str m_fingerprint;
     xmrig::c_str m_host;
     xmrig::c_str m_password;
     xmrig::c_str m_rigId;
@@ -105,4 +113,4 @@ private:
 
 typedef std::vector<Pool> Pools;
 
-#endif /* __POOL_H__ */
+#endif /* XMRIG_POOL_H */

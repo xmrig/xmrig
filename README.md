@@ -1,6 +1,6 @@
 # XMRig
 
-:warning: **If you mine Monero, Aeon, Sumokoin, Turtlecoin, Stellite, GRAFT, Haven Protocol, IPBC, [PLEASE READ](https://github.com/xmrig/xmrig/issues/482)!** :warning:
+:warning: **[Monero will change PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to v2.8+** :warning:
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
@@ -87,11 +87,22 @@ Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or shar
 Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
-Since version 0.8.0.
-* `--av=1` For CPUs with hardware AES.
-* `--av=2` Lower power mode (double hash) of `1`.
-* `--av=3` Software AES implementation.
-* `--av=4` Lower power mode (double hash) of `3`.
+
+- `av` option used for automatic and simple threads mode (when you specify only threads count).
+- For [advanced threads mode](https://github.com/xmrig/xmrig/issues/563) each thread configured individually and `av` option not used.
+
+| av | Hashes per round | Hardware AES |
+|----|------------------|--------------|
+| 1  | 1 (Single)       | yes          |
+| 2  | 2 (Double)       | yes          |
+| 3  | 1 (Single)       | no           |
+| 4  | 2 (Double)       | no           |
+| 5  | 3 (Triple)       | yes          |
+| 6  | 4 (Quard)        | yes          |
+| 7  | 5 (Penta)        | yes          |
+| 8  | 3 (Triple)       | no           |
+| 9  | 4 (Quard)        | no           |
+| 10 | 5 (Penta)        | no           |
 
 ## Common Issues
 ### HUGE PAGES unavailable
@@ -100,8 +111,7 @@ Since version 0.8.0.
 
 ## Other information
 * No HTTP support, only stratum protocol support.
-* No TLS support.
-* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
+* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `donate-level`.
 
 
 ### CPU mining performance

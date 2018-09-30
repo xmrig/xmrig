@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -60,6 +61,7 @@ static AlgoData const algorithms[] = {
     { "cryptonight/msr",       "cn/msr",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
     { "cryptonight/xao",       "cn/xao",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO  },
     { "cryptonight/rto",       "cn/rto",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
+    { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -81,6 +83,8 @@ static AlgoData const algorithms[] = {
 static AlgoData const xmrStakAlgorithms[] = {
     { "cryptonight-monerov7",    nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_1    },
     { "cryptonight_v7",          nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_1    },
+    { "cryptonight-monerov8",    nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
+    { "cryptonight_v8",          nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
     { "cryptonight_v7_stellite", nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL  },
     { "cryptonight_lite",        nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_0    },
     { "cryptonight-aeonv7",      nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
@@ -103,7 +107,8 @@ static const char *variants[] = {
     "msr",
     "xhv",
     "xao",
-    "rto"
+    "rto",
+    "2",
 };
 
 
@@ -172,11 +177,21 @@ void xmrig::Algorithm::parseVariant(const char *variant)
 
 void xmrig::Algorithm::parseVariant(int variant)
 {
-    if (variant >= VARIANT_AUTO && variant < VARIANT_MAX) {
-       m_variant = static_cast<Variant>(variant);
-    }
-    else {
-        assert(false);
+    assert(variant >= -1 && variant <= 2);
+
+    switch (variant) {
+    case -1:
+    case 0:
+    case 1:
+        m_variant = static_cast<Variant>(variant);
+        break;
+
+    case 2:
+        m_variant = VARIANT_2;
+        break;
+
+    default:
+        break;
     }
 }
 

@@ -20,8 +20,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ITHREAD_H__
-#define __ITHREAD_H__
+#ifndef XMRIG_ITHREAD_H
+#define XMRIG_ITHREAD_H
 
 
 #include <stdint.h>
@@ -64,10 +64,14 @@ public:
 #   ifndef XMRIG_NO_API
     virtual rapidjson::Value toAPI(rapidjson::Document &doc) const = 0;
 #   endif
+
+#   ifdef APP_DEBUG
+    virtual void print() const = 0;
+#   endif
 };
 
 
 } /* namespace xmrig */
 
 
-#endif // __ITHREAD_H__
+#endif // XMRIG_ITHREAD_H

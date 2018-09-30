@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ICONTROLLERLISTENER_H__
-#define __ICONTROLLERLISTENER_H__
+#ifndef XMRIG_ICONTROLLERLISTENER_H
+#define XMRIG_ICONTROLLERLISTENER_H
 
 
 namespace xmrig {
@@ -43,4 +43,4 @@ public:
 } /* namespace xmrig */
 
 
-#endif // __ICONTROLLERLISTENER_H__
+#endif // XMRIG_ICONTROLLERLISTENER_H

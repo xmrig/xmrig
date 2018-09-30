@@ -75,8 +75,9 @@ enum _intel_bits_t {
 	_3                      = LBIT( 14 ),
 	_5                      = LBIT( 15 ),
 	_7                      = LBIT( 16 ),
-	XEON_                   = LBIT( 17 ),
-	ATOM_                   = LBIT( 18 ),
+	_9                      = LBIT( 17 ),
+	XEON_                   = LBIT( 18 ),
+	ATOM_                   = LBIT( 19 ),
 };
 typedef enum _intel_bits_t intel_bits_t;
 
