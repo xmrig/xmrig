@@ -257,7 +257,7 @@ xmrig::Algorithm::Algorithm(const xmrig::PerfAlgo pa) {
     switch (pa) {
        case PA_CN:
            m_algo    = xmrig::CRYPTONIGHT;
-           m_variant = xmrig::VARIANT_1;
+           m_variant = xmrig::VARIANT_2;
            break;
        case PA_CN_FAST:
            m_algo    = xmrig::CRYPTONIGHT;
