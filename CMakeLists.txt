@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-option(WITH_LIBCPUID "Use Libcpuid" ON)
-option(WITH_AEON     "CryptoNight-Lite support" ON)
-option(WITH_SUMO     "CryptoNight-Heavy support" ON)
-option(WITH_HTTPD    "HTTP REST API" ON)
-option(BUILD_STATIC  "Build static binary" OFF)
+option(WITH_LIBCPUID  "Use Libcpuid" ON)
+option(WITH_AEON      "CryptoNight-Lite support" ON)
+option(WITH_SUMO      "CryptoNight-Heavy support" ON)
+option(WITH_HTTPD     "HTTP REST API" ON)
+option(WITH_DEBUG_LOG "Enable debug log output" OFF)
+option(WITH_TLS       "Enable OpenSSL support" ON)
+option(WITH_ASM       "Enable ASM PoW implementations" ON)
+option(BUILD_STATIC   "Build static binary" OFF)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -18,6 +21,7 @@ set(HEADERS
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
     src/common/Console.h
+    src/common/cpu/Cpu.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/IClientListener.h
@@ -25,10 +29,12 @@ set(HEADERS
     src/common/interfaces/IConfigCreator.h
     src/common/interfaces/IConsoleListener.h
     src/common/interfaces/IControllerListener.h
+    src/common/interfaces/ICpuInfo.h
     src/common/interfaces/ILogBackend.h
     src/common/interfaces/IStrategy.h
     src/common/interfaces/IStrategyListener.h
     src/common/interfaces/IWatcherListener.h
+    src/common/log/BasicLog.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
     src/common/log/Log.h
@@ -46,7 +52,6 @@ set(HEADERS
     src/common/xmrig.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
-    src/Cpu.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
@@ -95,6 +100,7 @@ set(SOURCES
     src/common/Console.cpp
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
+    src/common/log/BasicLog.cpp
     src/common/log/ConsoleLog.cpp
     src/common/log/FileLog.cpp
     src/common/log/Log.cpp
@@ -133,7 +139,6 @@ if (WIN32)
         res/app.rc
         src/App_win.cpp
         src/common/Platform_win.cpp
-        src/Cpu_win.cpp
         src/Mem_win.cpp
         )
 
@@ -143,18 +148,16 @@ elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
         src/common/Platform_mac.cpp
-        src/Cpu_mac.cpp
         src/Mem_unix.cpp
         )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
         src/common/Platform_unix.cpp
-        src/Cpu_unix.cpp
         src/Mem_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread rt)
+    set(EXTRA_LIBS pthread rt dl)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
@@ -170,7 +173,6 @@ endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
-#add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -183,16 +185,20 @@ if (WITH_LIBCPUID)
 
     include_directories(src/3rdparty/libcpuid)
     set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/Cpu.cpp)
+    set(SOURCES_CPUID src/core/cpu/AdvancedCpuInfo.h src/core/cpu/AdvancedCpuInfo.cpp src/core/cpu/Cpu.cpp)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
+    set(SOURCES_CPUID src/common/cpu/BasicCpuInfo.h src/common/cpu/Cpu.cpp)
 
     if (XMRIG_ARM)
-        set(SOURCES_CPUID src/Cpu_arm.cpp)
+        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo_arm.cpp)
     else()
-        set(SOURCES_CPUID src/Cpu_stub.cpp)
+        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo.cpp)
     endif()
 endif()
+
+include(cmake/OpenSSL.cmake)
+include(cmake/asm.cmake)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
@@ -233,6 +239,7 @@ if (WITH_HTTPD)
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
     endif()
 else()
+    set(HTTPD_SOURCES "")
     set(MHD_LIBRARY "")
     add_definitions(/DXMRIG_NO_HTTPD)
     add_definitions(/DXMRIG_NO_API)
@@ -246,5 +253,9 @@ if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif()
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+if (WITH_DEBUG_LOG)
+    add_definitions(/DAPP_DEBUG)
+endif()
+
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})

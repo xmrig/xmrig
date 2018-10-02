@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef XMRIG_CONFIG_H
+#define XMRIG_CONFIG_H
 
 
 #include <stdint.h>
@@ -70,7 +70,6 @@ public:
 
 
     Config();
-    ~Config();
 
     bool reload(const char *json);
 
@@ -78,7 +77,9 @@ public:
 
     inline AesMode aesMode() const                       { return m_aesMode; }
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
+    inline Assembly assembly() const                     { return m_assembly; }
     inline bool isHugePages() const                      { return m_hugePages; }
+    inline bool isShouldSave() const                     { return m_shouldSave && isAutoSave(); }
     inline int priority() const                          { return m_priority; }
 
     // access to m_threads taking into accoun that it is now separated for each perf algo
@@ -133,8 +134,10 @@ private:
 
     AesMode m_aesMode;
     AlgoVariant m_algoVariant;
+    Assembly m_assembly;
     bool m_hugePages;
     bool m_safe;
+    bool m_shouldSave;
     int m_maxCpuUsage;
     int m_priority;
     // threads config for each algo
@@ -148,4 +151,4 @@ extern Config* pconfig;
 
 } /* namespace xmrig */
 
-#endif /* __CONFIG_H__ */
+#endif /* XMRIG_CONFIG_H */

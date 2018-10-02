@@ -24,8 +24,8 @@
 #include <chrono>
 
 
+#include "common/cpu/Cpu.h"
 #include "common/Platform.h"
-#include "Cpu.h"
 #include "workers/CpuThread.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"
@@ -41,7 +41,7 @@ Worker::Worker(Handle *handle) :
     m_sequence(0),
     m_thread(static_cast<xmrig::CpuThread *>(handle->config()))
 {
-    if (Cpu::threads() > 1 && m_thread->affinity() != -1L) {
+    if (xmrig::Cpu::info()->threads() > 1 && m_thread->affinity() != -1L) {
         Platform::setThreadAffinity(m_thread->affinity());
     }
 

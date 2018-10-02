@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
@@ -23,8 +24,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __JOB_H__
-#define __JOB_H__
+#ifndef XMRIG_JOB_H
+#define XMRIG_JOB_H
 
 
 #include <stddef.h>
@@ -39,7 +40,7 @@ class Job
 {
 public:
     Job();
-    Job(int poolId, bool nicehash, xmrig::Algorithm algorithm, const xmrig::Id &clientId);
+    Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId);
     ~Job();
 
     bool setBlob(const char *blob);
@@ -47,7 +48,7 @@ public:
     bool setTarget(const char *target);
     // for algo benchmarking to set PoW variant
     void setAlgorithm(const xmrig::Algorithm& algorithm) { m_algorithm = algorithm; }
-    xmrig::Variant variant() const;
+    void setAlgorithm(const char *algo);
 
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
@@ -67,7 +68,8 @@ public:
     inline void setClientId(const xmrig::Id &id)      { m_clientId = id; }
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
     inline void setThreadId(int threadId)             { m_threadId = threadId; }
-    inline xmrig::Algorithm &algorithm()              { return m_algorithm; }
+    inline void setVariant(const char *variant)       { m_algorithm.parseVariant(variant); }
+    inline void setVariant(int variant)               { m_algorithm.parseVariant(variant); }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                 { return m_rawBlob; }
@@ -87,6 +89,7 @@ public:
     bool operator!=(const Job &other) const;
 
 private:
+    bool m_autoVariant;
     bool m_nicehash;
     int m_poolId;
     int m_threadId;
@@ -104,4 +107,4 @@ private:
 #   endif
 };
 
-#endif /* __JOB_H__ */
+#endif /* XMRIG_JOB_H */

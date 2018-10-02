@@ -162,6 +162,14 @@ void Workers::setJob(const Job &job, bool donate)
 
 void Workers::start(xmrig::Controller *controller)
 {
+#   ifdef APP_DEBUG
+    LOG_NOTICE("THREADS ------------------------------------------------------------------");
+    for (const xmrig::IThread *thread : controller->config()->threads()) {
+        thread->print();
+    }
+    LOG_NOTICE("--------------------------------------------------------------------------");
+#   endif
+
     m_controller = controller;
 
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
@@ -193,6 +201,10 @@ void Workers::start(xmrig::Controller *controller)
 
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
+    }
+
+    if (controller->config()->isShouldSave()) {
+        controller->config()->save();
     }
 }
 

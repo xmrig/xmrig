@@ -52,7 +52,7 @@ typedef cpuset_t cpu_set_t;
 #endif
 
 
-static inline char *createUserAgent()
+char *Platform::createUserAgent()
 {
     const size_t max = 160;
 
@@ -92,21 +92,9 @@ bool Platform::setThreadAffinity(uint64_t cpu_id)
 }
 
 
-void Platform::init(const char *userAgent)
-{
-    if (userAgent) {
-        m_userAgent = userAgent;
-    }
-    else {
-        m_userAgent = createUserAgent();
-    }
-}
-
-
 void Platform::setProcessPriority(int priority)
 {
 }
-
 
 
 void Platform::setThreadPriority(int priority)

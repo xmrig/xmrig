@@ -38,7 +38,7 @@
 #endif
 
 
-static inline char *createUserAgent()
+char *Platform::createUserAgent()
 {
     const size_t max = 160;
 
@@ -62,17 +62,6 @@ bool Platform::setThreadAffinity(uint64_t cpu_id)
     mach_thread = pthread_mach_thread_np(pthread_self());
 
     return thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) == KERN_SUCCESS;
-}
-
-
-void Platform::init(const char *userAgent)
-{
-    if (userAgent) {
-        m_userAgent = userAgent;
-    }
-    else {
-        m_userAgent = createUserAgent();
-    }
 }
 
 

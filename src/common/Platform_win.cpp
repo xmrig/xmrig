@@ -55,7 +55,7 @@ static inline OSVERSIONINFOEX winOsVersion()
 }
 
 
-static inline char *createUserAgent()
+char *Platform::createUserAgent()
 {
     const auto osver = winOsVersion();
     const size_t max = 160;
@@ -91,17 +91,6 @@ bool Platform::setThreadAffinity(uint64_t cpu_id)
     }
 
     return SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu_id) != 0;
-}
-
-
-void Platform::init(const char *userAgent)
-{
-    if (userAgent) {
-        m_userAgent = userAgent;
-    }
-    else {
-        m_userAgent = createUserAgent();
-    }
 }
 
 

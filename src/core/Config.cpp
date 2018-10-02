@@ -28,9 +28,10 @@
 
 
 #include "common/config/ConfigLoader.h"
+#include "common/cpu/Cpu.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
-#include "Cpu.h"
+#include "crypto/Asm.h"
 #include "crypto/CryptoNight_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -48,8 +49,10 @@ static char affinity_tmp[20] = { 0 };
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
+    m_assembly(ASM_AUTO),
     m_hugePages(true),
     m_safe(false),
+    m_shouldSave(false),
     m_maxCpuUsage(75),
     m_priority(-1)
 {
@@ -58,11 +61,6 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
         const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
         m_algo_perf[pa] = 0.0f;
     }
-}
-
-
-xmrig::Config::~Config()
-{
 }
 
 
@@ -85,11 +83,17 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     Value api(kObjectType);
     api.AddMember("port",         apiPort(), allocator);
     api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("id",           apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
     api.AddMember("worker-id",    apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
     api.AddMember("ipv6",         isApiIPv6(), allocator);
     api.AddMember("restricted",   isApiRestricted(), allocator);
     doc.AddMember("api",          api, allocator);
 
+#   ifndef XMRIG_NO_ASM
+    doc.AddMember("asm",          Asm::toJSON(m_assembly), allocator);
+#   endif
+
+    doc.AddMember("autosave",     isAutoSave(), allocator);
     doc.AddMember("av",           algoVariant(), allocator);
     doc.AddMember("background",   isBackground(), allocator);
     doc.AddMember("colors",       isColors(), allocator);
@@ -121,14 +125,14 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retry-pause",   retryPause(), allocator);
     doc.AddMember("safe",          m_safe, allocator);
 
+<<<<<<< HEAD
     // save extended "threads" based on m_threads
     Value threads(kObjectType);
     for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
         const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
         Value key(xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo()), allocator);
-        if (threadsMode(algo) == Advanced) {
+        if (threadsMode(algo) != Simple) {
             Value threads2(kArrayType);
-
             for (const IThread *thread : m_threads[algo].list) {
                 threads2.PushBack(thread->toConfig(doc), allocator);
             }
@@ -136,7 +140,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
             threads.AddMember(key, threads2, allocator);
         }
         else {
-            threads.AddMember(key, threadsMode(algo) == Automatic ? Value(kNullType) : Value(threadsCount(algo)), allocator);
+            threads.AddMember(key, threadsCount(), allocator);
         }
     }
     doc.AddMember("threads", threads, allocator);
@@ -184,31 +188,32 @@ bool xmrig::Config::finalize()
         const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
         if (!m_threads[algo].cpu.empty()) {
             m_threads[algo].mode = Advanced;
-            const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
-
+            const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
             for (size_t i = 0; i < m_threads[algo].cpu.size(); ++i) {
                 m_threads[algo].list.push_back(CpuThread::createFromData(i, algo, m_threads[algo].cpu[i], m_priority, softAES));
             }
-        } else {
-            const AlgoVariant av = getAlgoVariant();
-            m_threads[algo].mode = m_threads[algo].count ? Simple : Automatic;
+        }
 
-            const size_t size = CpuThread::multiway(av) * cn_select_memory(algo) / 1024;
+        const AlgoVariant av = getAlgoVariant();
+        m_threads[algo].mode = m_threads[algo].count ? Simple : Automatic;
 
-            if (!m_threads[algo].count) {
-                m_threads[algo].count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
-            }
-            else if (m_safe) {
-                const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
-                if (m_threads[algo].count > count) {
-                    m_threads[algo].count = count;
-                }
-            }
+        const size_t size = CpuThread::multiway(av) * cn_select_memory(algo) / 1024;
 
-            for (size_t i = 0; i < m_threads[algo].count; ++i) {
-                m_threads[algo].list.push_back(CpuThread::createFromAV(i, algo, av, m_threads[algo].mask, m_priority));
+        if (!m_threads[algo].count) {
+            m_threads[algo].count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
+        }
+        else if (m_safe) {
+            const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
+            if (m_threads[algo].count > count) {
+                m_threads[algo].count = count;
             }
         }
+
+        for (size_t i = 0; i < m_threads[algo].count; ++i) {
+            m_threads[algo].list.push_back(CpuThread::createFromAV(i, algo, av, m_threads[algo].mask, m_priority));
+        }
+
+        m_shouldSave ||= m_threads[algo].mode == Automatic;
     }
 
     return true;
@@ -233,6 +238,12 @@ bool xmrig::Config::parseBoolean(int key, bool enable)
     case HardwareAESKey: /* hw-aes config only */
         m_aesMode = enable ? AES_HW : AES_SOFT;
         break;
+
+#   ifndef XMRIG_NO_ASM
+    case AssemblyKey:
+        m_assembly = Asm::parse(enable);
+        break;
+#   endif
 
     default:
         break;
@@ -262,7 +273,7 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
     case ThreadsKey:  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
-            m_threads[m_algorithm.algo()].count = Cpu::threads(); // sets default algo threads
+            m_threads[m_algorithm.algo()].count = Cpu::info()->threads(); // sets default algo threads
             return true;
         }
 
@@ -273,6 +284,12 @@ bool xmrig::Config::parseString(int key, const char *arg)
             const char *p  = strstr(arg, "0x");
             return parseUint64(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
+
+#   ifndef XMRIG_NO_ASM
+    case AssemblyKey: /* --asm */
+        m_assembly = Asm::parse(arg);
+        break;
+#   endif
 
     default:
         break;
@@ -398,10 +415,10 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 #   endif
 
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
+        return Cpu::info()->hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
     }
 
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV_DOUBLE) {
+    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
         return static_cast<AlgoVariant>(m_algoVariant + 2);
     }
 
@@ -413,10 +430,10 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
 {
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
+        return Cpu::info()->hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
     }
 
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV_DOUBLE) {
+    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
         return static_cast<AlgoVariant>(m_algoVariant + 2);
     }
 

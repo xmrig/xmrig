@@ -30,6 +30,7 @@
 
 
 #include "common/interfaces/ILogBackend.h"
+#include "common/log/BasicLog.h"
 #include "common/log/Log.h"
 
 
@@ -106,6 +107,14 @@ const char *Log::endl(bool isColors)
 #   else
     return isColors ? "\x1B[0m\n" : "\n";
 #   endif
+}
+
+
+void Log::defaultInit()
+{
+    m_self = new Log();
+
+    add(new BasicLog());
 }
 
 

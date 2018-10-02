@@ -1,6 +1,6 @@
 # XMRig
 
-:warning: **If you mine Monero, Aeon, Sumokoin, Turtlecoin, Stellite, GRAFT, Haven Protocol, IPBC, [PLEASE READ](https://github.com/MoneroOcean/xmrig/issues/482)!** :warning:
+:warning: **[Monero will change PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/MoneroOcean/xmrig/releases/tag/v2.8.0-rc-mo1)** :warning:
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/MoneroOcean/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/MoneroOcean/xmrig/releases)
@@ -87,11 +87,22 @@ Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or shar
 Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
 
 ## Algorithm variations
-Since version 0.8.0.
-* `--av=1` For CPUs with hardware AES.
-* `--av=2` Lower power mode (double hash) of `1`.
-* `--av=3` Software AES implementation.
-* `--av=4` Lower power mode (double hash) of `3`.
+
+- `av` option used for automatic and simple threads mode (when you specify only threads count).
+- For [advanced threads mode](https://github.com/xmrig/xmrig/issues/563) each thread configured individually and `av` option not used.
+
+| av | Hashes per round | Hardware AES |
+|----|------------------|--------------|
+| 1  | 1 (Single)       | yes          |
+| 2  | 2 (Double)       | yes          |
+| 3  | 1 (Single)       | no           |
+| 4  | 2 (Double)       | no           |
+| 5  | 3 (Triple)       | yes          |
+| 6  | 4 (Quard)        | yes          |
+| 7  | 5 (Penta)        | yes          |
+| 8  | 3 (Triple)       | no           |
+| 9  | 4 (Quard)        | no           |
+| 10 | 5 (Penta)        | no           |
 
 ## Common Issues
 ### HUGE PAGES unavailable
@@ -100,8 +111,7 @@ Since version 0.8.0.
 
 ## Other information
 * No HTTP support, only stratum protocol support.
-* No TLS support.
-* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
+* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `donate-level`.
 
 
 ### CPU mining performance
@@ -124,12 +134,17 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Release checksums
 ### SHA-256
 ```
-34d390a499d2098bce92e6b85b4858ee6255a7e2d4e03197ba4f6a759efe349c xmrig-2.6.4-xenial-amd64.tar.gz/xmrig-2.6.4/xmrig
-cb6792c092c14f0f25d5774049a0adec403877a4564956220dcd9ba0fc488c82 xmrig-2.6.4-gcc-win32.zip/xmrig.exe
-cb3c5619a8391f989c6a69135d890c3126eda9841b9dc591d44f02078a6fd49b xmrig-2.6.4-gcc-win64.zip/xmrig.exe
-ea2e92bb10d0482880f8d389b7915948e11f672ca8559b0901d8a8fa8e9d733e xmrig-2.6.4-msvc-win64.zip/xmrig.exe
+ea6a71732937e06d5434b863bedd2d627c500e8ce30b30a02054015bb3aae3fc xmrig-2.8.0-xenial-amd64.tar.gz/xmrig-2.8.0/xmrig
+a067de09a2d49c39317d6a98e420fcd80ef040c8cecb6b21317cbe4eabbdb995 xmrig-2.8.0-xenial-amd64.tar.gz/xmrig-2.8.0/xmrig-notls
+89b7b4616faec76c40dab714046ea08ebcd6c558299d17d44639e6bc62c54186 xmrig-2.8.0-gcc-win32.zip/xmrig.exe
+0fae870bef4223905b24bb00283b3bba7ece547a09a540033beb9a2a33335124 xmrig-2.8.0-gcc-win32.zip/xmrig-notls.exe
+953df29ef354d541b89a70a36ddf16d8a9d5f2c37419d3aacd1352ff6ff539e8 xmrig-2.8.0-gcc-win64.zip/xmrig.exe
+84d73422a43b46879d88f87a492e99c81d5d632eb3be79793fc0b895196f131d xmrig-2.8.0-gcc-win64.zip/xmrig-notls.exe
+8e1302fe632249a713d7af0b7f3f50ad6e707d71d00fcd1f3be56abc024f98ac xmrig-2.8.0-msvc-win64.zip/xmrig.exe
+0042b5e7b14a4f8aca748a4c7656a0ec6705bc593c26f9987a25b10fa471f004 xmrig-2.8.0-msvc-win64.zip/xmrig-notls.exe
 ```
 
 ## Contacts
 * support@xmrig.com
 * [reddit](https://www.reddit.com/user/XMRig/)
+* [twitter](https://twitter.com/xmrig_dev)
