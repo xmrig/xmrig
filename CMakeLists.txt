@@ -91,9 +91,9 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wno-pointer-to-int-cast")
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -fmerge-all-constants")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -fmerge-all-constants")
 else()
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 endif()
 
 #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -gdwarf-2")
@@ -140,9 +140,9 @@ endif()
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON})
-    target_link_libraries(xmrig jansson curl ${CPUID_LIB} ${EXTRA_LIBS})
+    target_link_libraries(xmrig jansson ${CURL_LIBRARY} ${CPUID_LIB} ${EXTRA_LIBS})
 else()
     add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON})
-    target_link_libraries(xmrig32 jansson curl ${CPUID_LIB} ${EXTRA_LIBS})
+    target_link_libraries(xmrig32 jansson ${CURL_LIBRARY} ${CPUID_LIB} ${EXTRA_LIBS})
 endif()
 
