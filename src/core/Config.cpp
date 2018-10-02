@@ -199,20 +199,20 @@ bool xmrig::Config::finalize()
         const size_t size = CpuThread::multiway(av) * cn_select_memory(algo) / 1024;
 
         if (!m_threads[algo].count) {
-            m_threads[algo].count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
+            m_threads[algo].count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
         }
         else if (m_safe) {
-            const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
+            const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
             if (m_threads[algo].count > count) {
                 m_threads[algo].count = count;
             }
         }
 
         for (size_t i = 0; i < m_threads[algo].count; ++i) {
-            m_threads[algo].list.push_back(CpuThread::createFromAV(i, algo, av, m_threads[algo].mask, m_priority));
+            m_threads[algo].list.push_back(CpuThread::createFromAV(i, algo, av, m_threads[algo].mask, m_priority, m_assembly));
         }
 
-        m_shouldSave ||= m_threads[algo].mode == Automatic;
+        m_shouldSave = m_shouldSave || m_threads[algo].mode == Automatic;
     }
 
     return true;
