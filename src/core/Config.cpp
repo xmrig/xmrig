@@ -125,7 +125,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retry-pause",   retryPause(), allocator);
     doc.AddMember("safe",          m_safe, allocator);
 
-<<<<<<< HEAD
     // save extended "threads" based on m_threads
     Value threads(kObjectType);
     for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
