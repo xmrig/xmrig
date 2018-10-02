@@ -626,6 +626,11 @@ static bool login_decode(struct stratum_ctx *sctx, const json_t *val) {
 
     const char *s = json_string_value(json_object_get(res, "status"));
     if (!s) {
+        // Workaround for xmrig-proxy bug https://github.com/xmrig/xmrig-proxy/commit/dfa1960fe3eeb13f80717b7dbfcc7c6e9f222d89
+        s = json_string_value(json_object_get(val, "status"));
+    }
+
+    if (!s) {
         applog(LOG_ERR, "JSON invalid status");
         return false;
     }
