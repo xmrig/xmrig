@@ -89,6 +89,8 @@ public:
     bool operator!=(const Job &other) const;
 
 private:
+    xmrig::Variant variant() const;
+
     bool m_autoVariant;
     bool m_nicehash;
     int m_poolId;
