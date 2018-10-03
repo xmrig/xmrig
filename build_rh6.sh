@@ -7,8 +7,16 @@ wget http://people.centos.org/tru/devtools-2/devtools-2.repo -O /etc/yum.repos.d
 yum upgrade -y
 yum install -y devtoolset-2-gcc devtoolset-2-binutils devtoolset-2-gcc-c++
 
+rm -rf build xmrig-$1-lin64.tar.gz
+mkdir build &&\
+cd build &&\
+git clone https://github.com/MoneroOcean/xmrig.git &&\
 git checkout $1 &&\
 scl enable devtoolset-2 "cmake ." &&\
 scl enable devtoolset-2 "make" &&\
 cp src/config.json . &&\
-tar cfz xmrig-$1-lin64.tar.gz xmrig config.json
+tar cfz ../xmrig-$1-lin64.tar.gz xmrig config.json &&\
+cd .. &&\
+rm -rf build &&\
+echo OK
+
