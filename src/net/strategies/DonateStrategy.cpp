@@ -45,17 +45,13 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
     m_strategy(nullptr),
     m_listener(listener)
 {
-    uint8_t hash[200];
-    char userId[65] = { 0 };
-
-    xmrig::keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
-    Job::toHex(hash, 32, userId);
+    static char donate_user[96] = "44qJYxdbuqSKarYnDSXB6KLbsH4yR65vpJe3ELLDii9i4ZgKpgQXZYR4AMJxBJbfbKZGWUxZU42QyZSsP4AyZZMbJBCrWr1";
 
 #   ifndef XMRIG_NO_TLS
-    m_pools.push_back(Pool("xmrig.moneroocean.stream", 20001, userId, nullptr, false, true, true));
+    m_pools.push_back(Pool("xmrig.moneroocean.stream", 20001, donate_user, nullptr, false, true, true));
 #   endif
 
-    m_pools.push_back(Pool("xmrig.moneroocean.stream", 10001, userId, nullptr, false, true));
+    m_pools.push_back(Pool("xmrig.moneroocean.stream", 10001, donate_user, nullptr, false, true));
 
     for (Pool &pool : m_pools) {
         pool.adjust(xmrig::Algorithm(algo, xmrig::VARIANT_AUTO));

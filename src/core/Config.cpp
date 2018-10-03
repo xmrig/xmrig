@@ -191,28 +191,28 @@ bool xmrig::Config::finalize()
             for (size_t i = 0; i < m_threads[algo].cpu.size(); ++i) {
                 m_threads[algo].list.push_back(CpuThread::createFromData(i, algo, m_threads[algo].cpu[i], m_priority, softAES));
             }
-        }
+        } else {
+            const AlgoVariant av = getAlgoVariant();
+            m_threads[algo].mode = m_threads[algo].count ? Simple : Automatic;
 
-        const AlgoVariant av = getAlgoVariant();
-        m_threads[algo].mode = m_threads[algo].count ? Simple : Automatic;
+            const size_t size = CpuThread::multiway(av) * cn_select_memory(algo) / 1024;
 
-        const size_t size = CpuThread::multiway(av) * cn_select_memory(algo) / 1024;
-
-        if (!m_threads[algo].count) {
-            m_threads[algo].count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-        }
-        else if (m_safe) {
-            const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-            if (m_threads[algo].count > count) {
-                m_threads[algo].count = count;
+            if (!m_threads[algo].count) {
+                m_threads[algo].count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
             }
-        }
+            else if (m_safe) {
+                const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
+                if (m_threads[algo].count > count) {
+                    m_threads[algo].count = count;
+                }
+            }
 
-        for (size_t i = 0; i < m_threads[algo].count; ++i) {
-            m_threads[algo].list.push_back(CpuThread::createFromAV(i, algo, av, m_threads[algo].mask, m_priority, m_assembly));
-        }
+            for (size_t i = 0; i < m_threads[algo].count; ++i) {
+                m_threads[algo].list.push_back(CpuThread::createFromAV(i, algo, av, m_threads[algo].mask, m_priority, m_assembly));
+            }
 
-        m_shouldSave = m_shouldSave || m_threads[algo].mode == Automatic;
+            m_shouldSave = m_shouldSave || m_threads[algo].mode == Automatic;
+        }
     }
 
     return true;
