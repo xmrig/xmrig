@@ -13,7 +13,7 @@ cd build &&\
 git clone https://github.com/MoneroOcean/xmrig.git &&\
 cd xmrig &&\
 git checkout $1 &&\
-scl enable devtoolset-2 "cmake ." &&\
+scl enable devtoolset-2 "cmake . -DWITH_TLS=OFF -DWITH_HTTPD=OFF" &&\
 scl enable devtoolset-2 "make" &&\
 cp src/config.json . &&\
 tar cfz ../../xmrig-$1-lin64.tar.gz xmrig config.json &&\
