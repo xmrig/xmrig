@@ -59,6 +59,30 @@ enum Variant opt_variant = VARIANT_AUTO;
 enum AlgoVariant opt_av  = AV_AUTO;
 
 
+struct AlgoData
+{
+    const char *name;
+    const char *shortName;
+    enum Algo algo;
+    enum Variant variant;
+};
+
+
+static struct AlgoData const algorithms[] = {
+    { "cryptonight",           "cn",           ALGO_CRYPTONIGHT,       VARIANT_AUTO },
+    { "cryptonight/0",         "cn/0",         ALGO_CRYPTONIGHT,       VARIANT_0    },
+    { "cryptonight/1",         "cn/1",         ALGO_CRYPTONIGHT,       VARIANT_1    },
+    { "cryptonight/2",         "cn/2",         ALGO_CRYPTONIGHT,       VARIANT_2    },
+
+#   ifndef XMRIG_NO_AEON
+    { "cryptonight-lite",      "cn-lite",      ALGO_CRYPTONIGHT_LITE,  VARIANT_AUTO },
+    { "cryptonight-light",     "cn-light",     ALGO_CRYPTONIGHT_LITE,  VARIANT_AUTO },
+    { "cryptonight-lite/0",    "cn-lite/0",    ALGO_CRYPTONIGHT_LITE,  VARIANT_0    },
+    { "cryptonight-lite/1",    "cn-lite/1",    ALGO_CRYPTONIGHT_LITE,  VARIANT_1    },
+#   endif
+};
+
+
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
@@ -126,7 +150,7 @@ static const char *algo_names[] = {
 
 
 static const char *variant_names[] = {
-    "auto"
+    "auto",
     "0",
     "1",
     "2",
@@ -178,18 +202,13 @@ static void parse_arg(int key, char *arg) {
 
     switch (key)
     {
-    case 'a':
-        for (int i = 0; i < ARRAY_SIZE(algo_names); i++) {
-            if (algo_names[i] && !strcmp(arg, algo_names[i])) {
-                opt_algo = i;
+    case 'a': /* --algo */
+        for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
+            if ((strcasecmp(arg, algorithms[i].name) == 0) || (strcasecmp(arg, algorithms[i].shortName) == 0)) {
+                opt_algo    = algorithms[i].algo;
+                opt_variant = algorithms[i].variant;
                 break;
             }
-
-#           ifndef XMRIG_NO_AEON
-            if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(arg, "cryptonight-light")) {
-                opt_algo = i = ALGO_CRYPTONIGHT_LITE;
-            }
-#           endif
         }
         break;
 
@@ -529,6 +548,12 @@ void show_version_and_exit(void) {
 }
 
 
-const char* get_current_algo_name(void) {
+const char *get_current_algo_name(void) {
     return algo_names[opt_algo];
+}
+
+
+const char *get_current_variant_name(void)
+{
+    return variant_names[opt_variant + 1];
 }

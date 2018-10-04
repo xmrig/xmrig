@@ -94,7 +94,8 @@ extern enum AlgoVariant opt_av;
 void parse_cmdline(int argc, char *argv[]);
 void show_usage_and_exit(int status);
 void show_version_and_exit(void);
-const char* get_current_algo_name(void);
+const char *get_current_algo_name(void);
+const char *get_current_variant_name(void);
 
 extern void proper_exit(int reason);
 
