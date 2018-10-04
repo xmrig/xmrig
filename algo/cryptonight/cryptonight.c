@@ -67,8 +67,6 @@ void cryptonight_lite_av4_v0(const uint8_t *input, size_t size, uint8_t *output,
 void cryptonight_lite_av4_v1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 #endif
 
-void (*cryptonight_hash_ctx)(const void* input, size_t size, void* output, struct cryptonight_ctx* ctx, uint8_t version) = NULL;
-
 
 static inline bool verify(enum Variant variant, uint8_t *output, struct cryptonight_ctx **ctx, const uint8_t *referenceValue)
 {
@@ -101,10 +99,12 @@ static bool self_test() {
                  verify(VARIANT_1, output, ctx, test_output_v1) &&
                  verify(VARIANT_2, output, ctx, test_output_v2);
     }
+#   ifndef XMRIG_NO_AEON
     else {
         result = verify(VARIANT_0, output, ctx, test_output_v0_lite) &&
                  verify(VARIANT_1, output, ctx, test_output_v1_lite);
     }
+#   endif
 
 
     for (int i = 0; i < count; ++i) {
