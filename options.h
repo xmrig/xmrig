@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __OPTIONS_H__
-#define __OPTIONS_H__
+#ifndef XMRIG_OPTIONS_H
+#define XMRIG_OPTIONS_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -32,19 +32,28 @@
 #endif
 
 
-enum mining_algo {
+enum Algo {
     ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
     ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
 };
 
 
-enum xmr_algo_variant {
-    XMR_AV0_AUTO,
-    XMR_AV1_AESNI,
-    XMR_AV2_AESNI_DOUBLE,
-    XMR_AV3_SOFT_AES,
-    XMR_AV4_SOFT_AES_DOUBLE,
-    XMR_AV_MAX
+enum Variant {
+    VARIANT_AUTO = -1,
+    VARIANT_0    = 0,
+    VARIANT_1    = 1,
+    VARIANT_2    = 2,
+    VARIANT_MAX
+};
+
+
+enum AlgoVariant {
+    AV_AUTO,        // --av=0 Automatic mode.
+    AV_SINGLE,      // --av=1  Single hash mode
+    AV_DOUBLE,      // --av=2  Double hash mode
+    AV_SINGLE_SOFT, // --av=3  Single hash mode (Software AES)
+    AV_DOUBLE_SOFT, // --av=4  Double hash mode (Software AES)
+    AV_MAX
 };
 
 
@@ -72,13 +81,15 @@ extern char *opt_userpass;
 extern char *opt_user;
 extern char *opt_pass;
 extern int opt_n_threads;
-extern int opt_algo_variant;
 extern int opt_retry_pause;
 extern int opt_retries;
 extern int opt_donate_level;
 extern int opt_max_cpu_usage;
 extern int64_t opt_affinity;
-extern enum mining_algo opt_algo;
+
+extern enum Algo opt_algo;
+extern enum Variant opt_variant;
+extern enum AlgoVariant opt_av;
 
 void parse_cmdline(int argc, char *argv[]);
 void show_usage_and_exit(int status);
@@ -88,4 +99,4 @@ const char* get_current_algo_name(void);
 extern void proper_exit(int reason);
 
 
-#endif /* __OPTIONS_H__ */
+#endif /* XMRIG_OPTIONS_H */

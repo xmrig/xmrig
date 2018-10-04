@@ -43,10 +43,10 @@ set(HEADERS_UTILS
 set(SOURCES
     xmrig.c
     algo/cryptonight/cryptonight.c
-    algo/cryptonight/cryptonight_av1_aesni.c
-    algo/cryptonight/cryptonight_av2_aesni_double.c
-    algo/cryptonight/cryptonight_av3_softaes.c
-    algo/cryptonight/cryptonight_av4_softaes_double.c
+    algo/cryptonight/cryptonight_av1.c
+    algo/cryptonight/cryptonight_av2.c
+    algo/cryptonight/cryptonight_av3.c
+    algo/cryptonight/cryptonight_av4.c
     util.c
     options.c
     stratum.c
@@ -127,10 +127,10 @@ endif()
 
 if (WITH_AEON)
     set(SOURCES_AEON
-    algo/cryptonight-lite/cryptonight_lite_av1_aesni.c
-    algo/cryptonight-lite/cryptonight_lite_av2_aesni_double.c
-    algo/cryptonight-lite/cryptonight_lite_av3_softaes.c
-    algo/cryptonight-lite/cryptonight_lite_av4_softaes_double.c
+    algo/cryptonight-lite/cryptonight_lite_av1.c
+    algo/cryptonight-lite/cryptonight_lite_av2.c
+    algo/cryptonight-lite/cryptonight_lite_av3.c
+    algo/cryptonight-lite/cryptonight_lite_av4.c
     algo/cryptonight-lite/cryptonight_lite_aesni.h
     algo/cryptonight-lite/cryptonight_lite_softaes.h
     )

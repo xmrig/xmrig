@@ -32,16 +32,14 @@
 #include "cryptonight_monero.h"
 
 
-void cryptonight_av1_aesni(const void *restrict input, size_t size, void *restrict output, struct cryptonight_ctx *restrict ctx, uint8_t version)
+void cryptonight_av1_v0(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
 {
-    keccak((const uint8_t *) input, size, ctx->state0, 200);
+    keccak(input, size, ctx[0]->state, 200);
 
-    VARIANT1_INIT(0);
+    cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
 
-    cn_explode_scratchpad((__m128i*) ctx->state0, (__m128i*) ctx->memory);
-
-    const uint8_t* l0 = ctx->memory;
-    uint64_t* h0 = (uint64_t*) ctx->state0;
+    const uint8_t* l0 = ctx[0]->memory;
+    uint64_t* h0 = (uint64_t*) ctx[0]->state;
 
     uint64_t al0 = h0[0] ^ h0[4];
     uint64_t ah0 = h0[1] ^ h0[5];
@@ -55,7 +53,6 @@ void cryptonight_av1_aesni(const void *restrict input, size_t size, void *restri
         cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
 
         _mm_store_si128((__m128i *) &l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx0, cx));
-        VARIANT1_1(&l0[idx0 & 0x1FFFF0]);
         idx0 = EXTRACT64(cx);
         bx0 = cx;
 
@@ -67,18 +64,77 @@ void cryptonight_av1_aesni(const void *restrict input, size_t size, void *restri
         al0 += hi;
         ah0 += lo;
 
-        VARIANT1_2(ah0, 0);
         ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0] = al0;
         ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1] = ah0;
-        VARIANT1_2(ah0, 0);
 
         ah0 ^= ch;
         al0 ^= cl;
         idx0 = al0;
     }
 
-    cn_implode_scratchpad((__m128i*) ctx->memory, (__m128i*) ctx->state0);
+    cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
 
     keccakf(h0, 24);
-    extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, output);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
+
+
+void cryptonight_av1_v1(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
+{
+    if (size < 43) {
+        memset(output, 0, 32);
+        return;
+    }
+
+    keccak(input, size, ctx[0]->state, 200);
+
+    VARIANT1_INIT(0);
+
+    cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
+
+    const uint8_t* l0 = ctx[0]->memory;
+    uint64_t* h0 = (uint64_t*) ctx[0]->state;
+
+    uint64_t al0 = h0[0] ^ h0[4];
+    uint64_t ah0 = h0[1] ^ h0[5];
+    __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
+
+    uint64_t idx0 = h0[0] ^ h0[4];
+
+    for (size_t i = 0; __builtin_expect(i < 0x80000, 1); i++) {
+        __m128i cx;
+        cx = _mm_load_si128((__m128i *) &l0[idx0 & 0x1FFFF0]);
+        cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah0, al0));
+
+        cryptonight_monero_tweak((uint64_t*)&l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx0, cx));
+
+        idx0 = EXTRACT64(cx);
+        bx0 = cx;
+
+        uint64_t hi, lo, cl, ch;
+        cl = ((uint64_t*) &l0[idx0 & 0x1FFFF0])[0];
+        ch = ((uint64_t*) &l0[idx0 & 0x1FFFF0])[1];
+        lo = _umul128(idx0, cl, &hi);
+
+        al0 += hi;
+        ah0 += lo;
+
+        ((uint64_t*)&l0[idx0 & 0x1FFFF0])[0] = al0;
+        ((uint64_t*)&l0[idx0 & 0x1FFFF0])[1] = ah0 ^ tweak1_2_0;
+
+        ah0 ^= ch;
+        al0 ^= cl;
+        idx0 = al0;
+    }
+
+    cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+
+    keccakf(h0, 24);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
+
+
+void cryptonight_av1_v2(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
+{
+
 }

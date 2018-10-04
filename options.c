@@ -38,7 +38,6 @@
 
 int64_t opt_affinity      = -1L;
 int     opt_n_threads     = 0;
-int     opt_algo_variant  = 0;
 int     opt_retries       = 5;
 int     opt_retry_pause   = 5;
 int     opt_donate_level  = DONATE_LEVEL;
@@ -55,13 +54,16 @@ char    *opt_userpass     = NULL;
 char    *opt_user         = NULL;
 char    *opt_pass         = NULL;
 
-enum mining_algo opt_algo = ALGO_CRYPTONIGHT;
+enum Algo opt_algo       = ALGO_CRYPTONIGHT;
+enum Variant opt_variant = VARIANT_AUTO;
+enum AlgoVariant opt_av  = AV_AUTO;
 
 
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
   -a, --algo=ALGO       cryptonight (default) or cryptonight-lite\n\
+      --variant=N       cryptonight variant: 0-2\n\
   -o, --url=URL         URL of mining server\n\
   -b, --backup-url=URL  URL of backup mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
@@ -110,15 +112,24 @@ static struct option const options[] = {
     { "user",          1, NULL, 'u'  },
     { "userpass",      1, NULL, 'O'  },
     { "version",       0, NULL, 'V'  },
-    { 0, 0, 0, 0 }
+    { "variant",       1, NULL, 1021 },
+    { NULL,            0, NULL, 0    }
 };
 
 
 static const char *algo_names[] = {
-    [ALGO_CRYPTONIGHT]      = "cryptonight",
+    "cryptonight",
 #   ifndef XMRIG_NO_AEON
-    [ALGO_CRYPTONIGHT_LITE] = "cryptonight-lite"
+    "cryptonight-lite"
 #   endif
+};
+
+
+static const char *variant_names[] = {
+    "auto"
+    "0",
+    "1",
+    "2",
 };
 
 
@@ -144,11 +155,11 @@ static int get_algo_variant(int algo, int variant) {
     }
 #   endif
 
-    if (variant <= XMR_AV0_AUTO || variant >= XMR_AV_MAX) {
-        return (cpu_info.flags & CPU_FLAG_AES) ? XMR_AV1_AESNI : XMR_AV3_SOFT_AES;
+    if (variant <= AV_AUTO || variant >= AV_MAX) {
+        return (cpu_info.flags & CPU_FLAG_AES) ? AV_SINGLE : AV_SINGLE_SOFT;
     }
 
-    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= XMR_AV2_AESNI_DOUBLE) {
+    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= AV_DOUBLE) {
         return variant + 2;
     }
 
@@ -300,11 +311,11 @@ static void parse_arg(int key, char *arg) {
 
     case 'v': /* --av */
         v = atoi(arg);
-        if (v < 0 || v > 1000) {
+        if (v <= AV_AUTO || v >= AV_MAX) {
             show_usage_and_exit(1);
         }
 
-        opt_algo_variant = v;
+        opt_av = v;
         break;
 
     case 1020: /* --cpu-affinity */
@@ -451,9 +462,9 @@ void parse_cmdline(int argc, char *argv[]) {
         sprintf(opt_userpass, "%s:%s", opt_user, opt_pass);
     }
 
-    opt_algo_variant = get_algo_variant(opt_algo, opt_algo_variant);
+    opt_av = get_algo_variant(opt_algo, opt_av);
 
-    if (!cryptonight_init(opt_algo_variant)) {
+    if (!cryptonight_init(opt_av)) {
         applog(LOG_ERR, "Cryptonight hash self-test failed. This might be caused by bad compiler optimizations.");
         proper_exit(1);
     }

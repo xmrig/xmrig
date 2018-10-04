@@ -24,30 +24,10 @@
 #include <string.h>
 
 #include "persistent_memory.h"
-#include "algo/cryptonight/cryptonight.h"
 #include "options.h"
 
+
 static size_t offset = 0;
-
-
-#ifndef XMRIG_NO_AEON
-static void * create_persistent_ctx_lite(int thr_id) {
-    struct cryptonight_ctx *ctx = NULL;
-
-    if (!opt_double_hash) {
-        const size_t offset = MEMORY * (thr_id + 1);
-
-        ctx = (struct cryptonight_ctx *) &persistent_memory[offset + MEMORY_LITE];
-        ctx->memory = (uint8_t*) &persistent_memory[offset];
-        return ctx;
-    }
-
-    ctx = (struct cryptonight_ctx *) &persistent_memory[MEMORY - sizeof(struct cryptonight_ctx) * (thr_id + 1)];
-    ctx->memory = (uint8_t*) &persistent_memory[MEMORY * (thr_id + 1)];
-
-    return ctx;
-}
-#endif
 
 
 void * persistent_calloc(size_t num, size_t size) {
@@ -60,17 +40,14 @@ void * persistent_calloc(size_t num, size_t size) {
 }
 
 
-void * create_persistent_ctx(int thr_id) {
-#   ifndef XMRIG_NO_AEON
-    if (opt_algo == ALGO_CRYPTONIGHT_LITE) {
-        return create_persistent_ctx_lite(thr_id);
+void create_cryptonight_ctx(struct cryptonight_ctx **ctx, int thr_id)
+{
+    const int ratio = (opt_double_hash && opt_algo == ALGO_CRYPTONIGHT) ? 2 : 1;
+    ctx[0]          = persistent_calloc(1, sizeof(struct cryptonight_ctx));
+    ctx[0]->memory  = &persistent_memory[MEMORY * (thr_id * ratio + 1)];
+
+    if (opt_double_hash) {
+        ctx[1]         = persistent_calloc(1, sizeof(struct cryptonight_ctx));
+        ctx[1]->memory = ctx[0]->memory + (opt_algo == ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE);
     }
-#   endif
-
-    struct cryptonight_ctx *ctx = (struct cryptonight_ctx *) &persistent_memory[MEMORY - sizeof(struct cryptonight_ctx) * (thr_id + 1)];
-
-    const int ratio = opt_double_hash ? 2 : 1;
-    ctx->memory = (uint8_t*) &persistent_memory[MEMORY * (thr_id * ratio + 1)];
-
-    return ctx;
 }

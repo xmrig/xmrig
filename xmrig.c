@@ -260,7 +260,8 @@ static void *miner_thread(void *userdata) {
     uint32_t max_nonce;
     uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 1) - 0x20;
 
-    struct cryptonight_ctx *persistentctx = (struct cryptonight_ctx *) create_persistent_ctx(thr_id);
+    struct cryptonight_ctx *persistentctx[1];
+    create_cryptonight_ctx(persistentctx, thr_id);
 
     if (cpu_info.total_logical_cpus > 1 && opt_affinity != -1L) {
         affine_to_cpu_mask(thr_id, (unsigned long) opt_affinity);
@@ -306,7 +307,7 @@ static void *miner_thread(void *userdata) {
         gettimeofday(&tv_start, NULL);
 
         /* scan nonces for a proof-of-work hash */
-        const int rc = scanhash_cryptonight(thr_id, hash, work.blob, work.blob_size, work.target, max_nonce, &hashes_done, persistentctx);
+        const int rc = scanhash_cryptonight(thr_id, hash, (const uint8_t *) work.blob, work.blob_size, work.target, max_nonce, &hashes_done, persistentctx);
         stats_add_hashes(thr_id, &tv_start, hashes_done);
 
         if (!rc) {
@@ -335,7 +336,8 @@ static void *miner_thread_double(void *userdata) {
     uint32_t max_nonce;
     uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 1) - 0x20;
 
-    struct cryptonight_ctx *persistentctx = (struct cryptonight_ctx *) create_persistent_ctx(thr_id);
+    struct cryptonight_ctx *persistentctx[2];
+    create_cryptonight_ctx(persistentctx, thr_id);
 
     if (cpu_info.total_logical_cpus > 1 && opt_affinity != -1L) {
         affine_to_cpu_mask(thr_id, (unsigned long) opt_affinity);
