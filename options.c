@@ -341,6 +341,13 @@ static void parse_arg(int key, char *arg) {
         opt_donate_level = v;
         break;
 
+    case 1021: /* --variant */
+        v = atoi(arg);
+        if (v > VARIANT_AUTO && v < VARIANT_MAX) {
+            opt_variant = v;
+        }
+        break;
+
     case 1006: /* --nicehash */
         opt_nicehash = true;
         break;
