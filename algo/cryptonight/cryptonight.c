@@ -41,8 +41,6 @@
 #include "cryptonight_test.h"
 #include "options.h"
 
-#include "utils/applog.h"
-
 
 void cryptonight_av1_v0(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_av1_v1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
@@ -101,7 +99,7 @@ static bool self_test() {
     if (opt_algo == ALGO_CRYPTONIGHT) {
         result = verify(VARIANT_0, output, ctx, test_output_v0) &&
                  verify(VARIANT_1, output, ctx, test_output_v1) &&
-                 verify(VARIANT_0, output, ctx, test_output_v0);
+                 verify(VARIANT_2, output, ctx, test_output_v2);
     }
     else {
         result = verify(VARIANT_0, output, ctx, test_output_v0_lite) &&
