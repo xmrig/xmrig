@@ -76,7 +76,7 @@ elseif (APPLE)
     set(SOURCES_OS mac/cpu_mac.c mac/memory_mac.c mac/xmrig_mac.c)
 else()
     set(SOURCES_OS unix/cpu_unix.c unix/memory_unix.c unix/xmrig_unix.c)
-    set(EXTRA_LIBS pthread)
+    set(EXTRA_LIBS pthread rt m)
 endif()
 
 include_directories(.)
