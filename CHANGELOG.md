@@ -1,3 +1,12 @@
+# v0.9.0
+- **[#753](https://github.com/xmrig/xmrig/issues/753) Added new algorithm [CryptoNight variant 2](https://github.com/xmrig/xmrig/issues/753) for Monero fork, thanks [@SChernykh](https://github.com/SChernykh).**
+  - Added option `--asm`, possible values `--asm auto`, `--asm none`, `--asm intel` and `--asm ryzen`.
+- Added support for new style long and short algorithm names, possible values: `cryptonight`, `cryptonight/0`, `cryptonight/1`, `cryptonight/2`, `cryptonight-lite`, `cryptonight-lite/0`, `cryptonight-lite/1` and short equvalents `cn/2` etc. 
+- Added `--variant`, example `--algo cn --variant 2`, by default miner automaticaly detect proper variant for Monero by block version.  
+- Added CryptoNight-Lite variant 1.
+- Added xmrig-proxy autodetection, nicehash will be enabled automaticaly. 
+- Added workaround for xmrig-proxy [bug](https://github.com/xmrig/xmrig-proxy/commit/dfa1960fe3eeb13f80717b7dbfcc7c6e9f222d89).
+
 # v0.8.2
 - Fixed L2 cache size detection for AMD CPUs (Bulldozer/Piledriver/Steamroller/Excavator architecture).
 - Fixed gcc 7.1 support.
