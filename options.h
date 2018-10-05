@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
 #ifndef ARRAY_SIZE
 #   define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif
@@ -57,16 +58,13 @@ enum AlgoVariant {
 };
 
 
-#ifndef XMRIG_NO_AEON
-enum aeon_algo_variant {
-    AEON_AV0_AUTO,
-    AEON_AV1_AESNI,
-    AEON_AV2_AESNI_DOUBLE,
-    AEON_AV3_SOFT_AES,
-    AEON_AV4_SOFT_AES_DOUBLE,
-    AEON_AV_MAX
+enum Assembly {
+    ASM_NONE,
+    ASM_AUTO,
+    ASM_INTEL,
+    ASM_RYZEN,
+    ASM_MAX
 };
-#endif
 
 
 extern bool opt_colors;
@@ -90,6 +88,7 @@ extern int64_t opt_affinity;
 extern enum Algo opt_algo;
 extern enum Variant opt_variant;
 extern enum AlgoVariant opt_av;
+extern enum Assembly opt_assembly;
 
 void parse_cmdline(int argc, char *argv[]);
 void show_usage_and_exit(int status);

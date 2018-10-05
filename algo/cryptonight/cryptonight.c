@@ -33,6 +33,7 @@
 #   include "xmrig.h"
 #endif
 
+#include "cpu.h"
 #include "crypto/c_blake256.h"
 #include "crypto/c_groestl.h"
 #include "crypto/c_jh.h"
@@ -65,6 +66,13 @@ void cryptonight_lite_av3_v0(const uint8_t *input, size_t size, uint8_t *output,
 void cryptonight_lite_av3_v1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_lite_av4_v0(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_lite_av4_v1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+#endif
+
+
+#ifndef XMRIG_NO_ASM
+void cryptonight_single_hash_asm_intel(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_single_hash_asm_ryzen(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_double_hash_asm(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 #endif
 
 
@@ -116,12 +124,46 @@ static bool self_test() {
 }
 
 
+size_t fn_index(enum Algo algorithm, enum AlgoVariant av, enum Variant variant, enum Assembly assembly)
+{
+    const size_t index = VARIANT_MAX * 4 * algorithm + 4 * variant + av - 1;
+
+#   ifndef XMRIG_NO_ASM
+    if (assembly == ASM_AUTO) {
+        assembly = cpu_info.assembly;
+    }
+
+    if (assembly == ASM_NONE) {
+        return index;
+    }
+
+    const size_t offset = VARIANT_MAX * 4 * 2;
+
+    if (algorithm == ALGO_CRYPTONIGHT && variant == VARIANT_2) {
+        if (av == AV_SINGLE) {
+            return offset + assembly - 2;
+        }
+
+        if (av == AV_DOUBLE) {
+            return offset + 2;
+        }
+    }
+#   endif
+
+    return index;
+}
+
+
 cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum Variant variant)
 {
     assert(av > AV_AUTO && av < AV_MAX);
     assert(variant > VARIANT_AUTO && variant < VARIANT_MAX);
 
+#   ifndef XMRIG_NO_ASM
+    static const cn_hash_fun func_table[VARIANT_MAX * 4 * 2 + 3] = {
+#   else
     static const cn_hash_fun func_table[VARIANT_MAX * 4 * 2] = {
+#   endif
         cryptonight_av1_v0,
         cryptonight_av2_v0,
         cryptonight_av3_v0,
@@ -147,13 +189,31 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
         NULL,
         NULL,
         NULL,
-        NULL
+        NULL,
+#       else
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+#       endif
+#       ifndef XMRIG_NO_ASM
+        cryptonight_single_hash_asm_intel,
+        cryptonight_single_hash_asm_ryzen,
+        cryptonight_double_hash_asm
 #       endif
     };
 
-    const size_t index = VARIANT_MAX * 4 * algorithm + 4 * variant + av - 1;
-
 #   ifndef NDEBUG
+    const size_t index = fn_index(algorithm, av, variant, opt_assembly);
+
     cn_hash_fun func = func_table[index];
 
     assert(index < sizeof(func_table) / sizeof(func_table[0]));
@@ -161,7 +221,7 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
 
     return func;
 #   else
-    return func_table[index];
+    return func_table[fn_index(algorithm, av, variant, opt_assembly)];
 #   endif
 }
 

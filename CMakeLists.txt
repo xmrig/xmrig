@@ -3,6 +3,7 @@ project(xmrig C)
 
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
+option(WITH_ASM      "Enable ASM PoW implementations" ON)
 
 set(HEADERS
     algo/cryptonight/cryptonight.h
@@ -125,6 +126,8 @@ else()
     set(SOURCES_CPUID cpu_stub.c)
 endif()
 
+include(cmake/asm.cmake)
+
 if (WITH_AEON)
     set(SOURCES_AEON
     algo/cryptonight-lite/cryptonight_lite_av1.c
@@ -139,10 +142,10 @@ else()
 endif()
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON})
-    target_link_libraries(xmrig jansson ${CURL_LIBRARY} ${CPUID_LIB} ${EXTRA_LIBS})
+    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON} ${XMRIG_ASM_SOURCES})
+    target_link_libraries(xmrig ${XMRIG_ASM_LIBRARY} jansson ${CURL_LIBRARY} ${CPUID_LIB} ${EXTRA_LIBS})
 else()
-    add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON})
-    target_link_libraries(xmrig32 jansson ${CURL_LIBRARY} ${CPUID_LIB} ${EXTRA_LIBS})
+    add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON} ${XMRIG_ASM_SOURCES})
+    target_link_libraries(xmrig32 ${XMRIG_ASM_LIBRARY} jansson ${CURL_LIBRARY} ${CPUID_LIB} ${EXTRA_LIBS})
 endif()
 

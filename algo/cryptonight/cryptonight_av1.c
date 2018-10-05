@@ -191,3 +191,57 @@ void cryptonight_av1_v2(const uint8_t *restrict input, size_t size, uint8_t *res
     keccakf(h0, 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
+
+
+#ifndef XMRIG_NO_ASM
+extern void cnv2_mainloop_ivybridge_asm(struct cryptonight_ctx *ctx);
+extern void cnv2_mainloop_ryzen_asm(struct cryptonight_ctx *ctx);
+extern void cnv2_double_mainloop_sandybridge_asm(struct cryptonight_ctx* ctx0, struct cryptonight_ctx* ctx1);
+
+
+void cryptonight_single_hash_asm_intel(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
+{
+    keccak(input, size, ctx[0]->state, 200);
+    cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
+
+    cnv2_mainloop_ivybridge_asm(ctx[0]);
+
+    cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+    keccakf((uint64_t*) ctx[0]->state, 24);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
+
+
+void cryptonight_single_hash_asm_ryzen(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
+{
+    keccak(input, size, ctx[0]->state, 200);
+    cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
+
+    cnv2_mainloop_ryzen_asm(ctx[0]);
+
+    cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+    keccakf((uint64_t*) ctx[0]->state, 24);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
+
+
+void cryptonight_double_hash_asm(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
+{
+    keccak(input,        size, ctx[0]->state, 200);
+    keccak(input + size, size, ctx[1]->state, 200);
+
+    cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
+    cn_explode_scratchpad((__m128i*) ctx[1]->state, (__m128i*) ctx[1]->memory);
+
+    cnv2_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
+
+    cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+    cn_implode_scratchpad((__m128i*) ctx[1]->memory, (__m128i*) ctx[1]->state);
+
+    keccakf((uint64_t*) ctx[0]->state, 24);
+    keccakf((uint64_t*) ctx[1]->state, 24);
+
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+    extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
+}
+#endif

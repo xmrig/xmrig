@@ -54,9 +54,10 @@ char    *opt_userpass     = NULL;
 char    *opt_user         = NULL;
 char    *opt_pass         = NULL;
 
-enum Algo opt_algo       = ALGO_CRYPTONIGHT;
-enum Variant opt_variant = VARIANT_AUTO;
-enum AlgoVariant opt_av  = AV_AUTO;
+enum Algo opt_algo         = ALGO_CRYPTONIGHT;
+enum Variant opt_variant   = VARIANT_AUTO;
+enum AlgoVariant opt_av    = AV_AUTO;
+enum Assembly opt_assembly = ASM_AUTO;
 
 
 struct AlgoData
@@ -137,6 +138,7 @@ static struct option const options[] = {
     { "userpass",      1, NULL, 'O'  },
     { "version",       0, NULL, 'V'  },
     { "variant",       1, NULL, 1021 },
+    { "asm",           1, NULL, 1022 },
     { NULL,            0, NULL, 0    }
 };
 
@@ -157,13 +159,21 @@ static const char *variant_names[] = {
 };
 
 
+static const char *asm_names[] = {
+    "none",
+    "auto",
+    "intel",
+    "ryzen"
+};
+
+
 #ifndef XMRIG_NO_AEON
 static int get_cryptonight_lite_variant(int variant) {
-    if (variant <= AEON_AV0_AUTO || variant >= AEON_AV_MAX) {
-        return (cpu_info.flags & CPU_FLAG_AES) ? AEON_AV2_AESNI_DOUBLE : AEON_AV4_SOFT_AES_DOUBLE;
+    if (variant <= AV_AUTO || variant >= AV_MAX) {
+        return (cpu_info.flags & CPU_FLAG_AES) ? AV_DOUBLE : AV_DOUBLE_SOFT;
     }
 
-    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= AEON_AV2_AESNI_DOUBLE) {
+    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= AV_DOUBLE) {
         return variant + 2;
     }
 
@@ -208,6 +218,14 @@ static void parse_arg(int key, char *arg) {
                 opt_algo    = algorithms[i].algo;
                 opt_variant = algorithms[i].variant;
                 break;
+            }
+        }
+        break;
+
+    case 1022: /* --asm */
+        for (size_t i = 0; i < ARRAY_SIZE(asm_names); i++) {
+            if (strcasecmp(arg, asm_names[i]) == 0) {
+                opt_assembly = i;
             }
         }
         break;

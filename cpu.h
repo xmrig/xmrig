@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CPU_H__
-#define __CPU_H__
+#ifndef XMRIG_CPU_H
+#define XMRIG_CPU_H
 
 #include <stdbool.h>
 
@@ -34,6 +34,7 @@ struct cpu_info {
     int l2_cache;
     int l3_cache;
     char brand[64];
+    int assembly;
 };
 
 extern struct cpu_info cpu_info;
@@ -50,4 +51,4 @@ void cpu_init();
 int get_optimal_threads_count(int algo, bool double_hash, int max_cpu_usage);
 int affine_to_cpu_mask(int id, unsigned long mask);
 
-#endif /* __CPU_H__ */
+#endif /* XMRIG_CPU_H */

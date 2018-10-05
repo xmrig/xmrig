@@ -31,6 +31,7 @@
 #endif
 
 #include "cpu.h"
+#include "options.h"
 
 
 #ifndef BUILD_TEST
@@ -63,6 +64,15 @@ void cpu_init_common() {
 
     if (data.flags[CPU_FEATURE_AES]) {
         cpu_info.flags |= CPU_FLAG_AES;
+
+#       ifndef XMRIG_NO_ASM
+        if (data.vendor == VENDOR_AMD) {
+            cpu_info.assembly = ASM_RYZEN;
+        }
+        else if (data.vendor == VENDOR_INTEL) {
+            cpu_info.assembly = ASM_INTEL;
+        }
+#       endif
     }
 
     if (data.flags[CPU_FEATURE_BMI2]) {
