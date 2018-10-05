@@ -99,7 +99,7 @@ Configure options for libcurl:
 ```
 CMake options:
 ```
-cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCURL_INCLUDE_DIR="c:\<path>\curl-7.53.1\include" -DCURL_LIBRARY="c:\<path>\curl-7.53.1\lib\.libs"
+cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCURL_INCLUDE_DIR="c:\xmrig-deps\gcc\x64\include" -DCURL_LIBRARY="c:\xmrig-deps\gcc\x64\lib\libcurl.a"
 ```
 
 ### Optional features

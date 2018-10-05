@@ -24,7 +24,11 @@
 #include <cpuid.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+
 #include "cpu.h"
+#include "options.h"
 
 
 #define VENDOR_ID                  (0)
@@ -53,7 +57,7 @@ static inline void cpuid(int level, int output[4]) {
 
 
 static void cpu_brand_string(char* s) {
-    int cpu_info[4] = { 0 };
+    int32_t cpu_info[4] = { 0 };
     cpuid(VENDOR_ID, cpu_info);
 
     if (cpu_info[EAX_Reg] >= 4) {
@@ -68,7 +72,7 @@ static void cpu_brand_string(char* s) {
 
 static bool has_aes_ni()
 {
-    int cpu_info[4] = { 0 };
+    int32_t cpu_info[4] = { 0 };
     cpuid(PROCESSOR_INFO, cpu_info);
 
     return cpu_info[ECX_Reg] & bit_AES;
@@ -76,7 +80,7 @@ static bool has_aes_ni()
 
 
 static bool has_bmi2() {
-    int cpu_info[4] = { 0 };
+    int32_t cpu_info[4] = { 0 };
     cpuid(EXTENDED_FEATURES, cpu_info);
 
     return cpu_info[EBX_Reg] & bit_BMI2;
@@ -93,6 +97,24 @@ void cpu_init_common() {
 
     if (has_aes_ni()) {
         cpu_info.flags |= CPU_FLAG_AES;
+
+#       ifndef XMRIG_NO_ASM
+        char vendor[13] = { 0 };
+        int32_t data[4] = { 0 };
+
+        cpuid(0, data);
+
+        memcpy(vendor + 0, &data[1], 4);
+        memcpy(vendor + 4, &data[3], 4);
+        memcpy(vendor + 8, &data[2], 4);
+
+        if (memcmp(vendor, "GenuineIntel", 12) == 0) {
+            cpu_info.assembly = ASM_INTEL;
+        }
+        else if (memcmp(vendor, "AuthenticAMD", 12) == 0) {
+            cpu_info.assembly = ASM_RYZEN;
+        }
+#       endif
     }
 
     if (has_bmi2()) {

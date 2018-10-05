@@ -40,11 +40,12 @@
 #   include <netinet/in.h>
 #endif
 
-#include "stratum.h"
-#include "version.h"
+#include "options.h"
 #include "stats.h"
+#include "stratum.h"
 #include "util.h"
 #include "utils/applog.h"
+#include "version.h"
 
 
 #ifdef WIN32
@@ -73,6 +74,7 @@ static int sockopt_keepalive_cb(void *userdata, curl_socket_t fd, curlsocktype p
 static curl_socket_t opensocket_grab_cb(void *clientp, curlsocktype purpose, struct curl_sockaddr *addr);
 static int closesocket_cb(void *clientp, curl_socket_t item);
 static bool login_decode(struct stratum_ctx *sctx, const json_t *val);
+static void extensions_decode(const json_t *val);
 static bool job_decode(const json_t *job);
 static bool jobj_binary(const json_t *obj, const char *key, void *buf, size_t buflen);
 
@@ -626,6 +628,11 @@ static bool login_decode(struct stratum_ctx *sctx, const json_t *val) {
 
     const char *s = json_string_value(json_object_get(res, "status"));
     if (!s) {
+        // Workaround for xmrig-proxy bug https://github.com/xmrig/xmrig-proxy/commit/dfa1960fe3eeb13f80717b7dbfcc7c6e9f222d89
+        s = json_string_value(json_object_get(val, "status"));
+    }
+
+    if (!s) {
         applog(LOG_ERR, "JSON invalid status");
         return false;
     }
@@ -635,7 +642,28 @@ static bool login_decode(struct stratum_ctx *sctx, const json_t *val) {
         return false;
     }
 
+    extensions_decode(res);
+
     return true;
+}
+
+
+static void extensions_decode(const json_t *res)
+{
+    json_t *extensions = json_object_get(res, "extensions");
+    if (!extensions || json_array_size(extensions) == 0) {
+        return;
+    }
+
+    size_t index;
+    json_t *value;
+
+    json_array_foreach(extensions, index, value) {
+        const char *s = json_string_value(value);
+        if (s && strcmp(s, "nicehash")) {
+            opt_nicehash = true;
+        }
+    }
 }
 
 

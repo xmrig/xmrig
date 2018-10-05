@@ -22,10 +22,12 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_LITE_AESNI_H__
-#define __CRYPTONIGHT_LITE_AESNI_H__
+#ifndef XMRIG_CRYPTONIGHT_LITE_AESNI_H
+#define XMRIG_CRYPTONIGHT_LITE_AESNI_H
+
 
 #include <x86intrin.h>
+#include <stdint.h>
 
 
 #define aes_genkey_sub(imm8) \
@@ -253,4 +255,20 @@ static inline uint64_t _umul128(uint64_t multiplier, uint64_t multiplicand, uint
 #endif
 
 
-#endif /* __CRYPTONIGHT_LITE_AESNI_H__ */
+static inline void cryptonight_monero_tweak(uint64_t* mem_out, __m128i tmp)
+{
+    mem_out[0] = EXTRACT64(tmp);
+
+    tmp = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(tmp), _mm_castsi128_ps(tmp)));
+    uint64_t vh = EXTRACT64(tmp);
+
+    uint8_t x = vh >> 24;
+    static const uint16_t table = 0x7531;
+    const uint8_t index = (((x >> 3) & 6) | (x & 1)) << 1;
+    vh ^= ((table >> index) & 0x3) << 28;
+
+    mem_out[1] = vh;
+}
+
+
+#endif /* XMRIG_CRYPTONIGHT_LITE_AESNI_H */

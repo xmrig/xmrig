@@ -3,6 +3,7 @@ project(xmrig C)
 
 option(WITH_LIBCPUID "Use Libcpuid" ON)
 option(WITH_AEON     "CryptoNight-Lite support" ON)
+option(WITH_ASM      "Enable ASM PoW implementations" ON)
 
 set(HEADERS
     algo/cryptonight/cryptonight.h
@@ -43,10 +44,10 @@ set(HEADERS_UTILS
 set(SOURCES
     xmrig.c
     algo/cryptonight/cryptonight.c
-    algo/cryptonight/cryptonight_av1_aesni.c
-    algo/cryptonight/cryptonight_av2_aesni_double.c
-    algo/cryptonight/cryptonight_av3_softaes.c
-    algo/cryptonight/cryptonight_av4_softaes_double.c
+    algo/cryptonight/cryptonight_av1.c
+    algo/cryptonight/cryptonight_av2.c
+    algo/cryptonight/cryptonight_av3.c
+    algo/cryptonight/cryptonight_av4.c
     util.c
     options.c
     stratum.c
@@ -76,7 +77,7 @@ elseif (APPLE)
     set(SOURCES_OS mac/cpu_mac.c mac/memory_mac.c mac/xmrig_mac.c)
 else()
     set(SOURCES_OS unix/cpu_unix.c unix/memory_unix.c unix/xmrig_unix.c)
-    set(EXTRA_LIBS pthread)
+    set(EXTRA_LIBS pthread rt m)
 endif()
 
 include_directories(.)
@@ -91,9 +92,9 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wno-pointer-to-int-cast")
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -fmerge-all-constants")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -fmerge-all-constants")
 else()
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
 endif()
 
 #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -gdwarf-2")
@@ -125,12 +126,14 @@ else()
     set(SOURCES_CPUID cpu_stub.c)
 endif()
 
+include(cmake/asm.cmake)
+
 if (WITH_AEON)
     set(SOURCES_AEON
-    algo/cryptonight-lite/cryptonight_lite_av1_aesni.c
-    algo/cryptonight-lite/cryptonight_lite_av2_aesni_double.c
-    algo/cryptonight-lite/cryptonight_lite_av3_softaes.c
-    algo/cryptonight-lite/cryptonight_lite_av4_softaes_double.c
+    algo/cryptonight-lite/cryptonight_lite_av1.c
+    algo/cryptonight-lite/cryptonight_lite_av2.c
+    algo/cryptonight-lite/cryptonight_lite_av3.c
+    algo/cryptonight-lite/cryptonight_lite_av4.c
     algo/cryptonight-lite/cryptonight_lite_aesni.h
     algo/cryptonight-lite/cryptonight_lite_softaes.h
     )
@@ -139,10 +142,10 @@ else()
 endif()
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON})
-    target_link_libraries(xmrig jansson curl ${CPUID_LIB} ${EXTRA_LIBS})
+    add_executable(xmrig ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON} ${XMRIG_ASM_SOURCES})
+    target_link_libraries(xmrig ${XMRIG_ASM_LIBRARY} jansson ${CURL_LIBRARY} ${CPUID_LIB} ${EXTRA_LIBS})
 else()
-    add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON})
-    target_link_libraries(xmrig32 jansson curl ${CPUID_LIB} ${EXTRA_LIBS})
+    add_executable(xmrig32 ${HEADERS} ${HEADERS_CRYPTO} ${SOURCES} ${SOURCES_CRYPTO} ${HEADERS_UTILS} ${SOURCES_UTILS} ${HEADERS_COMPAT} ${SOURCES_COMPAT} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_AEON} ${XMRIG_ASM_SOURCES})
+    target_link_libraries(xmrig32 ${XMRIG_ASM_LIBRARY} jansson ${CURL_LIBRARY} ${CPUID_LIB} ${EXTRA_LIBS})
 endif()
 

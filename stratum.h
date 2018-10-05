@@ -21,8 +21,9 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STRATUM_H__
-#define __STRATUM_H__
+#ifndef XMRIG_STRATUM_H
+#define XMRIG_STRATUM_H
+
 
 #include <stdbool.h>
 #include <inttypes.h>
@@ -75,4 +76,4 @@ bool stratum_handle_method(struct stratum_ctx *sctx, const char *s);
 bool stratum_handle_response(char *buf);
 bool stratum_keepalived(struct stratum_ctx *sctx);
 
-#endif /* __STRATUM_H__ */
+#endif /* XMRIG_STRATUM_H */

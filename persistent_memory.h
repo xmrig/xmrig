@@ -21,10 +21,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PERSISTENT_MEMORY_H__
-#define __PERSISTENT_MEMORY_H__
+#ifndef XMRIG_PERSISTENT_MEMORY_H
+#define XMRIG_PERSISTENT_MEMORY_H
+
 
 #include <stddef.h>
+
+
+#include "algo/cryptonight/cryptonight.h"
 
 
 enum memory_flags {
@@ -44,7 +48,7 @@ extern int persistent_memory_flags;
 const char * persistent_memory_allocate();
 void persistent_memory_free();
 void * persistent_calloc(size_t num, size_t size);
-void * create_persistent_ctx(int thr_id);
+void create_cryptonight_ctx(struct cryptonight_ctx **ctx, int thr_id);
 
 
-#endif /* __PERSISTENT_MEMORY_H__ */
+#endif /* XMRIG_PERSISTENT_MEMORY_H */

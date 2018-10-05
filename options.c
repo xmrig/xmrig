@@ -38,7 +38,6 @@
 
 int64_t opt_affinity      = -1L;
 int     opt_n_threads     = 0;
-int     opt_algo_variant  = 0;
 int     opt_retries       = 5;
 int     opt_retry_pause   = 5;
 int     opt_donate_level  = DONATE_LEVEL;
@@ -55,13 +54,41 @@ char    *opt_userpass     = NULL;
 char    *opt_user         = NULL;
 char    *opt_pass         = NULL;
 
-enum mining_algo opt_algo = ALGO_CRYPTONIGHT;
+enum Algo opt_algo         = ALGO_CRYPTONIGHT;
+enum Variant opt_variant   = VARIANT_AUTO;
+enum AlgoVariant opt_av    = AV_AUTO;
+enum Assembly opt_assembly = ASM_AUTO;
+
+
+struct AlgoData
+{
+    const char *name;
+    const char *shortName;
+    enum Algo algo;
+    enum Variant variant;
+};
+
+
+static struct AlgoData const algorithms[] = {
+    { "cryptonight",           "cn",           ALGO_CRYPTONIGHT,       VARIANT_AUTO },
+    { "cryptonight/0",         "cn/0",         ALGO_CRYPTONIGHT,       VARIANT_0    },
+    { "cryptonight/1",         "cn/1",         ALGO_CRYPTONIGHT,       VARIANT_1    },
+    { "cryptonight/2",         "cn/2",         ALGO_CRYPTONIGHT,       VARIANT_2    },
+
+#   ifndef XMRIG_NO_AEON
+    { "cryptonight-lite",      "cn-lite",      ALGO_CRYPTONIGHT_LITE,  VARIANT_AUTO },
+    { "cryptonight-light",     "cn-light",     ALGO_CRYPTONIGHT_LITE,  VARIANT_AUTO },
+    { "cryptonight-lite/0",    "cn-lite/0",    ALGO_CRYPTONIGHT_LITE,  VARIANT_0    },
+    { "cryptonight-lite/1",    "cn-lite/1",    ALGO_CRYPTONIGHT_LITE,  VARIANT_1    },
+#   endif
+};
 
 
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
   -a, --algo=ALGO       cryptonight (default) or cryptonight-lite\n\
+      --variant=N       cryptonight variant: 0-2\n\
   -o, --url=URL         URL of mining server\n\
   -b, --backup-url=URL  URL of backup mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
@@ -110,25 +137,43 @@ static struct option const options[] = {
     { "user",          1, NULL, 'u'  },
     { "userpass",      1, NULL, 'O'  },
     { "version",       0, NULL, 'V'  },
-    { 0, 0, 0, 0 }
+    { "variant",       1, NULL, 1021 },
+    { "asm",           1, NULL, 1022 },
+    { NULL,            0, NULL, 0    }
 };
 
 
 static const char *algo_names[] = {
-    [ALGO_CRYPTONIGHT]      = "cryptonight",
+    "cryptonight",
 #   ifndef XMRIG_NO_AEON
-    [ALGO_CRYPTONIGHT_LITE] = "cryptonight-lite"
+    "cryptonight-lite"
 #   endif
+};
+
+
+static const char *variant_names[] = {
+    "auto",
+    "0",
+    "1",
+    "2",
+};
+
+
+static const char *asm_names[] = {
+    "none",
+    "auto",
+    "intel",
+    "ryzen"
 };
 
 
 #ifndef XMRIG_NO_AEON
 static int get_cryptonight_lite_variant(int variant) {
-    if (variant <= AEON_AV0_AUTO || variant >= AEON_AV_MAX) {
-        return (cpu_info.flags & CPU_FLAG_AES) ? AEON_AV2_AESNI_DOUBLE : AEON_AV4_SOFT_AES_DOUBLE;
+    if (variant <= AV_AUTO || variant >= AV_MAX) {
+        return (cpu_info.flags & CPU_FLAG_AES) ? AV_DOUBLE : AV_DOUBLE_SOFT;
     }
 
-    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= AEON_AV2_AESNI_DOUBLE) {
+    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= AV_DOUBLE) {
         return variant + 2;
     }
 
@@ -144,11 +189,11 @@ static int get_algo_variant(int algo, int variant) {
     }
 #   endif
 
-    if (variant <= XMR_AV0_AUTO || variant >= XMR_AV_MAX) {
-        return (cpu_info.flags & CPU_FLAG_AES) ? XMR_AV1_AESNI : XMR_AV3_SOFT_AES;
+    if (variant <= AV_AUTO || variant >= AV_MAX) {
+        return (cpu_info.flags & CPU_FLAG_AES) ? AV_SINGLE : AV_SINGLE_SOFT;
     }
 
-    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= XMR_AV2_AESNI_DOUBLE) {
+    if (opt_safe && !(cpu_info.flags & CPU_FLAG_AES) && variant <= AV_DOUBLE) {
         return variant + 2;
     }
 
@@ -167,18 +212,21 @@ static void parse_arg(int key, char *arg) {
 
     switch (key)
     {
-    case 'a':
-        for (int i = 0; i < ARRAY_SIZE(algo_names); i++) {
-            if (algo_names[i] && !strcmp(arg, algo_names[i])) {
-                opt_algo = i;
+    case 'a': /* --algo */
+        for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
+            if ((strcasecmp(arg, algorithms[i].name) == 0) || (strcasecmp(arg, algorithms[i].shortName) == 0)) {
+                opt_algo    = algorithms[i].algo;
+                opt_variant = algorithms[i].variant;
                 break;
             }
+        }
+        break;
 
-#           ifndef XMRIG_NO_AEON
-            if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(arg, "cryptonight-light")) {
-                opt_algo = i = ALGO_CRYPTONIGHT_LITE;
+    case 1022: /* --asm */
+        for (size_t i = 0; i < ARRAY_SIZE(asm_names); i++) {
+            if (strcasecmp(arg, asm_names[i]) == 0) {
+                opt_assembly = i;
             }
-#           endif
         }
         break;
 
@@ -300,11 +348,11 @@ static void parse_arg(int key, char *arg) {
 
     case 'v': /* --av */
         v = atoi(arg);
-        if (v < 0 || v > 1000) {
+        if (v <= AV_AUTO || v >= AV_MAX) {
             show_usage_and_exit(1);
         }
 
-        opt_algo_variant = v;
+        opt_av = v;
         break;
 
     case 1020: /* --cpu-affinity */
@@ -322,12 +370,19 @@ static void parse_arg(int key, char *arg) {
         break;
 
     case 1003: /* --donate-level */
-        v = atoi(arg);
-        if (v < 1 || v > 99) {
-            show_usage_and_exit(1);
-        }
+//        v = atoi(arg);
+//        if (v < 1 || v > 99) {
+//            show_usage_and_exit(1);
+//        }
 
-        opt_donate_level = v;
+//        opt_donate_level = v;
+        break;
+
+    case 1021: /* --variant */
+        v = atoi(arg);
+        if (v > VARIANT_AUTO && v < VARIANT_MAX) {
+            opt_variant = v;
+        }
         break;
 
     case 1006: /* --nicehash */
@@ -451,9 +506,9 @@ void parse_cmdline(int argc, char *argv[]) {
         sprintf(opt_userpass, "%s:%s", opt_user, opt_pass);
     }
 
-    opt_algo_variant = get_algo_variant(opt_algo, opt_algo_variant);
+    opt_av = get_algo_variant(opt_algo, opt_av);
 
-    if (!cryptonight_init(opt_algo_variant)) {
+    if (!cryptonight_init(opt_av)) {
         applog(LOG_ERR, "Cryptonight hash self-test failed. This might be caused by bad compiler optimizations.");
         proper_exit(1);
     }
@@ -511,6 +566,12 @@ void show_version_and_exit(void) {
 }
 
 
-const char* get_current_algo_name(void) {
+const char *get_current_algo_name(void) {
     return algo_names[opt_algo];
+}
+
+
+const char *get_current_variant_name(void)
+{
+    return variant_names[opt_variant + 1];
 }
