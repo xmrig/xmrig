@@ -370,12 +370,12 @@ static void parse_arg(int key, char *arg) {
         break;
 
     case 1003: /* --donate-level */
-        v = atoi(arg);
-        if (v < 1 || v > 99) {
-            show_usage_and_exit(1);
-        }
+//        v = atoi(arg);
+//        if (v < 1 || v > 99) {
+//            show_usage_and_exit(1);
+//        }
 
-        opt_donate_level = v;
+//        opt_donate_level = v;
         break;
 
     case 1021: /* --variant */
