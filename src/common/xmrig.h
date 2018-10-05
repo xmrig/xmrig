@@ -42,6 +42,7 @@ enum Algo {
 enum PerfAlgo {
     PA_INVALID = -1,
     PA_CN,       /* CryptoNight (Monero) */
+    PA_CN2,      /* CryptoNight/2 (Monero) */
     PA_CN_FAST,  /* CryptoNight-Fast (Masari) */
     PA_CN_LITE,  /* CryptoNight-Lite (AEON) */
     PA_CN_HEAVY, /* CryptoNight-Heavy (SUMO) */

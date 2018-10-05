@@ -245,7 +245,8 @@ const char *xmrig::Algorithm::name(bool shortName) const
 const char *xmrig::Algorithm::perfAlgoName(const xmrig::PerfAlgo pa) {
     static const char* perf_algo_names[xmrig::PerfAlgo::PA_MAX] = {
         "cn",
-        "cn-fast",
+        "cn/2",
+        "cn/msr",
         "cn-lite",
         "cn-heavy",
     };
@@ -256,6 +257,10 @@ const char *xmrig::Algorithm::perfAlgoName(const xmrig::PerfAlgo pa) {
 xmrig::Algorithm::Algorithm(const xmrig::PerfAlgo pa) {
     switch (pa) {
        case PA_CN:
+           m_algo    = xmrig::CRYPTONIGHT;
+           m_variant = xmrig::VARIANT_1;
+           break;
+       case PA_CN2:
            m_algo    = xmrig::CRYPTONIGHT;
            m_variant = xmrig::VARIANT_2;
            break;
@@ -281,7 +286,7 @@ xmrig::Algorithm::Algorithm(const xmrig::PerfAlgo pa) {
 xmrig::PerfAlgo xmrig::Algorithm::perf_algo() const {
     if (m_variant == VARIANT_MSR) return PA_CN_FAST;
     switch (m_algo) {
-       case CRYPTONIGHT:       return PA_CN;
+       case CRYPTONIGHT:       return m_variant == VARIANT_2 ? PA_CN2 : PA_CN;
        case CRYPTONIGHT_LITE:  return PA_CN_LITE;
        case CRYPTONIGHT_HEAVY: return PA_CN_HEAVY;
        default: return PA_INVALID;
