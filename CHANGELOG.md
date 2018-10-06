@@ -1,3 +1,8 @@
+# v2.8.1
+- [#768](https://github.com/xmrig/xmrig/issues/768) Fixed build with Visual Studio 2015.
+- [#769](https://github.com/xmrig/xmrig/issues/769) Fixed regression, some ANSI escape sequences was in log with disabled colors.
+- Simplified checks for ASM auto detection, only AES support necessary.
+
 # v2.8.0
 - **[#753](https://github.com/xmrig/xmrig/issues/753) Added new algorithm [CryptoNight variant 2](https://github.com/xmrig/xmrig/issues/753) for Monero fork, thanks [@SChernykh](https://github.com/SChernykh).**
   - Added global and per thread option `"asm"` and and command line equivalent.
