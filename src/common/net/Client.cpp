@@ -931,7 +931,7 @@ void Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
     }
 
     if (nread < 0) {
-        if (nread != UV_EOF && !client->isQuiet()) {
+        if (!client->isQuiet()) {
             LOG_ERR("[%s] read error: \"%s\"", client->m_pool.url(), uv_strerror((int) nread));
         }
 
