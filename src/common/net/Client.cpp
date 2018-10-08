@@ -259,7 +259,11 @@ int64_t Client::submit(const JobResult &result)
 
 bool Client::close()
 {
-    if (m_state == UnconnectedState || m_state == ClosingState || !m_socket) {
+    if (m_state == ClosingState) {
+        return m_socket != nullptr;
+    }
+
+    if (m_state == UnconnectedState || m_socket == nullptr) {
         return false;
     }
 
@@ -426,7 +430,7 @@ bool Client::send(BIO *bio)
 bool Client::verifyAlgorithm(const xmrig::Algorithm &algorithm) const
 {
 #   ifdef XMRIG_PROXY_PROJECT
-    if (m_pool.algorithm().variant() == xmrig::VARIANT_AUTO) {
+    if (m_pool.algorithm().variant() == xmrig::VARIANT_AUTO || m_id == -1) {
         return true;
     }
 #   endif
@@ -550,7 +554,6 @@ void Client::connect(sockaddr *addr)
     setState(ConnectingState);
 
     reinterpret_cast<sockaddr_in*>(addr)->sin_port = htons(m_pool.port());
-    delete m_socket;
 
     uv_connect_t *req = new uv_connect_t;
     req->data = m_storage.ptr(m_key);
@@ -831,12 +834,13 @@ void Client::reconnect()
         return;
     }
 
-    setState(ConnectingState);
     m_keepAlive = 0;
 
     if (m_failures == -1) {
         return m_listener->onClose(this, -1);
     }
+
+    setState(ConnectingState);
 
     m_failures++;
     m_listener->onClose(this, (int) m_failures);
