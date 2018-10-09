@@ -26,6 +26,12 @@
 #include <uv.h>
 
 
+#ifndef XMRIG_NO_TLS
+#   include <openssl/ssl.h>
+#   include <openssl/err.h>
+#endif
+
+
 #include "Platform.h"
 
 
@@ -60,4 +66,24 @@ const char *Platform::defaultConfigName()
 
     *m_defaultConfigName = '\0';
     return nullptr;
+}
+
+
+void Platform::init(const char *userAgent)
+{
+#   ifndef XMRIG_NO_TLS
+    SSL_library_init();
+    SSL_load_error_strings();
+    ERR_load_BIO_strings();
+    ERR_load_crypto_strings();
+    SSL_load_error_strings();
+    OpenSSL_add_all_digests();
+#   endif
+
+    if (userAgent) {
+        m_userAgent = userAgent;
+    }
+    else {
+        m_userAgent = createUserAgent();
+    }
 }

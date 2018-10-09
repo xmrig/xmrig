@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PLATFORM_H__
-#define __PLATFORM_H__
+#ifndef XMRIG_PLATFORM_H
+#define XMRIG_PLATFORM_H
 
 
 #include <stdint.h>
@@ -43,9 +43,11 @@ public:
     static inline const char *userAgent() { return m_userAgent.data(); }
 
 private:
+    static char *createUserAgent();
+
     static char m_defaultConfigName[520];
     static xmrig::c_str m_userAgent;
 };
 
 
-#endif /* __PLATFORM_H__ */
+#endif /* XMRIG_PLATFORM_H */

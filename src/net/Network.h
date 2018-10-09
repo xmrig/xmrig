@@ -30,8 +30,8 @@
 
 
 #include "api/NetworkState.h"
+#include "common/interfaces/IStrategyListener.h"
 #include "interfaces/IJobResultListener.h"
-#include "interfaces/IStrategyListener.h"
 
 
 class IStrategy;

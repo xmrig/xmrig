@@ -20,10 +20,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ICONFIG_H__
-#define __ICONFIG_H__
+#ifndef XMRIG_ICONFIG_H
+#define XMRIG_ICONFIG_H
 
 
+#include "common/crypto/Algorithm.h"
 #include "rapidjson/fwd.h"
 
 
@@ -41,6 +42,7 @@ public:
         ApiPort           = 4000,
         ApiRestrictedKey  = 4004,
         ApiWorkerIdKey    = 4002,
+        ApiIdKey          = 4005,
         BackgroundKey     = 'B',
         ColorKey          = 1002,
         ConfigKey         = 'c',
@@ -61,6 +63,9 @@ public:
         VerboseKey        = 1100,
         VersionKey        = 'V',
         WatchKey          = 1105,
+        TlsKey            = 1013,
+        FingerprintKey    = 1014,
+        AutoSaveKey       = 1016,
 
         // xmrig common
         CPUPriorityKey    = 1021,
@@ -76,6 +81,20 @@ public:
         SafeKey           = 1005,
         ThreadsKey        = 't',
         HardwareAESKey    = 1011,
+        AssemblyKey       = 1015,
+
+        // xmrig amd
+        OclPlatformKey    = 1400,
+        OclAffinityKey    = 1401,
+        OclDevicesKey     = 1402,
+        OclLaunchKey      = 1403,
+        OclCacheKey       = 1404,
+        OclPrintKey       = 1405,
+        OclLoaderKey      = 1406,
+        OclSridedIndexKey = 1407,
+        OclMemChunkKey    = 1408,
+        OclUnrollKey      = 1409,
+        OclCompModeKey    = 1410,
 
         // xmrig-proxy
         AccessLogFileKey  = 'A',
@@ -87,6 +106,16 @@ public:
         PoolCoinKey       = 'C',
         ReuseTimeoutKey   = 1106,
         WorkersKey        = 1103,
+        WorkersAdvKey     = 1107,
+
+        // xmrig nvidia
+        CudaMaxThreadsKey = 1200,
+        CudaBFactorKey    = 1201,
+        CudaBSleepKey     = 1202,
+        CudaDevicesKey    = 1203,
+        CudaLaunchKey     = 1204,
+        CudaAffinityKey   = 1205,
+        CudaMaxUsageKey   = 1206,
     };
 
     virtual ~IConfig() {}
@@ -97,6 +126,7 @@ public:
     virtual bool parseString(int key, const char *arg)     = 0;
     virtual bool parseUint64(int key, uint64_t arg)        = 0;
     virtual bool save()                                    = 0;
+    virtual const Algorithm &algorithm() const             = 0;
     virtual const char *fileName() const                   = 0;
     virtual void getJSON(rapidjson::Document &doc) const   = 0;
     virtual void parseJSON(const rapidjson::Document &doc) = 0;
@@ -107,4 +137,4 @@ public:
 } /* namespace xmrig */
 
 
-#endif // __ICONFIG_H__
+#endif // XMRIG_ICONFIG_H

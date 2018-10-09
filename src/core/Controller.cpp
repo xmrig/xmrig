@@ -26,14 +26,14 @@
 
 
 #include "common/config/ConfigLoader.h"
+#include "common/cpu/Cpu.h"
+#include "common/interfaces/IControllerListener.h"
 #include "common/log/ConsoleLog.h"
 #include "common/log/FileLog.h"
 #include "common/log/Log.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
-#include "interfaces/IControllerListener.h"
 #include "net/Network.h"
 
 
@@ -110,7 +110,7 @@ int xmrig::Controller::init(int argc, char **argv)
     }
 
     if (config()->logFile()) {
-        Log::add(new FileLog(config()->logFile()));
+        Log::add(new FileLog(this, config()->logFile()));
     }
 
 #   ifdef HAVE_SYSLOG_H

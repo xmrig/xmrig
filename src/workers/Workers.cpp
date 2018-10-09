@@ -22,6 +22,7 @@
  */
 
 #include <cmath>
+#include <inttypes.h>
 #include <thread>
 
 
@@ -55,6 +56,7 @@ uv_async_t Workers::m_async;
 uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t Workers::m_timer;
+xmrig::Controller *Workers::m_controller = nullptr;
 
 
 Job Workers::job()
@@ -89,6 +91,33 @@ size_t Workers::threads()
 
 void Workers::printHashrate(bool detail)
 {
+    assert(m_controller != nullptr);
+    if (!m_controller) {
+        return;
+    }
+
+    if (detail) {
+        const bool isColors = m_controller->config()->isColors();
+        char num1[8] = { 0 };
+        char num2[8] = { 0 };
+        char num3[8] = { 0 };
+
+        Log::i()->text("%s| THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |", isColors ? "\x1B[1;37m" : "");
+
+        size_t i = 0;
+        for (const xmrig::IThread *thread : m_controller->config()->threads()) {
+             Log::i()->text("| %6zu | %8" PRId64 " | %7s | %7s | %7s |",
+                            thread->index(),
+                            thread->affinity(),
+                            Hashrate::format(m_hashrate->calc(thread->index(), Hashrate::ShortInterval),  num1, sizeof num1),
+                            Hashrate::format(m_hashrate->calc(thread->index(), Hashrate::MediumInterval), num2, sizeof num2),
+                            Hashrate::format(m_hashrate->calc(thread->index(), Hashrate::LargeInterval),  num3, sizeof num3)
+                            );
+
+             i++;
+        }
+    }
+
     m_hashrate->print();
 }
 
@@ -131,6 +160,16 @@ void Workers::setJob(const Job &job, bool donate)
 
 void Workers::start(xmrig::Controller *controller)
 {
+#   ifdef APP_DEBUG
+    LOG_NOTICE("THREADS ------------------------------------------------------------------");
+    for (const xmrig::IThread *thread : controller->config()->threads()) {
+        thread->print();
+    }
+    LOG_NOTICE("--------------------------------------------------------------------------");
+#   endif
+
+    m_controller = controller;
+
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
     m_status.algo    = controller->config()->algorithm().algo();
     m_status.colors  = controller->config()->isColors();
@@ -160,6 +199,10 @@ void Workers::start(xmrig::Controller *controller)
 
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
+    }
+
+    if (controller->config()->isShouldSave()) {
+        controller->config()->save();
     }
 }
 
@@ -301,13 +344,13 @@ void Workers::start(IWorker *worker)
         const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1048576;
 
         if (m_status.colors) {
-            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\e[0m memory " CYAN_BOLD("%zu.0 MB") "",
+            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu.0 MB") "",
                      m_status.threads, m_status.ways,
-                     (m_status.hugePages == m_status.pages ? "\e[1;32m" : (m_status.hugePages == 0 ? "\e[1;31m" : "\e[1;33m")),
+                     (m_status.hugePages == m_status.pages ? "\x1B[1;32m" : (m_status.hugePages == 0 ? "\x1B[1;31m" : "\x1B[1;33m")),
                      m_status.hugePages, m_status.pages, percent, memory);
         }
         else {
-            LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %f%% memory %zu.0 MB",
+            LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %1.0f%% memory %zu.0 MB",
                      m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, memory);
         }
     }

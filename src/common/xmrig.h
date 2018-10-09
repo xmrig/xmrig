@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __XMRIG_H__
-#define __XMRIG_H__
+#ifndef XMRIG_XMRIG_H
+#define XMRIG_XMRIG_H
 
 
 namespace xmrig
@@ -33,7 +33,7 @@ enum Algo {
     INVALID_ALGO = -1,
     CRYPTONIGHT,       /* CryptoNight (Monero) */
     CRYPTONIGHT_LITE,  /* CryptoNight-Lite (AEON) */
-    CRYPTONIGHT_HEAVY  /* CryptoNight-Heavy (SUMO) */
+    CRYPTONIGHT_HEAVY  /* CryptoNight-Heavy (RYO) */
 };
 
 
@@ -61,8 +61,20 @@ enum Variant {
     VARIANT_AUTO = -1, // Autodetect
     VARIANT_0    = 0,  // Original CryptoNight or CryptoNight-Heavy
     VARIANT_1    = 1,  // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
-    VARIANT_IPBC = 2,  // CryptoNight Lite variant 1 with XOR (IPBC only)
-    VARIANT_XTL  = 3   // CryptoNight variant 1 (Stellite only)
+    VARIANT_TUBE = 2,  // Modified CryptoNight-Heavy (TUBE only)
+    VARIANT_XTL  = 3,  // Modified CryptoNight variant 1 (Stellite only)
+    VARIANT_MSR  = 4,  // Modified CryptoNight variant 1 (Masari only)
+    VARIANT_XHV  = 5,  // Modified CryptoNight-Heavy (Haven Protocol only)
+    VARIANT_XAO  = 6,  // Modified CryptoNight variant 0 (Alloy only)
+    VARIANT_RTO  = 7,  // Modified CryptoNight variant 1 (Arto only)
+    VARIANT_2    = 8,  // CryptoNight variant 2
+    VARIANT_MAX
+};
+
+
+enum AlgoVerify {
+    VERIFY_HW_AES   = 1,
+    VERIFY_SOFT_AES = 2
 };
 
 
@@ -73,7 +85,25 @@ enum AesMode {
 };
 
 
+enum OclVendor {
+    OCL_VENDOR_UNKNOWN = -2,
+    OCL_VENDOR_MANUAL  = -1,
+    OCL_VENDOR_AMD     = 0,
+    OCL_VENDOR_NVIDIA  = 1,
+    OCL_VENDOR_INTEL   = 2
+};
+
+
+enum Assembly {
+    ASM_NONE,
+    ASM_AUTO,
+    ASM_INTEL,
+    ASM_RYZEN,
+    ASM_MAX
+};
+
+
 } /* namespace xmrig */
 
 
-#endif /* __XMRIG_H__ */
+#endif /* XMRIG_XMRIG_H */

@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,26 +21,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ICONTROLLERLISTENER_H__
-#define __ICONTROLLERLISTENER_H__
+
+#include <assert.h>
 
 
-namespace xmrig {
+#include "common/cpu/Cpu.h"
 
 
-class Config;
+#ifndef XMRIG_NO_LIBCPUID
+#   include "core/cpu/AdvancedCpuInfo.h"
+#endif
 
 
-class IControllerListener
+static xmrig::ICpuInfo *cpuInfo = nullptr;
+
+
+xmrig::ICpuInfo *xmrig::Cpu::info()
 {
-public:
-    virtual ~IControllerListener() {}
+    assert(cpuInfo != nullptr);
 
-    virtual void onConfigChanged(Config *config, Config *previousConfig) = 0;
-};
-
-
-} /* namespace xmrig */
+    return cpuInfo;
+}
 
 
-#endif // __ICONTROLLERLISTENER_H__
+void xmrig::Cpu::init()
+{
+    assert(cpuInfo == nullptr);
+
+    cpuInfo = new AdvancedCpuInfo();
+}
+
+
+void xmrig::Cpu::release()
+{
+    assert(cpuInfo != nullptr);
+
+    delete cpuInfo;
+    cpuInfo = nullptr;
+}

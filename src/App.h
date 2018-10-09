@@ -28,7 +28,7 @@
 #include <uv.h>
 
 
-#include "interfaces/IConsoleListener.h"
+#include "common/interfaces/IConsoleListener.h"
 
 
 class Console;

@@ -32,14 +32,19 @@
 #endif
 
 
+#ifndef XMRIG_NO_TLS
+#   include <openssl/opensslv.h>
+#endif
+
+
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
+#include "common/interfaces/IConfig.h"
+#include "common/interfaces/IWatcherListener.h"
 #include "common/net/Pool.h"
 #include "common/Platform.h"
 #include "core/ConfigCreator.h"
 #include "core/ConfigLoader_platform.h"
-#include "interfaces/IConfig.h"
-#include "interfaces/IWatcherListener.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
@@ -170,7 +175,13 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
     }
 
     if (!config->finalize()) {
-        fprintf(stderr, "No valid configuration found. Exiting.\n");
+        if (!config->algorithm().isValid()) {
+            fprintf(stderr, "No valid algorithm specified. Exiting.\n");
+        }
+        else {
+            fprintf(stderr, "No valid configuration found. Exiting.\n");
+        }
+
         delete config;
         return nullptr;
     }
@@ -307,6 +318,13 @@ void xmrig::ConfigLoader::showVersion()
     printf("\nlibuv/%s\n", uv_version_string());
 
 #   ifndef XMRIG_NO_HTTPD
-    printf("libmicrohttpd/%s\n", MHD_get_version());
+    printf("microhttpd/%s\n", MHD_get_version());
+#   endif
+
+#   if !defined(XMRIG_NO_TLS) && defined(OPENSSL_VERSION_TEXT)
+    {
+        constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
+        printf("OpenSSL/%.*s\n", static_cast<int>(strchr(v, ' ') - v), v);
+    }
 #   endif
 }

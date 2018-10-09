@@ -147,7 +147,7 @@ int xmrig::HttpRequest::end(int status, MHD_Response *rsp)
     MHD_add_response_header(rsp, "Content-Type", "application/json");
     MHD_add_response_header(rsp, "Access-Control-Allow-Origin", "*");
     MHD_add_response_header(rsp, "Access-Control-Allow-Methods", "GET, PUT");
-    MHD_add_response_header(rsp, "Access-Control-Allow-Headers", "Authorization");
+    MHD_add_response_header(rsp, "Access-Control-Allow-Headers", "Authorization, Content-Type");
 
     const int ret = MHD_queue_response(m_connection, status, rsp);
     MHD_destroy_response(rsp);

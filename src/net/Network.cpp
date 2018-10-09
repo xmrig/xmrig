@@ -101,7 +101,15 @@ void Network::onActive(IStrategy *strategy, Client *client)
 
     m_state.setPool(client->host(), client->port(), client->ip());
 
-    LOG_INFO(isColors() ? "\x1B[01;37muse pool \x1B[01;36m%s:%d \x1B[01;30m%s" : "use pool %s:%d %s", client->host(), client->port(), client->ip());
+    const char *tlsVersion = client->tlsVersion();
+    LOG_INFO(isColors() ? WHITE_BOLD("use pool ") CYAN_BOLD("%s:%d ") GREEN_BOLD("%s") " \x1B[1;30m%s "
+                        : "use pool %s:%d %s %s",
+             client->host(), client->port(), tlsVersion ? tlsVersion : "", client->ip());
+
+    const char *fingerprint = client->tlsFingerprint();
+    if (fingerprint != nullptr) {
+        LOG_INFO("%sfingerprint (SHA-256): \"%s\"", isColors() ? "\x1B[1;30m" : "", fingerprint);
+    }
 }
 
 

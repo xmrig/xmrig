@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,9 +30,13 @@
 
 
 #include "common/log/FileLog.h"
+#include "common/log/Log.h"
+#include "core/Config.h"
+#include "core/Controller.h"
 
 
-FileLog::FileLog(const char *fileName)
+FileLog::FileLog(xmrig::Controller *controller, const char *fileName) :
+    m_controller(controller)
 {
     uv_fs_t req;
     m_file = uv_fs_open(uv_default_loop(), &req, fileName, O_CREAT | O_APPEND | O_WRONLY, 0644, nullptr);
@@ -40,7 +44,7 @@ FileLog::FileLog(const char *fileName)
 }
 
 
-void FileLog::message(int level, const char* fmt, va_list args)
+void FileLog::message(Level level, const char* fmt, va_list args)
 {
     if (m_file < 0) {
         return;
@@ -55,27 +59,31 @@ void FileLog::message(int level, const char* fmt, va_list args)
     localtime_r(&now, &stime);
 #   endif
 
-    char *buf = new char[512];
-    int size = snprintf(buf, 23, "[%d-%02d-%02d %02d:%02d:%02d] ",
-                        stime.tm_year + 1900,
-                        stime.tm_mon + 1,
-                        stime.tm_mday,
-                        stime.tm_hour,
-                        stime.tm_min,
-                        stime.tm_sec);
+    const bool isColors = m_controller->config()->isColors();
 
-    size = vsnprintf(buf + size, 512 - size - 1, fmt, args) + size;
-    buf[size] = '\n';
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
+             stime.tm_year + 1900,
+             stime.tm_mon + 1,
+             stime.tm_mday,
+             stime.tm_hour,
+             stime.tm_min,
+             stime.tm_sec,
+             Log::colorByLevel(level, isColors),
+             fmt,
+             Log::endl(isColors)
+        );
 
-    write(buf, size + 1);
+    char *buf = new char[kBufferSize];
+    const int size = vsnprintf(buf, kBufferSize - 1, m_fmt, args);
+
+    write(buf, size);
 }
 
 
 void FileLog::text(const char* fmt, va_list args)
 {
-    message(0, fmt, args);
+    message(INFO, fmt, args);
 }
-
 
 
 void FileLog::onWrite(uv_fs_t *req)
@@ -93,5 +101,5 @@ void FileLog::write(char *data, size_t size)
     uv_fs_t *req = new uv_fs_t;
     req->data = buf.base;
 
-    uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, 0, FileLog::onWrite);
+    uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, -1, FileLog::onWrite);
 }

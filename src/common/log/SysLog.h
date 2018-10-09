@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #define __SYSLOG_H__
 
 
-#include "interfaces/ILogBackend.h"
+#include "common/interfaces/ILogBackend.h"
 
 
 class SysLog : public ILogBackend
@@ -33,7 +33,7 @@ class SysLog : public ILogBackend
 public:
     SysLog();
 
-    void message(int level, const char *fmt, va_list args) override;
+    void message(Level level, const char *fmt, va_list args) override;
     void text(const char *fmt, va_list args) override;
 };
 

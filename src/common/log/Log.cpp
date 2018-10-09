@@ -29,14 +29,28 @@
 #include <time.h>
 
 
+#include "common/interfaces/ILogBackend.h"
+#include "common/log/BasicLog.h"
 #include "common/log/Log.h"
-#include "interfaces/ILogBackend.h"
 
 
 Log *Log::m_self = nullptr;
 
 
-void Log::message(Log::Level level, const char* fmt, ...)
+static const char *colors[5] = {
+    "\x1B[0;31m",  /* ERR     */
+    "\x1B[0;33m",  /* WARNING */
+    "\x1B[1;37m",  /* NOTICE  */
+    "",            /* INFO    */
+#   ifdef WIN32
+    "\x1B[1;30m"   /* DEBUG   */
+#   else
+    "\x1B[90m"     /* DEBUG   */
+#   endif
+};
+
+
+void Log::message(ILogBackend::Level level, const char* fmt, ...)
 {
     uv_mutex_lock(&m_mutex);
 
@@ -73,6 +87,34 @@ void Log::text(const char* fmt, ...)
     va_end(args);
 
     uv_mutex_unlock(&m_mutex);
+}
+
+
+const char *Log::colorByLevel(ILogBackend::Level level, bool isColors)
+{
+    if (!isColors) {
+        return "";
+    }
+
+    return colors[level];
+}
+
+
+const char *Log::endl(bool isColors)
+{
+#   ifdef _WIN32
+    return isColors ? "\x1B[0m\r\n" : "\r\n";
+#   else
+    return isColors ? "\x1B[0m\n" : "\n";
+#   endif
+}
+
+
+void Log::defaultInit()
+{
+    m_self = new Log();
+
+    add(new BasicLog());
 }
 
 

@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CPUTHREAD_H__
-#define __CPUTHREAD_H__
+#ifndef XMRIG_CPUTHREAD_H
+#define XMRIG_CPUTHREAD_H
 
 
 #include "common/xmrig.h"
@@ -40,7 +40,7 @@ class CpuThread : public IThread
 public:
     struct Data
     {
-        inline Data() : valid(false), affinity(-1L), multiway(SingleWay) {}
+        inline Data() : assembly(ASM_AUTO), valid(false), affinity(-1L), multiway(SingleWay) {}
 
         inline void setMultiway(int value)
         {
@@ -50,27 +50,27 @@ public:
             }
         }
 
+        Assembly assembly;
         bool valid;
         int64_t affinity;
         Multiway multiway;
     };
 
 
-    CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch);
-    ~CpuThread();
+    CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly);
 
     typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx);
 
     static bool isSoftAES(AlgoVariant av);
-    static cn_hash_fun fn(Algo algorithm, AlgoVariant av, Variant variant);
-    static CpuThread *createFromAV(size_t index, Algo algorithm, AlgoVariant av, int64_t affinity, int priority);
+    static cn_hash_fun fn(Algo algorithm, AlgoVariant av, Variant variant, Assembly assembly);
+    static CpuThread *createFromAV(size_t index, Algo algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly);
     static CpuThread *createFromData(size_t index, Algo algorithm, const CpuThread::Data &data, int priority, bool softAES);
     static Data parse(const rapidjson::Value &object);
     static Multiway multiway(AlgoVariant av);
 
     inline bool isPrefetch() const               { return m_prefetch; }
     inline bool isSoftAES() const                { return m_softAES; }
-    inline cn_hash_fun fn(Variant variant) const { return fn(m_algorithm, m_av, variant); }
+    inline cn_hash_fun fn(Variant variant) const { return fn(m_algorithm, m_av, variant, m_assembly); }
 
     inline Algo algorithm() const override       { return m_algorithm; }
     inline int priority() const override         { return m_priority; }
@@ -80,6 +80,10 @@ public:
     inline Type type() const override            { return CPU; }
 
 protected:
+#   ifdef APP_DEBUG
+    void print() const override;
+#   endif
+
 #   ifndef XMRIG_NO_API
     rapidjson::Value toAPI(rapidjson::Document &doc) const override;
 #   endif
@@ -87,8 +91,11 @@ protected:
     rapidjson::Value toConfig(rapidjson::Document &doc) const override;
 
 private:
+    static size_t fnIndex(Algo algorithm, AlgoVariant av, Variant variant, Assembly assembly);
+
     const Algo m_algorithm;
     const AlgoVariant m_av;
+    const Assembly m_assembly;
     const bool m_prefetch;
     const bool m_softAES;
     const int m_priority;
@@ -101,4 +108,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* __CPUTHREAD_H__ */
+#endif /* XMRIG_CPUTHREAD_H */

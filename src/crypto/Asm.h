@@ -21,34 +21,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <string.h>
-
-
-#include "Cpu.h"
+#ifndef XMRIG_ASM_H
+#define XMRIG_ASM_H
 
 
-char Cpu::m_brand[64]      = { 0 };
-int Cpu::m_flags           = 0;
-int Cpu::m_l2_cache        = 0;
-int Cpu::m_l3_cache        = 0;
-int Cpu::m_sockets         = 1;
-int Cpu::m_totalCores      = 0;
-size_t Cpu::m_totalThreads = 0;
+#include "common/xmrig.h"
+#include "rapidjson/fwd.h"
 
 
-size_t Cpu::optimalThreadsCount(size_t size, int maxCpuUsage)
+namespace xmrig {
+
+
+class Asm
 {
-    return m_totalThreads;
-}
+public:
+    static Assembly parse(const char *assembly, Assembly defaultValue = ASM_AUTO);
+    static Assembly parse(const rapidjson::Value &value, Assembly defaultValue = ASM_AUTO);
+    static const char *toString(Assembly assembly);
+    static rapidjson::Value toJSON(Assembly assembly);
+
+    inline static Assembly parse(bool enable) { return enable ? ASM_AUTO : ASM_NONE; }
+};
 
 
-void Cpu::initCommon()
-{
-    memcpy(m_brand, "Unknown", 7);
+} /* namespace xmrig */
 
-#   if defined(XMRIG_ARMv8)
-    m_flags |= X86_64;
-    m_flags |= AES;
-#   endif
-}
+
+#endif /* XMRIG_ASM_H */

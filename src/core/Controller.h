@@ -25,7 +25,7 @@
 #define __CONTROLLER_H__
 
 
-#include "interfaces/IWatcherListener.h"
+#include "common/interfaces/IWatcherListener.h"
 
 
 class Network;

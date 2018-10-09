@@ -26,7 +26,7 @@
 
 
 #include "api/NetworkState.h"
-#include "interfaces/IControllerListener.h"
+#include "common/interfaces/IControllerListener.h"
 #include "rapidjson/fwd.h"
 
 
@@ -56,7 +56,7 @@ protected:
 
 private:
     void finalize(xmrig::HttpReply &reply, rapidjson::Document &doc) const;
-    void genId();
+    void genId(const char *id);
     void getConnection(rapidjson::Document &doc) const;
     void getHashrate(rapidjson::Document &doc) const;
     void getIdentify(rapidjson::Document &doc) const;
@@ -66,7 +66,7 @@ private:
     void setWorkerId(const char *id);
     void updateWorkerId(const char *id, const char *previousId);
 
-    char m_id[17];
+    char m_id[32];
     char m_workerId[128];
     NetworkState m_network;
     xmrig::Controller *m_controller;
