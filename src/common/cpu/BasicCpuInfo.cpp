@@ -71,7 +71,7 @@ static inline void cpuid(int level, int output[4]) {
 
 
 static inline void cpu_brand_string(char* s) {
-    int cpu_info[4] = { 0 };
+    int32_t cpu_info[4] = { 0 };
     cpuid(VENDOR_ID, cpu_info);
 
     if (cpu_info[EAX_Reg] >= 4) {
@@ -86,7 +86,7 @@ static inline void cpu_brand_string(char* s) {
 
 static inline bool has_aes_ni()
 {
-    int cpu_info[4] = { 0 };
+    int32_t cpu_info[4] = { 0 };
     cpuid(PROCESSOR_INFO, cpu_info);
 
     return (cpu_info[ECX_Reg] & bit_AES) != 0;
@@ -94,11 +94,32 @@ static inline bool has_aes_ni()
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
+    m_assembly(ASM_NONE),
     m_aes(has_aes_ni()),
     m_brand(),
     m_threads(std::thread::hardware_concurrency())
 {
     cpu_brand_string(m_brand);
+
+#   ifndef XMRIG_NO_ASM
+    if (hasAES()) {
+        char vendor[13] = { 0 };
+        int32_t data[4] = { 0 };
+
+        cpuid(0, data);
+
+        memcpy(vendor + 0, &data[1], 4);
+        memcpy(vendor + 4, &data[3], 4);
+        memcpy(vendor + 8, &data[2], 4);
+
+        if (memcmp(vendor, "GenuineIntel", 12) == 0) {
+            m_assembly = ASM_INTEL;
+        }
+        else if (memcmp(vendor, "AuthenticAMD", 12) == 0) {
+            m_assembly = ASM_RYZEN;
+        }
+    }
+#   endif
 }
 
 

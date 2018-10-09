@@ -61,7 +61,10 @@ Options:\n\
       --rig-id=ID          rig identifier for pool-side statistics (needs pool support)\n\
   -t, --threads=N          number of miner threads\n\
   -v, --av=N               algorithm variation, 0 auto select\n\
-  -k, --keepalive          send keepalived for prevent timeout (need pool support)\n\
+  -k, --keepalive          send keepalived packet for prevent timeout (needs pool support)\n\
+      --nicehash           enable nicehash.com support\n\
+      --tls                enable SSL/TLS support (needs pool support)\n\
+      --tls-fingerprint=F  pool TLS certificate fingerprint, if set enable strict certificate pinning\n\
   -r, --retries=N          number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N      time to pause between retries (default: 5)\n\
       --cpu-affinity       set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
@@ -81,7 +84,7 @@ Options:\n\
 "\
       --max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)\n\
       --safe               safe adjust threads and av settings for current CPU\n\
-      --nicehash           enable nicehash/xmrig-proxy support\n\
+      --asm=ASM            ASM code for cn/2, possible values: auto, none, intel, ryzen.\n\
       --print-time=N       print hashrate report every N seconds\n\
       --api-port=N         port for the miner API\n\
       --api-access-token=T access token for API\n\
@@ -89,6 +92,7 @@ Options:\n\
       --api-id=ID          custom instance ID for API\n\
       --api-ipv6           enable IPv6 support for API\n\
       --api-no-restricted  enable full remote access (only if API token set)\n\
+      --dry-run            test configuration and exit\n\
   -h, --help               display this help and exit\n\
   -V, --version            output version information and exit\n\
 ";

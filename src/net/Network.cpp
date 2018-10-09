@@ -108,7 +108,7 @@ void Network::onActive(IStrategy *strategy, Client *client)
 
     const char *fingerprint = client->tlsFingerprint();
     if (fingerprint != nullptr) {
-        LOG_INFO("\x1B[1;30mfingerprint (SHA-256): \"%s\"", fingerprint);
+        LOG_INFO("%sfingerprint (SHA-256): \"%s\"", isColors() ? "\x1B[1;30m" : "", fingerprint);
     }
 }
 

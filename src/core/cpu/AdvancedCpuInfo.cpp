@@ -75,10 +75,10 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     if (data.flags[CPU_FEATURE_AES]) {
         m_aes = true;
 
-        if (data.vendor == VENDOR_AMD && data.ext_family >= 23) {
+        if (data.vendor == VENDOR_AMD) {
             m_assembly = ASM_RYZEN;
         }
-        else if (data.vendor == VENDOR_INTEL && data.ext_model >= 42) {
+        else if (data.vendor == VENDOR_INTEL) {
             m_assembly = ASM_INTEL;
         }
     }
