@@ -100,6 +100,7 @@ private:
     };
 
     bool close();
+    bool handleAnnouncement(const rapidjson::Value &params);
     bool isCriticalError(const char *message);
     bool isTLS() const;
     bool parseJob(const rapidjson::Value &params, int *code);
