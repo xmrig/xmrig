@@ -88,7 +88,6 @@ void Hashrate::set_threads(const size_t threads)
     }
 }
 
-
 double Hashrate::calc(size_t ms) const
 {
     double result = 0.0;
