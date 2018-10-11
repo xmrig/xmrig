@@ -377,8 +377,6 @@ void Workers::onResult(uv_async_t *handle)
 
 void Workers::onTick(uv_timer_t *handle)
 {
-    if (m_hashrate == nullptr) return;
-
     for (Handle *handle : m_workers) {
         if (!handle->worker()) {
             return;
