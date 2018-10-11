@@ -218,11 +218,13 @@ void Workers::soft_stop() // stop current workers leaving uv stuff intact (used 
     m_sequence = 0;
     m_paused   = 0;
 
-    for (size_t i = 0; i < m_workers.size(); ++i) {
-        m_workers[i]->join();
-        delete m_workers[i];
-    }
+    std::vector<Handle*> Workers::old_workers = m_workers;
     m_workers.clear();
+
+    for (Handle *handle : old_workers) {
+        handle->join();
+        delete handle;
+    }
 }
 
 // setups workers based on specified algorithm (or its basic perf algo more specifically)
@@ -281,8 +283,8 @@ void Workers::stop()
     m_paused   = 0;
     m_sequence = 0;
 
-    for (size_t i = 0; i < m_workers.size(); ++i) {
-        m_workers[i]->join();
+    for (Handle *handle : m_workers) {
+        handle->join();
     }
 }
 
