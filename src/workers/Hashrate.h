@@ -44,7 +44,7 @@ public:
     };
 
     Hashrate(size_t threads, xmrig::Controller *controller);
-    ~Hashrate();
+    void set_threads(size_t threads);
     double calc(size_t ms) const;
     double calc(size_t threadId, size_t ms) const;
     void add(size_t threadId, uint64_t count, uint64_t timestamp);

@@ -48,18 +48,10 @@ inline static const char *format(double h, char *buf, size_t size)
 
 Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     m_highest(0.0),
-    m_threads(threads),
+    m_threads(0),
     m_controller(controller)
 {
-    m_counts     = new uint64_t*[threads];
-    m_timestamps = new uint64_t*[threads];
-    m_top        = new uint32_t[threads];
-
-    for (size_t i = 0; i < threads; i++) {
-        m_counts[i]     = new uint64_t[kBucketSize]();
-        m_timestamps[i] = new uint64_t[kBucketSize]();
-        m_top[i]        = 0;
-    }
+    set_threads(threads);
 
     const int printTime = controller->config()->printTime();
 
@@ -71,15 +63,29 @@ Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     }
 }
 
-Hashrate::~Hashrate()
+void Hashrate::set_threads(const size_t threads)
 {
-    for (size_t i = 0; i < m_threads; i++) {
-        delete [] m_counts[i];
-        delete [] m_timestamps[i];
+    if (m_threads) {
+        for (size_t i = 0; i < m_threads; i++) {
+            delete [] m_counts[i];
+            delete [] m_timestamps[i];
+        }
+        delete [] m_counts;
+        delete [] m_timestamps;
+        delete [] m_top;
     }
-    delete [] m_counts;
-    delete [] m_timestamps;
-    delete [] m_top;
+
+    m_threads = threads;
+
+    m_counts     = new uint64_t*[threads];
+    m_timestamps = new uint64_t*[threads];
+    m_top        = new uint32_t[threads];
+
+    for (size_t i = 0; i < threads; i++) {
+        m_counts[i]     = new uint64_t[kBucketSize]();
+        m_timestamps[i] = new uint64_t[kBucketSize]();
+        m_top[i]        = 0;
+    }
 }
 
 
