@@ -254,7 +254,7 @@ void Workers::switch_algo(const xmrig::Algorithm& algorithm)
        m_status.ways += thread->multiway();
     }
 
-    m_hashrate.set_threads(threads.size());
+    m_hashrate->set_threads(threads.size());
 
     uint32_t offset = 0;
 
