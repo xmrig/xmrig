@@ -215,6 +215,7 @@ void Workers::soft_stop() // stop current workers leaving uv stuff intact (used 
     if (m_hashrate) {
         m_hashrate->stop();
         delete m_hashrate;
+        m_hashrate = nullptr;
     }
 
     m_sequence = 0;
@@ -387,6 +388,8 @@ void Workers::onResult(uv_async_t *handle)
 
 void Workers::onTick(uv_timer_t *handle)
 {
+    if (m_hashrate == nullptr) return;
+
     for (Handle *handle : m_workers) {
         if (!handle->worker()) {
             return;
