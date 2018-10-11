@@ -218,7 +218,7 @@ void Workers::soft_stop() // stop current workers leaving uv stuff intact (used 
     m_sequence = 0;
     m_paused   = 0;
 
-    std::vector<Handle*> Workers::old_workers = m_workers;
+    std::vector<Handle*> old_workers = m_workers;
     m_workers.clear();
 
     for (Handle *handle : old_workers) {
