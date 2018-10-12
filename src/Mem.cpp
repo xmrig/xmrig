@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,66 +23,49 @@
  */
 
 
-#include <memory.h>
-
-
+#include "common/utils/mm_malloc.h"
 #include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_constants.h"
 #include "Mem.h"
-#include "Options.h"
 
 
-bool Mem::m_doubleHash = false;
-int Mem::m_algo        = 0;
-int Mem::m_flags       = 0;
-int Mem::m_threads     = 0;
-size_t Mem::m_offset   = 0;
-uint8_t *Mem::m_memory = nullptr;
+bool Mem::m_enabled = true;
+int Mem::m_flags    = 0;
 
 
-cryptonight_ctx *Mem::create(int threadId)
+
+MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
 {
+    using namespace xmrig;
+
+    MemInfo info;
+    info.size = cn_select_memory(algorithm) * count;
+
 #   ifndef XMRIG_NO_AEON
-    if (m_algo == Options::ALGO_CRYPTONIGHT_LITE) {
-        return createLite(threadId);
-    }
+    info.size += info.size % cn_select_memory<CRYPTONIGHT>();
 #   endif
 
-    cryptonight_ctx *ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
+    info.pages = info.size / cn_select_memory<CRYPTONIGHT>();
 
-    const int ratio = m_doubleHash ? 2 : 1;
-    ctx->memory = &m_memory[MEMORY * (threadId * ratio + 1)];
+    allocate(info, m_enabled);
 
-    return ctx;
-}
+    for (size_t i = 0; i < count; ++i) {
+        cryptonight_ctx *c = static_cast<cryptonight_ctx *>(_mm_malloc(sizeof(cryptonight_ctx), 4096));
+        c->memory          = info.memory + (i * cn_select_memory(algorithm));
 
-
-
-void *Mem::calloc(size_t num, size_t size)
-{
-    void *mem = &m_memory[m_offset];
-    m_offset += (num * size);
-
-    memset(mem, 0, num * size);
-
-    return mem;
-}
-
-
-#ifndef XMRIG_NO_AEON
-cryptonight_ctx *Mem::createLite(int threadId) {
-    cryptonight_ctx *ctx;
-
-    if (!m_doubleHash) {
-        const size_t offset = MEMORY * (threadId + 1);
-
-        ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[offset + MEMORY_LITE]);
-        ctx->memory = &m_memory[offset];
-        return ctx;
+        ctx[i] = c;
     }
 
-    ctx = reinterpret_cast<cryptonight_ctx *>(&m_memory[MEMORY - sizeof(cryptonight_ctx) * (threadId + 1)]);
-    ctx->memory = &m_memory[MEMORY * (threadId + 1)];
-
-    return ctx;
+    return info;
 }
-#endif
+
+
+void Mem::release(cryptonight_ctx **ctx, size_t count, MemInfo &info)
+{
+    release(info);
+
+    for (size_t i = 0; i < count; ++i) {
+        _mm_free(ctx[i]);
+    }
+}
+

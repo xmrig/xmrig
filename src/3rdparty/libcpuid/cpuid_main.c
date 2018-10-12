@@ -221,42 +221,42 @@ static void load_features_common(struct cpu_raw_data_t* raw, struct cpu_id_t* da
 
 static cpu_vendor_t cpuid_vendor_identify(const uint32_t *raw_vendor, char *vendor_str)
 {
-    int i;
-    cpu_vendor_t vendor = VENDOR_UNKNOWN;
-    const struct { cpu_vendor_t vendor; char match[16]; }
-    matchtable[NUM_CPU_VENDORS] = {
-        /* source: http://www.sandpile.org/ia32/cpuid.htm */
-        { VENDOR_INTEL		, "GenuineIntel" },
-        { VENDOR_AMD		, "AuthenticAMD" },
-        { VENDOR_CYRIX		, "CyrixInstead" },
-        { VENDOR_NEXGEN		, "NexGenDriven" },
-        { VENDOR_TRANSMETA	, "GenuineTMx86" },
-        { VENDOR_UMC		, "UMC UMC UMC " },
-        { VENDOR_CENTAUR	, "CentaurHauls" },
-        { VENDOR_RISE		, "RiseRiseRise" },
-        { VENDOR_SIS		, "SiS SiS SiS " },
-        { VENDOR_NSC		, "Geode by NSC" },
-    };
+	int i;
+	cpu_vendor_t vendor = VENDOR_UNKNOWN;
+	const struct { cpu_vendor_t vendor; char match[16]; }
+	matchtable[NUM_CPU_VENDORS] = {
+		/* source: http://www.sandpile.org/ia32/cpuid.htm */
+		{ VENDOR_INTEL		, "GenuineIntel" },
+		{ VENDOR_AMD		, "AuthenticAMD" },
+		{ VENDOR_CYRIX		, "CyrixInstead" },
+		{ VENDOR_NEXGEN		, "NexGenDriven" },
+		{ VENDOR_TRANSMETA	, "GenuineTMx86" },
+		{ VENDOR_UMC		, "UMC UMC UMC " },
+		{ VENDOR_CENTAUR	, "CentaurHauls" },
+		{ VENDOR_RISE		, "RiseRiseRise" },
+		{ VENDOR_SIS		, "SiS SiS SiS " },
+		{ VENDOR_NSC		, "Geode by NSC" },
+	};
 
-    memcpy(vendor_str + 0, &raw_vendor[1], 4);
-    memcpy(vendor_str + 4, &raw_vendor[3], 4);
-    memcpy(vendor_str + 8, &raw_vendor[2], 4);
-    vendor_str[12] = 0;
+	memcpy(vendor_str + 0, &raw_vendor[1], 4);
+	memcpy(vendor_str + 4, &raw_vendor[3], 4);
+	memcpy(vendor_str + 8, &raw_vendor[2], 4);
+	vendor_str[12] = 0;
 
-    /* Determine vendor: */
-    for (i = 0; i < NUM_CPU_VENDORS; i++)
-        if (!strcmp(vendor_str, matchtable[i].match)) {
-            vendor = matchtable[i].vendor;
-            break;
-        }
-    return vendor;
+	/* Determine vendor: */
+	for (i = 0; i < NUM_CPU_VENDORS; i++)
+		if (!strcmp(vendor_str, matchtable[i].match)) {
+			vendor = matchtable[i].vendor;
+			break;
+		}
+	return vendor;
 }
 
 static int cpuid_basic_identify(struct cpu_raw_data_t* raw, struct cpu_id_t* data)
 {
 	int i, j, basic, xmodel, xfamily, ext;
 	char brandstr[64] = {0};
-    data->vendor = cpuid_vendor_identify(raw->basic_cpuid[0], data->vendor_str);
+	data->vendor = cpuid_vendor_identify(raw->basic_cpuid[0], data->vendor_str);
 
 	if (data->vendor == VENDOR_UNKNOWN)
 		return set_error(ERR_CPU_UNKN);

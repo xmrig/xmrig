@@ -1,46 +1,70 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-option(WITH_LIBCPUID "Use Libcpuid" ON)
-option(WITH_AEON     "CryptoNight-Lite support" ON)
-
+option(WITH_LIBCPUID  "Use Libcpuid" ON)
+option(WITH_AEON      "CryptoNight-Lite support" ON)
+option(WITH_SUMO      "CryptoNight-Heavy support" ON)
+option(WITH_HTTPD     "HTTP REST API" ON)
+option(WITH_DEBUG_LOG "Enable debug log output" OFF)
+option(WITH_TLS       "Enable OpenSSL support" ON)
+option(WITH_ASM       "Enable ASM PoW implementations" ON)
+option(BUILD_STATIC   "Build static binary" OFF)
 
 include (CheckIncludeFile)
+include (cmake/cpu.cmake)
 
 
 set(HEADERS
-    src/3rdparty/align.h
+    src/api/NetworkState.h
     src/App.h
-    src/Console.h
-    src/Cpu.h
-    src/interfaces/IClientListener.h
-    src/interfaces/IConsoleListener.h
+    src/common/config/CommonConfig.h
+    src/common/config/ConfigLoader.h
+    src/common/config/ConfigWatcher.h
+    src/common/Console.h
+    src/common/cpu/Cpu.h
+    src/common/crypto/Algorithm.h
+    src/common/crypto/keccak.h
+    src/common/interfaces/IClientListener.h
+    src/common/interfaces/IConfig.h
+    src/common/interfaces/IConfigCreator.h
+    src/common/interfaces/IConsoleListener.h
+    src/common/interfaces/IControllerListener.h
+    src/common/interfaces/ICpuInfo.h
+    src/common/interfaces/ILogBackend.h
+    src/common/interfaces/IStrategy.h
+    src/common/interfaces/IStrategyListener.h
+    src/common/interfaces/IWatcherListener.h
+    src/common/log/BasicLog.h
+    src/common/log/ConsoleLog.h
+    src/common/log/FileLog.h
+    src/common/log/Log.h
+    src/common/net/Client.h
+    src/common/net/Id.h
+    src/common/net/Job.h
+    src/common/net/Pool.h
+    src/common/net/Storage.h
+    src/common/net/strategies/FailoverStrategy.h
+    src/common/net/strategies/SinglePoolStrategy.h
+    src/common/net/SubmitResult.h
+    src/common/Platform.h
+    src/common/utils/c_str.h
+    src/common/utils/mm_malloc.h
+    src/common/xmrig.h
+    src/core/ConfigLoader_platform.h
+    src/core/Controller.h
     src/interfaces/IJobResultListener.h
-    src/interfaces/ILogBackend.h
-    src/interfaces/IStrategy.h
-    src/interfaces/IStrategyListener.h
+    src/interfaces/IThread.h
     src/interfaces/IWorker.h
-    src/log/ConsoleLog.h
-    src/log/FileLog.h
-    src/log/Log.h
     src/Mem.h
-    src/net/Client.h
-    src/net/Job.h
     src/net/JobResult.h
     src/net/Network.h
     src/net/strategies/DonateStrategy.h
-    src/net/strategies/FailoverStrategy.h
-    src/net/strategies/SinglePoolStrategy.h
-    src/net/SubmitResult.h
-    src/net/Url.h
-    src/Options.h
-    src/Platform.h
     src/Summary.h
     src/version.h
-    src/workers/DoubleWorker.h
+    src/workers/CpuThread.h
     src/workers/Handle.h
     src/workers/Hashrate.h
-    src/workers/SingleWorker.h
+    src/workers/MultiWorker.h
     src/workers/Worker.h
     src/workers/Workers.h
    )
@@ -49,60 +73,71 @@ set(HEADERS_CRYPTO
     src/crypto/c_blake256.h
     src/crypto/c_groestl.h
     src/crypto/c_jh.h
-    src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
-    src/crypto/CryptoNight_p.h
+    src/crypto/CryptoNight_constants.h
+    src/crypto/CryptoNight_monero.h
     src/crypto/CryptoNight_test.h
     src/crypto/groestl_tables.h
     src/crypto/hash.h
     src/crypto/skein_port.h
+    src/crypto/soft_aes.h
    )
 
+if (XMRIG_ARM)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_arm.h)
+else()
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_x86.h)
+endif()
+
 set(SOURCES
+    src/api/NetworkState.cpp
     src/App.cpp
-    src/Console.cpp
-    src/log/ConsoleLog.cpp
-    src/log/FileLog.cpp
-    src/log/Log.cpp
+    src/common/config/CommonConfig.cpp
+    src/common/config/ConfigLoader.cpp
+    src/common/config/ConfigWatcher.cpp
+    src/common/Console.cpp
+    src/common/crypto/Algorithm.cpp
+    src/common/crypto/keccak.cpp
+    src/common/log/BasicLog.cpp
+    src/common/log/ConsoleLog.cpp
+    src/common/log/FileLog.cpp
+    src/common/log/Log.cpp
+    src/common/net/Client.cpp
+    src/common/net/Job.cpp
+    src/common/net/Pool.cpp
+    src/common/net/strategies/FailoverStrategy.cpp
+    src/common/net/strategies/SinglePoolStrategy.cpp
+    src/common/net/SubmitResult.cpp
+    src/common/Platform.cpp
+    src/core/Config.cpp
+    src/core/Controller.cpp
     src/Mem.cpp
-    src/net/Client.cpp
-    src/net/Job.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
-    src/net/strategies/FailoverStrategy.cpp
-    src/net/strategies/SinglePoolStrategy.cpp
-    src/net/Url.cpp
-    src/Options.cpp
-    src/Platform.cpp
     src/Summary.cpp
-    src/workers/DoubleWorker.cpp
+    src/workers/CpuThread.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
-    src/workers/SingleWorker.cpp
+    src/workers/MultiWorker.cpp
     src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/c_keccak.c
     src/crypto/c_groestl.c
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
-    src/crypto/soft_aes.c
-    src/crypto/soft_aes.c
-    src/crypto/CryptoNight.cpp
    )
 
 if (WIN32)
     set(SOURCES_OS
         res/app.rc
         src/App_win.cpp
-        src/Cpu_win.cpp
+        src/common/Platform_win.cpp
         src/Mem_win.cpp
-        src/Platform_win.cpp
         )
 
     add_definitions(/DWIN32)
@@ -110,93 +145,115 @@ if (WIN32)
 elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
-        src/Cpu_mac.cpp
+        src/common/Platform_mac.cpp
         src/Mem_unix.cpp
-        src/Platform_mac.cpp
         )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
-        src/Cpu_unix.cpp
+        src/common/Platform_unix.cpp
         src/Mem_unix.cpp
-        src/Platform_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread)
+    set(EXTRA_LIBS pthread rt dl)
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+    set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
+endif()
+
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    EXECUTE_PROCESS(COMMAND uname -o COMMAND tr -d '\n' OUTPUT_VARIABLE OPERATING_SYSTEM)
+    if (OPERATING_SYSTEM MATCHES "Android")
+        set(EXTRA_LIBS ${EXTRA_LIBS} log)
+    endif()
 endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
-#add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
-
-# https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall -Wno-strict-aliasing")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -std=c++14 -fno-exceptions -fno-rtti")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -s -funroll-loops -fvariable-expansion-in-unroller -ftree-loop-if-convert-stores -fmerge-all-constants -fbranch-target-load-optimize2")
-
-    if (WIN32)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
-    else()
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-    endif()
-
-    add_definitions(/D_GNU_SOURCE)
-
-    #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Oi /MT /GL")
-    add_definitions(/D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
-
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wall")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -funroll-loops -fmerge-all-constants")
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -Wall -std=c++14 -fno-exceptions -fno-rtti")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -funroll-loops -fmerge-all-constants")
-
-endif()
+include(cmake/flags.cmake)
 
 if (WITH_LIBCPUID)
     add_subdirectory(src/3rdparty/libcpuid)
 
     include_directories(src/3rdparty/libcpuid)
     set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/Cpu.cpp)
+    set(SOURCES_CPUID src/core/cpu/AdvancedCpuInfo.h src/core/cpu/AdvancedCpuInfo.cpp src/core/cpu/Cpu.cpp)
 else()
     add_definitions(/DXMRIG_NO_LIBCPUID)
-    set(SOURCES_CPUID src/Cpu_stub.cpp)
+    set(SOURCES_CPUID src/common/cpu/BasicCpuInfo.h src/common/cpu/Cpu.cpp)
+
+    if (XMRIG_ARM)
+        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo_arm.cpp)
+    else()
+        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo.cpp)
+    endif()
 endif()
+
+include(cmake/OpenSSL.cmake)
+include(cmake/asm.cmake)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
-    set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
+    set(SOURCES_SYSLOG src/common/log/SysLog.h src/common/log/SysLog.cpp)
+endif()
+
+if (NOT WITH_AEON)
+    add_definitions(/DXMRIG_NO_AEON)
+endif()
+
+if (NOT WITH_SUMO)
+    add_definitions(/DXMRIG_NO_SUMO)
+endif()
+
+if (NOT WITH_IPBC)
+    add_definitions(/DXMRIG_NO_IPBC)
+endif()
+
+if (WITH_HTTPD)
+    find_package(MHD)
+
+    if (MHD_FOUND)
+        include_directories(${MHD_INCLUDE_DIRS})
+        set(HTTPD_SOURCES
+            src/api/Api.h
+            src/api/ApiRouter.h
+            src/common/api/HttpBody.h
+            src/common/api/Httpd.h
+            src/common/api/HttpReply.h
+            src/common/api/HttpRequest.h
+            src/api/Api.cpp
+            src/api/ApiRouter.cpp
+            src/common/api/Httpd.cpp
+            src/common/api/HttpRequest.cpp
+            )
+    else()
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
+    endif()
+else()
+    set(HTTPD_SOURCES "")
+    set(MHD_LIBRARY "")
+    add_definitions(/DXMRIG_NO_HTTPD)
+    add_definitions(/DXMRIG_NO_API)
 endif()
 
 include_directories(src)
 include_directories(src/3rdparty)
-include_directories(src/3rdparty/jansson)
 include_directories(${UV_INCLUDE_DIR})
 
-add_subdirectory(src/3rdparty/jansson)
+if (BUILD_STATIC)
+    set(CMAKE_EXE_LINKER_FLAGS " -static")
+endif()
 
-add_executable(xmrig ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG})
-target_link_libraries(xmrig jansson ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
+if (WITH_DEBUG_LOG)
+    add_definitions(/DAPP_DEBUG)
+endif()
+
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})

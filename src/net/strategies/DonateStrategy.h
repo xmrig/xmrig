@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,15 +21,18 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DONATESTRATEGY_H__
-#define __DONATESTRATEGY_H__
+#ifndef XMRIG_DONATESTRATEGY_H
+#define XMRIG_DONATESTRATEGY_H
 
 
 #include <uv.h>
+#include <vector>
 
 
-#include "interfaces/IClientListener.h"
-#include "interfaces/IStrategy.h"
+#include "common/net/Pool.h"
+#include "common/interfaces/IClientListener.h"
+#include "common/interfaces/IStrategy.h"
+#include "common/interfaces/IStrategyListener.h"
 
 
 class Client;
@@ -37,10 +40,11 @@ class IStrategyListener;
 class Url;
 
 
-class DonateStrategy : public IStrategy, public IClientListener
+class DonateStrategy : public IStrategy, public IStrategyListener
 {
 public:
-    DonateStrategy(const char *agent, IStrategyListener *listener);
+    DonateStrategy(int level, const char *user, xmrig::Algo algo, IStrategyListener *listener);
+    ~DonateStrategy();
 
 public:
     inline bool isActive() const override  { return m_active; }
@@ -52,23 +56,24 @@ public:
     void tick(uint64_t now) override;
 
 protected:
-    void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job) override;
-    void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, int64_t seq, uint32_t diff, uint64_t ms, const char *error) override;
+    void onActive(IStrategy *strategy, Client *client) override;
+    void onJob(IStrategy *strategy, Client *client, const Job &job) override;
+    void onPause(IStrategy *strategy) override;
+    void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-    void idle();
+    void idle(uint64_t timeout);
     void suspend();
 
     static void onTimer(uv_timer_t *handle);
 
     bool m_active;
-    Client *m_client;
     const int m_donateTime;
     const int m_idleTime;
+    IStrategy *m_strategy;
     IStrategyListener *m_listener;
+    std::vector<Pool> m_pools;
     uv_timer_t m_timer;
 };
 
-#endif /* __DONATESTRATEGY_H__ */
+#endif /* XMRIG_DONATESTRATEGY_H */

@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WORKER_H__
-#define __WORKER_H__
+#ifndef XMRIG_WORKER_H
+#define XMRIG_WORKER_H
 
 
 #include <atomic>
@@ -30,32 +30,40 @@
 
 
 #include "interfaces/IWorker.h"
+#include "Mem.h"
 
 
-struct cryptonight_ctx;
 class Handle;
+
+
+namespace xmrig {
+    class CpuThread;
+}
 
 
 class Worker : public IWorker
 {
 public:
     Worker(Handle *handle);
-    ~Worker();
 
+    inline const MemInfo &memory() const       { return m_memory; }
+    inline size_t id() const override          { return m_id; }
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
     inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
 
 protected:
     void storeStats();
 
-    cryptonight_ctx *m_ctx;
-    int m_id;
-    int m_threads;
+    const size_t m_id;
+    const size_t m_totalWays;
+    const uint32_t m_offset;
+    MemInfo m_memory;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
     uint64_t m_count;
     uint64_t m_sequence;
+    xmrig::CpuThread *m_thread;
 };
 
 
-#endif /* __WORKER_H__ */
+#endif /* XMRIG_WORKER_H */

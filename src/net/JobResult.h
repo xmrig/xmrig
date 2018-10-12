@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,43 +29,36 @@
 #include <stdint.h>
 
 
-#include "Job.h"
+#include "common/net/Job.h"
 
 
 class JobResult
 {
 public:
     inline JobResult() : poolId(0), diff(0), nonce(0) {}
-    inline JobResult(int poolId, const char *jobId, uint32_t nonce, const uint8_t *result, uint32_t diff) : poolId(poolId), diff(diff), nonce(nonce)
+    inline JobResult(int poolId, const xmrig::Id &jobId, uint32_t nonce, const uint8_t *result, uint32_t diff, const xmrig::Algorithm &algorithm) :
+        poolId(poolId),
+        diff(diff),
+        nonce(nonce),
+        algorithm(algorithm),
+        jobId(jobId)
     {
-        memcpy(this->jobId, jobId, sizeof(this->jobId));
         memcpy(this->result, result, sizeof(this->result));
     }
 
 
-    inline JobResult(const Job &job) : poolId(0), diff(0), nonce(0)
+    inline uint64_t actualDiff() const
     {
-        memcpy(jobId, job.id(), sizeof(jobId));
-        poolId = job.poolId();
-        diff   = job.diff();
-        nonce  = *job.nonce();
+        return Job::toDiff(reinterpret_cast<const uint64_t*>(result)[3]);
     }
 
 
-    inline JobResult &operator=(const Job &job) {
-        memcpy(jobId, job.id(), sizeof(jobId));
-        poolId = job.poolId();
-        diff   = job.diff();
-
-        return *this;
-    }
-
-
-    char jobId[64];
     int poolId;
     uint32_t diff;
     uint32_t nonce;
     uint8_t result[32];
+    xmrig::Algorithm algorithm;
+    xmrig::Id jobId;
 };
 
 #endif /* __JOBRESULT_H__ */

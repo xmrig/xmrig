@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,69 +24,66 @@
 
 
 #include <stdlib.h>
-#include <mm_malloc.h>
 #include <sys/mman.h>
 
 
+#include "common/log/Log.h"
+#include "common/utils/mm_malloc.h"
+#include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
-#include "log/Log.h"
 #include "Mem.h"
-#include "Options.h"
 
 
-bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
+void Mem::init(bool enabled)
 {
-    m_algo       = algo;
-    m_threads    = threads;
-    m_doubleHash = doubleHash;
-
-    const int ratio   = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
-    const size_t size = MEMORY * (threads * ratio + 1);
-
-    if (!enabled) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
-        return true;
-    }
-
-    m_flags |= HugepagesAvailable;
-
-#   if defined(__APPLE__)
-    m_memory = static_cast<uint8_t*>(mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0));
-#   else
-    m_memory = static_cast<uint8_t*>(mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0));
-#   endif
-
-    if (m_memory == MAP_FAILED) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
-        return true;
-    }
-
-    m_flags |= HugepagesEnabled;
-
-    if (madvise(m_memory, size, MADV_RANDOM | MADV_WILLNEED) != 0) {
-        LOG_ERR("madvise failed");
-    }
-
-    if (mlock(m_memory, size) == 0) {
-        m_flags |= Lock;
-    }
-
-    return true;
+    m_enabled = enabled;
 }
 
 
-void Mem::release()
+void Mem::allocate(MemInfo &info, bool enabled)
 {
-    const int size = MEMORY * (m_threads + 1);
+    info.hugePages = 0;
 
-    if (m_flags & HugepagesEnabled) {
+    if (!enabled) {
+        info.memory = static_cast<uint8_t*>(_mm_malloc(info.size, 4096));
+
+        return;
+    }
+
+#   if defined(__APPLE__)
+    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0));
+#   elif defined(__FreeBSD__)
+    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0));
+#   else
+    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0));
+#   endif
+
+    if (info.memory == MAP_FAILED) {
+        return allocate(info, false);;
+    }
+
+    info.hugePages = info.pages;
+
+    if (madvise(info.memory, info.size, MADV_RANDOM | MADV_WILLNEED) != 0) {
+        LOG_ERR("madvise failed");
+    }
+
+    if (mlock(info.memory, info.size) == 0) {
+        m_flags |= Lock;
+    }
+}
+
+
+void Mem::release(MemInfo &info)
+{
+    if (info.hugePages) {
         if (m_flags & Lock) {
-            munlock(m_memory, size);
+            munlock(info.memory, info.size);
         }
 
-        munmap(m_memory, size);
+        munmap(info.memory, info.size);
     }
     else {
-        _mm_free(m_memory);
+        _mm_free(info.memory);
     }
 }

@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,16 +28,13 @@
 #include <ntsecapi.h>
 #include <tchar.h>
 
-#ifdef __GNUC__
-#   include <mm_malloc.h>
-#else
-#   include <malloc.h>
-#endif
 
-#include "log/Log.h"
+#include "common/log/Log.h"
+#include "common/utils/mm_malloc.h"
+#include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
+#include "crypto/CryptoNight_constants.h"
 #include "Mem.h"
-#include "Options.h"
 
 
 /*****************************************************************
@@ -144,42 +142,43 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
+void Mem::init(bool enabled)
 {
-    m_algo       = algo;
-    m_threads    = threads;
-    m_doubleHash = doubleHash;
+    m_enabled = enabled;
 
-    const int ratio = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
-    const size_t size  = MEMORY * (threads * ratio + 1);
-
-    if (!enabled) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
-        return true;
-    }
-
-    if (TrySetLockPagesPrivilege()) {
+    if (enabled && TrySetLockPagesPrivilege()) {
         m_flags |= HugepagesAvailable;
     }
-
-    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
-    if (!m_memory) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));
-    }
-    else {
-        m_flags |= HugepagesEnabled;
-    }
-
-    return true;
 }
 
 
-void Mem::release()
+void Mem::allocate(MemInfo &info, bool enabled)
 {
-    if (m_flags & HugepagesEnabled) {
-        VirtualFree(m_memory, 0, MEM_RELEASE);
+    info.hugePages = 0;
+
+    if (!enabled) {
+        info.memory = static_cast<uint8_t*>(_mm_malloc(info.size, 4096));
+
+        return;
+    }
+
+    info.memory = static_cast<uint8_t*>(VirtualAlloc(nullptr, info.size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
+    if (info.memory) {
+        info.hugePages = info.pages;
+
+        return;
+    }
+
+    allocate(info, false);
+}
+
+
+void Mem::release(MemInfo &info)
+{
+    if (info.hugePages) {
+        VirtualFree(info.memory, 0, MEM_RELEASE);
     }
     else {
-        _mm_free(m_memory);
+        _mm_free(info.memory);
     }
 }

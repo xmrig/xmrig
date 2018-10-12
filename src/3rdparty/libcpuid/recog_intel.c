@@ -376,7 +376,7 @@ static intel_code_and_bits_t get_brand_code_and_bits(struct cpu_id_t* data)
 			bits |= bit_matchtable[i].bit;
 	}
 	
-	if ((i = match_pattern(bs, "Core(TM) [im][357]")) != 0) {
+	if ((i = match_pattern(bs, "Core(TM) [im][3579]")) != 0) {
 		bits |= CORE_;
 		i--;
 		switch (bs[i + 9]) {
@@ -387,6 +387,7 @@ static intel_code_and_bits_t get_brand_code_and_bits(struct cpu_id_t* data)
 			case '3': bits |= _3; break;
 			case '5': bits |= _5; break;
 			case '7': bits |= _7; break;
+			case '9': bits |= _9; break;
 		}
 	}
 	for (i = 0; i < COUNT_OF(matchtable); i++)

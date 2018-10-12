@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,32 +24,28 @@
 #include <chrono>
 
 
-#include "Cpu.h"
-#include "Mem.h"
-#include "Platform.h"
+#include "common/cpu/Cpu.h"
+#include "common/Platform.h"
+#include "workers/CpuThread.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"
 
 
 Worker::Worker(Handle *handle) :
     m_id(handle->threadId()),
-    m_threads(handle->threads()),
+    m_totalWays(handle->totalWays()),
+    m_offset(handle->offset()),
     m_hashCount(0),
     m_timestamp(0),
     m_count(0),
-    m_sequence(0)
+    m_sequence(0),
+    m_thread(static_cast<xmrig::CpuThread *>(handle->config()))
 {
-    if (Cpu::threads() > 1 && handle->affinity() != -1L) {
-        Cpu::setAffinity(m_id, handle->affinity());
+    if (xmrig::Cpu::info()->threads() > 1 && m_thread->affinity() != -1L) {
+        Platform::setThreadAffinity(m_thread->affinity());
     }
 
-    Platform::setThreadPriority(handle->priority());
-    m_ctx = Mem::create(m_id);
-}
-
-
-Worker::~Worker()
-{
+    Platform::setThreadPriority(m_thread->priority());
 }
 
 

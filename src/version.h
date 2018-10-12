@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,24 +21,24 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#ifndef XMRIG_VERSION_H
+#define XMRIG_VERSION_H
 
 #define APP_ID        "xmrig"
 #define APP_NAME      "XMRig"
 #define APP_DESC      "XMRig CPU miner"
-#define APP_VERSION   "2.3.1"
+#define APP_VERSION   "2.8.1"
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2017 xmrig.com"
+#define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com"
+#define APP_KIND      "cpu"
 
 #define APP_VER_MAJOR  2
-#define APP_VER_MINOR  3
-#define APP_VER_BUILD  1
-#define APP_VER_REV    0
+#define APP_VER_MINOR  8
+#define APP_VER_PATCH  1
 
 #ifdef _MSC_VER
-#   if _MSC_VER == 1910
+#   if (_MSC_VER >= 1910)
 #       define MSVC_VERSION 2017
 #   elif _MSC_VER == 1900
 #       define MSVC_VERSION 2015
@@ -53,4 +53,4 @@
 #   endif
 #endif
 
-#endif /* __VERSION_H__ */
+#endif /* XMRIG_VERSION_H */

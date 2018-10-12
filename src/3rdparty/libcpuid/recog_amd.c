@@ -49,6 +49,10 @@ enum _amd_model_codes_t {
 	_1400,
 	_1500,
 	_1600,
+	_1900,
+	_2400,
+	_2500,
+	_2700,
 };
 
 static void load_amd_features(struct cpu_raw_data_t* raw, struct cpu_id_t* data)
