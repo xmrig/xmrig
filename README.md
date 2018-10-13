@@ -1,5 +1,7 @@
 # XMRigCC 
 
+:warning: **XMRigCC 1.8.0 with cnv2 support will be released on Monday 15.10**
+
 :warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
 
 :bulb: **This is the CPU variant of XMRigCC, if you're looking for the AMD GPU (OpenCL) variant [click here](https://github.com/Bendr0id/xmrigCC-amd/).**
