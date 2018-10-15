@@ -1,6 +1,6 @@
 # XMRig
 
-:warning: **[Monero will change PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/xmrig/xmrig/releases/tag/v2.8.0-rc)** :warning:
+:warning: **[Monero will change PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/xmrig/xmrig/releases/tag/v2.8.1)** :warning:
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
@@ -145,14 +145,14 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Release checksums
 ### SHA-256
 ```
-ea6a71732937e06d5434b863bedd2d627c500e8ce30b30a02054015bb3aae3fc xmrig-2.8.0-xenial-amd64.tar.gz/xmrig-2.8.0/xmrig
-a067de09a2d49c39317d6a98e420fcd80ef040c8cecb6b21317cbe4eabbdb995 xmrig-2.8.0-xenial-amd64.tar.gz/xmrig-2.8.0/xmrig-notls
-89b7b4616faec76c40dab714046ea08ebcd6c558299d17d44639e6bc62c54186 xmrig-2.8.0-gcc-win32.zip/xmrig.exe
-0fae870bef4223905b24bb00283b3bba7ece547a09a540033beb9a2a33335124 xmrig-2.8.0-gcc-win32.zip/xmrig-notls.exe
-953df29ef354d541b89a70a36ddf16d8a9d5f2c37419d3aacd1352ff6ff539e8 xmrig-2.8.0-gcc-win64.zip/xmrig.exe
-84d73422a43b46879d88f87a492e99c81d5d632eb3be79793fc0b895196f131d xmrig-2.8.0-gcc-win64.zip/xmrig-notls.exe
-8e1302fe632249a713d7af0b7f3f50ad6e707d71d00fcd1f3be56abc024f98ac xmrig-2.8.0-msvc-win64.zip/xmrig.exe
-0042b5e7b14a4f8aca748a4c7656a0ec6705bc593c26f9987a25b10fa471f004 xmrig-2.8.0-msvc-win64.zip/xmrig-notls.exe
+fd909cef75c65c1ee8facd78e968c359e4ac4d2f0b2aaef8c6d3e0138979d0ea xmrig-2.8.1-xenial-amd64.tar.gz/xmrig-2.8.1/xmrig
+e4987eaec57c1784c423e03978e22262adf070ab3ad7b2a6ce8d0d0626db4cbd xmrig-2.8.1-xenial-amd64.tar.gz/xmrig-2.8.1/xmrig-notls
+4ebf6053513c8b72b46f54481f33367aae6356fc5f271c9236d708a34cd16e2a xmrig-2.8.1-gcc-win32.zip/xmrig.exe
+f4ce5b76a611f6768c9a035eae1e49f61666f3e5370b54bd447ecc3b0098efcb xmrig-2.8.1-gcc-win32.zip/xmrig-notls.exe
+39259979b4228899c0ef985bcfc283e169afd44323eedb0341144dbc0c0f30e9 xmrig-2.8.1-gcc-win64.zip/xmrig.exe
+68af0f11b29b9b67414d0b661446baa0ad6020598c04c5d0cf24797167753117 xmrig-2.8.1-gcc-win64.zip/xmrig-notls.exe
+5d8b94157ebb4a7729f0eb8622945c266b756c994c60f91514b329edeb287867 xmrig-2.8.1-msvc-win64.zip/xmrig.exe
+d97c691d6044f916b9253820832f1a08402bb63aa75fb146ea8c31f51cebe974 xmrig-2.8.1-msvc-win64.zip/xmrig-notls.exe
 ```
 
 ## Contacts
