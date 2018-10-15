@@ -25,9 +25,10 @@
 #define __CRYPTONIGHT_H__
 
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
+#include "AsmOptimization.h"
 #include "Options.h"
 
 #define MEMORY       2097152 /* 2 MiB */
@@ -38,10 +39,17 @@
 #define POW_XLT_V4_INDEX_SHIFT 4
 
 struct ScratchPad {
-    alignas(16) uint8_t state[208]; // 208 instead of 200 to maintain aligned to 16 byte boundaries
+    alignas(16) uint8_t state[224]; // 224 instead of 200 to maintain aligned to 16 byte boundaries
     alignas(16) uint8_t* memory;
+
+    // Additional stuff for asm impl
+    uint8_t ctx_info[24];
+    const void* input;
+    uint8_t* variant1_table;
+    const uint32_t* t_fn;
 };
 
+alignas(64) static uint8_t variant1_table[256];
 
 class Job;
 class JobResult;
@@ -50,8 +58,9 @@ class CryptoNight
 {
 public:
     static bool init(int algo, bool aesni);
+    static void hash(size_t factor, AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
 
-    static void hash(size_t factor, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
+public:
 
 private:
     static bool selfTest(int algo);

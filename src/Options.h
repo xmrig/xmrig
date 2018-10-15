@@ -34,6 +34,7 @@
 
 #include "rapidjson/fwd.h"
 #include "PowVariant.h"
+#include "AsmOptimization.h"
 
 class Url;
 struct option;
@@ -91,6 +92,7 @@ public:
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
     inline PowVariant powVariant() const            { return m_powVariant; }
+    inline AsmOptimization asmOptimization() const  { return m_asmOptimization; }
     inline bool aesni() const                       { return m_aesni == AESNI_ON; }
     inline size_t hashFactor() const                { return m_hashFactor; }
     inline int apiPort() const                      { return m_apiPort; }
@@ -136,6 +138,7 @@ private:
 
     bool setAlgo(const char *algo);
     bool parsePowVariant(const char *powVariant);
+    bool parseAsmOptimization(const char *arg);
 
     void optimizeAlgorithmConfiguration();
 
@@ -167,6 +170,7 @@ private:
     AlgoVariant m_algoVariant;
     AesNi m_aesni;
     PowVariant m_powVariant;
+    AsmOptimization m_asmOptimization;
     size_t m_hashFactor;
     int m_apiPort;
     int m_donateLevel;

@@ -51,6 +51,7 @@ public:
     size_t sockets()       { return m_sockets; }
     size_t threads()       { return m_totalThreads; }
     size_t availableCache();
+    AsmOptimization asmOptimization() { return m_asmOptimization; }
 
 private:
     void initCommon();
@@ -63,6 +64,7 @@ private:
     size_t m_sockets;
     size_t m_totalCores;
     size_t m_totalThreads;
+    AsmOptimization m_asmOptimization;
 };
 
 #endif /* __CPU_IMPL_H__ */

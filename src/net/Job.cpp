@@ -138,24 +138,24 @@ bool Job::setTarget(const char *target)
 
 PowVariant Job::powVariant() const
 {
-    if (m_powVariant == PowVariant::POW_AUTODETECT)
-    {
-        return (m_blob[0] > 6 ? PowVariant::POW_V1 : PowVariant::POW_V0);
+    if (m_powVariant == PowVariant::POW_AUTODETECT) {
+        if (m_blob[0] > 7) {
+            return PowVariant::POW_V2;
+        } else if (m_blob[0] > 6) {
+            return PowVariant::POW_V1;
+        } else {
+            return PowVariant::POW_V0;
+        }
     }
-    else if (m_powVariant == PowVariant::POW_XTL && m_blob[0] < 4)
-    {
+    else if (m_powVariant == PowVariant::POW_XTL && m_blob[0] < 4) {
         return POW_V1;
     }
-    else if (m_powVariant == PowVariant::POW_MSR && m_blob[0] < 7)
-    {
+    else if (m_powVariant == PowVariant::POW_MSR && m_blob[0] < 7) {
         return POW_V1;
     }
-    else if (m_powVariant == PowVariant::POW_XHV && m_blob[0] < 3)
-    {
+    else if (m_powVariant == PowVariant::POW_XHV && m_blob[0] < 3) {
         return POW_V0;
-    }
-    else
-    {
+    } else {
         return m_powVariant;
     }
 }

@@ -73,8 +73,9 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), ipbc (tube), alloy, xtl (including autodetect for v5)\n\
+      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka cnv7), 2(v2, aka cnv8), ipbc (tube), alloy, xtl (including autodetect for v5)\n\
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
+      --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'none' \n\
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
       --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
@@ -166,7 +167,7 @@ static struct option const options[] = {
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
     { "use-tls",          0, nullptr, 1015 },
-    { "force-pow-version",1, nullptr, 1016 },
+    { "multihash-thread-mask",      1, nullptr, 4013 },
     { "pow-variant"      ,1, nullptr, 1017 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
@@ -189,6 +190,7 @@ static struct option const options[] = {
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",      1, nullptr, 4013 },
+    { "asm-optimization", 1, nullptr, 4020 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -217,6 +219,7 @@ static struct option const config_options[] = {
     { "pow-variant",   1, nullptr, 1017 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
+    { "asm-optimization", 1, nullptr, 4020 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -282,12 +285,20 @@ constexpr static const char *pow_variant_names[] = {
         "auto",
         "0",
         "1",
+        "2",
         "tube",
         "alloy",
         "xtl",
         "msr",
         "xhv",
         "rto"
+};
+
+constexpr static const char *asm_optimization_names[] = {
+    "auto",
+    "intel",
+    "ryzen",
+    "none"
 };
 
 Options *Options::parse(int argc, char **argv)
@@ -342,6 +353,7 @@ Options::Options(int argc, char **argv) :
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
     m_powVariant(POW_AUTODETECT),
+    m_asmOptimization(ASM_AUTODETECT),
     m_hashFactor(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
@@ -399,6 +411,10 @@ Options::Options(int argc, char **argv) :
 #endif
 
     optimizeAlgorithmConfiguration();
+
+    if (m_asmOptimization == AsmOptimization::ASM_AUTODETECT) {
+        m_asmOptimization = Cpu::asmOptimization();
+    }
 
     for (Url *url : m_pools) {
         url->applyExceptions();
@@ -587,6 +603,9 @@ bool Options::parseArg(int key, const char *arg)
 
     case 4019: /* --cc-upload-config-on-startup */
         return parseBoolean(key, true);
+
+    case 4020: /* --asm-optimization */
+        return parseAsmOptimization(arg);
 
     case 't':  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
@@ -1015,8 +1034,13 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "monerov7") || !strcmp(powVariant, "aeonv7") || !strcmp(powVariant, "v7"))) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "cnv1") || !strcmp(powVariant, "monerov7") || !strcmp(powVariant, "aeonv7") || !strcmp(powVariant, "v7"))) {
             m_powVariant = POW_V1;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "cnv2") || !strcmp(powVariant, "monerov8") || !strcmp(powVariant, "aeonv8") || !strcmp(powVariant, "v8"))) {
+            m_powVariant = POW_V2;
             break;
         }
 
@@ -1048,6 +1072,25 @@ bool Options::parsePowVariant(const char *powVariant)
 
     return true;
 }
+
+
+bool Options::parseAsmOptimization(const char *asmOptimization)
+{
+    for (size_t i = 0; i < ARRAY_SIZE(pow_variant_names); i++) {
+        if (pow_variant_names[i] && !strcmp(asmOptimization, asm_optimization_names[i])) {
+            m_asmOptimization = static_cast<AsmOptimization>(i);
+            break;
+        }
+
+        if (i == ARRAY_SIZE(asm_optimization_names) - 1) {
+            showUsage(1);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 void Options::optimizeAlgorithmConfiguration()
 {
@@ -1123,5 +1166,3 @@ bool Options::parseCCUrl(const char* url)
 
     return true;
 }
-
-

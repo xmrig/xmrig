@@ -31,6 +31,12 @@
 class ILogBackend
 {
 public:
+#   ifdef APP_DEBUG
+    constexpr static const size_t kBufferSize = 1024;
+#   else
+    constexpr static const size_t kBufferSize = 512;
+#   endif
+
     virtual ~ILogBackend() {}
 
     virtual void message(int level, const char* fmt, va_list args) = 0;
