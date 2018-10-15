@@ -167,7 +167,7 @@ static struct option const options[] = {
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
     { "use-tls",          0, nullptr, 1015 },
-    { "multihash-thread-mask",      1, nullptr, 4013 },
+    { "force-pow-version", 1, nullptr, 1016 },
     { "pow-variant"      ,1, nullptr, 1017 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
