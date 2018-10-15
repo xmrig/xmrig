@@ -1,3 +1,8 @@
+# 1.8.0
+- Integration of cnv2 aka moneroV8
+- Hashrate improve -> cnv1 and cnv2 by adding ASM code for Intel/AMD and softaes [thx @SChernykh]
+- Fixes for OSX builds [thx @djfinch]
+- Fixed safe mode #173
 # 1.7.0
 - First official Release of XMRigCC-amd #33 #3
 - Full integration of xmrigCC-amd into XMRigCCServer/Dashboard with GPUInfo / remote logging
