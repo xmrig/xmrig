@@ -428,7 +428,7 @@ static inline __m128i int_sqrt_v2(const uint64_t n0)
 
 
 template<xmrig::Variant VARIANT>
-static inline void cryptonight_monero_tweak(uint64_t* mem_out, const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i cx)
+static inline void __vectorcall cryptonight_monero_tweak(uint64_t* mem_out, const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i cx)
 {
     if (VARIANT == xmrig::VARIANT_2) {
         VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1);
