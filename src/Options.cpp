@@ -73,9 +73,9 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka cnv7), 2(v2, aka cnv8), ipbc (tube), alloy, xtl (including autodetect for v5)\n\
+      --pow-variant=V                   specificy the PoW variat to use: -> 'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'alloy', 'xtl' (including autodetect for v5)\n\
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
-      --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'none' \n\
+      --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'off' \n\
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
       --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
@@ -298,7 +298,7 @@ constexpr static const char *asm_optimization_names[] = {
     "auto",
     "intel",
     "ryzen",
-    "none"
+    "off"
 };
 
 Options *Options::parse(int argc, char **argv)
@@ -1079,6 +1079,11 @@ bool Options::parseAsmOptimization(const char *asmOptimization)
     for (size_t i = 0; i < ARRAY_SIZE(pow_variant_names); i++) {
         if (pow_variant_names[i] && !strcmp(asmOptimization, asm_optimization_names[i])) {
             m_asmOptimization = static_cast<AsmOptimization>(i);
+            break;
+        }
+
+        if (i == ARRAY_SIZE(asm_optimization_names) - 1 && (!strcmp(asmOptimization, "none") || !strcmp(asmOptimization, "0"))) {
+            m_asmOptimization = ASM_OFF;
             break;
         }
 

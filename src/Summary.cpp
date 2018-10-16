@@ -64,7 +64,7 @@ static void print_cpu()
                        Cpu::sockets(),
                        Cpu::isX64() ? "\x1B[01;32m" : "\x1B[01;31m-",
                        Cpu::hasAES() ? "\x1B[01;32m" : "\x1B[01;31m-",
-                       Options::i()->asmOptimization() != AsmOptimization::ASM_NONE ? "\x1B[01;32m" : "\x1B[01;31m",
+                       Options::i()->asmOptimization() != AsmOptimization::ASM_OFF ? "\x1B[01;32m" : "\x1B[01;31m",
                        getAsmOptimizationName(Options::i()->asmOptimization()).c_str());
 #       ifndef XMRIG_NO_LIBCPUID
         Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);

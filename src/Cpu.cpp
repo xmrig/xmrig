@@ -48,7 +48,7 @@ CpuImpl::CpuImpl()
     , m_sockets(1)
     , m_totalCores(0)
     , m_totalThreads(0)
-    , m_asmOptimization(AsmOptimization::ASM_NONE)
+    , m_asmOptimization(AsmOptimization::ASM_OFF)
 {
 }
 
