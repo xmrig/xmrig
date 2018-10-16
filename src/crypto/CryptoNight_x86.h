@@ -1409,14 +1409,18 @@ public:
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
 
 #ifndef XMRIG_NO_ASM
+        if (INDEX_SHIFT == POW_DEFAULT_INDEX_SHIFT) {
+            scratchPad[0]->variant_table = variant1_table;
+        } else {
+            scratchPad[0]->variant_table = variant_xtl_table;
+        }
+
+        scratchPad[0]->input = input;
+
         if (SOFT_AES) {
-            scratchPad[0]->input = input;
-            scratchPad[0]->variant1_table = variant1_table;
             scratchPad[0]->t_fn = (const uint32_t*)saes_table;
             cnv1_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
         } else {
-            scratchPad[0]->input = input;
-            scratchPad[0]->variant1_table = variant1_table;
             cnv1_mainloop_sandybridge_asm(scratchPad[0]);
         }
 #endif
@@ -2071,8 +2075,15 @@ public:
         uint64_t idx0 = h0[0] ^h0[4];
         uint64_t idx1 = h1[0] ^h1[4];
 
+#if defined(__x86_64__) || defined(_M_AMD64)
         __m128i division_result_xmm = _mm_unpacklo_epi64(_mm_cvtsi64_si128(h0[12]), _mm_cvtsi64_si128(h1[12]));
         __m128i sqrt_result_xmm = _mm_unpacklo_epi64(_mm_cvtsi64_si128(h0[13]), _mm_cvtsi64_si128(h1[13]));
+#else
+        __m128i division_result_xmm0 = _mm_cvtsi64_si128(h0[12]);
+        __m128i division_result_xmm1 = _mm_cvtsi64_si128(h1[12]);
+        uint64_t sqrt_result0 =  h0[13];
+        uint64_t sqrt_result1 =  h1[13];
+#endif
 
         SET_ROUNDING_MODE_UP()
 
@@ -2107,8 +2118,12 @@ public:
             cl = ((uint64_t*) &l0[idx0 & MASK])[0];
             ch = ((uint64_t*) &l0[idx0 & MASK])[1];
 
+#if defined(__x86_64__) || defined(_M_AMD64)
             const uint64_t sqrt_result0 = _mm_cvtsi128_si64(sqrt_result_xmm);
             cl ^= static_cast<uint64_t>(_mm_cvtsi128_si64(division_result_xmm)) ^ (sqrt_result0 << 32);
+#else
+            INTEGER_MATH_V2(0, cl, cx0)
+#endif
 
             lo = __umul128(idx0, cl, &hi);
 
@@ -2127,9 +2142,11 @@ public:
             bx10 = bx00;
             bx00 = cx0;
 
+
             cl = ((uint64_t*) &l1[idx1 & MASK])[0];
             ch = ((uint64_t*) &l1[idx1 & MASK])[1];
 
+#if defined(__x86_64__) || defined(_M_AMD64)
             const uint64_t sqrt_result1 = _mm_cvtsi128_si64(_mm_srli_si128(sqrt_result_xmm, 8));
             cl ^= static_cast<uint64_t>(_mm_cvtsi128_si64(_mm_srli_si128(division_result_xmm, 8))) ^ (sqrt_result1 << 32);
 
@@ -2173,6 +2190,9 @@ public:
             r1 = static_cast<uint64_t>(_mm_cvtsi128_si64(_mm_srli_si128(_mm_castpd_si128(x), 8)));
             int_sqrt_v2_fixup(r1, _mm_cvtsi128_si64(_mm_srli_si128(sqrt_input, 8)));
             sqrt_result_xmm = _mm_set_epi64x(r1, r0);
+#else
+            INTEGER_MATH_V2(1, cl, cx1)
+#endif
 
             lo = __umul128(idx1, cl, &hi);
 

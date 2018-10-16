@@ -45,11 +45,12 @@ struct ScratchPad {
     // Additional stuff for asm impl
     uint8_t ctx_info[24];
     const void* input;
-    uint8_t* variant1_table;
+    uint8_t* variant_table;
     const uint32_t* t_fn;
 };
 
 alignas(64) static uint8_t variant1_table[256];
+alignas(64) static uint8_t variant_xtl_table[256];
 
 class Job;
 class JobResult;
