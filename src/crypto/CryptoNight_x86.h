@@ -89,6 +89,15 @@ static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
     ((uint64_t)(uint32_t)_mm_cvtsi128_si32(X) | \
     ((uint64_t)(uint32_t)_mm_cvtsi128_si32(HI32(X)) << 32))
 
+static inline int64_t _mm_cvtsi128_si64(__m128i a)
+{
+    return ((uint64_t)(uint32_t)_mm_cvtsi128_si32(a) | ((uint64_t)(uint32_t)_mm_cvtsi128_si32(_mm_srli_si128(a, 4)) << 32));
+}
+
+static inline __m128i _mm_cvtsi64_si128(int64_t a) {
+    return _mm_set_epi64x(0, a);
+}
+
 static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
     // multiplier   = ab = a * 2^32 + b
     // multiplicand = cd = c * 2^32 + d
