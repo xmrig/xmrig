@@ -4,16 +4,23 @@
 .section .text
 
 .global FN_PREFIX(cnv1_mainloop_sandybridge_asm)
+.global FN_PREFIX(cn_litev1_mainloop_sandybridge_asm)
 .global FN_PREFIX(cnv2_mainloop_ivybridge_asm)
 .global FN_PREFIX(cnv2_mainloop_ryzen_asm)
 .global FN_PREFIX(cnv2_double_mainloop_sandybridge_asm)
 
 .global FN_PREFIX(cnv1_mainloop_soft_aes_sandybridge_asm)
+.global FN_PREFIX(cn_litev1_mainloop_soft_aes_sandybridge_asm)
 .global FN_PREFIX(cnv2_mainloop_soft_aes_sandybridge_asm)
 
 ALIGN 64
 FN_PREFIX(cnv1_mainloop_sandybridge_asm):
 	#include "../cnv1_mainloop_sandybridge.inc"
+	ret 0
+
+ALIGN 64
+FN_PREFIX(cn_litev1_mainloop_sandybridge_asm):
+	#include "../cn_litev1_mainloop_sandybridge.inc"
 	ret 0
 
 ALIGN 64
@@ -34,6 +41,11 @@ FN_PREFIX(cnv2_double_mainloop_sandybridge_asm):
 ALIGN 64
 FN_PREFIX(cnv1_mainloop_soft_aes_sandybridge_asm):
 	#include "../cnv1_mainloop_soft_aes_sandybridge.inc"
+	ret 0
+
+ALIGN 64
+FN_PREFIX(cn_litev1_mainloop_soft_aes_sandybridge_asm):
+	#include "../cn_litev1_mainloop_soft_aes_sandybridge.inc"
 	ret 0
 
 ALIGN 64

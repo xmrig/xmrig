@@ -51,10 +51,12 @@ extern "C"
 
 #ifndef XMRIG_NO_ASM
     void cnv1_mainloop_sandybridge_asm(ScratchPad* ctx0);
+    void cn_litev1_mainloop_sandybridge_asm(ScratchPad* ctx0);
     void cnv2_mainloop_ivybridge_asm(ScratchPad* ctx0);
     void cnv2_mainloop_ryzen_asm(ScratchPad* ctx0);
     void cnv2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
     void cnv1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cn_litev1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
 #endif
 }
@@ -1419,9 +1421,18 @@ public:
 
         if (SOFT_AES) {
             scratchPad[0]->t_fn = (const uint32_t*)saes_table;
-            cnv1_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+
+            if (ITERATIONS == 0x80000) {
+                cnv1_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+            } else if (ITERATIONS == 0x40000){
+                cn_litev1_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+            }
         } else {
-            cnv1_mainloop_sandybridge_asm(scratchPad[0]);
+            if (ITERATIONS == 0x80000) {
+                cnv1_mainloop_sandybridge_asm(scratchPad[0]);
+            } else if (ITERATIONS == 0x40000){
+                cn_litev1_mainloop_sandybridge_asm(scratchPad[0]);
+            }
         }
 #endif
 
