@@ -20,7 +20,6 @@
 #define __ASM_OPTIMIZATION_H__
 
 #include <string>
-#include <algorithm>
 
 enum AsmOptimization
 {
