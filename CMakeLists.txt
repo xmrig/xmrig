@@ -277,9 +277,9 @@ if (WITH_TLS)
     target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
 endif(WITH_TLS)
 
-if (WITH_ASM)
+if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     target_link_libraries(xmrigMiner xmrig_asm)
-endif(WITH_ASM)
+endif(WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
 set_target_properties(xmrigDaemon PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
