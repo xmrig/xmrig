@@ -12,17 +12,17 @@ configuration: Release
 clone_folder: c:\xmrig
 
 install:
-  - mkdir c:\xmrig-deps-3.0
-  - curl -sL https://github.com/xmrig/xmrig-deps/archive/v3.0.zip -o xmrig-deps-3.0.zip
-  - 7z x xmrig-deps-3.0.zip -o"c:\" -y > nul
+  - mkdir c:\xmrig-deps
+  - curl -sL https://github.com/xmrig/xmrig-deps/archive/v3.3.zip -o xmrig-deps.zip
+  - 7z x xmrig-deps.zip -o"c:\" -y > nul
 
 build_script:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsMSBuildCmd.bat"
   - cd c:\xmrig
   - mkdir build
   - cd build
-  - set CMAKE_PREFIX_PATH=c:\xmrig-deps-3.0\msvc2017\x64\
-  - cmake .. -G "Visual Studio 15 2017 Win64" -DXMRIG_DEPS=c:\xmrig-deps-3.0\msvc2017\x64
+  - set CMAKE_PREFIX_PATH=c:\xmrig-deps\msvc2017\x64\
+  - cmake .. -G "Visual Studio 15 2017 Win64" -DXMRIG_DEPS=c:\xmrig-deps\msvc2017\x64
   - msbuild xmrig.sln /p:Configuration=Release
 
 test_script:
