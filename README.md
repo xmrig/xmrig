@@ -30,16 +30,17 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
-* **NEW: Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (will fork on Block 110000)**
-* **NEW: Support of Crytptonight Arto (RTO) variant**
+* **NEW Support of Crytptonight v8 PoW changes aka CNV2 (XMR fork on Block 1685555)**
+* **Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (fork on Block 110000)**
+* **Support of Crytptonight Arto (RTO) variant**
 * **Support of Crytptonight Masari (MSR) v7 variant (use variant "msr" to be ready for the fork, with autodetect)**
 * **Support of Crytptonight-Heavy Haven Protocol (XHV) v3 variant (use variant "xhv")**
 * **Support of Crytptonight Stellite (XTL) v4 variant**
 * **Support of Crytptonight Alloy (XAO) variant**
 * **Support of Crytptonight-Lite IPBC/TUBE variant**
 * **Support of Crytptonight-Heavy (Loki, Ryo, ...)**
-* **Support of Crytptonight v7 PoW changes**
-* **Support of Crytptonight-Lite v7 PoW changes**
+* **Support of Crytptonight v7 PoW changes aka CNV1**
+* **Support of Crytptonight-Lite v7 PoW changes aka CN-LiteV1**
 * Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)
     - XMRigCCServer Dashboard <-> Browser
     - XMRigCCServer <-> XMRigMiner
