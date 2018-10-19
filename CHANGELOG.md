@@ -1,3 +1,6 @@
+# 1.8.1
+- Fix connection stuck in Failover case when DNS resolve fails #197
+- Fix supported-variants announcement in login 
 # 1.8.0
 - Integration of cnv2 aka moneroV8
 - Hashrate improve -> all cnv1, cn-litev1, cnv2, xtl by adding ASM code for Intel/AMD and softaes [thx @SChernykh]
