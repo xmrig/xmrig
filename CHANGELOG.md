@@ -1,5 +1,5 @@
 # v2.8.3
-- [#813](https://github.com/xmrig/xmrig/issues/813) Fixed critical bug in Minergate pool with variant 2.
+- [#813](https://github.com/xmrig/xmrig/issues/813) Fixed critical bug with Minergate pool with variant 2.
 
 # v2.8.1
 - [#768](https://github.com/xmrig/xmrig/issues/768) Fixed build with Visual Studio 2015.
