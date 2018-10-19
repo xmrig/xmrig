@@ -349,7 +349,7 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
 
         if (m_host.contains("xmr.pool.")) {
             valid = m_algorithm.algo() == CRYPTONIGHT;
-            m_algorithm.setVariant(m_port == 45700 ? VARIANT_1 : VARIANT_0);
+            m_algorithm.setVariant(m_port == 45700 ? VARIANT_2 : VARIANT_0);
         }
         else if (m_host.contains("aeon.pool.") && m_port == 45690) {
             valid = m_algorithm.algo() == CRYPTONIGHT_LITE;
