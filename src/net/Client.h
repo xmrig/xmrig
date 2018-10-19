@@ -72,6 +72,7 @@ public:
     static void onConnected(uv_async_t *handle);
     static void onReceived(uv_async_t *handle);
     static void onError(uv_async_t *handle);
+    static void onDNSError(uv_async_t *handle);
 
 private:
     bool isCriticalError(const char *message);
@@ -92,6 +93,7 @@ private:
     virtual void scheduleOnConnected();
     virtual void scheduleOnReceived(char *data, size_t size);
     virtual void scheduleOnError(const std::string &error);
+    virtual void scheduleOnDNSError(const std::string &error);
 
     static inline Client *getClient(void *data) { return static_cast<Client*>(data); }
 
@@ -122,6 +124,7 @@ private:
     uv_async_t onConnectedAsync;
     uv_async_t onReceivedAsync;
     uv_async_t onErrorAsync;
+    uv_async_t onDNSErrorAsync;
 
     uv_timer_t m_keepAliveTimer;
 

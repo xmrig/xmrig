@@ -48,6 +48,7 @@ CpuImpl::CpuImpl()
     , m_sockets(1)
     , m_totalCores(0)
     , m_totalThreads(0)
+    , m_asmOptimization(AsmOptimization::ASM_OFF)
 {
 }
 
@@ -86,9 +87,9 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
         if (threadsCount > maximumReasonableThreadCount) {
             threadsCount = maximumReasonableThreadCount;
         }
-        if (hashFactor > maximumReasonableFactor / threadsCount) {
+        if (threadsCount > 0 && hashFactor > maximumReasonableFactor / threadsCount) {
             hashFactor = std::min(maximumReasonableFactor / threadsCount, maximumReasonableHashFactor);
-            hashFactor   = std::max(hashFactor, static_cast<size_t>(1));
+            hashFactor  = std::max(hashFactor, static_cast<size_t>(1));
         }
     }
 
@@ -106,9 +107,10 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
         }
         threadsCount = std::max(threadsCount, static_cast<size_t>(1));
     }
+
     if (hashFactor == 0) {
         hashFactor = std::min(maximumReasonableHashFactor, maximumReasonableFactor / threadsCount);
-        hashFactor   = std::max(hashFactor, static_cast<size_t>(1));
+        hashFactor = std::max(hashFactor, static_cast<size_t>(1));
     }
 }
 
@@ -214,4 +216,9 @@ int Cpu::getAssignedCpuId(size_t threadId, int64_t affinityMask)
     }
 
     return cpuId;
+}
+
+AsmOptimization Cpu::asmOptimization()
+{
+    return CpuImpl::instance().asmOptimization();
 }

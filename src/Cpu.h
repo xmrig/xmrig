@@ -54,6 +54,7 @@ public:
     static size_t threads();
     static size_t availableCache();
     static int getAssignedCpuId(size_t threadId, int64_t affinityMask);
+    static AsmOptimization asmOptimization();
 };
 
 

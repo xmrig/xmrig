@@ -1,11 +1,15 @@
 # XMRigCC 
 
-:warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
+:warning: **Monero is forking to cnv2 on block 1685555 (2018-10-18) make sure you upgrade to at least XMRigCC 1.8.0**
 
 :bulb: **This is the CPU variant of XMRigCC, if you're looking for the AMD GPU (OpenCL) variant [click here](https://github.com/Bendr0id/xmrigCC-amd/).**
 
+:warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
+
+
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
 [![Docker Build status](https://img.shields.io/docker/build/bendr0id/xmrigcc.svg)](https://hub.docker.com/r/bendr0id/xmrigcc/)
+[![Travis CI OSX Build Status](https://travis-ci.com/Bendr0id/xmrigCC.svg?branch=master)](https://travis-ci.com/Bendr0id/xmrigCC)
 [![GitHub release](https://img.shields.io/github/release/bendr0id/xmrigCC/all.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![Github downloads latest](https://img.shields.io/github/downloads/bendr0id/xmrigCC/latest/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![Github downloads total](https://img.shields.io/github/downloads/bendr0id/xmrigCC/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
@@ -26,16 +30,17 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
-* **NEW: Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (will fork on Block 110000)**
-* **NEW: Support of Crytptonight Arto (RTO) variant**
+* **NEW Support of Crytptonight v8 PoW changes aka CNV2 (XMR fork on Block 1685555)**
+* **Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (fork on Block 110000)**
+* **Support of Crytptonight Arto (RTO) variant**
 * **Support of Crytptonight Masari (MSR) v7 variant (use variant "msr" to be ready for the fork, with autodetect)**
 * **Support of Crytptonight-Heavy Haven Protocol (XHV) v3 variant (use variant "xhv")**
 * **Support of Crytptonight Stellite (XTL) v4 variant**
 * **Support of Crytptonight Alloy (XAO) variant**
 * **Support of Crytptonight-Lite IPBC/TUBE variant**
 * **Support of Crytptonight-Heavy (Loki, Ryo, ...)**
-* **Support of Crytptonight v7 PoW changes**
-* **Support of Crytptonight-Lite v7 PoW changes**
+* **Support of Crytptonight v7 PoW changes aka CNV1**
+* **Support of Crytptonight-Lite v7 PoW changes aka CN-LiteV1**
 * Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)
     - XMRigCCServer Dashboard <-> Browser
     - XMRigCCServer <-> XMRigMiner

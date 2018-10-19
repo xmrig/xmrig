@@ -65,7 +65,7 @@ public:
             m_socket.connect(endpointIterator, boost::bind(&BoostConnection::handleConnect, this->shared_from_this(),
                             boost::asio::placeholders::error));
         } else {
-            notifyError(std::string("[DNS resolve] ") + error.message());
+            notifyDNSError(std::string("[DNS resolve] ") + error.message());
         }
     }
 
