@@ -60,6 +60,14 @@ void Connection::notifyError(const std::string& error)
     }
 }
 
+void Connection::notifyDNSError(const std::string& error)
+{
+    ConnectionListener::Ptr listener = listener_.lock();
+    if (listener)
+    {
+        listener->scheduleOnDNSError(error);
+    }
+}
 
 Connection::Ptr establishConnection(const ConnectionListener::Ptr& listener,
                                     ConnectionType type, const std::string& host, uint16_t port)
