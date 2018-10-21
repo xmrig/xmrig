@@ -24,7 +24,6 @@
 #include <libcpuid.h>
 #include <math.h>
 #include <string.h>
-#include <thread>
 
 
 #include "core/cpu/AdvancedCpuInfo.h"
@@ -39,7 +38,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     m_L2(0),
     m_L3(0),
     m_sockets(1),
-    m_threads(std::thread::hardware_concurrency())
+    m_threads(0)
 {
     struct cpu_raw_data_t raw = { 0 };
     struct cpu_id_t data = { 0 };
@@ -49,6 +48,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
 
     strncpy(m_brand, data.brand_str, sizeof(m_brand));
 
+    m_threads = data.total_logical_cpus;
     m_sockets = threads() / data.num_logical_cpus;
     if (m_sockets == 0) {
         m_sockets = 1;
