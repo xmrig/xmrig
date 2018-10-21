@@ -146,15 +146,6 @@ PowVariant Job::powVariant() const
         } else {
             return PowVariant::POW_V0;
         }
-    }
-    else if (m_powVariant == PowVariant::POW_XTL && m_blob[0] < 4) {
-        return POW_V1;
-    }
-    else if (m_powVariant == PowVariant::POW_MSR && m_blob[0] < 7) {
-        return POW_V1;
-    }
-    else if (m_powVariant == PowVariant::POW_XHV && m_blob[0] < 3) {
-        return POW_V0;
     } else {
         return m_powVariant;
     }
