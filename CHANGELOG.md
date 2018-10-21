@@ -1,3 +1,6 @@
+# 1.8.2
+- Fix for mining conceal or other coins with cn-msr
+- Fixed avg.time on Dashboard
 # 1.8.1
 - Fix connection stuck in Failover case when DNS resolve fails #197
 - Fix supported-variants announcement in login 
