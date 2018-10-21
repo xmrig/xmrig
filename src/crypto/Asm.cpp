@@ -40,7 +40,8 @@ static const char *asmNames[] = {
     "none",
     "auto",
     "intel",
-    "ryzen"
+    "ryzen",
+    "bulldozer"
 };
 
 

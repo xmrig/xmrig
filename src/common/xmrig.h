@@ -99,6 +99,7 @@ enum Assembly {
     ASM_AUTO,
     ASM_INTEL,
     ASM_RYZEN,
+    ASM_BULLDOZER,
     ASM_MAX
 };
 
