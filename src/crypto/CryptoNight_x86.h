@@ -564,6 +564,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 #ifndef XMRIG_NO_ASM
 extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx *ctx);
+extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx* ctx0, cryptonight_ctx* ctx1);
 
 
@@ -578,8 +579,11 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
     if (ASM == xmrig::ASM_INTEL) {
         cnv2_mainloop_ivybridge_asm(ctx[0]);
     }
-    else {
+    else if (ASM == xmrig::ASM_RYZEN) {
         cnv2_mainloop_ryzen_asm(ctx[0]);
+    }
+    else {
+        cnv2_mainloop_bulldozer_asm(ctx[0]);
     }
 
     cn_implode_scratchpad<ALGO, MEM, false>(reinterpret_cast<__m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));

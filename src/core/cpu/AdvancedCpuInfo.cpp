@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -76,7 +77,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
         m_aes = true;
 
         if (data.vendor == VENDOR_AMD) {
-            m_assembly = ASM_RYZEN;
+            m_assembly = (data.ext_family >= 23) ? ASM_RYZEN : ASM_BULLDOZER;
         }
         else if (data.vendor == VENDOR_INTEL) {
             m_assembly = ASM_INTEL;

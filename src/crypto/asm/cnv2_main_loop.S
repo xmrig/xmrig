@@ -9,6 +9,7 @@
 #endif
 .global FN_PREFIX(cnv2_mainloop_ivybridge_asm)
 .global FN_PREFIX(cnv2_mainloop_ryzen_asm)
+.global FN_PREFIX(cnv2_mainloop_bulldozer_asm)
 .global FN_PREFIX(cnv2_double_mainloop_sandybridge_asm)
 
 ALIGN 16
@@ -24,6 +25,14 @@ FN_PREFIX(cnv2_mainloop_ryzen_asm):
 	sub rsp, 48
 	mov rcx, rdi
 	#include "cnv2_main_loop_ryzen.inc"
+	add rsp, 48
+	ret 0
+
+ALIGN 16
+FN_PREFIX(cnv2_mainloop_bulldozer_asm):
+	sub rsp, 48
+	mov rcx, rdi
+	#include "cnv2_main_loop_bulldozer.inc"
 	add rsp, 48
 	ret 0
 
