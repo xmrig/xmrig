@@ -3,6 +3,7 @@
 .section .text
 .global cnv2_mainloop_ivybridge_asm
 .global cnv2_mainloop_ryzen_asm
+.global cnv2_mainloop_bulldozer_asm
 .global cnv2_double_mainloop_sandybridge_asm
 
 ALIGN 16
@@ -13,6 +14,11 @@ cnv2_mainloop_ivybridge_asm:
 ALIGN 16
 cnv2_mainloop_ryzen_asm:
 	#include "../cnv2_main_loop_ryzen.inc"
+	ret 0
+
+ALIGN 16
+cnv2_mainloop_bulldozer_asm:
+    #include "../cnv2_main_loop_bulldozer.inc"
 	ret 0
 
 ALIGN 16
