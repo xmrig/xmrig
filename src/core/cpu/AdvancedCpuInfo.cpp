@@ -76,7 +76,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
         m_aes = true;
 
         if (data.vendor == VENDOR_AMD) {
-            m_assembly = ASM_RYZEN;
+            m_assembly = (data.ext_family >= 23) ? ASM_RYZEN : ASM_BULLDOZER;
         }
         else if (data.vendor == VENDOR_INTEL) {
             m_assembly = ASM_INTEL;

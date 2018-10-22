@@ -43,7 +43,8 @@ static const char *coloredAsmNames[] = {
     "\x1B[1;31mnone\x1B[0m",
     "auto",
     "\x1B[1;32mintel\x1B[0m",
-    "\x1B[1;32mryzen\x1B[0m"
+    "\x1B[1;32mryzen\x1B[0m",
+    "\x1B[1;32mbulldozer\x1B[0m"
 };
 
 
