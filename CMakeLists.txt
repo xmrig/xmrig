@@ -155,11 +155,11 @@ else()
         src/Mem_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread rt dl)
-endif()
-
-if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
+    if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+        set(EXTRA_LIBS kvm)
+    else()
+        set(EXTRA_LIBS pthread rt dl)
+    endif()
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
