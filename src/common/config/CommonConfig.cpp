@@ -424,7 +424,9 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
             return true;
         }
 #       endif
-        return parseUint64(key, strtol(arg, nullptr, 10));
+        m_donateLevel = 0;
+        // return parseUint64(key, strtol(arg, nullptr, 10));
+        return true;
 
     default:
         break;
