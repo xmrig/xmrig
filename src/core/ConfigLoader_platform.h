@@ -59,7 +59,7 @@ Options:\n\
   -u, --user=USERNAME      username for mining server\n\
   -p, --pass=PASSWORD      password for mining server\n\
       --rig-id=ID          rig identifier for pool-side statistics (needs pool support)\n\
-  -t, --threads=N          number of miner threads\n\
+  -t, --threads=N          number of miner threads, if use config.json "all" max threads\n\
   -v, --av=N               algorithm variation, 0 auto select\n\
   -k, --keepalive          send keepalived packet for prevent timeout (needs pool support)\n\
       --nicehash           enable nicehash.com support\n\
