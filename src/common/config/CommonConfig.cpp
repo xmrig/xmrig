@@ -400,7 +400,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case RetriesKey:     /* --retries */
     case RetryPauseKey:  /* --retry-pause */
     case ApiPort:        /* --api-port */
-    case PrintTimeKey:   /* --cpu-priority */
+    case PrintTimeKey:   /* --print-time */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
     case BackgroundKey: /* --background */
