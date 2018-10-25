@@ -61,7 +61,7 @@ Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or shar
   -u, --user=USERNAME      username for mining server
   -p, --pass=PASSWORD      password for mining server
       --rig-id=ID          rig identifier for pool-side statistics (needs pool support)
-  -t, --threads=N          number of miner threads
+  -t, --threads=N          number of miner threads, if use config.json "all" max threads
   -v, --av=N               algorithm variation, 0 auto select
   -k, --keepalive          send keepalived packet for prevent timeout (needs pool support)
       --nicehash           enable nicehash.com support
