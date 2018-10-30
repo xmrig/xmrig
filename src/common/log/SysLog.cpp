@@ -37,7 +37,20 @@ SysLog::SysLog()
 
 void SysLog::message(Level level, const char *fmt, va_list args)
 {
-    vsyslog(static_cast<int>(level), fmt, args);
+    int syslog_priority = LOG_CRIT;
+    switch(level) {
+    case ERR:
+        syslog_priority = LOG_ERR;
+    case WARNING:
+        syslog_priority = LOG_WARNING;
+    case NOTICE:
+        syslog_priority = LOG_NOTICE;
+    case INFO:
+        syslog_priority = LOG_INFO;
+    case DEBUG:
+        syslog_priority = LOG_DEBUG;
+    }
+    vsyslog(syslog_priority, fmt, args);
 }
 
 
