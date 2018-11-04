@@ -279,8 +279,8 @@
                     .column(10, {page: 'current'})
                     .data()
                     .reduce(function (a, b) {
-                        return (a + b) / 2;
-                    }, 0);
+                        return (a + b);
+                    }, 0) / api.column(10, {page: 'current'}).data().length;
 
                 sumSharesGood = api
                     .column(11, {page: 'current'})

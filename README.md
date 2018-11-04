@@ -1,6 +1,6 @@
 # XMRigCC 
 
-:warning: **Monero is forking to cnv2 on block 1685555 (2018-10-18) make sure you upgrade to at least XMRigCC 1.8.0**
+:warning: **Monero forked to cnv2 on block 1685555 (2018-10-18) make sure you upgrade to at least XMRigCC 1.8.0 to mine XMR**
 
 :bulb: **This is the CPU variant of XMRigCC, if you're looking for the AMD GPU (OpenCL) variant [click here](https://github.com/Bendr0id/xmrigCC-amd/).**
 
