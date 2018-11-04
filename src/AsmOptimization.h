@@ -26,6 +26,7 @@ enum AsmOptimization
     ASM_AUTODETECT,
     ASM_INTEL,
     ASM_RYZEN,
+    ASM_BULLDOZER,
     ASM_OFF
 };
 
@@ -37,6 +38,8 @@ inline std::string getAsmOptimizationName(AsmOptimization asmOptimization)
             return "INTEL";
         case ASM_RYZEN:
             return "RYZEN";
+        case ASM_BULLDOZER:
+            return "BULLDOZER";
         case ASM_OFF:
             return "OFF";
         case ASM_AUTODETECT:
@@ -62,7 +65,11 @@ inline AsmOptimization parseAsmOptimization(int optimization)
         case 2:
             asmOptimization = AsmOptimization::ASM_RYZEN;
             break;
+        case 3:
+            asmOptimization = AsmOptimization::ASM_AUTODETECT;
+            break;
         default:
+            asmOptimization = AsmOptimization::ASM_AUTODETECT;
             break;
     }
 
@@ -78,6 +85,8 @@ inline AsmOptimization parseAsmOptimization(const std::string optimization)
     } else if (optimization == "1" || optimization == "intel") {
         asmOptimization = AsmOptimization::ASM_INTEL;
     } else if (optimization == "2" || optimization == "ryzen") {
+        asmOptimization = AsmOptimization::ASM_RYZEN;
+    } else if (optimization == "3" || optimization == "bulldozer") {
         asmOptimization = AsmOptimization::ASM_RYZEN;
     }
 
