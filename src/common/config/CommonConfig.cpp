@@ -280,16 +280,16 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        m_pools.back().setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0);
+        currentPool().setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0);
         break;
 
     case TlsKey: /* --tls */
-        m_pools.back().setTLS(enable);
+        currentPool().setTLS(enable);
         break;
 
 #   ifndef XMRIG_PROXY_PROJECT
     case NicehashKey: /* --nicehash */
-        m_pools.back().setNicehash(enable);
+        currentPool().setNicehash(enable);
         break;
 #   endif
 
@@ -333,13 +333,15 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         break;
 
     case UserpassKey: /* --userpass */
-        if (!m_pools.back().setUserpass(arg)) {
+        if (!currentPool().setUserpass(arg)) {
             return false;
         }
 
         break;
 
     case UrlKey: /* --url */
+        fixup();
+
         if (m_pools.size() > 1 || m_pools[0].isValid()) {
             Pool pool(arg);
 
@@ -358,23 +360,23 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         break;
 
     case UserKey: /* --user */
-        m_pools.back().setUser(arg);
+        currentPool().setUser(arg);
         break;
 
     case PasswordKey: /* --pass */
-        m_pools.back().setPassword(arg);
+        currentPool().setPassword(arg);
         break;
 
     case RigIdKey: /* --rig-id */
-        m_pools.back().setRigId(arg);
+        currentPool().setRigId(arg);
         break;
 
     case FingerprintKey: /* --tls-fingerprint */
-        m_pools.back().setFingerprint(arg);
+        currentPool().setFingerprint(arg);
         break;
 
     case VariantKey: /* --variant */
-        m_pools.back().algorithm().parseVariant(arg);
+        currentPool().algorithm().parseVariant(arg);
         break;
 
     case LogFileKey: /* --log-file */
@@ -462,11 +464,11 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        m_pools.back().setKeepAlive(arg);
+        currentPool().setKeepAlive(arg);
         break;
 
     case VariantKey: /* --variant */
-        m_pools.back().algorithm().parseVariant(arg);
+        currentPool().algorithm().parseVariant(arg);
         break;
 
     case DonateLevelKey: /* --donate-level */
@@ -492,4 +494,31 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     }
 
     return true;
+}
+
+
+Pool &xmrig::CommonConfig::currentPool()
+{
+    fixup();
+
+    return m_pools.back();
+}
+
+
+void xmrig::CommonConfig::fixup()
+{
+    if (m_state == NoneState) {
+        return;
+    }
+
+    if (m_pools.empty()) {
+        if (!m_activePools.empty()) {
+            std::swap(m_pools, m_activePools);
+        }
+        else {
+            m_pools.push_back(Pool());
+        }
+
+        m_state = NoneState;
+    }
 }
