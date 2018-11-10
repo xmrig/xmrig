@@ -50,6 +50,7 @@
 #include "rapidjson/filereadstream.h"
 
 
+bool xmrig::ConfigLoader::m_done                         = false;
 xmrig::ConfigWatcher *xmrig::ConfigLoader::m_watcher     = nullptr;
 xmrig::IConfigCreator *xmrig::ConfigLoader::m_creator    = nullptr;
 xmrig::IWatcherListener *xmrig::ConfigLoader::m_listener = nullptr;
@@ -283,12 +284,16 @@ void xmrig::ConfigLoader::parseJSON(xmrig::IConfig *config, const struct option 
 
 void xmrig::ConfigLoader::showUsage()
 {
+    m_done = true;
+
     printf(usage);
 }
 
 
 void xmrig::ConfigLoader::showVersion()
 {
+    m_done = true;
+
     printf(APP_NAME " " APP_VERSION "\n built on " __DATE__
 
 #   if defined(__clang__)

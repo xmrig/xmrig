@@ -174,7 +174,10 @@ void xmrig::CommonConfig::printVersions()
     int length = snprintf(buf, sizeof buf, "CUDA/%d.%d ", cudaVersion / 1000, cudaVersion % 100);
 #   else
     memset(buf, 0, 16);
+
+#   if !defined(XMRIG_NO_HTTPD) || !defined(XMRIG_NO_TLS)
     int length = 0;
+#   endif
 #   endif
 
 #   if !defined(XMRIG_NO_TLS) && defined(OPENSSL_VERSION_TEXT)

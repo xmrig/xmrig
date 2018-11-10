@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIGLOADER_H__
-#define __CONFIGLOADER_H__
+#ifndef XMRIG_CONFIGLOADER_H
+#define XMRIG_CONFIGLOADER_H
 
 
 #include <stdint.h>
@@ -53,6 +53,8 @@ public:
     static IConfig *load(int argc, char **argv, IConfigCreator *creator, IWatcherListener *listener);
     static void release();
 
+    static inline bool isDone() { return m_done; }
+
 private:
     static bool getJSON(const char *fileName, rapidjson::Document &doc);
     static bool parseArg(IConfig *config, int key, const char *arg);
@@ -60,6 +62,7 @@ private:
     static void showUsage();
     static void showVersion();
 
+    static bool m_done;
     static ConfigWatcher *m_watcher;
     static IConfigCreator *m_creator;
     static IWatcherListener *m_listener;
@@ -68,4 +71,4 @@ private:
 
 } /* namespace xmrig */
 
-#endif /* __CONFIGLOADER_H__ */
+#endif /* XMRIG_CONFIGLOADER_H */
