@@ -82,8 +82,12 @@ void CpuImpl::initCommon()
     }
 
 #   ifndef XMRIG_NO_ASM
-    if (data.vendor == VENDOR_AMD && data.ext_family >= 0x17) {
-        m_asmOptimization = AsmOptimization::ASM_RYZEN;
+    if (data.vendor == VENDOR_AMD) {
+        if (data.ext_family >= 0x17) {
+            m_asmOptimization = AsmOptimization::ASM_RYZEN;
+        } else if (data.ext_family >= 0x15) {
+            m_asmOptimization = AsmOptimization::ASM_BULLDOZER;
+        }
     } else if (data.vendor == VENDOR_INTEL &&
             ((data.ext_family >= 0x06 && data.ext_model > 0x2) ||
              (data.ext_family >= 0x06 && data.ext_model == 0x2 && data.model >= 0xA))) {

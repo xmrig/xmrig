@@ -50,7 +50,7 @@ inline std::string getPowVariantName(PowVariant powVariant)
         case POW_TUBE:
             return "tube";
         case POW_ALLOY:
-            return "alloy";
+            return "xao";
         case POW_XTL:
             return "xtl";
         case POW_MSR:
