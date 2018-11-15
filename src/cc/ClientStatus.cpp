@@ -595,7 +595,7 @@ std::string ClientStatus::toJsonString()
     writer.SetMaxDecimalPlaces(10);
     respDocument.Accept(writer);
 
-    return strdup(buffer.GetString());
+    return buffer.GetString();
 }
 
 void ClientStatus::clearGPUInfoList()
