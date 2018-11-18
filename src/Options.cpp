@@ -291,7 +291,8 @@ constexpr static const char *pow_variant_names[] = {
         "xtl",
         "msr",
         "xhv",
-        "rto"
+        "rto",
+        "xfh"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -1067,6 +1068,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "arto")) {
             m_powVariant = POW_RTO;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "freehaven") || !strcmp(powVariant, "faven"))) {
+            m_powVariant = POW_XFH;
             break;
         }
 
