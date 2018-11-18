@@ -1,3 +1,9 @@
+# 1.8.4
+- Added XFH (Freehaven-project) support aka CN-Heavy-superfast
+- Hashrate improve -> CN-Fast (MSR and others) ASM code for Intel CPUs
+- Hashrate improve -> CNv2 ASM code for AMD Bulldozer CPUs 
+- Fix memory leak in cc client component
+- Alloy algo is now shown as XAO on Dashboard
 # 1.8.2
 - Fix for mining conceal or other coins with cn-msr
 - Fixed avg.time on Dashboard
