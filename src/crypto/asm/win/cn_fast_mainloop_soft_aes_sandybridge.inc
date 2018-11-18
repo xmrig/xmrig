@@ -144,7 +144,7 @@ cn_fast_mainloop_soft_aes_sandybridge:
 	and	edx, 2097136
 	mov	QWORD PTR [rsp+64], rdx
 	sub eax, 1
-	jne	cnv1_mainloop_soft_aes_sandybridge
+	jne	cn_fast_mainloop_soft_aes_sandybridge
 
 	movaps xmm6, XMMWORD PTR [rsp]
 	movaps xmm7, XMMWORD PTR [rsp+16]

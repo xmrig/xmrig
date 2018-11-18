@@ -64,7 +64,7 @@ cn_fast_mainloop_sandybridge:
 	movdqu	xmm2, XMMWORD PTR [rdx+rsi]
 	xor	rdi, r11
 	dec	ebp
-	jne	cnv1_mainloop_sandybridge
+	jne	cn_fast_mainloop_sandybridge
 
 	mov	rbx, QWORD PTR [rsp+24]
 	mov	rbp, QWORD PTR [rsp+32]
