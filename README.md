@@ -1,7 +1,5 @@
 # XMRigCC 
 
-:warning: **Monero forked to cnv2 on block 1685555 (2018-10-18) make sure you upgrade to at least XMRigCC 1.8.0 to mine XMR**
-
 :bulb: **This is the CPU variant of XMRigCC, if you're looking for the AMD GPU (OpenCL) variant [click here](https://github.com/Bendr0id/xmrigCC-amd/).**
 
 :warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
@@ -30,6 +28,7 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
+* **NEW Support of Crytptonight xfh variant aka CN-Heavy-Fast**
 * **NEW Support of Crytptonight v8 PoW changes aka CNV2 (XMR fork on Block 1685555)**
 * **Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (fork on Block 110000)**
 * **Support of Crytptonight Arto (RTO) variant**
