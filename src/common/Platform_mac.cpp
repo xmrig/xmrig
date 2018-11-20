@@ -40,15 +40,20 @@
 
 char *Platform::createUserAgent()
 {
-    const size_t max = 160;
+    constexpr const size_t max = 256;
 
-    char *buf = new char[max];
+    char *buf = new char[max]();
+    int length = snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s", APP_NAME, APP_VERSION, uv_version_string());
 
 #   ifdef XMRIG_NVIDIA_PROJECT
     const int cudaVersion = cuda_get_runtime_version();
-    snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s CUDA/%d.%d clang/%d.%d.%d", APP_NAME, APP_VERSION, uv_version_string(), cudaVersion / 1000, cudaVersion % 100, __clang_major__, __clang_minor__, __clang_patchlevel__);
-#   else
-    snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s clang/%d.%d.%d", APP_NAME, APP_VERSION, uv_version_string(), __clang_major__, __clang_minor__, __clang_patchlevel__);
+    length += snprintf(buf + length, max - length, " CUDA/%d.%d", cudaVersion / 1000, cudaVersion % 100);
+#   endif
+
+#   ifdef __clang__
+    length += snprintf(buf + length, max - length, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
+#   elif defined(__GNUC__)
+    length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #   endif
 
     return buf;
