@@ -91,6 +91,12 @@ Job::~Job()
 }
 
 
+bool Job::isEqual(const Job &other) const
+{
+    return m_id == other.m_id && m_clientId == other.m_clientId && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;
+}
+
+
 bool Job::setBlob(const char *blob)
 {
     if (!blob) {
@@ -212,18 +218,6 @@ char *Job::toHex(const unsigned char* in, unsigned int len)
     return out;
 }
 #endif
-
-
-bool Job::operator==(const Job &other) const
-{
-    return m_id == other.m_id && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;
-}
-
-
-bool Job::operator!=(const Job &other) const
-{
-    return m_id != other.m_id || memcmp(m_blob, other.m_blob, sizeof(m_blob)) != 0;
-}
 
 
 xmrig::Variant Job::variant() const

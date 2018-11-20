@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ID_H__
-#define __ID_H__
+#ifndef XMRIG_ID_H
+#define XMRIG_ID_H
 
 
 #include <string.h>
@@ -95,4 +95,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* __ID_H__ */
+#endif /* XMRIG_ID_H */

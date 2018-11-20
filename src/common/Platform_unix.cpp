@@ -92,6 +92,17 @@ bool Platform::setThreadAffinity(uint64_t cpu_id)
 }
 
 
+uint32_t Platform::setTimerResolution(uint32_t resolution)
+{
+    return resolution;
+}
+
+
+void Platform::restoreTimerResolution()
+{
+}
+
+
 void Platform::setProcessPriority(int priority)
 {
 }

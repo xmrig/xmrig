@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,6 +23,7 @@
  */
 
 
+#include <algorithm>
 #include <winsock2.h>
 #include <windows.h>
 #include <uv.h>
@@ -35,6 +37,9 @@
 #ifdef XMRIG_NVIDIA_PROJECT
 #   include "nvidia/cryptonight.h"
 #endif
+
+
+static uint32_t timerResolution = 0;
 
 
 static inline OSVERSIONINFOEX winOsVersion()
@@ -94,6 +99,34 @@ bool Platform::setThreadAffinity(uint64_t cpu_id)
 }
 
 
+uint32_t Platform::setTimerResolution(uint32_t resolution)
+{
+#   ifdef XMRIG_AMD_PROJECT
+    TIMECAPS tc;
+
+    if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
+        return 0;
+    }
+
+    timerResolution = std::min<uint32_t>(std::max<uint32_t>(tc.wPeriodMin, resolution), tc.wPeriodMax);
+
+    return timeBeginPeriod(timerResolution) == TIMERR_NOERROR ? timerResolution : 0;
+#   else
+    return resolution;
+#   endif
+}
+
+
+void Platform::restoreTimerResolution()
+{
+#   ifdef XMRIG_AMD_PROJECT
+    if (timerResolution) {
+        timeEndPeriod(timerResolution);
+    }
+#   endif
+}
+
+
 void Platform::setProcessPriority(int priority)
 {
     if (priority == -1) {
@@ -121,6 +154,7 @@ void Platform::setProcessPriority(int priority)
 
     case 5:
         prio = REALTIME_PRIORITY_CLASS;
+        break;
 
     default:
         break;
