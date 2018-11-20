@@ -63,9 +63,9 @@ static inline OSVERSIONINFOEX winOsVersion()
 char *Platform::createUserAgent()
 {
     const auto osver = winOsVersion();
-    const size_t max = 160;
+    constexpr const size_t max = 256;
 
-    char *buf = new char[max];
+    char *buf = new char[max]();
     int length = snprintf(buf, max, "%s/%s (Windows NT %lu.%lu", APP_NAME, APP_VERSION, osver.dwMajorVersion, osver.dwMinorVersion);
 
 #   if defined(__x86_64__) || defined(_M_AMD64)

@@ -54,9 +54,9 @@ typedef cpuset_t cpu_set_t;
 
 char *Platform::createUserAgent()
 {
-    const size_t max = 160;
+    constexpr const size_t max = 256;
 
-    char *buf = new char[max];
+    char *buf = new char[max]();
     int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
 
 #   if defined(__x86_64__)
@@ -70,7 +70,9 @@ char *Platform::createUserAgent()
     length += snprintf(buf + length, max - length, " CUDA/%d.%d", cudaVersion / 1000, cudaVersion % 100);
 #   endif
 
-#   ifdef __GNUC__
+#   ifdef __clang__
+    length += snprintf(buf + length, max - length, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
+#   elif defined(__GNUC__)
     length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #   endif
 
