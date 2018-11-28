@@ -36,6 +36,10 @@
 #include "ClientStatus.h"
 #include "ControlCommand.h"
 
+#define TIMER_INTERVAL 10000
+#define OFFLINE_TRESHOLD_IN_MS 60000
+#define STATUS_UPDATE_INTERVAL 3600000
+
 class Service
 {
 public:
@@ -61,15 +65,22 @@ private:
 
     static std::string getClientConfigFileName(const Options *options, const std::string &clientId);
 
+    static void onPushTimer(uv_timer_t* handle);
+    static void sendServerStatusPush(uint64_t now);
+    static void sendMinerOfflinePush(uint64_t now);
+    static void triggerPush(const std::string& title, const std::string& message);
+
 private:
-    static int m_currentServerTime;
+    static uint64_t m_currentServerTime;
+    static uint64_t m_lastOfflineCheckTime;
+    static uint64_t m_lastStatusUpdateTime;
 
     static std::map<std::string, ClientStatus> m_clientStatus;
     static std::map<std::string, ControlCommand> m_clientCommand;
     static std::map<std::string, std::list<std::string>> m_clientLog;
 
     static uv_mutex_t m_mutex;
-
+    static uv_timer_t m_timer;
 };
 
 #endif /* __SERVICE_H__ */

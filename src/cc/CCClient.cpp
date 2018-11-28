@@ -219,9 +219,11 @@ void CCClient::publishClientStatusReport()
                 LOG_WARN("[CC-Client] Command: PUBLISH_CONFIG received -> publish config");
                 publishConfig();
             }else if (controlCommand.getCommand() == ControlCommand::RESTART) {
-                LOG_WARN("[CC-Client] Command: RESTART received -> restart");
+                LOG_WARN("[CC-Client] Command: RESTART received -> trigger restart");
             } else if (controlCommand.getCommand() == ControlCommand::SHUTDOWN) {
-                LOG_WARN("[CC-Client] Command: SHUTDOWN received -> shutdown");
+                LOG_WARN("[CC-Client] Command: SHUTDOWN received -> quit");
+            } else if (controlCommand.getCommand() == ControlCommand::REBOOT) {
+                LOG_WARN("[CC-Client] Command: REBOOT received -> trigger reboot");
             }
 
             m_self->m_async->data = reinterpret_cast<void*>(controlCommand.getCommand());

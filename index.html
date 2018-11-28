@@ -206,7 +206,20 @@
                     }
                 },
                 {
-                    text: '<i class="fa fa-power-off"> Shutdown miner</i>',
+                    text: '<i class="fa fa-refresh"> Reebot machine</i>',
+                    className: 'btn-warning',
+                    enabled: false,
+                    action: function () {
+                        table.rows({selected: true}).eq(0).each(function (index) {
+                            var row = table.row(index);
+                            var data = row.data();
+
+                            sendAction("REBOOT", data.client_status.client_id);
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-sign-out"> Stop miner</i>',
                     className: 'btn-danger',
                     enabled: false,
                     action: function () {

@@ -32,10 +32,10 @@ void setMockedCpu(size_t numProcessors, size_t numCores, size_t numPusPerCore, s
     Cpu::init();
 }
 
-std::pair<size_t, size_t> testOptimize(size_t numThreads, size_t hashFactor, Options::Algo algo, bool safeMode,
+std::pair<size_t, size_t> testOptimize(size_t numThreads, size_t hashFactor, Options::Algo algo, PowVariant powVariant, bool safeMode,
                                        size_t maxCpuUsage = 100)
 {
-    Cpu::optimizeParameters(numThreads, hashFactor, algo, maxCpuUsage, safeMode);
+    Cpu::optimizeParameters(numThreads, hashFactor, algo, powVariant, maxCpuUsage, safeMode);
     return std::pair<size_t, size_t>(numThreads, hashFactor);
 }
 

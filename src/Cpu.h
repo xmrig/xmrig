@@ -39,8 +39,8 @@ public:
 
     static void init();
 
-    static void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo,
-                                    size_t maxCpuUsage, bool safeMode);
+    static void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo, PowVariant powVariant,
+                                   size_t maxCpuUsage, bool safeMode);
 
     static int setThreadAffinity(size_t threadId, int64_t affinityMask);
 

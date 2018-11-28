@@ -26,6 +26,10 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
+#include <iostream>
+
+#include "log/Log.h"
+#include <3rdparty/cpp-httplib/httplib.h>
 #include <3rdparty/rapidjson/document.h>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/writer.h>
@@ -33,20 +37,33 @@
 #include <3rdparty/rapidjson/filereadstream.h>
 #include <3rdparty/rapidjson/error/en.h>
 #include <3rdparty/rapidjson/prettywriter.h>
-#include <version.h>
-#include "log/Log.h"
+#include "version.h"
 #include "Service.h"
 
 uv_mutex_t Service::m_mutex;
+uv_timer_t Service::m_timer;
+
 std::map<std::string, ControlCommand> Service::m_clientCommand;
 std::map<std::string, ClientStatus> Service::m_clientStatus;
 std::map<std::string, std::list<std::string>> Service::m_clientLog;
 
-int Service::m_currentServerTime = 0;
+uint64_t Service::m_currentServerTime = 0;
+uint64_t Service::m_lastOfflineCheckTime = 0;
+uint64_t Service::m_lastStatusUpdateTime = 0;
 
 bool Service::start()
 {
     uv_mutex_init(&m_mutex);
+
+#ifndef XMRIG_NO_TLS
+    if (Options::i()->ccPushoverToken() && Options::i()->ccPushoverUser())
+    {
+        uv_timer_init(uv_default_loop(), &m_timer);
+        uv_timer_start(&m_timer, Service::onPushTimer,
+                       static_cast<uint64_t>(TIMER_INTERVAL),
+                       static_cast<uint64_t>(TIMER_INTERVAL));
+    }
+#endif
 
     return true;
 }
@@ -54,6 +71,8 @@ bool Service::start()
 void Service::release()
 {
     uv_mutex_lock(&m_mutex);
+
+    uv_timer_stop(&m_timer);
 
     m_clientCommand.clear();
     m_clientStatus.clear();
@@ -156,7 +175,7 @@ unsigned Service::getClientConfig(const Options* options, const std::string& cli
         data << clientConfig.rdbuf();
         clientConfig.close();
     } else {
-        std::ifstream defaultConfig("default_config.json");
+        std::ifstream defaultConfig("default_miner_config.json");
         if (defaultConfig) {
             data << defaultConfig.rdbuf();
             defaultConfig.close();
@@ -230,7 +249,7 @@ unsigned Service::getClientStatusList(std::string& resp)
     }
 
     auto time_point = std::chrono::system_clock::now();
-    m_currentServerTime = std::chrono::system_clock::to_time_t(time_point);
+    m_currentServerTime = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point));
 
     document.AddMember("current_server_time", m_currentServerTime, allocator);
     document.AddMember("current_version", rapidjson::StringRef(Version::string().c_str()), allocator);
@@ -419,4 +438,101 @@ std::string Service::getClientConfigFileName(const Options* options, const std::
     clientConfigFileName += clientId + std::string("_config.json");
 
     return clientConfigFileName;
+}
+
+void Service::onPushTimer(uv_timer_t* handle)
+{
+    auto time_point = std::chrono::system_clock::now();
+    auto now = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point) * 1000);
+
+    if (Options::i()->ccPushOfflineMiners()) {
+        sendMinerOfflinePush(now);
+        m_lastOfflineCheckTime = now;
+    }
+
+    if (Options::i()->ccPushPeriodicStatus()) {
+        if (now > (m_lastStatusUpdateTime + STATUS_UPDATE_INTERVAL)) {
+            sendServerStatusPush(now);
+            m_lastStatusUpdateTime = now;
+        }
+    }
+}
+
+void Service::sendMinerOfflinePush(uint64_t now)
+{
+    for (auto clientStatus : m_clientStatus) {
+        uint64_t lastStatus = clientStatus.second.getLastStatusUpdate() * 1000;
+        uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
+        if (lastStatus < offlineThreshold) {
+            offlineThreshold = now - (OFFLINE_TRESHOLD_IN_MS + (now - m_lastOfflineCheckTime));
+            if (lastStatus > offlineThreshold) {
+                std::stringstream message;
+                message << "Miner: " << clientStatus.first << " just went offline!";
+
+                LOG_WARN("Send miner went offline push", clientStatus.first.c_str());
+                triggerPush(APP_NAME " Offline Monitor", message.str());
+            }
+        }
+    }
+}
+
+void Service::sendServerStatusPush(uint64_t now)
+{
+    size_t onlineMiner = 0;
+    size_t offlineMiner = 0;
+
+    double hashrateMedium = 0;
+    double hashrateLong = 0;
+    double avgTime = 0;
+
+    uint64_t sharesGood = 0;
+    uint64_t sharesTotal = 0;
+    uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
+    for (auto clientStatus : m_clientStatus) {
+        if (offlineThreshold < clientStatus.second.getLastStatusUpdate() * 1000) {
+            onlineMiner++;
+        } else {
+            offlineMiner++;
+        }
+
+        hashrateMedium += clientStatus.second.getHashrateMedium();
+        hashrateLong += clientStatus.second.getHashrateLong();
+
+        sharesGood += clientStatus.second.getSharesGood();
+        sharesTotal += clientStatus.second.getSharesTotal();
+        avgTime += clientStatus.second.getAvgTime();
+    }
+
+    if (!m_clientStatus.empty()) {
+        avgTime = avgTime / m_clientStatus.size();
+    }
+
+    std::stringstream message;
+    message << "Miners: " << onlineMiner << " (Online), " << offlineMiner << " (Offline)\n"
+            << "Shares: " << sharesGood << " (Good), " << sharesTotal - sharesGood << " (Bad)\n"
+            << "Hashrates: " << hashrateMedium << "h/s (1min), " << hashrateLong << "h/s (15min)\n"
+            << "Avg. Time: " << avgTime << "s";
+
+    LOG_WARN("Send Server status push");
+    triggerPush(APP_NAME " Status", message.str());
+}
+
+void Service::triggerPush(const std::string& title, const std::string& message)
+{
+#ifndef XMRIG_NO_TLS
+    std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.pushover.net", 443);
+
+    httplib::Params params;
+    params.emplace("token", Options::i()->ccPushoverToken());
+    params.emplace("user", Options::i()->ccPushoverUser());
+    params.emplace("title", title);
+    params.emplace("message", httplib::detail::encode_url(message));
+
+    auto res = cli->Post("/1/messages.json", params);
+    if (res) {
+        LOG_WARN("Push response: %s", res->body.c_str());
+    }
+#endif
 }

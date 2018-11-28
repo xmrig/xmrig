@@ -36,6 +36,7 @@
         "worker-id": null,                      // custom worker-id for CC Server (otherwise hostname is used)
         "update-interval-s": 10,                // status update interval in seconds (default: 10 min: 1)
         "use-remote-logging" : true,            // enable remote logging on CC Server
-        "upload-config-on-startup" : true       // upload current miner config to CC Server on startup
+        "upload-config-on-startup" : true,      // upload current miner config to CC Server on startup
+        "reboot-cmd" : ""                       // command to execute to reboot the OS
     }
 }

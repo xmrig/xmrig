@@ -356,7 +356,7 @@ uint32_t ClientStatus::getAvgTime() const
     return m_avgTime;
 }
 
-std::time_t ClientStatus::getLastStatusUpdate() const
+uint64_t ClientStatus::getLastStatusUpdate() const
 {
     return m_lastStatusUpdate;
 }
@@ -516,7 +516,8 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
         }
 
         auto time_point = std::chrono::system_clock::now();
-        m_lastStatusUpdate = std::chrono::system_clock::to_time_t(time_point);
+        m_lastStatusUpdate = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point));
+
 
         result = true;
     }

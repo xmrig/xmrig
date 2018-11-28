@@ -59,9 +59,37 @@ static void print_commands()
     }
 }
 
+void Summary::print_pushinfo() {
+    if (Options::i()->ccPushoverToken() && Options::i()->ccPushoverUser())
+    {
+#ifndef XMRIG_NO_TLS
+        if (Options::i()->colors()) {
+            Log::i()->text("\x1B[01;32m * \x1B[01;37mPUSHSERVICE:  \x1B[01;32mEnabled");
+        }
+        else {
+            Log::i()->text(" * PUSHSERVICE:  Enabled");
+        }
+#else
+        if (Options::i()->colors()) {
+            Log::i()->text("\x1B[01;32m * \x1B[01;37mPUSHSERVICE:  \x1B[01;31mUnavailable requires TLS");
+        }
+        else {
+            Log::i()->text(" * PUSHSERVICE:  Unavailable requires TLS");
+        }
+#endif
+    } else {
+        if (Options::i()->colors()) {
+            Log::i()->text("\x1B[01;32m * \x1B[01;37mPUSHSERVICE:  \x1B[01;31mDisabled");
+        }
+        else {
+            Log::i()->text(" * PUSHSERVICE:  Disabled");
+        }
+    }
+}
 
 void Summary::print()
 {
     print_versions();
+    print_pushinfo();
     print_commands();
 }

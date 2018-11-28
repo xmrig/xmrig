@@ -148,7 +148,7 @@ public:
     void setAvgTime(uint32_t avgTime);
     uint32_t getAvgTime() const;
 
-    std::time_t getLastStatusUpdate() const;
+    uint64_t getLastStatusUpdate() const;
 
     void setUptime(uint64_t uptime);
     uint64_t getUptime() const;
@@ -203,8 +203,7 @@ private:
     uint64_t m_uptime;
 
     uint32_t m_avgTime;
-
-    std::time_t m_lastStatusUpdate;
+    uint64_t m_lastStatusUpdate;
 };
 
 #endif /* __CLIENT_STATUS_H__ */

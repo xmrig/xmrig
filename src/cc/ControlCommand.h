@@ -21,13 +21,14 @@
 #include <string>
 #include "rapidjson/document.h"
 
-static const char* command_str[6] = {
+static const char* command_str[7] = {
         "START",
         "STOP",
         "UPDATE_CONFIG",
         "PUBLISH_CONFIG",
         "RESTART",
-        "SHUTDOWN"
+        "SHUTDOWN",
+        "REBOOT"
 };
 
 class ControlCommand
@@ -39,7 +40,8 @@ public:
         UPDATE_CONFIG,
         PUBLISH_CONFIG,
         RESTART,
-        SHUTDOWN
+        SHUTDOWN,
+        REBOOT
     };
 
 public:

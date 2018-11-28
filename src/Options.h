@@ -75,6 +75,8 @@ public:
     inline bool ccUseTls() const                    { return m_ccUseTls; }
     inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
     inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
+    inline bool ccPushOfflineMiners() const         { return m_ccPushOfflineMiners; }
+    inline bool ccPushPeriodicStatus() const        { return m_ccPushPeriodicStatus; }
     inline const char *fileName() const             { return m_fileName; }
     inline const char *apiToken() const             { return m_apiToken; }
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
@@ -89,6 +91,9 @@ public:
     inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard == nullptr ? "index.html" : m_ccCustomDashboard; }
     inline const char *ccKeyFile() const            { return m_ccKeyFile == nullptr ? "server.key" : m_ccKeyFile; }
     inline const char *ccCertFile() const           { return m_ccCertFile == nullptr ? "server.pem" : m_ccCertFile; }
+    inline const char *ccRebootCmd() const          { return (m_ccRebootCmd != nullptr && strlen(m_ccRebootCmd) > 0) ? m_ccRebootCmd : nullptr; }
+    inline const char *ccPushoverUser() const       { return (m_ccPushoverUser != nullptr && strlen(m_ccPushoverUser) > 0) ? m_ccPushoverUser : nullptr; }
+    inline const char *ccPushoverToken() const      { return (m_ccPushoverToken != nullptr && strlen(m_ccPushoverToken) > 0) ? m_ccPushoverToken : nullptr; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
     inline PowVariant powVariant() const            { return m_powVariant; }
@@ -152,6 +157,8 @@ private:
     bool m_ccUseTls;
     bool m_ccUseRemoteLogging;
     bool m_ccUploadConfigOnStartup;
+    bool m_ccPushOfflineMiners;
+    bool m_ccPushPeriodicStatus;
     const char* m_fileName;
     char *m_apiToken;
     char *m_apiWorkerId;
@@ -166,6 +173,9 @@ private:
     char *m_ccCustomDashboard;
     char *m_ccKeyFile;
     char *m_ccCertFile;
+    char *m_ccRebootCmd;
+    char *m_ccPushoverUser;
+    char *m_ccPushoverToken;
     Algo m_algo;
     AlgoVariant m_algoVariant;
     AesNi m_aesni;

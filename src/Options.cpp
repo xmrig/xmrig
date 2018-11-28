@@ -99,7 +99,8 @@ Options:\n"
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
       --cc-use-remote-logging           enable remote logging on CC Server\n\
-      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n"
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n\
+      --cc-reboot-cmd                   command/bat to execute to Reboot miner\n"
 # endif
 # endif
 
@@ -114,6 +115,10 @@ Options:\n"
       --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
       --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)\n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
+      --cc-pushover-user-key            pushover user for push messages\n\
+      --cc-pushover-api-token           your user key for pushover notifications\n\
+      --cc-push-miner-offline-info      api token/keytoken of the application for pushover notifications\n\
+      --cc-push-periodic-mining-status  send periodic mining status push\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif
 "\
@@ -187,6 +192,11 @@ static struct option const options[] = {
     { "cc-use-remote-logging",          0, nullptr, 4017 },
     { "cc-client-log-lines-history",    1, nullptr, 4018 },
     { "cc-upload-config-on-startup",    0, nullptr, 4019 },
+    { "cc-reboot-cmd",       1, nullptr, 4021 },
+    { "cc-pushover-user-key",    1, nullptr, 4022 },
+    { "cc-pushover-api-token",   1, nullptr, 4023 },
+    { "cc-push-miner-offline-info",        0, nullptr, 4024 },
+    { "cc-push-periodic-mining-status",    0, nullptr, 4025 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",      1, nullptr, 4013 },
@@ -252,6 +262,7 @@ static struct option const cc_client_options[] = {
     { "use-tls",                0, nullptr, 4016 },
     { "use-remote-logging",     0, nullptr, 4017 },
     { "upload-config-on-startup",  0, nullptr, 4019 },
+    { "reboot-cmd",             1, nullptr, 4021 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -266,6 +277,10 @@ static struct option const cc_server_options[] = {
     { "key-file",               1, nullptr, 4015 },
     { "use-tls",                0, nullptr, 4016 },
     { "client-log-lines-history",   1, nullptr, 4018 },
+    { "pushover-user-key",          1, nullptr, 4022 },
+    { "pushover-api-token",         1, nullptr, 4023 },
+    { "push-miner-offline-info",        0, nullptr, 4024 },
+    { "push-periodic-mining-status",    0, nullptr, 4025 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -337,6 +352,8 @@ Options::Options(int argc, char **argv) :
     m_ccUseTls(false),
     m_ccUseRemoteLogging(true),
     m_ccUploadConfigOnStartup(true),
+    m_ccPushOfflineMiners(false),
+    m_ccPushPeriodicStatus(false),
     m_fileName(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -351,6 +368,9 @@ Options::Options(int argc, char **argv) :
     m_ccCustomDashboard(nullptr),
     m_ccKeyFile(nullptr),
     m_ccCertFile(nullptr),
+    m_ccRebootCmd(nullptr),
+    m_ccPushoverUser(nullptr),
+    m_ccPushoverToken(nullptr),
     m_algo(ALGO_CRYPTONIGHT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
@@ -609,6 +629,21 @@ bool Options::parseArg(int key, const char *arg)
     case 4020: /* --asm-optimization */
         return parseAsmOptimization(arg);
 
+    case 4021: /* --cc-reboot-cmd */
+        m_ccRebootCmd = strdup(arg);
+
+    case 4022: /* --cc-pushover-user-key */
+        m_ccPushoverUser = strdup(arg);
+
+    case 4023: /* --cc-pushover-api-token */
+        m_ccPushoverToken = strdup(arg);
+
+    case 4024: /* --cc-push-miner-offline-info */
+        return parseBoolean(key, false);
+
+    case 4025: /* --cc-push-periodic-mining-status */
+        return parseBoolean(key, false);
+
     case 't':  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
             m_threads = Cpu::threads();
@@ -847,6 +882,14 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 4019: /* --cc-upload-config-on-startup */
         m_ccUploadConfigOnStartup = enable;
+        break;
+
+    case 4024: /* --cc-push-miner-offline-info */
+        m_ccPushOfflineMiners = enable;
+        break;
+
+    case 4025: /* --cc-push-periodic-mining-status */
+        m_ccPushPeriodicStatus = enable;
         break;
 
     default:
@@ -1151,12 +1194,12 @@ void Options::optimizeAlgorithmConfiguration()
         m_aesni = aesniFromCpu;
     }
 
-    if (m_algo == Options::ALGO_CRYPTONIGHT_HEAVY && m_hashFactor > 3) {
-        fprintf(stderr, "Maximum supported hashfactor for cryptonight-heavy is: 3\n");
+    if ((m_algo == Options::ALGO_CRYPTONIGHT_HEAVY || m_powVariant ==  PowVariant::POW_XFH) && m_hashFactor > 3) {
+        fprintf(stderr, "Maximum supported hashfactor for cryptonight-heavy and XFH is: 3\n");
         m_hashFactor = 3;
     }
 
-    Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_maxCpuUsage, m_safe);
+    Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_powVariant, m_maxCpuUsage, m_safe);
 }
 
 bool Options::parseCCUrl(const char* url)

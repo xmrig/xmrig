@@ -53,10 +53,10 @@ CpuImpl::CpuImpl()
 }
 
 void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
-                                 Options::Algo algo, size_t maxCpuUsage, bool safeMode)
+                                 Options::Algo algo, PowVariant powVariant, size_t maxCpuUsage, bool safeMode)
 {
     // limits hashfactor to maximum possible value defined by compiler flag
-    hashFactor = std::min(hashFactor, algo == Options::ALGO_CRYPTONIGHT_HEAVY ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
+    hashFactor = std::min(hashFactor, (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
 
     if (!safeMode && threadsCount > 0 && hashFactor > 0)
     {
@@ -81,7 +81,7 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
 
     size_t maximumReasonableFactor = std::max(cache / algoBlockSize, static_cast<size_t>(1ul));
     size_t maximumReasonableThreadCount = std::min(maximumReasonableFactor, m_totalThreads);
-    size_t maximumReasonableHashFactor = std::min(maximumReasonableFactor, algo == Options::ALGO_CRYPTONIGHT_HEAVY ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
+    size_t maximumReasonableHashFactor = std::min(maximumReasonableFactor, (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
 
     if (safeMode) {
         if (threadsCount > maximumReasonableThreadCount) {
@@ -141,10 +141,10 @@ void Cpu::init()
     CpuImpl::instance().init();
 }
 
-void Cpu::optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo,
+void Cpu::optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo, PowVariant powVariant,
                                size_t maxCpuUsage, bool safeMode)
 {
-    CpuImpl::instance().optimizeParameters(threadsCount, hashFactor, algo, maxCpuUsage, safeMode);
+    CpuImpl::instance().optimizeParameters(threadsCount, hashFactor, algo, powVariant, maxCpuUsage, safeMode);
 }
 
 int Cpu::setThreadAffinity(size_t threadId, int64_t affinityMask)
