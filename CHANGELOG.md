@@ -1,3 +1,6 @@
+# 1.8.5
+- Add remote reboot (machine) feature to Dashboard, Server & Miner
+- Integrated Pushover push notifications for Offline miners and periodical status notifications on iOS and Android
 # 1.8.4
 - Added XFH (Freehaven-project) support aka CN-Heavy-superfast
 - Hashrate improve -> CN-Fast (MSR and others) ASM code for Intel CPUs
