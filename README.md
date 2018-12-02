@@ -119,6 +119,8 @@ Also you can use configuration via config file, default name **config.json**. So
 ### HUGE PAGES unavailable
 * Run XMRig as Administrator.
 * Since version 0.8.0 XMRig automatically enables SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+* Under Linux, follow this guide:
+[Hugepages - Debian Wiki](https://wiki.debian.org/Hugepages).
 
 ## Other information
 * No HTTP support, only stratum protocol support.
