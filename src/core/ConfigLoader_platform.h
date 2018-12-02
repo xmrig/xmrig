@@ -49,6 +49,10 @@ Options:\n\
 "\
                              cryptonight-lite\n"
 #endif
+#ifndef XMRIG_NO_UPLEXA
+"\
+                             cryptonight-upx\n"
+#endif
 #ifndef XMRIG_NO_SUMO
 "\
                              cryptonight-heavy\n"

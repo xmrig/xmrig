@@ -33,6 +33,7 @@ enum Algo {
     INVALID_ALGO = -1,
     CRYPTONIGHT,       /* CryptoNight (Monero) */
     CRYPTONIGHT_LITE,  /* CryptoNight-Lite (AEON) */
+    CRYPTONIGHT_UPX,  /* CryptoNight-UPX (uPlexa) */
     CRYPTONIGHT_HEAVY  /* CryptoNight-Heavy (RYO) */
 };
 

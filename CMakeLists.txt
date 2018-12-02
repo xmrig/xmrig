@@ -3,6 +3,7 @@ project(xmrig)
 
 option(WITH_LIBCPUID  "Use Libcpuid" ON)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
+option(WITH_UPLEXA    "CryptoNight-UPX support" ON)
 option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
@@ -206,6 +207,10 @@ endif()
 
 if (NOT WITH_AEON)
     add_definitions(/DXMRIG_NO_AEON)
+endif()
+
+if (NOT WITH_UPLEXA)
+    add_definitions(/DXMRIG_NO_UPLEXA)
 endif()
 
 if (NOT WITH_SUMO)

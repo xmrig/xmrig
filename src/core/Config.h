@@ -102,6 +102,9 @@ private:
     AlgoVariant getAlgoVariantLite() const;
 #   endif
 
+#   ifndef XMRIG_NO_UPLEXA
+    AlgoVariant getAlgoVariantUPX() const;
+#   endif
 
     struct Threads
     {

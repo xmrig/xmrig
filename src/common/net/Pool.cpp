@@ -355,6 +355,11 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
             valid = m_algorithm.algo() == CRYPTONIGHT_LITE;
             m_algorithm.setVariant(VARIANT_1);
         }
+        else if (m_host.contains("upx.pool")) {
+            valid = m_algorithm.algo() == CRYPTONIGHT_UPX;
+            m_algorithm.setVariant(VARIANT_1);
+        }
+
 
         if (!valid) {
             m_algorithm.setAlgo(INVALID_ALGO);
@@ -376,6 +381,9 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
         m_algorithm.setVariant(VARIANT_0);
     }
     else if (m_algorithm.algo() == CRYPTONIGHT_LITE) {
+        m_algorithm.setVariant(VARIANT_1);
+    }
+    else if (m_algorithm.algo() == CRYPTONIGHT_UPX) {
         m_algorithm.setVariant(VARIANT_1);
     }
 #   endif

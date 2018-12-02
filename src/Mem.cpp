@@ -45,6 +45,10 @@ MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
     info.size += info.size % cn_select_memory<CRYPTONIGHT>();
 #   endif
 
+#   ifndef XMRIG_NO_UPX
+    info.size += info.size % cn_select_memory<CRYPTONIGHT>();
+#   endif
+
     info.pages = info.size / cn_select_memory<CRYPTONIGHT>();
 
     allocate(info, m_enabled);
@@ -68,4 +72,3 @@ void Mem::release(cryptonight_ctx **ctx, size_t count, MemInfo &info)
         _mm_free(ctx[i]);
     }
 }
-

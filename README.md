@@ -38,6 +38,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * keepalived support.
 * Command line options compatible with cpuminer.
 * CryptoNight-Lite support for AEON.
+* Cryptonight-UPX Support for uPlexa
 * Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
 * Nicehash support
 * It's open source software.
@@ -55,6 +56,7 @@ Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or shar
   -a, --algo=ALGO          specify the algorithm to use
                              cryptonight
                              cryptonight-lite
+                             cryptonite-upx
                              cryptonight-heavy
   -o, --url=URL            URL of mining server
   -O, --userpass=U:P       username:password pair for mining server

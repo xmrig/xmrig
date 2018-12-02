@@ -70,6 +70,14 @@ bool MultiWorker<N>::selfTest()
     }
 #   endif
 
+#   ifndef XMRIG_NO_UPLEXA
+    if (m_thread->algorithm() == CRYPTONIGHT_UPX) {
+        //return verify(VARIANT_1,    test_output_v1_upx);
+        return TRUE;
+    }
+#   endif
+
+
 #   ifndef XMRIG_NO_SUMO
     if (m_thread->algorithm() == CRYPTONIGHT_HEAVY) {
         return verify(VARIANT_0,    test_output_v0_heavy)  &&

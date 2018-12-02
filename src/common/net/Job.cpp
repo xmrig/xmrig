@@ -237,6 +237,9 @@ xmrig::Variant Job::variant() const
     case CRYPTONIGHT_LITE:
         return VARIANT_1;
 
+    case CRYPTONIGHT_UPX:
+        return VARIANT_1;
+
     case CRYPTONIGHT_HEAVY:
         return VARIANT_0;
 

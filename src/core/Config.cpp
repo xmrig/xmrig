@@ -165,7 +165,7 @@ bool xmrig::Config::finalize()
         return true;
     }
 
-    const AlgoVariant av = getAlgoVariant();   
+    const AlgoVariant av = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
     const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
@@ -354,6 +354,12 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
     }
 #   endif
 
+#   ifndef XMRIG_NO_UPLEXA
+    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_UPX) {
+        return getAlgoVariantUPX();
+    }
+#   endif
+
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
         return Cpu::info()->hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
     }
@@ -368,6 +374,22 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 
 #ifndef XMRIG_NO_AEON
 xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
+{
+    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
+        return Cpu::info()->hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
+    }
+
+    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
+        return static_cast<AlgoVariant>(m_algoVariant + 2);
+    }
+
+    return m_algoVariant;
+}
+#endif
+
+
+#ifndef XMRIG_NO_UPLEXA
+xmrig::AlgoVariant xmrig::Config::getAlgoVariantUPX() const
 {
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
         return Cpu::info()->hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;

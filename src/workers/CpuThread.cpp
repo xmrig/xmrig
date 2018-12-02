@@ -64,9 +64,9 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
     assert(variant >= VARIANT_0 && variant < VARIANT_MAX);
 
 #   ifndef XMRIG_NO_ASM
-    constexpr const size_t count = VARIANT_MAX * 10 * 3 + 3;
+    constexpr const size_t count = VARIANT_MAX * 10 * 4 + 3;
 #   else
-    constexpr const size_t count = VARIANT_MAX * 10 * 3;
+    constexpr const size_t count = VARIANT_MAX * 10 * 4;
 #   endif
 
     static const cn_hash_fun func_table[count] = {
@@ -173,6 +173,50 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         cryptonight_triple_hash<CRYPTONIGHT_LITE, true,  VARIANT_1>,
         cryptonight_quad_hash<CRYPTONIGHT_LITE,   true,  VARIANT_1>,
         cryptonight_penta_hash<CRYPTONIGHT_LITE,  true,  VARIANT_1>,
+
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_TUBE
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_XTL
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_MSR
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_XHV
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_XAO
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RTO
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_2
+#       else
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+#       endif
+
+
+#       ifndef XMRIG_NO_UPLEXA
+        cryptonight_single_hash<CRYPTONIGHT_UPX, false, VARIANT_0>,
+        cryptonight_double_hash<CRYPTONIGHT_UPX, false, VARIANT_0>,
+        cryptonight_single_hash<CRYPTONIGHT_UPX, true,  VARIANT_0>,
+        cryptonight_double_hash<CRYPTONIGHT_UPX, true,  VARIANT_0>,
+        cryptonight_triple_hash<CRYPTONIGHT_UPX, false, VARIANT_0>,
+        cryptonight_quad_hash<CRYPTONIGHT_UPX,   false, VARIANT_0>,
+        cryptonight_penta_hash<CRYPTONIGHT_UPX,  false, VARIANT_0>,
+        cryptonight_triple_hash<CRYPTONIGHT_UPX, true,  VARIANT_0>,
+        cryptonight_quad_hash<CRYPTONIGHT_UPX,   true,  VARIANT_0>,
+        cryptonight_penta_hash<CRYPTONIGHT_UPX,  true,  VARIANT_0>,
+
+        cryptonight_single_hash<CRYPTONIGHT_UPX, false, VARIANT_1>,
+        cryptonight_double_hash<CRYPTONIGHT_UPX, false, VARIANT_1>,
+        cryptonight_single_hash<CRYPTONIGHT_UPX, true,  VARIANT_1>,
+        cryptonight_double_hash<CRYPTONIGHT_UPX, true,  VARIANT_1>,
+        cryptonight_triple_hash<CRYPTONIGHT_UPX, false, VARIANT_1>,
+        cryptonight_quad_hash<CRYPTONIGHT_UPX,   false, VARIANT_1>,
+        cryptonight_penta_hash<CRYPTONIGHT_UPX,  false, VARIANT_1>,
+        cryptonight_triple_hash<CRYPTONIGHT_UPX, true,  VARIANT_1>,
+        cryptonight_quad_hash<CRYPTONIGHT_UPX,   true,  VARIANT_1>,
+        cryptonight_penta_hash<CRYPTONIGHT_UPX,  true,  VARIANT_1>,
+
 
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_TUBE
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_XTL
