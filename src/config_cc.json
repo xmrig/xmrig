@@ -17,6 +17,9 @@
         // Pushnotification Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Pushover
         "pushover-user-key" : "",                   // your user key for pushover notifications
         "pushover-api-token" : "",                  // api token/keytoken of the application for pushover notifications
+        // Telegram Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Telegram
+        "telegram-bot-token" : "",                  // pushover token to use for push notifications
+        "telegram-chat-id" : "",                    // pushover token to use for push notifications
         "push-miner-offline-info" : true,           // push notification for offline miners
         "push-miner-zero-hash-info" : true,         // push notification when miner reports 0 hashrate
         "push-periodic-mining-status" : true        // push periodic status notification (every hour)
