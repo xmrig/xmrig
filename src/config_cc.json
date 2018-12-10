@@ -18,6 +18,7 @@
         "pushover-user-key" : "",                   // your user key for pushover notifications
         "pushover-api-token" : "",                  // api token/keytoken of the application for pushover notifications
         "push-miner-offline-info" : true,           // push notification for offline miners
+        "push-miner-zero-hash-info" : true,         // push notification when miner reports 0 hashrate
         "push-periodic-mining-status" : true        // push periodic status notification (every hour)
     }
 }

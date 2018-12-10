@@ -47,8 +47,10 @@ std::map<std::string, ControlCommand> Service::m_clientCommand;
 std::map<std::string, ClientStatus> Service::m_clientStatus;
 std::map<std::string, std::list<std::string>> Service::m_clientLog;
 
+std::list<std::string> Service::m_offlineNotified;
+std::list<std::string> Service::m_zeroHashNotified;
+
 uint64_t Service::m_currentServerTime = 0;
-uint64_t Service::m_lastOfflineCheckTime = 0;
 uint64_t Service::m_lastStatusUpdateTime = 0;
 
 bool Service::start()
@@ -56,7 +58,7 @@ bool Service::start()
     uv_mutex_init(&m_mutex);
 
 #ifndef XMRIG_NO_TLS
-    if (Options::i()->ccPushoverToken() && Options::i()->ccPushoverUser())
+    if (Options::i()->ccUsePushover() || Options::i()->ccUseTelegram())
     {
         uv_timer_init(uv_default_loop(), &m_timer);
         uv_timer_start(&m_timer, Service::onPushTimer,
@@ -447,7 +449,10 @@ void Service::onPushTimer(uv_timer_t* handle)
 
     if (Options::i()->ccPushOfflineMiners()) {
         sendMinerOfflinePush(now);
-        m_lastOfflineCheckTime = now;
+    }
+
+    if (Options::i()->ccPushZeroHashrateMiners()) {
+        sendMinerZeroHashratePush(now);
     }
 
     if (Options::i()->ccPushPeriodicStatus()) {
@@ -460,18 +465,63 @@ void Service::onPushTimer(uv_timer_t* handle)
 
 void Service::sendMinerOfflinePush(uint64_t now)
 {
+    uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
     for (auto clientStatus : m_clientStatus) {
         uint64_t lastStatus = clientStatus.second.getLastStatusUpdate() * 1000;
-        uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
 
         if (lastStatus < offlineThreshold) {
-            offlineThreshold = now - (OFFLINE_TRESHOLD_IN_MS + (now - m_lastOfflineCheckTime));
-            if (lastStatus > offlineThreshold) {
+            if (std::find(m_offlineNotified.begin(), m_offlineNotified.end(), clientStatus.first) == m_offlineNotified.end()) {
                 std::stringstream message;
                 message << "Miner: " << clientStatus.first << " just went offline!";
 
-                LOG_WARN("Send miner went offline push", clientStatus.first.c_str());
-                triggerPush(APP_NAME " Offline Monitor", message.str());
+                LOG_WARN("Send miner %s went offline push", clientStatus.first.c_str());
+                triggerPush(APP_NAME " Onlinestatus Monitor", message.str());
+
+                m_offlineNotified.push_back(clientStatus.first);
+            }
+        } else {
+            if (std::find(m_offlineNotified.begin(), m_offlineNotified.end(), clientStatus.first) != m_offlineNotified.end()) {
+                std::stringstream message;
+                message << "Miner: " << clientStatus.first << " is back online!";
+
+                LOG_WARN("Send miner %s back online push", clientStatus.first.c_str());
+                triggerPush(APP_NAME " Onlinestatus Monitor", message.str());
+
+                m_offlineNotified.remove(clientStatus.first);
+            }
+        }
+    }
+}
+
+void Service::sendMinerZeroHashratePush(uint64_t now)
+{
+    uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
+    for (auto clientStatus : m_clientStatus) {
+        if (offlineThreshold < clientStatus.second.getLastStatusUpdate() * 1000) {
+            if (clientStatus.second.getHashrateShort() == 0 && clientStatus.second.getHashrateMedium() == 0) {
+                if (std::find(m_zeroHashNotified.begin(), m_zeroHashNotified.end(), clientStatus.first) == m_zeroHashNotified.end()) {
+                    std::stringstream message;
+                    message << "Miner: " << clientStatus.first << " reported 0 h/s for the last minute!";
+
+                    LOG_WARN("Send miner %s 0 hashrate push", clientStatus.first.c_str());
+                    triggerPush(APP_NAME " Hashrate Monitor", message.str());
+
+                    m_zeroHashNotified.push_back(clientStatus.first);
+                }
+            } else if (clientStatus.second.getHashrateMedium() > 0) {
+                if (std::find(m_zeroHashNotified.begin(), m_zeroHashNotified.end(), clientStatus.first) != m_zeroHashNotified.end()) {
+                    std::stringstream message;
+                    message << "Miner: " << clientStatus.first << " hashrate recovered. Reported "
+                            << clientStatus.second.getHashrateMedium()
+                            << " h/s for the last minute!";
+
+                    LOG_WARN("Send miner %s hashrate recovered push", clientStatus.first.c_str());
+                    triggerPush(APP_NAME " Hashrate Monitor", message.str());
+
+                    m_zeroHashNotified.remove(clientStatus.first);
+                }
             }
         }
     }
@@ -493,16 +543,16 @@ void Service::sendServerStatusPush(uint64_t now)
     for (auto clientStatus : m_clientStatus) {
         if (offlineThreshold < clientStatus.second.getLastStatusUpdate() * 1000) {
             onlineMiner++;
+
+            hashrateMedium += clientStatus.second.getHashrateMedium();
+            hashrateLong += clientStatus.second.getHashrateLong();
+
+            sharesGood += clientStatus.second.getSharesGood();
+            sharesTotal += clientStatus.second.getSharesTotal();
+            avgTime += clientStatus.second.getAvgTime();
         } else {
             offlineMiner++;
         }
-
-        hashrateMedium += clientStatus.second.getHashrateMedium();
-        hashrateLong += clientStatus.second.getHashrateLong();
-
-        sharesGood += clientStatus.second.getSharesGood();
-        sharesTotal += clientStatus.second.getSharesTotal();
-        avgTime += clientStatus.second.getAvgTime();
     }
 
     if (!m_clientStatus.empty()) {
@@ -521,7 +571,17 @@ void Service::sendServerStatusPush(uint64_t now)
 
 void Service::triggerPush(const std::string& title, const std::string& message)
 {
-#ifndef XMRIG_NO_TLS
+    if (Options::i()->ccUsePushover()) {
+        sendViaPushover(title, message);
+    }
+
+    if (Options::i()->ccUseTelegram()) {
+        sendViaTelegram(title, message);
+    }
+}
+
+void Service::sendViaPushover(const std::string &title, const std::string &message)
+{
     std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.pushover.net", 443);
 
     httplib::Params params;
@@ -532,7 +592,24 @@ void Service::triggerPush(const std::string& title, const std::string& message)
 
     auto res = cli->Post("/1/messages.json", params);
     if (res) {
-        LOG_WARN("Push response: %s", res->body.c_str());
+        LOG_WARN("Pushover response: %s", res->body.c_str());
     }
-#endif
+}
+
+void Service::sendViaTelegram(const std::string &title, const std::string &message)
+{
+    std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.telegram.org", 443);
+
+    std::string text = "<b>" + title + "</b>\n\n" + message;
+    std::string path = std::string("/bot") + Options::i()->ccTelegramBotToken() + std::string("/sendMessage");
+
+    httplib::Params params;
+    params.emplace("chat_id", Options::i()->ccTelegramChatId());
+    params.emplace("text", httplib::detail::encode_url(text));
+    params.emplace("parse_mode", "HTML");
+
+    auto res = cli->Post(path.c_str(), params);
+    if (res) {
+        LOG_WARN("Telegram response: %s", res->body.c_str());
+    }
 }

@@ -77,6 +77,9 @@ public:
     inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
     inline bool ccPushOfflineMiners() const         { return m_ccPushOfflineMiners; }
     inline bool ccPushPeriodicStatus() const        { return m_ccPushPeriodicStatus; }
+    inline bool ccPushZeroHashrateMiners() const    { return m_ccPushZeroHashrateMiners; }
+    inline bool ccUsePushover() const               { return ccPushoverUser() && ccPushoverToken(); }
+    inline bool ccUseTelegram() const               { return ccTelegramBotToken() && ccTelegramChatId(); }
     inline const char *fileName() const             { return m_fileName; }
     inline const char *apiToken() const             { return m_apiToken; }
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
@@ -94,6 +97,8 @@ public:
     inline const char *ccRebootCmd() const          { return (m_ccRebootCmd != nullptr && strlen(m_ccRebootCmd) > 0) ? m_ccRebootCmd : nullptr; }
     inline const char *ccPushoverUser() const       { return (m_ccPushoverUser != nullptr && strlen(m_ccPushoverUser) > 0) ? m_ccPushoverUser : nullptr; }
     inline const char *ccPushoverToken() const      { return (m_ccPushoverToken != nullptr && strlen(m_ccPushoverToken) > 0) ? m_ccPushoverToken : nullptr; }
+    inline const char *ccTelegramBotToken() const   { return (m_ccTelegramBotToken != nullptr && strlen(m_ccTelegramBotToken) > 0) ? m_ccTelegramBotToken : nullptr; }
+    inline const char *ccTelegramChatId() const     { return (m_ccTelegramChatId != nullptr && strlen(m_ccTelegramChatId) > 0) ? m_ccTelegramChatId : nullptr; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
     inline PowVariant powVariant() const            { return m_powVariant; }
@@ -159,6 +164,7 @@ private:
     bool m_ccUploadConfigOnStartup;
     bool m_ccPushOfflineMiners;
     bool m_ccPushPeriodicStatus;
+    bool m_ccPushZeroHashrateMiners;
     const char* m_fileName;
     char *m_apiToken;
     char *m_apiWorkerId;
@@ -176,6 +182,8 @@ private:
     char *m_ccRebootCmd;
     char *m_ccPushoverUser;
     char *m_ccPushoverToken;
+    char *m_ccTelegramBotToken;
+    char *m_ccTelegramChatId;
     Algo m_algo;
     AlgoVariant m_algoVariant;
     AesNi m_aesni;

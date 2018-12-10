@@ -115,10 +115,13 @@ Options:\n"
       --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
       --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)\n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
-      --cc-pushover-user-key            pushover user for push messages\n\
-      --cc-pushover-api-token           your user key for pushover notifications\n\
-      --cc-push-miner-offline-info      api token/keytoken of the application for pushover notifications\n\
-      --cc-push-periodic-mining-status  send periodic mining status push\n\
+      --cc-pushover-user-key            your user key for pushover notifications\n\
+      --cc-pushover-api-token           api token/keytoken of the application for pushover notifications\n\
+      --cc-telegram-bot-token           your bot token for telegram notifications\n\
+      --cc-telegram-chat-id             your chat-id for telegram notifications\n\
+      --cc-push-miner-offline-info      push notification for offline miners and recover push\n\
+      --cc-push-miner-zero-hash-info    push notification when miner reports 0 hashrate and recover push\n\
+      --cc-push-periodic-mining-status  push periodic status notification (every hour)\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif
 "\
@@ -195,8 +198,11 @@ static struct option const options[] = {
     { "cc-reboot-cmd",       1, nullptr, 4021 },
     { "cc-pushover-user-key",    1, nullptr, 4022 },
     { "cc-pushover-api-token",   1, nullptr, 4023 },
+    { "cc-telegram-bot-token",   1, nullptr, 4027 },
+    { "cc-telegram-chat-id",     1, nullptr, 4028 },
     { "cc-push-miner-offline-info",        0, nullptr, 4024 },
     { "cc-push-periodic-mining-status",    0, nullptr, 4025 },
+    { "cc-push-miner-zero-hash-info",      0, nullptr, 4026 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",      1, nullptr, 4013 },
@@ -279,7 +285,10 @@ static struct option const cc_server_options[] = {
     { "client-log-lines-history",   1, nullptr, 4018 },
     { "pushover-user-key",          1, nullptr, 4022 },
     { "pushover-api-token",         1, nullptr, 4023 },
+    { "telegram-bot-token",         1, nullptr, 4027 },
+    { "telegram-chat-id",           1, nullptr, 4028 },
     { "push-miner-offline-info",        0, nullptr, 4024 },
+    { "push-miner-zero-hash-info",      0, nullptr, 4026 },
     { "push-periodic-mining-status",    0, nullptr, 4025 },
     { nullptr, 0, nullptr, 0 }
 };
@@ -354,6 +363,7 @@ Options::Options(int argc, char **argv) :
     m_ccUploadConfigOnStartup(true),
     m_ccPushOfflineMiners(false),
     m_ccPushPeriodicStatus(false),
+    m_ccPushZeroHashrateMiners(false),
     m_fileName(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -371,6 +381,8 @@ Options::Options(int argc, char **argv) :
     m_ccRebootCmd(nullptr),
     m_ccPushoverUser(nullptr),
     m_ccPushoverToken(nullptr),
+    m_ccTelegramBotToken(nullptr),
+    m_ccTelegramChatId(nullptr),
     m_algo(ALGO_CRYPTONIGHT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
@@ -572,12 +584,12 @@ bool Options::parseArg(int key, const char *arg)
 
     case 4014: /* --cc-cert-file */
         free(m_ccCertFile);
-            m_ccCertFile = strdup(arg);
+        m_ccCertFile = strdup(arg);
         break;
 
     case 4015: /* --cc-key-file */
         free(m_ccKeyFile);
-            m_ccKeyFile = strdup(arg);
+        m_ccKeyFile = strdup(arg);
         break;
 
     case 4011: /* --daemonized */
@@ -630,18 +642,37 @@ bool Options::parseArg(int key, const char *arg)
         return parseAsmOptimization(arg);
 
     case 4021: /* --cc-reboot-cmd */
+        free(m_ccRebootCmd);
         m_ccRebootCmd = strdup(arg);
+        break;
 
     case 4022: /* --cc-pushover-user-key */
+        free(m_ccPushoverUser);
         m_ccPushoverUser = strdup(arg);
+        break;
 
     case 4023: /* --cc-pushover-api-token */
+        free(m_ccPushoverToken);
         m_ccPushoverToken = strdup(arg);
+        break;
+
+    case 4027: /* --cc-telegram-bot-token */
+        free(m_ccTelegramBotToken);
+        m_ccTelegramBotToken = strdup(arg);
+        break;
+
+    case 4028: /* --cc-telegram-chat-id */
+        free(m_ccTelegramChatId);
+        m_ccTelegramChatId = strdup(arg);
+        break;
 
     case 4024: /* --cc-push-miner-offline-info */
         return parseBoolean(key, false);
 
     case 4025: /* --cc-push-periodic-mining-status */
+        return parseBoolean(key, false);
+
+    case 4026: /* --cc-push-miner-zero-hash-info */
         return parseBoolean(key, false);
 
     case 't':  /* --threads */
@@ -886,6 +917,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 4024: /* --cc-push-miner-offline-info */
         m_ccPushOfflineMiners = enable;
+        break;
+
+    case 4026: /* --cc-push-miner-zero-hash-info */
+        m_ccPushZeroHashrateMiners = enable;
         break;
 
     case 4025: /* --cc-push-periodic-mining-status */

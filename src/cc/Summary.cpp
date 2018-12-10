@@ -60,14 +60,20 @@ static void print_commands()
 }
 
 void Summary::print_pushinfo() {
-    if (Options::i()->ccPushoverToken() && Options::i()->ccPushoverUser())
+    if (Options::i()->ccUsePushover() || Options::i()->ccUseTelegram())
     {
 #ifndef XMRIG_NO_TLS
         if (Options::i()->colors()) {
-            Log::i()->text("\x1B[01;32m * \x1B[01;37mPUSHSERVICE:  \x1B[01;32mEnabled");
+            Log::i()->text("\x1B[01;32m * \x1B[01;37mPUSHSERVICE:  \x1B[01;32m%s%s%s",
+                Options::i()->ccUsePushover() ? "Pushover" : "",
+                Options::i()->ccUsePushover() && Options::i()->ccUseTelegram() ? ", " : "",
+                Options::i()->ccUseTelegram() ? "Telegram" : "");
         }
         else {
-            Log::i()->text(" * PUSHSERVICE:  Enabled");
+            Log::i()->text(" * PUSHSERVICE:  %s%s%s",
+                Options::i()->ccUsePushover() ? "Pushover" : "",
+                Options::i()->ccUsePushover() && Options::i()->ccUseTelegram() ? ", " : "",
+                Options::i()->ccUseTelegram() ? "Telegram" : "");
         }
 #else
         if (Options::i()->colors()) {

@@ -68,19 +68,26 @@ private:
     static void onPushTimer(uv_timer_t* handle);
     static void sendServerStatusPush(uint64_t now);
     static void sendMinerOfflinePush(uint64_t now);
+    static void sendMinerZeroHashratePush(uint64_t now);
     static void triggerPush(const std::string& title, const std::string& message);
 
 private:
     static uint64_t m_currentServerTime;
-    static uint64_t m_lastOfflineCheckTime;
     static uint64_t m_lastStatusUpdateTime;
 
     static std::map<std::string, ClientStatus> m_clientStatus;
     static std::map<std::string, ControlCommand> m_clientCommand;
     static std::map<std::string, std::list<std::string>> m_clientLog;
 
+    static std::list<std::string> m_offlineNotified;
+    static std::list<std::string> m_zeroHashNotified;
+
     static uv_mutex_t m_mutex;
     static uv_timer_t m_timer;
+
+    static void sendViaPushover(const std::string &title, const std::string &message);
+
+    static void sendViaTelegram(const std::string &title, const std::string &message);
 };
 
 #endif /* __SERVICE_H__ */

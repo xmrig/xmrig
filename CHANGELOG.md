@@ -1,3 +1,8 @@
+# 1.8.6
+- Integrated Telegram push notifications
+- Fixed multi miner editor
+- Added miner offline/online status push notification
+- Added 0/recovered hashrate push notification
 # 1.8.5
 - Add remote reboot (machine) feature to Dashboard, Server & Miner
 - Integrated Pushover push notifications for Offline miners and periodical status notifications on iOS and Android
