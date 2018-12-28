@@ -28,7 +28,7 @@
 #include <fstream>
 #include <iostream>
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef WIN32
 #include "win_dirent.h"
 #endif
 
