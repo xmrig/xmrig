@@ -8,7 +8,8 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.0/css/buttons.bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.5/css/select.dataTables.min.css">
-<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.2/css/bootstrap-select.min.css">
+<link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
 
 <link rel="shortcut icon" href="https://root.graef.in:8443/static/xmrigcc/favicon.ico">
 
@@ -49,8 +50,11 @@
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.4/js/dataTables.select.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.1/jquery.timeago.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.2/js/bootstrap-select.min.js"></script>
+
 <script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
 
 <script type="text/javascript">
@@ -232,11 +236,72 @@
                     }
                 },
                 {
-                    text: '<i class="fa fa-edit"> Multi miner editor</i>',
-                    className: 'btn-primary',
+                    text: '<i class="fa fa-table"> Assign template</i>',
+                    className: 'btn-info',
                     enabled: false,
                     action: function () {
-                        $('#multiMinerEditor').modal('show');
+                        $.ajax({
+                            type:    "GET",
+                            url:     "/admin/getClientConfigTemplates",
+                            dataType:"json",
+                            success: function(data) {
+                                var htmlContent = "";
+
+                                var arrayLength = data["templates"].length;
+                                for (var i = 0; i < arrayLength; i++) {
+                                    htmlContent += "<option>" + data["templates"][i] + "</option>";
+                                }
+
+                                if (arrayLength > 0 ) {
+                                    $('#assignTemplate').prop('disabled', false);
+
+                                    $('#assignTemplateSelector').html(htmlContent);
+                                    $('#assignTemplateSelector').selectpicker('refresh');
+                                } else {
+                                    $('#assignTemplate').prop('disabled', true);
+                                }
+
+                                $('#assignTemplateEditor').modal('show');
+                            },
+                            error: function (data) {
+                                setError('<strong>Unable to fetch templates</strong> - Please make they exist!');
+                            }
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-edit"> Template Editor</i>',
+                    className: 'btn-primary',
+                    enabled: true,
+                    action: function () {
+                        $.ajax({
+                            type:    "GET",
+                            url:     "/admin/getClientConfigTemplates",
+                            dataType:"json",
+                            success: function(data) {
+                                var htmlContent = "";
+
+                                var arrayLength = data["templates"].length;
+                                for (var i = 0; i < arrayLength; i++) {
+                                    htmlContent += "<option>" + data["templates"][i] + "</option>";
+                                }
+
+                                if (arrayLength > 0 ) {
+                                    $('#templateEditorSave').prop('disabled', false);
+
+                                    $('#templateSelector').html(htmlContent);
+                                    $('#templateSelector').selectpicker('refresh');
+                                    $('#templateSelector').trigger('change');
+                                } else {
+                                    $('#templateEditorSave').prop('disabled', true);
+                                }
+
+                                $('#templateEditor').modal('show');
+                            },
+                            error: function (data) {
+                                setError('<strong>Unable to fetch templates</strong> - Please make they exist!');
+                            }
+                        });
                     }
                 }
             ],
@@ -365,6 +430,7 @@
             table.button(5).enable(selectedRows > 0);
             table.button(6).enable(selectedRows > 0);
             table.button(7).enable(selectedRows > 0);
+            table.button(8).enable(selectedRows > 0);
         });
 
         table.on('deselect', function () {
@@ -378,6 +444,7 @@
             table.button(5).enable(selectedRows > 0);
             table.button(6).enable(selectedRows > 0);
             table.button(7).enable(selectedRows > 0);
+            table.button(8).enable(selectedRows > 0);
         });
 
         table.buttons().container().appendTo('#clientStatusList_wrapper .col-sm-6:eq(0)');
@@ -420,6 +487,26 @@
             var clientConfig = $('#config').val();
 
             setClientConfig(clientId, clientConfig);
+        });
+
+        $('#templateEditorSave').click(function(event) {
+            var templateId = $('#templateSelector').val();
+            var template = $('#template').val();
+
+            setTemplateConfig(templateId, template);
+        });
+
+        $('#templateEditorSaveAsDialog').click(function(event) {
+            $('#templateDialogSaveAs').modal('show');
+        });
+
+        $('#templateEditorSaveAs').click(function(event) {
+            var templateId = $('#templateName').val();
+            var template = $('#template').val();
+
+            setTemplateConfig(templateId, template);
+
+            $('#templateEditor').modal('hide');
         });
 
         $('#clientStatusList tbody').on( 'click', 'button#LOG', function () {
@@ -467,29 +554,41 @@
             });
         });
 
-        $('#multiMinerEditorReplace').click(function(event) {
-            table.rows({ selected: true }).eq(0).each(function (index) {
-                var row = table.row(index);
-                var data = row.data();
+        $('#templateSelector').on('changed.bs.select', function (e, clickedIndex, newValue, oldValue) {
+            var selected = $(e.currentTarget).val();
+            $.ajax({
+                type: "GET",
+                url: "/admin/getClientConfig?clientId=template_" + selected,
+                dataType: "json",
+                success: function (jsonClientConfig) {
+                    $('#template').val(JSON.stringify(jsonClientConfig, undefined, 2));
+                },
+                error: function (data) {
+                    setError('<strong>Unable to fetch template ' + selected + '</strong> - Please make sure it readable!');
+                }
+            });
+        });
 
-                var clientId = data['client_status']['client_id'];
-                var search = $('#search').val();
-                var replacement = $('#replacement').val();
+        $('#assignTemplate').click(function(event) {
+            var template = $('#assignTemplateSelector').val();
+            $.ajax({
+                type:    "GET",
+                url:     "/admin/getClientConfig?clientId=template_" + template,
+                dataType:"json",
+                success: function(jsonClientConfig) {
+                    table.rows({ selected: true }).eq(0).each(function (index) {
+                        var row = table.row(index);
+                        var data = row.data();
+                        var clientId = data['client_status']['client_id'];
 
-                $.ajax({
-                    type:    "GET",
-                    url:     "/admin/getClientConfig?clientId=" + clientId,
-                    dataType:"json",
-                    success: function(jsonClientConfig) {
-                        jsonClientConfig = JSON.stringify(jsonClientConfig,undefined, 2);
-                        jsonClientConfig = jsonClientConfig.replace(new RegExp(search.trim(), 'g'), replacement.trim()).trim();
+                        jsonClientConfig['cc-client']['worker-id'] = clientId
 
-                        setClientConfig(clientId, jsonClientConfig);
-                    },
-                    error: function (data) {
-                        setError('<strong>Unable to fetch ' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
-                    }
-                });
+                        setClientConfig(clientId, JSON.stringify(jsonClientConfig,undefined, 2));
+                    });
+                },
+                error: function (data) {
+                    setError('<strong>Unable to fetch template ' + template + '</strong> - Please make sure it readable!');
+                }
             });
         });
 
@@ -685,6 +784,21 @@
             }
         });
     }
+
+    function setTemplateConfig(templateId, templateConfig) {
+        $.ajax({
+            url: "/admin/setClientConfig?clientId=template_" + templateId,
+            type: 'POST',
+            dataType: "text",
+            data: templateConfig,
+            success: function(data){
+                setSuccess('<strong>Successfully stored template: ' + templateId + '</strong> - You need to assign it to miners to apply.');
+            },
+            error: function (data) {
+                setError('<strong>Failed to store template: ' + templateId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
+            }
+        });
+    }
 </script>
 
 </head>
@@ -790,32 +904,67 @@
         </div>
     </div>
 
-    <div class="modal fade" id="multiMinerEditor" role="dialog">
+    <div class="modal fade" id="templateEditor" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Multi miner editor</h4>
+                    <h4 class="modal-title">Template Editor</h4>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-danger fade in">
-                        <strong>Warning!</strong> - If you don't know what you are doing, [Cancel].
-                    </div>
-                    <h5 class="modal-title">
-                        This will search for <strong>"x"</strong> and replace with <strong>"y"</strong> in all selected miners config<br/><br/>
-                        <div class="alert alert-info fade in">
-                            <strong>If you accidentally pressed [Replace], no worries just PULL again all miner configs. Don't PUSH it!</strong>
-                        </div>
-                    </h5>
-                    <div class='form-group'>
-                        <label for='search'>Search for:</label>
-                        <textarea class='form-control' rows='2' cols="1" id='search'></textarea>
-                        <label for='replacement'>Replace with:</label>
-                        <textarea class='form-control' rows='2' id='replacement'></textarea>
+                    <div class="form-group">
+                        <label for="templateSelector">Template:</label>
+                        <select class="selectpicker form-control" id="templateSelector"></select>
+                        <br/>
+                        <br/>
+                        <textarea class="form-control" rows='20' id="template"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="multiMinerEditorReplace" type="button" class="btn btn-success" data-dismiss="modal">Replace</button>
+                    <button id="templateEditorSave" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+                    <button id="templateEditorSaveAsDialog" type="button" class="btn btn-primary">Save As...</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="templateDialogSaveAs" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Save As...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="templateName">Template name:</label>
+                        <input type="text" class="form-control" id="templateName"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="templateEditorSaveAs" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="assignTemplateEditor" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Assign template</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="assignTemplateSelector">Template:</label>
+                        <select class="selectpicker form-control" id="assignTemplateSelector"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="assignTemplate" type="button" class="btn btn-success" data-dismiss="modal">Assign</button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
                 </div>
             </div>

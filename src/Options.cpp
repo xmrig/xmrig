@@ -180,6 +180,7 @@ static struct option const options[] = {
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
+    { "reboot-cmd",       1, nullptr, 4021 },
     { "cc-url",           1, nullptr, 4003 },
     { "cc-access-token",  1, nullptr, 4004 },
     { "cc-worker-id",     1, nullptr, 4005 },
@@ -236,6 +237,7 @@ static struct option const config_options[] = {
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
     { "asm-optimization", 1, nullptr, 4020 },
+    { "reboot-cmd",       1, nullptr, 4021 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -641,7 +643,7 @@ bool Options::parseArg(int key, const char *arg)
     case 4020: /* --asm-optimization */
         return parseAsmOptimization(arg);
 
-    case 4021: /* --cc-reboot-cmd */
+    case 4021: /* --cc-reboot-cmd || --reboot-cmd */
         free(m_ccRebootCmd);
         m_ccRebootCmd = strdup(arg);
         break;

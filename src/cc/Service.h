@@ -54,6 +54,7 @@ private:
     static unsigned getClientCommand(const std::string& clientId, std::string& resp);
     static unsigned getClientLog(const std::string& clientId, std::string& resp);
     static unsigned getClientStatusList(std::string& resp);
+    static unsigned getClientConfigTemplates(const Options* options, std::string& resp);
     static unsigned getAdminPage(const Options* options, std::string& resp);
 
     static unsigned setClientStatus(const Options* options, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);

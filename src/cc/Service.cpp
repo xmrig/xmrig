@@ -28,6 +28,11 @@
 #include <fstream>
 #include <iostream>
 
+
+#if defined(_MSC_VER)
+#include "win_dirent.h"
+#endif
+
 #include "log/Log.h"
 #include <3rdparty/cpp-httplib/httplib.h>
 #include <3rdparty/rapidjson/document.h>
@@ -102,6 +107,8 @@ unsigned Service::handleGET(const Options* options, const std::string& url, cons
         resultCode = getAdminPage(options, resp);
     } else if (url.rfind("/admin/getClientStatusList", 0) == 0) {
         resultCode = getClientStatusList(resp);
+    } else if (url.rfind("/admin/getClientConfigTemplates", 0) == 0) {
+        resultCode = getClientConfigTemplates(options, resp);
     } else {
         if (!clientId.empty()) {
             if (url.rfind("/client/getConfig", 0) == 0 || url.rfind("/admin/getClientConfig", 0) == 0) {
@@ -269,7 +276,7 @@ unsigned Service::getClientStatusList(std::string& resp)
 
 unsigned Service::setClientStatus(const Options* options, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp)
 {
-    int resultCode = MHD_HTTP_BAD_REQUEST;
+    unsigned resultCode = MHD_HTTP_BAD_REQUEST;
 
     rapidjson::Document document;
     if (!document.Parse(data.c_str()).HasParseError()) {
@@ -343,6 +350,65 @@ unsigned Service::getClientLog(const std::string& clientId, std::string& resp)
 
         resp = buffer.GetString();
     }
+
+    return MHD_HTTP_OK;
+}
+
+unsigned Service::getClientConfigTemplates(const Options* options, std::string& resp)
+{
+    std::string configFolder(".");
+
+    if (options->ccClientConfigFolder() != nullptr) {
+        configFolder = options->ccClientConfigFolder();
+#       ifdef WIN32
+        configFolder += '\\';
+#       else
+        configFolder += '/';
+#       endif
+    }
+
+    std::vector<std::string> templateFiles;
+
+    DIR* dirp = opendir(configFolder.c_str());
+    if (dirp) {
+        struct dirent* entry;
+        while ((entry = readdir(dirp)) != NULL) {
+            if (entry->d_type == DT_REG) {
+                std::string filename = entry->d_name;
+                std::string starting = "template_";
+                std::string ending = "_config.json";
+
+                if (filename.rfind(starting, 0) == 0 && filename.find(ending, (filename.length() - ending.length())) != std::string::npos) {
+                    filename.erase(0, starting.length());
+                    filename.erase(filename.length()-ending.length());
+
+                    templateFiles.push_back(filename);
+                }
+            }
+        }
+
+        closedir(dirp);
+    }
+
+    rapidjson::Document respDocument;
+    respDocument.SetObject();
+
+    auto& allocator = respDocument.GetAllocator();
+
+    rapidjson::Value templateList(rapidjson::kArrayType);
+    for (auto& templateFile : templateFiles) {
+        rapidjson::Value templateEntry(templateFile.c_str(), allocator);
+        templateList.PushBack(templateEntry, allocator);
+    }
+
+    respDocument.AddMember("templates", templateList, allocator);
+
+    rapidjson::StringBuffer buffer(0, 4096);
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    writer.SetMaxDecimalPlaces(10);
+    respDocument.Accept(writer);
+
+    resp = buffer.GetString();
 
     return MHD_HTTP_OK;
 }
