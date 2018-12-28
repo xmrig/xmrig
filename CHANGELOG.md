@@ -1,3 +1,5 @@
+# 1.8.7
+- Implemented Template based mass config editor to simple swap configs on your rigs
 # 1.8.6
 - Integrated Telegram push notifications
 - Fixed multi miner editor
