@@ -28,8 +28,7 @@
 #include <fstream>
 #include <iostream>
 
-
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(WIN32)
 #include "win_dirent.h"
 #endif
 
