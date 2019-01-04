@@ -9,7 +9,7 @@ PUBLIC cnv2_double_mainloop_sandybridge_asm
 PUBLIC cn_fastv2_mainloop_ivybridge_asm
 PUBLIC cn_fastv2_mainloop_ryzen_asm
 PUBLIC cn_fastv2_mainloop_bulldozer_asm
-PUBLIC cn_fastv2double_mainloop_sandybridge_asm
+PUBLIC cn_fastv2_double_mainloop_sandybridge_asm
 PUBLIC cn_liteupx_mainloop_sandybridge_asm
 
 PUBLIC cnv1_mainloop_soft_aes_sandybridge_asm
@@ -80,10 +80,10 @@ cn_fastv2_mainloop_bulldozer_asm PROC
 cn_fastv2_mainloop_bulldozer_asm ENDP
 
 ALIGN 64
-cn_fastv2double_mainloop_sandybridge_asm PROC
-	INCLUDE cn_fastv2double_main_loop_sandybridge.inc
+cn_fastv2_double_mainloop_sandybridge_asm PROC
+	INCLUDE cn_fastv2_double_main_loop_sandybridge.inc
 	ret 0
-cn_fastv2double_mainloop_sandybridge_asm ENDP
+cn_fastv2_double_mainloop_sandybridge_asm ENDP
 
 ALIGN 64
 cn_liteupx_mainloop_sandybridge_asm PROC
