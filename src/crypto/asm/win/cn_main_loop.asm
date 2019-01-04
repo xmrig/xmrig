@@ -121,11 +121,11 @@ cn_fastv2_mainloop_soft_aes_sandybridge_asm PROC
 	ret 0
 cn_fastv2_mainloop_soft_aes_sandybridge_asm ENDP
 
-_TEXT_CN_MAINLOOP ENDS
-END
-
 ALIGN 64
 cn_liteupx_mainloop_soft_aes_sandybridge_asm PROC
 	INCLUDE cn_liteupx_mainloop_soft_aes_sandybridge.inc
 	ret 0
 cn_liteupx_mainloop_soft_aes_sandybridge_asm ENDP
+
+_TEXT_CN_MAINLOOP ENDS
+END
