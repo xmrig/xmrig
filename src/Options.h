@@ -80,6 +80,7 @@ public:
     inline bool ccPushZeroHashrateMiners() const    { return m_ccPushZeroHashrateMiners; }
     inline bool ccUsePushover() const               { return ccPushoverUser() && ccPushoverToken(); }
     inline bool ccUseTelegram() const               { return ccTelegramBotToken() && ccTelegramChatId(); }
+    inline bool forcePowVariant() const             { return m_forcePowVariant; };
     inline const char *fileName() const             { return m_fileName; }
     inline const char *apiToken() const             { return m_apiToken; }
     inline const char *apiWorkerId() const          { return m_apiWorkerId; }
@@ -165,6 +166,7 @@ private:
     bool m_ccPushOfflineMiners;
     bool m_ccPushPeriodicStatus;
     bool m_ccPushZeroHashrateMiners;
+    bool m_forcePowVariant;
     const char* m_fileName;
     char *m_apiToken;
     char *m_apiWorkerId;

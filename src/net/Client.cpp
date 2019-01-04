@@ -231,27 +231,29 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
 
     PowVariant powVariant = Options::i()->powVariant();
 
-    if (params.HasMember("algo")) {
-        std::string algo = params["algo"].GetString();
+    if (!Options::i()->forcePowVariant()) {
+        if (params.HasMember("algo")) {
+            std::string algo = params["algo"].GetString();
 
-        if (algo.find("/") != std::string::npos) {
-            powVariant = parseVariant(algo.substr(algo.find("/")+1));
-        }
-    }
-
-    if (params.HasMember("variant")) {
-        const rapidjson::Value &variant = params["variant"];
-
-        PowVariant parsedVariant = powVariant;
-
-        if (variant.IsInt()) {
-            parsedVariant = parseVariant(variant.GetInt());
-        } else if (variant.IsString()) {
-            parsedVariant = parseVariant(variant.GetString());
+            if (algo.find("/") != std::string::npos) {
+                powVariant = parseVariant(algo.substr(algo.find("/") + 1));
+            }
         }
 
-        if (parsedVariant != POW_AUTODETECT) {
-            powVariant = parsedVariant;
+        if (params.HasMember("variant")) {
+            const rapidjson::Value& variant = params["variant"];
+
+            PowVariant parsedVariant = powVariant;
+
+            if (variant.IsInt()) {
+                parsedVariant = parseVariant(variant.GetInt());
+            } else if (variant.IsString()) {
+                parsedVariant = parseVariant(variant.GetString());
+            }
+
+            if (parsedVariant != POW_AUTODETECT) {
+                powVariant = parsedVariant;
+            }
         }
     }
 

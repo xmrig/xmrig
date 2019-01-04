@@ -63,8 +63,8 @@ static void print_cpu()
                        Cpu::brand(),
                        Cpu::sockets(),
                        Cpu::isX64() ? "\x1B[01;32m" : "\x1B[01;31m-",
-                       Cpu::hasAES() ? "\x1B[01;32m" : "\x1B[01;31m-",
-                       Options::i()->asmOptimization() != AsmOptimization::ASM_OFF ? "\x1B[01;32m" : "\x1B[01;31m",
+                       Cpu::hasAES() && Options::i()->aesni() ? "\x1B[01;32m" : "\x1B[01;31m-",
+                       Options::i()->asmOptimization() != AsmOptimization::ASM_OFF ? "\x1B[01;32m" : "\x1B[01;31m-",
                        getAsmOptimizationName(Options::i()->asmOptimization()).c_str());
 #       ifndef XMRIG_NO_LIBCPUID
         Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
@@ -121,12 +121,10 @@ static void print_threads()
     }
 
     Log::i()->text(Options::i()->colors() ?
-                     "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, %saes=%d\x1B[01;37m, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s" :
+                     "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s" :
                      " * THREADS:      %d, %s, %saes=%d, hf=%zu, %sdonate=%d%%%s%s",
                    Options::i()->threads(),
                    Options::i()->algoName(),
-                   Options::i()->colors() && Options::i()->aesni() == 0 ? "\x1B[01;31m" : "",
-                   Options::i()->aesni(),
                    Options::i()->hashFactor(),
                    Options::i()->colors() && Options::i()->donateLevel() == 0 ? "\x1B[01;31m" : "",
                    Options::i()->donateLevel(),

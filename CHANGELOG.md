@@ -1,3 +1,7 @@
+# 1.8.8
+- Added XLT v5/9 with autodetect(algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))
+- Added cn-lite variant UPX/uPlexa (algo: "cryptonight-lite", variant "upx")
+- Added force-pow-variant parameter to force usage of the variant from the config and skip parsing of pow/variant from job/pool
 # 1.8.7
 - Implemented Template based mass config editor to simple swap configs on your rigs
 # 1.8.6

@@ -73,7 +73,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --pow-variant=V                   specificy the PoW variat to use: -> 'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for v5), 'rto', 'xfh'\n\
+      --pow-variant=V                   specificy the PoW variat to use: -> 'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for > v5), 'rto', 'xfh', 'upx'\n\
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
       --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'bulldozer', 'off' \n\
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
@@ -90,7 +90,9 @@ Options:\n"
       --print-time=N                    print hashrate report every N seconds\n\
       --api-port=N                      port for the miner API\n\
       --api-access-token=T              access token for API\n\
-      --api-worker-id=ID                custom worker-id for API\n"
+      --api-worker-id=ID                custom worker-id for API\n\
+      --reboot-cmd                      command/bat to execute to Reboot miner\n\
+      --force-pow-variant               disable pow/variant parsing from pool\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url of the CC Server\n\
@@ -99,8 +101,7 @@ Options:\n"
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
       --cc-use-remote-logging           enable remote logging on CC Server\n\
-      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n\
-      --cc-reboot-cmd                   command/bat to execute to Reboot miner\n"
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n"
 # endif
 # endif
 
@@ -175,8 +176,9 @@ static struct option const options[] = {
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
     { "use-tls",          0, nullptr, 1015 },
-    { "force-pow-version", 1, nullptr, 1016 },
-    { "pow-variant"      ,1, nullptr, 1017 },
+    { "force-pow-variant", 0, nullptr, 1016 },
+    { "pow-variant",      1, nullptr, 1017 },
+    { "variant",          1, nullptr, 1017 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
@@ -232,8 +234,9 @@ static struct option const config_options[] = {
     { "syslog",        0, nullptr, 'S'  },
     { "threads",       1, nullptr, 't'  },
     { "user-agent",    1, nullptr, 1008 },
-    { "force-pow-version", 1, nullptr, 1016 },
+    { "force-pow-variant", 0, nullptr, 1016 },
     { "pow-variant",   1, nullptr, 1017 },
+    { "variant",       1, nullptr, 1017 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
     { "asm-optimization", 1, nullptr, 4020 },
@@ -250,6 +253,8 @@ static struct option const pool_options[] = {
     { "keepalive",     0, nullptr ,'k'  },
     { "nicehash",      0, nullptr, 1006 },
     { "use-tls",       0, nullptr, 1015 },
+    { "pow-variant",   1, nullptr, 1017 },
+    { "variant",       1, nullptr, 1017 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -318,7 +323,9 @@ constexpr static const char *pow_variant_names[] = {
         "msr",
         "xhv",
         "rto",
-        "xfh"
+        "xfh",
+        "xtlv9",
+        "upx"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -366,6 +373,7 @@ Options::Options(int argc, char **argv) :
     m_ccPushOfflineMiners(false),
     m_ccPushPeriodicStatus(false),
     m_ccPushZeroHashrateMiners(false),
+    m_forcePowVariant(false),
     m_fileName(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -606,7 +614,6 @@ bool Options::parseArg(int key, const char *arg)
     case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
-    case 1016: /* --force-pow-version */
     case 1021: /* --cpu-priority */
     case 4000: /* --api-port */
     case 4006: /* --cc-port */
@@ -628,7 +635,10 @@ bool Options::parseArg(int key, const char *arg)
     case 1015: /* --use-tls */
         return parseBoolean(key, true);
 
-    case 1017: /* --pow-variant */
+    case 1016: /* --force-pow-variant */
+        return parseBoolean(key, false);
+
+    case 1017: /* --pow-variant/--variant */
         return parsePowVariant(arg);
 
     case 4016: /* --cc-use-tls */
@@ -803,16 +813,6 @@ bool Options::parseArg(int key, uint64_t arg)
         m_printTime = (int) arg;
         break;
 
-    case 1016: /* --force-pow-version */
-        showDeprecateWarning("force-pow-version", "pow-variant");
-        if (arg != POW_AUTODETECT && arg != POW_V0 && arg != POW_V1) {
-            showUsage(1);
-            return false;
-        }
-
-        m_powVariant = static_cast<PowVariant>(arg);
-        break;
-
     case 1020: /* --cpu-affinity */
         if (arg) {
             m_affinity = arg;
@@ -899,6 +899,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 1015: /* --use-tls */
         m_pools.back()->setUseTls(enable);
+        break;
+
+    case 1016: /* --force-pow-variant */
+        m_forcePowVariant = enable;
         break;
 
     case 2000: /* --colors */
@@ -1151,8 +1155,18 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "freehaven") || !strcmp(powVariant, "faven"))) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "freehaven") || !strcmp(powVariant, "faven") || !strcmp(powVariant, "swap"))) {
             m_powVariant = POW_XFH;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "stellitev9")) {
+            m_powVariant = POW_XTL_V9;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "uplexa")) {
+            m_powVariant = POW_UPX;
             break;
         }
 
