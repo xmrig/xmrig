@@ -122,7 +122,7 @@ static void print_threads()
 
     Log::i()->text(Options::i()->colors() ?
                      "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s" :
-                     " * THREADS:      %d, %s, %saes=%d, hf=%zu, %sdonate=%d%%%s%s",
+                     " * THREADS:      %d, %s, hf=%zu, %sdonate=%d%%%s%s",
                    Options::i()->threads(),
                    Options::i()->algoName(),
                    Options::i()->hashFactor(),
