@@ -138,7 +138,7 @@ inline PowVariant parseVariant(const std::string variant)
     } else if (variant == "xtlv9" || variant == "stellite_v9") {
         powVariant = PowVariant::POW_XTL_V9;
     } else if (variant == "upx" || variant == "uplexa" || variant == "cn-upx") {
-        powVariant = PowVariant::POW_XTL_V9;
+        powVariant = PowVariant::POW_UPX;
     }
 
     return powVariant;
