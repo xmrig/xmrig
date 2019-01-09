@@ -60,7 +60,7 @@ public:
     bool isEqual(const String &other) const;
 
 
-    inline bool contains(const char *str) const { return strstr(m_data, str) != nullptr; }
+    inline bool contains(const char *str) const { return isNull() ? false : strstr(m_data, str) != nullptr; }
 
 
     inline bool isEmpty() const          { return size() == 0; }
@@ -75,6 +75,7 @@ public:
     inline bool operator<(const String &str) const     { return strcmp(data(), str.data()) < 0; }
     inline bool operator==(const char *str) const      { return isEqual(str); }
     inline bool operator==(const String &other) const  { return isEqual(other); }
+    inline operator const char*() const                { return m_data; }
     inline String &operator=(char *str)                { move(str); return *this; }
     inline String &operator=(const char *str)          { copy(str); return *this; }
     inline String &operator=(const String &str)        { copy(str); return *this; }
