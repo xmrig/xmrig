@@ -37,6 +37,7 @@ enum PowVariant
     POW_XFH,
     POW_XTL_V9,
     POW_UPX,
+    POW_TURTLE,
     LAST_ITEM
 };
 
@@ -68,6 +69,8 @@ inline std::string getPowVariantName(PowVariant powVariant)
             return "xtlv9";
         case POW_UPX:
             return "upx";
+        case POW_TURTLE:
+            return "turtle";
         case POW_AUTODETECT:
         default:
             return "-1";
@@ -135,10 +138,12 @@ inline PowVariant parseVariant(const std::string variant)
         powVariant = PowVariant::POW_RTO;
     } else if (variant == "xfh" || variant == "freehaven" || variant == "faven") {
         powVariant = PowVariant::POW_XFH;
-    } else if (variant == "xtlv9" || variant == "stellite_v9") {
+    } else if (variant == "xtlv9" || variant == "stellite_v9" || variant == "xtlv2") {
         powVariant = PowVariant::POW_XTL_V9;
     } else if (variant == "upx" || variant == "uplexa" || variant == "cn-upx") {
         powVariant = PowVariant::POW_UPX;
+    } else if (variant == "turtle" || variant == "trtl") {
+        powVariant = PowVariant::POW_TURTLE;
     }
 
     return powVariant;

@@ -33,6 +33,8 @@
 
 #define MEMORY       2097152 /* 2 MiB */
 #define MEMORY_LITE  1048576 /* 1 MiB */
+#define MEMORY_SUPER_LITE  524288 /* 512 KiB */
+#define MEMORY_ULTRA_LITE  262144 /* 256 KiB */
 #define MEMORY_HEAVY 4194304 /* 4 MiB */
 
 #define POW_DEFAULT_INDEX_SHIFT 3

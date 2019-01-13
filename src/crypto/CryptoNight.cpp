@@ -77,7 +77,7 @@ static void cryptonight_aesni(AsmOptimization asmOptimization, PowVariant powVer
         if ((asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS <= 2) ||
             (asmOptimization == AsmOptimization::ASM_RYZEN && NUM_HASH_BLOCKS == 1) ||
             (asmOptimization == AsmOptimization::ASM_BULLDOZER && NUM_HASH_BLOCKS == 1)) {
-            CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowFastV2_asm(input, size, output, scratchPad, asmOptimization);
+            CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization);
         } else {
             CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
         }
@@ -129,7 +129,7 @@ static void cryptonight_softaes(AsmOptimization asmOptimization, PowVariant powV
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
 #else
         if (asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS == 1) {
-            CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowFastV2_asm(input, size, output, scratchPad, asmOptimization);
+            CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization);
         } else {
             CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
         }
@@ -226,6 +226,44 @@ static void cryptonight_lite_softaes(AsmOptimization asmOptimization, PowVariant
 }
 
 template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_super_lite_aesni(AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
+
+}
+
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_super_lite_softaes(AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
+
+}
+
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_ultra_lite_aesni(AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
+#if defined(XMRIG_ARM)
+    CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+#else
+    if ((asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS <= 2) ||
+        (asmOptimization == AsmOptimization::ASM_RYZEN && NUM_HASH_BLOCKS == 1) ||
+        (asmOptimization == AsmOptimization::ASM_BULLDOZER && NUM_HASH_BLOCKS == 1)) {
+        CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, false, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization);
+    } else {
+        CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+    }
+#endif
+}
+
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_ultra_lite_softaes(AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
+#if defined(XMRIG_ARM)
+    CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+#else
+    if (asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS == 1) {
+        CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, true, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization);
+    } else {
+        CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+    }
+#endif
+}
+
+template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_heavy_aesni(AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
 #   if !defined(XMRIG_ARMv7)
     if (powVersion == PowVariant::POW_XHV) {
@@ -275,6 +313,22 @@ void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
             }
             break;
 
+        case Options::ALGO_CRYPTONIGHT_SUPERLITE:
+            if (aesni) {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_super_lite_aesni<HASH_FACTOR>;
+            } else {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_super_lite_softaes<HASH_FACTOR>;
+            }
+            break;
+
+        case Options::ALGO_CRYPTONIGHT_ULTRALITE:
+            if (aesni) {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_aesni<HASH_FACTOR>;
+            } else {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_softaes<HASH_FACTOR>;
+            }
+            break;
+
         case Options::ALGO_CRYPTONIGHT_HEAVY:
             if (aesni) {
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_heavy_aesni<HASH_FACTOR>;
@@ -316,19 +370,20 @@ void CryptoNight::hash(size_t factor, AsmOptimization asmOptimization, PowVarian
 bool CryptoNight::selfTest(int algo)
 {
     if (cryptonight_hash_ctx[0] == nullptr
-#if MAX_NUM_HASH_BLOCKS > 1
+    #if MAX_NUM_HASH_BLOCKS > 1
         || cryptonight_hash_ctx[1] == nullptr
-#endif
-#if MAX_NUM_HASH_BLOCKS > 2
+    #endif
+    #if MAX_NUM_HASH_BLOCKS > 2
         || cryptonight_hash_ctx[2] == nullptr
-#endif
-#if MAX_NUM_HASH_BLOCKS > 3
+    #endif
+    #if MAX_NUM_HASH_BLOCKS > 3
         || cryptonight_hash_ctx[3] == nullptr
-#endif
-#if MAX_NUM_HASH_BLOCKS > 4
+    #endif
+    #if MAX_NUM_HASH_BLOCKS > 4
         || cryptonight_hash_ctx[4] == nullptr
-#endif
-    ) {
+    #endif
+    )
+    {
         return false;
     }
 
@@ -345,6 +400,8 @@ bool CryptoNight::selfTest(int algo)
 
     bool result = true;
     bool resultLite = true;
+    bool resultSuperLite = true;
+    bool resultUltraLite = true;
     bool resultHeavy = true;
 
     AsmOptimization asmOptimization = Options::i()->asmOptimization();
@@ -476,6 +533,17 @@ bool CryptoNight::selfTest(int algo)
 
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_UPX, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output,  test_output_upx, 32) == 0;
+
+    } else if (algo == Options::ALGO_CRYPTONIGHT_SUPERLITE) {
+
+        return false;
+
+    } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
+        // cn ultralite (cnv8 + turtle)
+
+        cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 32) == 0;
+
     } else {
         // cn v0 aka orignal
 
@@ -527,7 +595,7 @@ bool CryptoNight::selfTest(int algo)
         result = result && memcmp(output, test_output_v1, 160) == 0;
         #endif
 
-        // cn v7 + xtl
+        // cnv7 + xtl
 
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_XTL,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xtl, 32) == 0;
@@ -542,7 +610,7 @@ bool CryptoNight::selfTest(int algo)
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_ALLOY,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_alloy, 32) == 0;
 
-        // cn v8 aka cnv2
+        // cnv8 aka cnv2
 
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v2, 32) == 0;
@@ -583,5 +651,5 @@ bool CryptoNight::selfTest(int algo)
         _mm_free(scratchPads[i]);
     }
 
-    return result && resultLite & resultHeavy;
+    return result && resultLite && resultSuperLite && resultUltraLite && resultHeavy;
 }

@@ -63,7 +63,7 @@ Usage: " APP_ID " [OPTIONS]\n\
 Options:\n"
 # ifndef XMRIG_CC_SERVER
 "\
-  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite or cryptonight-heavy\n\
+  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite, cryptonight-ultralite or cryptonight-heavy\n\
   -o, --url=URL                         URL of mining server\n\
   -O, --userpass=U:P                    username:password pair for mining server\n\
   -u, --user=USERNAME                   username for mining server\n\
@@ -73,7 +73,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --pow-variant=V                   specificy the PoW variat to use: -> 'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for > v5), 'rto', 'xfh', 'upx'\n\
+      --pow-variant=V                   specificy the PoW variat to use: -> 'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for > v5), 'rto', 'xfh', 'upx', 'turtle'\n\
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
       --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'bulldozer', 'off' \n\
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
@@ -303,12 +303,16 @@ static struct option const cc_server_options[] = {
 static const char *algo_names[] = {
     "cryptonight",
     "cryptonight-lite",
+    "cryptonight-superlite",
+    "cryptonight-ultralite",
     "cryptonight-heavy"
 };
 
 static const char *algo_short_names[] = {
         "cn",
         "cn-lite",
+        "cn-superlite",
+        "cn-ultralite",
         "cn-heavy"
 };
 
@@ -325,7 +329,8 @@ constexpr static const char *pow_variant_names[] = {
         "rto",
         "xfh",
         "xtlv9",
-        "upx"
+        "upx",
+        "turtle"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -1086,6 +1091,17 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-super-lite") || !strcmp(algo, "cryptonight-super-lite") || !strcmp(algo, "cryptonight-superlight"))) {
+            m_algo = ALGO_CRYPTONIGHT_SUPERLITE;
+            break;
+        }
+
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-ultra-lite") || !strcmp(algo, "cryptonight-ultra-lite") || !strcmp(algo, "cryptonight-ultralight"))) {
+            m_algo = ALGO_CRYPTONIGHT_ULTRALITE;
+            break;
+        }
+
         if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-lite-ipbc") || !strcmp(algo, "cryptonight-light-ipbc") || !strcmp(algo, "cn-lite-ipbc"))) {
             showDeprecateWarning("cryptonight-light-ipbc", "cryptonight-light (with variant \"ipbc\")");
             m_algo = ALGO_CRYPTONIGHT_LITE;
@@ -1160,13 +1176,18 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "stellitev9")) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "stellitev9") || !strcmp(powVariant, "xtlv2"))) {
             m_powVariant = POW_XTL_V9;
             break;
         }
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "uplexa")) {
             m_powVariant = POW_UPX;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "trtl")) {
+            m_powVariant = POW_TURTLE;
             break;
         }
 

@@ -27,6 +27,7 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
+* **NEW Support of Crytptonight-Ultralite TRTL/Turtle variant (algo: "cryptonight-ultralite", variant "auto")**
 * **NEW Support of Crytptonight-Lite UPX/uPlexa variant (algo: "cryptonight-lite", variant "upx")**
 * **NEW Support of Crytptonight XTL v5/v9 PoW changes aka CN-FastV2 (algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))**
 * **Support of Crytptonight XFH/SWAP variant aka CN-Heavy-Fast**

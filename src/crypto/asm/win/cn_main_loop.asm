@@ -11,6 +11,10 @@ PUBLIC cn_fastv2_mainloop_ryzen_asm
 PUBLIC cn_fastv2_mainloop_bulldozer_asm
 PUBLIC cn_fastv2_double_mainloop_sandybridge_asm
 PUBLIC cn_liteupx_mainloop_sandybridge_asm
+PUBLIC cn_ultralitev2_mainloop_ivybridge_asm
+PUBLIC cn_ultralitev2_mainloop_ryzen_asm
+PUBLIC cn_ultralitev2_mainloop_bulldozer_asm
+PUBLIC cn_ultralitev2_double_mainloop_sandybridge_asm
 
 PUBLIC cnv1_mainloop_soft_aes_sandybridge_asm
 PUBLIC cn_litev1_mainloop_soft_aes_sandybridge_asm
@@ -18,6 +22,7 @@ PUBLIC cn_fast_mainloop_soft_aes_sandybridge_asm
 PUBLIC cnv2_mainloop_soft_aes_sandybridge_asm
 PUBLIC cn_fastv2_mainloop_soft_aes_sandybridge_asm
 PUBLIC cn_liteupx_mainloop_soft_aes_sandybridge_asm
+PUBLIC cn_ultralitev2_mainloop_soft_aes_sandybridge_asm
 
 ALIGN 64
 cnv1_mainloop_sandybridge_asm PROC
@@ -92,6 +97,30 @@ cn_liteupx_mainloop_sandybridge_asm PROC
 cn_liteupx_mainloop_sandybridge_asm ENDP
 
 ALIGN 64
+cn_ultralitev2_mainloop_ivybridge_asm PROC
+	INCLUDE cn_ultralitev2_main_loop_ivybridge.inc
+	ret 0
+cn_ultralitev2_mainloop_ivybridge_asm ENDP
+
+ALIGN 64
+cn_ultralitev2_mainloop_ryzen_asm PROC
+	INCLUDE cn_ultralitev2_main_loop_ryzen.inc
+	ret 0
+cn_ultralitev2_mainloop_ryzen_asm ENDP
+
+ALIGN 64
+cn_ultralitev2_mainloop_bulldozer_asm PROC
+	INCLUDE cn_ultralitev2_main_loop_bulldozer.inc
+	ret 0
+cn_ultralitev2_mainloop_bulldozer_asm ENDP
+
+ALIGN 64
+cn_ultralitev2_double_mainloop_sandybridge_asm PROC
+	INCLUDE cn_ultralitev2_double_main_loop_sandybridge.inc
+	ret 0
+cn_ultralitev2_double_mainloop_sandybridge_asm ENDP
+
+ALIGN 64
 cnv1_mainloop_soft_aes_sandybridge_asm PROC
 	INCLUDE cnv1_mainloop_soft_aes_sandybridge.inc
 	ret 0
@@ -126,6 +155,12 @@ cn_liteupx_mainloop_soft_aes_sandybridge_asm PROC
 	INCLUDE cn_liteupx_mainloop_soft_aes_sandybridge.inc
 	ret 0
 cn_liteupx_mainloop_soft_aes_sandybridge_asm ENDP
+
+ALIGN 64
+cn_ultralitev2_mainloop_soft_aes_sandybridge_asm PROC
+	INCLUDE cn_ultralitev2_mainloop_soft_aes_sandybridge.inc
+	ret 0
+cn_ultralitev2_mainloop_soft_aes_sandybridge_asm ENDP
 
 _TEXT_CN_MAINLOOP ENDS
 END

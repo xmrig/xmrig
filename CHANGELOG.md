@@ -1,3 +1,5 @@
+# 1.8.9
+- Added cn-ultralite algo used by upcoming TurtleV2 fork (algo: "cryptonight-ultralite", variant "auto")
 # 1.8.8
 - Added XLT v5/9 with autodetect(algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))
 - Added cn-lite variant UPX/uPlexa (algo: "cryptonight-lite", variant "upx")

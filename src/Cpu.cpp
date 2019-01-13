@@ -67,6 +67,12 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
     size_t cache = availableCache();
     size_t algoBlockSize;
     switch (algo) {
+        case Options::ALGO_CRYPTONIGHT_ULTRALITE:
+            algoBlockSize = 256;
+            break;
+        case Options::ALGO_CRYPTONIGHT_SUPERLITE:
+            algoBlockSize = 512;
+            break;
         case Options::ALGO_CRYPTONIGHT_LITE:
             algoBlockSize = 1024;
             break;
@@ -81,8 +87,17 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
 
     size_t maximumReasonableFactor = std::max(cache / algoBlockSize, static_cast<size_t>(1ul));
     size_t maximumReasonableThreadCount = std::min(maximumReasonableFactor, m_totalThreads);
-    size_t maximumReasonableHashFactor = std::min(maximumReasonableFactor, (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
+    size_t maximumReasonableHashFactor = static_cast<size_t>(MAX_NUM_HASH_BLOCKS);
 
+    if (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) {
+        maximumReasonableHashFactor = 3;
+    } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
+        if (m_asmOptimization == ASM_INTEL) {
+            maximumReasonableHashFactor = 2;
+        } else {
+            maximumReasonableHashFactor = 1;
+        }
+    }
     if (safeMode) {
         if (threadsCount > maximumReasonableThreadCount) {
             threadsCount = maximumReasonableThreadCount;
