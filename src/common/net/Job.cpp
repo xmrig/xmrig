@@ -124,6 +124,9 @@ bool Job::setBlob(const char *blob)
     if (m_autoVariant) {
         m_algorithm.setVariant(variant());
     }
+    else if (m_algorithm.variant() == xmrig::VARIANT_XTL && m_blob[0] >= 9) {
+        m_algorithm.setVariant(xmrig::VARIANT_XTL2);
+    }
 
 #   ifdef XMRIG_PROXY_PROJECT
     memset(m_rawBlob, 0, sizeof(m_rawBlob));

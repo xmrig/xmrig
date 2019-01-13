@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -54,13 +54,14 @@ bool MultiWorker<N>::selfTest()
     using namespace xmrig;
 
     if (m_thread->algorithm() == CRYPTONIGHT) {
-        return verify(VARIANT_0,   test_output_v0)  &&
-               verify(VARIANT_1,   test_output_v1)  &&
-               verify(VARIANT_2,   test_output_v2)  &&
-               verify(VARIANT_XTL, test_output_xtl) &&
-               verify(VARIANT_MSR, test_output_msr) &&
-               verify(VARIANT_XAO, test_output_xao) &&
-               verify(VARIANT_RTO, test_output_rto);
+        return verify(VARIANT_0,    test_output_v0)  &&
+               verify(VARIANT_1,    test_output_v1)  &&
+               verify(VARIANT_2,    test_output_v2)  &&
+               verify(VARIANT_XTL,  test_output_xtl) &&
+               verify(VARIANT_MSR,  test_output_msr) &&
+               verify(VARIANT_XAO,  test_output_xao) &&
+               verify(VARIANT_RTO,  test_output_rto) &&
+               verify(VARIANT_XTL2, test_output_xtl2);
     }
 
 #   ifndef XMRIG_NO_AEON

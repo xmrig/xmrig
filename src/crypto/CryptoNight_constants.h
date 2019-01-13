@@ -40,6 +40,7 @@ constexpr const uint32_t CRYPTONIGHT_MASK         = 0x1FFFF0;
 constexpr const uint32_t CRYPTONIGHT_ITER         = 0x80000;
 constexpr const uint32_t CRYPTONIGHT_MSR_ITER     = 0x40000;
 constexpr const uint32_t CRYPTONIGHT_XAO_ITER     = 0x100000;
+constexpr const uint32_t CRYPTONIGHT_XTL2_ITER    = 0x40000;
 
 constexpr const size_t   CRYPTONIGHT_LITE_MEMORY  = 1 * 1024 * 1024;
 constexpr const uint32_t CRYPTONIGHT_LITE_MASK    = 0xFFFF0;
@@ -109,6 +110,7 @@ template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_0>()   
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_1>()          { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_2>()          { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XTL>()        { return CRYPTONIGHT_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XTL2>()       { return CRYPTONIGHT_XTL2_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_MSR>()        { return CRYPTONIGHT_MSR_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XAO>()        { return CRYPTONIGHT_XAO_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_RTO>()        { return CRYPTONIGHT_ITER; }
@@ -127,6 +129,9 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
 
     case VARIANT_RTO:
         return CRYPTONIGHT_XAO_ITER;
+
+    case VARIANT_XTL2:
+        return CRYPTONIGHT_XTL2_ITER;
 
     default:
         break;
@@ -161,6 +166,7 @@ template<> inline constexpr Variant cn_base_variant<VARIANT_XHV>()   { return VA
 template<> inline constexpr Variant cn_base_variant<VARIANT_XAO>()   { return VARIANT_0; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_RTO>()   { return VARIANT_1; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_2>()     { return VARIANT_2; }
+template<> inline constexpr Variant cn_base_variant<VARIANT_XTL2>()  { return VARIANT_2; }
 
 
 } /* namespace xmrig */
