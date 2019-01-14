@@ -19,7 +19,10 @@ FN_PREFIX(cnv2_mainloop_ivybridge_asm):
 	#include "cn2/cnv2_main_loop_ivybridge.inc"
 	add rsp, 48
 	ret 0
-	nop;nop;nop;nop;
+	nop
+	nop
+	nop
+	nop
 
 ALIGN 16
 FN_PREFIX(cnv2_mainloop_ryzen_asm):
@@ -28,7 +31,10 @@ FN_PREFIX(cnv2_mainloop_ryzen_asm):
 	#include "cn2/cnv2_main_loop_ryzen.inc"
 	add rsp, 48
 	ret 0
-	nop;nop;nop;nop;
+	nop
+	nop
+	nop
+	nop
 
 ALIGN 16
 FN_PREFIX(cnv2_mainloop_bulldozer_asm):
@@ -37,7 +43,10 @@ FN_PREFIX(cnv2_mainloop_bulldozer_asm):
 	#include "cn2/cnv2_main_loop_bulldozer.inc"
 	add rsp, 48
 	ret 0
-	nop;nop;nop;nop;
+	nop
+	nop
+	nop
+	nop
 
 ALIGN 16
 FN_PREFIX(cnv2_double_mainloop_sandybridge_asm):
@@ -47,4 +56,7 @@ FN_PREFIX(cnv2_double_mainloop_sandybridge_asm):
 	#include "cn2/cnv2_double_main_loop_sandybridge.inc"
 	add rsp, 48
 	ret 0
-	nop;nop;nop;nop;
+	nop
+	nop
+	nop
+	nop

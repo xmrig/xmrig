@@ -57,9 +57,14 @@ xmrig::CpuThread::CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiw
 
 #ifndef XMRIG_NO_ASM
 template<typename T, typename U>
-static void patchCode(T& dst, U src, const uint32_t iterations, const uint32_t mask)
+static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t mask)
 {
     const uint8_t* p = reinterpret_cast<const uint8_t*>(src);
+
+    // Workaround for Visual Studio placing trampoline in debug builds
+    if (p[0] == 0xE9) {
+        p += *(int32_t*)(p + 1) + 5;
+    }
 
     size_t size = 0;
     while (*(uint32_t*)(p + size) != 0x90909090) {
