@@ -1,3 +1,5 @@
+# 1.8.10
+- Fixed broken XTL variant Autodetect
 # 1.8.9
 - Added cn-ultralite algo used by upcoming TurtleV2 fork (algo: "cryptonight-ultralite", variant "auto")
 # 1.8.8
