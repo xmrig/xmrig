@@ -1176,7 +1176,7 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "stellitev9") || !strcmp(powVariant, "xtlv2"))) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "stellitev9") || !strcmp(powVariant, "xtlv2") || !strcmp(powVariant, "half"))) {
             m_powVariant = POW_XTL_V9;
             break;
         }
