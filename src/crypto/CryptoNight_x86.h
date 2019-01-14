@@ -570,10 +570,10 @@ extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx* ctx0, cryptonight_ctx* ctx1);
 
-extern "C" void cn_half_mainloop_ivybridge_asm(cryptonight_ctx *ctx);
-extern "C" void cn_half_mainloop_ryzen_asm(cryptonight_ctx *ctx);
-extern "C" void cn_half_mainloop_bulldozer_asm(cryptonight_ctx *ctx);
-extern "C" void cn_half_double_mainloop_sandybridge_asm(cryptonight_ctx* ctx0, cryptonight_ctx* ctx1);
+extern xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_ivybridge_asm;
+extern xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_ryzen_asm;
+extern xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_bulldozer_asm;
+extern xmrig::CpuThread::cn_mainloop_double_fun cn_half_double_mainloop_sandybridge_asm;
 
 
 template<xmrig::Algo ALGO, xmrig::Variant VARIANT, xmrig::Assembly ASM>

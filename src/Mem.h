@@ -59,6 +59,9 @@ public:
     static void init(bool enabled);
     static void release(cryptonight_ctx **ctx, size_t count, MemInfo &info);
 
+    static void* allocate_executable_memory(size_t size);
+    static void FlushInstructionCache(void* p, size_t size);
+
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
 
 private:

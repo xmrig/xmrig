@@ -182,3 +182,15 @@ void Mem::release(MemInfo &info)
         _mm_free(info.memory);
     }
 }
+
+
+void* Mem::allocate_executable_memory(size_t size)
+{
+    return VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+}
+
+
+void Mem::FlushInstructionCache(void* p, size_t size)
+{
+    ::FlushInstructionCache(GetCurrentProcess(), p, size);
+}
