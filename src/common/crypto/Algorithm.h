@@ -39,28 +39,38 @@ namespace xmrig {
 class Algorithm
 {
 public:
+    enum Flags {
+        None   = 0,
+        Forced = 1
+    };
+
     inline Algorithm() :
         m_algo(INVALID_ALGO),
+        m_flags(0),
         m_variant(VARIANT_AUTO)
     {}
 
     inline Algorithm(Algo algo, Variant variant) :
+        m_flags(0),
         m_variant(variant)
     {
         setAlgo(algo);
     }
 
-    inline Algorithm(const char *algo)
+    inline Algorithm(const char *algo) :
+        m_flags(0)
     {
         parseAlgorithm(algo);
     }
 
-    bool isEqual(const Algorithm &other) const { return m_algo == other.m_algo && m_variant == other.m_variant; }
-    inline Algo algo() const                   { return m_algo; }
-    inline const char *name() const            { return name(false); }
-    inline const char *shortName() const       { return name(true); }
-    inline Variant variant() const             { return m_variant; }
-    inline void setVariant(Variant variant)    { m_variant = variant; }
+    inline Algo algo() const                          { return m_algo; }
+    inline bool isEqual(const Algorithm &other) const { return m_algo == other.m_algo && m_variant == other.m_variant; }
+    inline bool isForced() const                      { return m_flags & Forced; }
+    inline const char *name() const                   { return name(false); }
+    inline const char *shortName() const              { return name(true); }
+    inline int flags() const                          { return m_flags; }
+    inline Variant variant() const                    { return m_variant; }
+    inline void setVariant(Variant variant)           { m_variant = variant; }
 
     inline bool operator!=(const Algorithm &other) const  { return !isEqual(other); }
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
@@ -80,6 +90,7 @@ private:
     const char *name(bool shortName) const;
 
     Algo m_algo;
+    int m_flags;
     Variant m_variant;
 };
 

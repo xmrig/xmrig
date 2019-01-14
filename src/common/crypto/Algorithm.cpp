@@ -150,8 +150,14 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
     m_variant = VARIANT_AUTO;
 
     assert(algo != nullptr);
-    if (algo == nullptr) {
+    if (algo == nullptr || strlen(algo) < 1) {
         return;
+    }
+
+    if (*algo == '!') {
+        m_flags |= Forced;
+
+        return parseAlgorithm(algo + 1);
     }
 
     for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
@@ -171,6 +177,16 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
 void xmrig::Algorithm::parseVariant(const char *variant)
 {
     m_variant = VARIANT_AUTO;
+
+    if (variant == nullptr || strlen(variant) < 1) {
+        return;
+    }
+
+    if (*variant == '!') {
+        m_flags |= Forced;
+
+        return parseVariant(variant + 1);
+    }
 
     for (size_t i = 0; i < ARRAY_SIZE(variants); i++) {
         if (strcasecmp(variant, variants[i]) == 0) {
