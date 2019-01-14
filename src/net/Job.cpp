@@ -154,9 +154,9 @@ PowVariant Job::powVariant() const
         if (m_blob[0] > 5) {
             return PowVariant::POW_XTL_V9;
         }
-    } else {
-        return m_powVariant;
     }
+
+    return m_powVariant;
 }
 
 bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
