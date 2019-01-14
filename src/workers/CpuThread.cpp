@@ -65,7 +65,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
     assert(variant >= VARIANT_0 && variant < VARIANT_MAX);
 
 #   ifndef XMRIG_NO_ASM
-    constexpr const size_t count = VARIANT_MAX * 10 * 3 + 4;
+    constexpr const size_t count = VARIANT_MAX * 10 * 3 + 8;
 #   else
     constexpr const size_t count = VARIANT_MAX * 10 * 3;
 #   endif
@@ -266,7 +266,12 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_2, ASM_INTEL>,
         cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_2, ASM_RYZEN>,
         cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_2, ASM_BULLDOZER>,
-        cryptonight_double_hash_asm<CRYPTONIGHT, VARIANT_2, ASM_INTEL>
+        cryptonight_double_hash_asm<CRYPTONIGHT, VARIANT_2, ASM_INTEL>,
+
+        cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_HALF, ASM_INTEL>,
+        cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_HALF, ASM_RYZEN>,
+        cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_HALF, ASM_BULLDOZER>,
+        cryptonight_double_hash_asm<CRYPTONIGHT, VARIANT_HALF, ASM_INTEL>
 #       endif
     };
 
@@ -457,14 +462,19 @@ size_t xmrig::CpuThread::fnIndex(Algo algorithm, AlgoVariant av, Variant variant
     }
 
     constexpr const size_t offset = VARIANT_MAX * 10 * 3;
+    size_t extra_offset           = 0;
 
-    if (algorithm == CRYPTONIGHT && variant == VARIANT_2) {
+    if (algorithm == CRYPTONIGHT && (variant == VARIANT_2 || variant == VARIANT_HALF)) {
+        if (variant == VARIANT_HALF) {
+            extra_offset += 4;
+        }
+
         if (av == AV_SINGLE) {
-            return offset + assembly - 2;
+            return offset + extra_offset + assembly - 2;
         }
 
         if (av == AV_DOUBLE) {
-            return offset + 3;
+            return offset + 3 + extra_offset;
         }
     }
 #   endif
