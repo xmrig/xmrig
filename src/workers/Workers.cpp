@@ -168,6 +168,10 @@ void Workers::start(xmrig::Controller *controller)
     LOG_NOTICE("--------------------------------------------------------------------------");
 #   endif
 
+#   ifndef XMRIG_NO_ASM
+    xmrig::CpuThread::patchAsmVariants();
+#   endif
+
     m_controller = controller;
 
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();

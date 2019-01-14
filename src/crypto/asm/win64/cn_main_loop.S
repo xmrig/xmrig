@@ -6,47 +6,38 @@
 .global cnv2_mainloop_bulldozer_asm
 .global cnv2_double_mainloop_sandybridge_asm
 
-.global cn_half_mainloop_ivybridge_asm
-.global cn_half_mainloop_ryzen_asm
-.global cn_half_mainloop_bulldozer_asm
-.global cn_half_double_mainloop_sandybridge_asm
-
 ALIGN 16
 cnv2_mainloop_ivybridge_asm:
 	#include "../cn2/cnv2_main_loop_ivybridge.inc"
 	ret 0
+	nop
+	nop
+	nop
+	nop
 
 ALIGN 16
 cnv2_mainloop_ryzen_asm:
 	#include "../cn2/cnv2_main_loop_ryzen.inc"
 	ret 0
+	nop
+	nop
+	nop
+	nop
 
 ALIGN 16
 cnv2_mainloop_bulldozer_asm:
-    #include "../cn2/cnv2_main_loop_bulldozer.inc"
+	#include "../cn2/cnv2_main_loop_bulldozer.inc"
 	ret 0
+	nop
+	nop
+	nop
+	nop
 
 ALIGN 16
 cnv2_double_mainloop_sandybridge_asm:
 	#include "../cn2/cnv2_double_main_loop_sandybridge.inc"
 	ret 0
-
-ALIGN 16
-cn_half_mainloop_ivybridge_asm:
-	#include "../cn_half/cn_half_main_loop_ivybridge.inc"
-	ret 0
-
-ALIGN 16
-cn_half_mainloop_ryzen_asm:
-	#include "../cn_half/cn_half_main_loop_ryzen.inc"
-	ret 0
-
-ALIGN 16
-cn_half_mainloop_bulldozer_asm:
-	#include "../cn_half/cn_half_main_loop_bulldozer.inc"
-	ret 0
-
-ALIGN 16
-cn_half_double_mainloop_sandybridge_asm:
-	#include "../cn_half/cn_half_double_main_loop_sandybridge.inc"
-	ret 0    
+	nop
+	nop
+	nop
+	nop
