@@ -6,7 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MEM_H__
-#define __MEM_H__
+#ifndef XMRIG_MEM_H
+#define XMRIG_MEM_H
 
 
 #include <stddef.h>
@@ -59,8 +60,8 @@ public:
     static void init(bool enabled);
     static void release(cryptonight_ctx **ctx, size_t count, MemInfo &info);
 
-    static void* allocate_executable_memory(size_t size);
-    static void FlushInstructionCache(void* p, size_t size);
+    static void *allocateExecutableMemory(size_t size);
+    static void flushInstructionCache(void *p, size_t size);
 
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
 
@@ -73,4 +74,4 @@ private:
 };
 
 
-#endif /* __MEM_H__ */
+#endif /* XMRIG_MEM_H */

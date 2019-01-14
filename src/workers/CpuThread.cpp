@@ -5,7 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -29,9 +29,9 @@
 #include "common/log/Log.h"
 #include "common/net/Pool.h"
 #include "crypto/Asm.h"
+#include "Mem.h"
 #include "rapidjson/document.h"
 #include "workers/CpuThread.h"
-#include "Mem.h"
 
 
 #if defined(XMRIG_ARM)
@@ -61,10 +61,12 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 {
     const uint8_t* p = reinterpret_cast<const uint8_t*>(src);
 
-    // Workaround for Visual Studio placing trampoline in debug builds
+    // Workaround for Visual Studio placing trampoline in debug builds.
+#   if defined(_MSC_VER)
     if (p[0] == 0xE9) {
         p += *(int32_t*)(p + 1) + 5;
     }
+#   endif
 
     size_t size = 0;
     while (*(uint32_t*)(p + size) != 0x90909090) {
@@ -79,6 +81,7 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
         case xmrig::CRYPTONIGHT_ITER:
             *(uint32_t*)(patched_data + i) = iterations;
             break;
+
         case xmrig::CRYPTONIGHT_MASK:
             *(uint32_t*)(patched_data + i) = mask;
             break;
@@ -86,20 +89,23 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
     }
 }
 
+
 extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx *ctx);
-extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx* ctx0, cryptonight_ctx* ctx1);
+extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx *ctx0, cryptonight_ctx *ctx1);
+
 
 xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_ivybridge_asm = nullptr;
 xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_ryzen_asm = nullptr;
 xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_bulldozer_asm = nullptr;
 xmrig::CpuThread::cn_mainloop_double_fun cn_half_double_mainloop_sandybridge_asm = nullptr;
 
+
 void xmrig::CpuThread::patchAsmVariants()
 {
     const int allocation_size = 65536;
-    uint8_t* base = reinterpret_cast<uint8_t*>(Mem::allocate_executable_memory(allocation_size));
+    uint8_t *base = static_cast<uint8_t *>(Mem::allocateExecutableMemory(allocation_size));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
     cn_half_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1000);
@@ -111,9 +117,10 @@ void xmrig::CpuThread::patchAsmVariants()
     patchCode(cn_half_mainloop_bulldozer_asm,           cnv2_mainloop_bulldozer_asm,            xmrig::CRYPTONIGHT_HALF_ITER,   xmrig::CRYPTONIGHT_MASK);
     patchCode(cn_half_double_mainloop_sandybridge_asm,  cnv2_double_mainloop_sandybridge_asm,   xmrig::CRYPTONIGHT_HALF_ITER,   xmrig::CRYPTONIGHT_MASK);
 
-    Mem::FlushInstructionCache(base, allocation_size);
+    Mem::flushInstructionCache(base, allocation_size);
 }
 #endif
+
 
 bool xmrig::CpuThread::isSoftAES(AlgoVariant av)
 {
