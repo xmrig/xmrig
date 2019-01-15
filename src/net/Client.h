@@ -67,6 +67,7 @@ public:
     inline int id() const                    { return m_id; }
     inline uint16_t port() const             { return m_url.port(); }
     inline void setQuiet(bool quiet)         { m_quiet = quiet; }
+    inline void setDonate(bool donate)       { m_donate = donate; }
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
     static void onConnected(uv_async_t *handle);
@@ -99,6 +100,7 @@ private:
 
     bool m_quiet;
     bool m_nicehash;
+    bool m_donate;
     char m_buf[2048];
     char m_rpcId[64];
     char m_sendBuf[768];

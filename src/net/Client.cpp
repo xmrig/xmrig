@@ -52,6 +52,7 @@ int64_t Client::m_sequence = 1;
 Client::Client(int id, const char *agent, IClientListener *listener) :
         m_quiet(false),
         m_nicehash(false),
+        m_donate(false),
         m_agent(agent),
         m_listener(listener),
         m_id(id),
@@ -231,7 +232,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
 
     PowVariant powVariant = Options::i()->powVariant();
 
-    if (!Options::i()->forcePowVariant()) {
+    if (!Options::i()->forcePowVariant() || m_donate) {
         if (params.HasMember("algo")) {
             std::string algo = params["algo"].GetString();
 
