@@ -342,7 +342,10 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    if (params.HasMember("variant")) {
+    if (params.HasMember("algo")) {
+        job.setAlgorithm(params["algo"].GetString());
+    }
+    else if (params.HasMember("variant")) {
         const rapidjson::Value &variant = params["variant"];
 
         if (variant.IsInt()) {
@@ -351,11 +354,6 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         else if (variant.IsString()){
             job.setVariant(variant.GetString());
         }
-    }
-
-    // moved algo after variant parsing to override variant that is considered to be outdated now
-    if (params.HasMember("algo")) {
-        job.setAlgorithm(params["algo"].GetString());
     }
 
     if (!verifyAlgorithm(job.algorithm())) {
