@@ -51,7 +51,7 @@ public:
         m_variant(VARIANT_AUTO)
     {}
 
-    inline Algorithm(Algo algo, Variant variant) :
+    inline Algorithm(Algo algo, Variant variant = VARIANT_AUTO) :
         m_flags(0),
         m_variant(variant)
     {
