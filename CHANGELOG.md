@@ -1,3 +1,6 @@
+# v2.9.1
+- Restored compatibility with https://stellite.hashvault.pro.
+
 # v2.9.0
 - [#899](https://github.com/xmrig/xmrig/issues/899) Added support for new algorithm `cn/half` for Masari and Stellite forks.
 - [#834](https://github.com/xmrig/xmrig/pull/834) Added ASM optimized code for AMD Bulldozer.
