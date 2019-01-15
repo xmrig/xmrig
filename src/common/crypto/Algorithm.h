@@ -7,8 +7,8 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,12 +40,19 @@ namespace xmrig {
 class Algorithm
 {
 public:
+    enum Flags {
+        None   = 0,
+        Forced = 1
+    };
+
     inline Algorithm() :
         m_algo(INVALID_ALGO),
+        m_flags(0),
         m_variant(VARIANT_AUTO)
     {}
 
-    inline Algorithm(Algo algo, Variant variant = VARIANT_AUTO) :
+    inline Algorithm(Algo algo, Variant variant) :
+        m_flags(0),
         m_variant(variant)
     {
         setAlgo(algo);
@@ -54,19 +61,23 @@ public:
     // constructs Algorithm from PerfAlgo
     Algorithm(const xmrig::PerfAlgo);
 
-    inline Algorithm(const char *algo)
+    inline Algorithm(const char *algo) :
+        m_flags(0)
     {
         parseAlgorithm(algo);
     }
 
-    bool isEqual(const Algorithm &other) const { return m_algo == other.m_algo && m_variant == other.m_variant; }
-    inline Algo algo() const                   { return m_algo; }
+    inline Algo algo() const                          { return m_algo; }
+    inline bool isEqual(const Algorithm &other) const { return m_algo == other.m_algo && m_variant == other.m_variant; }
+    inline bool isForced() const                      { return m_flags & Forced; }
+    inline const char *name() const                   { return name(false); }
+    inline const char *shortName() const              { return name(true); }
+    inline int flags() const                          { return m_flags; }
+    inline Variant variant() const                    { return m_variant; }
+    inline void setVariant(Variant variant)           { m_variant = variant; }
+
     xmrig::PerfAlgo perf_algo() const; // returns PerfAlgo that corresponds to current Algorithm
-    inline const char *name() const            { return name(false); }
-    inline const char *shortName() const       { return name(true); }
     static const char *perfAlgoName(xmrig::PerfAlgo); // returns string name of the PerfAlgo
-    inline Variant variant() const             { return m_variant; }
-    inline void setVariant(Variant variant)    { m_variant = variant; }
 
     inline bool operator!=(const Algorithm &other) const  { return !isEqual(other); }
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
@@ -86,6 +97,7 @@ private:
     const char *name(bool shortName) const;
 
     Algo m_algo;
+    int m_flags;
     Variant m_variant;
 };
 

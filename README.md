@@ -1,7 +1,5 @@
 # XMRig
 
-:warning: **[Monero will change PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/MoneroOcean/xmrig/releases/tag/v2.8.1)** :warning:
-
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/MoneroOcean/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/MoneroOcean/xmrig/releases)
 [![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig.svg)](https://github.com/MoneroOcean/xmrig/releases)
@@ -95,12 +93,12 @@ Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or shar
   -V, --version            output version information and exit
 ```
 
-Also you can use configuration via config file, default name **config.json**. Some options available only via config file: [`autosave`](https://github.com/xmrig/xmrig/issues/767), [`hw-aes`](https://github.com/xmrig/xmrig/issues/563). `watch` option currently not implemented in miners only in proxy.
+Also you can use configuration via config file, default name **config.json**. Some options available only via config file: [`autosave`](https://github.com/MoneroOcean/xmrig/issues/767), [`hw-aes`](https://github.com/MoneroOcean/xmrig/issues/563). `watch` option currently not implemented in miners only in proxy.
 
 ## Algorithm variations
 
 - `av` option used for automatic and simple threads mode (when you specify only threads count).
-- For [advanced threads mode](https://github.com/xmrig/xmrig/issues/563) each thread configured individually and `av` option not used.
+- For [advanced threads mode](https://github.com/MoneroOcean/xmrig/issues/563) each thread configured individually and `av` option not used.
 
 | av | Hashes per round | Hardware AES |
 |----|------------------|--------------|
@@ -141,19 +139,6 @@ Please note performance is highly dependent on system load. The numbers above ar
 ## Donations
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
-
-## Release checksums
-### SHA-256
-```
-fd909cef75c65c1ee8facd78e968c359e4ac4d2f0b2aaef8c6d3e0138979d0ea xmrig-2.8.1-xenial-amd64.tar.gz/xmrig-2.8.1/xmrig
-e4987eaec57c1784c423e03978e22262adf070ab3ad7b2a6ce8d0d0626db4cbd xmrig-2.8.1-xenial-amd64.tar.gz/xmrig-2.8.1/xmrig-notls
-4ebf6053513c8b72b46f54481f33367aae6356fc5f271c9236d708a34cd16e2a xmrig-2.8.1-gcc-win32.zip/xmrig.exe
-f4ce5b76a611f6768c9a035eae1e49f61666f3e5370b54bd447ecc3b0098efcb xmrig-2.8.1-gcc-win32.zip/xmrig-notls.exe
-39259979b4228899c0ef985bcfc283e169afd44323eedb0341144dbc0c0f30e9 xmrig-2.8.1-gcc-win64.zip/xmrig.exe
-68af0f11b29b9b67414d0b661446baa0ad6020598c04c5d0cf24797167753117 xmrig-2.8.1-gcc-win64.zip/xmrig-notls.exe
-5d8b94157ebb4a7729f0eb8622945c266b756c994c60f91514b329edeb287867 xmrig-2.8.1-msvc-win64.zip/xmrig.exe
-d97c691d6044f916b9253820832f1a08402bb63aa75fb146ea8c31f51cebe974 xmrig-2.8.1-msvc-win64.zip/xmrig-notls.exe
-```
 
 ## Contacts
 * support@xmrig.com

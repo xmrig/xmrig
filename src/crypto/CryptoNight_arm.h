@@ -8,7 +8,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -402,12 +402,12 @@ static inline __m128i aes_round_tweak_div(const __m128i &in, const __m128i &key)
 }
 
 
-template<xmrig::Variant VARIANT>
+template<xmrig::Variant VARIANT, xmrig::Variant BASE>
 static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i cx)
 {
     uint64_t* mem_out = (uint64_t*)&l[idx];
 
-    if (VARIANT == xmrig::VARIANT_2) {
+    if (BASE == xmrig::VARIANT_2) {
         VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1);
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
@@ -429,12 +429,12 @@ static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m1
 template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
 inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
 {
-    constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
-    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO, VARIANT>();
-    constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
-    constexpr bool IS_V1        = xmrig::cn_base_variant<VARIANT>() == xmrig::VARIANT_1;
+    constexpr size_t MASK         = xmrig::cn_select_mask<ALGO>();
+    constexpr size_t ITERATIONS   = xmrig::cn_select_iter<ALGO, VARIANT>();
+    constexpr size_t MEM          = xmrig::cn_select_memory<ALGO>();
+    constexpr xmrig::Variant BASE = xmrig::cn_base_variant<VARIANT>();
 
-    if (IS_V1 && size < 43) {
+    if (BASE == xmrig::VARIANT_1 && size < 43) {
         memset(output, 0, 32);
         return;
     }
@@ -473,8 +473,8 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             cx = _mm_aesenc_si128(cx, ax0);
         }
 
-        if (IS_V1 || VARIANT == xmrig::VARIANT_2) {
-            cryptonight_monero_tweak<VARIANT>(l0, idx0 & MASK, ax0, bx0, bx1, cx);
+        if (BASE == xmrig::VARIANT_1 || BASE == xmrig::VARIANT_2) {
+            cryptonight_monero_tweak<VARIANT, BASE>(l0, idx0 & MASK, ax0, bx0, bx1, cx);
         } else {
             _mm_store_si128((__m128i *)&l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
         }
@@ -484,7 +484,8 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         uint64_t hi, lo, cl, ch;
         cl = ((uint64_t*) &l0[idx0 & MASK])[0];
         ch = ((uint64_t*) &l0[idx0 & MASK])[1];
-        if (VARIANT == xmrig::VARIANT_2) {
+
+        if (BASE == xmrig::VARIANT_2) {
             VARIANT2_INTEGER_MATH(0, cl, cx);
             lo = __umul128(idx0, cl, &hi);
             VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo);
@@ -498,9 +499,9 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
 
-        if (IS_V1 && (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO)) {
+        if (BASE == xmrig::VARIANT_1 && (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO)) {
             ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0 ^ al0;
-        } else if (IS_V1) {
+        } else if (BASE == xmrig::VARIANT_1) {
             ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0;
         } else {
             ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
@@ -525,9 +526,11 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
                 idx0 = d ^ q;
             }
         }
-        if (VARIANT == xmrig::VARIANT_2) {
+
+        if (BASE == xmrig::VARIANT_2) {
             bx1 = bx0;
         }
+
         bx0 = cx;
     }
 
@@ -541,12 +544,12 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
 inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx **__restrict__ ctx)
 {
-    constexpr size_t MASK       = xmrig::cn_select_mask<ALGO>();
-    constexpr size_t ITERATIONS = xmrig::cn_select_iter<ALGO, VARIANT>();
-    constexpr size_t MEM        = xmrig::cn_select_memory<ALGO>();
-    constexpr bool IS_V1        = xmrig::cn_base_variant<VARIANT>() == xmrig::VARIANT_1;
+    constexpr size_t MASK         = xmrig::cn_select_mask<ALGO>();
+    constexpr size_t ITERATIONS   = xmrig::cn_select_iter<ALGO, VARIANT>();
+    constexpr size_t MEM          = xmrig::cn_select_memory<ALGO>();
+    constexpr xmrig::Variant BASE = xmrig::cn_base_variant<VARIANT>();
 
-    if (IS_V1 && size < 43) {
+    if (BASE == xmrig::VARIANT_1 && size < 43) {
         memset(output, 0, 64);
         return;
     }
@@ -602,9 +605,9 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             cx1 = _mm_aesenc_si128(cx1, ax1);
         }
 
-        if (IS_V1 || (VARIANT == xmrig::VARIANT_2)) {
-            cryptonight_monero_tweak<VARIANT>(l0, idx0 & MASK, ax0, bx00, bx01, cx0);
-            cryptonight_monero_tweak<VARIANT>(l1, idx1 & MASK, ax1, bx10, bx11, cx1);
+        if (BASE == xmrig::VARIANT_1 || (BASE == xmrig::VARIANT_2)) {
+            cryptonight_monero_tweak<VARIANT, BASE>(l0, idx0 & MASK, ax0, bx00, bx01, cx0);
+            cryptonight_monero_tweak<VARIANT, BASE>(l1, idx1 & MASK, ax1, bx10, bx11, cx1);
         } else {
             _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i *) &l1[idx1 & MASK], _mm_xor_si128(bx10, cx1));
@@ -616,7 +619,8 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         uint64_t hi, lo, cl, ch;
         cl = ((uint64_t*) &l0[idx0 & MASK])[0];
         ch = ((uint64_t*) &l0[idx0 & MASK])[1];
-        if (VARIANT == xmrig::VARIANT_2) {
+
+        if (BASE == xmrig::VARIANT_2) {
             VARIANT2_INTEGER_MATH(0, cl, cx0);
             lo = __umul128(idx0, cl, &hi);
             VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo);
@@ -629,9 +633,9 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
 
-        if (IS_V1 && (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO)) {
+        if (BASE == xmrig::VARIANT_1 && (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO)) {
             ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0 ^ al0;
-        } else if (IS_V1) {
+        } else if (BASE == xmrig::VARIANT_1) {
             ((uint64_t*)&l0[idx0 & MASK])[1] = ah0 ^ tweak1_2_0;
         } else {
             ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
@@ -659,7 +663,8 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
         cl = ((uint64_t*) &l1[idx1 & MASK])[0];
         ch = ((uint64_t*) &l1[idx1 & MASK])[1];
-        if (VARIANT == xmrig::VARIANT_2) {
+
+        if (BASE == xmrig::VARIANT_2) {
             VARIANT2_INTEGER_MATH(1, cl, cx1);
             lo = __umul128(idx1, cl, &hi);
             VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo);
@@ -672,9 +677,9 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
         ((uint64_t*)&l1[idx1 & MASK])[0] = al1;
 
-        if (IS_V1 && (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO)) {
+        if (BASE == xmrig::VARIANT_1 && (VARIANT == xmrig::VARIANT_TUBE || VARIANT == xmrig::VARIANT_RTO)) {
             ((uint64_t*)&l1[idx1 & MASK])[1] = ah1 ^ tweak1_2_1 ^ al1;
-        } else if (IS_V1) {
+        } else if (BASE == xmrig::VARIANT_1) {
             ((uint64_t*)&l1[idx1 & MASK])[1] = ah1 ^ tweak1_2_1;
         } else {
             ((uint64_t*)&l1[idx1 & MASK])[1] = ah1;

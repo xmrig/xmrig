@@ -7,8 +7,8 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -63,6 +63,8 @@ static AlgoData const algorithms[] = {
     { "cryptonight/xao",       "cn/xao",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO  },
     { "cryptonight/rto",       "cn/rto",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
     { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
+    { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF },
+    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -110,7 +112,11 @@ static const char *variants[] = {
     "xao",
     "rto",
     "2",
+    "half"
 };
+
+
+static_assert(xmrig::VARIANT_MAX == ARRAY_SIZE(variants), "variants size mismatch");
 
 
 bool xmrig::Algorithm::isValid() const
@@ -145,8 +151,14 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
     m_variant = VARIANT_AUTO;
 
     assert(algo != nullptr);
-    if (algo == nullptr) {
+    if (algo == nullptr || strlen(algo) < 1) {
         return;
+    }
+
+    if (*algo == '!') {
+        m_flags |= Forced;
+
+        return parseAlgorithm(algo + 1);
     }
 
     for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
@@ -167,11 +179,25 @@ void xmrig::Algorithm::parseVariant(const char *variant)
 {
     m_variant = VARIANT_AUTO;
 
+    if (variant == nullptr || strlen(variant) < 1) {
+        return;
+    }
+
+    if (*variant == '!') {
+        m_flags |= Forced;
+
+        return parseVariant(variant + 1);
+    }
+
     for (size_t i = 0; i < ARRAY_SIZE(variants); i++) {
         if (strcasecmp(variant, variants[i]) == 0) {
             m_variant = static_cast<Variant>(i);
-            break;
+            return;
         }
+    }
+
+    if (strcasecmp(variant, "xtlv9") == 0) {
+        m_variant = VARIANT_HALF;
     }
 }
 

@@ -87,7 +87,7 @@ Options:\n\
 "\
       --max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)\n\
       --safe               safe adjust threads and av settings for current CPU\n\
-      --asm=ASM            ASM code for cn/2, possible values: auto, none, intel, ryzen.\n\
+      --asm=ASM            ASM code for cn/2, possible values: auto, none, intel, ryzen, bulldozer.\n\
       --print-time=N       print hashrate report every N seconds\n\
       --api-port=N         port for the miner API\n\
       --api-access-token=T access token for API\n\

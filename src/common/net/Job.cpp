@@ -7,8 +7,8 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -92,6 +92,12 @@ Job::~Job()
 }
 
 
+bool Job::isEqual(const Job &other) const
+{
+    return m_id == other.m_id && m_clientId == other.m_clientId && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;
+}
+
+
 bool Job::setBlob(const char *blob)
 {
     if (!blob) {
@@ -118,6 +124,15 @@ bool Job::setBlob(const char *blob)
 
     if (m_autoVariant) {
         m_algorithm.setVariant(variant());
+    }
+
+    if (!m_algorithm.isForced()) {
+        if (m_algorithm.variant() == xmrig::VARIANT_XTL && m_blob[0] >= 9) {
+            m_algorithm.setVariant(xmrig::VARIANT_HALF);
+        }
+        else if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] >= 8) {
+            m_algorithm.setVariant(xmrig::VARIANT_HALF);
+        }
     }
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -219,18 +234,6 @@ char *Job::toHex(const unsigned char* in, unsigned int len)
     return out;
 }
 #endif
-
-
-bool Job::operator==(const Job &other) const
-{
-    return m_id == other.m_id && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;
-}
-
-
-bool Job::operator!=(const Job &other) const
-{
-    return m_id != other.m_id || memcmp(m_blob, other.m_blob, sizeof(m_blob)) != 0;
-}
 
 
 xmrig::Variant Job::variant() const

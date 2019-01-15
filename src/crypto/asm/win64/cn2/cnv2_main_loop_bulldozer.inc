@@ -45,12 +45,11 @@
 	movd	xmm0, rcx
 	punpcklqdq xmm4, xmm0
 
-	ALIGN 16
-main_loop_ryzen:
+	ALIGN(64)
+cnv2_main_loop_bulldozer:
 	movdqa	xmm5, XMMWORD PTR [r10+rbx]
-	movd	xmm0, r11
-	movd	xmm6, r8
-	punpcklqdq xmm6, xmm0
+	movd xmm6, r8
+	pinsrq xmm6, r11, 1
 	lea	rdx, QWORD PTR [r10+rbx]
 	lea	r9, QWORD PTR [rdi+rdi]
 	shl	rdi, 32
@@ -74,7 +73,13 @@ main_loop_ryzen:
 	movaps	xmm1, xmm8
 	mov	rsi, r15
 	xor	rsi, rdi
+
+	mov edi, 1023
+	shl rdi, 52
+
 	movd	r14, xmm5
+	pextrq rax, xmm5, 1
+
 	movdqa	xmm0, xmm5
 	pxor	xmm0, xmm3
 	mov	r10, r14
@@ -87,26 +92,21 @@ main_loop_ryzen:
 	add	r9d, r14d
 	or	r9d, -2147483647
 	xor	edx, edx
-	movdqa	xmm0, xmm5
-	psrldq	xmm0, 8
-	movd	rax, xmm0
-
 	div	r9
-	movd xmm0, rax
-	movd xmm1, rdx
-	punpckldq xmm0, xmm1
-	movd r15, xmm0
-	paddq xmm0, xmm5
-	movdqa xmm2, xmm0
-	psrlq xmm0, 12
-	paddq	xmm0, xmm7
+	mov	eax, eax
+	shl	rdx, 32
+	lea	r15, [rax+rdx]
+	lea	rax, [r14+r15]
+	shr	rax, 12
+	add	rax, rdi
+	movd	xmm0, rax
 	sqrtsd	xmm1, xmm0
 	movd	rdi, xmm1
 	test	rdi, 524287
-	je	sqrt_fixup_ryzen
+	je	sqrt_fixup_bulldozer
 	shr	rdi, 19
 
-sqrt_fixup_ryzen_ret:
+sqrt_fixup_bulldozer_ret:
 	mov	rax, rsi
 	mul	r14
 	movd xmm1, rax
@@ -141,7 +141,7 @@ sqrt_fixup_ryzen_ret:
 	and	r10d, 2097136
 	movdqa	xmm3, xmm5
 	dec	ebp
-	jne	main_loop_ryzen
+	jne	cnv2_main_loop_bulldozer
 
 	ldmxcsr DWORD PTR [rsp]
 	movaps	xmm6, XMMWORD PTR [rsp+48]
@@ -157,10 +157,11 @@ sqrt_fixup_ryzen_ret:
 	pop	r13
 	pop	r12
 	pop	rdi
-	jmp cnv2_main_loop_ryzen_endp
+	jmp cnv2_main_loop_bulldozer_endp
 
-sqrt_fixup_ryzen:
-	movd r9, xmm2
+sqrt_fixup_bulldozer:
+	movd r9, xmm5
+	add r9, r15
 	dec	rdi
 	mov edx, -1022
 	shl rdx, 32
@@ -174,6 +175,6 @@ sqrt_fixup_ryzen:
 	imul	rcx, rax
 	sub	rcx, r9
 	adc	rdi, 0
-	jmp	sqrt_fixup_ryzen_ret
+	jmp	sqrt_fixup_bulldozer_ret
 
-cnv2_main_loop_ryzen_endp:
+cnv2_main_loop_bulldozer_endp:

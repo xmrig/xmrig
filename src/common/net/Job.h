@@ -7,8 +7,8 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@ public:
     Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId);
     ~Job();
 
+    bool isEqual(const Job &other) const;
     bool setBlob(const char *blob);
     void setRawBlob(const uint8_t *blob, const size_t size); // for algo benchmarking
     bool setTarget(const char *target);
@@ -85,8 +86,8 @@ public:
     static char *toHex(const unsigned char* in, unsigned int len);
 #   endif
 
-    bool operator==(const Job &other) const;
-    bool operator!=(const Job &other) const;
+    inline bool operator==(const Job &other) const { return isEqual(other); }
+    inline bool operator!=(const Job &other) const { return !isEqual(other); }
 
 private:
     xmrig::Variant variant() const;

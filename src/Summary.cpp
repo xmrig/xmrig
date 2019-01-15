@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -43,7 +44,8 @@ static const char *coloredAsmNames[] = {
     "\x1B[1;31mnone\x1B[0m",
     "auto",
     "\x1B[1;32mintel\x1B[0m",
-    "\x1B[1;32mryzen\x1B[0m"
+    "\x1B[1;32mryzen\x1B[0m",
+    "\x1B[1;32mbulldozer\x1B[0m"
 };
 
 

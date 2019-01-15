@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOG_H__
-#define __LOG_H__
+#ifndef XMRIG_LOG_H
+#define XMRIG_LOG_H
 
 
 #include <assert.h>
@@ -39,7 +39,7 @@ public:
     static inline Log* i()                       { if (!m_self) { defaultInit(); } return m_self; }
     static inline void add(ILogBackend *backend) { i()->m_backends.push_back(backend); }
     static inline void init()                    { if (!m_self) { new Log(); } }
-    static inline void release()                 { assert(m_self != nullptr); delete m_self; }
+    static inline void release()                 { delete m_self; }
 
     void message(ILogBackend::Level level, const char* fmt, ...);
     void text(const char* fmt, ...);
@@ -98,4 +98,4 @@ private:
 #   define LOG_DEBUG_WARN(x, ...)
 #endif
 
-#endif /* __LOG_H__ */
+#endif /* XMRIG_LOG_H */

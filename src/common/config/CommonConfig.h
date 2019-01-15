@@ -118,9 +118,11 @@ protected:
 
 private:
     bool parseInt(int key, int arg);
+    Pool &currentPool();
+    void fixup();
 };
 
 
 } /* namespace xmrig */
 
-#endif /* __COMMONCONFIG_H__ */
+#endif /* XMRIG_COMMONCONFIG_H */
