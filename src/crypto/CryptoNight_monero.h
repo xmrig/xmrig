@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,21 +33,21 @@
 #ifndef XMRIG_ARM
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
-    if (IS_V1) { \
+    if (BASE == xmrig::VARIANT_1) { \
         tweak1_2_##part = (*reinterpret_cast<const uint64_t*>(input + 35 + part * size) ^ \
                           *(reinterpret_cast<const uint64_t*>(ctx[part]->state) + 24)); \
     }
 #else
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
-    if (IS_V1) { \
+    if (BASE == xmrig::VARIANT_1) { \
         memcpy(&tweak1_2_##part, input + 35 + part * size, sizeof tweak1_2_##part); \
         tweak1_2_##part ^= *(reinterpret_cast<const uint64_t*>(ctx[part]->state) + 24); \
     }
 #endif
 
 #define VARIANT1_1(p) \
-    if (IS_V1) { \
+    if (BASE == xmrig::VARIANT_1) { \
         const uint8_t tmp = reinterpret_cast<const uint8_t*>(p)[11]; \
         static const uint32_t table = 0x75310; \
         const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1; \
@@ -55,7 +55,7 @@
     }
 
 #define VARIANT1_2(p, part) \
-    if (IS_V1) { \
+    if (BASE == xmrig::VARIANT_1) { \
         (p) ^= tweak1_2_##part; \
     }
 

@@ -20,4 +20,6 @@ else()
     set(TLS_SOURCES "")
     set(OPENSSL_LIBRARIES "")
     add_definitions(/DXMRIG_NO_TLS)
+
+    set(CMAKE_PROJECT_NAME "${CMAKE_PROJECT_NAME}-notls")
 endif()

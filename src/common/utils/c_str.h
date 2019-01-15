@@ -21,82 +21,19 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __C_STR_H__
-#define __C_STR_H__
+#ifndef XMRIG_C_STR_H
+#define XMRIG_C_STR_H
 
 
-#include <string.h>
-#include <stdlib.h>
-
-#include <stdio.h>
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-/**
- * @brief Simple C string wrapper.
- *
- * 1. I know about std:string.
- * 2. For some reason I prefer don't use std:string in miner, eg because of file size of MSYS2 builds.
- */
-class c_str
-{
-public:
-    inline c_str() : m_data(nullptr)                   {}
-    inline c_str(c_str &&other)                        { m_data = other.m_data; other.m_data = nullptr; }
-    inline c_str(const c_str &other) : m_data(nullptr) { set(other.data()); }
-    inline c_str(const char *str) : m_data(nullptr)    { set(str); }
-    inline ~c_str()                                    { free(m_data); }
-
-
-    inline void set(const char *str)
-    {
-        free(m_data);
-
-        m_data = str != nullptr ? strdup(str) : nullptr;
-    }
-
-
-    inline void set(char *str)
-    {
-        free(m_data);
-
-        m_data = str;
-    }
-
-
-    inline bool isEqual(const char *str) const
-    {
-        return (m_data != nullptr && str != nullptr && strcmp(m_data, str) == 0) || (m_data == nullptr && m_data == nullptr);
-    }
-
-
-    inline bool contains(const char *str) const
-    {
-        return strstr(m_data, str) != nullptr;
-    }
-
-
-    inline bool isNull() const           { return m_data == nullptr; }
-    inline const char *data() const      { return m_data; }
-    inline size_t size() const           { return m_data == nullptr ? 0 : strlen(m_data); }
-
-
-    inline bool operator!=(const c_str &str) const { return !isEqual(str.data()); }
-    inline bool operator!=(const char *str) const  { return !isEqual(str); }
-    inline bool operator==(const c_str &str) const { return isEqual(str.data()); }
-    inline bool operator==(const char *str) const  { return isEqual(str); }
-    inline c_str &operator=(char *str)             { set(str); return *this; }
-    inline c_str &operator=(const c_str &str)      { set(str.data()); return *this; }
-    inline c_str &operator=(const char *str)       { set(str); return *this; }
-
-
-private:
-    char *m_data;
-};
+typedef String c_str;
 
 
 } /* namespace xmrig */
 
-#endif /* __C_STR_H__ */
+#endif /* XMRIG_C_STR_H */

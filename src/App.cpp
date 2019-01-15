@@ -87,6 +87,10 @@ App::~App()
 
 int App::exec()
 {
+    if (m_controller->isDone()) {
+        return 0;
+    }
+
     if (!m_controller->isReady()) {
         return 2;
     }

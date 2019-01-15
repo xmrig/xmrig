@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -322,23 +322,39 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
         m_nicehash  = true;
         bool valid  = true;
 
-        if (m_host.contains("cryptonight.") && m_port == 3355) {
-            valid = m_algorithm.algo() == CRYPTONIGHT;
+        switch (m_port) {
+        case 3355:
+        case 33355:
+            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonight.");
             m_algorithm.setVariant(VARIANT_0);
-        }
-        else if (m_host.contains("cryptonightv7.") && m_port == 3363) {
-            valid = m_algorithm.algo() == CRYPTONIGHT;
+            break;
+
+        case 3363:
+        case 33363:
+            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonightv7.");
             m_algorithm.setVariant(VARIANT_1);
-        }
-        else if (m_host.contains("cryptonightheavy.") && m_port == 3364) {
-            valid = m_algorithm.algo() == CRYPTONIGHT_HEAVY;
+            break;
+
+        case 3364:
+            valid = m_algorithm.algo() == CRYPTONIGHT_HEAVY && m_host.contains("cryptonightheavy.");
             m_algorithm.setVariant(VARIANT_0);
+            break;
+
+        case 3367:
+        case 33367:
+            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonightv8.");
+            m_algorithm.setVariant(VARIANT_2);
+            break;
+
+        default:
+            break;
         }
 
         if (!valid) {
             m_algorithm.setAlgo(INVALID_ALGO);
         }
 
+        m_tls = m_port > 33000;
         return;
     }
 
@@ -349,7 +365,7 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
 
         if (m_host.contains("xmr.pool.")) {
             valid = m_algorithm.algo() == CRYPTONIGHT;
-            m_algorithm.setVariant(m_port == 45700 ? VARIANT_2 : VARIANT_0);
+            m_algorithm.setVariant(m_port == 45700 ? VARIANT_AUTO : VARIANT_0);
         }
         else if (m_host.contains("aeon.pool.") && m_port == 45690) {
             valid = m_algorithm.algo() == CRYPTONIGHT_LITE;
@@ -396,6 +412,7 @@ void Pool::rebuild()
     addVariant(xmrig::VARIANT_2);
     addVariant(xmrig::VARIANT_1);
     addVariant(xmrig::VARIANT_0);
+    addVariant(xmrig::VARIANT_HALF);
     addVariant(xmrig::VARIANT_XTL);
     addVariant(xmrig::VARIANT_TUBE);
     addVariant(xmrig::VARIANT_MSR);

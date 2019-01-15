@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_TLS_H
-#define XMRIG_TLS_H
+#ifndef XMRIG_CLIENT_TLS_H
+#define XMRIG_CLIENT_TLS_H
 
 
 #include <openssl/ssl.h>
@@ -59,4 +59,4 @@ private:
 };
 
 
-#endif /* XMRIG_TLS_H */
+#endif /* XMRIG_CLIENT_TLS_H */

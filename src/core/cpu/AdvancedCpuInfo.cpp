@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -24,7 +25,6 @@
 #include <libcpuid.h>
 #include <math.h>
 #include <string.h>
-#include <thread>
 
 
 #include "core/cpu/AdvancedCpuInfo.h"
@@ -39,7 +39,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     m_L2(0),
     m_L3(0),
     m_sockets(1),
-    m_threads(std::thread::hardware_concurrency())
+    m_threads(0)
 {
     struct cpu_raw_data_t raw = { 0 };
     struct cpu_id_t data = { 0 };
@@ -49,6 +49,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
 
     strncpy(m_brand, data.brand_str, sizeof(m_brand));
 
+    m_threads = data.total_logical_cpus;
     m_sockets = threads() / data.num_logical_cpus;
     if (m_sockets == 0) {
         m_sockets = 1;
@@ -76,7 +77,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
         m_aes = true;
 
         if (data.vendor == VENDOR_AMD) {
-            m_assembly = ASM_RYZEN;
+            m_assembly = (data.ext_family >= 23) ? ASM_RYZEN : ASM_BULLDOZER;
         }
         else if (data.vendor == VENDOR_INTEL) {
             m_assembly = ASM_INTEL;

@@ -5,7 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@
 #include "rapidjson/filereadstream.h"
 
 
+bool xmrig::ConfigLoader::m_done                         = false;
 xmrig::ConfigWatcher *xmrig::ConfigLoader::m_watcher     = nullptr;
 xmrig::IConfigCreator *xmrig::ConfigLoader::m_creator    = nullptr;
 xmrig::IWatcherListener *xmrig::ConfigLoader::m_listener = nullptr;
@@ -283,12 +284,16 @@ void xmrig::ConfigLoader::parseJSON(xmrig::IConfig *config, const struct option 
 
 void xmrig::ConfigLoader::showUsage()
 {
+    m_done = true;
+
     printf(usage);
 }
 
 
 void xmrig::ConfigLoader::showVersion()
 {
+    m_done = true;
+
     printf(APP_NAME " " APP_VERSION "\n built on " __DATE__
 
 #   if defined(__clang__)
