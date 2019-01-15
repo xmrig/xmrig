@@ -59,6 +59,7 @@ Pool::Pool() :
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_MSR));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_XAO));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_RTO));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_HALF));
 
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_1));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_0));
