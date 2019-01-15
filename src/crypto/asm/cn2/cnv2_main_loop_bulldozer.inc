@@ -45,7 +45,7 @@
 	movq	xmm0, rcx
 	punpcklqdq xmm4, xmm0
 
-	ALIGN 16
+	ALIGN(64)
 cnv2_main_loop_bulldozer:
 	movdqa	xmm5, XMMWORD PTR [r10+rbx]
 	movq xmm6, r8

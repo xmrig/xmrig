@@ -94,7 +94,7 @@
 	lea	r9, QWORD PTR [rdx+r13]
 	movdqu	xmm15, XMMWORD PTR [r9]
 
-	ALIGN 16
+	ALIGN(64)
 main_loop_double_sandybridge:
 	movdqu	xmm9, xmm15
 	mov eax, edx

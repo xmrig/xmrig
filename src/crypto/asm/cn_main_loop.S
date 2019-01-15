@@ -1,4 +1,8 @@
-#define ALIGN .align
+#ifdef __APPLE__
+#   define ALIGN(x) .align 6
+#else
+#   define ALIGN(x) .align 64
+#endif
 .intel_syntax noprefix
 #ifdef __APPLE__
 #   define FN_PREFIX(fn) _ ## fn
@@ -12,7 +16,7 @@
 .global FN_PREFIX(cnv2_mainloop_bulldozer_asm)
 .global FN_PREFIX(cnv2_double_mainloop_sandybridge_asm)
 
-ALIGN 16
+ALIGN(64)
 FN_PREFIX(cnv2_mainloop_ivybridge_asm):
 	sub rsp, 48
 	mov rcx, rdi
@@ -24,7 +28,7 @@ FN_PREFIX(cnv2_mainloop_ivybridge_asm):
 	nop
 	nop
 
-ALIGN 16
+ALIGN(64)
 FN_PREFIX(cnv2_mainloop_ryzen_asm):
 	sub rsp, 48
 	mov rcx, rdi
@@ -36,7 +40,7 @@ FN_PREFIX(cnv2_mainloop_ryzen_asm):
 	nop
 	nop
 
-ALIGN 16
+ALIGN(64)
 FN_PREFIX(cnv2_mainloop_bulldozer_asm):
 	sub rsp, 48
 	mov rcx, rdi
@@ -48,7 +52,7 @@ FN_PREFIX(cnv2_mainloop_bulldozer_asm):
 	nop
 	nop
 
-ALIGN 16
+ALIGN(64)
 FN_PREFIX(cnv2_double_mainloop_sandybridge_asm):
 	sub rsp, 48
 	mov rcx, rdi
