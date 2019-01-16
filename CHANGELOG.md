@@ -1,3 +1,6 @@
+# v2.9.2
+- [#907](https://github.com/xmrig/xmrig/pull/907) Fixed crash on Linux.
+
 # v2.9.1
 - Restored compatibility with https://stellite.hashvault.pro.
 
