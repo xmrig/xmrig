@@ -160,7 +160,7 @@ else()
         )
 
     if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-        set(EXTRA_LIBS kvm)
+        set(EXTRA_LIBS kvm pthread)
     else()
         set(EXTRA_LIBS pthread rt dl)
     endif()

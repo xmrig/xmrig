@@ -102,5 +102,7 @@ void *Mem::allocateExecutableMemory(size_t size)
 
 void Mem::flushInstructionCache(void *p, size_t size)
 {
+#   ifndef __FreeBSD__
     __builtin___clear_cache(reinterpret_cast<char*>(p), reinterpret_cast<char*>(p) + size);
+#   endif
 }
