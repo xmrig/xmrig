@@ -66,9 +66,9 @@
     __m128i sqrt_result_xmm_##part = _mm_cvtsi64_si128(h##part[13]);
 
 #ifdef _MSC_VER
-#   define VARIANT2_SET_ROUNDING_MODE() if (VARIANT == xmrig::VARIANT_2) { _control87(RC_DOWN, MCW_RC); }
+#   define VARIANT2_SET_ROUNDING_MODE() if (BASE == xmrig::VARIANT_2) { _control87(RC_DOWN, MCW_RC); }
 #else
-#   define VARIANT2_SET_ROUNDING_MODE() if (VARIANT == xmrig::VARIANT_2) { fesetround(FE_DOWNWARD); }
+#   define VARIANT2_SET_ROUNDING_MODE() if (BASE == xmrig::VARIANT_2) { fesetround(FE_DOWNWARD); }
 #endif
 
 #   define VARIANT2_INTEGER_MATH(part, cl, cx) \

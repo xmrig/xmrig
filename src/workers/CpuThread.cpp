@@ -69,9 +69,10 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 #   endif
 
     size_t size = 0;
-    while (*(uint32_t*)(p + size) != 0x90909090) {
+    while (*(uint32_t*)(p + size) != 0xDEADC0DE) {
         ++size;
     }
+    size += sizeof(uint32_t);
 
     memcpy((void*) dst, (const void*) src, size);
 
