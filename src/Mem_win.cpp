@@ -191,6 +191,13 @@ void *Mem::allocateExecutableMemory(size_t size)
 }
 
 
+void Mem::protectExecutableMemory(void *p, size_t size)
+{
+    DWORD oldProtect;
+    VirtualProtect(p, size, PAGE_EXECUTE_READ, &oldProtect);
+}
+
+
 void Mem::flushInstructionCache(void *p, size_t size)
 {
     ::FlushInstructionCache(GetCurrentProcess(), p, size);
