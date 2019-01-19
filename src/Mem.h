@@ -61,6 +61,7 @@ public:
     static void release(cryptonight_ctx **ctx, size_t count, MemInfo &info);
 
     static void *allocateExecutableMemory(size_t size);
+    static void protectExecutableMemory(void *p, size_t size);
     static void flushInstructionCache(void *p, size_t size);
 
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
