@@ -100,6 +100,12 @@ void *Mem::allocateExecutableMemory(size_t size)
 }
 
 
+void Mem::protectExecutableMemory(void *p, size_t size)
+{
+    mprotect(p, size, PROT_READ | PROT_EXEC);
+}
+
+
 void Mem::flushInstructionCache(void *p, size_t size)
 {
 #   ifndef __FreeBSD__

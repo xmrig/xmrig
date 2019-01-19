@@ -1,3 +1,7 @@
+# v2.9.4
+- [#913](https://github.com/xmrig/xmrig/issues/913) Fixed Masari (MSR) support (this update required for upcoming fork).
+- [#915](https://github.com/xmrig/xmrig/pull/915) Improved security, JIT memory now read-only after patching.
+
 # v2.9.3
 - [#909](https://github.com/xmrig/xmrig/issues/909) Fixed compile errors on FreeBSD.
 - [#912](https://github.com/xmrig/xmrig/pull/912) Fixed, C++ implementation of `cn/half` was produce up to 13% of invalid hashes.
