@@ -141,6 +141,25 @@ double Hashrate::calc(size_t threadId, size_t ms) const
     return hashes / time;
 }
 
+uint64_t Hashrate::count() const
+{
+    uint64_t total = 0;
+    for (unsigned i = 0; i < m_threads; i++) {
+        total += count(i);
+    }
+
+    return total;
+}
+
+uint64_t Hashrate::count(size_t threadId) const
+{
+    assert(threadId < m_threads);
+    if (threadId >= m_threads) return 0;
+
+    const size_t idx = (m_top[threadId] - 1) & kBucketMask;
+    return (m_timestamps[threadId][idx] == 0) ? 0 : m_counts[threadId][idx];
+}
+
 
 void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 {
@@ -159,12 +178,13 @@ void Hashrate::print() const
     char num3[8] = { 0 };
     char num4[8] = { 0 };
 
-    LOG_INFO(m_controller->config()->isColors() ? WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s")
-                                                : "speed 10s/60s/15m %s %s %s H/s max %s H/s",
+    LOG_INFO(m_controller->config()->isColors() ? WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s") " total " CYAN_BOLD("%d")
+                : "speed 10s/60s/15m %s %s %s H/s max %s H/s total %d",
              format(calc(ShortInterval),  num1, sizeof(num1)),
              format(calc(MediumInterval), num2, sizeof(num2)),
              format(calc(LargeInterval),  num3, sizeof(num3)),
-             format(m_highest,            num4, sizeof(num4))
+             format(m_highest,            num4, sizeof(num4)),
+             count()
              );
 }
 
@@ -187,6 +207,22 @@ void Hashrate::updateHighest()
 const char *Hashrate::format(double h, char *buf, size_t size)
 {
     return ::format(h, buf, size);
+}
+
+const char *Hashrate::siFormat(uint64_t h, char *buf, size_t size)
+{
+    /*
+    char c[2];
+    char c[1] = '\0';
+    char c[0] = (h > 10**6) ?  'M' :
+                (h > 10**3) ?  'k' :
+                              '\0' ;
+
+
+    snprintf(buf, size, "%d%s", h, c);
+    return buf;
+    */
+    return buf;
 }
 
 
