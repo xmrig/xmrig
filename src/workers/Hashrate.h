@@ -68,6 +68,7 @@ private:
     double m_highest;
     size_t m_threads;
     uint32_t* m_top;
+    uint64_t* m_totals;
     uint64_t** m_counts;
     uint64_t** m_timestamps;
     uv_timer_t m_timer;

@@ -34,6 +34,19 @@
 #include "core/Controller.h"
 #include "workers/Hashrate.h"
 
+namespace {
+
+uint64_t pow10(unsigned n)
+{
+    if (n == 0) return 1;
+
+    uint64_t pow = 10;
+    for (unsigned i = 0; i < n - 1; i++) pow *= 10;
+
+    return pow;
+}
+
+} // namespace
 
 inline static const char *format(double h, char *buf, size_t size)
 {
@@ -54,11 +67,13 @@ Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     m_counts     = new uint64_t*[threads];
     m_timestamps = new uint64_t*[threads];
     m_top        = new uint32_t[threads];
+    m_totals     = new uint64_t[threads];
 
     for (size_t i = 0; i < threads; i++) {
         m_counts[i]     = new uint64_t[kBucketSize]();
         m_timestamps[i] = new uint64_t[kBucketSize]();
         m_top[i]        = 0;
+        m_totals[i]     = 0;
     }
 
     const int printTime = controller->config()->printTime();
@@ -156,13 +171,14 @@ uint64_t Hashrate::count(size_t threadId) const
     assert(threadId < m_threads);
     if (threadId >= m_threads) return 0;
 
-    const size_t idx = (m_top[threadId] - 1) & kBucketMask;
-    return (m_timestamps[threadId][idx] == 0) ? 0 : m_counts[threadId][idx];
+    return m_totals[threadId];
 }
 
 
 void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 {
+    m_totals[threadId] = count;
+
     const size_t top = m_top[threadId];
     m_counts[threadId][top]     = count;
     m_timestamps[threadId][top] = timestamp;
@@ -173,19 +189,20 @@ void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 
 void Hashrate::print() const
 {
-    char num1[8] = { 0 };
-    char num2[8] = { 0 };
-    char num3[8] = { 0 };
-    char num4[8] = { 0 };
+    char num1[8]  = { 0 };
+    char num2[8]  = { 0 };
+    char num3[8]  = { 0 };
+    char num4[8]  = { 0 };
+    char num5[64] = { 0 };
 
-    LOG_INFO(m_controller->config()->isColors() ? WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s") " total " CYAN_BOLD("%d")
+    LOG_INFO(m_controller->config()->isColors() ? WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s") " total " CYAN_BOLD("%s")
                 : "speed 10s/60s/15m %s %s %s H/s max %s H/s total %d",
              format(calc(ShortInterval),  num1, sizeof(num1)),
              format(calc(MediumInterval), num2, sizeof(num2)),
              format(calc(LargeInterval),  num3, sizeof(num3)),
              format(m_highest,            num4, sizeof(num4)),
-             count()
-             );
+             siFormat(count(),            num5, sizeof(num5))
+     );
 }
 
 
@@ -211,17 +228,33 @@ const char *Hashrate::format(double h, char *buf, size_t size)
 
 const char *Hashrate::siFormat(uint64_t h, char *buf, size_t size)
 {
-    /*
+
     char c[2];
-    char c[1] = '\0';
-    char c[0] = (h > 10**6) ?  'M' :
-                (h > 10**3) ?  'k' :
-                              '\0' ;
+    c[1] = '\0';
+    uint64_t d = 0;
+
+    if (h > pow10(9)) {
+        c[0] = 'G';
+        d = (h % pow10(9)) / pow10(6);
+        h /= pow10(9);
+    }
+    else if (h > pow10(6)) {
+        c[0] = 'M';
+        d = (h % pow10(6)) / pow10(3);
+        h /= pow10(6);
+    }
+    else if (h > pow10(3)) {
+        c[0] = 'k';
+        d = h % pow10(3);
+        h /= pow10(3);
+    }
+    else {
+        snprintf(buf, size, "%lu", h);
+        return buf;
+    }
 
 
-    snprintf(buf, size, "%d%s", h, c);
-    return buf;
-    */
+    snprintf(buf, size, "%lu.%lu%s", h, d, c);
     return buf;
 }
 
