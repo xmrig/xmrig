@@ -458,6 +458,8 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     constexpr size_t MEM          = xmrig::cn_select_memory<ALGO>();
     constexpr xmrig::Variant BASE = xmrig::cn_base_variant<VARIANT>();
 
+    static_assert(MASK > 0 && ITERATIONS > 0 && MEM > 0, "unsupported algorithm/variant");
+
     if (BASE == xmrig::VARIANT_1 && size < 43) {
         memset(output, 0, 32);
         return;
