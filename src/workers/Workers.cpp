@@ -346,16 +346,16 @@ void Workers::start(IWorker *worker)
 
     if (m_status.started == m_status.threads) {
         const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
-        const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1048576;
+        const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1024;
 
         if (m_status.colors) {
-            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu.0 MB") "",
+            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
                      m_status.threads, m_status.ways,
                      (m_status.hugePages == m_status.pages ? "\x1B[1;32m" : (m_status.hugePages == 0 ? "\x1B[1;31m" : "\x1B[1;33m")),
                      m_status.hugePages, m_status.pages, percent, memory);
         }
         else {
-            LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %1.0f%% memory %zu.0 MB",
+            LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %1.0f%% memory %zu KB",
                      m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, memory);
         }
     }

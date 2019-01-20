@@ -19,7 +19,7 @@
     "huge-pages": true,
     "hw-aes": null,
     "log-file": null,
-    "max-cpu-usage": 75,
+    "max-cpu-usage": 100,
     "pools": [
         {
             "url": "donate.v2.xmrig.com:3333",

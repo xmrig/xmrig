@@ -34,7 +34,6 @@ bool Mem::m_enabled = true;
 int Mem::m_flags    = 0;
 
 
-
 MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
 {
     using namespace xmrig;
@@ -43,7 +42,15 @@ MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
     info.size = cn_select_memory(algorithm) * count;
 
 #   ifndef XMRIG_NO_AEON
-    info.size += info.size % cn_select_memory<CRYPTONIGHT>();
+    if (algorithm == xmrig::CRYPTONIGHT_LITE) {
+        info.size += info.size % cn_select_memory<CRYPTONIGHT>();
+    }
+#   endif
+
+#   ifndef XMRIG_NO_CN_PICO
+    if (algorithm == xmrig::CRYPTONIGHT_PICO) {
+        info.size = cn_select_memory<CRYPTONIGHT>();
+    }
 #   endif
 
     info.pages = info.size / cn_select_memory<CRYPTONIGHT>();
