@@ -48,6 +48,7 @@ public:
     double calc(size_t threadId, size_t ms) const;
     uint64_t count() const;
     uint64_t count(size_t threadId) const;
+    uint64_t elapsed() const;
     void add(size_t threadId, uint64_t count, uint64_t timestamp);
     void print() const;
     void stop();
@@ -57,7 +58,8 @@ public:
     inline size_t threads() const { return m_threads; }
 
     static const char *format(double h, char *buf, size_t size);
-    static const char *siFormat(uint64_t h, char *buf, size_t size);
+    static const char *siFormat(uint64_t h, char *buf, size_t size, bool color=false);
+    static const char *timeFormat(uint64_t t, char *buf, size_t size, bool color=false);
 
 private:
     static void onReport(uv_timer_t *handle);
@@ -73,6 +75,7 @@ private:
     uint64_t** m_timestamps;
     uv_timer_t m_timer;
     xmrig::Controller *m_controller;
+    time_t m_start_time;
 };
 
 
