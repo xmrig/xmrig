@@ -234,6 +234,10 @@ void xmrig::Algorithm::parseVariant(int variant)
 void xmrig::Algorithm::setAlgo(Algo algo)
 {
     m_algo = algo;
+
+    if (m_algo == CRYPTONIGHT_PICO && m_variant == VARIANT_AUTO) {
+        m_variant = xmrig::VARIANT_TRTL;
+    }
 }
 
 
