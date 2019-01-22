@@ -63,7 +63,7 @@ public:
   State(size_t hashMultiplier)
   {
       nonces = new uint32_t[hashMultiplier];
-      blob = new uint8_t[84 * hashMultiplier];
+      blob = new uint8_t[MAX_BLOB_SIZE * hashMultiplier];
 
       for(size_t i=0; i<hashMultiplier; ++i) {
           nonces[i] = 0;

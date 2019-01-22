@@ -15,7 +15,7 @@
 	mov	rax, QWORD PTR [rcx+48]
 	mov	r9, rcx
 	xor	rax, QWORD PTR [rcx+16]
-	mov	ebp, 262144
+	mov	ebp, ${ITERATIONS}
 	mov	r8, QWORD PTR [rcx+32]
 	xor	r8, QWORD PTR [rcx]
 	mov	r11, QWORD PTR [rcx+40]
@@ -31,7 +31,7 @@
 	mov	rcx, QWORD PTR [rcx+88]
 	xor	rcx, QWORD PTR [r9+72]
 	mov	rdi, QWORD PTR [r9+104]
-	and	r10d, 2097136
+	and	r10d, ${MASK}
 	movaps	XMMWORD PTR [rsp+48], xmm6
 	movq	xmm4, rax
 	movaps	XMMWORD PTR [rsp+32], xmm7
@@ -46,7 +46,7 @@
 	punpcklqdq xmm4, xmm0
 
     ALIGN 64
-$main_loop_fast2_ryzen:
+cnv2_main_loop_${ALGO}_ryzen:
 	movdqa	xmm5, XMMWORD PTR [r10+rbx]
 	movq	xmm0, r11
 	movq	xmm6, r8
@@ -78,7 +78,7 @@ $main_loop_fast2_ryzen:
 	movdqa	xmm0, xmm5
 	pxor	xmm0, xmm3
 	mov	r10, r14
-	and	r10d, 2097136
+	and	r10d, ${MASK}
 	movdqa	XMMWORD PTR [rdx], xmm0
 	xor	rsi, QWORD PTR [r10+rbx]
 	lea	r12, QWORD PTR [r10+rbx]
@@ -103,10 +103,10 @@ $main_loop_fast2_ryzen:
 	sqrtsd	xmm1, xmm0
 	movq	rdi, xmm1
 	test	rdi, 524287
-	je	$sqrt_fixup_fast2_ryzen
+	je	sqrt_fixup_${ALGO}_ryzen
 	shr	rdi, 19
 
-$sqrt_fixup_fast2_ryzen_ret:
+sqrt_fixup_${ALGO}_ryzen_ret:
 	mov	rax, rsi
 	mul	r14
 	movq xmm1, rax
@@ -138,10 +138,10 @@ $sqrt_fixup_fast2_ryzen_ret:
 	mov	QWORD PTR [r12+8], r11
 	mov	r10, r8
 	xor	r11, r13
-	and	r10d, 2097136
+	and	r10d, ${MASK}
 	movdqa	xmm3, xmm5
 	dec	ebp
-	jne	$main_loop_fast2_ryzen
+	jne	cnv2_main_loop_${ALGO}_ryzen
 
 	ldmxcsr DWORD PTR [rsp]
 	movaps	xmm6, XMMWORD PTR [rsp+48]
@@ -157,9 +157,9 @@ $sqrt_fixup_fast2_ryzen_ret:
 	pop	r13
 	pop	r12
 	pop	rdi
-	jmp $cnv2_main_loop_fast2_ryzen_endp
+	jmp cnv2_main_loop_${ALGO}_ryzen_endp
 
-$sqrt_fixup_fast2_ryzen:
+sqrt_fixup_${ALGO}_ryzen:
 	movq r9, xmm2
 	dec	rdi
 	mov edx, -1022
@@ -174,6 +174,6 @@ $sqrt_fixup_fast2_ryzen:
 	imul	rcx, rax
 	sub	rcx, r9
 	adc	rdi, 0
-	jmp	$sqrt_fixup_fast2_ryzen_ret
+	jmp	sqrt_fixup_${ALGO}_ryzen_ret
 
-$cnv2_main_loop_fast2_ryzen_endp:
+cnv2_main_loop_${ALGO}_ryzen_endp:

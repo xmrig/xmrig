@@ -15,7 +15,7 @@
 	mov	 rax, QWORD PTR [rcx+48]
 	mov	 r9, rcx
 	xor	 rax, QWORD PTR [rcx+16]
-	mov	 esi, 524288
+	mov	 esi, ${ITERATIONS}
 	mov	 r8, QWORD PTR [rcx+32]
 	mov	 r13d, -2147483647
 	xor	 r8, QWORD PTR [rcx]
@@ -35,7 +35,7 @@
 	movaps	 XMMWORD PTR [rsp+64], xmm6
 	movaps	 XMMWORD PTR [rsp+48], xmm7
 	movaps	 XMMWORD PTR [rsp+32], xmm8
-	and	 r10d, 2097136
+	and	 r10d, ${MASK}
 	movq	 xmm5, rax
 
 	mov ax, 1023
@@ -52,7 +52,7 @@
         #else
         ALIGN 64
         #endif
-$main_loop_ivybridge:
+cnv2_main_loop_${ALGO}_ivybridge:
 	lea	 rdx, QWORD PTR [r10+rbx]
 	mov	 ecx, r10d
 	mov	 eax, r10d
@@ -66,7 +66,7 @@ $main_loop_ivybridge:
 	aesenc	 xmm6, xmm7
 	movq	 rbp, xmm6
 	mov	 r9, rbp
-	and	 r9d, 2097136
+	and	 r9d, ${MASK}
 	movdqu	 xmm2, XMMWORD PTR [rcx+rbx]
 	movdqu	 xmm1, XMMWORD PTR [rax+rbx]
 	movdqu	 xmm0, XMMWORD PTR [r10+rbx]
@@ -109,9 +109,9 @@ $main_loop_ivybridge:
 	sqrtsd	 xmm3, xmm0
 	movq	 rdx, xmm3
 	test	 edx, 524287
-	je	 $sqrt_fixup_ivybridge
+	je	 sqrt_fixup_${ALGO}_ivybridge
 	psrlq	 xmm3, 19
-$sqrt_fixup_ivybridge_ret:
+sqrt_fixup_${ALGO}_ivybridge_ret:
 
 	mov	 ecx, r10d
 	mov	 rax, rdi
@@ -122,7 +122,7 @@ $sqrt_fixup_ivybridge_ret:
 	mov	 QWORD PTR [r14], r8
 	xor	 r8, rdi
 	mov edi, r8d
-	and edi, 2097136
+	and edi, ${MASK}
 	movq xmm0, rax
 	xor rax, [rcx+rbx+8]
 	add	 r11, rax
@@ -147,7 +147,7 @@ $sqrt_fixup_ivybridge_ret:
 	mov	 r10d, edi
 	xor	 r11, r12
 	dec rsi
-	jne	 $main_loop_ivybridge
+	jne	 cnv2_main_loop_${ALGO}_ivybridge
 
 	ldmxcsr DWORD PTR [rsp]
 	mov	 rbx, QWORD PTR [rsp+160]
@@ -162,9 +162,9 @@ $sqrt_fixup_ivybridge_ret:
 	pop	 rdi
 	pop	 rsi
 	pop	 rbp
-	jmp $cnv2_main_loop_ivybridge_endp
+	jmp cnv2_main_loop_${ALGO}_ivybridge_endp
 
-$sqrt_fixup_ivybridge:
+sqrt_fixup_${ALGO}_ivybridge:
 	dec	 rdx
 	mov r13d, -1022
 	shl r13, 32
@@ -181,6 +181,6 @@ $sqrt_fixup_ivybridge:
 	sub	 rcx, r9
 	adc	 rdx, 0
 	movq	 xmm3, rdx
-	jmp	 $sqrt_fixup_ivybridge_ret
+	jmp	 sqrt_fixup_${ALGO}_ivybridge_ret
 
-$cnv2_main_loop_ivybridge_endp:
+cnv2_main_loop_${ALGO}_ivybridge_endp:

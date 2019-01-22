@@ -1430,74 +1430,72 @@ public:
 
     // single
     inline static void hashPowV3(const uint8_t* __restrict__ input,
-                            size_t size,
-                            uint8_t* __restrict__ output,
-                            ScratchPad** __restrict__ scratchPad)
+                                 size_t size,
+                                 uint8_t* __restrict__ output,
+                                 ScratchPad** __restrict__ scratchPad)
     {
-        const uint8_t* l;
-        uint64_t* h;
-        uint64_t al;
-        uint64_t ah;
-        uint64_t idx;
-        __m128i bx0;
-        __m128i bx1;
+        keccak(input, (int) size, scratchPad[0]->state, 200);
 
-        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
 
-        l = scratchPad[0]->memory;
-        h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
 
-        cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
+        uint64_t al0 = h0[0] ^h0[4];
+        uint64_t ah0 = h0[1] ^h0[5];
 
-        al = h[0] ^ h[4];
-        ah = h[1] ^ h[5];
-        bx0 = _mm_set_epi64x(h[3] ^ h[7], h[2] ^ h[6]);
-        bx1 = _mm_set_epi64x(h[9] ^ h[11], h[8] ^ h[10]);
-        idx = h[0] ^ h[4];
+        __m128i bx00 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
+        __m128i bx10 = _mm_set_epi64x(h0[9] ^ h0[11], h0[8] ^ h0[10]);
 
-        uint64_t division_result_xmm0 = h[12];
-        uint64_t sqrt_result0 =  h[13];
+        uint64_t idx0 = h0[0] ^h0[4];
+        uint64_t division_result_xmm0 = h0[12];
+        uint64_t sqrt_result0 =  h0[13];
 
         for (size_t i = 0; i < ITERATIONS; i++) {
-            const __m128i ax = _mm_set_epi64x(ah, al);
+            __m128i cx0;
+            const __m128i ax0 = _mm_set_epi64x(ah0, al0);
 
-            __m128i cx;
             if (SOFT_AES) {
-                cx = soft_aesenc((uint32_t*) &l[idx & MASK], ax);
+                cx0 = soft_aesenc((uint32_t*) &l0[idx0 & MASK], ax0);
             } else {
-                cx = _mm_load_si128((__m128i*) &l[idx & MASK]);
-                cx = _mm_aesenc_si128(cx, ax);
+                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
             }
 
-            SHUFFLE_PHASE_1(l, (idx&MASK), bx0, bx1, ax)
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
 
-            _mm_store_si128((__m128i*) &l[idx & MASK], _mm_xor_si128(bx0, cx));
+            _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
+
+            idx0 = EXTRACT64(cx0);
 
             uint64_t hi, lo, cl, ch;
-            cl = ((uint64_t*) &l[idx & MASK])[0];
-            ch = ((uint64_t*) &l[idx & MASK])[1];
+            cl = ((uint64_t*) &l0[idx0 & MASK])[0];
+            ch = ((uint64_t*) &l0[idx0 & MASK])[1];
 
-            INTEGER_MATH_V2(0, cl, cx)
+            INTEGER_MATH_V2(0, cl, cx0);
 
-            lo = __umul128(idx, cl, &hi);
+            lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l, (idx&MASK), bx0, bx1, ax, lo, hi)
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi);
 
-            al += hi;
-            ah += lo;
+            al0 += hi;
+            ah0 += lo;
 
-            ((uint64_t*) &l[idx & MASK])[0] = al;
-            ((uint64_t*) &l[idx & MASK])[1] = ah;
+            ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
+            ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
 
-            ah ^= ch;
-            al ^= cl;
-            idx = al;
+            ah0 ^= ch;
+            al0 ^= cl;
+            idx0 = al0;
 
-            bx0 = cx;
+            bx10 = bx00;
+            bx00 = cx0;
         }
 
-        cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
-        keccakf(h, 24);
+        cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
+
+        keccakf(h0, 24);
+
         extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
 
@@ -2016,9 +2014,9 @@ public:
 
     // double
     inline static void hashPowV3(const uint8_t* __restrict__ input,
-                            size_t size,
-                            uint8_t* __restrict__ output,
-                            ScratchPad** __restrict__ scratchPad)
+                                 size_t size,
+                                 uint8_t* __restrict__ output,
+                                 ScratchPad** __restrict__ scratchPad)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -2037,9 +2035,9 @@ public:
         uint64_t ah1 = h1[1] ^h1[5];
 
         __m128i bx00 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
-        __m128i bx10 = _mm_set_epi64x(h0[9] ^ h0[11], h0[8] ^ h0[10]);
-
         __m128i bx01 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
+
+        __m128i bx10 = _mm_set_epi64x(h0[9] ^ h0[11], h0[8] ^ h0[10]);
         __m128i bx11 = _mm_set_epi64x(h1[9] ^ h1[11], h1[8] ^ h1[10]);
 
         uint64_t idx0 = h0[0] ^h0[4];
@@ -2048,15 +2046,16 @@ public:
         uint64_t division_result_xmm0 = h0[12];
         uint64_t division_result_xmm1 = h1[12];
 
-        uint64_t sqrt_result0 = h0[13];
-        uint64_t sqrt_result1 = h1[13];
+        uint64_t sqrt_result0 =  h0[13];
+        uint64_t sqrt_result1 =  h1[13];
 
         for (size_t i = 0; i < ITERATIONS; i++) {
+            __m128i cx0;
+            __m128i cx1;
+
             const __m128i ax0 = _mm_set_epi64x(ah0, al0);
             const __m128i ax1 = _mm_set_epi64x(ah1, al1);
 
-            __m128i cx0;
-            __m128i cx1;
             if (SOFT_AES) {
                 cx0 = soft_aesenc((uint32_t*) &l0[idx0 & MASK], ax0);
                 cx1 = soft_aesenc((uint32_t*) &l1[idx1 & MASK], ax1);
@@ -2064,8 +2063,8 @@ public:
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
                 cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
 
-                cx0 = _mm_aesenc_si128(cx0, ax0);
-                cx1 = _mm_aesenc_si128(cx1, ax1);
+                cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
+                cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
             }
 
             SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
@@ -2076,9 +2075,6 @@ public:
 
             idx0 = EXTRACT64(cx0);
             idx1 = EXTRACT64(cx1);
-
-            _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
-            _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
 
             uint64_t hi, lo, cl, ch;
             cl = ((uint64_t*) &l0[idx0 & MASK])[0];
@@ -2102,6 +2098,7 @@ public:
 
             bx10 = bx00;
             bx00 = cx0;
+
 
             cl = ((uint64_t*) &l1[idx1 & MASK])[0];
             ch = ((uint64_t*) &l1[idx1 & MASK])[1];

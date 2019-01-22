@@ -29,6 +29,8 @@
 #define MAX_NUM_HASH_BLOCKS 5
 #endif
 
+#define MAX_BLOB_SIZE 128
+
 #include <cstdint>
 #include <vector>
 

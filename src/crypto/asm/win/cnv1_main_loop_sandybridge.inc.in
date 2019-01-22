@@ -5,7 +5,7 @@
 	push	r14
 	push	r15
 	mov	rax, QWORD PTR [rcx+48]
-	mov	ebp, 262144
+	mov	ebp, ${ITERATIONS}
 	xor	rax, QWORD PTR [rcx+16]
 	mov	rdx, QWORD PTR [rcx+56]
 	xor	rdx, QWORD PTR [rcx+24]
@@ -18,7 +18,7 @@
 	xor	rdi, QWORD PTR [rcx+8]
 	mov	rdx, r8
 	mov	r15, QWORD PTR [rcx+264]
-	and	edx, 2097136
+	and	edx, ${MASK}
 	mov	r14, QWORD PTR [rax+35]
 	xor	r14, QWORD PTR [rcx+192]
 	mov	rsi, QWORD PTR [rcx+224]
@@ -26,14 +26,14 @@
 	movdqu	xmm2, XMMWORD PTR [rdx+rsi]
 
 	ALIGN 64
-cn_fast_mainloop_sandybridge:
+cnv1_main_loop_${ALGO}_sandybridge:
 	movq	xmm0, rdi
 	movq	xmm1, r8
 	punpcklqdq xmm1, xmm0
 	aesenc	xmm2, xmm1
 	movq r10, xmm2
 	mov r9d, r10d
-	and r9d, 2097136
+	and r9d, ${MASK}
 	add r9, rsi
 	movdqa	xmm0, xmm2
 	pxor	xmm0, xmm3
@@ -56,11 +56,11 @@ cn_fast_mainloop_sandybridge:
 	mov	QWORD PTR [r9+8], rax
 	xor	r8, rbx
 	mov	rdx, r8
-	and	edx, 2097136
+	and	edx, ${MASK}
 	movdqu	xmm2, XMMWORD PTR [rdx+rsi]
 	xor	rdi, r11
 	dec	ebp
-	jne	cn_fast_mainloop_sandybridge
+	jne	cnv1_main_loop_${ALGO}_sandybridge
 
 	mov	rbx, QWORD PTR [rsp+24]
 	mov	rbp, QWORD PTR [rsp+32]

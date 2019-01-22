@@ -47,7 +47,7 @@
 
 	mov	rax, r8
 	punpcklqdq xmm4, xmm0
-	and	eax, 2097136
+	and	eax, ${MASK}
 	movq	xmm10, QWORD PTR [r10+96]
 	movq	xmm0, rcx
 	mov	rcx, QWORD PTR [r10+104]
@@ -57,10 +57,14 @@
 	mov	QWORD PTR [rsp+240], r9
 	punpcklqdq xmm5, xmm0
 	movq xmm13, rcx
-	mov r12d, 262144
+	mov r12d, ${ITERATIONS}
 
-	ALIGN 64
-cnv2_mainloop_soft_aes_fast2_sandybridge:
+        #ifdef __APPLE__
+        ALIGN 16
+        #else
+        ALIGN 64
+        #endif
+cnv2_main_loop_${ALGO}_soft_aes_sandybridge:
 	movd xmm11, r12d
 	mov	r12, QWORD PTR [r10+272]
 	lea	r13, QWORD PTR [rax+r11]
@@ -148,7 +152,7 @@ cnv2_mainloop_soft_aes_fast2_sandybridge:
 	movdqu	XMMWORD PTR [rdx+r11], xmm1
 	movq	rdi, xmm6
 	mov	r10, rdi
-	and	r10d, 2097136
+	and	r10d, ${MASK}
 	xor	edx, edx
 	mov	rax, rcx
 	shl	rax, 32
@@ -181,9 +185,9 @@ cnv2_mainloop_soft_aes_fast2_sandybridge:
 	sqrtsd	xmm1, xmm0
 	movq	rdx, xmm1
 	test	rdx, 524287
-	je	sqrt_fixup_soft_aes_fast2_sandybridge
+	je	sqrt_fixup_${ALGO}_soft_aes_sandybridge
 	psrlq xmm1, 19
-sqrt_fixup_soft_aes_fast2_sandybridge_ret:
+sqrt_fixup_${ALGO}_soft_aes_sandybridge_ret:
 
 	mov	r9, r10
 	movdqa	xmm13, xmm1
@@ -219,12 +223,12 @@ sqrt_fixup_soft_aes_fast2_sandybridge_ret:
 	xor	r8, rbx
 	mov	rax, r8
 	mov	QWORD PTR [r14+8], r9
-	and	eax, 2097136
+	and	eax, ${MASK}
 	xor	r9, rbp
 	mov	QWORD PTR [rsp+240], r9
 	mov	QWORD PTR [rsp+248], rax
 	sub	r12d, 1
-	jne	cnv2_mainloop_soft_aes_fast2_sandybridge
+	jne	cnv2_main_loop_${ALGO}_soft_aes_sandybridge
 
 	ldmxcsr DWORD PTR [rsp+4]
 	movaps	xmm6, XMMWORD PTR [rsp+16]
@@ -245,9 +249,9 @@ sqrt_fixup_soft_aes_fast2_sandybridge_ret:
 	pop	rsi
 	pop	rbp
 	pop	rbx
-	jmp cnv2_mainloop_soft_aes_fast2_sandybridge_asm_endp
+	jmp cnv2_main_loop_${ALGO}_soft_aes_sandybridge_endp
 
-sqrt_fixup_soft_aes_fast2_sandybridge:
+sqrt_fixup_${ALGO}_soft_aes_sandybridge:
 	dec	rdx
 	mov r15d, -1022
 	shl r15, 32
@@ -262,6 +266,6 @@ sqrt_fixup_soft_aes_fast2_sandybridge:
 	sub	rcx, r9
 	adc	rdx, 0
 	movq xmm1, rdx
-	jmp	sqrt_fixup_soft_aes_fast2_sandybridge_ret
+	jmp	sqrt_fixup_${ALGO}_soft_aes_sandybridge_ret
 
-cnv2_mainloop_soft_aes_fast2_sandybridge_asm_endp:
+cnv2_main_loop_${ALGO}_soft_aes_sandybridge_endp:

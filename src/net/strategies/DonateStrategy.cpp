@@ -81,6 +81,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     m_client->setUrl(url);
     m_client->setRetryPause(Options::i()->retryPause() * 1000);
     m_client->setQuiet(true);
+    m_client->setDonate(true);
 
     delete url;
 

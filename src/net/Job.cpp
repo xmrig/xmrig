@@ -150,9 +150,9 @@ PowVariant Job::powVariant() const
         } else {
             return PowVariant::POW_V0;
         }
-    } else if (m_powVariant == PowVariant::POW_XTL) {
-        if (m_blob[0] > 5) {
-            return PowVariant::POW_XTL_V9;
+    } else if (m_powVariant == PowVariant::POW_MSR) {
+        if (m_blob[0] > 8) {
+            return PowVariant::POW_FAST_2;
         }
     }
 

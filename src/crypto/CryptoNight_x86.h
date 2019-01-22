@@ -50,29 +50,34 @@ extern "C"
 #include "crypto/c_skein.h"
 
 #ifndef XMRIG_NO_ASM
-    void cnv1_mainloop_sandybridge_asm(ScratchPad* ctx0);
-    void cn_litev1_mainloop_sandybridge_asm(ScratchPad* ctx0);
-    void cn_fast_mainloop_sandybridge_asm(ScratchPad* ctx0);
-    void cnv2_mainloop_ivybridge_asm(ScratchPad* ctx0);
-    void cnv2_mainloop_ryzen_asm(ScratchPad* ctx0);
-    void cnv2_mainloop_bulldozer_asm(ScratchPad* ctx0);
-    void cnv2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
-    void cn_fastv2_mainloop_ivybridge_asm(ScratchPad* ctx0);
-    void cn_fastv2_mainloop_ryzen_asm(ScratchPad* ctx0);
-    void cn_fastv2_mainloop_bulldozer_asm(ScratchPad* ctx0);
-    void cn_fastv2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
-    void cn_liteupx_mainloop_sandybridge_asm(ScratchPad* ctx0);
-    void cn_ultralitev2_mainloop_ivybridge_asm(ScratchPad* ctx0);
-    void cn_ultralitev2_mainloop_ryzen_asm(ScratchPad* ctx0);
-    void cn_ultralitev2_mainloop_bulldozer_asm(ScratchPad* ctx0);
-    void cn_ultralitev2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
-    void cnv1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
-    void cn_fast_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
-    void cn_litev1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
-    void cnv2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
-    void cn_fastv2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
-    void cn_liteupx_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
-    void cn_ultralitev2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx);
+    void cnv1_main_loop_sandybridge_asm(ScratchPad* ctx0);
+    void cnv1_main_loop_lite_sandybridge_asm(ScratchPad* ctx0);
+    void cnv1_main_loop_fast_sandybridge_asm(ScratchPad* ctx0);
+    void cnv1_main_loop_upx_sandybridge_asm(ScratchPad* ctx0);
+
+    void cnv2_main_loop_ivybridge_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_ryzen_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_bulldozer_asm(ScratchPad* ctx0);
+    void cnv2_double_main_loop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
+
+    void cnv2_main_loop_fastv2_ivybridge_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_fastv2_ryzen_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_fastv2_bulldozer_asm(ScratchPad* ctx0);
+    void cnv2_double_main_loop_fastv2_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
+
+    void cnv2_main_loop_ultralite_ivybridge_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_ultralite_ryzen_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_ultralite_bulldozer_asm(ScratchPad* ctx0);
+    void cnv2_double_main_loop_ultralite_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
+
+    void cnv1_main_loop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cnv1_main_loop_lite_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cnv1_main_loop_fast_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cnv1_main_loop_upx_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+
+    void cnv2_main_loop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_fastv2_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_ultralite_soft_aes_sandybridge_asm(ScratchPad* ctx);
 #endif
 }
 
@@ -1437,28 +1442,28 @@ public:
         if (SOFT_AES) {
             scratchPad[0]->t_fn = (const uint32_t*)saes_table;
 
-            if (ITERATIONS == 0x80000) {
-                cnv1_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
-            } else if (ITERATIONS == 0x40000) {
+            if (ITERATIONS == 0x40000) {
                 if (MASK == 0x1FFFF0) {
-                    cn_fast_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+                    cnv1_main_loop_fast_soft_aes_sandybridge_asm(scratchPad[0]);
                 } else {
-                    cn_litev1_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+                    cnv1_main_loop_lite_soft_aes_sandybridge_asm(scratchPad[0]);
                 }
+            } else if (ITERATIONS == 0x20000) {
+                cnv1_main_loop_upx_soft_aes_sandybridge_asm(scratchPad[0]);
             } else {
-                cn_liteupx_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+                cnv1_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
             }
         } else {
-            if (ITERATIONS == 0x80000) {
-                cnv1_mainloop_sandybridge_asm(scratchPad[0]);
-            } else if (ITERATIONS == 0x40000) {
+            if (ITERATIONS == 0x40000) {
                 if (MASK == 0x1FFFF0) {
-                    cn_fast_mainloop_sandybridge_asm(scratchPad[0]);
+                    cnv1_main_loop_fast_sandybridge_asm(scratchPad[0]);
                 } else {
-                    cn_litev1_mainloop_sandybridge_asm(scratchPad[0]);
+                    cnv1_main_loop_lite_sandybridge_asm(scratchPad[0]);
                 }
+            } else if (ITERATIONS == 0x20000) {
+                cnv1_main_loop_upx_sandybridge_asm(scratchPad[0]);
             } else {
-                cn_liteupx_mainloop_sandybridge_asm(scratchPad[0]);
+                cnv1_main_loop_sandybridge_asm(scratchPad[0]);
             }
         }
 #endif
@@ -1560,36 +1565,36 @@ public:
                 scratchPad[0]->input = input;
                 scratchPad[0]->t_fn = (const uint32_t*)saes_table;
                 if (ITERATIONS == 0x40000) {
-                    cn_fastv2_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+                    cnv2_main_loop_fastv2_soft_aes_sandybridge_asm(scratchPad[0]);
                 } else if (ITERATIONS == 0x10000) {
-                    cn_ultralitev2_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+                    cnv2_main_loop_ultralite_soft_aes_sandybridge_asm(scratchPad[0]);
                 } else {
-                    cnv2_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+                    cnv2_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
                 }
             } else {
-                if (ITERATIONS == 0x10000) {
-                    cn_ultralitev2_mainloop_ivybridge_asm(scratchPad[0]);
-                } else if (ITERATIONS == 0x40000) {
-                    cn_fastv2_mainloop_ivybridge_asm(scratchPad[0]);
+                if (ITERATIONS == 0x40000) {
+                    cnv2_main_loop_fastv2_ivybridge_asm(scratchPad[0]);
+                } else if (ITERATIONS == 0x10000) {
+                    cnv2_main_loop_ultralite_ivybridge_asm(scratchPad[0]);
                 } else {
-                    cnv2_mainloop_ivybridge_asm(scratchPad[0]);
+                    cnv2_main_loop_ivybridge_asm(scratchPad[0]);
                 }
             }
         } else if (asmOptimization == AsmOptimization::ASM_RYZEN) {
-            if (ITERATIONS == 0x10000) {
-                cn_ultralitev2_mainloop_ryzen_asm(scratchPad[0]);
-            } else if (ITERATIONS == 0x40000) {
-                cn_fastv2_mainloop_ryzen_asm(scratchPad[0]);
+            if (ITERATIONS == 0x40000) {
+                cnv2_main_loop_fastv2_ryzen_asm(scratchPad[0]);
+            } else if (ITERATIONS == 0x10000) {
+                cnv2_main_loop_ultralite_ryzen_asm(scratchPad[0]);
             } else {
-                cnv2_mainloop_ryzen_asm(scratchPad[0]);
+                cnv2_main_loop_ryzen_asm(scratchPad[0]);
             }
         } else if (asmOptimization == AsmOptimization::ASM_BULLDOZER) {
-            if (ITERATIONS == 0x10000) {
-                cn_ultralitev2_mainloop_bulldozer_asm(scratchPad[0]);
-            } else if (ITERATIONS == 0x40000) {
-                cn_fastv2_mainloop_bulldozer_asm(scratchPad[0]);
+            if (ITERATIONS == 0x40000) {
+                cnv2_main_loop_fastv2_bulldozer_asm(scratchPad[0]);
+            } else if (ITERATIONS == 0x10000) {
+                cnv2_main_loop_ultralite_bulldozer_asm(scratchPad[0]);
             } else {
-                cnv2_mainloop_bulldozer_asm(scratchPad[0]);
+                cnv2_main_loop_bulldozer_asm(scratchPad[0]);
             }
         }
 #endif
@@ -2306,12 +2311,12 @@ public:
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
 
 #ifndef XMRIG_NO_ASM
-        if (ITERATIONS == 0x10000) {
-            cn_ultralitev2_double_mainloop_sandybridge_asm(scratchPad[0], scratchPad[1]);
-        } else if (ITERATIONS == 0x40000) {
-            cn_fastv2_double_mainloop_sandybridge_asm(scratchPad[0], scratchPad[1]);
+        if (ITERATIONS == 0x40000) {
+            cnv2_double_main_loop_fastv2_sandybridge_asm(scratchPad[0], scratchPad[1]);
+        } else if (ITERATIONS == 0x10000) {
+            cnv2_double_main_loop_ultralite_sandybridge_asm(scratchPad[0], scratchPad[1]);
         } else {
-            cnv2_double_mainloop_sandybridge_asm(scratchPad[0], scratchPad[1]);
+            cnv2_double_main_loop_sandybridge_asm(scratchPad[0], scratchPad[1]);
         }
 #endif
 

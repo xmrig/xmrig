@@ -18,7 +18,7 @@
 	mov	r10, QWORD PTR [rcx+32]
 	mov	r8, rcx
 	xor	r10, QWORD PTR [rcx]
-	mov	r14d, 524288
+	mov	r14d, ${ITERATIONS}
 	mov	r11, QWORD PTR [rcx+40]
 	xor	r11, QWORD PTR [rcx+8]
 	mov	rsi, QWORD PTR [rdx+224]
@@ -41,7 +41,7 @@
 	movaps	XMMWORD PTR [rsp+16], xmm15
 	mov	rdx, r10
 	movq	xmm4, QWORD PTR [r8+96]
-	and	edx, 2097136
+	and	edx, ${MASK}
 	mov	rax, QWORD PTR [rcx+48]
 	xorps	xmm13, xmm13
 	xor	rax, QWORD PTR [rcx+16]
@@ -83,7 +83,7 @@
 	mov	rcx, rdi
 	mov	QWORD PTR [rsp+264], r11
 	movq	xmm8, rax
-	and	ecx, 2097136
+	and	ecx, ${MASK}
 	punpcklqdq xmm8, xmm0
 	movq	xmm0, QWORD PTR [r9+96]
 	punpcklqdq xmm4, xmm0
@@ -94,12 +94,8 @@
 	lea	r9, QWORD PTR [rdx+r13]
 	movdqu	xmm15, XMMWORD PTR [r9]
 
-	#ifdef __APPLE__
-        ALIGN 16
-        #else
-        ALIGN 64
-        #endif
-main_loop_double_sandybridge:
+    ALIGN 64
+cnv2_double_main_loop_${ALGO}_sandybridge:
 	movdqu	xmm9, xmm15
 	mov eax, edx
 	mov ebx, edx
@@ -124,7 +120,7 @@ main_loop_double_sandybridge:
 
 	movq	r11, xmm9
 	mov	edx, r11d
-	and	edx, 2097136
+	and	edx, ${MASK}
 	movdqa	xmm0, xmm9
 	pxor	xmm0, xmm7
 	movdqu	XMMWORD PTR [r9], xmm0
@@ -155,7 +151,7 @@ main_loop_double_sandybridge:
 	movdqu	XMMWORD PTR [rax+rsi], xmm0
 
 	movq	rcx, xmm10
-	and	ecx, 2097136
+	and	ecx, ${MASK}
 
 	movdqa	xmm0, xmm10
 	pxor	xmm0, xmm6
@@ -203,7 +199,7 @@ main_loop_double_sandybridge:
 	mov	QWORD PTR [rbx+8], rdx
 	xor	rdx, r9
 	mov	QWORD PTR [rsp+256], r11
-	and	r11d, 2097136
+	and	r11d, ${MASK}
 	mov	QWORD PTR [rsp+264], rdx
 	mov	QWORD PTR [rsp+8], r11
 	lea	r15, QWORD PTR [r11+r13]
@@ -253,8 +249,8 @@ main_loop_double_sandybridge:
 	mov	rbx, rax
 	imul	rax, rdx
 	sub	r11, rax
-	js	div_fix_1_sandybridge
-div_fix_1_ret_sandybridge:
+	js	div_fix_1_${ALGO}_sandybridge
+div_fix_1_ret_${ALGO}_sandybridge:
 
 	cvttsd2si rdx, xmm2
 	mov	rax, rdx
@@ -262,8 +258,8 @@ div_fix_1_ret_sandybridge:
 	movd	xmm2, r11d
 	movd	xmm4, ebx
 	sub	r8, rax
-	js	div_fix_2_sandybridge
-div_fix_2_ret_sandybridge:
+	js	div_fix_2_${ALGO}_sandybridge
+div_fix_2_ret_${ALGO}_sandybridge:
 
 	movd	xmm1, r8d
 	movd	xmm0, edx
@@ -279,15 +275,15 @@ div_fix_2_ret_sandybridge:
 	movdqa xmm5, xmm1
 	psrlq xmm5, 19
 	test	r9, 524287
-	je	sqrt_fix_1_sandybridge
-sqrt_fix_1_ret_sandybridge:
+	je	sqrt_fix_1_${ALGO}_sandybridge
+sqrt_fix_1_ret_${ALGO}_sandybridge:
 
 	movq r9, xmm10
 	psrldq	xmm1, 8
 	movq	r8, xmm1
 	test	r8, 524287
-	je	sqrt_fix_2_sandybridge
-sqrt_fix_2_ret_sandybridge:
+	je	sqrt_fix_2_${ALGO}_sandybridge
+sqrt_fix_2_ret_${ALGO}_sandybridge:
 
 	mov r12d, ecx
 	mov r8d, ecx
@@ -317,7 +313,7 @@ sqrt_fix_2_ret_sandybridge:
 	mov	QWORD PTR [r13], rdi
 	xor	rdi, r10
 	mov	ecx, edi
-	and	ecx, 2097136
+	and	ecx, ${MASK}
 	lea	r8, QWORD PTR [rcx+rsi]
 
 	mov rdx, QWORD PTR [r13+8]	
@@ -335,7 +331,7 @@ sqrt_fix_2_ret_sandybridge:
 	movdqa	xmm6, xmm10
 	mov	r9, r15
 	dec r14d
-	jne	main_loop_double_sandybridge
+	jne	cnv2_double_main_loop_${ALGO}_sandybridge
 
 	ldmxcsr DWORD PTR [rsp+272]
 	movaps	xmm13, XMMWORD PTR [rsp+48]
@@ -358,19 +354,19 @@ sqrt_fix_2_ret_sandybridge:
 	pop	rsi
 	pop	rbp
 	pop	rbx
-	jmp cnv2_double_mainloop_asm_sandybridge_endp
+	jmp cnv2_double_main_loop_${ALGO}_sandybridge_endp
 
-div_fix_1_sandybridge:
+div_fix_1_${ALGO}_sandybridge:
 	dec	rbx
 	add	r11, rdx
-	jmp	div_fix_1_ret_sandybridge
+	jmp	div_fix_1_ret_${ALGO}_sandybridge
 
-div_fix_2_sandybridge:
+div_fix_2_${ALGO}_sandybridge:
 	dec	rdx
 	add	r8, r9
-	jmp	div_fix_2_ret_sandybridge
+	jmp	div_fix_2_ret_${ALGO}_sandybridge
 
-sqrt_fix_1_sandybridge:
+sqrt_fix_1_${ALGO}_sandybridge:
 	movq	r8, xmm3
 	movdqa xmm0, xmm5
 	psrldq xmm0, 8
@@ -389,9 +385,9 @@ sqrt_fix_1_sandybridge:
 	adc	r9, 0
 	movq xmm5, r9
 	punpcklqdq xmm5, xmm0
-	jmp	sqrt_fix_1_ret_sandybridge
+	jmp	sqrt_fix_1_ret_${ALGO}_sandybridge
 
-sqrt_fix_2_sandybridge:
+sqrt_fix_2_${ALGO}_sandybridge:
 	psrldq	xmm3, 8
 	movq	r11, xmm3
 	dec	r8
@@ -409,6 +405,6 @@ sqrt_fix_2_sandybridge:
 	adc	r8, 0
 	movq xmm0, r8
 	punpcklqdq xmm5, xmm0
-	jmp	sqrt_fix_2_ret_sandybridge
+	jmp	sqrt_fix_2_ret_${ALGO}_sandybridge
 
-cnv2_double_mainloop_asm_sandybridge_endp:
+cnv2_double_main_loop_${ALGO}_sandybridge_endp:

@@ -26,7 +26,7 @@
 	xor	r13, QWORD PTR [rcx+8]
 	mov	rdx, r8
 	mov	rdi, QWORD PTR [rcx+224]
-	and	edx, 2097136
+	and	edx, ${MASK}
 	mov	rax, QWORD PTR [rax+35]
 	xor	rax, QWORD PTR [rcx+192]
 	movq	xmm5, rax
@@ -38,14 +38,14 @@
 	mov rax, QWORD PTR [rcx+264]
 	movq xmm7, rax
 
-	mov eax, 524288
+	mov eax, ${ITERATIONS}
 
 	#ifdef __APPLE__
 	ALIGN 16
 	#else
 	ALIGN 64
 	#endif
-cnv1_mainloop_soft_aes_sandybridge:
+cnv1_main_loop_${ALGO}_soft_aes_sandybridge:
 	movq xmm9, rax
 	mov	r12, QWORD PTR [rcx+272]
 	mov	esi, DWORD PTR [rdx+rdi]
@@ -118,7 +118,7 @@ cnv1_mainloop_soft_aes_sandybridge:
 	pxor	xmm3, xmm1
 	movq	r9, xmm3
 	mov	r10d, r9d
-	and	r10d, 2097136
+	and	r10d, ${MASK}
 	movdqa	xmm0, xmm3
 	pxor	xmm0, xmm4
 	movdqu	XMMWORD PTR [rdx+rdi], xmm0
@@ -145,10 +145,10 @@ cnv1_mainloop_soft_aes_sandybridge:
 	movq rax, xmm9
 	mov	rdx, r8
 	xor	r13, r11
-	and	edx, 2097136
+	and	edx, ${MASK}
 	mov	QWORD PTR [rsp+64], rdx
 	sub eax, 1
-	jne	cnv1_mainloop_soft_aes_sandybridge
+	jne	cnv1_main_loop_${ALGO}_soft_aes_sandybridge
 
 	movaps xmm6, XMMWORD PTR [rsp]
 	movaps xmm7, XMMWORD PTR [rsp+16]

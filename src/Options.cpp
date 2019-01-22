@@ -328,7 +328,7 @@ constexpr static const char *pow_variant_names[] = {
         "xhv",
         "rto",
         "xfh",
-        "xtlv9",
+        "fast2",
         "upx",
         "turtle"
 };
@@ -420,10 +420,7 @@ Options::Options(int argc, char **argv) :
 {
     m_pools.push_back(new Url());
 
-    parseConfig(Platform::defaultConfigName());
-
     int key;
-
     while (true) {
         key = getopt_long(argc, argv, short_options, options, nullptr);
         if (key < 0) {
@@ -438,6 +435,10 @@ Options::Options(int argc, char **argv) :
     if (optind < argc) {
         fprintf(stderr, "%s: unsupported non-option argument '%s'\n", argv[0], argv[optind]);
         return;
+    }
+
+    if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
+        parseConfig(Platform::defaultConfigName());
     }
 
 #ifdef XMRIG_CC_SERVER
@@ -1176,8 +1177,10 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "stellitev9") || !strcmp(powVariant, "xtlv2") || !strcmp(powVariant, "half"))) {
-            m_powVariant = POW_XTL_V9;
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "stellitev9") || !strcmp(powVariant, "xtlv2") ||
+                                                       !strcmp(powVariant, "half") || !strcmp(powVariant, "msr2") ||
+                                                       !strcmp(powVariant, "xtlv9"))) {
+            m_powVariant = POW_FAST_2;
             break;
         }
 
@@ -1186,7 +1189,7 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "trtl")) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "trtl") || !strcmp(powVariant, "turtlev2") || !strcmp(powVariant, "pico"))) {
             m_powVariant = POW_TURTLE;
             break;
         }
