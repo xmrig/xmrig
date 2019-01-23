@@ -5,7 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -32,9 +32,11 @@ namespace xmrig
 
 enum Algo {
     INVALID_ALGO = -1,
-    CRYPTONIGHT,       /* CryptoNight (Monero) */
-    CRYPTONIGHT_LITE,  /* CryptoNight-Lite (AEON) */
-    CRYPTONIGHT_HEAVY  /* CryptoNight-Heavy (RYO) */
+    CRYPTONIGHT,        /* CryptoNight (2 MB) */
+    CRYPTONIGHT_LITE,   /* CryptoNight (1 MB) */
+    CRYPTONIGHT_HEAVY,  /* CryptoNight (4 MB) */
+    CRYPTONIGHT_PICO,   /* CryptoNight (256 KB) */
+    CRYPTONIGHT_MAX
 };
 
 
@@ -70,6 +72,7 @@ enum Variant {
     VARIANT_RTO  = 7,  // Modified CryptoNight variant 1 (Arto only)
     VARIANT_2    = 8,  // CryptoNight variant 2
     VARIANT_HALF = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
+    VARIANT_TRTL = 10, // CryptoNight Turtle (TRTL)
     VARIANT_MAX
 };
 

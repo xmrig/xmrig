@@ -4,6 +4,7 @@ project(xmrig)
 option(WITH_LIBCPUID  "Use Libcpuid" ON)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_SUMO      "CryptoNight-Heavy support" ON)
+option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 option(WITH_TLS       "Enable OpenSSL support" ON)
@@ -216,6 +217,10 @@ endif()
 
 if (NOT WITH_IPBC)
     add_definitions(/DXMRIG_NO_IPBC)
+endif()
+
+if (NOT WITH_CN_PICO)
+    add_definitions(/DXMRIG_NO_CN_PICO)
 endif()
 
 if (WITH_HTTPD)

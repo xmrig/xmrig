@@ -79,6 +79,12 @@ bool MultiWorker<N>::selfTest()
     }
 #   endif
 
+#   ifndef XMRIG_NO_CN_PICO
+    if (m_thread->algorithm() == CRYPTONIGHT_PICO) {
+        return verify(VARIANT_TRTL, test_output_pico_trtl);
+    }
+#   endif
+
     return false;
 }
 

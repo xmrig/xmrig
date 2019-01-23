@@ -105,7 +105,7 @@ private:
     xmrig::Id m_id;
 
 #   ifdef XMRIG_PROXY_PROJECT
-    char m_rawBlob[176];
+    char m_rawBlob[kMaxBlobSize * 2 + 8];
     char m_rawTarget[24];
 #   endif
 };

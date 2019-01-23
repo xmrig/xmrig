@@ -458,6 +458,8 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     constexpr size_t MEM          = xmrig::cn_select_memory<ALGO>();
     constexpr xmrig::Variant BASE = xmrig::cn_base_variant<VARIANT>();
 
+    static_assert(MASK > 0 && ITERATIONS > 0 && MEM > 0, "unsupported algorithm/variant");
+
     if (BASE == xmrig::VARIANT_1 && size < 43) {
         memset(output, 0, 32);
         return;
@@ -570,10 +572,15 @@ extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx *ctx0, cryptonight_ctx *ctx1);
 
-extern xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_ivybridge_asm;
-extern xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_ryzen_asm;
-extern xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_bulldozer_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_half_mainloop_ivybridge_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_half_mainloop_ryzen_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_half_mainloop_bulldozer_asm;
 extern xmrig::CpuThread::cn_mainloop_double_fun cn_half_double_mainloop_sandybridge_asm;
+
+extern xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_ivybridge_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_ryzen_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_bulldozer_asm;
+extern xmrig::CpuThread::cn_mainloop_double_fun cn_trtl_double_mainloop_sandybridge_asm;
 
 
 template<xmrig::Algo ALGO, xmrig::Variant VARIANT, xmrig::Assembly ASM>
@@ -606,6 +613,17 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_half_mainloop_bulldozer_asm(ctx[0]);
         }
     }
+    else if (VARIANT == xmrig::VARIANT_TRTL) {
+        if (ASM == xmrig::ASM_INTEL) {
+            cn_trtl_mainloop_ivybridge_asm(ctx[0]);
+        }
+        else if (ASM == xmrig::ASM_RYZEN) {
+            cn_trtl_mainloop_ryzen_asm(ctx[0]);
+        }
+        else {
+            cn_trtl_mainloop_bulldozer_asm(ctx[0]);
+        }
+    }
 
     cn_implode_scratchpad<ALGO, MEM, false>(reinterpret_cast<__m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));
     xmrig::keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
@@ -629,6 +647,9 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
     }
     else if (VARIANT == xmrig::VARIANT_HALF) {
         cn_half_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
+    }
+    else if (VARIANT == xmrig::VARIANT_TRTL) {
+        cn_trtl_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
     }
 
     cn_implode_scratchpad<ALGO, MEM, false>(reinterpret_cast<__m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));
