@@ -1,5 +1,5 @@
 # v2.10.0
-- [#904](https://github.com/xmrig/xmrig/issues/904) Added new algoritm `cn-pico/trtl` (aliases `cryptonight-turtle`, `cn-trtl`) for upcoming TurtleCoin (TRTL) fork.
+- [#904](https://github.com/xmrig/xmrig/issues/904) Added new algorithm `cn-pico/trtl` (aliases `cryptonight-turtle`, `cn-trtl`) for upcoming TurtleCoin (TRTL) fork.
 - Default value for option `max-cpu-usage` changed to `100` also this option now deprecated.
 
 # v2.9.4
