@@ -151,7 +151,7 @@ PowVariant Job::powVariant() const
             return PowVariant::POW_V0;
         }
     } else if (m_powVariant == PowVariant::POW_MSR) {
-        if (m_blob[0] > 8) {
+        if (m_blob[0] >= 8) {
             return PowVariant::POW_FAST_2;
         }
     }
