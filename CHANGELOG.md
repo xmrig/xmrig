@@ -1,6 +1,7 @@
 # 1.8.11
 - Implemented fix for upcominng Massari fork
 - Refactoring ASM code/cleanup
+- Fixed broke ARMv8 code for all CN variants (self check failed)
 # 1.8.10
 - Fixed broken XTL variant Autodetect
 # 1.8.9
