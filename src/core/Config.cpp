@@ -7,6 +7,9 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -53,7 +56,7 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_hugePages(true),
     m_safe(false),
     m_shouldSave(false),
-    m_maxCpuUsage(75),
+    m_maxCpuUsage(100),
     m_priority(-1)
 {
     // not defined algo performance is considered to be 0
@@ -127,7 +130,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     // save extended "threads" based on m_threads
     Value threads(kObjectType);
-    for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
+    for (int a = 0; a != xmrig::Algo::CRYPTONIGHT_MAX; ++ a) {
         const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
         Value key(xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo()), allocator);
         if (threadsMode(algo) != Simple) {
@@ -183,7 +186,7 @@ bool xmrig::Config::finalize()
     }
 
     // auto configure m_threads
-    for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
+    for (int a = 0; a != xmrig::Algo::CRYPTONIGHT_MAX; ++ a) {
         const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
         if (!m_threads[algo].cpu.empty()) {
             m_threads[algo].mode = Advanced;
@@ -346,7 +349,7 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
         parseThreadsJSON(threads, m_algorithm.algo());
     } else if (threads.IsObject()) {
         // parse new specific perf algo threads
-        for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
+        for (int a = 0; a != xmrig::Algo::CRYPTONIGHT_MAX; ++ a) {
             const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
             const rapidjson::Value &threads2 = threads[xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo())];
             if (threads2.IsArray()) {
