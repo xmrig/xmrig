@@ -546,6 +546,11 @@ bool CryptoNight::selfTest(int algo)
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 32) == 0;
 
+        #if MAX_NUM_HASH_BLOCKS > 1
+        cryptonight_hash_ctx[1](asmOptimization, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 64) == 0;
+        #endif
+
     } else {
         // cn v0 aka orignal
 
@@ -646,6 +651,11 @@ bool CryptoNight::selfTest(int algo)
 
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_FAST_2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xtl_v9, 32) == 0;
+
+        #if MAX_NUM_HASH_BLOCKS > 1
+        cryptonight_hash_ctx[1](asmOptimization, PowVariant::POW_FAST_2, test_input, 76, output, scratchPads);
+        result = result && memcmp(output, test_output_xtl_v9, 64) == 0;
+        #endif
     }
 
     for (size_t i = 0; i < MAX_NUM_HASH_BLOCKS; ++i) {

@@ -18,7 +18,7 @@
 	mov	r10, QWORD PTR [rcx+32]
 	mov	r8, rcx
 	xor	r10, QWORD PTR [rcx]
-	mov	r14d, 524288
+	mov	r14d, ${ITERATIONS}
 	mov	r11, QWORD PTR [rcx+40]
 	xor	r11, QWORD PTR [rcx+8]
 	mov	rsi, QWORD PTR [rdx+224]
@@ -41,7 +41,7 @@
 	movaps	XMMWORD PTR [rsp+16], xmm15
 	mov	rdx, r10
 	movq	xmm4, QWORD PTR [r8+96]
-	and	edx, 2097136
+	and	edx, ${MASK}
 	mov	rax, QWORD PTR [rcx+48]
 	xorps	xmm13, xmm13
 	xor	rax, QWORD PTR [rcx+16]
@@ -83,7 +83,7 @@
 	mov	rcx, rdi
 	mov	QWORD PTR [rsp+264], r11
 	movq	xmm8, rax
-	and	ecx, 2097136
+	and	ecx, ${MASK}
 	punpcklqdq xmm8, xmm0
 	movq	xmm0, QWORD PTR [r9+96]
 	punpcklqdq xmm4, xmm0
@@ -124,7 +124,7 @@ cnv2_double_main_loop_${ALGO}_sandybridge:
 
 	movq	r11, xmm9
 	mov	edx, r11d
-	and	edx, 2097136
+	and	edx, ${MASK}
 	movdqa	xmm0, xmm9
 	pxor	xmm0, xmm7
 	movdqu	XMMWORD PTR [r9], xmm0
@@ -155,7 +155,7 @@ cnv2_double_main_loop_${ALGO}_sandybridge:
 	movdqu	XMMWORD PTR [rax+rsi], xmm0
 
 	movq	rcx, xmm10
-	and	ecx, 2097136
+	and	ecx, ${MASK}
 
 	movdqa	xmm0, xmm10
 	pxor	xmm0, xmm6
@@ -203,7 +203,7 @@ cnv2_double_main_loop_${ALGO}_sandybridge:
 	mov	QWORD PTR [rbx+8], rdx
 	xor	rdx, r9
 	mov	QWORD PTR [rsp+256], r11
-	and	r11d, 2097136
+	and	r11d, ${MASK}
 	mov	QWORD PTR [rsp+264], rdx
 	mov	QWORD PTR [rsp+8], r11
 	lea	r15, QWORD PTR [r11+r13]
@@ -317,7 +317,7 @@ sqrt_fix_2_ret_${ALGO}_sandybridge:
 	mov	QWORD PTR [r13], rdi
 	xor	rdi, r10
 	mov	ecx, edi
-	and	ecx, 2097136
+	and	ecx, ${MASK}
 	lea	r8, QWORD PTR [rcx+rsi]
 
 	mov rdx, QWORD PTR [r13+8]
