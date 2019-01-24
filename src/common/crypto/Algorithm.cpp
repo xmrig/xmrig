@@ -288,6 +288,7 @@ const char *xmrig::Algorithm::perfAlgoName(const xmrig::PerfAlgo pa) {
         "cn/half",
         "cn-lite",
         "cn-heavy",
+        "cn-pico",
     };
     return perf_algo_names[pa];
 }
@@ -315,6 +316,10 @@ xmrig::Algorithm::Algorithm(const xmrig::PerfAlgo pa) {
            m_algo    = xmrig::CRYPTONIGHT_HEAVY;
            m_variant = xmrig::VARIANT_0;
            break;
+       case PA_CN_PICO:
+           m_algo    = xmrig::CRYPTONIGHT_PICO;
+           m_variant = xmrig::VARIANT_TRTL;
+           break;
        default:
            m_algo    = xmrig::INVALID_ALGO;
            m_variant = xmrig::VARIANT_AUTO;
@@ -332,6 +337,7 @@ xmrig::PerfAlgo xmrig::Algorithm::perf_algo() const {
            }
        case CRYPTONIGHT_LITE:  return PA_CN_LITE;
        case CRYPTONIGHT_HEAVY: return PA_CN_HEAVY;
+       case CRYPTONIGHT_PICO:  return PA_CN_PICO;
        default: return PA_INVALID;
     }
 }

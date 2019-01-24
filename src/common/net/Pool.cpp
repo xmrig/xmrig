@@ -67,6 +67,8 @@ Pool::Pool() :
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_XHV));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_TUBE));
+
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL));
 }
 
 

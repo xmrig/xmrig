@@ -48,6 +48,7 @@ enum PerfAlgo {
     PA_CN_HALF,  /* CryptoNight-Half (Masari) */
     PA_CN_LITE,  /* CryptoNight-Lite (AEON) */
     PA_CN_HEAVY, /* CryptoNight-Heavy (SUMO) */
+    PA_CN_PICO,  /* CryptoNight-Pico (TRTL) */
     PA_MAX
 };
 
