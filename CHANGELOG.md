@@ -1,3 +1,6 @@
+# 1.8.11
+- Implemented fix for upcominng Massari fork
+- Refactoring ASM code/cleanup
 # 1.8.10
 - Fixed broken XTL variant Autodetect
 # 1.8.9
