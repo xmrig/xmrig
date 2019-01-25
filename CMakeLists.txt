@@ -257,7 +257,6 @@ endif(WITH_CC_CLIENT)
 
 if (WITH_TLS)
     target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
-    target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
 endif(WITH_TLS)
 
 if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -275,7 +274,7 @@ if (WITH_CC_SERVER AND MHD_FOUND)
             ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 
     if (WITH_TLS)
-	    target_link_libraries(xmrigCCServer xmrig_tls ${OPENSSL_LIBRARIES})
+	    target_link_libraries(xmrigCCServer xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
     endif (WITH_TLS)
 
     set_target_properties(xmrig_common_cc PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
