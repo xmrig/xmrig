@@ -11,4 +11,3 @@ cmake_install.cmake
 Makefile
 cmake-build-release/
 src/crypto/asm/*.inc
-src/crypto/asm/win/*.inc
