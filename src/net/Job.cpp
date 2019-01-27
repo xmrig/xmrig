@@ -139,7 +139,7 @@ bool Job::setTarget(const char *target)
 PowVariant Job::powVariant() const
 {
     if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
-        return PowVariant::POW_V2;
+        return PowVariant::POW_TURTLE;
     }
 
     if (m_powVariant == PowVariant::POW_AUTODETECT) {
@@ -151,12 +151,16 @@ PowVariant Job::powVariant() const
             return PowVariant::POW_V0;
         }
     } else if (m_powVariant == PowVariant::POW_XTL) {
-        if (m_blob[0] >= 9) {
-            return PowVariant::POW_FAST_2;
+        if (!Options::i()->forcePowVariant()) {
+            if (m_blob[0] >= 9) {
+                return PowVariant::POW_FAST_2;
+            }
         }
     } else if (m_powVariant == PowVariant::POW_MSR) {
-        if (m_blob[0] >= 8) {
-            return PowVariant::POW_FAST_2;
+        if (!Options::i()->forcePowVariant()) {
+            if (m_blob[0] >= 8) {
+                return PowVariant::POW_FAST_2;
+            }
         }
     }
 
