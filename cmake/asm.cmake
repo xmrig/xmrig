@@ -101,6 +101,7 @@ if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     enable_language(ASM_MASM)
     set(XMRIG_ASM_FILE "src/crypto/asm/win/cn_main_loop.asm")
     set_property(SOURCE ${XMRIG_ASM_FILE} PROPERTY ASM_MASM)
+    include_directories(${CMAKE_BINARY_DIR}/src/crypto/asm/win)
 else()
     enable_language(ASM)
 
@@ -111,10 +112,8 @@ else()
     endif()
 
     set_property(SOURCE ${XMRIG_ASM_FILE} PROPERTY C)
+    include_directories(${CMAKE_BINARY_DIR}/src/crypto/asm/)
 endif()
-
-include_directories(src/crypto/asm)
-include_directories(src/crypto/asm/win)
 
 add_library(xmrig_asm STATIC ${XMRIG_ASM_FILE})
 set_property(TARGET xmrig_asm PROPERTY LINKER_LANGUAGE C)
