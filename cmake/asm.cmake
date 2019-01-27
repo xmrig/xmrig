@@ -1,3 +1,5 @@
+message("Generating ASM files")
+
 # CN v1 original
 set(ALGO "original")
 set(ITERATIONS "524288") #0x80000
