@@ -111,5 +111,8 @@ else()
     set_property(SOURCE ${XMRIG_ASM_FILE} PROPERTY C)
 endif()
 
+include_directories(src/crypto/asm)
+include_directories(src/crypto/asm/win)
+
 add_library(xmrig_asm STATIC ${XMRIG_ASM_FILE})
 set_property(TARGET xmrig_asm PROPERTY LINKER_LANGUAGE C)
