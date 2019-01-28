@@ -1,3 +1,7 @@
+# 1.8.12
+- Fixed #228 "force-pow-variant" overrules autodetect for XTLv9/Fast2
+- Fixed out of source building (asm code generator)
+- CN-Ultralite is shown correctly on the Dashboard
 # 1.8.11
 - Implemented fix for upcominng Massari fork
 - Refactoring ASM code/cleanup
