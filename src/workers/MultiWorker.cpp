@@ -111,8 +111,9 @@ void MultiWorker::start()
                   scratchPadMem.hugePages, scratchPadMem.pages, memory, scratchPadMem.realSize > ONE_MB ? "MB" : "KB");
     }
     else {
-        LOG_INFO("Starting thread %zu/%zu affined to core: #%d -> huge pages: %zu/%zu scratchpad: %zu.0 MB",
-                         m_id+1, Options::i()->threads(), m_affinedCpu, scratchPadMem.hugePages, scratchPadMem.pages, memory);
+        LOG_INFO("Starting thread %zu/%zu affined to core: #%d -> huge pages: %zu/%zu scratchpad: %zu.0 %s",
+                         m_id+1, Options::i()->threads(), m_affinedCpu, scratchPadMem.hugePages, scratchPadMem.pages, memory,
+                         scratchPadMem.realSize > ONE_MB ? "MB" : "KB");
     }
 
     while (Workers::sequence() > 0) {
