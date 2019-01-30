@@ -1098,7 +1098,7 @@ bool Options::setAlgo(const char *algo)
         }
 
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-ultra-lite") || !strcmp(algo, "cryptonight-ultra-lite") || !strcmp(algo, "cryptonight-ultralight"))) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-ultra-lite") || !strcmp(algo, "cryptonight-ultra-lite") || !strcmp(algo, "cryptonight-ultralight") || !strcmp(algo, "cryptonight-turtle") || !strcmp(algo, "cn-turtle") || !strcmp(algo, "cryptonight-pico") || !strcmp(algo, "cn-pico"))) {
             m_algo = ALGO_CRYPTONIGHT_ULTRALITE;
             break;
         }

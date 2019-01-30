@@ -31,6 +31,8 @@
 #include "AsmOptimization.h"
 #include "Options.h"
 
+#define ONE_MB       1048576
+
 #define MEMORY       2097152 /* 2 MiB */
 #define MEMORY_LITE  1048576 /* 1 MiB */
 #define MEMORY_SUPER_LITE  524288 /* 512 KiB */
