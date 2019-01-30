@@ -652,11 +652,6 @@ bool CryptoNight::selfTest(int algo)
         result = result && memcmp(output, test_output_xfh, 64) == 0;
         #endif
 
-        #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, PowVariant::POW_XFH, test_input, 76, output, scratchPads);
-        result = result && memcmp(output, test_output_xfh, 96) == 0;
-        #endif
-
         // cnv8 + xtl aka cn-fast2
 
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_FAST_2, test_input, 76, output, scratchPads);
