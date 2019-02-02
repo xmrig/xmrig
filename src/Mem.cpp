@@ -22,6 +22,7 @@
  */
 
 
+#include <algorithm>
 #include <memory.h>
 
 #include "crypto/CryptoNight.h"
