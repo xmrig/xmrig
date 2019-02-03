@@ -1,4 +1,4 @@
-if (WITH_CN_GPU)
+if (WITH_CN_GPU AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CN_GPU_SOURCES src/crypto/cn_gpu_avx.cpp src/crypto/cn_gpu_ssse3.cpp)
 
     if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
