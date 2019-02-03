@@ -90,7 +90,7 @@ inline void round_compute(__m128 n0, __m128 n1, __m128 n2, __m128 n3, __m128 rnd
 
 // 112×4 = 448
 template<bool add>
-inline __m128i single_comupte(__m128 n0, __m128 n1,  __m128 n2,  __m128 n3, float cnt, __m128 rnd_c, __m128& sum)
+inline __m128i single_compute(__m128 n0, __m128 n1,  __m128 n2,  __m128 n3, float cnt, __m128 rnd_c, __m128& sum)
 {
     __m128 c = _mm_set1_ps(cnt);
     __m128 r = _mm_setzero_ps();
@@ -114,9 +114,9 @@ inline __m128i single_comupte(__m128 n0, __m128 n1,  __m128 n2,  __m128 n3, floa
 }
 
 template<size_t rot>
-inline void single_comupte_wrap(__m128 n0, __m128 n1, __m128 n2,  __m128 n3, float cnt, __m128 rnd_c, __m128& sum, __m128i& out)
+inline void single_compute_wrap(__m128 n0, __m128 n1, __m128 n2,  __m128 n3, float cnt, __m128 rnd_c, __m128& sum, __m128i& out)
 {
-    __m128i r = single_comupte<rot % 2 != 0>(n0, n1, n2, n3, cnt, rnd_c, sum);
+    __m128i r = single_compute<rot % 2 != 0>(n0, n1, n2, n3, cnt, rnd_c, sum);
     if(rot != 0)
         r = _mm_or_si128(_mm_slli_si128(r, 16 - rot), _mm_srli_si128(r, rot));
     out = _mm_xor_si128(out, r);
@@ -149,37 +149,37 @@ void cn_gpu_inner_ssse3(const uint8_t* spad, uint8_t* lpad)
 
         __m128i out, out2;
         out = _mm_setzero_si128();
-        single_comupte_wrap<0>(n0, n1, n2, n3, 1.3437500f, rc, suma, out);
-        single_comupte_wrap<1>(n0, n2, n3, n1, 1.2812500f, rc, suma, out);
-        single_comupte_wrap<2>(n0, n3, n1, n2, 1.3593750f, rc, sumb, out);
-        single_comupte_wrap<3>(n0, n3, n2, n1, 1.3671875f, rc, sumb, out);
+        single_compute_wrap<0>(n0, n1, n2, n3, 1.3437500f, rc, suma, out);
+        single_compute_wrap<1>(n0, n2, n3, n1, 1.2812500f, rc, suma, out);
+        single_compute_wrap<2>(n0, n3, n1, n2, 1.3593750f, rc, sumb, out);
+        single_compute_wrap<3>(n0, n3, n2, n1, 1.3671875f, rc, sumb, out);
         sum0 = _mm_add_ps(suma, sumb);
         _mm_store_si128(idx0, _mm_xor_si128(v0, out));
         out2 = out;
     
         out = _mm_setzero_si128();
-        single_comupte_wrap<0>(n1, n0, n2, n3, 1.4296875f, rc, suma, out);
-        single_comupte_wrap<1>(n1, n2, n3, n0, 1.3984375f, rc, suma, out);
-        single_comupte_wrap<2>(n1, n3, n0, n2, 1.3828125f, rc, sumb, out);
-        single_comupte_wrap<3>(n1, n3, n2, n0, 1.3046875f, rc, sumb, out);
+        single_compute_wrap<0>(n1, n0, n2, n3, 1.4296875f, rc, suma, out);
+        single_compute_wrap<1>(n1, n2, n3, n0, 1.3984375f, rc, suma, out);
+        single_compute_wrap<2>(n1, n3, n0, n2, 1.3828125f, rc, sumb, out);
+        single_compute_wrap<3>(n1, n3, n2, n0, 1.3046875f, rc, sumb, out);
         sum1 = _mm_add_ps(suma, sumb);
         _mm_store_si128(idx1, _mm_xor_si128(v1, out));
         out2 = _mm_xor_si128(out2, out);
 
         out = _mm_setzero_si128();
-        single_comupte_wrap<0>(n2, n1, n0, n3, 1.4140625f, rc, suma, out);
-        single_comupte_wrap<1>(n2, n0, n3, n1, 1.2734375f, rc, suma, out);
-        single_comupte_wrap<2>(n2, n3, n1, n0, 1.2578125f, rc, sumb, out);
-        single_comupte_wrap<3>(n2, n3, n0, n1, 1.2890625f, rc, sumb, out);
+        single_compute_wrap<0>(n2, n1, n0, n3, 1.4140625f, rc, suma, out);
+        single_compute_wrap<1>(n2, n0, n3, n1, 1.2734375f, rc, suma, out);
+        single_compute_wrap<2>(n2, n3, n1, n0, 1.2578125f, rc, sumb, out);
+        single_compute_wrap<3>(n2, n3, n0, n1, 1.2890625f, rc, sumb, out);
         sum2 = _mm_add_ps(suma, sumb);
         _mm_store_si128(idx2, _mm_xor_si128(v2, out));
         out2 = _mm_xor_si128(out2, out);
 
         out = _mm_setzero_si128();
-        single_comupte_wrap<0>(n3, n1, n2, n0, 1.3203125f, rc, suma, out);
-        single_comupte_wrap<1>(n3, n2, n0, n1, 1.3515625f, rc, suma, out);
-        single_comupte_wrap<2>(n3, n0, n1, n2, 1.3359375f, rc, sumb, out);
-        single_comupte_wrap<3>(n3, n0, n2, n1, 1.4609375f, rc, sumb, out);
+        single_compute_wrap<0>(n3, n1, n2, n0, 1.3203125f, rc, suma, out);
+        single_compute_wrap<1>(n3, n2, n0, n1, 1.3515625f, rc, suma, out);
+        single_compute_wrap<2>(n3, n0, n1, n2, 1.3359375f, rc, sumb, out);
+        single_compute_wrap<3>(n3, n0, n2, n1, 1.4609375f, rc, sumb, out);
         sum3 = _mm_add_ps(suma, sumb);
         _mm_store_si128(idx3, _mm_xor_si128(v3, out));
         out2 = _mm_xor_si128(out2, out);

@@ -88,7 +88,7 @@ inline void round_compute(const __m256& n0, const __m256& n1, const __m256& n2, 
 
 // 112×4 = 448
 template <bool add>
-inline __m256i double_comupte(const __m256& n0, const __m256& n1, const __m256& n2, const __m256& n3, 
+inline __m256i double_compute(const __m256& n0, const __m256& n1, const __m256& n2, const __m256& n3,
                               float lcnt, float hcnt, const __m256& rnd_c, __m256& sum)
 {
     __m256 c = _mm256_insertf128_ps(_mm256_castps128_ps256(_mm_set1_ps(lcnt)), _mm_set1_ps(hcnt), 1);
@@ -113,10 +113,10 @@ inline __m256i double_comupte(const __m256& n0, const __m256& n1, const __m256& 
 }
 
 template <size_t rot>
-inline void double_comupte_wrap(const __m256& n0, const __m256& n1, const __m256& n2, const __m256& n3, 
+inline void double_compute_wrap(const __m256& n0, const __m256& n1, const __m256& n2, const __m256& n3,
                                 float lcnt, float hcnt, const __m256& rnd_c, __m256& sum, __m256i& out)
 {
-    __m256i r = double_comupte<rot % 2 != 0>(n0, n1, n2, n3, lcnt, hcnt, rnd_c, sum);
+    __m256i r = double_compute<rot % 2 != 0>(n0, n1, n2, n3, lcnt, hcnt, rnd_c, sum);
     if(rot != 0)
         r = _mm256_or_si256(_mm256_bslli_epi128(r, 16 - rot), _mm256_bsrli_epi128(r, rot));
 
@@ -151,10 +151,10 @@ void cn_gpu_inner_avx(const uint8_t* spad, uint8_t* lpad)
         n33 = _mm256_permute2f128_ps(n23, n23, 0x11);
         
         out = _mm256_setzero_si256();
-        double_comupte_wrap<0>(n01, n10, n22, n33, 1.3437500f, 1.4296875f, rc, suma, out);
-        double_comupte_wrap<1>(n01, n22, n33, n10, 1.2812500f, 1.3984375f, rc, suma, out);
-        double_comupte_wrap<2>(n01, n33, n10, n22, 1.3593750f, 1.3828125f, rc, sumb, out);
-        double_comupte_wrap<3>(n01, n33, n22, n10, 1.3671875f, 1.3046875f, rc, sumb, out);
+        double_compute_wrap<0>(n01, n10, n22, n33, 1.3437500f, 1.4296875f, rc, suma, out);
+        double_compute_wrap<1>(n01, n22, n33, n10, 1.2812500f, 1.3984375f, rc, suma, out);
+        double_compute_wrap<2>(n01, n33, n10, n22, 1.3593750f, 1.3828125f, rc, sumb, out);
+        double_compute_wrap<3>(n01, n33, n22, n10, 1.3671875f, 1.3046875f, rc, sumb, out);
         _mm256_store_si256(idx0, _mm256_xor_si256(v01, out));
         sum0 = _mm256_add_ps(suma, sumb);
         out2 = out;
@@ -165,10 +165,10 @@ void cn_gpu_inner_avx(const uint8_t* spad, uint8_t* lpad)
         n30 = _mm256_permute2f128_ps(n01, n23, 0x03);
 
         out = _mm256_setzero_si256();
-        double_comupte_wrap<0>(n23, n11, n02, n30, 1.4140625f, 1.3203125f, rc, suma, out);
-        double_comupte_wrap<1>(n23, n02, n30, n11, 1.2734375f, 1.3515625f, rc, suma, out);
-        double_comupte_wrap<2>(n23, n30, n11, n02, 1.2578125f, 1.3359375f, rc, sumb, out);
-        double_comupte_wrap<3>(n23, n30, n02, n11, 1.2890625f, 1.4609375f, rc, sumb, out);
+        double_compute_wrap<0>(n23, n11, n02, n30, 1.4140625f, 1.3203125f, rc, suma, out);
+        double_compute_wrap<1>(n23, n02, n30, n11, 1.2734375f, 1.3515625f, rc, suma, out);
+        double_compute_wrap<2>(n23, n30, n11, n02, 1.2578125f, 1.3359375f, rc, sumb, out);
+        double_compute_wrap<3>(n23, n30, n02, n11, 1.2890625f, 1.4609375f, rc, sumb, out);
         _mm256_store_si256(idx2, _mm256_xor_si256(v23, out));
         sum1 = _mm256_add_ps(suma, sumb);
 
