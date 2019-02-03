@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -41,6 +42,7 @@ protected:
 
     inline Assembly assembly() const override       { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
+    inline bool hasAVX2() const override            { return m_avx2; }
     inline bool isSupported() const override        { return true; }
     inline const char *brand() const override       { return m_brand; }
     inline int32_t cores() const override           { return -1; }
@@ -58,8 +60,9 @@ protected:
 
 private:
     Assembly m_assembly;
-    bool m_aes;
     char m_brand[64];
+    const bool m_aes;
+    const bool m_avx2;
     int32_t m_threads;
 };
 

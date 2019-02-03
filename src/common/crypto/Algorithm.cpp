@@ -86,6 +86,10 @@ static AlgoData const algorithms[] = {
     { "cryptonight-ultralite",  "cn-ultralite",  xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
     { "cryptonight_turtle",     "cn_turtle",     xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
 #   endif
+
+#   ifndef XMRIG_NO_CN_GPU
+    { "cryptonight/gpu",        "cn/gpu",  xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU },
+#   endif
 };
 
 
@@ -120,7 +124,8 @@ static const char *variants[] = {
     "rto",
     "2",
     "half",
-    "trtl"
+    "trtl",
+    "gpu"
 };
 
 

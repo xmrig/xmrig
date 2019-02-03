@@ -4,9 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -74,18 +74,25 @@ static void print_cpu(xmrig::Config *config)
     using namespace xmrig;
 
     if (config->isColors()) {
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES",
+        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES %sAVX2",
                        "CPU",
                        Cpu::info()->brand(),
                        Cpu::info()->sockets(),
-                       Cpu::info()->isX64() ? "\x1B[1;32m" : "\x1B[1;31m-",
-                       Cpu::info()->hasAES() ? "\x1B[1;32m" : "\x1B[1;31m-");
+                       Cpu::info()->isX64()   ? "\x1B[1;32m" : "\x1B[1;31m-",
+                       Cpu::info()->hasAES()  ? "\x1B[1;32m" : "\x1B[1;31m-",
+                       Cpu::info()->hasAVX2() ? "\x1B[1;32m" : "\x1B[1;31m-");
 #       ifndef XMRIG_NO_LIBCPUID
         Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
 #       endif
     }
     else {
-        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES", "CPU", Cpu::info()->brand(), Cpu::info()->sockets(), Cpu::info()->isX64() ? "" : "-", Cpu::info()->hasAES() ? "" : "-");
+        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES %sAVX2",
+                       "CPU",
+                       Cpu::info()->brand(),
+                       Cpu::info()->sockets(),
+                       Cpu::info()->isX64()   ? "" : "-",
+                       Cpu::info()->hasAES()  ? "" : "-",
+                       Cpu::info()->hasAVX2() ? "" : "-");
 #       ifndef XMRIG_NO_LIBCPUID
         Log::i()->text(" * %-13s%.1f MB/%.1f MB", "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
 #       endif
