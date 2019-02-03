@@ -109,9 +109,9 @@ static inline bool has_avx2()
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_assembly(ASM_NONE),
-    m_brand(),
     m_aes(has_aes_ni()),
     m_avx2(has_avx2()),
+    m_brand(),
     m_threads(std::thread::hardware_concurrency())
 {
     cpu_brand_string(m_brand);

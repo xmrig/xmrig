@@ -60,9 +60,9 @@ protected:
 
 private:
     Assembly m_assembly;
+    bool m_aes;
+    bool m_avx2;
     char m_brand[64];
-    const bool m_aes;
-    const bool m_avx2;
     int32_t m_threads;
 };
 
