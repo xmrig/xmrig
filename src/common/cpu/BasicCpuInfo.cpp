@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,6 +34,10 @@
 
 #ifndef bit_AES
 #   define bit_AES (1 << 25)
+#endif
+
+#ifndef bit_AVX2
+#   define bit_AVX2 (1 << 5)
 #endif
 
 
@@ -93,9 +98,19 @@ static inline bool has_aes_ni()
 }
 
 
+static inline bool has_avx2()
+{
+    int32_t cpu_info[4] = { 0 };
+    cpuid(EXTENDED_FEATURES, cpu_info);
+
+    return (cpu_info[EBX_Reg] & bit_AVX2) != 0;
+}
+
+
 xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_assembly(ASM_NONE),
     m_aes(has_aes_ni()),
+    m_avx2(has_avx2()),
     m_brand(),
     m_threads(std::thread::hardware_concurrency())
 {

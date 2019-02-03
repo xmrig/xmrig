@@ -4,7 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -419,6 +419,7 @@ void Pool::rebuild()
     addVariant(xmrig::VARIANT_XHV);
     addVariant(xmrig::VARIANT_XAO);
     addVariant(xmrig::VARIANT_RTO);
+    addVariant(xmrig::VARIANT_GPU);
     addVariant(xmrig::VARIANT_AUTO);
 #   endif
 }
