@@ -27,6 +27,7 @@
 #define XMRIG_CRYPTONIGHT_CONSTANTS_H
 
 
+#include <stddef.h>
 #include <stdint.h>
 
 
