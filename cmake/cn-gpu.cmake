@@ -3,7 +3,7 @@ if (WITH_CN_GPU AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     if (XMRIG_ARM)
         set(CN_GPU_SOURCES src/crypto/cn_gpu_arm.cpp)
 
-        if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+        if (CMAKE_CXX_COMPILER_ID MATCHES GNU OR CMAKE_CXX_COMPILER_ID MATCHES Clang)
             set_source_files_properties(src/crypto/cn_gpu_arm.cpp PROPERTIES COMPILE_FLAGS "-O3")
         endif()
     else()
