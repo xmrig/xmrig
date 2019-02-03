@@ -25,6 +25,11 @@
 #include <string.h>
 #include <thread>
 
+#if __ARM_FEATURE_CRYPTO
+#   include <sys/auxv.h>
+#   include <asm/hwcap.h>
+#endif
+
 
 #include "common/cpu/BasicCpuInfo.h"
 
@@ -35,10 +40,14 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_brand(),
     m_threads(std::thread::hardware_concurrency())
 {
-    memcpy(m_brand, "Unknown", 7);
+#   ifdef XMRIG_ARMv8
+    memcpy(m_brand, "ARMv8", 5);
+#   else
+    memcpy(m_brand, "ARMv7", 5);
+#   endif
 
 #   if __ARM_FEATURE_CRYPTO
-    m_aes = true;
+    m_aes = getauxval(AT_HWCAP) & HWCAP_AES;
 #   endif
 }
 
