@@ -77,6 +77,7 @@ private:
 #define CYAN(x)         "\x1B[0;36m" x "\x1B[0m"
 #define WHITE_BOLD(x)   "\x1B[1;37m" x "\x1B[0m"
 #define WHITE(x)        "\x1B[0;37m" x "\x1B[0m"
+#define GRAY(x)         "\x1B[1;30m" x "\x1B[0m"
 
 
 #define LOG_ERR(x, ...)    Log::i()->message(ILogBackend::ERR,     x, ##__VA_ARGS__)

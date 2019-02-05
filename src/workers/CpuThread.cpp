@@ -150,9 +150,9 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
     assert(variant >= VARIANT_0 && variant < VARIANT_MAX);
 
 #   ifndef XMRIG_NO_ASM
-    constexpr const size_t count = VARIANT_MAX * 10 * CRYPTONIGHT_MAX + 12;
+    constexpr const size_t count = VARIANT_MAX * 10 * ALGO_MAX + 12;
 #   else
-    constexpr const size_t count = VARIANT_MAX * 10 * CRYPTONIGHT_MAX;
+    constexpr const size_t count = VARIANT_MAX * 10 * ALGO_MAX;
 #   endif
 
     static const cn_hash_fun func_table[] = {
@@ -617,7 +617,7 @@ size_t xmrig::CpuThread::fnIndex(Algo algorithm, AlgoVariant av, Variant variant
         return index;
     }
 
-    constexpr const size_t offset = VARIANT_MAX * 10 * CRYPTONIGHT_MAX;
+    constexpr const size_t offset = VARIANT_MAX * 10 * ALGO_MAX;
     size_t extra_offset           = 0;
 
     if (algorithm == CRYPTONIGHT && (variant == VARIANT_2 || variant == VARIANT_HALF)) {

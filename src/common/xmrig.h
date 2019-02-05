@@ -36,7 +36,7 @@ enum Algo {
     CRYPTONIGHT_LITE,   /* CryptoNight (1 MB) */
     CRYPTONIGHT_HEAVY,  /* CryptoNight (4 MB) */
     CRYPTONIGHT_PICO,   /* CryptoNight (256 KB) */
-    CRYPTONIGHT_MAX
+    ALGO_MAX
 };
 
 
