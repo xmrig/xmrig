@@ -616,6 +616,12 @@ inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_
     xmrig::keccak(input, size, ctx[0]->state);
     cn_explode_scratchpad_gpu<ALGO, MEM>(ctx[0]->state, ctx[0]->memory);
 
+#   ifdef _MSC_VER
+    _control87(RC_NEAR, MCW_RC);
+#   else
+    fesetround(FE_TONEAREST);
+#   endif
+
     if (xmrig::Cpu::info()->hasAVX2()) {
         cn_gpu_inner_avx<ITERATIONS, MASK>(ctx[0]->state, ctx[0]->memory);
     } else {

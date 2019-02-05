@@ -586,6 +586,8 @@ inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_
     xmrig::keccak(input, size, ctx[0]->state);
     cn_explode_scratchpad_gpu<ALGO, MEM>(ctx[0]->state, ctx[0]->memory);
 
+    fesetround(FE_TONEAREST);
+
     cn_gpu_inner_arm<ITERATIONS, MASK>(ctx[0]->state, ctx[0]->memory);
 
     cn_implode_scratchpad<xmrig::CRYPTONIGHT_HEAVY, MEM, SOFT_AES>((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
