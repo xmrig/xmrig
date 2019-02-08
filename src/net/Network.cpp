@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -154,12 +155,12 @@ void Network::onResultAccepted(IStrategy *strategy, Client *client, const Submit
     m_state.add(result, error);
 
     if (error) {
-        LOG_INFO(isColors() ? "\x1B[01;31mrejected\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[01;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[01;30m(%" PRIu64 " ms)"
+        LOG_INFO(isColors() ? "\x1B[1;31mrejected\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[1;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[1;30m(%" PRIu64 " ms)"
                             : "rejected (%" PRId64 "/%" PRId64 ") diff %u \"%s\" (%" PRIu64 " ms)",
                  m_state.accepted, m_state.rejected, result.diff, error, result.elapsed);
     }
     else {
-        LOG_INFO(isColors() ? "\x1B[01;32maccepted\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[01;37m%u\x1B[0m \x1B[01;30m(%" PRIu64 " ms)"
+        LOG_INFO(isColors() ? "\x1B[1;32maccepted\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[1;37m%u\x1B[0m \x1B[1;30m(%" PRIu64 " ms)"
                             : "accepted (%" PRId64 "/%" PRId64 ") diff %u (%" PRIu64 " ms)",
                  m_state.accepted, m_state.rejected, result.diff, result.elapsed);
     }
@@ -177,6 +178,10 @@ void Network::setJob(Client *client, const Job &job, bool donate)
     LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s")
                         : "new job from %s:%d diff %d algo %s",
              client->host(), client->port(), job.diff(), job.algorithm().shortName());
+
+    if (!donate && m_donate) {
+        m_donate->setAlgo(job.algorithm());
+    }
 
     m_state.diff = job.diff();
     Workers::setJob(job, donate);
