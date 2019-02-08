@@ -54,6 +54,7 @@ extern "C"
     void cnv1_main_loop_lite_sandybridge_asm(ScratchPad* ctx0);
     void cnv1_main_loop_fast_sandybridge_asm(ScratchPad* ctx0);
     void cnv1_main_loop_upx_sandybridge_asm(ScratchPad* ctx0);
+    void cnv1_main_loop_rto_sandybridge_asm(ScratchPad* ctx0);
 
     void cnv2_main_loop_ivybridge_asm(ScratchPad* ctx0);
     void cnv2_main_loop_ryzen_asm(ScratchPad* ctx0);
@@ -74,6 +75,7 @@ extern "C"
     void cnv1_main_loop_lite_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv1_main_loop_fast_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv1_main_loop_upx_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cnv1_main_loop_rto_soft_aes_sandybridge_asm(ScratchPad* ctx0);
 
     void cnv2_main_loop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv2_main_loop_fastv2_soft_aes_sandybridge_asm(ScratchPad* ctx0);
@@ -769,7 +771,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         // not supported
     }
@@ -887,7 +890,8 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
-                                 AsmOptimization asmOptimization)
+                                 AsmOptimization asmOptimization,
+                                 PowVariant powVariant)
     {
         // not supported
     }
@@ -1421,7 +1425,8 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
-                                 AsmOptimization asmOptimization)
+                                 AsmOptimization asmOptimization,
+                                 PowVariant powVariant)
     {
         keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
 
@@ -1443,7 +1448,7 @@ public:
             scratchPad[0]->t_fn = (const uint32_t*)saes_table;
 
             if (ITERATIONS == 0x40000) {
-                if (MASK == 0x1FFFF0) {
+                if (powVariant == PowVariant::POW_MSR) {
                     cnv1_main_loop_fast_soft_aes_sandybridge_asm(scratchPad[0]);
                 } else {
                     cnv1_main_loop_lite_soft_aes_sandybridge_asm(scratchPad[0]);
@@ -1451,11 +1456,15 @@ public:
             } else if (ITERATIONS == 0x20000) {
                 cnv1_main_loop_upx_soft_aes_sandybridge_asm(scratchPad[0]);
             } else {
-                cnv1_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
+                if (powVariant == PowVariant::POW_HOSP || powVariant == PowVariant::POW_RTO) {
+                    cnv1_main_loop_rto_soft_aes_sandybridge_asm(scratchPad[0]);
+                } else {
+                    cnv1_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
+                }
             }
         } else {
             if (ITERATIONS == 0x40000) {
-                if (MASK == 0x1FFFF0) {
+                if (powVariant == PowVariant::POW_MSR) {
                     cnv1_main_loop_fast_sandybridge_asm(scratchPad[0]);
                 } else {
                     cnv1_main_loop_lite_sandybridge_asm(scratchPad[0]);
@@ -1463,7 +1472,11 @@ public:
             } else if (ITERATIONS == 0x20000) {
                 cnv1_main_loop_upx_sandybridge_asm(scratchPad[0]);
             } else {
-                cnv1_main_loop_sandybridge_asm(scratchPad[0]);
+                if (powVariant == PowVariant::POW_HOSP || powVariant == PowVariant::POW_RTO) {
+                    cnv1_main_loop_rto_sandybridge_asm(scratchPad[0]);
+                } else {
+                    cnv1_main_loop_sandybridge_asm(scratchPad[0]);
+                }
             }
         }
 #endif
@@ -1551,7 +1564,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         const uint8_t* l = scratchPad[0]->memory;
         uint64_t* h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
@@ -2109,7 +2123,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         // not supported
     }
@@ -2297,7 +2312,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
         keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
@@ -3104,7 +3120,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         // not supported
     }
@@ -3281,7 +3298,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         // not supported
     }
@@ -4315,7 +4333,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         // not supported
     }
@@ -4539,7 +4558,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         // not supported
     }
@@ -5196,7 +5216,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         // not supported
     }
@@ -5464,7 +5485,8 @@ public:
                                      size_t size,
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
-                                     AsmOptimization asmOptimization)
+                                     AsmOptimization asmOptimization,
+                                     PowVariant powVariant)
     {
         // not supported
     }

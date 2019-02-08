@@ -11,6 +11,7 @@
 .global FN_PREFIX(cnv1_main_loop_lite_sandybridge_asm)
 .global FN_PREFIX(cnv1_main_loop_fast_sandybridge_asm)
 .global FN_PREFIX(cnv1_main_loop_upx_sandybridge_asm)
+.global FN_PREFIX(cnv1_main_loop_rto_sandybridge_asm)
 
 .global FN_PREFIX(cnv2_main_loop_ivybridge_asm)
 .global FN_PREFIX(cnv2_main_loop_ryzen_asm)
@@ -31,6 +32,7 @@
 .global FN_PREFIX(cnv1_main_loop_lite_soft_aes_sandybridge_asm)
 .global FN_PREFIX(cnv1_main_loop_fast_soft_aes_sandybridge_asm)
 .global FN_PREFIX(cnv1_main_loop_upx_soft_aes_sandybridge_asm)
+.global FN_PREFIX(cnv1_main_loop_rto_soft_aes_sandybridge_asm)
 
 .global FN_PREFIX(cnv2_main_loop_soft_aes_sandybridge_asm)
 .global FN_PREFIX(cnv2_main_loop_fastv2_soft_aes_sandybridge_asm)
@@ -81,6 +83,18 @@ FN_PREFIX(cnv1_main_loop_upx_sandybridge_asm):
 	sub rsp, 48
 	mov rcx, rdi
 	#include "cnv1_main_loop_upx_sandybridge.inc"
+	add rsp, 48
+	ret 0
+
+#ifdef __APPLE__
+ALIGN 16
+#else
+ALIGN 64
+#endif
+FN_PREFIX(cnv1_main_loop_rto_sandybridge_asm):
+	sub rsp, 48
+	mov rcx, rdi
+	#include "cnv1_main_loop_rto_sandybridge.inc"
 	add rsp, 48
 	ret 0
 
@@ -278,6 +292,18 @@ FN_PREFIX(cnv1_main_loop_upx_soft_aes_sandybridge_asm):
     #include "cnv1_main_loop_upx_soft_aes_sandybridge.inc"
     add rsp, 48
     ret 0
+
+#ifdef __APPLE__
+ALIGN 16
+#else
+ALIGN 64
+#endif
+FN_PREFIX(cnv1_main_loop_rto_soft_aes_sandybridge_asm):
+	sub rsp, 48
+	mov rcx, rdi
+	#include "cnv1_main_loop_rto_soft_aes_sandybridge.inc"
+	add rsp, 48
+	ret 0
 
 #ifdef __APPLE__
 ALIGN 16

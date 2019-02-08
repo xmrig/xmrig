@@ -330,7 +330,8 @@ constexpr static const char *pow_variant_names[] = {
         "xfh",
         "fast2",
         "upx",
-        "turtle"
+        "turtle",
+        "hosp"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -1115,6 +1116,12 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-hospital") || !strcmp(algo, "cryptonight-hosp"))) {
+            m_algo = ALGO_CRYPTONIGHT;
+            m_powVariant = POW_HOSP;
+            break;
+        }
+
         if (i == ARRAY_SIZE(algo_names) - 1) {
             showUsage(1);
             return false;
@@ -1191,6 +1198,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "trtl") || !strcmp(powVariant, "turtlev2") || !strcmp(powVariant, "pico"))) {
             m_powVariant = POW_TURTLE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "hosp") || !strcmp(powVariant, "hospital"))) {
+            m_powVariant = POW_HOSP;
             break;
         }
 

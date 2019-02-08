@@ -4,6 +4,7 @@ PUBLIC cnv1_main_loop_sandybridge_asm
 PUBLIC cnv1_main_loop_lite_sandybridge_asm
 PUBLIC cnv1_main_loop_fast_sandybridge_asm
 PUBLIC cnv1_main_loop_upx_sandybridge_asm
+PUBLIC cnv1_main_loop_rto_sandybridge_asm
 
 PUBLIC cnv2_main_loop_ivybridge_asm
 PUBLIC cnv2_main_loop_ryzen_asm
@@ -24,6 +25,7 @@ PUBLIC cnv1_main_loop_soft_aes_sandybridge_asm
 PUBLIC cnv1_main_loop_lite_soft_aes_sandybridge_asm
 PUBLIC cnv1_main_loop_fast_soft_aes_sandybridge_asm
 PUBLIC cnv1_main_loop_upx_soft_aes_sandybridge_asm
+PUBLIC cnv1_main_loop_rto_soft_aes_sandybridge_asm
 
 PUBLIC cnv2_main_loop_soft_aes_sandybridge_asm
 PUBLIC cnv2_main_loop_fastv2_soft_aes_sandybridge_asm
@@ -52,6 +54,12 @@ cnv1_main_loop_upx_sandybridge_asm PROC
 	INCLUDE cnv1_main_loop_upx_sandybridge.inc
 	ret 0
 cnv1_main_loop_upx_sandybridge_asm ENDP
+
+ALIGN 64
+cnv1_main_loop_rto_sandybridge_asm PROC
+	INCLUDE cnv1_main_loop_rto_sandybridge.inc
+	ret 0
+cnv1_main_loop_rto_sandybridge_asm ENDP
 
 ALIGN 64
 cnv2_main_loop_ivybridge_asm PROC
@@ -148,6 +156,12 @@ cnv1_main_loop_upx_soft_aes_sandybridge_asm PROC
 	INCLUDE cnv1_main_loop_upx_soft_aes_sandybridge.inc
 	ret 0
 cnv1_main_loop_upx_soft_aes_sandybridge_asm ENDP
+
+ALIGN 64
+cnv1_main_loop_rto_soft_aes_sandybridge_asm PROC
+	INCLUDE cnv1_main_loop_rto_soft_aes_sandybridge.inc
+	ret 0
+cnv1_main_loop_rto_soft_aes_sandybridge_asm ENDP
 
 ALIGN 64
 cnv2_main_loop_soft_aes_sandybridge_asm PROC
