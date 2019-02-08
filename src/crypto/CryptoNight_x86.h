@@ -1447,36 +1447,46 @@ public:
         if (SOFT_AES) {
             scratchPad[0]->t_fn = (const uint32_t*)saes_table;
 
-            if (ITERATIONS == 0x40000) {
-                if (powVariant == PowVariant::POW_MSR) {
+            switch (powVariant)
+            {
+                case POW_MSR:
                     cnv1_main_loop_fast_soft_aes_sandybridge_asm(scratchPad[0]);
-                } else {
-                    cnv1_main_loop_lite_soft_aes_sandybridge_asm(scratchPad[0]);
-                }
-            } else if (ITERATIONS == 0x20000) {
-                cnv1_main_loop_upx_soft_aes_sandybridge_asm(scratchPad[0]);
-            } else {
-                if (powVariant == PowVariant::POW_HOSP || powVariant == PowVariant::POW_RTO) {
+                    break;
+                case POW_UPX:
+                    cnv1_main_loop_upx_soft_aes_sandybridge_asm(scratchPad[0]);
+                    break;
+                case POW_RTO:
+                case POW_HOSP:
                     cnv1_main_loop_rto_soft_aes_sandybridge_asm(scratchPad[0]);
-                } else {
-                    cnv1_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
-                }
+                    break;
+                default:
+                    if (ITERATIONS == 0x40000) {
+                        cnv1_main_loop_lite_soft_aes_sandybridge_asm(scratchPad[0]);
+                    } else {
+                        cnv1_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
+                    }
+                    break;
             }
         } else {
-            if (ITERATIONS == 0x40000) {
-                if (powVariant == PowVariant::POW_MSR) {
+            switch (powVariant)
+            {
+                case POW_MSR:
                     cnv1_main_loop_fast_sandybridge_asm(scratchPad[0]);
-                } else {
-                    cnv1_main_loop_lite_sandybridge_asm(scratchPad[0]);
-                }
-            } else if (ITERATIONS == 0x20000) {
-                cnv1_main_loop_upx_sandybridge_asm(scratchPad[0]);
-            } else {
-                if (powVariant == PowVariant::POW_HOSP || powVariant == PowVariant::POW_RTO) {
+                    break;
+                case POW_UPX:
+                    cnv1_main_loop_upx_sandybridge_asm(scratchPad[0]);
+                    break;
+                case POW_RTO:
+                case POW_HOSP:
                     cnv1_main_loop_rto_sandybridge_asm(scratchPad[0]);
-                } else {
-                    cnv1_main_loop_sandybridge_asm(scratchPad[0]);
-                }
+                    break;
+                default:
+                    if (ITERATIONS == 0x40000) {
+                        cnv1_main_loop_lite_sandybridge_asm(scratchPad[0]);
+                    } else {
+                        cnv1_main_loop_sandybridge_asm(scratchPad[0]);
+                    }
+                    break;
             }
         }
 #endif
@@ -1578,37 +1588,58 @@ public:
             if (SOFT_AES) {
                 scratchPad[0]->input = input;
                 scratchPad[0]->t_fn = (const uint32_t*)saes_table;
-                if (ITERATIONS == 0x40000) {
-                    cnv2_main_loop_fastv2_soft_aes_sandybridge_asm(scratchPad[0]);
-                } else if (ITERATIONS == 0x10000) {
-                    cnv2_main_loop_ultralite_soft_aes_sandybridge_asm(scratchPad[0]);
-                } else {
-                    cnv2_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
+
+                switch (powVariant)
+                {
+                    case POW_FAST_2:
+                        cnv2_main_loop_fastv2_soft_aes_sandybridge_asm(scratchPad[0]);
+                        break;
+                    case POW_TURTLE:
+                        cnv2_main_loop_ultralite_soft_aes_sandybridge_asm(scratchPad[0]);
+                        break;
+                    default:
+                        cnv2_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
+                        break;
                 }
             } else {
-                if (ITERATIONS == 0x40000) {
-                    cnv2_main_loop_fastv2_ivybridge_asm(scratchPad[0]);
-                } else if (ITERATIONS == 0x10000) {
-                    cnv2_main_loop_ultralite_ivybridge_asm(scratchPad[0]);
-                } else {
-                    cnv2_main_loop_ivybridge_asm(scratchPad[0]);
+                switch (powVariant)
+                {
+                    case POW_FAST_2:
+                        cnv2_main_loop_fastv2_ivybridge_asm(scratchPad[0]);
+                        break;
+                    case POW_TURTLE:
+                        cnv2_main_loop_ultralite_ivybridge_asm(scratchPad[0]);
+                        break;
+                    default:
+                        cnv2_main_loop_ivybridge_asm(scratchPad[0]);
+                        break;
                 }
             }
         } else if (asmOptimization == AsmOptimization::ASM_RYZEN) {
-            if (ITERATIONS == 0x40000) {
-                cnv2_main_loop_fastv2_ryzen_asm(scratchPad[0]);
-            } else if (ITERATIONS == 0x10000) {
-                cnv2_main_loop_ultralite_ryzen_asm(scratchPad[0]);
-            } else {
-                cnv2_main_loop_ryzen_asm(scratchPad[0]);
+            switch (powVariant)
+            {
+                case POW_FAST_2:
+                    cnv2_main_loop_fastv2_ryzen_asm(scratchPad[0]);
+                    break;
+                case POW_TURTLE:
+                    cnv2_main_loop_ultralite_ryzen_asm(scratchPad[0]);
+                    break;
+                default:
+                    cnv2_main_loop_ryzen_asm(scratchPad[0]);
+                    break;
             }
         } else if (asmOptimization == AsmOptimization::ASM_BULLDOZER) {
-            if (ITERATIONS == 0x40000) {
-                cnv2_main_loop_fastv2_bulldozer_asm(scratchPad[0]);
-            } else if (ITERATIONS == 0x10000) {
-                cnv2_main_loop_ultralite_bulldozer_asm(scratchPad[0]);
-            } else {
-                cnv2_main_loop_bulldozer_asm(scratchPad[0]);
+            switch (powVariant)
+            {
+                case POW_FAST_2:
+                    cnv2_main_loop_fastv2_bulldozer_asm(scratchPad[0]);
+                    break;
+                case POW_TURTLE:
+                    cnv2_main_loop_ultralite_bulldozer_asm(scratchPad[0]);
+                    break;
+                default:
+                    cnv2_main_loop_bulldozer_asm(scratchPad[0]);
+                    break;
             }
         }
 #endif
@@ -2327,15 +2358,18 @@ public:
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
 
 #ifndef XMRIG_NO_ASM
-        if (ITERATIONS == 0x40000) {
-            cnv2_double_main_loop_fastv2_sandybridge_asm(scratchPad[0], scratchPad[1]);
-        } else if (ITERATIONS == 0x10000) {
-            cnv2_double_main_loop_ultralite_sandybridge_asm(scratchPad[0], scratchPad[1]);
-        } else {
-            cnv2_double_main_loop_sandybridge_asm(scratchPad[0], scratchPad[1]);
+        switch(powVariant) {
+            case POW_FAST_2:
+                cnv2_double_main_loop_fastv2_sandybridge_asm(scratchPad[0], scratchPad[1]);
+                break;
+            case POW_TURTLE:
+                cnv2_double_main_loop_ultralite_sandybridge_asm(scratchPad[0], scratchPad[1]);
+                break;
+            default:
+                cnv2_double_main_loop_sandybridge_asm(scratchPad[0], scratchPad[1]);
+                break;
         }
 #endif
-
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
 
