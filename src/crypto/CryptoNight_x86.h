@@ -4,7 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
@@ -35,6 +35,7 @@
 #endif
 
 
+#include "common/cpu/Cpu.h"
 #include "common/crypto/keccak.h"
 #include "crypto/CryptoNight.h"
 #include "crypto/CryptoNight_constants.h"
@@ -287,6 +288,34 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
         _mm_store_si128(output + i + 7, xin7);
     }
 }
+
+
+#ifndef XMRIG_NO_CN_GPU
+template<xmrig::Algo ALGO, size_t MEM>
+void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
+{
+    constexpr size_t hash_size = 200; // 25x8 bytes
+    alignas(16) uint64_t hash[25];
+
+    for (uint64_t i = 0; i < MEM / 512; i++)
+    {
+        memcpy(hash, input, hash_size);
+        hash[0] ^= i;
+
+        xmrig::keccakf(hash, 24);
+        memcpy(output, hash, 160);
+        output += 160;
+
+        xmrig::keccakf(hash, 24);
+        memcpy(output, hash, 176);
+        output += 176;
+
+        xmrig::keccakf(hash, 24);
+        memcpy(output, hash, 176);
+        output += 176;
+    }
+}
+#endif
 
 
 template<xmrig::Algo ALGO, size_t MEM, bool SOFT_AES>
@@ -564,6 +593,47 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     xmrig::keccakf(h0, 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
+
+
+#ifndef XMRIG_NO_CN_GPU
+template<size_t ITER, uint32_t MASK>
+void cn_gpu_inner_avx(const uint8_t *spad, uint8_t *lpad);
+
+
+template<size_t ITER, uint32_t MASK>
+void cn_gpu_inner_ssse3(const uint8_t *spad, uint8_t *lpad);
+
+
+template<xmrig::Algo ALGO, bool SOFT_AES, xmrig::Variant VARIANT>
+inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx)
+{
+    constexpr size_t MASK         = xmrig::CRYPTONIGHT_GPU_MASK;
+    constexpr size_t ITERATIONS   = xmrig::cn_select_iter<ALGO, VARIANT>();
+    constexpr size_t MEM          = xmrig::cn_select_memory<ALGO>();
+
+    static_assert(MASK > 0 && ITERATIONS > 0 && MEM > 0, "unsupported algorithm/variant");
+
+    xmrig::keccak(input, size, ctx[0]->state);
+    cn_explode_scratchpad_gpu<ALGO, MEM>(ctx[0]->state, ctx[0]->memory);
+
+#   ifdef _MSC_VER
+    _control87(RC_NEAR, MCW_RC);
+#   else
+    fesetround(FE_TONEAREST);
+#   endif
+
+    if (xmrig::Cpu::info()->hasAVX2()) {
+        cn_gpu_inner_avx<ITERATIONS, MASK>(ctx[0]->state, ctx[0]->memory);
+    } else {
+        cn_gpu_inner_ssse3<ITERATIONS, MASK>(ctx[0]->state, ctx[0]->memory);
+    }
+
+    cn_implode_scratchpad<xmrig::CRYPTONIGHT_HEAVY, MEM, SOFT_AES>((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+
+    xmrig::keccakf((uint64_t*) ctx[0]->state, 24);
+    memcpy(output, ctx[0]->state, 32);
+}
+#endif
 
 
 #ifndef XMRIG_NO_ASM

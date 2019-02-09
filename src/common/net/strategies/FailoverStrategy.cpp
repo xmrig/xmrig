@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -73,6 +74,14 @@ void FailoverStrategy::resume()
     }
 
     m_listener->onJob(this, m_pools[m_active],  m_pools[m_active]->job());
+}
+
+
+void FailoverStrategy::setAlgo(const xmrig::Algorithm &algo)
+{
+    for (Client *client : m_pools) {
+        client->setAlgo(algo);
+    }
 }
 
 

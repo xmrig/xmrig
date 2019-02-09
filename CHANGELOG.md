@@ -1,3 +1,8 @@
+# v2.11.0
+- [#928](https://github.com/xmrig/xmrig/issues/928) Added support for new algorithm `cryptonight/gpu`, short alias `cn/gpu` (original name `cryptonight-gpu`), for upcoming [Ryo currency](https://ryo-currency.com) fork on February 14.
+- [#749](https://github.com/xmrig/xmrig/issues/749) Added support for detect hardware AES in runtime on ARMv8 platforms.
+- [#292](https://github.com/xmrig/xmrig/issues/292) Fixed build on ARMv8 platforms if compiler not support hardware AES.
+
 # v2.10.0
 - [#904](https://github.com/xmrig/xmrig/issues/904) Added new algorithm `cn-pico/trtl` (aliases `cryptonight-turtle`, `cn-trtl`) for upcoming TurtleCoin (TRTL) fork.
 - Default value for option `max-cpu-usage` changed to `100` also this option now deprecated.

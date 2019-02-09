@@ -36,7 +36,7 @@ enum Algo {
     CRYPTONIGHT_LITE,   /* CryptoNight (1 MB) */
     CRYPTONIGHT_HEAVY,  /* CryptoNight (4 MB) */
     CRYPTONIGHT_PICO,   /* CryptoNight (256 KB) */
-    CRYPTONIGHT_MAX
+    ALGO_MAX
 };
 
 
@@ -73,6 +73,7 @@ enum Variant {
     VARIANT_2    = 8,  // CryptoNight variant 2
     VARIANT_HALF = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
     VARIANT_TRTL = 10, // CryptoNight Turtle (TRTL)
+    VARIANT_GPU  = 11, // CryptoNight-GPU (Ryo)
     VARIANT_MAX
 };
 
