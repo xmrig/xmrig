@@ -1,3 +1,8 @@
+# 1.8.13
+- Integrated HOSP variant (algo: "cryptonight", variant: "hosp")
+- Added ASM code/optimization for HOSP and RTO on Intel CPUs
+- Fixed memory/hugepages printout for cn-ultralite/turtle
+- Fixed compile issues on some compilers
 # 1.8.12
 - Fixed #228 "force-pow-variant" overrules autodetect for XTLv9/Fast2
 - Fixed out of source building (asm code generator)
