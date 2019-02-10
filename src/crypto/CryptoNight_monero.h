@@ -156,7 +156,6 @@
 
 #define VARIANT4_RANDOM_MATH_INIT(part) \
   uint32_t r##part[8]; \
-  uint64_t r64_##part[8]; \
   struct V4_Instruction code##part[256]; \
   if (VARIANT == xmrig::VARIANT_WOW) { \
     r##part[0] = (uint32_t)(h##part[12]); \
