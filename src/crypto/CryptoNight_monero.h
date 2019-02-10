@@ -147,4 +147,33 @@
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(_a))); \
     } while (0)
 #endif
+
+#define SWAP32LE(x) x
+#define SWAP64LE(x) x
+#define hash_extra_blake(data, length, hash) blake256_hash((uint8_t*)(hash), (uint8_t*)(data), (length))
+
+#include "variant4_random_math.h"
+
+#define VARIANT4_RANDOM_MATH_INIT(part) \
+  uint32_t r##part[8]; \
+  uint64_t r64_##part[8]; \
+  struct V4_Instruction code##part[256]; \
+  if (VARIANT == xmrig::VARIANT_WOW) { \
+    r##part[0] = (uint32_t)(h##part[12]); \
+    r##part[1] = (uint32_t)(h##part[12] >> 32); \
+    r##part[2] = (uint32_t)(h##part[13]); \
+    r##part[3] = (uint32_t)(h##part[13] >> 32); \
+  } \
+  v4_random_math_init(code##part, height);
+
+#define VARIANT4_RANDOM_MATH(part, al, ah, cl, bx0, bx1) \
+  if (VARIANT == xmrig::VARIANT_WOW) { \
+    cl ^= (r##part[0] + r##part[1]) | ((uint64_t)(r##part[2] + r##part[3]) << 32); \
+    r##part[4] = static_cast<uint32_t>(al); \
+    r##part[5] = static_cast<uint32_t>(ah); \
+    r##part[6] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx0)); \
+    r##part[7] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx1)); \
+    v4_random_math(code##part, r##part); \
+  }
+
 #endif /* XMRIG_CRYPTONIGHT_MONERO_H */
