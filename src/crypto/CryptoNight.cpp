@@ -559,14 +559,13 @@ bool CryptoNight::selfTest(int algo)
     } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
         // cn ultralite (cnv8 + turtle)
 
-        cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_TURTLE, test_input, 76, output, scratchPads);
         resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[1](asmOptimization, PowVariant::POW_TURTLE, test_input, 76, output, scratchPads);
         resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 64) == 0;
         #endif
-
     } else {
         // cn v0 aka orignal
 
