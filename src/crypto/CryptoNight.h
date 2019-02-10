@@ -29,7 +29,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined XMRIG_ARM
 #define ABI_ATTRIBUTE
 #else
 #define ABI_ATTRIBUTE __attribute__((ms_abi))
