@@ -172,6 +172,9 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_ITER;
 
+    case CRYPTONIGHT_PICO:
+        return CRYPTONIGHT_TRTL_ITER;
+
     default:
         break;
     }
