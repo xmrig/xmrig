@@ -517,7 +517,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         if (BASE == xmrig::VARIANT_2) {
             VARIANT2_INTEGER_MATH(0, cl, cx);
         }
-        else if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
+        else if (VARIANT == xmrig::VARIANT_WOW) {
             VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx0, bx1);
         }
 
@@ -687,7 +687,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         if (BASE == xmrig::VARIANT_2) {
             VARIANT2_INTEGER_MATH(0, cl, cx0);
         }
-        else if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
+        else if (VARIANT == xmrig::VARIANT_WOW) {
             VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx01);
         }
 
@@ -736,7 +736,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         if (BASE == xmrig::VARIANT_2) {
             VARIANT2_INTEGER_MATH(1, cl, cx1);
         }
-        else if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
+        else if (VARIANT == xmrig::VARIANT_WOW) {
             VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx10, bx11);
         }
 
