@@ -134,6 +134,9 @@ bool Job::setBlob(const char *blob)
         else if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] >= 8) {
             m_algorithm.setVariant(xmrig::VARIANT_HALF);
         }
+        else if (m_algorithm.variant() == xmrig::VARIANT_WOW && m_blob[0] < 11) {
+            m_algorithm.setVariant(xmrig::VARIANT_2);
+        }
     }
 
 #   ifdef XMRIG_PROXY_PROJECT
