@@ -62,7 +62,6 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
     ScratchPadMem scratchPadMem;
     scratchPadMem.realSize = scratchPadSize * getThreadHashFactor(threadId);
     scratchPadMem.size = scratchPadSize * getThreadHashFactor(threadId);
-    scratchPadMem.size += scratchPadMem.size % MEMORY;
     scratchPadMem.pages = std::max(scratchPadMem.size / MEMORY, static_cast<size_t>(1));
 
     allocate(scratchPadMem, m_useHugePages);

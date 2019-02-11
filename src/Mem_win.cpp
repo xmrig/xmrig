@@ -21,7 +21,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include <algorithm>
 #include <winsock2.h>
 #include <windows.h>
 #include <ntsecapi.h>
@@ -158,6 +158,8 @@ void Mem::allocate(ScratchPadMem& scratchPadMem, bool useHugePages)
         scratchPadMem.memory = static_cast<uint8_t*>(_mm_malloc(scratchPadMem.size, 4096));
         return;
     }
+
+    scratchPadMem.size = std::max(scratchPadMem.size, static_cast<size_t>(MEMORY));
 
     scratchPadMem.memory = static_cast<uint8_t*>(VirtualAlloc(nullptr, scratchPadMem.size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
     if (scratchPadMem.memory) {
