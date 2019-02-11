@@ -31,7 +31,7 @@
 #include "common/net/Job.h"
 
 
-static inline unsigned char hf_hex2bin(char c, bool &err)
+unsigned char hf_hex2bin(char c, bool &err)
 {
     if (c >= '0' && c <= '9') {
         return c - '0';
@@ -48,7 +48,7 @@ static inline unsigned char hf_hex2bin(char c, bool &err)
 }
 
 
-static inline char hf_bin2hex(unsigned char c)
+char hf_bin2hex(unsigned char c)
 {
     if (c <= 0x9) {
         return '0' + c;
@@ -66,7 +66,8 @@ Job::Job() :
     m_size(0),
     m_diff(0),
     m_target(0),
-    m_blob()
+    m_blob(),
+    m_height(0)
 {
 }
 
@@ -80,6 +81,7 @@ Job::Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmr
     m_diff(0),
     m_target(0),
     m_blob(),
+    m_height(0),
     m_algorithm(algorithm),
     m_clientId(clientId)
 {
@@ -131,6 +133,9 @@ bool Job::setBlob(const char *blob)
         }
         else if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] >= 8) {
             m_algorithm.setVariant(xmrig::VARIANT_HALF);
+        }
+        else if (m_algorithm.variant() == xmrig::VARIANT_WOW && m_blob[0] < 11) {
+            m_algorithm.setVariant(xmrig::VARIANT_2);
         }
     }
 
@@ -192,6 +197,12 @@ void Job::setAlgorithm(const char *algo)
     if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
         m_algorithm.setVariant(variant());
     }
+}
+
+
+void Job::setHeight(uint64_t height)
+{
+    m_height = height;
 }
 
 

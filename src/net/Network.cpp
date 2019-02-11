@@ -175,9 +175,16 @@ bool Network::isColors() const
 
 void Network::setJob(Client *client, const Job &job, bool donate)
 {
-    LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s")
-                        : "new job from %s:%d diff %d algo %s",
-             client->host(), client->port(), job.diff(), job.algorithm().shortName());
+    if (job.height()) {
+        LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64)
+                            : "new job from %s:%d diff %d algo %s height %" PRIu64,
+                 client->host(), client->port(), job.diff(), job.algorithm().shortName(), job.height());
+    }
+    else {
+        LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s")
+                            : "new job from %s:%d diff %d algo %s",
+                 client->host(), client->port(), job.diff(), job.algorithm().shortName());
+    }
 
     if (!donate && m_donate) {
         m_donate->setAlgo(job.algorithm());
