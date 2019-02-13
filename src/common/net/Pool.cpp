@@ -51,7 +51,7 @@ Pool::Pool() :
     m_keepAlive(0),
     m_port(kDefaultPort)
 {
-    // here xmrig now resuts all possible supported algorithms
+    // here xmrig now reports all possible supported algorithms
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_1));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_2));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_0));
@@ -275,6 +275,13 @@ void Pool::adjust(const xmrig::Algorithm &algorithm)
         adjustVariant(algorithm.variant());
     }
 }
+
+
+void Pool::setAlgo(const xmrig::Algorithm &algorithm)
+{
+    m_algorithm = algorithm;
+}
+
 
 #ifdef APP_DEBUG
 void Pool::print() const
