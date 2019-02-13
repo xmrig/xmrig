@@ -86,6 +86,7 @@ public:
     inline int id() const                             { return m_id; }
     inline SocketState state() const                  { return m_state; }
     inline uint16_t port() const                      { return m_pool.port(); }
+    inline void setAlgo(const xmrig::Algorithm &algo) { m_pool.setAlgo(algo); }
     inline void setQuiet(bool quiet)                  { m_quiet = quiet; }
     inline void setRetries(int retries)               { m_retries = retries; }
     inline void setRetryPause(int ms)                 { m_retryPause = ms; }
