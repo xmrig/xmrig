@@ -130,7 +130,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     // save extended "threads" based on m_threads
     Value threads(kObjectType);
-    for (int a = 0; a != xmrig::Algo::CRYPTONIGHT_MAX; ++ a) {
+    for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
         const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
         Value key(xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo()), allocator);
         if (threadsMode(algo) != Simple) {
@@ -186,7 +186,7 @@ bool xmrig::Config::finalize()
     }
 
     // auto configure m_threads
-    for (int a = 0; a != xmrig::Algo::CRYPTONIGHT_MAX; ++ a) {
+    for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
         const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
         if (!m_threads[algo].cpu.empty()) {
             m_threads[algo].mode = Advanced;
@@ -349,7 +349,7 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
         parseThreadsJSON(threads, m_algorithm.algo());
     } else if (threads.IsObject()) {
         // parse new specific perf algo threads
-        for (int a = 0; a != xmrig::Algo::CRYPTONIGHT_MAX; ++ a) {
+        for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
             const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
             const rapidjson::Value &threads2 = threads[xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo())];
             if (threads2.IsArray()) {

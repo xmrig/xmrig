@@ -221,6 +221,10 @@ int64_t Client::submit(const JobResult &result)
     }
 #   endif
 
+    if (m_job.algorithm().variant() == xmrig::VARIANT_WOW && m_job.id() != result.jobId) {
+        return -1;
+    }
+
     using namespace rapidjson;
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -353,6 +357,14 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         }
         else if (variant.IsString()){
             job.setVariant(variant.GetString());
+        }
+    }
+
+    if (params.HasMember("height")) {
+        const rapidjson::Value &variant = params["height"];
+
+        if (variant.IsUint64()) {
+            job.setHeight(variant.GetUint64());
         }
     }
 

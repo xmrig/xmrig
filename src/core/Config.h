@@ -141,7 +141,7 @@ private:
     int m_maxCpuUsage;
     int m_priority;
     // threads config for each algo
-    Threads m_threads[xmrig::Algo::CRYPTONIGHT_MAX];
+    Threads m_threads[xmrig::Algo::ALGO_MAX];
     // perf algo hashrate results
     float m_algo_perf[xmrig::PerfAlgo::PA_MAX];
 };

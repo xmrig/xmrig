@@ -37,18 +37,20 @@ enum Algo {
     CRYPTONIGHT_LITE,   /* CryptoNight (1 MB) */
     CRYPTONIGHT_HEAVY,  /* CryptoNight (4 MB) */
     CRYPTONIGHT_PICO,   /* CryptoNight (256 KB) */
-    CRYPTONIGHT_MAX
+    ALGO_MAX
 };
 
 // algorithms that can has different performance
 enum PerfAlgo {
     PA_INVALID = -1,
-    PA_CN,       /* CryptoNight (Monero) */
-    PA_CN2,      /* CryptoNight/2 (Monero) */
-    PA_CN_HALF,  /* CryptoNight-Half (Masari) */
-    PA_CN_LITE,  /* CryptoNight-Lite (AEON) */
-    PA_CN_HEAVY, /* CryptoNight-Heavy (SUMO) */
-    PA_CN_PICO,  /* CryptoNight-Pico (TRTL) */
+    PA_CN,       /* cn/0 (Monero) */
+    PA_CN2,      /* cn/2 (Monero) */
+    PA_CN_HALF,  /* cn/half (MSR) */
+    PA_CN_GPU,   /* cn/gpu (RYO) */
+    PA_CN_WOW,   /* cn/wow (WOW) */
+    PA_CN_LITE,  /* cn-lite/1 (AEON) */
+    PA_CN_HEAVY, /* cn-heavy/0 (LOKI) */
+    PA_CN_PICO,  /* cn-pico/trtl (TRTL) */
     PA_MAX
 };
 
@@ -85,6 +87,8 @@ enum Variant {
     VARIANT_2    = 8,  // CryptoNight variant 2
     VARIANT_HALF = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
     VARIANT_TRTL = 10, // CryptoNight Turtle (TRTL)
+    VARIANT_GPU  = 11, // CryptoNight-GPU (Ryo)
+    VARIANT_WOW  = 12, // CryptoNightR (Wownero)
     VARIANT_MAX
 };
 

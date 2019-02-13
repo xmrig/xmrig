@@ -4,7 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
@@ -27,6 +27,7 @@
 #define XMRIG_CRYPTONIGHT_CONSTANTS_H
 
 
+#include <stddef.h>
 #include <stdint.h>
 
 
@@ -41,6 +42,9 @@ constexpr const uint32_t CRYPTONIGHT_MASK         = 0x1FFFF0;
 constexpr const uint32_t CRYPTONIGHT_ITER         = 0x80000;
 constexpr const uint32_t CRYPTONIGHT_HALF_ITER    = 0x40000;
 constexpr const uint32_t CRYPTONIGHT_XAO_ITER     = 0x100000;
+
+constexpr const uint32_t CRYPTONIGHT_GPU_ITER     = 0xC000;
+constexpr const uint32_t CRYPTONIGHT_GPU_MASK     = 0x1FFFC0;
 
 constexpr const size_t   CRYPTONIGHT_LITE_MEMORY  = 1 * 1024 * 1024;
 constexpr const uint32_t CRYPTONIGHT_LITE_MASK    = 0xFFFF0;
@@ -122,11 +126,13 @@ template<Algo ALGO, Variant variant> inline constexpr uint32_t cn_select_iter() 
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_0>()          { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_1>()          { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_2>()          { return CRYPTONIGHT_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_WOW>()        { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XTL>()        { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_HALF>()       { return CRYPTONIGHT_HALF_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_MSR>()        { return CRYPTONIGHT_HALF_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XAO>()        { return CRYPTONIGHT_XAO_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_RTO>()        { return CRYPTONIGHT_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_GPU>()        { return CRYPTONIGHT_GPU_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_0>()     { return CRYPTONIGHT_LITE_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_1>()     { return CRYPTONIGHT_LITE_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_0>()    { return CRYPTONIGHT_HEAVY_ITER; }
@@ -141,6 +147,9 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
     case VARIANT_MSR:
     case VARIANT_HALF:
         return CRYPTONIGHT_HALF_ITER;
+
+    case VARIANT_GPU:
+        return CRYPTONIGHT_GPU_ITER;
 
     case VARIANT_RTO:
         return CRYPTONIGHT_XAO_ITER;
@@ -163,6 +172,9 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_ITER;
 
+    case CRYPTONIGHT_PICO:
+        return CRYPTONIGHT_TRTL_ITER;
+
     default:
         break;
     }
@@ -183,6 +195,8 @@ template<> inline constexpr Variant cn_base_variant<VARIANT_RTO>()   { return VA
 template<> inline constexpr Variant cn_base_variant<VARIANT_2>()     { return VARIANT_2; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_HALF>()  { return VARIANT_2; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_TRTL>()  { return VARIANT_2; }
+template<> inline constexpr Variant cn_base_variant<VARIANT_GPU>()   { return VARIANT_GPU; }
+template<> inline constexpr Variant cn_base_variant<VARIANT_WOW>()   { return VARIANT_2; }
 
 
 } /* namespace xmrig */

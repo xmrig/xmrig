@@ -4,7 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  * Copyright 2018-2019 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
@@ -60,6 +60,8 @@ Pool::Pool() :
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_XAO));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_RTO));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_HALF));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU));
+    m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_WOW));
 
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_1));
     m_algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_0));
@@ -223,10 +225,10 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
 
-    obj.AddMember("url",    StringRef(url()), allocator);
-    obj.AddMember("user",   StringRef(user()), allocator);
-    obj.AddMember("pass",   StringRef(password()), allocator);
-    obj.AddMember("rig-id", rigId() ? Value(StringRef(rigId())).Move() : Value(kNullType).Move(), allocator);
+    obj.AddMember("url",    m_url.toJSON(), allocator);
+    obj.AddMember("user",   m_user.toJSON(), allocator);
+    obj.AddMember("pass",   m_password.toJSON(), allocator);
+    obj.AddMember("rig-id", m_rigId.toJSON(), allocator);
 
 #   ifndef XMRIG_PROXY_PROJECT
     obj.AddMember("nicehash", isNicehash(), allocator);
@@ -243,8 +245,11 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
     case xmrig::VARIANT_AUTO:
     case xmrig::VARIANT_0:
     case xmrig::VARIANT_1:
-    case xmrig::VARIANT_2:
         obj.AddMember("variant", m_algorithm.variant(), allocator);
+        break;
+
+    case xmrig::VARIANT_2:
+        obj.AddMember("variant", 2, allocator);
         break;
 
     default:
@@ -253,7 +258,7 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
     }
 
     obj.AddMember("tls",             isTLS(), allocator);
-    obj.AddMember("tls-fingerprint", fingerprint() ? Value(StringRef(fingerprint())).Move() : Value(kNullType).Move(), allocator);
+    obj.AddMember("tls-fingerprint", m_fingerprint.toJSON(), allocator);
 
     return obj;
 }

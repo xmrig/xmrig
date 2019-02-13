@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,19 +25,29 @@
 #include <string.h>
 #include <thread>
 
+#if __ARM_FEATURE_CRYPTO
+#   include <sys/auxv.h>
+#   include <asm/hwcap.h>
+#endif
+
 
 #include "common/cpu/BasicCpuInfo.h"
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_aes(false),
+    m_avx2(false),
     m_brand(),
     m_threads(std::thread::hardware_concurrency())
 {
-    memcpy(m_brand, "Unknown", 7);
+#   ifdef XMRIG_ARMv8
+    memcpy(m_brand, "ARMv8", 5);
+#   else
+    memcpy(m_brand, "ARMv7", 5);
+#   endif
 
 #   if __ARM_FEATURE_CRYPTO
-    m_aes = true;
+    m_aes = getauxval(AT_HWCAP) & HWCAP_AES;
 #   endif
 }
 
