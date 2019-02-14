@@ -44,7 +44,7 @@ namespace xmrig {
 
 class ConfigLoader;
 class IThread;
-class IWatcherListener;
+class IConfigListener;
 
 
 /**
@@ -85,7 +85,7 @@ public:
     inline int64_t affinity() const                      { return m_threads.mask; }
     inline ThreadsMode threadsMode() const               { return m_threads.mode; }
 
-    static Config *load(int argc, char **argv, IWatcherListener *listener);
+    static Config *load(int argc, char **argv, IConfigListener *listener);
 
 protected:
     bool finalize() override;

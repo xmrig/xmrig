@@ -33,6 +33,9 @@
 namespace xmrig {
 
 
+class String;
+
+
 class IConfig
 {
 public:
@@ -136,7 +139,7 @@ public:
     virtual bool parseUint64(int key, uint64_t arg)        = 0;
     virtual bool save()                                    = 0;
     virtual const Algorithm &algorithm() const             = 0;
-    virtual const char *fileName() const                   = 0;
+    virtual const String &fileName() const                 = 0;
     virtual void getJSON(rapidjson::Document &doc) const   = 0;
     virtual void parseJSON(const rapidjson::Document &doc) = 0;
     virtual void setFileName(const char *fileName)         = 0;

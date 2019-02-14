@@ -22,54 +22,73 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
+
+#include <uv.h>
 
 
-#include <stdint.h>
+#include "base/kernel/interfaces/IWatcherListener.h"
+#include "base/io/Watcher.h"
+#include "base/tools/Handle.h"
 
 
-#include "rapidjson/fwd.h"
-
-
-struct option;
-
-
-namespace xmrig {
-
-
-class ConfigWatcher;
-class IConfigCreator;
-class IConfigListener;
-class IConfig;
-
-
-class ConfigLoader
+xmrig::Watcher::Watcher(const String &path, IWatcherListener *listener) :
+    m_listener(listener),
+    m_path(path)
 {
-public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
-    static IConfig *load(int argc, char **argv, IConfigCreator *creator, IConfigListener *listener);
-    static void release();
+    m_fsEvent = new uv_fs_event_t;
+    uv_fs_event_init(uv_default_loop(), m_fsEvent);
 
-    static inline bool isDone() { return m_done; }
+    m_timer = new uv_timer_t;
+    uv_timer_init(uv_default_loop(), m_timer);
 
-private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
+    m_fsEvent->data = m_timer->data = this;
 
-    static bool m_done;
-    static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
-    static IConfigListener *m_listener;
-};
+    start();
+}
 
 
-} /* namespace xmrig */
+xmrig::Watcher::~Watcher()
+{
+    Handle::close(m_timer);
+    Handle::close(m_fsEvent);
+}
 
-#endif /* XMRIG_CONFIGLOADER_H */
+
+void xmrig::Watcher::onTimer(uv_timer_t *handle)
+{
+    static_cast<Watcher *>(handle->data)->reload();
+}
+
+
+void xmrig::Watcher::onFsEvent(uv_fs_event_t *handle, const char *filename, int, int)
+{
+    if (!filename) {
+        return;
+    }
+
+    static_cast<Watcher *>(handle->data)->queueUpdate();
+}
+
+
+void xmrig::Watcher::queueUpdate()
+{
+    uv_timer_stop(m_timer);
+    uv_timer_start(m_timer, xmrig::Watcher::onTimer, kDelay, 0);
+}
+
+
+void xmrig::Watcher::reload()
+{
+    m_listener->onFileChanged(m_path);
+
+#   ifndef _WIN32
+    uv_fs_event_stop(&m_fsEvent);
+    start();
+#   endif
+}
+
+
+void xmrig::Watcher::start()
+{
+    uv_fs_event_start(m_fsEvent, xmrig::Watcher::onFsEvent, m_path, 0);
+}

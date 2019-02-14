@@ -22,54 +22,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
+#ifndef XMRIG_HANDLE_H
+#define XMRIG_HANDLE_H
 
 
-#include <stdint.h>
-
-
-#include "rapidjson/fwd.h"
-
-
-struct option;
+typedef struct uv_fs_event_s uv_fs_event_t;
+typedef struct uv_getaddrinfo_s uv_getaddrinfo_t;
+typedef struct uv_handle_s uv_handle_t;
+typedef struct uv_signal_s uv_signal_t;
+typedef struct uv_tcp_s uv_tcp_t;
+typedef struct uv_timer_s uv_timer_t;
 
 
 namespace xmrig {
 
 
-class ConfigWatcher;
-class IConfigCreator;
-class IConfigListener;
-class IConfig;
-
-
-class ConfigLoader
+class Handle
 {
 public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
-    static IConfig *load(int argc, char **argv, IConfigCreator *creator, IConfigListener *listener);
-    static void release();
-
-    static inline bool isDone() { return m_done; }
-
-private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
-
-    static bool m_done;
-    static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
-    static IConfigListener *m_listener;
+    static void close(uv_fs_event_t *handle);
+    static void close(uv_getaddrinfo_t *handle);
+    static void close(uv_handle_t *handle);
+    static void close(uv_signal_t *handle);
+    static void close(uv_tcp_t *handle);
+    static void close(uv_timer_t *handle);
 };
 
 
 } /* namespace xmrig */
 
-#endif /* XMRIG_CONFIGLOADER_H */
+
+#endif /* XMRIG_HANDLE_H */

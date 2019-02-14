@@ -65,7 +65,7 @@ public:
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
     inline const Algorithm &algorithm() const override { return m_algorithm; }
-    inline const char *fileName() const override       { return m_fileName.data(); }
+    inline const String &fileName() const override     { return m_fileName; }
 
     bool save() override;
 

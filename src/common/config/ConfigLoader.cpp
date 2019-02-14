@@ -39,23 +39,22 @@
 
 
 #include "base/io/Json.h"
+#include "base/kernel/interfaces/IConfigListener.h"
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
 #include "common/interfaces/IConfig.h"
-#include "common/interfaces/IWatcherListener.h"
 #include "common/net/Pool.h"
 #include "common/Platform.h"
 #include "core/ConfigCreator.h"
 #include "core/ConfigLoader_platform.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
-#include "rapidjson/filereadstream.h"
 
 
 bool xmrig::ConfigLoader::m_done                         = false;
 xmrig::ConfigWatcher *xmrig::ConfigLoader::m_watcher     = nullptr;
 xmrig::IConfigCreator *xmrig::ConfigLoader::m_creator    = nullptr;
-xmrig::IWatcherListener *xmrig::ConfigLoader::m_listener = nullptr;
+xmrig::IConfigListener *xmrig::ConfigLoader::m_listener  = nullptr;
 
 
 #ifndef ARRAY_SIZE
@@ -78,8 +77,9 @@ bool xmrig::ConfigLoader::loadFromFile(xmrig::IConfig *config, const char *fileN
 
 bool xmrig::ConfigLoader::loadFromJSON(xmrig::IConfig *config, const char *json)
 {
-    rapidjson::Document doc;
-    doc.Parse(json);
+    using namespace rapidjson;
+    Document doc;
+    doc.Parse<kParseCommentsFlag | kParseTrailingCommasFlag>(json);
 
     if (doc.HasParseError() || !doc.IsObject()) {
         return false;
@@ -144,7 +144,7 @@ bool xmrig::ConfigLoader::reload(xmrig::IConfig *oldConfig, const char *json)
 }
 
 
-xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator *creator, IWatcherListener *listener)
+xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator *creator, IConfigListener *listener)
 {
     m_creator  = creator;
     m_listener = listener;

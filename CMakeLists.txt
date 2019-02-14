@@ -21,6 +21,10 @@ set(HEADERS
     src/api/NetworkState.h
     src/App.h
     src/base/io/Json.h
+    src/base/io/Watcher.h
+    src/base/kernel/interfaces/IConfigListener.h
+    src/base/kernel/interfaces/IWatcherListener.h
+    src/base/tools/Handle.h
     src/base/tools/String.h
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
@@ -38,7 +42,6 @@ set(HEADERS
     src/common/interfaces/ILogBackend.h
     src/common/interfaces/IStrategy.h
     src/common/interfaces/IStrategyListener.h
-    src/common/interfaces/IWatcherListener.h
     src/common/log/BasicLog.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
@@ -100,6 +103,8 @@ set(SOURCES
     src/api/NetworkState.cpp
     src/App.cpp
     src/base/io/Json.cpp
+    src/base/io/Watcher.cpp
+    src/base/tools/Handle.cpp
     src/base/tools/String.cpp
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp

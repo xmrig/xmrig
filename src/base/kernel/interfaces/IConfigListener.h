@@ -22,54 +22,26 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
-
-
-#include <stdint.h>
-
-
-#include "rapidjson/fwd.h"
-
-
-struct option;
+#ifndef XMRIG_ICONFIGLISTENER_H
+#define XMRIG_ICONFIGLISTENER_H
 
 
 namespace xmrig {
 
 
-class ConfigWatcher;
-class IConfigCreator;
-class IConfigListener;
 class IConfig;
 
 
-class ConfigLoader
+class IConfigListener
 {
 public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
-    static IConfig *load(int argc, char **argv, IConfigCreator *creator, IConfigListener *listener);
-    static void release();
+    virtual ~IConfigListener() = default;
 
-    static inline bool isDone() { return m_done; }
-
-private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
-
-    static bool m_done;
-    static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
-    static IConfigListener *m_listener;
+    virtual void onNewConfig(IConfig *config) = 0;
 };
 
 
 } /* namespace xmrig */
 
-#endif /* XMRIG_CONFIGLOADER_H */
+
+#endif // XMRIG_ICONFIGLISTENER_H

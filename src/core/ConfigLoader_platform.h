@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- *
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -122,6 +122,7 @@ static struct option const options[] = {
     { "max-cpu-usage",     1, nullptr, xmrig::IConfig::MaxCPUUsageKey    },
     { "nicehash",          0, nullptr, xmrig::IConfig::NicehashKey       },
     { "no-color",          0, nullptr, xmrig::IConfig::ColorKey          },
+    { "no-watch",          0, nullptr, xmrig::IConfig::WatchKey          },
     { "no-huge-pages",     0, nullptr, xmrig::IConfig::HugePagesKey      },
     { "variant",           1, nullptr, xmrig::IConfig::VariantKey        },
     { "pass",              1, nullptr, xmrig::IConfig::PasswordKey       },
@@ -163,6 +164,7 @@ static struct option const config_options[] = {
     { "syslog",        0, nullptr, xmrig::IConfig::SyslogKey      },
     { "threads",       1, nullptr, xmrig::IConfig::ThreadsKey     },
     { "user-agent",    1, nullptr, xmrig::IConfig::UserAgentKey   },
+    { "watch",         0, nullptr, xmrig::IConfig::WatchKey       },
     { "hw-aes",        0, nullptr, xmrig::IConfig::HardwareAESKey },
     { "asm",           1, nullptr, xmrig::IConfig::AssemblyKey    },
     { "autosave",      0, nullptr, xmrig::IConfig::AutoSaveKey    },

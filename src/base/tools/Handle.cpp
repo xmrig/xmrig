@@ -22,54 +22,58 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
+
+#include <uv.h>
 
 
-#include <stdint.h>
+#include "base/tools/Handle.h"
 
 
-#include "rapidjson/fwd.h"
-
-
-struct option;
-
-
-namespace xmrig {
-
-
-class ConfigWatcher;
-class IConfigCreator;
-class IConfigListener;
-class IConfig;
-
-
-class ConfigLoader
+void xmrig::Handle::close(uv_fs_event_t *handle)
 {
-public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
-    static IConfig *load(int argc, char **argv, IConfigCreator *creator, IConfigListener *listener);
-    static void release();
-
-    static inline bool isDone() { return m_done; }
-
-private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
-
-    static bool m_done;
-    static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
-    static IConfigListener *m_listener;
-};
+    if (handle) {
+        uv_fs_event_stop(handle);
+        close(reinterpret_cast<uv_handle_t *>(handle));
+    }
+}
 
 
-} /* namespace xmrig */
+void xmrig::Handle::close(uv_getaddrinfo_t *handle)
+{
+    if (handle) {
+        uv_cancel(reinterpret_cast<uv_req_t *>(handle));
+        close(reinterpret_cast<uv_handle_t *>(handle));
+    }
+}
 
-#endif /* XMRIG_CONFIGLOADER_H */
+
+void xmrig::Handle::close(uv_handle_t *handle)
+{
+    uv_close(handle, [](uv_handle_t *handle) { delete handle; });
+}
+
+
+void xmrig::Handle::close(uv_signal_t *handle)
+{
+    if (handle) {
+        uv_signal_stop(handle);
+        close(reinterpret_cast<uv_handle_t *>(handle));
+    }
+}
+
+
+void xmrig::Handle::close(uv_tcp_t *handle)
+{
+    if (handle) {
+        close(reinterpret_cast<uv_handle_t *>(handle));
+    }
+}
+
+
+void xmrig::Handle::close(uv_timer_s *handle)
+{
+    if (handle) {
+        uv_timer_stop(handle);
+        close(reinterpret_cast<uv_handle_t *>(handle));
+    }
+}
