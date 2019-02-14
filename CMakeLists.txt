@@ -20,6 +20,7 @@ include (cmake/cpu.cmake)
 set(HEADERS
     src/api/NetworkState.h
     src/App.h
+    src/base/io/Json.h
     src/base/tools/String.h
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
@@ -98,6 +99,7 @@ endif()
 set(SOURCES
     src/api/NetworkState.cpp
     src/App.cpp
+    src/base/io/Json.cpp
     src/base/tools/String.cpp
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
@@ -143,6 +145,7 @@ if (WIN32)
     set(SOURCES_OS
         res/app.rc
         src/App_win.cpp
+        src/base/io/Json_win.cpp
         src/common/Platform_win.cpp
         src/Mem_win.cpp
         )
@@ -152,12 +155,14 @@ if (WIN32)
 elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
+        src/base/io/Json_unix.cpp
         src/common/Platform_mac.cpp
         src/Mem_unix.cpp
         )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
+        src/base/io/Json_unix.cpp
         src/common/Platform_unix.cpp
         src/Mem_unix.cpp
         )

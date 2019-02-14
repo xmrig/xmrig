@@ -22,54 +22,17 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
+
+#include "base/io/Json.h"
+#include "rapidjson/document.h"
 
 
-#include <stdint.h>
-
-
-#include "rapidjson/fwd.h"
-
-
-struct option;
-
-
-namespace xmrig {
-
-
-class ConfigWatcher;
-class IConfigCreator;
-class IWatcherListener;
-class IConfig;
-
-
-class ConfigLoader
+bool xmrig::Json::getBool(const rapidjson::Value &obj, const char *key, bool defaultValue)
 {
-public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
-    static IConfig *load(int argc, char **argv, IConfigCreator *creator, IWatcherListener *listener);
-    static void release();
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd() && i->value.IsBool()) {
+        return i->value.GetBool();
+    }
 
-    static inline bool isDone() { return m_done; }
-
-private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
-
-    static bool m_done;
-    static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
-    static IWatcherListener *m_listener;
-};
-
-
-} /* namespace xmrig */
-
-#endif /* XMRIG_CONFIGLOADER_H */
+    return defaultValue;
+}

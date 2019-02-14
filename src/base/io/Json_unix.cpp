@@ -22,54 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
+
+#include <fstream>
 
 
-#include <stdint.h>
+#include "base/io/Json.h"
+#include "rapidjson/document.h"
+#include "rapidjson/istreamwrapper.h"
+#include "rapidjson/ostreamwrapper.h"
+#include "rapidjson/prettywriter.h"
 
 
-#include "rapidjson/fwd.h"
-
-
-struct option;
-
-
-namespace xmrig {
-
-
-class ConfigWatcher;
-class IConfigCreator;
-class IWatcherListener;
-class IConfig;
-
-
-class ConfigLoader
+bool xmrig::Json::get(const char *fileName, rapidjson::Document &doc)
 {
-public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
-    static IConfig *load(int argc, char **argv, IConfigCreator *creator, IWatcherListener *listener);
-    static void release();
+    std::ifstream ifs(fileName, std::ios_base::in | std::ios_base::binary);
+    if (!ifs.is_open()) {
+        return false;
+    }
 
-    static inline bool isDone() { return m_done; }
+    rapidjson::IStreamWrapper isw(ifs);
+    doc.ParseStream<rapidjson::kParseCommentsFlag | rapidjson::kParseTrailingCommasFlag>(isw);
 
-private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
-
-    static bool m_done;
-    static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
-    static IWatcherListener *m_listener;
-};
+    return !doc.HasParseError() && doc.IsObject();
+}
 
 
-} /* namespace xmrig */
+bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
+{
+    std::ofstream ofs(fileName, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+    if (!ofs.is_open()) {
+        return false;
+    }
 
-#endif /* XMRIG_CONFIGLOADER_H */
+    rapidjson::OStreamWrapper osw(ofs);
+    rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(osw);
+    doc.Accept(writer);
+
+    return true;
+}

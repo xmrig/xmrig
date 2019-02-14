@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -53,6 +54,7 @@
 #endif
 
 
+#include "base/io/Json.h"
 #include "common/config/CommonConfig.h"
 #include "common/log/Log.h"
 #include "donate.h"
@@ -203,31 +205,15 @@ bool xmrig::CommonConfig::save()
         return false;
     }
 
-    uv_fs_t req;
-    const int fd = uv_fs_open(uv_default_loop(), &req, m_fileName.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644, nullptr);
-    if (fd < 0) {
-        return false;
-    }
-
-    uv_fs_req_cleanup(&req);
-
     rapidjson::Document doc;
     getJSON(doc);
 
-    FILE *fp = fdopen(fd, "w");
+    if (Json::save(m_fileName, doc)) {
+        LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
+        return true;
+    }
 
-    char buf[4096];
-    rapidjson::FileWriteStream os(fp, buf, sizeof(buf));
-    rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
-    doc.Accept(writer);
-
-    fflush(fp);
-
-    uv_fs_close(uv_default_loop(), &req, fd, nullptr);
-    uv_fs_req_cleanup(&req);
-
-    LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
-    return true;
+    return false;
 }
 
 

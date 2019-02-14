@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -37,6 +38,7 @@
 #endif
 
 
+#include "base/io/Json.h"
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
 #include "common/interfaces/IConfig.h"
@@ -151,7 +153,7 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
     int key;
 
     while (1) {
-        key = getopt_long(argc, argv, short_options, options, NULL);
+        key = getopt_long(argc, argv, short_options, options, nullptr);
         if (key < 0) {
             break;
         }
@@ -207,30 +209,18 @@ void xmrig::ConfigLoader::release()
 
 bool xmrig::ConfigLoader::getJSON(const char *fileName, rapidjson::Document &doc)
 {
-    uv_fs_t req;
-    const int fd = uv_fs_open(uv_default_loop(), &req, fileName, O_RDONLY, 0644, nullptr);
-    if (fd < 0) {
-        fprintf(stderr, "unable to open %s: %s\n", fileName, uv_strerror(fd));
-        return false;
+    if (Json::get(fileName, doc)) {
+        return true;
     }
-
-    uv_fs_req_cleanup(&req);
-
-    FILE *fp = fdopen(fd, "rb");
-    char buf[8192];
-    rapidjson::FileReadStream is(fp, buf, sizeof(buf));
-
-    doc.ParseStream(is);
-
-    uv_fs_close(uv_default_loop(), &req, fd, nullptr);
-    uv_fs_req_cleanup(&req);
 
     if (doc.HasParseError()) {
-        printf("%s<%d>: %s\n", fileName, (int) doc.GetErrorOffset(), rapidjson::GetParseError_En(doc.GetParseError()));
-        return false;
+        printf("%s<offset:%zu>: \"%s\"\n", fileName, doc.GetErrorOffset(), rapidjson::GetParseError_En(doc.GetParseError()));
+    }
+    else {
+       fprintf(stderr, "unable to open \"%s\".\n", fileName);
     }
 
-    return doc.IsObject();
+    return false;
 }
 
 
