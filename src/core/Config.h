@@ -35,16 +35,13 @@
 #include "workers/CpuThread.h"
 
 
-class Addr;
-class Url;
-
-
 namespace xmrig {
 
 
 class ConfigLoader;
 class IThread;
 class IConfigListener;
+class Process;
 
 
 /**
@@ -85,7 +82,7 @@ public:
     inline int64_t affinity() const                      { return m_threads.mask; }
     inline ThreadsMode threadsMode() const               { return m_threads.mode; }
 
-    static Config *load(int argc, char **argv, IConfigListener *listener);
+    static Config *load(Process *process, IConfigListener *listener);
 
 protected:
     bool finalize() override;

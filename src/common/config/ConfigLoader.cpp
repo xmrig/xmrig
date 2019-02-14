@@ -40,6 +40,7 @@
 
 #include "base/io/Json.h"
 #include "base/kernel/interfaces/IConfigListener.h"
+#include "base/kernel/Process.h"
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
 #include "common/interfaces/IConfig.h"
@@ -144,13 +145,15 @@ bool xmrig::ConfigLoader::reload(xmrig::IConfig *oldConfig, const char *json)
 }
 
 
-xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator *creator, IConfigListener *listener)
+xmrig::IConfig *xmrig::ConfigLoader::load(Process *process, IConfigCreator *creator, IConfigListener *listener)
 {
     m_creator  = creator;
     m_listener = listener;
 
     xmrig::IConfig *config = m_creator->create();
     int key;
+    int argc    = process->arguments().argc();
+    char **argv = process->arguments().argv();
 
     while (1) {
         key = getopt_long(argc, argv, short_options, options, nullptr);
@@ -174,7 +177,7 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
         delete config;
 
         config = m_creator->create();
-        loadFromFile(config, Platform::defaultConfigName());
+        loadFromFile(config, process->location(Process::ExeLocation, "config.json"));
     }
 
     if (!config->finalize()) {

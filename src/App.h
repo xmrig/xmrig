@@ -5,7 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef XMRIG_APP_H
+#define XMRIG_APP_H
 
 
 #include <uv.h>
@@ -34,19 +36,20 @@
 class Console;
 class Httpd;
 class Network;
-class Options;
 
 
 namespace xmrig {
-    class Controller;
-}
+
+
+class Controller;
+class Process;
 
 
 class App : public IConsoleListener
 {
 public:
-  App(int argc, char **argv);
-  ~App();
+  App(Process *process);
+  ~App() override;
 
   int exec();
 
@@ -71,4 +74,7 @@ private:
 };
 
 
-#endif /* __APP_H__ */
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_APP_H */

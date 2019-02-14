@@ -22,55 +22,40 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
+#ifndef XMRIG_ARGUMENTS_H
+#define XMRIG_ARGUMENTS_H
 
 
-#include <stdint.h>
+#include <vector>
 
 
-#include "rapidjson/fwd.h"
-
-
-struct option;
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class ConfigWatcher;
-class IConfigCreator;
-class IConfigListener;
-class IConfig;
-class Process;
-
-
-class ConfigLoader
+class Arguments
 {
 public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
-    static IConfig *load(Process *process, IConfigCreator *creator, IConfigListener *listener);
-    static void release();
+    Arguments(int argc, char **argv);
 
-    static inline bool isDone() { return m_done; }
+    bool hasArg(const char *name) const;
+
+    inline char **argv() const                     { return m_argv; }
+    inline const std::vector<String> &data() const { return m_data; }
+    inline int argc() const                        { return m_argc; }
 
 private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
+    void add(const char *arg);
 
-    static bool m_done;
-    static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
-    static IConfigListener *m_listener;
+    char **m_argv;
+    int m_argc;
+    std::vector<String> m_data;
 };
 
 
 } /* namespace xmrig */
 
-#endif /* XMRIG_CONFIGLOADER_H */
+
+#endif /* XMRIG_ARGUMENTS_H */

@@ -46,8 +46,9 @@
 class xmrig::ControllerPrivate
 {
 public:
-    inline ControllerPrivate() :
+    inline ControllerPrivate(Process *process) :
         network(nullptr),
+        process(process),
         config(nullptr)
     {}
 
@@ -60,13 +61,14 @@ public:
 
 
     Network *network;
+    Process *process;
     std::vector<xmrig::IControllerListener *> listeners;
     xmrig::Config *config;
 };
 
 
-xmrig::Controller::Controller()
-    : d_ptr(new ControllerPrivate())
+xmrig::Controller::Controller(Process *process)
+    : d_ptr(new ControllerPrivate(process))
 {
 }
 
@@ -99,11 +101,11 @@ xmrig::Config *xmrig::Controller::config() const
 }
 
 
-int xmrig::Controller::init(int argc, char **argv)
+int xmrig::Controller::init()
 {
     Cpu::init();
 
-    d_ptr->config = xmrig::Config::load(argc, argv, this);
+    d_ptr->config = xmrig::Config::load(d_ptr->process, this);
     if (!d_ptr->config) {
         return 1;
     }

@@ -39,18 +39,19 @@ namespace xmrig {
 class Config;
 class ControllerPrivate;
 class IControllerListener;
+class Process;
 
 
 class Controller : public IConfigListener
 {
 public:
-    Controller();
+    Controller(Process *process);
     ~Controller() override;
 
     bool isDone() const;
     bool isReady() const;
     Config *config() const;
-    int init(int argc, char **argv);
+    int init();
     Network *network() const;
     void addListener(IControllerListener *listener);
 

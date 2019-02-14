@@ -22,55 +22,55 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
+
+#include <algorithm>
+#include <uv.h>
 
 
-#include <stdint.h>
+#include "base/tools/Arguments.h"
 
 
-#include "rapidjson/fwd.h"
-
-
-struct option;
-
-
-namespace xmrig {
-
-
-class ConfigWatcher;
-class IConfigCreator;
-class IConfigListener;
-class IConfig;
-class Process;
-
-
-class ConfigLoader
+xmrig::Arguments::Arguments(int argc, char **argv) :
+    m_argv(argv),
+    m_argc(argc)
 {
-public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
-    static IConfig *load(Process *process, IConfigCreator *creator, IConfigListener *listener);
-    static void release();
+    uv_setup_args(argc, argv);
 
-    static inline bool isDone() { return m_done; }
-
-private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
-
-    static bool m_done;
-    static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
-    static IConfigListener *m_listener;
-};
+    for (size_t i = 0; i < static_cast<size_t>(argc); ++i) {
+        add(argv[i]);
+    }
+}
 
 
-} /* namespace xmrig */
+bool xmrig::Arguments::hasArg(const char *name) const
+{
+    if (m_argc == 1) {
+        return false;
+    }
 
-#endif /* XMRIG_CONFIGLOADER_H */
+    return std::find(m_data.begin() + 1, m_data.end(), name) != m_data.end();
+}
+
+
+void xmrig::Arguments::add(const char *arg)
+{
+    if (arg == nullptr) {
+        return;
+    }
+
+    const size_t size = strlen(arg);
+    if (size > 4 && arg[0] == '-' && arg[1] == '-') {
+        const char *p = strstr(arg, "=");
+
+        if (p) {
+            const size_t keySize = static_cast<size_t>(p - arg);
+
+            m_data.push_back(String(arg, keySize));
+            m_data.push_back(arg + keySize + 1);
+
+            return;
+        }
+    }
+
+    m_data.push_back(arg);
+}
