@@ -5,9 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,52 +22,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_APP_H
-#define XMRIG_APP_H
+
+#include <uv.h>
 
 
 #include "base/kernel/interfaces/ISignalListener.h"
-#include "common/interfaces/IConsoleListener.h"
+#include "base/kernel/Signals.h"
+#include "base/tools/Handle.h"
 
 
-class Console;
-class Httpd;
-class Network;
+static const int signums[xmrig::Signals::kSignalsCount] = { SIGHUP, SIGINT, SIGTERM };
 
 
-namespace xmrig {
-
-
-class Controller;
-class Process;
-class Signals;
-
-
-class App : public IConsoleListener, public ISignalListener
+xmrig::Signals::Signals(ISignalListener *listener)
+    : m_listener(listener)
 {
-public:
-  App(Process *process);
-  ~App() override;
+    for (size_t i = 0; i < kSignalsCount; ++i) {
+        uv_signal_t *signal = new uv_signal_t;
+        signal->data        = this;
 
-  int exec();
+        m_signals[i] = signal;
 
-protected:
-  void onConsoleCommand(char command) override;
-  void onSignal(int signum) override;
-
-private:
-  void background();
-  void close();
-  void release();
-
-  Console *m_console;
-  Httpd *m_httpd;
-  Signals *m_signals;
-  xmrig::Controller *m_controller;
-};
+        uv_signal_init(uv_default_loop(), signal);
+        uv_signal_start(signal, xmrig::Signals::onSignal, signums[i]);
+    }
+}
 
 
-} /* namespace xmrig */
+xmrig::Signals::~Signals()
+{
+    for (size_t i = 0; i < kSignalsCount; ++i) {
+        Handle::close(m_signals[i]);
+    }
+}
 
 
-#endif /* XMRIG_APP_H */
+void xmrig::Signals::onSignal(uv_signal_t *handle, int signum)
+{
+    static_cast<xmrig::Signals *>(handle->data)->m_listener->onSignal(signum);
+}

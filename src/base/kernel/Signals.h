@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,52 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_APP_H
-#define XMRIG_APP_H
+#ifndef XMRIG_SIGNALS_H
+#define XMRIG_SIGNALS_H
 
 
-#include "base/kernel/interfaces/ISignalListener.h"
-#include "common/interfaces/IConsoleListener.h"
+#include <stddef.h>
 
 
-class Console;
-class Httpd;
-class Network;
+typedef struct uv_signal_s uv_signal_t;
 
 
 namespace xmrig {
 
 
-class Controller;
-class Process;
-class Signals;
+class ISignalListener;
 
 
-class App : public IConsoleListener, public ISignalListener
+class Signals
 {
 public:
-  App(Process *process);
-  ~App() override;
+    constexpr static const size_t kSignalsCount = 3;
 
-  int exec();
-
-protected:
-  void onConsoleCommand(char command) override;
-  void onSignal(int signum) override;
+    Signals(ISignalListener *listener);
+    ~Signals();
 
 private:
-  void background();
-  void close();
-  void release();
+    void close(int signum);
 
-  Console *m_console;
-  Httpd *m_httpd;
-  Signals *m_signals;
-  xmrig::Controller *m_controller;
+    static void onSignal(uv_signal_t *handle, int signum);
+
+    ISignalListener *m_listener;
+    uv_signal_t *m_signals[kSignalsCount];
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_APP_H */
+#endif /* XMRIG_SIGNALS_H */

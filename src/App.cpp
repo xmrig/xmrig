@@ -30,6 +30,7 @@
 
 #include "api/Api.h"
 #include "App.h"
+#include "base/kernel/Signals.h"
 #include "common/Console.h"
 #include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
@@ -49,16 +50,11 @@
 #endif
 
 
-xmrig::App *xmrig::App::m_self = nullptr;
-
-
-
 xmrig::App::App(Process *process) :
     m_console(nullptr),
-    m_httpd(nullptr)
+    m_httpd(nullptr),
+    m_signals(nullptr)
 {
-    m_self = this;
-
     m_controller = new xmrig::Controller(process);
     if (m_controller->init() != 0) {
         return;
@@ -67,10 +63,6 @@ xmrig::App::App(Process *process) :
     if (!m_controller->config()->isBackground()) {
         m_console = new Console(this);
     }
-
-    uv_signal_init(uv_default_loop(), &m_sigHUP);
-    uv_signal_init(uv_default_loop(), &m_sigINT);
-    uv_signal_init(uv_default_loop(), &m_sigTERM);
 }
 
 
@@ -78,6 +70,7 @@ xmrig::App::~App()
 {
     uv_tty_reset_mode();
 
+    delete m_signals;
     delete m_console;
     delete m_controller;
 
@@ -93,9 +86,7 @@ int xmrig::App::exec()
         return 2;
     }
 
-    uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
-    uv_signal_start(&m_sigINT,  App::onSignal, SIGINT);
-    uv_signal_start(&m_sigTERM, App::onSignal, SIGTERM);
+    m_signals = new Signals(this);
 
     background();
 
@@ -172,21 +163,7 @@ void xmrig::App::onConsoleCommand(char command)
 }
 
 
-void xmrig::App::close()
-{
-    m_controller->network()->stop();
-    Workers::stop();
-
-    uv_stop(uv_default_loop());
-}
-
-
-void xmrig::App::release()
-{
-}
-
-
-void xmrig::App::onSignal(uv_signal_t *handle, int signum)
+void xmrig::App::onSignal(int signum)
 {
     switch (signum)
     {
@@ -206,6 +183,19 @@ void xmrig::App::onSignal(uv_signal_t *handle, int signum)
         break;
     }
 
-    uv_signal_stop(handle);
-    m_self->close();
+    close();
+}
+
+
+void xmrig::App::close()
+{
+    m_controller->network()->stop();
+    Workers::stop();
+
+    uv_stop(uv_default_loop());
+}
+
+
+void xmrig::App::release()
+{
 }

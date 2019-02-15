@@ -23,9 +23,11 @@ set(HEADERS
     src/base/io/Json.h
     src/base/io/Watcher.h
     src/base/kernel/interfaces/IConfigListener.h
+    src/base/kernel/interfaces/ISignalListener.h
     src/base/kernel/interfaces/IWatcherListener.h
     src/base/kernel/Entry.h
     src/base/kernel/Process.h
+    src/base/kernel/Signals.h
     src/base/tools/Arguments.h
     src/base/tools/Handle.h
     src/base/tools/String.h
@@ -109,6 +111,7 @@ set(SOURCES
     src/base/io/Watcher.cpp
     src/base/kernel/Entry.cpp
     src/base/kernel/Process.cpp
+    src/base/kernel/Signals.cpp
     src/base/tools/Arguments.cpp
     src/base/tools/Handle.cpp
     src/base/tools/String.cpp
