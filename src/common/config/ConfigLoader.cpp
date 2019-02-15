@@ -23,6 +23,7 @@
  */
 
 
+#include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 #include <uv.h>
@@ -145,6 +146,19 @@ bool xmrig::ConfigLoader::reload(xmrig::IConfig *oldConfig, const char *json)
 }
 
 
+bool xmrig::ConfigLoader::watch(IConfig *config)
+{
+    if (!config->isWatch()) {
+        return false;
+    }
+
+    assert(m_watcher == nullptr);
+
+    m_watcher = new xmrig::ConfigWatcher(config->fileName(), m_creator, m_listener);
+    return true;
+}
+
+
 xmrig::IConfig *xmrig::ConfigLoader::load(Process *process, IConfigCreator *creator, IConfigListener *listener)
 {
     m_creator  = creator;
@@ -190,10 +204,6 @@ xmrig::IConfig *xmrig::ConfigLoader::load(Process *process, IConfigCreator *crea
 
         delete config;
         return nullptr;
-    }
-
-    if (config->isWatch()) {
-        m_watcher = new xmrig::ConfigWatcher(config->fileName(), creator, listener);
     }
 
     return config;

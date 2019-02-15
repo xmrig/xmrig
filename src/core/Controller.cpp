@@ -147,6 +147,20 @@ void xmrig::Controller::addListener(IControllerListener *listener)
 }
 
 
+void xmrig::Controller::save()
+{
+    if (!config()) {
+        return;
+    }
+
+    if (d_ptr->config->isShouldSave()) {
+        d_ptr->config->save();
+    }
+
+    ConfigLoader::watch(d_ptr->config);
+}
+
+
 void xmrig::Controller::onNewConfig(IConfig *config)
 {
     Config *previousConfig = d_ptr->config;

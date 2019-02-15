@@ -74,13 +74,7 @@ xmrig::CommonConfig::CommonConfig() :
     m_colors(true),
     m_dryRun(false),
     m_syslog(false),
-
-#   ifdef XMRIG_PROXY_PROJECT
     m_watch(true),
-#   else
-    m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
-#   endif
-
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),

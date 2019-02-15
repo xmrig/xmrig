@@ -206,9 +206,7 @@ void Workers::start(xmrig::Controller *controller)
         handle->start(Workers::onReady);
     }
 
-    if (controller->config()->isShouldSave()) {
-        controller->config()->save();
-    }
+    controller->save();
 }
 
 

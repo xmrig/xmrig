@@ -52,6 +52,7 @@ public:
     static bool loadFromJSON(IConfig *config, const char *json);
     static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
     static bool reload(IConfig *oldConfig, const char *json);
+    static bool watch(IConfig *config);
     static IConfig *load(Process *process, IConfigCreator *creator, IConfigListener *listener);
     static void release();
 
