@@ -40,65 +40,7 @@
 namespace xmrig {
 
 
-static char const usage[] = "\
-Usage: " APP_ID " [OPTIONS]\n\
-Options:\n\
-  -a, --algo=ALGO          specify the algorithm to use\n\
-                             cryptonight\n"
-#ifndef XMRIG_NO_AEON
-"\
-                             cryptonight-lite\n"
-#endif
-#ifndef XMRIG_NO_SUMO
-"\
-                             cryptonight-heavy\n"
-#endif
-"\
-  -o, --url=URL            URL of mining server\n\
-  -O, --userpass=U:P       username:password pair for mining server\n\
-  -u, --user=USERNAME      username for mining server\n\
-  -p, --pass=PASSWORD      password for mining server\n\
-      --rig-id=ID          rig identifier for pool-side statistics (needs pool support)\n\
-  -t, --threads=N          number of miner threads\n\
-  -v, --av=N               algorithm variation, 0 auto select\n\
-  -k, --keepalive          send keepalived packet for prevent timeout (needs pool support)\n\
-      --nicehash           enable nicehash.com support\n\
-      --tls                enable SSL/TLS support (needs pool support)\n\
-      --tls-fingerprint=F  pool TLS certificate fingerprint, if set enable strict certificate pinning\n\
-  -r, --retries=N          number of times to retry before switch to backup server (default: 5)\n\
-  -R, --retry-pause=N      time to pause between retries (default: 5)\n\
-      --cpu-affinity       set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
-      --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)\n\
-      --no-huge-pages      disable huge pages support\n\
-      --no-color           disable colored output\n\
-      --variant            algorithm PoW variant\n\
-      --donate-level=N     donate level, default 5%% (5 minutes in 100 minutes)\n\
-      --user-agent         set custom user-agent string for pool\n\
-  -B, --background         run the miner in the background\n\
-  -c, --config=FILE        load a JSON-format configuration file\n\
-  -l, --log-file=FILE      log all output to a file\n"
-# ifdef HAVE_SYSLOG_H
-"\
-  -S, --syslog             use system log for output messages\n"
-# endif
-"\
-      --max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)\n\
-      --safe               safe adjust threads and av settings for current CPU\n\
-      --asm=ASM            ASM code for cn/2, possible values: auto, none, intel, ryzen, bulldozer.\n\
-      --print-time=N       print hashrate report every N seconds\n\
-      --api-port=N         port for the miner API\n\
-      --api-access-token=T access token for API\n\
-      --api-worker-id=ID   custom worker-id for API\n\
-      --api-id=ID          custom instance ID for API\n\
-      --api-ipv6           enable IPv6 support for API\n\
-      --api-no-restricted  enable full remote access (only if API token set)\n\
-      --dry-run            test configuration and exit\n\
-  -h, --help               display this help and exit\n\
-  -V, --version            output version information and exit\n\
-";
-
-
-static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
+static char const short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
 
 
 static struct option const options[] = {
@@ -116,7 +58,6 @@ static struct option const options[] = {
     { "cpu-priority",      1, nullptr, xmrig::IConfig::CPUPriorityKey    },
     { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey    },
     { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey         },
-    { "help",              0, nullptr, xmrig::IConfig::HelpKey           },
     { "keepalive",         0, nullptr, xmrig::IConfig::KeepAliveKey      },
     { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey        },
     { "max-cpu-usage",     1, nullptr, xmrig::IConfig::MaxCPUUsageKey    },
@@ -139,7 +80,6 @@ static struct option const options[] = {
     { "rig-id",            1, nullptr, xmrig::IConfig::RigIdKey          },
     { "tls",               0, nullptr, xmrig::IConfig::TlsKey            },
     { "tls-fingerprint",   1, nullptr, xmrig::IConfig::FingerprintKey    },
-    { "version",           0, nullptr, xmrig::IConfig::VersionKey        },
     { "asm",               1, nullptr, xmrig::IConfig::AssemblyKey       },
     { nullptr,             0, nullptr, 0 }
 };

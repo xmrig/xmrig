@@ -53,7 +53,6 @@
 #include "rapidjson/error/en.h"
 
 
-bool xmrig::ConfigLoader::m_done                         = false;
 xmrig::ConfigWatcher *xmrig::ConfigLoader::m_watcher     = nullptr;
 xmrig::IConfigCreator *xmrig::ConfigLoader::m_creator    = nullptr;
 xmrig::IConfigListener *xmrig::ConfigLoader::m_listener  = nullptr;
@@ -239,24 +238,11 @@ bool xmrig::ConfigLoader::getJSON(const char *fileName, rapidjson::Document &doc
 
 bool xmrig::ConfigLoader::parseArg(xmrig::IConfig *config, int key, const char *arg)
 {
-    switch (key) {
-    case xmrig::IConfig::VersionKey: /* --version */
-        showVersion();
-        return false;
-
-    case xmrig::IConfig::HelpKey: /* --help */
-        showUsage();
-        return false;
-
-    case xmrig::IConfig::ConfigKey: /* --config */
-        loadFromFile(config, arg);
-        break;
-
-    default:
-        return config->parseString(key, arg);;
+    if (key == xmrig::IConfig::ConfigKey) {
+        return loadFromFile(config, arg);
     }
 
-    return true;
+    return config->parseString(key, arg);
 }
 
 
@@ -282,57 +268,4 @@ void xmrig::ConfigLoader::parseJSON(xmrig::IConfig *config, const struct option 
     else if (value.IsBool()) {
         config->parseBoolean(option->val, value.IsTrue());
     }
-}
-
-
-void xmrig::ConfigLoader::showUsage()
-{
-    m_done = true;
-
-    printf(usage);
-}
-
-
-void xmrig::ConfigLoader::showVersion()
-{
-    m_done = true;
-
-    printf(APP_NAME " " APP_VERSION "\n built on " __DATE__
-
-#   if defined(__clang__)
-    " with clang " __clang_version__);
-#   elif defined(__GNUC__)
-    " with GCC");
-    printf(" %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   elif defined(_MSC_VER)
-    " with MSVC");
-    printf(" %d", MSVC_VERSION);
-#   else
-    );
-#   endif
-
-    printf("\n features:"
-#   if defined(__i386__) || defined(_M_IX86)
-    " 32-bit"
-#   elif defined(__x86_64__) || defined(_M_AMD64)
-    " 64-bit"
-#   endif
-
-#   if defined(__AES__) || defined(_MSC_VER)
-    " AES"
-#   endif
-    "\n");
-
-    printf("\nlibuv/%s\n", uv_version_string());
-
-#   ifndef XMRIG_NO_HTTPD
-    printf("microhttpd/%s\n", MHD_get_version());
-#   endif
-
-#   if !defined(XMRIG_NO_TLS) && defined(OPENSSL_VERSION_TEXT)
-    {
-        constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
-        printf("OpenSSL/%.*s\n", static_cast<int>(strchr(v, ' ') - v), v);
-    }
-#   endif
 }

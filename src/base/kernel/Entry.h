@@ -22,21 +22,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "App.h"
-#include "base/kernel/Entry.h"
-#include "base/kernel/Process.h"
+#ifndef XMRIG_ENTRY_H
+#define XMRIG_ENTRY_H
 
 
-int main(int argc, char **argv) {
-    using namespace xmrig;
+namespace xmrig {
 
-    Process process(argc, argv);
-    const Entry::Id entry = Entry::get(process);
-    if (entry) {
-        return Entry::exec(process, entry);
-    }
 
-    App app(&process);
+class Process;
 
-    return app.exec();
-}
+
+class Entry
+{
+public:
+    enum Id {
+        Default,
+        Usage,
+        Version
+    };
+
+    static Id get(const Process &process);
+    static int exec(const Process &process, Id id);
+};
+
+
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_ENTRY_H */

@@ -81,12 +81,6 @@ xmrig::Controller::~Controller()
 }
 
 
-bool xmrig::Controller::isDone() const
-{
-    return ConfigLoader::isDone();
-}
-
-
 bool xmrig::Controller::isReady() const
 {
     return d_ptr->config && d_ptr->network;

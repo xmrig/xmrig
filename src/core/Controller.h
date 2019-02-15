@@ -48,7 +48,6 @@ public:
     Controller(Process *process);
     ~Controller() override;
 
-    bool isDone() const;
     bool isReady() const;
     Config *config() const;
     int init();

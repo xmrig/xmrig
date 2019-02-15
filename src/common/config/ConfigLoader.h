@@ -56,16 +56,11 @@ public:
     static IConfig *load(Process *process, IConfigCreator *creator, IConfigListener *listener);
     static void release();
 
-    static inline bool isDone() { return m_done; }
-
 private:
     static bool getJSON(const char *fileName, rapidjson::Document &doc);
     static bool parseArg(IConfig *config, int key, const char *arg);
     static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-    static void showUsage();
-    static void showVersion();
 
-    static bool m_done;
     static ConfigWatcher *m_watcher;
     static IConfigCreator *m_creator;
     static IConfigListener *m_listener;
