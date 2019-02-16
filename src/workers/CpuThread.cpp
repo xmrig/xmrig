@@ -27,7 +27,6 @@
 
 #include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
-#include "common/net/Pool.h"
 #include "crypto/Asm.h"
 #include "Mem.h"
 #include "rapidjson/document.h"

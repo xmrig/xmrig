@@ -22,55 +22,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_FAILOVERSTRATEGY_H
-#define XMRIG_FAILOVERSTRATEGY_H
+#ifndef XMRIG_POOLS_H
+#define XMRIG_POOLS_H
 
 
 #include <vector>
 
 
 #include "base/net/Pool.h"
-#include "common/interfaces/IClientListener.h"
-#include "common/interfaces/IStrategy.h"
 
 
-class Client;
-class IStrategyListener;
-class Url;
+namespace xmrig {
 
 
-class FailoverStrategy : public IStrategy, public IClientListener
+class Pools
 {
 public:
-    FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
-    ~FailoverStrategy() override;
-
-public:
-    inline bool isActive() const override  { return m_active >= 0; }
-
-    int64_t submit(const JobResult &result) override;
-    void connect() override;
-    void resume() override;
-    void setAlgo(const xmrig::Algorithm &algo) override;
-    void stop() override;
-    void tick(uint64_t now) override;
-
-protected:
-    void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job) override;
-    void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
+    Pools();
 
 private:
-    void add(const Pool &pool);
-
-    const bool m_quiet;
-    const int m_retries;
-    const int m_retryPause;
-    int m_active;
-    int m_index;
-    IStrategyListener *m_listener;
-    std::vector<Client*> m_pools;
+    std::vector<Pool> m_data;
 };
 
-#endif /* XMRIG_FAILOVERSTRATEGY_H */
+
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_POOLS_H */

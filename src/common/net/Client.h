@@ -30,10 +30,10 @@
 #include <vector>
 
 
+#include "base/net/Pool.h"
 #include "common/crypto/Algorithm.h"
 #include "common/net/Id.h"
 #include "common/net/Job.h"
-#include "common/net/Pool.h"
 #include "common/net/Storage.h"
 #include "common/net/SubmitResult.h"
 #include "rapidjson/fwd.h"

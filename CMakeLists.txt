@@ -28,6 +28,8 @@ set(HEADERS
     src/base/kernel/Entry.h
     src/base/kernel/Process.h
     src/base/kernel/Signals.h
+    src/base/net/Pool.h
+    src/base/net/Pools.h
     src/base/tools/Arguments.h
     src/base/tools/Handle.h
     src/base/tools/String.h
@@ -54,7 +56,6 @@ set(HEADERS
     src/common/net/Client.h
     src/common/net/Id.h
     src/common/net/Job.h
-    src/common/net/Pool.h
     src/common/net/Storage.h
     src/common/net/strategies/FailoverStrategy.h
     src/common/net/strategies/SinglePoolStrategy.h
@@ -112,6 +113,8 @@ set(SOURCES
     src/base/kernel/Entry.cpp
     src/base/kernel/Process.cpp
     src/base/kernel/Signals.cpp
+    src/base/net/Pool.cpp
+    src/base/net/Pools.cpp
     src/base/tools/Arguments.cpp
     src/base/tools/Handle.cpp
     src/base/tools/String.cpp
@@ -127,7 +130,6 @@ set(SOURCES
     src/common/log/Log.cpp
     src/common/net/Client.cpp
     src/common/net/Job.cpp
-    src/common/net/Pool.cpp
     src/common/net/strategies/FailoverStrategy.cpp
     src/common/net/strategies/SinglePoolStrategy.cpp
     src/common/net/SubmitResult.cpp

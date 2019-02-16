@@ -111,6 +111,6 @@ private:
 };
 
 
-typedef std::vector<Pool> Pools;
+//typedef std::vector<Pool> Pools;
 
 #endif /* XMRIG_POOL_H */

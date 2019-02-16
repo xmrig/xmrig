@@ -26,12 +26,9 @@
 #define XMRIG_COMMONCONFIG_H
 
 
-#include <vector>
-
-
+#include "base/net/Pools.h"
 #include "base/tools/String.h"
 #include "common/interfaces/IConfig.h"
-#include "common/net/Pool.h"
 #include "common/xmrig.h"
 
 
