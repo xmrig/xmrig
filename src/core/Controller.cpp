@@ -62,8 +62,8 @@ public:
 
     Network *network;
     Process *process;
-    std::vector<xmrig::IControllerListener *> listeners;
-    xmrig::Config *config;
+    std::vector<IControllerListener *> listeners;
+    Config *config;
 };
 
 
@@ -127,7 +127,7 @@ int xmrig::Controller::init()
 }
 
 
-Network *xmrig::Controller::network() const
+xmrig::Network *xmrig::Controller::network() const
 {
     assert(d_ptr->network != nullptr);
 

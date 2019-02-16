@@ -44,12 +44,10 @@
 #include "workers/Workers.h"
 
 
-Network::Network(xmrig::Controller *controller) :
-    m_donate(nullptr),
-    m_controller(controller)
+xmrig::Network::Network(Controller *controller) :
+    m_controller(controller),
+    m_donate(nullptr)
 {
-    srand(time(0) ^ (uintptr_t) this);
-
     Workers::setListener(this);
 
     const std::vector<Pool> &pools = controller->config()->pools();
@@ -72,18 +70,18 @@ Network::Network(xmrig::Controller *controller) :
 }
 
 
-Network::~Network()
+xmrig::Network::~Network()
 {
 }
 
 
-void Network::connect()
+void xmrig::Network::connect()
 {
     m_strategy->connect();
 }
 
 
-void Network::stop()
+void xmrig::Network::stop()
 {
     if (m_donate) {
         m_donate->stop();
@@ -93,7 +91,7 @@ void Network::stop()
 }
 
 
-void Network::onActive(IStrategy *strategy, Client *client)
+void xmrig::Network::onActive(IStrategy *strategy, Client *client)
 {
     if (m_donate && m_donate == strategy) {
         LOG_NOTICE("dev donate started");
@@ -114,7 +112,7 @@ void Network::onActive(IStrategy *strategy, Client *client)
 }
 
 
-void Network::onJob(IStrategy *strategy, Client *client, const Job &job)
+void xmrig::Network::onJob(IStrategy *strategy, Client *client, const Job &job)
 {
     if (m_donate && m_donate->isActive() && m_donate != strategy) {
         return;
@@ -124,7 +122,7 @@ void Network::onJob(IStrategy *strategy, Client *client, const Job &job)
 }
 
 
-void Network::onJobResult(const JobResult &result)
+void xmrig::Network::onJobResult(const JobResult &result)
 {
     if (result.poolId == -1 && m_donate) {
         m_donate->submit(result);
@@ -135,7 +133,7 @@ void Network::onJobResult(const JobResult &result)
 }
 
 
-void Network::onPause(IStrategy *strategy)
+void xmrig::Network::onPause(IStrategy *strategy)
 {
     if (m_donate && m_donate == strategy) {
         LOG_NOTICE("dev donate finished");
@@ -150,7 +148,7 @@ void Network::onPause(IStrategy *strategy)
 }
 
 
-void Network::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
+void xmrig::Network::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
 {
     m_state.add(result, error);
 
@@ -167,13 +165,13 @@ void Network::onResultAccepted(IStrategy *strategy, Client *client, const Submit
 }
 
 
-bool Network::isColors() const
+bool xmrig::Network::isColors() const
 {
     return m_controller->config()->isColors();
 }
 
 
-void Network::setJob(Client *client, const Job &job, bool donate)
+void xmrig::Network::setJob(Client *client, const Job &job, bool donate)
 {
     if (job.height()) {
         LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64)
@@ -195,7 +193,7 @@ void Network::setJob(Client *client, const Job &job, bool donate)
 }
 
 
-void Network::tick()
+void xmrig::Network::tick()
 {
     const uint64_t now = uv_now(uv_default_loop());
 
@@ -211,7 +209,7 @@ void Network::tick()
 }
 
 
-void Network::onTick(uv_timer_t *handle)
+void xmrig::Network::onTick(uv_timer_t *handle)
 {
     static_cast<Network*>(handle->data)->tick();
 }

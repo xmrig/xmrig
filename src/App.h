@@ -33,13 +33,13 @@
 
 class Console;
 class Httpd;
-class Network;
 
 
 namespace xmrig {
 
 
 class Controller;
+class Network;
 class Process;
 class Signals;
 
@@ -62,9 +62,9 @@ private:
   void release();
 
   Console *m_console;
+  Controller *m_controller;
   Httpd *m_httpd;
   Signals *m_signals;
-  xmrig::Controller *m_controller;
 };
 
 

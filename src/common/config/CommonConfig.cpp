@@ -425,6 +425,12 @@ bool xmrig::CommonConfig::parseUint64(int key, uint64_t arg)
 }
 
 
+void xmrig::CommonConfig::parseJSON(const rapidjson::Document &doc)
+{
+
+}
+
+
 void xmrig::CommonConfig::setFileName(const char *fileName)
 {
     m_fileName = fileName;
@@ -480,7 +486,7 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
 }
 
 
-Pool &xmrig::CommonConfig::currentPool()
+xmrig::Pool &xmrig::CommonConfig::currentPool()
 {
     fixup();
 

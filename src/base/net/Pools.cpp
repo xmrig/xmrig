@@ -26,7 +26,7 @@
 #include "base/net/Pools.h"
 
 
-xmrig::Pools::Pools()
+xmrig::Pools::Pools() :
+    m_index(0)
 {
-
 }

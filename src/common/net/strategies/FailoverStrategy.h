@@ -34,9 +34,11 @@
 #include "common/interfaces/IStrategy.h"
 
 
+namespace xmrig {
+
+
 class Client;
 class IStrategyListener;
-class Url;
 
 
 class FailoverStrategy : public IStrategy, public IClientListener
@@ -51,7 +53,7 @@ public:
     int64_t submit(const JobResult &result) override;
     void connect() override;
     void resume() override;
-    void setAlgo(const xmrig::Algorithm &algo) override;
+    void setAlgo(const Algorithm &algo) override;
     void stop() override;
     void tick(uint64_t now) override;
 
@@ -72,5 +74,8 @@ private:
     IStrategyListener *m_listener;
     std::vector<Client*> m_pools;
 };
+
+
+} /* namespace xmrig */
 
 #endif /* XMRIG_FAILOVERSTRATEGY_H */

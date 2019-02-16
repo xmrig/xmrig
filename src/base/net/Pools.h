@@ -41,6 +41,7 @@ public:
     Pools();
 
 private:
+    size_t m_index;
     std::vector<Pool> m_data;
 };
 

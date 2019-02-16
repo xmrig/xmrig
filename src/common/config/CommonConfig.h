@@ -81,6 +81,7 @@ protected:
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
+    void parseJSON(const rapidjson::Document &doc) override;
     void setFileName(const char *fileName) override;
 
     Algorithm m_algorithm;
@@ -101,12 +102,12 @@ protected:
     State m_state;
     std::vector<Pool> m_activePools;
     std::vector<Pool> m_pools;
-    xmrig::String m_apiId;
-    xmrig::String m_apiToken;
-    xmrig::String m_apiWorkerId;
-    xmrig::String m_fileName;
-    xmrig::String m_logFile;
-    xmrig::String m_userAgent;
+    String m_apiId;
+    String m_apiToken;
+    String m_apiWorkerId;
+    String m_fileName;
+    String m_logFile;
+    String m_userAgent;
 
 private:
     bool parseInt(int key, int arg);

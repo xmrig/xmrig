@@ -36,15 +36,17 @@
 #include "common/interfaces/IStrategyListener.h"
 
 
+namespace xmrig {
+
+
 class Client;
 class IStrategyListener;
-class Url;
 
 
 class DonateStrategy : public IStrategy, public IStrategyListener
 {
 public:
-    DonateStrategy(int level, const char *user, xmrig::Algo algo, IStrategyListener *listener);
+    DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener);
     ~DonateStrategy() override;
 
 public:
@@ -53,7 +55,7 @@ public:
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
-    void setAlgo(const xmrig::Algorithm &algo) override;
+    void setAlgo(const Algorithm &algo) override;
     void stop() override;
     void tick(uint64_t now) override;
 
@@ -79,5 +81,9 @@ private:
     uint64_t m_stop;
     uv_timer_t m_timer;
 };
+
+
+} /* namespace xmrig */
+
 
 #endif /* XMRIG_DONATESTRATEGY_H */

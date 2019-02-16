@@ -35,19 +35,17 @@
 #include "interfaces/IJobResultListener.h"
 
 
-class IStrategy;
-class Url;
-
-
 namespace xmrig {
-    class Controller;
-}
+
+
+class Controller;
+class IStrategy;
 
 
 class Network : public IJobResultListener, public IStrategyListener
 {
 public:
-  Network(xmrig::Controller *controller);
+  Network(Controller *controller);
   ~Network() override;
 
   void connect();
@@ -69,12 +67,15 @@ private:
 
   static void onTick(uv_timer_t *handle);
 
+  Controller *m_controller;
   IStrategy *m_donate;
   IStrategy *m_strategy;
   NetworkState m_state;
   uv_timer_t m_timer;
-  xmrig::Controller *m_controller;
 };
+
+
+} /* namespace xmrig */
 
 
 #endif /* XMRIG_NETWORK_H */

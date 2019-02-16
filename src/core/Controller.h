@@ -29,7 +29,6 @@
 #include "base/kernel/interfaces/IConfigListener.h"
 
 
-class Network;
 class StatsData;
 
 
@@ -39,6 +38,7 @@ namespace xmrig {
 class Config;
 class ControllerPrivate;
 class IControllerListener;
+class Network;
 class Process;
 
 
@@ -62,6 +62,8 @@ private:
     ControllerPrivate *d_ptr;
 };
 
+
 } /* namespace xmrig */
+
 
 #endif /* XMRIG_CONTROLLER_H */

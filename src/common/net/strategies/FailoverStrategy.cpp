@@ -29,7 +29,7 @@
 #include "common/Platform.h"
 
 
-FailoverStrategy::FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
+xmrig::FailoverStrategy::FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
     m_quiet(quiet),
     m_retries(retries),
     m_retryPause(retryPause),
@@ -43,7 +43,7 @@ FailoverStrategy::FailoverStrategy(const std::vector<Pool> &urls, int retryPause
 }
 
 
-FailoverStrategy::~FailoverStrategy()
+xmrig::FailoverStrategy::~FailoverStrategy()
 {
     for (Client *client : m_pools) {
         client->deleteLater();
@@ -51,7 +51,7 @@ FailoverStrategy::~FailoverStrategy()
 }
 
 
-int64_t FailoverStrategy::submit(const JobResult &result)
+int64_t xmrig::FailoverStrategy::submit(const JobResult &result)
 {
     if (m_active == -1) {
         return -1;
@@ -61,13 +61,13 @@ int64_t FailoverStrategy::submit(const JobResult &result)
 }
 
 
-void FailoverStrategy::connect()
+void xmrig::FailoverStrategy::connect()
 {
     m_pools[m_index]->connect();
 }
 
 
-void FailoverStrategy::resume()
+void xmrig::FailoverStrategy::resume()
 {
     if (!isActive()) {
         return;
@@ -77,7 +77,7 @@ void FailoverStrategy::resume()
 }
 
 
-void FailoverStrategy::setAlgo(const xmrig::Algorithm &algo)
+void xmrig::FailoverStrategy::setAlgo(const xmrig::Algorithm &algo)
 {
     for (Client *client : m_pools) {
         client->setAlgo(algo);
@@ -85,7 +85,7 @@ void FailoverStrategy::setAlgo(const xmrig::Algorithm &algo)
 }
 
 
-void FailoverStrategy::stop()
+void xmrig::FailoverStrategy::stop()
 {
     for (size_t i = 0; i < m_pools.size(); ++i) {
         m_pools[i]->disconnect();
@@ -98,7 +98,7 @@ void FailoverStrategy::stop()
 }
 
 
-void FailoverStrategy::tick(uint64_t now)
+void xmrig::FailoverStrategy::tick(uint64_t now)
 {
     for (Client *client : m_pools) {
         client->tick(now);
@@ -106,7 +106,7 @@ void FailoverStrategy::tick(uint64_t now)
 }
 
 
-void FailoverStrategy::onClose(Client *client, int failures)
+void xmrig::FailoverStrategy::onClose(Client *client, int failures)
 {
     if (failures == -1) {
         return;
@@ -127,7 +127,7 @@ void FailoverStrategy::onClose(Client *client, int failures)
 }
 
 
-void FailoverStrategy::onJobReceived(Client *client, const Job &job)
+void xmrig::FailoverStrategy::onJobReceived(Client *client, const Job &job)
 {
     if (m_active == client->id()) {
         m_listener->onJob(this, client, job);
@@ -135,7 +135,7 @@ void FailoverStrategy::onJobReceived(Client *client, const Job &job)
 }
 
 
-void FailoverStrategy::onLoginSuccess(Client *client)
+void xmrig::FailoverStrategy::onLoginSuccess(Client *client)
 {
     int active = m_active;
 
@@ -156,13 +156,13 @@ void FailoverStrategy::onLoginSuccess(Client *client)
 }
 
 
-void FailoverStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void xmrig::FailoverStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
 }
 
 
-void FailoverStrategy::add(const Pool &pool)
+void xmrig::FailoverStrategy::add(const Pool &pool)
 {
     Client *client = new Client((int) m_pools.size(), Platform::userAgent(), this);
     client->setPool(pool);

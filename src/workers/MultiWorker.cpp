@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -132,7 +132,7 @@ void MultiWorker<N>::start()
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < m_state.job.target()) {
-                    Workers::submit(JobResult(m_state.job.poolId(), m_state.job.id(), m_state.job.clientId(), *nonce(i), m_hash + (i * 32), m_state.job.diff(), m_state.job.algorithm()));
+                    Workers::submit(xmrig::JobResult(m_state.job.poolId(), m_state.job.id(), m_state.job.clientId(), *nonce(i), m_hash + (i * 32), m_state.job.diff(), m_state.job.algorithm()));
                 }
 
                 *nonce(i) += 1;
@@ -149,7 +149,7 @@ void MultiWorker<N>::start()
 
 
 template<size_t N>
-bool MultiWorker<N>::resume(const Job &job)
+bool MultiWorker<N>::resume(const xmrig::Job &job)
 {
     if (m_state.job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedState.job.id()) {
         m_state = m_pausedState;
@@ -237,7 +237,7 @@ bool MultiWorker<N>::verify2(xmrig::Variant variant, const char *test_data)
 template<size_t N>
 void MultiWorker<N>::consumeJob()
 {
-    Job job = Workers::job();
+    xmrig::Job job = Workers::job();
     m_sequence = Workers::sequence();
     if (m_state.job == job) {
         return;
@@ -272,7 +272,7 @@ void MultiWorker<N>::consumeJob()
 
 
 template<size_t N>
-void MultiWorker<N>::save(const Job &job)
+void MultiWorker<N>::save(const xmrig::Job &job)
 {
     if (job.poolId() == -1 && m_state.job.poolId() >= 0) {
         m_pausedState = m_state;

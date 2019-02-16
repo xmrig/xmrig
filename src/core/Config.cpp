@@ -292,6 +292,8 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
 
 void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
+    CommonConfig::parseJSON(doc);
+
     const rapidjson::Value &threads = doc["threads"];
 
     if (threads.IsArray()) {

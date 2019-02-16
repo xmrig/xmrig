@@ -58,7 +58,7 @@ char hf_bin2hex(unsigned char c)
 }
 
 
-Job::Job() :
+xmrig::Job::Job() :
     m_autoVariant(false),
     m_nicehash(false),
     m_poolId(-2),
@@ -72,8 +72,8 @@ Job::Job() :
 }
 
 
-Job::Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId) :
-    m_autoVariant(algorithm.variant() == xmrig::VARIANT_AUTO),
+xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const Id &clientId) :
+    m_autoVariant(algorithm.variant() == VARIANT_AUTO),
     m_nicehash(nicehash),
     m_poolId(poolId),
     m_threadId(-1),
@@ -88,18 +88,18 @@ Job::Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmr
 }
 
 
-Job::~Job()
+xmrig::Job::~Job()
 {
 }
 
 
-bool Job::isEqual(const Job &other) const
+bool xmrig::Job::isEqual(const Job &other) const
 {
     return m_id == other.m_id && m_clientId == other.m_clientId && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;
 }
 
 
-bool Job::setBlob(const char *blob)
+bool xmrig::Job::setBlob(const char *blob)
 {
     if (!blob) {
         return false;
@@ -128,14 +128,14 @@ bool Job::setBlob(const char *blob)
     }
 
     if (!m_algorithm.isForced()) {
-        if (m_algorithm.variant() == xmrig::VARIANT_XTL && m_blob[0] >= 9) {
-            m_algorithm.setVariant(xmrig::VARIANT_HALF);
+        if (m_algorithm.variant() == VARIANT_XTL && m_blob[0] >= 9) {
+            m_algorithm.setVariant(VARIANT_HALF);
         }
-        else if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] >= 8) {
-            m_algorithm.setVariant(xmrig::VARIANT_HALF);
+        else if (m_algorithm.variant() == VARIANT_MSR && m_blob[0] >= 8) {
+            m_algorithm.setVariant(VARIANT_HALF);
         }
-        else if (m_algorithm.variant() == xmrig::VARIANT_WOW && m_blob[0] < 11) {
-            m_algorithm.setVariant(xmrig::VARIANT_2);
+        else if (m_algorithm.variant() == VARIANT_WOW && m_blob[0] < 11) {
+            m_algorithm.setVariant(VARIANT_2);
         }
     }
 
@@ -148,7 +148,7 @@ bool Job::setBlob(const char *blob)
 }
 
 
-bool Job::setTarget(const char *target)
+bool xmrig::Job::setTarget(const char *target)
 {
     if (!target) {
         return false;
@@ -190,7 +190,7 @@ bool Job::setTarget(const char *target)
 }
 
 
-void Job::setAlgorithm(const char *algo)
+void xmrig::Job::setAlgorithm(const char *algo)
 {
     m_algorithm.parseAlgorithm(algo);
 
@@ -200,13 +200,13 @@ void Job::setAlgorithm(const char *algo)
 }
 
 
-void Job::setHeight(uint64_t height)
+void xmrig::Job::setHeight(uint64_t height)
 {
     m_height = height;
 }
 
 
-bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
+bool xmrig::Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 {
     bool error = false;
     for (unsigned int i = 0; i < len; i += 2) {
@@ -220,7 +220,7 @@ bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 }
 
 
-void Job::toHex(const unsigned char* in, unsigned int len, char* out)
+void xmrig::Job::toHex(const unsigned char* in, unsigned int len, char* out)
 {
     for (unsigned int i = 0; i < len; i++) {
         out[i * 2] = hf_bin2hex((in[i] & 0xF0) >> 4);
@@ -230,7 +230,7 @@ void Job::toHex(const unsigned char* in, unsigned int len, char* out)
 
 
 #ifdef APP_DEBUG
-char *Job::toHex(const unsigned char* in, unsigned int len)
+char *xmrig::Job::toHex(const unsigned char* in, unsigned int len)
 {
     char *out = new char[len * 2 + 1]();
     toHex(in, len, out);
@@ -240,10 +240,8 @@ char *Job::toHex(const unsigned char* in, unsigned int len)
 #endif
 
 
-xmrig::Variant Job::variant() const
+xmrig::Variant xmrig::Job::variant() const
 {
-    using namespace xmrig;
-
     switch (m_algorithm.algo()) {
     case CRYPTONIGHT:
         return (m_blob[0] >= 8) ? VARIANT_2 : VARIANT_1;

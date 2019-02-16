@@ -44,7 +44,7 @@
 #endif
 
 
-Pool::Pool() :
+xmrig::Pool::Pool() :
     m_nicehash(false),
     m_tls(false),
     m_keepAlive(0),
@@ -64,7 +64,7 @@ Pool::Pool() :
  *
  * @param url
  */
-Pool::Pool(const char *url) :
+xmrig::Pool::Pool(const char *url) :
     m_nicehash(false),
     m_tls(false),
     m_keepAlive(0),
@@ -74,14 +74,54 @@ Pool::Pool(const char *url) :
 }
 
 
-Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
+xmrig::Pool::Pool(const rapidjson::Value &object) :
+    m_nicehash(false),
+    m_tls(false),
+    m_keepAlive(0),
+    m_port(kDefaultPort)
+{
+    if (!parse(object["url"].GetString())) {
+        return;
+    }
+
+    setUser(object["user"].GetString());
+    setPassword(object["pass"].GetString());
+    setRigId(object["rig-id"].GetString());
+    setNicehash(object["nicehash"].GetBool());
+
+    const rapidjson::Value &keepalive = object["keepalive"];
+    if (keepalive.IsInt()) {
+        setKeepAlive(keepalive.GetInt());
+    }
+    else if (keepalive.IsBool()) {
+        setKeepAlive(keepalive.IsTrue() ? kKeepAliveTimeout : 0);
+    }
+
+    const rapidjson::Value &variant = object["variant"];
+    if (variant.IsString()) {
+        algorithm().parseVariant(variant.GetString());
+    }
+    else if (variant.IsInt()) {
+        algorithm().parseVariant(variant.GetInt());
+    }
+
+    const rapidjson::Value &tls = object["tls"];
+    if (tls.IsBool()) {
+        m_tls = tls.IsTrue();
+    }
+
+    m_fingerprint = object["tls-fingerprint"].GetString();
+}
+
+
+xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
     m_nicehash(nicehash),
     m_tls(tls),
     m_keepAlive(keepAlive),
-    m_port(port),
     m_host(host),
     m_password(password),
-    m_user(user)
+    m_user(user),
+    m_port(port)
 {
     const size_t size = m_host.size() + 8;
     assert(size > 8);
@@ -93,7 +133,7 @@ Pool::Pool(const char *host, uint16_t port, const char *user, const char *passwo
 }
 
 
-bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
+bool xmrig::Pool::isCompatible(const Algorithm &algorithm) const
 {
     if (m_algorithms.empty()) {
         return true;
@@ -115,7 +155,7 @@ bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
 }
 
 
-bool Pool::isEqual(const Pool &other) const
+bool xmrig::Pool::isEqual(const Pool &other) const
 {
     return (m_nicehash       == other.m_nicehash
             && m_tls         == other.m_tls
@@ -131,7 +171,7 @@ bool Pool::isEqual(const Pool &other) const
 }
 
 
-bool Pool::parse(const char *url)
+bool xmrig::Pool::parse(const char *url)
 {
     assert(url != nullptr);
 
@@ -178,7 +218,7 @@ bool Pool::parse(const char *url)
 }
 
 
-bool Pool::setUserpass(const char *userpass)
+bool xmrig::Pool::setUserpass(const char *userpass)
 {
     const char *p = strchr(userpass, ':');
     if (!p) {
@@ -195,7 +235,7 @@ bool Pool::setUserpass(const char *userpass)
 }
 
 
-rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 
@@ -220,13 +260,13 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
     }
 
     switch (m_algorithm.variant()) {
-    case xmrig::VARIANT_AUTO:
-    case xmrig::VARIANT_0:
-    case xmrig::VARIANT_1:
+    case VARIANT_AUTO:
+    case VARIANT_0:
+    case VARIANT_1:
         obj.AddMember("variant", m_algorithm.variant(), allocator);
         break;
 
-    case xmrig::VARIANT_2:
+    case VARIANT_2:
         obj.AddMember("variant", 2, allocator);
         break;
 
@@ -242,7 +282,7 @@ rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
 }
 
 
-void Pool::adjust(const xmrig::Algorithm &algorithm)
+void xmrig::Pool::adjust(const Algorithm &algorithm)
 {
     if (!isValid()) {
         return;
@@ -257,7 +297,7 @@ void Pool::adjust(const xmrig::Algorithm &algorithm)
 }
 
 
-void Pool::setAlgo(const xmrig::Algorithm &algorithm)
+void xmrig::Pool::setAlgo(const xmrig::Algorithm &algorithm)
 {
     m_algorithm = algorithm;
 
@@ -266,7 +306,7 @@ void Pool::setAlgo(const xmrig::Algorithm &algorithm)
 
 
 #ifdef APP_DEBUG
-void Pool::print() const
+void xmrig::Pool::print() const
 {
     LOG_NOTICE("url:       %s", m_url.data());
     LOG_DEBUG ("host:      %s", m_host.data());
@@ -281,7 +321,7 @@ void Pool::print() const
 #endif
 
 
-bool Pool::parseIPv6(const char *addr)
+bool xmrig::Pool::parseIPv6(const char *addr)
 {
     const char *end = strchr(addr, ']');
     if (!end) {
@@ -304,7 +344,7 @@ bool Pool::parseIPv6(const char *addr)
 }
 
 
-void Pool::addVariant(xmrig::Variant variant)
+void xmrig::Pool::addVariant(xmrig::Variant variant)
 {
     const xmrig::Algorithm algorithm(m_algorithm.algo(), variant);
     if (!algorithm.isValid() || m_algorithm == algorithm) {
@@ -315,7 +355,7 @@ void Pool::addVariant(xmrig::Variant variant)
 }
 
 
-void Pool::adjustVariant(const xmrig::Variant variantHint)
+void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
 {
 #   ifndef XMRIG_PROXY_PROJECT
     using namespace xmrig;
@@ -401,7 +441,7 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
 }
 
 
-void Pool::rebuild()
+void xmrig::Pool::rebuild()
 {
     m_algorithms.clear();
 
@@ -412,18 +452,18 @@ void Pool::rebuild()
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
-    addVariant(xmrig::VARIANT_WOW);
-    addVariant(xmrig::VARIANT_2);
-    addVariant(xmrig::VARIANT_1);
-    addVariant(xmrig::VARIANT_0);
-    addVariant(xmrig::VARIANT_HALF);
-    addVariant(xmrig::VARIANT_XTL);
-    addVariant(xmrig::VARIANT_TUBE);
-    addVariant(xmrig::VARIANT_MSR);
-    addVariant(xmrig::VARIANT_XHV);
-    addVariant(xmrig::VARIANT_XAO);
-    addVariant(xmrig::VARIANT_RTO);
-    addVariant(xmrig::VARIANT_GPU);
-    addVariant(xmrig::VARIANT_AUTO);
+    addVariant(VARIANT_WOW);
+    addVariant(VARIANT_2);
+    addVariant(VARIANT_1);
+    addVariant(VARIANT_0);
+    addVariant(VARIANT_HALF);
+    addVariant(VARIANT_XTL);
+    addVariant(VARIANT_TUBE);
+    addVariant(VARIANT_MSR);
+    addVariant(VARIANT_XHV);
+    addVariant(VARIANT_XAO);
+    addVariant(VARIANT_RTO);
+    addVariant(VARIANT_GPU);
+    addVariant(VARIANT_AUTO);
 #   endif
 }

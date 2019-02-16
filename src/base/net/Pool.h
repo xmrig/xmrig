@@ -5,7 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -29,9 +29,12 @@
 #include <vector>
 
 
+#include "base/tools/String.h"
 #include "common/crypto/Algorithm.h"
-#include "common/utils/c_str.h"
 #include "rapidjson/fwd.h"
+
+
+namespace xmrig {
 
 
 class Pool
@@ -44,6 +47,7 @@ public:
 
     Pool();
     Pool(const char *url);
+    Pool(const rapidjson::Value &object);
     Pool(const char *host,
          uint16_t port,
          const char *user       = nullptr,
@@ -62,8 +66,8 @@ public:
     inline const char *rigId() const                    { return m_rigId.data(); }
     inline const char *url() const                      { return m_url.data(); }
     inline const char *user() const                     { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
-    inline const xmrig::Algorithm &algorithm() const    { return m_algorithm; }
-    inline const xmrig::Algorithms &algorithms() const  { return m_algorithms; }
+    inline const Algorithm &algorithm() const           { return m_algorithm; }
+    inline const Algorithms &algorithms() const         { return m_algorithms; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline uint16_t port() const                        { return m_port; }
     inline void setFingerprint(const char *fingerprint) { m_fingerprint = fingerprint; }
@@ -73,18 +77,18 @@ public:
     inline void setRigId(const char *rigId)             { m_rigId = rigId; }
     inline void setTLS(bool tls)                        { m_tls = tls; }
     inline void setUser(const char *user)               { m_user = user; }
-    inline xmrig::Algorithm &algorithm()                { return m_algorithm; }
+    inline Algorithm &algorithm()                       { return m_algorithm; }
 
     inline bool operator!=(const Pool &other) const  { return !isEqual(other); }
     inline bool operator==(const Pool &other) const  { return isEqual(other); }
 
-    bool isCompatible(const xmrig::Algorithm &algorithm) const;
+    bool isCompatible(const Algorithm &algorithm) const;
     bool isEqual(const Pool &other) const;
     bool parse(const char *url);
     bool setUserpass(const char *userpass);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    void adjust(const xmrig::Algorithm &algorithm);
-    void setAlgo(const xmrig::Algorithm &algorithm);
+    void adjust(const Algorithm &algorithm);
+    void setAlgo(const Algorithm &algorithm);
 
 #   ifdef APP_DEBUG
     void print() const;
@@ -92,25 +96,26 @@ public:
 
 private:
     bool parseIPv6(const char *addr);
-    void addVariant(xmrig::Variant variant);
-    void adjustVariant(const xmrig::Variant variantHint);
+    void addVariant(Variant variant);
+    void adjustVariant(const Variant variantHint);
     void rebuild();
 
+    Algorithm m_algorithm;
+    Algorithms m_algorithms;
     bool m_nicehash;
     bool m_tls;
     int m_keepAlive;
+    String m_fingerprint;
+    String m_host;
+    String m_password;
+    String m_rigId;
+    String m_url;
+    String m_user;
     uint16_t m_port;
-    xmrig::Algorithm m_algorithm;
-    xmrig::Algorithms m_algorithms;
-    xmrig::c_str m_fingerprint;
-    xmrig::c_str m_host;
-    xmrig::c_str m_password;
-    xmrig::c_str m_rigId;
-    xmrig::c_str m_url;
-    xmrig::c_str m_user;
 };
 
 
-//typedef std::vector<Pool> Pools;
+} /* namespace xmrig */
+
 
 #endif /* XMRIG_POOL_H */
