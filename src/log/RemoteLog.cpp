@@ -85,17 +85,17 @@ std::string RemoteLog::getRows()
 {
     std::stringstream data;
 
-    uv_mutex_lock(&m_self->m_mutex);
-
     if (m_self) {
+        uv_mutex_lock(&m_self->m_mutex);
+
         for (auto& m_row : m_self->m_rows) {
             data << m_row.c_str();
         }
+
+        m_self->m_rows.clear();
+
+        uv_mutex_unlock(&m_self->m_mutex);
     }
-
-    m_self->m_rows.clear();
-
-    uv_mutex_unlock(&m_self->m_mutex);
 
     return data.str();
 }
