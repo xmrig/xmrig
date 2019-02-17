@@ -47,6 +47,7 @@ xmrig::Network::Network(Controller *controller) :
     m_donate(nullptr)
 {
     Workers::setListener(this);
+    controller->addListener(this);
 
     const Pools &pools = controller->config()->pools();
     m_strategy = pools.createStrategy(this);
@@ -64,6 +65,7 @@ xmrig::Network::Network(Controller *controller) :
 
 xmrig::Network::~Network()
 {
+    delete m_strategy;
 }
 
 
@@ -101,6 +103,22 @@ void xmrig::Network::onActive(IStrategy *strategy, Client *client)
     if (fingerprint != nullptr) {
         LOG_INFO("%sfingerprint (SHA-256): \"%s\"", isColors() ? "\x1B[1;30m" : "", fingerprint);
     }
+}
+
+
+void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
+{
+    if (config->pools() == previousConfig->pools() || !config->pools().active()) {
+        return;
+    }
+
+    m_strategy->stop();
+
+    config->pools().print();
+
+    delete m_strategy;
+    m_strategy = config->pools().createStrategy(this);
+    connect();
 }
 
 

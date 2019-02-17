@@ -59,13 +59,17 @@ public:
     inline void setVariant(const char *variant)         { current().algorithm().parseVariant(variant); }
     inline void setVariant(int variant)                 { current().algorithm().parseVariant(variant); }
 
+    inline bool operator!=(const Pools &other) const    { return !isEqual(other); }
+    inline bool operator==(const Pools &other) const    { return isEqual(other); }
+
+    bool isEqual(const Pools &other) const;
     bool setUrl(const char *url);
     IStrategy *createStrategy(IStrategyListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t active() const;
     void adjust(const Algorithm &algorithm);
     void load(const rapidjson::Value &pools);
-    void print();
+    void print() const;
     void setRetries(int retries);
     void setRetryPause(int retryPause);
 

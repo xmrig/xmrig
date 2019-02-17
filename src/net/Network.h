@@ -31,6 +31,7 @@
 
 
 #include "api/NetworkState.h"
+#include "common/interfaces/IControllerListener.h"
 #include "common/interfaces/IStrategyListener.h"
 #include "interfaces/IJobResultListener.h"
 
@@ -42,36 +43,37 @@ class Controller;
 class IStrategy;
 
 
-class Network : public IJobResultListener, public IStrategyListener
+class Network : public IJobResultListener, public IStrategyListener, public IControllerListener
 {
 public:
-  Network(Controller *controller);
-  ~Network() override;
+    Network(Controller *controller);
+    ~Network() override;
 
-  void connect();
-  void stop();
+    void connect();
+    void stop();
 
 protected:
-  void onActive(IStrategy *strategy, Client *client) override;
-  void onJob(IStrategy *strategy, Client *client, const Job &job) override;
-  void onJobResult(const JobResult &result) override;
-  void onPause(IStrategy *strategy) override;
-  void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
+    void onActive(IStrategy *strategy, Client *client) override;
+    void onConfigChanged(Config *config, Config *previousConfig) override;
+    void onJob(IStrategy *strategy, Client *client, const Job &job) override;
+    void onJobResult(const JobResult &result) override;
+    void onPause(IStrategy *strategy) override;
+    void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-  constexpr static int kTickInterval = 1 * 1000;
+    constexpr static int kTickInterval = 1 * 1000;
 
-  bool isColors() const;
-  void setJob(Client *client, const Job &job, bool donate);
-  void tick();
+    bool isColors() const;
+    void setJob(Client *client, const Job &job, bool donate);
+    void tick();
 
-  static void onTick(uv_timer_t *handle);
+    static void onTick(uv_timer_t *handle);
 
-  Controller *m_controller;
-  IStrategy *m_donate;
-  IStrategy *m_strategy;
-  NetworkState m_state;
-  uv_timer_t m_timer;
+    Controller *m_controller;
+    IStrategy *m_donate;
+    IStrategy *m_strategy;
+    NetworkState m_state;
+    uv_timer_t m_timer;
 };
 
 
