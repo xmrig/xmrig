@@ -39,13 +39,20 @@ struct cryptonight_ctx;
 typedef void(*cn_mainloop_fun_ms_abi)(cryptonight_ctx*) ABI_ATTRIBUTE;
 typedef void(*cn_mainloop_double_fun_ms_abi)(cryptonight_ctx*, cryptonight_ctx*) ABI_ATTRIBUTE;
 
+struct cryptonight_r_data {
+    int variant;
+    uint64_t height;
+
+    bool match(const int v, const uint64_t h) const { return (v == variant) && (h == height); }
+};
+
 struct cryptonight_ctx {
     alignas(16) uint8_t state[224];
     alignas(16) uint8_t *memory;
     cn_mainloop_fun_ms_abi generated_code;
     cn_mainloop_double_fun_ms_abi generated_code_double;
-    uint64_t generated_code_height;
-    uint64_t generated_code_double_height;
+    cryptonight_r_data generated_code_data;
+    cryptonight_r_data generated_code_double_data;
 };
 
 

@@ -10,6 +10,7 @@ PUBLIC FN_PREFIX(CryptonightR_template_double_part3)
 PUBLIC FN_PREFIX(CryptonightR_template_double_part4)
 PUBLIC FN_PREFIX(CryptonightR_template_double_end)
 
+ALIGN(64)
 FN_PREFIX(CryptonightR_template_part1):
 	mov	QWORD PTR [rsp+16], rbx
 	mov	QWORD PTR [rsp+24], rbp
@@ -68,8 +69,6 @@ FN_PREFIX(CryptonightR_template_mainloop):
 	lea	rdx, QWORD PTR [r9+r11]
 
 	aesenc	xmm5, xmm4
-	movd	r10d, xmm5
-	and	r10d, 2097136
 
 	mov	r12d, r9d
 	mov	eax, r9d
@@ -77,15 +76,22 @@ FN_PREFIX(CryptonightR_template_mainloop):
 	xor	r12d, 16
 	xor	eax, 32
 	movdqu	xmm0, XMMWORD PTR [r9+r11]
+	movaps xmm3, xmm0
 	movdqu	xmm2, XMMWORD PTR [r12+r11]
 	movdqu	xmm1, XMMWORD PTR [rax+r11]
-	paddq	xmm0, xmm7
+	pxor xmm0, xmm2
+	pxor xmm5, xmm1
+	pxor xmm5, xmm0
+	paddq	xmm3, xmm7
 	paddq	xmm2, xmm6
 	paddq	xmm1, xmm4
-	movdqu	XMMWORD PTR [r12+r11], xmm0
-	movq	r12, xmm5
+	movdqu	XMMWORD PTR [r12+r11], xmm3
 	movdqu	XMMWORD PTR [rax+r11], xmm2
 	movdqu	XMMWORD PTR [r9+r11], xmm1
+
+	movq	r12, xmm5
+	movd	r10d, xmm5
+	and	r10d, 2097136
 
 	movdqa	xmm0, xmm5
 	pxor	xmm0, xmm6
@@ -101,13 +107,23 @@ FN_PREFIX(CryptonightR_template_mainloop):
 
 	movd eax, xmm6
 	movd edx, xmm7
+	pextrd r9d, xmm7, 2
 
 FN_PREFIX(CryptonightR_template_part2):
+	mov eax, edi
+	mov edx, ebp
+	shl rdx, 32
+	or rax, rdx
+	xor rsp, rax
+
+	mov eax, ebx
+	mov edx, esi
+	shl rdx, 32
+	or rax, rdx
+	xor r15, rax
+
 	mov	rax, r13
 	mul	r12
-	movq	xmm0, rax
-	movq	xmm3, rdx
-	punpcklqdq xmm3, xmm0
 
 	mov	r9d, r10d
 	mov	r12d, r10d
@@ -115,16 +131,18 @@ FN_PREFIX(CryptonightR_template_part2):
 	xor	r12d, 32
 	xor	r10d, 48
 	movdqa	xmm1, XMMWORD PTR [r12+r11]
-	xor	rdx, QWORD PTR [r12+r11]
-	xor	rax, QWORD PTR [r11+r12+8]
+	movaps xmm3, xmm1
 	movdqa	xmm2, XMMWORD PTR [r9+r11]
-	pxor	xmm3, xmm2
-	paddq	xmm7, XMMWORD PTR [r10+r11]
-	paddq	xmm1, xmm4
-	paddq	xmm3, xmm6
-	movdqu	XMMWORD PTR [r9+r11], xmm7
-	movdqu	XMMWORD PTR [r12+r11], xmm3
-	movdqu	XMMWORD PTR [r10+r11], xmm1
+	movdqa	xmm0, XMMWORD PTR [r10+r11]
+	pxor xmm1, xmm2
+	pxor xmm5, xmm0
+	pxor xmm5, xmm1
+	paddq	xmm3, xmm4
+	paddq	xmm2, xmm6
+	paddq	xmm0, xmm7
+	movdqu	XMMWORD PTR [r9+r11], xmm0
+	movdqu	XMMWORD PTR [r12+r11], xmm2
+	movdqu	XMMWORD PTR [r10+r11], xmm3
 
 	movdqa	xmm7, xmm6
 	add	r15, rax
@@ -247,18 +265,21 @@ FN_PREFIX(CryptonightR_template_double_mainloop):
 	punpcklqdq xmm3, xmm0
 	xor	ebx, 16
 	aesenc	xmm6, xmm3
-	movq	rdx, xmm6
 	movq	xmm4, r15
 	movdqu	xmm0, XMMWORD PTR [rbx+rsi]
+	pxor	xmm6, xmm0
 	xor	ebx, 48
 	paddq	xmm0, xmm7
 	movdqu	xmm1, XMMWORD PTR [rbx+rsi]
+	pxor	xmm6, xmm1
 	movdqu	XMMWORD PTR [rbx+rsi], xmm0
 	paddq	xmm1, xmm3
 	xor	ebx, 16
 	mov	eax, ebx
 	xor	rax, 32
 	movdqu	xmm0, XMMWORD PTR [rbx+rsi]
+	pxor	xmm6, xmm0
+	movq	rdx, xmm6
 	movdqu	XMMWORD PTR [rbx+rsi], xmm1
 	paddq	xmm0, xmm9
 	movdqu	XMMWORD PTR [rax+rsi], xmm0
@@ -274,15 +295,18 @@ FN_PREFIX(CryptonightR_template_double_mainloop):
 	xor	r8d, 16
 	aesenc	xmm5, xmm4
 	movdqu	xmm0, XMMWORD PTR [r8+rdi]
+	pxor	xmm5, xmm0
 	xor	r8d, 48
 	paddq	xmm0, xmm8
 	movdqu	xmm1, XMMWORD PTR [r8+rdi]
+	pxor	xmm5, xmm1
 	movdqu	XMMWORD PTR [r8+rdi], xmm0
 	paddq	xmm1, xmm4
 	xor	r8d, 16
 	mov	eax, r8d
 	xor	rax, 32
 	movdqu	xmm0, XMMWORD PTR [r8+rdi]
+	pxor	xmm5, xmm0
 	movdqu	XMMWORD PTR [r8+rdi], xmm1
 	paddq	xmm0, xmm10
 	movdqu	XMMWORD PTR [rax+rdi], xmm0
@@ -303,7 +327,8 @@ FN_PREFIX(CryptonightR_template_double_mainloop):
 	movq xmm11, rbp
 	movq xmm12, r15
 	movq xmm13, rdx
-	mov [rsp+112], rcx
+	mov [rsp+104], rcx
+	mov [rsp+112], r9
 
 	mov ebx, DWORD PTR [rsp+16]
 	mov esi, DWORD PTR [rsp+20]
@@ -320,8 +345,21 @@ FN_PREFIX(CryptonightR_template_double_mainloop):
 	pextrd r15d, xmm3, 2
 	movd eax, xmm7
 	movd edx, xmm9
+	pextrd r9d, xmm9, 2
 
 FN_PREFIX(CryptonightR_template_double_part2):
+
+	mov eax, edi
+	mov edx, ebp
+	shl rdx, 32
+	or rax, rdx
+	xor r14, rax
+
+	mov eax, ebx
+	mov edx, esi
+	shl rdx, 32
+	or rax, rdx
+	xor r12, rax
 
 	movq rsp, xmm0
 	mov DWORD PTR [rsp+16], ebx
@@ -334,28 +372,27 @@ FN_PREFIX(CryptonightR_template_double_part2):
 	movq rbp, xmm11
 	movq r15, xmm12
 	movq rdx, xmm13
-	mov rcx, [rsp+112]
+	mov rcx, [rsp+104]
+	mov r9, [rsp+112]
 
 	mov rbx, r8
 	mov	rax, r8
 	mul	rdx
 	and	ebp, 2097136
 	mov	r8, rax
-	movq	xmm1, rdx
-	movq	xmm0, r8
-	punpcklqdq xmm1, xmm0
-	pxor	xmm1, XMMWORD PTR [rcx+rsi]
+	movdqu	xmm1, XMMWORD PTR [rcx+rsi]
+	pxor	xmm6, xmm1
 	xor	esi, 48
 	paddq	xmm1, xmm7
 	movdqu	xmm2, XMMWORD PTR [rsi+rcx]
-	xor	rdx, QWORD PTR [rsi+rcx]
+	pxor	xmm6, xmm2
 	paddq	xmm2, xmm3
-	xor	r8, QWORD PTR [rsi+rcx+8]
 	movdqu	XMMWORD PTR [rsi+rcx], xmm1
 	xor	esi, 16
 	mov	eax, esi
 	mov	rsi, rcx
 	movdqu	xmm0, XMMWORD PTR [rax+rcx]
+	pxor	xmm6, xmm0
 	movdqu	XMMWORD PTR [rax+rcx], xmm2
 	paddq	xmm0, xmm9
 	add	r12, r8
@@ -383,6 +420,7 @@ FN_PREFIX(CryptonightR_template_double_part2):
 	movq xmm12, rbp
 	movq xmm13, r15
 	mov [rsp+104], rcx
+	mov [rsp+112], r9
 
 	mov ebx, DWORD PTR [rsp]
 	mov esi, DWORD PTR [rsp+4]
@@ -401,8 +439,23 @@ FN_PREFIX(CryptonightR_template_double_part2):
 	pextrd r15d, xmm4, 2
 	movd eax, xmm8
 	movd edx, xmm10
+	pextrd r9d, xmm10, 2
 
 FN_PREFIX(CryptonightR_template_double_part3):
+
+	movq r15, xmm13
+
+	mov eax, edi
+	mov edx, ebp
+	shl rdx, 32
+	or rax, rdx
+	xor r15, rax
+
+	mov eax, ebx
+	mov edx, esi
+	shl rdx, 32
+	or rax, rdx
+	xor r13, rax
 
 	movq rsp, xmm0
 	mov DWORD PTR [rsp], ebx
@@ -414,23 +467,20 @@ FN_PREFIX(CryptonightR_template_double_part3):
 	movq rsi, xmm2
 	movq rdi, xmm11
 	movq rbp, xmm12
-	movq r15, xmm13
 	mov rcx, [rsp+104]
+	mov r9, [rsp+112]
 
 	mov rax, r8
 	mul	rdi
-	movq	xmm1, rdx
-	movq	xmm0, rax
-	punpcklqdq xmm1, xmm0
 	mov	rdi, rcx
 	mov	r8, rax
-	pxor	xmm1, XMMWORD PTR [rbp+rcx]
+	movdqu	xmm1, XMMWORD PTR [rbp+rcx]
+	pxor xmm5, xmm1
 	xor	ebp, 48
 	paddq	xmm1, xmm8
-	xor	r8, QWORD PTR [rbp+rcx+8]
-	xor	rdx, QWORD PTR [rbp+rcx]
 	add	r13, r8
 	movdqu	xmm2, XMMWORD PTR [rbp+rcx]
+	pxor xmm5, xmm2
 	add	r15, rdx
 	movdqu	XMMWORD PTR [rbp+rcx], xmm1
 	paddq	xmm2, xmm4
@@ -438,6 +488,7 @@ FN_PREFIX(CryptonightR_template_double_part3):
 	mov	eax, ebp
 	xor	rax, 32
 	movdqu	xmm0, XMMWORD PTR [rbp+rcx]
+	pxor xmm5, xmm0
 	movdqu	XMMWORD PTR [rbp+rcx], xmm2
 	paddq	xmm0, xmm10
 	movdqu	XMMWORD PTR [rax+rcx], xmm0

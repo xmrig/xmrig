@@ -75,6 +75,7 @@ enum Variant {
     VARIANT_TRTL = 10, // CryptoNight Turtle (TRTL)
     VARIANT_GPU  = 11, // CryptoNight-GPU (Ryo)
     VARIANT_WOW  = 12, // CryptoNightR (Wownero)
+    VARIANT_4    = 13, // CryptoNightR (Monero's variant 4)
     VARIANT_MAX
 };
 

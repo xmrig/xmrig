@@ -457,10 +457,10 @@ static inline __m128i int_sqrt_v2(const uint64_t n0)
 
 
 template<xmrig::Variant VARIANT, xmrig::Variant BASE>
-static inline void cryptonight_monero_tweak(uint64_t* mem_out, const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i cx)
+static inline void cryptonight_monero_tweak(uint64_t* mem_out, const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i& cx)
 {
     if (BASE == xmrig::VARIANT_2) {
-        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1);
+        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx);
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
@@ -543,8 +543,12 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l0[idx0 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if (VARIANT == xmrig::VARIANT_WOW) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) {
                 VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx0, bx1);
+                if (VARIANT == xmrig::VARIANT_4) {
+                    al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
+                    ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
+                }
             } else {
                 VARIANT2_INTEGER_MATH(0, cl, cx);
             }
@@ -553,7 +557,11 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         lo = __umul128(idx0, cl, &hi);
 
         if (BASE == xmrig::VARIANT_2) {
-            VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo);
+            if (VARIANT == xmrig::VARIANT_4) {
+                VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx);
+            } else {
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo);
+            }
         }
 
         al0 += hi;
@@ -658,21 +666,46 @@ extern xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_ryzen_asm;
 extern xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_bulldozer_asm;
 extern xmrig::CpuThread::cn_mainloop_double_fun cn_trtl_double_mainloop_sandybridge_asm;
 
+void wow_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
 void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
-void v4_64_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
+void wow_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
 void v4_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
-void v4_64_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
+
+template<xmrig::Variant VARIANT>
+void cn_r_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    v4_compile_code(code, code_size, machine_code, ASM);
+}
+
+template<xmrig::Variant VARIANT>
+void cn_r_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    v4_compile_code_double(code, code_size, machine_code, ASM);
+}
+
+template<>
+void cn_r_compile_code<xmrig::VARIANT_WOW>(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    wow_compile_code(code, code_size, machine_code, ASM);
+}
+
+template<>
+void cn_r_compile_code_double<xmrig::VARIANT_WOW>(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    wow_compile_code_double(code, code_size, machine_code, ASM);
+}
 
 template<xmrig::Algo ALGO, xmrig::Variant VARIANT, xmrig::Assembly ASM>
 inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
     constexpr size_t MEM = xmrig::cn_select_memory<ALGO>();
 
-    if ((VARIANT == xmrig::VARIANT_WOW) && (height != ctx[0]->generated_code_height)) {
+    if (xmrig::cn_is_cryptonight_r<VARIANT>() && !ctx[0]->generated_code_data.match(VARIANT, height)) {
         V4_Instruction code[256];
-        const int code_size = v4_random_math_init(code, height);
-        v4_compile_code(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), ASM);
-        ctx[0]->generated_code_height = height;
+        const int code_size = v4_random_math_init<VARIANT>(code, height);
+        cn_r_compile_code<VARIANT>(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), ASM);
+        ctx[0]->generated_code_data.variant = VARIANT;
+        ctx[0]->generated_code_data.height = height;
     }
 
     xmrig::keccak(input, size, ctx[0]->state);
@@ -711,7 +744,7 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_trtl_mainloop_bulldozer_asm(ctx[0]);
         }
     }
-    else if (VARIANT == xmrig::VARIANT_WOW) {
+    else if (xmrig::cn_is_cryptonight_r<VARIANT>()) {
         ctx[0]->generated_code(ctx[0]);
     }
 
@@ -726,11 +759,12 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 {
     constexpr size_t MEM = xmrig::cn_select_memory<ALGO>();
 
-    if ((VARIANT == xmrig::VARIANT_WOW) && (height != ctx[0]->generated_code_double_height)) {
+    if (xmrig::cn_is_cryptonight_r<VARIANT>() && !ctx[0]->generated_code_double_data.match(VARIANT, height)) {
         V4_Instruction code[256];
-        const int code_size = v4_random_math_init(code, height);
-        v4_compile_code_double(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code_double), ASM);
-        ctx[0]->generated_code_double_height = height;
+        const int code_size = v4_random_math_init<VARIANT>(code, height);
+        cn_r_compile_code_double<VARIANT>(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code_double), ASM);
+        ctx[0]->generated_code_double_data.variant = VARIANT;
+        ctx[0]->generated_code_double_data.height = height;
     }
 
     xmrig::keccak(input,        size, ctx[0]->state);
@@ -748,7 +782,7 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
     else if (VARIANT == xmrig::VARIANT_TRTL) {
         cn_trtl_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
     }
-    else if (VARIANT == xmrig::VARIANT_WOW) {
+    else if (xmrig::cn_is_cryptonight_r<VARIANT>()) {
         ctx[0]->generated_code_double(ctx[0], ctx[1]);
     }
 
@@ -847,8 +881,12 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l0[idx0 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if (VARIANT == xmrig::VARIANT_WOW) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) {
                 VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx01);
+                if (VARIANT == xmrig::VARIANT_4) {
+                    al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
+                    ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
+                }
             } else {
                 VARIANT2_INTEGER_MATH(0, cl, cx0);
             }
@@ -857,7 +895,11 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         lo = __umul128(idx0, cl, &hi);
 
         if (BASE == xmrig::VARIANT_2) {
-            VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo);
+            if (VARIANT == xmrig::VARIANT_4) {
+                VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0);
+            } else {
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo);
+            }
         }
 
         al0 += hi;
@@ -895,8 +937,12 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l1[idx1 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if (VARIANT == xmrig::VARIANT_WOW) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) {
                 VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx10, bx11);
+                if (VARIANT == xmrig::VARIANT_4) {
+                    al1 ^= r1[2] | ((uint64_t)(r1[3]) << 32);
+                    ah1 ^= r1[0] | ((uint64_t)(r1[1]) << 32);
+                }
             } else {
                 VARIANT2_INTEGER_MATH(1, cl, cx1);
             }
@@ -905,7 +951,11 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         lo = __umul128(idx1, cl, &hi);
 
         if (BASE == xmrig::VARIANT_2) {
-            VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo);
+            if (VARIANT == xmrig::VARIANT_4) {
+                VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1);
+            } else {
+                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo);
+            }
         }
 
         al1 += hi;
@@ -989,18 +1039,30 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
 
 #define CN_STEP4(part, a, b0, b1, c, l, mc, ptr, idx)   \
+    uint64_t al##part, ah##part;                        \
     if (BASE == xmrig::VARIANT_2) {                     \
-        if (VARIANT == xmrig::VARIANT_WOW) {            \
-            const uint64_t al = _mm_cvtsi128_si64(a);   \
-            const uint64_t ah = _mm_cvtsi128_si64(_mm_srli_si128(a, 8)); \
-            VARIANT4_RANDOM_MATH(part, al, ah, cl##part, b0, b1); \
+        if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) { \
+            al##part = _mm_cvtsi128_si64(a);            \
+            ah##part = _mm_cvtsi128_si64(_mm_srli_si128(a, 8)); \
+            VARIANT4_RANDOM_MATH(part, al##part, ah##part, cl##part, b0, b1); \
+            if (VARIANT == xmrig::VARIANT_4) { \
+                al##part ^= r##part[2] | ((uint64_t)(r##part[3]) << 32); \
+                ah##part ^= r##part[0] | ((uint64_t)(r##part[1]) << 32); \
+            }                                           \
         } else {                                        \
             VARIANT2_INTEGER_MATH(part, cl##part, c);   \
         }                                               \
     }                                                   \
     lo = __umul128(idx, cl##part, &hi);                 \
     if (BASE == xmrig::VARIANT_2) {                     \
-        VARIANT2_SHUFFLE2(l, idx & MASK, a, b0, b1, hi, lo); \
+        if (VARIANT == xmrig::VARIANT_4) { \
+            VARIANT2_SHUFFLE(l, idx & MASK, a, b0, b1, c); \
+        } else {                                        \
+            VARIANT2_SHUFFLE2(l, idx & MASK, a, b0, b1, hi, lo); \
+        } \
+    }                                                   \
+    if (VARIANT == xmrig::VARIANT_4) { \
+        a = _mm_set_epi64x(ah##part, al##part);         \
     }                                                   \
     a = _mm_add_epi64(a, _mm_set_epi64x(lo, hi));       \
                                                         \
