@@ -96,19 +96,6 @@ bool xmrig::ConfigLoader::loadFromJSON(xmrig::IConfig *config, const rapidjson::
         parseJSON(config, &config_options[i], doc);
     }
 
-    const rapidjson::Value &pools = doc["pools"];
-    if (pools.IsArray()) {
-        for (const rapidjson::Value &value : pools.GetArray()) {
-            if (!value.IsObject()) {
-                continue;
-            }
-
-            for (size_t i = 0; i < ARRAY_SIZE(pool_options); i++) {
-                parseJSON(config, &pool_options[i], value);
-            }
-        }
-    }
-
     const rapidjson::Value &api = doc["api"];
     if (api.IsObject()) {
         for (size_t i = 0; i < ARRAY_SIZE(api_options); i++) {

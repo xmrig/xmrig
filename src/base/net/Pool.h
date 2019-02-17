@@ -72,6 +72,7 @@ public:
     inline uint16_t port() const                        { return m_port; }
     inline void setFingerprint(const char *fingerprint) { m_fingerprint = fingerprint; }
     inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
+    inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? kKeepAliveTimeout : 0); }
     inline void setNicehash(bool nicehash)              { m_nicehash = nicehash; }
     inline void setPassword(const char *password)       { m_password = password; }
     inline void setRigId(const char *rigId)             { m_rigId = rigId; }

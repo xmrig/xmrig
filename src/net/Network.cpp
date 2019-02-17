@@ -140,7 +140,7 @@ void xmrig::Network::onPause(IStrategy *strategy)
 }
 
 
-void xmrig::Network::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
+void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult &result, const char *error)
 {
     m_state.add(result, error);
 
@@ -159,7 +159,7 @@ void xmrig::Network::onResultAccepted(IStrategy *strategy, Client *client, const
 
 bool xmrig::Network::isColors() const
 {
-    return m_controller->config()->isColors();
+    return Log::colors;
 }
 
 

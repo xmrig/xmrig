@@ -36,3 +36,14 @@ bool xmrig::Json::getBool(const rapidjson::Value &obj, const char *key, bool def
 
     return defaultValue;
 }
+
+
+const char *xmrig::Json::getString(const rapidjson::Value &obj, const char *key,  const char *defaultValue)
+{
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd() && i->value.IsString()) {
+        return i->value.GetString();
+    }
+
+    return defaultValue;
+}

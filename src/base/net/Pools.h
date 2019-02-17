@@ -49,7 +49,7 @@ public:
     inline int retries() const                          { return m_retries; }
     inline int retryPause() const                       { return m_retryPause; }
     inline void setFingerprint(const char *fingerprint) { current().setFingerprint(fingerprint); }
-    inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0); }
+    inline void setKeepAlive(bool enable)               { current().setKeepAlive(enable); }
     inline void setKeepAlive(int keepAlive)             { current().setKeepAlive(keepAlive); }
     inline void setNicehash(bool enable)                { current().setNicehash(enable); }
     inline void setPassword(const char *password)       { current().setPassword(password); }
@@ -64,6 +64,7 @@ public:
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t active() const;
     void adjust(const Algorithm &algorithm);
+    void load(const rapidjson::Value &pools);
     void print();
     void setRetries(int retries);
     void setRetryPause(int retryPause);

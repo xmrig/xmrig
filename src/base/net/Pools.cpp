@@ -57,7 +57,7 @@ bool xmrig::Pools::setUrl(const char *url)
         Pool pool(url);
 
         if (pool.isValid()) {
-            m_data.push_back(pool);
+            m_data.push_back(std::move(pool));
             return true;
         }
 
@@ -123,6 +123,23 @@ void xmrig::Pools::adjust(const Algorithm &algorithm)
 {
     for (Pool &pool : m_data) {
         pool.adjust(algorithm);
+    }
+}
+
+
+void xmrig::Pools::load(const rapidjson::Value &pools)
+{
+    m_data.clear();
+
+    for (const rapidjson::Value &value : pools.GetArray()) {
+        if (!value.IsObject()) {
+            continue;
+        }
+
+        Pool pool(value);
+        if (pool.isValid()) {
+            m_data.push_back(std::move(pool));
+        }
     }
 }
 

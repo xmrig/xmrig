@@ -364,7 +364,10 @@ bool xmrig::CommonConfig::parseUint64(int key, uint64_t arg)
 
 void xmrig::CommonConfig::parseJSON(const rapidjson::Document &doc)
 {
-
+    const rapidjson::Value &pools = doc["pools"];
+    if (pools.IsArray()) {
+        m_pools.load(pools);
+    }
 }
 
 

@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 
+#include "base/io/Json.h"
 #include "base/net/Pool.h"
 #include "rapidjson/document.h"
 
@@ -42,6 +43,17 @@
 #   define strncasecmp _strnicmp
 #   define strcasecmp  _stricmp
 #endif
+
+
+static const char *kTls         = "tls";
+static const char *kUrl         = "url";
+static const char *kUser        = "user";
+static const char *kPass        = "pass";
+static const char *kRigId       = "rig-id";
+static const char *kNicehash    = "nicehash";
+static const char *kKeepalive   = "keepalive";
+static const char *kVariant     = "variant";
+static const char *kFingerprint = "tls-fingerprint";
 
 
 xmrig::Pool::Pool() :
@@ -80,24 +92,24 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_keepAlive(0),
     m_port(kDefaultPort)
 {
-    if (!parse(object["url"].GetString())) {
+    if (!parse(Json::getString(object, kUrl))) {
         return;
     }
 
-    setUser(object["user"].GetString());
-    setPassword(object["pass"].GetString());
-    setRigId(object["rig-id"].GetString());
-    setNicehash(object["nicehash"].GetBool());
+    setUser(Json::getString(object, kUser));
+    setPassword(Json::getString(object, kPass));
+    setRigId(Json::getString(object, kRigId));
+    setNicehash(Json::getBool(object, kNicehash));
 
-    const rapidjson::Value &keepalive = object["keepalive"];
+    const rapidjson::Value &keepalive = object[kKeepalive];
     if (keepalive.IsInt()) {
         setKeepAlive(keepalive.GetInt());
     }
     else if (keepalive.IsBool()) {
-        setKeepAlive(keepalive.IsTrue() ? kKeepAliveTimeout : 0);
+        setKeepAlive(keepalive.GetBool());
     }
 
-    const rapidjson::Value &variant = object["variant"];
+    const rapidjson::Value &variant = object[kVariant];
     if (variant.IsString()) {
         algorithm().parseVariant(variant.GetString());
     }
@@ -105,12 +117,8 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
         algorithm().parseVariant(variant.GetInt());
     }
 
-    const rapidjson::Value &tls = object["tls"];
-    if (tls.IsBool()) {
-        m_tls = tls.IsTrue();
-    }
-
-    m_fingerprint = object["tls-fingerprint"].GetString();
+    m_tls         = Json::getBool(object, kTls);
+    m_fingerprint = Json::getString(object, kFingerprint);
 }
 
 
@@ -219,7 +227,7 @@ bool xmrig::Pool::parse(const char *url)
         return true;
     }
 
-    const size_t size = port++ - base + 1;
+    const size_t size = static_cast<size_t>(port++ - base + 1);
     char *host        = new char[size]();
     memcpy(host, base, size - 1);
 
@@ -238,7 +246,7 @@ bool xmrig::Pool::setUserpass(const char *userpass)
     }
 
     char *user = new char[p - userpass + 1]();
-    strncpy(user, userpass, p - userpass);
+    strncpy(user, userpass, static_cast<size_t>(p - userpass));
 
     m_user     = user;
     m_password = p + 1;
@@ -255,40 +263,40 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
 
-    obj.AddMember("url",    m_url.toJSON(), allocator);
-    obj.AddMember("user",   m_user.toJSON(), allocator);
-    obj.AddMember("pass",   m_password.toJSON(), allocator);
-    obj.AddMember("rig-id", m_rigId.toJSON(), allocator);
+    obj.AddMember(StringRef(kUrl),   m_url.toJSON(), allocator);
+    obj.AddMember(StringRef(kUser),  m_user.toJSON(), allocator);
+    obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
+    obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
 
 #   ifndef XMRIG_PROXY_PROJECT
-    obj.AddMember("nicehash", isNicehash(), allocator);
+    obj.AddMember(StringRef(kNicehash), isNicehash(), allocator);
 #   endif
 
     if (m_keepAlive == 0 || m_keepAlive == kKeepAliveTimeout) {
-        obj.AddMember("keepalive", m_keepAlive > 0, allocator);
+        obj.AddMember(StringRef(kKeepalive), m_keepAlive > 0, allocator);
     }
     else {
-        obj.AddMember("keepalive", m_keepAlive, allocator);
+        obj.AddMember(StringRef(kKeepalive), m_keepAlive, allocator);
     }
 
     switch (m_algorithm.variant()) {
     case VARIANT_AUTO:
     case VARIANT_0:
     case VARIANT_1:
-        obj.AddMember("variant", m_algorithm.variant(), allocator);
+        obj.AddMember(StringRef(kVariant), m_algorithm.variant(), allocator);
         break;
 
     case VARIANT_2:
-        obj.AddMember("variant", 2, allocator);
+        obj.AddMember(StringRef(kVariant), 2, allocator);
         break;
 
     default:
-        obj.AddMember("variant", StringRef(m_algorithm.variantName()), allocator);
+        obj.AddMember(StringRef(kVariant), StringRef(m_algorithm.variantName()), allocator);
         break;
     }
 
-    obj.AddMember("tls",             isTLS(), allocator);
-    obj.AddMember("tls-fingerprint", m_fingerprint.toJSON(), allocator);
+    obj.AddMember(StringRef(kTls),         isTLS(), allocator);
+    obj.AddMember(StringRef(kFingerprint), m_fingerprint.toJSON(), allocator);
 
     return obj;
 }
@@ -345,7 +353,7 @@ bool xmrig::Pool::parseIPv6(const char *addr)
         return false;
     }
 
-    const size_t size = end - addr;
+    const size_t size = static_cast<size_t>(end - addr);
     char *host        = new char[size]();
     memcpy(host, addr + 1, size - 1);
 

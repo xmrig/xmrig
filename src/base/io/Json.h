@@ -36,6 +36,7 @@ class Json
 {
 public:
     static bool getBool(const rapidjson::Value &obj, const char *key, bool defaultValue = false);
+    static const char *getString(const rapidjson::Value &obj, const char *key,  const char *defaultValue = nullptr);
 
     static bool get(const char *fileName, rapidjson::Document &doc);
     static bool save(const char *fileName, const rapidjson::Document &doc);
