@@ -26,7 +26,56 @@
 #include "base/net/Pools.h"
 
 
-xmrig::Pools::Pools() :
-    m_index(0)
+xmrig::Pools::Pools()
 {
+}
+
+
+xmrig::Pool &xmrig::Pools::current()
+{
+    if (m_data.empty()) {
+        m_data.push_back(Pool());
+    }
+
+    return m_data.back();
+}
+
+
+bool xmrig::Pools::setUrl(const char *url)
+{
+    if (m_data.empty() || m_data.back().isValid()) {
+        Pool pool(url);
+
+        if (pool.isValid()) {
+            m_data.push_back(pool);
+            return true;
+        }
+
+        return false;
+    }
+
+    current().parse(url);
+
+    return m_data.back().isValid();
+}
+
+
+size_t xmrig::Pools::active() const
+{
+    size_t count = 0;
+    for (const Pool &pool : m_data) {
+        if (pool.isEnabled()) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+
+void xmrig::Pools::adjust(const Algorithm &algorithm)
+{
+    for (Pool &pool : m_data) {
+        pool.adjust(algorithm);
+    }
 }

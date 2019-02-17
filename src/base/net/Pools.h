@@ -40,8 +40,26 @@ class Pools
 public:
     Pools();
 
+    inline bool setUserpass(const char *userpass)       { return current().setUserpass(userpass); }
+    inline const std::vector<Pool> &data() const        { return m_data; }
+    inline void setFingerprint(const char *fingerprint) { current().setFingerprint(fingerprint); }
+    inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0); }
+    inline void setKeepAlive(int keepAlive)             { current().setKeepAlive(keepAlive); }
+    inline void setNicehash(bool enable)                { current().setNicehash(enable); }
+    inline void setPassword(const char *password)       { current().setPassword(password); }
+    inline void setRigId(const char *rigId)             { current().setRigId(rigId); }
+    inline void setTLS(bool enable)                     { current().setTLS(enable); }
+    inline void setUser(const char *user)               { current().setUser(user); }
+    inline void setVariant(const char *variant)         { current().algorithm().parseVariant(variant); }
+    inline void setVariant(int variant)                 { current().algorithm().parseVariant(variant); }
+
+    bool setUrl(const char *url);
+    size_t active() const;
+    void adjust(const Algorithm &algorithm);
+
 private:
-    size_t m_index;
+    Pool &current();
+
     std::vector<Pool> m_data;
 };
 

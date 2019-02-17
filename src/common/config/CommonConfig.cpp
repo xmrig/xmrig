@@ -82,8 +82,6 @@ xmrig::CommonConfig::CommonConfig() :
     m_retryPause(5),
     m_state(NoneState)
 {
-    m_pools.push_back(Pool());
-
 #   ifdef XMRIG_PROXY_PROJECT
     m_retries    = 2;
     m_retryPause = 1;
@@ -107,21 +105,21 @@ void xmrig::CommonConfig::printAPI()
 
 void xmrig::CommonConfig::printPools()
 {
-    for (size_t i = 0; i < m_activePools.size(); ++i) {
+    for (size_t i = 0; i < m_pools.data().size(); ++i) {
         if (!isColors()) {
             Log::i()->text(" * POOL #%-7zu%s algo=%s, TLS=%d",
                            i + 1,
-                           m_activePools[i].url(),
-                           m_activePools[i].algorithm().shortName(),
-                           static_cast<int>(m_activePools[i].isTLS())
+                           m_pools.data()[i].url(),
+                           m_pools.data()[i].algorithm().shortName(),
+                           static_cast<int>(m_pools.data()[i].isTLS())
                            );
         }
         else {
             Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m algo " WHITE_BOLD("%s"),
                            i + 1,
-                           m_activePools[i].isTLS() ? 32 : 36,
-                           m_activePools[i].url(),
-                           m_activePools[i].algorithm().shortName()
+                           m_pools.data()[i].isTLS() ? 32 : 36,
+                           m_pools.data()[i].url(),
+                           m_pools.data()[i].algorithm().shortName()
                            );
         }
     }
@@ -225,23 +223,9 @@ bool xmrig::CommonConfig::finalize()
         return false;
     }
 
-    for (Pool &pool : m_pools) {
-        pool.adjust(m_algorithm);
+    m_pools.adjust(m_algorithm);
 
-        if (pool.isValid() && pool.algorithm().isValid()) {
-#           ifdef XMRIG_NO_TLS
-            if (pool.isTLS()) {
-                continue;
-            }
-#           endif
-
-            m_activePools.push_back(std::move(pool));
-        }
-    }
-
-    m_pools.clear();
-
-    if (m_activePools.empty()) {
+    if (!m_pools.active()) {
         m_state = ErrorState;
         return false;
     }
@@ -263,16 +247,16 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        currentPool().setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0);
+        m_pools.setKeepAlive(enable);
         break;
 
     case TlsKey: /* --tls */
-        currentPool().setTLS(enable);
+        m_pools.setTLS(enable);
         break;
 
 #   ifndef XMRIG_PROXY_PROJECT
     case NicehashKey: /* --nicehash */
-        currentPool().setNicehash(enable);
+        m_pools.setNicehash(enable);
         break;
 #   endif
 
@@ -316,50 +300,29 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         break;
 
     case UserpassKey: /* --userpass */
-        if (!currentPool().setUserpass(arg)) {
-            return false;
-        }
-
-        break;
+        return m_pools.setUserpass(arg);
 
     case UrlKey: /* --url */
-        fixup();
-
-        if (m_pools.size() > 1 || m_pools[0].isValid()) {
-            Pool pool(arg);
-
-            if (pool.isValid()) {
-                m_pools.push_back(std::move(pool));
-            }
-        }
-        else {
-            m_pools[0].parse(arg);
-        }
-
-        if (!m_pools.back().isValid()) {
-            return false;
-        }
-
-        break;
+        return m_pools.setUrl(arg);
 
     case UserKey: /* --user */
-        currentPool().setUser(arg);
+        m_pools.setUser(arg);
         break;
 
     case PasswordKey: /* --pass */
-        currentPool().setPassword(arg);
+        m_pools.setPassword(arg);
         break;
 
     case RigIdKey: /* --rig-id */
-        currentPool().setRigId(arg);
+        m_pools.setRigId(arg);
         break;
 
     case FingerprintKey: /* --tls-fingerprint */
-        currentPool().setFingerprint(arg);
+        m_pools.setFingerprint(arg);
         break;
 
     case VariantKey: /* --variant */
-        currentPool().algorithm().parseVariant(arg);
+        m_pools.setVariant(arg);
         break;
 
     case LogFileKey: /* --log-file */
@@ -453,11 +416,11 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        currentPool().setKeepAlive(arg);
+        m_pools.setKeepAlive(arg);
         break;
 
     case VariantKey: /* --variant */
-        currentPool().algorithm().parseVariant(arg);
+        m_pools.setVariant(arg);
         break;
 
     case DonateLevelKey: /* --donate-level */
@@ -483,31 +446,4 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     }
 
     return true;
-}
-
-
-xmrig::Pool &xmrig::CommonConfig::currentPool()
-{
-    fixup();
-
-    return m_pools.back();
-}
-
-
-void xmrig::CommonConfig::fixup()
-{
-    if (m_state == NoneState) {
-        return;
-    }
-
-    if (m_pools.empty()) {
-        if (!m_activePools.empty()) {
-            std::swap(m_pools, m_activePools);
-        }
-        else {
-            m_pools.push_back(Pool());
-        }
-
-        m_state = NoneState;
-    }
 }

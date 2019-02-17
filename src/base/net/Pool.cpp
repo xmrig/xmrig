@@ -155,6 +155,18 @@ bool xmrig::Pool::isCompatible(const Algorithm &algorithm) const
 }
 
 
+bool xmrig::Pool::isEnabled() const
+{
+#   ifdef XMRIG_NO_TLS
+    if (isTLS()) {
+        return false;
+    }
+#   endif
+
+    return isValid() && algorithm().isValid();
+}
+
+
 bool xmrig::Pool::isEqual(const Pool &other) const
 {
     return (m_nicehash       == other.m_nicehash

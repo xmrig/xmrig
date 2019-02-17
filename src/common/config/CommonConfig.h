@@ -52,7 +52,7 @@ public:
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
     inline const char *logFile() const             { return m_logFile.data(); }
     inline const char *userAgent() const           { return m_userAgent.data(); }
-    inline const std::vector<Pool> &pools() const  { return m_activePools; }
+    inline const std::vector<Pool> &pools() const  { return m_pools.data(); }
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
@@ -99,9 +99,8 @@ protected:
     int m_printTime;
     int m_retries;
     int m_retryPause;
+    Pools m_pools;
     State m_state;
-    std::vector<Pool> m_activePools;
-    std::vector<Pool> m_pools;
     String m_apiId;
     String m_apiToken;
     String m_apiWorkerId;
@@ -111,8 +110,6 @@ protected:
 
 private:
     bool parseInt(int key, int arg);
-    Pool &currentPool();
-    void fixup();
 };
 
 
