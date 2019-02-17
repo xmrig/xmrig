@@ -29,14 +29,12 @@
 #include <stdint.h>
 
 
-class Job;
-class SubmitResult;
-
-
 namespace xmrig {
 
 
 class Client;
+class Job;
+class SubmitResult;
 
 
 class IClientListener

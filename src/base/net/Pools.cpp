@@ -24,10 +24,18 @@
 
 
 #include "base/net/Pools.h"
+#include "common/log/Log.h"
+#include "rapidjson/document.h"
 
 
-xmrig::Pools::Pools()
+xmrig::Pools::Pools() :
+    m_retries(5),
+    m_retryPause(5)
 {
+#   ifdef XMRIG_PROXY_PROJECT
+    m_retries    = 2;
+    m_retryPause = 1;
+#   endif
 }
 
 
@@ -60,6 +68,21 @@ bool xmrig::Pools::setUrl(const char *url)
 }
 
 
+rapidjson::Value xmrig::Pools::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value pools(kArrayType);
+
+    for (const Pool &pool : m_data) {
+        pools.PushBack(pool.toJSON(doc), allocator);
+    }
+
+    return pools;
+}
+
+
 size_t xmrig::Pools::active() const
 {
     size_t count = 0;
@@ -77,5 +100,58 @@ void xmrig::Pools::adjust(const Algorithm &algorithm)
 {
     for (Pool &pool : m_data) {
         pool.adjust(algorithm);
+    }
+}
+
+
+void xmrig::Pools::print()
+{
+    size_t i = 1;
+    for (const Pool &pool : m_data) {
+        if (Log::colors) {
+            const int color = pool.isEnabled() ? (pool.isTLS() ? 32 : 36) : 31;
+
+            Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m algo " WHITE_BOLD("%s"),
+                           i,
+                           color,
+                           pool.url(),
+                           pool.algorithm().shortName()
+                           );
+        }
+        else {
+            Log::i()->text(" * POOL #%-7zu%s%s algo=%s %s",
+                           i,
+                           pool.isEnabled() ? "" : "-",
+                           pool.url(),
+                           pool.algorithm().shortName(),
+                           pool.isTLS() ? "TLS" : ""
+                           );
+        }
+
+        i++;
+    }
+
+#   ifdef APP_DEBUG
+    LOG_NOTICE("POOLS --------------------------------------------------------------------");
+    for (const Pool &pool : m_data) {
+        pool.print();
+    }
+    LOG_NOTICE("--------------------------------------------------------------------------");
+#   endif
+}
+
+
+void xmrig::Pools::setRetries(int retries)
+{
+    if (retries > 0 && retries <= 1000) {
+        m_retries = retries;
+    }
+}
+
+
+void xmrig::Pools::setRetryPause(int retryPause)
+{
+    if (retryPause > 0 && retryPause <= 3600) {
+        m_retryPause = retryPause;
     }
 }

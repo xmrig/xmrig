@@ -42,6 +42,8 @@ public:
 
     inline bool setUserpass(const char *userpass)       { return current().setUserpass(userpass); }
     inline const std::vector<Pool> &data() const        { return m_data; }
+    inline int retries() const                          { return m_retries; }
+    inline int retryPause() const                       { return m_retryPause; }
     inline void setFingerprint(const char *fingerprint) { current().setFingerprint(fingerprint); }
     inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0); }
     inline void setKeepAlive(int keepAlive)             { current().setKeepAlive(keepAlive); }
@@ -54,12 +56,18 @@ public:
     inline void setVariant(int variant)                 { current().algorithm().parseVariant(variant); }
 
     bool setUrl(const char *url);
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t active() const;
     void adjust(const Algorithm &algorithm);
+    void print();
+    void setRetries(int retries);
+    void setRetryPause(int retryPause);
 
 private:
     Pool &current();
 
+    int m_retries;
+    int m_retryPause;
     std::vector<Pool> m_data;
 };
 

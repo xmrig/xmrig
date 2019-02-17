@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,9 +36,10 @@
 
 
 Log *Log::m_self = nullptr;
+bool Log::colors = true;
 
 
-static const char *colors[5] = {
+static const char *color[5] = {
     "\x1B[0;31m",  /* ERR     */
     "\x1B[0;33m",  /* WARNING */
     "\x1B[1;37m",  /* NOTICE  */
@@ -96,7 +98,7 @@ const char *Log::colorByLevel(ILogBackend::Level level, bool isColors)
         return "";
     }
 
-    return colors[level];
+    return color[level];
 }
 
 

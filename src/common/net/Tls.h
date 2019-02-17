@@ -32,7 +32,10 @@
 #include "common/net/Client.h"
 
 
-class xmrig::Client::Tls
+namespace xmrig {
+
+
+class Client::Tls
 {
 public:
     Tls(Client *client);
@@ -58,6 +61,9 @@ private:
     SSL *m_ssl;
     SSL_CTX *m_ctx;
 };
+
+
+} /* namespace xmrig */
 
 
 #endif /* XMRIG_CLIENT_TLS_H */

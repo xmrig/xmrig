@@ -71,21 +71,20 @@ xmrig::CommonConfig::CommonConfig() :
     m_apiRestricted(true),
     m_autoSave(true),
     m_background(false),
-    m_colors(true),
     m_dryRun(false),
     m_syslog(false),
     m_watch(true),
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
-    m_retries(5),
-    m_retryPause(5),
     m_state(NoneState)
 {
-#   ifdef XMRIG_PROXY_PROJECT
-    m_retries    = 2;
-    m_retryPause = 1;
-#   endif
+}
+
+
+bool xmrig::CommonConfig::isColors() const
+{
+    return Log::colors;
 }
 
 
@@ -105,32 +104,7 @@ void xmrig::CommonConfig::printAPI()
 
 void xmrig::CommonConfig::printPools()
 {
-    for (size_t i = 0; i < m_pools.data().size(); ++i) {
-        if (!isColors()) {
-            Log::i()->text(" * POOL #%-7zu%s algo=%s, TLS=%d",
-                           i + 1,
-                           m_pools.data()[i].url(),
-                           m_pools.data()[i].algorithm().shortName(),
-                           static_cast<int>(m_pools.data()[i].isTLS())
-                           );
-        }
-        else {
-            Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m algo " WHITE_BOLD("%s"),
-                           i + 1,
-                           m_pools.data()[i].isTLS() ? 32 : 36,
-                           m_pools.data()[i].url(),
-                           m_pools.data()[i].algorithm().shortName()
-                           );
-        }
-    }
-
-#   ifdef APP_DEBUG
-    LOG_NOTICE("POOLS --------------------------------------------------------------------");
-    for (const Pool &pool : m_activePools) {
-        pool.print();
-    }
-    LOG_NOTICE("--------------------------------------------------------------------------");
-#   endif
+    m_pools.print();
 }
 
 
@@ -261,7 +235,7 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
 #   endif
 
     case ColorKey: /* --no-color */
-        m_colors = enable;
+        Log::colors = enable;
         break;
 
     case WatchKey: /* watch */
@@ -404,15 +378,11 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
 {
     switch (key) {
     case RetriesKey: /* --retries */
-        if (arg > 0 && arg <= 1000) {
-            m_retries = arg;
-        }
+        m_pools.setRetries(arg);
         break;
 
     case RetryPauseKey: /* --retry-pause */
-        if (arg > 0 && arg <= 3600) {
-            m_retryPause = arg;
-        }
+        m_pools.setRetryPause(arg);
         break;
 
     case KeepAliveKey: /* --keepalive */

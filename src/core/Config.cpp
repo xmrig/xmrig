@@ -103,14 +103,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("hw-aes",        m_aesMode == AES_AUTO ? Value(kNullType) : Value(m_aesMode == AES_HW), allocator);
     doc.AddMember("log-file",      logFile()             ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("max-cpu-usage", m_maxCpuUsage, allocator);
-
-    Value pools(kArrayType);
-
-    for (const Pool &pool : m_pools.data()) {
-        pools.PushBack(pool.toJSON(doc), allocator);
-    }
-
-    doc.AddMember("pools",         pools, allocator);
+    doc.AddMember("pools",         m_pools.toJSON(doc), allocator);
     doc.AddMember("print-time",    printTime(), allocator);
     doc.AddMember("retries",       retries(), allocator);
     doc.AddMember("retry-pause",   retryPause(), allocator);

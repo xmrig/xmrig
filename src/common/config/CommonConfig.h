@@ -44,7 +44,6 @@ public:
     inline bool isApiRestricted() const            { return m_apiRestricted; }
     inline bool isAutoSave() const                 { return m_autoSave; }
     inline bool isBackground() const               { return m_background; }
-    inline bool isColors() const                   { return m_colors; }
     inline bool isDryRun() const                   { return m_dryRun; }
     inline bool isSyslog() const                   { return m_syslog; }
     inline const char *apiId() const               { return m_apiId.data(); }
@@ -56,9 +55,8 @@ public:
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
-    inline int retries() const                     { return m_retries; }
-    inline int retryPause() const                  { return m_retryPause; }
-    inline void setColors(bool colors)             { m_colors = colors; }
+    inline int retries() const                     { return m_pools.retries(); }
+    inline int retryPause() const                  { return m_pools.retryPause(); }
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
     inline const Algorithm &algorithm() const override { return m_algorithm; }
@@ -66,6 +64,7 @@ public:
 
     bool save() override;
 
+    bool isColors() const;
     void printAPI();
     void printPools();
     void printVersions();
@@ -90,15 +89,12 @@ protected:
     bool m_apiRestricted;
     bool m_autoSave;
     bool m_background;
-    bool m_colors;
     bool m_dryRun;
     bool m_syslog;
     bool m_watch;
     int m_apiPort;
     int m_donateLevel;
     int m_printTime;
-    int m_retries;
-    int m_retryPause;
     Pools m_pools;
     State m_state;
     String m_apiId;
