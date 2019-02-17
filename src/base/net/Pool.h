@@ -104,6 +104,7 @@ private:
 
     Algorithm m_algorithm;
     Algorithms m_algorithms;
+    bool m_enabled;
     bool m_nicehash;
     bool m_tls;
     int m_keepAlive;

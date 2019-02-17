@@ -45,18 +45,20 @@
 #endif
 
 
+static const char *kEnabled     = "enabled";
+static const char *kFingerprint = "tls-fingerprint";
+static const char *kKeepalive   = "keepalive";
+static const char *kNicehash    = "nicehash";
+static const char *kPass        = "pass";
+static const char *kRigId       = "rig-id";
 static const char *kTls         = "tls";
 static const char *kUrl         = "url";
 static const char *kUser        = "user";
-static const char *kPass        = "pass";
-static const char *kRigId       = "rig-id";
-static const char *kNicehash    = "nicehash";
-static const char *kKeepalive   = "keepalive";
 static const char *kVariant     = "variant";
-static const char *kFingerprint = "tls-fingerprint";
 
 
 xmrig::Pool::Pool() :
+    m_enabled(true),
     m_nicehash(false),
     m_tls(false),
     m_keepAlive(0),
@@ -77,6 +79,7 @@ xmrig::Pool::Pool() :
  * @param url
  */
 xmrig::Pool::Pool(const char *url) :
+    m_enabled(true),
     m_nicehash(false),
     m_tls(false),
     m_keepAlive(0),
@@ -87,6 +90,7 @@ xmrig::Pool::Pool(const char *url) :
 
 
 xmrig::Pool::Pool(const rapidjson::Value &object) :
+    m_enabled(true),
     m_nicehash(false),
     m_tls(false),
     m_keepAlive(0),
@@ -117,6 +121,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
         algorithm().parseVariant(variant.GetInt());
     }
 
+    m_enabled     = Json::getBool(object, kEnabled, true);
     m_tls         = Json::getBool(object, kTls);
     m_fingerprint = Json::getString(object, kFingerprint);
 }
@@ -171,13 +176,14 @@ bool xmrig::Pool::isEnabled() const
     }
 #   endif
 
-    return isValid() && algorithm().isValid();
+    return m_enabled && isValid() && algorithm().isValid();
 }
 
 
 bool xmrig::Pool::isEqual(const Pool &other) const
 {
     return (m_nicehash       == other.m_nicehash
+            && m_enabled     == other.m_enabled
             && m_tls         == other.m_tls
             && m_keepAlive   == other.m_keepAlive
             && m_port        == other.m_port
@@ -295,6 +301,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
         break;
     }
 
+    obj.AddMember(StringRef(kEnabled),     m_enabled, allocator);
     obj.AddMember(StringRef(kTls),         isTLS(), allocator);
     obj.AddMember(StringRef(kFingerprint), m_fingerprint.toJSON(), allocator);
 
