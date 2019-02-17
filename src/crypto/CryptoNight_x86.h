@@ -446,8 +446,10 @@ static inline __m128i int_sqrt_v2(const uint64_t n0)
     r >>= 19;
 
     uint64_t x2 = (s - (1022ULL << 32)) * (r - s - (1022ULL << 32) + 1);
-#   if (defined(_MSC_VER) || __GNUC__ > 7 || (__GNUC__ == 7 && __GNUC_MINOR__ > 1)) && (defined(__x86_64__) || defined(_M_AMD64))
+#   if (defined(_MSC_VER) || __GNUC__ > 7 || (__GNUC__ == 7 && __GNUC_MINOR__ > 1)) && (defined(__x86_64__) || defined(_M_AMD64)) && !defined(__INTEL_COMPILER)
     _addcarry_u64(_subborrow_u64(0, x2, n0, (unsigned long long int*)&x2), r, 0, (unsigned long long int*)&r);
+#   elif defined(__INTEL_COMPILER)
+    _addcarry_u64(_subborrow_u64(0, x2, n0, (unsigned long int*)&x2), r, 0, (unsigned long int*)&r);
 #   else
     if (x2 < n0) ++r;
 #   endif

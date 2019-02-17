@@ -70,4 +70,12 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
     endif()
 
+elseif (CMAKE_CXX_COMPILER_ID MATCHES Intel)
+
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -funroll-loops")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fno-exceptions -fno-rtti")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -funroll-loops")
+
 endif()
