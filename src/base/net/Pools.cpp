@@ -25,6 +25,8 @@
 
 #include "base/net/Pools.h"
 #include "common/log/Log.h"
+#include "common/net/strategies/FailoverStrategy.h"
+#include "common/net/strategies/SinglePoolStrategy.h"
 #include "rapidjson/document.h"
 
 
@@ -65,6 +67,27 @@ bool xmrig::Pools::setUrl(const char *url)
     current().parse(url);
 
     return m_data.back().isValid();
+}
+
+
+xmrig::IStrategy *xmrig::Pools::createStrategy(IStrategyListener *listener) const
+{
+    if (active() == 1) {
+        for (const Pool &pool : m_data) {
+            if (pool.isEnabled()) {
+                return new SinglePoolStrategy(pool, retryPause(), retries(), listener);
+            }
+        }
+    }
+
+    FailoverStrategy *strategy = new FailoverStrategy(retryPause(), retries(), listener);
+    for (const Pool &pool : m_data) {
+        if (pool.isEnabled()) {
+            strategy->add(pool);
+        }
+    }
+
+    return strategy;
 }
 
 

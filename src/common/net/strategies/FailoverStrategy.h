@@ -44,8 +44,11 @@ class IStrategyListener;
 class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-    FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    FailoverStrategy(const std::vector<Pool> &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    FailoverStrategy(int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     ~FailoverStrategy() override;
+
+    void add(const Pool &pool);
 
 public:
     inline bool isActive() const override  { return m_active >= 0; }
@@ -64,7 +67,7 @@ protected:
     void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-    void add(const Pool &pool);
+    inline Client *active() const { return m_pools[static_cast<size_t>(m_active)]; }
 
     const bool m_quiet;
     const int m_retries;

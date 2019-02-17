@@ -105,8 +105,8 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("max-cpu-usage", m_maxCpuUsage, allocator);
     doc.AddMember("pools",         m_pools.toJSON(doc), allocator);
     doc.AddMember("print-time",    printTime(), allocator);
-    doc.AddMember("retries",       retries(), allocator);
-    doc.AddMember("retry-pause",   retryPause(), allocator);
+    doc.AddMember("retries",       m_pools.retries(), allocator);
+    doc.AddMember("retry-pause",   m_pools.retryPause(), allocator);
     doc.AddMember("safe",          m_safe, allocator);
 
     if (threadsMode() != Simple) {

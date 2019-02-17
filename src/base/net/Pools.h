@@ -35,6 +35,10 @@
 namespace xmrig {
 
 
+class IStrategy;
+class IStrategyListener;
+
+
 class Pools
 {
 public:
@@ -56,6 +60,7 @@ public:
     inline void setVariant(int variant)                 { current().algorithm().parseVariant(variant); }
 
     bool setUrl(const char *url);
+    IStrategy *createStrategy(IStrategyListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t active() const;
     void adjust(const Algorithm &algorithm);

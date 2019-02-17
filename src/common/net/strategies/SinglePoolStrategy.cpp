@@ -87,7 +87,7 @@ void xmrig::SinglePoolStrategy::tick(uint64_t now)
 }
 
 
-void xmrig::SinglePoolStrategy::onClose(Client *client, int failures)
+void xmrig::SinglePoolStrategy::onClose(Client *, int)
 {
     if (!isActive()) {
         return;

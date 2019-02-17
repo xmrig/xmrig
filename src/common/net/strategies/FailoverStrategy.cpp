@@ -29,7 +29,7 @@
 #include "common/Platform.h"
 
 
-xmrig::FailoverStrategy::FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
+xmrig::FailoverStrategy::FailoverStrategy(const std::vector<Pool> &pools, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
     m_quiet(quiet),
     m_retries(retries),
     m_retryPause(retryPause),
@@ -37,9 +37,20 @@ xmrig::FailoverStrategy::FailoverStrategy(const std::vector<Pool> &urls, int ret
     m_index(0),
     m_listener(listener)
 {
-    for (const Pool &url : urls) {
-        add(url);
+    for (const Pool &pool : pools) {
+        add(pool);
     }
+}
+
+
+xmrig::FailoverStrategy::FailoverStrategy(int retryPause, int retries, IStrategyListener *listener, bool quiet) :
+    m_quiet(quiet),
+    m_retries(retries),
+    m_retryPause(retryPause),
+    m_active(-1),
+    m_index(0),
+    m_listener(listener)
+{
 }
 
 
@@ -51,19 +62,31 @@ xmrig::FailoverStrategy::~FailoverStrategy()
 }
 
 
+void xmrig::FailoverStrategy::add(const Pool &pool)
+{
+    Client *client = new Client(static_cast<int>(m_pools.size()), Platform::userAgent(), this);
+    client->setPool(pool);
+    client->setRetries(m_retries);
+    client->setRetryPause(m_retryPause * 1000);
+    client->setQuiet(m_quiet);
+
+    m_pools.push_back(client);
+}
+
+
 int64_t xmrig::FailoverStrategy::submit(const JobResult &result)
 {
     if (m_active == -1) {
         return -1;
     }
 
-    return m_pools[m_active]->submit(result);
+    return active()->submit(result);
 }
 
 
 void xmrig::FailoverStrategy::connect()
 {
-    m_pools[m_index]->connect();
+    m_pools[static_cast<size_t>(m_index)]->connect();
 }
 
 
@@ -73,7 +96,7 @@ void xmrig::FailoverStrategy::resume()
         return;
     }
 
-    m_listener->onJob(this, m_pools[m_active],  m_pools[m_active]->job());
+    m_listener->onJob(this, active(), active()->job());
 }
 
 
@@ -121,8 +144,8 @@ void xmrig::FailoverStrategy::onClose(Client *client, int failures)
         return;
     }
 
-    if (m_index == client->id() && (m_pools.size() - m_index) > 1) {
-        m_pools[++m_index]->connect();
+    if (m_index == client->id() && (m_pools.size() - static_cast<size_t>(m_index)) > 1) {
+        m_pools[static_cast<size_t>(++m_index)]->connect();
     }
 }
 
@@ -159,16 +182,4 @@ void xmrig::FailoverStrategy::onLoginSuccess(Client *client)
 void xmrig::FailoverStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
-}
-
-
-void xmrig::FailoverStrategy::add(const Pool &pool)
-{
-    Client *client = new Client((int) m_pools.size(), Platform::userAgent(), this);
-    client->setPool(pool);
-    client->setRetries(m_retries);
-    client->setRetryPause(m_retryPause * 1000);
-    client->setQuiet(m_quiet);
-
-    m_pools.push_back(client);
 }

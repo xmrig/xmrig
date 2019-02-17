@@ -34,8 +34,6 @@
 #include "api/Api.h"
 #include "common/log/Log.h"
 #include "common/net/Client.h"
-#include "common/net/strategies/FailoverStrategy.h"
-#include "common/net/strategies/SinglePoolStrategy.h"
 #include "common/net/SubmitResult.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -50,17 +48,11 @@ xmrig::Network::Network(Controller *controller) :
 {
     Workers::setListener(this);
 
-    const std::vector<Pool> &pools = controller->config()->pools();
-
-    if (pools.size() > 1) {
-        m_strategy = new FailoverStrategy(pools, controller->config()->retryPause(), controller->config()->retries(), this);
-    }
-    else {
-        m_strategy = new SinglePoolStrategy(pools.front(), controller->config()->retryPause(), controller->config()->retries(), this);
-    }
+    const Pools &pools = controller->config()->pools();
+    m_strategy = pools.createStrategy(this);
 
     if (controller->config()->donateLevel() > 0) {
-        m_donate = new DonateStrategy(controller->config()->donateLevel(), controller->config()->pools().front().user(), controller->config()->algorithm().algo(), this);
+        m_donate = new DonateStrategy(controller->config()->donateLevel(), pools.data().front().user(), controller->config()->algorithm().algo(), this);
     }
 
     m_timer.data = this;
