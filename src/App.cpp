@@ -96,7 +96,6 @@ int xmrig::App::exec()
 
     if (m_controller->config()->isDryRun()) {
         LOG_NOTICE("OK");
-        release();
 
         return 0;
     }
@@ -123,7 +122,6 @@ int xmrig::App::exec()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
-    release();
     return r;
 }
 
@@ -193,9 +191,4 @@ void xmrig::App::close()
     Workers::stop();
 
     uv_stop(uv_default_loop());
-}
-
-
-void xmrig::App::release()
-{
 }

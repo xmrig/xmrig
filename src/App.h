@@ -47,24 +47,23 @@ class Signals;
 class App : public IConsoleListener, public ISignalListener
 {
 public:
-  App(Process *process);
-  ~App() override;
+    App(Process *process);
+    ~App() override;
 
-  int exec();
+    int exec();
 
 protected:
-  void onConsoleCommand(char command) override;
-  void onSignal(int signum) override;
+    void onConsoleCommand(char command) override;
+    void onSignal(int signum) override;
 
 private:
-  void background();
-  void close();
-  void release();
+    void background();
+    void close();
 
-  Console *m_console;
-  Controller *m_controller;
-  Httpd *m_httpd;
-  Signals *m_signals;
+    Console *m_console;
+    Controller *m_controller;
+    Httpd *m_httpd;
+    Signals *m_signals;
 };
 
 

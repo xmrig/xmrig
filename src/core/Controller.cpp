@@ -47,9 +47,9 @@ class xmrig::ControllerPrivate
 {
 public:
     inline ControllerPrivate(Process *process) :
+        config(nullptr),
         network(nullptr),
-        process(process),
-        config(nullptr)
+        process(process)
     {}
 
 
@@ -60,10 +60,10 @@ public:
     }
 
 
+    Config *config;
     Network *network;
     Process *process;
     std::vector<IControllerListener *> listeners;
-    Config *config;
 };
 
 
