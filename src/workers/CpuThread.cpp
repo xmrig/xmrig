@@ -176,7 +176,9 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         add_asm_func<CRYPTONIGHT, VARIANT_WOW>(asm_func_map);
         add_asm_func<CRYPTONIGHT, VARIANT_4>(asm_func_map);
 
-        add_asm_func<CRYPTONIGHT_PICO, VARIANT_HALF>(asm_func_map);
+#       ifndef XMRIG_NO_CN_PICO
+        add_asm_func<CRYPTONIGHT_PICO, VARIANT_TRTL>(asm_func_map);
+#       endif
 
         asm_func_map_initialized = true;
     }
