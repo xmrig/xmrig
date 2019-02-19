@@ -112,21 +112,6 @@ static struct option const config_options[] = {
 };
 
 
-static struct option const pool_options[] = {
-    { "url",             1, nullptr, xmrig::IConfig::UrlKey         },
-    { "pass",            1, nullptr, xmrig::IConfig::PasswordKey    },
-    { "user",            1, nullptr, xmrig::IConfig::UserKey        },
-    { "userpass",        1, nullptr, xmrig::IConfig::UserpassKey    },
-    { "nicehash",        0, nullptr, xmrig::IConfig::NicehashKey    },
-    { "keepalive",       2, nullptr, xmrig::IConfig::KeepAliveKey   },
-    { "variant",         1, nullptr, xmrig::IConfig::VariantKey     },
-    { "rig-id",          1, nullptr, xmrig::IConfig::RigIdKey       },
-    { "tls",             0, nullptr, xmrig::IConfig::TlsKey         },
-    { "tls-fingerprint", 1, nullptr, xmrig::IConfig::FingerprintKey },
-    { nullptr,           0, nullptr, 0 }
-};
-
-
 static struct option const api_options[] = {
     { "port",          1, nullptr, xmrig::IConfig::ApiPort           },
     { "access-token",  1, nullptr, xmrig::IConfig::ApiAccessTokenKey },
