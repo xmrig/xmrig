@@ -60,6 +60,10 @@ bool MultiWorker<N>::selfTest()
             LOG_WARN("CryptonightR (Wownero) self-test failed");
             return false;
         }
+        if (!verify2(VARIANT_4, test_input_R)) {
+            LOG_WARN("CryptonightR self-test failed");
+            return false;
+        }
 
         const bool rc = verify(VARIANT_0,    test_output_v0)  &&
                         verify(VARIANT_1,    test_output_v1)  &&
