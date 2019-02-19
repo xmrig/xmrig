@@ -69,7 +69,6 @@ private:
 
     static void onTick(uv_timer_t *handle);
 
-    Controller *m_controller;
     IStrategy *m_donate;
     IStrategy *m_strategy;
     NetworkState m_state;

@@ -479,19 +479,19 @@ void xmrig::Pool::rebuild()
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
-    addVariant(xmrig::VARIANT_4);
-    addVariant(xmrig::VARIANT_WOW);
-    addVariant(xmrig::VARIANT_2);
-    addVariant(xmrig::VARIANT_1);
-    addVariant(xmrig::VARIANT_0);
-    addVariant(xmrig::VARIANT_HALF);
-    addVariant(xmrig::VARIANT_XTL);
-    addVariant(xmrig::VARIANT_TUBE);
-    addVariant(xmrig::VARIANT_MSR);
-    addVariant(xmrig::VARIANT_XHV);
-    addVariant(xmrig::VARIANT_XAO);
-    addVariant(xmrig::VARIANT_RTO);
-    addVariant(xmrig::VARIANT_GPU);
-    addVariant(xmrig::VARIANT_AUTO);
+    addVariant(VARIANT_4);
+    addVariant(VARIANT_WOW);
+    addVariant(VARIANT_2);
+    addVariant(VARIANT_1);
+    addVariant(VARIANT_0);
+    addVariant(VARIANT_HALF);
+    addVariant(VARIANT_XTL);
+    addVariant(VARIANT_TUBE);
+    addVariant(VARIANT_MSR);
+    addVariant(VARIANT_XHV);
+    addVariant(VARIANT_XAO);
+    addVariant(VARIANT_RTO);
+    addVariant(VARIANT_GPU);
+    addVariant(VARIANT_AUTO);
 #   endif
 }

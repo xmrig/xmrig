@@ -43,7 +43,6 @@
 
 
 xmrig::Network::Network(Controller *controller) :
-    m_controller(controller),
     m_donate(nullptr)
 {
     Workers::setListener(this);
