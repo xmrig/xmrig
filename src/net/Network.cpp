@@ -34,8 +34,6 @@
 #include "api/Api.h"
 #include "common/log/Log.h"
 #include "common/net/Client.h"
-#include "common/net/strategies/FailoverStrategy.h"
-#include "common/net/strategies/SinglePoolStrategy.h"
 #include "common/net/SubmitResult.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -44,25 +42,17 @@
 #include "workers/Workers.h"
 
 
-Network::Network(xmrig::Controller *controller) :
-    m_donate(nullptr),
-    m_controller(controller)
+xmrig::Network::Network(Controller *controller) :
+    m_donate(nullptr)
 {
-    srand(time(0) ^ (uintptr_t) this);
-
     Workers::setListener(this);
+    controller->addListener(this);
 
-    const std::vector<Pool> &pools = controller->config()->pools();
-
-    if (pools.size() > 1) {
-        m_strategy = new FailoverStrategy(pools, controller->config()->retryPause(), controller->config()->retries(), this);
-    }
-    else {
-        m_strategy = new SinglePoolStrategy(pools.front(), controller->config()->retryPause(), controller->config()->retries(), this);
-    }
+    const Pools &pools = controller->config()->pools();
+    m_strategy = pools.createStrategy(this);
 
     if (controller->config()->donateLevel() > 0) {
-        m_donate = new DonateStrategy(controller->config()->donateLevel(), controller->config()->pools().front().user(), controller->config()->algorithm().algo(), this);
+        m_donate = new DonateStrategy(controller->config()->donateLevel(), pools.data().front().user(), controller->config()->algorithm().algo(), this);
     }
 
     m_timer.data = this;
@@ -72,18 +62,19 @@ Network::Network(xmrig::Controller *controller) :
 }
 
 
-Network::~Network()
+xmrig::Network::~Network()
 {
+    delete m_strategy;
 }
 
 
-void Network::connect()
+void xmrig::Network::connect()
 {
     m_strategy->connect();
 }
 
 
-void Network::stop()
+void xmrig::Network::stop()
 {
     if (m_donate) {
         m_donate->stop();
@@ -93,7 +84,7 @@ void Network::stop()
 }
 
 
-void Network::onActive(IStrategy *strategy, Client *client)
+void xmrig::Network::onActive(IStrategy *strategy, Client *client)
 {
     if (m_donate && m_donate == strategy) {
         LOG_NOTICE("dev donate started");
@@ -114,7 +105,23 @@ void Network::onActive(IStrategy *strategy, Client *client)
 }
 
 
-void Network::onJob(IStrategy *strategy, Client *client, const Job &job)
+void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
+{
+    if (config->pools() == previousConfig->pools() || !config->pools().active()) {
+        return;
+    }
+
+    m_strategy->stop();
+
+    config->pools().print();
+
+    delete m_strategy;
+    m_strategy = config->pools().createStrategy(this);
+    connect();
+}
+
+
+void xmrig::Network::onJob(IStrategy *strategy, Client *client, const Job &job)
 {
     if (m_donate && m_donate->isActive() && m_donate != strategy) {
         return;
@@ -124,7 +131,7 @@ void Network::onJob(IStrategy *strategy, Client *client, const Job &job)
 }
 
 
-void Network::onJobResult(const JobResult &result)
+void xmrig::Network::onJobResult(const JobResult &result)
 {
     if (result.poolId == -1 && m_donate) {
         m_donate->submit(result);
@@ -135,7 +142,7 @@ void Network::onJobResult(const JobResult &result)
 }
 
 
-void Network::onPause(IStrategy *strategy)
+void xmrig::Network::onPause(IStrategy *strategy)
 {
     if (m_donate && m_donate == strategy) {
         LOG_NOTICE("dev donate finished");
@@ -150,7 +157,7 @@ void Network::onPause(IStrategy *strategy)
 }
 
 
-void Network::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
+void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult &result, const char *error)
 {
     m_state.add(result, error);
 
@@ -167,13 +174,13 @@ void Network::onResultAccepted(IStrategy *strategy, Client *client, const Submit
 }
 
 
-bool Network::isColors() const
+bool xmrig::Network::isColors() const
 {
-    return m_controller->config()->isColors();
+    return Log::colors;
 }
 
 
-void Network::setJob(Client *client, const Job &job, bool donate)
+void xmrig::Network::setJob(Client *client, const Job &job, bool donate)
 {
     if (job.height()) {
         LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64)
@@ -195,7 +202,7 @@ void Network::setJob(Client *client, const Job &job, bool donate)
 }
 
 
-void Network::tick()
+void xmrig::Network::tick()
 {
     const uint64_t now = uv_now(uv_default_loop());
 
@@ -211,7 +218,7 @@ void Network::tick()
 }
 
 
-void Network::onTick(uv_timer_t *handle)
+void xmrig::Network::onTick(uv_timer_t *handle)
 {
     static_cast<Network*>(handle->data)->tick();
 }

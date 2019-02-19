@@ -48,11 +48,11 @@ protected:
     void start() override;
 
 private:
-    bool resume(const Job &job);
+    bool resume(const xmrig::Job &job);
     bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
     bool verify2(xmrig::Variant variant, const char *test_data);
     void consumeJob();
-    void save(const Job &job);
+    void save(const xmrig::Job &job);
 
     inline uint32_t *nonce(size_t index)
     {
@@ -61,8 +61,8 @@ private:
 
     struct State
     {
-        alignas(16) uint8_t blob[Job::kMaxBlobSize * N];
-        Job job;
+        alignas(16) uint8_t blob[xmrig::Job::kMaxBlobSize * N];
+        xmrig::Job job;
     };
 
 

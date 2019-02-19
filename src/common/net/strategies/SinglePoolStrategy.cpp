@@ -29,7 +29,7 @@
 #include "common/Platform.h"
 
 
-SinglePoolStrategy::SinglePoolStrategy(const Pool &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
+xmrig::SinglePoolStrategy::SinglePoolStrategy(const Pool &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
     m_active(false),
     m_listener(listener)
 {
@@ -41,25 +41,25 @@ SinglePoolStrategy::SinglePoolStrategy(const Pool &pool, int retryPause, int ret
 }
 
 
-SinglePoolStrategy::~SinglePoolStrategy()
+xmrig::SinglePoolStrategy::~SinglePoolStrategy()
 {
     m_client->deleteLater();
 }
 
 
-int64_t SinglePoolStrategy::submit(const JobResult &result)
+int64_t xmrig::SinglePoolStrategy::submit(const JobResult &result)
 {
     return m_client->submit(result);
 }
 
 
-void SinglePoolStrategy::connect()
+void xmrig::SinglePoolStrategy::connect()
 {
     m_client->connect();
 }
 
 
-void SinglePoolStrategy::resume()
+void xmrig::SinglePoolStrategy::resume()
 {
     if (!isActive()) {
         return;
@@ -69,25 +69,25 @@ void SinglePoolStrategy::resume()
 }
 
 
-void SinglePoolStrategy::setAlgo(const xmrig::Algorithm &algo)
+void xmrig::SinglePoolStrategy::setAlgo(const xmrig::Algorithm &algo)
 {
     m_client->setAlgo(algo);
 }
 
 
-void SinglePoolStrategy::stop()
+void xmrig::SinglePoolStrategy::stop()
 {
     m_client->disconnect();
 }
 
 
-void SinglePoolStrategy::tick(uint64_t now)
+void xmrig::SinglePoolStrategy::tick(uint64_t now)
 {
     m_client->tick(now);
 }
 
 
-void SinglePoolStrategy::onClose(Client *client, int failures)
+void xmrig::SinglePoolStrategy::onClose(Client *, int)
 {
     if (!isActive()) {
         return;
@@ -98,20 +98,20 @@ void SinglePoolStrategy::onClose(Client *client, int failures)
 }
 
 
-void SinglePoolStrategy::onJobReceived(Client *client, const Job &job)
+void xmrig::SinglePoolStrategy::onJobReceived(Client *client, const Job &job)
 {
     m_listener->onJob(this, client, job);
 }
 
 
-void SinglePoolStrategy::onLoginSuccess(Client *client)
+void xmrig::SinglePoolStrategy::onLoginSuccess(Client *client)
 {
     m_active = true;
     m_listener->onActive(this, client);
 }
 
 
-void SinglePoolStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void xmrig::SinglePoolStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
 }

@@ -431,12 +431,12 @@ static inline __m128i aes_round_tweak_div(const __m128i &in, const __m128i &key)
 
 
 template<xmrig::Variant VARIANT, xmrig::Variant BASE>
-static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i cx)
+static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i& cx)
 {
     uint64_t* mem_out = (uint64_t*)&l[idx];
 
     if (BASE == xmrig::VARIANT_2) {
-        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1);
+        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx);
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
@@ -515,8 +515,12 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l0[idx0 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if (VARIANT == xmrig::VARIANT_WOW) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) {
                 VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx0, bx1);
+                if (VARIANT == xmrig::VARIANT_4) {
+                    al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
+                    ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
+                }
             } else {
                 VARIANT2_INTEGER_MATH(0, cl, cx);
             }
@@ -525,7 +529,11 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         lo = __umul128(idx0, cl, &hi);
 
         if (BASE == xmrig::VARIANT_2) {
-            VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo);
+            if (VARIANT == xmrig::VARIANT_4) {
+                VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx);
+            } else {
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo);
+            }
         }
 
         al0 += hi;
@@ -686,8 +694,12 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l0[idx0 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if (VARIANT == xmrig::VARIANT_WOW) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) {
                 VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx01);
+                if (VARIANT == xmrig::VARIANT_4) {
+                    al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
+                    ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
+                }
             } else {
                 VARIANT2_INTEGER_MATH(0, cl, cx0);
             }
@@ -696,7 +708,11 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         lo = __umul128(idx0, cl, &hi);
 
         if (BASE == xmrig::VARIANT_2) {
-            VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo);
+            if (VARIANT == xmrig::VARIANT_4) {
+                VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0);
+            } else {
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo);
+            }
         }
 
         al0 += hi;
@@ -736,8 +752,12 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l1[idx1 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if (VARIANT == xmrig::VARIANT_WOW) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) {
                 VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx10, bx11);
+                if (VARIANT == xmrig::VARIANT_4) {
+                    al1 ^= r1[2] | ((uint64_t)(r1[3]) << 32);
+                    ah1 ^= r1[0] | ((uint64_t)(r1[1]) << 32);
+                }
             } else {
                 VARIANT2_INTEGER_MATH(1, cl, cx1);
             }
@@ -746,7 +766,11 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         lo = __umul128(idx1, cl, &hi);
 
         if (BASE == xmrig::VARIANT_2) {
-            VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo);
+            if (VARIANT == xmrig::VARIANT_4) {
+                VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1);
+            } else {
+                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo);
+            }
         }
 
         al1 += hi;

@@ -35,6 +35,9 @@
 #include "common/net/Id.h"
 
 
+namespace xmrig {
+
+
 class Job
 {
 public:
@@ -43,7 +46,7 @@ public:
     static constexpr const size_t kMaxBlobSize = 128;
 
     Job();
-    Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId);
+    Job(int poolId, bool nicehash, const Algorithm &algorithm, const Id &clientId);
     ~Job();
 
     bool isEqual(const Job &other) const;
@@ -57,9 +60,9 @@ public:
     inline bool setId(const char *id)                 { return m_id.setId(id); }
     inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const                { return m_blob; }
-    inline const xmrig::Algorithm &algorithm() const  { return m_algorithm; }
-    inline const xmrig::Id &clientId() const          { return m_clientId; }
-    inline const xmrig::Id &id() const                { return m_id; }
+    inline const Algorithm &algorithm() const         { return m_algorithm; }
+    inline const Id &clientId() const                 { return m_clientId; }
+    inline const Id &id() const                       { return m_id; }
     inline int poolId() const                         { return m_poolId; }
     inline int threadId() const                       { return m_threadId; }
     inline size_t size() const                        { return m_size; }
@@ -68,7 +71,7 @@ public:
     inline uint64_t target() const                    { return m_target; }
     inline uint64_t height() const                    { return m_height; }
     inline void reset()                               { m_size = 0; m_diff = 0; }
-    inline void setClientId(const xmrig::Id &id)      { m_clientId = id; }
+    inline void setClientId(const Id &id)             { m_clientId = id; }
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
     inline void setThreadId(int threadId)             { m_threadId = threadId; }
     inline void setVariant(const char *variant)       { m_algorithm.parseVariant(variant); }
@@ -92,7 +95,7 @@ public:
     inline bool operator!=(const Job &other) const { return !isEqual(other); }
 
 private:
-    xmrig::Variant variant() const;
+    Variant variant() const;
 
     bool m_autoVariant;
     bool m_nicehash;
@@ -112,5 +115,9 @@ private:
     char m_rawTarget[24];
 #   endif
 };
+
+
+} /* namespace xmrig */
+
 
 #endif /* XMRIG_JOB_H */

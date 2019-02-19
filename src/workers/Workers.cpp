@@ -45,12 +45,12 @@
 bool Workers::m_active = false;
 bool Workers::m_enabled = true;
 Hashrate *Workers::m_hashrate = nullptr;
-IJobResultListener *Workers::m_listener = nullptr;
-Job Workers::m_job;
+xmrig::IJobResultListener *Workers::m_listener = nullptr;
+xmrig::Job Workers::m_job;
 Workers::LaunchStatus Workers::m_status;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
-std::list<JobResult> Workers::m_queue;
+std::list<xmrig::JobResult> Workers::m_queue;
 std::vector<Handle*> Workers::m_workers;
 uint64_t Workers::m_ticks = 0;
 uv_async_t Workers::m_async;
@@ -60,10 +60,10 @@ uv_timer_t Workers::m_timer;
 xmrig::Controller *Workers::m_controller = nullptr;
 
 
-Job Workers::job()
+xmrig::Job Workers::job()
 {
     uv_rwlock_rdlock(&m_rwlock);
-    Job job = m_job;
+    xmrig::Job job = m_job;
     uv_rwlock_rdunlock(&m_rwlock);
 
     return job;
@@ -139,7 +139,7 @@ void Workers::setEnabled(bool enabled)
 }
 
 
-void Workers::setJob(const Job &job, bool donate)
+void Workers::setJob(const xmrig::Job &job, bool donate)
 {
     uv_rwlock_wrlock(&m_rwlock);
     m_job = job;
@@ -206,9 +206,7 @@ void Workers::start(xmrig::Controller *controller)
         handle->start(Workers::onReady);
     }
 
-    if (controller->config()->isShouldSave()) {
-        controller->config()->save();
-    }
+    controller->save();
 }
 
 
@@ -227,7 +225,7 @@ void Workers::stop()
 }
 
 
-void Workers::submit(const JobResult &result)
+void Workers::submit(const xmrig::JobResult &result)
 {
     uv_mutex_lock(&m_mutex);
     m_queue.push_back(result);
@@ -302,7 +300,7 @@ void Workers::onReady(void *arg)
 
 void Workers::onResult(uv_async_t *handle)
 {
-    std::list<JobResult> results;
+    std::list<xmrig::JobResult> results;
 
     uv_mutex_lock(&m_mutex);
     while (!m_queue.empty()) {

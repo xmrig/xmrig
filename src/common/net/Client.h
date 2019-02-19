@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -30,20 +31,23 @@
 #include <vector>
 
 
+#include "base/net/Pool.h"
 #include "common/crypto/Algorithm.h"
 #include "common/net/Id.h"
 #include "common/net/Job.h"
-#include "common/net/Pool.h"
 #include "common/net/Storage.h"
 #include "common/net/SubmitResult.h"
 #include "rapidjson/fwd.h"
 
 
+typedef struct bio_st BIO;
+
+
+namespace xmrig {
+
+
 class IClientListener;
 class JobResult;
-
-
-typedef struct bio_st BIO;
 
 
 class Client
@@ -85,7 +89,7 @@ public:
     inline int id() const                             { return m_id; }
     inline SocketState state() const                  { return m_state; }
     inline uint16_t port() const                      { return m_pool.port(); }
-    inline void setAlgo(const xmrig::Algorithm &algo) { m_pool.setAlgo(algo); }
+    inline void setAlgo(const Algorithm &algo)        { m_pool.setAlgo(algo); }
     inline void setQuiet(bool quiet)                  { m_quiet = quiet; }
     inline void setRetries(int retries)               { m_retries = retries; }
     inline void setRetryPause(int ms)                 { m_retryPause = ms; }
@@ -105,7 +109,7 @@ private:
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseLogin(const rapidjson::Value &result, int *code);
     bool send(BIO *bio);
-    bool verifyAlgorithm(const xmrig::Algorithm &algorithm) const;
+    bool verifyAlgorithm(const Algorithm &algorithm) const;
     int resolve(const char *host);
     int64_t send(const rapidjson::Document &doc);
     int64_t send(size_t size);
@@ -162,11 +166,14 @@ private:
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
-    xmrig::Id m_rpcId;
+    Id m_rpcId;
 
     static int64_t m_sequence;
-    static xmrig::Storage<Client> m_storage;
+    static Storage<Client> m_storage;
 };
+
+
+} /* namespace xmrig */
 
 
 #endif /* XMRIG_CLIENT_H */
