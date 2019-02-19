@@ -223,7 +223,8 @@ int64_t xmrig::Client::submit(const JobResult &result)
     }
 #   endif
 
-    if (m_job.algorithm().variant() == VARIANT_WOW && m_job.id() != result.jobId) {
+    const Variant variant = m_job.algorithm().variant();
+    if ((variant == VARIANT_WOW || variant == VARIANT_4) && m_job.id() != result.jobId) {
         return -1;
     }
 
