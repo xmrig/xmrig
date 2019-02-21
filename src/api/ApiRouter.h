@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APIROUTER_H__
-#define __APIROUTER_H__
+#ifndef XMRIG_APIROUTER_H
+#define XMRIG_APIROUTER_H
 
 
 #include "api/NetworkState.h"
@@ -44,12 +45,12 @@ class ApiRouter : public xmrig::IControllerListener
 {
 public:
     ApiRouter(xmrig::Controller *controller);
-    ~ApiRouter();
+    ~ApiRouter() override;
 
     void get(const xmrig::HttpRequest &req, xmrig::HttpReply &reply) const;
     void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
 
-    void tick(const NetworkState &results);
+    void tick(const xmrig::NetworkState &results);
 
 protected:
     void onConfigChanged(xmrig::Config *config, xmrig::Config *previousConfig) override;
@@ -68,8 +69,8 @@ private:
 
     char m_id[32];
     char m_workerId[128];
-    NetworkState m_network;
+    xmrig::NetworkState m_network;
     xmrig::Controller *m_controller;
 };
 
-#endif /* __APIROUTER_H__ */
+#endif /* XMRIG_APIROUTER_H */

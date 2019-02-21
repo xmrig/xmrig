@@ -30,6 +30,9 @@
 #include "common/interfaces/IStrategy.h"
 
 
+namespace xmrig {
+
+
 class Client;
 class IStrategyListener;
 class Pool;
@@ -47,7 +50,7 @@ public:
     int64_t submit(const JobResult &result) override;
     void connect() override;
     void resume() override;
-    void setAlgo(const xmrig::Algorithm &algo) override;
+    void setAlgo(const Algorithm &algo) override;
     void stop() override;
     void tick(uint64_t now) override;
 
@@ -62,5 +65,9 @@ private:
     Client *m_client;
     IStrategyListener *m_listener;
 };
+
+
+} /* namespace xmrig */
+
 
 #endif /* XMRIG_SINGLEPOOLSTRATEGY_H */

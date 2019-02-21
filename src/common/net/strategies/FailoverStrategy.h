@@ -29,21 +29,26 @@
 #include <vector>
 
 
+#include "base/net/Pool.h"
 #include "common/interfaces/IClientListener.h"
 #include "common/interfaces/IStrategy.h"
-#include "common/net/Pool.h"
+
+
+namespace xmrig {
 
 
 class Client;
 class IStrategyListener;
-class Url;
 
 
 class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-    FailoverStrategy(const std::vector<Pool> &urls, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    FailoverStrategy(const std::vector<Pool> &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    FailoverStrategy(int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     ~FailoverStrategy() override;
+
+    void add(const Pool &pool);
 
 public:
     inline bool isActive() const override  { return m_active >= 0; }
@@ -51,7 +56,7 @@ public:
     int64_t submit(const JobResult &result) override;
     void connect() override;
     void resume() override;
-    void setAlgo(const xmrig::Algorithm &algo) override;
+    void setAlgo(const Algorithm &algo) override;
     void stop() override;
     void tick(uint64_t now) override;
 
@@ -62,7 +67,7 @@ protected:
     void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-    void add(const Pool &pool);
+    inline Client *active() const { return m_pools[static_cast<size_t>(m_active)]; }
 
     const bool m_quiet;
     const int m_retries;
@@ -72,5 +77,8 @@ private:
     IStrategyListener *m_listener;
     std::vector<Client*> m_pools;
 };
+
+
+} /* namespace xmrig */
 
 #endif /* XMRIG_FAILOVERSTRATEGY_H */

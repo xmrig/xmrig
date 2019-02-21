@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,11 +22,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ISTRATEGYLISTENER_H__
-#define __ISTRATEGYLISTENER_H__
+#ifndef XMRIG_ISTRATEGYLISTENER_H
+#define XMRIG_ISTRATEGYLISTENER_H
 
 
 #include <stdint.h>
+
+
+namespace xmrig {
 
 
 class Client;
@@ -37,7 +41,7 @@ class SubmitResult;
 class IStrategyListener
 {
 public:
-    virtual ~IStrategyListener() {}
+    virtual ~IStrategyListener() = default;
 
     virtual void onActive(IStrategy *strategy, Client *client)                                                        = 0;
     virtual void onJob(IStrategy *strategy, Client *client, const Job &job)                                           = 0;
@@ -46,4 +50,7 @@ public:
 };
 
 
-#endif // __ISTRATEGYLISTENER_H__
+} /* namespace xmrig */
+
+
+#endif // XMRIG_ISTRATEGYLISTENER_H

@@ -12,8 +12,11 @@ enum V4_Settings
 	TOTAL_LATENCY = 15 * 3,
 	
 	// Always generate at least 60 instructions
-	NUM_INSTRUCTIONS = 60,
-	
+	NUM_INSTRUCTIONS_MIN = 60,
+
+	// Never generate more than 70 instructions (final RET instruction doesn't count here)
+	NUM_INSTRUCTIONS_MAX = 70,
+
 	// Available ALUs for MUL
 	// Modern CPUs typically have only 1 ALU which can do multiplications
 	ALU_COUNT_MUL = 1,
@@ -38,10 +41,9 @@ enum V4_InstructionList
 // V4_InstructionDefinition is used to generate code from random data
 // Every random sequence of bytes is a valid code
 //
-// There are 8 registers in total:
+// There are 9 registers in total:
 // - 4 variable registers
-// - 4 constant registers initialized from loop variables
-//
+// - 5 constant registers initialized from loop variables
 // This is why dst_index is 2 bits
 enum V4_InstructionDefinition
 {
@@ -144,16 +146,16 @@ static void v4_random_math(const struct V4_Instruction* code, v4_reg* r)
 	// Generated program can have 60 + a few more (usually 2-3) instructions to achieve required latency
 	// I've checked all block heights < 10,000,000 and here is the distribution of program sizes:
 	//
-	// 60      28495
-	// 61      106077
-	// 62      2455855
-	// 63      5114930
-	// 64      1020868
-	// 65      1109026
-	// 66      151756
-	// 67      8429
-	// 68      4477
-	// 69      87
+	// 60      27960
+	// 61      105054
+	// 62      2452759
+	// 63      5115997
+	// 64      1022269
+	// 65      1109635
+	// 66      153145
+	// 67      8550
+	// 68      4529
+	// 69      102
 
 	// Unroll 70 instructions here
 	V4_EXEC_10(0);		// instructions 0-9
@@ -179,6 +181,8 @@ static FORCEINLINE void check_data(size_t* data_index, const size_t bytes_needed
 }
 
 // Generates as many random math operations as possible with given latency and ALU restrictions
+// "code" array must have space for NUM_INSTRUCTIONS_MAX+1 instructions
+template<xmrig::Variant VARIANT>
 static int v4_random_math_init(struct V4_Instruction* code, const uint64_t height)
 {
 	// MUL is 3 cycles, 3-way addition and rotations are 2 cycles, SUB/XOR are 1 cycle
@@ -200,6 +204,10 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 	memset(data, 0, sizeof(data));
 	uint64_t tmp = SWAP64LE(height);
 	memcpy(data, &tmp, sizeof(uint64_t));
+	if (VARIANT == xmrig::VARIANT_4)
+	{
+		data[20] = -38;
+	}
 
 	// Set data_index past the last byte in data
 	// to trigger full data update with blake hash
@@ -207,18 +215,22 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 	size_t data_index = sizeof(data);
 
 	int code_size;
+
+	// There is a small chance (1.8%) that register R8 won't be used in the generated program
+	// So we keep track of it and try again if it's not used
+	bool r8_used;
 	do {
-		int latency[8];
-		int asic_latency[8];
+		int latency[9];
+		int asic_latency[9];
 
 		// Tracks previous instruction and value of the source operand for registers R0-R3 throughout code execution
 		// byte 0: current value of the destination register
 		// byte 1: instruction opcode
 		// byte 2: current value of the source register
 		//
-		// Registers R4-R7 are constant and are treated as having the same value because when we do
+		// Registers R4-R8 are constant and are treated as having the same value because when we do
 		// the same operation twice with two constant source registers, it can be optimized into a single operation
-		uint32_t inst_data[8] = { 0, 1, 2, 3, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF };
+		uint32_t inst_data[9] = { 0, 1, 2, 3, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF };
 
 		bool alu_busy[TOTAL_LATENCY + 1][ALU_COUNT];
 		bool is_rotation[V4_INSTRUCTION_COUNT];
@@ -237,6 +249,7 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 		code_size = 0;
 
 		int total_iterations = 0;
+		r8_used = (VARIANT == xmrig::VARIANT_WOW);
 
 		// Generate random code to achieve minimal required latency for our abstract CPU
 		// Try to get this latency for all 4 registers
@@ -281,7 +294,7 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 			if (((opcode == ADD) || (opcode == SUB) || (opcode == XOR)) && (a == b))
 			{
 				// a is always < 4, so we don't need to check bounds here
-				b = a + 4;
+				b = (VARIANT == xmrig::VARIANT_WOW) ? (a + 4) : 8;
 				src_index = b;
 			}
 
@@ -362,6 +375,11 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 				code[code_size].src_index = src_index;
 				code[code_size].C = 0;
 
+				if (src_index == 8)
+				{
+					r8_used = true;
+				}
+
 				if (opcode == ADD)
 				{
 					// ADD instruction is implemented as two 1-cycle instructions on a real CPU, so mark ALU as busy for the next cycle too
@@ -376,7 +394,7 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 				}
 
 				++code_size;
-				if (code_size >= NUM_INSTRUCTIONS)
+				if (code_size >= NUM_INSTRUCTIONS_MIN)
 				{
 					break;
 				}
@@ -391,7 +409,7 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 		// We need to add a few more MUL and ROR instructions to achieve minimal required latency for ASIC
 		// Get this latency for at least 1 of the 4 registers
 		const int prev_code_size = code_size;
-		while ((asic_latency[0] < TOTAL_LATENCY) && (asic_latency[1] < TOTAL_LATENCY) && (asic_latency[2] < TOTAL_LATENCY) && (asic_latency[3] < TOTAL_LATENCY))
+		while ((code_size < NUM_INSTRUCTIONS_MAX) && (asic_latency[0] < TOTAL_LATENCY) && (asic_latency[1] < TOTAL_LATENCY) && (asic_latency[2] < TOTAL_LATENCY) && (asic_latency[3] < TOTAL_LATENCY))
 		{
 			int min_idx = 0;
 			int max_idx = 0;
@@ -413,9 +431,11 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 			++code_size;
 		}
 
-	// There is ~99.8% chance that code_size >= NUM_INSTRUCTIONS here, so second iteration is required rarely
-	}  while (code_size < NUM_INSTRUCTIONS);
+	// There is ~98.15% chance that loop condition is false, so this loop will execute only 1 iteration most of the time
+	// It never does more than 4 iterations for all block heights < 10,000,000
+	}  while (!r8_used || (code_size < NUM_INSTRUCTIONS_MIN) || (code_size > NUM_INSTRUCTIONS_MAX));
 
+	// It's guaranteed that NUM_INSTRUCTIONS_MIN <= code_size <= NUM_INSTRUCTIONS_MAX here
 	// Add final instruction to stop the interpreter
 	code[code_size].opcode = RET;
 	code[code_size].dst_index = 0;

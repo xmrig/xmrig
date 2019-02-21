@@ -45,7 +45,7 @@ ConsoleLog::ConsoleLog(xmrig::Controller *controller) :
     m_controller(controller)
 {
     if (uv_tty_init(uv_default_loop(), &m_tty, 1, 0) < 0) {
-        controller->config()->setColors(false);
+        Log::colors = false;
         return;
     }
 

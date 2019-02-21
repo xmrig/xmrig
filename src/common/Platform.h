@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,19 +36,17 @@ class Platform
 {
 public:
     static bool setThreadAffinity(uint64_t cpu_id);
-    static const char *defaultConfigName();
     static uint32_t setTimerResolution(uint32_t resolution);
     static void init(const char *userAgent);
     static void restoreTimerResolution();
     static void setProcessPriority(int priority);
     static void setThreadPriority(int priority);
 
-    static inline const char *userAgent() { return m_userAgent.data(); }
+    static inline const char *userAgent() { return m_userAgent; }
 
 private:
     static char *createUserAgent();
 
-    static char m_defaultConfigName[520];
     static xmrig::String m_userAgent;
 };
 
