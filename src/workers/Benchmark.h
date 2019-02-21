@@ -30,7 +30,7 @@
 #include "interfaces/IJobResultListener.h"
 #include "core/Controller.h"
 
-class Benchmark : public IJobResultListener {
+class Benchmark : public xmrig::IJobResultListener {
     bool m_shouldSaveConfig; // should save config after all benchmark rounds
     xmrig::PerfAlgo m_pa;    // current perf algo we benchmark
     uint64_t m_hash_count;   // number of hashes calculated for current perf algo
@@ -39,7 +39,7 @@ class Benchmark : public IJobResultListener {
 
     uint64_t get_now() const; // get current time in ms
 
-    void onJobResult(const JobResult&) override; // onJobResult is called after each computed benchmark hash
+    void onJobResult(const xmrig::JobResult&) override; // onJobResult is called after each computed benchmark hash
 
     public:
         Benchmark() : m_shouldSaveConfig(false) {}

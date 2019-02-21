@@ -55,10 +55,10 @@ void Benchmark::start_perf_bench(const xmrig::PerfAlgo pa) {
     Workers::setJob(job, false); // set job for workers to compute
 }
 
-void Benchmark::onJobResult(const JobResult& result) {
+void Benchmark::onJobResult(const xmrig::JobResult& result) {
     if (result.poolId != -100) { // switch to network pool jobs
         Workers::setListener(m_controller->network());
-        static_cast<IJobResultListener*>(m_controller->network())->onJobResult(result);
+        static_cast<xmrig::IJobResultListener*>(m_controller->network())->onJobResult(result);
         return;
     }
     // ignore benchmark results for other perf algo
