@@ -516,6 +516,7 @@ PUBLIC CryptonightR_instruction_mov254
 PUBLIC CryptonightR_instruction_mov255
 PUBLIC CryptonightR_instruction_mov256
 
+INCLUDE CryptonightWOW_template_win.inc
 INCLUDE CryptonightR_template_win.inc
 
 CryptonightR_instruction0:
@@ -525,16 +526,16 @@ CryptonightR_instruction1:
 CryptonightR_instruction2:
 	imul	rbx, rbx
 CryptonightR_instruction3:
-	add	rbx, rbx
+	add	rbx, r9
 	add	rbx, 2147483647
 CryptonightR_instruction4:
-	sub	rbx, rbx
+	sub	rbx, r9
 CryptonightR_instruction5:
 	ror	ebx, cl
 CryptonightR_instruction6:
 	rol	ebx, cl
 CryptonightR_instruction7:
-	xor	rbx, rbx
+	xor	rbx, r9
 CryptonightR_instruction8:
 	imul	rsi, rbx
 CryptonightR_instruction9:
@@ -610,16 +611,16 @@ CryptonightR_instruction41:
 CryptonightR_instruction42:
 	imul	rsi, rsi
 CryptonightR_instruction43:
-	add	rsi, rsi
+	add	rsi, r9
 	add	rsi, 2147483647
 CryptonightR_instruction44:
-	sub	rsi, rsi
+	sub	rsi, r9
 CryptonightR_instruction45:
 	ror	esi, cl
 CryptonightR_instruction46:
 	rol	esi, cl
 CryptonightR_instruction47:
-	xor	rsi, rsi
+	xor	rsi, r9
 CryptonightR_instruction48:
 	imul	rdi, rsi
 CryptonightR_instruction49:
@@ -695,16 +696,16 @@ CryptonightR_instruction81:
 CryptonightR_instruction82:
 	imul	rdi, rdi
 CryptonightR_instruction83:
-	add	rdi, rdi
+	add	rdi, r9
 	add	rdi, 2147483647
 CryptonightR_instruction84:
-	sub	rdi, rdi
+	sub	rdi, r9
 CryptonightR_instruction85:
 	ror	edi, cl
 CryptonightR_instruction86:
 	rol	edi, cl
 CryptonightR_instruction87:
-	xor	rdi, rdi
+	xor	rdi, r9
 CryptonightR_instruction88:
 	imul	rbp, rdi
 CryptonightR_instruction89:
@@ -780,16 +781,16 @@ CryptonightR_instruction121:
 CryptonightR_instruction122:
 	imul	rbp, rbp
 CryptonightR_instruction123:
-	add	rbp, rbp
+	add	rbp, r9
 	add	rbp, 2147483647
 CryptonightR_instruction124:
-	sub	rbp, rbp
+	sub	rbp, r9
 CryptonightR_instruction125:
 	ror	ebp, cl
 CryptonightR_instruction126:
 	rol	ebp, cl
 CryptonightR_instruction127:
-	xor	rbp, rbp
+	xor	rbp, r9
 CryptonightR_instruction128:
 	imul	rbx, rsp
 CryptonightR_instruction129:

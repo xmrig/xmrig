@@ -32,7 +32,7 @@
 #include "common/net/SubmitResult.h"
 
 
-NetworkState::NetworkState() :
+xmrig::NetworkState::NetworkState() :
     diff(0),
     accepted(0),
     failures(0),
@@ -44,13 +44,13 @@ NetworkState::NetworkState() :
 }
 
 
-int NetworkState::connectionTime() const
+int xmrig::NetworkState::connectionTime() const
 {
     return m_active ? (int)((uv_now(uv_default_loop()) - m_connectionTime) / 1000) : 0;
 }
 
 
-uint32_t NetworkState::avgTime() const
+uint32_t xmrig::NetworkState::avgTime() const
 {
     if (m_latency.empty()) {
         return 0;
@@ -60,7 +60,7 @@ uint32_t NetworkState::avgTime() const
 }
 
 
-uint32_t NetworkState::latency() const
+uint32_t xmrig::NetworkState::latency() const
 {
     const size_t calls = m_latency.size();
     if (calls == 0) {
@@ -74,7 +74,7 @@ uint32_t NetworkState::latency() const
 }
 
 
-void NetworkState::add(const SubmitResult &result, const char *error)
+void xmrig::NetworkState::add(const SubmitResult &result, const char *error)
 {
     if (error) {
         rejected++;
@@ -94,7 +94,7 @@ void NetworkState::add(const SubmitResult &result, const char *error)
 }
 
 
-void NetworkState::setPool(const char *host, int port, const char *ip)
+void xmrig::NetworkState::setPool(const char *host, int port, const char *ip)
 {
     snprintf(pool, sizeof(pool) - 1, "%s:%d", host, port);
 
@@ -103,7 +103,7 @@ void NetworkState::setPool(const char *host, int port, const char *ip)
 }
 
 
-void NetworkState::stop()
+void xmrig::NetworkState::stop()
 {
     m_active = false;
     diff     = 0;

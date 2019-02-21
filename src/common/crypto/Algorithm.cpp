@@ -66,6 +66,8 @@ static AlgoData const algorithms[] = {
     { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF },
     { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF },
     { "cryptonight/wow",       "cn/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_WOW  },
+    { "cryptonight/r",         "cn/r",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_4    },
+    { "cryptonight/4",         "cn/4",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_4    },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -131,6 +133,7 @@ static const char *variants[] = {
     "trtl",
     "gpu",
     "wow",
+    "4",
 };
 
 
@@ -296,7 +299,7 @@ const char *xmrig::Algorithm::perfAlgoName(const xmrig::PerfAlgo pa) {
         "cn/2",
         "cn/half",
         "cn/gpu",
-        "cn/wow",
+        "cn/4",
         "cn-lite",
         "cn-heavy",
         "cn-pico",
@@ -323,9 +326,9 @@ xmrig::Algorithm::Algorithm(const xmrig::PerfAlgo pa) {
            m_algo    = xmrig::CRYPTONIGHT;
            m_variant = xmrig::VARIANT_GPU;
            break;
-       case PA_CN_WOW:
+       case PA_CN4:
            m_algo    = xmrig::CRYPTONIGHT;
-           m_variant = xmrig::VARIANT_WOW;
+           m_variant = xmrig::VARIANT_4;
            break;
        case PA_CN_LITE:
            m_algo    = xmrig::CRYPTONIGHT_LITE;
@@ -353,7 +356,7 @@ xmrig::PerfAlgo xmrig::Algorithm::perf_algo() const {
                case VARIANT_2:    return PA_CN2;
                case VARIANT_HALF: return PA_CN_HALF;
                case VARIANT_GPU:  return PA_CN_GPU;
-               case VARIANT_WOW:  return PA_CN_WOW;
+               case VARIANT_4:    return PA_CN4;
                default:           return PA_CN;
            }
        case CRYPTONIGHT_LITE:  return PA_CN_LITE;

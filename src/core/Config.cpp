@@ -115,17 +115,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("hw-aes",        m_aesMode == AES_AUTO ? Value(kNullType) : Value(m_aesMode == AES_HW), allocator);
     doc.AddMember("log-file",      logFile()             ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("max-cpu-usage", m_maxCpuUsage, allocator);
-
-    Value pools(kArrayType);
-
-    for (const Pool &pool : m_activePools) {
-        pools.PushBack(pool.toJSON(doc), allocator);
-    }
-
-    doc.AddMember("pools",         pools, allocator);
+    doc.AddMember("pools",         m_pools.toJSON(doc), allocator);
     doc.AddMember("print-time",    printTime(), allocator);
-    doc.AddMember("retries",       retries(), allocator);
-    doc.AddMember("retry-pause",   retryPause(), allocator);
+    doc.AddMember("retries",       m_pools.retries(), allocator);
+    doc.AddMember("retry-pause",   m_pools.retryPause(), allocator);
     doc.AddMember("safe",          m_safe, allocator);
 
     // save extended "threads" based on m_threads
@@ -169,9 +162,9 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 }
 
 
-xmrig::Config *xmrig::Config::load(int argc, char **argv, IWatcherListener *listener)
+xmrig::Config *xmrig::Config::load(Process *process, IConfigListener *listener)
 {
-    return static_cast<Config*>(ConfigLoader::load(argc, argv, new ConfigCreator(), listener));
+    return static_cast<Config*>(ConfigLoader::load(process, new ConfigCreator(), listener));
 }
 
 
@@ -342,6 +335,8 @@ void xmrig::Config::parseThreadsJSON(const rapidjson::Value &threads, const xmri
 
 void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
+    CommonConfig::parseJSON(doc);
+
     const rapidjson::Value &threads = doc["threads"];
 
     if (threads.IsArray()) {

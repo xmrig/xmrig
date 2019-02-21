@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,66 +23,35 @@
  */
 
 
-#include <stdio.h>
-
-
+#include "base/io/Watcher.h"
+#include "base/kernel/interfaces/IConfigListener.h"
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
-#include "common/interfaces/IWatcherListener.h"
 #include "common/log/Log.h"
 #include "core/ConfigCreator.h"
 
 
-xmrig::ConfigWatcher::ConfigWatcher(const char *path, IConfigCreator *creator, IWatcherListener *listener) :
+xmrig::ConfigWatcher::ConfigWatcher(const String &path, IConfigCreator *creator, IConfigListener *listener) :
     m_creator(creator),
-    m_listener(listener),
-    m_path(path)
+    m_listener(listener)
 {
-    uv_fs_event_init(uv_default_loop(), &m_fsEvent);
-    uv_timer_init(uv_default_loop(), &m_timer);
-
-    m_fsEvent.data = m_timer.data = this;
-
-    start();
+   m_watcher = new Watcher(path, this);
 }
 
 
 xmrig::ConfigWatcher::~ConfigWatcher()
 {
-    uv_timer_stop(&m_timer);
-    uv_fs_event_stop(&m_fsEvent);
+    delete m_watcher;
 }
 
 
-void xmrig::ConfigWatcher::onTimer(uv_timer_t* handle)
+
+void xmrig::ConfigWatcher::onFileChanged(const String &fileName)
 {
-    static_cast<xmrig::ConfigWatcher *>(handle->data)->reload();
-}
-
-
-void xmrig::ConfigWatcher::onFsEvent(uv_fs_event_t* handle, const char *filename, int events, int status)
-{
-    if (!filename) {
-        return;
-    }
-
-    static_cast<xmrig::ConfigWatcher *>(handle->data)->queueUpdate();
-}
-
-
-void xmrig::ConfigWatcher::queueUpdate()
-{
-    uv_timer_stop(&m_timer);
-    uv_timer_start(&m_timer, xmrig::ConfigWatcher::onTimer, kDelay, 0);
-}
-
-
-void xmrig::ConfigWatcher::reload()
-{
-    LOG_WARN("\"%s\" was changed, reloading configuration", m_path.data());
+    LOG_WARN("\"%s\" was changed, reloading configuration", fileName.data());
 
     IConfig *config = m_creator->create();
-    ConfigLoader::loadFromFile(config, m_path.data());
+    ConfigLoader::loadFromFile(config, fileName);
 
     if (!config->finalize()) {
         LOG_ERR("reloading failed");
@@ -91,15 +61,4 @@ void xmrig::ConfigWatcher::reload()
     }
 
     m_listener->onNewConfig(config);
-
-#   ifndef _WIN32
-    uv_fs_event_stop(&m_fsEvent);
-    start();
-#   endif
-}
-
-
-void xmrig::ConfigWatcher::start()
-{
-    uv_fs_event_start(&m_fsEvent, xmrig::ConfigWatcher::onFsEvent, m_path.data(), 0);
 }

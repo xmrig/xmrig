@@ -529,6 +529,7 @@ PUBLIC FN_PREFIX(CryptonightR_instruction_mov254)
 PUBLIC FN_PREFIX(CryptonightR_instruction_mov255)
 PUBLIC FN_PREFIX(CryptonightR_instruction_mov256)
 
+#include "CryptonightWOW_template.inc"
 #include "CryptonightR_template.inc"
 
 FN_PREFIX(CryptonightR_instruction0):
@@ -538,16 +539,16 @@ FN_PREFIX(CryptonightR_instruction1):
 FN_PREFIX(CryptonightR_instruction2):
 	imul	rbx, rbx
 FN_PREFIX(CryptonightR_instruction3):
-	add	rbx, rbx
+	add	rbx, r9
 	add	rbx, 2147483647
 FN_PREFIX(CryptonightR_instruction4):
-	sub	rbx, rbx
+	sub	rbx, r9
 FN_PREFIX(CryptonightR_instruction5):
 	ror	ebx, cl
 FN_PREFIX(CryptonightR_instruction6):
 	rol	ebx, cl
 FN_PREFIX(CryptonightR_instruction7):
-	xor	rbx, rbx
+	xor	rbx, r9
 FN_PREFIX(CryptonightR_instruction8):
 	imul	rsi, rbx
 FN_PREFIX(CryptonightR_instruction9):
@@ -623,16 +624,16 @@ FN_PREFIX(CryptonightR_instruction41):
 FN_PREFIX(CryptonightR_instruction42):
 	imul	rsi, rsi
 FN_PREFIX(CryptonightR_instruction43):
-	add	rsi, rsi
+	add	rsi, r9
 	add	rsi, 2147483647
 FN_PREFIX(CryptonightR_instruction44):
-	sub	rsi, rsi
+	sub	rsi, r9
 FN_PREFIX(CryptonightR_instruction45):
 	ror	esi, cl
 FN_PREFIX(CryptonightR_instruction46):
 	rol	esi, cl
 FN_PREFIX(CryptonightR_instruction47):
-	xor	rsi, rsi
+	xor	rsi, r9
 FN_PREFIX(CryptonightR_instruction48):
 	imul	rdi, rsi
 FN_PREFIX(CryptonightR_instruction49):
@@ -708,16 +709,16 @@ FN_PREFIX(CryptonightR_instruction81):
 FN_PREFIX(CryptonightR_instruction82):
 	imul	rdi, rdi
 FN_PREFIX(CryptonightR_instruction83):
-	add	rdi, rdi
+	add	rdi, r9
 	add	rdi, 2147483647
 FN_PREFIX(CryptonightR_instruction84):
-	sub	rdi, rdi
+	sub	rdi, r9
 FN_PREFIX(CryptonightR_instruction85):
 	ror	edi, cl
 FN_PREFIX(CryptonightR_instruction86):
 	rol	edi, cl
 FN_PREFIX(CryptonightR_instruction87):
-	xor	rdi, rdi
+	xor	rdi, r9
 FN_PREFIX(CryptonightR_instruction88):
 	imul	rbp, rdi
 FN_PREFIX(CryptonightR_instruction89):
@@ -793,16 +794,16 @@ FN_PREFIX(CryptonightR_instruction121):
 FN_PREFIX(CryptonightR_instruction122):
 	imul	rbp, rbp
 FN_PREFIX(CryptonightR_instruction123):
-	add	rbp, rbp
+	add	rbp, r9
 	add	rbp, 2147483647
 FN_PREFIX(CryptonightR_instruction124):
-	sub	rbp, rbp
+	sub	rbp, r9
 FN_PREFIX(CryptonightR_instruction125):
 	ror	ebp, cl
 FN_PREFIX(CryptonightR_instruction126):
 	rol	ebp, cl
 FN_PREFIX(CryptonightR_instruction127):
-	xor	rbp, rbp
+	xor	rbp, r9
 FN_PREFIX(CryptonightR_instruction128):
 	imul	rbx, rsp
 FN_PREFIX(CryptonightR_instruction129):

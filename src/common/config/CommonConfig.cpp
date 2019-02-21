@@ -5,8 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -54,6 +55,7 @@
 #endif
 
 
+#include "base/io/Json.h"
 #include "common/config/CommonConfig.h"
 #include "common/log/Log.h"
 #include "donate.h"
@@ -70,31 +72,22 @@ xmrig::CommonConfig::CommonConfig() :
     m_apiRestricted(true),
     m_autoSave(true),
     m_background(false),
-    m_colors(true),
     m_dryRun(false),
     m_calibrateAlgo(false),
     m_calibrateAlgoTime(60),
     m_syslog(false),
-
-#   ifdef XMRIG_PROXY_PROJECT
     m_watch(true),
-#   else
-    m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
-#   endif
-
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
-    m_retries(5),
-    m_retryPause(5),
     m_state(NoneState)
 {
-    m_pools.push_back(Pool());
+}
 
-#   ifdef XMRIG_PROXY_PROJECT
-    m_retries    = 2;
-    m_retryPause = 1;
-#   endif
+
+bool xmrig::CommonConfig::isColors() const
+{
+    return Log::colors;
 }
 
 
@@ -114,32 +107,7 @@ void xmrig::CommonConfig::printAPI()
 
 void xmrig::CommonConfig::printPools()
 {
-    for (size_t i = 0; i < m_activePools.size(); ++i) {
-        if (!isColors()) {
-            Log::i()->text(" * POOL #%-7zu%s variant=%s, TLS=%d",
-                           i + 1,
-                           m_activePools[i].url(),
-                           m_activePools[i].algorithm().variantName(),
-                           static_cast<int>(m_activePools[i].isTLS())
-                           );
-        }
-        else {
-            Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m variant " WHITE_BOLD("%s"),
-                           i + 1,
-                           m_activePools[i].isTLS() ? 32 : 36,
-                           m_activePools[i].url(),
-                           m_activePools[i].algorithm().variantName()
-                           );
-        }
-    }
-
-#   ifdef APP_DEBUG
-    LOG_NOTICE("POOLS --------------------------------------------------------------------");
-    for (const Pool &pool : m_activePools) {
-        pool.print();
-    }
-    LOG_NOTICE("--------------------------------------------------------------------------");
-#   endif
+    m_pools.print();
 }
 
 
@@ -206,31 +174,15 @@ bool xmrig::CommonConfig::save()
         return false;
     }
 
-    uv_fs_t req;
-    const int fd = uv_fs_open(uv_default_loop(), &req, m_fileName.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644, nullptr);
-    if (fd < 0) {
-        return false;
-    }
-
-    uv_fs_req_cleanup(&req);
-
     rapidjson::Document doc;
     getJSON(doc);
 
-    FILE *fp = fdopen(fd, "w");
+    if (Json::save(m_fileName, doc)) {
+        LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
+        return true;
+    }
 
-    char buf[4096];
-    rapidjson::FileWriteStream os(fp, buf, sizeof(buf));
-    rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
-    doc.Accept(writer);
-
-    fflush(fp);
-
-    uv_fs_close(uv_default_loop(), &req, fd, nullptr);
-    uv_fs_req_cleanup(&req);
-
-    LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
-    return true;
+    return false;
 }
 
 
@@ -248,23 +200,9 @@ bool xmrig::CommonConfig::finalize()
         return false;
     }
 
-    for (Pool &pool : m_pools) {
-        pool.adjust(m_algorithm);
+    m_pools.adjust(m_algorithm);
 
-        if (pool.isValid() && pool.algorithm().isValid()) {
-#           ifdef XMRIG_NO_TLS
-            if (pool.isTLS()) {
-                continue;
-            }
-#           endif
-
-            m_activePools.push_back(std::move(pool));
-        }
-    }
-
-    m_pools.clear();
-
-    if (m_activePools.empty()) {
+    if (!m_pools.active()) {
         m_state = ErrorState;
         return false;
     }
@@ -286,21 +224,21 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         break;
 
     case KeepAliveKey: /* --keepalive */
-        currentPool().setKeepAlive(enable ? Pool::kKeepAliveTimeout : 0);
+        m_pools.setKeepAlive(enable);
         break;
 
     case TlsKey: /* --tls */
-        currentPool().setTLS(enable);
+        m_pools.setTLS(enable);
         break;
 
 #   ifndef XMRIG_PROXY_PROJECT
     case NicehashKey: /* --nicehash */
-        currentPool().setNicehash(enable);
+        m_pools.setNicehash(enable);
         break;
 #   endif
 
     case ColorKey: /* --no-color */
-        m_colors = enable;
+        Log::colors = enable;
         break;
 
     case WatchKey: /* watch */
@@ -343,50 +281,29 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         break;
 
     case UserpassKey: /* --userpass */
-        if (!currentPool().setUserpass(arg)) {
-            return false;
-        }
-
-        break;
+        return m_pools.setUserpass(arg);
 
     case UrlKey: /* --url */
-        fixup();
-
-        if (m_pools.size() > 1 || m_pools[0].isValid()) {
-            Pool pool(arg);
-
-            if (pool.isValid()) {
-                m_pools.push_back(std::move(pool));
-            }
-        }
-        else {
-            m_pools[0].parse(arg);
-        }
-
-        if (!m_pools.back().isValid()) {
-            return false;
-        }
-
-        break;
+        return m_pools.setUrl(arg);
 
     case UserKey: /* --user */
-        currentPool().setUser(arg);
+        m_pools.setUser(arg);
         break;
 
     case PasswordKey: /* --pass */
-        currentPool().setPassword(arg);
+        m_pools.setPassword(arg);
         break;
 
     case RigIdKey: /* --rig-id */
-        currentPool().setRigId(arg);
+        m_pools.setRigId(arg);
         break;
 
     case FingerprintKey: /* --tls-fingerprint */
-        currentPool().setFingerprint(arg);
+        m_pools.setFingerprint(arg);
         break;
 
     case VariantKey: /* --variant */
-        currentPool().algorithm().parseVariant(arg);
+        m_pools.setVariant(arg);
         break;
 
     case LogFileKey: /* --log-file */
@@ -456,6 +373,15 @@ bool xmrig::CommonConfig::parseUint64(int key, uint64_t arg)
 }
 
 
+void xmrig::CommonConfig::parseJSON(const rapidjson::Document &doc)
+{
+    const rapidjson::Value &pools = doc["pools"];
+    if (pools.IsArray()) {
+        m_pools.load(pools);
+    }
+}
+
+
 void xmrig::CommonConfig::setFileName(const char *fileName)
 {
     m_fileName = fileName;
@@ -466,23 +392,19 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
 {
     switch (key) {
     case RetriesKey: /* --retries */
-        if (arg > 0 && arg <= 1000) {
-            m_retries = arg;
-        }
+        m_pools.setRetries(arg);
         break;
 
     case RetryPauseKey: /* --retry-pause */
-        if (arg > 0 && arg <= 3600) {
-            m_retryPause = arg;
-        }
+        m_pools.setRetryPause(arg);
         break;
 
     case KeepAliveKey: /* --keepalive */
-        currentPool().setKeepAlive(arg);
+        m_pools.setKeepAlive(arg);
         break;
 
     case VariantKey: /* --variant */
-        currentPool().algorithm().parseVariant(arg);
+        m_pools.setVariant(arg);
         break;
 
     case DonateLevelKey: /* --donate-level */
@@ -514,31 +436,4 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     }
 
     return true;
-}
-
-
-Pool &xmrig::CommonConfig::currentPool()
-{
-    fixup();
-
-    return m_pools.back();
-}
-
-
-void xmrig::CommonConfig::fixup()
-{
-    if (m_state == NoneState) {
-        return;
-    }
-
-    if (m_pools.empty()) {
-        if (!m_activePools.empty()) {
-            std::swap(m_pools, m_activePools);
-        }
-        else {
-            m_pools.push_back(Pool());
-        }
-
-        m_state = NoneState;
-    }
 }

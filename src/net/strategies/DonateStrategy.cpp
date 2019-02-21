@@ -39,7 +39,7 @@ static inline float randomf(float min, float max) {
 }
 
 
-DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IStrategyListener *listener) :
+xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener) :
     m_active(false),
     m_donateTime(level * 60 * 1000),
     m_idleTime((100 - level) * 60 * 1000),
@@ -57,7 +57,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
     m_pools.push_back(Pool("xmrig.moneroocean.stream", 10001, donate_user, nullptr, false, true));
 
     for (Pool &pool : m_pools) {
-        pool.adjust(xmrig::Algorithm(algo, xmrig::VARIANT_AUTO));
+        pool.adjust(Algorithm(algo, VARIANT_AUTO));
     }
 
     if (m_pools.size() > 1) {
@@ -74,38 +74,38 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
 }
 
 
-DonateStrategy::~DonateStrategy()
+xmrig::DonateStrategy::~DonateStrategy()
 {
     delete m_strategy;
 }
 
 
-int64_t DonateStrategy::submit(const JobResult &result)
+int64_t xmrig::DonateStrategy::submit(const JobResult &result)
 {
     return m_strategy->submit(result);
 }
 
 
-void DonateStrategy::connect()
+void xmrig::DonateStrategy::connect()
 {
     m_strategy->connect();
 }
 
 
-void DonateStrategy::setAlgo(const xmrig::Algorithm &algo)
+void xmrig::DonateStrategy::setAlgo(const xmrig::Algorithm &algo)
 {
     m_strategy->setAlgo(algo);
 }
 
 
-void DonateStrategy::stop()
+void xmrig::DonateStrategy::stop()
 {
     uv_timer_stop(&m_timer);
     m_strategy->stop();
 }
 
 
-void DonateStrategy::tick(uint64_t now)
+void xmrig::DonateStrategy::tick(uint64_t now)
 {
     m_now = now;
 
@@ -118,7 +118,7 @@ void DonateStrategy::tick(uint64_t now)
 }
 
 
-void DonateStrategy::onActive(IStrategy *strategy, Client *client)
+void xmrig::DonateStrategy::onActive(IStrategy *strategy, Client *client)
 {
     if (!isActive()) {
         uv_timer_start(&m_timer, DonateStrategy::onTimer, m_donateTime, 0);
@@ -129,7 +129,7 @@ void DonateStrategy::onActive(IStrategy *strategy, Client *client)
 }
 
 
-void DonateStrategy::onJob(IStrategy *strategy, Client *client, const Job &job)
+void xmrig::DonateStrategy::onJob(IStrategy *strategy, Client *client, const Job &job)
 {
     if (isActive()) {
         m_listener->onJob(this, client, job);
@@ -137,24 +137,24 @@ void DonateStrategy::onJob(IStrategy *strategy, Client *client, const Job &job)
 }
 
 
-void DonateStrategy::onPause(IStrategy *strategy)
+void xmrig::DonateStrategy::onPause(IStrategy *strategy)
 {
 }
 
 
-void DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
+void xmrig::DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
 }
 
 
-void DonateStrategy::idle(uint64_t timeout)
+void xmrig::DonateStrategy::idle(uint64_t timeout)
 {
     uv_timer_start(&m_timer, DonateStrategy::onTimer, timeout, 0);
 }
 
 
-void DonateStrategy::suspend()
+void xmrig::DonateStrategy::suspend()
 {
 #   if defined(XMRIG_AMD_PROJECT) || defined(XMRIG_NVIDIA_PROJECT)
     m_stop = m_now + 5000;
@@ -169,7 +169,7 @@ void DonateStrategy::suspend()
 }
 
 
-void DonateStrategy::onTimer(uv_timer_t *handle)
+void xmrig::DonateStrategy::onTimer(uv_timer_t *handle)
 {
     auto strategy = static_cast<DonateStrategy*>(handle->data);
 

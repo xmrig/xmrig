@@ -36,16 +36,13 @@
 #include "workers/CpuThread.h"
 
 
-class Addr;
-class Url;
-
-
 namespace xmrig {
 
 
 class ConfigLoader;
 class IThread;
-class IWatcherListener;
+class IConfigListener;
+class Process;
 
 
 /**
@@ -100,7 +97,7 @@ public:
     inline float get_algo_perf(const xmrig::PerfAlgo pa) const             { return m_algo_perf[pa]; }
     inline void set_algo_perf(const xmrig::PerfAlgo pa, const float value) { m_algo_perf[pa] = value; }
 
-    static Config *load(int argc, char **argv, IWatcherListener *listener);
+    static Config *load(Process *process, IConfigListener *listener);
 
 protected:
     bool finalize() override;
