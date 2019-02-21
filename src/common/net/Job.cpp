@@ -149,7 +149,7 @@ bool xmrig::Job::setBlob(const char *blob)
 }
 
 // for algo benchmarking
-void Job::setRawBlob(const uint8_t *blob, const size_t size)
+void xmrig::Job::setRawBlob(const uint8_t *blob, const size_t size)
 {
     memcpy(m_blob, blob, m_size = size);
 }
