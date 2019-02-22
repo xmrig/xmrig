@@ -47,7 +47,7 @@ enum PerfAlgo {
     PA_CN2,      /* cn/2 (Monero) */
     PA_CN_HALF,  /* cn/half (MSR) */
     PA_CN_GPU,   /* cn/gpu (RYO) */
-    PA_CN4,      /* cn/4 (Monero) */
+    PA_CN_R,     /* cn/4 (Monero) */
     PA_CN_LITE,  /* cn-lite/1 (AEON) */
     PA_CN_HEAVY, /* cn-heavy/0 (LOKI) */
     PA_CN_PICO,  /* cn-pico/trtl (TRTL) */
