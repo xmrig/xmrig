@@ -121,6 +121,7 @@ xmrig::Pool::Pool(const char *url) :
 
 
 xmrig::Pool::Pool(const rapidjson::Value &object) :
+    m_algorithms(all_algorithms()),
     m_enabled(true),
     m_nicehash(false),
     m_tls(false),
@@ -159,6 +160,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
 
 xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
+    m_algorithms(all_algorithms()),
     m_nicehash(nicehash),
     m_tls(tls),
     m_keepAlive(keepAlive),
