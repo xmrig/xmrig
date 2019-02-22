@@ -58,7 +58,7 @@ static const char *kUser        = "user";
 static const char *kVariant     = "variant";
 
 
-Algorithms all_algorithms() {
+xmrig::Algorithms all_algorithms() {
     Algorithms algorithms;
     // here xmrig now reports all possible supported algorithms
     algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_1));
