@@ -355,6 +355,7 @@ xmrig::PerfAlgo xmrig::Algorithm::perf_algo() const {
                case VARIANT_2:    return PA_CN2;
                case VARIANT_HALF: return PA_CN_HALF;
                case VARIANT_GPU:  return PA_CN_GPU;
+               case VARIANT_WOW:  return PA_CN_R;
                case VARIANT_4:    return PA_CN_R;
                default:           return PA_CN;
            }
