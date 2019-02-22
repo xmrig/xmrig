@@ -124,7 +124,7 @@ int xmrig::Controller::init()
     }
 #   endif
 
-    if (strstr(config()->pools.data()[0].host(), "moneroocean.stream")) config()->setDonateLevel(0);
+    if (strstr(config()->pools().data()[0].host(), "moneroocean.stream")) config()->setDonateLevel(0);
 
     d_ptr->network = new Network(this);
     return 0;
