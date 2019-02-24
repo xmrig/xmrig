@@ -264,7 +264,7 @@ template<bool SOFT_AES>
 void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7);
 
 template<>
-static NOINLINE void aes_round<true>(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
+NOINLINE void aes_round<true>(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
 {
     *x0 = soft_aesenc((uint32_t*)x0, key, (const uint32_t*)saes_table);
     *x1 = soft_aesenc((uint32_t*)x1, key, (const uint32_t*)saes_table);
@@ -277,7 +277,7 @@ static NOINLINE void aes_round<true>(__m128i key, __m128i* x0, __m128i* x1, __m1
 }
 
 template<>
-static FORCEINLINE void aes_round<false>(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
+FORCEINLINE void aes_round<false>(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
 {
     *x0 = _mm_aesenc_si128(*x0, key);
     *x1 = _mm_aesenc_si128(*x1, key);
