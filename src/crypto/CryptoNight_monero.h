@@ -158,6 +158,16 @@
 #define SWAP64LE(x) x
 #define hash_extra_blake(data, length, hash) blake256_hash((uint8_t*)(hash), (uint8_t*)(data), (length))
 
+#ifndef NOINLINE
+#ifdef __GNUC__
+#define NOINLINE __attribute__ ((noinline))
+#elif _MSC_VER
+#define NOINLINE __declspec(noinline)
+#else
+#define NOINLINE
+#endif
+#endif
+
 #include "common/xmrig.h"
 #include "variant4_random_math.h"
 
