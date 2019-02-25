@@ -531,6 +531,8 @@ PUBLIC FN_PREFIX(CryptonightR_instruction_mov256)
 
 #include "CryptonightWOW_template.inc"
 #include "CryptonightR_template.inc"
+#include "CryptonightWOW_soft_aes_template.inc"
+#include "CryptonightR_soft_aes_template.inc"
 
 FN_PREFIX(CryptonightR_instruction0):
 	imul	rbx, rbx
