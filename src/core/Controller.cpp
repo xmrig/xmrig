@@ -99,7 +99,7 @@ int xmrig::Controller::init()
 {
     Cpu::init();
 
-    d_ptr->config = xmrig::Config::load(d_ptr->process, this);
+    d_ptr->config = Config::load(d_ptr->process, this);
     if (!d_ptr->config) {
         return 1;
     }
