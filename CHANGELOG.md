@@ -1,3 +1,6 @@
+# v2.13.1
+[#946](https://github.com/xmrig/xmrig/pull/946) Optimized software AES implementations for CPUs without hardware AES support. `cn/r`, `cn/wow` up to 2.6 times faster, 4-9% improvements for other algorithms.
+
 # v2.13.0
 - **[#938](https://github.com/xmrig/xmrig/issues/938) Added support for new algorithm `cryptonight/r`, short alias `cn/r` (also known as CryptoNightR or CryptoNight variant 4), for upcoming [Monero](https://www.getmonero.org/) fork on March 9, thanks [@SChernykh](https://github.com/SChernykh).**
 - [#939](https://github.com/xmrig/xmrig/issues/939) Added support for dynamic (runtime) pools reload.

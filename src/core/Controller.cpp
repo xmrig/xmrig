@@ -101,7 +101,7 @@ int xmrig::Controller::init()
     Cpu::init();
 
     // init pconfig global pointer to config
-    pconfig = d_ptr->config = xmrig::Config::load(d_ptr->process, this);
+    pconfig = d_ptr->config = Config::load(d_ptr->process, this);
     if (!d_ptr->config) {
         return 1;
     }
