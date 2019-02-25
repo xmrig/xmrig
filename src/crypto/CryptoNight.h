@@ -49,6 +49,10 @@ struct cryptonight_r_data {
 struct cryptonight_ctx {
     alignas(16) uint8_t state[224];
     alignas(16) uint8_t *memory;
+
+    uint8_t unused[40];
+    const uint32_t* saes_table;
+
     cn_mainloop_fun_ms_abi generated_code;
     cn_mainloop_double_fun_ms_abi generated_code_double;
     cryptonight_r_data generated_code_data;
