@@ -47,3 +47,47 @@ const char *xmrig::Json::getString(const rapidjson::Value &obj, const char *key,
 
     return defaultValue;
 }
+
+
+int xmrig::Json::getInt(const rapidjson::Value &obj, const char *key, int defaultValue)
+{
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd() && i->value.IsInt()) {
+        return i->value.GetInt();
+    }
+
+    return defaultValue;
+}
+
+
+int64_t xmrig::Json::getInt64(const rapidjson::Value &obj, const char *key, int64_t defaultValue)
+{
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd() && i->value.IsInt64()) {
+        return i->value.GetInt64();
+    }
+
+    return defaultValue;
+}
+
+
+uint64_t xmrig::Json::getUint64(const rapidjson::Value &obj, const char *key, uint64_t defaultValue)
+{
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd() && i->value.IsUint64()) {
+        return i->value.GetUint64();
+    }
+
+    return defaultValue;
+}
+
+
+unsigned xmrig::Json::getUint(const rapidjson::Value &obj, const char *key, unsigned defaultValue)
+{
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd() && i->value.IsUint()) {
+        return i->value.GetUint();
+    }
+
+    return defaultValue;
+}
