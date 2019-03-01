@@ -23,6 +23,7 @@
  */
 
 
+#include <stdio.h>
 #include <uv.h>
 
 
