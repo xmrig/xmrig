@@ -65,14 +65,16 @@ bool MultiWorker<N>::selfTest()
             return false;
         }
 
-        const bool rc = verify(VARIANT_0,    test_output_v0)  &&
-                        verify(VARIANT_1,    test_output_v1)  &&
-                        verify(VARIANT_2,    test_output_v2)  &&
-                        verify(VARIANT_XTL,  test_output_xtl) &&
-                        verify(VARIANT_MSR,  test_output_msr) &&
-                        verify(VARIANT_XAO,  test_output_xao) &&
-                        verify(VARIANT_RTO,  test_output_rto) &&
-                        verify(VARIANT_HALF, test_output_half);
+        const bool rc = verify(VARIANT_0,     test_output_v0)  &&
+                        verify(VARIANT_1,     test_output_v1)  &&
+                        verify(VARIANT_2,     test_output_v2)  &&
+                        verify(VARIANT_XTL,   test_output_xtl) &&
+                        verify(VARIANT_MSR,   test_output_msr) &&
+                        verify(VARIANT_XAO,   test_output_xao) &&
+                        verify(VARIANT_RTO,   test_output_rto) &&
+                        verify(VARIANT_HALF,  test_output_half) &&
+                        verify(VARIANT_WALTZ, test_output_waltz) &&
+                        verify(VARIANT_RWZ,   test_output_rwz);
 
 #       ifndef XMRIG_NO_CN_GPU
         if (!rc || N > 1) {
