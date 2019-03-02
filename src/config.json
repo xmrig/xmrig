@@ -39,5 +39,5 @@
     "safe": false,
     "threads": null,
     "user-agent": null,
-    "watch": false
+    "watch": true
 }

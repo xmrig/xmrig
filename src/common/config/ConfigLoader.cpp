@@ -47,6 +47,7 @@
 #include "common/interfaces/IConfig.h"
 #include "common/Platform.h"
 #include "core/ConfigCreator.h"
+#include "core/ConfigLoader_default.h"
 #include "core/ConfigLoader_platform.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -179,6 +180,15 @@ xmrig::IConfig *xmrig::ConfigLoader::load(Process *process, IConfigCreator *crea
         config = m_creator->create();
         loadFromFile(config, process->location(Process::ExeLocation, "config.json"));
     }
+
+#   ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+    if (!config->finalize()) {
+        delete config;
+
+        config = m_creator->create();
+        loadFromJSON(config, default_config);
+    }
+#   endif
 
     if (!config->finalize()) {
         if (!config->algorithm().isValid()) {

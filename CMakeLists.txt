@@ -1,17 +1,18 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-option(WITH_LIBCPUID  "Use Libcpuid" ON)
-option(WITH_AEON      "CryptoNight-Lite support" ON)
-option(WITH_SUMO      "CryptoNight-Heavy support" ON)
-option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
-option(WITH_CN_GPU    "CryptoNight-GPU support" ON)
-option(WITH_HTTPD     "HTTP REST API" ON)
-option(WITH_DEBUG_LOG "Enable debug log output" OFF)
-option(WITH_TLS       "Enable OpenSSL support" ON)
-option(WITH_ASM       "Enable ASM PoW implementations" ON)
-option(BUILD_STATIC   "Build static binary" OFF)
-option(ARM_TARGET     "Force use specific ARM target 8 or 7" 0)
+option(WITH_LIBCPUID        "Use Libcpuid" ON)
+option(WITH_AEON            "CryptoNight-Lite support" ON)
+option(WITH_SUMO            "CryptoNight-Heavy support" ON)
+option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
+option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
+option(WITH_HTTPD           "HTTP REST API" ON)
+option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
+option(WITH_TLS             "Enable OpenSSL support" ON)
+option(WITH_ASM             "Enable ASM PoW implementations" ON)
+option(BUILD_STATIC         "Build static binary" OFF)
+option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
+option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -65,6 +66,7 @@ set(HEADERS
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
     src/core/ConfigLoader_platform.h
+    src/core/ConfigLoader_default.h
     src/core/Controller.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
@@ -247,6 +249,10 @@ endif()
 
 if (NOT WITH_CN_PICO)
     add_definitions(/DXMRIG_NO_CN_PICO)
+endif()
+
+if (WITH_EMBEDDED_CONFIG)
+    add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
 endif()
 
 if (WITH_HTTPD)
