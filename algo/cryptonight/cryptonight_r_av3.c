@@ -44,6 +44,7 @@ void cryptonight_r_av3(const uint8_t *restrict input, size_t size, uint8_t *rest
 
     VARIANT2_INIT(0);
     VARIANT2_SET_ROUNDING_MODE();
+    VARIANT4_RANDOM_MATH_INIT(0);
 
     uint64_t al0 = h0[0] ^ h0[4];
     uint64_t ah0 = h0[1] ^ h0[5];
@@ -58,7 +59,7 @@ void cryptonight_r_av3(const uint8_t *restrict input, size_t size, uint8_t *rest
 
         cx = soft_aesenc(cx, ax0);
 
-        VARIANT2_SHUFFLE(l0, idx0 & 0x1FFFF0, ax0, bx0, bx1);
+        VARIANT4_SHUFFLE(l0, idx0 & 0x1FFFF0, ax0, bx0, bx1, cx);
         _mm_store_si128((__m128i *) &l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx0, cx));
 
         idx0 = _mm_cvtsi128_si64(cx);
@@ -67,9 +68,12 @@ void cryptonight_r_av3(const uint8_t *restrict input, size_t size, uint8_t *rest
         cl = ((uint64_t*) &l0[idx0 & 0x1FFFF0])[0];
         ch = ((uint64_t*) &l0[idx0 & 0x1FFFF0])[1];
 
-        VARIANT2_INTEGER_MATH(0, cl, cx);
+        VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx0, bx1);
+        al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
+        ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
+
         lo = _umul128(idx0, cl, &hi);
-        VARIANT2_SHUFFLE2(l0, idx0 & 0x1FFFF0, ax0, bx0, bx1, hi, lo);
+        VARIANT4_SHUFFLE(l0, idx0 & 0x1FFFF0, ax0, bx0, bx1, cx);
 
         al0 += hi;
         ah0 += lo;

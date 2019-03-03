@@ -46,6 +46,8 @@ void cryptonight_r_av2(const uint8_t *restrict input, size_t size, uint8_t *rest
     VARIANT2_INIT(0);
     VARIANT2_INIT(1);
     VARIANT2_SET_ROUNDING_MODE();
+    VARIANT4_RANDOM_MATH_INIT(0);
+    VARIANT4_RANDOM_MATH_INIT(1);
 
     cn_explode_scratchpad((__m128i*) h0, (__m128i*) l0);
     cn_explode_scratchpad((__m128i*) h1, (__m128i*) l1);
@@ -73,10 +75,10 @@ void cryptonight_r_av2(const uint8_t *restrict input, size_t size, uint8_t *rest
         cx0 = _mm_aesenc_si128(cx0, ax0);
         cx1 = _mm_aesenc_si128(cx1, ax1);
 
-        VARIANT2_SHUFFLE(l0, idx0 & 0x1FFFF0, ax0, bx00, bx01);
+        VARIANT4_SHUFFLE(l0, idx0 & 0x1FFFF0, ax0, bx00, bx01, cx0);
         _mm_store_si128((__m128i *) &l0[idx0 & 0x1FFFF0], _mm_xor_si128(bx00, cx0));
 
-        VARIANT2_SHUFFLE(l1, idx1 & 0x1FFFF0, ax1, bx10, bx11);
+        VARIANT4_SHUFFLE(l1, idx1 & 0x1FFFF0, ax1, bx10, bx11, cx1);
         _mm_store_si128((__m128i *) &l1[idx1 & 0x1FFFF0], _mm_xor_si128(bx10, cx1));
 
         idx0 = _mm_cvtsi128_si64(cx0);
@@ -86,9 +88,12 @@ void cryptonight_r_av2(const uint8_t *restrict input, size_t size, uint8_t *rest
         cl = ((uint64_t*) &l0[idx0 & 0x1FFFF0])[0];
         ch = ((uint64_t*) &l0[idx0 & 0x1FFFF0])[1];
 
-        VARIANT2_INTEGER_MATH(0, cl, cx0);
+        VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx01);
+        al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
+        ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
+
         lo = _umul128(idx0, cl, &hi);
-        VARIANT2_SHUFFLE2(l0, idx0 & 0x1FFFF0, ax0, bx00, bx01, hi, lo);
+        VARIANT4_SHUFFLE(l0, idx0 & 0x1FFFF0, ax0, bx00, bx01, cx0);
 
         al0 += hi;
         ah0 += lo;
@@ -103,9 +108,12 @@ void cryptonight_r_av2(const uint8_t *restrict input, size_t size, uint8_t *rest
         cl = ((uint64_t*) &l1[idx1 & 0x1FFFF0])[0];
         ch = ((uint64_t*) &l1[idx1 & 0x1FFFF0])[1];
 
-        VARIANT2_INTEGER_MATH(1, cl, cx1);
+        VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx10, bx11);
+        al1 ^= r1[2] | ((uint64_t)(r1[3]) << 32);
+        ah1 ^= r1[0] | ((uint64_t)(r1[1]) << 32);
+
         lo = _umul128(idx1, cl, &hi);
-        VARIANT2_SHUFFLE2(l1, idx1 & 0x1FFFF0, ax1, bx10, bx11, hi, lo);
+        VARIANT4_SHUFFLE(l1, idx1 & 0x1FFFF0, ax1, bx10, bx11, cx1);
 
         al1 += hi;
         ah1 += lo;

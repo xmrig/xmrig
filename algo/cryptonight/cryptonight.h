@@ -68,6 +68,7 @@ struct cryptonight_ctx {
     cn_mainloop_double_fun_ms_abi generated_code_double;
     struct cryptonight_r_data generated_code_data;
     struct cryptonight_r_data generated_code_double_data;
+    uint64_t height;
 };
 
 

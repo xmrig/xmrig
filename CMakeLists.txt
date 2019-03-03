@@ -11,6 +11,7 @@ set(HEADERS
     algo/cryptonight/cryptonight_monero.h
     algo/cryptonight/cryptonight_softaes.h
     algo/cryptonight/cryptonight_test.h
+    algo/cryptonight/variant4_random_math.h
     compat.h
     cpu.h
     donate.h
