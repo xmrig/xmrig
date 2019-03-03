@@ -6,7 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,6 +57,11 @@ void cryptonight_av4_v0(const uint8_t *input, size_t size, uint8_t *output, stru
 void cryptonight_av4_v1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_av4_v2(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 
+void cryptonight_r_av1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av2(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av3(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av4(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+
 
 #ifndef XMRIG_NO_AEON
 void cryptonight_lite_av1_v0(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
@@ -97,7 +103,7 @@ static bool self_test() {
     const size_t size  = opt_algo == ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
     bool result = false;
 
-    for (int i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         ctx[i]         = _mm_malloc(sizeof(struct cryptonight_ctx), 16);
         ctx[i]->memory = _mm_malloc(size, 16);
     }
@@ -115,7 +121,7 @@ static bool self_test() {
 #   endif
 
 
-    for (int i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         _mm_free(ctx[i]->memory);
         _mm_free(ctx[i]);
     }
@@ -177,6 +183,11 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
         cryptonight_av3_v2,
         cryptonight_av4_v2,
 
+        cryptonight_r_av1,
+        cryptonight_r_av2,
+        cryptonight_r_av3,
+        cryptonight_r_av4,
+
 #       ifndef XMRIG_NO_AEON
         cryptonight_lite_av1_v0,
         cryptonight_lite_av2_v0,
@@ -190,7 +201,15 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
         NULL,
         NULL,
         NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
 #       else
+        NULL,
+        NULL,
+        NULL,
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -267,6 +286,10 @@ static inline enum Variant cryptonight_variant(uint8_t version)
         return VARIANT_1;
     }
 
+    if (version >= 10) {
+        return VARIANT_4;
+    }
+
     if (version >= 8) {
         return VARIANT_2;
     }
@@ -276,7 +299,7 @@ static inline enum Variant cryptonight_variant(uint8_t version)
 
 
 #ifndef BUILD_TEST
-int scanhash_cryptonight(int thr_id, uint32_t *hash, const uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx) {
+int scanhash_cryptonight(int thr_id, uint32_t *hash, uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx) {
     uint32_t *nonceptr   = (uint32_t*) (((char*) blob) + 39);
     enum Variant variant = cryptonight_variant(blob[0]);
 
@@ -296,7 +319,7 @@ int scanhash_cryptonight(int thr_id, uint32_t *hash, const uint8_t *restrict blo
 }
 
 
-int scanhash_cryptonight_double(int thr_id, uint32_t *hash, const uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx) {
+int scanhash_cryptonight_double(int thr_id, uint32_t *hash, uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx) {
     int rc               = 0;
     uint32_t *nonceptr0  = (uint32_t*) (((char*) blob) + 39);
     uint32_t *nonceptr1  = (uint32_t*) (((char*) blob) + 39 + blob_size);

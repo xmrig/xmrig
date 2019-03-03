@@ -6,7 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,9 +39,35 @@
 #define MEMORY_LITE 1048576 /* 1 MiB */
 
 
+#if defined _MSC_VER || defined XMRIG_ARM
+#define ABI_ATTRIBUTE
+#else
+#define ABI_ATTRIBUTE __attribute__((ms_abi))
+#endif
+
+
+struct cryptonight_ctx;
+typedef void(*cn_mainloop_fun_ms_abi)(struct cryptonight_ctx*) ABI_ATTRIBUTE;
+typedef void(*cn_mainloop_double_fun_ms_abi)(struct cryptonight_ctx*, struct cryptonight_ctx*) ABI_ATTRIBUTE;
+
+
+struct cryptonight_r_data {
+    int variant;
+    uint64_t height;
+};
+
+
 struct cryptonight_ctx {
     uint8_t state[224] __attribute__((aligned(16)));
-    uint8_t* memory    __attribute__((aligned(16)));
+    uint8_t *memory    __attribute__((aligned(16)));
+
+    uint8_t unused[40];
+    const uint32_t *saes_table;
+
+    cn_mainloop_fun_ms_abi generated_code;
+    cn_mainloop_double_fun_ms_abi generated_code_double;
+    struct cryptonight_r_data generated_code_data;
+    struct cryptonight_r_data generated_code_double_data;
 };
 
 
@@ -52,7 +79,8 @@ extern void (* const extra_hashes[4])(const void *, size_t, char *);
 cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum Variant variant);
 
 bool cryptonight_init(int av);
-int scanhash_cryptonight(int thr_id, uint32_t *hash, const uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx);
-int scanhash_cryptonight_double(int thr_id, uint32_t *hash, const uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx);
+int scanhash_cryptonight(int thr_id, uint32_t *hash, uint8_t *blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *hashes_done, struct cryptonight_ctx **ctx);
+int scanhash_cryptonight_double(int thr_id, uint32_t *hash, uint8_t *blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *hashes_done, struct cryptonight_ctx **ctx);
+
 
 #endif /* XMRIG_CRYPTONIGHT_H */

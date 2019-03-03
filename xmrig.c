@@ -307,7 +307,7 @@ static void *miner_thread(void *userdata) {
         gettimeofday(&tv_start, NULL);
 
         /* scan nonces for a proof-of-work hash */
-        const int rc = scanhash_cryptonight(thr_id, hash, (const uint8_t *) work.blob, work.blob_size, work.target, max_nonce, &hashes_done, persistentctx);
+        const int rc = scanhash_cryptonight(thr_id, hash, (uint8_t *) work.blob, work.blob_size, work.target, max_nonce, &hashes_done, persistentctx);
         stats_add_hashes(thr_id, &tv_start, hashes_done);
 
         if (!rc) {

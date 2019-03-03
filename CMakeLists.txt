@@ -48,6 +48,10 @@ set(SOURCES
     algo/cryptonight/cryptonight_av2.c
     algo/cryptonight/cryptonight_av3.c
     algo/cryptonight/cryptonight_av4.c
+    algo/cryptonight/cryptonight_r_av1.c
+    algo/cryptonight/cryptonight_r_av2.c
+    algo/cryptonight/cryptonight_r_av3.c
+    algo/cryptonight/cryptonight_r_av4.c
     util.c
     options.c
     stratum.c
