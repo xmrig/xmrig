@@ -45,6 +45,8 @@
 #endif
 
 
+namespace xmrig {
+
 static const char *kEnabled     = "enabled";
 static const char *kFingerprint = "tls-fingerprint";
 static const char *kKeepalive   = "keepalive";
@@ -55,6 +57,8 @@ static const char *kTls         = "tls";
 static const char *kUrl         = "url";
 static const char *kUser        = "user";
 static const char *kVariant     = "variant";
+
+}
 
 
 xmrig::Pool::Pool() :
@@ -128,6 +132,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
 
 xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
+    m_enabled(true),
     m_nicehash(nicehash),
     m_tls(tls),
     m_keepAlive(keepAlive),
