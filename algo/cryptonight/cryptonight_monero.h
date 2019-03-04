@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 
 #include <fenv.h>
 #include <math.h>
+#include <stdint.h>
+#include <x86intrin.h>
 
 
 static inline __m128i int_sqrt_v2(const uint64_t n0)
@@ -87,6 +89,17 @@ static inline __m128i int_sqrt_v2(const uint64_t n0)
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30)), _mm_add_epi64(chunk2, _a)); \
     }
 
+#   define VARIANT4_SHUFFLE(base_ptr, offset, _a, _b, _b1, _c) \
+    { \
+        const __m128i chunk1 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10))); \
+        const __m128i chunk2 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20))); \
+        const __m128i chunk3 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30))); \
+        _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10)), _mm_add_epi64(chunk3, _b1)); \
+        _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20)), _mm_add_epi64(chunk1, _b)); \
+        _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30)), _mm_add_epi64(chunk2, _a)); \
+        _c = _mm_xor_si128(_mm_xor_si128(_c, chunk3), _mm_xor_si128(chunk1, chunk2)); \
+    }
+
 #   define VARIANT2_SHUFFLE2(base_ptr, offset, _a, _b, _b1, hi, lo) \
     { \
         const __m128i chunk1 = _mm_xor_si128(_mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10))), _mm_set_epi64x(lo, hi)); \
@@ -98,5 +111,40 @@ static inline __m128i int_sqrt_v2(const uint64_t n0)
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20)), _mm_add_epi64(chunk1, _b)); \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30)), _mm_add_epi64(chunk2, _a)); \
     }
+
+
+#ifndef NOINLINE
+#ifdef __GNUC__
+#define NOINLINE __attribute__ ((noinline))
+#elif _MSC_VER
+#define NOINLINE __declspec(noinline)
+#else
+#define NOINLINE
+#endif
+#endif
+
+#include "variant4_random_math.h"
+
+#define VARIANT4_RANDOM_MATH_INIT(part) \
+  uint32_t r##part[9]; \
+  struct V4_Instruction code##part[256]; \
+  { \
+    r##part[0] = (uint32_t)(h##part[12]); \
+    r##part[1] = (uint32_t)(h##part[12] >> 32); \
+    r##part[2] = (uint32_t)(h##part[13]); \
+    r##part[3] = (uint32_t)(h##part[13] >> 32); \
+  } \
+  v4_random_math_init(code##part, ctx[part]->height);
+
+#define VARIANT4_RANDOM_MATH(part, al, ah, cl, bx0, bx1) \
+  { \
+    cl ^= (r##part[0] + r##part[1]) | ((uint64_t)(r##part[2] + r##part[3]) << 32); \
+    r##part[4] = (uint32_t)(al); \
+    r##part[5] = (uint32_t)(ah); \
+    r##part[6] = (uint32_t)(_mm_cvtsi128_si32(bx0)); \
+    r##part[7] = (uint32_t)(_mm_cvtsi128_si32(bx1)); \
+    r##part[8] = (uint32_t)(_mm_cvtsi128_si32(_mm_srli_si128(bx1, 8))); \
+    v4_random_math(code##part, r##part); \
+  }
 
 #endif /* XMRIG_CRYPTONIGHT_MONERO_H */

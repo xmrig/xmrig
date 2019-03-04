@@ -11,6 +11,7 @@ set(HEADERS
     algo/cryptonight/cryptonight_monero.h
     algo/cryptonight/cryptonight_softaes.h
     algo/cryptonight/cryptonight_test.h
+    algo/cryptonight/variant4_random_math.h
     compat.h
     cpu.h
     donate.h
@@ -29,6 +30,7 @@ set(HEADERS_CRYPTO
     crypto/c_blake256.h
     crypto/c_jh.h
     crypto/c_skein.h
+    crypto/soft_aes.h
    )
 
 set(HEADERS_COMPAT
@@ -48,6 +50,10 @@ set(SOURCES
     algo/cryptonight/cryptonight_av2.c
     algo/cryptonight/cryptonight_av3.c
     algo/cryptonight/cryptonight_av4.c
+    algo/cryptonight/cryptonight_r_av1.c
+    algo/cryptonight/cryptonight_r_av2.c
+    algo/cryptonight/cryptonight_r_av3.c
+    algo/cryptonight/cryptonight_r_av4.c
     util.c
     options.c
     stratum.c
@@ -61,7 +67,6 @@ set(SOURCES_CRYPTO
     crypto/c_blake256.c
     crypto/c_jh.c
     crypto/c_skein.c
-    crypto/soft_aes.c
    )
 
 set(SOURCES_UTILS

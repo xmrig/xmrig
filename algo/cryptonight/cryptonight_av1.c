@@ -196,6 +196,7 @@ void cryptonight_av1_v2(const uint8_t *restrict input, size_t size, uint8_t *res
 #ifndef XMRIG_NO_ASM
 extern void cnv2_mainloop_ivybridge_asm(struct cryptonight_ctx *ctx);
 extern void cnv2_mainloop_ryzen_asm(struct cryptonight_ctx *ctx);
+extern void cnv2_mainloop_bulldozer_asm(struct cryptonight_ctx *ctx);
 extern void cnv2_double_mainloop_sandybridge_asm(struct cryptonight_ctx* ctx0, struct cryptonight_ctx* ctx1);
 
 
@@ -218,6 +219,19 @@ void cryptonight_single_hash_asm_ryzen(const uint8_t *restrict input, size_t siz
     cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
 
     cnv2_mainloop_ryzen_asm(ctx[0]);
+
+    cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+    keccakf((uint64_t*) ctx[0]->state, 24);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
+
+
+void cryptonight_single_hash_asm_bulldozer(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
+{
+    keccak(input, size, ctx[0]->state, 200);
+    cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
+
+    cnv2_mainloop_bulldozer_asm(ctx[0]);
 
     cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
     keccakf((uint64_t*) ctx[0]->state, 24);

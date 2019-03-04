@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -74,6 +75,8 @@ static struct AlgoData const algorithms[] = {
     { "cryptonight/0",         "cn/0",         ALGO_CRYPTONIGHT,       VARIANT_0    },
     { "cryptonight/1",         "cn/1",         ALGO_CRYPTONIGHT,       VARIANT_1    },
     { "cryptonight/2",         "cn/2",         ALGO_CRYPTONIGHT,       VARIANT_2    },
+    { "cryptonight/4",         "cn/4",         ALGO_CRYPTONIGHT,       VARIANT_4    },
+    { "cryptonight/r",         "cn/r",         ALGO_CRYPTONIGHT,       VARIANT_4    },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      ALGO_CRYPTONIGHT_LITE,  VARIANT_AUTO },
@@ -88,7 +91,7 @@ static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
   -a, --algo=ALGO       cryptonight (default) or cryptonight-lite\n\
-      --variant=N       cryptonight variant: 0-2\n\
+      --variant=N       cryptonight variant: 0-4\n\
   -o, --url=URL         URL of mining server\n\
   -b, --backup-url=URL  URL of backup mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
@@ -124,7 +127,7 @@ static struct option const options[] = {
     { "cpu-affinity",  1, NULL, 1020 },
     { "donate-level",  1, NULL, 1003 },
     { "help",          0, NULL, 'h'  },
-    { "keepalive",     0, NULL ,'k'  },
+    { "keepalive",     0, NULL, 'k'  },
     { "max-cpu-usage", 1, NULL, 1004 },
     { "nicehash",      0, NULL, 1006 },
     { "no-color",      0, NULL, 1002 },
@@ -156,6 +159,7 @@ static const char *variant_names[] = {
     "0",
     "1",
     "2",
+    "4"
 };
 
 
@@ -163,7 +167,8 @@ static const char *asm_names[] = {
     "none",
     "auto",
     "intel",
-    "ryzen"
+    "ryzen",
+    "bulldozer"
 };
 
 
@@ -380,9 +385,13 @@ static void parse_arg(int key, char *arg) {
 
     case 1021: /* --variant */
         v = atoi(arg);
-        if (v > VARIANT_AUTO && v < VARIANT_MAX) {
+        if (v == 4 || strcasecmp(arg, "r") == 0) {
+            opt_variant = VARIANT_4;
+        }
+        else if (v > VARIANT_AUTO && v < VARIANT_MAX) {
             opt_variant = v;
         }
+
         break;
 
     case 1006: /* --nicehash */
@@ -397,7 +406,7 @@ static void parse_arg(int key, char *arg) {
 
 static void parse_config(json_t *config, char *ref)
 {
-    int i;
+    size_t i;
     char buf[16];
     json_t *val;
 

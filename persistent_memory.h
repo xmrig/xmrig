@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,8 +48,15 @@ extern int persistent_memory_flags;
 
 const char * persistent_memory_allocate();
 void persistent_memory_free();
-void * persistent_calloc(size_t num, size_t size);
+void *persistent_calloc(size_t num, size_t size);
 void create_cryptonight_ctx(struct cryptonight_ctx **ctx, int thr_id);
+
+
+void *allocate_executable_memory(size_t size);
+void flush_instruction_cache(void *p, size_t size);
+void init_cn_r(struct cryptonight_ctx *ctx);
+void protect_executable_memory(void *p, size_t size);
+
 
 
 #endif /* XMRIG_PERSISTENT_MEMORY_H */

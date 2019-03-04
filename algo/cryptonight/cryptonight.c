@@ -6,7 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,9 +39,13 @@
 #include "crypto/c_groestl.h"
 #include "crypto/c_jh.h"
 #include "crypto/c_skein.h"
-#include "cryptonight.h"
 #include "cryptonight_test.h"
+#include "cryptonight.h"
 #include "options.h"
+#include "persistent_memory.h"
+
+
+static cn_hash_fun asm_func_map[AV_MAX][VARIANT_MAX][ASM_MAX] = {};
 
 
 void cryptonight_av1_v0(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
@@ -55,6 +60,11 @@ void cryptonight_av3_v2(const uint8_t *input, size_t size, uint8_t *output, stru
 void cryptonight_av4_v0(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_av4_v1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_av4_v2(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+
+void cryptonight_r_av1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av2(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av3(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av4(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 
 
 #ifndef XMRIG_NO_AEON
@@ -72,7 +82,13 @@ void cryptonight_lite_av4_v1(const uint8_t *input, size_t size, uint8_t *output,
 #ifndef XMRIG_NO_ASM
 void cryptonight_single_hash_asm_intel(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_single_hash_asm_ryzen(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_single_hash_asm_bulldozer(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_double_hash_asm(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+
+void cryptonight_r_av1_asm_intel(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av1_asm_bulldozer(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av2_asm_intel(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av2_asm_bulldozer(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 #endif
 
 
@@ -89,6 +105,46 @@ static inline bool verify(enum Variant variant, uint8_t *output, struct cryptoni
 }
 
 
+static inline bool verify2(enum Variant variant, uint8_t *output, struct cryptonight_ctx **ctx, const uint8_t *referenceValue)
+{
+    cn_hash_fun func = cryptonight_hash_fn(opt_algo, opt_av, variant);
+    if (func == NULL) {
+        return false;
+    }
+
+    if (opt_double_hash) {
+        uint8_t input[128];
+
+        for (size_t i = 0; i < (sizeof(cn_r_test_input) / sizeof(cn_r_test_input[0])); ++i) {
+            const size_t size = cn_r_test_input[i].size;
+            memcpy(input,        cn_r_test_input[i].data, size);
+            memcpy(input + size, cn_r_test_input[i].data, size);
+
+            ctx[0]->height = ctx[1]->height = cn_r_test_input[i].height;
+
+            func(input, size, output, ctx);
+
+            if (memcmp(output, referenceValue + i * 32, 32) != 0 || memcmp(output + 32, referenceValue + i * 32, 32) != 0) {
+                return false;
+            }
+        }
+    }
+    else {
+        for (size_t i = 0; i < (sizeof(cn_r_test_input) / sizeof(cn_r_test_input[0])); ++i) {
+            ctx[0]->height = cn_r_test_input[i].height;
+
+            func(cn_r_test_input[i].data, cn_r_test_input[i].size, output, ctx);
+
+            if (memcmp(output, referenceValue + i * 32, 32) != 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
 static bool self_test() {
     struct cryptonight_ctx *ctx[2];
     uint8_t output[64];
@@ -97,15 +153,18 @@ static bool self_test() {
     const size_t size  = opt_algo == ALGO_CRYPTONIGHT ? MEMORY : MEMORY_LITE;
     bool result = false;
 
-    for (int i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         ctx[i]         = _mm_malloc(sizeof(struct cryptonight_ctx), 16);
         ctx[i]->memory = _mm_malloc(size, 16);
+
+        init_cn_r(ctx[i]);
     }
 
     if (opt_algo == ALGO_CRYPTONIGHT) {
-        result = verify(VARIANT_0, output, ctx, test_output_v0) &&
-                 verify(VARIANT_1, output, ctx, test_output_v1) &&
-                 verify(VARIANT_2, output, ctx, test_output_v2);
+        result = verify(VARIANT_0,  output, ctx, test_output_v0) &&
+                 verify(VARIANT_1,  output, ctx, test_output_v1) &&
+                 verify(VARIANT_2,  output, ctx, test_output_v2) &&
+                 verify2(VARIANT_4, output, ctx, test_output_r);
     }
 #   ifndef XMRIG_NO_AEON
     else {
@@ -115,7 +174,7 @@ static bool self_test() {
 #   endif
 
 
-    for (int i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         _mm_free(ctx[i]->memory);
         _mm_free(ctx[i]);
     }
@@ -124,34 +183,20 @@ static bool self_test() {
 }
 
 
-size_t fn_index(enum Algo algorithm, enum AlgoVariant av, enum Variant variant, enum Assembly assembly)
+#ifndef XMRIG_NO_ASM
+cn_hash_fun cryptonight_hash_asm_fn(enum AlgoVariant av, enum Variant variant, enum Assembly assembly)
 {
-    const size_t index = VARIANT_MAX * 4 * algorithm + 4 * variant + av - 1;
-
-#   ifndef XMRIG_NO_ASM
     if (assembly == ASM_AUTO) {
-        assembly = cpu_info.assembly;
+        assembly = (enum Assembly) cpu_info.assembly;
     }
 
     if (assembly == ASM_NONE) {
-        return index;
+        return NULL;
     }
 
-    const size_t offset = VARIANT_MAX * 4 * 2;
-
-    if (algorithm == ALGO_CRYPTONIGHT && variant == VARIANT_2) {
-        if (av == AV_SINGLE) {
-            return offset + assembly - 2;
-        }
-
-        if (av == AV_DOUBLE) {
-            return offset + 2;
-        }
-    }
-#   endif
-
-    return index;
+    return asm_func_map[av][variant][assembly];
 }
+#endif
 
 
 cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum Variant variant)
@@ -160,10 +205,15 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
     assert(variant > VARIANT_AUTO && variant < VARIANT_MAX);
 
 #   ifndef XMRIG_NO_ASM
-    static const cn_hash_fun func_table[VARIANT_MAX * 4 * 2 + 3] = {
-#   else
-    static const cn_hash_fun func_table[VARIANT_MAX * 4 * 2] = {
+    if (algorithm == ALGO_CRYPTONIGHT) {
+        cn_hash_fun fun = cryptonight_hash_asm_fn(av, variant, opt_assembly);
+        if (fun) {
+            return fun;
+        }
+    }
 #   endif
+
+    static const cn_hash_fun func_table[VARIANT_MAX * 4 * 2] = {
         cryptonight_av1_v0,
         cryptonight_av2_v0,
         cryptonight_av3_v0,
@@ -177,6 +227,11 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
         cryptonight_av3_v2,
         cryptonight_av4_v2,
 
+        cryptonight_r_av1,
+        cryptonight_r_av2,
+        cryptonight_r_av3,
+        cryptonight_r_av4,
+
 #       ifndef XMRIG_NO_AEON
         cryptonight_lite_av1_v0,
         cryptonight_lite_av2_v0,
@@ -186,6 +241,10 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
         cryptonight_lite_av2_v1,
         cryptonight_lite_av3_v1,
         cryptonight_lite_av4_v1,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -203,16 +262,15 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
         NULL,
         NULL,
         NULL,
-#       endif
-#       ifndef XMRIG_NO_ASM
-        cryptonight_single_hash_asm_intel,
-        cryptonight_single_hash_asm_ryzen,
-        cryptonight_double_hash_asm
+        NULL,
+        NULL,
+        NULL,
+        NULL,
 #       endif
     };
 
 #   ifndef NDEBUG
-    const size_t index = fn_index(algorithm, av, variant, opt_assembly);
+    const size_t index = VARIANT_MAX * 4 * algorithm + 4 * variant + av - 1;
 
     cn_hash_fun func = func_table[index];
 
@@ -221,7 +279,7 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
 
     return func;
 #   else
-    return func_table[fn_index(algorithm, av, variant, opt_assembly)];
+    return func_table[VARIANT_MAX * 4 * algorithm + 4 * variant + av - 1];
 #   endif
 }
 
@@ -229,6 +287,24 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
 bool cryptonight_init(int av)
 {
     opt_double_hash = av == AV_DOUBLE || av == AV_DOUBLE_SOFT;
+
+#   ifndef XMRIG_NO_ASM
+    asm_func_map[AV_SINGLE][VARIANT_2][ASM_INTEL]     = cryptonight_single_hash_asm_intel;
+    asm_func_map[AV_SINGLE][VARIANT_2][ASM_RYZEN]     = cryptonight_single_hash_asm_intel;
+    asm_func_map[AV_SINGLE][VARIANT_2][ASM_BULLDOZER] = cryptonight_single_hash_asm_bulldozer;
+
+    asm_func_map[AV_DOUBLE][VARIANT_2][ASM_INTEL]     = cryptonight_double_hash_asm;
+    asm_func_map[AV_DOUBLE][VARIANT_2][ASM_RYZEN]     = cryptonight_double_hash_asm;
+    asm_func_map[AV_DOUBLE][VARIANT_2][ASM_BULLDOZER] = cryptonight_double_hash_asm;
+
+    asm_func_map[AV_SINGLE][VARIANT_4][ASM_INTEL]     = cryptonight_r_av1_asm_intel;
+    asm_func_map[AV_SINGLE][VARIANT_4][ASM_RYZEN]     = cryptonight_r_av1_asm_intel;
+    asm_func_map[AV_SINGLE][VARIANT_4][ASM_BULLDOZER] = cryptonight_r_av1_asm_bulldozer;
+
+    asm_func_map[AV_DOUBLE][VARIANT_4][ASM_INTEL]     = cryptonight_r_av2_asm_intel;
+    asm_func_map[AV_DOUBLE][VARIANT_4][ASM_RYZEN]     = cryptonight_r_av2_asm_intel;
+    asm_func_map[AV_DOUBLE][VARIANT_4][ASM_BULLDOZER] = cryptonight_r_av2_asm_bulldozer;
+#   endif
 
     return self_test();
 }
@@ -267,6 +343,10 @@ static inline enum Variant cryptonight_variant(uint8_t version)
         return VARIANT_1;
     }
 
+    if (version >= 10) {
+        return VARIANT_4;
+    }
+
     if (version >= 8) {
         return VARIANT_2;
     }
@@ -276,7 +356,7 @@ static inline enum Variant cryptonight_variant(uint8_t version)
 
 
 #ifndef BUILD_TEST
-int scanhash_cryptonight(int thr_id, uint32_t *hash, const uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx) {
+int scanhash_cryptonight(int thr_id, uint32_t *hash, uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx) {
     uint32_t *nonceptr   = (uint32_t*) (((char*) blob) + 39);
     enum Variant variant = cryptonight_variant(blob[0]);
 
@@ -296,7 +376,7 @@ int scanhash_cryptonight(int thr_id, uint32_t *hash, const uint8_t *restrict blo
 }
 
 
-int scanhash_cryptonight_double(int thr_id, uint32_t *hash, const uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx) {
+int scanhash_cryptonight_double(int thr_id, uint32_t *hash, uint8_t *restrict blob, size_t blob_size, uint32_t target, uint32_t max_nonce, unsigned long *restrict hashes_done, struct cryptonight_ctx **restrict ctx) {
     int rc               = 0;
     uint32_t *nonceptr0  = (uint32_t*) (((char*) blob) + 39);
     uint32_t *nonceptr1  = (uint32_t*) (((char*) blob) + 39 + blob_size);

@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -73,4 +74,22 @@ void persistent_memory_free() {
     else {
         _mm_free(persistent_memory);
     }
+}
+
+
+void *allocate_executable_memory(size_t size)
+{
+    return mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
+}
+
+
+void protect_executable_memory(void *p, size_t size)
+{
+    mprotect(p, size, PROT_READ | PROT_EXEC);
+}
+
+
+void flush_instruction_cache(void *p, size_t size)
+{
+    __builtin___clear_cache((char*) p, (char*)(p) + size);
 }
