@@ -485,7 +485,6 @@ void xmrig::Pool::rebuild()
 
 #   ifndef XMRIG_PROXY_PROJECT
     addVariant(VARIANT_RWZ);
-    addVariant(VARIANT_WALTZ);
     addVariant(VARIANT_4);
     addVariant(VARIANT_WOW);
     addVariant(VARIANT_2);
