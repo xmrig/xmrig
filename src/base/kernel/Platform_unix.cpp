@@ -87,6 +87,9 @@ char *xmrig::Platform::createUserAgent()
 #ifndef XMRIG_FEATURE_HWLOC
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
+#if defined(__OpenBSD__)
+	return true;
+#else
     cpu_set_t mn;
     CPU_ZERO(&mn);
     CPU_SET(cpu_id, &mn);
@@ -96,6 +99,7 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 #   else
     return sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0;
 #   endif
+#endif
 }
 #endif
 
