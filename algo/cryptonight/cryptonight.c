@@ -95,6 +95,46 @@ static inline bool verify(enum Variant variant, uint8_t *output, struct cryptoni
 }
 
 
+static inline bool verify2(enum Variant variant, uint8_t *output, struct cryptonight_ctx **ctx, const uint8_t *referenceValue)
+{
+    cn_hash_fun func = cryptonight_hash_fn(opt_algo, opt_av, variant);
+    if (func == NULL) {
+        return false;
+    }
+
+    if (opt_double_hash) {
+        uint8_t input[128];
+
+        for (size_t i = 0; i < (sizeof(cn_r_test_input) / sizeof(cn_r_test_input[0])); ++i) {
+            const size_t size = cn_r_test_input[i].size;
+            memcpy(input,        cn_r_test_input[i].data, size);
+            memcpy(input + size, cn_r_test_input[i].data, size);
+
+            ctx[0]->height = ctx[1]->height = cn_r_test_input[i].height;
+
+            func(input, size, output, ctx);
+
+            if (memcmp(output, referenceValue + i * 32, 32) != 0 || memcmp(output + 32, referenceValue + i * 32, 32) != 0) {
+                return false;
+            }
+        }
+    }
+    else {
+        for (size_t i = 0; i < (sizeof(cn_r_test_input) / sizeof(cn_r_test_input[0])); ++i) {
+            ctx[0]->height = cn_r_test_input[i].height;
+
+            func(cn_r_test_input[i].data, cn_r_test_input[i].size, output, ctx);
+
+            if (memcmp(output, referenceValue + i * 32, 32) != 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
 static bool self_test() {
     struct cryptonight_ctx *ctx[2];
     uint8_t output[64];
@@ -109,9 +149,10 @@ static bool self_test() {
     }
 
     if (opt_algo == ALGO_CRYPTONIGHT) {
-        result = verify(VARIANT_0, output, ctx, test_output_v0) &&
-                 verify(VARIANT_1, output, ctx, test_output_v1) &&
-                 verify(VARIANT_2, output, ctx, test_output_v2);
+        result = verify(VARIANT_0,  output, ctx, test_output_v0) &&
+                 verify(VARIANT_1,  output, ctx, test_output_v1) &&
+                 verify(VARIANT_2,  output, ctx, test_output_v2) &&
+                 verify2(VARIANT_4, output, ctx, test_output_r);
     }
 #   ifndef XMRIG_NO_AEON
     else {
