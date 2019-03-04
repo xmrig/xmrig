@@ -39,9 +39,10 @@
 #include "crypto/c_groestl.h"
 #include "crypto/c_jh.h"
 #include "crypto/c_skein.h"
-#include "cryptonight.h"
 #include "cryptonight_test.h"
+#include "cryptonight.h"
 #include "options.h"
+#include "persistent_memory.h"
 
 
 static cn_hash_fun asm_func_map[AV_MAX][VARIANT_MAX][ASM_MAX] = {};
@@ -83,6 +84,9 @@ void cryptonight_single_hash_asm_intel(const uint8_t *input, size_t size, uint8_
 void cryptonight_single_hash_asm_ryzen(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_single_hash_asm_bulldozer(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_double_hash_asm(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+
+void cryptonight_r_av1_asm_intel(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av1_asm_bulldozer(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 #endif
 
 
@@ -150,6 +154,8 @@ static bool self_test() {
     for (size_t i = 0; i < count; ++i) {
         ctx[i]         = _mm_malloc(sizeof(struct cryptonight_ctx), 16);
         ctx[i]->memory = _mm_malloc(size, 16);
+
+        init_cn_r(ctx[i]);
     }
 
     if (opt_algo == ALGO_CRYPTONIGHT) {
@@ -288,6 +294,10 @@ bool cryptonight_init(int av)
     asm_func_map[AV_DOUBLE][VARIANT_2][ASM_INTEL]     = cryptonight_double_hash_asm;
     asm_func_map[AV_DOUBLE][VARIANT_2][ASM_RYZEN]     = cryptonight_double_hash_asm;
     asm_func_map[AV_DOUBLE][VARIANT_2][ASM_BULLDOZER] = cryptonight_double_hash_asm;
+
+    asm_func_map[AV_SINGLE][VARIANT_4][ASM_INTEL]     = cryptonight_r_av1_asm_intel;
+    asm_func_map[AV_SINGLE][VARIANT_4][ASM_RYZEN]     = cryptonight_r_av1_asm_intel;
+    asm_func_map[AV_SINGLE][VARIANT_4][ASM_BULLDOZER] = cryptonight_r_av1_asm_bulldozer;
 #   endif
 
     return self_test();

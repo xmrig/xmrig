@@ -97,5 +97,47 @@ void cryptonight_r_av1(const uint8_t *restrict input, size_t size, uint8_t *rest
 
 
 #ifndef XMRIG_NO_ASM
+void v4_compile_code(const struct V4_Instruction* code, int code_size, void* machine_code, enum Assembly ASM);
 
+
+void cryptonight_r_av1_asm_intel(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
+{
+    if (ctx[0]->generated_code_height != ctx[0]->height) {
+        struct V4_Instruction code[256];
+        const int code_size = v4_random_math_init(code, ctx[0]->height);
+
+        v4_compile_code(code, code_size, (void*)(ctx[0]->generated_code), ASM_INTEL);
+        ctx[0]->generated_code_height = ctx[0]->height;
+    }
+
+    keccak(input, size, ctx[0]->state, 200);
+    cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
+
+    ctx[0]->generated_code(ctx[0]);
+
+    cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+    keccakf((uint64_t*) ctx[0]->state, 24);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
+
+
+void cryptonight_r_av1_asm_bulldozer(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
+{
+    if (ctx[0]->generated_code_height != ctx[0]->height) {
+        struct V4_Instruction code[256];
+        const int code_size = v4_random_math_init(code, ctx[0]->height);
+
+        v4_compile_code(code, code_size, (void*)(ctx[0]->generated_code), ASM_BULLDOZER);
+        ctx[0]->generated_code_height = ctx[0]->height;
+    }
+
+    keccak(input, size, ctx[0]->state, 200);
+    cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
+
+    ctx[0]->generated_code(ctx[0]);
+
+    cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
+    keccakf((uint64_t*) ctx[0]->state, 24);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
 #endif

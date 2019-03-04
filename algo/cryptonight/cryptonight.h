@@ -51,12 +51,6 @@ typedef void(*cn_mainloop_fun_ms_abi)(struct cryptonight_ctx*) ABI_ATTRIBUTE;
 typedef void(*cn_mainloop_double_fun_ms_abi)(struct cryptonight_ctx*, struct cryptonight_ctx*) ABI_ATTRIBUTE;
 
 
-struct cryptonight_r_data {
-    int variant;
-    uint64_t height;
-};
-
-
 struct cryptonight_ctx {
     uint8_t state[224] __attribute__((aligned(16)));
     uint8_t *memory    __attribute__((aligned(16)));
@@ -66,8 +60,8 @@ struct cryptonight_ctx {
 
     cn_mainloop_fun_ms_abi generated_code;
     cn_mainloop_double_fun_ms_abi generated_code_double;
-    struct cryptonight_r_data generated_code_data;
-    struct cryptonight_r_data generated_code_double_data;
+    uint64_t generated_code_height;
+    uint64_t generated_code_double_height;
     uint64_t height;
 };
 

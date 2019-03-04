@@ -74,3 +74,27 @@ void persistent_memory_free() {
         _mm_free(persistent_memory);
     }
 }
+
+
+void *allocate_executable_memory(size_t size)
+{
+#   if defined(__APPLE__)
+    return mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
+#   else
+    return mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#   endif
+}
+
+
+void protect_executable_memory(void *p, size_t size)
+{
+    mprotect(p, size, PROT_READ | PROT_EXEC);
+}
+
+
+void flush_instruction_cache(void *p, size_t size)
+{
+#   ifndef __FreeBSD__
+    __builtin___clear_cache((char*) p, (char*)(p) + size);
+#   endif
+}
