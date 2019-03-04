@@ -107,6 +107,6 @@ void cryptonight_r_av3(const uint8_t *restrict input, size_t size, uint8_t *rest
 #   endif
 
     cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
-    keccakf(ctx[0]->state, 24);
+    keccakf((uint64_t *) ctx[0]->state, 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }

@@ -166,8 +166,8 @@ void cryptonight_r_av2_asm_intel(const uint8_t *restrict input, size_t size, uin
     cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
     cn_implode_scratchpad((__m128i*) ctx[1]->memory, (__m128i*) ctx[1]->state);
 
-    keccakf(ctx[0]->state, 24);
-    keccakf(ctx[1]->state, 24);
+    keccakf((uint64_t *) ctx[0]->state, 24);
+    keccakf((uint64_t *) ctx[1]->state, 24);
 
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
     extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
@@ -193,8 +193,8 @@ void cryptonight_r_av2_asm_bulldozer(const uint8_t *restrict input, size_t size,
     cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
     cn_implode_scratchpad((__m128i*) ctx[1]->memory, (__m128i*) ctx[1]->state);
 
-    keccakf(ctx[0]->state, 24);
-    keccakf(ctx[1]->state, 24);
+    keccakf((uint64_t *) ctx[0]->state, 24);
+    keccakf((uint64_t *) ctx[1]->state, 24);
 
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
     extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
