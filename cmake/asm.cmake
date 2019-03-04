@@ -1,27 +1,15 @@
 if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(XMRIG_ASM_LIBRARY "xmrig-asm")
 
-    if (CMAKE_C_COMPILER_ID MATCHES MSVC)
-        enable_language(ASM_MASM)
+    enable_language(ASM)
 
-        if (MSVC_TOOLSET_VERSION GREATER_EQUAL 141)
-            set(XMRIG_ASM_FILE "crypto/asm/cnv2_main_loop.asm")
-        else()
-            set(XMRIG_ASM_FILE "crypto/asm/win64/cnv2_main_loop.asm")
-        endif()
-
-        set_property(SOURCE ${XMRIG_ASM_FILE} PROPERTY ASM_MASM)
+    if (WIN32 AND CMAKE_C_COMPILER_ID MATCHES GNU)
+        set(XMRIG_ASM_FILE "crypto/asm/win64/cn_main_loop.S")
     else()
-        enable_language(ASM)
-
-        if (WIN32 AND CMAKE_C_COMPILER_ID MATCHES GNU)
-            set(XMRIG_ASM_FILE "crypto/asm/win64/cnv2_main_loop.S")
-        else()
-            set(XMRIG_ASM_FILE "crypto/asm/cnv2_main_loop.S")
-        endif()
-
-        set_property(SOURCE ${XMRIG_ASM_FILE} PROPERTY C)
+        set(XMRIG_ASM_FILE "crypto/asm/cn_main_loop.S")
     endif()
+
+    set_property(SOURCE ${XMRIG_ASM_FILE} PROPERTY C)
 
     add_library(${XMRIG_ASM_LIBRARY} STATIC ${XMRIG_ASM_FILE})
     set(XMRIG_ASM_SOURCES "")

@@ -127,7 +127,7 @@ static struct option const options[] = {
     { "cpu-affinity",  1, NULL, 1020 },
     { "donate-level",  1, NULL, 1003 },
     { "help",          0, NULL, 'h'  },
-    { "keepalive",     0, NULL ,'k'  },
+    { "keepalive",     0, NULL, 'k'  },
     { "max-cpu-usage", 1, NULL, 1004 },
     { "nicehash",      0, NULL, 1006 },
     { "no-color",      0, NULL, 1002 },
@@ -167,7 +167,8 @@ static const char *asm_names[] = {
     "none",
     "auto",
     "intel",
-    "ryzen"
+    "ryzen",
+    "bulldozer"
 };
 
 

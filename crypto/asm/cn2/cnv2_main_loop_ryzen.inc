@@ -45,7 +45,7 @@
 	movq	xmm0, rcx
 	punpcklqdq xmm4, xmm0
 
-	ALIGN 16
+	ALIGN(64)
 main_loop_ryzen:
 	movdqa	xmm5, XMMWORD PTR [r10+rbx]
 	movq	xmm0, r11

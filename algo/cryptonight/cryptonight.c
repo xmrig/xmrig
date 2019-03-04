@@ -44,6 +44,9 @@
 #include "options.h"
 
 
+static cn_hash_fun asm_func_map[AV_MAX][VARIANT_MAX][ASM_MAX] = {};
+
+
 void cryptonight_av1_v0(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_av1_v1(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_av1_v2(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
@@ -78,6 +81,7 @@ void cryptonight_lite_av4_v1(const uint8_t *input, size_t size, uint8_t *output,
 #ifndef XMRIG_NO_ASM
 void cryptonight_single_hash_asm_intel(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_single_hash_asm_ryzen(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_single_hash_asm_bulldozer(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_double_hash_asm(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 #endif
 
@@ -171,34 +175,20 @@ static bool self_test() {
 }
 
 
-size_t fn_index(enum Algo algorithm, enum AlgoVariant av, enum Variant variant, enum Assembly assembly)
+#ifndef XMRIG_NO_ASM
+cn_hash_fun cryptonight_hash_asm_fn(enum AlgoVariant av, enum Variant variant, enum Assembly assembly)
 {
-    const size_t index = VARIANT_MAX * 4 * algorithm + 4 * variant + av - 1;
-
-#   ifndef XMRIG_NO_ASM
     if (assembly == ASM_AUTO) {
-        assembly = cpu_info.assembly;
+        assembly = (enum Assembly) cpu_info.assembly;
     }
 
     if (assembly == ASM_NONE) {
-        return index;
+        return NULL;
     }
 
-    const size_t offset = VARIANT_MAX * 4 * 2;
-
-    if (algorithm == ALGO_CRYPTONIGHT && variant == VARIANT_2) {
-        if (av == AV_SINGLE) {
-            return offset + assembly - 2;
-        }
-
-        if (av == AV_DOUBLE) {
-            return offset + 2;
-        }
-    }
-#   endif
-
-    return index;
+    return asm_func_map[av][variant][assembly];
 }
+#endif
 
 
 cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum Variant variant)
@@ -207,10 +197,15 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
     assert(variant > VARIANT_AUTO && variant < VARIANT_MAX);
 
 #   ifndef XMRIG_NO_ASM
-    static const cn_hash_fun func_table[VARIANT_MAX * 4 * 2 + 3] = {
-#   else
-    static const cn_hash_fun func_table[VARIANT_MAX * 4 * 2] = {
+    if (algorithm == ALGO_CRYPTONIGHT) {
+        cn_hash_fun fun = cryptonight_hash_asm_fn(av, variant, opt_assembly);
+        if (fun) {
+            return fun;
+        }
+    }
 #   endif
+
+    static const cn_hash_fun func_table[VARIANT_MAX * 4 * 2] = {
         cryptonight_av1_v0,
         cryptonight_av2_v0,
         cryptonight_av3_v0,
@@ -264,15 +259,10 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
         NULL,
         NULL,
 #       endif
-#       ifndef XMRIG_NO_ASM
-        cryptonight_single_hash_asm_intel,
-        cryptonight_single_hash_asm_ryzen,
-        cryptonight_double_hash_asm
-#       endif
     };
 
 #   ifndef NDEBUG
-    const size_t index = fn_index(algorithm, av, variant, opt_assembly);
+    const size_t index = VARIANT_MAX * 4 * algorithm + 4 * variant + av - 1;
 
     cn_hash_fun func = func_table[index];
 
@@ -281,7 +271,7 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
 
     return func;
 #   else
-    return func_table[fn_index(algorithm, av, variant, opt_assembly)];
+    return func_table[VARIANT_MAX * 4 * algorithm + 4 * variant + av - 1];
 #   endif
 }
 
@@ -289,6 +279,16 @@ cn_hash_fun cryptonight_hash_fn(enum Algo algorithm, enum AlgoVariant av, enum V
 bool cryptonight_init(int av)
 {
     opt_double_hash = av == AV_DOUBLE || av == AV_DOUBLE_SOFT;
+
+#   ifndef XMRIG_NO_ASM
+    asm_func_map[AV_SINGLE][VARIANT_2][ASM_INTEL]     = cryptonight_single_hash_asm_intel;
+    asm_func_map[AV_SINGLE][VARIANT_2][ASM_RYZEN]     = cryptonight_single_hash_asm_intel;
+    asm_func_map[AV_SINGLE][VARIANT_2][ASM_BULLDOZER] = cryptonight_single_hash_asm_bulldozer;
+
+    asm_func_map[AV_DOUBLE][VARIANT_2][ASM_INTEL]     = cryptonight_double_hash_asm;
+    asm_func_map[AV_DOUBLE][VARIANT_2][ASM_RYZEN]     = cryptonight_double_hash_asm;
+    asm_func_map[AV_DOUBLE][VARIANT_2][ASM_BULLDOZER] = cryptonight_double_hash_asm;
+#   endif
 
     return self_test();
 }
