@@ -4,9 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017      fireice-uk  <https://github.com/fireice-uk>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,16 +22,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CRYPTONIGHT_LITE_SOFTAES_H__
-#define __CRYPTONIGHT_LITE_SOFTAES_H__
+#ifndef XMRIG_CRYPTONIGHT_LITE_SOFTAES_H
+#define XMRIG_CRYPTONIGHT_LITE_SOFTAES_H
 
 
 #include <x86intrin.h>
 #include <stdint.h>
 
 
-extern __m128i soft_aesenc(__m128i in, __m128i key);
-extern __m128i soft_aeskeygenassist(__m128i key, uint8_t rcon);
+#include "crypto/soft_aes.h"
 
 
 // This will shift and xor tmp1 into itself as 4 32-bit vals such as
@@ -253,4 +252,4 @@ static inline void cryptonight_monero_tweak(uint64_t* mem_out, __m128i tmp)
 }
 
 
-#endif /* __CRYPTONIGHT_LITE_SOFTAES_H__ */
+#endif /* XMRIG_CRYPTONIGHT_LITE_SOFTAES_H */

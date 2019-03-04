@@ -87,6 +87,8 @@ void cryptonight_double_hash_asm(const uint8_t *input, size_t size, uint8_t *out
 
 void cryptonight_r_av1_asm_intel(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 void cryptonight_r_av1_asm_bulldozer(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av2_asm_intel(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
+void cryptonight_r_av2_asm_bulldozer(const uint8_t *input, size_t size, uint8_t *output, struct cryptonight_ctx **ctx);
 #endif
 
 
@@ -298,6 +300,10 @@ bool cryptonight_init(int av)
     asm_func_map[AV_SINGLE][VARIANT_4][ASM_INTEL]     = cryptonight_r_av1_asm_intel;
     asm_func_map[AV_SINGLE][VARIANT_4][ASM_RYZEN]     = cryptonight_r_av1_asm_intel;
     asm_func_map[AV_SINGLE][VARIANT_4][ASM_BULLDOZER] = cryptonight_r_av1_asm_bulldozer;
+
+    asm_func_map[AV_DOUBLE][VARIANT_4][ASM_INTEL]     = cryptonight_r_av2_asm_intel;
+    asm_func_map[AV_DOUBLE][VARIANT_4][ASM_RYZEN]     = cryptonight_r_av2_asm_intel;
+    asm_func_map[AV_DOUBLE][VARIANT_4][ASM_BULLDOZER] = cryptonight_r_av2_asm_bulldozer;
 #   endif
 
     return self_test();

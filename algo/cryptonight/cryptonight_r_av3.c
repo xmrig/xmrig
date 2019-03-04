@@ -33,12 +33,28 @@
 #include "cryptonight_softaes.h"
 
 
+#ifndef XMRIG_NO_ASM
+void v4_soft_aes_compile_code(const struct V4_Instruction* code, int code_size, void* machine_code, enum Assembly ASM);
+#endif
+
+
 void cryptonight_r_av3(const uint8_t *restrict input, size_t size, uint8_t *restrict output, struct cryptonight_ctx **restrict ctx)
 {
     keccak(input, size, ctx[0]->state, 200);
-
     cn_explode_scratchpad((__m128i*) ctx[0]->state, (__m128i*) ctx[0]->memory);
 
+#   ifndef XMRIG_NO_ASM
+    if (ctx[0]->generated_code_height != ctx[0]->height) {
+        struct V4_Instruction code[256];
+        const int code_size = v4_random_math_init(code, ctx[0]->height);
+
+        v4_soft_aes_compile_code(code, code_size, (void*)(ctx[0]->generated_code), ASM_NONE);
+        ctx[0]->generated_code_height = ctx[0]->height;
+    }
+
+    ctx[0]->saes_table = (const uint32_t*)saes_table;
+    ctx[0]->generated_code(ctx[0]);
+#   else
     const uint8_t* l0 = ctx[0]->memory;
     uint64_t* h0 = (uint64_t*) ctx[0]->state;
 
@@ -88,9 +104,9 @@ void cryptonight_r_av3(const uint8_t *restrict input, size_t size, uint8_t *rest
         bx1 = bx0;
         bx0 = cx;
     }
+#   endif
 
     cn_implode_scratchpad((__m128i*) ctx[0]->memory, (__m128i*) ctx[0]->state);
-
-    keccakf(h0, 24);
+    keccakf(ctx[0]->state, 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }

@@ -30,6 +30,7 @@ set(HEADERS_CRYPTO
     crypto/c_blake256.h
     crypto/c_jh.h
     crypto/c_skein.h
+    crypto/soft_aes.h
    )
 
 set(HEADERS_COMPAT
@@ -66,7 +67,6 @@ set(SOURCES_CRYPTO
     crypto/c_blake256.c
     crypto/c_jh.c
     crypto/c_skein.c
-    crypto/soft_aes.c
    )
 
 set(SOURCES_UTILS
