@@ -65,6 +65,9 @@
     var currentServerTime = 0;
     var clockDrift = 0;
 
+    var latestVersion = 0;
+    var currentVersion = 0;
+
     $.fn.dataTable.ext.search.push(
         function( settings, data, dataIndex ) {
 
@@ -108,6 +111,7 @@
                     orderable: false
                 },
                 {data: "client_status.client_id", render: clientInfo},
+                {data: "client_status.version", render: version},
                 {data: "client_status.current_pool"},
                 {data: "client_status.current_status", render: clientStatus},
                 {data: "client_status.current_algo_name", render: algoAndPowVariantName},
@@ -674,6 +678,16 @@
         }
     }
 
+    function version( data, type, row ) {
+        var clientVersion = parseInt(row.client_status.version.split('.').join(""));
+
+        if (latestVersion > clientVersion) {
+            return '<span data-toggle="tooltip" title="Outdated"><div class="offline">' + data + '</div></span>';
+        } else {
+            return data;
+        }
+    }
+
     function clientStatus( data, type, row ) {
         var lastStatus = row.client_status.last_status_update * 1000;
 
@@ -822,6 +836,7 @@
         <tr>
             <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllTop"></i></th>
             <th>Miner Id</th>
+            <th>Version</th>
             <th>Pool</th>
             <th>Status</th>
             <th>Algo / PoW</th>
@@ -846,6 +861,7 @@
         <tr>
             <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllBottom"></i></th>
             <th class="left">Total:</th>
+            <th></th>
             <th></th>
             <th></th>
             <th></th>

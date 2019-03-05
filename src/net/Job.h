@@ -54,9 +54,11 @@ public:
     inline uint32_t *nonce()               { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const           { return (uint32_t) m_diff; }
     inline uint64_t target() const         { return m_target; }
+    inline uint64_t height() const         { return m_height; }
     inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
     inline void setThreadId(int threadId)  { m_threadId = threadId; }
     inline void setPowVariant(PowVariant powVariant) { m_powVariant = powVariant; }
+    inline void setHeight(uint64_t height) { m_height = height; }
 
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
@@ -76,6 +78,7 @@ private:
     size_t m_size;
     uint64_t m_diff;
     uint64_t m_target;
+    uint64_t m_height;
     PowVariant m_powVariant;
 };
 

@@ -260,6 +260,14 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
 
     job.setPowVariant(powVariant);
 
+    if (params.HasMember("height")) {
+        const rapidjson::Value &variant = params["height"];
+
+        if (variant.IsUint64()) {
+            job.setHeight(variant.GetUint64());
+        }
+    }
+
     if (m_job != job) {
         m_jobs++;
         m_job = std::move(job);

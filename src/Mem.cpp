@@ -67,8 +67,16 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
     allocate(scratchPadMem, m_useHugePages);
 
     for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
-        ScratchPad* scratchPad = static_cast<ScratchPad *>(_mm_malloc(sizeof(ScratchPad), 4096));
+        auto* scratchPad = static_cast<ScratchPad *>(_mm_malloc(sizeof(ScratchPad), 4096));
         scratchPad->memory     = scratchPadMem.memory + (i * scratchPadSize);
+
+        auto* p = reinterpret_cast<uint8_t*>(allocateExecutableMemory(0x4000));
+        scratchPad->generated_code  = reinterpret_cast<cn_mainloop_fun_ms_abi>(p);
+        scratchPad->generated_code_double = reinterpret_cast<cn_mainloop_double_fun_ms_abi>(p + 0x2000);
+
+        scratchPad->generated_code_data.variant = PowVariant::LAST_ITEM;
+        scratchPad->generated_code_data.height = (uint64_t)(-1);
+        scratchPad->generated_code_double_data = scratchPad->generated_code_data;
 
         scratchPads[i] = scratchPad;
     }

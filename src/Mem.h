@@ -75,6 +75,9 @@ public:
     static ScratchPadMem create(ScratchPad** scratchPads, int threadId);
     static void release(ScratchPad** scratchPads, ScratchPadMem& scratchPadMem, int threadId);
 
+    static void *allocateExecutableMemory(size_t size);
+    static void flushInstructionCache(void *p, size_t size);
+
     static inline size_t hashFactor()         { return m_hashFactor; }
     static inline size_t getThreadHashFactor(int threadId)
     {

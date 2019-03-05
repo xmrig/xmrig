@@ -30,7 +30,11 @@
 
 void CpuImpl::initCommon()
 {
-    memcpy(m_brand, "Unknown", 7);
+#   ifdef XMRIG_ARMv8
+    memcpy(m_brand, "ARMv8", 5);
+#   else
+    memcpy(m_brand, "ARMv7", 5);
+#   endif
 
 #   if defined(XMRIG_ARMv8)
     m_flags |= Cpu::X86_64;

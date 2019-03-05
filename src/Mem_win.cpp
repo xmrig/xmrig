@@ -183,3 +183,13 @@ void Mem::release(ScratchPadMem &scratchPadMem)
         _mm_free(scratchPadMem.memory);
     }
 }
+
+void *Mem::allocateExecutableMemory(size_t size)
+{
+    return VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+}
+
+void Mem::flushInstructionCache(void *p, size_t size)
+{
+    ::FlushInstructionCache(GetCurrentProcess(), p, size);
+}

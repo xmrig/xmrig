@@ -42,8 +42,25 @@
 #define POW_DEFAULT_INDEX_SHIFT 3
 #define POW_XLT_V4_INDEX_SHIFT 4
 
+#if defined _MSC_VER || defined XMRIG_ARM
+#define ABI_ATTRIBUTE
+#else
+#define ABI_ATTRIBUTE __attribute__((ms_abi))
+#endif
+
+struct ScratchPad;
+typedef void(*cn_mainloop_fun_ms_abi)(ScratchPad*) ABI_ATTRIBUTE;
+typedef void(*cn_mainloop_double_fun_ms_abi)(ScratchPad*, ScratchPad*) ABI_ATTRIBUTE;
+
+struct cryptonight_r_data {
+    int variant;
+    uint64_t height;
+
+    bool match(const int v, const uint64_t h) const { return (v == variant) && (h == height); }
+};
+
 struct ScratchPad {
-    alignas(16) uint8_t state[224]; // 224 instead of 200 to maintain aligned to 16 byte boundaries
+    alignas(16) uint8_t state[224];
     alignas(16) uint8_t* memory;
 
     // Additional stuff for asm impl
@@ -51,6 +68,11 @@ struct ScratchPad {
     const void* input;
     uint8_t* variant_table;
     const uint32_t* t_fn;
+
+    cn_mainloop_fun_ms_abi generated_code;
+    cn_mainloop_double_fun_ms_abi generated_code_double;
+    cryptonight_r_data generated_code_data;
+    cryptonight_r_data generated_code_double_data;
 };
 
 alignas(64) static uint8_t variant1_table[256];
@@ -63,12 +85,12 @@ class CryptoNight
 {
 public:
     static bool init(int algo, bool aesni);
-    static void hash(size_t factor, AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
+    static void hash(size_t factor, AsmOptimization asmOptimization, uint64_t height, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
 
 public:
 
 private:
-    static bool selfTest(int algo);
+    static bool selfCheck(int algo);
 };
 
 

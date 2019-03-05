@@ -54,6 +54,7 @@ set(SOURCES_CRYPTO
     src/crypto/c_jh.c
     src/crypto/c_skein.c
     src/crypto/CryptoNight.cpp
+    src/crypto/CryptoNightR_gen.cpp
    )
 
 set(SOURCES_COMMON
@@ -131,7 +132,7 @@ if (WIN32)
     add_definitions(-DBOOST_ALL_NO_LIB)
 endif(WIN32)
 
-find_package(Boost 1.63.0 COMPONENTS system REQUIRED)
+find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
 
 include(cmake/flags.cmake)
 

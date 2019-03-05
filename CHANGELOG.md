@@ -1,3 +1,11 @@
+# 1.9.0
+- Integrated Monero CN-R variant so called CNv4, aka CN-R, aka CNv5, aka Cryptonight-R #233 (algo: "cryptonight", variant: "r")
+- Integrated Wownero CN-R variant #233 (algo: "cryptonight", variant: "wow")
+- Integrated Graft variant (algo: "cryptonight", variant: "rwz" OR variant: "graft")
+- Integrated X-Cash variant #234 (algo: "cryptonight", variant: "double" OR variant: "heavyx" OR variant: "xcash")
+- Integrated Zelerius variant (algo: "cryptonight", variant: "zls" OR variant: "zelerius")
+- Add miner version column to the Dashboard (version turns red when its outdated)
+- Fixed crash when remote logging is disabled
 # 1.8.13
 - Integrated HOSP variant (algo: "cryptonight", variant: "hosp")
 - Added ASM code/optimization for HOSP and RTO on Intel CPUs

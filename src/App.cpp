@@ -155,10 +155,14 @@ int App::start()
         return EINVAL;
     } else {
         if (Options::i()->colors()) {
-            LOG_INFO(WHITE_BOLD("%s hash self-test... ") GREEN_BOLD("successful") ".", m_options->algoName());
+            LOG_INFO(WHITE_BOLD("%s hash self-test... %s."),
+                m_options->algoName(),
+                Options::i()->skipSelfCheck() ?  YELLOW_BOLD("skipped") : GREEN_BOLD("successful"));
         }
         else {
-            LOG_INFO("%s hash self-test... successful.", m_options->algoName());
+            LOG_INFO("%s hash self-test... %s.",
+                m_options->algoName(),
+                Options::i()->skipSelfCheck() ?  "skipped" : "successful");
         }
     }
 

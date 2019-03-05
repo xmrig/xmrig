@@ -62,6 +62,7 @@ Job::Job(int poolId, bool nicehash) :
     m_size(0),
     m_diff(0),
     m_target(0),
+    m_height(0),
     m_powVariant(PowVariant::POW_AUTODETECT)
 {
 }
