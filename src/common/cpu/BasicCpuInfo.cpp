@@ -36,6 +36,10 @@
 #   define bit_AES (1 << 25)
 #endif
 
+#ifndef bit_OSXSAVE
+#   define bit_OSXSAVE (1 << 27)
+#endif
+
 #ifndef bit_AVX2
 #   define bit_AVX2 (1 << 5)
 #endif
@@ -107,10 +111,19 @@ static inline bool has_avx2()
 }
 
 
+static inline bool has_ossave()
+{
+    int32_t cpu_info[4] = { 0 };
+    cpuid(PROCESSOR_INFO, cpu_info);
+
+    return (cpu_info[ECX_Reg] & bit_OSXSAVE) != 0;
+}
+
+
 xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_assembly(ASM_NONE),
     m_aes(has_aes_ni()),
-    m_avx2(has_avx2()),
+    m_avx2(has_avx2() && has_ossave()),
     m_brand(),
     m_threads(std::thread::hardware_concurrency())
 {
