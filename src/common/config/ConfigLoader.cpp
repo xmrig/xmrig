@@ -47,11 +47,15 @@
 #include "common/interfaces/IConfig.h"
 #include "common/Platform.h"
 #include "core/ConfigCreator.h"
-#include "core/ConfigLoader_default.h"
 #include "core/ConfigLoader_platform.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/fwd.h"
+
+
+#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+#   include "core/ConfigLoader_default.h"
+#endif
 
 
 xmrig::ConfigWatcher *xmrig::ConfigLoader::m_watcher     = nullptr;
