@@ -484,7 +484,6 @@ void xmrig::Pool::rebuild()
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
-    addVariant(VARIANT_RWZ);
     addVariant(VARIANT_4);
     addVariant(VARIANT_WOW);
     addVariant(VARIANT_2);
@@ -498,6 +497,9 @@ void xmrig::Pool::rebuild()
     addVariant(VARIANT_XAO);
     addVariant(VARIANT_RTO);
     addVariant(VARIANT_GPU);
+    addVariant(VARIANT_RWZ);
+    addVariant(VARIANT_ZLS);
+    addVariant(VARIANT_DOUBLE);
     addVariant(VARIANT_AUTO);
 #   endif
 }
