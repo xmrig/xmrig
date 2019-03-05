@@ -55,17 +55,19 @@ bool MultiWorker<N>::selfTest()
     using namespace xmrig;
 
     if (m_thread->algorithm() == CRYPTONIGHT) {
-        const bool rc = verify(VARIANT_0,    test_output_v0)   &&
-                        verify(VARIANT_1,    test_output_v1)   &&
-                        verify(VARIANT_2,    test_output_v2)   &&
-                        verify(VARIANT_XTL,  test_output_xtl)  &&
-                        verify(VARIANT_MSR,  test_output_msr)  &&
-                        verify(VARIANT_XAO,  test_output_xao)  &&
-                        verify(VARIANT_RTO,  test_output_rto)  &&
-                        verify(VARIANT_HALF, test_output_half) &&
-                        verify2(VARIANT_WOW, test_output_wow)  &&
-                        verify2(VARIANT_4,   test_output_r)    &&
-                        verify(VARIANT_RWZ,  test_output_rwz);
+        const bool rc = verify(VARIANT_0,      test_output_v0)   &&
+                        verify(VARIANT_1,      test_output_v1)   &&
+                        verify(VARIANT_2,      test_output_v2)   &&
+                        verify(VARIANT_XTL,    test_output_xtl)  &&
+                        verify(VARIANT_MSR,    test_output_msr)  &&
+                        verify(VARIANT_XAO,    test_output_xao)  &&
+                        verify(VARIANT_RTO,    test_output_rto)  &&
+                        verify(VARIANT_HALF,   test_output_half) &&
+                        verify2(VARIANT_WOW,   test_output_wow)  &&
+                        verify2(VARIANT_4,     test_output_r)    &&
+                        verify(VARIANT_RWZ,    test_output_rwz)  &&
+                        verify(VARIANT_ZLS,    test_output_zls)  &&
+                        verify(VARIANT_DOUBLE, test_output_double);
 
 #       ifndef XMRIG_NO_CN_GPU
         if (!rc || N > 1) {

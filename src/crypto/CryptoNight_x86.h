@@ -767,6 +767,16 @@ extern xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_ryzen_asm;
 extern xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_bulldozer_asm;
 extern xmrig::CpuThread::cn_mainloop_double_fun cn_trtl_double_mainloop_sandybridge_asm;
 
+extern xmrig::CpuThread::cn_mainloop_fun        cn_zls_mainloop_ivybridge_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_zls_mainloop_ryzen_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_zls_mainloop_bulldozer_asm;
+extern xmrig::CpuThread::cn_mainloop_double_fun cn_zls_double_mainloop_sandybridge_asm;
+
+extern xmrig::CpuThread::cn_mainloop_fun        cn_double_mainloop_ivybridge_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_double_mainloop_ryzen_asm;
+extern xmrig::CpuThread::cn_mainloop_fun        cn_double_mainloop_bulldozer_asm;
+extern xmrig::CpuThread::cn_mainloop_double_fun cn_double_double_mainloop_sandybridge_asm;
+
 void wow_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
 void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
 void wow_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
@@ -848,6 +858,28 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
     else if (VARIANT == xmrig::VARIANT_RWZ) {
         cnv2_rwz_mainloop_asm(ctx[0]);
     }
+    else if (VARIANT == xmrig::VARIANT_ZLS) {
+        if (ASM == xmrig::ASM_INTEL) {
+            cn_zls_mainloop_ivybridge_asm(ctx[0]);
+        }
+        else if (ASM == xmrig::ASM_RYZEN) {
+            cn_zls_mainloop_ryzen_asm(ctx[0]);
+        }
+        else {
+            cn_zls_mainloop_bulldozer_asm(ctx[0]);
+        }
+    }
+    else if (VARIANT == xmrig::VARIANT_DOUBLE) {
+        if (ASM == xmrig::ASM_INTEL) {
+            cn_double_mainloop_ivybridge_asm(ctx[0]);
+        }
+        else if (ASM == xmrig::ASM_RYZEN) {
+            cn_double_mainloop_ryzen_asm(ctx[0]);
+        }
+        else {
+            cn_double_mainloop_bulldozer_asm(ctx[0]);
+        }
+    }
     else if (xmrig::cn_is_cryptonight_r<VARIANT>()) {
         ctx[0]->generated_code(ctx[0]);
     }
@@ -888,6 +920,12 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
     }
     else if (VARIANT == xmrig::VARIANT_RWZ) {
         cnv2_rwz_double_mainloop_asm(ctx[0], ctx[1]);
+    }
+    else if (VARIANT == xmrig::VARIANT_ZLS) {
+        cn_zls_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
+    }
+    else if (VARIANT == xmrig::VARIANT_DOUBLE) {
+        cn_double_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
     }
     else if (xmrig::cn_is_cryptonight_r<VARIANT>()) {
         ctx[0]->generated_code_double(ctx[0], ctx[1]);
