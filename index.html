@@ -407,6 +407,11 @@
                         latestRelease = release.tag_name
                         latestVersion = parseInt(release.tag_name.split('.').join(""));
                         currentVersion = parseInt(json.current_version.split('.').join(""));
+
+                        if (currentVersion < 1000) {
+                            currentVersion = currentVersion * 10;
+                        }
+
                         if (latestVersion > currentVersion) {
                             $("#updateNotificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
                                 '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
@@ -680,6 +685,10 @@
 
     function version( data, type, row ) {
         var clientVersion = parseInt(row.client_status.version.split('.').join(""));
+
+        if (clientVersion < 1000) {
+            clientVersion = clientVersion * 10;
+        }
 
         if (latestVersion > clientVersion) {
             return '<span data-toggle="tooltip" title="Outdated"><div class="offline">' + data + '</div></span>';
