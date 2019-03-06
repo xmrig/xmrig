@@ -6,6 +6,7 @@
 - Integrated Zelerius variant (algo: "cryptonight", variant: "zls" OR variant: "zelerius")
 - Add miner version column to the Dashboard (version turns red when its outdated)
 - Fixed crash when remote logging is disabled
+- Added config parameter --skip-self-check to skip the algo verification check on startup to improce startup speed. Use with caution and only if you know that the algos are working fine on your machine.
 # 1.8.13
 - Integrated HOSP variant (algo: "cryptonight", variant: "hosp")
 - Added ASM code/optimization for HOSP and RTO on Intel CPUs
