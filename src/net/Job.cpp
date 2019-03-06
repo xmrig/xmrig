@@ -144,7 +144,9 @@ PowVariant Job::powVariant() const
     }
 
     if (m_powVariant == PowVariant::POW_AUTODETECT) {
-        if (m_blob[0] > 7) {
+        if (m_blob[0] >= 10) {
+            return PowVariant::POW_V4;
+        } else if (m_blob[0] > 7) {
             return PowVariant::POW_V2;
         } else if (m_blob[0] > 6) {
             return PowVariant::POW_V1;
@@ -161,6 +163,18 @@ PowVariant Job::powVariant() const
         if (!Options::i()->forcePowVariant()) {
             if (m_blob[0] >= 8) {
                 return PowVariant::POW_FAST_2;
+            }
+        }
+    } else if (m_powVariant == PowVariant::POW_RWZ) {
+        if (!Options::i()->forcePowVariant()) {
+            if (m_blob[0] < 12) {
+                return PowVariant::POW_V2;
+            }
+        }
+    } else if (m_powVariant == PowVariant::POW_ZELERIUS) {
+        if (!Options::i()->forcePowVariant()) {
+            if (m_blob[0] < 8) {
+                return PowVariant::POW_V2;
             }
         }
     }
