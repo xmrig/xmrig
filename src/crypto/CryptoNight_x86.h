@@ -195,9 +195,9 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
 
 #   define SHUFFLE_PHASE_1(l, idx, bx0, bx1, ax, reverse) \
 { \
-    const __m128i chunk1 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x10))); \
+    const __m128i chunk1 = _mm_load_si128((__m128i *)((l) + ((idx) ^ (reverse ? 0x30 : 0x10)))); \
     const __m128i chunk2 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x20))); \
-    const __m128i chunk3 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x30))); \
+    const __m128i chunk3 = _mm_load_si128((__m128i *)((l) + ((idx) ^ (reverse ? 0x10 : 0x30)))); \
     _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x10)), _mm_add_epi64(chunk3, bx1)); \
     _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x20)), _mm_add_epi64(chunk1, bx0)); \
     _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x30)), _mm_add_epi64(chunk2, ax)); \
@@ -221,8 +221,13 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
     const __m128i chunk3 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x30))); \
     hi ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[0]; \
     lo ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[1]; \
+    if (reverse) { \
+        _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x10)), _mm_add_epi64(chunk1, bx1)); \
+        _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x20)), _mm_add_epi64(chunk3, bx0)); \
+    } else { \
         _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x10)), _mm_add_epi64(chunk3, bx1)); \
         _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x20)), _mm_add_epi64(chunk1, bx0)); \
+    } \
     _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x30)), _mm_add_epi64(chunk2, ax)); \
 }
 
