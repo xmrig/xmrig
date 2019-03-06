@@ -1,3 +1,6 @@
+# 1.9.1
+- Fix coloring of outdated miners on Dashboard
+- Autodetect for fork of CN/R(variant: "auto"), Graft(variant: "rwz"), Zelerius(variant: "zls")
 # 1.9.0
 - Integrated Monero CN-R variant so called CNv4, aka CN-R, aka CNv5, aka Cryptonight-R #233 (algo: "cryptonight", variant: "r")
 - Integrated Wownero CN-R variant #233 (algo: "cryptonight", variant: "wow")
