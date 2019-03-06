@@ -94,7 +94,11 @@
 	lea	r9, QWORD PTR [rdx+r13]
 	movdqu	xmm15, XMMWORD PTR [r9]
 
+	#ifdef __APPLE__
+	ALIGN(16)
+	#else
 	ALIGN(64)
+	#endif
 rwz_main_loop_double:
 	movdqu	xmm9, xmm15
 	mov eax, edx

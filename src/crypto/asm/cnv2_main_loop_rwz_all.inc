@@ -50,7 +50,11 @@
 	punpcklqdq xmm5, xmm0
 	movdqu	 xmm6, XMMWORD PTR [r10+rbx]
 
-	ALIGN(64)
+        #ifdef __APPLE__
+        ALIGN(16)
+        #else
+        ALIGN(64)
+        #endif
 rwz_main_loop:
 	lea	 rdx, QWORD PTR [r10+rbx]
 	mov	 ecx, r10d
