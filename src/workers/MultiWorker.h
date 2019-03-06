@@ -50,7 +50,7 @@ protected:
 private:
     bool resume(const xmrig::Job &job);
     bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
-    bool verify2(xmrig::Variant variant, const char *test_data);
+    bool verify2(xmrig::Variant variant, const uint8_t *referenceValue);
     void consumeJob();
     void save(const xmrig::Job &job);
 

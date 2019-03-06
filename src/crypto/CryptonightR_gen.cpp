@@ -31,7 +31,6 @@ typedef void(*void_func)();
 #include "crypto/asm/CryptonightR_template.h"
 #include "Mem.h"
 
-#if !defined XMRIG_ARM && !defined XMRIG_NO_ASM
 
 static inline void add_code(uint8_t* &p, void (*p1)(), void (*p2)())
 {
@@ -186,5 +185,3 @@ void v4_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* m
 
     Mem::flushInstructionCache(machine_code, p - p0);
 }
-
-#endif

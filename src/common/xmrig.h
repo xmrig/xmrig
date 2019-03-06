@@ -43,14 +43,17 @@ enum Algo {
 // algorithms that can has different performance
 enum PerfAlgo {
     PA_INVALID = -1,
-    PA_CN,       /* cn/0 (Monero) */
-    PA_CN2,      /* cn/2 (Monero) */
-    PA_CN_HALF,  /* cn/half (MSR) */
-    PA_CN_GPU,   /* cn/gpu (RYO) */
-    PA_CN_R,     /* cn/4 (Monero) */
-    PA_CN_LITE,  /* cn-lite/1 (AEON) */
-    PA_CN_HEAVY, /* cn-heavy/0 (LOKI) */
-    PA_CN_PICO,  /* cn-pico/trtl (TRTL) */
+    PA_CN,        /* cn/0 (Monero) */
+    PA_CN2,       /* cn/2 (Monero) */
+    PA_CN_HALF,   /* cn/half (MSR) */
+    PA_CN_GPU,    /* cn/gpu (RYO) */
+    PA_CN_R,      /* cn/4 (Monero) */
+    PA_CN_RWZ,    /* cn/rwz (Graft) */
+    PA_CN_ZLS,    /* cn/zls (Zelerius) */
+    PA_CN_DOUBLE, /* cn/double (Double) */
+    PA_CN_LITE,   /* cn-lite/1 (AEON) */
+    PA_CN_HEAVY,  /* cn-heavy/0 (LOKI) */
+    PA_CN_PICO,   /* cn-pico/trtl (TRTL) */
     PA_MAX
 };
 
@@ -75,21 +78,24 @@ enum AlgoVariant {
 
 
 enum Variant {
-    VARIANT_AUTO = -1, // Autodetect
-    VARIANT_0    = 0,  // Original CryptoNight or CryptoNight-Heavy
-    VARIANT_1    = 1,  // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
-    VARIANT_TUBE = 2,  // Modified CryptoNight-Heavy (TUBE only)
-    VARIANT_XTL  = 3,  // Modified CryptoNight variant 1 (Stellite only)
-    VARIANT_MSR  = 4,  // Modified CryptoNight variant 1 (Masari only)
-    VARIANT_XHV  = 5,  // Modified CryptoNight-Heavy (Haven Protocol only)
-    VARIANT_XAO  = 6,  // Modified CryptoNight variant 0 (Alloy only)
-    VARIANT_RTO  = 7,  // Modified CryptoNight variant 1 (Arto only)
-    VARIANT_2    = 8,  // CryptoNight variant 2
-    VARIANT_HALF = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
-    VARIANT_TRTL = 10, // CryptoNight Turtle (TRTL)
-    VARIANT_GPU  = 11, // CryptoNight-GPU (Ryo)
-    VARIANT_WOW  = 12, // CryptoNightR (Wownero)
-    VARIANT_4    = 13, // CryptoNightR (Monero's variant 4)
+    VARIANT_AUTO   = -1, // Autodetect
+    VARIANT_0      = 0,  // Original CryptoNight or CryptoNight-Heavy
+    VARIANT_1      = 1,  // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
+    VARIANT_TUBE   = 2,  // Modified CryptoNight-Heavy (TUBE only)
+    VARIANT_XTL    = 3,  // Modified CryptoNight variant 1 (Stellite only)
+    VARIANT_MSR    = 4,  // Modified CryptoNight variant 1 (Masari only)
+    VARIANT_XHV    = 5,  // Modified CryptoNight-Heavy (Haven Protocol only)
+    VARIANT_XAO    = 6,  // Modified CryptoNight variant 0 (Alloy only)
+    VARIANT_RTO    = 7,  // Modified CryptoNight variant 1 (Arto only)
+    VARIANT_2      = 8,  // CryptoNight variant 2
+    VARIANT_HALF   = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
+    VARIANT_TRTL   = 10, // CryptoNight Turtle (TRTL)
+    VARIANT_GPU    = 11, // CryptoNight-GPU (Ryo)
+    VARIANT_WOW    = 12, // CryptoNightR (Wownero)
+    VARIANT_4      = 13, // CryptoNightR (Monero's variant 4)
+    VARIANT_RWZ    = 14, // CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft)
+    VARIANT_ZLS    = 15, // CryptoNight variant 2 with 3/4 iterations (Zelerius)
+    VARIANT_DOUBLE = 16, // CryptoNight variant 2 with double iterations (X-CASH)
     VARIANT_MAX
 };
 

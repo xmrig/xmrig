@@ -61,6 +61,10 @@ char *Platform::createUserAgent()
 
 #   if defined(__x86_64__)
     length += snprintf(buf + length, max - length, "x86_64) libuv/%s", uv_version_string());
+#   elif defined(__aarch64__)
+    length += snprintf(buf + length, max - length, "aarch64) libuv/%s", uv_version_string());
+#   elif defined(__arm__)
+    length += snprintf(buf + length, max - length, "arm) libuv/%s", uv_version_string());
 #   else
     length += snprintf(buf + length, max - length, "i686) libuv/%s", uv_version_string());
 #   endif

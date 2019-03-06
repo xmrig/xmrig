@@ -46,6 +46,8 @@
 #endif
 
 
+namespace xmrig {
+
 static const char *kEnabled     = "enabled";
 static const char *kFingerprint = "tls-fingerprint";
 static const char *kKeepalive   = "keepalive";
@@ -56,6 +58,8 @@ static const char *kTls         = "tls";
 static const char *kUrl         = "url";
 static const char *kUser        = "user";
 static const char *kVariant     = "variant";
+
+}
 
 
 xmrig::Algorithms all_algorithms() {
@@ -72,6 +76,9 @@ xmrig::Algorithms all_algorithms() {
     algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU));
     algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_WOW));
     algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_4));
+    algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_RWZ));
+    algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_ZLS));
+    algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT, xmrig::VARIANT_DOUBLE));
 
     algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_1));
     algorithms.push_back(xmrig::Algorithm(xmrig::CRYPTONIGHT_LITE, xmrig::VARIANT_0));
@@ -161,6 +168,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
 xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
     m_algorithms(all_algorithms()),
+    m_enabled(true),
     m_nicehash(nicehash),
     m_tls(tls),
     m_keepAlive(keepAlive),

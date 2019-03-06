@@ -55,18 +55,21 @@ struct AlgoData
 
 
 static AlgoData const algorithms[] = {
-    { "cryptonight",           "cn",           xmrig::CRYPTONIGHT,       xmrig::VARIANT_AUTO },
-    { "cryptonight/0",         "cn/0",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_0    },
-    { "cryptonight/1",         "cn/1",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_1    },
-    { "cryptonight/xtl",       "cn/xtl",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL  },
-    { "cryptonight/msr",       "cn/msr",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
-    { "cryptonight/xao",       "cn/xao",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO  },
-    { "cryptonight/rto",       "cn/rto",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
-    { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
-    { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF },
-    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF },
-    { "cryptonight/wow",       "cn/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_WOW  },
-    { "cryptonight/r",         "cn/r",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_4    },
+    { "cryptonight",           "cn",           xmrig::CRYPTONIGHT,       xmrig::VARIANT_AUTO   },
+    { "cryptonight/0",         "cn/0",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_0      },
+    { "cryptonight/1",         "cn/1",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_1      },
+    { "cryptonight/xtl",       "cn/xtl",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL    },
+    { "cryptonight/msr",       "cn/msr",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR    },
+    { "cryptonight/xao",       "cn/xao",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO    },
+    { "cryptonight/rto",       "cn/rto",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO    },
+    { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2      },
+    { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF   },
+    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF   },
+    { "cryptonight/wow",       "cn/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_WOW    },
+    { "cryptonight/r",         "cn/r",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_4      },
+    { "cryptonight/rwz",       "cn/rwz",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RWZ    },
+    { "cryptonight/zls",       "cn/zls",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZLS    },
+    { "cryptonight/double",    "cn/double",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -134,6 +137,9 @@ static const char *variants[] = {
     "gpu",
     "wow",
     "r",
+    "rwz",
+    "zls",
+    "double"
 };
 
 
@@ -300,6 +306,9 @@ const char *xmrig::Algorithm::perfAlgoName(const xmrig::PerfAlgo pa) {
         "cn/half",
         "cn/gpu",
         "cn/r",
+        "cn/rwz",
+        "cn/zls",
+        "cn/double",
         "cn-lite",
         "cn-heavy",
         "cn-pico",
@@ -330,6 +339,18 @@ xmrig::Algorithm::Algorithm(const xmrig::PerfAlgo pa) {
            m_algo    = xmrig::CRYPTONIGHT;
            m_variant = xmrig::VARIANT_4;
            break;
+       case PA_CN_RWZ:
+           m_algo    = xmrig::CRYPTONIGHT;
+           m_variant = xmrig::VARIANT_RWZ;
+           break;
+       case PA_CN_ZLS:
+           m_algo    = xmrig::CRYPTONIGHT;
+           m_variant = xmrig::VARIANT_ZLS;
+           break;
+       case PA_CN_DOUBLE:
+           m_algo    = xmrig::CRYPTONIGHT;
+           m_variant = xmrig::VARIANT_DOUBLE;
+           break;
        case PA_CN_LITE:
            m_algo    = xmrig::CRYPTONIGHT_LITE;
            m_variant = xmrig::VARIANT_1;
@@ -353,12 +374,15 @@ xmrig::PerfAlgo xmrig::Algorithm::perf_algo() const {
     switch (m_algo) {
        case CRYPTONIGHT:
            switch (m_variant) {
-               case VARIANT_2:    return PA_CN2;
-               case VARIANT_HALF: return PA_CN_HALF;
-               case VARIANT_GPU:  return PA_CN_GPU;
-               case VARIANT_WOW:  return PA_CN_R;
-               case VARIANT_4:    return PA_CN_R;
-               default:           return PA_CN;
+               case VARIANT_2:      return PA_CN2;
+               case VARIANT_HALF:   return PA_CN_HALF;
+               case VARIANT_GPU:    return PA_CN_GPU;
+               case VARIANT_WOW:    return PA_CN_R;
+               case VARIANT_4:      return PA_CN_R;
+               case VARIANT_RWZ:    return PA_CN_RWZ;
+               case VARIANT_ZLS:    return PA_CN_ZLS;
+               case VARIANT_DOUBLE: return PA_CN_DOUBLE;
+               default:             return PA_CN;
            }
        case CRYPTONIGHT_LITE:  return PA_CN_LITE;
        case CRYPTONIGHT_HEAVY: return PA_CN_HEAVY;

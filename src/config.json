@@ -42,5 +42,5 @@
     "calibrate-algo": false,
     "calibrate-algo-time": 10,
     "user-agent": null,
-    "watch": false
+    "watch": true
 }
