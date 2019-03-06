@@ -140,6 +140,9 @@ bool xmrig::Job::setBlob(const char *blob)
         else if (m_algorithm.variant() == VARIANT_RWZ && m_blob[0] < 12) {
             m_algorithm.setVariant(VARIANT_2);
         }
+        else if (m_algorithm.variant() == VARIANT_ZLS && m_blob[0] < 8) {
+            m_algorithm.setVariant(VARIANT_2);
+        }
     }
 
 #   ifdef XMRIG_PROXY_PROJECT
