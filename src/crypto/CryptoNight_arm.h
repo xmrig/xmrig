@@ -436,7 +436,7 @@ static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m1
     uint64_t* mem_out = (uint64_t*)&l[idx];
 
     if (BASE == xmrig::VARIANT_2) {
-        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx);
+        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0));
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
@@ -530,9 +530,9 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
         if (BASE == xmrig::VARIANT_2) {
             if (VARIANT == xmrig::VARIANT_4) {
-                VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx);
+                VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo);
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0));
             }
         }
 
@@ -709,9 +709,9 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
         if (BASE == xmrig::VARIANT_2) {
             if (VARIANT == xmrig::VARIANT_4) {
-                VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0);
+                VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo);
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0));
             }
         }
 
@@ -767,9 +767,9 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
         if (BASE == xmrig::VARIANT_2) {
             if (VARIANT == xmrig::VARIANT_4) {
-                VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1);
+                VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1, 0);
             } else {
-                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo);
+                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0));
             }
         }
 

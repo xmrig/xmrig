@@ -22,32 +22,63 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_JSON_H
-#define XMRIG_JSON_H
-
-
-#include "rapidjson/fwd.h"
+#ifndef XMRIG_CONFIGLOADER_DEFAULT_H
+#define XMRIG_CONFIGLOADER_DEFAULT_H
 
 
 namespace xmrig {
 
 
-class Json
+#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+const static char *default_config =
+R"===(
 {
-public:
-    static bool getBool(const rapidjson::Value &obj, const char *key, bool defaultValue = false);
-    static const char *getString(const rapidjson::Value &obj, const char *key, const char *defaultValue = nullptr);
-    static int getInt(const rapidjson::Value &obj, const char *key, int defaultValue = 0);
-    static int64_t getInt64(const rapidjson::Value &obj, const char *key, int64_t defaultValue = 0);
-    static uint64_t getUint64(const rapidjson::Value &obj, const char *key, uint64_t defaultValue = 0);
-    static unsigned getUint(const rapidjson::Value &obj, const char *key, unsigned defaultValue = 0);
-
-    static bool get(const char *fileName, rapidjson::Document &doc);
-    static bool save(const char *fileName, const rapidjson::Document &doc);
-};
+    "algo": "cryptonight",
+    "api": {
+        "port": 0,
+        "access-token": null,
+        "id": null,
+        "worker-id": null,
+        "ipv6": false,
+        "restricted": true
+    },
+    "asm": true,
+    "autosave": true,
+    "av": 0,
+    "background": false,
+    "colors": true,
+    "cpu-affinity": null,
+    "cpu-priority": null,
+    "donate-level": 5,
+    "huge-pages": true,
+    "hw-aes": null,
+    "log-file": null,
+    "max-cpu-usage": 100,
+    "pools": [
+        {
+            "url": "donate.v2.xmrig.com:3333",
+            "user": "YOUR_WALLET_ADDRESS",
+            "pass": "x",
+            "rig-id": null,
+            "nicehash": false,
+            "keepalive": false,
+            "variant": -1,
+            "tls": false,
+            "tls-fingerprint": null
+        }
+    ],
+    "print-time": 60,
+    "retries": 5,
+    "retry-pause": 5,
+    "safe": false,
+    "threads": null,
+    "user-agent": null,
+    "watch": false
+}
+)===";
+#endif
 
 
 } /* namespace xmrig */
 
-
-#endif /* XMRIG_JSON_H */
+#endif /* XMRIG_CONFIGLOADER_DEFAULT_H */

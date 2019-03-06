@@ -23,7 +23,7 @@ if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         if (WIN32 AND CMAKE_C_COMPILER_ID MATCHES GNU)
             set(XMRIG_ASM_FILES
                 "src/crypto/asm/win64/cn_main_loop.S"
-                "src/crypto/asm/win64/CryptonightR_template.S"
+                "src/crypto/asm/CryptonightR_template.S"
             )
         else()
             set(XMRIG_ASM_FILES
@@ -36,7 +36,7 @@ if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     endif()
 
     add_library(${XMRIG_ASM_LIBRARY} STATIC ${XMRIG_ASM_FILES})
-    set(XMRIG_ASM_SOURCES src/crypto/Asm.h src/crypto/Asm.cpp)
+    set(XMRIG_ASM_SOURCES src/crypto/Asm.h src/crypto/Asm.cpp src/crypto/CryptonightR_gen.cpp)
     set_property(TARGET ${XMRIG_ASM_LIBRARY} PROPERTY LINKER_LANGUAGE C)
 else()
     set(XMRIG_ASM_SOURCES "")
