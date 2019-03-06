@@ -1159,7 +1159,7 @@ public:
 
             ((int64_t*) &l[idx & MASK])[0] = n ^ q;
 
-            if (VARIANT == POW_XHV) {
+            if (VARIANT == POW_XHV || VARIANT == POW_XFH) {
                 idx = (~d) ^ q;
             } else {
                 idx = d ^ q;
@@ -1913,7 +1913,7 @@ public:
 
             ((int64_t*) &l0[idx0 & MASK])[0] = n0 ^ q0;
 
-            if (VARIANT == POW_XHV) {
+            if (VARIANT == POW_XHV || VARIANT == POW_XFH) {
                 idx0 = (~d0) ^ q0;
             } else {
                 idx0 = d0 ^ q0;
@@ -1940,7 +1940,7 @@ public:
 
             ((int64_t*) &l1[idx1 & MASK])[0] = n1 ^ q1;
 
-            if (VARIANT == POW_XHV) {
+            if (VARIANT == POW_XHV || VARIANT == POW_XFH) {
                 idx1 = (~d1) ^ q1;
             } else {
                 idx1 = d1 ^ q1;
@@ -2997,7 +2997,7 @@ public:
 
             ((int64_t*) &l0[idx0 & MASK])[0] = n0 ^ q0;
 
-            if (VARIANT == POW_XHV) {
+            if (VARIANT == POW_XHV || VARIANT == POW_XFH) {
                 idx0 = (~d0) ^ q0;
             } else {
                 idx0 = d0 ^ q0;
@@ -3024,7 +3024,7 @@ public:
 
             ((int64_t*) &l1[idx1 & MASK])[0] = n1 ^ q1;
 
-            if (VARIANT == POW_XHV) {
+            if (VARIANT == POW_XHV || VARIANT == POW_XFH) {
                 idx1 = (~d1) ^ q1;
             } else {
                 idx1 = d1 ^ q1;
@@ -3052,7 +3052,7 @@ public:
 
             ((int64_t*) &l2[idx2 & MASK])[0] = n2 ^ q2;
 
-            if (VARIANT == POW_XHV) {
+            if (VARIANT == POW_XHV || VARIANT == POW_XFH) {
                 idx2 = (~d2) ^ q2;
             } else {
                 idx2 = d2 ^ q2;
