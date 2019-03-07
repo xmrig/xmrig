@@ -43,7 +43,7 @@
 
 #define APP_VER_MAJOR  1
 #define APP_VER_MINOR  9
-#define APP_VER_BUILD  0
+#define APP_VER_BUILD  1
 #define APP_VER_REV    0
 
 #ifndef NDEBUG
