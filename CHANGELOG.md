@@ -1,3 +1,6 @@
+# v2.14.1
+* [#975](https://github.com/xmrig/xmrig/issues/975) Fixed crash on Linux if double thread mode used.
+
 # v2.14.0
 - **[#969](https://github.com/xmrig/xmrig/pull/969) Added new algorithm `cryptonight/rwz`, short alias `cn/rwz` (also known as CryptoNight ReverseWaltz), for upcoming [Graft](https://www.graft.network/) fork.**
 - **[#931](https://github.com/xmrig/xmrig/issues/931) Added new algorithm `cryptonight/zls`, short alias `cn/zls` for [Zelerius Network](https://zelerius.org) fork.**
