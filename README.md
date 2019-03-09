@@ -27,13 +27,18 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
-* **NEW Support of Crytptonight-Ultralite TRTL/Turtle variant (algo: "cryptonight-ultralite", variant "auto")**
-* **NEW Support of Crytptonight-Lite UPX/uPlexa variant (algo: "cryptonight-lite", variant "upx")**
-* **NEW Support of Crytptonight XTL v5/v9 PoW changes aka CN-FastV2 (algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))**
+* **NEW Support of Crytptonight R (XMR) variant(algo: "cryptonight", variant "auto" (autodetect) or "r")**
+* **NEW Support of Crytptonight WOW (Wownero) variant (algo: "cryptonight", variant "wow")**
+* **NEW Support of Crytptonight Reverse Waltz (Graft) variant (algo: "cryptonight", variant "rwz" (autodetect) or variant "graft")**
+* **NEW Support of Crytptonight Double/Heavyx (XCash) variant (algo: "cryptonight", variant "double")**
+* **NEW Support of Crytptonight Zelerius variant (algo: "cryptonight", variant "zls")**
+* **Support of Crytptonight RTO/HOSP variant (algo: "cryptonight", variant "rto" or variant "hosp")**
+* **Support of Crytptonight-Ultralite TRTL/Turtle variant (algo: "cryptonight-ultralite", variant "auto")**
+* **Support of Crytptonight-Lite UPX/uPlexa variant (algo: "cryptonight-lite", variant "upx")**
+* **Support of Crytptonight XTL v5/v9 PoW changes aka CN-FastV2 (algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))**
 * **Support of Crytptonight XFH/SWAP variant aka CN-Heavy-Fast**
 * **Support of Crytptonight v8 PoW changes aka CNV2 (XMR fork on Block 1685555)**
 * **Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (fork on Block 110000)**
-* **Support of Crytptonight Arto (RTO) variant**
 * **Support of Crytptonight Masari (MSR) v7 variant (use variant "msr" to be ready for the fork, with autodetect)**
 * **Support of Crytptonight-Heavy Haven Protocol (XHV) v3 variant (use variant "xhv")**
 * **Support of Crytptonight Stellite (XTL) v4 variant**
