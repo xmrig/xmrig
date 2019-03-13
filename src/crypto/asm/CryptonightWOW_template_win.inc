@@ -12,6 +12,8 @@ PUBLIC CryptonightWOW_template_double_end
 
 ALIGN(64)
 CryptonightWOW_template_part1:
+	mov	rcx, [rcx]
+
 	mov	QWORD PTR [rsp+16], rbx
 	mov	QWORD PTR [rsp+24], rbp
 	mov	QWORD PTR [rsp+32], rsi
@@ -165,6 +167,9 @@ CryptonightWOW_template_end:
 
 ALIGN(64)
 CryptonightWOW_template_double_part1:
+	mov	rdx, [rcx+8]
+	mov	rcx, [rcx]
+
 	mov	QWORD PTR [rsp+24], rbx
 	push	rbp
 	push	rsi

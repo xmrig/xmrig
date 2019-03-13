@@ -36,8 +36,7 @@
 #endif
 
 struct cryptonight_ctx;
-typedef void(*cn_mainloop_fun_ms_abi)(cryptonight_ctx*) ABI_ATTRIBUTE;
-typedef void(*cn_mainloop_double_fun_ms_abi)(cryptonight_ctx*, cryptonight_ctx*) ABI_ATTRIBUTE;
+typedef void(*cn_mainloop_fun_ms_abi)(cryptonight_ctx**) ABI_ATTRIBUTE;
 
 struct cryptonight_r_data {
     int variant;
@@ -54,7 +53,7 @@ struct cryptonight_ctx {
     const uint32_t* saes_table;
 
     cn_mainloop_fun_ms_abi generated_code;
-    cn_mainloop_double_fun_ms_abi generated_code_double;
+    cn_mainloop_fun_ms_abi generated_code_double;
     cryptonight_r_data generated_code_data;
     cryptonight_r_data generated_code_double_data;
 };

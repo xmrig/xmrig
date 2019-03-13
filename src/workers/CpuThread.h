@@ -61,8 +61,7 @@ public:
     CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly);
 
     typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx, uint64_t height);
-    typedef void (*cn_mainloop_fun)(cryptonight_ctx *ctx);
-    typedef void (*cn_mainloop_double_fun)(cryptonight_ctx *ctx1, cryptonight_ctx *ctx2);
+    typedef void (*cn_mainloop_fun)(cryptonight_ctx **ctx);
 
 #   ifndef XMRIG_NO_ASM
     static void patchAsmVariants();
