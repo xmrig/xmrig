@@ -29,6 +29,7 @@
 
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/Tls.h"
+#include "base/tools/Buffer.h"
 #include "common/log/Log.h"
 
 
@@ -183,7 +184,7 @@ bool xmrig::Client::Tls::verifyFingerprint(X509 *cert)
         return false;
     }
 
-    Job::toHex(md, 32, m_fingerprint);
+    Buffer::toHex(md, 32, m_fingerprint);
     const char *fingerprint = m_client->m_pool.fingerprint();
 
     return fingerprint == nullptr || strncasecmp(m_fingerprint, fingerprint, 64) == 0;

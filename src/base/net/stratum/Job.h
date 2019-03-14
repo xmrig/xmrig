@@ -84,14 +84,8 @@ public:
     inline const char *rawTarget() const   { return m_rawTarget; }
 #   endif
 
-    static bool fromHex(const char* in, unsigned int len, unsigned char* out);
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
     static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
-    static void toHex(const unsigned char* in, unsigned int len, char* out);
-
-#   ifdef APP_DEBUG
-    static char *toHex(const unsigned char* in, unsigned int len);
-#   endif
 
     inline bool operator==(const Job &other) const { return isEqual(other); }
     inline bool operator!=(const Job &other) const { return !isEqual(other); }

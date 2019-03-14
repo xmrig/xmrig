@@ -41,6 +41,7 @@ set(HEADERS
     src/base/net/stratum/SubmitResult.h
     src/base/net/tools/Storage.h
     src/base/tools/Arguments.h
+    src/base/tools/Buffer.h
     src/base/tools/Chrono.h
     src/base/tools/Handle.h
     src/base/tools/String.h
@@ -123,6 +124,7 @@ set(SOURCES
     src/base/net/stratum/strategies/SinglePoolStrategy.cpp
     src/base/net/stratum/SubmitResult.cpp
     src/base/tools/Arguments.cpp
+    src/base/tools/Buffer.cpp
     src/base/tools/Handle.cpp
     src/base/tools/String.cpp
     src/common/config/CommonConfig.cpp

@@ -29,33 +29,7 @@
 
 
 #include "base/net/stratum/Job.h"
-
-
-unsigned char hf_hex2bin(char c, bool &err)
-{
-    if (c >= '0' && c <= '9') {
-        return c - '0';
-    }
-    else if (c >= 'a' && c <= 'f') {
-        return c - 'a' + 0xA;
-    }
-    else if (c >= 'A' && c <= 'F') {
-        return c - 'A' + 0xA;
-    }
-
-    err = true;
-    return 0;
-}
-
-
-char hf_bin2hex(unsigned char c)
-{
-    if (c <= 0x9) {
-        return '0' + c;
-    }
-
-    return 'a' - 0xA + c;
-}
+#include "base/tools/Buffer.h"
 
 
 xmrig::Job::Job() :
@@ -115,7 +89,7 @@ bool xmrig::Job::setBlob(const char *blob)
         return false;
     }
 
-    if (!fromHex(blob, (int) m_size * 2, m_blob)) {
+    if (!Buffer::fromHex(blob, m_size * 2, m_blob)) {
         return false;
     }
 
@@ -167,7 +141,7 @@ bool xmrig::Job::setTarget(const char *target)
         char str[8];
         memcpy(str, target, len);
 
-        if (!fromHex(str, 8, reinterpret_cast<unsigned char*>(&tmp)) || tmp == 0) {
+        if (!Buffer::fromHex(str, 8, reinterpret_cast<uint8_t *>(&tmp)) || tmp == 0) {
             return false;
         }
 
@@ -178,7 +152,7 @@ bool xmrig::Job::setTarget(const char *target)
         char str[16];
         memcpy(str, target, len);
 
-        if (!fromHex(str, 16, reinterpret_cast<unsigned char*>(&m_target)) || m_target == 0) {
+        if (!Buffer::fromHex(str, 16, reinterpret_cast<uint8_t *>(&m_target)) || m_target == 0) {
             return false;
         }
     }
@@ -210,40 +184,6 @@ void xmrig::Job::setHeight(uint64_t height)
 {
     m_height = height;
 }
-
-
-bool xmrig::Job::fromHex(const char* in, unsigned int len, unsigned char* out)
-{
-    bool error = false;
-    for (unsigned int i = 0; i < len; i += 2) {
-        out[i / 2] = (hf_hex2bin(in[i], error) << 4) | hf_hex2bin(in[i + 1], error);
-
-        if (error) {
-            return false;
-        }
-    }
-    return true;
-}
-
-
-void xmrig::Job::toHex(const unsigned char* in, unsigned int len, char* out)
-{
-    for (unsigned int i = 0; i < len; i++) {
-        out[i * 2] = hf_bin2hex((in[i] & 0xF0) >> 4);
-        out[i * 2 + 1] = hf_bin2hex(in[i] & 0x0F);
-    }
-}
-
-
-#ifdef APP_DEBUG
-char *xmrig::Job::toHex(const unsigned char* in, unsigned int len)
-{
-    char *out = new char[len * 2 + 1]();
-    toHex(in, len, out);
-
-    return out;
-}
-#endif
 
 
 xmrig::Variant xmrig::Job::variant() const

@@ -27,6 +27,7 @@
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
+#include "base/tools/Buffer.h"
 #include "common/crypto/keccak.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
@@ -51,7 +52,7 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IS
     char userId[65] = { 0 };
 
     keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
-    Job::toHex(hash, 32, userId);
+    Buffer::toHex(hash, 32, userId);
 
 #   ifndef XMRIG_NO_TLS
     m_pools.push_back(Pool("donate.ssl.xmrig.com", 443, userId, nullptr, false, true, true));

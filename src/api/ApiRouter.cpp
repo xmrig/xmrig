@@ -34,7 +34,7 @@
 
 
 #include "api/ApiRouter.h"
-#include "base/net/stratum/Job.h"
+#include "base/tools/Buffer.h"
 #include "common/api/HttpReply.h"
 #include "common/api/HttpRequest.h"
 #include "common/cpu/Cpu.h"
@@ -174,7 +174,7 @@ void ApiRouter::genId(const char *id)
             memcpy(input + sizeof(uint16_t) + addrSize, APP_KIND, strlen(APP_KIND));
 
             xmrig::keccak(input, inSize, hash);
-            xmrig::Job::toHex(hash, 8, m_id);
+            xmrig::Buffer::toHex(hash, 8, m_id);
 
             delete [] input;
             break;

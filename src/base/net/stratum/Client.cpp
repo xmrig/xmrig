@@ -39,6 +39,7 @@
 
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/stratum/Client.h"
+#include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "common/log/Log.h"
 #include "net/JobResult.h"
@@ -232,10 +233,10 @@ int64_t xmrig::Client::submit(const JobResult &result)
     char *nonce = m_sendBuf;
     char *data  = m_sendBuf + 16;
 
-    Job::toHex(reinterpret_cast<const unsigned char*>(&result.nonce), 4, nonce);
+    Buffer::toHex(reinterpret_cast<const char*>(&result.nonce), 4, nonce);
     nonce[8] = '\0';
 
-    Job::toHex(result.result, 32, data);
+    Buffer::toHex(result.result, 32, data);
     data[64] = '\0';
 #   endif
 
