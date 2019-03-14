@@ -58,18 +58,19 @@ public:
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
     inline bool setId(const char *id)                 { return m_id.setId(id); }
-    inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
-    inline const uint8_t *blob() const                { return m_blob; }
     inline const Algorithm &algorithm() const         { return m_algorithm; }
     inline const Id &clientId() const                 { return m_clientId; }
     inline const Id &id() const                       { return m_id; }
+    inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
+    inline const uint8_t *blob() const                { return m_blob; }
     inline int poolId() const                         { return m_poolId; }
     inline int threadId() const                       { return m_threadId; }
     inline size_t size() const                        { return m_size; }
     inline uint32_t *nonce()                          { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const                      { return static_cast<uint32_t>(m_diff); }
-    inline uint64_t target() const                    { return m_target; }
     inline uint64_t height() const                    { return m_height; }
+    inline uint64_t target() const                    { return m_target; }
+    inline uint8_t fixedByte() const                  { return *(m_blob + 42); }
     inline void reset()                               { m_size = 0; m_diff = 0; }
     inline void setClientId(const Id &id)             { m_clientId = id; }
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
@@ -79,6 +80,7 @@ public:
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                 { return m_rawBlob; }
+    inline const char *rawBlob() const     { return m_rawBlob; }
     inline const char *rawTarget() const   { return m_rawTarget; }
 #   endif
 

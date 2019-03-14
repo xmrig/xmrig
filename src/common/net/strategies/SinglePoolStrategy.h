@@ -55,8 +55,10 @@ public:
     void tick(uint64_t now) override;
 
 protected:
+    inline void onLogin(Client *, rapidjson::Document &, rapidjson::Value &) override {}
+
     void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job) override;
+    void onJobReceived(Client *client, const Job &job, const rapidjson::Value &params) override;
     void onLoginSuccess(Client *client) override;
     void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
 

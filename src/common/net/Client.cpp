@@ -252,7 +252,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
     params.AddMember("nonce",  StringRef(nonce), allocator);
     params.AddMember("result", StringRef(data), allocator);
 
-    if (m_extensions & AlgoExt) {
+    if ((m_extensions & AlgoExt) && result.algorithm.isValid()) {
         params.AddMember("algo", StringRef(result.algorithm.shortName()), allocator);
     }
 
@@ -643,6 +643,8 @@ void xmrig::Client::login()
         params.AddMember("algo", algo, allocator);
     }
 
+    m_listener->onLogin(this, doc, params);
+
     doc.AddMember("params", params, allocator);
 
     send(doc);
@@ -750,7 +752,7 @@ void xmrig::Client::parseNotification(const char *method, const rapidjson::Value
     if (strcmp(method, "job") == 0) {
         int code = -1;
         if (parseJob(params, &code)) {
-            m_listener->onJobReceived(this, m_job);
+            m_listener->onJobReceived(this, m_job, params);
         }
 
         return;
@@ -799,7 +801,7 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
 
         m_failures = 0;
         m_listener->onLoginSuccess(this);
-        m_listener->onJobReceived(this, m_job);
+        m_listener->onJobReceived(this, m_job, result["job"]);
         return;
     }
 

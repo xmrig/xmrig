@@ -22,38 +22,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ICLIENTLISTENER_H
-#define XMRIG_ICLIENTLISTENER_H
+#ifndef XMRIG_CHRONO_H
+#define XMRIG_CHRONO_H
 
 
-#include <stdint.h>
-
-
-#include "rapidjson/fwd.h"
+#include <chrono>
 
 
 namespace xmrig {
 
 
-class Client;
-class Job;
-class SubmitResult;
-
-
-class IClientListener
+class Chrono
 {
 public:
-    virtual ~IClientListener() = default;
+    static inline uint64_t steadyMSecs()
+    {
+        using namespace std::chrono;
+        if (high_resolution_clock::is_steady) {
+            return static_cast<uint64_t>(time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count());
+        }
 
-    virtual void onClose(Client *client, int failures)                                           = 0;
-    virtual void onJobReceived(Client *client, const Job &job, const rapidjson::Value &params)   = 0;
-    virtual void onLogin(Client *client, rapidjson::Document &doc, rapidjson::Value &params)     = 0;
-    virtual void onLoginSuccess(Client *client)                                                  = 0;
-    virtual void onResultAccepted(Client *client, const SubmitResult &result, const char *error) = 0;
+        return static_cast<uint64_t>(time_point_cast<milliseconds>(steady_clock::now()).time_since_epoch().count());
+    }
+
+
+    static inline uint64_t currentMSecsSinceEpoch()
+    {
+        using namespace std::chrono;
+
+        return static_cast<uint64_t>(time_point_cast<milliseconds>(system_clock::now()).time_since_epoch().count());
+    }
 };
 
 
 } /* namespace xmrig */
 
-
-#endif // XMRIG_ICLIENTLISTENER_H
+#endif /* XMRIG_CHRONO_H */

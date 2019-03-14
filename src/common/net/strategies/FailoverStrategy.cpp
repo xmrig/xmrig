@@ -150,7 +150,7 @@ void xmrig::FailoverStrategy::onClose(Client *client, int failures)
 }
 
 
-void xmrig::FailoverStrategy::onJobReceived(Client *client, const Job &job)
+void xmrig::FailoverStrategy::onJobReceived(Client *client, const Job &job, const rapidjson::Value &)
 {
     if (m_active == client->id()) {
         m_listener->onJob(this, client, job);

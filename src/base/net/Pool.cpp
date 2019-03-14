@@ -165,7 +165,7 @@ bool xmrig::Pool::isCompatible(const Algorithm &algorithm) const
 
 #   ifdef XMRIG_PROXY_PROJECT
     if (m_algorithm.algo() == xmrig::CRYPTONIGHT && algorithm.algo() == xmrig::CRYPTONIGHT) {
-        return m_algorithm.variant() == xmrig::VARIANT_XTL || m_algorithm.variant() == xmrig::VARIANT_MSR;
+        return m_algorithm.variant() == xmrig::VARIANT_RWZ || m_algorithm.variant() == xmrig::VARIANT_ZLS;
     }
 #   endif
 

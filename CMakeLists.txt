@@ -32,6 +32,7 @@ set(HEADERS
     src/base/net/Pool.h
     src/base/net/Pools.h
     src/base/tools/Arguments.h
+    src/base/tools/Chrono.h
     src/base/tools/Handle.h
     src/base/tools/String.h
     src/common/config/CommonConfig.h

@@ -98,7 +98,7 @@ void xmrig::SinglePoolStrategy::onClose(Client *, int)
 }
 
 
-void xmrig::SinglePoolStrategy::onJobReceived(Client *client, const Job &job)
+void xmrig::SinglePoolStrategy::onJobReceived(Client *client, const Job &job, const rapidjson::Value &)
 {
     m_listener->onJob(this, client, job);
 }

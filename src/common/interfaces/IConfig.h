@@ -117,6 +117,8 @@ public:
         TlsCiphersKey      = 1112,
         TlsCipherSuitesKey = 1113,
         TlsProtocolsKey    = 1114,
+        AlgoExtKey         = 1115,
+        ProxyPasswordKey   = 1116,
 
         // xmrig nvidia
         CudaMaxThreadsKey = 1200,

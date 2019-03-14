@@ -215,6 +215,32 @@ template<> inline constexpr Variant cn_base_variant<VARIANT_ZLS>()    { return V
 template<> inline constexpr Variant cn_base_variant<VARIANT_DOUBLE>() { return VARIANT_2; }
 
 
+inline Variant cn_base_variant(Variant variant)
+{
+    switch (variant) {
+    case VARIANT_0:
+    case VARIANT_XHV:
+    case VARIANT_XAO:
+        return VARIANT_0;
+
+    case VARIANT_1:
+    case VARIANT_TUBE:
+    case VARIANT_XTL:
+    case VARIANT_MSR:
+    case VARIANT_RTO:
+        return VARIANT_1;
+
+    case VARIANT_GPU:
+        return VARIANT_GPU;
+
+    default:
+        break;
+    }
+
+    return VARIANT_2;
+}
+
+
 template<Variant variant> inline constexpr bool cn_is_cryptonight_r() { return false; }
 template<> inline constexpr bool cn_is_cryptonight_r<VARIANT_WOW>()   { return true; }
 template<> inline constexpr bool cn_is_cryptonight_r<VARIANT_4>()     { return true; }
