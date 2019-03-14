@@ -397,7 +397,8 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
 
 bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
 {
-    if (!m_rpcId.setId(result["id"].GetString())) {
+    m_rpcId = result["id"].GetString();
+    if (m_rpcId.isNull()) {
         *code = 1;
         return false;
     }
@@ -498,7 +499,7 @@ int64_t xmrig::Client::send(const rapidjson::Document &doc)
 {
     using namespace rapidjson;
 
-    StringBuffer buffer(0, 512);
+    StringBuffer buffer(nullptr, 512);
     Writer<StringBuffer> writer(buffer);
     doc.Accept(writer);
 

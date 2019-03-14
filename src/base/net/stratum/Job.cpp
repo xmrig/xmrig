@@ -65,25 +65,25 @@ xmrig::Job::Job() :
     m_threadId(-1),
     m_size(0),
     m_diff(0),
+    m_height(0),
     m_target(0),
-    m_blob(),
-    m_height(0)
+    m_blob()
 {
 }
 
 
-xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const Id &clientId) :
+xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const String &clientId) :
+    m_algorithm(algorithm),
     m_autoVariant(algorithm.variant() == VARIANT_AUTO),
     m_nicehash(nicehash),
     m_poolId(poolId),
     m_threadId(-1),
     m_size(0),
+    m_clientId(clientId),
     m_diff(0),
-    m_target(0),
-    m_blob(),
     m_height(0),
-    m_algorithm(algorithm),
-    m_clientId(clientId)
+    m_target(0),
+    m_blob()
 {
 }
 

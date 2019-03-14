@@ -31,6 +31,7 @@
 #include <stdint.h>
 
 
+#include "base/tools/String.h"
 #include "base/net/stratum/Job.h"
 
 
@@ -41,11 +42,11 @@ class JobResult
 {
 public:
     inline JobResult() : poolId(0), diff(0), nonce(0) {}
-    inline JobResult(int poolId, const Id &jobId, const Id &clientId, uint32_t nonce, const uint8_t *result, uint32_t diff, const Algorithm &algorithm) :
+    inline JobResult(int poolId, const String &jobId, const String &clientId, uint32_t nonce, const uint8_t *result, uint32_t diff, const Algorithm &algorithm) :
         algorithm(algorithm),
+        poolId(poolId),
         clientId(clientId),
         jobId(jobId),
-        poolId(poolId),
         diff(diff),
         nonce(nonce)
     {
@@ -71,9 +72,9 @@ public:
 
 
     Algorithm algorithm;
-    Id clientId;
-    Id jobId;
     int poolId;
+    String clientId;
+    String jobId;
     uint32_t diff;
     uint32_t nonce;
     uint8_t result[32];

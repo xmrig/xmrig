@@ -32,7 +32,6 @@
 #include <vector>
 
 
-#include "base/net/stratum/Id.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/SubmitResult.h"
@@ -155,7 +154,6 @@ private:
     char m_sendBuf[2048];
     const char *m_agent;
     IClientListener *m_listener;
-    Id m_rpcId;
     int m_id;
     int m_retries;
     int m_retryPause;
@@ -166,6 +164,7 @@ private:
     SocketState m_state;
     std::bitset<EXT_MAX> m_extensions;
     std::map<int64_t, SubmitResult> m_results;
+    String m_rpcId;
     Tls *m_tls;
     uint64_t m_expire;
     uint64_t m_jobs;

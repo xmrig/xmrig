@@ -31,8 +31,8 @@
 #include <stdint.h>
 
 
+#include "base/tools/String.h"
 #include "common/crypto/Algorithm.h"
-#include "base/net/stratum/Id.h"
 
 
 namespace xmrig {
@@ -46,7 +46,7 @@ public:
     static constexpr const size_t kMaxBlobSize = 128;
 
     Job();
-    Job(int poolId, bool nicehash, const Algorithm &algorithm, const Id &clientId);
+    Job(int poolId, bool nicehash, const Algorithm &algorithm, const String &clientId);
     ~Job();
 
     bool isEqual(const Job &other) const;
@@ -57,10 +57,10 @@ public:
 
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
-    inline bool setId(const char *id)                 { return m_id.setId(id); }
+    inline bool setId(const char *id)                 { return m_id = id; }
     inline const Algorithm &algorithm() const         { return m_algorithm; }
-    inline const Id &clientId() const                 { return m_clientId; }
-    inline const Id &id() const                       { return m_id; }
+    inline const String &clientId() const             { return m_clientId; }
+    inline const String &id() const                   { return m_id; }
     inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const                { return m_blob; }
     inline int poolId() const                         { return m_poolId; }
@@ -72,7 +72,7 @@ public:
     inline uint64_t target() const                    { return m_target; }
     inline uint8_t fixedByte() const                  { return *(m_blob + 42); }
     inline void reset()                               { m_size = 0; m_diff = 0; }
-    inline void setClientId(const Id &id)             { m_clientId = id; }
+    inline void setClientId(const String &id)         { m_clientId = id; }
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
     inline void setThreadId(int threadId)             { m_threadId = threadId; }
     inline void setVariant(const char *variant)       { m_algorithm.parseVariant(variant); }
@@ -99,18 +99,18 @@ public:
 private:
     Variant variant() const;
 
+    Algorithm m_algorithm;
     bool m_autoVariant;
     bool m_nicehash;
     int m_poolId;
     int m_threadId;
     size_t m_size;
+    String m_clientId;
+    String m_id;
     uint64_t m_diff;
+    uint64_t m_height;
     uint64_t m_target;
     uint8_t m_blob[kMaxBlobSize];
-    uint64_t m_height;
-    xmrig::Algorithm m_algorithm;
-    xmrig::Id m_clientId;
-    xmrig::Id m_id;
 
 #   ifdef XMRIG_PROXY_PROJECT
     char m_rawBlob[kMaxBlobSize * 2 + 8];

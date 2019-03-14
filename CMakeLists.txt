@@ -33,7 +33,6 @@ set(HEADERS
     src/base/kernel/Process.h
     src/base/kernel/Signals.h
     src/base/net/stratum/Client.h
-    src/base/net/stratum/Id.h
     src/base/net/stratum/Job.h
     src/base/net/stratum/Pool.h
     src/base/net/stratum/Pools.h
