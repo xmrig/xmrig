@@ -37,6 +37,7 @@
 #endif
 
 
+#include "base/tools/Chrono.h"
 #include "common/interfaces/IClientListener.h"
 #include "common/log/Log.h"
 #include "common/net/Client.h"
@@ -72,12 +73,11 @@ static const char *states[] = {
 
 
 xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
+    m_enabled(true),
     m_ipv6(false),
-    m_nicehash(false),
     m_quiet(false),
     m_agent(agent),
     m_listener(listener),
-    m_extensions(0),
     m_id(id),
     m_retries(5),
     m_retryPause(5000),
@@ -252,7 +252,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
     params.AddMember("nonce",  StringRef(nonce), allocator);
     params.AddMember("result", StringRef(data), allocator);
 
-    if ((m_extensions & AlgoExt) && result.algorithm.isValid()) {
+    if (has<EXT_ALGO>() && result.algorithm.isValid()) {
         params.AddMember("algo", StringRef(result.algorithm.shortName()), allocator);
     }
 
@@ -327,7 +327,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, m_nicehash, m_pool.algorithm(), m_rpcId);
+    Job job(m_id, has<EXT_NICEHASH>(), m_pool.algorithm(), m_rpcId);
 
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
@@ -402,11 +402,7 @@ bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
         return false;
     }
 
-    m_nicehash = m_pool.isNicehash();
-
-    if (result.HasMember("extensions")) {
-        parseExtensions(result["extensions"]);
-    }
+    parseExtensions(result);
 
     const bool rc = parseJob(result["job"], code);
     m_jobs = 0;
@@ -547,7 +543,7 @@ int64_t xmrig::Client::send(size_t size)
         }
     }
 
-    m_expire = uv_now(uv_default_loop()) + kResponseTimeout;
+    m_expire = Chrono::steadyMSecs() + kResponseTimeout;
     return m_sequence++;
 }
 
@@ -597,7 +593,7 @@ void xmrig::Client::handshake()
 {
 #   ifndef XMRIG_NO_TLS
     if (isTLS()) {
-        m_expire = uv_now(uv_default_loop()) + kResponseTimeout;
+        m_expire = Chrono::steadyMSecs() + kResponseTimeout;
 
         m_tls->handshake();
     }
@@ -709,28 +705,37 @@ void xmrig::Client::parse(char *line, size_t len)
 }
 
 
-void xmrig::Client::parseExtensions(const rapidjson::Value &value)
+void xmrig::Client::parseExtensions(const rapidjson::Value &result)
 {
-    m_extensions = 0;
+    m_extensions.reset();
 
-    if (!value.IsArray()) {
+    if (!result.HasMember("extensions")) {
         return;
     }
 
-    for (const rapidjson::Value &ext : value.GetArray()) {
+    const rapidjson::Value &extensions = result["extensions"];
+    if (!extensions.IsArray()) {
+        return;
+    }
+
+    for (const rapidjson::Value &ext : extensions.GetArray()) {
         if (!ext.IsString()) {
             continue;
         }
 
-        if (strcmp(ext.GetString(), "algo") == 0) {
-            m_extensions |= AlgoExt;
-            continue;
-        }
+        const char *name = ext.GetString();
 
-        if (strcmp(ext.GetString(), "nicehash") == 0) {
-            m_extensions |= NicehashExt;
-            m_nicehash = true;
-            continue;
+        if (strcmp(name, "algo") == 0) {
+            setExtension(EXT_ALGO, true);
+        }
+        else if (strcmp(name, "nicehash") == 0) {
+            setExtension(EXT_NICEHASH, true);
+        }
+        else if (strcmp(name, "connect") == 0) {
+            setExtension(EXT_CONNECT, true);
+        }
+        else if (strcmp(name, "keepalive") == 0) {
+            setExtension(EXT_KEEPALIVE, true);
         }
     }
 }
@@ -868,7 +873,7 @@ void xmrig::Client::reconnect()
     m_failures++;
     m_listener->onClose(this, (int) m_failures);
 
-    m_expire = uv_now(uv_default_loop()) + m_retryPause;
+    m_expire = Chrono::steadyMSecs() + m_retryPause;
 }
 
 
@@ -888,8 +893,10 @@ void xmrig::Client::startTimeout()
 {
     m_expire = 0;
 
-    if (m_pool.keepAlive()) {
-        m_keepAlive = uv_now(uv_default_loop()) + (m_pool.keepAlive() * 1000);
+    if (has<EXT_KEEPALIVE>()) {
+        const uint64_t ms = static_cast<uint64_t>(m_pool.keepAlive() > 0 ? m_pool.keepAlive() : Pool::kKeepAliveTimeout) * 1000;
+
+        m_keepAlive = Chrono::steadyMSecs() + ms;
     }
 }
 

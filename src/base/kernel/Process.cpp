@@ -28,6 +28,7 @@
 
 
 #include "base/kernel/Process.h"
+#include "version.h"
 
 
 static size_t location(xmrig::Process::Location location, char *buf, size_t max)
@@ -51,6 +52,8 @@ xmrig::Process::Process(int argc, char **argv) :
     m_arguments(argc, argv)
 {
     srand(static_cast<unsigned int>(static_cast<uintptr_t>(time(nullptr)) ^ reinterpret_cast<uintptr_t>(this)));
+
+    uv_set_process_title(APP_DESC " " APP_VERSION);
 }
 
 

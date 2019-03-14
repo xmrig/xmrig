@@ -32,6 +32,7 @@
 
 
 #include "api/Api.h"
+#include "base/tools/Chrono.h"
 #include "common/log/Log.h"
 #include "common/net/Client.h"
 #include "common/net/SubmitResult.h"
@@ -204,7 +205,7 @@ void xmrig::Network::setJob(Client *client, const Job &job, bool donate)
 
 void xmrig::Network::tick()
 {
-    const uint64_t now = uv_now(uv_default_loop());
+    const uint64_t now = Chrono::steadyMSecs();
 
     m_strategy->tick(now);
 

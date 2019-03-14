@@ -26,6 +26,7 @@
 #define XMRIG_CLIENT_H
 
 
+#include <bitset>
 #include <map>
 #include <uv.h>
 #include <vector>
@@ -61,6 +62,14 @@ public:
         ClosingState
     };
 
+    enum Extension {
+        EXT_ALGO,
+        EXT_NICEHASH,
+        EXT_CONNECT,
+        EXT_KEEPALIVE,
+        EXT_MAX
+    };
+
     constexpr static int kResponseTimeout = 20 * 1000;
 
 #   ifndef XMRIG_NO_TLS
@@ -82,6 +91,7 @@ public:
     void setPool(const Pool &pool);
     void tick(uint64_t now);
 
+    inline bool isEnabled() const                     { return m_enabled; }
     inline bool isReady() const                       { return m_state == ConnectedState && m_failures == 0; }
     inline const char *host() const                   { return m_pool.host(); }
     inline const char *ip() const                     { return m_ip; }
@@ -90,18 +100,15 @@ public:
     inline SocketState state() const                  { return m_state; }
     inline uint16_t port() const                      { return m_pool.port(); }
     inline void setAlgo(const Algorithm &algo)        { m_pool.setAlgo(algo); }
+    inline void setEnabled(bool enabled)              { m_enabled = enabled; }
     inline void setQuiet(bool quiet)                  { m_quiet = quiet; }
     inline void setRetries(int retries)               { m_retries = retries; }
     inline void setRetryPause(int ms)                 { m_retryPause = ms; }
 
+    template<Extension ext> inline bool has() const noexcept { return m_extensions.test(ext); }
+
 private:
     class Tls;
-
-
-    enum Extensions {
-        NicehashExt  = 1,
-        AlgoExt      = 2
-    };
 
     bool close();
     bool isCriticalError(const char *message);
@@ -119,7 +126,7 @@ private:
     void login();
     void onClose();
     void parse(char *line, size_t len);
-    void parseExtensions(const rapidjson::Value &value);
+    void parseExtensions(const rapidjson::Value &result);
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
@@ -128,7 +135,8 @@ private:
     void setState(SocketState state);
     void startTimeout();
 
-    inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }
+    inline bool isQuiet() const                                   { return m_quiet || m_failures >= m_retries; }
+    inline void setExtension(Extension ext, bool enable) noexcept { m_extensions.set(ext, enable); }
 
     static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
     static void onClose(uv_handle_t *handle);
@@ -139,15 +147,15 @@ private:
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 
     addrinfo m_hints;
+    bool m_enabled;
     bool m_ipv6;
-    bool m_nicehash;
     bool m_quiet;
     char m_buf[kInputBufferSize];
     char m_ip[46];
     char m_sendBuf[2048];
     const char *m_agent;
     IClientListener *m_listener;
-    int m_extensions;
+    Id m_rpcId;
     int m_id;
     int m_retries;
     int m_retryPause;
@@ -156,6 +164,7 @@ private:
     Pool m_pool;
     size_t m_recvBufPos;
     SocketState m_state;
+    std::bitset<EXT_MAX> m_extensions;
     std::map<int64_t, SubmitResult> m_results;
     Tls *m_tls;
     uint64_t m_expire;
@@ -166,11 +175,14 @@ private:
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
-    Id m_rpcId;
 
     static int64_t m_sequence;
     static Storage<Client> m_storage;
 };
+
+
+template<> inline bool Client::has<Client::EXT_NICEHASH>() const noexcept  { return m_extensions.test(EXT_NICEHASH) || m_pool.isNicehash(); }
+template<> inline bool Client::has<Client::EXT_KEEPALIVE>() const noexcept { return m_extensions.test(EXT_KEEPALIVE) || m_pool.keepAlive() > 0; }
 
 
 } /* namespace xmrig */
