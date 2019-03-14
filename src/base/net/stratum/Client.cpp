@@ -83,7 +83,6 @@ xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
     m_retries(5),
     m_retryPause(5000),
     m_failures(0),
-    m_recvBufPos(0),
     m_state(UnconnectedState),
     m_tls(nullptr),
     m_expire(0),
@@ -103,9 +102,6 @@ xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
     m_hints.ai_family   = AF_UNSPEC;
     m_hints.ai_socktype = SOCK_STREAM;
     m_hints.ai_protocol = IPPROTO_TCP;
-
-    m_recvBuf.base = m_buf;
-    m_recvBuf.len  = sizeof(m_buf);
 }
 
 
@@ -477,8 +473,8 @@ int xmrig::Client::resolve(const char *host)
 {
     setState(HostLookupState);
 
-    m_expire     = 0;
-    m_recvBufPos = 0;
+    m_expire = 0;
+    m_recvBuf.reset();
 
     if (m_failures == -1) {
         m_failures = 0;
@@ -672,8 +668,6 @@ void xmrig::Client::parse(char *line, size_t len)
 {
     startTimeout();
 
-    line[len - 1] = '\0';
-
     LOG_DEBUG("[%s] received (%d bytes): \"%s\"", m_pool.url(), len, line);
 
     if (len < 32 || line[0] != '{') {
@@ -827,32 +821,42 @@ void xmrig::Client::ping()
 }
 
 
-void xmrig::Client::read()
+void xmrig::Client::read(ssize_t nread)
 {
-    char* end;
-    char* start = m_recvBuf.base;
-    size_t remaining = m_recvBufPos;
+    const size_t size = static_cast<size_t>(nread);
 
-    while ((end = static_cast<char*>(memchr(start, '\n', remaining))) != nullptr) {
-        end++;
-        size_t len = end - start;
-        parse(start, len);
-
-        remaining -= len;
-        start = end;
+    if (nread > 0 && size > m_recvBuf.available()) {
+        nread = UV_ENOBUFS;
     }
 
-    if (remaining == 0) {
-        m_recvBufPos = 0;
+    if (nread < 0) {
+        if (!isQuiet()) {
+            LOG_ERR("[%s] read error: \"%s\"", m_pool.url(), uv_strerror(static_cast<int>(nread)));
+        }
+
+        close();
         return;
     }
 
-    if (start == m_recvBuf.base) {
-        return;
+    assert(client->m_listener != nullptr);
+    if (!m_listener) {
+        return reconnect();
     }
 
-    memcpy(m_recvBuf.base, start, remaining);
-    m_recvBufPos = remaining;
+    m_recvBuf.nread(size);
+
+#   ifndef XMRIG_NO_TLS
+    if (isTLS()) {
+        LOG_DEBUG("[%s] TLS received (%d bytes)", m_pool.url(), static_cast<int>(nread));
+
+        m_tls->read(m_recvBuf.base(), m_recvBuf.pos());
+        m_recvBuf.reset();
+    }
+    else
+#   endif
+    {
+        m_recvBuf.getline(this);
+    }
 }
 
 
@@ -873,7 +877,7 @@ void xmrig::Client::reconnect()
     setState(ConnectingState);
 
     m_failures++;
-    m_listener->onClose(this, (int) m_failures);
+    m_listener->onClose(this, static_cast<int>(m_failures));
 
     m_expire = Chrono::steadyMSecs() + m_retryPause;
 }
@@ -903,15 +907,20 @@ void xmrig::Client::startTimeout()
 }
 
 
-void xmrig::Client::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+void xmrig::Client::onAllocBuffer(uv_handle_t *handle, size_t, uv_buf_t *buf)
 {
     auto client = getClient(handle->data);
     if (!client) {
         return;
     }
 
-    buf->base = &client->m_recvBuf.base[client->m_recvBufPos];
-    buf->len  = client->m_recvBuf.len - client->m_recvBufPos;
+    buf->base = client->m_recvBuf.current();
+
+#   ifdef _WIN32
+    buf->len = static_cast<ULONG>(client->m_recvBuf.available());
+#   else
+    buf->len = client->m_recvBuf.available();
+#   endif
 }
 
 
@@ -955,45 +964,11 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
 }
 
 
-void xmrig::Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+void xmrig::Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *)
 {
     auto client = getClient(stream->data);
-    if (!client) {
-        return;
-    }
-
-    if (nread < 0) {
-        if (!client->isQuiet()) {
-            LOG_ERR("[%s] read error: \"%s\"", client->m_pool.url(), uv_strerror((int) nread));
-        }
-
-        client->close();
-        return;
-    }
-
-    if ((size_t) nread > (sizeof(m_buf) - 8 - client->m_recvBufPos)) {
-        client->close();
-        return;
-    }
-
-    assert(client->m_listener != nullptr);
-    if (!client->m_listener) {
-        return client->reconnect();
-    }
-
-    client->m_recvBufPos += nread;
-
-#   ifndef XMRIG_NO_TLS
-    if (client->isTLS()) {
-        LOG_DEBUG("[%s] TLS received (%d bytes)", client->m_pool.url(), static_cast<int>(nread));
-
-        client->m_tls->read(client->m_recvBuf.base, client->m_recvBufPos);
-        client->m_recvBufPos = 0;
-    }
-    else
-#   endif
-    {
-        client->read();
+    if (client) {
+        client->read(nread);
     }
 }
 

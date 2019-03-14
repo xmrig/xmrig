@@ -32,9 +32,11 @@
 #include <vector>
 
 
+#include "base/kernel/interfaces/ILineListener.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/SubmitResult.h"
+#include "base/net/tools/RecvBuf.h"
 #include "base/net/tools/Storage.h"
 #include "common/crypto/Algorithm.h"
 #include "rapidjson/fwd.h"
@@ -50,7 +52,7 @@ class IClientListener;
 class JobResult;
 
 
-class Client
+class Client : public ILineListener
 {
 public:
     enum SocketState {
@@ -78,7 +80,7 @@ public:
 #   endif
 
     Client(int id, const char *agent, IClientListener *listener);
-    ~Client();
+    ~Client() override;
 
     bool disconnect();
     const char *tlsFingerprint() const;
@@ -106,6 +108,9 @@ public:
 
     template<Extension ext> inline bool has() const noexcept { return m_extensions.test(ext); }
 
+protected:
+    inline void onLine(char *line, size_t size) override { parse(line, size); }
+
 private:
     class Tls;
 
@@ -129,7 +134,7 @@ private:
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
-    void read();
+    void read(ssize_t nread);
     void reconnect();
     void setState(SocketState state);
     void startTimeout();
@@ -149,7 +154,6 @@ private:
     bool m_enabled;
     bool m_ipv6;
     bool m_quiet;
-    char m_buf[kInputBufferSize];
     char m_ip[46];
     char m_sendBuf[2048];
     const char *m_agent;
@@ -160,7 +164,7 @@ private:
     int64_t m_failures;
     Job m_job;
     Pool m_pool;
-    size_t m_recvBufPos;
+    RecvBuf<kInputBufferSize> m_recvBuf;
     SocketState m_state;
     std::bitset<EXT_MAX> m_extensions;
     std::map<int64_t, SubmitResult> m_results;
@@ -170,7 +174,6 @@ private:
     uint64_t m_jobs;
     uint64_t m_keepAlive;
     uintptr_t m_key;
-    uv_buf_t m_recvBuf;
     uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;

@@ -26,6 +26,7 @@ set(HEADERS
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IClientListener.h
     src/base/kernel/interfaces/IConfigListener.h
+    src/base/kernel/interfaces/ILineListener.h
     src/base/kernel/interfaces/ISignalListener.h
     src/base/kernel/interfaces/IStrategy.h
     src/base/kernel/interfaces/IStrategyListener.h
@@ -39,6 +40,7 @@ set(HEADERS
     src/base/net/stratum/strategies/FailoverStrategy.h
     src/base/net/stratum/strategies/SinglePoolStrategy.h
     src/base/net/stratum/SubmitResult.h
+    src/base/net/tools/RecvBuf.h
     src/base/net/tools/Storage.h
     src/base/tools/Arguments.h
     src/base/tools/Buffer.h
