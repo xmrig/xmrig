@@ -28,7 +28,7 @@
 #include <string.h>
 
 
-#include "common/net/Job.h"
+#include "base/net/stratum/Job.h"
 
 
 unsigned char hf_hex2bin(char c, bool &err)

@@ -32,7 +32,7 @@
 
 
 #include "common/crypto/Algorithm.h"
-#include "common/net/Id.h"
+#include "base/net/stratum/Id.h"
 
 
 namespace xmrig {

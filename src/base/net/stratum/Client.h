@@ -32,12 +32,12 @@
 #include <vector>
 
 
-#include "base/net/Pool.h"
+#include "base/net/stratum/Id.h"
+#include "base/net/stratum/Job.h"
+#include "base/net/stratum/Pool.h"
+#include "base/net/stratum/SubmitResult.h"
+#include "base/net/tools/Storage.h"
 #include "common/crypto/Algorithm.h"
-#include "common/net/Id.h"
-#include "common/net/Job.h"
-#include "common/net/Storage.h"
-#include "common/net/SubmitResult.h"
 #include "rapidjson/fwd.h"
 
 

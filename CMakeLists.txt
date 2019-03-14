@@ -23,14 +23,24 @@ set(HEADERS
     src/App.h
     src/base/io/Json.h
     src/base/io/Watcher.h
+    src/base/kernel/Entry.h
+    src/base/kernel/interfaces/IClientListener.h
     src/base/kernel/interfaces/IConfigListener.h
     src/base/kernel/interfaces/ISignalListener.h
+    src/base/kernel/interfaces/IStrategy.h
+    src/base/kernel/interfaces/IStrategyListener.h
     src/base/kernel/interfaces/IWatcherListener.h
-    src/base/kernel/Entry.h
     src/base/kernel/Process.h
     src/base/kernel/Signals.h
-    src/base/net/Pool.h
-    src/base/net/Pools.h
+    src/base/net/stratum/Client.h
+    src/base/net/stratum/Id.h
+    src/base/net/stratum/Job.h
+    src/base/net/stratum/Pool.h
+    src/base/net/stratum/Pools.h
+    src/base/net/stratum/strategies/FailoverStrategy.h
+    src/base/net/stratum/strategies/SinglePoolStrategy.h
+    src/base/net/stratum/SubmitResult.h
+    src/base/net/tools/Storage.h
     src/base/tools/Arguments.h
     src/base/tools/Chrono.h
     src/base/tools/Handle.h
@@ -42,32 +52,22 @@ set(HEADERS
     src/common/cpu/Cpu.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
-    src/common/interfaces/IClientListener.h
     src/common/interfaces/IConfig.h
     src/common/interfaces/IConfigCreator.h
     src/common/interfaces/IConsoleListener.h
     src/common/interfaces/IControllerListener.h
     src/common/interfaces/ICpuInfo.h
     src/common/interfaces/ILogBackend.h
-    src/common/interfaces/IStrategy.h
-    src/common/interfaces/IStrategyListener.h
     src/common/log/BasicLog.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
     src/common/log/Log.h
-    src/common/net/Client.h
-    src/common/net/Id.h
-    src/common/net/Job.h
-    src/common/net/Storage.h
-    src/common/net/strategies/FailoverStrategy.h
-    src/common/net/strategies/SinglePoolStrategy.h
-    src/common/net/SubmitResult.h
     src/common/Platform.h
     src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
-    src/core/ConfigLoader_platform.h
     src/core/ConfigLoader_default.h
+    src/core/ConfigLoader_platform.h
     src/core/Controller.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
@@ -116,8 +116,13 @@ set(SOURCES
     src/base/kernel/Entry.cpp
     src/base/kernel/Process.cpp
     src/base/kernel/Signals.cpp
-    src/base/net/Pool.cpp
-    src/base/net/Pools.cpp
+    src/base/net/stratum/Client.cpp
+    src/base/net/stratum/Job.cpp
+    src/base/net/stratum/Pool.cpp
+    src/base/net/stratum/Pools.cpp
+    src/base/net/stratum/strategies/FailoverStrategy.cpp
+    src/base/net/stratum/strategies/SinglePoolStrategy.cpp
+    src/base/net/stratum/SubmitResult.cpp
     src/base/tools/Arguments.cpp
     src/base/tools/Handle.cpp
     src/base/tools/String.cpp
@@ -131,11 +136,6 @@ set(SOURCES
     src/common/log/ConsoleLog.cpp
     src/common/log/FileLog.cpp
     src/common/log/Log.cpp
-    src/common/net/Client.cpp
-    src/common/net/Job.cpp
-    src/common/net/strategies/FailoverStrategy.cpp
-    src/common/net/strategies/SinglePoolStrategy.cpp
-    src/common/net/SubmitResult.cpp
     src/common/Platform.cpp
     src/core/Config.cpp
     src/core/Controller.cpp

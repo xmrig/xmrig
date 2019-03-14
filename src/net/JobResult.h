@@ -31,7 +31,7 @@
 #include <stdint.h>
 
 
-#include "common/net/Job.h"
+#include "base/net/stratum/Job.h"
 
 
 namespace xmrig {

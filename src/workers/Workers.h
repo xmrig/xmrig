@@ -31,7 +31,7 @@
 #include <uv.h>
 #include <vector>
 
-#include "common/net/Job.h"
+#include "base/net/stratum/Job.h"
 #include "net/JobResult.h"
 #include "rapidjson/fwd.h"
 

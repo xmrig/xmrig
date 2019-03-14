@@ -26,7 +26,7 @@
 #define XMRIG_COMMONCONFIG_H
 
 
-#include "base/net/Pools.h"
+#include "base/net/stratum/Pools.h"
 #include "base/tools/String.h"
 #include "common/interfaces/IConfig.h"
 #include "common/xmrig.h"

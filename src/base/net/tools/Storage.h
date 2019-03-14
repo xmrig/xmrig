@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STORAGE_H__
-#define __STORAGE_H__
+#ifndef XMRIG_STORAGE_H
+#define XMRIG_STORAGE_H
 
 
 #include <assert.h>
@@ -53,11 +54,10 @@ public:
     inline static void *ptr(uintptr_t id) { return reinterpret_cast<void *>(id); }
 
 
-    inline TYPE *get(void *id) const { return get(reinterpret_cast<uintptr_t>(id)); }
+    inline TYPE *get(const void *id) const { return get(reinterpret_cast<uintptr_t>(id)); }
     inline TYPE *get(uintptr_t id) const
     {
         assert(m_data.count(id) > 0);
-
         if (m_data.count(id) == 0) {
             return nullptr;
         }
@@ -66,20 +66,22 @@ public:
     }
 
 
-    inline void remove(void *id) { remove(reinterpret_cast<uintptr_t>(id)); }
-    inline void remove(uintptr_t id)
+    inline void remove(const void *id) { delete release(reinterpret_cast<uintptr_t>(id)); }
+    inline void remove(uintptr_t id)   { delete release(id); }
+
+
+    inline TYPE *release(const void *id) { release(reinterpret_cast<uintptr_t>(id)); }
+    inline TYPE *release(uintptr_t id)
     {
         TYPE *obj = get(id);
-        if (obj == nullptr) {
-            return;
+        if (obj != nullptr) {
+            auto it = m_data.find(id);
+            if (it != m_data.end()) {
+                m_data.erase(it);
+            }
         }
 
-        auto it = m_data.find(id);
-        if (it != m_data.end()) {
-            m_data.erase(it);
-        }
-
-        delete obj;
+        return obj;
     }
 
 
@@ -92,4 +94,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* __STORAGE_H__ */
+#endif /* XMRIG_STORAGE_H */

@@ -23,9 +23,9 @@
  */
 
 
-#include "common/interfaces/IStrategyListener.h"
-#include "common/net/Client.h"
-#include "common/net/strategies/FailoverStrategy.h"
+#include "base/kernel/interfaces/IStrategyListener.h"
+#include "base/net/stratum/Client.h"
+#include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "common/Platform.h"
 
 

@@ -33,14 +33,14 @@
 #ifndef XMRIG_NO_TLS
 #   include <openssl/ssl.h>
 #   include <openssl/err.h>
-#   include "common/net/Tls.h"
+#   include "base/net/stratum/Tls.h"
 #endif
 
 
+#include "base/kernel/interfaces/IClientListener.h"
+#include "base/net/stratum/Client.h"
 #include "base/tools/Chrono.h"
-#include "common/interfaces/IClientListener.h"
 #include "common/log/Log.h"
-#include "common/net/Client.h"
 #include "net/JobResult.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"

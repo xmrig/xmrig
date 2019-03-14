@@ -28,7 +28,7 @@
 #include <uv.h>
 
 
-#include "base/net/Pool.h"
+#include "base/net/stratum/Pool.h"
 #include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
 #include "core/Config.h"

@@ -29,7 +29,7 @@
 #include <vector>
 
 
-#include "base/net/Pool.h"
+#include "base/net/stratum/Pool.h"
 
 
 namespace xmrig {

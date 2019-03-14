@@ -34,11 +34,11 @@
 
 
 #include "api/ApiRouter.h"
+#include "base/net/stratum/Job.h"
 #include "common/api/HttpReply.h"
 #include "common/api/HttpRequest.h"
 #include "common/cpu/Cpu.h"
 #include "common/crypto/keccak.h"
-#include "common/net/Job.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"

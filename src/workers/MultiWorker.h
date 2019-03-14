@@ -27,7 +27,7 @@
 #define XMRIG_MULTIWORKER_H
 
 
-#include "common/net/Job.h"
+#include "base/net/stratum/Job.h"
 #include "Mem.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"

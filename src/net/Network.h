@@ -31,8 +31,8 @@
 
 
 #include "api/NetworkState.h"
+#include "base/kernel/interfaces/IStrategyListener.h"
 #include "common/interfaces/IControllerListener.h"
-#include "common/interfaces/IStrategyListener.h"
 #include "interfaces/IJobResultListener.h"
 
 

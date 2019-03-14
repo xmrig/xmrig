@@ -30,10 +30,10 @@
 #include <vector>
 
 
-#include "base/net/Pool.h"
-#include "common/interfaces/IClientListener.h"
-#include "common/interfaces/IStrategy.h"
-#include "common/interfaces/IStrategyListener.h"
+#include "base/kernel/interfaces/IClientListener.h"
+#include "base/kernel/interfaces/IStrategy.h"
+#include "base/kernel/interfaces/IStrategyListener.h"
+#include "base/net/stratum/Pool.h"
 
 
 namespace xmrig {

@@ -22,12 +22,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_SINGLEPOOLSTRATEGY_H
-#define XMRIG_SINGLEPOOLSTRATEGY_H
+#ifndef XMRIG_FAILOVERSTRATEGY_H
+#define XMRIG_FAILOVERSTRATEGY_H
 
 
-#include "common/interfaces/IClientListener.h"
-#include "common/interfaces/IStrategy.h"
+#include <vector>
+
+
+#include "base/kernel/interfaces/IClientListener.h"
+#include "base/kernel/interfaces/IStrategy.h"
+#include "base/net/stratum/Pool.h"
 
 
 namespace xmrig {
@@ -35,17 +39,19 @@ namespace xmrig {
 
 class Client;
 class IStrategyListener;
-class Pool;
 
 
-class SinglePoolStrategy : public IStrategy, public IClientListener
+class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-    SinglePoolStrategy(const Pool &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
-    ~SinglePoolStrategy() override;
+    FailoverStrategy(const std::vector<Pool> &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    FailoverStrategy(int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
+    ~FailoverStrategy() override;
+
+    void add(const Pool &pool);
 
 public:
-    inline bool isActive() const override  { return m_active; }
+    inline bool isActive() const override  { return m_active >= 0; }
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -63,13 +69,18 @@ protected:
     void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
 
 private:
-    bool m_active;
-    Client *m_client;
+    inline Client *active() const { return m_pools[static_cast<size_t>(m_active)]; }
+
+    const bool m_quiet;
+    const int m_retries;
+    const int m_retryPause;
+    int m_active;
+    int m_index;
     IStrategyListener *m_listener;
+    std::vector<Client*> m_pools;
 };
 
 
 } /* namespace xmrig */
 
-
-#endif /* XMRIG_SINGLEPOOLSTRATEGY_H */
+#endif /* XMRIG_FAILOVERSTRATEGY_H */

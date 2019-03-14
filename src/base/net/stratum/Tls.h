@@ -22,25 +22,48 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <uv.h>
-
-
-#include "common/net/SubmitResult.h"
+#ifndef XMRIG_CLIENT_TLS_H
+#define XMRIG_CLIENT_TLS_H
 
 
-xmrig::SubmitResult::SubmitResult(int64_t seq, uint32_t diff, uint64_t actualDiff, int64_t reqId) :
-    reqId(reqId),
-    seq(seq),
-    diff(diff),
-    actualDiff(actualDiff),
-    elapsed(0)
+#include <openssl/ssl.h>
+
+
+#include "base/net/stratum/Client.h"
+
+
+namespace xmrig {
+
+
+class Client::Tls
 {
-    start = uv_hrtime();
-}
+public:
+    Tls(Client *client);
+    ~Tls();
+
+    bool handshake();
+    bool send(const char *data, size_t size);
+    const char *fingerprint() const;
+    const char *version() const;
+    void read(const char *data, size_t size);
+
+private:
+    bool send();
+    bool verify(X509 *cert);
+    bool verifyFingerprint(X509 *cert);
+
+    BIO *m_readBio;
+    BIO *m_writeBio;
+    bool m_ready;
+    char m_buf[1024 * 2];
+    char m_fingerprint[32 * 2 + 8];
+    Client *m_client;
+    SSL *m_ssl;
+    SSL_CTX *m_ctx;
+};
 
 
-void xmrig::SubmitResult::done()
-{
-    elapsed = (uv_hrtime() - start) / 1000000;
-}
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_CLIENT_TLS_H */

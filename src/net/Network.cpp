@@ -32,10 +32,10 @@
 
 
 #include "api/Api.h"
+#include "base/net/stratum/Client.h"
+#include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
 #include "common/log/Log.h"
-#include "common/net/Client.h"
-#include "common/net/SubmitResult.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "net/Network.h"

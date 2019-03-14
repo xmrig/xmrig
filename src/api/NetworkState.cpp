@@ -30,8 +30,8 @@
 
 
 #include "api/NetworkState.h"
+#include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
-#include "common/net/SubmitResult.h"
 
 
 xmrig::NetworkState::NetworkState() :

@@ -23,12 +23,11 @@
  */
 
 
+#include "base/net/stratum/Client.h"
+#include "base/net/stratum/Job.h"
+#include "base/net/stratum/strategies/FailoverStrategy.h"
+#include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "common/crypto/keccak.h"
-#include "common/interfaces/IStrategyListener.h"
-#include "common/net/Client.h"
-#include "common/net/Job.h"
-#include "common/net/strategies/FailoverStrategy.h"
-#include "common/net/strategies/SinglePoolStrategy.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
 #include "net/strategies/DonateStrategy.h"

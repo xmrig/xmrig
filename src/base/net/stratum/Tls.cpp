@@ -27,8 +27,8 @@
 #include <assert.h>
 
 
-#include "common/net/Client.h"
-#include "common/net/Tls.h"
+#include "base/net/stratum/Client.h"
+#include "base/net/stratum/Tls.h"
 #include "common/log/Log.h"
 
 
