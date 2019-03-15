@@ -124,7 +124,6 @@ set(SOURCES
     src/base/net/stratum/Pools.cpp
     src/base/net/stratum/strategies/FailoverStrategy.cpp
     src/base/net/stratum/strategies/SinglePoolStrategy.cpp
-    src/base/net/stratum/SubmitResult.cpp
     src/base/tools/Arguments.cpp
     src/base/tools/Buffer.cpp
     src/base/tools/Handle.cpp

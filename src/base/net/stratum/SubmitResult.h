@@ -26,7 +26,7 @@
 #define XMRIG_SUBMITRESULT_H
 
 
-#include <uv.h>
+#include "base/tools/Chrono.h"
 
 
 namespace xmrig {
@@ -35,10 +35,25 @@ namespace xmrig {
 class SubmitResult
 {
 public:
-    inline SubmitResult() : reqId(0), seq(0), diff(0), actualDiff(0), elapsed(0), start(0) {}
-    SubmitResult(int64_t seq, uint32_t diff, uint64_t actualDiff, int64_t reqId = 0);
+    inline SubmitResult() :
+        reqId(0),
+        seq(0),
+        diff(0),
+        actualDiff(0),
+        elapsed(0),
+        m_start(0)
+    {}
 
-    void done();
+    inline SubmitResult(int64_t seq, uint32_t diff, uint64_t actualDiff, int64_t reqId = 0) :
+        reqId(reqId),
+        seq(seq),
+        diff(diff),
+        actualDiff(actualDiff),
+        elapsed(0),
+        m_start(Chrono::steadyMSecs())
+    {}
+
+    inline void done() { elapsed = Chrono::steadyMSecs() - m_start; }
 
     int64_t reqId;
     int64_t seq;
@@ -47,7 +62,7 @@ public:
     uint64_t elapsed;
 
 private:
-    uint64_t start;
+    uint64_t m_start;
 };
 
 
