@@ -47,16 +47,19 @@
 
 namespace xmrig {
 
-static const char *kEnabled     = "enabled";
-static const char *kFingerprint = "tls-fingerprint";
-static const char *kKeepalive   = "keepalive";
-static const char *kNicehash    = "nicehash";
-static const char *kPass        = "pass";
-static const char *kRigId       = "rig-id";
-static const char *kTls         = "tls";
-static const char *kUrl         = "url";
-static const char *kUser        = "user";
-static const char *kVariant     = "variant";
+static const char *kEnabled         = "enabled";
+static const char *kFingerprint     = "tls-fingerprint";
+static const char *kKeepalive       = "keepalive";
+static const char *kNicehash        = "nicehash";
+static const char *kPass            = "pass";
+static const char *kRigId           = "rig-id";
+static const char *kTls             = "tls";
+static const char *kUrl             = "url";
+static const char *kUser            = "user";
+static const char *kVariant         = "variant";
+
+const String Pool::kDefaultPassword = "x";
+const String Pool::kDefaultUser     = "x";
 
 }
 

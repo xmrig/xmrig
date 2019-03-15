@@ -32,6 +32,7 @@
 #include <vector>
 
 
+#include "base/kernel/interfaces/IDnsListener.h"
 #include "base/kernel/interfaces/ILineListener.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
@@ -39,7 +40,7 @@
 #include "base/net/tools/RecvBuf.h"
 #include "base/net/tools/Storage.h"
 #include "common/crypto/Algorithm.h"
-#include "rapidjson/fwd.h"
+
 
 
 typedef struct bio_st BIO;
@@ -52,7 +53,7 @@ class IClientListener;
 class JobResult;
 
 
-class Client : public ILineListener
+class Client : public IDnsListener, public ILineListener
 {
 public:
     enum SocketState {
@@ -111,6 +112,8 @@ public:
 protected:
     inline void onLine(char *line, size_t size) override { parse(line, size); }
 
+    void onResolved(const Dns &dns, int status) override;
+
 private:
     class Tls;
 
@@ -121,10 +124,9 @@ private:
     bool parseLogin(const rapidjson::Value &result, int *code);
     bool send(BIO *bio);
     bool verifyAlgorithm(const Algorithm &algorithm) const;
-    int resolve(const char *host);
+    int resolve(const String &host);
     int64_t send(const rapidjson::Document &doc);
     int64_t send(size_t size);
-    void connect(const std::vector<addrinfo*> &ipv4, const std::vector<addrinfo*> &ipv6);
     void connect(sockaddr *addr);
     void handshake();
     void login();
@@ -140,23 +142,22 @@ private:
     void startTimeout();
 
     inline bool isQuiet() const                                   { return m_quiet || m_failures >= m_retries; }
+    inline const char *url() const                                { return m_pool.url(); }
     inline void setExtension(Extension ext, bool enable) noexcept { m_extensions.set(ext, enable); }
 
     static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
     static void onClose(uv_handle_t *handle);
     static void onConnect(uv_connect_t *req, int status);
     static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-    static void onResolved(uv_getaddrinfo_t *req, int status, struct addrinfo *res);
 
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 
-    addrinfo m_hints;
     bool m_enabled;
     bool m_ipv6;
     bool m_quiet;
-    char m_ip[46];
     char m_sendBuf[2048];
     const char *m_agent;
+    Dns *m_dns;
     IClientListener *m_listener;
     int m_id;
     int m_retries;
@@ -168,13 +169,13 @@ private:
     SocketState m_state;
     std::bitset<EXT_MAX> m_extensions;
     std::map<int64_t, SubmitResult> m_results;
+    String m_ip;
     String m_rpcId;
     Tls *m_tls;
     uint64_t m_expire;
     uint64_t m_jobs;
     uint64_t m_keepAlive;
     uintptr_t m_key;
-    uv_getaddrinfo_t m_resolver;
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
 

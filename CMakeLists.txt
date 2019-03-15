@@ -26,6 +26,7 @@ set(HEADERS
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IClientListener.h
     src/base/kernel/interfaces/IConfigListener.h
+    src/base/kernel/interfaces/IDnsListener.h
     src/base/kernel/interfaces/ILineListener.h
     src/base/kernel/interfaces/ISignalListener.h
     src/base/kernel/interfaces/IStrategy.h
@@ -33,6 +34,8 @@ set(HEADERS
     src/base/kernel/interfaces/IWatcherListener.h
     src/base/kernel/Process.h
     src/base/kernel/Signals.h
+    src/base/net/dns/Dns.h
+    src/base/net/dns/DnsRecord.h
     src/base/net/stratum/Client.h
     src/base/net/stratum/Job.h
     src/base/net/stratum/Pool.h
@@ -118,6 +121,8 @@ set(SOURCES
     src/base/kernel/Entry.cpp
     src/base/kernel/Process.cpp
     src/base/kernel/Signals.cpp
+    src/base/net/dns/Dns.cpp
+    src/base/net/dns/DnsRecord.cpp
     src/base/net/stratum/Client.cpp
     src/base/net/stratum/Job.cpp
     src/base/net/stratum/Pool.cpp

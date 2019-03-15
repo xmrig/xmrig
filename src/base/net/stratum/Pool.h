@@ -40,8 +40,9 @@ namespace xmrig {
 class Pool
 {
 public:
-    constexpr static const char *kDefaultPassword = "x";
-    constexpr static const char *kDefaultUser     = "x";
+    static const String kDefaultPassword;
+    static const String kDefaultUser;
+
     constexpr static uint16_t kDefaultPort        = 3333;
     constexpr static int kKeepAliveTimeout        = 60;
 
@@ -57,28 +58,28 @@ public:
          bool tls               = false
        );
 
+    inline Algorithm &algorithm()                       { return m_algorithm; }
     inline bool isNicehash() const                      { return m_nicehash; }
     inline bool isTLS() const                           { return m_tls; }
     inline bool isValid() const                         { return !m_host.isNull() && m_port > 0; }
-    inline const char *fingerprint() const              { return m_fingerprint.data(); }
-    inline const char *host() const                     { return m_host.data(); }
-    inline const char *password() const                 { return !m_password.isNull() ? m_password.data() : kDefaultPassword; }
-    inline const char *rigId() const                    { return m_rigId.data(); }
-    inline const char *url() const                      { return m_url.data(); }
-    inline const char *user() const                     { return !m_user.isNull() ? m_user.data() : kDefaultUser; }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
     inline const Algorithms &algorithms() const         { return m_algorithms; }
+    inline const String &fingerprint() const            { return m_fingerprint; }
+    inline const String &host() const                   { return m_host; }
+    inline const String &password() const               { return !m_password.isNull() ? m_password : kDefaultPassword; }
+    inline const String &rigId() const                  { return m_rigId; }
+    inline const String &url() const                    { return m_url; }
+    inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline uint16_t port() const                        { return m_port; }
     inline void setFingerprint(const char *fingerprint) { m_fingerprint = fingerprint; }
-    inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
     inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? kKeepAliveTimeout : 0); }
+    inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
     inline void setNicehash(bool nicehash)              { m_nicehash = nicehash; }
     inline void setPassword(const char *password)       { m_password = password; }
     inline void setRigId(const char *rigId)             { m_rigId = rigId; }
     inline void setTLS(bool tls)                        { m_tls = tls; }
     inline void setUser(const char *user)               { m_user = user; }
-    inline Algorithm &algorithm()                       { return m_algorithm; }
 
     inline bool operator!=(const Pool &other) const  { return !isEqual(other); }
     inline bool operator==(const Pool &other) const  { return isEqual(other); }
