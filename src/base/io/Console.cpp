@@ -23,9 +23,9 @@
  */
 
 
+#include "base/io/Console.h"
+#include "base/kernel/interfaces/IConsoleListener.h"
 #include "base/tools/Handle.h"
-#include "common/Console.h"
-#include "interfaces/IConsoleListener.h"
 
 
 xmrig::Console::Console(IConsoleListener *listener)

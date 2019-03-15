@@ -16,9 +16,13 @@ if (WITH_TLS)
     else()
         message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
     endif()
+
+    add_definitions(/DXMRIG_FEATURE_TLS)
+    remove_definitions(/DXMRIG_NO_TLS)
 else()
     set(TLS_SOURCES "")
     set(OPENSSL_LIBRARIES "")
+    remove_definitions(/DXMRIG_FEATURE_TLS)
     add_definitions(/DXMRIG_NO_TLS)
 
     set(CMAKE_PROJECT_NAME "${CMAKE_PROJECT_NAME}-notls")

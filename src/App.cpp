@@ -30,8 +30,8 @@
 
 #include "api/Api.h"
 #include "App.h"
+#include "base/io/Console.h"
 #include "base/kernel/Signals.h"
-#include "common/Console.h"
 #include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
 #include "common/Platform.h"

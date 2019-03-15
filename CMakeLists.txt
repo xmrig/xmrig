@@ -16,50 +16,21 @@ option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
+include (src/base/base.cmake)
 
 
 set(HEADERS
+    "${HEADERS_BASE}"
     src/api/NetworkState.h
     src/App.h
-    src/base/io/Json.h
-    src/base/io/Watcher.h
-    src/base/kernel/Entry.h
-    src/base/kernel/interfaces/IClientListener.h
-    src/base/kernel/interfaces/IConfigListener.h
-    src/base/kernel/interfaces/IDnsListener.h
-    src/base/kernel/interfaces/ILineListener.h
-    src/base/kernel/interfaces/ISignalListener.h
-    src/base/kernel/interfaces/IStrategy.h
-    src/base/kernel/interfaces/IStrategyListener.h
-    src/base/kernel/interfaces/IWatcherListener.h
-    src/base/kernel/Process.h
-    src/base/kernel/Signals.h
-    src/base/net/dns/Dns.h
-    src/base/net/dns/DnsRecord.h
-    src/base/net/stratum/Client.h
-    src/base/net/stratum/Job.h
-    src/base/net/stratum/Pool.h
-    src/base/net/stratum/Pools.h
-    src/base/net/stratum/strategies/FailoverStrategy.h
-    src/base/net/stratum/strategies/SinglePoolStrategy.h
-    src/base/net/stratum/SubmitResult.h
-    src/base/net/tools/RecvBuf.h
-    src/base/net/tools/Storage.h
-    src/base/tools/Arguments.h
-    src/base/tools/Buffer.h
-    src/base/tools/Chrono.h
-    src/base/tools/Handle.h
-    src/base/tools/String.h
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
-    src/common/Console.h
     src/common/cpu/Cpu.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/IConfig.h
     src/common/interfaces/IConfigCreator.h
-    src/common/interfaces/IConsoleListener.h
     src/common/interfaces/IControllerListener.h
     src/common/interfaces/ICpuInfo.h
     src/common/interfaces/ILogBackend.h
@@ -68,7 +39,6 @@ set(HEADERS
     src/common/log/FileLog.h
     src/common/log/Log.h
     src/common/Platform.h
-    src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
     src/core/ConfigLoader_default.h
@@ -114,28 +84,12 @@ else()
 endif()
 
 set(SOURCES
+    "${SOURCES_BASE}"
     src/api/NetworkState.cpp
     src/App.cpp
-    src/base/io/Json.cpp
-    src/base/io/Watcher.cpp
-    src/base/kernel/Entry.cpp
-    src/base/kernel/Process.cpp
-    src/base/kernel/Signals.cpp
-    src/base/net/dns/Dns.cpp
-    src/base/net/dns/DnsRecord.cpp
-    src/base/net/stratum/Client.cpp
-    src/base/net/stratum/Job.cpp
-    src/base/net/stratum/Pool.cpp
-    src/base/net/stratum/Pools.cpp
-    src/base/net/stratum/strategies/FailoverStrategy.cpp
-    src/base/net/stratum/strategies/SinglePoolStrategy.cpp
-    src/base/tools/Arguments.cpp
-    src/base/tools/Buffer.cpp
-    src/base/tools/String.cpp
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
     src/common/config/ConfigWatcher.cpp
-    src/common/Console.cpp
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/log/BasicLog.cpp
@@ -167,9 +121,9 @@ set(SOURCES_CRYPTO
 
 if (WIN32)
     set(SOURCES_OS
+        "${SOURCES_OS}"
         res/app.rc
         src/App_win.cpp
-        src/base/io/Json_win.cpp
         src/common/Platform_win.cpp
         src/Mem_win.cpp
         )
@@ -178,15 +132,15 @@ if (WIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 elseif (APPLE)
     set(SOURCES_OS
+        "${SOURCES_OS}"
         src/App_unix.cpp
-        src/base/io/Json_unix.cpp
         src/common/Platform_mac.cpp
         src/Mem_unix.cpp
         )
 else()
     set(SOURCES_OS
+        "${SOURCES_OS}"
         src/App_unix.cpp
-        src/base/io/Json_unix.cpp
         src/common/Platform_unix.cpp
         src/Mem_unix.cpp
         )
