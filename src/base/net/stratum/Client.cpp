@@ -590,6 +590,8 @@ void xmrig::Client::connect(sockaddr *addr)
 #   endif
 
     uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
+
+    delete addr;
 }
 
 
