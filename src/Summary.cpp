@@ -59,11 +59,11 @@ inline static const char *asmName(xmrig::Assembly assembly, bool colors)
 static void print_memory(xmrig::Config *config) {
 #   ifdef _WIN32
     if (config->isColors()) {
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
+        xmrig::Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
                        "HUGE PAGES", Mem::isHugepagesAvailable() ? "\x1B[1;32mavailable" : "\x1B[01;31munavailable");
     }
     else {
-        Log::i()->text(" * %-13s%s", "HUGE PAGES", Mem::isHugepagesAvailable() ? "available" : "unavailable");
+        xmrig::Log::i()->text(" * %-13s%s", "HUGE PAGES", Mem::isHugepagesAvailable() ? "available" : "unavailable");
     }
 #   endif
 }
@@ -108,7 +108,7 @@ static void print_threads(xmrig::Config *config)
             snprintf(buf, sizeof buf, ", affinity=0x%" PRIX64, config->affinity());
         }
 
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %s, av=%d, %sdonate=%d%%") WHITE_BOLD("%s")
+        xmrig::Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %s, av=%d, %sdonate=%d%%") WHITE_BOLD("%s")
                                           : " * %-13s%d, %s, av=%d, %sdonate=%d%%%s",
                        "THREADS",
                        config->threadsCount(),
@@ -119,7 +119,7 @@ static void print_threads(xmrig::Config *config)
                        buf);
     }
     else {
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %s, %sdonate=%d%%")
+        xmrig::Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %s, %sdonate=%d%%")
                                           : " * %-13s%d, %s, %sdonate=%d%%",
                        "THREADS",
                        config->threadsCount(),
@@ -132,11 +132,11 @@ static void print_threads(xmrig::Config *config)
     if (config->assembly() == xmrig::ASM_AUTO) {
         const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
 
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s")
+        xmrig::Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s")
                                           : " * %-13sauto:%s", "ASSEMBLY", asmName(assembly, config->isColors()));
     }
     else {
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s") : " * %-13s%s", "ASSEMBLY", asmName(config->assembly(), config->isColors()));
+        xmrig::Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s") : " * %-13s%s", "ASSEMBLY", asmName(config->assembly(), config->isColors()));
     }
 #   endif
 }
@@ -145,12 +145,12 @@ static void print_threads(xmrig::Config *config)
 static void print_commands(xmrig::Config *config)
 {
     if (config->isColors()) {
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
+        xmrig::Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
                                                                      MAGENTA_BOLD("p") WHITE_BOLD("ause, ")
                                                                      MAGENTA_BOLD("r") WHITE_BOLD("esume"));
     }
     else {
-        Log::i()->text(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
+        xmrig::Log::i()->text(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
     }
 }
 

@@ -79,7 +79,7 @@ private:
     std::vector<Pool> m_pools;
     uint64_t m_now;
     uint64_t m_stop;
-    uv_timer_t m_timer;
+    uv_timer_t *m_timer;
 };
 
 

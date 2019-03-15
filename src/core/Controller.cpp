@@ -75,8 +75,6 @@ xmrig::Controller::Controller(Process *process)
 
 xmrig::Controller::~Controller()
 {
-    ConfigLoader::release();
-
     delete d_ptr;
 }
 
@@ -109,11 +107,11 @@ int xmrig::Controller::init()
     Platform::setProcessPriority(d_ptr->config->priority());
 
     if (!config()->isBackground()) {
-        Log::add(new ConsoleLog(this));
+        Log::add(new ConsoleLog());
     }
 
     if (config()->logFile()) {
-        Log::add(new FileLog(this, config()->logFile()));
+        Log::add(new FileLog(config()->logFile()));
     }
 
 #   ifdef HAVE_SYSLOG_H
@@ -165,4 +163,13 @@ void xmrig::Controller::onNewConfig(IConfig *config)
     }
 
     delete previousConfig;
+}
+
+
+void xmrig::Controller::stop()
+{
+    ConfigLoader::release();
+
+    delete d_ptr->network;
+    d_ptr->network = nullptr;
 }

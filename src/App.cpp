@@ -187,8 +187,14 @@ void xmrig::App::onSignal(int signum)
 
 void xmrig::App::close()
 {
-    m_controller->network()->stop();
-    Workers::stop();
+#   ifndef XMRIG_NO_HTTPD
+    m_httpd->stop();
+#   endif
 
-    uv_stop(uv_default_loop());
+    m_signals->stop();
+    m_console->stop();
+    m_controller->stop();
+
+    Workers::stop();
+    Log::release();
 }

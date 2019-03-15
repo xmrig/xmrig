@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +30,7 @@
 #include <stdio.h>
 
 
+#include "base/tools/Handle.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -49,6 +51,7 @@ inline static const char *format(double h, char *buf, size_t size)
 Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     m_highest(0.0),
     m_threads(threads),
+    m_timer(nullptr),
     m_controller(controller)
 {
     m_counts     = new uint64_t*[threads];
@@ -64,10 +67,11 @@ Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     const int printTime = controller->config()->printTime();
 
     if (printTime > 0) {
-        uv_timer_init(uv_default_loop(), &m_timer);
-        m_timer.data = this;
+        m_timer = new uv_timer_t;
+        uv_timer_init(uv_default_loop(), m_timer);
+        m_timer->data = this;
 
-       uv_timer_start(&m_timer, Hashrate::onReport, (printTime + 4) * 1000, printTime * 1000);
+        uv_timer_start(m_timer, Hashrate::onReport, (printTime + 4) * 1000, printTime * 1000);
     }
 }
 
@@ -171,7 +175,8 @@ void Hashrate::print() const
 
 void Hashrate::stop()
 {
-    uv_timer_stop(&m_timer);
+    xmrig::Handle::close(m_timer);
+    m_timer = nullptr;
 }
 
 

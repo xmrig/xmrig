@@ -36,9 +36,9 @@
 #include "rapidjson/fwd.h"
 
 
-class Handle;
 class Hashrate;
 class IWorker;
+class ThreadHandle;
 
 
 namespace xmrig {
@@ -109,12 +109,12 @@ private:
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
     static std::list<xmrig::JobResult> m_queue;
-    static std::vector<Handle*> m_workers;
+    static std::vector<ThreadHandle*> m_workers;
     static uint64_t m_ticks;
-    static uv_async_t m_async;
+    static uv_async_t *m_async;
     static uv_mutex_t m_mutex;
     static uv_rwlock_t m_rwlock;
-    static uv_timer_t m_timer;
+    static uv_timer_t *m_timer;
     static xmrig::Controller *m_controller;
 };
 

@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,26 +23,42 @@
  */
 
 
+#include "base/tools/Handle.h"
 #include "common/Console.h"
 #include "interfaces/IConsoleListener.h"
 
 
-Console::Console(IConsoleListener *listener)
+xmrig::Console::Console(IConsoleListener *listener)
     : m_listener(listener)
 {
-    m_tty.data = this;
-    uv_tty_init(uv_default_loop(), &m_tty, 0, 1);
+    m_tty = new uv_tty_t;
 
-    if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(&m_tty))) {
+    m_tty->data = this;
+    uv_tty_init(uv_default_loop(), m_tty, 0, 1);
+
+    if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(m_tty))) {
         return;
     }
 
-    uv_tty_set_mode(&m_tty, UV_TTY_MODE_RAW);
-    uv_read_start(reinterpret_cast<uv_stream_t*>(&m_tty), Console::onAllocBuffer, Console::onRead);
+    uv_tty_set_mode(m_tty, UV_TTY_MODE_RAW);
+    uv_read_start(reinterpret_cast<uv_stream_t*>(m_tty), Console::onAllocBuffer, Console::onRead);
 }
 
 
-void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+xmrig::Console::~Console()
+{
+    stop();
+}
+
+
+void xmrig::Console::stop()
+{
+    Handle::close(m_tty);
+    m_tty = nullptr;
+}
+
+
+void xmrig::Console::onAllocBuffer(uv_handle_t *handle, size_t, uv_buf_t *buf)
 {
     auto console = static_cast<Console*>(handle->data);
     buf->len  = 1;
@@ -49,7 +66,7 @@ void Console::onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t
 }
 
 
-void Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+void xmrig::Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     if (nread < 0) {
         return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);

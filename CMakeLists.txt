@@ -84,7 +84,7 @@ set(HEADERS
     src/Summary.h
     src/version.h
     src/workers/CpuThread.h
-    src/workers/Handle.h
+    src/workers/ThreadHandle.h
     src/workers/Hashrate.h
     src/workers/MultiWorker.h
     src/workers/Worker.h
@@ -131,7 +131,6 @@ set(SOURCES
     src/base/net/stratum/strategies/SinglePoolStrategy.cpp
     src/base/tools/Arguments.cpp
     src/base/tools/Buffer.cpp
-    src/base/tools/Handle.cpp
     src/base/tools/String.cpp
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
@@ -151,7 +150,7 @@ set(SOURCES
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp
-    src/workers/Handle.cpp
+    src/workers/ThreadHandle.cpp
     src/workers/Hashrate.cpp
     src/workers/MultiWorker.cpp
     src/workers/Worker.cpp

@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,12 +39,12 @@
 #include "common/log/Log.h"
 
 
-BasicLog::BasicLog()
+xmrig::BasicLog::BasicLog()
 {
 }
 
 
-void BasicLog::message(Level level, const char* fmt, va_list args)
+void xmrig::BasicLog::message(Level level, const char* fmt, va_list args)
 {
     time_t now = time(nullptr);
     tm stime;
@@ -70,7 +71,7 @@ void BasicLog::message(Level level, const char* fmt, va_list args)
 }
 
 
-void BasicLog::text(const char* fmt, va_list args)
+void xmrig::BasicLog::text(const char* fmt, va_list args)
 {
     snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(false));
 
@@ -78,7 +79,7 @@ void BasicLog::text(const char* fmt, va_list args)
 }
 
 
-void BasicLog::print(va_list args)
+void xmrig::BasicLog::print(va_list args)
 {
     if (vsnprintf(m_buf, sizeof(m_buf) - 1, m_fmt, args) <= 0) {
         return;

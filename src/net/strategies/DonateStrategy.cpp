@@ -28,6 +28,7 @@
 #include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "base/tools/Buffer.h"
+#include "base/tools/Handle.h"
 #include "common/crypto/keccak.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
@@ -71,8 +72,9 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IS
         m_strategy = new SinglePoolStrategy(m_pools.front(), 1, 2, this, true);
     }
 
-    m_timer.data = this;
-    uv_timer_init(uv_default_loop(), &m_timer);
+    m_timer = new uv_timer_t;
+    m_timer->data = this;
+    uv_timer_init(uv_default_loop(), m_timer);
 
     idle(m_idleTime * randomf(0.5, 1.5));
 }
@@ -80,6 +82,7 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IS
 
 xmrig::DonateStrategy::~DonateStrategy()
 {
+    Handle::close(m_timer);
     delete m_strategy;
 }
 
@@ -104,7 +107,7 @@ void xmrig::DonateStrategy::setAlgo(const xmrig::Algorithm &algo)
 
 void xmrig::DonateStrategy::stop()
 {
-    uv_timer_stop(&m_timer);
+    uv_timer_stop(m_timer);
     m_strategy->stop();
 }
 
@@ -125,7 +128,7 @@ void xmrig::DonateStrategy::tick(uint64_t now)
 void xmrig::DonateStrategy::onActive(IStrategy *strategy, Client *client)
 {
     if (!isActive()) {
-        uv_timer_start(&m_timer, DonateStrategy::onTimer, m_donateTime, 0);
+        uv_timer_start(m_timer, DonateStrategy::onTimer, m_donateTime, 0);
     }
 
     m_active = true;
@@ -154,7 +157,7 @@ void xmrig::DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client
 
 void xmrig::DonateStrategy::idle(uint64_t timeout)
 {
-    uv_timer_start(&m_timer, DonateStrategy::onTimer, timeout, 0);
+    uv_timer_start(m_timer, DonateStrategy::onTimer, timeout, 0);
 }
 
 

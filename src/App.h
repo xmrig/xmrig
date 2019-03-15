@@ -31,13 +31,13 @@
 #include "common/interfaces/IConsoleListener.h"
 
 
-class Console;
 class Httpd;
 
 
 namespace xmrig {
 
 
+class Console;
 class Controller;
 class Network;
 class Process;

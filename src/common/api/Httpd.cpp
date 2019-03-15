@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,6 +28,7 @@
 
 
 #include "api/Api.h"
+#include "base/tools/Handle.h"
 #include "common/api/Httpd.h"
 #include "common/api/HttpReply.h"
 #include "common/api/HttpRequest.h"
@@ -41,14 +43,15 @@ Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :
     m_port(port),
     m_daemon(nullptr)
 {
-    uv_timer_init(uv_default_loop(), &m_timer);
-    m_timer.data = this;
+    m_timer = new uv_timer_t;
+    uv_timer_init(uv_default_loop(), m_timer);
+    m_timer->data = this;
 }
 
 
 Httpd::~Httpd()
 {
-    uv_timer_stop(&m_timer);
+    stop();
 
     if (m_daemon) {
         MHD_stop_daemon(m_daemon);
@@ -82,12 +85,19 @@ bool Httpd::start()
     }
 
 #   if MHD_VERSION >= 0x00093900
-    uv_timer_start(&m_timer, Httpd::onTimer, kIdleInterval, kIdleInterval);
+    uv_timer_start(m_timer, Httpd::onTimer, kIdleInterval, kIdleInterval);
 #   else
-    uv_timer_start(&m_timer, Httpd::onTimer, kActiveInterval, kActiveInterval);
+    uv_timer_start(m_timer, Httpd::onTimer, kActiveInterval, kActiveInterval);
 #   endif
 
     return true;
+}
+
+
+void Httpd::stop()
+{
+    xmrig::Handle::close(m_timer);
+    m_timer = nullptr;
 }
 
 
@@ -115,11 +125,11 @@ void Httpd::run()
 #   if MHD_VERSION >= 0x00093900
     const MHD_DaemonInfo *info = MHD_get_daemon_info(m_daemon, MHD_DAEMON_INFO_CURRENT_CONNECTIONS);
     if (m_idle && info->num_connections) {
-        uv_timer_set_repeat(&m_timer, kActiveInterval);
+        uv_timer_set_repeat(m_timer, kActiveInterval);
         m_idle = false;
     }
     else if (!m_idle && !info->num_connections) {
-        uv_timer_set_repeat(&m_timer, kIdleInterval);
+        uv_timer_set_repeat(m_timer, kIdleInterval);
         m_idle = true;
     }
 #   endif

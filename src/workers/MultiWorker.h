@@ -40,7 +40,7 @@ template<size_t N>
 class MultiWorker : public Worker
 {
 public:
-    MultiWorker(Handle *handle);
+    MultiWorker(ThreadHandle *handle);
     ~MultiWorker();
 
 protected:

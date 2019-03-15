@@ -52,9 +52,9 @@ xmrig::Dns::Dns(IDnsListener *listener) :
 
 xmrig::Dns::~Dns()
 {
-    Handle::close(m_resolver);
-
     m_storage.release(m_key);
+
+    Handle::close(m_resolver);
 }
 
 

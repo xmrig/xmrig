@@ -50,7 +50,6 @@ public:
     ~Network() override;
 
     void connect();
-    void stop();
 
 protected:
     void onActive(IStrategy *strategy, Client *client) override;
@@ -72,7 +71,7 @@ private:
     IStrategy *m_donate;
     IStrategy *m_strategy;
     NetworkState m_state;
-    uv_timer_t m_timer;
+    uv_timer_t *m_timer;
 };
 
 

@@ -35,6 +35,7 @@
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
+#include "base/tools/Handle.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -44,7 +45,8 @@
 
 
 xmrig::Network::Network(Controller *controller) :
-    m_donate(nullptr)
+    m_donate(nullptr),
+    m_timer(nullptr)
 {
     Workers::setListener(this);
     controller->addListener(this);
@@ -56,15 +58,21 @@ xmrig::Network::Network(Controller *controller) :
         m_donate = new DonateStrategy(controller->config()->donateLevel(), pools.data().front().user(), controller->config()->algorithm().algo(), this);
     }
 
-    m_timer.data = this;
-    uv_timer_init(uv_default_loop(), &m_timer);
-
-    uv_timer_start(&m_timer, Network::onTick, kTickInterval, kTickInterval);
+    m_timer = new uv_timer_t;
+    m_timer->data = this;
+    uv_timer_init(uv_default_loop(), m_timer);
+    uv_timer_start(m_timer, Network::onTick, kTickInterval, kTickInterval);
 }
 
 
 xmrig::Network::~Network()
 {
+    Handle::close(m_timer);
+
+    if (m_donate) {
+        delete m_donate;
+    }
+
     delete m_strategy;
 }
 
@@ -72,16 +80,6 @@ xmrig::Network::~Network()
 void xmrig::Network::connect()
 {
     m_strategy->connect();
-}
-
-
-void xmrig::Network::stop()
-{
-    if (m_donate) {
-        m_donate->stop();
-    }
-
-    m_strategy->stop();
 }
 
 

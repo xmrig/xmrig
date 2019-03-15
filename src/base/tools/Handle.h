@@ -26,12 +26,7 @@
 #define XMRIG_HANDLE_H
 
 
-typedef struct uv_fs_event_s uv_fs_event_t;
-typedef struct uv_getaddrinfo_s uv_getaddrinfo_t;
-typedef struct uv_handle_s uv_handle_t;
-typedef struct uv_signal_s uv_signal_t;
-typedef struct uv_tcp_s uv_tcp_t;
-typedef struct uv_timer_s uv_timer_t;
+#include <uv.h>
 
 
 namespace xmrig {
@@ -40,13 +35,62 @@ namespace xmrig {
 class Handle
 {
 public:
-    static void close(uv_fs_event_t *handle);
-    static void close(uv_getaddrinfo_t *handle);
-    static void close(uv_handle_t *handle);
-    static void close(uv_signal_t *handle);
-    static void close(uv_tcp_t *handle);
-    static void close(uv_timer_t *handle);
+    template<typename T>
+    static inline void close(T handle)
+    {
+        if (handle) {
+            deleteLater(handle);
+        }
+    }
+
+
+    template<typename T>
+    static inline void deleteLater(T handle)
+    {
+        uv_close(reinterpret_cast<uv_handle_t *>(handle), [](uv_handle_t *handle) { delete handle; });
+    }
 };
+
+
+template<>
+inline void Handle::close(uv_timer_t *handle)
+{
+    if (handle) {
+        uv_timer_stop(handle);
+        deleteLater(handle);
+    }
+}
+
+
+template<>
+inline void Handle::close(uv_signal_t *handle)
+{
+    if (handle) {
+        uv_signal_stop(handle);
+        deleteLater(handle);
+    }
+}
+
+
+template<>
+inline void Handle::close(uv_getaddrinfo_t *handle)
+{
+    if (handle) {
+        uv_cancel(reinterpret_cast<uv_req_t *>(handle));
+
+        delete handle;
+    }
+}
+
+
+template<>
+inline void Handle::close(uv_fs_event_t *handle)
+{
+    if (handle) {
+        uv_fs_event_stop(handle);
+        deleteLater(handle);
+    }
+}
 
 
 } /* namespace xmrig */
