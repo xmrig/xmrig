@@ -150,13 +150,13 @@ bool xmrig::Client::Tls::send()
 bool xmrig::Client::Tls::verify(X509 *cert)
 {
     if (cert == nullptr) {
-        LOG_ERR("[%s] Failed to get server certificate", m_client->m_pool.url());
+        LOG_ERR("[%s] Failed to get server certificate", m_client->url());
 
         return false;
     }
 
     if (!verifyFingerprint(cert)) {
-        LOG_ERR("[%s] Failed to verify server certificate fingerprint", m_client->m_pool.url());
+        LOG_ERR("[%s] Failed to verify server certificate fingerprint", m_client->url());
 
         const char *fingerprint = m_client->m_pool.fingerprint();
         if (strlen(m_fingerprint) == 64 && fingerprint != nullptr) {

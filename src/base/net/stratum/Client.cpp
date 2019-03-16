@@ -261,7 +261,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
 
 void xmrig::Client::onResolved(const Dns &dns, int status)
 {
-    assert(client->m_listener != nullptr);
+    assert(m_listener != nullptr);
     if (!m_listener) {
         return reconnect();
     }
@@ -846,7 +846,7 @@ void xmrig::Client::read(ssize_t nread)
         return;
     }
 
-    assert(client->m_listener != nullptr);
+    assert(m_listener != nullptr);
     if (!m_listener) {
         return reconnect();
     }
