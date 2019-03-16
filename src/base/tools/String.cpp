@@ -178,14 +178,10 @@ void xmrig::String::copy(const char *str)
 
 void xmrig::String::copy(const String &other)
 {
-    if (m_size > 0) {
-        if (m_size == other.m_size) {
-            memcpy(m_data, other.m_data, m_size + 1);
+    if (m_size > 0 && m_size == other.m_size) {
+        memcpy(m_data, other.m_data, m_size + 1);
 
-            return;
-        }
-
-        delete [] m_data;
+        return;
     }
 
     delete [] m_data;
