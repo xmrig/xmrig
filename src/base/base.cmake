@@ -11,6 +11,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/ISignalListener.h
     src/base/kernel/interfaces/IStrategy.h
     src/base/kernel/interfaces/IStrategyListener.h
+    src/base/kernel/interfaces/ITimerListener.h
     src/base/kernel/interfaces/IWatcherListener.h
     src/base/kernel/Process.h
     src/base/kernel/Signals.h
@@ -30,6 +31,7 @@ set(HEADERS_BASE
     src/base/tools/Chrono.h
     src/base/tools/Handle.h
     src/base/tools/String.h
+    src/base/tools/Timer.h
    )
 
 set(SOURCES_BASE
@@ -50,6 +52,7 @@ set(SOURCES_BASE
     src/base/tools/Arguments.cpp
     src/base/tools/Buffer.cpp
     src/base/tools/String.cpp
+    src/base/tools/Timer.cpp
    )
 
 

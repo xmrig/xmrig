@@ -27,11 +27,11 @@
 
 
 #include <vector>
-#include <uv.h>
 
 
 #include "api/NetworkState.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
+#include "base/kernel/interfaces/ITimerListener.h"
 #include "common/interfaces/IControllerListener.h"
 #include "interfaces/IJobResultListener.h"
 
@@ -43,7 +43,7 @@ class Controller;
 class IStrategy;
 
 
-class Network : public IJobResultListener, public IStrategyListener, public IControllerListener
+class Network : public IJobResultListener, public IStrategyListener, public IControllerListener, public ITimerListener
 {
 public:
     Network(Controller *controller);
@@ -52,6 +52,8 @@ public:
     void connect();
 
 protected:
+    inline void onTimer(const Timer *) override { tick(); }
+
     void onActive(IStrategy *strategy, Client *client) override;
     void onConfigChanged(Config *config, Config *previousConfig) override;
     void onJob(IStrategy *strategy, Client *client, const Job &job) override;
@@ -66,12 +68,10 @@ private:
     void setJob(Client *client, const Job &job, bool donate);
     void tick();
 
-    static void onTick(uv_timer_t *handle);
-
     IStrategy *m_donate;
     IStrategy *m_strategy;
     NetworkState m_state;
-    uv_timer_t *m_timer;
+    Timer *m_timer;
 };
 
 

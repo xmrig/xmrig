@@ -31,14 +31,12 @@
 #include "base/kernel/interfaces/ISignalListener.h"
 
 
-class Httpd;
-
-
 namespace xmrig {
 
 
 class Console;
 class Controller;
+class Httpd;
 class Network;
 class Process;
 class Signals;

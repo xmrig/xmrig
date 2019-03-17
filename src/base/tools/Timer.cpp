@@ -22,50 +22,70 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WATCHER_H
-#define XMRIG_WATCHER_H
-
 
 #include "base/kernel/interfaces/ITimerListener.h"
-#include "base/tools/String.h"
+#include "base/tools/Handle.h"
+#include "base/tools/Timer.h"
 
 
-typedef struct uv_fs_event_s uv_fs_event_t;
-
-
-namespace xmrig {
-
-
-class IWatcherListener;
-class Timer;
-
-
-class Watcher : public ITimerListener
+xmrig::Timer::Timer(ITimerListener *listener) :
+    m_listener(listener),
+    m_timer(nullptr)
 {
-public:
-    Watcher(const String &path, IWatcherListener *listener);
-    ~Watcher() override;
-
-protected:
-    inline void onTimer(const Timer *) override { reload(); }
-
-private:
-    constexpr static int kDelay = 500;
-
-    static void onFsEvent(uv_fs_event_t *handle, const char *filename, int events, int status);
-
-    void queueUpdate();
-    void reload();
-    void start();
-
-    IWatcherListener *m_listener;
-    String m_path;
-    Timer *m_timer;
-    uv_fs_event_t *m_fsEvent;
-};
+    init();
+}
 
 
-} /* namespace xmrig */
+xmrig::Timer::Timer(ITimerListener *listener, uint64_t timeout, uint64_t repeat) :
+    m_listener(listener),
+    m_timer(nullptr)
+{
+    init();
+    start(timeout, repeat);
+}
 
 
-#endif /* XMRIG_WATCHER_H */
+xmrig::Timer::~Timer()
+{
+    Handle::close(m_timer);
+}
+
+
+uint64_t xmrig::Timer::repeat() const
+{
+    return uv_timer_get_repeat(m_timer);
+}
+
+
+void xmrig::Timer::setRepeat(uint64_t repeat)
+{
+    uv_timer_set_repeat(m_timer, repeat);
+}
+
+
+void xmrig::Timer::start(uint64_t timeout, uint64_t repeat)
+{
+    uv_timer_start(m_timer, onTimer, timeout, repeat);
+}
+
+
+void xmrig::Timer::stop()
+{
+    uv_timer_stop(m_timer);
+}
+
+
+void xmrig::Timer::init()
+{
+    m_timer = new uv_timer_t;
+    m_timer->data = this;
+    uv_timer_init(uv_default_loop(), m_timer);
+}
+
+
+void xmrig::Timer::onTimer(uv_timer_t *handle)
+{
+    const Timer *timer = static_cast<Timer *>(handle->data);
+
+    timer->m_listener->onTimer(timer);
+}

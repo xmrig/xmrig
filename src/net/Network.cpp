@@ -35,7 +35,7 @@
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
-#include "base/tools/Handle.h"
+#include "base/tools/Timer.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -58,16 +58,13 @@ xmrig::Network::Network(Controller *controller) :
         m_donate = new DonateStrategy(controller->config()->donateLevel(), pools.data().front().user(), controller->config()->algorithm().algo(), this);
     }
 
-    m_timer = new uv_timer_t;
-    m_timer->data = this;
-    uv_timer_init(uv_default_loop(), m_timer);
-    uv_timer_start(m_timer, Network::onTick, kTickInterval, kTickInterval);
+    m_timer = new Timer(this, kTickInterval, kTickInterval);
 }
 
 
 xmrig::Network::~Network()
 {
-    Handle::close(m_timer);
+    delete m_timer;
 
     if (m_donate) {
         delete m_donate;
@@ -214,10 +211,4 @@ void xmrig::Network::tick()
 #   ifndef XMRIG_NO_API
     Api::tick(m_state);
 #   endif
-}
-
-
-void xmrig::Network::onTick(uv_timer_t *handle)
-{
-    static_cast<Network*>(handle->data)->tick();
 }

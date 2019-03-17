@@ -26,7 +26,10 @@
 #define XMRIG_HTTPD_H
 
 
-#include <uv.h>
+#include <stddef.h>
+
+
+#include "base/kernel/interfaces/ITimerListener.h"
 
 
 struct MHD_Connection;
@@ -34,31 +37,33 @@ struct MHD_Daemon;
 struct MHD_Response;
 
 
-class UploadCtx;
-
-
 namespace xmrig {
-    class HttpRequest;
-}
 
 
-class Httpd
+class HttpRequest;
+class Timer;
+
+
+class Httpd : public ITimerListener
 {
 public:
     Httpd(int port, const char *accessToken, bool IPv6, bool restricted);
-    ~Httpd();
+    ~Httpd() override;
+
     bool start();
     void stop();
+
+protected:
+    void onTimer(const Timer *) override { run(); }
 
 private:
     constexpr static const int kIdleInterval   = 200;
     constexpr static const int kActiveInterval = 25;
 
-    int process(xmrig::HttpRequest &req);
+    int process(HttpRequest &req);
     void run();
 
     static int handler(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *uploadData, size_t *uploadSize, void **con_cls);
-    static void onTimer(uv_timer_t *handle);
 
     bool m_idle;
     bool m_IPv6;
@@ -66,7 +71,11 @@ private:
     const char *m_accessToken;
     const int m_port;
     MHD_Daemon *m_daemon;
-    uv_timer_t *m_timer;
+    Timer *m_timer;
 };
+
+
+} /* namespace xmrig */
+
 
 #endif /* XMRIG_HTTPD_H */

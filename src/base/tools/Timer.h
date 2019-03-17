@@ -22,50 +22,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WATCHER_H
-#define XMRIG_WATCHER_H
+#ifndef XMRIG_TIMER_H
+#define XMRIG_TIMER_H
 
 
-#include "base/kernel/interfaces/ITimerListener.h"
-#include "base/tools/String.h"
+#include <stdint.h>
 
 
-typedef struct uv_fs_event_s uv_fs_event_t;
+typedef struct uv_timer_s uv_timer_t;
 
 
 namespace xmrig {
 
 
-class IWatcherListener;
-class Timer;
+class ITimerListener;
 
 
-class Watcher : public ITimerListener
+class Timer
 {
 public:
-    Watcher(const String &path, IWatcherListener *listener);
-    ~Watcher() override;
+    Timer(ITimerListener *listener);
+    Timer(ITimerListener *listener, uint64_t timeout, uint64_t repeat);
+    ~Timer();
 
-protected:
-    inline void onTimer(const Timer *) override { reload(); }
+    uint64_t repeat() const;
+    void setRepeat(uint64_t repeat);
+    void start(uint64_t timeout, uint64_t repeat);
+    void stop();
 
 private:
-    constexpr static int kDelay = 500;
+    void init();
 
-    static void onFsEvent(uv_fs_event_t *handle, const char *filename, int events, int status);
+    static void onTimer(uv_timer_t *handle);
 
-    void queueUpdate();
-    void reload();
-    void start();
-
-    IWatcherListener *m_listener;
-    String m_path;
-    Timer *m_timer;
-    uv_fs_event_t *m_fsEvent;
+    ITimerListener *m_listener;
+    uv_timer_t *m_timer;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_WATCHER_H */
+#endif /* XMRIG_TIMER_H */

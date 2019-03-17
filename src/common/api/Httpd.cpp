@@ -29,13 +29,14 @@
 
 #include "api/Api.h"
 #include "base/tools/Handle.h"
+#include "base/tools/Timer.h"
 #include "common/api/Httpd.h"
 #include "common/api/HttpReply.h"
 #include "common/api/HttpRequest.h"
 #include "common/log/Log.h"
 
 
-Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :
+xmrig::Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :
     m_idle(true),
     m_IPv6(IPv6),
     m_restricted(restricted),
@@ -43,13 +44,11 @@ Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :
     m_port(port),
     m_daemon(nullptr)
 {
-    m_timer = new uv_timer_t;
-    uv_timer_init(uv_default_loop(), m_timer);
-    m_timer->data = this;
+    m_timer = new Timer(this);
 }
 
 
-Httpd::~Httpd()
+xmrig::Httpd::~Httpd()
 {
     stop();
 
@@ -61,7 +60,7 @@ Httpd::~Httpd()
 }
 
 
-bool Httpd::start()
+bool xmrig::Httpd::start()
 {
     if (!m_port) {
         return false;
@@ -85,23 +84,23 @@ bool Httpd::start()
     }
 
 #   if MHD_VERSION >= 0x00093900
-    uv_timer_start(m_timer, Httpd::onTimer, kIdleInterval, kIdleInterval);
+    m_timer->start(kIdleInterval, kIdleInterval);
 #   else
-    uv_timer_start(m_timer, Httpd::onTimer, kActiveInterval, kActiveInterval);
+    m_timer->start(kActiveInterval, kActiveInterval);
 #   endif
 
     return true;
 }
 
 
-void Httpd::stop()
+void xmrig::Httpd::stop()
 {
-    xmrig::Handle::close(m_timer);
+    delete m_timer;
     m_timer = nullptr;
 }
 
 
-int Httpd::process(xmrig::HttpRequest &req)
+int xmrig::Httpd::process(HttpRequest &req)
 {
     xmrig::HttpReply reply;
     if (!req.process(m_accessToken, m_restricted, reply)) {
@@ -118,27 +117,27 @@ int Httpd::process(xmrig::HttpRequest &req)
 }
 
 
-void Httpd::run()
+void xmrig::Httpd::run()
 {
     MHD_run(m_daemon);
 
 #   if MHD_VERSION >= 0x00093900
     const MHD_DaemonInfo *info = MHD_get_daemon_info(m_daemon, MHD_DAEMON_INFO_CURRENT_CONNECTIONS);
     if (m_idle && info->num_connections) {
-        uv_timer_set_repeat(m_timer, kActiveInterval);
+        m_timer->setRepeat(kActiveInterval);
         m_idle = false;
     }
     else if (!m_idle && !info->num_connections) {
-        uv_timer_set_repeat(m_timer, kIdleInterval);
+        m_timer->setRepeat(kIdleInterval);
         m_idle = true;
     }
 #   endif
 }
 
 
-int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *uploadData, size_t *uploadSize, void **con_cls)
+int xmrig::Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *, const char *uploadData, size_t *uploadSize, void **con_cls)
 {
-    xmrig::HttpRequest req(connection, url, method, uploadData, uploadSize, con_cls);
+    HttpRequest req(connection, url, method, uploadData, uploadSize, con_cls);
 
     if (req.method() == xmrig::HttpRequest::Options) {
         return req.end(MHD_HTTP_OK, nullptr);
@@ -149,10 +148,4 @@ int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url
     }
 
     return static_cast<Httpd*>(cls)->process(req);
-}
-
-
-void Httpd::onTimer(uv_timer_t *handle)
-{
-    static_cast<Httpd*>(handle->data)->run();
 }
