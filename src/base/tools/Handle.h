@@ -47,6 +47,10 @@ public:
     template<typename T>
     static inline void deleteLater(T handle)
     {
+        if (uv_is_closing(reinterpret_cast<uv_handle_t *>(handle))) {
+            return;
+        }
+
         uv_close(reinterpret_cast<uv_handle_t *>(handle), [](uv_handle_t *handle) { delete handle; });
     }
 };
