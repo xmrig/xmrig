@@ -23,6 +23,9 @@
  */
 
 
+#include <assert.h>
+
+
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/strategies/FailoverStrategy.h"
@@ -32,40 +35,50 @@
 #include "common/crypto/keccak.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
+#include "core/Config.h"
+#include "core/Controller.h"
+#include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
 
 
 namespace xmrig {
 
-static inline double randomf(double min, double max)                  { return (max - min) * (((static_cast<double>(rand())) / static_cast<double>(RAND_MAX))) + min; }
+static inline double randomf(double min, double max)                 { return (max - min) * (((static_cast<double>(rand())) / static_cast<double>(RAND_MAX))) + min; }
 static inline uint64_t random(uint64_t base, double min, double max) { return static_cast<uint64_t>(base * randomf(min, max)); }
+
+static const char *kDonateHost = "donate.v2.xmrig.com";
+#ifdef XMRIG_FEATURE_TLS
+static const char *kDonateHostTls = "donate.ssl.xmrig.com";
+#endif
 
 } /* namespace xmrig */
 
 
-xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener) :
-    m_active(false),
-    m_donateTime(static_cast<uint64_t>(level) * 60 * 1000),
-    m_idleTime((100 - static_cast<uint64_t>(level)) * 60 * 1000),
+xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener *listener) :
+    m_proxy(nullptr),
+    m_donateTime(static_cast<uint64_t>(controller->config()->pools().donateLevel()) * 60 * 1000),
+    m_idleTime((100 - static_cast<uint64_t>(controller->config()->pools().donateLevel())) * 60 * 1000),
+    m_controller(controller),
     m_strategy(nullptr),
     m_listener(listener),
+    m_state(STATE_NEW),
     m_now(0),
     m_stop(0)
 {
     uint8_t hash[200];
     char userId[65] = { 0 };
 
-    keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
+    const String &user = controller->config()->pools().data().front().user();
+    keccak(reinterpret_cast<const uint8_t *>(user.data()), user.size(), hash);
     Buffer::toHex(hash, 32, userId);
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_pools.push_back(Pool("donate.ssl.xmrig.com", 443, userId, nullptr, false, true, true));
+    m_pools.push_back(Pool(kDonateHostTls, 443, userId, nullptr, false, true, true));
 #   endif
-
-    m_pools.push_back(Pool("donate.v2.xmrig.com", 3333, userId, nullptr, false, true));
+    m_pools.push_back(Pool(kDonateHost, 3333, userId, nullptr, false, true));
 
     for (Pool &pool : m_pools) {
-        pool.adjust(Algorithm(algo, VARIANT_AUTO));
+        pool.adjust(Algorithm(controller->config()->algorithm().algo(), VARIANT_AUTO));
     }
 
     if (m_pools.size() > 1) {
@@ -77,7 +90,7 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IS
 
     m_timer = new Timer(this);
 
-    idle(random(m_idleTime, 0.5, 1.5));
+    setState(STATE_IDLE);
 }
 
 
@@ -119,20 +132,19 @@ void xmrig::DonateStrategy::tick(uint64_t now)
 
     m_strategy->tick(now);
 
-    if (m_stop && now > m_stop) {
-        m_strategy->stop();
-        m_stop = 0;
+    if (state() == STATE_WAIT && now > m_stop) {
+        setState(STATE_IDLE);
     }
 }
 
 
 void xmrig::DonateStrategy::onActive(IStrategy *strategy, Client *client)
 {
-    if (!isActive()) {
-        m_timer->start(m_donateTime, 0);
+    if (isActive()) {
+        return;
     }
 
-    m_active = true;
+    setState(STATE_ACTIVE);
     m_listener->onActive(this, client);
 }
 
@@ -158,30 +170,53 @@ void xmrig::DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client
 
 void xmrig::DonateStrategy::onTimer(const Timer *)
 {
-    if (!isActive()) {
-        return connect();
+    setState(isActive() ? STATE_WAIT : STATE_CONNECT);
+}
+
+
+void xmrig::DonateStrategy::idle(double min, double max)
+{
+    m_timer->start(random(m_idleTime, min, max), 0);
+}
+
+
+void xmrig::DonateStrategy::setState(State state)
+{
+    constexpr const uint64_t waitTime = 3000;
+
+    assert(m_state != state && state != STATE_NEW);
+    if (m_state == state) {
+        return;
     }
 
-    suspend();
-}
+    const State prev = m_state;
+    m_state = state;
 
+    switch (state) {
+    case STATE_NEW:
+        break;
 
-void xmrig::DonateStrategy::idle(uint64_t timeout)
-{
-    m_timer->start(timeout, 0);
-}
+    case STATE_IDLE:
+        if (prev == STATE_NEW) {
+            idle(0.5, 1.5);
+        }
+        else {
+            m_strategy->stop();
+            idle(0.8, 1.2);
+        }
+        break;
 
+    case STATE_CONNECT:
+        connect();
+        break;
 
-void xmrig::DonateStrategy::suspend()
-{
-#   if defined(XMRIG_AMD_PROJECT) || defined(XMRIG_NVIDIA_PROJECT)
-    m_stop = m_now + 5000;
-#   else
-    m_stop = m_now + 500;
-#   endif
+    case STATE_ACTIVE:
+        m_timer->start(m_donateTime, 0);
+        break;
 
-    m_active = false;
-    m_listener->onPause(this);
-
-    idle(random(m_idleTime, 0.8, 1.2));
+    case STATE_WAIT:
+        m_stop = m_now + waitTime;
+        m_listener->onPause(this);
+        break;
+    }
 }

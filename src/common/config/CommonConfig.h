@@ -53,7 +53,6 @@ public:
     inline const char *userAgent() const           { return m_userAgent.data(); }
     inline const Pools &pools() const              { return m_pools; }
     inline int apiPort() const                     { return m_apiPort; }
-    inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
@@ -91,7 +90,6 @@ protected:
     bool m_syslog;
     bool m_watch;
     int m_apiPort;
-    int m_donateLevel;
     int m_printTime;
     Pools m_pools;
     State m_state;

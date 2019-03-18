@@ -26,7 +26,6 @@
 #define XMRIG_DONATESTRATEGY_H
 
 
-#include <uv.h>
 #include <vector>
 
 
@@ -41,17 +40,18 @@ namespace xmrig {
 
 
 class Client;
+class Controller;
 class IStrategyListener;
 
 
 class DonateStrategy : public IStrategy, public IStrategyListener, public ITimerListener
 {
 public:
-    DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener);
+    DonateStrategy(Controller *controller, IStrategyListener *listener);
     ~DonateStrategy() override;
 
 public:
-    inline bool isActive() const override  { return m_active; }
+    inline bool isActive() const override  { return state() == STATE_ACTIVE; }
     inline void resume() override          {}
 
     int64_t submit(const JobResult &result) override;
@@ -68,20 +68,30 @@ protected:
     void onTimer(const Timer *timer) override;
 
 private:
-    void idle(uint64_t timeout);
-    void suspend();
+    enum State {
+        STATE_NEW,
+        STATE_IDLE,
+        STATE_CONNECT,
+        STATE_ACTIVE,
+        STATE_WAIT
+    };
 
-    static void onTimer(uv_timer_t *handle);
+    inline State state() const { return m_state; }
 
-    bool m_active;
+    void idle(double min, double max);
+    void setState(State state);
+
+    Client *m_proxy;
     const uint64_t m_donateTime;
     const uint64_t m_idleTime;
+    Controller *m_controller;
     IStrategy *m_strategy;
     IStrategyListener *m_listener;
+    State m_state;
     std::vector<Pool> m_pools;
+    Timer *m_timer;
     uint64_t m_now;
     uint64_t m_stop;
-    Timer *m_timer;
 };
 
 

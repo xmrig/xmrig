@@ -42,12 +42,20 @@ class IStrategyListener;
 class Pools
 {
 public:
+    enum ProxyDonate {
+        PROXY_DONATE_NONE,
+        PROXY_DONATE_AUTO,
+        PROXY_DONATE_ALWAYS
+    };
+
     Pools();
 
     inline bool setUserpass(const char *userpass)       { return current().setUserpass(userpass); }
     inline const std::vector<Pool> &data() const        { return m_data; }
+    inline int donateLevel() const                      { return m_donateLevel; }
     inline int retries() const                          { return m_retries; }
     inline int retryPause() const                       { return m_retryPause; }
+    inline ProxyDonate proxyDonate() const              { return m_proxyDonate; }
     inline void setFingerprint(const char *fingerprint) { current().setFingerprint(fingerprint); }
     inline void setKeepAlive(bool enable)               { current().setKeepAlive(enable); }
     inline void setKeepAlive(int keepAlive)             { current().setKeepAlive(keepAlive); }
@@ -70,14 +78,18 @@ public:
     void adjust(const Algorithm &algorithm);
     void load(const rapidjson::Value &pools);
     void print() const;
+    void setDonateLevel(int level);
+    void setProxyDonate(int value);
     void setRetries(int retries);
     void setRetryPause(int retryPause);
 
 private:
     Pool &current();
 
+    int m_donateLevel;
     int m_retries;
     int m_retryPause;
+    ProxyDonate m_proxyDonate;
     std::vector<Pool> m_data;
 };
 

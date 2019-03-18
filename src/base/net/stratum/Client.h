@@ -68,6 +68,7 @@ public:
         EXT_ALGO,
         EXT_NICEHASH,
         EXT_CONNECT,
+        EXT_TLS,
         EXT_KEEPALIVE,
         EXT_MAX
     };

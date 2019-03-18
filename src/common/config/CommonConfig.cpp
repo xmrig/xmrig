@@ -57,7 +57,6 @@
 #include "base/io/Json.h"
 #include "common/config/CommonConfig.h"
 #include "common/log/Log.h"
-#include "donate.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -75,7 +74,6 @@ xmrig::CommonConfig::CommonConfig() :
     m_syslog(false),
     m_watch(true),
     m_apiPort(0),
-    m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
     m_state(NoneState)
 {
@@ -397,9 +395,11 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         break;
 
     case DonateLevelKey: /* --donate-level */
-        if (arg >= kMinimumDonateLevel && arg <= 99) {
-            m_donateLevel = arg;
-        }
+        m_pools.setDonateLevel(arg);
+        break;
+
+    case ProxyDonateKey: /* --donate-over-proxy */
+        m_pools.setProxyDonate(arg);
         break;
 
     case ApiPort: /* --api-port */

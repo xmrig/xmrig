@@ -27,12 +27,15 @@
 #include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "common/log/Log.h"
+#include "donate.h"
 #include "rapidjson/document.h"
 
 
 xmrig::Pools::Pools() :
+    m_donateLevel(kDefaultDonateLevel),
     m_retries(5),
-    m_retryPause(5)
+    m_retryPause(5),
+    m_proxyDonate(PROXY_DONATE_AUTO)
 {
 #   ifdef XMRIG_PROXY_PROJECT
     m_retries    = 2;
@@ -188,6 +191,25 @@ void xmrig::Pools::print() const
     }
     LOG_NOTICE("--------------------------------------------------------------------------");
 #   endif
+}
+
+
+void xmrig::Pools::setDonateLevel(int level)
+{
+    if (level >= kMinimumDonateLevel && level <= 99) {
+        m_donateLevel = level;
+    }
+}
+
+
+void xmrig::Pools::setProxyDonate(int value)
+{
+    switch (value) {
+    case PROXY_DONATE_NONE:
+    case PROXY_DONATE_AUTO:
+    case PROXY_DONATE_ALWAYS:
+        m_proxyDonate = static_cast<ProxyDonate>(value);
+    }
 }
 
 

@@ -97,17 +97,18 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
         doc.AddMember("cpu-affinity", kNullType, allocator);
     }
 
-    doc.AddMember("cpu-priority",  priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
-    doc.AddMember("donate-level",  donateLevel(), allocator);
-    doc.AddMember("huge-pages",    isHugePages(), allocator);
-    doc.AddMember("hw-aes",        m_aesMode == AES_AUTO ? Value(kNullType) : Value(m_aesMode == AES_HW), allocator);
-    doc.AddMember("log-file",      logFile()             ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
-    doc.AddMember("max-cpu-usage", m_maxCpuUsage, allocator);
-    doc.AddMember("pools",         m_pools.toJSON(doc), allocator);
-    doc.AddMember("print-time",    printTime(), allocator);
-    doc.AddMember("retries",       m_pools.retries(), allocator);
-    doc.AddMember("retry-pause",   m_pools.retryPause(), allocator);
-    doc.AddMember("safe",          m_safe, allocator);
+    doc.AddMember("cpu-priority",      priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
+    doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
+    doc.AddMember("donate-over-proxy", m_pools.proxyDonate(), allocator);
+    doc.AddMember("huge-pages",        isHugePages(), allocator);
+    doc.AddMember("hw-aes",            m_aesMode == AES_AUTO ? Value(kNullType) : Value(m_aesMode == AES_HW), allocator);
+    doc.AddMember("log-file",          m_logFile.toJSON(), allocator);
+    doc.AddMember("max-cpu-usage",     m_maxCpuUsage, allocator);
+    doc.AddMember("pools",             m_pools.toJSON(doc), allocator);
+    doc.AddMember("print-time",        printTime(), allocator);
+    doc.AddMember("retries",           m_pools.retries(), allocator);
+    doc.AddMember("retry-pause",       m_pools.retryPause(), allocator);
+    doc.AddMember("safe",              m_safe, allocator);
 
     if (threadsMode() != Simple) {
         Value threads(kArrayType);

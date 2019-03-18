@@ -69,6 +69,7 @@ public:
         TlsKey            = 1013,
         FingerprintKey    = 1014,
         AutoSaveKey       = 1016,
+        ProxyDonateKey    = 1017,
 
         // xmrig common
         CPUPriorityKey    = 1021,

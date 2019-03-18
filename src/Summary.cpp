@@ -114,8 +114,8 @@ static void print_threads(xmrig::Config *config)
                        config->threadsCount(),
                        config->algorithm().name(),
                        config->algoVariant(),
-                       config->isColors() && config->donateLevel() == 0 ? "\x1B[1;31m" : "",
-                       config->donateLevel(),
+                       config->isColors() && config->pools().donateLevel() == 0 ? "\x1B[1;31m" : "",
+                       config->pools().donateLevel(),
                        buf);
     }
     else {
@@ -124,8 +124,8 @@ static void print_threads(xmrig::Config *config)
                        "THREADS",
                        config->threadsCount(),
                        config->algorithm().name(),
-                       config->isColors() && config->donateLevel() == 0 ? "\x1B[1;31m" : "",
-                       config->donateLevel());
+                       config->isColors() && config->pools().donateLevel() == 0 ? "\x1B[1;31m" : "",
+                       config->pools().donateLevel());
     }
 
 #   ifndef XMRIG_NO_ASM

@@ -254,7 +254,7 @@ void ApiRouter::getMiner(rapidjson::Document &doc) const
     doc.AddMember("cpu",          cpu, allocator);
     doc.AddMember("algo",         rapidjson::StringRef(m_controller->config()->algorithm().name()), allocator);
     doc.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
-    doc.AddMember("donate_level", m_controller->config()->donateLevel(), allocator);
+    doc.AddMember("donate_level", m_controller->config()->pools().donateLevel(), allocator);
 }
 
 
