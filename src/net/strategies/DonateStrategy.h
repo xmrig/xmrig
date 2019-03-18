@@ -33,6 +33,7 @@
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/kernel/interfaces/IStrategy.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
+#include "base/kernel/interfaces/ITimerListener.h"
 #include "base/net/stratum/Pool.h"
 
 
@@ -43,7 +44,7 @@ class Client;
 class IStrategyListener;
 
 
-class DonateStrategy : public IStrategy, public IStrategyListener
+class DonateStrategy : public IStrategy, public IStrategyListener, public ITimerListener
 {
 public:
     DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener);
@@ -64,6 +65,7 @@ protected:
     void onJob(IStrategy *strategy, Client *client, const Job &job) override;
     void onPause(IStrategy *strategy) override;
     void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
+    void onTimer(const Timer *timer) override;
 
 private:
     void idle(uint64_t timeout);
@@ -79,7 +81,7 @@ private:
     std::vector<Pool> m_pools;
     uint64_t m_now;
     uint64_t m_stop;
-    uv_timer_t *m_timer;
+    Timer *m_timer;
 };
 
 

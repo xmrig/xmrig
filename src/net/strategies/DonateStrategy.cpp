@@ -28,22 +28,25 @@
 #include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "base/tools/Buffer.h"
-#include "base/tools/Handle.h"
+#include "base/tools/Timer.h"
 #include "common/crypto/keccak.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
 #include "net/strategies/DonateStrategy.h"
 
 
-static inline float randomf(float min, float max) {
-    return (max - min) * ((((float) rand()) / (float) RAND_MAX)) + min;
-}
+namespace xmrig {
+
+static inline double randomf(double min, double max)                  { return (max - min) * (((static_cast<double>(rand())) / static_cast<double>(RAND_MAX))) + min; }
+static inline uint64_t random(uint64_t base, double min, double max) { return static_cast<uint64_t>(base * randomf(min, max)); }
+
+} /* namespace xmrig */
 
 
 xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener) :
     m_active(false),
-    m_donateTime(level * 60 * 1000),
-    m_idleTime((100 - level) * 60 * 1000),
+    m_donateTime(static_cast<uint64_t>(level) * 60 * 1000),
+    m_idleTime((100 - static_cast<uint64_t>(level)) * 60 * 1000),
     m_strategy(nullptr),
     m_listener(listener),
     m_now(0),
@@ -55,7 +58,7 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IS
     keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
     Buffer::toHex(hash, 32, userId);
 
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     m_pools.push_back(Pool("donate.ssl.xmrig.com", 443, userId, nullptr, false, true, true));
 #   endif
 
@@ -72,17 +75,15 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IS
         m_strategy = new SinglePoolStrategy(m_pools.front(), 1, 2, this, true);
     }
 
-    m_timer = new uv_timer_t;
-    m_timer->data = this;
-    uv_timer_init(uv_default_loop(), m_timer);
+    m_timer = new Timer(this);
 
-    idle(m_idleTime * randomf(0.5, 1.5));
+    idle(random(m_idleTime, 0.5, 1.5));
 }
 
 
 xmrig::DonateStrategy::~DonateStrategy()
 {
-    Handle::close(m_timer);
+    delete m_timer;
     delete m_strategy;
 }
 
@@ -107,7 +108,7 @@ void xmrig::DonateStrategy::setAlgo(const xmrig::Algorithm &algo)
 
 void xmrig::DonateStrategy::stop()
 {
-    uv_timer_stop(m_timer);
+    m_timer->stop();
     m_strategy->stop();
 }
 
@@ -128,7 +129,7 @@ void xmrig::DonateStrategy::tick(uint64_t now)
 void xmrig::DonateStrategy::onActive(IStrategy *strategy, Client *client)
 {
     if (!isActive()) {
-        uv_timer_start(m_timer, DonateStrategy::onTimer, m_donateTime, 0);
+        m_timer->start(m_donateTime, 0);
     }
 
     m_active = true;
@@ -155,9 +156,19 @@ void xmrig::DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client
 }
 
 
+void xmrig::DonateStrategy::onTimer(const Timer *)
+{
+    if (!isActive()) {
+        return connect();
+    }
+
+    suspend();
+}
+
+
 void xmrig::DonateStrategy::idle(uint64_t timeout)
 {
-    uv_timer_start(m_timer, DonateStrategy::onTimer, timeout, 0);
+    m_timer->start(timeout, 0);
 }
 
 
@@ -172,17 +183,5 @@ void xmrig::DonateStrategy::suspend()
     m_active = false;
     m_listener->onPause(this);
 
-    idle(m_idleTime);
-}
-
-
-void xmrig::DonateStrategy::onTimer(uv_timer_t *handle)
-{
-    auto strategy = static_cast<DonateStrategy*>(handle->data);
-
-    if (!strategy->isActive()) {
-        return strategy->connect();
-    }
-
-    strategy->suspend();
+    idle(random(m_idleTime, 0.8, 1.2));
 }
