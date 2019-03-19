@@ -68,8 +68,6 @@ xmrig::App::App(Process *process) :
 
 xmrig::App::~App()
 {
-    uv_tty_reset_mode();
-
     delete m_signals;
     delete m_console;
     delete m_controller;

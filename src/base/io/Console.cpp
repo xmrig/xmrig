@@ -53,6 +53,8 @@ xmrig::Console::~Console()
 
 void xmrig::Console::stop()
 {
+    uv_tty_reset_mode();
+
     Handle::close(m_tty);
     m_tty = nullptr;
 }
