@@ -34,8 +34,8 @@ xmrig::FailoverStrategy::FailoverStrategy(const std::vector<Pool> &pools, int re
     m_retries(retries),
     m_retryPause(retryPause),
     m_active(-1),
-    m_index(0),
-    m_listener(listener)
+    m_listener(listener),
+    m_index(0)
 {
     for (const Pool &pool : pools) {
         add(pool);
@@ -48,8 +48,8 @@ xmrig::FailoverStrategy::FailoverStrategy(int retryPause, int retries, IStrategy
     m_retries(retries),
     m_retryPause(retryPause),
     m_active(-1),
-    m_index(0),
-    m_listener(listener)
+    m_listener(listener),
+    m_index(0)
 {
 }
 
@@ -86,7 +86,7 @@ int64_t xmrig::FailoverStrategy::submit(const JobResult &result)
 
 void xmrig::FailoverStrategy::connect()
 {
-    m_pools[static_cast<size_t>(m_index)]->connect();
+    m_pools[m_index]->connect();
 }
 
 
@@ -144,8 +144,8 @@ void xmrig::FailoverStrategy::onClose(Client *client, int failures)
         return;
     }
 
-    if (m_index == client->id() && (m_pools.size() - static_cast<size_t>(m_index)) > 1) {
-        m_pools[static_cast<size_t>(++m_index)]->connect();
+    if (m_index == static_cast<size_t>(client->id()) && (m_pools.size() - m_index) > 1) {
+        m_pools[++m_index]->connect();
     }
 }
 

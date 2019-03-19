@@ -85,6 +85,7 @@ public:
     ~Client() override;
 
     bool disconnect();
+    bool isTLS() const;
     const char *tlsFingerprint() const;
     const char *tlsVersion() const;
     int64_t submit(const JobResult &result);
@@ -99,6 +100,7 @@ public:
     inline const char *host() const                   { return m_pool.host(); }
     inline const char *ip() const                     { return m_ip; }
     inline const Job &job() const                     { return m_job; }
+    inline const Pool &pool() const                   { return m_pool; }
     inline int id() const                             { return m_id; }
     inline SocketState state() const                  { return m_state; }
     inline uint16_t port() const                      { return m_pool.port(); }
@@ -120,7 +122,6 @@ private:
 
     bool close();
     bool isCriticalError(const char *message);
-    bool isTLS() const;
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseLogin(const rapidjson::Value &result, int *code);
     bool send(BIO *bio);

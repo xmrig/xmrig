@@ -39,6 +39,7 @@
 #include "core/Controller.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
+#include "rapidjson/document.h"
 
 
 namespace xmrig {
@@ -55,6 +56,8 @@ static const char *kDonateHostTls = "donate.ssl.xmrig.com";
 
 
 xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener *listener) :
+    m_tls(false),
+    m_userId(),
     m_proxy(nullptr),
     m_donateTime(static_cast<uint64_t>(controller->config()->pools().donateLevel()) * 60 * 1000),
     m_idleTime((100 - static_cast<uint64_t>(controller->config()->pools().donateLevel())) * 60 * 1000),
@@ -63,19 +66,18 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
     m_listener(listener),
     m_state(STATE_NEW),
     m_now(0),
-    m_stop(0)
+    m_timestamp(0)
 {
     uint8_t hash[200];
-    char userId[65] = { 0 };
 
     const String &user = controller->config()->pools().data().front().user();
     keccak(reinterpret_cast<const uint8_t *>(user.data()), user.size(), hash);
-    Buffer::toHex(hash, 32, userId);
+    Buffer::toHex(hash, 32, m_userId);
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_pools.push_back(Pool(kDonateHostTls, 443, userId, nullptr, false, true, true));
+    m_pools.push_back(Pool(kDonateHostTls, 443, m_userId, nullptr, 0, true, true));
 #   endif
-    m_pools.push_back(Pool(kDonateHost, 3333, userId, nullptr, false, true));
+    m_pools.push_back(Pool(kDonateHost, 3333, m_userId, nullptr, 0, true));
 
     for (Pool &pool : m_pools) {
         pool.adjust(Algorithm(controller->config()->algorithm().algo(), VARIANT_AUTO));
@@ -98,18 +100,31 @@ xmrig::DonateStrategy::~DonateStrategy()
 {
     delete m_timer;
     delete m_strategy;
+
+    if (m_proxy) {
+        m_proxy->deleteLater();
+    }
 }
 
 
 int64_t xmrig::DonateStrategy::submit(const JobResult &result)
 {
-    return m_strategy->submit(result);
+    return m_proxy ? m_proxy->submit(result) : m_strategy->submit(result);
 }
 
 
 void xmrig::DonateStrategy::connect()
 {
-    m_strategy->connect();
+    m_proxy = createProxy();
+    if (m_proxy) {
+        m_proxy->connect();
+    }
+    else if (m_controller->config()->pools().proxyDonate() == Pools::PROXY_DONATE_ALWAYS) {
+        setState(STATE_IDLE);
+    }
+    else {
+        m_strategy->connect();
+    }
 }
 
 
@@ -132,13 +147,17 @@ void xmrig::DonateStrategy::tick(uint64_t now)
 
     m_strategy->tick(now);
 
-    if (state() == STATE_WAIT && now > m_stop) {
+    if (m_proxy) {
+        m_proxy->tick(now);
+    }
+
+    if (state() == STATE_WAIT && now > m_timestamp) {
         setState(STATE_IDLE);
     }
 }
 
 
-void xmrig::DonateStrategy::onActive(IStrategy *strategy, Client *client)
+void xmrig::DonateStrategy::onActive(IStrategy *, Client *client)
 {
     if (isActive()) {
         return;
@@ -149,22 +168,49 @@ void xmrig::DonateStrategy::onActive(IStrategy *strategy, Client *client)
 }
 
 
-void xmrig::DonateStrategy::onJob(IStrategy *strategy, Client *client, const Job &job)
+void xmrig::DonateStrategy::onPause(IStrategy *)
 {
-    if (isActive()) {
-        m_listener->onJob(this, client, job);
+}
+
+
+void xmrig::DonateStrategy::onClose(Client *, int failures)
+{
+    if (failures == 2 && m_controller->config()->pools().proxyDonate() == Pools::PROXY_DONATE_AUTO) {
+        m_proxy->deleteLater();
+        m_proxy = nullptr;
+
+        m_strategy->connect();
     }
 }
 
 
-void xmrig::DonateStrategy::onPause(IStrategy *strategy)
+void xmrig::DonateStrategy::onLogin(Client *, rapidjson::Document &doc, rapidjson::Value &params)
 {
+    auto &allocator = doc.GetAllocator();
+
+#   ifdef XMRIG_FEATURE_TLS
+    if (m_tls) {
+        char buf[40] = { 0 };
+        snprintf(buf, sizeof(buf), "stratum+ssl://%s", m_pools[0].url().data());
+        params.AddMember("url", rapidjson::Value(buf, allocator), allocator);
+    }
+    else {
+        params.AddMember("url", m_pools[1].url().toJSON(), allocator);
+    }
+#   else
+    params.AddMember("url", m_pools[0].url().toJSON(), allocator);
+#   endif
 }
 
 
-void xmrig::DonateStrategy::onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error)
+void xmrig::DonateStrategy::onLoginSuccess(Client *client)
 {
-    m_listener->onResultAccepted(this, client, result, error);
+    if (isActive()) {
+        return;
+    }
+
+    setState(STATE_ACTIVE);
+    m_listener->onActive(this, client);
 }
 
 
@@ -174,9 +220,48 @@ void xmrig::DonateStrategy::onTimer(const Timer *)
 }
 
 
+xmrig::Client *xmrig::DonateStrategy::createProxy()
+{
+    if (m_controller->config()->pools().proxyDonate() == Pools::PROXY_DONATE_NONE) {
+        return nullptr;
+    }
+
+    IStrategy *strategy = m_controller->network()->strategy();
+    if (!strategy->isActive() || !strategy->client()->has<Client::EXT_CONNECT>()) {
+        return nullptr;
+    }
+
+    const Client *client = strategy->client();
+    m_tls                = client->has<Client::EXT_TLS>();
+
+    Pool pool(client->ip(), client->port(), m_userId, client->pool().password(), 0, true, client->isTLS());
+    pool.setAlgo(client->pool().algorithm());
+
+    Client *proxy = new Client(-1, Platform::userAgent(), this);
+    proxy->setPool(pool);
+    proxy->setQuiet(true);
+
+    return proxy;
+}
+
+
 void xmrig::DonateStrategy::idle(double min, double max)
 {
     m_timer->start(random(m_idleTime, min, max), 0);
+}
+
+
+void xmrig::DonateStrategy::setJob(Client *client, const Job &job)
+{
+    if (isActive()) {
+        m_listener->onJob(this, client, job);
+    }
+}
+
+
+void xmrig::DonateStrategy::setResult(Client *client, const SubmitResult &result, const char *error)
+{
+    m_listener->onResultAccepted(this, client, result, error);
 }
 
 
@@ -200,8 +285,16 @@ void xmrig::DonateStrategy::setState(State state)
         if (prev == STATE_NEW) {
             idle(0.5, 1.5);
         }
+        else if (prev == STATE_CONNECT) {
+            m_timer->start(20000, 0);
+        }
         else {
             m_strategy->stop();
+            if (m_proxy) {
+                m_proxy->deleteLater();
+                m_proxy = nullptr;
+            }
+
             idle(0.8, 1.2);
         }
         break;
@@ -215,7 +308,7 @@ void xmrig::DonateStrategy::setState(State state)
         break;
 
     case STATE_WAIT:
-        m_stop = m_now + waitTime;
+        m_timestamp = m_now + waitTime;
         m_listener->onPause(this);
         break;
     }

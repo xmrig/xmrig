@@ -44,8 +44,10 @@ public:
     SinglePoolStrategy(const Pool &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     ~SinglePoolStrategy() override;
 
-public:
+protected:
     inline bool isActive() const override  { return m_active; }
+    inline Client *client() const override                                            { return m_client; }
+    inline void onLogin(Client *, rapidjson::Document &, rapidjson::Value &) override {}
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -53,9 +55,6 @@ public:
     void setAlgo(const Algorithm &algo) override;
     void stop() override;
     void tick(uint64_t now) override;
-
-protected:
-    inline void onLogin(Client *, rapidjson::Document &, rapidjson::Value &) override {}
 
     void onClose(Client *client, int failures) override;
     void onJobReceived(Client *client, const Job &job, const rapidjson::Value &params) override;

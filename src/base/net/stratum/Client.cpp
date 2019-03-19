@@ -182,6 +182,16 @@ bool xmrig::Client::disconnect()
 }
 
 
+bool xmrig::Client::isTLS() const
+{
+#   ifndef XMRIG_NO_TLS
+    return m_pool.isTLS() && m_tls;
+#   else
+    return false;
+#   endif
+}
+
+
 const char *xmrig::Client::tlsFingerprint() const
 {
 #   ifndef XMRIG_NO_TLS
@@ -328,16 +338,6 @@ bool xmrig::Client::isCriticalError(const char *message)
     }
 
     return false;
-}
-
-
-bool xmrig::Client::isTLS() const
-{
-#   ifndef XMRIG_NO_TLS
-    return m_pool.isTLS() && m_tls;
-#   else
-    return false;
-#   endif
 }
 
 

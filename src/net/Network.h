@@ -49,6 +49,8 @@ public:
     Network(Controller *controller);
     ~Network() override;
 
+    inline IStrategy *strategy() const { return m_strategy; }
+
     void connect();
 
 protected:

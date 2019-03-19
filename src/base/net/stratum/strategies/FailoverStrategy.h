@@ -50,8 +50,10 @@ public:
 
     void add(const Pool &pool);
 
-public:
-    inline bool isActive() const override  { return m_active >= 0; }
+protected:
+    inline bool isActive() const override                                             { return m_active >= 0; }
+    inline Client *client() const override                                            { return active(); }
+    inline void onLogin(Client *, rapidjson::Document &, rapidjson::Value &) override {}
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -59,9 +61,6 @@ public:
     void setAlgo(const Algorithm &algo) override;
     void stop() override;
     void tick(uint64_t now) override;
-
-protected:
-    inline void onLogin(Client *, rapidjson::Document &, rapidjson::Value &) override {}
 
     void onClose(Client *client, int failures) override;
     void onJobReceived(Client *client, const Job &job, const rapidjson::Value &params) override;
@@ -75,8 +74,8 @@ private:
     const int m_retries;
     const int m_retryPause;
     int m_active;
-    int m_index;
     IStrategyListener *m_listener;
+    size_t m_index;
     std::vector<Client*> m_pools;
 };
 
