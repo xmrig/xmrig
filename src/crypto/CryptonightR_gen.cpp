@@ -31,7 +31,6 @@ typedef void(*void_func)();
 #include "crypto/asm/CryptonightR_template.h"
 #include "Mem.h"
 
-#if !defined XMRIG_ARM && !defined XMRIG_NO_ASM
 
 static inline void add_code(uint8_t* &p, void (*p1)(), void (*p2)())
 {
@@ -159,4 +158,30 @@ void v4_compile_code_double(const V4_Instruction* code, int code_size, void* mac
     Mem::flushInstructionCache(machine_code, p - p0);
 }
 
-#endif
+void wow_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
+    uint8_t* p = p0;
+
+    add_code(p, CryptonightWOW_soft_aes_template_part1, CryptonightWOW_soft_aes_template_part2);
+    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
+    add_code(p, CryptonightWOW_soft_aes_template_part2, CryptonightWOW_soft_aes_template_part3);
+    *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightWOW_soft_aes_template_mainloop) - ((const uint8_t*)CryptonightWOW_soft_aes_template_part1)) - (p - p0));
+    add_code(p, CryptonightWOW_soft_aes_template_part3, CryptonightWOW_soft_aes_template_end);
+
+    Mem::flushInstructionCache(machine_code, p - p0);
+}
+
+void v4_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
+    uint8_t* p = p0;
+
+    add_code(p, CryptonightR_soft_aes_template_part1, CryptonightR_soft_aes_template_part2);
+    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
+    add_code(p, CryptonightR_soft_aes_template_part2, CryptonightR_soft_aes_template_part3);
+    *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_soft_aes_template_mainloop) - ((const uint8_t*)CryptonightR_soft_aes_template_part1)) - (p - p0));
+    add_code(p, CryptonightR_soft_aes_template_part3, CryptonightR_soft_aes_template_end);
+
+    Mem::flushInstructionCache(machine_code, p - p0);
+}

@@ -35,6 +35,8 @@
 #include "common/log/Log.h"
 
 
+namespace xmrig {
+
 Log *Log::m_self = nullptr;
 bool Log::colors = true;
 
@@ -51,8 +53,10 @@ static const char *color[5] = {
 #   endif
 };
 
+} /* namespace xmrig */
 
-void Log::message(ILogBackend::Level level, const char* fmt, ...)
+
+void xmrig::Log::message(ILogBackend::Level level, const char* fmt, ...)
 {
     uv_mutex_lock(&m_mutex);
 
@@ -72,7 +76,7 @@ void Log::message(ILogBackend::Level level, const char* fmt, ...)
 }
 
 
-void Log::text(const char* fmt, ...)
+void xmrig::Log::text(const char* fmt, ...)
 {
     uv_mutex_lock(&m_mutex);
 
@@ -92,7 +96,7 @@ void Log::text(const char* fmt, ...)
 }
 
 
-const char *Log::colorByLevel(ILogBackend::Level level, bool isColors)
+const char *xmrig::Log::colorByLevel(ILogBackend::Level level, bool isColors)
 {
     if (!isColors) {
         return "";
@@ -102,7 +106,7 @@ const char *Log::colorByLevel(ILogBackend::Level level, bool isColors)
 }
 
 
-const char *Log::endl(bool isColors)
+const char *xmrig::Log::endl(bool isColors)
 {
 #   ifdef _WIN32
     return isColors ? "\x1B[0m\r\n" : "\r\n";
@@ -112,7 +116,7 @@ const char *Log::endl(bool isColors)
 }
 
 
-void Log::defaultInit()
+void xmrig::Log::defaultInit()
 {
     m_self = new Log();
 
@@ -120,8 +124,10 @@ void Log::defaultInit()
 }
 
 
-Log::~Log()
+xmrig::Log::~Log()
 {
+    m_self = nullptr;
+
     for (auto backend : m_backends) {
         delete backend;
     }

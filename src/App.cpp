@@ -30,8 +30,8 @@
 
 #include "api/Api.h"
 #include "App.h"
+#include "base/io/Console.h"
 #include "base/kernel/Signals.h"
-#include "common/Console.h"
 #include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
 #include "common/Platform.h"
@@ -55,7 +55,7 @@ xmrig::App::App(Process *process) :
     m_httpd(nullptr),
     m_signals(nullptr)
 {
-    m_controller = new xmrig::Controller(process);
+    m_controller = new Controller(process);
     if (m_controller->init() != 0) {
         return;
     }
@@ -68,8 +68,6 @@ xmrig::App::App(Process *process) :
 
 xmrig::App::~App()
 {
-    uv_tty_reset_mode();
-
     delete m_signals;
     delete m_console;
     delete m_controller;
@@ -178,7 +176,7 @@ void xmrig::App::onSignal(int signum)
         break;
 
     default:
-        break;
+        return;
     }
 
     close();
@@ -187,8 +185,14 @@ void xmrig::App::onSignal(int signum)
 
 void xmrig::App::close()
 {
-    m_controller->network()->stop();
-    Workers::stop();
+#   ifndef XMRIG_NO_HTTPD
+    m_httpd->stop();
+#   endif
 
-    uv_stop(uv_default_loop());
+    m_signals->stop();
+    m_console->stop();
+    m_controller->stop();
+
+    Workers::stop();
+    Log::release();
 }

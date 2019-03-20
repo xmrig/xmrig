@@ -69,6 +69,7 @@ public:
         TlsKey            = 1013,
         FingerprintKey    = 1014,
         AutoSaveKey       = 1016,
+        ProxyDonateKey    = 1017,
 
         // xmrig common
         CPUPriorityKey    = 1021,
@@ -117,6 +118,8 @@ public:
         TlsCiphersKey      = 1112,
         TlsCipherSuitesKey = 1113,
         TlsProtocolsKey    = 1114,
+        AlgoExtKey         = 1115,
+        ProxyPasswordKey   = 1116,
 
         // xmrig nvidia
         CudaMaxThreadsKey = 1200,

@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,12 +32,9 @@
 
 #include "common/log/FileLog.h"
 #include "common/log/Log.h"
-#include "core/Config.h"
-#include "core/Controller.h"
 
 
-FileLog::FileLog(xmrig::Controller *controller, const char *fileName) :
-    m_controller(controller)
+xmrig::FileLog::FileLog(const char *fileName)
 {
     uv_fs_t req;
     m_file = uv_fs_open(uv_default_loop(), &req, fileName, O_CREAT | O_APPEND | O_WRONLY, 0644, nullptr);
@@ -44,7 +42,7 @@ FileLog::FileLog(xmrig::Controller *controller, const char *fileName) :
 }
 
 
-void FileLog::message(Level level, const char* fmt, va_list args)
+void xmrig::FileLog::message(Level level, const char* fmt, va_list args)
 {
     if (m_file < 0) {
         return;
@@ -59,8 +57,6 @@ void FileLog::message(Level level, const char* fmt, va_list args)
     localtime_r(&now, &stime);
 #   endif
 
-    const bool isColors = m_controller->config()->isColors();
-
     snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
              stime.tm_year + 1900,
              stime.tm_mon + 1,
@@ -68,9 +64,9 @@ void FileLog::message(Level level, const char* fmt, va_list args)
              stime.tm_hour,
              stime.tm_min,
              stime.tm_sec,
-             Log::colorByLevel(level, isColors),
+             Log::colorByLevel(level, Log::colors),
              fmt,
-             Log::endl(isColors)
+             Log::endl(Log::colors)
         );
 
     char *buf = new char[kBufferSize];
@@ -80,13 +76,13 @@ void FileLog::message(Level level, const char* fmt, va_list args)
 }
 
 
-void FileLog::text(const char* fmt, va_list args)
+void xmrig::FileLog::text(const char* fmt, va_list args)
 {
     message(INFO, fmt, args);
 }
 
 
-void FileLog::onWrite(uv_fs_t *req)
+void xmrig::FileLog::onWrite(uv_fs_t *req)
 {
     delete [] static_cast<char *>(req->data);
 
@@ -95,7 +91,7 @@ void FileLog::onWrite(uv_fs_t *req)
 }
 
 
-void FileLog::write(char *data, size_t size)
+void xmrig::FileLog::write(char *data, size_t size)
 {
     uv_buf_t buf = uv_buf_init(data, (unsigned int) size);
     uv_fs_t *req = new uv_fs_t;

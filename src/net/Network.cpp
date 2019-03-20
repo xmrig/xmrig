@@ -32,9 +32,11 @@
 
 
 #include "api/Api.h"
+#include "base/net/stratum/Client.h"
+#include "base/net/stratum/SubmitResult.h"
+#include "base/tools/Chrono.h"
+#include "base/tools/Timer.h"
 #include "common/log/Log.h"
-#include "common/net/Client.h"
-#include "common/net/SubmitResult.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "net/Network.h"
@@ -43,7 +45,8 @@
 
 
 xmrig::Network::Network(Controller *controller) :
-    m_donate(nullptr)
+    m_donate(nullptr),
+    m_timer(nullptr)
 {
     Workers::setListener(this);
     controller->addListener(this);
@@ -51,19 +54,22 @@ xmrig::Network::Network(Controller *controller) :
     const Pools &pools = controller->config()->pools();
     m_strategy = pools.createStrategy(this);
 
-    if (controller->config()->donateLevel() > 0) {
-        m_donate = new DonateStrategy(controller->config()->donateLevel(), pools.data().front().user(), controller->config()->algorithm().algo(), this);
+    if (pools.donateLevel() > 0) {
+        m_donate = new DonateStrategy(controller, this);
     }
 
-    m_timer.data = this;
-    uv_timer_init(uv_default_loop(), &m_timer);
-
-    uv_timer_start(&m_timer, Network::onTick, kTickInterval, kTickInterval);
+    m_timer = new Timer(this, kTickInterval, kTickInterval);
 }
 
 
 xmrig::Network::~Network()
 {
+    delete m_timer;
+
+    if (m_donate) {
+        delete m_donate;
+    }
+
     delete m_strategy;
 }
 
@@ -71,16 +77,6 @@ xmrig::Network::~Network()
 void xmrig::Network::connect()
 {
     m_strategy->connect();
-}
-
-
-void xmrig::Network::stop()
-{
-    if (m_donate) {
-        m_donate->stop();
-    }
-
-    m_strategy->stop();
 }
 
 
@@ -204,7 +200,7 @@ void xmrig::Network::setJob(Client *client, const Job &job, bool donate)
 
 void xmrig::Network::tick()
 {
-    const uint64_t now = uv_now(uv_default_loop());
+    const uint64_t now = Chrono::steadyMSecs();
 
     m_strategy->tick(now);
 
@@ -215,10 +211,4 @@ void xmrig::Network::tick()
 #   ifndef XMRIG_NO_API
     Api::tick(m_state);
 #   endif
-}
-
-
-void xmrig::Network::onTick(uv_timer_t *handle)
-{
-    static_cast<Network*>(handle->data)->tick();
 }

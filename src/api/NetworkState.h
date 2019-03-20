@@ -41,9 +41,9 @@ class NetworkState
 public:
     NetworkState();
 
-    int connectionTime() const;
     uint32_t avgTime() const;
     uint32_t latency() const;
+    uint64_t connectionTime() const;
     void add(const SubmitResult &result, const char *error);
     void setPool(const char *host, int port, const char *ip);
     void stop();

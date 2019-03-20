@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,24 +35,24 @@
 #endif
 
 
+#include "base/tools/Handle.h"
 #include "common/log/ConsoleLog.h"
 #include "common/log/Log.h"
-#include "core/Config.h"
-#include "core/Controller.h"
 
 
-ConsoleLog::ConsoleLog(xmrig::Controller *controller) :
-    m_stream(nullptr),
-    m_controller(controller)
+xmrig::ConsoleLog::ConsoleLog() :
+    m_stream(nullptr)
 {
-    if (uv_tty_init(uv_default_loop(), &m_tty, 1, 0) < 0) {
+    m_tty = new uv_tty_t;
+
+    if (uv_tty_init(uv_default_loop(), m_tty, 1, 0) < 0) {
         Log::colors = false;
         return;
     }
 
-    uv_tty_set_mode(&m_tty, UV_TTY_MODE_NORMAL);
+    uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
     m_uvBuf.base = m_buf;
-    m_stream     = reinterpret_cast<uv_stream_t*>(&m_tty);
+    m_stream     = reinterpret_cast<uv_stream_t*>(m_tty);
 
 #   ifdef WIN32
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
@@ -66,7 +67,13 @@ ConsoleLog::ConsoleLog(xmrig::Controller *controller) :
 }
 
 
-void ConsoleLog::message(Level level, const char* fmt, va_list args)
+xmrig::ConsoleLog::~ConsoleLog()
+{
+    Handle::close(m_tty);
+}
+
+
+void xmrig::ConsoleLog::message(Level level, const char* fmt, va_list args)
 {
     time_t now = time(nullptr);
     tm stime;
@@ -77,8 +84,6 @@ void ConsoleLog::message(Level level, const char* fmt, va_list args)
     localtime_r(&now, &stime);
 #   endif
 
-    const bool isColors = m_controller->config()->isColors();
-
     snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
              stime.tm_year + 1900,
              stime.tm_mon + 1,
@@ -86,24 +91,24 @@ void ConsoleLog::message(Level level, const char* fmt, va_list args)
              stime.tm_hour,
              stime.tm_min,
              stime.tm_sec,
-             Log::colorByLevel(level, isColors),
+             Log::colorByLevel(level, Log::colors),
              fmt,
-             Log::endl(isColors)
+             Log::endl(Log::colors)
         );
 
     print(args);
 }
 
 
-void ConsoleLog::text(const char* fmt, va_list args)
+void xmrig::ConsoleLog::text(const char* fmt, va_list args)
 {
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(m_controller->config()->isColors()));
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(Log::colors));
 
     print(args);
 }
 
 
-bool ConsoleLog::isWritable() const
+bool xmrig::ConsoleLog::isWritable() const
 {
     if (!m_stream || uv_is_writable(m_stream) != 1) {
         return false;
@@ -114,7 +119,7 @@ bool ConsoleLog::isWritable() const
 }
 
 
-void ConsoleLog::print(va_list args)
+void xmrig::ConsoleLog::print(va_list args)
 {
     m_uvBuf.len = vsnprintf(m_buf, sizeof(m_buf) - 1, m_fmt, args);
     if (m_uvBuf.len <= 0) {

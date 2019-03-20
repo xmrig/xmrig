@@ -34,6 +34,9 @@
 #include "common/interfaces/ILogBackend.h"
 
 
+namespace xmrig {
+
+
 class Log
 {
 public:
@@ -68,6 +71,9 @@ private:
 };
 
 
+} /* namespace xmrig */
+
+
 #define RED_BOLD(x)     "\x1B[1;31m" x "\x1B[0m"
 #define RED(x)          "\x1B[0;31m" x "\x1B[0m"
 #define GREEN_BOLD(x)   "\x1B[1;32m" x "\x1B[0m"
@@ -83,20 +89,20 @@ private:
 #define GRAY(x)         "\x1B[1;30m" x "\x1B[0m"
 
 
-#define LOG_ERR(x, ...)    Log::i()->message(ILogBackend::ERR,     x, ##__VA_ARGS__)
-#define LOG_WARN(x, ...)   Log::i()->message(ILogBackend::WARNING, x, ##__VA_ARGS__)
-#define LOG_NOTICE(x, ...) Log::i()->message(ILogBackend::NOTICE,  x, ##__VA_ARGS__)
-#define LOG_INFO(x, ...)   Log::i()->message(ILogBackend::INFO,    x, ##__VA_ARGS__)
+#define LOG_ERR(x, ...)    xmrig::Log::i()->message(xmrig::ILogBackend::ERR,     x, ##__VA_ARGS__)
+#define LOG_WARN(x, ...)   xmrig::Log::i()->message(xmrig::ILogBackend::WARNING, x, ##__VA_ARGS__)
+#define LOG_NOTICE(x, ...) xmrig::Log::i()->message(xmrig::ILogBackend::NOTICE,  x, ##__VA_ARGS__)
+#define LOG_INFO(x, ...)   xmrig::Log::i()->message(xmrig::ILogBackend::INFO,    x, ##__VA_ARGS__)
 
 #ifdef APP_DEBUG
-#   define LOG_DEBUG(x, ...)      Log::i()->message(ILogBackend::DEBUG,   x, ##__VA_ARGS__)
+#   define LOG_DEBUG(x, ...)      xmrig::Log::i()->message(xmrig::ILogBackend::DEBUG,   x, ##__VA_ARGS__)
 #else
 #   define LOG_DEBUG(x, ...)
 #endif
 
 #if defined(APP_DEBUG) || defined(APP_DEVEL)
-#   define LOG_DEBUG_ERR(x, ...)  Log::i()->message(ILogBackend::ERR,     x, ##__VA_ARGS__)
-#   define LOG_DEBUG_WARN(x, ...) Log::i()->message(ILogBackend::WARNING, x, ##__VA_ARGS__)
+#   define LOG_DEBUG_ERR(x, ...)  xmrig::Log::i()->message(xmrig::ILogBackend::ERR,     x, ##__VA_ARGS__)
+#   define LOG_DEBUG_WARN(x, ...) xmrig::Log::i()->message(xmrig::ILogBackend::WARNING, x, ##__VA_ARGS__)
 #else
 #   define LOG_DEBUG_ERR(x, ...)
 #   define LOG_DEBUG_WARN(x, ...)

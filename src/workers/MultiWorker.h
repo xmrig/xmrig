@@ -27,7 +27,7 @@
 #define XMRIG_MULTIWORKER_H
 
 
-#include "common/net/Job.h"
+#include "base/net/stratum/Job.h"
 #include "Mem.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
@@ -40,7 +40,7 @@ template<size_t N>
 class MultiWorker : public Worker
 {
 public:
-    MultiWorker(Handle *handle);
+    MultiWorker(ThreadHandle *handle);
     ~MultiWorker();
 
 protected:
@@ -50,7 +50,7 @@ protected:
 private:
     bool resume(const xmrig::Job &job);
     bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
-    bool verify2(xmrig::Variant variant, const char *test_data);
+    bool verify2(xmrig::Variant variant, const uint8_t *referenceValue);
     void consumeJob();
     void save(const xmrig::Job &job);
 

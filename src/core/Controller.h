@@ -54,6 +54,7 @@ public:
     Network *network() const;
     void addListener(IControllerListener *listener);
     void save();
+    void stop();
 
 protected:
     void onNewConfig(IConfig *config) override;

@@ -1,69 +1,47 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-option(WITH_LIBCPUID  "Use Libcpuid" ON)
-option(WITH_AEON      "CryptoNight-Lite support" ON)
-option(WITH_SUMO      "CryptoNight-Heavy support" ON)
-option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
-option(WITH_CN_GPU    "CryptoNight-GPU support" ON)
-option(WITH_HTTPD     "HTTP REST API" ON)
-option(WITH_DEBUG_LOG "Enable debug log output" OFF)
-option(WITH_TLS       "Enable OpenSSL support" ON)
-option(WITH_ASM       "Enable ASM PoW implementations" ON)
-option(BUILD_STATIC   "Build static binary" OFF)
-option(ARM_TARGET     "Force use specific ARM target 8 or 7" 0)
+option(WITH_LIBCPUID        "Use Libcpuid" ON)
+option(WITH_AEON            "CryptoNight-Lite support" ON)
+option(WITH_SUMO            "CryptoNight-Heavy support" ON)
+option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
+option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
+option(WITH_HTTPD           "HTTP REST API" ON)
+option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
+option(WITH_TLS             "Enable OpenSSL support" ON)
+option(WITH_ASM             "Enable ASM PoW implementations" ON)
+option(BUILD_STATIC         "Build static binary" OFF)
+option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
+option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
+include (src/base/base.cmake)
 
 
 set(HEADERS
+    "${HEADERS_BASE}"
     src/api/NetworkState.h
     src/App.h
-    src/base/io/Json.h
-    src/base/io/Watcher.h
-    src/base/kernel/interfaces/IConfigListener.h
-    src/base/kernel/interfaces/ISignalListener.h
-    src/base/kernel/interfaces/IWatcherListener.h
-    src/base/kernel/Entry.h
-    src/base/kernel/Process.h
-    src/base/kernel/Signals.h
-    src/base/net/Pool.h
-    src/base/net/Pools.h
-    src/base/tools/Arguments.h
-    src/base/tools/Handle.h
-    src/base/tools/String.h
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
-    src/common/Console.h
     src/common/cpu/Cpu.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
-    src/common/interfaces/IClientListener.h
     src/common/interfaces/IConfig.h
     src/common/interfaces/IConfigCreator.h
-    src/common/interfaces/IConsoleListener.h
     src/common/interfaces/IControllerListener.h
     src/common/interfaces/ICpuInfo.h
     src/common/interfaces/ILogBackend.h
-    src/common/interfaces/IStrategy.h
-    src/common/interfaces/IStrategyListener.h
     src/common/log/BasicLog.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
     src/common/log/Log.h
-    src/common/net/Client.h
-    src/common/net/Id.h
-    src/common/net/Job.h
-    src/common/net/Storage.h
-    src/common/net/strategies/FailoverStrategy.h
-    src/common/net/strategies/SinglePoolStrategy.h
-    src/common/net/SubmitResult.h
     src/common/Platform.h
-    src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
+    src/core/ConfigLoader_default.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
     src/interfaces/IJobResultListener.h
@@ -76,7 +54,7 @@ set(HEADERS
     src/Summary.h
     src/version.h
     src/workers/CpuThread.h
-    src/workers/Handle.h
+    src/workers/ThreadHandle.h
     src/workers/Hashrate.h
     src/workers/MultiWorker.h
     src/workers/Worker.h
@@ -106,33 +84,18 @@ else()
 endif()
 
 set(SOURCES
+    "${SOURCES_BASE}"
     src/api/NetworkState.cpp
     src/App.cpp
-    src/base/io/Json.cpp
-    src/base/io/Watcher.cpp
-    src/base/kernel/Entry.cpp
-    src/base/kernel/Process.cpp
-    src/base/kernel/Signals.cpp
-    src/base/net/Pool.cpp
-    src/base/net/Pools.cpp
-    src/base/tools/Arguments.cpp
-    src/base/tools/Handle.cpp
-    src/base/tools/String.cpp
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
     src/common/config/ConfigWatcher.cpp
-    src/common/Console.cpp
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/log/BasicLog.cpp
     src/common/log/ConsoleLog.cpp
     src/common/log/FileLog.cpp
     src/common/log/Log.cpp
-    src/common/net/Client.cpp
-    src/common/net/Job.cpp
-    src/common/net/strategies/FailoverStrategy.cpp
-    src/common/net/strategies/SinglePoolStrategy.cpp
-    src/common/net/SubmitResult.cpp
     src/common/Platform.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
@@ -141,7 +104,7 @@ set(SOURCES
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp
-    src/workers/Handle.cpp
+    src/workers/ThreadHandle.cpp
     src/workers/Hashrate.cpp
     src/workers/MultiWorker.cpp
     src/workers/Worker.cpp
@@ -154,14 +117,13 @@ set(SOURCES_CRYPTO
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
-    src/crypto/CryptonightR_gen.cpp
    )
 
 if (WIN32)
     set(SOURCES_OS
+        "${SOURCES_OS}"
         res/app.rc
         src/App_win.cpp
-        src/base/io/Json_win.cpp
         src/common/Platform_win.cpp
         src/Mem_win.cpp
         )
@@ -170,15 +132,15 @@ if (WIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 elseif (APPLE)
     set(SOURCES_OS
+        "${SOURCES_OS}"
         src/App_unix.cpp
-        src/base/io/Json_unix.cpp
         src/common/Platform_mac.cpp
         src/Mem_unix.cpp
         )
 else()
     set(SOURCES_OS
+        "${SOURCES_OS}"
         src/App_unix.cpp
-        src/base/io/Json_unix.cpp
         src/common/Platform_unix.cpp
         src/Mem_unix.cpp
         )
@@ -247,6 +209,10 @@ endif()
 
 if (NOT WITH_CN_PICO)
     add_definitions(/DXMRIG_NO_CN_PICO)
+endif()
+
+if (WITH_EMBEDDED_CONFIG)
+    add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
 endif()
 
 if (WITH_HTTPD)

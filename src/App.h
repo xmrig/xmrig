@@ -27,18 +27,16 @@
 #define XMRIG_APP_H
 
 
+#include "base/kernel/interfaces/IConsoleListener.h"
 #include "base/kernel/interfaces/ISignalListener.h"
-#include "common/interfaces/IConsoleListener.h"
-
-
-class Console;
-class Httpd;
 
 
 namespace xmrig {
 
 
+class Console;
 class Controller;
+class Httpd;
 class Network;
 class Process;
 class Signals;

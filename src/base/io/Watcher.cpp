@@ -29,19 +29,18 @@
 #include "base/kernel/interfaces/IWatcherListener.h"
 #include "base/io/Watcher.h"
 #include "base/tools/Handle.h"
+#include "base/tools/Timer.h"
 
 
 xmrig::Watcher::Watcher(const String &path, IWatcherListener *listener) :
     m_listener(listener),
     m_path(path)
 {
+    m_timer = new Timer(this);
+
     m_fsEvent = new uv_fs_event_t;
+    m_fsEvent->data = this;
     uv_fs_event_init(uv_default_loop(), m_fsEvent);
-
-    m_timer = new uv_timer_t;
-    uv_timer_init(uv_default_loop(), m_timer);
-
-    m_fsEvent->data = m_timer->data = this;
 
     start();
 }
@@ -49,14 +48,9 @@ xmrig::Watcher::Watcher(const String &path, IWatcherListener *listener) :
 
 xmrig::Watcher::~Watcher()
 {
-    Handle::close(m_timer);
+    delete m_timer;
+
     Handle::close(m_fsEvent);
-}
-
-
-void xmrig::Watcher::onTimer(uv_timer_t *handle)
-{
-    static_cast<Watcher *>(handle->data)->reload();
 }
 
 
@@ -72,8 +66,8 @@ void xmrig::Watcher::onFsEvent(uv_fs_event_t *handle, const char *filename, int,
 
 void xmrig::Watcher::queueUpdate()
 {
-    uv_timer_stop(m_timer);
-    uv_timer_start(m_timer, xmrig::Watcher::onTimer, kDelay, 0);
+    m_timer->stop();
+    m_timer->start(kDelay, 0);
 }
 
 

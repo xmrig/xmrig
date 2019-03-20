@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,13 +28,15 @@
 
 
 #include "api/Api.h"
+#include "base/tools/Handle.h"
+#include "base/tools/Timer.h"
 #include "common/api/Httpd.h"
 #include "common/api/HttpReply.h"
 #include "common/api/HttpRequest.h"
 #include "common/log/Log.h"
 
 
-Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :
+xmrig::Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :
     m_idle(true),
     m_IPv6(IPv6),
     m_restricted(restricted),
@@ -41,14 +44,13 @@ Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :
     m_port(port),
     m_daemon(nullptr)
 {
-    uv_timer_init(uv_default_loop(), &m_timer);
-    m_timer.data = this;
+    m_timer = new Timer(this);
 }
 
 
-Httpd::~Httpd()
+xmrig::Httpd::~Httpd()
 {
-    uv_timer_stop(&m_timer);
+    stop();
 
     if (m_daemon) {
         MHD_stop_daemon(m_daemon);
@@ -58,7 +60,7 @@ Httpd::~Httpd()
 }
 
 
-bool Httpd::start()
+bool xmrig::Httpd::start()
 {
     if (!m_port) {
         return false;
@@ -82,16 +84,23 @@ bool Httpd::start()
     }
 
 #   if MHD_VERSION >= 0x00093900
-    uv_timer_start(&m_timer, Httpd::onTimer, kIdleInterval, kIdleInterval);
+    m_timer->start(kIdleInterval, kIdleInterval);
 #   else
-    uv_timer_start(&m_timer, Httpd::onTimer, kActiveInterval, kActiveInterval);
+    m_timer->start(kActiveInterval, kActiveInterval);
 #   endif
 
     return true;
 }
 
 
-int Httpd::process(xmrig::HttpRequest &req)
+void xmrig::Httpd::stop()
+{
+    delete m_timer;
+    m_timer = nullptr;
+}
+
+
+int xmrig::Httpd::process(HttpRequest &req)
 {
     xmrig::HttpReply reply;
     if (!req.process(m_accessToken, m_restricted, reply)) {
@@ -108,27 +117,27 @@ int Httpd::process(xmrig::HttpRequest &req)
 }
 
 
-void Httpd::run()
+void xmrig::Httpd::run()
 {
     MHD_run(m_daemon);
 
 #   if MHD_VERSION >= 0x00093900
     const MHD_DaemonInfo *info = MHD_get_daemon_info(m_daemon, MHD_DAEMON_INFO_CURRENT_CONNECTIONS);
     if (m_idle && info->num_connections) {
-        uv_timer_set_repeat(&m_timer, kActiveInterval);
+        m_timer->setRepeat(kActiveInterval);
         m_idle = false;
     }
     else if (!m_idle && !info->num_connections) {
-        uv_timer_set_repeat(&m_timer, kIdleInterval);
+        m_timer->setRepeat(kIdleInterval);
         m_idle = true;
     }
 #   endif
 }
 
 
-int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, const char *uploadData, size_t *uploadSize, void **con_cls)
+int xmrig::Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *, const char *uploadData, size_t *uploadSize, void **con_cls)
 {
-    xmrig::HttpRequest req(connection, url, method, uploadData, uploadSize, con_cls);
+    HttpRequest req(connection, url, method, uploadData, uploadSize, con_cls);
 
     if (req.method() == xmrig::HttpRequest::Options) {
         return req.end(MHD_HTTP_OK, nullptr);
@@ -139,10 +148,4 @@ int Httpd::handler(void *cls, struct MHD_Connection *connection, const char *url
     }
 
     return static_cast<Httpd*>(cls)->process(req);
-}
-
-
-void Httpd::onTimer(uv_timer_t *handle)
-{
-    static_cast<Httpd*>(handle->data)->run();
 }

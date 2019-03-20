@@ -36,7 +36,11 @@ class Json
 {
 public:
     static bool getBool(const rapidjson::Value &obj, const char *key, bool defaultValue = false);
-    static const char *getString(const rapidjson::Value &obj, const char *key,  const char *defaultValue = nullptr);
+    static const char *getString(const rapidjson::Value &obj, const char *key, const char *defaultValue = nullptr);
+    static int getInt(const rapidjson::Value &obj, const char *key, int defaultValue = 0);
+    static int64_t getInt64(const rapidjson::Value &obj, const char *key, int64_t defaultValue = 0);
+    static uint64_t getUint64(const rapidjson::Value &obj, const char *key, uint64_t defaultValue = 0);
+    static unsigned getUint(const rapidjson::Value &obj, const char *key, unsigned defaultValue = 0);
 
     static bool get(const char *fileName, rapidjson::Document &doc);
     static bool save(const char *fileName, const rapidjson::Document &doc);

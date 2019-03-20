@@ -26,32 +26,38 @@
 #define XMRIG_DONATESTRATEGY_H
 
 
-#include <uv.h>
 #include <vector>
 
 
-#include "base/net/Pool.h"
-#include "common/interfaces/IClientListener.h"
-#include "common/interfaces/IStrategy.h"
-#include "common/interfaces/IStrategyListener.h"
+#include "base/kernel/interfaces/IClientListener.h"
+#include "base/kernel/interfaces/IStrategy.h"
+#include "base/kernel/interfaces/IStrategyListener.h"
+#include "base/kernel/interfaces/ITimerListener.h"
+#include "base/net/stratum/Pool.h"
 
 
 namespace xmrig {
 
 
 class Client;
+class Controller;
 class IStrategyListener;
 
 
-class DonateStrategy : public IStrategy, public IStrategyListener
+class DonateStrategy : public IStrategy, public IStrategyListener, public ITimerListener, public IClientListener
 {
 public:
-    DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener);
+    DonateStrategy(Controller *controller, IStrategyListener *listener);
     ~DonateStrategy() override;
 
-public:
-    inline bool isActive() const override  { return m_active; }
-    inline void resume() override          {}
+protected:
+    inline bool isActive() const override                                                                             { return state() == STATE_ACTIVE; }
+    inline Client *client() const override                                                                            { return m_proxy ? m_proxy : m_strategy->client(); }
+    inline void onJob(IStrategy *, Client *client, const Job &job) override                                           { setJob(client, job); }
+    inline void onJobReceived(Client *client, const Job &job, const rapidjson::Value &) override                      { setJob(client, job); }
+    inline void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override              { setResult(client, result, error); }
+    inline void onResultAccepted(IStrategy *, Client *client, const SubmitResult &result, const char *error) override { setResult(client, result, error); }
+    inline void resume() override                                                                                     {}
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -59,27 +65,45 @@ public:
     void stop() override;
     void tick(uint64_t now) override;
 
-protected:
     void onActive(IStrategy *strategy, Client *client) override;
-    void onJob(IStrategy *strategy, Client *client, const Job &job) override;
     void onPause(IStrategy *strategy) override;
-    void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
+
+    void onClose(Client *client, int failures) override;
+    void onLogin(Client *client, rapidjson::Document &doc, rapidjson::Value &params) override;
+    void onLoginSuccess(Client *client) override;
+
+    void onTimer(const Timer *timer) override;
 
 private:
-    void idle(uint64_t timeout);
-    void suspend();
+    enum State {
+        STATE_NEW,
+        STATE_IDLE,
+        STATE_CONNECT,
+        STATE_ACTIVE,
+        STATE_WAIT
+    };
 
-    static void onTimer(uv_timer_t *handle);
+    inline State state() const { return m_state; }
 
-    bool m_active;
+    Client *createProxy();
+    void idle(double min, double max);
+    void setJob(Client *client, const Job &job);
+    void setResult(Client *client, const SubmitResult &result, const char *error);
+    void setState(State state);
+
+    bool m_tls;
+    char m_userId[65];
+    Client *m_proxy;
     const uint64_t m_donateTime;
     const uint64_t m_idleTime;
+    Controller *m_controller;
     IStrategy *m_strategy;
     IStrategyListener *m_listener;
+    State m_state;
     std::vector<Pool> m_pools;
+    Timer *m_timer;
     uint64_t m_now;
-    uint64_t m_stop;
-    uv_timer_t m_timer;
+    uint64_t m_timestamp;
 };
 
 

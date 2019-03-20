@@ -28,6 +28,7 @@
 
 
 #include "api/Api.h"
+#include "base/tools/Handle.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -36,9 +37,9 @@
 #include "interfaces/IThread.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
-#include "workers/Handle.h"
 #include "workers/Hashrate.h"
 #include "workers/MultiWorker.h"
+#include "workers/ThreadHandle.h"
 #include "workers/Workers.h"
 
 
@@ -51,12 +52,12 @@ Workers::LaunchStatus Workers::m_status;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
 std::list<xmrig::JobResult> Workers::m_queue;
-std::vector<Handle*> Workers::m_workers;
+std::vector<ThreadHandle*> Workers::m_workers;
 uint64_t Workers::m_ticks = 0;
-uv_async_t Workers::m_async;
+uv_async_t *Workers::m_async = nullptr;
 uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
-uv_timer_t Workers::m_timer;
+uv_timer_t *Workers::m_timer = nullptr;
 xmrig::Controller *Workers::m_controller = nullptr;
 
 
@@ -103,11 +104,11 @@ void Workers::printHashrate(bool detail)
         char num2[8] = { 0 };
         char num3[8] = { 0 };
 
-        Log::i()->text("%s| THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |", isColors ? "\x1B[1;37m" : "");
+        xmrig::Log::i()->text("%s| THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |", isColors ? "\x1B[1;37m" : "");
 
         size_t i = 0;
         for (const xmrig::IThread *thread : m_controller->config()->threads()) {
-             Log::i()->text("| %6zu | %8" PRId64 " | %7s | %7s | %7s |",
+             xmrig::Log::i()->text("| %6zu | %8" PRId64 " | %7s | %7s | %7s |",
                             thread->index(),
                             thread->affinity(),
                             Hashrate::format(m_hashrate->calc(thread->index(), Hashrate::ShortInterval),  num1, sizeof num1),
@@ -192,14 +193,17 @@ void Workers::start(xmrig::Controller *controller)
     m_sequence = 1;
     m_paused   = 1;
 
-    uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
-    uv_timer_init(uv_default_loop(), &m_timer);
-    uv_timer_start(&m_timer, Workers::onTick, 500, 500);
+    m_async = new uv_async_t;
+    uv_async_init(uv_default_loop(), m_async, Workers::onResult);
+
+    m_timer = new uv_timer_t;
+    uv_timer_init(uv_default_loop(), m_timer);
+    uv_timer_start(m_timer, Workers::onTick, 500, 500);
 
     uint32_t offset = 0;
 
     for (xmrig::IThread *thread : threads) {
-        Handle *handle = new Handle(thread, offset, m_status.ways);
+        ThreadHandle *handle = new ThreadHandle(thread, offset, m_status.ways);
         offset += thread->multiway();
 
         m_workers.push_back(handle);
@@ -212,10 +216,10 @@ void Workers::start(xmrig::Controller *controller)
 
 void Workers::stop()
 {
-    uv_timer_stop(&m_timer);
+    xmrig::Handle::close(m_timer);
+    xmrig::Handle::close(m_async);
     m_hashrate->stop();
 
-    uv_close(reinterpret_cast<uv_handle_t*>(&m_async), nullptr);
     m_paused   = 0;
     m_sequence = 0;
 
@@ -231,7 +235,7 @@ void Workers::submit(const xmrig::JobResult &result)
     m_queue.push_back(result);
     uv_mutex_unlock(&m_mutex);
 
-    uv_async_send(&m_async);
+    uv_async_send(m_async);
 }
 
 
@@ -257,7 +261,7 @@ void Workers::threadsSummary(rapidjson::Document &doc)
 
 void Workers::onReady(void *arg)
 {
-    auto handle = static_cast<Handle*>(arg);
+    auto handle = static_cast<ThreadHandle*>(arg);
 
     IWorker *worker = nullptr;
 
@@ -319,7 +323,7 @@ void Workers::onResult(uv_async_t *handle)
 
 void Workers::onTick(uv_timer_t *handle)
 {
-    for (Handle *handle : m_workers) {
+    for (ThreadHandle *handle : m_workers) {
         if (!handle->worker()) {
             return;
         }

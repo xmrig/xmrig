@@ -1,3 +1,5 @@
+	mov	rcx, [rcx]
+
 	mov	 QWORD PTR [rsp+24], rbx
 	push	 rbp
 	push	 rsi

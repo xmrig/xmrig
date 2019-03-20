@@ -53,6 +53,11 @@
 #include "rapidjson/fwd.h"
 
 
+#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+#   include "core/ConfigLoader_default.h"
+#endif
+
+
 xmrig::ConfigWatcher *xmrig::ConfigLoader::m_watcher     = nullptr;
 xmrig::IConfigCreator *xmrig::ConfigLoader::m_creator    = nullptr;
 xmrig::IConfigListener *xmrig::ConfigLoader::m_listener  = nullptr;
@@ -179,6 +184,15 @@ xmrig::IConfig *xmrig::ConfigLoader::load(Process *process, IConfigCreator *crea
         config = m_creator->create();
         loadFromFile(config, process->location(Process::ExeLocation, "config.json"));
     }
+
+#   ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+    if (!config->finalize()) {
+        delete config;
+
+        config = m_creator->create();
+        loadFromJSON(config, default_config);
+    }
+#   endif
 
     if (!config->finalize()) {
         if (!config->algorithm().isValid()) {
