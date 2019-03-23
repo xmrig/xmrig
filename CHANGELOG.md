@@ -1,3 +1,8 @@
+# v2.15.0-beta
+- [#314](https://github.com/xmrig/xmrig-proxy/issues/314) Added donate over proxy feature.
+  - Added new option `donate-over-proxy`.
+  - Added real graceful exit.
+  
 # v2.14.1
 * [#975](https://github.com/xmrig/xmrig/issues/975) Fixed crash on Linux if double thread mode used.
 
