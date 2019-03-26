@@ -49,5 +49,5 @@ void xmrig::SysLog::print(int level, const char *line, size_t offset, size_t, bo
         return;
     }
 
-    syslog(level == -1 ? LOG_INFO : level, line + offset);
+    syslog(level == -1 ? LOG_INFO : level, "%s", line + offset);
 }

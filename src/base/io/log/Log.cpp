@@ -30,6 +30,7 @@
 #endif
 
 
+#include <string.h>
 #include <string>
 #include <time.h>
 #include <uv.h>
