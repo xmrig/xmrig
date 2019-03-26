@@ -27,10 +27,10 @@
 #include <assert.h>
 
 
+#include "base/io/log/Log.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/Tls.h"
 #include "base/tools/Buffer.h"
-#include "common/log/Log.h"
 
 
 #ifdef _MSC_VER

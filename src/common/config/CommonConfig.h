@@ -61,7 +61,6 @@ public:
 
     bool save() override;
 
-    bool isColors() const;
     void printAPI();
     void printPools();
     void printVersions();

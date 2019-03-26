@@ -28,8 +28,8 @@
 
 
 #include "api/Api.h"
+#include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
-#include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "crypto/CryptoNight_constants.h"
@@ -99,12 +99,11 @@ void Workers::printHashrate(bool detail)
     }
 
     if (detail) {
-        const bool isColors = m_controller->config()->isColors();
         char num1[8] = { 0 };
         char num2[8] = { 0 };
         char num3[8] = { 0 };
 
-        xmrig::Log::print("%s| THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |", isColors ? "\x1B[1;37m" : "");
+        xmrig::Log::print(WHITE_BOLD_S "| THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
 
         size_t i = 0;
         for (const xmrig::IThread *thread : m_controller->config()->threads()) {
@@ -178,7 +177,6 @@ void Workers::start(xmrig::Controller *controller)
 
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
     m_status.algo    = controller->config()->algorithm().algo();
-    m_status.colors  = controller->config()->isColors();
     m_status.threads = threads.size();
 
     for (const xmrig::IThread *thread : threads) {
@@ -302,7 +300,7 @@ void Workers::onReady(void *arg)
 }
 
 
-void Workers::onResult(uv_async_t *handle)
+void Workers::onResult(uv_async_t *)
 {
     std::list<xmrig::JobResult> results;
 
@@ -321,7 +319,7 @@ void Workers::onResult(uv_async_t *handle)
 }
 
 
-void Workers::onTick(uv_timer_t *handle)
+void Workers::onTick(uv_timer_t *)
 {
     for (ThreadHandle *handle : m_workers) {
         if (!handle->worker()) {
@@ -350,16 +348,10 @@ void Workers::start(IWorker *worker)
         const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
         const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1024;
 
-        if (m_status.colors) {
-            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
-                     m_status.threads, m_status.ways,
-                     (m_status.hugePages == m_status.pages ? "\x1B[1;32m" : (m_status.hugePages == 0 ? "\x1B[1;31m" : "\x1B[1;33m")),
-                     m_status.hugePages, m_status.pages, percent, memory);
-        }
-        else {
-            LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %1.0f%% memory %zu KB",
-                     m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, memory);
-        }
+        LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
+                 m_status.threads, m_status.ways,
+                 (m_status.hugePages == m_status.pages ? GREEN_BOLD_S : (m_status.hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                 m_status.hugePages, m_status.pages, percent, memory);
     }
 
     uv_mutex_unlock(&m_mutex);

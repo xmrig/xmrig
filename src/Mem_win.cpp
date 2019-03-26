@@ -30,7 +30,7 @@
 #include <tchar.h>
 
 
-#include "common/log/Log.h"
+#include "base/io/log/Log.h"
 #include "common/utils/mm_malloc.h"
 #include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
@@ -67,11 +67,11 @@ static BOOL SetLockPagesPrivilege() {
     tp.PrivilegeCount = 1;
     tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-    if (LookupPrivilegeValue(NULL, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid)) != TRUE) {
+    if (LookupPrivilegeValue(nullptr, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid)) != TRUE) {
         return FALSE;
     }
 
-    BOOL rc = AdjustTokenPrivileges(token, FALSE, (PTOKEN_PRIVILEGES) &tp, 0, NULL, NULL);
+    BOOL rc = AdjustTokenPrivileges(token, FALSE, (PTOKEN_PRIVILEGES) &tp, 0, nullptr, nullptr);
     if (rc != TRUE || GetLastError() != ERROR_SUCCESS) {
         return FALSE;
     }
@@ -95,12 +95,12 @@ static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string) {
 
 static BOOL ObtainLockPagesPrivilege() {
     HANDLE token;
-    PTOKEN_USER user = NULL;
+    PTOKEN_USER user = nullptr;
 
     if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == TRUE) {
         DWORD size = 0;
 
-        GetTokenInformation(token, TokenUser, NULL, 0, &size);
+        GetTokenInformation(token, TokenUser, nullptr, 0, &size);
         if (size) {
             user = (PTOKEN_USER) LocalAlloc(LPTR, size);
         }
@@ -118,7 +118,7 @@ static BOOL ObtainLockPagesPrivilege() {
     ZeroMemory(&attributes, sizeof(attributes));
 
     BOOL result = FALSE;
-    if (LsaOpenPolicy(NULL, &attributes, POLICY_ALL_ACCESS, &handle) == 0) {
+    if (LsaOpenPolicy(nullptr, &attributes, POLICY_ALL_ACCESS, &handle) == 0) {
         LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
 
         if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
@@ -187,7 +187,7 @@ void Mem::release(MemInfo &info)
 
 void *Mem::allocateExecutableMemory(size_t size)
 {
-    return VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    return VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 }
 
 

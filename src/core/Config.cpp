@@ -27,6 +27,7 @@
 #include <inttypes.h>
 
 
+#include "base/io/log/Log.h"
 #include "common/config/ConfigLoader.h"
 #include "common/cpu/Cpu.h"
 #include "core/Config.h"
@@ -87,7 +88,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("autosave",     isAutoSave(), allocator);
     doc.AddMember("av",           algoVariant(), allocator);
     doc.AddMember("background",   isBackground(), allocator);
-    doc.AddMember("colors",       isColors(), allocator);
+    doc.AddMember("colors",       Log::colors, allocator);
 
     if (affinity() != -1L) {
         snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, affinity());
@@ -123,13 +124,9 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
         doc.AddMember("threads", threadsCount(), allocator);
     }
 
-    doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
-
-#   ifdef HAVE_SYSLOG_H
-    doc.AddMember("syslog", isSyslog(), allocator);
-#   endif
-
-    doc.AddMember("watch", m_watch, allocator);
+    doc.AddMember("user-agent", m_userAgent.toJSON(), allocator);
+    doc.AddMember("syslog",     isSyslog(), allocator);
+    doc.AddMember("watch",      m_watch, allocator);
 }
 
 

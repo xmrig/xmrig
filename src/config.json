@@ -40,5 +40,6 @@
     "safe": false,
     "threads": null,
     "user-agent": null,
+    "syslog": false,
     "watch": true
 }

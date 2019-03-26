@@ -28,10 +28,10 @@
 
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/backends/FileLog.h"
+#include "base/io/log/Log.h"
 #include "common/config/ConfigLoader.h"
 #include "common/cpu/Cpu.h"
 #include "common/interfaces/IControllerListener.h"
-#include "common/log/Log.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"

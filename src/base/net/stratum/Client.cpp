@@ -37,12 +37,12 @@
 #endif
 
 
+#include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
 #include "base/net/stratum/Client.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
-#include "common/log/Log.h"
 #include "net/JobResult.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"

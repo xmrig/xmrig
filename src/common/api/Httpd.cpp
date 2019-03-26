@@ -28,12 +28,12 @@
 
 
 #include "api/Api.h"
+#include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
 #include "base/tools/Timer.h"
 #include "common/api/Httpd.h"
 #include "common/api/HttpReply.h"
 #include "common/api/HttpRequest.h"
-#include "common/log/Log.h"
 
 
 xmrig::Httpd::Httpd(int port, const char *accessToken, bool IPv6, bool restricted) :

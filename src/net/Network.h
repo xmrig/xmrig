@@ -66,7 +66,6 @@ protected:
 private:
     constexpr static int kTickInterval = 1 * 1000;
 
-    bool isColors() const;
     void setJob(Client *client, const Job &job, bool donate);
     void tick();
 

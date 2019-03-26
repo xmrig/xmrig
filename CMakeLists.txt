@@ -33,7 +33,6 @@ set(HEADERS
     src/common/interfaces/IConfigCreator.h
     src/common/interfaces/IControllerListener.h
     src/common/interfaces/ICpuInfo.h
-    src/common/log/Log.h
     src/common/Platform.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h

@@ -23,11 +23,11 @@
  */
 
 
+#include "base/io/log/Log.h"
 #include "base/io/Watcher.h"
 #include "base/kernel/interfaces/IConfigListener.h"
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
-#include "common/log/Log.h"
 #include "core/ConfigCreator.h"
 
 

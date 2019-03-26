@@ -50,6 +50,7 @@ R"===(
     "cpu-affinity": null,
     "cpu-priority": null,
     "donate-level": 5,
+    "donate-over-proxy": 1,
     "huge-pages": true,
     "hw-aes": null,
     "log-file": null,
@@ -73,7 +74,8 @@ R"===(
     "safe": false,
     "threads": null,
     "user-agent": null,
-    "watch": false
+    "syslog": false,
+    "watch": true
 }
 )===";
 #endif

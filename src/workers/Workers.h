@@ -82,7 +82,6 @@ private:
     {
     public:
         inline LaunchStatus() :
-            colors(true),
             hugePages(0),
             pages(0),
             started(0),
@@ -91,7 +90,6 @@ private:
             algo(xmrig::CRYPTONIGHT)
         {}
 
-        bool colors;
         size_t hugePages;
         size_t pages;
         size_t started;
