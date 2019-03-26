@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,21 +24,12 @@
  */
 
 
-#include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#ifdef WIN32
-#   include <winsock2.h>
-#   include <windows.h>
-#endif
 
 
 #include "base/tools/Handle.h"
-#include "common/log/ConsoleLog.h"
-#include "common/log/Log.h"
+#include "base/io/log/backends/ConsoleLog.h"
+#include "base/io/log/Log.h"
 
 
 xmrig::ConsoleLog::ConsoleLog() :
@@ -51,8 +43,7 @@ xmrig::ConsoleLog::ConsoleLog() :
     }
 
     uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
-    m_uvBuf.base = m_buf;
-    m_stream     = reinterpret_cast<uv_stream_t*>(m_tty);
+    m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
 
 #   ifdef WIN32
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
@@ -73,38 +64,25 @@ xmrig::ConsoleLog::~ConsoleLog()
 }
 
 
-void xmrig::ConsoleLog::message(Level level, const char* fmt, va_list args)
+void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool colors)
 {
-    time_t now = time(nullptr);
-    tm stime;
+    if (Log::colors != colors) {
+        return;
+    }
 
 #   ifdef _WIN32
-    localtime_s(&stime, &now);
+    uv_buf_t buf = uv_buf_init(const_cast<char *>(line), static_cast<unsigned int>(size));
 #   else
-    localtime_r(&now, &stime);
+    uv_buf_t buf = uv_buf_init(const_cast<char *>(line), size);
 #   endif
 
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
-             stime.tm_year + 1900,
-             stime.tm_mon + 1,
-             stime.tm_mday,
-             stime.tm_hour,
-             stime.tm_min,
-             stime.tm_sec,
-             Log::colorByLevel(level, Log::colors),
-             fmt,
-             Log::endl(Log::colors)
-        );
-
-    print(args);
-}
-
-
-void xmrig::ConsoleLog::text(const char* fmt, va_list args)
-{
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(Log::colors));
-
-    print(args);
+    if (!isWritable()) {
+        fputs(line, stdout);
+        fflush(stdout);
+    }
+    else {
+        uv_try_write(m_stream, &buf, 1);
+    }
 }
 
 
@@ -116,21 +94,4 @@ bool xmrig::ConsoleLog::isWritable() const
 
     const uv_handle_type type = uv_guess_handle(1);
     return type == UV_TTY || type == UV_NAMED_PIPE;
-}
-
-
-void xmrig::ConsoleLog::print(va_list args)
-{
-    m_uvBuf.len = vsnprintf(m_buf, sizeof(m_buf) - 1, m_fmt, args);
-    if (m_uvBuf.len <= 0) {
-        return;
-    }
-
-    if (!isWritable()) {
-        fputs(m_buf, stdout);
-        fflush(stdout);
-    }
-    else {
-        uv_try_write(m_stream, &m_uvBuf, 1);
-    }
 }

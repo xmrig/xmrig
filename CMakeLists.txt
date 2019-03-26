@@ -33,10 +33,6 @@ set(HEADERS
     src/common/interfaces/IConfigCreator.h
     src/common/interfaces/IControllerListener.h
     src/common/interfaces/ICpuInfo.h
-    src/common/interfaces/ILogBackend.h
-    src/common/log/BasicLog.h
-    src/common/log/ConsoleLog.h
-    src/common/log/FileLog.h
     src/common/log/Log.h
     src/common/Platform.h
     src/common/utils/mm_malloc.h
@@ -92,10 +88,6 @@ set(SOURCES
     src/common/config/ConfigWatcher.cpp
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
-    src/common/log/BasicLog.cpp
-    src/common/log/ConsoleLog.cpp
-    src/common/log/FileLog.cpp
-    src/common/log/Log.cpp
     src/common/Platform.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
@@ -188,12 +180,6 @@ endif()
 include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)
 include(cmake/cn-gpu.cmake)
-
-CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
-if (HAVE_SYSLOG_H)
-    add_definitions(/DHAVE_SYSLOG_H)
-    set(SOURCES_SYSLOG src/common/log/SysLog.h src/common/log/SysLog.cpp)
-endif()
 
 if (NOT WITH_AEON)
     add_definitions(/DXMRIG_NO_AEON)

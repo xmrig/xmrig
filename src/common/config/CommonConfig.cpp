@@ -93,7 +93,7 @@ void xmrig::CommonConfig::printAPI()
         return;
     }
 
-    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN("%s:") CYAN_BOLD("%d")
+    Log::print(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN("%s:") CYAN_BOLD("%d")
                               : " * %-13s%s:%d",
                    "API BIND", isApiIPv6() ? "[::]" : "0.0.0.0", apiPort());
 #   endif
@@ -118,7 +118,7 @@ void xmrig::CommonConfig::printVersions()
     snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
 #   endif
 
-    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s")
+    Log::print(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s")
                               : " * %-13s%s/%s %s",
                    "ABOUT", APP_NAME, APP_VERSION, buf);
 
@@ -157,8 +157,8 @@ void xmrig::CommonConfig::printVersions()
     length += snprintf(buf + length, (sizeof buf) - length, "microhttpd/%s ", MHD_get_version());
 #   endif
 
-    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s")
-                              : " * %-13slibuv/%s %s",
+    Log::print(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s")
+                          : " * %-13slibuv/%s %s",
                    "LIBS", uv_version_string(), buf);
 }
 

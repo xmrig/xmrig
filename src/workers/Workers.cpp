@@ -104,11 +104,11 @@ void Workers::printHashrate(bool detail)
         char num2[8] = { 0 };
         char num3[8] = { 0 };
 
-        xmrig::Log::i()->text("%s| THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |", isColors ? "\x1B[1;37m" : "");
+        xmrig::Log::print("%s| THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |", isColors ? "\x1B[1;37m" : "");
 
         size_t i = 0;
         for (const xmrig::IThread *thread : m_controller->config()->threads()) {
-             xmrig::Log::i()->text("| %6zu | %8" PRId64 " | %7s | %7s | %7s |",
+             xmrig::Log::print("| %6zu | %8" PRId64 " | %7s | %7s | %7s |",
                             thread->index(),
                             thread->affinity(),
                             Hashrate::format(m_hashrate->calc(thread->index(), Hashrate::ShortInterval),  num1, sizeof num1),

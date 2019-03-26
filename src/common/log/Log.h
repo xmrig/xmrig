@@ -22,90 +22,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_LOG_H
-#define XMRIG_LOG_H
+#ifndef XMRIG_LOG_LEGACY_H
+#define XMRIG_LOG_LEGACY_H
 
 
-#include <assert.h>
-#include <uv.h>
-#include <vector>
+#include "base/io/log/Log.h"
 
 
-#include "common/interfaces/ILogBackend.h"
-
-
-namespace xmrig {
-
-
-class Log
-{
-public:
-    static inline Log* i()                       { if (!m_self) { defaultInit(); } return m_self; }
-    static inline void add(ILogBackend *backend) { i()->m_backends.push_back(backend); }
-    static inline void init()                    { if (!m_self) { new Log(); } }
-    static inline void release()                 { delete m_self; }
-
-    void message(ILogBackend::Level level, const char* fmt, ...);
-    void text(const char* fmt, ...);
-
-    static const char *colorByLevel(ILogBackend::Level level, bool isColors = true);
-    static const char *endl(bool isColors = true);
-    static void defaultInit();
-
-    static bool colors;
-
-private:
-    inline Log() {
-        assert(m_self == nullptr);
-
-        uv_mutex_init(&m_mutex);
-
-        m_self = this;
-    }
-
-    ~Log();
-
-    static Log *m_self;
-    std::vector<ILogBackend*> m_backends;
-    uv_mutex_t m_mutex;
-};
-
-
-} /* namespace xmrig */
-
-
-#define RED_BOLD(x)     "\x1B[1;31m" x "\x1B[0m"
-#define RED(x)          "\x1B[0;31m" x "\x1B[0m"
-#define GREEN_BOLD(x)   "\x1B[1;32m" x "\x1B[0m"
-#define GREEN(x)        "\x1B[0;32m" x "\x1B[0m"
-#define YELLOW(x)       "\x1B[0;33m" x "\x1B[0m"
-#define YELLOW_BOLD(x)  "\x1B[1;33m" x "\x1B[0m"
-#define MAGENTA_BOLD(x) "\x1B[1;35m" x "\x1B[0m"
-#define MAGENTA(x)      "\x1B[0;35m" x "\x1B[0m"
-#define CYAN_BOLD(x)    "\x1B[1;36m" x "\x1B[0m"
-#define CYAN(x)         "\x1B[0;36m" x "\x1B[0m"
-#define WHITE_BOLD(x)   "\x1B[1;37m" x "\x1B[0m"
-#define WHITE(x)        "\x1B[0;37m" x "\x1B[0m"
-#define GRAY(x)         "\x1B[1;30m" x "\x1B[0m"
-
-
-#define LOG_ERR(x, ...)    xmrig::Log::i()->message(xmrig::ILogBackend::ERR,     x, ##__VA_ARGS__)
-#define LOG_WARN(x, ...)   xmrig::Log::i()->message(xmrig::ILogBackend::WARNING, x, ##__VA_ARGS__)
-#define LOG_NOTICE(x, ...) xmrig::Log::i()->message(xmrig::ILogBackend::NOTICE,  x, ##__VA_ARGS__)
-#define LOG_INFO(x, ...)   xmrig::Log::i()->message(xmrig::ILogBackend::INFO,    x, ##__VA_ARGS__)
-
-#ifdef APP_DEBUG
-#   define LOG_DEBUG(x, ...)      xmrig::Log::i()->message(xmrig::ILogBackend::DEBUG,   x, ##__VA_ARGS__)
-#else
-#   define LOG_DEBUG(x, ...)
-#endif
-
-#if defined(APP_DEBUG) || defined(APP_DEVEL)
-#   define LOG_DEBUG_ERR(x, ...)  xmrig::Log::i()->message(xmrig::ILogBackend::ERR,     x, ##__VA_ARGS__)
-#   define LOG_DEBUG_WARN(x, ...) xmrig::Log::i()->message(xmrig::ILogBackend::WARNING, x, ##__VA_ARGS__)
-#else
-#   define LOG_DEBUG_ERR(x, ...)
-#   define LOG_DEBUG_WARN(x, ...)
-#endif
-
-#endif /* XMRIG_LOG_H */
+#endif /* XMRIG_LOG_LEGACY_H */

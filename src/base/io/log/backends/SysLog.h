@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,27 +23,28 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <syslog.h>
-
-
-#include "common/log/SysLog.h"
-#include "version.h"
+#ifndef XMRIG_SYSLOG_H
+#define XMRIG_SYSLOG_H
 
 
-xmrig::SysLog::SysLog()
+#include "base/kernel/interfaces/ILogBackend.h"
+
+
+namespace xmrig {
+
+
+class SysLog : public ILogBackend
 {
-    openlog(APP_ID, LOG_PID, LOG_USER);
-}
+public:
+    SysLog();
+    ~SysLog();
+
+protected:
+    void print(int level, const char *line, size_t offset, size_t size, bool colors) override;
+};
 
 
-void xmrig::SysLog::message(Level level, const char *fmt, va_list args)
-{
-    vsyslog(static_cast<int>(level), fmt, args);
-}
+} /* namespace xmrig */
 
 
-void xmrig::SysLog::text(const char *fmt, va_list args)
-{
-    vsyslog(LOG_INFO, fmt, args);
-}
+#endif /* XMRIG_SYSLOG_H */

@@ -1,6 +1,9 @@
 set(HEADERS_BASE
     src/base/io/Console.h
     src/base/io/Json.h
+    src/base/io/log/backends/ConsoleLog.h
+    src/base/io/log/backends/FileLog.h
+    src/base/io/log/Log.h
     src/base/io/Watcher.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IClientListener.h
@@ -8,6 +11,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IConsoleListener.h
     src/base/kernel/interfaces/IDnsListener.h
     src/base/kernel/interfaces/ILineListener.h
+    src/base/kernel/interfaces/ILogBackend.h
     src/base/kernel/interfaces/ISignalListener.h
     src/base/kernel/interfaces/IStrategy.h
     src/base/kernel/interfaces/IStrategyListener.h
@@ -37,6 +41,9 @@ set(HEADERS_BASE
 set(SOURCES_BASE
     src/base/io/Console.cpp
     src/base/io/Json.cpp
+    src/base/io/log/backends/ConsoleLog.cpp
+    src/base/io/log/backends/FileLog.cpp
+    src/base/io/log/Log.cpp
     src/base/io/Watcher.cpp
     src/base/kernel/Entry.cpp
     src/base/kernel/Process.cpp
@@ -60,4 +67,13 @@ if (WIN32)
     set(SOURCES_OS src/base/io/Json_win.cpp)
 else()
     set(SOURCES_OS src/base/io/Json_unix.cpp)
+endif()
+
+
+if (NOT WIN32)
+    CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
+    if (HAVE_SYSLOG_H)
+        add_definitions(/DHAVE_SYSLOG_H)
+        set(SOURCES_SYSLOG src/base/log/backends/SysLog.h src/base/log/backends/SysLog.cpp)
+    endif()
 endif()

@@ -31,9 +31,9 @@
 #include "api/Api.h"
 #include "App.h"
 #include "base/io/Console.h"
+#include "base/io/log/Log.h"
 #include "base/kernel/Signals.h"
 #include "common/cpu/Cpu.h"
-#include "common/log/Log.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -135,7 +135,7 @@ void xmrig::App::onConsoleCommand(char command)
     case 'p':
     case 'P':
         if (Workers::isEnabled()) {
-            LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
+            LOG_INFO(YELLOW_BOLD("paused") ", press " MAGENTA_BOLD("r") " to resume");
             Workers::setEnabled(false);
         }
         break;
@@ -143,7 +143,7 @@ void xmrig::App::onConsoleCommand(char command)
     case 'r':
     case 'R':
         if (!Workers::isEnabled()) {
-            LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;32mresumed" : "resumed");
+            LOG_INFO(GREEN_BOLD("resumed"));
             Workers::setEnabled(true);
         }
         break;
@@ -194,5 +194,5 @@ void xmrig::App::close()
     m_controller->stop();
 
     Workers::stop();
-    Log::release();
+    Log::destroy();
 }

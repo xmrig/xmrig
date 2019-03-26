@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,42 +23,36 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ILOGBACKEND_H
-#define XMRIG_ILOGBACKEND_H
+#ifndef XMRIG_FILELOG_H
+#define XMRIG_FILELOG_H
 
 
-#include <stdarg.h>
-#include <stddef.h>
+typedef struct uv_fs_s uv_fs_t;
+
+
+#include "base/kernel/interfaces/ILogBackend.h"
 
 
 namespace xmrig {
 
 
-class ILogBackend
+class FileLog : public ILogBackend
 {
 public:
-    enum Level {
-        ERR,
-        WARNING,
-        NOTICE,
-        INFO,
-        DEBUG
-    };
+    FileLog(const char *fileName);
 
-#   ifdef APP_DEBUG
-    constexpr static const size_t kBufferSize = 1024;
-#   else
-    constexpr static const size_t kBufferSize = 512;
-#   endif
 
-    virtual ~ILogBackend() = default;
+protected:
+    void print(int level, const char *line, size_t offset, size_t size, bool colors) override;
 
-    virtual void message(Level level, const char* fmt, va_list args) = 0;
-    virtual void text(const char* fmt, va_list args)                 = 0;
+private:
+    static void onWrite(uv_fs_t *req);
+
+    int m_file;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif // XMRIG_ILOGBACKEND_H
+#endif /* XMRIG_FILELOG_H */

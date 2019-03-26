@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,68 +24,30 @@
  */
 
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#ifdef WIN32
-#   include <winsock2.h>
-#   include <windows.h>
-#endif
+#include <syslog.h>
 
 
-#include "common/log/BasicLog.h"
-#include "common/log/Log.h"
+#include "base/io/log/backends/SysLog.h"
+#include "version.h"
 
 
-xmrig::BasicLog::BasicLog()
+xmrig::SysLog::SysLog()
 {
+    openlog(APP_ID, LOG_PID, LOG_USER);
 }
 
 
-void xmrig::BasicLog::message(Level level, const char* fmt, va_list args)
+xmrig::SysLog::~SysLog()
 {
-    time_t now = time(nullptr);
-    tm stime;
-
-#   ifdef _WIN32
-    localtime_s(&stime, &now);
-#   else
-    localtime_r(&now, &stime);
-#   endif
-
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
-             stime.tm_year + 1900,
-             stime.tm_mon + 1,
-             stime.tm_mday,
-             stime.tm_hour,
-             stime.tm_min,
-             stime.tm_sec,
-             Log::colorByLevel(level, false),
-             fmt,
-             Log::endl(false)
-        );
-
-    print(args);
+    closelog();
 }
 
 
-void xmrig::BasicLog::text(const char* fmt, va_list args)
+void xmrig::SysLog::print(int level, const char *line, size_t offset, size_t, bool colors)
 {
-    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(false));
-
-    print(args);
-}
-
-
-void xmrig::BasicLog::print(va_list args)
-{
-    if (vsnprintf(m_buf, sizeof(m_buf) - 1, m_fmt, args) <= 0) {
+    if (colors) {
         return;
     }
 
-    fputs(m_buf, stdout);
-    fflush(stdout);
+    syslog(level == -1 ? LOG_INFO : level, line + offset);
 }

@@ -164,21 +164,21 @@ void xmrig::Pools::print() const
         if (Log::colors) {
             const int color = pool.isEnabled() ? (pool.isTLS() ? 32 : 36) : 31;
 
-            Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m variant " WHITE_BOLD("%s"),
-                           i,
-                           color,
-                           pool.url().data(),
-                           pool.algorithm().variantName()
-                           );
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m variant " WHITE_BOLD("%s"),
+                       i,
+                       color,
+                       pool.url().data(),
+                       pool.algorithm().variantName()
+                       );
         }
         else {
-            Log::i()->text(" * POOL #%-7zu%s%s variant=%s %s",
-                           i,
-                           pool.isEnabled() ? "" : "-",
-                           pool.url().data(),
-                           pool.algorithm().variantName(),
-                           pool.isTLS() ? "TLS" : ""
-                           );
+            Log::print(" * POOL #%-7zu%s%s variant=%s %s",
+                       i,
+                       pool.isEnabled() ? "" : "-",
+                       pool.url().data(),
+                       pool.algorithm().variantName(),
+                       pool.isTLS() ? "TLS" : ""
+                       );
         }
 
         i++;

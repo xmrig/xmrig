@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -26,10 +27,11 @@
 #define XMRIG_CONSOLELOG_H
 
 
-#include <uv.h>
+typedef struct uv_stream_s uv_stream_t;
+typedef struct uv_tty_s uv_tty_t;
 
 
-#include "common/interfaces/ILogBackend.h"
+#include "base/kernel/interfaces/ILogBackend.h"
 
 
 namespace xmrig {
@@ -42,16 +44,11 @@ public:
     ~ConsoleLog() override;
 
 protected:
-    void message(Level level, const char *fmt, va_list args) override;
-    void text(const char *fmt, va_list args) override;
+    void print(int level, const char *line, size_t offset, size_t size, bool colors) override;
 
 private:
     bool isWritable() const;
-    void print(va_list args);
 
-    char m_buf[kBufferSize];
-    char m_fmt[256];
-    uv_buf_t m_uvBuf;
     uv_stream_t *m_stream;
     uv_tty_t *m_tty;
 };

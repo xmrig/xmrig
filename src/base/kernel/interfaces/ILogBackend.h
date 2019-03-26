@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,36 +23,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_BASICLOG_H
-#define XMRIG_BASICLOG_H
+#ifndef XMRIG_ILOGBACKEND_H
+#define XMRIG_ILOGBACKEND_H
 
 
-#include <uv.h>
-
-
-#include "common/interfaces/ILogBackend.h"
+#include <stdarg.h>
+#include <stddef.h>
 
 
 namespace xmrig {
 
 
-class BasicLog : public ILogBackend
+class ILogBackend
 {
 public:
-    BasicLog();
+    virtual ~ILogBackend() = default;
 
-    void message(Level level, const char *fmt, va_list args) override;
-    void text(const char *fmt, va_list args) override;
-
-private:
-    bool isWritable() const;
-    void print(va_list args);
-
-    char m_buf[kBufferSize];
-    char m_fmt[256];
+    virtual void print(int level, const char *line, size_t offset, size_t size, bool colors) = 0;
 };
 
 
 } /* namespace xmrig */
 
-#endif /* XMRIG_BASICLOG_H */
+
+#endif // XMRIG_ILOGBACKEND_H

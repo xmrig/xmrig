@@ -26,11 +26,11 @@
 #include <assert.h>
 
 
+#include "base/io/log/backends/ConsoleLog.h"
+#include "base/io/log/backends/FileLog.h"
 #include "common/config/ConfigLoader.h"
 #include "common/cpu/Cpu.h"
 #include "common/interfaces/IControllerListener.h"
-#include "common/log/ConsoleLog.h"
-#include "common/log/FileLog.h"
 #include "common/log/Log.h"
 #include "common/Platform.h"
 #include "core/Config.h"
@@ -39,7 +39,7 @@
 
 
 #ifdef HAVE_SYSLOG_H
-#   include "common/log/SysLog.h"
+#   include "base/io/log/backends/SysLog.h"
 #endif
 
 
@@ -102,7 +102,6 @@ int xmrig::Controller::init()
         return 1;
     }
 
-    Log::init();
     Platform::init(config()->userAgent());
     Platform::setProcessPriority(d_ptr->config->priority());
 
