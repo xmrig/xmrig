@@ -114,10 +114,10 @@ static void print_threads(xmrig::Config *config)
     if (config->assembly() == xmrig::ASM_AUTO) {
         const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
 
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s"), asmName(assembly));
+        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s"), "ASSEMBLY", asmName(assembly));
     }
     else {
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s"), asmName(config->assembly()));
+        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s"), "ASSEMBLY", asmName(config->assembly()));
     }
 #   endif
 }
