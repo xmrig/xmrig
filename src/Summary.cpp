@@ -72,9 +72,9 @@ static void print_cpu(xmrig::Config *)
                "CPU",
                Cpu::info()->brand(),
                Cpu::info()->sockets(),
-               Cpu::info()->isX64()   ? GREEN_BOLD_S : RED_BOLD("-"),
-               Cpu::info()->hasAES()  ? GREEN_BOLD_S : RED_BOLD("-"),
-               Cpu::info()->hasAVX2() ? GREEN_BOLD_S : RED_BOLD("-")
+               Cpu::info()->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
+               Cpu::info()->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
+               Cpu::info()->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"
                );
 #   ifndef XMRIG_NO_LIBCPUID
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
