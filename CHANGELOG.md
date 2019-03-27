@@ -1,3 +1,6 @@
+# v2.15.1-beta
+- [#257](https://github.com/xmrig/xmrig-nvidia/pull/257) New logging subsystem, file and syslog now always without colors.
+
 # v2.15.0-beta
 - [#314](https://github.com/xmrig/xmrig-proxy/issues/314) Added donate over proxy feature.
   - Added new option `donate-over-proxy`.
