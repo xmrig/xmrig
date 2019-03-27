@@ -51,8 +51,7 @@ inline static const char *format(double h, char *buf, size_t size)
 Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
     m_highest(0.0),
     m_threads(threads),
-    m_timer(nullptr),
-    m_controller(controller)
+    m_timer(nullptr)
 {
     m_counts     = new uint64_t*[threads];
     m_timestamps = new uint64_t*[threads];
