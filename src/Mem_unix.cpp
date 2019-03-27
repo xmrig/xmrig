@@ -35,6 +35,11 @@
 #include "Mem.h"
 
 
+#if defined(__APPLE__)
+#   include <mach/vm_statistics.h>
+#endif
+
+
 void Mem::init(bool enabled)
 {
     m_enabled = enabled;
