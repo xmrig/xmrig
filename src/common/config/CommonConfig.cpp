@@ -30,7 +30,7 @@
 #include <uv.h>
 
 
-#ifndef XMRIG_NO_HTTPD
+#ifdef XMRIG_FEATURE_HTTP
 #   include <microhttpd.h>
 #endif
 
@@ -82,7 +82,7 @@ xmrig::CommonConfig::CommonConfig() :
 
 void xmrig::CommonConfig::printAPI()
 {
-#   ifndef XMRIG_NO_API
+#   ifdef XMRIG_FEATURE_API
     if (apiPort() == 0) {
         return;
     }
@@ -131,7 +131,7 @@ void xmrig::CommonConfig::printVersions()
 #   else
     memset(buf, 0, 16);
 
-#   if !defined(XMRIG_NO_HTTPD) || defined(XMRIG_FEATURE_TLS)
+#   if defined(XMRIG_FEATURE_HTTP) || defined(XMRIG_FEATURE_TLS)
     int length = 0;
 #   endif
 #   endif
@@ -143,7 +143,7 @@ void xmrig::CommonConfig::printVersions()
     }
 #   endif
 
-#   ifndef XMRIG_NO_HTTPD
+#   ifdef XMRIG_FEATURE_HTTP
     length += snprintf(buf + length, (sizeof buf) - length, "microhttpd/%s ", MHD_get_version());
 #   endif
 

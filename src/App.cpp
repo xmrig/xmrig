@@ -45,7 +45,7 @@
 #include "workers/Workers.h"
 
 
-#ifndef XMRIG_NO_HTTPD
+#ifdef XMRIG_FEATURE_HTTP
 #   include "common/api/Httpd.h"
 #endif
 
@@ -72,7 +72,7 @@ xmrig::App::~App()
     delete m_console;
     delete m_controller;
 
-#   ifndef XMRIG_NO_HTTPD
+#   ifdef XMRIG_FEATURE_HTTP
     delete m_httpd;
 #   endif
 }
@@ -98,11 +98,11 @@ int xmrig::App::exec()
         return 0;
     }
 
-#   ifndef XMRIG_NO_API
+#   ifdef XMRIG_FEATURE_API
     Api::start(m_controller);
 #   endif
 
-#   ifndef XMRIG_NO_HTTPD
+#   ifdef XMRIG_FEATURE_HTTP
     m_httpd = new Httpd(
                 m_controller->config()->apiPort(),
                 m_controller->config()->apiToken(),
@@ -185,7 +185,7 @@ void xmrig::App::onSignal(int signum)
 
 void xmrig::App::close()
 {
-#   ifndef XMRIG_NO_HTTPD
+#   ifdef XMRIG_FEATURE_HTTP
     m_httpd->stop();
 #   endif
 

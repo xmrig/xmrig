@@ -237,7 +237,7 @@ void Workers::submit(const xmrig::JobResult &result)
 }
 
 
-#ifndef XMRIG_NO_API
+#ifdef XMRIG_FEATURE_API
 void Workers::threadsSummary(rapidjson::Document &doc)
 {
     uv_mutex_lock(&m_mutex);

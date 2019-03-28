@@ -27,11 +27,6 @@
 #include <uv.h>
 
 
-#ifndef XMRIG_NO_HTTPD
-#   include <microhttpd.h>
-#endif
-
-
 #ifdef XMRIG_FEATURE_TLS
 #   include <openssl/opensslv.h>
 #endif
@@ -72,10 +67,6 @@ static int showVersion()
     "\n");
 
     printf("\nlibuv/%s\n", uv_version_string());
-
-#   ifndef XMRIG_NO_HTTPD
-    printf("microhttpd/%s\n", MHD_get_version());
-#   endif
 
 #   if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
     {

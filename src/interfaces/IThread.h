@@ -51,7 +51,7 @@ public:
         PentaWay
     };
 
-    virtual ~IThread() {}
+    virtual ~IThread() = default;
 
     virtual Algo algorithm() const                                    = 0;
     virtual int priority() const                                      = 0;
@@ -61,7 +61,7 @@ public:
     virtual size_t index() const                                      = 0;
     virtual Type type() const                                         = 0;
 
-#   ifndef XMRIG_NO_API
+#   ifdef XMRIG_FEATURE_API
     virtual rapidjson::Value toAPI(rapidjson::Document &doc) const = 0;
 #   endif
 

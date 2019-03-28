@@ -706,7 +706,7 @@ void xmrig::CpuThread::print() const
 #endif
 
 
-#ifndef XMRIG_NO_API
+#ifdef XMRIG_FEATURE_API
 rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
