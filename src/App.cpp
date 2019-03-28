@@ -104,10 +104,10 @@ int xmrig::App::exec()
 
 #   ifdef XMRIG_FEATURE_HTTP
     m_httpd = new Httpd(
-                m_controller->config()->apiPort(),
-                m_controller->config()->apiToken(),
-                m_controller->config()->isApiIPv6(),
-                m_controller->config()->isApiRestricted()
+                m_controller->config()->http().port(),
+                m_controller->config()->http().token(),
+                false,
+                m_controller->config()->http().isRestricted()
                 );
 
     m_httpd->start();

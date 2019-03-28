@@ -21,6 +21,7 @@ include (src/base/base.cmake)
 
 set(HEADERS
     "${HEADERS_BASE}"
+    "${HEADERS_BASE_HTTP}"
     src/api/NetworkState.h
     src/App.h
     src/common/config/CommonConfig.h
@@ -80,6 +81,7 @@ endif()
 
 set(SOURCES
     "${SOURCES_BASE}"
+    "${SOURCES_BASE_HTTP}"
     src/api/NetworkState.cpp
     src/App.cpp
     src/common/config/CommonConfig.cpp
@@ -220,14 +222,9 @@ if (WITH_HTTPD)
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
     endif()
-
-    add_definitions(/DXMRIG_FEATURE_HTTP)
-    add_definitions(/DXMRIG_FEATURE_API)
 else()
     set(HTTPD_SOURCES "")
     set(MHD_LIBRARY "")
-    remove_definitions(/DXMRIG_FEATURE_HTTP)
-    remove_definitions(/DXMRIG_FEATURE_API)
 endif()
 
 include_directories(src)

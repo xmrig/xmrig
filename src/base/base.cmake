@@ -21,6 +21,7 @@ set(HEADERS_BASE
     src/base/kernel/Signals.h
     src/base/net/dns/Dns.h
     src/base/net/dns/DnsRecord.h
+    src/base/net/http/Http.h
     src/base/net/stratum/Client.h
     src/base/net/stratum/Job.h
     src/base/net/stratum/Pool.h
@@ -50,6 +51,7 @@ set(SOURCES_BASE
     src/base/kernel/Signals.cpp
     src/base/net/dns/Dns.cpp
     src/base/net/dns/DnsRecord.cpp
+    src/base/net/http/Http.cpp
     src/base/net/stratum/Client.cpp
     src/base/net/stratum/Job.cpp
     src/base/net/stratum/Pool.cpp
@@ -77,3 +79,24 @@ if (NOT WIN32)
         set(SOURCES_SYSLOG src/base/io/log/backends/SysLog.h src/base/io/log/backends/SysLog.cpp)
     endif()
 endif()
+
+
+if (WITH_HTTPD)
+    set(HEADERS_BASE_HTTP
+#        src/base/net/http/Http.h
+        )
+
+    set(SOURCES_BASE_HTTP
+#        src/base/net/http/Http.cpp
+        )
+
+    add_definitions(/DXMRIG_FEATURE_HTTP)
+    add_definitions(/DXMRIG_FEATURE_API)
+else()
+    set(HEADERS_BASE_HTTP "")
+    set(SOURCES_BASE_HTTP "")
+    remove_definitions(/DXMRIG_FEATURE_HTTP)
+    remove_definitions(/DXMRIG_FEATURE_API)
+endif()
+
+add_definitions(/DXMRIG_DEPRECATED)

@@ -142,8 +142,8 @@ void Summary::print(xmrig::Controller *controller)
     print_memory(controller->config());
     print_cpu(controller->config());
     print_threads(controller->config());
-    controller->config()->printPools();
-    controller->config()->printAPI();
+    controller->config()->pools().print();
+    controller->config()->http().print();
 
     print_commands(controller->config());
 }

@@ -166,7 +166,7 @@ void ApiRouter::genId(const char *id)
             uint8_t hash[200];
             const size_t addrSize = sizeof(interfaces[i].phys_addr);
             const size_t inSize   = strlen(APP_KIND) + addrSize + sizeof(uint16_t);
-            const uint16_t port   = static_cast<uint16_t>(m_controller->config()->apiPort());
+            const uint16_t port   = static_cast<uint16_t>(m_controller->config()->http().port());
 
             uint8_t *input = new uint8_t[inSize]();
             memcpy(input, &port, sizeof(uint16_t));

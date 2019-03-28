@@ -73,13 +73,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("algo", StringRef(algorithm().name()), allocator);
 
     Value api(kObjectType);
-    api.AddMember("port",         apiPort(), allocator);
-    api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("id",           apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("worker-id",    apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("ipv6",         isApiIPv6(), allocator);
-    api.AddMember("restricted",   isApiRestricted(), allocator);
+    api.AddMember("id",           m_apiId.toJSON(), allocator);
+    api.AddMember("worker-id",    m_apiWorkerId.toJSON(), allocator);
     doc.AddMember("api",          api, allocator);
+    doc.AddMember("http",         m_http.toJSON(doc), allocator);
 
 #   ifndef XMRIG_NO_ASM
     doc.AddMember("asm",          Asm::toJSON(m_assembly), allocator);
@@ -269,7 +266,7 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     switch (key) {
     case CPUAffinityKey: /* --cpu-affinity */
         if (arg) {
-            m_threads.mask = arg;
+            m_threads.mask = static_cast<int64_t>(arg);
         }
         break;
 
