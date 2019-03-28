@@ -178,7 +178,7 @@ bool xmrig::Pool::isCompatible(const Algorithm &algorithm) const
 
 bool xmrig::Pool::isEnabled() const
 {
-#   ifdef XMRIG_NO_TLS
+#   ifndef XMRIG_FEATURE_TLS
     if (isTLS()) {
         return false;
     }

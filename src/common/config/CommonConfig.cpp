@@ -35,7 +35,7 @@
 #endif
 
 
-#ifndef XMRIG_NO_TLS
+#ifdef XMRIG_FEATURE_TLS
 #   include <openssl/opensslv.h>
 #endif
 
@@ -131,12 +131,12 @@ void xmrig::CommonConfig::printVersions()
 #   else
     memset(buf, 0, 16);
 
-#   if !defined(XMRIG_NO_HTTPD) || !defined(XMRIG_NO_TLS)
+#   if !defined(XMRIG_NO_HTTPD) || defined(XMRIG_FEATURE_TLS)
     int length = 0;
 #   endif
 #   endif
 
-#   if !defined(XMRIG_NO_TLS) && defined(OPENSSL_VERSION_TEXT)
+#   if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
     {
         constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
         length += snprintf(buf + length, (sizeof buf) - length, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);

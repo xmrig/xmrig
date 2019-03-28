@@ -29,16 +29,6 @@
 #include <uv.h>
 
 
-#ifndef XMRIG_NO_HTTPD
-#   include <microhttpd.h>
-#endif
-
-
-#ifndef XMRIG_NO_TLS
-#   include <openssl/opensslv.h>
-#endif
-
-
 #include "base/io/Json.h"
 #include "base/kernel/interfaces/IConfigListener.h"
 #include "base/kernel/Process.h"
