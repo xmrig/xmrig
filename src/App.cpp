@@ -45,14 +45,8 @@
 #include "workers/Workers.h"
 
 
-#ifdef XMRIG_FEATURE_HTTP
-#   include "api/Httpd.h"
-#endif
-
-
 xmrig::App::App(Process *process) :
     m_console(nullptr),
-    m_httpd(nullptr),
     m_signals(nullptr)
 {
     m_controller = new Controller(process);
@@ -71,10 +65,6 @@ xmrig::App::~App()
     delete m_signals;
     delete m_console;
     delete m_controller;
-
-#   ifdef XMRIG_FEATURE_HTTP
-    delete m_httpd;
-#   endif
 }
 
 
@@ -98,18 +88,9 @@ int xmrig::App::exec()
         return 0;
     }
 
-#   ifdef XMRIG_FEATURE_API
-    Api::start(m_controller);
-#   endif
-
-#   ifdef XMRIG_FEATURE_HTTP
-    m_httpd = new Httpd(m_controller);
-    m_httpd->start();
-#   endif
-
     Workers::start(m_controller);
 
-    m_controller->network()->connect();
+    m_controller->start();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
@@ -179,10 +160,6 @@ void xmrig::App::onSignal(int signum)
 
 void xmrig::App::close()
 {
-#   ifdef XMRIG_FEATURE_HTTP
-    m_httpd->stop();
-#   endif
-
     m_signals->stop();
     m_console->stop();
     m_controller->stop();

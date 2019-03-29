@@ -203,13 +203,13 @@ endif()
 
 if (WITH_HTTPD)
     set(HTTPD_SOURCES
-#            src/api/Api.h
+        src/api/Api.h
 #            src/api/ApiRouter.h
 #            src/common/api/HttpBody.h
         src/api/Httpd.h
 #            src/common/api/HttpReply.h
 #            src/common/api/HttpRequest.h
-#            src/api/Api.cpp
+        src/api/Api.cpp
 #            src/api/ApiRouter.cpp
         src/api/Httpd.cpp
 #            src/common/api/HttpRequest.cpp

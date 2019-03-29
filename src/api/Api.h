@@ -26,32 +26,46 @@
 #define XMRIG_API_H
 
 
-#include <uv.h>
-
-
-class ApiRouter;
-class Hashrate;
+#include "base/kernel/interfaces/IControllerListener.h"
 
 
 namespace xmrig {
-    class Controller;
-    class HttpReply;
-    class HttpRequest;
-    class NetworkState;
-}
 
 
-class Api
+class Controller;
+class Httpd;
+class HttpRequest;
+class String;
+
+
+class Api : public IControllerListener
 {
 public:
-    static bool start(xmrig::Controller *controller);
-    static void release();
+    Api(Controller *controller);
+    ~Api() override;
 
-    static void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
-    static void tick(const xmrig::NetworkState &results);
+    inline const char *id() const       { return m_id; }
+    inline const char *workerId() const { return m_workerId; }
+
+    void request(const HttpRequest &req);
+    void start();
+    void stop();
+
+protected:
+    void onConfigChanged(Config *config, Config *previousConfig) override;
 
 private:
-    static ApiRouter *m_router;
+    void genId(const String &id);
+    void genWorkerId(const String &id);
+
+    char m_id[32];
+    char m_workerId[128];
+    Controller *m_controller;
+    Httpd *m_httpd;
 };
+
+
+} // namespace xmrig
+
 
 #endif /* XMRIG_API_H */

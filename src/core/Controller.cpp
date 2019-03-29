@@ -43,10 +43,16 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_API
+#   include "api/Api.h"
+#endif
+
+
 class xmrig::ControllerPrivate
 {
 public:
     inline ControllerPrivate(Process *process) :
+        api(nullptr),
         config(nullptr),
         network(nullptr),
         process(process)
@@ -55,11 +61,16 @@ public:
 
     inline ~ControllerPrivate()
     {
+#       ifdef XMRIG_FEATURE_API
+        delete api;
+#       endif
+
         delete network;
         delete config;
     }
 
 
+    Api *api;
     Config *config;
     Network *network;
     Process *process;
@@ -76,6 +87,14 @@ xmrig::Controller::Controller(Process *process)
 xmrig::Controller::~Controller()
 {
     delete d_ptr;
+}
+
+
+xmrig::Api *xmrig::Controller::api() const
+{
+    assert(d_ptr->api != nullptr);
+
+    return d_ptr->api;
 }
 
 
@@ -101,6 +120,10 @@ int xmrig::Controller::init()
     if (!d_ptr->config) {
         return 1;
     }
+
+#   ifdef XMRIG_FEATURE_API
+    d_ptr->api = new Api(this);
+#   endif
 
     Platform::init(config()->userAgent());
     Platform::setProcessPriority(d_ptr->config->priority());
@@ -165,8 +188,22 @@ void xmrig::Controller::onNewConfig(IConfig *config)
 }
 
 
+void xmrig::Controller::start()
+{
+    network()->connect();
+
+#   ifdef XMRIG_FEATURE_API
+    api()->start();
+#   endif
+}
+
+
 void xmrig::Controller::stop()
 {
+#   ifdef XMRIG_FEATURE_API
+    api()->stop();
+#   endif
+
     ConfigLoader::release();
 
     delete d_ptr->network;

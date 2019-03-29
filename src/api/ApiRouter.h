@@ -27,7 +27,7 @@
 
 
 #include "api/NetworkState.h"
-#include "common/interfaces/IControllerListener.h"
+#include "base/kernel/interfaces/IControllerListener.h"
 #include "rapidjson/fwd.h"
 
 

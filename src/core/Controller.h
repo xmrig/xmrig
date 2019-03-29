@@ -35,6 +35,7 @@ class StatsData;
 namespace xmrig {
 
 
+class Api;
 class Config;
 class ControllerPrivate;
 class IControllerListener;
@@ -48,12 +49,14 @@ public:
     Controller(Process *process);
     ~Controller() override;
 
+    Api *api() const;
     bool isReady() const;
     Config *config() const;
     int init();
     Network *network() const;
     void addListener(IControllerListener *listener);
     void save();
+    void start();
     void stop();
 
 protected:

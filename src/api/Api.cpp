@@ -22,52 +22,128 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+
+#include <uv.h>
 
 
 #include "api/Api.h"
-#include "api/ApiRouter.h"
-#include "common/api/HttpReply.h"
-#include "common/api/HttpRequest.h"
+#include "base/tools/Buffer.h"
+#include "common/crypto/keccak.h"
+#include "core/Config.h"
+#include "core/Controller.h"
+#include "version.h"
 
 
-ApiRouter *Api::m_router = nullptr;
+#ifdef XMRIG_FEATURE_HTTP
+#   include "api/Httpd.h"
+#endif
 
 
-bool Api::start(xmrig::Controller *controller)
+xmrig::Api::Api(Controller *controller) :
+    m_id(),
+    m_workerId(),
+    m_controller(controller),
+    m_httpd(nullptr)
 {
-    m_router = new ApiRouter(controller);
+    controller->addListener(this);
 
-    return true;
+    genId(m_controller->config()->apiId());
 }
 
 
-void Api::release()
+xmrig::Api::~Api()
 {
-    delete m_router;
+#   ifdef XMRIG_FEATURE_HTTP
+    delete m_httpd;
+#   endif
 }
 
 
-void Api::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
+void xmrig::Api::request(const HttpRequest &req)
 {
-    if (!m_router) {
-        reply.status = 500;
+
+}
+
+
+void xmrig::Api::start()
+{
+    genWorkerId(m_controller->config()->apiWorkerId());
+
+#   ifdef XMRIG_FEATURE_HTTP
+    m_httpd = new Httpd(m_controller);
+    m_httpd->start();
+#   endif
+}
+
+
+void xmrig::Api::stop()
+{
+#   ifdef XMRIG_FEATURE_HTTP
+    m_httpd->stop();
+#   endif
+}
+
+
+void xmrig::Api::onConfigChanged(Config *config, Config *previousConfig)
+{
+    if (config->apiId() != previousConfig->apiId()) {
+        genId(config->apiId());
+    }
+
+    if (config->apiWorkerId() != previousConfig->apiWorkerId()) {
+        genWorkerId(config->apiWorkerId());
+    }
+}
+
+
+void xmrig::Api::genId(const String &id)
+{
+    memset(m_id, 0, sizeof(m_id));
+
+    if (id.size() > 0) {
+        strncpy(m_id, id.data(), sizeof(m_id) - 1);
         return;
     }
 
-    if (req.method() == xmrig::HttpRequest::Get) {
-        return m_router->get(req, reply);
-    }
+    uv_interface_address_t *interfaces;
+    int count = 0;
 
-    m_router->exec(req, reply);
-}
-
-
-void Api::tick(const xmrig::NetworkState &network)
-{
-    if (!m_router) {
+    if (uv_interface_addresses(&interfaces, &count) < 0) {
         return;
     }
 
-    m_router->tick(network);
+    for (int i = 0; i < count; i++) {
+        if (!interfaces[i].is_internal && interfaces[i].address.address4.sin_family == AF_INET) {
+            uint8_t hash[200];
+            const size_t addrSize = sizeof(interfaces[i].phys_addr);
+            const size_t inSize   = strlen(APP_KIND) + addrSize + sizeof(uint16_t);
+            const uint16_t port   = static_cast<uint16_t>(m_controller->config()->http().port());
+
+            uint8_t *input = new uint8_t[inSize]();
+            memcpy(input, &port, sizeof(uint16_t));
+            memcpy(input + sizeof(uint16_t), interfaces[i].phys_addr, addrSize);
+            memcpy(input + sizeof(uint16_t) + addrSize, APP_KIND, strlen(APP_KIND));
+
+            xmrig::keccak(input, inSize, hash);
+            xmrig::Buffer::toHex(hash, 8, m_id);
+
+            delete [] input;
+            break;
+        }
+    }
+
+    uv_free_interface_addresses(interfaces, count);
+}
+
+
+void xmrig::Api::genWorkerId(const String &id)
+{
+    memset(m_workerId, 0, sizeof(m_workerId));
+
+    if (id.size() > 0) {
+        strncpy(m_workerId, id.data(), sizeof(m_workerId) - 1);
+    }
+    else {
+        gethostname(m_workerId, sizeof(m_workerId) - 1);
+    }
 }

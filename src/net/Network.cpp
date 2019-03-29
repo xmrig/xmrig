@@ -198,6 +198,6 @@ void xmrig::Network::tick()
     }
 
 #   ifdef XMRIG_FEATURE_API
-    Api::tick(m_state);
+    //Api::tick(m_state);
 #   endif
 }

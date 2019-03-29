@@ -24,10 +24,11 @@
 
 
 #include "3rdparty/http-parser/http_parser.h"
+#include "api/Api.h"
 #include "api/Httpd.h"
 #include "base/io/log/Log.h"
-#include "base/net/http/HttpRequest.h"
 #include "base/net/http/HttpApiResponse.h"
+#include "base/net/http/HttpRequest.h"
 #include "base/net/http/HttpServer.h"
 #include "base/net/tools/TcpServer.h"
 #include "core/Config.h"
@@ -136,8 +137,7 @@ void xmrig::Httpd::onHttpRequest(const HttpRequest &req)
         }
     }
 
-    HttpApiResponse res(req.id());
-    res.end();
+    m_controller->api()->request(req);
 }
 
 

@@ -106,7 +106,6 @@ if (WITH_HTTPD)
 
     add_definitions(/DXMRIG_FEATURE_HTTP)
     add_definitions(/DXMRIG_FEATURE_API)
-    remove_definitions(/DXMRIG_FEATURE_API)
 else()
     set(HEADERS_BASE_HTTP "")
     set(SOURCES_BASE_HTTP "")
