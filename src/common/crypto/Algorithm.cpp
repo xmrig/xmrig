@@ -75,6 +75,7 @@ static AlgoData const algorithms[] = {
     { "cryptonight-light",     "cn-light",     xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
     { "cryptonight-lite/0",    "cn-lite/0",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_0    },
     { "cryptonight-lite/1",    "cn-lite/1",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
+    { "kangarootwelve",        "k12",          xmrig::KANGAROOTWELVE,    xmrig::VARIANT_0    },
 #   endif
 
 #   ifndef XMRIG_NO_SUMO
@@ -117,6 +118,7 @@ static AlgoData const xmrStakAlgorithms[] = {
     { "cryptonight_turtle",      nullptr, xmrig::CRYPTONIGHT_PICO,  xmrig::VARIANT_TRTL },
     { "cryptonight_gpu",         nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_GPU  },
     { "cryptonight_r",           nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_4  },
+    { "kangarootwelve",          nullptr, xmrig::KANGAROOTWELVE,    xmrig::VARIANT_0  },
 };
 #endif
 

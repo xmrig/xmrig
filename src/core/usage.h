@@ -39,7 +39,8 @@ Options:\n\
                              cryptonight\n"
 #ifndef XMRIG_NO_AEON
 "\
-                             cryptonight-lite\n"
+                             cryptonight-lite\n\
+                             kangarootwelve\n"
 #endif
 #ifndef XMRIG_NO_SUMO
 "\

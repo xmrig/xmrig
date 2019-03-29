@@ -256,6 +256,7 @@ xmrig::Variant xmrig::Job::variant() const
         return VARIANT_1;
 
     case CRYPTONIGHT_HEAVY:
+    case KANGAROOTWELVE:
         return VARIANT_0;
 
     default:

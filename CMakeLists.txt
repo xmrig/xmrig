@@ -99,6 +99,7 @@ set(HEADERS_CRYPTO
     src/crypto/skein_port.h
     src/crypto/soft_aes.h
     src/crypto/asm/CryptonightR_template.h
+    src/crypto/k12.h
    )
 
 if (XMRIG_ARM)
@@ -156,6 +157,9 @@ set(SOURCES_CRYPTO
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
+    src/crypto/k12/KangarooTwelve.c
+    src/crypto/k12/KeccakP-1600-reference.c
+    src/crypto/k12/KeccakSpongeWidth1600.c
    )
 
 if (WIN32)

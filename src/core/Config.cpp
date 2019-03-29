@@ -162,7 +162,7 @@ bool xmrig::Config::finalize()
     const AlgoVariant av = getAlgoVariant();   
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
+    const size_t size = std::max<size_t>(1, CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024);
 
     if (!m_threads.count) {
         m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);

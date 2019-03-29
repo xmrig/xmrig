@@ -85,6 +85,9 @@ bool MultiWorker<N>::selfTest()
         return verify(VARIANT_0,    test_output_v0_lite) &&
                verify(VARIANT_1,    test_output_v1_lite);
     }
+    if (m_thread->algorithm() == KANGAROOTWELVE) {
+        return verify(VARIANT_0,    test_output_k12);
+    }
 #   endif
 
 #   ifndef XMRIG_NO_SUMO
