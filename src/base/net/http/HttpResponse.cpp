@@ -25,6 +25,7 @@
 
 
 #include <uv.h>
+#include <sstream>
 
 
 #include "3rdparty/http-parser/http_parser.h"
@@ -34,67 +35,75 @@
 
 namespace xmrig {
 
-static const char *kCRLF             = "\r\n";
-static const char *kTransferEncoding = "Transfer-Encoding";
+static const char *kCRLF = "\r\n";
 
 } // namespace xmrig
 
 
 xmrig::HttpResponse::HttpResponse(uint64_t id) :
-    statusCode(HTTP_STATUS_OK),
-    body(""),
-    statusAdjective("OK"), // FIXME
-    m_writtenOrEnded(false),
-    m_id(id)
+    m_id(id),
+    m_statusCode(HTTP_STATUS_OK)
 {
 }
 
 
-void xmrig::HttpResponse::writeOrEnd(const std::string &str, bool end)
+bool xmrig::HttpResponse::isAlive() const
 {
-    HttpContext *context = HttpContext::get(m_id);
-    if (!context) {
+    HttpContext *ctx = HttpContext::get(m_id);
+
+    return ctx && uv_is_writable(ctx->stream());
+}
+
+
+void xmrig::HttpResponse::end(const char *data, size_t size)
+{
+    if (!isAlive()) {
         return;
     }
 
+    if (data && !size) {
+        size = strlen(data);
+    }
+
+    if (size) {
+        setHeader("Content-Length", std::to_string(size));
+    }
+
+    setHeader("Connection", "close");
+
     std::stringstream ss;
+    ss << "HTTP/1.1 " << statusCode() << " " << http_status_str(static_cast<http_status>(statusCode())) << kCRLF;
 
-    if (!m_writtenOrEnded) {
-        ss << "HTTP/1.1 " << statusCode << " " << statusAdjective << kCRLF;
-
-        for (auto &header : headers) {
-            ss << header.first << ": " << header.second << kCRLF;
-        }
-
-        ss << kCRLF;
-        m_writtenOrEnded = true;
+    for (auto &header : m_headers) {
+        ss << header.first << ": " << header.second << kCRLF;
     }
 
-    if (headers.count(kTransferEncoding) && headers[kTransferEncoding] == "chunked") {
-        ss << std::hex << str.size() << std::dec << kCRLF << str << kCRLF;
+    ss << kCRLF;
+    const std::string header = ss.str();
 
-        if (end) {
-            ss << "0" << kCRLF << kCRLF;
-        }
-    }
-    else {
-        ss << str;
-    }
-
-    const std::string out = ss.str();
+    uv_buf_t bufs[2];
+    bufs[0].base = const_cast<char *>(header.c_str());
 
 #   ifdef _WIN32
-    uv_buf_t resbuf = uv_buf_init(const_cast<char *>(out.c_str()), static_cast<unsigned int>(out.size()));
+    bufs[0].len = static_cast<unsigned int>(header.size());
 #   else
-    uv_buf_t resbuf = uv_buf_init(const_cast<char *>(out.c_str()), out.size());
+    bufs[0].len = header.size();
 #   endif
 
-    uv_try_write(context->stream(), &resbuf, 1);
+    if (data) {
+        bufs[1].base = const_cast<char *>(data);
 
-    if (end) {
-        if (!uv_is_closing(context->handle())) {
-            uv_close(context->handle(), HttpContext::close);
-        }
+#       ifdef _WIN32
+        bufs[1].len = static_cast<unsigned int>(size);
+#       else
+        bufs[0].len = size;
+#       endif
+    }
+
+    HttpContext *ctx = HttpContext::get(m_id);
+    uv_try_write(ctx->stream(), bufs, data ? 2 : 1);
+
+    if (!uv_is_closing(ctx->handle())) {
+        uv_close(ctx->handle(), HttpContext::close);
     }
 }
-

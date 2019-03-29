@@ -29,7 +29,6 @@
 
 
 #include <map>
-#include <sstream>
 #include <string>
 
 
@@ -41,22 +40,17 @@ class HttpResponse
 public:
     HttpResponse(uint64_t id);
 
-    inline void end()                                                       { writeOrEnd("", true); }
-    inline void end(const std::string &str)                                 { writeOrEnd(str, true); }
-    inline void setHeader(const std::string &key, const std::string &value) { headers.insert({ key, value }); }
-    inline void setStatus(int code)                                         { statusCode = code; }
-    inline void write(const std::string &str)                               { writeOrEnd(str, false); }
+    inline int statusCode() const                                           { return m_statusCode; }
+    inline void setHeader(const std::string &key, const std::string &value) { m_headers.insert({ key, value }); }
+    inline void setStatus(int code)                                         { m_statusCode = code; }
 
-    int statusCode;
-    std::map<const std::string, const std::string> headers;
-    std::string body;
-    std::string statusAdjective; // FIXME
+    bool isAlive() const;
+    void end(const char *data = nullptr, size_t size = 0);
 
 private:
-    void writeOrEnd(const std::string &str, bool end);
-
-    bool m_writtenOrEnded = false;
     const uint64_t m_id;
+    int m_statusCode;
+    std::map<const std::string, const std::string> m_headers;
 };
 
 
