@@ -24,37 +24,50 @@
  */
 
 
-#ifndef XMRIG_HTTPREQUEST_H
-#define XMRIG_HTTPREQUEST_H
+#include "3rdparty/http-parser/http_parser.h"
+#include "base/net/http/HttpApiResponse.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
 
 
-#include <map>
-#include <sstream>
-#include <string>
-
-
-namespace xmrig {
-
-
-class HttpRequest
+xmrig::HttpApiResponse::HttpApiResponse(uint64_t id) :
+    HttpResponse(id),
+    m_doc(rapidjson::kObjectType)
 {
-public:
-    inline HttpRequest(uint64_t id) : method(0), m_id(id) {}
-
-    inline uint64_t id() const { return m_id; }
-
-    int method;
-    std::map<const std::string, const std::string> headers;
-    std::string body;
-    std::string url;
-
-private:
-    const uint64_t m_id;
-};
+}
 
 
-} // namespace xmrig
+xmrig::HttpApiResponse::HttpApiResponse(uint64_t id, int status) :
+    HttpResponse(id),
+    m_doc(rapidjson::kObjectType)
+{
+    setStatus(status);
+}
 
 
-#endif // XMRIG_HTTPREQUEST_H
+void xmrig::HttpApiResponse::end()
+{
+    using namespace rapidjson;
 
+    setHeader("Access-Control-Allow-Origin", "*");
+    setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
+    setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+
+    if (statusCode() >= 400 && !m_doc.MemberCount()) {
+        m_doc.AddMember("status", statusCode(), m_doc.GetAllocator());
+        m_doc.AddMember("error", StringRef(http_status_str(static_cast<http_status>(statusCode()))), m_doc.GetAllocator());
+    }
+
+    if (!m_doc.MemberCount()) {
+        return HttpResponse::end();
+    }
+
+    setHeader("Content-Type", "application/json");
+
+    StringBuffer buffer(nullptr, 4096);
+    PrettyWriter<StringBuffer> writer(buffer);
+    writer.SetMaxDecimalPlaces(10);
+    m_doc.Accept(writer);
+
+    HttpResponse::end(buffer.GetString(), buffer.GetSize());
+}

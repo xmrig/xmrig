@@ -23,14 +23,23 @@
  */
 
 
+#include "3rdparty/http-parser/http_parser.h"
 #include "api/Httpd.h"
 #include "base/io/log/Log.h"
 #include "base/net/http/HttpRequest.h"
-#include "base/net/http/HttpResponse.h"
+#include "base/net/http/HttpApiResponse.h"
 #include "base/net/http/HttpServer.h"
 #include "base/net/tools/TcpServer.h"
 #include "core/Config.h"
 #include "core/Controller.h"
+
+
+namespace xmrig {
+
+static const char *kAuthorization = "authorization";
+static const char *kContentType   = "content-type";
+
+} // namespace xmrig
 
 
 xmrig::Httpd::Httpd(Controller *controller) :
@@ -104,9 +113,52 @@ void xmrig::Httpd::onConfigChanged(Config *config, Config *previousConfig)
 
 void xmrig::Httpd::onHttpRequest(const HttpRequest &req)
 {
-    HttpResponse res(req.id());
-    res.setStatus(200);
+    if (req.method == HTTP_OPTIONS) {
+        return HttpApiResponse(req.id()).end();
+    }
 
-    LOG_INFO(GREEN_BOLD_S "OK");
-    res.end("{}");
+    if (req.method > 4) {
+        return HttpApiResponse(req.id(), HTTP_STATUS_METHOD_NOT_ALLOWED).end();
+    }
+
+    const int status = auth(req);
+    if (status != HTTP_STATUS_OK) {
+        return HttpApiResponse(req.id(), status).end();
+    }
+
+    if (req.method != HTTP_GET) {
+        if (m_controller->config()->http().isRestricted()) {
+            return HttpApiResponse(req.id(), HTTP_STATUS_FORBIDDEN).end();
+        }
+
+        if (!req.headers.count(kContentType) || req.headers.at(kContentType) != "application/json") {
+            return HttpApiResponse(req.id(), HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE).end();
+        }
+    }
+
+    HttpApiResponse res(req.id());
+    res.end();
+}
+
+
+int xmrig::Httpd::auth(const HttpRequest &req) const
+{
+    const Http &config = m_controller->config()->http();
+
+    if (!req.headers.count(kAuthorization)) {
+        return config.isAuthRequired() ? HTTP_STATUS_UNAUTHORIZED : HTTP_STATUS_OK;
+    }
+
+    if (config.token().isNull()) {
+        return HTTP_STATUS_UNAUTHORIZED;
+    }
+
+    const std::string &token = req.headers.at(kAuthorization);
+    const size_t size        = token.size();
+
+    if (token.size() < 8 || config.token().size() != size - 7 || memcmp("Bearer ", token.c_str(), 7) != 0) {
+        return HTTP_STATUS_FORBIDDEN;
+    }
+
+    return strncmp(config.token().data(), token.c_str() + 7, config.token().size()) == 0 ? HTTP_STATUS_OK : HTTP_STATUS_FORBIDDEN;
 }

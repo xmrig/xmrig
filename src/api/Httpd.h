@@ -55,6 +55,8 @@ protected:
     void onHttpRequest(const HttpRequest &req) override;
 
 private:
+    int auth(const HttpRequest &req) const;
+
     Controller *m_controller;
     HttpServer *m_http;
     TcpServer *m_server;

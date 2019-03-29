@@ -94,7 +94,7 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 
     settings->on_headers_complete = [](http_parser* parser) -> int {
         HttpContext *ctx = static_cast<HttpContext*>(parser->data);
-        ctx->method = std::string(http_method_str(static_cast<http_method>(parser->method)));
+        ctx->method = parser->method;
 
         if (!ctx->m_lastHeaderField.empty()) {
             ctx->setHeader();
@@ -105,7 +105,7 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 
     settings->on_body = [](http_parser *parser, const char *at, size_t len) -> int
     {
-        static_cast<HttpContext*>(parser->data)->body << std::string(at, len);
+        static_cast<HttpContext*>(parser->data)->body += std::string(at, len);
 
         return 0;
     };

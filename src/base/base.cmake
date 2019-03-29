@@ -87,6 +87,7 @@ if (WITH_HTTPD)
         src/3rdparty/http-parser/http_parser.h
         src/base/kernel/interfaces/IHttpListener.h
         src/base/kernel/interfaces/ITcpServerListener.h
+        src/base/net/http/HttpApiResponse.h
         src/base/net/http/HttpContext.h
         src/base/net/http/HttpRequest.h
         src/base/net/http/HttpResponse.h
@@ -96,6 +97,7 @@ if (WITH_HTTPD)
 
     set(SOURCES_BASE_HTTP
         src/3rdparty/http-parser/http_parser.c
+        src/base/net/http/HttpApiResponse.cpp
         src/base/net/http/HttpContext.cpp
         src/base/net/http/HttpResponse.cpp
         src/base/net/http/HttpServer.cpp
