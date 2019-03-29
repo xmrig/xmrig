@@ -30,6 +30,14 @@
 #include "rapidjson/stringbuffer.h"
 
 
+namespace xmrig {
+
+static const char *kError  = "error";
+static const char *kStatus = "status";
+
+} // namespace xmrig
+
+
 xmrig::HttpApiResponse::HttpApiResponse(uint64_t id) :
     HttpResponse(id),
     m_doc(rapidjson::kObjectType)
@@ -53,9 +61,14 @@ void xmrig::HttpApiResponse::end()
     setHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
     setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
 
-    if (statusCode() >= 400 && !m_doc.MemberCount()) {
-        m_doc.AddMember("status", statusCode(), m_doc.GetAllocator());
-        m_doc.AddMember("error", StringRef(http_status_str(static_cast<http_status>(statusCode()))), m_doc.GetAllocator());
+    if (statusCode() >= 400) {
+        if (!m_doc.HasMember(kStatus)) {
+            m_doc.AddMember(StringRef(kStatus), statusCode(), m_doc.GetAllocator());
+        }
+
+        if (!m_doc.HasMember(kError)) {
+            m_doc.AddMember(StringRef(kError), StringRef(http_status_str(static_cast<http_status>(statusCode()))), m_doc.GetAllocator());
+        }
     }
 
     if (!m_doc.MemberCount()) {

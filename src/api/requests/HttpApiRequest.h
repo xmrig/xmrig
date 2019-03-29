@@ -22,52 +22,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_API_H
-#define XMRIG_API_H
+
+#ifndef XMRIG_HTTPAPIREQUEST_H
+#define XMRIG_HTTPAPIREQUEST_H
 
 
-#include "base/kernel/interfaces/IControllerListener.h"
+#include "api/requests/ApiRequest.h"
+#include "base/net/http/HttpApiResponse.h"
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class Controller;
-class Httpd;
 class HttpRequest;
-class IApiRequest;
-class String;
 
 
-class Api : public IControllerListener
+class HttpApiRequest : public ApiRequest
 {
 public:
-    Api(Controller *controller);
-    ~Api() override;
-
-    inline const char *id() const       { return m_id; }
-    inline const char *workerId() const { return m_workerId; }
-
-    void request(const HttpRequest &req);
-    void start();
-    void stop();
+    HttpApiRequest(const HttpRequest &req, bool restricted);
 
 protected:
-    void onConfigChanged(Config *config, Config *previousConfig) override;
+    inline const rapidjson::Value &json() const override { return m_body; }
+    inline rapidjson::Document &doc() override           { return m_res.doc(); }
+    inline rapidjson::Value &reply() override            { return m_res.doc(); }
+    inline const String &url() const override            { return m_url; }
+
+    Method method() const override;
+    void done(int status) override;
 
 private:
-    void exec(IApiRequest &request);
-    void genId(const String &id);
-    void genWorkerId(const String &id);
-
-    char m_id[32];
-    char m_workerId[128];
-    Controller *m_controller;
-    Httpd *m_httpd;
+    const HttpRequest &m_req;
+    HttpApiResponse m_res;
+    rapidjson::Document m_body;
+    String m_url;
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_API_H */
+#endif // XMRIG_HTTPAPIREQUEST_H
+

@@ -22,52 +22,18 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_API_H
-#define XMRIG_API_H
+
+#include "api/requests/ApiRequest.h"
 
 
-#include "base/kernel/interfaces/IControllerListener.h"
-
-
-namespace xmrig {
-
-
-class Controller;
-class Httpd;
-class HttpRequest;
-class IApiRequest;
-class String;
-
-
-class Api : public IControllerListener
+xmrig::ApiRequest::ApiRequest(Source source, bool restricted) :
+    m_restricted(restricted),
+    m_source(source),
+    m_state(STATE_NEW)
 {
-public:
-    Api(Controller *controller);
-    ~Api() override;
-
-    inline const char *id() const       { return m_id; }
-    inline const char *workerId() const { return m_workerId; }
-
-    void request(const HttpRequest &req);
-    void start();
-    void stop();
-
-protected:
-    void onConfigChanged(Config *config, Config *previousConfig) override;
-
-private:
-    void exec(IApiRequest &request);
-    void genId(const String &id);
-    void genWorkerId(const String &id);
-
-    char m_id[32];
-    char m_workerId[128];
-    Controller *m_controller;
-    Httpd *m_httpd;
-};
+}
 
 
-} // namespace xmrig
-
-
-#endif /* XMRIG_API_H */
+xmrig::ApiRequest::~ApiRequest()
+{
+}

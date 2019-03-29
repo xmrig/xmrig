@@ -22,52 +22,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_API_H
-#define XMRIG_API_H
+
+#ifndef XMRIG_APIREQUEST_H
+#define XMRIG_APIREQUEST_H
 
 
-#include "base/kernel/interfaces/IControllerListener.h"
+#include "api/interfaces/IApiRequest.h"
 
 
 namespace xmrig {
 
 
-class Controller;
-class Httpd;
-class HttpRequest;
-class IApiRequest;
-class String;
-
-
-class Api : public IControllerListener
+class ApiRequest : public IApiRequest
 {
 public:
-    Api(Controller *controller);
-    ~Api() override;
-
-    inline const char *id() const       { return m_id; }
-    inline const char *workerId() const { return m_workerId; }
-
-    void request(const HttpRequest &req);
-    void start();
-    void stop();
+    ApiRequest(Source source, bool restricted);
+    ~ApiRequest() override;
 
 protected:
-    void onConfigChanged(Config *config, Config *previousConfig) override;
+    inline bool isDone() const override          { return m_state == STATE_DONE; }
+    inline bool isNew() const override           { return m_state == STATE_NEW; }
+    inline bool isRestricted() const override    { return m_restricted; }
+    inline Source source() const override        { return m_source; }
+    inline void accept() override                { m_state = STATE_ACCEPTED; }
+    inline void done(int) override               { m_state = STATE_DONE; }
 
 private:
-    void exec(IApiRequest &request);
-    void genId(const String &id);
-    void genWorkerId(const String &id);
+    enum State {
+        STATE_NEW,
+        STATE_ACCEPTED,
+        STATE_DONE
+    };
 
-    char m_id[32];
-    char m_workerId[128];
-    Controller *m_controller;
-    Httpd *m_httpd;
+    bool m_restricted;
+    Source m_source;
+    State m_state;
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_API_H */
+#endif // XMRIG_APIREQUEST_H
+

@@ -22,52 +22,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_API_H
-#define XMRIG_API_H
+
+#include "api/requests/HttpApiRequest.h"
+#include "base/net/http/HttpRequest.h"
 
 
-#include "base/kernel/interfaces/IControllerListener.h"
-
-
-namespace xmrig {
-
-
-class Controller;
-class Httpd;
-class HttpRequest;
-class IApiRequest;
-class String;
-
-
-class Api : public IControllerListener
+xmrig::HttpApiRequest::HttpApiRequest(const HttpRequest &req, bool restricted) :
+    ApiRequest(SOURCE_HTTP, restricted),
+    m_req(req),
+    m_res(req.id()),
+    m_url(req.url.c_str())
 {
-public:
-    Api(Controller *controller);
-    ~Api() override;
-
-    inline const char *id() const       { return m_id; }
-    inline const char *workerId() const { return m_workerId; }
-
-    void request(const HttpRequest &req);
-    void start();
-    void stop();
-
-protected:
-    void onConfigChanged(Config *config, Config *previousConfig) override;
-
-private:
-    void exec(IApiRequest &request);
-    void genId(const String &id);
-    void genWorkerId(const String &id);
-
-    char m_id[32];
-    char m_workerId[128];
-    Controller *m_controller;
-    Httpd *m_httpd;
-};
+}
 
 
-} // namespace xmrig
+xmrig::IApiRequest::Method xmrig::HttpApiRequest::method() const
+{
+    return static_cast<IApiRequest::Method>(m_req.method);
+}
 
 
-#endif /* XMRIG_API_H */
+void xmrig::HttpApiRequest::done(int status)
+{
+    ApiRequest::done(status);
+
+    if (status >= 400) {
+        reply().AddMember("status", status, doc().GetAllocator());
+    }
+
+    m_res.setStatus(status);
+    m_res.end();
+}

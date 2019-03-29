@@ -26,7 +26,9 @@
 #include <uv.h>
 
 
+#include "3rdparty/http-parser/http_parser.h"
 #include "api/Api.h"
+#include "api/requests/HttpApiRequest.h"
 #include "base/tools/Buffer.h"
 #include "common/crypto/keccak.h"
 #include "core/Config.h"
@@ -61,7 +63,9 @@ xmrig::Api::~Api()
 
 void xmrig::Api::request(const HttpRequest &req)
 {
+    HttpApiRequest request(req, m_controller->config()->http().isRestricted());
 
+    exec(request);
 }
 
 
@@ -92,6 +96,14 @@ void xmrig::Api::onConfigChanged(Config *config, Config *previousConfig)
 
     if (config->apiWorkerId() != previousConfig->apiWorkerId()) {
         genWorkerId(config->apiWorkerId());
+    }
+}
+
+
+void xmrig::Api::exec(IApiRequest &request)
+{
+    if (request.isNew()) {
+        request.done(HTTP_STATUS_NOT_FOUND);
     }
 }
 
