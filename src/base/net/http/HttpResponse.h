@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,50 +24,47 @@
  */
 
 
-#ifndef XMRIG_HTTP_H
-#define XMRIG_HTTP_H
+#ifndef XMRIG_HTTPRESPONSE_H
+#define XMRIG_HTTPRESPONSE_H
 
 
-#include "base/tools/String.h"
+#include <map>
+#include <sstream>
+#include <string>
+
+
+typedef struct http_parser http_parser;
 
 
 namespace xmrig {
 
 
-class Http
+class HttpResponse
 {
 public:
-    Http();
+    HttpResponse();
 
-    inline bool isEnabled() const              { return m_enabled; }
-    inline bool isRestricted() const           { return m_restricted; }
-    inline const String &host() const          { return m_host; }
-    inline const String &token() const         { return m_token; }
-    inline uint16_t port() const               { return m_port; }
-    inline void setEnabled(bool enabled)       { m_enabled = enabled; }
-    inline void setHost(const char *host)      { m_host = host; }
-    inline void setRestricted(bool restricted) { m_restricted = restricted; }
-    inline void setToken(const char *token)    { m_token = token; }
+    inline void end()                                                       { writeOrEnd("", true); }
+    inline void end(const std::string &str)                                 { writeOrEnd(str, true); }
+    inline void setHeader(const std::string &key, const std::string &value) { headers.insert({ key, value }); }
+    inline void setStatus(int code)                                         { statusCode = code; }
+    inline void write(const std::string &str)                               { writeOrEnd(str, false); }
 
-    inline bool operator!=(const Http &other) const    { return !isEqual(other); }
-    inline bool operator==(const Http &other) const    { return isEqual(other); }
-
-    bool isEqual(const Http &other) const;
-    rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    void load(const rapidjson::Value &http);
-    void setPort(int port);
+    http_parser *parser;
+    int statusCode;
+    std::map<const std::string, const std::string> headers;
+    std::string body;
+    std::string statusAdjective; // FIXME
 
 private:
-    bool m_enabled;
-    bool m_restricted;
-    String m_host;
-    String m_token;
-    uint16_t m_port;
+    void writeOrEnd(const std::string &str, bool end);
+
+    bool m_writtenOrEnded = false;
 };
 
 
 } // namespace xmrig
 
 
-#endif // XMRIG_HTTP_H
+#endif // XMRIG_HTTPRESPONSE_H
 

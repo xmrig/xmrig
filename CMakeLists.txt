@@ -32,7 +32,6 @@ set(HEADERS
     src/common/crypto/keccak.h
     src/common/interfaces/IConfig.h
     src/common/interfaces/IConfigCreator.h
-    src/common/interfaces/IControllerListener.h
     src/common/interfaces/ICpuInfo.h
     src/common/Platform.h
     src/common/utils/mm_malloc.h
@@ -203,28 +202,20 @@ if (WITH_EMBEDDED_CONFIG)
 endif()
 
 if (WITH_HTTPD)
-    find_package(MHD)
-
-    if (MHD_FOUND)
-        include_directories(${MHD_INCLUDE_DIRS})
-        set(HTTPD_SOURCES
-            src/api/Api.h
-            src/api/ApiRouter.h
-            src/common/api/HttpBody.h
-            src/common/api/Httpd.h
-            src/common/api/HttpReply.h
-            src/common/api/HttpRequest.h
-            src/api/Api.cpp
-            src/api/ApiRouter.cpp
-            src/common/api/Httpd.cpp
-            src/common/api/HttpRequest.cpp
-            )
-    else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
-    endif()
+    set(HTTPD_SOURCES
+#            src/api/Api.h
+#            src/api/ApiRouter.h
+#            src/common/api/HttpBody.h
+        src/api/Httpd.h
+#            src/common/api/HttpReply.h
+#            src/common/api/HttpRequest.h
+#            src/api/Api.cpp
+#            src/api/ApiRouter.cpp
+        src/api/Httpd.cpp
+#            src/common/api/HttpRequest.cpp
+        )
 else()
     set(HTTPD_SOURCES "")
-    set(MHD_LIBRARY "")
 endif()
 
 include_directories(src)
@@ -240,4 +231,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})

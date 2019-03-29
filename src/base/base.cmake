@@ -9,6 +9,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IClientListener.h
     src/base/kernel/interfaces/IConfigListener.h
     src/base/kernel/interfaces/IConsoleListener.h
+    src/base/kernel/interfaces/IControllerListener.h
     src/base/kernel/interfaces/IDnsListener.h
     src/base/kernel/interfaces/ILineListener.h
     src/base/kernel/interfaces/ILogBackend.h
@@ -83,15 +84,27 @@ endif()
 
 if (WITH_HTTPD)
     set(HEADERS_BASE_HTTP
-#        src/base/net/http/Http.h
+        src/3rdparty/http-parser/http_parser.h
+        src/base/kernel/interfaces/IHttpListener.h
+        src/base/kernel/interfaces/ITcpServerListener.h
+        src/base/net/http/HttpContext.h
+        src/base/net/http/HttpRequest.h
+        src/base/net/http/HttpResponse.h
+        src/base/net/http/HttpServer.h
+        src/base/net/tools/TcpServer.h
         )
 
     set(SOURCES_BASE_HTTP
-#        src/base/net/http/Http.cpp
+        src/3rdparty/http-parser/http_parser.c
+        src/base/net/http/HttpContext.cpp
+        src/base/net/http/HttpResponse.cpp
+        src/base/net/http/HttpServer.cpp
+        src/base/net/tools/TcpServer.cpp
         )
 
     add_definitions(/DXMRIG_FEATURE_HTTP)
     add_definitions(/DXMRIG_FEATURE_API)
+    remove_definitions(/DXMRIG_FEATURE_API)
 else()
     set(HEADERS_BASE_HTTP "")
     set(SOURCES_BASE_HTTP "")

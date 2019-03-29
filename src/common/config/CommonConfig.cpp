@@ -30,11 +30,6 @@
 #include <uv.h>
 
 
-#ifdef XMRIG_FEATURE_HTTP
-#   include <microhttpd.h>
-#endif
-
-
 #ifdef XMRIG_FEATURE_TLS
 #   include <openssl/opensslv.h>
 #endif
@@ -121,10 +116,6 @@ void xmrig::CommonConfig::printVersions()
         constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
         length += snprintf(buf + length, (sizeof buf) - length, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
     }
-#   endif
-
-#   ifdef XMRIG_FEATURE_HTTP
-    length += snprintf(buf + length, (sizeof buf) - length, "microhttpd/%s ", MHD_get_version());
 #   endif
 
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), buf);

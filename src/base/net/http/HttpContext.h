@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,60 +23,59 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_HTTPD_H
-#define XMRIG_HTTPD_H
+
+#ifndef XMRIG_HTTPCONTEXT_H
+#define XMRIG_HTTPCONTEXT_H
 
 
-#include <stddef.h>
+typedef struct http_parser http_parser;
+typedef struct http_parser_settings http_parser_settings;
+typedef struct uv_connect_s uv_connect_t;
+typedef struct uv_handle_s uv_handle_t;
+typedef struct uv_stream_s uv_stream_t;
+typedef struct uv_tcp_s uv_tcp_t;
 
 
-#include "base/kernel/interfaces/ITimerListener.h"
-
-
-struct MHD_Connection;
-struct MHD_Daemon;
-struct MHD_Response;
+#include "base/net/http/HttpRequest.h"
 
 
 namespace xmrig {
 
 
-class HttpRequest;
-class Timer;
+class IHttpListener;
 
 
-class Httpd : public ITimerListener
+class HttpContext : public HttpRequest
 {
 public:
-    Httpd(int port, const char *accessToken, bool IPv6, bool restricted);
-    ~Httpd() override;
+    HttpContext(int parser_type, IHttpListener *listener);
+    ~HttpContext();
 
-    bool start();
-    void stop();
+    inline uv_stream_t *stream() const { return reinterpret_cast<uv_stream_t *>(tcp); }
+    inline uv_handle_t *handle() const { return reinterpret_cast<uv_handle_t *>(tcp); }
 
-protected:
-    void onTimer(const Timer *) override { run(); }
+    static void attach(http_parser_settings *settings);
+    static void close(uv_handle_t* handle);
+
+    http_parser *parser;
+    IHttpListener *listener;
+    uv_connect_t *connect;
+    uv_tcp_t *tcp;
 
 private:
-    constexpr static const int kIdleInterval   = 200;
-    constexpr static const int kActiveInterval = 25;
+    static int onHeaderField(http_parser *parser, const char *at, size_t length);
+    static int onHeaderValue(http_parser *parser, const char *at, size_t length);
 
-    int process(HttpRequest &req);
-    void run();
+    void setHeader();
 
-    static int handler(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *uploadData, size_t *uploadSize, void **con_cls);
-
-    bool m_idle;
-    bool m_IPv6;
-    bool m_restricted;
-    const char *m_accessToken;
-    const int m_port;
-    MHD_Daemon *m_daemon;
-    Timer *m_timer;
+    bool m_wasHeaderValue;
+    std::string m_lastHeaderField;
+    std::string m_lastHeaderValue;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_HTTPD_H */
+#endif // XMRIG_HTTPCONTEXT_H
+

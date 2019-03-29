@@ -46,7 +46,7 @@
 
 
 #ifdef XMRIG_FEATURE_HTTP
-#   include "common/api/Httpd.h"
+#   include "api/Httpd.h"
 #endif
 
 
@@ -103,13 +103,7 @@ int xmrig::App::exec()
 #   endif
 
 #   ifdef XMRIG_FEATURE_HTTP
-    m_httpd = new Httpd(
-                m_controller->config()->http().port(),
-                m_controller->config()->http().token(),
-                false,
-                m_controller->config()->http().isRestricted()
-                );
-
+    m_httpd = new Httpd(m_controller);
     m_httpd->start();
 #   endif
 

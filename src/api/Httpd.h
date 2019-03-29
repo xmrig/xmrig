@@ -22,61 +22,47 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_NETWORK_H
-#define XMRIG_NETWORK_H
+#ifndef XMRIG_HTTPD_H
+#define XMRIG_HTTPD_H
 
 
-#include <vector>
+#include <stdint.h>
 
 
-#include "api/NetworkState.h"
 #include "base/kernel/interfaces/IControllerListener.h"
-#include "base/kernel/interfaces/IStrategyListener.h"
-#include "base/kernel/interfaces/ITimerListener.h"
-#include "interfaces/IJobResultListener.h"
+#include "base/kernel/interfaces/IHttpListener.h"
 
 
 namespace xmrig {
 
 
 class Controller;
-class IStrategy;
+class HttpServer;
+class TcpServer;
 
 
-class Network : public IJobResultListener, public IStrategyListener, public IControllerListener, public ITimerListener
+class Httpd : public IControllerListener, public IHttpListener
 {
 public:
-    Network(Controller *controller);
-    ~Network() override;
+    Httpd(Controller *controller);
+    ~Httpd() override;
 
-    inline IStrategy *strategy() const { return m_strategy; }
-
-    void connect();
+    bool start();
+    void stop();
 
 protected:
-    inline void onTimer(const Timer *) override { tick(); }
-
-    void onActive(IStrategy *strategy, Client *client) override;
     void onConfigChanged(Config *config, Config *previousConfig) override;
-    void onJob(IStrategy *strategy, Client *client, const Job &job) override;
-    void onJobResult(const JobResult &result) override;
-    void onPause(IStrategy *strategy) override;
-    void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
+    void onHttp(const HttpRequest &req, HttpResponse &res) override;
 
 private:
-    constexpr static int kTickInterval = 1 * 1000;
-
-    void setJob(Client *client, const Job &job, bool donate);
-    void tick();
-
-    IStrategy *m_donate;
-    IStrategy *m_strategy;
-    NetworkState m_state;
-    Timer *m_timer;
+    Controller *m_controller;
+    HttpServer *m_http;
+    TcpServer *m_server;
+    uint16_t m_port;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_NETWORK_H */
+#endif /* XMRIG_HTTPD_H */

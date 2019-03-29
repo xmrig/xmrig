@@ -29,9 +29,9 @@
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/backends/FileLog.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/interfaces/IControllerListener.h"
 #include "common/config/ConfigLoader.h"
 #include "common/cpu/Cpu.h"
-#include "common/interfaces/IControllerListener.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
@@ -157,7 +157,7 @@ void xmrig::Controller::onNewConfig(IConfig *config)
     Config *previousConfig = d_ptr->config;
     d_ptr->config = static_cast<Config*>(config);
 
-    for (xmrig::IControllerListener *listener : d_ptr->listeners) {
+    for (IControllerListener *listener : d_ptr->listeners) {
         listener->onConfigChanged(d_ptr->config, previousConfig);
     }
 

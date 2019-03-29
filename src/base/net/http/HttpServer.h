@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,50 +24,42 @@
  */
 
 
-#ifndef XMRIG_HTTP_H
-#define XMRIG_HTTP_H
+#ifndef XMRIG_HTTPSERVER_H
+#define XMRIG_HTTPSERVER_H
 
 
-#include "base/tools/String.h"
+typedef struct http_parser http_parser;
+typedef struct http_parser_settings http_parser_settings;
+
+
+#include "base/kernel/interfaces/ITcpServerListener.h"
 
 
 namespace xmrig {
 
 
-class Http
+class IHttpListener;
+
+
+class HttpServer : public ITcpServerListener
 {
 public:
-    Http();
+    HttpServer(IHttpListener *listener);
+    ~HttpServer() override;
 
-    inline bool isEnabled() const              { return m_enabled; }
-    inline bool isRestricted() const           { return m_restricted; }
-    inline const String &host() const          { return m_host; }
-    inline const String &token() const         { return m_token; }
-    inline uint16_t port() const               { return m_port; }
-    inline void setEnabled(bool enabled)       { m_enabled = enabled; }
-    inline void setHost(const char *host)      { m_host = host; }
-    inline void setRestricted(bool restricted) { m_restricted = restricted; }
-    inline void setToken(const char *token)    { m_token = token; }
-
-    inline bool operator!=(const Http &other) const    { return !isEqual(other); }
-    inline bool operator==(const Http &other) const    { return isEqual(other); }
-
-    bool isEqual(const Http &other) const;
-    rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    void load(const rapidjson::Value &http);
-    void setPort(int port);
+protected:
+    void onConnection(uv_stream_t *stream, uint16_t port) override;
 
 private:
-    bool m_enabled;
-    bool m_restricted;
-    String m_host;
-    String m_token;
-    uint16_t m_port;
+    static int onComplete(http_parser *parser);
+
+    http_parser_settings *m_settings;
+    IHttpListener *m_listener;
 };
 
 
 } // namespace xmrig
 
 
-#endif // XMRIG_HTTP_H
+#endif // XMRIG_HTTPSERVER_H
 

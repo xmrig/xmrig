@@ -143,7 +143,6 @@ void Summary::print(xmrig::Controller *controller)
     print_cpu(controller->config());
     print_threads(controller->config());
     controller->config()->pools().print();
-    controller->config()->http().print();
 
     print_commands(controller->config());
 }

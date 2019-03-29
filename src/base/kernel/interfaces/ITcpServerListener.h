@@ -22,51 +22,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_ITCPSERVERLISTENER_H
+#define XMRIG_ITCPSERVERLISTENER_H
 
-#ifndef XMRIG_HTTP_H
-#define XMRIG_HTTP_H
+
+#include <stdint.h>
 
 
-#include "base/tools/String.h"
+typedef struct uv_stream_s uv_stream_t;
 
 
 namespace xmrig {
 
 
-class Http
+class String;
+
+
+class ITcpServerListener
 {
 public:
-    Http();
+    virtual ~ITcpServerListener() = default;
 
-    inline bool isEnabled() const              { return m_enabled; }
-    inline bool isRestricted() const           { return m_restricted; }
-    inline const String &host() const          { return m_host; }
-    inline const String &token() const         { return m_token; }
-    inline uint16_t port() const               { return m_port; }
-    inline void setEnabled(bool enabled)       { m_enabled = enabled; }
-    inline void setHost(const char *host)      { m_host = host; }
-    inline void setRestricted(bool restricted) { m_restricted = restricted; }
-    inline void setToken(const char *token)    { m_token = token; }
-
-    inline bool operator!=(const Http &other) const    { return !isEqual(other); }
-    inline bool operator==(const Http &other) const    { return isEqual(other); }
-
-    bool isEqual(const Http &other) const;
-    rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    void load(const rapidjson::Value &http);
-    void setPort(int port);
-
-private:
-    bool m_enabled;
-    bool m_restricted;
-    String m_host;
-    String m_token;
-    uint16_t m_port;
+    virtual void onConnection(uv_stream_t *stream, uint16_t port) = 0;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif // XMRIG_HTTP_H
-
+#endif // XMRIG_ITCPSERVERLISTENER_H

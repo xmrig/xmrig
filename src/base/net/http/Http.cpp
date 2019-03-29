@@ -25,7 +25,6 @@
 
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/Json.h"
-#include "base/io/log/Log.h"
 #include "base/net/http/Http.h"
 
 
@@ -89,18 +88,6 @@ void xmrig::Http::load(const rapidjson::Value &http)
     m_token      = Json::getString(http, kToken);
 
     setPort(Json::getInt(http, kPort));
-}
-
-
-void xmrig::Http::print() const
-{
-#   ifdef XMRIG_FEATURE_API
-    if (!isEnabled()) {
-        return;
-    }
-
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") BLUE_BOLD("http://%s:%d"), "HTTP API", host().data(), port());
-#   endif
 }
 
 
