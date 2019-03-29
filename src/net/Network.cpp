@@ -41,7 +41,14 @@
 #include "core/Controller.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
+#include "rapidjson/document.h"
 #include "workers/Workers.h"
+
+
+#ifdef XMRIG_FEATURE_API
+#   include "api/Api.h"
+#   include "api/interfaces/IApiRequest.h"
+#endif
 
 
 xmrig::Network::Network(Controller *controller) :
@@ -50,6 +57,10 @@ xmrig::Network::Network(Controller *controller) :
 {
     Workers::setListener(this);
     controller->addListener(this);
+
+#   ifdef XMRIG_FEATURE_API
+    controller->api()->addListener(this);
+#   endif
 
     const Pools &pools = controller->config()->pools();
     m_strategy = pools.createStrategy(this);
@@ -152,6 +163,19 @@ void xmrig::Network::onPause(IStrategy *strategy)
 }
 
 
+void xmrig::Network::onRequest(IApiRequest &request)
+{
+#   ifdef XMRIG_FEATURE_API
+    if (request.method() == IApiRequest::METHOD_GET && request.url() == "/1/summary") {
+        request.accept();
+
+        getResults(request.reply(), request.doc());
+        getConnection(request.reply(), request.doc());
+    }
+#   endif
+}
+
+
 void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult &result, const char *error)
 {
     m_state.add(result, error);
@@ -196,8 +220,47 @@ void xmrig::Network::tick()
     if (m_donate) {
         m_donate->tick(now);
     }
-
-#   ifdef XMRIG_FEATURE_API
-    //Api::tick(m_state);
-#   endif
 }
+
+
+#ifdef XMRIG_FEATURE_API
+void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value connection(kObjectType);
+    connection.AddMember("pool",      StringRef(m_state.pool), allocator);
+    connection.AddMember("uptime",    m_state.connectionTime(), allocator);
+    connection.AddMember("ping",      m_state.latency(), allocator);
+    connection.AddMember("failures",  m_state.failures, allocator);
+    connection.AddMember("error_log", Value(kArrayType), allocator);
+
+    reply.AddMember("connection", connection, allocator);
+}
+
+
+void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value results(kObjectType);
+
+    results.AddMember("diff_current",  m_state.diff, allocator);
+    results.AddMember("shares_good",   m_state.accepted, allocator);
+    results.AddMember("shares_total",  m_state.accepted + m_state.rejected, allocator);
+    results.AddMember("avg_time",      m_state.avgTime(), allocator);
+    results.AddMember("hashes_total",  m_state.total, allocator);
+
+    Value best(kArrayType);
+    for (size_t i = 0; i < m_state.topDiff.size(); ++i) {
+        best.PushBack(m_state.topDiff[i], allocator);
+    }
+
+    results.AddMember("best",      best, allocator);
+    results.AddMember("error_log", Value(kArrayType), allocator);
+
+    reply.AddMember("results", results, allocator);
+}
+#endif

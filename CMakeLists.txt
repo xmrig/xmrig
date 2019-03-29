@@ -22,7 +22,7 @@ include (src/base/base.cmake)
 set(HEADERS
     "${HEADERS_BASE}"
     "${HEADERS_BASE_HTTP}"
-    src/api/NetworkState.h
+    src/api/interfaces/IApiListener.h
     src/App.h
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
@@ -45,13 +45,14 @@ set(HEADERS
     src/Mem.h
     src/net/JobResult.h
     src/net/Network.h
+    src/net/NetworkState.h
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
     src/workers/CpuThread.h
-    src/workers/ThreadHandle.h
     src/workers/Hashrate.h
     src/workers/MultiWorker.h
+    src/workers/ThreadHandle.h
     src/workers/Worker.h
     src/workers/Workers.h
    )
@@ -81,7 +82,6 @@ endif()
 set(SOURCES
     "${SOURCES_BASE}"
     "${SOURCES_BASE_HTTP}"
-    src/api/NetworkState.cpp
     src/App.cpp
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
@@ -93,12 +93,13 @@ set(SOURCES
     src/core/Controller.cpp
     src/Mem.cpp
     src/net/Network.cpp
+    src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp
-    src/workers/ThreadHandle.cpp
     src/workers/Hashrate.cpp
     src/workers/MultiWorker.cpp
+    src/workers/ThreadHandle.cpp
     src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp

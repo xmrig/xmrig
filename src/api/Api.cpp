@@ -28,6 +28,7 @@
 
 #include "3rdparty/http-parser/http_parser.h"
 #include "api/Api.h"
+#include "api/interfaces/IApiListener.h"
 #include "api/requests/HttpApiRequest.h"
 #include "base/tools/Buffer.h"
 #include "common/crypto/keccak.h"
@@ -102,9 +103,15 @@ void xmrig::Api::onConfigChanged(Config *config, Config *previousConfig)
 
 void xmrig::Api::exec(IApiRequest &request)
 {
-    if (request.isNew()) {
-        request.done(HTTP_STATUS_NOT_FOUND);
+    for (IApiListener *listener : m_listeners) {
+        listener->onRequest(request);
+
+        if (request.isDone()) {
+            return;
+        }
     }
+
+    request.done(request.isNew() ? HTTP_STATUS_NOT_FOUND : HTTP_STATUS_OK);
 }
 
 

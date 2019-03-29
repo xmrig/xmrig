@@ -102,8 +102,6 @@ void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &
     getIdentify(doc);
     getMiner(doc);
     getHashrate(doc);
-    getResults(doc);
-    getConnection(doc);
 
     return finalize(reply, doc);
 }
@@ -117,12 +115,6 @@ void ApiRouter::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
     }
 
     reply.status = 404;
-}
-
-
-void ApiRouter::tick(const xmrig::NetworkState &network)
-{
-    m_network = network;
 }
 
 
@@ -185,21 +177,6 @@ void ApiRouter::genId(const char *id)
 }
 
 
-void ApiRouter::getConnection(rapidjson::Document &doc) const
-{
-    auto &allocator = doc.GetAllocator();
-
-    rapidjson::Value connection(rapidjson::kObjectType);
-    connection.AddMember("pool",      rapidjson::StringRef(m_network.pool), allocator);
-    connection.AddMember("uptime",    m_network.connectionTime(), allocator);
-    connection.AddMember("ping",      m_network.latency(), allocator);
-    connection.AddMember("failures",  m_network.failures, allocator);
-    connection.AddMember("error_log", rapidjson::Value(rapidjson::kArrayType), allocator);
-
-    doc.AddMember("connection", connection, allocator);
-}
-
-
 void ApiRouter::getHashrate(rapidjson::Document &doc) const
 {
     auto &allocator = doc.GetAllocator();
@@ -255,30 +232,6 @@ void ApiRouter::getMiner(rapidjson::Document &doc) const
     doc.AddMember("algo",         rapidjson::StringRef(m_controller->config()->algorithm().name()), allocator);
     doc.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
     doc.AddMember("donate_level", m_controller->config()->pools().donateLevel(), allocator);
-}
-
-
-void ApiRouter::getResults(rapidjson::Document &doc) const
-{
-    auto &allocator = doc.GetAllocator();
-
-    rapidjson::Value results(rapidjson::kObjectType);
-
-    results.AddMember("diff_current",  m_network.diff, allocator);
-    results.AddMember("shares_good",   m_network.accepted, allocator);
-    results.AddMember("shares_total",  m_network.accepted + m_network.rejected, allocator);
-    results.AddMember("avg_time",      m_network.avgTime(), allocator);
-    results.AddMember("hashes_total",  m_network.total, allocator);
-
-    rapidjson::Value best(rapidjson::kArrayType);
-    for (size_t i = 0; i < m_network.topDiff.size(); ++i) {
-        best.PushBack(m_network.topDiff[i], allocator);
-    }
-
-    results.AddMember("best",      best, allocator);
-    results.AddMember("error_log", rapidjson::Value(rapidjson::kArrayType), allocator);
-
-    doc.AddMember("results", results, allocator);
 }
 
 

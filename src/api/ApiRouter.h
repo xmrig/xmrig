@@ -50,26 +50,21 @@ public:
     void get(const xmrig::HttpRequest &req, xmrig::HttpReply &reply) const;
     void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
 
-    void tick(const xmrig::NetworkState &results);
-
 protected:
     void onConfigChanged(xmrig::Config *config, xmrig::Config *previousConfig) override;
 
 private:
     void finalize(xmrig::HttpReply &reply, rapidjson::Document &doc) const;
     void genId(const char *id);
-    void getConnection(rapidjson::Document &doc) const;
     void getHashrate(rapidjson::Document &doc) const;
     void getIdentify(rapidjson::Document &doc) const;
     void getMiner(rapidjson::Document &doc) const;
-    void getResults(rapidjson::Document &doc) const;
     void getThreads(rapidjson::Document &doc) const;
     void setWorkerId(const char *id);
     void updateWorkerId(const char *id, const char *previousId);
 
     char m_id[32];
     char m_workerId[128];
-    xmrig::NetworkState m_network;
     xmrig::Controller *m_controller;
 };
 

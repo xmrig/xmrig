@@ -26,6 +26,9 @@
 #define XMRIG_API_H
 
 
+#include <vector>
+
+
 #include "base/kernel/interfaces/IControllerListener.h"
 
 
@@ -35,6 +38,7 @@ namespace xmrig {
 class Controller;
 class Httpd;
 class HttpRequest;
+class IApiListener;
 class IApiRequest;
 class String;
 
@@ -45,8 +49,9 @@ public:
     Api(Controller *controller);
     ~Api() override;
 
-    inline const char *id() const       { return m_id; }
-    inline const char *workerId() const { return m_workerId; }
+    inline const char *id() const                   { return m_id; }
+    inline const char *workerId() const             { return m_workerId; }
+    inline void addListener(IApiListener *listener) { m_listeners.push_back(listener); }
 
     void request(const HttpRequest &req);
     void start();
@@ -64,6 +69,7 @@ private:
     char m_workerId[128];
     Controller *m_controller;
     Httpd *m_httpd;
+    std::vector<IApiListener *> m_listeners;
 };
 
 
