@@ -32,11 +32,22 @@
 #include "base/net/http/HttpContext.h"
 
 
+namespace xmrig {
+
+static uint64_t SEQUENCE = 0;
+std::map<uint64_t, HttpContext *> HttpContext::m_storage;
+
+} // namespace xmrig
+
+
 xmrig::HttpContext::HttpContext(int parser_type, IHttpListener *listener) :
+    HttpRequest(SEQUENCE++),
     listener(listener),
     connect(nullptr),
     m_wasHeaderValue(false)
 {
+    m_storage[id()] = this;
+
     parser = new http_parser;
     tcp    = new uv_tcp_t;
 
@@ -52,6 +63,16 @@ xmrig::HttpContext::~HttpContext()
     delete connect;
     delete tcp;
     delete parser;
+}
+
+
+xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
+{
+    if (m_storage.count(id) == 0) {
+        return nullptr;
+    }
+
+    return m_storage[id];
 }
 
 
@@ -93,7 +114,13 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 
 void xmrig::HttpContext::close(uv_handle_t* handle)
 {
-    delete reinterpret_cast<HttpContext*>(handle->data);
+    HttpContext *ctx = reinterpret_cast<HttpContext*>(handle->data);
+    auto it = m_storage.find(ctx->id());
+    if (it != m_storage.end()) {
+        m_storage.erase(it);
+    }
+
+    delete ctx;
 }
 
 

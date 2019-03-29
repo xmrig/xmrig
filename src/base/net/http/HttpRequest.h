@@ -39,10 +39,17 @@ namespace xmrig {
 class HttpRequest
 {
 public:
+    inline HttpRequest(uint64_t id) : m_id(id) {}
+
+    inline uint64_t id() const { return m_id; }
+
     std::string url;
     std::string method;
     std::stringstream body;
     std::map<const std::string, const std::string> headers;
+
+private:
+    const uint64_t m_id;
 };
 
 

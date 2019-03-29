@@ -38,7 +38,7 @@ class IHttpListener
 public:
     virtual ~IHttpListener() = default;
 
-    virtual void onHttp(const HttpRequest &req, HttpResponse &res) = 0;
+    virtual void onHttpRequest(const HttpRequest &req) = 0;
 };
 
 

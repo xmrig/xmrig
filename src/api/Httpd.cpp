@@ -102,8 +102,10 @@ void xmrig::Httpd::onConfigChanged(Config *config, Config *previousConfig)
 }
 
 
-void xmrig::Httpd::onHttp(const HttpRequest &req, HttpResponse &res)
+void xmrig::Httpd::onHttpRequest(const HttpRequest &req)
 {
+    HttpResponse res(req.id());
+
     LOG_INFO(GREEN_BOLD_S "OK");
     res.end();
 }

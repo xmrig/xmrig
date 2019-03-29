@@ -52,7 +52,7 @@ public:
 
 protected:
     void onConfigChanged(Config *config, Config *previousConfig) override;
-    void onHttp(const HttpRequest &req, HttpResponse &res) override;
+    void onHttpRequest(const HttpRequest &req) override;
 
 private:
     Controller *m_controller;

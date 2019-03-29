@@ -33,16 +33,13 @@
 #include <string>
 
 
-typedef struct http_parser http_parser;
-
-
 namespace xmrig {
 
 
 class HttpResponse
 {
 public:
-    HttpResponse();
+    HttpResponse(uint64_t id);
 
     inline void end()                                                       { writeOrEnd("", true); }
     inline void end(const std::string &str)                                 { writeOrEnd(str, true); }
@@ -50,7 +47,6 @@ public:
     inline void setStatus(int code)                                         { statusCode = code; }
     inline void write(const std::string &str)                               { writeOrEnd(str, false); }
 
-    http_parser *parser;
     int statusCode;
     std::map<const std::string, const std::string> headers;
     std::string body;
@@ -60,6 +56,7 @@ private:
     void writeOrEnd(const std::string &str, bool end);
 
     bool m_writtenOrEnded = false;
+    const uint64_t m_id;
 };
 
 

@@ -97,11 +97,9 @@ void xmrig::HttpServer::onConnection(uv_stream_t *stream, uint16_t)
 int xmrig::HttpServer::onComplete(http_parser *parser)
 {
     HttpContext *context = reinterpret_cast<HttpContext*>(parser->data);
+    HttpResponse res(context->id());
 
-    HttpResponse res;
-    res.parser = parser;
-
-    context->listener->onHttp(*context, res);
+    context->listener->onHttpRequest(*context);
 
     return 0;
 }

@@ -40,18 +40,23 @@ static const char *kTransferEncoding = "Transfer-Encoding";
 } // namespace xmrig
 
 
-xmrig::HttpResponse::HttpResponse() :
-    parser(nullptr),
+xmrig::HttpResponse::HttpResponse(uint64_t id) :
     statusCode(HTTP_STATUS_OK),
     body(""),
     statusAdjective("OK"), // FIXME
-    m_writtenOrEnded(false)
+    m_writtenOrEnded(false),
+    m_id(id)
 {
 }
 
 
 void xmrig::HttpResponse::writeOrEnd(const std::string &str, bool end)
 {
+    HttpContext *context = HttpContext::get(m_id);
+    if (!context) {
+        return;
+    }
+
     std::stringstream ss;
 
     if (!m_writtenOrEnded) {
@@ -83,8 +88,6 @@ void xmrig::HttpResponse::writeOrEnd(const std::string &str, bool end)
 #   else
     uv_buf_t resbuf = uv_buf_init(const_cast<char *>(out.c_str()), out.size());
 #   endif
-
-    HttpContext* context = static_cast<HttpContext*>(parser->data);
 
     uv_try_write(context->stream(), &resbuf, 1);
 

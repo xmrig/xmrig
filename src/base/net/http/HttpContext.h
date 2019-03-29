@@ -54,6 +54,7 @@ public:
     inline uv_stream_t *stream() const { return reinterpret_cast<uv_stream_t *>(tcp); }
     inline uv_handle_t *handle() const { return reinterpret_cast<uv_handle_t *>(tcp); }
 
+    static HttpContext *get(uint64_t id);
     static void attach(http_parser_settings *settings);
     static void close(uv_handle_t* handle);
 
@@ -71,6 +72,8 @@ private:
     bool m_wasHeaderValue;
     std::string m_lastHeaderField;
     std::string m_lastHeaderValue;
+
+    static std::map<uint64_t, HttpContext *> m_storage;
 };
 
 
