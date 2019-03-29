@@ -93,12 +93,12 @@ public:
         timestamp(level, size, offset);
         color(level, size);
 
-        int rc = vsnprintf(m_buf + size, sizeof (m_buf) - offset - 32, fmt, args);
+        const int rc = vsnprintf(m_buf + size, sizeof (m_buf) - offset - 32, fmt, args);
         if (rc < 0) {
             return unlock();
         }
 
-        size += static_cast<size_t>(rc);
+        size += std::min(static_cast<size_t>(rc), sizeof (m_buf) - offset - 32);
         endl(size);
 
         std::string txt(m_buf);
