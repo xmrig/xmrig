@@ -586,15 +586,25 @@
                 type:    "GET",
                 url:     "/admin/getClientConfig?clientId=template_" + template,
                 dataType:"json",
-                success: function(jsonClientConfig) {
+                success: function(jsonTemplate) {
                     table.rows({ selected: true }).eq(0).each(function (index) {
                         var row = table.row(index);
                         var data = row.data();
                         var clientId = data['client_status']['client_id'];
 
-                        jsonClientConfig['cc-client']['worker-id'] = clientId
+                        if ($('#mergeTemplate').prop('checked')) {
+                            setMergedClientConfig(jsonTemplate, clientId);
+                        } else {
+                            jsonTemplate['cc-client']['worker-id'] = clientId
 
-                        setClientConfig(clientId, JSON.stringify(jsonClientConfig,undefined, 2));
+                            clientConfig = jsonJSON.stringify(jsonTemplate,undefined, 2);
+
+                            if ($('#replaceWorkerId').prop('checked')) {
+                                clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), clientId).trim();
+                            }
+
+                            setClientConfig(clientId, clientConfig);
+                        }
                     });
                 },
                 error: function (data) {
@@ -664,6 +674,28 @@
         }
 
         return data;
+    }
+
+    function setMergedClientConfig(template, clientId) {
+        $.ajax({
+            type:    "GET",
+            url:     "/admin/getClientConfig?clientId=" + clientId,
+            dataType:"json",
+            success: function(clientConfig) {
+                $.extend(true, clientConfig, template);
+
+                clientConfig = JSON.stringify(clientConfig,undefined, 2)
+
+                if ($('#replaceWorkerId').prop('checked')) {
+                    clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), clientId).trim();
+                }
+
+                setClientConfig(clientId, clientConfig);
+            },
+            error: function (data) {
+                setError('<strong>Unable to fetch client config ' + clientId + ' for template merge</strong> - Please make sure it readable!');
+            }
+        });
     }
 
     function laststatus( data, type, row ) {
@@ -988,6 +1020,16 @@
                     <div class="form-group">
                         <label for="assignTemplateSelector">Template:</label>
                         <select class="selectpicker form-control" id="assignTemplateSelector"></select>
+                        <br/><br/>
+                        <label>
+                            <input id="replaceWorkerId" type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger" data-on="Yes" data-off="No"/>
+                            <span>Replace @MINER_ID@ with Miner-id</span>
+                        </label>
+                        <br/>
+                        <label>
+                            <input id="mergeTemplate" type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger" data-on="Yes" data-off="No"/>
+                            <span>Merge templates</span>
+                        </label>
                     </div>
                 </div>
                 <div class="modal-footer">
