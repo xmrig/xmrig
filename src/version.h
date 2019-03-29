@@ -35,8 +35,8 @@
 #define APP_KIND      "cpu"
 
 #define APP_VER_MAJOR  2
-#define APP_VER_MINOR  14
-#define APP_VER_PATCH  1
+#define APP_VER_MINOR  15
+#define APP_VER_PATCH  0
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1910)
