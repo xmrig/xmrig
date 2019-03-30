@@ -29,6 +29,7 @@
 
 
 #include "3rdparty/http-parser/http_parser.h"
+#include "base/kernel/interfaces/IHttpListener.h"
 #include "base/net/http/HttpContext.h"
 
 
@@ -78,6 +79,10 @@ xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
 
 void xmrig::HttpContext::attach(http_parser_settings *settings)
 {
+    if (settings->on_message_complete != nullptr) {
+        return;
+    }
+
     settings->on_message_begin  = nullptr;
     settings->on_status         = nullptr;
     settings->on_chunk_header   = nullptr;
@@ -106,6 +111,14 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
     settings->on_body = [](http_parser *parser, const char *at, size_t len) -> int
     {
         static_cast<HttpContext*>(parser->data)->body += std::string(at, len);
+
+        return 0;
+    };
+
+    settings->on_message_complete = [](http_parser *parser) -> int
+    {
+        const HttpContext *ctx = reinterpret_cast<const HttpContext*>(parser->data);
+        ctx->listener->onHttpRequest(*ctx);
 
         return 0;
     };

@@ -35,48 +35,32 @@
 #include "base/net/http/HttpServer.h"
 
 
+namespace xmrig {
+
+static http_parser_settings http_settings;
+
+} // namespace xmrig
+
+
 xmrig::HttpServer::HttpServer(IHttpListener *listener) :
     m_listener(listener)
 {
-    m_settings = new http_parser_settings();
-
-    HttpContext::attach(m_settings);
-    m_settings->on_message_complete = HttpServer::onComplete;
+    HttpContext::attach(&http_settings);
 }
 
 
 xmrig::HttpServer::~HttpServer()
 {
-    delete m_settings;
+    memset(&http_settings, 0, sizeof (http_settings));
 }
 
 
 void xmrig::HttpServer::onConnection(uv_stream_t *stream, uint16_t)
 {
-    static std::function<void(uv_stream_t *socket, int status)> onConnect;
-    static std::function<void(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)> onRead;
+    HttpContext *ctx = new HttpContext(HTTP_REQUEST, m_listener);
+    uv_accept(stream, ctx->stream());
 
-    HttpContext *context = new HttpContext(HTTP_REQUEST, m_listener);
-    uv_accept(stream, context->stream());
-
-    onRead = [&](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf) {
-        HttpContext* context = static_cast<HttpContext*>(tcp->data);
-
-        if (nread >= 0) {
-            const size_t size   = static_cast<size_t>(nread);
-            const size_t parsed = http_parser_execute(context->parser, m_settings, buf->base, size);
-
-            if (parsed < size) {
-                uv_close(context->handle(), HttpContext::close);
-            }
-        } else {
-            uv_close(context->handle(), HttpContext::close);
-        }
-
-        delete [] buf->base;
-    };
-
-    uv_read_start(context->stream(),
+    uv_read_start(ctx->stream(),
         [](uv_handle_t *, size_t suggested_size, uv_buf_t *buf)
         {
             buf->base = new char[suggested_size];
@@ -89,18 +73,19 @@ void xmrig::HttpServer::onConnection(uv_stream_t *stream, uint16_t)
         },
         [](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
         {
-            onRead(tcp, nread, buf);
+            HttpContext *ctx = static_cast<HttpContext*>(tcp->data);
+
+            if (nread >= 0) {
+                const size_t size   = static_cast<size_t>(nread);
+                const size_t parsed = http_parser_execute(ctx->parser, &http_settings, buf->base, size);
+
+                if (parsed < size) {
+                    uv_close(ctx->handle(), HttpContext::close);
+                }
+            } else {
+                uv_close(ctx->handle(), HttpContext::close);
+            }
+
+            delete [] buf->base;
         });
 }
-
-
-int xmrig::HttpServer::onComplete(http_parser *parser)
-{
-    HttpContext *context = reinterpret_cast<HttpContext*>(parser->data);
-    HttpResponse res(context->id());
-
-    context->listener->onHttpRequest(*context);
-
-    return 0;
-}
-

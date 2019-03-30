@@ -51,9 +51,6 @@ protected:
     void onConnection(uv_stream_t *stream, uint16_t port) override;
 
 private:
-    static int onComplete(http_parser *parser);
-
-    http_parser_settings *m_settings;
     IHttpListener *m_listener;
 };
 
