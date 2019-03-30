@@ -166,7 +166,7 @@ void xmrig::Network::onPause(IStrategy *strategy)
 void xmrig::Network::onRequest(IApiRequest &request)
 {
 #   ifdef XMRIG_FEATURE_API
-    if (request.method() == IApiRequest::METHOD_GET && request.url() == "/1/summary") {
+    if (request.method() == IApiRequest::METHOD_GET && (request.url() == "/1/summary" || request.url() == "/api.json")) {
         request.accept();
 
         getResults(request.reply(), request.doc());

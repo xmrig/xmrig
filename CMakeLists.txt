@@ -205,15 +205,17 @@ endif()
 
 if (WITH_HTTPD)
     set(HTTPD_SOURCES
-        src/api/Api.h
-        src/api/interfaces/IApiRequest.h
-        src/api/requests/ApiRequest.h
-        src/api/requests/ApiRequest.cpp
-        src/api/requests/HttpApiRequest.h
-        src/api/Httpd.h
         src/api/Api.cpp
-        src/api/requests/HttpApiRequest.cpp
+        src/api/Api.h
         src/api/Httpd.cpp
+        src/api/Httpd.h
+        src/api/interfaces/IApiRequest.h
+        src/api/requests/ApiRequest.cpp
+        src/api/requests/ApiRequest.h
+        src/api/requests/HttpApiRequest.cpp
+        src/api/requests/HttpApiRequest.h
+        src/api/v1/ApiRouter.cpp
+        src/api/v1/ApiRouter.h
         )
 else()
     set(HTTPD_SOURCES "")

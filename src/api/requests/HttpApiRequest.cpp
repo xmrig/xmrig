@@ -25,14 +25,22 @@
 
 #include "api/requests/HttpApiRequest.h"
 #include "base/net/http/HttpRequest.h"
+#include "rapidjson/error/en.h"
 
 
 xmrig::HttpApiRequest::HttpApiRequest(const HttpRequest &req, bool restricted) :
     ApiRequest(SOURCE_HTTP, restricted),
+    m_parsed(false),
     m_req(req),
     m_res(req.id()),
     m_url(req.url.c_str())
 {
+}
+
+
+const rapidjson::Value &xmrig::HttpApiRequest::json() const
+{
+    return m_body;
 }
 
 
@@ -42,13 +50,26 @@ xmrig::IApiRequest::Method xmrig::HttpApiRequest::method() const
 }
 
 
+void xmrig::HttpApiRequest::accept()
+{
+    using namespace rapidjson;
+
+    ApiRequest::accept();
+
+    if (!m_parsed && !m_req.body.empty()) {
+        m_parsed = true;
+        m_body.Parse<kParseCommentsFlag | kParseTrailingCommasFlag>(m_req.body.c_str());
+
+        if (m_body.HasParseError()) {
+            reply().AddMember("error", StringRef(GetParseError_En(m_body.GetParseError())), doc().GetAllocator());;
+        }
+    }
+}
+
+
 void xmrig::HttpApiRequest::done(int status)
 {
     ApiRequest::done(status);
-
-    if (status >= 400) {
-        reply().AddMember("status", status, doc().GetAllocator());
-    }
 
     m_res.setStatus(status);
     m_res.end();

@@ -44,15 +44,17 @@ public:
     HttpApiRequest(const HttpRequest &req, bool restricted);
 
 protected:
-    inline const rapidjson::Value &json() const override { return m_body; }
     inline rapidjson::Document &doc() override           { return m_res.doc(); }
     inline rapidjson::Value &reply() override            { return m_res.doc(); }
     inline const String &url() const override            { return m_url; }
 
+    const rapidjson::Value &json() const override;
     Method method() const override;
+    void accept() override;
     void done(int status) override;
 
 private:
+    bool m_parsed;
     const HttpRequest &m_req;
     HttpApiResponse m_res;
     rapidjson::Document m_body;

@@ -30,6 +30,7 @@
 #include "api/Api.h"
 #include "api/interfaces/IApiListener.h"
 #include "api/requests/HttpApiRequest.h"
+#include "api/v1/ApiRouter.h"
 #include "base/tools/Buffer.h"
 #include "common/crypto/keccak.h"
 #include "core/config/Config.h"
@@ -51,11 +52,16 @@ xmrig::Api::Api(Controller *controller) :
     controller->addListener(this);
 
     genId(m_controller->config()->apiId());
+
+    m_v1 = new ApiRouter(controller);
+    addListener(m_v1);
 }
 
 
 xmrig::Api::~Api()
 {
+    delete m_v1;
+
 #   ifdef XMRIG_FEATURE_HTTP
     delete m_httpd;
 #   endif
@@ -103,10 +109,12 @@ void xmrig::Api::onConfigChanged(Config *config, Config *previousConfig)
 
 void xmrig::Api::exec(IApiRequest &request)
 {
-    if (request.method() == IApiRequest::METHOD_GET && request.url() == "/1/summary") {
+    using namespace rapidjson;
+
+    if (request.method() == IApiRequest::METHOD_GET && (request.url() == "/1/summary" || request.url() == "/api.json")) {
         request.accept();
-        request.reply().AddMember("id",        rapidjson::StringRef(m_id),       request.doc().GetAllocator());
-        request.reply().AddMember("worker_id", rapidjson::StringRef(m_workerId), request.doc().GetAllocator());;
+        request.reply().AddMember("id",        StringRef(m_id),       request.doc().GetAllocator());
+        request.reply().AddMember("worker_id", StringRef(m_workerId), request.doc().GetAllocator());;
     }
 
     for (IApiListener *listener : m_listeners) {

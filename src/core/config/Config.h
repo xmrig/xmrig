@@ -67,7 +67,7 @@ public:
 
     Config();
 
-    bool reload(const char *json);
+    bool reload(const rapidjson::Value &json);
 
     void getJSON(rapidjson::Document &doc) const override;
 
@@ -90,7 +90,7 @@ protected:
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
-    void parseJSON(const rapidjson::Document &doc) override;
+    void parseJSON(const rapidjson::Value &json) override;
 
 private:
     bool parseInt(int key, int arg);

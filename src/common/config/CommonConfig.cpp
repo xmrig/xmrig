@@ -343,21 +343,21 @@ bool xmrig::CommonConfig::parseUint64(int key, uint64_t arg)
 }
 
 
-void xmrig::CommonConfig::parseJSON(const rapidjson::Document &doc)
+void xmrig::CommonConfig::parseJSON(const rapidjson::Value &json)
 {
-    const rapidjson::Value &pools = doc["pools"];
+    const rapidjson::Value &pools = json["pools"];
     if (pools.IsArray()) {
         m_pools.load(pools);
     }
 
 #   ifdef XMRIG_DEPRECATED
-    const rapidjson::Value &api = doc["api"];
+    const rapidjson::Value &api = json["api"];
     if (api.IsObject() && api.HasMember("port")) {
         m_upgrade = true;
         m_http.load(api);
     }
     else {
-        m_http.load(doc["http"]);
+        m_http.load(json["http"]);
     }
 #   else
     m_http.load(doc["http"]);

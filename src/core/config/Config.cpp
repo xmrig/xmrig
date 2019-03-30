@@ -55,7 +55,7 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
 }
 
 
-bool xmrig::Config::reload(const char *json)
+bool xmrig::Config::reload(const rapidjson::Value &json)
 {
     return xmrig::ConfigLoader::reload(this, json);
 }
@@ -277,11 +277,11 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
 }
 
 
-void xmrig::Config::parseJSON(const rapidjson::Document &doc)
+void xmrig::Config::parseJSON(const rapidjson::Value &json)
 {
-    CommonConfig::parseJSON(doc);
+    CommonConfig::parseJSON(json);
 
-    const rapidjson::Value &threads = doc["threads"];
+    const rapidjson::Value &threads = json["threads"];
 
     if (threads.IsArray()) {
         for (const rapidjson::Value &value : threads.GetArray()) {

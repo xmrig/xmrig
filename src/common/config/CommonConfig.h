@@ -71,7 +71,7 @@ protected:
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
-    void parseJSON(const rapidjson::Document &doc) override;
+    void parseJSON(const rapidjson::Value &json) override;
     void setFileName(const char *fileName) override;
 
     Algorithm m_algorithm;

@@ -48,8 +48,12 @@
 #endif
 
 
-xmrig::ConfigWatcher *xmrig::ConfigLoader::m_watcher     = nullptr;
-xmrig::IConfigListener *xmrig::ConfigLoader::m_listener  = nullptr;
+namespace xmrig {
+
+ConfigWatcher *ConfigLoader::m_watcher     = nullptr;
+IConfigListener *ConfigLoader::m_listener  = nullptr;
+
+} // namespace xmrig
 
 
 #ifndef ARRAY_SIZE
@@ -84,26 +88,26 @@ bool xmrig::ConfigLoader::loadFromJSON(xmrig::IConfig *config, const char *json)
 }
 
 
-bool xmrig::ConfigLoader::loadFromJSON(xmrig::IConfig *config, const rapidjson::Document &doc)
+bool xmrig::ConfigLoader::loadFromJSON(xmrig::IConfig *config, const rapidjson::Value &json)
 {
     for (size_t i = 0; i < ARRAY_SIZE(config_options); i++) {
-        parseJSON(config, &config_options[i], doc);
+        parseJSON(config, &config_options[i], json);
     }
 
-    const rapidjson::Value &api = doc["api"];
+    const rapidjson::Value &api = json["api"];
     if (api.IsObject()) {
         for (size_t i = 0; i < ARRAY_SIZE(api_options); i++) {
             parseJSON(config, &api_options[i], api);
         }
     }
 
-    config->parseJSON(doc);
+    config->parseJSON(json);
 
     return config->finalize();
 }
 
 
-bool xmrig::ConfigLoader::reload(xmrig::IConfig *oldConfig, const char *json)
+bool xmrig::ConfigLoader::reload(xmrig::IConfig *oldConfig, const rapidjson::Value &json)
 {
     IConfig *config = Config::create();
     if (!loadFromJSON(config, json)) {
@@ -134,7 +138,7 @@ bool xmrig::ConfigLoader::watch(IConfig *config)
 
     assert(m_watcher == nullptr);
 
-    m_watcher = new xmrig::ConfigWatcher(config->fileName(), m_listener);
+    m_watcher = new ConfigWatcher(config->fileName(), m_listener);
     return true;
 }
 
@@ -225,7 +229,7 @@ bool xmrig::ConfigLoader::getJSON(const char *fileName, rapidjson::Document &doc
 
 bool xmrig::ConfigLoader::parseArg(xmrig::IConfig *config, int key, const char *arg)
 {
-    if (key == xmrig::IConfig::ConfigKey) {
+    if (key == IConfig::ConfigKey) {
         return loadFromFile(config, arg);
     }
 

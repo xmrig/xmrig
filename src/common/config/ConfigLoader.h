@@ -49,8 +49,8 @@ class ConfigLoader
 public:
     static bool loadFromFile(IConfig *config, const char *fileName);
     static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
+    static bool loadFromJSON(IConfig *config, const rapidjson::Value &json);
+    static bool reload(IConfig *oldConfig, const rapidjson::Value &json);
     static bool watch(IConfig *config);
     static IConfig *load(Process *process, IConfigListener *listener);
     static void release();
@@ -66,5 +66,6 @@ private:
 
 
 } /* namespace xmrig */
+
 
 #endif /* XMRIG_CONFIGLOADER_H */
