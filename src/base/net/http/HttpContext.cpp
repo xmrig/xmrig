@@ -67,6 +67,19 @@ xmrig::HttpContext::~HttpContext()
 }
 
 
+void xmrig::HttpContext::close()
+{
+    auto it = m_storage.find(id());
+    if (it != m_storage.end()) {
+        m_storage.erase(it);
+    }
+
+    if (!uv_is_closing(handle())) {
+        uv_close(handle(), [](uv_handle_t *handle) -> void { delete reinterpret_cast<HttpContext*>(handle->data); });
+    }
+}
+
+
 xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
 {
     if (m_storage.count(id) == 0) {
@@ -125,15 +138,13 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 }
 
 
-void xmrig::HttpContext::close(uv_handle_t* handle)
+void xmrig::HttpContext::closeAll()
 {
-    HttpContext *ctx = reinterpret_cast<HttpContext*>(handle->data);
-    auto it = m_storage.find(ctx->id());
-    if (it != m_storage.end()) {
-        m_storage.erase(it);
+    for (auto kv : m_storage) {
+        if (!uv_is_closing(kv.second->handle())) {
+            uv_close(kv.second->handle(), [](uv_handle_t *handle) -> void { delete reinterpret_cast<HttpContext*>(handle->data); });
+        }
     }
-
-    delete ctx;
 }
 
 

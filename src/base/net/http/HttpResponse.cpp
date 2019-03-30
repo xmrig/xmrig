@@ -103,7 +103,5 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
     HttpContext *ctx = HttpContext::get(m_id);
     uv_try_write(ctx->stream(), bufs, data ? 2 : 1);
 
-    if (!uv_is_closing(ctx->handle())) {
-        uv_close(ctx->handle(), HttpContext::close);
-    }
+    ctx->close();
 }

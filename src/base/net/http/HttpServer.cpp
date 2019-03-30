@@ -51,7 +51,7 @@ xmrig::HttpServer::HttpServer(IHttpListener *listener) :
 
 xmrig::HttpServer::~HttpServer()
 {
-    memset(&http_settings, 0, sizeof (http_settings));
+    HttpContext::closeAll();
 }
 
 
@@ -80,10 +80,10 @@ void xmrig::HttpServer::onConnection(uv_stream_t *stream, uint16_t)
                 const size_t parsed = http_parser_execute(ctx->parser, &http_settings, buf->base, size);
 
                 if (parsed < size) {
-                    uv_close(ctx->handle(), HttpContext::close);
+                    ctx->close();
                 }
             } else {
-                uv_close(ctx->handle(), HttpContext::close);
+                ctx->close();
             }
 
             delete [] buf->base;

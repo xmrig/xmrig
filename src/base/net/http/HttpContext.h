@@ -54,9 +54,11 @@ public:
     inline uv_stream_t *stream() const { return reinterpret_cast<uv_stream_t *>(tcp); }
     inline uv_handle_t *handle() const { return reinterpret_cast<uv_handle_t *>(tcp); }
 
+    void close();
+
     static HttpContext *get(uint64_t id);
     static void attach(http_parser_settings *settings);
-    static void close(uv_handle_t* handle);
+    static void closeAll();
 
     http_parser *parser;
     IHttpListener *listener;
