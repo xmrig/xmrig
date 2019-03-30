@@ -78,8 +78,9 @@ public:
     inline bool isShouldSave() const                     { return (m_shouldSave || m_upgrade) && isAutoSave(); }
     inline const std::vector<IThread *> &threads() const { return m_threads.list; }
     inline int priority() const                          { return m_priority; }
-    inline int threadsCount() const                      { return m_threads.list.size(); }
+    inline int threadsCount() const                      { return static_cast<int>(m_threads.list.size()); }
     inline int64_t affinity() const                      { return m_threads.mask; }
+    inline static IConfig *create()                      { return new Config(); }
     inline ThreadsMode threadsMode() const               { return m_threads.mode; }
 
     static Config *load(Process *process, IConfigListener *listener);

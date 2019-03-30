@@ -37,7 +37,7 @@
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Timer.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"

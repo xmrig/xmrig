@@ -34,7 +34,7 @@
 
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
-#include "core/usage.h"
+#include "core/config/usage.h"
 #include "version.h"
 
 

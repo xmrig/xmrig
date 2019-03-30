@@ -31,7 +31,7 @@
 #include "base/net/http/HttpRequest.h"
 #include "base/net/http/HttpServer.h"
 #include "base/net/tools/TcpServer.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 
 

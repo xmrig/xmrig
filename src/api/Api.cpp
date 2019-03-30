@@ -32,7 +32,7 @@
 #include "api/requests/HttpApiRequest.h"
 #include "base/tools/Buffer.h"
 #include "common/crypto/keccak.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "version.h"
 

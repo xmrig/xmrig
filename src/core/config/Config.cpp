@@ -30,8 +30,7 @@
 #include "base/io/log/Log.h"
 #include "common/config/ConfigLoader.h"
 #include "common/cpu/Cpu.h"
-#include "core/Config.h"
-#include "core/ConfigCreator.h"
+#include "core/config/Config.h"
 #include "crypto/Asm.h"
 #include "crypto/CryptoNight_constants.h"
 #include "rapidjson/document.h"
@@ -129,7 +128,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
 xmrig::Config *xmrig::Config::load(Process *process, IConfigListener *listener)
 {
-    return static_cast<Config*>(ConfigLoader::load(process, new ConfigCreator(), listener));
+    return static_cast<Config*>(ConfigLoader::load(process, listener));
 }
 
 

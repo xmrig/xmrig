@@ -32,7 +32,7 @@
 
 #include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "workers/Hashrate.h"
 

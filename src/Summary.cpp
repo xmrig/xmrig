@@ -31,7 +31,7 @@
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Pool.h"
 #include "common/cpu/Cpu.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/Asm.h"
 #include "Mem.h"

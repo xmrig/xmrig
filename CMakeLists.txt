@@ -31,13 +31,14 @@ set(HEADERS
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/IConfig.h
-    src/common/interfaces/IConfigCreator.h
     src/common/interfaces/ICpuInfo.h
     src/common/Platform.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
-    src/core/ConfigLoader_default.h
-    src/core/ConfigLoader_platform.h
+    src/core/config/Config.h
+    src/core/config/ConfigLoader_default.h
+    src/core/config/ConfigLoader_platform.h
+    src/core/config/usage.h
     src/core/Controller.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
@@ -89,7 +90,7 @@ set(SOURCES
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/Platform.cpp
-    src/core/Config.cpp
+    src/core/config/Config.cpp
     src/core/Controller.cpp
     src/Mem.cpp
     src/net/Network.cpp

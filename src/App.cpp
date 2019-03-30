@@ -35,7 +35,7 @@
 #include "base/kernel/Signals.h"
 #include "common/cpu/Cpu.h"
 #include "common/Platform.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/CryptoNight.h"
 #include "Mem.h"

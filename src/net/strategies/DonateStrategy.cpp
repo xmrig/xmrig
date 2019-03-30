@@ -35,7 +35,7 @@
 #include "common/crypto/keccak.h"
 #include "common/Platform.h"
 #include "common/xmrig.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
