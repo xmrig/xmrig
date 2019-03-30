@@ -63,8 +63,6 @@ xmrig::ApiRouter::~ApiRouter()
 
 void xmrig::ApiRouter::onRequest(IApiRequest &request)
 {
-    printf("xmrig::ApiRouter::onRequest\n %d", request.method());
-
     if (request.method() == IApiRequest::METHOD_GET) {
         if (request.url() == "/1/summary" || request.url() == "/api.json") {
             request.accept();
