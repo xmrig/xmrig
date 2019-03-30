@@ -26,7 +26,7 @@
 #define XMRIG_APIROUTER_H
 
 
-#include "api/NetworkState.h"
+#include "net/NetworkState.h"
 #include "base/kernel/interfaces/IControllerListener.h"
 #include "rapidjson/fwd.h"
 

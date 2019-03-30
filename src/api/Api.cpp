@@ -103,6 +103,12 @@ void xmrig::Api::onConfigChanged(Config *config, Config *previousConfig)
 
 void xmrig::Api::exec(IApiRequest &request)
 {
+    if (request.method() == IApiRequest::METHOD_GET && request.url() == "/1/summary") {
+        request.accept();
+        request.reply().AddMember("id",        rapidjson::StringRef(m_id),       request.doc().GetAllocator());
+        request.reply().AddMember("worker_id", rapidjson::StringRef(m_workerId), request.doc().GetAllocator());;
+    }
+
     for (IApiListener *listener : m_listeners) {
         listener->onRequest(request);
 
