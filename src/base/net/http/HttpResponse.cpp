@@ -97,7 +97,7 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
 #       ifdef _WIN32
         bufs[1].len = static_cast<unsigned int>(size);
 #       else
-        bufs[0].len = size;
+        bufs[1].len = size;
 #       endif
     }
 
