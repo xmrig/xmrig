@@ -207,8 +207,6 @@ void Workers::start(xmrig::Controller *controller)
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }
-
-    controller->save();
 }
 
 

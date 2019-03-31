@@ -26,7 +26,6 @@
 #define XMRIG_APIROUTER_H
 
 
-#include "net/NetworkState.h"
 #include "api/interfaces/IApiListener.h"
 #include "rapidjson/fwd.h"
 
@@ -43,7 +42,7 @@ class Controller;
 class ApiRouter : public xmrig::IApiListener
 {
 public:
-    ApiRouter(xmrig::Controller *controller);
+    ApiRouter(Controller *controller);
     ~ApiRouter() override;
 
 protected:

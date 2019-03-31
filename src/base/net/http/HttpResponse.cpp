@@ -24,8 +24,9 @@
  */
 
 
-#include <uv.h>
 #include <sstream>
+#include <string.h>
+#include <uv.h>
 
 
 #include "3rdparty/http-parser/http_parser.h"

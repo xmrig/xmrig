@@ -195,6 +195,8 @@ void xmrig::Controller::start()
 #   ifdef XMRIG_FEATURE_API
     api()->start();
 #   endif
+
+    save();
 }
 
 

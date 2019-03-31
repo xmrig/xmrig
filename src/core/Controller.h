@@ -29,9 +29,6 @@
 #include "base/kernel/interfaces/IConfigListener.h"
 
 
-class StatsData;
-
-
 namespace xmrig {
 
 
