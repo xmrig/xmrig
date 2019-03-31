@@ -27,7 +27,7 @@
 #include <uv.h>
 
 
-#ifndef XMRIG_NO_TLS
+#ifdef XMRIG_FEATURE_TLS
 #   include <openssl/ssl.h>
 #   include <openssl/err.h>
 #endif
@@ -41,7 +41,7 @@ xmrig::String Platform::m_userAgent;
 
 void Platform::init(const char *userAgent)
 {
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     SSL_library_init();
     SSL_load_error_strings();
     ERR_load_BIO_strings();

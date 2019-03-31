@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- *
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,48 +22,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __HTTPBODY_H__
-#define __HTTPBODY_H__
+
+#ifndef XMRIG_APIREQUEST_H
+#define XMRIG_APIREQUEST_H
 
 
-#include <string.h>
+#include "api/interfaces/IApiRequest.h"
 
 
 namespace xmrig {
 
 
-class HttpBody
+class ApiRequest : public IApiRequest
 {
 public:
-    inline HttpBody() :
-        m_pos(0)
-    {}
+    ApiRequest(Source source, bool restricted);
+    ~ApiRequest() override;
 
-
-    inline bool write(const char *data, size_t size)
-    {
-        if (size > (sizeof(m_data) - m_pos - 1)) {
-            return false;
-        }
-
-        memcpy(m_data + m_pos, data, size);
-
-        m_pos += size;
-        m_data[m_pos] = '\0';
-
-        return true;
-    }
-
-
-    inline const char *data() const { return m_data; }
+protected:
+    inline bool isDone() const override          { return m_state == STATE_DONE; }
+    inline bool isNew() const override           { return m_state == STATE_NEW; }
+    inline bool isRestricted() const override    { return m_restricted; }
+    inline Source source() const override        { return m_source; }
+    inline void accept() override                { m_state = STATE_ACCEPTED; }
+    inline void done(int) override               { m_state = STATE_DONE; }
 
 private:
-    char m_data[32768];
-    size_t m_pos;
+    enum State {
+        STATE_NEW,
+        STATE_ACCEPTED,
+        STATE_DONE
+    };
+
+    bool m_restricted;
+    Source m_source;
+    State m_state;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* __HTTPBODY_H__ */
+#endif // XMRIG_APIREQUEST_H
+

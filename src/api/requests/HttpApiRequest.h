@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- *
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,32 +22,48 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __HTTPREPLY_H__
-#define __HTTPREPLY_H__
+
+#ifndef XMRIG_HTTPAPIREQUEST_H
+#define XMRIG_HTTPAPIREQUEST_H
 
 
-#include <stdint.h>
+#include "api/requests/ApiRequest.h"
+#include "base/net/http/HttpApiResponse.h"
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class HttpReply
+class HttpRequest;
+
+
+class HttpApiRequest : public ApiRequest
 {
 public:
-    HttpReply() :
-        buf(nullptr),
-        status(200),
-        size(0)
-    {}
+    HttpApiRequest(const HttpRequest &req, bool restricted);
 
-    char *buf;
-    int status;
-    size_t size;
+protected:
+    inline rapidjson::Document &doc() override           { return m_res.doc(); }
+    inline rapidjson::Value &reply() override            { return m_res.doc(); }
+    inline const String &url() const override            { return m_url; }
+
+    const rapidjson::Value &json() const override;
+    Method method() const override;
+    void accept() override;
+    void done(int status) override;
+
+private:
+    bool m_parsed;
+    const HttpRequest &m_req;
+    HttpApiResponse m_res;
+    rapidjson::Document m_body;
+    String m_url;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* __HTTPREPLY_H__ */
+#endif // XMRIG_HTTPAPIREQUEST_H
+

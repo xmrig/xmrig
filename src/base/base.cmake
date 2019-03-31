@@ -9,6 +9,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IClientListener.h
     src/base/kernel/interfaces/IConfigListener.h
     src/base/kernel/interfaces/IConsoleListener.h
+    src/base/kernel/interfaces/IControllerListener.h
     src/base/kernel/interfaces/IDnsListener.h
     src/base/kernel/interfaces/ILineListener.h
     src/base/kernel/interfaces/ILogBackend.h
@@ -21,6 +22,7 @@ set(HEADERS_BASE
     src/base/kernel/Signals.h
     src/base/net/dns/Dns.h
     src/base/net/dns/DnsRecord.h
+    src/base/net/http/Http.h
     src/base/net/stratum/Client.h
     src/base/net/stratum/Job.h
     src/base/net/stratum/Pool.h
@@ -50,6 +52,7 @@ set(SOURCES_BASE
     src/base/kernel/Signals.cpp
     src/base/net/dns/Dns.cpp
     src/base/net/dns/DnsRecord.cpp
+    src/base/net/http/Http.cpp
     src/base/net/stratum/Client.cpp
     src/base/net/stratum/Job.cpp
     src/base/net/stratum/Pool.cpp
@@ -77,3 +80,37 @@ if (NOT WIN32)
         set(SOURCES_SYSLOG src/base/io/log/backends/SysLog.h src/base/io/log/backends/SysLog.cpp)
     endif()
 endif()
+
+
+if (WITH_HTTPD)
+    set(HEADERS_BASE_HTTP
+        src/3rdparty/http-parser/http_parser.h
+        src/base/kernel/interfaces/IHttpListener.h
+        src/base/kernel/interfaces/ITcpServerListener.h
+        src/base/net/http/HttpApiResponse.h
+        src/base/net/http/HttpContext.h
+        src/base/net/http/HttpRequest.h
+        src/base/net/http/HttpResponse.h
+        src/base/net/http/HttpServer.h
+        src/base/net/tools/TcpServer.h
+        )
+
+    set(SOURCES_BASE_HTTP
+        src/3rdparty/http-parser/http_parser.c
+        src/base/net/http/HttpApiResponse.cpp
+        src/base/net/http/HttpContext.cpp
+        src/base/net/http/HttpResponse.cpp
+        src/base/net/http/HttpServer.cpp
+        src/base/net/tools/TcpServer.cpp
+        )
+
+    add_definitions(/DXMRIG_FEATURE_HTTP)
+    add_definitions(/DXMRIG_FEATURE_API)
+else()
+    set(HEADERS_BASE_HTTP "")
+    set(SOURCES_BASE_HTTP "")
+    remove_definitions(/DXMRIG_FEATURE_HTTP)
+    remove_definitions(/DXMRIG_FEATURE_API)
+endif()
+
+add_definitions(/DXMRIG_DEPRECATED)

@@ -75,7 +75,7 @@ public:
 
     constexpr static int kResponseTimeout = 20 * 1000;
 
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     constexpr static int kInputBufferSize = 1024 * 16;
 #   else
     constexpr static int kInputBufferSize = 1024 * 2;

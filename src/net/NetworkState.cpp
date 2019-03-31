@@ -29,9 +29,9 @@
 #include <uv.h>
 
 
-#include "api/NetworkState.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
+#include "net/NetworkState.h"
 
 
 xmrig::NetworkState::NetworkState() :

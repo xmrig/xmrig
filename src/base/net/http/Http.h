@@ -22,60 +22,52 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_HTTPD_H
-#define XMRIG_HTTPD_H
+
+#ifndef XMRIG_HTTP_H
+#define XMRIG_HTTP_H
 
 
-#include <stddef.h>
-
-
-#include "base/kernel/interfaces/ITimerListener.h"
-
-
-struct MHD_Connection;
-struct MHD_Daemon;
-struct MHD_Response;
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class HttpRequest;
-class Timer;
-
-
-class Httpd : public ITimerListener
+class Http
 {
 public:
-    Httpd(int port, const char *accessToken, bool IPv6, bool restricted);
-    ~Httpd() override;
+    Http();
 
-    bool start();
-    void stop();
+    inline bool isAuthRequired() const         { return m_restricted == false || !m_token.isNull(); }
+    inline bool isEnabled() const              { return m_enabled; }
+    inline bool isRestricted() const           { return m_restricted; }
+    inline const String &host() const          { return m_host; }
+    inline const String &token() const         { return m_token; }
+    inline uint16_t port() const               { return m_port; }
+    inline void setEnabled(bool enabled)       { m_enabled = enabled; }
+    inline void setHost(const char *host)      { m_host = host; }
+    inline void setRestricted(bool restricted) { m_restricted = restricted; }
+    inline void setToken(const char *token)    { m_token = token; }
 
-protected:
-    void onTimer(const Timer *) override { run(); }
+    inline bool operator!=(const Http &other) const    { return !isEqual(other); }
+    inline bool operator==(const Http &other) const    { return isEqual(other); }
+
+    bool isEqual(const Http &other) const;
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    void load(const rapidjson::Value &http);
+    void setPort(int port);
 
 private:
-    constexpr static const int kIdleInterval   = 200;
-    constexpr static const int kActiveInterval = 25;
-
-    int process(HttpRequest &req);
-    void run();
-
-    static int handler(void *cls, MHD_Connection *connection, const char *url, const char *method, const char *version, const char *uploadData, size_t *uploadSize, void **con_cls);
-
-    bool m_idle;
-    bool m_IPv6;
+    bool m_enabled;
     bool m_restricted;
-    const char *m_accessToken;
-    const int m_port;
-    MHD_Daemon *m_daemon;
-    Timer *m_timer;
+    String m_host;
+    String m_token;
+    uint16_t m_port;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_HTTPD_H */
+#endif // XMRIG_HTTP_H
+

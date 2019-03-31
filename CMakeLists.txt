@@ -21,7 +21,8 @@ include (src/base/base.cmake)
 
 set(HEADERS
     "${HEADERS_BASE}"
-    src/api/NetworkState.h
+    "${HEADERS_BASE_HTTP}"
+    src/api/interfaces/IApiListener.h
     src/App.h
     src/common/config/CommonConfig.h
     src/common/config/ConfigLoader.h
@@ -30,14 +31,14 @@ set(HEADERS
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/IConfig.h
-    src/common/interfaces/IConfigCreator.h
-    src/common/interfaces/IControllerListener.h
     src/common/interfaces/ICpuInfo.h
     src/common/Platform.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
-    src/core/ConfigLoader_default.h
-    src/core/ConfigLoader_platform.h
+    src/core/config/Config.h
+    src/core/config/ConfigLoader_default.h
+    src/core/config/ConfigLoader_platform.h
+    src/core/config/usage.h
     src/core/Controller.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
@@ -45,13 +46,14 @@ set(HEADERS
     src/Mem.h
     src/net/JobResult.h
     src/net/Network.h
+    src/net/NetworkState.h
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
     src/workers/CpuThread.h
-    src/workers/ThreadHandle.h
     src/workers/Hashrate.h
     src/workers/MultiWorker.h
+    src/workers/ThreadHandle.h
     src/workers/Worker.h
     src/workers/Workers.h
    )
@@ -80,7 +82,7 @@ endif()
 
 set(SOURCES
     "${SOURCES_BASE}"
-    src/api/NetworkState.cpp
+    "${SOURCES_BASE_HTTP}"
     src/App.cpp
     src/common/config/CommonConfig.cpp
     src/common/config/ConfigLoader.cpp
@@ -88,16 +90,17 @@ set(SOURCES
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/Platform.cpp
-    src/core/Config.cpp
+    src/core/config/Config.cpp
     src/core/Controller.cpp
     src/Mem.cpp
     src/net/Network.cpp
+    src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
     src/workers/CpuThread.cpp
-    src/workers/ThreadHandle.cpp
     src/workers/Hashrate.cpp
     src/workers/MultiWorker.cpp
+    src/workers/ThreadHandle.cpp
     src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp
@@ -201,30 +204,21 @@ if (WITH_EMBEDDED_CONFIG)
 endif()
 
 if (WITH_HTTPD)
-    find_package(MHD)
-
-    if (MHD_FOUND)
-        include_directories(${MHD_INCLUDE_DIRS})
-        set(HTTPD_SOURCES
-            src/api/Api.h
-            src/api/ApiRouter.h
-            src/common/api/HttpBody.h
-            src/common/api/Httpd.h
-            src/common/api/HttpReply.h
-            src/common/api/HttpRequest.h
-            src/api/Api.cpp
-            src/api/ApiRouter.cpp
-            src/common/api/Httpd.cpp
-            src/common/api/HttpRequest.cpp
-            )
-    else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
-    endif()
+    set(HTTPD_SOURCES
+        src/api/Api.cpp
+        src/api/Api.h
+        src/api/Httpd.cpp
+        src/api/Httpd.h
+        src/api/interfaces/IApiRequest.h
+        src/api/requests/ApiRequest.cpp
+        src/api/requests/ApiRequest.h
+        src/api/requests/HttpApiRequest.cpp
+        src/api/requests/HttpApiRequest.h
+        src/api/v1/ApiRouter.cpp
+        src/api/v1/ApiRouter.h
+        )
 else()
     set(HTTPD_SOURCES "")
-    set(MHD_LIBRARY "")
-    add_definitions(/DXMRIG_NO_HTTPD)
-    add_definitions(/DXMRIG_NO_API)
 endif()
 
 include_directories(src)
@@ -240,4 +234,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})

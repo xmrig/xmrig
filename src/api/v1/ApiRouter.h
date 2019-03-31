@@ -26,8 +26,7 @@
 #define XMRIG_APIROUTER_H
 
 
-#include "api/NetworkState.h"
-#include "common/interfaces/IControllerListener.h"
+#include "api/interfaces/IApiListener.h"
 #include "rapidjson/fwd.h"
 
 
@@ -35,42 +34,30 @@ class Hashrate;
 
 
 namespace xmrig {
-    class Controller;
-    class HttpReply;
-    class HttpRequest;
-}
 
 
-class ApiRouter : public xmrig::IControllerListener
+class Controller;
+
+
+class ApiRouter : public xmrig::IApiListener
 {
 public:
-    ApiRouter(xmrig::Controller *controller);
+    ApiRouter(Controller *controller);
     ~ApiRouter() override;
 
-    void get(const xmrig::HttpRequest &req, xmrig::HttpReply &reply) const;
-    void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
-
-    void tick(const xmrig::NetworkState &results);
-
 protected:
-    void onConfigChanged(xmrig::Config *config, xmrig::Config *previousConfig) override;
+    void onRequest(IApiRequest &request) override;
 
 private:
-    void finalize(xmrig::HttpReply &reply, rapidjson::Document &doc) const;
-    void genId(const char *id);
-    void getConnection(rapidjson::Document &doc) const;
-    void getHashrate(rapidjson::Document &doc) const;
-    void getIdentify(rapidjson::Document &doc) const;
-    void getMiner(rapidjson::Document &doc) const;
-    void getResults(rapidjson::Document &doc) const;
-    void getThreads(rapidjson::Document &doc) const;
-    void setWorkerId(const char *id);
-    void updateWorkerId(const char *id, const char *previousId);
+    void getHashrate(rapidjson::Value &reply, rapidjson::Document &doc) const;
+    void getMiner(rapidjson::Value &reply, rapidjson::Document &doc) const;
+    void getThreads(rapidjson::Value &reply, rapidjson::Document &doc) const;
 
-    char m_id[32];
-    char m_workerId[128];
-    xmrig::NetworkState m_network;
-    xmrig::Controller *m_controller;
+    Controller *m_controller;
 };
+
+
+} // namespace xmrig
+
 
 #endif /* XMRIG_APIROUTER_H */

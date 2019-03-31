@@ -30,7 +30,7 @@
 #include "api/Api.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/CryptoNight_constants.h"
 #include "interfaces/IJobResultListener.h"
@@ -207,8 +207,6 @@ void Workers::start(xmrig::Controller *controller)
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }
-
-    controller->save();
 }
 
 
@@ -237,7 +235,7 @@ void Workers::submit(const xmrig::JobResult &result)
 }
 
 
-#ifndef XMRIG_NO_API
+#ifdef XMRIG_FEATURE_API
 void Workers::threadsSummary(rapidjson::Document &doc)
 {
     uv_mutex_lock(&m_mutex);

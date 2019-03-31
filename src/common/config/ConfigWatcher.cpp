@@ -28,11 +28,10 @@
 #include "base/kernel/interfaces/IConfigListener.h"
 #include "common/config/ConfigLoader.h"
 #include "common/config/ConfigWatcher.h"
-#include "core/ConfigCreator.h"
+#include "core/config/Config.h"
 
 
-xmrig::ConfigWatcher::ConfigWatcher(const String &path, IConfigCreator *creator, IConfigListener *listener) :
-    m_creator(creator),
+xmrig::ConfigWatcher::ConfigWatcher(const String &path, IConfigListener *listener) :
     m_listener(listener)
 {
    m_watcher = new Watcher(path, this);
@@ -50,7 +49,7 @@ void xmrig::ConfigWatcher::onFileChanged(const String &fileName)
 {
     LOG_WARN("\"%s\" was changed, reloading configuration", fileName.data());
 
-    IConfig *config = m_creator->create();
+    IConfig *config = Config::create();
     ConfigLoader::loadFromFile(config, fileName);
 
     if (!config->finalize()) {

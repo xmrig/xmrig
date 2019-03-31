@@ -29,11 +29,11 @@
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/backends/FileLog.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/interfaces/IControllerListener.h"
 #include "common/config/ConfigLoader.h"
 #include "common/cpu/Cpu.h"
-#include "common/interfaces/IControllerListener.h"
 #include "common/Platform.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "net/Network.h"
 
@@ -43,10 +43,16 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_API
+#   include "api/Api.h"
+#endif
+
+
 class xmrig::ControllerPrivate
 {
 public:
     inline ControllerPrivate(Process *process) :
+        api(nullptr),
         config(nullptr),
         network(nullptr),
         process(process)
@@ -55,11 +61,16 @@ public:
 
     inline ~ControllerPrivate()
     {
+#       ifdef XMRIG_FEATURE_API
+        delete api;
+#       endif
+
         delete network;
         delete config;
     }
 
 
+    Api *api;
     Config *config;
     Network *network;
     Process *process;
@@ -76,6 +87,14 @@ xmrig::Controller::Controller(Process *process)
 xmrig::Controller::~Controller()
 {
     delete d_ptr;
+}
+
+
+xmrig::Api *xmrig::Controller::api() const
+{
+    assert(d_ptr->api != nullptr);
+
+    return d_ptr->api;
 }
 
 
@@ -101,6 +120,10 @@ int xmrig::Controller::init()
     if (!d_ptr->config) {
         return 1;
     }
+
+#   ifdef XMRIG_FEATURE_API
+    d_ptr->api = new Api(this);
+#   endif
 
     Platform::init(config()->userAgent());
     Platform::setProcessPriority(d_ptr->config->priority());
@@ -157,7 +180,7 @@ void xmrig::Controller::onNewConfig(IConfig *config)
     Config *previousConfig = d_ptr->config;
     d_ptr->config = static_cast<Config*>(config);
 
-    for (xmrig::IControllerListener *listener : d_ptr->listeners) {
+    for (IControllerListener *listener : d_ptr->listeners) {
         listener->onConfigChanged(d_ptr->config, previousConfig);
     }
 
@@ -165,8 +188,24 @@ void xmrig::Controller::onNewConfig(IConfig *config)
 }
 
 
+void xmrig::Controller::start()
+{
+    network()->connect();
+
+#   ifdef XMRIG_FEATURE_API
+    api()->start();
+#   endif
+
+    save();
+}
+
+
 void xmrig::Controller::stop()
 {
+#   ifdef XMRIG_FEATURE_API
+    api()->stop();
+#   endif
+
     ConfigLoader::release();
 
     delete d_ptr->network;

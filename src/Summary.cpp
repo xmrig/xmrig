@@ -31,7 +31,7 @@
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Pool.h"
 #include "common/cpu/Cpu.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/Asm.h"
 #include "Mem.h"
@@ -142,8 +142,7 @@ void Summary::print(xmrig::Controller *controller)
     print_memory(controller->config());
     print_cpu(controller->config());
     print_threads(controller->config());
-    controller->config()->printPools();
-    controller->config()->printAPI();
+    controller->config()->pools().print();
 
     print_commands(controller->config());
 }

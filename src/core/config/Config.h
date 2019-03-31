@@ -67,7 +67,7 @@ public:
 
     Config();
 
-    bool reload(const char *json);
+    bool reload(const rapidjson::Value &json);
 
     void getJSON(rapidjson::Document &doc) const override;
 
@@ -75,11 +75,12 @@ public:
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
     inline Assembly assembly() const                     { return m_assembly; }
     inline bool isHugePages() const                      { return m_hugePages; }
-    inline bool isShouldSave() const                     { return m_shouldSave && isAutoSave(); }
+    inline bool isShouldSave() const                     { return (m_shouldSave || m_upgrade) && isAutoSave(); }
     inline const std::vector<IThread *> &threads() const { return m_threads.list; }
     inline int priority() const                          { return m_priority; }
-    inline int threadsCount() const                      { return m_threads.list.size(); }
+    inline int threadsCount() const                      { return static_cast<int>(m_threads.list.size()); }
     inline int64_t affinity() const                      { return m_threads.mask; }
+    inline static IConfig *create()                      { return new Config(); }
     inline ThreadsMode threadsMode() const               { return m_threads.mode; }
 
     static Config *load(Process *process, IConfigListener *listener);
@@ -89,7 +90,7 @@ protected:
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
-    void parseJSON(const rapidjson::Document &doc) override;
+    void parseJSON(const rapidjson::Value &json) override;
 
 private:
     bool parseInt(int key, int arg);
