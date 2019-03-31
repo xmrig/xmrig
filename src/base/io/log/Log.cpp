@@ -30,6 +30,7 @@
 #endif
 
 
+#include <algorithm>
 #include <string.h>
 #include <string>
 #include <time.h>
