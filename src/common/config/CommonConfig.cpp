@@ -355,6 +355,8 @@ void xmrig::CommonConfig::parseJSON(const rapidjson::Value &json)
     if (api.IsObject() && api.HasMember("port")) {
         m_upgrade = true;
         m_http.load(api);
+        m_http.setEnabled(Json::getUint(api, "port") > 0);
+        m_http.setHost("0.0.0.0");
     }
     else {
         m_http.load(json["http"]);

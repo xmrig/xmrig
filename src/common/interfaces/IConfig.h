@@ -152,8 +152,6 @@ public:
     virtual void getJSON(rapidjson::Document &doc) const   = 0;
     virtual void parseJSON(const rapidjson::Value &json)   = 0;
     virtual void setFileName(const char *fileName)         = 0;
-
-    static IConfig *create();
 };
 
 
