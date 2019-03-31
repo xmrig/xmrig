@@ -30,13 +30,15 @@
 
 
 #include "3rdparty/http-parser/http_parser.h"
+#include "base/io/log/Log.h"
 #include "base/net/http/HttpContext.h"
 #include "base/net/http/HttpResponse.h"
 
 
 namespace xmrig {
 
-static const char *kCRLF = "\r\n";
+static const char *kCRLF      = "\r\n";
+static const char *kUserAgent = "user-agent";
 
 } // namespace xmrig
 
@@ -102,6 +104,35 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
     }
 
     HttpContext *ctx = HttpContext::get(m_id);
+
+#   ifndef APP_DEBUG
+    if (statusCode() >= 400)
+#   endif
+    {
+        const bool err        = statusCode() >= 400;
+        char ip[46]           = {};
+        sockaddr_storage addr = {};
+        int aSize             = sizeof(addr);
+
+        uv_tcp_getpeername(ctx->tcp, reinterpret_cast<sockaddr*>(&addr), &aSize);
+        if (reinterpret_cast<sockaddr_in *>(&addr)->sin_family == AF_INET6) {
+            uv_ip6_name(reinterpret_cast<sockaddr_in6*>(&addr), ip, 45);
+        }
+        else {
+            uv_ip4_name(reinterpret_cast<sockaddr_in*>(&addr), ip, 16);
+        }
+
+        Log::print(err ? Log::ERR : Log::INFO, CYAN("%s ") CLEAR MAGENTA_BOLD("%s") WHITE_BOLD(" %s ") CSI "1;%dm%d " CLEAR WHITE_BOLD("%zu ") BLACK_BOLD("\"%s\""),
+                   ip,
+                   http_method_str(static_cast<http_method>(ctx->method)),
+                   ctx->url.c_str(),
+                   err ? 31 : 32,
+                   statusCode(),
+                   header.size() + size,
+                   ctx->headers.count(kUserAgent) ? ctx->headers.at(kUserAgent).c_str() : nullptr
+                   );
+    }
+
     uv_try_write(ctx->stream(), bufs, data ? 2 : 1);
 
     ctx->close();
