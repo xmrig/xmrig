@@ -43,9 +43,9 @@ static const char *kUserAgent = "user-agent";
 } // namespace xmrig
 
 
-xmrig::HttpResponse::HttpResponse(uint64_t id) :
+xmrig::HttpResponse::HttpResponse(uint64_t id, int statusCode) :
     m_id(id),
-    m_statusCode(HTTP_STATUS_OK)
+    m_statusCode(statusCode)
 {
 }
 

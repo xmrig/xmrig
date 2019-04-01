@@ -38,7 +38,7 @@ namespace xmrig {
 class HttpResponse
 {
 public:
-    HttpResponse(uint64_t id);
+    HttpResponse(uint64_t id, int statusCode = 200);
 
     inline int statusCode() const                                           { return m_statusCode; }
     inline void setHeader(const std::string &key, const std::string &value) { m_headers.insert({ key, value }); }
