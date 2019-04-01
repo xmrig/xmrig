@@ -78,6 +78,7 @@ void xmrig::ApiRouter::onRequest(IApiRequest &request)
                 return request.done(403);
             }
 
+            request.accept();
             m_controller->config()->getJSON(request.doc());
         }
     }
