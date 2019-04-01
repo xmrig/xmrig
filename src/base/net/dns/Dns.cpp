@@ -37,7 +37,8 @@ namespace xmrig {
 xmrig::Dns::Dns(IDnsListener *listener) :
     m_hints(),
     m_listener(listener),
-    m_status(0)
+    m_status(0),
+    m_resolver(nullptr)
 {
     m_key = m_storage.add(this);
 
@@ -54,7 +55,7 @@ xmrig::Dns::~Dns()
 {
     m_storage.release(m_key);
 
-    Handle::close(m_resolver);
+    delete m_resolver;
 }
 
 

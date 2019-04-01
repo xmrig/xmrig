@@ -77,17 +77,6 @@ inline void Handle::close(uv_signal_t *handle)
 
 
 template<>
-inline void Handle::close(uv_getaddrinfo_t *handle)
-{
-    if (handle) {
-        uv_cancel(reinterpret_cast<uv_req_t *>(handle));
-
-        delete handle;
-    }
-}
-
-
-template<>
 inline void Handle::close(uv_fs_event_t *handle)
 {
     if (handle) {

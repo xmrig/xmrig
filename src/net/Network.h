@@ -29,11 +29,13 @@
 #include <vector>
 
 
-#include "api/NetworkState.h"
+#include "api/interfaces/IApiListener.h"
+#include "base/kernel/interfaces/IControllerListener.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
-#include "common/interfaces/IControllerListener.h"
 #include "interfaces/IJobResultListener.h"
+#include "net/NetworkState.h"
+#include "rapidjson/fwd.h"
 
 
 namespace xmrig {
@@ -43,7 +45,7 @@ class Controller;
 class IStrategy;
 
 
-class Network : public IJobResultListener, public IStrategyListener, public IControllerListener, public ITimerListener
+class Network : public IJobResultListener, public IStrategyListener, public IControllerListener, public ITimerListener, public IApiListener
 {
 public:
     Network(Controller *controller);
@@ -61,14 +63,19 @@ protected:
     void onJob(IStrategy *strategy, Client *client, const Job &job) override;
     void onJobResult(const JobResult &result) override;
     void onPause(IStrategy *strategy) override;
+    void onRequest(IApiRequest &request) override;
     void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
 
 private:
     constexpr static int kTickInterval = 1 * 1000;
 
-    bool isColors() const;
     void setJob(Client *client, const Job &job, bool donate);
     void tick();
+
+#   ifdef XMRIG_FEATURE_API
+    void getConnection(rapidjson::Value &reply, rapidjson::Document &doc) const;
+    void getResults(rapidjson::Value &reply, rapidjson::Document &doc) const;
+#   endif
 
     IStrategy *m_donate;
     IStrategy *m_strategy;

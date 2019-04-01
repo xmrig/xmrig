@@ -68,7 +68,7 @@ public:
     static inline void pause()                                          { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(xmrig::IJobResultListener *listener) { m_listener = listener; }
 
-#   ifndef XMRIG_NO_API
+#   ifdef XMRIG_FEATURE_API
     static void threadsSummary(rapidjson::Document &doc);
 #   endif
 
@@ -82,7 +82,6 @@ private:
     {
     public:
         inline LaunchStatus() :
-            colors(true),
             hugePages(0),
             pages(0),
             started(0),
@@ -91,7 +90,6 @@ private:
             algo(xmrig::CRYPTONIGHT)
         {}
 
-        bool colors;
         size_t hugePages;
         size_t pages;
         size_t started;

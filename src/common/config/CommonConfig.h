@@ -26,8 +26,8 @@
 #define XMRIG_COMMONCONFIG_H
 
 
+#include "base/net/http/Http.h"
 #include "base/net/stratum/Pools.h"
-#include "base/tools/String.h"
 #include "common/interfaces/IConfig.h"
 #include "common/xmrig.h"
 
@@ -40,19 +40,16 @@ class CommonConfig : public IConfig
 public:
     CommonConfig();
 
-    inline bool isApiIPv6() const                  { return m_apiIPv6; }
-    inline bool isApiRestricted() const            { return m_apiRestricted; }
     inline bool isAutoSave() const                 { return m_autoSave; }
     inline bool isBackground() const               { return m_background; }
     inline bool isDryRun() const                   { return m_dryRun; }
     inline bool isSyslog() const                   { return m_syslog; }
-    inline const char *apiId() const               { return m_apiId.data(); }
-    inline const char *apiToken() const            { return m_apiToken.data(); }
-    inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
+    inline const String &apiId() const             { return m_apiId; }
+    inline const String &apiWorkerId() const       { return m_apiWorkerId; }
     inline const char *logFile() const             { return m_logFile.data(); }
     inline const char *userAgent() const           { return m_userAgent.data(); }
+    inline const Http &http() const                { return m_http; }
     inline const Pools &pools() const              { return m_pools; }
-    inline int apiPort() const                     { return m_apiPort; }
     inline int printTime() const                   { return m_printTime; }
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
@@ -61,9 +58,6 @@ public:
 
     bool save() override;
 
-    bool isColors() const;
-    void printAPI();
-    void printPools();
     void printVersions();
 
 protected:
@@ -77,24 +71,22 @@ protected:
     bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
-    void parseJSON(const rapidjson::Document &doc) override;
+    void parseJSON(const rapidjson::Value &json) override;
     void setFileName(const char *fileName) override;
 
     Algorithm m_algorithm;
     bool m_adjusted;
-    bool m_apiIPv6;
-    bool m_apiRestricted;
     bool m_autoSave;
     bool m_background;
     bool m_dryRun;
     bool m_syslog;
+    bool m_upgrade;
     bool m_watch;
-    int m_apiPort;
+    Http m_http;
     int m_printTime;
     Pools m_pools;
     State m_state;
     String m_apiId;
-    String m_apiToken;
     String m_apiWorkerId;
     String m_fileName;
     String m_logFile;

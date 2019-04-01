@@ -37,7 +37,6 @@ struct option;
 namespace xmrig {
 
 
-class IConfigCreator;
 class IConfigListener;
 class Watcher;
 
@@ -45,14 +44,13 @@ class Watcher;
 class ConfigWatcher : public IWatcherListener
 {
 public:
-    ConfigWatcher(const String &path, IConfigCreator *creator, IConfigListener *listener);
+    ConfigWatcher(const String &path, IConfigListener *listener);
     ~ConfigWatcher() override;
 
 protected:
     void onFileChanged(const String &fileName) override;
 
 private:
-    IConfigCreator *m_creator;
     IConfigListener *m_listener;
     Watcher *m_watcher;
 };

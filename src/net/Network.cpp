@@ -32,16 +32,23 @@
 
 
 #include "api/Api.h"
+#include "base/io/log/Log.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Timer.h"
-#include "common/log/Log.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
+#include "rapidjson/document.h"
 #include "workers/Workers.h"
+
+
+#ifdef XMRIG_FEATURE_API
+#   include "api/Api.h"
+#   include "api/interfaces/IApiRequest.h"
+#endif
 
 
 xmrig::Network::Network(Controller *controller) :
@@ -50,6 +57,10 @@ xmrig::Network::Network(Controller *controller) :
 {
     Workers::setListener(this);
     controller->addListener(this);
+
+#   ifdef XMRIG_FEATURE_API
+    controller->api()->addListener(this);
+#   endif
 
     const Pools &pools = controller->config()->pools();
     m_strategy = pools.createStrategy(this);
@@ -90,13 +101,12 @@ void xmrig::Network::onActive(IStrategy *strategy, Client *client)
     m_state.setPool(client->host(), client->port(), client->ip());
 
     const char *tlsVersion = client->tlsVersion();
-    LOG_INFO(isColors() ? WHITE_BOLD("use pool ") CYAN_BOLD("%s:%d ") GREEN_BOLD("%s") " \x1B[1;30m%s "
-                        : "use pool %s:%d %s %s",
+    LOG_INFO(WHITE_BOLD("use pool ") CYAN_BOLD("%s:%d ") GREEN_BOLD("%s") " " BLACK_BOLD("%s"),
              client->host(), client->port(), tlsVersion ? tlsVersion : "", client->ip());
 
     const char *fingerprint = client->tlsFingerprint();
     if (fingerprint != nullptr) {
-        LOG_INFO("%sfingerprint (SHA-256): \"%s\"", isColors() ? "\x1B[1;30m" : "", fingerprint);
+        LOG_INFO(BLACK_BOLD("fingerprint (SHA-256): \"%s\""), fingerprint);
     }
 }
 
@@ -153,39 +163,42 @@ void xmrig::Network::onPause(IStrategy *strategy)
 }
 
 
+void xmrig::Network::onRequest(IApiRequest &request)
+{
+#   ifdef XMRIG_FEATURE_API
+    if (request.method() == IApiRequest::METHOD_GET && (request.url() == "/1/summary" || request.url() == "/api.json")) {
+        request.accept();
+
+        getResults(request.reply(), request.doc());
+        getConnection(request.reply(), request.doc());
+    }
+#   endif
+}
+
+
 void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult &result, const char *error)
 {
     m_state.add(result, error);
 
     if (error) {
-        LOG_INFO(isColors() ? "\x1B[1;31mrejected\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[1;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[1;30m(%" PRIu64 " ms)"
-                            : "rejected (%" PRId64 "/%" PRId64 ") diff %u \"%s\" (%" PRIu64 " ms)",
+        LOG_INFO(RED_BOLD("rejected") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%u") " " RED("\"%s\"") " " BLACK_BOLD("(%" PRIu64 " ms)"),
                  m_state.accepted, m_state.rejected, result.diff, error, result.elapsed);
     }
     else {
-        LOG_INFO(isColors() ? "\x1B[1;32maccepted\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[1;37m%u\x1B[0m \x1B[1;30m(%" PRIu64 " ms)"
-                            : "accepted (%" PRId64 "/%" PRId64 ") diff %u (%" PRIu64 " ms)",
+        LOG_INFO(GREEN_BOLD("accepted") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%u") " " BLACK_BOLD("(%" PRIu64 " ms)"),
                  m_state.accepted, m_state.rejected, result.diff, result.elapsed);
     }
-}
-
-
-bool xmrig::Network::isColors() const
-{
-    return Log::colors;
 }
 
 
 void xmrig::Network::setJob(Client *client, const Job &job, bool donate)
 {
     if (job.height()) {
-        LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64)
-                            : "new job from %s:%d diff %d algo %s height %" PRIu64,
+        LOG_INFO(MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
                  client->host(), client->port(), job.diff(), job.algorithm().shortName(), job.height());
     }
     else {
-        LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s")
-                            : "new job from %s:%d diff %d algo %s",
+        LOG_INFO(MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s"),
                  client->host(), client->port(), job.diff(), job.algorithm().shortName());
     }
 
@@ -207,8 +220,47 @@ void xmrig::Network::tick()
     if (m_donate) {
         m_donate->tick(now);
     }
-
-#   ifndef XMRIG_NO_API
-    Api::tick(m_state);
-#   endif
 }
+
+
+#ifdef XMRIG_FEATURE_API
+void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value connection(kObjectType);
+    connection.AddMember("pool",      StringRef(m_state.pool), allocator);
+    connection.AddMember("uptime",    m_state.connectionTime(), allocator);
+    connection.AddMember("ping",      m_state.latency(), allocator);
+    connection.AddMember("failures",  m_state.failures, allocator);
+    connection.AddMember("error_log", Value(kArrayType), allocator);
+
+    reply.AddMember("connection", connection, allocator);
+}
+
+
+void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value results(kObjectType);
+
+    results.AddMember("diff_current",  m_state.diff, allocator);
+    results.AddMember("shares_good",   m_state.accepted, allocator);
+    results.AddMember("shares_total",  m_state.accepted + m_state.rejected, allocator);
+    results.AddMember("avg_time",      m_state.avgTime(), allocator);
+    results.AddMember("hashes_total",  m_state.total, allocator);
+
+    Value best(kArrayType);
+    for (size_t i = 0; i < m_state.topDiff.size(); ++i) {
+        best.PushBack(m_state.topDiff[i], allocator);
+    }
+
+    results.AddMember("best",      best, allocator);
+    results.AddMember("error_log", Value(kArrayType), allocator);
+
+    reply.AddMember("results", results, allocator);
+}
+#endif

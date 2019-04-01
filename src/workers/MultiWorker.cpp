@@ -28,7 +28,6 @@
 
 
 #include "crypto/CryptoNight_test.h"
-#include "common/log/Log.h"
 #include "workers/CpuThread.h"
 #include "workers/MultiWorker.h"
 #include "workers/Workers.h"

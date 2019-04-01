@@ -30,19 +30,19 @@
 #include <utility>
 
 
-#ifndef XMRIG_NO_TLS
+#ifdef XMRIG_FEATURE_TLS
 #   include <openssl/ssl.h>
 #   include <openssl/err.h>
 #   include "base/net/stratum/Tls.h"
 #endif
 
 
+#include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
 #include "base/net/stratum/Client.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
-#include "common/log/Log.h"
 #include "net/JobResult.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -107,7 +107,7 @@ xmrig::Client::~Client()
 
 void xmrig::Client::connect()
 {
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     if (m_pool.isTLS()) {
         m_tls = new Tls(this);
     }
@@ -184,7 +184,7 @@ bool xmrig::Client::disconnect()
 
 bool xmrig::Client::isTLS() const
 {
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     return m_pool.isTLS() && m_tls;
 #   else
     return false;
@@ -194,7 +194,7 @@ bool xmrig::Client::isTLS() const
 
 const char *xmrig::Client::tlsFingerprint() const
 {
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     if (isTLS() && m_pool.fingerprint() == nullptr) {
         return m_tls->fingerprint();
     }
@@ -206,7 +206,7 @@ const char *xmrig::Client::tlsFingerprint() const
 
 const char *xmrig::Client::tlsVersion() const
 {
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     if (isTLS()) {
         return m_tls->version();
     }
@@ -435,7 +435,7 @@ bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
 
 bool xmrig::Client::send(BIO *bio)
 {
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     uv_buf_t buf;
     buf.len = BIO_get_mem_data(bio, &buf.base);
 
@@ -543,7 +543,7 @@ int64_t xmrig::Client::send(size_t size)
 {
     LOG_DEBUG("[%s] send (%d bytes): \"%s\"", url(), size, m_sendBuf);
 
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     if (isTLS()) {
         if (!m_tls->send(m_sendBuf, size)) {
             return -1;
@@ -597,7 +597,7 @@ void xmrig::Client::connect(sockaddr *addr)
 
 void xmrig::Client::handshake()
 {
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     if (isTLS()) {
         m_expire = Chrono::steadyMSecs() + kResponseTimeout;
 
@@ -661,7 +661,7 @@ void xmrig::Client::onClose()
     m_socket = nullptr;
     setState(UnconnectedState);
 
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     if (m_tls) {
         delete m_tls;
         m_tls = nullptr;
@@ -858,7 +858,7 @@ void xmrig::Client::read(ssize_t nread)
 
     m_recvBuf.nread(size);
 
-#   ifndef XMRIG_NO_TLS
+#   ifdef XMRIG_FEATURE_TLS
     if (isTLS()) {
         LOG_DEBUG("[%s] TLS received (%d bytes)", url(), static_cast<int>(nread));
 

@@ -39,7 +39,6 @@ namespace xmrig {
 
 
 class ConfigWatcher;
-class IConfigCreator;
 class IConfigListener;
 class IConfig;
 class Process;
@@ -50,10 +49,10 @@ class ConfigLoader
 public:
     static bool loadFromFile(IConfig *config, const char *fileName);
     static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Document &doc);
-    static bool reload(IConfig *oldConfig, const char *json);
+    static bool loadFromJSON(IConfig *config, const rapidjson::Value &json);
+    static bool reload(IConfig *oldConfig, const rapidjson::Value &json);
     static bool watch(IConfig *config);
-    static IConfig *load(Process *process, IConfigCreator *creator, IConfigListener *listener);
+    static IConfig *load(Process *process, IConfigListener *listener);
     static void release();
 
 private:
@@ -62,11 +61,11 @@ private:
     static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
 
     static ConfigWatcher *m_watcher;
-    static IConfigCreator *m_creator;
     static IConfigListener *m_listener;
 };
 
 
 } /* namespace xmrig */
+
 
 #endif /* XMRIG_CONFIGLOADER_H */

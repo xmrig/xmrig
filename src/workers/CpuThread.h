@@ -90,7 +90,7 @@ protected:
     void print() const override;
 #   endif
 
-#   ifndef XMRIG_NO_API
+#   ifdef XMRIG_FEATURE_API
     rapidjson::Value toAPI(rapidjson::Document &doc) const override;
 #   endif
 

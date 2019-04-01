@@ -25,8 +25,8 @@
 #include <assert.h>
 
 
+#include "base/io/log/Log.h"
 #include "common/cpu/Cpu.h"
-#include "common/log/Log.h"
 #include "crypto/Asm.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
@@ -706,7 +706,7 @@ void xmrig::CpuThread::print() const
 #endif
 
 
-#ifndef XMRIG_NO_API
+#ifdef XMRIG_FEATURE_API
 rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
 {
     using namespace rapidjson;

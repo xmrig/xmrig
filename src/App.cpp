@@ -31,11 +31,11 @@
 #include "api/Api.h"
 #include "App.h"
 #include "base/io/Console.h"
+#include "base/io/log/Log.h"
 #include "base/kernel/Signals.h"
 #include "common/cpu/Cpu.h"
-#include "common/log/Log.h"
 #include "common/Platform.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/CryptoNight.h"
 #include "Mem.h"
@@ -45,14 +45,8 @@
 #include "workers/Workers.h"
 
 
-#ifndef XMRIG_NO_HTTPD
-#   include "common/api/Httpd.h"
-#endif
-
-
 xmrig::App::App(Process *process) :
     m_console(nullptr),
-    m_httpd(nullptr),
     m_signals(nullptr)
 {
     m_controller = new Controller(process);
@@ -71,10 +65,6 @@ xmrig::App::~App()
     delete m_signals;
     delete m_console;
     delete m_controller;
-
-#   ifndef XMRIG_NO_HTTPD
-    delete m_httpd;
-#   endif
 }
 
 
@@ -98,24 +88,9 @@ int xmrig::App::exec()
         return 0;
     }
 
-#   ifndef XMRIG_NO_API
-    Api::start(m_controller);
-#   endif
-
-#   ifndef XMRIG_NO_HTTPD
-    m_httpd = new Httpd(
-                m_controller->config()->apiPort(),
-                m_controller->config()->apiToken(),
-                m_controller->config()->isApiIPv6(),
-                m_controller->config()->isApiRestricted()
-                );
-
-    m_httpd->start();
-#   endif
-
     Workers::start(m_controller);
 
-    m_controller->network()->connect();
+    m_controller->start();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
@@ -135,7 +110,7 @@ void xmrig::App::onConsoleCommand(char command)
     case 'p':
     case 'P':
         if (Workers::isEnabled()) {
-            LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
+            LOG_INFO(YELLOW_BOLD("paused") ", press " MAGENTA_BOLD("r") " to resume");
             Workers::setEnabled(false);
         }
         break;
@@ -143,7 +118,7 @@ void xmrig::App::onConsoleCommand(char command)
     case 'r':
     case 'R':
         if (!Workers::isEnabled()) {
-            LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;32mresumed" : "resumed");
+            LOG_INFO(GREEN_BOLD("resumed"));
             Workers::setEnabled(true);
         }
         break;
@@ -185,14 +160,10 @@ void xmrig::App::onSignal(int signum)
 
 void xmrig::App::close()
 {
-#   ifndef XMRIG_NO_HTTPD
-    m_httpd->stop();
-#   endif
-
     m_signals->stop();
     m_console->stop();
     m_controller->stop();
 
     Workers::stop();
-    Log::release();
+    Log::destroy();
 }

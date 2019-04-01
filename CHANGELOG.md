@@ -1,3 +1,7 @@
+# v2.15.1-beta
+- [#1007](https://github.com/xmrig/xmrig/issues/1007) Old HTTP API backend based on libmicrohttpd, replaced to custom HTTP server (libuv + http_parser).
+- [#257](https://github.com/xmrig/xmrig-nvidia/pull/257) New logging subsystem, file and syslog now always without colors.
+
 # v2.15.0-beta
 - [#314](https://github.com/xmrig/xmrig-proxy/issues/314) Added donate over proxy feature.
   - Added new option `donate-over-proxy`.

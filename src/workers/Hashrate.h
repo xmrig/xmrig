@@ -69,7 +69,6 @@ private:
     uint64_t** m_counts;
     uint64_t** m_timestamps;
     uv_timer_t *m_timer;
-    xmrig::Controller *m_controller;
 };
 
 

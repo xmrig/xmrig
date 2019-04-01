@@ -30,12 +30,7 @@
 #include <uv.h>
 
 
-#ifndef XMRIG_NO_HTTPD
-#   include <microhttpd.h>
-#endif
-
-
-#ifndef XMRIG_NO_TLS
+#ifdef XMRIG_FEATURE_TLS
 #   include <openssl/opensslv.h>
 #endif
 
@@ -55,8 +50,8 @@
 
 
 #include "base/io/Json.h"
+#include "base/io/log/Log.h"
 #include "common/config/CommonConfig.h"
-#include "common/log/Log.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -66,43 +61,15 @@
 xmrig::CommonConfig::CommonConfig() :
     m_algorithm(CRYPTONIGHT, VARIANT_AUTO),
     m_adjusted(false),
-    m_apiIPv6(false),
-    m_apiRestricted(true),
     m_autoSave(true),
     m_background(false),
     m_dryRun(false),
     m_syslog(false),
+    m_upgrade(false),
     m_watch(true),
-    m_apiPort(0),
     m_printTime(60),
     m_state(NoneState)
 {
-}
-
-
-bool xmrig::CommonConfig::isColors() const
-{
-    return Log::colors;
-}
-
-
-void xmrig::CommonConfig::printAPI()
-{
-#   ifndef XMRIG_NO_API
-    if (apiPort() == 0) {
-        return;
-    }
-
-    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN("%s:") CYAN_BOLD("%d")
-                              : " * %-13s%s:%d",
-                   "API BIND", isApiIPv6() ? "[::]" : "0.0.0.0", apiPort());
-#   endif
-}
-
-
-void xmrig::CommonConfig::printPools()
-{
-    m_pools.print();
 }
 
 
@@ -118,9 +85,7 @@ void xmrig::CommonConfig::printVersions()
     snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
 #   endif
 
-    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s")
-                              : " * %-13s%s/%s %s",
-                   "ABOUT", APP_NAME, APP_VERSION, buf);
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s"), "ABOUT", APP_NAME, APP_VERSION, buf);
 
 #   if defined(XMRIG_AMD_PROJECT)
 #   if CL_VERSION_2_0
@@ -141,25 +106,19 @@ void xmrig::CommonConfig::printVersions()
 #   else
     memset(buf, 0, 16);
 
-#   if !defined(XMRIG_NO_HTTPD) || !defined(XMRIG_NO_TLS)
+#   if defined(XMRIG_FEATURE_HTTP) || defined(XMRIG_FEATURE_TLS)
     int length = 0;
 #   endif
 #   endif
 
-#   if !defined(XMRIG_NO_TLS) && defined(OPENSSL_VERSION_TEXT)
+#   if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
     {
         constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
         length += snprintf(buf + length, (sizeof buf) - length, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
     }
 #   endif
 
-#   ifndef XMRIG_NO_HTTPD
-    length += snprintf(buf + length, (sizeof buf) - length, "microhttpd/%s ", MHD_get_version());
-#   endif
-
-    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s")
-                              : " * %-13slibuv/%s %s",
-                   "LIBS", uv_version_string(), buf);
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), buf);
 }
 
 
@@ -240,12 +199,23 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         m_watch = enable;
         break;
 
-    case ApiIPv6Key: /* ipv6 */
-        m_apiIPv6 = enable;
+#   ifdef XMRIG_DEPRECATED
+    case ApiIPv6Key: /* --api-ipv6 */
         break;
 
-    case ApiRestrictedKey: /* restricted */
-        m_apiRestricted = enable;
+    case ApiRestrictedKey: /* --api-no-restricted */
+        fputs("option \"--api-no-restricted\" deprecated, use \"--http-no-restricted\" instead.\n", stderr);
+        fflush(stdout);
+        m_http.setRestricted(enable);
+        break;
+#   endif
+
+    case HttpRestrictedKey: /* --http-no-restricted */
+        m_http.setRestricted(enable);
+        break;
+
+    case HttpEnabledKey: /* --http-enabled */
+        m_http.setEnabled(enable);
         break;
 
     case DryRunKey: /* --dry-run */
@@ -301,8 +271,20 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_logFile = arg;
         break;
 
+#   ifdef XMRIG_DEPRECATED
     case ApiAccessTokenKey: /* --api-access-token */
-        m_apiToken = arg;
+        fputs("option \"--api-access-token\" deprecated, use \"--http-access-token\" instead.\n", stderr);
+        fflush(stdout);
+        m_http.setToken(arg);
+        break;
+#   endif
+
+    case HttpAccessTokenKey: /* --http-access-token */
+        m_http.setToken(arg);
+        break;
+
+    case HttpHostKey: /* --http-host */
+        m_http.setHost(arg);
         break;
 
     case ApiWorkerIdKey: /* --api-worker-id */
@@ -319,32 +301,33 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
 
     case RetriesKey:     /* --retries */
     case RetryPauseKey:  /* --retry-pause */
-    case ApiPort:        /* --api-port */
     case PrintTimeKey:   /* --print-time */
-        return parseUint64(key, strtol(arg, nullptr, 10));
+    case HttpPort:       /* --http-port */
+#   ifdef XMRIG_DEPRECATED
+    case ApiPort:       /* --api-port */
+#   endif
+        return parseUint64(key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
-    case BackgroundKey: /* --background */
-    case SyslogKey:     /* --syslog */
-    case KeepAliveKey:  /* --keepalive */
-    case NicehashKey:   /* --nicehash */
-    case TlsKey:        /* --tls */
-    case ApiIPv6Key:    /* --api-ipv6 */
-    case DryRunKey:     /* --dry-run */
+    case BackgroundKey:  /* --background */
+    case SyslogKey:      /* --syslog */
+    case KeepAliveKey:   /* --keepalive */
+    case NicehashKey:    /* --nicehash */
+    case TlsKey:         /* --tls */
+    case DryRunKey:      /* --dry-run */
+    case HttpEnabledKey: /* --http-enabled */
         return parseBoolean(key, true);
 
-    case ColorKey:         /* --no-color */
-    case WatchKey:         /* --no-watch */
+    case ColorKey:          /* --no-color */
+    case WatchKey:          /* --no-watch */
+    case HttpRestrictedKey: /* --http-no-restricted */
+#   ifdef XMRIG_DEPRECATED
     case ApiRestrictedKey: /* --api-no-restricted */
+    case ApiIPv6Key:       /* --api-ipv6 */
+#   endif
         return parseBoolean(key, false);
 
     case DonateLevelKey: /* --donate-level */
-#       ifdef XMRIG_PROXY_PROJECT
-        if (strncmp(arg, "minemonero.pro", 14) == 0) {
-            m_donateLevel = 0;
-            return true;
-        }
-#       endif
-        return parseUint64(key, strtol(arg, nullptr, 10));
+        return parseUint64(key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     default:
         break;
@@ -360,12 +343,27 @@ bool xmrig::CommonConfig::parseUint64(int key, uint64_t arg)
 }
 
 
-void xmrig::CommonConfig::parseJSON(const rapidjson::Document &doc)
+void xmrig::CommonConfig::parseJSON(const rapidjson::Value &json)
 {
-    const rapidjson::Value &pools = doc["pools"];
+    const rapidjson::Value &pools = json["pools"];
     if (pools.IsArray()) {
         m_pools.load(pools);
     }
+
+#   ifdef XMRIG_DEPRECATED
+    const rapidjson::Value &api = json["api"];
+    if (api.IsObject() && api.HasMember("port")) {
+        m_upgrade = true;
+        m_http.load(api);
+        m_http.setEnabled(Json::getUint(api, "port") > 0);
+        m_http.setHost("0.0.0.0");
+    }
+    else {
+        m_http.load(json["http"]);
+    }
+#   else
+    m_http.load(doc["http"]);
+#   endif
 }
 
 
@@ -402,10 +400,16 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         m_pools.setProxyDonate(arg);
         break;
 
+#   ifdef XMRIG_DEPRECATED
     case ApiPort: /* --api-port */
-        if (arg > 0 && arg <= 65536) {
-            m_apiPort = arg;
-        }
+        fputs("option \"--api-port\" deprecated, use \"--http-port\" instead.\n", stderr);
+        fflush(stdout);
+        m_http.setPort(arg);
+        break;
+#   endif
+
+    case HttpPort: /* --http-port */
+        m_http.setPort(arg);
         break;
 
     case PrintTimeKey: /* --print-time */
