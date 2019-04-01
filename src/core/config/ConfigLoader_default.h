@@ -35,11 +35,14 @@ R"===(
 {
     "algo": "cryptonight",
     "api": {
+        "id": null,
+        "worker-id": null
+    },
+    "http": {
+        "enabled": false,
+        "host": "127.0.0.1",
         "port": 0,
         "access-token": null,
-        "id": null,
-        "worker-id": null,
-        "ipv6": false,
         "restricted": true
     },
     "asm": true,
@@ -64,6 +67,7 @@ R"===(
             "nicehash": false,
             "keepalive": false,
             "variant": -1,
+            "enabled": true,
             "tls": false,
             "tls-fingerprint": null
         }
