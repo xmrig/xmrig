@@ -33,12 +33,59 @@
 #include "base/io/log/Log.h"
 #include "base/net/http/HttpContext.h"
 #include "base/net/http/HttpResponse.h"
+#include "base/tools/Baton.h"
 
 
 namespace xmrig {
 
 static const char *kCRLF      = "\r\n";
 static const char *kUserAgent = "user-agent";
+
+
+class WriteBaton : public Baton<uv_write_t>
+{
+public:
+    inline WriteBaton(const std::stringstream &ss, const char *data, size_t size, HttpContext *ctx) :
+        m_ctx(ctx),
+        m_header(ss.str())
+    {
+        req.data     = this;
+        bufs[0].len  = m_header.size();
+        bufs[0].base = const_cast<char *>(m_header.c_str());
+
+        if (data) {
+            bufs[1].len  = size;
+            bufs[1].base = new char[size];
+            memcpy(bufs[1].base, data, size);
+        }
+        else {
+            bufs[1].base = nullptr;
+            bufs[1].len  = 0;
+        }
+    }
+
+
+    inline ~WriteBaton()
+    {
+        if (count() == 2) {
+            delete [] bufs[1].base;
+        }
+
+        m_ctx->close();
+    }
+
+
+    inline size_t count() const                      { return bufs[1].base == nullptr ? 1 : 2; }
+    inline size_t size() const                       { return bufs[0].len + bufs[1].len; }
+    inline static void onWrite(uv_write_t *req, int) { delete reinterpret_cast<WriteBaton *>(req->data); }
+
+
+    uv_buf_t bufs[2];
+
+private:
+    HttpContext *m_ctx;
+    std::string m_header;
+};
 
 } // namespace xmrig
 
@@ -82,28 +129,9 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
     }
 
     ss << kCRLF;
-    const std::string header = ss.str();
 
-    uv_buf_t bufs[2];
-    bufs[0].base = const_cast<char *>(header.c_str());
-
-#   ifdef _WIN32
-    bufs[0].len = static_cast<unsigned int>(header.size());
-#   else
-    bufs[0].len = header.size();
-#   endif
-
-    if (data) {
-        bufs[1].base = const_cast<char *>(data);
-
-#       ifdef _WIN32
-        bufs[1].len = static_cast<unsigned int>(size);
-#       else
-        bufs[1].len = size;
-#       endif
-    }
-
-    HttpContext *ctx = HttpContext::get(m_id);
+    HttpContext *ctx  = HttpContext::get(m_id);
+    WriteBaton *baton = new WriteBaton(ss, data, size, ctx);
 
 #   ifndef APP_DEBUG
     if (statusCode() >= 400)
@@ -128,12 +156,10 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
                    ctx->url.c_str(),
                    err ? 31 : 32,
                    statusCode(),
-                   header.size() + size,
+                   baton->size(),
                    ctx->headers.count(kUserAgent) ? ctx->headers.at(kUserAgent).c_str() : nullptr
                    );
     }
 
-    uv_try_write(ctx->stream(), bufs, data ? 2 : 1);
-
-    ctx->close();
+    uv_write(&baton->req, ctx->stream(), baton->bufs, baton->count(), WriteBaton::onWrite);
 }
