@@ -72,7 +72,7 @@ public:
     inline int threadId() const                       { return m_threadId; }
     inline size_t size() const                        { return m_size; }
     inline uint32_t *nonce()                          { return reinterpret_cast<uint32_t*>(m_blob + 39); }
-    inline uint32_t diff() const                      { return static_cast<uint32_t>(m_diff); }
+    inline uint64_t diff() const                      { return m_diff; }
     inline uint64_t target() const                    { return m_target; }
     inline uint64_t height() const                    { return m_height; }
     inline void reset()                               { m_size = 0; m_diff = 0; }

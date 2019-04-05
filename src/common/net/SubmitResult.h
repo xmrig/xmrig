@@ -36,13 +36,13 @@ class SubmitResult
 {
 public:
     inline SubmitResult() : reqId(0), seq(0), diff(0), actualDiff(0), elapsed(0), start(0) {}
-    SubmitResult(int64_t seq, uint32_t diff, uint64_t actualDiff, int64_t reqId = 0);
+    SubmitResult(int64_t seq, uint64_t diff, uint64_t actualDiff, int64_t reqId = 0);
 
     void done();
 
     int64_t reqId;
     int64_t seq;
-    uint32_t diff;
+    uint64_t diff;
     uint64_t actualDiff;
     uint64_t elapsed;
 

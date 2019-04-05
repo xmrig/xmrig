@@ -163,13 +163,13 @@ void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult 
     m_state.add(result, error);
 
     if (error) {
-        LOG_INFO(isColors() ? "\x1B[1;31mrejected\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[1;37m%u\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[1;30m(%" PRIu64 " ms)"
-                            : "rejected (%" PRId64 "/%" PRId64 ") diff %u \"%s\" (%" PRIu64 " ms)",
+        LOG_INFO(isColors() ? "\x1B[1;31mrejected\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[1;37m%" PRIu64 "\x1B[0m \x1B[31m\"%s\"\x1B[0m \x1B[1;30m(%" PRIu64 " ms)"
+                            : "rejected (%" PRId64 "/%" PRId64 ") diff %" PRIu64 " \"%s\" (%" PRIu64 " ms)",
                  m_state.accepted, m_state.rejected, result.diff, error, result.elapsed);
     }
     else {
-        LOG_INFO(isColors() ? "\x1B[1;32maccepted\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[1;37m%u\x1B[0m \x1B[1;30m(%" PRIu64 " ms)"
-                            : "accepted (%" PRId64 "/%" PRId64 ") diff %u (%" PRIu64 " ms)",
+        LOG_INFO(isColors() ? "\x1B[1;32maccepted\x1B[0m (%" PRId64 "/%" PRId64 ") diff \x1B[1;37m%" PRIu64 "\x1B[0m \x1B[1;30m(%" PRIu64 " ms)"
+                            : "accepted (%" PRId64 "/%" PRId64 ") diff %" PRIu64 " (%" PRIu64 " ms)",
                  m_state.accepted, m_state.rejected, result.diff, result.elapsed);
     }
 }
@@ -184,13 +184,13 @@ bool xmrig::Network::isColors() const
 void xmrig::Network::setJob(Client *client, const Job &job, bool donate)
 {
     if (job.height()) {
-        LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64)
-                            : "new job from %s:%d diff %d algo %s height %" PRIu64,
+        LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64) " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64)
+                            : "new job from %s:%d diff %" PRIu64 " algo %s height %" PRIu64,
                  client->host(), client->port(), job.diff(), job.algorithm().shortName(), job.height());
     }
     else {
-        LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s")
-                            : "new job from %s:%d diff %d algo %s",
+        LOG_INFO(isColors() ? MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64) " algo " WHITE_BOLD("%s")
+                            : "new job from %s:%d diff %" PRIu64 " algo %s",
                  client->host(), client->port(), job.diff(), job.algorithm().shortName());
     }
 

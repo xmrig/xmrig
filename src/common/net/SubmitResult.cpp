@@ -29,7 +29,7 @@
 #include "common/net/SubmitResult.h"
 
 
-xmrig::SubmitResult::SubmitResult(int64_t seq, uint32_t diff, uint64_t actualDiff, int64_t reqId) :
+xmrig::SubmitResult::SubmitResult(int64_t seq, uint64_t diff, uint64_t actualDiff, int64_t reqId) :
     reqId(reqId),
     seq(seq),
     diff(diff),
