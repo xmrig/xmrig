@@ -40,6 +40,7 @@
 
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/ILogBackend.h"
+#include "base/tools/Chrono.h"
 
 
 namespace xmrig {
@@ -134,7 +135,8 @@ private:
             return;
         }
 
-        time_t now = time(nullptr);
+        const uint64_t ms = Chrono::currentMSecsSinceEpoch();
+        time_t now        = ms / 1000;
         tm stime;
 
 #       ifdef _WIN32
@@ -143,13 +145,14 @@ private:
         localtime_r(&now, &stime);
 #       endif
 
-        const int rc = snprintf(m_buf, sizeof(m_buf) - 1, "[%d-%02d-%02d %02d:%02d:%02d] ",
+        const int rc = snprintf(m_buf, sizeof(m_buf) - 1, "[%d-%02d-%02d %02d:%02d:%02d" BLACK_BOLD(".%03d") "] ",
                                 stime.tm_year + 1900,
                                 stime.tm_mon + 1,
                                 stime.tm_mday,
                                 stime.tm_hour,
                                 stime.tm_min,
-                                stime.tm_sec
+                                stime.tm_sec,
+                                static_cast<int>(ms % 1000)
                                 );
 
         if (rc > 0) {
