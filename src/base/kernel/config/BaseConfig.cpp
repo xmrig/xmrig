@@ -134,6 +134,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_dryRun       = reader.getBool("dry-run", m_dryRun);
     m_syslog       = reader.getBool("syslog", m_syslog);
     m_watch        = reader.getBool("watch", m_watch);
+    Log::colors    = reader.getBool("colors", Log::colors);
     m_logFile      = reader.getString("log-file");
     m_userAgent    = reader.getString("user-agent");
 
