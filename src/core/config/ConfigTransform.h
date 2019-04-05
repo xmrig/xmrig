@@ -5,8 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,40 +21,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGWATCHER_H
-#define XMRIG_CONFIGWATCHER_H
+#ifndef XMRIG_CONFIGTRANSFORM_H
+#define XMRIG_CONFIGTRANSFORM_H
 
 
-#include "base/kernel/interfaces/IWatcherListener.h"
-#include "base/tools/String.h"
-#include "rapidjson/fwd.h"
-
-
-struct option;
+#include "base/kernel/config/BaseTransform.h"
 
 
 namespace xmrig {
 
 
-class IConfigListener;
-class Watcher;
-
-
-class ConfigWatcher : public IWatcherListener
+class ConfigTransform : public BaseTransform
 {
 public:
-    ConfigWatcher(const String &path, IConfigListener *listener);
-    ~ConfigWatcher() override;
+    ConfigTransform();
 
 protected:
-    void onFileChanged(const String &fileName) override;
+    void transform(rapidjson::Document &doc, int key, const char *arg) override;
 
 private:
-    IConfigListener *m_listener;
-    Watcher *m_watcher;
+    void transformBoolean(rapidjson::Document &doc, int key, bool enable);
+    void transformUint64(rapidjson::Document &doc, int key, uint64_t arg);
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
-#endif /* __CONFIGWATCHER_H__ */
+
+#endif /* XMRIG_CONFIGTRANSFORM_H */

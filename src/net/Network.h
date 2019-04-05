@@ -30,7 +30,7 @@
 
 
 #include "api/interfaces/IApiListener.h"
-#include "base/kernel/interfaces/IControllerListener.h"
+#include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "interfaces/IJobResultListener.h"
@@ -45,7 +45,7 @@ class Controller;
 class IStrategy;
 
 
-class Network : public IJobResultListener, public IStrategyListener, public IControllerListener, public ITimerListener, public IApiListener
+class Network : public IJobResultListener, public IStrategyListener, public IBaseListener, public ITimerListener, public IApiListener
 {
 public:
     Network(Controller *controller);

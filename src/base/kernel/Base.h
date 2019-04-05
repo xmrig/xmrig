@@ -22,50 +22,50 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
+#ifndef XMRIG_BASE_H
+#define XMRIG_BASE_H
 
 
-#include <stdint.h>
-
-
+#include "base/kernel/interfaces/IConfigListener.h"
+#include "base/kernel/interfaces/IWatcherListener.h"
 #include "rapidjson/fwd.h"
-
-
-struct option;
 
 
 namespace xmrig {
 
 
-class ConfigWatcher;
-class IConfigListener;
-class IConfig;
+class Api;
+class Config;
+class BasePrivate;
+class IBaseListener;
 class Process;
 
 
-class ConfigLoader
+class Base : public IWatcherListener
 {
 public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Value &json);
-    static bool reload(IConfig *oldConfig, const rapidjson::Value &json);
-    static bool watch(IConfig *config);
-    static IConfig *load(Process *process, IConfigListener *listener);
-    static void release();
+    Base(Process *process);
+    ~Base() override;
+
+    virtual bool isReady() const;
+    virtual int init();
+    virtual void start();
+    virtual void stop();
+
+    Api *api() const;
+    bool reload(const rapidjson::Value &json);
+    Config *config() const;
+    void addListener(IBaseListener *listener);
+
+protected:
+    void onFileChanged(const String &fileName) override;
 
 private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-
-    static ConfigWatcher *m_watcher;
-    static IConfigListener *m_listener;
+    BasePrivate *d_ptr;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CONFIGLOADER_H */
+#endif /* XMRIG_BASE_H */

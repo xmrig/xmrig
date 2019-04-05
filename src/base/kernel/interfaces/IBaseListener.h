@@ -22,42 +22,26 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "base/io/log/Log.h"
-#include "base/io/Watcher.h"
-#include "base/kernel/interfaces/IConfigListener.h"
-#include "common/config/ConfigLoader.h"
-#include "common/config/ConfigWatcher.h"
-#include "core/config/Config.h"
+#ifndef XMRIG_IBASELISTENER_H
+#define XMRIG_IBASELISTENER_H
 
 
-xmrig::ConfigWatcher::ConfigWatcher(const String &path, IConfigListener *listener) :
-    m_listener(listener)
+namespace xmrig {
+
+
+class Config;
+
+
+class IBaseListener
 {
-   m_watcher = new Watcher(path, this);
-}
+public:
+    virtual ~IBaseListener() = default;
+
+    virtual void onConfigChanged(Config *config, Config *previousConfig) = 0;
+};
 
 
-xmrig::ConfigWatcher::~ConfigWatcher()
-{
-    delete m_watcher;
-}
+} /* namespace xmrig */
 
 
-
-void xmrig::ConfigWatcher::onFileChanged(const String &fileName)
-{
-    LOG_WARN("\"%s\" was changed, reloading configuration", fileName.data());
-
-    IConfig *config = Config::create();
-    ConfigLoader::loadFromFile(config, fileName);
-
-    if (!config->finalize()) {
-        LOG_ERR("reloading failed");
-
-        delete config;
-        return;
-    }
-
-    m_listener->onNewConfig(config);
-}
+#endif // XMRIG_IBASELISTENER_H
