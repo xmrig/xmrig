@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -65,6 +66,7 @@ xmrig::Pool::Pool() :
     m_enabled(true),
     m_nicehash(false),
     m_tls(false),
+    m_daemon(false),
     m_keepAlive(0),
     m_port(kDefaultPort)
 {
@@ -86,6 +88,7 @@ xmrig::Pool::Pool(const char *url) :
     m_enabled(true),
     m_nicehash(false),
     m_tls(false),
+    m_daemon(false),
     m_keepAlive(0),
     m_port(kDefaultPort)
 {
@@ -135,6 +138,7 @@ xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char 
     m_enabled(true),
     m_nicehash(nicehash),
     m_tls(tls),
+    m_daemon(false),
     m_keepAlive(keepAlive),
     m_host(host),
     m_password(password),
@@ -210,17 +214,24 @@ bool xmrig::Pool::parse(const char *url)
     const char *base = url;
 
     if (p) {
-        if (strncasecmp(url, "stratum+tcp://", 14) == 0) {
-            m_tls = false;
+        if (strncasecmp(url, "stratum+", 8) == 0) {
+            if (p-url != 11)
+                return false;
+        } else if (strncasecmp(url, "daemon+",7) == 0) {
+            if (p-url != 10)
+                return false;
+            m_daemon = true;
         }
-        else if (strncasecmp(url, "stratum+ssl://", 14) == 0) {
+        if (strncasecmp(p-3, "tcp:", 4) == 0) {
+            m_tls = false;
+        } else if (strncasecmp(p-3, "ssl:", 4) == 0) {
             m_tls = true;
         }
         else {
             return false;
         }
 
-        base = url + 14;
+        base = p+3;
     }
 
     if (!strlen(base) || *base == '/') {

@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -99,6 +100,15 @@ bool xmrig::Job::isEqual(const Job &other) const
 }
 
 
+bool xmrig::Job::setDaemonBlob(const char *blob)
+{
+    if (!blob) {
+        return false;
+    }
+    m_daemonBlob = blob;
+    return true;
+}
+
 bool xmrig::Job::setBlob(const char *blob)
 {
     if (!blob) {
@@ -153,6 +163,14 @@ bool xmrig::Job::setBlob(const char *blob)
     return true;
 }
 
+
+bool xmrig::Job::setDiff(uint64_t diff)
+{
+    m_diff = diff;
+    m_target = toDiff(diff);
+
+    return true;
+}
 
 bool xmrig::Job::setTarget(const char *target)
 {

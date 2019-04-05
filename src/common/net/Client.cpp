@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -88,6 +89,7 @@ xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
     m_expire(0),
     m_jobs(0),
     m_keepAlive(0),
+    m_daemonPoll(0),
     m_key(0),
     m_stream(nullptr),
     m_socket(nullptr)
@@ -160,6 +162,7 @@ void xmrig::Client::setPool(const Pool &pool)
     }
 
     m_pool = pool;
+    m_daemon = pool.isDaemon();
 }
 
 
@@ -172,6 +175,12 @@ void xmrig::Client::tick(uint64_t now)
         }
         else if (m_keepAlive && now > m_keepAlive) {
             ping();
+        }
+        if (m_daemonPoll && now > m_daemonPoll) {
+            send((char *)"GET /getheight HTTP/1.0\r\n\r\n", sizeof("GET /getheight HTTP/1.0\r\n\r\n")-1);
+            if (m_daemonInterval > 1)
+                m_daemonInterval >>= 1;
+            m_daemonPoll = uv_now(uv_default_loop()) + (m_daemonInterval * 1000);
         }
     }
 
@@ -222,6 +231,39 @@ int64_t xmrig::Client::submit(const JobResult &result)
         return -1;
     }
 #   endif
+
+    if (m_daemon) {
+        size_t seqlen, datalen, datalenlen, bufsiz;
+        char cseq[33], cdata[33], *buf, *nonce;
+        int64_t rc, sequence;
+
+        if (!m_job.isValid())
+            return -1;
+
+        std::string blob = m_job.daemonBlob();
+        sequence = m_sequence;
+        m_job.reset();
+
+        seqlen = snprintf(cseq, sizeof(cseq), "%" PRId64, sequence);
+        datalen = blob.size() + sizeof("{\"id\": , \"method\": \"submitblock\", \"params\": [\"\"]}") + seqlen;
+        datalenlen = snprintf(cdata, sizeof(cdata), "%zd", datalen);
+        bufsiz = datalen+datalenlen+sizeof("POST /json_rpc HTTP/1.0\r\nContent-Length:\r\n\r\n");
+        buf = (char *)malloc(bufsiz);
+        if (buf == NULL)
+            return -1;
+        seqlen = sprintf(buf, "POST /json_rpc HTTP/1.0\r\nContent-Length: %zd\r\n\r\n"
+            "{\"id\": %zd, \"method\": \"submitblock\", \"params\": [\"%s\"]}", datalen, sequence, blob.c_str());
+        nonce = buf + seqlen - blob.size() - 3 + 78;
+        Job::toHex(reinterpret_cast<const unsigned char*>(&result.nonce), 4, nonce);
+#   ifdef XMRIG_PROXY_PROJECT
+        m_results[sequence] = SubmitResult(sequence, result.diff, result.actualDiff(), result.id);
+#   else
+        m_results[sequence] = SubmitResult(sequence, result.diff, result.actualDiff());
+#   endif
+        rc = send(buf, bufsiz);
+        free(buf);
+        return rc;
+    }
 
     using namespace rapidjson;
 
@@ -329,33 +371,60 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
 
     Job job(m_id, m_nicehash, m_pool.algorithm(), m_rpcId);
 
-    if (!job.setId(params["job_id"].GetString())) {
-        *code = 3;
-        return false;
-    }
-
-    if (!job.setBlob(params["blob"].GetString())) {
-        *code = 4;
-        return false;
-    }
-
-    if (!job.setTarget(params["target"].GetString())) {
-        *code = 5;
-        return false;
-    }
-
-    if (params.HasMember("algo")) {
-        job.setAlgorithm(params["algo"].GetString());
-    }
-
-    if (params.HasMember("variant")) {
-        const rapidjson::Value &variant = params["variant"];
-
-        if (variant.IsInt()) {
-            job.setVariant(variant.GetInt());
+    if (m_daemon) {
+        if (!job.setBlob(params["blockhashing_blob"].GetString())) {
+            *code = 4;
+            return false;
         }
-        else if (variant.IsString()){
-            job.setVariant(variant.GetString());
+        if (!job.setDiff(params["difficulty"].GetUint64())) {
+            *code = 5;
+            return false;
+        }
+        const char *bstr = params["blocktemplate_blob"].GetString();
+        size_t blen = strlen(bstr);
+        if (!job.setDaemonBlob(bstr)) {
+            *code = 4;
+            return false;
+        }
+        /* faking a unique job ID, using last 32 chars of block template blob */
+        if (!job.setId(bstr+blen-32)) {
+            *code = 3;
+            return false;
+        }
+        if (params.HasMember("prev_hash")) {
+            strncpy(m_prevHash, params["prev_hash"].GetString(), 64);
+            m_prevHash[64] = '\0';
+        }
+
+    } else {
+        if (!job.setId(params["job_id"].GetString())) {
+            *code = 3;
+            return false;
+        }
+
+        if (!job.setBlob(params["blob"].GetString())) {
+            *code = 4;
+            return false;
+        }
+
+        if (!job.setTarget(params["target"].GetString())) {
+            *code = 5;
+            return false;
+        }
+
+        if (params.HasMember("algo")) {
+            job.setAlgorithm(params["algo"].GetString());
+        }
+
+        if (params.HasMember("variant")) {
+            const rapidjson::Value &variant = params["variant"];
+
+            if (variant.IsInt()) {
+                job.setVariant(variant.GetInt());
+            }
+            else if (variant.IsString()){
+                job.setVariant(variant.GetString());
+            }
         }
     }
 
@@ -523,11 +592,15 @@ int64_t xmrig::Client::send(const rapidjson::Document &doc)
 
 int64_t xmrig::Client::send(size_t size)
 {
-    LOG_DEBUG("[%s] send (%d bytes): \"%s\"", m_pool.url(), size, m_sendBuf);
+    return send(m_sendBuf, size);
+}
 
+int64_t xmrig::Client::send(char *cbuf, size_t size)
+{
+    LOG_DEBUG("[%s] send (%d bytes): \"%s\"", m_pool.url(), size, cbuf);
 #   ifndef XMRIG_NO_TLS
     if (isTLS()) {
-        if (!m_tls->send(m_sendBuf, size)) {
+        if (!m_tls->send(cbuf, size)) {
             return -1;
         }
     }
@@ -539,7 +612,7 @@ int64_t xmrig::Client::send(size_t size)
             return -1;
         }
 
-        uv_buf_t buf = uv_buf_init(m_sendBuf, (unsigned int) size);
+        uv_buf_t buf = uv_buf_init(cbuf, (unsigned int) size);
 
         if (uv_try_write(m_stream, &buf, 1) < 0) {
             close();
@@ -614,38 +687,48 @@ void xmrig::Client::login()
     using namespace rapidjson;
     m_results.clear();
 
-    Document doc(kObjectType);
-    auto &allocator = doc.GetAllocator();
+    if (m_daemon) {
+        char cseq[33];
+        int clen = snprintf(cseq, sizeof(cseq), "%" PRId64, m_sequence);
+        send(snprintf(m_sendBuf, sizeof(m_sendBuf), "POST /json_rpc HTTP/1.0\r\nContent-Length: %zd\r\n\r\n"
+            "{\"id\": %s, \"method\": \"getblocktemplate\", \"params\": {\"reserve_size\": 8, \"wallet_address\": "
+            "\"%s\"}}", 91+clen+strlen(m_pool.user()), cseq, m_pool.user()));
+        m_daemonInterval = 32;
 
-    doc.AddMember("id",      1,       allocator);
-    doc.AddMember("jsonrpc", "2.0",   allocator);
-    doc.AddMember("method",  "login", allocator);
+    } else {
+        Document doc(kObjectType);
+        auto &allocator = doc.GetAllocator();
+        Value params(kObjectType);
 
-    Value params(kObjectType);
-    params.AddMember("login", StringRef(m_pool.user()),     allocator);
-    params.AddMember("pass",  StringRef(m_pool.password()), allocator);
-    params.AddMember("agent", StringRef(m_agent),           allocator);
+        doc.AddMember("id",      1,       allocator);
+        doc.AddMember("jsonrpc", "2.0",   allocator);
+        doc.AddMember("method",  "login", allocator);
 
-    if (m_pool.rigId()) {
-        params.AddMember("rigid", StringRef(m_pool.rigId()), allocator);
-    }
+        params.AddMember("login", StringRef(m_pool.user()),     allocator);
+        params.AddMember("pass",  StringRef(m_pool.password()), allocator);
+        params.AddMember("agent", StringRef(m_agent),           allocator);
 
-#   ifdef XMRIG_PROXY_PROJECT
-    if (m_pool.algorithm().variant() != xmrig::VARIANT_AUTO)
-#   endif
-    {
-        Value algo(kArrayType);
-
-        for (const auto &a : m_pool.algorithms()) {
-            algo.PushBack(StringRef(a.shortName()), allocator);
+        if (m_pool.rigId()) {
+            params.AddMember("rigid", StringRef(m_pool.rigId()), allocator);
         }
 
-        params.AddMember("algo", algo, allocator);
+#   ifdef XMRIG_PROXY_PROJECT
+        if (m_pool.algorithm().variant() != xmrig::VARIANT_AUTO)
+#   endif
+        {
+            Value algo(kArrayType);
+
+            for (const auto &a : m_pool.algorithms()) {
+                algo.PushBack(StringRef(a.shortName()), allocator);
+            }
+
+            params.AddMember("algo", algo, allocator);
+        }
+
+        doc.AddMember("params", params, allocator);
+
+        send(doc);
     }
-
-    doc.AddMember("params", params, allocator);
-
-    send(doc);
 }
 
 
@@ -695,6 +778,22 @@ void xmrig::Client::parse(char *line, size_t len)
 
     if (!doc.IsObject()) {
         return;
+    }
+
+    if (m_daemon) {
+        /* height check */
+        if (doc.HasMember("height")) {
+            const char *hash = NULL;
+            uint64_t height = doc["height"].GetUint64();
+            if (doc.HasMember("hash"))
+                hash = doc["hash"].GetString();
+            if (height != m_job.height() ||
+                (hash != NULL && strcmp(hash, m_prevHash))) {
+                /* chain has changed, get a new job */
+                login();
+            }
+            return;
+        }
     }
 
     const rapidjson::Value &id = doc["id"];
@@ -786,9 +885,25 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
         return;
     }
 
+    int code = -1;
+    if (m_daemon) {
+        if (result.HasMember("difficulty")) {
+            /* new job */
+            if (!parseJob(result, &code))
+                goto loginFail;
+            if (id == 1) {
+                m_failures = 0;
+                m_listener->onLoginSuccess(this);
+            }
+            m_listener->onJobReceived(this, m_job);
+            m_daemonPoll = uv_now(uv_default_loop()) + (m_daemonInterval * 1000);
+            return;
+        }
+    }
+
     if (id == 1) {
-        int code = -1;
         if (!parseLogin(result, &code)) {
+loginFail:
             if (!isQuiet()) {
                 LOG_ERR("[%s] login error code: %d", m_pool.url(), code);
             }
@@ -808,6 +923,8 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
         it->second.done();
         m_listener->onResultAccepted(this, it->second, nullptr);
         m_results.erase(it);
+        if (m_daemon)
+            login();
     }
 }
 
@@ -824,13 +941,38 @@ void xmrig::Client::read()
     char* start = m_recvBuf.base;
     size_t remaining = m_recvBufPos;
 
-    while ((end = static_cast<char*>(memchr(start, '\n', remaining))) != nullptr) {
-        end++;
-        size_t len = end - start;
-        parse(start, len);
+    if (m_daemon) {
+        char *l, *crlf;
+        int hlen, rlen;
 
-        remaining -= len;
-        start = end;
+        start[remaining] = '\0';
+        l = strstr(start, "Content-Length: ");
+        if (!l)
+            return;
+        crlf = strstr(l, "\r\n\r\n");
+        if (!crlf)
+            return;
+        hlen = crlf - start + 4;
+        if (sscanf(l + sizeof("Content-Length:"), "%d", &rlen) != 1) {
+            /* fail */
+            m_recvBufPos = 0;
+            return;
+        }
+        /* message not yet complete */
+        if (remaining-hlen < (unsigned)rlen)
+            return;
+        parse(crlf+4, rlen+1);
+        start = crlf+4 + rlen;
+        remaining -= hlen + rlen;
+    } else {
+        while ((end = static_cast<char*>(memchr(start, '\n', remaining))) != nullptr) {
+            end++;
+            size_t len = end - start;
+            parse(start, len);
+
+            remaining -= len;
+            start = end;
+        }
     }
 
     if (remaining == 0) {

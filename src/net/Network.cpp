@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -94,9 +95,9 @@ void xmrig::Network::onActive(IStrategy *strategy, Client *client)
     m_state.setPool(client->host(), client->port(), client->ip());
 
     const char *tlsVersion = client->tlsVersion();
-    LOG_INFO(isColors() ? WHITE_BOLD("use pool ") CYAN_BOLD("%s:%d ") GREEN_BOLD("%s") " \x1B[1;30m%s "
-                        : "use pool %s:%d %s %s",
-             client->host(), client->port(), tlsVersion ? tlsVersion : "", client->ip());
+    LOG_INFO(isColors() ? WHITE_BOLD("use %s ") CYAN_BOLD("%s:%d ") GREEN_BOLD("%s") " \x1B[1;30m%s "
+                        : "use %s %s:%d %s %s",
+             client->mode(), client->host(), client->port(), tlsVersion ? tlsVersion : "", client->ip());
 
     const char *fingerprint = client->tlsFingerprint();
     if (fingerprint != nullptr) {

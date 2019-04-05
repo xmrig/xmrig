@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -30,6 +31,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <string>
 
 #include "common/crypto/Algorithm.h"
 #include "common/net/Id.h"
@@ -52,6 +54,8 @@ public:
     bool isEqual(const Job &other) const;
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
+    bool setDiff(uint64_t diff);
+    bool setDaemonBlob(const char *blob);
     void setAlgorithm(const char *algo);
     void setHeight(uint64_t height);
 
@@ -60,6 +64,7 @@ public:
     inline bool setId(const char *id)                 { return m_id.setId(id); }
     inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const                { return m_blob; }
+    inline std::string& daemonBlob()                  { return m_daemonBlob; }
     inline const Algorithm &algorithm() const         { return m_algorithm; }
     inline const Id &clientId() const                 { return m_clientId; }
     inline const Id &id() const                       { return m_id; }
@@ -114,6 +119,7 @@ private:
     char m_rawBlob[kMaxBlobSize * 2 + 8];
     char m_rawTarget[24];
 #   endif
+    std::string m_daemonBlob;
 };
 
 
