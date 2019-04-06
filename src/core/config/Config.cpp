@@ -66,10 +66,13 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 
     setAesMode(reader.getValue("hw-aes"));
     setAlgoVariant(reader.getInt("av"));
-    setAssembly(reader.getValue("asm"));
     setMaxCpuUsage(reader.getInt("max-cpu-usage", 100));
     setPriority(reader.getInt("cpu-priority", -1));
     setThreads(reader.getValue("threads"));
+
+#   ifndef XMRIG_NO_ASM
+    setAssembly(reader.getValue("asm"));
+#   endif
 
     return finalize();
 }
@@ -194,12 +197,6 @@ void xmrig::Config::setAlgoVariant(int av)
 }
 
 
-void xmrig::Config::setAssembly(const rapidjson::Value &assembly)
-{
-    m_assembly = Asm::parse(assembly);
-}
-
-
 void xmrig::Config::setMaxCpuUsage(int max)
 {
     if (max > 0 && max <= 100) {
@@ -276,5 +273,13 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
     }
 
     return m_algoVariant;
+}
+#endif
+
+
+#ifndef XMRIG_NO_ASM
+void xmrig::Config::setAssembly(const rapidjson::Value &assembly)
+{
+    m_assembly = Asm::parse(assembly);
 }
 #endif

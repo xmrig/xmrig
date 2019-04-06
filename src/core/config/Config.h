@@ -85,7 +85,6 @@ private:
     bool finalize();
     void setAesMode(const rapidjson::Value &aesMode);
     void setAlgoVariant(int av);
-    void setAssembly(const rapidjson::Value &assembly);
     void setMaxCpuUsage(int max);
     void setPriority(int priority);
     void setThreads(const rapidjson::Value &threads);
@@ -93,6 +92,10 @@ private:
     AlgoVariant getAlgoVariant() const;
 #   ifndef XMRIG_NO_AEON
     AlgoVariant getAlgoVariantLite() const;
+#   endif
+
+#   ifndef XMRIG_NO_ASM
+    void setAssembly(const rapidjson::Value &assembly);
 #   endif
 
 
