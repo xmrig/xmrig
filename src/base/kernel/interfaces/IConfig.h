@@ -110,7 +110,6 @@ public:
         // xmrig-proxy
         AccessLogFileKey     = 'A',
         BindKey              = 'b',
-        CoinKey              = 1104,
         CustomDiffKey        = 1102,
         DebugKey             = 1101,
         ModeKey              = 'm',

@@ -31,10 +31,10 @@ set(HEADERS
     src/common/Platform.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
-    src/core/config/Config.h
-    src/core/config/ConfigTransform.h
     src/core/config/Config_default.h
     src/core/config/Config_platform.h
+    src/core/config/Config.h
+    src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
     src/interfaces/IJobResultListener.h

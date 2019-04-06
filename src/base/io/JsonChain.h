@@ -46,6 +46,8 @@ public:
     bool addFile(const char *fileName);
     bool addRaw(const char *json);
 
+    void dump(const char *fileName);
+
     inline const String &fileName() const { return m_fileName; }
     inline size_t size() const            { return m_chain.size(); }
 

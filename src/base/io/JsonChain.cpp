@@ -84,6 +84,18 @@ bool xmrig::JsonChain::addRaw(const char *json)
 }
 
 
+void xmrig::JsonChain::dump(const char *fileName)
+{
+    rapidjson::Document doc(rapidjson::kArrayType);
+
+    for (rapidjson::Document &value : m_chain) {
+        doc.PushBack(value, doc.GetAllocator());
+    }
+
+    Json::save(fileName, doc);
+}
+
+
 bool xmrig::JsonChain::getBool(const char *key, bool defaultValue) const
 {
     for (auto it = m_chain.rbegin(); it != m_chain.rend(); ++it) {

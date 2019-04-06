@@ -92,53 +92,53 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 {
     switch (key) {
     case IConfig::AlgorithmKey: /* --algo */
-        return set<const char *>(doc, "algo", arg);
+        return set(doc, "algo", arg);
 
     case IConfig::UserpassKey: /* --userpass */
-        return add<const char *>(doc, kPools, "userpass", arg);
+        return add(doc, kPools, "userpass", arg);
 
     case IConfig::UrlKey: /* --url */
-        return add<const char *>(doc, kPools, "url", arg, true);
+        return add(doc, kPools, "url", arg, true);
 
     case IConfig::UserKey: /* --user */
-        return add<const char *>(doc, kPools, "user", arg);
+        return add(doc, kPools, "user", arg);
 
     case IConfig::PasswordKey: /* --pass */
-        return add<const char *>(doc, kPools, "pass", arg);
+        return add(doc, kPools, "pass", arg);
 
     case IConfig::RigIdKey: /* --rig-id */
-        return add<const char *>(doc, kPools, "rig-id", arg);
+        return add(doc, kPools, "rig-id", arg);
 
     case IConfig::FingerprintKey: /* --tls-fingerprint */
-        return add<const char *>(doc, kPools, "tls-fingerprint", arg);
+        return add(doc, kPools, "tls-fingerprint", arg);
 
     case IConfig::VariantKey: /* --variant */
-        return add<const char *>(doc, kPools, "variant", arg);
+        return add(doc, kPools, "variant", arg);
 
     case IConfig::LogFileKey: /* --log-file */
-        return set<const char *>(doc, "log-file", arg);
+        return set(doc, "log-file", arg);
 
 #   ifdef XMRIG_DEPRECATED
     case IConfig::ApiAccessTokenKey: /* --api-access-token */
         fputs("option \"--api-access-token\" deprecated, use \"--http-access-token\" instead.\n", stderr);
         fflush(stdout);
-        return set<const char *>(doc, kHttp, "access-token", arg);
+        return set(doc, kHttp, "access-token", arg);
 #   endif
 
     case IConfig::HttpAccessTokenKey: /* --http-access-token */
-        return set<const char *>(doc, kHttp, "access-token", arg);
+        return set(doc, kHttp, "access-token", arg);
 
     case IConfig::HttpHostKey: /* --http-host */
-        return set<const char *>(doc, kHttp, "host", arg);
+        return set(doc, kHttp, "host", arg);
 
     case IConfig::ApiWorkerIdKey: /* --api-worker-id */
-        return set<const char *>(doc, kApi, "worker-id", arg);
+        return set(doc, kApi, "worker-id", arg);
 
     case IConfig::ApiIdKey: /* --api-id */
-        return set<const char *>(doc, kApi, "id", arg);
+        return set(doc, kApi, "id", arg);
 
     case IConfig::UserAgentKey: /* --user-agent */
-        return set<const char *>(doc, "user-agent", arg);
+        return set(doc, "user-agent", arg);
 
     case IConfig::RetriesKey:     /* --retries */
     case IConfig::RetryPauseKey:  /* --retry-pause */
@@ -177,16 +177,16 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
 {
     switch (key) {
     case IConfig::BackgroundKey: /* --background */
-        return set<bool>(doc, "background", enable);
+        return set(doc, "background", enable);
 
     case IConfig::SyslogKey: /* --syslog */
-        return set<bool>(doc, "syslog", enable);
+        return set(doc, "syslog", enable);
 
     case IConfig::KeepAliveKey: /* --keepalive */
-        return add<bool>(doc, kPools, "keepalive", enable);
+        return add(doc, kPools, "keepalive", enable);
 
     case IConfig::TlsKey: /* --tls */
-        return add<bool>(doc, kPools, "tls", enable);
+        return add(doc, kPools, "tls", enable);
 
 #   ifndef XMRIG_PROXY_PROJECT
     case IConfig::NicehashKey: /* --nicehash */
@@ -194,7 +194,7 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
 #   endif
 
     case IConfig::ColorKey: /* --no-color */
-        return set<bool>(doc, "colors", enable);
+        return set(doc, "colors", enable);
 
 #   ifdef XMRIG_DEPRECATED
     case IConfig::ApiIPv6Key: /* --api-ipv6 */
@@ -203,17 +203,17 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::ApiRestrictedKey: /* --api-no-restricted */
         fputs("option \"--api-no-restricted\" deprecated, use \"--http-no-restricted\" instead.\n", stderr);
         fflush(stdout);
-        return set<bool>(doc, kHttp, "restricted", enable);
+        return set(doc, kHttp, "restricted", enable);
 #   endif
 
     case IConfig::HttpRestrictedKey: /* --http-no-restricted */
-        return set<bool>(doc, kHttp, "restricted", enable);
+        return set(doc, kHttp, "restricted", enable);
 
     case IConfig::HttpEnabledKey: /* --http-enabled */
-        return set<bool>(doc, kHttp, "enabled", enable);
+        return set(doc, kHttp, "enabled", enable);
 
     case IConfig::DryRunKey: /* --dry-run */
-        return set<bool>(doc, "dry-run", enable);
+        return set(doc, "dry-run", enable);
 
     default:
         break;
@@ -225,29 +225,29 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 {
     switch (key) {
     case IConfig::RetriesKey: /* --retries */
-        return set<uint64_t>(doc, "retries", arg);
+        return set(doc, "retries", arg);
 
     case IConfig::RetryPauseKey: /* --retry-pause */
-        return set<uint64_t>(doc, "retry-pause", arg);
+        return set(doc, "retry-pause", arg);
 
     case IConfig::DonateLevelKey: /* --donate-level */
-        return set<uint64_t>(doc, "donate-level", arg);
+        return set(doc, "donate-level", arg);
 
     case IConfig::ProxyDonateKey: /* --donate-over-proxy */
-        return set<uint64_t>(doc, "donate-over-proxy", arg);
+        return set(doc, "donate-over-proxy", arg);
 
 #   ifdef XMRIG_DEPRECATED
     case IConfig::ApiPort: /* --api-port */
         fputs("option \"--api-port\" deprecated, use \"--http-port\" instead.\n", stderr);
         fflush(stdout);
-        return set<uint64_t>(doc, kHttp, "port", arg);
+        return set(doc, kHttp, "port", arg);
 #   endif
 
     case IConfig::HttpPort: /* --http-port */
-        return set<uint64_t>(doc, kHttp, "port", arg);
+        return set(doc, kHttp, "port", arg);
 
     case IConfig::PrintTimeKey: /* --print-time */
-        return set<uint64_t>(doc, "print-time", arg);
+        return set(doc, "print-time", arg);
 
     default:
         break;

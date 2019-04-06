@@ -33,7 +33,6 @@ namespace xmrig {
 
 
 class Network;
-class Process;
 
 
 class Controller : public Base

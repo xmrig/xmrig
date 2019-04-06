@@ -37,7 +37,6 @@
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/Process.h"
 #include "common/Platform.h"
-#include "core/config/Config_default.h"
 #include "core/config/Config.h"
 #include "core/config/ConfigTransform.h"
 
@@ -49,6 +48,11 @@
 
 #ifdef XMRIG_FEATURE_API
 #   include "api/Api.h"
+#endif
+
+
+#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+#   include "core/config/Config_default.h"
 #endif
 
 
@@ -166,7 +170,10 @@ int xmrig::Base::init()
 #   endif
 
     Platform::init(config()->userAgent());
+
+#   ifndef XMRIG_PROXY_PROJECT
     Platform::setProcessPriority(config()->priority());
+#   endif
 
     if (!config()->isBackground()) {
         Log::add(new ConsoleLog());
