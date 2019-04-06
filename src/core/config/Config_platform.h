@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_PLATFORM_H
-#define XMRIG_CONFIGLOADER_PLATFORM_H
+#ifndef XMRIG_CONFIG_PLATFORM_H
+#define XMRIG_CONFIG_PLATFORM_H
 
 
 #ifdef _MSC_VER
@@ -33,17 +33,17 @@
 #endif
 
 
-#include "common/interfaces/IConfig.h"
+#include "base/kernel/interfaces/IConfig.h"
 #include "version.h"
 
 
 namespace xmrig {
 
 
-static char const short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
+static const char short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
 
 
-static struct option const options[] = {
+static const option options[] = {
     { "algo",                  1, nullptr, IConfig::AlgorithmKey          },
     { "api-worker-id",         1, nullptr, IConfig::ApiWorkerIdKey        },
     { "api-id",                1, nullptr, IConfig::ApiIdKey              },
@@ -65,7 +65,6 @@ static struct option const options[] = {
     { "max-cpu-usage",         1, nullptr, IConfig::MaxCPUUsageKey        },
     { "nicehash",              0, nullptr, IConfig::NicehashKey           },
     { "no-color",              0, nullptr, IConfig::ColorKey              },
-    { "no-watch",              0, nullptr, IConfig::WatchKey              },
     { "no-huge-pages",         0, nullptr, IConfig::HugePagesKey          },
     { "variant",               1, nullptr, IConfig::VariantKey            },
     { "pass",                  1, nullptr, IConfig::PasswordKey           },
@@ -115,21 +114,12 @@ static struct option const config_options[] = {
     { "syslog",            0, nullptr, IConfig::SyslogKey      },
     { "threads",           1, nullptr, IConfig::ThreadsKey     },
     { "user-agent",        1, nullptr, IConfig::UserAgentKey   },
-    { "watch",             0, nullptr, IConfig::WatchKey       },
-    { "hw-aes",            0, nullptr, IConfig::HardwareAESKey },
     { "asm",               1, nullptr, IConfig::AssemblyKey    },
-    { "autosave",          0, nullptr, IConfig::AutoSaveKey    },
     { nullptr,             0, nullptr, 0 }
 };
 
 
-static struct option const api_options[] = {
-    { "worker-id",     1, nullptr, IConfig::ApiWorkerIdKey    },
-    { "id",            1, nullptr, IConfig::ApiIdKey          },
-    { nullptr,         0, nullptr, 0 }
-};
+} // namespace xmrig
 
 
-} /* namespace xmrig */
-
-#endif /* XMRIG_CONFIGLOADER_PLATFORM_H */
+#endif /* XMRIG_CONFIG_PLATFORM_H */

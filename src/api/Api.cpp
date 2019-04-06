@@ -36,6 +36,7 @@
 #include "api/interfaces/IApiListener.h"
 #include "api/requests/HttpApiRequest.h"
 #include "api/v1/ApiRouter.h"
+#include "base/kernel/Base.h"
 #include "base/tools/Buffer.h"
 #include "common/crypto/keccak.h"
 #include "core/config/Config.h"
@@ -48,17 +49,17 @@
 #endif
 
 
-xmrig::Api::Api(Controller *controller) :
+xmrig::Api::Api(Base *base) :
+    m_base(base),
     m_id(),
     m_workerId(),
-    m_controller(controller),
     m_httpd(nullptr)
 {
-    controller->addListener(this);
+    base->addListener(this);
 
-    genId(m_controller->config()->apiId());
+    genId(base->config()->apiId());
 
-    m_v1 = new ApiRouter(controller);
+    m_v1 = new ApiRouter(base);
     addListener(m_v1);
 }
 
@@ -75,7 +76,7 @@ xmrig::Api::~Api()
 
 void xmrig::Api::request(const HttpRequest &req)
 {
-    HttpApiRequest request(req, m_controller->config()->http().isRestricted());
+    HttpApiRequest request(req, m_base->config()->http().isRestricted());
 
     exec(request);
 }
@@ -83,10 +84,10 @@ void xmrig::Api::request(const HttpRequest &req)
 
 void xmrig::Api::start()
 {
-    genWorkerId(m_controller->config()->apiWorkerId());
+    genWorkerId(m_base->config()->apiWorkerId());
 
 #   ifdef XMRIG_FEATURE_HTTP
-    m_httpd = new Httpd(m_controller);
+    m_httpd = new Httpd(m_base);
     m_httpd->start();
 #   endif
 }
@@ -155,7 +156,7 @@ void xmrig::Api::genId(const String &id)
             uint8_t hash[200];
             const size_t addrSize = sizeof(interfaces[i].phys_addr);
             const size_t inSize   = strlen(APP_KIND) + addrSize + sizeof(uint16_t);
-            const uint16_t port   = static_cast<uint16_t>(m_controller->config()->http().port());
+            const uint16_t port   = static_cast<uint16_t>(m_base->config()->http().port());
 
             uint8_t *input = new uint8_t[inSize]();
             memcpy(input, &port, sizeof(uint16_t));

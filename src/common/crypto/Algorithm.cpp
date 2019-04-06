@@ -176,7 +176,7 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
     m_algo    = INVALID_ALGO;
     m_variant = VARIANT_AUTO;
 
-    assert(algo != nullptr);
+//    assert(algo != nullptr);
     if (algo == nullptr || strlen(algo) < 1) {
         return;
     }

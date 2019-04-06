@@ -29,22 +29,22 @@
 #include <stdint.h>
 
 
-#include "base/kernel/interfaces/IControllerListener.h"
+#include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/IHttpListener.h"
 
 
 namespace xmrig {
 
 
-class Controller;
+class Base;
 class HttpServer;
 class TcpServer;
 
 
-class Httpd : public IControllerListener, public IHttpListener
+class Httpd : public IBaseListener, public IHttpListener
 {
 public:
-    Httpd(Controller *controller);
+    Httpd(Base *base);
     ~Httpd() override;
 
     bool start();
@@ -57,7 +57,7 @@ protected:
 private:
     int auth(const HttpRequest &req) const;
 
-    Controller *m_controller;
+    Base *m_base;
     HttpServer *m_http;
     TcpServer *m_server;
     uint16_t m_port;

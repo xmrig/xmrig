@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_DEFAULT_H
-#define XMRIG_CONFIGLOADER_DEFAULT_H
+#ifndef XMRIG_CONFIG_DEFAULT_H
+#define XMRIG_CONFIG_DEFAULT_H
 
 
 namespace xmrig {
@@ -85,6 +85,7 @@ R"===(
 #endif
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
-#endif /* XMRIG_CONFIGLOADER_DEFAULT_H */
+
+#endif /* XMRIG_CONFIG_DEFAULT_H */

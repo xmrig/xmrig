@@ -33,6 +33,7 @@
 namespace xmrig {
 
 
+class IJsonReader;
 class String;
 
 
@@ -66,10 +67,8 @@ public:
         UserpassKey          = 'O',
         VariantKey           = 1010,
         VerboseKey           = 1100,
-        WatchKey             = 1105,
         TlsKey               = 1013,
         FingerprintKey       = 1014,
-        AutoSaveKey          = 1016,
         ProxyDonateKey       = 1017,
 
 #       ifdef XMRIG_DEPRECATED
@@ -92,7 +91,7 @@ public:
         MaxCPUUsageKey       = 1004,
         SafeKey              = 1005,
         ThreadsKey           = 't',
-        HardwareAESKey       = 1011,
+//        HardwareAESKey       = 1011,
         AssemblyKey          = 1015,
 
         // xmrig amd
@@ -111,7 +110,6 @@ public:
         // xmrig-proxy
         AccessLogFileKey     = 'A',
         BindKey              = 'b',
-        CoinKey              = 1104,
         CustomDiffKey        = 1102,
         DebugKey             = 1101,
         ModeKey              = 'm',
@@ -141,17 +139,13 @@ public:
 
     virtual ~IConfig() = default;
 
-    virtual bool finalize()                                = 0;
-    virtual bool isWatch() const                           = 0;
-    virtual bool parseBoolean(int key, bool enable)        = 0;
-    virtual bool parseString(int key, const char *arg)     = 0;
-    virtual bool parseUint64(int key, uint64_t arg)        = 0;
-    virtual bool save()                                    = 0;
-    virtual const Algorithm &algorithm() const             = 0;
-    virtual const String &fileName() const                 = 0;
-    virtual void getJSON(rapidjson::Document &doc) const   = 0;
-    virtual void parseJSON(const rapidjson::Value &json)   = 0;
-    virtual void setFileName(const char *fileName)         = 0;
+    virtual bool isWatch() const                                       = 0;
+    virtual bool read(const IJsonReader &reader, const char *fileName) = 0;
+    virtual bool save()                                                = 0;
+    virtual const Algorithm &algorithm() const                         = 0;
+    virtual const String &fileName() const                             = 0;
+    virtual void getJSON(rapidjson::Document &doc) const               = 0;
+    virtual void setFileName(const char *fileName)                     = 0;
 };
 
 

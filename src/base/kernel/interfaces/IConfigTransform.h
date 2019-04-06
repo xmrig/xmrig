@@ -22,26 +22,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ICONTROLLERLISTENER_H
-#define XMRIG_ICONTROLLERLISTENER_H
+#ifndef XMRIG_ICONFIGTRANSFORM_H
+#define XMRIG_ICONFIGTRANSFORM_H
+
+
+#include "common/crypto/Algorithm.h"
+#include "rapidjson/fwd.h"
 
 
 namespace xmrig {
 
 
-class Config;
+class IJsonReader;
+class String;
 
 
-class IControllerListener
+class IConfigTransform
 {
 public:
-    virtual ~IControllerListener() = default;
+    virtual ~IConfigTransform() = default;
 
-    virtual void onConfigChanged(Config *config, Config *previousConfig) = 0;
+    virtual void transform(rapidjson::Document &doc, int key, const char *arg) = 0;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif // XMRIG_ICONTROLLERLISTENER_H
+#endif // XMRIG_ICONFIGTRANSFORM_H

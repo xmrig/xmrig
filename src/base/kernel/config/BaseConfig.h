@@ -22,60 +22,54 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_COMMONCONFIG_H
-#define XMRIG_COMMONCONFIG_H
+#ifndef XMRIG_BASECONFIG_H
+#define XMRIG_BASECONFIG_H
 
 
+#include "base/kernel/interfaces/IConfig.h"
 #include "base/net/http/Http.h"
 #include "base/net/stratum/Pools.h"
-#include "common/interfaces/IConfig.h"
 #include "common/xmrig.h"
+
+
+struct option;
 
 
 namespace xmrig {
 
 
-class CommonConfig : public IConfig
+class IJsonReader;
+
+
+class BaseConfig : public IConfig
 {
 public:
-    CommonConfig();
+    BaseConfig();
 
     inline bool isAutoSave() const                 { return m_autoSave; }
     inline bool isBackground() const               { return m_background; }
     inline bool isDryRun() const                   { return m_dryRun; }
     inline bool isSyslog() const                   { return m_syslog; }
-    inline const String &apiId() const             { return m_apiId; }
-    inline const String &apiWorkerId() const       { return m_apiWorkerId; }
     inline const char *logFile() const             { return m_logFile.data(); }
     inline const char *userAgent() const           { return m_userAgent.data(); }
     inline const Http &http() const                { return m_http; }
     inline const Pools &pools() const              { return m_pools; }
-    inline int printTime() const                   { return m_printTime; }
+    inline const String &apiId() const             { return m_apiId; }
+    inline const String &apiWorkerId() const       { return m_apiWorkerId; }
+    inline uint32_t printTime() const              { return m_printTime; }
 
-    inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
-    inline const Algorithm &algorithm() const override { return m_algorithm; }
-    inline const String &fileName() const override     { return m_fileName; }
+    inline bool isWatch() const override                   { return m_watch && !m_fileName.isNull(); }
+    inline const Algorithm &algorithm() const override     { return m_algorithm; }
+    inline const String &fileName() const override         { return m_fileName; }
+    inline void setFileName(const char *fileName) override { m_fileName = fileName; }
 
+    bool read(const IJsonReader &reader, const char *fileName) override;
     bool save() override;
 
     void printVersions();
 
 protected:
-    enum State {
-        NoneState,
-        ReadyState,
-        ErrorState
-    };
-
-    bool finalize() override;
-    bool parseBoolean(int key, bool enable) override;
-    bool parseString(int key, const char *arg) override;
-    bool parseUint64(int key, uint64_t arg) override;
-    void parseJSON(const rapidjson::Value &json) override;
-    void setFileName(const char *fileName) override;
-
     Algorithm m_algorithm;
-    bool m_adjusted;
     bool m_autoSave;
     bool m_background;
     bool m_dryRun;
@@ -83,20 +77,20 @@ protected:
     bool m_upgrade;
     bool m_watch;
     Http m_http;
-    int m_printTime;
     Pools m_pools;
-    State m_state;
     String m_apiId;
     String m_apiWorkerId;
     String m_fileName;
     String m_logFile;
     String m_userAgent;
+    uint32_t m_printTime;
 
 private:
-    bool parseInt(int key, int arg);
+    inline void setPrintTime(uint32_t printTime) { if (printTime <= 3600) { m_printTime = printTime; } }
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
-#endif /* XMRIG_COMMONCONFIG_H */
+
+#endif /* XMRIG_BASECONFIG_H */

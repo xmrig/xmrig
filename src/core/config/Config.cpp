@@ -28,7 +28,7 @@
 
 
 #include "base/io/log/Log.h"
-#include "common/config/ConfigLoader.h"
+#include "base/kernel/interfaces/IJsonReader.h"
 #include "common/cpu/Cpu.h"
 #include "core/config/Config.h"
 #include "crypto/Asm.h"
@@ -42,7 +42,7 @@
 static char affinity_tmp[20] = { 0 };
 
 
-xmrig::Config::Config() : xmrig::CommonConfig(),
+xmrig::Config::Config() :
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
     m_assembly(ASM_AUTO),
@@ -55,9 +55,23 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
 }
 
 
-bool xmrig::Config::reload(const rapidjson::Value &json)
+bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 {
-    return xmrig::ConfigLoader::reload(this, json);
+    if (!BaseConfig::read(reader, fileName)) {
+        return false;
+    }
+
+    m_hugePages = reader.getBool("huge-pages", true);
+    m_safe      = reader.getBool("safe");
+
+    setAesMode(reader.getValue("hw-aes"));
+    setAlgoVariant(reader.getInt("av"));
+    setAssembly(reader.getValue("asm"));
+    setMaxCpuUsage(reader.getInt("max-cpu-usage", 100));
+    setPriority(reader.getInt("cpu-priority", -1));
+    setThreads(reader.getValue("threads"));
+
+    return finalize();
 }
 
 
@@ -126,22 +140,8 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 }
 
 
-xmrig::Config *xmrig::Config::load(Process *process, IConfigListener *listener)
-{
-    return static_cast<Config*>(ConfigLoader::load(process, listener));
-}
-
-
 bool xmrig::Config::finalize()
 {
-    if (m_state != NoneState) {
-        return CommonConfig::finalize();
-    }
-
-    if (!CommonConfig::finalize()) {
-        return false;
-    }
-
     if (!m_threads.cpu.empty()) {
         m_threads.mode     = Advanced;
         const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
@@ -153,7 +153,7 @@ bool xmrig::Config::finalize()
         return true;
     }
 
-    const AlgoVariant av = getAlgoVariant();   
+    const AlgoVariant av = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
     const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
@@ -173,117 +173,54 @@ bool xmrig::Config::finalize()
     }
 
     m_shouldSave = m_threads.mode == Automatic;
-    return true;
-}
-
-
-bool xmrig::Config::parseBoolean(int key, bool enable)
-{
-    if (!CommonConfig::parseBoolean(key, enable)) {
-        return false;
-    }
-
-    switch (key) {
-    case SafeKey: /* --safe */
-        m_safe = enable;
-        break;
-
-    case HugePagesKey: /* --no-huge-pages */
-        m_hugePages = enable;
-        break;
-
-    case HardwareAESKey: /* hw-aes config only */
-        m_aesMode = enable ? AES_HW : AES_SOFT;
-        break;
-
-#   ifndef XMRIG_NO_ASM
-    case AssemblyKey:
-        m_assembly = Asm::parse(enable);
-        break;
-#   endif
-
-    default:
-        break;
-    }
 
     return true;
 }
 
 
-bool xmrig::Config::parseString(int key, const char *arg)
+void xmrig::Config::setAesMode(const rapidjson::Value &aesMode)
 {
-    if (!CommonConfig::parseString(key, arg)) {
-        return false;
+    if (aesMode.IsBool()) {
+        m_aesMode = aesMode.GetBool() ? AES_HW : AES_SOFT;
     }
-
-    switch (key) {
-    case AVKey:          /* --av */
-    case MaxCPUUsageKey: /* --max-cpu-usage */
-    case CPUPriorityKey: /* --cpu-priority */
-        return parseUint64(key, strtol(arg, nullptr, 10));
-
-    case SafeKey: /* --safe */
-        return parseBoolean(key, true);
-
-    case HugePagesKey: /* --no-huge-pages */
-        return parseBoolean(key, false);
-
-    case ThreadsKey:  /* --threads */
-        if (strncmp(arg, "all", 3) == 0) {
-            m_threads.count = Cpu::info()->threads();
-            return true;
-        }
-
-        return parseUint64(key, strtol(arg, nullptr, 10));
-
-    case CPUAffinityKey: /* --cpu-affinity */
-        {
-            const char *p  = strstr(arg, "0x");
-            return parseUint64(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
-        }
-
-#   ifndef XMRIG_NO_ASM
-    case AssemblyKey: /* --asm */
-        m_assembly = Asm::parse(arg);
-        break;
-#   endif
-
-    default:
-        break;
-    }
-
-    return true;
 }
 
 
-bool xmrig::Config::parseUint64(int key, uint64_t arg)
+void xmrig::Config::setAlgoVariant(int av)
 {
-    if (!CommonConfig::parseUint64(key, arg)) {
-        return false;
+    if (av >= AV_AUTO && av < AV_MAX) {
+        m_algoVariant = static_cast<AlgoVariant>(av);
     }
-
-    switch (key) {
-    case CPUAffinityKey: /* --cpu-affinity */
-        if (arg) {
-            m_threads.mask = static_cast<int64_t>(arg);
-        }
-        break;
-
-    default:
-        return parseInt(key, static_cast<int>(arg));
-    }
-
-    return true;
 }
 
 
-void xmrig::Config::parseJSON(const rapidjson::Value &json)
+void xmrig::Config::setAssembly(const rapidjson::Value &assembly)
 {
-    CommonConfig::parseJSON(json);
+    m_assembly = Asm::parse(assembly);
+}
 
-    const rapidjson::Value &threads = json["threads"];
 
+void xmrig::Config::setMaxCpuUsage(int max)
+{
+    if (max > 0 && max <= 100) {
+        m_maxCpuUsage = max;
+    }
+}
+
+
+void xmrig::Config::setPriority(int priority)
+{
+    if (priority >= 0 && priority <= 5) {
+        m_priority = priority;
+    }
+}
+
+
+void xmrig::Config::setThreads(const rapidjson::Value &threads)
+{
     if (threads.IsArray()) {
+        m_threads.cpu.clear();
+
         for (const rapidjson::Value &value : threads.GetArray()) {
             if (!value.IsObject()) {
                 continue;
@@ -298,41 +235,12 @@ void xmrig::Config::parseJSON(const rapidjson::Value &json)
             }
         }
     }
-}
-
-
-bool xmrig::Config::parseInt(int key, int arg)
-{
-    switch (key) {
-    case ThreadsKey: /* --threads */
-        if (arg >= 0 && arg < 1024) {
-            m_threads.count = arg;
+    else if (threads.IsUint()) {
+        const unsigned count = threads.GetUint();
+        if (count < 1024) {
+            m_threads.count = count;
         }
-        break;
-
-    case AVKey: /* --av */
-        if (arg >= AV_AUTO && arg < AV_MAX) {
-            m_algoVariant = static_cast<AlgoVariant>(arg);
-        }
-        break;
-
-    case MaxCPUUsageKey: /* --max-cpu-usage */
-        if (m_maxCpuUsage > 0 && arg <= 100) {
-            m_maxCpuUsage = arg;
-        }
-        break;
-
-    case CPUPriorityKey: /* --cpu-priority */
-        if (arg >= 0 && arg <= 5) {
-            m_priority = arg;
-        }
-        break;
-
-    default:
-        break;
     }
-
-    return true;
 }
 
 

@@ -1,15 +1,21 @@
 set(HEADERS_BASE
     src/base/io/Console.h
     src/base/io/Json.h
+    src/base/io/JsonChain.h
     src/base/io/log/backends/ConsoleLog.h
     src/base/io/log/backends/FileLog.h
     src/base/io/log/Log.h
     src/base/io/Watcher.h
+    src/base/kernel/Base.h
+    src/base/kernel/config/BaseConfig.h
+    src/base/kernel/config/BaseTransform.h
     src/base/kernel/Entry.h
+    src/base/kernel/interfaces/IBaseListener.h
     src/base/kernel/interfaces/IClientListener.h
+    src/base/kernel/interfaces/IConfig.h
     src/base/kernel/interfaces/IConfigListener.h
+    src/base/kernel/interfaces/IConfigTransform.h
     src/base/kernel/interfaces/IConsoleListener.h
-    src/base/kernel/interfaces/IControllerListener.h
     src/base/kernel/interfaces/IDnsListener.h
     src/base/kernel/interfaces/ILineListener.h
     src/base/kernel/interfaces/ILogBackend.h
@@ -44,11 +50,15 @@ set(HEADERS_BASE
 set(SOURCES_BASE
     src/base/io/Console.cpp
     src/base/io/Json.cpp
+    src/base/io/JsonChain.cpp
     src/base/io/log/backends/ConsoleLog.cpp
     src/base/io/log/backends/FileLog.cpp
     src/base/io/log/Log.cpp
     src/base/io/Watcher.cpp
+    src/base/kernel/config/BaseConfig.cpp
+    src/base/kernel/config/BaseTransform.cpp
     src/base/kernel/Entry.cpp
+    src/base/kernel/Base.cpp
     src/base/kernel/Process.cpp
     src/base/kernel/Signals.cpp
     src/base/net/dns/Dns.cpp
@@ -87,6 +97,7 @@ if (WITH_HTTPD)
     set(HEADERS_BASE_HTTP
         src/3rdparty/http-parser/http_parser.h
         src/base/kernel/interfaces/IHttpListener.h
+        src/base/kernel/interfaces/IJsonReader.h
         src/base/kernel/interfaces/ITcpServerListener.h
         src/base/net/http/HttpApiResponse.h
         src/base/net/http/HttpContext.h

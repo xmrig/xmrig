@@ -48,13 +48,13 @@ static size_t faviconSize  = 0;
 } // namespace xmrig
 
 
-xmrig::Httpd::Httpd(Controller *controller) :
-    m_controller(controller),
+xmrig::Httpd::Httpd(Base *base) :
+    m_base(base),
     m_http(nullptr),
     m_server(nullptr),
     m_port(0)
 {
-    controller->addListener(this);
+    base->addListener(this);
 }
 
 
@@ -65,7 +65,7 @@ xmrig::Httpd::~Httpd()
 
 bool xmrig::Httpd::start()
 {
-    const Http &config = m_controller->config()->http();
+    const Http &config = m_base->config()->http();
 
     if (!config.isEnabled()) {
         return true;
@@ -157,7 +157,7 @@ void xmrig::Httpd::onHttpRequest(const HttpRequest &req)
     }
 
     if (req.method != HTTP_GET) {
-        if (m_controller->config()->http().isRestricted()) {
+        if (m_base->config()->http().isRestricted()) {
             return HttpApiResponse(req.id(), HTTP_STATUS_FORBIDDEN).end();
         }
 
@@ -166,13 +166,13 @@ void xmrig::Httpd::onHttpRequest(const HttpRequest &req)
         }
     }
 
-    m_controller->api()->request(req);
+    m_base->api()->request(req);
 }
 
 
 int xmrig::Httpd::auth(const HttpRequest &req) const
 {
-    const Http &config = m_controller->config()->http();
+    const Http &config = m_base->config()->http();
 
     if (!req.headers.count(kAuthorization)) {
         return config.isAuthRequired() ? HTTP_STATUS_UNAUTHORIZED : HTTP_STATUS_OK;

@@ -22,38 +22,28 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONTROLLER_H
-#define XMRIG_CONTROLLER_H
+
+#include "core/config/ConfigTransform.h"
+#include "base/kernel/interfaces/IConfig.h"
 
 
-#include "base/kernel/Base.h"
-
-
-namespace xmrig {
-
-
-class Network;
-
-
-class Controller : public Base
+xmrig::ConfigTransform::ConfigTransform()
 {
-public:
-    Controller(Process *process);
-    ~Controller() override;
 
-    bool isReady() const override;
-    int init() override;
-    void start() override;
-    void stop() override;
-
-    Network *network() const;
-
-private:
-    Network *m_network;
-};
+}
 
 
-} // namespace xmrig
+void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const char *arg)
+{
+    BaseTransform::transform(doc, key, arg);
+}
 
 
-#endif /* XMRIG_CONTROLLER_H */
+void xmrig::ConfigTransform::transformBoolean(rapidjson::Document &doc, int key, bool enable)
+{
+}
+
+
+void xmrig::ConfigTransform::transformUint64(rapidjson::Document &doc, int key, uint64_t arg)
+{
+}
