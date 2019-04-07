@@ -65,10 +65,8 @@ const String Pool::kDefaultUser     = "x";
 
 
 xmrig::Pool::Pool() :
-    m_enabled(true),
-    m_nicehash(false),
-    m_tls(false),
     m_keepAlive(0),
+    m_flags(0),
     m_port(kDefaultPort)
 {
 }
@@ -86,10 +84,8 @@ xmrig::Pool::Pool() :
  * @param url
  */
 xmrig::Pool::Pool(const char *url) :
-    m_enabled(true),
-    m_nicehash(false),
-    m_tls(false),
     m_keepAlive(0),
+    m_flags(1),
     m_port(kDefaultPort)
 {
     parse(url);
@@ -97,22 +93,24 @@ xmrig::Pool::Pool(const char *url) :
 
 
 xmrig::Pool::Pool(const rapidjson::Value &object) :
-    m_enabled(true),
-    m_nicehash(false),
-    m_tls(false),
     m_keepAlive(0),
+    m_flags(1),
     m_port(kDefaultPort)
 {
     if (!parse(Json::getString(object, kUrl))) {
         return;
     }
 
-    setUser(Json::getString(object, kUser));
-    setPassword(Json::getString(object, kPass));
-    setRigId(Json::getString(object, kRigId));
-    setNicehash(Json::getBool(object, kNicehash));
+    m_user        = Json::getString(object, kUser);
+    m_password    = Json::getString(object, kPass);
+    m_rigId       = Json::getString(object, kRigId);
+    m_fingerprint = Json::getString(object, kFingerprint);
 
-    const rapidjson::Value &keepalive = object[kKeepalive];
+    m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
+    m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
+    m_flags.set(FLAG_TLS,      Json::getBool(object, kTls, m_flags.test(FLAG_TLS)));
+
+    const rapidjson::Value &keepalive = Json::getValue(object, kKeepalive);
     if (keepalive.IsInt()) {
         setKeepAlive(keepalive.GetInt());
     }
@@ -120,7 +118,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
         setKeepAlive(keepalive.GetBool());
     }
 
-    const rapidjson::Value &variant = object[kVariant];
+    const rapidjson::Value &variant = Json::getValue(object, kVariant);
     if (variant.IsString()) {
         algorithm().parseVariant(variant.GetString());
     }
@@ -128,17 +126,12 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
         algorithm().parseVariant(variant.GetInt());
     }
 
-    m_enabled     = Json::getBool(object, kEnabled, true);
-    m_tls         = Json::getBool(object, kTls);
-    m_fingerprint = Json::getString(object, kFingerprint);
 }
 
 
 xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
-    m_enabled(true),
-    m_nicehash(nicehash),
-    m_tls(tls),
     m_keepAlive(keepAlive),
+    m_flags(1),
     m_host(host),
     m_password(password),
     m_user(user),
@@ -151,6 +144,9 @@ xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char 
     snprintf(url, size - 1, "%s:%d", m_host.data(), m_port);
 
     m_url = url;
+
+    m_flags.set(FLAG_NICEHASH, nicehash);
+    m_flags.set(FLAG_TLS,      tls);
 }
 
 
@@ -184,15 +180,13 @@ bool xmrig::Pool::isEnabled() const
     }
 #   endif
 
-    return m_enabled && isValid() && algorithm().isValid();
+    return m_flags.test(FLAG_ENABLED) && isValid() && algorithm().isValid();
 }
 
 
 bool xmrig::Pool::isEqual(const Pool &other) const
 {
-    return (m_nicehash       == other.m_nicehash
-            && m_enabled     == other.m_enabled
-            && m_tls         == other.m_tls
+    return (m_flags          == other.m_flags
             && m_keepAlive   == other.m_keepAlive
             && m_port        == other.m_port
             && m_algorithm   == other.m_algorithm
@@ -214,10 +208,10 @@ bool xmrig::Pool::parse(const char *url)
 
     if (p) {
         if (strncasecmp(url, "stratum+tcp://", 14) == 0) {
-            m_tls = false;
+            m_flags.set(FLAG_TLS, false);
         }
         else if (strncasecmp(url, "stratum+ssl://", 14) == 0) {
-            m_tls = true;
+            m_flags.set(FLAG_TLS, true);
         }
         else {
             return false;
@@ -309,7 +303,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
         break;
     }
 
-    obj.AddMember(StringRef(kEnabled),     m_enabled, allocator);
+    obj.AddMember(StringRef(kEnabled),     m_flags.test(FLAG_ENABLED), allocator);
     obj.AddMember(StringRef(kTls),         isTLS(), allocator);
     obj.AddMember(StringRef(kFingerprint), m_fingerprint.toJSON(), allocator);
 
@@ -396,8 +390,8 @@ void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
     using namespace xmrig;
 
     if (m_host.contains(".nicehash.com")) {
+        m_flags.set(FLAG_NICEHASH, true);
         m_keepAlive = false;
-        m_nicehash  = true;
         bool valid  = true;
 
         switch (m_port) {
@@ -432,7 +426,7 @@ void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
             m_algorithm.setAlgo(INVALID_ALGO);
         }
 
-        m_tls = m_port > 33000;
+        m_flags.set(FLAG_TLS, m_port > 33000);
         return;
     }
 

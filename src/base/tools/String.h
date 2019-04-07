@@ -85,6 +85,7 @@ public:
     rapidjson::Value toJSON() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     std::vector<xmrig::String> split(char sep) const;
+    String &toLower();
 
     static String join(const std::vector<xmrig::String> &vec, char sep);
 

@@ -129,6 +129,20 @@ std::vector<xmrig::String> xmrig::String::split(char sep) const
 }
 
 
+xmrig::String &xmrig::String::toLower()
+{
+    if (isNull() || isEmpty()) {
+        return *this;
+    }
+
+    for (size_t i = 0; i < size(); ++i) {
+        m_data[i] = static_cast<char>(tolower(m_data[i]));
+    }
+
+    return *this;
+}
+
+
 xmrig::String xmrig::String::join(const std::vector<xmrig::String> &vec, char sep)
 {
     if (vec.empty()) {

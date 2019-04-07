@@ -26,6 +26,7 @@
 #define XMRIG_POOL_H
 
 
+#include <bitset>
 #include <vector>
 
 
@@ -40,6 +41,13 @@ namespace xmrig {
 class Pool
 {
 public:
+    enum Flags {
+        FLAG_ENABLED,
+        FLAG_NICEHASH,
+        FLAG_TLS,
+        FLAG_MAX
+    };
+
     static const String kDefaultPassword;
     static const String kDefaultUser;
 
@@ -59,8 +67,8 @@ public:
        );
 
     inline Algorithm &algorithm()                       { return m_algorithm; }
-    inline bool isNicehash() const                      { return m_nicehash; }
-    inline bool isTLS() const                           { return m_tls; }
+    inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
+    inline bool isTLS() const                           { return m_flags.test(FLAG_TLS); }
     inline bool isValid() const                         { return !m_host.isNull() && m_port > 0; }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
     inline const Algorithms &algorithms() const         { return m_algorithms; }
@@ -72,17 +80,9 @@ public:
     inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline uint16_t port() const                        { return m_port; }
-    inline void setFingerprint(const char *fingerprint) { m_fingerprint = fingerprint; }
-    inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? kKeepAliveTimeout : 0); }
-    inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
-    inline void setNicehash(bool nicehash)              { m_nicehash = nicehash; }
-    inline void setPassword(const char *password)       { m_password = password; }
-    inline void setRigId(const char *rigId)             { m_rigId = rigId; }
-    inline void setTLS(bool tls)                        { m_tls = tls; }
-    inline void setUser(const char *user)               { m_user = user; }
 
-    inline bool operator!=(const Pool &other) const  { return !isEqual(other); }
-    inline bool operator==(const Pool &other) const  { return isEqual(other); }
+    inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
+    inline bool operator==(const Pool &other) const     { return isEqual(other); }
 
     bool isCompatible(const Algorithm &algorithm) const;
     bool isEnabled() const;
@@ -98,6 +98,9 @@ public:
 #   endif
 
 private:
+    inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? kKeepAliveTimeout : 0); }
+    inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
+
     bool parseIPv6(const char *addr);
     void addVariant(Variant variant);
     void adjustVariant(const Variant variantHint);
@@ -105,10 +108,8 @@ private:
 
     Algorithm m_algorithm;
     Algorithms m_algorithms;
-    bool m_enabled;
-    bool m_nicehash;
-    bool m_tls;
     int m_keepAlive;
+    std::bitset<FLAG_MAX> m_flags;
     String m_fingerprint;
     String m_host;
     String m_password;
