@@ -98,7 +98,20 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         return set(doc, "algo", arg);
 
     case IConfig::UserpassKey: /* --userpass */
-        return add(doc, kPools, "userpass", arg);
+        {
+            const char *p = strrchr(arg, ':');
+            if (!p) {
+                return;
+            }
+
+            char *user = new char[p - arg + 1]();
+            strncpy(user, arg, static_cast<size_t>(p - arg));
+
+            add<const char *>(doc, kPools, "user", user);
+            add(doc, kPools, "pass", p + 1);
+            delete [] user;
+        }
+        break;
 
     case IConfig::UrlKey: /* --url */
         return add(doc, kPools, "url", arg, true);

@@ -541,7 +541,7 @@ int64_t xmrig::Client::send(const rapidjson::Document &doc)
 
 int64_t xmrig::Client::send(size_t size)
 {
-    LOG_DEBUG("[%s] send (%d bytes): \"%s\"", url(), size, m_sendBuf);
+    LOG_DEBUG("[%s] send (%d bytes): \"%.*s\"", url(), size, static_cast<int>(size) - 1, m_sendBuf);
 
 #   ifdef XMRIG_FEATURE_TLS
     if (isTLS()) {
@@ -676,7 +676,7 @@ void xmrig::Client::parse(char *line, size_t len)
 {
     startTimeout();
 
-    LOG_DEBUG("[%s] received (%d bytes): \"%s\"", url(), len, line);
+    LOG_DEBUG("[%s] received (%d bytes): \"%.*s\"", url(), len, static_cast<int>(len), line);
 
     if (len < 32 || line[0] != '{') {
         if (!isQuiet()) {

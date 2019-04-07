@@ -246,23 +246,6 @@ bool xmrig::Pool::parse(const char *url)
 }
 
 
-bool xmrig::Pool::setUserpass(const char *userpass)
-{
-    const char *p = strchr(userpass, ':');
-    if (!p) {
-        return false;
-    }
-
-    char *user = new char[p - userpass + 1]();
-    strncpy(user, userpass, static_cast<size_t>(p - userpass));
-
-    m_user     = user;
-    m_password = p + 1;
-
-    return true;
-}
-
-
 rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
@@ -344,7 +327,7 @@ void xmrig::Pool::print() const
     LOG_DEBUG ("pass:      %s", m_password.data());
     LOG_DEBUG ("rig-id     %s", m_rigId.data());
     LOG_DEBUG ("algo:      %s", m_algorithm.name());
-    LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_nicehash));
+    LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_flags.test(FLAG_NICEHASH)));
     LOG_DEBUG ("keepAlive: %d", m_keepAlive);
 }
 #endif

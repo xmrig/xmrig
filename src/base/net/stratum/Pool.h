@@ -88,7 +88,6 @@ public:
     bool isEnabled() const;
     bool isEqual(const Pool &other) const;
     bool parse(const char *url);
-    bool setUserpass(const char *userpass);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     void adjust(const Algorithm &algorithm);
     void setAlgo(const Algorithm &algorithm);
