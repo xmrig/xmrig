@@ -35,13 +35,13 @@
 namespace xmrig {
 
 
-class HttpRequest;
+class HttpData;
 
 
 class HttpApiRequest : public ApiRequest
 {
 public:
-    HttpApiRequest(const HttpRequest &req, bool restricted);
+    HttpApiRequest(const HttpData &req, bool restricted);
 
 protected:
     inline rapidjson::Document &doc() override           { return m_res.doc(); }
@@ -55,7 +55,7 @@ protected:
 
 private:
     bool m_parsed;
-    const HttpRequest &m_req;
+    const HttpData &m_req;
     HttpApiResponse m_res;
     rapidjson::Document m_body;
     String m_url;

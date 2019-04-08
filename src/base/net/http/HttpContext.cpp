@@ -35,43 +35,72 @@
 
 namespace xmrig {
 
+static http_parser_settings http_settings;
+static std::map<uint64_t, HttpContext *> storage;
 static uint64_t SEQUENCE = 0;
-std::map<uint64_t, HttpContext *> HttpContext::m_storage;
 
 } // namespace xmrig
 
 
 xmrig::HttpContext::HttpContext(int parser_type, IHttpListener *listener) :
-    HttpRequest(SEQUENCE++),
-    listener(listener),
-    connect(nullptr),
-    m_wasHeaderValue(false)
+    HttpData(SEQUENCE++),
+    m_wasHeaderValue(false),
+    m_listener(listener)
 {
-    m_storage[id()] = this;
+    storage[id()] = this;
 
-    parser = new http_parser;
-    tcp    = new uv_tcp_t;
+    m_parser = new http_parser;
+    m_tcp    = new uv_tcp_t;
 
-    uv_tcp_init(uv_default_loop(), tcp);
-    http_parser_init(parser, static_cast<http_parser_type>(parser_type));
+    uv_tcp_init(uv_default_loop(), m_tcp);
+    uv_tcp_nodelay(m_tcp, 1);
 
-    parser->data = tcp->data = this;
+    http_parser_init(m_parser, static_cast<http_parser_type>(parser_type));
+
+    m_parser->data = m_tcp->data = this;
+
+    if (http_settings.on_message_complete == nullptr) {
+        attach(&http_settings);
+    }
 }
 
 
 xmrig::HttpContext::~HttpContext()
 {
-    delete connect;
-    delete tcp;
-    delete parser;
+    delete m_tcp;
+    delete m_parser;
+}
+
+
+size_t xmrig::HttpContext::parse(const char *data, size_t size)
+{
+    return http_parser_execute(m_parser, &http_settings, data, size);
+}
+
+
+std::string xmrig::HttpContext::ip() const
+{
+    char ip[46]           = {};
+    sockaddr_storage addr = {};
+    int size              = sizeof(addr);
+
+    uv_tcp_getpeername(m_tcp, reinterpret_cast<sockaddr*>(&addr), &size);
+    if (reinterpret_cast<sockaddr_in *>(&addr)->sin_family == AF_INET6) {
+        uv_ip6_name(reinterpret_cast<sockaddr_in6*>(&addr), ip, 45);
+    }
+    else {
+        uv_ip4_name(reinterpret_cast<sockaddr_in*>(&addr), ip, 16);
+    }
+
+    return ip;
 }
 
 
 void xmrig::HttpContext::close()
 {
-    auto it = m_storage.find(id());
-    if (it != m_storage.end()) {
-        m_storage.erase(it);
+    auto it = storage.find(id());
+    if (it != storage.end()) {
+        storage.erase(it);
     }
 
     if (!uv_is_closing(handle())) {
@@ -82,65 +111,17 @@ void xmrig::HttpContext::close()
 
 xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
 {
-    if (m_storage.count(id) == 0) {
+    if (storage.count(id) == 0) {
         return nullptr;
     }
 
-    return m_storage[id];
-}
-
-
-void xmrig::HttpContext::attach(http_parser_settings *settings)
-{
-    if (settings->on_message_complete != nullptr) {
-        return;
-    }
-
-    settings->on_message_begin  = nullptr;
-    settings->on_status         = nullptr;
-    settings->on_chunk_header   = nullptr;
-    settings->on_chunk_complete = nullptr;
-
-    settings->on_url = [](http_parser *parser, const char *at, size_t length) -> int
-    {
-        static_cast<HttpContext*>(parser->data)->url = std::string(at, length);
-        return 0;
-    };
-
-    settings->on_header_field = onHeaderField;
-    settings->on_header_value = onHeaderValue;
-
-    settings->on_headers_complete = [](http_parser* parser) -> int {
-        HttpContext *ctx = static_cast<HttpContext*>(parser->data);
-        ctx->method = parser->method;
-
-        if (!ctx->m_lastHeaderField.empty()) {
-            ctx->setHeader();
-        }
-
-        return 0;
-    };
-
-    settings->on_body = [](http_parser *parser, const char *at, size_t len) -> int
-    {
-        static_cast<HttpContext*>(parser->data)->body += std::string(at, len);
-
-        return 0;
-    };
-
-    settings->on_message_complete = [](http_parser *parser) -> int
-    {
-        const HttpContext *ctx = reinterpret_cast<const HttpContext*>(parser->data);
-        ctx->listener->onHttpRequest(*ctx);
-
-        return 0;
-    };
+    return storage[id];
 }
 
 
 void xmrig::HttpContext::closeAll()
 {
-    for (auto kv : m_storage) {
+    for (auto kv : storage) {
         if (!uv_is_closing(kv.second->handle())) {
             uv_close(kv.second->handle(), [](uv_handle_t *handle) -> void { delete reinterpret_cast<HttpContext*>(handle->data); });
         }
@@ -179,6 +160,54 @@ int xmrig::HttpContext::onHeaderValue(http_parser *parser, const char *at, size_
     }
 
     return 0;
+}
+
+
+void xmrig::HttpContext::attach(http_parser_settings *settings)
+{
+    settings->on_message_begin  = nullptr;
+    settings->on_status         = nullptr;
+    settings->on_chunk_header   = nullptr;
+    settings->on_chunk_complete = nullptr;
+
+    settings->on_url = [](http_parser *parser, const char *at, size_t length) -> int
+    {
+        static_cast<HttpContext*>(parser->data)->url = std::string(at, length);
+        return 0;
+    };
+
+    settings->on_header_field = onHeaderField;
+    settings->on_header_value = onHeaderValue;
+
+    settings->on_headers_complete = [](http_parser* parser) -> int {
+        HttpContext *ctx = static_cast<HttpContext*>(parser->data);
+        ctx->status = parser->status_code;
+
+        if (parser->type == HTTP_REQUEST) {
+            ctx->method = parser->method;
+        }
+
+        if (!ctx->m_lastHeaderField.empty()) {
+            ctx->setHeader();
+        }
+
+        return 0;
+    };
+
+    settings->on_body = [](http_parser *parser, const char *at, size_t len) -> int
+    {
+        static_cast<HttpContext*>(parser->data)->body += std::string(at, len);
+
+        return 0;
+    };
+
+    settings->on_message_complete = [](http_parser *parser) -> int
+    {
+        const HttpContext *ctx = static_cast<const HttpContext*>(parser->data);
+        ctx->m_listener->onHttpData(*ctx);
+
+        return 0;
+    };
 }
 
 

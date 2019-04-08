@@ -284,14 +284,6 @@ void xmrig::Client::onResolved(const Dns &dns, int status)
         return reconnect();
     }
 
-    if (dns.isEmpty()) {
-        if (!isQuiet()) {
-            LOG_ERR("[%s] DNS error: \"No IPv4 (A) or IPv6 (AAAA) records found\"", url());
-        }
-
-        return reconnect();
-    }
-
     const DnsRecord &record = dns.get();
     m_ip = record.ip();
 
@@ -574,8 +566,6 @@ void xmrig::Client::connect(sockaddr *addr)
 {
     setState(ConnectingState);
 
-    reinterpret_cast<sockaddr_in*>(addr)->sin_port = htons(m_pool.port());
-
     uv_connect_t *req = new uv_connect_t;
     req->data = m_storage.ptr(m_key);
 
@@ -589,7 +579,7 @@ void xmrig::Client::connect(sockaddr *addr)
     uv_tcp_keepalive(m_socket, 1, 60);
 #   endif
 
-    uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
+    uv_tcp_connect(req, m_socket, addr, onConnect);
 
     delete addr;
 }
@@ -970,7 +960,7 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
     client->m_stream->data = req->data;
     client->setState(ConnectedState);
 
-    uv_read_start(client->m_stream, Client::onAllocBuffer, Client::onRead);
+    uv_read_start(client->m_stream, onAllocBuffer, onRead);
     delete req;
 
     client->handshake();

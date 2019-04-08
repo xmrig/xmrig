@@ -29,13 +29,13 @@
 namespace xmrig {
 
 
-template<typename T>
+template<typename REQ>
 class Baton
 {
 public:
     inline Baton() { req.data = this; }
 
-    T req;
+    REQ req;
 };
 
 

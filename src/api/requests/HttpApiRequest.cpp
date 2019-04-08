@@ -24,11 +24,11 @@
 
 
 #include "api/requests/HttpApiRequest.h"
-#include "base/net/http/HttpRequest.h"
+#include "base/net/http/HttpData.h"
 #include "rapidjson/error/en.h"
 
 
-xmrig::HttpApiRequest::HttpApiRequest(const HttpRequest &req, bool restricted) :
+xmrig::HttpApiRequest::HttpApiRequest(const HttpData &req, bool restricted) :
     ApiRequest(SOURCE_HTTP, restricted),
     m_parsed(false),
     m_req(req),

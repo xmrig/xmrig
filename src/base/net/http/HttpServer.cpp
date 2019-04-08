@@ -35,17 +35,9 @@
 #include "base/net/http/HttpServer.h"
 
 
-namespace xmrig {
-
-static http_parser_settings http_settings;
-
-} // namespace xmrig
-
-
 xmrig::HttpServer::HttpServer(IHttpListener *listener) :
     m_listener(listener)
 {
-    HttpContext::attach(&http_settings);
 }
 
 
@@ -77,7 +69,7 @@ void xmrig::HttpServer::onConnection(uv_stream_t *stream, uint16_t)
 
             if (nread >= 0) {
                 const size_t size   = static_cast<size_t>(nread);
-                const size_t parsed = http_parser_execute(ctx->parser, &http_settings, buf->base, size);
+                const size_t parsed = ctx->parse(buf->base, size);
 
                 if (parsed < size) {
                     ctx->close();

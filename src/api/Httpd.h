@@ -52,10 +52,10 @@ public:
 
 protected:
     void onConfigChanged(Config *config, Config *previousConfig) override;
-    void onHttpRequest(const HttpRequest &req) override;
+    void onHttpData(const HttpData &data) override;
 
 private:
-    int auth(const HttpRequest &req) const;
+    int auth(const HttpData &req) const;
 
     Base *m_base;
     HttpServer *m_http;

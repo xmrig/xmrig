@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,60 +23,38 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNS_H
-#define XMRIG_DNS_H
+
+#ifndef XMRIG_HTTPDATA_H
+#define XMRIG_HTTPDATA_H
 
 
-#include <vector>
-#include <uv.h>
-
-
-#include "base/net/dns/DnsRecord.h"
-#include "base/net/tools/Storage.h"
-#include "base/tools/String.h"
+#include <map>
+#include <string>
 
 
 namespace xmrig {
 
 
-class IDnsListener;
-
-
-class Dns
+class HttpData
 {
 public:
-    Dns(IDnsListener *listener);
-    ~Dns();
+    inline HttpData(uint64_t id) : method(0), status(0), m_id(id) {}
 
-    inline bool isEmpty() const       { return m_ipv4.empty() && m_ipv6.empty(); }
-    inline const String &host() const { return m_host; }
-    inline int status() const         { return m_status; }
+    inline uint64_t id() const { return m_id; }
 
-    bool resolve(const String &host);
-    const char *error() const;
-    const DnsRecord &get(DnsRecord::Type prefered = DnsRecord::A) const;
-    size_t count(DnsRecord::Type type = DnsRecord::Unknown) const;
+    int method;
+    int status;
+    std::map<const std::string, const std::string> headers;
+    std::string body;
+    std::string url;
 
 private:
-    void clear();
-    void onResolved(int status, addrinfo *res);
-
-    static void onResolved(uv_getaddrinfo_t *req, int status, addrinfo *res);
-
-    addrinfo m_hints;
-    IDnsListener *m_listener;
-    int m_status;
-    std::vector<DnsRecord> m_ipv4;
-    std::vector<DnsRecord> m_ipv6;
-    String m_host;
-    uintptr_t m_key;
-    uv_getaddrinfo_t *m_resolver;
-
-    static Storage<Dns> m_storage;
+    const uint64_t m_id;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_DNS_H */
+#endif // XMRIG_HTTPDATA_H
+

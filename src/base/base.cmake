@@ -100,8 +100,9 @@ if (WITH_HTTPD)
         src/base/kernel/interfaces/IJsonReader.h
         src/base/kernel/interfaces/ITcpServerListener.h
         src/base/net/http/HttpApiResponse.h
+        src/base/net/http/HttpClient.h
         src/base/net/http/HttpContext.h
-        src/base/net/http/HttpRequest.h
+        src/base/net/http/HttpData.h
         src/base/net/http/HttpResponse.h
         src/base/net/http/HttpServer.h
         src/base/net/tools/TcpServer.h
@@ -110,6 +111,7 @@ if (WITH_HTTPD)
     set(SOURCES_BASE_HTTP
         src/3rdparty/http-parser/http_parser.c
         src/base/net/http/HttpApiResponse.cpp
+        src/base/net/http/HttpClient.cpp
         src/base/net/http/HttpContext.cpp
         src/base/net/http/HttpResponse.cpp
         src/base/net/http/HttpServer.cpp

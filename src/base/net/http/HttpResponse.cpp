@@ -49,7 +49,6 @@ public:
         m_ctx(ctx),
         m_header(ss.str())
     {
-        req.data     = this;
         bufs[0].len  = m_header.size();
         bufs[0].base = const_cast<char *>(m_header.c_str());
 
@@ -137,21 +136,10 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
     if (statusCode() >= 400)
 #   endif
     {
-        const bool err        = statusCode() >= 400;
-        char ip[46]           = {};
-        sockaddr_storage addr = {};
-        int aSize             = sizeof(addr);
-
-        uv_tcp_getpeername(ctx->tcp, reinterpret_cast<sockaddr*>(&addr), &aSize);
-        if (reinterpret_cast<sockaddr_in *>(&addr)->sin_family == AF_INET6) {
-            uv_ip6_name(reinterpret_cast<sockaddr_in6*>(&addr), ip, 45);
-        }
-        else {
-            uv_ip4_name(reinterpret_cast<sockaddr_in*>(&addr), ip, 16);
-        }
+        const bool err = statusCode() >= 400;
 
         Log::print(err ? Log::ERR : Log::INFO, CYAN("%s ") CLEAR MAGENTA_BOLD("%s") WHITE_BOLD(" %s ") CSI "1;%dm%d " CLEAR WHITE_BOLD("%zu ") BLACK_BOLD("\"%s\""),
-                   ip,
+                   ctx->ip().c_str(),
                    http_method_str(static_cast<http_method>(ctx->method)),
                    ctx->url.c_str(),
                    err ? 31 : 32,
