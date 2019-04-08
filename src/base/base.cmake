@@ -93,7 +93,7 @@ if (NOT WIN32)
 endif()
 
 
-if (WITH_HTTPD)
+if (WITH_HTTP)
     set(HEADERS_BASE_HTTP
         src/3rdparty/http-parser/http_parser.h
         src/base/kernel/interfaces/IHttpListener.h

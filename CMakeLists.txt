@@ -6,7 +6,7 @@ option(WITH_AEON            "CryptoNight-Lite support" ON)
 option(WITH_SUMO            "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
 option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
-option(WITH_HTTPD           "HTTP REST API" ON)
+option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
@@ -198,8 +198,8 @@ if (WITH_EMBEDDED_CONFIG)
     add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
 endif()
 
-if (WITH_HTTPD)
-    set(HTTPD_SOURCES
+if (WITH_HTTP)
+    set(HTTP_SOURCES
         src/api/Api.cpp
         src/api/Api.h
         src/api/Httpd.cpp
@@ -213,7 +213,7 @@ if (WITH_HTTPD)
         src/api/v1/ApiRouter.h
         )
 else()
-    set(HTTPD_SOURCES "")
+    set(HTTP_SOURCES "")
 endif()
 
 include_directories(src)
@@ -228,5 +228,5 @@ if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
-add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
+add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTP_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
