@@ -43,9 +43,9 @@ static const char *kCRLF = "\r\n";
 class WriteBaton : public Baton<uv_write_t>
 {
 public:
-    inline WriteBaton(const std::stringstream &ss, std::string &&body) :
+    inline WriteBaton(const std::string &header, std::string &&body) :
         m_body(body),
-        m_header(ss.str())
+        m_header(header)
     {
         bufs[0].len  = m_header.size();
         bufs[0].base = const_cast<char *>(m_header.c_str());
@@ -77,9 +77,9 @@ private:
 } // namespace xmrig
 
 
-xmrig::HttpClient::HttpClient(const String &host, uint16_t port, int method, const String &url, IHttpListener *listener, const char *data, size_t size) :
+xmrig::HttpClient::HttpClient(int method, const String &url, IHttpListener *listener, const char *data, size_t size) :
     HttpContext(HTTP_RESPONSE, listener),
-    m_port(port)
+    m_port(0)
 {
     this->method = method;
     this->url    = url;
@@ -89,14 +89,26 @@ xmrig::HttpClient::HttpClient(const String &host, uint16_t port, int method, con
     }
 
     m_dns = new Dns(this);
-
-    status = m_dns->resolve(host);
 }
 
 
 xmrig::HttpClient::~HttpClient()
 {
     delete m_dns;
+}
+
+
+bool xmrig::HttpClient::connect(const String &host, uint16_t port)
+{
+    m_port = port;
+
+    return m_dns->resolve(host);
+}
+
+
+const xmrig::String &xmrig::HttpClient::host() const
+{
+    return m_dns->host();
 }
 
 
@@ -119,7 +131,7 @@ void xmrig::HttpClient::onResolved(const Dns &dns, int status)
 }
 
 
-void xmrig::HttpClient::send()
+void xmrig::HttpClient::handshake()
 {
     headers.insert({ "Host",       m_dns->host().data() });
     headers.insert({ "Connection", "close" });
@@ -140,7 +152,21 @@ void xmrig::HttpClient::send()
 
     headers.clear();
 
-    WriteBaton *baton = new WriteBaton(ss, std::move(body));
+    write(ss.str());
+}
+
+
+void xmrig::HttpClient::read(const char *data, size_t size)
+{
+    if (parse(data, size) < size) {
+        close();
+    }
+}
+
+
+void xmrig::HttpClient::write(const std::string &header)
+{
+    WriteBaton *baton = new WriteBaton(header, std::move(body));
     uv_write(&baton->req, stream(), baton->bufs, baton->count(), WriteBaton::onWrite);
 }
 
@@ -177,12 +203,7 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
             HttpClient *client = static_cast<HttpClient*>(tcp->data);
 
             if (nread >= 0) {
-                const size_t size   = static_cast<size_t>(nread);
-                const size_t parsed = client->parse(buf->base, size);
-
-                if (parsed < size) {
-                    client->close();
-                }
+                client->read(buf->base, static_cast<size_t>(nread));
             } else {
                 if (nread != UV_EOF) {
                     LOG_ERR("[%s:%d] read error: \"%s\"", client->m_dns->host().data(), client->m_port, uv_strerror(static_cast<int>(nread)));
@@ -194,5 +215,5 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
             delete [] buf->base;
         });
 
-    client->send();
+    client->handshake();
 }

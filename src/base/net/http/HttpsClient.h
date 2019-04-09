@@ -24,48 +24,47 @@
  */
 
 
-#ifndef XMRIG_HTTPCLIENT_H
-#define XMRIG_HTTPCLIENT_H
+#ifndef XMRIG_HTTPSCLIENT_H
+#define XMRIG_HTTPSCLIENT_H
 
 
-#include "base/net/http/HttpContext.h"
-#include "base/kernel/interfaces/IDnsListener.h"
+typedef struct bio_st BIO;
+typedef struct ssl_ctx_st SSL_CTX;
+typedef struct ssl_st SSL;
+typedef struct x509_st X509;
+
+
+#include "base/net/http/HttpClient.h"
 
 
 namespace xmrig {
 
 
-class String;
-
-
-class HttpClient : public HttpContext, public IDnsListener
+class HttpsClient : public HttpClient
 {
 public:
-    HttpClient(int method, const String &url, IHttpListener *listener, const char *data = nullptr, size_t size = 0);
-    ~HttpClient() override;
-
-    inline uint16_t port() const { return m_port; }
-
-    bool connect(const String &host, uint16_t port);
-    const String &host() const;
+    HttpsClient(int method, const String &url, IHttpListener *listener, const char *data = nullptr, size_t size = 0);
+    ~HttpsClient() override;
 
 protected:
-    void onResolved(const Dns &dns, int status) override;
-
-    virtual void handshake();
-    virtual void read(const char *data, size_t size);
-    virtual void write(const std::string &header);
+    void handshake() override;
+    void read(const char *data, size_t size) override;
+    void write(const std::string &header) override;
 
 private:
-    static void onConnect(uv_connect_t *req, int status);
+    bool verify(X509 *cert) const;
+    void flush();
 
-    Dns *m_dns;
-    uint16_t m_port;
+    BIO *m_readBio;
+    BIO *m_writeBio;
+    bool m_ready;
+    char m_buf[1024 * 2];
+    SSL *m_ssl;
+    SSL_CTX *m_ctx;
 };
 
 
 } // namespace xmrig
 
 
-#endif // XMRIG_HTTPCLIENT_H
-
+#endif // XMRIG_HTTPSCLIENT_H
