@@ -38,7 +38,7 @@ namespace xmrig {
 class ApiRouter;
 class Base;
 class Httpd;
-class HttpRequest;
+class HttpData;
 class IApiListener;
 class IApiRequest;
 class String;
@@ -54,7 +54,7 @@ public:
     inline const char *workerId() const             { return m_workerId; }
     inline void addListener(IApiListener *listener) { m_listeners.push_back(listener); }
 
-    void request(const HttpRequest &req);
+    void request(const HttpData &req);
     void start();
     void stop();
 

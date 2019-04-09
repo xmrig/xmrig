@@ -74,7 +74,7 @@ xmrig::Api::~Api()
 }
 
 
-void xmrig::Api::request(const HttpRequest &req)
+void xmrig::Api::request(const HttpData &req)
 {
     HttpApiRequest request(req, m_base->config()->http().isRestricted());
 
