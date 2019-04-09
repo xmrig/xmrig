@@ -50,8 +50,8 @@ public:
 
     char pool[256];
     std::array<uint64_t, 10> topDiff { { } };
-    uint32_t diff;
     uint64_t accepted;
+    uint64_t diff;
     uint64_t failures;
     uint64_t rejected;
     uint64_t total;

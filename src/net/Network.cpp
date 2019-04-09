@@ -181,11 +181,11 @@ void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult 
     m_state.add(result, error);
 
     if (error) {
-        LOG_INFO(RED_BOLD("rejected") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%u") " " RED("\"%s\"") " " BLACK_BOLD("(%" PRIu64 " ms)"),
+        LOG_INFO(RED_BOLD("rejected") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%" PRIu64) " " RED("\"%s\"") " " BLACK_BOLD("(%" PRIu64 " ms)"),
                  m_state.accepted, m_state.rejected, result.diff, error, result.elapsed);
     }
     else {
-        LOG_INFO(GREEN_BOLD("accepted") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%u") " " BLACK_BOLD("(%" PRIu64 " ms)"),
+        LOG_INFO(GREEN_BOLD("accepted") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%" PRIu64) " " BLACK_BOLD("(%" PRIu64 " ms)"),
                  m_state.accepted, m_state.rejected, result.diff, result.elapsed);
     }
 }
@@ -194,11 +194,11 @@ void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult 
 void xmrig::Network::setJob(Client *client, const Job &job, bool donate)
 {
     if (job.height()) {
-        LOG_INFO(MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
+        LOG_INFO(MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64) " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
                  client->host(), client->port(), job.diff(), job.algorithm().shortName(), job.height());
     }
     else {
-        LOG_INFO(MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%d") " algo " WHITE_BOLD("%s"),
+        LOG_INFO(MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64) " algo " WHITE_BOLD("%s"),
                  client->host(), client->port(), job.diff(), job.algorithm().shortName());
     }
 

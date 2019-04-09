@@ -38,17 +38,17 @@ public:
     inline SubmitResult() :
         reqId(0),
         seq(0),
-        diff(0),
         actualDiff(0),
+        diff(0),
         elapsed(0),
         m_start(0)
     {}
 
-    inline SubmitResult(int64_t seq, uint32_t diff, uint64_t actualDiff, int64_t reqId = 0) :
+    inline SubmitResult(int64_t seq, uint64_t diff, uint64_t actualDiff, int64_t reqId = 0) :
         reqId(reqId),
         seq(seq),
-        diff(diff),
         actualDiff(actualDiff),
+        diff(diff),
         elapsed(0),
         m_start(Chrono::steadyMSecs())
     {}
@@ -57,8 +57,8 @@ public:
 
     int64_t reqId;
     int64_t seq;
-    uint32_t diff;
     uint64_t actualDiff;
+    uint64_t diff;
     uint64_t elapsed;
 
 private:
