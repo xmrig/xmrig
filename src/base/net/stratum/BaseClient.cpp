@@ -22,35 +22,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ISTRATEGYLISTENER_H
-#define XMRIG_ISTRATEGYLISTENER_H
+
+#include "base/net/stratum/BaseClient.h"
 
 
-#include <stdint.h>
-
-
-namespace xmrig {
-
-
-class IClient;
-class IStrategy;
-class Job;
-class SubmitResult;
-
-
-class IStrategyListener
+xmrig::BaseClient::BaseClient(int id, IClientListener *listener) :
+    m_quiet(false),
+    m_listener(listener),
+    m_id(id),
+    m_retries(5),
+    m_retryPause(5000)
 {
-public:
-    virtual ~IStrategyListener() = default;
 
-    virtual void onActive(IStrategy *strategy, IClient *client)                                                        = 0;
-    virtual void onJob(IStrategy *strategy, IClient *client, const Job &job)                                           = 0;
-    virtual void onPause(IStrategy *strategy)                                                                          = 0;
-    virtual void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) = 0;
-};
-
-
-} /* namespace xmrig */
-
-
-#endif // XMRIG_ISTRATEGYLISTENER_H
+}

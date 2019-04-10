@@ -51,9 +51,9 @@ public:
     void add(const Pool &pool);
 
 protected:
-    inline bool isActive() const override                                             { return m_active >= 0; }
-    inline Client *client() const override                                            { return active(); }
-    inline void onLogin(Client *, rapidjson::Document &, rapidjson::Value &) override {}
+    inline bool isActive() const override                                              { return m_active >= 0; }
+    inline Client *client() const override                                             { return active(); }
+    inline void onLogin(IClient *, rapidjson::Document &, rapidjson::Value &) override {}
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -62,10 +62,10 @@ protected:
     void stop() override;
     void tick(uint64_t now) override;
 
-    void onClose(Client *client, int failures) override;
-    void onJobReceived(Client *client, const Job &job, const rapidjson::Value &params) override;
-    void onLoginSuccess(Client *client) override;
-    void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override;
+    void onClose(IClient *client, int failures) override;
+    void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params) override;
+    void onLoginSuccess(IClient *client) override;
+    void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override;
 
 private:
     inline Client *active() const { return m_pools[static_cast<size_t>(m_active)]; }

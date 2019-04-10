@@ -91,18 +91,18 @@ void xmrig::Network::connect()
 }
 
 
-void xmrig::Network::onActive(IStrategy *strategy, Client *client)
+void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
 {
     if (m_donate && m_donate == strategy) {
         LOG_NOTICE("dev donate started");
         return;
     }
 
-    m_state.setPool(client->host(), client->port(), client->ip());
+    m_state.setPool(client->pool().host(), client->pool().port(), client->ip());
 
     const char *tlsVersion = client->tlsVersion();
     LOG_INFO(WHITE_BOLD("use pool ") CYAN_BOLD("%s:%d ") GREEN_BOLD("%s") " " BLACK_BOLD("%s"),
-             client->host(), client->port(), tlsVersion ? tlsVersion : "", client->ip());
+             client->pool().host().data(), client->pool().port(), tlsVersion ? tlsVersion : "", client->ip().data());
 
     const char *fingerprint = client->tlsFingerprint();
     if (fingerprint != nullptr) {
@@ -127,7 +127,7 @@ void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
 }
 
 
-void xmrig::Network::onJob(IStrategy *strategy, Client *client, const Job &job)
+void xmrig::Network::onJob(IStrategy *strategy, IClient *client, const Job &job)
 {
     if (m_donate && m_donate->isActive() && m_donate != strategy) {
         return;
@@ -176,7 +176,7 @@ void xmrig::Network::onRequest(IApiRequest &request)
 }
 
 
-void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult &result, const char *error)
+void xmrig::Network::onResultAccepted(IStrategy *, IClient *, const SubmitResult &result, const char *error)
 {
     m_state.add(result, error);
 
@@ -191,15 +191,15 @@ void xmrig::Network::onResultAccepted(IStrategy *, Client *, const SubmitResult 
 }
 
 
-void xmrig::Network::setJob(Client *client, const Job &job, bool donate)
+void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 {
     if (job.height()) {
         LOG_INFO(MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64) " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
-                 client->host(), client->port(), job.diff(), job.algorithm().shortName(), job.height());
+                 client->pool().host().data(), client->pool().port(), job.diff(), job.algorithm().shortName(), job.height());
     }
     else {
         LOG_INFO(MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64) " algo " WHITE_BOLD("%s"),
-                 client->host(), client->port(), job.diff(), job.algorithm().shortName());
+                 client->pool().host().data(), client->pool().port(), job.diff(), job.algorithm().shortName());
     }
 
     if (!donate && m_donate) {

@@ -129,7 +129,7 @@ void xmrig::FailoverStrategy::tick(uint64_t now)
 }
 
 
-void xmrig::FailoverStrategy::onClose(Client *client, int failures)
+void xmrig::FailoverStrategy::onClose(IClient *client, int failures)
 {
     if (failures == -1) {
         return;
@@ -150,7 +150,7 @@ void xmrig::FailoverStrategy::onClose(Client *client, int failures)
 }
 
 
-void xmrig::FailoverStrategy::onJobReceived(Client *client, const Job &job, const rapidjson::Value &)
+void xmrig::FailoverStrategy::onJobReceived(IClient *client, const Job &job, const rapidjson::Value &)
 {
     if (m_active == client->id()) {
         m_listener->onJob(this, client, job);
@@ -158,7 +158,7 @@ void xmrig::FailoverStrategy::onJobReceived(Client *client, const Job &job, cons
 }
 
 
-void xmrig::FailoverStrategy::onLoginSuccess(Client *client)
+void xmrig::FailoverStrategy::onLoginSuccess(IClient *client)
 {
     int active = m_active;
 
@@ -179,7 +179,7 @@ void xmrig::FailoverStrategy::onLoginSuccess(Client *client)
 }
 
 
-void xmrig::FailoverStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void xmrig::FailoverStrategy::onResultAccepted(IClient *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
 }

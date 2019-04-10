@@ -58,18 +58,18 @@ public:
 protected:
     inline void onTimer(const Timer *) override { tick(); }
 
-    void onActive(IStrategy *strategy, Client *client) override;
+    void onActive(IStrategy *strategy, IClient *client) override;
     void onConfigChanged(Config *config, Config *previousConfig) override;
-    void onJob(IStrategy *strategy, Client *client, const Job &job) override;
+    void onJob(IStrategy *strategy, IClient *client, const Job &job) override;
     void onJobResult(const JobResult &result) override;
     void onPause(IStrategy *strategy) override;
     void onRequest(IApiRequest &request) override;
-    void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
+    void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override;
 
 private:
     constexpr static int kTickInterval = 1 * 1000;
 
-    void setJob(Client *client, const Job &job, bool donate);
+    void setJob(IClient *client, const Job &job, bool donate);
     void tick();
 
 #   ifdef XMRIG_FEATURE_API

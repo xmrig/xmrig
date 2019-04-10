@@ -75,14 +75,8 @@ static const char *states[] = {
 
 
 xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
-    m_enabled(true),
-    m_ipv6(false),
-    m_quiet(false),
+    BaseClient(id, listener),
     m_agent(agent),
-    m_listener(listener),
-    m_id(id),
-    m_retries(5),
-    m_retryPause(5000),
     m_failures(0),
     m_state(UnconnectedState),
     m_tls(nullptr),
@@ -117,14 +111,9 @@ void xmrig::Client::connect()
 }
 
 
-/**
- * @brief Connect to server.
- *
- * @param url
- */
-void xmrig::Client::connect(const Pool &url)
+void xmrig::Client::connect(const Pool &pool)
 {
-    setPool(url);
+    setPool(pool);
     connect();
 }
 
@@ -140,17 +129,6 @@ void xmrig::Client::deleteLater()
     if (!disconnect()) {
         m_storage.remove(m_key);
     }
-}
-
-
-
-void xmrig::Client::setPool(const Pool &pool)
-{
-    if (!pool.isValid()) {
-        return;
-    }
-
-    m_pool = pool;
 }
 
 
