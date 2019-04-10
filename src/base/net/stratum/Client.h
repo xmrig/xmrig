@@ -79,6 +79,7 @@ public:
     void tick(uint64_t now) override;
 
     inline bool hasExtension(Extension extension) const noexcept override { return m_extensions.test(extension); }
+    inline const char *mode() const override                              { return "pool"; }
 
 protected:
     inline void onLine(char *line, size_t size) override { parse(line, size); }

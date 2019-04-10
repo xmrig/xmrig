@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -180,9 +181,10 @@ void xmrig::Job::setAlgorithm(const char *algo)
 }
 
 
-void xmrig::Job::setHeight(uint64_t height)
+void xmrig::Job::setDiff(uint64_t diff)
 {
-    m_height = height;
+    m_diff   = diff;
+    m_target = toDiff(diff);
 }
 
 
