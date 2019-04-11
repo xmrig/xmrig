@@ -44,8 +44,6 @@ public:
 protected:
     bool disconnect() override;
     bool isTLS() const override;
-    const char *tlsFingerprint() const override;
-    const char *tlsVersion() const override;
     int64_t submit(const JobResult &result) override;
     void connect() override;
     void connect(const Pool &pool) override;
@@ -55,6 +53,8 @@ protected:
 
     inline bool hasExtension(Extension) const noexcept override { return false; }
     inline const char *mode() const override                    { return "daemon"; }
+    inline const char *tlsFingerprint() const override          { return m_tlsFingerprint; }
+    inline const char *tlsVersion() const override              { return m_tlsVersion; }
     inline void deleteLater() override                          { delete this; }
     inline void tick(uint64_t) override                         {}
 
@@ -68,6 +68,8 @@ private:
     void setState(SocketState state);
 
     String m_blocktemplate;
+    String m_tlsFingerprint;
+    String m_tlsVersion;
     Timer *m_timer;
 };
 

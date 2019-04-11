@@ -79,6 +79,7 @@ private:
 
 xmrig::HttpClient::HttpClient(int method, const String &url, IHttpListener *listener, const char *data, size_t size) :
     HttpContext(HTTP_RESPONSE, listener),
+    m_quiet(false),
     m_port(0)
 {
     this->method = method;

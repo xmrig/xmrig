@@ -57,10 +57,11 @@ protected:
     virtual void read(const char *data, size_t size);
     virtual void write(const std::string &header);
 
+    bool m_quiet;
+
 private:
     static void onConnect(uv_connect_t *req, int status);
 
-    bool m_quiet;
     Dns *m_dns;
     uint16_t m_port;
 };

@@ -29,15 +29,22 @@
 #include <uv.h>
 
 
+#include "base/io/log/Log.h"
 #include "base/net/http/HttpsClient.h"
-#include "base/tools/String.h"
+#include "base/tools/Buffer.h"
 
 
-xmrig::HttpsClient::HttpsClient(int method, const String &url, IHttpListener *listener, const char *data, size_t size) :
+#ifdef _MSC_VER
+#   define strncasecmp(x,y,z) _strnicmp(x,y,z)
+#endif
+
+
+xmrig::HttpsClient::HttpsClient(int method, const String &url, IHttpListener *listener, const char *data, size_t size, const String &fingerprint) :
     HttpClient(method, url, listener, data, size),
     m_ready(false),
     m_buf(),
-    m_ssl(nullptr)
+    m_ssl(nullptr),
+    m_fp(fingerprint)
 {
     m_ctx = SSL_CTX_new(SSLv23_method());
     assert(m_ctx != nullptr);
@@ -61,6 +68,18 @@ xmrig::HttpsClient::~HttpsClient()
     if (m_ssl) {
         SSL_free(m_ssl);
     }
+}
+
+
+const char *xmrig::HttpsClient::fingerprint() const
+{
+    return m_ready ? m_fingerprint : nullptr;
+}
+
+
+const char *xmrig::HttpsClient::version() const
+{
+    return m_ready ? SSL_get_version(m_ssl) : nullptr;
 }
 
 
@@ -118,13 +137,52 @@ void xmrig::HttpsClient::read(const char *data, size_t size)
 void xmrig::HttpsClient::write(const std::string &header)
 {
     SSL_write(m_ssl, (header + body).c_str(), header.size() + body.size());
+    body.clear();
+
     flush();
 }
 
 
-bool xmrig::HttpsClient::verify(X509 *cert) const
+bool xmrig::HttpsClient::verify(X509 *cert)
 {
-    return cert != nullptr;
+    if (cert == nullptr) {
+        return false;
+    }
+
+    if (!verifyFingerprint(cert)) {
+        if (!m_quiet) {
+            LOG_ERR("[%s:%d] Failed to verify server certificate fingerprint", host().data(), port());
+
+            if (strlen(m_fingerprint) == 64 && !m_fp.isNull()) {
+                LOG_ERR("\"%s\" was given", m_fingerprint);
+                LOG_ERR("\"%s\" was configured", m_fp.data());
+            }
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+
+bool xmrig::HttpsClient::verifyFingerprint(X509 *cert)
+{
+    const EVP_MD *digest = EVP_get_digestbyname("sha256");
+    if (digest == nullptr) {
+        return false;
+    }
+
+    unsigned char md[EVP_MAX_MD_SIZE];
+    unsigned int dlen;
+
+    if (X509_digest(cert, digest, md, &dlen) != 1) {
+        return false;
+    }
+
+    Buffer::toHex(md, 32, m_fingerprint);
+
+    return m_fp.isNull() || strncasecmp(m_fingerprint, m_fp.data(), 64) == 0;
 }
 
 
@@ -139,7 +197,7 @@ void xmrig::HttpsClient::flush()
 
     bool result = false;
     if (uv_is_writable(stream())) {
-        result = uv_try_write(stream(), &buf, 1) == buf.len;
+        result = uv_try_write(stream(), &buf, 1) == static_cast<int>(buf.len);
 
         if (!result) {
             close(UV_EIO);

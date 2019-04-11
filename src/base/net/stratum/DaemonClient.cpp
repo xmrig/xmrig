@@ -72,19 +72,11 @@ bool xmrig::DaemonClient::disconnect()
 
 bool xmrig::DaemonClient::isTLS() const
 {
+#   ifdef XMRIG_FEATURE_TLS
+    return m_pool.isTLS();
+#   else
     return false;
-}
-
-
-const char *xmrig::DaemonClient::tlsFingerprint() const
-{
-    return nullptr;
-}
-
-
-const char *xmrig::DaemonClient::tlsVersion() const
-{
-    return nullptr;
+#   endif
 }
 
 
@@ -144,6 +136,11 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
     LOG_DEBUG("[%s:%d] received (%d bytes): \"%.*s\"", m_pool.host().data(), m_pool.port(), static_cast<int>(data.body.size()), static_cast<int>(data.body.size()), data.body.c_str());
 
     m_ip = static_cast<const HttpContext &>(data).ip().c_str();
+
+    if (isTLS()) {
+        m_tlsVersion     = static_cast<const HttpsClient &>(data).version();
+        m_tlsFingerprint = static_cast<const HttpsClient &>(data).fingerprint();
+    }
 
     rapidjson::Document doc;
     if (doc.Parse(data.body.c_str()).HasParseError()) {
@@ -294,7 +291,7 @@ void xmrig::DaemonClient::send(int method, const char *url, const char *data, si
     HttpClient *client;
 #   ifdef XMRIG_FEATURE_TLS
     if (m_pool.isTLS()) {
-        client = new HttpsClient(method, url, this, data, size);
+        client = new HttpsClient(method, url, this, data, size, m_pool.fingerprint());
     }
     else
 #   endif
