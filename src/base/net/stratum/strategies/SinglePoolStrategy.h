@@ -46,7 +46,7 @@ public:
 
 protected:
     inline bool isActive() const override                                              { return m_active; }
-    inline Client *client() const override                                             { return m_client; }
+    inline IClient *client() const override                                            { return m_client; }
     inline void onLogin(IClient *, rapidjson::Document &, rapidjson::Value &) override {}
 
     int64_t submit(const JobResult &result) override;
@@ -63,7 +63,7 @@ protected:
 
 private:
     bool m_active;
-    Client *m_client;
+    IClient *m_client;
     IStrategyListener *m_listener;
 };
 

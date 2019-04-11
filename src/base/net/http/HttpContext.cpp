@@ -96,8 +96,13 @@ std::string xmrig::HttpContext::ip() const
 }
 
 
-void xmrig::HttpContext::close()
+void xmrig::HttpContext::close(int status)
 {
+    if (status < 0 && m_listener) {
+        this->status = status;
+        m_listener->onHttpData(*this);
+    }
+
     auto it = storage.find(id());
     if (it != storage.end()) {
         storage.erase(it);
@@ -203,8 +208,9 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 
     settings->on_message_complete = [](http_parser *parser) -> int
     {
-        const HttpContext *ctx = static_cast<const HttpContext*>(parser->data);
+        HttpContext *ctx = static_cast<HttpContext*>(parser->data);
         ctx->m_listener->onHttpData(*ctx);
+        ctx->m_listener = nullptr;
 
         return 0;
     };

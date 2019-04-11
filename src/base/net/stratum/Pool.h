@@ -84,6 +84,7 @@ public:
     inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline uint16_t port() const                        { return m_port; }
+    inline uint64_t pollInterval() const                { return m_pollInterval; }
 
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
     inline bool operator==(const Pool &other) const     { return isEqual(other); }

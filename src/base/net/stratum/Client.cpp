@@ -57,7 +57,6 @@
 
 namespace xmrig {
 
-int64_t Client::m_sequence = 1;
 Storage<Client> Client::m_storage;
 
 } /* namespace xmrig */
@@ -77,8 +76,6 @@ static const char *states[] = {
 xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
     BaseClient(id, listener),
     m_agent(agent),
-    m_failures(0),
-    m_state(UnconnectedState),
     m_tls(nullptr),
     m_expire(0),
     m_jobs(0),
@@ -96,57 +93,6 @@ xmrig::Client::~Client()
 {
     delete m_dns;
     delete m_socket;
-}
-
-
-void xmrig::Client::connect()
-{
-#   ifdef XMRIG_FEATURE_TLS
-    if (m_pool.isTLS()) {
-        m_tls = new Tls(this);
-    }
-#   endif
-
-    resolve(m_pool.host());
-}
-
-
-void xmrig::Client::connect(const Pool &pool)
-{
-    setPool(pool);
-    connect();
-}
-
-
-void xmrig::Client::deleteLater()
-{
-    if (!m_listener) {
-        return;
-    }
-
-    m_listener = nullptr;
-
-    if (!disconnect()) {
-        m_storage.remove(m_key);
-    }
-}
-
-
-void xmrig::Client::tick(uint64_t now)
-{
-    if (m_state == ConnectedState) {
-        if (m_expire && now > m_expire) {
-            LOG_DEBUG_ERR("[%s] timeout", url());
-            close();
-        }
-        else if (m_keepAlive && now > m_keepAlive) {
-            ping();
-        }
-    }
-
-    if (m_expire && now > m_expire && m_state == ConnectingState) {
-        connect();
-    }
 }
 
 
@@ -244,6 +190,57 @@ int64_t xmrig::Client::submit(const JobResult &result)
 #   endif
 
     return send(doc);
+}
+
+
+void xmrig::Client::connect()
+{
+#   ifdef XMRIG_FEATURE_TLS
+    if (m_pool.isTLS()) {
+        m_tls = new Tls(this);
+    }
+#   endif
+
+    resolve(m_pool.host());
+}
+
+
+void xmrig::Client::connect(const Pool &pool)
+{
+    setPool(pool);
+    connect();
+}
+
+
+void xmrig::Client::deleteLater()
+{
+    if (!m_listener) {
+        return;
+    }
+
+    m_listener = nullptr;
+
+    if (!disconnect()) {
+        m_storage.remove(m_key);
+    }
+}
+
+
+void xmrig::Client::tick(uint64_t now)
+{
+    if (m_state == ConnectedState) {
+        if (m_expire && now > m_expire) {
+            LOG_DEBUG_ERR("[%s] timeout", url());
+            close();
+        }
+        else if (m_keepAlive && now > m_keepAlive) {
+            ping();
+        }
+    }
+
+    if (m_expire && now > m_expire && m_state == ConnectingState) {
+        connect();
+    }
 }
 
 
@@ -749,14 +746,8 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
     if (error.IsObject()) {
         const char *message = error["message"].GetString();
 
-        auto it = m_results.find(id);
-        if (it != m_results.end()) {
-            it->second.done();
-            m_listener->onResultAccepted(this, it->second, message);
-            m_results.erase(it);
-        }
-        else if (!isQuiet()) {
-            LOG_ERR("[%s] error: \"%s\", code: %d", url(), message, error["code"].GetInt());
+        if (!handleSubmitResponse(id, message) && !isQuiet()) {
+            LOG_ERR("[%s] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", url(), message, error["code"].GetInt());
         }
 
         if (isCriticalError(message)) {
@@ -787,12 +778,7 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
         return;
     }
 
-    auto it = m_results.find(id);
-    if (it != m_results.end()) {
-        it->second.done();
-        m_listener->onResultAccepted(this, it->second, nullptr);
-        m_results.erase(it);
-    }
+    handleSubmitResponse(id);
 }
 
 

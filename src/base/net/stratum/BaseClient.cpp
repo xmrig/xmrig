@@ -23,7 +23,16 @@
  */
 
 
+#include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/stratum/BaseClient.h"
+#include "base/net/stratum/SubmitResult.h"
+
+
+namespace xmrig {
+
+int64_t BaseClient::m_sequence = 1;
+
+} /* namespace xmrig */
 
 
 xmrig::BaseClient::BaseClient(int id, IClientListener *listener) :
@@ -31,7 +40,23 @@ xmrig::BaseClient::BaseClient(int id, IClientListener *listener) :
     m_listener(listener),
     m_id(id),
     m_retries(5),
+    m_failures(0),
+    m_state(UnconnectedState),
     m_retryPause(5000)
 {
+}
 
+
+bool xmrig::BaseClient::handleSubmitResponse(int64_t id, const char *error)
+{
+    auto it = m_results.find(id);
+    if (it != m_results.end()) {
+        it->second.done();
+        m_listener->onResultAccepted(this, it->second, error);
+        m_results.erase(it);
+
+        return true;
+    }
+
+    return false;
 }

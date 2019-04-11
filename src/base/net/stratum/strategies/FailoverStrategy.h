@@ -52,7 +52,7 @@ public:
 
 protected:
     inline bool isActive() const override                                              { return m_active >= 0; }
-    inline Client *client() const override                                             { return active(); }
+    inline IClient *client() const override                                            { return active(); }
     inline void onLogin(IClient *, rapidjson::Document &, rapidjson::Value &) override {}
 
     int64_t submit(const JobResult &result) override;
@@ -68,7 +68,7 @@ protected:
     void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override;
 
 private:
-    inline Client *active() const { return m_pools[static_cast<size_t>(m_active)]; }
+    inline IClient *active() const { return m_pools[static_cast<size_t>(m_active)]; }
 
     const bool m_quiet;
     const int m_retries;
@@ -76,7 +76,7 @@ private:
     int m_active;
     IStrategyListener *m_listener;
     size_t m_index;
-    std::vector<Client*> m_pools;
+    std::vector<IClient*> m_pools;
 };
 
 

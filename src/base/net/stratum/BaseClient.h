@@ -26,6 +26,9 @@
 #define XMRIG_BASECLIENT_H
 
 
+#include <map>
+
+
 #include "base/kernel/interfaces/IClient.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
@@ -35,6 +38,7 @@ namespace xmrig {
 
 
 class IClientListener;
+class SubmitResult;
 
 
 class BaseClient : public IClient
@@ -55,14 +59,31 @@ public:
     inline void setRetryPause(uint64_t ms) override            { m_retryPause = ms; }
 
 protected:
+    enum SocketState {
+        UnconnectedState,
+        HostLookupState,
+        ConnectingState,
+        ConnectedState,
+        ClosingState
+    };
+
+    inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }
+
+    bool handleSubmitResponse(int64_t id, const char *error = nullptr);
+
     bool m_quiet;
     IClientListener *m_listener;
     int m_id;
     int m_retries;
+    int64_t m_failures;
     Job m_job;
     Pool m_pool;
+    SocketState m_state;
+    std::map<int64_t, SubmitResult> m_results;
     String m_ip;
     uint64_t m_retryPause;
+
+    static int64_t m_sequence;
 
 private:
     bool m_enabled;

@@ -44,7 +44,8 @@ public:
     HttpClient(int method, const String &url, IHttpListener *listener, const char *data = nullptr, size_t size = 0);
     ~HttpClient() override;
 
-    inline uint16_t port() const { return m_port; }
+    inline uint16_t port() const     { return m_port; }
+    inline void setQuiet(bool quiet) { m_quiet = quiet; }
 
     bool connect(const String &host, uint16_t port);
     const String &host() const;
@@ -59,6 +60,7 @@ protected:
 private:
     static void onConnect(uv_connect_t *req, int status);
 
+    bool m_quiet;
     Dns *m_dns;
     uint16_t m_port;
 };

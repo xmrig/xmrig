@@ -33,7 +33,7 @@ namespace xmrig {
 
 
 class Algorithm;
-class Client;
+class IClient;
 class JobResult;
 
 
@@ -43,7 +43,7 @@ public:
     virtual ~IStrategy() = default;
 
     virtual bool isActive() const                      = 0;
-    virtual Client *client() const                     = 0;
+    virtual IClient *client() const                    = 0;
     virtual int64_t submit(const JobResult &result)    = 0;
     virtual void connect()                             = 0;
     virtual void resume()                              = 0;

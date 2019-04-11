@@ -231,8 +231,8 @@ xmrig::Client *xmrig::DonateStrategy::createProxy()
         return nullptr;
     }
 
-    const Client *client = strategy->client();
-    m_tls                = client->hasExtension(IClient::EXT_TLS);
+    const IClient *client = strategy->client();
+    m_tls                 = client->hasExtension(IClient::EXT_TLS);
 
     Pool pool(client->ip(), client->pool().port(), m_userId, client->pool().password(), 0, true, client->isTLS());
     pool.setAlgo(client->pool().algorithm());

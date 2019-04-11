@@ -52,7 +52,7 @@ public:
 
 protected:
     inline bool isActive() const override                                                                              { return state() == STATE_ACTIVE; }
-    inline Client *client() const override                                                                             { return m_proxy ? m_proxy : m_strategy->client(); }
+    inline IClient *client() const override                                                                            { return m_proxy ? m_proxy : m_strategy->client(); }
     inline void onJob(IStrategy *, IClient *client, const Job &job) override                                           { setJob(client, job); }
     inline void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &) override                      { setJob(client, job); }
     inline void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override              { setResult(client, result, error); }
@@ -93,7 +93,7 @@ private:
 
     bool m_tls;
     char m_userId[65];
-    Client *m_proxy;
+    IClient *m_proxy;
     const uint64_t m_donateTime;
     const uint64_t m_idleTime;
     Controller *m_controller;

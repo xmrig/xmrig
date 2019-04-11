@@ -96,7 +96,7 @@ void xmrig::HttpsClient::read(const char *data, size_t size)
             X509 *cert = SSL_get_peer_certificate(m_ssl);
             if (!verify(cert)) {
                 X509_free(cert);
-                return close();
+                return close(UV_EPROTO);
             }
 
             X509_free(cert);
@@ -142,7 +142,7 @@ void xmrig::HttpsClient::flush()
         result = uv_try_write(stream(), &buf, 1) == buf.len;
 
         if (!result) {
-            close();
+            close(UV_EIO);
         }
     }
 

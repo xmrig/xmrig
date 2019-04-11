@@ -43,7 +43,6 @@
 #include "common/crypto/Algorithm.h"
 
 
-
 typedef struct bio_st BIO;
 
 
@@ -68,6 +67,7 @@ public:
     Client(int id, const char *agent, IClientListener *listener);
     ~Client() override;
 
+protected:
     bool disconnect() override;
     bool isTLS() const override;
     const char *tlsFingerprint() const override;
@@ -78,23 +78,13 @@ public:
     void deleteLater() override;
     void tick(uint64_t now) override;
 
-    inline bool hasExtension(Extension extension) const noexcept override { return m_extensions.test(extension); }
-    inline const char *mode() const override                              { return "pool"; }
-
-protected:
-    inline void onLine(char *line, size_t size) override { parse(line, size); }
-
     void onResolved(const Dns &dns, int status) override;
 
-private:
-    enum SocketState {
-        UnconnectedState,
-        HostLookupState,
-        ConnectingState,
-        ConnectedState,
-        ClosingState
-    };
+    inline bool hasExtension(Extension extension) const noexcept override { return m_extensions.test(extension); }
+    inline const char *mode() const override                              { return "pool"; }
+    inline void onLine(char *line, size_t size) override                  { parse(line, size); }
 
+private:
     class Tls;
 
     bool close();
@@ -120,7 +110,6 @@ private:
     void setState(SocketState state);
     void startTimeout();
 
-    inline bool isQuiet() const                                   { return m_quiet || m_failures >= m_retries; }
     inline const char *url() const                                { return m_pool.url(); }
     inline SocketState state() const                              { return m_state; }
     inline void setExtension(Extension ext, bool enable) noexcept { m_extensions.set(ext, enable); }
@@ -136,11 +125,8 @@ private:
     char m_sendBuf[2048];
     const char *m_agent;
     Dns *m_dns;
-    int64_t m_failures;
     RecvBuf<kInputBufferSize> m_recvBuf;
-    SocketState m_state;
     std::bitset<EXT_MAX> m_extensions;
-    std::map<int64_t, SubmitResult> m_results;
     String m_rpcId;
     Tls *m_tls;
     uint64_t m_expire;
@@ -150,7 +136,6 @@ private:
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
 
-    static int64_t m_sequence;
     static Storage<Client> m_storage;
 };
 

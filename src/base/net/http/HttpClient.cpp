@@ -40,11 +40,11 @@ namespace xmrig {
 static const char *kCRLF = "\r\n";
 
 
-class WriteBaton : public Baton<uv_write_t>
+class ClientWriteBaton : public Baton<uv_write_t>
 {
 public:
-    inline WriteBaton(const std::string &header, std::string &&body) :
-        m_body(body),
+    inline ClientWriteBaton(const std::string &header, std::string &&body) :
+        m_body(std::move(body)),
         m_header(header)
     {
         bufs[0].len  = m_header.size();
@@ -63,7 +63,7 @@ public:
 
     inline size_t count() const                      { return bufs[1].base == nullptr ? 1 : 2; }
     inline size_t size() const                       { return bufs[0].len + bufs[1].len; }
-    inline static void onWrite(uv_write_t *req, int) { delete reinterpret_cast<WriteBaton *>(req->data); }
+    inline static void onWrite(uv_write_t *req, int) { delete reinterpret_cast<ClientWriteBaton *>(req->data); }
 
 
     uv_buf_t bufs[2];
@@ -117,7 +117,9 @@ void xmrig::HttpClient::onResolved(const Dns &dns, int status)
     this->status = status;
 
     if (status < 0 && dns.isEmpty()) {
-        LOG_ERR("[%s:%d] DNS error: \"%s\"", dns.host().data(), m_port, uv_strerror(status));
+        if (!m_quiet) {
+            LOG_ERR("[%s:%d] DNS error: \"%s\"", dns.host().data(), m_port, uv_strerror(status));
+        }
 
         return;
     }
@@ -159,15 +161,15 @@ void xmrig::HttpClient::handshake()
 void xmrig::HttpClient::read(const char *data, size_t size)
 {
     if (parse(data, size) < size) {
-        close();
+        close(UV_EPROTO);
     }
 }
 
 
 void xmrig::HttpClient::write(const std::string &header)
 {
-    WriteBaton *baton = new WriteBaton(header, std::move(body));
-    uv_write(&baton->req, stream(), baton->bufs, baton->count(), WriteBaton::onWrite);
+    ClientWriteBaton *baton = new ClientWriteBaton(header, std::move(body));
+    uv_write(&baton->req, stream(), baton->bufs, baton->count(), ClientWriteBaton::onWrite);
 }
 
 
@@ -180,10 +182,12 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
     }
 
     if (status < 0) {
-        LOG_ERR("[%s:%d] connect error: \"%s\"", client->m_dns->host().data(), client->m_port, uv_strerror(status));
+        if (!client->m_quiet) {
+            LOG_ERR("[%s:%d] connect error: \"%s\"", client->m_dns->host().data(), client->m_port, uv_strerror(status));
+        }
 
         delete req;
-        client->close();
+        client->close(status);
         return;
     }
 
@@ -205,11 +209,11 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
             if (nread >= 0) {
                 client->read(buf->base, static_cast<size_t>(nread));
             } else {
-                if (nread != UV_EOF) {
+                if (!client->m_quiet && nread != UV_EOF) {
                     LOG_ERR("[%s:%d] read error: \"%s\"", client->m_dns->host().data(), client->m_port, uv_strerror(static_cast<int>(nread)));
                 }
 
-                client->close();
+                client->close(static_cast<int>(nread));
             }
 
             delete [] buf->base;
