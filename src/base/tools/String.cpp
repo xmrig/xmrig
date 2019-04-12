@@ -23,6 +23,9 @@
  */
 
 
+#include <ctype.h>
+
+
 #include "base/tools/String.h"
 #include "rapidjson/document.h"
 
