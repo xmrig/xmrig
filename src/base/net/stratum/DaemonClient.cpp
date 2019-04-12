@@ -137,10 +137,12 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
 
     m_ip = static_cast<const HttpContext &>(data).ip().c_str();
 
+#   ifdef XMRIG_FEATURE_TLS
     if (isTLS()) {
         m_tlsVersion     = static_cast<const HttpsClient &>(data).version();
         m_tlsFingerprint = static_cast<const HttpsClient &>(data).fingerprint();
     }
+#   endif
 
     rapidjson::Document doc;
     if (doc.Parse(data.body.c_str()).HasParseError()) {
