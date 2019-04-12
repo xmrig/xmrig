@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -58,18 +59,18 @@ public:
 protected:
     inline void onTimer(const Timer *) override { tick(); }
 
-    void onActive(IStrategy *strategy, Client *client) override;
+    void onActive(IStrategy *strategy, IClient *client) override;
     void onConfigChanged(Config *config, Config *previousConfig) override;
-    void onJob(IStrategy *strategy, Client *client, const Job &job) override;
+    void onJob(IStrategy *strategy, IClient *client, const Job &job) override;
     void onJobResult(const JobResult &result) override;
     void onPause(IStrategy *strategy) override;
     void onRequest(IApiRequest &request) override;
-    void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
+    void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override;
 
 private:
     constexpr static int kTickInterval = 1 * 1000;
 
-    void setJob(Client *client, const Job &job, bool donate);
+    void setJob(IClient *client, const Job &job, bool donate);
     void tick();
 
 #   ifdef XMRIG_FEATURE_API

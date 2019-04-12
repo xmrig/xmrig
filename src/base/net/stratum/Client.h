@@ -34,13 +34,13 @@
 
 #include "base/kernel/interfaces/IDnsListener.h"
 #include "base/kernel/interfaces/ILineListener.h"
+#include "base/net/stratum/BaseClient.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/net/tools/RecvBuf.h"
 #include "base/net/tools/Storage.h"
 #include "common/crypto/Algorithm.h"
-
 
 
 typedef struct bio_st BIO;
@@ -53,26 +53,9 @@ class IClientListener;
 class JobResult;
 
 
-class Client : public IDnsListener, public ILineListener
+class Client : public BaseClient, public IDnsListener, public ILineListener
 {
 public:
-    enum SocketState {
-        UnconnectedState,
-        HostLookupState,
-        ConnectingState,
-        ConnectedState,
-        ClosingState
-    };
-
-    enum Extension {
-        EXT_ALGO,
-        EXT_NICEHASH,
-        EXT_CONNECT,
-        EXT_TLS,
-        EXT_KEEPALIVE,
-        EXT_MAX
-    };
-
     constexpr static int kResponseTimeout = 20 * 1000;
 
 #   ifdef XMRIG_FEATURE_TLS
@@ -84,38 +67,22 @@ public:
     Client(int id, const char *agent, IClientListener *listener);
     ~Client() override;
 
-    bool disconnect();
-    bool isTLS() const;
-    const char *tlsFingerprint() const;
-    const char *tlsVersion() const;
-    int64_t submit(const JobResult &result);
-    void connect();
-    void connect(const Pool &pool);
-    void deleteLater();
-    void setPool(const Pool &pool);
-    void tick(uint64_t now);
-
-    inline bool isEnabled() const                     { return m_enabled; }
-    inline bool isReady() const                       { return m_state == ConnectedState && m_failures == 0; }
-    inline const char *host() const                   { return m_pool.host(); }
-    inline const char *ip() const                     { return m_ip; }
-    inline const Job &job() const                     { return m_job; }
-    inline const Pool &pool() const                   { return m_pool; }
-    inline int id() const                             { return m_id; }
-    inline SocketState state() const                  { return m_state; }
-    inline uint16_t port() const                      { return m_pool.port(); }
-    inline void setAlgo(const Algorithm &algo)        { m_pool.setAlgo(algo); }
-    inline void setEnabled(bool enabled)              { m_enabled = enabled; }
-    inline void setQuiet(bool quiet)                  { m_quiet = quiet; }
-    inline void setRetries(int retries)               { m_retries = retries; }
-    inline void setRetryPause(int ms)                 { m_retryPause = ms; }
-
-    template<Extension ext> inline bool has() const noexcept { return m_extensions.test(ext); }
-
 protected:
-    inline void onLine(char *line, size_t size) override { parse(line, size); }
+    bool disconnect() override;
+    bool isTLS() const override;
+    const char *tlsFingerprint() const override;
+    const char *tlsVersion() const override;
+    int64_t submit(const JobResult &result) override;
+    void connect() override;
+    void connect(const Pool &pool) override;
+    void deleteLater() override;
+    void tick(uint64_t now) override;
 
     void onResolved(const Dns &dns, int status) override;
+
+    inline bool hasExtension(Extension extension) const noexcept override { return m_extensions.test(extension); }
+    inline const char *mode() const override                              { return "pool"; }
+    inline void onLine(char *line, size_t size) override                  { parse(line, size); }
 
 private:
     class Tls;
@@ -143,9 +110,10 @@ private:
     void setState(SocketState state);
     void startTimeout();
 
-    inline bool isQuiet() const                                   { return m_quiet || m_failures >= m_retries; }
     inline const char *url() const                                { return m_pool.url(); }
+    inline SocketState state() const                              { return m_state; }
     inline void setExtension(Extension ext, bool enable) noexcept { m_extensions.set(ext, enable); }
+    template<Extension ext> inline bool has() const noexcept      { return m_extensions.test(ext); }
 
     static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
     static void onClose(uv_handle_t *handle);
@@ -154,24 +122,11 @@ private:
 
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 
-    bool m_enabled;
-    bool m_ipv6;
-    bool m_quiet;
     char m_sendBuf[2048];
     const char *m_agent;
     Dns *m_dns;
-    IClientListener *m_listener;
-    int m_id;
-    int m_retries;
-    int m_retryPause;
-    int64_t m_failures;
-    Job m_job;
-    Pool m_pool;
     RecvBuf<kInputBufferSize> m_recvBuf;
-    SocketState m_state;
     std::bitset<EXT_MAX> m_extensions;
-    std::map<int64_t, SubmitResult> m_results;
-    String m_ip;
     String m_rpcId;
     Tls *m_tls;
     uint64_t m_expire;
@@ -181,7 +136,6 @@ private:
     uv_stream_t *m_stream;
     uv_tcp_t *m_socket;
 
-    static int64_t m_sequence;
     static Storage<Client> m_storage;
 };
 

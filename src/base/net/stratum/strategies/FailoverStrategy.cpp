@@ -29,6 +29,11 @@
 #include "common/Platform.h"
 
 
+#ifdef XMRIG_FEATURE_HTTP
+#   include "base/net/stratum/DaemonClient.h"
+#endif
+
+
 xmrig::FailoverStrategy::FailoverStrategy(const std::vector<Pool> &pools, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
     m_quiet(quiet),
     m_retries(retries),
@@ -56,7 +61,7 @@ xmrig::FailoverStrategy::FailoverStrategy(int retryPause, int retries, IStrategy
 
 xmrig::FailoverStrategy::~FailoverStrategy()
 {
-    for (Client *client : m_pools) {
+    for (IClient *client : m_pools) {
         client->deleteLater();
     }
 }
@@ -64,7 +69,15 @@ xmrig::FailoverStrategy::~FailoverStrategy()
 
 void xmrig::FailoverStrategy::add(const Pool &pool)
 {
-    Client *client = new Client(static_cast<int>(m_pools.size()), Platform::userAgent(), this);
+    const int id = static_cast<int>(m_pools.size());
+
+#   ifdef XMRIG_FEATURE_HTTP
+    IClient *client = !pool.isDaemon() ? static_cast<IClient *>(new Client(id, Platform::userAgent(), this))
+                                       : static_cast<IClient *>(new DaemonClient(id, this));
+#   else
+    IClient *client = new Client(id, Platform::userAgent(), this);
+#   endif
+
     client->setPool(pool);
     client->setRetries(m_retries);
     client->setRetryPause(m_retryPause * 1000);
@@ -102,7 +115,7 @@ void xmrig::FailoverStrategy::resume()
 
 void xmrig::FailoverStrategy::setAlgo(const xmrig::Algorithm &algo)
 {
-    for (Client *client : m_pools) {
+    for (IClient *client : m_pools) {
         client->setAlgo(algo);
     }
 }
@@ -123,13 +136,13 @@ void xmrig::FailoverStrategy::stop()
 
 void xmrig::FailoverStrategy::tick(uint64_t now)
 {
-    for (Client *client : m_pools) {
+    for (IClient *client : m_pools) {
         client->tick(now);
     }
 }
 
 
-void xmrig::FailoverStrategy::onClose(Client *client, int failures)
+void xmrig::FailoverStrategy::onClose(IClient *client, int failures)
 {
     if (failures == -1) {
         return;
@@ -150,7 +163,7 @@ void xmrig::FailoverStrategy::onClose(Client *client, int failures)
 }
 
 
-void xmrig::FailoverStrategy::onJobReceived(Client *client, const Job &job, const rapidjson::Value &)
+void xmrig::FailoverStrategy::onJobReceived(IClient *client, const Job &job, const rapidjson::Value &)
 {
     if (m_active == client->id()) {
         m_listener->onJob(this, client, job);
@@ -158,7 +171,7 @@ void xmrig::FailoverStrategy::onJobReceived(Client *client, const Job &job, cons
 }
 
 
-void xmrig::FailoverStrategy::onLoginSuccess(Client *client)
+void xmrig::FailoverStrategy::onLoginSuccess(IClient *client)
 {
     int active = m_active;
 
@@ -179,7 +192,7 @@ void xmrig::FailoverStrategy::onLoginSuccess(Client *client)
 }
 
 
-void xmrig::FailoverStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void xmrig::FailoverStrategy::onResultAccepted(IClient *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
 }

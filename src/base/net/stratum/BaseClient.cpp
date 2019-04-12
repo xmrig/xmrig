@@ -22,35 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ISTRATEGYLISTENER_H
-#define XMRIG_ISTRATEGYLISTENER_H
 
-
-#include <stdint.h>
+#include "base/kernel/interfaces/IClientListener.h"
+#include "base/net/stratum/BaseClient.h"
+#include "base/net/stratum/SubmitResult.h"
 
 
 namespace xmrig {
 
-
-class IClient;
-class IStrategy;
-class Job;
-class SubmitResult;
-
-
-class IStrategyListener
-{
-public:
-    virtual ~IStrategyListener() = default;
-
-    virtual void onActive(IStrategy *strategy, IClient *client)                                                        = 0;
-    virtual void onJob(IStrategy *strategy, IClient *client, const Job &job)                                           = 0;
-    virtual void onPause(IStrategy *strategy)                                                                          = 0;
-    virtual void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) = 0;
-};
-
+int64_t BaseClient::m_sequence = 1;
 
 } /* namespace xmrig */
 
 
-#endif // XMRIG_ISTRATEGYLISTENER_H
+xmrig::BaseClient::BaseClient(int id, IClientListener *listener) :
+    m_quiet(false),
+    m_listener(listener),
+    m_id(id),
+    m_retries(5),
+    m_failures(0),
+    m_state(UnconnectedState),
+    m_retryPause(5000)
+{
+}
+
+
+bool xmrig::BaseClient::handleSubmitResponse(int64_t id, const char *error)
+{
+    auto it = m_results.find(id);
+    if (it != m_results.end()) {
+        it->second.done();
+        m_listener->onResultAccepted(this, it->second, error);
+        m_results.erase(it);
+
+        return true;
+    }
+
+    return false;
+}

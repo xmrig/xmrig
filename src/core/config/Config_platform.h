@@ -82,6 +82,8 @@ static const option options[] = {
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },
     { "asm",                   1, nullptr, IConfig::AssemblyKey           },
+    { "daemon",                0, nullptr, IConfig::DaemonKey             },
+    { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
 
 #   ifdef XMRIG_DEPRECATED
     { "api-port",              1, nullptr, IConfig::ApiPort               },

@@ -157,7 +157,7 @@ void xmrig::DonateStrategy::tick(uint64_t now)
 }
 
 
-void xmrig::DonateStrategy::onActive(IStrategy *, Client *client)
+void xmrig::DonateStrategy::onActive(IStrategy *, IClient *client)
 {
     if (isActive()) {
         return;
@@ -173,7 +173,7 @@ void xmrig::DonateStrategy::onPause(IStrategy *)
 }
 
 
-void xmrig::DonateStrategy::onClose(Client *, int failures)
+void xmrig::DonateStrategy::onClose(IClient *, int failures)
 {
     if (failures == 2 && m_controller->config()->pools().proxyDonate() == Pools::PROXY_DONATE_AUTO) {
         m_proxy->deleteLater();
@@ -184,7 +184,7 @@ void xmrig::DonateStrategy::onClose(Client *, int failures)
 }
 
 
-void xmrig::DonateStrategy::onLogin(Client *, rapidjson::Document &doc, rapidjson::Value &params)
+void xmrig::DonateStrategy::onLogin(IClient *, rapidjson::Document &doc, rapidjson::Value &params)
 {
     auto &allocator = doc.GetAllocator();
 
@@ -203,7 +203,7 @@ void xmrig::DonateStrategy::onLogin(Client *, rapidjson::Document &doc, rapidjso
 }
 
 
-void xmrig::DonateStrategy::onLoginSuccess(Client *client)
+void xmrig::DonateStrategy::onLoginSuccess(IClient *client)
 {
     if (isActive()) {
         return;
@@ -227,14 +227,14 @@ xmrig::Client *xmrig::DonateStrategy::createProxy()
     }
 
     IStrategy *strategy = m_controller->network()->strategy();
-    if (!strategy->isActive() || !strategy->client()->has<Client::EXT_CONNECT>()) {
+    if (!strategy->isActive() || !strategy->client()->hasExtension(IClient::EXT_CONNECT)) {
         return nullptr;
     }
 
-    const Client *client = strategy->client();
-    m_tls                = client->has<Client::EXT_TLS>();
+    const IClient *client = strategy->client();
+    m_tls                 = client->hasExtension(IClient::EXT_TLS);
 
-    Pool pool(client->ip(), client->port(), m_userId, client->pool().password(), 0, true, client->isTLS());
+    Pool pool(client->ip(), client->pool().port(), m_userId, client->pool().password(), 0, true, client->isTLS());
     pool.setAlgo(client->pool().algorithm());
 
     Client *proxy = new Client(-1, Platform::userAgent(), this);
@@ -251,7 +251,7 @@ void xmrig::DonateStrategy::idle(double min, double max)
 }
 
 
-void xmrig::DonateStrategy::setJob(Client *client, const Job &job)
+void xmrig::DonateStrategy::setJob(IClient *client, const Job &job)
 {
     if (isActive()) {
         m_listener->onJob(this, client, job);
@@ -259,7 +259,7 @@ void xmrig::DonateStrategy::setJob(Client *client, const Job &job)
 }
 
 
-void xmrig::DonateStrategy::setResult(Client *client, const SubmitResult &result, const char *error)
+void xmrig::DonateStrategy::setResult(IClient *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
 }

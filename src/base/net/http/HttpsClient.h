@@ -35,6 +35,7 @@ typedef struct x509_st X509;
 
 
 #include "base/net/http/HttpClient.h"
+#include "base/tools/String.h"
 
 
 namespace xmrig {
@@ -43,8 +44,11 @@ namespace xmrig {
 class HttpsClient : public HttpClient
 {
 public:
-    HttpsClient(int method, const String &url, IHttpListener *listener, const char *data = nullptr, size_t size = 0);
+    HttpsClient(int method, const String &url, IHttpListener *listener, const char *data, size_t size, const String &fingerprint);
     ~HttpsClient() override;
+
+    const char *fingerprint() const;
+    const char *version() const;
 
 protected:
     void handshake() override;
@@ -52,15 +56,18 @@ protected:
     void write(const std::string &header) override;
 
 private:
-    bool verify(X509 *cert) const;
+    bool verify(X509 *cert);
+    bool verifyFingerprint(X509 *cert);
     void flush();
 
     BIO *m_readBio;
     BIO *m_writeBio;
     bool m_ready;
     char m_buf[1024 * 2];
+    char m_fingerprint[32 * 2 + 8];
     SSL *m_ssl;
     SSL_CTX *m_ctx;
+    String m_fp;
 };
 
 

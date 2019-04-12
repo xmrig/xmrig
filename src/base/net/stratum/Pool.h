@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -45,14 +46,16 @@ public:
         FLAG_ENABLED,
         FLAG_NICEHASH,
         FLAG_TLS,
+        FLAG_DAEMON,
         FLAG_MAX
     };
 
     static const String kDefaultPassword;
     static const String kDefaultUser;
 
-    constexpr static uint16_t kDefaultPort        = 3333;
-    constexpr static int kKeepAliveTimeout        = 60;
+    constexpr static int kKeepAliveTimeout         = 60;
+    constexpr static uint16_t kDefaultPort         = 3333;
+    constexpr static uint64_t kDefaultPollInterval = 1000;
 
     Pool();
     Pool(const char *url);
@@ -67,6 +70,7 @@ public:
        );
 
     inline Algorithm &algorithm()                       { return m_algorithm; }
+    inline bool isDaemon() const                        { return m_flags.test(FLAG_DAEMON); }
     inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS); }
     inline bool isValid() const                         { return !m_host.isNull() && m_port > 0; }
@@ -80,6 +84,7 @@ public:
     inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline uint16_t port() const                        { return m_port; }
+    inline uint64_t pollInterval() const                { return m_pollInterval; }
 
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
     inline bool operator==(const Pool &other) const     { return isEqual(other); }
@@ -116,6 +121,7 @@ private:
     String m_url;
     String m_user;
     uint16_t m_port;
+    uint64_t m_pollInterval;
 };
 
 

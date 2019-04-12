@@ -56,7 +56,7 @@ public:
 
     size_t parse(const char *data, size_t size);
     std::string ip() const;
-    void close();
+    void close(int status = 0);
 
     static HttpContext *get(uint64_t id);
     static void closeAll();

@@ -44,7 +44,8 @@ public:
     HttpClient(int method, const String &url, IHttpListener *listener, const char *data = nullptr, size_t size = 0);
     ~HttpClient() override;
 
-    inline uint16_t port() const { return m_port; }
+    inline uint16_t port() const     { return m_port; }
+    inline void setQuiet(bool quiet) { m_quiet = quiet; }
 
     bool connect(const String &host, uint16_t port);
     const String &host() const;
@@ -55,6 +56,8 @@ protected:
     virtual void handshake();
     virtual void read(const char *data, size_t size);
     virtual void write(const std::string &header);
+
+    bool m_quiet;
 
 private:
     static void onConnect(uv_connect_t *req, int status);

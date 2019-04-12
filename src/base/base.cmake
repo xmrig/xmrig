@@ -11,6 +11,7 @@ set(HEADERS_BASE
     src/base/kernel/config/BaseTransform.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IBaseListener.h
+    src/base/kernel/interfaces/IClient.h
     src/base/kernel/interfaces/IClientListener.h
     src/base/kernel/interfaces/IConfig.h
     src/base/kernel/interfaces/IConfigListener.h
@@ -29,6 +30,7 @@ set(HEADERS_BASE
     src/base/net/dns/Dns.h
     src/base/net/dns/DnsRecord.h
     src/base/net/http/Http.h
+    src/base/net/stratum/BaseClient.h
     src/base/net/stratum/Client.h
     src/base/net/stratum/Job.h
     src/base/net/stratum/Pool.h
@@ -64,6 +66,7 @@ set(SOURCES_BASE
     src/base/net/dns/Dns.cpp
     src/base/net/dns/DnsRecord.cpp
     src/base/net/http/Http.cpp
+    src/base/net/stratum/BaseClient.cpp
     src/base/net/stratum/Client.cpp
     src/base/net/stratum/Job.cpp
     src/base/net/stratum/Pool.cpp
@@ -105,6 +108,7 @@ if (WITH_HTTP)
         src/base/net/http/HttpData.h
         src/base/net/http/HttpResponse.h
         src/base/net/http/HttpServer.h
+        src/base/net/stratum/DaemonClient.h
         src/base/net/tools/TcpServer.h
         )
 
@@ -115,6 +119,7 @@ if (WITH_HTTP)
         src/base/net/http/HttpContext.cpp
         src/base/net/http/HttpResponse.cpp
         src/base/net/http/HttpServer.cpp
+        src/base/net/stratum/DaemonClient.cpp
         src/base/net/tools/TcpServer.cpp
         )
 

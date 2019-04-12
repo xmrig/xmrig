@@ -29,11 +29,26 @@
 #include "common/Platform.h"
 
 
+#ifdef XMRIG_FEATURE_HTTP
+#   include "base/net/stratum/DaemonClient.h"
+#endif
+
+
 xmrig::SinglePoolStrategy::SinglePoolStrategy(const Pool &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
     m_active(false),
     m_listener(listener)
 {
+#   ifdef XMRIG_FEATURE_HTTP
+    if (!pool.isDaemon()) {
+        m_client = new Client(0, Platform::userAgent(), this);
+    }
+    else {
+        m_client = new DaemonClient(0, this);
+    }
+#   else
     m_client = new Client(0, Platform::userAgent(), this);
+#   endif
+
     m_client->setPool(pool);
     m_client->setRetries(retries);
     m_client->setRetryPause(retryPause * 1000);
@@ -87,7 +102,7 @@ void xmrig::SinglePoolStrategy::tick(uint64_t now)
 }
 
 
-void xmrig::SinglePoolStrategy::onClose(Client *, int)
+void xmrig::SinglePoolStrategy::onClose(IClient *, int)
 {
     if (!isActive()) {
         return;
@@ -98,20 +113,20 @@ void xmrig::SinglePoolStrategy::onClose(Client *, int)
 }
 
 
-void xmrig::SinglePoolStrategy::onJobReceived(Client *client, const Job &job, const rapidjson::Value &)
+void xmrig::SinglePoolStrategy::onJobReceived(IClient *client, const Job &job, const rapidjson::Value &)
 {
     m_listener->onJob(this, client, job);
 }
 
 
-void xmrig::SinglePoolStrategy::onLoginSuccess(Client *client)
+void xmrig::SinglePoolStrategy::onLoginSuccess(IClient *client)
 {
     m_active = true;
     m_listener->onActive(this, client);
 }
 
 
-void xmrig::SinglePoolStrategy::onResultAccepted(Client *client, const SubmitResult &result, const char *error)
+void xmrig::SinglePoolStrategy::onResultAccepted(IClient *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
 }
