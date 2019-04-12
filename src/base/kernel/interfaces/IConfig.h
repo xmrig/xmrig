@@ -70,6 +70,8 @@ public:
         TlsKey               = 1013,
         FingerprintKey       = 1014,
         ProxyDonateKey       = 1017,
+        DaemonKey            = 1018,
+        DaemonPollKey        = 1019,
 
 #       ifdef XMRIG_DEPRECATED
         ApiPort              = 4000,
