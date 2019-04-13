@@ -59,6 +59,7 @@ protected:
     inline void tick(uint64_t) override                         {}
 
 private:
+    bool isOutdated(uint64_t height, const char *hash) const;
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     int64_t getBlockTemplate();
@@ -67,7 +68,9 @@ private:
     void send(int method, const char *url, const rapidjson::Document &doc);
     void setState(SocketState state);
 
+    bool m_monero;
     String m_blocktemplate;
+    String m_prevHash;
     String m_tlsFingerprint;
     String m_tlsVersion;
     Timer *m_timer;
