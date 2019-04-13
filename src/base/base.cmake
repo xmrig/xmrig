@@ -2,6 +2,7 @@ set(HEADERS_BASE
     src/base/io/Console.h
     src/base/io/json/Json.h
     src/base/io/json/JsonChain.h
+    src/base/io/json/JsonRequest.h
     src/base/io/log/backends/ConsoleLog.h
     src/base/io/log/backends/FileLog.h
     src/base/io/log/Log.h
@@ -53,14 +54,15 @@ set(SOURCES_BASE
     src/base/io/Console.cpp
     src/base/io/json/Json.cpp
     src/base/io/json/JsonChain.cpp
+    src/base/io/json/JsonRequest.cpp
     src/base/io/log/backends/ConsoleLog.cpp
     src/base/io/log/backends/FileLog.cpp
     src/base/io/log/Log.cpp
     src/base/io/Watcher.cpp
+    src/base/kernel/Base.cpp
     src/base/kernel/config/BaseConfig.cpp
     src/base/kernel/config/BaseTransform.cpp
     src/base/kernel/Entry.cpp
-    src/base/kernel/Base.cpp
     src/base/kernel/Process.cpp
     src/base/kernel/Signals.cpp
     src/base/net/dns/Dns.cpp

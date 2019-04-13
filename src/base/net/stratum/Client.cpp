@@ -37,6 +37,7 @@
 #endif
 
 
+#include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
@@ -167,10 +168,6 @@ int64_t xmrig::Client::submit(const JobResult &result)
     Document doc(kObjectType);
     auto &allocator = doc.GetAllocator();
 
-    doc.AddMember("id",      m_sequence, allocator);
-    doc.AddMember("jsonrpc", "2.0", allocator);
-    doc.AddMember("method",  "submit", allocator);
-
     Value params(kObjectType);
     params.AddMember("id",     StringRef(m_rpcId.data()), allocator);
     params.AddMember("job_id", StringRef(result.jobId.data()), allocator);
@@ -181,7 +178,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
         params.AddMember("algo", StringRef(result.algorithm.shortName()), allocator);
     }
 
-    doc.AddMember("params", params, allocator);
+    JsonRequest::create(doc, m_sequence, "submit", params);
 
 #   ifdef XMRIG_PROXY_PROJECT
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), result.id);
@@ -584,14 +581,10 @@ void xmrig::Client::login()
     Document doc(kObjectType);
     auto &allocator = doc.GetAllocator();
 
-    doc.AddMember("id",      1,       allocator);
-    doc.AddMember("jsonrpc", "2.0",   allocator);
-    doc.AddMember("method",  "login", allocator);
-
     Value params(kObjectType);
     params.AddMember("login", m_pool.user().toJSON(),     allocator);
     params.AddMember("pass",  m_pool.password().toJSON(), allocator);
-    params.AddMember("agent", StringRef(m_agent),           allocator);
+    params.AddMember("agent", StringRef(m_agent),         allocator);
 
     if (!m_pool.rigId().isNull()) {
         params.AddMember("rigid", m_pool.rigId().toJSON(), allocator);
@@ -612,7 +605,7 @@ void xmrig::Client::login()
 
     m_listener->onLogin(this, doc, params);
 
-    doc.AddMember("params", params, allocator);
+    JsonRequest::create(doc, 1, "login", params);
 
     send(doc);
 }

@@ -30,6 +30,7 @@
 
 #include "3rdparty/http-parser/http_parser.h"
 #include "base/io/json/Json.h"
+#include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/http/HttpClient.h"
@@ -96,16 +97,11 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
     using namespace rapidjson;
     Document doc(kObjectType);
-    auto &allocator = doc.GetAllocator();
-
-    doc.AddMember("id",      m_sequence,    allocator);
-    doc.AddMember("jsonrpc", "2.0",         allocator);
-    doc.AddMember("method",  "submitblock", allocator);
 
     Value params(kArrayType);
-    params.PushBack(m_blocktemplate.toJSON(), allocator);
+    params.PushBack(m_blocktemplate.toJSON(), doc.GetAllocator());
 
-    doc.AddMember("params", params, allocator);
+    JsonRequest::create(doc, m_sequence, "submitblock", params);
 
 #   ifdef XMRIG_PROXY_PROJECT
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), result.id);
@@ -251,15 +247,11 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
     Document doc(kObjectType);
     auto &allocator = doc.GetAllocator();
 
-    doc.AddMember("id",      m_sequence,         allocator);
-    doc.AddMember("jsonrpc", "2.0",              allocator);
-    doc.AddMember("method",  "getblocktemplate", allocator);
-
     Value params(kObjectType);
     params.AddMember("wallet_address", m_pool.user().toJSON(), allocator);
     params.AddMember("reserve_size",   8,                      allocator);
 
-    doc.AddMember("params", params, allocator);
+    JsonRequest::create(doc, m_sequence, "getblocktemplate", params);
 
     send(HTTP_POST, "/json_rpc", doc);
 
