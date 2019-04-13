@@ -37,7 +37,7 @@
 #include "base/kernel/Process.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IConfig.h"
-#include "base/io/JsonChain.h"
+#include "base/io/json/JsonChain.h"
 #include "core/config/Config_platform.h"
 
 

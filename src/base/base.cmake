@@ -1,7 +1,7 @@
 set(HEADERS_BASE
     src/base/io/Console.h
-    src/base/io/Json.h
-    src/base/io/JsonChain.h
+    src/base/io/json/Json.h
+    src/base/io/json/JsonChain.h
     src/base/io/log/backends/ConsoleLog.h
     src/base/io/log/backends/FileLog.h
     src/base/io/log/Log.h
@@ -51,8 +51,8 @@ set(HEADERS_BASE
 
 set(SOURCES_BASE
     src/base/io/Console.cpp
-    src/base/io/Json.cpp
-    src/base/io/JsonChain.cpp
+    src/base/io/json/Json.cpp
+    src/base/io/json/JsonChain.cpp
     src/base/io/log/backends/ConsoleLog.cpp
     src/base/io/log/backends/FileLog.cpp
     src/base/io/log/Log.cpp
@@ -81,9 +81,9 @@ set(SOURCES_BASE
 
 
 if (WIN32)
-    set(SOURCES_OS src/base/io/Json_win.cpp)
+    set(SOURCES_OS src/base/io/json/Json_win.cpp)
 else()
-    set(SOURCES_OS src/base/io/Json_unix.cpp)
+    set(SOURCES_OS src/base/io/json/Json_unix.cpp)
 endif()
 
 
