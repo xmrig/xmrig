@@ -64,7 +64,9 @@ xmrig::DaemonClient::~DaemonClient()
 
 bool xmrig::DaemonClient::disconnect()
 {
-    setState(UnconnectedState);
+    if (m_state != UnconnectedState) {
+        setState(UnconnectedState);
+    }
 
     return true;
 }
@@ -82,11 +84,15 @@ bool xmrig::DaemonClient::isTLS() const
 
 int64_t xmrig::DaemonClient::submit(const JobResult &result)
 {
-    if (result.jobId != (m_blocktemplate.data() + m_blocktemplate.size() - 48)) {
+    if (result.jobId != (m_blocktemplate.data() + m_blocktemplate.size() - 32)) {
         return -1;
     }
 
+#   ifdef XMRIG_PROXY_PROJECT
+    memcpy(m_blocktemplate.data() + 78, result.nonce, 8);
+#   else
     Buffer::toHex(reinterpret_cast<const uint8_t *>(&result.nonce), 4, m_blocktemplate.data() + 78);
+#   endif
 
     using namespace rapidjson;
     Document doc(kObjectType);
@@ -190,7 +196,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 
     job.setHeight(Json::getUint64(params, "height"));
     job.setDiff(Json::getUint64(params, "difficulty"));
-    job.setId(blocktemplate.data() + blocktemplate.size() - 48);
+    job.setId(blocktemplate.data() + blocktemplate.size() - 32);
 
     m_job           = std::move(job);
     m_blocktemplate = std::move(blocktemplate);

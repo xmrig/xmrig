@@ -85,6 +85,9 @@ public:
     inline int keepAlive() const                        { return m_keepAlive; }
     inline uint16_t port() const                        { return m_port; }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
+    inline void setPassword(const String &password)     { m_password = password; }
+    inline void setRigId(const String &rigId)           { m_rigId = rigId; }
+    inline void setUser(const String &user)             { m_user = user; }
 
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
     inline bool operator==(const Pool &other) const     { return isEqual(other); }

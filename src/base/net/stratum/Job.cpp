@@ -185,6 +185,11 @@ void xmrig::Job::setDiff(uint64_t diff)
 {
     m_diff   = diff;
     m_target = toDiff(diff);
+
+#   ifdef XMRIG_PROXY_PROJECT
+    Buffer::toHex(reinterpret_cast<uint8_t *>(&m_target), 8, m_rawTarget);
+    m_rawTarget[16] = '\0';
+#   endif
 }
 
 
