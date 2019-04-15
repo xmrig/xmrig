@@ -75,6 +75,9 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
 
         check_symbol_exists("_rotr" "x86intrin.h" HAVE_ROTR)
+        if (HAVE_ROTR)
+            add_definitions(/DHAVE_ROTR)
+        endif()
     endif()
 
 endif()
