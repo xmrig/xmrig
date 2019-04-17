@@ -1,3 +1,9 @@
+# v2.15.2-beta
+- [#1010](https://github.com/xmrig/xmrig/pull/1010#issuecomment-482632107) Added daemon support (solo mining).
+- [#1012](https://github.com/xmrig/xmrig/pull/1012) Fixed compatibility with clang 9.
+- Config subsystem was rewritten, internally JSON is primary format now.
+- Fixed regression, big HTTP responses was truncated.
+
 # v2.15.1-beta
 - [#1007](https://github.com/xmrig/xmrig/issues/1007) Old HTTP API backend based on libmicrohttpd, replaced to custom HTTP server (libuv + http_parser).
 - [#257](https://github.com/xmrig/xmrig-nvidia/pull/257) New logging subsystem, file and syslog now always without colors.
