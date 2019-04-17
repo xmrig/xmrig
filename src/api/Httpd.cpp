@@ -28,7 +28,7 @@
 #include "api/Httpd.h"
 #include "base/io/log/Log.h"
 #include "base/net/http/HttpApiResponse.h"
-#include "base/net/http/HttpRequest.h"
+#include "base/net/http/HttpData.h"
 #include "base/net/http/HttpServer.h"
 #include "base/net/tools/TcpServer.h"
 #include "core/config/Config.h"
@@ -48,13 +48,13 @@ static size_t faviconSize  = 0;
 } // namespace xmrig
 
 
-xmrig::Httpd::Httpd(Controller *controller) :
-    m_controller(controller),
+xmrig::Httpd::Httpd(Base *base) :
+    m_base(base),
     m_http(nullptr),
     m_server(nullptr),
     m_port(0)
 {
-    controller->addListener(this);
+    base->addListener(this);
 }
 
 
@@ -65,7 +65,7 @@ xmrig::Httpd::~Httpd()
 
 bool xmrig::Httpd::start()
 {
-    const Http &config = m_controller->config()->http();
+    const Http &config = m_base->config()->http();
 
     if (!config.isEnabled()) {
         return true;
@@ -128,51 +128,51 @@ void xmrig::Httpd::onConfigChanged(Config *config, Config *previousConfig)
 }
 
 
-void xmrig::Httpd::onHttpRequest(const HttpRequest &req)
+void xmrig::Httpd::onHttpData(const HttpData &data)
 {
-    if (req.method == HTTP_OPTIONS) {
-        return HttpApiResponse(req.id()).end();
+    if (data.method == HTTP_OPTIONS) {
+        return HttpApiResponse(data.id()).end();
     }
 
-    if (req.method == HTTP_GET && req.url == "/favicon.ico") {
+    if (data.method == HTTP_GET && data.url == "/favicon.ico") {
 #       ifdef _WIN32
         if (favicon != nullptr) {
-            HttpResponse response(req.id());
+            HttpResponse response(data.id());
             response.setHeader("Content-Type", "image/x-icon");
 
             return response.end(favicon, faviconSize);
         }
 #       endif
 
-        return HttpResponse(req.id(), 404).end();
+        return HttpResponse(data.id(), 404).end();
     }
 
-    if (req.method > 4) {
-        return HttpApiResponse(req.id(), HTTP_STATUS_METHOD_NOT_ALLOWED).end();
+    if (data.method > 4) {
+        return HttpApiResponse(data.id(), HTTP_STATUS_METHOD_NOT_ALLOWED).end();
     }
 
-    const int status = auth(req);
+    const int status = auth(data);
     if (status != HTTP_STATUS_OK) {
-        return HttpApiResponse(req.id(), status).end();
+        return HttpApiResponse(data.id(), status).end();
     }
 
-    if (req.method != HTTP_GET) {
-        if (m_controller->config()->http().isRestricted()) {
-            return HttpApiResponse(req.id(), HTTP_STATUS_FORBIDDEN).end();
+    if (data.method != HTTP_GET) {
+        if (m_base->config()->http().isRestricted()) {
+            return HttpApiResponse(data.id(), HTTP_STATUS_FORBIDDEN).end();
         }
 
-        if (!req.headers.count(kContentType) || req.headers.at(kContentType) != "application/json") {
-            return HttpApiResponse(req.id(), HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE).end();
+        if (!data.headers.count(kContentType) || data.headers.at(kContentType) != "application/json") {
+            return HttpApiResponse(data.id(), HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE).end();
         }
     }
 
-    m_controller->api()->request(req);
+    m_base->api()->request(data);
 }
 
 
-int xmrig::Httpd::auth(const HttpRequest &req) const
+int xmrig::Httpd::auth(const HttpData &req) const
 {
-    const Http &config = m_controller->config()->http();
+    const Http &config = m_base->config()->http();
 
     if (!req.headers.count(kAuthorization)) {
         return config.isAuthRequired() ? HTTP_STATUS_UNAUTHORIZED : HTTP_STATUS_OK;

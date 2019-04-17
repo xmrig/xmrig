@@ -44,16 +44,6 @@ xmrig::Pools::Pools() :
 }
 
 
-xmrig::Pool &xmrig::Pools::current()
-{
-    if (m_data.empty()) {
-        m_data.push_back(Pool());
-    }
-
-    return m_data.back();
-}
-
-
 bool xmrig::Pools::isEqual(const Pools &other) const
 {
     if (m_data.size() != other.m_data.size() || m_retries != other.m_retries || m_retryPause != other.m_retryPause) {
@@ -61,25 +51,6 @@ bool xmrig::Pools::isEqual(const Pools &other) const
     }
 
     return std::equal(m_data.begin(), m_data.end(), other.m_data.begin());
-}
-
-
-bool xmrig::Pools::setUrl(const char *url)
-{
-    if (m_data.empty() || m_data.back().isValid()) {
-        Pool pool(url);
-
-        if (pool.isValid()) {
-            m_data.push_back(std::move(pool));
-            return true;
-        }
-
-        return false;
-    }
-
-    current().parse(url);
-
-    return m_data.back().isValid();
 }
 
 
@@ -143,6 +114,10 @@ void xmrig::Pools::adjust(const Algorithm &algorithm)
 void xmrig::Pools::load(const rapidjson::Value &pools)
 {
     m_data.clear();
+
+    if (!pools.IsArray()) {
+        return;
+    }
 
     for (const rapidjson::Value &value : pools.GetArray()) {
         if (!value.IsObject()) {

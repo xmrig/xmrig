@@ -22,40 +22,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGWATCHER_H
-#define XMRIG_CONFIGWATCHER_H
+#ifndef XMRIG_ICONFIGTRANSFORM_H
+#define XMRIG_ICONFIGTRANSFORM_H
 
 
-#include "base/kernel/interfaces/IWatcherListener.h"
-#include "base/tools/String.h"
+#include "common/crypto/Algorithm.h"
 #include "rapidjson/fwd.h"
-
-
-struct option;
 
 
 namespace xmrig {
 
 
-class IConfigListener;
-class Watcher;
+class IJsonReader;
+class String;
 
 
-class ConfigWatcher : public IWatcherListener
+class IConfigTransform
 {
 public:
-    ConfigWatcher(const String &path, IConfigListener *listener);
-    ~ConfigWatcher() override;
+    virtual ~IConfigTransform() = default;
 
-protected:
-    void onFileChanged(const String &fileName) override;
-
-private:
-    IConfigListener *m_listener;
-    Watcher *m_watcher;
+    virtual void transform(rapidjson::Document &doc, int key, const char *arg) = 0;
 };
 
 
 } /* namespace xmrig */
 
-#endif /* __CONFIGWATCHER_H__ */
+
+#endif // XMRIG_ICONFIGTRANSFORM_H

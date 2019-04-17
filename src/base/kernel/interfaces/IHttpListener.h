@@ -29,7 +29,7 @@
 namespace xmrig {
 
 
-class HttpRequest;
+class HttpData;
 class HttpResponse;
 
 
@@ -38,7 +38,7 @@ class IHttpListener
 public:
     virtual ~IHttpListener() = default;
 
-    virtual void onHttpRequest(const HttpRequest &req) = 0;
+    virtual void onHttpData(const HttpData &data) = 0;
 };
 
 

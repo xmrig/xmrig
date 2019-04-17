@@ -22,26 +22,24 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ICONTROLLERLISTENER_H
-#define XMRIG_ICONTROLLERLISTENER_H
+#ifndef XMRIG_BATON_H
+#define XMRIG_BATON_H
 
 
 namespace xmrig {
 
 
-class Config;
-
-
-class IControllerListener
+template<typename REQ>
+class Baton
 {
 public:
-    virtual ~IControllerListener() = default;
+    inline Baton() { req.data = this; }
 
-    virtual void onConfigChanged(Config *config, Config *previousConfig) = 0;
+    REQ req;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif // XMRIG_ICONTROLLERLISTENER_H
+#endif /* XMRIG_BATON_H */

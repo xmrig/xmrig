@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -53,7 +54,7 @@ public:
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
     void setAlgorithm(const char *algo);
-    void setHeight(uint64_t height);
+    void setDiff(uint64_t diff);
 
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
@@ -67,12 +68,13 @@ public:
     inline int threadId() const                       { return m_threadId; }
     inline size_t size() const                        { return m_size; }
     inline uint32_t *nonce()                          { return reinterpret_cast<uint32_t*>(m_blob + 39); }
-    inline uint32_t diff() const                      { return static_cast<uint32_t>(m_diff); }
+    inline uint64_t diff() const                      { return m_diff; }
     inline uint64_t height() const                    { return m_height; }
     inline uint64_t target() const                    { return m_target; }
     inline uint8_t fixedByte() const                  { return *(m_blob + 42); }
     inline void reset()                               { m_size = 0; m_diff = 0; }
     inline void setClientId(const String &id)         { m_clientId = id; }
+    inline void setHeight(uint64_t height)            { m_height = height; }
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
     inline void setThreadId(int threadId)             { m_threadId = threadId; }
     inline void setVariant(const char *variant)       { m_algorithm.parseVariant(variant); }

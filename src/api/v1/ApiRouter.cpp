@@ -29,10 +29,10 @@
 
 #include "api/interfaces/IApiRequest.h"
 #include "api/v1/ApiRouter.h"
+#include "base/kernel/Base.h"
 #include "common/cpu/Cpu.h"
 #include "common/Platform.h"
 #include "core/config/Config.h"
-#include "core/Controller.h"
 #include "interfaces/IThread.h"
 #include "rapidjson/document.h"
 #include "version.h"
@@ -50,8 +50,8 @@ static inline double normalize(double d)
 }
 
 
-xmrig::ApiRouter::ApiRouter(xmrig::Controller *controller) :
-    m_controller(controller)
+xmrig::ApiRouter::ApiRouter(Base *base) :
+    m_base(base)
 {
 }
 
@@ -79,14 +79,14 @@ void xmrig::ApiRouter::onRequest(IApiRequest &request)
             }
 
             request.accept();
-            m_controller->config()->getJSON(request.doc());
+            m_base->config()->getJSON(request.doc());
         }
     }
     else if (request.method() == IApiRequest::METHOD_PUT || request.method() == IApiRequest::METHOD_POST) {
         if (request.url() == "/1/config") {
             request.accept();
 
-            if (!m_controller->config()->reload(request.json())) {
+            if (!m_base->reload(request.json())) {
                 return request.done(400);
             }
 
@@ -142,9 +142,9 @@ void xmrig::ApiRouter::getMiner(rapidjson::Value &reply, rapidjson::Document &do
     reply.AddMember("kind",         APP_KIND, allocator);
     reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
     reply.AddMember("cpu",          cpu, allocator);
-    reply.AddMember("algo",         StringRef(m_controller->config()->algorithm().name()), allocator);
+    reply.AddMember("algo",         StringRef(m_base->config()->algorithm().shortName()), allocator);
     reply.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
-    reply.AddMember("donate_level", m_controller->config()->pools().donateLevel(), allocator);
+    reply.AddMember("donate_level", m_base->config()->pools().donateLevel(), allocator);
 }
 
 
@@ -156,7 +156,7 @@ void xmrig::ApiRouter::getThreads(rapidjson::Value &reply, rapidjson::Document &
 
     Workers::threadsSummary(doc);
 
-    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
+    const std::vector<IThread *> &threads = m_base->config()->threads();
     Value list(kArrayType);
 
     size_t i = 0;

@@ -29,32 +29,32 @@
 #include <vector>
 
 
-#include "base/kernel/interfaces/IControllerListener.h"
+#include "base/kernel/interfaces/IBaseListener.h"
 
 
 namespace xmrig {
 
 
 class ApiRouter;
-class Controller;
+class Base;
 class Httpd;
-class HttpRequest;
+class HttpData;
 class IApiListener;
 class IApiRequest;
 class String;
 
 
-class Api : public IControllerListener
+class Api : public IBaseListener
 {
 public:
-    Api(Controller *controller);
+    Api(Base *base);
     ~Api() override;
 
     inline const char *id() const                   { return m_id; }
     inline const char *workerId() const             { return m_workerId; }
     inline void addListener(IApiListener *listener) { m_listeners.push_back(listener); }
 
-    void request(const HttpRequest &req);
+    void request(const HttpData &req);
     void start();
     void stop();
 
@@ -67,9 +67,9 @@ private:
     void genWorkerId(const String &id);
 
     ApiRouter *m_v1;
+    Base *m_base;
     char m_id[32];
     char m_workerId[128];
-    Controller *m_controller;
     Httpd *m_httpd;
     std::vector<IApiListener *> m_listeners;
 };

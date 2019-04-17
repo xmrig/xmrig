@@ -23,40 +23,27 @@
  */
 
 
-#include <fstream>
+#include "core/config/ConfigTransform.h"
+#include "base/kernel/interfaces/IConfig.h"
 
 
-#include "base/io/Json.h"
-#include "rapidjson/document.h"
-#include "rapidjson/istreamwrapper.h"
-#include "rapidjson/ostreamwrapper.h"
-#include "rapidjson/prettywriter.h"
-
-
-bool xmrig::Json::get(const char *fileName, rapidjson::Document &doc)
+xmrig::ConfigTransform::ConfigTransform()
 {
-    std::ifstream ifs(fileName, std::ios_base::in | std::ios_base::binary);
-    if (!ifs.is_open()) {
-        return false;
-    }
 
-    rapidjson::IStreamWrapper isw(ifs);
-    doc.ParseStream<rapidjson::kParseCommentsFlag | rapidjson::kParseTrailingCommasFlag>(isw);
-
-    return !doc.HasParseError() && doc.IsObject();
 }
 
 
-bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
+void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const char *arg)
 {
-    std::ofstream ofs(fileName, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
-    if (!ofs.is_open()) {
-        return false;
-    }
+    BaseTransform::transform(doc, key, arg);
+}
 
-    rapidjson::OStreamWrapper osw(ofs);
-    rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(osw);
-    doc.Accept(writer);
 
-    return true;
+void xmrig::ConfigTransform::transformBoolean(rapidjson::Document &doc, int key, bool enable)
+{
+}
+
+
+void xmrig::ConfigTransform::transformUint64(rapidjson::Document &doc, int key, uint64_t arg)
+{
 }

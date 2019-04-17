@@ -36,13 +36,13 @@ class Hashrate;
 namespace xmrig {
 
 
-class Controller;
+class Base;
 
 
 class ApiRouter : public xmrig::IApiListener
 {
 public:
-    ApiRouter(Controller *controller);
+    ApiRouter(Base *base);
     ~ApiRouter() override;
 
 protected:
@@ -53,7 +53,7 @@ private:
     void getMiner(rapidjson::Value &reply, rapidjson::Document &doc) const;
     void getThreads(rapidjson::Value &reply, rapidjson::Document &doc) const;
 
-    Controller *m_controller;
+    Base *m_base;
 };
 
 

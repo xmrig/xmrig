@@ -35,14 +35,14 @@
 
 
 xmrig::NetworkState::NetworkState() :
-    diff(0),
+    pool(),
     accepted(0),
+    diff(0),
     failures(0),
     rejected(0),
     total(0),
     m_active(false)
 {
-    memset(pool, 0, sizeof(pool));
 }
 
 

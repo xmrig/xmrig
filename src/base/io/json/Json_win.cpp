@@ -35,7 +35,7 @@
 #include <fstream>
 
 
-#include "base/io/Json.h"
+#include "base/io/json/Json.h"
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
 #include "rapidjson/ostreamwrapper.h"
@@ -102,7 +102,7 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
         return false;
     }
 #   elif defined(__GNUC__)
-    const int fd = _wopen(toUtf16(fileName).c_str(), _O_WRONLY | _O_BINARY | _O_TRUNC);
+    const int fd = _wopen(toUtf16(fileName).c_str(), _O_WRONLY | _O_BINARY | _O_CREAT | _O_TRUNC);
     if (fd == -1) {
         return false;
     }

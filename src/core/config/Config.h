@@ -29,7 +29,7 @@
 #include <vector>
 
 
-#include "common/config/CommonConfig.h"
+#include "base/kernel/config/BaseConfig.h"
 #include "common/xmrig.h"
 #include "rapidjson/fwd.h"
 #include "workers/CpuThread.h"
@@ -55,7 +55,7 @@ class Process;
  *   api/worker-id
  *   pools/
  */
-class Config : public CommonConfig
+class Config : public BaseConfig
 {
 public:
     enum ThreadsMode {
@@ -67,8 +67,7 @@ public:
 
     Config();
 
-    bool reload(const rapidjson::Value &json);
-
+    bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
     inline AesMode aesMode() const                       { return m_aesMode; }
@@ -80,24 +79,23 @@ public:
     inline int priority() const                          { return m_priority; }
     inline int threadsCount() const                      { return static_cast<int>(m_threads.list.size()); }
     inline int64_t affinity() const                      { return m_threads.mask; }
-    inline static IConfig *create()                      { return new Config(); }
     inline ThreadsMode threadsMode() const               { return m_threads.mode; }
 
-    static Config *load(Process *process, IConfigListener *listener);
-
-protected:
-    bool finalize() override;
-    bool parseBoolean(int key, bool enable) override;
-    bool parseString(int key, const char *arg) override;
-    bool parseUint64(int key, uint64_t arg) override;
-    void parseJSON(const rapidjson::Value &json) override;
-
 private:
-    bool parseInt(int key, int arg);
+    bool finalize();
+    void setAesMode(const rapidjson::Value &aesMode);
+    void setAlgoVariant(int av);
+    void setMaxCpuUsage(int max);
+    void setPriority(int priority);
+    void setThreads(const rapidjson::Value &threads);
 
     AlgoVariant getAlgoVariant() const;
 #   ifndef XMRIG_NO_AEON
     AlgoVariant getAlgoVariantLite() const;
+#   endif
+
+#   ifndef XMRIG_NO_ASM
+    void setAssembly(const rapidjson::Value &assembly);
 #   endif
 
 

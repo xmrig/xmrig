@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -29,7 +30,7 @@
 #include <stdio.h>
 
 
-#include "base/io/Json.h"
+#include "base/io/json/Json.h"
 #include "base/net/stratum/Pool.h"
 #include "rapidjson/document.h"
 
@@ -41,35 +42,43 @@
 
 #ifdef _MSC_VER
 #   define strncasecmp _strnicmp
-#   define strcasecmp  _stricmp
 #endif
 
 
 namespace xmrig {
 
-static const char *kEnabled         = "enabled";
-static const char *kFingerprint     = "tls-fingerprint";
-static const char *kKeepalive       = "keepalive";
-static const char *kNicehash        = "nicehash";
-static const char *kPass            = "pass";
-static const char *kRigId           = "rig-id";
-static const char *kTls             = "tls";
-static const char *kUrl             = "url";
-static const char *kUser            = "user";
-static const char *kVariant         = "variant";
+static const char *kDaemon                 = "daemon";
+static const char *kDaemonPollInterval     = "daemon-poll-interval";
+static const char *kEnabled                = "enabled";
+static const char *kFingerprint            = "tls-fingerprint";
+static const char *kKeepalive              = "keepalive";
+static const char *kNicehash               = "nicehash";
+static const char *kPass                   = "pass";
+static const char *kRigId                  = "rig-id";
+static const char *kTls                    = "tls";
+static const char *kUrl                    = "url";
+static const char *kUser                   = "user";
+static const char *kVariant                = "variant";
 
-const String Pool::kDefaultPassword = "x";
-const String Pool::kDefaultUser     = "x";
+const String Pool::kDefaultPassword        = "x";
+const String Pool::kDefaultUser            = "x";
+
+static const char kStratumTcp[]            = "stratum+tcp://";
+static const char kStratumSsl[]            = "stratum+ssl://";
+
+#ifdef XMRIG_FEATURE_HTTP
+static const char kDaemonHttp[]            = "daemon+http://";
+static const char kDaemonHttps[]           = "daemon+https://";
+#endif
 
 }
 
 
 xmrig::Pool::Pool() :
-    m_enabled(true),
-    m_nicehash(false),
-    m_tls(false),
     m_keepAlive(0),
-    m_port(kDefaultPort)
+    m_flags(0),
+    m_port(kDefaultPort),
+    m_pollInterval(kDefaultPollInterval)
 {
 }
 
@@ -86,33 +95,37 @@ xmrig::Pool::Pool() :
  * @param url
  */
 xmrig::Pool::Pool(const char *url) :
-    m_enabled(true),
-    m_nicehash(false),
-    m_tls(false),
     m_keepAlive(0),
-    m_port(kDefaultPort)
+    m_flags(1),
+    m_port(kDefaultPort),
+    m_pollInterval(kDefaultPollInterval)
 {
     parse(url);
 }
 
 
 xmrig::Pool::Pool(const rapidjson::Value &object) :
-    m_enabled(true),
-    m_nicehash(false),
-    m_tls(false),
     m_keepAlive(0),
-    m_port(kDefaultPort)
+    m_flags(1),
+    m_port(kDefaultPort),
+    m_pollInterval(kDefaultPollInterval)
 {
     if (!parse(Json::getString(object, kUrl))) {
         return;
     }
 
-    setUser(Json::getString(object, kUser));
-    setPassword(Json::getString(object, kPass));
-    setRigId(Json::getString(object, kRigId));
-    setNicehash(Json::getBool(object, kNicehash));
+    m_user         = Json::getString(object, kUser);
+    m_password     = Json::getString(object, kPass);
+    m_rigId        = Json::getString(object, kRigId);
+    m_fingerprint  = Json::getString(object, kFingerprint);
+    m_pollInterval = Json::getUint64(object, kDaemonPollInterval, kDefaultPollInterval);
 
-    const rapidjson::Value &keepalive = object[kKeepalive];
+    m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
+    m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
+    m_flags.set(FLAG_TLS,      Json::getBool(object, kTls, m_flags.test(FLAG_TLS)));
+    m_flags.set(FLAG_DAEMON,   Json::getBool(object, kDaemon, m_flags.test(FLAG_DAEMON)));
+
+    const rapidjson::Value &keepalive = Json::getValue(object, kKeepalive);
     if (keepalive.IsInt()) {
         setKeepAlive(keepalive.GetInt());
     }
@@ -120,7 +133,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
         setKeepAlive(keepalive.GetBool());
     }
 
-    const rapidjson::Value &variant = object[kVariant];
+    const rapidjson::Value &variant = Json::getValue(object, kVariant);
     if (variant.IsString()) {
         algorithm().parseVariant(variant.GetString());
     }
@@ -128,21 +141,17 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
         algorithm().parseVariant(variant.GetInt());
     }
 
-    m_enabled     = Json::getBool(object, kEnabled, true);
-    m_tls         = Json::getBool(object, kTls);
-    m_fingerprint = Json::getString(object, kFingerprint);
 }
 
 
 xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
-    m_enabled(true),
-    m_nicehash(nicehash),
-    m_tls(tls),
     m_keepAlive(keepAlive),
+    m_flags(1),
     m_host(host),
     m_password(password),
     m_user(user),
-    m_port(port)
+    m_port(port),
+    m_pollInterval(kDefaultPollInterval)
 {
     const size_t size = m_host.size() + 8;
     assert(size > 8);
@@ -151,6 +160,9 @@ xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char 
     snprintf(url, size - 1, "%s:%d", m_host.data(), m_port);
 
     m_url = url;
+
+    m_flags.set(FLAG_NICEHASH, nicehash);
+    m_flags.set(FLAG_TLS,      tls);
 }
 
 
@@ -184,24 +196,29 @@ bool xmrig::Pool::isEnabled() const
     }
 #   endif
 
-    return m_enabled && isValid() && algorithm().isValid();
+#   ifndef XMRIG_FEATURE_HTTP
+    if (isDaemon()) {
+        return false;
+    }
+#   endif
+
+    return m_flags.test(FLAG_ENABLED) && isValid() && algorithm().isValid();
 }
 
 
 bool xmrig::Pool::isEqual(const Pool &other) const
 {
-    return (m_nicehash       == other.m_nicehash
-            && m_enabled     == other.m_enabled
-            && m_tls         == other.m_tls
-            && m_keepAlive   == other.m_keepAlive
-            && m_port        == other.m_port
-            && m_algorithm   == other.m_algorithm
-            && m_fingerprint == other.m_fingerprint
-            && m_host        == other.m_host
-            && m_password    == other.m_password
-            && m_rigId       == other.m_rigId
-            && m_url         == other.m_url
-            && m_user        == other.m_user);
+    return (m_flags           == other.m_flags
+            && m_keepAlive    == other.m_keepAlive
+            && m_port         == other.m_port
+            && m_algorithm    == other.m_algorithm
+            && m_fingerprint  == other.m_fingerprint
+            && m_host         == other.m_host
+            && m_password     == other.m_password
+            && m_rigId        == other.m_rigId
+            && m_url          == other.m_url
+            && m_user         == other.m_user
+            && m_pollInterval == other.m_pollInterval);
 }
 
 
@@ -209,21 +226,33 @@ bool xmrig::Pool::parse(const char *url)
 {
     assert(url != nullptr);
 
-    const char *p = strstr(url, "://");
+    const char *p    = strstr(url, "://");
     const char *base = url;
 
     if (p) {
-        if (strncasecmp(url, "stratum+tcp://", 14) == 0) {
-            m_tls = false;
+        if (strncasecmp(url, kStratumTcp, sizeof(kStratumTcp) - 1) == 0) {
+            m_flags.set(FLAG_DAEMON, false);
+            m_flags.set(FLAG_TLS,    false);
         }
-        else if (strncasecmp(url, "stratum+ssl://", 14) == 0) {
-            m_tls = true;
+        else if (strncasecmp(url, kStratumSsl, sizeof(kStratumSsl) - 1) == 0) {
+            m_flags.set(FLAG_DAEMON, false);
+            m_flags.set(FLAG_TLS,    true);
         }
+#       ifdef XMRIG_FEATURE_HTTP
+        else if (strncasecmp(url, kDaemonHttps, sizeof(kDaemonHttps) - 1) == 0) {
+            m_flags.set(FLAG_DAEMON, true);
+            m_flags.set(FLAG_TLS,    true);
+        }
+        else if (strncasecmp(url, kDaemonHttp, sizeof(kDaemonHttp) - 1) == 0) {
+            m_flags.set(FLAG_DAEMON, true);
+            m_flags.set(FLAG_TLS,    false);
+        }
+#       endif
         else {
             return false;
         }
 
-        base = url + 14;
+        base = p + 3;
     }
 
     if (!strlen(base) || *base == '/') {
@@ -247,23 +276,6 @@ bool xmrig::Pool::parse(const char *url)
 
     m_host = host;
     m_port = static_cast<uint16_t>(strtol(port, nullptr, 10));
-
-    return true;
-}
-
-
-bool xmrig::Pool::setUserpass(const char *userpass)
-{
-    const char *p = strchr(userpass, ':');
-    if (!p) {
-        return false;
-    }
-
-    char *user = new char[p - userpass + 1]();
-    strncpy(user, userpass, static_cast<size_t>(p - userpass));
-
-    m_user     = user;
-    m_password = p + 1;
 
     return true;
 }
@@ -309,9 +321,11 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
         break;
     }
 
-    obj.AddMember(StringRef(kEnabled),     m_enabled, allocator);
-    obj.AddMember(StringRef(kTls),         isTLS(), allocator);
-    obj.AddMember(StringRef(kFingerprint), m_fingerprint.toJSON(), allocator);
+    obj.AddMember(StringRef(kEnabled),            m_flags.test(FLAG_ENABLED), allocator);
+    obj.AddMember(StringRef(kTls),                isTLS(), allocator);
+    obj.AddMember(StringRef(kFingerprint),        m_fingerprint.toJSON(), allocator);
+    obj.AddMember(StringRef(kDaemon),             m_flags.test(FLAG_DAEMON), allocator);
+    obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
 
     return obj;
 }
@@ -350,7 +364,7 @@ void xmrig::Pool::print() const
     LOG_DEBUG ("pass:      %s", m_password.data());
     LOG_DEBUG ("rig-id     %s", m_rigId.data());
     LOG_DEBUG ("algo:      %s", m_algorithm.name());
-    LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_nicehash));
+    LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_flags.test(FLAG_NICEHASH)));
     LOG_DEBUG ("keepAlive: %d", m_keepAlive);
 }
 #endif
@@ -396,8 +410,8 @@ void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
     using namespace xmrig;
 
     if (m_host.contains(".nicehash.com")) {
+        m_flags.set(FLAG_NICEHASH, true);
         m_keepAlive = false;
-        m_nicehash  = true;
         bool valid  = true;
 
         switch (m_port) {
@@ -432,7 +446,7 @@ void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
             m_algorithm.setAlgo(INVALID_ALGO);
         }
 
-        m_tls = m_port > 33000;
+        m_flags.set(FLAG_TLS, m_port > 33000);
         return;
     }
 

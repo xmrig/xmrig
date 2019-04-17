@@ -36,7 +36,7 @@ typedef struct uv_stream_s uv_stream_t;
 typedef struct uv_tcp_s uv_tcp_t;
 
 
-#include "base/net/http/HttpRequest.h"
+#include "base/net/http/HttpData.h"
 
 
 namespace xmrig {
@@ -45,37 +45,37 @@ namespace xmrig {
 class IHttpListener;
 
 
-class HttpContext : public HttpRequest
+class HttpContext : public HttpData
 {
 public:
     HttpContext(int parser_type, IHttpListener *listener);
-    ~HttpContext();
+    virtual ~HttpContext();
 
-    inline uv_stream_t *stream() const { return reinterpret_cast<uv_stream_t *>(tcp); }
-    inline uv_handle_t *handle() const { return reinterpret_cast<uv_handle_t *>(tcp); }
+    inline uv_stream_t *stream() const { return reinterpret_cast<uv_stream_t *>(m_tcp); }
+    inline uv_handle_t *handle() const { return reinterpret_cast<uv_handle_t *>(m_tcp); }
 
-    void close();
+    size_t parse(const char *data, size_t size);
+    std::string ip() const;
+    void close(int status = 0);
 
     static HttpContext *get(uint64_t id);
-    static void attach(http_parser_settings *settings);
     static void closeAll();
 
-    http_parser *parser;
-    IHttpListener *listener;
-    uv_connect_t *connect;
-    uv_tcp_t *tcp;
+protected:
+    uv_tcp_t *m_tcp;
 
 private:
     static int onHeaderField(http_parser *parser, const char *at, size_t length);
     static int onHeaderValue(http_parser *parser, const char *at, size_t length);
+    static void attach(http_parser_settings *settings);
 
     void setHeader();
 
     bool m_wasHeaderValue;
+    http_parser *m_parser;
+    IHttpListener *m_listener;
     std::string m_lastHeaderField;
     std::string m_lastHeaderValue;
-
-    static std::map<uint64_t, HttpContext *> m_storage;
 };
 
 

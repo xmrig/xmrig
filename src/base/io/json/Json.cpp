@@ -23,8 +23,15 @@
  */
 
 
-#include "base/io/Json.h"
+#include "base/io/json/Json.h"
 #include "rapidjson/document.h"
+
+
+namespace xmrig {
+
+static const rapidjson::Value kNullValue;
+
+}
 
 
 bool xmrig::Json::getBool(const rapidjson::Value &obj, const char *key, bool defaultValue)
@@ -46,6 +53,39 @@ const char *xmrig::Json::getString(const rapidjson::Value &obj, const char *key,
     }
 
     return defaultValue;
+}
+
+
+const rapidjson::Value &xmrig::Json::getArray(const rapidjson::Value &obj, const char *key)
+{
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd() && i->value.IsArray()) {
+        return i->value;
+    }
+
+    return kNullValue;
+}
+
+
+const rapidjson::Value &xmrig::Json::getObject(const rapidjson::Value &obj, const char *key)
+{
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd() && i->value.IsObject()) {
+        return i->value;
+    }
+
+    return kNullValue;
+}
+
+
+const rapidjson::Value &xmrig::Json::getValue(const rapidjson::Value &obj, const char *key)
+{
+    auto i = obj.FindMember(key);
+    if (i != obj.MemberEnd()) {
+        return i->value;
+    }
+
+    return kNullValue;
 }
 
 
@@ -90,4 +130,10 @@ unsigned xmrig::Json::getUint(const rapidjson::Value &obj, const char *key, unsi
     }
 
     return defaultValue;
+}
+
+
+bool xmrig::JsonReader::isEmpty() const
+{
+    return !m_obj.IsObject() || m_obj.ObjectEmpty();
 }

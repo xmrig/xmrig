@@ -35,7 +35,7 @@
 namespace xmrig {
 
 
-class Client;
+class IClient;
 class Job;
 class SubmitResult;
 
@@ -45,11 +45,11 @@ class IClientListener
 public:
     virtual ~IClientListener() = default;
 
-    virtual void onClose(Client *client, int failures)                                           = 0;
-    virtual void onJobReceived(Client *client, const Job &job, const rapidjson::Value &params)   = 0;
-    virtual void onLogin(Client *client, rapidjson::Document &doc, rapidjson::Value &params)     = 0;
-    virtual void onLoginSuccess(Client *client)                                                  = 0;
-    virtual void onResultAccepted(Client *client, const SubmitResult &result, const char *error) = 0;
+    virtual void onClose(IClient *client, int failures)                                           = 0;
+    virtual void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params)   = 0;
+    virtual void onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params)     = 0;
+    virtual void onLoginSuccess(IClient *client)                                                  = 0;
+    virtual void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) = 0;
 };
 
 

@@ -23,6 +23,9 @@
  */
 
 
+#include <ctype.h>
+
+
 #include "base/tools/String.h"
 #include "rapidjson/document.h"
 
@@ -126,6 +129,20 @@ std::vector<xmrig::String> xmrig::String::split(char sep) const
     }
 
     return out;
+}
+
+
+xmrig::String &xmrig::String::toLower()
+{
+    if (isNull() || isEmpty()) {
+        return *this;
+    }
+
+    for (size_t i = 0; i < size(); ++i) {
+        m_data[i] = static_cast<char>(tolower(m_data[i]));
+    }
+
+    return *this;
 }
 
 

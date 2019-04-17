@@ -144,7 +144,11 @@ void xmrig::Dns::onResolved(int status, addrinfo *res)
         ptr = ptr->ai_next;
     }
 
-    m_listener->onResolved(*this, status);
+    if (isEmpty()) {
+        m_status = UV_EAI_NONAME;
+    }
+
+    m_listener->onResolved(*this, m_status);
 }
 
 

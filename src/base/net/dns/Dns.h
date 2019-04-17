@@ -47,8 +47,9 @@ public:
     Dns(IDnsListener *listener);
     ~Dns();
 
-    inline bool isEmpty() const { return m_ipv4.empty() && m_ipv6.empty(); }
-    inline int status() const   { return m_status; }
+    inline bool isEmpty() const       { return m_ipv4.empty() && m_ipv6.empty(); }
+    inline const String &host() const { return m_host; }
+    inline int status() const         { return m_status; }
 
     bool resolve(const String &host);
     const char *error() const;

@@ -50,28 +50,16 @@ public:
 
     Pools();
 
-    inline bool setUserpass(const char *userpass)       { return current().setUserpass(userpass); }
     inline const std::vector<Pool> &data() const        { return m_data; }
     inline int donateLevel() const                      { return m_donateLevel; }
     inline int retries() const                          { return m_retries; }
     inline int retryPause() const                       { return m_retryPause; }
     inline ProxyDonate proxyDonate() const              { return m_proxyDonate; }
-    inline void setFingerprint(const char *fingerprint) { current().setFingerprint(fingerprint); }
-    inline void setKeepAlive(bool enable)               { current().setKeepAlive(enable); }
-    inline void setKeepAlive(int keepAlive)             { current().setKeepAlive(keepAlive); }
-    inline void setNicehash(bool enable)                { current().setNicehash(enable); }
-    inline void setPassword(const char *password)       { current().setPassword(password); }
-    inline void setRigId(const char *rigId)             { current().setRigId(rigId); }
-    inline void setTLS(bool enable)                     { current().setTLS(enable); }
-    inline void setUser(const char *user)               { current().setUser(user); }
-    inline void setVariant(const char *variant)         { current().algorithm().parseVariant(variant); }
-    inline void setVariant(int variant)                 { current().algorithm().parseVariant(variant); }
 
     inline bool operator!=(const Pools &other) const    { return !isEqual(other); }
     inline bool operator==(const Pools &other) const    { return isEqual(other); }
 
     bool isEqual(const Pools &other) const;
-    bool setUrl(const char *url);
     IStrategy *createStrategy(IStrategyListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t active() const;
@@ -84,8 +72,6 @@ public:
     void setRetryPause(int retryPause);
 
 private:
-    Pool &current();
-
     int m_donateLevel;
     int m_retries;
     int m_retryPause;

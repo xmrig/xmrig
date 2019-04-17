@@ -37,6 +37,7 @@
 #endif
 
 
+#include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
@@ -57,7 +58,6 @@
 
 namespace xmrig {
 
-int64_t Client::m_sequence = 1;
 Storage<Client> Client::m_storage;
 
 } /* namespace xmrig */
@@ -75,16 +75,8 @@ static const char *states[] = {
 
 
 xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
-    m_enabled(true),
-    m_ipv6(false),
-    m_quiet(false),
+    BaseClient(id, listener),
     m_agent(agent),
-    m_listener(listener),
-    m_id(id),
-    m_retries(5),
-    m_retryPause(5000),
-    m_failures(0),
-    m_state(UnconnectedState),
     m_tls(nullptr),
     m_expire(0),
     m_jobs(0),
@@ -102,73 +94,6 @@ xmrig::Client::~Client()
 {
     delete m_dns;
     delete m_socket;
-}
-
-
-void xmrig::Client::connect()
-{
-#   ifdef XMRIG_FEATURE_TLS
-    if (m_pool.isTLS()) {
-        m_tls = new Tls(this);
-    }
-#   endif
-
-    resolve(m_pool.host());
-}
-
-
-/**
- * @brief Connect to server.
- *
- * @param url
- */
-void xmrig::Client::connect(const Pool &url)
-{
-    setPool(url);
-    connect();
-}
-
-
-void xmrig::Client::deleteLater()
-{
-    if (!m_listener) {
-        return;
-    }
-
-    m_listener = nullptr;
-
-    if (!disconnect()) {
-        m_storage.remove(m_key);
-    }
-}
-
-
-
-void xmrig::Client::setPool(const Pool &pool)
-{
-    if (!pool.isValid()) {
-        return;
-    }
-
-    m_pool = pool;
-}
-
-
-void xmrig::Client::tick(uint64_t now)
-{
-    if (m_state == ConnectedState) {
-        if (m_expire && now > m_expire) {
-            LOG_DEBUG_ERR("[%s] timeout", url());
-            close();
-        }
-        else if (m_keepAlive && now > m_keepAlive) {
-            ping();
-        }
-    }
-
-    if (m_expire && now > m_expire && m_state == ConnectingState) {
-        connect();
-    }
 }
 
 
@@ -243,10 +168,6 @@ int64_t xmrig::Client::submit(const JobResult &result)
     Document doc(kObjectType);
     auto &allocator = doc.GetAllocator();
 
-    doc.AddMember("id",      m_sequence, allocator);
-    doc.AddMember("jsonrpc", "2.0", allocator);
-    doc.AddMember("method",  "submit", allocator);
-
     Value params(kObjectType);
     params.AddMember("id",     StringRef(m_rpcId.data()), allocator);
     params.AddMember("job_id", StringRef(result.jobId.data()), allocator);
@@ -257,7 +178,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
         params.AddMember("algo", StringRef(result.algorithm.shortName()), allocator);
     }
 
-    doc.AddMember("params", params, allocator);
+    JsonRequest::create(doc, m_sequence, "submit", params);
 
 #   ifdef XMRIG_PROXY_PROJECT
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), result.id);
@@ -266,6 +187,57 @@ int64_t xmrig::Client::submit(const JobResult &result)
 #   endif
 
     return send(doc);
+}
+
+
+void xmrig::Client::connect()
+{
+#   ifdef XMRIG_FEATURE_TLS
+    if (m_pool.isTLS()) {
+        m_tls = new Tls(this);
+    }
+#   endif
+
+    resolve(m_pool.host());
+}
+
+
+void xmrig::Client::connect(const Pool &pool)
+{
+    setPool(pool);
+    connect();
+}
+
+
+void xmrig::Client::deleteLater()
+{
+    if (!m_listener) {
+        return;
+    }
+
+    m_listener = nullptr;
+
+    if (!disconnect()) {
+        m_storage.remove(m_key);
+    }
+}
+
+
+void xmrig::Client::tick(uint64_t now)
+{
+    if (m_state == ConnectedState) {
+        if (m_expire && now > m_expire) {
+            LOG_DEBUG_ERR("[%s] timeout", url());
+            close();
+        }
+        else if (m_keepAlive && now > m_keepAlive) {
+            ping();
+        }
+    }
+
+    if (m_expire && now > m_expire && m_state == ConnectingState) {
+        connect();
+    }
 }
 
 
@@ -279,14 +251,6 @@ void xmrig::Client::onResolved(const Dns &dns, int status)
     if (status < 0 && dns.isEmpty()) {
         if (!isQuiet()) {
             LOG_ERR("[%s] DNS error: \"%s\"", url(), uv_strerror(status));
-        }
-
-        return reconnect();
-    }
-
-    if (dns.isEmpty()) {
-        if (!isQuiet()) {
-            LOG_ERR("[%s] DNS error: \"No IPv4 (A) or IPv6 (AAAA) records found\"", url());
         }
 
         return reconnect();
@@ -541,7 +505,7 @@ int64_t xmrig::Client::send(const rapidjson::Document &doc)
 
 int64_t xmrig::Client::send(size_t size)
 {
-    LOG_DEBUG("[%s] send (%d bytes): \"%s\"", url(), size, m_sendBuf);
+    LOG_DEBUG("[%s] send (%d bytes): \"%.*s\"", url(), size, static_cast<int>(size) - 1, m_sendBuf);
 
 #   ifdef XMRIG_FEATURE_TLS
     if (isTLS()) {
@@ -574,8 +538,6 @@ void xmrig::Client::connect(sockaddr *addr)
 {
     setState(ConnectingState);
 
-    reinterpret_cast<sockaddr_in*>(addr)->sin_port = htons(m_pool.port());
-
     uv_connect_t *req = new uv_connect_t;
     req->data = m_storage.ptr(m_key);
 
@@ -589,7 +551,7 @@ void xmrig::Client::connect(sockaddr *addr)
     uv_tcp_keepalive(m_socket, 1, 60);
 #   endif
 
-    uv_tcp_connect(req, m_socket, reinterpret_cast<const sockaddr*>(addr), Client::onConnect);
+    uv_tcp_connect(req, m_socket, addr, onConnect);
 
     delete addr;
 }
@@ -619,14 +581,10 @@ void xmrig::Client::login()
     Document doc(kObjectType);
     auto &allocator = doc.GetAllocator();
 
-    doc.AddMember("id",      1,       allocator);
-    doc.AddMember("jsonrpc", "2.0",   allocator);
-    doc.AddMember("method",  "login", allocator);
-
     Value params(kObjectType);
     params.AddMember("login", m_pool.user().toJSON(),     allocator);
     params.AddMember("pass",  m_pool.password().toJSON(), allocator);
-    params.AddMember("agent", StringRef(m_agent),           allocator);
+    params.AddMember("agent", StringRef(m_agent),         allocator);
 
     if (!m_pool.rigId().isNull()) {
         params.AddMember("rigid", m_pool.rigId().toJSON(), allocator);
@@ -647,7 +605,7 @@ void xmrig::Client::login()
 
     m_listener->onLogin(this, doc, params);
 
-    doc.AddMember("params", params, allocator);
+    JsonRequest::create(doc, 1, "login", params);
 
     send(doc);
 }
@@ -676,7 +634,7 @@ void xmrig::Client::parse(char *line, size_t len)
 {
     startTimeout();
 
-    LOG_DEBUG("[%s] received (%d bytes): \"%s\"", url(), len, line);
+    LOG_DEBUG("[%s] received (%d bytes): \"%.*s\"", url(), len, static_cast<int>(len), line);
 
     if (len < 32 || line[0] != '{') {
         if (!isQuiet()) {
@@ -781,14 +739,8 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
     if (error.IsObject()) {
         const char *message = error["message"].GetString();
 
-        auto it = m_results.find(id);
-        if (it != m_results.end()) {
-            it->second.done();
-            m_listener->onResultAccepted(this, it->second, message);
-            m_results.erase(it);
-        }
-        else if (!isQuiet()) {
-            LOG_ERR("[%s] error: \"%s\", code: %d", url(), message, error["code"].GetInt());
+        if (!handleSubmitResponse(id, message) && !isQuiet()) {
+            LOG_ERR("[%s] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", url(), message, error["code"].GetInt());
         }
 
         if (isCriticalError(message)) {
@@ -819,12 +771,7 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
         return;
     }
 
-    auto it = m_results.find(id);
-    if (it != m_results.end()) {
-        it->second.done();
-        m_listener->onResultAccepted(this, it->second, nullptr);
-        m_results.erase(it);
-    }
+    handleSubmitResponse(id);
 }
 
 
@@ -970,7 +917,7 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
     client->m_stream->data = req->data;
     client->setState(ConnectedState);
 
-    uv_read_start(client->m_stream, Client::onAllocBuffer, Client::onRead);
+    uv_read_start(client->m_stream, onAllocBuffer, onRead);
     delete req;
 
     client->handshake();

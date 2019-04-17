@@ -6,7 +6,7 @@ option(WITH_AEON            "CryptoNight-Lite support" ON)
 option(WITH_SUMO            "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
 option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
-option(WITH_HTTPD           "HTTP REST API" ON)
+option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
@@ -24,20 +24,17 @@ set(HEADERS
     "${HEADERS_BASE_HTTP}"
     src/api/interfaces/IApiListener.h
     src/App.h
-    src/common/config/CommonConfig.h
-    src/common/config/ConfigLoader.h
-    src/common/config/ConfigWatcher.h
     src/common/cpu/Cpu.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
-    src/common/interfaces/IConfig.h
     src/common/interfaces/ICpuInfo.h
     src/common/Platform.h
     src/common/utils/mm_malloc.h
     src/common/xmrig.h
+    src/core/config/Config_default.h
+    src/core/config/Config_platform.h
     src/core/config/Config.h
-    src/core/config/ConfigLoader_default.h
-    src/core/config/ConfigLoader_platform.h
+    src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
     src/interfaces/IJobResultListener.h
@@ -84,13 +81,11 @@ set(SOURCES
     "${SOURCES_BASE}"
     "${SOURCES_BASE_HTTP}"
     src/App.cpp
-    src/common/config/CommonConfig.cpp
-    src/common/config/ConfigLoader.cpp
-    src/common/config/ConfigWatcher.cpp
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/Platform.cpp
     src/core/config/Config.cpp
+    src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
     src/Mem.cpp
     src/net/Network.cpp
@@ -203,8 +198,8 @@ if (WITH_EMBEDDED_CONFIG)
     add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
 endif()
 
-if (WITH_HTTPD)
-    set(HTTPD_SOURCES
+if (WITH_HTTP)
+    set(HTTP_SOURCES
         src/api/Api.cpp
         src/api/Api.h
         src/api/Httpd.cpp
@@ -218,7 +213,7 @@ if (WITH_HTTPD)
         src/api/v1/ApiRouter.h
         )
 else()
-    set(HTTPD_SOURCES "")
+    set(HTTP_SOURCES "")
 endif()
 
 include_directories(src)
@@ -233,5 +228,5 @@ if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
-add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
+add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTP_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})

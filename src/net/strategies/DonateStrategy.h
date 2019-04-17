@@ -51,13 +51,13 @@ public:
     ~DonateStrategy() override;
 
 protected:
-    inline bool isActive() const override                                                                             { return state() == STATE_ACTIVE; }
-    inline Client *client() const override                                                                            { return m_proxy ? m_proxy : m_strategy->client(); }
-    inline void onJob(IStrategy *, Client *client, const Job &job) override                                           { setJob(client, job); }
-    inline void onJobReceived(Client *client, const Job &job, const rapidjson::Value &) override                      { setJob(client, job); }
-    inline void onResultAccepted(Client *client, const SubmitResult &result, const char *error) override              { setResult(client, result, error); }
-    inline void onResultAccepted(IStrategy *, Client *client, const SubmitResult &result, const char *error) override { setResult(client, result, error); }
-    inline void resume() override                                                                                     {}
+    inline bool isActive() const override                                                                              { return state() == STATE_ACTIVE; }
+    inline IClient *client() const override                                                                            { return m_proxy ? m_proxy : m_strategy->client(); }
+    inline void onJob(IStrategy *, IClient *client, const Job &job) override                                           { setJob(client, job); }
+    inline void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &) override                      { setJob(client, job); }
+    inline void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override              { setResult(client, result, error); }
+    inline void onResultAccepted(IStrategy *, IClient *client, const SubmitResult &result, const char *error) override { setResult(client, result, error); }
+    inline void resume() override                                                                                      {}
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -65,12 +65,12 @@ protected:
     void stop() override;
     void tick(uint64_t now) override;
 
-    void onActive(IStrategy *strategy, Client *client) override;
+    void onActive(IStrategy *strategy, IClient *client) override;
     void onPause(IStrategy *strategy) override;
 
-    void onClose(Client *client, int failures) override;
-    void onLogin(Client *client, rapidjson::Document &doc, rapidjson::Value &params) override;
-    void onLoginSuccess(Client *client) override;
+    void onClose(IClient *client, int failures) override;
+    void onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params) override;
+    void onLoginSuccess(IClient *client) override;
 
     void onTimer(const Timer *timer) override;
 
@@ -87,13 +87,13 @@ private:
 
     Client *createProxy();
     void idle(double min, double max);
-    void setJob(Client *client, const Job &job);
-    void setResult(Client *client, const SubmitResult &result, const char *error);
+    void setJob(IClient *client, const Job &job);
+    void setResult(IClient *client, const SubmitResult &result, const char *error);
     void setState(State state);
 
     bool m_tls;
     char m_userId[65];
-    Client *m_proxy;
+    IClient *m_proxy;
     const uint64_t m_donateTime;
     const uint64_t m_idleTime;
     Controller *m_controller;

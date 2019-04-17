@@ -35,7 +35,9 @@
             "variant": -1,
             "enabled": true,
             "tls": false,
-            "tls-fingerprint": null
+            "tls-fingerprint": null,
+            "daemon": false,
+            "daemon-poll-interval": 1000
         }
     ],
     "print-time": 60,

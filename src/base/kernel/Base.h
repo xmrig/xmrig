@@ -22,69 +22,50 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_DEFAULT_H
-#define XMRIG_CONFIGLOADER_DEFAULT_H
+#ifndef XMRIG_BASE_H
+#define XMRIG_BASE_H
+
+
+#include "base/kernel/interfaces/IConfigListener.h"
+#include "base/kernel/interfaces/IWatcherListener.h"
+#include "rapidjson/fwd.h"
 
 
 namespace xmrig {
 
 
-#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
-const static char *default_config =
-R"===(
+class Api;
+class Config;
+class BasePrivate;
+class IBaseListener;
+class Process;
+
+
+class Base : public IWatcherListener
 {
-    "algo": "cryptonight",
-    "api": {
-        "id": null,
-        "worker-id": null
-    },
-    "http": {
-        "enabled": false,
-        "host": "127.0.0.1",
-        "port": 0,
-        "access-token": null,
-        "restricted": true
-    },
-    "asm": true,
-    "autosave": true,
-    "av": 0,
-    "background": false,
-    "colors": true,
-    "cpu-affinity": null,
-    "cpu-priority": null,
-    "donate-level": 5,
-    "donate-over-proxy": 1,
-    "huge-pages": true,
-    "hw-aes": null,
-    "log-file": null,
-    "max-cpu-usage": 100,
-    "pools": [
-        {
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
-            "pass": "x",
-            "rig-id": null,
-            "nicehash": false,
-            "keepalive": false,
-            "variant": -1,
-            "enabled": true,
-            "tls": false,
-            "tls-fingerprint": null
-        }
-    ],
-    "print-time": 60,
-    "retries": 5,
-    "retry-pause": 5,
-    "safe": false,
-    "threads": null,
-    "user-agent": null,
-    "syslog": false,
-    "watch": true
-}
-)===";
-#endif
+public:
+    Base(Process *process);
+    ~Base() override;
+
+    virtual bool isReady() const;
+    virtual int init();
+    virtual void start();
+    virtual void stop();
+
+    Api *api() const;
+    bool reload(const rapidjson::Value &json);
+    Config *config() const;
+    void addListener(IBaseListener *listener);
+
+protected:
+    void onFileChanged(const String &fileName) override;
+
+private:
+    BasePrivate *d_ptr;
+};
 
 
 } /* namespace xmrig */
 
-#endif /* XMRIG_CONFIGLOADER_DEFAULT_H */
+
+#endif /* XMRIG_BASE_H */

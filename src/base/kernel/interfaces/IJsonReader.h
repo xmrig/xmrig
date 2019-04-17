@@ -22,50 +22,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIGLOADER_H
-#define XMRIG_CONFIGLOADER_H
-
-
-#include <stdint.h>
+#ifndef XMRIG_IJSONREADER_H
+#define XMRIG_IJSONREADER_H
 
 
 #include "rapidjson/fwd.h"
 
 
-struct option;
-
-
 namespace xmrig {
 
 
-class ConfigWatcher;
-class IConfigListener;
-class IConfig;
-class Process;
-
-
-class ConfigLoader
+class IJsonReader
 {
 public:
-    static bool loadFromFile(IConfig *config, const char *fileName);
-    static bool loadFromJSON(IConfig *config, const char *json);
-    static bool loadFromJSON(IConfig *config, const rapidjson::Value &json);
-    static bool reload(IConfig *oldConfig, const rapidjson::Value &json);
-    static bool watch(IConfig *config);
-    static IConfig *load(Process *process, IConfigListener *listener);
-    static void release();
+    virtual ~IJsonReader() = default;
 
-private:
-    static bool getJSON(const char *fileName, rapidjson::Document &doc);
-    static bool parseArg(IConfig *config, int key, const char *arg);
-    static void parseJSON(IConfig *config, const struct option *option, const rapidjson::Value &object);
-
-    static ConfigWatcher *m_watcher;
-    static IConfigListener *m_listener;
+    virtual bool getBool(const char *key, bool defaultValue = false) const                       = 0;
+    virtual bool isEmpty() const                                                                 = 0;
+    virtual const char *getString(const char *key, const char *defaultValue = nullptr) const     = 0;
+    virtual const rapidjson::Value &getArray(const char *key) const                              = 0;
+    virtual const rapidjson::Value &getObject(const char *key) const                             = 0;
+    virtual const rapidjson::Value &getValue(const char *key) const                              = 0;
+    virtual int getInt(const char *key, int defaultValue = 0) const                              = 0;
+    virtual int64_t getInt64(const char *key, int64_t defaultValue = 0) const                    = 0;
+    virtual uint64_t getUint64(const char *key, uint64_t defaultValue = 0) const                 = 0;
+    virtual unsigned getUint(const char *key, unsigned defaultValue = 0) const                   = 0;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CONFIGLOADER_H */
+#endif // XMRIG_IJSONREADER_H

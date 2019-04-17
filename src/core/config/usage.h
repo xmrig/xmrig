@@ -35,59 +35,76 @@ namespace xmrig {
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
-  -a, --algo=ALGO           specify the algorithm to use\n\
-                              cryptonight\n"
+  -a, --algo=ALGO               specify the algorithm to use\n\
+                                  cryptonight\n"
 #ifndef XMRIG_NO_AEON
 "\
-                              cryptonight-lite\n"
+                                  cryptonight-lite\n"
 #endif
 #ifndef XMRIG_NO_SUMO
 "\
-                              cryptonight-heavy\n"
+                                  cryptonight-heavy\n"
+#endif
+#ifndef XMRIG_NO_CN_PICO
+"\
+                                  cryptonight-pico\n"
 #endif
 "\
-  -o, --url=URL             URL of mining server\n\
-  -O, --userpass=U:P        username:password pair for mining server\n\
-  -u, --user=USERNAME       username for mining server\n\
-  -p, --pass=PASSWORD       password for mining server\n\
-      --rig-id=ID           rig identifier for pool-side statistics (needs pool support)\n\
-  -t, --threads=N           number of miner threads\n\
-  -v, --av=N                algorithm variation, 0 auto select\n\
-  -k, --keepalive           send keepalived packet for prevent timeout (needs pool support)\n\
-      --nicehash            enable nicehash.com support\n\
-      --tls                 enable SSL/TLS support (needs pool support)\n\
-      --tls-fingerprint=F   pool TLS certificate fingerprint, if set enable strict certificate pinning\n\
-  -r, --retries=N           number of times to retry before switch to backup server (default: 5)\n\
-  -R, --retry-pause=N       time to pause between retries (default: 5)\n\
-      --cpu-affinity        set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
-      --cpu-priority        set process priority (0 idle, 2 normal to 5 highest)\n\
-      --no-huge-pages       disable huge pages support\n\
-      --no-color            disable colored output\n\
-      --variant             algorithm PoW variant\n\
-      --donate-level=N      donate level, default 5%% (5 minutes in 100 minutes)\n\
-      --user-agent          set custom user-agent string for pool\n\
-  -B, --background          run the miner in the background\n\
-  -c, --config=FILE         load a JSON-format configuration file\n\
-  -l, --log-file=FILE       log all output to a file\n"
+  -o, --url=URL                 URL of mining server\n\
+  -O, --userpass=U:P            username:password pair for mining server\n\
+  -u, --user=USERNAME           username for mining server\n\
+  -p, --pass=PASSWORD           password for mining server\n\
+      --rig-id=ID               rig identifier for pool-side statistics (needs pool support)\n\
+  -t, --threads=N               number of miner threads\n\
+  -v, --av=N                    algorithm variation, 0 auto select\n\
+  -k, --keepalive               send keepalived packet for prevent timeout (needs pool support)\n\
+      --nicehash                enable nicehash.com support\n"
+#ifdef XMRIG_FEATURE_TLS
+"\
+      --tls                     enable SSL/TLS support (needs pool support)\n\
+      --tls-fingerprint=F       pool TLS certificate fingerprint, if set enable strict certificate pinning\n"
+#endif
+#ifdef XMRIG_FEATURE_HTTP
+"\
+      --daemon                  use daemon RPC instead of pool for solo mining\n\
+      --daemon-poll-interval=N  daemon poll interval in milliseconds (default: 1000)\n"
+#endif
+"\
+  -r, --retries=N               number of times to retry before switch to backup server (default: 5)\n\
+  -R, --retry-pause=N           time to pause between retries (default: 5)\n\
+      --cpu-affinity            set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
+      --cpu-priority            set process priority (0 idle, 2 normal to 5 highest)\n\
+      --no-huge-pages           disable huge pages support\n\
+      --no-color                disable colored output\n\
+      --variant                 algorithm PoW variant\n\
+      --donate-level=N          donate level, default 5%% (5 minutes in 100 minutes)\n\
+      --user-agent              set custom user-agent string for pool\n\
+  -B, --background              run the miner in the background\n\
+  -c, --config=FILE             load a JSON-format configuration file\n\
+  -l, --log-file=FILE           log all output to a file\n"
 # ifdef HAVE_SYSLOG_H
 "\
-  -S, --syslog              use system log for output messages\n"
+  -S, --syslog                  use system log for output messages\n"
 # endif
 "\
-      --max-cpu-usage=N     maximum CPU usage for automatic threads mode (default 75)\n\
-      --safe                safe adjust threads and av settings for current CPU\n\
-      --asm=ASM             ASM code for cn/2, possible values: auto, none, intel, ryzen, bulldozer.\n\
-      --print-time=N        print hashrate report every N seconds\n\
-      --api-worker-id=ID    custom worker-id for API\n\
-      --api-id=ID           custom instance ID for API\n\
-      --http-enabled        enable HTTP API\n\
-      --http-host=HOST      bind host for HTTP API (by default 127.0.0.1)\n\
-      --http-port=N         bind port for HTTP API\n\
-      --http-access-token=T access token for HTTP API\n\
-      --http-no-restricted  enable full remote access to HTTP API (only if access token set)\n\
-      --dry-run             test configuration and exit\n\
-  -h, --help                display this help and exit\n\
-  -V, --version             output version information and exit\n\
+      --max-cpu-usage=N         maximum CPU usage for automatic threads mode (default: 100)\n\
+      --safe                    safe adjust threads and av settings for current CPU\n\
+      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer.\n\
+      --print-time=N            print hashrate report every N seconds\n"
+#ifdef XMRIG_FEATURE_HTTP
+"\
+      --api-worker-id=ID        custom worker-id for API\n\
+      --api-id=ID               custom instance ID for API\n\
+      --http-enabled            enable HTTP API\n\
+      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)\n\
+      --http-port=N             bind port for HTTP API\n\
+      --http-access-token=T     access token for HTTP API\n\
+      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n"
+#endif
+"\
+      --dry-run                 test configuration and exit\n\
+  -h, --help                    display this help and exit\n\
+  -V, --version                 output version information and exit\n\
 ";
 
 
