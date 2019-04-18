@@ -1,3 +1,6 @@
+# v2.15.3-beta
+- [#1014](https://github.com/xmrig/xmrig/issues/1014) Fixed regression, default value for `algo` option was not applied.
+
 # v2.15.2-beta
 - [#1010](https://github.com/xmrig/xmrig/pull/1010#issuecomment-482632107) Added daemon support (solo mining).
 - [#1012](https://github.com/xmrig/xmrig/pull/1012) Fixed compatibility with clang 9.
