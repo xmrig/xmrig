@@ -160,7 +160,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_http.load(chain.getObject("http"));
 #   endif
 
-    m_algorithm.parseAlgorithm(reader.getString("algo"));
+    m_algorithm.parseAlgorithm(reader.getString("algo", "cn"));
 
     m_pools.load(reader.getArray("pools"));
     m_pools.setDonateLevel(reader.getInt("donate-level", kDefaultDonateLevel));
