@@ -399,6 +399,26 @@ static void cryptonight_ultra_lite_softaes(AsmOptimization asmOptimization, uint
 }
 
 template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_extreme_lite_aesni(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
+#   if !defined(XMRIG_ARMv7)
+#if defined(XMRIG_ARM)
+    CryptoNightMultiHash<0x4000, POW_DEFAULT_INDEX_SHIFT, MEMORY_EXTREME_LITE, 0x1FFF0, false, POW_UPX2, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+#else
+    if ((asmOptimization != AsmOptimization::ASM_OFF && NUM_HASH_BLOCKS <= 2)) {
+        CryptoNightMultiHash<0x4000, POW_DEFAULT_INDEX_SHIFT, MEMORY_EXTREME_LITE, 0x1FFF0, false, POW_UPX2, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization);
+    } else {
+        CryptoNightMultiHash<0x4000, POW_DEFAULT_INDEX_SHIFT, MEMORY_EXTREME_LITE, 0x1FFF0, false, POW_UPX2, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+    }
+#endif
+#   endif
+}
+
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_extreme_lite_softaes(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
+    CryptoNightMultiHash<0x4000, POW_DEFAULT_INDEX_SHIFT, MEMORY_EXTREME_LITE, 0x1FFF0, true, POW_UPX2, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+}
+
+template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_heavy_aesni(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
 #   if !defined(XMRIG_ARMv7)
     if (variant == PowVariant::POW_XHV) {
@@ -461,6 +481,14 @@ void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_aesni<HASH_FACTOR>;
             } else {
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_softaes<HASH_FACTOR>;
+            }
+            break;
+
+        case Options::ALGO_CRYPTONIGHT_EXTREMELITE:
+            if (aesni) {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_extreme_lite_aesni<HASH_FACTOR>;
+            } else {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_extreme_lite_softaes<HASH_FACTOR>;
             }
             break;
 
@@ -546,6 +574,7 @@ bool CryptoNight::selfCheck(int algo)
     bool resultLite = true;
     bool resultSuperLite = true;
     bool resultUltraLite = true;
+    bool resultExtremeLite = true;
     bool resultHeavy = true;
 
     AsmOptimization asmOptimization = Options::i()->asmOptimization();
@@ -678,9 +707,7 @@ bool CryptoNight::selfCheck(int algo)
         resultLite = resultLite && memcmp(output,  test_output_upx, 32) == 0;
 
     } else if (algo == Options::ALGO_CRYPTONIGHT_SUPERLITE) {
-
         return false;
-
     } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
         // cn ultralite (cnv8 + turtle)
 
@@ -690,6 +717,16 @@ bool CryptoNight::selfCheck(int algo)
         #if MAX_NUM_HASH_BLOCKS > 1
         cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_TURTLE, test_input, 76, output, scratchPads);
         resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 64) == 0;
+        #endif
+    } else if (algo == Options::ALGO_CRYPTONIGHT_EXTREMELITE) {
+        // cn extremelite (cnv8 + upx2)
+
+        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_UPX2, test_input, 76, output, scratchPads);
+        resultExtremeLite = resultExtremeLite && memcmp(output,  test_output_upx2, 32) == 0;
+
+        #if MAX_NUM_HASH_BLOCKS > 1
+        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_UPX2, test_input, 76, output, scratchPads);
+        resultExtremeLite = resultExtremeLite && memcmp(output,  test_output_upx2, 64) == 0;
         #endif
     } else {
         // cn v0 aka orignal
@@ -858,5 +895,5 @@ bool CryptoNight::selfCheck(int algo)
         _mm_free(scratchPads[i]);
     }
 
-    return result && resultLite && resultSuperLite && resultUltraLite && resultHeavy;
+    return result && resultLite && resultSuperLite && resultUltraLite && resultExtremeLite && resultHeavy;
 }

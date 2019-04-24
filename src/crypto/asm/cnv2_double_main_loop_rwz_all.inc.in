@@ -18,7 +18,7 @@
 	mov	r10, QWORD PTR [rcx+32]
 	mov	r8, rcx
 	xor	r10, QWORD PTR [rcx]
-	mov	r14d, 393216
+	mov	r14d, ${ITERATIONS}
 	mov	r11, QWORD PTR [rcx+40]
 	xor	r11, QWORD PTR [rcx+8]
 	mov	rsi, QWORD PTR [rdx+224]
@@ -28,7 +28,7 @@
 	xor	rdi, QWORD PTR [r9]
 	mov	rbp, QWORD PTR [r9+40]
 	xor	rbp, QWORD PTR [r9+8]
-	movd	xmm0, rdx
+	movq	xmm0, rdx
 	movaps	XMMWORD PTR [rax-88], xmm6
 	movaps	XMMWORD PTR [rax-104], xmm7
 	movaps	XMMWORD PTR [rax-120], xmm8
@@ -40,62 +40,66 @@
 	movaps	XMMWORD PTR [rsp+32], xmm14
 	movaps	XMMWORD PTR [rsp+16], xmm15
 	mov	rdx, r10
-	movd	xmm4, QWORD PTR [r8+96]
-	and	edx, 2097136
+	movq	xmm4, QWORD PTR [r8+96]
+	and	edx, ${MASK}
 	mov	rax, QWORD PTR [rcx+48]
 	xorps	xmm13, xmm13
 	xor	rax, QWORD PTR [rcx+16]
 	mov	rcx, QWORD PTR [rcx+88]
 	xor	rcx, QWORD PTR [r8+72]
-	movd	xmm5, QWORD PTR [r8+104]
-	movd	xmm7, rax
+	movq	xmm5, QWORD PTR [r8+104]
+	movq	xmm7, rax
 
 	mov eax, 1
 	shl rax, 52
-	movd xmm14, rax
+	movq xmm14, rax
 	punpcklqdq xmm14, xmm14
 
 	mov eax, 1023
 	shl rax, 52
-	movd xmm12, rax
+	movq xmm12, rax
 	punpcklqdq xmm12, xmm12
 
 	mov	rax, QWORD PTR [r8+80]
 	xor	rax, QWORD PTR [r8+64]
 	punpcklqdq xmm7, xmm0
-	movd	xmm0, rcx
+	movq	xmm0, rcx
 	mov	rcx, QWORD PTR [r9+56]
 	xor	rcx, QWORD PTR [r9+24]
-	movd	xmm3, rax
+	movq	xmm3, rax
 	mov	rax, QWORD PTR [r9+48]
 	xor	rax, QWORD PTR [r9+16]
 	punpcklqdq xmm3, xmm0
-	movd	xmm0, rcx
+	movq	xmm0, rcx
 	mov	QWORD PTR [rsp], r13
 	mov	rcx, QWORD PTR [r9+88]
 	xor	rcx, QWORD PTR [r9+72]
-	movd	xmm6, rax
+	movq	xmm6, rax
 	mov	rax, QWORD PTR [r9+80]
 	xor	rax, QWORD PTR [r9+64]
 	punpcklqdq xmm6, xmm0
-	movd	xmm0, rcx
+	movq	xmm0, rcx
 	mov	QWORD PTR [rsp+256], r10
 	mov	rcx, rdi
 	mov	QWORD PTR [rsp+264], r11
-	movd	xmm8, rax
-	and	ecx, 2097136
+	movq	xmm8, rax
+	and	ecx, ${MASK}
 	punpcklqdq xmm8, xmm0
-	movd	xmm0, QWORD PTR [r9+96]
+	movq	xmm0, QWORD PTR [r9+96]
 	punpcklqdq xmm4, xmm0
-	movd	xmm0, QWORD PTR [r9+104]
+	movq	xmm0, QWORD PTR [r9+104]
 	lea	r8, QWORD PTR [rcx+rsi]
 	movdqu	xmm11, XMMWORD PTR [r8]
 	punpcklqdq xmm5, xmm0
 	lea	r9, QWORD PTR [rdx+r13]
 	movdqu	xmm15, XMMWORD PTR [r9]
 
+	#ifdef __APPLE__
+	ALIGN(16)
+	#else
 	ALIGN(64)
-rwz_main_loop_double:
+	#endif
+rwz_main_loop_double_${ALGO}:
 	movdqu	xmm9, xmm15
 	mov eax, edx
 	mov ebx, edx
@@ -103,8 +107,8 @@ rwz_main_loop_double:
 	xor ebx, 32
 	xor edx, 48
 
-	movd	xmm0, r11
-	movd	xmm2, r10
+	movq	xmm0, r11
+	movq	xmm2, r10
 	punpcklqdq xmm2, xmm0
 	aesenc	xmm9, xmm2
 
@@ -118,9 +122,9 @@ rwz_main_loop_double:
 	paddq	xmm0, xmm3
 	movdqu	XMMWORD PTR [rax+r13], xmm0
 
-	movd	r11, xmm9
+	movq	r11, xmm9
 	mov	edx, r11d
-	and	edx, 2097136
+	and	edx, ${MASK}
 	movdqa	xmm0, xmm9
 	pxor	xmm0, xmm7
 	movdqu	XMMWORD PTR [r9], xmm0
@@ -129,8 +133,8 @@ rwz_main_loop_double:
 	mov	r10, QWORD PTR [rdx+r13]
 
 	movdqu	xmm10, xmm11
-	movd	xmm0, rbp
-	movd	xmm11, rdi
+	movq	xmm0, rbp
+	movq	xmm11, rdi
 	punpcklqdq xmm11, xmm0
 	aesenc	xmm10, xmm11
 
@@ -150,8 +154,8 @@ rwz_main_loop_double:
 	paddq	xmm0, xmm8
 	movdqu	XMMWORD PTR [rax+rsi], xmm0
 
-	movd	rcx, xmm10
-	and	ecx, 2097136
+	movq	rcx, xmm10
+	and	ecx, ${MASK}
 
 	movdqa	xmm0, xmm10
 	pxor	xmm0, xmm6
@@ -164,18 +168,18 @@ rwz_main_loop_double:
 	mov r8d, edx
 	mov r15d, edx
 
-	movd	rdx, xmm5
+	movq	rdx, xmm5
 	shl	rdx, 32
-	movd	rax, xmm4
+	movq	rax, xmm4
 	xor	rdx, rax
 	xor	r10, rdx
 	mov	rax, r10
 	mul	r11
 	mov r11d, r8d
 	xor r11d, 48
-	movd xmm0, rdx
+	movq xmm0, rdx
 	xor rdx, [r11+r13]
-	movd xmm1, rax
+	movq xmm1, rax
 	xor rax, [r11+r13+8]
 	punpcklqdq xmm0, xmm1
 
@@ -199,7 +203,7 @@ rwz_main_loop_double:
 	mov	QWORD PTR [rbx+8], rdx
 	xor	rdx, r9
 	mov	QWORD PTR [rsp+256], r11
-	and	r11d, 2097136
+	and	r11d, ${MASK}
 	mov	QWORD PTR [rsp+264], rdx
 	mov	QWORD PTR [rsp+8], r11
 	lea	r15, QWORD PTR [r11+r13]
@@ -208,18 +212,18 @@ rwz_main_loop_double:
 	movdqa	xmm0, xmm5
 	psrldq	xmm0, 8
 	movaps	xmm2, xmm13
-	movd	r10, xmm0
+	movq	r10, xmm0
 	psllq	xmm5, 1
 	shl	r10, 32
 	movdqa	xmm0, xmm9
 	psrldq	xmm0, 8
 	movdqa	xmm1, xmm10
-	movd	r11, xmm0
+	movq	r11, xmm0
 	psrldq	xmm1, 8
-	movd	r8, xmm1
+	movq	r8, xmm1
 	psrldq	xmm4, 8
 	movaps	xmm0, xmm13
-	movd	rax, xmm4
+	movq	rax, xmm4
 	xor	r10, rax
 	movaps	xmm1, xmm13
 	xor	r10, r12
@@ -228,13 +232,13 @@ rwz_main_loop_double:
 	movdqa	xmm3, xmm9
 	punpcklqdq xmm3, xmm10
 	paddq	xmm5, xmm3
-	movd	rdx, xmm5
+	movq	rdx, xmm5
 	psrldq	xmm5, 8
 	cvtsi2sd xmm2, rax
 	or	edx, -2147483647
 	lea	rax, QWORD PTR [r8+1]
 	shr	rax, 1
-	movd	r9, xmm5
+	movq	r9, xmm5
 	cvtsi2sd xmm0, rax
 	or	r9d, -2147483647
 	cvtsi2sd xmm1, rdx
@@ -249,8 +253,8 @@ rwz_main_loop_double:
 	mov	rbx, rax
 	imul	rax, rdx
 	sub	r11, rax
-	js	rwz_div_fix_1
-rwz_div_fix_1_ret:
+	js	rwz_div_fix_1_${ALGO}
+rwz_div_fix_1_${ALGO}_ret:
 
 	cvttsd2si rdx, xmm2
 	mov	rax, rdx
@@ -258,8 +262,8 @@ rwz_div_fix_1_ret:
 	movd	xmm2, r11d
 	movd	xmm4, ebx
 	sub	r8, rax
-	js	rwz_div_fix_2
-rwz_div_fix_2_ret:
+	js	rwz_div_fix_2_${ALGO}
+rwz_div_fix_2_${ALGO}_ret:
 
 	movd	xmm1, r8d
 	movd	xmm0, edx
@@ -271,19 +275,19 @@ rwz_div_fix_2_ret:
 	psrlq	xmm0, 12
 	paddq	xmm0, xmm12
 	sqrtpd	xmm1, xmm0
-	movd	r9, xmm1
+	movq	r9, xmm1
 	movdqa xmm5, xmm1
 	psrlq xmm5, 19
 	test	r9, 524287
-	je	rwz_sqrt_fix_1
-rwz_sqrt_fix_1_ret:
+	je	rwz_sqrt_fix_1_${ALGO}
+rwz_sqrt_fix_1_${ALGO}_ret:
 
-	movd r9, xmm10
+	movq r9, xmm10
 	psrldq	xmm1, 8
-	movd	r8, xmm1
+	movq	r8, xmm1
 	test	r8, 524287
-	je	rwz_sqrt_fix_2
-rwz_sqrt_fix_2_ret:
+	je	rwz_sqrt_fix_2_${ALGO}
+rwz_sqrt_fix_2_${ALGO}_ret:
 
 	mov r12d, ecx
 	mov r8d, ecx
@@ -292,8 +296,8 @@ rwz_sqrt_fix_2_ret:
 	xor ecx, 48
 	mov	rax, r10
 	mul	r9
-	movd xmm0, rax
-	movd xmm3, rdx
+	movq xmm0, rax
+	movq xmm3, rdx
 	punpcklqdq xmm3, xmm0
 
 	movdqu	xmm0, XMMWORD PTR [r12+rsi]
@@ -313,7 +317,7 @@ rwz_sqrt_fix_2_ret:
 	mov	QWORD PTR [r13], rdi
 	xor	rdi, r10
 	mov	ecx, edi
-	and	ecx, 2097136
+	and	ecx, ${MASK}
 	lea	r8, QWORD PTR [rcx+rsi]
 
 	mov rdx, QWORD PTR [r13+8]	
@@ -331,7 +335,7 @@ rwz_sqrt_fix_2_ret:
 	movdqa	xmm6, xmm10
 	mov	r9, r15
 	dec r14d
-	jne	rwz_main_loop_double
+	jne	rwz_main_loop_double_${ALGO}
 
 	ldmxcsr DWORD PTR [rsp+272]
 	movaps	xmm13, XMMWORD PTR [rsp+48]
@@ -354,20 +358,20 @@ rwz_sqrt_fix_2_ret:
 	pop	rsi
 	pop	rbp
 	pop	rbx
-	jmp rwz_cnv2_double_mainloop_asm_endp
+	jmp rwz_cnv2_double_mainloop_${ALGO}_asm_endp
 
-rwz_div_fix_1:
+rwz_div_fix_1_${ALGO}:
 	dec	rbx
 	add	r11, rdx
-	jmp	rwz_div_fix_1_ret
+	jmp	rwz_div_fix_1_${ALGO}_ret
 
-rwz_div_fix_2:
+rwz_div_fix_2_${ALGO}:
 	dec	rdx
 	add	r8, r9
-	jmp	rwz_div_fix_2_ret
+	jmp	rwz_div_fix_2_${ALGO}_ret
 
-rwz_sqrt_fix_1:
-	movd	r8, xmm3
+rwz_sqrt_fix_1_${ALGO}:
+	movq	r8, xmm3
 	movdqa xmm0, xmm5
 	psrldq xmm0, 8
 	dec	r9
@@ -383,13 +387,13 @@ rwz_sqrt_fix_1:
 	imul	rdx, rax
 	sub	rdx, r8
 	adc	r9, 0
-	movd xmm5, r9
+	movq xmm5, r9
 	punpcklqdq xmm5, xmm0
-	jmp	rwz_sqrt_fix_1_ret
+	jmp	rwz_sqrt_fix_1_${ALGO}_ret
 
-rwz_sqrt_fix_2:
+rwz_sqrt_fix_2_${ALGO}:
 	psrldq	xmm3, 8
-	movd	r11, xmm3
+	movq	r11, xmm3
 	dec	r8
 	mov ebx, -1022
 	shl rbx, 32
@@ -403,8 +407,8 @@ rwz_sqrt_fix_2:
 	imul	rdx, rax
 	sub	rdx, r11
 	adc	r8, 0
-	movd xmm0, r8
+	movq xmm0, r8
 	punpcklqdq xmm5, xmm0
-	jmp	rwz_sqrt_fix_2_ret
+	jmp	rwz_sqrt_fix_2_${ALGO}_ret
 
-rwz_cnv2_double_mainloop_asm_endp:
+rwz_cnv2_double_mainloop_${ALGO}_asm_endp:

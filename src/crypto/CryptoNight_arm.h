@@ -915,7 +915,7 @@ public:
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
 
@@ -929,7 +929,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al0 += hi;
             ah0 += lo;
@@ -1533,8 +1533,8 @@ public:
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -1550,7 +1550,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al0 += hi;
             ah0 += lo;
@@ -1573,7 +1573,7 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al1 += hi;
             ah1 += lo;
@@ -2479,9 +2479,9 @@ public:
                 cx2 = _mm_aesenc_si128(cx2, _mm_set_epi64x(ah2, al2));
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -2499,7 +2499,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al0 += hi;
             ah0 += lo;
@@ -2522,7 +2522,7 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al1 += hi;
             ah1 += lo;
@@ -2545,7 +2545,7 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al2 += hi;
             ah2 += lo;
@@ -3750,10 +3750,10 @@ public:
                 cx3 = _mm_aesenc_si128(cx3, ax3);
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -3773,7 +3773,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al0 += hi;
             ah0 += lo;
@@ -3796,7 +3796,7 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al1 += hi;
             ah1 += lo;
@@ -3819,7 +3819,7 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al2 += hi;
             ah2 += lo;
@@ -3842,7 +3842,7 @@ public:
 
             lo = __umul128(idx3, cl, &hi);
 
-            SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al3 += hi;
             ah3 += lo;
@@ -4845,11 +4845,11 @@ public:
                 cx4 = _mm_aesenc_si128(cx4, ax4);
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3, VARIANT == POW_RWZ)
-            SHUFFLE_PHASE_1(l4, (idx4&MASK), bx04, bx14, ax4, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
+            SHUFFLE_PHASE_1(l4, (idx4&MASK), bx04, bx14, ax4, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -4871,7 +4871,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al0 += hi;
             ah0 += lo;
@@ -4894,7 +4894,7 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al1 += hi;
             ah1 += lo;
@@ -4917,7 +4917,7 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al2 += hi;
             ah2 += lo;
@@ -4940,7 +4940,7 @@ public:
 
             lo = __umul128(idx3, cl, &hi);
 
-            SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al3 += hi;
             ah3 += lo;
@@ -4963,7 +4963,7 @@ public:
 
             lo = __umul128(idx4, cl, &hi);
 
-            SHUFFLE_PHASE_2(l4, (idx4&MASK), bx04, bx14, ax4, lo, hi, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_2(l4, (idx4&MASK), bx04, bx14, ax4, lo, hi, VARIANT == POW_RWZ || VARIANT == POW_UPX2)
 
             al4 += hi;
             ah4 += lo;

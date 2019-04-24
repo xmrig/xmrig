@@ -308,6 +308,7 @@ static const char *algo_names[] = {
     "cryptonight-lite",
     "cryptonight-superlite",
     "cryptonight-ultralite",
+    "cryptonight-extremelite",
     "cryptonight-heavy"
 };
 
@@ -316,6 +317,7 @@ static const char *algo_short_names[] = {
         "cn-lite",
         "cn-superlite",
         "cn-ultralite",
+        "cn-extremelite",
         "cn-heavy"
 };
 
@@ -337,7 +339,8 @@ constexpr static const char *pow_variant_names[] = {
         "hosp",
         "wow",
         "r",
-        "xcash"
+        "xcash",
+        "upx2"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -1112,9 +1115,13 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
-
         if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-ultra-lite") || !strcmp(algo, "cryptonight-ultra-lite") || !strcmp(algo, "cryptonight-ultralight") || !strcmp(algo, "cryptonight-turtle") || !strcmp(algo, "cn-turtle") || !strcmp(algo, "cryptonight-pico") || !strcmp(algo, "cn-pico"))) {
             m_algo = ALGO_CRYPTONIGHT_ULTRALITE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-extreme-lite") || !strcmp(algo, "cryptonight-extreme-lite") || !strcmp(algo, "cryptonight-extremelight") || !strcmp(algo, "cryptonight-upx2") || !strcmp(algo, "cn-upx2") || !strcmp(algo, "cryptonight-femto") || !strcmp(algo, "cn-femto"))) {
+            m_algo = ALGO_CRYPTONIGHT_EXTREMELITE;
             break;
         }
 
@@ -1212,6 +1219,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "trtl") || !strcmp(powVariant, "turtlev2") || !strcmp(powVariant, "pico"))) {
             m_powVariant = POW_TURTLE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "upx2") || !strcmp(powVariant, "upxv2") || !strcmp(powVariant, "femto"))) {
+            m_powVariant = POW_UPX2;
             break;
         }
 

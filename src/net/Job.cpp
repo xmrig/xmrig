@@ -143,6 +143,10 @@ PowVariant Job::powVariant() const
         return PowVariant::POW_TURTLE;
     }
 
+    if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_EXTREMELITE) {
+        return PowVariant::POW_UPX2;
+    }
+
     if (m_powVariant == PowVariant::POW_AUTODETECT) {
         if (m_blob[0] >= 10) {
             return PowVariant::POW_V4;

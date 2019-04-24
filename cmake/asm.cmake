@@ -131,6 +131,29 @@ configure_file("src/crypto/asm/win/cnv2_main_loop_ryzen.inc.in" "src/crypto/asm/
 configure_file("src/crypto/asm/win/cnv2_double_main_loop_sandybridge.inc.in" "src/crypto/asm/win/cnv2_double_main_loop_ultralite_sandybridge.inc")
 configure_file("src/crypto/asm/win/cnv2_main_loop_soft_aes_sandybridge.inc.in" "src/crypto/asm/win/cnv2_main_loop_ultralite_soft_aes_sandybridge.inc")
 
+# CN V2 RWZ
+set(ALGO "original")
+set(ITERATIONS "393216") #0x60000
+set(MASK "2097136") #0x1FFFF0
+
+configure_file("src/crypto/asm/cnv2_main_loop_rwz_all.inc.in" "src/crypto/asm/cnv2_main_loop_rwz_original_all.inc")
+configure_file("src/crypto/asm/cnv2_double_main_loop_rwz_all.inc.in" "src/crypto/asm/cnv2_double_main_loop_rwz_original_all.inc")
+
+configure_file("src/crypto/asm/win/cnv2_main_loop_rwz_all.inc.in" "src/crypto/asm/win/cnv2_main_loop_rwz_original_all.inc")
+configure_file("src/crypto/asm/win/cnv2_double_main_loop_rwz_all.inc.in" "src/crypto/asm/win/cnv2_double_main_loop_rwz_original_all.inc")
+
+
+# CN V2 UPX2
+set(ALGO "upx2")
+set(ITERATIONS "16384") #0x4000
+set(MASK "131056") #0x1FFF0
+
+configure_file("src/crypto/asm/cnv2_main_loop_rwz_all.inc.in" "src/crypto/asm/cnv2_main_loop_rwz_upx2_all.inc")
+configure_file("src/crypto/asm/cnv2_double_main_loop_rwz_all.inc.in" "src/crypto/asm/cnv2_double_main_loop_rwz_upx2_all.inc")
+
+configure_file("src/crypto/asm/win/cnv2_main_loop_rwz_all.inc.in" "src/crypto/asm/win/cnv2_main_loop_rwz_upx2_all.inc")
+configure_file("src/crypto/asm/win/cnv2_double_main_loop_rwz_all.inc.in" "src/crypto/asm/win/cnv2_double_main_loop_rwz_upx2_all.inc")
+
 if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     enable_language(ASM_MASM)
     set(XMRIG_ASM_FILE "src/crypto/asm/win/cn_main_loop.asm"

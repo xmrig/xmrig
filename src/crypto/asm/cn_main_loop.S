@@ -38,8 +38,11 @@
 .global FN_PREFIX(cnv2_main_loop_zelerius_bulldozer_asm)
 .global FN_PREFIX(cnv2_double_main_loop_zelerius_sandybridge_asm)
 
-.global FN_PREFIX(cnv2_main_loop_rwz_all_asm)
-.global FN_PREFIX(cnv2_double_main_loop_rwz_all_asm)
+.global FN_PREFIX(cnv2_main_loop_rwz_original_all_asm)
+.global FN_PREFIX(cnv2_double_main_loop_rwz_original_all_asm)
+
+.global FN_PREFIX(cnv2_main_loop_rwz_upx2_all_asm)
+.global FN_PREFIX(cnv2_double_main_loop_rwz_upx2_all_asm)
 
 .global FN_PREFIX(cnv1_main_loop_soft_aes_sandybridge_asm)
 .global FN_PREFIX(cnv1_main_loop_lite_soft_aes_sandybridge_asm)
@@ -363,10 +366,10 @@ ALIGN 16
 #else
 ALIGN 64
 #endif
-FN_PREFIX(cnv2_main_loop_rwz_all_asm):
+FN_PREFIX(cnv2_main_loop_rwz_original_all_asm):
 	sub rsp, 48
 	mov rcx, rdi
-	#include "cnv2_main_loop_rwz_all.inc"
+	#include "cnv2_main_loop_rwz_original_all.inc"
 	add rsp, 48
 	ret 0
 
@@ -375,11 +378,36 @@ ALIGN 16
 #else
 ALIGN 64
 #endif
-FN_PREFIX(cnv2_double_main_loop_rwz_all_asm):
+FN_PREFIX(cnv2_double_main_loop_rwz_original_all_asm):
 	sub rsp, 48
 	mov rcx, rdi
 	mov rdx, rsi
-	#include "cnv2_double_main_loop_rwz_all.inc"
+	#include "cnv2_double_main_loop_rwz_original_all.inc"
+	add rsp, 48
+	ret 0
+
+#ifdef __APPLE__
+ALIGN 16
+#else
+ALIGN 64
+#endif
+FN_PREFIX(cnv2_main_loop_rwz_upx2_all_asm):
+	sub rsp, 48
+	mov rcx, rdi
+	#include "cnv2_main_loop_rwz_upx2_all.inc"
+	add rsp, 48
+	ret 0
+
+#ifdef __APPLE__
+ALIGN 16
+#else
+ALIGN 64
+#endif
+FN_PREFIX(cnv2_double_main_loop_rwz_upx2_all_asm):
+	sub rsp, 48
+	mov rcx, rdi
+	mov rdx, rsi
+	#include "cnv2_double_main_loop_rwz_upx2_all.inc"
 	add rsp, 48
 	ret 0
 

@@ -44,6 +44,7 @@ enum PowVariant
     POW_DOUBLE,
     POW_ZELERIUS,
     POW_RWZ,
+    POW_UPX2,
     LAST_ITEM
 };
 
@@ -89,6 +90,8 @@ inline std::string getPowVariantName(PowVariant powVariant)
             return "zls";
         case POW_RWZ:
             return "rwz";
+        case POW_UPX2:
+            return "upx2";
         case POW_AUTODETECT:
         default:
             return "-1";
@@ -174,6 +177,8 @@ inline PowVariant parseVariant(const std::string variant)
         powVariant = PowVariant::POW_ZELERIUS;
     } else if (variant == "rwz" || variant == "graft") {
         powVariant = PowVariant::POW_RWZ;
+    } else if (variant == "upx2") {
+        powVariant = PowVariant::POW_UPX2;
     }
 
     return powVariant;

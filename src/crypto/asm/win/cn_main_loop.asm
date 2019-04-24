@@ -31,8 +31,11 @@ PUBLIC cnv2_main_loop_zelerius_ryzen_asm
 PUBLIC cnv2_main_loop_zelerius_bulldozer_asm
 PUBLIC cnv2_double_main_loop_zelerius_sandybridge_asm
 
-PUBLIC cnv2_main_loop_rwz_all_asm
-PUBLIC cnv2_double_main_loop_rwz_all_asm
+PUBLIC cnv2_main_loop_rwz_original_all_asm
+PUBLIC cnv2_double_main_loop_rwz_original_all_asm
+
+PUBLIC cnv2_main_loop_rwz_upx2_all_asm
+PUBLIC cnv2_double_main_loop_rwz_upx2_all_asm
 
 PUBLIC cnv1_main_loop_soft_aes_sandybridge_asm
 PUBLIC cnv1_main_loop_lite_soft_aes_sandybridge_asm
@@ -197,16 +200,28 @@ cnv2_double_main_loop_zelerius_sandybridge_asm PROC
 cnv2_double_main_loop_zelerius_sandybridge_asm ENDP
 
 ALIGN 64
-cnv2_main_loop_rwz_all_asm PROC
-	INCLUDE cnv2_main_loop_rwz_all.inc
+cnv2_main_loop_rwz_original_all_asm PROC
+	INCLUDE cnv2_main_loop_rwz_original_all.inc
 	ret 0
-cnv2_main_loop_rwz_all_asm ENDP
+cnv2_main_loop_rwz_original_all_asm ENDP
 
 ALIGN 64
-cnv2_double_main_loop_rwz_all_asm PROC
-	INCLUDE cnv2_double_main_loop_rwz_all.inc
+cnv2_double_main_loop_rwz_original_all_asm PROC
+	INCLUDE cnv2_double_main_loop_rwz_original_all.inc
 	ret 0
-cnv2_double_main_loop_rwz_all_asm ENDP
+cnv2_double_main_loop_rwz_original_all_asm ENDP
+
+ALIGN 64
+cnv2_main_loop_rwz_upx2_all_asm PROC
+	INCLUDE cnv2_main_loop_rwz_upx2_all.inc
+	ret 0
+cnv2_main_loop_rwz_upx2_all_asm ENDP
+
+ALIGN 64
+cnv2_double_main_loop_rwz_upx2_all_asm PROC
+	INCLUDE cnv2_double_main_loop_rwz_upx2_all.inc
+	ret 0
+cnv2_double_main_loop_rwz_upx2_all_asm ENDP
 
 ALIGN 64
 cnv1_main_loop_soft_aes_sandybridge_asm PROC

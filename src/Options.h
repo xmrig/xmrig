@@ -50,6 +50,7 @@ public:
         ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (1MB ScratchPad) */
         ALGO_CRYPTONIGHT_SUPERLITE, /* CryptoNight-Superlite (512KB ScratchPad) */
         ALGO_CRYPTONIGHT_ULTRALITE, /* CryptoNight-Ultralite (256KB ScratchPad) */
+        ALGO_CRYPTONIGHT_EXTREMELITE, /* CryptoNight-Verylite (128KB ScratchPad) */
         ALGO_CRYPTONIGHT_HEAVY, /* CryptoNight-Heavy (4MB ScratchPad) */
     };
 

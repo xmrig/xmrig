@@ -1,3 +1,6 @@
+# 1.9.2
+- Integrated cn-extremelite a.k.a upx2 (algo: "cryptonight-extremelite", variant: "upx2")
+- Integrated merged templates and replace of @WORKER-ID@ in template assignment
 # 1.9.1
 - Fix coloring of outdated miners on Dashboard
 - Autodetect for fork of CN/R(variant: "auto"), Graft(variant: "rwz"), Zelerius(variant: "zls")
