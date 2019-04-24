@@ -40,13 +40,15 @@
 #include "workers/Workers.h"
 
 
-static inline double normalize(double d)
+static inline rapidjson::Value normalize(double d)
 {
+    using namespace rapidjson;
+
     if (!isnormal(d)) {
-        return 0.0;
+        return Value(kNullType);
     }
 
-    return floor(d * 100.0) / 100.0;
+    return Value(floor(d * 100.0) / 100.0);
 }
 
 
