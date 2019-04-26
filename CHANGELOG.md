@@ -1,5 +1,6 @@
 # 1.9.2
 - Integrated cn-extremelite a.k.a upx2 (algo: "cryptonight-extremelite", variant: "upx2")
+- Improved hashfactor autodetection for cnv8 and r based coins 
 - Integrated merged templates and replace of @WORKER-ID@ in template assignment
 # 1.9.1
 - Fix coloring of outdated miners on Dashboard
