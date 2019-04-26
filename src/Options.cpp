@@ -340,6 +340,8 @@ constexpr static const char *pow_variant_names[] = {
         "wow",
         "r",
         "xcash",
+        "zls",
+        "graft",
         "upx2"
 };
 

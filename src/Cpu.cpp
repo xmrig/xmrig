@@ -94,13 +94,10 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
 
     if (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) {
         maximumReasonableHashFactor = 3;
-    } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
-        if (m_asmOptimization == ASM_INTEL) {
-            maximumReasonableHashFactor = 2;
-        } else {
-            maximumReasonableHashFactor = 1;
-        }
+    } else if (getBaseVariant(powVariant) == POW_V2 || getBaseVariant(powVariant) == POW_V4) {
+        maximumReasonableHashFactor = 2;
     }
+
     if (safeMode) {
         if (threadsCount > maximumReasonableThreadCount) {
             threadsCount = maximumReasonableThreadCount;

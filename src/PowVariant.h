@@ -184,5 +184,34 @@ inline PowVariant parseVariant(const std::string variant)
     return powVariant;
 }
 
+inline PowVariant getBaseVariant(PowVariant powVariant)
+{
+    switch (powVariant)
+    {
+        case POW_V1:
+        case POW_XTL:
+        case POW_MSR:
+        case POW_RTO:
+        case POW_HOSP:
+        case POW_UPX:
+            return POW_V1;
+
+        case POW_V2:
+        case POW_TURTLE:
+        case POW_DOUBLE:
+        case POW_ZELERIUS:
+        case POW_RWZ:
+        case POW_UPX2:
+        case POW_FAST_2:
+            return POW_V2;
+
+        case POW_WOW:
+        case POW_V4:
+            return POW_V4;
+        default:
+            return POW_V0;
+    }
+}
+
 
 #endif /* __POW_VARIANT_H__ */
