@@ -94,7 +94,7 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
 
     if (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) {
         maximumReasonableHashFactor = 3;
-    } else if (getBaseVariant(powVariant) == POW_V2 || getBaseVariant(powVariant) == POW_V4) {
+    } else if (getBaseVariant(powVariant) == POW_V2 || getBaseVariant(powVariant) == POW_V4 || algo == Options::ALGO_CRYPTONIGHT_EXTREMELITE || algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
         maximumReasonableHashFactor = 2;
     }
 

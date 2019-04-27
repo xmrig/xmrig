@@ -1,3 +1,6 @@
+# 1.9.3
+- Fixed Multihashfactor auto detection for CN-Ultralite/Extremelite #248
+- Fixed donation address for UPX2/CN-Extremelite
 # 1.9.2
 - Integrated cn-extremelite a.k.a upx2 (algo: "cryptonight-extremelite", variant: "upx2")
 - Improved hashfactor autodetection for cnv8 and r based coins 

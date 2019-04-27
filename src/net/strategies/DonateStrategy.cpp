@@ -75,7 +75,7 @@ DonateStrategy::DonateStrategy(const char *agent, IStrategyListener *listener) :
     } else if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
         url = new Url("donate2.graef.in", 8088, userId, nullptr, false, false, true);
     } else if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_EXTREMELITE) {
-        url = new Url("donate2.graef.in", 8088, userId, nullptr, false, false, true);
+        url = new Url("donate2.graef.in", 8188, userId, nullptr, false, false, true);
     } else {
         url = new Url("donate2.graef.in", 80, userId, nullptr, false, false, true);
     }
