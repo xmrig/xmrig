@@ -597,7 +597,7 @@
                         } else {
                             jsonTemplate['cc-client']['worker-id'] = clientId
 
-                            clientConfig = jsonJSON.stringify(jsonTemplate,undefined, 2);
+                            clientConfig = JSON.stringify(jsonTemplate,undefined, 2);
 
                             if ($('#replaceWorkerId').prop('checked')) {
                                 clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), clientId).trim();
