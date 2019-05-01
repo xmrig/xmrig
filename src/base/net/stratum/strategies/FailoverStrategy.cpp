@@ -89,7 +89,7 @@ void xmrig::FailoverStrategy::add(const Pool &pool)
 
 int64_t xmrig::FailoverStrategy::submit(const JobResult &result)
 {
-    if (m_active == -1) {
+    if (!isActive()) {
         return -1;
     }
 

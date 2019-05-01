@@ -78,6 +78,7 @@ private:
     void getResults(rapidjson::Value &reply, rapidjson::Document &doc) const;
 #   endif
 
+    Controller *m_controller;
     IStrategy *m_donate;
     IStrategy *m_strategy;
     NetworkState m_state;

@@ -92,7 +92,7 @@ void xmrig::NetworkState::add(const SubmitResult &result, const char *error)
         std::sort(topDiff.rbegin(), topDiff.rend());
     }
 
-    m_latency.push_back(result.elapsed > 0xFFFF ? 0xFFFF : (uint16_t) result.elapsed);
+    m_latency.push_back(result.elapsed > 0xFFFF ? 0xFFFF : static_cast<uint16_t>(result.elapsed));
 }
 
 

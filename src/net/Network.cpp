@@ -53,6 +53,7 @@
 
 
 xmrig::Network::Network(Controller *controller) :
+    m_controller(controller),
     m_donate(nullptr),
     m_timer(nullptr)
 {
@@ -229,6 +230,9 @@ void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document 
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
+
+    const Algorithm &algo = m_strategy->client()->job().algorithm();
+    reply.AddMember("algo", StringRef((algo.isValid() ? algo : m_controller->config()->algorithm()).shortName()), allocator);
 
     Value connection(kObjectType);
     connection.AddMember("pool",      StringRef(m_state.pool), allocator);
