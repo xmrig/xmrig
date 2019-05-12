@@ -100,7 +100,7 @@ void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
         return;
     }
 
-    m_state.setPool(client->pool().host(), client->pool().port(), client->ip());
+    m_state.onActive(client);
 
     const char *tlsVersion = client->tlsVersion();
     LOG_INFO(WHITE_BOLD("use %s ") CYAN_BOLD("%s:%d ") GREEN_BOLD("%s") " " BLACK_BOLD("%s"),
@@ -235,11 +235,14 @@ void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document 
     reply.AddMember("algo", StringRef((algo.isValid() ? algo : m_controller->config()->algorithm()).shortName()), allocator);
 
     Value connection(kObjectType);
-    connection.AddMember("pool",      StringRef(m_state.pool), allocator);
-    connection.AddMember("uptime",    m_state.connectionTime(), allocator);
-    connection.AddMember("ping",      m_state.latency(), allocator);
-    connection.AddMember("failures",  m_state.failures, allocator);
-    connection.AddMember("error_log", Value(kArrayType), allocator);
+    connection.AddMember("pool",            StringRef(m_state.pool), allocator);
+    connection.AddMember("ip",              m_state.ip().toJSON(), allocator);
+    connection.AddMember("uptime",          m_state.connectionTime(), allocator);
+    connection.AddMember("ping",            m_state.latency(), allocator);
+    connection.AddMember("failures",        m_state.failures, allocator);
+    connection.AddMember("tls",             m_state.tls().toJSON(), allocator);
+    connection.AddMember("tls-fingerprint", m_state.fingerprint().toJSON(), allocator);
+    connection.AddMember("error_log",       Value(kArrayType), allocator);
 
     reply.AddMember("connection", connection, allocator);
 }

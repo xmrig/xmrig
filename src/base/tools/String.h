@@ -80,6 +80,7 @@ public:
     inline String &operator=(char *str)                { move(str); return *this; }
     inline String &operator=(const char *str)          { copy(str); return *this; }
     inline String &operator=(const String &str)        { copy(str); return *this; }
+    inline String &operator=(std::nullptr_t)           { delete [] m_data; m_data = nullptr; m_size = 0; return *this; }
     inline String &operator=(String &&other)           { move(std::move(other)); return *this; }
 
     rapidjson::Value toJSON() const;
