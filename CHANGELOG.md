@@ -1,3 +1,10 @@
+# v2.14.4
+- [#992](https://github.com/xmrig/xmrig/pull/992)  Fixed compilation with Clang 3.5.
+- [#1012](https://github.com/xmrig/xmrig/pull/1012) Fixed compilation with Clang 9.0.
+- In HTTP API for unknown hashrate now used `null` instead of `0.0`.
+- Fixed MSVC 2019 version detection.
+- Removed obsolete automatic variants.
+
 # v2.14.1
 * [#975](https://github.com/xmrig/xmrig/issues/975) Fixed crash on Linux if double thread mode used.
 
