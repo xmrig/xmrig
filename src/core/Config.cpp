@@ -34,6 +34,7 @@
 #include "core/ConfigCreator.h"
 #include "crypto/Asm.h"
 #include "crypto/CryptoNight_constants.h"
+#include "crypto/Argon2_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -163,7 +164,16 @@ bool xmrig::Config::finalize()
     const AlgoVariant av = getAlgoVariant();   
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
+	size_t size;
+	
+	if (m_algorithm.algo() == xmrig::ARGON2)
+	{
+		size = CpuThread::multiway(av) * argon2_select_memory(m_algorithm.variant());
+	} 
+	else
+	{
+		size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
+	}
 
     if (!m_threads.count) {
         m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);

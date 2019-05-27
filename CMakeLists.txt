@@ -10,6 +10,7 @@ option(WITH_HTTPD           "HTTP REST API" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
+option(WITH_ARGON2          "Enable Argon2 Support" ON)
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
@@ -86,6 +87,8 @@ set(HEADERS
    )
 
 set(HEADERS_CRYPTO
+    src/crypto/Argon2.h
+    src/crypto/Argon2_constants.h
     src/crypto/c_blake256.h
     src/crypto/c_groestl.h
     src/crypto/c_jh.h
@@ -281,6 +284,15 @@ else()
     add_definitions(/DXMRIG_NO_API)
 endif()
 
+if (WITH_ARGON2)
+  add_subdirectory(src/3rdparty/argon2)
+  include_directories(src/3rdparty/argon2/include)
+  set(ARGON2_LIBRARY argon2)
+else()
+  add_definitions(/DXMRIG_NO_ARGON2)
+  set(ARGON2_LIBRARY "")
+endif()
+
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
@@ -294,4 +306,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} ${ARGON2_LIBRARY})

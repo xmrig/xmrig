@@ -92,6 +92,10 @@ static AlgoData const algorithms[] = {
     { "cryptonight_turtle",     "cn_turtle",     xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
 #   endif
 
+#   ifndef XMRIG_NO_ARGON2
+    { "chukwa",                 "trtl-chukwa",    xmrig::ARGON2,          xmrig::VARIANT_CHUKWA },
+#   endif
+
 #   ifndef XMRIG_NO_CN_GPU
     { "cryptonight/gpu",        "cn/gpu",  xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU },
 #   endif
@@ -138,7 +142,8 @@ static const char *variants[] = {
     "r",
     "rwz",
     "zls",
-    "double"
+    "double",
+    "chukwa"
 };
 
 

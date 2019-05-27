@@ -101,6 +101,13 @@ bool MultiWorker<N>::selfTest()
     }
 #   endif
 
+#   ifndef XMRIG_NO_ARGON2
+    if (m_thread->algorithm() == ARGON2) {
+        return true;
+        // return verify(VARIANT_CHUKWA, test_output_pico_trtl);
+    }
+#   endif
+
     return false;
 }
 
