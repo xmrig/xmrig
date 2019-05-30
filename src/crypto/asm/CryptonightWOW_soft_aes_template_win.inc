@@ -6,6 +6,8 @@ PUBLIC CryptonightWOW_soft_aes_template_end
 
 ALIGN(64)
 CryptonightWOW_soft_aes_template_part1:
+	mov	rcx, [rcx]
+
 	mov	QWORD PTR [rsp+8], rcx
 	push	rbx
 	push	rbp
