@@ -300,10 +300,10 @@ void CCClient::publishConfig()
                         m_self->m_config->ccPort(), requestUrl.c_str());
             }
         } else {
-            LOG_ERR("Not able to send config. Client config %s is broken!", m_self->m_config->fileName());
+            LOG_ERR("[CC-Client] Not able to send config. Client config %s is broken!", m_self->m_config->fileName());
         }
     } else {
-        LOG_ERR("Not able to load client config %s. Please make sure it exists!", m_self->m_config->fileName());
+        LOG_ERR("[CC-Client] Not able to load client config %s. Please make sure it exists! Using embedded config.", m_self->m_config->fileName());
     }
 }
 

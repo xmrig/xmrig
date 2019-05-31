@@ -45,7 +45,7 @@
 #include "net/Url.h"
 #include "Options.h"
 #include "Platform.h"
-#include "embedded_config.h"
+#include "Embedded_config.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
@@ -456,6 +456,7 @@ Options::Options(int argc, char **argv) :
     }
 
     if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
+        fprintf(stderr, "No valid pool/cc configuration found, using embedded config.\n");
         parseEmbeddedConfig();
     }
 
@@ -495,7 +496,6 @@ Options::Options(int argc, char **argv) :
 Options::~Options()
 {
 }
-
 
 bool Options::readJSONFile(const char *fileName, rapidjson::Document &doc)
 {

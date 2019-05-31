@@ -57,7 +57,7 @@ void RemoteLog::message(int level, const char* fmt, va_list args)
                         stime.tm_min,
                         stime.tm_sec);
 
-    size = vsnprintf(buf + size, 512 - size - 1, fmt, args) + size;
+    size = vsnprintf(buf + size, static_cast<size_t>(512 - size - 1), fmt, args) + size;
     buf[size] = '\n';
 
     uv_mutex_lock(&m_mutex);
@@ -66,7 +66,7 @@ void RemoteLog::message(int level, const char* fmt, va_list args)
         m_rows.pop_front();
     }
 
-    std::string row = std::regex_replace(std::string(buf, size+1), std::regex("\x1B\\[[0-9;]*[a-zA-Z]"), "");
+    std::string row = std::regex_replace(std::string(buf, static_cast<unsigned long>(size + 1)), std::regex("\x1B\\[[0-9;]*[a-zA-Z]"), "");
 
     m_rows.push_back(row);
 
