@@ -21,6 +21,7 @@
 #include "log/RemoteLog.h"
 
 RemoteLog* RemoteLog::m_self = nullptr;
+static const std::regex COLOR_PATTERN("\x1B\\[[0-9;]*[a-zA-Z]");
 
 RemoteLog::RemoteLog(size_t maxRows)
     : m_maxRows(maxRows)
@@ -60,15 +61,16 @@ void RemoteLog::message(int level, const char* fmt, va_list args)
     size = vsnprintf(buf + size, static_cast<size_t>(512 - size - 1), fmt, args) + size;
     buf[size] = '\n';
 
+    std::string coloredLogLine(buf, static_cast<unsigned long>(size + 1));
+    std::string logLine = std::regex_replace(coloredLogLine, COLOR_PATTERN, "");
+
     uv_mutex_lock(&m_mutex);
 
     if (m_rows.size() == m_maxRows) {
         m_rows.pop_front();
     }
 
-    std::string row = std::regex_replace(std::string(buf, static_cast<unsigned long>(size + 1)), std::regex("\x1B\\[[0-9;]*[a-zA-Z]"), "");
-
-    m_rows.push_back(row);
+    m_rows.push_back(logLine);
 
     uv_mutex_unlock(&m_mutex);
 
