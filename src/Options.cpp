@@ -45,6 +45,7 @@
 #include "net/Url.h"
 #include "Options.h"
 #include "Platform.h"
+#include "embedded_config.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
@@ -451,7 +452,11 @@ Options::Options(int argc, char **argv) :
     }
 
     if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
-        parseConfig(Platform::defaultConfigName());
+        parseConfigFile(Platform::defaultConfigName());
+    }
+
+    if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
+        parseEmbeddedConfig();
     }
 
 #ifdef XMRIG_CC_SERVER
@@ -492,7 +497,7 @@ Options::~Options()
 }
 
 
-bool Options::getJSON(const char *fileName, rapidjson::Document &doc)
+bool Options::readJSONFile(const char *fileName, rapidjson::Document &doc)
 {
     uv_fs_t req;
     const int fd = uv_fs_open(uv_default_loop(), &req, fileName, O_RDONLY, 0644, nullptr);
@@ -726,7 +731,7 @@ bool Options::parseArg(int key, const char *arg)
         return false;
 
     case 'c': /* --config */
-        parseConfig(arg);
+        parseConfigFile(arg);
         break;
 
     case 1020: { /* --cpu-affinity */
@@ -978,16 +983,27 @@ Url *Options::parseUrl(const char *arg) const
     return url;
 }
 
-
-void Options::parseConfig(const char *fileName)
-{
+void Options::parseConfigFile(const char *fileName) {
     m_fileName = fileName;
 
     rapidjson::Document doc;
-    if (!getJSON(fileName, doc)) {
+    if (!readJSONFile(fileName, doc)) {
         return;
     }
 
+    parseConfig(doc);
+}
+
+void Options::parseEmbeddedConfig() {
+
+    rapidjson::Document doc;
+    doc.Parse(m_embeddedConfig);
+
+    parseConfig(doc);
+}
+
+void Options::parseConfig(rapidjson::Document& doc)
+{
     for (auto option : config_options) {
         parseJSON(&option, doc);
     }
