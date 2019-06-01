@@ -455,11 +455,6 @@ Options::Options(int argc, char **argv) :
         parseConfigFile(Platform::defaultConfigName());
     }
 
-    if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
-        fprintf(stderr, "No valid pool/cc configuration found, using embedded config.\n");
-        parseEmbeddedConfig();
-    }
-
 #ifdef XMRIG_CC_SERVER
     if (m_ccPort == 0) {
         fprintf(stderr, "No CC Server Port supplied. Exiting.\n");
@@ -472,6 +467,11 @@ Options::Options(int argc, char **argv) :
             return;
         }
     #endif
+
+    if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
+        fprintf(stderr, "No valid pool/cc configuration found, using embedded config.\n");
+        parseEmbeddedConfig();
+    }
 
     if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
         fprintf(stderr, "Neither pool nor CCServer URL supplied. Exiting.\n");
