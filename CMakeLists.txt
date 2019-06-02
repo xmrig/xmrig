@@ -29,7 +29,6 @@ set(HEADERS
     src/common/crypto/keccak.h
     src/common/interfaces/ICpuInfo.h
     src/common/Platform.h
-    src/common/utils/mm_malloc.h
     src/common/xmrig.h
     src/core/config/Config_default.h
     src/core/config/Config_platform.h
@@ -37,7 +36,6 @@ set(HEADERS
     src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
-    src/crypto/common/VirtualMemory.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
@@ -57,19 +55,21 @@ set(HEADERS
    )
 
 set(HEADERS_CRYPTO
+    src/crypto/asm/CryptonightR_template.h
     src/crypto/c_blake256.h
     src/crypto/c_groestl.h
     src/crypto/c_jh.h
     src/crypto/c_skein.h
-    src/crypto/CryptoNight.h
+    src/crypto/common/portable/mm_malloc.h
+    src/crypto/common/VirtualMemory.h
     src/crypto/CryptoNight_constants.h
     src/crypto/CryptoNight_monero.h
     src/crypto/CryptoNight_test.h
+    src/crypto/CryptoNight.h
     src/crypto/groestl_tables.h
     src/crypto/hash.h
     src/crypto/skein_port.h
     src/crypto/soft_aes.h
-    src/crypto/asm/CryptonightR_template.h
    )
 
 if (XMRIG_ARM)
