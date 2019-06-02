@@ -895,12 +895,12 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 {
     constexpr size_t MEM = xmrig::cn_select_memory<ALGO>();
 
-    if (xmrig::cn_is_cryptonight_r<VARIANT>() && !ctx[0]->generated_code_double_data.match(VARIANT, height)) {
+    if (xmrig::cn_is_cryptonight_r<VARIANT>() && !ctx[0]->generated_code_data.match(VARIANT, height)) {
         V4_Instruction code[256];
         const int code_size = v4_random_math_init<VARIANT>(code, height);
-        cn_r_compile_code_double<VARIANT>(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code_double), ASM);
-        ctx[0]->generated_code_double_data.variant = VARIANT;
-        ctx[0]->generated_code_double_data.height = height;
+        cn_r_compile_code_double<VARIANT>(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), ASM);
+        ctx[0]->generated_code_data.variant = VARIANT;
+        ctx[0]->generated_code_data.height = height;
     }
 
     xmrig::keccak(input,        size, ctx[0]->state);
@@ -928,7 +928,7 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
         cn_double_double_mainloop_sandybridge_asm(ctx);
     }
     else if (xmrig::cn_is_cryptonight_r<VARIANT>()) {
-        ctx[0]->generated_code_double(ctx);
+        ctx[0]->generated_code(ctx);
     }
 
     cn_implode_scratchpad<ALGO, MEM, false>(reinterpret_cast<__m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));
