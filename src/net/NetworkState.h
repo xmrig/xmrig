@@ -30,9 +30,13 @@
 #include <vector>
 
 
+#include "base/tools/String.h"
+
+
 namespace xmrig {
 
 
+class IClient;
 class SubmitResult;
 
 
@@ -41,11 +45,15 @@ class NetworkState
 public:
     NetworkState();
 
+    inline const String &fingerprint() const { return m_fingerprint; }
+    inline const String &ip() const          { return m_ip; }
+    inline const String &tls() const         { return m_tls; }
+
     uint32_t avgTime() const;
     uint32_t latency() const;
     uint64_t connectionTime() const;
     void add(const SubmitResult &result, const char *error);
-    void setPool(const char *host, int port, const char *ip);
+    void onActive(IClient *client);
     void stop();
 
     char pool[256];
@@ -59,6 +67,9 @@ public:
 private:
     bool m_active;
     std::vector<uint16_t> m_latency;
+    String m_fingerprint;
+    String m_ip;
+    String m_tls;
     uint64_t m_connectionTime;
 };
 

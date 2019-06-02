@@ -40,13 +40,15 @@
 #include "workers/Workers.h"
 
 
-static inline double normalize(double d)
+static inline rapidjson::Value normalize(double d)
 {
+    using namespace rapidjson;
+
     if (!isnormal(d)) {
-        return 0.0;
+        return Value(kNullType);
     }
 
-    return floor(d * 100.0) / 100.0;
+    return Value(floor(d * 100.0) / 100.0);
 }
 
 
@@ -142,7 +144,6 @@ void xmrig::ApiRouter::getMiner(rapidjson::Value &reply, rapidjson::Document &do
     reply.AddMember("kind",         APP_KIND, allocator);
     reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
     reply.AddMember("cpu",          cpu, allocator);
-    reply.AddMember("algo",         StringRef(m_base->config()->algorithm().shortName()), allocator);
     reply.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
     reply.AddMember("donate_level", m_base->config()->pools().donateLevel(), allocator);
 }

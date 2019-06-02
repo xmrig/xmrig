@@ -52,7 +52,7 @@ public:
 
 protected:
     inline bool isActive() const override                                              { return m_active >= 0; }
-    inline IClient *client() const override                                            { return active(); }
+    inline IClient *client() const override                                            { return isActive() ? active() : m_pools[m_index]; }
     inline void onLogin(IClient *, rapidjson::Document &, rapidjson::Value &) override {}
 
     int64_t submit(const JobResult &result) override;

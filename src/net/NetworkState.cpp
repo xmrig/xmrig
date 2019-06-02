@@ -29,6 +29,8 @@
 #include <uv.h>
 
 
+#include "base/kernel/interfaces/IClient.h"
+#include "base/net/stratum/Pool.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
 #include "net/NetworkState.h"
@@ -92,23 +94,29 @@ void xmrig::NetworkState::add(const SubmitResult &result, const char *error)
         std::sort(topDiff.rbegin(), topDiff.rend());
     }
 
-    m_latency.push_back(result.elapsed > 0xFFFF ? 0xFFFF : (uint16_t) result.elapsed);
+    m_latency.push_back(result.elapsed > 0xFFFF ? 0xFFFF : static_cast<uint16_t>(result.elapsed));
 }
 
 
-void xmrig::NetworkState::setPool(const char *host, int port, const char *ip)
+void xmrig::NetworkState::onActive(IClient *client)
 {
-    snprintf(pool, sizeof(pool) - 1, "%s:%d", host, port);
+    snprintf(pool, sizeof(pool) - 1, "%s:%d", client->pool().host().data(), client->pool().port());
 
-    m_active = true;
+    m_ip             = client->ip();
+    m_tls            = client->tlsVersion();
+    m_fingerprint    = client->tlsFingerprint();
+    m_active         = true;
     m_connectionTime = Chrono::steadyMSecs();
 }
 
 
 void xmrig::NetworkState::stop()
 {
-    m_active = false;
-    diff     = 0;
+    m_active      = false;
+    diff          = 0;
+    m_ip          = nullptr;
+    m_tls         = nullptr;
+    m_fingerprint = nullptr;
 
     failures++;
     m_latency.clear();
