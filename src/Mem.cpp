@@ -25,8 +25,9 @@
 
 
 #include "common/utils/mm_malloc.h"
-#include "crypto/CryptoNight.h"
+#include "crypto/common/VirtualMemory.h"
 #include "crypto/CryptoNight_constants.h"
+#include "crypto/CryptoNight.h"
 #include "Mem.h"
 
 
@@ -51,7 +52,7 @@ MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
         cryptonight_ctx *c = static_cast<cryptonight_ctx *>(_mm_malloc(sizeof(cryptonight_ctx), 4096));
         c->memory          = info.memory + (i * cn_select_memory(algorithm));
 
-        uint8_t* p = reinterpret_cast<uint8_t*>(allocateExecutableMemory(0x4000));
+        uint8_t* p = reinterpret_cast<uint8_t*>(xmrig::VirtualMemory::allocateExecutableMemory(0x4000));
         c->generated_code  = reinterpret_cast<cn_mainloop_fun_ms_abi>(p);
         c->generated_code_double = reinterpret_cast<cn_mainloop_fun_ms_abi>(p + 0x2000);
 

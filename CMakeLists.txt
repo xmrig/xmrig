@@ -37,6 +37,7 @@ set(HEADERS
     src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
+    src/crypto/common/VirtualMemory.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
@@ -115,6 +116,7 @@ if (WIN32)
         src/App_win.cpp
         src/common/Platform_win.cpp
         src/Mem_win.cpp
+        src/crypto/common/VirtualMemory_win.cpp
         )
 
     add_definitions(/DWIN32)
@@ -125,13 +127,14 @@ elseif (APPLE)
         src/App_unix.cpp
         src/common/Platform_mac.cpp
         src/Mem_unix.cpp
+        src/crypto/common/VirtualMemory_unix.cpp
         )
 else()
     set(SOURCES_OS
         "${SOURCES_OS}"
         src/App_unix.cpp
         src/common/Platform_unix.cpp
-        src/Mem_unix.cpp
+        src/crypto/common/VirtualMemory_unix.cpp
         )
 
     if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)

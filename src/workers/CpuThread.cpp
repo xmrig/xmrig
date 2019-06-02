@@ -28,6 +28,7 @@
 #include "base/io/log/Log.h"
 #include "common/cpu/Cpu.h"
 #include "crypto/Asm.h"
+#include "crypto/common/VirtualMemory.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
 #include "workers/CpuThread.h"
@@ -120,7 +121,7 @@ xmrig::CpuThread::cn_mainloop_fun        cn_double_double_mainloop_sandybridge_a
 void xmrig::CpuThread::patchAsmVariants()
 {
     const int allocation_size = 65536;
-    uint8_t *base = static_cast<uint8_t *>(Mem::allocateExecutableMemory(allocation_size));
+    uint8_t *base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
     cn_half_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1000);
@@ -162,8 +163,8 @@ void xmrig::CpuThread::patchAsmVariants()
     patchCode(cn_double_mainloop_bulldozer_asm,          cnv2_mainloop_bulldozer_asm,           xmrig::CRYPTONIGHT_DOUBLE_ITER, xmrig::CRYPTONIGHT_MASK);
     patchCode(cn_double_double_mainloop_sandybridge_asm, cnv2_double_mainloop_sandybridge_asm,  xmrig::CRYPTONIGHT_DOUBLE_ITER, xmrig::CRYPTONIGHT_MASK);
 
-    Mem::protectExecutableMemory(base, allocation_size);
-    Mem::flushInstructionCache(base, allocation_size);
+    VirtualMemory::protectExecutableMemory(base, allocation_size);
+    VirtualMemory::flushInstructionCache(base, allocation_size);
 }
 #endif
 

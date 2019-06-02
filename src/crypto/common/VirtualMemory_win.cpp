@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -23,52 +24,56 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_MEM_H
-#define XMRIG_MEM_H
+
+#include <winsock2.h>
+#include <windows.h>
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include "crypto/common/VirtualMemory.h"
 
 
-#include "common/xmrig.h"
+namespace xmrig {
+
+constexpr size_t align(size_t pos, size_t align) {
+    return ((pos - 1) / align + 1) * align;
+}
+
+}
 
 
-struct cryptonight_ctx;
-
-
-struct MemInfo
+void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
 {
-    alignas(16) uint8_t *memory;
-
-    size_t hugePages;
-    size_t pages;
-    size_t size;
-};
+    return VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+}
 
 
-class Mem
+void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 {
-public:
-    enum Flags {
-        HugepagesAvailable = 1,
-        HugepagesEnabled   = 2,
-        Lock               = 4
-    };
+    const size_t min = GetLargePageMinimum();
+    void *mem        = nullptr;
 
-    static MemInfo create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count);
-    static void init(bool enabled);
-    static void release(cryptonight_ctx **ctx, size_t count, MemInfo &info);
+    if (min > 0) {
+        mem = VirtualAlloc(nullptr, align(size, min), MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE);
+    }
 
-    static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
-
-private:
-    static void allocate(MemInfo &info, bool enabled);
-    static void release(MemInfo &info);
-
-    static int m_flags;
-    static bool m_enabled;
-};
+    return mem;
+}
 
 
-#endif /* XMRIG_MEM_H */
+void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
+{
+    ::FlushInstructionCache(GetCurrentProcess(), p, size);
+}
+
+
+void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t)
+{
+    VirtualFree(p, 0, MEM_RELEASE);
+}
+
+
+void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
+{
+    DWORD oldProtect;
+    VirtualProtect(p, size, PAGE_EXECUTE_READ, &oldProtect);
+}

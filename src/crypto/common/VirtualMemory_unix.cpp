@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -28,12 +29,7 @@
 #include <sys/mman.h>
 
 
-#include "base/io/log/Log.h"
-#include "common/utils/mm_malloc.h"
-#include "common/xmrig.h"
 #include "crypto/common/VirtualMemory.h"
-#include "crypto/CryptoNight.h"
-#include "Mem.h"
 
 
 #if defined(__APPLE__)
@@ -41,49 +37,48 @@
 #endif
 
 
-void Mem::init(bool enabled)
+
+void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
 {
-    m_enabled = enabled;
+#   if defined(__APPLE__)
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
+#   else
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#   endif
+
+    return mem == MAP_FAILED ? nullptr : mem;
 }
 
 
-void Mem::allocate(MemInfo &info, bool enabled)
+void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 {
-    info.hugePages = 0;
+#   if defined(__APPLE__)
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
+#   elif defined(__FreeBSD__)
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
+#   else
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
+#   endif
 
-    if (!enabled) {
-        info.memory = static_cast<uint8_t*>(_mm_malloc(info.size, 4096));
-
-        return;
-    }
-
-    info.memory = static_cast<uint8_t*>(xmrig::VirtualMemory::allocateLargePagesMemory(info.size));
-    if (!info.memory) {
-        return allocate(info, false);;
-    }
-
-    info.hugePages = info.pages;
-
-    if (madvise(info.memory, info.size, MADV_RANDOM | MADV_WILLNEED) != 0) {
-        LOG_ERR("madvise failed");
-    }
-
-    if (mlock(info.memory, info.size) == 0) {
-        m_flags |= Lock;
-    }
+    return mem == MAP_FAILED ? nullptr : mem;
 }
 
 
-void Mem::release(MemInfo &info)
+void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 {
-    if (info.hugePages) {
-        if (m_flags & Lock) {
-            munlock(info.memory, info.size);
-        }
+#   ifndef __FreeBSD__
+    __builtin___clear_cache(reinterpret_cast<char*>(p), reinterpret_cast<char*>(p) + size);
+#   endif
+}
 
-        xmrig::VirtualMemory::freeLargePagesMemory(info.memory, info.size);
-    }
-    else {
-        _mm_free(info.memory);
-    }
+
+void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
+{
+    munmap(memory, size);
+}
+
+
+void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
+{
+    mprotect(p, size, PROT_READ | PROT_EXEC);
 }
