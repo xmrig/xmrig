@@ -1,3 +1,7 @@
+# v2.15.4-beta
+- Added global uptime and extended connection information in API.
+- API now return current algorithm instead of global algorithm specified in config. 
+
 # v2.15.3-beta
 - [#1014](https://github.com/xmrig/xmrig/issues/1014) Fixed regression, default value for `algo` option was not applied.
 
