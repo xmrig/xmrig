@@ -134,6 +134,7 @@ else()
         "${SOURCES_OS}"
         src/App_unix.cpp
         src/common/Platform_unix.cpp
+        src/Mem_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 

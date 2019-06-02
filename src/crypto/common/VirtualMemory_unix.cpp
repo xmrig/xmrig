@@ -74,7 +74,7 @@ void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 
 void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
 {
-    munmap(memory, size);
+    munmap(p, size);
 }
 
 
