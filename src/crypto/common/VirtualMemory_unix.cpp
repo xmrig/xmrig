@@ -66,7 +66,7 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 
 void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 {
-#   ifndef __FreeBSD__
+#   ifdef HAVE_BUILTIN_CLEAR_CACHE
     __builtin___clear_cache(reinterpret_cast<char*>(p), reinterpret_cast<char*>(p) + size);
 #   endif
 }
