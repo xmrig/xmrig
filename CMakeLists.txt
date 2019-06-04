@@ -55,27 +55,27 @@ set(HEADERS
    )
 
 set(HEADERS_CRYPTO
-    src/crypto/asm/CryptonightR_template.h
-    src/crypto/c_blake256.h
-    src/crypto/c_groestl.h
-    src/crypto/c_jh.h
-    src/crypto/c_skein.h
+    src/crypto/cn/asm/CryptonightR_template.h
+    src/crypto/cn/c_blake256.h
+    src/crypto/cn/c_groestl.h
+    src/crypto/cn/c_jh.h
+    src/crypto/cn/c_skein.h
+    src/crypto/cn/CryptoNight_constants.h
+    src/crypto/cn/CryptoNight_monero.h
+    src/crypto/cn/CryptoNight_test.h
+    src/crypto/cn/CryptoNight.h
+    src/crypto/cn/groestl_tables.h
+    src/crypto/cn/hash.h
+    src/crypto/cn/skein_port.h
+    src/crypto/cn/soft_aes.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
-    src/crypto/CryptoNight_constants.h
-    src/crypto/CryptoNight_monero.h
-    src/crypto/CryptoNight_test.h
-    src/crypto/CryptoNight.h
-    src/crypto/groestl_tables.h
-    src/crypto/hash.h
-    src/crypto/skein_port.h
-    src/crypto/soft_aes.h
    )
 
 if (XMRIG_ARM)
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_arm.h)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_arm.h)
 else()
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_x86.h)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_x86.h)
 endif()
 
 set(SOURCES
@@ -103,10 +103,10 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/c_groestl.c
-    src/crypto/c_blake256.c
-    src/crypto/c_jh.c
-    src/crypto/c_skein.c
+    src/crypto/cn/c_groestl.c
+    src/crypto/cn/c_blake256.c
+    src/crypto/cn/c_jh.c
+    src/crypto/cn/c_skein.c
    )
 
 if (WIN32)

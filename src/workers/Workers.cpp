@@ -32,7 +32,7 @@
 #include "base/tools/Handle.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/CryptoNight_constants.h"
+#include "crypto/cn/CryptoNight_constants.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IThread.h"
 #include "Mem.h"

@@ -34,8 +34,8 @@
 #include "common/xmrig.h"
 #include "crypto/common/portable/mm_malloc.h"
 #include "crypto/common/VirtualMemory.h"
-#include "crypto/CryptoNight_constants.h"
-#include "crypto/CryptoNight.h"
+#include "crypto/cn/CryptoNight_constants.h"
+#include "crypto/cn/CryptoNight.h"
 #include "Mem.h"
 
 

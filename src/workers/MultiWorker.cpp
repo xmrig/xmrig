@@ -27,7 +27,7 @@
 #include <thread>
 
 
-#include "crypto/CryptoNight_test.h"
+#include "crypto/cn/CryptoNight_test.h"
 #include "workers/CpuThread.h"
 #include "workers/MultiWorker.h"
 #include "workers/Workers.h"

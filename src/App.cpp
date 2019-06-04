@@ -37,7 +37,6 @@
 #include "common/Platform.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/CryptoNight.h"
 #include "Mem.h"
 #include "net/Network.h"
 #include "Summary.h"

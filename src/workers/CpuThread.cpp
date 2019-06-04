@@ -27,7 +27,7 @@
 
 #include "base/io/log/Log.h"
 #include "common/cpu/Cpu.h"
-#include "crypto/Asm.h"
+#include "crypto/cn/Asm.h"
 #include "crypto/common/VirtualMemory.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
@@ -35,9 +35,9 @@
 
 
 #if defined(XMRIG_ARM)
-#   include "crypto/CryptoNight_arm.h"
+#   include "crypto/cn/CryptoNight_arm.h"
 #else
-#   include "crypto/CryptoNight_x86.h"
+#   include "crypto/cn/CryptoNight_x86.h"
 #endif
 
 

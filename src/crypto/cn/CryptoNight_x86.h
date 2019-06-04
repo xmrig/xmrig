@@ -37,18 +37,18 @@
 
 #include "common/cpu/Cpu.h"
 #include "common/crypto/keccak.h"
-#include "crypto/CryptoNight.h"
-#include "crypto/CryptoNight_constants.h"
-#include "crypto/CryptoNight_monero.h"
-#include "crypto/soft_aes.h"
+#include "crypto/cn/CryptoNight.h"
+#include "crypto/cn/CryptoNight_constants.h"
+#include "crypto/cn/CryptoNight_monero.h"
+#include "crypto/cn/soft_aes.h"
 
 
 extern "C"
 {
-#include "crypto/c_groestl.h"
-#include "crypto/c_blake256.h"
-#include "crypto/c_jh.h"
-#include "crypto/c_skein.h"
+#include "crypto/cn/c_groestl.h"
+#include "crypto/cn/c_blake256.h"
+#include "crypto/cn/c_jh.h"
+#include "crypto/cn/c_skein.h"
 }
 
 

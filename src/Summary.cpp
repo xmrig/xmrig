@@ -33,7 +33,7 @@
 #include "common/cpu/Cpu.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/Asm.h"
+#include "crypto/cn/Asm.h"
 #include "Mem.h"
 #include "Summary.h"
 #include "version.h"

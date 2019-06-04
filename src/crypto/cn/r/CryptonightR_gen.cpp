@@ -24,11 +24,11 @@
  */
 
 #include <cstring>
-#include "crypto/CryptoNight_monero.h"
+#include "crypto/cn/CryptoNight_monero.h"
 
 typedef void(*void_func)();
 
-#include "crypto/asm/CryptonightR_template.h"
+#include "crypto/cn/asm/CryptonightR_template.h"
 #include "crypto/common/VirtualMemory.h"
 #include "Mem.h"
 

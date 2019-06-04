@@ -22,7 +22,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "crypto/CryptoNight_constants.h"
+#include "crypto/cn/CryptoNight_constants.h"
 
 #ifdef __GNUC__
 #   include <x86intrin.h>
