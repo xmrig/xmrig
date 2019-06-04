@@ -28,7 +28,7 @@
 
 
 #if defined(XMRIG_ARM)
-#   include "crypto/SSE2NEON.h"
+#   include "crypto/cn/SSE2NEON.h"
 #elif defined(__GNUC__)
 #   include <x86intrin.h>
 #else
