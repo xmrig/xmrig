@@ -77,3 +77,10 @@ void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
     DWORD oldProtect;
     VirtualProtect(p, size, PAGE_EXECUTE_READ, &oldProtect);
 }
+
+
+void xmrig::VirtualMemory::unprotectExecutableMemory(void *p, size_t size)
+{
+    DWORD oldProtect;
+    VirtualProtect(p, size, PAGE_EXECUTE_READWRITE, &oldProtect);
+}

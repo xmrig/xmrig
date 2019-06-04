@@ -82,3 +82,9 @@ void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
 {
     mprotect(p, size, PROT_READ | PROT_EXEC);
 }
+
+
+void xmrig::VirtualMemory::unprotectExecutableMemory(void *p, size_t size)
+{
+    mprotect(p, size, PROT_WRITE | PROT_EXEC);
+}
