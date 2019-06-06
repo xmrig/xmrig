@@ -81,6 +81,7 @@ enum Variant {
     VARIANT_ZLS    = 15, // CryptoNight variant 2 with 3/4 iterations (Zelerius)
     VARIANT_DOUBLE = 16, // CryptoNight variant 2 with double iterations (X-CASH)
     VARIANT_CHUKWA = 17, // Argon2 Chukwa for TurtleCoin
+    VARIANT_CHUKWA_LITE = 18, // Argon2 Chukwa Lite for WrkzCoin
     VARIANT_MAX    
 };
 

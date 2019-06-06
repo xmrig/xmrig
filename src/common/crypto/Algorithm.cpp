@@ -94,6 +94,7 @@ static AlgoData const algorithms[] = {
 
 #   ifndef XMRIG_NO_ARGON2
     { "chukwa",                 "trtl-chukwa",    xmrig::ARGON2,          xmrig::VARIANT_CHUKWA },
+    { "chukwa/wrkz",            "wrkz-chukwa",    xmrig::ARGON2,          xmrig::VARIANT_CHUKWA_LITE },
 #   endif
 
 #   ifndef XMRIG_NO_CN_GPU
@@ -143,7 +144,8 @@ static const char *variants[] = {
     "rwz",
     "zls",
     "double",
-    "chukwa"
+    "chukwa",
+    "wrkz",
 };
 
 
