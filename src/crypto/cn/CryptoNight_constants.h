@@ -198,7 +198,7 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
 template<Variant variant> inline constexpr Variant cn_base_variant()  { return VARIANT_0; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_0>()      { return VARIANT_0; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_1>()      { return VARIANT_1; }
-template<> inline constexpr Variant cn_base_variant<VARIANT_TUBE>()   { return VARIANT_1; }
+template<> inline constexpr Variant cn_base_variant<VARIANT_TUBE>()   { return VARIANT_TUBE; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_XTL>()    { return VARIANT_1; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_MSR>()    { return VARIANT_1; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_XHV>()    { return VARIANT_0; }
