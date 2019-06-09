@@ -68,7 +68,7 @@ bool MultiWorker<N>::selfTest()
                         verify(VARIANT_ZLS,    test_output_zls)  &&
                         verify(VARIANT_DOUBLE, test_output_double);
 
-#       ifndef XMRIG_NO_CN_GPU
+#       ifdef XMRIG_ALGO_CN_GPU
         if (!rc || N > 1) {
             return rc;
         }
@@ -79,14 +79,14 @@ bool MultiWorker<N>::selfTest()
 #       endif
     }
 
-#   ifndef XMRIG_NO_AEON
+#   ifdef XMRIG_ALGO_CN_LITE
     if (m_thread->algorithm() == CRYPTONIGHT_LITE) {
         return verify(VARIANT_0,    test_output_v0_lite) &&
                verify(VARIANT_1,    test_output_v1_lite);
     }
 #   endif
 
-#   ifndef XMRIG_NO_SUMO
+#   ifdef XMRIG_ALGO_CN_HEAVY
     if (m_thread->algorithm() == CRYPTONIGHT_HEAVY) {
         return verify(VARIANT_0,    test_output_v0_heavy)  &&
                verify(VARIANT_XHV,  test_output_xhv_heavy) &&
@@ -94,7 +94,7 @@ bool MultiWorker<N>::selfTest()
     }
 #   endif
 
-#   ifndef XMRIG_NO_CN_PICO
+#   ifdef XMRIG_ALGO_CN_PICO
     if (m_thread->algorithm() == CRYPTONIGHT_PICO) {
         return verify(VARIANT_TRTL, test_output_pico_trtl);
     }

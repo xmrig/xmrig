@@ -16,8 +16,10 @@ if (WITH_CN_GPU AND CMAKE_SIZEOF_VOID_P EQUAL 8)
             set_source_files_properties(src/crypto/cn/gpu/cn_gpu_avx.cpp PROPERTIES COMPILE_FLAGS "/arch:AVX")
         endif()
     endif()
+
+    add_definitions(/DXMRIG_ALGO_CN_GPU)
 else()
     set(CN_GPU_SOURCES "")
 
-    add_definitions(/DXMRIG_NO_CN_GPU)
+    remove_definitions(/DXMRIG_ALGO_CN_GPU)
 endif()

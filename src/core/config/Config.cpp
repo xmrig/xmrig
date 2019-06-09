@@ -244,7 +244,7 @@ void xmrig::Config::setThreads(const rapidjson::Value &threads)
 
 xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 {
-#   ifndef XMRIG_NO_AEON
+#   ifdef XMRIG_ALGO_CN_LITE
     if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
         return getAlgoVariantLite();
     }
@@ -262,7 +262,7 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 }
 
 
-#ifndef XMRIG_NO_AEON
+#ifdef XMRIG_ALGO_CN_LITE
 xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
 {
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {

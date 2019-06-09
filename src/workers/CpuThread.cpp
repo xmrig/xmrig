@@ -207,7 +207,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         add_asm_func<CRYPTONIGHT, VARIANT_WOW>(asm_func_map);
         add_asm_func<CRYPTONIGHT, VARIANT_4>(asm_func_map);
 
-#       ifndef XMRIG_NO_CN_PICO
+#       ifdef XMRIG_ALGO_CN_PICO
         add_asm_func<CRYPTONIGHT_PICO, VARIANT_TRTL>(asm_func_map);
 #       endif
 
@@ -321,7 +321,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
 
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_TRTL
 
-#       ifndef XMRIG_NO_CN_GPU
+#       ifdef XMRIG_ALGO_CN_GPU
         cryptonight_single_hash_gpu<CRYPTONIGHT, false, VARIANT_GPU>,
         nullptr,
         cryptonight_single_hash_gpu<CRYPTONIGHT, true,  VARIANT_GPU>,
@@ -391,7 +391,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_DOUBLE>,
         cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_DOUBLE>,
 
-#       ifndef XMRIG_NO_AEON
+#       ifdef XMRIG_ALGO_CN_LITE
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
         cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
         cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
@@ -449,7 +449,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_DOUBLE
 #       endif
 
-#       ifndef XMRIG_NO_SUMO
+#       ifdef XMRIG_ALGO_CN_HEAVY
         cryptonight_single_hash<CRYPTONIGHT_HEAVY, false, VARIANT_0>,
         cryptonight_double_hash<CRYPTONIGHT_HEAVY, false, VARIANT_0>,
         cryptonight_single_hash<CRYPTONIGHT_HEAVY, true,  VARIANT_0>,
@@ -519,7 +519,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_DOUBLE
 #       endif
 
-#       ifndef XMRIG_NO_CN_PICO
+#       ifdef XMRIG_ALGO_CN_PICO
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_0
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_1
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_TUBE

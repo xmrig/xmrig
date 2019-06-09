@@ -90,7 +90,7 @@ private:
     void setThreads(const rapidjson::Value &threads);
 
     AlgoVariant getAlgoVariant() const;
-#   ifndef XMRIG_NO_AEON
+#   ifdef XMRIG_ALGO_CN_LITE
     AlgoVariant getAlgoVariantLite() const;
 #   endif
 

@@ -361,7 +361,7 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
-#ifndef XMRIG_NO_CN_GPU
+#ifdef XMRIG_ALGO_CN_GPU
 template<xmrig::Algo ALGO, size_t MEM>
 void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
 {
@@ -708,7 +708,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
-#ifndef XMRIG_NO_CN_GPU
+#ifdef XMRIG_ALGO_CN_GPU
 template<size_t ITER, uint32_t MASK>
 void cn_gpu_inner_avx(const uint8_t *spad, uint8_t *lpad);
 
