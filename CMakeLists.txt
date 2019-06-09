@@ -25,7 +25,6 @@ set(HEADERS
     src/api/interfaces/IApiListener.h
     src/App.h
     src/common/cpu/Cpu.h
-    src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/ICpuInfo.h
     src/common/Platform.h
@@ -68,6 +67,7 @@ set(HEADERS_CRYPTO
     src/crypto/cn/hash.h
     src/crypto/cn/skein_port.h
     src/crypto/cn/soft_aes.h
+    src/crypto/common/Algorithm.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
    )
@@ -82,7 +82,6 @@ set(SOURCES
     "${SOURCES_BASE}"
     "${SOURCES_BASE_HTTP}"
     src/App.cpp
-    src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/Platform.cpp
     src/core/config/Config.cpp
@@ -107,6 +106,7 @@ set(SOURCES_CRYPTO
     src/crypto/cn/c_blake256.c
     src/crypto/cn/c_jh.c
     src/crypto/cn/c_skein.c
+    src/crypto/common/Algorithm.cpp
    )
 
 if (WIN32)

@@ -32,7 +32,7 @@
 
 
 #include "base/tools/String.h"
-#include "common/crypto/Algorithm.h"
+#include "crypto/common/Algorithm.h"
 #include "rapidjson/fwd.h"
 
 

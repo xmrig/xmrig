@@ -30,7 +30,7 @@
 #include <stdio.h>
 
 
-#include "common/crypto/Algorithm.h"
+#include "crypto/common/Algorithm.h"
 
 
 #ifdef _MSC_VER
