@@ -59,7 +59,6 @@ public:
     inline uint32_t printTime() const              { return m_printTime; }
 
     inline bool isWatch() const override                   { return m_watch && !m_fileName.isNull(); }
-    inline const Algorithm &algorithm() const override     { return m_algorithm; }
     inline const String &fileName() const override         { return m_fileName; }
     inline void setFileName(const char *fileName) override { m_fileName = fileName; }
 
@@ -69,13 +68,12 @@ public:
     void printVersions();
 
 protected:
-    Algorithm m_algorithm;
-    bool m_autoSave;
-    bool m_background;
-    bool m_dryRun;
-    bool m_syslog;
-    bool m_upgrade;
-    bool m_watch;
+    bool m_autoSave    = true;
+    bool m_background  = false;
+    bool m_dryRun      = false;
+    bool m_syslog      = false;
+    bool m_upgrade     = false;
+    bool m_watch       = true;
     Http m_http;
     Pools m_pools;
     String m_apiId;

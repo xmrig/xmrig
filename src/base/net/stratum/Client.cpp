@@ -333,17 +333,6 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         job.setAlgorithm(params["algo"].GetString());
     }
 
-    if (params.HasMember("variant")) {
-        const rapidjson::Value &variant = params["variant"];
-
-        if (variant.IsInt()) {
-            job.setVariant(variant.GetInt());
-        }
-        else if (variant.IsString()){
-            job.setVariant(variant.GetString());
-        }
-    }
-
     if (params.HasMember("height")) {
         const rapidjson::Value &variant = params["height"];
 
@@ -438,7 +427,7 @@ bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm) const
     }
 #   endif
 
-    if (m_pool.isCompatible(algorithm)) {
+    if (m_pool.algorithm() == algorithm) { // FIXME
         return true;
     }
 
@@ -590,18 +579,18 @@ void xmrig::Client::login()
         params.AddMember("rigid", m_pool.rigId().toJSON(), allocator);
     }
 
-#   ifdef XMRIG_PROXY_PROJECT
-    if (m_pool.algorithm().variant() != xmrig::VARIANT_AUTO)
-#   endif
-    {
-        Value algo(kArrayType);
+//#   ifdef XMRIG_PROXY_PROJECT FIXME
+//    if (m_pool.algorithm().variant() != xmrig::VARIANT_AUTO)
+//#   endif
+//    {
+//        Value algo(kArrayType);
 
-        for (const auto &a : m_pool.algorithms()) {
-            algo.PushBack(StringRef(a.shortName()), allocator);
-        }
+//        for (const auto &a : m_pool.algorithms()) {
+//            algo.PushBack(StringRef(a.shortName()), allocator);
+//        }
 
-        params.AddMember("algo", algo, allocator);
-    }
+//        params.AddMember("algo", algo, allocator);
+//    }
 
     m_listener->onLogin(this, doc, params);
 

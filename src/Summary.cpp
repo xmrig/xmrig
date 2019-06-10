@@ -90,10 +90,9 @@ static void print_threads(xmrig::Config *config)
             snprintf(buf, sizeof buf, ", affinity=0x%" PRIX64, config->affinity());
         }
 
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %s, av=%d, %sdonate=%d%%") WHITE_BOLD("%s"),
+        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", av=%d, %sdonate=%d%%") WHITE_BOLD("%s"),
                           "THREADS",
                           config->threadsCount(),
-                          config->algorithm().shortName(),
                           config->algoVariant(),
                           config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
                           config->pools().donateLevel(),
@@ -101,10 +100,9 @@ static void print_threads(xmrig::Config *config)
                           );
     }
     else {
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %s, %sdonate=%d%%"),
+        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %sdonate=%d%%"),
                           "THREADS",
                           config->threadsCount(),
-                          config->algorithm().shortName(),
                           config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
                           config->pools().donateLevel()
                           );

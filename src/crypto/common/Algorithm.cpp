@@ -44,254 +44,96 @@
 #endif
 
 
-struct AlgoData
+namespace xmrig {
+
+
+struct AlgoName
 {
     const char *name;
     const char *shortName;
-    xmrig::Algo algo;
-    xmrig::Variant variant;
+    const Algorithm::Id id;
 };
 
 
-static AlgoData const algorithms[] = {
-    { "cryptonight",           "cn",           xmrig::CRYPTONIGHT,       xmrig::VARIANT_AUTO   },
-    { "cryptonight/0",         "cn/0",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_0      },
-    { "cryptonight/1",         "cn/1",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_1      },
-    { "cryptonight/xtl",       "cn/xtl",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL    },
-    { "cryptonight/msr",       "cn/msr",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR    },
-    { "cryptonight/xao",       "cn/xao",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO    },
-    { "cryptonight/rto",       "cn/rto",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO    },
-    { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2      },
-    { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF   },
-    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF   },
-    { "cryptonight/wow",       "cn/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_WOW    },
-    { "cryptonight/r",         "cn/r",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_4      },
-    { "cryptonight/rwz",       "cn/rwz",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RWZ    },
-    { "cryptonight/zls",       "cn/zls",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZLS    },
-    { "cryptonight/double",    "cn/double",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE },
-
-#   ifdef XMRIG_ALGO_CN_LITE
-    { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
-    { "cryptonight-light",     "cn-light",     xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
-    { "cryptonight-lite/0",    "cn-lite/0",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_0    },
-    { "cryptonight-lite/1",    "cn-lite/1",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
-#   endif
-
-#   ifdef XMRIG_ALGO_CN_HEAVY
-    { "cryptonight-heavy",      "cn-heavy",      xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_AUTO },
-    { "cryptonight-heavy/0",    "cn-heavy/0",    xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0    },
-    { "cryptonight-heavy/xhv",  "cn-heavy/xhv",  xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_XHV  },
-    { "cryptonight-heavy/tube", "cn-heavy/tube", xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_TUBE },
-#   endif
-
-#   ifdef XMRIG_ALGO_CN_PICO
-    { "cryptonight-pico/trtl",  "cn-pico/trtl",  xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
-    { "cryptonight-pico",       "cn-pico",       xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
-    { "cryptonight-turtle",     "cn-trtl",       xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
-    { "cryptonight-ultralite",  "cn-ultralite",  xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
-    { "cryptonight_turtle",     "cn_turtle",     xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
-#   endif
-
+static AlgoName const algorithm_names[] = {
+    { "cryptonight/0",            "cn/0",              Algorithm::CN_0            },
+    { "cryptonight",              "cn",                Algorithm::CN_0            },
+    { "cryptonight/1",            "cn/1",              Algorithm::CN_1            },
+    { "cryptonight-monerov7",     nullptr,             Algorithm::CN_1            },
+    { "cryptonight_v7",           nullptr,             Algorithm::CN_1            },
+    { "cryptonight/2",            "cn/2",              Algorithm::CN_2            },
+    { "cryptonight-monerov8",      nullptr,            Algorithm::CN_2            },
+    { "cryptonight_v8",            nullptr,            Algorithm::CN_2            },
+    { "cryptonight/r",             "cn/r",             Algorithm::CN_R            },
+    { "cryptonight_r",             nullptr,            Algorithm::CN_R            },
+    { "cryptonight/wow",           "cn/wow",           Algorithm::CN_WOW          },
+    { "cryptonight/fast",          "cn/fast",          Algorithm::CN_FAST         },
+    { "cryptonight/msr",           "cn/msr",           Algorithm::CN_FAST         },
+    { "cryptonight/half",          "cn/half",          Algorithm::CN_HALF         },
+    { "cryptonight/xao",           "cn/xao",           Algorithm::CN_XAO          },
+    { "cryptonight_alloy",         nullptr,            Algorithm::CN_XAO          },
+    { "cryptonight/rto",           "cn/rto",           Algorithm::CN_RTO          },
+    { "cryptonight/rwz",           "cn/rwz",           Algorithm::CN_RWZ          },
+    { "cryptonight/zls",           "cn/zls",           Algorithm::CN_ZLS          },
+    { "cryptonight/double",        "cn/double",        Algorithm::CN_ZLS          },
 #   ifdef XMRIG_ALGO_CN_GPU
-    { "cryptonight/gpu",        "cn/gpu",  xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU },
+    { "cryptonight/gpu",           "cn/gpu",           Algorithm::CN_GPU          },
+    { "cryptonight_gpu",           nullptr,            Algorithm::CN_GPU          },
+#   endif
+#   ifdef XMRIG_ALGO_CN_LITE
+    { "cryptonight-lite/0",        "cn-lite/0",        Algorithm::CN_LITE_0       },
+    { "cryptonight-lite/1",        "cn-lite/1",        Algorithm::CN_LITE_1       },
+    { "cryptonight-lite",          "cn-lite",          Algorithm::CN_LITE_1       },
+    { "cryptonight-light",         "cn-light",         Algorithm::CN_LITE_1       },
+    { "cryptonight_lite",          nullptr,            Algorithm::CN_LITE_1       },
+    { "cryptonight-aeonv7",        nullptr,            Algorithm::CN_LITE_1       },
+    { "cryptonight_lite_v7",       nullptr,            Algorithm::CN_LITE_1       },
+#   endif
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    { "cryptonight-heavy/0",       "cn-heavy/0",       Algorithm::CN_HEAVY_0      },
+    { "cryptonight-heavy",         "cn-heavy",         Algorithm::CN_HEAVY_0      },
+    { "cryptonight_heavy",         nullptr,            Algorithm::CN_HEAVY_0      },
+    { "cryptonight-heavy/xhv",     "cn-heavy/xhv",     Algorithm::CN_HEAVY_XHV    },
+    { "cryptonight_haven",         nullptr,            Algorithm::CN_HEAVY_XHV    },
+    { "cryptonight-heavy/tube",    "cn-heavy/tube",    Algorithm::CN_HEAVY_TUBE   },
+    { "cryptonight-bittube2",      nullptr,            Algorithm::CN_HEAVY_TUBE   },
+#   endif
+#   ifdef XMRIG_ALGO_CN_PICO
+    { "cryptonight-pico",          "cn-pico",          Algorithm::CN_PICO         },
+    { "cryptonight-pico/trtl",     "cn-pico/trtl",     Algorithm::CN_PICO         },
+    { "cryptonight-turtle",        "cn-trtl",          Algorithm::CN_PICO         },
+    { "cryptonight-ultralite",     "cn-ultralite",     Algorithm::CN_PICO         },
+    { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO         },
 #   endif
 };
 
 
-#ifdef XMRIG_PROXY_PROJECT
-static AlgoData const xmrStakAlgorithms[] = {
-    { "cryptonight-monerov7",    nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_1    },
-    { "cryptonight_v7",          nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_1    },
-    { "cryptonight-monerov8",    nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
-    { "cryptonight_v8",          nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
-    { "cryptonight_v7_stellite", nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL  },
-    { "cryptonight_lite",        nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_0    },
-    { "cryptonight-aeonv7",      nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
-    { "cryptonight_lite_v7",     nullptr, xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
-    { "cryptonight_heavy",       nullptr, xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0    },
-    { "cryptonight_haven",       nullptr, xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_XHV  },
-    { "cryptonight_masari",      nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
-    { "cryptonight_masari",      nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
-    { "cryptonight-bittube2",    nullptr, xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_TUBE }, // bittube-miner
-    { "cryptonight_alloy",       nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO  }, // xmr-stak-alloy
-    { "cryptonight_turtle",      nullptr, xmrig::CRYPTONIGHT_PICO,  xmrig::VARIANT_TRTL },
-    { "cryptonight_gpu",         nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_GPU  },
-    { "cryptonight_r",           nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_4  },
-};
-#endif
-
-
-static const char *variants[] = {
-    "0",
-    "1",
-    "tube",
-    "xtl",
-    "msr",
-    "xhv",
-    "xao",
-    "rto",
-    "2",
-    "half",
-    "trtl",
-    "gpu",
-    "wow",
-    "r",
-    "rwz",
-    "zls",
-    "double"
-};
-
-
-static_assert(xmrig::VARIANT_MAX == ARRAY_SIZE(variants), "variants size mismatch");
-
-
-bool xmrig::Algorithm::isValid() const
-{
-    if (m_algo == INVALID_ALGO) {
-        return false;
-    }
-
-    for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
-        if (algorithms[i].algo == m_algo && algorithms[i].variant == m_variant) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
-const char *xmrig::Algorithm::variantName() const
-{
-    if (m_variant == VARIANT_AUTO) {
-        return "auto";
-    }
-
-    return variants[m_variant];
-}
-
-
-void xmrig::Algorithm::parseAlgorithm(const char *algo)
-{
-    m_algo    = INVALID_ALGO;
-    m_variant = VARIANT_AUTO;
-
-//    assert(algo != nullptr);
-    if (algo == nullptr || strlen(algo) < 1) {
-        return;
-    }
-
-    if (*algo == '!') {
-        m_flags |= Forced;
-
-        return parseAlgorithm(algo + 1);
-    }
-
-    for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
-        if ((strcasecmp(algo, algorithms[i].name) == 0) || (strcasecmp(algo, algorithms[i].shortName) == 0)) {
-            m_algo    = algorithms[i].algo;
-            m_variant = algorithms[i].variant;
-            break;
-        }
-    }
-
-    if (m_algo == INVALID_ALGO) {
-        assert(false);
-    }
-}
-
-
-void xmrig::Algorithm::parseVariant(const char *variant)
-{
-    m_variant = VARIANT_AUTO;
-
-    if (variant == nullptr || strlen(variant) < 1) {
-        return;
-    }
-
-    if (*variant == '!') {
-        m_flags |= Forced;
-
-        return parseVariant(variant + 1);
-    }
-
-    for (size_t i = 0; i < ARRAY_SIZE(variants); i++) {
-        if (strcasecmp(variant, variants[i]) == 0) {
-            m_variant = static_cast<Variant>(i);
-            return;
-        }
-    }
-
-    if (strcasecmp(variant, "xtlv9") == 0) {
-        m_variant = VARIANT_HALF;
-    }
-}
-
-
-void xmrig::Algorithm::parseVariant(int variant)
-{
-    assert(variant >= -1 && variant <= 2);
-
-    switch (variant) {
-    case -1:
-    case 0:
-    case 1:
-        m_variant = static_cast<Variant>(variant);
-        break;
-
-    case 2:
-        m_variant = VARIANT_2;
-        break;
-
-    default:
-        break;
-    }
-}
-
-
-void xmrig::Algorithm::setAlgo(Algo algo)
-{
-    m_algo = algo;
-
-    if (m_algo == CRYPTONIGHT_PICO && m_variant == VARIANT_AUTO) {
-        m_variant = xmrig::VARIANT_TRTL;
-    }
-}
-
-
-#ifdef XMRIG_PROXY_PROJECT
-void xmrig::Algorithm::parseXmrStakAlgorithm(const char *algo)
-{
-    m_algo    = INVALID_ALGO;
-    m_variant = VARIANT_AUTO;
-
-    assert(algo != nullptr);
-    if (algo == nullptr) {
-        return;
-    }
-
-    for (size_t i = 0; i < ARRAY_SIZE(xmrStakAlgorithms); i++) {
-        if (strcasecmp(algo, xmrStakAlgorithms[i].name) == 0) {
-            m_algo    = xmrStakAlgorithms[i].algo;
-            m_variant = xmrStakAlgorithms[i].variant;
-            break;
-        }
-    }
-
-    if (m_algo == INVALID_ALGO) {
-        assert(false);
-    }
-}
-#endif
+} /* namespace xmrig */
 
 
 const char *xmrig::Algorithm::name(bool shortName) const
 {
-    for (size_t i = 0; i < ARRAY_SIZE(algorithms); i++) {
-        if (algorithms[i].algo == m_algo && algorithms[i].variant == m_variant) {
-            return shortName ? algorithms[i].shortName : algorithms[i].name;
+    for (size_t i = 0; i < ARRAY_SIZE(algorithm_names); i++) {
+        if (algorithm_names[i].id == m_id) {
+            return shortName ? algorithm_names[i].shortName : algorithm_names[i].name;
         }
     }
 
     return "invalid";
+}
+
+
+xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
+{
+    if (name == nullptr || strlen(name) < 1) {
+        return INVALID;
+    }
+
+    for (size_t i = 0; i < ARRAY_SIZE(algorithm_names); i++) {
+        if ((strcasecmp(name, algorithm_names[i].name) == 0) || (algorithm_names[i].shortName != nullptr && strcasecmp(name, algorithm_names[i].shortName) == 0)) {
+            return algorithm_names[i].id;
+        }
+    }
+
+    return INVALID;
 }

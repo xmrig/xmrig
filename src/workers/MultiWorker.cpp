@@ -126,7 +126,8 @@ void MultiWorker<N>::start()
                 storeStats();
             }
 
-            m_thread->fn(m_state.job.algorithm().variant())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+            // FIXME
+//            m_thread->fn(m_state.job.algorithm().variant())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < m_state.job.target()) {

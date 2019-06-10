@@ -176,7 +176,7 @@ void Workers::start(xmrig::Controller *controller)
     m_controller = controller;
 
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
-    m_status.algo    = controller->config()->algorithm().algo();
+//    m_status.algo    = controller->config()->algorithm().algo(); // FIXME
     m_status.threads = threads.size();
 
     for (const xmrig::IThread *thread : threads) {

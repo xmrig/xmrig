@@ -87,8 +87,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     auto &allocator = doc.GetAllocator();
 
-    doc.AddMember("algo", StringRef(algorithm().name()), allocator);
-
     Value api(kObjectType);
     api.AddMember("id",           m_apiId.toJSON(), allocator);
     api.AddMember("worker-id",    m_apiWorkerId.toJSON(), allocator);
@@ -146,37 +144,37 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
 bool xmrig::Config::finalize()
 {
-    if (!m_threads.cpu.empty()) {
-        m_threads.mode     = Advanced;
-        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
+//    if (!m_threads.cpu.empty()) { // FIXME
+//        m_threads.mode     = Advanced;
+//        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
 
-        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
-        }
+//        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
+////            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
+//        }
 
-        return true;
-    }
+//        return true;
+//    }
 
-    const AlgoVariant av = getAlgoVariant();
-    m_threads.mode = m_threads.count ? Simple : Automatic;
+//    const AlgoVariant av = getAlgoVariant();
+//    m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
+////    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
 
-    if (!m_threads.count) {
-        m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-    }
-    else if (m_safe) {
-        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-        if (m_threads.count > count) {
-            m_threads.count = count;
-        }
-    }
+//    if (!m_threads.count) {
+//        m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
+//    }
+//    else if (m_safe) {
+//        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
+//        if (m_threads.count > count) {
+//            m_threads.count = count;
+//        }
+//    }
 
-    for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority, m_assembly));
-    }
+//    for (size_t i = 0; i < m_threads.count; ++i) {
+//        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority, m_assembly));
+//    }
 
-    m_shouldSave = m_threads.mode == Automatic;
+//    m_shouldSave = m_threads.mode == Automatic;
 
     return true;
 }
@@ -245,9 +243,9 @@ void xmrig::Config::setThreads(const rapidjson::Value &threads)
 xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 {
 #   ifdef XMRIG_ALGO_CN_LITE
-    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
-        return getAlgoVariantLite();
-    }
+//    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) { // FIXME
+//        return getAlgoVariantLite();
+//    }
 #   endif
 
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {

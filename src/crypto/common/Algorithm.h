@@ -30,68 +30,63 @@
 #include <vector>
 
 
-#include "common/xmrig.h"
-
-
 namespace xmrig {
 
 
 class Algorithm
 {
 public:
-    enum Flags {
-        None   = 0,
-        Forced = 1
+    enum Id : int {
+        INVALID = -1,
+        CN_0,          // "cn/0"             Original CryptoNight
+        CN_1,          // "cn/1"             CryptoNight variant 1 also known as Monero7 and CryptoNightV7
+        CN_2,          // "cn/2"             CryptoNight variant 2
+        CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4)
+        CN_WOW,        // "cn/wow"           CryptoNightR (Wownero)
+        CN_FAST,       // "cn/fast"          CryptoNight variant 1 with half iterations
+        CN_HALF,       // "cn/half"          CryptoNight variant 2 with half iterations (Masari/Stellite)
+        CN_XAO,        // "cn/xao"           Modified CryptoNight variant 0 (Alloy only)
+        CN_RTO,        // "cn/rto"           Modified CryptoNight variant 1 (Arto only)
+        CN_RWZ,        // "cn/rwz"           CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft)
+        CN_ZLS,        // "cn/zls"           CryptoNight variant 2 with 3/4 iterations (Zelerius)
+        CN_DOUBLE,     // "cn/double"        CryptoNight variant 2 with double iterations (X-CASH)
+#       ifdef XMRIG_ALGO_CN_GPU
+        CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo)
+#       endif
+#       ifdef XMRIG_ALGO_CN_LITE
+        CN_LITE_0,     // "cn-lite/0"        CryptoNight-Lite (1 MB) variant 0
+        CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite (1 MB) variant 1
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        CN_HEAVY_0,    // "cn-heavy/0"       CryptoNight-Heavy (4 MB)
+        CN_HEAVY_TUBE, // "cn-heavy/tube"    Modified CryptoNight-Heavy (TUBE only)
+        CN_HEAVY_XHV,  // "cn-heavy/xhv"     Modified CryptoNight-Heavy (Haven Protocol only)
+#       endif
+#       ifdef XMRIG_ALGO_CN_PICO
+        CN_PICO,       // "cn-pico"          CryptoNight Turtle (TRTL)
+#       endif
+        MAX
     };
 
-    inline Algorithm() :
-        m_algo(INVALID_ALGO),
-        m_flags(0),
-        m_variant(VARIANT_AUTO)
-    {}
+    inline Algorithm()                                     {}
+    inline Algorithm(const char *algo) : m_id(parse(algo)) {}
+    inline Algorithm(Id id) : m_id(id)                     {}
 
-    inline Algorithm(Algo algo, Variant variant) :
-        m_flags(0),
-        m_variant(variant)
-    {
-        setAlgo(algo);
-    }
-
-    inline Algorithm(const char *algo) :
-        m_flags(0)
-    {
-        parseAlgorithm(algo);
-    }
-
-    inline Algo algo() const                          { return m_algo; }
-    inline bool isEqual(const Algorithm &other) const { return m_algo == other.m_algo && m_variant == other.m_variant; }
-    inline bool isForced() const                      { return m_flags & Forced; }
+    inline bool isEqual(const Algorithm &other) const { return m_id == other.m_id; }
     inline const char *name() const                   { return name(false); }
     inline const char *shortName() const              { return name(true); }
-    inline int flags() const                          { return m_flags; }
-    inline Variant variant() const                    { return m_variant; }
-    inline void setVariant(Variant variant)           { m_variant = variant; }
+    inline Id id() const                              { return m_id; }
+    inline bool isValid() const                       { return m_id != INVALID; }
 
     inline bool operator!=(const Algorithm &other) const  { return !isEqual(other); }
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
 
-    bool isValid() const;
-    const char *variantName() const;
-    void parseAlgorithm(const char *algo);
-    void parseVariant(const char *variant);
-    void parseVariant(int variant);
-    void setAlgo(Algo algo);
-
-#   ifdef XMRIG_PROXY_PROJECT
-    void parseXmrStakAlgorithm(const char *algo);
-#   endif
+    static Id parse(const char *name);
 
 private:
     const char *name(bool shortName) const;
 
-    Algo m_algo;
-    int m_flags;
-    Variant m_variant;
+    Id m_id = INVALID;
 };
 
 
@@ -100,4 +95,5 @@ typedef std::vector<xmrig::Algorithm> Algorithms;
 
 } /* namespace xmrig */
 
-#endif /* __ALGORITHM_H__ */
+
+#endif /* XMRIG_ALGORITHM_H */

@@ -53,7 +53,6 @@ public:
     bool isEqual(const Job &other) const;
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
-    void setAlgorithm(const char *algo);
     void setDiff(uint64_t diff);
 
     inline bool isNicehash() const                    { return m_nicehash; }
@@ -65,7 +64,6 @@ public:
     inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const                { return m_blob; }
     inline int poolId() const                         { return m_poolId; }
-    inline int threadId() const                       { return m_threadId; }
     inline size_t size() const                        { return m_size; }
     inline uint32_t *nonce()                          { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint64_t diff() const                      { return m_diff; }
@@ -73,12 +71,10 @@ public:
     inline uint64_t target() const                    { return m_target; }
     inline uint8_t fixedByte() const                  { return *(m_blob + 42); }
     inline void reset()                               { m_size = 0; m_diff = 0; }
+    inline void setAlgorithm(const char *algo)        { m_algorithm = algo; }
     inline void setClientId(const String &id)         { m_clientId = id; }
     inline void setHeight(uint64_t height)            { m_height = height; }
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
-    inline void setThreadId(int threadId)             { m_threadId = threadId; }
-    inline void setVariant(const char *variant)       { m_algorithm.parseVariant(variant); }
-    inline void setVariant(int variant)               { m_algorithm.parseVariant(variant); }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                 { return m_rawBlob; }
@@ -93,13 +89,9 @@ public:
     inline bool operator!=(const Job &other) const { return !isEqual(other); }
 
 private:
-    Variant variant() const;
-
     Algorithm m_algorithm;
-    bool m_autoVariant;
     bool m_nicehash;
     int m_poolId;
-    int m_threadId;
     size_t m_size;
     String m_clientId;
     String m_id;

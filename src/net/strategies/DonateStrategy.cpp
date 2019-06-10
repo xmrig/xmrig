@@ -79,9 +79,9 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
 #   endif
     m_pools.push_back(Pool(kDonateHost, 3333, m_userId, nullptr, 0, true));
 
-    for (Pool &pool : m_pools) {
-        pool.adjust(Algorithm(controller->config()->algorithm().algo(), VARIANT_AUTO));
-    }
+//    for (Pool &pool : m_pools) {
+//        pool.adjust(Algorithm()); // FIXME
+//    }
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 1, 2, this, true);
