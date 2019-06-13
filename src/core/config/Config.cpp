@@ -33,7 +33,6 @@
 #include "common/cpu/Cpu.h"
 #include "core/config/Config.h"
 #include "crypto/cn/Asm.h"
-#include "crypto/cn/CryptoNight_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -71,7 +70,7 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     setPriority(reader.getInt("cpu-priority", -1));
     setThreads(reader.getValue("threads"));
 
-#   ifndef XMRIG_NO_ASM
+#   ifdef XMRIG_FEATURE_ASM
     setAssembly(reader.getValue("asm"));
 #   endif
 
@@ -93,7 +92,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("api",          api, allocator);
     doc.AddMember("http",         m_http.toJSON(doc), allocator);
 
-#   ifndef XMRIG_NO_ASM
+#   ifdef XMRIG_FEATURE_ASM
     doc.AddMember("asm",          Asm::toJSON(m_assembly), allocator);
 #   endif
 
@@ -144,37 +143,39 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
 bool xmrig::Config::finalize()
 {
-//    if (!m_threads.cpu.empty()) { // FIXME
-//        m_threads.mode     = Advanced;
-//        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
+    Algorithm algorithm(Algorithm::CN_0); // FIXME algo
 
-//        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-////            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
-//        }
+    if (!m_threads.cpu.empty()) {
+        m_threads.mode     = Advanced;
+        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
 
-//        return true;
-//    }
+        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
+            m_threads.list.push_back(CpuThread::createFromData(i, algorithm, m_threads.cpu[i], m_priority, softAES));
+        }
 
-//    const AlgoVariant av = getAlgoVariant();
-//    m_threads.mode = m_threads.count ? Simple : Automatic;
+        return true;
+    }
 
-////    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
+    const AlgoVariant av = getAlgoVariant();
+    m_threads.mode = m_threads.count ? Simple : Automatic;
 
-//    if (!m_threads.count) {
-//        m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-//    }
-//    else if (m_safe) {
-//        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-//        if (m_threads.count > count) {
-//            m_threads.count = count;
-//        }
-//    }
+    const size_t size = CpuThread::multiway(av) * CnAlgo<>::memory(algorithm) / 1024;
 
-//    for (size_t i = 0; i < m_threads.count; ++i) {
-//        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority, m_assembly));
-//    }
+    if (!m_threads.count) {
+        m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
+    }
+    else if (m_safe) {
+        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
+        if (m_threads.count > count) {
+            m_threads.count = count;
+        }
+    }
 
-//    m_shouldSave = m_threads.mode == Automatic;
+    for (size_t i = 0; i < m_threads.count; ++i) {
+        m_threads.list.push_back(CpuThread::createFromAV(i, algorithm, av, m_threads.mask, m_priority, m_assembly));
+    }
+
+    m_shouldSave = m_threads.mode == Automatic;
 
     return true;
 }
@@ -276,7 +277,7 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
 #endif
 
 
-#ifndef XMRIG_NO_ASM
+#ifdef XMRIG_FEATURE_ASM
 void xmrig::Config::setAssembly(const rapidjson::Value &assembly)
 {
     m_assembly = Asm::parse(assembly);

@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 
-#include "common/xmrig.h"
+#include "crypto/common/Algorithm.h"
 #include "rapidjson/fwd.h"
 
 
@@ -53,7 +53,7 @@ public:
 
     virtual ~IThread() = default;
 
-    virtual Algo algorithm() const                                    = 0;
+    virtual Algorithm algorithm() const                               = 0;
     virtual int priority() const                                      = 0;
     virtual int64_t affinity() const                                  = 0;
     virtual Multiway multiway() const                                 = 0;

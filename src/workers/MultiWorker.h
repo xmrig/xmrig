@@ -33,7 +33,7 @@
 #include "workers/Worker.h"
 
 
-class Handle;
+namespace xmrig {
 
 
 template<size_t N>
@@ -48,11 +48,11 @@ protected:
     void start() override;
 
 private:
-    bool resume(const xmrig::Job &job);
-    bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
-    bool verify2(xmrig::Variant variant, const uint8_t *referenceValue);
+    bool resume(const Job &job);
+    bool verify(const Algorithm &algorithm, const uint8_t *referenceValue);
+    bool verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
     void consumeJob();
-    void save(const xmrig::Job &job);
+    void save(const Job &job);
 
     inline uint32_t *nonce(size_t index)
     {
@@ -61,8 +61,8 @@ private:
 
     struct State
     {
-        alignas(16) uint8_t blob[xmrig::Job::kMaxBlobSize * N];
-        xmrig::Job job;
+        alignas(16) uint8_t blob[Job::kMaxBlobSize * N];
+        Job job;
     };
 
 
@@ -71,6 +71,9 @@ private:
     State m_state;
     uint8_t m_hash[N * 32];
 };
+
+
+} // namespace xmrig
 
 
 #endif /* XMRIG_MULTIWORKER_H */

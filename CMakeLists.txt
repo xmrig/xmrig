@@ -59,7 +59,8 @@ set(HEADERS_CRYPTO
     src/crypto/cn/c_groestl.h
     src/crypto/cn/c_jh.h
     src/crypto/cn/c_skein.h
-    src/crypto/cn/CryptoNight_constants.h
+    src/crypto/cn/CnAlgo.h
+    src/crypto/cn/CnHash.h
     src/crypto/cn/CryptoNight_monero.h
     src/crypto/cn/CryptoNight_test.h
     src/crypto/cn/CryptoNight.h
@@ -102,10 +103,11 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/cn/c_groestl.c
     src/crypto/cn/c_blake256.c
+    src/crypto/cn/c_groestl.c
     src/crypto/cn/c_jh.c
     src/crypto/cn/c_skein.c
+    src/crypto/cn/CnHash.cpp
     src/crypto/common/Algorithm.cpp
    )
 

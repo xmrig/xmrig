@@ -34,7 +34,7 @@
 
 
 template<size_t N>
-MultiWorker<N>::MultiWorker(ThreadHandle *handle)
+xmrig::MultiWorker<N>::MultiWorker(ThreadHandle *handle)
     : Worker(handle)
 {
     m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
@@ -42,61 +42,58 @@ MultiWorker<N>::MultiWorker(ThreadHandle *handle)
 
 
 template<size_t N>
-MultiWorker<N>::~MultiWorker()
+xmrig::MultiWorker<N>::~MultiWorker()
 {
     Mem::release(m_ctx, N, m_memory);
 }
 
 
 template<size_t N>
-bool MultiWorker<N>::selfTest()
+bool xmrig::MultiWorker<N>::selfTest()
 {
-    using namespace xmrig;
-
-    if (m_thread->algorithm() == CRYPTONIGHT) {
-        const bool rc = verify(VARIANT_0,      test_output_v0)   &&
-                        verify(VARIANT_1,      test_output_v1)   &&
-                        verify(VARIANT_2,      test_output_v2)   &&
-                        verify(VARIANT_XTL,    test_output_xtl)  &&
-                        verify(VARIANT_MSR,    test_output_msr)  &&
-                        verify(VARIANT_XAO,    test_output_xao)  &&
-                        verify(VARIANT_RTO,    test_output_rto)  &&
-                        verify(VARIANT_HALF,   test_output_half) &&
-                        verify2(VARIANT_WOW,   test_output_wow)  &&
-                        verify2(VARIANT_4,     test_output_r)    &&
-                        verify(VARIANT_RWZ,    test_output_rwz)  &&
-                        verify(VARIANT_ZLS,    test_output_zls)  &&
-                        verify(VARIANT_DOUBLE, test_output_double);
+    if (m_thread->algorithm().family() == Algorithm::CN) {
+        const bool rc = verify(Algorithm::CN_0,      test_output_v0)   &&
+                        verify(Algorithm::CN_1,      test_output_v1)   &&
+                        verify(Algorithm::CN_2,      test_output_v2)   &&
+                        verify(Algorithm::CN_FAST,   test_output_msr)  &&
+                        verify(Algorithm::CN_XAO,    test_output_xao)  &&
+                        verify(Algorithm::CN_RTO,    test_output_rto)  &&
+                        verify(Algorithm::CN_HALF,   test_output_half) &&
+                        verify2(Algorithm::CN_WOW,   test_output_wow)  &&
+                        verify2(Algorithm::CN_R,     test_output_r)    &&
+                        verify(Algorithm::CN_RWZ,    test_output_rwz)  &&
+                        verify(Algorithm::CN_ZLS,    test_output_zls)  &&
+                        verify(Algorithm::CN_DOUBLE, test_output_double);
 
 #       ifdef XMRIG_ALGO_CN_GPU
         if (!rc || N > 1) {
             return rc;
         }
 
-        return verify(VARIANT_GPU, test_output_gpu);
+        return verify(Algorithm::CN_GPU, test_output_gpu);
 #       else
         return rc;
 #       endif
     }
 
 #   ifdef XMRIG_ALGO_CN_LITE
-    if (m_thread->algorithm() == CRYPTONIGHT_LITE) {
-        return verify(VARIANT_0,    test_output_v0_lite) &&
-               verify(VARIANT_1,    test_output_v1_lite);
+    if (m_thread->algorithm().family() == Algorithm::CN_LITE) {
+        return verify(Algorithm::CN_LITE_0,    test_output_v0_lite) &&
+               verify(Algorithm::CN_LITE_1,    test_output_v1_lite);
     }
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_HEAVY
-    if (m_thread->algorithm() == CRYPTONIGHT_HEAVY) {
-        return verify(VARIANT_0,    test_output_v0_heavy)  &&
-               verify(VARIANT_XHV,  test_output_xhv_heavy) &&
-               verify(VARIANT_TUBE, test_output_tube_heavy);
+    if (m_thread->algorithm().family() == Algorithm::CN_HEAVY) {
+        return verify(Algorithm::CN_HEAVY_0,    test_output_v0_heavy)  &&
+               verify(Algorithm::CN_HEAVY_XHV,  test_output_xhv_heavy) &&
+               verify(Algorithm::CN_HEAVY_TUBE, test_output_tube_heavy);
     }
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_PICO
-    if (m_thread->algorithm() == CRYPTONIGHT_PICO) {
-        return verify(VARIANT_TRTL, test_output_pico_trtl);
+    if (m_thread->algorithm().family() == Algorithm::CN_PICO) {
+        return verify(Algorithm::CN_PICO_0, test_output_pico_trtl);
     }
 #   endif
 
@@ -105,7 +102,7 @@ bool MultiWorker<N>::selfTest()
 
 
 template<size_t N>
-void MultiWorker<N>::start()
+void xmrig::MultiWorker<N>::start()
 {
     while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {
@@ -126,12 +123,11 @@ void MultiWorker<N>::start()
                 storeStats();
             }
 
-            // FIXME
-//            m_thread->fn(m_state.job.algorithm().variant())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+            m_thread->fn(m_state.job.algorithm())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < m_state.job.target()) {
-                    Workers::submit(xmrig::JobResult(m_state.job.poolId(), m_state.job.id(), m_state.job.clientId(), *nonce(i), m_hash + (i * 32), m_state.job.diff(), m_state.job.algorithm()));
+                    Workers::submit(JobResult(m_state.job.poolId(), m_state.job.id(), m_state.job.clientId(), *nonce(i), m_hash + (i * 32), m_state.job.diff(), m_state.job.algorithm()));
                 }
 
                 *nonce(i) += 1;
@@ -148,7 +144,7 @@ void MultiWorker<N>::start()
 
 
 template<size_t N>
-bool MultiWorker<N>::resume(const xmrig::Job &job)
+bool xmrig::MultiWorker<N>::resume(const xmrig::Job &job)
 {
     if (m_state.job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedState.job.id()) {
         m_state = m_pausedState;
@@ -160,10 +156,9 @@ bool MultiWorker<N>::resume(const xmrig::Job &job)
 
 
 template<size_t N>
-bool MultiWorker<N>::verify(xmrig::Variant variant, const uint8_t *referenceValue)
+bool xmrig::MultiWorker<N>::verify(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
-
-    xmrig::CpuThread::cn_hash_fun func = m_thread->fn(variant);
+    cn_hash_fun func = m_thread->fn(algorithm);
     if (!func) {
         return false;
     }
@@ -174,9 +169,9 @@ bool MultiWorker<N>::verify(xmrig::Variant variant, const uint8_t *referenceValu
 
 
 template<size_t N>
-bool MultiWorker<N>::verify2(xmrig::Variant variant, const uint8_t *referenceValue)
+bool xmrig::MultiWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
-    xmrig::CpuThread::cn_hash_fun func = m_thread->fn(variant);
+    cn_hash_fun func = m_thread->fn(algorithm);
     if (!func) {
         return false;
     }
@@ -201,9 +196,9 @@ bool MultiWorker<N>::verify2(xmrig::Variant variant, const uint8_t *referenceVal
 
 
 template<>
-bool MultiWorker<1>::verify2(xmrig::Variant variant, const uint8_t *referenceValue)
+bool xmrig::MultiWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
-    xmrig::CpuThread::cn_hash_fun func = m_thread->fn(variant);
+    cn_hash_fun func = m_thread->fn(algorithm);
     if (!func) {
         return false;
     }
@@ -221,9 +216,9 @@ bool MultiWorker<1>::verify2(xmrig::Variant variant, const uint8_t *referenceVal
 
 
 template<size_t N>
-void MultiWorker<N>::consumeJob()
+void xmrig::MultiWorker<N>::consumeJob()
 {
-    xmrig::Job job = Workers::job();
+    Job job = Workers::job();
     m_sequence = Workers::sequence();
     if (m_state.job == job) {
         return;
@@ -258,7 +253,7 @@ void MultiWorker<N>::consumeJob()
 
 
 template<size_t N>
-void MultiWorker<N>::save(const xmrig::Job &job)
+void xmrig::MultiWorker<N>::save(const Job &job)
 {
     if (job.poolId() == -1 && m_state.job.poolId() >= 0) {
         m_pausedState = m_state;
@@ -266,8 +261,13 @@ void MultiWorker<N>::save(const xmrig::Job &job)
 }
 
 
+namespace xmrig {
+
 template class MultiWorker<1>;
 template class MultiWorker<2>;
 template class MultiWorker<3>;
 template class MultiWorker<4>;
 template class MultiWorker<5>;
+
+}
+

@@ -94,7 +94,7 @@ private:
     AlgoVariant getAlgoVariantLite() const;
 #   endif
 
-#   ifndef XMRIG_NO_ASM
+#   ifdef XMRIG_FEATURE_ASM
     void setAssembly(const rapidjson::Value &assembly);
 #   endif
 

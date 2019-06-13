@@ -39,7 +39,7 @@
 #include "version.h"
 
 
-#ifndef XMRIG_NO_ASM
+#ifdef XMRIG_FEATURE_ASM
 static const char *coloredAsmNames[] = {
     RED_BOLD("none"),
     "auto",
@@ -108,7 +108,7 @@ static void print_threads(xmrig::Config *config)
                           );
     }
 
-#   ifndef XMRIG_NO_ASM
+#   ifdef XMRIG_FEATURE_ASM
     if (config->assembly() == xmrig::ASM_AUTO) {
         const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
 

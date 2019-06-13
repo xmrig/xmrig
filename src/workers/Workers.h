@@ -86,8 +86,7 @@ private:
             pages(0),
             started(0),
             threads(0),
-            ways(0),
-            algo(xmrig::CRYPTONIGHT)
+            ways(0)
         {}
 
         size_t hugePages;
@@ -95,7 +94,7 @@ private:
         size_t started;
         size_t threads;
         size_t ways;
-        xmrig::Algo algo;
+        xmrig::Algorithm algo;
     };
 
     static bool m_active;

@@ -27,7 +27,6 @@
 #include <limits>
 
 
-#include "crypto/cn/CryptoNight_constants.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/common/portable/mm_malloc.h"
 #include "crypto/common/VirtualMemory.h"
@@ -38,12 +37,14 @@ bool Mem::m_enabled = true;
 int Mem::m_flags    = 0;
 
 
-MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
+MemInfo Mem::create(cryptonight_ctx **ctx, const xmrig::Algorithm &algorithm, size_t count)
 {
     using namespace xmrig;
 
+    constexpr CnAlgo<Algorithm::CN_0> props;
+
     MemInfo info;
-    info.size = cn_select_memory(algorithm) * count;
+    info.size = props.memory(algorithm.id()) * count;
 
     constexpr const size_t align_size = 2 * 1024 * 1024;
     info.size  = ((info.size + align_size - 1) / align_size) * align_size;
@@ -53,10 +54,10 @@ MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
 
     for (size_t i = 0; i < count; ++i) {
         cryptonight_ctx *c = static_cast<cryptonight_ctx *>(_mm_malloc(sizeof(cryptonight_ctx), 4096));
-        c->memory          = info.memory + (i * cn_select_memory(algorithm));
+        c->memory          = info.memory + (i * props.memory(algorithm.id()));
 
-        c->generated_code              = reinterpret_cast<cn_mainloop_fun_ms_abi>(xmrig::VirtualMemory::allocateExecutableMemory(0x4000));
-        c->generated_code_data.variant = xmrig::VARIANT_MAX;
+        c->generated_code              = reinterpret_cast<cn_mainloop_fun_ms_abi>(VirtualMemory::allocateExecutableMemory(0x4000));
+        c->generated_code_data.algo    = Algorithm::INVALID;
         c->generated_code_data.height  = std::numeric_limits<uint64_t>::max();
 
         ctx[i] = c;

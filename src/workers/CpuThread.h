@@ -27,6 +27,7 @@
 
 
 #include "common/xmrig.h"
+#include "crypto/cn/CnHash.h"
 #include "interfaces/IThread.h"
 
 
@@ -58,27 +59,20 @@ public:
     };
 
 
-    CpuThread(size_t index, Algo algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly);
+    CpuThread(size_t index, Algorithm algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly);
 
-    typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx, uint64_t height);
-    typedef void (*cn_mainloop_fun)(cryptonight_ctx **ctx);
-
-#   ifndef XMRIG_NO_ASM
-    static void patchAsmVariants();
-#   endif
+    cn_hash_fun fn(const Algorithm &algorithm) const;
 
     static bool isSoftAES(AlgoVariant av);
-    static cn_hash_fun fn(Algo algorithm, AlgoVariant av, Variant variant, Assembly assembly);
-    static CpuThread *createFromAV(size_t index, Algo algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly);
-    static CpuThread *createFromData(size_t index, Algo algorithm, const CpuThread::Data &data, int priority, bool softAES);
+    static CpuThread *createFromAV(size_t index, const Algorithm &algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly);
+    static CpuThread *createFromData(size_t index, const Algorithm &algorithm, const CpuThread::Data &data, int priority, bool softAES);
     static Data parse(const rapidjson::Value &object);
     static Multiway multiway(AlgoVariant av);
 
     inline bool isPrefetch() const               { return m_prefetch; }
     inline bool isSoftAES() const                { return m_softAES; }
-    inline cn_hash_fun fn(Variant variant) const { return fn(m_algorithm, m_av, variant, m_assembly); }
 
-    inline Algo algorithm() const override       { return m_algorithm; }
+    inline Algorithm algorithm() const override  { return m_algorithm; }
     inline int priority() const override         { return m_priority; }
     inline int64_t affinity() const override     { return m_affinity; }
     inline Multiway multiway() const override    { return m_multiway; }
@@ -97,7 +91,7 @@ protected:
     rapidjson::Value toConfig(rapidjson::Document &doc) const override;
 
 private:
-    const Algo m_algorithm;
+    const Algorithm m_algorithm;
     const AlgoVariant m_av;
     const Assembly m_assembly;
     const bool m_prefetch;

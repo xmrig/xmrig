@@ -31,7 +31,7 @@
 #include <stdint.h>
 
 
-#include "common/xmrig.h"
+#include "crypto/cn/CnAlgo.h"
 
 
 struct cryptonight_ctx;
@@ -56,7 +56,7 @@ public:
         Lock               = 4
     };
 
-    static MemInfo create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count);
+    static MemInfo create(cryptonight_ctx **ctx, const xmrig::Algorithm &algorithm, size_t count);
     static void init(bool enabled);
     static void release(cryptonight_ctx **ctx, size_t count, MemInfo &info);
 

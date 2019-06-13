@@ -32,7 +32,6 @@
 #include "base/tools/Handle.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/cn/CryptoNight_constants.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IThread.h"
 #include "Mem.h"
@@ -169,14 +168,10 @@ void Workers::start(xmrig::Controller *controller)
     LOG_NOTICE("--------------------------------------------------------------------------");
 #   endif
 
-#   ifndef XMRIG_NO_ASM
-    xmrig::CpuThread::patchAsmVariants();
-#   endif
-
     m_controller = controller;
 
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
-//    m_status.algo    = controller->config()->algorithm().algo(); // FIXME
+    m_status.algo    = xmrig::Algorithm::CN_0; // FIXME algo
     m_status.threads = threads.size();
 
     for (const xmrig::IThread *thread : threads) {
@@ -240,7 +235,7 @@ void Workers::threadsSummary(rapidjson::Document &doc)
 {
     uv_mutex_lock(&m_mutex);
     const uint64_t pages[2] = { m_status.hugePages, m_status.pages };
-    const uint64_t memory   = m_status.ways * xmrig::cn_select_memory(m_status.algo);
+    const uint64_t memory   = m_status.ways * xmrig::CnAlgo<>::memory(m_status.algo);
     uv_mutex_unlock(&m_mutex);
 
     auto &allocator = doc.GetAllocator();
@@ -263,23 +258,23 @@ void Workers::onReady(void *arg)
 
     switch (handle->config()->multiway()) {
     case 1:
-        worker = new MultiWorker<1>(handle);
+        worker = new xmrig::MultiWorker<1>(handle);
         break;
 
     case 2:
-        worker = new MultiWorker<2>(handle);
+        worker = new xmrig::MultiWorker<2>(handle);
         break;
 
     case 3:
-        worker = new MultiWorker<3>(handle);
+        worker = new xmrig::MultiWorker<3>(handle);
         break;
 
     case 4:
-        worker = new MultiWorker<4>(handle);
+        worker = new xmrig::MultiWorker<4>(handle);
         break;
 
     case 5:
-        worker = new MultiWorker<5>(handle);
+        worker = new xmrig::MultiWorker<5>(handle);
         break;
 
     default:
@@ -344,7 +339,7 @@ void Workers::start(IWorker *worker)
 
     if (m_status.started == m_status.threads) {
         const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
-        const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1024;
+        const size_t memory  = m_status.ways * xmrig::CnAlgo<>::memory(m_status.algo) / 1024;
 
         LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
                  m_status.threads, m_status.ways,

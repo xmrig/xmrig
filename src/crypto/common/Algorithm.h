@@ -63,9 +63,17 @@ public:
         CN_HEAVY_XHV,  // "cn-heavy/xhv"     Modified CryptoNight-Heavy (Haven Protocol only)
 #       endif
 #       ifdef XMRIG_ALGO_CN_PICO
-        CN_PICO,       // "cn-pico"          CryptoNight Turtle (TRTL)
+        CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
 #       endif
         MAX
+    };
+
+    enum Family : int {
+        UNKNOWN,
+        CN,
+        CN_LITE,
+        CN_HEAVY,
+        CN_PICO
     };
 
     inline Algorithm()                                     {}
@@ -73,14 +81,17 @@ public:
     inline Algorithm(Id id) : m_id(id)                     {}
 
     inline bool isEqual(const Algorithm &other) const { return m_id == other.m_id; }
+    inline bool isValid() const                       { return m_id != INVALID; }
     inline const char *name() const                   { return name(false); }
     inline const char *shortName() const              { return name(true); }
+    inline Family family() const                      { return family(m_id); }
     inline Id id() const                              { return m_id; }
-    inline bool isValid() const                       { return m_id != INVALID; }
 
     inline bool operator!=(const Algorithm &other) const  { return !isEqual(other); }
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
+    inline operator Algorithm::Id() const                 { return m_id; }
 
+    static Family family(Id id);
     static Id parse(const char *name);
 
 private:

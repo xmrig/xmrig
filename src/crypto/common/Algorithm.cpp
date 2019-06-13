@@ -56,12 +56,12 @@ struct AlgoName
 
 
 static AlgoName const algorithm_names[] = {
-    { "cryptonight/0",            "cn/0",              Algorithm::CN_0            },
-    { "cryptonight",              "cn",                Algorithm::CN_0            },
-    { "cryptonight/1",            "cn/1",              Algorithm::CN_1            },
-    { "cryptonight-monerov7",     nullptr,             Algorithm::CN_1            },
-    { "cryptonight_v7",           nullptr,             Algorithm::CN_1            },
-    { "cryptonight/2",            "cn/2",              Algorithm::CN_2            },
+    { "cryptonight/0",             "cn/0",             Algorithm::CN_0            },
+    { "cryptonight",               "cn",               Algorithm::CN_0            },
+    { "cryptonight/1",             "cn/1",             Algorithm::CN_1            },
+    { "cryptonight-monerov7",      nullptr,            Algorithm::CN_1            },
+    { "cryptonight_v7",            nullptr,            Algorithm::CN_1            },
+    { "cryptonight/2",             "cn/2",             Algorithm::CN_2            },
     { "cryptonight-monerov8",      nullptr,            Algorithm::CN_2            },
     { "cryptonight_v8",            nullptr,            Algorithm::CN_2            },
     { "cryptonight/r",             "cn/r",             Algorithm::CN_R            },
@@ -75,7 +75,7 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight/rto",           "cn/rto",           Algorithm::CN_RTO          },
     { "cryptonight/rwz",           "cn/rwz",           Algorithm::CN_RWZ          },
     { "cryptonight/zls",           "cn/zls",           Algorithm::CN_ZLS          },
-    { "cryptonight/double",        "cn/double",        Algorithm::CN_ZLS          },
+    { "cryptonight/double",        "cn/double",        Algorithm::CN_DOUBLE       },
 #   ifdef XMRIG_ALGO_CN_GPU
     { "cryptonight/gpu",           "cn/gpu",           Algorithm::CN_GPU          },
     { "cryptonight_gpu",           nullptr,            Algorithm::CN_GPU          },
@@ -99,11 +99,11 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-bittube2",      nullptr,            Algorithm::CN_HEAVY_TUBE   },
 #   endif
 #   ifdef XMRIG_ALGO_CN_PICO
-    { "cryptonight-pico",          "cn-pico",          Algorithm::CN_PICO         },
-    { "cryptonight-pico/trtl",     "cn-pico/trtl",     Algorithm::CN_PICO         },
-    { "cryptonight-turtle",        "cn-trtl",          Algorithm::CN_PICO         },
-    { "cryptonight-ultralite",     "cn-ultralite",     Algorithm::CN_PICO         },
-    { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO         },
+    { "cryptonight-pico",          "cn-pico",          Algorithm::CN_PICO_0       },
+    { "cryptonight-pico/trtl",     "cn-pico/trtl",     Algorithm::CN_PICO_0       },
+    { "cryptonight-turtle",        "cn-trtl",          Algorithm::CN_PICO_0       },
+    { "cryptonight-ultralite",     "cn-ultralite",     Algorithm::CN_PICO_0       },
+    { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO_0       },
 #   endif
 };
 
@@ -111,15 +111,48 @@ static AlgoName const algorithm_names[] = {
 } /* namespace xmrig */
 
 
-const char *xmrig::Algorithm::name(bool shortName) const
+xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 {
-    for (size_t i = 0; i < ARRAY_SIZE(algorithm_names); i++) {
-        if (algorithm_names[i].id == m_id) {
-            return shortName ? algorithm_names[i].shortName : algorithm_names[i].name;
-        }
+    switch (id) {
+    case CN_0:
+    case CN_1:
+    case CN_2:
+    case CN_R:
+    case CN_WOW:
+    case CN_FAST:
+    case CN_HALF:
+    case CN_XAO:
+    case CN_RTO:
+    case CN_RWZ:
+    case CN_DOUBLE:
+#   ifdef XMRIG_ALGO_CN_GPU
+    case CN_GPU:
+#   endif
+        return CN;
+
+#   ifdef XMRIG_ALGO_CN_LITE
+    case CN_LITE_0:
+    case CN_LITE_1:
+        return CN_LITE;
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    case CN_HEAVY_0:
+    case CN_HEAVY_TUBE:
+    case CN_HEAVY_XHV:
+        return CN_HEAVY;
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_PICO
+    case Algorithm::CN_PICO_0:
+        return CN_PICO;
+#   endif
+
+    default:
+        break;
     }
 
-    return "invalid";
+    return UNKNOWN;
 }
 
 
@@ -136,4 +169,16 @@ xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
     }
 
     return INVALID;
+}
+
+
+const char *xmrig::Algorithm::name(bool shortName) const
+{
+    for (size_t i = 0; i < ARRAY_SIZE(algorithm_names); i++) {
+        if (algorithm_names[i].id == m_id) {
+            return shortName ? algorithm_names[i].shortName : algorithm_names[i].name;
+        }
+    }
+
+    return "invalid";
 }
