@@ -195,8 +195,10 @@ bool xmrig::MultiWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *r
 }
 
 
+namespace xmrig {
+
 template<>
-bool xmrig::MultiWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
+bool MultiWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
     cn_hash_fun func = m_thread->fn(algorithm);
     if (!func) {
@@ -213,6 +215,8 @@ bool xmrig::MultiWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *r
 
     return true;
 }
+
+} // namespace xmrig
 
 
 template<size_t N>
@@ -269,5 +273,5 @@ template class MultiWorker<3>;
 template class MultiWorker<4>;
 template class MultiWorker<5>;
 
-}
+} // namespace xmrig
 
