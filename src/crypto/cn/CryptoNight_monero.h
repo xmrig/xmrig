@@ -141,7 +141,7 @@
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(_b1))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(_b))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(_a))); \
-        if (ALGO == Algorithm::CN_4) { \
+        if (ALGO == Algorithm::CN_R) { \
             _c = veorq_u64(veorq_u64(_c, chunk3), veorq_u64(chunk1, chunk2)); \
         } \
     } while (0)
