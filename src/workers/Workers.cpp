@@ -63,7 +63,7 @@ uv_rwlock_t Workers::m_rx_dataset_lock;
 randomx_cache *Workers::m_rx_cache = nullptr;
 randomx_dataset *Workers::m_rx_dataset = nullptr;
 uint8_t Workers::m_rx_seed_hash[32] = {};
-std::atomic<uint32_t> Workers::m_rx_dataset_init_thread_counter = 0;
+std::atomic<uint32_t> Workers::m_rx_dataset_init_thread_counter = {};
 
 
 xmrig::Job Workers::job()
