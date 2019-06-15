@@ -154,7 +154,7 @@ add_definitions(/DUNICODE)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
-find_package(RANDOMWOW REQUIRED)
+find_package(RandomWOW REQUIRED)
 
 include(cmake/flags.cmake)
 
