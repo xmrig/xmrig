@@ -421,28 +421,28 @@ bool xmrig::Client::send(BIO *bio)
 
 bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm) const
 {
-#   ifdef XMRIG_PROXY_PROJECT
-    if (m_pool.algorithm().variant() == VARIANT_AUTO || m_id == -1) {
-        return true;
-    }
-#   endif
+//#   ifdef XMRIG_PROXY_PROJECT
+//    if (m_pool.algorithm().variant() == VARIANT_AUTO || m_id == -1) {
+//        return true;
+//    }
+//#   endif
 
-    if (m_pool.algorithm() == algorithm) { // FIXME
-        return true;
-    }
+//    if (m_pool.algorithm() == algorithm) { // FIXME
+//        return true;
+//    }
 
-    if (isQuiet()) {
-        return false;
-    }
+//    if (isQuiet()) {
+//        return false;
+//    }
 
-    if (algorithm.isValid()) {
-        LOG_ERR("Incompatible algorithm \"%s\" detected, reconnect", algorithm.name());
-    }
-    else {
-        LOG_ERR("Unknown/unsupported algorithm detected, reconnect");
-    }
+//    if (algorithm.isValid()) {
+//        LOG_ERR("Incompatible algorithm \"%s\" detected, reconnect", algorithm.name());
+//    }
+//    else {
+//        LOG_ERR("Unknown/unsupported algorithm detected, reconnect");
+//    }
 
-    return false;
+    return true;
 }
 
 

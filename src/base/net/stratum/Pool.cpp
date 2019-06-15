@@ -172,7 +172,11 @@ bool xmrig::Pool::isEnabled() const
     }
 #   endif
 
-    return m_flags.test(FLAG_ENABLED) && isValid() && algorithm().isValid();
+    if (isDaemon() && !algorithm().isValid()) {
+        return false;
+    }
+
+    return m_flags.test(FLAG_ENABLED) && isValid();
 }
 
 
@@ -259,28 +263,34 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
 
-    obj.AddMember(StringRef(kAlgo),  StringRef(m_algorithm.shortName()), allocator);
+    obj.AddMember(StringRef(kAlgo),  m_algorithm.toJSON(), allocator);
     obj.AddMember(StringRef(kUrl),   m_url.toJSON(), allocator);
     obj.AddMember(StringRef(kUser),  m_user.toJSON(), allocator);
-    obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
-    obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
 
-#   ifndef XMRIG_PROXY_PROJECT
-    obj.AddMember(StringRef(kNicehash), isNicehash(), allocator);
-#   endif
+    if (!isDaemon()) {
+        obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
+        obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
 
-    if (m_keepAlive == 0 || m_keepAlive == kKeepAliveTimeout) {
-        obj.AddMember(StringRef(kKeepalive), m_keepAlive > 0, allocator);
-    }
-    else {
-        obj.AddMember(StringRef(kKeepalive), m_keepAlive, allocator);
+#       ifndef XMRIG_PROXY_PROJECT
+        obj.AddMember(StringRef(kNicehash), isNicehash(), allocator);
+#       endif
+
+        if (m_keepAlive == 0 || m_keepAlive == kKeepAliveTimeout) {
+            obj.AddMember(StringRef(kKeepalive), m_keepAlive > 0, allocator);
+        }
+        else {
+            obj.AddMember(StringRef(kKeepalive), m_keepAlive, allocator);
+        }
     }
 
     obj.AddMember(StringRef(kEnabled),            m_flags.test(FLAG_ENABLED), allocator);
     obj.AddMember(StringRef(kTls),                isTLS(), allocator);
     obj.AddMember(StringRef(kFingerprint),        m_fingerprint.toJSON(), allocator);
     obj.AddMember(StringRef(kDaemon),             m_flags.test(FLAG_DAEMON), allocator);
-    obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
+
+    if (isDaemon()) {
+        obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
+    }
 
     return obj;
 }

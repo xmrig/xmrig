@@ -31,6 +31,7 @@
 
 
 #include "crypto/common/Algorithm.h"
+#include "rapidjson/document.h"
 
 
 #ifdef _MSC_VER
@@ -109,6 +110,14 @@ static AlgoName const algorithm_names[] = {
 
 
 } /* namespace xmrig */
+
+
+rapidjson::Value xmrig::Algorithm::toJSON() const
+{
+    using namespace rapidjson;
+
+    return isValid() ? Value(StringRef(shortName())) : Value(kNullType);
+}
 
 
 xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)

@@ -139,7 +139,7 @@ void xmrig::Pools::print() const
                    i,
                    (pool.isEnabled() ? (pool.isTLS() ? 32 : 36) : 31),
                    pool.url().data(),
-                   pool.algorithm().shortName()
+                   pool.algorithm().isValid() ? pool.algorithm().shortName() : "auto"
                    );
 
         i++;
