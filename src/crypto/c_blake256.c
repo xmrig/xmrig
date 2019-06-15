@@ -134,7 +134,7 @@ void blake256_update(state *S, const uint8_t *data, uint64_t datalen) {
         if (S->t[0] == 0) S->t[1]++;
         blake256_compress(S, S->buf);
         data += fill;
-        datalen -= (fill << 3);
+        datalen -= (uint64_t)fill << (uint64_t)3;
         left = 0;
     }
 
