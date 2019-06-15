@@ -59,6 +59,11 @@ uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t *Workers::m_timer = nullptr;
 xmrig::Controller *Workers::m_controller = nullptr;
+uv_rwlock_t Workers::m_rx_dataset_lock;
+randomx_cache *Workers::m_rx_cache = nullptr;
+randomx_dataset *Workers::m_rx_dataset = nullptr;
+uint8_t Workers::m_rx_seed_hash[32] = {};
+std::atomic<uint32_t> Workers::m_rx_dataset_init_thread_counter = 0;
 
 
 xmrig::Job Workers::job()
@@ -187,6 +192,7 @@ void Workers::start(xmrig::Controller *controller)
 
     uv_mutex_init(&m_mutex);
     uv_rwlock_init(&m_rwlock);
+    uv_rwlock_init(&m_rx_dataset_lock);
 
     m_sequence = 1;
     m_paused   = 1;
@@ -355,4 +361,62 @@ void Workers::start(IWorker *worker)
     uv_mutex_unlock(&m_mutex);
 
     worker->start();
+}
+
+void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads)
+{
+    // Check if we need to update cache and dataset
+    if (memcmp(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash)) == 0)
+        return;
+
+    const uint32_t thread_id = m_rx_dataset_init_thread_counter++;
+    LOG_NOTICE("Thread %u started updating RandomX dataset", thread_id);
+
+    // Wait for all threads to get here
+    do {
+        std::this_thread::yield();
+    } while (m_rx_dataset_init_thread_counter.load() != num_threads);
+
+    // One of the threads updates cache
+    uv_rwlock_wrlock(&m_rx_dataset_lock);
+    if (memcmp(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash)) != 0) {
+        memcpy(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash));
+        randomx_init_cache(m_rx_cache, m_rx_seed_hash, sizeof(m_rx_seed_hash));
+    }
+    uv_rwlock_wrunlock(&m_rx_dataset_lock);
+
+    // All threads update dataset
+    const uint32_t a = (randomx_dataset_item_count() * thread_id) / num_threads;
+    const uint32_t b = (randomx_dataset_item_count() * (thread_id + 1)) / num_threads;
+    randomx_init_dataset(m_rx_dataset, m_rx_cache, a, b - a);
+
+    LOG_NOTICE("Thread %u finished updating RandomX dataset", thread_id);
+
+    // Wait for all threads to complete
+    --m_rx_dataset_init_thread_counter;
+    do {
+        std::this_thread::yield();
+    } while (m_rx_dataset_init_thread_counter.load() != 0);
+}
+
+randomx_dataset* Workers::getDataset()
+{
+    if (m_rx_dataset)
+        return m_rx_dataset;
+
+    uv_rwlock_wrlock(&m_rx_dataset_lock);
+    if (!m_rx_dataset) {
+        randomx_dataset* dataset = randomx_alloc_dataset(RANDOMX_FLAG_LARGE_PAGES);
+        if (!dataset) {
+            dataset = randomx_alloc_dataset(RANDOMX_FLAG_DEFAULT);
+        }
+        m_rx_cache = randomx_alloc_cache(static_cast<randomx_flags>(RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES));
+        if (!m_rx_cache) {
+            m_rx_cache = randomx_alloc_cache(RANDOMX_FLAG_JIT);
+        }
+        m_rx_dataset = dataset;
+    }
+    uv_rwlock_wrunlock(&m_rx_dataset_lock);
+
+    return m_rx_dataset;
 }

@@ -42,6 +42,7 @@ xmrig::Job::Job() :
     m_diff(0),
     m_height(0),
     m_target(0),
+    m_seedHash(),
     m_blob()
 {
 }
@@ -58,6 +59,7 @@ xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const Str
     m_diff(0),
     m_height(0),
     m_target(0),
+    m_seedHash(),
     m_blob()
 {
 }
@@ -172,6 +174,15 @@ void xmrig::Job::setDiff(uint64_t diff)
     Buffer::toHex(reinterpret_cast<uint8_t *>(&m_target), 8, m_rawTarget);
     m_rawTarget[16] = '\0';
 #   endif
+}
+
+
+bool xmrig::Job::setSeedHash(const char *hash)
+{
+    if (!hash || (strlen(hash) != sizeof(m_seedHash) * 2))
+        return false;
+
+    return Buffer::fromHex(hash, sizeof(m_seedHash) * 2, m_seedHash);
 }
 
 
