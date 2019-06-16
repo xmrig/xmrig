@@ -36,11 +36,11 @@
 
 
 #include "common/cpu/Cpu.h"
-#include "common/crypto/keccak.h"
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
+#include "crypto/common/keccak.h"
 
 
 extern "C"
@@ -783,6 +783,9 @@ extern "C" void cnv2_rwz_double_mainloop_asm(cryptonight_ctx **ctx);
 
 
 namespace xmrig {
+
+
+typedef void (*cn_mainloop_fun)(cryptonight_ctx **ctx);
 
 
 extern cn_mainloop_fun cn_half_mainloop_ivybridge_asm;

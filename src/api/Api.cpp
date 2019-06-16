@@ -39,9 +39,9 @@
 #include "base/kernel/Base.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
-#include "common/crypto/keccak.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "crypto/common/keccak.h"
 #include "version.h"
 
 

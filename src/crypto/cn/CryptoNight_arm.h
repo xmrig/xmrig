@@ -28,11 +28,11 @@
 #define XMRIG_CRYPTONIGHT_ARM_H
 
 
-#include "common/crypto/keccak.h"
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
+#include "crypto/common/keccak.h"
 #include "crypto/common/portable/mm_malloc.h"
 
 

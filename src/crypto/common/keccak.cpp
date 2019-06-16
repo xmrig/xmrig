@@ -27,7 +27,7 @@
 #include <memory.h>
 
 
-#include "common/crypto/keccak.h"
+#include "crypto/common/keccak.h"
 
 
 #define HASH_DATA_AREA 136
