@@ -69,6 +69,7 @@ static AlgoData const algorithms[] = {
     { "cryptonight/rwz",       "cn/rwz",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RWZ    },
     { "cryptonight/zls",       "cn/zls",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZLS    },
     { "cryptonight/double",    "cn/double",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE },
+    { "randomx/wow",           "rx/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RX_WOW },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -138,7 +139,8 @@ static const char *variants[] = {
     "r",
     "rwz",
     "zls",
-    "double"
+    "double",
+    "rx/wow",
 };
 
 

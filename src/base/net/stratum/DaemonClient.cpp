@@ -220,6 +220,8 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
+    job.setSeedHash(Json::getString(params, "seed_hash"));
+
     job.setHeight(Json::getUint64(params, kHeight));
     job.setDiff(Json::getUint64(params, "difficulty"));
     job.setId(blocktemplate.data() + blocktemplate.size() - 32);

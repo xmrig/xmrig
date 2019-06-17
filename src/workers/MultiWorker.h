@@ -31,6 +31,7 @@
 #include "Mem.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
+#include "randomwow.h"
 
 
 class Handle;
@@ -70,6 +71,8 @@ private:
     State m_pausedState;
     State m_state;
     uint8_t m_hash[N * 32];
+
+    randomx_vm* m_rx_vm;
 };
 
 
