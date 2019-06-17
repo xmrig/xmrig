@@ -27,7 +27,9 @@
 #define XMRIG_MULTIWORKER_H
 
 
-#include <randomx.h>
+#ifdef XMRIG_ALGO_RANDOMX
+#   include <randomx.h>
+#endif
 
 
 #include "base/net/stratum/Job.h"
@@ -74,7 +76,9 @@ private:
     State m_state;
     uint8_t m_hash[N * 32];
 
-    randomx_vm* m_rx_vm;
+#   ifdef XMRIG_ALGO_RANDOMX
+    randomx_vm *m_rx_vm = nullptr;
+#   endif
 };
 
 

@@ -6,6 +6,7 @@ option(WITH_CN_LITE         "CryptoNight-Lite support" ON)
 option(WITH_CN_HEAVY        "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
 option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
+option(WITH_RANDOMX         "RandomX support" ON)
 option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
@@ -158,7 +159,17 @@ add_definitions(/DUNICODE)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
-find_package(RandomX REQUIRED)
+
+if (WITH_RANDOMX)
+    find_package(RandomX REQUIRED)
+    include_directories(${RANDOMX_INCLUDE_DIR})
+
+    add_definitions(/DXMRIG_ALGO_RANDOMX)
+else()
+    set(RANDOMX_LIBRARIES "")
+
+    remove_definitions(/DXMRIG_ALGO_RANDOMX)
+endif()
 
 include(cmake/flags.cmake)
 
@@ -220,7 +231,6 @@ endif()
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
-include_directories(${RANDOMX_INCLUDE_DIR})
 
 if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")

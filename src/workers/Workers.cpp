@@ -59,11 +59,14 @@ uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t *Workers::m_timer = nullptr;
 xmrig::Controller *Workers::m_controller = nullptr;
+
+#ifdef XMRIG_ALGO_RANDOMX
 uv_rwlock_t Workers::m_rx_dataset_lock;
 randomx_cache *Workers::m_rx_cache = nullptr;
 randomx_dataset *Workers::m_rx_dataset = nullptr;
 uint8_t Workers::m_rx_seed_hash[32] = {};
 std::atomic<uint32_t> Workers::m_rx_dataset_init_thread_counter = {};
+#endif
 
 
 xmrig::Job Workers::job()
@@ -192,7 +195,10 @@ void Workers::start(xmrig::Controller *controller)
 
     uv_mutex_init(&m_mutex);
     uv_rwlock_init(&m_rwlock);
+
+#   ifdef XMRIG_ALGO_RANDOMX
     uv_rwlock_init(&m_rx_dataset_lock);
+#   endif
 
     m_sequence = 1;
     m_paused   = 1;
@@ -363,6 +369,8 @@ void Workers::start(IWorker *worker)
     worker->start();
 }
 
+
+#ifdef XMRIG_ALGO_RANDOMX
 void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads)
 {
     // Check if we need to update cache and dataset
@@ -370,7 +378,7 @@ void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads
         return;
 
     const uint32_t thread_id = m_rx_dataset_init_thread_counter++;
-    LOG_NOTICE("Thread %u started updating RandomX dataset", thread_id);
+    LOG_DEBUG("Thread %u started updating RandomX dataset", thread_id);
 
     // Wait for all threads to get here
     do {
@@ -390,7 +398,7 @@ void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads
     const uint32_t b = (randomx_dataset_item_count() * (thread_id + 1)) / num_threads;
     randomx_init_dataset(m_rx_dataset, m_rx_cache, a, b - a);
 
-    LOG_NOTICE("Thread %u finished updating RandomX dataset", thread_id);
+    LOG_DEBUG("Thread %u finished updating RandomX dataset", thread_id);
 
     // Wait for all threads to complete
     --m_rx_dataset_init_thread_counter;
@@ -420,3 +428,4 @@ randomx_dataset* Workers::getDataset()
 
     return m_rx_dataset;
 }
+#endif
