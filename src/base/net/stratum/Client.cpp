@@ -344,6 +344,14 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         }
     }
 
+    if (params.HasMember("seed_hash")) {
+        const rapidjson::Value &variant = params["seed_hash"];
+
+        if (variant.IsString()) {
+            job.setSeedHash(variant.GetString());
+        }
+    }
+
     if (params.HasMember("height")) {
         const rapidjson::Value &variant = params["height"];
 

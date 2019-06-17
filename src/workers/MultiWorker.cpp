@@ -38,6 +38,12 @@ MultiWorker<N>::MultiWorker(ThreadHandle *handle)
     : Worker(handle)
 {
     m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
+
+    const int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT;
+    m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags), nullptr, Workers::getDataset());
+    if (!m_rx_vm) {
+        m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), nullptr, Workers::getDataset());
+    }
 }
 
 
@@ -45,6 +51,7 @@ template<size_t N>
 MultiWorker<N>::~MultiWorker()
 {
     Mem::release(m_ctx, N, m_memory);
+    randomx_destroy_vm(m_rx_vm);
 }
 
 
@@ -126,7 +133,14 @@ void MultiWorker<N>::start()
                 storeStats();
             }
 
-            m_thread->fn(m_state.job.algorithm().variant())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+            const xmrig::Variant v = m_state.job.algorithm().variant();
+            if (v == xmrig::VARIANT_RX_WOW) {
+                Workers::updateDataset(m_state.job.seed_hash(), m_totalWays);
+                randomx_calculate_hash(m_rx_vm, m_state.blob, m_state.job.size(), m_hash);
+            }
+            else {
+                m_thread->fn(v)(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+            }
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < m_state.job.target()) {

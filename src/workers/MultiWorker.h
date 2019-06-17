@@ -27,6 +27,9 @@
 #define XMRIG_MULTIWORKER_H
 
 
+#include <randomx.h>
+
+
 #include "base/net/stratum/Job.h"
 #include "Mem.h"
 #include "net/JobResult.h"
@@ -70,6 +73,8 @@ private:
     State m_pausedState;
     State m_state;
     uint8_t m_hash[N * 32];
+
+    randomx_vm* m_rx_vm;
 };
 
 

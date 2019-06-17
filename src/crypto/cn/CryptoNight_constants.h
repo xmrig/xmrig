@@ -70,12 +70,12 @@ template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_HEAVY>() { retur
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_PICO>()  { return CRYPTONIGHT_PICO_MEMORY; }
 
 
-inline size_t cn_select_memory(Algo algorithm)
+inline size_t cn_select_memory(Algo algorithm, Variant v = VARIANT_AUTO)
 {
     switch(algorithm)
     {
     case CRYPTONIGHT:
-        return CRYPTONIGHT_MEMORY;
+        return (v == VARIANT_RX_WOW) ? CRYPTONIGHT_LITE_MEMORY : CRYPTONIGHT_MEMORY;
 
     case CRYPTONIGHT_LITE:
         return CRYPTONIGHT_LITE_MEMORY;
