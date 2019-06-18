@@ -223,7 +223,7 @@ void Workers::soft_stop() // stop current workers leaving uv stuff intact (used 
     m_sequence = 0;
     m_paused   = 0;
 
-    for (Handle *handle : m_workers) {
+    for (ThreadHandle *handle : m_workers) {
         handle->join();
         delete handle;
     }
@@ -269,7 +269,7 @@ void Workers::switch_algo(const xmrig::Algorithm& algorithm)
     uint32_t offset = 0;
 
     for (xmrig::IThread *thread : threads) {
-        Handle *handle = new Handle(thread, offset, m_status.ways);
+        ThreadHandle *handle = new ThreadHandle(thread, offset, m_status.ways);
         offset += thread->multiway();
 
         m_workers.push_back(handle);
@@ -287,7 +287,7 @@ void Workers::stop()
     m_paused   = 0;
     m_sequence = 0;
 
-    for (Handle *handle : m_workers) {
+    for (ThreadHandle *handle : m_workers) {
         handle->join();
     }
 }
