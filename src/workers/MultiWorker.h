@@ -53,6 +53,10 @@ protected:
     void start() override;
 
 private:
+#   ifdef XMRIG_ALGO_RANDOMX
+    void allocateRandomX_VM();
+#   endif
+
     bool resume(const xmrig::Job &job);
     bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
     bool verify2(xmrig::Variant variant, const uint8_t *referenceValue);

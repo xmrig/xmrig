@@ -185,6 +185,7 @@ void Workers::start(xmrig::Controller *controller)
 
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
     m_status.algo    = controller->config()->algorithm().algo();
+    m_status.variant = controller->config()->algorithm().variant();
     m_status.threads = threads.size();
 
     for (const xmrig::IThread *thread : threads) {
@@ -252,7 +253,7 @@ void Workers::threadsSummary(rapidjson::Document &doc)
 {
     uv_mutex_lock(&m_mutex);
     const uint64_t pages[2] = { m_status.hugePages, m_status.pages };
-    const uint64_t memory   = m_status.ways * xmrig::cn_select_memory(m_status.algo);
+    const uint64_t memory   = m_status.ways * xmrig::cn_select_memory(m_status.algo, m_status.variant);
     uv_mutex_unlock(&m_mutex);
 
     auto &allocator = doc.GetAllocator();
@@ -356,7 +357,7 @@ void Workers::start(IWorker *worker)
 
     if (m_status.started == m_status.threads) {
         const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
-        const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1024;
+        const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo, m_status.variant) / 1024;
 
         LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
                  m_status.threads, m_status.ways,
@@ -382,6 +383,10 @@ void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads
 
     // Wait for all threads to get here
     do {
+        if (m_sequence.load(std::memory_order_relaxed) == 0) {
+            // Exit immediately if workers were stopped
+            return;
+        }
         std::this_thread::yield();
     } while (m_rx_dataset_init_thread_counter.load() != num_threads);
 
@@ -403,6 +408,10 @@ void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads
     // Wait for all threads to complete
     --m_rx_dataset_init_thread_counter;
     do {
+        if (m_sequence.load(std::memory_order_relaxed) == 0) {
+            // Exit immediately if workers were stopped
+            return;
+        }
         std::this_thread::yield();
     } while (m_rx_dataset_init_thread_counter.load() != 0);
 }

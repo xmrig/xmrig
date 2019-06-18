@@ -38,14 +38,6 @@ MultiWorker<N>::MultiWorker(ThreadHandle *handle)
     : Worker(handle)
 {
     m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    const int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT;
-    m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags), nullptr, Workers::getDataset());
-    if (!m_rx_vm) {
-        m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), nullptr, Workers::getDataset());
-    }
-#   endif
 }
 
 
@@ -55,9 +47,26 @@ MultiWorker<N>::~MultiWorker()
     Mem::release(m_ctx, N, m_memory);
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    randomx_destroy_vm(m_rx_vm);
+    if (m_rx_vm) {
+        randomx_destroy_vm(m_rx_vm);
+    }
 #   endif
 }
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+template<size_t N>
+void MultiWorker<N>::allocateRandomX_VM()
+{
+    if (!m_rx_vm) {
+        const int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT;
+        m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags), nullptr, Workers::getDataset());
+        if (!m_rx_vm) {
+            m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), nullptr, Workers::getDataset());
+        }
+    }
+}
+#endif
 
 
 template<size_t N>
@@ -142,6 +151,7 @@ void MultiWorker<N>::start()
 
 #           ifdef XMRIG_ALGO_RANDOMX
             if (v == xmrig::VARIANT_RX_WOW) {
+                allocateRandomX_VM();
                 Workers::updateDataset(m_state.job.seed_hash(), m_totalWays);
                 randomx_calculate_hash(m_rx_vm, m_state.blob, m_state.job.size(), m_hash);
             }
