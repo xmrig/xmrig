@@ -55,6 +55,7 @@ public:
     Api *api() const;
     bool reload(const rapidjson::Value &json);
     Config *config() const;
+    inline void setZeroDonateLevel() { d_ptr->config->setZeroDonateLevel(); }
     void addListener(IBaseListener *listener);
 
 protected:
