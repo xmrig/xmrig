@@ -138,6 +138,9 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_logFile      = reader.getString("log-file");
     m_userAgent    = reader.getString("user-agent");
 
+    m_calibrateAlgo     = reader.getBool("calibrate-algo");
+    m_calibrateAlgoTime = reader.getInt("calibrate-algo-time");
+
     setPrintTime(reader.getUint("print-time", 60));
 
     const rapidjson::Value &api = reader.getObject("api");
