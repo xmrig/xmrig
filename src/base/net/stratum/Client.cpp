@@ -46,7 +46,7 @@
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "net/JobResult.h"
-#include "core/Config.h" // for pconfig to access pconfig->get_algo_perf
+#include "core/config/Config.h" // for pconfig to access pconfig->get_algo_perf
 #include "workers/Workers.h" // to do Workers::switch_algo
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
