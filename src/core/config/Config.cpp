@@ -186,7 +186,7 @@ bool xmrig::Config::finalize()
             const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
         
             for (size_t i = 0; i < m_threads[algo].cpu.size(); ++i) {
-                m_threads[algo].list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads[algo].cpu[i], m_priority, softAES));
+                m_threads[algo].list.push_back(CpuThread::createFromData(i, algo, m_threads[algo].cpu[i], m_priority, softAES));
             }
 
             continue;
@@ -196,7 +196,7 @@ bool xmrig::Config::finalize()
         m_threads[algo].mode = m_threads[algo].count ? Simple : Automatic;
 
         const Variant v = m_algorithm.variant();
-        const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo(), v) / 1024;
+        const size_t size = CpuThread::multiway(av) * cn_select_memory(algo, v) / 1024;
 
         if (!m_threads[algo].count) {
             m_threads[algo].count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
@@ -209,7 +209,7 @@ bool xmrig::Config::finalize()
         }
 
         for (size_t i = 0; i < m_threads[algo].count; ++i) {
-            m_threads[algo].list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads[algo].mask, m_priority, m_assembly));
+            m_threads[algo].list.push_back(CpuThread::createFromAV(i, algo, av, m_threads[algo].mask, m_priority, m_assembly));
         }
 
         m_shouldSave = m_shouldSave || m_threads[algo].mode == Automatic;
