@@ -62,7 +62,7 @@ void Benchmark::onJobResult(const xmrig::JobResult& result) {
         return;
     }
     // ignore benchmark results for other perf algo
-    if (m_pa == xmrig::PA_INVALID || result.jobId != xmrig::Id(xmrig::Algorithm::perfAlgoName(m_pa))) return;
+    if (m_pa == xmrig::PA_INVALID || result.jobId != String(xmrig::Algorithm::perfAlgoName(m_pa))) return;
     ++ m_hash_count;
     const uint64_t now = get_now();
     if (!m_time_start) m_time_start = now; // time of measurements start (in ms)
