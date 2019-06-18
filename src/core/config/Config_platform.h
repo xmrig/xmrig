@@ -85,6 +85,9 @@ static const option options[] = {
     { "daemon",                0, nullptr, IConfig::DaemonKey             },
     { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
 
+    { "calibrate-algo",        0, nullptr, xmrig::IConfig::CalibrateAlgoKey      },
+    { "calibrate-algo-time",   1, nullptr, xmrig::IConfig::CalibrateAlgoTimeKey  },
+
 #   ifdef XMRIG_DEPRECATED
     { "api-port",              1, nullptr, IConfig::ApiPort               },
     { "api-access-token",      1, nullptr, IConfig::ApiAccessTokenKey     },
@@ -117,6 +120,10 @@ static struct option const config_options[] = {
     { "threads",           1, nullptr, IConfig::ThreadsKey     },
     { "user-agent",        1, nullptr, IConfig::UserAgentKey   },
     { "asm",               1, nullptr, IConfig::AssemblyKey    },
+
+    { "calibrate-algo",      0, nullptr, xmrig::IConfig::CalibrateAlgoKey      },
+    { "calibrate-algo-time", 1, nullptr, xmrig::IConfig::CalibrateAlgoTimeKey  },
+
     { nullptr,             0, nullptr, 0 }
 };
 

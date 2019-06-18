@@ -85,6 +85,9 @@ public:
         NicehashKey          = 1006,
         PrintTimeKey         = 1007,
 
+        CalibrateAlgoKey     = 10001,
+        CalibrateAlgoTimeKey = 10002,
+
         // xmrig cpu
         AVKey                = 'v',
         CPUAffinityKey       = 1020,
