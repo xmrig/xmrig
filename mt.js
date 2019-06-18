@@ -14,7 +14,7 @@ const net = require('net');
 // *** CONSTS                                                                ***
 // *****************************************************************************
 
-const algos = [ "cn/1", "cn/r", "cn-heavy/tube", "cn-heavy/xhv", "cn-lite/1", "cn-pic/trtl", "rx/wow" ];
+const algos = [ "cn/1", "cn/r", "cn-heavy/tube", "cn-heavy/xhv", "cn-lite/1", "cn-pico/trtl", "rx/wow" ];
 
 // *****************************************************************************
 // *** WORKING STATE                                                         ***
