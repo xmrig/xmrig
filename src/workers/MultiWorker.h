@@ -49,6 +49,8 @@ protected:
     void start() override;
 
 private:
+    void allocateRandomX_VM();
+
     bool resume(const xmrig::Job &job);
     bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
     bool verify2(xmrig::Variant variant, const uint8_t *referenceValue);

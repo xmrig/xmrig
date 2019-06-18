@@ -91,7 +91,8 @@ private:
             started(0),
             threads(0),
             ways(0),
-            algo(xmrig::CRYPTONIGHT)
+            algo(xmrig::CRYPTONIGHT),
+            variant(xmrig::VARIANT_AUTO)
         {}
 
         size_t hugePages;
@@ -100,6 +101,7 @@ private:
         size_t threads;
         size_t ways;
         xmrig::Algo algo;
+        xmrig::Variant variant;
     };
 
     static bool m_active;
