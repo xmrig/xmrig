@@ -67,8 +67,8 @@ if (ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MT")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /MT")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /MT")
   add_definitions(/UUNICODE)
   list(APPEND randomx_sources
     src/jit_compiler_x86_static.asm
@@ -82,7 +82,7 @@ add_library(randomx
 target_link_libraries(randomx
   PRIVATE
     ${CMAKE_THREAD_LIBS_INIT})
-# set_property(TARGET randomx PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET randomx PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET randomx PROPERTY CXX_STANDARD 11)
 
 # cheat because cmake and ccache hate each other
