@@ -24,7 +24,7 @@
 
 #include "workers/Benchmark.h"
 #include "workers/Workers.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "net/Network.h"
 #include "common/log/Log.h"
 #include <chrono>
