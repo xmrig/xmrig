@@ -27,6 +27,7 @@
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 2.8.7)
+project(RandomX)
 
 set (randomx_sources
 src/aes_hash.cpp
@@ -78,6 +79,8 @@ set_property(TARGET randomx PROPERTY CXX_STANDARD 11)
 
 # cheat because cmake and ccache hate each other
 set_property(SOURCE src/jit_compiler_x86_static.S PROPERTY LANGUAGE C)
+
+message ("${CMAKE_CXX_COMPILER_ID}")
 
 if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MT")
