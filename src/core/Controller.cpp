@@ -31,7 +31,6 @@
 #include "common/Platform.h"
 #include "core/Controller.h"
 #include "net/Network.h"
-#include "core/config/Config.h" // to get access to config()->pools()
 
 
 xmrig::Controller::Controller(Process *process) :
@@ -61,8 +60,6 @@ int xmrig::Controller::init()
     if (rc != 0) {
         return rc;
     }
-
-    if (strstr(config()->pools().data()[0].host(), "moneroocean.stream")) pconfig->setZeroDonateLevel();
 
     m_network = new Network(this);
     return 0;
