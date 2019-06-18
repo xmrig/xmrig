@@ -31,6 +31,7 @@
 #include "common/Platform.h"
 #include "core/Controller.h"
 #include "net/Network.h"
+#include "core/config/Config.h" // to get access to config()->pools()
 
 
 xmrig::Controller::Controller(Process *process) :
