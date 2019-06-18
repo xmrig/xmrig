@@ -82,7 +82,7 @@ add_library(randomx
 target_link_libraries(randomx
   PRIVATE
     ${CMAKE_THREAD_LIBS_INIT})
-set_property(TARGET randomx PROPERTY POSITION_INDEPENDENT_CODE ON)
+# set_property(TARGET randomx PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET randomx PROPERTY CXX_STANDARD 11)
 
 # cheat because cmake and ccache hate each other
