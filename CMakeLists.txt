@@ -151,7 +151,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)
-add_definitions(/DUNICODE)
+add_definitions(/UUNICODE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
