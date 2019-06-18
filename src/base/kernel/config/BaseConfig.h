@@ -57,7 +57,7 @@ public:
     inline const char *userAgent() const           { return m_userAgent.data(); }
     inline const Http &http() const                { return m_http; }
     inline const Pools &pools() const              { return m_pools; }
-    inline void setZeroDonateLevel()               { m_pools->setZeroDonateLevel(); }
+    inline void setZeroDonateLevel()               { m_pools.setZeroDonateLevel(); }
     inline const String &apiId() const             { return m_apiId; }
     inline const String &apiWorkerId() const       { return m_apiWorkerId; }
     inline uint32_t printTime() const              { return m_printTime; }
