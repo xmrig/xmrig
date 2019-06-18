@@ -82,7 +82,7 @@ static BOOL SetLockPagesPrivilege() {
 }
 
 
-static LSA_UNICODE_STRING StringToLsaUnicodeString(LPWSTR string) {
+static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string) {
     LSA_UNICODE_STRING lsaString;
 
     DWORD dwLen = (DWORD) wcslen(string);
@@ -119,9 +119,7 @@ static BOOL ObtainLockPagesPrivilege() {
 
     BOOL result = FALSE;
     if (LsaOpenPolicy(nullptr, &attributes, POLICY_ALL_ACCESS, &handle) == 0) {
-        wchar_t ws[256];
-        mbstowcs( &ws[0], SE_LOCK_MEMORY_NAME, strlen(SE_LOCK_MEMORY_NAME) + 1);
-        LSA_UNICODE_STRING str = StringToLsaUnicodeString(ws);
+        LSA_UNICODE_STRING str = StringToLsaUnicodeString(_T(SE_LOCK_MEMORY_NAME));
 
         if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
             LOG_NOTICE("Huge pages support was successfully enabled, but reboot required to use it");
