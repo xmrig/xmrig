@@ -28,14 +28,14 @@
 #define APP_ID        "xmrig"
 #define APP_NAME      "XMRig"
 #define APP_DESC      "XMRig CPU miner"
-#define APP_VERSION   "2.99.0-evo"
+#define APP_VERSION   "2.16.0-evo"
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2016-2019 xmrig.com"
 #define APP_KIND      "cpu"
 
 #define APP_VER_MAJOR  2
-#define APP_VER_MINOR  99
+#define APP_VER_MINOR  16
 #define APP_VER_PATCH  0
 
 #ifdef _MSC_VER
