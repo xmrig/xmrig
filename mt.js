@@ -14,7 +14,7 @@ const net = require('net');
 // *** CONSTS                                                                ***
 // *****************************************************************************
 
-const algos = [ "cn/1", "cn/2", "cn/xtl", "cn/msr", "cn/xao", "cn/rto", "cn-heavy/0", "cn-heavy/tube", "cn-heavy/xhv", "cn-lite/1" ];
+const algos = [ "cn/1", "cn/r", "cn-heavy/tube", "cn-heavy/xhv", "cn-lite/1", "cn-pic/trtl", "rx/wow" ];
 
 // *****************************************************************************
 // *** WORKING STATE                                                         ***
@@ -93,7 +93,7 @@ function change_algo() {
     log("Switching to " + algo);
     curr_miner_socket.write(
       '{"jsonrpc":"2.0","method":"job","params":{"blob":"' + test_blob_str + '","algo":"' + algo +
-      '","job_id":"benchmark' + ++job_num + '","target":"10000000","id":"benchmark"}}\n'
+      '","job_id":"benchmark' + ++job_num + '","height":0,"seed_hash":"0000000000000000000000000000000000000000000000000000000000000000","target":"10000000","id":"benchmark"}}\n'
     );
   }
   const sleep = Math.floor(Math.random() * 5);
