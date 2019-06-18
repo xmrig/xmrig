@@ -238,6 +238,9 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::DryRunKey: /* --dry-run */
         return set(doc, "dry-run", enable);
 
+    case IConfig::CalibrateAlgoKey: /* --calibrate-algo */
+        return set(doc, "calibrate-algo", enable);
+
     default:
         break;
     }
@@ -274,6 +277,9 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, kPools, "daemon-poll-interval", arg);
+
+    case IConfig::CalibrateAlgoTimeKey: /* --calibrate-algo-time */
+        return set(doc, "calibrate-algo-time", arg);
 
     default:
         break;
