@@ -251,7 +251,7 @@ void Workers::switch_algo(const xmrig::Algorithm& algorithm)
        if (!str_threads.empty()) str_threads = str_threads + ", ";
        str_threads = str_threads + "x" + std::to_string(thread->multiway());
     }
-    Log::i()->text(m_controller->config()->isColors()
+    xmrig::Log::print(xmrig::Log::colors
         ? GREEN_BOLD(" >>> ") WHITE_BOLD("ALGO CHANGE: ") CYAN_BOLD("%s") ", " CYAN_BOLD("%d (%s)") " thread(s)"
         : " >>> ALGO CHANGE: %s, %d (%s) thread(s)",
         algorithm.name(),

@@ -69,7 +69,7 @@ void Benchmark::onJobResult(const xmrig::JobResult& result) {
     else if (now - m_time_start > static_cast<unsigned>(m_controller->config()->calibrateAlgoTime())*1000) { // end of becnhmark round for m_pa
         const float hashrate = static_cast<float>(m_hash_count) * result.diff / (now - m_time_start) * 1000.0f;
         m_controller->config()->set_algo_perf(m_pa, hashrate); // store hashrate result
-        Log::i()->text(m_controller->config()->isColors()
+        xmrig::Log::print(xmrig::Log::colors
             ? GREEN_BOLD(" ===> ") CYAN_BOLD("%s") WHITE_BOLD(" hashrate: ") CYAN_BOLD("%f")
             : " ===> %s hasrate: %f",
             xmrig::Algorithm::perfAlgoName(m_pa),

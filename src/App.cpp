@@ -99,7 +99,7 @@ int xmrig::App::exec()
         benchmark.set_controller(m_controller); // we need controller there to access config and network objects
         Workers::setListener(&benchmark); // register benchmark as job result listener to compute hashrates there
         // write text before first benchmark round
-        Log::i()->text(m_controller->config()->isColors()
+        xmrig::Log::print(xmrig::Log::colors
             ? GREEN_BOLD(" >>>>> ") WHITE_BOLD("STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)")
             : " >>>>> STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)",
             m_controller->config()->calibrateAlgoTime()
