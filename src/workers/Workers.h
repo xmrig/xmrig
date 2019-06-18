@@ -30,11 +30,11 @@
 #include <list>
 #include <uv.h>
 #include <vector>
+#include <randomx.h>
 
 #include "base/net/stratum/Job.h"
 #include "net/JobResult.h"
 #include "rapidjson/fwd.h"
-#include "randomwow.h"
 
 
 class Hashrate;
