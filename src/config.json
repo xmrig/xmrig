@@ -1,11 +1,14 @@
 {
     "algo": "cryptonight",
     "api": {
+        "id": null,
+        "worker-id": null
+    },
+    "http": {
+        "enabled": false,
+        "host": "127.0.0.1",
         "port": 0,
         "access-token": null,
-        "id": null,
-        "worker-id": null,
-        "ipv6": false,
         "restricted": true
     },
     "asm": true,
@@ -16,6 +19,7 @@
     "cpu-affinity": null,
     "cpu-priority": null,
     "donate-level": 5,
+    "donate-over-proxy": 1,
     "huge-pages": true,
     "hw-aes": null,
     "log-file": null,
@@ -29,8 +33,11 @@
             "nicehash": false,
             "keepalive": false,
             "variant": -1,
+            "enabled": true,
             "tls": false,
-            "tls-fingerprint": null
+            "tls-fingerprint": null,
+            "daemon": false,
+            "daemon-poll-interval": 1000
         }
     ],
     "print-time": 60,
@@ -42,5 +49,6 @@
     "calibrate-algo": false,
     "calibrate-algo-time": 10,
     "user-agent": null,
+    "syslog": false,
     "watch": true
 }

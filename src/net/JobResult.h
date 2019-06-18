@@ -31,7 +31,8 @@
 #include <stdint.h>
 
 
-#include "common/net/Job.h"
+#include "base/tools/String.h"
+#include "base/net/stratum/Job.h"
 
 
 namespace xmrig {
@@ -40,20 +41,20 @@ namespace xmrig {
 class JobResult
 {
 public:
-    inline JobResult() : poolId(0), diff(0), nonce(0) {}
-    inline JobResult(int poolId, const Id &jobId, const Id &clientId, uint32_t nonce, const uint8_t *result, uint32_t diff, const Algorithm &algorithm) :
+    inline JobResult() : poolId(0), nonce(0), diff(0) {}
+    inline JobResult(int poolId, const String &jobId, const String &clientId, uint32_t nonce, const uint8_t *result, uint64_t diff, const Algorithm &algorithm) :
         algorithm(algorithm),
+        poolId(poolId),
         clientId(clientId),
         jobId(jobId),
-        poolId(poolId),
-        diff(diff),
-        nonce(nonce)
+        nonce(nonce),
+        diff(diff)
     {
         memcpy(this->result, result, sizeof(this->result));
     }
 
 
-    inline JobResult(const Job &job) : poolId(0), diff(0), nonce(0)
+    inline JobResult(const Job &job) : poolId(0), nonce(0), diff(0)
     {
         jobId     = job.id();
         clientId  = job.clientId();
@@ -71,11 +72,11 @@ public:
 
 
     Algorithm algorithm;
-    Id clientId;
-    Id jobId;
     int poolId;
-    uint32_t diff;
+    String clientId;
+    String jobId;
     uint32_t nonce;
+    uint64_t diff;
     uint8_t result[32];
 };
 

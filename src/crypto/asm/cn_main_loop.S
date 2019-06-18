@@ -49,7 +49,6 @@ ALIGN(64)
 FN_PREFIX(cnv2_double_mainloop_sandybridge_asm):
 	sub rsp, 48
 	mov rcx, rdi
-	mov rdx, rsi
 	#include "cn2/cnv2_double_main_loop_sandybridge.inc"
 	add rsp, 48
 	ret 0
@@ -68,7 +67,6 @@ ALIGN(64)
 FN_PREFIX(cnv2_rwz_double_mainloop_asm):
 	sub rsp, 48
 	mov rcx, rdi
-	mov rdx, rsi
 	#include "cn2/cnv2_rwz_double_main_loop.inc"
 	add rsp, 48
 	ret 0

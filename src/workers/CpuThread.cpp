@@ -25,8 +25,8 @@
 #include <assert.h>
 
 
+#include "base/io/log/Log.h"
 #include "common/cpu/Cpu.h"
-#include "common/log/Log.h"
 #include "crypto/Asm.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
@@ -90,31 +90,31 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 }
 
 
-extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx *ctx);
-extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx *ctx);
-extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx *ctx);
-extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx *ctx0, cryptonight_ctx *ctx1);
+extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx **ctx);
+extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx **ctx);
+extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx **ctx);
+extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx **ctx);
 
 
 xmrig::CpuThread::cn_mainloop_fun        cn_half_mainloop_ivybridge_asm             = nullptr;
 xmrig::CpuThread::cn_mainloop_fun        cn_half_mainloop_ryzen_asm                 = nullptr;
 xmrig::CpuThread::cn_mainloop_fun        cn_half_mainloop_bulldozer_asm             = nullptr;
-xmrig::CpuThread::cn_mainloop_double_fun cn_half_double_mainloop_sandybridge_asm    = nullptr;
+xmrig::CpuThread::cn_mainloop_fun        cn_half_double_mainloop_sandybridge_asm    = nullptr;
 
 xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_ivybridge_asm             = nullptr;
 xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_ryzen_asm                 = nullptr;
 xmrig::CpuThread::cn_mainloop_fun        cn_trtl_mainloop_bulldozer_asm             = nullptr;
-xmrig::CpuThread::cn_mainloop_double_fun cn_trtl_double_mainloop_sandybridge_asm    = nullptr;
+xmrig::CpuThread::cn_mainloop_fun        cn_trtl_double_mainloop_sandybridge_asm    = nullptr;
 
 xmrig::CpuThread::cn_mainloop_fun        cn_zls_mainloop_ivybridge_asm              = nullptr;
 xmrig::CpuThread::cn_mainloop_fun        cn_zls_mainloop_ryzen_asm                  = nullptr;
 xmrig::CpuThread::cn_mainloop_fun        cn_zls_mainloop_bulldozer_asm              = nullptr;
-xmrig::CpuThread::cn_mainloop_double_fun cn_zls_double_mainloop_sandybridge_asm     = nullptr;
+xmrig::CpuThread::cn_mainloop_fun        cn_zls_double_mainloop_sandybridge_asm     = nullptr;
 
 xmrig::CpuThread::cn_mainloop_fun        cn_double_mainloop_ivybridge_asm           = nullptr;
 xmrig::CpuThread::cn_mainloop_fun        cn_double_mainloop_ryzen_asm               = nullptr;
 xmrig::CpuThread::cn_mainloop_fun        cn_double_mainloop_bulldozer_asm           = nullptr;
-xmrig::CpuThread::cn_mainloop_double_fun cn_double_double_mainloop_sandybridge_asm  = nullptr;
+xmrig::CpuThread::cn_mainloop_fun        cn_double_double_mainloop_sandybridge_asm  = nullptr;
 
 
 void xmrig::CpuThread::patchAsmVariants()
@@ -125,22 +125,22 @@ void xmrig::CpuThread::patchAsmVariants()
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
     cn_half_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1000);
     cn_half_mainloop_bulldozer_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x2000);
-    cn_half_double_mainloop_sandybridge_asm     = reinterpret_cast<cn_mainloop_double_fun>  (base + 0x3000);
+    cn_half_double_mainloop_sandybridge_asm     = reinterpret_cast<cn_mainloop_fun>         (base + 0x3000);
 
     cn_trtl_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x4000);
     cn_trtl_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x5000);
     cn_trtl_mainloop_bulldozer_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x6000);
-    cn_trtl_double_mainloop_sandybridge_asm     = reinterpret_cast<cn_mainloop_double_fun>  (base + 0x7000);
+    cn_trtl_double_mainloop_sandybridge_asm     = reinterpret_cast<cn_mainloop_fun>         (base + 0x7000);
 
     cn_zls_mainloop_ivybridge_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0x8000);
     cn_zls_mainloop_ryzen_asm                   = reinterpret_cast<cn_mainloop_fun>         (base + 0x9000);
     cn_zls_mainloop_bulldozer_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0xA000);
-    cn_zls_double_mainloop_sandybridge_asm      = reinterpret_cast<cn_mainloop_double_fun>  (base + 0xB000);
+    cn_zls_double_mainloop_sandybridge_asm      = reinterpret_cast<cn_mainloop_fun>         (base + 0xB000);
 
     cn_double_mainloop_ivybridge_asm            = reinterpret_cast<cn_mainloop_fun>         (base + 0xC000);
     cn_double_mainloop_ryzen_asm                = reinterpret_cast<cn_mainloop_fun>         (base + 0xD000);
     cn_double_mainloop_bulldozer_asm            = reinterpret_cast<cn_mainloop_fun>         (base + 0xE000);
-    cn_double_double_mainloop_sandybridge_asm   = reinterpret_cast<cn_mainloop_double_fun>  (base + 0xF000);
+    cn_double_double_mainloop_sandybridge_asm   = reinterpret_cast<cn_mainloop_fun>         (base + 0xF000);
 
     patchCode(cn_half_mainloop_ivybridge_asm,            cnv2_mainloop_ivybridge_asm,           xmrig::CRYPTONIGHT_HALF_ITER,   xmrig::CRYPTONIGHT_MASK);
     patchCode(cn_half_mainloop_ryzen_asm,                cnv2_mainloop_ryzen_asm,               xmrig::CRYPTONIGHT_HALF_ITER,   xmrig::CRYPTONIGHT_MASK);
@@ -390,6 +390,8 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         cryptonight_quad_hash<CRYPTONIGHT,   true,  VARIANT_DOUBLE>,
         cryptonight_penta_hash<CRYPTONIGHT,  true,  VARIANT_DOUBLE>,
 
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RX_WOW
+
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
         cryptonight_double_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
@@ -428,6 +430,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RWZ
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_ZLS
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_DOUBLE
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RX_WOW
 #       else
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_0
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_1
@@ -446,6 +449,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RWZ
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_ZLS
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_DOUBLE
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RX_WOW
 #       endif
 
 #       ifndef XMRIG_NO_SUMO
@@ -498,6 +502,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RWZ
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_ZLS
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_DOUBLE
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RX_WOW
 #       else
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_0
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_1
@@ -516,6 +521,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RWZ
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_ZLS
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_DOUBLE
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RX_WOW
 #       endif
 
 #       ifndef XMRIG_NO_CN_PICO
@@ -547,6 +553,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RWZ
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_ZLS
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_DOUBLE
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RX_WOW
 #       else
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_0
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_1
@@ -565,6 +572,7 @@ xmrig::CpuThread::cn_hash_fun xmrig::CpuThread::fn(Algo algorithm, AlgoVariant a
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RWZ
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_ZLS
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_DOUBLE
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, // VARIANT_RX_WOW
 #       endif
     };
 
@@ -706,7 +714,7 @@ void xmrig::CpuThread::print() const
 #endif
 
 
-#ifndef XMRIG_NO_API
+#ifdef XMRIG_FEATURE_API
 rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
 {
     using namespace rapidjson;

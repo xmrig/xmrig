@@ -1,3 +1,6 @@
+	mov	rdx, [rcx+8]
+	mov	rcx, [rcx]
+
 	mov	rax, rsp
 	push	rbx
 	push	rbp

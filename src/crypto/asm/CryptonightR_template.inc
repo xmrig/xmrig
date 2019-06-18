@@ -12,6 +12,8 @@ PUBLIC FN_PREFIX(CryptonightR_template_double_end)
 
 ALIGN(64)
 FN_PREFIX(CryptonightR_template_part1):
+	mov	rcx, [rcx]
+
 	mov	QWORD PTR [rsp+16], rbx
 	mov	QWORD PTR [rsp+24], rbp
 	mov	QWORD PTR [rsp+32], rsi
@@ -183,6 +185,9 @@ FN_PREFIX(CryptonightR_template_end):
 
 ALIGN(64)
 FN_PREFIX(CryptonightR_template_double_part1):
+	mov	rdx, [rcx+8]
+	mov	rcx, [rcx]
+
 	mov	QWORD PTR [rsp+24], rbx
 	push	rbp
 	push	rsi

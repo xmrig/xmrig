@@ -54,6 +54,7 @@ enum PerfAlgo {
     PA_CN_LITE,   /* cn-lite/1 (AEON) */
     PA_CN_HEAVY,  /* cn-heavy/0 (LOKI) */
     PA_CN_PICO,   /* cn-pico/trtl (TRTL) */
+    PA_RX_WOW,    /* rx/wow (WOW) */
     PA_MAX
 };
 
@@ -96,6 +97,7 @@ enum Variant {
     VARIANT_RWZ    = 14, // CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft)
     VARIANT_ZLS    = 15, // CryptoNight variant 2 with 3/4 iterations (Zelerius)
     VARIANT_DOUBLE = 16, // CryptoNight variant 2 with double iterations (X-CASH)
+    VARIANT_RX_WOW = 17, // RandomX (Wownero)
     VARIANT_MAX
 };
 

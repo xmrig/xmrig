@@ -28,11 +28,16 @@
 #include <sys/mman.h>
 
 
-#include "common/log/Log.h"
+#include "base/io/log/Log.h"
 #include "common/utils/mm_malloc.h"
 #include "common/xmrig.h"
 #include "crypto/CryptoNight.h"
 #include "Mem.h"
+
+
+#if defined(__APPLE__)
+#   include <mach/vm_statistics.h>
+#endif
 
 
 void Mem::init(bool enabled)

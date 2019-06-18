@@ -70,6 +70,7 @@ static AlgoData const algorithms[] = {
     { "cryptonight/rwz",       "cn/rwz",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RWZ    },
     { "cryptonight/zls",       "cn/zls",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZLS    },
     { "cryptonight/double",    "cn/double",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE },
+    { "randomx/wow",           "rx/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RX_WOW },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -139,7 +140,8 @@ static const char *variants[] = {
     "r",
     "rwz",
     "zls",
-    "double"
+    "double",
+    "rx/wow",
 };
 
 
@@ -177,7 +179,7 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
     m_algo    = INVALID_ALGO;
     m_variant = VARIANT_AUTO;
 
-    assert(algo != nullptr);
+//    assert(algo != nullptr);
     if (algo == nullptr || strlen(algo) < 1) {
         return;
     }
@@ -312,6 +314,7 @@ const char *xmrig::Algorithm::perfAlgoName(const xmrig::PerfAlgo pa) {
         "cn-lite",
         "cn-heavy",
         "cn-pico",
+        "rx/wow",
     };
     return perf_algo_names[pa];
 }
@@ -363,6 +366,10 @@ xmrig::Algorithm::Algorithm(const xmrig::PerfAlgo pa) {
            m_algo    = xmrig::CRYPTONIGHT_PICO;
            m_variant = xmrig::VARIANT_TRTL;
            break;
+       case PA_RX_WOW:
+           m_algo    = xmrig::CRYPTONIGHT;
+           m_variant = xmrig::VARIANT_RX_WOW;
+           break;
        default:
            m_algo    = xmrig::INVALID_ALGO;
            m_variant = xmrig::VARIANT_AUTO;
@@ -382,6 +389,7 @@ xmrig::PerfAlgo xmrig::Algorithm::perf_algo() const {
                case VARIANT_RWZ:    return PA_CN_RWZ;
                case VARIANT_ZLS:    return PA_CN_ZLS;
                case VARIANT_DOUBLE: return PA_CN_DOUBLE;
+               case VARIANT_RX_WOW: return PA_RX_WOW;
                default:             return PA_CN;
            }
        case CRYPTONIGHT_LITE:  return PA_CN_LITE;

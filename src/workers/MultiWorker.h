@@ -27,10 +27,11 @@
 #define XMRIG_MULTIWORKER_H
 
 
-#include "common/net/Job.h"
+#include "base/net/stratum/Job.h"
 #include "Mem.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
+#include "randomwow.h"
 
 
 class Handle;
@@ -40,7 +41,7 @@ template<size_t N>
 class MultiWorker : public Worker
 {
 public:
-    MultiWorker(Handle *handle);
+    MultiWorker(ThreadHandle *handle);
     ~MultiWorker();
 
 protected:
@@ -70,6 +71,8 @@ private:
     State m_pausedState;
     State m_state;
     uint8_t m_hash[N * 32];
+
+    randomx_vm* m_rx_vm;
 };
 
 

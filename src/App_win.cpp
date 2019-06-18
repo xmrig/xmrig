@@ -29,7 +29,7 @@
 
 #include "App.h"
 #include "core/Controller.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 
 
 void xmrig::App::background()

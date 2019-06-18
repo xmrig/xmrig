@@ -33,7 +33,7 @@
 #include "Mem.h"
 
 
-class Handle;
+class ThreadHandle;
 
 
 namespace xmrig {
@@ -44,7 +44,7 @@ namespace xmrig {
 class Worker : public IWorker
 {
 public:
-    Worker(Handle *handle);
+    Worker(ThreadHandle *handle);
 
     inline const MemInfo &memory() const       { return m_memory; }
     inline size_t id() const override          { return m_id; }

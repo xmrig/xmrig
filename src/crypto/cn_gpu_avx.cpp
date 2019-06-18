@@ -30,6 +30,12 @@
 #   include <intrin.h>
 #   define __restrict__ __restrict
 #endif
+#ifndef _mm256_bslli_epi128
+	#define _mm256_bslli_epi128(a, count) _mm256_slli_si256((a), (count))
+#endif
+#ifndef _mm256_bsrli_epi128
+	#define _mm256_bsrli_epi128(a, count) _mm256_srli_si256((a), (count))
+#endif
 
 inline void prep_dv_avx(__m256i* idx, __m256i& v, __m256& n01)
 {

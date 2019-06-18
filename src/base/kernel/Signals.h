@@ -46,6 +46,8 @@ public:
     Signals(ISignalListener *listener);
     ~Signals();
 
+    void stop();
+
 private:
     void close(int signum);
 

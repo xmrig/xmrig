@@ -70,12 +70,12 @@ template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_HEAVY>() { retur
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_PICO>()  { return CRYPTONIGHT_PICO_MEMORY; }
 
 
-inline size_t cn_select_memory(Algo algorithm)
+inline size_t cn_select_memory(Algo algorithm, Variant v = VARIANT_AUTO)
 {
     switch(algorithm)
     {
     case CRYPTONIGHT:
-        return CRYPTONIGHT_MEMORY;
+        return (v == VARIANT_RX_WOW) ? CRYPTONIGHT_LITE_MEMORY : CRYPTONIGHT_MEMORY;
 
     case CRYPTONIGHT_LITE:
         return CRYPTONIGHT_LITE_MEMORY;
@@ -213,6 +213,32 @@ template<> inline constexpr Variant cn_base_variant<VARIANT_4>()      { return V
 template<> inline constexpr Variant cn_base_variant<VARIANT_RWZ>()    { return VARIANT_2; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_ZLS>()    { return VARIANT_2; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_DOUBLE>() { return VARIANT_2; }
+
+
+inline Variant cn_base_variant(Variant variant)
+{
+    switch (variant) {
+    case VARIANT_0:
+    case VARIANT_XHV:
+    case VARIANT_XAO:
+        return VARIANT_0;
+
+    case VARIANT_1:
+    case VARIANT_TUBE:
+    case VARIANT_XTL:
+    case VARIANT_MSR:
+    case VARIANT_RTO:
+        return VARIANT_1;
+
+    case VARIANT_GPU:
+        return VARIANT_GPU;
+
+    default:
+        break;
+    }
+
+    return VARIANT_2;
+}
 
 
 template<Variant variant> inline constexpr bool cn_is_cryptonight_r() { return false; }

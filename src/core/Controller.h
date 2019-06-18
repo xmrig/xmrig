@@ -26,44 +26,34 @@
 #define XMRIG_CONTROLLER_H
 
 
-#include "base/kernel/interfaces/IConfigListener.h"
-
-
-class StatsData;
+#include "base/kernel/Base.h"
 
 
 namespace xmrig {
 
 
-class Config;
-class ControllerPrivate;
-class IControllerListener;
 class Network;
-class Process;
 
 
-class Controller : public IConfigListener
+class Controller : public Base
 {
 public:
     Controller(Process *process);
     ~Controller() override;
 
-    bool isReady() const;
-    Config *config() const;
-    int init();
-    Network *network() const;
-    void addListener(IControllerListener *listener);
-    void save();
+    bool isReady() const override;
+    int init() override;
+    void start() override;
+    void stop() override;
 
-protected:
-    void onNewConfig(IConfig *config) override;
+    Network *network() const;
 
 private:
-    ControllerPrivate *d_ptr;
+    Network *m_network;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
 #endif /* XMRIG_CONTROLLER_H */

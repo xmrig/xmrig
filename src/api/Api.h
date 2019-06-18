@@ -26,32 +26,58 @@
 #define XMRIG_API_H
 
 
-#include <uv.h>
+#include <vector>
+#include <stdint.h>
 
 
-class ApiRouter;
-class Hashrate;
+#include "base/kernel/interfaces/IBaseListener.h"
 
 
 namespace xmrig {
-    class Controller;
-    class HttpReply;
-    class HttpRequest;
-    class NetworkState;
-}
 
 
-class Api
+class ApiRouter;
+class Base;
+class Httpd;
+class HttpData;
+class IApiListener;
+class IApiRequest;
+class String;
+
+
+class Api : public IBaseListener
 {
 public:
-    static bool start(xmrig::Controller *controller);
-    static void release();
+    Api(Base *base);
+    ~Api() override;
 
-    static void exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply);
-    static void tick(const xmrig::NetworkState &results);
+    inline const char *id() const                   { return m_id; }
+    inline const char *workerId() const             { return m_workerId; }
+    inline void addListener(IApiListener *listener) { m_listeners.push_back(listener); }
+
+    void request(const HttpData &req);
+    void start();
+    void stop();
+
+protected:
+    void onConfigChanged(Config *config, Config *previousConfig) override;
 
 private:
-    static ApiRouter *m_router;
+    void exec(IApiRequest &request);
+    void genId(const String &id);
+    void genWorkerId(const String &id);
+
+    ApiRouter *m_v1;
+    Base *m_base;
+    char m_id[32];
+    char m_workerId[128];
+    Httpd *m_httpd;
+    std::vector<IApiListener *> m_listeners;
+    uint64_t m_timestamp;
 };
+
+
+} // namespace xmrig
+
 
 #endif /* XMRIG_API_H */

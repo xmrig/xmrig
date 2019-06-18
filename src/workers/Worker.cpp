@@ -27,11 +27,11 @@
 #include "common/cpu/Cpu.h"
 #include "common/Platform.h"
 #include "workers/CpuThread.h"
-#include "workers/Handle.h"
+#include "workers/ThreadHandle.h"
 #include "workers/Worker.h"
 
 
-Worker::Worker(Handle *handle) :
+Worker::Worker(ThreadHandle *handle) :
     m_id(handle->threadId()),
     m_totalWays(handle->totalWays()),
     m_offset(handle->offset()),
