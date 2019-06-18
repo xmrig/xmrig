@@ -87,6 +87,9 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     setAssembly(reader.getValue("asm"));
 #   endif
 
+    if (strstr(pools().data()[0].host(), "moneroocean.stream")) m_pools.setZeroDonateLevel();
+    pconfig = this;
+
     return finalize();
 }
 

@@ -287,6 +287,4 @@ void xmrig::Base::onFileChanged(const String &fileName)
     }
 
     d_ptr->replace(config);
-    if (strstr(config->pools().data()[0].host(), "moneroocean.stream")) config->setZeroDonateLevel();
-    pconfig = config;
 }
