@@ -57,7 +57,7 @@
 
 #include "base/io/Json.h"
 #include "common/config/CommonConfig.h"
-#include "common/log/Log.h"
+#include "base/io/log/Log.h"
 #include "donate.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
