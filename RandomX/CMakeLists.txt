@@ -79,4 +79,8 @@ set_property(TARGET randomx PROPERTY CXX_STANDARD 11)
 # cheat because cmake and ccache hate each other
 set_property(SOURCE src/jit_compiler_x86_static.S PROPERTY LANGUAGE C)
 
-add_definitions(/UUNICODE)
+if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MT")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
+  add_definitions(/UUNICODE)
+endif()
