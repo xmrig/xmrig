@@ -83,6 +83,21 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     setPriority(reader.getInt("cpu-priority", -1));
     setThreads(reader.getValue("threads"));
 
+    // get algo-perf values from config
+    {   const rapidjson::Value &algo_perf = reader.getValue("algo-perf");
+        if (algo_perf.IsObject()) {
+            for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+                const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+                const rapidjson::Value &key = algo_perf[xmrig::Algorithm::perfAlgoName(pa)];
+                if (key.IsDouble()) {
+                    m_algo_perf[pa] = static_cast<float>(key.GetDouble());
+                } else if (key.IsInt()) {
+                    m_algo_perf[pa] = static_cast<float>(key.GetInt());
+                }
+            }
+        }
+    }
+
 #   ifndef XMRIG_NO_ASM
     setAssembly(reader.getValue("asm"));
 #   endif
