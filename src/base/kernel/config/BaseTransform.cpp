@@ -162,6 +162,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::HttpPort:       /* --http-port */
     case IConfig::DonateLevelKey: /* --donate-level */
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
+    case IConfig::CalibrateAlgoTimeKey: /* --calibrate-algo-time */
 #   ifdef XMRIG_DEPRECATED
     case IConfig::ApiPort:       /* --api-port */
 #   endif
@@ -175,6 +176,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::DryRunKey:      /* --dry-run */
     case IConfig::HttpEnabledKey: /* --http-enabled */
     case IConfig::DaemonKey:      /* --daemon */
+    case IConfig::CalibrateAlgoKey: /* --calibrate-algo */
         return transformBoolean(doc, key, true);
 
     case IConfig::ColorKey:          /* --no-color */
