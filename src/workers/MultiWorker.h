@@ -27,11 +27,13 @@
 #define XMRIG_MULTIWORKER_H
 
 
+#include <randomx.h>
+
+
 #include "base/net/stratum/Job.h"
 #include "Mem.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
-#include "randomwow.h"
 
 
 class Handle;
@@ -49,6 +51,8 @@ protected:
     void start() override;
 
 private:
+    void allocateRandomX_VM();
+
     bool resume(const xmrig::Job &job);
     bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
     bool verify2(xmrig::Variant variant, const uint8_t *referenceValue);

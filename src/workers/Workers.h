@@ -31,11 +31,11 @@
 #include <list>
 #include <uv.h>
 #include <vector>
+#include <randomx.h>
 
 #include "base/net/stratum/Job.h"
 #include "net/JobResult.h"
 #include "rapidjson/fwd.h"
-#include "randomwow.h"
 
 
 class Hashrate;
@@ -95,7 +95,8 @@ private:
             started(0),
             threads(0),
             ways(0),
-            algo(xmrig::CRYPTONIGHT)
+            algo(xmrig::CRYPTONIGHT),
+            variant(xmrig::VARIANT_AUTO)
         {}
 
         size_t hugePages;
@@ -104,6 +105,7 @@ private:
         size_t threads;
         size_t ways;
         xmrig::Algo algo;
+        xmrig::Variant variant;
     };
 
     static bool m_active;
