@@ -119,9 +119,8 @@ static BOOL ObtainLockPagesPrivilege() {
 
     BOOL result = FALSE;
     if (LsaOpenPolicy(nullptr, &attributes, POLICY_ALL_ACCESS, &handle) == 0) {
-        char* s = T(SE_LOCK_MEMORY_NAME);
         wchar_t ws[256];
-        mbstowcs( &ws[0], s, strlen(s) + 1);
+        mbstowcs( &ws[0], SE_LOCK_MEMORY_NAME, strlen(SE_LOCK_MEMORY_NAME) + 1);
         LSA_UNICODE_STRING str = StringToLsaUnicodeString(ws);
 
         if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
