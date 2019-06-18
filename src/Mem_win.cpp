@@ -119,9 +119,10 @@ static BOOL ObtainLockPagesPrivilege() {
 
     BOOL result = FALSE;
     if (LsaOpenPolicy(nullptr, &attributes, POLICY_ALL_ACCESS, &handle) == 0) {
-        wchar_t wc[256];
-        swprintf(wc, 256, L"%hs", T(SE_LOCK_MEMORY_NAME));
-        LSA_UNICODE_STRING str = StringToLsaUnicodeString(wc);
+        char* s = T(SE_LOCK_MEMORY_NAME);
+        wchar_t ws[256];
+        mbstowcs( &ws[0], s, strlen(s) + 1);
+        LSA_UNICODE_STRING str = StringToLsaUnicodeString(ws);
 
         if (LsaAddAccountRights(handle, user->User.Sid, &str, 1) == 0) {
             LOG_NOTICE("Huge pages support was successfully enabled, but reboot required to use it");
