@@ -27,7 +27,6 @@
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 2.8.7)
-project(RandomX)
 
 set (randomx_sources
 src/aes_hash.cpp
@@ -67,6 +66,15 @@ if (ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
 endif()
 
+if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /MT")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /MT")
+  add_definitions(/UUNICODE)
+  list(APPEND randomx_sources
+    src/jit_compiler_x86_static.asm
+    src/jit_compiler_x86.cpp)
+endif()
+
 set(RANDOMX_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomX Include path")
 
 add_library(randomx
@@ -79,11 +87,3 @@ set_property(TARGET randomx PROPERTY CXX_STANDARD 11)
 
 # cheat because cmake and ccache hate each other
 set_property(SOURCE src/jit_compiler_x86_static.S PROPERTY LANGUAGE C)
-
-message ("${CMAKE_CXX_COMPILER_ID}")
-
-if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MT")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
-  add_definitions(/UUNICODE)
-endif()
