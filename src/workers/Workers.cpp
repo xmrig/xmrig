@@ -165,7 +165,6 @@ void Workers::setJob(const xmrig::Job &job, bool donate)
     m_paused = 0;
 }
 
-
 void Workers::start(xmrig::Controller *controller)
 {
 #   ifdef APP_DEBUG
@@ -234,15 +233,16 @@ void Workers::soft_stop() // stop current workers leaving uv stuff intact (used 
 // setups workers based on specified algorithm (or its basic perf algo more specifically)
 void Workers::switch_algo(const xmrig::Algorithm& algorithm)
 {
-    if (m_status.algo == algorithm.algo()) return;
+    if (xmrig::Algorithm(m_status.algo, m_status.variant).perf_algo() == algorithm.perf_algo()) return;
 
     soft_stop();
 
     m_sequence = 1;
     m_paused   = 1;
 
-    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads(algorithm.algo());
+    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads(algorithm.perf_algo());
     m_status.algo    = algorithm.algo();
+    m_status.variant = algorithm.variant();
     m_status.threads = threads.size();
 
     // string with multiway thread info

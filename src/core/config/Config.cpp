@@ -157,12 +157,12 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     // save extended "threads" based on m_threads
     Value threads(kObjectType);
-    for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
-        const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
-        Value key(xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo()), allocator);
-        if (threadsMode(algo) != Simple) {
+    for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+        const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+        Value key(xmrig::Algorithm::perfAlgoName(pa), allocator);
+        if (threadsMode(pa) != Simple) {
             Value threads2(kArrayType);
-            for (const IThread *thread : m_threads[algo].list) {
+            for (const IThread *thread : m_threads[pa].list) {
                 threads2.PushBack(thread->toConfig(doc), allocator);
             }
 
@@ -194,40 +194,40 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
 bool xmrig::Config::finalize()
 {
-    for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
-        const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
-        if (!m_threads[algo].cpu.empty()) {
-            m_threads[algo].mode     = Advanced;
+    for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+        const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+        if (!m_threads[pa].cpu.empty()) {
+            m_threads[pa].mode     = Advanced;
             const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
         
-            for (size_t i = 0; i < m_threads[algo].cpu.size(); ++i) {
-                m_threads[algo].list.push_back(CpuThread::createFromData(i, algo, m_threads[algo].cpu[i], m_priority, softAES));
+            for (size_t i = 0; i < m_threads[pa].cpu.size(); ++i) {
+                m_threads[pa].list.push_back(CpuThread::createFromData(i, xmrig::Algorithm(pa), m_threads[pa].cpu[i], m_priority, softAES));
             }
 
             continue;
         }
 
         const AlgoVariant av = getAlgoVariant();
-        m_threads[algo].mode = m_threads[algo].count ? Simple : Automatic;
+        m_threads[pa].mode = m_threads[pa].count ? Simple : Automatic;
 
         const Variant v = m_algorithm.variant();
-        const size_t size = CpuThread::multiway(av) * cn_select_memory(algo, v) / 1024;
+        const size_t size = CpuThread::multiway(av) * cn_select_memory(xmrig::Algorithm(pa), v) / 1024;
 
-        if (!m_threads[algo].count) {
-            m_threads[algo].count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
+        if (!m_threads[pa].count) {
+            m_threads[pa].count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
         }
         else if (m_safe) {
             const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-            if (m_threads[algo].count > count) {
-                m_threads[algo].count = count;
+            if (m_threads[pa].count > count) {
+                m_threads[pa].count = count;
             }
         }
 
-        for (size_t i = 0; i < m_threads[algo].count; ++i) {
-            m_threads[algo].list.push_back(CpuThread::createFromAV(i, algo, av, m_threads[algo].mask, m_priority, m_assembly));
+        for (size_t i = 0; i < m_threads[pa].count; ++i) {
+            m_threads[pa].list.push_back(CpuThread::createFromAV(i, xmrig::Algorithm(pa), av, m_threads[pa].mask, m_priority, m_assembly));
         }
 
-        m_shouldSave = m_shouldSave || m_threads[algo].mode == Automatic;
+        m_shouldSave = m_shouldSave || m_threads[pa].mode == Automatic;
     }
 
     return true;
@@ -267,9 +267,9 @@ void xmrig::Config::setPriority(int priority)
 
 
 // parse specific perf algo (or generic) threads config
-void xmrig::Config::setThread(const rapidjson::Value &threads, const xmrig::Algo algo)
+void xmrig::Config::setThread(const rapidjson::Value &threads, const xmrig::PerfAlgo pa)
 {
-    m_threads[algo].cpu.clear();
+    m_threads[pa].cpu.clear();
 
     for (const rapidjson::Value &value : threads.GetArray()) {
         if (!value.IsObject()) {
@@ -280,7 +280,7 @@ void xmrig::Config::setThread(const rapidjson::Value &threads, const xmrig::Algo
             auto data = CpuThread::parse(value);
 
             if (data.valid) {
-                m_threads[algo].cpu.push_back(std::move(data));
+                m_threads[pa].cpu.push_back(std::move(data));
             }
         }
     }
@@ -290,22 +290,22 @@ void xmrig::Config::setThread(const rapidjson::Value &threads, const xmrig::Algo
 void xmrig::Config::setThreads(const rapidjson::Value &threads)
 {
     if (threads.IsArray()) {
-        setThread(threads, m_algorithm.algo());
+        setThread(threads, m_algorithm.perf_algo());
     }
     else if (threads.IsObject()) {
         // parse new specific perf algo threads
-        for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
-            const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
-            const rapidjson::Value &threads2 = threads[xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo())];
+        for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+            const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+            const rapidjson::Value &threads2 = threads[xmrig::Algorithm::perfAlgoName(pa)];
             if (threads2.IsArray()) {
-                setThread(threads2, algo);
+                setThread(threads2, pa);
             }
         }
     }
     else if (threads.IsUint()) {
         const unsigned count = threads.GetUint();
         if (count < 1024) {
-            m_threads[m_algorithm.algo()].count = count;
+            m_threads[m_algorithm.perf_algo()].count = count;
         }
     }
 }

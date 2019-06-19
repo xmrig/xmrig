@@ -80,17 +80,17 @@ public:
     inline int priority() const                          { return m_priority; }
 
     // access to m_threads taking into accoun that it is now separated for each perf algo
-    inline const std::vector<IThread *> &threads(const xmrig::Algo algo = INVALID_ALGO) const {
-        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo].list;
+    inline const std::vector<IThread *> &threads(const xmrig::PerfAlgo pa = PA_INVALID) const {
+        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].list;
     }
-    inline int threadsCount(const xmrig::Algo algo = INVALID_ALGO) const {
-        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo].list.size();
+    inline int threadsCount(const xmrig::PerfAlgo pa = PA_INVALID) const {
+        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].list.size();
     }
-    inline int64_t affinity(const xmrig::Algo algo = INVALID_ALGO) const {
-        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo].mask;
+    inline int64_t affinity(const xmrig::PerfAlgo pa = PA_INVALID) const {
+        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].mask;
     }
-    inline ThreadsMode threadsMode(const xmrig::Algo algo = INVALID_ALGO) const {
-        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo].mode;
+    inline ThreadsMode threadsMode(const xmrig::PerfAlgo pa = PA_INVALID) const {
+        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa].mode;
     }
 
     // access to perf algo results
@@ -104,7 +104,7 @@ private:
     void setMaxCpuUsage(int max);
     void setPriority(int priority);
     // parse specific perf algo (or generic) threads config
-    void setThread(const rapidjson::Value &threads, xmrig::Algo);
+    void setThread(const rapidjson::Value &threads, xmrig::PerfAlgo);
     void setThreads(const rapidjson::Value &threads);
 
     AlgoVariant getAlgoVariant() const;
@@ -138,7 +138,7 @@ private:
     int m_maxCpuUsage;
     int m_priority;
     // threads config for each algo
-    Threads m_threads[xmrig::Algo::ALGO_MAX];
+    Threads m_threads[xmrig::PerfAlgo::PA_MAX];
     // perf algo hashrate results
     float m_algo_perf[xmrig::PerfAlgo::PA_MAX];
 };
