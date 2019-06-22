@@ -60,6 +60,7 @@ private:
     static unsigned setClientStatus(const Options* options, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientCommand(const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientConfig(const Options* options, const std::string &clientId, const std::string &data, std::string &resp);
+    static unsigned deleteClientConfig(const Options* options, const std::string& clientId, std::string& resp);
     static unsigned resetClientStatusList(const std::string& data, std::string& resp);
 
     static void setClientLog(size_t maxRows, const std::string& clientId, const std::string& log);

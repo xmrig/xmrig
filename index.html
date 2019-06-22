@@ -242,7 +242,7 @@
                 {
                     text: '<i class="fa fa-table"> Assign template</i>',
                     className: 'btn-info',
-                    enabled: false,
+                    enabled: true,
                     action: function () {
                         $.ajax({
                             type:    "GET",
@@ -292,12 +292,14 @@
 
                                 if (arrayLength > 0 ) {
                                     $('#templateEditorSave').prop('disabled', false);
+                                    $('#templateEditorDelete').prop('disabled', false);
 
                                     $('#templateSelector').html(htmlContent);
                                     $('#templateSelector').selectpicker('refresh');
                                     $('#templateSelector').trigger('change');
                                 } else {
                                     $('#templateEditorSave').prop('disabled', true);
+                                    $('#templateEditorDelete').prop('disabled', true);
                                 }
 
                                 $('#templateEditor').modal('show');
@@ -980,6 +982,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button id="templateEditorDelete" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
                     <button id="templateEditorSave" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
                     <button id="templateEditorSaveAsDialog" type="button" class="btn btn-primary">Save As...</button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
