@@ -31,6 +31,7 @@
 #include "workers/CpuThread.h"
 #include "workers/MultiWorker.h"
 #include "workers/Workers.h"
+#include "common/cpu/Cpu.h"
 
 
 template<size_t N>
@@ -59,7 +60,10 @@ template<size_t N>
 void MultiWorker<N>::allocateRandomX_VM()
 {
     if (!m_rx_vm) {
-        const int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT;
+        int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT;
+        if (xmrig::Cpu::info()->hasAES())
+            flags |= RANDOMX_FLAG_HARD_AES;
+
         m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags), nullptr, Workers::getDataset());
         if (!m_rx_vm) {
             m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), nullptr, Workers::getDataset());
