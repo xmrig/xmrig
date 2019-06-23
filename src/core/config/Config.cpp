@@ -56,6 +56,12 @@ xmrig::Config::Config() :
 }
 
 
+bool xmrig::Config::isHwAES() const
+{
+    return (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_HW;
+}
+
+
 bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 {
     if (!BaseConfig::read(reader, fileName)) {
@@ -147,11 +153,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 bool xmrig::Config::finalize()
 {
     if (!m_threads.cpu.empty()) {
-        m_threads.mode     = Advanced;
-        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
+        m_threads.mode = Advanced;
 
         for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
+            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, !isHwAES()));
         }
 
         return true;

@@ -67,10 +67,10 @@ public:
 
     Config();
 
+    bool isHwAES() const;
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline AesMode aesMode() const                       { return m_aesMode; }
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
     inline Assembly assembly() const                     { return m_assembly; }
     inline bool isHugePages() const                      { return m_hugePages; }
