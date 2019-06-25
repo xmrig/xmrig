@@ -242,7 +242,7 @@
                 {
                     text: '<i class="fa fa-table"> Assign template</i>',
                     className: 'btn-info',
-                    enabled: true,
+                    enabled: false,
                     action: function () {
                         $.ajax({
                             type:    "GET",
@@ -292,14 +292,14 @@
 
                                 if (arrayLength > 0 ) {
                                     $('#templateEditorSave').prop('disabled', false);
-                                    $('#templateEditorDelete').prop('disabled', false);
+                                    $('#templateEditorDeleteDialog').prop('disabled', false);
 
                                     $('#templateSelector').html(htmlContent);
                                     $('#templateSelector').selectpicker('refresh');
                                     $('#templateSelector').trigger('change');
                                 } else {
                                     $('#templateEditorSave').prop('disabled', true);
-                                    $('#templateEditorDelete').prop('disabled', true);
+                                    $('#templateEditorDeleteDialog').prop('disabled', true);
                                 }
 
                                 $('#templateEditor').modal('show');
@@ -513,6 +513,10 @@
             $('#templateDialogSaveAs').modal('show');
         });
 
+        $('#templateEditorDeleteDialog').click(function(event) {
+            $('#templateDialogDelete').modal('show');
+        });
+
         $('#templateEditorSaveAs').click(function(event) {
             var templateId = $('#templateName').val();
             var template = $('#template').val();
@@ -520,6 +524,12 @@
             setTemplateConfig(templateId, template);
 
             $('#templateEditor').modal('hide');
+        });
+
+        $('#templateEditorDelete').click(function(event) {
+            var templateId = $('#templateSelector').val();
+
+            deleteTemplateConfig(templateId, template);
         });
 
         $('#clientStatusList tbody').on( 'click', 'button#LOG', function () {
@@ -858,6 +868,20 @@
             }
         });
     }
+
+    function deleteTemplateConfig(templateId) {
+        $.ajax({
+            url: "/admin/deleteClientConfig?clientId=template_" + templateId,
+            type: 'POST',
+            dataType: "text",
+            success: function(data){
+                setSuccess('<strong>Successfully deleted template: ' + templateId + '</strong>');
+            },
+            error: function (data) {
+                setError('<strong>Failed to delete template: ' + templateId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
+            }
+        });
+    }
 </script>
 
 </head>
@@ -982,10 +1006,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="templateEditorDelete" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
                     <button id="templateEditorSave" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
                     <button id="templateEditorSaveAsDialog" type="button" class="btn btn-primary">Save As...</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                    <button id="templateEditorDeleteDialog" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
@@ -1006,7 +1030,27 @@
                 </div>
                 <div class="modal-footer">
                     <button id="templateEditorSaveAs" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="templateDialogDelete" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="templateName">Do you really want to delete this template?</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="templateEditorDelete" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
@@ -1037,7 +1081,7 @@
                 </div>
                 <div class="modal-footer">
                     <button id="assignTemplate" type="button" class="btn btn-success" data-dismiss="modal">Assign</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
