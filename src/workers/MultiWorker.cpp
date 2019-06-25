@@ -37,7 +37,9 @@ template<size_t N>
 MultiWorker<N>::MultiWorker(ThreadHandle *handle)
     : Worker(handle)
 {
-    m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
+    if (m_thread->algorithm() != xmrig::RANDOM_X) {
+        m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
+    }
 }
 
 
@@ -122,6 +124,12 @@ bool MultiWorker<N>::selfTest()
 #   ifdef XMRIG_ALGO_CN_PICO
     if (m_thread->algorithm() == CRYPTONIGHT_PICO) {
         return verify(VARIANT_TRTL, test_output_pico_trtl);
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (m_thread->algorithm() == RANDOM_X) {
+        return true;
     }
 #   endif
 

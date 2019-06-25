@@ -359,10 +359,18 @@ void Workers::start(IWorker *worker)
         const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
         const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo, m_status.variant) / 1024;
 
-        LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
-                 m_status.threads, m_status.ways,
-                 (m_status.hugePages == m_status.pages ? GREEN_BOLD_S : (m_status.hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
-                 m_status.hugePages, m_status.pages, percent, memory);
+#       ifdef XMRIG_ALGO_RANDOMX
+        if (m_status.algo == xmrig::RANDOM_X) {
+            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " memory " CYAN_BOLD("%zu KB") "",
+                     m_status.threads, m_status.ways, memory);
+        } else
+#       endif
+        {
+            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
+                     m_status.threads, m_status.ways,
+                     (m_status.hugePages == m_status.pages ? GREEN_BOLD_S : (m_status.hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                     m_status.hugePages, m_status.pages, percent, memory);
+        }
     }
 
     uv_mutex_unlock(&m_mutex);

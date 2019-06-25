@@ -68,6 +68,10 @@ MemInfo Mem::create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count)
 
 void Mem::release(cryptonight_ctx **ctx, size_t count, MemInfo &info)
 {
+    if (info.memory == nullptr) {
+        return;
+    }
+
     release(info);
 
     for (size_t i = 0; i < count; ++i) {

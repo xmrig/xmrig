@@ -71,7 +71,8 @@ static AlgoData const algorithms[] = {
     { "cryptonight/double",    "cn/double",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE },
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    { "randomx/wow",           "rx/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RX_WOW },
+    { "randomx/wow",           "rx/wow",       xmrig::RANDOM_X,          xmrig::VARIANT_RX_WOW },
+    { "randomx",               "rx",           xmrig::RANDOM_X,          xmrig::VARIANT_RX_WOW },
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE

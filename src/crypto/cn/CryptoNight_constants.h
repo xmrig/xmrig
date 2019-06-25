@@ -75,7 +75,7 @@ inline size_t cn_select_memory(Algo algorithm, Variant v = VARIANT_AUTO)
     switch(algorithm)
     {
     case CRYPTONIGHT:
-        return (v == VARIANT_RX_WOW) ? CRYPTONIGHT_LITE_MEMORY : CRYPTONIGHT_MEMORY;
+        return CRYPTONIGHT_MEMORY;
 
     case CRYPTONIGHT_LITE:
         return CRYPTONIGHT_LITE_MEMORY;
@@ -85,6 +85,9 @@ inline size_t cn_select_memory(Algo algorithm, Variant v = VARIANT_AUTO)
 
     case CRYPTONIGHT_PICO:
         return CRYPTONIGHT_PICO_MEMORY;
+
+    case RANDOM_X:
+        return (v == VARIANT_RX_WOW) ? CRYPTONIGHT_LITE_MEMORY : CRYPTONIGHT_MEMORY;
 
     default:
         break;
