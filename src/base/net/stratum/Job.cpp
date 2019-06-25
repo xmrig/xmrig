@@ -42,8 +42,8 @@ xmrig::Job::Job() :
     m_diff(0),
     m_height(0),
     m_target(0),
-    m_seedHash(),
-    m_blob()
+    m_blob(),
+    m_seedHash()
 {
 }
 
@@ -59,8 +59,8 @@ xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const Str
     m_diff(0),
     m_height(0),
     m_target(0),
-    m_seedHash(),
-    m_blob()
+    m_blob(),
+    m_seedHash()
 {
 }
 
@@ -110,6 +110,20 @@ bool xmrig::Job::setBlob(const char *blob)
 #   endif
 
     return true;
+}
+
+
+bool xmrig::Job::setSeedHash(const char *hash)
+{
+    if (!hash || (strlen(hash) != sizeof(m_seedHash) * 2)) {
+        return false;
+    }
+
+#   ifdef XMRIG_PROXY_PROJECT
+    m_rawSeedHash = hash;
+#   endif
+
+    return Buffer::fromHex(hash, sizeof(m_seedHash) * 2, m_seedHash);
 }
 
 
@@ -174,15 +188,6 @@ void xmrig::Job::setDiff(uint64_t diff)
     Buffer::toHex(reinterpret_cast<uint8_t *>(&m_target), 8, m_rawTarget);
     m_rawTarget[16] = '\0';
 #   endif
-}
-
-
-bool xmrig::Job::setSeedHash(const char *hash)
-{
-    if (!hash || (strlen(hash) != sizeof(m_seedHash) * 2))
-        return false;
-
-    return Buffer::fromHex(hash, sizeof(m_seedHash) * 2, m_seedHash);
 }
 
 

@@ -52,10 +52,10 @@ public:
 
     bool isEqual(const Job &other) const;
     bool setBlob(const char *blob);
+    bool setSeedHash(const char *hash);
     bool setTarget(const char *target);
     void setAlgorithm(const char *algo);
     void setDiff(uint64_t diff);
-    bool setSeedHash(const char *hash);
 
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
@@ -65,7 +65,7 @@ public:
     inline const String &id() const                   { return m_id; }
     inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const                { return m_blob; }
-    inline const uint8_t *seed_hash() const           { return m_seedHash; }
+    inline const uint8_t *seedHash() const            { return m_seedHash; }
     inline int poolId() const                         { return m_poolId; }
     inline int threadId() const                       { return m_threadId; }
     inline size_t size() const                        { return m_size; }
@@ -83,9 +83,10 @@ public:
     inline void setVariant(int variant)               { m_algorithm.parseVariant(variant); }
 
 #   ifdef XMRIG_PROXY_PROJECT
-    inline char *rawBlob()                 { return m_rawBlob; }
-    inline const char *rawBlob() const     { return m_rawBlob; }
-    inline const char *rawTarget() const   { return m_rawTarget; }
+    inline char *rawBlob()                            { return m_rawBlob; }
+    inline const char *rawBlob() const                { return m_rawBlob; }
+    inline const char *rawTarget() const              { return m_rawTarget; }
+    inline const String &rawSeedHash() const          { return m_rawSeedHash; }
 #   endif
 
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
@@ -108,12 +109,13 @@ private:
     uint64_t m_diff;
     uint64_t m_height;
     uint64_t m_target;
-    uint8_t m_seedHash[32];
     uint8_t m_blob[kMaxBlobSize];
+    uint8_t m_seedHash[32];
 
 #   ifdef XMRIG_PROXY_PROJECT
     char m_rawBlob[kMaxBlobSize * 2 + 8];
     char m_rawTarget[24];
+    String m_rawSeedHash;
 #   endif
 };
 

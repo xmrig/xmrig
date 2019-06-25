@@ -37,6 +37,7 @@
 #endif
 
 
+#include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
@@ -344,21 +345,8 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         }
     }
 
-    if (params.HasMember("seed_hash")) {
-        const rapidjson::Value &variant = params["seed_hash"];
-
-        if (variant.IsString()) {
-            job.setSeedHash(variant.GetString());
-        }
-    }
-
-    if (params.HasMember("height")) {
-        const rapidjson::Value &variant = params["height"];
-
-        if (variant.IsUint64()) {
-            job.setHeight(variant.GetUint64());
-        }
-    }
+    job.setSeedHash(Json::getString(params, "seed_hash"));
+    job.setHeight(Json::getUint64(params, "height"));
 
     if (!verifyAlgorithm(job.algorithm())) {
         *code = 6;

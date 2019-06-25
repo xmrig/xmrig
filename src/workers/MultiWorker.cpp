@@ -164,7 +164,7 @@ void MultiWorker<N>::start()
 #           ifdef XMRIG_ALGO_RANDOMX
             if (v == xmrig::VARIANT_RX_WOW) {
                 allocateRandomX_VM();
-                Workers::updateDataset(m_state.job.seed_hash(), m_totalWays);
+                Workers::updateDataset(m_state.job.seedHash(), m_totalWays);
                 randomx_calculate_hash(m_rx_vm, m_state.blob, m_state.job.size(), m_hash);
             }
             else
