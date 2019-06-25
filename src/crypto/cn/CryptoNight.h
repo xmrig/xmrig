@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -30,13 +31,15 @@
 #include <stdint.h>
 
 #if defined _MSC_VER || defined XMRIG_ARM
-#define ABI_ATTRIBUTE
+#   define ABI_ATTRIBUTE
 #else
-#define ABI_ATTRIBUTE __attribute__((ms_abi))
+#   define ABI_ATTRIBUTE __attribute__((ms_abi))
 #endif
+
 
 struct cryptonight_ctx;
 typedef void(*cn_mainloop_fun_ms_abi)(cryptonight_ctx**) ABI_ATTRIBUTE;
+
 
 struct cryptonight_r_data {
     int variant;
@@ -45,17 +48,16 @@ struct cryptonight_r_data {
     bool match(const int v, const uint64_t h) const { return (v == variant) && (h == height); }
 };
 
+
 struct cryptonight_ctx {
     alignas(16) uint8_t state[224];
     alignas(16) uint8_t *memory;
 
     uint8_t unused[40];
-    const uint32_t* saes_table;
+    const uint32_t *saes_table;
 
     cn_mainloop_fun_ms_abi generated_code;
-    cn_mainloop_fun_ms_abi generated_code_double;
     cryptonight_r_data generated_code_data;
-    cryptonight_r_data generated_code_double_data;
 };
 
 

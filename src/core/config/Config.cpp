@@ -32,8 +32,8 @@
 #include "base/kernel/interfaces/IJsonReader.h"
 #include "common/cpu/Cpu.h"
 #include "core/config/Config.h"
-#include "crypto/Asm.h"
-#include "crypto/CryptoNight_constants.h"
+#include "crypto/cn/Asm.h"
+#include "crypto/cn/CryptoNight_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -53,6 +53,12 @@ xmrig::Config::Config() :
     m_maxCpuUsage(100),
     m_priority(-1)
 {
+}
+
+
+bool xmrig::Config::isHwAES() const
+{
+    return (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_HW;
 }
 
 
@@ -147,11 +153,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 bool xmrig::Config::finalize()
 {
     if (!m_threads.cpu.empty()) {
-        m_threads.mode     = Advanced;
-        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
+        m_threads.mode = Advanced;
 
         for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
+            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, !isHwAES()));
         }
 
         return true;
@@ -160,7 +165,8 @@ bool xmrig::Config::finalize()
     const AlgoVariant av = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
+    const Variant v = m_algorithm.variant();
+    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo(), v) / 1024;
 
     if (!m_threads.count) {
         m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
@@ -244,7 +250,7 @@ void xmrig::Config::setThreads(const rapidjson::Value &threads)
 
 xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 {
-#   ifndef XMRIG_NO_AEON
+#   ifdef XMRIG_ALGO_CN_LITE
     if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
         return getAlgoVariantLite();
     }
@@ -262,7 +268,7 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 }
 
 
-#ifndef XMRIG_NO_AEON
+#ifdef XMRIG_ALGO_CN_LITE
 xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
 {
     if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {

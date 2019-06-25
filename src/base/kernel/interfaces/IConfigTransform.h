@@ -26,7 +26,7 @@
 #define XMRIG_ICONFIGTRANSFORM_H
 
 
-#include "common/crypto/Algorithm.h"
+#include "crypto/common/Algorithm.h"
 #include "rapidjson/fwd.h"
 
 

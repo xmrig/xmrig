@@ -26,7 +26,7 @@
 #include <arm_neon.h>
 
 
-#include "crypto/CryptoNight_constants.h"
+#include "crypto/cn/CryptoNight_constants.h"
 
 
 inline void vandq_f32(float32x4_t &v, uint32_t v2)

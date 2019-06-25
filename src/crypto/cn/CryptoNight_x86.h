@@ -37,18 +37,18 @@
 
 #include "common/cpu/Cpu.h"
 #include "common/crypto/keccak.h"
-#include "crypto/CryptoNight.h"
-#include "crypto/CryptoNight_constants.h"
-#include "crypto/CryptoNight_monero.h"
-#include "crypto/soft_aes.h"
+#include "crypto/cn/CryptoNight.h"
+#include "crypto/cn/CryptoNight_constants.h"
+#include "crypto/cn/CryptoNight_monero.h"
+#include "crypto/cn/soft_aes.h"
 
 
 extern "C"
 {
-#include "crypto/c_groestl.h"
-#include "crypto/c_blake256.h"
-#include "crypto/c_jh.h"
-#include "crypto/c_skein.h"
+#include "crypto/cn/c_groestl.h"
+#include "crypto/cn/c_blake256.h"
+#include "crypto/cn/c_jh.h"
+#include "crypto/cn/c_skein.h"
 }
 
 
@@ -361,7 +361,7 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
-#ifndef XMRIG_NO_CN_GPU
+#ifdef XMRIG_ALGO_CN_GPU
 template<xmrig::Algo ALGO, size_t MEM>
 void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
 {
@@ -708,7 +708,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
-#ifndef XMRIG_NO_CN_GPU
+#ifdef XMRIG_ALGO_CN_GPU
 template<size_t ITER, uint32_t MASK>
 void cn_gpu_inner_avx(const uint8_t *spad, uint8_t *lpad);
 
@@ -895,12 +895,12 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 {
     constexpr size_t MEM = xmrig::cn_select_memory<ALGO>();
 
-    if (xmrig::cn_is_cryptonight_r<VARIANT>() && !ctx[0]->generated_code_double_data.match(VARIANT, height)) {
+    if (xmrig::cn_is_cryptonight_r<VARIANT>() && !ctx[0]->generated_code_data.match(VARIANT, height)) {
         V4_Instruction code[256];
         const int code_size = v4_random_math_init<VARIANT>(code, height);
-        cn_r_compile_code_double<VARIANT>(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code_double), ASM);
-        ctx[0]->generated_code_double_data.variant = VARIANT;
-        ctx[0]->generated_code_double_data.height = height;
+        cn_r_compile_code_double<VARIANT>(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), ASM);
+        ctx[0]->generated_code_data.variant = VARIANT;
+        ctx[0]->generated_code_data.height = height;
     }
 
     xmrig::keccak(input,        size, ctx[0]->state);
@@ -928,7 +928,7 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
         cn_double_double_mainloop_sandybridge_asm(ctx);
     }
     else if (xmrig::cn_is_cryptonight_r<VARIANT>()) {
-        ctx[0]->generated_code_double(ctx);
+        ctx[0]->generated_code(ctx);
     }
 
     cn_implode_scratchpad<ALGO, MEM, false>(reinterpret_cast<__m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));

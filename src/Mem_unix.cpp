@@ -29,9 +29,10 @@
 
 
 #include "base/io/log/Log.h"
-#include "common/utils/mm_malloc.h"
 #include "common/xmrig.h"
-#include "crypto/CryptoNight.h"
+#include "crypto/common/portable/mm_malloc.h"
+#include "crypto/common/VirtualMemory.h"
+#include "crypto/cn/CryptoNight.h"
 #include "Mem.h"
 
 
@@ -56,15 +57,8 @@ void Mem::allocate(MemInfo &info, bool enabled)
         return;
     }
 
-#   if defined(__APPLE__)
-    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0));
-#   elif defined(__FreeBSD__)
-    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0));
-#   else
-    info.memory = static_cast<uint8_t*>(mmap(0, info.size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0));
-#   endif
-
-    if (info.memory == MAP_FAILED) {
+    info.memory = static_cast<uint8_t*>(xmrig::VirtualMemory::allocateLargePagesMemory(info.size));
+    if (!info.memory) {
         return allocate(info, false);;
     }
 
@@ -87,33 +81,9 @@ void Mem::release(MemInfo &info)
             munlock(info.memory, info.size);
         }
 
-        munmap(info.memory, info.size);
+        xmrig::VirtualMemory::freeLargePagesMemory(info.memory, info.size);
     }
     else {
         _mm_free(info.memory);
     }
-}
-
-
-void *Mem::allocateExecutableMemory(size_t size)
-{
-#   if defined(__APPLE__)
-    return mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
-#   else
-    return mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-#   endif
-}
-
-
-void Mem::protectExecutableMemory(void *p, size_t size)
-{
-    mprotect(p, size, PROT_READ | PROT_EXEC);
-}
-
-
-void Mem::flushInstructionCache(void *p, size_t size)
-{
-#   ifndef __FreeBSD__
-    __builtin___clear_cache(reinterpret_cast<char*>(p), reinterpret_cast<char*>(p) + size);
-#   endif
 }

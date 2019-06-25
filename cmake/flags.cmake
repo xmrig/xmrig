@@ -81,3 +81,10 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
     endif()
 
 endif()
+
+if (NOT WIN32)
+    check_symbol_exists("__builtin___clear_cache" "stdlib.h" HAVE_BUILTIN_CLEAR_CACHE)
+    if (HAVE_BUILTIN_CLEAR_CACHE)
+        add_definitions(/DHAVE_BUILTIN_CLEAR_CACHE)
+    endif()
+endif()

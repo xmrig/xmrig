@@ -27,6 +27,11 @@
 #define XMRIG_MULTIWORKER_H
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include <randomx.h>
+#endif
+
+
 #include "base/net/stratum/Job.h"
 #include "Mem.h"
 #include "net/JobResult.h"
@@ -48,6 +53,10 @@ protected:
     void start() override;
 
 private:
+#   ifdef XMRIG_ALGO_RANDOMX
+    void allocateRandomX_VM();
+#   endif
+
     bool resume(const xmrig::Job &job);
     bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
     bool verify2(xmrig::Variant variant, const uint8_t *referenceValue);
@@ -70,6 +79,10 @@ private:
     State m_pausedState;
     State m_state;
     uint8_t m_hash[N * 32];
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    randomx_vm *m_rx_vm = nullptr;
+#   endif
 };
 
 

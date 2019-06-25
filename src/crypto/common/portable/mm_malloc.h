@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,45 +22,50 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ALIGNED_MALLOC_H__
-#define __ALIGNED_MALLOC_H__
+#ifndef XMRIG_MM_MALLOC_PORTABLE_H
+#define XMRIG_MM_MALLOC_PORTABLE_H
 
 
+#if defined(XMRIG_ARM) && !defined(__clang__)
 #include <stdlib.h>
 
 
 #ifndef __cplusplus
-extern int posix_memalign(void **__memptr, size_t __alignment, size_t __size);
+extern
 #else
-// Some systems (e.g. those with GNU libc) declare posix_memalign with an
-// exception specifier. Via an "egregious workaround" in
-// Sema::CheckEquivalentExceptionSpec, Clang accepts the following as a valid
-// redeclaration of glibc's declaration.
-extern "C" int posix_memalign(void **__memptr, size_t __alignment, size_t __size);
+extern "C"
 #endif
+int posix_memalign(void **__memptr, size_t __alignment, size_t __size);
 
 
 static __inline__ void *__attribute__((__always_inline__, __malloc__)) _mm_malloc(size_t __size, size_t __align)
 {
-  if (__align == 1) {
-    return malloc(__size);
-  }
+    if (__align == 1) {
+        return malloc(__size);
+    }
 
-  if (!(__align & (__align - 1)) && __align < sizeof(void *))
-    __align = sizeof(void *);
+    if (!(__align & (__align - 1)) && __align < sizeof(void *)) {
+        __align = sizeof(void *);
+    }
 
-  void *__mallocedMemory;
-  if (posix_memalign(&__mallocedMemory, __align, __size)) {
-    return 0;
-  }
+    void *__mallocedMemory;
+    if (posix_memalign(&__mallocedMemory, __align, __size)) {
+        return nullptr;
+    }
 
-  return __mallocedMemory;
+    return __mallocedMemory;
 }
 
 
 static __inline__ void __attribute__((__always_inline__)) _mm_free(void *__p)
 {
-  free(__p);
+    free(__p);
 }
+#elif defined(_WIN32) && !defined(__GNUC__)
+#   include <malloc.h>
+#else
+#   include <mm_malloc.h>
+#endif
 
-#endif /* __ALIGNED_MALLOC_H__ */
+
+#endif /* XMRIG_MM_MALLOC_PORTABLE_H */

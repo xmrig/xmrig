@@ -25,7 +25,8 @@
 #include <string.h>
 #include <thread>
 
-#if __ARM_FEATURE_CRYPTO
+
+#if __ARM_FEATURE_CRYPTO && !defined(__APPLE__)
 #   include <sys/auxv.h>
 #   include <asm/hwcap.h>
 #endif
@@ -47,7 +48,11 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 #   endif
 
 #   if __ARM_FEATURE_CRYPTO
+#   if !defined(__APPLE__)
     m_aes = getauxval(AT_HWCAP) & HWCAP_AES;
+#   else
+    m_aes = true;
+#   endif
 #   endif
 }
 

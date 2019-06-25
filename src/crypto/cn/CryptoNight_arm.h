@@ -29,19 +29,19 @@
 
 
 #include "common/crypto/keccak.h"
-#include "common/utils/mm_malloc.h"
-#include "crypto/CryptoNight.h"
-#include "crypto/CryptoNight_constants.h"
-#include "crypto/CryptoNight_monero.h"
-#include "crypto/soft_aes.h"
+#include "crypto/common/portable/mm_malloc.h"
+#include "crypto/cn/CryptoNight_constants.h"
+#include "crypto/cn/CryptoNight_monero.h"
+#include "crypto/cn/CryptoNight.h"
+#include "crypto/cn/soft_aes.h"
 
 
 extern "C"
 {
-#include "crypto/c_groestl.h"
-#include "crypto/c_blake256.h"
-#include "crypto/c_jh.h"
-#include "crypto/c_skein.h"
+#include "crypto/cn/c_groestl.h"
+#include "crypto/cn/c_blake256.h"
+#include "crypto/cn/c_jh.h"
+#include "crypto/cn/c_skein.h"
 }
 
 
@@ -284,7 +284,7 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
-#ifndef XMRIG_NO_CN_GPU
+#ifdef XMRIG_ALGO_CN_GPU
 template<xmrig::Algo ALGO, size_t MEM>
 void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
 {
@@ -583,7 +583,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
-#ifndef XMRIG_NO_CN_GPU
+#ifdef XMRIG_ALGO_CN_GPU
 template<size_t ITER, uint32_t MASK>
 void cn_gpu_inner_arm(const uint8_t *spad, uint8_t *lpad);
 

@@ -3,7 +3,7 @@
 
 extern "C"
 {
-    #include "c_blake256.h"
+    #include "crypto/cn/c_blake256.h"
 }
 
 enum V4_Settings

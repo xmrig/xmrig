@@ -70,7 +70,7 @@ template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_HEAVY>() { retur
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_PICO>()  { return CRYPTONIGHT_PICO_MEMORY; }
 
 
-inline size_t cn_select_memory(Algo algorithm)
+inline size_t cn_select_memory(Algo algorithm, Variant v = VARIANT_AUTO)
 {
     switch(algorithm)
     {
@@ -85,6 +85,9 @@ inline size_t cn_select_memory(Algo algorithm)
 
     case CRYPTONIGHT_PICO:
         return CRYPTONIGHT_PICO_MEMORY;
+
+    case RANDOM_X:
+        return (v == VARIANT_RX_WOW) ? CRYPTONIGHT_LITE_MEMORY : CRYPTONIGHT_MEMORY;
 
     default:
         break;

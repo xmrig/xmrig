@@ -27,7 +27,7 @@
 #include <thread>
 
 
-#include "crypto/CryptoNight_test.h"
+#include "crypto/cn/CryptoNight_test.h"
 #include "workers/CpuThread.h"
 #include "workers/MultiWorker.h"
 #include "workers/Workers.h"
@@ -37,7 +37,9 @@ template<size_t N>
 MultiWorker<N>::MultiWorker(ThreadHandle *handle)
     : Worker(handle)
 {
-    m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
+    if (m_thread->algorithm() != xmrig::RANDOM_X) {
+        m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
+    }
 }
 
 
@@ -45,7 +47,32 @@ template<size_t N>
 MultiWorker<N>::~MultiWorker()
 {
     Mem::release(m_ctx, N, m_memory);
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (m_rx_vm) {
+        randomx_destroy_vm(m_rx_vm);
+    }
+#   endif
 }
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+template<size_t N>
+void MultiWorker<N>::allocateRandomX_VM()
+{
+    if (!m_rx_vm) {
+        int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT;
+        if (!m_thread->isSoftAES()) {
+            flags |= RANDOMX_FLAG_HARD_AES;
+        }
+
+        m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags), nullptr, Workers::getDataset());
+        if (!m_rx_vm) {
+            m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), nullptr, Workers::getDataset());
+        }
+    }
+}
+#endif
 
 
 template<size_t N>
@@ -68,7 +95,7 @@ bool MultiWorker<N>::selfTest()
                         verify(VARIANT_ZLS,    test_output_zls)  &&
                         verify(VARIANT_DOUBLE, test_output_double);
 
-#       ifndef XMRIG_NO_CN_GPU
+#       ifdef XMRIG_ALGO_CN_GPU
         if (!rc || N > 1) {
             return rc;
         }
@@ -79,14 +106,14 @@ bool MultiWorker<N>::selfTest()
 #       endif
     }
 
-#   ifndef XMRIG_NO_AEON
+#   ifdef XMRIG_ALGO_CN_LITE
     if (m_thread->algorithm() == CRYPTONIGHT_LITE) {
         return verify(VARIANT_0,    test_output_v0_lite) &&
                verify(VARIANT_1,    test_output_v1_lite);
     }
 #   endif
 
-#   ifndef XMRIG_NO_SUMO
+#   ifdef XMRIG_ALGO_CN_HEAVY
     if (m_thread->algorithm() == CRYPTONIGHT_HEAVY) {
         return verify(VARIANT_0,    test_output_v0_heavy)  &&
                verify(VARIANT_XHV,  test_output_xhv_heavy) &&
@@ -94,9 +121,15 @@ bool MultiWorker<N>::selfTest()
     }
 #   endif
 
-#   ifndef XMRIG_NO_CN_PICO
+#   ifdef XMRIG_ALGO_CN_PICO
     if (m_thread->algorithm() == CRYPTONIGHT_PICO) {
         return verify(VARIANT_TRTL, test_output_pico_trtl);
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (m_thread->algorithm() == RANDOM_X) {
+        return true;
     }
 #   endif
 
@@ -126,7 +159,19 @@ void MultiWorker<N>::start()
                 storeStats();
             }
 
-            m_thread->fn(m_state.job.algorithm().variant())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+            const xmrig::Variant v = m_state.job.algorithm().variant();
+
+#           ifdef XMRIG_ALGO_RANDOMX
+            if (v == xmrig::VARIANT_RX_WOW) {
+                allocateRandomX_VM();
+                Workers::updateDataset(m_state.job.seedHash(), m_totalWays);
+                randomx_calculate_hash(m_rx_vm, m_state.blob, m_state.job.size(), m_hash);
+            }
+            else
+#           endif
+            {
+                m_thread->fn(v)(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+            }
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < m_state.job.target()) {

@@ -31,10 +31,11 @@
 
 
 #include "base/io/log/Log.h"
-#include "common/utils/mm_malloc.h"
 #include "common/xmrig.h"
-#include "crypto/CryptoNight.h"
-#include "crypto/CryptoNight_constants.h"
+#include "crypto/common/portable/mm_malloc.h"
+#include "crypto/common/VirtualMemory.h"
+#include "crypto/cn/CryptoNight_constants.h"
+#include "crypto/cn/CryptoNight.h"
 #include "Mem.h"
 
 
@@ -163,7 +164,7 @@ void Mem::allocate(MemInfo &info, bool enabled)
         return;
     }
 
-    info.memory = static_cast<uint8_t*>(VirtualAlloc(nullptr, info.size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
+    info.memory = static_cast<uint8_t*>(xmrig::VirtualMemory::allocateLargePagesMemory(info.size));
     if (info.memory) {
         info.hugePages = info.pages;
 
@@ -177,28 +178,9 @@ void Mem::allocate(MemInfo &info, bool enabled)
 void Mem::release(MemInfo &info)
 {
     if (info.hugePages) {
-        VirtualFree(info.memory, 0, MEM_RELEASE);
+        xmrig::VirtualMemory::freeLargePagesMemory(info.memory, info.size);
     }
     else {
         _mm_free(info.memory);
     }
-}
-
-
-void *Mem::allocateExecutableMemory(size_t size)
-{
-    return VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-}
-
-
-void Mem::protectExecutableMemory(void *p, size_t size)
-{
-    DWORD oldProtect;
-    VirtualProtect(p, size, PAGE_EXECUTE_READ, &oldProtect);
-}
-
-
-void Mem::flushInstructionCache(void *p, size_t size)
-{
-    ::FlushInstructionCache(GetCurrentProcess(), p, size);
 }

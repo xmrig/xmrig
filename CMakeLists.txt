@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
 option(WITH_LIBCPUID        "Use Libcpuid" ON)
-option(WITH_AEON            "CryptoNight-Lite support" ON)
-option(WITH_SUMO            "CryptoNight-Heavy support" ON)
+option(WITH_CN_LITE         "CryptoNight-Lite support" ON)
+option(WITH_CN_HEAVY        "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
 option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
+option(WITH_RANDOMX         "RandomX support" ON)
 option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
@@ -25,11 +26,9 @@ set(HEADERS
     src/api/interfaces/IApiListener.h
     src/App.h
     src/common/cpu/Cpu.h
-    src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/ICpuInfo.h
     src/common/Platform.h
-    src/common/utils/mm_malloc.h
     src/common/xmrig.h
     src/core/config/Config_default.h
     src/core/config/Config_platform.h
@@ -56,32 +55,34 @@ set(HEADERS
    )
 
 set(HEADERS_CRYPTO
-    src/crypto/c_blake256.h
-    src/crypto/c_groestl.h
-    src/crypto/c_jh.h
-    src/crypto/c_skein.h
-    src/crypto/CryptoNight.h
-    src/crypto/CryptoNight_constants.h
-    src/crypto/CryptoNight_monero.h
-    src/crypto/CryptoNight_test.h
-    src/crypto/groestl_tables.h
-    src/crypto/hash.h
-    src/crypto/skein_port.h
-    src/crypto/soft_aes.h
-    src/crypto/asm/CryptonightR_template.h
+    src/crypto/cn/asm/CryptonightR_template.h
+    src/crypto/cn/c_blake256.h
+    src/crypto/cn/c_groestl.h
+    src/crypto/cn/c_jh.h
+    src/crypto/cn/c_skein.h
+    src/crypto/cn/CryptoNight_constants.h
+    src/crypto/cn/CryptoNight_monero.h
+    src/crypto/cn/CryptoNight_test.h
+    src/crypto/cn/CryptoNight.h
+    src/crypto/cn/groestl_tables.h
+    src/crypto/cn/hash.h
+    src/crypto/cn/skein_port.h
+    src/crypto/cn/soft_aes.h
+    src/crypto/common/Algorithm.h
+    src/crypto/common/portable/mm_malloc.h
+    src/crypto/common/VirtualMemory.h
    )
 
 if (XMRIG_ARM)
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_arm.h)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_arm.h)
 else()
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_x86.h)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_x86.h)
 endif()
 
 set(SOURCES
     "${SOURCES_BASE}"
     "${SOURCES_BASE_HTTP}"
     src/App.cpp
-    src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/Platform.cpp
     src/core/config/Config.cpp
@@ -102,10 +103,11 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/c_groestl.c
-    src/crypto/c_blake256.c
-    src/crypto/c_jh.c
-    src/crypto/c_skein.c
+    src/crypto/cn/c_groestl.c
+    src/crypto/cn/c_blake256.c
+    src/crypto/cn/c_jh.c
+    src/crypto/cn/c_skein.c
+    src/crypto/common/Algorithm.cpp
    )
 
 if (WIN32)
@@ -115,6 +117,7 @@ if (WIN32)
         src/App_win.cpp
         src/common/Platform_win.cpp
         src/Mem_win.cpp
+        src/crypto/common/VirtualMemory_win.cpp
         )
 
     add_definitions(/DWIN32)
@@ -125,6 +128,7 @@ elseif (APPLE)
         src/App_unix.cpp
         src/common/Platform_mac.cpp
         src/Mem_unix.cpp
+        src/crypto/common/VirtualMemory_unix.cpp
         )
 else()
     set(SOURCES_OS
@@ -132,6 +136,7 @@ else()
         src/App_unix.cpp
         src/common/Platform_unix.cpp
         src/Mem_unix.cpp
+        src/crypto/common/VirtualMemory_unix.cpp
         )
 
     if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
@@ -154,6 +159,17 @@ add_definitions(/DUNICODE)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
+
+if (WITH_RANDOMX)
+    find_package(RandomX REQUIRED)
+    include_directories(${RANDOMX_INCLUDE_DIR})
+
+    add_definitions(/DXMRIG_ALGO_RANDOMX)
+else()
+    set(RANDOMX_LIBRARIES "")
+
+    remove_definitions(/DXMRIG_ALGO_RANDOMX)
+endif()
 
 include(cmake/flags.cmake)
 
@@ -178,20 +194,16 @@ include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)
 include(cmake/cn-gpu.cmake)
 
-if (NOT WITH_AEON)
-    add_definitions(/DXMRIG_NO_AEON)
+if (WITH_CN_LITE)
+    add_definitions(/DXMRIG_ALGO_CN_LITE)
 endif()
 
-if (NOT WITH_SUMO)
-    add_definitions(/DXMRIG_NO_SUMO)
+if (WITH_CN_HEAVY)
+    add_definitions(/DXMRIG_ALGO_CN_HEAVY)
 endif()
 
-if (NOT WITH_IPBC)
-    add_definitions(/DXMRIG_NO_IPBC)
-endif()
-
-if (NOT WITH_CN_PICO)
-    add_definitions(/DXMRIG_NO_CN_PICO)
+if (WITH_CN_PICO)
+    add_definitions(/DXMRIG_ALGO_CN_PICO)
 endif()
 
 if (WITH_EMBEDDED_CONFIG)
@@ -229,4 +241,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTP_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${RANDOMX_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})

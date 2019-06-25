@@ -30,7 +30,7 @@
 #include <stdio.h>
 
 
-#include "common/crypto/Algorithm.h"
+#include "crypto/common/Algorithm.h"
 
 
 #ifdef _MSC_VER
@@ -70,21 +70,26 @@ static AlgoData const algorithms[] = {
     { "cryptonight/zls",       "cn/zls",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZLS    },
     { "cryptonight/double",    "cn/double",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE },
 
-#   ifndef XMRIG_NO_AEON
+#   ifdef XMRIG_ALGO_RANDOMX
+    { "randomx/wow",           "rx/wow",       xmrig::RANDOM_X,          xmrig::VARIANT_RX_WOW },
+    { "randomx",               "rx",           xmrig::RANDOM_X,          xmrig::VARIANT_RX_WOW },
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_LITE
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
     { "cryptonight-light",     "cn-light",     xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
     { "cryptonight-lite/0",    "cn-lite/0",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_0    },
     { "cryptonight-lite/1",    "cn-lite/1",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
 #   endif
 
-#   ifndef XMRIG_NO_SUMO
+#   ifdef XMRIG_ALGO_CN_HEAVY
     { "cryptonight-heavy",      "cn-heavy",      xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_AUTO },
     { "cryptonight-heavy/0",    "cn-heavy/0",    xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_0    },
     { "cryptonight-heavy/xhv",  "cn-heavy/xhv",  xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_XHV  },
     { "cryptonight-heavy/tube", "cn-heavy/tube", xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_TUBE },
 #   endif
 
-#   ifndef XMRIG_NO_CN_PICO
+#   ifdef XMRIG_ALGO_CN_PICO
     { "cryptonight-pico/trtl",  "cn-pico/trtl",  xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
     { "cryptonight-pico",       "cn-pico",       xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
     { "cryptonight-turtle",     "cn-trtl",       xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
@@ -92,7 +97,7 @@ static AlgoData const algorithms[] = {
     { "cryptonight_turtle",     "cn_turtle",     xmrig::CRYPTONIGHT_PICO, xmrig::VARIANT_TRTL },
 #   endif
 
-#   ifndef XMRIG_NO_CN_GPU
+#   ifdef XMRIG_ALGO_CN_GPU
     { "cryptonight/gpu",        "cn/gpu",  xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU },
 #   endif
 };
@@ -138,7 +143,8 @@ static const char *variants[] = {
     "r",
     "rwz",
     "zls",
-    "double"
+    "double",
+    "rx/wow",
 };
 
 

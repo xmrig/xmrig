@@ -37,15 +37,15 @@ Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
   -a, --algo=ALGO               specify the algorithm to use\n\
                                   cryptonight\n"
-#ifndef XMRIG_NO_AEON
+#ifdef XMRIG_ALGO_CN_LITE
 "\
                                   cryptonight-lite\n"
 #endif
-#ifndef XMRIG_NO_SUMO
+#ifdef XMRIG_ALGO_CN_HEAVY
 "\
                                   cryptonight-heavy\n"
 #endif
-#ifndef XMRIG_NO_CN_PICO
+#ifdef XMRIG_ALGO_CN_PICO
 "\
                                   cryptonight-pico\n"
 #endif

@@ -33,7 +33,7 @@
 #endif
 
 
-#include "crypto/Asm.h"
+#include "crypto/cn/Asm.h"
 #include "rapidjson/document.h"
 
 

@@ -40,7 +40,7 @@
 #include "base/net/stratum/SubmitResult.h"
 #include "base/net/tools/RecvBuf.h"
 #include "base/net/tools/Storage.h"
-#include "common/crypto/Algorithm.h"
+#include "crypto/common/Algorithm.h"
 
 
 typedef struct bio_st BIO;
