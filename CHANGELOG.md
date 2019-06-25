@@ -1,3 +1,8 @@
+# v2.16.0-beta
+- Added RandomWOW (RandomX with different preferences) algorithm support for [Wownero](http://wownero.org/).
+  - Algorithm name used by miner is `randomx/wow` or `rx/wow`.
+  - Currently runtime algorithm switching NOT supported with other algorithms.
+
 # v2.15.4-beta
 - Added global uptime and extended connection information in API.
 - API now return current algorithm instead of global algorithm specified in config.
