@@ -1,5 +1,5 @@
 # v2.16.0-beta
-- Added RandomWOW (RandomX with different preferences) algorithm support for [Wownero](http://wownero.org/).
+- [#1036](https://github.com/xmrig/xmrig/pull/1036) Added RandomWOW (RandomX with different preferences) algorithm support for [Wownero](http://wownero.org/).
   - Algorithm name used by miner is `randomx/wow` or `rx/wow`.
   - Currently runtime algorithm switching NOT supported with other algorithms.
 
