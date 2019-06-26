@@ -37,7 +37,9 @@ template<size_t N>
 xmrig::MultiWorker<N>::MultiWorker(ThreadHandle *handle)
     : Worker(handle)
 {
-    m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
+    if (m_thread->algorithm().family() != Algorithm::RANDOM_X) {
+        m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);
+    }
 }
 
 
@@ -45,7 +47,32 @@ template<size_t N>
 xmrig::MultiWorker<N>::~MultiWorker()
 {
     Mem::release(m_ctx, N, m_memory);
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (m_rx_vm) {
+        randomx_destroy_vm(m_rx_vm);
+    }
+#   endif
 }
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+template<size_t N>
+void xmrig::MultiWorker<N>::allocateRandomX_VM()
+{
+    if (!m_rx_vm) {
+        int flags = RANDOMX_FLAG_LARGE_PAGES | RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT;
+        if (!m_thread->isSoftAES()) {
+            flags |= RANDOMX_FLAG_HARD_AES;
+        }
+
+        m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags), nullptr, Workers::getDataset());
+        if (!m_rx_vm) {
+            m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), nullptr, Workers::getDataset());
+        }
+    }
+}
+#endif
 
 
 template<size_t N>
@@ -97,6 +124,12 @@ bool xmrig::MultiWorker<N>::selfTest()
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (m_thread->algorithm().family() == Algorithm::RANDOM_X) {
+        return true;
+    }
+#   endif
+
     return false;
 }
 
@@ -123,7 +156,17 @@ void xmrig::MultiWorker<N>::start()
                 storeStats();
             }
 
-            m_thread->fn(m_state.job.algorithm())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+#           ifdef XMRIG_ALGO_RANDOMX
+            if (m_state.job.algorithm().family() == Algorithm::RANDOM_X) {
+                allocateRandomX_VM();
+                Workers::updateDataset(m_state.job.seedHash(), m_totalWays);
+                randomx_calculate_hash(m_rx_vm, m_state.blob, m_state.job.size(), m_hash);
+            }
+            else
+#           endif
+            {
+                m_thread->fn(m_state.job.algorithm())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+            }
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < m_state.job.target()) {

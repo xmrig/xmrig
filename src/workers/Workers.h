@@ -31,6 +31,10 @@
 #include <uv.h>
 #include <vector>
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include <randomx.h>
+#endif
+
 #include "base/net/stratum/Job.h"
 #include "net/JobResult.h"
 #include "rapidjson/fwd.h"
@@ -70,6 +74,11 @@ public:
 
 #   ifdef XMRIG_FEATURE_API
     static void threadsSummary(rapidjson::Document &doc);
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    static void updateDataset(const uint8_t* seed_hash, uint32_t num_threads);
+    static randomx_dataset* getDataset();
 #   endif
 
 private:
@@ -113,6 +122,14 @@ private:
     static uv_rwlock_t m_rwlock;
     static uv_timer_t *m_timer;
     static xmrig::Controller *m_controller;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    static uv_rwlock_t m_rx_dataset_lock;
+    static randomx_cache *m_rx_cache;
+    static randomx_dataset *m_rx_dataset;
+    static uint8_t m_rx_seed_hash[32];
+    static std::atomic<uint32_t> m_rx_dataset_init_thread_counter;
+#   endif
 };
 
 

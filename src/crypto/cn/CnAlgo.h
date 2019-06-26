@@ -127,6 +127,7 @@ private:
 #       endif
 #       ifdef XMRIG_ALGO_CN_PICO
         CN_MEMORY / 8, // CN_PICO_0
+        0,             // RX_WOW
 #       endif
     };
 
@@ -156,7 +157,8 @@ private:
         CN_ITER / 2, // CN_HEAVY_XHV
 #       endif
 #       ifdef XMRIG_ALGO_CN_PICO
-        CN_ITER / 8, // CN_PICO_0
+        CN_ITER / 8, // CN_PICO_0,
+        0,           // RX_WOW
 #       endif
     };
 
@@ -186,7 +188,8 @@ private:
         Algorithm::CN_0,   // CN_HEAVY_XHV
 #       endif
 #       ifdef XMRIG_ALGO_CN_PICO
-        Algorithm::CN_2,   // CN_PICO_0
+        Algorithm::CN_2,    // CN_PICO_0,
+        Algorithm::INVALID, // RX_WOW
 #       endif
     };
 };

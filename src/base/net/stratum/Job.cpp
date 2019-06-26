@@ -40,7 +40,8 @@ xmrig::Job::Job() :
     m_diff(0),
     m_height(0),
     m_target(0),
-    m_blob()
+    m_blob(),
+    m_seedHash()
 {
 }
 
@@ -54,7 +55,8 @@ xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const Str
     m_diff(0),
     m_height(0),
     m_target(0),
-    m_blob()
+    m_blob(),
+    m_seedHash()
 {
 }
 
@@ -100,6 +102,20 @@ bool xmrig::Job::setBlob(const char *blob)
 #   endif
 
     return true;
+}
+
+
+bool xmrig::Job::setSeedHash(const char *hash)
+{
+    if (!hash || (strlen(hash) != sizeof(m_seedHash) * 2)) {
+        return false;
+    }
+
+#   ifdef XMRIG_PROXY_PROJECT
+    m_rawSeedHash = hash;
+#   endif
+
+    return Buffer::fromHex(hash, sizeof(m_seedHash) * 2, m_seedHash);
 }
 
 

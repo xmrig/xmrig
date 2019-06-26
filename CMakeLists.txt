@@ -6,6 +6,7 @@ option(WITH_CN_LITE         "CryptoNight-Lite support" ON)
 option(WITH_CN_HEAVY        "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
 option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
+option(WITH_RANDOMX         "RandomX support" ON)
 option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
@@ -161,6 +162,17 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
 
+if (WITH_RANDOMX)
+    find_package(RandomX REQUIRED)
+    include_directories(${RANDOMX_INCLUDE_DIR})
+
+    add_definitions(/DXMRIG_ALGO_RANDOMX)
+else()
+    set(RANDOMX_LIBRARIES "")
+
+    remove_definitions(/DXMRIG_ALGO_RANDOMX)
+endif()
+
 include(cmake/flags.cmake)
 
 if (WITH_LIBCPUID)
@@ -231,4 +243,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTP_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${RANDOMX_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})

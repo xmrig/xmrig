@@ -39,11 +39,11 @@ struct cryptonight_ctx;
 
 struct MemInfo
 {
-    alignas(16) uint8_t *memory;
+    alignas(16) uint8_t *memory = nullptr;
 
-    size_t hugePages;
-    size_t pages;
-    size_t size;
+    size_t hugePages = 0;
+    size_t pages     = 0;
+    size_t size      = 0;
 };
 
 

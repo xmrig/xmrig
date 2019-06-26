@@ -68,6 +68,9 @@ public:
 #       ifdef XMRIG_ALGO_CN_PICO
         CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
 #       endif
+#       ifdef XMRIG_ALGO_RANDOMX
+        RX_WOW,        // "rx/wow"           RandomWOW
+#       endif
         MAX
     };
 
@@ -76,7 +79,8 @@ public:
         CN,
         CN_LITE,
         CN_HEAVY,
-        CN_PICO
+        CN_PICO,
+        RANDOM_X
     };
 
     inline Algorithm()                                     {}

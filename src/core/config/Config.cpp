@@ -55,6 +55,12 @@ xmrig::Config::Config() :
 }
 
 
+bool xmrig::Config::isHwAES() const
+{
+    return (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_HW;
+}
+
+
 bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 {
     if (!BaseConfig::read(reader, fileName)) {
@@ -146,11 +152,10 @@ bool xmrig::Config::finalize()
     Algorithm algorithm(Algorithm::CN_0); // FIXME algo
 
     if (!m_threads.cpu.empty()) {
-        m_threads.mode     = Advanced;
-        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
+        m_threads.mode = Advanced;
 
         for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, algorithm, m_threads.cpu[i], m_priority, softAES));
+            m_threads.list.push_back(CpuThread::createFromData(i, algorithm, m_threads.cpu[i], m_priority, !isHwAES()));
         }
 
         return true;
@@ -159,7 +164,7 @@ bool xmrig::Config::finalize()
     const AlgoVariant av = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const size_t size = CpuThread::multiway(av) * CnAlgo<>::memory(algorithm) / 1024;
+    const size_t size = CpuThread::multiway(av) * CnAlgo<>::memory(algorithm) / 1024; // FIXME MEMORY
 
     if (!m_threads.count) {
         m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);

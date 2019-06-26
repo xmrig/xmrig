@@ -106,6 +106,10 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-ultralite",     "cn-ultralite",     Algorithm::CN_PICO_0       },
     { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO_0       },
 #   endif
+#   ifdef XMRIG_ALGO_RANDOMX
+    { "randomx/wow",               "rx/wow",           Algorithm::RX_WOW          },
+    { "randomx",                   "rx",               Algorithm::RX_WOW          },
+#   endif
 };
 
 
@@ -133,6 +137,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_XAO:
     case CN_RTO:
     case CN_RWZ:
+    case CN_ZLS:
     case CN_DOUBLE:
 #   ifdef XMRIG_ALGO_CN_GPU
     case CN_GPU:
@@ -153,8 +158,13 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_PICO
-    case Algorithm::CN_PICO_0:
+    case CN_PICO_0:
         return CN_PICO;
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    case RX_WOW:
+        return RANDOM_X;
 #   endif
 
     default:
