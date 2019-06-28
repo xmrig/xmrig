@@ -33,7 +33,7 @@
 #include "common/cpu/Cpu.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/cn/Asm.h"
+#include "crypto/common/Assembly.h"
 #include "Mem.h"
 #include "Summary.h"
 #include "version.h"
@@ -49,7 +49,7 @@ static const char *coloredAsmNames[] = {
 };
 
 
-inline static const char *asmName(xmrig::Assembly assembly)
+inline static const char *asmName(xmrig::Assembly::Id assembly)
 {
     return coloredAsmNames[assembly];
 }
@@ -109,7 +109,7 @@ static void print_threads(xmrig::Config *config)
     }
 
 #   ifdef XMRIG_FEATURE_ASM
-    if (config->assembly() == xmrig::ASM_AUTO) {
+    if (config->assembly() == xmrig::Assembly::AUTO) {
         const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
 
         xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s"), "ASSEMBLY", asmName(assembly));

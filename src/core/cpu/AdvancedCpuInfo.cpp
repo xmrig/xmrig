@@ -31,7 +31,6 @@
 
 
 xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
-    m_assembly(ASM_NONE),
     m_aes(false),
     m_avx2(false),
     m_L2_exclusive(false),
@@ -78,10 +77,10 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
         m_aes = true;
 
         if (data.vendor == VENDOR_AMD) {
-            m_assembly = (data.ext_family >= 23) ? ASM_RYZEN : ASM_BULLDOZER;
+            m_assembly = (data.ext_family >= 23) ? Assembly::RYZEN : Assembly::BULLDOZER;
         }
         else if (data.vendor == VENDOR_INTEL) {
-            m_assembly = ASM_INTEL;
+            m_assembly = Assembly::INTEL;
         }
     }
 

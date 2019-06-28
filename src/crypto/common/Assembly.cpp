@@ -6,7 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,13 +29,15 @@
 
 
 #ifdef _MSC_VER
-#   define strncasecmp _strnicmp
 #   define strcasecmp  _stricmp
 #endif
 
 
-#include "crypto/cn/Asm.h"
+#include "crypto/common/Assembly.h"
 #include "rapidjson/document.h"
+
+
+namespace xmrig {
 
 
 static const char *asmNames[] = {
@@ -46,11 +49,13 @@ static const char *asmNames[] = {
 };
 
 
-xmrig::Assembly xmrig::Asm::parse(const char *assembly, Assembly defaultValue)
+} /* namespace xmrig */
+
+
+xmrig::Assembly::Id xmrig::Assembly::parse(const char *assembly, Id defaultValue)
 {
     constexpr size_t const size = sizeof(asmNames) / sizeof((asmNames)[0]);
-    assert(assembly != nullptr);
-    assert(ASM_MAX == size);
+    static_assert(size == MAX, "asmNames size mismatch");
 
     if (assembly == nullptr) {
         return defaultValue;
@@ -58,7 +63,7 @@ xmrig::Assembly xmrig::Asm::parse(const char *assembly, Assembly defaultValue)
 
     for (size_t i = 0; i < size; i++) {
         if (strcasecmp(assembly, asmNames[i]) == 0) {
-            return static_cast<Assembly>(i);
+            return static_cast<Id>(i);
         }
     }
 
@@ -66,10 +71,10 @@ xmrig::Assembly xmrig::Asm::parse(const char *assembly, Assembly defaultValue)
 }
 
 
-xmrig::Assembly xmrig::Asm::parse(const rapidjson::Value &value, Assembly defaultValue)
+xmrig::Assembly::Id xmrig::Assembly::parse(const rapidjson::Value &value, Id defaultValue)
 {
     if (value.IsBool()) {
-        return parse(value.GetBool());
+        return value.GetBool() ? AUTO : NONE;
     }
 
     if (value.IsString()) {
@@ -80,23 +85,23 @@ xmrig::Assembly xmrig::Asm::parse(const rapidjson::Value &value, Assembly defaul
 }
 
 
-const char *xmrig::Asm::toString(Assembly assembly)
+const char *xmrig::Assembly::toString() const
 {
-    return asmNames[assembly];
+    return asmNames[m_id];
 }
 
 
-rapidjson::Value xmrig::Asm::toJSON(Assembly assembly)
+rapidjson::Value xmrig::Assembly::toJSON() const
 {
     using namespace rapidjson;
 
-    if (assembly == ASM_NONE) {
+    if (m_id == NONE) {
         return Value(false);
     }
 
-    if (assembly == ASM_AUTO) {
+    if (m_id == AUTO) {
         return Value(true);
     }
 
-    return Value(StringRef(toString(assembly)));
+    return Value(StringRef(toString()));
 }

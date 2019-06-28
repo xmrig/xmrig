@@ -40,7 +40,7 @@ public:
 protected:
     size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const override;
 
-    inline Assembly assembly() const override       { return m_assembly; }
+    inline Assembly::Id assembly() const override   { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
     inline bool hasAVX2() const override            { return m_avx2; }
     inline bool isSupported() const override        { return true; }

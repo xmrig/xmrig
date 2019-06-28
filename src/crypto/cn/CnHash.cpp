@@ -39,26 +39,26 @@
 
 
 #define ADD_FN(algo) \
-    m_map[algo][AV_SINGLE][ASM_NONE]      = cryptonight_single_hash<algo, false>; \
-    m_map[algo][AV_SINGLE_SOFT][ASM_NONE] = cryptonight_single_hash<algo, true>;  \
-    m_map[algo][AV_DOUBLE][ASM_NONE]      = cryptonight_double_hash<algo, false>; \
-    m_map[algo][AV_DOUBLE_SOFT][ASM_NONE] = cryptonight_double_hash<algo, true>;  \
-    m_map[algo][AV_TRIPLE][ASM_NONE]      = cryptonight_triple_hash<algo, false>; \
-    m_map[algo][AV_TRIPLE_SOFT][ASM_NONE] = cryptonight_triple_hash<algo, true>;  \
-    m_map[algo][AV_QUAD][ASM_NONE]        = cryptonight_quad_hash<algo,   false>; \
-    m_map[algo][AV_QUAD_SOFT][ASM_NONE]   = cryptonight_quad_hash<algo,   true>;  \
-    m_map[algo][AV_PENTA][ASM_NONE]       = cryptonight_penta_hash<algo,  false>; \
-    m_map[algo][AV_PENTA_SOFT][ASM_NONE]  = cryptonight_penta_hash<algo,  true>;
+    m_map[algo][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false>; \
+    m_map[algo][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true>;  \
+    m_map[algo][AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>; \
+    m_map[algo][AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;  \
+    m_map[algo][AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>; \
+    m_map[algo][AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;  \
+    m_map[algo][AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>; \
+    m_map[algo][AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;  \
+    m_map[algo][AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>; \
+    m_map[algo][AV_PENTA_SOFT][Assembly::NONE]  = cryptonight_penta_hash<algo,  true>;
 
 
 #ifdef XMRIG_FEATURE_ASM
 #   define ADD_FN_ASM(algo) \
-    m_map[algo][AV_SINGLE][ASM_INTEL]     = cryptonight_single_hash_asm<algo, ASM_INTEL>;     \
-    m_map[algo][AV_SINGLE][ASM_RYZEN]     = cryptonight_single_hash_asm<algo, ASM_RYZEN>;     \
-    m_map[algo][AV_SINGLE][ASM_BULLDOZER] = cryptonight_single_hash_asm<algo, ASM_BULLDOZER>; \
-    m_map[algo][AV_DOUBLE][ASM_INTEL]     = cryptonight_double_hash_asm<algo, ASM_INTEL>;     \
-    m_map[algo][AV_DOUBLE][ASM_RYZEN]     = cryptonight_double_hash_asm<algo, ASM_RYZEN>;     \
-    m_map[algo][AV_DOUBLE][ASM_BULLDOZER] = cryptonight_double_hash_asm<algo, ASM_BULLDOZER>;
+    m_map[algo][AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
+    m_map[algo][AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
+    m_map[algo][AV_SINGLE][Assembly::BULLDOZER] = cryptonight_single_hash_asm<algo, Assembly::BULLDOZER>; \
+    m_map[algo][AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
+    m_map[algo][AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
+    m_map[algo][AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>;
 
 
 extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx **ctx);
@@ -226,8 +226,8 @@ xmrig::CnHash::CnHash()
     ADD_FN_ASM(Algorithm::CN_DOUBLE);
 
 #   ifdef XMRIG_ALGO_CN_GPU
-    m_map[Algorithm::CN_GPU][AV_SINGLE][ASM_NONE]      = cryptonight_single_hash_gpu<Algorithm::CN_GPU, false>;
-    m_map[Algorithm::CN_GPU][AV_SINGLE_SOFT][ASM_NONE] = cryptonight_single_hash_gpu<Algorithm::CN_GPU, true>;
+    m_map[Algorithm::CN_GPU][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash_gpu<Algorithm::CN_GPU, false>;
+    m_map[Algorithm::CN_GPU][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash_gpu<Algorithm::CN_GPU, true>;
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
@@ -252,18 +252,18 @@ xmrig::CnHash::CnHash()
 }
 
 
-xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av, Assembly assembly) const
+xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly) const
 {
     if (!algorithm.isValid()) {
         return nullptr;
     }
 
 #   ifdef XMRIG_FEATURE_ASM
-    cn_hash_fun fun = m_map[algorithm][av][assembly == ASM_AUTO ? Cpu::info()->assembly() : assembly];
+    cn_hash_fun fun = m_map[algorithm][av][assembly == Assembly::AUTO ? Cpu::info()->assembly() : assembly];
     if (fun) {
         return fun;
     }
 #   endif
 
-    return m_map[algorithm][av][ASM_NONE];
+    return m_map[algorithm][av][Assembly::NONE];
 }

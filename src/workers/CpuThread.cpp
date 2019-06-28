@@ -27,14 +27,12 @@
 
 #include "base/io/log/Log.h"
 #include "common/cpu/Cpu.h"
-#include "crypto/cn/Asm.h"
 #include "crypto/cn/CnHash.h"
+#include "crypto/common/Assembly.h"
 #include "crypto/common/VirtualMemory.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
 #include "workers/CpuThread.h"
-
-
 
 
 
@@ -136,7 +134,7 @@ xmrig::CpuThread::Data xmrig::CpuThread::parse(const rapidjson::Value &object)
     }
 
 #   ifdef XMRIG_FEATURE_ASM
-    data.assembly = Asm::parse(object["asm"]);
+    data.assembly = object["asm"];
 #   endif
 
     return data;
@@ -181,7 +179,7 @@ void xmrig::CpuThread::print() const
               index(), static_cast<int>(multiway()), static_cast<int>(m_av));
 
 #   ifdef XMRIG_FEATURE_ASM
-    LOG_DEBUG("               assembly: %s, affine_to_cpu: %" PRId64, Asm::toString(m_assembly), affinity());
+    LOG_DEBUG("               assembly: %s, affine_to_cpu: %" PRId64, m_assembly.toString(), affinity());
 #   else
     LOG_DEBUG("               affine_to_cpu: %" PRId64, affinity());
 #   endif
@@ -220,7 +218,7 @@ rapidjson::Value xmrig::CpuThread::toConfig(rapidjson::Document &doc) const
     obj.AddMember("affine_to_cpu",  affinity() == -1L ? Value(kFalseType) : Value(affinity()), allocator);
 
 #   ifdef XMRIG_FEATURE_ASM
-    obj.AddMember("asm", Asm::toJSON(m_assembly), allocator);
+    obj.AddMember("asm", m_assembly.toJSON(), allocator);
 #   endif
 
     return obj;

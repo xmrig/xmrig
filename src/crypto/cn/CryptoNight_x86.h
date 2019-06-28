@@ -577,10 +577,10 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             const int code_size = v4_random_math_init<ALGO>(code, height);
 
             if (ALGO == Algorithm::CN_WOW) {
-                wow_soft_aes_compile_code(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), ASM_NONE);
+                wow_soft_aes_compile_code(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), Assembly::NONE);
             }
             else if (ALGO == Algorithm::CN_R) {
-                v4_soft_aes_compile_code(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), ASM_NONE);
+                v4_soft_aes_compile_code(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), Assembly::NONE);
             }
 
             ctx[0]->generated_code_data = { ALGO, height };
@@ -849,7 +849,7 @@ void cn_r_compile_code_double<xmrig::Algorithm::CN_WOW>(const V4_Instruction* co
 namespace xmrig {
 
 
-template<xmrig::Algorithm::Id ALGO, xmrig::Assembly ASM>
+template<Algorithm::Id ALGO, Assembly::Id ASM>
 inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
     constexpr CnAlgo<ALGO> props;
@@ -866,10 +866,10 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
     cn_explode_scratchpad<ALGO, false>(reinterpret_cast<const __m128i*>(ctx[0]->state), reinterpret_cast<__m128i*>(ctx[0]->memory));
 
     if (ALGO == Algorithm::CN_2) {
-        if (ASM == ASM_INTEL) {
+        if (ASM == Assembly::INTEL) {
             cnv2_mainloop_ivybridge_asm(ctx);
         }
-        else if (ASM == ASM_RYZEN) {
+        else if (ASM == Assembly::RYZEN) {
             cnv2_mainloop_ryzen_asm(ctx);
         }
         else {
@@ -877,10 +877,10 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
         }
     }
     else if (ALGO == Algorithm::CN_HALF) {
-        if (ASM == ASM_INTEL) {
+        if (ASM == Assembly::INTEL) {
             cn_half_mainloop_ivybridge_asm(ctx);
         }
-        else if (ASM == ASM_RYZEN) {
+        else if (ASM == Assembly::RYZEN) {
             cn_half_mainloop_ryzen_asm(ctx);
         }
         else {
@@ -889,10 +889,10 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
     }
 #   ifdef XMRIG_ALGO_CN_PICO
     else if (ALGO == Algorithm::CN_PICO_0) {
-        if (ASM == ASM_INTEL) {
+        if (ASM == Assembly::INTEL) {
             cn_trtl_mainloop_ivybridge_asm(ctx);
         }
-        else if (ASM == ASM_RYZEN) {
+        else if (ASM == Assembly::RYZEN) {
             cn_trtl_mainloop_ryzen_asm(ctx);
         }
         else {
@@ -904,10 +904,10 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
         cnv2_rwz_mainloop_asm(ctx);
     }
     else if (ALGO == Algorithm::CN_ZLS) {
-        if (ASM == ASM_INTEL) {
+        if (ASM == Assembly::INTEL) {
             cn_zls_mainloop_ivybridge_asm(ctx);
         }
-        else if (ASM == ASM_RYZEN) {
+        else if (ASM == Assembly::RYZEN) {
             cn_zls_mainloop_ryzen_asm(ctx);
         }
         else {
@@ -915,10 +915,10 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
         }
     }
     else if (ALGO == Algorithm::CN_DOUBLE) {
-        if (ASM == ASM_INTEL) {
+        if (ASM == Assembly::INTEL) {
             cn_double_mainloop_ivybridge_asm(ctx);
         }
-        else if (ASM == ASM_RYZEN) {
+        else if (ASM == Assembly::RYZEN) {
             cn_double_mainloop_ryzen_asm(ctx);
         }
         else {
@@ -935,7 +935,7 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
 }
 
 
-template<xmrig::Algorithm::Id ALGO, xmrig::Assembly ASM>
+template<Algorithm::Id ALGO, Assembly::Id ASM>
 inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
     constexpr CnAlgo<ALGO> props;

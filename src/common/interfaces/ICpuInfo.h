@@ -30,7 +30,7 @@
 #include <stdint.h>
 
 
-#include "common/xmrig.h"
+#include "crypto/common/Assembly.h"
 
 
 namespace xmrig {
@@ -39,7 +39,7 @@ namespace xmrig {
 class ICpuInfo
 {
 public:
-    virtual ~ICpuInfo() {}
+    virtual ~ICpuInfo() = default;
 
     virtual bool hasAES() const                                               = 0;
     virtual bool hasAVX2() const                                              = 0;
@@ -53,7 +53,7 @@ public:
     virtual int32_t sockets() const                                           = 0;
     virtual int32_t threads() const                                           = 0;
     virtual size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const = 0;
-    virtual xmrig::Assembly assembly() const                                  = 0;
+    virtual Assembly::Id assembly() const                                     = 0;
 };
 
 

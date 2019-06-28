@@ -42,7 +42,7 @@ class CpuThread : public IThread
 public:
     struct Data
     {
-        inline Data() : assembly(ASM_AUTO), valid(false), affinity(-1L), multiway(SingleWay) {}
+        inline Data() : valid(false), affinity(-1L), multiway(SingleWay) {}
 
         inline void setMultiway(int value)
         {

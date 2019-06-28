@@ -33,6 +33,7 @@
 
 #include "common/xmrig.h"
 #include "crypto/cn/CnAlgo.h"
+#include "crypto/common/Assembly.h"
 
 
 struct cryptonight_ctx;
@@ -50,10 +51,10 @@ class CnHash
 public:
     CnHash();
 
-    cn_hash_fun fn(const Algorithm &algorithm, AlgoVariant av, Assembly assembly) const;
+    cn_hash_fun fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly) const;
 
 private:
-    cn_hash_fun m_map[Algorithm::MAX][AV_MAX][ASM_MAX] = {};
+    cn_hash_fun m_map[Algorithm::MAX][AV_MAX][Assembly::MAX] = {};
 };
 
 

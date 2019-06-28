@@ -36,7 +36,11 @@ if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     endif()
 
     add_library(${XMRIG_ASM_LIBRARY} STATIC ${XMRIG_ASM_FILES})
-    set(XMRIG_ASM_SOURCES src/crypto/cn/Asm.h src/crypto/cn/Asm.cpp src/crypto/cn/r/CryptonightR_gen.cpp)
+    set(XMRIG_ASM_SOURCES
+        src/crypto/common/Assembly.h
+        src/crypto/common/Assembly.cpp
+        src/crypto/cn/r/CryptonightR_gen.cpp
+        )
     set_property(TARGET ${XMRIG_ASM_LIBRARY} PROPERTY LINKER_LANGUAGE C)
 
     add_definitions(/DXMRIG_FEATURE_ASM)

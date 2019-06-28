@@ -32,7 +32,7 @@
 #include "base/kernel/interfaces/IJsonReader.h"
 #include "common/cpu/Cpu.h"
 #include "core/config/Config.h"
-#include "crypto/cn/Asm.h"
+#include "crypto/common/Assembly.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -45,7 +45,6 @@ static char affinity_tmp[20] = { 0 };
 xmrig::Config::Config() :
     m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
-    m_assembly(ASM_AUTO),
     m_hugePages(true),
     m_safe(false),
     m_shouldSave(false),
@@ -99,7 +98,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("http",         m_http.toJSON(doc), allocator);
 
 #   ifdef XMRIG_FEATURE_ASM
-    doc.AddMember("asm",          Asm::toJSON(m_assembly), allocator);
+    doc.AddMember("asm",          m_assembly.toJSON(), allocator);
 #   endif
 
     doc.AddMember("autosave",     isAutoSave(), allocator);
@@ -285,6 +284,6 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
 #ifdef XMRIG_FEATURE_ASM
 void xmrig::Config::setAssembly(const rapidjson::Value &assembly)
 {
-    m_assembly = Asm::parse(assembly);
+    m_assembly = assembly;
 }
 #endif

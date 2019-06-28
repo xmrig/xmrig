@@ -29,6 +29,7 @@
 typedef void(*void_func)();
 
 #include "crypto/cn/asm/CryptonightR_template.h"
+#include "crypto/common/Assembly.h"
 #include "crypto/common/VirtualMemory.h"
 #include "Mem.h"
 
@@ -42,7 +43,7 @@ static inline void add_code(uint8_t* &p, void (*p1)(), void (*p2)())
     }
 }
 
-static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int code_size, const void_func* instructions, const void_func* instructions_mov, bool is_64_bit, xmrig::Assembly ASM)
+static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int code_size, const void_func* instructions, const void_func* instructions_mov, bool is_64_bit, xmrig::Assembly::Id ASM)
 {
     uint32_t prev_rot_src = (uint32_t)(-1);
 
@@ -76,7 +77,7 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
 
         void_func begin = instructions[c];
 
-        if ((ASM = xmrig::ASM_BULLDOZER) && (inst.opcode == MUL) && !is_64_bit) {
+        if ((ASM = xmrig::Assembly::BULLDOZER) && (inst.opcode == MUL) && !is_64_bit) {
             // AMD Bulldozer has latency 4 for 32-bit IMUL and 6 for 64-bit IMUL
             // Always use 32-bit IMUL for AMD Bulldozer in 32-bit mode - skip prefix 0x48 and change 0x49 to 0x41
             uint8_t* prefix = reinterpret_cast<uint8_t*>(begin);
