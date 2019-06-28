@@ -77,7 +77,7 @@ int xmrig::App::exec()
 
     background();
 
-    Mem::init(m_controller->config()->isHugePages());
+    Mem::init(m_controller->config()->cpu().isHugePages());
 
     Summary::print(m_controller);
 

@@ -86,9 +86,9 @@ static void print_threads(xmrig::Config *config)
 {
     if (config->threadsMode() != xmrig::Config::Advanced) {
         char buf[32] = { 0 };
-        if (config->affinity() != -1L) {
-            snprintf(buf, sizeof buf, ", affinity=0x%" PRIX64, config->affinity());
-        }
+//        if (config->affinity() != -1L) {
+//            snprintf(buf, sizeof buf, ", affinity=0x%" PRIX64, config->affinity());
+//        }
 
         xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", av=%d, %sdonate=%d%%") WHITE_BOLD("%s"),
                           "THREADS",
@@ -109,13 +109,13 @@ static void print_threads(xmrig::Config *config)
     }
 
 #   ifdef XMRIG_FEATURE_ASM
-    if (config->assembly() == xmrig::Assembly::AUTO) {
+    if (config->cpu().assembly() == xmrig::Assembly::AUTO) {
         const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
 
         xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s"), "ASSEMBLY", asmName(assembly));
     }
     else {
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s"), "ASSEMBLY", asmName(config->assembly()));
+        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s"), "ASSEMBLY", asmName(config->cpu().assembly()));
     }
 #   endif
 }

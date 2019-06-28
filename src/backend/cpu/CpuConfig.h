@@ -22,55 +22,51 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ASSEMBLY_H
-#define XMRIG_ASSEMBLY_H
+#ifndef XMRIG_CPUCONFIG_H
+#define XMRIG_CPUCONFIG_H
 
 
-#include "common/xmrig.h"
-#include "rapidjson/fwd.h"
+#include "crypto/common/Assembly.h"
 
 
 namespace xmrig {
 
 
-class Assembly
+class CpuConfig
 {
 public:
-    enum Id : int {
-        NONE,
-        AUTO,
-        INTEL,
-        RYZEN,
-        BULLDOZER,
-        MAX
+    enum AesMode {
+        AES_AUTO,
+        AES_HW,
+        AES_SOFT
     };
 
+    CpuConfig();
 
-    inline Assembly()                                                   {}
-    inline Assembly(Id id) : m_id(id)                                   {}
-    inline Assembly(const char *assembly) : m_id(parse(assembly))       {}
-    inline Assembly(const rapidjson::Value &value) : m_id(parse(value)) {}
+    bool isHwAES() const;
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    void read(const rapidjson::Value &value);
 
-    static Id parse(const char *assembly, Id defaultValue = AUTO);
-    static Id parse(const rapidjson::Value &value, Id defaultValue = AUTO);
-
-    const char *toString() const;
-    rapidjson::Value toJSON() const;
-
-    inline bool isEqual(const Assembly &other) const      { return m_id == other.m_id; }
-
-    inline bool operator!=(const Assembly &other) const   { return !isEqual(other); }
-    inline bool operator!=(const Assembly::Id &id) const  { return m_id != id; }
-    inline bool operator==(const Assembly &other) const   { return isEqual(other); }
-    inline bool operator==(const Assembly::Id &id) const  { return m_id == id; }
-    inline operator Assembly::Id() const                  { return m_id; }
+    inline bool isEnabled() const               { return m_enabled; }
+    inline bool isHugePages() const             { return m_hugePages; }
+    inline bool isShouldSave() const            { return m_shouldSave; }
+    inline const Assembly &assembly() const     { return m_assembly; }
+    inline int priority() const                 { return m_priority; }
 
 private:
-    Id m_id = AUTO;
+    void setAesMode(const rapidjson::Value &aesMode);
+    void setPriority(int priority);
+
+    AesMode m_aes        = AES_AUTO;
+    Assembly m_assembly;
+    bool m_enabled       = true;
+    bool m_hugePages     = true;
+    bool m_shouldSave    = false;
+    int m_priority       = -1;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_ASSEMBLY_H */
+#endif /* XMRIG_CPUCONFIG_H */

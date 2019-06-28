@@ -18,11 +18,13 @@ option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
 include (src/base/base.cmake)
+include (src/backend/cpu/cpu.cmake)
 
 
 set(HEADERS
     "${HEADERS_BASE}"
     "${HEADERS_BASE_HTTP}"
+    "${HEADERS_CPU}"
     src/api/interfaces/IApiListener.h
     src/App.h
     src/common/cpu/Cpu.h
@@ -83,6 +85,7 @@ endif()
 set(SOURCES
     "${SOURCES_BASE}"
     "${SOURCES_BASE_HTTP}"
+    "${SOURCES_CPU}"
     src/App.cpp
     src/common/Platform.cpp
     src/core/config/Config.cpp

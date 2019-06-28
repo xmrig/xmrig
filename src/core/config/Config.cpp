@@ -39,24 +39,10 @@
 #include "workers/CpuThread.h"
 
 
-static char affinity_tmp[20] = { 0 };
-
-
 xmrig::Config::Config() :
-    m_aesMode(AES_AUTO),
     m_algoVariant(AV_AUTO),
-    m_hugePages(true),
-    m_safe(false),
-    m_shouldSave(false),
-    m_maxCpuUsage(100),
-    m_priority(-1)
+    m_shouldSave(false)
 {
-}
-
-
-bool xmrig::Config::isHwAES() const
-{
-    return (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_HW;
 }
 
 
@@ -66,18 +52,10 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    m_hugePages = reader.getBool("huge-pages", true);
-    m_safe      = reader.getBool("safe");
+    m_cpu.read(reader.getValue("cpu"));
 
-    setAesMode(reader.getValue("hw-aes"));
     setAlgoVariant(reader.getInt("av"));
-    setMaxCpuUsage(reader.getInt("max-cpu-usage", 100));
-    setPriority(reader.getInt("cpu-priority", -1));
     setThreads(reader.getValue("threads"));
-
-#   ifdef XMRIG_FEATURE_ASM
-    setAssembly(reader.getValue("asm"));
-#   endif
 
     return finalize();
 }
@@ -96,36 +74,29 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     api.AddMember("worker-id",    m_apiWorkerId.toJSON(), allocator);
     doc.AddMember("api",          api, allocator);
     doc.AddMember("http",         m_http.toJSON(doc), allocator);
-
-#   ifdef XMRIG_FEATURE_ASM
-    doc.AddMember("asm",          m_assembly.toJSON(), allocator);
-#   endif
-
     doc.AddMember("autosave",     isAutoSave(), allocator);
     doc.AddMember("av",           algoVariant(), allocator);
     doc.AddMember("background",   isBackground(), allocator);
     doc.AddMember("colors",       Log::colors, allocator);
 
-    if (affinity() != -1L) {
-        snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, affinity());
-        doc.AddMember("cpu-affinity", StringRef(affinity_tmp), allocator);
-    }
-    else {
-        doc.AddMember("cpu-affinity", kNullType, allocator);
-    }
+//    if (affinity() != -1L) {
+//        snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, affinity());
+//        doc.AddMember("cpu-affinity", StringRef(affinity_tmp), allocator);
+//    }
+//    else {
+//        doc.AddMember("cpu-affinity", kNullType, allocator);
+//    }
 
-    doc.AddMember("cpu-priority",      priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
+
+    doc.AddMember("cpu", m_cpu.toJSON(doc), allocator);
+
     doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
     doc.AddMember("donate-over-proxy", m_pools.proxyDonate(), allocator);
-    doc.AddMember("huge-pages",        isHugePages(), allocator);
-    doc.AddMember("hw-aes",            m_aesMode == AES_AUTO ? Value(kNullType) : Value(m_aesMode == AES_HW), allocator);
     doc.AddMember("log-file",          m_logFile.toJSON(), allocator);
-    doc.AddMember("max-cpu-usage",     m_maxCpuUsage, allocator);
     doc.AddMember("pools",             m_pools.toJSON(doc), allocator);
     doc.AddMember("print-time",        printTime(), allocator);
     doc.AddMember("retries",           m_pools.retries(), allocator);
     doc.AddMember("retry-pause",       m_pools.retryPause(), allocator);
-    doc.AddMember("safe",              m_safe, allocator);
 
     if (threadsMode() != Simple) {
         Value threads(kArrayType);
@@ -154,7 +125,7 @@ bool xmrig::Config::finalize()
         m_threads.mode = Advanced;
 
         for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, algorithm, m_threads.cpu[i], m_priority, !isHwAES()));
+            m_threads.list.push_back(CpuThread::createFromData(i, algorithm, m_threads.cpu[i], m_cpu.priority(), !m_cpu.isHwAES()));
         }
 
         return true;
@@ -166,17 +137,17 @@ bool xmrig::Config::finalize()
     const size_t size = CpuThread::multiway(av) * CnAlgo<>::memory(algorithm) / 1024; // FIXME MEMORY
 
     if (!m_threads.count) {
-        m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
+        m_threads.count = Cpu::info()->optimalThreadsCount(size, 100);
     }
-    else if (m_safe) {
-        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-        if (m_threads.count > count) {
-            m_threads.count = count;
-        }
-    }
+//    else if (m_safe) {
+//        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
+//        if (m_threads.count > count) {
+//            m_threads.count = count;
+//        }
+//    }
 
     for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, algorithm, av, m_threads.mask, m_priority, m_assembly));
+        m_threads.list.push_back(CpuThread::createFromAV(i, algorithm, av, m_threads.mask, m_cpu.priority(), m_cpu.assembly()));
     }
 
     m_shouldSave = m_threads.mode == Automatic;
@@ -185,34 +156,10 @@ bool xmrig::Config::finalize()
 }
 
 
-void xmrig::Config::setAesMode(const rapidjson::Value &aesMode)
-{
-    if (aesMode.IsBool()) {
-        m_aesMode = aesMode.GetBool() ? AES_HW : AES_SOFT;
-    }
-}
-
-
 void xmrig::Config::setAlgoVariant(int av)
 {
     if (av >= AV_AUTO && av < AV_MAX) {
         m_algoVariant = static_cast<AlgoVariant>(av);
-    }
-}
-
-
-void xmrig::Config::setMaxCpuUsage(int max)
-{
-    if (max > 0 && max <= 100) {
-        m_maxCpuUsage = max;
-    }
-}
-
-
-void xmrig::Config::setPriority(int priority)
-{
-    if (priority >= 0 && priority <= 5) {
-        m_priority = priority;
     }
 }
 
@@ -257,9 +204,9 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
         return Cpu::info()->hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
     }
 
-    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
-        return static_cast<AlgoVariant>(m_algoVariant + 2);
-    }
+//    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
+//        return static_cast<AlgoVariant>(m_algoVariant + 2);
+//    }
 
     return m_algoVariant;
 }
@@ -272,18 +219,10 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
         return Cpu::info()->hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
     }
 
-    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
-        return static_cast<AlgoVariant>(m_algoVariant + 2);
-    }
+//    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
+//        return static_cast<AlgoVariant>(m_algoVariant + 2);
+//    }
 
     return m_algoVariant;
-}
-#endif
-
-
-#ifdef XMRIG_FEATURE_ASM
-void xmrig::Config::setAssembly(const rapidjson::Value &assembly)
-{
-    m_assembly = assembly;
 }
 #endif
