@@ -27,8 +27,6 @@ set(HEADERS
     "${HEADERS_CPU}"
     src/api/interfaces/IApiListener.h
     src/App.h
-    src/common/cpu/Cpu.h
-    src/common/interfaces/ICpuInfo.h
     src/common/Platform.h
     src/common/xmrig.h
     src/core/config/Config_default.h
@@ -177,23 +175,6 @@ else()
 endif()
 
 include(cmake/flags.cmake)
-
-if (WITH_LIBCPUID)
-    add_subdirectory(src/3rdparty/libcpuid)
-
-    include_directories(src/3rdparty/libcpuid)
-    set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/core/cpu/AdvancedCpuInfo.h src/core/cpu/AdvancedCpuInfo.cpp src/core/cpu/Cpu.cpp)
-else()
-    add_definitions(/DXMRIG_NO_LIBCPUID)
-    set(SOURCES_CPUID src/common/cpu/BasicCpuInfo.h src/common/cpu/Cpu.cpp)
-
-    if (XMRIG_ARM)
-        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo_arm.cpp)
-    else()
-        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo.cpp)
-    endif()
-endif()
 
 include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)

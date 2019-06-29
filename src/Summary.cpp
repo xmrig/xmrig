@@ -28,9 +28,9 @@
 #include <uv.h>
 
 
+#include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Pool.h"
-#include "common/cpu/Cpu.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/common/Assembly.h"
@@ -76,7 +76,7 @@ static void print_cpu(xmrig::Config *)
                Cpu::info()->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
                Cpu::info()->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"
                );
-#   ifndef XMRIG_NO_LIBCPUID
+#   ifdef XMRIG_FEATURE_LIBCPUID
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
 #   endif
 }

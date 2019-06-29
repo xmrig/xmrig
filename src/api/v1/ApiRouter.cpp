@@ -29,8 +29,8 @@
 
 #include "api/interfaces/IApiRequest.h"
 #include "api/v1/ApiRouter.h"
+#include "backend/cpu/Cpu.h"
 #include "base/kernel/Base.h"
-#include "common/cpu/Cpu.h"
 #include "common/Platform.h"
 #include "core/config/Config.h"
 #include "interfaces/IThread.h"

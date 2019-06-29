@@ -45,7 +45,8 @@
 #endif
 
 
-#include "common/cpu/BasicCpuInfo.h"
+#include "backend/cpu/platform/BasicCpuInfo.h"
+#include "crypto/common/Assembly.h"
 
 
 #define VENDOR_ID                  (0)
@@ -121,7 +122,7 @@ static inline bool has_ossave()
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
-    m_assembly(ASM_NONE),
+    m_assembly(Assembly::NONE),
     m_aes(has_aes_ni()),
     m_avx2(has_avx2() && has_ossave()),
     m_brand(),
@@ -141,10 +142,10 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         memcpy(vendor + 8, &data[2], 4);
 
         if (memcmp(vendor, "GenuineIntel", 12) == 0) {
-            m_assembly = ASM_INTEL;
+            m_assembly = Assembly::INTEL;
         }
         else if (memcmp(vendor, "AuthenticAMD", 12) == 0) {
-            m_assembly = ASM_RYZEN;
+            m_assembly = Assembly::RYZEN;
         }
     }
 #   endif

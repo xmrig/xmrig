@@ -27,7 +27,7 @@
 #include <string.h>
 
 
-#include "core/cpu/AdvancedCpuInfo.h"
+#include "backend/cpu/platform/AdvancedCpuInfo.h"
 
 
 xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :

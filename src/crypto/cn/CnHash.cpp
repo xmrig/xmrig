@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 
-#include "common/cpu/Cpu.h"
+#include "backend/cpu/Cpu.h"
 #include "crypto/cn/CnHash.h"
 #include "crypto/common/VirtualMemory.h"
 

@@ -26,7 +26,6 @@
 
 
 #include "base/io/log/Log.h"
-#include "common/cpu/Cpu.h"
 #include "crypto/cn/CnHash.h"
 #include "crypto/common/Assembly.h"
 #include "crypto/common/VirtualMemory.h"

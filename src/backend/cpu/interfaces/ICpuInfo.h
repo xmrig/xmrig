@@ -41,10 +41,15 @@ class ICpuInfo
 public:
     virtual ~ICpuInfo() = default;
 
+#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
+    inline constexpr bool isX64() const { return true; }
+#   else
+    inline constexpr bool isX64() const { return false; }
+#   endif
+
     virtual bool hasAES() const                                               = 0;
     virtual bool hasAVX2() const                                              = 0;
     virtual bool isSupported() const                                          = 0;
-    virtual bool isX64() const                                                = 0;
     virtual const char *brand() const                                         = 0;
     virtual int32_t cores() const                                             = 0;
     virtual int32_t L2() const                                                = 0;

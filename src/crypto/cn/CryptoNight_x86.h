@@ -35,7 +35,7 @@
 #endif
 
 
-#include "common/cpu/Cpu.h"
+#include "backend/cpu/Cpu.h"
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"

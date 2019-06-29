@@ -28,9 +28,9 @@
 #include <inttypes.h>
 
 
+#include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IJsonReader.h"
-#include "common/cpu/Cpu.h"
 #include "core/config/Config.h"
 #include "crypto/common/Assembly.h"
 #include "rapidjson/document.h"

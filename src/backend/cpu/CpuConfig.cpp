@@ -23,9 +23,9 @@
  */
 
 
+#include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuConfig.h"
 #include "base/io/json/Json.h"
-#include "common/cpu/Cpu.h"
 #include "rapidjson/document.h"
 
 

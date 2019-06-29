@@ -22,20 +22,20 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ADVANCEDCPUINFO_H
-#define XMRIG_ADVANCEDCPUINFO_H
+#ifndef XMRIG_BASICCPUINFO_H
+#define XMRIG_BASICCPUINFO_H
 
 
-#include "common/interfaces/ICpuInfo.h"
+#include "backend/cpu/interfaces/ICpuInfo.h"
 
 
 namespace xmrig {
 
 
-class AdvancedCpuInfo : public ICpuInfo
+class BasicCpuInfo : public ICpuInfo
 {
 public:
-    AdvancedCpuInfo();
+    BasicCpuInfo();
 
 protected:
     size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const override;
@@ -45,29 +45,18 @@ protected:
     inline bool hasAVX2() const override            { return m_avx2; }
     inline bool isSupported() const override        { return true; }
     inline const char *brand() const override       { return m_brand; }
-    inline int32_t cores() const override           { return m_cores; }
-    inline int32_t L2() const override              { return m_L2; }
-    inline int32_t L3() const override              { return m_L3; }
+    inline int32_t cores() const override           { return -1; }
+    inline int32_t L2() const override              { return -1; }
+    inline int32_t L3() const override              { return -1; }
     inline int32_t nodes() const override           { return -1; }
-    inline int32_t sockets() const override         { return m_sockets; }
+    inline int32_t sockets() const override         { return 1; }
     inline int32_t threads() const override         { return m_threads; }
-
-#   if defined(__x86_64__) || defined(_M_AMD64)
-    inline bool isX64() const override { return true; }
-#   else
-    inline bool isX64() const override { return false; }
-#   endif
 
 private:
     Assembly m_assembly;
     bool m_aes;
     bool m_avx2;
-    bool m_L2_exclusive;
     char m_brand[64];
-    int32_t m_cores;
-    int32_t m_L2;
-    int32_t m_L3;
-    int32_t m_sockets;
     int32_t m_threads;
 };
 
@@ -75,4 +64,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_ADVANCEDCPUINFO_H */
+#endif /* XMRIG_BASICCPUINFO_H */
