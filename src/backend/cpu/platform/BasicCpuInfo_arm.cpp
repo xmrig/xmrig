@@ -32,7 +32,7 @@
 #endif
 
 
-#include "common/cpu/BasicCpuInfo.h"
+#include "backend/cpu/platform/BasicCpuInfo.h"
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :

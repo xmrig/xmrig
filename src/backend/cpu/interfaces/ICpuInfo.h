@@ -42,9 +42,9 @@ public:
     virtual ~ICpuInfo() = default;
 
 #   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
-    inline constexpr bool isX64() const { return true; }
+    inline constexpr static bool isX64() { return true; }
 #   else
-    inline constexpr bool isX64() const { return false; }
+    inline constexpr static bool isX64() { return false; }
 #   endif
 
     virtual bool hasAES() const                                               = 0;
