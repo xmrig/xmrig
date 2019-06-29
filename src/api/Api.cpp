@@ -41,6 +41,7 @@
 #include "base/tools/Chrono.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "crypto/common/Algorithm.h"
 #include "crypto/common/keccak.h"
 #include "version.h"
 
@@ -126,6 +127,32 @@ void xmrig::Api::exec(IApiRequest &request)
         request.reply().AddMember("id",        StringRef(m_id),       allocator);
         request.reply().AddMember("worker_id", StringRef(m_workerId), allocator);
         request.reply().AddMember("uptime",    (Chrono::steadyMSecs() - m_timestamp) / 1000, allocator);
+
+        Value features(kArrayType);
+#       ifdef XMRIG_FEATURE_API
+        features.PushBack("api", allocator);
+#       endif
+#       ifdef XMRIG_FEATURE_ASM
+        features.PushBack("asm", allocator);
+#       endif
+#       ifdef XMRIG_FEATURE_HTTP
+        features.PushBack("http", allocator);
+#       endif
+#       ifdef XMRIG_FEATURE_LIBCPUID
+        features.PushBack("cpuid", allocator);
+#       endif
+#       ifdef XMRIG_FEATURE_TLS
+        features.PushBack("tls", allocator);
+#       endif
+        request.reply().AddMember("features", features, allocator);
+
+        Value algorithms(kArrayType);
+
+        for (int i = 0; i < Algorithm::MAX; ++i) {
+            algorithms.PushBack(StringRef(Algorithm(static_cast<Algorithm::Id>(i)).shortName()), allocator);
+        }
+
+        request.reply().AddMember("algorithms", algorithms, allocator);
     }
 
     for (IApiListener *listener : m_listeners) {
