@@ -162,9 +162,9 @@ void MultiWorker<N>::start()
             const xmrig::Variant v = m_state.job.algorithm().variant();
 
 #           ifdef XMRIG_ALGO_RANDOMX
-            if (v == xmrig::VARIANT_RX_WOW) {
+            if ((v == xmrig::VARIANT_RX_WOW) || (v == xmrig::VARIANT_RX_LOKI)) {
                 allocateRandomX_VM();
-                Workers::updateDataset(m_state.job.seedHash(), m_totalWays);
+                Workers::updateDataset(m_state.job.seedHash(), v, m_totalWays);
                 randomx_calculate_hash(m_rx_vm, m_state.blob, m_state.job.size(), m_hash);
             }
             else

@@ -518,6 +518,7 @@ void xmrig::Pool::rebuild()
     addVariant(VARIANT_ZLS);
     addVariant(VARIANT_DOUBLE);
     addVariant(VARIANT_RX_WOW);
+    addVariant(VARIANT_RX_LOKI);
     addVariant(VARIANT_AUTO);
 #   endif
 }

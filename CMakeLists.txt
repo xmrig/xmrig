@@ -161,13 +161,45 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
 
 if (WITH_RANDOMX)
-    find_package(RandomX REQUIRED)
-    include_directories(${RANDOMX_INCLUDE_DIR})
-
+    include_directories(src/crypto/randomx)
     add_definitions(/DXMRIG_ALGO_RANDOMX)
+    set(SOURCES_CRYPTO
+        "${SOURCES_CRYPTO}"
+        src/crypto/randomx/aes_hash.cpp
+        src/crypto/randomx/argon2_ref.c
+        src/crypto/randomx/bytecode_machine.cpp
+        src/crypto/randomx/dataset.cpp
+        src/crypto/randomx/soft_aes.cpp
+        src/crypto/randomx/virtual_memory.cpp
+        src/crypto/randomx/vm_interpreted.cpp
+        src/crypto/randomx/allocator.cpp
+        src/crypto/randomx/randomx.cpp
+        src/crypto/randomx/superscalar.cpp
+        src/crypto/randomx/vm_compiled.cpp
+        src/crypto/randomx/vm_interpreted_light.cpp
+        src/crypto/randomx/argon2_core.c
+        src/crypto/randomx/blake2_generator.cpp
+        src/crypto/randomx/instructions_portable.cpp
+        src/crypto/randomx/reciprocal.c
+        src/crypto/randomx/virtual_machine.cpp
+        src/crypto/randomx/vm_compiled_light.cpp
+        src/crypto/randomx/blake2/blake2b.c
+    )
+    if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+        enable_language(ASM_MASM)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/jit_compiler_x86_static.asm
+             src/crypto/randomx/jit_compiler_x86.cpp
+            )
+    elseif (ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64")
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/jit_compiler_x86_static.S
+             src/crypto/randomx/jit_compiler_x86.cpp
+            )
+        # cheat because cmake and ccache hate each other
+        set_property(SOURCE src/crypto/randomx/jit_compiler_x86_static.S PROPERTY LANGUAGE C)
+    endif()
 else()
-    set(RANDOMX_LIBRARIES "")
-
     remove_definitions(/DXMRIG_ALGO_RANDOMX)
 endif()
 
@@ -241,4 +273,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTP_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${RANDOMX_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
