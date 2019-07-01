@@ -185,13 +185,16 @@ if (WITH_RANDOMX)
         src/crypto/randomx/vm_compiled_light.cpp
         src/crypto/randomx/blake2/blake2b.c
     )
+    if (NOT ARCH_ID)
+        set(ARCH_ID ${CMAKE_HOST_SYSTEM_PROCESSOR})
+    endif()
     if (CMAKE_C_COMPILER_ID MATCHES MSVC)
         enable_language(ASM_MASM)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.asm
              src/crypto/randomx/jit_compiler_x86.cpp
             )
-    elseif (ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64")
+    elseif (ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64" OR ARCH_ID STREQUAL "AMD64")
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.S
              src/crypto/randomx/jit_compiler_x86.cpp

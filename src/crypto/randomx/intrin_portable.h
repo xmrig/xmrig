@@ -601,5 +601,5 @@ FORCE_INLINE rx_vec_i128 rx_aesdec_vec_i128(rx_vec_i128 v, rx_vec_i128 rkey) {
 double loadDoublePortable(const void* addr);
 uint64_t mulh(uint64_t, uint64_t);
 int64_t smulh(int64_t, int64_t);
-uint64_t rotl(uint64_t, unsigned int);
-uint64_t rotr(uint64_t, unsigned int);
+uint64_t rotl64(uint64_t, unsigned int);
+uint64_t rotr64(uint64_t, unsigned int);

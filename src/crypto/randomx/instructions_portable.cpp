@@ -51,14 +51,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#include <intrin.h>
 	#include <stdlib.h>
 
-	uint64_t rotl(uint64_t x, unsigned int c) {
+	uint64_t rotl64(uint64_t x, unsigned int c) {
 		return _rotl64(x, c);
 	}
-	uint64_t rotr(uint64_t x, unsigned int c) {
+	uint64_t rotr64(uint64_t x, unsigned int c) {
 		return _rotr64(x, c);
 	}
-	#define HAVE_ROTL
-	#define HAVE_ROTR
+	#define HAVE_ROTL64
+	#define HAVE_ROTR64
 
 	#if EVAL_DEFINE(__MACHINEARM64_X64(1))
 		uint64_t mulh(uint64_t a, uint64_t b) {
@@ -88,18 +88,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	}
 #endif
 
-#ifndef HAVE_ROTR
-	uint64_t rotr(uint64_t a, unsigned int b) {
+#ifndef HAVE_ROTR64
+	uint64_t rotr64(uint64_t a, unsigned int b) {
 		return (a >> b) | (a << (-b & 63));
 	}
-	#define HAVE_ROTR
+	#define HAVE_ROTR64
 #endif
 
-#ifndef HAVE_ROTL
-	uint64_t rotl(uint64_t a, unsigned int b) {
+#ifndef HAVE_ROTL64
+	uint64_t rotl64(uint64_t a, unsigned int b) {
 		return (a << b) | (a >> (-b & 63));
 	}
-	#define HAVE_ROTL
+	#define HAVE_ROTL64
 #endif
 
 #ifndef HAVE_MULH

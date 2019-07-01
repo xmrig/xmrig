@@ -859,7 +859,7 @@ namespace randomx {
 				r[instr.dst] *= r[instr.src];
 				break;
 			case SuperscalarInstructionType::IROR_C:
-				r[instr.dst] = rotr(r[instr.dst], instr.getImm32());
+				r[instr.dst] = rotr64(r[instr.dst], instr.getImm32());
 				break;
 			case SuperscalarInstructionType::IADD_C7:
 			case SuperscalarInstructionType::IADD_C8:

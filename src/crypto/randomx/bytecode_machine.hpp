@@ -161,11 +161,11 @@ namespace randomx {
 		}
 
 		static void exe_IROR_R(RANDOMX_EXE_ARGS) {
-			*ibc.idst = rotr(*ibc.idst, *ibc.isrc & 63);
+			*ibc.idst = rotr64(*ibc.idst, *ibc.isrc & 63);
 		}
 
 		static void exe_IROL_R(RANDOMX_EXE_ARGS) {
-			*ibc.idst = rotl(*ibc.idst, *ibc.isrc & 63);
+			*ibc.idst = rotl64(*ibc.idst, *ibc.isrc & 63);
 		}
 
 		static void exe_ISWAP_R(RANDOMX_EXE_ARGS) {
@@ -225,7 +225,7 @@ namespace randomx {
 		}
 
 		static void exe_CFROUND(RANDOMX_EXE_ARGS) {
-			rx_set_rounding_mode(rotr(*ibc.isrc, ibc.imm) % 4);
+			rx_set_rounding_mode(rotr64(*ibc.isrc, ibc.imm) % 4);
 		}
 
 		static void exe_ISTORE(RANDOMX_EXE_ARGS) {

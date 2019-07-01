@@ -410,6 +410,9 @@ void Workers::updateDataset(const uint8_t* seed_hash, xmrig::Variant variant, co
             case xmrig::VARIANT_RX_LOKI:
                 randomx_apply_config(RandomX_LokiConfig);
                 break;
+            default:
+                randomx_apply_config(RandomX_MoneroConfig);
+                break;
         }
         m_rx_variant = variant;
     }
