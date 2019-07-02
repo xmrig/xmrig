@@ -194,7 +194,7 @@ if (WITH_RANDOMX)
              src/crypto/randomx/jit_compiler_x86_static.asm
              src/crypto/randomx/jit_compiler_x86.cpp
             )
-    elseif (ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64" OR ARCH_ID STREQUAL "AMD64")
+    elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.S
              src/crypto/randomx/jit_compiler_x86.cpp

@@ -226,6 +226,11 @@ void xmrig::Algorithm::parseVariant(const char *variant)
     for (size_t i = 0; i < ARRAY_SIZE(variants); i++) {
         if (strcasecmp(variant, variants[i]) == 0) {
             m_variant = static_cast<Variant>(i);
+
+            if (m_variant == VARIANT_RX_WOW || m_variant == VARIANT_RX_LOKI) { // FIXME
+                m_algo = RANDOM_X;
+            }
+
             return;
         }
     }
