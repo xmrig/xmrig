@@ -1,0 +1,8 @@
+	xor r8, qword ptr [rbx+0]
+	xor r9, qword ptr [rbx+8]
+	xor r10, qword ptr [rbx+16]
+	xor r11, qword ptr [rbx+24]
+	xor r12, qword ptr [rbx+32]
+	xor r13, qword ptr [rbx+40]
+	xor r14, qword ptr [rbx+48]
+	xor r15, qword ptr [rbx+56]

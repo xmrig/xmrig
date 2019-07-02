@@ -81,6 +81,7 @@ enum Variant {
     VARIANT_ZLS    = 15, // CryptoNight variant 2 with 3/4 iterations (Zelerius)
     VARIANT_DOUBLE = 16, // CryptoNight variant 2 with double iterations (X-CASH)
     VARIANT_RX_WOW = 17, // RandomX (Wownero)
+    VARIANT_RX_LOKI = 18, // RandomX (Loki)
     VARIANT_MAX
 };
 
