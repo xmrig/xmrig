@@ -739,7 +739,7 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
             LOG_ERR("[%s] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", url(), message, error["code"].GetInt());
         }
 
-        if (isCriticalError(message)) {
+        if (m_id == 1 || isCriticalError(message)) {
             close();
         }
 
