@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,49 +22,50 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKER_H
-#define XMRIG_WORKER_H
 
-
-#include <atomic>
-#include <stdint.h>
-
-
-#include "interfaces/IWorker.h"
-#include "Mem.h"
-
-
-class ThreadHandle;
+#include "backend/cpu/CpuThread.h"
+#include "base/io/json/Json.h"
+#include "rapidjson/document.h"
 
 
 namespace xmrig {
-    class CpuThreadLegacy;
+
+
+static const char *kAffinity  = "affinity";
+static const char *kIntensity = "intensity";
+
+
 }
 
 
-class Worker : public IWorker
+
+xmrig::CpuThread::CpuThread(const rapidjson::Value &value)
 {
-public:
-    Worker(ThreadHandle *handle);
-
-    inline const MemInfo &memory() const       { return m_memory; }
-    inline size_t id() const override          { return m_id; }
-    inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
-    inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
-
-protected:
-    void storeStats();
-
-    const size_t m_id;
-    const size_t m_totalWays;
-    const uint32_t m_offset;
-    MemInfo m_memory;
-    std::atomic<uint64_t> m_hashCount;
-    std::atomic<uint64_t> m_timestamp;
-    uint64_t m_count;
-    uint64_t m_sequence;
-    xmrig::CpuThreadLegacy *m_thread;
-};
+    if (value.IsObject()) {
+        m_intensity = Json::getInt(value, kIntensity, -1);
+        m_affinity  = Json::getInt(value, kAffinity, -1);
+    }
+    else if (value.IsInt()) {
+        m_intensity = 1;
+        m_affinity  = value.GetInt();
+    }
+}
 
 
-#endif /* XMRIG_WORKER_H */
+rapidjson::Value xmrig::CpuThread::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+
+    if (intensity() > 1) {
+        auto &allocator = doc.GetAllocator();
+
+        Value obj(kObjectType);
+
+        obj.AddMember(StringRef(kIntensity),   m_intensity, allocator);
+        obj.AddMember(StringRef(kAffinity),    m_affinity, allocator);
+
+        return obj;
+    }
+
+    return Value(m_affinity);
+}

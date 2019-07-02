@@ -18,13 +18,13 @@ option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
 include (src/base/base.cmake)
-include (src/backend/cpu/cpu.cmake)
+include (src/backend/backend.cmake)
 
 
 set(HEADERS
     "${HEADERS_BASE}"
     "${HEADERS_BASE_HTTP}"
-    "${HEADERS_CPU}"
+    "${HEADERS_BACKEND}"
     src/api/interfaces/IApiListener.h
     src/App.h
     src/common/Platform.h
@@ -45,7 +45,7 @@ set(HEADERS
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
-    src/workers/CpuThread.h
+    src/workers/CpuThreadLegacy.h
     src/workers/Hashrate.h
     src/workers/MultiWorker.h
     src/workers/ThreadHandle.h
@@ -83,7 +83,7 @@ endif()
 set(SOURCES
     "${SOURCES_BASE}"
     "${SOURCES_BASE_HTTP}"
-    "${SOURCES_CPU}"
+    "${SOURCES_BACKEND}"
     src/App.cpp
     src/common/Platform.cpp
     src/core/config/Config.cpp
@@ -94,7 +94,7 @@ set(SOURCES
     src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
-    src/workers/CpuThread.cpp
+    src/workers/CpuThreadLegacy.cpp
     src/workers/Hashrate.cpp
     src/workers/MultiWorker.cpp
     src/workers/ThreadHandle.cpp

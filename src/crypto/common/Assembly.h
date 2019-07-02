@@ -59,10 +59,10 @@ public:
 
     inline bool isEqual(const Assembly &other) const      { return m_id == other.m_id; }
 
+    inline bool operator!=(Assembly::Id id) const         { return m_id != id; }
     inline bool operator!=(const Assembly &other) const   { return !isEqual(other); }
-    inline bool operator!=(const Assembly::Id &id) const  { return m_id != id; }
+    inline bool operator==(Assembly::Id id) const         { return m_id == id; }
     inline bool operator==(const Assembly &other) const   { return isEqual(other); }
-    inline bool operator==(const Assembly::Id &id) const  { return m_id == id; }
     inline operator Assembly::Id() const                  { return m_id; }
 
 private:

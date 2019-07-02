@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CPUTHREAD_H
-#define XMRIG_CPUTHREAD_H
+#ifndef XMRIG_CPUTHREADLEGACY_H
+#define XMRIG_CPUTHREADLEGACY_H
 
 
 #include "common/xmrig.h"
@@ -37,7 +37,7 @@ struct cryptonight_ctx;
 namespace xmrig {
 
 
-class CpuThread : public IThread
+class CpuThreadLegacy : public IThread
 {
 public:
     struct Data
@@ -59,13 +59,13 @@ public:
     };
 
 
-    CpuThread(size_t index, Algorithm algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly);
+    CpuThreadLegacy(size_t index, Algorithm algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly);
 
     cn_hash_fun fn(const Algorithm &algorithm) const;
 
     static bool isSoftAES(AlgoVariant av);
-    static CpuThread *createFromAV(size_t index, const Algorithm &algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly);
-    static CpuThread *createFromData(size_t index, const Algorithm &algorithm, const CpuThread::Data &data, int priority, bool softAES);
+    static CpuThreadLegacy *createFromAV(size_t index, const Algorithm &algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly);
+    static CpuThreadLegacy *createFromData(size_t index, const Algorithm &algorithm, const CpuThreadLegacy::Data &data, int priority, bool softAES);
     static Data parse(const rapidjson::Value &object);
     static Multiway multiway(AlgoVariant av);
 
@@ -106,4 +106,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CPUTHREAD_H */
+#endif /* XMRIG_CPUTHREADLEGACY_H */

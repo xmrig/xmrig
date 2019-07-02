@@ -39,25 +39,26 @@ public:
 
 protected:
     size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const override;
+    CpuThreads threads(const Algorithm &algorithm) const override;
 
     inline Assembly::Id assembly() const override   { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
     inline bool hasAVX2() const override            { return m_avx2; }
     inline bool isSupported() const override        { return true; }
     inline const char *brand() const override       { return m_brand; }
-    inline int32_t cores() const override           { return -1; }
-    inline int32_t L2() const override              { return -1; }
-    inline int32_t L3() const override              { return -1; }
-    inline int32_t nodes() const override           { return -1; }
-    inline int32_t sockets() const override         { return 1; }
-    inline int32_t threads() const override         { return m_threads; }
+    inline size_t cores() const override            { return 0; }
+    inline size_t L2() const override               { return 0; }
+    inline size_t L3() const override               { return 0; }
+    inline size_t nodes() const override            { return 0; }
+    inline size_t sockets() const override          { return 1; }
+    inline size_t threads() const override          { return m_threads; }
 
 private:
     Assembly m_assembly;
-    bool m_aes;
-    bool m_avx2;
-    char m_brand[64];
-    int32_t m_threads;
+    char m_brand[64 + 6];
+    const bool m_aes;
+    const bool m_avx2;
+    const size_t m_threads;
 };
 
 

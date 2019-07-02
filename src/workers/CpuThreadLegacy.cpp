@@ -31,14 +31,14 @@
 #include "crypto/common/VirtualMemory.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
-#include "workers/CpuThread.h"
+#include "workers/CpuThreadLegacy.h"
 
 
 
 static const xmrig::CnHash cnHash;
 
 
-xmrig::CpuThread::CpuThread(size_t index, Algorithm algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly) :
+xmrig::CpuThreadLegacy::CpuThreadLegacy(size_t index, Algorithm algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly) :
     m_algorithm(algorithm),
     m_av(av),
     m_assembly(assembly),
@@ -52,20 +52,20 @@ xmrig::CpuThread::CpuThread(size_t index, Algorithm algorithm, AlgoVariant av, M
 }
 
 
-xmrig::cn_hash_fun xmrig::CpuThread::fn(const Algorithm &algorithm) const
+xmrig::cn_hash_fun xmrig::CpuThreadLegacy::fn(const Algorithm &algorithm) const
 {
     return cnHash.fn(algorithm, m_av, m_assembly);
 }
 
 
 
-bool xmrig::CpuThread::isSoftAES(AlgoVariant av)
+bool xmrig::CpuThreadLegacy::isSoftAES(AlgoVariant av)
 {
     return av == AV_SINGLE_SOFT || av == AV_DOUBLE_SOFT || av > AV_PENTA;
 }
 
 
-xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, const Algorithm &algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly)
+xmrig::CpuThreadLegacy *xmrig::CpuThreadLegacy::createFromAV(size_t index, const Algorithm &algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly)
 {
     assert(av > AV_AUTO && av < AV_MAX);
 
@@ -88,11 +88,11 @@ xmrig::CpuThread *xmrig::CpuThread::createFromAV(size_t index, const Algorithm &
         }
     }
 
-    return new CpuThread(index, algorithm, av, multiway(av), cpuId, priority, isSoftAES(av), false, assembly);
+    return new CpuThreadLegacy(index, algorithm, av, multiway(av), cpuId, priority, isSoftAES(av), false, assembly);
 }
 
 
-xmrig::CpuThread *xmrig::CpuThread::createFromData(size_t index, const Algorithm &algorithm, const CpuThread::Data &data, int priority, bool softAES)
+xmrig::CpuThreadLegacy *xmrig::CpuThreadLegacy::createFromData(size_t index, const Algorithm &algorithm, const CpuThreadLegacy::Data &data, int priority, bool softAES)
 {
     int av                  = AV_AUTO;
     const Multiway multiway = data.multiway;
@@ -106,11 +106,11 @@ xmrig::CpuThread *xmrig::CpuThread::createFromData(size_t index, const Algorithm
 
     assert(av > AV_AUTO && av < AV_MAX);
 
-    return new CpuThread(index, algorithm, static_cast<AlgoVariant>(av), multiway, data.affinity, priority, softAES, false, data.assembly);
+    return new CpuThreadLegacy(index, algorithm, static_cast<AlgoVariant>(av), multiway, data.affinity, priority, softAES, false, data.assembly);
 }
 
 
-xmrig::CpuThread::Data xmrig::CpuThread::parse(const rapidjson::Value &object)
+xmrig::CpuThreadLegacy::Data xmrig::CpuThreadLegacy::parse(const rapidjson::Value &object)
 {
     Data data;
 
@@ -140,7 +140,7 @@ xmrig::CpuThread::Data xmrig::CpuThread::parse(const rapidjson::Value &object)
 }
 
 
-xmrig::IThread::Multiway xmrig::CpuThread::multiway(AlgoVariant av)
+xmrig::IThread::Multiway xmrig::CpuThreadLegacy::multiway(AlgoVariant av)
 {
     switch (av) {
     case AV_SINGLE:
@@ -172,7 +172,7 @@ xmrig::IThread::Multiway xmrig::CpuThread::multiway(AlgoVariant av)
 
 
 #ifdef APP_DEBUG
-void xmrig::CpuThread::print() const
+void xmrig::CpuThreadLegacy::print() const
 {
     LOG_DEBUG(GREEN_BOLD("CPU thread:   ") " index " WHITE_BOLD("%zu") ", multiway " WHITE_BOLD("%d") ", av " WHITE_BOLD("%d") ",",
               index(), static_cast<int>(multiway()), static_cast<int>(m_av));
@@ -187,7 +187,7 @@ void xmrig::CpuThread::print() const
 
 
 #ifdef XMRIG_FEATURE_API
-rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
+rapidjson::Value xmrig::CpuThreadLegacy::toAPI(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 
@@ -206,7 +206,7 @@ rapidjson::Value xmrig::CpuThread::toAPI(rapidjson::Document &doc) const
 #endif
 
 
-rapidjson::Value xmrig::CpuThread::toConfig(rapidjson::Document &doc) const
+rapidjson::Value xmrig::CpuThreadLegacy::toConfig(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 

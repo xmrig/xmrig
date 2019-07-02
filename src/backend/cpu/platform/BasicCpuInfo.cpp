@@ -22,6 +22,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <string.h>
 #include <thread>
 
@@ -123,9 +124,9 @@ static inline bool has_ossave()
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_assembly(Assembly::NONE),
+    m_brand(),
     m_aes(has_aes_ni()),
     m_avx2(has_avx2() && has_ossave()),
-    m_brand(),
     m_threads(std::thread::hardware_concurrency())
 {
     cpu_brand_string(m_brand);
@@ -157,4 +158,28 @@ size_t xmrig::BasicCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsage)
     const size_t count = threads() / 2;
 
     return count < 1 ? 1 : count;
+}
+
+
+xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
+{
+    if (threads() == 1) {
+        return CpuThreads(1);
+    }
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    if (algorithm == Algorithm::CN_GPU) {
+        return CpuThreads(threads());
+    }
+#   endif
+
+    if (algorithm.family() == Algorithm::CN_LITE || algorithm.family() == Algorithm::CN_PICO) {
+        return CpuThreads(threads());
+    }
+
+    if (algorithm.family() == Algorithm::CN_HEAVY) {
+        return CpuThreads(std::max<size_t>(threads() / 4, 1));
+    }
+
+    return CpuThreads(std::max<size_t>(threads() / 2, 1));
 }

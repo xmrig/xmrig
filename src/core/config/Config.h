@@ -34,7 +34,7 @@
 #include "base/kernel/config/BaseConfig.h"
 #include "common/xmrig.h"
 #include "rapidjson/fwd.h"
-#include "workers/CpuThread.h"
+#include "workers/CpuThreadLegacy.h"
 
 
 namespace xmrig {
@@ -59,7 +59,7 @@ public:
     void getJSON(rapidjson::Document &doc) const override;
 
     inline AlgoVariant algoVariant() const               { return m_algoVariant; }
-    inline bool isShouldSave() const                     { return (m_shouldSave || m_upgrade) && isAutoSave(); }
+    inline bool isShouldSave() const                     { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
     inline const CpuConfig &cpu() const                  { return m_cpu; }
     inline const std::vector<IThread *> &threads() const { return m_threads.list; }
     inline int threadsCount() const                      { return static_cast<int>(m_threads.list.size()); }
@@ -81,7 +81,7 @@ private:
 
        int64_t mask;
        size_t count;
-       std::vector<CpuThread::Data> cpu;
+       std::vector<CpuThreadLegacy::Data> cpu;
        std::vector<IThread *> list;
        ThreadsMode mode;
     };

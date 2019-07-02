@@ -94,11 +94,14 @@ public:
     inline Family family() const                      { return family(m_id); }
     inline Id id() const                              { return m_id; }
 
+    inline bool operator!=(Algorithm::Id id) const        { return m_id != id; }
     inline bool operator!=(const Algorithm &other) const  { return !isEqual(other); }
+    inline bool operator==(Algorithm::Id id) const        { return m_id == id; }
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
     inline operator Algorithm::Id() const                 { return m_id; }
 
     rapidjson::Value toJSON() const;
+    size_t memory() const;
 
     static Family family(Id id);
     static Id parse(const char *name);

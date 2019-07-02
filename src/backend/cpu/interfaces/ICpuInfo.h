@@ -26,11 +26,9 @@
 #define XMRIG_CPUINFO_H
 
 
-#include <stddef.h>
-#include <stdint.h>
-
-
+#include "backend/cpu/CpuThread.h"
 #include "crypto/common/Assembly.h"
+#include "crypto/common/Algorithm.h"
 
 
 namespace xmrig {
@@ -47,18 +45,19 @@ public:
     inline constexpr static bool isX64() { return false; }
 #   endif
 
+    virtual Assembly::Id assembly() const                                     = 0;
     virtual bool hasAES() const                                               = 0;
     virtual bool hasAVX2() const                                              = 0;
     virtual bool isSupported() const                                          = 0;
     virtual const char *brand() const                                         = 0;
-    virtual int32_t cores() const                                             = 0;
-    virtual int32_t L2() const                                                = 0;
-    virtual int32_t L3() const                                                = 0;
-    virtual int32_t nodes() const                                             = 0;
-    virtual int32_t sockets() const                                           = 0;
-    virtual int32_t threads() const                                           = 0;
+    virtual CpuThreads threads(const Algorithm &algorithm) const              = 0;
+    virtual size_t cores() const                                              = 0;
+    virtual size_t L2() const                                                 = 0;
+    virtual size_t L3() const                                                 = 0;
+    virtual size_t nodes() const                                              = 0;
     virtual size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const = 0;
-    virtual Assembly::Id assembly() const                                     = 0;
+    virtual size_t sockets() const                                            = 0;
+    virtual size_t threads() const                                            = 0;
 };
 
 

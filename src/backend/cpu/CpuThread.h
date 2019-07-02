@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,49 +22,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKER_H
-#define XMRIG_WORKER_H
+#ifndef XMRIG_CPUTHREADCONFIG_H
+#define XMRIG_CPUTHREADCONFIG_H
 
 
-#include <atomic>
-#include <stdint.h>
+#include <vector>
 
 
-#include "interfaces/IWorker.h"
-#include "Mem.h"
-
-
-class ThreadHandle;
+#include "rapidjson/fwd.h"
 
 
 namespace xmrig {
-    class CpuThreadLegacy;
-}
 
 
-class Worker : public IWorker
+class CpuThread
 {
 public:
-    Worker(ThreadHandle *handle);
+    inline constexpr CpuThread(int intensity = 1, int affinity = -1) : m_affinity(affinity), m_intensity(intensity) {}
 
-    inline const MemInfo &memory() const       { return m_memory; }
-    inline size_t id() const override          { return m_id; }
-    inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
-    inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
+    CpuThread(const rapidjson::Value &value);
 
-protected:
-    void storeStats();
+    inline bool isValid() const  { return m_intensity >= 1 && m_intensity <= 5; }
+    inline int affinity() const  { return m_affinity; }
+    inline int intensity() const { return m_intensity; }
 
-    const size_t m_id;
-    const size_t m_totalWays;
-    const uint32_t m_offset;
-    MemInfo m_memory;
-    std::atomic<uint64_t> m_hashCount;
-    std::atomic<uint64_t> m_timestamp;
-    uint64_t m_count;
-    uint64_t m_sequence;
-    xmrig::CpuThreadLegacy *m_thread;
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+
+private:
+    int m_affinity  = -1;
+    int m_intensity = -1;
 };
 
 
-#endif /* XMRIG_WORKER_H */
+typedef std::vector<CpuThread> CpuThreads;
+
+
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_CPUTHREADCONFIG_H */

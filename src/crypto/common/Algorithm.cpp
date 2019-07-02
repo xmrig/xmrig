@@ -30,6 +30,7 @@
 #include <stdio.h>
 
 
+#include "crypto/cn/CnAlgo.h"
 #include "crypto/common/Algorithm.h"
 #include "rapidjson/document.h"
 
@@ -120,6 +121,20 @@ rapidjson::Value xmrig::Algorithm::toJSON() const
     using namespace rapidjson;
 
     return isValid() ? Value(StringRef(shortName())) : Value(kNullType);
+}
+
+
+size_t xmrig::Algorithm::memory() const
+{
+    if (family() < RANDOM_X) {
+        return CnAlgo<>::memory(m_id);
+    }
+
+    if (m_id == RX_WOW) {
+        return 0x100000;
+    }
+
+    return 0;
 }
 
 

@@ -26,51 +26,43 @@
 #include <math.h>
 #include <string.h>
 
+#include <stdio.h>
+
 
 #include "backend/cpu/platform/AdvancedCpuInfo.h"
 
 
 xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
-    m_aes(false),
-    m_avx2(false),
-    m_L2_exclusive(false),
-    m_brand(),
-    m_cores(0),
-    m_L2(0),
-    m_L3(0),
-    m_sockets(1),
-    m_threads(0)
+    m_brand()
 {
-    struct cpu_raw_data_t raw = { 0 };
-    struct cpu_id_t data = { 0 };
+    struct cpu_raw_data_t raw = {};
+    struct cpu_id_t data = {};
 
     cpuid_get_raw_data(&raw);
     cpu_identify(&raw, &data);
 
     strncpy(m_brand, data.brand_str, sizeof(m_brand));
 
-    m_threads = data.total_logical_cpus;
-    m_sockets = threads() / data.num_logical_cpus;
-    if (m_sockets == 0) {
-        m_sockets = 1;
-    }
+    m_threads = static_cast<size_t>(data.total_logical_cpus);
+    m_sockets = std::max<size_t>(threads() / static_cast<size_t>(data.num_logical_cpus), 1);
+    m_cores   = static_cast<size_t>(data.num_cores) * m_sockets;
+    m_L3      = data.l3_cache > 0 ? static_cast<size_t>(data.l3_cache) * m_sockets : 0;
 
-    m_cores = data.num_cores * m_sockets;
-    m_L3 = data.l3_cache > 0 ? data.l3_cache * m_sockets : 0;
+    const size_t l2 = static_cast<size_t>(data.l2_cache);
 
     // Workaround for AMD CPUs https://github.com/anrieff/libcpuid/issues/97
     if (data.vendor == VENDOR_AMD && data.ext_family >= 0x15 && data.ext_family < 0x17) {
-        m_L2 = data.l2_cache * (cores() / 2) * m_sockets;
+        m_L2 = l2 * (cores() / 2) * m_sockets;
         m_L2_exclusive = true;
     }
     // Workaround for Intel Pentium Dual-Core, Core Duo, Core 2 Duo, Core 2 Quad and their Xeon homologue
     // These processors have L2 cache shared by 2 cores.
     else if (data.vendor == VENDOR_INTEL && data.ext_family == 0x06 && (data.ext_model == 0x0E || data.ext_model == 0x0F || data.ext_model == 0x17)) {
-        int l2_count_per_socket = cores() > 1 ? cores() / 2 : 1;
-        m_L2 = data.l2_cache > 0 ? data.l2_cache * l2_count_per_socket * m_sockets : 0;
+        size_t l2_count_per_socket = cores() > 1 ? cores() / 2 : 1;
+        m_L2 = data.l2_cache > 0 ? l2 * l2_count_per_socket * m_sockets : 0;
     }
     else{
-        m_L2 = data.l2_cache > 0 ? data.l2_cache * cores() * m_sockets : 0;
+        m_L2 = data.l2_cache > 0 ? l2 * cores() * m_sockets : 0;
     }
 
     if (data.flags[CPU_FEATURE_AES]) {
@@ -124,4 +116,44 @@ size_t xmrig::AdvancedCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsa
     }
 
     return count < 1 ? 1 : count;
+}
+
+
+xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) const
+{
+    if (threads() == 1) {
+        return CpuThreads(1);
+    }
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    if (algorithm == Algorithm::CN_GPU) {
+        return CpuThreads(threads());
+    }
+#   endif
+
+    size_t cache = 0;
+    size_t count = 0;
+
+    if (m_L3) {
+        cache = m_L2_exclusive ? (m_L2 + m_L3) : m_L3;
+    }
+    else {
+        cache = m_L2;
+    }
+
+    if (cache) {
+        cache *= 1024;
+        const size_t memory = algorithm.memory();
+
+        count = cache / memory;
+
+        if (cache % memory >= memory / 2) {
+            count++;
+        }
+    }
+    else {
+        count = threads() / 2;
+    }
+
+    return CpuThreads(std::max<size_t>(std::min<size_t>(count, threads()), 1));
 }

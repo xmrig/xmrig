@@ -36,7 +36,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
-#include "workers/CpuThread.h"
+#include "workers/CpuThreadLegacy.h"
 
 
 xmrig::Config::Config() :
@@ -125,7 +125,7 @@ bool xmrig::Config::finalize()
         m_threads.mode = Advanced;
 
         for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, algorithm, m_threads.cpu[i], m_cpu.priority(), !m_cpu.isHwAES()));
+            m_threads.list.push_back(CpuThreadLegacy::createFromData(i, algorithm, m_threads.cpu[i], m_cpu.priority(), !m_cpu.isHwAES()));
         }
 
         return true;
@@ -134,7 +134,7 @@ bool xmrig::Config::finalize()
     const AlgoVariant av = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
-    const size_t size = CpuThread::multiway(av) * CnAlgo<>::memory(algorithm) / 1024; // FIXME MEMORY
+    const size_t size = CpuThreadLegacy::multiway(av) * CnAlgo<>::memory(algorithm) / 1024; // FIXME MEMORY
 
     if (!m_threads.count) {
         m_threads.count = Cpu::info()->optimalThreadsCount(size, 100);
@@ -147,7 +147,7 @@ bool xmrig::Config::finalize()
 //    }
 
     for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, algorithm, av, m_threads.mask, m_cpu.priority(), m_cpu.assembly()));
+        m_threads.list.push_back(CpuThreadLegacy::createFromAV(i, algorithm, av, m_threads.mask, m_cpu.priority(), m_cpu.assembly()));
     }
 
     m_shouldSave = m_threads.mode == Automatic;
@@ -175,7 +175,7 @@ void xmrig::Config::setThreads(const rapidjson::Value &threads)
             }
 
             if (value.HasMember("low_power_mode")) {
-                auto data = CpuThread::parse(value);
+                auto data = CpuThreadLegacy::parse(value);
 
                 if (data.valid) {
                     m_threads.cpu.push_back(std::move(data));

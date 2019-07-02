@@ -26,7 +26,7 @@
 
 #include "backend/cpu/Cpu.h"
 #include "common/Platform.h"
-#include "workers/CpuThread.h"
+#include "workers/CpuThreadLegacy.h"
 #include "workers/ThreadHandle.h"
 #include "workers/Worker.h"
 
@@ -39,7 +39,7 @@ Worker::Worker(ThreadHandle *handle) :
     m_timestamp(0),
     m_count(0),
     m_sequence(0),
-    m_thread(static_cast<xmrig::CpuThread *>(handle->config()))
+    m_thread(static_cast<xmrig::CpuThreadLegacy *>(handle->config()))
 {
     if (xmrig::Cpu::info()->threads() > 1 && m_thread->affinity() != -1L) {
         Platform::setThreadAffinity(m_thread->affinity());

@@ -1,12 +1,14 @@
 set(HEADERS_CPU
-    src/backend/cpu/Cpu.h
-    src/backend/cpu/CpuConfig.h
-    src/backend/cpu/interfaces/ICpuInfo.h
+	src/backend/cpu/Cpu.h
+	src/backend/cpu/CpuConfig.h
+    src/backend/cpu/CpuThread.h
+	src/backend/cpu/interfaces/ICpuInfo.h
    )
 
 set(SOURCES_CPU
     src/backend/cpu/Cpu.cpp
     src/backend/cpu/CpuConfig.cpp
+    src/backend/cpu/CpuThread.cpp
    )
 
 

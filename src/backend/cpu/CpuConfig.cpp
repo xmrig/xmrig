@@ -31,16 +31,33 @@
 
 namespace xmrig {
 
-
+static const char *kCn                  = "cn";
 static const char *kEnabled             = "enabled";
 static const char *kHugePages           = "huge-pages";
 static const char *kHwAes               = "hw-aes";
 static const char *kPriority            = "priority";
 
-
 #ifdef XMRIG_FEATURE_ASM
 static const char *kAsm = "asm";
 #endif
+
+#ifdef XMRIG_ALGO_CN_GPU
+static const char *kCnGPU = "cn/gpu";
+#endif
+
+#ifdef XMRIG_ALGO_CN_LITE
+static const char *kCnLite = "cn-lite";
+#endif
+
+#ifdef XMRIG_ALGO_CN_HEAVY
+static const char *kCnHeavy = "cn-heavy";
+#endif
+
+#ifdef XMRIG_ALGO_CN_PICO
+static const char *kCnPico = "cn-pico";
+#endif
+
+extern template class Threads<CpuThread>;
 
 }
 
@@ -59,7 +76,6 @@ bool xmrig::CpuConfig::isHwAES() const
 rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
-
     auto &allocator = doc.GetAllocator();
 
     Value obj(kObjectType);
@@ -72,6 +88,8 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 #   ifdef XMRIG_FEATURE_ASM
     obj.AddMember(StringRef(kAsm), m_assembly.toJSON(), allocator);
 #   endif
+
+    m_threads.toJSON(obj, doc);
 
     return obj;
 }
@@ -88,6 +106,34 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 
 #       ifdef XMRIG_FEATURE_ASM
         m_assembly = Json::getValue(value, kAsm);
+#       endif
+
+        m_threads.read(value);
+    }
+    else if (value.IsBool() && value.IsFalse()) {
+        m_enabled = false;
+    }
+    else {
+        m_shouldSave = true;
+
+        m_threads.disable(Algorithm::CN_0);
+        m_threads.move(kCn, Cpu::info()->threads(Algorithm::CN_0));
+
+#       ifdef XMRIG_ALGO_CN_GPU
+        m_threads.move(kCnGPU, Cpu::info()->threads(Algorithm::CN_GPU));
+#       endif
+
+#       ifdef XMRIG_ALGO_CN_LITE
+        m_threads.disable(Algorithm::CN_LITE_0);
+        m_threads.move(kCnLite, Cpu::info()->threads(Algorithm::CN_LITE_1));
+#       endif
+
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        m_threads.move(kCnHeavy, Cpu::info()->threads(Algorithm::CN_HEAVY_0));
+#       endif
+
+#       ifdef XMRIG_ALGO_CN_PICO
+        m_threads.move(kCnPico, Cpu::info()->threads(Algorithm::CN_PICO_0));
 #       endif
     }
 }

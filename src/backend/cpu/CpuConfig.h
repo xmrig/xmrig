@@ -26,6 +26,8 @@
 #define XMRIG_CPUCONFIG_H
 
 
+#include "backend/cpu/CpuThread.h"
+#include "backend/Threads.h"
 #include "crypto/common/Assembly.h"
 
 
@@ -47,11 +49,12 @@ public:
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     void read(const rapidjson::Value &value);
 
-    inline bool isEnabled() const               { return m_enabled; }
-    inline bool isHugePages() const             { return m_hugePages; }
-    inline bool isShouldSave() const            { return m_shouldSave; }
-    inline const Assembly &assembly() const     { return m_assembly; }
-    inline int priority() const                 { return m_priority; }
+    inline bool isEnabled() const                    { return m_enabled; }
+    inline bool isHugePages() const                  { return m_hugePages; }
+    inline bool isShouldSave() const                 { return m_shouldSave; }
+    inline const Assembly &assembly() const          { return m_assembly; }
+    inline const Threads<CpuThread> &threads() const { return m_threads; }
+    inline int priority() const                      { return m_priority; }
 
 private:
     void setAesMode(const rapidjson::Value &aesMode);
@@ -63,6 +66,7 @@ private:
     bool m_hugePages     = true;
     bool m_shouldSave    = false;
     int m_priority       = -1;
+    Threads<CpuThread> m_threads;
 };
 
 
