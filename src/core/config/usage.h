@@ -68,7 +68,8 @@ Options:\n\
   -t, --threads=N               number of miner threads\n\
   -v, --av=N                    algorithm variation, 0 auto select\n\
   -k, --keepalive               send keepalived packet for prevent timeout (needs pool support)\n\
-      --nicehash                enable nicehash.com support\n"
+      --nicehash                enable nicehash.com support\n\
+      --self-select=URL         self-select block templates from URL\n"
 #ifdef XMRIG_FEATURE_TLS
 "\
       --tls                     enable SSL/TLS support (needs pool support)\n\

@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,12 +38,15 @@
 #endif
 
 
+#include "3rdparty/http-parser/http_parser.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
 #include "base/net/stratum/Client.h"
+#include "base/net/http/HttpClient.h"
+#include "base/net/http/HttpsClient.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "net/JobResult.h"
@@ -264,6 +268,60 @@ void xmrig::Client::onResolved(const Dns &dns, int status)
 }
 
 
+void xmrig::Client::onHttpData(const HttpData &data)
+{
+    using namespace rapidjson;
+    LOG_DEBUG("[%s:%d] received (%d bytes): \"%.*s\"", m_pool.host().data(), m_pool.port(), static_cast<int>(data.body.size()), static_cast<int>(data.body.size()), data.body.c_str());
+    if (m_job.blob()[0]) {
+        LOG_ERR("Job already has a blob");
+        return;
+    }
+    Document doc;
+    if (doc.Parse(data.body.c_str()).HasParseError()) {
+        LOG_ERR("[getblocktemplate] Failed to parse daemon response");
+        return;
+    }
+    if (!doc.HasMember("result")) {
+        LOG_ERR("[getblocktemplate] No result");
+        return;
+    }
+    Value &result = doc["result"];
+    if (!result.HasMember("blocktemplate_blob")) {
+        LOG_ERR("[getblocktemplate] No blocktemplate_blob");
+        return;
+    }
+    if (!result.HasMember("blockhashing_blob")) {
+        LOG_ERR("[getblocktemplate] No blockhashing_blob");
+        return;
+    }
+    if (!result.HasMember("height")) {
+        LOG_ERR("[getblocktemplate] No height");
+        return;
+    }
+    if (!result.HasMember("difficulty")) {
+        LOG_ERR("[getblocktemplate] No difficulty");
+        return;
+    }
+    if (!result.HasMember("prev_hash")) {
+        LOG_ERR("[getblocktemplate] No prev_hash");
+        return;
+    }
+    m_job.setHeight(Json::getUint64(result, "height"));
+    Document docBt(kObjectType);
+    auto &allocator = docBt.GetAllocator();
+    Value params(kObjectType);
+    params.AddMember("id", m_job.clientId().toJSON(), allocator);
+    params.AddMember("job_id", m_job.id().toJSON(), allocator);
+    params.AddMember("blob", result["blocktemplate_blob"], allocator);
+    params.AddMember("height",  m_job.height(), allocator);
+    params.AddMember("difficulty", result["difficulty"], allocator);
+    params.AddMember("prev_hash", result["prev_hash"], allocator);
+    JsonRequest::create(docBt, 2, "block_template", params);
+    send(docBt);
+    m_job.setBlob(result["blockhashing_blob"].GetString());
+    m_listener->onJobReceived(this, m_job, Value{});
+}
+
 bool xmrig::Client::close()
 {
     if (m_state == ClosingState) {
@@ -320,7 +378,11 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
+#   ifdef XMRIG_FEATURE_HTTP
+    if (m_pool.selfSelect().isNull() && !job.setBlob(params["blob"].GetString())) {
+#   else
     if (!job.setBlob(params["blob"].GetString())) {
+#   endif
         *code = 4;
         return false;
     }
@@ -352,6 +414,18 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
     }
 
     m_job.setClientId(m_rpcId);
+
+#   ifdef XMRIG_FEATURE_HTTP
+    if (!m_pool.selfSelect().isNull() && m_job != job)
+    {
+        job.setPoolWallet(Json::getString(params, "pool_wallet"));
+        job.setExtraNonce(Json::getString(params, "extra_nonce"));
+        m_jobs++;
+        m_job = std::move(job);
+        getBlockTemplate();
+        return true;
+    }
+#   endif
 
     if (m_job != job) {
         m_jobs++;
@@ -469,7 +543,11 @@ int64_t xmrig::Client::send(const rapidjson::Document &doc)
 {
     using namespace rapidjson;
 
+#   ifdef XMRIG_FEATURE_HTTP
+    StringBuffer buffer(nullptr, 8192);
+#   else
     StringBuffer buffer(nullptr, 512);
+#   endif
     Writer<StringBuffer> writer(buffer);
     doc.Accept(writer);
 
@@ -479,7 +557,6 @@ int64_t xmrig::Client::send(const rapidjson::Document &doc)
         close();
         return -1;
     }
-
     memcpy(m_sendBuf, buffer.GetString(), size);
     m_sendBuf[size]     = '\n';
     m_sendBuf[size + 1] = '\0';
@@ -573,6 +650,14 @@ void xmrig::Client::login()
 
     if (!m_pool.rigId().isNull()) {
         params.AddMember("rigid", m_pool.rigId().toJSON(), allocator);
+    }
+
+    if (!m_pool.selfSelect().isNull()) {
+#       ifndef XMRIG_FEATURE_HTTP
+        LOG_ERR("Cannot use mode self-select as not compiled with XMRIG_FEATURE_HTTP");
+#       else
+        params.AddMember("mode", "self-select", allocator);
+#       endif
     }
 
     m_listener->onLogin(this, doc, params);
@@ -696,7 +781,9 @@ void xmrig::Client::parseNotification(const char *method, const rapidjson::Value
     if (strcmp(method, "job") == 0) {
         int code = -1;
         if (parseJob(params, &code)) {
-            m_listener->onJobReceived(this, m_job, params);
+            if (m_job.blob()[0]) {
+                m_listener->onJobReceived(this, m_job, params);
+            }
         }
         else {
             close();
@@ -742,7 +829,9 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
 
         m_failures = 0;
         m_listener->onLoginSuccess(this);
-        m_listener->onJobReceived(this, m_job, result["job"]);
+        if (m_job.blob()[0]) {
+            m_listener->onJobReceived(this, m_job, result["job"]);
+        }
         return;
     }
 
@@ -858,6 +947,84 @@ void xmrig::Client::startTimeout()
     }
 }
 
+
+void xmrig::Client::send(int method, const char *url, const char *data, size_t size)
+{
+#   ifndef XMRIG_FEATURE_HTTP
+    LOG_ERR("Not enabled without XMRIG_FEATURE_HTTP");
+    return;
+#   else
+    LOG_DEBUG("[%s] " MAGENTA_BOLD("\"%s %s\"") BLACK_BOLD_S " send (%zu bytes): \"%.*s\"",
+              m_pool.selfSelect().data(),
+              http_method_str(static_cast<http_method>(method)),
+              url,
+              size,
+              static_cast<int>(size),
+              data);
+
+    if (daemonHost.isNull())
+    {
+        const char *hp = m_pool.selfSelect().data();
+        char host[255] = {0};
+        strncpy(host, hp, 255);
+        char *p = strrchr(host, ':');
+        if (!p)
+        {
+            LOG_ERR("Cannot get host/port");
+            return;
+        }
+        *p = 0;
+        int port = atoi(++p);
+        daemonHost = (const char*)host;
+        daemonPort = port;
+    }
+
+
+    HttpClient *client;
+#   ifdef XMRIG_FEATURE_TLS
+    if (strstr(daemonHost.data(), "https:")) {
+        client = new HttpsClient(method, url, this, data, size, m_pool.fingerprint());
+    }
+    else
+#   endif
+    {
+        client = new HttpClient(method, url, this, data, size);
+    }
+
+    client->setQuiet(isQuiet());
+    client->connect(daemonHost, daemonPort);
+#   endif
+}
+
+
+void xmrig::Client::send(int method, const char *url, const rapidjson::Document &doc)
+{
+    using namespace rapidjson;
+
+    StringBuffer buffer(nullptr, 512);
+    Writer<StringBuffer> writer(buffer);
+    doc.Accept(writer);
+
+    send(method, url, buffer.GetString(), buffer.GetSize());
+}
+
+
+int64_t xmrig::Client::getBlockTemplate()
+{
+    using namespace rapidjson;
+    Document doc(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    Value params(kObjectType);
+    params.AddMember("wallet_address", m_job.poolWallet().toJSON(), allocator);
+    params.AddMember("extra_nonce", m_job.extraNonce().toJSON(), allocator);
+
+    JsonRequest::create(doc, m_sequence, "getblocktemplate", params);
+
+    send(HTTP_POST, "/json_rpc", doc);
+
+    return 0;
+}
 
 void xmrig::Client::onAllocBuffer(uv_handle_t *handle, size_t, uv_buf_t *buf)
 {

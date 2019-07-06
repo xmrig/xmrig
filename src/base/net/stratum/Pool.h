@@ -80,6 +80,7 @@ public:
     inline const String &rigId() const                  { return m_rigId; }
     inline const String &url() const                    { return m_url; }
     inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
+    inline const String &selfSelect() const             { return m_selfSelect; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline uint16_t port() const                        { return m_port; }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
@@ -87,6 +88,7 @@ public:
     inline void setPassword(const String &password)     { m_password = password; }
     inline void setRigId(const String &rigId)           { m_rigId = rigId; }
     inline void setUser(const String &user)             { m_user = user; }
+    inline void setSelfSelect(const String &selfSelect) { m_selfSelect = selfSelect; }
 
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
     inline bool operator==(const Pool &other) const     { return isEqual(other); }
@@ -115,6 +117,7 @@ private:
     String m_rigId;
     String m_url;
     String m_user;
+    String m_selfSelect;
     uint16_t m_port;
     uint64_t m_pollInterval;
 };

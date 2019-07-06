@@ -162,17 +162,31 @@ void xmrig::Job::setDiff(uint64_t diff)
 }
 
 
+void xmrig::Job::setPoolWallet(const String &poolWallet)
+{
+    m_poolWallet = poolWallet;
+}
+
+
+void xmrig::Job::setExtraNonce(const String &extraNonce)
+{
+    m_extraNonce = extraNonce;
+}
+
+
 void xmrig::Job::copy(const Job &other)
 {
-    m_algorithm = other.m_algorithm;
-    m_nicehash  = other.m_nicehash;
-    m_size      = other.m_size;
-    m_clientId  = other.m_clientId;
-    m_id        = other.m_id;
-    m_diff      = other.m_diff;
-    m_height    = other.m_height;
-    m_target    = other.m_target;
-    m_index     = other.m_index;
+    m_algorithm  = other.m_algorithm;
+    m_nicehash   = other.m_nicehash;
+    m_size       = other.m_size;
+    m_clientId   = other.m_clientId;
+    m_id         = other.m_id;
+    m_diff       = other.m_diff;
+    m_height     = other.m_height;
+    m_target     = other.m_target;
+    m_index      = other.m_index;
+    m_poolWallet = other.m_poolWallet;
+    m_extraNonce = other.m_extraNonce;
 
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
     memcpy(m_seedHash, other.m_seedHash, sizeof(m_seedHash));

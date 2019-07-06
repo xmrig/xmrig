@@ -48,6 +48,7 @@
 namespace xmrig {
 
 static const char *kAlgo                   = "algo";
+static const char *kSelfSelect             = "self-select";
 static const char *kDaemon                 = "daemon";
 static const char *kDaemonPollInterval     = "daemon-poll-interval";
 static const char *kEnabled                = "enabled";
@@ -120,6 +121,8 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_fingerprint  = Json::getString(object, kFingerprint);
     m_pollInterval = Json::getUint64(object, kDaemonPollInterval, kDefaultPollInterval);
     m_algorithm    = Json::getString(object, kAlgo);
+
+    m_selfSelect   = Json::getString(object, kSelfSelect);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
@@ -296,6 +299,8 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
     }
 
+    obj.AddMember(StringRef(kSelfSelect),         m_selfSelect.toJSON(), allocator);
+
     return obj;
 }
 
@@ -312,6 +317,7 @@ void xmrig::Pool::print() const
     LOG_DEBUG ("algo:      %s", m_algorithm.name());
     LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_flags.test(FLAG_NICEHASH)));
     LOG_DEBUG ("keepAlive: %d", m_keepAlive);
+    LOG_DEBUG ("selfSelect %s", m_selfSelect.data());
 }
 #endif
 

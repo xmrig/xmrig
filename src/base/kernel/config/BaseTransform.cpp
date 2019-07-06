@@ -165,6 +165,9 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::FingerprintKey: /* --tls-fingerprint */
         return add(doc, kPools, "tls-fingerprint", arg);
 
+    case IConfig::SelfSelectKey: /* --self-select */
+        return add(doc, kPools, "self-select", arg);
+
     case IConfig::LogFileKey: /* --log-file */
         return set(doc, "log-file", arg);
 

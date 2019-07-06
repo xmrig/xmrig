@@ -55,6 +55,8 @@ public:
     bool setSeedHash(const char *hash);
     bool setTarget(const char *target);
     void setDiff(uint64_t diff);
+    void setPoolWallet(const String &poolWallet);
+    void setExtraNonce(const String &extraNonce);
 
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
@@ -72,6 +74,8 @@ public:
     inline uint64_t target() const                    { return m_target; }
     inline uint8_t fixedByte() const                  { return *(m_blob + 42); }
     inline uint8_t index() const                      { return m_index; }
+    inline const String &poolWallet()                 { return m_poolWallet; }
+    inline const String &extraNonce()                 { return m_extraNonce; }
     inline void reset()                               { m_size = 0; m_diff = 0; }
     inline void setAlgorithm(const char *algo)        { m_algorithm = algo; }
     inline void setClientId(const String &id)         { m_clientId = id; }
@@ -106,6 +110,8 @@ private:
     uint8_t m_blob[kMaxBlobSize];
     uint8_t m_index     = 0;
     uint8_t m_seedHash[32];
+    String m_poolWallet;
+    String m_extraNonce;
 
 #   ifdef XMRIG_PROXY_PROJECT
     char m_rawBlob[kMaxBlobSize * 2 + 8];

@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,6 +35,7 @@
 
 #include "base/kernel/interfaces/IDnsListener.h"
 #include "base/kernel/interfaces/ILineListener.h"
+#include "base/kernel/interfaces/IHttpListener.h"
 #include "base/net/stratum/BaseClient.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
@@ -53,7 +55,7 @@ class IClientListener;
 class JobResult;
 
 
-class Client : public BaseClient, public IDnsListener, public ILineListener
+class Client : public BaseClient, public IDnsListener, public ILineListener, public IHttpListener
 {
 public:
     constexpr static uint64_t kConnectTimeout  = 20 * 1000;
@@ -84,6 +86,7 @@ protected:
     inline bool hasExtension(Extension extension) const noexcept override { return m_extensions.test(extension); }
     inline const char *mode() const override                              { return "pool"; }
     inline void onLine(char *line, size_t size) override                  { parse(line, size); }
+    void onHttpData(const HttpData &data) override;
 
 private:
     class Tls;
@@ -110,6 +113,9 @@ private:
     void reconnect();
     void setState(SocketState state);
     void startTimeout();
+    void send(int method, const char *url, const char *data, size_t size);
+    void send(int method, const char *url, const rapidjson::Document &doc);
+    int64_t getBlockTemplate();
 
     inline const char *url() const                                { return m_pool.url(); }
     inline SocketState state() const                              { return m_state; }
@@ -123,7 +129,11 @@ private:
 
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 
-    char m_sendBuf[2048] = { 0 };
+#   ifdef XMRIG_FEATURE_HTTP
+    char m_sendBuf[8192] = {0};
+#   else
+    char m_sendBuf[2048] = {0};
+#   endif
     const char *m_agent;
     Dns *m_dns;
     RecvBuf<kInputBufferSize> m_recvBuf;
@@ -136,6 +146,8 @@ private:
     uintptr_t m_key             = 0;
     uv_stream_t *m_stream       = nullptr;
     uv_tcp_t *m_socket          = nullptr;
+    String daemonHost;
+    int daemonPort;
 
     static Storage<Client> m_storage;
 };

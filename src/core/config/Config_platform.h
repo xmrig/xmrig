@@ -63,6 +63,7 @@ static const option options[] = {
     { "keepalive",             0, nullptr, IConfig::KeepAliveKey          },
     { "log-file",              1, nullptr, IConfig::LogFileKey            },
     { "nicehash",              0, nullptr, IConfig::NicehashKey           },
+    { "self-select",           1, nullptr, IConfig::SelfSelectKey         },
     { "no-color",              0, nullptr, IConfig::ColorKey              },
     { "no-huge-pages",         0, nullptr, IConfig::HugePagesKey          },
     { "pass",                  1, nullptr, IConfig::PasswordKey           },
