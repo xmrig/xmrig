@@ -40,6 +40,7 @@
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "net/JobResults.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
 #include "rapidjson/document.h"
@@ -57,7 +58,7 @@ xmrig::Network::Network(Controller *controller) :
     m_donate(nullptr),
     m_timer(nullptr)
 {
-    Workers::setListener(this);
+    JobResults::setListener(this);
     controller->addListener(this);
 
 #   ifdef XMRIG_FEATURE_API
@@ -77,6 +78,8 @@ xmrig::Network::Network(Controller *controller) :
 
 xmrig::Network::~Network()
 {
+    JobResults::stop();
+
     delete m_timer;
 
     if (m_donate) {

@@ -137,9 +137,11 @@ size_t xmrig::Algorithm::memory() const
         return CnAlgo<>::memory(m_id);
     }
 
+#   ifdef XMRIG_ALGO_RANDOMX
     if (m_id == RX_WOW) {
         return 0x100000;
     }
+#   endif
 
     return 0x200000;
 }

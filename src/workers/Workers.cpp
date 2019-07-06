@@ -32,7 +32,6 @@
 #include "base/tools/Handle.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "interfaces/IJobResultListener.h"
 #include "interfaces/IThread.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
@@ -45,15 +44,12 @@
 bool Workers::m_active = false;
 bool Workers::m_enabled = true;
 Hashrate *Workers::m_hashrate = nullptr;
-xmrig::IJobResultListener *Workers::m_listener = nullptr;
 xmrig::Job Workers::m_job;
 Workers::LaunchStatus Workers::m_status;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
-std::list<xmrig::JobResult> Workers::m_queue;
 std::vector<ThreadHandle*> Workers::m_workers;
 uint64_t Workers::m_ticks = 0;
-uv_async_t *Workers::m_async = nullptr;
 uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t *Workers::m_timer = nullptr;
@@ -199,9 +195,6 @@ void Workers::start(xmrig::Controller *controller)
     m_sequence = 1;
     m_paused   = 1;
 
-    m_async = new uv_async_t;
-    uv_async_init(uv_default_loop(), m_async, Workers::onResult);
-
     m_timer = new uv_timer_t;
     uv_timer_init(uv_default_loop(), m_timer);
     uv_timer_start(m_timer, Workers::onTick, 500, 500);
@@ -221,7 +214,6 @@ void Workers::start(xmrig::Controller *controller)
 void Workers::stop()
 {
     xmrig::Handle::close(m_timer);
-    xmrig::Handle::close(m_async);
     m_hashrate->stop();
 
     m_paused   = 0;
@@ -230,16 +222,6 @@ void Workers::stop()
     for (size_t i = 0; i < m_workers.size(); ++i) {
         m_workers[i]->join();
     }
-}
-
-
-void Workers::submit(const xmrig::JobResult &result)
-{
-    uv_mutex_lock(&m_mutex);
-    m_queue.push_back(result);
-    uv_mutex_unlock(&m_mutex);
-
-    uv_async_send(m_async);
 }
 
 
@@ -303,25 +285,6 @@ void Workers::onReady(void *arg)
     }
 
     start(worker);
-}
-
-
-void Workers::onResult(uv_async_t *)
-{
-    std::list<xmrig::JobResult> results;
-
-    uv_mutex_lock(&m_mutex);
-    while (!m_queue.empty()) {
-        results.push_back(std::move(m_queue.front()));
-        m_queue.pop_front();
-    }
-    uv_mutex_unlock(&m_mutex);
-
-    for (auto result : results) {
-        m_listener->onJobResult(result);
-    }
-
-    results.clear();
 }
 
 

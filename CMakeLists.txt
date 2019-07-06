@@ -35,11 +35,12 @@ set(HEADERS
     src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
-    src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
     src/Mem.h
+    src/net/interfaces/IJobResultListener.h
     src/net/JobResult.h
+    src/net/JobResults.h
     src/net/Network.h
     src/net/NetworkState.h
     src/net/strategies/DonateStrategy.h
@@ -90,6 +91,7 @@ set(SOURCES
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
     src/Mem.cpp
+    src/net/JobResults.cpp
     src/net/Network.cpp
     src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp

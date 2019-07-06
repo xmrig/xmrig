@@ -47,7 +47,6 @@ class ThreadHandle;
 
 namespace xmrig {
     class Controller;
-    class IJobResultListener;
 }
 
 
@@ -62,7 +61,6 @@ public:
     static void setJob(const xmrig::Job &job, bool donate);
     static void start(xmrig::Controller *controller);
     static void stop();
-    static void submit(const xmrig::JobResult &result);
 
     static inline bool isEnabled()                                      { return m_enabled; }
     static inline bool isOutdated(uint64_t sequence)                    { return m_sequence.load(std::memory_order_relaxed) != sequence; }
@@ -70,7 +68,6 @@ public:
     static inline Hashrate *hashrate()                                  { return m_hashrate; }
     static inline uint64_t sequence()                                   { return m_sequence.load(std::memory_order_relaxed); }
     static inline void pause()                                          { m_active = false; m_paused = 1; m_sequence++; }
-    static inline void setListener(xmrig::IJobResultListener *listener) { m_listener = listener; }
 
 #   ifdef XMRIG_FEATURE_API
     static void threadsSummary(rapidjson::Document &doc);
@@ -83,7 +80,6 @@ public:
 
 private:
     static void onReady(void *arg);
-    static void onResult(uv_async_t *handle);
     static void onTick(uv_timer_t *handle);
     static void start(IWorker *worker);
 
@@ -109,15 +105,12 @@ private:
     static bool m_active;
     static bool m_enabled;
     static Hashrate *m_hashrate;
-    static xmrig::IJobResultListener *m_listener;
     static xmrig::Job m_job;
     static LaunchStatus m_status;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
-    static std::list<xmrig::JobResult> m_queue;
     static std::vector<ThreadHandle*> m_workers;
     static uint64_t m_ticks;
-    static uv_async_t *m_async;
     static uv_mutex_t m_mutex;
     static uv_rwlock_t m_rwlock;
     static uv_timer_t *m_timer;
