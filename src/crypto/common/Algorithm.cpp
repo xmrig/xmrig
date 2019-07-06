@@ -130,7 +130,10 @@ rapidjson::Value xmrig::Algorithm::toJSON() const
 
 size_t xmrig::Algorithm::memory() const
 {
-    if (family() < RANDOM_X) {
+    const Family f = family();
+    assert(f != UNKNOWN);
+
+    if (f < RANDOM_X) {
         return CnAlgo<>::memory(m_id);
     }
 
@@ -138,7 +141,7 @@ size_t xmrig::Algorithm::memory() const
         return 0x100000;
     }
 
-    return 0;
+    return 0x200000;
 }
 
 
@@ -181,12 +184,15 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
+    case RX_0:
     case RX_WOW:
+    case RX_LOKI:
         return RANDOM_X;
 #   endif
 
-    default:
-        break;
+    case INVALID:
+    case MAX:
+        return UNKNOWN;
     }
 
     return UNKNOWN;

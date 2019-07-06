@@ -57,6 +57,11 @@ static const char *kCnHeavy = "cn-heavy";
 static const char *kCnPico = "cn-pico";
 #endif
 
+#ifdef XMRIG_ALGO_RANDOMX
+static const char *kRx    = "rx";
+static const char *kRxWOW = "rx/wow";
+#endif
+
 extern template class Threads<CpuThread>;
 
 }
@@ -134,6 +139,11 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 
 #       ifdef XMRIG_ALGO_CN_PICO
         m_threads.move(kCnPico, Cpu::info()->threads(Algorithm::CN_PICO_0));
+#       endif
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        m_threads.move(kRx, Cpu::info()->threads(Algorithm::RX_0));
+        m_threads.move(kRxWOW, Cpu::info()->threads(Algorithm::RX_WOW));
 #       endif
     }
 }

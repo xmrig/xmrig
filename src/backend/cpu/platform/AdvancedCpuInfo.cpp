@@ -22,11 +22,10 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <libcpuid.h>
 #include <math.h>
 #include <string.h>
-
-#include <stdio.h>
 
 
 #include "backend/cpu/platform/AdvancedCpuInfo.h"
@@ -144,6 +143,7 @@ xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) co
     if (cache) {
         cache *= 1024;
         const size_t memory = algorithm.memory();
+        assert(memory > 0);
 
         count = cache / memory;
 
