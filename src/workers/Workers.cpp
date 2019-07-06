@@ -64,6 +64,7 @@ uv_rwlock_t Workers::m_rx_dataset_lock;
 randomx_cache *Workers::m_rx_cache = nullptr;
 randomx_dataset *Workers::m_rx_dataset = nullptr;
 uint8_t Workers::m_rx_seed_hash[32] = {};
+xmrig::Algorithm Workers::m_rx_algo;
 std::atomic<uint32_t> Workers::m_rx_dataset_init_thread_counter = {};
 #endif
 
@@ -374,10 +375,10 @@ void Workers::start(IWorker *worker)
 
 
 #ifdef XMRIG_ALGO_RANDOMX
-void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads)
+void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads, const xmrig::Algorithm &algorithm)
 {
     // Check if we need to update cache and dataset
-    if (memcmp(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash)) == 0)
+    if ((memcmp(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash)) == 0) && (m_rx_algo == algorithm))
         return;
 
     const uint32_t thread_id = m_rx_dataset_init_thread_counter++;
@@ -394,10 +395,30 @@ void Workers::updateDataset(const uint8_t* seed_hash, const uint32_t num_threads
 
     // One of the threads updates cache
     uv_rwlock_wrlock(&m_rx_dataset_lock);
+
+    if (m_rx_algo != algorithm) {
+        switch (algorithm) {
+            case xmrig::Algorithm::RX_WOW:
+                randomx_apply_config(RandomX_WowneroConfig);
+                break;
+
+            case xmrig::Algorithm::RX_LOKI:
+                randomx_apply_config(RandomX_LokiConfig);
+                break;
+
+            default:
+                randomx_apply_config(RandomX_MoneroConfig);
+                break;
+        }
+
+        m_rx_algo = algorithm;
+    }
+
     if (memcmp(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash)) != 0) {
         memcpy(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash));
         randomx_init_cache(m_rx_cache, m_rx_seed_hash, sizeof(m_rx_seed_hash));
     }
+
     uv_rwlock_wrunlock(&m_rx_dataset_lock);
 
     // All threads update dataset

@@ -1,0 +1,10 @@
+	mov rbx, qword ptr [rsp+64]
+	xor r8, qword ptr [rsp+56]
+	xor r9, qword ptr [rsp+48]
+	xor r10, qword ptr [rsp+40]
+	xor r11, qword ptr [rsp+32]
+	xor r12, qword ptr [rsp+24]
+	xor r13, qword ptr [rsp+16]
+	xor r14, qword ptr [rsp+8]
+	xor r15, qword ptr [rsp+0]
+	add rsp, 72

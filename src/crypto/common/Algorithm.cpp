@@ -107,8 +107,12 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO_0       },
 #   endif
 #   ifdef XMRIG_ALGO_RANDOMX
+    { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
+    { "RandomX",                   "rx",               Algorithm::RX_0            },
     { "randomx/wow",               "rx/wow",           Algorithm::RX_WOW          },
-    { "randomx",                   "rx",               Algorithm::RX_WOW          },
+    { "RandomWOW",                 nullptr,            Algorithm::RX_WOW          },
+    { "randomx/loki",              "rx/loki",          Algorithm::RX_LOKI         },
+    { "RandomXL",                  nullptr,            Algorithm::RX_LOKI         },
 #   endif
 };
 
