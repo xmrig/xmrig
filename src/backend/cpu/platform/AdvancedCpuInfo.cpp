@@ -22,6 +22,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <assert.h>
 #include <libcpuid.h>
 #include <math.h>

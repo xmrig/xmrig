@@ -22,7 +22,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <math.h>
+#include <cmath>
 #include <string.h>
 #include <uv.h>
 
@@ -44,7 +44,7 @@ static inline rapidjson::Value normalize(double d)
 {
     using namespace rapidjson;
 
-    if (!isnormal(d)) {
+    if (!std::isnormal(d)) {
         return Value(kNullType);
     }
 

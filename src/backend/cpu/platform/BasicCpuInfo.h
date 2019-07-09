@@ -55,8 +55,8 @@ protected:
 
 private:
     Assembly m_assembly;
+    bool m_aes;
     char m_brand[64 + 6];
-    const bool m_aes;
     const bool m_avx2;
     const size_t m_threads;
 };

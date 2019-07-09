@@ -124,8 +124,8 @@ static inline bool has_ossave()
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_assembly(Assembly::NONE),
-    m_brand(),
     m_aes(has_aes_ni()),
+    m_brand(),
     m_avx2(has_avx2() && has_ossave()),
     m_threads(std::thread::hardware_concurrency())
 {

@@ -37,8 +37,8 @@
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_aes(false),
-    m_avx2(false),
     m_brand(),
+    m_avx2(false),
     m_threads(std::thread::hardware_concurrency())
 {
 #   ifdef XMRIG_ARMv8
@@ -60,4 +60,10 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 size_t xmrig::BasicCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsage) const
 {
     return threads();
+}
+
+
+xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
+{
+    return CpuThreads(threads());
 }
