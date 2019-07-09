@@ -73,11 +73,6 @@ public:
     static void threadsSummary(rapidjson::Document &doc);
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
-    static void updateDataset(const uint8_t* seed_hash, uint32_t num_threads, const xmrig::Algorithm &algorithm);
-    static randomx_dataset* getDataset();
-#   endif
-
 private:
     static void onReady(void *arg);
     static void onTick(uv_timer_t *handle);
@@ -115,15 +110,6 @@ private:
     static uv_rwlock_t m_rwlock;
     static uv_timer_t *m_timer;
     static xmrig::Controller *m_controller;
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    static uv_rwlock_t m_rx_dataset_lock;
-    static randomx_cache *m_rx_cache;
-    static randomx_dataset *m_rx_dataset;
-    static uint8_t m_rx_seed_hash[32];
-    static xmrig::Algorithm m_rx_algo;
-    static std::atomic<uint32_t> m_rx_dataset_init_thread_counter;
-#   endif
 };
 
 

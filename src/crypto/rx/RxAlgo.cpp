@@ -4,10 +4,10 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -24,33 +24,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_VIRTUALMEMORY_H
-#define XMRIG_VIRTUALMEMORY_H
+
+#include "crypto/randomx/randomx.h"
+#include "crypto/rx/RxAlgo.h"
 
 
-#include <stddef.h>
-#include <stdint.h>
-
-
-namespace xmrig {
-
-
-class VirtualMemory
+xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 {
-public:
-    static void *allocateExecutableMemory(size_t size);
-    static void *allocateLargePagesMemory(size_t size);
-    static void flushInstructionCache(void *p, size_t size);
-    static void freeLargePagesMemory(void *p, size_t size);
-    static void protectExecutableMemory(void *p, size_t size);
-    static void unprotectExecutableMemory(void *p, size_t size);
+    switch (algorithm) {
+    case Algorithm::RX_WOW:
+        randomx_apply_config(RandomX_WowneroConfig);
+        break;
 
-    static inline constexpr size_t align(size_t pos, size_t align = 2097152) { return ((pos - 1) / align + 1) * align; }
-};
+    case Algorithm::RX_LOKI:
+        randomx_apply_config(RandomX_LokiConfig);
+        break;
+
+    default:
+        randomx_apply_config(RandomX_MoneroConfig);
+        break;
+    }
+
+    return algorithm;
+}
 
 
-} /* namespace xmrig */
+size_t xmrig::RxAlgo::l3(Algorithm::Id algorithm)
+{
+    switch (algorithm) {
+    case Algorithm::RX_0:
+        return RandomX_MoneroConfig.ScratchpadL3_Size;
 
+    case Algorithm::RX_WOW:
+        return RandomX_WowneroConfig.ScratchpadL3_Size;
 
+    case Algorithm::RX_LOKI:
+        return RandomX_LokiConfig.ScratchpadL3_Size;
 
-#endif /* XMRIG_VIRTUALMEMORY_H */
+    default:
+        break;
+    }
+
+    return 0;
+}

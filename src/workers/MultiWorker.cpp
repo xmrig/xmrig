@@ -28,6 +28,8 @@
 
 
 #include "crypto/cn/CryptoNight_test.h"
+#include "crypto/rx/Rx.h"
+#include "crypto/rx/RxDataset.h"
 #include "net/JobResults.h"
 #include "workers/CpuThreadLegacy.h"
 #include "workers/MultiWorker.h"
@@ -67,9 +69,11 @@ void xmrig::MultiWorker<N>::allocateRandomX_VM()
             flags |= RANDOMX_FLAG_HARD_AES;
         }
 
-        m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags), nullptr, Workers::getDataset());
+        RxDataset *dataset = Rx::dataset(m_state.job.seedHash(), m_state.job.algorithm());
+
+        m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags), nullptr, dataset->get());
         if (!m_rx_vm) {
-            m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), nullptr, Workers::getDataset());
+            m_rx_vm = randomx_create_vm(static_cast<randomx_flags>(flags - RANDOMX_FLAG_LARGE_PAGES), nullptr, dataset->get());
         }
     }
 }
@@ -160,7 +164,6 @@ void xmrig::MultiWorker<N>::start()
 #           ifdef XMRIG_ALGO_RANDOMX
             if (m_state.job.algorithm().family() == Algorithm::RANDOM_X) {
                 allocateRandomX_VM();
-                Workers::updateDataset(m_state.job.seedHash(), m_totalWays, m_state.job.algorithm());
                 randomx_calculate_hash(m_rx_vm, m_state.blob, m_state.job.size(), m_hash);
             }
             else

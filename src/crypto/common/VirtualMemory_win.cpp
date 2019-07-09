@@ -32,15 +32,6 @@
 #include "crypto/common/VirtualMemory.h"
 
 
-namespace xmrig {
-
-constexpr size_t align(size_t pos, size_t align) {
-    return ((pos - 1) / align + 1) * align;
-}
-
-}
-
-
 void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
 {
     return VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);

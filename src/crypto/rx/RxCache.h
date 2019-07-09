@@ -4,10 +4,10 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -24,33 +24,47 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_VIRTUALMEMORY_H
-#define XMRIG_VIRTUALMEMORY_H
+#ifndef XMRIG_RX_CACHE_H
+#define XMRIG_RX_CACHE_H
 
 
-#include <stddef.h>
 #include <stdint.h>
 
 
-namespace xmrig {
+#include "crypto/randomx/configuration.h"
 
 
-class VirtualMemory
+struct randomx_cache;
+
+
+namespace xmrig
+{
+
+
+class RxCache
 {
 public:
-    static void *allocateExecutableMemory(size_t size);
-    static void *allocateLargePagesMemory(size_t size);
-    static void flushInstructionCache(void *p, size_t size);
-    static void freeLargePagesMemory(void *p, size_t size);
-    static void protectExecutableMemory(void *p, size_t size);
-    static void unprotectExecutableMemory(void *p, size_t size);
+    RxCache(bool hugePages = true);
+    ~RxCache();
 
-    static inline constexpr size_t align(size_t pos, size_t align = 2097152) { return ((pos - 1) / align + 1) * align; }
+    inline bool isHugePages() const         { return m_flags & 1; }
+    inline bool isJIT() const               { return m_flags & 8; }
+    inline const uint8_t *seed() const      { return m_seed; }
+    inline randomx_cache *get() const       { return m_cache; }
+
+    bool init(const void *seed);
+    bool isReady(const void *seed) const;
+
+    static inline constexpr size_t size() { return RANDOMX_CACHE_MAX_SIZE; }
+
+private:
+    int m_flags = 0;
+    randomx_cache *m_cache = nullptr;
+    uint8_t m_seed[32];
 };
 
 
 } /* namespace xmrig */
 
 
-
-#endif /* XMRIG_VIRTUALMEMORY_H */
+#endif /* XMRIG_RX_CACHE_H */

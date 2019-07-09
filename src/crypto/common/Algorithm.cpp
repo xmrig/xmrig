@@ -32,6 +32,7 @@
 
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/common/Algorithm.h"
+#include "crypto/rx/RxAlgo.h"
 #include "rapidjson/document.h"
 
 
@@ -138,12 +139,12 @@ size_t xmrig::Algorithm::memory() const
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (m_id == RX_WOW) {
-        return 0x100000;
+    if (f == RANDOM_X) {
+        return RxAlgo::l3(m_id);
     }
 #   endif
 
-    return 0x200000;
+    return 0;
 }
 
 

@@ -119,7 +119,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
 bool xmrig::Config::finalize()
 {
-    Algorithm algorithm(Algorithm::CN_0); // FIXME algo
+    Algorithm algorithm(Algorithm::RX_WOW); // FIXME algo
 
     if (!m_threads.cpu.empty()) {
         m_threads.mode = Advanced;

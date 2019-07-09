@@ -54,6 +54,8 @@ public:
     inline ~JobResultsPrivate()
     {
         Handle::close(m_async);
+
+        uv_mutex_destroy(&m_mutex);
     }
 
 

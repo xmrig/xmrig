@@ -171,24 +171,32 @@ if (WITH_RANDOMX)
     set(SOURCES_CRYPTO
         "${SOURCES_CRYPTO}"
         src/crypto/randomx/aes_hash.cpp
+        src/crypto/randomx/allocator.cpp
+        src/crypto/randomx/argon2_core.c
         src/crypto/randomx/argon2_ref.c
+        src/crypto/randomx/blake2_generator.cpp
+        src/crypto/randomx/blake2/blake2b.c
         src/crypto/randomx/bytecode_machine.cpp
         src/crypto/randomx/dataset.cpp
-        src/crypto/randomx/soft_aes.cpp
-        src/crypto/randomx/virtual_memory.cpp
-        src/crypto/randomx/vm_interpreted.cpp
-        src/crypto/randomx/allocator.cpp
+        src/crypto/randomx/instructions_portable.cpp
         src/crypto/randomx/randomx.cpp
+        src/crypto/randomx/reciprocal.c
+        src/crypto/randomx/soft_aes.cpp
         src/crypto/randomx/superscalar.cpp
+        src/crypto/randomx/virtual_machine.cpp
+        src/crypto/randomx/virtual_memory.cpp
+        src/crypto/randomx/vm_compiled_light.cpp
         src/crypto/randomx/vm_compiled.cpp
         src/crypto/randomx/vm_interpreted_light.cpp
-        src/crypto/randomx/argon2_core.c
-        src/crypto/randomx/blake2_generator.cpp
-        src/crypto/randomx/instructions_portable.cpp
-        src/crypto/randomx/reciprocal.c
-        src/crypto/randomx/virtual_machine.cpp
-        src/crypto/randomx/vm_compiled_light.cpp
-        src/crypto/randomx/blake2/blake2b.c
+        src/crypto/randomx/vm_interpreted.cpp
+        src/crypto/rx/Rx.cpp
+        src/crypto/rx/Rx.h
+        src/crypto/rx/RxAlgo.cpp
+        src/crypto/rx/RxAlgo.h
+        src/crypto/rx/RxCache.cpp
+        src/crypto/rx/RxCache.h
+        src/crypto/rx/RxDataset.cpp
+        src/crypto/rx/RxDataset.h
     )
     if (NOT ARCH_ID)
         set(ARCH_ID ${CMAKE_HOST_SYSTEM_PROCESSOR})

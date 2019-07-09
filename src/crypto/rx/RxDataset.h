@@ -4,10 +4,10 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -24,33 +24,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_VIRTUALMEMORY_H
-#define XMRIG_VIRTUALMEMORY_H
+#ifndef XMRIG_RX_DATASET_H
+#define XMRIG_RX_DATASET_H
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include "crypto/common/Algorithm.h"
+#include "crypto/randomx/configuration.h"
 
 
-namespace xmrig {
+struct randomx_dataset;
 
 
-class VirtualMemory
+namespace xmrig
+{
+
+
+class RxCache;
+
+
+class RxDataset
 {
 public:
-    static void *allocateExecutableMemory(size_t size);
-    static void *allocateLargePagesMemory(size_t size);
-    static void flushInstructionCache(void *p, size_t size);
-    static void freeLargePagesMemory(void *p, size_t size);
-    static void protectExecutableMemory(void *p, size_t size);
-    static void unprotectExecutableMemory(void *p, size_t size);
+    RxDataset(bool hugePages = true);
+    ~RxDataset();
 
-    static inline constexpr size_t align(size_t pos, size_t align = 2097152) { return ((pos - 1) / align + 1) * align; }
+    inline bool isHugePages() const     { return m_flags & 1; }
+    inline randomx_dataset *get() const { return m_dataset; }
+    inline RxCache *cache() const       { return m_cache; }
+
+    bool init(const void *seed, const Algorithm &algorithm, uint32_t numThreads);
+    bool isReady(const void *seed, const Algorithm &algorithm) const;
+    std::pair<size_t, size_t> hugePages() const;
+
+    static inline constexpr size_t size() { return RANDOMX_DATASET_MAX_SIZE; }
+
+private:
+    Algorithm m_algorithm;
+    int m_flags                = 0;
+    randomx_dataset *m_dataset = nullptr;
+    RxCache *m_cache           = nullptr;
 };
 
 
 } /* namespace xmrig */
 
 
-
-#endif /* XMRIG_VIRTUALMEMORY_H */
+#endif /* XMRIG_RX_DATASET_H */

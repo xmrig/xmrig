@@ -81,6 +81,9 @@ private:
 #define WHITE_S        CSI "0;37m" // another name for LT.GRAY
 #define WHITE_BOLD_S   CSI "1;37m" // actually white
 
+#define BLUE_BG_S      CSI "44m"
+#define BLUE_BG_BOLD_S CSI "44;1m"
+
 //color wrappings
 #define BLACK(x)        BLACK_S x CLEAR
 #define BLACK_BOLD(x)   BLACK_BOLD_S x CLEAR
@@ -98,6 +101,9 @@ private:
 #define CYAN_BOLD(x)    CYAN_BOLD_S x CLEAR
 #define WHITE(x)        WHITE_S x CLEAR
 #define WHITE_BOLD(x)   WHITE_BOLD_S x CLEAR
+
+#define BLUE_BG(x)      BLUE_BG_S x CLEAR
+#define BLUE_BG_BOLD(x) BLUE_BG_BOLD_S x CLEAR
 
 
 #define LOG_EMERG(x, ...)  xmrig::Log::print(xmrig::Log::EMERG,   x, ##__VA_ARGS__)
