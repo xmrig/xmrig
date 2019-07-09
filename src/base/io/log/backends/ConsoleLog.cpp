@@ -41,10 +41,15 @@ xmrig::ConsoleLog::ConsoleLog()
 
     m_tty = new uv_tty_t;
 
+#   ifdef WIN32
+    // Windows returns negative numbers even on success, so avoid testing return value
+    uv_tty_init(uv_default_loop(), m_tty, 1, 0);
+#   else
     if (uv_tty_init(uv_default_loop(), m_tty, 1, 0) < 0) {
         Log::colors = false;
         return;
     }
+#   endif
 
     uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
 
