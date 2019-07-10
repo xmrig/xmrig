@@ -24,43 +24,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_CACHE_H
-#define XMRIG_RX_CACHE_H
+#ifndef XMRIG_RX_VM_H
+#define XMRIG_RX_VM_H
 
 
 #include <stdint.h>
 
 
-#include "crypto/randomx/configuration.h"
-
-
-struct randomx_cache;
+struct randomx_vm;
 
 
 namespace xmrig
 {
 
 
-class RxCache
+class RxDataset;
+
+
+class RxVm
 {
 public:
-    RxCache(bool hugePages = true);
-    ~RxCache();
+    RxVm(RxDataset *dataset, bool hugePages, bool softAes);
+    ~RxVm();
 
-    inline bool isHugePages() const         { return m_flags & 1; }
-    inline bool isJIT() const               { return m_flags & 8; }
-    inline const uint8_t *seed() const      { return m_seed; }
-    inline randomx_cache *get() const       { return m_cache; }
-
-    bool init(const void *seed);
-    bool isReady(const void *seed) const;
-
-    static inline constexpr size_t size() { return RANDOMX_CACHE_MAX_SIZE; }
+    inline randomx_vm *get() const       { return m_vm; }
 
 private:
-    int m_flags            = 0;
-    randomx_cache *m_cache = nullptr;
-    uint8_t m_seed[32];
+    int m_flags      = 0;
+    randomx_vm *m_vm = nullptr;
 };
 
 

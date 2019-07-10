@@ -24,47 +24,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_CACHE_H
-#define XMRIG_RX_CACHE_H
+
+#include "crypto/randomx/randomx.h"
+#include "crypto/rx/RxCache.h"
+#include "crypto/rx/RxDataset.h"
+#include "crypto/rx/RxVm.h"
 
 
-#include <stdint.h>
-
-
-#include "crypto/randomx/configuration.h"
-
-
-struct randomx_cache;
-
-
-namespace xmrig
+xmrig::RxVm::RxVm(RxDataset *dataset, bool hugePages, bool softAes)
 {
+    m_flags = RANDOMX_FLAG_JIT;
+    if (hugePages) {
+        m_flags |= RANDOMX_FLAG_LARGE_PAGES;
+    }
+
+    if (!softAes) {
+       m_flags |= RANDOMX_FLAG_HARD_AES;
+    }
+
+    if (dataset->get()) {
+        m_flags |= RANDOMX_FLAG_FULL_MEM;
+    }
+
+    m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get());
+
+    if (!m_vm) {
+        m_flags &= ~RANDOMX_FLAG_LARGE_PAGES;
+        m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get());
+    }
+
+    if (!m_vm) {
+        m_flags &= ~RANDOMX_FLAG_JIT;
+        m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get());
+    }
+}
 
 
-class RxCache
+xmrig::RxVm::~RxVm()
 {
-public:
-    RxCache(bool hugePages = true);
-    ~RxCache();
-
-    inline bool isHugePages() const         { return m_flags & 1; }
-    inline bool isJIT() const               { return m_flags & 8; }
-    inline const uint8_t *seed() const      { return m_seed; }
-    inline randomx_cache *get() const       { return m_cache; }
-
-    bool init(const void *seed);
-    bool isReady(const void *seed) const;
-
-    static inline constexpr size_t size() { return RANDOMX_CACHE_MAX_SIZE; }
-
-private:
-    int m_flags            = 0;
-    randomx_cache *m_cache = nullptr;
-    uint8_t m_seed[32];
-};
-
-
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_RX_CACHE_H */
+    if (m_vm) {
+        randomx_destroy_vm(m_vm);
+    }
+}

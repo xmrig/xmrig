@@ -90,29 +90,43 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
 
         d_ptr->dataset = new RxDataset(hugePages);
 
-        const auto hugePages = d_ptr->dataset->hugePages();
-        const double percent = hugePages.first == 0 ? 0.0 : static_cast<double>(hugePages.first) / hugePages.second * 100.0;
+        if (d_ptr->dataset->get() != nullptr) {
+            const auto hugePages = d_ptr->dataset->hugePages();
+            const double percent = hugePages.first == 0 ? 0.0 : static_cast<double>(hugePages.first) / hugePages.second * 100.0;
 
-        LOG_INFO("%s" GREEN(" allocate done") " huge pages %s%u/%u %1.0f%%" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
-                 tag,
-                 (hugePages.first == hugePages.second ? GREEN_BOLD_S : (hugePages.first == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
-                 hugePages.first,
-                 hugePages.second,
-                 percent,
-                 d_ptr->dataset->cache()->isJIT() ? GREEN_BOLD_S "+" : RED_BOLD_S "-",
-                 Chrono::steadyMSecs() - ts
-                 );
+            LOG_INFO("%s" GREEN(" allocate done") " huge pages %s%u/%u %1.0f%%" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
+                     tag,
+                     (hugePages.first == hugePages.second ? GREEN_BOLD_S : (hugePages.first == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                     hugePages.first,
+                     hugePages.second,
+                     percent,
+                     d_ptr->dataset->cache()->isJIT() ? GREEN_BOLD_S "+" : RED_BOLD_S "-",
+                     Chrono::steadyMSecs() - ts
+                     );
+        }
+        else {
+            LOG_WARN(CLEAR "%s" YELLOW_BOLD_S " failed to allocate RandomX dataset, switching to slow mode", tag);
+        }
     }
 
     if (!d_ptr->dataset->isReady(seed, algorithm)) {
         const uint64_t ts = Chrono::steadyMSecs();
 
-        LOG_INFO("%s" MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s") " threads " WHITE_BOLD("%u") BLACK_BOLD(" seed %s..."),
-                 tag,
-                 algorithm.shortName(),
-                 d_ptr->initThreads,
-                 Buffer::toHex(seed, 8).data()
-                 );
+        if (d_ptr->dataset->get() != nullptr) {
+            LOG_INFO("%s" MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s") " threads " WHITE_BOLD("%u") BLACK_BOLD(" seed %s..."),
+                     tag,
+                     algorithm.shortName(),
+                     d_ptr->initThreads,
+                     Buffer::toHex(seed, 8).data()
+                     );
+        }
+        else {
+            LOG_INFO("%s" MAGENTA_BOLD(" init cache") " algo " WHITE_BOLD("%s") BLACK_BOLD(" seed %s..."),
+                     tag,
+                     algorithm.shortName(),
+                     Buffer::toHex(seed, 8).data()
+                     );
+        }
 
         d_ptr->dataset->init(seed, algorithm, d_ptr->initThreads);
 

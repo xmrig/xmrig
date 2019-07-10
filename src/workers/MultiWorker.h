@@ -27,11 +27,6 @@
 #define XMRIG_MULTIWORKER_H
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-#   include <randomx.h>
-#endif
-
-
 #include "base/net/stratum/Job.h"
 #include "Mem.h"
 #include "net/JobResult.h"
@@ -39,6 +34,9 @@
 
 
 namespace xmrig {
+
+
+class RxVm;
 
 
 template<size_t N>
@@ -81,7 +79,7 @@ private:
     uint8_t m_hash[N * 32];
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    randomx_vm *m_rx_vm = nullptr;
+    RxVm *m_vm = nullptr;
 #   endif
 };
 

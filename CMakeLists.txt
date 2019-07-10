@@ -197,6 +197,8 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxCache.h
         src/crypto/rx/RxDataset.cpp
         src/crypto/rx/RxDataset.h
+        src/crypto/rx/RxVm.cpp
+        src/crypto/rx/RxVm.h
     )
     if (NOT ARCH_ID)
         set(ARCH_ID ${CMAKE_HOST_SYSTEM_PROCESSOR})

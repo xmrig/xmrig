@@ -76,6 +76,10 @@ bool xmrig::RxDataset::init(const void *seed, const Algorithm &algorithm, uint32
 
     cache()->init(seed);
 
+    if (!get()) {
+        return true;
+    }
+
     const uint32_t datasetItemCount = randomx_dataset_item_count();
 
     if (numThreads > 1) {
