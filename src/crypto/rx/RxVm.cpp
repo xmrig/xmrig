@@ -33,7 +33,6 @@
 
 xmrig::RxVm::RxVm(RxDataset *dataset, bool hugePages, bool softAes)
 {
-    m_flags = RANDOMX_FLAG_JIT;
     if (hugePages) {
         m_flags |= RANDOMX_FLAG_LARGE_PAGES;
     }
@@ -46,6 +45,10 @@ xmrig::RxVm::RxVm(RxDataset *dataset, bool hugePages, bool softAes)
         m_flags |= RANDOMX_FLAG_FULL_MEM;
     }
 
+    if (dataset->cache()->isJIT()) {
+        m_flags |= RANDOMX_FLAG_JIT;
+    }
+
     m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get());
 
     if (!m_vm) {
@@ -54,7 +57,7 @@ xmrig::RxVm::RxVm(RxDataset *dataset, bool hugePages, bool softAes)
     }
 
     if (!m_vm) {
-        m_flags &= ~RANDOMX_FLAG_JIT;
+        m_flags &= ~RANDOMX_FLAG_HARD_AES;
         m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get());
     }
 }
