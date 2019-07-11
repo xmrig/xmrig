@@ -26,10 +26,8 @@
 #include "workers/ThreadHandle.h"
 
 
-ThreadHandle::ThreadHandle(xmrig::IThread *config, uint32_t offset, size_t totalWays) :
+ThreadHandle::ThreadHandle(xmrig::IThread *config) :
     m_worker(nullptr),
-    m_totalWays(totalWays),
-    m_offset(offset),
     m_config(config)
 {
 }

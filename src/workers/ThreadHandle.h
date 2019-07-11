@@ -40,21 +40,17 @@ class IWorker;
 class ThreadHandle
 {
 public:
-    ThreadHandle(xmrig::IThread *config, uint32_t offset, size_t totalWays);
+    ThreadHandle(xmrig::IThread *config);
     void join();
     void start(void (*callback) (void *));
 
     inline IWorker *worker() const         { return m_worker; }
     inline size_t threadId() const         { return m_config->index(); }
-    inline size_t totalWays() const        { return m_totalWays; }
-    inline uint32_t offset() const         { return m_offset; }
     inline void setWorker(IWorker *worker) { assert(worker != nullptr); m_worker = worker; }
     inline xmrig::IThread *config() const  { return m_config; }
 
 private:
     IWorker *m_worker;
-    size_t m_totalWays;
-    uint32_t m_offset;
     uv_thread_t m_thread;
     xmrig::IThread *m_config;
 };

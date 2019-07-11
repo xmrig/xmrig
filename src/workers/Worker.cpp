@@ -35,8 +35,6 @@
 
 Worker::Worker(ThreadHandle *handle) :
     m_id(handle->threadId()),
-    m_totalWays(handle->totalWays()),
-    m_offset(handle->offset()),
     m_hashCount(0),
     m_timestamp(0),
     m_count(0),

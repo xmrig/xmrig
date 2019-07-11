@@ -200,11 +200,8 @@ void Workers::start(xmrig::Controller *controller)
     uv_timer_init(uv_default_loop(), m_timer);
     uv_timer_start(m_timer, Workers::onTick, 500, 500);
 
-    uint32_t offset = 0;
-
     for (xmrig::IThread *thread : threads) {
-        ThreadHandle *handle = new ThreadHandle(thread, offset, m_status.ways);
-        offset += thread->multiway();
+        ThreadHandle *handle = new ThreadHandle(thread);
 
         m_workers.push_back(handle);
         handle->start(Workers::onReady);

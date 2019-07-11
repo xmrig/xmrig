@@ -57,8 +57,6 @@ protected:
     void storeStats();
 
     const size_t m_id;
-    const size_t m_totalWays;
-    const uint32_t m_offset;
     MemInfo m_memory;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
