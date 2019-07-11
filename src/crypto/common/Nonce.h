@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,38 +22,36 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
+#ifndef XMRIG_NONCE_H
+#define XMRIG_NONCE_H
 
 
-#include "backend/cpu/Cpu.h"
-#include "common/Platform.h"
-#include "workers/CpuThreadLegacy.h"
-#include "workers/ThreadHandle.h"
-#include "workers/Worker.h"
+#include <atomic>
 
 
-Worker::Worker(ThreadHandle *handle) :
-    m_id(handle->threadId()),
-    m_totalWays(handle->totalWays()),
-    m_offset(handle->offset()),
-    m_hashCount(0),
-    m_timestamp(0),
-    m_count(0),
-    m_thread(static_cast<xmrig::CpuThreadLegacy *>(handle->config()))
+namespace xmrig {
+
+
+class Nonce
 {
-    if (xmrig::Cpu::info()->threads() > 1 && m_thread->affinity() != -1L) {
-        Platform::setThreadAffinity(m_thread->affinity());
-    }
+public:
+    Nonce();
 
-    Platform::setThreadPriority(m_thread->priority());
-}
+    static inline bool isOutdated(uint64_t sequence)    { return m_sequence.load(std::memory_order_relaxed) != sequence; }
+    static inline uint64_t sequence()                   { return m_sequence.load(std::memory_order_relaxed); }
+    static inline void stop()                           { m_sequence = 0; }
+    static inline void touch()                          { m_sequence++; }
+
+    static uint32_t next(uint8_t index, uint32_t nonce, uint32_t reserveCount, bool nicehash);
+    static void reset(uint8_t index);
+
+private:
+    static uint32_t m_nonces[2];
+    static std::atomic<uint64_t> m_sequence;
+};
 
 
-void Worker::storeStats()
-{
-    using namespace std::chrono;
+} // namespace xmrig
 
-    const uint64_t timestamp = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
-    m_hashCount.store(m_count, std::memory_order_relaxed);
-    m_timestamp.store(timestamp, std::memory_order_relaxed);
-}
+
+#endif /* XMRIG_NONCE_H */

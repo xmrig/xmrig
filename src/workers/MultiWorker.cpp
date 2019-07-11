@@ -28,12 +28,20 @@
 
 
 #include "crypto/cn/CryptoNight_test.h"
+#include "crypto/common/Nonce.h"
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxVm.h"
 #include "net/JobResults.h"
 #include "workers/CpuThreadLegacy.h"
 #include "workers/MultiWorker.h"
 #include "workers/Workers.h"
+
+
+namespace xmrig {
+
+static constexpr uint32_t kReserveCount = 4096;
+
+} // namespace xmrig
 
 
 template<size_t N>
@@ -62,7 +70,7 @@ template<size_t N>
 void xmrig::MultiWorker<N>::allocateRandomX_VM()
 {
     if (!m_vm) {
-        RxDataset *dataset = Rx::dataset(m_state.job.seedHash(), m_state.job.algorithm());
+        RxDataset *dataset = Rx::dataset(m_job.currentJob().seedHash(), m_job.currentJob().algorithm());
         m_vm = new RxVm(dataset, true, m_thread->isSoftAES());
     }
 }
@@ -131,44 +139,45 @@ bool xmrig::MultiWorker<N>::selfTest()
 template<size_t N>
 void xmrig::MultiWorker<N>::start()
 {
-    while (Workers::sequence() > 0) {
+    while (Nonce::sequence() > 0) {
         if (Workers::isPaused()) {
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
             }
             while (Workers::isPaused());
 
-            if (Workers::sequence() == 0) {
+            if (Nonce::sequence() == 0) {
                 break;
             }
 
             consumeJob();
         }
 
-        while (!Workers::isOutdated(m_sequence)) {
+        while (!Nonce::isOutdated(m_job.sequence())) {
             if ((m_count & 0x7) == 0) {
                 storeStats();
             }
 
+            const Job &job = m_job.currentJob();
+
 #           ifdef XMRIG_ALGO_RANDOMX
-            if (m_state.job.algorithm().family() == Algorithm::RANDOM_X) {
+            if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 allocateRandomX_VM();
-                randomx_calculate_hash(m_vm->get(), m_state.blob, m_state.job.size(), m_hash);
+                randomx_calculate_hash(m_vm->get(), m_job.blob(), job.size(), m_hash);
             }
             else
 #           endif
             {
-                m_thread->fn(m_state.job.algorithm())(m_state.blob, m_state.job.size(), m_hash, m_ctx, m_state.job.height());
+                m_thread->fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
             }
 
             for (size_t i = 0; i < N; ++i) {
-                if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < m_state.job.target()) {
-                    JobResults::submit(JobResult(m_state.job.poolId(), m_state.job.id(), m_state.job.clientId(), *nonce(i), m_hash + (i * 32), m_state.job.diff(), m_state.job.algorithm()));
+                if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
+                    JobResults::submit(JobResult(job.poolId(), job.id(), job.clientId(), *m_job.nonce(i), m_hash + (i * 32), job.diff(), job.algorithm()));
                 }
-
-                *nonce(i) += 1;
             }
 
+            m_job.nextRound(kReserveCount);
             m_count += N;
 
             std::this_thread::yield();
@@ -176,18 +185,6 @@ void xmrig::MultiWorker<N>::start()
 
         consumeJob();
     }
-}
-
-
-template<size_t N>
-bool xmrig::MultiWorker<N>::resume(const xmrig::Job &job)
-{
-    if (m_state.job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedState.job.id()) {
-        m_state = m_pausedState;
-        return true;
-    }
-
-    return false;
 }
 
 
@@ -215,10 +212,10 @@ bool xmrig::MultiWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *r
     for (size_t i = 0; i < (sizeof(cn_r_test_input) / sizeof(cn_r_test_input[0])); ++i) {
         const size_t size = cn_r_test_input[i].size;
         for (size_t k = 0; k < N; ++k) {
-            memcpy(m_state.blob + (k * size), cn_r_test_input[i].data, size);
+            memcpy(m_job.blob() + (k * size), cn_r_test_input[i].data, size);
         }
 
-        func(m_state.blob, size, m_hash, m_ctx, cn_r_test_input[i].height);
+        func(m_job.blob(), size, m_hash, m_ctx, cn_r_test_input[i].height);
 
         for (size_t k = 0; k < N; ++k) {
             if (memcmp(m_hash + k * 32, referenceValue + i * 32, sizeof m_hash / N) != 0) {
@@ -258,46 +255,7 @@ bool MultiWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenc
 template<size_t N>
 void xmrig::MultiWorker<N>::consumeJob()
 {
-    Job job = Workers::job();
-    m_sequence = Workers::sequence();
-    if (m_state.job == job) {
-        return;
-    }
-
-    save(job);
-
-    if (resume(job)) {
-        return;
-    }
-
-    m_state.job = job;
-
-    const size_t size = m_state.job.size();
-    memcpy(m_state.blob, m_state.job.blob(), m_state.job.size());
-
-    if (N > 1) {
-        for (size_t i = 1; i < N; ++i) {
-            memcpy(m_state.blob + (i * size), m_state.blob, size);
-        }
-    }
-
-    for (size_t i = 0; i < N; ++i) {
-        if (m_state.job.isNicehash()) {
-            *nonce(i) = (*nonce(i) & 0xff000000U) + (0xffffffU / m_totalWays * (m_offset + i));
-        }
-        else {
-           *nonce(i) = 0xffffffffU / m_totalWays * (m_offset + i);
-        }
-    }
-}
-
-
-template<size_t N>
-void xmrig::MultiWorker<N>::save(const Job &job)
-{
-    if (job.poolId() == -1 && m_state.job.poolId() >= 0) {
-        m_pausedState = m_state;
-    }
+    m_job.add(Workers::job(), Nonce::sequence(), kReserveCount);
 }
 
 

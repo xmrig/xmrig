@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,38 +22,62 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
+
+#include <uv.h>
 
 
-#include "backend/cpu/Cpu.h"
-#include "common/Platform.h"
-#include "workers/CpuThreadLegacy.h"
-#include "workers/ThreadHandle.h"
-#include "workers/Worker.h"
+#include "crypto/common/Nonce.h"
 
 
-Worker::Worker(ThreadHandle *handle) :
-    m_id(handle->threadId()),
-    m_totalWays(handle->totalWays()),
-    m_offset(handle->offset()),
-    m_hashCount(0),
-    m_timestamp(0),
-    m_count(0),
-    m_thread(static_cast<xmrig::CpuThreadLegacy *>(handle->config()))
+namespace xmrig {
+
+
+std::atomic<uint64_t> Nonce::m_sequence;
+uint32_t Nonce::m_nonces[2] = { 0, 0 };
+
+
+static uv_mutex_t mutex;
+static Nonce nonce;
+
+
+} // namespace xmrig
+
+
+xmrig::Nonce::Nonce()
 {
-    if (xmrig::Cpu::info()->threads() > 1 && m_thread->affinity() != -1L) {
-        Platform::setThreadAffinity(m_thread->affinity());
-    }
+    m_sequence = 1;
 
-    Platform::setThreadPriority(m_thread->priority());
+    uv_mutex_init(&mutex);
 }
 
 
-void Worker::storeStats()
+uint32_t xmrig::Nonce::next(uint8_t index, uint32_t nonce, uint32_t reserveCount, bool nicehash)
 {
-    using namespace std::chrono;
+    uint32_t next;
 
-    const uint64_t timestamp = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
-    m_hashCount.store(m_count, std::memory_order_relaxed);
-    m_timestamp.store(timestamp, std::memory_order_relaxed);
+    uv_mutex_lock(&mutex);
+
+    if (nicehash) {
+        next = (nonce & 0xFF000000) | m_nonces[index];
+    }
+    else {
+        next = m_nonces[index];
+    }
+
+    m_nonces[index] += reserveCount;
+
+    uv_mutex_unlock(&mutex);
+
+    return next;
+}
+
+
+void xmrig::Nonce::reset(uint8_t index)
+{
+    uv_mutex_lock(&mutex);
+
+    m_nonces[index] = 0;
+    m_sequence++;
+
+    uv_mutex_unlock(&mutex);
 }

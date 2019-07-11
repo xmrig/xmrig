@@ -53,21 +53,19 @@ namespace xmrig {
 class Workers
 {
 public:
-    static xmrig::Job job();
     static size_t hugePages();
     static size_t threads();
+    static void pause();
     static void printHashrate(bool detail);
     static void setEnabled(bool enabled);
     static void setJob(const xmrig::Job &job, bool donate);
     static void start(xmrig::Controller *controller);
     static void stop();
+    static xmrig::Job job();
 
     static inline bool isEnabled()                                      { return m_enabled; }
-    static inline bool isOutdated(uint64_t sequence)                    { return m_sequence.load(std::memory_order_relaxed) != sequence; }
     static inline bool isPaused()                                       { return m_paused.load(std::memory_order_relaxed) == 1; }
     static inline Hashrate *hashrate()                                  { return m_hashrate; }
-    static inline uint64_t sequence()                                   { return m_sequence.load(std::memory_order_relaxed); }
-    static inline void pause()                                          { m_active = false; m_paused = 1; m_sequence++; }
 
 #   ifdef XMRIG_FEATURE_API
     static void threadsSummary(rapidjson::Document &doc);
@@ -103,7 +101,6 @@ private:
     static xmrig::Job m_job;
     static LaunchStatus m_status;
     static std::atomic<int> m_paused;
-    static std::atomic<uint64_t> m_sequence;
     static std::vector<ThreadHandle*> m_workers;
     static uint64_t m_ticks;
     static uv_mutex_t m_mutex;

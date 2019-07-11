@@ -28,6 +28,7 @@
 
 
 #include "base/net/stratum/Job.h"
+#include "core/WorkerJob.h"
 #include "Mem.h"
 #include "net/JobResult.h"
 #include "workers/Worker.h"
@@ -55,28 +56,14 @@ private:
     void allocateRandomX_VM();
 #   endif
 
-    bool resume(const Job &job);
     bool verify(const Algorithm &algorithm, const uint8_t *referenceValue);
     bool verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
     void consumeJob();
-    void save(const Job &job);
-
-    inline uint32_t *nonce(size_t index)
-    {
-        return reinterpret_cast<uint32_t*>(m_state.blob + (index * m_state.job.size()) + 39);
-    }
-
-    struct State
-    {
-        alignas(16) uint8_t blob[Job::kMaxBlobSize * N];
-        Job job;
-    };
-
 
     cryptonight_ctx *m_ctx[N];
-    State m_pausedState;
-    State m_state;
     uint8_t m_hash[N * 32];
+
+    WorkerJob<N> m_job;
 
 #   ifdef XMRIG_ALGO_RANDOMX
     RxVm *m_vm = nullptr;

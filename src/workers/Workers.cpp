@@ -33,6 +33,7 @@
 #include "base/tools/Handle.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "crypto/common/Nonce.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
@@ -51,7 +52,6 @@ Hashrate *Workers::m_hashrate = nullptr;
 xmrig::Job Workers::m_job;
 Workers::LaunchStatus Workers::m_status;
 std::atomic<int> Workers::m_paused;
-std::atomic<uint64_t> Workers::m_sequence;
 std::vector<ThreadHandle*> Workers::m_workers;
 uint64_t Workers::m_ticks = 0;
 uv_mutex_t Workers::m_mutex;
@@ -87,6 +87,15 @@ size_t Workers::threads()
     uv_mutex_unlock(&m_mutex);
 
     return threads;
+}
+
+
+void Workers::pause()
+{
+    m_active = false;
+    m_paused = 1;
+
+    xmrig::Nonce::touch();
 }
 
 
@@ -134,7 +143,7 @@ void Workers::setEnabled(bool enabled)
     }
 
     m_paused = enabled ? 0 : 1;
-    m_sequence++;
+    xmrig::Nonce::touch();
 }
 
 
@@ -146,6 +155,9 @@ void Workers::setJob(const xmrig::Job &job, bool donate)
     if (donate) {
         m_job.setPoolId(-1);
     }
+
+    xmrig::Nonce::reset(donate ? 1 : 0);
+
     uv_rwlock_wrunlock(&m_rwlock);
 
     m_active = true;
@@ -153,7 +165,6 @@ void Workers::setJob(const xmrig::Job &job, bool donate)
         return;
     }
 
-    m_sequence++;
     m_paused = 0;
 }
 
@@ -183,7 +194,6 @@ void Workers::start(xmrig::Controller *controller)
     uv_mutex_init(&m_mutex);
     uv_rwlock_init(&m_rwlock);
 
-    m_sequence = 1;
     m_paused   = 1;
 
     m_timer = new uv_timer_t;
@@ -208,7 +218,8 @@ void Workers::stop()
     m_hashrate->stop();
 
     m_paused   = 0;
-    m_sequence = 0;
+
+    xmrig::Nonce::stop();
 
     for (size_t i = 0; i < m_workers.size(); ++i) {
         m_workers[i]->join();

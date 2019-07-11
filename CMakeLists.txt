@@ -35,6 +35,7 @@ set(HEADERS
     src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
+    src/core/WorkerJob.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
     src/Mem.h
@@ -71,6 +72,7 @@ set(HEADERS_CRYPTO
     src/crypto/cn/soft_aes.h
     src/crypto/common/Algorithm.h
     src/crypto/common/keccak.h
+    src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
    )
@@ -113,6 +115,7 @@ set(SOURCES_CRYPTO
     src/crypto/cn/CnHash.cpp
     src/crypto/common/Algorithm.cpp
     src/crypto/common/keccak.cpp
+    src/crypto/common/Nonce.cpp
    )
 
 if (WIN32)
