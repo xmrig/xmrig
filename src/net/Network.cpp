@@ -144,7 +144,7 @@ void xmrig::Network::onJob(IStrategy *strategy, IClient *client, const Job &job)
 
 void xmrig::Network::onJobResult(const JobResult &result)
 {
-    if (result.poolId == -1 && m_donate) {
+    if (result.index == 1 && m_donate) {
         m_donate->submit(result);
         return;
     }

@@ -56,7 +56,7 @@ public:
             return;
         }
 
-        if (index() == 1 && job.poolId() >= 0 && job == m_jobs[0]) {
+        if (index() == 1 && job.index() == 0 && job == m_jobs[0]) {
             return;
         }
 
@@ -84,7 +84,7 @@ public:
 private:
     inline void save(const Job &job, uint32_t reserveCount)
     {
-        m_index           = job.poolId() == -1 ? 1 : 0;
+        m_index           = job.index();
         const size_t size = job.size();
         m_jobs[index()]   = job;
         m_rounds[index()] = 0;
@@ -128,7 +128,7 @@ inline void xmrig::WorkerJob<1>::nextRound(uint32_t reserveCount)
 template<>
 inline void xmrig::WorkerJob<1>::save(const Job &job, uint32_t reserveCount)
 {
-    m_index           = job.poolId() == -1 ? 1 : 0;
+    m_index           = job.index();
     m_jobs[index()]   = job;
     m_rounds[index()] = 0;
 

@@ -150,11 +150,9 @@ void Workers::setEnabled(bool enabled)
 void Workers::setJob(const xmrig::Job &job, bool donate)
 {
     uv_rwlock_wrlock(&m_rwlock);
-    m_job = job;
 
-    if (donate) {
-        m_job.setPoolId(-1);
-    }
+    m_job = job;
+    m_job.setIndex(donate ? 1 : 0);
 
     xmrig::Nonce::reset(donate ? 1 : 0);
 

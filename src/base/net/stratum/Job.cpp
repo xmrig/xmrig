@@ -34,27 +34,16 @@
 
 
 xmrig::Job::Job() :
-    m_nicehash(false),
-    m_poolId(-2),
-    m_size(0),
-    m_diff(0),
-    m_height(0),
-    m_target(0),
     m_blob(),
     m_seedHash()
 {
 }
 
 
-xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const String &clientId) :
+xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
     m_algorithm(algorithm),
     m_nicehash(nicehash),
-    m_poolId(poolId),
-    m_size(0),
     m_clientId(clientId),
-    m_diff(0),
-    m_height(0),
-    m_target(0),
     m_blob(),
     m_seedHash()
 {

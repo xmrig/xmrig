@@ -173,7 +173,7 @@ void xmrig::MultiWorker<N>::start()
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
-                    JobResults::submit(JobResult(job.poolId(), job.id(), job.clientId(), *m_job.nonce(i), m_hash + (i * 32), job.diff(), job.algorithm()));
+                    JobResults::submit(JobResult(job, *m_job.nonce(i), m_hash + (i * 32)));
                 }
             }
 

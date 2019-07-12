@@ -162,7 +162,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
     Buffer::toHex(reinterpret_cast<const char*>(&result.nonce), 4, nonce);
     nonce[8] = '\0';
 
-    Buffer::toHex(result.result, 32, data);
+    Buffer::toHex(result.result(), 32, data);
     data[64] = '\0';
 #   endif
 
@@ -313,7 +313,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, has<EXT_NICEHASH>(), m_pool.algorithm(), m_rpcId);
+    Job job(has<EXT_NICEHASH>(), m_pool.algorithm(), m_rpcId);
 
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;

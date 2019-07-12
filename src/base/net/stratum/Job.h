@@ -47,7 +47,7 @@ public:
     static constexpr const size_t kMaxBlobSize = 128;
 
     Job();
-    Job(int poolId, bool nicehash, const Algorithm &algorithm, const String &clientId);
+    Job(bool nicehash, const Algorithm &algorithm, const String &clientId);
     ~Job();
 
     bool isEqual(const Job &other) const;
@@ -65,18 +65,18 @@ public:
     inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const                { return m_blob; }
     inline const uint8_t *seedHash() const            { return m_seedHash; }
-    inline int poolId() const                         { return m_poolId; }
     inline size_t size() const                        { return m_size; }
     inline uint32_t *nonce()                          { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint64_t diff() const                      { return m_diff; }
     inline uint64_t height() const                    { return m_height; }
     inline uint64_t target() const                    { return m_target; }
     inline uint8_t fixedByte() const                  { return *(m_blob + 42); }
+    inline uint8_t index() const                      { return m_index; }
     inline void reset()                               { m_size = 0; m_diff = 0; }
     inline void setAlgorithm(const char *algo)        { m_algorithm = algo; }
     inline void setClientId(const String &id)         { m_clientId = id; }
     inline void setHeight(uint64_t height)            { m_height = height; }
-    inline void setPoolId(int poolId)                 { m_poolId = poolId; }
+    inline void setIndex(uint8_t index)               { m_index = index; }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                            { return m_rawBlob; }
@@ -93,15 +93,15 @@ public:
 
 private:
     Algorithm m_algorithm;
-    bool m_nicehash;
-    int m_poolId;
-    size_t m_size;
+    bool m_nicehash = false;
+    size_t m_size       = 0;
     String m_clientId;
     String m_id;
-    uint64_t m_diff;
-    uint64_t m_height;
-    uint64_t m_target;
+    uint64_t m_diff     = 0;
+    uint64_t m_height   = 0;
+    uint64_t m_target   = 0;
     uint8_t m_blob[kMaxBlobSize];
+    uint8_t m_index     = 0;
     uint8_t m_seedHash[32];
 
 #   ifdef XMRIG_PROXY_PROJECT
