@@ -26,8 +26,8 @@
 #define XMRIG_CPUTHREADLEGACY_H
 
 
+#include "backend/common/interfaces/IThread.h"
 #include "crypto/cn/CnHash.h"
-#include "interfaces/IThread.h"
 
 
 struct cryptonight_ctx;

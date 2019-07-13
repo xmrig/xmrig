@@ -26,8 +26,8 @@
 #define XMRIG_CPUCONFIG_H
 
 
+#include "backend/common/Threads.h"
 #include "backend/cpu/CpuThread.h"
-#include "backend/Threads.h"
 #include "crypto/common/Assembly.h"
 
 

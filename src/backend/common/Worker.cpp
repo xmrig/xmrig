@@ -26,11 +26,11 @@
 #include <chrono>
 
 
+#include "backend/common/Worker.h"
 #include "backend/cpu/Cpu.h"
 #include "base/kernel/Platform.h"
 #include "workers/CpuThreadLegacy.h"
 #include "workers/ThreadHandle.h"
-#include "workers/Worker.h"
 
 
 Worker::Worker(ThreadHandle *handle) :

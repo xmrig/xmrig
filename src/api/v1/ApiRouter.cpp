@@ -29,11 +29,11 @@
 
 #include "api/interfaces/IApiRequest.h"
 #include "api/v1/ApiRouter.h"
+#include "backend/common/interfaces/IThread.h"
 #include "backend/cpu/Cpu.h"
 #include "base/kernel/Base.h"
 #include "base/kernel/Platform.h"
 #include "core/config/Config.h"
-#include "interfaces/IThread.h"
 #include "rapidjson/document.h"
 #include "version.h"
 #include "workers/Hashrate.h"

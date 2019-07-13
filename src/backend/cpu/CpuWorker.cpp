@@ -27,13 +27,13 @@
 #include <thread>
 
 
+#include "backend/cpu/CpuWorker.h"
 #include "crypto/cn/CryptoNight_test.h"
 #include "crypto/common/Nonce.h"
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxVm.h"
 #include "net/JobResults.h"
 #include "workers/CpuThreadLegacy.h"
-#include "workers/MultiWorker.h"
 #include "workers/Workers.h"
 
 
@@ -45,7 +45,7 @@ static constexpr uint32_t kReserveCount = 4096;
 
 
 template<size_t N>
-xmrig::MultiWorker<N>::MultiWorker(ThreadHandle *handle)
+xmrig::CpuWorker<N>::CpuWorker(ThreadHandle *handle)
     : Worker(handle)
 {
     if (m_thread->algorithm().family() != Algorithm::RANDOM_X) {
@@ -55,7 +55,7 @@ xmrig::MultiWorker<N>::MultiWorker(ThreadHandle *handle)
 
 
 template<size_t N>
-xmrig::MultiWorker<N>::~MultiWorker()
+xmrig::CpuWorker<N>::~CpuWorker()
 {
     Mem::release(m_ctx, N, m_memory);
 
@@ -67,7 +67,7 @@ xmrig::MultiWorker<N>::~MultiWorker()
 
 #ifdef XMRIG_ALGO_RANDOMX
 template<size_t N>
-void xmrig::MultiWorker<N>::allocateRandomX_VM()
+void xmrig::CpuWorker<N>::allocateRandomX_VM()
 {
     if (!m_vm) {
         RxDataset *dataset = Rx::dataset(m_job.currentJob().seedHash(), m_job.currentJob().algorithm());
@@ -78,7 +78,7 @@ void xmrig::MultiWorker<N>::allocateRandomX_VM()
 
 
 template<size_t N>
-bool xmrig::MultiWorker<N>::selfTest()
+bool xmrig::CpuWorker<N>::selfTest()
 {
     if (m_thread->algorithm().family() == Algorithm::CN) {
         const bool rc = verify(Algorithm::CN_0,      test_output_v0)   &&
@@ -137,7 +137,7 @@ bool xmrig::MultiWorker<N>::selfTest()
 
 
 template<size_t N>
-void xmrig::MultiWorker<N>::start()
+void xmrig::CpuWorker<N>::start()
 {
     while (Nonce::sequence() > 0) {
         if (Workers::isPaused()) {
@@ -189,7 +189,7 @@ void xmrig::MultiWorker<N>::start()
 
 
 template<size_t N>
-bool xmrig::MultiWorker<N>::verify(const Algorithm &algorithm, const uint8_t *referenceValue)
+bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
     cn_hash_fun func = m_thread->fn(algorithm);
     if (!func) {
@@ -202,7 +202,7 @@ bool xmrig::MultiWorker<N>::verify(const Algorithm &algorithm, const uint8_t *re
 
 
 template<size_t N>
-bool xmrig::MultiWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
+bool xmrig::CpuWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
     cn_hash_fun func = m_thread->fn(algorithm);
     if (!func) {
@@ -231,7 +231,7 @@ bool xmrig::MultiWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *r
 namespace xmrig {
 
 template<>
-bool MultiWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
+bool CpuWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
     cn_hash_fun func = m_thread->fn(algorithm);
     if (!func) {
@@ -253,7 +253,7 @@ bool MultiWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenc
 
 
 template<size_t N>
-void xmrig::MultiWorker<N>::consumeJob()
+void xmrig::CpuWorker<N>::consumeJob()
 {
     m_job.add(Workers::job(), Nonce::sequence(), kReserveCount);
 }
@@ -261,11 +261,11 @@ void xmrig::MultiWorker<N>::consumeJob()
 
 namespace xmrig {
 
-template class MultiWorker<1>;
-template class MultiWorker<2>;
-template class MultiWorker<3>;
-template class MultiWorker<4>;
-template class MultiWorker<5>;
+template class CpuWorker<1>;
+template class CpuWorker<2>;
+template class CpuWorker<3>;
+template class CpuWorker<4>;
+template class CpuWorker<5>;
 
 } // namespace xmrig
 

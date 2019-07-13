@@ -28,6 +28,7 @@
 
 
 #include "api/Api.h"
+#include "backend/cpu/CpuWorker.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Handle.h"
@@ -37,11 +38,9 @@
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
-#include "interfaces/IThread.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
 #include "workers/Hashrate.h"
-#include "workers/MultiWorker.h"
 #include "workers/ThreadHandle.h"
 #include "workers/Workers.h"
 
@@ -250,26 +249,23 @@ void Workers::onReady(void *arg)
 
     switch (handle->config()->multiway()) {
     case 1:
-        worker = new xmrig::MultiWorker<1>(handle);
+        worker = new xmrig::CpuWorker<1>(handle);
         break;
 
     case 2:
-        worker = new xmrig::MultiWorker<2>(handle);
+        worker = new xmrig::CpuWorker<2>(handle);
         break;
 
     case 3:
-        worker = new xmrig::MultiWorker<3>(handle);
+        worker = new xmrig::CpuWorker<3>(handle);
         break;
 
     case 4:
-        worker = new xmrig::MultiWorker<4>(handle);
+        worker = new xmrig::CpuWorker<4>(handle);
         break;
 
     case 5:
-        worker = new xmrig::MultiWorker<5>(handle);
-        break;
-
-    default:
+        worker = new xmrig::CpuWorker<5>(handle);
         break;
     }
 

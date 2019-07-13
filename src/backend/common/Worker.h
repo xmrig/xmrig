@@ -23,55 +23,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_MULTIWORKER_H
-#define XMRIG_MULTIWORKER_H
+#ifndef XMRIG_WORKER_H
+#define XMRIG_WORKER_H
 
 
-#include "base/net/stratum/Job.h"
-#include "core/WorkerJob.h"
+#include <atomic>
+#include <stdint.h>
+
+
+#include "backend/common/interfaces/IWorker.h"
 #include "Mem.h"
-#include "net/JobResult.h"
-#include "workers/Worker.h"
+
+
+class ThreadHandle;
 
 
 namespace xmrig {
+    class CpuThreadLegacy;
+}
 
 
-class RxVm;
-
-
-template<size_t N>
-class MultiWorker : public Worker
+class Worker : public IWorker
 {
 public:
-    MultiWorker(ThreadHandle *handle);
-    ~MultiWorker();
+    Worker(ThreadHandle *handle);
+
+    inline const MemInfo &memory() const       { return m_memory; }
+    inline size_t id() const override          { return m_id; }
+    inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
+    inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
 
 protected:
-    bool selfTest() override;
-    void start() override;
+    void storeStats();
 
-private:
-#   ifdef XMRIG_ALGO_RANDOMX
-    void allocateRandomX_VM();
-#   endif
-
-    bool verify(const Algorithm &algorithm, const uint8_t *referenceValue);
-    bool verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
-    void consumeJob();
-
-    cryptonight_ctx *m_ctx[N];
-    uint8_t m_hash[N * 32];
-
-    WorkerJob<N> m_job;
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    RxVm *m_vm = nullptr;
-#   endif
+    const size_t m_id;
+    MemInfo m_memory;
+    std::atomic<uint64_t> m_hashCount;
+    std::atomic<uint64_t> m_timestamp;
+    uint64_t m_count;
+    xmrig::CpuThreadLegacy *m_thread;
 };
 
 
-} // namespace xmrig
-
-
-#endif /* XMRIG_MULTIWORKER_H */
+#endif /* XMRIG_WORKER_H */

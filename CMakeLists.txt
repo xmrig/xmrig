@@ -33,9 +33,6 @@ set(HEADERS
     src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
-    src/core/WorkerJob.h
-    src/interfaces/IThread.h
-    src/interfaces/IWorker.h
     src/Mem.h
     src/net/interfaces/IJobResultListener.h
     src/net/JobResult.h
@@ -47,9 +44,7 @@ set(HEADERS
     src/version.h
     src/workers/CpuThreadLegacy.h
     src/workers/Hashrate.h
-    src/workers/MultiWorker.h
     src/workers/ThreadHandle.h
-    src/workers/Worker.h
     src/workers/Workers.h
    )
 
@@ -97,9 +92,7 @@ set(SOURCES
     src/Summary.cpp
     src/workers/CpuThreadLegacy.cpp
     src/workers/Hashrate.cpp
-    src/workers/MultiWorker.cpp
     src/workers/ThreadHandle.cpp
-    src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp
    )

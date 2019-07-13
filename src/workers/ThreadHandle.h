@@ -31,7 +31,7 @@
 #include <uv.h>
 
 
-#include "interfaces/IThread.h"
+#include "backend/common/interfaces/IThread.h"
 
 
 class IWorker;
