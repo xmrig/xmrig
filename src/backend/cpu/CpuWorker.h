@@ -34,9 +34,13 @@
 #include "backend/common/Worker.h"
 
 
+class ThreadHandle;
+
+
 namespace xmrig {
 
 
+class CpuThreadLegacy;
 class RxVm;
 
 
@@ -46,6 +50,8 @@ class CpuWorker : public Worker
 public:
     CpuWorker(ThreadHandle *handle);
     ~CpuWorker() override;
+
+    inline const MemInfo &memory() const { return m_memory; }
 
 protected:
     bool selfTest() override;
@@ -60,9 +66,10 @@ private:
     bool verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
     void consumeJob();
 
+    CpuThreadLegacy *m_thread;
     cryptonight_ctx *m_ctx[N];
+    MemInfo m_memory;
     uint8_t m_hash[N * 32];
-
     WorkerJob<N> m_job;
 
 #   ifdef XMRIG_ALGO_RANDOMX

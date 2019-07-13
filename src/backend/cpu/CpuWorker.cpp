@@ -34,6 +34,7 @@
 #include "crypto/rx/RxVm.h"
 #include "net/JobResults.h"
 #include "workers/CpuThreadLegacy.h"
+#include "workers/ThreadHandle.h"
 #include "workers/Workers.h"
 
 
@@ -45,8 +46,9 @@ static constexpr uint32_t kReserveCount = 4096;
 
 
 template<size_t N>
-xmrig::CpuWorker<N>::CpuWorker(ThreadHandle *handle)
-    : Worker(handle)
+xmrig::CpuWorker<N>::CpuWorker(ThreadHandle *handle) :
+    Worker(handle->threadId(), handle->config()->affinity(), handle->config()->priority()),
+    m_thread(static_cast<xmrig::CpuThreadLegacy *>(handle->config()))
 {
     if (m_thread->algorithm().family() != Algorithm::RANDOM_X) {
         m_memory = Mem::create(m_ctx, m_thread->algorithm(), N);

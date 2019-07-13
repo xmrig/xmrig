@@ -32,23 +32,16 @@
 
 
 #include "backend/common/interfaces/IWorker.h"
-#include "Mem.h"
-
-
-class ThreadHandle;
 
 
 namespace xmrig {
-    class CpuThreadLegacy;
-}
 
 
 class Worker : public IWorker
 {
 public:
-    Worker(ThreadHandle *handle);
+    Worker(size_t id, int64_t affinity, int priority);
 
-    inline const MemInfo &memory() const       { return m_memory; }
     inline size_t id() const override          { return m_id; }
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
     inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
@@ -57,12 +50,13 @@ protected:
     void storeStats();
 
     const size_t m_id;
-    MemInfo m_memory;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
     uint64_t m_count;
-    xmrig::CpuThreadLegacy *m_thread;
 };
+
+
+} // namespace xmrig
 
 
 #endif /* XMRIG_WORKER_H */

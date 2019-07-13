@@ -299,12 +299,12 @@ void Workers::onTick(uv_timer_t *)
 
 void Workers::start(IWorker *worker)
 {
-    const Worker *w = static_cast<const Worker *>(worker);
+//    const Worker *w = static_cast<const Worker *>(worker);
 
     uv_mutex_lock(&m_mutex);
     m_status.started++;
-    m_status.pages     += w->memory().pages;
-    m_status.hugePages += w->memory().hugePages;
+//    m_status.pages     += w->memory().pages;
+//    m_status.hugePages += w->memory().hugePages;
 
     if (m_status.started == m_status.threads) {
         const double percent = (double) m_status.hugePages / m_status.pages * 100.0;

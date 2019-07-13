@@ -24,13 +24,13 @@
 
 
 #include <assert.h>
-#include <chrono>
 #include <math.h>
 #include <memory.h>
 #include <stdio.h>
 
 
 #include "base/io/log/Log.h"
+#include "base/tools/Chrono.h"
 #include "base/tools/Handle.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
@@ -98,9 +98,6 @@ double Hashrate::calc(size_t threadId, size_t ms) const
         return nan("");
     }
 
-    using namespace std::chrono;
-    const uint64_t now = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
-
     uint64_t earliestHashCount = 0;
     uint64_t earliestStamp     = 0;
     uint64_t lastestStamp      = 0;
@@ -119,7 +116,7 @@ double Hashrate::calc(size_t threadId, size_t ms) const
             lastestHashCnt = m_counts[threadId][idx];
         }
 
-        if (now - m_timestamps[threadId][idx] > ms) {
+        if (xmrig::Chrono::highResolutionMSecs() - m_timestamps[threadId][idx] > ms) {
             haveFullSet = true;
             break;
         }
@@ -136,10 +133,8 @@ double Hashrate::calc(size_t threadId, size_t ms) const
         return nan("");
     }
 
-    double hashes, time;
-    hashes = (double) lastestHashCnt - earliestHashCount;
-    time   = (double) lastestStamp - earliestStamp;
-    time  /= 1000.0;
+    const double hashes = static_cast<double>(lastestHashCnt - earliestHashCount);
+    const double time   = static_cast<double>(lastestStamp - earliestStamp) / 1000.0;
 
     return hashes / time;
 }

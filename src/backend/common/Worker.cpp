@@ -23,36 +23,25 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <chrono>
-
 
 #include "backend/common/Worker.h"
-#include "backend/cpu/Cpu.h"
 #include "base/kernel/Platform.h"
-#include "workers/CpuThreadLegacy.h"
-#include "workers/ThreadHandle.h"
+#include "base/tools/Chrono.h"
 
 
-Worker::Worker(ThreadHandle *handle) :
-    m_id(handle->threadId()),
+xmrig::Worker::Worker(size_t id, int64_t affinity, int priority) :
+    m_id(id),
     m_hashCount(0),
     m_timestamp(0),
-    m_count(0),
-    m_thread(static_cast<xmrig::CpuThreadLegacy *>(handle->config()))
+    m_count(0)
 {
-    if (xmrig::Cpu::info()->threads() > 1 && m_thread->affinity() != -1L) {
-        Platform::setThreadAffinity(m_thread->affinity());
-    }
-
-    Platform::setThreadPriority(m_thread->priority());
+    Platform::trySetThreadAffinity(affinity);
+    Platform::setThreadPriority(priority);
 }
 
 
-void Worker::storeStats()
+void xmrig::Worker::storeStats()
 {
-    using namespace std::chrono;
-
-    const uint64_t timestamp = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
     m_hashCount.store(m_count, std::memory_order_relaxed);
-    m_timestamp.store(timestamp, std::memory_order_relaxed);
+    m_timestamp.store(Chrono::highResolutionMSecs(), std::memory_order_relaxed);
 }
