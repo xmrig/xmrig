@@ -26,7 +26,6 @@
 #define XMRIG_ASSEMBLY_H
 
 
-#include "common/xmrig.h"
 #include "rapidjson/fwd.h"
 
 

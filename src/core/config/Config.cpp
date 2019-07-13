@@ -40,7 +40,7 @@
 
 
 xmrig::Config::Config() :
-    m_algoVariant(AV_AUTO),
+    m_algoVariant(CnHash::AV_AUTO),
     m_shouldSave(false)
 {
 }
@@ -131,7 +131,7 @@ bool xmrig::Config::finalize()
         return true;
     }
 
-    const AlgoVariant av = getAlgoVariant();
+    const CnHash::AlgoVariant av = getAlgoVariant();
     m_threads.mode = m_threads.count ? Simple : Automatic;
 
     const size_t size = CpuThreadLegacy::multiway(av) * CnAlgo<>::memory(algorithm) / 1024; // FIXME MEMORY
@@ -158,8 +158,8 @@ bool xmrig::Config::finalize()
 
 void xmrig::Config::setAlgoVariant(int av)
 {
-    if (av >= AV_AUTO && av < AV_MAX) {
-        m_algoVariant = static_cast<AlgoVariant>(av);
+    if (av >= CnHash::AV_AUTO && av < CnHash::AV_MAX) {
+        m_algoVariant = static_cast<CnHash::AlgoVariant>(av);
     }
 }
 
@@ -192,7 +192,7 @@ void xmrig::Config::setThreads(const rapidjson::Value &threads)
 }
 
 
-xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
+xmrig::CnHash::AlgoVariant xmrig::Config::getAlgoVariant() const
 {
 #   ifdef XMRIG_ALGO_CN_LITE
 //    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) { // FIXME
@@ -200,8 +200,8 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 //    }
 #   endif
 
-    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::info()->hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
+    if (m_algoVariant <= CnHash::AV_AUTO || m_algoVariant >= CnHash::AV_MAX) {
+        return Cpu::info()->hasAES() ? CnHash::AV_SINGLE : CnHash::AV_SINGLE_SOFT;
     }
 
 //    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
@@ -213,10 +213,10 @@ xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
 
 
 #ifdef XMRIG_ALGO_CN_LITE
-xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
+xmrig::CnHash::AlgoVariant xmrig::Config::getAlgoVariantLite() const
 {
-    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::info()->hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
+    if (m_algoVariant <= CnHash::AV_AUTO || m_algoVariant >= CnHash::AV_MAX) {
+        return Cpu::info()->hasAES() ? CnHash::AV_DOUBLE : CnHash::AV_DOUBLE_SOFT;
     }
 
 //    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {

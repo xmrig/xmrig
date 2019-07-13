@@ -26,7 +26,6 @@
 #define XMRIG_CPUTHREADLEGACY_H
 
 
-#include "common/xmrig.h"
 #include "crypto/cn/CnHash.h"
 #include "interfaces/IThread.h"
 
@@ -59,15 +58,15 @@ public:
     };
 
 
-    CpuThreadLegacy(size_t index, Algorithm algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly);
+    CpuThreadLegacy(size_t index, Algorithm algorithm, CnHash::AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly);
 
     cn_hash_fun fn(const Algorithm &algorithm) const;
 
-    static bool isSoftAES(AlgoVariant av);
-    static CpuThreadLegacy *createFromAV(size_t index, const Algorithm &algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly);
+    static bool isSoftAES(CnHash::AlgoVariant av);
+    static CpuThreadLegacy *createFromAV(size_t index, const Algorithm &algorithm, CnHash::AlgoVariant av, int64_t affinity, int priority, Assembly assembly);
     static CpuThreadLegacy *createFromData(size_t index, const Algorithm &algorithm, const CpuThreadLegacy::Data &data, int priority, bool softAES);
     static Data parse(const rapidjson::Value &object);
-    static Multiway multiway(AlgoVariant av);
+    static Multiway multiway(CnHash::AlgoVariant av);
 
     inline bool isPrefetch() const               { return m_prefetch; }
     inline bool isSoftAES() const                { return m_softAES; }
@@ -92,7 +91,7 @@ protected:
 
 private:
     const Algorithm m_algorithm;
-    const AlgoVariant m_av;
+    const CnHash::AlgoVariant m_av;
     const Assembly m_assembly;
     const bool m_prefetch;
     const bool m_softAES;

@@ -38,7 +38,7 @@
 static const xmrig::CnHash cnHash;
 
 
-xmrig::CpuThreadLegacy::CpuThreadLegacy(size_t index, Algorithm algorithm, AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly) :
+xmrig::CpuThreadLegacy::CpuThreadLegacy(size_t index, Algorithm algorithm, CnHash::AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly) :
     m_algorithm(algorithm),
     m_av(av),
     m_assembly(assembly),
@@ -59,15 +59,15 @@ xmrig::cn_hash_fun xmrig::CpuThreadLegacy::fn(const Algorithm &algorithm) const
 
 
 
-bool xmrig::CpuThreadLegacy::isSoftAES(AlgoVariant av)
+bool xmrig::CpuThreadLegacy::isSoftAES(CnHash::AlgoVariant av)
 {
-    return av == AV_SINGLE_SOFT || av == AV_DOUBLE_SOFT || av > AV_PENTA;
+    return av == CnHash::AV_SINGLE_SOFT || av == CnHash::AV_DOUBLE_SOFT || av > CnHash::AV_PENTA;
 }
 
 
-xmrig::CpuThreadLegacy *xmrig::CpuThreadLegacy::createFromAV(size_t index, const Algorithm &algorithm, AlgoVariant av, int64_t affinity, int priority, Assembly assembly)
+xmrig::CpuThreadLegacy *xmrig::CpuThreadLegacy::createFromAV(size_t index, const Algorithm &algorithm, CnHash::AlgoVariant av, int64_t affinity, int priority, Assembly assembly)
 {
-    assert(av > AV_AUTO && av < AV_MAX);
+    assert(av > CnHash::AV_AUTO && av < CnHash::AV_MAX);
 
     int64_t cpuId = -1L;
 
@@ -94,7 +94,7 @@ xmrig::CpuThreadLegacy *xmrig::CpuThreadLegacy::createFromAV(size_t index, const
 
 xmrig::CpuThreadLegacy *xmrig::CpuThreadLegacy::createFromData(size_t index, const Algorithm &algorithm, const CpuThreadLegacy::Data &data, int priority, bool softAES)
 {
-    int av                  = AV_AUTO;
+    int av                  = CnHash::AV_AUTO;
     const Multiway multiway = data.multiway;
 
     if (multiway <= DoubleWay) {
@@ -104,9 +104,9 @@ xmrig::CpuThreadLegacy *xmrig::CpuThreadLegacy::createFromData(size_t index, con
         av = softAES ? (multiway + 5) : (multiway + 2);
     }
 
-    assert(av > AV_AUTO && av < AV_MAX);
+    assert(av > CnHash::AV_AUTO && av < CnHash::AV_MAX);
 
-    return new CpuThreadLegacy(index, algorithm, static_cast<AlgoVariant>(av), multiway, data.affinity, priority, softAES, false, data.assembly);
+    return new CpuThreadLegacy(index, algorithm, static_cast<CnHash::AlgoVariant>(av), multiway, data.affinity, priority, softAES, false, data.assembly);
 }
 
 
@@ -140,27 +140,27 @@ xmrig::CpuThreadLegacy::Data xmrig::CpuThreadLegacy::parse(const rapidjson::Valu
 }
 
 
-xmrig::IThread::Multiway xmrig::CpuThreadLegacy::multiway(AlgoVariant av)
+xmrig::IThread::Multiway xmrig::CpuThreadLegacy::multiway(CnHash::AlgoVariant av)
 {
     switch (av) {
-    case AV_SINGLE:
-    case AV_SINGLE_SOFT:
+    case CnHash::AV_SINGLE:
+    case CnHash::AV_SINGLE_SOFT:
         return SingleWay;
 
-    case AV_DOUBLE_SOFT:
-    case AV_DOUBLE:
+    case CnHash::AV_DOUBLE_SOFT:
+    case CnHash::AV_DOUBLE:
         return DoubleWay;
 
-    case AV_TRIPLE_SOFT:
-    case AV_TRIPLE:
+    case CnHash::AV_TRIPLE_SOFT:
+    case CnHash::AV_TRIPLE:
         return TripleWay;
 
-    case AV_QUAD_SOFT:
-    case AV_QUAD:
+    case CnHash::AV_QUAD_SOFT:
+    case CnHash::AV_QUAD:
         return QuadWay;
 
-    case AV_PENTA_SOFT:
-    case AV_PENTA:
+    case CnHash::AV_PENTA_SOFT:
+    case CnHash::AV_PENTA:
         return PentaWay;
 
     default:

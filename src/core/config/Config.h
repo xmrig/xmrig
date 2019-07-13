@@ -32,7 +32,6 @@
 
 #include "backend/cpu/CpuConfig.h"
 #include "base/kernel/config/BaseConfig.h"
-#include "common/xmrig.h"
 #include "rapidjson/fwd.h"
 #include "workers/CpuThreadLegacy.h"
 
@@ -58,7 +57,7 @@ public:
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline AlgoVariant algoVariant() const               { return m_algoVariant; }
+    inline CnHash::AlgoVariant algoVariant() const       { return m_algoVariant; }
     inline bool isShouldSave() const                     { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
     inline const CpuConfig &cpu() const                  { return m_cpu; }
     inline const std::vector<IThread *> &threads() const { return m_threads.list; }
@@ -70,9 +69,9 @@ private:
     void setAlgoVariant(int av);
     void setThreads(const rapidjson::Value &threads);
 
-    AlgoVariant getAlgoVariant() const;
+    CnHash::AlgoVariant getAlgoVariant() const;
 #   ifdef XMRIG_ALGO_CN_LITE
-    AlgoVariant getAlgoVariantLite() const;
+    CnHash::AlgoVariant getAlgoVariantLite() const;
 #   endif
 
     struct Threads
@@ -87,7 +86,7 @@ private:
     };
 
 
-    AlgoVariant m_algoVariant;
+    CnHash::AlgoVariant m_algoVariant;
     bool m_shouldSave;
     CpuConfig m_cpu;
     Threads m_threads;

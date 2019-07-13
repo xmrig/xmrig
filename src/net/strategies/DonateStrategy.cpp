@@ -33,7 +33,6 @@
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Timer.h"
-#include "common/xmrig.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/common/keccak.h"

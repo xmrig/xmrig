@@ -29,7 +29,6 @@
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/net/http/Http.h"
 #include "base/net/stratum/Pools.h"
-#include "common/xmrig.h"
 
 
 struct option;

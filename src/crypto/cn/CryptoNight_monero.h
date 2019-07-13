@@ -178,7 +178,6 @@
 #endif
 #endif
 
-#include "common/xmrig.h"
 #include "crypto/cn/r/variant4_random_math.h"
 
 #define VARIANT4_RANDOM_MATH_INIT(part) \

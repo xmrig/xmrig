@@ -27,7 +27,6 @@ set(HEADERS
     "${HEADERS_BACKEND}"
     src/api/interfaces/IApiListener.h
     src/App.h
-    src/common/xmrig.h
     src/core/config/Config_default.h
     src/core/config/Config_platform.h
     src/core/config/Config.h

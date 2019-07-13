@@ -29,7 +29,6 @@
 
 
 #include "base/io/log/Log.h"
-#include "common/xmrig.h"
 #include "crypto/common/portable/mm_malloc.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/cn/CryptoNight.h"
