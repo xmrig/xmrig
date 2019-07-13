@@ -24,9 +24,9 @@
 
 
 #include "base/kernel/interfaces/IStrategyListener.h"
+#include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
-#include "common/Platform.h"
 
 
 #ifdef XMRIG_FEATURE_HTTP

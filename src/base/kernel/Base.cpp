@@ -35,8 +35,8 @@
 #include "base/io/Watcher.h"
 #include "base/kernel/Base.h"
 #include "base/kernel/interfaces/IBaseListener.h"
+#include "base/kernel/Platform.h"
 #include "base/kernel/Process.h"
-#include "common/Platform.h"
 #include "core/config/Config.h"
 #include "core/config/ConfigTransform.h"
 

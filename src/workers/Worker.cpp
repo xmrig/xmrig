@@ -27,7 +27,7 @@
 
 
 #include "backend/cpu/Cpu.h"
-#include "common/Platform.h"
+#include "base/kernel/Platform.h"
 #include "workers/CpuThreadLegacy.h"
 #include "workers/ThreadHandle.h"
 #include "workers/Worker.h"

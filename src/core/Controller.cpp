@@ -27,7 +27,6 @@
 
 
 #include "backend/cpu/Cpu.h"
-#include "common/Platform.h"
 #include "core/Controller.h"
 #include "net/Network.h"
 

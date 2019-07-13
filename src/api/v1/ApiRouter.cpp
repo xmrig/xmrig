@@ -31,7 +31,7 @@
 #include "api/v1/ApiRouter.h"
 #include "backend/cpu/Cpu.h"
 #include "base/kernel/Base.h"
-#include "common/Platform.h"
+#include "base/kernel/Platform.h"
 #include "core/config/Config.h"
 #include "interfaces/IThread.h"
 #include "rapidjson/document.h"

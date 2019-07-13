@@ -26,13 +26,13 @@
 #include <assert.h>
 
 
+#include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Timer.h"
-#include "common/Platform.h"
 #include "common/xmrig.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"

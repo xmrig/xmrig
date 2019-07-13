@@ -34,7 +34,6 @@
 #include "base/io/Console.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/Signals.h"
-#include "common/Platform.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "Mem.h"

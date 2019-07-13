@@ -27,7 +27,6 @@ set(HEADERS
     "${HEADERS_BACKEND}"
     src/api/interfaces/IApiListener.h
     src/App.h
-    src/common/Platform.h
     src/common/xmrig.h
     src/core/config/Config_default.h
     src/core/config/Config_platform.h
@@ -88,7 +87,6 @@ set(SOURCES
     "${SOURCES_BASE_HTTP}"
     "${SOURCES_BACKEND}"
     src/App.cpp
-    src/common/Platform.cpp
     src/core/config/Config.cpp
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
@@ -123,7 +121,6 @@ if (WIN32)
         "${SOURCES_OS}"
         res/app.rc
         src/App_win.cpp
-        src/common/Platform_win.cpp
         src/Mem_win.cpp
         src/crypto/common/VirtualMemory_win.cpp
         )
@@ -134,7 +131,6 @@ elseif (APPLE)
     set(SOURCES_OS
         "${SOURCES_OS}"
         src/App_unix.cpp
-        src/common/Platform_mac.cpp
         src/Mem_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
@@ -142,7 +138,6 @@ else()
     set(SOURCES_OS
         "${SOURCES_OS}"
         src/App_unix.cpp
-        src/common/Platform_unix.cpp
         src/Mem_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )

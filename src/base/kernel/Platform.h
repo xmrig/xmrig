@@ -35,6 +35,15 @@
 class Platform
 {
 public:
+    static inline bool trySetThreadAffinity(int64_t cpu_id)
+    {
+        if (cpu_id < 0) {
+            return false;
+        }
+
+        return setThreadAffinity(static_cast<uint64_t>(cpu_id));
+    }
+
     static bool setThreadAffinity(uint64_t cpu_id);
     static uint32_t setTimerResolution(uint32_t resolution);
     static void init(const char *userAgent);
