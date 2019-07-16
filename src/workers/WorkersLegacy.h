@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
+#ifndef XMRIG_WORKERSLEGACY_H
+#define XMRIG_WORKERSLEGACY_H
 
 
 #include <atomic>
@@ -35,36 +35,37 @@
 #   include <randomx.h>
 #endif
 
+#include "backend/common/Thread.h"
+#include "backend/cpu/CpuLaunchData.h"
 #include "base/net/stratum/Job.h"
 #include "net/JobResult.h"
 #include "rapidjson/fwd.h"
 
 
 class Hashrate;
-class IWorker;
-class ThreadHandle;
 
 
 namespace xmrig {
+    class IWorker;
     class Controller;
+    class ThreadHandle;
 }
 
 
-class Workers
+class WorkersLegacy
 {
 public:
     static size_t hugePages();
     static size_t threads();
-    static void pause();
-    static void printHashrate(bool detail);
-    static void setEnabled(bool enabled);
-    static void setJob(const xmrig::Job &job, bool donate);
+//    static void pause();
+//    static void printHashrate(bool detail);
+//    static void setEnabled(bool enabled);
+//    static void setJob(const xmrig::Job &job, bool donate);
     static void start(xmrig::Controller *controller);
-    static void stop();
-    static xmrig::Job job();
+//    static void stop();
+//    static xmrig::Job job();
 
-    static inline bool isEnabled()                                      { return m_enabled; }
-    static inline bool isPaused()                                       { return m_paused.load(std::memory_order_relaxed) == 1; }
+//    static inline bool isEnabled()                                      { return m_enabled; }
     static inline Hashrate *hashrate()                                  { return m_hashrate; }
 
 #   ifdef XMRIG_FEATURE_API
@@ -72,9 +73,9 @@ public:
 #   endif
 
 private:
-    static void onReady(void *arg);
+//    static void onReady(void *arg);
     static void onTick(uv_timer_t *handle);
-    static void start(IWorker *worker);
+    static void start(xmrig::IWorker *worker);
 
     class LaunchStatus
     {
@@ -100,14 +101,13 @@ private:
     static Hashrate *m_hashrate;
     static xmrig::Job m_job;
     static LaunchStatus m_status;
-    static std::atomic<int> m_paused;
-    static std::vector<ThreadHandle*> m_workers;
+    static std::vector<xmrig::Thread<xmrig::CpuLaunchData>* > m_workers;
     static uint64_t m_ticks;
     static uv_mutex_t m_mutex;
     static uv_rwlock_t m_rwlock;
-    static uv_timer_t *m_timer;
+//    static uv_timer_t *m_timer;
     static xmrig::Controller *m_controller;
 };
 
 
-#endif /* XMRIG_WORKERS_H */
+#endif /* XMRIG_WORKERSLEGACY_H */

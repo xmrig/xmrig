@@ -27,20 +27,17 @@
 #define XMRIG_CPUWORKER_H
 
 
+#include "backend/common/Worker.h"
 #include "backend/common/WorkerJob.h"
+#include "backend/cpu/CpuLaunchData.h"
 #include "base/net/stratum/Job.h"
 #include "Mem.h"
 #include "net/JobResult.h"
-#include "backend/common/Worker.h"
-
-
-class ThreadHandle;
 
 
 namespace xmrig {
 
 
-class CpuThreadLegacy;
 class RxVm;
 
 
@@ -48,7 +45,7 @@ template<size_t N>
 class CpuWorker : public Worker
 {
 public:
-    CpuWorker(ThreadHandle *handle);
+    CpuWorker(size_t index, const CpuLaunchData &data);
     ~CpuWorker() override;
 
     inline const MemInfo &memory() const { return m_memory; }
@@ -58,6 +55,8 @@ protected:
     void start() override;
 
 private:
+    inline cn_hash_fun fn(const Algorithm &algorithm) const { return CnHash::fn(algorithm, m_av, m_assembly); }
+
 #   ifdef XMRIG_ALGO_RANDOMX
     void allocateRandomX_VM();
 #   endif
@@ -66,7 +65,11 @@ private:
     bool verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
     void consumeJob();
 
-    CpuThreadLegacy *m_thread;
+    const Algorithm m_algorithm;
+    const Assembly m_assembly;
+    const bool m_hwAES;
+    const CnHash::AlgoVariant m_av;
+    const Miner *m_miner;
     cryptonight_ctx *m_ctx[N];
     MemInfo m_memory;
     uint8_t m_hash[N * 32];

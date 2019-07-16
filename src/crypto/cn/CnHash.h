@@ -65,7 +65,7 @@ public:
 
     CnHash();
 
-    cn_hash_fun fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly) const;
+    static cn_hash_fun fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly);
 
 private:
     cn_hash_fun m_map[Algorithm::MAX][AV_MAX][Assembly::MAX] = {};

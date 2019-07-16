@@ -37,7 +37,7 @@
 #include "rapidjson/document.h"
 #include "version.h"
 #include "workers/Hashrate.h"
-#include "workers/Workers.h"
+#include "workers/WorkersLegacy.h"
 
 
 static inline rapidjson::Value normalize(double d)
@@ -107,13 +107,13 @@ void xmrig::ApiRouter::getHashrate(rapidjson::Value &reply, rapidjson::Document 
     Value total(kArrayType);
     Value threads(kArrayType);
 
-    const Hashrate *hr = Workers::hashrate();
+    const Hashrate *hr = WorkersLegacy::hashrate();
 
     total.PushBack(normalize(hr->calc(Hashrate::ShortInterval)),  allocator);
     total.PushBack(normalize(hr->calc(Hashrate::MediumInterval)), allocator);
     total.PushBack(normalize(hr->calc(Hashrate::LargeInterval)),  allocator);
 
-    for (size_t i = 0; i < Workers::threads(); i++) {
+    for (size_t i = 0; i < WorkersLegacy::threads(); i++) {
         Value thread(kArrayType);
         thread.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
         thread.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
@@ -144,7 +144,7 @@ void xmrig::ApiRouter::getMiner(rapidjson::Value &reply, rapidjson::Document &do
     reply.AddMember("kind",         APP_KIND, allocator);
     reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
     reply.AddMember("cpu",          cpu, allocator);
-    reply.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
+    reply.AddMember("hugepages",    WorkersLegacy::hugePages() > 0, allocator);
     reply.AddMember("donate_level", m_base->config()->pools().donateLevel(), allocator);
 }
 
@@ -153,9 +153,9 @@ void xmrig::ApiRouter::getThreads(rapidjson::Value &reply, rapidjson::Document &
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
-    const Hashrate *hr = Workers::hashrate();
+    const Hashrate *hr = WorkersLegacy::hashrate();
 
-    Workers::threadsSummary(doc);
+    WorkersLegacy::threadsSummary(doc);
 
     const std::vector<IThread *> &threads = m_base->config()->threads();
     Value list(kArrayType);

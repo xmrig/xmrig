@@ -29,6 +29,9 @@
 #include <stdint.h>
 
 
+namespace xmrig {
+
+
 class IWorker
 {
 public:
@@ -40,6 +43,9 @@ public:
     virtual uint64_t timestamp() const = 0;
     virtual void start()               = 0;
 };
+
+
+} // namespace xmrig
 
 
 #endif // XMRIG_IWORKER_H

@@ -40,11 +40,12 @@
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "core/Miner.h"
+#include "net/JobResult.h"
 #include "net/JobResults.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
 #include "rapidjson/document.h"
-#include "workers/Workers.h"
 
 
 #ifdef XMRIG_FEATURE_API
@@ -163,7 +164,8 @@ void xmrig::Network::onPause(IStrategy *strategy)
     if (!m_strategy->isActive()) {
         LOG_ERR("no active pools, stop mining");
         m_state.stop();
-        return Workers::pause();
+
+        return m_controller->miner()->pause();
     }
 }
 
@@ -212,7 +214,7 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
     }
 
     m_state.diff = job.diff();
-    Workers::setJob(job, donate);
+    m_controller->miner()->setJob(job, donate);
 }
 
 

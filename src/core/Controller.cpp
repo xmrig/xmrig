@@ -28,12 +28,12 @@
 
 #include "backend/cpu/Cpu.h"
 #include "core/Controller.h"
+#include "core/Miner.h"
 #include "net/Network.h"
 
 
 xmrig::Controller::Controller(Process *process) :
-    Base(process),
-    m_network(nullptr)
+    Base(process)
 {
 }
 
@@ -68,6 +68,8 @@ void xmrig::Controller::start()
 {
     Base::start();
 
+    m_miner = new Miner(this);
+
     network()->connect();
 }
 
@@ -78,6 +80,19 @@ void xmrig::Controller::stop()
 
     delete m_network;
     m_network = nullptr;
+
+    m_miner->stop();
+
+    delete m_miner;
+    m_miner = nullptr;
+}
+
+
+xmrig::Miner *xmrig::Controller::miner() const
+{
+    assert(m_miner != nullptr);
+
+    return m_miner;
 }
 
 

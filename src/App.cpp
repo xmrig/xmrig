@@ -36,11 +36,11 @@
 #include "base/kernel/Signals.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "core/Miner.h"
 #include "Mem.h"
 #include "net/Network.h"
 #include "Summary.h"
 #include "version.h"
-#include "workers/Workers.h"
 
 
 xmrig::App::App(Process *process) :
@@ -86,8 +86,6 @@ int xmrig::App::exec()
         return 0;
     }
 
-    Workers::start(m_controller);
-
     m_controller->start();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
@@ -102,23 +100,17 @@ void xmrig::App::onConsoleCommand(char command)
     switch (command) {
     case 'h':
     case 'H':
-        Workers::printHashrate(true);
+        m_controller->miner()->printHashrate(true);
         break;
 
     case 'p':
     case 'P':
-        if (Workers::isEnabled()) {
-            LOG_INFO(YELLOW_BOLD("paused") ", press " MAGENTA_BOLD("r") " to resume");
-            Workers::setEnabled(false);
-        }
+        m_controller->miner()->setEnabled(false);
         break;
 
     case 'r':
     case 'R':
-        if (!Workers::isEnabled()) {
-            LOG_INFO(GREEN_BOLD("resumed"));
-            Workers::setEnabled(true);
-        }
+        m_controller->miner()->setEnabled(true);
         break;
 
     case 3:
@@ -162,6 +154,5 @@ void xmrig::App::close()
     m_console->stop();
     m_controller->stop();
 
-    Workers::stop();
     Log::destroy();
 }

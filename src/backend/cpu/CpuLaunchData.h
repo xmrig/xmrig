@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,38 +23,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_THREADHANDLE_H
-#define XMRIG_THREADHANDLE_H
+#ifndef XMRIG_CPULAUNCHDATA_H
+#define XMRIG_CPULAUNCHDATA_H
 
 
-#include <assert.h>
-#include <stdint.h>
-#include <uv.h>
+#include "crypto/cn/CnHash.h"
+#include "crypto/common/Algorithm.h"
+#include "crypto/common/Assembly.h"
+#include "crypto/common/Nonce.h"
 
 
-#include "backend/common/interfaces/IThread.h"
+namespace xmrig {
 
 
-class IWorker;
+class CpuConfig;
+class CpuThread;
+class Miner;
 
 
-class ThreadHandle
+class CpuLaunchData
 {
 public:
-    ThreadHandle(xmrig::IThread *config);
-    void join();
-    void start(void (*callback) (void *));
+    CpuLaunchData(const Miner *miner, const Algorithm &algorithm, const CpuConfig &config, const CpuThread &thread);
 
-    inline IWorker *worker() const         { return m_worker; }
-    inline size_t threadId() const         { return m_config->index(); }
-    inline void setWorker(IWorker *worker) { assert(worker != nullptr); m_worker = worker; }
-    inline xmrig::IThread *config() const  { return m_config; }
+    CnHash::AlgoVariant av() const;
 
-private:
-    IWorker *m_worker;
-    uv_thread_t m_thread;
-    xmrig::IThread *m_config;
+    inline constexpr static Nonce::Backend backend() { return Nonce::CPU; }
+
+    const Algorithm algorithm;
+    const Assembly assembly;
+    const bool hugePages;
+    const bool hwAES;
+    const int intensity;
+    const int priority;
+    const int64_t affinity;
+    const Miner *miner;
 };
 
 
-#endif /* XMRIG_THREADHANDLE_H */
+} // namespace xmrig
+
+
+#endif /* XMRIG_CPULAUNCHDATA_H */

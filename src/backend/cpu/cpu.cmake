@@ -1,6 +1,8 @@
 set(HEADERS_BACKEND_CPU
     src/backend/cpu/Cpu.h
+    src/backend/cpu/CpuBackend.h
     src/backend/cpu/CpuConfig.h
+    src/backend/cpu/CpuLaunchData.cpp
     src/backend/cpu/CpuThread.h
     src/backend/cpu/CpuWorker.h
     src/backend/cpu/interfaces/ICpuInfo.h
@@ -8,7 +10,9 @@ set(HEADERS_BACKEND_CPU
 
 set(SOURCES_BACKEND_CPU
     src/backend/cpu/Cpu.cpp
+    src/backend/cpu/CpuBackend.cpp
     src/backend/cpu/CpuConfig.cpp
+    src/backend/cpu/CpuLaunchData.h
     src/backend/cpu/CpuThread.cpp
     src/backend/cpu/CpuWorker.cpp
    )

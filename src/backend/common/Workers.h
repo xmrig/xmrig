@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,24 +23,47 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_WORKERS_H
+#define XMRIG_WORKERS_H
 
-#include "workers/ThreadHandle.h"
+
+#include "backend/common/Thread.h"
+#include "backend/cpu/CpuLaunchData.h"
 
 
-ThreadHandle::ThreadHandle(xmrig::IThread *config) :
-    m_worker(nullptr),
-    m_config(config)
+namespace xmrig {
+
+
+class WorkersPrivate;
+
+
+template<class T>
+class Workers
 {
-}
+public:
+    Workers();
+    ~Workers();
+
+    void add(const T &data);
+    void start();
+    void stop();
+
+private:
+    static void onReady(void *arg);
+
+    std::vector<Thread<T> *> m_workers;
+    WorkersPrivate *d_ptr;
+};
 
 
-void ThreadHandle::join()
-{
-    uv_thread_join(&m_thread);
-}
+template<>
+void Workers<CpuLaunchData>::onReady(void *arg);
 
 
-void ThreadHandle::start(void (*callback) (void *))
-{
-    uv_thread_create(&m_thread, callback, this);
-}
+extern template class Workers<CpuLaunchData>;
+
+
+} // namespace xmrig
+
+
+#endif /* XMRIG_WORKERS_H */

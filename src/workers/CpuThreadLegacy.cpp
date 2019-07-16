@@ -34,10 +34,6 @@
 #include "workers/CpuThreadLegacy.h"
 
 
-
-static const xmrig::CnHash cnHash;
-
-
 xmrig::CpuThreadLegacy::CpuThreadLegacy(size_t index, Algorithm algorithm, CnHash::AlgoVariant av, Multiway multiway, int64_t affinity, int priority, bool softAES, bool prefetch, Assembly assembly) :
     m_algorithm(algorithm),
     m_av(av),
@@ -54,7 +50,7 @@ xmrig::CpuThreadLegacy::CpuThreadLegacy(size_t index, Algorithm algorithm, CnHas
 
 xmrig::cn_hash_fun xmrig::CpuThreadLegacy::fn(const Algorithm &algorithm) const
 {
-    return cnHash.fn(algorithm, m_av, m_assembly);
+    return CnHash::fn(algorithm, m_av, m_assembly);
 }
 
 

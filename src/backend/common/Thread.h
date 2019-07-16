@@ -22,49 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_NONCE_H
-#define XMRIG_NONCE_H
+#ifndef XMRIG_THREAD_H
+#define XMRIG_THREAD_H
 
 
-#include <atomic>
+#include <uv.h>
 
 
 namespace xmrig {
 
 
-class Nonce
+class IWorker;
+
+
+template<class T>
+class Thread
 {
 public:
-    enum Backend {
-        CPU,
-        OPENCL,
-        CUDA,
-        MAX
-    };
+    inline Thread(size_t index, const T &config) : m_index(index), m_config(config) {}
+    inline ~Thread() { uv_thread_join(&m_thread); }
 
-
-    Nonce();
-
-    static inline bool isOutdated(Backend backend, uint64_t sequence)   { return m_sequence[backend].load(std::memory_order_relaxed) != sequence; }
-    static inline bool isPaused()                                       { return m_paused.load(std::memory_order_relaxed); }
-    static inline uint64_t sequence(Backend backend)                    { return m_sequence[backend].load(std::memory_order_relaxed); }
-    static inline void pause(bool paused)                               { m_paused = paused; }
-    static inline void stop(Backend backend)                            { m_sequence[backend] = 0; }
-    static inline void touch(Backend backend)                           { m_sequence[backend]++; }
-
-    static uint32_t next(uint8_t index, uint32_t nonce, uint32_t reserveCount, bool nicehash);
-    static void reset(uint8_t index);
-    static void stop();
-    static void touch();
+    inline const T &config() const                  { return m_config; }
+    inline IWorker *worker() const                  { return m_worker; }
+    inline size_t index() const                     { return m_index; }
+    inline void setWorker(IWorker *worker)          { m_worker = worker; }
+    inline void start(void (*callback) (void *))    { uv_thread_create(&m_thread, callback, this); }
 
 private:
-    static std::atomic<bool> m_paused;
-    static std::atomic<uint64_t> m_sequence[MAX];
-    static uint32_t m_nonces[2];
+    const size_t m_index    = 0;
+    const T m_config;
+    IWorker *m_worker       = nullptr;
+    uv_thread_t m_thread;
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_NONCE_H */
+#endif /* XMRIG_THREAD_H */

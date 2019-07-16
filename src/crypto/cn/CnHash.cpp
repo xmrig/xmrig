@@ -202,6 +202,9 @@ static void patchAsmVariants()
 #endif
 
 
+static const xmrig::CnHash cnHash;
+
+
 xmrig::CnHash::CnHash()
 {
     ADD_FN(Algorithm::CN_0);
@@ -252,18 +255,18 @@ xmrig::CnHash::CnHash()
 }
 
 
-xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly) const
+xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly)
 {
     if (!algorithm.isValid()) {
         return nullptr;
     }
 
 #   ifdef XMRIG_FEATURE_ASM
-    cn_hash_fun fun = m_map[algorithm][av][assembly == Assembly::AUTO ? Cpu::info()->assembly() : assembly];
+    cn_hash_fun fun = cnHash.m_map[algorithm][av][assembly == Assembly::AUTO ? Cpu::info()->assembly() : assembly];
     if (fun) {
         return fun;
     }
 #   endif
 
-    return m_map[algorithm][av][Assembly::NONE];
+    return cnHash.m_map[algorithm][av][Assembly::NONE];
 }

@@ -26,7 +26,6 @@
 #define XMRIG_WORKERJOB_H
 
 
-#include <atomic>
 #include <string.h>
 
 

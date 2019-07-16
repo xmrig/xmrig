@@ -33,6 +33,7 @@ set(HEADERS
     src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
+    src/core/Miner.h
     src/Mem.h
     src/net/interfaces/IJobResultListener.h
     src/net/JobResult.h
@@ -44,8 +45,7 @@ set(HEADERS
     src/version.h
     src/workers/CpuThreadLegacy.h
     src/workers/Hashrate.h
-    src/workers/ThreadHandle.h
-    src/workers/Workers.h
+    src/workers/WorkersLegacy.h
    )
 
 set(HEADERS_CRYPTO
@@ -84,6 +84,7 @@ set(SOURCES
     src/core/config/Config.cpp
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
+    src/core/Miner.cpp
     src/Mem.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
@@ -92,8 +93,7 @@ set(SOURCES
     src/Summary.cpp
     src/workers/CpuThreadLegacy.cpp
     src/workers/Hashrate.cpp
-    src/workers/ThreadHandle.cpp
-    src/workers/Workers.cpp
+    src/workers/WorkersLegacy.cpp
     src/xmrig.cpp
    )
 
