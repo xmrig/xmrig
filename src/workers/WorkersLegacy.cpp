@@ -38,7 +38,6 @@
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
-#include "Mem.h"
 #include "rapidjson/document.h"
 //#include "workers/Hashrate.h"
 #include "workers/WorkersLegacy.h"

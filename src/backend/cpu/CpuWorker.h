@@ -31,7 +31,6 @@
 #include "backend/common/WorkerJob.h"
 #include "backend/cpu/CpuLaunchData.h"
 #include "base/net/stratum/Job.h"
-#include "Mem.h"
 #include "net/JobResult.h"
 
 

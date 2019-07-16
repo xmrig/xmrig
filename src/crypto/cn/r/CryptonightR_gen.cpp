@@ -31,7 +31,6 @@ typedef void(*void_func)();
 #include "crypto/cn/asm/CryptonightR_template.h"
 #include "crypto/common/Assembly.h"
 #include "crypto/common/VirtualMemory.h"
-#include "Mem.h"
 
 
 static inline void add_code(uint8_t* &p, void (*p1)(), void (*p2)())

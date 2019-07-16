@@ -29,7 +29,6 @@
 #include "crypto/cn/CnHash.h"
 #include "crypto/common/Assembly.h"
 #include "crypto/common/VirtualMemory.h"
-#include "Mem.h"
 #include "rapidjson/document.h"
 #include "workers/CpuThreadLegacy.h"
 
