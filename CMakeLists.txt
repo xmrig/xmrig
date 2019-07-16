@@ -44,7 +44,6 @@ set(HEADERS
     src/Summary.h
     src/version.h
     src/workers/CpuThreadLegacy.h
-    src/workers/Hashrate.h
     src/workers/WorkersLegacy.h
    )
 
@@ -92,7 +91,6 @@ set(SOURCES
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
     src/workers/CpuThreadLegacy.cpp
-    src/workers/Hashrate.cpp
     src/workers/WorkersLegacy.cpp
     src/xmrig.cpp
    )

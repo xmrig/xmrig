@@ -44,6 +44,7 @@ public:
     ~CpuBackend() override;
 
 protected:
+    const Hashrate *hashrate() const override;
     const String &profileName() const override;
     void printHashrate(bool details) override;
     void setJob(const Job &job) override;

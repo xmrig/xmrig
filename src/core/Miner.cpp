@@ -26,6 +26,7 @@
 #include <uv.h>
 
 
+#include "backend/common/Hashrate.h"
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
@@ -34,8 +35,6 @@
 #include "core/Controller.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
-
-#include "base/tools/Chrono.h"
 
 
 namespace xmrig {
@@ -83,6 +82,7 @@ public:
     bool active         = false;
     bool enabled        = true;
     Controller *controller;
+    double maxHashrate  = 0.0;
     Job job;
     std::vector<IBackend *> backends;
     Timer *timer        = nullptr;
@@ -116,6 +116,12 @@ bool xmrig::Miner::isEnabled() const
 }
 
 
+const std::vector<xmrig::IBackend *> &xmrig::Miner::backends() const
+{
+    return d_ptr->backends;
+}
+
+
 xmrig::Job xmrig::Miner::job() const
 {
     uv_rwlock_rdlock(&d_ptr->rwlock);
@@ -137,9 +143,26 @@ void xmrig::Miner::pause()
 
 void xmrig::Miner::printHashrate(bool details)
 {
+    char num[8 * 4] = { 0 };
+    double speed[3] = { 0.0 };
+
     for (IBackend *backend : d_ptr->backends) {
+        const Hashrate *hashrate = backend->hashrate();
+        if (hashrate) {
+            speed[0] += hashrate->calc(Hashrate::ShortInterval);
+            speed[1] += hashrate->calc(Hashrate::MediumInterval);
+            speed[2] += hashrate->calc(Hashrate::LargeInterval);
+        }
+
         backend->printHashrate(details);
     }
+
+    LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
+             Hashrate::format(speed[0],             num,         sizeof(num) / 4),
+             Hashrate::format(speed[1],             num + 8,     sizeof(num) / 4),
+             Hashrate::format(speed[2],             num + 8 * 2, sizeof(num) / 4 ),
+             Hashrate::format(d_ptr->maxHashrate,   num + 8 * 3, sizeof(num) / 4)
+             );
 }
 
 
@@ -203,9 +226,17 @@ void xmrig::Miner::stop()
 
 void xmrig::Miner::onTimer(const Timer *)
 {
+    double maxHashrate = 0.0;
+
     for (IBackend *backend : d_ptr->backends) {
         backend->tick(d_ptr->ticks);
+
+        if (backend->hashrate()) {
+            maxHashrate += backend->hashrate()->calc(Hashrate::ShortInterval);
+        }
     }
+
+    d_ptr->maxHashrate = std::max(d_ptr->maxHashrate, maxHashrate);
 
     if ((d_ptr->ticks % (d_ptr->controller->config()->printTime() * 2)) == 0) {
         printHashrate(false);

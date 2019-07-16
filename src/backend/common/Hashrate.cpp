@@ -29,12 +29,9 @@
 #include <stdio.h>
 
 
-#include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Handle.h"
-#include "core/config/Config.h"
-#include "core/Controller.h"
-#include "workers/Hashrate.h"
+#include "backend/common/Hashrate.h"
 
 
 inline static const char *format(double h, char *buf, size_t size)
@@ -48,10 +45,9 @@ inline static const char *format(double h, char *buf, size_t size)
 }
 
 
-Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
+xmrig::Hashrate::Hashrate(size_t threads) :
     m_highest(0.0),
-    m_threads(threads),
-    m_timer(nullptr)
+    m_threads(threads)
 {
     m_counts     = new uint64_t*[threads];
     m_timestamps = new uint64_t*[threads];
@@ -62,20 +58,23 @@ Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
         m_timestamps[i] = new uint64_t[kBucketSize]();
         m_top[i]        = 0;
     }
-
-    const int printTime = controller->config()->printTime();
-
-    if (printTime > 0) {
-        m_timer = new uv_timer_t;
-        uv_timer_init(uv_default_loop(), m_timer);
-        m_timer->data = this;
-
-        uv_timer_start(m_timer, Hashrate::onReport, (printTime + 4) * 1000, printTime * 1000);
-    }
 }
 
 
-double Hashrate::calc(size_t ms) const
+xmrig::Hashrate::~Hashrate()
+{
+    for (size_t i = 0; i < m_threads; i++) {
+        delete [] m_counts[i];
+        delete [] m_timestamps[i];
+    }
+
+    delete [] m_counts;
+    delete [] m_timestamps;
+    delete [] m_top;
+}
+
+
+double xmrig::Hashrate::calc(size_t ms) const
 {
     double result = 0.0;
     double data;
@@ -91,7 +90,7 @@ double Hashrate::calc(size_t ms) const
 }
 
 
-double Hashrate::calc(size_t threadId, size_t ms) const
+double xmrig::Hashrate::calc(size_t threadId, size_t ms) const
 {
     assert(threadId < m_threads);
     if (threadId >= m_threads) {
@@ -140,7 +139,7 @@ double Hashrate::calc(size_t threadId, size_t ms) const
 }
 
 
-void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
+void xmrig::Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 {
     const size_t top = m_top[threadId];
     m_counts[threadId][top]     = count;
@@ -150,30 +149,7 @@ void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 }
 
 
-void Hashrate::print() const
-{
-    char num1[8] = { 0 };
-    char num2[8] = { 0 };
-    char num3[8] = { 0 };
-    char num4[8] = { 0 };
-
-    LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
-             format(calc(ShortInterval),  num1, sizeof(num1)),
-             format(calc(MediumInterval), num2, sizeof(num2)),
-             format(calc(LargeInterval),  num3, sizeof(num3)),
-             format(m_highest,            num4, sizeof(num4))
-             );
-}
-
-
-void Hashrate::stop()
-{
-    xmrig::Handle::close(m_timer);
-    m_timer = nullptr;
-}
-
-
-void Hashrate::updateHighest()
+void xmrig::Hashrate::updateHighest()
 {
    double highest = calc(ShortInterval);
    if (isnormal(highest) && highest > m_highest) {
@@ -182,13 +158,7 @@ void Hashrate::updateHighest()
 }
 
 
-const char *Hashrate::format(double h, char *buf, size_t size)
+const char *xmrig::Hashrate::format(double h, char *buf, size_t size)
 {
     return ::format(h, buf, size);
-}
-
-
-void Hashrate::onReport(uv_timer_t *handle)
-{
-    static_cast<Hashrate*>(handle->data)->print();
 }

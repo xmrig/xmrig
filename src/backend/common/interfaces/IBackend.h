@@ -32,6 +32,7 @@
 namespace xmrig {
 
 
+class Hashrate;
 class Job;
 class String;
 
@@ -41,6 +42,7 @@ class IBackend
 public:
     virtual ~IBackend() = default;
 
+    virtual const Hashrate *hashrate() const    = 0;
     virtual const String &profileName() const   = 0;
     virtual void printHashrate(bool details)    = 0;
     virtual void setJob(const Job &job)         = 0;

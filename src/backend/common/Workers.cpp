@@ -24,6 +24,7 @@
  */
 
 
+#include "backend/common/Hashrate.h"
 #include "backend/common/Workers.h"
 #include "backend/cpu/CpuWorker.h"
 #include "base/io/log/Log.h"
@@ -37,13 +38,16 @@ class WorkersPrivate
 public:
     inline WorkersPrivate()
     {
-
     }
 
 
     inline ~WorkersPrivate()
     {
+        delete hashrate;
     }
+
+
+    Hashrate *hashrate = nullptr;
 };
 
 
@@ -66,6 +70,13 @@ xmrig::Workers<T>::~Workers()
 
 
 template<class T>
+const xmrig::Hashrate *xmrig::Workers<T>::hashrate() const
+{
+    return d_ptr->hashrate;
+}
+
+
+template<class T>
 void xmrig::Workers<T>::add(const T &data)
 {
     m_workers.push_back(new Thread<T>(m_workers.size(), data));
@@ -75,6 +86,8 @@ void xmrig::Workers<T>::add(const T &data)
 template<class T>
 void xmrig::Workers<T>::start()
 {
+    d_ptr->hashrate = new Hashrate(m_workers.size());
+
     for (Thread<T> *worker : m_workers) {
         worker->start(Workers<T>::onReady);
     }
@@ -92,13 +105,34 @@ void xmrig::Workers<T>::stop()
 
     m_workers.clear();
     Nonce::touch(T::backend());
+
+    delete d_ptr->hashrate;
+    d_ptr->hashrate = nullptr;
 }
 
 
 template<class T>
-void xmrig::Workers<T>::onReady(void *arg)
+void xmrig::Workers<T>::tick(uint64_t)
 {
-    printf("ON READY\n");
+    if (!d_ptr->hashrate) {
+        return;
+    }
+
+    for (Thread<T> *handle : m_workers) {
+        if (!handle->worker()) {
+            return;
+        }
+
+        d_ptr->hashrate->add(handle->index(), handle->worker()->hashCount(), handle->worker()->timestamp());
+    }
+
+    d_ptr->hashrate->updateHighest();
+}
+
+
+template<class T>
+void xmrig::Workers<T>::onReady(void *)
+{
 }
 
 

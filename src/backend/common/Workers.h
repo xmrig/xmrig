@@ -34,6 +34,7 @@
 namespace xmrig {
 
 
+class Hashrate;
 class WorkersPrivate;
 
 
@@ -44,9 +45,11 @@ public:
     Workers();
     ~Workers();
 
+    const Hashrate *hashrate() const;
     void add(const T &data);
     void start();
     void stop();
+    void tick(uint64_t ticks);
 
 private:
     static void onReady(void *arg);

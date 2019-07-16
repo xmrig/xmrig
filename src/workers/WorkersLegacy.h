@@ -42,7 +42,7 @@
 #include "rapidjson/fwd.h"
 
 
-class Hashrate;
+//class Hashrate;
 
 
 namespace xmrig {
@@ -66,7 +66,7 @@ public:
 //    static xmrig::Job job();
 
 //    static inline bool isEnabled()                                      { return m_enabled; }
-    static inline Hashrate *hashrate()                                  { return m_hashrate; }
+//    static inline Hashrate *hashrate()                                  { return m_hashrate; }
 
 #   ifdef XMRIG_FEATURE_API
     static void threadsSummary(rapidjson::Document &doc);
@@ -74,7 +74,7 @@ public:
 
 private:
 //    static void onReady(void *arg);
-    static void onTick(uv_timer_t *handle);
+//    static void onTick(uv_timer_t *handle);
     static void start(xmrig::IWorker *worker);
 
     class LaunchStatus
@@ -98,7 +98,7 @@ private:
 
     static bool m_active;
     static bool m_enabled;
-    static Hashrate *m_hashrate;
+//    static Hashrate *m_hashrate;
     static xmrig::Job m_job;
     static LaunchStatus m_status;
     static std::vector<xmrig::Thread<xmrig::CpuLaunchData>* > m_workers;

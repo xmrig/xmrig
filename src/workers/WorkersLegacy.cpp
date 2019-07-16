@@ -40,13 +40,13 @@
 #include "crypto/rx/RxDataset.h"
 #include "Mem.h"
 #include "rapidjson/document.h"
-#include "workers/Hashrate.h"
+//#include "workers/Hashrate.h"
 #include "workers/WorkersLegacy.h"
 
 
 bool WorkersLegacy::m_active = false;
 bool WorkersLegacy::m_enabled = true;
-Hashrate *WorkersLegacy::m_hashrate = nullptr;
+//Hashrate *WorkersLegacy::m_hashrate = nullptr;
 xmrig::Job WorkersLegacy::m_job;
 WorkersLegacy::LaunchStatus WorkersLegacy::m_status;
 std::vector<xmrig::Thread<xmrig::CpuLaunchData>* > WorkersLegacy::m_workers;
@@ -93,38 +93,6 @@ size_t WorkersLegacy::threads()
 
 //    xmrig::Nonce::pause(true);
 //    xmrig::Nonce::touch();
-//}
-
-
-//void Workers::printHashrate(bool detail)
-//{
-//    assert(m_controller != nullptr);
-//    if (!m_controller) {
-//        return;
-//    }
-
-//    if (detail) {
-//        char num1[8] = { 0 };
-//        char num2[8] = { 0 };
-//        char num3[8] = { 0 };
-
-//        xmrig::Log::print(WHITE_BOLD_S "| THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
-
-//        size_t i = 0;
-//        for (const xmrig::IThread *thread : m_controller->config()->threads()) {
-//             xmrig::Log::print("| %6zu | %8" PRId64 " | %7s | %7s | %7s |",
-//                            thread->index(),
-//                            thread->affinity(),
-//                            Hashrate::format(m_hashrate->calc(thread->index(), Hashrate::ShortInterval),  num1, sizeof num1),
-//                            Hashrate::format(m_hashrate->calc(thread->index(), Hashrate::MediumInterval), num2, sizeof num2),
-//                            Hashrate::format(m_hashrate->calc(thread->index(), Hashrate::LargeInterval),  num3, sizeof num3)
-//                            );
-
-//             i++;
-//        }
-//    }
-
-//    m_hashrate->print();
 //}
 
 
@@ -186,7 +154,7 @@ void WorkersLegacy::start(xmrig::Controller *controller)
        m_status.ways += thread.intensity();
     }
 
-    m_hashrate = new Hashrate(threads.size(), controller);
+//    m_hashrate = new Hashrate(threads.size(), controller);
 
     uv_mutex_init(&m_mutex);
     uv_rwlock_init(&m_rwlock);
@@ -238,64 +206,22 @@ void WorkersLegacy::threadsSummary(rapidjson::Document &doc)
 #endif
 
 
-//void WorkersLegacy::onReady(void *arg)
+//void WorkersLegacy::onTick(uv_timer_t *)
 //{
 //    using namespace xmrig;
 
-//    auto handle = static_cast<Thread<CpuLaunchData>* >(arg);
+//    for (Thread<CpuLaunchData> *handle : m_workers) {
+//        if (!handle->worker()) {
+//            return;
+//        }
 
-//    xmrig::IWorker *worker = nullptr;
-
-//    switch (handle->config().intensity) {
-//    case 1:
-//        worker = new CpuWorker<1>(handle->index(), handle->config());
-//        break;
-
-//    case 2:
-//        worker = new CpuWorker<2>(handle->index(), handle->config());
-//        break;
-
-//    case 3:
-//        worker = new CpuWorker<3>(handle->index(), handle->config());
-//        break;
-
-//    case 4:
-//        worker = new CpuWorker<4>(handle->index(), handle->config());
-//        break;
-
-//    case 5:
-//        worker = new CpuWorker<5>(handle->index(), handle->config());
-//        break;
+//        m_hashrate->add(handle->index(), handle->worker()->hashCount(), handle->worker()->timestamp());
 //    }
 
-//    handle->setWorker(worker);
-
-//    if (!worker->selfTest()) {
-//        LOG_ERR("thread %zu error: \"hash self-test failed\".", handle->worker()->id());
-
-//        return;
+//    if ((m_ticks++ & 0xF) == 0)  {
+//        m_hashrate->updateHighest();
 //    }
-
-//    start(worker);
 //}
-
-
-void WorkersLegacy::onTick(uv_timer_t *)
-{
-    using namespace xmrig;
-
-    for (Thread<CpuLaunchData> *handle : m_workers) {
-        if (!handle->worker()) {
-            return;
-        }
-
-        m_hashrate->add(handle->index(), handle->worker()->hashCount(), handle->worker()->timestamp());
-    }
-
-    if ((m_ticks++ & 0xF) == 0)  {
-        m_hashrate->updateHighest();
-    }
-}
 
 
 void WorkersLegacy::start(xmrig::IWorker *worker)

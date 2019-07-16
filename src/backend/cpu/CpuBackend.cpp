@@ -23,15 +23,14 @@
  */
 
 
+#include "backend/common/Hashrate.h"
 #include "backend/common/Workers.h"
 #include "backend/cpu/CpuBackend.h"
+#include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/String.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-
-
-#include "base/io/log/Log.h"
 
 
 namespace xmrig {
@@ -98,6 +97,12 @@ xmrig::CpuBackend::~CpuBackend()
 }
 
 
+const xmrig::Hashrate *xmrig::CpuBackend::hashrate() const
+{
+    return d_ptr->workers.hashrate();
+}
+
+
 const xmrig::String &xmrig::CpuBackend::profileName() const
 {
     return d_ptr->profileName;
@@ -106,7 +111,26 @@ const xmrig::String &xmrig::CpuBackend::profileName() const
 
 void xmrig::CpuBackend::printHashrate(bool details)
 {
+    if (!details || !hashrate()) {
+        return;
+    }
 
+    char num[8 * 3] = { 0 };
+
+    Log::print(WHITE_BOLD_S "|    CPU THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
+
+    size_t i = 0;
+    for (const CpuThread &thread : d_ptr->threads) {
+         Log::print("| %13zu | %8" PRId64 " | %7s | %7s | %7s |",
+                    i,
+                    thread.affinity(),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
+                    );
+
+         i++;
+    }
 }
 
 
@@ -147,5 +171,5 @@ void xmrig::CpuBackend::stop()
 
 void xmrig::CpuBackend::tick(uint64_t ticks)
 {
-
+    d_ptr->workers.tick(ticks);
 }

@@ -36,7 +36,7 @@
 #include "core/config/Config.h"
 #include "rapidjson/document.h"
 #include "version.h"
-#include "workers/Hashrate.h"
+//#include "workers/Hashrate.h"
 #include "workers/WorkersLegacy.h"
 
 
@@ -69,7 +69,7 @@ void xmrig::ApiRouter::onRequest(IApiRequest &request)
         if (request.url() == "/1/summary" || request.url() == "/api.json") {
             request.accept();
             getMiner(request.reply(), request.doc());
-            getHashrate(request.reply(), request.doc());
+//            getHashrate(request.reply(), request.doc());
         }
         else if (request.url() == "/1/threads") {
             request.accept();
@@ -98,35 +98,35 @@ void xmrig::ApiRouter::onRequest(IApiRequest &request)
 }
 
 
-void xmrig::ApiRouter::getHashrate(rapidjson::Value &reply, rapidjson::Document &doc) const
-{
-    using namespace rapidjson;
-    auto &allocator = doc.GetAllocator();
+//void xmrig::ApiRouter::getHashrate(rapidjson::Value &reply, rapidjson::Document &doc) const
+//{
+//    using namespace rapidjson;
+//    auto &allocator = doc.GetAllocator();
 
-    Value hashrate(kObjectType);
-    Value total(kArrayType);
-    Value threads(kArrayType);
+//    Value hashrate(kObjectType);
+//    Value total(kArrayType);
+//    Value threads(kArrayType);
 
-    const Hashrate *hr = WorkersLegacy::hashrate();
+//    const Hashrate *hr = WorkersLegacy::hashrate();
 
-    total.PushBack(normalize(hr->calc(Hashrate::ShortInterval)),  allocator);
-    total.PushBack(normalize(hr->calc(Hashrate::MediumInterval)), allocator);
-    total.PushBack(normalize(hr->calc(Hashrate::LargeInterval)),  allocator);
+//    total.PushBack(normalize(hr->calc(Hashrate::ShortInterval)),  allocator);
+//    total.PushBack(normalize(hr->calc(Hashrate::MediumInterval)), allocator);
+//    total.PushBack(normalize(hr->calc(Hashrate::LargeInterval)),  allocator);
 
-    for (size_t i = 0; i < WorkersLegacy::threads(); i++) {
-        Value thread(kArrayType);
-        thread.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-        thread.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-        thread.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+//    for (size_t i = 0; i < WorkersLegacy::threads(); i++) {
+//        Value thread(kArrayType);
+//        thread.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
+//        thread.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
+//        thread.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
 
-        threads.PushBack(thread, allocator);
-    }
+//        threads.PushBack(thread, allocator);
+//    }
 
-    hashrate.AddMember("total",   total, allocator);
-    hashrate.AddMember("highest", normalize(hr->highest()), allocator);
-    hashrate.AddMember("threads", threads, allocator);
-    reply.AddMember("hashrate", hashrate, allocator);
-}
+//    hashrate.AddMember("total",   total, allocator);
+//    hashrate.AddMember("highest", normalize(hr->highest()), allocator);
+//    hashrate.AddMember("threads", threads, allocator);
+//    reply.AddMember("hashrate", hashrate, allocator);
+//}
 
 
 void xmrig::ApiRouter::getMiner(rapidjson::Value &reply, rapidjson::Document &doc) const
@@ -151,29 +151,29 @@ void xmrig::ApiRouter::getMiner(rapidjson::Value &reply, rapidjson::Document &do
 
 void xmrig::ApiRouter::getThreads(rapidjson::Value &reply, rapidjson::Document &doc) const
 {
-    using namespace rapidjson;
-    auto &allocator = doc.GetAllocator();
-    const Hashrate *hr = WorkersLegacy::hashrate();
+//    using namespace rapidjson;
+//    auto &allocator = doc.GetAllocator();
+//    const Hashrate *hr = WorkersLegacy::hashrate();
 
-    WorkersLegacy::threadsSummary(doc);
+//    WorkersLegacy::threadsSummary(doc);
 
-    const std::vector<IThread *> &threads = m_base->config()->threads();
-    Value list(kArrayType);
+//    const std::vector<IThread *> &threads = m_base->config()->threads();
+//    Value list(kArrayType);
 
-    size_t i = 0;
-    for (const xmrig::IThread *thread : threads) {
-        Value value = thread->toAPI(doc);
+//    size_t i = 0;
+//    for (const xmrig::IThread *thread : threads) {
+//        Value value = thread->toAPI(doc);
 
-        Value hashrate(kArrayType);
-        hashrate.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-        hashrate.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-        hashrate.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+//        Value hashrate(kArrayType);
+//        hashrate.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
+//        hashrate.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
+//        hashrate.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
 
-        i++;
+//        i++;
 
-        value.AddMember("hashrate", hashrate, allocator);
-        list.PushBack(value, allocator);
-    }
+//        value.AddMember("hashrate", hashrate, allocator);
+//        list.PushBack(value, allocator);
+//    }
 
-    reply.AddMember("threads", list, allocator);
+//    reply.AddMember("threads", list, allocator);
 }

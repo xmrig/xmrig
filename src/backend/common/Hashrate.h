@@ -27,12 +27,9 @@
 
 
 #include <stdint.h>
-#include <uv.h>
 
 
 namespace xmrig {
-    class Controller;
-}
 
 
 class Hashrate
@@ -44,12 +41,11 @@ public:
         LargeInterval  = 900000
     };
 
-    Hashrate(size_t threads, xmrig::Controller *controller);
+    Hashrate(size_t threads);
+    ~Hashrate();
     double calc(size_t ms) const;
     double calc(size_t threadId, size_t ms) const;
     void add(size_t threadId, uint64_t count, uint64_t timestamp);
-    void print() const;
-    void stop();
     void updateHighest();
 
     inline double highest() const { return m_highest; }
@@ -58,8 +54,6 @@ public:
     static const char *format(double h, char *buf, size_t size);
 
 private:
-    static void onReport(uv_timer_t *handle);
-
     constexpr static size_t kBucketSize = 2 << 11;
     constexpr static size_t kBucketMask = kBucketSize - 1;
 
@@ -68,8 +62,10 @@ private:
     uint32_t* m_top;
     uint64_t** m_counts;
     uint64_t** m_timestamps;
-    uv_timer_t *m_timer;
 };
+
+
+} // namespace xmrig
 
 
 #endif /* XMRIG_HASHRATE_H */

@@ -26,6 +26,9 @@
 #define XMRIG_MINER_H
 
 
+#include <vector>
+
+
 #include "base/kernel/interfaces/ITimerListener.h"
 
 
@@ -35,6 +38,7 @@ namespace xmrig {
 class Controller;
 class Job;
 class MinerPrivate;
+class IBackend;
 
 
 class Miner : public ITimerListener
@@ -44,6 +48,7 @@ public:
     ~Miner() override;
 
     bool isEnabled() const;
+    const std::vector<IBackend *> &backends() const;
     Job job() const;
     void pause();
     void printHashrate(bool details);
