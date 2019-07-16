@@ -90,7 +90,7 @@ namespace randomx {
 		}
 
 		static void executeBytecode(InstructionByteCode* bytecode, uint8_t* scratchpad, ProgramConfiguration& config) {
-			for (int pc = 0; pc < RandomX_CurrentConfig.ProgramSize; ++pc) {
+			for (int pc = 0; pc < static_cast<int>(RandomX_CurrentConfig.ProgramSize); ++pc) {
 				auto& ibc = bytecode[pc];
 				executeInstruction(ibc, pc, scratchpad, config);
 			}

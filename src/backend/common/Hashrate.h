@@ -26,6 +26,7 @@
 #define XMRIG_HASHRATE_H
 
 
+#include <stddef.h>
 #include <stdint.h>
 
 
