@@ -34,7 +34,7 @@
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/common/Assembly.h"
-#include "Mem.h"
+#include "crypto/common/VirtualMemory.h"
 #include "Summary.h"
 #include "version.h"
 
@@ -59,7 +59,7 @@ inline static const char *asmName(xmrig::Assembly::Id assembly)
 static void print_memory(xmrig::Config *) {
 #   ifdef _WIN32
     xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-                      "HUGE PAGES", Mem::isHugepagesAvailable() ? GREEN_BOLD("available") : RED_BOLD("unavailable"));
+                      "HUGE PAGES", xmrig::VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("available") : RED_BOLD("unavailable"));
 #   endif
 }
 

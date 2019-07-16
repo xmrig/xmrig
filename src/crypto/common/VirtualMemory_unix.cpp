@@ -38,6 +38,9 @@
 #endif
 
 
+int xmrig::VirtualMemory::m_globalFlags = 0;
+
+
 xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, size_t align) :
     m_size(VirtualMemory::align(size))
 {
@@ -117,6 +120,14 @@ void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
 {
     munmap(p, size);
+}
+
+
+void xmrig::VirtualMemory::init(bool hugePages)
+{
+    if (hugePages) {
+        m_globalFlags = HUGEPAGES | HUGEPAGES_AVAILABLE;
+    }
 }
 
 

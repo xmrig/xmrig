@@ -34,7 +34,6 @@ set(HEADERS
     src/core/config/usage.h
     src/core/Controller.h
     src/core/Miner.h
-    src/Mem.h
     src/net/interfaces/IJobResultListener.h
     src/net/JobResult.h
     src/net/JobResults.h
@@ -85,7 +84,6 @@ set(SOURCES
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
     src/core/Miner.cpp
-    src/Mem.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
     src/net/NetworkState.cpp
@@ -113,7 +111,6 @@ if (WIN32)
         "${SOURCES_OS}"
         res/app.rc
         src/App_win.cpp
-        src/Mem_win.cpp
         src/crypto/common/VirtualMemory_win.cpp
         )
 
@@ -123,14 +120,12 @@ elseif (APPLE)
     set(SOURCES_OS
         "${SOURCES_OS}"
         src/App_unix.cpp
-        src/Mem_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 else()
     set(SOURCES_OS
         "${SOURCES_OS}"
         src/App_unix.cpp
-        src/Mem_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 

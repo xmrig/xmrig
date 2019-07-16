@@ -23,6 +23,7 @@
  */
 
 
+#include <algorithm>
 #include <uv.h>
 
 
