@@ -136,13 +136,9 @@ void xmrig::CpuBackend::printHashrate(bool details)
 
 void xmrig::CpuBackend::setJob(const Job &job)
 {
-    LOG_WARN("PROFILE %s %zu", d_ptr->controller->config()->cpu().threads().profileName(job.algorithm()).data(), job.algorithm().memory());
-
     if (d_ptr->isReady(job.algorithm())) {
         return;
     }
-
-    LOG_INFO(GREEN_BOLD_S "INIT");
 
     const CpuConfig &cpu              = d_ptr->controller->config()->cpu();
     const Threads<CpuThread> &threads = cpu.threads();
@@ -151,7 +147,11 @@ void xmrig::CpuBackend::setJob(const Job &job)
     d_ptr->profileName  = threads.profileName(job.algorithm());
     d_ptr->threads      = threads.get(d_ptr->profileName);
 
-    LOG_INFO(BLUE_BG_S " %zu ", d_ptr->threads.size());
+    LOG_INFO(GREEN_BOLD("CPU") " use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
+             d_ptr->profileName.data(),
+             d_ptr->threads.size(),
+             d_ptr->algo.memory() / 1024
+             );
 
     d_ptr->workers.stop();
 

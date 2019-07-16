@@ -31,12 +31,8 @@
 #include "crypto/rx/RxVm.h"
 
 
-xmrig::RxVm::RxVm(RxDataset *dataset, bool hugePages, bool softAes)
+xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes)
 {
-    if (hugePages) {
-        m_flags |= RANDOMX_FLAG_LARGE_PAGES;
-    }
-
     if (!softAes) {
        m_flags |= RANDOMX_FLAG_HARD_AES;
     }
@@ -49,17 +45,7 @@ xmrig::RxVm::RxVm(RxDataset *dataset, bool hugePages, bool softAes)
         m_flags |= RANDOMX_FLAG_JIT;
     }
 
-    m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get());
-
-    if (!m_vm) {
-        m_flags &= ~RANDOMX_FLAG_LARGE_PAGES;
-        m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get());
-    }
-
-    if (!m_vm) {
-        m_flags &= ~RANDOMX_FLAG_HARD_AES;
-        m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get());
-    }
+    m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get(), scratchpad);
 }
 
 

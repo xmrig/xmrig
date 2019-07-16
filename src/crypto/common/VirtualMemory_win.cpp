@@ -32,6 +32,37 @@
 #include "crypto/common/VirtualMemory.h"
 
 
+xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, size_t align) :
+    m_size(VirtualMemory::align(size))
+{
+    if (hugePages) {
+        m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
+        if (m_scratchpad) {
+            m_flags |= HUGEPAGES;
+
+            return;
+        }
+    }
+
+    m_scratchpad = static_cast<uint8_t*>(_mm_malloc(m_size, align));
+}
+
+
+xmrig::VirtualMemory::~VirtualMemory()
+{
+    if (!m_scratchpad) {
+        return;
+    }
+
+    if (isHugePages()) {
+        freeLargePagesMemory(m_scratchpad, m_size);
+    }
+    else {
+        _mm_free(m_scratchpad);
+    }
+}
+
+
 void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
 {
     return VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);

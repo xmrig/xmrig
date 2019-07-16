@@ -29,8 +29,10 @@
 
 #include "backend/cpu/CpuWorker.h"
 #include "core/Miner.h"
+#include "crypto/cn/CnCtx.h"
 #include "crypto/cn/CryptoNight_test.h"
 #include "crypto/common/Nonce.h"
+#include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxVm.h"
 #include "net/JobResults.h"
@@ -56,18 +58,18 @@ xmrig::CpuWorker<N>::CpuWorker(size_t index, const CpuLaunchData &data) :
     m_assembly(data.assembly),
     m_hwAES(data.hwAES),
     m_av(data.av()),
-    m_miner(data.miner)
+    m_miner(data.miner),
+    m_ctx()
 {
-    if (m_algorithm.family() != Algorithm::RANDOM_X) {
-        m_memory = Mem::create(m_ctx, m_algorithm, N);
-    }
+    m_memory = new VirtualMemory(m_algorithm.memory() * N, data.hugePages);
 }
 
 
 template<size_t N>
 xmrig::CpuWorker<N>::~CpuWorker()
 {
-    Mem::release(m_ctx, N, m_memory);
+    CnCtx::release(m_ctx, N);
+    delete m_memory;
 
 #   ifdef XMRIG_ALGO_RANDOMX
     delete m_vm;
@@ -81,7 +83,7 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
 {
     if (!m_vm) {
         RxDataset *dataset = Rx::dataset(m_job.currentJob().seedHash(), m_job.currentJob().algorithm());
-        m_vm = new RxVm(dataset, true, !m_hwAES);
+        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES);
     }
 }
 #endif
@@ -90,6 +92,14 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
 template<size_t N>
 bool xmrig::CpuWorker<N>::selfTest()
 {
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (m_algorithm.family() == Algorithm::RANDOM_X) {
+        return true;
+    }
+#   endif
+
+    allocateCnCtx();
+
     if (m_algorithm.family() == Algorithm::CN) {
         const bool rc = verify(Algorithm::CN_0,      test_output_v0)   &&
                         verify(Algorithm::CN_1,      test_output_v1)   &&
@@ -136,12 +146,6 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (m_algorithm.family() == Algorithm::RANDOM_X) {
-        return true;
-    }
-#   endif
-
     return false;
 }
 
@@ -172,7 +176,6 @@ void xmrig::CpuWorker<N>::start()
 
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
-                allocateRandomX_VM();
                 randomx_calculate_hash(m_vm->get(), m_job.blob(), job.size(), m_hash);
             }
             else
@@ -263,9 +266,28 @@ bool CpuWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceV
 
 
 template<size_t N>
+void xmrig::CpuWorker<N>::allocateCnCtx()
+{
+    if (m_ctx[0] == nullptr) {
+        CnCtx::create(m_ctx, m_memory->scratchpad(), m_memory->size(), N);
+    }
+}
+
+
+template<size_t N>
 void xmrig::CpuWorker<N>::consumeJob()
 {
     m_job.add(m_miner->job(), Nonce::sequence(Nonce::CPU), kReserveCount);
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
+        allocateRandomX_VM();
+    }
+    else
+#   endif
+    {
+        allocateCnCtx();
+    }
 }
 
 

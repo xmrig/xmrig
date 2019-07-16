@@ -67,24 +67,24 @@ xmrig::Controller *WorkersLegacy::m_controller = nullptr;
 //}
 
 
-size_t WorkersLegacy::hugePages()
-{
-    uv_mutex_lock(&m_mutex);
-    const size_t hugePages = m_status.hugePages;
-    uv_mutex_unlock(&m_mutex);
+//size_t WorkersLegacy::hugePages()
+//{
+//    uv_mutex_lock(&m_mutex);
+//    const size_t hugePages = m_status.hugePages;
+//    uv_mutex_unlock(&m_mutex);
 
-    return hugePages;
-}
+//    return hugePages;
+//}
 
 
-size_t WorkersLegacy::threads()
-{
-    uv_mutex_lock(&m_mutex);
-    const size_t threads = m_status.threads;
-    uv_mutex_unlock(&m_mutex);
+//size_t WorkersLegacy::threads()
+//{
+//    uv_mutex_lock(&m_mutex);
+//    const size_t threads = m_status.threads;
+//    uv_mutex_unlock(&m_mutex);
 
-    return threads;
-}
+//    return threads;
+//}
 
 
 //void Workers::pause()
@@ -186,24 +186,24 @@ void WorkersLegacy::start(xmrig::Controller *controller)
 //}
 
 
-#ifdef XMRIG_FEATURE_API
-void WorkersLegacy::threadsSummary(rapidjson::Document &doc)
-{
-    uv_mutex_lock(&m_mutex);
-    const uint64_t pages[2] = { m_status.hugePages, m_status.pages };
-    const uint64_t memory   = m_status.ways * xmrig::CnAlgo<>::memory(m_status.algo);
-    uv_mutex_unlock(&m_mutex);
+//#ifdef XMRIG_FEATURE_API
+//void WorkersLegacy::threadsSummary(rapidjson::Document &doc)
+//{
+//    uv_mutex_lock(&m_mutex);
+//    const uint64_t pages[2] = { m_status.hugePages, m_status.pages };
+//    const uint64_t memory   = m_status.ways * xmrig::CnAlgo<>::memory(m_status.algo);
+//    uv_mutex_unlock(&m_mutex);
 
-    auto &allocator = doc.GetAllocator();
+//    auto &allocator = doc.GetAllocator();
 
-    rapidjson::Value hugepages(rapidjson::kArrayType);
-    hugepages.PushBack(pages[0], allocator);
-    hugepages.PushBack(pages[1], allocator);
+//    rapidjson::Value hugepages(rapidjson::kArrayType);
+//    hugepages.PushBack(pages[0], allocator);
+//    hugepages.PushBack(pages[1], allocator);
 
-    doc.AddMember("hugepages", hugepages, allocator);
-    doc.AddMember("memory", memory, allocator);
-}
-#endif
+//    doc.AddMember("hugepages", hugepages, allocator);
+//    doc.AddMember("memory", memory, allocator);
+//}
+//#endif
 
 
 //void WorkersLegacy::onTick(uv_timer_t *)

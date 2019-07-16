@@ -56,9 +56,7 @@ public:
         Lock               = 4
     };
 
-    static MemInfo create(cryptonight_ctx **ctx, const xmrig::Algorithm &algorithm, size_t count);
     static void init(bool enabled);
-    static void release(cryptonight_ctx **ctx, size_t count, MemInfo &info);
 
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
 

@@ -32,23 +32,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<class Allocator, bool softAes>
-	void CompiledLightVm<Allocator, softAes>::setCache(randomx_cache* cache) {
+	template<bool softAes>
+	void CompiledLightVm<softAes>::setCache(randomx_cache* cache) {
 		cachePtr = cache;
 		mem.memory = cache->memory;
 		compiler.generateSuperscalarHash(cache->programs, cache->reciprocalCache);
 	}
 
-	template<class Allocator, bool softAes>
-	void CompiledLightVm<Allocator, softAes>::run(void* seed) {
-		VmBase<Allocator, softAes>::generateProgram(seed);
+	template<bool softAes>
+	void CompiledLightVm<softAes>::run(void* seed) {
+		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
 		compiler.generateProgramLight(program, config, datasetOffset);
-		CompiledVm<Allocator, softAes>::execute();
+		CompiledVm<softAes>::execute();
 	}
 
-	template class CompiledLightVm<AlignedAllocator<CacheLineSize>, false>;
-	template class CompiledLightVm<AlignedAllocator<CacheLineSize>, true>;
-	template class CompiledLightVm<LargePageAllocator, false>;
-	template class CompiledLightVm<LargePageAllocator, true>;
+	template class CompiledLightVm<false>;
+	template class CompiledLightVm<true>;
 }

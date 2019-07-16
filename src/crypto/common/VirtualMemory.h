@@ -38,6 +38,15 @@ namespace xmrig {
 class VirtualMemory
 {
 public:
+    inline VirtualMemory() {}
+    VirtualMemory(size_t size, bool hugePages = true, size_t align = 64);
+    ~VirtualMemory();
+
+    inline bool isHugePages() const     { return m_flags & HUGEPAGES; }
+    inline size_t hugePages() const     { return isHugePages() ? (align(size()) / 2097152) : 0; }
+    inline size_t size() const          { return m_size; }
+    inline uint8_t *scratchpad() const  { return m_scratchpad; }
+
     static void *allocateExecutableMemory(size_t size);
     static void *allocateLargePagesMemory(size_t size);
     static void flushInstructionCache(void *p, size_t size);
@@ -46,6 +55,17 @@ public:
     static void unprotectExecutableMemory(void *p, size_t size);
 
     static inline constexpr size_t align(size_t pos, size_t align = 2097152) { return ((pos - 1) / align + 1) * align; }
+
+private:
+    enum Flags {
+        HUGEPAGES_AVAILABLE = 1,
+        HUGEPAGES           = 2,
+        LOCK                = 4
+    };
+
+    int m_flags             = 0;
+    size_t m_size           = 0;
+    uint8_t *m_scratchpad   = nullptr;
 };
 
 

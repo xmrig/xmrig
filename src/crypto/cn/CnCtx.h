@@ -4,7 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,34 +23,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_IWORKER_H
-#define XMRIG_IWORKER_H
+#ifndef XMRIG_CN_CTX_H
+#define XMRIG_CN_CTX_H
 
 
+#include <stddef.h>
 #include <stdint.h>
 
 
-namespace xmrig {
+struct cryptonight_ctx;
 
 
-class VirtualMemory;
+namespace xmrig
+{
 
 
-class IWorker
+class CnCtx
 {
 public:
-    virtual ~IWorker() = default;
-
-    virtual bool selfTest()                         = 0;
-    virtual const VirtualMemory *memory() const     = 0;
-    virtual size_t id() const                       = 0;
-    virtual uint64_t hashCount() const              = 0;
-    virtual uint64_t timestamp() const              = 0;
-    virtual void start()                            = 0;
+    static void create(cryptonight_ctx **ctx, uint8_t *memory, size_t size, size_t count);
+    static void release(cryptonight_ctx **ctx, size_t count);
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif // XMRIG_IWORKER_H
+#endif /* XMRIG_CN_CTX_H */

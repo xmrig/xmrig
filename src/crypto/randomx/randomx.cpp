@@ -345,7 +345,7 @@ extern "C" {
 		delete dataset;
 	}
 
-	randomx_vm *randomx_create_vm(randomx_flags flags, randomx_cache *cache, randomx_dataset *dataset) {
+	randomx_vm *randomx_create_vm(randomx_flags flags, randomx_cache *cache, randomx_dataset *dataset, uint8_t *scratchpad) {
 		assert(cache != nullptr || (flags & RANDOMX_FLAG_FULL_MEM));
 		assert(cache == nullptr || cache->isInitialized());
 		assert(dataset != nullptr || !(flags & RANDOMX_FLAG_FULL_MEM));
@@ -353,7 +353,7 @@ extern "C" {
 		randomx_vm *vm = nullptr;
 
 		try {
-			switch (flags & (RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_LARGE_PAGES)) {
+			switch (flags & (RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES)) {
 				case RANDOMX_FLAG_DEFAULT:
 					vm = new randomx::InterpretedLightVmDefault();
 					break;
@@ -386,49 +386,19 @@ extern "C" {
 					vm = new randomx::CompiledVmHardAes();
 					break;
 
-				case RANDOMX_FLAG_LARGE_PAGES:
-					vm = new randomx::InterpretedLightVmLargePage();
-					break;
-
-				case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_LARGE_PAGES:
-					vm = new randomx::InterpretedVmLargePage();
-					break;
-
-				case RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES:
-					vm = new randomx::CompiledLightVmLargePage();
-					break;
-
-				case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES:
-					vm = new randomx::CompiledVmLargePage();
-					break;
-
-				case RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_LARGE_PAGES:
-					vm = new randomx::InterpretedLightVmLargePageHardAes();
-					break;
-
-				case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_LARGE_PAGES:
-					vm = new randomx::InterpretedVmLargePageHardAes();
-					break;
-
-				case RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_LARGE_PAGES:
-					vm = new randomx::CompiledLightVmLargePageHardAes();
-					break;
-
-				case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES | RANDOMX_FLAG_LARGE_PAGES:
-					vm = new randomx::CompiledVmLargePageHardAes();
-					break;
-
 				default:
 					UNREACHABLE;
 			}
 
-			if(cache != nullptr)
+			if (cache != nullptr) {
 				vm->setCache(cache);
+			}
 
-			if(dataset != nullptr)
+			if (dataset != nullptr) {
 				vm->setDataset(dataset);
+			}
 
-			vm->allocate();
+			vm->setScratchpad(scratchpad);
 		}
 		catch (std::exception &ex) {
 			delete vm;

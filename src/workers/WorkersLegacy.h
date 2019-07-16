@@ -55,8 +55,8 @@ namespace xmrig {
 class WorkersLegacy
 {
 public:
-    static size_t hugePages();
-    static size_t threads();
+//    static size_t hugePages();
+//    static size_t threads();
 //    static void pause();
 //    static void printHashrate(bool detail);
 //    static void setEnabled(bool enabled);
@@ -68,9 +68,9 @@ public:
 //    static inline bool isEnabled()                                      { return m_enabled; }
 //    static inline Hashrate *hashrate()                                  { return m_hashrate; }
 
-#   ifdef XMRIG_FEATURE_API
-    static void threadsSummary(rapidjson::Document &doc);
-#   endif
+//#   ifdef XMRIG_FEATURE_API
+//    static void threadsSummary(rapidjson::Document &doc);
+//#   endif
 
 private:
 //    static void onReady(void *arg);

@@ -42,9 +42,10 @@ class Worker : public IWorker
 public:
     Worker(size_t id, int64_t affinity, int priority);
 
-    inline size_t id() const override          { return m_id; }
-    inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
-    inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
+    inline const VirtualMemory *memory() const override { return nullptr; }
+    inline size_t id() const override                   { return m_id; }
+    inline uint64_t hashCount() const override          { return m_hashCount.load(std::memory_order_relaxed); }
+    inline uint64_t timestamp() const override          { return m_timestamp.load(std::memory_order_relaxed); }
 
 protected:
     void storeStats();

@@ -4,7 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
@@ -23,9 +23,38 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <limits>
 
-#include "Mem.h"
+
+#include "crypto/cn/CnCtx.h"
+#include "crypto/cn/CryptoNight.h"
+#include "crypto/common/Algorithm.h"
+#include "crypto/common/portable/mm_malloc.h"
+#include "crypto/common/VirtualMemory.h"
 
 
-bool Mem::m_enabled = true;
-int Mem::m_flags    = 0;
+void xmrig::CnCtx::create(cryptonight_ctx **ctx, uint8_t *memory, size_t size, size_t count)
+{
+    for (size_t i = 0; i < count; ++i) {
+        cryptonight_ctx *c = static_cast<cryptonight_ctx *>(_mm_malloc(sizeof(cryptonight_ctx), 4096));
+        c->memory          = memory + (i * size);
+
+        c->generated_code              = reinterpret_cast<cn_mainloop_fun_ms_abi>(VirtualMemory::allocateExecutableMemory(0x4000));
+        c->generated_code_data.algo    = Algorithm::INVALID;
+        c->generated_code_data.height  = std::numeric_limits<uint64_t>::max();
+
+        ctx[i] = c;
+    }
+}
+
+
+void xmrig::CnCtx::release(cryptonight_ctx **ctx, size_t count)
+{
+    if (ctx[0] == nullptr) {
+        return;
+    }
+
+    for (size_t i = 0; i < count; ++i) {
+        _mm_free(ctx[i]);
+    }
+}

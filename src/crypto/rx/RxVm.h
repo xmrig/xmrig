@@ -44,7 +44,7 @@ class RxDataset;
 class RxVm
 {
 public:
-    RxVm(RxDataset *dataset, bool hugePages, bool softAes);
+    RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes);
     ~RxVm();
 
     inline randomx_vm *get() const       { return m_vm; }

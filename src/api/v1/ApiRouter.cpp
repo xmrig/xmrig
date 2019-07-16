@@ -144,7 +144,7 @@ void xmrig::ApiRouter::getMiner(rapidjson::Value &reply, rapidjson::Document &do
     reply.AddMember("kind",         APP_KIND, allocator);
     reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
     reply.AddMember("cpu",          cpu, allocator);
-    reply.AddMember("hugepages",    WorkersLegacy::hugePages() > 0, allocator);
+    reply.AddMember("hugepages",    false, allocator); // FIXME hugepages
     reply.AddMember("donate_level", m_base->config()->pools().donateLevel(), allocator);
 }
 
