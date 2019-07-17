@@ -80,45 +80,6 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
 }
 
 
-size_t xmrig::AdvancedCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsage) const
-{
-    if (threads() == 1) {
-        return 1;
-    }
-
-    size_t cache = 0;
-    if (m_L3) {
-        cache = m_L2_exclusive ? (m_L2 + m_L3) : m_L3;
-    }
-    else {
-        cache = m_L2;
-    }
-
-    size_t count = 0;
-
-    if (cache) {
-        count = cache / memSize;
-
-        if (cache % memSize >= memSize / 2) {
-            count++;
-        }
-    }
-    else {
-        count = threads() / 2;
-    }
-
-    if (count > (size_t) threads()) {
-        count = threads();
-    }
-
-    if (((float) count / threads() * 100) > maxCpuUsage) {
-        count = (int) ceil((float) threads() * (maxCpuUsage / 100.0));
-    }
-
-    return count < 1 ? 1 : count;
-}
-
-
 xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) const
 {
     if (threads() == 1) {

@@ -27,13 +27,11 @@
 
 
 #include <stdint.h>
-#include <vector>
 
 
 #include "backend/cpu/CpuConfig.h"
 #include "base/kernel/config/BaseConfig.h"
 #include "rapidjson/fwd.h"
-#include "workers/CpuThreadLegacy.h"
 
 
 namespace xmrig {
@@ -45,51 +43,17 @@ class IThread;
 class Config : public BaseConfig
 {
 public:
-    enum ThreadsMode {
-        Automatic,
-        Simple,
-        Advanced
-    };
-
-
     Config();
 
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline CnHash::AlgoVariant algoVariant() const       { return m_algoVariant; }
-    inline bool isShouldSave() const                     { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
-    inline const CpuConfig &cpu() const                  { return m_cpu; }
-    inline const std::vector<IThread *> &threads() const { return m_threads.list; }
-    inline int threadsCount() const                      { return static_cast<int>(m_threads.list.size()); }
-    inline ThreadsMode threadsMode() const               { return m_threads.mode; }
+    inline bool isShouldSave() const        { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
+    inline const CpuConfig &cpu() const     { return m_cpu; }
 
 private:
-    bool finalize();
-    void setAlgoVariant(int av);
-    void setThreads(const rapidjson::Value &threads);
-
-    CnHash::AlgoVariant getAlgoVariant() const;
-#   ifdef XMRIG_ALGO_CN_LITE
-    CnHash::AlgoVariant getAlgoVariantLite() const;
-#   endif
-
-    struct Threads
-    {
-       inline Threads() : mask(-1L), count(0), mode(Automatic) {}
-
-       int64_t mask;
-       size_t count;
-       std::vector<CpuThreadLegacy::Data> cpu;
-       std::vector<IThread *> list;
-       ThreadsMode mode;
-    };
-
-
-    CnHash::AlgoVariant m_algoVariant;
-    bool m_shouldSave;
+    bool m_shouldSave   = false;
     CpuConfig m_cpu;
-    Threads m_threads;
 };
 
 

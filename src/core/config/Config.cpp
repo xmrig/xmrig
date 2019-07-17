@@ -36,12 +36,9 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
-#include "workers/CpuThreadLegacy.h"
 
 
-xmrig::Config::Config() :
-    m_algoVariant(CnHash::AV_AUTO),
-    m_shouldSave(false)
+xmrig::Config::Config() : BaseConfig()
 {
 }
 
@@ -54,10 +51,7 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 
     m_cpu.read(reader.getValue("cpu"));
 
-    setAlgoVariant(reader.getInt("av"));
-    setThreads(reader.getValue("threads"));
-
-    return finalize();
+    return true;
 }
 
 
@@ -72,148 +66,21 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     Value api(kObjectType);
     api.AddMember("id",           m_apiId.toJSON(), allocator);
     api.AddMember("worker-id",    m_apiWorkerId.toJSON(), allocator);
-    doc.AddMember("api",          api, allocator);
-    doc.AddMember("http",         m_http.toJSON(doc), allocator);
-    doc.AddMember("autosave",     isAutoSave(), allocator);
-    doc.AddMember("av",           algoVariant(), allocator);
-    doc.AddMember("background",   isBackground(), allocator);
-    doc.AddMember("colors",       Log::colors, allocator);
 
-    doc.AddMember("cpu", m_cpu.toJSON(doc), allocator);
-
+    doc.AddMember("api",               api, allocator);
+    doc.AddMember("autosave",          isAutoSave(), allocator);
+    doc.AddMember("background",        isBackground(), allocator);
+    doc.AddMember("colors",            Log::colors, allocator);
+    doc.AddMember("cpu",               m_cpu.toJSON(doc), allocator);
     doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
     doc.AddMember("donate-over-proxy", m_pools.proxyDonate(), allocator);
+    doc.AddMember("http",              m_http.toJSON(doc), allocator);
     doc.AddMember("log-file",          m_logFile.toJSON(), allocator);
     doc.AddMember("pools",             m_pools.toJSON(doc), allocator);
     doc.AddMember("print-time",        printTime(), allocator);
     doc.AddMember("retries",           m_pools.retries(), allocator);
     doc.AddMember("retry-pause",       m_pools.retryPause(), allocator);
-
-    if (threadsMode() != Simple) {
-        Value threads(kArrayType);
-
-        for (const IThread *thread : m_threads.list) {
-            threads.PushBack(thread->toConfig(doc), allocator);
-        }
-
-        doc.AddMember("threads", threads, allocator);
-    }
-    else {
-        doc.AddMember("threads", threadsCount(), allocator);
-    }
-
-    doc.AddMember("user-agent", m_userAgent.toJSON(), allocator);
-    doc.AddMember("syslog",     isSyslog(), allocator);
-    doc.AddMember("watch",      m_watch, allocator);
+    doc.AddMember("syslog",            isSyslog(), allocator);
+    doc.AddMember("user-agent",        m_userAgent.toJSON(), allocator);
+    doc.AddMember("watch",             m_watch, allocator);
 }
-
-
-bool xmrig::Config::finalize()
-{
-    Algorithm algorithm(Algorithm::RX_WOW); // FIXME algo
-
-    if (!m_threads.cpu.empty()) {
-        m_threads.mode = Advanced;
-
-        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThreadLegacy::createFromData(i, algorithm, m_threads.cpu[i], m_cpu.priority(), !m_cpu.isHwAES()));
-        }
-
-        return true;
-    }
-
-    const CnHash::AlgoVariant av = getAlgoVariant();
-    m_threads.mode = m_threads.count ? Simple : Automatic;
-
-    const size_t size = CpuThreadLegacy::multiway(av) * CnAlgo<>::memory(algorithm) / 1024; // FIXME MEMORY
-
-    if (!m_threads.count) {
-        m_threads.count = Cpu::info()->optimalThreadsCount(size, 100);
-    }
-//    else if (m_safe) {
-//        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-//        if (m_threads.count > count) {
-//            m_threads.count = count;
-//        }
-//    }
-
-    for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThreadLegacy::createFromAV(i, algorithm, av, m_threads.mask, m_cpu.priority(), m_cpu.assembly()));
-    }
-
-    m_shouldSave = m_threads.mode == Automatic;
-
-    return true;
-}
-
-
-void xmrig::Config::setAlgoVariant(int av)
-{
-    if (av >= CnHash::AV_AUTO && av < CnHash::AV_MAX) {
-        m_algoVariant = static_cast<CnHash::AlgoVariant>(av);
-    }
-}
-
-
-void xmrig::Config::setThreads(const rapidjson::Value &threads)
-{
-    if (threads.IsArray()) {
-        m_threads.cpu.clear();
-
-        for (const rapidjson::Value &value : threads.GetArray()) {
-            if (!value.IsObject()) {
-                continue;
-            }
-
-            if (value.HasMember("low_power_mode")) {
-                auto data = CpuThreadLegacy::parse(value);
-
-                if (data.valid) {
-                    m_threads.cpu.push_back(std::move(data));
-                }
-            }
-        }
-    }
-    else if (threads.IsUint()) {
-        const unsigned count = threads.GetUint();
-        if (count < 1024) {
-            m_threads.count = count;
-        }
-    }
-}
-
-
-xmrig::CnHash::AlgoVariant xmrig::Config::getAlgoVariant() const
-{
-#   ifdef XMRIG_ALGO_CN_LITE
-//    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) { // FIXME
-//        return getAlgoVariantLite();
-//    }
-#   endif
-
-    if (m_algoVariant <= CnHash::AV_AUTO || m_algoVariant >= CnHash::AV_MAX) {
-        return Cpu::info()->hasAES() ? CnHash::AV_SINGLE : CnHash::AV_SINGLE_SOFT;
-    }
-
-//    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
-//        return static_cast<AlgoVariant>(m_algoVariant + 2);
-//    }
-
-    return m_algoVariant;
-}
-
-
-#ifdef XMRIG_ALGO_CN_LITE
-xmrig::CnHash::AlgoVariant xmrig::Config::getAlgoVariantLite() const
-{
-    if (m_algoVariant <= CnHash::AV_AUTO || m_algoVariant >= CnHash::AV_MAX) {
-        return Cpu::info()->hasAES() ? CnHash::AV_DOUBLE : CnHash::AV_DOUBLE_SOFT;
-    }
-
-//    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
-//        return static_cast<AlgoVariant>(m_algoVariant + 2);
-//    }
-
-    return m_algoVariant;
-}
-#endif

@@ -38,7 +38,6 @@ public:
     AdvancedCpuInfo();
 
 protected:
-    size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const override;
     CpuThreads threads(const Algorithm &algorithm) const override;
 
     inline Assembly::Id assembly() const override   { return m_assembly; }

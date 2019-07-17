@@ -42,7 +42,6 @@ set(HEADERS
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
-    src/workers/CpuThreadLegacy.h
    )
 
 set(HEADERS_CRYPTO
@@ -88,7 +87,6 @@ set(SOURCES
     src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
-    src/workers/CpuThreadLegacy.cpp
     src/xmrig.cpp
    )
 

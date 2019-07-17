@@ -55,7 +55,6 @@ public:
     virtual size_t L2() const                                                 = 0;
     virtual size_t L3() const                                                 = 0;
     virtual size_t nodes() const                                              = 0;
-    virtual size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const = 0;
     virtual size_t sockets() const                                            = 0;
     virtual size_t threads() const                                            = 0;
 };

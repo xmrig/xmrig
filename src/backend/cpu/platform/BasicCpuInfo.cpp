@@ -153,14 +153,6 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 }
 
 
-size_t xmrig::BasicCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsage) const
-{
-    const size_t count = threads() / 2;
-
-    return count < 1 ? 1 : count;
-}
-
-
 xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
 {
     if (threads() == 1) {

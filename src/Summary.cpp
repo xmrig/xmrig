@@ -84,29 +84,11 @@ static void print_cpu(xmrig::Config *)
 
 static void print_threads(xmrig::Config *config)
 {
-    if (config->threadsMode() != xmrig::Config::Advanced) {
-        char buf[32] = { 0 };
-//        if (config->affinity() != -1L) {
-//            snprintf(buf, sizeof buf, ", affinity=0x%" PRIX64, config->affinity());
-//        }
-
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", av=%d, %sdonate=%d%%") WHITE_BOLD("%s"),
-                          "THREADS",
-                          config->threadsCount(),
-                          config->algoVariant(),
-                          config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
-                          config->pools().donateLevel(),
-                          buf
-                          );
-    }
-    else {
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %sdonate=%d%%"),
-                          "THREADS",
-                          config->threadsCount(),
-                          config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
-                          config->pools().donateLevel()
-                          );
-    }
+    xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),
+                      "DONATE",
+                      config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
+                      config->pools().donateLevel()
+                      );
 
 #   ifdef XMRIG_FEATURE_ASM
     if (config->cpu().assembly() == xmrig::Assembly::AUTO) {
