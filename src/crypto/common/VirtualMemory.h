@@ -30,6 +30,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <utility>
 
 
 namespace xmrig {
@@ -43,9 +44,13 @@ public:
     ~VirtualMemory();
 
     inline bool isHugePages() const     { return m_flags & HUGEPAGES; }
-    inline size_t hugePages() const     { return isHugePages() ? (align(size()) / 2097152) : 0; }
     inline size_t size() const          { return m_size; }
     inline uint8_t *scratchpad() const  { return m_scratchpad; }
+
+    inline std::pair<size_t, size_t> hugePages() const
+    {
+        return std::pair<size_t, size_t>(isHugePages() ? (align(size()) / 2097152) : 0, align(size()) / 2097152);
+    }
 
     static void *allocateExecutableMemory(size_t size);
     static void *allocateLargePagesMemory(size_t size);

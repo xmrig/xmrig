@@ -25,6 +25,7 @@
 
 
 #include "backend/common/Hashrate.h"
+#include "backend/common/interfaces/IBackend.h"
 #include "backend/common/Workers.h"
 #include "backend/cpu/CpuWorker.h"
 #include "base/io/log/Log.h"
@@ -48,6 +49,7 @@ public:
 
 
     Hashrate *hashrate = nullptr;
+    IBackend *backend  = nullptr;
 };
 
 
@@ -79,7 +81,14 @@ const xmrig::Hashrate *xmrig::Workers<T>::hashrate() const
 template<class T>
 void xmrig::Workers<T>::add(const T &data)
 {
-    m_workers.push_back(new Thread<T>(m_workers.size(), data));
+    m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), data));
+}
+
+
+template<class T>
+void xmrig::Workers<T>::setBackend(IBackend *backend)
+{
+    d_ptr->backend = backend;
 }
 
 
@@ -176,7 +185,7 @@ void xmrig::Workers<CpuLaunchData>::onReady(void *arg)
         return;
     }
 
-    worker->start();
+    handle->backend()->start(worker);
 }
 
 

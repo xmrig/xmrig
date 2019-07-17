@@ -40,7 +40,7 @@ class Miner;
 class CpuBackend : public IBackend
 {
 public:
-    CpuBackend(const Miner *miner, Controller *controller);
+    CpuBackend(Controller *controller);
     ~CpuBackend() override;
 
 protected:
@@ -48,6 +48,7 @@ protected:
     const String &profileName() const override;
     void printHashrate(bool details) override;
     void setJob(const Job &job) override;
+    void start(IWorker *worker) override;
     void stop() override;
     void tick(uint64_t ticks) override;
 

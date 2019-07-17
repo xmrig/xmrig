@@ -33,6 +33,7 @@ namespace xmrig {
 
 
 class Hashrate;
+class IWorker;
 class Job;
 class String;
 
@@ -46,6 +47,7 @@ public:
     virtual const String &profileName() const   = 0;
     virtual void printHashrate(bool details)    = 0;
     virtual void setJob(const Job &job)         = 0;
+    virtual void start(IWorker *worker)         = 0;
     virtual void stop()                         = 0;
     virtual void tick(uint64_t ticks)           = 0;
 };

@@ -47,6 +47,7 @@ public:
 
     const Hashrate *hashrate() const;
     void add(const T &data);
+    void setBackend(IBackend *backend);
     void start();
     void stop();
     void tick(uint64_t ticks);

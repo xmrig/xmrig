@@ -113,7 +113,7 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
         const uint64_t ts = Chrono::steadyMSecs();
 
         if (d_ptr->dataset->get() != nullptr) {
-            LOG_INFO("%s" MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s") " threads " WHITE_BOLD("%u") BLACK_BOLD(" seed %s..."),
+            LOG_INFO("%s" MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
                      tag,
                      algorithm.shortName(),
                      d_ptr->initThreads,

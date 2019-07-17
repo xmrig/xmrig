@@ -36,8 +36,6 @@
 #include "core/config/Config.h"
 #include "rapidjson/document.h"
 #include "version.h"
-//#include "workers/Hashrate.h"
-#include "workers/WorkersLegacy.h"
 
 
 static inline rapidjson::Value normalize(double d)

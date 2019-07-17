@@ -23,7 +23,11 @@
  */
 
 
+#include <uv.h>
+
+
 #include "backend/common/Hashrate.h"
+#include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Workers.h"
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
@@ -31,6 +35,7 @@
 #include "base/tools/String.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "crypto/common/VirtualMemory.h"
 
 
 namespace xmrig {
@@ -39,18 +44,41 @@ namespace xmrig {
 extern template class Threads<CpuThread>;
 
 
+struct LaunchStatus
+{
+public:
+    inline void reset()
+    {
+        hugePages = 0;
+        memory    = 0;
+        pages     = 0;
+        started   = 0;
+        threads   = 0;
+        ways      = 0;
+    }
+
+    size_t hugePages;
+    size_t memory;
+    size_t pages;
+    size_t started;
+    size_t threads;
+    size_t ways;
+};
+
+
 class CpuBackendPrivate
 {
 public:
-    inline CpuBackendPrivate(const Miner *miner, Controller *controller) :
-        miner(miner),
+    inline CpuBackendPrivate(Controller *controller) :
         controller(controller)
     {
+        uv_mutex_init(&mutex);
     }
 
 
     inline ~CpuBackendPrivate()
     {
+        uv_mutex_destroy(&mutex);
     }
 
 
@@ -72,11 +100,42 @@ public:
     }
 
 
+    inline void start(const Job &job)
+    {
+        const CpuConfig &cpu = controller->config()->cpu();
+
+        algo         = job.algorithm();
+        profileName  = cpu.threads().profileName(job.algorithm());
+        threads      = cpu.threads().get(profileName);
+
+        LOG_INFO(GREEN_BOLD("CPU") " use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
+                 profileName.data(),
+                 threads.size(),
+                 algo.memory() / 1024
+                 );
+
+        workers.stop();
+
+        status.reset();
+        status.memory   = algo.memory();
+        status.threads  = threads.size();
+
+        for (const CpuThread &thread : threads) {
+            workers.add(CpuLaunchData(controller->miner(), algo, cpu, thread));
+
+            status.ways += static_cast<size_t>(thread.intensity());
+        }
+
+        workers.start();
+    }
+
+
     Algorithm algo;
-    const Miner *miner;
     Controller *controller;
     CpuThreads threads;
+    LaunchStatus status;
     String profileName;
+    uv_mutex_t mutex;
     Workers<CpuLaunchData> workers;
 };
 
@@ -84,10 +143,10 @@ public:
 } // namespace xmrig
 
 
-xmrig::CpuBackend::CpuBackend(const Miner *miner, Controller *controller) :
-    d_ptr(new CpuBackendPrivate(miner, controller))
+xmrig::CpuBackend::CpuBackend(Controller *controller) :
+    d_ptr(new CpuBackendPrivate(controller))
 {
-
+    d_ptr->workers.setBackend(this);
 }
 
 
@@ -140,26 +199,33 @@ void xmrig::CpuBackend::setJob(const Job &job)
         return;
     }
 
-    const CpuConfig &cpu              = d_ptr->controller->config()->cpu();
-    const Threads<CpuThread> &threads = cpu.threads();
+    d_ptr->start(job);
+}
 
-    d_ptr->algo         = job.algorithm();
-    d_ptr->profileName  = threads.profileName(job.algorithm());
-    d_ptr->threads      = threads.get(d_ptr->profileName);
 
-    LOG_INFO(GREEN_BOLD("CPU") " use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
-             d_ptr->profileName.data(),
-             d_ptr->threads.size(),
-             d_ptr->algo.memory() / 1024
-             );
+void xmrig::CpuBackend::start(IWorker *worker)
+{
+    uv_mutex_lock(&d_ptr->mutex);
 
-    d_ptr->workers.stop();
+    const auto pages = worker->memory()->hugePages();
 
-    for (const CpuThread &thread : d_ptr->threads) {
-        d_ptr->workers.add(CpuLaunchData(d_ptr->miner, d_ptr->algo, cpu, thread));
+    d_ptr->status.started++;
+    d_ptr->status.hugePages += pages.first;
+    d_ptr->status.pages     += pages.second;
+
+    if (d_ptr->status.started == d_ptr->status.threads) {
+        const double percent = d_ptr->status.hugePages == 0 ? 0.0 : static_cast<double>(d_ptr->status.hugePages) / d_ptr->status.pages * 100.0;
+        const size_t memory  = d_ptr->status.ways * d_ptr->status.memory / 1024;
+
+        LOG_INFO(GREEN_BOLD("CPU READY") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
+                 d_ptr->status.threads, d_ptr->status.ways,
+                 (d_ptr->status.hugePages == d_ptr->status.pages ? GREEN_BOLD_S : (d_ptr->status.hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                 d_ptr->status.hugePages, d_ptr->status.pages, percent, memory);
     }
 
-    d_ptr->workers.start();
+    uv_mutex_unlock(&d_ptr->mutex);
+
+    worker->start();
 }
 
 

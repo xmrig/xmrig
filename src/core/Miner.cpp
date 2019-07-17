@@ -101,7 +101,7 @@ xmrig::Miner::Miner(Controller *controller)
 {
     d_ptr->timer = new Timer(this);
 
-    d_ptr->backends.push_back(new CpuBackend(this, controller));
+    d_ptr->backends.push_back(new CpuBackend(controller));
 }
 
 
@@ -210,14 +210,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 
 void xmrig::Miner::stop()
 {
-//    xmrig::Handle::close(m_timer);
-//    m_hashrate->stop();
-
     Nonce::stop();
-
-//    for (size_t i = 0; i < m_workers.size(); ++i) {
-//        m_workers[i]->join();
-//    }
 
     for (IBackend *backend : d_ptr->backends) {
         backend->stop();
