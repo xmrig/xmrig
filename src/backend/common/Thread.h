@@ -29,11 +29,13 @@
 #include <uv.h>
 
 
+#include "backend/common/interfaces/IWorker.h"
+
+
 namespace xmrig {
 
 
 class IBackend;
-class IWorker;
 
 
 template<class T>
@@ -41,7 +43,7 @@ class Thread
 {
 public:
     inline Thread(IBackend *backend, size_t index, const T &config) : m_index(index), m_config(config), m_backend(backend) {}
-    inline ~Thread() { uv_thread_join(&m_thread); }
+    inline ~Thread() { uv_thread_join(&m_thread); delete m_worker; }
 
     inline const T &config() const                  { return m_config; }
     inline IBackend *backend() const                { return m_backend; }

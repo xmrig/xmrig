@@ -158,7 +158,7 @@ void xmrig::CpuWorker<N>::start()
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
             }
-            while (Nonce::isPaused());
+            while (Nonce::isPaused() && Nonce::sequence(Nonce::CPU) > 0);
 
             if (Nonce::sequence(Nonce::CPU) == 0) {
                 break;
