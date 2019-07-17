@@ -32,6 +32,7 @@
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
+#include "base/tools/Chrono.h"
 #include "base/tools/String.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
@@ -55,6 +56,7 @@ public:
         started   = 0;
         threads   = 0;
         ways      = 0;
+        ts        = Chrono::steadyMSecs();
     }
 
     size_t hugePages;
@@ -63,6 +65,7 @@ public:
     size_t started;
     size_t threads;
     size_t ways;
+    uint64_t ts;
 };
 
 
@@ -107,6 +110,14 @@ public:
         algo         = job.algorithm();
         profileName  = cpu.threads().profileName(job.algorithm());
         threads      = cpu.threads().get(profileName);
+
+        if (profileName.isNull() || threads.empty()) {
+            workers.stop();
+
+            LOG_WARN(YELLOW_BOLD_S "CPU disabled, no suitable configuration for algo %s", job.algorithm().shortName());
+
+            return;
+        }
 
         LOG_INFO(GREEN_BOLD("CPU") " use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
                  profileName.data(),
@@ -217,10 +228,12 @@ void xmrig::CpuBackend::start(IWorker *worker)
         const double percent = d_ptr->status.hugePages == 0 ? 0.0 : static_cast<double>(d_ptr->status.hugePages) / d_ptr->status.pages * 100.0;
         const size_t memory  = d_ptr->status.ways * d_ptr->status.memory / 1024;
 
-        LOG_INFO(GREEN_BOLD("CPU READY") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") "",
+        LOG_INFO(GREEN_BOLD("CPU READY") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
                  d_ptr->status.threads, d_ptr->status.ways,
                  (d_ptr->status.hugePages == d_ptr->status.pages ? GREEN_BOLD_S : (d_ptr->status.hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
-                 d_ptr->status.hugePages, d_ptr->status.pages, percent, memory);
+                 d_ptr->status.hugePages, d_ptr->status.pages, percent, memory,
+                 Chrono::steadyMSecs() - d_ptr->status.ts
+                 );
     }
 
     uv_mutex_unlock(&d_ptr->mutex);

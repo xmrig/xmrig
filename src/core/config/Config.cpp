@@ -79,15 +79,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("background",   isBackground(), allocator);
     doc.AddMember("colors",       Log::colors, allocator);
 
-//    if (affinity() != -1L) {
-//        snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, affinity());
-//        doc.AddMember("cpu-affinity", StringRef(affinity_tmp), allocator);
-//    }
-//    else {
-//        doc.AddMember("cpu-affinity", kNullType, allocator);
-//    }
-
-
     doc.AddMember("cpu", m_cpu.toJSON(doc), allocator);
 
     doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
