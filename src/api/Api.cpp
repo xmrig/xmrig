@@ -35,7 +35,6 @@
 #include "api/Api.h"
 #include "api/interfaces/IApiListener.h"
 #include "api/requests/HttpApiRequest.h"
-#include "api/v1/ApiRouter.h"
 #include "base/kernel/Base.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
@@ -61,16 +60,11 @@ xmrig::Api::Api(Base *base) :
     base->addListener(this);
 
     genId(base->config()->apiId());
-
-    m_v1 = new ApiRouter(base);
-    addListener(m_v1);
 }
 
 
 xmrig::Api::~Api()
 {
-    delete m_v1;
-
 #   ifdef XMRIG_FEATURE_HTTP
     delete m_httpd;
 #   endif

@@ -48,6 +48,7 @@
 
 #ifdef XMRIG_FEATURE_API
 #   include "api/Api.h"
+#   include "api/interfaces/IApiRequest.h"
 #endif
 
 
@@ -167,6 +168,7 @@ int xmrig::Base::init()
 
 #   ifdef XMRIG_FEATURE_API
     d_ptr->api = new Api(this);
+    d_ptr->api->addListener(this);
 #   endif
 
     Platform::init(config()->userAgent());
@@ -288,3 +290,31 @@ void xmrig::Base::onFileChanged(const String &fileName)
 
     d_ptr->replace(config);
 }
+
+
+#ifdef XMRIG_FEATURE_API
+void xmrig::Base::onRequest(IApiRequest &request)
+{
+    if (request.method() == IApiRequest::METHOD_GET) {
+        if (request.url() == "/1/config") {
+            if (request.isRestricted()) {
+                return request.done(403);
+            }
+
+            request.accept();
+            config()->getJSON(request.doc());
+        }
+    }
+    else if (request.method() == IApiRequest::METHOD_PUT || request.method() == IApiRequest::METHOD_POST) {
+        if (request.url() == "/1/config") {
+            request.accept();
+
+            if (!reload(request.json())) {
+                return request.done(400);
+            }
+
+            request.done(204);
+        }
+    }
+}
+#endif

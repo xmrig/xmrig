@@ -235,8 +235,6 @@ if (WITH_HTTP)
         src/api/requests/ApiRequest.h
         src/api/requests/HttpApiRequest.cpp
         src/api/requests/HttpApiRequest.h
-        src/api/v1/ApiRouter.cpp
-        src/api/v1/ApiRouter.h
         )
 else()
     set(HTTP_SOURCES "")

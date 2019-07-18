@@ -36,7 +36,6 @@
 namespace xmrig {
 
 
-class ApiRouter;
 class Base;
 class Httpd;
 class HttpData;
@@ -67,7 +66,6 @@ private:
     void genId(const String &id);
     void genWorkerId(const String &id);
 
-    ApiRouter *m_v1;
     Base *m_base;
     char m_id[32];
     char m_workerId[128];
