@@ -133,6 +133,12 @@ xmrig::CpuBackend::~CpuBackend()
 }
 
 
+bool xmrig::CpuBackend::isEnabled() const
+{
+    return d_ptr->controller->config()->cpu().isEnabled();
+}
+
+
 bool xmrig::CpuBackend::isEnabled(const Algorithm &algorithm) const
 {
     return !d_ptr->controller->config()->cpu().threads().get(algorithm).empty();
@@ -178,6 +184,12 @@ void xmrig::CpuBackend::printHashrate(bool details)
 
 void xmrig::CpuBackend::setJob(const Job &job)
 {
+    if (!isEnabled()) {
+        d_ptr->workers.stop();
+        d_ptr->threads.clear();
+        return;
+    }
+
     const CpuConfig &cpu = d_ptr->controller->config()->cpu();
 
     std::vector<CpuLaunchData> threads = cpu.get(d_ptr->controller->miner(), job.algorithm());

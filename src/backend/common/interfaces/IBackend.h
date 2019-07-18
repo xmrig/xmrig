@@ -44,6 +44,7 @@ class IBackend
 public:
     virtual ~IBackend() = default;
 
+    virtual bool isEnabled() const                              = 0;
     virtual bool isEnabled(const Algorithm &algorithm) const    = 0;
     virtual const Hashrate *hashrate() const                    = 0;
     virtual const String &profileName() const                   = 0;
