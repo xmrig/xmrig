@@ -52,7 +52,11 @@ public:
         ALGO_CRYPTONIGHT_ULTRALITE, /* CryptoNight-Ultralite (256KB ScratchPad) */
         ALGO_CRYPTONIGHT_EXTREMELITE, /* CryptoNight-Verylite (128KB ScratchPad) */
         ALGO_CRYPTONIGHT_HEAVY, /* CryptoNight-Heavy (4MB ScratchPad) */
-        ALGO_ARGON2_512, /* Argon2-Chuckwa (No pre allocated ScratchPad) */
+        ALGO_ARGON2_250, /* Argon2 (250KB ScratchPad) */
+        ALGO_ARGON2_256, /* Argon2 (256KB ScratchPad) */
+        ALGO_ARGON2_500, /* Argon2 (500KB ScratchPad) */
+        ALGO_ARGON2_512, /* Argon2 (512KB ScratchPad) */
+        ALGO_ARGON2_4096 /* Argon2 (4MB ScratchPad) */
     };
 
     enum AlgoVariant {
@@ -127,7 +131,12 @@ public:
     inline int64_t multiHashThreadMask() const      { return m_multiHashThreadMask; }
     inline void setColors(bool colors)              { m_colors = colors; }
 
-    inline static bool isCNAlgo(Algo algo)          { return algo != Options::ALGO_ARGON2_512; }
+    inline static bool isCNAlgo(Algo algo)          { return algo != Options::ALGO_ARGON2_250 &&
+                                                             algo != Options::ALGO_ARGON2_256 &&
+                                                             algo != Options::ALGO_ARGON2_500 &&
+                                                             algo != Options::ALGO_ARGON2_512 &&
+                                                             algo != Options::ALGO_ARGON2_4096;}
+
     inline static void release()                    { delete m_self; }
 
     const char *algoName() const;

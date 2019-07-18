@@ -81,6 +81,10 @@ void CpuImpl::initCommon()
         m_flags |= Cpu::BMI2;
     }
 
+    if (data.flags[CPU_FEATURE_AVX2]) {
+        m_flags |= Cpu::AVX2;
+    }
+
 #   ifndef XMRIG_NO_ASM
     if (data.vendor == VENDOR_AMD) {
         if (data.ext_family >= 0x17) {

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcpuid.a  CMakeFiles/cpuid.dir/cpuid_main.c.o CMakeFiles/cpuid.dir/asm-bits.c.o CMakeFiles/cpuid.dir/recog_amd.c.o CMakeFiles/cpuid.dir/recog_intel.c.o CMakeFiles/cpuid.dir/libcpuid_util.c.o
+/usr/bin/ranlib libcpuid.a

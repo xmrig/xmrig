@@ -94,7 +94,7 @@ inline std::string getPowVariantName(PowVariant powVariant)
         case POW_UPX2:
             return "upx2";
         case POW_ARGON2_CHUKWA:
-            return "chuckwa";
+            return "chukwa";
         case POW_AUTODETECT:
         default:
             return "-1";

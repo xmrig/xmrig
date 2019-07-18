@@ -29,6 +29,8 @@
 #include <memory>
 
 #include <iostream>
+#include <crypto/CryptoNight.h>
+#include <crypto/Argon2.h>
 
 #include "Cpu.h"
 #include "CpuImpl.h"
@@ -65,30 +67,45 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
     }
 
     size_t cache = availableCache();
-    size_t algoBlockSize;
+    size_t algoBlocks;
     switch (algo) {
         case Options::ALGO_CRYPTONIGHT_EXTREMELITE:
-            algoBlockSize = 128;
+            algoBlocks = MEMORY_EXTREME_LITE/1024;
             break;
         case Options::ALGO_CRYPTONIGHT_ULTRALITE:
-            algoBlockSize = 256;
+            algoBlocks = MEMORY_ULTRA_LITE/1024;
             break;
         case Options::ALGO_CRYPTONIGHT_SUPERLITE:
-            algoBlockSize = 512;
+            algoBlocks = MEMORY_SUPER_LITE/1024;
             break;
         case Options::ALGO_CRYPTONIGHT_LITE:
-            algoBlockSize = 1024;
+            algoBlocks = MEMORY_LITE/1024;
             break;
         case Options::ALGO_CRYPTONIGHT_HEAVY:
-            algoBlockSize = 4096;
+            algoBlocks = MEMORY_HEAVY/1024;
+            break;
+        case Options::ALGO_ARGON2_250:
+            algoBlocks = MEMORY_ARGON2_250/1024;
+            break;
+        case Options::ALGO_ARGON2_256:
+            algoBlocks = MEMORY_ARGON2_256/1024;
+            break;
+        case Options::ALGO_ARGON2_500:
+            algoBlocks = MEMORY_ARGON2_500/1024;
+            break;
+        case Options::ALGO_ARGON2_512:
+            algoBlocks = MEMORY_ARGON2_512/1024;
+            break;
+        case Options::ALGO_ARGON2_4096:
+            algoBlocks = MEMORY_ARGON2_4096/1024;
             break;
         case Options::ALGO_CRYPTONIGHT:
         default:
-            algoBlockSize = 2048;
+            algoBlocks = MEMORY/1024;
             break;
     }
 
-    size_t maximumReasonableFactor = std::max(cache / algoBlockSize, static_cast<size_t>(1ul));
+    size_t maximumReasonableFactor = std::max(cache / algoBlocks, static_cast<size_t>(1ul));
     size_t maximumReasonableThreadCount = std::min(maximumReasonableFactor, m_totalThreads);
     size_t maximumReasonableHashFactor = static_cast<size_t>(MAX_NUM_HASH_BLOCKS);
 
@@ -96,6 +113,8 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
         maximumReasonableHashFactor = 3;
     } else if (getBaseVariant(powVariant) == POW_V2 || getBaseVariant(powVariant) == POW_V4 || algo == Options::ALGO_CRYPTONIGHT_EXTREMELITE || algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
         maximumReasonableHashFactor = 2;
+    } else if (!Options::isCNAlgo(algo)) {
+        maximumReasonableHashFactor = 1;
     }
 
     if (safeMode) {

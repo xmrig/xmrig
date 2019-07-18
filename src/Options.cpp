@@ -310,7 +310,12 @@ static const char *algo_names[] = {
     "cryptonight-superlite",
     "cryptonight-ultralite",
     "cryptonight-extremelite",
-    "cryptonight-heavy"
+    "cryptonight-heavy",
+    "argon2-250",
+    "argon2-256",
+    "argon2-500",
+    "argon2-512",
+    "argon2-4096"
 };
 
 static const char *algo_short_names[] = {
@@ -319,7 +324,12 @@ static const char *algo_short_names[] = {
         "cn-superlite",
         "cn-ultralite",
         "cn-extremelite",
-        "cn-heavy"
+        "cn-heavy",
+        "ar2-250",
+        "ar2-256",
+        "ar2-500",
+        "ar2-512",
+        "ar2-4096"
 };
 
 constexpr static const char *pow_variant_names[] = {
@@ -343,7 +353,8 @@ constexpr static const char *pow_variant_names[] = {
         "xcash",
         "zls",
         "graft",
-        "upx2"
+        "upx2",
+        "chukwa"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -1161,10 +1172,20 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "argon2-chukwa") || !strcmp(algo, "chukwa"))) {
+            m_algo = ALGO_ARGON2_512;
+            m_powVariant = POW_ARGON2_CHUKWA;
+            break;
+        }
+
         if (i == ARRAY_SIZE(algo_names) - 1) {
             showUsage(1);
             return false;
         }
+    }
+
+    if (m_algo == ALGO_ARGON2_512 && m_powVariant == POW_AUTODETECT) {
+        m_powVariant = POW_ARGON2_CHUKWA;
     }
 
     return true;
@@ -1172,6 +1193,10 @@ bool Options::setAlgo(const char *algo)
 
 bool Options::parsePowVariant(const char *powVariant)
 {
+    if (m_powVariant != POW_AUTODETECT) {
+        return true;
+    }
+
     for (size_t i = 0; i < ARRAY_SIZE(pow_variant_names); i++) {
         if (pow_variant_names[i] && !strcmp(powVariant, pow_variant_names[i])) {
             m_powVariant = static_cast<PowVariant>(i);
@@ -1272,6 +1297,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "rwz") || !strcmp(powVariant, "graft"))) {
             m_powVariant = POW_RWZ;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "chukwa"))) {
+            m_powVariant = POW_ARGON2_CHUKWA;
             break;
         }
 
