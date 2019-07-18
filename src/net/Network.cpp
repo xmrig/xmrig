@@ -185,19 +185,6 @@ void xmrig::Network::onPause(IStrategy *strategy)
 }
 
 
-void xmrig::Network::onRequest(IApiRequest &request)
-{
-#   ifdef XMRIG_FEATURE_API
-    if (request.method() == IApiRequest::METHOD_GET && (request.url() == "/1/summary" || request.url() == "/api.json")) {
-        request.accept();
-
-        getResults(request.reply(), request.doc());
-        getConnection(request.reply(), request.doc());
-    }
-#   endif
-}
-
-
 void xmrig::Network::onResultAccepted(IStrategy *, IClient *, const SubmitResult &result, const char *error)
 {
     m_state.add(result, error);
@@ -221,6 +208,19 @@ void xmrig::Network::onVerifyAlgorithm(IStrategy *, const IClient *, const Algor
         return;
     }
 }
+
+
+#ifdef XMRIG_FEATURE_API
+void xmrig::Network::onRequest(IApiRequest &request)
+{
+    if (request.type() == IApiRequest::REQ_SUMMARY) {
+        request.accept();
+
+        getResults(request.reply(), request.doc(), request.version());
+        getConnection(request.reply(), request.doc(), request.version());
+    }
+}
+#endif
 
 
 void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
@@ -256,7 +256,7 @@ void xmrig::Network::tick()
 
 
 #ifdef XMRIG_FEATURE_API
-void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document &doc) const
+void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -271,13 +271,16 @@ void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document 
     connection.AddMember("failures",        m_state.failures, allocator);
     connection.AddMember("tls",             m_state.tls().toJSON(), allocator);
     connection.AddMember("tls-fingerprint", m_state.fingerprint().toJSON(), allocator);
-    connection.AddMember("error_log",       Value(kArrayType), allocator);
+
+    if (version == 1) {
+        connection.AddMember("error_log", Value(kArrayType), allocator);
+    }
 
     reply.AddMember("connection", connection, allocator);
 }
 
 
-void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &doc) const
+void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -295,8 +298,11 @@ void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &do
         best.PushBack(m_state.topDiff[i], allocator);
     }
 
-    results.AddMember("best",      best, allocator);
-    results.AddMember("error_log", Value(kArrayType), allocator);
+    results.AddMember("best", best, allocator);
+
+    if (version == 1) {
+        results.AddMember("error_log", Value(kArrayType), allocator);
+    }
 
     reply.AddMember("results", results, allocator);
 }

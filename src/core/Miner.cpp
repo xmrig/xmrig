@@ -28,14 +28,24 @@
 
 
 #include "backend/common/Hashrate.h"
+#include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
+#include "rapidjson/document.h"
+#include "version.h"
+
+
+#ifdef XMRIG_FEATURE_API
+#   include "api/Api.h"
+#   include "api/interfaces/IApiRequest.h"
+#endif
 
 
 namespace xmrig {
@@ -114,6 +124,90 @@ public:
     }
 
 
+#   ifdef XMRIG_FEATURE_API
+    void getMiner(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
+    {
+        using namespace rapidjson;
+        auto &allocator = doc.GetAllocator();
+
+        Value cpu(kObjectType);
+        cpu.AddMember("brand",   StringRef(Cpu::info()->brand()), allocator);
+        cpu.AddMember("aes",     Cpu::info()->hasAES(), allocator);
+        cpu.AddMember("x64",     Cpu::info()->isX64(), allocator);
+        cpu.AddMember("sockets", Cpu::info()->sockets(), allocator);
+
+        reply.AddMember("version",      APP_VERSION, allocator);
+        reply.AddMember("kind",         APP_KIND, allocator);
+        reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
+        reply.AddMember("cpu",          cpu, allocator);
+
+        if (version == 1) {
+            reply.AddMember("hugepages", false, allocator);
+        }
+
+        reply.AddMember("donate_level", controller->config()->pools().donateLevel(), allocator);
+
+        Value algo(kArrayType);
+
+        for (const Algorithm &a : algorithms) {
+            algo.PushBack(StringRef(a.shortName()), allocator);
+        }
+
+        reply.AddMember("algorithms", algo, allocator);
+    }
+
+
+    void getHashrate(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
+    {
+        using namespace rapidjson;
+        auto &allocator = doc.GetAllocator();
+
+        Value hashrate(kObjectType);
+        Value total(kArrayType);
+        Value threads(kArrayType);
+
+        double t[3] = { 0.0 };
+
+        for (IBackend *backend : backends) {
+            const Hashrate *hr = backend->hashrate();
+            if (!hr) {
+                continue;
+            }
+
+            t[0] += hr->calc(Hashrate::ShortInterval);
+            t[1] += hr->calc(Hashrate::MediumInterval);
+            t[2] += hr->calc(Hashrate::LargeInterval);
+
+            if (version > 1) {
+                continue;
+            }
+
+            for (size_t i = 0; i < hr->threads(); i++) {
+                Value thread(kArrayType);
+                thread.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
+                thread.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
+                thread.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+
+                threads.PushBack(thread, allocator);
+            }
+        }
+
+        total.PushBack(Hashrate::normalize(t[0]),  allocator);
+        total.PushBack(Hashrate::normalize(t[1]), allocator);
+        total.PushBack(Hashrate::normalize(t[2]),  allocator);
+
+        hashrate.AddMember("total",   total, allocator);
+        hashrate.AddMember("highest", Hashrate::normalize(maxHashrate), allocator);
+
+        if (version == 1) {
+            hashrate.AddMember("threads", threads, allocator);
+        }
+
+        reply.AddMember("hashrate", hashrate, allocator);
+    }
+#   endif
+
+
     Algorithms algorithms;
     bool active         = false;
     bool enabled        = true;
@@ -136,6 +230,10 @@ xmrig::Miner::Miner(Controller *controller)
     : d_ptr(new MinerPrivate(controller))
 {
     controller->addListener(this);
+
+#   ifdef XMRIG_FEATURE_API
+    controller->api()->addListener(this);
+#   endif
 
     d_ptr->timer = new Timer(this);
 
@@ -309,3 +407,16 @@ void xmrig::Miner::onTimer(const Timer *)
 
     d_ptr->ticks++;
 }
+
+
+#ifdef XMRIG_FEATURE_API
+void xmrig::Miner::onRequest(IApiRequest &request)
+{
+    if (request.type() == IApiRequest::REQ_SUMMARY) {
+        request.accept();
+
+        d_ptr->getMiner(request.reply(), request.doc(), request.version());
+        d_ptr->getHashrate(request.reply(), request.doc(), request.version());
+    }
+}
+#endif

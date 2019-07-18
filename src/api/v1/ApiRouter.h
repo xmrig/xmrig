@@ -39,7 +39,7 @@ namespace xmrig {
 class Base;
 
 
-class ApiRouter : public xmrig::IApiListener
+class ApiRouter : public IApiListener
 {
 public:
     ApiRouter(Base *base);
@@ -49,8 +49,6 @@ protected:
     void onRequest(IApiRequest &request) override;
 
 private:
-//    void getHashrate(rapidjson::Value &reply, rapidjson::Document &doc) const;
-    void getMiner(rapidjson::Value &reply, rapidjson::Document &doc) const;
     void getThreads(rapidjson::Value &reply, rapidjson::Document &doc) const;
 
     Base *m_base;

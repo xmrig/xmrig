@@ -29,9 +29,10 @@
 #include <stdio.h>
 
 
+#include "backend/common/Hashrate.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Handle.h"
-#include "backend/common/Hashrate.h"
+#include "rapidjson/document.h"
 
 
 inline static const char *format(double h, char *buf, size_t size)
@@ -161,4 +162,16 @@ void xmrig::Hashrate::updateHighest()
 const char *xmrig::Hashrate::format(double h, char *buf, size_t size)
 {
     return ::format(h, buf, size);
+}
+
+
+rapidjson::Value xmrig::Hashrate::normalize(double d)
+{
+    using namespace rapidjson;
+
+    if (!std::isnormal(d)) {
+        return Value(kNullType);
+    }
+
+    return Value(floor(d * 100.0) / 100.0);
 }

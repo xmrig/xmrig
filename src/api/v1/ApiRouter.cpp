@@ -38,18 +38,6 @@
 #include "version.h"
 
 
-static inline rapidjson::Value normalize(double d)
-{
-    using namespace rapidjson;
-
-    if (!std::isnormal(d)) {
-        return Value(kNullType);
-    }
-
-    return Value(floor(d * 100.0) / 100.0);
-}
-
-
 xmrig::ApiRouter::ApiRouter(Base *base) :
     m_base(base)
 {
@@ -64,12 +52,7 @@ xmrig::ApiRouter::~ApiRouter()
 void xmrig::ApiRouter::onRequest(IApiRequest &request)
 {
     if (request.method() == IApiRequest::METHOD_GET) {
-        if (request.url() == "/1/summary" || request.url() == "/api.json") {
-            request.accept();
-            getMiner(request.reply(), request.doc());
-//            getHashrate(request.reply(), request.doc());
-        }
-        else if (request.url() == "/1/threads") {
+        if (request.url() == "/1/threads") {
             request.accept();
             getThreads(request.reply(), request.doc());
         }
@@ -93,57 +76,6 @@ void xmrig::ApiRouter::onRequest(IApiRequest &request)
             request.done(204);
         }
     }
-}
-
-
-//void xmrig::ApiRouter::getHashrate(rapidjson::Value &reply, rapidjson::Document &doc) const
-//{
-//    using namespace rapidjson;
-//    auto &allocator = doc.GetAllocator();
-
-//    Value hashrate(kObjectType);
-//    Value total(kArrayType);
-//    Value threads(kArrayType);
-
-//    const Hashrate *hr = WorkersLegacy::hashrate();
-
-//    total.PushBack(normalize(hr->calc(Hashrate::ShortInterval)),  allocator);
-//    total.PushBack(normalize(hr->calc(Hashrate::MediumInterval)), allocator);
-//    total.PushBack(normalize(hr->calc(Hashrate::LargeInterval)),  allocator);
-
-//    for (size_t i = 0; i < WorkersLegacy::threads(); i++) {
-//        Value thread(kArrayType);
-//        thread.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-//        thread.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-//        thread.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
-
-//        threads.PushBack(thread, allocator);
-//    }
-
-//    hashrate.AddMember("total",   total, allocator);
-//    hashrate.AddMember("highest", normalize(hr->highest()), allocator);
-//    hashrate.AddMember("threads", threads, allocator);
-//    reply.AddMember("hashrate", hashrate, allocator);
-//}
-
-
-void xmrig::ApiRouter::getMiner(rapidjson::Value &reply, rapidjson::Document &doc) const
-{
-    using namespace rapidjson;
-    auto &allocator = doc.GetAllocator();
-
-    Value cpu(kObjectType);
-    cpu.AddMember("brand",   StringRef(Cpu::info()->brand()), allocator);
-    cpu.AddMember("aes",     Cpu::info()->hasAES(), allocator);
-    cpu.AddMember("x64",     Cpu::info()->isX64(), allocator);
-    cpu.AddMember("sockets", Cpu::info()->sockets(), allocator);
-
-    reply.AddMember("version",      APP_VERSION, allocator);
-    reply.AddMember("kind",         APP_KIND, allocator);
-    reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
-    reply.AddMember("cpu",          cpu, allocator);
-    reply.AddMember("hugepages",    false, allocator); // FIXME hugepages
-    reply.AddMember("donate_level", m_base->config()->pools().donateLevel(), allocator);
 }
 
 

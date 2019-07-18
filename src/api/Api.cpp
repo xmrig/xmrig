@@ -120,7 +120,7 @@ void xmrig::Api::exec(IApiRequest &request)
 {
     using namespace rapidjson;
 
-    if (request.method() == IApiRequest::METHOD_GET && (request.url() == "/1/summary" || request.url() == "/api.json")) {
+    if (request.type() == IApiRequest::REQ_SUMMARY) {
         auto &allocator = request.doc().GetAllocator();
 
         request.accept();
@@ -145,14 +145,6 @@ void xmrig::Api::exec(IApiRequest &request)
         features.PushBack("tls", allocator);
 #       endif
         request.reply().AddMember("features", features, allocator);
-
-        Value algorithms(kArrayType);
-
-        for (int i = 0; i < Algorithm::MAX; ++i) {
-            algorithms.PushBack(StringRef(Algorithm(static_cast<Algorithm::Id>(i)).shortName()), allocator);
-        }
-
-        request.reply().AddMember("algorithms", algorithms, allocator);
     }
 
     for (IApiListener *listener : m_listeners) {

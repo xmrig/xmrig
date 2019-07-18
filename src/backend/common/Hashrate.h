@@ -30,6 +30,9 @@
 #include <stdint.h>
 
 
+#include "rapidjson/fwd.h"
+
+
 namespace xmrig {
 
 
@@ -53,6 +56,7 @@ public:
     inline size_t threads() const { return m_threads; }
 
     static const char *format(double h, char *buf, size_t size);
+    static rapidjson::Value normalize(double d);
 
 private:
     constexpr static size_t kBucketSize = 2 << 11;

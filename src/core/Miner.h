@@ -29,6 +29,7 @@
 #include <vector>
 
 
+#include "api/interfaces/IApiListener.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "crypto/common/Algorithm.h"
@@ -43,7 +44,7 @@ class MinerPrivate;
 class IBackend;
 
 
-class Miner : public ITimerListener, public IBaseListener
+class Miner : public ITimerListener, public IBaseListener, public IApiListener
 {
 public:
     Miner(Controller *controller);
@@ -63,6 +64,10 @@ public:
 protected:
     void onConfigChanged(Config *config, Config *previousConfig) override;
     void onTimer(const Timer *timer) override;
+
+#   ifdef XMRIG_FEATURE_API
+    void onRequest(IApiRequest &request) override;
+#   endif
 
 private:
     MinerPrivate *d_ptr;
