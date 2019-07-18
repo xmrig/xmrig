@@ -88,7 +88,7 @@ public:
     }
 
 
-    inline void handleJobChange()
+    inline void handleJobChange(bool reset)
     {
         active = true;
 
@@ -96,11 +96,16 @@ public:
             backend->setJob(job);
         }
 
+        if (reset) {
+            Nonce::reset(job.index());
+        }
+        else {
+            Nonce::touch();
+        }
+
         if (enabled) {
             Nonce::pause(false);;
         }
-
-        Nonce::reset(job.index());
 
         if (ticks == 0) {
             ticks++;
@@ -116,6 +121,7 @@ public:
     double maxHashrate  = 0.0;
     Job job;
     std::vector<IBackend *> backends;
+    String userJobId;
     Timer *timer        = nullptr;
     uint64_t ticks      = 0;
     uv_rwlock_t rwlock;
@@ -236,13 +242,18 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     uv_rwlock_wrlock(&d_ptr->rwlock);
 
     const uint8_t index = donate ? 1 : 0;
+    const bool reset    = !(d_ptr->job.index() == 1 && index == 0 && d_ptr->userJobId == job.id());
 
     d_ptr->job = job;
     d_ptr->job.setIndex(index);
 
+    if (index == 0) {
+        d_ptr->userJobId = job.id();
+    }
+
     uv_rwlock_wrunlock(&d_ptr->rwlock);
 
-    d_ptr->handleJobChange();
+    d_ptr->handleJobChange(reset);
 }
 
 
