@@ -41,6 +41,19 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
 }
 
 
+bool xmrig::CpuLaunchData::isEqual(const CpuLaunchData &other) const
+{
+    return (algorithm.memory()  == other.algorithm.memory()
+            && assembly         == other.assembly
+            && hugePages        == other.hugePages
+            && hwAES            == other.hwAES
+            && intensity        == other.intensity
+            && priority         == other.priority
+            && affinity         == other.affinity
+            );
+}
+
+
 xmrig::CnHash::AlgoVariant xmrig::CpuLaunchData::av() const
 {
     if (intensity <= 2) {

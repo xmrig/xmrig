@@ -100,6 +100,25 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 }
 
 
+std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, const Algorithm &algorithm) const
+{
+    std::vector<CpuLaunchData> out;
+    const std::vector<CpuThread> &threads = m_threads.get(algorithm);
+
+    if (threads.empty()) {
+        return out;
+    }
+
+    out.reserve(threads.size());
+
+    for (const CpuThread &thread : threads) {
+        out.push_back(CpuLaunchData(miner, algorithm, *this, thread));
+    }
+
+    return out;
+}
+
+
 void xmrig::CpuConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {

@@ -46,9 +46,13 @@ class CpuLaunchData
 public:
     CpuLaunchData(const Miner *miner, const Algorithm &algorithm, const CpuConfig &config, const CpuThread &thread);
 
+    bool isEqual(const CpuLaunchData &other) const;
     CnHash::AlgoVariant av() const;
 
     inline constexpr static Nonce::Backend backend() { return Nonce::CPU; }
+
+    inline bool operator!=(const CpuLaunchData &other) const    { return !isEqual(other); }
+    inline bool operator==(const CpuLaunchData &other) const    { return isEqual(other); }
 
     const Algorithm algorithm;
     const Assembly assembly;

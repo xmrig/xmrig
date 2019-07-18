@@ -79,13 +79,6 @@ const xmrig::Hashrate *xmrig::Workers<T>::hashrate() const
 
 
 template<class T>
-void xmrig::Workers<T>::add(const T &data)
-{
-    m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), data));
-}
-
-
-template<class T>
 void xmrig::Workers<T>::setBackend(IBackend *backend)
 {
     d_ptr->backend = backend;
@@ -93,8 +86,12 @@ void xmrig::Workers<T>::setBackend(IBackend *backend)
 
 
 template<class T>
-void xmrig::Workers<T>::start()
+void xmrig::Workers<T>::start(const std::vector<T> &data)
 {
+    for (const T &item : data) {
+        m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
+    }
+
     d_ptr->hashrate = new Hashrate(m_workers.size());
 
     for (Thread<T> *worker : m_workers) {

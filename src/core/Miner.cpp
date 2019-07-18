@@ -99,6 +99,8 @@ public:
 xmrig::Miner::Miner(Controller *controller)
     : d_ptr(new MinerPrivate(controller))
 {
+    controller->addListener(this);
+
     d_ptr->timer = new Timer(this);
 
     d_ptr->backends.push_back(new CpuBackend(controller));
@@ -214,6 +216,20 @@ void xmrig::Miner::stop()
 
     for (IBackend *backend : d_ptr->backends) {
         backend->stop();
+    }
+}
+
+
+void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
+{
+    if (config->pools() != previousConfig->pools() && config->pools().active() > 0) {
+        return;
+    }
+
+    const Job job = this->job();
+
+    for (IBackend *backend : d_ptr->backends) {
+        backend->setJob(job);
     }
 }
 

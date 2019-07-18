@@ -85,40 +85,8 @@ public:
     }
 
 
-    inline bool isReady(const Algorithm &nextAlgo) const
+    inline void start()
     {
-        if (!algo.isValid()) {
-            return false;
-        }
-
-        if (nextAlgo == algo) {
-            return true;
-        }
-
-        const CpuThreads &nextThreads = controller->config()->cpu().threads().get(nextAlgo);
-
-        return algo.memory() == nextAlgo.memory()
-                && threads.size() == nextThreads.size()
-                && std::equal(threads.begin(), threads.end(), nextThreads.begin());
-    }
-
-
-    inline void start(const Job &job)
-    {
-        const CpuConfig &cpu = controller->config()->cpu();
-
-        algo         = job.algorithm();
-        profileName  = cpu.threads().profileName(job.algorithm());
-        threads      = cpu.threads().get(profileName);
-
-        if (profileName.isNull() || threads.empty()) {
-            workers.stop();
-
-            LOG_WARN(YELLOW_BOLD_S "CPU disabled, no suitable configuration for algo %s", job.algorithm().shortName());
-
-            return;
-        }
-
         LOG_INFO(GREEN_BOLD("CPU") " use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
                  profileName.data(),
                  threads.size(),
@@ -131,20 +99,18 @@ public:
         status.memory   = algo.memory();
         status.threads  = threads.size();
 
-        for (const CpuThread &thread : threads) {
-            workers.add(CpuLaunchData(controller->miner(), algo, cpu, thread));
-
-            status.ways += static_cast<size_t>(thread.intensity());
+        for (const CpuLaunchData &data : threads) {
+            status.ways += static_cast<size_t>(data.intensity);
         }
 
-        workers.start();
+        workers.start(threads);
     }
 
 
     Algorithm algo;
     Controller *controller;
-    CpuThreads threads;
     LaunchStatus status;
+    std::vector<CpuLaunchData> threads;
     String profileName;
     uv_mutex_t mutex;
     Workers<CpuLaunchData> workers;
@@ -164,6 +130,12 @@ xmrig::CpuBackend::CpuBackend(Controller *controller) :
 xmrig::CpuBackend::~CpuBackend()
 {
     delete d_ptr;
+}
+
+
+bool xmrig::CpuBackend::isEnabled(const Algorithm &algorithm) const
+{
+    return !d_ptr->controller->config()->cpu().threads().get(algorithm).empty();
 }
 
 
@@ -190,10 +162,10 @@ void xmrig::CpuBackend::printHashrate(bool details)
     Log::print(WHITE_BOLD_S "|    CPU THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
 
     size_t i = 0;
-    for (const CpuThread &thread : d_ptr->threads) {
+    for (const CpuLaunchData &data : d_ptr->threads) {
          Log::print("| %13zu | %8" PRId64 " | %7s | %7s | %7s |",
                     i,
-                    thread.affinity(),
+                    data.affinity,
                     Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
@@ -206,11 +178,26 @@ void xmrig::CpuBackend::printHashrate(bool details)
 
 void xmrig::CpuBackend::setJob(const Job &job)
 {
-    if (d_ptr->isReady(job.algorithm())) {
+    const CpuConfig &cpu = d_ptr->controller->config()->cpu();
+
+    std::vector<CpuLaunchData> threads = cpu.get(d_ptr->controller->miner(), job.algorithm());
+    if (d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }
 
-    d_ptr->start(job);
+    d_ptr->algo         = job.algorithm();
+    d_ptr->profileName  = cpu.threads().profileName(job.algorithm());
+
+    if (d_ptr->profileName.isNull() || threads.empty()) {
+        d_ptr->workers.stop();
+
+        LOG_WARN(YELLOW_BOLD_S "CPU disabled, no suitable configuration for algo %s", job.algorithm().shortName());
+
+        return;
+    }
+
+    d_ptr->threads = std::move(threads);
+    d_ptr->start();
 }
 
 

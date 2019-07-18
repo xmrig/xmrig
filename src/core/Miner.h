@@ -29,6 +29,7 @@
 #include <vector>
 
 
+#include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 
 
@@ -41,7 +42,7 @@ class MinerPrivate;
 class IBackend;
 
 
-class Miner : public ITimerListener
+class Miner : public ITimerListener, public IBaseListener
 {
 public:
     Miner(Controller *controller);
@@ -57,6 +58,7 @@ public:
     void stop();
 
 protected:
+    void onConfigChanged(Config *config, Config *previousConfig) override;
     void onTimer(const Timer *timer) override;
 
 private:

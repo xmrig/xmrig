@@ -192,7 +192,8 @@ bool xmrig::Pool::isEqual(const Pool &other) const
             && m_rigId        == other.m_rigId
             && m_url          == other.m_url
             && m_user         == other.m_user
-            && m_pollInterval == other.m_pollInterval);
+            && m_pollInterval == other.m_pollInterval
+            );
 }
 
 

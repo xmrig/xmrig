@@ -27,6 +27,7 @@
 
 
 #include "backend/common/Threads.h"
+#include "backend/cpu/CpuLaunchData.h"
 #include "backend/cpu/CpuThread.h"
 #include "crypto/common/Assembly.h"
 
@@ -47,6 +48,7 @@ public:
 
     bool isHwAES() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    std::vector<CpuLaunchData> get(const Miner *miner, const Algorithm &algorithm) const;
     void read(const rapidjson::Value &value);
 
     inline bool isEnabled() const                    { return m_enabled; }

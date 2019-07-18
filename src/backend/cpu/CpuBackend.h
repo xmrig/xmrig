@@ -44,6 +44,7 @@ public:
     ~CpuBackend() override;
 
 protected:
+    bool isEnabled(const Algorithm &algorithm) const override;
     const Hashrate *hashrate() const override;
     const String &profileName() const override;
     void printHashrate(bool details) override;
