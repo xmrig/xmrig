@@ -113,7 +113,7 @@ void xmrig::FailoverStrategy::resume()
 }
 
 
-void xmrig::FailoverStrategy::setAlgo(const xmrig::Algorithm &algo)
+void xmrig::FailoverStrategy::setAlgo(const Algorithm &algo)
 {
     for (IClient *client : m_pools) {
         client->setAlgo(algo);
@@ -160,6 +160,12 @@ void xmrig::FailoverStrategy::onClose(IClient *client, int failures)
     if (m_index == static_cast<size_t>(client->id()) && (m_pools.size() - m_index) > 1) {
         m_pools[++m_index]->connect();
     }
+}
+
+
+void xmrig::FailoverStrategy::onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params)
+{
+    m_listener->onLogin(this, client, doc, params);
 }
 
 

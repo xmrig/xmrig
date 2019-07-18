@@ -70,6 +70,7 @@ protected:
 
     void onClose(IClient *client, int failures) override;
     void onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params) override;
+    void onLogin(IStrategy *strategy, IClient *client, rapidjson::Document &doc, rapidjson::Value &params) override;
     void onLoginSuccess(IClient *client) override;
 
     void onTimer(const Timer *timer) override;
@@ -87,16 +88,18 @@ private:
 
     Client *createProxy();
     void idle(double min, double max);
+    void setAlgorithms(rapidjson::Document &doc, rapidjson::Value &params);
     void setJob(IClient *client, const Job &job);
     void setResult(IClient *client, const SubmitResult &result, const char *error);
     void setState(State state);
 
+    Algorithm m_algorithm;
     bool m_tls;
     char m_userId[65];
-    IClient *m_proxy;
     const uint64_t m_donateTime;
     const uint64_t m_idleTime;
     Controller *m_controller;
+    IClient *m_proxy;
     IStrategy *m_strategy;
     IStrategyListener *m_listener;
     State m_state;

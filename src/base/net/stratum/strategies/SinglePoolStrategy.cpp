@@ -84,7 +84,7 @@ void xmrig::SinglePoolStrategy::resume()
 }
 
 
-void xmrig::SinglePoolStrategy::setAlgo(const xmrig::Algorithm &algo)
+void xmrig::SinglePoolStrategy::setAlgo(const Algorithm &algo)
 {
     m_client->setAlgo(algo);
 }
@@ -116,6 +116,12 @@ void xmrig::SinglePoolStrategy::onClose(IClient *, int)
 void xmrig::SinglePoolStrategy::onJobReceived(IClient *client, const Job &job, const rapidjson::Value &)
 {
     m_listener->onJob(this, client, job);
+}
+
+
+void xmrig::SinglePoolStrategy::onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params)
+{
+    m_listener->onLogin(this, client, doc, params);
 }
 
 

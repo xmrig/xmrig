@@ -31,6 +31,7 @@
 
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
+#include "crypto/common/Algorithm.h"
 
 
 namespace xmrig {
@@ -49,6 +50,7 @@ public:
     ~Miner() override;
 
     bool isEnabled() const;
+    const Algorithms &algorithms() const;
     const std::vector<IBackend *> &backends() const;
     Job job() const;
     void pause();

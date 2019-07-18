@@ -62,16 +62,45 @@ public:
     }
 
 
+    bool isEnabled(const Algorithm &algorithm) const
+    {
+        for (IBackend *backend : backends) {
+            if (backend->isEnabled(algorithm)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    inline void rebuild()
+    {
+        algorithms.clear();
+
+        for (int i = 0; i < Algorithm::MAX; ++i) {
+            const Algorithm algo(static_cast<Algorithm::Id>(i));
+
+            if (isEnabled(algo)) {
+                algorithms.push_back(algo);
+            }
+        }
+    }
+
+
     inline void handleJobChange()
     {
         active = true;
-        if (enabled) {
-            Nonce::pause(false);;
-        }
 
         for (IBackend *backend : backends) {
             backend->setJob(job);
         }
+
+        if (enabled) {
+            Nonce::pause(false);;
+        }
+
+        Nonce::reset(job.index());
 
         if (ticks == 0) {
             ticks++;
@@ -80,6 +109,7 @@ public:
     }
 
 
+    Algorithms algorithms;
     bool active         = false;
     bool enabled        = true;
     Controller *controller;
@@ -104,6 +134,8 @@ xmrig::Miner::Miner(Controller *controller)
     d_ptr->timer = new Timer(this);
 
     d_ptr->backends.push_back(new CpuBackend(controller));
+
+    d_ptr->rebuild();
 }
 
 
@@ -116,6 +148,12 @@ xmrig::Miner::~Miner()
 bool xmrig::Miner::isEnabled() const
 {
     return d_ptr->enabled;
+}
+
+
+const xmrig::Algorithms &xmrig::Miner::algorithms() const
+{
+    return d_ptr->algorithms;
 }
 
 
@@ -202,8 +240,6 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     d_ptr->job = job;
     d_ptr->job.setIndex(index);
 
-    Nonce::reset(index);
-
     uv_rwlock_wrunlock(&d_ptr->rwlock);
 
     d_ptr->handleJobChange();
@@ -222,6 +258,8 @@ void xmrig::Miner::stop()
 
 void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
 {
+    d_ptr->rebuild();
+
     if (config->pools() != previousConfig->pools() && config->pools().active() > 0) {
         return;
     }

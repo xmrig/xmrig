@@ -23,7 +23,9 @@
  */
 
 
+#include <algorithm>
 #include <assert.h>
+#include <iterator>
 
 
 #include "base/kernel/Platform.h"
@@ -35,6 +37,7 @@
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "core/Miner.h"
 #include "crypto/common/keccak.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
@@ -57,10 +60,10 @@ static const char *kDonateHostTls = "donate.ssl.xmrig.com";
 xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener *listener) :
     m_tls(false),
     m_userId(),
-    m_proxy(nullptr),
     m_donateTime(static_cast<uint64_t>(controller->config()->pools().donateLevel()) * 60 * 1000),
     m_idleTime((100 - static_cast<uint64_t>(controller->config()->pools().donateLevel())) * 60 * 1000),
     m_controller(controller),
+    m_proxy(nullptr),
     m_strategy(nullptr),
     m_listener(listener),
     m_state(STATE_NEW),
@@ -77,10 +80,6 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
     m_pools.push_back(Pool(kDonateHostTls, 443, m_userId, nullptr, 0, true, true));
 #   endif
     m_pools.push_back(Pool(kDonateHost, 3333, m_userId, nullptr, 0, true));
-
-//    for (Pool &pool : m_pools) {
-//        pool.adjust(Algorithm()); // FIXME
-//    }
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 1, 2, this, true);
@@ -129,6 +128,8 @@ void xmrig::DonateStrategy::connect()
 
 void xmrig::DonateStrategy::setAlgo(const xmrig::Algorithm &algo)
 {
+    m_algorithm = algo;
+
     m_strategy->setAlgo(algo);
 }
 
@@ -185,13 +186,14 @@ void xmrig::DonateStrategy::onClose(IClient *, int failures)
 
 void xmrig::DonateStrategy::onLogin(IClient *, rapidjson::Document &doc, rapidjson::Value &params)
 {
+    using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
 
 #   ifdef XMRIG_FEATURE_TLS
     if (m_tls) {
         char buf[40] = { 0 };
         snprintf(buf, sizeof(buf), "stratum+ssl://%s", m_pools[0].url().data());
-        params.AddMember("url", rapidjson::Value(buf, allocator), allocator);
+        params.AddMember("url", Value(buf, allocator), allocator);
     }
     else {
         params.AddMember("url", m_pools[1].url().toJSON(), allocator);
@@ -199,6 +201,14 @@ void xmrig::DonateStrategy::onLogin(IClient *, rapidjson::Document &doc, rapidjs
 #   else
     params.AddMember("url", m_pools[0].url().toJSON(), allocator);
 #   endif
+
+    setAlgorithms(doc, params);
+}
+
+
+void xmrig::DonateStrategy::onLogin(IStrategy *, IClient *, rapidjson::Document &doc, rapidjson::Value &params)
+{
+    setAlgorithms(doc, params);
 }
 
 
@@ -247,6 +257,27 @@ xmrig::Client *xmrig::DonateStrategy::createProxy()
 void xmrig::DonateStrategy::idle(double min, double max)
 {
     m_timer->start(random(m_idleTime, min, max), 0);
+}
+
+
+void xmrig::DonateStrategy::setAlgorithms(rapidjson::Document &doc, rapidjson::Value &params)
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Algorithms algorithms = m_controller->miner()->algorithms();
+    const size_t index = static_cast<size_t>(std::distance(algorithms.begin(), std::find(algorithms.begin(), algorithms.end(), m_algorithm)));
+    if (index > 0 && index < algorithms.size()) {
+        std::swap(algorithms[0], algorithms[index]);
+    }
+
+    Value algo(kArrayType);
+
+    for (const auto &a : algorithms) {
+        algo.PushBack(StringRef(a.shortName()), allocator);
+    }
+
+    params.AddMember("algo", algo, allocator);
 }
 
 

@@ -115,7 +115,7 @@ private:
 };
 
 
-typedef std::vector<xmrig::Algorithm> Algorithms;
+typedef std::vector<Algorithm> Algorithms;
 
 
 } /* namespace xmrig */

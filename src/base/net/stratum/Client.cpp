@@ -575,19 +575,6 @@ void xmrig::Client::login()
         params.AddMember("rigid", m_pool.rigId().toJSON(), allocator);
     }
 
-//#   ifdef XMRIG_PROXY_PROJECT FIXME
-//    if (m_pool.algorithm().variant() != xmrig::VARIANT_AUTO)
-//#   endif
-//    {
-//        Value algo(kArrayType);
-
-//        for (const auto &a : m_pool.algorithms()) {
-//            algo.PushBack(StringRef(a.shortName()), allocator);
-//        }
-
-//        params.AddMember("algo", algo, allocator);
-//    }
-
     m_listener->onLogin(this, doc, params);
 
     JsonRequest::create(doc, 1, "login", params);

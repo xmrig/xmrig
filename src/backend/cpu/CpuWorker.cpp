@@ -174,6 +174,10 @@ void xmrig::CpuWorker<N>::start()
 
             const Job &job = m_job.currentJob();
 
+            if (job.algorithm().memory() != m_algorithm.memory()) {
+                break;
+            }
+
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 randomx_calculate_hash(m_vm->get(), m_job.blob(), job.size(), m_hash);

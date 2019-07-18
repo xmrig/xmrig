@@ -154,6 +154,21 @@ void xmrig::Network::onJobResult(const JobResult &result)
 }
 
 
+void xmrig::Network::onLogin(IStrategy *, IClient *, rapidjson::Document &doc, rapidjson::Value &params)
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value algo(kArrayType);
+
+    for (const auto &a : m_controller->miner()->algorithms()) {
+        algo.PushBack(StringRef(a.shortName()), allocator);
+    }
+
+    params.AddMember("algo", algo, allocator);
+}
+
+
 void xmrig::Network::onPause(IStrategy *strategy)
 {
     if (m_donate && m_donate == strategy) {
