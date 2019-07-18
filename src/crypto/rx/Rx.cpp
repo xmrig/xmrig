@@ -74,6 +74,17 @@ static const char *tag  = BLUE_BG(" rx ");
 } // namespace xmrig
 
 
+
+xmrig::RxDataset *xmrig::Rx::dataset()
+{
+    d_ptr->lock();
+    RxDataset *dataset = d_ptr->dataset;
+    d_ptr->unlock();
+
+    return dataset;
+}
+
+
 xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algorithm, bool hugePages)
 {
     d_ptr->lock();

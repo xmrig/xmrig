@@ -262,7 +262,7 @@ xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av,
     }
 
 #   ifdef XMRIG_FEATURE_ASM
-    cn_hash_fun fun = cnHash.m_map[algorithm][av][assembly == Assembly::AUTO ? Cpu::info()->assembly() : assembly];
+    cn_hash_fun fun = cnHash.m_map[algorithm][av][Cpu::assembly(assembly)];
     if (fun) {
         return fun;
     }

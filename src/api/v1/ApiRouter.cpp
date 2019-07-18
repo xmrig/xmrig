@@ -52,11 +52,7 @@ xmrig::ApiRouter::~ApiRouter()
 void xmrig::ApiRouter::onRequest(IApiRequest &request)
 {
     if (request.method() == IApiRequest::METHOD_GET) {
-        if (request.url() == "/1/threads") {
-            request.accept();
-            getThreads(request.reply(), request.doc());
-        }
-        else if (request.url() == "/1/config") {
+        if (request.url() == "/1/config") {
             if (request.isRestricted()) {
                 return request.done(403);
             }
@@ -76,34 +72,4 @@ void xmrig::ApiRouter::onRequest(IApiRequest &request)
             request.done(204);
         }
     }
-}
-
-
-void xmrig::ApiRouter::getThreads(rapidjson::Value &reply, rapidjson::Document &doc) const
-{
-//    using namespace rapidjson;
-//    auto &allocator = doc.GetAllocator();
-//    const Hashrate *hr = WorkersLegacy::hashrate();
-
-//    WorkersLegacy::threadsSummary(doc);
-
-//    const std::vector<IThread *> &threads = m_base->config()->threads();
-//    Value list(kArrayType);
-
-//    size_t i = 0;
-//    for (const xmrig::IThread *thread : threads) {
-//        Value value = thread->toAPI(doc);
-
-//        Value hashrate(kArrayType);
-//        hashrate.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-//        hashrate.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-//        hashrate.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
-
-//        i++;
-
-//        value.AddMember("hashrate", hashrate, allocator);
-//        list.PushBack(value, allocator);
-//    }
-
-//    reply.AddMember("threads", list, allocator);
 }

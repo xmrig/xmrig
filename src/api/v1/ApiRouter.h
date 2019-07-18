@@ -49,8 +49,6 @@ protected:
     void onRequest(IApiRequest &request) override;
 
 private:
-    void getThreads(rapidjson::Value &reply, rapidjson::Document &doc) const;
-
     Base *m_base;
 };
 

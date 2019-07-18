@@ -29,6 +29,7 @@
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Workers.h"
+#include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
@@ -37,12 +38,18 @@
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/common/VirtualMemory.h"
+#include "crypto/rx/Rx.h"
+#include "crypto/rx/RxDataset.h"
+#include "rapidjson/document.h"
 
 
 namespace xmrig {
 
 
 extern template class Threads<CpuThread>;
+
+
+static const String kType = "cpu";
 
 
 struct LaunchStatus
@@ -59,13 +66,13 @@ public:
         ts        = Chrono::steadyMSecs();
     }
 
-    size_t hugePages;
-    size_t memory;
-    size_t pages;
-    size_t started;
-    size_t threads;
-    size_t ways;
-    uint64_t ts;
+    size_t hugePages    = 0;
+    size_t memory       = 0;
+    size_t pages        = 0;
+    size_t started      = 0;
+    size_t threads      = 0;
+    size_t ways         = 0;
+    uint64_t ts         = 0;
 };
 
 
@@ -154,6 +161,12 @@ const xmrig::Hashrate *xmrig::CpuBackend::hashrate() const
 const xmrig::String &xmrig::CpuBackend::profileName() const
 {
     return d_ptr->profileName;
+}
+
+
+const xmrig::String &xmrig::CpuBackend::type() const
+{
+    return kType;
 }
 
 
@@ -251,3 +264,80 @@ void xmrig::CpuBackend::tick(uint64_t ticks)
 {
     d_ptr->workers.tick(ticks);
 }
+
+
+#ifdef XMRIG_FEATURE_API
+rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator         = doc.GetAllocator();
+    const CpuConfig &cpu    = d_ptr->controller->config()->cpu();
+
+    Value out(kObjectType);
+    out.AddMember("type",       type().toJSON(), allocator);
+    out.AddMember("enabled",    isEnabled(), allocator);
+    out.AddMember("algo",       d_ptr->algo.toJSON(), allocator);
+    out.AddMember("profile",    profileName().toJSON(), allocator);
+    out.AddMember("hw-aes",     cpu.isHwAES(), allocator);
+    out.AddMember("priority",   cpu.priority(), allocator);
+
+#   ifdef XMRIG_FEATURE_ASM
+    const Assembly assembly = Cpu::assembly(cpu.assembly());
+    out.AddMember("asm", assembly.toJSON(), allocator);
+#   else
+    out.AddMember("asm", false, allocator);
+#   endif
+
+    uv_mutex_lock(&d_ptr->mutex);
+    uint64_t pages[2] = { d_ptr->status.hugePages, d_ptr->status.pages };
+    const size_t ways = d_ptr->status.ways;
+    uv_mutex_unlock(&d_ptr->mutex);
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
+        RxDataset *dataset = Rx::dataset();
+        if (dataset) {
+            const auto rxPages = dataset->hugePages();
+            pages[0] += rxPages.first;
+            pages[1] += rxPages.second;
+        }
+    }
+#   endif
+
+    rapidjson::Value hugepages(rapidjson::kArrayType);
+    hugepages.PushBack(pages[0], allocator);
+    hugepages.PushBack(pages[1], allocator);
+
+    out.AddMember("hugepages", hugepages, allocator);
+    out.AddMember("memory",    d_ptr->algo.isValid() ? (ways * d_ptr->algo.memory()) : 0, allocator);
+
+    if (d_ptr->threads.empty() || !hashrate()) {
+        return out;
+    }
+
+    Value threads(kArrayType);
+    const Hashrate *hr = hashrate();
+
+    size_t i = 0;
+    for (const CpuLaunchData &data : d_ptr->threads) {
+        Value thread(kObjectType);
+        thread.AddMember("intensity",   data.intensity, allocator);
+        thread.AddMember("affinity",    data.affinity, allocator);
+        thread.AddMember("av",          data.av(), allocator);
+
+        Value hashrate(kArrayType);
+        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
+        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
+        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+
+        i++;
+
+        thread.AddMember("hashrate", hashrate, allocator);
+        threads.PushBack(thread, allocator);
+    }
+
+    out.AddMember("threads", threads, allocator);
+
+    return out;
+}
+#endif

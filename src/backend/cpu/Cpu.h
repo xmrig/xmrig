@@ -38,6 +38,8 @@ public:
     static ICpuInfo *info();
     static void init();
     static void release();
+
+    inline static Assembly::Id assembly(Assembly::Id hint) { return hint == Assembly::AUTO ? Cpu::info()->assembly() : hint; }
 };
 
 

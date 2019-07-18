@@ -48,11 +48,16 @@ protected:
     bool isEnabled(const Algorithm &algorithm) const override;
     const Hashrate *hashrate() const override;
     const String &profileName() const override;
+    const String &type() const override;
     void printHashrate(bool details) override;
     void setJob(const Job &job) override;
     void start(IWorker *worker) override;
     void stop() override;
     void tick(uint64_t ticks) override;
+
+#   ifdef XMRIG_FEATURE_API
+    rapidjson::Value toJSON(rapidjson::Document &doc) const override;
+#   endif
 
 private:
     CpuBackendPrivate *d_ptr;

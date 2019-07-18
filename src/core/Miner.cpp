@@ -205,6 +205,19 @@ public:
 
         reply.AddMember("hashrate", hashrate, allocator);
     }
+
+
+    void getBackends(rapidjson::Value &reply, rapidjson::Document &doc) const
+    {
+        using namespace rapidjson;
+        auto &allocator = doc.GetAllocator();
+
+        reply.SetArray();
+
+        for (IBackend *backend : backends) {
+            reply.PushBack(backend->toJSON(doc), allocator);
+        }
+    }
 #   endif
 
 
@@ -412,11 +425,18 @@ void xmrig::Miner::onTimer(const Timer *)
 #ifdef XMRIG_FEATURE_API
 void xmrig::Miner::onRequest(IApiRequest &request)
 {
-    if (request.type() == IApiRequest::REQ_SUMMARY) {
-        request.accept();
+    if (request.method() == IApiRequest::METHOD_GET) {
+        if (request.type() == IApiRequest::REQ_SUMMARY) {
+            request.accept();
 
-        d_ptr->getMiner(request.reply(), request.doc(), request.version());
-        d_ptr->getHashrate(request.reply(), request.doc(), request.version());
+            d_ptr->getMiner(request.reply(), request.doc(), request.version());
+            d_ptr->getHashrate(request.reply(), request.doc(), request.version());
+        }
+        else if (request.url() == "/2/backends") {
+            request.accept();
+
+            d_ptr->getBackends(request.reply(), request.doc());
+        }
     }
 }
 #endif
