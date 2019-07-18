@@ -354,7 +354,8 @@ constexpr static const char *pow_variant_names[] = {
         "zls",
         "graft",
         "upx2",
-        "chukwa"
+        "chukwa",
+        "wrkz"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -1178,6 +1179,12 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "argon2-wrkz") || !strcmp(algo, "wrkz"))) {
+            m_algo = ALGO_ARGON2_256;
+            m_powVariant = POW_ARGON2_WRKZ;
+            break;
+        }
+
         if (i == ARRAY_SIZE(algo_names) - 1) {
             showUsage(1);
             return false;
@@ -1186,6 +1193,10 @@ bool Options::setAlgo(const char *algo)
 
     if (m_algo == ALGO_ARGON2_512 && m_powVariant == POW_AUTODETECT) {
         m_powVariant = POW_ARGON2_CHUKWA;
+    }
+
+    if (m_algo == ALGO_ARGON2_256 && m_powVariant == POW_AUTODETECT) {
+        m_powVariant = POW_ARGON2_WRKZ;
     }
 
     return true;

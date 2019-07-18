@@ -456,6 +456,10 @@ static void argon2(AsmOptimization asmOptimization, uint64_t height, PowVariant 
     if (variant == PowVariant::POW_ARGON2_CHUKWA || variant == POW_TURTLE) {
         argon2id_hash_raw(3, MEMORY_ARGON2_512/1024, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_512);
     }
+
+    if (variant == PowVariant::POW_ARGON2_WRKZ) {
+        argon2id_hash_raw(4, MEMORY_ARGON2_256/1024, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_256);
+    }
 }
 
 void (*hash_ctx[MAX_NUM_HASH_BLOCKS])(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad);
@@ -914,22 +918,21 @@ bool HashSelector::selfCheck(Options::Algo algo)
         argon2_select_impl(NULL, NULL);
     }
     else if (algo == Options::ALGO_ARGON2_256) {
-        // Trigger Benchmark once to setup CPU instruction set
         argon2_select_impl(NULL, NULL);
+
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_ARGON2_WRKZ, argon2_test_input, 76, output, scratchPads);
+        resultArgon2 = resultArgon2 && memcmp(output, argon2_wrkz_test_out, 32) == 0;
     }
     else if (algo == Options::ALGO_ARGON2_500) {
-        // Trigger Benchmark once to setup CPU instruction set
         argon2_select_impl(NULL, NULL);
     }
     else if (algo == Options::ALGO_ARGON2_512) {
-        // Trigger Benchmark once to setup CPU instruction set
         argon2_select_impl(NULL, NULL);
 
         hash_ctx[0](asmOptimization, 0, PowVariant::POW_ARGON2_CHUKWA, argon2_test_input, 76, output, scratchPads);
         resultArgon2 = resultArgon2 && memcmp(output, argon2_chukwa_test_out, 32) == 0;
     }
     else if (algo == Options::ALGO_ARGON2_4096) {
-        // Trigger Benchmark once to setup CPU instruction set
         argon2_select_impl(NULL, NULL);
     }
 
