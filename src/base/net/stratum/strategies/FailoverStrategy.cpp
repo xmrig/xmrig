@@ -202,3 +202,9 @@ void xmrig::FailoverStrategy::onResultAccepted(IClient *client, const SubmitResu
 {
     m_listener->onResultAccepted(this, client, result, error);
 }
+
+
+void xmrig::FailoverStrategy::onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok)
+{
+    m_listener->onVerifyAlgorithm(this, client, algorithm, ok);
+}

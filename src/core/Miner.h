@@ -50,6 +50,7 @@ public:
     ~Miner() override;
 
     bool isEnabled() const;
+    bool isEnabled(const Algorithm &algorithm) const;
     const Algorithms &algorithms() const;
     const std::vector<IBackend *> &backends() const;
     Job job() const;

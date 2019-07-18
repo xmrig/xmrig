@@ -213,6 +213,16 @@ void xmrig::Network::onResultAccepted(IStrategy *, IClient *, const SubmitResult
 }
 
 
+void xmrig::Network::onVerifyAlgorithm(IStrategy *, const IClient *, const Algorithm &algorithm, bool *ok)
+{
+    if (!m_controller->miner()->isEnabled(algorithm)) {
+        *ok = false;
+
+        return;
+    }
+}
+
+
 void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 {
     if (job.height()) {

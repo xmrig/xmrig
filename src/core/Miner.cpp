@@ -157,6 +157,12 @@ bool xmrig::Miner::isEnabled() const
 }
 
 
+bool xmrig::Miner::isEnabled(const Algorithm &algorithm) const
+{
+    return std::find(d_ptr->algorithms.begin(), d_ptr->algorithms.end(), algorithm) != d_ptr->algorithms.end();
+}
+
+
 const xmrig::Algorithms &xmrig::Miner::algorithms() const
 {
     return d_ptr->algorithms;

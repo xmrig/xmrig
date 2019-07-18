@@ -330,14 +330,15 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    if (params.HasMember("algo")) {
-        job.setAlgorithm(params["algo"].GetString());
+    const char *algo = Json::getString(params, "algo");
+    if (algo) {
+        job.setAlgorithm(algo);
     }
 
     job.setSeedHash(Json::getString(params, "seed_hash"));
     job.setHeight(Json::getUint64(params, "height"));
 
-    if (!verifyAlgorithm(job.algorithm())) {
+    if (!verifyAlgorithm(job.algorithm(), algo)) {
         *code = 6;
 
         close();
@@ -415,30 +416,24 @@ bool xmrig::Client::send(BIO *bio)
 }
 
 
-bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm) const
+bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo) const
 {
-//#   ifdef XMRIG_PROXY_PROJECT
-//    if (m_pool.algorithm().variant() == VARIANT_AUTO || m_id == -1) {
-//        return true;
-//    }
-//#   endif
+    if (!algorithm.isValid()) {
+        if (!isQuiet()) {
+            LOG_ERR("[%s] Unknown/unsupported algorithm \"%s\" detected, reconnect", url(), algo);
+        }
 
-//    if (m_pool.algorithm() == algorithm) { // FIXME
-//        return true;
-//    }
+        return false;
+    }
 
-//    if (isQuiet()) {
-//        return false;
-//    }
+    bool ok = true;
+    m_listener->onVerifyAlgorithm(this, algorithm, &ok);
 
-//    if (algorithm.isValid()) {
-//        LOG_ERR("Incompatible algorithm \"%s\" detected, reconnect", algorithm.name());
-//    }
-//    else {
-//        LOG_ERR("Unknown/unsupported algorithm detected, reconnect");
-//    }
+    if (!ok && !isQuiet()) {
+        LOG_ERR("[%s] Incompatible/disabled algorithm \"%s\" detected, reconnect", url(), algorithm.shortName());
+    }
 
-    return true;
+    return ok;
 }
 
 

@@ -136,3 +136,9 @@ void xmrig::SinglePoolStrategy::onResultAccepted(IClient *client, const SubmitRe
 {
     m_listener->onResultAccepted(this, client, result, error);
 }
+
+
+void xmrig::SinglePoolStrategy::onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok)
+{
+    m_listener->onVerifyAlgorithm(this, client, algorithm, ok);
+}

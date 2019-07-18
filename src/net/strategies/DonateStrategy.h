@@ -57,6 +57,8 @@ protected:
     inline void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &) override                      { setJob(client, job); }
     inline void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override              { setResult(client, result, error); }
     inline void onResultAccepted(IStrategy *, IClient *client, const SubmitResult &result, const char *error) override { setResult(client, result, error); }
+    inline void onVerifyAlgorithm(const IClient *, const Algorithm &, bool *) override                                 {}
+    inline void onVerifyAlgorithm(IStrategy *, const IClient *, const Algorithm &, bool *) override                    {}
     inline void resume() override                                                                                      {}
 
     int64_t submit(const JobResult &result) override;
