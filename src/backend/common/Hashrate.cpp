@@ -24,7 +24,7 @@
 
 
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 #include <memory.h>
 #include <stdio.h>
 
@@ -37,7 +37,7 @@
 
 inline static const char *format(double h, char *buf, size_t size)
 {
-    if (isnormal(h)) {
+    if (std::isnormal(h)) {
         snprintf(buf, size, "%03.1f", h);
         return buf;
     }
@@ -82,7 +82,7 @@ double xmrig::Hashrate::calc(size_t ms) const
 
     for (size_t i = 0; i < m_threads; ++i) {
         data = calc(i, ms);
-        if (isnormal(data)) {
+        if (std::isnormal(data)) {
             result += data;
         }
     }
@@ -153,7 +153,7 @@ void xmrig::Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 void xmrig::Hashrate::updateHighest()
 {
    double highest = calc(ShortInterval);
-   if (isnormal(highest) && highest > m_highest) {
+   if (std::isnormal(highest) && highest > m_highest) {
        m_highest = highest;
    }
 }

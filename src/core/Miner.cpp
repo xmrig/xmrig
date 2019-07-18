@@ -134,7 +134,7 @@ public:
         cpu.AddMember("brand",   StringRef(Cpu::info()->brand()), allocator);
         cpu.AddMember("aes",     Cpu::info()->hasAES(), allocator);
         cpu.AddMember("x64",     Cpu::info()->isX64(), allocator);
-        cpu.AddMember("sockets", Cpu::info()->sockets(), allocator);
+        cpu.AddMember("sockets", static_cast<uint64_t>(Cpu::info()->sockets()), allocator);
 
         reply.AddMember("version",      APP_VERSION, allocator);
         reply.AddMember("kind",         APP_KIND, allocator);
