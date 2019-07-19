@@ -28,6 +28,15 @@
 #include "rapidjson/document.h"
 
 
+namespace xmrig {
+
+
+static const char *kAsterisk = "*";
+
+
+} // namespace xmrig
+
+
 template <class T>
 const std::vector<T> &xmrig::Threads<T>::get(const String &profileName) const
 {
@@ -41,34 +50,7 @@ const std::vector<T> &xmrig::Threads<T>::get(const String &profileName) const
 
 
 template <class T>
-xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool strict) const
-{
-    if (isDisabled(algorithm)) {
-        return String();
-    }
-
-    const String name = algorithm.shortName();
-    if (has(name)) {
-        return name;
-    }
-
-    if (m_aliases.count(algorithm) > 0) {
-        return m_aliases.at(algorithm);
-    }
-
-    if (!strict && name.contains("/")) {
-        const String base = name.split('/').at(0);
-        if (has(base)) {
-            return base;
-        }
-    }
-
-    return String();
-}
-
-
-template <class T>
-void xmrig::Threads<T>::read(const rapidjson::Value &value)
+size_t xmrig::Threads<T>::read(const rapidjson::Value &value)
 {
     using namespace rapidjson;
 
@@ -109,6 +91,43 @@ void xmrig::Threads<T>::read(const rapidjson::Value &value)
             }
         }
     }
+
+    return m_profiles.size();
+}
+
+
+template <class T>
+xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool strict) const
+{
+    if (isDisabled(algorithm)) {
+        return String();
+    }
+
+    const String name = algorithm.shortName();
+    if (has(name)) {
+        return name;
+    }
+
+    if (m_aliases.count(algorithm) > 0) {
+        return m_aliases.at(algorithm);
+    }
+
+    if (strict) {
+        return String();
+    }
+
+    if (name.contains("/")) {
+        const String base = name.split('/').at(0);
+        if (has(base)) {
+            return base;
+        }
+    }
+
+    if (has(kAsterisk)) {
+        return kAsterisk;
+    }
+
+    return String();
 }
 
 

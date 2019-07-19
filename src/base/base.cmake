@@ -146,5 +146,3 @@ else()
     remove_definitions(/DXMRIG_FEATURE_HTTP)
     remove_definitions(/DXMRIG_FEATURE_API)
 endif()
-
-add_definitions(/DXMRIG_DEPRECATED)

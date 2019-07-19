@@ -139,20 +139,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
         m_apiWorkerId = Json::getString(api, "worker-id");
     }
 
-#   ifdef XMRIG_DEPRECATED
-    if (api.IsObject() && api.HasMember("port")) {
-        m_upgrade = true;
-        m_http.load(api);
-        m_http.setEnabled(Json::getUint(api, "port") > 0);
-        m_http.setHost("0.0.0.0");
-    }
-    else {
-        m_http.load(reader.getObject("http"));
-    }
-#   else
-    m_http.load(chain.getObject("http"));
-#   endif
-
+    m_http.load(reader.getObject("http"));
     m_pools.load(reader);
 
     return m_pools.active() > 0;

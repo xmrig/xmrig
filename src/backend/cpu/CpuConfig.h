@@ -59,8 +59,10 @@ public:
     inline int priority() const                      { return m_priority; }
 
 private:
+    void generate();
     void setAesMode(const rapidjson::Value &aesMode);
-    void setPriority(int priority);
+
+    inline void setPriority(int priority)   { m_priority = (priority >= -1 && priority <= 5) ? priority : -1; }
 
     AesMode m_aes        = AES_AUTO;
     Assembly m_assembly;

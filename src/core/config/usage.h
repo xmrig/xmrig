@@ -87,8 +87,6 @@ Options:\n\
   -S, --syslog                  use system log for output messages\n"
 # endif
 "\
-      --max-cpu-usage=N         maximum CPU usage for automatic threads mode (default: 100)\n\
-      --safe                    safe adjust threads and av settings for current CPU\n\
       --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer.\n\
       --print-time=N            print hashrate report every N seconds\n"
 #ifdef XMRIG_FEATURE_HTTP

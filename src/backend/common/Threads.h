@@ -50,8 +50,8 @@ public:
     inline void move(const char *profile, std::vector<T> &&threads)                    { m_profiles.insert({ profile, threads }); }
 
     const std::vector<T> &get(const String &profileName) const;
+    size_t read(const rapidjson::Value &value);
     String profileName(const Algorithm &algorithm, bool strict = false) const;
-    void read(const rapidjson::Value &value);
     void toJSON(rapidjson::Value &out, rapidjson::Document &doc) const;
 
 private:

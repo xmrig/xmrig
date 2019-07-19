@@ -49,6 +49,7 @@ public:
     static void load(JsonChain &chain, Process *process, IConfigTransform &transform);
 
 protected:
+    void finalize(rapidjson::Document &doc) override;
     void transform(rapidjson::Document &doc, int key, const char *arg) override;
 
 
@@ -95,6 +96,9 @@ protected:
             obj.AddMember(rapidjson::StringRef(key), value, doc.GetAllocator());
         }
     }
+
+protected:
+    Algorithm m_algorithm;
 
 
 private:

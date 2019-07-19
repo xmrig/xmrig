@@ -126,45 +126,53 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
         m_hugePages = Json::getBool(value, kHugePages, m_hugePages);
 
         setAesMode(Json::getValue(value, kHwAes));
-        setPriority(Json::getInt(value, kPriority, -1));
+        setPriority(Json::getInt(value,  kPriority, -1));
 
 #       ifdef XMRIG_FEATURE_ASM
         m_assembly = Json::getValue(value, kAsm);
 #       endif
 
-        m_threads.read(value);
+        if (!m_threads.read(value)) {
+            generate();
+        }
     }
     else if (value.IsBool() && value.IsFalse()) {
         m_enabled = false;
     }
     else {
-        m_shouldSave = true;
-
-        m_threads.disable(Algorithm::CN_0);
-        m_threads.move(kCn, Cpu::info()->threads(Algorithm::CN_0));
-
-#       ifdef XMRIG_ALGO_CN_GPU
-        m_threads.move(kCnGPU, Cpu::info()->threads(Algorithm::CN_GPU));
-#       endif
-
-#       ifdef XMRIG_ALGO_CN_LITE
-        m_threads.disable(Algorithm::CN_LITE_0);
-        m_threads.move(kCnLite, Cpu::info()->threads(Algorithm::CN_LITE_1));
-#       endif
-
-#       ifdef XMRIG_ALGO_CN_HEAVY
-        m_threads.move(kCnHeavy, Cpu::info()->threads(Algorithm::CN_HEAVY_0));
-#       endif
-
-#       ifdef XMRIG_ALGO_CN_PICO
-        m_threads.move(kCnPico, Cpu::info()->threads(Algorithm::CN_PICO_0));
-#       endif
-
-#       ifdef XMRIG_ALGO_RANDOMX
-        m_threads.move(kRx, Cpu::info()->threads(Algorithm::RX_0));
-        m_threads.move(kRxWOW, Cpu::info()->threads(Algorithm::RX_WOW));
-#       endif
+        generate();
     }
+}
+
+
+void xmrig::CpuConfig::generate()
+{
+    m_shouldSave = true;
+
+    m_threads.disable(Algorithm::CN_0);
+    m_threads.move(kCn, Cpu::info()->threads(Algorithm::CN_0));
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    m_threads.move(kCnGPU, Cpu::info()->threads(Algorithm::CN_GPU));
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_LITE
+    m_threads.disable(Algorithm::CN_LITE_0);
+    m_threads.move(kCnLite, Cpu::info()->threads(Algorithm::CN_LITE_1));
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    m_threads.move(kCnHeavy, Cpu::info()->threads(Algorithm::CN_HEAVY_0));
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_PICO
+    m_threads.move(kCnPico, Cpu::info()->threads(Algorithm::CN_PICO_0));
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    m_threads.move(kRx, Cpu::info()->threads(Algorithm::RX_0));
+    m_threads.move(kRxWOW, Cpu::info()->threads(Algorithm::RX_WOW));
+#   endif
 }
 
 
@@ -176,10 +184,4 @@ void xmrig::CpuConfig::setAesMode(const rapidjson::Value &aesMode)
     else {
         m_aes = AES_AUTO;
     }
-}
-
-
-void xmrig::CpuConfig::setPriority(int priority)
-{
-    m_priority = (priority >= -1 && priority <= 5) ? priority : -1;
 }

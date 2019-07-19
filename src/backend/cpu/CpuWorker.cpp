@@ -273,7 +273,7 @@ template<size_t N>
 void xmrig::CpuWorker<N>::allocateCnCtx()
 {
     if (m_ctx[0] == nullptr) {
-        CnCtx::create(m_ctx, m_memory->scratchpad(), m_memory->size(), N);
+        CnCtx::create(m_ctx, m_memory->scratchpad(), m_algorithm.memory(), N);
     }
 }
 

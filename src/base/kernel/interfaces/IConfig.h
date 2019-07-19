@@ -73,13 +73,6 @@ public:
         DaemonKey            = 1018,
         DaemonPollKey        = 1019,
 
-#       ifdef XMRIG_DEPRECATED
-        ApiPort              = 4000,
-        ApiAccessTokenKey    = 4001,
-        ApiIPv6Key           = 4003,
-        ApiRestrictedKey     = 4004,
-#       endif
-
         // xmrig common
         CPUPriorityKey       = 1021,
         NicehashKey          = 1006,
@@ -90,8 +83,6 @@ public:
         CPUAffinityKey       = 1020,
         DryRunKey            = 5000,
         HugePagesKey         = 1009,
-        MaxCPUUsageKey       = 1004,
-        SafeKey              = 1005,
         ThreadsKey           = 't',
 //        HardwareAESKey       = 1011,
         AssemblyKey          = 1015,
