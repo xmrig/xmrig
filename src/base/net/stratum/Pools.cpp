@@ -24,6 +24,7 @@
 
 
 #include "base/io/log/Log.h"
+#include "base/kernel/interfaces/IJsonReader.h"
 #include "base/net/stratum/Pools.h"
 #include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
@@ -103,18 +104,11 @@ size_t xmrig::Pools::active() const
 }
 
 
-void xmrig::Pools::adjust(const Algorithm &algorithm)
-{
-    for (Pool &pool : m_data) {
-        pool.adjust(algorithm);
-    }
-}
-
-
-void xmrig::Pools::load(const rapidjson::Value &pools)
+void xmrig::Pools::load(const IJsonReader &reader)
 {
     m_data.clear();
 
+    const rapidjson::Value &pools = reader.getArray("pools");
     if (!pools.IsArray()) {
         return;
     }
@@ -129,6 +123,11 @@ void xmrig::Pools::load(const rapidjson::Value &pools)
             m_data.push_back(std::move(pool));
         }
     }
+
+    setDonateLevel(reader.getInt("donate-level", kDefaultDonateLevel));
+    setProxyDonate(reader.getInt("donate-over-proxy", PROXY_DONATE_AUTO));
+    setRetries(reader.getInt("retries"));
+    setRetryPause(reader.getInt("retry-pause"));
 }
 
 
@@ -136,11 +135,11 @@ void xmrig::Pools::print() const
 {
     size_t i = 1;
     for (const Pool &pool : m_data) {
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") CSI "1;%dm%s" CLEAR " variant " WHITE_BOLD("%s"),
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") CSI "1;%dm%s" CLEAR " algo " WHITE_BOLD("%s"),
                    i,
                    (pool.isEnabled() ? (pool.isTLS() ? 32 : 36) : 31),
                    pool.url().data(),
-                   pool.algorithm().variantName()
+                   pool.algorithm().isValid() ? pool.algorithm().shortName() : "auto"
                    );
 
         i++;

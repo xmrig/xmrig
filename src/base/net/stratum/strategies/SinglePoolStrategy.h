@@ -45,9 +45,8 @@ public:
     ~SinglePoolStrategy() override;
 
 protected:
-    inline bool isActive() const override                                              { return m_active; }
-    inline IClient *client() const override                                            { return m_client; }
-    inline void onLogin(IClient *, rapidjson::Document &, rapidjson::Value &) override {}
+    inline bool isActive() const override           { return m_active; }
+    inline IClient *client() const override         { return m_client; }
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -58,8 +57,10 @@ protected:
 
     void onClose(IClient *client, int failures) override;
     void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params) override;
+    void onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params) override;
     void onLoginSuccess(IClient *client) override;
     void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override;
+    void onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok) override;
 
 private:
     bool m_active;

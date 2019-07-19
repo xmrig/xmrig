@@ -33,21 +33,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<class Allocator, bool softAes>
-	void InterpretedVm<Allocator, softAes>::setDataset(randomx_dataset* dataset) {
+	template<bool softAes>
+	void InterpretedVm<softAes>::setDataset(randomx_dataset* dataset) {
 		datasetPtr = dataset;
 		mem.memory = dataset->memory;
 	}
 
-	template<class Allocator, bool softAes>
-	void InterpretedVm<Allocator, softAes>::run(void* seed) {
-		VmBase<Allocator, softAes>::generateProgram(seed);
+	template<bool softAes>
+	void InterpretedVm<softAes>::run(void* seed) {
+		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
 		execute();
 	}
 
-	template<class Allocator, bool softAes>
-	void InterpretedVm<Allocator, softAes>::execute() {
+	template<bool softAes>
+	void InterpretedVm<softAes>::execute() {
 
 		NativeRegisterFile nreg;
 
@@ -106,20 +106,18 @@ namespace randomx {
 			rx_store_vec_f128(&reg.e[i].lo, nreg.e[i]);
 	}
 
-	template<class Allocator, bool softAes>
-	void InterpretedVm<Allocator, softAes>::datasetRead(uint64_t address, int_reg_t(&r)[RegistersCount]) {
+	template<bool softAes>
+	void InterpretedVm<softAes>::datasetRead(uint64_t address, int_reg_t(&r)[RegistersCount]) {
 		uint64_t* datasetLine = (uint64_t*)(mem.memory + address);
 		for (int i = 0; i < RegistersCount; ++i)
 			r[i] ^= datasetLine[i];
 	}
 
-	template<class Allocator, bool softAes>
-	void InterpretedVm<Allocator, softAes>::datasetPrefetch(uint64_t address) {
+	template<bool softAes>
+	void InterpretedVm<softAes>::datasetPrefetch(uint64_t address) {
 		rx_prefetch_nta(mem.memory + address);
 	}
 
-	template class InterpretedVm<AlignedAllocator<CacheLineSize>, false>;
-	template class InterpretedVm<AlignedAllocator<CacheLineSize>, true>;
-	template class InterpretedVm<LargePageAllocator, false>;
-	template class InterpretedVm<LargePageAllocator, true>;
+	template class InterpretedVm<false>;
+	template class InterpretedVm<true>;
 }

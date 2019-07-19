@@ -212,7 +212,7 @@ bool xmrig::DaemonClient::isOutdated(uint64_t height, const char *hash) const
 
 bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 {
-    Job job(m_id, false, m_pool.algorithm(), String());
+    Job job(false, m_pool.algorithm(), String());
 
     String blocktemplate = Json::getString(params, kBlocktemplateBlob);
     if (blocktemplate.isNull() || !job.setBlob(Json::getString(params, "blockhashing_blob"))) {

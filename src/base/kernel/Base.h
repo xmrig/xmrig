@@ -26,6 +26,7 @@
 #define XMRIG_BASE_H
 
 
+#include "api/interfaces/IApiListener.h"
 #include "base/kernel/interfaces/IConfigListener.h"
 #include "base/kernel/interfaces/IWatcherListener.h"
 #include "rapidjson/fwd.h"
@@ -35,13 +36,13 @@ namespace xmrig {
 
 
 class Api;
-class Config;
 class BasePrivate;
+class Config;
 class IBaseListener;
 class Process;
 
 
-class Base : public IWatcherListener
+class Base : public IWatcherListener, public IApiListener
 {
 public:
     Base(Process *process);
@@ -59,6 +60,10 @@ public:
 
 protected:
     void onFileChanged(const String &fileName) override;
+
+#   ifdef XMRIG_FEATURE_API
+    void onRequest(IApiRequest &request) override;
+#   endif
 
 private:
     BasePrivate *d_ptr;

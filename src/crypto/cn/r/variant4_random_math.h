@@ -1,6 +1,13 @@
 #ifndef VARIANT4_RANDOM_MATH_H
 #define VARIANT4_RANDOM_MATH_H
 
+
+#include <string.h>
+
+
+#include "crypto/common/Algorithm.h"
+
+
 extern "C"
 {
     #include "crypto/cn/c_blake256.h"
@@ -182,7 +189,7 @@ static FORCEINLINE void check_data(size_t* data_index, const size_t bytes_needed
 
 // Generates as many random math operations as possible with given latency and ALU restrictions
 // "code" array must have space for NUM_INSTRUCTIONS_MAX+1 instructions
-template<xmrig::Variant VARIANT>
+template<xmrig::Algorithm::Id ALGO>
 static int v4_random_math_init(struct V4_Instruction* code, const uint64_t height)
 {
 	// MUL is 3 cycles, 3-way addition and rotations are 2 cycles, SUB/XOR are 1 cycle
@@ -204,8 +211,7 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 	memset(data, 0, sizeof(data));
 	uint64_t tmp = SWAP64LE(height);
 	memcpy(data, &tmp, sizeof(uint64_t));
-	if (VARIANT == xmrig::VARIANT_4)
-	{
+	if (ALGO == xmrig::Algorithm::CN_R)	{
 		data[20] = -38;
 	}
 
@@ -249,7 +255,7 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 		code_size = 0;
 
 		int total_iterations = 0;
-		r8_used = (VARIANT == xmrig::VARIANT_WOW);
+		r8_used = (ALGO == xmrig::Algorithm::CN_WOW);
 
 		// Generate random code to achieve minimal required latency for our abstract CPU
 		// Try to get this latency for all 4 registers
@@ -291,10 +297,9 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 			int b = src_index;
 
 			// Don't do ADD/SUB/XOR with the same register
-			if (((opcode == ADD) || (opcode == SUB) || (opcode == XOR)) && (a == b))
-			{
+			if (((opcode == ADD) || (opcode == SUB) || (opcode == XOR)) && (a == b)) {
 				// a is always < 4, so we don't need to check bounds here
-				b = (VARIANT == xmrig::VARIANT_WOW) ? (a + 4) : 8;
+				b = (ALGO == xmrig::Algorithm::CN_WOW) ? (a + 4) : 8;
 				src_index = b;
 			}
 

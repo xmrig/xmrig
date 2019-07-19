@@ -60,14 +60,7 @@
 #include "version.h"
 
 
-xmrig::BaseConfig::BaseConfig() :
-    m_algorithm(CRYPTONIGHT, VARIANT_AUTO),
-    m_autoSave(true),
-    m_background(false),
-    m_dryRun(false),
-    m_syslog(false),
-    m_upgrade(false),
-    m_watch(true)
+xmrig::BaseConfig::BaseConfig()
 {
 }
 
@@ -146,33 +139,8 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
         m_apiWorkerId = Json::getString(api, "worker-id");
     }
 
-#   ifdef XMRIG_DEPRECATED
-    if (api.IsObject() && api.HasMember("port")) {
-        m_upgrade = true;
-        m_http.load(api);
-        m_http.setEnabled(Json::getUint(api, "port") > 0);
-        m_http.setHost("0.0.0.0");
-    }
-    else {
-        m_http.load(reader.getObject("http"));
-    }
-#   else
-    m_http.load(chain.getObject("http"));
-#   endif
-
-    m_algorithm.parseAlgorithm(reader.getString("algo", "cn"));
-
-    m_pools.load(reader.getArray("pools"));
-    m_pools.setDonateLevel(reader.getInt("donate-level", kDefaultDonateLevel));
-    m_pools.setProxyDonate(reader.getInt("donate-over-proxy", Pools::PROXY_DONATE_AUTO));
-    m_pools.setRetries(reader.getInt("retries"));
-    m_pools.setRetryPause(reader.getInt("retry-pause"));
-
-    if (!m_algorithm.isValid()) {
-        return false;
-    }
-
-    m_pools.adjust(m_algorithm);
+    m_http.load(reader.getObject("http"));
+    m_pools.load(reader);
 
     return m_pools.active() > 0;
 }

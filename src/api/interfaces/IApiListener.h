@@ -35,7 +35,9 @@ class IApiListener
 public:
     virtual ~IApiListener() = default;
 
+#   ifdef XMRIG_FEATURE_API
     virtual void onRequest(IApiRequest &request) = 0;
+#   endif
 };
 
 

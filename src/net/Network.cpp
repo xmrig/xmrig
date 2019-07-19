@@ -27,7 +27,9 @@
 #pragma warning(disable:4244)
 #endif
 
+#include <algorithm>
 #include <inttypes.h>
+#include <iterator>
 #include <memory>
 #include <time.h>
 
@@ -40,10 +42,12 @@
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "core/Miner.h"
+#include "net/JobResult.h"
+#include "net/JobResults.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
 #include "rapidjson/document.h"
-#include "workers/Workers.h"
 
 
 #ifdef XMRIG_FEATURE_API
@@ -57,7 +61,7 @@ xmrig::Network::Network(Controller *controller) :
     m_donate(nullptr),
     m_timer(nullptr)
 {
-    Workers::setListener(this);
+    JobResults::setListener(this);
     controller->addListener(this);
 
 #   ifdef XMRIG_FEATURE_API
@@ -77,6 +81,8 @@ xmrig::Network::Network(Controller *controller) :
 
 xmrig::Network::~Network()
 {
+    JobResults::stop();
+
     delete m_timer;
 
     if (m_donate) {
@@ -141,12 +147,36 @@ void xmrig::Network::onJob(IStrategy *strategy, IClient *client, const Job &job)
 
 void xmrig::Network::onJobResult(const JobResult &result)
 {
-    if (result.poolId == -1 && m_donate) {
+    if (result.index == 1 && m_donate) {
         m_donate->submit(result);
         return;
     }
 
     m_strategy->submit(result);
+}
+
+
+void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &doc, rapidjson::Value &params)
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Algorithms algorithms     = m_controller->miner()->algorithms();
+    const Algorithm algorithm = client->pool().algorithm();
+    if (algorithm.isValid()) {
+        const size_t index = static_cast<size_t>(std::distance(algorithms.begin(), std::find(algorithms.begin(), algorithms.end(), algorithm)));
+        if (index > 0 && index < algorithms.size()) {
+            std::swap(algorithms[0], algorithms[index]);
+        }
+    }
+
+    Value algo(kArrayType);
+
+    for (const auto &a : algorithms) {
+        algo.PushBack(StringRef(a.shortName()), allocator);
+    }
+
+    params.AddMember("algo", algo, allocator);
 }
 
 
@@ -160,21 +190,9 @@ void xmrig::Network::onPause(IStrategy *strategy)
     if (!m_strategy->isActive()) {
         LOG_ERR("no active pools, stop mining");
         m_state.stop();
-        return Workers::pause();
+
+        return m_controller->miner()->pause();
     }
-}
-
-
-void xmrig::Network::onRequest(IApiRequest &request)
-{
-#   ifdef XMRIG_FEATURE_API
-    if (request.method() == IApiRequest::METHOD_GET && (request.url() == "/1/summary" || request.url() == "/api.json")) {
-        request.accept();
-
-        getResults(request.reply(), request.doc());
-        getConnection(request.reply(), request.doc());
-    }
-#   endif
 }
 
 
@@ -193,6 +211,29 @@ void xmrig::Network::onResultAccepted(IStrategy *, IClient *, const SubmitResult
 }
 
 
+void xmrig::Network::onVerifyAlgorithm(IStrategy *, const IClient *, const Algorithm &algorithm, bool *ok)
+{
+    if (!m_controller->miner()->isEnabled(algorithm)) {
+        *ok = false;
+
+        return;
+    }
+}
+
+
+#ifdef XMRIG_FEATURE_API
+void xmrig::Network::onRequest(IApiRequest &request)
+{
+    if (request.type() == IApiRequest::REQ_SUMMARY) {
+        request.accept();
+
+        getResults(request.reply(), request.doc(), request.version());
+        getConnection(request.reply(), request.doc(), request.version());
+    }
+}
+#endif
+
+
 void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 {
     if (job.height()) {
@@ -209,7 +250,7 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
     }
 
     m_state.diff = job.diff();
-    Workers::setJob(job, donate);
+    m_controller->miner()->setJob(job, donate);
 }
 
 
@@ -226,13 +267,12 @@ void xmrig::Network::tick()
 
 
 #ifdef XMRIG_FEATURE_API
-void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document &doc) const
+void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
 
-    const Algorithm &algo = m_strategy->client()->job().algorithm();
-    reply.AddMember("algo", StringRef((algo.isValid() ? algo : m_controller->config()->algorithm()).shortName()), allocator);
+    reply.AddMember("algo", StringRef(m_strategy->client()->job().algorithm().shortName()), allocator);
 
     Value connection(kObjectType);
     connection.AddMember("pool",            StringRef(m_state.pool), allocator);
@@ -242,13 +282,16 @@ void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document 
     connection.AddMember("failures",        m_state.failures, allocator);
     connection.AddMember("tls",             m_state.tls().toJSON(), allocator);
     connection.AddMember("tls-fingerprint", m_state.fingerprint().toJSON(), allocator);
-    connection.AddMember("error_log",       Value(kArrayType), allocator);
+
+    if (version == 1) {
+        connection.AddMember("error_log", Value(kArrayType), allocator);
+    }
 
     reply.AddMember("connection", connection, allocator);
 }
 
 
-void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &doc) const
+void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -266,8 +309,11 @@ void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &do
         best.PushBack(m_state.topDiff[i], allocator);
     }
 
-    results.AddMember("best",      best, allocator);
-    results.AddMember("error_log", Value(kArrayType), allocator);
+    results.AddMember("best", best, allocator);
+
+    if (version == 1) {
+        results.AddMember("error_log", Value(kArrayType), allocator);
+    }
 
     reply.AddMember("results", results, allocator);
 }

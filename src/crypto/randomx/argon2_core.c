@@ -90,12 +90,12 @@ static void load_block(block *dst, const void *input) {
 	}
 }
 
-static void store_block(void *output, const block *src) {
-	unsigned i;
-	for (i = 0; i < ARGON2_QWORDS_IN_BLOCK; ++i) {
-		store64((uint8_t *)output + i * sizeof(src->v[i]), src->v[i]);
-	}
-}
+//static void store_block(void *output, const block *src) {
+//	unsigned i;
+//	for (i = 0; i < ARGON2_QWORDS_IN_BLOCK; ++i) {
+//		store64((uint8_t *)output + i * sizeof(src->v[i]), src->v[i]);
+//	}
+//}
 
 /***************Memory functions*****************/
 
@@ -484,7 +484,6 @@ void rxa2_initial_hash(uint8_t *blockhash, argon2_context *context, argon2_type 
 
 int rxa2_argon_initialize(argon2_instance_t *instance, argon2_context *context) {
 	uint8_t blockhash[ARGON2_PREHASH_SEED_LENGTH];
-	int result = ARGON2_OK;
 
 	if (instance == NULL || context == NULL)
 		return ARGON2_INCORRECT_PARAMETER;

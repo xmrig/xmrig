@@ -35,6 +35,17 @@ xmrig::HttpApiRequest::HttpApiRequest(const HttpData &req, bool restricted) :
     m_res(req.id()),
     m_url(req.url.c_str())
 {
+    if (method() == METHOD_GET) {
+        if (url() == "/1/summary" || url() == "/2/summary" || url() == "/api.json") {
+            m_type = REQ_SUMMARY;
+        }
+    }
+
+    if (url().size() > 4) {
+        if (memcmp(url().data(), "/2/", 3) == 0) {
+            m_version = 2;
+        }
+    }
 }
 
 

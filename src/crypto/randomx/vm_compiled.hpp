@@ -37,8 +37,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<class Allocator, bool softAes>
-	class CompiledVm : public VmBase<Allocator, softAes> {
+	template<bool softAes>
+	class CompiledVm : public VmBase<softAes>
+	{
 	public:
 		void* operator new(size_t size) {
 			void* ptr = AlignedAllocator<CacheLineSize>::allocMemory(size);
@@ -46,27 +47,28 @@ namespace randomx {
 				throw std::bad_alloc();
 			return ptr;
 		}
+
 		void operator delete(void* ptr) {
 			AlignedAllocator<CacheLineSize>::freeMemory(ptr, sizeof(CompiledVm));
 		}
+
 		void setDataset(randomx_dataset* dataset) override;
 		void run(void* seed) override;
 
-		using VmBase<Allocator, softAes>::mem;
-		using VmBase<Allocator, softAes>::program;
-		using VmBase<Allocator, softAes>::config;
-		using VmBase<Allocator, softAes>::reg;
-		using VmBase<Allocator, softAes>::scratchpad;
-		using VmBase<Allocator, softAes>::datasetPtr;
-		using VmBase<Allocator, softAes>::datasetOffset;
+		using VmBase<softAes>::mem;
+		using VmBase<softAes>::program;
+		using VmBase<softAes>::config;
+		using VmBase<softAes>::reg;
+		using VmBase<softAes>::scratchpad;
+		using VmBase<softAes>::datasetPtr;
+		using VmBase<softAes>::datasetOffset;
+
 	protected:
 		void execute();
 
 		JitCompiler compiler;
 	};
 
-	using CompiledVmDefault = CompiledVm<AlignedAllocator<CacheLineSize>, true>;
-	using CompiledVmHardAes = CompiledVm<AlignedAllocator<CacheLineSize>, false>;
-	using CompiledVmLargePage = CompiledVm<LargePageAllocator, true>;
-	using CompiledVmLargePageHardAes = CompiledVm<LargePageAllocator, false>;
+	using CompiledVmDefault = CompiledVm<true>;
+	using CompiledVmHardAes = CompiledVm<false>;
 }

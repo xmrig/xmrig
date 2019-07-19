@@ -33,26 +33,31 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "program.hpp"
 
 /* Global namespace for C binding */
-class randomx_vm {
+class randomx_vm
+{
 public:
 	virtual ~randomx_vm() = 0;
-	virtual void allocate() = 0;
+	virtual void setScratchpad(uint8_t *scratchpad) = 0;
 	virtual void getFinalResult(void* out, size_t outSize) = 0;
 	virtual void setDataset(randomx_dataset* dataset) { }
 	virtual void setCache(randomx_cache* cache) { }
 	virtual void initScratchpad(void* seed) = 0;
 	virtual void run(void* seed) = 0;
 	void resetRoundingMode();
+
 	randomx::RegisterFile *getRegisterFile() {
 		return &reg;
 	}
+
 	const void* getScratchpad() {
 		return scratchpad;
 	}
+
 	const randomx::Program& getProgram()
 	{
 		return program;
 	}
+
 protected:
 	void initialize();
 	alignas(64) randomx::Program program;
@@ -69,13 +74,15 @@ protected:
 
 namespace randomx {
 
-	template<class Allocator, bool softAes>
-	class VmBase : public randomx_vm {
+	template<bool softAes>
+	class VmBase : public randomx_vm
+	{
 	public:
 		~VmBase() override;
-		void allocate() override;
+		void setScratchpad(uint8_t *scratchpad) override;
 		void initScratchpad(void* seed) override;
 		void getFinalResult(void* out, size_t outSize) override;
+
 	protected:
 		void generateProgram(void* seed);
 	};

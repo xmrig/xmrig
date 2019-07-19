@@ -63,9 +63,14 @@ protected:
     void onConfigChanged(Config *config, Config *previousConfig) override;
     void onJob(IStrategy *strategy, IClient *client, const Job &job) override;
     void onJobResult(const JobResult &result) override;
+    void onLogin(IStrategy *strategy, IClient *client, rapidjson::Document &doc, rapidjson::Value &params) override;
     void onPause(IStrategy *strategy) override;
-    void onRequest(IApiRequest &request) override;
     void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override;
+    void onVerifyAlgorithm(IStrategy *strategy, const  IClient *client, const Algorithm &algorithm, bool *ok) override;
+
+#   ifdef XMRIG_FEATURE_API
+    void onRequest(IApiRequest &request) override;
+#   endif
 
 private:
     constexpr static int kTickInterval = 1 * 1000;
@@ -74,8 +79,8 @@ private:
     void tick();
 
 #   ifdef XMRIG_FEATURE_API
-    void getConnection(rapidjson::Value &reply, rapidjson::Document &doc) const;
-    void getResults(rapidjson::Value &reply, rapidjson::Document &doc) const;
+    void getConnection(rapidjson::Value &reply, rapidjson::Document &doc, int version) const;
+    void getResults(rapidjson::Value &reply, rapidjson::Document &doc, int version) const;
 #   endif
 
     Controller *m_controller;

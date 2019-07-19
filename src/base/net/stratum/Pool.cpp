@@ -47,6 +47,7 @@
 
 namespace xmrig {
 
+static const char *kAlgo                   = "algo";
 static const char *kDaemon                 = "daemon";
 static const char *kDaemonPollInterval     = "daemon-poll-interval";
 static const char *kEnabled                = "enabled";
@@ -58,7 +59,6 @@ static const char *kRigId                  = "rig-id";
 static const char *kTls                    = "tls";
 static const char *kUrl                    = "url";
 static const char *kUser                   = "user";
-static const char *kVariant                = "variant";
 
 const String Pool::kDefaultPassword        = "x";
 const String Pool::kDefaultUser            = "x";
@@ -119,6 +119,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_rigId        = Json::getString(object, kRigId);
     m_fingerprint  = Json::getString(object, kFingerprint);
     m_pollInterval = Json::getUint64(object, kDaemonPollInterval, kDefaultPollInterval);
+    m_algorithm    = Json::getString(object, kAlgo);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
@@ -132,15 +133,6 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     else if (keepalive.IsBool()) {
         setKeepAlive(keepalive.GetBool());
     }
-
-    const rapidjson::Value &variant = Json::getValue(object, kVariant);
-    if (variant.IsString()) {
-        algorithm().parseVariant(variant.GetString());
-    }
-    else if (variant.IsInt()) {
-        algorithm().parseVariant(variant.GetInt());
-    }
-
 }
 
 
@@ -166,28 +158,6 @@ xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char 
 }
 
 
-bool xmrig::Pool::isCompatible(const Algorithm &algorithm) const
-{
-    if (m_algorithms.empty()) {
-        return true;
-    }
-
-    for (const auto &a : m_algorithms) {
-        if (algorithm == a) {
-            return true;
-        }
-    }
-
-#   ifdef XMRIG_PROXY_PROJECT
-    if (m_algorithm.algo() == xmrig::CRYPTONIGHT && algorithm.algo() == xmrig::CRYPTONIGHT) {
-        return m_algorithm.variant() == xmrig::VARIANT_RWZ || m_algorithm.variant() == xmrig::VARIANT_ZLS;
-    }
-#   endif
-
-    return false;
-}
-
-
 bool xmrig::Pool::isEnabled() const
 {
 #   ifndef XMRIG_FEATURE_TLS
@@ -202,7 +172,11 @@ bool xmrig::Pool::isEnabled() const
     }
 #   endif
 
-    return m_flags.test(FLAG_ENABLED) && isValid() && algorithm().isValid();
+    if (isDaemon() && !algorithm().isValid()) {
+        return false;
+    }
+
+    return m_flags.test(FLAG_ENABLED) && isValid();
 }
 
 
@@ -218,7 +192,8 @@ bool xmrig::Pool::isEqual(const Pool &other) const
             && m_rigId        == other.m_rigId
             && m_url          == other.m_url
             && m_user         == other.m_user
-            && m_pollInterval == other.m_pollInterval);
+            && m_pollInterval == other.m_pollInterval
+            );
 }
 
 
@@ -289,68 +264,36 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
 
+    obj.AddMember(StringRef(kAlgo),  m_algorithm.toJSON(), allocator);
     obj.AddMember(StringRef(kUrl),   m_url.toJSON(), allocator);
     obj.AddMember(StringRef(kUser),  m_user.toJSON(), allocator);
-    obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
-    obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
 
-#   ifndef XMRIG_PROXY_PROJECT
-    obj.AddMember(StringRef(kNicehash), isNicehash(), allocator);
-#   endif
+    if (!isDaemon()) {
+        obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
+        obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
 
-    if (m_keepAlive == 0 || m_keepAlive == kKeepAliveTimeout) {
-        obj.AddMember(StringRef(kKeepalive), m_keepAlive > 0, allocator);
-    }
-    else {
-        obj.AddMember(StringRef(kKeepalive), m_keepAlive, allocator);
-    }
+#       ifndef XMRIG_PROXY_PROJECT
+        obj.AddMember(StringRef(kNicehash), isNicehash(), allocator);
+#       endif
 
-    switch (m_algorithm.variant()) {
-    case VARIANT_AUTO:
-    case VARIANT_0:
-    case VARIANT_1:
-        obj.AddMember(StringRef(kVariant), m_algorithm.variant(), allocator);
-        break;
-
-    case VARIANT_2:
-        obj.AddMember(StringRef(kVariant), 2, allocator);
-        break;
-
-    default:
-        obj.AddMember(StringRef(kVariant), StringRef(m_algorithm.variantName()), allocator);
-        break;
+        if (m_keepAlive == 0 || m_keepAlive == kKeepAliveTimeout) {
+            obj.AddMember(StringRef(kKeepalive), m_keepAlive > 0, allocator);
+        }
+        else {
+            obj.AddMember(StringRef(kKeepalive), m_keepAlive, allocator);
+        }
     }
 
     obj.AddMember(StringRef(kEnabled),            m_flags.test(FLAG_ENABLED), allocator);
     obj.AddMember(StringRef(kTls),                isTLS(), allocator);
     obj.AddMember(StringRef(kFingerprint),        m_fingerprint.toJSON(), allocator);
     obj.AddMember(StringRef(kDaemon),             m_flags.test(FLAG_DAEMON), allocator);
-    obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
+
+    if (isDaemon()) {
+        obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
+    }
 
     return obj;
-}
-
-
-void xmrig::Pool::adjust(const Algorithm &algorithm)
-{
-    if (!isValid()) {
-        return;
-    }
-
-    if (!m_algorithm.isValid()) {
-        m_algorithm.setAlgo(algorithm.algo());
-        adjustVariant(algorithm.variant());
-    }
-
-    rebuild();
-}
-
-
-void xmrig::Pool::setAlgo(const xmrig::Algorithm &algorithm)
-{
-    m_algorithm = algorithm;
-
-    rebuild();
 }
 
 
@@ -390,135 +333,4 @@ bool xmrig::Pool::parseIPv6(const char *addr)
     m_port = static_cast<uint16_t>(strtol(port + 1, nullptr, 10));
 
     return true;
-}
-
-
-void xmrig::Pool::addVariant(xmrig::Variant variant)
-{
-    const xmrig::Algorithm algorithm(m_algorithm.algo(), variant);
-    if (!algorithm.isValid() || m_algorithm == algorithm) {
-        return;
-    }
-
-    m_algorithms.push_back(algorithm);
-}
-
-
-void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
-{
-#   ifndef XMRIG_PROXY_PROJECT
-    using namespace xmrig;
-
-    if (m_host.contains(".nicehash.com")) {
-        m_flags.set(FLAG_NICEHASH, true);
-        m_keepAlive = false;
-        bool valid  = true;
-
-        switch (m_port) {
-        case 3355:
-        case 33355:
-            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonight.");
-            m_algorithm.setVariant(VARIANT_0);
-            break;
-
-        case 3363:
-        case 33363:
-            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonightv7.");
-            m_algorithm.setVariant(VARIANT_1);
-            break;
-
-        case 3364:
-            valid = m_algorithm.algo() == CRYPTONIGHT_HEAVY && m_host.contains("cryptonightheavy.");
-            m_algorithm.setVariant(VARIANT_0);
-            break;
-
-        case 3367:
-        case 33367:
-            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonightv8.");
-            m_algorithm.setVariant(VARIANT_2);
-            break;
-
-        default:
-            break;
-        }
-
-        if (!valid) {
-            m_algorithm.setAlgo(INVALID_ALGO);
-        }
-
-        m_flags.set(FLAG_TLS, m_port > 33000);
-        return;
-    }
-
-    if (m_host.contains(".minergate.com")) {
-        m_keepAlive = false;
-        bool valid  = true;
-        m_algorithm.setVariant(VARIANT_1);
-
-        if (m_host.contains("xmr.pool.")) {
-            valid = m_algorithm.algo() == CRYPTONIGHT;
-            m_algorithm.setVariant(m_port == 45700 ? VARIANT_AUTO : VARIANT_0);
-        }
-        else if (m_host.contains("aeon.pool.") && m_port == 45690) {
-            valid = m_algorithm.algo() == CRYPTONIGHT_LITE;
-            m_algorithm.setVariant(VARIANT_1);
-        }
-
-        if (!valid) {
-            m_algorithm.setAlgo(INVALID_ALGO);
-        }
-
-        return;
-    }
-
-    if (variantHint != VARIANT_AUTO) {
-        m_algorithm.setVariant(variantHint);
-        return;
-    }
-
-    if (m_algorithm.variant() != VARIANT_AUTO) {
-        return;
-    }
-
-    if (m_algorithm.algo() == CRYPTONIGHT_HEAVY)  {
-        m_algorithm.setVariant(VARIANT_0);
-    }
-    else if (m_algorithm.algo() == CRYPTONIGHT_LITE) {
-        m_algorithm.setVariant(VARIANT_1);
-    }
-#   endif
-}
-
-
-void xmrig::Pool::rebuild()
-{
-    m_algorithms.clear();
-
-    if (!m_algorithm.isValid()) {
-        return;
-    }
-
-    m_algorithms.push_back(m_algorithm);
-
-#   ifndef XMRIG_PROXY_PROJECT
-    addVariant(VARIANT_4);
-    addVariant(VARIANT_WOW);
-    addVariant(VARIANT_2);
-    addVariant(VARIANT_1);
-    addVariant(VARIANT_0);
-    addVariant(VARIANT_HALF);
-    addVariant(VARIANT_XTL);
-    addVariant(VARIANT_TUBE);
-    addVariant(VARIANT_MSR);
-    addVariant(VARIANT_XHV);
-    addVariant(VARIANT_XAO);
-    addVariant(VARIANT_RTO);
-    addVariant(VARIANT_GPU);
-    addVariant(VARIANT_RWZ);
-    addVariant(VARIANT_ZLS);
-    addVariant(VARIANT_DOUBLE);
-    addVariant(VARIANT_RX_WOW);
-    addVariant(VARIANT_RX_LOKI);
-    addVariant(VARIANT_AUTO);
-#   endif
 }

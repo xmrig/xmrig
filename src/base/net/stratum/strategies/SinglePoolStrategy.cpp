@@ -24,9 +24,9 @@
 
 
 #include "base/kernel/interfaces/IStrategyListener.h"
+#include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
-#include "common/Platform.h"
 
 
 #ifdef XMRIG_FEATURE_HTTP
@@ -84,7 +84,7 @@ void xmrig::SinglePoolStrategy::resume()
 }
 
 
-void xmrig::SinglePoolStrategy::setAlgo(const xmrig::Algorithm &algo)
+void xmrig::SinglePoolStrategy::setAlgo(const Algorithm &algo)
 {
     m_client->setAlgo(algo);
 }
@@ -119,6 +119,12 @@ void xmrig::SinglePoolStrategy::onJobReceived(IClient *client, const Job &job, c
 }
 
 
+void xmrig::SinglePoolStrategy::onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params)
+{
+    m_listener->onLogin(this, client, doc, params);
+}
+
+
 void xmrig::SinglePoolStrategy::onLoginSuccess(IClient *client)
 {
     m_active = true;
@@ -129,4 +135,10 @@ void xmrig::SinglePoolStrategy::onLoginSuccess(IClient *client)
 void xmrig::SinglePoolStrategy::onResultAccepted(IClient *client, const SubmitResult &result, const char *error)
 {
     m_listener->onResultAccepted(this, client, result, error);
+}
+
+
+void xmrig::SinglePoolStrategy::onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok)
+{
+    m_listener->onVerifyAlgorithm(this, client, algorithm, ok);
 }

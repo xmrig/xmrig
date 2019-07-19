@@ -44,6 +44,7 @@
 namespace xmrig
 {
 
+static const char *kAlgo  = "algo";
 static const char *kApi   = "api";
 static const char *kHttp  = "http";
 static const char *kPools = "pools";
@@ -87,7 +88,24 @@ void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTrans
         LOG_WARN("%s: unsupported non-option argument '%s'", argv[0], argv[optind]);
     }
 
+    transform.finalize(doc);
     chain.add(std::move(doc));
+}
+
+
+void xmrig::BaseTransform::finalize(rapidjson::Document &doc)
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    if (m_algorithm.isValid() && doc.HasMember(kPools)) {
+        auto &pools = doc[kPools];
+        for (Value &pool : pools.GetArray()) {
+            if (!pool.HasMember(kAlgo)) {
+                pool.AddMember(StringRef(kAlgo), m_algorithm.toJSON(), allocator);
+            }
+        }
+    }
 }
 
 
@@ -95,7 +113,13 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 {
     switch (key) {
     case IConfig::AlgorithmKey: /* --algo */
-        return set(doc, "algo", arg);
+        if (!doc.HasMember(kPools)) {
+            m_algorithm = arg;
+        }
+        else {
+            return add(doc, kPools, kAlgo, arg);
+        }
+        break;
 
     case IConfig::UserpassKey: /* --userpass */
         {
@@ -128,18 +152,8 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::FingerprintKey: /* --tls-fingerprint */
         return add(doc, kPools, "tls-fingerprint", arg);
 
-    case IConfig::VariantKey: /* --variant */
-        return add(doc, kPools, "variant", arg);
-
     case IConfig::LogFileKey: /* --log-file */
         return set(doc, "log-file", arg);
-
-#   ifdef XMRIG_DEPRECATED
-    case IConfig::ApiAccessTokenKey: /* --api-access-token */
-        fputs("option \"--api-access-token\" deprecated, use \"--http-access-token\" instead.\n", stderr);
-        fflush(stdout);
-        return set(doc, kHttp, "access-token", arg);
-#   endif
 
     case IConfig::HttpAccessTokenKey: /* --http-access-token */
         return set(doc, kHttp, "access-token", arg);
@@ -162,9 +176,6 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::HttpPort:       /* --http-port */
     case IConfig::DonateLevelKey: /* --donate-level */
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
-#   ifdef XMRIG_DEPRECATED
-    case IConfig::ApiPort:       /* --api-port */
-#   endif
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::BackgroundKey:  /* --background */
@@ -179,10 +190,6 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 
     case IConfig::ColorKey:          /* --no-color */
     case IConfig::HttpRestrictedKey: /* --http-no-restricted */
-#   ifdef XMRIG_DEPRECATED
-    case IConfig::ApiRestrictedKey: /* --api-no-restricted */
-    case IConfig::ApiIPv6Key:       /* --api-ipv6 */
-#   endif
         return transformBoolean(doc, key, false);
 
     default:
@@ -217,16 +224,6 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::ColorKey: /* --no-color */
         return set(doc, "colors", enable);
 
-#   ifdef XMRIG_DEPRECATED
-    case IConfig::ApiIPv6Key: /* --api-ipv6 */
-        break;
-
-    case IConfig::ApiRestrictedKey: /* --api-no-restricted */
-        fputs("option \"--api-no-restricted\" deprecated, use \"--http-no-restricted\" instead.\n", stderr);
-        fflush(stdout);
-        return set(doc, kHttp, "restricted", enable);
-#   endif
-
     case IConfig::HttpRestrictedKey: /* --http-no-restricted */
         return set(doc, kHttp, "restricted", enable);
 
@@ -256,13 +253,6 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 
     case IConfig::ProxyDonateKey: /* --donate-over-proxy */
         return set(doc, "donate-over-proxy", arg);
-
-#   ifdef XMRIG_DEPRECATED
-    case IConfig::ApiPort: /* --api-port */
-        fputs("option \"--api-port\" deprecated, use \"--http-port\" instead.\n", stderr);
-        fflush(stdout);
-        return set(doc, kHttp, "port", arg);
-#   endif
 
     case IConfig::HttpPort: /* --http-port */
         return set(doc, kHttp, "port", arg);

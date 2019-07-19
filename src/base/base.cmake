@@ -26,6 +26,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IStrategyListener.h
     src/base/kernel/interfaces/ITimerListener.h
     src/base/kernel/interfaces/IWatcherListener.h
+    src/base/kernel/Platform.h
     src/base/kernel/Process.h
     src/base/kernel/Signals.h
     src/base/net/dns/Dns.h
@@ -63,6 +64,7 @@ set(SOURCES_BASE
     src/base/kernel/config/BaseConfig.cpp
     src/base/kernel/config/BaseTransform.cpp
     src/base/kernel/Entry.cpp
+    src/base/kernel/Platform.cpp
     src/base/kernel/Process.cpp
     src/base/kernel/Signals.cpp
     src/base/net/dns/Dns.cpp
@@ -83,9 +85,20 @@ set(SOURCES_BASE
 
 
 if (WIN32)
-    set(SOURCES_OS src/base/io/json/Json_win.cpp)
+    set(SOURCES_OS
+        src/base/io/json/Json_win.cpp
+        src/base/kernel/Platform_win.cpp
+        )
+elseif (APPLE)
+    set(SOURCES_OS
+        src/base/io/json/Json_unix.cpp
+        src/base/kernel/Platform_mac.cpp
+        )
 else()
-    set(SOURCES_OS src/base/io/json/Json_unix.cpp)
+    set(SOURCES_OS
+        src/base/io/json/Json_unix.cpp
+        src/base/kernel//Platform_unix.cpp
+        )
 endif()
 
 
@@ -133,5 +146,3 @@ else()
     remove_definitions(/DXMRIG_FEATURE_HTTP)
     remove_definitions(/DXMRIG_FEATURE_API)
 endif()
-
-add_definitions(/DXMRIG_DEPRECATED)

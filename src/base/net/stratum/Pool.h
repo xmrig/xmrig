@@ -69,13 +69,11 @@ public:
          bool tls               = false
        );
 
-    inline Algorithm &algorithm()                       { return m_algorithm; }
     inline bool isDaemon() const                        { return m_flags.test(FLAG_DAEMON); }
     inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS); }
     inline bool isValid() const                         { return !m_host.isNull() && m_port > 0; }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
-    inline const Algorithms &algorithms() const         { return m_algorithms; }
     inline const String &fingerprint() const            { return m_fingerprint; }
     inline const String &host() const                   { return m_host; }
     inline const String &password() const               { return !m_password.isNull() ? m_password : kDefaultPassword; }
@@ -85,6 +83,7 @@ public:
     inline int keepAlive() const                        { return m_keepAlive; }
     inline uint16_t port() const                        { return m_port; }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
+    inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
     inline void setPassword(const String &password)     { m_password = password; }
     inline void setRigId(const String &rigId)           { m_rigId = rigId; }
     inline void setUser(const String &user)             { m_user = user; }
@@ -92,13 +91,10 @@ public:
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
     inline bool operator==(const Pool &other) const     { return isEqual(other); }
 
-    bool isCompatible(const Algorithm &algorithm) const;
     bool isEnabled() const;
     bool isEqual(const Pool &other) const;
     bool parse(const char *url);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    void adjust(const Algorithm &algorithm);
-    void setAlgo(const Algorithm &algorithm);
 
 #   ifdef APP_DEBUG
     void print() const;
@@ -109,12 +105,8 @@ private:
     inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
 
     bool parseIPv6(const char *addr);
-    void addVariant(Variant variant);
-    void adjustVariant(const Variant variantHint);
-    void rebuild();
 
     Algorithm m_algorithm;
-    Algorithms m_algorithms;
     int m_keepAlive;
     std::bitset<FLAG_MAX> m_flags;
     String m_fingerprint;

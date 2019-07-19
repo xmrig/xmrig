@@ -18,40 +18,30 @@ option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
 include (src/base/base.cmake)
+include (src/backend/backend.cmake)
 
 
 set(HEADERS
     "${HEADERS_BASE}"
     "${HEADERS_BASE_HTTP}"
+    "${HEADERS_BACKEND}"
     src/api/interfaces/IApiListener.h
     src/App.h
-    src/common/cpu/Cpu.h
-    src/common/crypto/keccak.h
-    src/common/interfaces/ICpuInfo.h
-    src/common/Platform.h
-    src/common/xmrig.h
     src/core/config/Config_default.h
     src/core/config/Config_platform.h
     src/core/config/Config.h
     src/core/config/ConfigTransform.h
     src/core/config/usage.h
     src/core/Controller.h
-    src/interfaces/IJobResultListener.h
-    src/interfaces/IThread.h
-    src/interfaces/IWorker.h
-    src/Mem.h
+    src/core/Miner.h
+    src/net/interfaces/IJobResultListener.h
     src/net/JobResult.h
+    src/net/JobResults.h
     src/net/Network.h
     src/net/NetworkState.h
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
-    src/workers/CpuThread.h
-    src/workers/Hashrate.h
-    src/workers/MultiWorker.h
-    src/workers/ThreadHandle.h
-    src/workers/Worker.h
-    src/workers/Workers.h
    )
 
 set(HEADERS_CRYPTO
@@ -60,7 +50,9 @@ set(HEADERS_CRYPTO
     src/crypto/cn/c_groestl.h
     src/crypto/cn/c_jh.h
     src/crypto/cn/c_skein.h
-    src/crypto/cn/CryptoNight_constants.h
+    src/crypto/cn/CnAlgo.h
+    src/crypto/cn/CnCtx.h
+    src/crypto/cn/CnHash.h
     src/crypto/cn/CryptoNight_monero.h
     src/crypto/cn/CryptoNight_test.h
     src/crypto/cn/CryptoNight.h
@@ -69,6 +61,8 @@ set(HEADERS_CRYPTO
     src/crypto/cn/skein_port.h
     src/crypto/cn/soft_aes.h
     src/crypto/common/Algorithm.h
+    src/crypto/common/keccak.h
+    src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
    )
@@ -82,32 +76,30 @@ endif()
 set(SOURCES
     "${SOURCES_BASE}"
     "${SOURCES_BASE_HTTP}"
+    "${SOURCES_BACKEND}"
     src/App.cpp
-    src/common/crypto/keccak.cpp
-    src/common/Platform.cpp
     src/core/config/Config.cpp
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
-    src/Mem.cpp
+    src/core/Miner.cpp
+    src/net/JobResults.cpp
     src/net/Network.cpp
     src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
-    src/workers/CpuThread.cpp
-    src/workers/Hashrate.cpp
-    src/workers/MultiWorker.cpp
-    src/workers/ThreadHandle.cpp
-    src/workers/Worker.cpp
-    src/workers/Workers.cpp
     src/xmrig.cpp
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/cn/c_groestl.c
     src/crypto/cn/c_blake256.c
+    src/crypto/cn/c_groestl.c
     src/crypto/cn/c_jh.c
     src/crypto/cn/c_skein.c
+    src/crypto/cn/CnCtx.cpp
+    src/crypto/cn/CnHash.cpp
     src/crypto/common/Algorithm.cpp
+    src/crypto/common/keccak.cpp
+    src/crypto/common/Nonce.cpp
    )
 
 if (WIN32)
@@ -115,8 +107,6 @@ if (WIN32)
         "${SOURCES_OS}"
         res/app.rc
         src/App_win.cpp
-        src/common/Platform_win.cpp
-        src/Mem_win.cpp
         src/crypto/common/VirtualMemory_win.cpp
         )
 
@@ -126,16 +116,12 @@ elseif (APPLE)
     set(SOURCES_OS
         "${SOURCES_OS}"
         src/App_unix.cpp
-        src/common/Platform_mac.cpp
-        src/Mem_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 else()
     set(SOURCES_OS
         "${SOURCES_OS}"
         src/App_unix.cpp
-        src/common/Platform_unix.cpp
-        src/Mem_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 
@@ -166,24 +152,34 @@ if (WITH_RANDOMX)
     set(SOURCES_CRYPTO
         "${SOURCES_CRYPTO}"
         src/crypto/randomx/aes_hash.cpp
+        src/crypto/randomx/allocator.cpp
+        src/crypto/randomx/argon2_core.c
         src/crypto/randomx/argon2_ref.c
+        src/crypto/randomx/blake2_generator.cpp
+        src/crypto/randomx/blake2/blake2b.c
         src/crypto/randomx/bytecode_machine.cpp
         src/crypto/randomx/dataset.cpp
-        src/crypto/randomx/soft_aes.cpp
-        src/crypto/randomx/virtual_memory.cpp
-        src/crypto/randomx/vm_interpreted.cpp
-        src/crypto/randomx/allocator.cpp
+        src/crypto/randomx/instructions_portable.cpp
         src/crypto/randomx/randomx.cpp
+        src/crypto/randomx/reciprocal.c
+        src/crypto/randomx/soft_aes.cpp
         src/crypto/randomx/superscalar.cpp
+        src/crypto/randomx/virtual_machine.cpp
+        src/crypto/randomx/virtual_memory.cpp
+        src/crypto/randomx/vm_compiled_light.cpp
         src/crypto/randomx/vm_compiled.cpp
         src/crypto/randomx/vm_interpreted_light.cpp
-        src/crypto/randomx/argon2_core.c
-        src/crypto/randomx/blake2_generator.cpp
-        src/crypto/randomx/instructions_portable.cpp
-        src/crypto/randomx/reciprocal.c
-        src/crypto/randomx/virtual_machine.cpp
-        src/crypto/randomx/vm_compiled_light.cpp
-        src/crypto/randomx/blake2/blake2b.c
+        src/crypto/randomx/vm_interpreted.cpp
+        src/crypto/rx/Rx.cpp
+        src/crypto/rx/Rx.h
+        src/crypto/rx/RxAlgo.cpp
+        src/crypto/rx/RxAlgo.h
+        src/crypto/rx/RxCache.cpp
+        src/crypto/rx/RxCache.h
+        src/crypto/rx/RxDataset.cpp
+        src/crypto/rx/RxDataset.h
+        src/crypto/rx/RxVm.cpp
+        src/crypto/rx/RxVm.h
     )
     if (NOT ARCH_ID)
         set(ARCH_ID ${CMAKE_HOST_SYSTEM_PROCESSOR})
@@ -207,23 +203,6 @@ else()
 endif()
 
 include(cmake/flags.cmake)
-
-if (WITH_LIBCPUID)
-    add_subdirectory(src/3rdparty/libcpuid)
-
-    include_directories(src/3rdparty/libcpuid)
-    set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/core/cpu/AdvancedCpuInfo.h src/core/cpu/AdvancedCpuInfo.cpp src/core/cpu/Cpu.cpp)
-else()
-    add_definitions(/DXMRIG_NO_LIBCPUID)
-    set(SOURCES_CPUID src/common/cpu/BasicCpuInfo.h src/common/cpu/Cpu.cpp)
-
-    if (XMRIG_ARM)
-        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo_arm.cpp)
-    else()
-        set(SOURCES_CPUID ${SOURCES_CPUID} src/common/cpu/BasicCpuInfo.cpp)
-    endif()
-endif()
 
 include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)
@@ -256,8 +235,6 @@ if (WITH_HTTP)
         src/api/requests/ApiRequest.h
         src/api/requests/HttpApiRequest.cpp
         src/api/requests/HttpApiRequest.h
-        src/api/v1/ApiRouter.cpp
-        src/api/v1/ApiRouter.h
         )
 else()
     set(HTTP_SOURCES "")
