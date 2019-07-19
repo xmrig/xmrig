@@ -65,7 +65,6 @@ static const option options[] = {
     { "nicehash",              0, nullptr, IConfig::NicehashKey           },
     { "no-color",              0, nullptr, IConfig::ColorKey              },
     { "no-huge-pages",         0, nullptr, IConfig::HugePagesKey          },
-    { "variant",               1, nullptr, IConfig::VariantKey            },
     { "pass",                  1, nullptr, IConfig::PasswordKey           },
     { "print-time",            1, nullptr, IConfig::PrintTimeKey          },
     { "retries",               1, nullptr, IConfig::RetriesKey            },

@@ -44,6 +44,7 @@
 namespace xmrig
 {
 
+static const char *kAlgo  = "algo";
 static const char *kApi   = "api";
 static const char *kHttp  = "http";
 static const char *kPools = "pools";
@@ -100,7 +101,9 @@ void xmrig::BaseTransform::finalize(rapidjson::Document &doc)
     if (m_algorithm.isValid() && doc.HasMember(kPools)) {
         auto &pools = doc[kPools];
         for (Value &pool : pools.GetArray()) {
-            pool.AddMember(StringRef("algo"), m_algorithm.toJSON(), allocator);
+            if (!pool.HasMember(kAlgo)) {
+                pool.AddMember(StringRef(kAlgo), m_algorithm.toJSON(), allocator);
+            }
         }
     }
 }
@@ -110,7 +113,12 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 {
     switch (key) {
     case IConfig::AlgorithmKey: /* --algo */
-        m_algorithm = arg;
+        if (!doc.HasMember(kPools)) {
+            m_algorithm = arg;
+        }
+        else {
+            return add(doc, kPools, kAlgo, arg);
+        }
         break;
 
     case IConfig::UserpassKey: /* --userpass */
@@ -143,9 +151,6 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 
     case IConfig::FingerprintKey: /* --tls-fingerprint */
         return add(doc, kPools, "tls-fingerprint", arg);
-
-    case IConfig::VariantKey: /* --variant */
-        return add(doc, kPools, "variant", arg);
 
     case IConfig::LogFileKey: /* --log-file */
         return set(doc, "log-file", arg);
