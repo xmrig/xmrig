@@ -27,7 +27,9 @@
 #pragma warning(disable:4244)
 #endif
 
+#include <algorithm>
 #include <inttypes.h>
+#include <iterator>
 #include <memory>
 #include <time.h>
 
@@ -154,14 +156,23 @@ void xmrig::Network::onJobResult(const JobResult &result)
 }
 
 
-void xmrig::Network::onLogin(IStrategy *, IClient *, rapidjson::Document &doc, rapidjson::Value &params)
+void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &doc, rapidjson::Value &params)
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
 
+    Algorithms algorithms     = m_controller->miner()->algorithms();
+    const Algorithm algorithm = client->pool().algorithm();
+    if (algorithm.isValid()) {
+        const size_t index = static_cast<size_t>(std::distance(algorithms.begin(), std::find(algorithms.begin(), algorithms.end(), algorithm)));
+        if (index > 0 && index < algorithms.size()) {
+            std::swap(algorithms[0], algorithms[index]);
+        }
+    }
+
     Value algo(kArrayType);
 
-    for (const auto &a : m_controller->miner()->algorithms()) {
+    for (const auto &a : algorithms) {
         algo.PushBack(StringRef(a.shortName()), allocator);
     }
 
