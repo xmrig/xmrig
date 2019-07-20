@@ -40,7 +40,15 @@ R"===(
     "autosave": true,
     "background": false,
     "colors": true,
-    "cpu": null,
+    "cpu": {
+        "enabled": true,
+        "huge-pages": true,
+        "hw-aes": null,
+        "priority": null,
+        "asm": true,
+        "cn/0": false,
+        "cn-lite/0": false
+    },
     "donate-level": 5,
     "donate-over-proxy": 1,
     "http": {
