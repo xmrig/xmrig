@@ -41,7 +41,7 @@ class Algorithm
 public:
     enum Id : int {
         INVALID = -1,
-        CN_0,          // "cn/0"             Original CryptoNight
+        CN_0,          // "cn/0"             CryptoNight (original)
         CN_1,          // "cn/1"             CryptoNight variant 1 also known as Monero7 and CryptoNightV7
         CN_2,          // "cn/2"             CryptoNight variant 2
         CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4)
