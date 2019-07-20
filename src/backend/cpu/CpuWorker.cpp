@@ -94,7 +94,7 @@ bool xmrig::CpuWorker<N>::selfTest()
 {
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_algorithm.family() == Algorithm::RANDOM_X) {
-        return true;
+        return N == 1;
     }
 #   endif
 

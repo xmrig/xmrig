@@ -41,37 +41,37 @@ class Algorithm
 public:
     enum Id : int {
         INVALID = -1,
-        CN_0,          // "cn/0"             CryptoNight (original)
-        CN_1,          // "cn/1"             CryptoNight variant 1 also known as Monero7 and CryptoNightV7
-        CN_2,          // "cn/2"             CryptoNight variant 2
-        CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4)
-        CN_WOW,        // "cn/wow"           CryptoNightR (Wownero)
-        CN_FAST,       // "cn/fast"          CryptoNight variant 1 with half iterations
-        CN_HALF,       // "cn/half"          CryptoNight variant 2 with half iterations (Masari/Stellite)
-        CN_XAO,        // "cn/xao"           Modified CryptoNight variant 0 (Alloy only)
-        CN_RTO,        // "cn/rto"           Modified CryptoNight variant 1 (Arto only)
-        CN_RWZ,        // "cn/rwz"           CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft)
-        CN_ZLS,        // "cn/zls"           CryptoNight variant 2 with 3/4 iterations (Zelerius)
-        CN_DOUBLE,     // "cn/double"        CryptoNight variant 2 with double iterations (X-CASH)
+        CN_0,          // "cn/0"             CryptoNight (original).
+        CN_1,          // "cn/1"             CryptoNight variant 1 also known as Monero7 and CryptoNightV7.
+        CN_2,          // "cn/2"             CryptoNight variant 2.
+        CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
+        CN_WOW,        // "cn/wow"           CryptoNightR (Wownero).
+        CN_FAST,       // "cn/fast"          CryptoNight variant 1 with half iterations.
+        CN_HALF,       // "cn/half"          CryptoNight variant 2 with half iterations (Masari/Torque).
+        CN_XAO,        // "cn/xao"           CryptoNight variant 0 (modified, Alloy only).
+        CN_RTO,        // "cn/rto"           CryptoNight variant 1 (modified, Arto only).
+        CN_RWZ,        // "cn/rwz"           CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft).
+        CN_ZLS,        // "cn/zls"           CryptoNight variant 2 with 3/4 iterations (Zelerius).
+        CN_DOUBLE,     // "cn/double"        CryptoNight variant 2 with double iterations (X-CASH).
 #       ifdef XMRIG_ALGO_CN_GPU
-        CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo)
+        CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
 #       endif
 #       ifdef XMRIG_ALGO_CN_LITE
-        CN_LITE_0,     // "cn-lite/0"        CryptoNight-Lite (1 MB) variant 0
-        CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite (1 MB) variant 1
+        CN_LITE_0,     // "cn-lite/0"        CryptoNight-Lite variant 0.
+        CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
 #       endif
 #       ifdef XMRIG_ALGO_CN_HEAVY
-        CN_HEAVY_0,    // "cn-heavy/0"       CryptoNight-Heavy (4 MB)
-        CN_HEAVY_TUBE, // "cn-heavy/tube"    Modified CryptoNight-Heavy (TUBE only)
-        CN_HEAVY_XHV,  // "cn-heavy/xhv"     Modified CryptoNight-Heavy (Haven Protocol only)
+        CN_HEAVY_0,    // "cn-heavy/0"       CryptoNight-Heavy (4 MB).
+        CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
+        CN_HEAVY_XHV,  // "cn-heavy/xhv"     CryptoNight-Heavy (modified, Haven Protocol only).
 #       endif
 #       ifdef XMRIG_ALGO_CN_PICO
         CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
 #       endif
 #       ifdef XMRIG_ALGO_RANDOMX
-        RX_0,          // "rx/0"             RandomX (reference configuration)
-        RX_WOW,        // "rx/wow"           RandomWOW (Wownero)
-        RX_LOKI,       // "rx/loki"          RandomXL (Loki)
+        RX_0,          // "rx/0"             RandomX (reference configuration).
+        RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
+        RX_LOKI,       // "rx/loki"          RandomXL (Loki).
 #       endif
         MAX
     };
