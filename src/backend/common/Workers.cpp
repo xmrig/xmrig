@@ -137,52 +137,84 @@ void xmrig::Workers<T>::tick(uint64_t)
 
 
 template<class T>
-void xmrig::Workers<T>::onReady(void *)
+xmrig::IWorker *xmrig::Workers<T>::create(Thread<CpuLaunchData> *)
 {
+    return nullptr;
+}
+
+
+template<class T>
+void xmrig::Workers<T>::onReady(void *arg)
+{
+    Thread<T> *handle = static_cast<Thread<T>* >(arg);
+
+    IWorker *worker = create(handle);
+    if (!worker || !worker->selfTest()) {
+        LOG_ERR("thread %zu error: \"hash self-test failed\".", worker->id());
+
+        return;
+    }
+
+    handle->setWorker(worker);
+    handle->backend()->start(worker);
 }
 
 
 namespace xmrig {
 
 
-template<>
-void xmrig::Workers<CpuLaunchData>::onReady(void *arg)
+#if defined (XMRIG_ALGO_RANDOMX) || defined (XMRIG_ALGO_CN_GPU)
+static void printIntensityWarning(Thread<CpuLaunchData> *handle)
 {
-    auto handle = static_cast<Thread<CpuLaunchData>* >(arg);
+    LOG_WARN("CPU thread %zu warning: \"intensity %d not supported for %s algorithm\".", handle->index(), handle->config().intensity, handle->config().algorithm.shortName());
+}
+#endif
 
-    IWorker *worker = nullptr;
 
-    switch (handle->config().intensity) {
+template<>
+xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
+{
+    const int intensity = handle->config().intensity;
+
+#   if defined (XMRIG_ALGO_RANDOMX) || defined (XMRIG_ALGO_CN_GPU)
+    if (intensity > 1) {
+#       ifdef XMRIG_ALGO_RANDOMX
+        if (handle->config().algorithm.family() == Algorithm::RANDOM_X) {
+            printIntensityWarning(handle);
+
+            return new CpuWorker<1>(handle->index(), handle->config());
+        }
+#       endif
+
+#       ifdef XMRIG_ALGO_CN_GPU
+        if (handle->config().algorithm == Algorithm::CN_GPU) {
+            printIntensityWarning(handle);
+
+            return new CpuWorker<1>(handle->index(), handle->config());
+        }
+#       endif
+    }
+#   endif
+
+
+    switch (intensity) {
     case 1:
-        worker = new CpuWorker<1>(handle->index(), handle->config());
-        break;
+        return new CpuWorker<1>(handle->index(), handle->config());
 
     case 2:
-        worker = new CpuWorker<2>(handle->index(), handle->config());
-        break;
+        return new CpuWorker<2>(handle->index(), handle->config());
 
     case 3:
-        worker = new CpuWorker<3>(handle->index(), handle->config());
-        break;
+        return new CpuWorker<3>(handle->index(), handle->config());
 
     case 4:
-        worker = new CpuWorker<4>(handle->index(), handle->config());
-        break;
+        return new CpuWorker<4>(handle->index(), handle->config());
 
     case 5:
-        worker = new CpuWorker<5>(handle->index(), handle->config());
-        break;
+        return new CpuWorker<5>(handle->index(), handle->config());
     }
 
-    handle->setWorker(worker);
-
-    if (!worker->selfTest()) {
-        LOG_ERR("thread %zu error: \"hash self-test failed\".", handle->worker()->id());
-
-        return;
-    }
-
-    handle->backend()->start(worker);
+    return nullptr;
 }
 
 

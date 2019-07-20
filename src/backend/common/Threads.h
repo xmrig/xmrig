@@ -43,7 +43,7 @@ class Threads
 {
 public:
     inline bool has(const char *profile) const                                         { return m_profiles.count(profile) > 0; }
-    inline bool isDisabled(const Algorithm &algo) const                                { return m_disabled.count(algo) > 0 || algo == Algorithm::RX_0; }
+    inline bool isDisabled(const Algorithm &algo) const                                { return m_disabled.count(algo) > 0; }
     inline bool isExist(const Algorithm &algo) const                                   { return isDisabled(algo) || m_aliases.count(algo) > 0 || has(algo.shortName()); }
     inline const std::vector<T> &get(const Algorithm &algo, bool strict = false) const { return get(profileName(algo, strict)); }
     inline void disable(const Algorithm &algo)                                         { m_disabled.insert(algo); }

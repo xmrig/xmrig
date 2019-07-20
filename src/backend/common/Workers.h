@@ -52,6 +52,7 @@ public:
     void tick(uint64_t ticks);
 
 private:
+    static IWorker *create(Thread<CpuLaunchData> *handle);
     static void onReady(void *arg);
 
     std::vector<Thread<T> *> m_workers;
@@ -60,7 +61,7 @@ private:
 
 
 template<>
-void Workers<CpuLaunchData>::onReady(void *arg);
+IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
 
 
 extern template class Workers<CpuLaunchData>;
