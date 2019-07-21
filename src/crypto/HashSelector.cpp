@@ -173,6 +173,8 @@ static void cryptonight_aesni(AsmOptimization asmOptimization, uint64_t height, 
 #endif
     } else if (variant == PowVariant::POW_XFH) {
         CryptoNightMultiHash<0x20000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, POW_XFH, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
+    } else if (variant == PowVariant::POW_CONCEAL) {
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, POW_CONCEAL, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, POW_V0, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     }
@@ -297,6 +299,8 @@ static void cryptonight_softaes(AsmOptimization asmOptimization, uint64_t height
 #endif
     } else if (variant == PowVariant::POW_XFH) {
         CryptoNightMultiHash<0x20000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, POW_XFH, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
+    } else if (variant == PowVariant::POW_CONCEAL) {
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, POW_CONCEAL, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, POW_V0, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     }
@@ -846,6 +850,35 @@ bool HashSelector::selfCheck(Options::Algo algo)
         hash_ctx[4](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v2, 160) == 0;
         #endif
+
+        // cn conceal
+
+#if !defined(XMRIG_ARM)
+
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_CONCEAL, test_input, 76, output, scratchPads);
+        result = result && memcmp(output, test_output_conceal, 32) == 0;
+
+        #if MAX_NUM_HASH_BLOCKS > 1
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_CONCEAL, test_input, 76, output, scratchPads);
+        result = result && memcmp(output, test_output_conceal, 64) == 0;
+        #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 2
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_CONCEAL, test_input, 76, output, scratchPads);
+        result = result && memcmp(output, test_output_conceal, 96) == 0;
+        #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 3
+        hash_ctx[3](asmOptimization, 0, PowVariant::POW_CONCEAL, test_input, 76, output, scratchPads);
+        result = result && memcmp(output, test_output_conceal, 128) == 0;
+        #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 4
+        hash_ctx[4](asmOptimization, 0, PowVariant::POW_CONCEAL, test_input, 76, output, scratchPads);
+        result = result && memcmp(output, test_output_conceal, 160) == 0;
+        #endif
+
+#endif
 
         // cn xfh aka cn-heavy-superfast
 

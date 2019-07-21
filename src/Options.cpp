@@ -354,6 +354,7 @@ constexpr static const char *pow_variant_names[] = {
         "zls",
         "graft",
         "upx2",
+        "conceal",
         "chukwa",
         "wrkz"
 };
@@ -1308,6 +1309,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "rwz") || !strcmp(powVariant, "graft"))) {
             m_powVariant = POW_RWZ;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "conceal") || !strcmp(powVariant, "ccx"))) {
+            m_powVariant = POW_CONCEAL;
             break;
         }
 
