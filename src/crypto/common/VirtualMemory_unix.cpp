@@ -29,12 +29,57 @@
 #include <sys/mman.h>
 
 
+#include "crypto/common/portable/mm_malloc.h"
 #include "crypto/common/VirtualMemory.h"
 
 
 #if defined(__APPLE__)
 #   include <mach/vm_statistics.h>
 #endif
+
+
+int xmrig::VirtualMemory::m_globalFlags = 0;
+
+
+xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, size_t align) :
+    m_size(VirtualMemory::align(size))
+{
+    if (hugePages) {
+        m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
+        if (m_scratchpad) {
+            m_flags |= HUGEPAGES;
+
+            madvise(m_scratchpad, size, MADV_RANDOM | MADV_WILLNEED);
+
+            if (mlock(m_scratchpad, m_size) == 0) {
+                m_flags |= LOCK;
+            }
+
+            return;
+        }
+    }
+
+    m_scratchpad = static_cast<uint8_t*>(_mm_malloc(m_size, align));
+}
+
+
+xmrig::VirtualMemory::~VirtualMemory()
+{
+    if (!m_scratchpad) {
+        return;
+    }
+
+    if (isHugePages()) {
+        if (m_flags & LOCK) {
+            munlock(m_scratchpad, m_size);
+        }
+
+        freeLargePagesMemory(m_scratchpad, m_size);
+    }
+    else {
+        _mm_free(m_scratchpad);
+    }
+}
 
 
 
@@ -75,6 +120,14 @@ void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
 {
     munmap(p, size);
+}
+
+
+void xmrig::VirtualMemory::init(bool hugePages)
+{
+    if (hugePages) {
+        m_globalFlags = HUGEPAGES | HUGEPAGES_AVAILABLE;
+    }
 }
 
 

@@ -4,7 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2018 XMRig       <support@xmrig.com>
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -50,6 +52,12 @@ public:
     };
 
 
+    enum RequestType {
+        REQ_UNKNOWN,
+        REQ_SUMMARY
+    };
+
+
     virtual ~IApiRequest() = default;
 
     virtual bool isDone() const                                  = 0;
@@ -57,9 +65,11 @@ public:
     virtual bool isRestricted() const                            = 0;
     virtual const rapidjson::Value &json() const                 = 0;
     virtual const String &url() const                            = 0;
+    virtual int version() const                                  = 0;
     virtual Method method() const                                = 0;
     virtual rapidjson::Document &doc()                           = 0;
     virtual rapidjson::Value &reply()                            = 0;
+    virtual RequestType type() const                             = 0;
     virtual Source source() const                                = 0;
     virtual void accept()                                        = 0;
     virtual void done(int status)                                = 0;

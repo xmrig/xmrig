@@ -42,7 +42,8 @@ class IConfigTransform
 public:
     virtual ~IConfigTransform() = default;
 
-    virtual void transform(rapidjson::Document &doc, int key, const char *arg) = 0;
+    virtual void finalize(rapidjson::Document &doc)                             = 0;
+    virtual void transform(rapidjson::Document &doc, int key, const char *arg)  = 0;
 };
 
 

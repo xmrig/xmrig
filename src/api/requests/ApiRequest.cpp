@@ -28,8 +28,7 @@
 
 xmrig::ApiRequest::ApiRequest(Source source, bool restricted) :
     m_restricted(restricted),
-    m_source(source),
-    m_state(STATE_NEW)
+    m_source(source)
 {
 }
 

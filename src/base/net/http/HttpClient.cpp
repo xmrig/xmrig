@@ -29,10 +29,10 @@
 
 #include "3rdparty/http-parser/http_parser.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
 #include "base/net/dns/Dns.h"
 #include "base/net/http/HttpClient.h"
 #include "base/tools/Baton.h"
-#include "common/Platform.h"
 
 
 namespace xmrig {

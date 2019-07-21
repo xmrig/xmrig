@@ -42,10 +42,10 @@ typedef void(*cn_mainloop_fun_ms_abi)(cryptonight_ctx**) ABI_ATTRIBUTE;
 
 
 struct cryptonight_r_data {
-    int variant;
+    int algo;
     uint64_t height;
 
-    bool match(const int v, const uint64_t h) const { return (v == variant) && (h == height); }
+    bool match(const int a, const uint64_t h) const { return (a == algo) && (h == height); }
 };
 
 

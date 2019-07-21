@@ -35,6 +35,7 @@
 namespace xmrig {
 
 
+class IJsonReader;
 class IStrategy;
 class IStrategyListener;
 
@@ -63,15 +64,15 @@ public:
     IStrategy *createStrategy(IStrategyListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t active() const;
-    void adjust(const Algorithm &algorithm);
-    void load(const rapidjson::Value &pools);
+    void load(const IJsonReader &reader);
     void print() const;
+
+private:
     void setDonateLevel(int level);
     void setProxyDonate(int value);
     void setRetries(int retries);
     void setRetryPause(int retryPause);
 
-private:
     int m_donateLevel;
     int m_retries;
     int m_retryPause;
