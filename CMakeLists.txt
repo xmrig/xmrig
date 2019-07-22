@@ -82,6 +82,7 @@ set(SOURCES
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
     src/core/Miner.cpp
+    src/core/Benchmark.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
     src/net/NetworkState.cpp

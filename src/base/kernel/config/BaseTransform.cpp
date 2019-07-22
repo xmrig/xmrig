@@ -176,6 +176,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::HttpPort:       /* --http-port */
     case IConfig::DonateLevelKey: /* --donate-level */
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
+    case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::BackgroundKey:  /* --background */
@@ -186,6 +187,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::DryRunKey:      /* --dry-run */
     case IConfig::HttpEnabledKey: /* --http-enabled */
     case IConfig::DaemonKey:      /* --daemon */
+    case IConfig::RebenchAlgoKey: /* --rebench-algo */
         return transformBoolean(doc, key, true);
 
     case IConfig::ColorKey:          /* --no-color */
@@ -233,6 +235,9 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::DryRunKey: /* --dry-run */
         return set(doc, "dry-run", enable);
 
+    case IConfig::RebenchAlgoKey: /* --rebench-algo */
+        return set(doc, "rebench-algo", enable);
+
     default:
         break;
     }
@@ -262,6 +267,9 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, kPools, "daemon-poll-interval", arg);
+
+    case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
+        return set(doc, "bench-algo-time", arg);
 
     default:
         break;

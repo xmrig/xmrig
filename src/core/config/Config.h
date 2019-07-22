@@ -31,6 +31,7 @@
 
 #include "backend/cpu/CpuConfig.h"
 #include "base/kernel/config/BaseConfig.h"
+#include "core/Benchmark.h"
 #include "rapidjson/fwd.h"
 
 
@@ -48,12 +49,14 @@ public:
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline bool isShouldSave() const        { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
+    inline bool isShouldSave() const        { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave() || m_benchmark.isNewBenchRun()) && isAutoSave(); }
     inline const CpuConfig &cpu() const     { return m_cpu; }
+    inline Benchmark &benchmark()           { return m_benchmark; }
 
 private:
     bool m_shouldSave   = false;
     CpuConfig m_cpu;
+    Benchmark m_benchmark;
 };
 
 

@@ -50,6 +50,7 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     }
 
     m_cpu.read(reader.getValue("cpu"));
+    m_benchmark.read(reader.getValue("algo-perf"));
 
     return true;
 }
@@ -72,6 +73,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("background",        isBackground(), allocator);
     doc.AddMember("colors",            Log::colors, allocator);
     doc.AddMember("cpu",               m_cpu.toJSON(doc), allocator);
+    doc.AddMember("algo-perf",         m_benchmark.toJSON(doc), allocator);
     doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
     doc.AddMember("donate-over-proxy", m_pools.proxyDonate(), allocator);
     doc.AddMember("http",              m_http.toJSON(doc), allocator);
@@ -83,4 +85,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("syslog",            isSyslog(), allocator);
     doc.AddMember("user-agent",        m_userAgent.toJSON(), allocator);
     doc.AddMember("watch",             m_watch, allocator);
+
+    doc.AddMember("rebench-algo",      isRebenchAlgo(), allocator);
+    doc.AddMember("bench-algo-time",   benchAlgoTime(), allocator);
 }

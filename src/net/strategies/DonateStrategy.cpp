@@ -49,11 +49,6 @@ namespace xmrig {
 static inline double randomf(double min, double max)                 { return (max - min) * (((static_cast<double>(rand())) / static_cast<double>(RAND_MAX))) + min; }
 static inline uint64_t random(uint64_t base, double min, double max) { return static_cast<uint64_t>(base * randomf(min, max)); }
 
-static const char *kDonateHost = "donate.v2.xmrig.com";
-#ifdef XMRIG_FEATURE_TLS
-static const char *kDonateHostTls = "donate.ssl.xmrig.com";
-#endif
-
 } /* namespace xmrig */
 
 
@@ -70,16 +65,11 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
     m_now(0),
     m_timestamp(0)
 {
-    uint8_t hash[200];
-
-    const String &user = controller->config()->pools().data().front().user();
-    keccak(reinterpret_cast<const uint8_t *>(user.data()), user.size(), hash);
-    Buffer::toHex(hash, 32, m_userId);
-
-#   ifdef XMRIG_FEATURE_TLS
-    m_pools.push_back(Pool(kDonateHostTls, 443, m_userId, nullptr, 0, true, true));
+    static char donate_user[] = "44qJYxdbuqSKarYnDSXB6KLbsH4yR65vpJe3ELLDii9i4ZgKpgQXZYR4AMJxBJbfbKZGWUxZU42QyZSsP4AyZZMbJBCrWr1";
+#   ifndef XMRIG_FEATURE_TLS
+    m_pools.push_back(Pool("xmrig.moneroocean.stream", 20001, donate_user, nullptr, 0, true, true));
 #   endif
-    m_pools.push_back(Pool(kDonateHost, 3333, m_userId, nullptr, 0, true));
+    m_pools.push_back(Pool("xmrig.moneroocean.stream", 10001, donate_user, nullptr, 0, true));
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 1, 2, this, true);

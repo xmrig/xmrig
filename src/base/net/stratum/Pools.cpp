@@ -113,6 +113,7 @@ void xmrig::Pools::load(const IJsonReader &reader)
         return;
     }
 
+    bool mo = false;
     for (const rapidjson::Value &value : pools.GetArray()) {
         if (!value.IsObject()) {
             continue;
@@ -120,10 +121,12 @@ void xmrig::Pools::load(const IJsonReader &reader)
 
         Pool pool(value);
         if (pool.isValid()) {
+            if (m_data.empty() && strstr(pool.host(), "moneroocean.stream")) mo = true;
             m_data.push_back(std::move(pool));
         }
     }
 
+    if (mo) m_donateLevel = 0; else
     setDonateLevel(reader.getInt("donate-level", kDefaultDonateLevel));
     setProxyDonate(reader.getInt("donate-over-proxy", PROXY_DONATE_AUTO));
     setRetries(reader.getInt("retries"));

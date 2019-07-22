@@ -63,13 +63,15 @@ int xmrig::Controller::init()
     return 0;
 }
 
+void xmrig::Controller::pre_start()
+{
+    m_miner = new Miner(this);
+}
+
 
 void xmrig::Controller::start()
 {
     Base::start();
-
-    m_miner = new Miner(this);
-
     network()->connect();
 }
 

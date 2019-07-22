@@ -4,6 +4,8 @@
         "worker-id": null
     },
     "autosave": true,
+    "rebench-algo": false,
+    "bench-algo-time": 10,
     "background": false,
     "colors": true,
     "cpu": {
@@ -15,7 +17,7 @@
         "cn/0": false,
         "cn-lite/0": false
     },
-    "donate-level": 5,
+    "donate-level": 1,
     "donate-over-proxy": 1,
     "http": {
         "enabled": false,
@@ -41,7 +43,7 @@
         }
     ],
     "print-time": 60,
-    "retries": 5,
+    "retries": 0,
     "retry-pause": 5,
     "syslog": false,
     "user-agent": null,

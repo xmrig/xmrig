@@ -86,7 +86,13 @@ int xmrig::App::exec()
         return 0;
     }
 
-    m_controller->start();
+    m_controller->pre_start();
+
+    if (m_controller->config()->benchmark().isNewBenchRun() || m_controller->config()->isRebenchAlgo()) {
+        m_controller->config()->benchmark().start(m_controller);
+    } else {
+        m_controller->start();
+    }
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());

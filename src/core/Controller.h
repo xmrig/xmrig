@@ -45,6 +45,7 @@ public:
 
     bool isReady() const override;
     int init() override;
+    void pre_start();
     void start() override;
     void stop() override;
 

@@ -57,6 +57,9 @@ public:
     inline const String &apiWorkerId() const       { return m_apiWorkerId; }
     inline uint32_t printTime() const              { return m_printTime; }
 
+    inline bool isRebenchAlgo() const              { return m_rebenchAlgo; }
+    inline int  benchAlgoTime() const              { return m_benchAlgoTime; }
+
     inline bool isWatch() const override                   { return m_watch && !m_fileName.isNull(); }
     inline const String &fileName() const override         { return m_fileName; }
     inline void setFileName(const char *fileName) override { m_fileName = fileName; }
@@ -81,6 +84,9 @@ protected:
     String m_logFile;
     String m_userAgent;
     uint32_t m_printTime;
+
+    bool m_rebenchAlgo   = false;
+    int  m_benchAlgoTime = 10;
 
 private:
     inline void setPrintTime(uint32_t printTime) { if (printTime <= 3600) { m_printTime = printTime; } }
