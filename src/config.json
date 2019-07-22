@@ -30,7 +30,7 @@
     "pools": [
         {
             "algo": null,
-            "url": "donate.v2.xmrig.com:3333",
+            "url": "gulf.moneroocean.stream:10001",
             "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",
             "rig-id": null,
