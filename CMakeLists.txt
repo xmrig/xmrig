@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
 option(WITH_LIBCPUID        "Use Libcpuid" ON)
+option(WITH_HWLOC           "Use hwloc" OFF)
 option(WITH_CN_LITE         "CryptoNight-Lite support" ON)
 option(WITH_CN_HEAVY        "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
@@ -145,6 +146,10 @@ add_definitions(/DUNICODE)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
+
+if (WITH_HWLOC)
+    find_package(HWLOC REQUIRED)
+endif()
 
 if (WITH_RANDOMX)
     include_directories(src/crypto/randomx)

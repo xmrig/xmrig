@@ -18,16 +18,43 @@ set(SOURCES_BACKEND_CPU
    )
 
 
-if (WITH_LIBCPUID)
+if (WITH_HWLOC)
+    set(WITH_LIBCPUID OFF)
+
+    include_directories(${HWLOC_INCLUDE_DIR})
+    set(CPUID_LIB ${HWLOC_LIBRARY})
+
+    remove_definitions(/DXMRIG_FEATURE_LIBCPUID)
+    add_definitions(/DXMRIG_FEATURE_HWLOC)
+
+    set(SOURCES_CPUID
+        src/backend/cpu/platform/BasicCpuInfo.cpp
+        src/backend/cpu/platform/BasicCpuInfo.h
+        src/backend/cpu/platform/HwlocCpuInfo.cpp
+        src/backend/cpu/platform/HwlocCpuInfo.h
+        )
+elseif (WITH_LIBCPUID)
+    set(WITH_HWLOC OFF)
+
     add_subdirectory(src/3rdparty/libcpuid)
     include_directories(src/3rdparty/libcpuid)
+
     add_definitions(/DXMRIG_FEATURE_LIBCPUID)
+    remove_definitions(/DXMRIG_FEATURE_HWLOC)
 
     set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/backend/cpu/platform/AdvancedCpuInfo.h src/backend/cpu/platform/AdvancedCpuInfo.cpp src/backend/cpu/Cpu.cpp)
+    set(SOURCES_CPUID
+        src/backend/cpu/platform/AdvancedCpuInfo.cpp
+        src/backend/cpu/platform/AdvancedCpuInfo.h
+        )
 else()
     remove_definitions(/DXMRIG_FEATURE_LIBCPUID)
-    set(SOURCES_CPUID src/backend/cpu/platform/BasicCpuInfo.h src/backend/cpu/Cpu.cpp)
+    remove_definitions(/DXMRIG_FEATURE_HWLOC)
+
+    set(CPUID_LIB "")
+    set(SOURCES_CPUID
+        src/backend/cpu/platform/BasicCpuInfo.h
+        )
 
     if (XMRIG_ARM)
         set(SOURCES_CPUID ${SOURCES_CPUID} src/backend/cpu/platform/BasicCpuInfo_arm.cpp)

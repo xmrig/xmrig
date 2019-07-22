@@ -4,9 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,51 +22,24 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <assert.h>
-
-
-#include "backend/cpu/Cpu.h"
+#ifndef XMRIG_HWLOCCPUINFO_H
+#define XMRIG_HWLOCCPUINFO_H
 
 
-#if defined(XMRIG_FEATURE_HWLOC)
-#   include "backend/cpu/platform/HwlocCpuInfo.h"
-#elif defined(XMRIG_FEATURE_LIBCPUID)
-#   include "backend/cpu/platform/AdvancedCpuInfo.h"
-#else
-#   include "backend/cpu/platform/BasicCpuInfo.h"
-#endif
+#include "backend/cpu/platform/BasicCpuInfo.h"
 
 
-static xmrig::ICpuInfo *cpuInfo = nullptr;
+namespace xmrig {
 
 
-xmrig::ICpuInfo *xmrig::Cpu::info()
+class HwlocCpuInfo : public BasicCpuInfo
 {
-    assert(cpuInfo != nullptr);
-
-    return cpuInfo;
-}
-
-
-void xmrig::Cpu::init()
-{
-    assert(cpuInfo == nullptr);
-
-#   if defined(XMRIG_FEATURE_HWLOC)
-    cpuInfo = new HwlocCpuInfo();
-#   elif defined(XMRIG_FEATURE_LIBCPUID)
-    cpuInfo = new AdvancedCpuInfo();
-#   else
-    cpuInfo = new BasicCpuInfo();
-#   endif
-}
+public:
+    HwlocCpuInfo();
+};
 
 
-void xmrig::Cpu::release()
-{
-    assert(cpuInfo != nullptr);
+} /* namespace xmrig */
 
-    delete cpuInfo;
-    cpuInfo = nullptr;
-}
+
+#endif /* XMRIG_HWLOCCPUINFO_H */
