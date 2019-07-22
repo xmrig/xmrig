@@ -1,3 +1,13 @@
+# v2.99.0-beta
+- [#1050](https://github.com/xmrig/xmrig/pull/1050) Added RandomXL algorithm for [Loki](https://loki.network/), algorithm name used by miner is `randomx/loki` or `rx/loki`.
+- Added [flexible](https://github.com/xmrig/xmrig/blob/evo/doc/CPU.md) multi algorithm configuration.
+- Added unlimited switching between incompatible algorithms, all mining options can be changed in runtime.
+- Breaked backward compatibility with previous configs and command line, `variant` option replaced to `algo`, global option `algo` removed, all CPU related settings moved to `cpu` object.
+- Options `av`, `safe` and `max-cpu-usage` removed.
+- Algorithm `cn/msr` renamed to `cn/fast`.
+- Algorithm `cn/xtl` removed.
+- API endpoint `GET /1/threads` replaced to `GET /2/backends`.
+
 # v2.16.0-beta
 - [#1036](https://github.com/xmrig/xmrig/pull/1036) Added RandomWOW (RandomX with different preferences) algorithm support for [Wownero](http://wownero.org/).
   - Algorithm name used by miner is `randomx/wow` or `rx/wow`.
