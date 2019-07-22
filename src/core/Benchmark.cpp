@@ -76,12 +76,17 @@ void Benchmark::read(const rapidjson::Value &value)
                 LOG_ALERT("Ignoring wrong algo-perf name %s", member.name.GetString());
                 continue;
             }
-            if (!member.value.IsFloat()) {
-                LOG_ALERT("Ignoring wrong value for %s algo-perf", member.name.GetString());
+            if (member.value.IsFloat()) {
+                algo_perf[algo.id()] = member.value.GetFloat();
+                m_isNewBenchRun = false;
                 continue;
             }
-            algo_perf[algo.id()] = member.value.GetFloat();
-            m_isNewBenchRun = false;
+            if (member.value.IsInt()) {
+                algo_perf[algo.id()] = member.value.GetInt();
+                m_isNewBenchRun = false;
+                continue;
+            }
+            LOG_ALERT("Ignoring wrong value for %s algo-perf", member.name.GetString());
         }
     }
 }
