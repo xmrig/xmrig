@@ -64,70 +64,88 @@
 #define EDX_Reg  (3)
 
 
-#ifdef _MSC_VER
-static inline void cpuid(int level, int output[4]) {
-    __cpuid(output, level);
+namespace xmrig {
+
+
+static inline void cpuid(uint32_t level, int32_t output[4])
+{
+    memset(output, 0, sizeof(int32_t) * 4);
+
+#   ifdef _MSC_VER
+    __cpuid(output, static_cast<int>(level));
+#   else
+    __cpuid_count(level, 0, output[0], output[1], output[2], output[3]);
+#   endif
 }
-#else
-static inline void cpuid(int level, int output[4]) {
-    int a, b, c, d;
-    __cpuid_count(level, 0, a, b, c, d);
-
-    output[0] = a;
-    output[1] = b;
-    output[2] = c;
-    output[3] = d;
-}
-#endif
 
 
-static inline void cpu_brand_string(char* s) {
+static void cpu_brand_string(char out[64 + 6]) {
     int32_t cpu_info[4] = { 0 };
+    char buf[64]        = { 0 };
+
     cpuid(VENDOR_ID, cpu_info);
 
     if (cpu_info[EAX_Reg] >= 4) {
-        for (int i = 0; i < 4; i++) {
+        for (uint32_t i = 0; i < 4; i++) {
             cpuid(0x80000002 + i, cpu_info);
-            memcpy(s, cpu_info, sizeof(cpu_info));
-            s += 16;
+            memcpy(buf + (i * 16), cpu_info, sizeof(cpu_info));
         }
     }
+
+    size_t pos        = 0;
+    const size_t size = strlen(buf);
+
+    for (size_t i = 0; i < size; ++i) {
+        if (buf[i] == ' ' && ((pos > 0 && out[pos - 1] == ' ') || pos == 0)) {
+            continue;
+        }
+
+        out[pos++] = buf[i];
+    }
+
+    if (pos > 0 && out[pos - 1] == ' ') {
+        out[pos - 1] = '\0';
+    }
+}
+
+
+static bool has_feature(uint32_t level, uint32_t reg, int32_t bit)
+{
+    int32_t cpu_info[4] = { 0 };
+    cpuid(level, cpu_info);
+
+    return (cpu_info[reg] & bit) != 0;
+}
+
+
+static inline int32_t get_masked(int32_t val, int32_t h, int32_t l)
+{
+    val &= (0x7FFFFFFF >> (31 - (h - l))) << l;
+    return val >> l;
 }
 
 
 static inline bool has_aes_ni()
 {
-    int32_t cpu_info[4] = { 0 };
-    cpuid(PROCESSOR_INFO, cpu_info);
-
-    return (cpu_info[ECX_Reg] & bit_AES) != 0;
+    return has_feature(PROCESSOR_INFO, ECX_Reg, bit_AES);
 }
 
 
 static inline bool has_avx2()
 {
-    int32_t cpu_info[4] = { 0 };
-    cpuid(EXTENDED_FEATURES, cpu_info);
-
-    return (cpu_info[EBX_Reg] & bit_AVX2) != 0;
+    return has_feature(EXTENDED_FEATURES, EBX_Reg, bit_AVX2) && has_feature(PROCESSOR_INFO, ECX_Reg, bit_OSXSAVE);
 }
 
 
-static inline bool has_ossave()
-{
-    int32_t cpu_info[4] = { 0 };
-    cpuid(PROCESSOR_INFO, cpu_info);
-
-    return (cpu_info[ECX_Reg] & bit_OSXSAVE) != 0;
-}
+} // namespace xmrig
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
+    m_threads(std::thread::hardware_concurrency()),
     m_assembly(Assembly::NONE),
     m_aes(has_aes_ni()),
     m_brand(),
-    m_avx2(has_avx2() && has_ossave()),
-    m_threads(std::thread::hardware_concurrency())
+    m_avx2(has_avx2())
 {
     cpu_brand_string(m_brand);
 
@@ -136,17 +154,20 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         char vendor[13] = { 0 };
         int32_t data[4] = { 0 };
 
-        cpuid(0, data);
+        cpuid(VENDOR_ID, data);
 
         memcpy(vendor + 0, &data[1], 4);
         memcpy(vendor + 4, &data[3], 4);
         memcpy(vendor + 8, &data[2], 4);
 
-        if (memcmp(vendor, "GenuineIntel", 12) == 0) {
-            m_assembly = Assembly::INTEL;
+        if (memcmp(vendor, "AuthenticAMD", 12) == 0) {
+            cpuid(PROCESSOR_INFO, data);
+            const int32_t family = get_masked(data[EAX_Reg], 12, 8) + get_masked(data[EAX_Reg], 28, 20);
+
+            m_assembly = family >= 23 ? Assembly::RYZEN : Assembly::BULLDOZER;
         }
-        else if (memcmp(vendor, "AuthenticAMD", 12) == 0) {
-            m_assembly = Assembly::RYZEN;
+        else {
+            m_assembly = Assembly::INTEL;
         }
     }
 #   endif

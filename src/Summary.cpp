@@ -71,7 +71,7 @@ static void print_cpu(xmrig::Config *)
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES %sAVX2",
                "CPU",
                Cpu::info()->brand(),
-               Cpu::info()->sockets(),
+               Cpu::info()->packages(),
                Cpu::info()->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
                Cpu::info()->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
                Cpu::info()->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"

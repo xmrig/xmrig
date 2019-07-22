@@ -43,21 +43,22 @@ protected:
     inline Assembly::Id assembly() const override   { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
     inline bool hasAVX2() const override            { return m_avx2; }
-    inline bool isSupported() const override        { return true; }
     inline const char *brand() const override       { return m_brand; }
     inline size_t cores() const override            { return 0; }
     inline size_t L2() const override               { return 0; }
     inline size_t L3() const override               { return 0; }
     inline size_t nodes() const override            { return 0; }
-    inline size_t sockets() const override          { return 1; }
+    inline size_t packages() const override         { return 1; }
     inline size_t threads() const override          { return m_threads; }
+
+protected:
+    size_t m_threads;
 
 private:
     Assembly m_assembly;
     bool m_aes;
     char m_brand[64 + 6];
     const bool m_avx2;
-    const size_t m_threads;
 };
 
 
