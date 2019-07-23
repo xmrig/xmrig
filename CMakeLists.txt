@@ -16,6 +16,10 @@ option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
+
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
 include (src/base/base.cmake)
@@ -143,13 +147,7 @@ endif()
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
-
 find_package(UV REQUIRED)
-
-if (WITH_HWLOC)
-    find_package(HWLOC REQUIRED)
-endif()
 
 if (WITH_RANDOMX)
     include_directories(src/crypto/randomx)

@@ -19,6 +19,8 @@ set(SOURCES_BACKEND_CPU
 
 
 if (WITH_HWLOC)
+    find_package(HWLOC REQUIRED)
+
     set(WITH_LIBCPUID OFF)
 
     include_directories(${HWLOC_INCLUDE_DIR})
