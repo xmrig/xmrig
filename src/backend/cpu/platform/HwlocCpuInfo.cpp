@@ -29,6 +29,62 @@
 #include "backend/cpu/platform/HwlocCpuInfo.h"
 
 
-xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo()
+namespace xmrig {
+
+
+inline bool isCacheObject(hwloc_obj_t obj)
 {
+#   if HWLOC_API_VERSION >= 0x20000
+    return hwloc_obj_type_is_cache(obj->type);
+#   else
+    return obj->type == HWLOC_OBJ_CACHE;
+#   endif
+}
+
+
+template <typename func>
+inline void findCache(hwloc_obj_t obj, func lambda)
+{
+    for (size_t i = 0; i < obj->arity; i++) {
+        if (isCacheObject(obj->children[i])) {
+            if (obj->children[i]->attr->cache.depth < 2) {
+                continue;
+            }
+
+            lambda(obj->children[i]);
+        }
+
+        findCache(obj->children[i], lambda);
+    }
+}
+
+
+inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t type)
+{
+    const int count = hwloc_get_nbobjs_by_type(topology, type);
+
+    return count > 0 ? static_cast<size_t>(count) : 0;
+}
+
+
+} // namespace xmrig
+
+
+xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
+    m_cache()
+{
+    m_threads = 0;
+
+    hwloc_topology_t topology;
+    hwloc_topology_init(&topology);
+    hwloc_topology_load(topology);
+
+    findCache(hwloc_get_root_obj(topology), [this](hwloc_obj_t found) { this->m_cache[found->attr->cache.depth] += found->attr->cache.size; });
+
+    m_threads   = countByType(topology, HWLOC_OBJ_PU);
+    m_cores     = countByType(topology, HWLOC_OBJ_CORE);
+    m_nodes     = countByType(topology, HWLOC_OBJ_NUMANODE);
+    m_packages  = countByType(topology, HWLOC_OBJ_PACKAGE);
+
+    hwloc_topology_destroy(topology);
 }

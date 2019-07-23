@@ -67,17 +67,30 @@ static void print_memory(xmrig::Config *) {
 static void print_cpu(xmrig::Config *)
 {
     using namespace xmrig;
+    const ICpuInfo *info = Cpu::info();
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES %sAVX2",
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu/%zu)") " %sx64 %sAES %sAVX2",
                "CPU",
-               Cpu::info()->brand(),
-               Cpu::info()->packages(),
-               Cpu::info()->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
-               Cpu::info()->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
-               Cpu::info()->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"
+               info->brand(),
+               info->packages(),
+               info->nodes(),
+               info->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"
                );
-#   ifdef XMRIG_FEATURE_LIBCPUID
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
+#   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" cores:") CYAN_BOLD("%zu") BLACK_BOLD(" threads:") CYAN_BOLD("%zu"),
+               "",
+               info->L2() / 1048576.0,
+               info->L3() / 1048576.0,
+               info->cores(),
+               info->threads()
+               );
+#   else
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("threads:") CYAN_BOLD("%zu"),
+               "",
+               info->threads()
+               );
 #   endif
 }
 

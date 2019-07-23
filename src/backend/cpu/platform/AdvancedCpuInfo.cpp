@@ -89,6 +89,9 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
         m_L2 = data.l2_cache > 0 ? l2 * cores() * m_packages : 0;
     }
 
+    m_L2 *= 1024;
+    m_L3 *= 1024;
+
     if (data.flags[CPU_FEATURE_AES]) {
         m_aes = true;
 
@@ -127,7 +130,6 @@ xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) co
     }
 
     if (cache) {
-        cache *= 1024;
         const size_t memory = algorithm.memory();
         assert(memory > 0);
 

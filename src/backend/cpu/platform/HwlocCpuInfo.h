@@ -36,6 +36,19 @@ class HwlocCpuInfo : public BasicCpuInfo
 {
 public:
     HwlocCpuInfo();
+
+protected:
+    inline size_t cores() const override            { return m_cores; }
+    inline size_t L2() const override               { return m_cache[2]; }
+    inline size_t L3() const override               { return m_cache[3]; }
+    inline size_t nodes() const override            { return m_nodes; }
+    inline size_t packages() const override         { return m_packages; }
+
+private:
+    size_t m_cache[5];
+    size_t m_cores      = 0;
+    size_t m_nodes      = 0;
+    size_t m_packages   = 0;
 };
 
 
