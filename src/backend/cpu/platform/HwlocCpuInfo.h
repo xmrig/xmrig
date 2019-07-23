@@ -29,6 +29,9 @@
 #include "backend/cpu/platform/BasicCpuInfo.h"
 
 
+typedef struct hwloc_obj *hwloc_obj_t;
+
+
 namespace xmrig {
 
 
@@ -38,6 +41,8 @@ public:
     HwlocCpuInfo();
 
 protected:
+    CpuThreads threads(const Algorithm &algorithm) const override;
+
     inline const char *backend() const override     { return m_backend; }
     inline size_t cores() const override            { return m_cores; }
     inline size_t L2() const override               { return m_cache[2]; }
@@ -46,6 +51,8 @@ protected:
     inline size_t packages() const override         { return m_packages; }
 
 private:
+    void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads) const;
+
     char m_backend[20];
     size_t m_cache[5];
     size_t m_cores      = 0;

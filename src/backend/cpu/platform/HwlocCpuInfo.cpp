@@ -32,7 +32,7 @@
 namespace xmrig {
 
 
-inline bool isCacheObject(hwloc_obj_t obj)
+static inline bool isCacheObject(hwloc_obj_t obj)
 {
 #   if HWLOC_API_VERSION >= 0x20000
     return hwloc_obj_type_is_cache(obj->type);
@@ -43,27 +43,58 @@ inline bool isCacheObject(hwloc_obj_t obj)
 
 
 template <typename func>
-inline void findCache(hwloc_obj_t obj, func lambda)
+static inline void findCache(hwloc_obj_t obj, unsigned min, unsigned max, func lambda)
 {
     for (size_t i = 0; i < obj->arity; i++) {
         if (isCacheObject(obj->children[i])) {
-            if (obj->children[i]->attr->cache.depth < 2) {
+            const unsigned depth = obj->children[i]->attr->cache.depth;
+            if (depth < min || depth > max) {
                 continue;
             }
 
             lambda(obj->children[i]);
         }
 
-        findCache(obj->children[i], lambda);
+        findCache(obj->children[i], min, max, lambda);
     }
 }
 
 
-inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t type)
+template <typename func>
+static inline void findByType(hwloc_obj_t obj, hwloc_obj_type_t type, func lambda)
+{
+    for (size_t i = 0; i < obj->arity; i++) {
+        if (obj->children[i]->type == type) {
+            lambda(obj->children[i]);
+        }
+        else {
+            findByType(obj->children[i], type, lambda);
+        }
+    }
+}
+
+
+static inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t type)
 {
     const int count = hwloc_get_nbobjs_by_type(topology, type);
 
     return count > 0 ? static_cast<size_t>(count) : 0;
+}
+
+
+static inline size_t countByType(hwloc_obj_t obj, hwloc_obj_type_t type)
+{
+    size_t count = 0;
+    findByType(obj, type, [&count](hwloc_obj_t) { count++; });
+
+    return count;
+}
+
+
+static inline bool isCacheExclusive(hwloc_obj_t obj)
+{
+    const char *value = hwloc_obj_get_info_by_name(obj, "Inclusive");
+    return value == nullptr || value[0] != '1';
 }
 
 
@@ -83,11 +114,7 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
     hwloc_obj_t root = hwloc_get_root_obj(topology);
     snprintf(m_backend, sizeof m_backend, "hwloc/%s", hwloc_obj_get_info_by_name(root, "hwlocVersion"));
 
-    findCache(root, [this](hwloc_obj_t found) {
-        const unsigned depth = found->attr->cache.depth;
-
-        this->m_cache[depth] += found->attr->cache.size;
-    });
+    findCache(root, 2, 3, [this](hwloc_obj_t found) { this->m_cache[found->attr->cache.depth] += found->attr->cache.size; });
 
     m_threads   = countByType(topology, HWLOC_OBJ_PU);
     m_cores     = countByType(topology, HWLOC_OBJ_CORE);
@@ -95,4 +122,110 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
     m_packages  = countByType(topology, HWLOC_OBJ_PACKAGE);
 
     hwloc_topology_destroy(topology);
+}
+
+
+xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
+{
+    if (L2() == 0 && L3() == 0) {
+        return BasicCpuInfo::threads(algorithm);
+    }
+
+    hwloc_topology_t topology;
+    hwloc_topology_init(&topology);
+    hwloc_topology_load(topology);
+
+    const unsigned depth = L3() > 0 ? 3 : 2;
+
+    CpuThreads threads;
+    threads.reserve(m_threads);
+
+    std::vector<hwloc_obj_t> caches;
+    caches.reserve(16);
+
+    findCache(hwloc_get_root_obj(topology), depth, depth, [&caches](hwloc_obj_t found) { caches.emplace_back(found); });
+
+    for (hwloc_obj_t cache : caches) {
+        processTopLevelCache(cache, algorithm, threads);
+    }
+
+    hwloc_topology_destroy(topology);
+
+    return threads;
+}
+
+
+void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads) const
+{
+    size_t PUs = countByType(cache, HWLOC_OBJ_PU);
+    if (PUs == 0) {
+        return;
+    }
+
+    size_t size             = cache->attr->cache.size;
+    const size_t scratchpad = algorithm.memory();
+
+    if (cache->attr->cache.depth == 3 && isCacheExclusive(cache)) {
+        for (size_t i = 0; i < cache->arity; ++i) {
+            hwloc_obj_t l2 = cache->children[i];
+            if (isCacheObject(l2) && l2->attr != nullptr && l2->attr->cache.size >= scratchpad) {
+                size += scratchpad;
+            }
+        }
+    }
+
+    std::vector<hwloc_obj_t> cores;
+    cores.reserve(m_cores);
+    findByType(cache, HWLOC_OBJ_CORE, [&cores](hwloc_obj_t found) { cores.emplace_back(found); });
+
+    size_t cacheHashes = (size + (scratchpad / 2)) / scratchpad;
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    if (algorithm == Algorithm::CN_GPU) {
+        cacheHashes = PUs;
+    }
+#   endif
+
+    if (cacheHashes >= PUs) {
+        for (hwloc_obj_t core : cores) {
+            if (core->arity == 0) {
+                continue;
+            }
+
+            for (unsigned i = 0; i < core->arity; ++i) {
+                if (core->children[i]->type == HWLOC_OBJ_PU) {
+                    threads.push_back(CpuThread(1, core->children[i]->os_index));
+                }
+            }
+        }
+
+        return;
+    }
+
+    size_t pu_id = 0;
+    while (cacheHashes > 0 && PUs > 0) {
+        bool allocated_pu = false;
+
+        for (hwloc_obj_t core : cores) {
+            if (core->arity <= pu_id || core->children[pu_id]->type != HWLOC_OBJ_PU) {
+                continue;
+            }
+
+            cacheHashes--;
+            PUs--;
+
+            allocated_pu = true;
+            threads.push_back(CpuThread(1, core->children[pu_id]->os_index));
+
+            if (cacheHashes == 0) {
+                break;
+            }
+        }
+
+        if (!allocated_pu) {
+            break;
+        }
+
+        pu_id++;
+    }
 }
