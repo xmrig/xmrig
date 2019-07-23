@@ -78,7 +78,15 @@ static int showVersion()
     }
 #   endif
 
+#   if defined(XMRIG_FEATURE_HWLOC)
+#   if defined(HWLOC_VERSION)
     printf("hwloc/%s\n", HWLOC_VERSION);
+#   elif HWLOC_API_VERSION >= 0x20000
+    printf("hwloc/2\n");
+#   else
+    printf("hwloc/1\n");
+#   endif
+#   endif
 
     return 0;
 }

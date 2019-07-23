@@ -110,8 +110,16 @@ void xmrig::BaseConfig::printVersions()
     }
 #   endif
 
-#   ifdef XMRIG_FEATURE_HWLOC
+
+#   if defined(XMRIG_FEATURE_HWLOC)
+#   if defined(HWLOC_VERSION)
     snprintf(buf, sizeof buf, "hwloc/%s ", HWLOC_VERSION);
+#   elif HWLOC_API_VERSION >= 0x20000
+    snprintf(buf, sizeof buf, "hwloc/2 ");
+#   else
+    snprintf(buf, sizeof buf, "hwloc/1 ");
+#   endif
+
     libs += buf;
 #   endif
 
