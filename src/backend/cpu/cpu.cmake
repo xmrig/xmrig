@@ -22,11 +22,11 @@ if (WITH_HWLOC)
     set(WITH_LIBCPUID OFF)
 
     include_directories(${HWLOC_INCLUDE_DIR})
-    set(CPUID_LIB ${HWLOC_LIBRARY})
 
     remove_definitions(/DXMRIG_FEATURE_LIBCPUID)
     add_definitions(/DXMRIG_FEATURE_HWLOC)
 
+    set(CPUID_LIB "")
     set(SOURCES_CPUID
         src/backend/cpu/platform/BasicCpuInfo.cpp
         src/backend/cpu/platform/BasicCpuInfo.h
