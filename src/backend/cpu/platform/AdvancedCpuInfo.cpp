@@ -24,11 +24,12 @@
 
 #include <algorithm>
 #include <assert.h>
-#include <libcpuid.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 
+#include "3rdparty/libcpuid/libcpuid.h"
 #include "backend/cpu/platform/AdvancedCpuInfo.h"
 
 
@@ -66,6 +67,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     cpu_identify(&raw, &data);
 
     cpu_brand_string(m_brand, data.brand_str);
+    snprintf(m_backend, sizeof m_backend, "libcpuid/%s", cpuid_lib_version());
 
     m_threads  = static_cast<size_t>(data.total_logical_cpus);
     m_packages = std::max<size_t>(threads() / static_cast<size_t>(data.num_logical_cpus), 1);

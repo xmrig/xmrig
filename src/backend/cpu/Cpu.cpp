@@ -42,18 +42,6 @@
 static xmrig::ICpuInfo *cpuInfo = nullptr;
 
 
-const char *xmrig::Cpu::backend()
-{
-#   if defined(XMRIG_FEATURE_HWLOC)
-    return "hwloc";
-#   elif defined(XMRIG_FEATURE_LIBCPUID)
-    return "libcpuid";
-#   else
-    return "basic";
-#   endif
-}
-
-
 xmrig::ICpuInfo *xmrig::Cpu::info()
 {
     assert(cpuInfo != nullptr);
@@ -82,7 +70,7 @@ rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
     cpu.AddMember("threads",    static_cast<uint64_t>(i->threads()), allocator);
     cpu.AddMember("packages",   static_cast<uint64_t>(i->packages()), allocator);
     cpu.AddMember("nodes",      static_cast<uint64_t>(i->nodes()), allocator);
-    cpu.AddMember("backend",    StringRef(backend()), allocator);
+    cpu.AddMember("backend",    StringRef(i->backend()), allocator);
 
     return cpu;
 }

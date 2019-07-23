@@ -174,6 +174,12 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 }
 
 
+const char *xmrig::BasicCpuInfo::backend() const
+{
+    return "basic";
+}
+
+
 xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
 {
     if (threads() == 1) {

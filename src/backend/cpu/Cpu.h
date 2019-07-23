@@ -35,7 +35,6 @@ namespace xmrig {
 class Cpu
 {
 public:
-    static const char *backend();
     static ICpuInfo *info();
     static rapidjson::Value toJSON(rapidjson::Document &doc);
     static void init();

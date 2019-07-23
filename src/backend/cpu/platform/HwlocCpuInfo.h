@@ -38,6 +38,7 @@ public:
     HwlocCpuInfo();
 
 protected:
+    inline const char *backend() const override     { return m_backend; }
     inline size_t cores() const override            { return m_cores; }
     inline size_t L2() const override               { return m_cache[2]; }
     inline size_t L3() const override               { return m_cache[3]; }
@@ -45,6 +46,7 @@ protected:
     inline size_t packages() const override         { return m_packages; }
 
 private:
+    char m_backend[20];
     size_t m_cache[5];
     size_t m_cores      = 0;
     size_t m_nodes      = 0;

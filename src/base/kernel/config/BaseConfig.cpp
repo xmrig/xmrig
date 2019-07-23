@@ -35,7 +35,7 @@
 #endif
 
 #ifdef XMRIG_FEATURE_HWLOC
-#   include <hwloc.h>
+#   include "backend/cpu/Cpu.h"
 #endif
 
 #ifdef XMRIG_AMD_PROJECT
@@ -110,17 +110,8 @@ void xmrig::BaseConfig::printVersions()
     }
 #   endif
 
-
 #   if defined(XMRIG_FEATURE_HWLOC)
-#   if defined(HWLOC_VERSION)
-    snprintf(buf, sizeof buf, "hwloc/%s ", HWLOC_VERSION);
-#   elif HWLOC_API_VERSION >= 0x20000
-    snprintf(buf, sizeof buf, "hwloc/2 ");
-#   else
-    snprintf(buf, sizeof buf, "hwloc/1 ");
-#   endif
-
-    libs += buf;
+    libs += Cpu::info()->backend();
 #   endif
 
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), libs.c_str());

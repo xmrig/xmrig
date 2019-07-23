@@ -38,6 +38,7 @@ public:
     BasicCpuInfo();
 
 protected:
+    const char *backend() const override;
     CpuThreads threads(const Algorithm &algorithm) const override;
 
     inline Assembly::Id assembly() const override   { return m_assembly; }

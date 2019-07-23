@@ -71,6 +71,7 @@ inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t type)
 
 
 xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
+    m_backend(),
     m_cache()
 {
     m_threads = 0;
@@ -79,7 +80,14 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
     hwloc_topology_init(&topology);
     hwloc_topology_load(topology);
 
-    findCache(hwloc_get_root_obj(topology), [this](hwloc_obj_t found) { this->m_cache[found->attr->cache.depth] += found->attr->cache.size; });
+    hwloc_obj_t root = hwloc_get_root_obj(topology);
+    snprintf(m_backend, sizeof m_backend, "hwloc/%s", hwloc_obj_get_info_by_name(root, "hwlocVersion"));
+
+    findCache(root, [this](hwloc_obj_t found) {
+        const unsigned depth = found->attr->cache.depth;
+
+        this->m_cache[depth] += found->attr->cache.size;
+    });
 
     m_threads   = countByType(topology, HWLOC_OBJ_PU);
     m_cores     = countByType(topology, HWLOC_OBJ_CORE);
