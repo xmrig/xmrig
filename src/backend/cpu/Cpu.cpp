@@ -27,6 +27,7 @@
 
 
 #include "backend/cpu/Cpu.h"
+#include "rapidjson/document.h"
 
 
 #if defined(XMRIG_FEATURE_HWLOC)
@@ -41,11 +42,49 @@
 static xmrig::ICpuInfo *cpuInfo = nullptr;
 
 
+const char *xmrig::Cpu::backend()
+{
+#   if defined(XMRIG_FEATURE_HWLOC)
+    return "hwloc";
+#   elif defined(XMRIG_FEATURE_LIBCPUID)
+    return "libcpuid";
+#   else
+    return "basic";
+#   endif
+}
+
+
 xmrig::ICpuInfo *xmrig::Cpu::info()
 {
     assert(cpuInfo != nullptr);
 
     return cpuInfo;
+}
+
+
+rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    ICpuInfo *i = info();
+    Value cpu(kObjectType);
+    Assembly assembly(i->assembly());
+
+    cpu.AddMember("brand",      StringRef(i->brand()), allocator);
+    cpu.AddMember("aes",        i->hasAES(), allocator);
+    cpu.AddMember("avx2",       i->hasAVX2(), allocator);
+    cpu.AddMember("x64",        i->isX64(), allocator);
+    cpu.AddMember("assembly",   StringRef(assembly.toString()), allocator);
+    cpu.AddMember("l2",         static_cast<uint64_t>(i->L2()), allocator);
+    cpu.AddMember("l3",         static_cast<uint64_t>(i->L3()), allocator);
+    cpu.AddMember("cores",      static_cast<uint64_t>(i->cores()), allocator);
+    cpu.AddMember("threads",    static_cast<uint64_t>(i->threads()), allocator);
+    cpu.AddMember("packages",   static_cast<uint64_t>(i->packages()), allocator);
+    cpu.AddMember("nodes",      static_cast<uint64_t>(i->nodes()), allocator);
+    cpu.AddMember("backend",    StringRef(backend()), allocator);
+
+    return cpu;
 }
 
 

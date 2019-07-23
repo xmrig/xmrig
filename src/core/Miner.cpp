@@ -130,16 +130,10 @@ public:
         using namespace rapidjson;
         auto &allocator = doc.GetAllocator();
 
-        Value cpu(kObjectType);
-        cpu.AddMember("brand",   StringRef(Cpu::info()->brand()), allocator);
-        cpu.AddMember("aes",     Cpu::info()->hasAES(), allocator);
-        cpu.AddMember("x64",     Cpu::info()->isX64(), allocator);
-        cpu.AddMember("sockets", static_cast<uint64_t>(Cpu::info()->packages()), allocator);
-
         reply.AddMember("version",      APP_VERSION, allocator);
         reply.AddMember("kind",         APP_KIND, allocator);
         reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
-        reply.AddMember("cpu",          cpu, allocator);
+        reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
 
         if (version == 1) {
             reply.AddMember("hugepages", false, allocator);
