@@ -81,8 +81,9 @@ xmrig::CpuWorker<N>::~CpuWorker()
 template<size_t N>
 void xmrig::CpuWorker<N>::allocateRandomX_VM()
 {
+    RxDataset *dataset = Rx::dataset(m_job.currentJob().seedHash(), m_job.currentJob().algorithm());
+
     if (!m_vm) {
-        RxDataset *dataset = Rx::dataset(m_job.currentJob().seedHash(), m_job.currentJob().algorithm());
         m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES);
     }
 }
