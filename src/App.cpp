@@ -30,7 +30,7 @@
 #include "App.h"
 #include "Console.h"
 #include "Cpu.h"
-#include "crypto/CryptoNight.h"
+#include "crypto/HashSelector.h"
 #include "log/ConsoleLog.h"
 #include "log/FileLog.h"
 #include "log/RemoteLog.h"
@@ -150,7 +150,7 @@ int App::start()
         LOG_INFO("%s hash self-test", m_options->algoName());
     }
 
-    if (!CryptoNight::init(m_options->algo(), m_options->aesni())) {
+    if (!HashSelector::init(m_options->algo(), m_options->aesni())) {
         LOG_ERR("%s hash self-test... failed.", m_options->algoName());
         return EINVAL;
     } else {

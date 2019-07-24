@@ -25,7 +25,7 @@
 #include <cstdlib>
 #include <sys/mman.h>
 
-#include "crypto/CryptoNight.h"
+#include "crypto/HashSelector.h"
 #include "log/Log.h"
 #include "Mem.h"
 

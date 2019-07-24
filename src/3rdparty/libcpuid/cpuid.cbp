@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="cpuid"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\src\;CMake Files\src\3rdparty\;CMake Files\src\3rdparty\argon2\;CMake Files\src\3rdparty\libcpuid\;CMake Files\src\crypto\;CMake Files\src\crypto\asm\;CMake Files\src\crypto\asm\win\;CMake Files\cmake\;CMake Files\test\;CMake Files\test\unity\;CMake Files\test\cpu\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="cpuid">
+				<Option output="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/libcpuid.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner"/>
+					<Add option="-DHAVE_ROTR"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add option="-DVERSION=&quot;0.4.0&quot;"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 cpuid"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="cpuid/fast">
+				<Option output="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/libcpuid.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner"/>
+					<Add option="-DHAVE_ROTR"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add option="-DVERSION=&quot;0.4.0&quot;"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 cpuid/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/amd_code_t.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/asm-bits.c">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/asm-bits.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/cpuid_main.c">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/intel_code_t.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/libcpuid.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/libcpuid_constants.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/libcpuid_internal.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/libcpuid_types.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/libcpuid_util.c">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/libcpuid_util.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/recog_amd.c">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/recog_amd.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/recog_intel.c">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/recog_intel.h">
+			<Option target="cpuid"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/argon2/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\3rdparty\argon2\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/3rdparty/libcpuid/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\3rdparty\libcpuid\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv1_main_loop_sandybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv1_main_loop_soft_aes_sandybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv2_double_main_loop_rwz_all.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv2_double_main_loop_sandybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv2_main_loop_bulldozer.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv2_main_loop_ivybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv2_main_loop_rwz_all.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv2_main_loop_ryzen.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/cnv2_main_loop_soft_aes_sandybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv1_main_loop_sandybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv1_main_loop_soft_aes_sandybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv2_double_main_loop_rwz_all.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv2_double_main_loop_sandybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv2_main_loop_bulldozer.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv2_main_loop_ivybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv2_main_loop_rwz_all.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv2_main_loop_ryzen.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/src/crypto/asm/win/cnv2_main_loop_soft_aes_sandybridge.inc.in">
+			<Option virtualFolder="CMake Files\src\crypto\asm\win\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/cmake/FindMHD.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/cmake/FindUV.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/cmake/asm.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/cmake/cpu.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/cmake/flags.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/test/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/test/unity/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\unity\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC/test/cpu/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\cpu\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <memory.h>
 
+#include "crypto/Argon2.h"
 #include "crypto/CryptoNight.h"
 #include "Mem.h"
 
@@ -56,6 +57,12 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
         case Options::ALGO_CRYPTONIGHT_HEAVY:
             scratchPadSize = MEMORY_HEAVY;
             break;
+        case Options::ALGO_ARGON2_256:
+            scratchPadSize = MEMORY_ARGON2_256;
+            break;
+        case Options::ALGO_ARGON2_512:
+            scratchPadSize = MEMORY_ARGON2_512;
+            break;
         case Options::ALGO_CRYPTONIGHT:
         default:
             scratchPadSize = MEMORY;
@@ -63,22 +70,22 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
     }
 
     ScratchPadMem scratchPadMem;
-    scratchPadMem.realSize = scratchPadSize * getThreadHashFactor(threadId);
-    scratchPadMem.size = scratchPadSize * getThreadHashFactor(threadId);
+    scratchPadMem.realSize = Options::isCNAlgo(m_algo) ? scratchPadSize * getThreadHashFactor(threadId) : scratchPadSize;
+    scratchPadMem.size = Options::isCNAlgo(m_algo) ? scratchPadSize * getThreadHashFactor(threadId) : scratchPadSize;
     scratchPadMem.pages = std::max(scratchPadMem.size / MEMORY, static_cast<size_t>(1));
 
     allocate(scratchPadMem, m_useHugePages);
 
     for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
-        auto* scratchPad = static_cast<ScratchPad *>(_mm_malloc(sizeof(ScratchPad), 4096));
-        scratchPad->memory     = scratchPadMem.memory + (i * scratchPadSize);
+        auto *scratchPad = static_cast<ScratchPad *>(_mm_malloc(sizeof(ScratchPad), 4096));
+        scratchPad->memory = scratchPadMem.memory + (i * scratchPadSize);
 
-        auto* p = reinterpret_cast<uint8_t*>(allocateExecutableMemory(0x4000));
-        scratchPad->generated_code  = reinterpret_cast<cn_mainloop_fun_ms_abi>(p);
+        auto *p = reinterpret_cast<uint8_t *>(allocateExecutableMemory(0x4000));
+        scratchPad->generated_code = reinterpret_cast<cn_mainloop_fun_ms_abi>(p);
         scratchPad->generated_code_double = reinterpret_cast<cn_mainloop_double_fun_ms_abi>(p + 0x2000);
 
         scratchPad->generated_code_data.variant = PowVariant::LAST_ITEM;
-        scratchPad->generated_code_data.height = (uint64_t)(-1);
+        scratchPad->generated_code_data.height = (uint64_t) (-1);
         scratchPad->generated_code_double_data = scratchPad->generated_code_data;
 
         scratchPads[i] = scratchPad;
@@ -95,9 +102,11 @@ void Mem::release(ScratchPad** scratchPads, ScratchPadMem& scratchPadMem, int th
     m_totalPages -= scratchPadMem.pages;
     m_totalHugepages -= scratchPadMem.hugePages;
 
-    release(scratchPadMem);
+    if (Options::isCNAlgo(m_algo)) {
+        release(scratchPadMem);
 
-    for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
-        _mm_free(scratchPads[i]);
+        for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
+            _mm_free(scratchPads[i]);
+        }
     }
 }

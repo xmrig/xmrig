@@ -45,6 +45,8 @@ enum PowVariant
     POW_ZELERIUS,
     POW_RWZ,
     POW_UPX2,
+    POW_ARGON2_CHUKWA,
+    POW_ARGON2_WRKZ,
     LAST_ITEM
 };
 
@@ -92,6 +94,10 @@ inline std::string getPowVariantName(PowVariant powVariant)
             return "rwz";
         case POW_UPX2:
             return "upx2";
+        case POW_ARGON2_CHUKWA:
+            return "chukwa";
+        case POW_ARGON2_WRKZ:
+            return "wrkz";
         case POW_AUTODETECT:
         default:
             return "-1";
@@ -179,12 +185,16 @@ inline PowVariant parseVariant(const std::string variant)
         powVariant = PowVariant::POW_RWZ;
     } else if (variant == "upx2") {
         powVariant = PowVariant::POW_UPX2;
+    } else if (variant == "chukwa" || variant == "trtl-chukwa" || variant == "argon2-chukwa") {
+        powVariant = PowVariant::POW_ARGON2_CHUKWA;
+    } else if (variant == "chukwa_wrkz" || variant == "wrkz" || variant == "argon2-wrkz") {
+        powVariant = PowVariant::POW_ARGON2_WRKZ;
     }
 
     return powVariant;
 }
 
-inline PowVariant getBaseVariant(PowVariant powVariant)
+inline PowVariant getCNBaseVariant(PowVariant powVariant)
 {
     switch (powVariant)
     {

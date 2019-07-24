@@ -6,6 +6,8 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+include(CheckSymbolExists)
+
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-strict-aliasing")
@@ -23,6 +25,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
+        add_definitions(/DHAVE_ROTR)
     endif()
 
     if (WIN32)
@@ -46,6 +49,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
     add_definitions(/D_CRT_SECURE_NO_WARNINGS)
     add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
     add_definitions(/DNOMINMAX)
+    add_definitions(/DHAVE_ROTR)
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
 
@@ -64,6 +68,11 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
     else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
+
+        check_symbol_exists("_rotr" "x86intrin.h" HAVE_ROTR)
+        if (HAVE_ROTR)
+            add_definitions(/DHAVE_ROTR)
+        endif()
     endif()
 
 endif()

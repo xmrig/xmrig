@@ -24,6 +24,9 @@
  */
 
 #include <Mem.h>
+#include <argon2.h>
+#include "crypto/HashSelector.h"
+#include "crypto/Argon2.h"
 #include "crypto/CryptoNight.h"
 
 #if defined(XMRIG_ARM)
@@ -33,6 +36,7 @@
 #endif
 
 #include "crypto/CryptoNight_test.h"
+#include "crypto/Argon2_test.h"
 
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_aesni(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
@@ -446,71 +450,87 @@ static void cryptonight_heavy_softaes(AsmOptimization asmOptimization, uint64_t 
     }
 }
 
-void (*cryptonight_hash_ctx[MAX_NUM_HASH_BLOCKS])(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad);
+template <size_t NUM_HASH_BLOCKS>
+static void argon2(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad)
+{
+    if (variant == PowVariant::POW_ARGON2_CHUKWA || variant == POW_TURTLE) {
+        argon2id_hash_raw(3, MEMORY_ARGON2_512/1024, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_512);
+    }
+
+    if (variant == PowVariant::POW_ARGON2_WRKZ) {
+        argon2id_hash_raw(4, MEMORY_ARGON2_256/1024, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_256);
+    }
+}
+
+void (*hash_ctx[MAX_NUM_HASH_BLOCKS])(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad);
 
 template <size_t HASH_FACTOR>
-void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
+void setHashMethods(Options::Algo algo, bool aesni)
 {
     switch (algo) {
         case Options::ALGO_CRYPTONIGHT:
             if (aesni) {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_aesni<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_aesni<HASH_FACTOR>;
             } else {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_softaes<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_softaes<HASH_FACTOR>;
             }
             break;
 
         case Options::ALGO_CRYPTONIGHT_LITE:
             if (aesni) {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_aesni<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_aesni<HASH_FACTOR>;
             } else {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_softaes<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_softaes<HASH_FACTOR>;
             }
             break;
 
         case Options::ALGO_CRYPTONIGHT_SUPERLITE:
             if (aesni) {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_super_lite_aesni<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_super_lite_aesni<HASH_FACTOR>;
             } else {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_super_lite_softaes<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_super_lite_softaes<HASH_FACTOR>;
             }
             break;
 
         case Options::ALGO_CRYPTONIGHT_ULTRALITE:
             if (aesni) {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_aesni<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_aesni<HASH_FACTOR>;
             } else {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_softaes<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_softaes<HASH_FACTOR>;
             }
             break;
 
         case Options::ALGO_CRYPTONIGHT_EXTREMELITE:
             if (aesni) {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_extreme_lite_aesni<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_extreme_lite_aesni<HASH_FACTOR>;
             } else {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_extreme_lite_softaes<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_extreme_lite_softaes<HASH_FACTOR>;
             }
             break;
 
         case Options::ALGO_CRYPTONIGHT_HEAVY:
             if (aesni) {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_heavy_aesni<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_heavy_aesni<HASH_FACTOR>;
             } else {
-                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_heavy_softaes<HASH_FACTOR>;
+                hash_ctx[HASH_FACTOR - 1] = cryptonight_heavy_softaes<HASH_FACTOR>;
             }
+            break;
+        case Options::ALGO_ARGON2_256:
+        case Options::ALGO_ARGON2_512:
+            hash_ctx[HASH_FACTOR - 1] = argon2<HASH_FACTOR>;
             break;
     }
     // next iteration
-    setCryptoNightHashMethods<HASH_FACTOR-1>(algo, aesni);
+    setHashMethods<HASH_FACTOR-1>(algo, aesni);
 }
 
 template <>
-void setCryptoNightHashMethods<0>(Options::Algo algo, bool aesni)
+void setHashMethods<0>(Options::Algo algo, bool aesni)
 {
     // template recursion abort
 };
 
-bool CryptoNight::init(int algo, bool aesni)
+bool HashSelector::init(Options::Algo algo, bool aesni)
 {
     for (int i = 0; i < 256; ++i)
     {
@@ -521,30 +541,30 @@ bool CryptoNight::init(int algo, bool aesni)
         variant_xtl_table[i] = i ^ ((0x75310 >> index_xtl) & 0x30);
     }
 
-    setCryptoNightHashMethods<MAX_NUM_HASH_BLOCKS>(static_cast<Options::Algo>(algo), aesni);
+    setHashMethods<MAX_NUM_HASH_BLOCKS>(algo, aesni);
 
     return Options::i()->skipSelfCheck() ? true : selfCheck(algo);
 }
 
-void CryptoNight::hash(size_t factor, AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad)
+void HashSelector::hash(size_t factor, AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad)
 {
-    cryptonight_hash_ctx[factor-1](asmOptimization, height, variant, input, size, output, scratchPad);
+    hash_ctx[factor-1](asmOptimization, height, variant, input, size, output, scratchPad);
 }
 
-bool CryptoNight::selfCheck(int algo)
+bool HashSelector::selfCheck(Options::Algo algo)
 {
-    if (cryptonight_hash_ctx[0] == nullptr
+    if (hash_ctx[0] == nullptr
     #if MAX_NUM_HASH_BLOCKS > 1
-        || cryptonight_hash_ctx[1] == nullptr
+        || hash_ctx[1] == nullptr
     #endif
     #if MAX_NUM_HASH_BLOCKS > 2
-        || cryptonight_hash_ctx[2] == nullptr
+        || hash_ctx[2] == nullptr
     #endif
     #if MAX_NUM_HASH_BLOCKS > 3
-        || cryptonight_hash_ctx[3] == nullptr
+        || hash_ctx[3] == nullptr
     #endif
     #if MAX_NUM_HASH_BLOCKS > 4
-        || cryptonight_hash_ctx[4] == nullptr
+        || hash_ctx[4] == nullptr
     #endif
     )
     {
@@ -576,134 +596,135 @@ bool CryptoNight::selfCheck(int algo)
     bool resultUltraLite = true;
     bool resultExtremeLite = true;
     bool resultHeavy = true;
+    bool resultArgon2 = true;
 
     AsmOptimization asmOptimization = Options::i()->asmOptimization();
 
     if (algo == Options::ALGO_CRYPTONIGHT_HEAVY) {
         // cn-heavy
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 96) == 0;
         #endif
 
         // cn-heavy haven
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_XHV, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_XHV, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy_haven, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_XHV, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_XHV, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy_haven, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_XHV, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_XHV, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy_haven, 96) == 0;
         #endif
 
         // cn-heavy bittube
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy_tube, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy_tube, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy_tube, 96) == 0;
         #endif
 
     } else if (algo == Options::ALGO_CRYPTONIGHT_LITE) {
         // cn-lite v0
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_v0_lite, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_v0_lite, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_v0_lite, 96) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[3](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_v0_lite, 128) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[4](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_v0_lite, 160) == 0;
         #endif
 
         // cn-lite v7 tests
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_v1_lite, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_v1_lite, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output,  test_output_v1_lite, 96) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[3](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output,  test_output_v1_lite, 128) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[4](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output,  test_output_v1_lite, 160) == 0;
         #endif
 
         // cn-lite ibpc tests
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 96) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        hash_ctx[3](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 128) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        hash_ctx[4](asmOptimization, 0, PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 160) == 0;
         #endif
 
         // cn-lite upx
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_UPX, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_UPX, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output,  test_output_upx, 32) == 0;
 
     } else if (algo == Options::ALGO_CRYPTONIGHT_SUPERLITE) {
@@ -711,183 +732,195 @@ bool CryptoNight::selfCheck(int algo)
     } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
         // cn ultralite (cnv8 + turtle)
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_TURTLE, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_TURTLE, test_input, 76, output, scratchPads);
         resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_TURTLE, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_TURTLE, test_input, 76, output, scratchPads);
         resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 64) == 0;
         #endif
     } else if (algo == Options::ALGO_CRYPTONIGHT_EXTREMELITE) {
         // cn extremelite (cnv8 + upx2)
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_UPX2, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_UPX2, test_input, 76, output, scratchPads);
         resultExtremeLite = resultExtremeLite && memcmp(output,  test_output_upx2, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_UPX2, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_UPX2, test_input, 76, output, scratchPads);
         resultExtremeLite = resultExtremeLite && memcmp(output,  test_output_upx2, 64) == 0;
         #endif
-    } else {
+    } else if (algo == Options::ALGO_CRYPTONIGHT) {
         // cn v0 aka orignal
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_V0,test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_V0,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v0, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v0, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v0, 96) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[3](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v0, 128) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        hash_ctx[4](asmOptimization, 0, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v0, 160) == 0;
         #endif
 
         // cn v7 aka cnv1
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v1, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v1, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v1, 96) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[3](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v1, 128) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
+        hash_ctx[4](asmOptimization, 0, PowVariant::POW_V1, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v1, 160) == 0;
         #endif
 
         // cnv7 + xtl
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_XTL,test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_XTL,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xtl, 32) == 0;
 
         // cnv7 + msr aka cn-fast
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_MSR,test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_MSR,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_msr, 32) == 0;
 
         // cnv7 + alloy
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_ALLOY,test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_ALLOY,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_alloy, 32) == 0;
 
         // cnv7 + hosp/rto
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_HOSP,test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_HOSP,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_hosp, 32) == 0;
 
         // cnv8 aka cnv2
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v2, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v2, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v2, 96) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        hash_ctx[3](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v2, 128) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
+        hash_ctx[4](asmOptimization, 0, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v2, 160) == 0;
         #endif
 
         // cn xfh aka cn-heavy-superfast
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_XFH, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_XFH, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xfh, 32) == 0;
 
         // cnv8 + xtl aka cn-fast2
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_FAST_2, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_FAST_2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xtl_v9, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_FAST_2, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_FAST_2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xtl_v9, 64) == 0;
         #endif
 
         // cnv8 + xcash
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_DOUBLE, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_DOUBLE, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xcash, 32) == 0;
 
         // cnv8 + zelerius
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_ZELERIUS, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_ZELERIUS, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_zelerius, 32) == 0;
 
         // cnv8 + rwz
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_RWZ, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_RWZ, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_rwz, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_RWZ, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 0, PowVariant::POW_RWZ, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_rwz, 64) == 0;
         #endif
 
         // cnv9 aka cnv4 aka cnv5 aka cnr
 
-        cryptonight_hash_ctx[0](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v4, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
+        hash_ctx[1](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v4, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
+        hash_ctx[2](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v4, 96) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
+        hash_ctx[3](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v4, 128) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
+        hash_ctx[4](asmOptimization, 10000, PowVariant::POW_V4, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v4, 160) == 0;
         #endif
 
-        cryptonight_hash_ctx[0](asmOptimization, 10001, PowVariant::POW_V4, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 10001, PowVariant::POW_V4, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v4_1, 32) == 0;
 
-        cryptonight_hash_ctx[0](asmOptimization, 10002, PowVariant::POW_V4, test_input, 76, output, scratchPads);
+        hash_ctx[0](asmOptimization, 10002, PowVariant::POW_V4, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v4_2, 32) == 0;
+    }
+    else if (algo == Options::ALGO_ARGON2_256) {
+        argon2_select_impl(NULL, NULL);
+
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_ARGON2_WRKZ, argon2_test_input, 76, output, scratchPads);
+        resultArgon2 = resultArgon2 && memcmp(output, argon2_wrkz_test_out, 32) == 0;
+    }
+    else if (algo == Options::ALGO_ARGON2_512) {
+        argon2_select_impl(NULL, NULL);
+
+        hash_ctx[0](asmOptimization, 0, PowVariant::POW_ARGON2_CHUKWA, argon2_test_input, 76, output, scratchPads);
+        resultArgon2 = resultArgon2 && memcmp(output, argon2_chukwa_test_out, 32) == 0;
     }
 
     for (size_t i = 0; i < MAX_NUM_HASH_BLOCKS; ++i) {
@@ -895,5 +928,5 @@ bool CryptoNight::selfCheck(int algo)
         _mm_free(scratchPads[i]);
     }
 
-    return result && resultLite && resultSuperLite && resultUltraLite && resultExtremeLite && resultHeavy;
+    return result && resultLite && resultSuperLite && resultUltraLite && resultExtremeLite && resultHeavy && resultArgon2;
 }

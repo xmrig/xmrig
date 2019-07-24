@@ -53,7 +53,7 @@ set(SOURCES_CRYPTO
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
-    src/crypto/CryptoNight.cpp
+    src/crypto/HashSelector.cpp
     src/crypto/CryptoNightR_gen.cpp
    )
 
@@ -225,6 +225,9 @@ else()
     add_definitions(/DXMRIG_NO_ASM)
 endif(WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
 
+add_subdirectory(src/3rdparty/argon2)
+set(ARGON2_LIBRARY argon2)
+
 if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif(BUILD_STATIC)
@@ -250,7 +253,7 @@ add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCE
 set_target_properties(xmrigMiner PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
 
 target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid ${Boost_LIBRARIES}
-        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} argon2)
 
 if (WITH_CC_CLIENT)
     target_link_libraries(xmrigMiner xmrig_cc_common)

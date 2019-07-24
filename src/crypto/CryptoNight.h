@@ -28,17 +28,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "AsmOptimization.h"
-#include "Options.h"
-
 #define ONE_MB       1048576
 
-#define MEMORY       2097152 /* 2 MiB */
-#define MEMORY_LITE  1048576 /* 1 MiB */
-#define MEMORY_SUPER_LITE  524288 /* 512 KiB */
-#define MEMORY_ULTRA_LITE  262144 /* 256 KiB */
-#define MEMORY_EXTREME_LITE  131072 /* 128 KiB */
-#define MEMORY_HEAVY 4194304 /* 4 MiB */
+#define MEMORY       2097152 /* 2 MiB in bytes*/
+#define MEMORY_LITE  1048576 /* 1 MiB in bytes */
+#define MEMORY_SUPER_LITE  524288 /* 512 KiB in bytes */
+#define MEMORY_ULTRA_LITE  262144 /* 256 KiB in bytes */
+#define MEMORY_EXTREME_LITE  131072 /* 128 KiB in bytes */
+#define MEMORY_HEAVY 4194304 /* 4 MiB in bytes */
 
 #define POW_DEFAULT_INDEX_SHIFT 3
 #define POW_XLT_V4_INDEX_SHIFT 4
@@ -78,21 +75,6 @@ struct ScratchPad {
 
 alignas(64) static uint8_t variant1_table[256];
 alignas(64) static uint8_t variant_xtl_table[256];
-
-class Job;
-class JobResult;
-
-class CryptoNight
-{
-public:
-    static bool init(int algo, bool aesni);
-    static void hash(size_t factor, AsmOptimization asmOptimization, uint64_t height, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
-
-public:
-
-private:
-    static bool selfCheck(int algo);
-};
 
 
 #endif /* __CRYPTONIGHT_H__ */
