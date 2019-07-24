@@ -155,6 +155,8 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
             resultCode = setClientConfig(options, clientId, data, resp);
         } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
             resultCode = setClientCommand(clientId, data, resp);
+        } else if (url.rfind("/admin/deleteClientConfig", 0) == 0) {
+            resultCode = deleteClientConfig(options, clientId, resp);
         } else {
             LOG_WARN("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", clientIp.c_str(), url.c_str());
         }
@@ -479,6 +481,20 @@ void Service::setClientLog(size_t maxRows, const std::string& clientId, const st
         }
 
         clientLog->push_back(logLine);
+    }
+}
+
+unsigned Service::deleteClientConfig(const Options* options, const std::string& clientId, std::string& resp)
+{
+    if (!clientId.empty()) {
+        std::string clientConfigFileName = getClientConfigFileName(options, clientId);
+        if (!clientConfigFileName.empty() && remove(clientConfigFileName.c_str()) == 0) {
+            return MHD_HTTP_OK;
+        } else {
+            return MHD_HTTP_NOT_FOUND;
+        }
+    } else {
+        return MHD_HTTP_BAD_REQUEST;
     }
 }
 
