@@ -141,13 +141,15 @@ private:
 
     static Options *m_self;
 
-    bool getJSON(const char *fileName, rapidjson::Document &doc);
+    bool readJSONFile(const char *fileName, rapidjson::Document &doc);
     bool parseArg(int key, const char *arg);
     bool parseArg(int key, uint64_t arg);
     bool parseBoolean(int key, bool enable);
     bool parseCCUrl(const char *arg);
     Url *parseUrl(const char *arg) const;
-    void parseConfig(const char *fileName);
+    void parseConfig(rapidjson::Document &doc);
+    void parseConfigFile(const char *fileName);
+    void parseEmbeddedConfig();
     void parseJSON(const struct option *option, const rapidjson::Value &object);
     void showUsage(int status) const;
     void showDeprecateWarning(const char* deprecated, const char* newParam) const;
