@@ -25,7 +25,7 @@
 #include "workers/Handle.h"
 
 
-Handle::Handle(int threadId, int threads, int64_t affinity, int priority) :
+Handle::Handle(size_t threadId, size_t threads, int64_t affinity, int priority) :
     m_priority(priority),
     m_threadId(threadId),
     m_threads(threads),

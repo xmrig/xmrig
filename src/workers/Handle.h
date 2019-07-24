@@ -35,21 +35,21 @@ class IWorker;
 class Handle
 {
 public:
-    Handle(int threadId, int threads, int64_t affinity, int priority);
+    Handle(size_t threadId, size_t threads, int64_t affinity, int priority);
     void join();
     void start(void (*callback) (void *));
 
     inline int priority() const            { return m_priority; }
-    inline int threadId() const            { return m_threadId; }
-    inline int threads() const             { return m_threads; }
+    inline size_t threadId() const         { return m_threadId; }
+    inline size_t threads() const          { return m_threads; }
     inline int64_t affinity() const        { return m_affinity; }
     inline IWorker *worker() const         { return m_worker; }
     inline void setWorker(IWorker *worker) { m_worker = worker; }
 
 private:
     int m_priority;
-    int m_threadId;
-    int m_threads;
+    size_t m_threadId;
+    size_t m_threads;
     int64_t m_affinity;
     IWorker *m_worker;
     uv_thread_t m_thread;

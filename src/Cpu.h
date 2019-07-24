@@ -34,15 +34,16 @@ public:
     enum Flags {
         X86_64 = 1,
         AES    = 2,
-        BMI2   = 4
+        BMI2   = 4,
+        AVX2   = 8
     };
 
     static void init();
 
-    static void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo,
-                                    size_t maxCpuUsage, bool safeMode);
+    static void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo, PowVariant powVariant,
+                                   size_t maxCpuUsage, bool safeMode);
 
-    static void setAffinity(int id, uint64_t mask);
+    static int setThreadAffinity(size_t threadId, int64_t affinityMask);
 
     static bool hasAES();
     static bool isX64();
@@ -53,6 +54,8 @@ public:
     static size_t sockets();
     static size_t threads();
     static size_t availableCache();
+    static int getAssignedCpuId(size_t threadId, int64_t affinityMask);
+    static AsmOptimization asmOptimization();
 };
 
 

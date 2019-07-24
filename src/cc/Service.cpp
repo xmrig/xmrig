@@ -26,6 +26,14 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
+#include <iostream>
+
+#ifdef WIN32
+#include "win_dirent.h"
+#endif
+
+#include "log/Log.h"
+#include <3rdparty/cpp-httplib/httplib.h>
 #include <3rdparty/rapidjson/document.h>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/writer.h>
@@ -33,18 +41,35 @@
 #include <3rdparty/rapidjson/filereadstream.h>
 #include <3rdparty/rapidjson/error/en.h>
 #include <3rdparty/rapidjson/prettywriter.h>
-#include <version.h>
-#include "log/Log.h"
+#include "version.h"
 #include "Service.h"
 
 uv_mutex_t Service::m_mutex;
+uv_timer_t Service::m_timer;
+
 std::map<std::string, ControlCommand> Service::m_clientCommand;
 std::map<std::string, ClientStatus> Service::m_clientStatus;
-int Service::m_currentServerTime = 0;
+std::map<std::string, std::list<std::string>> Service::m_clientLog;
+
+std::list<std::string> Service::m_offlineNotified;
+std::list<std::string> Service::m_zeroHashNotified;
+
+uint64_t Service::m_currentServerTime = 0;
+uint64_t Service::m_lastStatusUpdateTime = 0;
 
 bool Service::start()
 {
     uv_mutex_init(&m_mutex);
+
+#ifndef XMRIG_NO_TLS
+    if (Options::i()->ccUsePushover() || Options::i()->ccUseTelegram())
+    {
+        uv_timer_init(uv_default_loop(), &m_timer);
+        uv_timer_start(&m_timer, Service::onPushTimer,
+                       static_cast<uint64_t>(TIMER_INTERVAL),
+                       static_cast<uint64_t>(TIMER_INTERVAL));
+    }
+#endif
 
     return true;
 }
@@ -53,34 +78,51 @@ void Service::release()
 {
     uv_mutex_lock(&m_mutex);
 
+    uv_timer_stop(&m_timer);
+
     m_clientCommand.clear();
     m_clientStatus.clear();
+    m_clientLog.clear();
 
     uv_mutex_unlock(&m_mutex);
 }
 
-unsigned Service::handleGET(const Options* options, const std::string& url, const std::string& clientId, std::string& resp)
+unsigned Service::handleGET(const Options* options, const std::string& url, const std::string& clientIp, const std::string& clientId, std::string& resp)
 {
     uv_mutex_lock(&m_mutex);
 
     unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
-    LOG_INFO("GET(url='%s', clientId='%s')", url.c_str(), clientId.c_str());
+    std::string params;
+    if (!clientId.empty())
+    {
+        params += "?clientId=";
+        params += clientId;
+    }
+
+    LOG_INFO("[%s] GET '%s%s'", clientIp.c_str(), url.c_str(), params.c_str());
 
     if (url == "/") {
         resultCode = getAdminPage(options, resp);
     } else if (url.rfind("/admin/getClientStatusList", 0) == 0) {
         resultCode = getClientStatusList(resp);
+    } else if (url.rfind("/admin/getClientConfigTemplates", 0) == 0) {
+        resultCode = getClientConfigTemplates(options, resp);
     } else {
         if (!clientId.empty()) {
             if (url.rfind("/client/getConfig", 0) == 0 || url.rfind("/admin/getClientConfig", 0) == 0) {
                 resultCode = getClientConfig(options, clientId, resp);
             } else if (url.rfind("/admin/getClientCommand", 0) == 0) {
                 resultCode = getClientCommand(clientId, resp);
+            } else if (url.rfind("/admin/getClientLog", 0) == 0) {
+                resultCode = getClientLog(clientId, resp);
+            } else {
+                LOG_WARN("[%s] 404 NOT FOUND (%s)", clientIp.c_str(), url.c_str());
             }
         }
         else {
-            LOG_ERR("Request does not contain clientId: %s", url.c_str());
+            resultCode = MHD_HTTP_BAD_REQUEST;
+            LOG_ERR("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", clientIp.c_str(), url.c_str());
         }
     }
 
@@ -96,15 +138,34 @@ unsigned Service::handlePOST(const Options* options, const std::string& url, con
 
     unsigned resultCode = MHD_HTTP_NOT_FOUND;
 
-    LOG_INFO("POST(url='%s', clientIp='%s', clientId='%s', dataLen='%d')",
-             url.c_str(), clientIp.c_str(), clientId.c_str(), data.length());
+    std::string params;
+    if (!clientId.empty())
+    {
+        params += "?clientId=";
+        params += clientId;
+    }
 
-    if (url.rfind("/client/setClientStatus", 0) == 0) {
-        resultCode = setClientStatus(clientIp, clientId, data, resp);
-    } else if (url.rfind("/admin/setClientConfig", 0) == 0 || url.rfind("/client/setClientConfig", 0) == 0) {
-        resultCode = setClientConfig(options, clientId, data, resp);
-    } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
-        resultCode = setClientCommand(clientId, data, resp);
+    LOG_INFO("[%s] POST '%s%s', dataLen='%d'",
+             clientIp.c_str(), url.c_str(), params.c_str(), data.length());
+
+    if (!clientId.empty()) {
+        if (url.rfind("/client/setClientStatus", 0) == 0) {
+            resultCode = setClientStatus(options, clientIp, clientId, data, resp);
+        } else if (url.rfind("/admin/setClientConfig", 0) == 0 || url.rfind("/client/setClientConfig", 0) == 0) {
+            resultCode = setClientConfig(options, clientId, data, resp);
+        } else if (url.rfind("/admin/setClientCommand", 0) == 0) {
+            resultCode = setClientCommand(clientId, data, resp);
+        } else if (url.rfind("/admin/deleteClientConfig", 0) == 0) {
+            resultCode = deleteClientConfig(options, clientId, resp);
+        } else {
+            LOG_WARN("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", clientIp.c_str(), url.c_str());
+        }
+    } else {
+        if (url.rfind("/admin/resetClientStatusList", 0) == 0) {
+            resultCode = resetClientStatusList(data, resp);
+        } else {
+            LOG_WARN("[%s] 404 NOT FOUND (%s)", clientIp.c_str(), url.c_str());
+        }
     }
 
     uv_mutex_unlock(&m_mutex);
@@ -124,7 +185,7 @@ unsigned Service::getClientConfig(const Options* options, const std::string& cli
         data << clientConfig.rdbuf();
         clientConfig.close();
     } else {
-        std::ifstream defaultConfig("default_config.json");
+        std::ifstream defaultConfig("default_miner_config.json");
         if (defaultConfig) {
             data << defaultConfig.rdbuf();
             defaultConfig.close();
@@ -198,7 +259,7 @@ unsigned Service::getClientStatusList(std::string& resp)
     }
 
     auto time_point = std::chrono::system_clock::now();
-    m_currentServerTime = std::chrono::system_clock::to_time_t(time_point);
+    m_currentServerTime = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point));
 
     document.AddMember("current_server_time", m_currentServerTime, allocator);
     document.AddMember("current_version", rapidjson::StringRef(Version::string().c_str()), allocator);
@@ -214,17 +275,19 @@ unsigned Service::getClientStatusList(std::string& resp)
     return MHD_HTTP_OK;
 }
 
-unsigned Service::setClientStatus(const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp)
+unsigned Service::setClientStatus(const Options* options, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp)
 {
-    int resultCode = MHD_HTTP_BAD_REQUEST;
+    unsigned resultCode = MHD_HTTP_BAD_REQUEST;
 
     rapidjson::Document document;
     if (!document.Parse(data.c_str()).HasParseError()) {
-        LOG_INFO("Status from client: %s", clientId.c_str());
-
         ClientStatus clientStatus;
         clientStatus.parseFromJson(document);
         clientStatus.setExternalIp(clientIp);
+
+        setClientLog(options->ccClientLogLinesHistory(), clientId, clientStatus.getLog());
+
+        clientStatus.clearLog();
 
         m_clientStatus[clientId] = clientStatus;
 
@@ -234,7 +297,8 @@ unsigned Service::setClientStatus(const std::string& clientIp, const std::string
             m_clientCommand.erase(clientId);
         }
     } else {
-        LOG_ERR("Parse Error Occured: %d", document.GetParseError());
+        LOG_ERR("[%s] ClientStatus for client '%s' - Parse Error Occured: %d",
+                clientIp.c_str(), clientId.c_str(), document.GetParseError());
     }
 
     return resultCode;
@@ -264,20 +328,90 @@ unsigned Service::getClientCommand(const std::string& clientId, std::string& res
     return MHD_HTTP_OK;
 }
 
-unsigned Service::setClientCommand(const std::string& clientId, const std::string& data, std::string& resp)
+unsigned Service::getClientLog(const std::string& clientId, std::string& resp)
 {
-    ControlCommand controlCommand;
+    if (m_clientLog.find(clientId) != m_clientLog.end()) {
+        rapidjson::Document respDocument;
+        respDocument.SetObject();
 
-    rapidjson::Document document;
-    if (!document.Parse(data.c_str()).HasParseError()) {
-        controlCommand.parseFromJson(document);
+        auto& allocator = respDocument.GetAllocator();
 
-        m_clientCommand[clientId] = controlCommand;
+        std::stringstream data;
+        for (auto& m_row : m_clientLog[clientId]) {
+            data << m_row.c_str() << std::endl;
+        }
 
-        return MHD_HTTP_OK;
-    } else {
-        return MHD_HTTP_BAD_REQUEST;
+        std::string log = data.str();
+        respDocument.AddMember("client_log", rapidjson::StringRef(log.c_str()), allocator);
+
+        rapidjson::StringBuffer buffer(0, 4096);
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        writer.SetMaxDecimalPlaces(10);
+        respDocument.Accept(writer);
+
+        resp = buffer.GetString();
     }
+
+    return MHD_HTTP_OK;
+}
+
+unsigned Service::getClientConfigTemplates(const Options* options, std::string& resp)
+{
+    std::string configFolder(".");
+
+    if (options->ccClientConfigFolder() != nullptr) {
+        configFolder = options->ccClientConfigFolder();
+#       ifdef WIN32
+        configFolder += '\\';
+#       else
+        configFolder += '/';
+#       endif
+    }
+
+    std::vector<std::string> templateFiles;
+
+    DIR* dirp = opendir(configFolder.c_str());
+    if (dirp) {
+        struct dirent* entry;
+        while ((entry = readdir(dirp)) != NULL) {
+            if (entry->d_type == DT_REG) {
+                std::string filename = entry->d_name;
+                std::string starting = "template_";
+                std::string ending = "_config.json";
+
+                if (filename.rfind(starting, 0) == 0 && filename.find(ending, (filename.length() - ending.length())) != std::string::npos) {
+                    filename.erase(0, starting.length());
+                    filename.erase(filename.length()-ending.length());
+
+                    templateFiles.push_back(filename);
+                }
+            }
+        }
+
+        closedir(dirp);
+    }
+
+    rapidjson::Document respDocument;
+    respDocument.SetObject();
+
+    auto& allocator = respDocument.GetAllocator();
+
+    rapidjson::Value templateList(rapidjson::kArrayType);
+    for (auto& templateFile : templateFiles) {
+        rapidjson::Value templateEntry(templateFile.c_str(), allocator);
+        templateList.PushBack(templateEntry, allocator);
+    }
+
+    respDocument.AddMember("templates", templateList, allocator);
+
+    rapidjson::StringBuffer buffer(0, 4096);
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    writer.SetMaxDecimalPlaces(10);
+    respDocument.Accept(writer);
+
+    resp = buffer.GetString();
+
+    return MHD_HTTP_OK;
 }
 
 unsigned Service::getAdminPage(const Options* options, std::string& resp)
@@ -314,6 +448,63 @@ unsigned Service::getAdminPage(const Options* options, std::string& resp)
     return MHD_HTTP_OK;
 }
 
+unsigned Service::setClientCommand(const std::string& clientId, const std::string& data, std::string& resp)
+{
+    ControlCommand controlCommand;
+
+    rapidjson::Document document;
+    if (!document.Parse(data.c_str()).HasParseError()) {
+        controlCommand.parseFromJson(document);
+
+        m_clientCommand[clientId] = controlCommand;
+
+        return MHD_HTTP_OK;
+    } else {
+        return MHD_HTTP_BAD_REQUEST;
+    }
+}
+
+void Service::setClientLog(size_t maxRows, const std::string& clientId, const std::string& log)
+{
+    if (m_clientLog.find(clientId) == m_clientLog.end()) {
+        m_clientLog[clientId] = std::list<std::string>();
+    }
+
+    auto* clientLog = &m_clientLog[clientId];
+    std::istringstream logStream(log);
+
+    std::string logLine;
+    while (std::getline(logStream, logLine))
+    {
+        if (clientLog->size() == maxRows) {
+            clientLog->pop_front();
+        }
+
+        clientLog->push_back(logLine);
+    }
+}
+
+unsigned Service::deleteClientConfig(const Options* options, const std::string& clientId, std::string& resp)
+{
+    if (!clientId.empty()) {
+        std::string clientConfigFileName = getClientConfigFileName(options, clientId);
+        if (!clientConfigFileName.empty() && remove(clientConfigFileName.c_str()) == 0) {
+            return MHD_HTTP_OK;
+        } else {
+            return MHD_HTTP_NOT_FOUND;
+        }
+    } else {
+        return MHD_HTTP_BAD_REQUEST;
+    }
+}
+
+unsigned Service::resetClientStatusList(const std::string& data, std::string& resp)
+{
+    m_clientStatus.clear();
+
+    return MHD_HTTP_OK;
+}
+
 std::string Service::getClientConfigFileName(const Options* options, const std::string& clientId)
 {
     std::string clientConfigFileName;
@@ -330,4 +521,176 @@ std::string Service::getClientConfigFileName(const Options* options, const std::
     clientConfigFileName += clientId + std::string("_config.json");
 
     return clientConfigFileName;
+}
+
+void Service::onPushTimer(uv_timer_t* handle)
+{
+    auto time_point = std::chrono::system_clock::now();
+    auto now = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point) * 1000);
+
+    if (Options::i()->ccPushOfflineMiners()) {
+        sendMinerOfflinePush(now);
+    }
+
+    if (Options::i()->ccPushZeroHashrateMiners()) {
+        sendMinerZeroHashratePush(now);
+    }
+
+    if (Options::i()->ccPushPeriodicStatus()) {
+        if (now > (m_lastStatusUpdateTime + STATUS_UPDATE_INTERVAL)) {
+            sendServerStatusPush(now);
+            m_lastStatusUpdateTime = now;
+        }
+    }
+}
+
+void Service::sendMinerOfflinePush(uint64_t now)
+{
+    uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
+    for (auto clientStatus : m_clientStatus) {
+        uint64_t lastStatus = clientStatus.second.getLastStatusUpdate() * 1000;
+
+        if (lastStatus < offlineThreshold) {
+            if (std::find(m_offlineNotified.begin(), m_offlineNotified.end(), clientStatus.first) == m_offlineNotified.end()) {
+                std::stringstream message;
+                message << "Miner: " << clientStatus.first << " just went offline!";
+
+                LOG_WARN("Send miner %s went offline push", clientStatus.first.c_str());
+                triggerPush(APP_NAME " Onlinestatus Monitor", message.str());
+
+                m_offlineNotified.push_back(clientStatus.first);
+            }
+        } else {
+            if (std::find(m_offlineNotified.begin(), m_offlineNotified.end(), clientStatus.first) != m_offlineNotified.end()) {
+                std::stringstream message;
+                message << "Miner: " << clientStatus.first << " is back online!";
+
+                LOG_WARN("Send miner %s back online push", clientStatus.first.c_str());
+                triggerPush(APP_NAME " Onlinestatus Monitor", message.str());
+
+                m_offlineNotified.remove(clientStatus.first);
+            }
+        }
+    }
+}
+
+void Service::sendMinerZeroHashratePush(uint64_t now)
+{
+    uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
+    for (auto clientStatus : m_clientStatus) {
+        if (offlineThreshold < clientStatus.second.getLastStatusUpdate() * 1000) {
+            if (clientStatus.second.getHashrateShort() == 0 && clientStatus.second.getHashrateMedium() == 0) {
+                if (std::find(m_zeroHashNotified.begin(), m_zeroHashNotified.end(), clientStatus.first) == m_zeroHashNotified.end()) {
+                    std::stringstream message;
+                    message << "Miner: " << clientStatus.first << " reported 0 h/s for the last minute!";
+
+                    LOG_WARN("Send miner %s 0 hashrate push", clientStatus.first.c_str());
+                    triggerPush(APP_NAME " Hashrate Monitor", message.str());
+
+                    m_zeroHashNotified.push_back(clientStatus.first);
+                }
+            } else if (clientStatus.second.getHashrateMedium() > 0) {
+                if (std::find(m_zeroHashNotified.begin(), m_zeroHashNotified.end(), clientStatus.first) != m_zeroHashNotified.end()) {
+                    std::stringstream message;
+                    message << "Miner: " << clientStatus.first << " hashrate recovered. Reported "
+                            << clientStatus.second.getHashrateMedium()
+                            << " h/s for the last minute!";
+
+                    LOG_WARN("Send miner %s hashrate recovered push", clientStatus.first.c_str());
+                    triggerPush(APP_NAME " Hashrate Monitor", message.str());
+
+                    m_zeroHashNotified.remove(clientStatus.first);
+                }
+            }
+        }
+    }
+}
+
+void Service::sendServerStatusPush(uint64_t now)
+{
+    size_t onlineMiner = 0;
+    size_t offlineMiner = 0;
+
+    double hashrateMedium = 0;
+    double hashrateLong = 0;
+    double avgTime = 0;
+
+    uint64_t sharesGood = 0;
+    uint64_t sharesTotal = 0;
+    uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
+    for (auto clientStatus : m_clientStatus) {
+        if (offlineThreshold < clientStatus.second.getLastStatusUpdate() * 1000) {
+            onlineMiner++;
+
+            hashrateMedium += clientStatus.second.getHashrateMedium();
+            hashrateLong += clientStatus.second.getHashrateLong();
+
+            sharesGood += clientStatus.second.getSharesGood();
+            sharesTotal += clientStatus.second.getSharesTotal();
+            avgTime += clientStatus.second.getAvgTime();
+        } else {
+            offlineMiner++;
+        }
+    }
+
+    if (!m_clientStatus.empty()) {
+        avgTime = avgTime / m_clientStatus.size();
+    }
+
+    std::stringstream message;
+    message << "Miners: " << onlineMiner << " (Online), " << offlineMiner << " (Offline)\n"
+            << "Shares: " << sharesGood << " (Good), " << sharesTotal - sharesGood << " (Bad)\n"
+            << "Hashrates: " << hashrateMedium << "h/s (1min), " << hashrateLong << "h/s (15min)\n"
+            << "Avg. Time: " << avgTime << "s";
+
+    LOG_WARN("Send Server status push");
+    triggerPush(APP_NAME " Status", message.str());
+}
+
+void Service::triggerPush(const std::string& title, const std::string& message)
+{
+    if (Options::i()->ccUsePushover()) {
+        sendViaPushover(title, message);
+    }
+
+    if (Options::i()->ccUseTelegram()) {
+        sendViaTelegram(title, message);
+    }
+}
+
+void Service::sendViaPushover(const std::string &title, const std::string &message)
+{
+    std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.pushover.net", 443);
+
+    httplib::Params params;
+    params.emplace("token", Options::i()->ccPushoverToken());
+    params.emplace("user", Options::i()->ccPushoverUser());
+    params.emplace("title", title);
+    params.emplace("message", httplib::detail::encode_url(message));
+
+    auto res = cli->Post("/1/messages.json", params);
+    if (res) {
+        LOG_WARN("Pushover response: %s", res->body.c_str());
+    }
+}
+
+void Service::sendViaTelegram(const std::string &title, const std::string &message)
+{
+    std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.telegram.org", 443);
+
+    std::string text = "<b>" + title + "</b>\n\n" + message;
+    std::string path = std::string("/bot") + Options::i()->ccTelegramBotToken() + std::string("/sendMessage");
+
+    httplib::Params params;
+    params.emplace("chat_id", Options::i()->ccTelegramChatId());
+    params.emplace("text", httplib::detail::encode_url(text));
+    params.emplace("parse_mode", "HTML");
+
+    auto res = cli->Post(path.c_str(), params);
+    if (res) {
+        LOG_WARN("Telegram response: %s", res->body.c_str());
+    }
 }

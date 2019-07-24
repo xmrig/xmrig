@@ -62,7 +62,8 @@ Job::Job(int poolId, bool nicehash) :
     m_size(0),
     m_diff(0),
     m_target(0),
-    m_powVersion(Options::POW_AUTODETECT)
+    m_height(0),
+    m_powVariant(PowVariant::POW_AUTODETECT)
 {
 }
 
@@ -95,11 +96,6 @@ bool Job::setBlob(const char *blob)
     if (*nonce() != 0 && !m_nicehash) {
         m_nicehash = true;
     }
-
-#   ifdef XMRIG_PROXY_PROJECT
-    memset(m_rawBlob, 0, sizeof(m_rawBlob));
-    memcpy(m_rawBlob, blob, m_size * 2);
-#   endif
 
     return true;
 }
@@ -137,15 +133,58 @@ bool Job::setTarget(const char *target)
         return false;
     }
 
-#   ifdef XMRIG_PROXY_PROJECT
-    memset(m_rawTarget, 0, sizeof(m_rawTarget));
-    memcpy(m_rawTarget, target, len);
-#   endif
-
     m_diff = toDiff(m_target);
     return true;
 }
 
+PowVariant Job::powVariant() const
+{
+    if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
+        return PowVariant::POW_TURTLE;
+    }
+
+    if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_EXTREMELITE) {
+        return PowVariant::POW_UPX2;
+    }
+
+    if (m_powVariant == PowVariant::POW_AUTODETECT) {
+        if (m_blob[0] >= 10) {
+            return PowVariant::POW_V4;
+        } else if (m_blob[0] > 7) {
+            return PowVariant::POW_V2;
+        } else if (m_blob[0] > 6) {
+            return PowVariant::POW_V1;
+        } else {
+            return PowVariant::POW_V0;
+        }
+    } else if (m_powVariant == PowVariant::POW_XTL) {
+        if (!Options::i()->forcePowVariant()) {
+            if (m_blob[0] >= 9) {
+                return PowVariant::POW_FAST_2;
+            }
+        }
+    } else if (m_powVariant == PowVariant::POW_MSR) {
+        if (!Options::i()->forcePowVariant()) {
+            if (m_blob[0] >= 8) {
+                return PowVariant::POW_FAST_2;
+            }
+        }
+    } else if (m_powVariant == PowVariant::POW_RWZ) {
+        if (!Options::i()->forcePowVariant()) {
+            if (m_blob[0] < 12) {
+                return PowVariant::POW_V2;
+            }
+        }
+    } else if (m_powVariant == PowVariant::POW_ZELERIUS) {
+        if (!Options::i()->forcePowVariant()) {
+            if (m_blob[0] < 8) {
+                return PowVariant::POW_V2;
+            }
+        }
+    }
+
+    return m_powVariant;
+}
 
 bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 {
@@ -160,7 +199,6 @@ bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
     return true;
 }
 
-
 void Job::toHex(const unsigned char* in, unsigned int len, char* out)
 {
     for (unsigned int i = 0; i < len; i++) {
@@ -168,7 +206,6 @@ void Job::toHex(const unsigned char* in, unsigned int len, char* out)
         out[i * 2 + 1] = hf_bin2hex(in[i] & 0x0F);
     }
 }
-
 
 bool Job::operator==(const Job &other) const
 {

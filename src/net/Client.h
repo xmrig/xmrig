@@ -67,11 +67,13 @@ public:
     inline int id() const                    { return m_id; }
     inline uint16_t port() const             { return m_url.port(); }
     inline void setQuiet(bool quiet)         { m_quiet = quiet; }
+    inline void setDonate(bool donate)       { m_donate = donate; }
     inline void setRetryPause(int ms)        { m_retryPause = ms; }
 
     static void onConnected(uv_async_t *handle);
     static void onReceived(uv_async_t *handle);
     static void onError(uv_async_t *handle);
+    static void onDNSError(uv_async_t *handle);
 
 private:
     bool isCriticalError(const char *message);
@@ -92,11 +94,13 @@ private:
     virtual void scheduleOnConnected();
     virtual void scheduleOnReceived(char *data, size_t size);
     virtual void scheduleOnError(const std::string &error);
+    virtual void scheduleOnDNSError(const std::string &error);
 
     static inline Client *getClient(void *data) { return static_cast<Client*>(data); }
 
     bool m_quiet;
     bool m_nicehash;
+    bool m_donate;
     char m_buf[2048];
     char m_rpcId[64];
     char m_sendBuf[768];
@@ -105,7 +109,7 @@ private:
     int m_id;
     int m_retryPause;
     int64_t m_failures;
-    int64_t m_jobs;
+    uint64_t m_jobs;
     Job m_job;
     size_t m_recvBufPos;
     static int64_t m_sequence;
@@ -122,6 +126,7 @@ private:
     uv_async_t onConnectedAsync;
     uv_async_t onReceivedAsync;
     uv_async_t onErrorAsync;
+    uv_async_t onDNSErrorAsync;
 
     uv_timer_t m_keepAliveTimer;
 

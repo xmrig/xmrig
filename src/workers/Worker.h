@@ -32,7 +32,7 @@
 #include "interfaces/IWorker.h"
 
 
-struct cryptonight_ctx;
+struct ScratchPad;
 class Handle;
 
 
@@ -48,9 +48,9 @@ public:
 protected:
     void storeStats();
 
-    cryptonight_ctx *m_ctx;
     int m_id;
-    int m_threads;
+    int m_affinedCpu;
+    size_t m_threads;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
     uint64_t m_count;

@@ -41,6 +41,7 @@ public:
 
     bool setBlob(const char *blob);
     bool setTarget(const char *target);
+    PowVariant powVariant() const;
 
     inline bool isNicehash() const         { return m_nicehash; }
     inline bool isValid() const            { return m_size > 0 && m_diff > 0; }
@@ -49,15 +50,15 @@ public:
     inline const uint32_t *nonce() const   { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const     { return m_blob; }
     inline int poolId() const              { return m_poolId; }
-    inline int threadId() const            { return m_threadId; }
-    inline Options::PowVersion powVersion() const { return m_powVersion; }
     inline size_t size() const             { return m_size; }
     inline uint32_t *nonce()               { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const           { return (uint32_t) m_diff; }
     inline uint64_t target() const         { return m_target; }
+    inline uint64_t height() const         { return m_height; }
     inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
     inline void setThreadId(int threadId)  { m_threadId = threadId; }
-    inline void setPowVersion(Options::PowVersion powVersion) { m_powVersion = powVersion; }
+    inline void setPowVariant(PowVariant powVariant) { m_powVariant = powVariant; }
+    inline void setHeight(uint64_t height) { m_height = height; }
 
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
@@ -68,7 +69,7 @@ public:
     bool operator!=(const Job &other) const;
 
 private:
-    alignas(16) uint8_t m_blob[84]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
+    uint8_t m_blob[MAX_BLOB_SIZE]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
 
     bool m_nicehash;
     int m_poolId;
@@ -77,12 +78,8 @@ private:
     size_t m_size;
     uint64_t m_diff;
     uint64_t m_target;
-    Options::PowVersion m_powVersion;
-
-#   ifdef XMRIG_PROXY_PROJECT
-    VAR_ALIGN(16, char m_rawBlob[169]);
-    VAR_ALIGN(16, char m_rawTarget[17]);
-#   endif
+    uint64_t m_height;
+    PowVariant m_powVariant;
 };
 
 #endif /* __JOB_H__ */

@@ -1189,6 +1189,12 @@ FORCE_INLINE __m128i _mm_cmpgt_epi32(__m128i a, __m128i b)
 	return vreinterpretq_m128i_u32(vcgtq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
+// Compares the 4 signed 32-bit integers in a and the 4 signed 32-bit integers in b for greater than. https://msdn.microsoft.com/en-us/library/vstudio/1s9f2z0y(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_cmpeq_epi32(__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_u32(vceqq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
+}
+
 // Compares the four 32-bit floats in a and b to check if any values are NaN. Ordered compare between each value returns true for "orderable" and false for "not orderable" (NaN). https://msdn.microsoft.com/en-us/library/vstudio/0h9w00fx(v=vs.100).aspx
 // see also:
 // http://stackoverflow.com/questions/8627331/what-does-ordered-unordered-comparison-mean

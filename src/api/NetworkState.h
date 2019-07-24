@@ -27,6 +27,7 @@
 
 #include <array>
 #include <vector>
+#include <PowVariant.h>
 
 
 class SubmitResult;
@@ -51,6 +52,7 @@ public:
     uint64_t failures;
     uint64_t rejected;
     uint64_t total;
+    PowVariant powVariant;
 
 private:
     bool m_active;

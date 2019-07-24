@@ -36,35 +36,60 @@
 #include "ClientStatus.h"
 #include "ControlCommand.h"
 
+#define TIMER_INTERVAL 10000
+#define OFFLINE_TRESHOLD_IN_MS 60000
+#define STATUS_UPDATE_INTERVAL 3600000
+
 class Service
 {
 public:
     static bool start();
     static void release();
 
-    static unsigned handleGET(const Options* options, const std::string& url, const std::string& clientId, std::string& resp);
+    static unsigned handleGET(const Options* options, const std::string& url, const std::string& clientIp, const std::string& clientId, std::string& resp);
     static unsigned handlePOST(const Options* options, const std::string& url, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
 
 private:
     static unsigned getClientConfig(const Options* options, const std::string& clientId, std::string& resp);
     static unsigned getClientCommand(const std::string& clientId, std::string& resp);
+    static unsigned getClientLog(const std::string& clientId, std::string& resp);
     static unsigned getClientStatusList(std::string& resp);
+    static unsigned getClientConfigTemplates(const Options* options, std::string& resp);
     static unsigned getAdminPage(const Options* options, std::string& resp);
 
-    static unsigned setClientStatus(const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
+    static unsigned setClientStatus(const Options* options, const std::string& clientIp, const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientCommand(const std::string& clientId, const std::string& data, std::string& resp);
     static unsigned setClientConfig(const Options* options, const std::string &clientId, const std::string &data, std::string &resp);
+    static unsigned deleteClientConfig(const Options* options, const std::string& clientId, std::string& resp);
+    static unsigned resetClientStatusList(const std::string& data, std::string& resp);
+
+    static void setClientLog(size_t maxRows, const std::string& clientId, const std::string& log);
 
     static std::string getClientConfigFileName(const Options *options, const std::string &clientId);
 
+    static void onPushTimer(uv_timer_t* handle);
+    static void sendServerStatusPush(uint64_t now);
+    static void sendMinerOfflinePush(uint64_t now);
+    static void sendMinerZeroHashratePush(uint64_t now);
+    static void triggerPush(const std::string& title, const std::string& message);
+
 private:
-    static int m_currentServerTime;
+    static uint64_t m_currentServerTime;
+    static uint64_t m_lastStatusUpdateTime;
 
     static std::map<std::string, ClientStatus> m_clientStatus;
     static std::map<std::string, ControlCommand> m_clientCommand;
+    static std::map<std::string, std::list<std::string>> m_clientLog;
+
+    static std::list<std::string> m_offlineNotified;
+    static std::list<std::string> m_zeroHashNotified;
 
     static uv_mutex_t m_mutex;
+    static uv_timer_t m_timer;
 
+    static void sendViaPushover(const std::string &title, const std::string &message);
+
+    static void sendViaTelegram(const std::string &title, const std::string &message);
 };
 
 #endif /* __SERVICE_H__ */

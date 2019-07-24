@@ -29,6 +29,8 @@
 #include <memory>
 
 #include <iostream>
+#include <crypto/CryptoNight.h>
+#include <crypto/Argon2.h>
 
 #include "Cpu.h"
 #include "CpuImpl.h"
@@ -48,14 +50,15 @@ CpuImpl::CpuImpl()
     , m_sockets(1)
     , m_totalCores(0)
     , m_totalThreads(0)
+    , m_asmOptimization(AsmOptimization::ASM_OFF)
 {
 }
 
 void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
-                                 Options::Algo algo, size_t maxCpuUsage, bool safeMode)
+                                 Options::Algo algo, PowVariant powVariant, size_t maxCpuUsage, bool safeMode)
 {
     // limits hashfactor to maximum possible value defined by compiler flag
-    hashFactor = std::min(hashFactor, algo == Options::ALGO_CRYPTONIGHT_HEAVY ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
+    hashFactor = std::min(hashFactor, (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
 
     if (!safeMode && threadsCount > 0 && hashFactor > 0)
     {
@@ -64,31 +67,63 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
     }
 
     size_t cache = availableCache();
-    size_t algoBlockSize;
+    size_t algoBlocks;
     switch (algo) {
+        case Options::ALGO_CRYPTONIGHT_EXTREMELITE:
+            algoBlocks = MEMORY_EXTREME_LITE/1024;
+            break;
+        case Options::ALGO_CRYPTONIGHT_ULTRALITE:
+            algoBlocks = MEMORY_ULTRA_LITE/1024;
+            break;
+        case Options::ALGO_CRYPTONIGHT_SUPERLITE:
+            algoBlocks = MEMORY_SUPER_LITE/1024;
+            break;
         case Options::ALGO_CRYPTONIGHT_LITE:
-            algoBlockSize = 1024;
+            algoBlocks = MEMORY_LITE/1024;
             break;
         case Options::ALGO_CRYPTONIGHT_HEAVY:
-            algoBlockSize = 4096;
+            algoBlocks = MEMORY_HEAVY/1024;
+            break;
+        case Options::ALGO_ARGON2_250:
+            algoBlocks = MEMORY_ARGON2_250/1024;
+            break;
+        case Options::ALGO_ARGON2_256:
+            algoBlocks = MEMORY_ARGON2_256/1024;
+            break;
+        case Options::ALGO_ARGON2_500:
+            algoBlocks = MEMORY_ARGON2_500/1024;
+            break;
+        case Options::ALGO_ARGON2_512:
+            algoBlocks = MEMORY_ARGON2_512/1024;
+            break;
+        case Options::ALGO_ARGON2_4096:
+            algoBlocks = MEMORY_ARGON2_4096/1024;
             break;
         case Options::ALGO_CRYPTONIGHT:
         default:
-            algoBlockSize = 2048;
+            algoBlocks = MEMORY/1024;
             break;
     }
 
-    size_t maximumReasonableFactor = std::max(cache / algoBlockSize, static_cast<size_t>(1ul));
+    size_t maximumReasonableFactor = std::max(cache / algoBlocks, static_cast<size_t>(1ul));
     size_t maximumReasonableThreadCount = std::min(maximumReasonableFactor, m_totalThreads);
-    size_t maximumReasonableHashFactor = std::min(maximumReasonableFactor, algo == Options::ALGO_CRYPTONIGHT_HEAVY ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
+    size_t maximumReasonableHashFactor = static_cast<size_t>(MAX_NUM_HASH_BLOCKS);
+
+    if (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) {
+        maximumReasonableHashFactor = 3;
+    } else if (getCNBaseVariant(powVariant) == POW_V2 || getCNBaseVariant(powVariant) == POW_V4 || algo == Options::ALGO_CRYPTONIGHT_EXTREMELITE || algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
+        maximumReasonableHashFactor = 2;
+    } else if (!Options::isCNAlgo(algo)) {
+        maximumReasonableHashFactor = 1;
+    }
 
     if (safeMode) {
         if (threadsCount > maximumReasonableThreadCount) {
             threadsCount = maximumReasonableThreadCount;
         }
-        if (hashFactor > maximumReasonableFactor / threadsCount) {
+        if (threadsCount > 0 && hashFactor > maximumReasonableFactor / threadsCount) {
             hashFactor = std::min(maximumReasonableFactor / threadsCount, maximumReasonableHashFactor);
-            hashFactor   = std::max(hashFactor, static_cast<size_t>(1));
+            hashFactor  = std::max(hashFactor, static_cast<size_t>(1));
         }
     }
 
@@ -106,9 +141,10 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
         }
         threadsCount = std::max(threadsCount, static_cast<size_t>(1));
     }
+
     if (hashFactor == 0) {
         hashFactor = std::min(maximumReasonableHashFactor, maximumReasonableFactor / threadsCount);
-        hashFactor   = std::max(hashFactor, static_cast<size_t>(1));
+        hashFactor = std::max(hashFactor, static_cast<size_t>(1));
     }
 }
 
@@ -139,15 +175,15 @@ void Cpu::init()
     CpuImpl::instance().init();
 }
 
-void Cpu::optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo,
+void Cpu::optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo, PowVariant powVariant,
                                size_t maxCpuUsage, bool safeMode)
 {
-    CpuImpl::instance().optimizeParameters(threadsCount, hashFactor, algo, maxCpuUsage, safeMode);
+    CpuImpl::instance().optimizeParameters(threadsCount, hashFactor, algo, powVariant, maxCpuUsage, safeMode);
 }
 
-void Cpu::setAffinity(int id, uint64_t mask)
+int Cpu::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
-    CpuImpl::instance().setAffinity(id, mask);
+    return CpuImpl::instance().setThreadAffinity(threadId, affinityMask);
 }
 
 bool Cpu::hasAES()
@@ -193,4 +229,30 @@ size_t Cpu::threads()
 size_t Cpu::availableCache()
 {
     return CpuImpl::instance().availableCache();
+}
+
+int Cpu::getAssignedCpuId(size_t threadId, int64_t affinityMask)
+{
+    int cpuId = -1;
+
+    Mem::ThreadBitSet threadAffinityMask = Mem::ThreadBitSet(affinityMask);
+    size_t threadCount = 0;
+
+    for (size_t i = 0; i < CpuImpl::instance().threads(); i++) {
+        if (threadAffinityMask.test(i)) {
+            if (threadCount == threadId) {
+                cpuId = i;
+                break;
+            }
+
+            threadCount++;
+        }
+    }
+
+    return cpuId;
+}
+
+AsmOptimization Cpu::asmOptimization()
+{
+    return CpuImpl::instance().asmOptimization();
 }

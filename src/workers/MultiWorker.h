@@ -33,7 +33,7 @@
 
 class Handle;
 
-Worker* createMultiWorker(size_t numHashes, Handle *handle);
+Worker* createMultiWorker(Handle *handle, size_t hashFactor);
 
 
 #endif /* __SINGLEWORKER_H__ */

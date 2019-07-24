@@ -10,11 +10,18 @@ option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
 option(WITH_TLS       "TLS support" ON)
-set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
-set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
-
+option(WITH_ASM       "ASM optimizations" ON)
+option(BUILD_STATIC   "Build static binary" OFF)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(Boost_USE_STATIC_LIBS ON)
+
+if(NOT MINER_EXECUTABLE_NAME)
+set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
+endif(NOT MINER_EXECUTABLE_NAME)
+
+if(NOT DAEMON_EXECUTABLE_NAME)
+set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
+endif(NOT DAEMON_EXECUTABLE_NAME)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -46,7 +53,8 @@ set(SOURCES_CRYPTO
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
-    src/crypto/CryptoNight.cpp
+    src/crypto/HashSelector.cpp
+    src/crypto/CryptoNightR_gen.cpp
    )
 
 set(SOURCES_COMMON
@@ -56,6 +64,7 @@ set(SOURCES_COMMON
     src/Options.cpp
     src/log/ConsoleLog.cpp
     src/log/FileLog.cpp
+    src/log/RemoteLog.cpp
     src/log/Log.cpp
     src/Platform.cpp
     src/Cpu.cpp
@@ -121,9 +130,9 @@ find_package(UV REQUIRED)
 
 if (WIN32)
     add_definitions(-DBOOST_ALL_NO_LIB)
-endif()
+endif(WIN32)
 
-find_package(Boost 1.63.0 COMPONENTS system REQUIRED)
+find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
 
 include(cmake/flags.cmake)
 
@@ -137,10 +146,10 @@ if (WITH_TLS)
         set(SOURCES_SSL_TLS src/net/BoostTlsConnection.cpp)
     else()
         message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
-    endif()
+    endif(OPENSSL_FOUND)
 else()
     add_definitions(/DXMRIG_NO_TLS)
-endif()
+endif(WITH_TLS)
 
 if (WITH_LIBCPUID)
     add_subdirectory(src/3rdparty/libcpuid)
@@ -155,8 +164,8 @@ else()
         set(SOURCES_CPUID src/Cpu_arm.cpp)
     else()
         set(SOURCES_CPUID src/Cpu_stub.cpp)
-    endif()
-endif()
+    endif(XMRIG_ARM)
+endif(WITH_LIBCPUID)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
@@ -172,11 +181,11 @@ if (WITH_HTTPD)
         set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
-    endif()
+    endif(MHD_FOUND)
 else()
     add_definitions(/DXMRIG_NO_HTTPD)
     add_definitions(/DXMRIG_NO_API)
-endif()
+endif(WITH_HTTPD)
 
 if (WITH_CC_SERVER)
     find_package(MHD)
@@ -185,7 +194,7 @@ if (WITH_CC_SERVER)
         include_directories(${MHD_INCLUDE_DIRS})
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
-    endif()
+    endif(MHD_FOUND)
 
     set(SOURCES_CC_SERVER
             src/cc/CCServer.cpp
@@ -194,20 +203,34 @@ if (WITH_CC_SERVER)
             src/cc/Httpd.cpp
             src/cc/XMRigCC.cpp
             )
-endif()
+endif(WITH_CC_SERVER)
 
 if (WITH_CC_CLIENT)
     set(SOURCES_CC_CLIENT
             src/cc/CCClient.cpp)
-endif()
+endif(WITH_CC_CLIENT)
 
 if (WITH_CC_SERVER OR WITH_CC_CLIENT)
     set(SOURCES_CC_COMMON
             src/cc/ControlCommand.cpp
-            src/cc/ClientStatus.cpp)
+            src/cc/ClientStatus.cpp
+            src/cc/GPUInfo.cpp)
 else()
     add_definitions(/DXMRIG_NO_CC)
-endif()
+endif(WITH_CC_SERVER OR WITH_CC_CLIENT)
+
+if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    include(cmake/asm.cmake)
+else()
+    add_definitions(/DXMRIG_NO_ASM)
+endif(WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+
+add_subdirectory(src/3rdparty/argon2)
+set(ARGON2_LIBRARY argon2)
+
+if (BUILD_STATIC)
+    set(CMAKE_EXE_LINKER_FLAGS " -static")
+endif(BUILD_STATIC)
 
 include_directories(src)
 include_directories(src/3rdparty)
@@ -230,16 +253,19 @@ add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCE
 set_target_properties(xmrigMiner PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
 
 target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid ${Boost_LIBRARIES}
-        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} argon2)
 
 if (WITH_CC_CLIENT)
     target_link_libraries(xmrigMiner xmrig_cc_common)
-endif (WITH_CC_CLIENT)
+endif(WITH_CC_CLIENT)
 
 if (WITH_TLS)
     target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
-    target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
-endif (WITH_TLS)
+endif(WITH_TLS)
+
+if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    target_link_libraries(xmrigMiner xmrig_asm)
+endif(WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
 set_target_properties(xmrigDaemon PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
@@ -252,11 +278,11 @@ if (WITH_CC_SERVER AND MHD_FOUND)
             ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
 
     if (WITH_TLS)
-	    target_link_libraries(xmrigCCServer xmrig_tls ${OPENSSL_LIBRARIES})
+	    target_link_libraries(xmrigCCServer xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
     endif (WITH_TLS)
 
     set_target_properties(xmrig_common_cc PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
-endif()
+endif(WITH_CC_SERVER AND MHD_FOUND)
 
 add_subdirectory(test EXCLUDE_FROM_ALL)

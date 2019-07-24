@@ -1,3 +1,114 @@
+# 1.9.3
+- Fixed Multihashfactor auto detection for CN-Ultralite/Extremelite #248
+- Fixed donation address for UPX2/CN-Extremelite
+# 1.9.2
+- Integrated cn-extremelite a.k.a upx2 (algo: "cryptonight-extremelite", variant: "upx2")
+- Improved hashfactor autodetection for cnv8 and r based coins 
+- Integrated merged templates and replace of @WORKER-ID@ in template assignment
+# 1.9.1
+- Fix coloring of outdated miners on Dashboard
+- Autodetect for fork of CN/R(variant: "auto"), Graft(variant: "rwz"), Zelerius(variant: "zls")
+# 1.9.0
+- Integrated Monero CN-R variant so called CNv4, aka CN-R, aka CNv5, aka Cryptonight-R #233 (algo: "cryptonight", variant: "r")
+- Integrated Wownero CN-R variant #233 (algo: "cryptonight", variant: "wow")
+- Integrated Graft variant (algo: "cryptonight", variant: "rwz" OR variant: "graft")
+- Integrated X-Cash variant #234 (algo: "cryptonight", variant: "double" OR variant: "heavyx" OR variant: "xcash")
+- Integrated Zelerius variant (algo: "cryptonight", variant: "zls" OR variant: "zelerius")
+- Add miner version column to the Dashboard (version turns red when its outdated)
+- Fixed crash when remote logging is disabled
+- Added config parameter --skip-self-check to skip the algo verification check on startup to improce startup speed. Use with caution and only if you know that the algos are working fine on your machine.
+# 1.8.13
+- Integrated HOSP variant (algo: "cryptonight", variant: "hosp")
+- Added ASM code/optimization for HOSP and RTO on Intel CPUs
+- Fixed memory/hugepages printout for cn-ultralite/turtle
+- Fixed compile issues on some compilers
+# 1.8.12
+- Fixed #228 "force-pow-variant" overrules autodetect for XTLv9/Fast2
+- Fixed out of source building (asm code generator)
+- Fixed gcc 8 builds (self check failed)
+- CN-Ultralite is shown correctly on the Dashboard
+# 1.8.11
+- Implemented fix for upcominng Massari fork
+- Refactoring ASM code/cleanup
+- Fixed broke ARMv8 code for all CN variants (self check failed)
+# 1.8.10
+- Fixed broken XTL variant Autodetect
+# 1.8.9
+- Added cn-ultralite algo used by upcoming TurtleV2 fork (algo: "cryptonight-ultralite", variant "auto")
+# 1.8.8
+- Added XLT v5/9 with autodetect(algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))
+- Added cn-lite variant UPX/uPlexa (algo: "cryptonight-lite", variant "upx")
+- Added force-pow-variant parameter to force usage of the variant from the config and skip parsing of pow/variant from job/pool
+# 1.8.7
+- Implemented Template based mass config editor to simple swap configs on your rigs
+# 1.8.6
+- Integrated Telegram push notifications
+- Fixed multi miner editor
+- Added miner offline/online status push notification
+- Added 0/recovered hashrate push notification
+# 1.8.5
+- Add remote reboot (machine) feature to Dashboard, Server & Miner
+- Integrated Pushover push notifications for Offline miners and periodical status notifications on iOS and Android
+# 1.8.4
+- Added XFH (Freehaven-project) support aka CN-Heavy-superfast
+- Hashrate improve -> CN-Fast (MSR and others) ASM code for Intel CPUs
+- Hashrate improve -> CNv2 ASM code for AMD Bulldozer CPUs 
+- Fix memory leak in cc client component
+- Alloy algo is now shown as XAO on Dashboard
+# 1.8.2
+- Fix for mining conceal or other coins with cn-msr
+- Fixed avg.time on Dashboard
+# 1.8.1
+- Fix connection stuck in Failover case when DNS resolve fails #197
+- Fix supported-variants announcement in login 
+# 1.8.0
+- Integration of cnv2 aka moneroV8
+- Hashrate improve -> all cnv1, cn-litev1, cnv2, xtl by adding ASM code for Intel/AMD and softaes [thx @SChernykh]
+- Fixes for OSX builds [thx @djfinch]
+- Fixed safe mode #173
+# 1.7.0
+- First official Release of XMRigCC-amd #33 #3
+- Full integration of xmrigCC-amd into XMRigCCServer/Dashboard with GPUInfo / remote logging
+- Config property to enable/disable config upload on startup (--cc-upload-config-on-startup) #80
+- Refactoring of remote logging feature: #143
+    - Only deltas will be send to the XMRigCCServer
+    - Fetching miner log on dashboard upon need
+    - Maximum lines of log history kept per miner can be configured on XMRigCCServer 
+- Fix correct hugepages status on Dashboard
+- Fix cpu affinity for single thread usage
+- Add all needed security infos to XMRigCCServer logging to harden the server (f.e. fail2ban)
+- Fix commandline params overwrite config.json #157
+- Fix bulding of miner with API support Cannot #145
+# 1.6.5
+- Hashrate improve -> add autodetection mode for cpu-affinity
+- Hashrate improve, more stable hashrates -> refactor memory allocation
+- Add Arto (RTO) support (cn [2mb scratchpad] + ipbc mod)
+- Add TubeV4 (TUBE) support (cn-heavy [4mb scratchpad] + ipbc mod + soft-aes mod)
+- Add external IP to log view
+- Fix memory leak in RemoteLog
+- Fix crash Filelog
+- Fix stop/freeze of cc communication on some miners
+- Fix cn-heavy on arm processors
+# 1.6.4
+- Fix connection issues #130
+- Remote logging (Miner log on the Dashboard)
+- Add resetClientStatusList button to Dashboard #129
+- Fix new version notification #132
+- Add Masari (MSR) v7 support
+- Add Haven Protocol (XHV) v3 support
+# 1.6.3
+- Added shift+click function for multi row selection to Dashboard
+- Added -DBUILD_STATIC=ON/OFF option to CMake configuration to create fully static builds
+- Added current algo and list of supported_varaints to login message for future usage on proxy
+- Added support for latest Stellite (XTL) and Alloy (XAO) variants
+- Simplification of configuration, "force-pow-variant" and "cryptonight-lite-ipbc" parameters are now deprecated see [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) for guidance
+- Fixed leaks in transport shutdown
+# 1.6.2
+- Implementation of CN-Lite-IPBC algo
+- Fixed Windows 32bit build / crashes
+- Fixed XMRigCCServer crash when auth header is manipulated 
+# 1.6.1
+- beta
 # 1.6.0
 - Complete rewrite of the stratum TCP/TLS network communication using boost::asio to fix connection issues and crashs 
 - Force of PoW via "variant" parameter in xmrg-proxy 2.5.2+, it now overrules local settings

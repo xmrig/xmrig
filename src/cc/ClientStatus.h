@@ -1,10 +1,4 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+/* XMRigCC
  * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
@@ -27,7 +21,9 @@
 
 #include <string>
 #include <ctime>
+#include <list>
 #include <rapidjson/document.h>
+#include "GPUInfo.h"
 
 class ClientStatus
 {
@@ -69,6 +65,9 @@ public:
     std::string getCurrentAlgoName() const;
     void setCurrentAlgoName(const std::string& algoName);
 
+    std::string getCurrentPowVariantName() const;
+    void setCurrentPowVariantName(const std::string& powVariantName);
+
     std::string getCpuBrand() const;
     void setCpuBrand(const std::string& cpuBrand);
 
@@ -78,14 +77,15 @@ public:
     std::string getVersion() const;
     void setVersion(const std::string& version);
 
+    std::string getLog() const;
+    void setLog(const std::string& log);
+    void clearLog();
+
     bool hasHugepages() const;
     void setHugepages(bool hasHugepages);
 
     bool isHugepagesEnabled() const;
     void setHugepagesEnabled(bool hugepagesEnabled);
-
-    int getHashFactor() const;
-    void setHashFactor(int hashFactor);
 
     bool isCpuX64() const;
     void setCpuX64(bool isCpuX64);
@@ -105,6 +105,15 @@ public:
     void setHashrateHighest(double hashrateHighest);
     double getHashrateHighest() const;
 
+    int getHashFactor() const;
+    void setHashFactor(int hashFactor);
+
+    int getTotalPages() const;
+    void setTotalPages(int totalPages);
+
+    int getTotalHugepages() const;
+    void setTotalHugepages(int totalHugepages);
+
     int getCurrentThreads() const;
     void setCurrentThreads(int currentThreads);
 
@@ -123,6 +132,10 @@ public:
     int getCpuL3() const;
     void setCpuL3(int cpuL3);
 
+    const std::list<GPUInfo> getGPUInfoList() const;
+    void addGPUInfo(const GPUInfo gpuInfo);
+    void clearGPUInfoList();
+
     uint64_t getSharesGood() const;
     void setSharesGood(uint64_t sharesGood);
 
@@ -135,7 +148,7 @@ public:
     void setAvgTime(uint32_t avgTime);
     uint32_t getAvgTime() const;
 
-    std::time_t getLastStatusUpdate() const;
+    uint64_t getLastStatusUpdate() const;
 
     void setUptime(uint64_t uptime);
     uint64_t getUptime() const;
@@ -143,7 +156,6 @@ public:
     std::string toJsonString();
     rapidjson::Value toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
     bool parseFromJson(const rapidjson::Document& document);
-
 
 private:
     const char* status_str[3] = {
@@ -157,21 +169,25 @@ private:
     std::string m_clientId;
     std::string m_currentPool;
     std::string m_currentAlgoName;
+    std::string m_currentPowVariantName;
     std::string m_cpuBrand;
     std::string m_externalIp;
     std::string m_version;
+    std::string m_log;
 
     bool m_hasHugepages;
     bool m_isHugepagesEnabled;
     bool m_isCpuX64;
     bool m_hasCpuAES;
 
-    int m_hashFactor;
     double m_hashrateShort;
     double m_hashrateMedium;
     double m_hashrateLong;
     double m_hashrateHighest;
 
+    int m_hashFactor;
+    int m_totalPages;
+    int m_totalHugepages;
     int m_currentThreads;
     int m_cpuSockets;
     int m_cpuCores;
@@ -179,14 +195,15 @@ private:
     int m_cpuL2;
     int m_cpuL3;
 
+    std::list<GPUInfo> m_gpuInfoList;
+
     uint64_t m_sharesGood;
     uint64_t m_sharesTotal;
     uint64_t m_hashesTotal;
     uint64_t m_uptime;
 
     uint32_t m_avgTime;
-
-    std::time_t m_lastStatusUpdate;
+    uint64_t m_lastStatusUpdate;
 };
 
 #endif /* __CLIENT_STATUS_H__ */

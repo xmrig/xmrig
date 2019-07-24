@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "Options.h"
+#include "Mem.h"
 
 class CpuImpl
 {
@@ -37,9 +38,9 @@ public:
     CpuImpl();
     void init();
 
-    void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo,
+    void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo, PowVariant powVariant,
                             size_t maxCpuUsage, bool safeMode);
-    void setAffinity(int id, uint64_t mask);
+    int setThreadAffinity(size_t threadId, int64_t affinityMask);
 
     bool hasAES();
     bool isX64();
@@ -50,6 +51,7 @@ public:
     size_t sockets()       { return m_sockets; }
     size_t threads()       { return m_totalThreads; }
     size_t availableCache();
+    AsmOptimization asmOptimization() { return m_asmOptimization; }
 
 private:
     void initCommon();
@@ -62,6 +64,7 @@ private:
     size_t m_sockets;
     size_t m_totalCores;
     size_t m_totalThreads;
+    AsmOptimization m_asmOptimization;
 };
 
 #endif /* __CPU_IMPL_H__ */

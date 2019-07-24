@@ -80,4 +80,23 @@ void CpuImpl::initCommon()
     if (data.flags[CPU_FEATURE_BMI2]) {
         m_flags |= Cpu::BMI2;
     }
+
+    if (data.flags[CPU_FEATURE_AVX2]) {
+        m_flags |= Cpu::AVX2;
+    }
+
+#   ifndef XMRIG_NO_ASM
+    if (data.vendor == VENDOR_AMD) {
+        if (data.ext_family >= 0x17) {
+            m_asmOptimization = AsmOptimization::ASM_RYZEN;
+        } else if (data.ext_family >= 0x15) {
+            m_asmOptimization = AsmOptimization::ASM_BULLDOZER;
+        }
+    } else if (data.vendor == VENDOR_INTEL &&
+            ((data.ext_family >= 0x06 && data.ext_model > 0x2) ||
+             (data.ext_family >= 0x06 && data.ext_model == 0x2 && data.model >= 0xA))) {
+        m_asmOptimization = AsmOptimization::ASM_INTEL;
+    }
+#   endif
+
 }

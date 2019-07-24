@@ -24,9 +24,10 @@
 
 
 #include <thread>
+#include <log/Log.h>
 
 
-#include "crypto/CryptoNight.h"
+#include "crypto/HashSelector.h"
 #include "workers/MultiWorker.h"
 #include "workers/Workers.h"
 #include "Mem.h"
@@ -35,7 +36,7 @@
 class MultiWorker : public Worker
 {
 public:
-    explicit MultiWorker(Handle *handle, size_t hashMultiplier);
+    explicit MultiWorker(Handle *handle, size_t hashFactor);
     ~MultiWorker();
 
     void start() override;
@@ -50,7 +51,10 @@ private:
     uint8_t* m_hash;
     State *m_state;
     State *m_pausedState;
-    size_t m_hashMultiplier;
+    size_t m_hashFactor;
+
+    ScratchPadMem scratchPadMem;
+    ScratchPad* scratchPads[MAX_NUM_HASH_BLOCKS];
 };
 
 class MultiWorker::State
@@ -59,7 +63,7 @@ public:
   State(size_t hashMultiplier)
   {
       nonces = new uint32_t[hashMultiplier];
-      blob = new uint8_t[84 * hashMultiplier];
+      blob = new uint8_t[MAX_BLOB_SIZE * hashMultiplier];
 
       for(size_t i=0; i<hashMultiplier; ++i) {
           nonces[i] = 0;
@@ -77,13 +81,14 @@ public:
 };
 
 
-MultiWorker::MultiWorker(Handle *handle, size_t hashMultiplier)
+MultiWorker::MultiWorker(Handle *handle, size_t hashFactor)
     : Worker(handle),
-      m_hash(new uint8_t[32 * hashMultiplier]),
-      m_state(new MultiWorker::State(hashMultiplier)),
-      m_pausedState(new MultiWorker::State(hashMultiplier)),
-      m_hashMultiplier(hashMultiplier)
+      m_hash(new uint8_t[32 * hashFactor]),
+      m_state(new MultiWorker::State(hashFactor)),
+      m_pausedState(new MultiWorker::State(hashFactor)),
+      m_hashFactor(hashFactor)
 {
+    scratchPadMem = Mem::create(scratchPads, m_id);
 }
 
 MultiWorker::~MultiWorker()
@@ -91,10 +96,26 @@ MultiWorker::~MultiWorker()
     delete[] m_hash;
     delete m_state;
     delete m_pausedState;
+
+    Mem::release(scratchPads, scratchPadMem, m_id);
 }
 
 void MultiWorker::start()
 {
+    size_t memory = scratchPadMem.realSize > ONE_MB ? scratchPadMem.realSize / ONE_MB : scratchPadMem.realSize / 1024;
+
+    if (Options::i()->colors()) {
+        LOG_INFO(WHITE_BOLD("Starting thread ") GREEN_BOLD("%zu/%zu") " affined to core: " GREEN_BOLD("#%d") " -> huge pages:" GREEN_BOLD(" %s%zu/%zu") " scratchpad: " CYAN_BOLD("%zu.0 %s"),
+            m_id+1, Options::i()->threads(), m_affinedCpu,
+                 (scratchPadMem.hugePages == scratchPadMem.pages ? "\x1B[1;32m" : (scratchPadMem.hugePages == 0 ? "\x1B[1;31m" : "\x1B[1;33m")),
+                  scratchPadMem.hugePages, scratchPadMem.pages, memory, scratchPadMem.realSize > ONE_MB ? "MB" : "KB");
+    }
+    else {
+        LOG_INFO("Starting thread %zu/%zu affined to core: #%d -> huge pages: %zu/%zu scratchpad: %zu.0 %s",
+                         m_id+1, Options::i()->threads(), m_affinedCpu, scratchPadMem.hugePages, scratchPadMem.pages, memory,
+                         scratchPadMem.realSize > ONE_MB ? "MB" : "KB");
+    }
+
     while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {
             do {
@@ -114,15 +135,15 @@ void MultiWorker::start()
                 storeStats();
             }
 
-            m_count += m_hashMultiplier;
+            m_count += m_hashFactor;
 
-            for (size_t i=0; i < m_hashMultiplier; ++i) {
+            for (size_t i=0; i < m_hashFactor; ++i) {
                 *Job::nonce(m_state->blob + i * m_state->job.size()) = ++m_state->nonces[i];
             }
 
-            CryptoNight::hash(m_hashMultiplier, m_state->job.powVersion(), m_state->blob, m_state->job.size(), m_hash, m_ctx);
+            HashSelector::hash(m_hashFactor, Options::i()->asmOptimization(), m_state->job.height(), m_state->job.powVariant(), m_state->blob, m_state->job.size(), m_hash, scratchPads);
 
-            for (size_t i=0; i < m_hashMultiplier; ++i) {
+            for (size_t i=0; i < m_hashFactor; ++i) {
                 if (*reinterpret_cast<uint64_t *>(m_hash + 24 + i * 32) < m_state->job.target()) {
                     Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonces[i], m_hash + i * 32,
                                               m_state->job.diff()), m_id);
@@ -162,7 +183,7 @@ void MultiWorker::consumeJob()
 
     m_state->job = std::move(job);
 
-    for (size_t i=0; i < m_hashMultiplier; ++i) {
+    for (size_t i=0; i < m_hashFactor; ++i) {
         memcpy(m_state->blob + i * m_state->job.size(), m_state->job.blob(), m_state->job.size());
         if (m_state->job.isNicehash()) {
             m_state->nonces[i] = (*Job::nonce(m_state->blob + i * m_state->job.size()) & 0xff000000U) +
@@ -183,6 +204,6 @@ void MultiWorker::save(const Job &job)
     }
 }
 
-Worker* createMultiWorker(size_t numHashes, Handle *handle) {
-    return new MultiWorker(handle, numHashes);
+Worker* createMultiWorker(Handle *handle, size_t hashFactor) {
+    return new MultiWorker(handle, hashFactor);
 }

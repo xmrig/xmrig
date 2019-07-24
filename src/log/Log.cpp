@@ -35,7 +35,6 @@
 
 Log *Log::m_self = nullptr;
 
-
 Log::Log()
 {
     uv_mutex_init(&m_mutex);
@@ -64,6 +63,8 @@ void Log::message(Log::Level level, const char* fmt, ...)
         va_end(copy);
     }
 
+    va_end(args);
+    
     uv_mutex_unlock(&m_mutex);
 }
 

@@ -1,10 +1,4 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+/* XMRigCC
  * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
@@ -31,8 +25,15 @@
 #include <chrono>
 #include <ctime>
 #include <3rdparty/cpp-httplib/httplib.h>
-#include "Options.h"
 #include "ClientStatus.h"
+#include "version.h"
+
+#ifdef TYPE_AMD_GPU
+#include "amd/GpuContext.h"
+#include "core/Controller.h"
+#else
+#include "Options.h"
+#endif
 
 class Hashrate;
 class NetworkState;
@@ -40,7 +41,13 @@ class NetworkState;
 class CCClient
 {
 public:
-    CCClient(Options *options, uv_async_t* async);
+#ifdef TYPE_AMD_GPU
+    CCClient(xmrig::Config* m_config, uv_async_t* async);
+    static void updateGpuInfo(const std::vector<GpuContext>& network);
+#else
+    CCClient(Options* config, uv_async_t* async);
+#endif
+
     ~CCClient();
 
     static void updateHashrate(const Hashrate *hashrate);
@@ -48,17 +55,23 @@ public:
 
 private:
 
-    static void publishClientStatusReport();
-    static void updateConfig();
-    static void publishConfig();
-    static std::shared_ptr<httplib::Response> performRequest(const std::string& requestUrl,
+    void publishClientStatusReport();
+    void updateConfig();
+    void publishConfig();
+    void refreshUptime();
+    void refreshLog();
+
+    std::shared_ptr<httplib::Response> performRequest(const std::string& requestUrl,
                                                              const std::string& requestBuffer,
                                                              const std::string& operation);
-
     static void onThreadStarted(void *handle);
     static void onReport(uv_timer_t *handle);
 
-    const Options* m_options;
+#ifdef TYPE_AMD_GPU
+    const xmrig::Config* m_config;
+#else
+    const Options* m_config;
+#endif
 
     static CCClient* m_self;
     static uv_mutex_t m_mutex;
@@ -73,8 +86,6 @@ private:
     uv_timer_t m_timer;
     uv_loop_t m_client_loop;
     uv_thread_t m_thread;
-
-    static void refreshUptime();
 };
 
 #endif

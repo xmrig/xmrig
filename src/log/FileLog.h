@@ -44,6 +44,7 @@ private:
 
     void write(char *data, size_t size);
 
+    char m_fmt[256];
     int m_file;
 };
 

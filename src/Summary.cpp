@@ -56,32 +56,24 @@ static void print_versions()
 }
 
 
-static void print_memory() {
-    if (Options::i()->colors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mHUGE PAGES:   %s, %s",
-                       Mem::isHugepagesAvailable() ? "\x1B[01;32mavailable" : "\x1B[01;31munavailable",
-                       Mem::isHugepagesEnabled() ? "\x1B[01;32menabled" : "\x1B[01;31mdisabled");
-    }
-    else {
-        Log::i()->text(" * HUGE PAGES:   %s, %s", Mem::isHugepagesAvailable() ? "available" : "unavailable", Mem::isHugepagesEnabled() ? "enabled" : "disabled");
-    }
-}
-
-
 static void print_cpu()
 {
     if (Options::i()->colors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU:          %s (%d) %sx64 %sAES-NI",
+        Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU:          %s (%d) %sx64 %sAES-NI %sASM-%s",
                        Cpu::brand(),
                        Cpu::sockets(),
                        Cpu::isX64() ? "\x1B[01;32m" : "\x1B[01;31m-",
-                       Cpu::hasAES() ? "\x1B[01;32m" : "\x1B[01;31m-");
+                       Cpu::hasAES() && Options::i()->aesni() ? "\x1B[01;32m" : "\x1B[01;31m-",
+                       Options::i()->asmOptimization() != AsmOptimization::ASM_OFF ? "\x1B[01;32m" : "\x1B[01;31m-",
+                       getAsmOptimizationName(Options::i()->asmOptimization()).c_str());
 #       ifndef XMRIG_NO_LIBCPUID
         Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
 #       endif
     }
     else {
-        Log::i()->text(" * CPU:          %s (%d) %sx64 %sAES-NI", Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
+        Log::i()->text(" * CPU:          %s (%d) %sx64 %sAES-NI ASM-%s",
+                       Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-",
+                       getAsmOptimizationName(Options::i()->asmOptimization()).c_str());
 #       ifndef XMRIG_NO_LIBCPUID
         Log::i()->text(" * CPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
 #       endif
@@ -125,15 +117,14 @@ static void print_threads()
         snprintf(affBuf, 32, ", affinity=0x%" PRIX64, Options::i()->affinity());
     }
     else {
-        affBuf[0] = '\0';
+        snprintf(affBuf, 32, ", affinity=auto");
     }
 
     Log::i()->text(Options::i()->colors() ?
-                     "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, aes=%d, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s" :
-                     " * THREADS:      %d, %s, aes=%d, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s",
+                     "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s" :
+                     " * THREADS:      %d, %s, hf=%zu, %sdonate=%d%%%s%s",
                    Options::i()->threads(),
                    Options::i()->algoName(),
-                   Options::i()->aesni(),
                    Options::i()->hashFactor(),
                    Options::i()->colors() && Options::i()->donateLevel() == 0 ? "\x1B[01;31m" : "",
                    Options::i()->donateLevel(),
@@ -201,7 +192,6 @@ static void print_commands()
 void Summary::print()
 {
     print_versions();
-    print_memory();
     print_cpu();
     print_threads();
     print_pools();

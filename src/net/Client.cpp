@@ -30,6 +30,8 @@
 #include <uv.h>
 #include <Options.h>
 
+#include "PowVariant.h"
+
 #include "interfaces/IClientListener.h"
 #include "log/Log.h"
 #include "net/Client.h"
@@ -50,6 +52,7 @@ int64_t Client::m_sequence = 1;
 Client::Client(int id, const char *agent, IClientListener *listener) :
         m_quiet(false),
         m_nicehash(false),
+        m_donate(false),
         m_agent(agent),
         m_listener(listener),
         m_id(id),
@@ -71,6 +74,7 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     uv_async_init(uv_default_loop(), &onConnectedAsync, Client::onConnected);
     uv_async_init(uv_default_loop(), &onReceivedAsync, Client::onReceived);
     uv_async_init(uv_default_loop(), &onErrorAsync, Client::onError);
+    uv_async_init(uv_default_loop(), &onDNSErrorAsync, Client::onDNSError);
 }
 
 
@@ -94,7 +98,7 @@ void Client::connect(const Url *url)
 
 void Client::connect()
 {
-    LOG_DEBUG("connect");
+    LOG_DEBUG("[%d] connect", m_id);
 
     m_connection = establishConnection(shared_from_this(),
                                        m_url.useTls() ? CONNECTION_TYPE_TLS : CONNECTION_TYPE_TCP,
@@ -104,12 +108,14 @@ void Client::connect()
 
 void Client::disconnect()
 {
-    LOG_DEBUG("disconnect");
+    LOG_DEBUG("[%d] disconnect", m_id);
 
     uv_timer_stop(&m_keepAliveTimer);
 
     m_expire   = 0;
     m_failures = -1;
+
+    LOG_DEBUG("[%d] disconnect set m_failure to -1", m_id);
 
     close();
 }
@@ -224,24 +230,42 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    if (params.HasMember("variant")) {
-        int variantFromProxy = params["variant"].GetInt();
+    PowVariant powVariant = Options::i()->powVariant();
 
-        switch (variantFromProxy) {
-            case -1:
-                job.setPowVersion(Options::POW_AUTODETECT);
-                break;
-            case 0:
-                job.setPowVersion(Options::POW_V1);
-                break;
-            case 1:
-                job.setPowVersion(Options::POW_V2);
-                break;
-            default:
-                break;
+    if (!Options::i()->forcePowVariant() || m_donate) {
+        if (params.HasMember("algo")) {
+            std::string algo = params["algo"].GetString();
+
+            if (algo.find("/") != std::string::npos) {
+                powVariant = parseVariant(algo.substr(algo.find("/") + 1));
+            }
         }
-    } else {
-        job.setPowVersion(Options::i()->forcePowVersion());
+
+        if (params.HasMember("variant")) {
+            const rapidjson::Value& variant = params["variant"];
+
+            PowVariant parsedVariant = powVariant;
+
+            if (variant.IsInt()) {
+                parsedVariant = parseVariant(variant.GetInt());
+            } else if (variant.IsString()) {
+                parsedVariant = parseVariant(variant.GetString());
+            }
+
+            if (parsedVariant != POW_AUTODETECT) {
+                powVariant = parsedVariant;
+            }
+        }
+    }
+
+    job.setPowVariant(powVariant);
+
+    if (params.HasMember("height")) {
+        const rapidjson::Value &variant = params["height"];
+
+        if (variant.IsUint64()) {
+            job.setHeight(variant.GetUint64());
+        }
     }
 
     if (m_job != job) {
@@ -320,7 +344,7 @@ int64_t Client::send(char* buf, size_t size)
 
 void Client::close()
 {
-    LOG_DEBUG("close");
+    LOG_DEBUG("[%d] close", m_id);
 
     if (m_connection) {
         m_connection->disconnect();
@@ -349,6 +373,16 @@ void Client::login()
     params.AddMember("login", rapidjson::StringRef(m_url.user()),     allocator);
     params.AddMember("pass",  rapidjson::StringRef(m_url.password()), allocator);
     params.AddMember("agent", rapidjson::StringRef(m_agent),          allocator);
+
+    params.AddMember("algo", rapidjson::StringRef(Options::i()->algoShortName()), allocator);
+
+    rapidjson::Value supportedPowVariantsList(rapidjson::kArrayType);
+    for (auto& supportedPowVariant : getSupportedPowVariants()) {
+        rapidjson::Value val(supportedPowVariant.c_str(), allocator);
+        supportedPowVariantsList.PushBack(val, allocator);
+    }
+
+    params.AddMember("supported-variants", supportedPowVariantsList, allocator);
 
     doc.AddMember("params", params, allocator);
 
@@ -498,7 +532,9 @@ void Client::parseResponse(int64_t id, const rapidjson::Value &result, const rap
             return reconnect();
         }
 
+        LOG_DEBUG("[%d] login set m_failure to 0", m_id);
         m_failures = 0;
+
         m_listener->onLoginSuccess(this);
         m_listener->onJobReceived(this, m_job);
         return;
@@ -534,7 +570,7 @@ void Client::ping()
 
 void Client::reconnect()
 {
-    LOG_DEBUG("reconnect");
+    LOG_DEBUG("[%d] reconnect", m_id);
 
     close();
 
@@ -543,11 +579,12 @@ void Client::reconnect()
     }
 
     if (m_failures == -1) {
-        LOG_DEBUG("reconnect -> m_failures == -1");
+        LOG_DEBUG("[%d] reconnect -> m_failures == -1", m_id);
         return m_listener->onClose(this, -1);
     }
 
     m_failures++;
+    LOG_DEBUG("[%d] increment m_failures to: %d", m_id, m_failures);
     m_listener->onClose(this, (int) m_failures);
 
     m_expire = uv_now(uv_default_loop()) + m_retryPause;
@@ -617,10 +654,9 @@ void Client::scheduleOnReceived(char* data, std::size_t size)
 
 void Client::onError(uv_async_t *handle)
 {
-    LOG_DEBUG("onError");
-
     auto client = getClient(handle->data);
     if (client) {
+        LOG_DEBUG("[%d] onError", client->m_id);
         client->reconnect();
     }
 }
@@ -635,4 +671,29 @@ void Client::scheduleOnError(const std::string &error)
 
     onErrorAsync.data = this;
     uv_async_send(&onErrorAsync);
+}
+
+void Client::onDNSError(uv_async_t *handle)
+{
+    auto client = getClient(handle->data);
+    if (client) {
+        if (client->m_failures == -1) {
+            client->m_failures = 0;
+        }
+
+        LOG_DEBUG("[%d] onDNSError", client->m_id);
+        client->reconnect();
+    }
+}
+
+void Client::scheduleOnDNSError(const std::string &error)
+{
+    LOG_DEBUG("scheduleOnDNSError");
+
+    if (!m_quiet) {
+        LOG_ERR("[%s:%u] DNS Error: \"%s\"", m_url.host(), m_url.port(), error.c_str());
+    }
+
+    onDNSErrorAsync.data = this;
+    uv_async_send(&onDNSErrorAsync);
 }

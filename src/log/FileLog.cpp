@@ -22,6 +22,7 @@
  */
 
 
+#include <regex>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,19 +56,24 @@ void FileLog::message(int level, const char* fmt, va_list args)
     localtime_r(&now, &stime);
 #   endif
 
-    char *buf = new char[512];
-    int size = snprintf(buf, 23, "[%d-%02d-%02d %02d:%02d:%02d] ",
-                        stime.tm_year + 1900,
-                        stime.tm_mon + 1,
-                        stime.tm_mday,
-                        stime.tm_hour,
-                        stime.tm_min,
-                        stime.tm_sec);
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d] %s",
+             stime.tm_year + 1900,
+             stime.tm_mon + 1,
+             stime.tm_mday,
+             stime.tm_hour,
+             stime.tm_min,
+             stime.tm_sec,
+             fmt);
 
-    size = vsnprintf(buf + size, 512 - size - 1, fmt, args) + size;
+    auto *buf = new char[kBufferSize];
+    const int size = vsnprintf(buf, kBufferSize - 1, m_fmt, args);
     buf[size] = '\n';
 
-    write(buf, size + 1);
+    std::string row = std::regex_replace(std::string(buf, static_cast<unsigned long>(size + 1)), std::regex("\x1B\\[[0-9;]*[a-zA-Z]"), "");
+
+    memcpy(buf, row.c_str(), row.length());
+
+    write(buf, row.length());
 }
 
 
@@ -93,5 +99,5 @@ void FileLog::write(char *data, size_t size)
     uv_fs_t *req = new uv_fs_t;
     req->data = buf.base;
 
-    uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, 0, FileLog::onWrite);
+    uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, -1, FileLog::onWrite);
 }

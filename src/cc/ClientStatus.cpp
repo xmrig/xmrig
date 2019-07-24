@@ -1,12 +1,5 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+/* XMRigCC
  * Copyright 2017-     BenDr0id    <ben@graef.in>
- *
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,7 +20,6 @@
 #include <cstring>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
-#include <log/Log.h>
 
 #include "ClientStatus.h"
 
@@ -37,11 +29,13 @@ ClientStatus::ClientStatus()
       m_isHugepagesEnabled(false),
       m_isCpuX64(false),
       m_hasCpuAES(false),
-      m_hashFactor(1),
       m_hashrateShort(0),
       m_hashrateMedium(0),
       m_hashrateLong(0),
       m_hashrateHighest(0),
+      m_hashFactor(1),
+      m_totalPages(0),
+      m_totalHugepages(0),
       m_currentThreads(0),
       m_cpuSockets(0),
       m_cpuCores(0),
@@ -98,6 +92,16 @@ std::string ClientStatus::getCurrentAlgoName() const
     return m_currentAlgoName;
 }
 
+void ClientStatus::setCurrentPowVariantName(const std::string& powVariantName)
+{
+    m_currentPowVariantName = powVariantName;
+}
+
+std::string ClientStatus::getCurrentPowVariantName() const
+{
+    return m_currentPowVariantName;
+}
+
 std::string ClientStatus::getCpuBrand() const
 {
     return m_cpuBrand;
@@ -128,6 +132,21 @@ void ClientStatus::setVersion(const std::string& version)
     m_version = version;
 }
 
+std::string ClientStatus::getLog() const
+{
+    return m_log;
+}
+
+void ClientStatus::setLog(const std::string& log)
+{
+    m_log = log;
+}
+
+void ClientStatus::clearLog()
+{
+    m_log.clear();
+}
+
 bool ClientStatus::hasHugepages() const
 {
     return m_hasHugepages;
@@ -146,16 +165,6 @@ bool ClientStatus::isHugepagesEnabled() const
 void ClientStatus::setHugepagesEnabled(bool hugepagesEnabled)
 {
     m_isHugepagesEnabled = hugepagesEnabled;
-}
-
-int ClientStatus::getHashFactor() const
-{
-    return m_hashFactor;
-}
-
-void ClientStatus::setHashFactor(int hashFactor)
-{
-    m_hashFactor = hashFactor;
 }
 
 bool ClientStatus::isCpuX64() const
@@ -216,6 +225,36 @@ void ClientStatus::setHashrateHighest(double hashrateHighest)
 double ClientStatus::getHashrateHighest() const
 {
     return m_hashrateHighest;
+}
+
+int ClientStatus::getHashFactor() const
+{
+    return m_hashFactor;
+}
+
+void ClientStatus::setHashFactor(int hashFactor)
+{
+    m_hashFactor = hashFactor;
+}
+
+int ClientStatus::getTotalPages() const
+{
+    return m_totalPages;
+}
+
+void ClientStatus::setTotalPages(int totalPages)
+{
+    m_totalPages = totalPages;
+}
+
+int ClientStatus::getTotalHugepages() const
+{
+    return m_totalHugepages;
+}
+
+void ClientStatus::setTotalHugepages(int totalHugepages)
+{
+    m_totalHugepages = totalHugepages;
 }
 
 int ClientStatus::getCurrentThreads() const
@@ -317,7 +356,7 @@ uint32_t ClientStatus::getAvgTime() const
     return m_avgTime;
 }
 
-std::time_t ClientStatus::getLastStatusUpdate() const
+uint64_t ClientStatus::getLastStatusUpdate() const
 {
     return m_lastStatusUpdate;
 }
@@ -338,7 +377,7 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
 
     if (document.HasMember("client_status"))
     {
-        rapidjson::Value::ConstObject clientStatus = document["client_status"].GetObject();
+        const rapidjson::Value& clientStatus = document["client_status"];
 
         if (clientStatus.HasMember("current_status")) {
             m_currentStatus = toStatus(clientStatus["current_status"].GetString());
@@ -356,6 +395,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_currentAlgoName = clientStatus["current_algo_name"].GetString();
         }
 
+        if (clientStatus.HasMember("current_pow_variant_name")) {
+            m_currentPowVariantName = clientStatus["current_pow_variant_name"].GetString();
+        }
+
         if (clientStatus.HasMember("cpu_brand")) {
             m_cpuBrand = clientStatus["cpu_brand"].GetString();
         }
@@ -368,16 +411,16 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_version = clientStatus["version"].GetString();
         }
 
+        if (clientStatus.HasMember("log")) {
+            m_log = clientStatus["log"].GetString();
+        }
+
         if (clientStatus.HasMember("hugepages_available")) {
             m_hasHugepages = clientStatus["hugepages_available"].GetBool();
         }
 
         if (clientStatus.HasMember("hugepages_enabled")) {
             m_isHugepagesEnabled = clientStatus["hugepages_enabled"].GetBool();
-        }
-
-        if (clientStatus.HasMember("hash_factor")) {
-            m_hashFactor = clientStatus["hash_factor"].GetInt();
         }
 
         if (clientStatus.HasMember("cpu_is_x64")) {
@@ -404,6 +447,18 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_hashrateHighest = clientStatus["hashrate_highest"].GetDouble();
         }
 
+        if (clientStatus.HasMember("hash_factor")) {
+            m_hashFactor = clientStatus["hash_factor"].GetInt();
+        }
+
+        if (clientStatus.HasMember("total_pages")) {
+            m_totalPages = clientStatus["total_pages"].GetInt();
+        }
+
+        if (clientStatus.HasMember("total_hugepages")) {
+            m_totalHugepages = clientStatus["total_hugepages"].GetInt();
+        }
+
         if (clientStatus.HasMember("current_threads")) {
             m_currentThreads = clientStatus["current_threads"].GetInt();
         }
@@ -428,6 +483,18 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_cpuL3 = clientStatus["cpu_l3"].GetInt();
         }
 
+        if (clientStatus.HasMember("gpu_info_list") && clientStatus["gpu_info_list"].IsArray()) {
+            m_gpuInfoList.clear();
+
+            auto gpuInfoList = clientStatus["gpu_info_list"].GetArray();
+            for (rapidjson::Value::ConstValueIterator itr = gpuInfoList.Begin(); itr != gpuInfoList.End(); ++itr) {
+                GPUInfo gpuInfo;
+                gpuInfo.parseFromJson((*itr)["gpu_info"]);
+
+                m_gpuInfoList.push_back(gpuInfo);
+            }
+        }
+
         if (clientStatus.HasMember("shares_good")) {
             m_sharesGood = clientStatus["shares_good"].GetUint64();
         }
@@ -449,11 +516,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
         }
 
         auto time_point = std::chrono::system_clock::now();
-        m_lastStatusUpdate = std::chrono::system_clock::to_time_t(time_point);
+        m_lastStatusUpdate = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point));
+
 
         result = true;
-    } else {
-        LOG_ERR("Parse Error, JSON does not contain: control_command");
     }
 
     return result;
@@ -468,13 +534,13 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("client_id", rapidjson::StringRef(m_clientId.c_str()), allocator);
     clientStatus.AddMember("current_pool", rapidjson::StringRef(m_currentPool.c_str()), allocator);
     clientStatus.AddMember("current_algo_name", rapidjson::StringRef(m_currentAlgoName.c_str()), allocator);
+    clientStatus.AddMember("current_pow_variant_name", rapidjson::StringRef(m_currentPowVariantName.c_str()), allocator);
     clientStatus.AddMember("cpu_brand", rapidjson::StringRef(m_cpuBrand.c_str()), allocator);
     clientStatus.AddMember("external_ip", rapidjson::StringRef(m_externalIp.c_str()), allocator);
     clientStatus.AddMember("version", rapidjson::StringRef(m_version.c_str()), allocator);
 
     clientStatus.AddMember("hugepages_available", m_hasHugepages, allocator);
     clientStatus.AddMember("hugepages_enabled", m_isHugepagesEnabled, allocator);
-    clientStatus.AddMember("hash_factor", m_hashFactor, allocator);
     clientStatus.AddMember("cpu_is_x64", m_isCpuX64, allocator);
     clientStatus.AddMember("cpu_has_aes", m_hasCpuAES, allocator);
 
@@ -483,12 +549,23 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("hashrate_long", m_hashrateLong, allocator);
     clientStatus.AddMember("hashrate_highest", m_hashrateHighest, allocator);
 
+    clientStatus.AddMember("hash_factor", m_hashFactor, allocator);
+    clientStatus.AddMember("total_pages", m_totalPages, allocator);
+    clientStatus.AddMember("total_hugepages", m_totalHugepages, allocator);
     clientStatus.AddMember("current_threads", m_currentThreads, allocator);
     clientStatus.AddMember("cpu_sockets", m_cpuSockets, allocator);
     clientStatus.AddMember("cpu_cores", m_cpuCores, allocator);
     clientStatus.AddMember("cpu_threads", m_cpuThreads, allocator);
     clientStatus.AddMember("cpu_l2", m_cpuL2, allocator);
     clientStatus.AddMember("cpu_l3", m_cpuL3, allocator);
+
+    rapidjson::Value gpuInfoList(rapidjson::kArrayType);
+    for (auto& gpuInfo : m_gpuInfoList) {
+        rapidjson::Value gpuInfoEntry(rapidjson::kObjectType);
+        gpuInfoEntry.AddMember("gpu_info", gpuInfo.toJson(allocator), allocator);
+        gpuInfoList.PushBack(gpuInfoEntry, allocator);
+    }
+    clientStatus.AddMember("gpu_info_list", gpuInfoList, allocator);
 
     clientStatus.AddMember("shares_good", m_sharesGood, allocator);
     clientStatus.AddMember("shares_total", m_sharesTotal, allocator);
@@ -497,8 +574,9 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("avg_time", m_avgTime, allocator);
 
     clientStatus.AddMember("uptime", m_uptime, allocator);
-
     clientStatus.AddMember("last_status_update", static_cast<uint64_t >(m_lastStatusUpdate), allocator);
+    clientStatus.AddMember("log", rapidjson::StringRef(m_log.c_str()), allocator);
+
 
     return clientStatus;
 }
@@ -518,6 +596,15 @@ std::string ClientStatus::toJsonString()
     writer.SetMaxDecimalPlaces(10);
     respDocument.Accept(writer);
 
-    return strdup(buffer.GetString());
+    return buffer.GetString();
 }
 
+void ClientStatus::clearGPUInfoList()
+{
+    m_gpuInfoList.clear();
+}
+
+void ClientStatus::addGPUInfo(const GPUInfo gpuInfo)
+{
+    m_gpuInfoList.push_back(gpuInfo);
+}

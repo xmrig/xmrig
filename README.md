@@ -1,6 +1,8 @@
 # XMRigCC 
 
-:warning: **To be prepared for the upcoming PoW changes you need to update your miners to at least release (1.5.5).**
+:bulb: **This is the CPU variant of XMRigCC, if you're looking for the AMD GPU (OpenCL) variant [click here](https://github.com/Bendr0id/xmrigCC-amd/).**
+
+:warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
 
 
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
@@ -15,15 +17,36 @@
 ### About XMRigCC
 
 XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
-This fork is based on XMRig (2.4.5) and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRig on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
-The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server. 
+This fork is based on XMRig and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRigCCMiner on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
+The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server.
+
+**AND MANY MORE**
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
-* **NEW: Support of Crytptonight-Heavy (Sumokoin, Haven, ...)**
-* **NEW: Ready for Monero v7 PoW changes on April 6 2018**
-* **NEW: Ready for Aeon v7 PoW changes on April 7? 2018**
+
+Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
+* **NEW Support of Crytptonight R (XMR) variant(algo: "cryptonight", variant "auto" (autodetect) or "r")**
+* **NEW Support of Crytptonight WOW (Wownero) variant (algo: "cryptonight", variant "wow")**
+* **NEW Support of Crytptonight Reverse Waltz (Graft) variant (algo: "cryptonight", variant "rwz" (autodetect) or variant "graft")**
+* **NEW Support of Crytptonight Double/Heavyx (XCash) variant (algo: "cryptonight", variant "double")**
+* **NEW Support of Crytptonight Zelerius variant (algo: "cryptonight", variant "zls")**
+* **Support of Crytptonight RTO/HOSP variant (algo: "cryptonight", variant "rto" or variant "hosp")**
+* **Support of Crytptonight-Ultralite TRTL/Turtle variant (algo: "cryptonight-ultralite", variant "auto")**
+* **Support of Crytptonight-Lite UPX/uPlexa variant (algo: "cryptonight-lite", variant "upx")**
+* **Support of Crytptonight XTL v5/v9 PoW changes aka CN-FastV2 (algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))**
+* **Support of Crytptonight XFH/SWAP variant aka CN-Heavy-Fast**
+* **Support of Crytptonight v8 PoW changes aka CNV2 (XMR fork on Block 1685555)**
+* **Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (fork on Block 110000)**
+* **Support of Crytptonight Masari (MSR) v7 variant (use variant "msr" to be ready for the fork, with autodetect)**
+* **Support of Crytptonight-Heavy Haven Protocol (XHV) v3 variant (use variant "xhv")**
+* **Support of Crytptonight Stellite (XTL) v4 variant**
+* **Support of Crytptonight Alloy (XAO) variant**
+* **Support of Crytptonight-Lite IPBC/TUBE variant**
+* **Support of Crytptonight-Heavy (Loki, Ryo, ...)**
+* **Support of Crytptonight v7 PoW changes aka CNV1**
+* **Support of Crytptonight-Lite v7 PoW changes aka CN-LiteV1**
 * Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)
     - XMRigCCServer Dashboard <-> Browser
     - XMRigCCServer <-> XMRigMiner
@@ -53,12 +76,11 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 
 **XMRigCC Server**
 
-![Screenshot of XMRigCC Server](https://i.imgur.com/0Ke9gIg.png)
+![Screenshot of XMRigCC Server](https://i.imgur.com/iS1RzgO.png)
 
 **XMRigCC Dashboard**
 
-![Screenshot of XMRigCC Dashboard](https://i.imgur.com/VwJaf26.png)
-
+![Screenshot of XMRigCC Dashboard](https://imgur.com/UrdTHpM.png)
 
 #### Table of contents
 * [Download](#download)
@@ -94,6 +116,7 @@ xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SE
         --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) 
         --cc-client-config-folder=FOLDER  Folder contains the client config files
         --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'
+        --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)
         --no-color                        disable colored output
     -S, --syslog                          use system log for output messages
     -B, --background                      run the miner in the background
@@ -118,15 +141,15 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -O, --userpass=U:P                    username:password pair for mining server
   -u, --user=USERNAME                   username for mining server
   -p, --pass=PASSWORD                   password for mining server
-  -t, --threads=N                       number of miner threads (0 enables automatic selection of optimal number of threads, default: 0)
-  -m, --multihash-factor=N              number of hash blocks per thread to process at a time (0 enables automatic selection of optimal number of hash blocks, default: 0)
-  -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off, default: 0)
+  -t, --threads=N                       number of miner threads
+  -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off)
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N                   time to pause between retries (default: 5)
-      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V1, 2 POW_V2)
-      --multihash-factor=N              number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)
-      --multihash-thread-mask           for multihash-factor > 1 only, limits multihash to given threads (mask), (default: all threads)
+      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), tube (ipbc), alloy, xtl (including autodetect for v5), msr, xhv, rto 
+                                        for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations
+      --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)
+      --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)
       --no-huge-pages                   disable huge pages support
@@ -145,6 +168,8 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
       --cc-access-token=T               access token for CC Server
       --cc-worker-id=ID                 custom worker-id for CC Server
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)
+      --cc-use-remote-logging           enable remote logging on CC Server
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup
       --no-color                        disable colored output
   -S, --syslog                          use system log for output messages
   -B, --background                      run the miner in the background
@@ -152,9 +177,6 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -l, --log-file=FILE                   log all output to a file
   -h, --help                            display this help and exit
   -V, --version                         output version information and exit
-  -v, --av=N                            DEPRECATED - algorithm variation, 0 auto select
-      --doublehash-thread-mask          DEPRECATED - same as multihash-thread-mask
-
 ```
 
 Also you can use configuration via config file, default **[config.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigDaemon)**. You can load multiple config files and combine it with command line options.
@@ -270,14 +292,18 @@ Here are some result reported by users. Feel free to share your results, i'll ad
 
 ##### BenDroid (xmrigCC):
 XMR:  `4BEn3sSa2SsHBcwa9dNdKnGvvbyHPABr2JzoY7omn7DA2hPv84pVFvwDrcwMCWgz3dQVcrkw3gE9aTC9Mi5HxzkfF9ev1eH`
+
 AEON: `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`
-BTC:  `128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm`
+
+BTC:  `3Gwq9tveCZtLAiXX7mxhjbrh38GPx1iXdB`
 
 ##### xmrig:
 XMR:  `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
+
 BTC:  `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 
 ## Contact
 * ben [at] graef.in
 * Telegram: @BenDr0id
+* [discord](https://discord.gg/r3rCKTB)
 * [reddit](https://www.reddit.com/user/BenDr0id/)

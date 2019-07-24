@@ -47,6 +47,7 @@ public:
 
   static void restart();
   static void shutdown();
+  static void reboot();
 
 protected:
   void onConsoleCommand(char command) override;

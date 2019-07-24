@@ -27,13 +27,13 @@
 #include <uv.h>
 #include <cc/ControlCommand.h>
 
-#include "api/Api.h"
 #include "App.h"
 #include "Console.h"
 #include "Cpu.h"
-#include "crypto/CryptoNight.h"
+#include "crypto/HashSelector.h"
 #include "log/ConsoleLog.h"
 #include "log/FileLog.h"
+#include "log/RemoteLog.h"
 #include "log/Log.h"
 #include "Mem.h"
 #include "net/Network.h"
@@ -50,6 +50,7 @@
 
 #ifndef XMRIG_NO_HTTPD
 #   include "api/Httpd.h"
+#   include "api/Api.h"
 #endif
 
 
@@ -88,6 +89,11 @@ App::App(int argc, char **argv) :
         Log::add(new FileLog(m_options->logFile()));
     }
 
+    if (m_options->ccUseRemoteLogging()) {
+        // 20 lines per second should be enough
+        Log::add(new RemoteLog(static_cast<size_t>(m_options->ccUpdateInterval() * 20)));
+    }
+
 #   ifdef HAVE_SYSLOG_H
     if (m_options->syslog()) {
         Log::add(new SysLog());
@@ -109,7 +115,6 @@ App::~App()
     delete m_network;
 
     Options::release();
-    Mem::release();
     Platform::release();
 
     uv_tty_reset_mode();
@@ -138,12 +143,30 @@ int App::start()
 
     background();
 
-    if (!CryptoNight::init(m_options->algo(), m_options->aesni())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
-        return EINVAL;
+    if (Options::i()->colors()) {
+        LOG_INFO(WHITE_BOLD("%s hash self-test"), m_options->algoName());
+    }
+    else {
+        LOG_INFO("%s hash self-test", m_options->algoName());
     }
 
-    Mem::allocate(m_options);
+    if (!HashSelector::init(m_options->algo(), m_options->aesni())) {
+        LOG_ERR("%s hash self-test... failed.", m_options->algoName());
+        return EINVAL;
+    } else {
+        if (Options::i()->colors()) {
+            LOG_INFO(WHITE_BOLD("%s hash self-test... %s."),
+                m_options->algoName(),
+                Options::i()->skipSelfCheck() ?  YELLOW_BOLD("skipped") : GREEN_BOLD("successful"));
+        }
+        else {
+            LOG_INFO("%s hash self-test... %s.",
+                m_options->algoName(),
+                Options::i()->skipSelfCheck() ?  "skipped" : "successful");
+        }
+    }
+
+    Mem::init(m_options);
 
     Summary::print();
 
@@ -170,7 +193,7 @@ int App::start()
     }
 #   endif
 
-    Workers::start(m_options->affinity(), m_options->priority());
+    Workers::start(m_options->threads(), m_options->affinity(), m_options->priority());
 
     if (m_options->pools().front()->isValid()) {
         m_network->connect();
@@ -239,6 +262,15 @@ void App::shutdown()
     m_self->stop(false);
 }
 
+void App::reboot()
+{
+    auto rebootCmd = m_self->m_options->ccRebootCmd();
+    if (rebootCmd) {
+        system(rebootCmd);
+        shutdown();
+    }
+}
+
 void App::onSignal(uv_signal_t* handle, int signum)
 {
     switch (signum)
@@ -279,6 +311,9 @@ void App::onCommandReceived(uv_async_t* async)
             break;
         case ControlCommand::SHUTDOWN:
             App::shutdown();
+            break;
+        case ControlCommand::REBOOT:
+            App::reboot();
             break;
         case ControlCommand::PUBLISH_CONFIG:;
             break;

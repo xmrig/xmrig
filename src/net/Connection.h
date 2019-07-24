@@ -39,6 +39,7 @@ public:
     virtual void scheduleOnConnected() = 0;
     virtual void scheduleOnReceived(char *data, std::size_t size) = 0;
     virtual void scheduleOnError(const std::string &error) = 0;
+    virtual void scheduleOnDNSError(const std::string &error) = 0;
 };
 
 class Connection : private boost::noncopyable
@@ -49,9 +50,6 @@ public:
 protected:
     Connection(const ConnectionListener::Ptr& listener);
     virtual ~Connection() {};
-    void notifyConnected();
-    void notifyRead(char* data, size_t size);
-    void notifyError(const std::string& error);
 
 public:
     virtual void connect(const std::string& server, uint16_t port) = 0;
@@ -60,6 +58,11 @@ public:
     virtual std::string getConnectedIp() const = 0;
     virtual uint16_t getConnectedPort() const = 0;
     virtual void send(const char* data, std::size_t size) = 0;
+
+    void notifyConnected();
+    void notifyRead(char* data, size_t size);
+    void notifyError(const std::string& error);
+    void notifyDNSError(const std::string& error);
 
 private:
     ConnectionListener::WeakPtr listener_;

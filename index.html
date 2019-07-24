@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang=\"en\" xmlns="http://www.w3.org/1999/html">
 <head>
 <meta charset=\"utf-8\">
 <title>XMRigCC Dashboard</title>
@@ -7,10 +7,11 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.0/css/buttons.bootstrap.min.css">
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.4/css/select.dataTables.min.css">
-<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.5/css/select.dataTables.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.2/css/bootstrap-select.min.css">
+<link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
 
-<link rel="shortcut icon" href="http://root.graef.in/static/xmrigcc/favicon.ico">
+<link rel="shortcut icon" href="https://root.graef.in:8443/static/xmrigcc/favicon.ico">
 
 <style>
     .right{text-align:right;}
@@ -49,8 +50,11 @@
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.4/js/dataTables.select.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.1/jquery.timeago.min.js"></script>
 <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+
 <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.2/js/bootstrap-select.min.js"></script>
+
 <script src="https://use.fontawesome.com/6b3cdfc597.js"></script>
 
 <script type="text/javascript">
@@ -60,6 +64,9 @@
     var latestRelease = "";
     var currentServerTime = 0;
     var clockDrift = 0;
+
+    var latestVersion = 0;
+    var currentVersion = 0;
 
     $.fn.dataTable.ext.search.push(
         function( settings, data, dataIndex ) {
@@ -104,9 +111,10 @@
                     orderable: false
                 },
                 {data: "client_status.client_id", render: clientInfo},
+                {data: "client_status.version", render: version},
                 {data: "client_status.current_pool"},
                 {data: "client_status.current_status", render: clientStatus},
-                {data: "client_status.current_algo_name"},
+                {data: "client_status.current_algo_name", render: algoAndPowVariantName},
                 {data: "client_status.hashrate_short", render: round, className: "right"},
                 {data: "client_status.hashrate_medium", render: round, className: "right"},
                 {data: "client_status.hashrate_long", render: round, className: "right"},
@@ -120,6 +128,13 @@
                 {
                     data: null,
                     defaultContent:
+                        "<td class='center-tab'><button type='button' id='LOG' class='btn btn-xs btn-info' data-toggle='tooltip' title='View miner log'><i class='fa fa-file-text-o'></i></button></td>",
+                    orderable: false,
+                    className: "center-tab"
+                },
+                {
+                    data: null,
+                    defaultContent:
                         "<td class='center-tab'><button type='button' id='EDIT' class='btn btn-xs btn-primary' data-toggle='tooltip' title='Edit miner config'><i class='fa fa-edit'></i></button></td>",
                     orderable: false,
                     className: "center-tab"
@@ -127,7 +142,7 @@
             ],
             rowId: 'client_status.client_id',
             select: {
-                style: "multi"
+                style: "multi+shift"
             },
             order: [1, 'asc'],
             lengthChange: false,
@@ -199,7 +214,20 @@
                     }
                 },
                 {
-                    text: '<i class="fa fa-power-off"> Shutdown miner</i>',
+                    text: '<i class="fa fa-refresh"> Reebot machine</i>',
+                    className: 'btn-warning',
+                    enabled: false,
+                    action: function () {
+                        table.rows({selected: true}).eq(0).each(function (index) {
+                            var row = table.row(index);
+                            var data = row.data();
+
+                            sendAction("REBOOT", data.client_status.client_id);
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-sign-out"> Stop miner</i>',
                     className: 'btn-danger',
                     enabled: false,
                     action: function () {
@@ -212,11 +240,74 @@
                     }
                 },
                 {
-                    text: '<i class="fa fa-edit"> Multi miner editor</i>',
-                    className: 'btn-primary',
+                    text: '<i class="fa fa-table"> Assign template</i>',
+                    className: 'btn-info',
                     enabled: false,
                     action: function () {
-                        $('#multiMinerEditor').modal('show');
+                        $.ajax({
+                            type:    "GET",
+                            url:     "/admin/getClientConfigTemplates",
+                            dataType:"json",
+                            success: function(data) {
+                                var htmlContent = "";
+
+                                var arrayLength = data["templates"].length;
+                                for (var i = 0; i < arrayLength; i++) {
+                                    htmlContent += "<option>" + data["templates"][i] + "</option>";
+                                }
+
+                                if (arrayLength > 0 ) {
+                                    $('#assignTemplate').prop('disabled', false);
+
+                                    $('#assignTemplateSelector').html(htmlContent);
+                                    $('#assignTemplateSelector').selectpicker('refresh');
+                                } else {
+                                    $('#assignTemplate').prop('disabled', true);
+                                }
+
+                                $('#assignTemplateEditor').modal('show');
+                            },
+                            error: function (data) {
+                                setError('<strong>Unable to fetch templates</strong> - Please make they exist!');
+                            }
+                        });
+                    }
+                },
+                {
+                    text: '<i class="fa fa-edit"> Template Editor</i>',
+                    className: 'btn-primary',
+                    enabled: true,
+                    action: function () {
+                        $.ajax({
+                            type:    "GET",
+                            url:     "/admin/getClientConfigTemplates",
+                            dataType:"json",
+                            success: function(data) {
+                                var htmlContent = "";
+
+                                var arrayLength = data["templates"].length;
+                                for (var i = 0; i < arrayLength; i++) {
+                                    htmlContent += "<option>" + data["templates"][i] + "</option>";
+                                }
+
+                                if (arrayLength > 0 ) {
+                                    $('#templateEditorSave').prop('disabled', false);
+                                    $('#templateEditorDeleteDialog').prop('disabled', false);
+
+                                    $('#templateSelector').html(htmlContent);
+                                    $('#templateSelector').selectpicker('refresh');
+                                    $('#templateSelector').trigger('change');
+                                } else {
+                                    $('#templateEditorSave').prop('disabled', true);
+                                    $('#templateEditorDeleteDialog').prop('disabled', true);
+                                }
+
+                                $('#templateEditor').modal('show');
+                            },
+                            error: function (data) {
+                                setError('<strong>Unable to fetch templates</strong> - Please make they exist!');
+                            }
+                        });
                     }
                 }
             ],
@@ -272,8 +363,8 @@
                     .column(10, {page: 'current'})
                     .data()
                     .reduce(function (a, b) {
-                        return (a + b) / 2;
-                    }, 0);
+                        return (a + b);
+                    }, 0) / api.column(10, {page: 'current'}).data().length;
 
                 sumSharesGood = api
                     .column(11, {page: 'current'})
@@ -315,8 +406,19 @@
                     type: 'GET',
                     dataType: "json",
                     success: function (release) {
-                        latestRelease = release.tag_name;
-                        if (latestRelease !== json.current_version) {
+                        latestRelease = release.tag_name
+                        latestVersion = parseInt(release.tag_name.split('.').join(""));
+                        currentVersion = parseInt(json.current_version.split('.').join(""));
+
+                        if (currentVersion < 1000) {
+                            currentVersion = currentVersion * 10;
+                        }
+
+                        if (latestVersion < 1000) {
+                            latestVersion = latestVersion * 10;
+                        }
+
+                        if (latestVersion > currentVersion) {
                             $("#updateNotificationBar").html('<div class="alert alert-info alert-dismissable fade in">' +
                                 '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
                                 '<a href="https://github.com/Bendr0id/xmrigCC/releases/latest"><strong>Update!</strong> XMRigCC v' + latestRelease + ' is available for download\n</a>' +
@@ -342,6 +444,7 @@
             table.button(4).enable(selectedRows > 0);
             table.button(5).enable(selectedRows > 0);
             table.button(6).enable(selectedRows > 0);
+            table.button(7).enable(selectedRows > 0);
         });
 
         table.on('deselect', function () {
@@ -354,6 +457,7 @@
             table.button(4).enable(selectedRows > 0);
             table.button(5).enable(selectedRows > 0);
             table.button(6).enable(selectedRows > 0);
+            table.button(7).enable(selectedRows > 0);
         });
 
         table.buttons().container().appendTo('#clientStatusList_wrapper .col-sm-6:eq(0)');
@@ -362,7 +466,11 @@
             table.draw();
         });
 
-        $('#clientStatusList tbody').on( 'click', 'button', function () {
+        $('#resetClientStatusList').click(function() {
+            resetClientStatusList();
+        });
+
+        $('#clientStatusList tbody ').on( 'click', 'button#EDIT', function () {
             var data = table.row( $(this).parents('tr') ).data();
             var clientId = data['client_status']['client_id'];
 
@@ -394,29 +502,126 @@
             setClientConfig(clientId, clientConfig);
         });
 
-        $('#multiMinerEditorReplace').click(function(event) {
-            table.rows({ selected: true }).eq(0).each(function (index) {
+        $('#templateEditorSave').click(function(event) {
+            var templateId = $('#templateSelector').val();
+            var template = $('#template').val();
+
+            setTemplateConfig(templateId, template);
+        });
+
+        $('#templateEditorSaveAsDialog').click(function(event) {
+            $('#templateDialogSaveAs').modal('show');
+        });
+
+        $('#templateEditorDeleteDialog').click(function(event) {
+            $('#templateDialogDelete').modal('show');
+        });
+
+        $('#templateEditorSaveAs').click(function(event) {
+            var templateId = $('#templateName').val();
+            var template = $('#template').val();
+
+            setTemplateConfig(templateId, template);
+
+            $('#templateEditor').modal('hide');
+        });
+
+        $('#templateEditorDelete').click(function(event) {
+            var templateId = $('#templateSelector').val();
+
+            deleteTemplateConfig(templateId, template);
+        });
+
+        $('#clientStatusList tbody').on( 'click', 'button#LOG', function () {
+            var data = table.row( $(this).parents('tr') ).data();
+            var clientId = data['client_status']['client_id'];
+            var clientIp = data['client_status']['external_ip'];
+
+            $.ajax({
+                type:    "GET",
+                url:     "/admin/getClientLog?clientId=" + clientId,
+                dataType:"json",
+                success: function(data) {
+                    var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
+                        "<label for='config'>Log of: " + clientId + " (" + clientIp + ")</label>"+
+                        "<textarea class='form-control' rows='20' id='log'>" + data.client_log + "</textarea>" +
+                        "</div>";
+
+                    $('#minerLog').find('.modal-body').html(htmlContent);
+                    $('#minerLog').modal('show');
+                },
+                error: function (data) {
+                    setError('<strong>Unable to fetch ' + clientId + ' log.</strong> - Please make sure it is enabled on the miner!');
+                }
+            });
+        });
+
+        $('#minerLogRefresh').click(function(event) {
+            var clientId = $('#minerLog').find('.form-group')["0"].dataset.value;
+
+            table.rows().eq(0).each(function (index) {
                 var row = table.row(index);
                 var data = row.data();
 
-                var clientId = data['client_status']['client_id'];
-                var search = $('#search').val();
-                var replacement = $('#replacement').val();
-
                 $.ajax({
                     type:    "GET",
-                    url:     "/admin/getClientConfig?clientId=" + clientId,
+                    url:     "/admin/getClientLog?clientId=" + clientId,
                     dataType:"json",
-                    success: function(jsonClientConfig) {
-                        jsonClientConfig = JSON.stringify(jsonClientConfig,undefined, 2);
-                        jsonClientConfig = jsonClientConfig.replace(new RegExp(search.trim(), 'g'), replacement.trim()).trim();
-
-                        setClientConfig(clientId, jsonClientConfig);
+                    success: function(data) {
+                        $('#log').val(data.client_log);
                     },
                     error: function (data) {
-                        setError('<strong>Unable to fetch ' + clientId + '_config.json</strong> - Please make sure that you pulled the config before!');
+                        setError('<strong>Unable to fetch ' + clientId + ' log.</strong> - Please make sure it is enabled on the miner!');
                     }
                 });
+            });
+        });
+
+        $('#templateSelector').on('changed.bs.select', function (e, clickedIndex, newValue, oldValue) {
+            var selected = $(e.currentTarget).val();
+            $.ajax({
+                type: "GET",
+                url: "/admin/getClientConfig?clientId=template_" + selected,
+                dataType: "json",
+                success: function (jsonClientConfig) {
+                    $('#template').val(JSON.stringify(jsonClientConfig, undefined, 2));
+                },
+                error: function (data) {
+                    setError('<strong>Unable to fetch template ' + selected + '</strong> - Please make sure it readable!');
+                }
+            });
+        });
+
+        $('#assignTemplate').click(function(event) {
+            var template = $('#assignTemplateSelector').val();
+            $.ajax({
+                type:    "GET",
+                url:     "/admin/getClientConfig?clientId=template_" + template,
+                dataType:"json",
+                success: function(jsonTemplate) {
+                    table.rows({ selected: true }).eq(0).each(function (index) {
+                        var row = table.row(index);
+                        var data = row.data();
+                        var clientId = data['client_status']['client_id'];
+
+                        if ($('#mergeTemplate').prop('checked')) {
+                            setMergedClientConfig(jsonTemplate, clientId);
+                        } else {
+                            jsonTemplate['cc-client']['worker-id'] = clientId
+
+                            clientConfig = JSON.stringify(jsonTemplate,undefined, 2);
+
+                            if ($('#replaceWorkerId').prop('checked')) {
+                                clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), clientId).trim();
+                            }
+
+                            setClientConfig(clientId, clientConfig);
+                        }
+                    });
+                },
+                error: function (data) {
+                    setError('<strong>Unable to fetch template ' + template + '</strong> - Please make sure it readable!');
+                }
             });
         });
 
@@ -454,6 +659,21 @@
         });
     }
 
+    function resetClientStatusList() {
+        $.ajax({
+            type:    "POST",
+            url:     "/admin/resetClientStatusList",
+            dataType:"text",
+            data:    '',
+            success: function(data){
+                setSuccess('<strong>Successfully send the reset client status list request to the Server.</strong> - Now just wait for the next refresh.');
+            },
+            error: function (data) {
+                setError('<strong>Failed to send the reset client status list request to the Server.</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
+            }
+        });
+    }
+
     function uptime( data, type, row ) {
         if (type !== 'sort') {
             var lastStatus = row.client_status.last_status_update * 1000;
@@ -468,6 +688,28 @@
         return data;
     }
 
+    function setMergedClientConfig(template, clientId) {
+        $.ajax({
+            type:    "GET",
+            url:     "/admin/getClientConfig?clientId=" + clientId,
+            dataType:"json",
+            success: function(clientConfig) {
+                $.extend(true, clientConfig, template);
+
+                clientConfig = JSON.stringify(clientConfig,undefined, 2)
+
+                if ($('#replaceWorkerId').prop('checked')) {
+                    clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), clientId).trim();
+                }
+
+                setClientConfig(clientId, clientConfig);
+            },
+            error: function (data) {
+                setError('<strong>Unable to fetch client config ' + clientId + ' for template merge</strong> - Please make sure it readable!');
+            }
+        });
+    }
+
     function laststatus( data, type, row ) {
         if (type !== 'sort') {
             var date = new Date(data*1000 - clockDrift);
@@ -475,6 +717,32 @@
         }
 
         return data;
+    }
+
+    function algoAndPowVariantName( data, type, row ) {
+        var algo = row.client_status.current_algo_name;
+        var powVariant = row.client_status.current_pow_variant_name;
+
+        if (powVariant !== "") {
+            return algo + " / " + powVariant
+        }
+        else {
+            return algo;
+        }
+    }
+
+    function version( data, type, row ) {
+        var clientVersion = parseInt(row.client_status.version.split('.').join(""));
+
+        if (clientVersion < 1000) {
+            clientVersion = clientVersion * 10;
+        }
+
+        if (latestVersion > clientVersion) {
+            return '<span data-toggle="tooltip" title="Outdated"><div class="offline">' + data + '</div></span>';
+        } else {
+            return data;
+        }
     }
 
     function clientStatus( data, type, row ) {
@@ -489,6 +757,9 @@
 
     function clientInfo( data, type, row ) {
         if (type !== 'sort') {
+            var lastStatus = row.client_status.last_status_update * 1000;
+            var online = isOnline(lastStatus);
+
             var tooltip  = "CPU: " + row.client_status.cpu_brand + " (" + row.client_status.cpu_sockets + ") [" + row.client_status.cpu_cores + " cores / " + row.client_status.cpu_threads + " threads]";
             tooltip += '\n';
             tooltip += "CPU Flags: " + (row.client_status.cpu_has_aes ? "AES-NI " : "");
@@ -497,25 +768,33 @@
             tooltip += "CPU Cache L2/L3: " + (row.client_status.cpu_l2 / 1024) + " MB/"+ (row.client_status.cpu_l3 / 1024) + " MB";
             tooltip += '\n';
             tooltip += "Huge Pages: " + (row.client_status.hugepages_available ? " available, " : " unavailable, ");
-            tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
+            tooltip += (row.client_status.hugepages_enabled ? "enabled (" + row.client_status.total_hugepages + "/" + row.client_status.total_pages + ")"  : "disabled");
             tooltip += '\n';
             tooltip += "Used Threads: " + row.client_status.current_threads;
             tooltip += (row.client_status.hash_factor > 1 ? " [" + row.client_status.hash_factor + "x multi hash mode]" :"");
             tooltip += '\n';
+
+            if (row.client_status.gpu_info_list) {
+                for (var id in row.client_status.gpu_info_list) {
+                    tooltip += "GPU #" + row.client_status.gpu_info_list[id].gpu_info.device_idx + ": ";
+                    tooltip += row.client_status.gpu_info_list[id].gpu_info.name + ", "
+                    tooltip += "intensity: " + row.client_status.gpu_info_list[id].gpu_info.raw_intensity + " ";
+                    tooltip += "("+ row.client_status.gpu_info_list[id].gpu_info.work_size + "/" + row.client_status.gpu_info_list[id].gpu_info.max_work_size + "), ";
+                    tooltip += "cu: " + row.client_status.gpu_info_list[id].gpu_info.compute_units;
+                    tooltip += '\n';
+                }
+            }
+
             tooltip += "Client IP: " + row.client_status.external_ip;
             tooltip += '\n';
             tooltip += "Version: " + row.client_status.version;
             tooltip += '\n';
-            tooltip += "Status: ";
+            tooltip += "Status: " + online ? "Online" : "Offline";
 
-            var lastStatus = row.client_status.last_status_update * 1000;
-
-            if (isOnline(lastStatus)) {
-                tooltip  += "Online";
+            if (online) {
                 return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="online">' + data + '</div></span>';
             }
             else {
-                tooltip  += "Offline";
                 return '<span data-toggle="tooltip" title="'+ tooltip + '"><div class="offline">' + data + '</div></span>';
             }
         }
@@ -574,6 +853,35 @@
             }
         });
     }
+
+    function setTemplateConfig(templateId, templateConfig) {
+        $.ajax({
+            url: "/admin/setClientConfig?clientId=template_" + templateId,
+            type: 'POST',
+            dataType: "text",
+            data: templateConfig,
+            success: function(data){
+                setSuccess('<strong>Successfully stored template: ' + templateId + '</strong> - You need to assign it to miners to apply.');
+            },
+            error: function (data) {
+                setError('<strong>Failed to store template: ' + templateId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
+            }
+        });
+    }
+
+    function deleteTemplateConfig(templateId) {
+        $.ajax({
+            url: "/admin/deleteClientConfig?clientId=template_" + templateId,
+            type: 'POST',
+            dataType: "text",
+            success: function(data){
+                setSuccess('<strong>Successfully deleted template: ' + templateId + '</strong>');
+            },
+            error: function (data) {
+                setError('<strong>Failed to delete template: ' + templateId + '</strong> \nError: ' +  JSON.stringify(data,undefined, 2));
+            }
+        });
+    }
 </script>
 
 </head>
@@ -585,22 +893,24 @@
     <div id="statusBar"></div>
 
     <div class="center">
-        <img src="http://root.graef.in/static/xmrigcc/banner.png"/>
+        <img src="https://root.graef.in:8443/static/xmrigcc/banner.png"/>
     </div>
 
     <form style="padding-bottom: 25px; margin-top: -50px">
         <label><input id="hideOffline" type="checkbox" checked  data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger"/><span>Hide offline miners</span></label>
         <label><input id="showOfflineNotification" type="checkbox" checked data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger" /><span>Notify when miner went offline</span></label>
+        <br/><button id="resetClientStatusList" type="button" class="btn btn-danger fa fa-trash-o"> Reset ClientStatusList</button>
     </form>
 
     <table id="clientStatusList" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
         <tr>
             <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllTop"></i></th>
-            <th>Miner Id</th>
+            <th>Worker Id</th>
+            <th>Version</th>
             <th>Pool</th>
             <th>Status</th>
-            <th>Algo</th>
+            <th>Algo / PoW</th>
 
             <th>Hashrate</th>
             <th>Hashrate 1m</th>
@@ -614,6 +924,7 @@
             <th>Shares Total</th>
             <th>Uptime</th>
             <th>Last Update</th>
+            <th>Log</th>
             <th>Edit</th>
         </tr>
         </thead>
@@ -621,6 +932,8 @@
         <tr>
             <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllBottom"></i></th>
             <th class="left">Total:</th>
+            <th></th>
+            <th></th>
             <th></th>
             <th></th>
             <th></th>
@@ -658,33 +971,117 @@
         </div>
     </div>
 
-    <div class="modal fade" id="multiMinerEditor" role="dialog">
+    <div class="modal fade" id="minerLog" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Multi miner editor</h4>
+                    <h4 class="modal-title">Miner log</h4>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-danger fade in">
-                        <strong>Warning!</strong> - If you don't know what you are doing, [Cancel].
-                    </div>
-                    <h5 class="modal-title">
-                        This will search for <strong>"x"</strong> and replace with <strong>"y"</strong> in all selected miners config<br/><br/>
-                        <div class="alert alert-info fade in">
-                            <strong>If you accidentally pressed [Replace], no worries just PULL again all miner configs. Don't PUSH it!</strong>
-                        </div>
-                    </h5>
-                    <div class='form-group'>
-                        <label for='search'>Search for:</label>
-                        <textarea class='form-control' rows='2' cols="1" id='search'></textarea>
-                        <label for='replacement'>Replace with:</label>
-                        <textarea class='form-control' rows='2' id='replacement'></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button id="minerLogRefresh" type="button" class="btn btn-success">Refresh</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="templateEditor" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Template Editor</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="templateSelector">Template:</label>
+                        <select class="selectpicker form-control" id="templateSelector"></select>
+                        <br/>
+                        <br/>
+                        <textarea class="form-control" rows='20' id="template"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="multiMinerEditorReplace" type="button" class="btn btn-success" data-dismiss="modal">Replace</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                    <button id="templateEditorSave" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+                    <button id="templateEditorSaveAsDialog" type="button" class="btn btn-primary">Save As...</button>
+                    <button id="templateEditorDeleteDialog" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="templateDialogSaveAs" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Save As...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="templateName">Template name:</label>
+                        <input type="text" class="form-control" id="templateName"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="templateEditorSaveAs" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="templateDialogDelete" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="templateName">Do you really want to delete this template?</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="templateEditorDelete" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="assignTemplateEditor" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Assign template</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="assignTemplateSelector">Template:</label>
+                        <select class="selectpicker form-control" id="assignTemplateSelector"></select>
+                        <br/><br/>
+                        <label>
+                            <input id="replaceWorkerId" type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger" data-on="Yes" data-off="No"/>
+                            <span>Replace @WORKER-ID@ with Worker-id</span>
+                        </label>
+                        <br/>
+                        <label>
+                            <input id="mergeTemplate" type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="danger" data-on="Yes" data-off="No"/>
+                            <span>Merge templates</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="assignTemplate" type="button" class="btn btn-success" data-dismiss="modal">Assign</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>

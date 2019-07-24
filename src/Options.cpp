@@ -45,6 +45,7 @@
 #include "net/Url.h"
 #include "Options.h"
 #include "Platform.h"
+#include "Embedded_config.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/filereadstream.h"
@@ -58,26 +59,26 @@
 
 Options *Options::m_self = nullptr;
 
-
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n"
 # ifndef XMRIG_CC_SERVER
 "\
-  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite or cryptonight-heavy\n\
+  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite, cryptonight-ultralite or cryptonight-heavy\n\
   -o, --url=URL                         URL of mining server\n\
   -O, --userpass=U:P                    username:password pair for mining server\n\
   -u, --user=USERNAME                   username for mining server\n\
   -p, --pass=PASSWORD                   password for mining server\n\
   -t, --threads=N                       number of miner threads\n\
-  -v, --av=N                            algorithm variation, 0 auto select\n\
   -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off)\n\
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --force-pow-version=N             force to use specific PoW variation (default: 0 POW_AUTODETECT, 1 POW_V1, 2 POW_V2)\n\
-      --multihash-factor=N              number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)\n\
-      --multihash-thread-mask           for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
+      --pow-variant=V                   specificy the PoW variat to use: \n'auto' (default), '0', '1', '2', 'ipbc', 'xao', 'xtl', 'rto', 'xfh', 'upx', 'turtle', 'hosp', 'r', 'wow', 'double (xcash)', 'zls' (zelerius), 'rwz' (graft)\n\
+                                        for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
+      --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'bulldozer', 'off' \n\
+      --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
+      --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages                   disable huge pages support\n\
@@ -90,14 +91,19 @@ Options:\n"
       --print-time=N                    print hashrate report every N seconds\n\
       --api-port=N                      port for the miner API\n\
       --api-access-token=T              access token for API\n\
-      --api-worker-id=ID                custom worker-id for API\n"
+      --api-worker-id=ID                custom worker-id for API\n\
+      --reboot-cmd                      command/bat to execute to Reboot miner\n\
+      --force-pow-variant               skip pow/variant parsing from pool\n\
+      --skip-self-check                 skip self check on startup\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url of the CC Server\n\
       --cc-use-tls                      enable tls encryption for CC communication\n\
       --cc-access-token=T               access token for CC Server\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
-      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n"
+      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
+      --cc-use-remote-logging           enable remote logging on CC Server\n\
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n"
 # endif
 # endif
 
@@ -110,7 +116,15 @@ Options:\n"
       --cc-use-tls                      enable tls encryption for CC communication\n\
       --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \n\
       --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
+      --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)\n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
+      --cc-pushover-user-key            your user key for pushover notifications\n\
+      --cc-pushover-api-token           api token/keytoken of the application for pushover notifications\n\
+      --cc-telegram-bot-token           your bot token for telegram notifications\n\
+      --cc-telegram-chat-id             your chat-id for telegram notifications\n\
+      --cc-push-miner-offline-info      push notification for offline miners and recover push\n\
+      --cc-push-miner-zero-hash-info    push notification when miner reports 0 hashrate and recover push\n\
+      --cc-push-periodic-mining-status  push periodic status notification (every hour)\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif
 "\
@@ -164,10 +178,14 @@ static struct option const options[] = {
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
     { "use-tls",          0, nullptr, 1015 },
-    { "force-pow-version",1, nullptr, 1016 },
+    { "force-pow-variant", 0, nullptr, 1016 },
+    { "pow-variant",      1, nullptr, 1017 },
+    { "variant",          1, nullptr, 1017 },
+    { "skip-self-check",  0, nullptr, 1018 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
+    { "reboot-cmd",       1, nullptr, 4021 },
     { "cc-url",           1, nullptr, 4003 },
     { "cc-access-token",  1, nullptr, 4004 },
     { "cc-worker-id",     1, nullptr, 4005 },
@@ -180,9 +198,21 @@ static struct option const options[] = {
     { "cc-cert-file",     1, nullptr, 4014 },
     { "cc-key-file",      1, nullptr, 4015 },
     { "cc-use-tls",       0, nullptr, 4016 },
+    { "cc-use-remote-logging",          0, nullptr, 4017 },
+    { "cc-client-log-lines-history",    1, nullptr, 4018 },
+    { "cc-upload-config-on-startup",    0, nullptr, 4019 },
+    { "cc-reboot-cmd",       1, nullptr, 4021 },
+    { "cc-pushover-user-key",    1, nullptr, 4022 },
+    { "cc-pushover-api-token",   1, nullptr, 4023 },
+    { "cc-telegram-bot-token",   1, nullptr, 4027 },
+    { "cc-telegram-chat-id",     1, nullptr, 4028 },
+    { "cc-push-miner-offline-info",        0, nullptr, 4024 },
+    { "cc-push-periodic-mining-status",    0, nullptr, 4025 },
+    { "cc-push-miner-zero-hash-info",      0, nullptr, 4026 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
-    { "multihash-thread-mask",     1, nullptr, 4013 },
+    { "multihash-thread-mask",      1, nullptr, 4013 },
+    { "asm-optimization", 1, nullptr, 4020 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -207,9 +237,14 @@ static struct option const config_options[] = {
     { "syslog",        0, nullptr, 'S'  },
     { "threads",       1, nullptr, 't'  },
     { "user-agent",    1, nullptr, 1008 },
-    { "force-pow-version", 1, nullptr, 1016 },
+    { "force-pow-variant", 0, nullptr, 1016 },
+    { "pow-variant",   1, nullptr, 1017 },
+    { "variant",       1, nullptr, 1017 },
+    { "skip-self-check", 0, nullptr, 1018 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
+    { "asm-optimization", 1, nullptr, 4020 },
+    { "reboot-cmd",       1, nullptr, 4021 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -222,6 +257,8 @@ static struct option const pool_options[] = {
     { "keepalive",     0, nullptr ,'k'  },
     { "nicehash",      0, nullptr, 1006 },
     { "use-tls",       0, nullptr, 1015 },
+    { "pow-variant",   1, nullptr, 1017 },
+    { "variant",       1, nullptr, 1017 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -240,6 +277,9 @@ static struct option const cc_client_options[] = {
     { "worker-id",              1, nullptr, 4005 },
     { "update-interval-s",      1, nullptr, 4012 },
     { "use-tls",                0, nullptr, 4016 },
+    { "use-remote-logging",     0, nullptr, 4017 },
+    { "upload-config-on-startup",  0, nullptr, 4019 },
+    { "reboot-cmd",             1, nullptr, 4021 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -253,15 +293,79 @@ static struct option const cc_server_options[] = {
     { "cert-file",              1, nullptr, 4014 },
     { "key-file",               1, nullptr, 4015 },
     { "use-tls",                0, nullptr, 4016 },
+    { "client-log-lines-history",   1, nullptr, 4018 },
+    { "pushover-user-key",          1, nullptr, 4022 },
+    { "pushover-api-token",         1, nullptr, 4023 },
+    { "telegram-bot-token",         1, nullptr, 4027 },
+    { "telegram-chat-id",           1, nullptr, 4028 },
+    { "push-miner-offline-info",        0, nullptr, 4024 },
+    { "push-miner-zero-hash-info",      0, nullptr, 4026 },
+    { "push-periodic-mining-status",    0, nullptr, 4025 },
     { nullptr, 0, nullptr, 0 }
 };
 
 static const char *algo_names[] = {
     "cryptonight",
     "cryptonight-lite",
-    "cryptonight-heavy"
+    "cryptonight-superlite",
+    "cryptonight-ultralite",
+    "cryptonight-extremelite",
+    "cryptonight-heavy",
+    "argon2-250",
+    "argon2-256",
+    "argon2-500",
+    "argon2-512",
+    "argon2-4096"
 };
 
+static const char *algo_short_names[] = {
+        "cn",
+        "cn-lite",
+        "cn-superlite",
+        "cn-ultralite",
+        "cn-extremelite",
+        "cn-heavy",
+        "ar2-250",
+        "ar2-256",
+        "ar2-500",
+        "ar2-512",
+        "ar2-4096"
+};
+
+constexpr static const char *pow_variant_names[] = {
+        "auto",
+        "0",
+        "1",
+        "2",
+        "tube",
+        "xao",
+        "xtl",
+        "msr",
+        "xhv",
+        "rto",
+        "xfh",
+        "fast2",
+        "upx",
+        "turtle",
+        "hosp",
+        "wow",
+        "r",
+        "xcash",
+        "zls",
+        "graft",
+        "upx2",
+        "conceal",
+        "chukwa",
+        "wrkz"
+};
+
+constexpr static const char *asm_optimization_names[] = {
+    "auto",
+    "intel",
+    "ryzen",
+    "bulldozer",
+    "off"
+};
 
 Options *Options::parse(int argc, char **argv)
 {
@@ -281,6 +385,10 @@ const char *Options::algoName() const
     return algo_names[m_algo];
 }
 
+const char *Options::algoShortName() const
+{
+    return algo_short_names[m_algo];
+}
 
 Options::Options(int argc, char **argv) :
     m_background(false),
@@ -291,7 +399,14 @@ Options::Options(int argc, char **argv) :
     m_syslog(false),
     m_daemonized(false),
     m_ccUseTls(false),
-    m_configFile(Platform::defaultConfigName()),
+    m_ccUseRemoteLogging(true),
+    m_ccUploadConfigOnStartup(true),
+    m_ccPushOfflineMiners(false),
+    m_ccPushPeriodicStatus(false),
+    m_ccPushZeroHashrateMiners(false),
+    m_forcePowVariant(false),
+    m_skipSelfCheck(false),
+    m_fileName(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
     m_logFile(nullptr),
@@ -305,10 +420,16 @@ Options::Options(int argc, char **argv) :
     m_ccCustomDashboard(nullptr),
     m_ccKeyFile(nullptr),
     m_ccCertFile(nullptr),
+    m_ccRebootCmd(nullptr),
+    m_ccPushoverUser(nullptr),
+    m_ccPushoverToken(nullptr),
+    m_ccTelegramBotToken(nullptr),
+    m_ccTelegramChatId(nullptr),
     m_algo(ALGO_CRYPTONIGHT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
-    m_forcePowVersion(POW_AUTODETECT),
+    m_powVariant(POW_AUTODETECT),
+    m_asmOptimization(ASM_AUTODETECT),
     m_hashFactor(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
@@ -320,13 +441,13 @@ Options::Options(int argc, char **argv) :
     m_threads(0),
     m_ccUpdateInterval(10),
     m_ccPort(0),
+    m_ccClientLogLinesHistory(100),
     m_affinity(-1L),
     m_multiHashThreadMask(-1L)
 {
     m_pools.push_back(new Url());
 
     int key;
-
     while (true) {
         key = getopt_long(argc, argv, short_options, options, nullptr);
         if (key < 0) {
@@ -343,11 +464,11 @@ Options::Options(int argc, char **argv) :
         return;
     }
 
-#ifdef XMRIG_CC_SERVER
-    if (m_ccPort == 0) {
-        parseConfig(Platform::defaultConfigName());
+    if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
+        parseConfigFile(Platform::defaultConfigName());
     }
 
+#ifdef XMRIG_CC_SERVER
     if (m_ccPort == 0) {
         fprintf(stderr, "No CC Server Port supplied. Exiting.\n");
         return;
@@ -360,8 +481,9 @@ Options::Options(int argc, char **argv) :
         }
     #endif
 
-    if (!m_pools[0]->isValid()) {
-        parseConfig(Platform::defaultConfigName());
+    if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
+        fprintf(stderr, "No valid pool/cc configuration found, using embedded config.\n");
+        parseEmbeddedConfig();
     }
 
     if (!m_pools[0]->isValid() && (!m_ccHost || m_ccPort == 0)) {
@@ -371,6 +493,10 @@ Options::Options(int argc, char **argv) :
 #endif
 
     optimizeAlgorithmConfiguration();
+
+    if (m_asmOptimization == AsmOptimization::ASM_AUTODETECT) {
+        m_asmOptimization = Cpu::asmOptimization();
+    }
 
     for (Url *url : m_pools) {
         url->applyExceptions();
@@ -384,8 +510,7 @@ Options::~Options()
 {
 }
 
-
-bool Options::getJSON(const char *fileName, rapidjson::Document &doc)
+bool Options::readJSONFile(const char *fileName, rapidjson::Document &doc)
 {
     uv_fs_t req;
     const int fd = uv_fs_open(uv_default_loop(), &req, fileName, O_RDONLY, 0644, nullptr);
@@ -459,7 +584,6 @@ bool Options::parseArg(int key, const char *arg)
     case 'l': /* --log-file */
         free(m_logFile);
         m_logFile = strdup(arg);
-        m_colors = false;
         break;
 
     case 4001: /* --access-token */
@@ -507,12 +631,12 @@ bool Options::parseArg(int key, const char *arg)
 
     case 4014: /* --cc-cert-file */
         free(m_ccCertFile);
-            m_ccCertFile = strdup(arg);
+        m_ccCertFile = strdup(arg);
         break;
 
     case 4015: /* --cc-key-file */
         free(m_ccKeyFile);
-            m_ccKeyFile = strdup(arg);
+        m_ccKeyFile = strdup(arg);
         break;
 
     case 4011: /* --daemonized */
@@ -527,12 +651,13 @@ bool Options::parseArg(int key, const char *arg)
     case 1003: /* --donate-level */
     case 1004: /* --max-cpu-usage */
     case 1007: /* --print-time */
-    case 1016: /* --force-pow-version */
     case 1021: /* --cpu-priority */
     case 4000: /* --api-port */
     case 4006: /* --cc-port */
     case 4012: /* --cc-update-interval-c */
         return parseArg(key, strtol(arg, nullptr, 10));
+    case 4018: /* --cc-client-log-lines-history */
+        return parseArg(key, strtol(arg, nullptr, 25));
 
     case 'B':  /* --background */
     case 'k':  /* --keepalive */
@@ -547,8 +672,60 @@ bool Options::parseArg(int key, const char *arg)
     case 1015: /* --use-tls */
         return parseBoolean(key, true);
 
+    case 1016: /* --force-pow-variant */
+        return parseBoolean(key, true);
+
+    case 1017: /* --pow-variant/--variant */
+        return parsePowVariant(arg);
+
+    case 1018: /* --skip-self-check */
+        return parseBoolean(key, true);
+
     case 4016: /* --cc-use-tls */
         return parseBoolean(key, true);
+
+    case 4017: /* --cc-use-remote-logging */
+        return parseBoolean(key, true);
+
+    case 4019: /* --cc-upload-config-on-startup */
+        return parseBoolean(key, true);
+
+    case 4020: /* --asm-optimization */
+        return parseAsmOptimization(arg);
+
+    case 4021: /* --cc-reboot-cmd || --reboot-cmd */
+        free(m_ccRebootCmd);
+        m_ccRebootCmd = strdup(arg);
+        break;
+
+    case 4022: /* --cc-pushover-user-key */
+        free(m_ccPushoverUser);
+        m_ccPushoverUser = strdup(arg);
+        break;
+
+    case 4023: /* --cc-pushover-api-token */
+        free(m_ccPushoverToken);
+        m_ccPushoverToken = strdup(arg);
+        break;
+
+    case 4027: /* --cc-telegram-bot-token */
+        free(m_ccTelegramBotToken);
+        m_ccTelegramBotToken = strdup(arg);
+        break;
+
+    case 4028: /* --cc-telegram-chat-id */
+        free(m_ccTelegramChatId);
+        m_ccTelegramChatId = strdup(arg);
+        break;
+
+    case 4024: /* --cc-push-miner-offline-info */
+        return parseBoolean(key, false);
+
+    case 4025: /* --cc-push-periodic-mining-status */
+        return parseBoolean(key, false);
+
+    case 4026: /* --cc-push-miner-zero-hash-info */
+        return parseBoolean(key, false);
 
     case 't':  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
@@ -567,7 +744,7 @@ bool Options::parseArg(int key, const char *arg)
         return false;
 
     case 'c': /* --config */
-        parseConfig(arg);
+        parseConfigFile(arg);
         break;
 
     case 1020: { /* --cpu-affinity */
@@ -625,6 +802,7 @@ bool Options::parseArg(int key, uint64_t arg)
         break;
 
     case 'v': /* --av */
+        showDeprecateWarning("av", "aesni");
         if (arg > 1000) {
             showUsage(1);
             return false;
@@ -675,15 +853,6 @@ bool Options::parseArg(int key, uint64_t arg)
         m_printTime = (int) arg;
         break;
 
-    case 1016: /* --force-pow-version */
-        if (arg < POW_AUTODETECT || arg > POW_V2) {
-            showUsage(1);
-            return false;
-        }
-
-        m_forcePowVersion = static_cast<PowVersion>(arg);
-        break;
-
     case 1020: /* --cpu-affinity */
         if (arg) {
             m_affinity = arg;
@@ -722,6 +891,11 @@ bool Options::parseArg(int key, uint64_t arg)
             m_multiHashThreadMask = arg;
         }
         break;
+
+    case 4018: /* --cc-client-log-lines-history */
+        m_ccClientLogLinesHistory = (int) arg;
+        break;
+
     default:
         break;
     }
@@ -767,12 +941,40 @@ bool Options::parseBoolean(int key, bool enable)
         m_pools.back()->setUseTls(enable);
         break;
 
+    case 1016: /* --force-pow-variant */
+        m_forcePowVariant = enable;
+        break;
+
+    case 1018: /* --skip-self-check */
+        m_skipSelfCheck = enable;
+        break;
+
     case 2000: /* --colors */
         m_colors = enable;
         break;
 
     case 4016: /* --cc-use-tls */
         m_ccUseTls = enable;
+        break;
+
+    case 4017: /* --cc-use-remote-logging */
+        m_ccUseRemoteLogging = enable;
+        break;
+
+    case 4019: /* --cc-upload-config-on-startup */
+        m_ccUploadConfigOnStartup = enable;
+        break;
+
+    case 4024: /* --cc-push-miner-offline-info */
+        m_ccPushOfflineMiners = enable;
+        break;
+
+    case 4026: /* --cc-push-miner-zero-hash-info */
+        m_ccPushZeroHashrateMiners = enable;
+        break;
+
+    case 4025: /* --cc-push-periodic-mining-status */
+        m_ccPushPeriodicStatus = enable;
         break;
 
     default:
@@ -794,16 +996,27 @@ Url *Options::parseUrl(const char *arg) const
     return url;
 }
 
-
-void Options::parseConfig(const char *fileName)
-{
-    m_configFile = fileName;
+void Options::parseConfigFile(const char *fileName) {
+    m_fileName = fileName;
 
     rapidjson::Document doc;
-    if (!getJSON(fileName, doc)) {
+    if (!readJSONFile(fileName, doc)) {
         return;
     }
 
+    parseConfig(doc);
+}
+
+void Options::parseEmbeddedConfig() {
+
+    rapidjson::Document doc;
+    doc.Parse(m_embeddedConfig);
+
+    parseConfig(doc);
+}
+
+void Options::parseConfig(rapidjson::Document& doc)
+{
     for (auto option : config_options) {
         parseJSON(&option, doc);
     }
@@ -874,6 +1087,10 @@ void Options::showUsage(int status) const
     }
 }
 
+void Options::showDeprecateWarning(const char* deprecated, const char* newParam) const
+{
+    fprintf(stderr, "Parameter \"%s\" is deprecated, please used \"%s\" instead.\n", deprecated, newParam);
+}
 
 void Options::showVersion()
 {
@@ -919,13 +1136,53 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light")) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-lite") || !strcmp(algo, "cryptonight-light"))) {
             m_algo = ALGO_CRYPTONIGHT_LITE;
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-heavy")) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-super-lite") || !strcmp(algo, "cryptonight-super-lite") || !strcmp(algo, "cryptonight-superlight"))) {
+            m_algo = ALGO_CRYPTONIGHT_SUPERLITE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-ultra-lite") || !strcmp(algo, "cryptonight-ultra-lite") || !strcmp(algo, "cryptonight-ultralight") || !strcmp(algo, "cryptonight-turtle") || !strcmp(algo, "cn-turtle") || !strcmp(algo, "cryptonight-pico") || !strcmp(algo, "cn-pico"))) {
+            m_algo = ALGO_CRYPTONIGHT_ULTRALITE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-extreme-lite") || !strcmp(algo, "cryptonight-extreme-lite") || !strcmp(algo, "cryptonight-extremelight") || !strcmp(algo, "cryptonight-upx2") || !strcmp(algo, "cn-upx2") || !strcmp(algo, "cryptonight-femto") || !strcmp(algo, "cn-femto"))) {
+            m_algo = ALGO_CRYPTONIGHT_EXTREMELITE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-lite-ipbc") || !strcmp(algo, "cryptonight-light-ipbc") || !strcmp(algo, "cn-lite-ipbc"))) {
+            showDeprecateWarning("cryptonight-light-ipbc", "cryptonight-light (with variant \"ipbc\")");
+            m_algo = ALGO_CRYPTONIGHT_LITE;
+            m_powVariant = POW_TUBE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-heavy") || !strcmp(algo, "cn-heavy"))) {
             m_algo = ALGO_CRYPTONIGHT_HEAVY;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-hospital") || !strcmp(algo, "cryptonight-hosp"))) {
+            m_algo = ALGO_CRYPTONIGHT;
+            m_powVariant = POW_HOSP;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "argon2-chukwa") || !strcmp(algo, "chukwa"))) {
+            m_algo = ALGO_ARGON2_512;
+            m_powVariant = POW_ARGON2_CHUKWA;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "argon2-wrkz") || !strcmp(algo, "wrkz"))) {
+            m_algo = ALGO_ARGON2_256;
+            m_powVariant = POW_ARGON2_WRKZ;
             break;
         }
 
@@ -935,8 +1192,168 @@ bool Options::setAlgo(const char *algo)
         }
     }
 
+    if (m_algo == ALGO_ARGON2_512 && m_powVariant == POW_AUTODETECT) {
+        m_powVariant = POW_ARGON2_CHUKWA;
+    }
+
+    if (m_algo == ALGO_ARGON2_256 && m_powVariant == POW_AUTODETECT) {
+        m_powVariant = POW_ARGON2_WRKZ;
+    }
+
     return true;
 }
+
+bool Options::parsePowVariant(const char *powVariant)
+{
+    if (m_powVariant != POW_AUTODETECT) {
+        return true;
+    }
+
+    for (size_t i = 0; i < ARRAY_SIZE(pow_variant_names); i++) {
+        if (pow_variant_names[i] && !strcmp(powVariant, pow_variant_names[i])) {
+            m_powVariant = static_cast<PowVariant>(i);
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "auto") || !strcmp(powVariant, "-1"))) {
+            m_powVariant = POW_AUTODETECT;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "cnv1") || !strcmp(powVariant, "monerov7") || !strcmp(powVariant, "aeonv7") || !strcmp(powVariant, "v7"))) {
+            m_powVariant = POW_V1;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "cnv2") || !strcmp(powVariant, "monerov8") || !strcmp(powVariant, "aeonv8") || !strcmp(powVariant, "v8"))) {
+            m_powVariant = POW_V2;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "stellite")) {
+            m_powVariant = POW_XTL;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "xao") || !strcmp(powVariant, "alloy"))) {
+            m_powVariant = POW_ALLOY;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "ipbc") || !strcmp(powVariant, "bittube"))) {
+            m_powVariant = POW_TUBE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "haven")) {
+            m_powVariant = POW_XHV;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "arto")) {
+            m_powVariant = POW_RTO;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "freehaven") || !strcmp(powVariant, "faven") || !strcmp(powVariant, "swap"))) {
+            m_powVariant = POW_XFH;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "stellitev9") || !strcmp(powVariant, "xtlv2") ||
+                                                       !strcmp(powVariant, "half") || !strcmp(powVariant, "msr2") ||
+                                                       !strcmp(powVariant, "xtlv9"))) {
+            m_powVariant = POW_FAST_2;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "uplexa")) {
+            m_powVariant = POW_UPX;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "trtl") || !strcmp(powVariant, "turtlev2") || !strcmp(powVariant, "pico"))) {
+            m_powVariant = POW_TURTLE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "upx2") || !strcmp(powVariant, "upxv2") || !strcmp(powVariant, "femto"))) {
+            m_powVariant = POW_UPX2;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "hosp") || !strcmp(powVariant, "hospital"))) {
+            m_powVariant = POW_HOSP;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "wow")) {
+            m_powVariant = POW_WOW;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "4") || !strcmp(powVariant, "r") || !strcmp(powVariant, "cnv4") || !strcmp(powVariant, "cnv5"))) {
+            m_powVariant = POW_V4;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "xcash") || !strcmp(powVariant, "heavyx") || !strcmp(powVariant, "double"))) {
+            m_powVariant = POW_DOUBLE;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "zelerius") || !strcmp(powVariant, "zls") || !strcmp(powVariant, "zlx"))) {
+            m_powVariant = POW_ZELERIUS;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "rwz") || !strcmp(powVariant, "graft"))) {
+            m_powVariant = POW_RWZ;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "conceal") || !strcmp(powVariant, "ccx"))) {
+            m_powVariant = POW_CONCEAL;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "chukwa"))) {
+            m_powVariant = POW_ARGON2_CHUKWA;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1) {
+            showUsage(1);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+bool Options::parseAsmOptimization(const char *asmOptimization)
+{
+    for (size_t i = 0; i < ARRAY_SIZE(pow_variant_names); i++) {
+        if (pow_variant_names[i] && !strcmp(asmOptimization, asm_optimization_names[i])) {
+            m_asmOptimization = static_cast<AsmOptimization>(i);
+            break;
+        }
+
+        if (i == ARRAY_SIZE(asm_optimization_names) - 1 && (!strcmp(asmOptimization, "none") || !strcmp(asmOptimization, "0"))) {
+            m_asmOptimization = ASM_OFF;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(asm_optimization_names) - 1) {
+            showUsage(1);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 void Options::optimizeAlgorithmConfiguration()
 {
@@ -980,12 +1397,12 @@ void Options::optimizeAlgorithmConfiguration()
         m_aesni = aesniFromCpu;
     }
 
-    if (m_algo == Options::ALGO_CRYPTONIGHT_HEAVY && m_hashFactor > 3) {
-        fprintf(stderr, "Maximum supported hashfactor for cryptonight-heavy is: 3\n");
+    if ((m_algo == Options::ALGO_CRYPTONIGHT_HEAVY || m_powVariant ==  PowVariant::POW_XFH) && m_hashFactor > 3) {
+        fprintf(stderr, "Maximum supported hashfactor for cryptonight-heavy and XFH is: 3\n");
         m_hashFactor = 3;
     }
 
-    Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_maxCpuUsage, m_safe);
+    Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_powVariant, m_maxCpuUsage, m_safe);
 }
 
 bool Options::parseCCUrl(const char* url)
@@ -1012,5 +1429,3 @@ bool Options::parseCCUrl(const char* url)
 
     return true;
 }
-
-

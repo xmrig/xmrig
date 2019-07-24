@@ -28,6 +28,7 @@
 
 #include "CpuImpl.h"
 #include "Mem.h"
+#include "Cpu.h"
 
 void CpuImpl::init()
 {
@@ -42,24 +43,29 @@ void CpuImpl::init()
 }
 
 
-void CpuImpl::setAffinity(int id, uint64_t mask)
+int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
-    if (id == -1) {
-        SetProcessAffinityMask(GetCurrentProcess(), mask);
+    int cpuId = -1;
+
+    if (affinityMask != -1L) {
+        cpuId = Cpu::getAssignedCpuId(threadId, affinityMask);
     } else {
-        Mem::ThreadBitSet threadAffinityMask = Mem::ThreadBitSet(mask);
-
-        int threadCount = 0;
-
-        for (size_t i = 0; i < m_totalThreads; i++) {
-            if (threadAffinityMask.test(i)) {
-                if (threadCount == id) {
-                    SetThreadAffinityMask(GetCurrentThread(), 1ULL << i);
-                    break;
-                }
-
-                threadCount++;
-            }
+        if (threadId+1 > Cpu::threads()/2) {
+            cpuId = (threadId - Cpu::threads()/2) + (threadId+1 - Cpu::threads()/2);
+        } else {
+            cpuId = threadId * 2;
         }
     }
+
+    if (cpuId >= 64) {
+        cpuId = -1;
+    }
+
+    if (cpuId > -1) {
+        if (SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpuId) == 0) {
+            cpuId = -1;
+        }
+    }
+
+    return cpuId;
 }
