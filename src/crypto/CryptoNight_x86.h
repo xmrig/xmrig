@@ -191,10 +191,13 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
 #ifdef _MSC_VER
 #   define SET_ROUNDING_MODE_UP() _control87(RC_UP, MCW_RC);
 #   define SET_ROUNDING_MODE_DOWN() _control87(RC_DOWN, MCW_RC);
+#   define SET_ROUNDING_MODE_NEAREST() _control87(RC_NEAR, MCW_RC);;
 #else
 #   define SET_ROUNDING_MODE_UP() std::fesetround(FE_UPWARD);
 #   define SET_ROUNDING_MODE_DOWN() fesetround(FE_DOWNWARD);
+#   define SET_ROUNDING_MODE_NEAREST() fesetround(FE_TONEAREST);
 #endif
+
 
 #   define SHUFFLE_PHASE_1(l, idx, bx0, bx1, ax, reverse) \
 { \
@@ -663,7 +666,27 @@ int_sqrt_v2_fixup(r, n0);
 return r;
 }
 
-// n-Loop version. Seems to be little bit slower then the hardcoded one.
+inline __m128 _mm_set1_ps_epi32(uint32_t x)
+{
+    return _mm_castsi128_ps(_mm_set1_epi32(x));
+}
+
+inline void cryptonight_conceal_tweak(__m128i& cx, __m128& conc_var)
+{
+    __m128 r = _mm_cvtepi32_ps(cx);
+    __m128 c_old = conc_var;
+    r = _mm_add_ps(r, conc_var);
+    r = _mm_mul_ps(r, _mm_mul_ps(r, r));
+    r = _mm_and_ps(_mm_set1_ps_epi32(0x807FFFFF), r);
+    r = _mm_or_ps(_mm_set1_ps_epi32(0x40000000), r);
+    conc_var = _mm_add_ps(conc_var, r);
+
+    c_old = _mm_and_ps(_mm_set1_ps_epi32(0x807FFFFF), c_old);
+    c_old = _mm_or_ps(_mm_set1_ps_epi32(0x40000000), c_old);
+    __m128 nc = _mm_mul_ps(c_old, _mm_set1_ps(536870880.0f));
+    cx = _mm_xor_si128(cx, _mm_cvttps_epi32(nc));
+}
+
 template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, PowVariant VARIANT, size_t NUM_HASH_BLOCKS>
 class CryptoNightMultiHash
 {
@@ -768,8 +791,14 @@ public:
         uint64_t* h;
         uint64_t al;
         uint64_t ah;
-        __m128i bx;
         uint64_t idx;
+        __m128i bx;
+        __m128 conc_var;
+
+        if (VARIANT == POW_CONCEAL) {
+            SET_ROUNDING_MODE_NEAREST()
+            conc_var = _mm_setzero_ps();
+        }
 
         keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
 
@@ -787,9 +816,19 @@ public:
             __m128i cx;
 
             if (SOFT_AES) {
-                cx = soft_aesenc((uint32_t*)&l[idx & MASK], _mm_set_epi64x(ah, al));
+                if (VARIANT == POW_CONCEAL) {
+                    cx = _mm_load_si128((__m128i*) &l[idx & MASK]);
+                    cryptonight_conceal_tweak(cx, conc_var);
+                    cx = soft_aesenc(cx, _mm_set_epi64x(ah, al));
+                } else {
+                    cx = soft_aesenc((uint32_t*)&l[idx & MASK], _mm_set_epi64x(ah, al));
+                }
             } else {
                 cx = _mm_load_si128((__m128i*) &l[idx & MASK]);
+
+                if (VARIANT == POW_CONCEAL)
+                    cryptonight_conceal_tweak(cx, conc_var);
+
                 cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah, al));
             }
 
@@ -1552,6 +1591,15 @@ public:
         __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
         __m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
 
+        __m128 conc_var0;
+        __m128 conc_var1;
+
+        if (VARIANT == POW_CONCEAL) {
+            SET_ROUNDING_MODE_NEAREST()
+            conc_var0 = _mm_setzero_ps();
+            conc_var1 = _mm_setzero_ps();
+        }
+
         uint64_t idx0 = h0[0] ^h0[4];
         uint64_t idx1 = h1[0] ^h1[4];
 
@@ -1560,11 +1608,27 @@ public:
             __m128i cx1;
 
             if (SOFT_AES) {
-                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+                if (VARIANT == POW_CONCEAL) {
+                    cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                    cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+
+                    cryptonight_conceal_tweak(cx0, conc_var0);
+                    cryptonight_conceal_tweak(cx1, conc_var1);
+
+                    cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
+                    cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
+                } else {
+                    cx0 = soft_aesenc((uint32_t *) &l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                    cx1 = soft_aesenc((uint32_t *) &l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+                }
             } else {
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
                 cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+
+                if (VARIANT == POW_CONCEAL) {
+                    cryptonight_conceal_tweak(cx0, conc_var0);
+                    cryptonight_conceal_tweak(cx1, conc_var1);
+                }
 
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
@@ -2572,6 +2636,17 @@ public:
         __m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
         __m128i bx2 = _mm_set_epi64x(h2[3] ^ h2[7], h2[2] ^ h2[6]);
 
+        __m128 conc_var0;
+        __m128 conc_var1;
+        __m128 conc_var2;
+
+        if (VARIANT == POW_CONCEAL) {
+            SET_ROUNDING_MODE_NEAREST()
+            conc_var0 = _mm_setzero_ps();
+            conc_var1 = _mm_setzero_ps();
+            conc_var2 = _mm_setzero_ps();
+        }
+
         uint64_t idx0 = h0[0] ^h0[4];
         uint64_t idx1 = h1[0] ^h1[4];
         uint64_t idx2 = h2[0] ^h2[4];
@@ -2582,13 +2657,33 @@ public:
             __m128i cx2;
 
             if (SOFT_AES) {
-                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
-                cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
+                if (VARIANT == POW_CONCEAL) {
+                    cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                    cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+                    cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
+
+                    cryptonight_conceal_tweak(cx0, conc_var0);
+                    cryptonight_conceal_tweak(cx1, conc_var1);
+                    cryptonight_conceal_tweak(cx2, conc_var2);
+
+                    cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
+                    cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
+                    cx2 = soft_aesenc(cx2, _mm_set_epi64x(ah2, al2));
+                } else {
+                    cx0 = soft_aesenc((uint32_t *) &l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                    cx1 = soft_aesenc((uint32_t *) &l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+                    cx2 = soft_aesenc((uint32_t *) &l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
+                }
             } else {
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
                 cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
                 cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
+
+                if (VARIANT == POW_CONCEAL) {
+                    cryptonight_conceal_tweak(cx0, conc_var0);
+                    cryptonight_conceal_tweak(cx1, conc_var1);
+                    cryptonight_conceal_tweak(cx2, conc_var2);
+                }
 
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
@@ -3771,6 +3866,19 @@ public:
         __m128i bx2 = _mm_set_epi64x(h2[3] ^ h2[7], h2[2] ^ h2[6]);
         __m128i bx3 = _mm_set_epi64x(h3[3] ^ h3[7], h3[2] ^ h3[6]);
 
+        __m128 conc_var0;
+        __m128 conc_var1;
+        __m128 conc_var2;
+        __m128 conc_var3;
+
+        if (VARIANT == POW_CONCEAL) {
+            SET_ROUNDING_MODE_NEAREST()
+            conc_var0 = _mm_setzero_ps();
+            conc_var1 = _mm_setzero_ps();
+            conc_var2 = _mm_setzero_ps();
+            conc_var3 = _mm_setzero_ps();
+        }
+
         uint64_t idx0 = h0[0] ^h0[4];
         uint64_t idx1 = h1[0] ^h1[4];
         uint64_t idx2 = h2[0] ^h2[4];
@@ -3783,15 +3891,39 @@ public:
             __m128i cx3;
 
             if (SOFT_AES) {
-                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
-                cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
-                cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
+                if (VARIANT == POW_CONCEAL) {
+                    cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                    cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+                    cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
+                    cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
+
+                    cryptonight_conceal_tweak(cx0, conc_var0);
+                    cryptonight_conceal_tweak(cx1, conc_var1);
+                    cryptonight_conceal_tweak(cx2, conc_var2);
+                    cryptonight_conceal_tweak(cx3, conc_var3);
+
+                    cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
+                    cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
+                    cx2 = soft_aesenc(cx2, _mm_set_epi64x(ah2, al2));
+                    cx3 = soft_aesenc(cx3, _mm_set_epi64x(ah3, al3));
+                } else {
+                    cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                    cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+                    cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
+                    cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
+                }
             } else {
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
                 cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
                 cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
                 cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
+
+                if (VARIANT == POW_CONCEAL) {
+                    cryptonight_conceal_tweak(cx0, conc_var0);
+                    cryptonight_conceal_tweak(cx1, conc_var1);
+                    cryptonight_conceal_tweak(cx2, conc_var2);
+                    cryptonight_conceal_tweak(cx3, conc_var3);
+                }
 
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
@@ -4821,6 +4953,21 @@ public:
         __m128i bx3 = _mm_set_epi64x(h3[3] ^ h3[7], h3[2] ^ h3[6]);
         __m128i bx4 = _mm_set_epi64x(h4[3] ^ h4[7], h4[2] ^ h4[6]);
 
+        __m128 conc_var0;
+        __m128 conc_var1;
+        __m128 conc_var2;
+        __m128 conc_var3;
+        __m128 conc_var4;
+
+        if (VARIANT == POW_CONCEAL) {
+            SET_ROUNDING_MODE_NEAREST()
+            conc_var0 = _mm_setzero_ps();
+            conc_var1 = _mm_setzero_ps();
+            conc_var2 = _mm_setzero_ps();
+            conc_var3 = _mm_setzero_ps();
+            conc_var4 = _mm_setzero_ps();
+        }
+
         uint64_t idx0 = h0[0] ^h0[4];
         uint64_t idx1 = h1[0] ^h1[4];
         uint64_t idx2 = h2[0] ^h2[4];
@@ -4835,17 +4982,45 @@ public:
             __m128i cx4;
 
             if (SOFT_AES) {
-                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
-                cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
-                cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
-                cx4 = soft_aesenc((uint32_t*)&l4[idx4 & MASK], _mm_set_epi64x(ah4, al4));
+                if (VARIANT == POW_CONCEAL) {
+                    cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
+                    cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
+                    cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
+                    cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
+                    cx4 = _mm_load_si128((__m128i*) &l4[idx4 & MASK]);
+
+                    cryptonight_conceal_tweak(cx0, conc_var0);
+                    cryptonight_conceal_tweak(cx1, conc_var1);
+                    cryptonight_conceal_tweak(cx2, conc_var2);
+                    cryptonight_conceal_tweak(cx3, conc_var3);
+                    cryptonight_conceal_tweak(cx4, conc_var4);
+
+                    cx0 = soft_aesenc(cx0, _mm_set_epi64x(ah0, al0));
+                    cx1 = soft_aesenc(cx1, _mm_set_epi64x(ah1, al1));
+                    cx2 = soft_aesenc(cx2, _mm_set_epi64x(ah2, al2));
+                    cx3 = soft_aesenc(cx3, _mm_set_epi64x(ah3, al3));
+                    cx4 = soft_aesenc(cx4, _mm_set_epi64x(ah4, al4));
+                } else {
+                    cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
+                    cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+                    cx2 = soft_aesenc((uint32_t*)&l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
+                    cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
+                    cx4 = soft_aesenc((uint32_t*)&l4[idx4 & MASK], _mm_set_epi64x(ah4, al4));
+                }
             } else {
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
                 cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
                 cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
                 cx3 = _mm_load_si128((__m128i*) &l3[idx3 & MASK]);
                 cx4 = _mm_load_si128((__m128i*) &l4[idx4 & MASK]);
+
+                if (VARIANT == POW_CONCEAL) {
+                    cryptonight_conceal_tweak(cx0, conc_var0);
+                    cryptonight_conceal_tweak(cx1, conc_var1);
+                    cryptonight_conceal_tweak(cx2, conc_var2);
+                    cryptonight_conceal_tweak(cx3, conc_var3);
+                    cryptonight_conceal_tweak(cx4, conc_var4);
+                }
 
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));

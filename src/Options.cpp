@@ -348,6 +348,7 @@ constexpr static const char *pow_variant_names[] = {
         "zls",
         "graft",
         "upx2",
+        "conceal",
         "chukwa",
         "wrkz"
 };
@@ -1305,7 +1306,17 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "chukwa"))) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "conceal") || !strcmp(powVariant, "ccx"))) {
+            m_powVariant = POW_CONCEAL;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "trtl-chukwa") || !strcmp(powVariant, "trtl_chukwa") || !strcmp(powVariant, "chuckwa"))) {
+            m_powVariant = POW_ARGON2_CHUKWA;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "chukwa-wrkz") || !strcmp(powVariant, "chukwa_wrkz") || !strcmp(powVariant, "trtl-wrkz"))) {
             m_powVariant = POW_ARGON2_CHUKWA;
             break;
         }

@@ -1,0 +1,44 @@
+{
+    "algo": "cryptonight",                      // cryptonight (default), cryptonight-lite, cryptonight-ultralite, cryptonight-extremelite or cryptonight-heavy
+    "aesni": 0,                                 // selection of AES-NI mode (0 auto, 1 on, 2 off)
+    "threads": 0,                               // number of miner threads (not set or 0 enables automatic selection of optimal thread count)
+    "multihash-factor": 0,                      // number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)
+    "multihash-thread-mask" : null,             // for multihash-factors>0 only, limits multihash to given threads (mask), mask "0x3" means run multihash on thread 0 and 1 only (default: all threads)
+    "pow-variant" : "auto",                     // specificy the PoW variat to use: -> auto (default), '0', '1', '2', 'ipbc', 'xao', 'xtl', 'rto', 'xfh', 'upx', 'turtle', 'hosp', 'r', 'wow', 'double (xcash)', 'zls' (zelerius), 'rwz' (graft), 'upx2'
+                                                // for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations
+    "asm-optimization" : "auto",                // specificy the ASM optimization to use: -> auto (default), intel, ryzen, bulldozer, off
+    "background": false,                        // true to run the miner in the background (Windows only, for *nix plase use screen/tmux or systemd service instead)
+    "colors": true,                             // false to disable colored output
+    "cpu-affinity": null,                       // set process affinity to CPU core(s), mask "0x3" for cores 0 and 1
+    "cpu-priority": null,                       // set process priority (0 idle, 2 normal to 5 highest)
+    "donate-level": 5,                          // donate level, mininum 1%
+    "log-file": null,                           // log all output to a file, example: "c:/some/path/xmrig.log"
+    "max-cpu-usage": 100,                       // maximum CPU usage for automatic mode, usually limiting factor is CPU cache not this option.
+    "print-time": 60,                           // print hashrate report every N seconds
+    "retries": 5,                               // number of times to retry before switch to backup server
+    "retry-pause": 5,                           // time to pause between retries
+    "safe": false,                              // true to safe adjust threads and av settings for current CPU
+    "syslog": false,                            // use system log for output messages
+    "reboot-cmd" : "",                          // command to execute to reboot the OS
+    "force-pow-variant" : false,                // force pow variant, dont parse pow/variant from pool job
+    "skip-self-check" : false,                  // skip the self check on startup
+    "pools": [
+        {
+            "url": "donate2.graef.in:80",       // URL of mining server
+            "user": "YOUR_WALLET_ID",           // username for mining server
+            "pass": "x",                        // password for mining server
+            "use-tls" : false,                  // enable tls for pool communication (need pool support)
+            "keepalive": true,                  // send keepalived for prevent timeout (need pool support)
+            "nicehash": false                   // enable nicehash/xmrig-proxy support
+        }
+    ],
+    "cc-client": {
+        "url": "localhost:3344",                // url of the CC Server (ip:port)
+        "use-tls" : false,                      // enable tls for CC communication (needs to be enabled on CC Server too)
+        "access-token": "mySecret",             // access token for CC Server (has to be the same in config_cc.json)
+        "worker-id": null,                      // custom worker-id for CC Server (otherwise hostname is used)
+        "update-interval-s": 10,                // status update interval in seconds (default: 10 min: 1)
+        "use-remote-logging" : true,            // enable remote logging on CC Server
+        "upload-config-on-startup" : true       // upload current miner config to CC Server on startup
+    }
+}
