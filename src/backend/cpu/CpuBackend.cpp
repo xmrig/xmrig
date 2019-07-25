@@ -295,7 +295,7 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
-        RxDataset *dataset = Rx::dataset();
+        RxDataset *dataset = Rx::dataset(-1); // FIXME
         if (dataset) {
             const auto rxPages = dataset->hugePages();
             pages[0] += rxPages.first;

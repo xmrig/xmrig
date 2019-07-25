@@ -56,6 +56,7 @@ public:
     inline bool isShouldSave() const                 { return m_shouldSave; }
     inline const Assembly &assembly() const          { return m_assembly; }
     inline const Threads<CpuThread> &threads() const { return m_threads; }
+    inline int initThreads() const                   { return m_initThreads; }
     inline int priority() const                      { return m_priority; }
 
 private:

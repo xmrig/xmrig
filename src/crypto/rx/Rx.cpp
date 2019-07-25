@@ -31,6 +31,7 @@
 
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
+#include "base/net/stratum/Job.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "crypto/rx/Rx.h"
@@ -52,7 +53,10 @@ public:
 
     inline ~RxPrivate()
     {
-        delete dataset;
+        for (RxDataset *dataset : datasets) {
+            delete dataset;
+        }
+
         uv_mutex_destroy(&mutex);
     }
 
@@ -61,35 +65,82 @@ public:
     inline void unlock() { uv_mutex_unlock(&mutex); }
 
 
-    int initThreads     = -1;
-    RxDataset *dataset  = nullptr;
+    std::vector<RxDataset *> datasets;
     uv_mutex_t mutex;
 };
 
 
 static RxPrivate *d_ptr = new RxPrivate();
-static const char *tag  = BLUE_BG(" rx ");
+static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx ");
 
 
 } // namespace xmrig
 
 
 
-xmrig::RxDataset *xmrig::Rx::dataset()
+bool xmrig::Rx::isReady(const Job &job, int64_t)
 {
     d_ptr->lock();
-    RxDataset *dataset = d_ptr->dataset;
+    const bool rc = isReady(job.seedHash(), job.algorithm());
+    d_ptr->unlock();
+
+    return rc;
+}
+
+
+
+xmrig::RxDataset *xmrig::Rx::dataset(int64_t)
+{
+    d_ptr->lock();
+    RxDataset *dataset = d_ptr->datasets[0];
     d_ptr->unlock();
 
     return dataset;
 }
 
 
-xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algorithm, bool hugePages)
+void xmrig::Rx::init(const Job &job, int initThreads, bool hugePages)
+{
+    d_ptr->lock();
+    if (d_ptr->datasets.empty()) {
+        d_ptr->datasets.push_back(nullptr);
+    }
+
+    if (isReady(job.seedHash(), job.algorithm())) {
+        d_ptr->unlock();
+
+        return;
+    }
+
+    const uint32_t threads  = initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads())
+                                              : static_cast<uint32_t>(initThreads);
+
+    std::thread thread(initDataset, 0, job.seedHash(), job.algorithm(), threads, hugePages);
+    thread.detach();
+
+    d_ptr->unlock();
+}
+
+
+void xmrig::Rx::stop()
+{
+    delete d_ptr;
+
+    d_ptr = nullptr;
+}
+
+
+bool xmrig::Rx::isReady(const uint8_t *seed, const Algorithm &algorithm)
+{
+    return !d_ptr->datasets.empty() && d_ptr->datasets[0] != nullptr && d_ptr->datasets[0]->isReady(seed, algorithm);
+}
+
+
+void xmrig::Rx::initDataset(size_t index, const uint8_t *seed, const Algorithm &algorithm, uint32_t threads, bool hugePages)
 {
     d_ptr->lock();
 
-    if (!d_ptr->dataset) {
+    if (!d_ptr->datasets[index]) {
         const uint64_t ts = Chrono::steadyMSecs();
 
         LOG_INFO("%s" MAGENTA_BOLD(" allocate") CYAN_BOLD(" %zu MiB") BLACK_BOLD(" (%zu+%zu) for RandomX dataset & cache"),
@@ -99,10 +150,10 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
                  RxCache::size() / 1024 / 1024
                  );
 
-        d_ptr->dataset = new RxDataset(hugePages);
+        d_ptr->datasets[index] = new RxDataset(hugePages);
 
-        if (d_ptr->dataset->get() != nullptr) {
-            const auto hugePages = d_ptr->dataset->hugePages();
+        if (d_ptr->datasets[index]->get() != nullptr) {
+            const auto hugePages = d_ptr->datasets[index]->hugePages();
             const double percent = hugePages.first == 0 ? 0.0 : static_cast<double>(hugePages.first) / hugePages.second * 100.0;
 
             LOG_INFO("%s" GREEN(" allocate done") " huge pages %s%u/%u %1.0f%%" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
@@ -111,7 +162,7 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
                      hugePages.first,
                      hugePages.second,
                      percent,
-                     d_ptr->dataset->cache()->isJIT() ? GREEN_BOLD_S "+" : RED_BOLD_S "-",
+                     d_ptr->datasets[index]->cache()->isJIT() ? GREEN_BOLD_S "+" : RED_BOLD_S "-",
                      Chrono::steadyMSecs() - ts
                      );
         }
@@ -120,12 +171,10 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
         }
     }
 
-    if (!d_ptr->dataset->isReady(seed, algorithm)) {
-        const uint64_t ts       = Chrono::steadyMSecs();
-        const uint32_t threads  = d_ptr->initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads())
-                                                         : static_cast<uint32_t>(d_ptr->initThreads);
+    if (!d_ptr->datasets[index]->isReady(seed, algorithm)) {
+        const uint64_t ts = Chrono::steadyMSecs();
 
-        if (d_ptr->dataset->get() != nullptr) {
+        if (d_ptr->datasets[index]->get() != nullptr) {
             LOG_INFO("%s" MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
                      tag,
                      algorithm.shortName(),
@@ -141,29 +190,10 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
                      );
         }
 
-        d_ptr->dataset->init(seed, algorithm, threads);
+        d_ptr->datasets[index]->init(seed, algorithm, threads);
 
         LOG_INFO("%s" GREEN(" init done") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
     }
 
-    RxDataset *dataset = d_ptr->dataset;
     d_ptr->unlock();
-
-    return dataset;
-}
-
-
-void xmrig::Rx::setInitThreads(int count)
-{
-    d_ptr->lock();
-    d_ptr->initThreads = count;
-    d_ptr->unlock();
-}
-
-
-void xmrig::Rx::stop()
-{
-    delete d_ptr;
-
-    d_ptr = nullptr;
 }

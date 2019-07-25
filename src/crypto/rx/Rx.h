@@ -37,15 +37,20 @@ namespace xmrig
 
 class Algorithm;
 class RxDataset;
+class Job;
 
 
 class Rx
 {
 public:
-    static RxDataset *dataset();
-    static RxDataset *dataset(const uint8_t *seed, const Algorithm &algorithm, bool hugePages = true);
-    static void setInitThreads(int count);
+    static bool isReady(const Job &job, int64_t affinity);
+    static RxDataset *dataset(int64_t affinity);
+    static void init(const Job &job, int initThreads, bool hugePages);
     static void stop();
+
+private:
+    static bool isReady(const uint8_t *seed, const Algorithm &algorithm);
+    static void initDataset(size_t index, const uint8_t *seed, const Algorithm &algorithm, uint32_t threads, bool hugePages);
 };
 
 

@@ -29,11 +29,6 @@
 #include "rapidjson/document.h"
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "crypto/rx/Rx.h"
-#endif
-
-
 namespace xmrig {
 
 static const char *kCn                  = "cn";
@@ -138,10 +133,6 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 
 #       ifdef XMRIG_FEATURE_ASM
         m_assembly = Json::getValue(value, kAsm);
-#       endif
-
-#       ifdef XMRIG_ALGO_RANDOMX
-        Rx::setInitThreads(m_initThreads);
 #       endif
 
         if (!m_threads.read(value)) {
