@@ -101,6 +101,10 @@ xmrig::RxDataset *xmrig::Rx::dataset(int64_t)
 
 void xmrig::Rx::init(const Job &job, int initThreads, bool hugePages)
 {
+    if (job.algorithm().family() != Algorithm::RANDOM_X) {
+        return;
+    }
+
     d_ptr->lock();
     if (d_ptr->datasets.empty()) {
         d_ptr->datasets.push_back(nullptr);
