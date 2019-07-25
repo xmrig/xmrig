@@ -44,6 +44,7 @@ class Rx
 public:
     static RxDataset *dataset();
     static RxDataset *dataset(const uint8_t *seed, const Algorithm &algorithm, bool hugePages = true);
+    static void setInitThreads(int count);
     static void stop();
 };
 

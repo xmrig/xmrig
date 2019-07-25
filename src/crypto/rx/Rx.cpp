@@ -61,8 +61,8 @@ public:
     inline void unlock() { uv_mutex_unlock(&mutex); }
 
 
-    RxDataset *dataset   = nullptr;
-    uint32_t initThreads = std::thread::hardware_concurrency();
+    int initThreads     = -1;
+    RxDataset *dataset  = nullptr;
     uv_mutex_t mutex;
 };
 
@@ -121,13 +121,15 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
     }
 
     if (!d_ptr->dataset->isReady(seed, algorithm)) {
-        const uint64_t ts = Chrono::steadyMSecs();
+        const uint64_t ts       = Chrono::steadyMSecs();
+        const uint32_t threads  = d_ptr->initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads())
+                                                         : static_cast<uint32_t>(d_ptr->initThreads);
 
         if (d_ptr->dataset->get() != nullptr) {
             LOG_INFO("%s" MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
                      tag,
                      algorithm.shortName(),
-                     d_ptr->initThreads,
+                     threads,
                      Buffer::toHex(seed, 8).data()
                      );
         }
@@ -139,7 +141,7 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
                      );
         }
 
-        d_ptr->dataset->init(seed, algorithm, d_ptr->initThreads);
+        d_ptr->dataset->init(seed, algorithm, threads);
 
         LOG_INFO("%s" GREEN(" init done") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
     }
@@ -148,6 +150,14 @@ xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algor
     d_ptr->unlock();
 
     return dataset;
+}
+
+
+void xmrig::Rx::setInitThreads(int count)
+{
+    d_ptr->lock();
+    d_ptr->initThreads = count;
+    d_ptr->unlock();
 }
 
 

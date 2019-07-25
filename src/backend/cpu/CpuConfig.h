@@ -69,6 +69,7 @@ private:
     bool m_enabled       = true;
     bool m_hugePages     = true;
     bool m_shouldSave    = false;
+    int m_initThreads    = -1;
     int m_priority       = -1;
     Threads<CpuThread> m_threads;
 };
