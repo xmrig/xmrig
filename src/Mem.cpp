@@ -70,8 +70,8 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
     }
 
     ScratchPadMem scratchPadMem;
-    scratchPadMem.realSize = Options::isCNAlgo(m_algo) ? scratchPadSize * getThreadHashFactor(threadId) : scratchPadSize;
-    scratchPadMem.size = Options::isCNAlgo(m_algo) ? scratchPadSize * getThreadHashFactor(threadId) : scratchPadSize;
+    scratchPadMem.realSize = scratchPadSize * getThreadHashFactor(threadId);
+    scratchPadMem.size = scratchPadSize * getThreadHashFactor(threadId);
     scratchPadMem.pages = std::max(scratchPadMem.size / MEMORY, static_cast<size_t>(1));
 
     allocate(scratchPadMem, m_useHugePages);
@@ -102,11 +102,9 @@ void Mem::release(ScratchPad** scratchPads, ScratchPadMem& scratchPadMem, int th
     m_totalPages -= scratchPadMem.pages;
     m_totalHugepages -= scratchPadMem.hugePages;
 
-    if (Options::isCNAlgo(m_algo)) {
-        release(scratchPadMem);
+    release(scratchPadMem);
 
-        for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
-            _mm_free(scratchPads[i]);
-        }
+    for (size_t i = 0; i < getThreadHashFactor(threadId); ++i) {
+        _mm_free(scratchPads[i]);
     }
 }

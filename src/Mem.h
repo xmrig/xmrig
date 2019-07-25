@@ -81,8 +81,12 @@ public:
     static inline size_t hashFactor()         { return m_hashFactor; }
     static inline size_t getThreadHashFactor(int threadId)
     {
-        return (m_multiHashThreadMask.all() ||
-                m_multiHashThreadMask.test(threadId)) ? m_hashFactor : 1;
+        size_t threadHashFactor = 1;
+        if (Options::isCNAlgo(m_algo)) {
+          threadHashFactor = (m_multiHashThreadMask.all() || m_multiHashThreadMask.test(threadId)) ? m_hashFactor : 1;
+        }
+
+        return threadHashFactor;
     }
 
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }

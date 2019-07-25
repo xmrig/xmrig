@@ -1401,6 +1401,10 @@ void Options::optimizeAlgorithmConfiguration()
         m_hashFactor = 3;
     }
 
+    if (m_algo == Options::ALGO_ARGON2_256 || m_algo == Options::ALGO_ARGON2_512) {
+        m_hashFactor = 1;
+    }
+
     Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_powVariant, m_maxCpuUsage, m_safe);
 }
 
