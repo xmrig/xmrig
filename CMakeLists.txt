@@ -12,9 +12,11 @@ option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
+option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
+
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
-option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
+option(HWLOC_DEBUG          "Enable hwloc debug helpers and log" OFF)
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")

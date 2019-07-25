@@ -53,12 +53,12 @@ protected:
     inline size_t threads() const override          { return m_threads; }
 
 protected:
+    char m_brand[64 + 6];
     size_t m_threads;
 
 private:
     Assembly m_assembly;
     bool m_aes;
-    char m_brand[64 + 6];
     const bool m_avx2;
 };
 

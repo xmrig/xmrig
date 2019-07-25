@@ -28,6 +28,10 @@ if (WITH_HWLOC)
     remove_definitions(/DXMRIG_FEATURE_LIBCPUID)
     add_definitions(/DXMRIG_FEATURE_HWLOC)
 
+    if (HWLOC_DEBUG)
+        add_definitions(/DXMRIG_HWLOC_DEBUG)
+    endif()
+
     set(CPUID_LIB "")
     set(SOURCES_CPUID
         src/backend/cpu/platform/BasicCpuInfo.cpp

@@ -30,6 +30,7 @@
 
 
 typedef struct hwloc_obj *hwloc_obj_t;
+typedef struct hwloc_topology *hwloc_topology_t;
 
 
 namespace xmrig {
@@ -39,6 +40,7 @@ class HwlocCpuInfo : public BasicCpuInfo
 {
 public:
     HwlocCpuInfo();
+    ~HwlocCpuInfo() override;
 
 protected:
     CpuThreads threads(const Algorithm &algorithm) const override;
@@ -54,6 +56,7 @@ private:
     void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads) const;
 
     char m_backend[20];
+    hwloc_topology_t m_topology;
     size_t m_cache[5];
     size_t m_cores      = 0;
     size_t m_nodes      = 0;

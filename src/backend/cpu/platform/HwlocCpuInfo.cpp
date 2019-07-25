@@ -23,6 +23,12 @@
  */
 
 
+#ifdef XMRIG_HWLOC_DEBUG
+#   include <uv.h>
+#endif
+
+
+#include <algorithm>
 #include <hwloc.h>
 
 
@@ -107,21 +113,46 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
 {
     m_threads = 0;
 
-    hwloc_topology_t topology;
-    hwloc_topology_init(&topology);
-    hwloc_topology_load(topology);
+    hwloc_topology_init(&m_topology);
+    hwloc_topology_load(m_topology);
 
-    hwloc_obj_t root = hwloc_get_root_obj(topology);
+#   ifdef XMRIG_HWLOC_DEBUG
+#   if defined(UV_VERSION_HEX) && UV_VERSION_HEX >= 0x010c00
+    {
+        char env[520] = { 0 };
+        size_t size   = sizeof(env);
+
+        if (uv_os_getenv("HWLOC_XMLFILE", env, &size) == 0) {
+            printf("use HWLOC XML file: \"%s\"\n", env);
+        }
+    }
+#   endif
+
+    std::vector<hwloc_obj_t> packages;
+    findByType(hwloc_get_root_obj(m_topology), HWLOC_OBJ_PACKAGE, [&packages](hwloc_obj_t found) { packages.emplace_back(found); });
+    if (packages.size()) {
+        const char *value = hwloc_obj_get_info_by_name(packages[0], "CPUModel");
+        if (value) {
+            strncpy(m_brand, value, 64);
+        }
+    }
+#   endif
+
+    hwloc_obj_t root = hwloc_get_root_obj(m_topology);
     snprintf(m_backend, sizeof m_backend, "hwloc/%s", hwloc_obj_get_info_by_name(root, "hwlocVersion"));
 
     findCache(root, 2, 3, [this](hwloc_obj_t found) { this->m_cache[found->attr->cache.depth] += found->attr->cache.size; });
 
-    m_threads   = countByType(topology, HWLOC_OBJ_PU);
-    m_cores     = countByType(topology, HWLOC_OBJ_CORE);
-    m_nodes     = countByType(topology, HWLOC_OBJ_NUMANODE);
-    m_packages  = countByType(topology, HWLOC_OBJ_PACKAGE);
+    m_threads   = countByType(m_topology, HWLOC_OBJ_PU);
+    m_cores     = countByType(m_topology, HWLOC_OBJ_CORE);
+    m_nodes     = std::max<size_t>(countByType(m_topology, HWLOC_OBJ_NUMANODE), 1);
+    m_packages  = countByType(m_topology, HWLOC_OBJ_PACKAGE);
+}
 
-    hwloc_topology_destroy(topology);
+
+xmrig::HwlocCpuInfo::~HwlocCpuInfo()
+{
+    hwloc_topology_destroy(m_topology);
 }
 
 
@@ -131,10 +162,6 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
         return BasicCpuInfo::threads(algorithm);
     }
 
-    hwloc_topology_t topology;
-    hwloc_topology_init(&topology);
-    hwloc_topology_load(topology);
-
     const unsigned depth = L3() > 0 ? 3 : 2;
 
     CpuThreads threads;
@@ -143,13 +170,11 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
     std::vector<hwloc_obj_t> caches;
     caches.reserve(16);
 
-    findCache(hwloc_get_root_obj(topology), depth, depth, [&caches](hwloc_obj_t found) { caches.emplace_back(found); });
+    findCache(hwloc_get_root_obj(m_topology), depth, depth, [&caches](hwloc_obj_t found) { caches.emplace_back(found); });
 
     for (hwloc_obj_t cache : caches) {
         processTopLevelCache(cache, algorithm, threads);
     }
-
-    hwloc_topology_destroy(topology);
 
     return threads;
 }
