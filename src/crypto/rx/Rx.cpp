@@ -147,7 +147,7 @@ void xmrig::Rx::initDataset(size_t index, const uint8_t *seed, const Algorithm &
     if (!d_ptr->datasets[index]) {
         const uint64_t ts = Chrono::steadyMSecs();
 
-        LOG_INFO("%s" MAGENTA_BOLD(" allocate") CYAN_BOLD(" %zu MiB") BLACK_BOLD(" (%zu+%zu) for RandomX dataset & cache"),
+        LOG_INFO("%s" MAGENTA_BOLD(" allocate") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu) for RandomX dataset & cache"),
                  tag,
                  (RxDataset::size() + RxCache::size()) / 1024 / 1024,
                  RxDataset::size() / 1024 / 1024,

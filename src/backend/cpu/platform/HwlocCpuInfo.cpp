@@ -189,28 +189,47 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
 
 void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads) const
 {
+    constexpr size_t oneMiB = 1024u * 1024u;
+
     size_t PUs = countByType(cache, HWLOC_OBJ_PU);
     if (PUs == 0) {
         return;
-    }
-
-    size_t size             = cache->attr->cache.size;
-    const size_t scratchpad = algorithm.memory();
-
-    if (cache->attr->cache.depth == 3 && isCacheExclusive(cache)) {
-        for (size_t i = 0; i < cache->arity; ++i) {
-            hwloc_obj_t l2 = cache->children[i];
-            if (isCacheObject(l2) && l2->attr != nullptr && l2->attr->cache.size >= scratchpad) {
-                size += scratchpad;
-            }
-        }
     }
 
     std::vector<hwloc_obj_t> cores;
     cores.reserve(m_cores);
     findByType(cache, HWLOC_OBJ_CORE, [&cores](hwloc_obj_t found) { cores.emplace_back(found); });
 
-    size_t cacheHashes = (size + (scratchpad / 2)) / scratchpad;
+    size_t L3               = cache->attr->cache.size;
+    size_t L2               = 0;
+    int L2_associativity    = 0;
+    size_t extra            = 0;
+    const size_t scratchpad = algorithm.memory();
+
+    if (cache->attr->cache.depth == 3 && isCacheExclusive(cache)) {
+        for (size_t i = 0; i < cache->arity; ++i) {
+            hwloc_obj_t l2 = cache->children[i];
+            if (!isCacheObject(l2) || l2->attr == nullptr) {
+                continue;
+            }
+
+            L2 += l2->attr->cache.size;
+            L2_associativity = l2->attr->cache.associativity;
+
+            if (l2->attr->cache.size >= scratchpad) {
+                extra += scratchpad;
+            }
+        }
+    }
+
+    if (scratchpad == 2 * oneMiB) {
+        if (L2 && (cores.size() * oneMiB) == L2 && L2_associativity == 16 && L3 >= L2) {
+            L3    = L2;
+            extra = L2;
+        }
+    }
+
+    size_t cacheHashes = ((L3 + extra) + (scratchpad / 2)) / scratchpad;
 
 #   ifdef XMRIG_ALGO_CN_GPU
     if (algorithm == Algorithm::CN_GPU) {
