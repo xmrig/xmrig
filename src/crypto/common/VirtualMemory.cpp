@@ -46,19 +46,11 @@ void xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
     hwloc_topology_init(&topology);
     hwloc_topology_load(topology);
 
-    const int depth     = hwloc_get_type_depth(topology, HWLOC_OBJ_PU);
     const unsigned puId = static_cast<unsigned>(affinity);
 
-    for (unsigned i = 0; i < hwloc_get_nbobjs_by_depth(topology, depth); i++) {
-        hwloc_obj_t pu = hwloc_get_obj_by_depth(topology, depth, i);
-
-        if (pu->os_index == puId) {
-            if (hwloc_set_membind_nodeset(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) < 0) {
-                LOG_WARN("CPU #%02u warning: \"can't bind memory\"", puId);
-            }
-
-            break;
-        }
+    hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(topology, puId);
+    if (pu == nullptr || hwloc_set_membind_nodeset(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) < 0) {
+        LOG_WARN("CPU #%02u warning: \"can't bind memory\"", puId);
     }
 
     hwloc_topology_destroy(topology);
