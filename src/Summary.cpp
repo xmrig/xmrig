@@ -62,7 +62,7 @@ inline static const char *asmName(Assembly::Id assembly)
 static void print_memory(Config *) {
 #   ifdef _WIN32
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-               "HUGE PAGES", VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("available") : RED_BOLD("unavailable"));
+               "HUGE PAGES", VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable"));
 #   endif
 }
 
@@ -71,22 +71,28 @@ static void print_cpu(Config *)
 {
     const ICpuInfo *info = Cpu::info();
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu/%zu)") " %sx64 %sAES %sAVX2",
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES %sAVX2",
                "CPU",
                info->brand(),
                info->packages(),
-               info->nodes(),
                info->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
                info->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
                info->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"
                );
 #   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
-    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" cores:") CYAN_BOLD("%zu") BLACK_BOLD(" threads:") CYAN_BOLD("%zu"),
-               "",
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")
+               CYAN_BOLD(" %zu") "C" BLACK_BOLD("/") CYAN_BOLD("%zu") "T"
+#              ifdef XMRIG_FEATURE_HWLOC
+               BLACK_BOLD(" NUMA:") CYAN_BOLD("%zu")
+#              endif
+               , "",
                info->L2() / 1048576.0,
                info->L3() / 1048576.0,
                info->cores(),
                info->threads()
+#              ifdef XMRIG_FEATURE_HWLOC
+               , info->nodes()
+#              endif
                );
 #   else
     Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("threads:") CYAN_BOLD("%zu"),

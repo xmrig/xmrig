@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -24,28 +25,42 @@
  */
 
 
-#include "backend/common/Worker.h"
-#include "base/kernel/Platform.h"
-#include "base/tools/Chrono.h"
+#ifdef XMRIG_FEATURE_HWLOC
+#   include <hwloc.h>
+#   include "backend/cpu/platform/HwlocCpuInfo.h"
+#endif
+
+
+#include "base/io/log/Log.h"
 #include "crypto/common/VirtualMemory.h"
 
 
-xmrig::Worker::Worker(size_t id, int64_t affinity, int priority) :
-    m_affinity(affinity),
-    m_id(id),
-    m_hashCount(0),
-    m_timestamp(0),
-    m_count(0)
+void xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
 {
-    VirtualMemory::bindToNUMANode(affinity);
-    Platform::trySetThreadAffinity(affinity);
+#   ifdef XMRIG_FEATURE_HWLOC
+    if (affinity < 0 || !HwlocCpuInfo::has(HwlocCpuInfo::SET_THISTHREAD_MEMBIND)) {
+        return;
+    }
 
-    Platform::setThreadPriority(priority);
-}
+    hwloc_topology_t topology;
+    hwloc_topology_init(&topology);
+    hwloc_topology_load(topology);
 
+    const int depth     = hwloc_get_type_depth(topology, HWLOC_OBJ_PU);
+    const unsigned puId = static_cast<unsigned>(affinity);
 
-void xmrig::Worker::storeStats()
-{
-    m_hashCount.store(m_count, std::memory_order_relaxed);
-    m_timestamp.store(Chrono::highResolutionMSecs(), std::memory_order_relaxed);
+    for (unsigned i = 0; i < hwloc_get_nbobjs_by_depth(topology, depth); i++) {
+        hwloc_obj_t pu = hwloc_get_obj_by_depth(topology, depth, i);
+
+        if (pu->os_index == puId) {
+            if (hwloc_set_membind_nodeset(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) < 0) {
+                LOG_WARN("CPU #%02u warning: \"can't bind memory\"", puId);
+            }
+
+            break;
+        }
+    }
+
+    hwloc_topology_destroy(topology);
+#   endif
 }

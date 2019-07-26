@@ -39,8 +39,15 @@ namespace xmrig {
 class HwlocCpuInfo : public BasicCpuInfo
 {
 public:
+    enum Feature : uint32_t {
+        SET_THISTHREAD_MEMBIND = 1
+    };
+
+
     HwlocCpuInfo();
     ~HwlocCpuInfo() override;
+
+    static inline bool has(Feature feature) { return m_features & feature; }
 
 protected:
     CpuThreads threads(const Algorithm &algorithm) const override;
@@ -54,6 +61,8 @@ protected:
 
 private:
     void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads) const;
+
+    static uint32_t m_features;
 
     char m_backend[20];
     hwloc_topology_t m_topology;

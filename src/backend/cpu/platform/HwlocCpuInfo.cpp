@@ -38,6 +38,9 @@
 namespace xmrig {
 
 
+uint32_t HwlocCpuInfo::m_features = 0;
+
+
 static inline bool isCacheObject(hwloc_obj_t obj)
 {
 #   if HWLOC_API_VERSION >= 0x20000
@@ -147,6 +150,10 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
     m_cores     = countByType(m_topology, HWLOC_OBJ_CORE);
     m_nodes     = std::max<size_t>(countByType(m_topology, HWLOC_OBJ_NUMANODE), 1);
     m_packages  = countByType(m_topology, HWLOC_OBJ_PACKAGE);
+
+    if (nodes() > 1 && hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
+        m_features |= SET_THISTHREAD_MEMBIND;
+    }
 }
 
 

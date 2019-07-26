@@ -107,6 +107,7 @@ set(SOURCES_CRYPTO
     src/crypto/common/Algorithm.cpp
     src/crypto/common/keccak.cpp
     src/crypto/common/Nonce.cpp
+    src/crypto/common/VirtualMemory.cpp
    )
 
 if (WIN32)
