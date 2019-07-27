@@ -146,7 +146,6 @@ static RxPrivate *d_ptr = new RxPrivate();
 } // namespace xmrig
 
 
-
 bool xmrig::Rx::isReady(const Job &job, uint32_t nodeId)
 {
     d_ptr->lock();
@@ -157,7 +156,6 @@ bool xmrig::Rx::isReady(const Job &job, uint32_t nodeId)
 }
 
 
-
 xmrig::RxDataset *xmrig::Rx::dataset(uint32_t nodeId)
 {
     d_ptr->lock();
@@ -165,6 +163,27 @@ xmrig::RxDataset *xmrig::Rx::dataset(uint32_t nodeId)
     d_ptr->unlock();
 
     return dataset;
+}
+
+
+std::pair<size_t, size_t> xmrig::Rx::hugePages()
+{
+    std::pair<size_t, size_t> pages(0, 0);
+    d_ptr->lock();
+
+    for (auto const &item : d_ptr->datasets) {
+        if (!item.second) {
+            continue;
+        }
+
+        const auto p = item.second->hugePages();
+        pages.first  += p.first;
+        pages.second += p.second;
+    }
+
+    d_ptr->unlock();
+
+    return pages;
 }
 
 

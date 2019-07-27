@@ -112,7 +112,7 @@ bool xmrig::RxDataset::isReady(const void *seed, const Algorithm &algorithm) con
 
 std::pair<size_t, size_t> xmrig::RxDataset::hugePages() const
 {
-    constexpr size_t twoMiB = 2u * 1024u * 1024u;
+    constexpr size_t twoMiB      = 2u * 1024u * 1024u;
     constexpr const size_t total = (VirtualMemory::align(size(), twoMiB) + VirtualMemory::align(RxCache::size(), twoMiB)) / twoMiB;
 
     size_t count = 0;
