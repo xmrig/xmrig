@@ -38,6 +38,7 @@
 namespace xmrig {
 
 
+std::vector<uint32_t> HwlocCpuInfo::m_nodeIndexes;
 uint32_t HwlocCpuInfo::m_features = 0;
 
 
@@ -151,8 +152,17 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
     m_nodes     = std::max<size_t>(countByType(m_topology, HWLOC_OBJ_NUMANODE), 1);
     m_packages  = countByType(m_topology, HWLOC_OBJ_PACKAGE);
 
-    if (nodes() > 1 && hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
-        m_features |= SET_THISTHREAD_MEMBIND;
+    if (m_nodes > 1) {
+        if (hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
+            m_features |= SET_THISTHREAD_MEMBIND;
+        }
+
+        m_nodeIndexes.reserve(m_nodes);
+        hwloc_obj_t node = nullptr;
+
+        while ((node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
+            m_nodeIndexes.emplace_back(node->os_index);
+        }
     }
 }
 

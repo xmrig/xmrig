@@ -43,14 +43,14 @@ class Job;
 class Rx
 {
 public:
-    static bool isReady(const Job &job, int64_t affinity);
-    static RxDataset *dataset(int64_t affinity);
-    static void init(const Job &job, int initThreads, bool hugePages);
+    static bool isReady(const Job &job, uint32_t nodeId);
+    static RxDataset *dataset(uint32_t nodeId);
+    static void init(const Job &job, int initThreads, bool hugePages, bool numa);
     static void stop();
 
 private:
-    static bool isReady(const uint8_t *seed, const Algorithm &algorithm);
-    static void initDataset(size_t index, const uint8_t *seed, const Algorithm &algorithm, uint32_t threads, bool hugePages);
+    static bool isReady(const uint8_t *seed, const Algorithm &algorithm, uint32_t nodeId);
+    static void initDataset(uint32_t nodeId, const uint8_t *seed, const Algorithm &algorithm, uint32_t threads);
 };
 
 

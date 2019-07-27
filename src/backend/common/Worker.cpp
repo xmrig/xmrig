@@ -37,9 +37,9 @@ xmrig::Worker::Worker(size_t id, int64_t affinity, int priority) :
     m_timestamp(0),
     m_count(0)
 {
-    VirtualMemory::bindToNUMANode(affinity);
-    Platform::trySetThreadAffinity(affinity);
+    m_node = VirtualMemory::bindToNUMANode(affinity);
 
+    Platform::trySetThreadAffinity(affinity);
     Platform::setThreadPriority(priority);
 }
 

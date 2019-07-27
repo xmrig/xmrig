@@ -366,7 +366,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     const CpuConfig &cpu = d_ptr->controller->config()->cpu();
-    Rx::init(job, cpu.initThreads(), cpu.isHugePages());
+    Rx::init(job, cpu.initThreads(), cpu.isHugePages(), true);
 #   endif
 
     uv_rwlock_wrunlock(&d_ptr->rwlock);

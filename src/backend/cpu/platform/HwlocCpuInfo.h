@@ -47,7 +47,8 @@ public:
     HwlocCpuInfo();
     ~HwlocCpuInfo() override;
 
-    static inline bool has(Feature feature) { return m_features & feature; }
+    static inline bool has(Feature feature)                     { return m_features & feature; }
+    static inline const std::vector<uint32_t> &nodeIndexes()    { return m_nodeIndexes; }
 
 protected:
     CpuThreads threads(const Algorithm &algorithm) const override;
@@ -62,6 +63,7 @@ protected:
 private:
     void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads) const;
 
+    static std::vector<uint32_t> m_nodeIndexes;
     static uint32_t m_features;
 
     char m_backend[20];
