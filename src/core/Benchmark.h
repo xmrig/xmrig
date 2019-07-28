@@ -67,9 +67,10 @@ class Benchmark : public IJobResultListener {
 
     public:
         Benchmark() : m_controller(nullptr), m_isNewBenchRun(true) {}
+        void set_controller(Controller* controller) { m_controller = controller; }
         virtual ~Benchmark() {}
 
-        void start(Controller* controller); // start benchmarks
+        void start(); // start benchmarks
 
         bool isNewBenchRun() const { return m_isNewBenchRun; }
         float algo_perf[Algorithm::MAX];

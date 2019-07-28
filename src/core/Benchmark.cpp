@@ -30,8 +30,7 @@
 namespace xmrig {                          
 
 // start performance measurements from the first bench_algo
-void Benchmark::start(Controller* controller) {
-    m_controller = controller;
+void Benchmark::start() {
     JobResults::setListener(this); // register benchmark as job result listener to compute hashrates there
     // write text before first benchmark round
     LOG_ALERT(">>>>> STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)", m_controller->config()->benchAlgoTime());

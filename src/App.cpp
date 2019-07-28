@@ -87,9 +87,10 @@ int xmrig::App::exec()
     }
 
     m_controller->pre_start();
+    m_controller->config()->benchmark().set_controller(m_controller);
 
     if (m_controller->config()->benchmark().isNewBenchRun() || m_controller->config()->isRebenchAlgo()) {
-        m_controller->config()->benchmark().start(m_controller);
+        m_controller->config()->benchmark().start();
     } else {
         m_controller->start();
     }
