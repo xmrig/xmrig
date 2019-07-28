@@ -63,7 +63,6 @@ rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
     cpu.AddMember("aes",        i->hasAES(), allocator);
     cpu.AddMember("avx2",       i->hasAVX2(), allocator);
     cpu.AddMember("x64",        i->isX64(), allocator);
-    cpu.AddMember("assembly",   StringRef(assembly.toString()), allocator);
     cpu.AddMember("l2",         static_cast<uint64_t>(i->L2()), allocator);
     cpu.AddMember("l3",         static_cast<uint64_t>(i->L3()), allocator);
     cpu.AddMember("cores",      static_cast<uint64_t>(i->cores()), allocator);
@@ -71,6 +70,12 @@ rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
     cpu.AddMember("packages",   static_cast<uint64_t>(i->packages()), allocator);
     cpu.AddMember("nodes",      static_cast<uint64_t>(i->nodes()), allocator);
     cpu.AddMember("backend",    StringRef(i->backend()), allocator);
+
+#   ifdef XMRIG_FEATURE_ASM
+    cpu.AddMember("assembly", StringRef(assembly.toString()), allocator);
+#   else
+    cpu.AddMember("assembly", "none", allocator);
+#   endif
 
     return cpu;
 }
