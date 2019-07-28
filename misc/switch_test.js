@@ -2,6 +2,16 @@
 
 // Miner Tester: testing miner algo switch stability
 
+// sudo apt-get update -y
+// sudo apt-get install -y git build-essential cmake libuv1-dev libmicrohttpd-dev libssl-dev libhwloc-dev nodejs
+// git clone https://github.com/MoneroOcean/xmrig.git
+// cd xmrig
+// cmake .
+// make -j`nproc`
+// cp src/config.json .
+// sed -i 's/"url": *"[^"]*",/"url": "localhost:3333",/' config.json
+// sed -i 's/"user": *"[^"]*",/"user": "44qJYxdbuqSKarYnDSXB6KLbsH4yR65vpJe3ELLDii9i4ZgKpgQXZYR4AMJxBJbfbKZGWUxZU42QyZSsP4AyZZMbJBCrWr1",/' config.json
+
 "use strict";
 
 // *****************************************************************************
@@ -14,7 +24,7 @@ const net = require('net');
 // *** CONSTS                                                                ***
 // *****************************************************************************
 
-const algos = [ "rx/wow", "rx/loki" ];
+const algos = [ "rx/wow", "rx/loki", "cn/r" ];
 
 // *****************************************************************************
 // *** WORKING STATE                                                         ***
@@ -39,6 +49,16 @@ function err(msg) {
 // *** Miner socket processing
 
 const test_blob_str = "7f7ffeeaa0db054f15eca39c843cb82c15e5c5a7743e06536cb541d4e96e90ffd31120b7703aa90000000076a6f6e34a9977c982629d8fe6c8b45024cafca109eef92198784891e0df41bc03";
+
+function makehex(length) {
+   var result           = '';
+   var characters       = 'abcdef0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
 
 let miner_server = net.createServer(function (miner_socket) {
   if (curr_miner_socket) {
@@ -68,7 +88,7 @@ let miner_server = net.createServer(function (miner_socket) {
       if ("method" in json && json.method === "login") {
         miner_socket.write(
           '{"id":1,"jsonrpc":"2.0","error":null,"result":{"id":"benchmark","job":{"blob":"' + test_blob_str +
-          '","algo":"cn/1","job_id":"benchmark1","target":"10000000","seed_hash":"0000000000000000000000000000000000000000000000000000000000000001","id":"benchmark"},"status":"OK"}}\n'
+          '","algo":"cn/wow","job_id":"benchmark1","target":"10000000","height":10,"seed_hash":"' + makehex(64) + '","id":"benchmark"},"status":"OK"}}\n'
         );
         curr_miner_socket = miner_socket;
       }
@@ -93,10 +113,10 @@ function change_algo() {
     log("Switching to " + algo);
     curr_miner_socket.write(
       '{"jsonrpc":"2.0","method":"job","params":{"blob":"' + test_blob_str + '","algo":"' + algo +
-      '","job_id":"benchmark' + ++job_num + '","height":0,"seed_hash":"0000000000000000000000000000000000000000000000000000000000000000","target":"10000000","id":"benchmark"}}\n'
+      '","job_id":"benchmark' + ++job_num + '","height":10,"seed_hash":"' + makehex(64) + '","target":"10000000","id":"benchmark"}}\n'
     );
   }
-  const sleep = Math.floor(Math.random() * 5);
+  const sleep = Math.floor(15 + Math.random() * 10);
   log("Waiting " + sleep + "s");
   setTimeout(change_algo, sleep * 1000);
 }
