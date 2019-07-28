@@ -352,6 +352,10 @@ void xmrig::Miner::setEnabled(bool enabled)
 
 void xmrig::Miner::setJob(const Job &job, bool donate)
 {
+    for (IBackend *backend : d_ptr->backends) {
+        backend->prepare(job);
+    }
+
     uv_rwlock_wrlock(&d_ptr->rwlock);
 
     const uint8_t index = donate ? 1 : 0;

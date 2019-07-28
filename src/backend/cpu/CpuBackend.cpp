@@ -170,6 +170,15 @@ const xmrig::String &xmrig::CpuBackend::type() const
 }
 
 
+void xmrig::CpuBackend::prepare(const Job &nextJob)
+{
+    if (nextJob.algorithm().family() == Algorithm::RANDOM_X && nextJob.algorithm() != d_ptr->algo) {
+        d_ptr->workers.stop();
+        d_ptr->threads.clear();
+    }
+}
+
+
 void xmrig::CpuBackend::printHashrate(bool details)
 {
     if (!details || !hashrate()) {
