@@ -61,7 +61,6 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (!m_rx.read(reader.getValue(kRandomX))) {
-        printf("upgrade\n");
         m_upgrade = true;
     }
 #   endif
