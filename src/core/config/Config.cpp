@@ -41,7 +41,10 @@
 namespace xmrig {
 
 static const char *kCPU     = "cpu";
+
+#ifdef XMRIG_ALGO_RANDOMX
 static const char *kRandomX = "randomx";
+#endif
 
 }
 
