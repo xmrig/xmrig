@@ -108,6 +108,11 @@ Options:\n\
       --http-access-token=T     access token for HTTP API\n\
       --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n"
 #endif
+#ifdef XMRIG_ALGO_RANDOMX
+"\
+      --randomx-init=N          threads count to initialize RandomX dataset\n\
+      --randomx-no-numa         disable NUMA support for RandomX\n"
+#endif
 "\
       --dry-run                 test configuration and exit\n\
   -h, --help                    display this help and exit\n\

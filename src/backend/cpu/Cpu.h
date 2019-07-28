@@ -36,6 +36,7 @@ class Cpu
 {
 public:
     static ICpuInfo *info();
+    static rapidjson::Value toJSON(rapidjson::Document &doc);
     static void init();
     static void release();
 

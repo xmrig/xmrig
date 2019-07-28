@@ -24,6 +24,7 @@
 
 
 #include <algorithm>
+#include <thread>
 #include <uv.h>
 
 
@@ -38,6 +39,7 @@
 #include "core/Controller.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
+#include "crypto/rx/Rx.h"
 #include "rapidjson/document.h"
 #include "version.h"
 
@@ -130,16 +132,10 @@ public:
         using namespace rapidjson;
         auto &allocator = doc.GetAllocator();
 
-        Value cpu(kObjectType);
-        cpu.AddMember("brand",   StringRef(Cpu::info()->brand()), allocator);
-        cpu.AddMember("aes",     Cpu::info()->hasAES(), allocator);
-        cpu.AddMember("x64",     Cpu::info()->isX64(), allocator);
-        cpu.AddMember("sockets", static_cast<uint64_t>(Cpu::info()->sockets()), allocator);
-
         reply.AddMember("version",      APP_VERSION, allocator);
         reply.AddMember("kind",         APP_KIND, allocator);
         reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
-        reply.AddMember("cpu",          cpu, allocator);
+        reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
 
         if (version == 1) {
             reply.AddMember("hugepages", false, allocator);
@@ -367,6 +363,14 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     if (index == 0) {
         d_ptr->userJobId = job.id();
     }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    Rx::init(job,
+             d_ptr->controller->config()->rx().threads(),
+             d_ptr->controller->config()->cpu().isHugePages(),
+             d_ptr->controller->config()->rx().isNUMA()
+             );
+#   endif
 
     uv_rwlock_wrunlock(&d_ptr->rwlock);
 

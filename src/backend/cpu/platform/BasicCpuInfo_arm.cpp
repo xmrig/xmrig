@@ -57,7 +57,13 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 }
 
 
-xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
+const char *xmrig::BasicCpuInfo::backend() const
+{
+    return "basic_arm";
+}
+
+
+xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &) const
 {
     return CpuThreads(threads());
 }
