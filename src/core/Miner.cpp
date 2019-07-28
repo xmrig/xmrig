@@ -193,7 +193,7 @@ public:
         total.PushBack(Hashrate::normalize(t[2]),  allocator);
 
         hashrate.AddMember("total",   total, allocator);
-        hashrate.AddMember("highest", Hashrate::normalize(maxHashrate), allocator);
+        hashrate.AddMember("highest", Hashrate::normalize(maxHashrate[algorithm]), allocator);
 
         if (version == 1) {
             hashrate.AddMember("threads", threads, allocator);
@@ -217,12 +217,13 @@ public:
 #   endif
 
 
+    Algorithm algorithm;
     Algorithms algorithms;
     bool active         = false;
     bool enabled        = true;
     Controller *controller;
-    double maxHashrate  = 0.0;
     Job job;
+    mutable std::map<Algorithm::Id, double> maxHashrate;
     std::vector<IBackend *> backends;
     String userJobId;
     Timer *timer        = nullptr;
@@ -318,10 +319,10 @@ void xmrig::Miner::printHashrate(bool details)
     }
 
     LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
-             Hashrate::format(speed[0],             num,         sizeof(num) / 4),
-             Hashrate::format(speed[1],             num + 8,     sizeof(num) / 4),
-             Hashrate::format(speed[2],             num + 8 * 2, sizeof(num) / 4 ),
-             Hashrate::format(d_ptr->maxHashrate,   num + 8 * 3, sizeof(num) / 4)
+             Hashrate::format(speed[0],                                 num,         sizeof(num) / 4),
+             Hashrate::format(speed[1],                                 num + 8,     sizeof(num) / 4),
+             Hashrate::format(speed[2],                                 num + 8 * 2, sizeof(num) / 4 ),
+             Hashrate::format(d_ptr->maxHashrate[d_ptr->algorithm],     num + 8 * 3, sizeof(num) / 4)
              );
 }
 
@@ -352,6 +353,8 @@ void xmrig::Miner::setEnabled(bool enabled)
 
 void xmrig::Miner::setJob(const Job &job, bool donate)
 {
+    d_ptr->algorithm = job.algorithm();
+
     for (IBackend *backend : d_ptr->backends) {
         backend->prepare(job);
     }
@@ -420,7 +423,7 @@ void xmrig::Miner::onTimer(const Timer *)
         }
     }
 
-    d_ptr->maxHashrate = std::max(d_ptr->maxHashrate, maxHashrate);
+    d_ptr->maxHashrate[d_ptr->algorithm] = std::max(d_ptr->maxHashrate[d_ptr->algorithm], maxHashrate);
 
     if ((d_ptr->ticks % (d_ptr->controller->config()->printTime() * 2)) == 0) {
         printHashrate(false);
