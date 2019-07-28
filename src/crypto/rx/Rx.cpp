@@ -91,7 +91,11 @@ public:
             hwloc_obj_t node = hwloc_get_numanode_obj_by_os_index(topology, nodeId);
             if (node) {
                 if (HwlocCpuInfo::has(HwlocCpuInfo::SET_THISTHREAD_MEMBIND)) {
+#                   if HWLOC_API_VERSION >= 0x20000
+                    hwloc_set_membind(topology, node->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET);
+#                   else
                     hwloc_set_membind_nodeset(topology, node->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD);
+#                   endif
                 }
 
                 Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));

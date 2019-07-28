@@ -49,7 +49,12 @@ uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
     const unsigned puId = static_cast<unsigned>(affinity);
 
     hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(topology, puId);
+
+#   if HWLOC_API_VERSION >= 0x20000
+    if (pu == nullptr || hwloc_set_membind(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) < 0) {
+#   else
     if (pu == nullptr || hwloc_set_membind_nodeset(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) < 0) {
+#   endif
         LOG_WARN("CPU #%02u warning: \"can't bind memory\"", puId);
     }
 
