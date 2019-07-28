@@ -34,6 +34,9 @@
 #   include <openssl/opensslv.h>
 #endif
 
+#ifdef XMRIG_FEATURE_HWLOC
+#   include "backend/cpu/Cpu.h"
+#endif
 
 #ifdef XMRIG_AMD_PROJECT
 #   if defined(__APPLE__)
@@ -95,22 +98,23 @@ void xmrig::BaseConfig::printVersions()
 #   elif defined(XMRIG_NVIDIA_PROJECT)
     const int cudaVersion = cuda_get_runtime_version();
     int length = snprintf(buf, sizeof buf, "CUDA/%d.%d ", cudaVersion / 1000, cudaVersion % 100);
-#   else
-    memset(buf, 0, 16);
+#   endif
 
-#   if defined(XMRIG_FEATURE_HTTP) || defined(XMRIG_FEATURE_TLS)
-    int length = 0;
-#   endif
-#   endif
+    std::string libs;
 
 #   if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
     {
         constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
-        length += snprintf(buf + length, (sizeof buf) - length, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
+        snprintf(buf, sizeof buf, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
+        libs += buf;
     }
 #   endif
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), buf);
+#   if defined(XMRIG_FEATURE_HWLOC)
+    libs += Cpu::info()->backend();
+#   endif
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), libs.c_str());
 }
 
 

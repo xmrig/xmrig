@@ -24,6 +24,7 @@
  */
 
 
+#include <assert.h>
 #include <thread>
 
 
@@ -81,7 +82,20 @@ xmrig::CpuWorker<N>::~CpuWorker()
 template<size_t N>
 void xmrig::CpuWorker<N>::allocateRandomX_VM()
 {
-    RxDataset *dataset = Rx::dataset(m_job.currentJob().seedHash(), m_job.currentJob().algorithm());
+    while (!Rx::isReady(m_job.currentJob(), m_node)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+        if (Nonce::sequence(Nonce::CPU) == 0) {
+            return;
+        }
+    }
+
+    RxDataset *dataset = Rx::dataset(m_node);
+    assert(dataset != nullptr);
+
+    if (!dataset) {
+        return;
+    }
 
     if (!m_vm) {
         m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES);

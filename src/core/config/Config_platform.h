@@ -81,10 +81,10 @@ static const option options[] = {
     { "asm",                   1, nullptr, IConfig::AssemblyKey           },
     { "daemon",                0, nullptr, IConfig::DaemonKey             },
     { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
-
     { "rebench-algo",          0, nullptr, IConfig::RebenchAlgoKey        },
     { "bench-algo-time",       1, nullptr, IConfig::BenchAlgoTimeKey      },
-
+    { "randomx-init",          1, nullptr, IConfig::RandomXInitKey        },
+    { "randomx-no-numa",       0, nullptr, IConfig::RandomXNumaKey        },
     { nullptr,                 0, nullptr, 0 }
 };
 

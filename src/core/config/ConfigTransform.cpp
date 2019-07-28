@@ -36,6 +36,7 @@ static const char *kAffinity    = "affinity";
 static const char *kAsterisk    = "*";
 static const char *kCpu         = "cpu";
 static const char *kIntensity   = "intensity";
+static const char *kRandomX     = "randomx";
 
 
 static inline uint64_t intensity(uint64_t av)
@@ -163,6 +164,14 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 #   ifndef XMRIG_NO_ASM
     case IConfig::AssemblyKey: /* --asm */
         return set(doc, kCpu, "asm", arg);
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    case IConfig::RandomXInitKey: /* --randomx-init */
+        return set(doc, kRandomX, "init", static_cast<int64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::RandomXNumaKey: /* --randomx-no-numa */
+        return set(doc, kRandomX, "numa", false);
 #   endif
 
     default:

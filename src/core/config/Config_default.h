@@ -37,9 +37,20 @@ R"===(
         "id": null,
         "worker-id": null
     },
+    "http": {
+        "enabled": false,
+        "host": "127.0.0.1",
+        "port": 0,
+        "access-token": null,
+        "restricted": true
+    },
     "autosave": true,
     "background": false,
     "colors": true,
+    "randomx": {
+        "init": -1,
+        "numa": true
+    },
     "cpu": {
         "enabled": true,
         "huge-pages": true,
@@ -51,13 +62,6 @@ R"===(
     },
     "donate-level": 5,
     "donate-over-proxy": 1,
-    "http": {
-        "enabled": false,
-        "host": "127.0.0.1",
-        "port": 0,
-        "access-token": null,
-        "restricted": true
-    },
     "log-file": null,
     "pools": [
         {

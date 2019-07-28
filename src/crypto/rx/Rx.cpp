@@ -25,12 +25,21 @@
  */
 
 
+#include <map>
 #include <thread>
 #include <uv.h>
 
 
+#ifdef XMRIG_FEATURE_HWLOC
+#   include <hwloc.h>
+#   include "backend/cpu/platform/HwlocCpuInfo.h"
+#endif
+
+
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
+#include "base/net/stratum/Job.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "crypto/rx/Rx.h"
@@ -39,6 +48,9 @@
 
 
 namespace xmrig {
+
+
+static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx ") " ";
 
 
 class RxPrivate
@@ -52,7 +64,12 @@ public:
 
     inline ~RxPrivate()
     {
-        delete dataset;
+        for (auto const &item : datasets) {
+            delete item.second;
+        }
+
+        datasets.clear();
+
         uv_mutex_destroy(&mutex);
     }
 
@@ -61,93 +78,161 @@ public:
     inline void unlock() { uv_mutex_unlock(&mutex); }
 
 
-    RxDataset *dataset   = nullptr;
-    uint32_t initThreads = std::thread::hardware_concurrency();
+    static void allocate(RxPrivate *self, uint32_t nodeId)
+    {
+        const uint64_t ts = Chrono::steadyMSecs();
+
+#       ifdef XMRIG_FEATURE_HWLOC
+        if (self->numa) {
+            hwloc_topology_t topology;
+            hwloc_topology_init(&topology);
+            hwloc_topology_load(topology);
+
+            hwloc_obj_t node = hwloc_get_numanode_obj_by_os_index(topology, nodeId);
+            if (node) {
+                if (HwlocCpuInfo::has(HwlocCpuInfo::SET_THISTHREAD_MEMBIND)) {
+#                   if HWLOC_API_VERSION >= 0x20000
+                    hwloc_set_membind(topology, node->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET);
+#                   else
+                    hwloc_set_membind_nodeset(topology, node->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD);
+#                   endif
+                }
+
+                Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
+            }
+
+            hwloc_topology_destroy(topology);
+        }
+#       endif
+
+        LOG_INFO("%s" CYAN_BOLD("#%u") MAGENTA_BOLD(" allocate") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu) for RandomX dataset & cache"),
+                 tag,
+                 nodeId,
+                 (RxDataset::size() + RxCache::size()) / 1024 / 1024,
+                 RxDataset::size() / 1024 / 1024,
+                 RxCache::size() / 1024 / 1024
+                 );
+
+        RxDataset *dataset   = new RxDataset(self->hugePages);
+        self->datasets[nodeId] = dataset;
+
+        if (dataset->get() != nullptr) {
+            const auto hugePages = dataset->hugePages();
+            const double percent = hugePages.first == 0 ? 0.0 : static_cast<double>(hugePages.first) / hugePages.second * 100.0;
+
+            LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" allocate done") " huge pages %s%u/%u %1.0f%%" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
+                     tag,
+                     nodeId,
+                     (hugePages.first == hugePages.second ? GREEN_BOLD_S : (hugePages.first == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                     hugePages.first,
+                     hugePages.second,
+                     percent,
+                     dataset->cache()->isJIT() ? GREEN_BOLD_S "+" : RED_BOLD_S "-",
+                     Chrono::steadyMSecs() - ts
+                     );
+        }
+        else {
+            LOG_WARN(CLEAR "%s" CYAN_BOLD("#%u") YELLOW_BOLD_S " failed to allocate RandomX dataset, switching to slow mode", tag, nodeId);
+        }
+    }
+
+
+    bool hugePages  = true;
+    bool numa       = true;
+    std::map<uint32_t, RxDataset *> datasets;
     uv_mutex_t mutex;
 };
 
 
 static RxPrivate *d_ptr = new RxPrivate();
-static const char *tag  = BLUE_BG(" rx ");
 
 
 } // namespace xmrig
 
 
-
-xmrig::RxDataset *xmrig::Rx::dataset()
+bool xmrig::Rx::isReady(const Job &job, uint32_t nodeId)
 {
     d_ptr->lock();
-    RxDataset *dataset = d_ptr->dataset;
+    const bool rc = isReady(job.seedHash(), job.algorithm(), d_ptr->numa ? nodeId : 0);
+    d_ptr->unlock();
+
+    return rc;
+}
+
+
+xmrig::RxDataset *xmrig::Rx::dataset(uint32_t nodeId)
+{
+    d_ptr->lock();
+    RxDataset *dataset = d_ptr->datasets[d_ptr->numa ? nodeId : 0];
     d_ptr->unlock();
 
     return dataset;
 }
 
 
-xmrig::RxDataset *xmrig::Rx::dataset(const uint8_t *seed, const Algorithm &algorithm, bool hugePages)
+std::pair<size_t, size_t> xmrig::Rx::hugePages()
 {
+    std::pair<size_t, size_t> pages(0, 0);
     d_ptr->lock();
 
-    if (!d_ptr->dataset) {
-        const uint64_t ts = Chrono::steadyMSecs();
-
-        LOG_INFO("%s" MAGENTA_BOLD(" allocate") CYAN_BOLD(" %zu MiB") BLACK_BOLD(" (%zu+%zu) for RandomX dataset & cache"),
-                 tag,
-                 (RxDataset::size() + RxCache::size()) / 1024 / 1024,
-                 RxDataset::size() / 1024 / 1024,
-                 RxCache::size() / 1024 / 1024
-                 );
-
-        d_ptr->dataset = new RxDataset(hugePages);
-
-        if (d_ptr->dataset->get() != nullptr) {
-            const auto hugePages = d_ptr->dataset->hugePages();
-            const double percent = hugePages.first == 0 ? 0.0 : static_cast<double>(hugePages.first) / hugePages.second * 100.0;
-
-            LOG_INFO("%s" GREEN(" allocate done") " huge pages %s%u/%u %1.0f%%" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
-                     tag,
-                     (hugePages.first == hugePages.second ? GREEN_BOLD_S : (hugePages.first == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
-                     hugePages.first,
-                     hugePages.second,
-                     percent,
-                     d_ptr->dataset->cache()->isJIT() ? GREEN_BOLD_S "+" : RED_BOLD_S "-",
-                     Chrono::steadyMSecs() - ts
-                     );
+    for (auto const &item : d_ptr->datasets) {
+        if (!item.second) {
+            continue;
         }
-        else {
-            LOG_WARN(CLEAR "%s" YELLOW_BOLD_S " failed to allocate RandomX dataset, switching to slow mode", tag);
-        }
+
+        const auto p = item.second->hugePages();
+        pages.first  += p.first;
+        pages.second += p.second;
     }
 
-    if (!d_ptr->dataset->isReady(seed, algorithm)) {
-        const uint64_t ts = Chrono::steadyMSecs();
-
-        if (d_ptr->dataset->get() != nullptr) {
-            LOG_INFO("%s" MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
-                     tag,
-                     algorithm.shortName(),
-                     d_ptr->initThreads,
-                     Buffer::toHex(seed, 8).data()
-                     );
-        }
-        else {
-            LOG_INFO("%s" MAGENTA_BOLD(" init cache") " algo " WHITE_BOLD("%s") BLACK_BOLD(" seed %s..."),
-                     tag,
-                     algorithm.shortName(),
-                     Buffer::toHex(seed, 8).data()
-                     );
-        }
-
-        d_ptr->dataset->init(seed, algorithm, d_ptr->initThreads);
-
-        LOG_INFO("%s" GREEN(" init done") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
-    }
-
-    RxDataset *dataset = d_ptr->dataset;
     d_ptr->unlock();
 
-    return dataset;
+    return pages;
+}
+
+
+void xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa)
+{
+    if (job.algorithm().family() != Algorithm::RANDOM_X) {
+        return;
+    }
+
+    d_ptr->lock();
+
+    size_t ready = 0;
+
+    for (auto const &item : d_ptr->datasets) {
+        if (isReady(job.seedHash(), job.algorithm(), item.first)) {
+            ready++;
+        }
+    }
+
+    if (!d_ptr->datasets.empty() && ready == d_ptr->datasets.size()) {
+        d_ptr->unlock();
+
+        return;
+    }
+
+    d_ptr->hugePages       = hugePages;
+    d_ptr->numa            = numa && Cpu::info()->nodes() > 1;
+    const uint32_t threads = initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads())
+                                             : static_cast<uint32_t>(initThreads);
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    if (d_ptr->numa) {
+        for (uint32_t nodeId : HwlocCpuInfo::nodeIndexes()) {
+            std::thread thread(initDataset, nodeId, job.seedHash(), job.algorithm(), threads);
+            thread.detach();
+        }
+    }
+    else
+#   endif
+    {
+        std::thread thread(initDataset, 0, job.seedHash(), job.algorithm(), threads);
+        thread.detach();
+    }
+
+    d_ptr->unlock();
 }
 
 
@@ -156,4 +241,60 @@ void xmrig::Rx::stop()
     delete d_ptr;
 
     d_ptr = nullptr;
+}
+
+
+bool xmrig::Rx::isReady(const uint8_t *seed, const Algorithm &algorithm, uint32_t nodeId)
+{
+    return !d_ptr->datasets.empty() && d_ptr->datasets[nodeId] != nullptr && d_ptr->datasets[nodeId]->isReady(seed, algorithm);
+}
+
+
+void xmrig::Rx::initDataset(uint32_t nodeId, const uint8_t *seed, const Algorithm &algorithm, uint32_t threads)
+{
+    d_ptr->lock();
+
+    RxDataset *dataset = d_ptr->datasets[nodeId];
+
+    if (!dataset) {
+#       ifdef XMRIG_FEATURE_HWLOC
+        if (d_ptr->numa) {
+            std::thread thread(RxPrivate::allocate, d_ptr, nodeId);
+            thread.join();
+        } else
+#       endif
+        {
+            RxPrivate::allocate(d_ptr, nodeId);
+        }
+
+        dataset = d_ptr->datasets[nodeId];
+    }
+
+    if (!dataset->isReady(seed, algorithm)) {
+        const uint64_t ts = Chrono::steadyMSecs();
+
+        if (dataset->get() != nullptr) {
+            LOG_INFO("%s" CYAN_BOLD("#%u") MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
+                     tag,
+                     nodeId,
+                     algorithm.shortName(),
+                     threads,
+                     Buffer::toHex(seed, 8).data()
+                     );
+        }
+        else {
+            LOG_INFO("%s" CYAN_BOLD("#%u") MAGENTA_BOLD(" init cache") " algo " WHITE_BOLD("%s") BLACK_BOLD(" seed %s..."),
+                     tag,
+                     nodeId,
+                     algorithm.shortName(),
+                     Buffer::toHex(seed, 8).data()
+                     );
+        }
+
+        dataset->init(seed, algorithm, threads);
+
+        LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" init done") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, nodeId, Chrono::steadyMSecs() - ts);
+    }
+
+    d_ptr->unlock();
 }

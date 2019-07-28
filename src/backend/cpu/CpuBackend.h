@@ -49,6 +49,7 @@ protected:
     const Hashrate *hashrate() const override;
     const String &profileName() const override;
     const String &type() const override;
+    void prepare(const Job &nextJob) override;
     void printHashrate(bool details) override;
     void setJob(const Job &job) override;
     void start(IWorker *worker) override;

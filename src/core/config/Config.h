@@ -35,6 +35,11 @@
 #include "rapidjson/fwd.h"
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/RxConfig.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -53,10 +58,18 @@ public:
     inline const CpuConfig &cpu() const     { return m_cpu; }
     inline Benchmark &benchmark()           { return m_benchmark; }
 
+#   ifdef XMRIG_ALGO_RANDOMX
+    inline const RxConfig &rx() const       { return m_rx; }
+#   endif
+
 private:
     bool m_shouldSave   = false;
     CpuConfig m_cpu;
     Benchmark m_benchmark;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    RxConfig m_rx;
+#   endif
 };
 
 

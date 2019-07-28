@@ -58,3 +58,19 @@ Example below demonstrate all primary ideas of flexible profiles configuration:
 ### Intensity
 This option was known as `low_power_mode`, possible values is range from 1 to 5, for convinient if value 1 used, possible omit this option and specify CPU thread config by only one number: CPU affinity, instead of object.
 
+## Shared options
+
+#### `enabled`
+Enable (`true`) or disable (`false`) CPU backend, by default `true`.
+
+#### `huge-pages`
+Enable (`true`) or disable (`false`) huge pages support, by default `true`.
+
+#### `hw-aes`
+Force enable (`true`) or disable (`false`) hardware AES support. Default value `null` means miner autodetect this feature. Usually don't need change this option, this option useful for some rare cases when miner can't detect hardware AES, but it available. If you force enable this option, but your hardware not support it, miner will crash.
+
+#### `priority`
+Mining threads priority, value from `1` (lowest priority) to `5` (highest possible priority). Default value `null` means miner don't change threads priority at all.
+
+#### `asm`
+Enable/configure or disable ASM optimizations. Possible values: `true`, `false`, `"intel"`, `"ryzen"`, `"bulldozer"`.

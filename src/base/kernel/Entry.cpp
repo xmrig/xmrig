@@ -31,6 +31,9 @@
 #   include <openssl/opensslv.h>
 #endif
 
+#ifdef XMRIG_FEATURE_HWLOC
+#   include <hwloc.h>
+#endif
 
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
@@ -73,6 +76,16 @@ static int showVersion()
         constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
         printf("OpenSSL/%.*s\n", static_cast<int>(strchr(v, ' ') - v), v);
     }
+#   endif
+
+#   if defined(XMRIG_FEATURE_HWLOC)
+#   if defined(HWLOC_VERSION)
+    printf("hwloc/%s\n", HWLOC_VERSION);
+#   elif HWLOC_API_VERSION >= 0x20000
+    printf("hwloc/2\n");
+#   else
+    printf("hwloc/1\n");
+#   endif
 #   endif
 
     return 0;

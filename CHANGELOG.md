@@ -1,3 +1,8 @@
+# v2.99.2-beta
+- [#1077](https://github.com/xmrig/xmrig/issues/1077) Added NUMA support via **hwloc**.
+- Fixed miner freeze when switch between RandomX variants.
+- Fixed dataset initialization speed on Linux if thread affinity was used.
+
 # v2.99.1-beta
 - [#1072](https://github.com/xmrig/xmrig/issues/1072) Fixed RandomX `seed_hash` re-initialization.
 
