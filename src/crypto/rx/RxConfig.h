@@ -22,55 +22,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIG_H
-#define XMRIG_CONFIG_H
+#ifndef XMRIG_RXCONFIG_H
+#define XMRIG_RXCONFIG_H
 
 
-#include <stdint.h>
-
-
-#include "backend/cpu/CpuConfig.h"
-#include "base/kernel/config/BaseConfig.h"
 #include "rapidjson/fwd.h"
-
-
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "crypto/rx/RxConfig.h"
-#endif
 
 
 namespace xmrig {
 
 
-class IThread;
-
-
-class Config : public BaseConfig
+class RxConfig
 {
 public:
-    Config();
+    bool read(const rapidjson::Value &value);
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
-    bool read(const IJsonReader &reader, const char *fileName) override;
-    void getJSON(rapidjson::Document &doc) const override;
-
-    inline bool isShouldSave() const        { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
-    inline const CpuConfig &cpu() const     { return m_cpu; }
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    inline const RxConfig &rx() const       { return m_rx; }
-#   endif
+    inline bool isNUMA() const      { return m_numa; }
+    inline int threads() const      { return m_threads; }
 
 private:
-    bool m_shouldSave   = false;
-    CpuConfig m_cpu;
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    RxConfig m_rx;
-#   endif
+    bool m_numa     = true;
+    int m_threads   = -1;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CONFIG_H */
+#endif /* XMRIG_RXCONFIG_H */

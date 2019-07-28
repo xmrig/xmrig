@@ -35,7 +35,6 @@ static const char *kCn                  = "cn";
 static const char *kEnabled             = "enabled";
 static const char *kHugePages           = "huge-pages";
 static const char *kHwAes               = "hw-aes";
-static const char *kInitThreads         = "init-threads";
 static const char *kPriority            = "priority";
 
 #ifdef XMRIG_FEATURE_ASM
@@ -90,7 +89,6 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kHugePages),    m_hugePages, allocator);
     obj.AddMember(StringRef(kHwAes),        m_aes == AES_AUTO ? Value(kNullType) : Value(m_aes == AES_HW), allocator);
     obj.AddMember(StringRef(kPriority),     priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
-    obj.AddMember(StringRef(kInitThreads),  m_initThreads, allocator);
 
 #   ifdef XMRIG_FEATURE_ASM
     obj.AddMember(StringRef(kAsm), m_assembly.toJSON(), allocator);
@@ -126,7 +124,6 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
     if (value.IsObject()) {
         m_enabled       = Json::getBool(value, kEnabled, m_enabled);
         m_hugePages     = Json::getBool(value, kHugePages, m_hugePages);
-        m_initThreads   = Json::getInt(value, kInitThreads, m_initThreads);
 
         setAesMode(Json::getValue(value, kHwAes));
         setPriority(Json::getInt(value,  kPriority, -1));

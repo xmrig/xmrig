@@ -38,6 +38,14 @@
 #include "rapidjson/prettywriter.h"
 
 
+namespace xmrig {
+
+static const char *kCPU     = "cpu";
+static const char *kRandomX = "randomx";
+
+}
+
+
 xmrig::Config::Config() : BaseConfig()
 {
 }
@@ -49,7 +57,14 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    m_cpu.read(reader.getValue("cpu"));
+    m_cpu.read(reader.getValue(kCPU));
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (!m_rx.read(reader.getValue(kRandomX))) {
+        printf("upgrade\n");
+        m_upgrade = true;
+    }
+#   endif
 
     return true;
 }
@@ -68,13 +83,18 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     api.AddMember("worker-id",    m_apiWorkerId.toJSON(), allocator);
 
     doc.AddMember("api",               api, allocator);
+    doc.AddMember("http",              m_http.toJSON(doc), allocator);
     doc.AddMember("autosave",          isAutoSave(), allocator);
     doc.AddMember("background",        isBackground(), allocator);
     doc.AddMember("colors",            Log::colors, allocator);
-    doc.AddMember("cpu",               m_cpu.toJSON(doc), allocator);
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    doc.AddMember(StringRef(kRandomX), m_rx.toJSON(doc), allocator);
+#   endif
+
+    doc.AddMember(StringRef(kCPU),     m_cpu.toJSON(doc), allocator);
     doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
     doc.AddMember("donate-over-proxy", m_pools.proxyDonate(), allocator);
-    doc.AddMember("http",              m_http.toJSON(doc), allocator);
     doc.AddMember("log-file",          m_logFile.toJSON(), allocator);
     doc.AddMember("pools",             m_pools.toJSON(doc), allocator);
     doc.AddMember("print-time",        printTime(), allocator);
