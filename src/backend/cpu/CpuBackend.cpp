@@ -170,6 +170,15 @@ const xmrig::String &xmrig::CpuBackend::type() const
 }
 
 
+void xmrig::CpuBackend::prepare(const Job &nextJob)
+{
+    if (nextJob.algorithm().family() == Algorithm::RANDOM_X && nextJob.algorithm() != d_ptr->algo) {
+        d_ptr->workers.stop();
+        d_ptr->threads.clear();
+    }
+}
+
+
 void xmrig::CpuBackend::printHashrate(bool details)
 {
     if (!details || !hashrate()) {
@@ -295,12 +304,9 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
-        RxDataset *dataset = Rx::dataset();
-        if (dataset) {
-            const auto rxPages = dataset->hugePages();
-            pages[0] += rxPages.first;
-            pages[1] += rxPages.second;
-        }
+        const auto rxPages = Rx::hugePages();
+        pages[0] += rxPages.first;
+        pages[1] += rxPages.second;
     }
 #   endif
 

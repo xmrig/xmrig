@@ -122,8 +122,8 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
 void xmrig::CpuConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
-        m_enabled   = Json::getBool(value, kEnabled, m_enabled);
-        m_hugePages = Json::getBool(value, kHugePages, m_hugePages);
+        m_enabled       = Json::getBool(value, kEnabled, m_enabled);
+        m_hugePages     = Json::getBool(value, kHugePages, m_hugePages);
 
         setAesMode(Json::getValue(value, kHwAes));
         setPriority(Json::getInt(value,  kPriority, -1));

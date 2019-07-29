@@ -83,8 +83,9 @@ public:
         DryRunKey            = 5000,
         HugePagesKey         = 1009,
         ThreadsKey           = 't',
-//        HardwareAESKey       = 1011,
         AssemblyKey          = 1015,
+        RandomXInitKey       = 1022,
+        RandomXNumaKey       = 1023,
 
         // xmrig amd
         OclPlatformKey       = 1400,

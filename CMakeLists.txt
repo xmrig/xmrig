@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
 option(WITH_LIBCPUID        "Use Libcpuid" ON)
+option(WITH_HWLOC           "Use hwloc" ON)
 option(WITH_CN_LITE         "CryptoNight-Lite support" ON)
 option(WITH_CN_HEAVY        "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
@@ -11,9 +12,15 @@ option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
+option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
+
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
-option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
+option(HWLOC_DEBUG          "Enable hwloc debug helpers and log" OFF)
+
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -100,6 +107,7 @@ set(SOURCES_CRYPTO
     src/crypto/common/Algorithm.cpp
     src/crypto/common/keccak.cpp
     src/crypto/common/Nonce.cpp
+    src/crypto/common/VirtualMemory.cpp
    )
 
 if (WIN32)
@@ -142,8 +150,6 @@ endif()
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
-
 find_package(UV REQUIRED)
 
 if (WITH_RANDOMX)
@@ -176,6 +182,8 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxAlgo.h
         src/crypto/rx/RxCache.cpp
         src/crypto/rx/RxCache.h
+        src/crypto/rx/RxConfig.cpp
+        src/crypto/rx/RxConfig.h
         src/crypto/rx/RxDataset.cpp
         src/crypto/rx/RxDataset.h
         src/crypto/rx/RxVm.cpp

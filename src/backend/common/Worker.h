@@ -50,9 +50,11 @@ public:
 protected:
     void storeStats();
 
+    const int64_t m_affinity;
     const size_t m_id;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
+    uint32_t m_node = 0;
     uint64_t m_count;
 };
 

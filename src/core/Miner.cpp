@@ -24,6 +24,7 @@
 
 
 #include <algorithm>
+#include <thread>
 #include <uv.h>
 
 
@@ -38,6 +39,7 @@
 #include "core/Controller.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
+#include "crypto/rx/Rx.h"
 #include "rapidjson/document.h"
 #include "version.h"
 
@@ -130,16 +132,10 @@ public:
         using namespace rapidjson;
         auto &allocator = doc.GetAllocator();
 
-        Value cpu(kObjectType);
-        cpu.AddMember("brand",   StringRef(Cpu::info()->brand()), allocator);
-        cpu.AddMember("aes",     Cpu::info()->hasAES(), allocator);
-        cpu.AddMember("x64",     Cpu::info()->isX64(), allocator);
-        cpu.AddMember("sockets", static_cast<uint64_t>(Cpu::info()->sockets()), allocator);
-
         reply.AddMember("version",      APP_VERSION, allocator);
         reply.AddMember("kind",         APP_KIND, allocator);
         reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
-        reply.AddMember("cpu",          cpu, allocator);
+        reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
 
         if (version == 1) {
             reply.AddMember("hugepages", false, allocator);
@@ -197,7 +193,7 @@ public:
         total.PushBack(Hashrate::normalize(t[2]),  allocator);
 
         hashrate.AddMember("total",   total, allocator);
-        hashrate.AddMember("highest", Hashrate::normalize(maxHashrate), allocator);
+        hashrate.AddMember("highest", Hashrate::normalize(maxHashrate[algorithm]), allocator);
 
         if (version == 1) {
             hashrate.AddMember("threads", threads, allocator);
@@ -221,12 +217,13 @@ public:
 #   endif
 
 
+    Algorithm algorithm;
     Algorithms algorithms;
     bool active         = false;
     bool enabled        = true;
     Controller *controller;
-    double maxHashrate  = 0.0;
     Job job;
+    mutable std::map<Algorithm::Id, double> maxHashrate;
     std::vector<IBackend *> backends;
     String userJobId;
     Timer *timer        = nullptr;
@@ -322,10 +319,10 @@ void xmrig::Miner::printHashrate(bool details)
     }
 
     LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
-             Hashrate::format(speed[0],             num,         sizeof(num) / 4),
-             Hashrate::format(speed[1],             num + 8,     sizeof(num) / 4),
-             Hashrate::format(speed[2],             num + 8 * 2, sizeof(num) / 4 ),
-             Hashrate::format(d_ptr->maxHashrate,   num + 8 * 3, sizeof(num) / 4)
+             Hashrate::format(speed[0],                                 num,         sizeof(num) / 4),
+             Hashrate::format(speed[1],                                 num + 8,     sizeof(num) / 4),
+             Hashrate::format(speed[2],                                 num + 8 * 2, sizeof(num) / 4 ),
+             Hashrate::format(d_ptr->maxHashrate[d_ptr->algorithm],     num + 8 * 3, sizeof(num) / 4)
              );
 }
 
@@ -356,6 +353,12 @@ void xmrig::Miner::setEnabled(bool enabled)
 
 void xmrig::Miner::setJob(const Job &job, bool donate)
 {
+    d_ptr->algorithm = job.algorithm();
+
+    for (IBackend *backend : d_ptr->backends) {
+        backend->prepare(job);
+    }
+
     uv_rwlock_wrlock(&d_ptr->rwlock);
 
     const uint8_t index = donate ? 1 : 0;
@@ -367,6 +370,14 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     if (index == 0) {
         d_ptr->userJobId = job.id();
     }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    Rx::init(job,
+             d_ptr->controller->config()->rx().threads(),
+             d_ptr->controller->config()->cpu().isHugePages(),
+             d_ptr->controller->config()->rx().isNUMA()
+             );
+#   endif
 
     uv_rwlock_wrunlock(&d_ptr->rwlock);
 
@@ -412,7 +423,7 @@ void xmrig::Miner::onTimer(const Timer *)
         }
     }
 
-    d_ptr->maxHashrate = std::max(d_ptr->maxHashrate, maxHashrate);
+    d_ptr->maxHashrate[d_ptr->algorithm] = std::max(d_ptr->maxHashrate[d_ptr->algorithm], maxHashrate);
 
     if ((d_ptr->ticks % (d_ptr->controller->config()->printTime() * 2)) == 0) {
         printHashrate(false);

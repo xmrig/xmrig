@@ -52,6 +52,7 @@ public:
         return std::pair<size_t, size_t>(isHugePages() ? (align(size()) / 2097152) : 0, align(size()) / 2097152);
     }
 
+    static uint32_t bindToNUMANode(int64_t affinity);
     static void *allocateExecutableMemory(size_t size);
     static void *allocateLargePagesMemory(size_t size);
     static void flushInstructionCache(void *p, size_t size);

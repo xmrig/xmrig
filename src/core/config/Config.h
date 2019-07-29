@@ -34,6 +34,11 @@
 #include "rapidjson/fwd.h"
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/RxConfig.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -51,9 +56,17 @@ public:
     inline bool isShouldSave() const        { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
     inline const CpuConfig &cpu() const     { return m_cpu; }
 
+#   ifdef XMRIG_ALGO_RANDOMX
+    inline const RxConfig &rx() const       { return m_rx; }
+#   endif
+
 private:
     bool m_shouldSave   = false;
     CpuConfig m_cpu;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    RxConfig m_rx;
+#   endif
 };
 
 

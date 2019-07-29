@@ -39,6 +39,9 @@
 #include "version.h"
 
 
+namespace xmrig {
+
+
 #ifdef XMRIG_FEATURE_ASM
 static const char *coloredAsmNames[] = {
     RED_BOLD("none"),
@@ -49,74 +52,95 @@ static const char *coloredAsmNames[] = {
 };
 
 
-inline static const char *asmName(xmrig::Assembly::Id assembly)
+inline static const char *asmName(Assembly::Id assembly)
 {
     return coloredAsmNames[assembly];
 }
 #endif
 
 
-static void print_memory(xmrig::Config *) {
+static void print_memory(Config *) {
 #   ifdef _WIN32
-    xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-                      "HUGE PAGES", xmrig::VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("available") : RED_BOLD("unavailable"));
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
+               "HUGE PAGES", VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable"));
 #   endif
 }
 
 
-static void print_cpu(xmrig::Config *)
+static void print_cpu(Config *)
 {
-    using namespace xmrig;
+    const ICpuInfo *info = Cpu::info();
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES %sAVX2",
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES %sAVX2",
                "CPU",
-               Cpu::info()->brand(),
-               Cpu::info()->sockets(),
-               Cpu::info()->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
-               Cpu::info()->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
-               Cpu::info()->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"
+               info->brand(),
+               info->packages(),
+               info->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"
                );
-#   ifdef XMRIG_FEATURE_LIBCPUID
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
+#   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")
+               CYAN_BOLD(" %zu") "C" BLACK_BOLD("/") CYAN_BOLD("%zu") "T"
+#              ifdef XMRIG_FEATURE_HWLOC
+               BLACK_BOLD(" NUMA:") CYAN_BOLD("%zu")
+#              endif
+               , "",
+               info->L2() / 1048576.0,
+               info->L3() / 1048576.0,
+               info->cores(),
+               info->threads()
+#              ifdef XMRIG_FEATURE_HWLOC
+               , info->nodes()
+#              endif
+               );
+#   else
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("threads:") CYAN_BOLD("%zu"),
+               "",
+               info->threads()
+               );
 #   endif
 }
 
 
-static void print_threads(xmrig::Config *config)
+static void print_threads(Config *config)
 {
-    xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),
-                      "DONATE",
-                      config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
-                      config->pools().donateLevel()
-                      );
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),
+               "DONATE",
+               config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
+               config->pools().donateLevel()
+               );
 
 #   ifdef XMRIG_FEATURE_ASM
-    if (config->cpu().assembly() == xmrig::Assembly::AUTO) {
-        const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
+    if (config->cpu().assembly() == Assembly::AUTO) {
+        const Assembly assembly = Cpu::info()->assembly();
 
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s"), "ASSEMBLY", asmName(assembly));
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s"), "ASSEMBLY", asmName(assembly));
     }
     else {
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s"), "ASSEMBLY", asmName(config->cpu().assembly()));
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s"), "ASSEMBLY", asmName(config->cpu().assembly()));
     }
 #   endif
 }
 
 
-static void print_commands(xmrig::Config *)
+static void print_commands(Config *)
 {
-    if (xmrig::Log::colors) {
-        xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
+    if (Log::colors) {
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
                                                                      MAGENTA_BOLD("p") WHITE_BOLD("ause, ")
                                                                      MAGENTA_BOLD("r") WHITE_BOLD("esume"));
     }
     else {
-        xmrig::Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
+        Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
     }
 }
 
 
-void Summary::print(xmrig::Controller *controller)
+} // namespace xmrig
+
+
+void xmrig::Summary::print(Controller *controller)
 {
     controller->config()->printVersions();
     print_memory(controller->config());

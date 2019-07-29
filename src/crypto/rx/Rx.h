@@ -29,6 +29,7 @@
 
 
 #include <stdint.h>
+#include <utility>
 
 
 namespace xmrig
@@ -37,14 +38,21 @@ namespace xmrig
 
 class Algorithm;
 class RxDataset;
+class Job;
 
 
 class Rx
 {
 public:
-    static RxDataset *dataset();
-    static RxDataset *dataset(const uint8_t *seed, const Algorithm &algorithm, bool hugePages = true);
+    static bool isReady(const Job &job, uint32_t nodeId);
+    static RxDataset *dataset(uint32_t nodeId);
+    static std::pair<size_t, size_t> hugePages();
+    static void init(const Job &job, int initThreads, bool hugePages, bool numa);
     static void stop();
+
+private:
+    static bool isReady(const uint8_t *seed, const Algorithm &algorithm, uint32_t nodeId);
+    static void initDataset(uint32_t nodeId, const uint8_t *seed, const Algorithm &algorithm, uint32_t threads);
 };
 
 
