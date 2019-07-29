@@ -40,7 +40,6 @@
 #include "base/tools/Chrono.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/common/Algorithm.h"
 #include "crypto/common/keccak.h"
 #include "version.h"
 
@@ -54,8 +53,8 @@ xmrig::Api::Api(Base *base) :
     m_base(base),
     m_id(),
     m_workerId(),
-    m_httpd(nullptr),
-    m_timestamp(Chrono::steadyMSecs())
+    m_timestamp(Chrono::currentMSecsSinceEpoch()),
+    m_httpd(nullptr)
 {
     base->addListener(this);
 
@@ -120,7 +119,7 @@ void xmrig::Api::exec(IApiRequest &request)
         request.accept();
         request.reply().AddMember("id",        StringRef(m_id),       allocator);
         request.reply().AddMember("worker_id", StringRef(m_workerId), allocator);
-        request.reply().AddMember("uptime",    (Chrono::steadyMSecs() - m_timestamp) / 1000, allocator);
+        request.reply().AddMember("uptime",    (Chrono::currentMSecsSinceEpoch() - m_timestamp) / 1000, allocator);
 
         Value features(kArrayType);
 #       ifdef XMRIG_FEATURE_API
@@ -134,6 +133,9 @@ void xmrig::Api::exec(IApiRequest &request)
 #       endif
 #       ifdef XMRIG_FEATURE_LIBCPUID
         features.PushBack("cpuid", allocator);
+#       endif
+#       ifdef XMRIG_FEATURE_HWLOC
+        features.PushBack("hwloc", allocator);
 #       endif
 #       ifdef XMRIG_FEATURE_TLS
         features.PushBack("tls", allocator);
@@ -181,8 +183,8 @@ void xmrig::Api::genId(const String &id)
             memcpy(input + sizeof(uint16_t), interfaces[i].phys_addr, addrSize);
             memcpy(input + sizeof(uint16_t) + addrSize, APP_KIND, strlen(APP_KIND));
 
-            xmrig::keccak(input, inSize, hash);
-            xmrig::Buffer::toHex(hash, 8, m_id);
+            keccak(input, inSize, hash);
+            Buffer::toHex(hash, 8, m_id);
 
             delete [] input;
             break;

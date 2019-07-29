@@ -121,7 +121,7 @@ namespace randomx {
 
 	template<bool softAes>
 	void VmBase<softAes>::generateProgram(void* seed) {
-		fillAes4Rx4<softAes>(seed, sizeof(program), &program);
+		fillAes4Rx4<softAes>(seed, 128 + RandomX_CurrentConfig.ProgramSize * 8, &program);
 	}
 
 	template class VmBase<false>;
