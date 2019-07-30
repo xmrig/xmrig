@@ -33,6 +33,7 @@
 
 
 #include "backend/cpu/platform/HwlocCpuInfo.h"
+#include "base/io/log/Log.h"
 
 
 namespace xmrig {
@@ -84,6 +85,15 @@ static inline void findByType(hwloc_obj_t obj, hwloc_obj_type_t type, func lambd
 }
 
 
+static inline std::vector<hwloc_obj_t> findByType(hwloc_obj_t obj, hwloc_obj_type_t type)
+{
+    std::vector<hwloc_obj_t> out;
+    findByType(obj, type, [&out](hwloc_obj_t found) { out.emplace_back(found); });
+
+    return out;
+}
+
+
 static inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t type)
 {
     const int count = hwloc_get_nbobjs_by_type(topology, type);
@@ -132,8 +142,7 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
     }
 #   endif
 
-    std::vector<hwloc_obj_t> packages;
-    findByType(hwloc_get_root_obj(m_topology), HWLOC_OBJ_PACKAGE, [&packages](hwloc_obj_t found) { packages.emplace_back(found); });
+    const std::vector<hwloc_obj_t> packages = findByType(hwloc_get_root_obj(m_topology), HWLOC_OBJ_PACKAGE);
     if (packages.size()) {
         const char *value = hwloc_obj_get_info_by_name(packages[0], "CPUModel");
         if (value) {
@@ -193,6 +202,12 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
         processTopLevelCache(cache, algorithm, threads);
     }
 
+    if (threads.empty()) {
+        LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.shortName());
+
+        return BasicCpuInfo::threads(algorithm);
+    }
+
     return threads;
 }
 
@@ -249,14 +264,9 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
     if (cacheHashes >= PUs) {
         for (hwloc_obj_t core : cores) {
-            if (core->arity == 0) {
-                continue;
-            }
-
-            for (unsigned i = 0; i < core->arity; ++i) {
-                if (core->children[i]->type == HWLOC_OBJ_PU) {
-                    threads.push_back(CpuThread(1, core->children[i]->os_index));
-                }
+            const std::vector<hwloc_obj_t> units = findByType(core, HWLOC_OBJ_PU);
+            for (hwloc_obj_t pu : units) {
+                threads.push_back(CpuThread(1, pu->os_index));
             }
         }
 
@@ -268,7 +278,8 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         bool allocated_pu = false;
 
         for (hwloc_obj_t core : cores) {
-            if (core->arity <= pu_id || core->children[pu_id]->type != HWLOC_OBJ_PU) {
+            const std::vector<hwloc_obj_t> units = findByType(core, HWLOC_OBJ_PU);
+            if (units.size() <= pu_id) {
                 continue;
             }
 
@@ -276,7 +287,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
             PUs--;
 
             allocated_pu = true;
-            threads.push_back(CpuThread(1, core->children[pu_id]->os_index));
+            threads.push_back(CpuThread(1, units[pu_id]->os_index));
 
             if (cacheHashes == 0) {
                 break;

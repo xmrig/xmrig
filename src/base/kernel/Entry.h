@@ -38,7 +38,8 @@ public:
     enum Id {
         Default,
         Usage,
-        Version
+        Version,
+        Topo
     };
 
     static Id get(const Process &process);
