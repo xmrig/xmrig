@@ -25,6 +25,7 @@ namespace xmrig {
 
 class Controller;
 class Miner;
+class Job;
 
 class Benchmark : public IJobResultListener {
 
@@ -51,6 +52,7 @@ class Benchmark : public IJobResultListener {
             Algorithm::CN_PICO_0,
         };
 
+        Job* m_bench_job[BenchAlgo::MAX];
         float m_bench_algo_perf[BenchAlgo::MAX];
 
         Controller* m_controller;          // to get access to config and network
@@ -66,9 +68,10 @@ class Benchmark : public IJobResultListener {
         void onJobResult(const JobResult&) override;   // onJobResult is called after each computed benchmark hash
 
     public:
-        Benchmark() : m_controller(nullptr), m_isNewBenchRun(true) {}
+        Benchmark();
+        virtual ~Benchmark();
+
         void set_controller(Controller* controller) { m_controller = controller; }
-        virtual ~Benchmark() {}
 
         void start(); // start benchmarks
 
