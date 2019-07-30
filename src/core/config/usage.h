@@ -113,6 +113,10 @@ Options:\n\
       --randomx-init=N          threads count to initialize RandomX dataset\n\
       --randomx-no-numa         disable NUMA support for RandomX\n"
 #endif
+#ifdef XMRIG_FEATURE_HWLOC
+"\
+      --export-topology         export hwloc topology to a XML file and exit\n"
+#endif
 "\
       --dry-run                 test configuration and exit\n\
   -h, --help                    display this help and exit\n\
