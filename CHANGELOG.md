@@ -1,3 +1,11 @@
+# 1.9.5
+- Integrated CN-Conceal algo (algo: "cryptonight", variant: "conceal" or variant: "ccx") #259
+- Integrated Argon2-512 algo "chukwa" for upcoming trtl fork (algo: "argon2-512", variant: "auto" or "chukwa") #258 
+- Integrated Argon2-256 algo "chukwa-wrkz" for upcoming wrkz fork (algo: "argon2-256", variant: "auto" or "wrkz") 
+- Added possibility to delete templates #257
+- Added embedded config parsing #256
+- OSX Hugepages fix #250
+- Fixed non-merged template assignment
 # 1.9.3
 - Fixed Multihashfactor auto detection for CN-Ultralite/Extremelite #248
 - Fixed donation address for UPX2/CN-Extremelite

@@ -27,11 +27,15 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
-* **NEW Support of Crytptonight R (XMR) variant(algo: "cryptonight", variant "auto" (autodetect) or "r")**
-* **NEW Support of Crytptonight WOW (Wownero) variant (algo: "cryptonight", variant "wow")**
-* **NEW Support of Crytptonight Reverse Waltz (Graft) variant (algo: "cryptonight", variant "rwz" (autodetect) or variant "graft")**
-* **NEW Support of Crytptonight Double/Heavyx (XCash) variant (algo: "cryptonight", variant "double")**
-* **NEW Support of Crytptonight Zelerius variant (algo: "cryptonight", variant "zls")**
+* **NEW Support of Argon2-512 chukwa (TRTL) variant (algo: "argon2-512", variant "auto" or "chukwa")**
+* **NEW Support of Argon2-256 wrkz variant (algo: "argon2-256", variant "auto" or "wrkz")**
+* **NEW Support of Crytptonight Conceal variant (algo: "cryptonight", variant "conceal" or "ccx")**
+* **NEW Support of Crytptonight-Extremelite (UPX 2) variant (algo: "cryptonight-extremelite", variant "auto" (autodetect) or "upx2")**
+* **Support of Crytptonight R (XMR) variant (algo: "cryptonight", variant "auto" (autodetect) or "r")**
+* **Support of Crytptonight WOW (Wownero) variant (algo: "cryptonight", variant "wow")**
+* **Support of Crytptonight Reverse Waltz (Graft) variant (algo: "cryptonight", variant "rwz" (autodetect) or variant "graft")**
+* **Support of Crytptonight Double/Heavyx (XCash) variant (algo: "cryptonight", variant "double")**
+* **Support of Crytptonight Zelerius variant (algo: "cryptonight", variant "zls")**
 * **Support of Crytptonight RTO/HOSP variant (algo: "cryptonight", variant "rto" or variant "hosp")**
 * **Support of Crytptonight-Ultralite TRTL/Turtle variant (algo: "cryptonight-ultralite", variant "auto")**
 * **Support of Crytptonight-Lite UPX/uPlexa variant (algo: "cryptonight-lite", variant "upx")**
