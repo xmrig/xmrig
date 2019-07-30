@@ -33,6 +33,7 @@
 
 
 #include "backend/cpu/platform/HwlocCpuInfo.h"
+#include "base/io/log/Log.h"
 
 
 namespace xmrig {
@@ -199,6 +200,12 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
 
     for (hwloc_obj_t cache : caches) {
         processTopLevelCache(cache, algorithm, threads);
+    }
+
+    if (threads.empty()) {
+        LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.shortName());
+
+        return BasicCpuInfo::threads(algorithm);
     }
 
     return threads;
