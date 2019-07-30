@@ -29,6 +29,15 @@
 #include "backend/cpu/platform/BasicCpuInfo.h"
 
 
+// handle older hwloc where objects had other names
+#ifndef HWLOC_OBJ_PACKAGE
+#   define HWLOC_OBJ_PACKAGE HWLOC_OBJ_SOCKET
+#endif
+#ifndef HWLOC_OBJ_NUMANODE
+#   define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
+
+
 typedef struct hwloc_obj *hwloc_obj_t;
 typedef struct hwloc_topology *hwloc_topology_t;
 
