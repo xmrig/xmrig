@@ -26,8 +26,8 @@
 
 
 #include <map>
+#include <mutex>
 #include <thread>
-#include <uv.h>
 
 
 #ifdef XMRIG_FEATURE_HWLOC
@@ -50,7 +50,11 @@
 namespace xmrig {
 
 
+class RxPrivate;
+
+
 static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx ") " ";
+static RxPrivate *d_ptr = nullptr;
 
 
 class RxPrivate
@@ -58,7 +62,6 @@ class RxPrivate
 public:
     inline RxPrivate()
     {
-        uv_mutex_init(&mutex);
     }
 
 
@@ -69,21 +72,15 @@ public:
         }
 
         datasets.clear();
-
-        uv_mutex_destroy(&mutex);
     }
 
 
-    inline void lock()   { uv_mutex_lock(&mutex); }
-    inline void unlock() { uv_mutex_unlock(&mutex); }
-
-
-    static void allocate(RxPrivate *self, uint32_t nodeId)
+    static void allocate(uint32_t nodeId)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
 #       ifdef XMRIG_FEATURE_HWLOC
-        if (self->numa) {
+        if (d_ptr->numa) {
             hwloc_topology_t topology;
             hwloc_topology_init(&topology);
             hwloc_topology_load(topology);
@@ -113,8 +110,8 @@ public:
                  RxCache::size() / 1024 / 1024
                  );
 
-        RxDataset *dataset   = new RxDataset(self->hugePages);
-        self->datasets[nodeId] = dataset;
+        RxDataset *dataset      = new RxDataset(d_ptr->hugePages);
+        d_ptr->datasets[nodeId] = dataset;
 
         if (dataset->get() != nullptr) {
             const auto hugePages = dataset->hugePages();
@@ -140,11 +137,8 @@ public:
     bool hugePages  = true;
     bool numa       = true;
     std::map<uint32_t, RxDataset *> datasets;
-    uv_mutex_t mutex;
+    std::mutex mutex;
 };
-
-
-static RxPrivate *d_ptr = new RxPrivate();
 
 
 } // namespace xmrig
@@ -152,28 +146,24 @@ static RxPrivate *d_ptr = new RxPrivate();
 
 bool xmrig::Rx::isReady(const Job &job, uint32_t nodeId)
 {
-    d_ptr->lock();
-    const bool rc = isReady(job.seedHash(), job.algorithm(), d_ptr->numa ? nodeId : 0);
-    d_ptr->unlock();
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
-    return rc;
+    return isReady(job.seedHash(), job.algorithm(), d_ptr->numa ? nodeId : 0);
 }
 
 
 xmrig::RxDataset *xmrig::Rx::dataset(uint32_t nodeId)
 {
-    d_ptr->lock();
-    RxDataset *dataset = d_ptr->datasets[d_ptr->numa ? nodeId : 0];
-    d_ptr->unlock();
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
-    return dataset;
+    return d_ptr->datasets[d_ptr->numa ? nodeId : 0];
 }
 
 
 std::pair<size_t, size_t> xmrig::Rx::hugePages()
 {
     std::pair<size_t, size_t> pages(0, 0);
-    d_ptr->lock();
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
     for (auto const &item : d_ptr->datasets) {
         if (!item.second) {
@@ -185,9 +175,21 @@ std::pair<size_t, size_t> xmrig::Rx::hugePages()
         pages.second += p.second;
     }
 
-    d_ptr->unlock();
-
     return pages;
+}
+
+
+void xmrig::Rx::destroy()
+{
+    delete d_ptr;
+
+    d_ptr = nullptr;
+}
+
+
+void xmrig::Rx::init()
+{
+    d_ptr = new RxPrivate();
 }
 
 
@@ -197,7 +199,7 @@ void xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa)
         return;
     }
 
-    d_ptr->lock();
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
     size_t ready = 0;
 
@@ -208,8 +210,6 @@ void xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa)
     }
 
     if (!d_ptr->datasets.empty() && ready == d_ptr->datasets.size()) {
-        d_ptr->unlock();
-
         return;
     }
 
@@ -231,16 +231,6 @@ void xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa)
         std::thread thread(initDataset, 0, job.seedHash(), job.algorithm(), threads);
         thread.detach();
     }
-
-    d_ptr->unlock();
-}
-
-
-void xmrig::Rx::stop()
-{
-    delete d_ptr;
-
-    d_ptr = nullptr;
 }
 
 
@@ -252,19 +242,19 @@ bool xmrig::Rx::isReady(const uint8_t *seed, const Algorithm &algorithm, uint32_
 
 void xmrig::Rx::initDataset(uint32_t nodeId, const uint8_t *seed, const Algorithm &algorithm, uint32_t threads)
 {
-    d_ptr->lock();
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
     RxDataset *dataset = d_ptr->datasets[nodeId];
 
     if (!dataset) {
 #       ifdef XMRIG_FEATURE_HWLOC
         if (d_ptr->numa) {
-            std::thread thread(RxPrivate::allocate, d_ptr, nodeId);
+            std::thread thread(RxPrivate::allocate, nodeId);
             thread.join();
         } else
 #       endif
         {
-            RxPrivate::allocate(d_ptr, nodeId);
+            RxPrivate::allocate(nodeId);
         }
 
         dataset = d_ptr->datasets[nodeId];
@@ -295,6 +285,4 @@ void xmrig::Rx::initDataset(uint32_t nodeId, const uint8_t *seed, const Algorith
 
         LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" init done") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, nodeId, Chrono::steadyMSecs() - ts);
     }
-
-    d_ptr->unlock();
 }

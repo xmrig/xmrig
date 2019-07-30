@@ -47,8 +47,9 @@ public:
     static bool isReady(const Job &job, uint32_t nodeId);
     static RxDataset *dataset(uint32_t nodeId);
     static std::pair<size_t, size_t> hugePages();
+    static void destroy();
+    static void init();
     static void init(const Job &job, int initThreads, bool hugePages, bool numa);
-    static void stop();
 
 private:
     static bool isReady(const uint8_t *seed, const Algorithm &algorithm, uint32_t nodeId);
