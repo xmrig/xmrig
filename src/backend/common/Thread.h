@@ -26,7 +26,7 @@
 #define XMRIG_THREAD_H
 
 
-#include <uv.h>
+#include <thread>
 
 
 #include "backend/common/interfaces/IWorker.h"
@@ -43,21 +43,21 @@ class Thread
 {
 public:
     inline Thread(IBackend *backend, size_t index, const T &config) : m_index(index), m_config(config), m_backend(backend) {}
-    inline ~Thread() { uv_thread_join(&m_thread); delete m_worker; }
+    inline ~Thread() { m_thread.join(); delete m_worker; }
 
     inline const T &config() const                  { return m_config; }
     inline IBackend *backend() const                { return m_backend; }
     inline IWorker *worker() const                  { return m_worker; }
     inline size_t index() const                     { return m_index; }
     inline void setWorker(IWorker *worker)          { m_worker = worker; }
-    inline void start(void (*callback) (void *))    { uv_thread_create(&m_thread, callback, this); }
+    inline void start(void (*callback) (void *))    { m_thread = std::thread(callback, this); }
 
 private:
     const size_t m_index    = 0;
     const T m_config;
     IBackend *m_backend;
     IWorker *m_worker       = nullptr;
-    uv_thread_t m_thread;
+    std::thread m_thread;
 };
 
 

@@ -59,6 +59,10 @@ public:
     inline MinerPrivate(Controller *controller) : controller(controller)
     {
         uv_rwlock_init(&rwlock);
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        Rx::init();
+#       endif
     }
 
 
@@ -71,6 +75,10 @@ public:
         for (IBackend *backend : backends) {
             delete backend;
         }
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        Rx::destroy();
+#       endif
     }
 
 
