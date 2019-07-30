@@ -1,3 +1,7 @@
+# v2.99.3-beta
+- [#1082](https://github.com/xmrig/xmrig/issues/1082) Fixed hwloc auto configuration on AMD FX CPUs.
+- Added command line option `--export-topology` for export hwloc topology to a XML file.
+
 # v2.99.2-beta
 - [#1077](https://github.com/xmrig/xmrig/issues/1077) Added NUMA support via **hwloc**.
 - Fixed miner freeze when switch between RandomX variants.
