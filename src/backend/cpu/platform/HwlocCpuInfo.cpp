@@ -32,6 +32,12 @@
 #include <hwloc.h>
 
 
+#if HWLOC_API_VERSION < 0x00010b00
+#   define HWLOC_OBJ_PACKAGE HWLOC_OBJ_SOCKET
+#   define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
+
+
 #include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "base/io/log/Log.h"
 
@@ -152,7 +158,17 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
 #   endif
 
     hwloc_obj_t root = hwloc_get_root_obj(m_topology);
-    snprintf(m_backend, sizeof m_backend, "hwloc/%s", hwloc_obj_get_info_by_name(root, "hwlocVersion"));
+
+#   if HWLOC_API_VERSION >= 0x00010b00
+    const char *version = hwloc_obj_get_info_by_name(root, "hwlocVersion");
+    if (version) {
+        snprintf(m_backend, sizeof m_backend, "hwloc/%s", version);
+    }
+    else
+#   endif
+    {
+        snprintf(m_backend, sizeof m_backend, "hwloc");
+    }
 
     findCache(root, 2, 3, [this](hwloc_obj_t found) { this->m_cache[found->attr->cache.depth] += found->attr->cache.size; });
 

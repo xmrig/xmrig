@@ -28,6 +28,10 @@
 #ifdef XMRIG_FEATURE_HWLOC
 #   include <hwloc.h>
 #   include "backend/cpu/platform/HwlocCpuInfo.h"
+#
+#   if HWLOC_API_VERSION < 0x00010b00
+#       define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#   endif
 #endif
 
 
