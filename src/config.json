@@ -1,10 +1,10 @@
 {
-    "algo": "cryptonight",                      // cryptonight (default), cryptonight-lite, cryptonight-ultralite, cryptonight-extremelite or cryptonight-heavy
+    "algo": "cryptonight",                      // cryptonight (default), cryptonight-lite, cryptonight-ultralite or cryptonight-heavy, cryptonight-ultralite, cryptonight-extremelite, argon2-256, argon2-512
     "aesni": 0,                                 // selection of AES-NI mode (0 auto, 1 on, 2 off)
     "threads": 0,                               // number of miner threads (not set or 0 enables automatic selection of optimal thread count)
     "multihash-factor": 0,                      // number of hash blocks to process at a time (not set or 0 enables automatic selection of optimal number of hash blocks)
     "multihash-thread-mask" : null,             // for multihash-factors>0 only, limits multihash to given threads (mask), mask "0x3" means run multihash on thread 0 and 1 only (default: all threads)
-    "pow-variant" : "auto",                     // specificy the PoW variat to use: -> auto (default), '0', '1', '2', 'ipbc', 'xao', 'xtl', 'rto', 'xfh', 'upx', 'turtle', 'hosp', 'r', 'wow', 'double (xcash)', 'zls' (zelerius), 'rwz' (graft), 'upx2'
+    "pow-variant" : "auto",                     // specificy the PoW variat to use: 'auto' (default), '0', '1', '2', 'ipbc', 'xao', 'xtl', 'rto', 'xfh', 'upx', 'turtle', 'hosp', 'r', 'wow', 'double (xcash)', 'zls' (zelerius), 'rwz' (graft), 'upx2', 'conceal', chukwa (trtl), wrkz
                                                 // for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations
     "asm-optimization" : "auto",                // specificy the ASM optimization to use: -> auto (default), intel, ryzen, bulldozer, off
     "background": false,                        // true to run the miner in the background (Windows only, for *nix plase use screen/tmux or systemd service instead)
