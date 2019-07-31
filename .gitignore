@@ -12,3 +12,5 @@ Makefile
 cmake-build-release/
 src/crypto/asm/*.inc
 src/crypto/asm/win/*.inc
+src/3rdparty/
+test/
