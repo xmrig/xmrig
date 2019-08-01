@@ -380,7 +380,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    Rx::init(job,
+    Rx::init(d_ptr->job,
              d_ptr->controller->config()->rx().threads(),
              d_ptr->controller->config()->cpu().isHugePages(),
              d_ptr->controller->config()->rx().isNUMA()

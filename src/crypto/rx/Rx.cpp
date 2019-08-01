@@ -43,6 +43,7 @@
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "crypto/rx/Rx.h"
+#include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
 
@@ -57,11 +58,50 @@ static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx ") " ";
 static RxPrivate *d_ptr = nullptr;
 
 
+#ifdef XMRIG_FEATURE_HWLOC
+static void bindToNUMANode(uint32_t nodeId)
+{
+    hwloc_topology_t topology;
+    hwloc_topology_init(&topology);
+    hwloc_topology_load(topology);
+
+    hwloc_obj_t node = hwloc_get_numanode_obj_by_os_index(topology, nodeId);
+    if (node) {
+        if (HwlocCpuInfo::has(HwlocCpuInfo::SET_THISTHREAD_MEMBIND)) {
+#           if HWLOC_API_VERSION >= 0x20000
+            hwloc_set_membind(topology, node->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET);
+#           else
+            hwloc_set_membind_nodeset(topology, node->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD);
+#           endif
+        }
+
+        Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
+    }
+
+    hwloc_topology_destroy(topology);
+}
+#else
+inline static void bindToNUMANode(uint32_t) {}
+#endif
+
+
 class RxPrivate
 {
 public:
-    inline RxPrivate()
+    inline RxPrivate() :
+        m_seed()
     {
+#       ifdef XMRIG_FEATURE_HWLOC
+        if (Cpu::info()->nodes() > 1) {
+            for (uint32_t nodeId : HwlocCpuInfo::nodeIndexes()) {
+                datasets.insert({ nodeId, nullptr });
+            }
+        }
+        else
+#       endif
+        {
+            datasets.insert({ 0, nullptr });
+        }
     }
 
 
@@ -75,32 +115,19 @@ public:
     }
 
 
+    inline bool isNUMA() const                  { return m_numa; }
+    inline const Algorithm &algorithm() const   { return m_algorithm; }
+    inline const uint8_t *seed() const          { return m_seed; }
+    inline size_t count() const                 { return isNUMA() ? datasets.size() : 1; }
+
+
     static void allocate(uint32_t nodeId)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
-#       ifdef XMRIG_FEATURE_HWLOC
-        if (d_ptr->numa) {
-            hwloc_topology_t topology;
-            hwloc_topology_init(&topology);
-            hwloc_topology_load(topology);
-
-            hwloc_obj_t node = hwloc_get_numanode_obj_by_os_index(topology, nodeId);
-            if (node) {
-                if (HwlocCpuInfo::has(HwlocCpuInfo::SET_THISTHREAD_MEMBIND)) {
-#                   if HWLOC_API_VERSION >= 0x20000
-                    hwloc_set_membind(topology, node->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET);
-#                   else
-                    hwloc_set_membind_nodeset(topology, node->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD);
-#                   endif
-                }
-
-                Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
-            }
-
-            hwloc_topology_destroy(topology);
+        if (d_ptr->isNUMA()) {
+            bindToNUMANode(nodeId);
         }
-#       endif
 
         LOG_INFO("%s" CYAN_BOLD("#%u") MAGENTA_BOLD(" allocate") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu) for RandomX dataset & cache"),
                  tag,
@@ -110,7 +137,7 @@ public:
                  RxCache::size() / 1024 / 1024
                  );
 
-        RxDataset *dataset      = new RxDataset(d_ptr->hugePages);
+        RxDataset *dataset      = new RxDataset(d_ptr->m_hugePages);
         d_ptr->datasets[nodeId] = dataset;
 
         if (dataset->get() != nullptr) {
@@ -134,29 +161,84 @@ public:
     }
 
 
-    bool hugePages  = true;
-    bool numa       = true;
+    static void initDataset(uint32_t nodeId, uint32_t threads)
+    {
+        std::lock_guard<std::mutex> lock(d_ptr->mutex);
+
+        const uint64_t ts = Chrono::steadyMSecs();
+
+        d_ptr->getOrAllocate(nodeId)->init(d_ptr->seed(), threads);
+        d_ptr->m_ready++;
+
+        LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" init done") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, nodeId, Chrono::steadyMSecs() - ts);
+    }
+
+
+    inline RxDataset *getOrAllocate(uint32_t nodeId)
+    {
+        RxDataset *dataset = datasets.at(nodeId);
+
+        if (dataset == nullptr) {
+    #       ifdef XMRIG_FEATURE_HWLOC
+            if (d_ptr->isNUMA()) {
+                std::thread thread(allocate, nodeId);
+                thread.join();
+            } else
+    #       endif
+            {
+                allocate(nodeId);
+            }
+
+            dataset = datasets.at(nodeId);
+        }
+
+        return dataset;
+    }
+
+
+    inline void setState(const Job &job, bool hugePages, bool numa)
+    {
+        if (m_algorithm != job.algorithm()) {
+            m_algorithm = RxAlgo::apply(job.algorithm());
+        }
+
+        m_ready     = 0;
+        m_numa      = numa && Cpu::info()->nodes() > 1;
+        m_hugePages = hugePages;
+
+        memcpy(m_seed, job.seedHash(), sizeof(m_seed));
+    }
+
+
+    inline bool isReady(const Job &job)
+    {
+        return m_ready == count() && m_algorithm == job.algorithm() && memcmp(m_seed, job.seedHash(), sizeof(m_seed)) == 0;
+    }
+
+
     std::map<uint32_t, RxDataset *> datasets;
     std::mutex mutex;
+
+private:
+    bool m_hugePages  = true;
+    bool m_numa       = true;
+    Algorithm m_algorithm;
+    size_t m_ready = 0;
+    uint8_t m_seed[32];
 };
 
 
 } // namespace xmrig
 
 
-bool xmrig::Rx::isReady(const Job &job, uint32_t nodeId)
+xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 {
     std::lock_guard<std::mutex> lock(d_ptr->mutex);
+    if (!d_ptr->isReady(job)) {
+        return nullptr;
+    }
 
-    return isReady(job.seedHash(), job.algorithm(), d_ptr->numa ? nodeId : 0);
-}
-
-
-xmrig::RxDataset *xmrig::Rx::dataset(uint32_t nodeId)
-{
-    std::lock_guard<std::mutex> lock(d_ptr->mutex);
-
-    return d_ptr->datasets[d_ptr->numa ? nodeId : 0];
+    return d_ptr->datasets.at(d_ptr->isNUMA() ? nodeId : 0);
 }
 
 
@@ -201,88 +283,33 @@ void xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa)
 
     std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
-    size_t ready = 0;
-
-    for (auto const &item : d_ptr->datasets) {
-        if (isReady(job.seedHash(), job.algorithm(), item.first)) {
-            ready++;
-        }
-    }
-
-    if (!d_ptr->datasets.empty() && ready == d_ptr->datasets.size()) {
+    if (d_ptr->isReady(job)) {
         return;
     }
 
-    d_ptr->hugePages       = hugePages;
-    d_ptr->numa            = numa && Cpu::info()->nodes() > 1;
-    const uint32_t threads = initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads())
-                                             : static_cast<uint32_t>(initThreads);
+    d_ptr->setState(job, hugePages, numa);
+    const uint32_t threads = initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(initThreads);
+    const String buf       = Buffer::toHex(job.seedHash(), 8);
+
+    LOG_INFO("%s" MAGENTA_BOLD("init dataset%s") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
+             tag,
+             d_ptr->count() > 1 ? "s" : "",
+             job.algorithm().shortName(),
+             threads,
+             buf.data()
+             );
 
 #   ifdef XMRIG_FEATURE_HWLOC
-    if (d_ptr->numa) {
-        for (uint32_t nodeId : HwlocCpuInfo::nodeIndexes()) {
-            std::thread thread(initDataset, nodeId, job.seedHash(), job.algorithm(), threads);
+    if (d_ptr->isNUMA()) {
+        for (auto const &item : d_ptr->datasets) {
+            std::thread thread(RxPrivate::initDataset, item.first, threads);
             thread.detach();
         }
     }
     else
 #   endif
     {
-        std::thread thread(initDataset, 0, job.seedHash(), job.algorithm(), threads);
+        std::thread thread(RxPrivate::initDataset, 0, threads);
         thread.detach();
-    }
-}
-
-
-bool xmrig::Rx::isReady(const uint8_t *seed, const Algorithm &algorithm, uint32_t nodeId)
-{
-    return !d_ptr->datasets.empty() && d_ptr->datasets[nodeId] != nullptr && d_ptr->datasets[nodeId]->isReady(seed, algorithm);
-}
-
-
-void xmrig::Rx::initDataset(uint32_t nodeId, const uint8_t *seed, const Algorithm &algorithm, uint32_t threads)
-{
-    std::lock_guard<std::mutex> lock(d_ptr->mutex);
-
-    RxDataset *dataset = d_ptr->datasets[nodeId];
-
-    if (!dataset) {
-#       ifdef XMRIG_FEATURE_HWLOC
-        if (d_ptr->numa) {
-            std::thread thread(RxPrivate::allocate, nodeId);
-            thread.join();
-        } else
-#       endif
-        {
-            RxPrivate::allocate(nodeId);
-        }
-
-        dataset = d_ptr->datasets[nodeId];
-    }
-
-    if (!dataset->isReady(seed, algorithm)) {
-        const uint64_t ts = Chrono::steadyMSecs();
-
-        if (dataset->get() != nullptr) {
-            LOG_INFO("%s" CYAN_BOLD("#%u") MAGENTA_BOLD(" init dataset") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
-                     tag,
-                     nodeId,
-                     algorithm.shortName(),
-                     threads,
-                     Buffer::toHex(seed, 8).data()
-                     );
-        }
-        else {
-            LOG_INFO("%s" CYAN_BOLD("#%u") MAGENTA_BOLD(" init cache") " algo " WHITE_BOLD("%s") BLACK_BOLD(" seed %s..."),
-                     tag,
-                     nodeId,
-                     algorithm.shortName(),
-                     Buffer::toHex(seed, 8).data()
-                     );
-        }
-
-        dataset->init(seed, algorithm, threads);
-
-        LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" init done") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, nodeId, Chrono::steadyMSecs() - ts);
     }
 }
