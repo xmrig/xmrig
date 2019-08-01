@@ -167,7 +167,11 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
     else
 #   endif
     {
-        snprintf(m_backend, sizeof m_backend, "hwloc");
+        snprintf(m_backend, sizeof m_backend, "hwloc/%d.%d.%d",
+                       (HWLOC_API_VERSION>>16)&0x000000ff,
+                       (HWLOC_API_VERSION>>8 )&0x000000ff,
+                       (HWLOC_API_VERSION    )&0x000000ff
+               );
     }
 
     findCache(root, 2, 3, [this](hwloc_obj_t found) { this->m_cache[found->attr->cache.depth] += found->attr->cache.size; });
