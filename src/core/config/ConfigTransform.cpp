@@ -36,7 +36,10 @@ static const char *kAffinity    = "affinity";
 static const char *kAsterisk    = "*";
 static const char *kCpu         = "cpu";
 static const char *kIntensity   = "intensity";
-static const char *kRandomX     = "randomx";
+
+#ifdef XMRIG_ALGO_RANDOMX
+static const char *kRandomX = "randomx";
+#endif
 
 
 static inline uint64_t intensity(uint64_t av)
