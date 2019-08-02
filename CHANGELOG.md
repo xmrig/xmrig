@@ -1,3 +1,9 @@
+# v2.99.4-beta
+- [#1088](https://github.com/xmrig/xmrig/pull/1088) Fixed macOS compilation.
+- [#1095](https://github.com/xmrig/xmrig/pull/1095) Fixed compatibility with hwloc 1.10.x.
+- Optimized RandomX initialization and switching, fixed rare crash when re-initialize dataset.
+- Fixed ARM build with hwloc.
+
 # v2.99.3-beta
 - [#1082](https://github.com/xmrig/xmrig/issues/1082) Fixed hwloc auto configuration on AMD FX CPUs.
 - Added command line option `--export-topology` for export hwloc topology to a XML file.
