@@ -44,6 +44,7 @@ class Job;
 class Rx
 {
 public:
+    static bool isReady(const Job &job);
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
     static std::pair<size_t, size_t> hugePages();
     static void destroy();

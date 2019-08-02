@@ -85,6 +85,8 @@ private:
 #define BLUE_BG_BOLD_S      CSI "44;1m"
 #define MAGENTA_BG_S        CSI "45m"
 #define MAGENTA_BG_BOLD_S   CSI "45;1m"
+#define CYAN_BG_S           CSI "46m"
+#define CYAN_BG_BOLD_S      CSI "46;1m"
 
 //color wrappings
 #define BLACK(x)            BLACK_S x CLEAR
@@ -108,6 +110,8 @@ private:
 #define BLUE_BG_BOLD(x)     BLUE_BG_BOLD_S x CLEAR
 #define MAGENTA_BG(x)       MAGENTA_BG_S x CLEAR
 #define MAGENTA_BG_BOLD(x)  MAGENTA_BG_BOLD_S x CLEAR
+#define CYAN_BG(x)          CYAN_BG_S x CLEAR
+#define CYAN_BG_BOLD(x)     CYAN_BG_BOLD_S x CLEAR
 
 
 #define LOG_EMERG(x, ...)  xmrig::Log::print(xmrig::Log::EMERG,   x, ##__VA_ARGS__)

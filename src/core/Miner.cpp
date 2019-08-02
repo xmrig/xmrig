@@ -361,11 +361,17 @@ void xmrig::Miner::setEnabled(bool enabled)
 
 void xmrig::Miner::setJob(const Job &job, bool donate)
 {
-    d_ptr->algorithm = job.algorithm();
-
     for (IBackend *backend : d_ptr->backends) {
         backend->prepare(job);
     }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (d_ptr->algorithm.family() == Algorithm::RANDOM_X && job.algorithm().family() == Algorithm::RANDOM_X && !Rx::isReady(job)) {
+        stop();
+    }
+#   endif
+
+    d_ptr->algorithm = job.algorithm();
 
     uv_rwlock_wrlock(&d_ptr->rwlock);
 

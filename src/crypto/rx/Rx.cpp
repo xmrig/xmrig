@@ -54,7 +54,7 @@ namespace xmrig {
 class RxPrivate;
 
 
-static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx ") " ";
+static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx  ") " ";
 static RxPrivate *d_ptr = nullptr;
 
 
@@ -229,6 +229,14 @@ private:
 
 
 } // namespace xmrig
+
+
+bool xmrig::Rx::isReady(const Job &job)
+{
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
+
+    return d_ptr->isReady(job);
+}
 
 
 xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
