@@ -52,8 +52,7 @@ public:
     inline randomx_dataset *get() const { return m_dataset; }
     inline RxCache *cache() const       { return m_cache; }
 
-    bool init(const void *seed, const Algorithm &algorithm, uint32_t numThreads);
-    bool isReady(const void *seed, const Algorithm &algorithm) const;
+    bool init(const void *seed, uint32_t numThreads);
     std::pair<size_t, size_t> hugePages() const;
 
     static inline constexpr size_t size() { return RANDOMX_DATASET_MAX_SIZE; }

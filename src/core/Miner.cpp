@@ -59,6 +59,10 @@ public:
     inline MinerPrivate(Controller *controller) : controller(controller)
     {
         uv_rwlock_init(&rwlock);
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        Rx::init();
+#       endif
     }
 
 
@@ -71,6 +75,10 @@ public:
         for (IBackend *backend : backends) {
             delete backend;
         }
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        Rx::destroy();
+#       endif
     }
 
 
@@ -353,11 +361,17 @@ void xmrig::Miner::setEnabled(bool enabled)
 
 void xmrig::Miner::setJob(const Job &job, bool donate)
 {
-    d_ptr->algorithm = job.algorithm();
-
     for (IBackend *backend : d_ptr->backends) {
         backend->prepare(job);
     }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (d_ptr->algorithm.family() == Algorithm::RANDOM_X && job.algorithm().family() == Algorithm::RANDOM_X && !Rx::isReady(job)) {
+        stop();
+    }
+#   endif
+
+    d_ptr->algorithm = job.algorithm();
 
     uv_rwlock_wrlock(&d_ptr->rwlock);
 
@@ -372,7 +386,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    Rx::init(job,
+    Rx::init(d_ptr->job,
              d_ptr->controller->config()->rx().threads(),
              d_ptr->controller->config()->cpu().isHugePages(),
              d_ptr->controller->config()->rx().isNUMA()

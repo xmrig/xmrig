@@ -36,10 +36,10 @@
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
-    m_aes(false),
     m_brand(),
-    m_avx2(false),
-    m_threads(std::thread::hardware_concurrency())
+    m_threads(std::thread::hardware_concurrency()),
+    m_aes(false),
+    m_avx2(false)
 {
 #   ifdef XMRIG_ARMv8
     memcpy(m_brand, "ARMv8", 5);

@@ -90,10 +90,13 @@ public:
 
     inline bool operator==(const Job &other) const { return isEqual(other); }
     inline bool operator!=(const Job &other) const { return !isEqual(other); }
+    inline Job &operator=(const Job &other)        { copy(other); return *this; }
 
 private:
+    void copy(const Job &other);
+
     Algorithm m_algorithm;
-    bool m_nicehash = false;
+    bool m_nicehash     = false;
     size_t m_size       = 0;
     String m_clientId;
     String m_id;

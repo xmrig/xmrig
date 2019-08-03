@@ -64,16 +64,8 @@ xmrig::RxDataset::~RxDataset()
 }
 
 
-bool xmrig::RxDataset::init(const void *seed, const Algorithm &algorithm, uint32_t numThreads)
+bool xmrig::RxDataset::init(const void *seed, uint32_t numThreads)
 {
-    if (isReady(seed, algorithm)) {
-        return false;
-    }
-
-    if (m_algorithm != algorithm) {
-        m_algorithm = RxAlgo::apply(algorithm);
-    }
-
     cache()->init(seed);
 
     if (!get()) {
@@ -101,12 +93,6 @@ bool xmrig::RxDataset::init(const void *seed, const Algorithm &algorithm, uint32
     }
 
     return true;
-}
-
-
-bool xmrig::RxDataset::isReady(const void *seed, const Algorithm &algorithm) const
-{
-    return algorithm == m_algorithm && cache()->isReady(seed);
 }
 
 

@@ -53,11 +53,12 @@ public:
     inline randomx_cache *get() const       { return m_cache; }
 
     bool init(const void *seed);
-    bool isReady(const void *seed) const;
 
     static inline constexpr size_t size() { return RANDOMX_CACHE_MAX_SIZE; }
 
 private:
+    bool isReady(const void *seed) const;
+
     int m_flags            = 0;
     randomx_cache *m_cache = nullptr;
     uint8_t m_seed[32];
