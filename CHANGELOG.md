@@ -1,4 +1,5 @@
 # v2.99.4-beta
+- [#1062](https://github.com/xmrig/xmrig/issues/1062) Fixed 32 bit support. **32 bit is slow and deprecated**.
 - [#1088](https://github.com/xmrig/xmrig/pull/1088) Fixed macOS compilation.
 - [#1095](https://github.com/xmrig/xmrig/pull/1095) Fixed compatibility with hwloc 1.10.x.
 - Optimized RandomX initialization and switching, fixed rare crash when re-initialize dataset.
