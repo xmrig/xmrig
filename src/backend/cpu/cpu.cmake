@@ -39,7 +39,6 @@ if (WITH_HWLOC)
     endif()
 
     set(SOURCES_CPUID
-        src/backend/cpu/platform/BasicCpuInfo.cpp
         src/backend/cpu/platform/BasicCpuInfo.h
         src/backend/cpu/platform/HwlocCpuInfo.cpp
         src/backend/cpu/platform/HwlocCpuInfo.h
@@ -66,7 +65,10 @@ else()
     set(SOURCES_CPUID
         src/backend/cpu/platform/BasicCpuInfo.h
         )
+endif()
 
+
+if (NOT WITH_LIBCPUID)
     if (XMRIG_ARM)
         set(SOURCES_CPUID ${SOURCES_CPUID} src/backend/cpu/platform/BasicCpuInfo_arm.cpp)
     else()

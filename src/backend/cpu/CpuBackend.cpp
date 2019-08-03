@@ -49,7 +49,8 @@ namespace xmrig {
 extern template class Threads<CpuThread>;
 
 
-static const String kType = "cpu";
+static const char *tag      = CYAN_BG_BOLD(" cpu ");
+static const String kType   = "cpu";
 
 
 struct LaunchStatus
@@ -94,7 +95,8 @@ public:
 
     inline void start()
     {
-        LOG_INFO(GREEN_BOLD("CPU") " use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
+        LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
+                 tag,
                  profileName.data(),
                  threads.size(),
                  algo.memory() / 1024
@@ -170,12 +172,8 @@ const xmrig::String &xmrig::CpuBackend::type() const
 }
 
 
-void xmrig::CpuBackend::prepare(const Job &nextJob)
+void xmrig::CpuBackend::prepare(const Job &)
 {
-    if (nextJob.algorithm().family() == Algorithm::RANDOM_X && nextJob.algorithm() != d_ptr->algo) {
-        d_ptr->workers.stop();
-        d_ptr->threads.clear();
-    }
 }
 
 
@@ -207,9 +205,7 @@ void xmrig::CpuBackend::printHashrate(bool details)
 void xmrig::CpuBackend::setJob(const Job &job)
 {
     if (!isEnabled()) {
-        d_ptr->workers.stop();
-        d_ptr->threads.clear();
-        return;
+        return stop();
     }
 
     const CpuConfig &cpu = d_ptr->controller->config()->cpu();
@@ -249,7 +245,8 @@ void xmrig::CpuBackend::start(IWorker *worker)
         const double percent = d_ptr->status.hugePages == 0 ? 0.0 : static_cast<double>(d_ptr->status.hugePages) / d_ptr->status.pages * 100.0;
         const size_t memory  = d_ptr->status.ways * d_ptr->status.memory / 1024;
 
-        LOG_INFO(GREEN_BOLD("CPU READY") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
+        LOG_INFO("%s" GREEN_BOLD(" READY") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
+                 tag,
                  d_ptr->status.threads, d_ptr->status.ways,
                  (d_ptr->status.hugePages == d_ptr->status.pages ? GREEN_BOLD_S : (d_ptr->status.hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
                  d_ptr->status.hugePages, d_ptr->status.pages, percent, memory,
@@ -265,7 +262,12 @@ void xmrig::CpuBackend::start(IWorker *worker)
 
 void xmrig::CpuBackend::stop()
 {
+    const uint64_t ts = Chrono::steadyMSecs();
+
     d_ptr->workers.stop();
+    d_ptr->threads.clear();
+
+    LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
 }
 
 

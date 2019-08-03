@@ -160,3 +160,20 @@ void xmrig::Job::setDiff(uint64_t diff)
     m_rawTarget[16] = '\0';
 #   endif
 }
+
+
+void xmrig::Job::copy(const Job &other)
+{
+    m_algorithm = other.m_algorithm;
+    m_nicehash  = other.m_nicehash;
+    m_size      = other.m_size;
+    m_clientId  = other.m_clientId;
+    m_id        = other.m_id;
+    m_diff      = other.m_diff;
+    m_height    = other.m_height;
+    m_target    = other.m_target;
+    m_index     = other.m_index;
+
+    memcpy(m_blob, other.m_blob, sizeof (m_blob));
+    memcpy(m_seedHash, other.m_seedHash, sizeof(m_seedHash));
+}
