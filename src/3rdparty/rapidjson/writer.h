@@ -288,6 +288,7 @@ protected:
         Level(bool inArray_) : valueCount(0), inArray(inArray_) {}
         size_t valueCount;  //!< number of values in this level
         bool inArray;       //!< true if in array, otherwise in object
+        bool inLine = false;
     };
 
     static const size_t kDefaultLevelDepth = 32;

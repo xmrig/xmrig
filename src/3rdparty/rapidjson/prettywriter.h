@@ -164,9 +164,10 @@ public:
         (void)memberCount;
         RAPIDJSON_ASSERT(Base::level_stack_.GetSize() >= sizeof(typename Base::Level));
         RAPIDJSON_ASSERT(Base::level_stack_.template Top<typename Base::Level>()->inArray);
-        bool empty = Base::level_stack_.template Pop<typename Base::Level>(1)->valueCount == 0;
+        typename Base::Level* level = Base::level_stack_.template Pop<typename Base::Level>(1);
+        bool empty = level->valueCount == 0;
 
-        if (!empty && !(formatOptions_ & kFormatSingleLineArray)) {
+        if (!empty && !level->inLine) {
             Base::os_->Put('\n');
             WriteIndent();
         }
@@ -211,13 +212,16 @@ protected:
             typename Base::Level* level = Base::level_stack_.template Top<typename Base::Level>();
 
             if (level->inArray) {
+                level->inLine = (formatOptions_ & kFormatSingleLineArray) && type != kObjectType && type != kArrayType;
+
                 if (level->valueCount > 0) {
                     Base::os_->Put(','); // add comma if it is not the first element in array
-                    if (formatOptions_ & kFormatSingleLineArray)
+                    if (level->inLine) {
                         Base::os_->Put(' ');
+                    }
                 }
 
-                if (!(formatOptions_ & kFormatSingleLineArray)) {
+                if (!level->inLine) {
                     Base::os_->Put('\n');
                     WriteIndent();
                 }
