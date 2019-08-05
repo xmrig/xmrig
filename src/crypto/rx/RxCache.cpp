@@ -77,5 +77,5 @@ bool xmrig::RxCache::init(const uint8_t *seed)
 
 bool xmrig::RxCache::isReady(const uint8_t *seed) const
 {
-    return memcmp(m_seed, seed, sizeof(m_seed)) == 0;
+    return m_initCount && memcmp(m_seed, seed, sizeof(m_seed)) == 0;
 }
