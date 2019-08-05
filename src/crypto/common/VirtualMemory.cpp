@@ -62,15 +62,18 @@ uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
         LOG_WARN("CPU #%02u warning: \"can't bind memory\"", puId);
     }
 
-    hwloc_obj_t node = nullptr;
-    uint32_t nodeId  = 0;
+    uint32_t nodeId = 0;
 
-    while ((node = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
-      if (hwloc_bitmap_intersects(node->cpuset, pu->cpuset)) {
-          nodeId = node->os_index;
+    if (pu) {
+        hwloc_obj_t node = nullptr;
 
-          break;
-      }
+        while ((node = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
+          if (hwloc_bitmap_intersects(node->cpuset, pu->cpuset)) {
+              nodeId = node->os_index;
+
+              break;
+          }
+        }
     }
 
     hwloc_topology_destroy(topology);
