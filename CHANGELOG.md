@@ -1,3 +1,8 @@
+# v2.99.5-beta
+- [#1066](https://github.com/xmrig/xmrig/issues/1066#issuecomment-518080529) Fixed crash and added error message if pool not ready for RandomX.
+- [#1092](https://github.com/xmrig/xmrig/issues/1092) Fixed crash if wrong CPU affinity used.
+- JSON arrays in config and API now more compact, single line if possible.
+
 # v2.99.4-beta
 - [#1062](https://github.com/xmrig/xmrig/issues/1062) Fixed 32 bit support. **32 bit is slow and deprecated**.
 - [#1088](https://github.com/xmrig/xmrig/pull/1088) Fixed macOS compilation.
