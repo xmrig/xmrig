@@ -22,16 +22,8 @@ Example below demonstrate all primary ideas of flexible profiles configuration:
         "hw-aes": null,
         "priority": null,
         "asm": true,
-        "rx/wow": [
-            -1,
-            -1,
-            -1,
-            -1,
-        ],
-        "cn": [
-            0,
-            2
-        ],
+        "rx/wow": [-1, -1, -1, -1],
+        "cn": [0, 2],
         "cn-lite": [
             {
                 "intensity": 2,
@@ -42,13 +34,8 @@ Example below demonstrate all primary ideas of flexible profiles configuration:
                 "affinity": 2
             }
         ],
-        "custom-profile": [
-            0,
-            2,
-        ],
-        "*": [
-            -1
-        ],
+        "custom-profile": [0, 2],
+        "*": [-1],
         "cn/r": "custom-profile",
         "cn/0": false
     }
