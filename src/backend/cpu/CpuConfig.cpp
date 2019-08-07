@@ -62,7 +62,7 @@ static const char *kRx    = "rx";
 static const char *kRxWOW = "rx/wow";
 #endif
 
-extern template class Threads<CpuThread>;
+extern template class Threads<CpuThreads>;
 
 }
 
@@ -103,15 +103,15 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, const Algorithm &algorithm) const
 {
     std::vector<CpuLaunchData> out;
-    const std::vector<CpuThread> &threads = m_threads.get(algorithm);
+    const CpuThreads &threads = m_threads.get(algorithm);
 
-    if (threads.empty()) {
+    if (threads.isEmpty()) {
         return out;
     }
 
-    out.reserve(threads.size());
+    out.reserve(threads.count());
 
-    for (const CpuThread &thread : threads) {
+    for (const CpuThread &thread : threads.data()) {
         out.push_back(CpuLaunchData(miner, algorithm, *this, thread));
     }
 

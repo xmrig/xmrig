@@ -182,23 +182,25 @@ const char *xmrig::BasicCpuInfo::backend() const
 
 xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
 {
-    if (threads() == 1) {
-        return CpuThreads(1);
+    const size_t count = std::thread::hardware_concurrency();
+
+    if (count == 1) {
+        return 1;
     }
 
 #   ifdef XMRIG_ALGO_CN_GPU
     if (algorithm == Algorithm::CN_GPU) {
-        return CpuThreads(threads());
+        return count;
     }
 #   endif
 
     if (algorithm.family() == Algorithm::CN_LITE || algorithm.family() == Algorithm::CN_PICO) {
-        return CpuThreads(threads());
+        return count;
     }
 
     if (algorithm.family() == Algorithm::CN_HEAVY) {
-        return CpuThreads(std::max<size_t>(threads() / 4, 1));
+        return std::max<size_t>(count / 4, 1);
     }
 
-    return CpuThreads(std::max<size_t>(threads() / 2, 1));
+    return std::max<size_t>(count / 2, 1);
 }

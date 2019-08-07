@@ -46,7 +46,7 @@
 namespace xmrig {
 
 
-extern template class Threads<CpuThread>;
+extern template class Threads<CpuThreads>;
 
 
 static const char *tag      = CYAN_BG_BOLD(" cpu ");
@@ -150,7 +150,7 @@ bool xmrig::CpuBackend::isEnabled() const
 
 bool xmrig::CpuBackend::isEnabled(const Algorithm &algorithm) const
 {
-    return !d_ptr->controller->config()->cpu().threads().get(algorithm).empty();
+    return !d_ptr->controller->config()->cpu().threads().get(algorithm).isEmpty();
 }
 
 

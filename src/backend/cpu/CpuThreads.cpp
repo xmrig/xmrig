@@ -22,40 +22,33 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CPUTHREAD_H
-#define XMRIG_CPUTHREAD_H
+
+#include "backend/cpu/CpuThreads.h"
+#include "rapidjson/document.h"
 
 
-#include "rapidjson/fwd.h"
-
-
-namespace xmrig {
-
-
-class CpuThread
+xmrig::CpuThreads::CpuThreads(const rapidjson::Value &value)
 {
-public:
-    inline constexpr CpuThread(int intensity = 1, int64_t affinity = -1) : m_intensity(intensity), m_affinity(affinity) {}
-
-    CpuThread(const rapidjson::Value &value);
-
-    inline bool isEqual(const CpuThread &other) const       { return other.m_affinity == m_affinity && other.m_intensity == m_intensity; }
-    inline bool isValid() const                             { return m_intensity >= 1 && m_intensity <= 5; }
-    inline int intensity() const                            { return m_intensity; }
-    inline int64_t affinity() const                         { return m_affinity; }
-
-    inline bool operator!=(const CpuThread &other) const    { return !isEqual(other); }
-    inline bool operator==(const CpuThread &other) const    { return isEqual(other); }
-
-    rapidjson::Value toJSON(rapidjson::Document &doc) const;
-
-private:
-    int m_intensity     = -1;
-    int64_t m_affinity  = -1;
-};
+    if (value.IsArray()) {
+        for (auto &v : value.GetArray()) {
+            CpuThread thread(v);
+            if (thread.isValid()) {
+                add(std::move(thread));
+            }
+        }
+    }
+}
 
 
-} /* namespace xmrig */
+rapidjson::Value xmrig::CpuThreads::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
 
+    Value array(kArrayType);
+    for (const CpuThread &thread : m_data) {
+        array.PushBack(thread.toJSON(doc), allocator);
+    }
 
-#endif /* XMRIG_CPUTHREAD_H */
+    return array;
+}

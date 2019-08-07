@@ -222,7 +222,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
         processTopLevelCache(cache, algorithm, threads);
     }
 
-    if (threads.empty()) {
+    if (threads.isEmpty()) {
         LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.shortName());
 
         return BasicCpuInfo::threads(algorithm);
@@ -286,7 +286,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         for (hwloc_obj_t core : cores) {
             const std::vector<hwloc_obj_t> units = findByType(core, HWLOC_OBJ_PU);
             for (hwloc_obj_t pu : units) {
-                threads.push_back(CpuThread(1, pu->os_index));
+                threads.add(pu->os_index);
             }
         }
 
@@ -307,7 +307,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
             PUs--;
 
             allocated_pu = true;
-            threads.push_back(CpuThread(1, units[pu_id]->os_index));
+            threads.add(units[pu_id]->os_index);
 
             if (cacheHashes == 0) {
                 break;
