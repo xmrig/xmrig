@@ -47,7 +47,7 @@ public:
     inline const std::vector<CpuThread> &data() const       { return m_data; }
     inline size_t count() const                             { return m_data.size(); }
     inline void add(CpuThread &&thread)                     { m_data.push_back(thread); }
-    inline void add(int64_t affinity, int intensity = 1)    { add(CpuThread(intensity, affinity)); }
+    inline void add(int64_t affinity, int intensity)        { add(CpuThread(affinity, intensity)); }
     inline void reserve(size_t capacity)                    { m_data.reserve(capacity); }
 
     rapidjson::Value toJSON(rapidjson::Document &doc) const;

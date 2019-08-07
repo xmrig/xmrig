@@ -28,25 +28,14 @@
 #include "rapidjson/document.h"
 
 
-namespace xmrig {
-
-
-static const char *kAffinity  = "affinity";
-static const char *kIntensity = "intensity";
-
-
-}
-
-
-
 xmrig::CpuThread::CpuThread(const rapidjson::Value &value)
 {
-    if (value.IsObject()) {
-        m_intensity = Json::getInt(value, kIntensity, -1);
-        m_affinity  = Json::getInt(value, kAffinity, -1);
+    if (value.IsArray() && value.Size() >= 2) {
+        m_intensity = value[0].GetInt();
+        m_affinity  = value[1].GetInt();
     }
     else if (value.IsInt()) {
-        m_intensity = 1;
+        m_intensity = -1;
         m_affinity  = value.GetInt();
     }
 }
@@ -55,17 +44,15 @@ xmrig::CpuThread::CpuThread(const rapidjson::Value &value)
 rapidjson::Value xmrig::CpuThread::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
-
-    if (intensity() > 1) {
-        auto &allocator = doc.GetAllocator();
-
-        Value obj(kObjectType);
-
-        obj.AddMember(StringRef(kIntensity),   m_intensity, allocator);
-        obj.AddMember(StringRef(kAffinity),    m_affinity, allocator);
-
-        return obj;
+    if (m_intensity == -1) {
+        return Value(m_affinity);
     }
 
-    return Value(m_affinity);
+    auto &allocator = doc.GetAllocator();
+
+    Value out(kArrayType);
+    out.PushBack(m_intensity, allocator);
+    out.PushBack(m_affinity, allocator);
+
+    return out;
 }
