@@ -102,6 +102,7 @@ public:
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
     inline operator Algorithm::Id() const                 { return m_id; }
 
+    int maxIntensity() const;
     rapidjson::Value toJSON() const;
     size_t memory() const;
 

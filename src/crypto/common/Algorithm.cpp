@@ -120,6 +120,24 @@ static AlgoName const algorithm_names[] = {
 } /* namespace xmrig */
 
 
+int xmrig::Algorithm::maxIntensity() const
+{
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (family() == RANDOM_X) {
+        return 1;
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    if (m_id == CN_GPU) {
+        return 1;
+    }
+#   endif
+
+    return 5;
+}
+
+
 rapidjson::Value xmrig::Algorithm::toJSON() const
 {
     using namespace rapidjson;

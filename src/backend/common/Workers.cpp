@@ -163,36 +163,16 @@ void xmrig::Workers<T>::onReady(void *arg)
 namespace xmrig {
 
 
-#if defined (XMRIG_ALGO_RANDOMX) || defined (XMRIG_ALGO_CN_GPU)
-static void printIntensityWarning(Thread<CpuLaunchData> *handle)
-{
-    LOG_WARN("CPU thread %zu warning: \"intensity %d not supported for %s algorithm\".", handle->index(), handle->config().intensity, handle->config().algorithm.shortName());
-}
-#endif
-
-
 template<>
 xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
 {
     const int intensity = handle->config().intensity;
 
-#   if defined (XMRIG_ALGO_RANDOMX) || defined (XMRIG_ALGO_CN_GPU)
-    if (intensity > 1) {
-#       ifdef XMRIG_ALGO_RANDOMX
-        if (handle->config().algorithm.family() == Algorithm::RANDOM_X) {
-            printIntensityWarning(handle);
+#   if defined(XMRIG_ALGO_RANDOMX) || defined(XMRIG_ALGO_CN_GPU)
+    if (intensity > handle->config().algorithm.maxIntensity()) {
+        LOG_WARN("CPU thread %zu warning: \"intensity %d not supported for %s algorithm\".", handle->index(), handle->config().intensity, handle->config().algorithm.shortName());
 
-            return new CpuWorker<1>(handle->index(), handle->config());
-        }
-#       endif
-
-#       ifdef XMRIG_ALGO_CN_GPU
-        if (handle->config().algorithm == Algorithm::CN_GPU) {
-            printIntensityWarning(handle);
-
-            return new CpuWorker<1>(handle->index(), handle->config());
-        }
-#       endif
+        return new CpuWorker<1>(handle->index(), handle->config());
     }
 #   endif
 
