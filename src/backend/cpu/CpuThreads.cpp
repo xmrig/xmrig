@@ -23,8 +23,64 @@
  */
 
 
+#include <algorithm>
+
+
 #include "backend/cpu/CpuThreads.h"
+#include "base/io/json/Json.h"
 #include "rapidjson/document.h"
+
+
+namespace xmrig {
+
+
+static const char *kAffinity    = "affinity";
+static const char *kIntensity   = "intensity";
+static const char *kThreads     = "threads";
+
+
+static inline int64_t getAffinityMask(const rapidjson::Value &value)
+{
+    if (value.IsInt64()) {
+        return value.GetInt64();
+    }
+
+    if (value.IsString()) {
+        const char *arg = value.GetString();
+        const char *p   = strstr(arg, "0x");
+
+        return p ? strtoll(p, nullptr, 16) : strtoll(arg, nullptr, 10);
+    }
+
+    return -1L;
+}
+
+
+static inline int64_t getAffinity(uint64_t index, int64_t affinity)
+{
+    if (affinity == -1L) {
+        return -1L;
+    }
+
+    size_t idx = 0;
+
+    for (size_t i = 0; i < 64; i++) {
+        if (!(static_cast<uint64_t>(affinity) & (1ULL << i))) {
+            continue;
+        }
+
+        if (idx == index) {
+            return static_cast<int64_t>(i);
+        }
+
+        idx++;
+    }
+
+    return -1L;
+}
+
+
+}
 
 
 xmrig::CpuThreads::CpuThreads(const rapidjson::Value &value)
@@ -37,6 +93,20 @@ xmrig::CpuThreads::CpuThreads(const rapidjson::Value &value)
             }
         }
     }
+    else if (value.IsObject()) {
+        int intensity        = Json::getInt(value, kIntensity, 1);
+        const size_t threads = std::min<unsigned>(Json::getUint(value, kThreads), 1024);
+        m_affinity           = getAffinityMask(Json::getValue(value, kAffinity));
+        m_format             = ObjectFormat;
+
+        if (intensity < 1 || intensity > 5) {
+            intensity = 1;
+        }
+
+        for (size_t i = 0; i < threads; ++i) {
+            add(getAffinity(i, m_affinity), intensity);
+        }
+    }
 }
 
 
@@ -45,10 +115,22 @@ rapidjson::Value xmrig::CpuThreads::toJSON(rapidjson::Document &doc) const
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
 
-    Value array(kArrayType);
-    for (const CpuThread &thread : m_data) {
-        array.PushBack(thread.toJSON(doc), allocator);
+    Value out;
+
+    if (m_format == ArrayFormat) {
+        out.SetArray();
+
+        for (const CpuThread &thread : m_data) {
+            out.PushBack(thread.toJSON(doc), allocator);
+        }
+    }
+    else {
+        out.SetObject();
+
+        out.AddMember(StringRef(kIntensity), m_data.empty() ? 1 : m_data.front().intensity(), allocator);
+        out.AddMember(StringRef(kThreads), static_cast<unsigned>(m_data.size()), allocator);
+        out.AddMember(StringRef(kAffinity), m_affinity, allocator);
     }
 
-    return array;
+    return out;
 }

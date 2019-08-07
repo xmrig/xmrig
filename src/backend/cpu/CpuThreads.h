@@ -53,6 +53,13 @@ public:
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 private:
+    enum Format {
+        ArrayFormat,
+        ObjectFormat
+    };
+
+    Format m_format     = ArrayFormat;
+    int64_t m_affinity  = -1;
     std::vector<CpuThread> m_data;
 };
 

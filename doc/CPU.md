@@ -9,6 +9,7 @@ Example below demonstrate all primary ideas of flexible profiles configuration:
 * `"rx/wow"` Exact match to algorithm `rx/wow`, defined 4 threads without CPU affinity.
 * `"cn"` Default failback profile for all `cn/*` algorithms, defined 2 threads with CPU affinity, another failback profiles is `cn-lite`, `cn-heavy` and `rx`.
 * `"cn-lite"` Default failback profile for all `cn-lite/*` algorithms, defined 2 double threads with CPU affinity.
+* `"cn-pico"` Alternative short object format, since 2.99.5.
 * `"custom-profile"` Custom user defined profile.
 * `"*"` Failback profile for all unhandled by other profiles algorithms.
 * `"cn/r"` Exact match, alias to profile `custom-profile`.
@@ -34,6 +35,11 @@ Example below demonstrate all primary ideas of flexible profiles configuration:
                 "affinity": 2
             }
         ],
+        "cn-pico": {
+            "intensity": 2,
+            "threads": 8,
+            "affinity": -1
+        },
         "custom-profile": [0, 2],
         "*": [-1],
         "cn/r": "custom-profile",

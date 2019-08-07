@@ -55,7 +55,7 @@ size_t xmrig::Threads<T>::read(const rapidjson::Value &value)
     using namespace rapidjson;
 
     for (auto &member : value.GetObject()) {
-        if (member.value.IsArray()) {
+        if (member.value.IsArray() || member.value.IsObject()) {
             T threads(member.value);
 
             if (!threads.isEmpty()) {
