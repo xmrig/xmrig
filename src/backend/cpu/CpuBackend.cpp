@@ -23,7 +23,7 @@
  */
 
 
-#include <uv.h>
+#include <mutex>
 
 
 #include "backend/common/Hashrate.h"
@@ -83,13 +83,6 @@ public:
     inline CpuBackendPrivate(Controller *controller) :
         controller(controller)
     {
-        uv_mutex_init(&mutex);
-    }
-
-
-    inline ~CpuBackendPrivate()
-    {
-        uv_mutex_destroy(&mutex);
     }
 
 
@@ -119,9 +112,9 @@ public:
     Algorithm algo;
     Controller *controller;
     LaunchStatus status;
+    std::mutex mutex;
     std::vector<CpuLaunchData> threads;
     String profileName;
-    uv_mutex_t mutex;
     Workers<CpuLaunchData> workers;
 };
 
@@ -233,7 +226,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
 void xmrig::CpuBackend::start(IWorker *worker)
 {
-    uv_mutex_lock(&d_ptr->mutex);
+    d_ptr->mutex.lock();
 
     const auto pages = worker->memory()->hugePages();
 
@@ -254,7 +247,7 @@ void xmrig::CpuBackend::start(IWorker *worker)
                  );
     }
 
-    uv_mutex_unlock(&d_ptr->mutex);
+    d_ptr->mutex.unlock();
 
     worker->start();
 }
@@ -299,10 +292,10 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("asm", false, allocator);
 #   endif
 
-    uv_mutex_lock(&d_ptr->mutex);
+    d_ptr->mutex.lock();
     uint64_t pages[2] = { d_ptr->status.hugePages, d_ptr->status.pages };
     const size_t ways = d_ptr->status.ways;
-    uv_mutex_unlock(&d_ptr->mutex);
+    d_ptr->mutex.unlock();
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
