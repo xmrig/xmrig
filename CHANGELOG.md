@@ -3,6 +3,7 @@
 - [#1092](https://github.com/xmrig/xmrig/issues/1092) Fixed crash if wrong CPU affinity used.
 - [#1103](https://github.com/xmrig/xmrig/issues/1103) Improved auto configuration for RandomX for CPUs where L2 cache is limiting factor.
 - [#1105](https://github.com/xmrig/xmrig/issues/1105) Improved auto configuration for `cn-pico` algorithm.
+- [#1106](https://github.com/xmrig/xmrig/issues/1106) Fixed `hugepages` field in summary API. 
 - Added alternative short format for CPU threads.
 - Changed format for CPU threads with intensity above 1.
 
