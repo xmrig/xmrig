@@ -109,6 +109,14 @@ public:
     }
 
 
+    size_t ways()
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        return status.ways;
+    }
+
+
     Algorithm algo;
     Controller *controller;
     LaunchStatus status;
@@ -132,6 +140,25 @@ xmrig::CpuBackend::CpuBackend(Controller *controller) :
 xmrig::CpuBackend::~CpuBackend()
 {
     delete d_ptr;
+}
+
+
+std::pair<size_t, size_t> xmrig::CpuBackend::hugePages() const
+{
+    std::pair<size_t, size_t> pages(0, 0);
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
+        pages = Rx::hugePages();
+    }
+#   endif
+
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
+
+    pages.first  += d_ptr->status.hugePages;
+    pages.second += d_ptr->status.pages;
+
+    return pages;
 }
 
 
@@ -292,25 +319,14 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("asm", false, allocator);
 #   endif
 
-    d_ptr->mutex.lock();
-    uint64_t pages[2] = { d_ptr->status.hugePages, d_ptr->status.pages };
-    const size_t ways = d_ptr->status.ways;
-    d_ptr->mutex.unlock();
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
-        const auto rxPages = Rx::hugePages();
-        pages[0] += rxPages.first;
-        pages[1] += rxPages.second;
-    }
-#   endif
+    const auto pages = hugePages();
 
     rapidjson::Value hugepages(rapidjson::kArrayType);
-    hugepages.PushBack(pages[0], allocator);
-    hugepages.PushBack(pages[1], allocator);
+    hugepages.PushBack(pages.first, allocator);
+    hugepages.PushBack(pages.second, allocator);
 
     out.AddMember("hugepages", hugepages, allocator);
-    out.AddMember("memory",    static_cast<uint64_t>(d_ptr->algo.isValid() ? (ways * d_ptr->algo.l3()) : 0), allocator);
+    out.AddMember("memory",    static_cast<uint64_t>(d_ptr->algo.isValid() ? (d_ptr->ways() * d_ptr->algo.l3()) : 0), allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
         return out;

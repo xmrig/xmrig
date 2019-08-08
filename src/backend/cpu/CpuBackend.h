@@ -26,6 +26,9 @@
 #define XMRIG_CPUBACKEND_H
 
 
+#include <utility>
+
+
 #include "backend/common/interfaces/IBackend.h"
 
 
@@ -42,6 +45,8 @@ class CpuBackend : public IBackend
 public:
     CpuBackend(Controller *controller);
     ~CpuBackend() override;
+
+    std::pair<size_t, size_t> hugePages() const;
 
 protected:
     bool isEnabled() const override;
