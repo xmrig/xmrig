@@ -104,7 +104,8 @@ public:
 
     int maxIntensity() const;
     rapidjson::Value toJSON() const;
-    size_t memory() const;
+    size_t l2() const;
+    size_t l3() const;
 
     static Family family(Id id);
     static Id parse(const char *name);

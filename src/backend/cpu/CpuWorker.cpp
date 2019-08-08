@@ -62,7 +62,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t index, const CpuLaunchData &data) :
     m_miner(data.miner),
     m_ctx()
 {
-    m_memory = new VirtualMemory(m_algorithm.memory() * N, data.hugePages);
+    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages);
 }
 
 
@@ -184,7 +184,7 @@ void xmrig::CpuWorker<N>::start()
 
             const Job &job = m_job.currentJob();
 
-            if (job.algorithm().memory() != m_algorithm.memory()) {
+            if (job.algorithm().l3() != m_algorithm.l3()) {
                 break;
             }
 
@@ -283,7 +283,7 @@ template<size_t N>
 void xmrig::CpuWorker<N>::allocateCnCtx()
 {
     if (m_ctx[0] == nullptr) {
-        CnCtx::create(m_ctx, m_memory->scratchpad(), m_algorithm.memory(), N);
+        CnCtx::create(m_ctx, m_memory->scratchpad(), m_algorithm.l3(), N);
     }
 }
 

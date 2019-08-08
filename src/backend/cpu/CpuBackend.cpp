@@ -99,13 +99,13 @@ public:
                  tag,
                  profileName.data(),
                  threads.size(),
-                 algo.memory() / 1024
+                 algo.l3() / 1024
                  );
 
         workers.stop();
 
         status.reset();
-        status.memory   = algo.memory();
+        status.memory   = algo.l3();
         status.threads  = threads.size();
 
         for (const CpuLaunchData &data : threads) {
@@ -317,7 +317,7 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     hugepages.PushBack(pages[1], allocator);
 
     out.AddMember("hugepages", hugepages, allocator);
-    out.AddMember("memory",    static_cast<uint64_t>(d_ptr->algo.isValid() ? (ways * d_ptr->algo.memory()) : 0), allocator);
+    out.AddMember("memory",    static_cast<uint64_t>(d_ptr->algo.isValid() ? (ways * d_ptr->algo.l3()) : 0), allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
         return out;

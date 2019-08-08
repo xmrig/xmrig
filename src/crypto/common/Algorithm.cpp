@@ -146,7 +146,27 @@ rapidjson::Value xmrig::Algorithm::toJSON() const
 }
 
 
-size_t xmrig::Algorithm::memory() const
+size_t xmrig::Algorithm::l2() const
+{
+#   ifdef XMRIG_ALGO_RANDOMX
+    switch (m_id) {
+    case RX_0:
+    case RX_LOKI:
+        return 0x40000;
+
+    case RX_WOW:
+        return 0x20000;
+
+    default:
+        break;
+    }
+#   endif
+
+    return 0;
+}
+
+
+size_t xmrig::Algorithm::l3() const
 {
     const Family f = family();
     assert(f != UNKNOWN);

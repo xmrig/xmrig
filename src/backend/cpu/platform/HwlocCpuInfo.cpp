@@ -249,7 +249,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     size_t L2               = 0;
     int L2_associativity    = 0;
     size_t extra            = 0;
-    const size_t scratchpad = algorithm.memory();
+    const size_t scratchpad = algorithm.l3();
     int intensity           = algorithm.maxIntensity() == 1 ? -1 : 1;
 
     if (cache->attr->cache.depth == 3 && isCacheExclusive(cache)) {
