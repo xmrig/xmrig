@@ -26,7 +26,7 @@
 #define XMRIG_CPUINFO_H
 
 
-#include "backend/cpu/CpuThread.h"
+#include "backend/cpu/CpuThreads.h"
 #include "crypto/common/Assembly.h"
 #include "crypto/common/Algorithm.h"
 

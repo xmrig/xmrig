@@ -51,16 +51,18 @@ public:
     inline bool isJIT() const               { return m_flags & 8; }
     inline const uint8_t *seed() const      { return m_seed; }
     inline randomx_cache *get() const       { return m_cache; }
+    inline uint64_t initCount() const       { return m_initCount; }
 
-    bool init(const void *seed);
+    bool init(const uint8_t *seed);
 
     static inline constexpr size_t size() { return RANDOMX_CACHE_MAX_SIZE; }
 
 private:
-    bool isReady(const void *seed) const;
+    bool isReady(const uint8_t *seed) const;
 
     int m_flags            = 0;
     randomx_cache *m_cache = nullptr;
+    uint64_t m_initCount   = 0;
     uint8_t m_seed[32];
 };
 

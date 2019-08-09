@@ -45,18 +45,18 @@ public:
     inline bool has(const char *profile) const                                         { return m_profiles.count(profile) > 0; }
     inline bool isDisabled(const Algorithm &algo) const                                { return m_disabled.count(algo) > 0; }
     inline bool isExist(const Algorithm &algo) const                                   { return isDisabled(algo) || m_aliases.count(algo) > 0 || has(algo.shortName()); }
-    inline const std::vector<T> &get(const Algorithm &algo, bool strict = false) const { return get(profileName(algo, strict)); }
+    inline const T &get(const Algorithm &algo, bool strict = false) const              { return get(profileName(algo, strict)); }
     inline void disable(const Algorithm &algo)                                         { m_disabled.insert(algo); }
-    inline void move(const char *profile, std::vector<T> &&threads)                    { m_profiles.insert({ profile, threads }); }
+    inline void move(const char *profile, T &&threads)                                 { m_profiles.insert({ profile, threads }); }
 
-    const std::vector<T> &get(const String &profileName) const;
+    const T &get(const String &profileName) const;
     size_t read(const rapidjson::Value &value);
     String profileName(const Algorithm &algorithm, bool strict = false) const;
     void toJSON(rapidjson::Value &out, rapidjson::Document &doc) const;
 
 private:
     std::map<Algorithm, String> m_aliases;
-    std::map<String, std::vector<T> > m_profiles;
+    std::map<String, T> m_profiles;
     std::set<Algorithm> m_disabled;
 };
 

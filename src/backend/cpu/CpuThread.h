@@ -22,11 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CPUTHREADCONFIG_H
-#define XMRIG_CPUTHREADCONFIG_H
-
-
-#include <vector>
+#ifndef XMRIG_CPUTHREAD_H
+#define XMRIG_CPUTHREAD_H
 
 
 #include "rapidjson/fwd.h"
@@ -38,13 +35,14 @@ namespace xmrig {
 class CpuThread
 {
 public:
-    inline constexpr CpuThread(int intensity = 1, int64_t affinity = -1) : m_intensity(intensity), m_affinity(affinity) {}
+    inline constexpr CpuThread() {}
+    inline constexpr CpuThread(int64_t affinity, int intensity) : m_intensity(intensity), m_affinity(affinity) {}
 
     CpuThread(const rapidjson::Value &value);
 
     inline bool isEqual(const CpuThread &other) const       { return other.m_affinity == m_affinity && other.m_intensity == m_intensity; }
-    inline bool isValid() const                             { return m_intensity >= 1 && m_intensity <= 5; }
-    inline int intensity() const                            { return m_intensity; }
+    inline bool isValid() const                             { return m_intensity == -1 || (m_intensity >= 1 && m_intensity <= 5); }
+    inline int intensity() const                            { return m_intensity == -1 ? 1 : m_intensity; }
     inline int64_t affinity() const                         { return m_affinity; }
 
     inline bool operator!=(const CpuThread &other) const    { return !isEqual(other); }
@@ -58,10 +56,7 @@ private:
 };
 
 
-typedef std::vector<CpuThread> CpuThreads;
-
-
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CPUTHREADCONFIG_H */
+#endif /* XMRIG_CPUTHREAD_H */

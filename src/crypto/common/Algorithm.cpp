@@ -107,6 +107,8 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO_0       },
 #   endif
 #   ifdef XMRIG_ALGO_RANDOMX
+    { "randomx/test",              "rx/test",          Algorithm::RX_0            },
+    { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
     { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
     { "RandomX",                   "rx",               Algorithm::RX_0            },
     { "randomx/wow",               "rx/wow",           Algorithm::RX_WOW          },
@@ -120,6 +122,24 @@ static AlgoName const algorithm_names[] = {
 } /* namespace xmrig */
 
 
+int xmrig::Algorithm::maxIntensity() const
+{
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (family() == RANDOM_X) {
+        return 1;
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    if (m_id == CN_GPU) {
+        return 1;
+    }
+#   endif
+
+    return 5;
+}
+
+
 rapidjson::Value xmrig::Algorithm::toJSON() const
 {
     using namespace rapidjson;
@@ -128,7 +148,27 @@ rapidjson::Value xmrig::Algorithm::toJSON() const
 }
 
 
-size_t xmrig::Algorithm::memory() const
+size_t xmrig::Algorithm::l2() const
+{
+#   ifdef XMRIG_ALGO_RANDOMX
+    switch (m_id) {
+    case RX_0:
+    case RX_LOKI:
+        return 0x40000;
+
+    case RX_WOW:
+        return 0x20000;
+
+    default:
+        break;
+    }
+#   endif
+
+    return 0;
+}
+
+
+size_t xmrig::Algorithm::l3() const
 {
     const Family f = family();
     assert(f != UNKNOWN);

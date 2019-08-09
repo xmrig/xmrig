@@ -145,10 +145,24 @@ public:
         reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
         reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
 
-        if (version == 1) {
-            reply.AddMember("hugepages", false, allocator);
+        Value hugepages;
+
+        if (!backends.empty() && backends.front()->type() == "cpu") {
+            const auto pages = static_cast<CpuBackend *>(backends.front())->hugePages();
+            if (version > 1) {
+                hugepages.SetArray();
+                hugepages.PushBack(pages.first, allocator);
+                hugepages.PushBack(pages.second, allocator);
+            }
+            else {
+                hugepages = pages.first == pages.second;
+            }
+        }
+        else {
+            hugepages = false;
         }
 
+        reply.AddMember("hugepages",    hugepages, allocator);
         reply.AddMember("donate_level", controller->config()->pools().donateLevel(), allocator);
 
         Value algo(kArrayType);

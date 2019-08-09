@@ -25,6 +25,7 @@
 
 #include <assert.h>
 #include <list>
+#include <mutex>
 #include <uv.h>
 
 
@@ -40,75 +41,65 @@ namespace xmrig {
 class JobResultsPrivate
 {
 public:
-    inline JobResultsPrivate()
+    inline JobResultsPrivate(IJobResultListener *listener) :
+        listener(listener)
     {
-        uv_mutex_init(&m_mutex);
+        async = new uv_async_t;
+        async->data = this;
 
-        m_async = new uv_async_t;
-        m_async->data = this;
-
-        uv_async_init(uv_default_loop(), m_async, JobResultsPrivate::onResult);
+        uv_async_init(uv_default_loop(), async, JobResultsPrivate::onResult);
     }
 
 
     inline ~JobResultsPrivate()
     {
-        Handle::close(m_async);
-
-        uv_mutex_destroy(&m_mutex);
-    }
-
-
-    void setListener(IJobResultListener *listener)
-    {
-        m_listener = listener;
+        Handle::close(async);
     }
 
 
     void submit(const JobResult &result)
     {
-        uv_mutex_lock(&m_mutex);
-        m_queue.push_back(result);
-        uv_mutex_unlock(&m_mutex);
+        mutex.lock();
+        queue.push_back(result);
+        mutex.unlock();
 
-        uv_async_send(m_async);
+        uv_async_send(async);
     }
 
 
 private:
-    static void onResult(uv_async_t *handle)
-    {
-        static_cast<JobResultsPrivate*>(handle->data)->submit();
-    }
+    static void onResult(uv_async_t *handle) { static_cast<JobResultsPrivate*>(handle->data)->submit(); }
 
 
     inline void submit()
     {
         std::list<JobResult> results;
 
-        uv_mutex_lock(&m_mutex);
-        while (!m_queue.empty()) {
-            results.push_back(std::move(m_queue.front()));
-            m_queue.pop_front();
+        mutex.lock();
+
+        while (!queue.empty()) {
+            results.push_back(std::move(queue.front()));
+            queue.pop_front();
         }
-        uv_mutex_unlock(&m_mutex);
+
+        mutex.unlock();
 
         for (auto result : results) {
-            m_listener->onJobResult(result);
+            listener->onJobResult(result);
         }
 
         results.clear();
     }
 
 
-    IJobResultListener *m_listener = nullptr;
-    std::list<JobResult> m_queue;
-    uv_async_t *m_async;
-    uv_mutex_t m_mutex;
+    IJobResultListener *listener;
+    std::list<JobResult> queue;
+    std::mutex mutex;
+    uv_async_t *async;
 };
 
 
-static JobResultsPrivate *handler = new JobResultsPrivate();
+static JobResultsPrivate *handler = nullptr;
 
 
 } // namespace xmrig
@@ -117,14 +108,16 @@ static JobResultsPrivate *handler = new JobResultsPrivate();
 
 void xmrig::JobResults::setListener(IJobResultListener *listener)
 {
-    assert(handler != nullptr && listener != nullptr);
+    assert(handler == nullptr);
 
-    handler->setListener(listener);
+    handler = new JobResultsPrivate(listener);
 }
 
 
 void xmrig::JobResults::stop()
 {
+    assert(handler != nullptr);
+
     delete handler;
 
     handler = nullptr;

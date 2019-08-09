@@ -174,6 +174,13 @@ void xmrig::Job::copy(const Job &other)
     m_target    = other.m_target;
     m_index     = other.m_index;
 
-    memcpy(m_blob, other.m_blob, sizeof (m_blob));
+    memcpy(m_blob, other.m_blob, sizeof(m_blob));
     memcpy(m_seedHash, other.m_seedHash, sizeof(m_seedHash));
+
+#   ifdef XMRIG_PROXY_PROJECT
+    m_rawSeedHash = other.m_rawSeedHash;
+
+    memcpy(m_rawBlob, other.m_rawBlob, sizeof(m_rawBlob));
+    memcpy(m_rawTarget, other.m_rawTarget, sizeof(m_rawTarget));
+#   endif
 }

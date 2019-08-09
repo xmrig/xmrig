@@ -112,7 +112,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
 xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) const
 {
     if (threads() == 1) {
-        return CpuThreads(1);
+        return 1;
     }
 
 #   ifdef XMRIG_ALGO_CN_GPU
@@ -132,7 +132,7 @@ xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) co
     }
 
     if (cache) {
-        const size_t memory = algorithm.memory();
+        const size_t memory = algorithm.l3();
         assert(memory > 0);
 
         count = cache / memory;
@@ -145,5 +145,13 @@ xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) co
         count = threads() / 2;
     }
 
-    return CpuThreads(std::max<size_t>(std::min<size_t>(count, threads()), 1));
+    int intensity = algorithm.maxIntensity() == 1 ? -1 : 1;
+
+#   ifdef XMRIG_ALGO_CN_PICO
+    if (algorithm == Algorithm::CN_PICO_0 && (count / cores()) >= 2) {
+        intensity = 2;
+    }
+#   endif
+
+    return CpuThreads(std::max<size_t>(std::min<size_t>(count, threads()), 1), intensity);
 }

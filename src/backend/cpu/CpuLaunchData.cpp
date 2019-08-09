@@ -43,7 +43,7 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
 
 bool xmrig::CpuLaunchData::isEqual(const CpuLaunchData &other) const
 {
-    return (algorithm.memory()  == other.algorithm.memory()
+    return (algorithm.l3()      == other.algorithm.l3()
             && assembly         == other.assembly
             && hugePages        == other.hugePages
             && hwAES            == other.hwAES

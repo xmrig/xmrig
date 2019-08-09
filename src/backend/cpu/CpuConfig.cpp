@@ -62,7 +62,7 @@ static const char *kRx    = "rx";
 static const char *kRxWOW = "rx/wow";
 #endif
 
-extern template class Threads<CpuThread>;
+extern template class Threads<CpuThreads>;
 
 }
 
@@ -103,15 +103,15 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, const Algorithm &algorithm) const
 {
     std::vector<CpuLaunchData> out;
-    const std::vector<CpuThread> &threads = m_threads.get(algorithm);
+    const CpuThreads &threads = m_threads.get(algorithm);
 
-    if (threads.empty()) {
+    if (threads.isEmpty()) {
         return out;
     }
 
-    out.reserve(threads.size());
+    out.reserve(threads.count());
 
-    for (const CpuThread &thread : threads) {
+    for (const CpuThread &thread : threads.data()) {
         out.push_back(CpuLaunchData(miner, algorithm, *this, thread));
     }
 
@@ -147,31 +147,32 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 
 void xmrig::CpuConfig::generate()
 {
-    m_shouldSave = true;
+    m_shouldSave  = true;
+    ICpuInfo *cpu = Cpu::info();
 
     m_threads.disable(Algorithm::CN_0);
-    m_threads.move(kCn, Cpu::info()->threads(Algorithm::CN_0));
+    m_threads.move(kCn, cpu->threads(Algorithm::CN_0));
 
 #   ifdef XMRIG_ALGO_CN_GPU
-    m_threads.move(kCnGPU, Cpu::info()->threads(Algorithm::CN_GPU));
+    m_threads.move(kCnGPU, cpu->threads(Algorithm::CN_GPU));
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
     m_threads.disable(Algorithm::CN_LITE_0);
-    m_threads.move(kCnLite, Cpu::info()->threads(Algorithm::CN_LITE_1));
+    m_threads.move(kCnLite, cpu->threads(Algorithm::CN_LITE_1));
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_HEAVY
-    m_threads.move(kCnHeavy, Cpu::info()->threads(Algorithm::CN_HEAVY_0));
+    m_threads.move(kCnHeavy, cpu->threads(Algorithm::CN_HEAVY_0));
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_PICO
-    m_threads.move(kCnPico, Cpu::info()->threads(Algorithm::CN_PICO_0));
+    m_threads.move(kCnPico, cpu->threads(Algorithm::CN_PICO_0));
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    m_threads.move(kRx, Cpu::info()->threads(Algorithm::RX_0));
-    m_threads.move(kRxWOW, Cpu::info()->threads(Algorithm::RX_WOW));
+    m_threads.move(kRx, cpu->threads(Algorithm::RX_0));
+    m_threads.move(kRxWOW, cpu->threads(Algorithm::RX_WOW));
 #   endif
 }
 

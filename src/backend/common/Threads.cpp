@@ -24,7 +24,7 @@
 
 
 #include "backend/common/Threads.h"
-#include "backend/cpu/CpuThread.h"
+#include "backend/cpu/CpuThreads.h"
 #include "rapidjson/document.h"
 
 
@@ -38,9 +38,9 @@ static const char *kAsterisk = "*";
 
 
 template <class T>
-const std::vector<T> &xmrig::Threads<T>::get(const String &profileName) const
+const T &xmrig::Threads<T>::get(const String &profileName) const
 {
-    static std::vector<T> empty;
+    static T empty;
     if (profileName.isNull() || !has(profileName)) {
         return empty;
     }
@@ -55,17 +55,10 @@ size_t xmrig::Threads<T>::read(const rapidjson::Value &value)
     using namespace rapidjson;
 
     for (auto &member : value.GetObject()) {
-        if (member.value.IsArray()) {
-            std::vector<T> threads;
+        if (member.value.IsArray() || member.value.IsObject()) {
+            T threads(member.value);
 
-            for (auto &v : member.value.GetArray()) {
-                T thread(v);
-                if (thread.isValid()) {
-                    threads.push_back(std::move(thread));
-                }
-            }
-
-            if (!threads.empty()) {
+            if (!threads.isEmpty()) {
                 move(member.name.GetString(), std::move(threads));
             }
 
@@ -138,13 +131,7 @@ void xmrig::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) 
     auto &allocator = doc.GetAllocator();
 
     for (const auto &kv : m_profiles) {
-        Value arr(kArrayType);
-
-        for (const T &thread : kv.second) {
-            arr.PushBack(thread.toJSON(doc), allocator);
-        }
-
-        out.AddMember(kv.first.toJSON(), arr, allocator);
+        out.AddMember(kv.first.toJSON(), kv.second.toJSON(doc), allocator);
     }
 
     for (const Algorithm &algo : m_disabled) {
@@ -159,6 +146,6 @@ void xmrig::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) 
 
 namespace xmrig {
 
-template class Threads<CpuThread>;
+template class Threads<CpuThreads>;
 
 } // namespace xmrig

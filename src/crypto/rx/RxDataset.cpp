@@ -64,7 +64,7 @@ xmrig::RxDataset::~RxDataset()
 }
 
 
-bool xmrig::RxDataset::init(const void *seed, uint32_t numThreads)
+bool xmrig::RxDataset::init(const uint8_t *seed, uint32_t numThreads)
 {
     cache()->init(seed);
 

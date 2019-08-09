@@ -44,6 +44,7 @@ Since version 3 mining [algorithm](#algorithm-names) should specified for each p
 | `cn-heavy/xhv`  |   4 MB | CryptoNight-Heavy (modified, TUBE only).                                             |
 | `cn-heavy/tube` |   4 MB | CryptoNight-Heavy (modified, Haven Protocol only).                                   |
 | `cn-pico`       | 256 KB | TurtleCoin (TRTL)                                                                    |
+| `rx/test`       |   2 MB | RandomX (reference configuration).                                                   |
 | `rx/0`          |   2 MB | RandomX (reference configuration), reserved for future use.                          |
 | `rx/wow`        |   1 MB | RandomWOW (Wownero).                                                                 |
 | `rx/loki`       |   2 MB | RandomXL (Loki).                                                                     |

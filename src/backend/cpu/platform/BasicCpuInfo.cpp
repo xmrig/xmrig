@@ -182,23 +182,45 @@ const char *xmrig::BasicCpuInfo::backend() const
 
 xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
 {
-    if (threads() == 1) {
-        return CpuThreads(1);
+    const size_t count = std::thread::hardware_concurrency();
+
+    if (count == 1) {
+        return 1;
     }
 
 #   ifdef XMRIG_ALGO_CN_GPU
     if (algorithm == Algorithm::CN_GPU) {
-        return CpuThreads(threads());
+        return count;
     }
 #   endif
 
-    if (algorithm.family() == Algorithm::CN_LITE || algorithm.family() == Algorithm::CN_PICO) {
-        return CpuThreads(threads());
+#   ifdef XMRIG_ALGO_CN_LITE
+    if (algorithm.family() == Algorithm::CN_LITE) {
+        return CpuThreads(count, 1);
     }
+#   endif
 
+#   ifdef XMRIG_ALGO_CN_PICO
+    if (algorithm.family() == Algorithm::CN_PICO) {
+        return CpuThreads(count, 2);
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
     if (algorithm.family() == Algorithm::CN_HEAVY) {
-        return CpuThreads(std::max<size_t>(threads() / 4, 1));
+        return CpuThreads(std::max<size_t>(count / 4, 1), 1);
     }
+#   endif
 
-    return CpuThreads(std::max<size_t>(threads() / 2, 1));
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (algorithm.family() == Algorithm::RANDOM_X) {
+        if (algorithm == Algorithm::RX_WOW) {
+            return count;
+        }
+
+        return std::max<size_t>(count / 2, 1);
+    }
+#   endif
+
+    return CpuThreads(std::max<size_t>(count / 2, 1), 1);
 }

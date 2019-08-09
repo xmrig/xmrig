@@ -56,6 +56,8 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
 
     rapidjson::OStreamWrapper osw(ofs);
     rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(osw);
+    writer.SetFormatOptions(rapidjson::kFormatSingleLineArray);
+
     doc.Accept(writer);
 
     return true;

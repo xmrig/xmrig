@@ -80,6 +80,8 @@ void xmrig::HttpApiResponse::end()
     StringBuffer buffer(nullptr, 4096);
     PrettyWriter<StringBuffer> writer(buffer);
     writer.SetMaxDecimalPlaces(10);
+    writer.SetFormatOptions(kFormatSingleLineArray);
+
     m_doc.Accept(writer);
 
     HttpResponse::end(buffer.GetString(), buffer.GetSize());
