@@ -6,6 +6,7 @@
 - [#1106](https://github.com/xmrig/xmrig/issues/1106) Fixed `hugepages` field in summary API. 
 - Added alternative short format for CPU threads.
 - Changed format for CPU threads with intensity above 1.
+- Name for reference RandomX configuration changed to `rx/text` to avoid potential conflicts in future.
 
 # v2.99.4-beta
 - [#1062](https://github.com/xmrig/xmrig/issues/1062) Fixed 32 bit support. **32 bit is slow and deprecated**.
