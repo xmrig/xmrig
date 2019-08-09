@@ -42,6 +42,7 @@ public:
     inline CpuThreads(size_t count) : m_data(count) {}
 
     CpuThreads(const rapidjson::Value &value);
+    CpuThreads(size_t count, int intensity);
 
     inline bool isEmpty() const                             { return m_data.empty(); }
     inline const std::vector<CpuThread> &data() const       { return m_data; }

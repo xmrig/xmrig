@@ -194,13 +194,33 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
     }
 #   endif
 
-    if (algorithm.family() == Algorithm::CN_LITE || algorithm.family() == Algorithm::CN_PICO) {
-        return count;
+#   ifdef XMRIG_ALGO_CN_LITE
+    if (algorithm.family() == Algorithm::CN_LITE) {
+        return CpuThreads(count, 1);
     }
+#   endif
 
+#   ifdef XMRIG_ALGO_CN_PICO
+    if (algorithm.family() == Algorithm::CN_PICO) {
+        return CpuThreads(count, 2);
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
     if (algorithm.family() == Algorithm::CN_HEAVY) {
-        return std::max<size_t>(count / 4, 1);
+        return CpuThreads(std::max<size_t>(count / 4, 1), 1);
     }
+#   endif
 
-    return std::max<size_t>(count / 2, 1);
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (algorithm.family() == Algorithm::RANDOM_X) {
+        if (algorithm == Algorithm::RX_WOW) {
+            return count;
+        }
+
+        return std::max<size_t>(count / 2, 1);
+    }
+#   endif
+
+    return CpuThreads(std::max<size_t>(count / 2, 1), 1);
 }

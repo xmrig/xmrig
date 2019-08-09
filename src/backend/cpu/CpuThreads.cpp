@@ -110,6 +110,16 @@ xmrig::CpuThreads::CpuThreads(const rapidjson::Value &value)
 }
 
 
+xmrig::CpuThreads::CpuThreads(size_t count, int intensity)
+{
+    m_data.reserve(count);
+
+    for (size_t i = 0; i < count; ++i) {
+        add(-1, intensity);
+    }
+}
+
+
 rapidjson::Value xmrig::CpuThreads::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
