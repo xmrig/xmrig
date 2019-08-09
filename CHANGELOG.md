@@ -1,3 +1,13 @@
+# v2.99.5-beta
+- [#1066](https://github.com/xmrig/xmrig/issues/1066#issuecomment-518080529) Fixed crash and added error message if pool not ready for RandomX.
+- [#1092](https://github.com/xmrig/xmrig/issues/1092) Fixed crash if wrong CPU affinity used.
+- [#1103](https://github.com/xmrig/xmrig/issues/1103) Improved auto configuration for RandomX for CPUs where L2 cache is limiting factor.
+- [#1105](https://github.com/xmrig/xmrig/issues/1105) Improved auto configuration for `cn-pico` algorithm.
+- [#1106](https://github.com/xmrig/xmrig/issues/1106) Fixed `hugepages` field in summary API. 
+- Added alternative short format for CPU threads.
+- Changed format for CPU threads with intensity above 1.
+- Name for reference RandomX configuration changed to `rx/text` to avoid potential conflicts in future.
+
 # v2.99.4-beta
 - [#1062](https://github.com/xmrig/xmrig/issues/1062) Fixed 32 bit support. **32 bit is slow and deprecated**.
 - [#1088](https://github.com/xmrig/xmrig/pull/1088) Fixed macOS compilation.

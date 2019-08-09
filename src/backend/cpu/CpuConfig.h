@@ -28,7 +28,7 @@
 
 #include "backend/common/Threads.h"
 #include "backend/cpu/CpuLaunchData.h"
-#include "backend/cpu/CpuThread.h"
+#include "backend/cpu/CpuThreads.h"
 #include "crypto/common/Assembly.h"
 
 
@@ -51,12 +51,12 @@ public:
     std::vector<CpuLaunchData> get(const Miner *miner, const Algorithm &algorithm) const;
     void read(const rapidjson::Value &value);
 
-    inline bool isEnabled() const                    { return m_enabled; }
-    inline bool isHugePages() const                  { return m_hugePages; }
-    inline bool isShouldSave() const                 { return m_shouldSave; }
-    inline const Assembly &assembly() const          { return m_assembly; }
-    inline const Threads<CpuThread> &threads() const { return m_threads; }
-    inline int priority() const                      { return m_priority; }
+    inline bool isEnabled() const                       { return m_enabled; }
+    inline bool isHugePages() const                     { return m_hugePages; }
+    inline bool isShouldSave() const                    { return m_shouldSave; }
+    inline const Assembly &assembly() const             { return m_assembly; }
+    inline const Threads<CpuThreads> &threads() const   { return m_threads; }
+    inline int priority() const                         { return m_priority; }
 
 private:
     void generate();
@@ -70,7 +70,7 @@ private:
     bool m_hugePages     = true;
     bool m_shouldSave    = false;
     int m_priority       = -1;
-    Threads<CpuThread> m_threads;
+    Threads<CpuThreads> m_threads;
 };
 
 

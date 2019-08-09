@@ -335,13 +335,19 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         job.setAlgorithm(algo);
     }
 
-    job.setSeedHash(Json::getString(params, "seed_hash"));
     job.setHeight(Json::getUint64(params, "height"));
 
     if (!verifyAlgorithm(job.algorithm(), algo)) {
         *code = 6;
+        return false;
+    }
 
-        close();
+    if (job.algorithm().family() == Algorithm::RANDOM_X && !job.setSeedHash(Json::getString(params, "seed_hash"))) {
+        if (!isQuiet()) {
+            LOG_ERR("[%s] failed to parse field \"seed_hash\" required by RandomX", url(), algo);
+        }
+
+        *code = 7;
         return false;
     }
 
@@ -692,6 +698,9 @@ void xmrig::Client::parseNotification(const char *method, const rapidjson::Value
         int code = -1;
         if (parseJob(params, &code)) {
             m_listener->onJobReceived(this, m_job, params);
+        }
+        else {
+            close();
         }
 
         return;

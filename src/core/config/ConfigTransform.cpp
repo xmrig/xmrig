@@ -36,6 +36,7 @@ static const char *kAffinity    = "affinity";
 static const char *kAsterisk    = "*";
 static const char *kCpu         = "cpu";
 static const char *kIntensity   = "intensity";
+static const char *kThreads     = "threads";
 
 #ifdef XMRIG_ALGO_RANDOMX
 static const char *kRandomX = "randomx";
@@ -79,30 +80,6 @@ static inline bool isHwAes(uint64_t av)
 }
 
 
-static inline int64_t affinity(uint64_t index, int64_t affinity)
-{
-    if (affinity == -1L) {
-        return -1L;
-    }
-
-    size_t idx = 0;
-
-    for (size_t i = 0; i < 64; i++) {
-        if (!(static_cast<uint64_t>(affinity) & (1ULL << i))) {
-            continue;
-        }
-
-        if (idx == index) {
-            return static_cast<int64_t>(i);
-        }
-
-        idx++;
-    }
-
-    return -1L;
-}
-
-
 }
 
 
@@ -123,24 +100,12 @@ void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
             doc.AddMember(StringRef(kCpu), Value(kObjectType), allocator);
         }
 
-        Value threads(kArrayType);
+        Value profile(kObjectType);
+        profile.AddMember(StringRef(kIntensity), m_intensity, allocator);
+        profile.AddMember(StringRef(kThreads),   m_threads, allocator);
+        profile.AddMember(StringRef(kAffinity),  m_affinity, allocator);
 
-        if (m_intensity > 1) {
-            for (uint64_t i = 0; i < m_threads; ++i) {
-                Value thread(kObjectType);
-                thread.AddMember(StringRef(kIntensity), m_intensity, allocator);
-                thread.AddMember(StringRef(kAffinity), affinity(i, m_affinity), allocator);
-
-                threads.PushBack(thread, doc.GetAllocator());
-            }
-        }
-        else {
-            for (uint64_t i = 0; i < m_threads; ++i) {
-                threads.PushBack(affinity(i, m_affinity), doc.GetAllocator());
-            }
-        }
-
-        doc[kCpu].AddMember(StringRef(kAsterisk), threads, doc.GetAllocator());
+        doc[kCpu].AddMember(StringRef(kAsterisk), profile, doc.GetAllocator());
     }
 }
 

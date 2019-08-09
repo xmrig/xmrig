@@ -23,7 +23,7 @@
  */
 
 
-#include <uv.h>
+#include <mutex>
 
 
 #include "backend/common/Hashrate.h"
@@ -46,7 +46,7 @@
 namespace xmrig {
 
 
-extern template class Threads<CpuThread>;
+extern template class Threads<CpuThreads>;
 
 
 static const char *tag      = CYAN_BG_BOLD(" cpu ");
@@ -83,13 +83,6 @@ public:
     inline CpuBackendPrivate(Controller *controller) :
         controller(controller)
     {
-        uv_mutex_init(&mutex);
-    }
-
-
-    inline ~CpuBackendPrivate()
-    {
-        uv_mutex_destroy(&mutex);
     }
 
 
@@ -99,13 +92,13 @@ public:
                  tag,
                  profileName.data(),
                  threads.size(),
-                 algo.memory() / 1024
+                 algo.l3() / 1024
                  );
 
         workers.stop();
 
         status.reset();
-        status.memory   = algo.memory();
+        status.memory   = algo.l3();
         status.threads  = threads.size();
 
         for (const CpuLaunchData &data : threads) {
@@ -116,12 +109,20 @@ public:
     }
 
 
+    size_t ways()
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        return status.ways;
+    }
+
+
     Algorithm algo;
     Controller *controller;
     LaunchStatus status;
+    std::mutex mutex;
     std::vector<CpuLaunchData> threads;
     String profileName;
-    uv_mutex_t mutex;
     Workers<CpuLaunchData> workers;
 };
 
@@ -142,6 +143,25 @@ xmrig::CpuBackend::~CpuBackend()
 }
 
 
+std::pair<size_t, size_t> xmrig::CpuBackend::hugePages() const
+{
+    std::pair<size_t, size_t> pages(0, 0);
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
+        pages = Rx::hugePages();
+    }
+#   endif
+
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
+
+    pages.first  += d_ptr->status.hugePages;
+    pages.second += d_ptr->status.pages;
+
+    return pages;
+}
+
+
 bool xmrig::CpuBackend::isEnabled() const
 {
     return d_ptr->controller->config()->cpu().isEnabled();
@@ -150,7 +170,7 @@ bool xmrig::CpuBackend::isEnabled() const
 
 bool xmrig::CpuBackend::isEnabled(const Algorithm &algorithm) const
 {
-    return !d_ptr->controller->config()->cpu().threads().get(algorithm).empty();
+    return !d_ptr->controller->config()->cpu().threads().get(algorithm).isEmpty();
 }
 
 
@@ -233,7 +253,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
 void xmrig::CpuBackend::start(IWorker *worker)
 {
-    uv_mutex_lock(&d_ptr->mutex);
+    d_ptr->mutex.lock();
 
     const auto pages = worker->memory()->hugePages();
 
@@ -254,7 +274,7 @@ void xmrig::CpuBackend::start(IWorker *worker)
                  );
     }
 
-    uv_mutex_unlock(&d_ptr->mutex);
+    d_ptr->mutex.unlock();
 
     worker->start();
 }
@@ -299,25 +319,14 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("asm", false, allocator);
 #   endif
 
-    uv_mutex_lock(&d_ptr->mutex);
-    uint64_t pages[2] = { d_ptr->status.hugePages, d_ptr->status.pages };
-    const size_t ways = d_ptr->status.ways;
-    uv_mutex_unlock(&d_ptr->mutex);
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
-        const auto rxPages = Rx::hugePages();
-        pages[0] += rxPages.first;
-        pages[1] += rxPages.second;
-    }
-#   endif
+    const auto pages = hugePages();
 
     rapidjson::Value hugepages(rapidjson::kArrayType);
-    hugepages.PushBack(pages[0], allocator);
-    hugepages.PushBack(pages[1], allocator);
+    hugepages.PushBack(pages.first, allocator);
+    hugepages.PushBack(pages.second, allocator);
 
     out.AddMember("hugepages", hugepages, allocator);
-    out.AddMember("memory",    static_cast<uint64_t>(d_ptr->algo.isValid() ? (ways * d_ptr->algo.memory()) : 0), allocator);
+    out.AddMember("memory",    static_cast<uint64_t>(d_ptr->algo.isValid() ? (d_ptr->ways() * d_ptr->algo.l3()) : 0), allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
         return out;

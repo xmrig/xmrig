@@ -62,7 +62,7 @@ xmrig::RxCache::~RxCache()
 }
 
 
-bool xmrig::RxCache::init(const void *seed)
+bool xmrig::RxCache::init(const uint8_t *seed)
 {
     if (isReady(seed)) {
         return false;
@@ -71,11 +71,13 @@ bool xmrig::RxCache::init(const void *seed)
     memcpy(m_seed, seed, sizeof(m_seed));
     randomx_init_cache(m_cache, m_seed, sizeof(m_seed));
 
+    m_initCount++;
+
     return true;
 }
 
 
-bool xmrig::RxCache::isReady(const void *seed) const
+bool xmrig::RxCache::isReady(const uint8_t *seed) const
 {
-    return memcmp(m_seed, seed, sizeof(m_seed)) == 0;
+    return m_initCount && memcmp(m_seed, seed, sizeof(m_seed)) == 0;
 }

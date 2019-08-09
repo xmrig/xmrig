@@ -23,7 +23,7 @@
  */
 
 
-#include <uv.h>
+#include <mutex>
 
 
 #include "crypto/common/Nonce.h"
@@ -37,7 +37,7 @@ std::atomic<uint64_t> Nonce::m_sequence[Nonce::MAX];
 uint32_t Nonce::m_nonces[2] = { 0, 0 };
 
 
-static uv_mutex_t mutex;
+static std::mutex mutex;
 static Nonce nonce;
 
 
@@ -51,8 +51,6 @@ xmrig::Nonce::Nonce()
     for (int i = 0; i < MAX; ++i) {
         m_sequence[i] = 1;
     }
-
-    uv_mutex_init(&mutex);
 }
 
 
@@ -60,7 +58,7 @@ uint32_t xmrig::Nonce::next(uint8_t index, uint32_t nonce, uint32_t reserveCount
 {
     uint32_t next;
 
-    uv_mutex_lock(&mutex);
+    std::lock_guard<std::mutex> lock(mutex);
 
     if (nicehash) {
         next = (nonce & 0xFF000000) | m_nonces[index];
@@ -71,20 +69,16 @@ uint32_t xmrig::Nonce::next(uint8_t index, uint32_t nonce, uint32_t reserveCount
 
     m_nonces[index] += reserveCount;
 
-    uv_mutex_unlock(&mutex);
-
     return next;
 }
 
 
 void xmrig::Nonce::reset(uint8_t index)
 {
-    uv_mutex_lock(&mutex);
+    std::lock_guard<std::mutex> lock(mutex);
 
     m_nonces[index] = 0;
     touch();
-
-    uv_mutex_unlock(&mutex);
 }
 
 

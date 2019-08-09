@@ -222,7 +222,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
         processTopLevelCache(cache, algorithm, threads);
     }
 
-    if (threads.empty()) {
+    if (threads.isEmpty()) {
         LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.shortName());
 
         return BasicCpuInfo::threads(algorithm);
@@ -249,7 +249,8 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     size_t L2               = 0;
     int L2_associativity    = 0;
     size_t extra            = 0;
-    const size_t scratchpad = algorithm.memory();
+    const size_t scratchpad = algorithm.l3();
+    int intensity           = algorithm.maxIntensity() == 1 ? -1 : 1;
 
     if (cache->attr->cache.depth == 3 && isCacheExclusive(cache)) {
         for (size_t i = 0; i < cache->arity; ++i) {
@@ -276,9 +277,21 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
     size_t cacheHashes = ((L3 + extra) + (scratchpad / 2)) / scratchpad;
 
+#   ifdef XMRIG_ALGO_CN_PICO
+    if (algorithm == Algorithm::CN_PICO_0 && (cacheHashes / PUs) >= 2) {
+        intensity = 2;
+    }
+#   endif
+
 #   ifdef XMRIG_ALGO_CN_GPU
     if (algorithm == Algorithm::CN_GPU) {
         cacheHashes = PUs;
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (extra == 0 && algorithm.l2() > 0) {
+        cacheHashes = std::min<size_t>(std::max<size_t>(L2 / algorithm.l2(), cores.size()), cacheHashes);
     }
 #   endif
 
@@ -286,7 +299,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         for (hwloc_obj_t core : cores) {
             const std::vector<hwloc_obj_t> units = findByType(core, HWLOC_OBJ_PU);
             for (hwloc_obj_t pu : units) {
-                threads.push_back(CpuThread(1, pu->os_index));
+                threads.add(pu->os_index, intensity);
             }
         }
 
@@ -307,7 +320,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
             PUs--;
 
             allocated_pu = true;
-            threads.push_back(CpuThread(1, units[pu_id]->os_index));
+            threads.add(units[pu_id]->os_index, intensity);
 
             if (cacheHashes == 0) {
                 break;
