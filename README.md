@@ -13,7 +13,7 @@ Originally based on cpuminer-multi with heavy optimizations/rewrites and removin
 * This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
 
-<img src="http://i.imgur.com/Ymumes5.png" width="670" >
+<img src="doc/screenshot.png" width="808" >
 
 #### Table of contents
 * [Features](#features)
