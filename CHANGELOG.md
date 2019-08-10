@@ -3,7 +3,7 @@
 - **[#1036](https://github.com/xmrig/xmrig/pull/1036) Added RandomWOW (`rx/wow`) algorithm for [Wownero](http://wownero.org/).**
 - **[#1050](https://github.com/xmrig/xmrig/pull/1050) Added RandomXL (`rx/loki`) algorithm for [Loki](https://loki.network/).**
 - **[#1077](https://github.com/xmrig/xmrig/issues/1077) Added NUMA support via hwloc**.
-- **Added flexible [multi algorithm](https://github.com/xmrig/xmrig/blob/evo/doc/CPU.md) configuration.**
+- **Added flexible [multi algorithm](doc/CPU.md) configuration.**
 - **Added unlimited switching between incompatible algorithms, all mining options can be changed in runtime.**
 - [#257](https://github.com/xmrig/xmrig-nvidia/pull/257) New logging subsystem, file and syslog now always without colors.
 - [#314](https://github.com/xmrig/xmrig-proxy/issues/314) Added donate over proxy feature.
