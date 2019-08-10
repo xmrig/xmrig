@@ -46,7 +46,7 @@ public:
     CpuBackend(Controller *controller);
     ~CpuBackend() override;
 
-    std::pair<size_t, size_t> hugePages() const;
+    std::pair<unsigned, unsigned> hugePages() const;
 
 protected:
     bool isEnabled() const override;

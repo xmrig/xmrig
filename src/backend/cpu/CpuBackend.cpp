@@ -143,9 +143,9 @@ xmrig::CpuBackend::~CpuBackend()
 }
 
 
-std::pair<size_t, size_t> xmrig::CpuBackend::hugePages() const
+std::pair<unsigned, unsigned> xmrig::CpuBackend::hugePages() const
 {
-    std::pair<size_t, size_t> pages(0, 0);
+    std::pair<unsigned, unsigned> pages(0, 0);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
