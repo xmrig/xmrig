@@ -1,5 +1,5 @@
 # v3.0.0
-- **Added RandomX (`rx/test`) algorithm for testing and benchmarking.**
+- **[#1111](https://github.com/xmrig/xmrig/pull/1111) Added RandomX (`rx/test`) algorithm for testing and benchmarking.**
 - **[#1036](https://github.com/xmrig/xmrig/pull/1036) Added RandomWOW (`rx/wow`) algorithm for [Wownero](http://wownero.org/).**
 - **[#1050](https://github.com/xmrig/xmrig/pull/1050) Added RandomXL (`rx/loki`) algorithm for [Loki](https://loki.network/).**
 - **[#1077](https://github.com/xmrig/xmrig/issues/1077) Added NUMA support via hwloc**.
