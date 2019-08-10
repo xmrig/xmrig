@@ -250,9 +250,9 @@ xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 }
 
 
-std::pair<size_t, size_t> xmrig::Rx::hugePages()
+std::pair<unsigned, unsigned> xmrig::Rx::hugePages()
 {
-    std::pair<size_t, size_t> pages(0, 0);
+    std::pair<unsigned, unsigned> pages(0, 0);
     std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
     for (auto const &item : d_ptr->datasets) {
