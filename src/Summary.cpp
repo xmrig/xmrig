@@ -28,141 +28,125 @@
 #include <uv.h>
 
 
-#include "base/net/Pool.h"
-#include "common/cpu/Cpu.h"
-#include "common/log/Log.h"
-#include "core/Config.h"
+#include "backend/cpu/Cpu.h"
+#include "base/io/log/Log.h"
+#include "base/net/stratum/Pool.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/Asm.h"
-#include "Mem.h"
+#include "crypto/common/Assembly.h"
+#include "crypto/common/VirtualMemory.h"
 #include "Summary.h"
 #include "version.h"
 
 
-#ifndef XMRIG_NO_ASM
+namespace xmrig {
+
+
+#ifdef XMRIG_FEATURE_ASM
 static const char *coloredAsmNames[] = {
-    "\x1B[1;31mnone\x1B[0m",
+    RED_BOLD("none"),
     "auto",
-    "\x1B[1;32mintel\x1B[0m",
-    "\x1B[1;32mryzen\x1B[0m",
-    "\x1B[1;32mbulldozer\x1B[0m"
+    GREEN_BOLD("intel"),
+    GREEN_BOLD("ryzen"),
+    GREEN_BOLD("bulldozer")
 };
 
 
-inline static const char *asmName(xmrig::Assembly assembly, bool colors)
+inline static const char *asmName(Assembly::Id assembly)
 {
-    return colors ? coloredAsmNames[assembly] : xmrig::Asm::toString(assembly);
+    return coloredAsmNames[assembly];
 }
 #endif
 
 
-static void print_memory(xmrig::Config *config) {
+static void print_memory(Config *) {
 #   ifdef _WIN32
-    if (config->isColors()) {
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-                       "HUGE PAGES", Mem::isHugepagesAvailable() ? "\x1B[1;32mavailable" : "\x1B[01;31munavailable");
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
+               "HUGE PAGES", VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable"));
+#   endif
+}
+
+
+static void print_cpu(Config *)
+{
+    const ICpuInfo *info = Cpu::info();
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES %sAVX2",
+               "CPU",
+               info->brand(),
+               info->packages(),
+               info->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAVX2() ? GREEN_BOLD_S : RED_BOLD_S "-"
+               );
+#   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")
+               CYAN_BOLD(" %zu") "C" BLACK_BOLD("/") CYAN_BOLD("%zu") "T"
+#              ifdef XMRIG_FEATURE_HWLOC
+               BLACK_BOLD(" NUMA:") CYAN_BOLD("%zu")
+#              endif
+               , "",
+               info->L2() / 1048576.0,
+               info->L3() / 1048576.0,
+               info->cores(),
+               info->threads()
+#              ifdef XMRIG_FEATURE_HWLOC
+               , info->nodes()
+#              endif
+               );
+#   else
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("threads:") CYAN_BOLD("%zu"),
+               "",
+               info->threads()
+               );
+#   endif
+}
+
+
+static void print_threads(Config *config)
+{
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),
+               "DONATE",
+               config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
+               config->pools().donateLevel()
+               );
+
+#   ifdef XMRIG_FEATURE_ASM
+    if (config->cpu().assembly() == Assembly::AUTO) {
+        const Assembly assembly = Cpu::info()->assembly();
+
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s"), "ASSEMBLY", asmName(assembly));
     }
     else {
-        Log::i()->text(" * %-13s%s", "HUGE PAGES", Mem::isHugepagesAvailable() ? "available" : "unavailable");
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s"), "ASSEMBLY", asmName(config->cpu().assembly()));
     }
 #   endif
 }
 
 
-static void print_cpu(xmrig::Config *config)
+static void print_commands(Config *)
 {
-    using namespace xmrig;
-
-    if (config->isColors()) {
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%d)") " %sx64 %sAES %sAVX2",
-                       "CPU",
-                       Cpu::info()->brand(),
-                       Cpu::info()->sockets(),
-                       Cpu::info()->isX64()   ? "\x1B[1;32m" : "\x1B[1;31m-",
-                       Cpu::info()->hasAES()  ? "\x1B[1;32m" : "\x1B[1;31m-",
-                       Cpu::info()->hasAVX2() ? "\x1B[1;32m" : "\x1B[1;31m-");
-#       ifndef XMRIG_NO_LIBCPUID
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%.1f MB/%.1f MB"), "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
-#       endif
-    }
-    else {
-        Log::i()->text(" * %-13s%s (%d) %sx64 %sAES %sAVX2",
-                       "CPU",
-                       Cpu::info()->brand(),
-                       Cpu::info()->sockets(),
-                       Cpu::info()->isX64()   ? "" : "-",
-                       Cpu::info()->hasAES()  ? "" : "-",
-                       Cpu::info()->hasAVX2() ? "" : "-");
-#       ifndef XMRIG_NO_LIBCPUID
-        Log::i()->text(" * %-13s%.1f MB/%.1f MB", "CPU L2/L3", Cpu::info()->L2() / 1024.0, Cpu::info()->L3() / 1024.0);
-#       endif
-    }
-}
-
-
-static void print_threads(xmrig::Config *config)
-{
-    if (config->threadsMode() != xmrig::Config::Advanced) {
-        char buf[32] = { 0 };
-        if (config->affinity() != -1L) {
-            snprintf(buf, sizeof buf, ", affinity=0x%" PRIX64, config->affinity());
-        }
-
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %s, av=%d, %sdonate=%d%%") WHITE_BOLD("%s")
-                                          : " * %-13s%d, %s, av=%d, %sdonate=%d%%%s",
-                       "THREADS",
-                       config->threadsCount(),
-                       config->algorithm().name(),
-                       config->algoVariant(),
-                       config->isColors() && config->donateLevel() == 0 ? "\x1B[1;31m" : "",
-                       config->donateLevel(),
-                       buf);
-    }
-    else {
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%d") WHITE_BOLD(", %s, %sdonate=%d%%")
-                                          : " * %-13s%d, %s, %sdonate=%d%%",
-                       "THREADS",
-                       config->threadsCount(),
-                       config->algorithm().name(),
-                       config->isColors() && config->donateLevel() == 0 ? "\x1B[1;31m" : "",
-                       config->donateLevel());
-    }
-
-#   ifndef XMRIG_NO_ASM
-    if (config->assembly() == xmrig::ASM_AUTO) {
-        const xmrig::Assembly assembly = xmrig::Cpu::info()->assembly();
-
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s")
-                                          : " * %-13sauto:%s", "ASSEMBLY", asmName(assembly, config->isColors()));
-    }
-    else {
-        Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s") : " * %-13s%s", "ASSEMBLY", asmName(config->assembly(), config->isColors()));
-    }
-#   endif
-}
-
-
-static void print_commands(xmrig::Config *config)
-{
-    if (config->isColors()) {
-        Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
+    if (Log::colors) {
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
                                                                      MAGENTA_BOLD("p") WHITE_BOLD("ause, ")
                                                                      MAGENTA_BOLD("r") WHITE_BOLD("esume"));
     }
     else {
-        Log::i()->text(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
+        Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
     }
 }
 
 
-void Summary::print(xmrig::Controller *controller)
+} // namespace xmrig
+
+
+void xmrig::Summary::print(Controller *controller)
 {
     controller->config()->printVersions();
     print_memory(controller->config());
     print_cpu(controller->config());
     print_threads(controller->config());
-    controller->config()->printPools();
-    controller->config()->printAPI();
+    controller->config()->pools().print();
 
     print_commands(controller->config());
 }

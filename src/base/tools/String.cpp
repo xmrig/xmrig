@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -20,6 +21,9 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+#include <ctype.h>
 
 
 #include "base/tools/String.h"
@@ -128,6 +132,20 @@ std::vector<xmrig::String> xmrig::String::split(char sep) const
 }
 
 
+xmrig::String &xmrig::String::toLower()
+{
+    if (isNull() || isEmpty()) {
+        return *this;
+    }
+
+    for (size_t i = 0; i < size(); ++i) {
+        m_data[i] = static_cast<char>(tolower(m_data[i]));
+    }
+
+    return *this;
+}
+
+
 xmrig::String xmrig::String::join(const std::vector<xmrig::String> &vec, char sep)
 {
     if (vec.empty()) {
@@ -178,14 +196,10 @@ void xmrig::String::copy(const char *str)
 
 void xmrig::String::copy(const String &other)
 {
-    if (m_size > 0) {
-        if (m_size == other.m_size) {
-            memcpy(m_data, other.m_data, m_size + 1);
+    if (m_size > 0 && m_size == other.m_size) {
+        memcpy(m_data, other.m_data, m_size + 1);
 
-            return;
-        }
-
-        delete [] m_data;
+        return;
     }
 
     delete [] m_data;

@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -30,29 +30,21 @@
 
 #include "api/Api.h"
 #include "App.h"
+#include "backend/cpu/Cpu.h"
+#include "base/io/Console.h"
+#include "base/io/log/Log.h"
 #include "base/kernel/Signals.h"
-#include "common/Console.h"
-#include "common/cpu/Cpu.h"
-#include "common/log/Log.h"
-#include "common/Platform.h"
-#include "core/Config.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/CryptoNight.h"
-#include "Mem.h"
+#include "core/Miner.h"
+#include "crypto/common/VirtualMemory.h"
 #include "net/Network.h"
 #include "Summary.h"
 #include "version.h"
-#include "workers/Workers.h"
-
-
-#ifndef XMRIG_NO_HTTPD
-#   include "common/api/Httpd.h"
-#endif
 
 
 xmrig::App::App(Process *process) :
     m_console(nullptr),
-    m_httpd(nullptr),
     m_signals(nullptr)
 {
     m_controller = new Controller(process);
@@ -68,15 +60,9 @@ xmrig::App::App(Process *process) :
 
 xmrig::App::~App()
 {
-    uv_tty_reset_mode();
-
     delete m_signals;
     delete m_console;
     delete m_controller;
-
-#   ifndef XMRIG_NO_HTTPD
-    delete m_httpd;
-#   endif
 }
 
 
@@ -90,7 +76,7 @@ int xmrig::App::exec()
 
     background();
 
-    Mem::init(m_controller->config()->isHugePages());
+    VirtualMemory::init(m_controller->config()->cpu().isHugePages());
 
     Summary::print(m_controller);
 
@@ -100,24 +86,7 @@ int xmrig::App::exec()
         return 0;
     }
 
-#   ifndef XMRIG_NO_API
-    Api::start(m_controller);
-#   endif
-
-#   ifndef XMRIG_NO_HTTPD
-    m_httpd = new Httpd(
-                m_controller->config()->apiPort(),
-                m_controller->config()->apiToken(),
-                m_controller->config()->isApiIPv6(),
-                m_controller->config()->isApiRestricted()
-                );
-
-    m_httpd->start();
-#   endif
-
-    Workers::start(m_controller);
-
-    m_controller->network()->connect();
+    m_controller->start();
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
@@ -131,23 +100,17 @@ void xmrig::App::onConsoleCommand(char command)
     switch (command) {
     case 'h':
     case 'H':
-        Workers::printHashrate(true);
+        m_controller->miner()->printHashrate(true);
         break;
 
     case 'p':
     case 'P':
-        if (Workers::isEnabled()) {
-            LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
-            Workers::setEnabled(false);
-        }
+        m_controller->miner()->setEnabled(false);
         break;
 
     case 'r':
     case 'R':
-        if (!Workers::isEnabled()) {
-            LOG_INFO(m_controller->config()->isColors() ? "\x1B[01;32mresumed" : "resumed");
-            Workers::setEnabled(true);
-        }
+        m_controller->miner()->setEnabled(true);
         break;
 
     case 3:
@@ -187,8 +150,9 @@ void xmrig::App::onSignal(int signum)
 
 void xmrig::App::close()
 {
-    m_controller->network()->stop();
-    Workers::stop();
+    m_signals->stop();
+    m_console->stop();
+    m_controller->stop();
 
-    uv_stop(uv_default_loop());
+    Log::destroy();
 }

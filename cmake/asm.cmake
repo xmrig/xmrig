@@ -6,13 +6,13 @@ if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
 
         if (MSVC_TOOLSET_VERSION GREATER_EQUAL 141)
             set(XMRIG_ASM_FILES
-                "src/crypto/asm/cn_main_loop.asm"
-                "src/crypto/asm/CryptonightR_template.asm"
+                "src/crypto/cn/asm/cn_main_loop.asm"
+                "src/crypto/cn/asm/CryptonightR_template.asm"
             )
         else()
             set(XMRIG_ASM_FILES
-                "src/crypto/asm/win64/cn_main_loop.asm"
-                "src/crypto/asm/win64/CryptonightR_template.asm"
+                "src/crypto/cn/asm/win64/cn_main_loop.asm"
+                "src/crypto/cn/asm/win64/CryptonightR_template.asm"
             )
         endif()
 
@@ -22,13 +22,13 @@ if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
 
         if (WIN32 AND CMAKE_C_COMPILER_ID MATCHES GNU)
             set(XMRIG_ASM_FILES
-                "src/crypto/asm/win64/cn_main_loop.S"
-                "src/crypto/asm/CryptonightR_template.S"
+                "src/crypto/cn/asm/win64/cn_main_loop.S"
+                "src/crypto/cn/asm/CryptonightR_template.S"
             )
         else()
             set(XMRIG_ASM_FILES
-                "src/crypto/asm/cn_main_loop.S"
-                "src/crypto/asm/CryptonightR_template.S"
+                "src/crypto/cn/asm/cn_main_loop.S"
+                "src/crypto/cn/asm/CryptonightR_template.S"
             )
         endif()
 
@@ -36,10 +36,17 @@ if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     endif()
 
     add_library(${XMRIG_ASM_LIBRARY} STATIC ${XMRIG_ASM_FILES})
-    set(XMRIG_ASM_SOURCES src/crypto/Asm.h src/crypto/Asm.cpp src/crypto/CryptonightR_gen.cpp)
+    set(XMRIG_ASM_SOURCES
+        src/crypto/common/Assembly.h
+        src/crypto/common/Assembly.cpp
+        src/crypto/cn/r/CryptonightR_gen.cpp
+        )
     set_property(TARGET ${XMRIG_ASM_LIBRARY} PROPERTY LINKER_LANGUAGE C)
+
+    add_definitions(/DXMRIG_FEATURE_ASM)
 else()
     set(XMRIG_ASM_SOURCES "")
     set(XMRIG_ASM_LIBRARY "")
-    add_definitions(/DXMRIG_NO_ASM)
+
+    remove_definitions(/DXMRIG_FEATURE_ASM)
 endif()
