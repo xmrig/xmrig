@@ -10,7 +10,7 @@
 - [#1077](https://github.com/xmrig/xmrig/issues/1077) Added NUMA support via **hwloc**.
 - [#1105](https://github.com/xmrig/xmrig/issues/1105) Improved auto configuration for `cn-pico` algorithm.
 - Added command line option `--export-topology` for export hwloc topology to a XML file.
-- Added [flexible](https://github.com/xmrig/xmrig/blob/evo/doc/CPU.md) multi algorithm configuration.
+- Added flexible [multi algorithm](https://github.com/xmrig/xmrig/blob/evo/doc/CPU.md) configuration.
 - Added unlimited switching between incompatible algorithms, all mining options can be changed in runtime.
 - Breaked backward compatibility with previous configs and command line, `variant` option replaced to `algo`, global option `algo` removed, all CPU related settings moved to `cpu` object.
 - Options `av`, `safe` and `max-cpu-usage` removed.
