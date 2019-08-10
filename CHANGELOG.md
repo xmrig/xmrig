@@ -2,16 +2,16 @@
 - **Added RandomX (`rx/test`) algorithm for testing and benchmarking.**
 - **[#1036](https://github.com/xmrig/xmrig/pull/1036) Added RandomWOW (`rx/wow`) algorithm for [Wownero](http://wownero.org/).**
 - **[#1050](https://github.com/xmrig/xmrig/pull/1050) Added RandomXL (`rx/loki`) algorithm for [Loki](https://loki.network/).**
+- **[#1077](https://github.com/xmrig/xmrig/issues/1077) Added NUMA support via hwloc**.
+- **Added flexible [multi algorithm](https://github.com/xmrig/xmrig/blob/evo/doc/CPU.md) configuration.**
+- **Added unlimited switching between incompatible algorithms, all mining options can be changed in runtime.**
 - [#257](https://github.com/xmrig/xmrig-nvidia/pull/257) New logging subsystem, file and syslog now always without colors.
 - [#314](https://github.com/xmrig/xmrig-proxy/issues/314) Added donate over proxy feature.
 - [#1007](https://github.com/xmrig/xmrig/issues/1007) Old HTTP API backend based on libmicrohttpd, replaced to custom HTTP server (libuv + http_parser).
 - [#1010](https://github.com/xmrig/xmrig/pull/1010#issuecomment-482632107) Added daemon support (solo mining).
 - [#1066](https://github.com/xmrig/xmrig/issues/1066#issuecomment-518080529) Added error message if pool not ready for RandomX.
-- [#1077](https://github.com/xmrig/xmrig/issues/1077) Added NUMA support via **hwloc**.
 - [#1105](https://github.com/xmrig/xmrig/issues/1105) Improved auto configuration for `cn-pico` algorithm.
 - Added command line option `--export-topology` for export hwloc topology to a XML file.
-- Added flexible [multi algorithm](https://github.com/xmrig/xmrig/blob/evo/doc/CPU.md) configuration.
-- Added unlimited switching between incompatible algorithms, all mining options can be changed in runtime.
 - Breaked backward compatibility with previous configs and command line, `variant` option replaced to `algo`, global option `algo` removed, all CPU related settings moved to `cpu` object.
 - Options `av`, `safe` and `max-cpu-usage` removed.
 - Algorithm `cn/msr` renamed to `cn/fast`.
