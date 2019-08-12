@@ -43,6 +43,11 @@
 #include "rapidjson/document.h"
 
 
+#ifdef XMRIG_FEATURE_API
+#   include "base/api/interfaces/IApiRequest.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -117,6 +122,38 @@ public:
     }
 
 
+    rapidjson::Value hugePages(int version, rapidjson::Document &doc)
+    {
+        std::pair<unsigned, unsigned> pages(0, 0);
+
+    #   ifdef XMRIG_ALGO_RANDOMX
+        if (algo.family() == Algorithm::RANDOM_X) {
+            pages = Rx::hugePages();
+        }
+    #   endif
+
+        mutex.lock();
+
+        pages.first  += status.hugePages;
+        pages.second += status.pages;
+
+        mutex.unlock();
+
+        rapidjson::Value hugepages;
+
+        if (version > 1) {
+            hugepages.SetArray();
+            hugepages.PushBack(pages.first, doc.GetAllocator());
+            hugepages.PushBack(pages.second, doc.GetAllocator());
+        }
+        else {
+            hugepages = pages.first == pages.second;
+        }
+
+        return hugepages;
+    }
+
+
     Algorithm algo;
     Controller *controller;
     LaunchStatus status;
@@ -140,25 +177,6 @@ xmrig::CpuBackend::CpuBackend(Controller *controller) :
 xmrig::CpuBackend::~CpuBackend()
 {
     delete d_ptr;
-}
-
-
-std::pair<unsigned, unsigned> xmrig::CpuBackend::hugePages() const
-{
-    std::pair<unsigned, unsigned> pages(0, 0);
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (d_ptr->algo.family() == Algorithm::RANDOM_X) {
-        pages = Rx::hugePages();
-    }
-#   endif
-
-    std::lock_guard<std::mutex> lock(d_ptr->mutex);
-
-    pages.first  += d_ptr->status.hugePages;
-    pages.second += d_ptr->status.pages;
-
-    return pages;
 }
 
 
@@ -319,13 +337,7 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("asm", false, allocator);
 #   endif
 
-    const auto pages = hugePages();
-
-    rapidjson::Value hugepages(rapidjson::kArrayType);
-    hugepages.PushBack(pages.first, allocator);
-    hugepages.PushBack(pages.second, allocator);
-
-    out.AddMember("hugepages", hugepages, allocator);
+    out.AddMember("hugepages", d_ptr->hugePages(2, doc), allocator);
     out.AddMember("memory",    static_cast<uint64_t>(d_ptr->algo.isValid() ? (d_ptr->ways() * d_ptr->algo.l3()) : 0), allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
@@ -356,5 +368,13 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("threads", threads, allocator);
 
     return out;
+}
+
+
+void xmrig::CpuBackend::handleRequest(IApiRequest &request)
+{
+    if (request.type() == IApiRequest::REQ_SUMMARY) {
+        request.reply().AddMember("hugepages", d_ptr->hugePages(request.version(), request.doc()), request.doc().GetAllocator());
+    }
 }
 #endif

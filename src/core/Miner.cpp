@@ -135,7 +135,7 @@ public:
 
 
 #   ifdef XMRIG_FEATURE_API
-    void getMiner(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
+    void getMiner(rapidjson::Value &reply, rapidjson::Document &doc, int) const
     {
         using namespace rapidjson;
         auto &allocator = doc.GetAllocator();
@@ -144,25 +144,6 @@ public:
         reply.AddMember("kind",         APP_KIND, allocator);
         reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
         reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
-
-        Value hugepages;
-
-        if (!backends.empty() && backends.front()->type() == "cpu") {
-            const auto pages = static_cast<CpuBackend *>(backends.front())->hugePages();
-            if (version > 1) {
-                hugepages.SetArray();
-                hugepages.PushBack(pages.first, allocator);
-                hugepages.PushBack(pages.second, allocator);
-            }
-            else {
-                hugepages = pages.first == pages.second;
-            }
-        }
-        else {
-            hugepages = false;
-        }
-
-        reply.AddMember("hugepages",    hugepages, allocator);
         reply.AddMember("donate_level", controller->config()->pools().donateLevel(), allocator);
 
         Value algo(kArrayType);
@@ -488,6 +469,10 @@ void xmrig::Miner::onRequest(IApiRequest &request)
 
             setEnabled(true);
         }
+    }
+
+    for (IBackend *backend : d_ptr->backends) {
+        backend->handleRequest(request);
     }
 }
 #endif
