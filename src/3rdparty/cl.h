@@ -22,33 +22,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ENTRY_H
-#define XMRIG_ENTRY_H
+#ifndef XMRIG_CL_H
+#define XMRIG_CL_H
+
+
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include "3rdparty/CL/cl.h"
+#endif
 
 
 namespace xmrig {
 
 
-class Process;
-
-
-class Entry
-{
-public:
-    enum Id {
-        Default,
-        Usage,
-        Version,
-        Topo,
-        Platforms
-    };
-
-    static Id get(const Process &process);
-    static int exec(const Process &process, Id id);
+enum OclVendor {
+    OCL_VENDOR_UNKNOWN = -2,
+    OCL_VENDOR_MANUAL  = -1,
+    OCL_VENDOR_AMD     = 0,
+    OCL_VENDOR_NVIDIA  = 1,
+    OCL_VENDOR_INTEL   = 2
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_ENTRY_H */
+#endif /* XMRIG_CL_H */

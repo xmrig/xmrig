@@ -22,33 +22,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ENTRY_H
-#define XMRIG_ENTRY_H
+#ifndef XMRIG_OCLERROR_H
+#define XMRIG_OCLERROR_H
+
+
+#include "3rdparty/cl.h"
+
+
+#define OCL_ERR_SUCCESS    (0)
+#define OCL_ERR_API        (2)
+#define OCL_ERR_BAD_PARAMS (1)
 
 
 namespace xmrig {
 
 
-class Process;
-
-
-class Entry
+class OclError
 {
 public:
-    enum Id {
-        Default,
-        Usage,
-        Version,
-        Topo,
-        Platforms
-    };
-
-    static Id get(const Process &process);
-    static int exec(const Process &process, Id id);
+    static const char *toString(cl_int ret);
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_ENTRY_H */
+#endif /* XMRIG_OCLERROR_H */
