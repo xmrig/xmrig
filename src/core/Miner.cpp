@@ -477,5 +477,17 @@ void xmrig::Miner::onRequest(IApiRequest &request)
             d_ptr->getBackends(request.reply(), request.doc());
         }
     }
+    else if (request.type() == IApiRequest::REQ_JSON_RPC) {
+        if (request.rpcMethod() == "pause") {
+            request.accept();
+
+            setEnabled(false);
+        }
+        else if (request.rpcMethod() == "resume") {
+            request.accept();
+
+            setEnabled(true);
+        }
+    }
 }
 #endif
