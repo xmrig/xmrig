@@ -27,7 +27,7 @@
 #define XMRIG_HTTPAPIREQUEST_H
 
 
-#include "api/requests/ApiRequest.h"
+#include "base/api/requests/ApiRequest.h"
 #include "base/net/http/HttpApiResponse.h"
 #include "base/tools/String.h"
 

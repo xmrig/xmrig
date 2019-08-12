@@ -27,7 +27,7 @@
 #define XMRIG_APIREQUEST_H
 
 
-#include "api/interfaces/IApiRequest.h"
+#include "base/api/interfaces/IApiRequest.h"
 
 
 namespace xmrig {

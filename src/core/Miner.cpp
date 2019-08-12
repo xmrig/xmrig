@@ -45,8 +45,8 @@
 
 
 #ifdef XMRIG_FEATURE_API
-#   include "api/Api.h"
-#   include "api/interfaces/IApiRequest.h"
+#   include "base/api/Api.h"
+#   include "base/api/interfaces/IApiRequest.h"
 #endif
 
 
