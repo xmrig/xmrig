@@ -45,8 +45,8 @@
 
 
 #ifdef XMRIG_FEATURE_API
-#   include "api/Api.h"
-#   include "api/interfaces/IApiRequest.h"
+#   include "base/api/Api.h"
+#   include "base/api/interfaces/IApiRequest.h"
 #endif
 
 
@@ -475,6 +475,18 @@ void xmrig::Miner::onRequest(IApiRequest &request)
             request.accept();
 
             d_ptr->getBackends(request.reply(), request.doc());
+        }
+    }
+    else if (request.type() == IApiRequest::REQ_JSON_RPC) {
+        if (request.rpcMethod() == "pause") {
+            request.accept();
+
+            setEnabled(false);
+        }
+        else if (request.rpcMethod() == "resume") {
+            request.accept();
+
+            setEnabled(true);
         }
     }
 }

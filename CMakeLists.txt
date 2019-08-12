@@ -32,7 +32,6 @@ set(HEADERS
     "${HEADERS_BASE}"
     "${HEADERS_BASE_HTTP}"
     "${HEADERS_BACKEND}"
-    src/api/interfaces/IApiListener.h
     src/App.h
     src/core/config/Config_default.h
     src/core/config/Config_platform.h
@@ -232,22 +231,6 @@ if (WITH_EMBEDDED_CONFIG)
     add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
 endif()
 
-if (WITH_HTTP)
-    set(HTTP_SOURCES
-        src/api/Api.cpp
-        src/api/Api.h
-        src/api/Httpd.cpp
-        src/api/Httpd.h
-        src/api/interfaces/IApiRequest.h
-        src/api/requests/ApiRequest.cpp
-        src/api/requests/ApiRequest.h
-        src/api/requests/HttpApiRequest.cpp
-        src/api/requests/HttpApiRequest.h
-        )
-else()
-    set(HTTP_SOURCES "")
-endif()
-
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
@@ -260,5 +243,5 @@ if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
-add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTP_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
+add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
