@@ -32,9 +32,9 @@
 
 
 #include "3rdparty/http-parser/http_parser.h"
-#include "api/Api.h"
-#include "api/interfaces/IApiListener.h"
-#include "api/requests/HttpApiRequest.h"
+#include "base/api/Api.h"
+#include "base/api/interfaces/IApiListener.h"
+#include "base/api/requests/HttpApiRequest.h"
 #include "base/kernel/Base.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
@@ -45,7 +45,7 @@
 
 
 #ifdef XMRIG_FEATURE_HTTP
-#   include "api/Httpd.h"
+#   include "base/api/Httpd.h"
 #endif
 
 
