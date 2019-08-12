@@ -11,6 +11,7 @@
 - [#1010](https://github.com/xmrig/xmrig/pull/1010#issuecomment-482632107) Added daemon support (solo mining).
 - [#1066](https://github.com/xmrig/xmrig/issues/1066#issuecomment-518080529) Added error message if pool not ready for RandomX.
 - [#1105](https://github.com/xmrig/xmrig/issues/1105) Improved auto configuration for `cn-pico` algorithm.
+- Added commands `pause` and `resume` via JSON RPC 2.0 API (`POST /json_rpc`).
 - Added command line option `--export-topology` for export hwloc topology to a XML file.
 - Breaked backward compatibility with previous configs and command line, `variant` option replaced to `algo`, global option `algo` removed, all CPU related settings moved to `cpu` object.
 - Options `av`, `safe` and `max-cpu-usage` removed.
