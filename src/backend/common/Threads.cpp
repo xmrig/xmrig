@@ -28,6 +28,11 @@
 #include "rapidjson/document.h"
 
 
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/OclThreads.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -147,5 +152,9 @@ void xmrig::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) 
 namespace xmrig {
 
 template class Threads<CpuThreads>;
+
+#ifdef XMRIG_FEATURE_OPENCL
+template class Threads<OclThreads>;
+#endif
 
 } // namespace xmrig

@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,61 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
+#ifndef XMRIG_OCLTHREAD_H
+#define XMRIG_OCLTHREAD_H
 
 
-#include "backend/common/Thread.h"
-#include "backend/cpu/CpuLaunchData.h"
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclLaunchData.h"
-#endif
+#include "rapidjson/fwd.h"
 
 
 namespace xmrig {
 
 
-class Hashrate;
-class WorkersPrivate;
-
-
-template<class T>
-class Workers
+class OclThread
 {
 public:
-    Workers();
-    ~Workers();
+    inline constexpr OclThread() {}
+    inline constexpr OclThread(int64_t affinity, int intensity) : m_intensity(intensity), m_affinity(affinity) {}
 
-    const Hashrate *hashrate() const;
-    void setBackend(IBackend *backend);
-    void start(const std::vector<T> &data);
-    void stop();
-    void tick(uint64_t ticks);
+    OclThread(const rapidjson::Value &value);
+
+    inline bool isEqual(const OclThread &other) const       { return other.m_affinity == m_affinity && other.m_intensity == m_intensity; }
+    inline bool isValid() const                             { return m_intensity == -1 || (m_intensity >= 1 && m_intensity <= 5); }
+    inline int intensity() const                            { return m_intensity == -1 ? 1 : m_intensity; }
+    inline int64_t affinity() const                         { return m_affinity; }
+
+    inline bool operator!=(const OclThread &other) const    { return !isEqual(other); }
+    inline bool operator==(const OclThread &other) const    { return isEqual(other); }
+
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 private:
-    static IWorker *create(Thread<T> *handle);
-    static void onReady(void *arg);
-
-    std::vector<Thread<T> *> m_workers;
-    WorkersPrivate *d_ptr;
+    int m_intensity     = -1;
+    int64_t m_affinity  = -1;
 };
 
 
-template<>
-IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
-extern template class Workers<CpuLaunchData>;
+} /* namespace xmrig */
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-template<>
-IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
-extern template class Workers<OclLaunchData>;
-#endif
-
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_WORKERS_H */
+#endif /* XMRIG_OCLTHREAD_H */

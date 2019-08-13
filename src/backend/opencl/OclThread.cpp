@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,61 +22,37 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
+
+#include "backend/opencl/OclThread.h"
+#include "base/io/json/Json.h"
+#include "rapidjson/document.h"
 
 
-#include "backend/common/Thread.h"
-#include "backend/cpu/CpuLaunchData.h"
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclLaunchData.h"
-#endif
-
-
-namespace xmrig {
-
-
-class Hashrate;
-class WorkersPrivate;
-
-
-template<class T>
-class Workers
+xmrig::OclThread::OclThread(const rapidjson::Value &value)
 {
-public:
-    Workers();
-    ~Workers();
-
-    const Hashrate *hashrate() const;
-    void setBackend(IBackend *backend);
-    void start(const std::vector<T> &data);
-    void stop();
-    void tick(uint64_t ticks);
-
-private:
-    static IWorker *create(Thread<T> *handle);
-    static void onReady(void *arg);
-
-    std::vector<Thread<T> *> m_workers;
-    WorkersPrivate *d_ptr;
-};
+    if (value.IsArray() && value.Size() >= 2) {
+        m_intensity = value[0].GetInt();
+        m_affinity  = value[1].GetInt();
+    }
+    else if (value.IsInt()) {
+        m_intensity = -1;
+        m_affinity  = value.GetInt();
+    }
+}
 
 
-template<>
-IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
-extern template class Workers<CpuLaunchData>;
+rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    if (m_intensity == -1) {
+        return Value(m_affinity);
+    }
 
+    auto &allocator = doc.GetAllocator();
 
-#ifdef XMRIG_FEATURE_OPENCL
-template<>
-IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
-extern template class Workers<OclLaunchData>;
-#endif
+    Value out(kArrayType);
+    out.PushBack(m_intensity, allocator);
+    out.PushBack(m_affinity, allocator);
 
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_WORKERS_H */
+    return out;
+}

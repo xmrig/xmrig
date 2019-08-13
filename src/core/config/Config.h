@@ -39,6 +39,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/OclConfig.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -50,14 +55,18 @@ class Config : public BaseConfig
 public:
     Config();
 
+    bool isShouldSave() const;
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline bool isShouldSave() const        { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
     inline const CpuConfig &cpu() const     { return m_cpu; }
 
 #   ifdef XMRIG_ALGO_RANDOMX
     inline const RxConfig &rx() const       { return m_rx; }
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    inline const OclConfig &cl() const      { return m_cl; }
 #   endif
 
 private:
@@ -66,6 +75,10 @@ private:
 
 #   ifdef XMRIG_ALGO_RANDOMX
     RxConfig m_rx;
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    OclConfig m_cl;
 #   endif
 };
 

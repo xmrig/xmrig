@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,61 +22,69 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
 
-
-#include "backend/common/Thread.h"
-#include "backend/cpu/CpuLaunchData.h"
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclLaunchData.h"
-#endif
+#include "backend/opencl/OclConfig.h"
+#include "base/io/json/Json.h"
+#include "rapidjson/document.h"
 
 
 namespace xmrig {
 
-
-class Hashrate;
-class WorkersPrivate;
+static const char *kEnabled = "enabled";
 
 
-template<class T>
-class Workers
+extern template class Threads<OclThreads>;
+
+}
+
+
+xmrig::OclConfig::OclConfig()
 {
-public:
-    Workers();
-    ~Workers();
-
-    const Hashrate *hashrate() const;
-    void setBackend(IBackend *backend);
-    void start(const std::vector<T> &data);
-    void stop();
-    void tick(uint64_t ticks);
-
-private:
-    static IWorker *create(Thread<T> *handle);
-    static void onReady(void *arg);
-
-    std::vector<Thread<T> *> m_workers;
-    WorkersPrivate *d_ptr;
-};
+}
 
 
-template<>
-IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
-extern template class Workers<CpuLaunchData>;
+rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value obj(kObjectType);
+
+    obj.AddMember(StringRef(kEnabled),      m_enabled, allocator);
+
+    m_threads.toJSON(obj, doc);
+
+    return obj;
+}
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-template<>
-IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
-extern template class Workers<OclLaunchData>;
-#endif
+std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, const Algorithm &algorithm) const
+{
+    std::vector<OclLaunchData> out;
+
+    return out;
+}
 
 
-} // namespace xmrig
+void xmrig::OclConfig::read(const rapidjson::Value &value)
+{
+    if (value.IsObject()) {
+        m_enabled       = Json::getBool(value, kEnabled, m_enabled);
+
+        if (!m_threads.read(value)) {
+            generate();
+        }
+    }
+    else if (value.IsBool() && value.IsFalse()) {
+        m_enabled = false;
+    }
+    else {
+        generate();
+    }
+}
 
 
-#endif /* XMRIG_WORKERS_H */
+void xmrig::OclConfig::generate()
+{
+    m_shouldSave  = true;
+}

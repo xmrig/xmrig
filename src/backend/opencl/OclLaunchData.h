@@ -23,61 +23,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
+#ifndef XMRIG_OCLLAUNCHDATA_H
+#define XMRIG_OCLLAUNCHDATA_H
 
 
-#include "backend/common/Thread.h"
-#include "backend/cpu/CpuLaunchData.h"
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclLaunchData.h"
-#endif
+#include "crypto/common/Algorithm.h"
+#include "crypto/common/Nonce.h"
 
 
 namespace xmrig {
 
 
-class Hashrate;
-class WorkersPrivate;
+class OclConfig;
+class OclThread;
+class Miner;
 
 
-template<class T>
-class Workers
+class OclLaunchData
 {
 public:
-    Workers();
-    ~Workers();
+    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclThread &thread);
 
-    const Hashrate *hashrate() const;
-    void setBackend(IBackend *backend);
-    void start(const std::vector<T> &data);
-    void stop();
-    void tick(uint64_t ticks);
+    bool isEqual(const OclLaunchData &other) const;
 
-private:
-    static IWorker *create(Thread<T> *handle);
-    static void onReady(void *arg);
+    inline constexpr static Nonce::Backend backend() { return Nonce::OPENCL; }
 
-    std::vector<Thread<T> *> m_workers;
-    WorkersPrivate *d_ptr;
+    inline bool operator!=(const OclLaunchData &other) const    { return !isEqual(other); }
+    inline bool operator==(const OclLaunchData &other) const    { return isEqual(other); }
+
+    const Algorithm algorithm;
+    const int intensity;
+    const int priority;
+    const int64_t affinity;
+    const Miner *miner;
 };
-
-
-template<>
-IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
-extern template class Workers<CpuLaunchData>;
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-template<>
-IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
-extern template class Workers<OclLaunchData>;
-#endif
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_WORKERS_H */
+#endif /* XMRIG_OCLLAUNCHDATA_H */

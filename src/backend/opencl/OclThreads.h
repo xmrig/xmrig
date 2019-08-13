@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,61 +22,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
+#ifndef XMRIG_OCLTHREADS_H
+#define XMRIG_OCLTHREADS_H
 
 
-#include "backend/common/Thread.h"
-#include "backend/cpu/CpuLaunchData.h"
+#include <vector>
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclLaunchData.h"
-#endif
+#include "backend/opencl/OclThread.h"
 
 
 namespace xmrig {
 
 
-class Hashrate;
-class WorkersPrivate;
-
-
-template<class T>
-class Workers
+class OclThreads
 {
 public:
-    Workers();
-    ~Workers();
+    inline OclThreads() {}
+    inline OclThreads(size_t count) : m_data(count) {}
 
-    const Hashrate *hashrate() const;
-    void setBackend(IBackend *backend);
-    void start(const std::vector<T> &data);
-    void stop();
-    void tick(uint64_t ticks);
+    OclThreads(const rapidjson::Value &value);
+    OclThreads(size_t count, int intensity);
+
+    inline bool isEmpty() const                             { return m_data.empty(); }
+    inline const std::vector<OclThread> &data() const       { return m_data; }
+    inline size_t count() const                             { return m_data.size(); }
+    inline void add(OclThread &&thread)                     { m_data.push_back(thread); }
+    inline void add(int64_t affinity, int intensity)        { add(OclThread(affinity, intensity)); }
+    inline void reserve(size_t capacity)                    { m_data.reserve(capacity); }
+
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 private:
-    static IWorker *create(Thread<T> *handle);
-    static void onReady(void *arg);
-
-    std::vector<Thread<T> *> m_workers;
-    WorkersPrivate *d_ptr;
+    std::vector<OclThread> m_data;
 };
 
 
-template<>
-IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
-extern template class Workers<CpuLaunchData>;
+} /* namespace xmrig */
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-template<>
-IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
-extern template class Workers<OclLaunchData>;
-#endif
-
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_WORKERS_H */
+#endif /* XMRIG_OCLTHREADS_H */

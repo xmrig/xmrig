@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,61 +22,54 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
+#ifndef XMRIG_OCLBACKEND_H
+#define XMRIG_OCLBACKEND_H
 
 
-#include "backend/common/Thread.h"
-#include "backend/cpu/CpuLaunchData.h"
+#include <utility>
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclLaunchData.h"
-#endif
+#include "backend/common/interfaces/IBackend.h"
 
 
 namespace xmrig {
 
 
-class Hashrate;
-class WorkersPrivate;
+class Controller;
+class OclBackendPrivate;
+class Miner;
 
 
-template<class T>
-class Workers
+class OclBackend : public IBackend
 {
 public:
-    Workers();
-    ~Workers();
+    OclBackend(Controller *controller);
+    ~OclBackend() override;
 
-    const Hashrate *hashrate() const;
-    void setBackend(IBackend *backend);
-    void start(const std::vector<T> &data);
-    void stop();
-    void tick(uint64_t ticks);
+protected:
+    bool isEnabled() const override;
+    bool isEnabled(const Algorithm &algorithm) const override;
+    const Hashrate *hashrate() const override;
+    const String &profileName() const override;
+    const String &type() const override;
+    void prepare(const Job &nextJob) override;
+    void printHashrate(bool details) override;
+    void setJob(const Job &job) override;
+    void start(IWorker *worker) override;
+    void stop() override;
+    void tick(uint64_t ticks) override;
+
+#   ifdef XMRIG_FEATURE_API
+    rapidjson::Value toJSON(rapidjson::Document &doc) const override;
+    void handleRequest(IApiRequest &request) override;
+#   endif
 
 private:
-    static IWorker *create(Thread<T> *handle);
-    static void onReady(void *arg);
-
-    std::vector<Thread<T> *> m_workers;
-    WorkersPrivate *d_ptr;
+    OclBackendPrivate *d_ptr;
 };
 
 
-template<>
-IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
-extern template class Workers<CpuLaunchData>;
+} /* namespace xmrig */
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-template<>
-IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
-extern template class Workers<OclLaunchData>;
-#endif
-
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_WORKERS_H */
+#endif /* XMRIG_OCLBACKEND_H */

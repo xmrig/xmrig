@@ -50,6 +50,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/OclBackend.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -251,6 +256,10 @@ xmrig::Miner::Miner(Controller *controller)
     d_ptr->timer = new Timer(this);
 
     d_ptr->backends.push_back(new CpuBackend(controller));
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    d_ptr->backends.push_back(new OclBackend(controller));
+#   endif
 
     d_ptr->rebuild();
 }

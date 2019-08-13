@@ -137,7 +137,7 @@ void xmrig::Workers<T>::tick(uint64_t)
 
 
 template<class T>
-xmrig::IWorker *xmrig::Workers<T>::create(Thread<CpuLaunchData> *)
+xmrig::IWorker *xmrig::Workers<T>::create(Thread<T> *)
 {
     return nullptr;
 }
@@ -199,6 +199,18 @@ xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *han
 
 
 template class Workers<CpuLaunchData>;
+
+
+#ifdef XMRIG_FEATURE_OPENCL
+template<>
+xmrig::IWorker *xmrig::Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle)
+{
+    return nullptr;
+}
+
+
+template class Workers<OclLaunchData>;
+#endif
 
 
 } // namespace xmrig

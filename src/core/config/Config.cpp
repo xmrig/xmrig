@@ -46,11 +46,31 @@ static const char *kCPU     = "cpu";
 static const char *kRandomX = "randomx";
 #endif
 
+#ifdef XMRIG_FEATURE_OPENCL
+static const char *kOcl     = "opencl";
+#endif
+
 }
 
 
 xmrig::Config::Config() : BaseConfig()
 {
+}
+
+
+bool xmrig::Config::isShouldSave() const
+{
+    if (!isAutoSave()) {
+        return false;
+    }
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    if (m_cl.isShouldSave()) {
+        return true;
+    }
+#   endif
+
+    return (m_shouldSave || m_upgrade || m_cpu.isShouldSave());
 }
 
 
@@ -66,6 +86,10 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     if (!m_rx.read(reader.getValue(kRandomX))) {
         m_upgrade = true;
     }
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    m_cl.read(reader.getValue(kOcl));
 #   endif
 
     return true;
@@ -95,6 +119,11 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 #   endif
 
     doc.AddMember(StringRef(kCPU),     m_cpu.toJSON(doc), allocator);
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    doc.AddMember(StringRef(kOcl),     m_cl.toJSON(doc), allocator);
+#   endif
+
     doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
     doc.AddMember("donate-over-proxy", m_pools.proxyDonate(), allocator);
     doc.AddMember("log-file",          m_logFile.toJSON(), allocator);

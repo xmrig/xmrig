@@ -23,61 +23,26 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
+
+#include "backend/opencl/OclLaunchData.h"
+#include "backend/opencl/OclConfig.h"
 
 
-#include "backend/common/Thread.h"
-#include "backend/cpu/CpuLaunchData.h"
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclLaunchData.h"
-#endif
-
-
-namespace xmrig {
-
-
-class Hashrate;
-class WorkersPrivate;
-
-
-template<class T>
-class Workers
+xmrig::OclLaunchData::OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclThread &thread) :
+    algorithm(algorithm),
+    intensity(thread.intensity()),
+    priority(-1),
+    affinity(thread.affinity()),
+    miner(miner)
 {
-public:
-    Workers();
-    ~Workers();
-
-    const Hashrate *hashrate() const;
-    void setBackend(IBackend *backend);
-    void start(const std::vector<T> &data);
-    void stop();
-    void tick(uint64_t ticks);
-
-private:
-    static IWorker *create(Thread<T> *handle);
-    static void onReady(void *arg);
-
-    std::vector<Thread<T> *> m_workers;
-    WorkersPrivate *d_ptr;
-};
+}
 
 
-template<>
-IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
-extern template class Workers<CpuLaunchData>;
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-template<>
-IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
-extern template class Workers<OclLaunchData>;
-#endif
-
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_WORKERS_H */
+bool xmrig::OclLaunchData::isEqual(const OclLaunchData &other) const
+{
+    return (algorithm.l3()      == other.algorithm.l3()
+            && intensity        == other.intensity
+            && priority         == other.priority
+            && affinity         == other.affinity
+            );
+}
