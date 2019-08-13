@@ -1,3 +1,9 @@
+# v2.99.6-beta
+- Added commands `pause` and `resume` via JSON RPC 2.0 API (`POST /json_rpc`).
+- Fixed autoconfig regression (since 2.99.5), mostly `rx/wow` was affected by this bug.
+- Fixed user job recovery after donation round.
+- Information about AVX2 CPU feature how hidden in miner summary.
+
 # v2.99.5-beta
 - [#1066](https://github.com/xmrig/xmrig/issues/1066#issuecomment-518080529) Fixed crash and added error message if pool not ready for RandomX.
 - [#1092](https://github.com/xmrig/xmrig/issues/1092) Fixed crash if wrong CPU affinity used.
