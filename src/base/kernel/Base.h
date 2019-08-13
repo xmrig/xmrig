@@ -26,7 +26,7 @@
 #define XMRIG_BASE_H
 
 
-#include "api/interfaces/IApiListener.h"
+#include "base/api/interfaces/IApiListener.h"
 #include "base/kernel/interfaces/IConfigListener.h"
 #include "base/kernel/interfaces/IWatcherListener.h"
 #include "rapidjson/fwd.h"

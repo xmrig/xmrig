@@ -47,15 +47,8 @@
 
 
 #ifdef XMRIG_FEATURE_API
-#   include "api/Api.h"
-#   include "api/interfaces/IApiRequest.h"
-#endif
-
-
-#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
-#   include "core/config/Config_default.h"
-#endif
-
+#   include "base/api/Api.h"
+#   include "base/api/interfaces/IApiRequest.h"
 
 namespace xmrig {
 
@@ -63,6 +56,12 @@ static const char *kConfigPathV1 = "/1/config";
 static const char *kConfigPathV2 = "/2/config";
 
 } // namespace xmrig
+#endif
+
+
+#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+#   include "core/config/Config_default.h"
+#endif
 
 
 class xmrig::BasePrivate

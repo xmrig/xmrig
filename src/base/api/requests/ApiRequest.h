@@ -23,47 +23,53 @@
  */
 
 
-#ifndef XMRIG_HTTPAPIREQUEST_H
-#define XMRIG_HTTPAPIREQUEST_H
+#ifndef XMRIG_APIREQUEST_H
+#define XMRIG_APIREQUEST_H
 
 
-#include "api/requests/ApiRequest.h"
-#include "base/net/http/HttpApiResponse.h"
+#include "base/api/interfaces/IApiRequest.h"
 #include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class HttpData;
-
-
-class HttpApiRequest : public ApiRequest
+class ApiRequest : public IApiRequest
 {
 public:
-    HttpApiRequest(const HttpData &req, bool restricted);
+    ApiRequest(Source source, bool restricted);
+    ~ApiRequest() override;
 
 protected:
-    inline rapidjson::Document &doc() override           { return m_res.doc(); }
-    inline rapidjson::Value &reply() override            { return m_res.doc(); }
-    inline const String &url() const override            { return m_url; }
+    enum State {
+        STATE_NEW,
+        STATE_ACCEPTED,
+        STATE_DONE
+    };
 
-    const rapidjson::Value &json() const override;
-    Method method() const override;
-    void accept() override;
-    void done(int status) override;
+    inline bool accept() override                   { m_state = STATE_ACCEPTED; return true; }
+    inline bool isDone() const override             { return m_state == STATE_DONE; }
+    inline bool isNew() const override              { return m_state == STATE_NEW; }
+    inline bool isRestricted() const override       { return m_restricted; }
+    inline const String &rpcMethod() const override { return m_rpcMethod; }
+    inline int version() const override             { return m_version; }
+    inline RequestType type() const override        { return m_type; }
+    inline Source source() const override           { return m_source; }
+    inline void done(int) override                  { m_state = STATE_DONE; }
+
+    int m_version       = 1;
+    RequestType m_type  = REQ_UNKNOWN;
+    State m_state       = STATE_NEW;
+    String m_rpcMethod;
 
 private:
-    bool m_parsed;
-    const HttpData &m_req;
-    HttpApiResponse m_res;
-    rapidjson::Document m_body;
-    String m_url;
+    bool m_restricted;
+    Source m_source;
 };
 
 
 } // namespace xmrig
 
 
-#endif // XMRIG_HTTPAPIREQUEST_H
+#endif // XMRIG_APIREQUEST_H
 

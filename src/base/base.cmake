@@ -1,4 +1,5 @@
 set(HEADERS_BASE
+    src/base/api/interfaces/IApiListener.h
     src/base/io/Console.h
     src/base/io/json/Json.h
     src/base/io/json/JsonChain.h
@@ -114,6 +115,11 @@ endif()
 if (WITH_HTTP)
     set(HEADERS_BASE_HTTP
         src/3rdparty/http-parser/http_parser.h
+        src/base/api/Api.h
+        src/base/api/Httpd.h
+        src/base/api/interfaces/IApiRequest.h
+        src/base/api/requests/ApiRequest.h
+        src/base/api/requests/HttpApiRequest.h
         src/base/kernel/interfaces/IHttpListener.h
         src/base/kernel/interfaces/IJsonReader.h
         src/base/kernel/interfaces/ITcpServerListener.h
@@ -129,6 +135,10 @@ if (WITH_HTTP)
 
     set(SOURCES_BASE_HTTP
         src/3rdparty/http-parser/http_parser.c
+        src/base/api/Api.cpp
+        src/base/api/Httpd.cpp
+        src/base/api/requests/ApiRequest.cpp
+        src/base/api/requests/HttpApiRequest.cpp
         src/base/net/http/HttpApiResponse.cpp
         src/base/net/http/HttpClient.cpp
         src/base/net/http/HttpContext.cpp
