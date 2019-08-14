@@ -32,6 +32,8 @@
 namespace xmrig {
 
 
+class Job;
+class Miner;
 class Network;
 
 
@@ -46,10 +48,12 @@ public:
     void start() override;
     void stop() override;
 
+    Miner *miner() const;
     Network *network() const;
 
 private:
-    Network *m_network;
+    Miner *m_miner     = nullptr;
+    Network *m_network = nullptr;
 };
 
 

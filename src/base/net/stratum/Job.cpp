@@ -34,31 +34,16 @@
 
 
 xmrig::Job::Job() :
-    m_autoVariant(false),
-    m_nicehash(false),
-    m_poolId(-2),
-    m_threadId(-1),
-    m_size(0),
-    m_diff(0),
-    m_height(0),
-    m_target(0),
     m_blob(),
     m_seedHash()
 {
 }
 
 
-xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const String &clientId) :
+xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
     m_algorithm(algorithm),
-    m_autoVariant(algorithm.variant() == VARIANT_AUTO),
     m_nicehash(nicehash),
-    m_poolId(poolId),
-    m_threadId(-1),
-    m_size(0),
     m_clientId(clientId),
-    m_diff(0),
-    m_height(0),
-    m_target(0),
     m_blob(),
     m_seedHash()
 {
@@ -98,10 +83,6 @@ bool xmrig::Job::setBlob(const char *blob)
 
     if (*nonce() != 0 && !m_nicehash) {
         m_nicehash = true;
-    }
-
-    if (m_autoVariant) {
-        m_algorithm.setVariant(variant());
     }
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -169,16 +150,6 @@ bool xmrig::Job::setTarget(const char *target)
 }
 
 
-void xmrig::Job::setAlgorithm(const char *algo)
-{
-    m_algorithm.parseAlgorithm(algo);
-
-    if (m_algorithm.variant() == xmrig::VARIANT_AUTO) {
-        m_algorithm.setVariant(variant());
-    }
-}
-
-
 void xmrig::Job::setDiff(uint64_t diff)
 {
     m_diff   = diff;
@@ -191,21 +162,25 @@ void xmrig::Job::setDiff(uint64_t diff)
 }
 
 
-xmrig::Variant xmrig::Job::variant() const
+void xmrig::Job::copy(const Job &other)
 {
-    switch (m_algorithm.algo()) {
-    case CRYPTONIGHT:
-        return (m_blob[0] >= 10) ? VARIANT_4 : ((m_blob[0] >= 8) ? VARIANT_2 : VARIANT_1);
+    m_algorithm = other.m_algorithm;
+    m_nicehash  = other.m_nicehash;
+    m_size      = other.m_size;
+    m_clientId  = other.m_clientId;
+    m_id        = other.m_id;
+    m_diff      = other.m_diff;
+    m_height    = other.m_height;
+    m_target    = other.m_target;
+    m_index     = other.m_index;
 
-    case CRYPTONIGHT_LITE:
-        return VARIANT_1;
+    memcpy(m_blob, other.m_blob, sizeof(m_blob));
+    memcpy(m_seedHash, other.m_seedHash, sizeof(m_seedHash));
 
-    case CRYPTONIGHT_HEAVY:
-        return VARIANT_0;
+#   ifdef XMRIG_PROXY_PROJECT
+    m_rawSeedHash = other.m_rawSeedHash;
 
-    default:
-        break;
-    }
-
-    return m_algorithm.variant();
+    memcpy(m_rawBlob, other.m_rawBlob, sizeof(m_rawBlob));
+    memcpy(m_rawTarget, other.m_rawTarget, sizeof(m_rawTarget));
+#   endif
 }

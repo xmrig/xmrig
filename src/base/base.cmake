@@ -1,4 +1,5 @@
 set(HEADERS_BASE
+    src/base/api/interfaces/IApiListener.h
     src/base/io/Console.h
     src/base/io/json/Json.h
     src/base/io/json/JsonChain.h
@@ -26,6 +27,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IStrategyListener.h
     src/base/kernel/interfaces/ITimerListener.h
     src/base/kernel/interfaces/IWatcherListener.h
+    src/base/kernel/Platform.h
     src/base/kernel/Process.h
     src/base/kernel/Signals.h
     src/base/net/dns/Dns.h
@@ -63,6 +65,7 @@ set(SOURCES_BASE
     src/base/kernel/config/BaseConfig.cpp
     src/base/kernel/config/BaseTransform.cpp
     src/base/kernel/Entry.cpp
+    src/base/kernel/Platform.cpp
     src/base/kernel/Process.cpp
     src/base/kernel/Signals.cpp
     src/base/net/dns/Dns.cpp
@@ -83,9 +86,20 @@ set(SOURCES_BASE
 
 
 if (WIN32)
-    set(SOURCES_OS src/base/io/json/Json_win.cpp)
+    set(SOURCES_OS
+        src/base/io/json/Json_win.cpp
+        src/base/kernel/Platform_win.cpp
+        )
+elseif (APPLE)
+    set(SOURCES_OS
+        src/base/io/json/Json_unix.cpp
+        src/base/kernel/Platform_mac.cpp
+        )
 else()
-    set(SOURCES_OS src/base/io/json/Json_unix.cpp)
+    set(SOURCES_OS
+        src/base/io/json/Json_unix.cpp
+        src/base/kernel//Platform_unix.cpp
+        )
 endif()
 
 
@@ -101,6 +115,11 @@ endif()
 if (WITH_HTTP)
     set(HEADERS_BASE_HTTP
         src/3rdparty/http-parser/http_parser.h
+        src/base/api/Api.h
+        src/base/api/Httpd.h
+        src/base/api/interfaces/IApiRequest.h
+        src/base/api/requests/ApiRequest.h
+        src/base/api/requests/HttpApiRequest.h
         src/base/kernel/interfaces/IHttpListener.h
         src/base/kernel/interfaces/IJsonReader.h
         src/base/kernel/interfaces/ITcpServerListener.h
@@ -116,6 +135,10 @@ if (WITH_HTTP)
 
     set(SOURCES_BASE_HTTP
         src/3rdparty/http-parser/http_parser.c
+        src/base/api/Api.cpp
+        src/base/api/Httpd.cpp
+        src/base/api/requests/ApiRequest.cpp
+        src/base/api/requests/HttpApiRequest.cpp
         src/base/net/http/HttpApiResponse.cpp
         src/base/net/http/HttpClient.cpp
         src/base/net/http/HttpContext.cpp
@@ -133,5 +156,3 @@ else()
     remove_definitions(/DXMRIG_FEATURE_HTTP)
     remove_definitions(/DXMRIG_FEATURE_API)
 endif()
-
-add_definitions(/DXMRIG_DEPRECATED)

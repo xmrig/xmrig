@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,103 +27,50 @@
 
 
 #include <stdint.h>
-#include <vector>
 
 
+#include "backend/cpu/CpuConfig.h"
 #include "base/kernel/config/BaseConfig.h"
-#include "common/xmrig.h"
 #include "rapidjson/fwd.h"
-#include "workers/CpuThread.h"
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/RxConfig.h"
+#endif
 
 
 namespace xmrig {
 
 
-class ConfigLoader;
 class IThread;
-class IConfigListener;
-class Process;
 
 
-/**
- * @brief The Config class
- *
- * Options with dynamic reload:
- *   colors
- *   debug
- *   verbose
- *   custom-diff (only for new connections)
- *   api/worker-id
- *   pools/
- */
 class Config : public BaseConfig
 {
 public:
-    enum ThreadsMode {
-        Automatic,
-        Simple,
-        Advanced
-    };
-
-
     Config();
 
-    bool isHwAES() const;
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline AlgoVariant algoVariant() const               { return m_algoVariant; }
-    inline Assembly assembly() const                     { return m_assembly; }
-    inline bool isHugePages() const                      { return m_hugePages; }
-    inline bool isShouldSave() const                     { return (m_shouldSave || m_upgrade) && isAutoSave(); }
-    inline const std::vector<IThread *> &threads() const { return m_threads.list; }
-    inline int priority() const                          { return m_priority; }
-    inline int threadsCount() const                      { return static_cast<int>(m_threads.list.size()); }
-    inline int64_t affinity() const                      { return m_threads.mask; }
-    inline ThreadsMode threadsMode() const               { return m_threads.mode; }
+    inline bool isShouldSave() const        { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave()) && isAutoSave(); }
+    inline const CpuConfig &cpu() const     { return m_cpu; }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    inline const RxConfig &rx() const       { return m_rx; }
+#   endif
 
 private:
-    bool finalize();
-    void setAesMode(const rapidjson::Value &aesMode);
-    void setAlgoVariant(int av);
-    void setMaxCpuUsage(int max);
-    void setPriority(int priority);
-    void setThreads(const rapidjson::Value &threads);
+    bool m_shouldSave   = false;
+    CpuConfig m_cpu;
 
-    AlgoVariant getAlgoVariant() const;
-#   ifdef XMRIG_ALGO_CN_LITE
-    AlgoVariant getAlgoVariantLite() const;
+#   ifdef XMRIG_ALGO_RANDOMX
+    RxConfig m_rx;
 #   endif
-
-#   ifndef XMRIG_NO_ASM
-    void setAssembly(const rapidjson::Value &assembly);
-#   endif
-
-
-    struct Threads
-    {
-       inline Threads() : mask(-1L), count(0), mode(Automatic) {}
-
-       int64_t mask;
-       size_t count;
-       std::vector<CpuThread::Data> cpu;
-       std::vector<IThread *> list;
-       ThreadsMode mode;
-    };
-
-
-    AesMode m_aesMode;
-    AlgoVariant m_algoVariant;
-    Assembly m_assembly;
-    bool m_hugePages;
-    bool m_safe;
-    bool m_shouldSave;
-    int m_maxCpuUsage;
-    int m_priority;
-    Threads m_threads;
 };
 
 
 } /* namespace xmrig */
+
 
 #endif /* XMRIG_CONFIG_H */

@@ -33,7 +33,6 @@ namespace xmrig {
 const static char *default_config =
 R"===(
 {
-    "algo": "cryptonight",
     "api": {
         "id": null,
         "worker-id": null
@@ -45,42 +44,45 @@ R"===(
         "access-token": null,
         "restricted": true
     },
-    "asm": true,
     "autosave": true,
-    "av": 0,
     "background": false,
     "colors": true,
-    "cpu-affinity": null,
-    "cpu-priority": null,
+    "randomx": {
+        "init": -1,
+        "numa": true
+    },
+    "cpu": {
+        "enabled": true,
+        "huge-pages": true,
+        "hw-aes": null,
+        "priority": null,
+        "asm": true,
+        "cn/0": false,
+        "cn-lite/0": false
+    },
     "donate-level": 5,
     "donate-over-proxy": 1,
-    "huge-pages": true,
-    "hw-aes": null,
     "log-file": null,
-    "max-cpu-usage": 100,
     "pools": [
         {
+            "algo": null,
             "url": "donate.v2.xmrig.com:3333",
             "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
-            "variant": -1,
             "enabled": true,
             "tls": false,
             "tls-fingerprint": null,
-            "daemon": false,
-            "daemon-poll-interval": 1000
+            "daemon": false
         }
     ],
     "print-time": 60,
     "retries": 5,
     "retry-pause": 5,
-    "safe": false,
-    "threads": null,
-    "user-agent": null,
     "syslog": false,
+    "user-agent": null,
     "watch": true
 }
 )===";

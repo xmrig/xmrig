@@ -118,6 +118,8 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
 
     OStreamWrapper osw(ofs);
     PrettyWriter<OStreamWrapper> writer(osw);
+    writer.SetFormatOptions(kFormatSingleLineArray);
+
     doc.Accept(writer);
 
     return true;

@@ -34,6 +34,9 @@
 #   include <openssl/opensslv.h>
 #endif
 
+#ifdef XMRIG_FEATURE_HWLOC
+#   include "backend/cpu/Cpu.h"
+#endif
 
 #ifdef XMRIG_AMD_PROJECT
 #   if defined(__APPLE__)
@@ -60,14 +63,7 @@
 #include "version.h"
 
 
-xmrig::BaseConfig::BaseConfig() :
-    m_algorithm(CRYPTONIGHT, VARIANT_AUTO),
-    m_autoSave(true),
-    m_background(false),
-    m_dryRun(false),
-    m_syslog(false),
-    m_upgrade(false),
-    m_watch(true)
+xmrig::BaseConfig::BaseConfig()
 {
 }
 
@@ -102,22 +98,23 @@ void xmrig::BaseConfig::printVersions()
 #   elif defined(XMRIG_NVIDIA_PROJECT)
     const int cudaVersion = cuda_get_runtime_version();
     int length = snprintf(buf, sizeof buf, "CUDA/%d.%d ", cudaVersion / 1000, cudaVersion % 100);
-#   else
-    memset(buf, 0, 16);
+#   endif
 
-#   if defined(XMRIG_FEATURE_HTTP) || defined(XMRIG_FEATURE_TLS)
-    int length = 0;
-#   endif
-#   endif
+    std::string libs;
 
 #   if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
     {
         constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
-        length += snprintf(buf + length, (sizeof buf) - length, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
+        snprintf(buf, sizeof buf, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
+        libs += buf;
     }
 #   endif
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), buf);
+#   if defined(XMRIG_FEATURE_HWLOC)
+    libs += Cpu::info()->backend();
+#   endif
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), libs.c_str());
 }
 
 
@@ -146,33 +143,8 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
         m_apiWorkerId = Json::getString(api, "worker-id");
     }
 
-#   ifdef XMRIG_DEPRECATED
-    if (api.IsObject() && api.HasMember("port")) {
-        m_upgrade = true;
-        m_http.load(api);
-        m_http.setEnabled(Json::getUint(api, "port") > 0);
-        m_http.setHost("0.0.0.0");
-    }
-    else {
-        m_http.load(reader.getObject("http"));
-    }
-#   else
-    m_http.load(chain.getObject("http"));
-#   endif
-
-    m_algorithm.parseAlgorithm(reader.getString("algo", "cn"));
-
-    m_pools.load(reader.getArray("pools"));
-    m_pools.setDonateLevel(reader.getInt("donate-level", kDefaultDonateLevel));
-    m_pools.setProxyDonate(reader.getInt("donate-over-proxy", Pools::PROXY_DONATE_AUTO));
-    m_pools.setRetries(reader.getInt("retries"));
-    m_pools.setRetryPause(reader.getInt("retry-pause"));
-
-    if (!m_algorithm.isValid()) {
-        return false;
-    }
-
-    m_pools.adjust(m_algorithm);
+    m_http.load(reader.getObject("http"));
+    m_pools.load(reader);
 
     return m_pools.active() > 0;
 }

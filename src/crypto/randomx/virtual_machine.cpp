@@ -95,43 +95,35 @@ void randomx_vm::initialize() {
 
 namespace randomx {
 
-	alignas(16) volatile static rx_vec_i128 aesDummy;
-
-	template<class Allocator, bool softAes>
-	VmBase<Allocator, softAes>::~VmBase() {
-		Allocator::freeMemory(scratchpad, RANDOMX_SCRATCHPAD_L3_MAX_SIZE);
+	template<bool softAes>
+	VmBase<softAes>::~VmBase() {
 	}
 
-	template<class Allocator, bool softAes>
-	void VmBase<Allocator, softAes>::allocate() {
-		if (datasetPtr == nullptr)
+	template<bool softAes>
+	void VmBase<softAes>::setScratchpad(uint8_t *scratchpad) {
+		if (datasetPtr == nullptr) {
 			throw std::invalid_argument("Cache/Dataset not set");
-		if (!softAes) { //if hardware AES is not supported, it's better to fail now than to return a ticking bomb
-			rx_vec_i128 tmp = rx_load_vec_i128((const rx_vec_i128*)&aesDummy);
-			tmp = rx_aesenc_vec_i128(tmp, tmp);
-			rx_store_vec_i128((rx_vec_i128*)&aesDummy, tmp);
 		}
-		scratchpad = (uint8_t*)Allocator::allocMemory(RANDOMX_SCRATCHPAD_L3_MAX_SIZE);
+
+		this->scratchpad = scratchpad;
 	}
 
-	template<class Allocator, bool softAes>
-	void VmBase<Allocator, softAes>::getFinalResult(void* out, size_t outSize) {
+	template<bool softAes>
+	void VmBase<softAes>::getFinalResult(void* out, size_t outSize) {
 		hashAes1Rx4<softAes>(scratchpad, ScratchpadSize, &reg.a);
 		blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
 	}
 
-	template<class Allocator, bool softAes>
-	void VmBase<Allocator, softAes>::initScratchpad(void* seed) {
+	template<bool softAes>
+	void VmBase<softAes>::initScratchpad(void* seed) {
 		fillAes1Rx4<softAes>(seed, ScratchpadSize, scratchpad);
 	}
 
-	template<class Allocator, bool softAes>
-	void VmBase<Allocator, softAes>::generateProgram(void* seed) {
-		fillAes4Rx4<softAes>(seed, sizeof(program), &program);
+	template<bool softAes>
+	void VmBase<softAes>::generateProgram(void* seed) {
+		fillAes4Rx4<softAes>(seed, 128 + RandomX_CurrentConfig.ProgramSize * 8, &program);
 	}
 
-	template class VmBase<AlignedAllocator<CacheLineSize>, false>;
-	template class VmBase<AlignedAllocator<CacheLineSize>, true>;
-	template class VmBase<LargePageAllocator, false>;
-	template class VmBase<LargePageAllocator, true>;
+	template class VmBase<false>;
+	template class VmBase<true>;
 }

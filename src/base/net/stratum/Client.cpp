@@ -162,7 +162,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
     Buffer::toHex(reinterpret_cast<const char*>(&result.nonce), 4, nonce);
     nonce[8] = '\0';
 
-    Buffer::toHex(result.result, 32, data);
+    Buffer::toHex(result.result(), 32, data);
     data[64] = '\0';
 #   endif
 
@@ -313,7 +313,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, has<EXT_NICEHASH>(), m_pool.algorithm(), m_rpcId);
+    Job job(has<EXT_NICEHASH>(), m_pool.algorithm(), m_rpcId);
 
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
@@ -330,28 +330,24 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    if (params.HasMember("algo")) {
-        job.setAlgorithm(params["algo"].GetString());
+    const char *algo = Json::getString(params, "algo");
+    if (algo) {
+        job.setAlgorithm(algo);
     }
 
-    if (params.HasMember("variant")) {
-        const rapidjson::Value &variant = params["variant"];
-
-        if (variant.IsInt()) {
-            job.setVariant(variant.GetInt());
-        }
-        else if (variant.IsString()){
-            job.setVariant(variant.GetString());
-        }
-    }
-
-    job.setSeedHash(Json::getString(params, "seed_hash"));
     job.setHeight(Json::getUint64(params, "height"));
 
-    if (!verifyAlgorithm(job.algorithm())) {
+    if (!verifyAlgorithm(job.algorithm(), algo)) {
         *code = 6;
+        return false;
+    }
 
-        close();
+    if (job.algorithm().family() == Algorithm::RANDOM_X && !job.setSeedHash(Json::getString(params, "seed_hash"))) {
+        if (!isQuiet()) {
+            LOG_ERR("[%s] failed to parse field \"seed_hash\" required by RandomX", url(), algo);
+        }
+
+        *code = 7;
         return false;
     }
 
@@ -426,30 +422,24 @@ bool xmrig::Client::send(BIO *bio)
 }
 
 
-bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm) const
+bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo) const
 {
-#   ifdef XMRIG_PROXY_PROJECT
-    if (m_pool.algorithm().variant() == VARIANT_AUTO || m_id == -1) {
-        return true;
-    }
-#   endif
+    if (!algorithm.isValid()) {
+        if (!isQuiet()) {
+            LOG_ERR("[%s] Unknown/unsupported algorithm \"%s\" detected, reconnect", url(), algo);
+        }
 
-    if (m_pool.isCompatible(algorithm)) {
-        return true;
-    }
-
-    if (isQuiet()) {
         return false;
     }
 
-    if (algorithm.isValid()) {
-        LOG_ERR("Incompatible algorithm \"%s\" detected, reconnect", algorithm.name());
-    }
-    else {
-        LOG_ERR("Unknown/unsupported algorithm detected, reconnect");
+    bool ok = true;
+    m_listener->onVerifyAlgorithm(this, algorithm, &ok);
+
+    if (!ok && !isQuiet()) {
+        LOG_ERR("[%s] Incompatible/disabled algorithm \"%s\" detected, reconnect", url(), algorithm.shortName());
     }
 
-    return false;
+    return ok;
 }
 
 
@@ -586,19 +576,6 @@ void xmrig::Client::login()
         params.AddMember("rigid", m_pool.rigId().toJSON(), allocator);
     }
 
-#   ifdef XMRIG_PROXY_PROJECT
-    if (m_pool.algorithm().variant() != xmrig::VARIANT_AUTO)
-#   endif
-    {
-        Value algo(kArrayType);
-
-        for (const auto &a : m_pool.algorithms()) {
-            algo.PushBack(StringRef(a.shortName()), allocator);
-        }
-
-        params.AddMember("algo", algo, allocator);
-    }
-
     m_listener->onLogin(this, doc, params);
 
     JsonRequest::create(doc, 1, "login", params);
@@ -721,6 +698,9 @@ void xmrig::Client::parseNotification(const char *method, const rapidjson::Value
         int code = -1;
         if (parseJob(params, &code)) {
             m_listener->onJobReceived(this, m_job, params);
+        }
+        else {
+            close();
         }
 
         return;

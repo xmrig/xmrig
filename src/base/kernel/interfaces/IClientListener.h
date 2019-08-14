@@ -35,6 +35,7 @@
 namespace xmrig {
 
 
+class Algorithm;
 class IClient;
 class Job;
 class SubmitResult;
@@ -50,6 +51,7 @@ public:
     virtual void onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params)     = 0;
     virtual void onLoginSuccess(IClient *client)                                                  = 0;
     virtual void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) = 0;
+    virtual void onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok)   = 0;
 };
 
 

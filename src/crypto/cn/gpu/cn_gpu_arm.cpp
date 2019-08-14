@@ -26,7 +26,7 @@
 #include <arm_neon.h>
 
 
-#include "crypto/cn/CryptoNight_constants.h"
+#include "crypto/cn/CnAlgo.h"
 
 
 inline void vandq_f32(float32x4_t &v, uint32_t v2)
@@ -237,4 +237,4 @@ void cn_gpu_inner_arm(const uint8_t *spad, uint8_t *lpad)
     }
 }
 
-template void cn_gpu_inner_arm<xmrig::CRYPTONIGHT_GPU_ITER, xmrig::CRYPTONIGHT_GPU_MASK>(const uint8_t* spad, uint8_t* lpad);
+template void cn_gpu_inner_arm<xmrig::CnAlgo<xmrig::Algorithm::CN_GPU>().iterations(), xmrig::CnAlgo<xmrig::Algorithm::CN_GPU>().mask()>(const uint8_t* spad, uint8_t* lpad);

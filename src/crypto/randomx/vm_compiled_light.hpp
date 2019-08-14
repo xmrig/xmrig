@@ -33,8 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<class Allocator, bool softAes>
-	class CompiledLightVm : public CompiledVm<Allocator, softAes> {
+	template<bool softAes>
+	class CompiledLightVm : public CompiledVm<softAes>
+	{
 	public:
 		void* operator new(size_t size) {
 			void* ptr = AlignedAllocator<CacheLineSize>::allocMemory(size);
@@ -42,23 +43,23 @@ namespace randomx {
 				throw std::bad_alloc();
 			return ptr;
 		}
+
 		void operator delete(void* ptr) {
 			AlignedAllocator<CacheLineSize>::freeMemory(ptr, sizeof(CompiledLightVm));
 		}
+
 		void setCache(randomx_cache* cache) override;
 		void setDataset(randomx_dataset* dataset) override { }
 		void run(void* seed) override;
 
-		using CompiledVm<Allocator, softAes>::mem;
-		using CompiledVm<Allocator, softAes>::compiler;
-		using CompiledVm<Allocator, softAes>::program;
-		using CompiledVm<Allocator, softAes>::config;
-		using CompiledVm<Allocator, softAes>::cachePtr;
-		using CompiledVm<Allocator, softAes>::datasetOffset;
+		using CompiledVm<softAes>::mem;
+		using CompiledVm<softAes>::compiler;
+		using CompiledVm<softAes>::program;
+		using CompiledVm<softAes>::config;
+		using CompiledVm<softAes>::cachePtr;
+		using CompiledVm<softAes>::datasetOffset;
 	};
 
-	using CompiledLightVmDefault = CompiledLightVm<AlignedAllocator<CacheLineSize>, true>;
-	using CompiledLightVmHardAes = CompiledLightVm<AlignedAllocator<CacheLineSize>, false>;
-	using CompiledLightVmLargePage = CompiledLightVm<LargePageAllocator, true>;
-	using CompiledLightVmLargePageHardAes = CompiledLightVm<LargePageAllocator, false>;
+	using CompiledLightVmDefault = CompiledLightVm<true>;
+	using CompiledLightVmHardAes = CompiledLightVm<false>;
 }

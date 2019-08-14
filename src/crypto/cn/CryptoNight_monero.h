@@ -33,21 +33,21 @@
 #ifndef XMRIG_ARM
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
-    if (BASE == xmrig::VARIANT_1) { \
+    if (BASE == Algorithm::CN_1) { \
         tweak1_2_##part = (*reinterpret_cast<const uint64_t*>(input + 35 + part * size) ^ \
                           *(reinterpret_cast<const uint64_t*>(ctx[part]->state) + 24)); \
     }
 #else
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
-    if (BASE == xmrig::VARIANT_1) { \
+    if (BASE == Algorithm::CN_1) { \
         memcpy(&tweak1_2_##part, input + 35 + part * size, sizeof tweak1_2_##part); \
         tweak1_2_##part ^= *(reinterpret_cast<const uint64_t*>(ctx[part]->state) + 24); \
     }
 #endif
 
 #define VARIANT1_1(p) \
-    if (BASE == xmrig::VARIANT_1) { \
+    if (BASE == Algorithm::CN_1) { \
         const uint8_t tmp = reinterpret_cast<const uint8_t*>(p)[11]; \
         static const uint32_t table = 0x75310; \
         const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1; \
@@ -55,20 +55,20 @@
     }
 
 #define VARIANT1_2(p, part) \
-    if (BASE == xmrig::VARIANT_1) { \
+    if (BASE == Algorithm::CN_1) { \
         (p) ^= tweak1_2_##part; \
     }
 
 
 #ifndef XMRIG_ARM
 #   define VARIANT2_INIT(part) \
-    __m128i division_result_xmm_##part = _mm_cvtsi64_si128(h##part[12]); \
-    __m128i sqrt_result_xmm_##part = _mm_cvtsi64_si128(h##part[13]);
+    __m128i division_result_xmm_##part = _mm_cvtsi64_si128(static_cast<int64_t>(h##part[12])); \
+    __m128i sqrt_result_xmm_##part     = _mm_cvtsi64_si128(static_cast<int64_t>(h##part[13]));
 
 #ifdef _MSC_VER
-#   define VARIANT2_SET_ROUNDING_MODE() if (BASE == xmrig::VARIANT_2) { _control87(RC_DOWN, MCW_RC); }
+#   define VARIANT2_SET_ROUNDING_MODE() if (BASE == Algorithm::CN_2) { _control87(RC_DOWN, MCW_RC); }
 #else
-#   define VARIANT2_SET_ROUNDING_MODE() if (BASE == xmrig::VARIANT_2) { fesetround(FE_DOWNWARD); }
+#   define VARIANT2_SET_ROUNDING_MODE() if (BASE == Algorithm::CN_2) { fesetround(FE_DOWNWARD); }
 #endif
 
 #   define VARIANT2_INTEGER_MATH(part, cl, cx) \
@@ -91,7 +91,7 @@
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10)), _mm_add_epi64(chunk3, _b1)); \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20)), _mm_add_epi64(chunk1, _b)); \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30)), _mm_add_epi64(chunk2, _a)); \
-        if (VARIANT == xmrig::VARIANT_4) { \
+        if (ALGO == Algorithm::CN_R) { \
             _c = _mm_xor_si128(_mm_xor_si128(_c, chunk3), _mm_xor_si128(chunk1, chunk2)); \
         } \
     } while (0)
@@ -141,7 +141,7 @@
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(_b1))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(_b))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(_a))); \
-        if (VARIANT == xmrig::VARIANT_4) { \
+        if (ALGO == Algorithm::CN_R) { \
             _c = veorq_u64(veorq_u64(_c, chunk3), veorq_u64(chunk1, chunk2)); \
         } \
     } while (0)
@@ -178,23 +178,22 @@
 #endif
 #endif
 
-#include "common/xmrig.h"
 #include "crypto/cn/r/variant4_random_math.h"
 
 #define VARIANT4_RANDOM_MATH_INIT(part) \
   uint32_t r##part[9]; \
   struct V4_Instruction code##part[256]; \
-  if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) { \
-    r##part[0] = (uint32_t)(h##part[12]); \
-    r##part[1] = (uint32_t)(h##part[12] >> 32); \
-    r##part[2] = (uint32_t)(h##part[13]); \
-    r##part[3] = (uint32_t)(h##part[13] >> 32); \
+  if (props.isR()) { \
+    r##part[0] = static_cast<uint32_t>(h##part[12]); \
+    r##part[1] = static_cast<uint32_t>(h##part[12] >> 32); \
+    r##part[2] = static_cast<uint32_t>(h##part[13]); \
+    r##part[3] = static_cast<uint32_t>(h##part[13] >> 32); \
   } \
-  v4_random_math_init<VARIANT>(code##part, height);
+  v4_random_math_init<ALGO>(code##part, height);
 
 #define VARIANT4_RANDOM_MATH(part, al, ah, cl, bx0, bx1) \
-  if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) { \
-    cl ^= (r##part[0] + r##part[1]) | ((uint64_t)(r##part[2] + r##part[3]) << 32); \
+  if (props.isR()) { \
+    cl ^= (r##part[0] + r##part[1]) | (static_cast<uint64_t>(r##part[2] + r##part[3]) << 32); \
     r##part[4] = static_cast<uint32_t>(al); \
     r##part[5] = static_cast<uint32_t>(ah); \
     r##part[6] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx0)); \

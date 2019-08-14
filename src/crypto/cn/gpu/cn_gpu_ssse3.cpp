@@ -22,7 +22,9 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "crypto/cn/CryptoNight_constants.h"
+
+#include "crypto/cn/CnAlgo.h"
+
 
 #ifdef __GNUC__
 #   include <x86intrin.h>
@@ -207,4 +209,4 @@ void cn_gpu_inner_ssse3(const uint8_t* spad, uint8_t* lpad)
     }
 }
 
-template void cn_gpu_inner_ssse3<xmrig::CRYPTONIGHT_GPU_ITER, xmrig::CRYPTONIGHT_GPU_MASK>(const uint8_t* spad, uint8_t* lpad);
+template void cn_gpu_inner_ssse3<xmrig::CnAlgo<xmrig::Algorithm::CN_GPU>().iterations(), xmrig::CnAlgo<xmrig::Algorithm::CN_GPU>().mask()>(const uint8_t* spad, uint8_t* lpad);

@@ -31,11 +31,17 @@
 #   include <openssl/opensslv.h>
 #endif
 
+#ifdef XMRIG_FEATURE_HWLOC
+#   include <hwloc.h>
+#endif
 
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
 #include "core/config/usage.h"
 #include "version.h"
+
+
+namespace xmrig {
 
 
 static int showVersion()
@@ -75,8 +81,48 @@ static int showVersion()
     }
 #   endif
 
+#   if defined(XMRIG_FEATURE_HWLOC)
+#   if defined(HWLOC_VERSION)
+    printf("hwloc/%s\n", HWLOC_VERSION);
+#   elif HWLOC_API_VERSION >= 0x20000
+    printf("hwloc/2\n");
+#   else
+    printf("hwloc/1\n");
+#   endif
+#   endif
+
     return 0;
 }
+
+
+#ifdef XMRIG_FEATURE_HWLOC
+static int exportTopology(const Process &process)
+{
+    const String path = process.location(Process::ExeLocation, "topology.xml");
+
+    hwloc_topology_t topology;
+    hwloc_topology_init(&topology);
+    hwloc_topology_load(topology);
+
+#   if HWLOC_API_VERSION >= 0x20000
+    if (hwloc_topology_export_xml(topology, path, 0) == -1) {
+#   else
+    if (hwloc_topology_export_xml(topology, path) == -1) {
+#   endif
+        printf("failed to export hwloc topology.\n");
+    }
+    else {
+        printf("hwloc topology successfully exported to \"%s\"\n", path.data());
+    }
+
+    hwloc_topology_destroy(topology);
+
+    return 0;
+}
+#endif
+
+
+} // namespace xmrig
 
 
 xmrig::Entry::Id xmrig::Entry::get(const Process &process)
@@ -90,11 +136,17 @@ xmrig::Entry::Id xmrig::Entry::get(const Process &process)
          return Version;
     }
 
+#   ifdef XMRIG_FEATURE_HWLOC
+    if (args.hasArg("--export-topology")) {
+        return Topo;
+    }
+#   endif
+
     return Default;
 }
 
 
-int xmrig::Entry::exec(const Process &, Id id)
+int xmrig::Entry::exec(const Process &process, Id id)
 {
     switch (id) {
     case Usage:
@@ -103,6 +155,11 @@ int xmrig::Entry::exec(const Process &, Id id)
 
     case Version:
         return showVersion();
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    case Topo:
+        return exportTopology(process);
+#   endif
 
     default:
         break;

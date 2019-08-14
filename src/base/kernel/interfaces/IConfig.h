@@ -65,20 +65,12 @@ public:
         UserAgentKey         = 1008,
         UserKey              = 'u',
         UserpassKey          = 'O',
-        VariantKey           = 1010,
         VerboseKey           = 1100,
         TlsKey               = 1013,
         FingerprintKey       = 1014,
         ProxyDonateKey       = 1017,
         DaemonKey            = 1018,
         DaemonPollKey        = 1019,
-
-#       ifdef XMRIG_DEPRECATED
-        ApiPort              = 4000,
-        ApiAccessTokenKey    = 4001,
-        ApiIPv6Key           = 4003,
-        ApiRestrictedKey     = 4004,
-#       endif
 
         // xmrig common
         CPUPriorityKey       = 1021,
@@ -90,11 +82,10 @@ public:
         CPUAffinityKey       = 1020,
         DryRunKey            = 5000,
         HugePagesKey         = 1009,
-        MaxCPUUsageKey       = 1004,
-        SafeKey              = 1005,
         ThreadsKey           = 't',
-//        HardwareAESKey       = 1011,
         AssemblyKey          = 1015,
+        RandomXInitKey       = 1022,
+        RandomXNumaKey       = 1023,
 
         // xmrig amd
         OclPlatformKey       = 1400,
@@ -144,7 +135,6 @@ public:
     virtual bool isWatch() const                                       = 0;
     virtual bool read(const IJsonReader &reader, const char *fileName) = 0;
     virtual bool save()                                                = 0;
-    virtual const Algorithm &algorithm() const                         = 0;
     virtual const String &fileName() const                             = 0;
     virtual void getJSON(rapidjson::Document &doc) const               = 0;
     virtual void setFileName(const char *fileName)                     = 0;

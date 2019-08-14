@@ -68,9 +68,9 @@ DECL(randomx_program_prologue):
 #else
 	#include "asm/program_prologue_linux.inc"
 #endif
-	movapd xmm13, xmmword ptr mantissaMask[rip]
-	movapd xmm14, xmmword ptr exp240[rip]
-	movapd xmm15, xmmword ptr scaleMask[rip]
+	movapd xmm13, xmmword ptr [mantissaMask+rip]
+	movapd xmm14, xmmword ptr [exp240+rip]
+	movapd xmm15, xmmword ptr [scaleMask+rip]
 	jmp DECL(randomx_program_loop_begin)
 
 .balign 64
@@ -177,26 +177,26 @@ DECL(randomx_sshash_end):
 DECL(randomx_sshash_init):
 	lea r8, [rbx+1]
 	#include "asm/program_sshash_prefetch.inc"
-	imul r8, qword ptr r0_mul[rip]
-	mov r9, qword ptr r1_add[rip]
+	imul r8, qword ptr [r0_mul+rip]
+	mov r9, qword ptr [r1_add+rip]
 	xor r9, r8
-	mov r10, qword ptr r2_add[rip]
+	mov r10, qword ptr [r2_add+rip]
 	xor r10, r8
-	mov r11, qword ptr r3_add[rip]
+	mov r11, qword ptr [r3_add+rip]
 	xor r11, r8
-	mov r12, qword ptr r4_add[rip]
+	mov r12, qword ptr [r4_add+rip]
 	xor r12, r8
-	mov r13, qword ptr r5_add[rip]
+	mov r13, qword ptr [r5_add+rip]
 	xor r13, r8
-	mov r14, qword ptr r6_add[rip]
+	mov r14, qword ptr [r6_add+rip]
 	xor r14, r8
-	mov r15, qword ptr r7_add[rip]
+	mov r15, qword ptr [r7_add+rip]
 	xor r15, r8
 	jmp DECL(randomx_program_end)
 
 .balign 64
 	#include "asm/program_sshash_constants.inc"
-	
+
 .balign 64
 DECL(randomx_program_end):
 	nop

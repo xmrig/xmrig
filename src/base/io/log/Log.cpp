@@ -31,6 +31,7 @@
 
 
 #include <algorithm>
+#include <mutex>
 #include <string.h>
 #include <string>
 #include <time.h>
@@ -69,14 +70,11 @@ public:
     inline LogPrivate() :
         m_buf()
     {
-        uv_mutex_init(&m_mutex);
     }
 
 
     inline ~LogPrivate()
     {
-        uv_mutex_destroy(&m_mutex);
-
         for (ILogBackend *backend : m_backends) {
             delete backend;
         }
@@ -91,13 +89,14 @@ public:
         size_t size   = 0;
         size_t offset = 0;
 
-        lock();
+        std::lock_guard<std::mutex> lock(m_mutex);
+
         timestamp(level, size, offset);
         color(level, size);
 
         const int rc = vsnprintf(m_buf + size, sizeof (m_buf) - offset - 32, fmt, args);
         if (rc < 0) {
-            return unlock();
+            return;
         }
 
         size += std::min(static_cast<size_t>(rc), sizeof (m_buf) - offset - 32);
@@ -119,16 +118,10 @@ public:
             fputs(txt.c_str(), stdout);
             fflush(stdout);
         }
-
-        unlock();
     }
 
 
 private:
-    inline void lock()   { uv_mutex_lock(&m_mutex); }
-    inline void unlock() { uv_mutex_unlock(&m_mutex); }
-
-
     inline void timestamp(Log::Level level, size_t &size, size_t &offset)
     {
         if (level == Log::NONE) {
@@ -192,8 +185,8 @@ private:
 
 
     char m_buf[4096];
+    std::mutex m_mutex;
     std::vector<ILogBackend*> m_backends;
-    uv_mutex_t m_mutex;
 };
 
 

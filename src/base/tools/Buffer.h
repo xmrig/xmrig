@@ -43,17 +43,20 @@ public:
     ~Buffer();
 
 
-    inline char *data()                   { return m_data; }
-    inline const char *data() const       { return m_data; }
-    inline size_t size() const            { return m_size; }
-    inline void from(const Buffer &other) { from(other.data(), other.size()); }
+    inline bool isEqual(const Buffer &other) const  { return m_size == other.m_size && (m_size == 0 || memcmp(m_data, other.m_data, m_size) == 0); }
+    inline char *data()                             { return m_data; }
+    inline const char *data() const                 { return m_data; }
+    inline size_t size() const                      { return m_size; }
+    inline void from(const Buffer &other)           { from(other.data(), other.size()); }
 
 
     void from(const char *data, size_t size);
 
 
-    inline Buffer &operator=(const Buffer &other) { from(other); return *this; }
-    inline Buffer &operator=(Buffer &&other)      { move(std::move(other)); return *this; }
+    inline bool operator!=(const Buffer &other) const   { return !isEqual(other); }
+    inline bool operator==(const Buffer &other) const   { return isEqual(other); }
+    inline Buffer &operator=(Buffer &&other)            { move(std::move(other)); return *this; }
+    inline Buffer &operator=(const Buffer &other)       { from(other); return *this; }
 
 
     static Buffer allocUnsafe(size_t size);
