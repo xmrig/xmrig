@@ -46,7 +46,7 @@ class Rx
 public:
     static bool isReady(const Job &job);
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
-    static std::pair<size_t, size_t> hugePages();
+    static std::pair<unsigned, unsigned> hugePages();
     static void destroy();
     static void init();
     static void init(const Job &job, int initThreads, bool hugePages, bool numa);

@@ -34,7 +34,6 @@
 #include <time.h>
 
 
-#include "api/Api.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/SubmitResult.h"
@@ -51,8 +50,8 @@
 
 
 #ifdef XMRIG_FEATURE_API
-#   include "api/Api.h"
-#   include "api/interfaces/IApiRequest.h"
+#   include "base/api/Api.h"
+#   include "base/api/interfaces/IApiRequest.h"
 #endif
 
 

@@ -23,50 +23,48 @@
  */
 
 
-#ifndef XMRIG_APIREQUEST_H
-#define XMRIG_APIREQUEST_H
+#ifndef XMRIG_HTTPAPIREQUEST_H
+#define XMRIG_HTTPAPIREQUEST_H
 
 
-#include "api/interfaces/IApiRequest.h"
+#include "base/api/requests/ApiRequest.h"
+#include "base/net/http/HttpApiResponse.h"
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class ApiRequest : public IApiRequest
+class HttpData;
+
+
+class HttpApiRequest : public ApiRequest
 {
 public:
-    ApiRequest(Source source, bool restricted);
-    ~ApiRequest() override;
+    HttpApiRequest(const HttpData &req, bool restricted);
 
 protected:
-    inline bool isDone() const override          { return m_state == STATE_DONE; }
-    inline bool isNew() const override           { return m_state == STATE_NEW; }
-    inline bool isRestricted() const override    { return m_restricted; }
-    inline int version() const override          { return m_version; }
-    inline RequestType type() const override     { return m_type; }
-    inline Source source() const override        { return m_source; }
-    inline void accept() override                { m_state = STATE_ACCEPTED; }
-    inline void done(int) override               { m_state = STATE_DONE; }
+    inline bool hasParseError() const override           { return m_parsed == 2; }
+    inline const String &url() const override            { return m_url; }
+    inline rapidjson::Document &doc() override           { return m_res.doc(); }
+    inline rapidjson::Value &reply() override            { return m_res.doc(); }
 
-    int m_version      = 1;
-    RequestType m_type = REQ_UNKNOWN;
+    bool accept() override;
+    const rapidjson::Value &json() const override;
+    Method method() const override;
+    void done(int status) override;
 
 private:
-    enum State {
-        STATE_NEW,
-        STATE_ACCEPTED,
-        STATE_DONE
-    };
-
-    bool m_restricted;
-    Source m_source;
-    State m_state = STATE_NEW;
+    const HttpData &m_req;
+    HttpApiResponse m_res;
+    int m_parsed = 0;
+    rapidjson::Document m_body;
+    String m_url;
 };
 
 
 } // namespace xmrig
 
 
-#endif // XMRIG_APIREQUEST_H
+#endif // XMRIG_HTTPAPIREQUEST_H
 

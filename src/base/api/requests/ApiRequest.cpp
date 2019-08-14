@@ -23,7 +23,7 @@
  */
 
 
-#include "api/requests/ApiRequest.h"
+#include "base/api/requests/ApiRequest.h"
 
 
 xmrig::ApiRequest::ApiRequest(Source source, bool restricted) :
