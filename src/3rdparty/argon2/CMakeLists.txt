@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(Argon2 C)
 set(ARGON2_VERSION 1.0)
-set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 include(CheckCSourceCompiles)

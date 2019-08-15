@@ -1,5 +1,4 @@
 if (WITH_RANDOMX)
-    include_directories(src/crypto/randomx)
     add_definitions(/DXMRIG_ALGO_RANDOMX)
 
     list(APPEND HEADERS_CRYPTO

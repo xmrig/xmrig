@@ -46,9 +46,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "argon2_core.h"
-#include "blake2/blake2.h"
-#include "blake2/blake2-impl.h"
+#include "crypto/randomx/argon2_core.h"
+#include "crypto/randomx/blake2/blake2.h"
+#include "crypto/randomx/blake2/blake2-impl.h"
 
 #ifdef GENKAT
 #include "genkat.h"
