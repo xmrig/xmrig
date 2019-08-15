@@ -166,7 +166,7 @@ namespace xmrig {
 template<>
 xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
 {
-    const int intensity = handle->config().intensity;
+    const uint32_t intensity = static_cast<uint32_t>(handle->config().intensity);
 
 #   if defined(XMRIG_ALGO_RANDOMX) || defined(XMRIG_ALGO_CN_GPU)
     if (intensity > handle->config().algorithm.maxIntensity()) {

@@ -4,9 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -24,29 +22,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_ALGO_H
-#define XMRIG_RX_ALGO_H
+
+#ifndef XMRIG_ARGON2_H
+#define XMRIG_ARGON2_H
 
 
-#include <stddef.h>
-#include <stdint.h>
-
-
+#include "3rdparty/argon2.h"
 #include "crypto/common/Algorithm.h"
 
 
-namespace xmrig
+struct cryptonight_ctx;
+
+
+namespace xmrig {
+
+
+template<Algorithm::Id ALGO>
+inline void argon2_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__, uint64_t)
 {
+//    static bool argon_optimization_selected = false;
+
+//    if (!argon_optimization_selected) {
+//        argon2_select_impl(stdout, nullptr);
+
+//        argon_optimization_selected = true;
+//    }
+
+    uint8_t salt[16];
+
+    memcpy(salt, input, sizeof(salt));
+
+    if (ALGO == Algorithm::AR2_CHUKWA) {
+        argon2id_hash_raw(3, 512, 1, input, size, salt, 16, output, 32);
+    }
+    else if (ALGO == Algorithm::AR2_WRKZ) {
+        argon2id_hash_raw(4, 256, 1, input, size, salt, 16, output, 32);
+    }
+}
 
 
-class RxAlgo
-{
-public:
-    static Algorithm::Id apply(Algorithm::Id algorithm);
-};
+} // namespace xmrig
 
 
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_RX_ALGO_H */
+#endif /* XMRIG_ARGON2_H */
