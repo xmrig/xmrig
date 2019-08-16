@@ -30,7 +30,7 @@ class Job;
 class Benchmark : public IJobResultListener {
 
         enum BenchAlgo : int {
-            RX_0,          // "rx/0"             RandomX (reference configuration).
+            RX_LOKI,       // "rx/loki"          RandomXL (Loki).
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
             DEFYX,         // "defyx             DefyX.
             CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
@@ -44,7 +44,7 @@ class Benchmark : public IJobResultListener {
         };
 
         const Algorithm::Id ba2a[BenchAlgo::MAX] = {
-            Algorithm::RX_0,
+            Algorithm::RX_LOKI,
             Algorithm::RX_WOW,
             Algorithm::DEFYX,
             Algorithm::CN_R,
