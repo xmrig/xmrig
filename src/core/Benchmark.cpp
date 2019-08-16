@@ -125,7 +125,6 @@ float Benchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::CN_PICO_0:     return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
         case Algorithm::RX_LOKI:       return m_bench_algo_perf[BenchAlgo::RX_LOKI];
         case Algorithm::RX_WOW:        return m_bench_algo_perf[BenchAlgo::RX_WOW];
-        case Algorithm::RX_LOKI:       return m_bench_algo_perf[BenchAlgo::RX_LOKI];
         case Algorithm::DEFYX:         return m_bench_algo_perf[BenchAlgo::DEFYX];
         default: return 0.0f;
     }
