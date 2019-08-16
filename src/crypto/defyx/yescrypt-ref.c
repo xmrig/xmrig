@@ -820,7 +820,7 @@ yescrypt_init_shared(yescrypt_shared_t * shared,
 
 	half1 = half2 = *shared;
 	half1.aligned_size /= 2;
-	half2.aligned += half1.aligned_size;
+	(uint8_t*)half2.aligned += half1.aligned_size;
 	half2.aligned_size = half1.aligned_size;
 	N /= 2;
 
