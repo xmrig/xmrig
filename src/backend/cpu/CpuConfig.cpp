@@ -128,7 +128,7 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
 }
 
 
-void xmrig::CpuConfig::read(const rapidjson::Value &value)
+void xmrig::CpuConfig::read(const rapidjson::Value &value, uint32_t version)
 {
     if (value.IsObject()) {
         m_enabled       = Json::getBool(value, kEnabled, m_enabled);
@@ -147,6 +147,10 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 
         if (!m_threads.read(value)) {
             generate();
+        }
+
+        if (version == 0) {
+            generateArgon2();
         }
     }
     else if (value.IsBool() && value.IsFalse()) {
@@ -186,6 +190,16 @@ void xmrig::CpuConfig::generate()
 #   ifdef XMRIG_ALGO_RANDOMX
     m_threads.move(kRx, cpu->threads(Algorithm::RX_0));
     m_threads.move(kRxWOW, cpu->threads(Algorithm::RX_WOW));
+#   endif
+
+    generateArgon2();
+}
+
+
+void xmrig::CpuConfig::generateArgon2()
+{
+#   ifdef XMRIG_ALGO_ARGON2
+    m_threads.move(kArgon2, Cpu::info()->threads(Algorithm::AR2_CHUKWA));
 #   endif
 }
 
