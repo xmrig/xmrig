@@ -221,5 +221,11 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_ARGON2
+    if (algorithm.family() == Algorithm::ARGON2) {
+        return count;
+    }
+#   endif
+
     return CpuThreads(std::max<size_t>(count / 2, 1), 1);
 }
