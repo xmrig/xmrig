@@ -108,7 +108,7 @@ static JobResultsPrivate *handler = nullptr;
 
 void xmrig::JobResults::setListener(IJobResultListener *listener)
 {
-    assert(handler == nullptr);
+    //assert(handler == nullptr);
 
     handler = new JobResultsPrivate(listener);
 }
