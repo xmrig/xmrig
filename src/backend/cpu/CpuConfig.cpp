@@ -173,6 +173,7 @@ void xmrig::CpuConfig::generate()
 #   ifdef XMRIG_ALGO_RANDOMX
     m_threads.move(kRx, cpu->threads(Algorithm::RX_0));
     m_threads.move(kRxWOW, cpu->threads(Algorithm::RX_WOW));
+    m_threads.move("defyx", cpu->threads(Algorithm::DEFYX));
 #   endif
 }
 
