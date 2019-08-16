@@ -22,46 +22,28 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef XMRIG_ARGON2_H
-#define XMRIG_ARGON2_H
-
-
-#include "3rdparty/argon2.h"
-#include "crypto/common/Algorithm.h"
-
-
-struct cryptonight_ctx;
+#ifndef XMRIG_ARGON2_IMPL_H
+#define XMRIG_ARGON2_IMPL_H
 
 
 namespace xmrig {
 
 
-template<Algorithm::Id ALGO>
-inline void argon2_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__, uint64_t)
+class String;
+
+
+namespace argon2 {
+
+
+class Impl
 {
-//    static bool argon_optimization_selected = false;
-
-//    if (!argon_optimization_selected) {
-//        argon2_select_impl(stdout, nullptr);
-
-//        argon_optimization_selected = true;
-//    }
-
-    uint8_t salt[16];
-
-    memcpy(salt, input, sizeof(salt));
-
-    if (ALGO == Algorithm::AR2_CHUKWA) {
-        argon2id_hash_raw(3, 512, 1, input, size, salt, 16, output, 32);
-    }
-    else if (ALGO == Algorithm::AR2_WRKZ) {
-        argon2id_hash_raw(4, 256, 1, input, size, salt, 16, output, 32);
-    }
-}
+public:
+    static bool select(const String &nameHint);
+    static const String &name();
+};
 
 
-} // namespace xmrig
+}} // namespace xmrig::argon2
 
 
-#endif /* XMRIG_ARGON2_H */
+#endif /* XMRIG_ARGON2_IMPL_H */

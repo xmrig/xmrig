@@ -39,57 +39,54 @@ set_property(TARGET argon2 APPEND PROPERTY
     COMPATIBLE_INTERFACE_STRING ARGON2_MAJOR_VERSION
 )
 
-#if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+if (CMAKE_C_COMPILER_ID MATCHES MSVC)
 
-#elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-#    function(add_feature_impl FEATURE GCC_FLAG DEF)
-#        add_library(argon2-${FEATURE} STATIC
-#            arch/x86_64/lib/argon2-${FEATURE}.c
-#        )
-#        target_link_libraries(argon2-${FEATURE} PRIVATE argon2-internal)
-#        set_target_properties(argon2-${FEATURE}
-#            PROPERTIES POSITION_INDEPENDENT_CODE True
-#        )
+elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    function(add_feature_impl FEATURE GCC_FLAG DEF)
+        add_library(argon2-${FEATURE} STATIC arch/x86_64/lib/argon2-${FEATURE}.c)
+        target_link_libraries(argon2-${FEATURE} PRIVATE argon2-internal)
+        set_target_properties(argon2-${FEATURE} PROPERTIES POSITION_INDEPENDENT_CODE True)
 
-#        message("-- Detecting feature '${FEATURE}'...")
-#        file(READ arch/x86_64/src/test-feature-${FEATURE}.c SOURCE_CODE)
+        message("-- argon2: detecting feature '${FEATURE}'...")
+        file(READ arch/x86_64/src/test-feature-${FEATURE}.c SOURCE_CODE)
 
-#        # try without flag:
-#        check_c_source_compiles("${SOURCE_CODE}" FEATURE_${FEATURE}_NOFLAG)
-#        set(HAS_FEATURE ${FEATURE_${FEATURE}_NOFLAG})
-#        if(NOT "${HAS_FEATURE}")
-#            # try with -m<feature> flag:
-#            set(CMAKE_REQUIRED_FLAGS ${GCC_FLAG})
-#            check_c_source_compiles("${SOURCE_CODE}" FEATURE_${FEATURE}_FLAG)
-#            set(CMAKE_REQUIRED_FLAGS "")
+        # try without flag:
+        check_c_source_compiles("${SOURCE_CODE}" FEATURE_${FEATURE}_NOFLAG)
+        set(HAS_FEATURE ${FEATURE_${FEATURE}_NOFLAG})
+        if (NOT "${HAS_FEATURE}")
+            # try with -m<feature> flag:
+            set(CMAKE_REQUIRED_FLAGS ${GCC_FLAG})
+            check_c_source_compiles("${SOURCE_CODE}" FEATURE_${FEATURE}_FLAG)
+            set(CMAKE_REQUIRED_FLAGS "")
 
-#            set(HAS_FEATURE ${FEATURE_${FEATURE}_FLAG})
-#            if(${HAS_FEATURE})
-#                target_compile_options(argon2-${FEATURE} PRIVATE ${GCC_FLAG})
-#            endif()
-#        endif()
+            set(HAS_FEATURE ${FEATURE_${FEATURE}_FLAG})
+            if (${HAS_FEATURE})
+                target_compile_options(argon2-${FEATURE} PRIVATE ${GCC_FLAG})
+            endif()
+        endif()
 
-#        if(${HAS_FEATURE})
-#            message("-- Feature '${FEATURE}' detected!")
-#            target_compile_definitions(argon2-${FEATURE} PRIVATE ${DEF})
-#        endif()
-#        target_link_libraries(argon2 PUBLIC argon2-${FEATURE})
-#    endfunction()
+        if (${HAS_FEATURE})
+            message("-- argon2: feature '${FEATURE}' detected!")
+            target_compile_definitions(argon2-${FEATURE} PRIVATE ${DEF})
+        endif()
 
-#    target_include_directories(argon2-internal INTERFACE arch/x86_64/lib)
+        target_link_libraries(argon2 PUBLIC argon2-${FEATURE})
+    endfunction()
 
-#    add_feature_impl(sse2    -msse2    HAVE_SSE2)
-#    add_feature_impl(ssse3   -mssse3   HAVE_SSSE3)
-#    add_feature_impl(xop     -mxop     HAVE_XOP)
-#    add_feature_impl(avx2    -mavx2    HAVE_AVX2)
-#    add_feature_impl(avx512f -mavx512f HAVE_AVX512F)
+    target_include_directories(argon2-internal INTERFACE arch/x86_64/lib)
 
-#    target_sources(argon2 PRIVATE
-#        arch/x86_64/lib/argon2-arch.c
-#        arch/x86_64/lib/cpu-flags.c
-#    )
-#else()
+    add_feature_impl(sse2    -msse2    HAVE_SSE2)
+    add_feature_impl(ssse3   -mssse3   HAVE_SSSE3)
+    add_feature_impl(xop     -mxop     HAVE_XOP)
+    add_feature_impl(avx2    -mavx2    HAVE_AVX2)
+    add_feature_impl(avx512f -mavx512f HAVE_AVX512F)
+
+    target_sources(argon2 PRIVATE
+        arch/x86_64/lib/argon2-arch.c
+        arch/x86_64/lib/cpu-flags.c
+    )
+else()
     target_sources(argon2 PRIVATE
         arch/generic/lib/argon2-arch.c
     )
-#endif()
+endif()

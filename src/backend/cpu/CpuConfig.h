@@ -55,6 +55,7 @@ public:
     inline bool isHugePages() const                     { return m_hugePages; }
     inline bool isShouldSave() const                    { return m_shouldSave; }
     inline const Assembly &assembly() const             { return m_assembly; }
+    inline const String &argon2Impl() const             { return m_argon2Impl; }
     inline const Threads<CpuThreads> &threads() const   { return m_threads; }
     inline int priority() const                         { return m_priority; }
 
@@ -70,6 +71,7 @@ private:
     bool m_hugePages     = true;
     bool m_shouldSave    = false;
     int m_priority       = -1;
+    String m_argon2Impl;
     Threads<CpuThreads> m_threads;
 };
 

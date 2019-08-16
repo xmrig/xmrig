@@ -62,6 +62,11 @@ static const char *kRx    = "rx";
 static const char *kRxWOW = "rx/wow";
 #endif
 
+#ifdef XMRIG_ALGO_ARGON2
+static const char *kArgon2     = "argon2";
+static const char *kArgon2Impl = "argon2-impl";
+#endif
+
 extern template class Threads<CpuThreads>;
 
 }
@@ -92,6 +97,10 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_FEATURE_ASM
     obj.AddMember(StringRef(kAsm), m_assembly.toJSON(), allocator);
+#   endif
+
+#   ifdef XMRIG_ALGO_ARGON2
+    obj.AddMember(StringRef(kArgon2Impl), m_argon2Impl.toJSON(), allocator);
 #   endif
 
     m_threads.toJSON(obj, doc);
@@ -130,6 +139,10 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 
 #       ifdef XMRIG_FEATURE_ASM
         m_assembly = Json::getValue(value, kAsm);
+#       endif
+
+#       ifdef XMRIG_ALGO_ARGON2
+        m_argon2Impl = Json::getString(value, kArgon2Impl);
 #       endif
 
         if (!m_threads.read(value)) {

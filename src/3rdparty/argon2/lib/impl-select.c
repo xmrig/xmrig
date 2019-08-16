@@ -16,7 +16,7 @@
 #define BENCH_MEM_BLOCKS 512
 
 static argon2_impl selected_argon_impl = {
-    "(default)", NULL, fill_segment_default
+    "default", NULL, fill_segment_default
 };
 
 /* the benchmark routine is not thread-safe, so we can use a global var here: */
@@ -117,4 +117,30 @@ void argon2_select_impl(FILE *out, const char *prefix)
         prefix = "";
     }
     select_impl(out, prefix);
+}
+
+const char *argon2_get_impl_name()
+{
+    return selected_argon_impl.name;
+}
+
+
+int argon2_select_impl_by_name(const char *name)
+{
+    argon2_impl_list impls;
+    unsigned int i;
+
+    argon2_get_impl_list(&impls);
+
+    for (i = 0; i < impls.count; i++) {
+        const argon2_impl *impl = &impls.entries[i];
+
+        if (strcmp(impl->name, name) == 0) {
+            selected_argon_impl = *impl;
+
+            return 1;
+        }
+    }
+
+    return 0;
 }

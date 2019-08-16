@@ -431,6 +431,8 @@ ARGON2_PUBLIC size_t argon2_encodedlen(uint32_t t_cost, uint32_t m_cost,
  * string
  */
 ARGON2_PUBLIC void argon2_select_impl(FILE *out, const char *prefix);
+ARGON2_PUBLIC const char *argon2_get_impl_name();
+ARGON2_PUBLIC int argon2_select_impl_by_name(const char *name);
 
 /* signals support for passing preallocated memory: */
 #define ARGON2_PREALLOCATED_MEMORY
