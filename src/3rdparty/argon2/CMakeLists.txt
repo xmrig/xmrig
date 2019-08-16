@@ -51,7 +51,7 @@ if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     endfunction()
 
     add_feature_impl(sse2    ""              HAVE_SSE2)
-    add_feature_impl(ssse3   ""/arch:SSSE3"" HAVE_SSSE3)
+    add_feature_impl(ssse3   "/arch:SSSE3"   HAVE_SSSE3)
     add_feature_impl(xop     ""              HAVE_XOP)
     add_feature_impl(avx2    "/arch:AVX2"    HAVE_AVX2)
     add_feature_impl(avx512f "/arch:AVX512F" HAVE_AVX512F)
