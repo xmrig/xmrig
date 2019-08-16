@@ -115,6 +115,7 @@ static AlgoName const algorithm_names[] = {
     { "RandomWOW",                 nullptr,            Algorithm::RX_WOW          },
     { "randomx/loki",              "rx/loki",          Algorithm::RX_LOKI         },
     { "RandomXL",                  nullptr,            Algorithm::RX_LOKI         },
+    { "DefyX",                     "defyx",            Algorithm::DEFYX           },
 #   endif
 };
 
@@ -159,6 +160,9 @@ size_t xmrig::Algorithm::l2() const
     case RX_WOW:
         return 0x20000;
 
+    case DEFYX:
+        return 0x20000;
+
     default:
         break;
     }
@@ -188,6 +192,9 @@ size_t xmrig::Algorithm::l3() const
 
         case RX_WOW:
             return oneMiB;
+
+        case DEFYX:
+            return 0x40000;
 
         default:
             break;
@@ -241,6 +248,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case RX_0:
     case RX_WOW:
     case RX_LOKI:
+    case DEFYX:
         return RANDOM_X;
 #   endif
 

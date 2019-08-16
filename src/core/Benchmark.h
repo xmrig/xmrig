@@ -32,6 +32,7 @@ class Benchmark : public IJobResultListener {
         enum BenchAlgo : int {
             RX_0,          // "rx/0"             RandomX (reference configuration).
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
+            DEFYX,         // "defyx             DefyX.
             CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
             CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
             CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
@@ -45,6 +46,7 @@ class Benchmark : public IJobResultListener {
         const Algorithm::Id ba2a[BenchAlgo::MAX] = {
             Algorithm::RX_0,
             Algorithm::RX_WOW,
+            Algorithm::DEFYX,
             Algorithm::CN_R,
             Algorithm::CN_GPU,
             Algorithm::CN_LITE_1,

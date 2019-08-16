@@ -132,6 +132,7 @@ private:
         0,             // RX_0
         0,             // RX_WOW
         0,             // RX_LOKI
+        0,             // DEFYX
 #       endif
     };
 
@@ -167,6 +168,7 @@ private:
         0,             // RX_0
         0,             // RX_WOW
         0,             // RX_LOKI
+        0,             // DEFYX
 #       endif
     };
 
@@ -202,6 +204,7 @@ private:
         Algorithm::INVALID, // RX_0
         Algorithm::INVALID, // RX_WOW
         Algorithm::INVALID, // RX_LOKI
+        Algorithm::INVALID, // DEFYX
 #       endif
     };
 };

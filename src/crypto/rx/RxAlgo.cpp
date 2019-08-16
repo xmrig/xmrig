@@ -26,6 +26,7 @@
 
 
 #include "crypto/randomx/randomx.h"
+#include "crypto/defyx/defyx.h"
 #include "crypto/rx/RxAlgo.h"
 
 
@@ -38,6 +39,10 @@ xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 
     case Algorithm::RX_LOKI:
         randomx_apply_config(RandomX_LokiConfig);
+        break;
+
+    case Algorithm::DEFYX:
+        randomx_apply_config(RandomX_ScalaConfig);
         break;
 
     default:
@@ -60,6 +65,9 @@ size_t xmrig::RxAlgo::l3(Algorithm::Id algorithm)
 
     case Algorithm::RX_LOKI:
         return RandomX_LokiConfig.ScratchpadL3_Size;
+
+    case Algorithm::DEFYX:
+        return RandomX_ScalaConfig.ScratchpadL3_Size;
 
     default:
         break;

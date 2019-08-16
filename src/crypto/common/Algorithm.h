@@ -72,6 +72,7 @@ public:
         RX_0,          // "rx/0"             RandomX (reference configuration).
         RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
         RX_LOKI,       // "rx/loki"          RandomXL (Loki).
+        DEFYX,         // "defyx"            DefyX (Scala).
 #       endif
         MAX
     };

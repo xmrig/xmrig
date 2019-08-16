@@ -57,7 +57,7 @@ Options:\n\
 #endif
 #ifdef XMRIG_ALGO_RANDOMX
 "\
-                                  rx/wow, rx/loki\n"
+                                  rx/wow, rx/loki, defyx\n"
 #endif
 "\
   -o, --url=URL                 URL of mining server\n\

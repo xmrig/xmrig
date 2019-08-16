@@ -154,6 +154,7 @@ find_package(UV REQUIRED)
 
 if (WITH_RANDOMX)
     include_directories(src/crypto/randomx)
+    include_directories(src/crypto/defyx)
     add_definitions(/DXMRIG_ALGO_RANDOMX)
     set(SOURCES_CRYPTO
         "${SOURCES_CRYPTO}"
@@ -188,6 +189,28 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxDataset.h
         src/crypto/rx/RxVm.cpp
         src/crypto/rx/RxVm.h
+
+        src/crypto/defyx/align.h
+        src/crypto/defyx/brg_endian.h
+        src/crypto/defyx/defyx.cpp
+        src/crypto/defyx/defyx.h
+        src/crypto/defyx/KangarooTwelve.c
+        src/crypto/defyx/KangarooTwelve.h
+        src/crypto/defyx/KeccakP-1600-reference.c
+        src/crypto/defyx/KeccakP-1600-SnP.h
+        src/crypto/defyx/KeccakSponge-common.h
+        src/crypto/defyx/KeccakSponge.inc
+        src/crypto/defyx/KeccakSpongeWidth1600.c
+        src/crypto/defyx/KeccakSpongeWidth1600.h
+        src/crypto/defyx/Phases.h
+        src/crypto/defyx/sha256.c
+        src/crypto/defyx/sha256.h
+        src/crypto/defyx/sysendian.h
+        src/crypto/defyx/yescrypt-best.c
+        src/crypto/defyx/yescrypt-opt.c
+        src/crypto/defyx/yescrypt-platform.c
+        src/crypto/defyx/yescrypt-simd.c
+        src/crypto/defyx/yescrypt.h
     )
     if (NOT ARCH_ID)
         set(ARCH_ID ${CMAKE_HOST_SYSTEM_PROCESSOR})
