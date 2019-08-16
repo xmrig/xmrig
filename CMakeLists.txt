@@ -206,9 +206,21 @@ if (WITH_RANDOMX)
         src/crypto/defyx/sha256.c
         src/crypto/defyx/sha256.h
         src/crypto/defyx/sysendian.h
-        src/crypto/defyx/yescrypt-best.c
         src/crypto/defyx/yescrypt.h
     )
+
+    if (WIN32)
+        set(SOURCES_CRYPTO 
+            "${SOURCES_CRYPTO}"
+             src/crypto/defyx/yescrypt-def.c
+        )
+    else()
+        set(SOURCES_CRYPTO 
+            "${SOURCES_CRYPTO}"
+             src/crypto/defyx/yescrypt-best.c
+        )
+    endif()
+
     if (NOT ARCH_ID)
         set(ARCH_ID ${CMAKE_HOST_SYSTEM_PROCESSOR})
     endif()
