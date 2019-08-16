@@ -207,9 +207,6 @@ if (WITH_RANDOMX)
         src/crypto/defyx/sha256.h
         src/crypto/defyx/sysendian.h
         src/crypto/defyx/yescrypt-best.c
-        src/crypto/defyx/yescrypt-opt.c
-        src/crypto/defyx/yescrypt-platform.c
-        src/crypto/defyx/yescrypt-simd.c
         src/crypto/defyx/yescrypt.h
     )
     if (NOT ARCH_ID)
