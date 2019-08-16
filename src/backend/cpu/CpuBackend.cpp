@@ -333,6 +333,10 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("asm", false, allocator);
 #   endif
 
+#   ifdef XMRIG_ALGO_ARGON2
+    out.AddMember("argon2-impl", argon2::Impl::name().toJSON(), allocator);
+#   endif
+
     const auto pages = hugePages();
 
     rapidjson::Value hugepages(rapidjson::kArrayType);

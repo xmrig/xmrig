@@ -430,7 +430,7 @@ ARGON2_PUBLIC size_t argon2_encodedlen(uint32_t t_cost, uint32_t m_cost,
  * @param prefix What to print before each line; NULL is equivalent to empty
  * string
  */
-ARGON2_PUBLIC void argon2_select_impl(FILE *out, const char *prefix);
+ARGON2_PUBLIC void argon2_select_impl();
 ARGON2_PUBLIC const char *argon2_get_impl_name();
 ARGON2_PUBLIC int argon2_select_impl_by_name(const char *name);
 

@@ -43,7 +43,7 @@ bool xmrig::argon2::Impl::select(const String &nameHint)
 {
     if (!selected) {
         if (nameHint.isEmpty() || argon2_select_impl_by_name(nameHint) == 0) {
-            argon2_select_impl(nullptr, nullptr);
+            argon2_select_impl();
         }
 
         selected = true;

@@ -3,7 +3,11 @@
 #ifdef HAVE_SSSE3
 #include <string.h>
 
-#include <x86intrin.h>
+#ifdef __GNUC__
+#   include <x86intrin.h>
+#else
+#   include <intrin.h>
+#endif
 
 #include "cpu-flags.h"
 

@@ -52,7 +52,6 @@
 
 #define VENDOR_ID                  (0)
 #define PROCESSOR_INFO             (1)
-#define CACHE_TLB_DESCRIPTOR       (2)
 #define EXTENDED_FEATURES          (7)
 #define PROCESSOR_BRAND_STRING_1   (0x80000002)
 #define PROCESSOR_BRAND_STRING_2   (0x80000003)

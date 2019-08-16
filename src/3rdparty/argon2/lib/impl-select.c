@@ -5,14 +5,7 @@
 
 #include "argon2.h"
 
-#define log_maybe(file, ...) \
-    do { \
-        if (file) { \
-            fprintf(file, __VA_ARGS__); \
-        } \
-    } while((void)0, 0)
-
-#define BENCH_SAMPLES 512
+#define BENCH_SAMPLES 1024
 #define BENCH_MEM_BLOCKS 512
 
 static argon2_impl selected_argon_impl = {
@@ -60,14 +53,12 @@ static uint64_t benchmark_impl(const argon2_impl *impl) {
     return bench;
 }
 
-static void select_impl(FILE *out, const char *prefix)
+void argon2_select_impl()
 {
     argon2_impl_list impls;
     unsigned int i;
     const argon2_impl *best_impl = NULL;
     uint64_t best_bench = UINT_MAX;
-
-    log_maybe(out, "%sSelecting best fill_segment implementation...\n", prefix);
 
     argon2_get_impl_list(&impls);
 
@@ -75,17 +66,11 @@ static void select_impl(FILE *out, const char *prefix)
         const argon2_impl *impl = &impls.entries[i];
         uint64_t bench;
 
-        log_maybe(out, "%s%s: Checking availability... ", prefix, impl->name);
         if (impl->check != NULL && !impl->check()) {
-            log_maybe(out, "FAILED!\n");
             continue;
         }
-        log_maybe(out, "OK!\n");
 
-        log_maybe(out, "%s%s: Benchmarking...\n", prefix, impl->name);
         bench = benchmark_impl(impl);
-        log_maybe(out, "%s%s: Benchmark result: %llu\n", prefix, impl->name,
-                (unsigned long long)bench);
 
         if (bench < best_bench) {
             best_bench = bench;
@@ -94,29 +79,13 @@ static void select_impl(FILE *out, const char *prefix)
     }
 
     if (best_impl != NULL) {
-        log_maybe(out,
-                  "%sBest implementation: '%s' (bench %llu)\n", prefix,
-                  best_impl->name, (unsigned long long)best_bench);
-
         selected_argon_impl = *best_impl;
-    } else {
-        log_maybe(out,
-                  "%sNo optimized implementation available, using default!\n",
-                  prefix);
     }
 }
 
 void fill_segment(const argon2_instance_t *instance, argon2_position_t position)
 {
     selected_argon_impl.fill_segment(instance, position);
-}
-
-void argon2_select_impl(FILE *out, const char *prefix)
-{
-    if (prefix == NULL) {
-        prefix = "";
-    }
-    select_impl(out, prefix);
 }
 
 const char *argon2_get_impl_name()

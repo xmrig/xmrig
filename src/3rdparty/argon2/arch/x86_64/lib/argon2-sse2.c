@@ -1,7 +1,11 @@
 #include "argon2-sse2.h"
 
 #ifdef HAVE_SSE2
-#include <x86intrin.h>
+#ifdef __GNUC__
+#   include <x86intrin.h>
+#else
+#   include <intrin.h>
+#endif
 
 #include "cpu-flags.h"
 

@@ -40,7 +40,23 @@ set_property(TARGET argon2 APPEND PROPERTY
 )
 
 if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+    function(add_feature_impl FEATURE MSVC_FLAG DEF)
+        add_library(argon2-${FEATURE} STATIC arch/x86_64/lib/argon2-${FEATURE}.c)
+        target_link_libraries(argon2-${FEATURE} PRIVATE argon2-internal)
+        set_target_properties(argon2-${FEATURE} PROPERTIES POSITION_INDEPENDENT_CODE True)
 
+        target_compile_options(argon2-${FEATURE} PRIVATE ${MSVC_FLAG})
+        target_compile_definitions(argon2-${FEATURE} PRIVATE ${DEF})
+        target_link_libraries(argon2 PUBLIC argon2-${FEATURE})
+    endfunction()
+
+    add_feature_impl(sse2    ""              HAVE_SSE2)
+    add_feature_impl(ssse3   ""/arch:SSSE3"" HAVE_SSSE3)
+    add_feature_impl(xop     ""              HAVE_XOP)
+    add_feature_impl(avx2    "/arch:AVX2"    HAVE_AVX2)
+    add_feature_impl(avx512f "/arch:AVX512F" HAVE_AVX512F)
+
+    target_sources(argon2 PRIVATE arch/x86_64/lib/argon2-arch.c arch/x86_64/lib/cpu-flags.c)
 elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     function(add_feature_impl FEATURE GCC_FLAG DEF)
         add_library(argon2-${FEATURE} STATIC arch/x86_64/lib/argon2-${FEATURE}.c)
@@ -81,12 +97,7 @@ elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_feature_impl(avx2    -mavx2    HAVE_AVX2)
     add_feature_impl(avx512f -mavx512f HAVE_AVX512F)
 
-    target_sources(argon2 PRIVATE
-        arch/x86_64/lib/argon2-arch.c
-        arch/x86_64/lib/cpu-flags.c
-    )
+    target_sources(argon2 PRIVATE arch/x86_64/lib/argon2-arch.c arch/x86_64/lib/cpu-flags.c)
 else()
-    target_sources(argon2 PRIVATE
-        arch/generic/lib/argon2-arch.c
-    )
+    target_sources(argon2 PRIVATE arch/generic/lib/argon2-arch.c)
 endif()
