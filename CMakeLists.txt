@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-option(WITH_LIBCPUID        "Use Libcpuid" ON)
-option(WITH_HWLOC           "Use hwloc" ON)
-option(WITH_CN_LITE         "CryptoNight-Lite support" ON)
-option(WITH_CN_HEAVY        "CryptoNight-Heavy support" ON)
-option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
-option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
-option(WITH_RANDOMX         "RandomX support" ON)
-option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
+option(WITH_LIBCPUID        "Enable libcpuid support" ON)
+option(WITH_HWLOC           "Enable hwloc support" ON)
+option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
+option(WITH_CN_HEAVY        "Enable CryptoNight-Heavy algorithms family" ON)
+option(WITH_CN_PICO         "Enable CryptoNight-Pico algorithm" ON)
+option(WITH_CN_GPU          "Enable CryptoNight-GPU algorithm" ON)
+option(WITH_RANDOMX         "Enable RandomX algorithms family" ON)
+option(WITH_ARGON2          "Enable Argon2 algorithms family" ON)
+option(WITH_HTTP            "Enable HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
@@ -152,66 +153,9 @@ add_definitions(/DUNICODE)
 
 find_package(UV REQUIRED)
 
-if (WITH_RANDOMX)
-    include_directories(src/crypto/randomx)
-    add_definitions(/DXMRIG_ALGO_RANDOMX)
-    set(SOURCES_CRYPTO
-        "${SOURCES_CRYPTO}"
-        src/crypto/randomx/aes_hash.cpp
-        src/crypto/randomx/allocator.cpp
-        src/crypto/randomx/argon2_core.c
-        src/crypto/randomx/argon2_ref.c
-        src/crypto/randomx/blake2_generator.cpp
-        src/crypto/randomx/blake2/blake2b.c
-        src/crypto/randomx/bytecode_machine.cpp
-        src/crypto/randomx/dataset.cpp
-        src/crypto/randomx/instructions_portable.cpp
-        src/crypto/randomx/randomx.cpp
-        src/crypto/randomx/reciprocal.c
-        src/crypto/randomx/soft_aes.cpp
-        src/crypto/randomx/superscalar.cpp
-        src/crypto/randomx/virtual_machine.cpp
-        src/crypto/randomx/virtual_memory.cpp
-        src/crypto/randomx/vm_compiled_light.cpp
-        src/crypto/randomx/vm_compiled.cpp
-        src/crypto/randomx/vm_interpreted_light.cpp
-        src/crypto/randomx/vm_interpreted.cpp
-        src/crypto/rx/Rx.cpp
-        src/crypto/rx/Rx.h
-        src/crypto/rx/RxAlgo.cpp
-        src/crypto/rx/RxAlgo.h
-        src/crypto/rx/RxCache.cpp
-        src/crypto/rx/RxCache.h
-        src/crypto/rx/RxConfig.cpp
-        src/crypto/rx/RxConfig.h
-        src/crypto/rx/RxDataset.cpp
-        src/crypto/rx/RxDataset.h
-        src/crypto/rx/RxVm.cpp
-        src/crypto/rx/RxVm.h
-    )
-    if (NOT ARCH_ID)
-        set(ARCH_ID ${CMAKE_HOST_SYSTEM_PROCESSOR})
-    endif()
-    if (CMAKE_C_COMPILER_ID MATCHES MSVC)
-        enable_language(ASM_MASM)
-        list(APPEND SOURCES_CRYPTO
-             src/crypto/randomx/jit_compiler_x86_static.asm
-             src/crypto/randomx/jit_compiler_x86.cpp
-            )
-    elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-        list(APPEND SOURCES_CRYPTO
-             src/crypto/randomx/jit_compiler_x86_static.S
-             src/crypto/randomx/jit_compiler_x86.cpp
-            )
-        # cheat because cmake and ccache hate each other
-        set_property(SOURCE src/crypto/randomx/jit_compiler_x86_static.S PROPERTY LANGUAGE C)
-    endif()
-else()
-    remove_definitions(/DXMRIG_ALGO_RANDOMX)
-endif()
-
 include(cmake/flags.cmake)
-
+include(cmake/randomx.cmake)
+include(cmake/argon2.cmake)
 include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)
 include(cmake/cn-gpu.cmake)
@@ -245,4 +189,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB} ${ARGON2_LIBRARY})

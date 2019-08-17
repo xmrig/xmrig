@@ -56,6 +56,7 @@ public:
         }
 
         if (index() == 1 && job.index() == 0 && job == m_jobs[0]) {
+            m_index = 0;
             return;
         }
 

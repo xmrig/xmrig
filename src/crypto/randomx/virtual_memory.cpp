@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include "crypto/common/VirtualMemory.h"
-#include "virtual_memory.hpp"
+#include "crypto/randomx/virtual_memory.hpp"
 
 
 void* allocExecutableMemory(std::size_t bytes) {

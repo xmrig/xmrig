@@ -58,10 +58,10 @@ public:
     const Assembly assembly;
     const bool hugePages;
     const bool hwAES;
-    const int intensity;
     const int priority;
     const int64_t affinity;
     const Miner *miner;
+    const uint32_t intensity;
 };
 
 

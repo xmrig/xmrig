@@ -26,14 +26,14 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "randomx.h"
-#include "dataset.hpp"
-#include "vm_interpreted.hpp"
-#include "vm_interpreted_light.hpp"
-#include "vm_compiled.hpp"
-#include "vm_compiled_light.hpp"
-#include "blake2/blake2.h"
-#include "jit_compiler_x86_static.hpp"
+#include "crypto/randomx/randomx.h"
+#include "crypto/randomx/dataset.hpp"
+#include "crypto/randomx/vm_interpreted.hpp"
+#include "crypto/randomx/vm_interpreted_light.hpp"
+#include "crypto/randomx/vm_compiled.hpp"
+#include "crypto/randomx/vm_compiled_light.hpp"
+#include "crypto/randomx/blake2/blake2.h"
+#include "crypto/randomx/jit_compiler_x86_static.hpp"
 #include <cassert>
 
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
@@ -430,12 +430,12 @@ extern "C" {
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+        rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+            rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
 		}
 		machine->run(&tempHash);
 		machine->getFinalResult(output, RANDOMX_HASH_SIZE);

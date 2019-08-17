@@ -42,13 +42,13 @@ public:
     inline CpuThreads(size_t count) : m_data(count) {}
 
     CpuThreads(const rapidjson::Value &value);
-    CpuThreads(size_t count, int intensity);
+    CpuThreads(size_t count, uint32_t intensity);
 
     inline bool isEmpty() const                             { return m_data.empty(); }
     inline const std::vector<CpuThread> &data() const       { return m_data; }
     inline size_t count() const                             { return m_data.size(); }
     inline void add(CpuThread &&thread)                     { m_data.push_back(thread); }
-    inline void add(int64_t affinity, int intensity)        { add(CpuThread(affinity, intensity)); }
+    inline void add(int64_t affinity, uint32_t intensity)   { add(CpuThread(affinity, intensity)); }
     inline void reserve(size_t capacity)                    { m_data.reserve(capacity); }
 
     rapidjson::Value toJSON(rapidjson::Document &doc) const;

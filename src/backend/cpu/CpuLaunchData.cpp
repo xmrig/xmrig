@@ -24,6 +24,9 @@
  */
 
 
+#include <algorithm>
+
+
 #include "backend/cpu/CpuLaunchData.h"
 #include "backend/cpu/CpuConfig.h"
 
@@ -33,10 +36,10 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
     assembly(config.assembly()),
     hugePages(config.isHugePages()),
     hwAES(config.isHwAES()),
-    intensity(thread.intensity()),
     priority(config.priority()),
     affinity(thread.affinity()),
-    miner(miner)
+    miner(miner),
+    intensity(std::min<uint32_t>(thread.intensity(), algorithm.maxIntensity()))
 {
 }
 

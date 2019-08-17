@@ -66,7 +66,11 @@ size_t xmrig::Threads<T>::read(const rapidjson::Value &value)
             if (!threads.isEmpty()) {
                 move(member.name.GetString(), std::move(threads));
             }
+        }
+    }
 
+    for (auto &member : value.GetObject()) {
+        if (member.value.IsArray() || member.value.IsObject()) {
             continue;
         }
 

@@ -35,9 +35,6 @@
 #include "crypto/common/Algorithm.h"
 
 
-struct RandomX_ConfigurationBase;
-
-
 namespace xmrig
 {
 
@@ -46,7 +43,6 @@ class RxAlgo
 {
 public:
     static Algorithm::Id apply(Algorithm::Id algorithm);
-    static size_t l3(Algorithm::Id algorithm);
 };
 
 
