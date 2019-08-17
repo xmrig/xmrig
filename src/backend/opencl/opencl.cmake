@@ -11,6 +11,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclThreads.h
         src/backend/opencl/wrappers/OclError.h
         src/backend/opencl/wrappers/OclLib.h
+        src/backend/opencl/wrappers/OclPlatform.h
        )
 
     set(SOURCES_BACKEND_OPENCL
@@ -21,6 +22,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclThreads.cpp
         src/backend/opencl/wrappers/OclError.cpp
         src/backend/opencl/wrappers/OclLib.cpp
+        src/backend/opencl/wrappers/OclPlatform.cpp
        )
 else()
     remove_definitions(/DXMRIG_FEATURE_OPENCL)

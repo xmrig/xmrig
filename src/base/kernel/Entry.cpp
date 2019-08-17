@@ -37,6 +37,7 @@
 
 #ifdef XMRIG_FEATURE_OPENCL
 #   include "backend/opencl/wrappers/OclLib.h"
+#   include "backend/opencl/wrappers/OclPlatform.h"
 #endif
 
 #include "base/kernel/Entry.h"
@@ -51,16 +52,9 @@ namespace xmrig {
 #ifdef XMRIG_FEATURE_OPENCL
 static void printPlatforms()
 {
-    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
-
-    char buf[128] = { 0 };
-
-    for (size_t i = 0; i < platforms.size(); i++) {
-        if (OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr) != CL_SUCCESS) {
-            continue;
-        }
-
-        printf("#%zu: %s\n", i, buf);
+    const auto platforms = OclPlatform::get();
+    for (const auto &platform : platforms) {
+        printf("#%zu: %s\n", platform.index(), platform.vendor().data());
     }
 }
 #endif
