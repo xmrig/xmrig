@@ -259,6 +259,34 @@ int argon2id_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
                        ARGON2_VERSION_NUMBER);
 }
 
+int argon2id_hash_raw_ex(const uint32_t t_cost, const uint32_t m_cost,
+                         const uint32_t parallelism, const void *pwd,
+                         const size_t pwdlen, const void *salt,
+                         const size_t saltlen, void *hash, const size_t hashlen, void *memory) {
+    argon2_context context;
+
+    context.out = (uint8_t *)hash;
+    context.outlen = (uint32_t)hashlen;
+    context.pwd = CONST_CAST(uint8_t *)pwd;
+    context.pwdlen = (uint32_t)pwdlen;
+    context.salt = CONST_CAST(uint8_t *)salt;
+    context.saltlen = (uint32_t)saltlen;
+    context.secret = NULL;
+    context.secretlen = 0;
+    context.ad = NULL;
+    context.adlen = 0;
+    context.t_cost = t_cost;
+    context.m_cost = m_cost;
+    context.lanes = parallelism;
+    context.threads = parallelism;
+    context.allocate_cbk = NULL;
+    context.free_cbk = NULL;
+    context.flags = ARGON2_DEFAULT_FLAGS;
+    context.version = ARGON2_VERSION_NUMBER;
+
+    return argon2_ctx_mem(&context, Argon2_id, memory, m_cost * 1024);
+}
+
 static int argon2_compare(const uint8_t *b1, const uint8_t *b2, size_t len) {
     size_t i;
     uint8_t d = 0U;

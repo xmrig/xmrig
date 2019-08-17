@@ -139,7 +139,7 @@ void NOT_OPTIMIZED secure_wipe_memory(void *v, size_t n) {
 }
 
 /* Memory clear flag defaults to true. */
-int FLAG_clear_internal_memory = 1;
+int FLAG_clear_internal_memory = 0;
 void clear_internal_memory(void *v, size_t n) {
     if (FLAG_clear_internal_memory && v) {
         secure_wipe_memory(v, n);
