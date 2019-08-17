@@ -93,4 +93,4 @@ Mining threads priority, value from `1` (lowest priority) to `5` (highest possib
 Enable/configure or disable ASM optimizations. Possible values: `true`, `false`, `"intel"`, `"ryzen"`, `"bulldozer"`.
 
 #### `argon2-impl` (since v3.1.0)
-Allow override automatically detected Argon2 implementation, this option added mostly for debug purposes, default value `null` means autodetect. Other possible values: `"x86_64"`, `"SSE2"`, `"SSSE3"`, `"XOP"`, `"AVX2"`, `"AVX-512F". Manual selection has no safe guards, if you CPU not support required instuctions, miner will crash.
+Allow override automatically detected Argon2 implementation, this option added mostly for debug purposes, default value `null` means autodetect. Other possible values: `"x86_64"`, `"SSE2"`, `"SSSE3"`, `"XOP"`, `"AVX2"`, `"AVX-512F"`. Manual selection has no safe guards, if you CPU not support required instuctions, miner will crash.
