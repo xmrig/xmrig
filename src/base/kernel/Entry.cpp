@@ -36,7 +36,7 @@
 #endif
 
 #ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclLib.h"
+#   include "backend/opencl/wrappers/OclLib.h"
 #endif
 
 #include "base/kernel/Entry.h"

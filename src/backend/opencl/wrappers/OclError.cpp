@@ -23,7 +23,7 @@
  */
 
 
-#include "backend/opencl/OclError.h"
+#include "backend/opencl/wrappers/OclError.h"
 
 
 const char *xmrig::OclError::toString(cl_int ret)

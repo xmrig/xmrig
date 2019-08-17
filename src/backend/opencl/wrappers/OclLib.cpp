@@ -26,8 +26,8 @@
 #include <uv.h>
 
 
-#include "backend/opencl/OclError.h"
-#include "backend/opencl/OclLib.h"
+#include "backend/opencl/wrappers/OclError.h"
+#include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 
 
