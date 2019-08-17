@@ -28,10 +28,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "common.hpp"
-#include "intrin_portable.h"
-#include "instruction.hpp"
-#include "program.hpp"
+#include "crypto/randomx/common.hpp"
+#include "crypto/randomx/intrin_portable.h"
+#include "crypto/randomx/instruction.hpp"
+#include "crypto/randomx/program.hpp"
 
 namespace randomx {
 

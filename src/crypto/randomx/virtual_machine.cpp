@@ -29,12 +29,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <iomanip>
 #include <stdexcept>
-#include "virtual_machine.hpp"
-#include "common.hpp"
-#include "aes_hash.hpp"
-#include "blake2/blake2.h"
-#include "intrin_portable.h"
-#include "allocator.hpp"
+#include "crypto/randomx/virtual_machine.hpp"
+#include "crypto/randomx/common.hpp"
+#include "crypto/randomx/aes_hash.hpp"
+#include "crypto/randomx/blake2/blake2.h"
+#include "crypto/randomx/intrin_portable.h"
+#include "crypto/randomx/allocator.hpp"
 
 randomx_vm::~randomx_vm() {
 
@@ -111,7 +111,7 @@ namespace randomx {
 	template<bool softAes>
 	void VmBase<softAes>::getFinalResult(void* out, size_t outSize) {
 		hashAes1Rx4<softAes>(scratchpad, ScratchpadSize, &reg.a);
-		blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
+        rx_blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
 	}
 
 	template<bool softAes>

@@ -166,18 +166,7 @@ namespace xmrig {
 template<>
 xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
 {
-    const int intensity = handle->config().intensity;
-
-#   if defined(XMRIG_ALGO_RANDOMX) || defined(XMRIG_ALGO_CN_GPU)
-    if (intensity > handle->config().algorithm.maxIntensity()) {
-        LOG_WARN("CPU thread %zu warning: \"intensity %d not supported for %s algorithm\".", handle->index(), handle->config().intensity, handle->config().algorithm.shortName());
-
-        return new CpuWorker<1>(handle->index(), handle->config());
-    }
-#   endif
-
-
-    switch (intensity) {
+    switch (handle->config().intensity) {
     case 1:
         return new CpuWorker<1>(handle->index(), handle->config());
 

@@ -43,6 +43,11 @@
 #include "rapidjson/document.h"
 
 
+#ifdef XMRIG_ALGO_ARGON2
+#   include "crypto/argon2/Impl.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -192,8 +197,17 @@ const xmrig::String &xmrig::CpuBackend::type() const
 }
 
 
-void xmrig::CpuBackend::prepare(const Job &)
+void xmrig::CpuBackend::prepare(const Job &nextJob)
 {
+#   ifdef XMRIG_ALGO_ARGON2
+    if (nextJob.algorithm().family() == Algorithm::ARGON2 && argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
+        LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
+                 tag,
+                 argon2::Impl::name() == "default" ? 33 : 32,
+                 argon2::Impl::name().data()
+                 );
+    }
+#   endif
 }
 
 
@@ -317,6 +331,10 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("asm", assembly.toJSON(), allocator);
 #   else
     out.AddMember("asm", false, allocator);
+#   endif
+
+#   ifdef XMRIG_ALGO_ARGON2
+    out.AddMember("argon2-impl", argon2::Impl::name().toJSON(), allocator);
 #   endif
 
     const auto pages = hugePages();
