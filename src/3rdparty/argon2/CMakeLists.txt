@@ -6,7 +6,6 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 include(CheckCSourceCompiles)
-find_package(Threads REQUIRED)
 
 add_library(argon2-interface INTERFACE)
 target_include_directories(argon2-interface INTERFACE
@@ -24,20 +23,13 @@ add_library(argon2 STATIC
     lib/encoding.c
     lib/genkat.c
     lib/impl-select.c
-    lib/thread.c
     lib/blake2/blake2.c
-)
-target_link_libraries(argon2
-    PUBLIC argon2-interface ${CMAKE_THREAD_LIBS_INIT}
-    PRIVATE argon2-internal
 )
 
 set_property(TARGET argon2 PROPERTY VERSION ${Upstream_VERSION})
 set_property(TARGET argon2 PROPERTY SOVERSION 1)
 set_property(TARGET argon2 PROPERTY INTERFACE_ARGON2_MAJOR_VERSION 1)
-set_property(TARGET argon2 APPEND PROPERTY
-    COMPATIBLE_INTERFACE_STRING ARGON2_MAJOR_VERSION
-)
+set_property(TARGET argon2 APPEND PROPERTY COMPATIBLE_INTERFACE_STRING ARGON2_MAJOR_VERSION)
 
 if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     function(add_feature_impl FEATURE MSVC_FLAG DEF)
