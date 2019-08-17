@@ -55,6 +55,11 @@
 #endif
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/RxConfig.h"
+#endif
+
+
 namespace xmrig {
 
 

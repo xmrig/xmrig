@@ -30,6 +30,7 @@
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Workers.h"
 #include "backend/opencl/OclBackend.h"
+#include "backend/opencl/OclConfig.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"

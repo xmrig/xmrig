@@ -34,52 +34,37 @@
 #include "rapidjson/fwd.h"
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "crypto/rx/RxConfig.h"
-#endif
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-#   include "backend/opencl/OclConfig.h"
-#endif
-
-
 namespace xmrig {
 
 
+class ConfigPrivate;
 class IThread;
+class RxConfig;
+class OclConfig;
 
 
 class Config : public BaseConfig
 {
 public:
     Config();
+    ~Config() override;
+
+    const CpuConfig &cpu() const;
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    const OclConfig &cl() const;
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    const RxConfig &rx() const;
+#   endif
 
     bool isShouldSave() const;
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline const CpuConfig &cpu() const     { return m_cpu; }
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    inline const RxConfig &rx() const       { return m_rx; }
-#   endif
-
-#   ifdef XMRIG_FEATURE_OPENCL
-    inline const OclConfig &cl() const      { return m_cl; }
-#   endif
-
 private:
-    bool m_shouldSave   = false;
-    CpuConfig m_cpu;
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    RxConfig m_rx;
-#   endif
-
-#   ifdef XMRIG_FEATURE_OPENCL
-    OclConfig m_cl;
-#   endif
+    ConfigPrivate *d_ptr;
 };
 
 
