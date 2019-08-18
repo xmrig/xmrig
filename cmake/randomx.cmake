@@ -36,7 +36,37 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxConfig.cpp
         src/crypto/rx/RxDataset.cpp
         src/crypto/rx/RxVm.cpp
+
+        src/crypto/defyx/align.h
+        src/crypto/defyx/brg_endian.h
+        src/crypto/defyx/defyx.cpp
+        src/crypto/defyx/defyx.h
+        src/crypto/defyx/KangarooTwelve.c
+        src/crypto/defyx/KangarooTwelve.h
+        src/crypto/defyx/KeccakP-1600-reference.c
+        src/crypto/defyx/KeccakP-1600-SnP.h
+        src/crypto/defyx/KeccakSponge-common.h
+        src/crypto/defyx/KeccakSponge.inc
+        src/crypto/defyx/KeccakSpongeWidth1600.c
+        src/crypto/defyx/KeccakSpongeWidth1600.h
+        src/crypto/defyx/Phases.h
+        src/crypto/defyx/sha256.c
+        src/crypto/defyx/sha256.h
+        src/crypto/defyx/sysendian.h
+        src/crypto/defyx/yescrypt.h
     )
+
+    if (WIN32)
+        set(SOURCES_CRYPTO 
+            "${SOURCES_CRYPTO}"
+             src/crypto/defyx/yescrypt-ref.c
+        )
+    else()
+        set(SOURCES_CRYPTO 
+            "${SOURCES_CRYPTO}"
+             src/crypto/defyx/yescrypt-best.c
+        )
+    endif()
 
     if (CMAKE_C_COMPILER_ID MATCHES MSVC)
         enable_language(ASM_MASM)
