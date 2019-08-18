@@ -134,6 +134,10 @@ private:
         0,             // RX_LOKI
         0,             // DEFYX
 #       endif
+#       ifdef XMRIG_ALGO_ARGON2
+        0,             // AR2_CHUKWA
+        0,             // AR2_WRKZ
+#       endif
     };
 
     constexpr const static uint32_t m_iterations[] = {
@@ -170,6 +174,10 @@ private:
         0,             // RX_LOKI
         0,             // DEFYX
 #       endif
+#       ifdef XMRIG_ALGO_ARGON2
+        0,             // AR2_CHUKWA
+        0,             // AR2_WRKZ
+#       endif
     };
 
     constexpr const static Algorithm::Id m_base[] = {
@@ -205,6 +213,10 @@ private:
         Algorithm::INVALID, // RX_WOW
         Algorithm::INVALID, // RX_LOKI
         Algorithm::INVALID, // DEFYX
+#       endif
+#       ifdef XMRIG_ALGO_ARGON2
+        Algorithm::INVALID, // AR2_CHUKWA
+        Algorithm::INVALID, // AR2_WRKZ
 #       endif
     };
 };

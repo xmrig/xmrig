@@ -27,10 +27,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <new>
-#include "allocator.hpp"
-#include "intrin_portable.h"
-#include "virtual_memory.hpp"
-#include "common.hpp"
+#include "crypto/randomx/allocator.hpp"
+#include "crypto/randomx/intrin_portable.h"
+#include "crypto/randomx/virtual_memory.hpp"
+#include "crypto/randomx/common.hpp"
 
 namespace randomx {
 

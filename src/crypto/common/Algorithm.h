@@ -74,6 +74,10 @@ public:
         RX_LOKI,       // "rx/loki"          RandomXL (Loki).
         DEFYX,         // "defyx"            DefyX (Scala).
 #       endif
+#       ifdef XMRIG_ALGO_ARGON2
+        AR2_CHUKWA,    // "argon2/chukwa"
+        AR2_WRKZ,      // "argon2/wrkz"
+#       endif
         MAX
     };
 
@@ -83,7 +87,8 @@ public:
         CN_LITE,
         CN_HEAVY,
         CN_PICO,
-        RANDOM_X
+        RANDOM_X,
+        ARGON2
     };
 
     inline Algorithm()                                     {}
@@ -103,10 +108,10 @@ public:
     inline bool operator==(const Algorithm &other) const  { return isEqual(other); }
     inline operator Algorithm::Id() const                 { return m_id; }
 
-    int maxIntensity() const;
     rapidjson::Value toJSON() const;
     size_t l2() const;
     size_t l3() const;
+    uint32_t maxIntensity() const;
 
     static Family family(Id id);
     static Id parse(const char *name);

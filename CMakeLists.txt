@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-option(WITH_LIBCPUID        "Use Libcpuid" ON)
-option(WITH_HWLOC           "Use hwloc" ON)
-option(WITH_CN_LITE         "CryptoNight-Lite support" ON)
-option(WITH_CN_HEAVY        "CryptoNight-Heavy support" ON)
-option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
-option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
-option(WITH_RANDOMX         "RandomX support" ON)
-option(WITH_HTTP            "HTTP protocol support (client/server)" ON)
+option(WITH_LIBCPUID        "Enable libcpuid support" ON)
+option(WITH_HWLOC           "Enable hwloc support" ON)
+option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
+option(WITH_CN_HEAVY        "Enable CryptoNight-Heavy algorithms family" ON)
+option(WITH_CN_PICO         "Enable CryptoNight-Pico algorithm" ON)
+option(WITH_CN_GPU          "Enable CryptoNight-GPU algorithm" ON)
+option(WITH_RANDOMX         "Enable RandomX algorithms family" ON)
+option(WITH_ARGON2          "Enable Argon2 algorithms family" ON)
+option(WITH_HTTP            "Enable HTTP protocol support (client/server)" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
@@ -152,6 +153,7 @@ add_definitions(/DUNICODE)
 
 find_package(UV REQUIRED)
 
+<<<<<<< HEAD
 if (WITH_RANDOMX)
     include_directories(src/crypto/randomx)
     include_directories(src/crypto/defyx)
@@ -242,8 +244,11 @@ else()
     remove_definitions(/DXMRIG_ALGO_RANDOMX)
 endif()
 
+=======
+>>>>>>> ce35260b5d806f3ff3c5e8126bb84d2e56a8c576
 include(cmake/flags.cmake)
-
+include(cmake/randomx.cmake)
+include(cmake/argon2.cmake)
 include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)
 include(cmake/cn-gpu.cmake)
@@ -277,4 +282,4 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB} ${ARGON2_LIBRARY})

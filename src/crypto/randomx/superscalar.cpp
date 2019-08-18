@@ -26,12 +26,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "configuration.h"
-#include "program.hpp"
-#include "blake2/endian.h"
-#include "superscalar.hpp"
-#include "intrin_portable.h"
-#include "reciprocal.h"
+#include "crypto/randomx/configuration.h"
+#include "crypto/randomx/program.hpp"
+#include "crypto/randomx/blake2/endian.h"
+#include "crypto/randomx/superscalar.hpp"
+#include "crypto/randomx/intrin_portable.h"
+#include "crypto/randomx/reciprocal.h"
 
 namespace randomx {
 

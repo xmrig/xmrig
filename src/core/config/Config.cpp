@@ -40,7 +40,8 @@
 
 namespace xmrig {
 
-static const char *kCPU     = "cpu";
+static const char *kCPU                  = "cpu";
+static constexpr const uint32_t kVersion = 1;
 
 #ifdef XMRIG_ALGO_RANDOMX
 static const char *kRandomX = "randomx";
@@ -54,6 +55,20 @@ xmrig::Config::Config() : BaseConfig()
 }
 
 
+bool xmrig::Config::isShouldSave() const
+{
+    if (!isAutoSave()) {
+        return false;
+    }
+
+    if (version() < kVersion) {
+        return true;
+    }
+
+    return (m_shouldSave || m_upgrade || m_cpu.isShouldSave() || m_benchmark.isNewBenchRun());
+}
+
+
 bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 {
     if (!BaseConfig::read(reader, fileName)) {
@@ -62,6 +77,7 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 
     m_cpu.read(reader.getValue(kCPU));
     m_benchmark.read(reader.getValue("algo-perf"));
+    m_cpu.read(reader.getValue(kCPU), version());
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (!m_rx.read(reader.getValue(kRandomX))) {
@@ -82,12 +98,13 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     auto &allocator = doc.GetAllocator();
 
     Value api(kObjectType);
-    api.AddMember("id",           m_apiId.toJSON(), allocator);
-    api.AddMember("worker-id",    m_apiWorkerId.toJSON(), allocator);
+    api.AddMember("id",                m_apiId.toJSON(), allocator);
+    api.AddMember("worker-id",         m_apiWorkerId.toJSON(), allocator);
 
     doc.AddMember("api",               api, allocator);
     doc.AddMember("http",              m_http.toJSON(doc), allocator);
     doc.AddMember("autosave",          isAutoSave(), allocator);
+    doc.AddMember("version",           kVersion, allocator);
     doc.AddMember("background",        isBackground(), allocator);
     doc.AddMember("colors",            Log::colors, allocator);
 

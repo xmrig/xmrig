@@ -56,6 +56,7 @@ public:
     inline const String &apiId() const             { return m_apiId; }
     inline const String &apiWorkerId() const       { return m_apiWorkerId; }
     inline uint32_t printTime() const              { return m_printTime; }
+    inline uint32_t version() const                { return m_version; }
 
     inline bool isRebenchAlgo() const              { return m_rebenchAlgo; }
     inline int  benchAlgoTime() const              { return m_benchAlgoTime; }
@@ -83,7 +84,8 @@ protected:
     String m_fileName;
     String m_logFile;
     String m_userAgent;
-    uint32_t m_printTime;
+    uint32_t m_printTime = 60;
+    uint32_t m_version   = 0;
 
     bool m_rebenchAlgo   = false;
     int  m_benchAlgoTime = 10;

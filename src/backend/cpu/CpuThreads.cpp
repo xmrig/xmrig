@@ -94,7 +94,7 @@ xmrig::CpuThreads::CpuThreads(const rapidjson::Value &value)
         }
     }
     else if (value.IsObject()) {
-        int intensity        = Json::getInt(value, kIntensity, 1);
+        uint32_t intensity   = Json::getUint(value, kIntensity, 1);
         const size_t threads = std::min<unsigned>(Json::getUint(value, kThreads), 1024);
         m_affinity           = getAffinityMask(Json::getValue(value, kAffinity));
         m_format             = ObjectFormat;
@@ -110,7 +110,7 @@ xmrig::CpuThreads::CpuThreads(const rapidjson::Value &value)
 }
 
 
-xmrig::CpuThreads::CpuThreads(size_t count, int intensity)
+xmrig::CpuThreads::CpuThreads(size_t count, uint32_t intensity)
 {
     m_data.reserve(count);
 

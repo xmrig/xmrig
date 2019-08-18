@@ -51,10 +51,10 @@ class Config : public BaseConfig
 public:
     Config();
 
+    bool isShouldSave() const;
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline bool isShouldSave() const        { return (m_shouldSave || m_upgrade || m_cpu.isShouldSave() || m_benchmark.isNewBenchRun()) && isAutoSave(); }
     inline const CpuConfig &cpu() const     { return m_cpu; }
     inline Benchmark &benchmark()           { return m_benchmark; }
 
