@@ -49,17 +49,6 @@
 namespace xmrig {
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-static void printPlatforms()
-{
-    const auto platforms = OclPlatform::get();
-    for (const auto &platform : platforms) {
-        printf("#%zu: %s\n", platform.index(), platform.vendor().data());
-    }
-}
-#endif
-
-
 static int showVersion()
 {
     printf(APP_NAME " " APP_VERSION "\n built on " __DATE__
@@ -186,7 +175,7 @@ int xmrig::Entry::exec(const Process &process, Id id)
 #   ifdef XMRIG_FEATURE_OPENCL
     case Platforms:
         if (OclLib::init()) {
-            printPlatforms();
+            OclPlatform::print();
         }
         return 0;
 #   endif

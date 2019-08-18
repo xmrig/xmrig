@@ -465,20 +465,7 @@ cl_uint xmrig::OclLib::getDeviceMaxComputeUnits(cl_device_id id)
 }
 
 
-std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs()
-{
-    const uint32_t count = getNumPlatforms();
-    std::vector<cl_platform_id> platforms(count);
-
-    if (count) {
-        OclLib::getPlatformIDs(count, platforms.data(), nullptr);
-    }
-
-    return platforms;
-}
-
-
-uint32_t xmrig::OclLib::getNumPlatforms()
+cl_uint xmrig::OclLib::getNumPlatforms()
 {
     cl_uint count = 0;
     cl_int ret;
@@ -518,6 +505,19 @@ xmrig::OclVendor xmrig::OclLib::getDeviceVendor(cl_device_id id)
 }
 
 
+std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs()
+{
+    const uint32_t count = getNumPlatforms();
+    std::vector<cl_platform_id> platforms(count);
+
+    if (count) {
+        OclLib::getPlatformIDs(count, platforms.data(), nullptr);
+    }
+
+    return platforms;
+}
+
+
 xmrig::String xmrig::OclLib::getDeviceBoardName(cl_device_id id)
 {
     constexpr size_t size = 128;
@@ -541,6 +541,20 @@ xmrig::String xmrig::OclLib::getDeviceName(cl_device_id id)
     getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
 
     return buf;
+}
+
+
+xmrig::String xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name)
+{
+    size_t size = 0;
+    if (getPlatformInfo(platform, param_name, 0, nullptr, &size) != CL_SUCCESS) {
+        return String();
+    }
+
+    char *buf = new char[size]();
+    OclLib::getPlatformInfo(platform, param_name, size, buf, nullptr);
+
+    return String(buf);
 }
 
 

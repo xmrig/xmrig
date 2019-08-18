@@ -45,11 +45,16 @@ public:
     OclPlatform(size_t index, cl_platform_id id) : m_id(id), m_index(index) {}
 
     static std::vector<OclPlatform> get();
+    static void print();
 
     inline cl_platform_id id() const { return m_id; }
     inline size_t index() const      { return m_index; }
 
+    String extensions() const;
+    String name() const;
+    String profile() const;
     String vendor() const;
+    String version() const;
 
 private:
     cl_platform_id m_id = nullptr;

@@ -22,6 +22,10 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+#include <stdio.h>
+
+
 #include "backend/opencl/wrappers/OclLib.h"
 #include "backend/opencl/wrappers/OclPlatform.h"
 
@@ -44,16 +48,48 @@ std::vector<xmrig::OclPlatform> xmrig::OclPlatform::get()
 }
 
 
+void xmrig::OclPlatform::print()
+{
+    const auto platforms = OclPlatform::get();
+
+    printf("%-28s%zu\n\n", "Number of platforms:", platforms.size());
+
+    for (const auto &platform : platforms) {
+        printf("  %-26s%zu\n",  "Index:",       platform.index());
+        printf("  %-26s%s\n",   "Profile:",     platform.profile().data());
+        printf("  %-26s%s\n",   "Version:",     platform.version().data());
+        printf("  %-26s%s\n",   "Name:",        platform.name().data());
+        printf("  %-26s%s\n",   "Vendor:",      platform.vendor().data());
+        printf("  %-26s%s\n\n", "Extensions:",  platform.extensions().data());
+    }
+}
+
+
+xmrig::String xmrig::OclPlatform::extensions() const
+{
+    return OclLib::getPlatformInfo(id(), CL_PLATFORM_EXTENSIONS);
+}
+
+
+xmrig::String xmrig::OclPlatform::name() const
+{
+    return OclLib::getPlatformInfo(id(), CL_PLATFORM_NAME);
+}
+
+
+xmrig::String xmrig::OclPlatform::profile() const
+{
+    return OclLib::getPlatformInfo(id(), CL_PLATFORM_PROFILE);
+}
+
+
 xmrig::String xmrig::OclPlatform::vendor() const
 {
-    constexpr size_t size = 128;
-    char *buf = new char[size]();
+    return OclLib::getPlatformInfo(id(), CL_PLATFORM_VENDOR);
+}
 
-    if (OclLib::getPlatformInfo(id(), CL_PLATFORM_VENDOR, size, buf, nullptr) != CL_SUCCESS) {
-        delete [] buf;
 
-        return String();
-    }
-
-    return String(buf);
+xmrig::String xmrig::OclPlatform::version() const
+{
+    return OclLib::getPlatformInfo(id(), CL_PLATFORM_VERSION);
 }
