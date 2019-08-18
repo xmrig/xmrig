@@ -93,14 +93,14 @@ extern "C" {
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
 		sipesh(tempHash, sizeof(tempHash), input, inputSize, input, inputSize, 0, 0);
 		k12(input, inputSize, tempHash);
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
 		}
 		machine->run(&tempHash);
 		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
