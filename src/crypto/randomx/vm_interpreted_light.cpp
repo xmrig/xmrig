@@ -26,8 +26,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "vm_interpreted_light.hpp"
-#include "dataset.hpp"
+#include "crypto/randomx/vm_interpreted_light.hpp"
+#include "crypto/randomx/dataset.hpp"
 
 namespace randomx {
 

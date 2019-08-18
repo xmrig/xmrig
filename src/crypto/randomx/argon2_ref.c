@@ -36,12 +36,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdlib.h>
 
-#include "argon2.h"
-#include "argon2_core.h"
+#include "crypto/randomx/argon2.h"
+#include "crypto/randomx/argon2_core.h"
 
-#include "blake2/blamka-round-ref.h"
-#include "blake2/blake2-impl.h"
-#include "blake2/blake2.h"
+#include "crypto/randomx/blake2/blamka-round-ref.h"
+#include "crypto/randomx/blake2/blake2-impl.h"
+#include "crypto/randomx/blake2/blake2.h"
 
  /*
   * Function fills a new memory block and optionally XORs the old block over the new one.

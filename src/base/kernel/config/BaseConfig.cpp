@@ -134,6 +134,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     Log::colors    = reader.getBool("colors", Log::colors);
     m_logFile      = reader.getString("log-file");
     m_userAgent    = reader.getString("user-agent");
+    m_version      = reader.getUint("version");
 
     setPrintTime(reader.getUint("print-time", 60));
 

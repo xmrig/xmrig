@@ -47,23 +47,3 @@ xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 
     return algorithm;
 }
-
-
-size_t xmrig::RxAlgo::l3(Algorithm::Id algorithm)
-{
-    switch (algorithm) {
-    case Algorithm::RX_0:
-        return RandomX_MoneroConfig.ScratchpadL3_Size;
-
-    case Algorithm::RX_WOW:
-        return RandomX_WowneroConfig.ScratchpadL3_Size;
-
-    case Algorithm::RX_LOKI:
-        return RandomX_LokiConfig.ScratchpadL3_Size;
-
-    default:
-        break;
-    }
-
-    return 0;
-}

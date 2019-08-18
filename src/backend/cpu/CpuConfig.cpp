@@ -62,6 +62,11 @@ static const char *kRx    = "rx";
 static const char *kRxWOW = "rx/wow";
 #endif
 
+#ifdef XMRIG_ALGO_ARGON2
+static const char *kArgon2     = "argon2";
+static const char *kArgon2Impl = "argon2-impl";
+#endif
+
 extern template class Threads<CpuThreads>;
 
 }
@@ -94,6 +99,10 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kAsm), m_assembly.toJSON(), allocator);
 #   endif
 
+#   ifdef XMRIG_ALGO_ARGON2
+    obj.AddMember(StringRef(kArgon2Impl), m_argon2Impl.toJSON(), allocator);
+#   endif
+
     m_threads.toJSON(obj, doc);
 
     return obj;
@@ -119,7 +128,7 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
 }
 
 
-void xmrig::CpuConfig::read(const rapidjson::Value &value)
+void xmrig::CpuConfig::read(const rapidjson::Value &value, uint32_t version)
 {
     if (value.IsObject()) {
         m_enabled       = Json::getBool(value, kEnabled, m_enabled);
@@ -132,8 +141,16 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
         m_assembly = Json::getValue(value, kAsm);
 #       endif
 
+#       ifdef XMRIG_ALGO_ARGON2
+        m_argon2Impl = Json::getString(value, kArgon2Impl);
+#       endif
+
         if (!m_threads.read(value)) {
             generate();
+        }
+
+        if (version == 0) {
+            generateArgon2();
         }
     }
     else if (value.IsBool() && value.IsFalse()) {
@@ -173,6 +190,16 @@ void xmrig::CpuConfig::generate()
 #   ifdef XMRIG_ALGO_RANDOMX
     m_threads.move(kRx, cpu->threads(Algorithm::RX_0));
     m_threads.move(kRxWOW, cpu->threads(Algorithm::RX_WOW));
+#   endif
+
+    generateArgon2();
+}
+
+
+void xmrig::CpuConfig::generateArgon2()
+{
+#   ifdef XMRIG_ALGO_ARGON2
+    m_threads.move(kArgon2, Cpu::info()->threads(Algorithm::AR2_CHUKWA));
 #   endif
 }
 

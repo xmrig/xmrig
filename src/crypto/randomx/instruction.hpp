@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdint>
 #include <type_traits>
-#include "blake2/endian.h"
+#include "crypto/randomx/blake2/endian.h"
 
 namespace randomx {
 

@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <new>
-#include "vm_interpreted.hpp"
+#include "crypto/randomx/vm_interpreted.hpp"
 
 namespace randomx {
 

@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <stdint.h>
-#include "intrin_portable.h"
+#include "crypto/randomx/intrin_portable.h"
 
 rx_vec_i128 soft_aesenc(rx_vec_i128 in, rx_vec_i128 key);
 
