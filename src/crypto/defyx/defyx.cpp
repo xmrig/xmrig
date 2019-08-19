@@ -93,7 +93,7 @@ extern "C" {
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		//rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
 		sipesh(tempHash, sizeof(tempHash), input, inputSize, input, inputSize, 0, 0);
 		k12(input, inputSize, tempHash);
 		machine->initScratchpad(&tempHash);
