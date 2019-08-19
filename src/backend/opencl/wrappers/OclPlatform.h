@@ -47,9 +47,11 @@ public:
     static std::vector<OclPlatform> get();
     static void print();
 
+    inline bool isValid() const      { return m_id != nullptr; }
     inline cl_platform_id id() const { return m_id; }
     inline size_t index() const      { return m_index; }
 
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
     String extensions() const;
     String name() const;
     String profile() const;

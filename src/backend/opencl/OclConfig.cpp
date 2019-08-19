@@ -30,7 +30,13 @@
 
 namespace xmrig {
 
-static const char *kEnabled = "enabled";
+static const char *kCache       = "cache";
+static const char *kEnabled     = "enabled";
+static const char *kLoader      = "loader";
+static const char *kPlatform    = "platform";
+static const char *kAMD         = "AMD";
+static const char *kNVIDIA      = "NVIDIA";
+static const char *kINTEL       = "INTEL";
 
 
 extern template class Threads<OclThreads>;
@@ -38,8 +44,48 @@ extern template class Threads<OclThreads>;
 }
 
 
-xmrig::OclConfig::OclConfig()
+xmrig::OclConfig::OclConfig() :
+    m_platformVendor(kAMD)
 {
+}
+
+
+xmrig::OclPlatform xmrig::OclConfig::platform() const
+{
+    const auto platforms = OclPlatform::get();
+    if (platforms.empty()) {
+        return OclPlatform();
+    }
+
+    if (!m_platformVendor.isEmpty()) {
+        String search;
+        String vendor = m_platformVendor;
+        vendor.toUpper();
+
+        if (vendor == kAMD) {
+            search = "Advanced Micro Devices";
+        }
+        else if (vendor == kNVIDIA) {
+            search = kNVIDIA;
+        }
+        else if (vendor == kINTEL) {
+            search = "Intel";
+        }
+        else {
+            search = m_platformVendor;
+        }
+
+        for (const auto &platform : platforms) {
+            if (platform.vendor().contains(search)) {
+                return platform;
+            }
+        }
+    }
+    else if (m_platformIndex < platforms.size()) {
+        return platforms[m_platformIndex];
+    }
+
+    return OclPlatform();
 }
 
 
@@ -50,7 +96,10 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
 
-    obj.AddMember(StringRef(kEnabled),      m_enabled, allocator);
+    obj.AddMember(StringRef(kEnabled),  m_enabled, allocator);
+    obj.AddMember(StringRef(kCache),    m_cache, allocator);
+    obj.AddMember(StringRef(kLoader),   m_loader.toJSON(), allocator);
+    obj.AddMember(StringRef(kPlatform), m_platformVendor.isEmpty() ? Value(m_platformIndex) : m_platformVendor.toJSON(), allocator);
 
     m_threads.toJSON(obj, doc);
 
@@ -69,7 +118,11 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
 void xmrig::OclConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
-        m_enabled       = Json::getBool(value, kEnabled, m_enabled);
+        m_enabled   = Json::getBool(value, kEnabled, m_enabled);
+        m_cache     = Json::getBool(value, kCache, m_cache);
+        m_loader    = Json::getString(value, kLoader);
+
+        setPlatform(Json::getValue(value, kPlatform));
 
         if (!m_threads.read(value)) {
             generate();
@@ -87,4 +140,16 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 void xmrig::OclConfig::generate()
 {
     m_shouldSave  = true;
+}
+
+
+void xmrig::OclConfig::setPlatform(const rapidjson::Value &platform)
+{
+    if (platform.IsString()) {
+        m_platformVendor = platform.GetString();
+    }
+    else if (platform.IsUint()) {
+        m_platformVendor = nullptr;
+        m_platformIndex  = platform.GetUint();
+    }
 }

@@ -40,7 +40,10 @@ class OclLib
 {
 public:
     static bool init(const char *fileName = nullptr);
-    static const char *defaultLoader();
+    static const char *lastError();
+    static void close();
+
+    static inline const String &loader() { return m_loader; }
 
     static cl_command_queue createCommandQueue(cl_context context, cl_device_id device, cl_int *errcode_ret);
     static cl_context createContext(const cl_context_properties *properties, cl_uint num_devices, const cl_device_id *devices, void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *), void *user_data, cl_int *errcode_ret);
@@ -76,6 +79,11 @@ public:
 
 private:
     static bool load();
+    static const char *defaultLoader();
+
+    static bool m_initialized;
+    static bool m_ready;
+    static String m_loader;
 };
 
 

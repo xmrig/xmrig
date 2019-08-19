@@ -32,6 +32,7 @@
 #include "backend/opencl/OclBackend.h"
 #include "backend/opencl/OclConfig.h"
 #include "backend/opencl/OclLaunchData.h"
+#include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
@@ -52,7 +53,7 @@ namespace xmrig {
 extern template class Threads<OclThreads>;
 
 
-static const char *tag      = MAGENTA_BG_BOLD(" ocl ");
+static const char *tag      = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
 static const String kType   = "opencl";
 
 
@@ -86,6 +87,30 @@ public:
     inline OclBackendPrivate(Controller *controller) :
         controller(controller)
     {
+    }
+
+
+    bool init(const OclConfig &cl)
+    {
+        if (!OclLib::init(cl.loader())) {
+            LOG_ERR("%s" RED_S " failed to load OpenCL runtime (%s): " RED_BOLD_S "\"%s\"", tag, OclLib::loader().data(), OclLib::lastError());
+
+            return false;
+        }
+
+        if (!platform.isValid()) {
+            platform = cl.platform();
+
+            if (!platform.isValid()) {
+                LOG_ERR("%s" RED_S " selected OpenCL platform NOT found.", tag);
+
+                return false;
+            }
+
+            LOG_INFO("%s use platform " WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), tag, platform.name().data(), platform.version().data());
+        }
+
+        return true;
     }
 
 
@@ -123,6 +148,7 @@ public:
     Algorithm algo;
     Controller *controller;
     LaunchStatus status;
+    OclPlatform platform;
     std::mutex mutex;
     std::vector<OclLaunchData> threads;
     String profileName;
@@ -143,6 +169,8 @@ xmrig::OclBackend::OclBackend(Controller *controller) :
 xmrig::OclBackend::~OclBackend()
 {
     delete d_ptr;
+
+    OclLib::close();
 }
 
 
@@ -213,6 +241,9 @@ void xmrig::OclBackend::setJob(const Job &job)
     }
 
     const OclConfig &cl = d_ptr->controller->config()->cl();
+    if (!d_ptr->init(cl)) {
+        return;
+    }
 
     std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm());
 //    if (d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
@@ -271,17 +302,14 @@ void xmrig::OclBackend::tick(uint64_t ticks)
 rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
-    auto &allocator         = doc.GetAllocator();
-    const CpuConfig &cpu    = d_ptr->controller->config()->cpu();
+    auto &allocator = doc.GetAllocator();
 
     Value out(kObjectType);
     out.AddMember("type",       type().toJSON(), allocator);
     out.AddMember("enabled",    isEnabled(), allocator);
     out.AddMember("algo",       d_ptr->algo.toJSON(), allocator);
     out.AddMember("profile",    profileName().toJSON(), allocator);
-    out.AddMember("hw-aes",     cpu.isHwAES(), allocator);
-    out.AddMember("priority",   cpu.priority(), allocator);
-    out.AddMember("memory",     static_cast<uint64_t>(d_ptr->algo.isValid() ? (d_ptr->ways() * d_ptr->algo.l3()) : 0), allocator);
+    out.AddMember("platform",   d_ptr->platform.toJSON(doc), allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
         return out;

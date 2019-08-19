@@ -23,11 +23,9 @@
  */
 
 
-#include <stdio.h>
-
-
 #include "backend/opencl/wrappers/OclLib.h"
 #include "backend/opencl/wrappers/OclPlatform.h"
+#include "rapidjson/document.h"
 
 
 std::vector<xmrig::OclPlatform> xmrig::OclPlatform::get()
@@ -62,6 +60,27 @@ void xmrig::OclPlatform::print()
         printf("  %-26s%s\n",   "Vendor:",      platform.vendor().data());
         printf("  %-26s%s\n\n", "Extensions:",  platform.extensions().data());
     }
+}
+
+
+rapidjson::Value xmrig::OclPlatform::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    if (!isValid()) {
+        return Value(kNullType);
+    }
+
+    Value out(kObjectType);
+    out.AddMember("index",      index(), allocator);
+    out.AddMember("profile",    profile().toJSON(doc), allocator);
+    out.AddMember("version",    version().toJSON(doc), allocator);
+    out.AddMember("name",       name().toJSON(doc), allocator);
+    out.AddMember("vendor",     vendor().toJSON(doc), allocator);
+    out.AddMember("extensions", extensions().toJSON(doc), allocator);
+
+    return out;
 }
 
 

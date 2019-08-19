@@ -29,6 +29,7 @@
 #include "backend/common/Threads.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/OclThreads.h"
+#include "backend/opencl/wrappers/OclPlatform.h"
 
 
 namespace xmrig {
@@ -39,20 +40,28 @@ class OclConfig
 public:
     OclConfig();
 
+    OclPlatform platform() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     std::vector<OclLaunchData> get(const Miner *miner, const Algorithm &algorithm) const;
     void read(const rapidjson::Value &value);
 
+    inline bool isCacheEnabled() const                  { return m_cache; }
     inline bool isEnabled() const                       { return m_enabled; }
     inline bool isShouldSave() const                    { return m_shouldSave; }
+    inline const String &loader() const                 { return m_loader; }
     inline const Threads<OclThreads> &threads() const   { return m_threads; }
 
 private:
     void generate();
+    void setPlatform(const rapidjson::Value &platform);
 
+    bool m_cache         = true;
     bool m_enabled       = true;
     bool m_shouldSave    = false;
+    String m_loader;
+    String m_platformVendor;
     Threads<OclThreads> m_threads;
+    uint32_t m_platformIndex = 0;
 };
 
 

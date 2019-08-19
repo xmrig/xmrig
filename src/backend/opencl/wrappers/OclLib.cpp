@@ -123,26 +123,36 @@ static setKernelArg_t pSetKernelArg                                         = nu
 #define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { return false; }
 
 
+namespace xmrig {
+
+bool OclLib::m_initialized = false;
+bool OclLib::m_ready       = false;
+String OclLib::m_loader;
+
+} // namespace xmrig
+
+
 bool xmrig::OclLib::init(const char *fileName)
 {
-    if (uv_dlopen(fileName == nullptr ? defaultLoader() : fileName, &oclLib) == -1 || !load()) {
-        LOG_ERR("Failed to load OpenCL runtime: %s", uv_dlerror(&oclLib));
-        return false;
+    if (!m_initialized) {
+        m_loader      = fileName == nullptr ? defaultLoader() : fileName;
+        m_ready       = uv_dlopen(m_loader, &oclLib) == 0 && load();
+        m_initialized = true;
     }
 
-    return true;
+    return m_ready;
 }
 
 
-const char *xmrig::OclLib::defaultLoader()
+const char *xmrig::OclLib::lastError()
 {
-#   if defined(__APPLE__)
-    return "/System/Library/Frameworks/OpenCL.framework/OpenCL";
-#   elif defined(_WIN32)
-    return "OpenCL.dll";
-#   else
-    return "libOpenCL.so";
-#   endif
+    return uv_dlerror(&oclLib);
+}
+
+
+void xmrig::OclLib::close()
+{
+    uv_dlclose(&oclLib);
 }
 
 
@@ -178,6 +188,18 @@ bool xmrig::OclLib::load()
 #   endif
 
     return true;
+}
+
+
+const char *xmrig::OclLib::defaultLoader()
+{
+#   if defined(__APPLE__)
+    return "/System/Library/Frameworks/OpenCL.framework/OpenCL";
+#   elif defined(_WIN32)
+    return "OpenCL.dll";
+#   else
+    return "libOpenCL.so";
+#   endif
 }
 
 

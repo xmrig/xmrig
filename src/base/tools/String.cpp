@@ -146,6 +146,20 @@ xmrig::String &xmrig::String::toLower()
 }
 
 
+xmrig::String &xmrig::String::toUpper()
+{
+    if (isNull() || isEmpty()) {
+        return *this;
+    }
+
+    for (size_t i = 0; i < size(); ++i) {
+        m_data[i] = static_cast<char>(toupper(m_data[i]));
+    }
+
+    return *this;
+}
+
+
 xmrig::String xmrig::String::join(const std::vector<xmrig::String> &vec, char sep)
 {
     if (vec.empty()) {
