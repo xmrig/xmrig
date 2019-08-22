@@ -111,7 +111,7 @@ public:
         if (!m_backends.empty()) {
             for (ILogBackend *backend : m_backends) {
                 backend->print(level, m_buf, offset, size, true);
-                backend->print(level, txt.c_str(), offset, txt.size(), false);
+                backend->print(level, txt.c_str(), offset ? (offset - 11) : 0, txt.size(), false);
             }
         }
         else {
