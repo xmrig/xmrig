@@ -22,40 +22,22 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <algorithm>
-
-
-#include "backend/opencl/OclThreads.h"
-#include "base/io/json/Json.h"
-#include "rapidjson/document.h"
+#ifndef XMRIG_OCLVENDOR_H
+#define XMRIG_OCLVENDOR_H
 
 
-xmrig::OclThreads::OclThreads(const rapidjson::Value &value)
-{
-    if (value.IsArray()) {
-        for (auto &v : value.GetArray()) {
-            OclThread thread(v);
-            if (thread.isValid()) {
-                add(std::move(thread));
-            }
-        }
-    }
-}
+namespace xmrig {
 
 
-rapidjson::Value xmrig::OclThreads::toJSON(rapidjson::Document &doc) const
-{
-    using namespace rapidjson;
-    auto &allocator = doc.GetAllocator();
+enum OclVendor : unsigned {
+    OCL_VENDOR_UNKNOWN,
+    OCL_VENDOR_AMD,
+    OCL_VENDOR_NVIDIA,
+    OCL_VENDOR_INTEL
+};
 
-    Value out(kArrayType);
 
-    out.SetArray();
+} // namespace xmrig
 
-    for (const OclThread &thread : m_data) {
-        out.PushBack(thread.toJSON(doc), allocator);
-    }
 
-    return out;
-}
+#endif /* XMRIG_OCLVENDOR_H */

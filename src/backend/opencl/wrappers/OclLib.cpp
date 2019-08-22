@@ -478,12 +478,11 @@ cl_program xmrig::OclLib::createProgramWithSource(cl_context context, cl_uint co
 }
 
 
-cl_uint xmrig::OclLib::getDeviceMaxComputeUnits(cl_device_id id)
+cl_uint xmrig::OclLib::getDeviceUint(cl_device_id id, cl_device_info param, cl_uint defaultValue)
 {
-    cl_uint count = 1;
-    OclLib::getDeviceInfo(id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &count);
+    OclLib::getDeviceInfo(id, param, sizeof(cl_uint), &defaultValue);
 
-    return count;
+    return defaultValue;
 }
 
 
@@ -504,26 +503,11 @@ cl_uint xmrig::OclLib::getNumPlatforms()
 }
 
 
-xmrig::OclVendor xmrig::OclLib::getDeviceVendor(cl_device_id id)
+cl_ulong xmrig::OclLib::getDeviceUlong(cl_device_id id, cl_device_info param, cl_ulong defaultValue)
 {
-    static char buf[256] = { 0 };
-    if (getDeviceInfo(id, CL_DEVICE_VENDOR, sizeof(buf), buf) != CL_SUCCESS) {
-        return OCL_VENDOR_UNKNOWN;
-    }
+    OclLib::getDeviceInfo(id, param, sizeof(cl_ulong), &defaultValue);
 
-    if (strstr(buf, "Advanced Micro Devices") != nullptr || strstr(buf, "AMD") != nullptr) {
-        return OCL_VENDOR_AMD;
-    }
-
-    if (strstr(buf, "NVIDIA") != nullptr) {
-        return  OCL_VENDOR_NVIDIA;
-    }
-
-    if (strstr(buf, "Intel") != nullptr) {
-        return OCL_VENDOR_INTEL;
-    }
-
-    return OCL_VENDOR_UNKNOWN;
+    return defaultValue;
 }
 
 
@@ -540,29 +524,17 @@ std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs()
 }
 
 
-xmrig::String xmrig::OclLib::getDeviceBoardName(cl_device_id id)
+xmrig::String xmrig::OclLib::getDeviceString(cl_device_id id, cl_device_info param)
 {
-    constexpr size_t size = 128;
-
-    char *buf = new char[size]();
-    if (getDeviceInfo(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */, size, buf) == CL_SUCCESS) {
-        return buf;
+    size_t size = 0;
+    if (getDeviceInfo(id, param, 0, nullptr, &size) != CL_SUCCESS) {
+        return String();
     }
 
-    getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
-
-    return buf;
-}
-
-
-xmrig::String xmrig::OclLib::getDeviceName(cl_device_id id)
-{
-    constexpr size_t size = 128;
-
     char *buf = new char[size]();
-    getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
+    getDeviceInfo(id, param, size, buf, nullptr);
 
-    return buf;
+    return String(buf);
 }
 
 

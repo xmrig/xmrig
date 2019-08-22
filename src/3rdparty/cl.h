@@ -33,19 +33,4 @@
 #endif
 
 
-namespace xmrig {
-
-
-enum OclVendor {
-    OCL_VENDOR_UNKNOWN = -2,
-    OCL_VENDOR_MANUAL  = -1,
-    OCL_VENDOR_AMD     = 0,
-    OCL_VENDOR_NVIDIA  = 1,
-    OCL_VENDOR_INTEL   = 2
-};
-
-
-} // namespace xmrig
-
-
 #endif /* XMRIG_CL_H */

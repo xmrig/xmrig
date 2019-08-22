@@ -96,6 +96,55 @@ public:
         return ((memory(algo) - 1) / 16) * 16;
     }
 
+    inline static Algorithm::Id base(Algorithm::Id algo)
+    {
+        switch (algo) {
+        case Algorithm::CN_0:
+        case Algorithm::CN_XAO:
+#       ifdef XMRIG_ALGO_CN_LITE
+        case Algorithm::CN_LITE_0:
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        case Algorithm::CN_HEAVY_0:
+        case Algorithm::CN_HEAVY_XHV:
+#       endif
+            return Algorithm::CN_0;
+
+        case Algorithm::CN_1:
+        case Algorithm::CN_FAST:
+        case Algorithm::CN_RTO:
+#       ifdef XMRIG_ALGO_CN_LITE
+        case Algorithm::CN_LITE_1:
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        case Algorithm::CN_HEAVY_TUBE:
+            return Algorithm::CN_1;
+#       endif
+
+        case Algorithm::CN_2:
+        case Algorithm::CN_R:
+        case Algorithm::CN_WOW:
+        case Algorithm::CN_HALF:
+        case Algorithm::CN_RWZ:
+        case Algorithm::CN_ZLS:
+        case Algorithm::CN_DOUBLE:
+#       ifdef XMRIG_ALGO_CN_PICO
+        case Algorithm::CN_PICO_0:
+#       endif
+            return Algorithm::CN_2;
+
+#       ifdef XMRIG_ALGO_CN_GPU
+        case Algorithm::CN_GPU:
+            return Algorithm::CN_GPU;
+#       endif
+
+        default:
+            break;
+        }
+
+        return Algorithm::INVALID;
+    }
+
 private:
     constexpr const static size_t   CN_MEMORY = 0x200000;
     constexpr const static uint32_t CN_ITER   = 0x80000;

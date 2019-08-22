@@ -9,9 +9,11 @@ if (WITH_OPENCL)
         src/backend/opencl/OclLaunchData.h
         src/backend/opencl/OclThread.h
         src/backend/opencl/OclThreads.h
+        src/backend/opencl/wrappers/OclDevice.h
         src/backend/opencl/wrappers/OclError.h
         src/backend/opencl/wrappers/OclLib.h
         src/backend/opencl/wrappers/OclPlatform.h
+        src/backend/opencl/wrappers/OclVendor.h
        )
 
     set(SOURCES_BACKEND_OPENCL
@@ -20,6 +22,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclLaunchData.cpp
         src/backend/opencl/OclThread.cpp
         src/backend/opencl/OclThreads.cpp
+        src/backend/opencl/wrappers/OclDevice.cpp
         src/backend/opencl/wrappers/OclError.cpp
         src/backend/opencl/wrappers/OclLib.cpp
         src/backend/opencl/wrappers/OclPlatform.cpp

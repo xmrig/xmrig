@@ -24,22 +24,63 @@
 
 
 #include "backend/opencl/OclConfig.h"
+#include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/json/Json.h"
 #include "rapidjson/document.h"
 
 
 namespace xmrig {
 
-static const char *kCache       = "cache";
-static const char *kEnabled     = "enabled";
-static const char *kLoader      = "loader";
-static const char *kPlatform    = "platform";
 static const char *kAMD         = "AMD";
-static const char *kNVIDIA      = "NVIDIA";
+static const char *kCache       = "cache";
+static const char *kCn          = "cn";
+static const char *kEnabled     = "enabled";
 static const char *kINTEL       = "INTEL";
+static const char *kLoader      = "loader";
+static const char *kNVIDIA      = "NVIDIA";
+static const char *kPlatform    = "platform";
+static const char *kCn2                 = "cn/2";
+
+
+#ifdef XMRIG_ALGO_CN_GPU
+//static const char *kCnGPU = "cn/gpu";
+#endif
+
+#ifdef XMRIG_ALGO_CN_LITE
+static const char *kCnLite = "cn-lite";
+#endif
+
+#ifdef XMRIG_ALGO_CN_HEAVY
+static const char *kCnHeavy = "cn-heavy";
+#endif
+
+#ifdef XMRIG_ALGO_CN_PICO
+static const char *kCnPico = "cn-pico";
+#endif
+
+#ifdef XMRIG_ALGO_RANDOMX
+//static const char *kRx    = "rx";
+//static const char *kRxWOW = "rx/wow";
+#endif
+
+#ifdef XMRIG_ALGO_ARGON2
+//static const char *kArgon2     = "argon2";
+#endif
 
 
 extern template class Threads<OclThreads>;
+
+
+static OclThreads generate(const Algorithm &algorithm, const std::vector<OclDevice> &devices)
+{
+    OclThreads threads;
+    for (const OclDevice &device : devices) {
+        device.generate(algorithm, threads);
+    }
+
+    return threads;
+}
+
 
 }
 
@@ -139,7 +180,37 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 
 void xmrig::OclConfig::generate()
 {
+    OclLib::init(loader());
+
+    const auto devices = platform().devices();
+
     m_shouldSave  = true;
+
+    m_threads.disable(Algorithm::CN_0);
+    m_threads.move(kCn, xmrig::generate(Algorithm::CN_0, devices));
+    m_threads.move(kCn2, xmrig::generate(Algorithm::CN_2, devices));
+
+#   ifdef XMRIG_ALGO_CN_GPU
+//    m_threads.move(kCnGPU, xmrig::generate(Algorithm::CN_GPU, devices));
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_LITE
+    m_threads.disable(Algorithm::CN_LITE_0);
+    m_threads.move(kCnLite, xmrig::generate(Algorithm::CN_LITE_1, devices));
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    m_threads.move(kCnHeavy, xmrig::generate(Algorithm::CN_HEAVY_0, devices));
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_PICO
+    m_threads.move(kCnPico, xmrig::generate(Algorithm::CN_PICO_0, devices));
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+//    m_threads.move(kRx, xmrig::generate(Algorithm::RX_0, devices));
+//    m_threads.move(kRxWOW, xmrig::generate(Algorithm::RX_WOW, devices));
+#   endif
 }
 
 

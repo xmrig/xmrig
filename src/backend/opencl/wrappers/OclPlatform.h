@@ -29,6 +29,7 @@
 #include <vector>
 
 
+#include "backend/opencl/wrappers/OclDevice.h"
 #include "base/tools/String.h"
 
 
@@ -52,6 +53,7 @@ public:
     inline size_t index() const      { return m_index; }
 
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    std::vector<OclDevice> devices() const;
     String extensions() const;
     String name() const;
     String profile() const;

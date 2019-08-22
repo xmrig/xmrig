@@ -38,17 +38,13 @@ namespace xmrig {
 class OclThreads
 {
 public:
-    inline OclThreads() {}
-    inline OclThreads(size_t count) : m_data(count) {}
-
+    OclThreads() = default;
     OclThreads(const rapidjson::Value &value);
-    OclThreads(size_t count, int intensity);
 
     inline bool isEmpty() const                             { return m_data.empty(); }
     inline const std::vector<OclThread> &data() const       { return m_data; }
     inline size_t count() const                             { return m_data.size(); }
     inline void add(OclThread &&thread)                     { m_data.push_back(thread); }
-    inline void add(int64_t affinity, int intensity)        { add(OclThread(affinity, intensity)); }
     inline void reserve(size_t capacity)                    { m_data.reserve(capacity); }
 
     rapidjson::Value toJSON(rapidjson::Document &doc) const;

@@ -35,24 +35,51 @@ namespace xmrig {
 class OclThread
 {
 public:
-    inline constexpr OclThread() {}
-    inline constexpr OclThread(int64_t affinity, int intensity) : m_intensity(intensity), m_affinity(affinity) {}
+    OclThread() = default;
+    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, int64_t affinity = -1) :
+        m_affinity(affinity),
+        m_index(index),
+        m_intensity(intensity),
+        m_memChunk(memChunk),
+        m_stridedIndex(stridedIndex),
+        m_worksize(worksize)
+    {}
 
     OclThread(const rapidjson::Value &value);
 
-    inline bool isEqual(const OclThread &other) const       { return other.m_affinity == m_affinity && other.m_intensity == m_intensity; }
-    inline bool isValid() const                             { return m_intensity == -1 || (m_intensity >= 1 && m_intensity <= 5); }
-    inline int intensity() const                            { return m_intensity == -1 ? 1 : m_intensity; }
+    inline bool isCompMode() const                          { return m_compMode; }
+    inline bool isValid() const                             { return m_intensity > 0; }
     inline int64_t affinity() const                         { return m_affinity; }
+    inline int64_t worksize() const                         { return m_worksize; }
+    inline uint32_t bfactor() const                         { return m_bfactor; }
+    inline uint32_t datasetHost() const                     { return m_datasetHost < 0 ? 0 : static_cast<uint32_t>(m_datasetHost); }
+    inline uint32_t gcnAsm() const                          { return m_gcnAsm; }
+    inline uint32_t index() const                           { return m_index; }
+    inline uint32_t intensity() const                       { return m_intensity; }
+    inline uint32_t memChunk() const                        { return m_memChunk; }
+    inline uint32_t stridedIndex() const                    { return m_stridedIndex; }
+    inline uint32_t unrollFactor() const                    { return m_unrollFactor; }
 
     inline bool operator!=(const OclThread &other) const    { return !isEqual(other); }
     inline bool operator==(const OclThread &other) const    { return isEqual(other); }
 
+    bool isEqual(const OclThread &other) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 private:
-    int m_intensity     = -1;
-    int64_t m_affinity  = -1;
+    void setUnrollFactor(uint32_t unrollFactor);
+
+    bool m_compMode         = false;
+    int m_datasetHost       = -1;
+    int64_t m_affinity      = -1;
+    uint32_t m_bfactor      = 6;
+    uint32_t m_gcnAsm       = 1;
+    uint32_t m_index        = 0;
+    uint32_t m_intensity    = 0;
+    uint32_t m_memChunk     = 2;
+    uint32_t m_stridedIndex = 2;
+    uint32_t m_unrollFactor = 8;
+    uint32_t m_worksize     = 0;
 };
 
 

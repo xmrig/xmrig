@@ -68,12 +68,11 @@ public:
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret);
     static cl_program createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret);
     static cl_program createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret);
-    static cl_uint getDeviceMaxComputeUnits(cl_device_id id);
+    static cl_uint getDeviceUint(cl_device_id id, cl_device_info param, cl_uint defaultValue = 0);
     static cl_uint getNumPlatforms();
-    static OclVendor getDeviceVendor(cl_device_id id);
+    static cl_ulong getDeviceUlong(cl_device_id id, cl_device_info param, cl_ulong defaultValue = 0);
     static std::vector<cl_platform_id> getPlatformIDs();
-    static String getDeviceBoardName(cl_device_id id);
-    static String getDeviceName(cl_device_id id);
+    static String getDeviceString(cl_device_id id, cl_device_info param);
     static String getPlatformInfo(cl_platform_id platform, cl_platform_info param_name);
     static String getProgramBuildLog(cl_program program, cl_device_id device);
 

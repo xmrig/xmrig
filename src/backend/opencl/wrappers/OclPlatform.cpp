@@ -84,6 +84,31 @@ rapidjson::Value xmrig::OclPlatform::toJSON(rapidjson::Document &doc) const
 }
 
 
+std::vector<xmrig::OclDevice> xmrig::OclPlatform::devices() const
+{
+    std::vector<OclDevice> out;
+    if (!isValid()) {
+        return out;
+    }
+
+    cl_uint num_devices = 0;
+    OclLib::getDeviceIDs(id(), CL_DEVICE_TYPE_GPU, 0, nullptr, &num_devices);
+    if (num_devices == 0) {
+        return out;
+    }
+
+    out.reserve(num_devices);
+    std::vector<cl_device_id> devices(num_devices);
+    OclLib::getDeviceIDs(id(), CL_DEVICE_TYPE_GPU, num_devices, devices.data(), nullptr);
+
+    for (size_t i = 0; i < devices.size(); ++i) {
+        out.emplace_back(i, devices[i], id());
+    }
+
+    return out;
+}
+
+
 xmrig::String xmrig::OclPlatform::extensions() const
 {
     return OclLib::getPlatformInfo(id(), CL_PLATFORM_EXTENSIONS);
