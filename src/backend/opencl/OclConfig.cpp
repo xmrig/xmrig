@@ -26,6 +26,7 @@
 #include "backend/opencl/OclConfig.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/json/Json.h"
+#include "base/io/log/Log.h"
 #include "rapidjson/document.h"
 
 
@@ -34,12 +35,12 @@ namespace xmrig {
 static const char *kAMD         = "AMD";
 static const char *kCache       = "cache";
 static const char *kCn          = "cn";
+static const char *kCn2         = "cn/2";
 static const char *kEnabled     = "enabled";
 static const char *kINTEL       = "INTEL";
 static const char *kLoader      = "loader";
 static const char *kNVIDIA      = "NVIDIA";
 static const char *kPlatform    = "platform";
-static const char *kCn2                 = "cn/2";
 
 
 #ifdef XMRIG_ALGO_CN_GPU
@@ -148,9 +149,25 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
 }
 
 
-std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, const Algorithm &algorithm) const
+std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, const Algorithm &algorithm, const std::vector<OclDevice> &devices, const char *tag) const
 {
     std::vector<OclLaunchData> out;
+    const OclThreads &threads = m_threads.get(algorithm);
+
+    if (threads.isEmpty()) {
+        return out;
+    }
+
+    out.reserve(threads.count());
+
+    for (const OclThread &thread : threads.data()) {
+        if (thread.index() >= devices.size()) {
+            LOG_INFO("%s" YELLOW(" skip non-existing device with index ") YELLOW_BOLD("%u"), tag, thread.index());
+            continue;
+        }
+
+        out.emplace_back(miner, algorithm, *this, thread, devices[thread.index()]);
+    }
 
     return out;
 }

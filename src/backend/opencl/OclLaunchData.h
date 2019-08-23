@@ -27,6 +27,8 @@
 #define XMRIG_OCLLAUNCHDATA_H
 
 
+#include "backend/opencl/OclThread.h"
+#include "backend/opencl/wrappers/OclDevice.h"
 #include "crypto/common/Algorithm.h"
 #include "crypto/common/Nonce.h"
 
@@ -35,14 +37,13 @@ namespace xmrig {
 
 
 class OclConfig;
-class OclThread;
 class Miner;
 
 
 class OclLaunchData
 {
 public:
-    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclThread &thread);
+    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclThread &thread, const OclDevice &device);
 
     bool isEqual(const OclLaunchData &other) const;
 
@@ -52,10 +53,10 @@ public:
     inline bool operator==(const OclLaunchData &other) const    { return isEqual(other); }
 
     const Algorithm algorithm;
-    const int intensity;
-    const int priority;
-    const int64_t affinity;
+    const bool cache;
     const Miner *miner;
+    const OclDevice device;
+    const OclThread thread;
 };
 
 

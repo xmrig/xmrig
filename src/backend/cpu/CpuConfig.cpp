@@ -121,7 +121,7 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
     out.reserve(threads.count());
 
     for (const CpuThread &thread : threads.data()) {
-        out.push_back(CpuLaunchData(miner, algorithm, *this, thread));
+        out.emplace_back(miner, algorithm, *this, thread);
     }
 
     return out;

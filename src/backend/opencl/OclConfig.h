@@ -42,7 +42,7 @@ public:
 
     OclPlatform platform() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    std::vector<OclLaunchData> get(const Miner *miner, const Algorithm &algorithm) const;
+    std::vector<OclLaunchData> get(const Miner *miner, const Algorithm &algorithm, const std::vector<OclDevice> &devices, const char *tag) const;
     void read(const rapidjson::Value &value);
 
     inline bool isCacheEnabled() const                  { return m_cache; }

@@ -74,7 +74,6 @@ public:
         pages     = 0;
         started   = 0;
         threads   = 0;
-        ways      = 0;
         ts        = Chrono::steadyMSecs();
     }
 
@@ -83,7 +82,6 @@ public:
     size_t pages        = 0;
     size_t started      = 0;
     size_t threads      = 0;
-    size_t ways         = 0;
     uint64_t ts         = 0;
 };
 
@@ -161,19 +159,7 @@ public:
         status.memory   = algo.l3();
         status.threads  = threads.size();
 
-        for (const OclLaunchData &data : threads) {
-            status.ways += static_cast<size_t>(data.intensity);
-        }
-
-        workers.start(threads);
-    }
-
-
-    size_t ways()
-    {
-        std::lock_guard<std::mutex> lock(mutex);
-
-        return status.ways;
+        //workers.start(threads); // FIXME
     }
 
 
@@ -256,7 +242,7 @@ void xmrig::OclBackend::printHashrate(bool details)
     for (const OclLaunchData &data : d_ptr->threads) {
          Log::print("| %13zu | %8" PRId64 " | %7s | %7s | %7s |",
                     i,
-                    data.affinity,
+                    data.thread.affinity(),
                     Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
@@ -275,21 +261,19 @@ void xmrig::OclBackend::setJob(const Job &job)
 
     const OclConfig &cl = d_ptr->controller->config()->cl();
 
-    std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm());
-//    if (d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
-//        return;
-//    }
+    std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->devices, tag);
+    if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
+        return;
+    }
 
     d_ptr->algo         = job.algorithm();
     d_ptr->profileName  = cl.threads().profileName(job.algorithm());
 
-//    if (d_ptr->profileName.isNull() || threads.empty()) {
-//        d_ptr->workers.stop();
+    if (d_ptr->profileName.isNull() || threads.empty()) {
+        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), tag);
 
-//        LOG_WARN(YELLOW_BOLD_S "CPU disabled, no suitable configuration for algo %s", job.algorithm().shortName());
-
-//        return;
-//    }
+        return stop();
+    }
 
     d_ptr->threads = std::move(threads);
     d_ptr->start();
@@ -355,8 +339,8 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
     size_t i = 0;
     for (const OclLaunchData &data : d_ptr->threads) {
         Value thread(kObjectType);
-        thread.AddMember("intensity",   data.intensity, allocator);
-        thread.AddMember("affinity",    data.affinity, allocator);
+        thread.AddMember("intensity",   data.thread.intensity(), allocator);
+        thread.AddMember("affinity",    data.thread.affinity(), allocator);
 
         Value hashrate(kArrayType);
         hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);

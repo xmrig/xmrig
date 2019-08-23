@@ -263,7 +263,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
     const CpuConfig &cpu = d_ptr->controller->config()->cpu();
 
     std::vector<CpuLaunchData> threads = cpu.get(d_ptr->controller->miner(), job.algorithm());
-    if (d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
+    if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }
 
@@ -271,11 +271,9 @@ void xmrig::CpuBackend::setJob(const Job &job)
     d_ptr->profileName  = cpu.threads().profileName(job.algorithm());
 
     if (d_ptr->profileName.isNull() || threads.empty()) {
-        d_ptr->workers.stop();
+        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), tag);
 
-        LOG_WARN(YELLOW_BOLD_S "CPU disabled, no suitable configuration for algo %s", job.algorithm().shortName());
-
-        return;
+        return stop();
     }
 
     d_ptr->threads = std::move(threads);
@@ -314,6 +312,10 @@ void xmrig::CpuBackend::start(IWorker *worker)
 
 void xmrig::CpuBackend::stop()
 {
+    if (d_ptr->threads.empty()) {
+        return;
+    }
+
     const uint64_t ts = Chrono::steadyMSecs();
 
     d_ptr->workers.stop();
