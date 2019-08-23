@@ -165,7 +165,7 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 
         setPlatform(Json::getValue(value, kPlatform));
 
-        if (!m_threads.read(value)) {
+        if (isEnabled() && !m_threads.read(value)) {
             generate();
         }
     }
@@ -180,9 +180,14 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 
 void xmrig::OclConfig::generate()
 {
-    OclLib::init(loader());
+    if (!OclLib::init(loader())) {
+        return;
+    }
 
     const auto devices = platform().devices();
+    if (devices.empty()) {
+        return;
+    }
 
     m_shouldSave  = true;
 

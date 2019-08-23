@@ -53,8 +53,15 @@ namespace xmrig {
 extern template class Threads<OclThreads>;
 
 
-static const char *tag      = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
-static const String kType   = "opencl";
+static const char *tag          = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
+static const String kType       = "opencl";
+constexpr const size_t oneGiB   = 1024u * 1024u * 1024u;
+
+
+static void printDisabled(const char *reason)
+{
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", "OPENCL", reason);
+}
 
 
 struct LaunchStatus
@@ -87,30 +94,50 @@ public:
     inline OclBackendPrivate(Controller *controller) :
         controller(controller)
     {
+        init(controller->config()->cl());
     }
 
 
-    bool init(const OclConfig &cl)
+    void init(const OclConfig &cl)
     {
-        if (!OclLib::init(cl.loader())) {
-            LOG_ERR("%s" RED_S " failed to load OpenCL runtime (%s): " RED_BOLD_S "\"%s\"", tag, OclLib::loader().data(), OclLib::lastError());
-
-            return false;
+        if (!cl.isEnabled()) {
+            return printDisabled("");
         }
 
+        if (!OclLib::init(cl.loader())) {
+            return printDisabled(RED_S " (failed to load OpenCL runtime)");
+        }
+
+        platform = cl.platform();
         if (!platform.isValid()) {
-            platform = cl.platform();
+            return printDisabled(RED_S " (selected OpenCL platform NOT found)");
+        }
 
-            if (!platform.isValid()) {
-                LOG_ERR("%s" RED_S " selected OpenCL platform NOT found.", tag);
+        devices = platform.devices();
+        if (devices.empty()) {
+            return printDisabled(RED_S " (no devices)");
+        }
 
-                return false;
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), "OPENCL", platform.index(), platform.name().data(), platform.version().data());
+
+        for (const OclDevice &device : devices) {
+            char *name = nullptr;
+            if (device.board() == device.name()) {
+                const size_t size = device.name().size() + 64;
+                name              = new char[size]();
+
+                snprintf(name, size, GREEN_BOLD("%s"), device.name().data());
+            }
+            else {
+                const size_t size = device.board().size() + device.name().size() + 64;
+                name              = new char[size]();
+
+                snprintf(name, size, GREEN_BOLD("%s") " (" CYAN_BOLD("%s") ")", device.board().data(), device.name().data());
             }
 
-            LOG_INFO("%s use platform " WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), tag, platform.name().data(), platform.version().data());
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") "%s cu:" WHITE_BOLD("%u") " mem:" CYAN("%1.2f/%1.2f") " GB", "OPENCL GPU",
+                       device.index(), name, device.computeUnits(), static_cast<double>(device.freeMem()) / oneGiB, static_cast<double>(device.globalMem()) / oneGiB);
         }
-
-        return true;
     }
 
 
@@ -150,6 +177,7 @@ public:
     LaunchStatus status;
     OclPlatform platform;
     std::mutex mutex;
+    std::vector<OclDevice> devices;
     std::vector<OclLaunchData> threads;
     String profileName;
     Workers<OclLaunchData> workers;
@@ -176,7 +204,7 @@ xmrig::OclBackend::~OclBackend()
 
 bool xmrig::OclBackend::isEnabled() const
 {
-    return d_ptr->controller->config()->cl().isEnabled();
+    return d_ptr->controller->config()->cl().isEnabled() && OclLib::isInitialized() && d_ptr->platform.isValid() && !d_ptr->devices.empty();
 }
 
 
@@ -241,9 +269,6 @@ void xmrig::OclBackend::setJob(const Job &job)
     }
 
     const OclConfig &cl = d_ptr->controller->config()->cl();
-    if (!d_ptr->init(cl)) {
-        return;
-    }
 
     std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm());
 //    if (d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
@@ -283,6 +308,10 @@ void xmrig::OclBackend::start(IWorker *worker)
 
 void xmrig::OclBackend::stop()
 {
+    if (d_ptr->threads.empty()) {
+        return;
+    }
+
     const uint64_t ts = Chrono::steadyMSecs();
 
     d_ptr->workers.stop();
