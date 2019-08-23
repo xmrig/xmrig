@@ -29,6 +29,7 @@
 #include <vector>
 
 
+#include "backend/common/misc/PciTopology.h"
 #include "backend/opencl/wrappers/OclVendor.h"
 #include "base/tools/String.h"
 
@@ -63,16 +64,19 @@ public:
 
     size_t freeMem() const;
     size_t globalMem() const;
+    uint32_t clock() const;
     void generate(const Algorithm &algorithm, OclThreads &threads) const;
 
-    inline bool isValid() const             { return m_id != nullptr && m_platform != nullptr; }
-    inline cl_device_id id() const          { return m_id; }
-    inline const String &board() const      { return m_board.isNull() ? m_name : m_board; }
-    inline const String &name() const       { return m_name; }
-    inline const String &vendor() const     { return m_vendor; }
-    inline OclVendor vendorId() const       { return m_vendorId; }
-    inline uint32_t computeUnits() const    { return m_computeUnits; }
-    inline uint32_t index() const           { return m_index; }
+    inline bool hasTopology() const             { return m_topology; }
+    inline bool isValid() const                 { return m_id != nullptr && m_platform != nullptr; }
+    inline cl_device_id id() const              { return m_id; }
+    inline const PciTopology &topology() const  { return m_pciTopology; }
+    inline const String &board() const          { return m_board.isNull() ? m_name : m_board; }
+    inline const String &name() const           { return m_name; }
+    inline const String &vendor() const         { return m_vendor; }
+    inline OclVendor vendorId() const           { return m_vendorId; }
+    inline uint32_t computeUnits() const        { return m_computeUnits; }
+    inline uint32_t index() const               { return m_index; }
 
 private:
     uint32_t getIntensity(const Algorithm &algorithm) const;
@@ -82,6 +86,7 @@ private:
     uint32_t getStridedIndex(const Algorithm &algorithm) const;
     uint32_t getWorksize(const Algorithm &algorithm) const;
 
+    bool m_topology                 = false;
     cl_device_id m_id               = nullptr;
     cl_platform_id m_platform       = nullptr;
     const String m_board;
@@ -90,6 +95,7 @@ private:
     const uint32_t m_computeUnits   = 1;
     const uint32_t m_index          = 0;
     OclVendor m_vendorId            = OCL_VENDOR_UNKNOWN;
+    PciTopology m_pciTopology;
     Type m_type                     = Unknown;
 };
 

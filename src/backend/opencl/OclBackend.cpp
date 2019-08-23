@@ -121,22 +121,27 @@ public:
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), "OPENCL", platform.index(), platform.name().data(), platform.version().data());
 
         for (const OclDevice &device : devices) {
-            char *name = nullptr;
-            if (device.board() == device.name()) {
-                const size_t size = device.name().size() + 64;
-                name              = new char[size]();
+            const String topo = device.hasTopology() ? device.topology().toString() : "n/a";
+            const size_t size = device.board().size() + device.name().size() + 64;
+            char *name        = new char[size]();
 
-                snprintf(name, size, GREEN_BOLD("%s"), device.name().data());
+            if (device.board() == device.name()) {
+                snprintf(name, size, GREEN_BOLD(" %s"), device.name().data());
             }
             else {
-                const size_t size = device.board().size() + device.name().size() + 64;
-                name              = new char[size]();
-
-                snprintf(name, size, GREEN_BOLD("%s") " (" CYAN_BOLD("%s") ")", device.board().data(), device.name().data());
+                snprintf(name, size, GREEN_BOLD(" %s") " (" CYAN_BOLD("%s") ")", device.board().data(), device.name().data());
             }
 
-            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") "%s cu:" WHITE_BOLD("%u") " mem:" CYAN("%1.2f/%1.2f") " GB", "OPENCL GPU",
-                       device.index(), name, device.computeUnits(), static_cast<double>(device.freeMem()) / oneGiB, static_cast<double>(device.globalMem()) / oneGiB);
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") "%s " WHITE_BOLD("%uMHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%1.2f/%1.2f") " GB", "OPENCL GPU",
+                       device.index(),
+                       topo.data(),
+                       name,
+                       device.clock(),
+                       device.computeUnits(),
+                       static_cast<double>(device.freeMem()) / oneGiB,
+                       static_cast<double>(device.globalMem()) / oneGiB);
+
+            delete [] name;
         }
     }
 

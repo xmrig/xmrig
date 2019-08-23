@@ -34,6 +34,13 @@
 #include "rapidjson/document.h"
 
 
+typedef union
+{
+    struct { cl_uint type; cl_uint data[5]; } raw;
+    struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
+} topology_amd;
+
+
 namespace xmrig {
 
 
@@ -112,6 +119,23 @@ xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id plat
 {
     m_vendorId  = getVendorId(m_vendor);
     m_type      = getType(m_name);
+
+    if (m_vendorId == OCL_VENDOR_AMD) {
+        topology_amd topology;
+
+        if (OclLib::getDeviceInfo(id, 0x4037 /* CL_DEVICE_TOPOLOGY_AMD */, sizeof(topology), &topology, nullptr) == CL_SUCCESS && topology.raw.type == 1) {
+            m_topology    = true;
+            m_pciTopology = PciTopology(static_cast<uint32_t>(topology.pcie.bus), static_cast<uint32_t>(topology.pcie.device), static_cast<uint32_t>(topology.pcie.function));
+        }
+    }
+    else if (m_vendorId == OCL_VENDOR_NVIDIA) {
+        cl_uint bus = 0;
+        if (OclLib::getDeviceInfo(id, 0x4008 /* CL_DEVICE_PCI_BUS_ID_NV */, sizeof (bus), &bus, nullptr) == CL_SUCCESS) {
+            m_topology    = true;
+            cl_uint slot  = OclLib::getDeviceUint(id, 0x4009 /* CL_DEVICE_PCI_SLOT_ID_NV */);
+            m_pciTopology = PciTopology(bus, (slot >> 3) & 0xff, slot & 7);
+        }
+    }
 }
 
 
@@ -124,6 +148,12 @@ size_t xmrig::OclDevice::freeMem() const
 size_t xmrig::OclDevice::globalMem() const
 {
     return OclLib::getDeviceUlong(id(), CL_DEVICE_GLOBAL_MEM_SIZE);
+}
+
+
+uint32_t xmrig::OclDevice::clock() const
+{
+    return OclLib::getDeviceUint(id(), CL_DEVICE_MAX_CLOCK_FREQUENCY);
 }
 
 
