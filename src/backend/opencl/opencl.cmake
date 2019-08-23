@@ -5,6 +5,7 @@ if (WITH_OPENCL)
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/OclBackend.h
+        src/backend/opencl/OclCache.h
         src/backend/opencl/OclConfig.h
         src/backend/opencl/OclLaunchData.h
         src/backend/opencl/OclThread.h
@@ -18,6 +19,7 @@ if (WITH_OPENCL)
 
     set(SOURCES_BACKEND_OPENCL
         src/backend/opencl/OclBackend.cpp
+        src/backend/opencl/OclCache.cpp
         src/backend/opencl/OclConfig.cpp
         src/backend/opencl/OclLaunchData.cpp
         src/backend/opencl/OclThread.cpp
@@ -27,6 +29,12 @@ if (WITH_OPENCL)
         src/backend/opencl/wrappers/OclLib.cpp
         src/backend/opencl/wrappers/OclPlatform.cpp
        )
+
+   if (WIN32)
+       list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_win.cpp)
+   else()
+       list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_unix.cpp)
+   endif()
 else()
     remove_definitions(/DXMRIG_FEATURE_OPENCL)
 
