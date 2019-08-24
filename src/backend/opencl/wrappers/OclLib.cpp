@@ -33,7 +33,7 @@
 
 static uv_lib_t oclLib;
 
-static const char *kErrorTemplate                    = "Error %s when calling %s.";
+static const char *kErrorTemplate                    = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("%s");
 
 static const char *kBuildProgram                     = "clBuildProgram";
 static const char *kCreateBuffer                     = "clCreateBuffer";
@@ -235,9 +235,18 @@ cl_context xmrig::OclLib::createContext(const cl_context_properties *properties,
     auto result = pCreateContext(properties, num_devices, devices, pfn_notify, user_data, errcode_ret);
     if (*errcode_ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(*errcode_ret), kCreateContext);
+
+        return nullptr;
     }
 
     return result;
+}
+
+
+cl_context xmrig::OclLib::createContext(const std::vector<cl_device_id> &ids)
+{
+    cl_int ret;
+    return OclLib::createContext(nullptr, static_cast<cl_uint>(ids.size()), ids.data(), nullptr, nullptr, &ret);
 }
 
 

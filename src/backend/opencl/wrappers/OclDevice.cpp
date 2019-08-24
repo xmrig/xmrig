@@ -29,6 +29,7 @@
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 #include "backend/opencl/wrappers/OclLib.h"
+#include "base/io/log/Log.h"
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/common/Algorithm.h"
 #include "rapidjson/document.h"
@@ -148,6 +149,22 @@ size_t xmrig::OclDevice::freeMem() const
 size_t xmrig::OclDevice::globalMem() const
 {
     return OclLib::getDeviceUlong(id(), CL_DEVICE_GLOBAL_MEM_SIZE);
+}
+
+
+xmrig::String xmrig::OclDevice::printableName() const
+{
+    const size_t size = m_board.size() + m_name.size() + 64;
+    char *buf         = new char[size]();
+
+    if (m_board.isNull()) {
+        snprintf(buf, size, GREEN_BOLD(" %s"), m_name.data());
+    }
+    else {
+        snprintf(buf, size, GREEN_BOLD(" %s") " (" CYAN_BOLD("%s") ")", m_board.data(), m_name.data());
+    }
+
+    return buf;
 }
 
 

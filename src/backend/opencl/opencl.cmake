@@ -10,6 +10,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclLaunchData.h
         src/backend/opencl/OclThread.h
         src/backend/opencl/OclThreads.h
+        src/backend/opencl/wrappers/OclContext.h
         src/backend/opencl/wrappers/OclDevice.h
         src/backend/opencl/wrappers/OclError.h
         src/backend/opencl/wrappers/OclLib.h
@@ -24,6 +25,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclLaunchData.cpp
         src/backend/opencl/OclThread.cpp
         src/backend/opencl/OclThreads.cpp
+        src/backend/opencl/wrappers/OclContext.cpp
         src/backend/opencl/wrappers/OclDevice.cpp
         src/backend/opencl/wrappers/OclError.cpp
         src/backend/opencl/wrappers/OclLib.cpp

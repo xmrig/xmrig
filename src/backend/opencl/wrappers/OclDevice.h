@@ -64,6 +64,7 @@ public:
 
     size_t freeMem() const;
     size_t globalMem() const;
+    String printableName() const;
     uint32_t clock() const;
     void generate(const Algorithm &algorithm, OclThreads &threads) const;
 

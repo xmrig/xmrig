@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,48 +22,37 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLLAUNCHDATA_H
-#define XMRIG_OCLLAUNCHDATA_H
+
+#include "backend/opencl/wrappers/OclLib.h"
+#include "backend/opencl/wrappers/OclContext.h"
 
 
-#include "backend/opencl/OclThread.h"
-#include "backend/opencl/wrappers/OclDevice.h"
-#include "crypto/common/Algorithm.h"
-#include "crypto/common/Nonce.h"
-
-
-typedef struct _cl_context *cl_context;
-
-
-namespace xmrig {
-
-
-class OclConfig;
-class Miner;
-
-
-class OclLaunchData
+xmrig::OclContext::~OclContext()
 {
-public:
-    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclThread &thread, const OclDevice &device);
-
-    bool isEqual(const OclLaunchData &other) const;
-
-    inline constexpr static Nonce::Backend backend() { return Nonce::OPENCL; }
-
-    inline bool operator!=(const OclLaunchData &other) const    { return !isEqual(other); }
-    inline bool operator==(const OclLaunchData &other) const    { return isEqual(other); }
-
-    cl_context ctx = nullptr;
-    const Algorithm algorithm;
-    const bool cache;
-    const Miner *miner;
-    const OclDevice device;
-    const OclThread thread;
-};
+    if (m_ctx) {
+        OclLib::releaseContext(m_ctx);
+    }
+}
 
 
-} // namespace xmrig
+bool xmrig::OclContext::init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads)
+{
+    if (!m_ctx) {
+        std::vector<cl_device_id> ids(devices.size());
+        for (size_t i = 0; i < devices.size(); ++i) {
+            ids[i] = devices[i].id();
+        }
 
+        m_ctx = OclLib::createContext(ids);
+    }
 
-#endif /* XMRIG_OCLLAUNCHDATA_H */
+    if (!m_ctx) {
+        return false;
+    }
+
+    for (OclLaunchData &data : threads) {
+        data.ctx = m_ctx;
+    }
+
+    return true;
+}

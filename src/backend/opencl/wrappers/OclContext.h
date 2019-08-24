@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,14 +22,12 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLLAUNCHDATA_H
-#define XMRIG_OCLLAUNCHDATA_H
+#ifndef XMRIG_OCLCONTEXT_H
+#define XMRIG_OCLCONTEXT_H
 
 
-#include "backend/opencl/OclThread.h"
+#include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/wrappers/OclDevice.h"
-#include "crypto/common/Algorithm.h"
-#include "crypto/common/Nonce.h"
 
 
 typedef struct _cl_context *cl_context;
@@ -39,32 +36,23 @@ typedef struct _cl_context *cl_context;
 namespace xmrig {
 
 
-class OclConfig;
-class Miner;
-
-
-class OclLaunchData
+class OclContext
 {
 public:
-    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclThread &thread, const OclDevice &device);
+    OclContext() = default;
+    ~OclContext();
 
-    bool isEqual(const OclLaunchData &other) const;
+    bool init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads);
 
-    inline constexpr static Nonce::Backend backend() { return Nonce::OPENCL; }
+    inline bool isValid() const     { return m_ctx != nullptr; }
+    inline cl_context ctx() const   { return m_ctx; }
 
-    inline bool operator!=(const OclLaunchData &other) const    { return !isEqual(other); }
-    inline bool operator==(const OclLaunchData &other) const    { return isEqual(other); }
-
-    cl_context ctx = nullptr;
-    const Algorithm algorithm;
-    const bool cache;
-    const Miner *miner;
-    const OclDevice device;
-    const OclThread thread;
+private:
+    cl_context m_ctx = nullptr;
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_OCLLAUNCHDATA_H */
+#endif /* XMRIG_OCLCONTEXT_H */
