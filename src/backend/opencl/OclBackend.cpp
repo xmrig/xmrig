@@ -54,9 +54,10 @@ namespace xmrig {
 extern template class Threads<OclThreads>;
 
 
+constexpr const size_t oneGiB   = 1024u * 1024u * 1024u;
 static const char *tag          = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
 static const String kType       = "opencl";
-constexpr const size_t oneGiB   = 1024u * 1024u * 1024u;
+static std::mutex mutex;
 
 
 static void printDisabled(const char *reason)
@@ -65,25 +66,18 @@ static void printDisabled(const char *reason)
 }
 
 
-struct LaunchStatus
+struct OclLaunchStatus
 {
 public:
-    inline void reset()
-    {
-        hugePages = 0;
-        memory    = 0;
-        pages     = 0;
-        started   = 0;
-        threads   = 0;
-        ts        = Chrono::steadyMSecs();
-    }
+    inline bool started()               { m_started++; return m_started == m_threads; }
+    inline size_t threads() const       { return m_threads; }
+    inline uint64_t ts() const          { return Chrono::steadyMSecs() - m_ts; }
+    inline void start(size_t threads)   { m_started = 0; m_threads = threads; m_ts = Chrono::steadyMSecs(); }
 
-    size_t hugePages    = 0;
-    size_t memory       = 0;
-    size_t pages        = 0;
-    size_t started      = 0;
-    size_t threads      = 0;
-    uint64_t ts         = 0;
+private:
+    size_t m_started    = 0;
+    size_t m_threads    = 0;
+    uint64_t m_ts       = 0;
 };
 
 
@@ -143,20 +137,16 @@ public:
 
         workers.stop();
 
-        status.reset();
-        status.memory   = algo.l3();
-        status.threads  = threads.size();
-
-        //workers.start(threads); // FIXME
+        status.start(threads.size());
+        workers.start(threads);
     }
 
 
     Algorithm algo;
     Controller *controller;
-    LaunchStatus status;
     OclContext context;
+    OclLaunchStatus status;
     OclPlatform platform;
-    std::mutex mutex;
     std::vector<OclDevice> devices;
     std::vector<OclLaunchData> threads;
     String profileName;
@@ -277,14 +267,17 @@ void xmrig::OclBackend::setJob(const Job &job)
 
 void xmrig::OclBackend::start(IWorker *worker)
 {
-    d_ptr->mutex.lock();
+    mutex.lock();
 
-    d_ptr->status.started++;
-
-    if (d_ptr->status.started == d_ptr->status.threads) {
+    if (d_ptr->status.started()) {
+        LOG_INFO("%s" GREEN_BOLD(" READY") " threads " CYAN_BOLD("%zu") BLACK_BOLD(" (%" PRIu64 " ms)"),
+                 tag,
+                 d_ptr->status.threads(),
+                 d_ptr->status.ts()
+                 );
     }
 
-    d_ptr->mutex.unlock();
+    mutex.unlock();
 
     worker->start();
 }

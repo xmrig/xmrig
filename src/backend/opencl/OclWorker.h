@@ -23,75 +23,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CPUWORKER_H
-#define XMRIG_CPUWORKER_H
+#ifndef XMRIG_OCLWORKER_H
+#define XMRIG_OCLWORKER_H
 
 
 #include "backend/common/Worker.h"
 #include "backend/common/WorkerJob.h"
-#include "backend/cpu/CpuLaunchData.h"
+#include "backend/opencl/OclLaunchData.h"
 #include "net/JobResult.h"
 
 
 namespace xmrig {
 
 
-class RxVm;
-
-
-template<size_t N>
-class CpuWorker : public Worker
+class OclWorker : public Worker
 {
 public:
-    CpuWorker(size_t index, const CpuLaunchData &data);
-    ~CpuWorker() override;
+    OclWorker(size_t index, const OclLaunchData &data);
+    ~OclWorker() override;
 
 protected:
     bool selfTest() override;
     void start() override;
 
-    inline const VirtualMemory *memory() const override { return m_memory; }
-
 private:
-    inline cn_hash_fun fn(const Algorithm &algorithm) const { return CnHash::fn(algorithm, m_av, m_assembly); }
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    void allocateRandomX_VM();
-#   endif
-
-    bool verify(const Algorithm &algorithm, const uint8_t *referenceValue);
-    bool verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
-    void allocateCnCtx();
     void consumeJob();
 
     const Algorithm m_algorithm;
-    const Assembly m_assembly;
-    const bool m_hwAES;
-    const CnHash::AlgoVariant m_av;
     const Miner *m_miner;
-    cryptonight_ctx *m_ctx[N];
-    uint8_t m_hash[N * 32];
-    VirtualMemory *m_memory = nullptr;
-    WorkerJob<N> m_job;
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    RxVm *m_vm = nullptr;
-#   endif
+    WorkerJob<1> m_job;
 };
-
-
-template<>
-bool CpuWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
-
-
-extern template class CpuWorker<1>;
-extern template class CpuWorker<2>;
-extern template class CpuWorker<3>;
-extern template class CpuWorker<4>;
-extern template class CpuWorker<5>;
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_CPUWORKER_H */
+#endif /* XMRIG_OCLWORKER_H */

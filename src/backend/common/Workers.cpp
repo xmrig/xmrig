@@ -31,6 +31,11 @@
 #include "base/io/log/Log.h"
 
 
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/OclWorker.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -155,6 +160,8 @@ void xmrig::Workers<T>::onReady(void *arg)
         return;
     }
 
+    assert(handle->backend() != nullptr);
+
     handle->setWorker(worker);
     handle->backend()->start(worker);
 }
@@ -194,7 +201,7 @@ template class Workers<CpuLaunchData>;
 template<>
 xmrig::IWorker *xmrig::Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle)
 {
-    return nullptr;
+    return new OclWorker(handle->index(), handle->config());
 }
 
 

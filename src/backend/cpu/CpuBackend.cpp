@@ -63,7 +63,7 @@ static const char *tag      = CYAN_BG_BOLD(" cpu ");
 static const String kType   = "cpu";
 
 
-struct LaunchStatus
+struct CpuLaunchStatus
 {
 public:
     inline void reset()
@@ -161,7 +161,7 @@ public:
 
     Algorithm algo;
     Controller *controller;
-    LaunchStatus status;
+    CpuLaunchStatus status;
     std::mutex mutex;
     std::vector<CpuLaunchData> threads;
     String profileName;
