@@ -158,10 +158,10 @@ xmrig::String xmrig::OclDevice::printableName() const
     char *buf         = new char[size]();
 
     if (m_board.isNull()) {
-        snprintf(buf, size, GREEN_BOLD(" %s"), m_name.data());
+        snprintf(buf, size, GREEN_BOLD("%s"), m_name.data());
     }
     else {
-        snprintf(buf, size, GREEN_BOLD(" %s") " (" CYAN_BOLD("%s") ")", m_board.data(), m_name.data());
+        snprintf(buf, size, GREEN_BOLD("%s") " (" CYAN_BOLD("%s") ")", m_board.data(), m_name.data());
     }
 
     return buf;

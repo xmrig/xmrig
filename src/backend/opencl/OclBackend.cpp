@@ -114,7 +114,7 @@ public:
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), "OPENCL", platform.index(), platform.name().data(), platform.version().data());
 
         for (const OclDevice &device : devices) {
-            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") "%s " WHITE_BOLD("%uMHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%1.2f/%1.2f") " GB", "OPENCL GPU",
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") " %s " WHITE_BOLD("%uMHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%1.2f/%1.2f") " GB", "OPENCL GPU",
                        device.index(),
                        device.hasTopology() ? device.topology().toString().data() : "n/a",
                        device.printableName().data(),
@@ -215,20 +215,29 @@ void xmrig::OclBackend::printHashrate(bool details)
 
     char num[8 * 3] = { 0 };
 
-    Log::print(WHITE_BOLD_S "| OPENCL THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
+    Log::print(WHITE_BOLD_S "| OPENCL # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
 
     size_t i = 0;
     for (const OclLaunchData &data : d_ptr->threads) {
-         Log::print("| %13zu | %8" PRId64 " | %7s | %7s | %7s |",
+         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
                     i,
                     data.thread.affinity(),
                     Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
+                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3),
+                    data.device.index(),
+                    data.device.hasTopology() ? data.device.topology().toString().data() : "n/a",
+                    data.device.printableName().data()
                     );
 
          i++;
     }
+
+    Log::print(WHITE_BOLD_S "|        - |        - | %7s | %7s | %7s |",
+               Hashrate::format(hashrate()->calc(Hashrate::ShortInterval),  num,         sizeof num / 3),
+               Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
+               Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
+               );
 }
 
 

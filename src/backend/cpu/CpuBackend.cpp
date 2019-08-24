@@ -237,11 +237,11 @@ void xmrig::CpuBackend::printHashrate(bool details)
 
     char num[8 * 3] = { 0 };
 
-    Log::print(WHITE_BOLD_S "|    CPU THREAD | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
+    Log::print(WHITE_BOLD_S "|    CPU # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
 
     size_t i = 0;
     for (const CpuLaunchData &data : d_ptr->threads) {
-         Log::print("| %13zu | %8" PRId64 " | %7s | %7s | %7s |",
+         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |",
                     i,
                     data.affinity,
                     Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
@@ -251,6 +251,14 @@ void xmrig::CpuBackend::printHashrate(bool details)
 
          i++;
     }
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    Log::print(WHITE_BOLD_S "|        - |        - | %7s | %7s | %7s |",
+               Hashrate::format(hashrate()->calc(Hashrate::ShortInterval),  num,         sizeof num / 3),
+               Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
+               Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
+               );
+#   endif
 }
 
 
