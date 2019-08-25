@@ -182,7 +182,7 @@ public:
         d_ptr->getOrAllocate(nodeId)->init(d_ptr->seed(), threads);
         d_ptr->asyncSend();
 
-        LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" init done") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, nodeId, Chrono::steadyMSecs() - ts);
+        LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" init done ") CYAN_BOLD("%zu/%zu") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, nodeId, d_ptr->m_ready, d_ptr->count(), Chrono::steadyMSecs() - ts);
     }
 
 

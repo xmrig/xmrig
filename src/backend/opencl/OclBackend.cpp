@@ -29,6 +29,7 @@
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Workers.h"
+#include "backend/opencl/cl/OclSource.h"
 #include "backend/opencl/OclBackend.h"
 #include "backend/opencl/OclConfig.h"
 #include "backend/opencl/OclLaunchData.h"
@@ -95,6 +96,8 @@ public:
     inline OclBackendPrivate(Controller *controller) :
         controller(controller)
     {
+        OclSource::init();
+
         init(controller->config()->cl());
     }
 
