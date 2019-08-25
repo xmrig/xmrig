@@ -29,9 +29,15 @@
 
 
 #include "backend/opencl/OclWorker.h"
+#include "backend/opencl/runners/OclCnRunner.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
 #include "net/JobResults.h"
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "backend/opencl/runners/OclRxRunner.h"
+#endif
 
 
 namespace xmrig {
@@ -47,17 +53,35 @@ xmrig::OclWorker::OclWorker(size_t index, const OclLaunchData &data) :
     m_algorithm(data.algorithm),
     m_miner(data.miner)
 {
+    switch (m_algorithm.family()) {
+    case Algorithm::RANDOM_X:
+#       ifdef XMRIG_ALGO_RANDOMX
+        m_runner = new OclRxRunner(index, data);
+#       endif
+        break;
+
+    case Algorithm::ARGON2:
+#       ifdef XMRIG_ALGO_ARGON2
+        m_runner = nullptr; // TODO
+#       endif
+        break;
+
+    default:
+        m_runner = new OclCnRunner(index, data);
+        break;
+    }
 }
 
 
 xmrig::OclWorker::~OclWorker()
 {
+    delete m_runner;
 }
 
 
 bool xmrig::OclWorker::selfTest()
 {
-    return true;
+    return m_runner && m_runner->selfTest();
 }
 
 

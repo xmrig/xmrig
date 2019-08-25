@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,43 +22,57 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
 
-
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
 #include "backend/opencl/OclLaunchData.h"
-#include "net/JobResult.h"
+#include "backend/opencl/runners/OclBaseRunner.h"
+#include "backend/opencl/wrappers/OclLib.h"
+#include "base/net/stratum/Job.h"
 
 
-namespace xmrig {
-
-
-class IOclRunner;
-
-
-class OclWorker : public Worker
+xmrig::OclBaseRunner::OclBaseRunner(size_t, const OclLaunchData &data) :
+    m_algorithm(data.algorithm),
+    m_ctx(data.ctx)
 {
-public:
-    OclWorker(size_t index, const OclLaunchData &data);
-    ~OclWorker() override;
+    cl_int ret;
+    m_queue = OclLib::createCommandQueue(m_ctx, data.device.id(), &ret);
+    if (ret != CL_SUCCESS) {
+        return;
+    }
 
-protected:
-    bool selfTest() override;
-    void start() override;
-
-private:
-    void consumeJob();
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    IOclRunner *m_runner = nullptr;
-    WorkerJob<1> m_job;
-};
+    m_input  = OclLib::createBuffer(m_ctx, CL_MEM_READ_ONLY, Job::kMaxBlobSize, nullptr, &ret);
+    m_output = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
+}
 
 
-} // namespace xmrig
+xmrig::OclBaseRunner::~OclBaseRunner()
+{
+    OclLib::releaseMemObject(m_input);
+    OclLib::releaseMemObject(m_output);
+
+    OclLib::releaseCommandQueue(m_queue);
+}
 
 
-#endif /* XMRIG_OCLWORKER_H */
+bool xmrig::OclBaseRunner::selfTest() const
+{
+    return m_queue != nullptr && m_input != nullptr && m_output != nullptr && !m_options.empty();
+}
+
+
+
+const char *xmrig::OclBaseRunner::buildOptions() const
+{
+    return m_options.c_str();
+}
+
+
+void xmrig::OclBaseRunner::run(uint32_t *hashOutput)
+{
+
+}
+
+
+void xmrig::OclBaseRunner::set(const Job &job)
+{
+
+}

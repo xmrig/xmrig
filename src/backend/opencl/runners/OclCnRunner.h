@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,43 +22,36 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef XMRIG_OCLCNRUNNER_H
+#define XMRIG_OCLCNRUNNER_H
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "net/JobResult.h"
+#include "backend/opencl/runners/OclBaseRunner.h"
 
 
 namespace xmrig {
 
 
-class IOclRunner;
-
-
-class OclWorker : public Worker
+class OclCnRunner : public OclBaseRunner
 {
 public:
-    OclWorker(size_t index, const OclLaunchData &data);
-    ~OclWorker() override;
+    OclCnRunner(size_t index, const OclLaunchData &data);
+    ~OclCnRunner() override;
 
 protected:
-    bool selfTest() override;
-    void start() override;
+    bool selfTest() const override;
 
 private:
-    void consumeJob();
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    IOclRunner *m_runner = nullptr;
-    WorkerJob<1> m_job;
+    cl_mem m_blake256       = nullptr;
+    cl_mem m_groestl256     = nullptr;
+    cl_mem m_jh256          = nullptr;
+    cl_mem m_scratchpads    = nullptr;
+    cl_mem m_skein512       = nullptr;
+    cl_mem m_states         = nullptr;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif /* XMRIG_OCLWORKER_H */
+#endif // XMRIG_OCLCNRUNNER_H

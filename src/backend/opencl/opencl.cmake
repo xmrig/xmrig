@@ -5,6 +5,7 @@ if (WITH_OPENCL)
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h
+        src/backend/opencl/interfaces/IOclRunner.h
         src/backend/opencl/OclBackend.h
         src/backend/opencl/OclCache.h
         src/backend/opencl/OclConfig.h
@@ -12,6 +13,8 @@ if (WITH_OPENCL)
         src/backend/opencl/OclThread.h
         src/backend/opencl/OclThreads.h
         src/backend/opencl/OclWorker.h
+        src/backend/opencl/runners/OclBaseRunner.h
+        src/backend/opencl/runners/OclCnRunner.h
         src/backend/opencl/wrappers/OclContext.h
         src/backend/opencl/wrappers/OclDevice.h
         src/backend/opencl/wrappers/OclError.h
@@ -29,6 +32,8 @@ if (WITH_OPENCL)
         src/backend/opencl/OclThread.cpp
         src/backend/opencl/OclThreads.cpp
         src/backend/opencl/OclWorker.cpp
+        src/backend/opencl/runners/OclBaseRunner.cpp
+        src/backend/opencl/runners/OclCnRunner.cpp
         src/backend/opencl/wrappers/OclContext.cpp
         src/backend/opencl/wrappers/OclDevice.cpp
         src/backend/opencl/wrappers/OclError.cpp
@@ -40,6 +45,11 @@ if (WITH_OPENCL)
        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_win.cpp)
    else()
        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_unix.cpp)
+   endif()
+
+   if (WITH_RANDOMX)
+       list(APPEND HEADERS_BACKEND_OPENCL src/backend/opencl/runners/OclRxRunner.h)
+       list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/runners/OclRxRunner.cpp)
    endif()
 else()
     remove_definitions(/DXMRIG_FEATURE_OPENCL)

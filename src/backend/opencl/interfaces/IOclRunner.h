@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,43 +22,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef XMRIG_IOCLRUNNER_H
+#define XMRIG_IOCLRUNNER_H
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "net/JobResult.h"
+#include <stdint.h>
 
 
 namespace xmrig {
 
 
-class IOclRunner;
+class Job;
 
 
-class OclWorker : public Worker
+class IOclRunner
 {
 public:
-    OclWorker(size_t index, const OclLaunchData &data);
-    ~OclWorker() override;
+    virtual ~IOclRunner() = default;
 
-protected:
-    bool selfTest() override;
-    void start() override;
-
-private:
-    void consumeJob();
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    IOclRunner *m_runner = nullptr;
-    WorkerJob<1> m_job;
+    virtual bool selfTest() const               = 0;
+    virtual const char *buildOptions() const    = 0;
+    virtual void run(uint32_t *hashOutput)      = 0;
+    virtual void set(const Job &job)            = 0;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif /* XMRIG_OCLWORKER_H */
+#endif // XMRIG_IOCLRUNNER_H

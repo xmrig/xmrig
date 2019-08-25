@@ -79,6 +79,55 @@ public:
         return 0;
     }
 
+    inline static uint32_t iterations(Algorithm::Id algo)
+    {
+        switch (algo) {
+        case Algorithm::CN_0:
+        case Algorithm::CN_1:
+        case Algorithm::CN_2:
+        case Algorithm::CN_R:
+        case Algorithm::CN_WOW:
+        case Algorithm::CN_RTO:
+            return CN_ITER;
+
+        case Algorithm::CN_FAST:
+        case Algorithm::CN_HALF:
+#       ifdef XMRIG_ALGO_CN_LITE
+        case Algorithm::CN_LITE_0:
+        case Algorithm::CN_LITE_1:
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        case Algorithm::CN_HEAVY_0:
+        case Algorithm::CN_HEAVY_TUBE:
+        case Algorithm::CN_HEAVY_XHV:
+#       endif
+            return CN_ITER / 2;
+
+        case Algorithm::CN_RWZ:
+        case Algorithm::CN_ZLS:
+            return 0x60000;
+
+        case Algorithm::CN_XAO:
+        case Algorithm::CN_DOUBLE:
+            return CN_ITER * 2;
+
+#       ifdef XMRIG_ALGO_CN_GPU
+        case Algorithm::CN_GPU:
+            return 0xC000;
+#       endif
+
+#       ifdef XMRIG_ALGO_CN_PICO
+        case Algorithm::CN_PICO_0:
+            return CN_ITER / 8;
+
+        default:
+            break;
+        }
+#       endif
+
+        return 0;
+    }
+
     inline static uint32_t mask(Algorithm::Id algo)
     {
 #       ifdef XMRIG_ALGO_CN_GPU
@@ -187,6 +236,7 @@ private:
         0,             // AR2_WRKZ
 #       endif
     };
+
 
     constexpr const static uint32_t m_iterations[] = {
         CN_ITER,     // CN_0

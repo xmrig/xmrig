@@ -73,7 +73,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
         m_stridedIndex = stridedIndex.GetBool() ? 1 : 0;
     }
     else if (stridedIndex.IsUint()) {
-        m_stridedIndex = std::max(stridedIndex.GetUint(), 2u);
+        m_stridedIndex = std::min(stridedIndex.GetUint(), 2u);
     }
 }
 
@@ -131,5 +131,5 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
 
 void xmrig::OclThread::setUnrollFactor(uint32_t unrollFactor)
 {
-    m_unrollFactor = unrollFactor == 0 ? 1 : std::max(unrollFactor, 128u);
+    m_unrollFactor = unrollFactor == 0 ? 1 : std::min(unrollFactor, 128u);
 }

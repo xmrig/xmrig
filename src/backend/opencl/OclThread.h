@@ -50,7 +50,6 @@ public:
     inline bool isCompMode() const                          { return m_compMode; }
     inline bool isValid() const                             { return m_intensity > 0; }
     inline int64_t affinity() const                         { return m_affinity; }
-    inline int64_t worksize() const                         { return m_worksize; }
     inline uint32_t bfactor() const                         { return m_bfactor; }
     inline uint32_t datasetHost() const                     { return m_datasetHost < 0 ? 0 : static_cast<uint32_t>(m_datasetHost); }
     inline uint32_t gcnAsm() const                          { return m_gcnAsm; }
@@ -59,6 +58,7 @@ public:
     inline uint32_t memChunk() const                        { return m_memChunk; }
     inline uint32_t stridedIndex() const                    { return m_stridedIndex; }
     inline uint32_t unrollFactor() const                    { return m_unrollFactor; }
+    inline uint32_t worksize() const                        { return m_worksize; }
 
     inline bool operator!=(const OclThread &other) const    { return !isEqual(other); }
     inline bool operator==(const OclThread &other) const    { return isEqual(other); }

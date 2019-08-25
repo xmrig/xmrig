@@ -23,6 +23,7 @@
  */
 
 
+#include <thread>
 #include <uv.h>
 
 
@@ -47,6 +48,7 @@ static const char *kEnqueueNDRangeKernel             = "clEnqueueNDRangeKernel";
 static const char *kEnqueueReadBuffer                = "clEnqueueReadBuffer";
 static const char *kEnqueueWriteBuffer               = "clEnqueueWriteBuffer";
 static const char *kFinish                           = "clFinish";
+static const char *kGetCommandQueueInfo              = "clGetCommandQueueInfo";
 static const char *kGetDeviceIDs                     = "clGetDeviceIDs";
 static const char *kGetDeviceInfo                    = "clGetDeviceInfo";
 static const char *kGetKernelInfo                    = "clGetKernelInfo";
@@ -72,6 +74,7 @@ typedef cl_int (CL_API_CALL *enqueueNDRangeKernel_t)(cl_command_queue, cl_kernel
 typedef cl_int (CL_API_CALL *enqueueReadBuffer_t)(cl_command_queue, cl_mem, cl_bool, size_t, size_t, void *, cl_uint, const cl_event *, cl_event *);
 typedef cl_int (CL_API_CALL *enqueueWriteBuffer_t)(cl_command_queue, cl_mem, cl_bool, size_t, size_t, const void *, cl_uint, const cl_event *, cl_event *);
 typedef cl_int (CL_API_CALL *finish_t)(cl_command_queue);
+typedef cl_int (CL_API_CALL *getCommandQueueInfo_t)(cl_command_queue, cl_command_queue_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getDeviceIDs_t)(cl_platform_id, cl_device_type, cl_uint, cl_device_id *, cl_uint *);
 typedef cl_int (CL_API_CALL *getDeviceInfo_t)(cl_device_id, cl_device_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getKernelInfo_t)(cl_kernel, cl_kernel_info, size_t, void *, size_t *);
@@ -106,6 +109,7 @@ static enqueueNDRangeKernel_t pEnqueueNDRangeKernel                         = nu
 static enqueueReadBuffer_t pEnqueueReadBuffer                               = nullptr;
 static enqueueWriteBuffer_t pEnqueueWriteBuffer                             = nullptr;
 static finish_t pFinish                                                     = nullptr;
+static getCommandQueueInfo_t pGetCommandQueueInfo                           = nullptr;
 static getDeviceIDs_t pGetDeviceIDs                                         = nullptr;
 static getDeviceInfo_t pGetDeviceInfo                                       = nullptr;
 static getKernelInfo_t pGetKernelInfo                                       = nullptr;
@@ -182,6 +186,7 @@ bool xmrig::OclLib::load()
     DLSYM(ReleaseCommandQueue);
     DLSYM(ReleaseContext);
     DLSYM(GetKernelInfo);
+    DLSYM(GetCommandQueueInfo);
 
 #   if defined(CL_VERSION_2_0)
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
@@ -222,6 +227,8 @@ cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device
 
     if (*errcode_ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(*errcode_ret), kCreateCommandQueueWithProperties);
+
+        return nullptr;
     }
 
     return result;
@@ -366,11 +373,24 @@ cl_int xmrig::OclLib::getProgramInfo(cl_program program, cl_program_info param_n
 cl_int xmrig::OclLib::releaseCommandQueue(cl_command_queue command_queue)
 {
     assert(pReleaseCommandQueue != nullptr);
+    assert(pGetCommandQueueInfo != nullptr);
 
-    const cl_int ret = pReleaseCommandQueue(command_queue);
+    cl_int ret = pReleaseCommandQueue(command_queue);
     if (ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseCommandQueue);
     }
+
+    cl_uint refs = 0;
+    ret = pGetCommandQueueInfo(command_queue, CL_QUEUE_REFERENCE_COUNT, sizeof(refs), &refs, nullptr);
+    if (ret == CL_SUCCESS && refs > 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+#   ifndef NDEBUG
+    ret = pGetCommandQueueInfo(command_queue, CL_QUEUE_REFERENCE_COUNT, sizeof(refs), &refs, nullptr);
+    assert(ret == CL_SUCCESS);
+    assert(refs == 0);
+#   endif
 
     return ret;
 }
@@ -409,6 +429,10 @@ cl_int xmrig::OclLib::releaseKernel(cl_kernel kernel)
 cl_int xmrig::OclLib::releaseMemObject(cl_mem mem_obj)
 {
     assert(pReleaseMemObject != nullptr);
+
+    if (mem_obj == nullptr) {
+        return CL_SUCCESS;
+    }
 
     const cl_int ret = pReleaseMemObject(mem_obj);
     if (ret != CL_SUCCESS) {
@@ -457,7 +481,15 @@ cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_
 {
     assert(pCreateBuffer != nullptr);
 
-    return pCreateBuffer(context, flags, size, host_ptr, errcode_ret);
+    auto result = pCreateBuffer(context, flags, size, host_ptr, errcode_ret);
+    if (*errcode_ret != CL_SUCCESS) {
+        LOG_ERR(MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("%s") RED(" with buffer size ") RED_BOLD("%zu"),
+                OclError::toString(*errcode_ret), kCreateBuffer, size);
+
+        return nullptr;
+    }
+
+    return result;
 }
 
 
