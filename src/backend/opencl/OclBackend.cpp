@@ -71,8 +71,16 @@ struct OclLaunchStatus
 public:
     inline bool started()               { m_started++; return m_started == m_threads; }
     inline size_t threads() const       { return m_threads; }
-    inline uint64_t ts() const          { return Chrono::steadyMSecs() - m_ts; }
     inline void start(size_t threads)   { m_started = 0; m_threads = threads; m_ts = Chrono::steadyMSecs(); }
+
+    inline void print() const
+    {
+        LOG_INFO("%s" GREEN_BOLD(" READY") " threads " CYAN_BOLD("%zu") BLACK_BOLD(" (%" PRIu64 " ms)"),
+                 tag,
+                 m_threads,
+                 Chrono::steadyMSecs() - m_ts
+                 );
+    }
 
 private:
     size_t m_started    = 0;
@@ -279,11 +287,7 @@ void xmrig::OclBackend::start(IWorker *worker)
     mutex.lock();
 
     if (d_ptr->status.started()) {
-        LOG_INFO("%s" GREEN_BOLD(" READY") " threads " CYAN_BOLD("%zu") BLACK_BOLD(" (%" PRIu64 " ms)"),
-                 tag,
-                 d_ptr->status.threads(),
-                 d_ptr->status.ts()
-                 );
+        d_ptr->status.print();
     }
 
     mutex.unlock();
