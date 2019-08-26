@@ -52,6 +52,8 @@ public:
 
     void tick(const xmrig::NetworkState &results);
 
+    static rapidjson::Value normalize(double d);
+
 protected:
     void onConfigChanged(xmrig::Config *config, xmrig::Config *previousConfig) override;
 

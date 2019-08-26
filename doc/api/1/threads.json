@@ -1,14 +1,9 @@
 {
-    "hugepages": [
-        4,
-        4
-    ],
     "memory": 8388608,
     "threads": [
         {
             "type": "cpu",
-            "algo": "cryptonight",
-            "av": 1,
+            "algo": "chukwa",
             "low_power_mode": 1,
             "affine_to_cpu": 0,
             "priority": -1,
@@ -21,7 +16,7 @@
         },
         {
             "type": "cpu",
-            "algo": "cryptonight",
+            "algo": "chukwa",
             "av": 1,
             "low_power_mode": 1,
             "affine_to_cpu": 1,
@@ -35,7 +30,7 @@
         },
         {
             "type": "cpu",
-            "algo": "cryptonight",
+            "algo": "chukwa",
             "av": 1,
             "low_power_mode": 1,
             "affine_to_cpu": 2,
@@ -49,7 +44,7 @@
         },
         {
             "type": "cpu",
-            "algo": "cryptonight",
+            "algo": "chukwa",
             "av": 1,
             "low_power_mode": 1,
             "affine_to_cpu": 3,

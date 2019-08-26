@@ -230,19 +230,5 @@ char *xmrig::Job::toHex(const unsigned char* in, unsigned int len)
 
 xmrig::Variant xmrig::Job::variant() const
 {
-    switch (m_algorithm.algo()) {
-    case CRYPTONIGHT:
-        return (m_blob[0] >= 10) ? VARIANT_4 : ((m_blob[0] >= 8) ? VARIANT_2 : VARIANT_1);
-
-    case CRYPTONIGHT_LITE:
-        return VARIANT_1;
-
-    case CRYPTONIGHT_HEAVY:
-        return VARIANT_0;
-
-    default:
-        break;
-    }
-
     return m_algorithm.variant();
 }

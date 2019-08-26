@@ -68,19 +68,25 @@ xmrig::String::String(const String &other) :
 }
 
 
-bool xmrig::String::isEqual(const char *str) const
+bool xmrig::String::isEqual(const char *str, bool caseInsensitive) const
 {
-    return (m_data != nullptr && str != nullptr && strcmp(m_data, str) == 0) || (m_data == nullptr && str == nullptr);
+    if(caseInsensitive)
+        return (m_data != nullptr && str != nullptr && strcasecmp(m_data, str) == 0) || (m_data == nullptr && str == nullptr);
+    else
+        return (m_data != nullptr && str != nullptr && strcmp(m_data, str) == 0) || (m_data == nullptr && str == nullptr);
 }
 
 
-bool xmrig::String::isEqual(const String &other) const
+bool xmrig::String::isEqual(const String &other, bool caseInsensitive) const
 {
     if (m_size != other.m_size) {
         return false;
     }
 
-    return (m_data != nullptr && other.m_data != nullptr && memcmp(m_data, other.m_data, m_size) == 0) || (m_data == nullptr && other.m_data == nullptr);
+    if(caseInsensitive)
+        return (m_data != nullptr && other.m_data != nullptr && strncasecmp(m_data, other.m_data, m_size) == 0) || (m_data == nullptr && other.m_data == nullptr);
+    else
+        return (m_data != nullptr && other.m_data != nullptr && memcmp(m_data, other.m_data, m_size) == 0) || (m_data == nullptr && other.m_data == nullptr);
 }
 
 

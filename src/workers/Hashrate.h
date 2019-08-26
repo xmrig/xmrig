@@ -32,7 +32,7 @@
 namespace xmrig {
     class Controller;
 }
-
+class Handle;
 
 class Hashrate
 {
@@ -43,16 +43,15 @@ public:
         LargeInterval  = 900000
     };
 
-    Hashrate(size_t threads, xmrig::Controller *controller);
+    Hashrate(const std::vector<Handle*> &workers, xmrig::Controller *controller);
     double calc(size_t ms) const;
-    double calc(size_t threadId, size_t ms) const;
-    void add(size_t threadId, uint64_t count, uint64_t timestamp);
+    double calc(size_t hasherId, size_t workerId, size_t ms) const;
+    void add(size_t hasherId, size_t workerId, uint64_t count, uint64_t timestamp);
     void print() const;
     void stop();
     void updateHighest();
 
     inline double highest() const { return m_highest; }
-    inline size_t threads() const { return m_threads; }
 
     static const char *format(double h, char *buf, size_t size);
 
@@ -63,10 +62,11 @@ private:
     constexpr static size_t kBucketMask = kBucketSize - 1;
 
     double m_highest;
-    size_t m_threads;
-    uint32_t* m_top;
-    uint64_t** m_counts;
-    uint64_t** m_timestamps;
+    size_t m_hashers;
+    size_t* m_workers;
+    uint32_t** m_top;
+    uint64_t*** m_counts;
+    uint64_t*** m_timestamps;
     uv_timer_t m_timer;
     xmrig::Controller *m_controller;
 };

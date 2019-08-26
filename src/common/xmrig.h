@@ -25,97 +25,22 @@
 #ifndef XMRIG_XMRIG_H
 #define XMRIG_XMRIG_H
 
-
 namespace xmrig
 {
 
-
 enum Algo {
     INVALID_ALGO = -1,
-    CRYPTONIGHT,        /* CryptoNight (2 MB) */
-    CRYPTONIGHT_LITE,   /* CryptoNight (1 MB) */
-    CRYPTONIGHT_HEAVY,  /* CryptoNight (4 MB) */
-    CRYPTONIGHT_PICO,   /* CryptoNight (256 KB) */
+    ARGON2,             /* Argon2 */
     ALGO_MAX
 };
 
-
-//--av=1 For CPUs with hardware AES.
-//--av=2 Lower power mode (double hash) of 1.
-//--av=3 Software AES implementation.
-//--av=4 Lower power mode (double hash) of 3.
-enum AlgoVariant {
-    AV_AUTO,        // --av=0 Automatic mode.
-    AV_SINGLE,      // --av=1  Single hash mode
-    AV_DOUBLE,      // --av=2  Double hash mode
-    AV_SINGLE_SOFT, // --av=3  Single hash mode (Software AES)
-    AV_DOUBLE_SOFT, // --av=4  Double hash mode (Software AES)
-    AV_TRIPLE,      // --av=5  Triple hash mode
-    AV_QUAD,        // --av=6  Quard hash mode
-    AV_PENTA,       // --av=7  Penta hash mode
-    AV_TRIPLE_SOFT, // --av=8  Triple hash mode (Software AES)
-    AV_QUAD_SOFT,   // --av=9  Quard hash mode  (Software AES)
-    AV_PENTA_SOFT,  // --av=10 Penta hash mode  (Software AES)
-    AV_MAX
-};
-
-
 enum Variant {
     VARIANT_AUTO   = -1, // Autodetect
-    VARIANT_0      = 0,  // Original CryptoNight or CryptoNight-Heavy
-    VARIANT_1      = 1,  // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
-    VARIANT_TUBE   = 2,  // Modified CryptoNight-Heavy (TUBE only)
-    VARIANT_XTL    = 3,  // Modified CryptoNight variant 1 (Stellite only)
-    VARIANT_MSR    = 4,  // Modified CryptoNight variant 1 (Masari only)
-    VARIANT_XHV    = 5,  // Modified CryptoNight-Heavy (Haven Protocol only)
-    VARIANT_XAO    = 6,  // Modified CryptoNight variant 0 (Alloy only)
-    VARIANT_RTO    = 7,  // Modified CryptoNight variant 1 (Arto only)
-    VARIANT_2      = 8,  // CryptoNight variant 2
-    VARIANT_HALF   = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
-    VARIANT_TRTL   = 10, // CryptoNight Turtle (TRTL)
-    VARIANT_GPU    = 11, // CryptoNight-GPU (Ryo)
-    VARIANT_WOW    = 12, // CryptoNightR (Wownero)
-    VARIANT_4      = 13, // CryptoNightR (Monero's variant 4)
-    VARIANT_RWZ    = 14, // CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft)
-    VARIANT_ZLS    = 15, // CryptoNight variant 2 with 3/4 iterations (Zelerius)
-    VARIANT_DOUBLE = 16, // CryptoNight variant 2 with double iterations (X-CASH)
+    VARIANT_CHUKWA = 0, // Argon2 Chukwa for TurtleCoin
+    VARIANT_CHUKWA_LITE = 1, // Argon2 Chukwa Lite for WrkzCoin
     VARIANT_MAX
 };
 
-
-enum AlgoVerify {
-    VERIFY_HW_AES   = 1,
-    VERIFY_SOFT_AES = 2
-};
-
-
-enum AesMode {
-    AES_AUTO,
-    AES_HW,
-    AES_SOFT
-};
-
-
-enum OclVendor {
-    OCL_VENDOR_UNKNOWN = -2,
-    OCL_VENDOR_MANUAL  = -1,
-    OCL_VENDOR_AMD     = 0,
-    OCL_VENDOR_NVIDIA  = 1,
-    OCL_VENDOR_INTEL   = 2
-};
-
-
-enum Assembly {
-    ASM_NONE,
-    ASM_AUTO,
-    ASM_INTEL,
-    ASM_RYZEN,
-    ASM_BULLDOZER,
-    ASM_MAX
-};
-
-
 } /* namespace xmrig */
-
 
 #endif /* XMRIG_XMRIG_H */
