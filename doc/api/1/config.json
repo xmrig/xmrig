@@ -7,16 +7,21 @@
         "ipv6": false,
         "restricted": false
     },
-    "av": 1,
     "background": false,
     "colors": true,
+    "threads": "all",
     "cpu-affinity": null,
     "cpu-priority": null,
+    "use-gpu": [ "OPENCL", "CUDA" ],
+    "gpu-intensity": [ 50 ],
+    "gpu-filter": [
+        {
+            "engine": "OPENCL",
+            "filter": "AMD"
+        }
+    ],
     "donate-level": 5,
-    "huge-pages": true,
-    "hw-aes": null,
     "log-file": null,
-    "max-cpu-usage": 75,
     "pools": [
         {
             "url": "publicnode.ydns.eu:4666",
@@ -38,25 +43,6 @@
     "print-time": 60,
     "retries": 5,
     "retry-pause": 5,
-    "safe": false,
-    "threads": [
-        {
-            "low_power_mode": 1,
-            "affine_to_cpu": 0
-        },
-        {
-            "low_power_mode": 1,
-            "affine_to_cpu": 1
-        },
-        {
-            "low_power_mode": 1,
-            "affine_to_cpu": 2
-        },
-        {
-            "low_power_mode": 1,
-            "affine_to_cpu": 3
-        }
-    ],
     "user-agent": null,
     "syslog": false,
     "watch": false

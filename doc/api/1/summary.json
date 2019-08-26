@@ -2,14 +2,8 @@
     "id": "92f3104f9a2ee78c",
     "worker_id": "Ubuntu-1604-xenial-64-minimal",
     "version": "1.0.0-alpha",
-    "kind": "cpu",
+    "kind": "cpu/gpu",
     "ua": "NinjaRig/1.0.0-alpha (Linux x86_64) libuv/1.8.0 gcc/5.4.0",
-    "cpu": {
-        "brand": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
-        "aes": true,
-        "x64": true,
-        "sockets": 1
-    },
     "algo": "chukwa",
     "donate_level": 5,
     "hashrate": {
