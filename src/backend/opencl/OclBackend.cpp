@@ -260,7 +260,7 @@ void xmrig::OclBackend::setJob(const Job &job)
 
     const OclConfig &cl = d_ptr->controller->config()->cl();
 
-    std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->devices, tag);
+    std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->platform, d_ptr->devices, tag);
     if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }

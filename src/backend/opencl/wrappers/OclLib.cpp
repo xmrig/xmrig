@@ -375,22 +375,12 @@ cl_int xmrig::OclLib::releaseCommandQueue(cl_command_queue command_queue)
     assert(pReleaseCommandQueue != nullptr);
     assert(pGetCommandQueueInfo != nullptr);
 
+    finish(command_queue);
+
     cl_int ret = pReleaseCommandQueue(command_queue);
     if (ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseCommandQueue);
     }
-
-    cl_uint refs = 0;
-    ret = pGetCommandQueueInfo(command_queue, CL_QUEUE_REFERENCE_COUNT, sizeof(refs), &refs, nullptr);
-    if (ret == CL_SUCCESS && refs > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
-
-#   ifndef NDEBUG
-    ret = pGetCommandQueueInfo(command_queue, CL_QUEUE_REFERENCE_COUNT, sizeof(refs), &refs, nullptr);
-    assert(ret == CL_SUCCESS);
-    assert(refs == 0);
-#   endif
 
     return ret;
 }
@@ -447,6 +437,10 @@ cl_int xmrig::OclLib::releaseProgram(cl_program program)
 {
     assert(pReleaseProgram != nullptr);
 
+    if (program == nullptr) {
+        return CL_SUCCESS;
+    }
+
     const cl_int ret = pReleaseProgram(program);
     if (ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseProgram);
@@ -500,6 +494,8 @@ cl_program xmrig::OclLib::createProgramWithBinary(cl_context context, cl_uint nu
     auto result = pCreateProgramWithBinary(context, num_devices, device_list, lengths, binaries, binary_status, errcode_ret);
     if (*errcode_ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(*errcode_ret), kCreateProgramWithBinary);
+
+        return nullptr;
     }
 
     return result;
@@ -513,6 +509,8 @@ cl_program xmrig::OclLib::createProgramWithSource(cl_context context, cl_uint co
     auto result = pCreateProgramWithSource(context, count, strings, lengths, errcode_ret);
     if (*errcode_ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(*errcode_ret), kCreateProgramWithSource);
+
+        return nullptr;
     }
 
     return result;

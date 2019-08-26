@@ -75,7 +75,7 @@ __kernel void cn1_v2_rwz(__global uint4 *Scratchpad, __global ulong *states, uin
     uint2 division_result = as_uint2(states[12]);
     uint sqrt_result = as_uint2(states[13]).s0;
 
-    #pragma unroll UNROLL_FACTOR
+    #pragma unroll CN_UNROLL
     for(int i = 0; i < 0x60000; ++i)
     {
 #       ifdef __NV_CL_C_VERSION
@@ -235,7 +235,7 @@ __kernel void cn1_v2_zls(__global uint4 *Scratchpad, __global ulong *states, uin
     uint2 division_result = as_uint2(states[12]);
     uint sqrt_result = as_uint2(states[13]).s0;
 
-    #pragma unroll UNROLL_FACTOR
+    #pragma unroll CN_UNROLL
     for(int i = 0; i < 0x60000; ++i)
     {
 #       ifdef __NV_CL_C_VERSION
@@ -395,7 +395,7 @@ __kernel void cn1_v2_double(__global uint4 *Scratchpad, __global ulong *states, 
     uint2 division_result = as_uint2(states[12]);
     uint sqrt_result = as_uint2(states[13]).s0;
 
-    #pragma unroll UNROLL_FACTOR
+    #pragma unroll CN_UNROLL
     for(int i = 0; i < 0x100000; ++i)
     {
 #       ifdef __NV_CL_C_VERSION

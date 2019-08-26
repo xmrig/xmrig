@@ -42,7 +42,7 @@ class IOclRunner;
 class OclWorker : public Worker
 {
 public:
-    OclWorker(size_t index, const OclLaunchData &data);
+    OclWorker(size_t id, const OclLaunchData &data);
     ~OclWorker() override;
 
 protected:

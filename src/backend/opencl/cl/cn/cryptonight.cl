@@ -573,7 +573,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, uin
     if (gIdx < Threads)
 #   endif
     {
-        #pragma unroll UNROLL_FACTOR
+        #pragma unroll CN_UNROLL
         for (int i = 0; i < ITERATIONS; ++i) {
             ulong c[2];
 
@@ -686,7 +686,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
     uint2 division_result = as_uint2(states[12]);
     uint sqrt_result = as_uint2(states[13]).s0;
 
-    #pragma unroll UNROLL_FACTOR
+    #pragma unroll CN_UNROLL
     for(int i = 0; i < ITERATIONS; ++i)
     {
 #       ifdef __NV_CL_C_VERSION
@@ -846,7 +846,7 @@ __kernel void cn1_v2_half(__global uint4 *Scratchpad, __global ulong *states, ui
     uint2 division_result = as_uint2(states[12]);
     uint sqrt_result = as_uint2(states[13]).s0;
 
-    #pragma unroll UNROLL_FACTOR
+    #pragma unroll CN_UNROLL
     for(int i = 0; i < 0x40000; ++i)
     {
 #       ifdef __NV_CL_C_VERSION
@@ -1074,7 +1074,7 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, uint 
     {
         uint idx0 = a[0];
 
-        #pragma unroll UNROLL_FACTOR
+        #pragma unroll CN_UNROLL
         for (int i = 0; i < ITERATIONS; ++i) {
             ulong c[2];
 
@@ -1171,7 +1171,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint varia
     {
         uint idx0 = a[0];
 
-        #pragma unroll UNROLL_FACTOR
+        #pragma unroll CN_UNROLL
         for (int i = 0; i < ITERATIONS; ++i) {
             ulong c[2];
 

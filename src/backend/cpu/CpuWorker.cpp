@@ -53,8 +53,8 @@ static constexpr uint32_t kReserveCount = 4096;
 
 
 template<size_t N>
-xmrig::CpuWorker<N>::CpuWorker(size_t index, const CpuLaunchData &data) :
-    Worker(index, data.affinity, data.priority),
+xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
+    Worker(id, data.affinity, data.priority),
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
     m_hwAES(data.hwAES),

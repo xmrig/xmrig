@@ -134,7 +134,7 @@ void xmrig::Workers<T>::tick(uint64_t)
             return;
         }
 
-        d_ptr->hashrate->add(handle->index(), handle->worker()->hashCount(), handle->worker()->timestamp());
+        d_ptr->hashrate->add(handle->id(), handle->worker()->hashCount(), handle->worker()->timestamp());
     }
 
     d_ptr->hashrate->updateHighest();
@@ -175,19 +175,19 @@ xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *han
 {
     switch (handle->config().intensity) {
     case 1:
-        return new CpuWorker<1>(handle->index(), handle->config());
+        return new CpuWorker<1>(handle->id(), handle->config());
 
     case 2:
-        return new CpuWorker<2>(handle->index(), handle->config());
+        return new CpuWorker<2>(handle->id(), handle->config());
 
     case 3:
-        return new CpuWorker<3>(handle->index(), handle->config());
+        return new CpuWorker<3>(handle->id(), handle->config());
 
     case 4:
-        return new CpuWorker<4>(handle->index(), handle->config());
+        return new CpuWorker<4>(handle->id(), handle->config());
 
     case 5:
-        return new CpuWorker<5>(handle->index(), handle->config());
+        return new CpuWorker<5>(handle->id(), handle->config());
     }
 
     return nullptr;
@@ -201,7 +201,7 @@ template class Workers<CpuLaunchData>;
 template<>
 xmrig::IWorker *xmrig::Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle)
 {
-    return new OclWorker(handle->index(), handle->config());
+    return new OclWorker(handle->id(), handle->config());
 }
 
 

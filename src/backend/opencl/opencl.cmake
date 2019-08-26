@@ -51,6 +51,12 @@ if (WITH_OPENCL)
        list(APPEND HEADERS_BACKEND_OPENCL src/backend/opencl/runners/OclRxRunner.h)
        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/runners/OclRxRunner.cpp)
    endif()
+
+   if (WITH_STRICT_CACHE)
+       add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
+   else()
+       remove_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
+   endif()
 else()
     remove_definitions(/DXMRIG_FEATURE_OPENCL)
 

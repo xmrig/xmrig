@@ -43,21 +43,31 @@ class OclLaunchData;
 class OclBaseRunner : public IOclRunner
 {
 public:
-    OclBaseRunner(size_t index, const OclLaunchData &data);
+    OclBaseRunner(size_t id, const OclLaunchData &data);
     ~OclBaseRunner() override;
 
 protected:
+    inline const char *buildOptions() const override    { return m_options.c_str(); }
+    inline const char *deviceKey() const override       { return m_deviceKey.c_str(); }
+    inline const char *source() const override          { return m_source; }
+    inline const OclLaunchData &data() const override   { return m_data; }
+    inline size_t threadId() const override             { return m_threadId; }
+
     bool selfTest() const override;
-    const char *buildOptions() const override;
+    void build() override;
     void run(uint32_t *hashOutput) override;
     void set(const Job &job) override;
 
 protected:
     Algorithm m_algorithm;
     cl_command_queue m_queue    = nullptr;
-    cl_context m_ctx;
     cl_mem m_input              = nullptr;
     cl_mem m_output             = nullptr;
+    cl_program m_program        = nullptr;
+    const char *m_source;
+    const OclLaunchData &m_data;
+    const size_t m_threadId;
+    std::string m_deviceKey;
     std::string m_options;
 };
 

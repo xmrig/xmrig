@@ -149,7 +149,7 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
 }
 
 
-std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, const Algorithm &algorithm, const std::vector<OclDevice> &devices, const char *tag) const
+std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, const Algorithm &algorithm, const OclPlatform &platform, const std::vector<OclDevice> &devices, const char *tag) const
 {
     std::vector<OclLaunchData> out;
     const OclThreads &threads = m_threads.get(algorithm);
@@ -166,7 +166,7 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
             continue;
         }
 
-        out.emplace_back(miner, algorithm, *this, thread, devices[thread.index()]);
+        out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()]);
     }
 
     return out;

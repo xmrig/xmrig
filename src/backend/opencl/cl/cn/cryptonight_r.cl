@@ -66,7 +66,7 @@ __kernel void cn1_cryptonight_r_N(__global uint4 *Scratchpad, __global ulong *st
 	uint r2 = as_uint2(states[13]).s0;
 	uint r3 = as_uint2(states[13]).s1;
 
-	#pragma unroll UNROLL_FACTOR
+    #pragma unroll CN_UNROLL
 	for(int i = 0; i < ITERATIONS; ++i)
 	{
 #		ifdef __NV_CL_C_VERSION

@@ -48,15 +48,15 @@ static constexpr uint32_t kReserveCount = 4096;
 
 
 
-xmrig::OclWorker::OclWorker(size_t index, const OclLaunchData &data) :
-    Worker(index, data.thread.affinity(), -1),
+xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
+    Worker(id, data.thread.affinity(), -1),
     m_algorithm(data.algorithm),
     m_miner(data.miner)
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
 #       ifdef XMRIG_ALGO_RANDOMX
-        m_runner = new OclRxRunner(index, data);
+        m_runner = new OclRxRunner(id, data);
 #       endif
         break;
 
@@ -67,8 +67,12 @@ xmrig::OclWorker::OclWorker(size_t index, const OclLaunchData &data) :
         break;
 
     default:
-        m_runner = new OclCnRunner(index, data);
+        m_runner = new OclCnRunner(id, data);
         break;
+    }
+
+    if (m_runner) {
+        m_runner->build();
     }
 }
 

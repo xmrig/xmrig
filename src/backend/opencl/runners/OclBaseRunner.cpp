@@ -23,29 +23,49 @@
  */
 
 
+#include "backend/opencl/cl/OclSource.h"
+#include "backend/opencl/OclCache.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/runners/OclBaseRunner.h"
 #include "backend/opencl/wrappers/OclLib.h"
+#include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
 
 
-xmrig::OclBaseRunner::OclBaseRunner(size_t, const OclLaunchData &data) :
+xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
     m_algorithm(data.algorithm),
-    m_ctx(data.ctx)
+    m_source(OclSource::get(data.algorithm)),
+    m_data(data),
+    m_threadId(id)
 {
     cl_int ret;
-    m_queue = OclLib::createCommandQueue(m_ctx, data.device.id(), &ret);
+    m_queue = OclLib::createCommandQueue(data.ctx, data.device.id(), &ret);
     if (ret != CL_SUCCESS) {
         return;
     }
 
-    m_input  = OclLib::createBuffer(m_ctx, CL_MEM_READ_ONLY, Job::kMaxBlobSize, nullptr, &ret);
-    m_output = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
+    m_input  = OclLib::createBuffer(data.ctx, CL_MEM_READ_ONLY, Job::kMaxBlobSize, nullptr, &ret);
+    m_output = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
+
+    m_deviceKey = data.device.name();
+
+#   ifdef XMRIG_STRICT_OPENCL_CACHE
+    m_deviceKey += ":";
+    m_deviceKey += data.platform.version();
+
+    m_deviceKey += ":";
+    m_deviceKey += OclLib::getDeviceString(data.device.id(), CL_DRIVER_VERSION);
+#   endif
+
+#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
+    m_deviceKey += ":64";
+#   endif
 }
 
 
 xmrig::OclBaseRunner::~OclBaseRunner()
 {
+    OclLib::releaseProgram(m_program);
     OclLib::releaseMemObject(m_input);
     OclLib::releaseMemObject(m_output);
 
@@ -55,14 +75,17 @@ xmrig::OclBaseRunner::~OclBaseRunner()
 
 bool xmrig::OclBaseRunner::selfTest() const
 {
-    return m_queue != nullptr && m_input != nullptr && m_output != nullptr && !m_options.empty();
+    return m_queue != nullptr && m_input != nullptr && m_output != nullptr && !m_options.empty() && m_source != nullptr;
 }
 
 
-
-const char *xmrig::OclBaseRunner::buildOptions() const
+void xmrig::OclBaseRunner::build()
 {
-    return m_options.c_str();
+    if (!selfTest()) {
+        return;
+    }
+
+    m_program = OclCache::build(this);
 }
 
 

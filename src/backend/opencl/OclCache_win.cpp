@@ -31,7 +31,7 @@
 #include "backend/opencl/OclCache.h"
 
 
-void xmrig::OclCache::createDirectory() const
+void xmrig::OclCache::createDirectory()
 {
     std::string path = prefix() + "/xmrig";
     _mkdir(path.c_str());

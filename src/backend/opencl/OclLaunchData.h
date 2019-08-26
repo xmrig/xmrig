@@ -29,6 +29,7 @@
 
 #include "backend/opencl/OclThread.h"
 #include "backend/opencl/wrappers/OclDevice.h"
+#include "backend/opencl/wrappers/OclPlatform.h"
 #include "crypto/common/Algorithm.h"
 #include "crypto/common/Nonce.h"
 
@@ -46,7 +47,7 @@ class Miner;
 class OclLaunchData
 {
 public:
-    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclThread &thread, const OclDevice &device);
+    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclPlatform &platform, const OclThread &thread, const OclDevice &device);
 
     bool isEqual(const OclLaunchData &other) const;
 
@@ -60,6 +61,7 @@ public:
     const bool cache;
     const Miner *miner;
     const OclDevice device;
+    const OclPlatform platform;
     const OclThread thread;
 };
 

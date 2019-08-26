@@ -199,7 +199,7 @@ struct SharedMemChunk
     float4 va[16];
 };
 
-__attribute__((reqd_work_group_size(WORKSIZE_GPU * 16, 1, 1)))
+__attribute__((reqd_work_group_size(WORKSIZE * 16, 1, 1)))
 __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThreads)
 {
     const uint gIdx = getIdx();
@@ -214,7 +214,7 @@ __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThre
 
     __global int* lpad = (__global int*)((__global char*)lpad_in + MEMORY * (gIdx/16));
 
-    __local struct SharedMemChunk smem_in[WORKSIZE_GPU];
+    __local struct SharedMemChunk smem_in[WORKSIZE];
     __local struct SharedMemChunk* smem = smem_in + chunk;
 
     uint tid = get_local_id(0) % 16;

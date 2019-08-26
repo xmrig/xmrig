@@ -43,7 +43,7 @@ template<size_t N>
 class CpuWorker : public Worker
 {
 public:
-    CpuWorker(size_t index, const CpuLaunchData &data);
+    CpuWorker(size_t id, const CpuLaunchData &data);
     ~CpuWorker() override;
 
 protected:
