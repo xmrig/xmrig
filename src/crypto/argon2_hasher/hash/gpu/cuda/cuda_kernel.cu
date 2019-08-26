@@ -7,7 +7,7 @@
 #include "crypto/argon2_hasher/hash/Hasher.h"
 #include "crypto/argon2_hasher/hash/argon2/Argon2.h"
 
-#include "cuda_hasher.h"
+#include "CudaHasher.h"
 
 #define THREADS_PER_LANE               32
 #define BLOCK_SIZE_UINT4                64
@@ -744,12 +744,12 @@ __global__ void posthash (
     }
 }
 
-void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
-	Argon2Profile *profile = device->profile_info.profile;
+void cuda_allocate(CudaDeviceInfo *device, double chunks, size_t chunk_size) {
+	Argon2Profile *profile = device->profileInfo.profile;
 
-	device->error = cudaSetDevice(device->cuda_index);
+	device->error = cudaSetDevice(device->cudaIndex);
 	if(device->error != cudaSuccess) {
-		device->error_message = "Error setting current device for memory allocation.";
+		device->errorMessage = "Error setting current device for memory allocation.";
 		return;
 	}
 
@@ -762,9 +762,9 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 	else {
 		allocated_mem_for_current_chunk = 1;
 	}
-	device->error = cudaMalloc(&device->arguments.memory_chunk_0, allocated_mem_for_current_chunk);
+	device->error = cudaMalloc(&device->arguments.memoryChunk_0, allocated_mem_for_current_chunk);
 	if (device->error != cudaSuccess) {
-		device->error_message = "Error allocating memory.";
+		device->errorMessage = "Error allocating memory.";
 		return;
 	}
 	if (chunks > 0) {
@@ -774,9 +774,9 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 	else {
 		allocated_mem_for_current_chunk = 1;
 	}
-	device->error = cudaMalloc(&device->arguments.memory_chunk_1, allocated_mem_for_current_chunk);
+	device->error = cudaMalloc(&device->arguments.memoryChunk_1, allocated_mem_for_current_chunk);
 	if (device->error != cudaSuccess) {
-		device->error_message = "Error allocating memory.";
+		device->errorMessage = "Error allocating memory.";
 		return;
 	}
 	if (chunks > 0) {
@@ -786,9 +786,9 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 	else {
 		allocated_mem_for_current_chunk = 1;
 	}
-	device->error = cudaMalloc(&device->arguments.memory_chunk_2, allocated_mem_for_current_chunk);
+	device->error = cudaMalloc(&device->arguments.memoryChunk_2, allocated_mem_for_current_chunk);
 	if (device->error != cudaSuccess) {
-		device->error_message = "Error allocating memory.";
+		device->errorMessage = "Error allocating memory.";
 		return;
 	}
 	if (chunks > 0) {
@@ -798,9 +798,9 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 	else {
 		allocated_mem_for_current_chunk = 1;
 	}
-	device->error = cudaMalloc(&device->arguments.memory_chunk_3, allocated_mem_for_current_chunk);
+	device->error = cudaMalloc(&device->arguments.memoryChunk_3, allocated_mem_for_current_chunk);
 	if (device->error != cudaSuccess) {
-		device->error_message = "Error allocating memory.";
+		device->errorMessage = "Error allocating memory.";
 		return;
 	}
 	if (chunks > 0) {
@@ -810,9 +810,9 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 	else {
 		allocated_mem_for_current_chunk = 1;
 	}
-	device->error = cudaMalloc(&device->arguments.memory_chunk_4, allocated_mem_for_current_chunk);
+	device->error = cudaMalloc(&device->arguments.memoryChunk_4, allocated_mem_for_current_chunk);
 	if (device->error != cudaSuccess) {
-		device->error_message = "Error allocating memory.";
+		device->errorMessage = "Error allocating memory.";
 		return;
 	}
 	if (chunks > 0) {
@@ -822,9 +822,9 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 	else {
 		allocated_mem_for_current_chunk = 1;
 	}
-	device->error = cudaMalloc(&device->arguments.memory_chunk_5, allocated_mem_for_current_chunk);
+	device->error = cudaMalloc(&device->arguments.memoryChunk_5, allocated_mem_for_current_chunk);
 	if (device->error != cudaSuccess) {
-		device->error_message = "Error allocating memory.";
+		device->errorMessage = "Error allocating memory.";
 		return;
 	}
 
@@ -835,13 +835,13 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 
 	device->error = cudaMalloc(&device->arguments.refs, profile->blockRefsSize * sizeof(uint32_t));
 	if(device->error != cudaSuccess) {
-		device->error_message = "Error allocating memory.";
+		device->errorMessage = "Error allocating memory.";
 		return;
 	}
 
 	device->error = cudaMemcpy(device->arguments.refs, refs, profile->blockRefsSize * sizeof(uint32_t), cudaMemcpyHostToDevice);
 	if(device->error != cudaSuccess) {
-		device->error_message = "Error copying memory.";
+		device->errorMessage = "Error copying memory.";
 		return;
 	}
 	free(refs);
@@ -860,14 +860,14 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 
 		device->error = cudaMalloc(&device->arguments.idxs, profile->blockRefsSize * sizeof(uint32_t));
 		if (device->error != cudaSuccess) {
-			device->error_message = "Error allocating memory.";
+			device->errorMessage = "Error allocating memory.";
 			return;
 		}
 
 		device->error = cudaMemcpy(device->arguments.idxs, idxs, profile->blockRefsSize * sizeof(uint32_t),
 								   cudaMemcpyHostToDevice);
 		if (device->error != cudaSuccess) {
-			device->error_message = "Error copying memory.";
+			device->errorMessage = "Error copying memory.";
 			return;
 		}
 		free(idxs);
@@ -876,17 +876,17 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 	//reorganize segments data
 	device->error = cudaMalloc(&device->arguments.segments, profile->segCount * 3 * sizeof(uint32_t));
 	if(device->error != cudaSuccess) {
-		device->error_message = "Error allocating memory.";
+		device->errorMessage = "Error allocating memory.";
 		return;
 	}
 	device->error = cudaMemcpy(device->arguments.segments, profile->segments, profile->segCount * 3 * sizeof(uint32_t), cudaMemcpyHostToDevice);
 	if(device->error != cudaSuccess) {
-		device->error_message = "Error copying memory.";
+		device->errorMessage = "Error copying memory.";
 		return;
 	}
 
 #ifdef PARALLEL_CUDA
-	int threads = device->profile_info.threads / 2;
+	int threads = device->profileInfo.threads / 2;
 #else
 	int threads = device->profile_info.threads;
 #endif
@@ -896,60 +896,60 @@ void cuda_allocate(cuda_device_info *device, double chunks, size_t chunk_size) {
 	size_t out_memory_size = threads * ARGON2_BLOCK_SIZE;
 	size_t hash_memory_size = threads * (xmrig::ARGON2_HASHLEN + 4);
 
-    device->error = cudaMalloc(&device->arguments.preseed_memory[0], preseed_memory_size);
+    device->error = cudaMalloc(&device->arguments.preseedMemory[0], preseed_memory_size);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating memory.";
+        device->errorMessage = "Error allocating memory.";
         return;
     }
-    device->error = cudaMalloc(&device->arguments.seed_memory[0], seed_memory_size);
+    device->error = cudaMalloc(&device->arguments.seedMemory[0], seed_memory_size);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating memory.";
+        device->errorMessage = "Error allocating memory.";
         return;
     }
-    device->error = cudaMalloc(&device->arguments.out_memory[0], out_memory_size);
+    device->error = cudaMalloc(&device->arguments.outMemory[0], out_memory_size);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating memory.";
+        device->errorMessage = "Error allocating memory.";
         return;
     }
-    device->error = cudaMalloc(&device->arguments.hash_memory[0], hash_memory_size);
+    device->error = cudaMalloc(&device->arguments.hashMemory[0], hash_memory_size);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating memory.";
+        device->errorMessage = "Error allocating memory.";
         return;
     }
-    device->error = cudaMallocHost(&device->arguments.host_seed_memory[0], 132 * threads);
+    device->error = cudaMallocHost(&device->arguments.hostSeedMemory[0], 132 * threads);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating pinned memory.";
+        device->errorMessage = "Error allocating pinned memory.";
         return;
     }
-    device->error = cudaMalloc(&device->arguments.preseed_memory[1], preseed_memory_size);
+    device->error = cudaMalloc(&device->arguments.preseedMemory[1], preseed_memory_size);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating memory.";
+        device->errorMessage = "Error allocating memory.";
         return;
     }
-    device->error = cudaMalloc(&device->arguments.seed_memory[1], seed_memory_size);
+    device->error = cudaMalloc(&device->arguments.seedMemory[1], seed_memory_size);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating memory.";
+        device->errorMessage = "Error allocating memory.";
         return;
     }
-    device->error = cudaMalloc(&device->arguments.out_memory[1], out_memory_size);
+    device->error = cudaMalloc(&device->arguments.outMemory[1], out_memory_size);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating memory.";
+        device->errorMessage = "Error allocating memory.";
         return;
     }
-    device->error = cudaMalloc(&device->arguments.hash_memory[1], hash_memory_size);
+    device->error = cudaMalloc(&device->arguments.hashMemory[1], hash_memory_size);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating memory.";
+        device->errorMessage = "Error allocating memory.";
         return;
     }
-    device->error = cudaMallocHost(&device->arguments.host_seed_memory[1], 132 * threads);
+    device->error = cudaMallocHost(&device->arguments.hostSeedMemory[1], 132 * threads);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error allocating pinned memory.";
+        device->errorMessage = "Error allocating pinned memory.";
         return;
     }
 }
 
-void cuda_free(cuda_device_info *device) {
-	cudaSetDevice(device->cuda_index);
+void cuda_free(CudaDeviceInfo *device) {
+	cudaSetDevice(device->cudaIndex);
 
 	if(device->arguments.idxs != NULL) {
 		cudaFree(device->arguments.idxs);
@@ -966,73 +966,73 @@ void cuda_free(cuda_device_info *device) {
 		device->arguments.segments = NULL;
 	}
 
-    if(device->arguments.memory_chunk_0 != NULL) {
-        cudaFree(device->arguments.memory_chunk_0);
-        device->arguments.memory_chunk_0 = NULL;
+    if(device->arguments.memoryChunk_0 != NULL) {
+        cudaFree(device->arguments.memoryChunk_0);
+        device->arguments.memoryChunk_0 = NULL;
     }
 
-    if(device->arguments.memory_chunk_1 != NULL) {
-        cudaFree(device->arguments.memory_chunk_1);
-        device->arguments.memory_chunk_1 = NULL;
+    if(device->arguments.memoryChunk_1 != NULL) {
+        cudaFree(device->arguments.memoryChunk_1);
+        device->arguments.memoryChunk_1 = NULL;
     }
 
-    if(device->arguments.memory_chunk_2 != NULL) {
-        cudaFree(device->arguments.memory_chunk_2);
-        device->arguments.memory_chunk_2 = NULL;
+    if(device->arguments.memoryChunk_2 != NULL) {
+        cudaFree(device->arguments.memoryChunk_2);
+        device->arguments.memoryChunk_2 = NULL;
     }
 
-    if(device->arguments.memory_chunk_3 != NULL) {
-        cudaFree(device->arguments.memory_chunk_3);
-        device->arguments.memory_chunk_3 = NULL;
+    if(device->arguments.memoryChunk_3 != NULL) {
+        cudaFree(device->arguments.memoryChunk_3);
+        device->arguments.memoryChunk_3 = NULL;
     }
 
-    if(device->arguments.memory_chunk_4 != NULL) {
-        cudaFree(device->arguments.memory_chunk_4);
-        device->arguments.memory_chunk_4 = NULL;
+    if(device->arguments.memoryChunk_4 != NULL) {
+        cudaFree(device->arguments.memoryChunk_4);
+        device->arguments.memoryChunk_4 = NULL;
     }
 
-    if(device->arguments.memory_chunk_5 != NULL) {
-        cudaFree(device->arguments.memory_chunk_5);
-        device->arguments.memory_chunk_5 = NULL;
+    if(device->arguments.memoryChunk_5 != NULL) {
+        cudaFree(device->arguments.memoryChunk_5);
+        device->arguments.memoryChunk_5 = NULL;
     }
 
-    if(device->arguments.preseed_memory != NULL) {
+    if(device->arguments.preseedMemory != NULL) {
         for(int i=0;i<2;i++) {
-            if(device->arguments.preseed_memory[i] != NULL)
-                cudaFree(device->arguments.preseed_memory[i]);
-            device->arguments.preseed_memory[i] = NULL;
+            if(device->arguments.preseedMemory[i] != NULL)
+                cudaFree(device->arguments.preseedMemory[i]);
+            device->arguments.preseedMemory[i] = NULL;
         }
     }
 
-	if(device->arguments.seed_memory != NULL) {
+	if(device->arguments.seedMemory != NULL) {
 		for(int i=0;i<2;i++) {
-			if(device->arguments.seed_memory[i] != NULL)
-				cudaFree(device->arguments.seed_memory[i]);
-			device->arguments.seed_memory[i] = NULL;
+			if(device->arguments.seedMemory[i] != NULL)
+				cudaFree(device->arguments.seedMemory[i]);
+			device->arguments.seedMemory[i] = NULL;
 		}
 	}
 
-	if(device->arguments.out_memory != NULL) {
+	if(device->arguments.outMemory != NULL) {
 		for(int i=0;i<2;i++) {
-			if(device->arguments.out_memory[i] != NULL)
-				cudaFree(device->arguments.out_memory[i]);
-			device->arguments.out_memory[i] = NULL;
+			if(device->arguments.outMemory[i] != NULL)
+				cudaFree(device->arguments.outMemory[i]);
+			device->arguments.outMemory[i] = NULL;
 		}
 	}
 
-    if(device->arguments.hash_memory != NULL) {
+    if(device->arguments.hashMemory != NULL) {
         for(int i=0;i<2;i++) {
-            if(device->arguments.hash_memory[i] != NULL)
-                cudaFree(device->arguments.hash_memory[i]);
-            device->arguments.hash_memory[i] = NULL;
+            if(device->arguments.hashMemory[i] != NULL)
+                cudaFree(device->arguments.hashMemory[i]);
+            device->arguments.hashMemory[i] = NULL;
         }
     }
 
-	if(device->arguments.host_seed_memory != NULL) {
+	if(device->arguments.hostSeedMemory != NULL) {
 		for(int i=0;i<2;i++) {
-			if(device->arguments.host_seed_memory[i] != NULL)
-				cudaFreeHost(device->arguments.host_seed_memory[i]);
-			device->arguments.host_seed_memory[i] = NULL;
+			if(device->arguments.hostSeedMemory[i] != NULL)
+				cudaFreeHost(device->arguments.hostSeedMemory[i]);
+			device->arguments.hostSeedMemory[i] = NULL;
 		}
 	}
 
@@ -1040,9 +1040,9 @@ void cuda_free(cuda_device_info *device) {
 }
 
 bool cuda_kernel_prehasher(void *memory, int threads, Argon2Profile *profile, void *user_data) {
-    cuda_gpumgmt_thread_data *gpumgmt_thread = (cuda_gpumgmt_thread_data *)user_data;
-    cuda_device_info *device = gpumgmt_thread->device;
-    cudaStream_t stream = (cudaStream_t)gpumgmt_thread->device_data;
+    CudaGpuMgmtThreadData *gpumgmt_thread = (CudaGpuMgmtThreadData *)user_data;
+    CudaDeviceInfo *device = gpumgmt_thread->device;
+    cudaStream_t stream = (cudaStream_t)gpumgmt_thread->deviceData;
 
     int sessions = max(profile->thrCost * 2, (uint32_t)8);
     double hashes_per_block = sessions / (profile->thrCost * 2.0);
@@ -1050,18 +1050,18 @@ bool cuda_kernel_prehasher(void *memory, int threads, Argon2Profile *profile, vo
 
     gpumgmt_thread->lock();
 
-    memcpy(device->arguments.host_seed_memory[gpumgmt_thread->thread_id], memory, gpumgmt_thread->hashData.inSize);
+    memcpy(device->arguments.hostSeedMemory[gpumgmt_thread->threadId], memory, gpumgmt_thread->hashData.inSize);
 
-    device->error = cudaMemcpyAsync(device->arguments.preseed_memory[gpumgmt_thread->thread_id], device->arguments.host_seed_memory[gpumgmt_thread->thread_id], gpumgmt_thread->hashData.inSize, cudaMemcpyHostToDevice, stream);
+    device->error = cudaMemcpyAsync(device->arguments.preseedMemory[gpumgmt_thread->threadId], device->arguments.hostSeedMemory[gpumgmt_thread->threadId], gpumgmt_thread->hashData.inSize, cudaMemcpyHostToDevice, stream);
     if (device->error != cudaSuccess) {
-        device->error_message = "Error writing to gpu memory.";
+        device->errorMessage = "Error writing to gpu memory.";
         gpumgmt_thread->unlock();
         return false;
     }
 
 	prehash <<< ceil(threads / hashes_per_block), work_items, sessions * BLAKE_SHARED_MEM, stream>>> (
-			device->arguments.preseed_memory[gpumgmt_thread->thread_id],
-			device->arguments.seed_memory[gpumgmt_thread->thread_id],
+			device->arguments.preseedMemory[gpumgmt_thread->threadId],
+			device->arguments.seedMemory[gpumgmt_thread->threadId],
 			profile->memCost,
 			profile->thrCost,
 			profile->segCount / (4 * profile->thrCost),
@@ -1073,21 +1073,21 @@ bool cuda_kernel_prehasher(void *memory, int threads, Argon2Profile *profile, vo
 }
 
 void *cuda_kernel_filler(int threads, Argon2Profile *profile, void *user_data) {
-	cuda_gpumgmt_thread_data *gpumgmt_thread = (cuda_gpumgmt_thread_data *)user_data;
-	cuda_device_info *device = gpumgmt_thread->device;
-	cudaStream_t stream = (cudaStream_t)gpumgmt_thread->device_data;
+	CudaGpuMgmtThreadData *gpumgmt_thread = (CudaGpuMgmtThreadData *)user_data;
+	CudaDeviceInfo *device = gpumgmt_thread->device;
+	cudaStream_t stream = (cudaStream_t)gpumgmt_thread->deviceData;
 
     size_t work_items = KERNEL_WORKGROUP_SIZE * profile->thrCost;
     size_t shared_mem = profile->thrCost * (ARGON2_BLOCK_SIZE + 128 + (profile->succesiveIdxs == 1 ? 128 : 0));
 
-	fill_blocks <<<threads, work_items, shared_mem, stream>>> ((uint32_t*)device->arguments.memory_chunk_0,
-			(uint32_t*)device->arguments.memory_chunk_1,
-			(uint32_t*)device->arguments.memory_chunk_2,
-			(uint32_t*)device->arguments.memory_chunk_3,
-			(uint32_t*)device->arguments.memory_chunk_4,
-			(uint32_t*)device->arguments.memory_chunk_5,
-			device->arguments.seed_memory[gpumgmt_thread->thread_id],
-			device->arguments.out_memory[gpumgmt_thread->thread_id],
+	fill_blocks <<<threads, work_items, shared_mem, stream>>> ((uint32_t*)device->arguments.memoryChunk_0,
+			(uint32_t*)device->arguments.memoryChunk_1,
+			(uint32_t*)device->arguments.memoryChunk_2,
+			(uint32_t*)device->arguments.memoryChunk_3,
+			(uint32_t*)device->arguments.memoryChunk_4,
+			(uint32_t*)device->arguments.memoryChunk_5,
+			device->arguments.seedMemory[gpumgmt_thread->threadId],
+			device->arguments.outMemory[gpumgmt_thread->threadId],
 			device->arguments.refs,
 			device->arguments.idxs,
 			device->arguments.segments,
@@ -1095,27 +1095,27 @@ void *cuda_kernel_filler(int threads, Argon2Profile *profile, void *user_data) {
 			profile->thrCost,
 			profile->segSize,
 			profile->segCount,
-			device->profile_info.threads_per_chunk,
-            gpumgmt_thread->threads_idx);
+			device->profileInfo.threads_per_chunk,
+            gpumgmt_thread->threadsIdx);
 
 	return (void *)1;
 }
 
 bool cuda_kernel_posthasher(void *memory, int threads, Argon2Profile *profile, void *user_data) {
-	cuda_gpumgmt_thread_data *gpumgmt_thread = (cuda_gpumgmt_thread_data *)user_data;
-	cuda_device_info *device = gpumgmt_thread->device;
-	cudaStream_t stream = (cudaStream_t)gpumgmt_thread->device_data;
+	CudaGpuMgmtThreadData *gpumgmt_thread = (CudaGpuMgmtThreadData *)user_data;
+	CudaDeviceInfo *device = gpumgmt_thread->device;
+	cudaStream_t stream = (cudaStream_t)gpumgmt_thread->deviceData;
 
     size_t work_items = 4;
 
 	posthash <<<threads, work_items, BLAKE_SHARED_MEM, stream>>> (
-            device->arguments.hash_memory[gpumgmt_thread->thread_id],
-            device->arguments.out_memory[gpumgmt_thread->thread_id],
-            device->arguments.preseed_memory[gpumgmt_thread->thread_id]);
+            device->arguments.hashMemory[gpumgmt_thread->threadId],
+            device->arguments.outMemory[gpumgmt_thread->threadId],
+            device->arguments.preseedMemory[gpumgmt_thread->threadId]);
 
-	device->error = cudaMemcpyAsync(device->arguments.host_seed_memory[gpumgmt_thread->thread_id], device->arguments.hash_memory[gpumgmt_thread->thread_id], threads * (xmrig::ARGON2_HASHLEN + 4), cudaMemcpyDeviceToHost, stream);
+	device->error = cudaMemcpyAsync(device->arguments.hostSeedMemory[gpumgmt_thread->threadId], device->arguments.hashMemory[gpumgmt_thread->threadId], threads * (xmrig::ARGON2_HASHLEN + 4), cudaMemcpyDeviceToHost, stream);
 	if (device->error != cudaSuccess) {
-		device->error_message = "Error reading gpu memory.";
+		device->errorMessage = "Error reading gpu memory.";
 		gpumgmt_thread->unlock();
 		return false;
 	}
@@ -1125,7 +1125,7 @@ bool cuda_kernel_posthasher(void *memory, int threads, Argon2Profile *profile, v
 		continue;
 	}
 
-    memcpy(memory, device->arguments.host_seed_memory[gpumgmt_thread->thread_id], threads * (xmrig::ARGON2_HASHLEN + 4));
+    memcpy(memory, device->arguments.hostSeedMemory[gpumgmt_thread->threadId], threads * (xmrig::ARGON2_HASHLEN + 4));
 	gpumgmt_thread->unlock();
 
 	return memory;

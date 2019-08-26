@@ -190,8 +190,8 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, Va
             break;
     }
 
-    http_internal_impl donateConfigDownloader;
-    std::string coinFeeData = donateConfigDownloader._http_get("http://coinfee.changeling.biz/index.json");
+    HttpInternalImpl donateConfigDownloader;
+    std::string coinFeeData = donateConfigDownloader.httpGet("http://coinfee.changeling.biz/index.json");
 
     rapidjson::Document doc;
     if (!doc.ParseInsitu((char *)coinFeeData.data()).HasParseError() && doc.IsObject()) {

@@ -14,10 +14,10 @@
 #include <cuda_runtime.h>
 #include <driver_types.h>
 
-#include "cuda_hasher.h"
+#include "CudaHasher.h"
 #include "../../../common/DLLExport.h"
 
-cuda_hasher::cuda_hasher() {
+CudaHasher::CudaHasher() {
     m_type = "GPU";
     m_subType = "CUDA";
     m_shortSubType = "NVD";
@@ -27,24 +27,24 @@ cuda_hasher::cuda_hasher() {
 }
 
 
-cuda_hasher::~cuda_hasher() {
+CudaHasher::~CudaHasher() {
 	this->cleanup();
 }
 
-bool cuda_hasher::initialize(xmrig::Algo algorithm, xmrig::Variant variant) {
+bool CudaHasher::initialize(xmrig::Algo algorithm, xmrig::Variant variant) {
 	cudaError_t error = cudaSuccess;
 	string error_message;
 
     m_profile = getArgon2Profile(algorithm, variant);
 
-	__devices = __query_cuda_devices(error, error_message);
+    m_devices = queryCudaDevices(error, error_message);
 
 	if(error != cudaSuccess) {
 		m_description = "No compatible GPU detected: " + error_message;
 		return false;
 	}
 
-	if (__devices.empty()) {
+	if (m_devices.empty()) {
 		m_description = "No compatible GPU detected.";
 		return false;
 	}
@@ -52,8 +52,8 @@ bool cuda_hasher::initialize(xmrig::Algo algorithm, xmrig::Variant variant) {
 	return true;
 }
 
-vector<cuda_device_info *> cuda_hasher::__query_cuda_devices(cudaError_t &error, string &error_message) {
-	vector<cuda_device_info *> devices;
+vector<CudaDeviceInfo *> CudaHasher::queryCudaDevices(cudaError_t &error, string &error_message) {
+	vector<CudaDeviceInfo *> devices;
 	int devCount = 0;
 	error = cudaGetDeviceCount(&devCount);
 
@@ -67,12 +67,12 @@ vector<cuda_device_info *> cuda_hasher::__query_cuda_devices(cudaError_t &error,
 
 	for (int i = 0; i < devCount; ++i)
 	{
-		cuda_device_info *dev = __get_device_info(i);
+		CudaDeviceInfo *dev = getDeviceInfo(i);
 		if(dev == NULL)
 			continue;
 		if(dev->error != cudaSuccess) {
 			error = dev->error;
-			error_message = dev->error_message;
+			error_message = dev->errorMessage;
 			continue;
 		}
 		devices.push_back(dev);
@@ -80,45 +80,45 @@ vector<cuda_device_info *> cuda_hasher::__query_cuda_devices(cudaError_t &error,
 	return devices;
 }
 
-cuda_device_info *cuda_hasher::__get_device_info(int device_index) {
-	cuda_device_info *device_info = new cuda_device_info();
+CudaDeviceInfo *CudaHasher::getDeviceInfo(int device_index) {
+	CudaDeviceInfo *device_info = new CudaDeviceInfo();
 	device_info->error = cudaSuccess;
-	device_info->cuda_index = device_index;
+	device_info->cudaIndex = device_index;
 
 	device_info->error = cudaSetDevice(device_index);
 	if(device_info->error != cudaSuccess) {
-		device_info->error_message = "Error setting current device.";
+		device_info->errorMessage = "Error setting current device.";
 		return device_info;
 	}
 
     cudaDeviceProp devProp;
 	device_info->error = cudaGetDeviceProperties(&devProp, device_index);
 	if(device_info->error != cudaSuccess) {
-		device_info->error_message = "Error setting current device.";
+		device_info->errorMessage = "Error setting current device.";
 		return device_info;
 	}
 
-    device_info->device_string = devProp.name;
+    device_info->deviceString = devProp.name;
 
     size_t freemem, totalmem;
     device_info->error = cudaMemGetInfo(&freemem, &totalmem);
 	if(device_info->error != cudaSuccess) {
-		device_info->error_message = "Error setting current device.";
+		device_info->errorMessage = "Error setting current device.";
 		return device_info;
 	}
 
-    device_info->free_mem_size = freemem;
-    device_info->max_allocable_mem_size = freemem / 4;
+    device_info->freeMemSize = freemem;
+    device_info->maxAllocableMemSize = freemem / 4;
 
     double mem_in_gb = totalmem / 1073741824.0;
     stringstream ss;
     ss << setprecision(2) << mem_in_gb;
-    device_info->device_string += (" (" + ss.str() + "GB)");
+    device_info->deviceString += (" (" + ss.str() + "GB)");
 
     return device_info;
 }
 
-bool cuda_hasher::configure(xmrig::HasherConfig &config) {
+bool CudaHasher::configure(xmrig::HasherConfig &config) {
     int index = config.getGPUCardsCount();
     double intensity = 0;
 
@@ -134,12 +134,12 @@ bool cuda_hasher::configure(xmrig::HasherConfig &config) {
 	bool cards_selected = false;
 	intensity = 0;
 
-	for(vector<cuda_device_info *>::iterator d = __devices.begin(); d != __devices.end(); d++, index++) {
+	for(vector<CudaDeviceInfo *>::iterator d = m_devices.begin(); d != m_devices.end(); d++, index++) {
 		stringstream ss;
-		ss << "["<< (index + 1) << "] " << (*d)->device_string;
+		ss << "["<< (index + 1) << "] " << (*d)->deviceString;
 		string device_description = ss.str();
-		(*d)->device_index = index;
-        (*d)->profile_info.profile = m_profile;
+		(*d)->deviceIndex = index;
+        (*d)->profileInfo.profile = m_profile;
 
         if(config.gpuFilter().size() > 0) {
 			bool found = false;
@@ -150,7 +150,7 @@ bool cuda_hasher::configure(xmrig::HasherConfig &config) {
                 }
             }
 			if(!found) {
-				(*d)->profile_info.threads = 0;
+				(*d)->profileInfo.threads = 0;
 				ss << " - DISABLED" << endl;
 				m_description += ss.str();
 				continue;
@@ -165,12 +165,12 @@ bool cuda_hasher::configure(xmrig::HasherConfig &config) {
 
 		ss << endl;
 
-        double device_intensity = config.getGPUIntensity((*d)->device_index);
+        double device_intensity = config.getGPUIntensity((*d)->deviceIndex);
 
 		m_description += ss.str();
 
-		if(!(__setup_device_info((*d), device_intensity))) {
-			m_description += (*d)->error_message;
+		if(!(setupDeviceInfo((*d), device_intensity))) {
+			m_description += (*d)->errorMessage;
 			m_description += "\n";
 			continue;
 		};
@@ -178,7 +178,7 @@ bool cuda_hasher::configure(xmrig::HasherConfig &config) {
 		DeviceInfo device;
 
 		char bus_id[100];
-		if(cudaDeviceGetPCIBusId(bus_id, 100, (*d)->cuda_index) == cudaSuccess) {
+		if(cudaDeviceGetPCIBusId(bus_id, 100, (*d)->cudaIndex) == cudaSuccess) {
 			device.bus_id = bus_id;
 			int domain_separator = device.bus_id.find(":");
 			if(domain_separator != string::npos) {
@@ -186,13 +186,13 @@ bool cuda_hasher::configure(xmrig::HasherConfig &config) {
 			}
 		}
 
-		device.name = (*d)->device_string;
+		device.name = (*d)->deviceString;
 		device.intensity = device_intensity;
-        storeDeviceInfo((*d)->device_index, device);
+        storeDeviceInfo((*d)->deviceIndex, device);
 
-        __enabledDevices.push_back(*d);
+        m_enabledDevices.push_back(*d);
 
-		total_threads += (*d)->profile_info.threads;
+		total_threads += (*d)->profileInfo.threads;
         intensity += device_intensity;
 	}
 
@@ -213,46 +213,46 @@ bool cuda_hasher::configure(xmrig::HasherConfig &config) {
     if(!buildThreadData())
         return false;
 
-    m_intensity = intensity / __enabledDevices.size();
-    m_computingThreads = __enabledDevices.size() * 2; // 2 computing threads for each device
+    m_intensity = intensity / m_enabledDevices.size();
+    m_computingThreads = m_enabledDevices.size() * 2; // 2 computing threads for each device
     m_description += "Status: ENABLED - with " + to_string(total_threads) + " threads.";
 
 	return true;
 }
 
-void cuda_hasher::cleanup() {
-	for(vector<cuda_device_info *>::iterator d = __devices.begin(); d != __devices.end(); d++) {
+void CudaHasher::cleanup() {
+	for(vector<CudaDeviceInfo *>::iterator d = m_devices.begin(); d != m_devices.end(); d++) {
 		cuda_free(*d);
 	}
 }
 
-bool cuda_hasher::__setup_device_info(cuda_device_info *device, double intensity) {
-    device->profile_info.threads_per_chunk = (uint32_t)(device->max_allocable_mem_size / device->profile_info.profile->memSize);
-    size_t chunk_size = device->profile_info.threads_per_chunk * device->profile_info.profile->memSize;
+bool CudaHasher::setupDeviceInfo(CudaDeviceInfo *device, double intensity) {
+    device->profileInfo.threads_per_chunk = (uint32_t)(device->maxAllocableMemSize / device->profileInfo.profile->memSize);
+    size_t chunk_size = device->profileInfo.threads_per_chunk * device->profileInfo.profile->memSize;
 
     if(chunk_size == 0) {
         device->error = cudaErrorInitializationError;
-        device->error_message = "Not enough memory on GPU.";
+        device->errorMessage = "Not enough memory on GPU.";
         return false;
     }
 
-    uint64_t usable_memory = device->free_mem_size;
+    uint64_t usable_memory = device->freeMemSize;
     double chunks = (double)usable_memory / (double)chunk_size;
 
-    uint32_t max_threads = (uint32_t)(device->profile_info.threads_per_chunk * chunks);
+    uint32_t max_threads = (uint32_t)(device->profileInfo.threads_per_chunk * chunks);
 
     if(max_threads == 0) {
         device->error = cudaErrorInitializationError;
-        device->error_message = "Not enough memory on GPU.";
+        device->errorMessage = "Not enough memory on GPU.";
         return false;
     }
 
-    device->profile_info.threads = (uint32_t)(max_threads * intensity / 100.0);
-	device->profile_info.threads = (device->profile_info.threads / 2) * 2; // make it divisible by 2 to allow for parallel kernel execution
-	if(max_threads > 0 && device->profile_info.threads == 0 && intensity > 0)
-        device->profile_info.threads = 2;
+    device->profileInfo.threads = (uint32_t)(max_threads * intensity / 100.0);
+	device->profileInfo.threads = (device->profileInfo.threads / 2) * 2; // make it divisible by 2 to allow for parallel kernel execution
+	if(max_threads > 0 && device->profileInfo.threads == 0 && intensity > 0)
+        device->profileInfo.threads = 2;
 
-    chunks = (double)device->profile_info.threads / (double)device->profile_info.threads_per_chunk;
+    chunks = (double)device->profileInfo.threads / (double)device->profileInfo.threads_per_chunk;
 
 	cuda_allocate(device, chunks, chunk_size);
 
@@ -262,15 +262,15 @@ bool cuda_hasher::__setup_device_info(cuda_device_info *device, double intensity
     return true;
 }
 
-bool cuda_hasher::buildThreadData() {
-    __thread_data = new cuda_gpumgmt_thread_data[__enabledDevices.size() * 2];
+bool CudaHasher::buildThreadData() {
+    m_threadData = new CudaGpuMgmtThreadData[m_enabledDevices.size() * 2];
 
-    for(int i=0; i < __enabledDevices.size(); i++) {
-        cuda_device_info *device = __enabledDevices[i];
+    for(int i=0; i < m_enabledDevices.size(); i++) {
+        CudaDeviceInfo *device = m_enabledDevices[i];
         for(int threadId = 0; threadId < 2; threadId ++) {
-            cuda_gpumgmt_thread_data &thread_data = __thread_data[i * 2 + threadId];
+            CudaGpuMgmtThreadData &thread_data = m_threadData[i * 2 + threadId];
             thread_data.device = device;
-            thread_data.thread_id = threadId;
+            thread_data.threadId = threadId;
 
             cudaStream_t stream;
             device->error = cudaStreamCreate(&stream);
@@ -279,19 +279,19 @@ bool cuda_hasher::buildThreadData() {
                 return false;
             }
 
-        	thread_data.device_data = stream;
+        	thread_data.deviceData = stream;
 
             #ifdef PARALLEL_CUDA
                 if(threadId == 0) {
-                    thread_data.threads_idx = 0;
-                    thread_data.threads = device->profile_info.threads / 2;
+                    thread_data.threadsIdx = 0;
+                    thread_data.threads = device->profileInfo.threads / 2;
                 }
                 else {
-                    thread_data.threads_idx = device->profile_info.threads / 2;
-                    thread_data.threads = device->profile_info.threads - thread_data.threads_idx;
+                    thread_data.threadsIdx = device->profileInfo.threads / 2;
+                    thread_data.threads = device->profileInfo.threads - thread_data.threadsIdx;
                 }
             #else
-                thread_data.threads_idx = 0;
+                thread_data.threadsIdx = 0;
                 thread_data.threads = device->profile_info.threads;
             #endif
 
@@ -305,17 +305,17 @@ bool cuda_hasher::buildThreadData() {
     return true;
 }
 
-int cuda_hasher::compute(int threadIdx, uint8_t *input, size_t size, uint8_t *output) {
-    cuda_gpumgmt_thread_data &threadData = __thread_data[threadIdx];
+int CudaHasher::compute(int threadIdx, uint8_t *input, size_t size, uint8_t *output) {
+    CudaGpuMgmtThreadData &threadData = m_threadData[threadIdx];
 
-	cudaSetDevice(threadData.device->cuda_index);
+	cudaSetDevice(threadData.device->cudaIndex);
 
     threadData.hashData.input = input;
     threadData.hashData.inSize = size;
     threadData.hashData.output = output;
     int hashCount = threadData.argon2->generateHashes(*m_profile, threadData.hashData);
     if(threadData.device->error != cudaSuccess) {
-        LOG("Error running kernel: (" + to_string(threadData.device->error) + ")" + threadData.device->error_message);
+        LOG("Error running kernel: (" + to_string(threadData.device->error) + ")" + threadData.device->errorMessage);
         return 0;
     }
 
@@ -326,15 +326,15 @@ int cuda_hasher::compute(int threadIdx, uint8_t *input, size_t size, uint8_t *ou
 
 }
 
-size_t cuda_hasher::parallelism(int workerIdx) {
-    cuda_gpumgmt_thread_data &threadData = __thread_data[workerIdx];
+size_t CudaHasher::parallelism(int workerIdx) {
+    CudaGpuMgmtThreadData &threadData = m_threadData[workerIdx];
     return threadData.threads;
 }
 
-size_t cuda_hasher::deviceCount() {
-    return __enabledDevices.size();
+size_t CudaHasher::deviceCount() {
+    return m_enabledDevices.size();
 }
 
-REGISTER_HASHER(cuda_hasher);
+REGISTER_HASHER(CudaHasher);
 
 #endif //WITH_CUDA

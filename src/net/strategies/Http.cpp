@@ -89,11 +89,11 @@ public:
     string payload;
 };
 
-int http::__socketlib_reference = 0;
+int Http::m_socketlibReference = 0;
 
-http::http() {
+Http::Http() {
 #ifdef _WIN64
-    if(__socketlib_reference == 0) {
+    if(m_socketlibReference == 0) {
         WSADATA wsaData;
         int iResult;
 
@@ -105,19 +105,19 @@ http::http() {
         }
 	}
 #endif
-    __socketlib_reference++;
+    m_socketlibReference++;
 }
 
-http::~http() {
-    __socketlib_reference--;
+Http::~Http() {
+    m_socketlibReference--;
 #ifdef _WIN64
-    if(__socketlib_reference == 0) {
+    if(m_socketlibReference == 0) {
     	WSACleanup();
 	}
 #endif
 }
 
-vector<string> http::_resolve_host(const string &hostname)
+vector<string> Http::resolveHost(const string &hostname)
 {
     string host = hostname;
 
@@ -149,7 +149,7 @@ vector<string> http::_resolve_host(const string &hostname)
     return addresses;
 }
 
-string http::_encode(const string &src) {
+string Http::encode(const string &src) {
     string new_str = "";
     char c;
     int ic;
@@ -174,7 +174,7 @@ string http::_encode(const string &src) {
     return new_str;
 }
 
-string http_internal_impl::__get_response(const string &url, const string &post_data, const string &content_type) {
+string HttpInternalImpl::getResponse(const string &url, const string &post_data, const string &content_type) {
     http_callback_data reply;
     reply.complete = false;
 
@@ -182,7 +182,7 @@ string http_internal_impl::__get_response(const string &url, const string &post_
     if(query.protocol != "http")
         return "";
 
-    vector<string> ips = _resolve_host(query.host);
+    vector<string> ips = resolveHost(query.host);
     for(int i=0;i<ips.size();i++) {
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         struct sockaddr_in addr;
@@ -273,11 +273,11 @@ string http_internal_impl::__get_response(const string &url, const string &post_
     return reply.body;
 };
 
-string http_internal_impl::_http_get(const string &url) {
-    return __get_response(url, "", "");
+string HttpInternalImpl::httpGet(const string &url) {
+    return getResponse(url, "", "");
 }
 
-string http_internal_impl::_http_post(const string &url, const string &post_data, const string &content_type) {
-    return __get_response(url, post_data, content_type);
+string HttpInternalImpl::httpPost(const string &url, const string &post_data, const string &content_type) {
+    return getResponse(url, post_data, content_type);
 }
 

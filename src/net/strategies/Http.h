@@ -7,27 +7,27 @@
 
 using namespace std;
 
-class http {
+class Http {
 public:
-    http();
-    virtual ~http();
+    Http();
+    virtual ~Http();
 
-    virtual string _http_get(const string &url) { return ""; };
-    virtual string _http_post(const string &url, const string &post_data, const string &content_type) { return ""; };
-    string _encode(const string &src);
-    vector<string> _resolve_host(const string &hostname);
+    virtual string httpGet(const string &url) { return ""; };
+    virtual string httpPost(const string &url, const string &post_data, const string &content_type) { return ""; };
+    string encode(const string &src);
+    vector<string> resolveHost(const string &hostname);
 
 private:
-    static int __socketlib_reference;
+    static int m_socketlibReference;
 };
 
-class http_internal_impl : public http {
+class HttpInternalImpl : public Http {
 public:
-    virtual string _http_get(const string &url);
-    virtual string _http_post(const string &url, const string &post_data, const string &content_type);
+    virtual string httpGet(const string &url);
+    virtual string httpPost(const string &url, const string &post_data, const string &content_type);
 
 private:
-    string __get_response(const string &url, const string &post_data, const string &content_type);
+    string getResponse(const string &url, const string &post_data, const string &content_type);
 };
 
 #endif //DONATE_HTTP_H

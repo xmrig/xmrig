@@ -15,24 +15,24 @@
 #include <CL/opencl.h>
 #endif // !__APPLE__
 
-struct opencl_kernel_arguments {
-    cl_mem memory_chunk_0;
-    cl_mem memory_chunk_1;
-    cl_mem memory_chunk_2;
-    cl_mem memory_chunk_3;
-    cl_mem memory_chunk_4;
-    cl_mem memory_chunk_5;
+struct OpenCLKernelArguments {
+    cl_mem memoryChunk_0;
+    cl_mem memoryChunk_1;
+    cl_mem memoryChunk_2;
+    cl_mem memoryChunk_3;
+    cl_mem memoryChunk_4;
+    cl_mem memoryChunk_5;
     cl_mem refs;
     cl_mem idxs;
     cl_mem segments;
-    cl_mem preseed_memory[2];
-    cl_mem seed_memory[2];
-    cl_mem out_memory[2];
-    cl_mem hash_memory[2];
+    cl_mem preseedMemory[2];
+    cl_mem seedMemory[2];
+    cl_mem outMemory[2];
+    cl_mem hashMemory[2];
 };
 
-struct argon2profile_info {
-    argon2profile_info() {
+struct Argon2ProfileInfo {
+    Argon2ProfileInfo() {
         threads = 0;
         threads_per_chunk = 0;
     }
@@ -42,10 +42,10 @@ struct argon2profile_info {
     Argon2Profile *profile;
 };
 
-struct opencl_device_info {
-    opencl_device_info(cl_int err, const string &err_msg) {
+struct OpenCLDeviceInfo {
+    OpenCLDeviceInfo(cl_int err, const string &err_msg) {
         error = err;
-        error_message = err_msg;
+        errorMessage = err_msg;
     }
 
     cl_platform_id platform;
@@ -54,36 +54,36 @@ struct opencl_device_info {
     cl_command_queue queue;
 
     cl_program program;
-    cl_kernel kernel_prehash;
-    cl_kernel kernel_fill_blocks;
-    cl_kernel kernel_posthash;
+    cl_kernel kernelPrehash;
+    cl_kernel kernelFillBlocks;
+    cl_kernel kernelPosthash;
 
-    int device_index;
+    int deviceIndex;
 
-    opencl_kernel_arguments arguments;
-    argon2profile_info profile_info;
+    OpenCLKernelArguments arguments;
+    Argon2ProfileInfo profileInfo;
 
-    string device_string;
-    uint64_t max_mem_size;
-    uint64_t max_allocable_mem_size;
+    string deviceString;
+    uint64_t maxMemSize;
+    uint64_t maxAllocableMemSize;
 
     cl_int error;
-    string error_message;
+    string errorMessage;
 
-    mutex device_lock;
+    mutex deviceLock;
 };
 
-struct opencl_gpumgmt_thread_data {
-    int thread_id;
-    opencl_device_info *device;
+struct OpenCLGpuMgmtThreadData {
+    int threadId;
+    OpenCLDeviceInfo *device;
     Argon2 *argon2;
     HashData hashData;
 };
 
-class opencl_hasher : public Hasher {
+class OpenCLHasher : public Hasher {
 public:
-    opencl_hasher();
-    ~opencl_hasher();
+    OpenCLHasher();
+    ~OpenCLHasher();
 
     virtual bool initialize(xmrig::Algo algorithm, xmrig::Variant variant);
     virtual bool configure(xmrig::HasherConfig &config);
@@ -93,14 +93,14 @@ public:
     virtual size_t deviceCount();
 
 private:
-    opencl_device_info *__get_device_info(cl_platform_id platform, cl_device_id device);
-    bool __setup_device_info(opencl_device_info *device, double intensity);
-    vector<opencl_device_info*> __query_opencl_devices(cl_int &error, string &error_message);
+    OpenCLDeviceInfo *getDeviceInfo(cl_platform_id platform, cl_device_id device);
+    bool setupDeviceInfo(OpenCLDeviceInfo *device, double intensity);
+    vector<OpenCLDeviceInfo*> queryOpenCLDevices(cl_int &error, string &error_message);
     void buildThreadData();
 
-    vector<opencl_device_info*> __devices;
-    vector<opencl_device_info*> __enabledDevices;
-    opencl_gpumgmt_thread_data *__thread_data;
+    vector<OpenCLDeviceInfo*> m_devices;
+    vector<OpenCLDeviceInfo*> m_enabledDevices;
+    OpenCLGpuMgmtThreadData *m_threadData;
 
     Argon2Profile *m_profile;
 };

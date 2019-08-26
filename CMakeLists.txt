@@ -171,7 +171,7 @@ set(SOURCE_CPU_HASHER src/crypto/argon2_hasher/hash/cpu/CpuHasher.cpp src/crypto
 set(SOURCE_OPENCL_HASHER src/crypto/argon2_hasher/hash/gpu/opencl/OpenCLHasher.cpp src/crypto/argon2_hasher/hash/gpu/opencl/OpenCLHasher.h
         src/crypto/argon2_hasher/hash/gpu/opencl/OpenCLKernel.cpp src/crypto/argon2_hasher/hash/gpu/opencl/OpenCLKernel.h)
 
-set(SOURCE_CUDA_HASHER src/crypto/argon2_hasher/hash/gpu/cuda/cuda_hasher.cpp src/crypto/argon2_hasher/hash/gpu/cuda/cuda_hasher.h
+set(SOURCE_CUDA_HASHER src/crypto/argon2_hasher/hash/gpu/cuda/CudaHasher.cpp src/crypto/argon2_hasher/hash/gpu/cuda/CudaHasher.h
         src/crypto/argon2_hasher/hash/gpu/cuda/cuda_kernel.cu)
 
 set(ARGON2_FILL_BLOCKS_SRC
