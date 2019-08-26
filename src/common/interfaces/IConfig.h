@@ -71,33 +71,20 @@ public:
         AutoSaveKey       = 1016,
 
         // xmrig common
-        CPUPriorityKey    = 1021,
+        PriorityKey       = 1021,
         NicehashKey       = 1006,
         PrintTimeKey      = 1007,
 
         // xmrig cpu
-        AVKey             = 'v',
+        CPUThreadsKey     = 't',
+        CPUOptimizationKey = 5004,
         CPUAffinityKey    = 1020,
         DryRunKey         = 5000,
-        HugePagesKey      = 1009,
-        MaxCPUUsageKey    = 1004,
-        SafeKey           = 1005,
-        ThreadsKey        = 't',
-        HardwareAESKey    = 1011,
-        AssemblyKey       = 1015,
 
-        // xmrig amd
-        OclPlatformKey    = 1400,
-        OclAffinityKey    = 1401,
-        OclDevicesKey     = 1402,
-        OclLaunchKey      = 1403,
-        OclCacheKey       = 1404,
-        OclPrintKey       = 1405,
-        OclLoaderKey      = 1406,
-        OclSridedIndexKey = 1407,
-        OclMemChunkKey    = 1408,
-        OclUnrollKey      = 1409,
-        OclCompModeKey    = 1410,
+        // ninjarig gpu
+        UseGPUKey         = 5001,
+        GPUIntensityKey   = 5002,
+        GPUFilterKey      = 5003,
 
         // xmrig-proxy
         AccessLogFileKey   = 'A',
@@ -117,15 +104,6 @@ public:
         TlsCiphersKey      = 1112,
         TlsCipherSuitesKey = 1113,
         TlsProtocolsKey    = 1114,
-
-        // xmrig nvidia
-        CudaMaxThreadsKey = 1200,
-        CudaBFactorKey    = 1201,
-        CudaBSleepKey     = 1202,
-        CudaDevicesKey    = 1203,
-        CudaLaunchKey     = 1204,
-        CudaAffinityKey   = 1205,
-        CudaMaxUsageKey   = 1206,
     };
 
     virtual ~IConfig() = default;

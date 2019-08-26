@@ -42,7 +42,7 @@ namespace xmrig
         return 0;
     }
 
-    inline uint32_t argon2_select_memory(Variant variant)
+    inline uint64_t argon2_select_memory(Variant variant)
     {
         switch (variant)
         {

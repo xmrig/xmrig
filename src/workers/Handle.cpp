@@ -22,25 +22,65 @@
  */
 
 
+#include <common/log/Log.h>
 #include "workers/Handle.h"
 
 
-Handle::Handle(xmrig::IThread *config, uint32_t offset, size_t totalWays) :
-    m_worker(nullptr),
-    m_totalWays(totalWays),
-    m_offset(offset),
-    m_config(config)
+Handle::Handle(xmrig::Config *config, xmrig::HasherConfig *hasherConfig, uint32_t offset) :
+        m_offset(offset),
+        m_config(config),
+        m_hasherConfig(hasherConfig),
+        m_hasher(nullptr)
 {
-}
+    std::vector<Hasher *> hashers = Hasher::getHashers();
+    for(Hasher *hasher : hashers) {
+        if(hasherConfig->type() == hasher->subType()) {
+            if(hasher->initialize(hasherConfig->algorithm(), hasherConfig->variant()) &&
+                hasher->configure(*hasherConfig) &&
+                hasher->deviceCount() > 0)
+                m_hasher = hasher;
 
+            std::string hasherInfo = hasher->info();
+
+            if(config->isColors()) {
+                std::string redDisabled = RED_BOLD("DISABLED");
+                std::string greenEnabled = GREEN_BOLD("ENABLED");
+
+                size_t startPos = hasherInfo.find("DISABLED");
+                while (startPos != string::npos) {
+                    hasherInfo.replace(startPos, 8, redDisabled);
+                    startPos = hasherInfo.find("DISABLED", startPos + redDisabled.size());
+                }
+
+                startPos = hasherInfo.find("ENABLED");
+                while (startPos != string::npos) {
+                    hasherInfo.replace(startPos, 7, greenEnabled);
+                    startPos = hasherInfo.find("ENABLED", startPos + greenEnabled.size());
+                }
+
+                Log::i()->text(GREEN_BOLD(" * Initializing %s hasher:") "\n%s", hasher->subType().c_str(), hasherInfo.c_str());
+            }
+            else {
+                Log::i()->text(" * Initializing %s hasher:\n%s", hasher->subType().c_str(), hasherInfo.c_str());
+            }
+        }
+    }
+}
 
 void Handle::join()
 {
-    uv_thread_join(&m_thread);
+    for(uv_thread_t thread : m_threads)
+        uv_thread_join(&thread);
 }
 
 
 void Handle::start(void (*callback) (void *))
 {
-    uv_thread_create(&m_thread, callback, this);
+    assert(m_hasher != nullptr);
+    for(int i=0; i < m_hasher->computingThreads(); i++) {
+        uv_thread_t thread;
+        HandleArg *arg = new HandleArg { this, i };
+        uv_thread_create(&thread, callback, arg);
+        m_threads.push_back(thread);
+    }
 }

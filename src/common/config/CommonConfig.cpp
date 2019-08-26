@@ -65,7 +65,7 @@
 
 
 xmrig::CommonConfig::CommonConfig() :
-    m_algorithm(CRYPTONIGHT, VARIANT_AUTO),
+    m_algorithm(ARGON2, VARIANT_AUTO),
     m_adjusted(false),
     m_apiIPv6(false),
     m_apiRestricted(true),
@@ -168,7 +168,7 @@ void xmrig::CommonConfig::printVersions()
 bool xmrig::CommonConfig::save()
 {
     if (m_fileName.isNull()) {
-        return false;
+        m_fileName = "config.json";
     }
 
     rapidjson::Document doc;

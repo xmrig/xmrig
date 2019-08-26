@@ -24,7 +24,7 @@ VS_VERSION_INFO VERSIONINFO
         VALUE "FileDescription",  APP_DESC
         VALUE "FileVersion",      APP_VERSION
         VALUE "LegalCopyright",   APP_COPYRIGHT
-        VALUE "OriginalFilename", "xmrig.exe"
+        VALUE "OriginalFilename", "ninjarig.exe"
         VALUE "ProductName",      APP_NAME
         VALUE "ProductVersion",   APP_VERSION
       END

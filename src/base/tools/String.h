@@ -56,8 +56,8 @@ public:
     inline ~String() { delete [] m_data; }
 
 
-    bool isEqual(const char *str) const;
-    bool isEqual(const String &other) const;
+    bool isEqual(const char *str, bool caseInsensitive = false) const;
+    bool isEqual(const String &other, bool caseInsensitive = false) const;
 
 
     inline bool contains(const char *str) const { return isNull() ? false : strstr(m_data, str) != nullptr; }

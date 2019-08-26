@@ -52,7 +52,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 }
 
 
-size_t xmrig::BasicCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsage) const
+size_t xmrig::BasicCpuInfo::optimalThreadsCount(size_t memSize) const
 {
     return threads();
 }

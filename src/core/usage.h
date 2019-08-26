@@ -36,32 +36,26 @@ static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n\
   -a, --algo=ALGO          specify the algorithm to use\n\
-                             cryptonight\n"
-#ifndef XMRIG_NO_AEON
-"\
-                             cryptonight-lite\n"
-#endif
-#ifndef XMRIG_NO_SUMO
-"\
-                             cryptonight-heavy\n"
-#endif
-"\
+                                   chukwa\n\
+                                   chukwa/wrkz\n\
   -o, --url=URL            URL of mining server\n\
   -O, --userpass=U:P       username:password pair for mining server\n\
   -u, --user=USERNAME      username for mining server\n\
   -p, --pass=PASSWORD      password for mining server\n\
       --rig-id=ID          rig identifier for pool-side statistics (needs pool support)\n\
-  -t, --threads=N          number of miner threads\n\
-  -v, --av=N               algorithm variation, 0 auto select\n\
+  -t, --cpu-threads=N      number of cpu miner threads - use 0 to disable\n\
+      --cpu-affinity       set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
+      --cpu-optimization=REF|SSE2|SSSE3|AVX|AVX2|AVX512F|NEON force specific optimization for cpu mining\n\
+      --use-gpu=CUDA,OPENCL       gpu engine to use, ignore this param to disable gpu support\n\
+      --gpu-intensity=v1,v2...    percent of gpu memory to use - you can have different values for each card (default 50)\n\
+      --gpu-filter=<filter1>,CUDA:<filter2>,OPENCL:<filter3>  gpu filters to select cards\n\
   -k, --keepalive          send keepalived packet for prevent timeout (needs pool support)\n\
       --nicehash           enable nicehash.com support\n\
       --tls                enable SSL/TLS support (needs pool support)\n\
       --tls-fingerprint=F  pool TLS certificate fingerprint, if set enable strict certificate pinning\n\
   -r, --retries=N          number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N      time to pause between retries (default: 5)\n\
-      --cpu-affinity       set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
-      --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)\n\
-      --no-huge-pages      disable huge pages support\n\
+      --priority           set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-color           disable colored output\n\
       --variant            algorithm PoW variant\n\
       --donate-level=N     donate level, default 5%% (5 minutes in 100 minutes)\n\
@@ -74,9 +68,6 @@ Options:\n\
   -S, --syslog             use system log for output messages\n"
 # endif
 "\
-      --max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)\n\
-      --safe               safe adjust threads and av settings for current CPU\n\
-      --asm=ASM            ASM code for cn/2, possible values: auto, none, intel, ryzen, bulldozer.\n\
       --print-time=N       print hashrate report every N seconds\n\
       --api-port=N         port for the miner API\n\
       --api-access-token=T access token for API\n\

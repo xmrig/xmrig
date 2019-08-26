@@ -30,39 +30,54 @@
 
 
 #include "interfaces/IWorker.h"
-#include "Mem.h"
-
+#include "common/net/Job.h"
+#include "net/JobResult.h"
 
 class Handle;
 
 
 namespace xmrig {
-    class CpuThread;
+    class HasherConfig;
 }
 
 
 class Worker : public IWorker
 {
 public:
-    Worker(Handle *handle);
+    Worker(Handle *handle, int workerIdx);
 
-    inline const MemInfo &memory() const       { return m_memory; }
     inline size_t id() const override          { return m_id; }
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
     inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
+    inline size_t parallelism() const override { return m_hasher->parallelism(m_id); }
 
-protected:
+    bool selfTest() override;
+    void start() override;
+
+private:
     void storeStats();
+    bool consumeJob();
+
+    bool resume(const xmrig::Job &job);
+    void save(const xmrig::Job &job);
+
+    struct State
+    {
+        alignas(16) uint8_t blob[xmrig::Job::kMaxBlobSize];
+        xmrig::Job job;
+    };
 
     const size_t m_id;
-    const size_t m_totalWays;
-    const uint32_t m_offset;
-    MemInfo m_memory;
+    uint32_t m_offset;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
+    Hasher *m_hasher;
     uint64_t m_count;
     uint64_t m_sequence;
-    xmrig::CpuThread *m_thread;
+    xmrig::HasherConfig *m_config;
+    State m_pausedState;
+    State m_state;
+    uint8_t *m_hash;
 };
 
 

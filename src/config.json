@@ -8,18 +8,16 @@
         "ipv6": false,
         "restricted": true
     },
-    "asm": true,
     "autosave": true,
-    "av": 0,
     "background": false,
     "colors": true,
+    "threads": "all",
     "cpu-affinity": null,
     "cpu-priority": null,
+    "use-gpu": "CUDA",
+    "gpu-intensity": 50,
     "donate-level": 1,
-    "huge-pages": true,
-    "hw-aes": null,
     "log-file": "./log.txt",
-    "max-cpu-usage": 95,
     "pools": [
         {
             "url": "testnet.wrkz.work:5555",
@@ -38,8 +36,6 @@
     "retries": 5,
     "retry-pause": 5,
     "safe": false,
-    "threads": [
-    ],
     "user-agent": null,
     "watch": true
 }

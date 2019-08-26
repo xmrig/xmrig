@@ -31,7 +31,6 @@
 
 
 xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
-    m_assembly(ASM_NONE),
     m_aes(false),
     m_avx2(false),
     m_L2_exclusive(false),
@@ -76,20 +75,13 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
 
     if (data.flags[CPU_FEATURE_AES]) {
         m_aes = true;
-
-        if (data.vendor == VENDOR_AMD) {
-            m_assembly = (data.ext_family >= 23) ? ASM_RYZEN : ASM_BULLDOZER;
-        }
-        else if (data.vendor == VENDOR_INTEL) {
-            m_assembly = ASM_INTEL;
-        }
     }
 
     m_avx2 = data.flags[CPU_FEATURE_AVX2] && data.flags[CPU_FEATURE_OSXSAVE];
 }
 
 
-size_t xmrig::AdvancedCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsage) const
+size_t xmrig::AdvancedCpuInfo::optimalThreadsCount(size_t memSize) const
 {
     if (threads() == 1) {
         return 1;
@@ -118,10 +110,6 @@ size_t xmrig::AdvancedCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsa
 
     if (count > (size_t) threads()) {
         count = threads();
-    }
-
-    if (((float) count / threads() * 100) > maxCpuUsage) {
-        count = (int) ceil((float) threads() * (maxCpuUsage / 100.0));
     }
 
     return count < 1 ? 1 : count;

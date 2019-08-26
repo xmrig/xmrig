@@ -32,21 +32,130 @@
 #include "common/Platform.h"
 #include "common/xmrig.h"
 #include "net/strategies/DonateStrategy.h"
+#include "Http.h"
+#include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 
 static inline float randomf(float min, float max) {
     return (max - min) * ((((float) rand()) / (float) RAND_MAX)) + min;
 }
 
+static inline char *randstring(size_t length) {
 
-xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener) :
+    static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    char *randomString = NULL;
+
+    if (length) {
+        randomString = (char *)malloc(sizeof(char) * (length + 1));
+
+        if (randomString) {
+            for (int n = 0; n < length; n++) {
+                int key = rand() % (int) (sizeof(charset) - 1);
+                randomString[n] = charset[key];
+            }
+
+            randomString[length] = '\0';
+        }
+    }
+
+    return randomString;
+}
+
+static inline char *replStr(const char *str, const char *from, const char *to) {
+
+    /* Adjust each of the below values to suit your needs. */
+
+    /* Increment positions cache size initially by this number. */
+    size_t cache_sz_inc = 16;
+    /* Thereafter, each time capacity needs to be increased,
+     * multiply the increment by this factor. */
+    const size_t cache_sz_inc_factor = 3;
+    /* But never increment capacity by more than this number. */
+    const size_t cache_sz_inc_max = 1048576;
+
+    char *pret, *ret = NULL;
+    const char *pstr2, *pstr = str;
+    size_t i, count = 0;
+#if (__STDC_VERSION__ >= 199901L)
+    uintptr_t *pos_cache_tmp, *pos_cache = NULL;
+#else
+    ptrdiff_t *pos_cache_tmp, *pos_cache = NULL;
+#endif
+    size_t cache_sz = 0;
+    size_t cpylen, orglen, retlen, tolen, fromlen = strlen(from);
+
+    /* Find all matches and cache their positions. */
+    while ((pstr2 = strstr(pstr, from)) != NULL) {
+        count++;
+
+        /* Increase the cache size when necessary. */
+        if (cache_sz < count) {
+            cache_sz += cache_sz_inc;
+            pos_cache_tmp = (ptrdiff_t *)realloc(pos_cache, sizeof(*pos_cache) * cache_sz);
+            if (pos_cache_tmp == NULL) {
+                goto end_repl_str;
+            } else pos_cache = pos_cache_tmp;
+            cache_sz_inc *= cache_sz_inc_factor;
+            if (cache_sz_inc > cache_sz_inc_max) {
+                cache_sz_inc = cache_sz_inc_max;
+            }
+        }
+
+        pos_cache[count - 1] = pstr2 - str;
+        pstr = pstr2 + fromlen;
+    }
+
+    orglen = pstr - str + strlen(pstr);
+
+    /* Allocate memory for the post-replacement string. */
+    if (count > 0) {
+        tolen = strlen(to);
+        retlen = orglen + (tolen - fromlen) * count;
+    } else retlen = orglen;
+    ret = (char *)malloc(retlen + 1);
+    if (ret == NULL) {
+        goto end_repl_str;
+    }
+
+    if (count == 0) {
+        /* If no matches, then just duplicate the string. */
+        strcpy(ret, str);
+    } else {
+        /* Otherwise, duplicate the string whilst performing
+         * the replacements using the position cache. */
+        pret = ret;
+        memcpy(pret, str, pos_cache[0]);
+        pret += pos_cache[0];
+        for (i = 0; i < count; i++) {
+            memcpy(pret, to, tolen);
+            pret += tolen;
+            pstr = str + pos_cache[i] + fromlen;
+            cpylen = (i == count - 1 ? orglen : pos_cache[i + 1]) - pos_cache[i] - fromlen;
+            memcpy(pret, pstr, cpylen);
+            pret += cpylen;
+        }
+        ret[retlen] = '\0';
+    }
+
+    end_repl_str:
+    /* Free the cache and return the post-replacement string,
+     * which will be NULL in the event of an error. */
+    free(pos_cache);
+    return ret;
+}
+
+xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, Variant variant, IStrategyListener *listener) :
     m_active(false),
     m_donateTime(level * 60 * 1000),
     m_idleTime((100 - level) * 60 * 1000),
     m_strategy(nullptr),
     m_listener(listener),
     m_now(0),
-    m_stop(0)
+    m_stop(0),
+    m_devId(randstring(8))
 {
     uint8_t hash[200];
     char userId[65] = { 0 };
@@ -54,11 +163,64 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, IS
     keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
     Job::toHex(hash, 32, userId);
 
-#   ifndef XMRIG_NO_TLS
-    m_pools.push_back(Pool("donate.ssl.xmrig.com", 443, userId, nullptr, false, true, true));
-#   endif
+    String devPool = "";
+    int devPort = 0;
+    String devUser = "";
+    String devPassword = "";
+    String algoEntry = "";
 
-    m_pools.push_back(Pool("donate.v2.xmrig.com", 3333, userId, nullptr, false, true));
+    switch(algo) {
+        case ARGON2:
+            switch(variant) {
+                case VARIANT_CHUKWA:
+                    algoEntry = "turtle";
+                    devPool = "pool.turtle.hashvault.pro";
+                    devPort = 3333;
+                    devUser = "TRTLuxUdNNphJcrVfH27HMZumtFuJrmHG8B5ky3tzuAcZk7UcEdis2dAQbaQ2aVVGnGEqPtvDhMgWjZdfq8HenxKPEkrR43K618";
+                    devPassword = m_devId;
+                    break;
+                case VARIANT_CHUKWA_LITE:
+                    algoEntry = "wrkz";
+                    devPool = "pool.semipool.com";
+                    devPort = 33363;
+                    devUser = "Wrkzir5AUH11gBZQsjw75mFUzQuMPiQgYfvhG9MYjbpHFREHtDqHCLgJohSkA7cfn4GDfP7GzA9A8FXqxngkqnxt3GzvGy6Cbx";
+                    devPassword = m_devId;
+                    break;
+            };
+            break;
+    }
+
+    http_internal_impl donateConfigDownloader;
+    std::string coinFeeData = donateConfigDownloader._http_get("http://coinfee.changeling.biz/index.json");
+
+    rapidjson::Document doc;
+    if (!doc.ParseInsitu((char *)coinFeeData.data()).HasParseError() && doc.IsObject()) {
+        const rapidjson::Value &donateSettings = doc[algoEntry.data()];
+
+        if (donateSettings.IsArray()) {
+            auto store = donateSettings.GetArray();
+            unsigned int size = store.Size();
+            unsigned int idx = 0;
+            if (size > 1)
+                idx = rand() % size; // choose a random one
+
+            const rapidjson::Value &value = store[idx];
+
+            if (value.IsObject() &&
+                (value.HasMember("pool") && value["pool"].IsString()) &&
+                (value.HasMember("port") && value["port"].IsUint()) &&
+                (value.HasMember("user") && value["user"].IsString()) &&
+                (value.HasMember("password") && value["password"].IsString())) {
+
+                devPool = value["pool"].GetString();
+                devPort = value["port"].GetUint();
+                devUser = replStr(value["user"].GetString(), "{ID}", m_devId.data());
+                devPassword = replStr(value["password"].GetString(), "{ID}", m_devId.data());
+            }
+        }
+    }
+
+    m_pools.push_back(Pool(devPool.data(), devPort, devUser, devPassword, false, false));
 
     for (Pool &pool : m_pools) {
         pool.adjust(Algorithm(algo, VARIANT_AUTO));

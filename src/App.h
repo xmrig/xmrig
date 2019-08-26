@@ -64,6 +64,7 @@ private:
     Controller *m_controller;
     Httpd *m_httpd;
     Signals *m_signals;
+    char m_appFileName[512];
 };
 
 

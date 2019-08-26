@@ -25,18 +25,18 @@
 #ifndef XMRIG_VERSION_H
 #define XMRIG_VERSION_H
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig CPU miner"
-#define APP_VERSION   "2.14.4-dev"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2019 xmrig.com"
-#define APP_KIND      "cpu"
+#define APP_ID        "ninjarig"
+#define APP_NAME      "NinjaRig"
+#define APP_DESC      "NinjaRig CPU/GPU miner"
+#define APP_VERSION   "1.0.0-dev"
+//#define APP_DOMAIN    "xmrig.com"
+//#define APP_SITE      "www.xmrig.com"
+#define APP_COPYRIGHT "Copyright (C) 2019 Haifa Bogdan Adnan"
+#define APP_KIND      "cpu/gpu"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  14
-#define APP_VER_PATCH  4
+#define APP_VER_MAJOR  1
+#define APP_VER_MINOR  0
+#define APP_VER_PATCH  0
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1920)
