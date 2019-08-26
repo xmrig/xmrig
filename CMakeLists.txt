@@ -349,7 +349,7 @@ if(ARCH STREQUAL "arm" OR ARCH STREQUAL "aarch64")
             SUFFIX ".opt"
             LIBRARY_OUTPUT_DIRECTORY modules
             )
-    target_compile_options(common PRIVATE -D__NEON__)
+    target_compile_options(argon2_common PRIVATE -D__NEON__)
     if(ARCH STREQUAL "arm")
         target_compile_options(argon2_fill_blocks_NEON PRIVATE -D__NEON__ -mfpu=neon -funsafe-math-optimizations)
     else()
