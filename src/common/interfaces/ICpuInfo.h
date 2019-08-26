@@ -52,8 +52,7 @@ public:
     virtual int32_t nodes() const                                             = 0;
     virtual int32_t sockets() const                                           = 0;
     virtual int32_t threads() const                                           = 0;
-    virtual size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const = 0;
-    virtual xmrig::Assembly assembly() const                                  = 0;
+    virtual size_t optimalThreadsCount(size_t memSize) const                  = 0;
 };
 
 

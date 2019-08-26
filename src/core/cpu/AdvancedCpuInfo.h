@@ -38,9 +38,8 @@ public:
     AdvancedCpuInfo();
 
 protected:
-    size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const override;
+    size_t optimalThreadsCount(size_t memSize) const override;
 
-    inline Assembly assembly() const override       { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
     inline bool hasAVX2() const override            { return m_avx2; }
     inline bool isSupported() const override        { return true; }
@@ -59,7 +58,6 @@ protected:
 #   endif
 
 private:
-    Assembly m_assembly;
     bool m_aes;
     bool m_avx2;
     bool m_L2_exclusive;

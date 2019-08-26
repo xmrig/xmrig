@@ -27,35 +27,48 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <vector>
 #include <uv.h>
+#include <core/Config.h>
 
+#include "core/HasherConfig.h"
 
-#include "interfaces/IThread.h"
-
+#include "crypto/argon2_hasher/common/common.h"
+#include "crypto/argon2_hasher/hash/Hasher.h"
 
 class IWorker;
-
 
 class Handle
 {
 public:
-    Handle(xmrig::IThread *config, uint32_t offset, size_t totalWays);
+    Handle(xmrig::Config *config, xmrig::HasherConfig *hasherConfig, uint32_t offset);
+
+    struct HandleArg {
+        Handle *handle;
+        int workerId;
+    };
+
     void join();
     void start(void (*callback) (void *));
 
-    inline IWorker *worker() const         { return m_worker; }
-    inline size_t threadId() const         { return m_config->index(); }
-    inline size_t totalWays() const        { return m_totalWays; }
+    inline std::vector<IWorker *> &workers()         { return m_workers; }
+    inline size_t hasherId() const         { return m_hasherConfig->index(); }
+    inline size_t parallelism(int workerIdx) const        { return m_hasher != nullptr ? m_hasher->parallelism(workerIdx) : 0; }
+    inline size_t computingThreads() const   { return m_hasher != nullptr ? m_hasher->computingThreads() : 0; }
     inline uint32_t offset() const         { return m_offset; }
-    inline void setWorker(IWorker *worker) { assert(worker != nullptr); m_worker = worker; }
-    inline xmrig::IThread *config() const  { return m_config; }
+    inline void addWorker(IWorker *worker) { assert(worker != nullptr); m_workers.push_back(worker); }
+    inline xmrig::HasherConfig *config() const  { return m_hasherConfig; }
+    inline Hasher *hasher() const { return m_hasher; }
 
 private:
-    IWorker *m_worker;
-    size_t m_totalWays;
+    std::vector<uv_thread_t> m_threads;
+    std::vector<IWorker *> m_workers;
+
+    Hasher *m_hasher;
     uint32_t m_offset;
-    uv_thread_t m_thread;
-    xmrig::IThread *m_config;
+
+    xmrig::HasherConfig *m_hasherConfig;
+    xmrig::Config *m_config;
 };
 
 

@@ -22,35 +22,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <string.h>
 #include <uv.h>
 #include <inttypes.h>
-
 
 #include "common/config/ConfigLoader.h"
 #include "common/cpu/Cpu.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
-#include "crypto/Asm.h"
-#include "crypto/CryptoNight_constants.h"
+#include "crypto/Argon2_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
-#include "workers/CpuThread.h"
+#include "HasherConfig.h"
 
 
 static char affinity_tmp[20] = { 0 };
 
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
-    m_aesMode(AES_AUTO),
-    m_algoVariant(AV_AUTO),
-    m_assembly(ASM_AUTO),
-    m_hugePages(true),
-    m_safe(false),
     m_shouldSave(false),
-    m_maxCpuUsage(100),
-    m_priority(-1)
+    m_priority(-1),
+    m_mask(-1)
 {
 }
 
@@ -80,47 +74,31 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     api.AddMember("restricted",   isApiRestricted(), allocator);
     doc.AddMember("api",          api, allocator);
 
-#   ifndef XMRIG_NO_ASM
-    doc.AddMember("asm",          Asm::toJSON(m_assembly), allocator);
-#   endif
-
     doc.AddMember("autosave",     isAutoSave(), allocator);
-    doc.AddMember("av",           algoVariant(), allocator);
     doc.AddMember("background",   isBackground(), allocator);
     doc.AddMember("colors",       isColors(), allocator);
 
-    if (affinity() != -1L) {
-        snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, affinity());
+    doc.AddMember("cpu-threads", cpuThreads(), allocator);
+    if(cpuOptimization().isNull() || cpuOptimization().isEmpty())
+        doc.AddMember("cpu-optimization", kNullType, allocator);
+    else
+        doc.AddMember("cpu-optimization", StringRef(cpuOptimization().data()), allocator);
+
+    if (cpuAffinity() != -1L) {
+        snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, cpuAffinity());
         doc.AddMember("cpu-affinity", StringRef(affinity_tmp), allocator);
     }
     else {
         doc.AddMember("cpu-affinity", kNullType, allocator);
     }
 
-    doc.AddMember("cpu-priority",  priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
+    doc.AddMember("priority",  priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
     doc.AddMember("donate-level",  donateLevel(), allocator);
-    doc.AddMember("huge-pages",    isHugePages(), allocator);
-    doc.AddMember("hw-aes",        m_aesMode == AES_AUTO ? Value(kNullType) : Value(m_aesMode == AES_HW), allocator);
     doc.AddMember("log-file",      logFile()             ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
-    doc.AddMember("max-cpu-usage", m_maxCpuUsage, allocator);
     doc.AddMember("pools",         m_pools.toJSON(doc), allocator);
     doc.AddMember("print-time",    printTime(), allocator);
     doc.AddMember("retries",       m_pools.retries(), allocator);
     doc.AddMember("retry-pause",   m_pools.retryPause(), allocator);
-    doc.AddMember("safe",          m_safe, allocator);
-
-    if (threadsMode() != Simple) {
-        Value threads(kArrayType);
-
-        for (const IThread *thread : m_threads.list) {
-            threads.PushBack(thread->toConfig(doc), allocator);
-        }
-
-        doc.AddMember("threads", threads, allocator);
-    }
-    else {
-        doc.AddMember("threads", threadsCount(), allocator);
-    }
 
     doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
 
@@ -129,6 +107,30 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 #   endif
 
     doc.AddMember("watch", m_watch, allocator);
+
+    Value gpuEngines(kArrayType);
+
+    for (const String gpuEngine : m_gpuEngine) {
+        gpuEngines.PushBack(gpuEngine.toJSON(doc), allocator);
+    }
+
+    doc.AddMember("use-gpu", gpuEngines, allocator);
+
+    Value gpuIntensities(kArrayType);
+
+    for (const double gpuIntensity : m_gpuIntensity) {
+        gpuIntensities.PushBack(gpuIntensity, allocator);
+    }
+
+    doc.AddMember("gpu-intensity", gpuIntensities, allocator);
+
+    Value gpuFilters(kArrayType);
+
+    for (const GPUFilter gpuFilter : m_gpuFilter) {
+        gpuFilters.PushBack(toGPUFilterConfig(gpuFilter, doc), allocator);
+    }
+
+    doc.AddMember("gpu-filter", gpuFilters, allocator);
 }
 
 
@@ -148,37 +150,20 @@ bool xmrig::Config::finalize()
         return false;
     }
 
-    if (!m_threads.cpu.empty()) {
-        m_threads.mode     = Advanced;
-        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::info()->hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
+    if(m_gpuIntensity.size() == 0)
+        m_gpuIntensity.push_back(50);
 
-        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
-        }
+    HasherConfig hasherConfig(m_algorithm.algo(), m_algorithm.variant(), m_priority, m_cpuThreads, m_mask, m_cpuOptimization.isNull() ? "" : m_cpuOptimization.data(), m_gpuIntensity, m_gpuFilter);
 
-        return true;
-    }
+    if(m_cpuThreads > 0)
+        m_hashers.push_back(hasherConfig.clone(m_hashers.size(), "CPU"));
 
-    const AlgoVariant av = getAlgoVariant();   
-    m_threads.mode = m_threads.count ? Simple : Automatic;
+    if(m_gpuEngine.size() > 0)
+        for(String gpuEngine : m_gpuEngine)
+            m_hashers.push_back(hasherConfig.clone(m_hashers.size(), gpuEngine.data()));
 
-    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
+    m_shouldSave = true;
 
-    if (!m_threads.count) {
-        m_threads.count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-    }
-    else if (m_safe) {
-        const size_t count = Cpu::info()->optimalThreadsCount(size, m_maxCpuUsage);
-        if (m_threads.count > count) {
-            m_threads.count = count;
-        }
-    }
-
-    for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority, m_assembly));
-    }
-
-    m_shouldSave = m_threads.mode == Automatic;
     return true;
 }
 
@@ -187,29 +172,6 @@ bool xmrig::Config::parseBoolean(int key, bool enable)
 {
     if (!CommonConfig::parseBoolean(key, enable)) {
         return false;
-    }
-
-    switch (key) {
-    case SafeKey: /* --safe */
-        m_safe = enable;
-        break;
-
-    case HugePagesKey: /* --no-huge-pages */
-        m_hugePages = enable;
-        break;
-
-    case HardwareAESKey: /* hw-aes config only */
-        m_aesMode = enable ? AES_HW : AES_SOFT;
-        break;
-
-#   ifndef XMRIG_NO_ASM
-    case AssemblyKey:
-        m_assembly = Asm::parse(enable);
-        break;
-#   endif
-
-    default:
-        break;
     }
 
     return true;
@@ -223,24 +185,41 @@ bool xmrig::Config::parseString(int key, const char *arg)
     }
 
     switch (key) {
-    case AVKey:          /* --av */
-    case MaxCPUUsageKey: /* --max-cpu-usage */
-    case CPUPriorityKey: /* --cpu-priority */
+    case PriorityKey: /* --cpu-priority */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
-    case SafeKey: /* --safe */
-        return parseBoolean(key, true);
-
-    case HugePagesKey: /* --no-huge-pages */
-        return parseBoolean(key, false);
-
-    case ThreadsKey:  /* --threads */
+    case CPUThreadsKey:  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
-            m_threads.count = Cpu::info()->threads();
+            m_cpuThreads = Cpu::info()->threads();
             return true;
         }
 
         return parseUint64(key, strtol(arg, nullptr, 10));
+
+    case CPUOptimizationKey:
+        {
+            String value = arg;
+            if(value.isEqual("REF", true))
+                value = "REF";
+            else if(value.isEqual("SSE2", true))
+                value = "SSE2";
+            else if(value.isEqual("SSSE3", true))
+                value = "SSSE3";
+            else if(value.isEqual("AVX", true))
+                value = "AVX";
+            else if(value.isEqual("AVX2", true))
+                value = "AVX2";
+            else if(value.isEqual("AVX512F", true))
+                value = "AVX512F";
+            else if(value.isEqual("NEON", true))
+                value = "NEON";
+            else {
+                printf("Invalid CPU optimization %s.\n", arg);
+                return false;
+            }
+            m_cpuOptimization = value;
+            return true;
+        }
 
     case CPUAffinityKey: /* --cpu-affinity */
         {
@@ -248,11 +227,50 @@ bool xmrig::Config::parseString(int key, const char *arg)
             return parseUint64(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
 
-#   ifndef XMRIG_NO_ASM
-    case AssemblyKey: /* --asm */
-        m_assembly = Asm::parse(arg);
-        break;
-#   endif
+    case UseGPUKey:
+        {
+            String strArg = arg;
+            std::vector<String> gpuEngines = strArg.split(',');
+            m_gpuEngine.clear();
+            for(String engine : gpuEngines) {
+                if(engine.isEqual("OPENCL", true))
+                    m_gpuEngine.push_back("OPENCL");
+                else if(engine.isEqual("CUDA", true))
+                    m_gpuEngine.push_back("CUDA");
+                else {
+                    printf("Invalid GPU hasher %s, ignoring.\n", engine.data());
+                }
+            }
+
+            return m_gpuEngine.size() > 0;
+        }
+
+    case GPUIntensityKey:
+        {
+            String strArg = arg;
+            std::vector<String> gpuIntensities = strArg.split(',');
+            for (const String intensity : gpuIntensities) {
+                double value = strtod(intensity.data(), NULL);
+                if(value > 100) value = 100;
+                if(value < 0) value = 0;
+                m_gpuIntensity.push_back(value);
+            }
+            return true;
+        }
+
+    case GPUFilterKey:
+        {
+            String strArg = arg;
+            std::vector<String> gpuFilters = strArg.split(',');
+            for (const String filter : gpuFilters) {
+                std::vector<String> explodedFilter = filter.split(':');
+                if(explodedFilter.size() == 1)
+                    m_gpuFilter.push_back(GPUFilter("", explodedFilter[0].data()));
+                else if(explodedFilter.size() >= 2)
+                    m_gpuFilter.push_back(GPUFilter(explodedFilter[0].data(), explodedFilter[1].data()));
+            }
+            return true;
+        }
 
     default:
         break;
@@ -271,7 +289,7 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     switch (key) {
     case CPUAffinityKey: /* --cpu-affinity */
         if (arg) {
-            m_threads.mask = arg;
+            m_mask = arg;
         }
         break;
 
@@ -287,20 +305,89 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
     CommonConfig::parseJSON(doc);
 
-    const rapidjson::Value &threads = doc["threads"];
+    const rapidjson::Value &threads = doc["cpu-threads"];
 
-    if (threads.IsArray()) {
-        for (const rapidjson::Value &value : threads.GetArray()) {
-            if (!value.IsObject()) {
+    if (threads.IsUint())
+        m_cpuThreads = threads.GetUint();
+    else if(threads.IsString() && strcasecmp(threads.GetString(), "all") == 0)
+        m_cpuThreads = Cpu::info()->threads();
+
+    const rapidjson::Value &cpuOptimization = doc["cpu-optimization"];
+
+    if (cpuOptimization.IsString()) {
+        String value = cpuOptimization.GetString();
+        if(value.isEqual("REF", true))
+            value = "REF";
+        else if(value.isEqual("SSE2", true))
+            value = "SSE2";
+        else if(value.isEqual("SSSE3", true))
+            value = "SSSE3";
+        else if(value.isEqual("AVX", true))
+            value = "AVX";
+        else if(value.isEqual("AVX2", true))
+            value = "AVX2";
+        else if(value.isEqual("AVX512F", true))
+            value = "AVX512F";
+        else if(value.isEqual("NEON", true))
+            value = "NEON";
+        else {
+            printf("Invalid CPU optimization %s, ignoring.\n", value.data());
+            value = "";
+        }
+
+        if(!value.isEqual(""))
+            m_cpuOptimization = value;
+    }
+
+    const rapidjson::Value &gpuEngines = doc["use-gpu"];
+
+    if(gpuEngines.IsArray()) {
+        m_gpuEngine.clear();
+
+        for(const rapidjson::Value &value : gpuEngines.GetArray()) {
+            if(!value.IsString()) {
                 continue;
             }
 
-            if (value.HasMember("low_power_mode")) {
-                auto data = CpuThread::parse(value);
+            String engine = value.GetString();
+            if(engine.isEqual("OPENCL", true))
+                m_gpuEngine.push_back("OPENCL");
+            else if(engine.isEqual("CUDA", true))
+                m_gpuEngine.push_back("CUDA");
+            else {
+                printf("Invalid GPU hasher %s, ignoring.\n", engine.data());
+            }
+        }
+    }
 
-                if (data.valid) {
-                    m_threads.cpu.push_back(std::move(data));
-                }
+    const rapidjson::Value &gpuIntensities = doc["gpu-intensity"];
+
+    if(gpuIntensities.IsArray()) {
+        for(const rapidjson::Value &value : gpuIntensities.GetArray()) {
+            if(!value.IsDouble()) {
+                continue;
+            }
+
+            double intensity = value.GetDouble();
+            if(intensity > 100) intensity = 100;
+            if(intensity < 0) intensity = 0;
+
+            m_gpuIntensity.push_back(intensity);
+        }
+    }
+
+    const rapidjson::Value &gpuFilters = doc["gpu-filter"];
+
+    if(gpuFilters.IsArray()) {
+        for(const rapidjson::Value &value : gpuFilters.GetArray()) {
+            if(!value.IsObject()) {
+                continue;
+            }
+
+            if(value.HasMember("filter")) {
+                auto data = parseGPUFilterConfig(value);
+
+                m_gpuFilter.push_back(data);
             }
         }
     }
@@ -310,25 +397,13 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 bool xmrig::Config::parseInt(int key, int arg)
 {
     switch (key) {
-    case ThreadsKey: /* --threads */
+    case CPUThreadsKey: /* --threads */
         if (arg >= 0 && arg < 1024) {
-            m_threads.count = arg;
+            m_cpuThreads = arg;
         }
         break;
 
-    case AVKey: /* --av */
-        if (arg >= AV_AUTO && arg < AV_MAX) {
-            m_algoVariant = static_cast<AlgoVariant>(arg);
-        }
-        break;
-
-    case MaxCPUUsageKey: /* --max-cpu-usage */
-        if (m_maxCpuUsage > 0 && arg <= 100) {
-            m_maxCpuUsage = arg;
-        }
-        break;
-
-    case CPUPriorityKey: /* --cpu-priority */
+    case PriorityKey: /* --cpu-priority */
         if (arg >= 0 && arg <= 5) {
             m_priority = arg;
         }
@@ -340,39 +415,3 @@ bool xmrig::Config::parseInt(int key, int arg)
 
     return true;
 }
-
-
-xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
-{
-#   ifndef XMRIG_NO_AEON
-    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
-        return getAlgoVariantLite();
-    }
-#   endif
-
-    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::info()->hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
-    }
-
-    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
-        return static_cast<AlgoVariant>(m_algoVariant + 2);
-    }
-
-    return m_algoVariant;
-}
-
-
-#ifndef XMRIG_NO_AEON
-xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
-{
-    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::info()->hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
-    }
-
-    if (m_safe && !Cpu::info()->hasAES() && m_algoVariant <= AV_DOUBLE) {
-        return static_cast<AlgoVariant>(m_algoVariant + 2);
-    }
-
-    return m_algoVariant;
-}
-#endif

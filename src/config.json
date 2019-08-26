@@ -1,5 +1,5 @@
 {
-    "algo": "cryptonight",
+    "algo": "chukwa/wrkz",
     "api": {
         "port": 0,
         "access-token": null,
@@ -8,27 +8,26 @@
         "ipv6": false,
         "restricted": true
     },
-    "asm": true,
     "autosave": true,
-    "av": 0,
     "background": false,
     "colors": true,
+    "threads": "all",
     "cpu-affinity": null,
     "cpu-priority": null,
-    "donate-level": 5,
-    "huge-pages": true,
-    "hw-aes": null,
-    "log-file": null,
-    "max-cpu-usage": 100,
+    "use-gpu": "CUDA",
+    "gpu-intensity": 50,
+    "donate-level": 1,
+    "log-file": "./log.txt",
     "pools": [
         {
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
+            "url": "testnet.wrkz.work:5555",
+            "user": "WrkzRNDQDwFCBynKPc459v3LDa1gEGzG3j962tMUBko1fw9xgdaS9mNiGMgA9s1q7hS1Z8SGRVWzcGc8Sh8xsvfZ6u2wJEtoZB",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
-            "keepalive": false,
-            "variant": -1,
+            "keepalive": true,
+            "variant": "wrkz",
+            "enabled": true,
             "tls": false,
             "tls-fingerprint": null
         }
@@ -37,7 +36,6 @@
     "retries": 5,
     "retry-pause": 5,
     "safe": false,
-    "threads": null,
     "user-agent": null,
     "watch": true
 }

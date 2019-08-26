@@ -27,23 +27,19 @@
 #include <stdlib.h>
 #include <uv.h>
 
-
 #include "api/Api.h"
 #include "App.h"
 #include "base/kernel/Signals.h"
 #include "common/Console.h"
-#include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "crypto/CryptoNight.h"
-#include "Mem.h"
 #include "net/Network.h"
 #include "Summary.h"
-#include "version.h"
 #include "workers/Workers.h"
-
+#include <crypto/argon2_hasher/hash/Hasher.h>
+#include <base/kernel/Process.h>
 
 #ifndef XMRIG_NO_HTTPD
 #   include "common/api/Httpd.h"
@@ -55,6 +51,8 @@ xmrig::App::App(Process *process) :
     m_httpd(nullptr),
     m_signals(nullptr)
 {
+    srand(time(NULL));
+
     m_controller = new Controller(process);
     if (m_controller->init() != 0) {
         return;
@@ -63,6 +61,8 @@ xmrig::App::App(Process *process) :
     if (!m_controller->config()->isBackground()) {
         m_console = new Console(this);
     }
+
+    process->location(Process::ExeLocation, m_appFileName);
 }
 
 
@@ -90,7 +90,8 @@ int xmrig::App::exec()
 
     background();
 
-    Mem::init(m_controller->config()->isHugePages());
+    // load hasher modules
+    Hasher::loadHashers(m_appFileName);
 
     Summary::print(m_controller);
 
@@ -115,7 +116,8 @@ int xmrig::App::exec()
     m_httpd->start();
 #   endif
 
-    Workers::start(m_controller);
+    if(!Workers::start(m_controller))
+        return 0;
 
     m_controller->network()->connect();
 

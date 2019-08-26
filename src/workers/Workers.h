@@ -51,12 +51,10 @@ class Workers
 {
 public:
     static xmrig::Job job();
-    static size_t hugePages();
-    static size_t threads();
     static void printHashrate(bool detail);
     static void setEnabled(bool enabled);
     static void setJob(const xmrig::Job &job, bool donate);
-    static void start(xmrig::Controller *controller);
+    static bool start(xmrig::Controller *controller);
     static void stop();
     static void submit(const xmrig::JobResult &result);
 
@@ -67,9 +65,11 @@ public:
     static inline uint64_t sequence()                                   { return m_sequence.load(std::memory_order_relaxed); }
     static inline void pause()                                          { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(xmrig::IJobResultListener *listener) { m_listener = listener; }
+    static inline int totalThreads()                                    { return m_totalThreads.load(std::memory_order_relaxed); }
+    static inline std::vector<Handle *> workers()                       { return m_workers; }
 
 #   ifndef XMRIG_NO_API
-    static void threadsSummary(rapidjson::Document &doc);
+    static void hashersSummary(rapidjson::Document &doc);
 #   endif
 
 private:
@@ -82,22 +82,17 @@ private:
     {
     public:
         inline LaunchStatus() :
-            colors(true),
-            hugePages(0),
-            pages(0),
-            started(0),
-            threads(0),
-            ways(0),
-            algo(xmrig::CRYPTONIGHT)
+                colors(true),
+                started(0),
+                hashers(0),
+                algo(xmrig::ARGON2)
         {}
 
         bool colors;
-        size_t hugePages;
-        size_t pages;
         size_t started;
-        size_t threads;
-        size_t ways;
+        size_t hashers;
         xmrig::Algo algo;
+        xmrig::Variant variant;
     };
 
     static bool m_active;
@@ -110,6 +105,7 @@ private:
     static std::atomic<uint64_t> m_sequence;
     static std::list<xmrig::JobResult> m_queue;
     static std::vector<Handle*> m_workers;
+    static std::atomic<int> m_totalThreads;
     static uint64_t m_ticks;
     static uv_async_t m_async;
     static uv_mutex_t m_mutex;

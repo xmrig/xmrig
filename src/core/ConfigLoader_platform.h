@@ -40,7 +40,7 @@
 namespace xmrig {
 
 
-static char const short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
+static char const short_options[] = "a:c:Bp:Px:r:R:s:t:T:o:u:O:v:l:S";
 
 
 static struct option const options[] = {
@@ -51,28 +51,28 @@ static struct option const options[] = {
     { "api-id",            1, nullptr, xmrig::IConfig::ApiIdKey          },
     { "api-ipv6",          0, nullptr, xmrig::IConfig::ApiIPv6Key        },
     { "api-no-restricted", 0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
-    { "av",                1, nullptr, xmrig::IConfig::AVKey             },
     { "background",        0, nullptr, xmrig::IConfig::BackgroundKey     },
     { "config",            1, nullptr, xmrig::IConfig::ConfigKey         },
+    { "cpu-threads",       1, nullptr, xmrig::IConfig::CPUThreadsKey     },
+    { "cpu-optimization",  1, nullptr, xmrig::IConfig::CPUOptimizationKey},
     { "cpu-affinity",      1, nullptr, xmrig::IConfig::CPUAffinityKey    },
-    { "cpu-priority",      1, nullptr, xmrig::IConfig::CPUPriorityKey    },
+    { "use-gpu",           1, nullptr, xmrig::IConfig::UseGPUKey         },
+    { "gpu-intensity",     1, nullptr, xmrig::IConfig::GPUIntensityKey   },
+    { "gpu-filter",        1, nullptr, xmrig::IConfig::GPUFilterKey      },
+    { "priority",          1, nullptr, xmrig::IConfig::PriorityKey       },
     { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey    },
     { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey         },
     { "keepalive",         0, nullptr, xmrig::IConfig::KeepAliveKey      },
     { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey        },
-    { "max-cpu-usage",     1, nullptr, xmrig::IConfig::MaxCPUUsageKey    },
     { "nicehash",          0, nullptr, xmrig::IConfig::NicehashKey       },
     { "no-color",          0, nullptr, xmrig::IConfig::ColorKey          },
     { "no-watch",          0, nullptr, xmrig::IConfig::WatchKey          },
-    { "no-huge-pages",     0, nullptr, xmrig::IConfig::HugePagesKey      },
     { "variant",           1, nullptr, xmrig::IConfig::VariantKey        },
     { "pass",              1, nullptr, xmrig::IConfig::PasswordKey       },
     { "print-time",        1, nullptr, xmrig::IConfig::PrintTimeKey      },
     { "retries",           1, nullptr, xmrig::IConfig::RetriesKey        },
     { "retry-pause",       1, nullptr, xmrig::IConfig::RetryPauseKey     },
-    { "safe",              0, nullptr, xmrig::IConfig::SafeKey           },
     { "syslog",            0, nullptr, xmrig::IConfig::SyslogKey         },
-    { "threads",           1, nullptr, xmrig::IConfig::ThreadsKey        },
     { "url",               1, nullptr, xmrig::IConfig::UrlKey            },
     { "user",              1, nullptr, xmrig::IConfig::UserKey           },
     { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey      },
@@ -80,33 +80,30 @@ static struct option const options[] = {
     { "rig-id",            1, nullptr, xmrig::IConfig::RigIdKey          },
     { "tls",               0, nullptr, xmrig::IConfig::TlsKey            },
     { "tls-fingerprint",   1, nullptr, xmrig::IConfig::FingerprintKey    },
-    { "asm",               1, nullptr, xmrig::IConfig::AssemblyKey       },
     { nullptr,             0, nullptr, 0 }
 };
 
 
 static struct option const config_options[] = {
     { "algo",          1, nullptr, xmrig::IConfig::AlgorithmKey   },
-    { "av",            1, nullptr, xmrig::IConfig::AVKey          },
     { "background",    0, nullptr, xmrig::IConfig::BackgroundKey  },
     { "colors",        0, nullptr, xmrig::IConfig::ColorKey       },
+    { "cpu-threads",   1, nullptr, xmrig::IConfig::CPUThreadsKey  },
+    { "cpu-optimization",1, nullptr, xmrig::IConfig::CPUOptimizationKey },
     { "cpu-affinity",  1, nullptr, xmrig::IConfig::CPUAffinityKey },
-    { "cpu-priority",  1, nullptr, xmrig::IConfig::CPUPriorityKey },
+    { "use-gpu",       1, nullptr, xmrig::IConfig::UseGPUKey      },
+    { "gpu-intensity", 1, nullptr, xmrig::IConfig::GPUIntensityKey},
+    { "gpu-filter",    1, nullptr, xmrig::IConfig::GPUFilterKey   },
+    { "priority",      1, nullptr, xmrig::IConfig::PriorityKey    },
     { "donate-level",  1, nullptr, xmrig::IConfig::DonateLevelKey },
     { "dry-run",       0, nullptr, xmrig::IConfig::DryRunKey      },
-    { "huge-pages",    0, nullptr, xmrig::IConfig::HugePagesKey   },
     { "log-file",      1, nullptr, xmrig::IConfig::LogFileKey     },
-    { "max-cpu-usage", 1, nullptr, xmrig::IConfig::MaxCPUUsageKey },
     { "print-time",    1, nullptr, xmrig::IConfig::PrintTimeKey   },
     { "retries",       1, nullptr, xmrig::IConfig::RetriesKey     },
     { "retry-pause",   1, nullptr, xmrig::IConfig::RetryPauseKey  },
-    { "safe",          0, nullptr, xmrig::IConfig::SafeKey        },
     { "syslog",        0, nullptr, xmrig::IConfig::SyslogKey      },
-    { "threads",       1, nullptr, xmrig::IConfig::ThreadsKey     },
     { "user-agent",    1, nullptr, xmrig::IConfig::UserAgentKey   },
     { "watch",         0, nullptr, xmrig::IConfig::WatchKey       },
-    { "hw-aes",        0, nullptr, xmrig::IConfig::HardwareAESKey },
-    { "asm",           1, nullptr, xmrig::IConfig::AssemblyKey    },
     { "autosave",      0, nullptr, xmrig::IConfig::AutoSaveKey    },
     { nullptr,         0, nullptr, 0 }
 };

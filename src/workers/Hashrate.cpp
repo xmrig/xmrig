@@ -33,11 +33,12 @@
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "workers/Hashrate.h"
+#include "workers/Handle.h"
 
 
 inline static const char *format(double h, char *buf, size_t size)
 {
-    if (isnormal(h)) {
+    if (std::isnormal(h)) {
         snprintf(buf, size, "%03.1f", h);
         return buf;
     }
@@ -46,19 +47,26 @@ inline static const char *format(double h, char *buf, size_t size)
 }
 
 
-Hashrate::Hashrate(size_t threads, xmrig::Controller *controller) :
+Hashrate::Hashrate(const std::vector<Handle*> &hashers, xmrig::Controller *controller) :
     m_highest(0.0),
-    m_threads(threads),
     m_controller(controller)
 {
-    m_counts     = new uint64_t*[threads];
-    m_timestamps = new uint64_t*[threads];
-    m_top        = new uint32_t[threads];
+    m_hashers = hashers.size();
+    m_workers = new size_t[m_hashers];
+    m_counts     = new uint64_t**[m_hashers];
+    m_timestamps = new uint64_t**[m_hashers];
+    m_top        = new uint32_t*[m_hashers];
 
-    for (size_t i = 0; i < threads; i++) {
-        m_counts[i]     = new uint64_t[kBucketSize]();
-        m_timestamps[i] = new uint64_t[kBucketSize]();
-        m_top[i]        = 0;
+    for (size_t i = 0; i < hashers.size(); i++) {
+        m_workers[i] = hashers[i]->hasher()->deviceCount();
+        m_counts[i]     = new uint64_t*[m_workers[i]];
+        m_timestamps[i] = new uint64_t*[m_workers[i]];
+        m_top[i]        = new uint32_t[m_workers[i]];
+        for (size_t j = 0; j < m_workers[i]; j++) {
+            m_counts[i][j]     = new uint64_t[kBucketSize]();
+            m_timestamps[i][j] = new uint64_t[kBucketSize]();
+            m_top[i][j]        = 0;
+        }
     }
 
     const int printTime = controller->config()->printTime();
@@ -77,10 +85,12 @@ double Hashrate::calc(size_t ms) const
     double result = 0.0;
     double data;
 
-    for (size_t i = 0; i < m_threads; ++i) {
-        data = calc(i, ms);
-        if (isnormal(data)) {
-            result += data;
+    for (size_t i = 0; i < m_hashers; ++i) {
+        for(size_t j = 0; j < m_workers[i]; j++) {
+            data = calc(i, j, ms);
+            if (std::isnormal(data)) {
+                result += data;
+            }
         }
     }
 
@@ -88,10 +98,12 @@ double Hashrate::calc(size_t ms) const
 }
 
 
-double Hashrate::calc(size_t threadId, size_t ms) const
+double Hashrate::calc(size_t hasherId, size_t workerId, size_t ms) const
 {
-    assert(threadId < m_threads);
-    if (threadId >= m_threads) {
+    assert(hasherId < m_hashers);
+    assert(workerId < m_workers[hasherId]);
+
+    if (hasherId >= m_hashers || workerId >= m_workers[hasherId]) {
         return nan("");
     }
 
@@ -105,24 +117,24 @@ double Hashrate::calc(size_t threadId, size_t ms) const
     bool haveFullSet           = false;
 
     for (size_t i = 1; i < kBucketSize; i++) {
-        const size_t idx = (m_top[threadId] - i) & kBucketMask;
+        const size_t idx = (m_top[hasherId][workerId] - i) & kBucketMask;
 
-        if (m_timestamps[threadId][idx] == 0) {
+        if (m_timestamps[hasherId][workerId][idx] == 0) {
             break;
         }
 
         if (lastestStamp == 0) {
-            lastestStamp = m_timestamps[threadId][idx];
-            lastestHashCnt = m_counts[threadId][idx];
+            lastestStamp = m_timestamps[hasherId][workerId][idx];
+            lastestHashCnt = m_counts[hasherId][workerId][idx];
         }
 
-        if (now - m_timestamps[threadId][idx] > ms) {
+        if (now - m_timestamps[hasherId][workerId][idx] > ms) {
             haveFullSet = true;
             break;
         }
 
-        earliestStamp = m_timestamps[threadId][idx];
-        earliestHashCount = m_counts[threadId][idx];
+        earliestStamp = m_timestamps[hasherId][workerId][idx];
+        earliestHashCount = m_counts[hasherId][workerId][idx];
     }
 
     if (!haveFullSet || earliestStamp == 0 || lastestStamp == 0) {
@@ -142,13 +154,13 @@ double Hashrate::calc(size_t threadId, size_t ms) const
 }
 
 
-void Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
+void Hashrate::add(size_t hasherId, size_t workerId, uint64_t count, uint64_t timestamp)
 {
-    const size_t top = m_top[threadId];
-    m_counts[threadId][top]     = count;
-    m_timestamps[threadId][top] = timestamp;
+    const size_t top = m_top[hasherId][workerId];
+    m_counts[hasherId][workerId][top]     = count;
+    m_timestamps[hasherId][workerId][top] = timestamp;
 
-    m_top[threadId] = (top + 1) & kBucketMask;
+    m_top[hasherId][workerId] = (top + 1) & kBucketMask;
 }
 
 
@@ -178,7 +190,7 @@ void Hashrate::stop()
 void Hashrate::updateHighest()
 {
    double highest = calc(ShortInterval);
-   if (isnormal(highest) && highest > m_highest) {
+   if (std::isnormal(highest) && highest > m_highest) {
        m_highest = highest;
    }
 }

@@ -26,28 +26,24 @@
 
 #include "common/cpu/Cpu.h"
 #include "common/Platform.h"
-#include "workers/CpuThread.h"
+#include "core/HasherConfig.h"
 #include "workers/Handle.h"
 #include "workers/Worker.h"
+#include "workers/Workers.h"
 
 
-Worker::Worker(Handle *handle) :
-    m_id(handle->threadId()),
-    m_totalWays(handle->totalWays()),
-    m_offset(handle->offset()),
-    m_hashCount(0),
-    m_timestamp(0),
-    m_count(0),
-    m_sequence(0),
-    m_thread(static_cast<xmrig::CpuThread *>(handle->config()))
+Worker::Worker(Handle *handle, int workerIdx) :
+        m_id(workerIdx),
+        m_hashCount(0),
+        m_timestamp(0),
+        m_count(0),
+        m_sequence(0),
+        m_config(static_cast<xmrig::HasherConfig *>(handle->config())),
+        m_hasher(handle->hasher())
 {
-    if (xmrig::Cpu::info()->threads() > 1 && m_thread->affinity() != -1L) {
-        Platform::setThreadAffinity(m_thread->affinity());
-    }
-
-    Platform::setThreadPriority(m_thread->priority());
+    m_offset = handle->offset() + m_id;
+    m_hash = new uint8_t[m_hasher->parallelism(m_id) * 36];
 }
-
 
 void Worker::storeStats()
 {
@@ -56,4 +52,104 @@ void Worker::storeStats()
     const uint64_t timestamp = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
     m_hashCount.store(m_count, std::memory_order_relaxed);
     m_timestamp.store(timestamp, std::memory_order_relaxed);
+}
+
+bool Worker::selfTest()
+{
+    return true;
+}
+
+void Worker::start() {
+    if(m_hasher->type() == "CPU" && m_hasher->subType() == "CPU") {
+        if (xmrig::Cpu::info()->threads() > 1 && m_config->getCPUAffinity(m_id) != -1L) {
+            Platform::setThreadAffinity(m_config->getCPUAffinity(m_id));
+        }
+    }
+
+    Platform::setThreadPriority(m_config->priority());
+    int parallelism = m_hasher->parallelism(m_id);
+
+    while (Workers::sequence() > 0) {
+        if (Workers::isPaused()) {
+            do {
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            }
+            while (Workers::isPaused());
+
+            if (Workers::sequence() == 0) {
+                break;
+            }
+
+            consumeJob();
+        }
+
+        while (!Workers::isOutdated(m_sequence)) {
+            int hashCount = m_hasher->compute(m_id, m_state.blob, m_state.job.size(), m_hash);
+
+            if(hashCount == parallelism) {
+
+                for (size_t i = 0; i < parallelism; ++i) {
+                    if (*reinterpret_cast<uint64_t *>(m_hash + (i * 36) + 24) < m_state.job.target()) {
+                        Workers::submit(xmrig::JobResult(m_state.job.poolId(), m_state.job.id(), m_state.job.clientId(),
+                                                         *reinterpret_cast<uint32_t*>(m_hash + (i * 36) + 32), m_hash + (i * 36), m_state.job.diff(),
+                                                         m_state.job.algorithm()));
+                    }
+                }
+
+                m_count += parallelism;
+            }
+
+            storeStats();
+
+            std::this_thread::yield();
+        }
+
+        consumeJob();
+    }
+}
+
+bool Worker::consumeJob() {
+    xmrig::Job job = Workers::job();
+    m_sequence = Workers::sequence();
+    if (m_state.job == job) {
+        return false;
+    }
+
+    save(job);
+
+    if (resume(job)) {
+        return false;
+    }
+
+    m_state.job = job;
+
+    const size_t size = m_state.job.size();
+    memcpy(m_state.blob, m_state.job.blob(), size);
+
+    uint32_t *nonce = reinterpret_cast<uint32_t*>(m_state.blob + 39);
+    if (m_state.job.isNicehash()) {
+        *nonce = (*nonce & 0xff000000U) + (0xffffffU / Workers::totalThreads() * m_offset);
+    }
+    else {
+        *nonce = 0xffffffffU / Workers::totalThreads() * m_offset;
+    }
+
+    return true;
+}
+
+bool Worker::resume(const xmrig::Job &job)
+{
+    if (m_state.job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedState.job.id()) {
+        m_state = m_pausedState;
+        return true;
+    }
+
+    return false;
+}
+
+void Worker::save(const xmrig::Job &job)
+{
+    if (job.poolId() == -1 && m_state.job.poolId() >= 0) {
+        m_pausedState = m_state;
+    }
 }

@@ -42,22 +42,24 @@
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "interfaces/IThread.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "version.h"
 #include "workers/Hashrate.h"
 #include "workers/Workers.h"
+#include "workers/Handle.h"
 
 
-static inline double normalize(double d)
+rapidjson::Value ApiRouter::normalize(double d)
 {
-    if (!isnormal(d)) {
-        return 0.0;
+    using namespace rapidjson;
+
+    if (!std::isnormal(d)) {
+        return Value(kNullType);
     }
 
-    return floor(d * 100.0) / 100.0;
+    return Value(floor(d * 100.0) / 100.0);
 }
 
 
@@ -214,13 +216,16 @@ void ApiRouter::getHashrate(rapidjson::Document &doc) const
     total.PushBack(normalize(hr->calc(Hashrate::MediumInterval)), allocator);
     total.PushBack(normalize(hr->calc(Hashrate::LargeInterval)),  allocator);
 
-    for (size_t i = 0; i < Workers::threads(); i++) {
-        rapidjson::Value thread(rapidjson::kArrayType);
-        thread.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-        thread.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-        thread.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+    vector<Handle *> workers = Workers::workers();
+    for (size_t i = 0; i < workers.size(); i++) {
+        for(size_t j = 0; j < workers[i]->hasher()->deviceCount(); j++) {
+            rapidjson::Value thread(rapidjson::kArrayType);
+            thread.PushBack(normalize(hr->calc(i, j, Hashrate::ShortInterval)),  allocator);
+            thread.PushBack(normalize(hr->calc(i, j, Hashrate::MediumInterval)), allocator);
+            thread.PushBack(normalize(hr->calc(i, j, Hashrate::LargeInterval)),  allocator);
 
-        threads.PushBack(thread, allocator);
+            threads.PushBack(thread, allocator);
+        }
     }
 
     hashrate.AddMember("total",   total, allocator);
@@ -242,18 +247,10 @@ void ApiRouter::getMiner(rapidjson::Document &doc) const
     using namespace xmrig;
     auto &allocator = doc.GetAllocator();
 
-    rapidjson::Value cpu(rapidjson::kObjectType);
-    cpu.AddMember("brand",   rapidjson::StringRef(Cpu::info()->brand()), allocator);
-    cpu.AddMember("aes",     Cpu::info()->hasAES(), allocator);
-    cpu.AddMember("x64",     Cpu::info()->isX64(), allocator);
-    cpu.AddMember("sockets", Cpu::info()->sockets(), allocator);
-
     doc.AddMember("version",      APP_VERSION, allocator);
     doc.AddMember("kind",         APP_KIND, allocator);
     doc.AddMember("ua",           rapidjson::StringRef(Platform::userAgent()), allocator);
-    doc.AddMember("cpu",          cpu, allocator);
     doc.AddMember("algo",         rapidjson::StringRef(m_controller->config()->algorithm().name()), allocator);
-    doc.AddMember("hugepages",    Workers::hugePages() > 0, allocator);
     doc.AddMember("donate_level", m_controller->config()->donateLevel(), allocator);
 }
 
@@ -286,29 +283,8 @@ void ApiRouter::getThreads(rapidjson::Document &doc) const
 {
     doc.SetObject();
     auto &allocator = doc.GetAllocator();
-    const Hashrate *hr = Workers::hashrate();
 
-    Workers::threadsSummary(doc);
-
-    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
-    rapidjson::Value list(rapidjson::kArrayType);
-
-    size_t i = 0;
-    for (const xmrig::IThread *thread : threads) {
-        rapidjson::Value value = thread->toAPI(doc);
-
-        rapidjson::Value hashrate(rapidjson::kArrayType);
-        hashrate.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-        hashrate.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-        hashrate.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
-
-        i++;
-
-        value.AddMember("hashrate", hashrate, allocator);
-        list.PushBack(value, allocator);
-    }
-
-    doc.AddMember("threads", list, allocator);
+    Workers::hashersSummary(doc);
 }
 
 

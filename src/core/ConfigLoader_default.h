@@ -33,7 +33,7 @@ namespace xmrig {
 const static char *default_config =
 R"===(
 {
-    "algo": "cryptonight",
+    "algo": "argon2",
     "api": {
         "port": 0,
         "access-token": null,
@@ -42,16 +42,13 @@ R"===(
         "ipv6": false,
         "restricted": true
     },
-    "asm": true,
     "autosave": true,
-    "av": 0,
     "background": false,
     "colors": true,
     "cpu-affinity": null,
     "cpu-priority": null,
     "donate-level": 5,
     "huge-pages": true,
-    "hw-aes": null,
     "log-file": null,
     "max-cpu-usage": 100,
     "pools": [

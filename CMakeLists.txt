@@ -1,22 +1,26 @@
 cmake_minimum_required(VERSION 2.8)
-project(xmrig)
+project(ninjarig)
 
 option(WITH_LIBCPUID        "Use Libcpuid" ON)
-option(WITH_AEON            "CryptoNight-Lite support" ON)
-option(WITH_SUMO            "CryptoNight-Heavy support" ON)
-option(WITH_CN_PICO         "CryptoNight-Pico support" ON)
-option(WITH_CN_GPU          "CryptoNight-GPU support" ON)
 option(WITH_HTTPD           "HTTP REST API" ON)
 option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
-option(WITH_ASM             "Enable ASM PoW implementations" ON)
-option(BUILD_STATIC         "Build static binary" OFF)
-option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
+option(WITH_CUDA            "Enable CUDA support" ON)
+option(WITH_OPENCL          "Enable OpenCL support" ON)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
+include (cmake/TargetArch.cmake)
 
+target_architecture (ARCH)
+MESSAGE( STATUS "Target architecture is: " ${ARCH} )
+
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+SET(CMAKE_INSTALL_RPATH "./")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set (CMAKE_MACOSX_RPATH 0)
 
 set(HEADERS
     src/api/NetworkState.h
@@ -69,43 +73,23 @@ set(HEADERS
     src/core/ConfigLoader_default.h
     src/core/Controller.h
     src/interfaces/IJobResultListener.h
-    src/interfaces/IThread.h
     src/interfaces/IWorker.h
-    src/Mem.h
     src/net/JobResult.h
     src/net/Network.h
     src/net/strategies/DonateStrategy.h
+    src/net/strategies/Http.h
     src/Summary.h
     src/version.h
-    src/workers/CpuThread.h
+    src/core/HasherConfig.h
     src/workers/Handle.h
     src/workers/Hashrate.h
-    src/workers/MultiWorker.h
     src/workers/Worker.h
     src/workers/Workers.h
    )
 
 set(HEADERS_CRYPTO
-    src/crypto/c_blake256.h
-    src/crypto/c_groestl.h
-    src/crypto/c_jh.h
-    src/crypto/c_skein.h
-    src/crypto/CryptoNight.h
-    src/crypto/CryptoNight_constants.h
-    src/crypto/CryptoNight_monero.h
-    src/crypto/CryptoNight_test.h
-    src/crypto/groestl_tables.h
-    src/crypto/hash.h
-    src/crypto/skein_port.h
-    src/crypto/soft_aes.h
-    src/crypto/asm/CryptonightR_template.h
-   )
-
-if (XMRIG_ARM)
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_arm.h)
-else()
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_x86.h)
-endif()
+        src/crypto/Argon2_constants.h
+        )
 
 set(SOURCES
     src/api/NetworkState.cpp
@@ -138,25 +122,64 @@ set(SOURCES
     src/common/Platform.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
-    src/Mem.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
+    src/net/strategies/Http.cpp
+    src/net/strategies/http_parser/http_parser.c
     src/Summary.cpp
-    src/workers/CpuThread.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
-    src/workers/MultiWorker.cpp
     src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp
    )
 
-set(SOURCES_CRYPTO
-    src/crypto/c_groestl.c
-    src/crypto/c_blake256.c
-    src/crypto/c_jh.c
-    src/crypto/c_skein.c
-   )
+set(HEADERS_COMMON
+        src/crypto/argon2_hasher/common/common.h
+        src/crypto/argon2_hasher/common/DLLExport.h
+        src/crypto/argon2_hasher/common/DLLImport.h
+        src/crypto/argon2_hasher/crypt/base64.h
+        src/crypto/argon2_hasher/crypt/hex.h
+        src/crypto/argon2_hasher/crypt/random_generator.h
+        src/crypto/argon2_hasher/crypt/sha512.h
+        src/crypto/argon2_hasher/hash/argon2/blake2/blake2.h
+        src/crypto/argon2_hasher/hash/argon2/blake2/blake2-config.h
+        src/crypto/argon2_hasher/hash/argon2/blake2/blake2-impl.h
+        src/crypto/argon2_hasher/hash/argon2/blake2/blake2b-load-sse2.h
+        src/crypto/argon2_hasher/hash/argon2/blake2/blake2b-load-sse41.h
+        src/crypto/argon2_hasher/hash/argon2/blake2/blake2b-round.h
+        src/crypto/argon2_hasher/hash/argon2/Argon2.h
+        src/crypto/argon2_hasher/hash/argon2/Defs.h
+        src/crypto/argon2_hasher/hash/Hasher.h
+        )
+
+set(SOURCES_COMMON
+        src/crypto/argon2_hasher/common/common.cpp
+        src/crypto/argon2_hasher/crypt/base64.cpp
+        src/crypto/argon2_hasher/crypt/hex.cpp
+        src/crypto/argon2_hasher/crypt/random_generator.cpp
+        src/crypto/argon2_hasher/crypt/sha512.cpp
+        src/crypto/argon2_hasher/hash/argon2/blake2/blake2b.c
+        src/crypto/argon2_hasher/hash/argon2/Argon2.cpp
+        src/crypto/argon2_hasher/hash/argon2/argon2profile_4_1_256.c
+        src/crypto/argon2_hasher/hash/argon2/argon2profile_3_1_512.c
+        src/crypto/argon2_hasher/hash/Hasher.cpp
+        src/core/HasherConfig.cpp)
+
+set(SOURCE_CPU_HASHER src/crypto/argon2_hasher/hash/cpu/CpuHasher.cpp src/crypto/argon2_hasher/hash/cpu/CpuHasher.h)
+
+set(SOURCE_OPENCL_HASHER src/crypto/argon2_hasher/hash/gpu/opencl/OpenCLHasher.cpp src/crypto/argon2_hasher/hash/gpu/opencl/OpenCLHasher.h
+        src/crypto/argon2_hasher/hash/gpu/opencl/OpenCLKernel.cpp src/crypto/argon2_hasher/hash/gpu/opencl/OpenCLKernel.h)
+
+set(SOURCE_CUDA_HASHER src/crypto/argon2_hasher/hash/gpu/cuda/CudaHasher.cpp src/crypto/argon2_hasher/hash/gpu/cuda/CudaHasher.h
+        src/crypto/argon2_hasher/hash/gpu/cuda/cuda_kernel.cu)
+
+set(ARGON2_FILL_BLOCKS_SRC
+        src/crypto/argon2_hasher/hash/cpu/argon2_opt/implementation.c
+        src/crypto/argon2_hasher/hash/cpu/argon2_opt/blamka-round-opt.h
+        src/crypto/argon2_hasher/hash/cpu/argon2_opt/blamka-round-ref.h
+        src/crypto/argon2_hasher/hash/argon2/Defs.h
+        src/crypto/argon2_hasher/hash/argon2/blake2/blake2-impl.h)
 
 if (WIN32)
     set(SOURCES_OS
@@ -164,8 +187,7 @@ if (WIN32)
         src/App_win.cpp
         src/base/io/Json_win.cpp
         src/common/Platform_win.cpp
-        src/Mem_win.cpp
-        )
+            )
 
     add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
@@ -174,15 +196,13 @@ elseif (APPLE)
         src/App_unix.cpp
         src/base/io/Json_unix.cpp
         src/common/Platform_mac.cpp
-        src/Mem_unix.cpp
-        )
+            )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
         src/base/io/Json_unix.cpp
         src/common/Platform_unix.cpp
-        src/Mem_unix.cpp
-        )
+            )
 
     if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
         set(EXTRA_LIBS kvm pthread)
@@ -225,29 +245,11 @@ else()
 endif()
 
 include(cmake/OpenSSL.cmake)
-include(cmake/asm.cmake)
-include(cmake/cn-gpu.cmake)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
     set(SOURCES_SYSLOG src/common/log/SysLog.h src/common/log/SysLog.cpp)
-endif()
-
-if (NOT WITH_AEON)
-    add_definitions(/DXMRIG_NO_AEON)
-endif()
-
-if (NOT WITH_SUMO)
-    add_definitions(/DXMRIG_NO_SUMO)
-endif()
-
-if (NOT WITH_IPBC)
-    add_definitions(/DXMRIG_NO_IPBC)
-endif()
-
-if (NOT WITH_CN_PICO)
-    add_definitions(/DXMRIG_NO_CN_PICO)
 endif()
 
 if (WITH_EMBEDDED_CONFIG)
@@ -284,14 +286,115 @@ endif()
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
+include_directories(src/crypto/argon2_hasher/hash/cpu/cpu_features/include)
 
-if (BUILD_STATIC)
-    set(CMAKE_EXE_LINKER_FLAGS " -static")
-endif()
+add_subdirectory(src/crypto/argon2_hasher/hash/cpu/cpu_features)
+set_property(TARGET cpu_features PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
-add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+add_library(argon2_common SHARED ${HEADERS_COMMON} ${SOURCES_COMMON})
+target_link_libraries(argon2_common ${CMAKE_DL_LIBS})
+
+add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} argon2_common)
+
+add_library(cpu_hasher MODULE ${SOURCE_CPU_HASHER})
+set_target_properties(cpu_hasher
+        PROPERTIES
+        PREFIX ""
+        SUFFIX ".hsh"
+        LIBRARY_OUTPUT_DIRECTORY modules
+        )
+target_link_libraries(cpu_hasher argon2_common cpu_features)
+add_dependencies(${CMAKE_PROJECT_NAME} cpu_hasher)
+
+add_library(argon2_fill_blocks_REF MODULE ${ARGON2_FILL_BLOCKS_SRC})
+set_target_properties(argon2_fill_blocks_REF
+        PROPERTIES
+        PREFIX ""
+        SUFFIX ".opt"
+        LIBRARY_OUTPUT_DIRECTORY modules
+        )
+target_compile_definitions(argon2_fill_blocks_REF PRIVATE BUILD_REF=1)
+add_dependencies(cpu_hasher argon2_fill_blocks_REF)
+
+if(ARCH STREQUAL "x86_64")
+    add_library(argon2_fill_blocks_SSE2 MODULE ${ARGON2_FILL_BLOCKS_SRC})
+    add_library(argon2_fill_blocks_SSSE3 MODULE ${ARGON2_FILL_BLOCKS_SRC})
+    add_library(argon2_fill_blocks_AVX MODULE ${ARGON2_FILL_BLOCKS_SRC})
+    add_library(argon2_fill_blocks_AVX2 MODULE ${ARGON2_FILL_BLOCKS_SRC})
+    add_library(argon2_fill_blocks_AVX512F MODULE ${ARGON2_FILL_BLOCKS_SRC})
+    set_target_properties(argon2_fill_blocks_SSE2 argon2_fill_blocks_SSSE3 argon2_fill_blocks_AVX argon2_fill_blocks_AVX2 argon2_fill_blocks_AVX512F
+            PROPERTIES
+            PREFIX ""
+            SUFFIX ".opt"
+            LIBRARY_OUTPUT_DIRECTORY modules
+            )
+    target_compile_options(argon2_fill_blocks_SSE2 PRIVATE -msse2)
+    target_compile_options(argon2_fill_blocks_SSSE3 PRIVATE -mssse3)
+    target_compile_options(argon2_fill_blocks_AVX PRIVATE -mavx)
+    target_compile_options(argon2_fill_blocks_AVX2 PRIVATE -mavx2)
+    target_compile_options(argon2_fill_blocks_AVX512F PRIVATE -mavx512f)
+    add_dependencies(cpu_hasher argon2_fill_blocks_SSE2 argon2_fill_blocks_SSSE3 argon2_fill_blocks_AVX argon2_fill_blocks_AVX2 argon2_fill_blocks_AVX512F)
+endif()
+
+if(ARCH STREQUAL "arm" OR ARCH STREQUAL "aarch64")
+    add_library(argon2_fill_blocks_NEON MODULE ${ARGON2_FILL_BLOCKS_SRC})
+    set_target_properties(argon2_fill_blocks_NEON
+            PROPERTIES
+            PREFIX ""
+            SUFFIX ".opt"
+            LIBRARY_OUTPUT_DIRECTORY modules
+            )
+    target_compile_options(common PRIVATE -D__NEON__)
+    if(ARCH STREQUAL "arm")
+        target_compile_options(argon2_fill_blocks_NEON PRIVATE -D__NEON__ -mfpu=neon -funsafe-math-optimizations)
+    else()
+        target_compile_options(argon2_fill_blocks_NEON PRIVATE -D__NEON__)
+    endif(ARCH STREQUAL "arm")
+
+    add_dependencies(cpu_hasher argon2_fill_blocks_NEON)
+endif(ARCH STREQUAL "arm" OR ARCH STREQUAL "aarch64")
+
+if(WITH_OPENCL)
+    add_definitions(-DWITH_OPENCL)
+    find_package(OpenCL REQUIRED)
+    include_directories(${OpenCL_INCLUDE_DIR})
+    add_library(opencl_hasher MODULE ${SOURCE_OPENCL_HASHER})
+    set_target_properties(opencl_hasher
+            PROPERTIES
+            PREFIX ""
+            SUFFIX ".hsh"
+            LIBRARY_OUTPUT_DIRECTORY modules
+            )
+    target_link_libraries(opencl_hasher argon2_common ${OpenCL_LIBRARY})
+    add_dependencies(${CMAKE_PROJECT_NAME} opencl_hasher)
+endif()
+
+if(WITH_CUDA)
+    add_definitions(-DWITH_CUDA)
+    find_package(CUDA REQUIRED)
+    if(NOT WIN32)
+        add_definitions(-DPARALLEL_CUDA)
+    endif()
+    set(
+            CUDA_NVCC_FLAGS
+            ${CUDA_NVCC_FLAGS};
+            -O3 -arch=compute_35 -std=c++11
+    )
+    cuda_add_library(cuda_hasher MODULE ${SOURCE_CUDA_HASHER})
+    set_target_properties(cuda_hasher
+            PROPERTIES
+            PREFIX ""
+            SUFFIX ".hsh"
+            LIBRARY_OUTPUT_DIRECTORY modules
+            )
+    target_link_libraries(cuda_hasher argon2_common)
+    add_dependencies(${CMAKE_PROJECT_NAME} cuda_hasher)
+endif()
+
+
+

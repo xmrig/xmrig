@@ -127,24 +127,6 @@ bool xmrig::Job::setBlob(const char *blob)
         m_algorithm.setVariant(variant());
     }
 
-    if (!m_algorithm.isForced()) {
-        if (m_algorithm.variant() == VARIANT_XTL && m_blob[0] >= 9) {
-            m_algorithm.setVariant(VARIANT_HALF);
-        }
-        else if (m_algorithm.variant() == VARIANT_MSR && m_blob[0] >= 8) {
-            m_algorithm.setVariant(VARIANT_HALF);
-        }
-        else if (m_algorithm.variant() == VARIANT_WOW && m_blob[0] < 11) {
-            m_algorithm.setVariant(VARIANT_2);
-        }
-        else if (m_algorithm.variant() == VARIANT_RWZ && m_blob[0] < 12) {
-            m_algorithm.setVariant(VARIANT_2);
-        }
-        else if (m_algorithm.variant() == VARIANT_ZLS && m_blob[0] < 8) {
-            m_algorithm.setVariant(VARIANT_2);
-        }
-    }
-
 #   ifdef XMRIG_PROXY_PROJECT
     memset(m_rawBlob, 0, sizeof(m_rawBlob));
     memcpy(m_rawBlob, blob, m_size * 2);
@@ -248,19 +230,5 @@ char *xmrig::Job::toHex(const unsigned char* in, unsigned int len)
 
 xmrig::Variant xmrig::Job::variant() const
 {
-    switch (m_algorithm.algo()) {
-    case CRYPTONIGHT:
-        return (m_blob[0] >= 10) ? VARIANT_4 : ((m_blob[0] >= 8) ? VARIANT_2 : VARIANT_1);
-
-    case CRYPTONIGHT_LITE:
-        return VARIANT_1;
-
-    case CRYPTONIGHT_HEAVY:
-        return VARIANT_0;
-
-    default:
-        break;
-    }
-
     return m_algorithm.variant();
 }

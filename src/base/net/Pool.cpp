@@ -290,21 +290,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
         obj.AddMember(StringRef(kKeepalive), m_keepAlive, allocator);
     }
 
-    switch (m_algorithm.variant()) {
-    case VARIANT_AUTO:
-    case VARIANT_0:
-    case VARIANT_1:
-        obj.AddMember(StringRef(kVariant), m_algorithm.variant(), allocator);
-        break;
-
-    case VARIANT_2:
-        obj.AddMember(StringRef(kVariant), 2, allocator);
-        break;
-
-    default:
-        obj.AddMember(StringRef(kVariant), StringRef(m_algorithm.variantName()), allocator);
-        break;
-    }
+    obj.AddMember(StringRef(kVariant), StringRef(m_algorithm.variantName()), allocator);
 
     obj.AddMember(StringRef(kEnabled),     m_enabled, allocator);
     obj.AddMember(StringRef(kTls),         isTLS(), allocator);
@@ -392,68 +378,6 @@ void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
 #   ifndef XMRIG_PROXY_PROJECT
     using namespace xmrig;
 
-    if (m_host.contains(".nicehash.com")) {
-        m_keepAlive = false;
-        m_nicehash  = true;
-        bool valid  = true;
-
-        switch (m_port) {
-        case 3355:
-        case 33355:
-            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonight.");
-            m_algorithm.setVariant(VARIANT_0);
-            break;
-
-        case 3363:
-        case 33363:
-            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonightv7.");
-            m_algorithm.setVariant(VARIANT_1);
-            break;
-
-        case 3364:
-            valid = m_algorithm.algo() == CRYPTONIGHT_HEAVY && m_host.contains("cryptonightheavy.");
-            m_algorithm.setVariant(VARIANT_0);
-            break;
-
-        case 3367:
-        case 33367:
-            valid = m_algorithm.algo() == CRYPTONIGHT && m_host.contains("cryptonightv8.");
-            m_algorithm.setVariant(VARIANT_2);
-            break;
-
-        default:
-            break;
-        }
-
-        if (!valid) {
-            m_algorithm.setAlgo(INVALID_ALGO);
-        }
-
-        m_tls = m_port > 33000;
-        return;
-    }
-
-    if (m_host.contains(".minergate.com")) {
-        m_keepAlive = false;
-        bool valid  = true;
-        m_algorithm.setVariant(VARIANT_1);
-
-        if (m_host.contains("xmr.pool.")) {
-            valid = m_algorithm.algo() == CRYPTONIGHT;
-            m_algorithm.setVariant(m_port == 45700 ? VARIANT_AUTO : VARIANT_0);
-        }
-        else if (m_host.contains("aeon.pool.") && m_port == 45690) {
-            valid = m_algorithm.algo() == CRYPTONIGHT_LITE;
-            m_algorithm.setVariant(VARIANT_1);
-        }
-
-        if (!valid) {
-            m_algorithm.setAlgo(INVALID_ALGO);
-        }
-
-        return;
-    }
-
     if (variantHint != VARIANT_AUTO) {
         m_algorithm.setVariant(variantHint);
         return;
@@ -461,13 +385,6 @@ void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
 
     if (m_algorithm.variant() != VARIANT_AUTO) {
         return;
-    }
-
-    if (m_algorithm.algo() == CRYPTONIGHT_HEAVY)  {
-        m_algorithm.setVariant(VARIANT_0);
-    }
-    else if (m_algorithm.algo() == CRYPTONIGHT_LITE) {
-        m_algorithm.setVariant(VARIANT_1);
     }
 #   endif
 }
@@ -484,22 +401,8 @@ void xmrig::Pool::rebuild()
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
-    addVariant(VARIANT_4);
-    addVariant(VARIANT_WOW);
-    addVariant(VARIANT_2);
-    addVariant(VARIANT_1);
-    addVariant(VARIANT_0);
-    addVariant(VARIANT_HALF);
-    addVariant(VARIANT_XTL);
-    addVariant(VARIANT_TUBE);
-    addVariant(VARIANT_MSR);
-    addVariant(VARIANT_XHV);
-    addVariant(VARIANT_XAO);
-    addVariant(VARIANT_RTO);
-    addVariant(VARIANT_GPU);
-    addVariant(VARIANT_RWZ);
-    addVariant(VARIANT_ZLS);
-    addVariant(VARIANT_DOUBLE);
     addVariant(VARIANT_AUTO);
+    addVariant(VARIANT_CHUKWA);
+    addVariant(VARIANT_CHUKWA_LITE);
 #   endif
 }

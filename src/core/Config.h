@@ -28,18 +28,16 @@
 #include <stdint.h>
 #include <vector>
 
-
 #include "common/config/CommonConfig.h"
 #include "common/xmrig.h"
 #include "rapidjson/fwd.h"
-#include "workers/CpuThread.h"
+#include "rapidjson/schema.h"
+#include "HasherConfig.h"
 
 
 namespace xmrig {
 
 
-class ConfigLoader;
-class IThread;
 class IConfigListener;
 class Process;
 
@@ -58,29 +56,22 @@ class Process;
 class Config : public CommonConfig
 {
 public:
-    enum ThreadsMode {
-        Automatic,
-        Simple,
-        Advanced
-    };
-
-
     Config();
 
     bool reload(const char *json);
 
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline AesMode aesMode() const                       { return m_aesMode; }
-    inline AlgoVariant algoVariant() const               { return m_algoVariant; }
-    inline Assembly assembly() const                     { return m_assembly; }
-    inline bool isHugePages() const                      { return m_hugePages; }
     inline bool isShouldSave() const                     { return m_shouldSave && isAutoSave(); }
-    inline const std::vector<IThread *> &threads() const { return m_threads.list; }
+    inline const std::vector<HasherConfig *> &hasherConfigs() const { return m_hashers; }
     inline int priority() const                          { return m_priority; }
-    inline int threadsCount() const                      { return m_threads.list.size(); }
-    inline int64_t affinity() const                      { return m_threads.mask; }
-    inline ThreadsMode threadsMode() const               { return m_threads.mode; }
+    inline int hashersCount() const                      { return m_hashers.size(); }
+    inline int cpuThreads() const                        { return m_cpuThreads; }
+    inline String cpuOptimization() const                { return m_cpuOptimization; }
+    inline int64_t cpuAffinity() const                   { return m_mask; }
+    inline std::vector<String> gpuEngine() const         { return m_gpuEngine; }
+    inline std::vector<double> gpuIntensity() const      { return m_gpuIntensity; }
+    inline std::vector<GPUFilter> gpuFilter() const      { return m_gpuFilter; }
 
     static Config *load(Process *process, IConfigListener *listener);
 
@@ -94,35 +85,41 @@ protected:
 private:
     bool parseInt(int key, int arg);
 
-    AlgoVariant getAlgoVariant() const;
-#   ifndef XMRIG_NO_AEON
-    AlgoVariant getAlgoVariantLite() const;
-#   endif
+    static rapidjson::Value toGPUFilterConfig(const GPUFilter &filter, rapidjson::Document &doc) {
+        using namespace rapidjson;
+        Value obj(kObjectType);
+        auto &allocator = doc.GetAllocator();
+        if(!filter.engine.empty() && filter.engine != "*")
+            obj.AddMember("engine", Value(filter.engine.data(), doc.GetAllocator()), allocator);
+        obj.AddMember("filter", Value(filter.filter.data(), doc.GetAllocator()), allocator);
 
+        return obj;
+    }
 
-    struct Threads
-    {
-       inline Threads() : mask(-1L), count(0), mode(Automatic) {}
+    static GPUFilter parseGPUFilterConfig(const rapidjson::Value &object) {
+        std::string engineInfo;
+        std::string filterInfo;
+        const auto &filter = object["filter"];
+        if (filter.IsString()) {
+            filterInfo = filter.GetString();
+        }
+        const auto &engine = object["engine"];
+        if (engine.IsString()) {
+            engineInfo = engine.GetString();
+        }
 
-       int64_t mask;
-       size_t count;
-       std::vector<CpuThread::Data> cpu;
-       std::vector<IThread *> list;
-       ThreadsMode mode;
-    };
-
-
-    AesMode m_aesMode;
-    AlgoVariant m_algoVariant;
-    Assembly m_assembly;
-    bool m_hugePages;
-    bool m_safe;
+        return GPUFilter(engineInfo, filterInfo);
+    }
     bool m_shouldSave;
-    int m_maxCpuUsage;
     int m_priority;
-    Threads m_threads;
+    int64_t m_mask;
+    int m_cpuThreads;
+    String m_cpuOptimization;
+    std::vector<String> m_gpuEngine;
+    std::vector<double> m_gpuIntensity;
+    std::vector<GPUFilter> m_gpuFilter;
+    std::vector<HasherConfig *> m_hashers;
 };
-
 
 } /* namespace xmrig */
 

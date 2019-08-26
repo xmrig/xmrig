@@ -46,7 +46,7 @@ class IStrategyListener;
 class DonateStrategy : public IStrategy, public IStrategyListener
 {
 public:
-    DonateStrategy(int level, const char *user, Algo algo, IStrategyListener *listener);
+    DonateStrategy(int level, const char *user, Algo algo, Variant variant, IStrategyListener *listener);
     ~DonateStrategy() override;
 
 public:
@@ -80,6 +80,7 @@ private:
     uint64_t m_now;
     uint64_t m_stop;
     uv_timer_t m_timer;
+    String m_devId;
 };
 
 

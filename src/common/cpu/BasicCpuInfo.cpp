@@ -121,7 +121,6 @@ static inline bool has_ossave()
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
-    m_assembly(ASM_NONE),
     m_aes(has_aes_ni()),
     m_avx2(has_avx2() && has_ossave()),
     m_brand(),
@@ -129,7 +128,6 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 {
     cpu_brand_string(m_brand);
 
-#   ifndef XMRIG_NO_ASM
     if (hasAES()) {
         char vendor[13] = { 0 };
         int32_t data[4] = { 0 };
@@ -139,19 +137,11 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         memcpy(vendor + 0, &data[1], 4);
         memcpy(vendor + 4, &data[3], 4);
         memcpy(vendor + 8, &data[2], 4);
-
-        if (memcmp(vendor, "GenuineIntel", 12) == 0) {
-            m_assembly = ASM_INTEL;
-        }
-        else if (memcmp(vendor, "AuthenticAMD", 12) == 0) {
-            m_assembly = ASM_RYZEN;
-        }
     }
-#   endif
 }
 
 
-size_t xmrig::BasicCpuInfo::optimalThreadsCount(size_t memSize, int maxCpuUsage) const
+size_t xmrig::BasicCpuInfo::optimalThreadsCount(size_t memSize) const
 {
     const size_t count = threads() / 2;
 
