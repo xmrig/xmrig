@@ -888,7 +888,7 @@ void cuda_allocate(CudaDeviceInfo *device, double chunks, size_t chunk_size) {
 #ifdef PARALLEL_CUDA
 	int threads = device->profileInfo.threads / 2;
 #else
-	int threads = device->profile_info.threads;
+	int threads = device->profileInfo.threads;
 #endif
 
 	size_t preseed_memory_size = profile->pwdLen * 4;

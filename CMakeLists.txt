@@ -183,11 +183,10 @@ set(ARGON2_FILL_BLOCKS_SRC
 
 if (WIN32)
     set(SOURCES_OS
-        res/app.rc
         src/App_win.cpp
         src/base/io/Json_win.cpp
         src/common/Platform_win.cpp
-            )
+        )
 
     add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
@@ -196,13 +195,13 @@ elseif (APPLE)
         src/App_unix.cpp
         src/base/io/Json_unix.cpp
         src/common/Platform_mac.cpp
-            )
+    )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
         src/base/io/Json_unix.cpp
         src/common/Platform_unix.cpp
-            )
+        )
 
     if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
         set(EXTRA_LIBS kvm pthread)
@@ -295,8 +294,20 @@ if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
+if(WIN32)
+    add_definitions(/DRAPIDJSON_HAS_STDSTRING=1)
+    add_definitions(/DRAPIDJSON_HAS_CXX11_RVALUE_REFS=1)
+
+    include_directories(src/win64/include)
+    list(APPEND SOURCES_COMMON src/win64/src/dlfcn.c)
+endif()
+
 add_library(argon2_common SHARED ${HEADERS_COMMON} ${SOURCES_COMMON})
 target_link_libraries(argon2_common ${CMAKE_DL_LIBS})
+
+if(WIN32)
+    target_link_libraries(argon2_common Psapi.lib)
+endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} argon2_common)

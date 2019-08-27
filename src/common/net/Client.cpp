@@ -29,13 +29,16 @@
 #include <string.h>
 #include <utility>
 
+#ifdef _MSC_VER
+#define strncasecmp(x,y,z) _strnicmp(x,y,z)
+#include <WinSock2.h>
+#endif
 
 #ifndef XMRIG_NO_TLS
 #   include <openssl/ssl.h>
 #   include <openssl/err.h>
 #   include "common/net/Tls.h"
 #endif
-
 
 #include "common/interfaces/IClientListener.h"
 #include "common/log/Log.h"
@@ -45,11 +48,6 @@
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-
-
-#ifdef _MSC_VER
-#   define strncasecmp(x,y,z) _strnicmp(x,y,z)
-#endif
 
 
 namespace xmrig {

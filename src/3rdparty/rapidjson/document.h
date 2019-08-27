@@ -29,6 +29,8 @@ RAPIDJSON_DIAG_PUSH
 #ifdef _MSC_VER
 RAPIDJSON_DIAG_OFF(4127) // conditional expression is constant
 RAPIDJSON_DIAG_OFF(4244) // conversion from kXxxFlags to 'uint16_t', possible loss of data
+#undef min //visual studio declares min as macro which fails when compiling numeric_limits::min and max calls
+#undef max
 #endif
 
 #ifdef __clang__
