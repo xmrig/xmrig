@@ -67,7 +67,6 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight_v8",            nullptr,            Algorithm::CN_2            },
     { "cryptonight/r",             "cn/r",             Algorithm::CN_R            },
     { "cryptonight_r",             nullptr,            Algorithm::CN_R            },
-    { "cryptonight/wow",           "cn/wow",           Algorithm::CN_WOW          },
     { "cryptonight/fast",          "cn/fast",          Algorithm::CN_FAST         },
     { "cryptonight/msr",           "cn/msr",           Algorithm::CN_FAST         },
     { "cryptonight/half",          "cn/half",          Algorithm::CN_HALF         },
@@ -232,7 +231,6 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_1:
     case CN_2:
     case CN_R:
-    case CN_WOW:
     case CN_FAST:
     case CN_HALF:
     case CN_XAO:

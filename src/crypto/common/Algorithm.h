@@ -45,7 +45,6 @@ public:
         CN_1,          // "cn/1"             CryptoNight variant 1 also known as Monero7 and CryptoNightV7.
         CN_2,          // "cn/2"             CryptoNight variant 2.
         CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
-        CN_WOW,        // "cn/wow"           CryptoNightR (Wownero).
         CN_FAST,       // "cn/fast"          CryptoNight variant 1 with half iterations.
         CN_HALF,       // "cn/half"          CryptoNight variant 2 with half iterations (Masari/Torque).
         CN_XAO,        // "cn/xao"           CryptoNight variant 0 (modified, Alloy only).

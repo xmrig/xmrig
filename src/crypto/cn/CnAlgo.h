@@ -52,7 +52,7 @@ public:
 
     constexpr inline Algorithm::Id base() const  { return m_base[ALGO]; }
     constexpr inline bool isHeavy() const        { return memory() == CN_MEMORY * 2; }
-    constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R || ALGO == Algorithm::CN_WOW; }
+    constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R; }
     constexpr inline size_t memory() const       { return m_memory[ALGO]; }
     constexpr inline uint32_t iterations() const { return m_iterations[ALGO]; }
     constexpr inline uint32_t mask() const       { return ((memory() - 1) / 16) * 16; }
@@ -86,7 +86,6 @@ public:
         case Algorithm::CN_1:
         case Algorithm::CN_2:
         case Algorithm::CN_R:
-        case Algorithm::CN_WOW:
         case Algorithm::CN_RTO:
             return CN_ITER;
 
@@ -172,7 +171,6 @@ public:
 
         case Algorithm::CN_2:
         case Algorithm::CN_R:
-        case Algorithm::CN_WOW:
         case Algorithm::CN_HALF:
         case Algorithm::CN_RWZ:
         case Algorithm::CN_ZLS:
@@ -203,7 +201,6 @@ private:
         CN_MEMORY, // CN_1
         CN_MEMORY, // CN_2
         CN_MEMORY, // CN_R
-        CN_MEMORY, // CN_WOW
         CN_MEMORY, // CN_FAST
         CN_MEMORY, // CN_HALF
         CN_MEMORY, // CN_XAO
@@ -243,7 +240,6 @@ private:
         CN_ITER,     // CN_1
         CN_ITER,     // CN_2
         CN_ITER,     // CN_R
-        CN_ITER,     // CN_WOW
         CN_ITER / 2, // CN_FAST
         CN_ITER / 2, // CN_HALF
         CN_ITER * 2, // CN_XAO
@@ -282,7 +278,6 @@ private:
         Algorithm::CN_1,   // CN_1
         Algorithm::CN_2,   // CN_2
         Algorithm::CN_2,   // CN_R
-        Algorithm::CN_2,   // CN_WOW
         Algorithm::CN_1,   // CN_FAST
         Algorithm::CN_2,   // CN_HALF
         Algorithm::CN_0,   // CN_XAO

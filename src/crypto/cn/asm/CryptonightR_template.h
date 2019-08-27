@@ -2,18 +2,6 @@
 
 extern "C"
 {
-	void CryptonightWOW_template_part1();
-	void CryptonightWOW_template_mainloop();
-	void CryptonightWOW_template_part2();
-	void CryptonightWOW_template_part3();
-	void CryptonightWOW_template_end();
-	void CryptonightWOW_template_double_part1();
-	void CryptonightWOW_template_double_mainloop();
-	void CryptonightWOW_template_double_part2();
-	void CryptonightWOW_template_double_part3();
-	void CryptonightWOW_template_double_part4();
-	void CryptonightWOW_template_double_end();
-
 	void CryptonightR_template_part1();
 	void CryptonightR_template_mainloop();
 	void CryptonightR_template_part2();
@@ -25,18 +13,6 @@ extern "C"
 	void CryptonightR_template_double_part3();
 	void CryptonightR_template_double_part4();
 	void CryptonightR_template_double_end();
-
-	void CryptonightWOW_soft_aes_template_part1();
-	void CryptonightWOW_soft_aes_template_mainloop();
-	void CryptonightWOW_soft_aes_template_part2();
-	void CryptonightWOW_soft_aes_template_part3();
-	void CryptonightWOW_soft_aes_template_end();
-	void CryptonightWOW_soft_aes_template_double_part1();
-	void CryptonightWOW_soft_aes_template_double_mainloop();
-	void CryptonightWOW_soft_aes_template_double_part2();
-	void CryptonightWOW_soft_aes_template_double_part3();
-	void CryptonightWOW_soft_aes_template_double_part4();
-	void CryptonightWOW_soft_aes_template_double_end();
 
 	void CryptonightR_soft_aes_template_part1();
 	void CryptonightR_soft_aes_template_mainloop();

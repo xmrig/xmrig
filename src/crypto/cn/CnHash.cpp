@@ -216,7 +216,6 @@ xmrig::CnHash::CnHash()
     ADD_FN(Algorithm::CN_1);
     ADD_FN(Algorithm::CN_2);
     ADD_FN(Algorithm::CN_R);
-    ADD_FN(Algorithm::CN_WOW);
     ADD_FN(Algorithm::CN_FAST);
     ADD_FN(Algorithm::CN_HALF);
     ADD_FN(Algorithm::CN_XAO);
@@ -228,7 +227,6 @@ xmrig::CnHash::CnHash()
     ADD_FN_ASM(Algorithm::CN_2);
     ADD_FN_ASM(Algorithm::CN_HALF);
     ADD_FN_ASM(Algorithm::CN_R);
-    ADD_FN_ASM(Algorithm::CN_WOW);
     ADD_FN_ASM(Algorithm::CN_RWZ);
     ADD_FN_ASM(Algorithm::CN_ZLS);
     ADD_FN_ASM(Algorithm::CN_DOUBLE);
