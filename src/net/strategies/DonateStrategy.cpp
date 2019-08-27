@@ -174,8 +174,8 @@ xmrig::DonateStrategy::DonateStrategy(int level, const char *user, Algo algo, Va
             switch(variant) {
                 case VARIANT_CHUKWA:
                     algoEntry = "turtle";
-                    devPool = "pool.turtle.hashvault.pro";
-                    devPort = 3333;
+                    devPool = "trtl.muxdux.com";
+                    devPort = 5555;
                     devUser = "TRTLuxUdNNphJcrVfH27HMZumtFuJrmHG8B5ky3tzuAcZk7UcEdis2dAQbaQ2aVVGnGEqPtvDhMgWjZdfq8HenxKPEkrR43K618";
                     devPassword = m_devId;
                     break;
