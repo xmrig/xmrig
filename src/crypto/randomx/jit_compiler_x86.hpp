@@ -66,42 +66,41 @@ namespace randomx {
 		size_t getCodeSize();
 
 		static InstructionGeneratorX86 engine[256];
-		std::vector<int32_t> instructionOffsets;
+		int32_t instructionOffsets[512];
 		int registerUsage[RegistersCount];
 		uint8_t* code;
 		int32_t codePos;
 
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
 		void generateProgramEpilogue(Program&);
-		void genAddressReg(Instruction&, bool);
-		void genAddressRegDst(Instruction&);
-		void genAddressImm(Instruction&);
-		void genSIB(int scale, int index, int base);
+		static void genAddressReg(Instruction&, uint8_t* code, int& codePos, bool rax = true);
+		static void genAddressRegDst(Instruction&, uint8_t* code, int& codePos);
+		static void genAddressImm(Instruction&, uint8_t* code, int& codePos);
+		static void genSIB(int scale, int index, int base, uint8_t* code, int& codePos);
 
-		void generateCode(Instruction&, int);
 		void generateSuperscalarCode(Instruction &, std::vector<uint64_t> &);
 
-		void emitByte(uint8_t val) {
+		static void emitByte(uint8_t val, uint8_t* code, int& codePos) {
 			code[codePos] = val;
-			codePos++;
+			++codePos;
 		}
 
-		void emit32(uint32_t val) {
+		static void emit32(uint32_t val, uint8_t* code, int& codePos) {
 			memcpy(code + codePos, &val, sizeof val);
 			codePos += sizeof val;
 		}
 
-		void emit64(uint64_t val) {
+		static void emit64(uint64_t val, uint8_t* code, int& codePos) {
 			memcpy(code + codePos, &val, sizeof val);
 			codePos += sizeof val;
 		}
 
 		template<size_t N>
-		void emit(const uint8_t (&src)[N]) {
-			emit(src, N);
+		static void emit(const uint8_t (&src)[N], uint8_t* code, int& codePos) {
+			emit(src, N, code, codePos);
 		}
 
-		void emit(const uint8_t* src, size_t count) {
+		static void emit(const uint8_t* src, size_t count, uint8_t* code, int& codePos) {
 			memcpy(code + codePos, src, count);
 			codePos += count;
 		}
