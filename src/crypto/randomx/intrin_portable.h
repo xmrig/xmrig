@@ -376,11 +376,131 @@ FORCE_INLINE rx_vec_f128 rx_cvt_packed_int_vec_f128(const void* addr) {
 
 #define RANDOMX_DEFAULT_FENV
 
-void rx_reset_float_state();
+#elif defined(__aarch64__)
 
-void rx_set_rounding_mode(uint32_t mode);
+#include <stdlib.h>
+#include <arm_neon.h>
+#include <arm_acle.h>
 
-#else //end altivec
+typedef uint8x16_t rx_vec_i128;
+typedef float64x2_t rx_vec_f128;
+
+#define rx_aligned_alloc(size, align) aligned_alloc(align, size)
+#define rx_aligned_free(a) free(a)
+
+inline void rx_prefetch_nta(void* ptr) {
+	asm volatile ("prfm pldl1strm, [%0]\n" : : "r" (ptr));
+}
+
+FORCE_INLINE rx_vec_f128 rx_load_vec_f128(const double* pd) {
+	return vld1q_f64((const float64_t*)pd);
+}
+
+FORCE_INLINE void rx_store_vec_f128(double* mem_addr, rx_vec_f128 val) {
+	vst1q_f64((float64_t*)mem_addr, val);
+}
+
+FORCE_INLINE rx_vec_f128 rx_swap_vec_f128(rx_vec_f128 a) {
+	float64x2_t temp;
+	temp = vcopyq_laneq_f64(temp, 1, a, 1);
+	a = vcopyq_laneq_f64(a, 1, a, 0);
+	return vcopyq_laneq_f64(a, 0, temp, 1);
+}
+
+FORCE_INLINE rx_vec_f128 rx_set_vec_f128(uint64_t x1, uint64_t x0) {
+	uint64x2_t temp0 = vdupq_n_u64(x0);
+	uint64x2_t temp1 = vdupq_n_u64(x1);
+	return vreinterpretq_f64_u64(vcopyq_laneq_u64(temp0, 1, temp1, 0));
+}
+
+FORCE_INLINE rx_vec_f128 rx_set1_vec_f128(uint64_t x) {
+	return vreinterpretq_f64_u64(vdupq_n_u64(x));
+}
+
+#define rx_add_vec_f128 vaddq_f64
+#define rx_sub_vec_f128 vsubq_f64
+#define rx_mul_vec_f128 vmulq_f64
+#define rx_div_vec_f128 vdivq_f64
+#define rx_sqrt_vec_f128 vsqrtq_f64
+
+FORCE_INLINE rx_vec_f128 rx_xor_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
+	return vreinterpretq_f64_u8(veorq_u8(vreinterpretq_u8_f64(a), vreinterpretq_u8_f64(b)));
+}
+
+FORCE_INLINE rx_vec_f128 rx_and_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
+	return vreinterpretq_f64_u8(vandq_u8(vreinterpretq_u8_f64(a), vreinterpretq_u8_f64(b)));
+}
+
+FORCE_INLINE rx_vec_f128 rx_or_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
+	return vreinterpretq_f64_u8(vorrq_u8(vreinterpretq_u8_f64(a), vreinterpretq_u8_f64(b)));
+}
+
+#ifdef __ARM_FEATURE_CRYPTO
+
+
+FORCE_INLINE rx_vec_i128 rx_aesenc_vec_i128(rx_vec_i128 a, rx_vec_i128 key) {
+	const uint8x16_t zero = { 0 };
+	return vaesmcq_u8(vaeseq_u8(a, zero)) ^ key;
+}
+
+FORCE_INLINE rx_vec_i128 rx_aesdec_vec_i128(rx_vec_i128 a, rx_vec_i128 key) {
+	const uint8x16_t zero = { 0 };
+	return vaesimcq_u8(vaesdq_u8(a, zero)) ^ key;
+}
+
+#define HAVE_AES
+
+#endif
+
+#define rx_xor_vec_i128 veorq_u8
+
+FORCE_INLINE int rx_vec_i128_x(rx_vec_i128 a) {
+	return vgetq_lane_s32(vreinterpretq_s32_u8(a), 0);
+}
+
+FORCE_INLINE int rx_vec_i128_y(rx_vec_i128 a) {
+	return vgetq_lane_s32(vreinterpretq_s32_u8(a), 1);
+}
+
+FORCE_INLINE int rx_vec_i128_z(rx_vec_i128 a) {
+	return vgetq_lane_s32(vreinterpretq_s32_u8(a), 2);
+}
+
+FORCE_INLINE int rx_vec_i128_w(rx_vec_i128 a) {
+	return vgetq_lane_s32(vreinterpretq_s32_u8(a), 3);
+}
+
+FORCE_INLINE rx_vec_i128 rx_set_int_vec_i128(int _I3, int _I2, int _I1, int _I0) {
+	int32_t data[4];
+	data[0] = _I0;
+	data[1] = _I1;
+	data[2] = _I2;
+	data[3] = _I3;
+	return vreinterpretq_u8_s32(vld1q_s32(data));
+};
+
+#define rx_xor_vec_i128 veorq_u8
+
+FORCE_INLINE rx_vec_i128 rx_load_vec_i128(const rx_vec_i128* mem_addr) {
+	return vld1q_u8((const uint8_t*)mem_addr);
+}
+
+FORCE_INLINE void rx_store_vec_i128(rx_vec_i128* mem_addr, rx_vec_i128 val) {
+	vst1q_u8((uint8_t*)mem_addr, val);
+}
+
+FORCE_INLINE rx_vec_f128 rx_cvt_packed_int_vec_f128(const void* addr) {
+	double lo = unsigned32ToSigned2sCompl(load32((uint8_t*)addr + 0));
+	double hi = unsigned32ToSigned2sCompl(load32((uint8_t*)addr + 4));
+	rx_vec_f128 x;
+	x = vsetq_lane_f64(lo, x, 0);
+	x = vsetq_lane_f64(hi, x, 1);
+	return x;
+}
+
+#define RANDOMX_DEFAULT_FENV
+
+#else //portable fallback
 
 #include <cstdint>
 #include <stdexcept>
@@ -487,7 +607,6 @@ FORCE_INLINE rx_vec_f128 rx_set1_vec_f128(uint64_t x) {
 	return v;
 }
 
-
 FORCE_INLINE rx_vec_f128 rx_xor_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
 	rx_vec_f128 x;
 	x.i.u64[0] = a.i.u64[0] ^ b.i.u64[0];
@@ -578,10 +697,6 @@ FORCE_INLINE rx_vec_f128 rx_cvt_packed_int_vec_f128(const void* addr) {
 
 #define RANDOMX_DEFAULT_FENV
 
-void rx_reset_float_state();
-
-void rx_set_rounding_mode(uint32_t mode);
-
 #endif
 
 #ifndef HAVE_AES
@@ -596,6 +711,14 @@ FORCE_INLINE rx_vec_i128 rx_aesenc_vec_i128(rx_vec_i128 v, rx_vec_i128 rkey) {
 FORCE_INLINE rx_vec_i128 rx_aesdec_vec_i128(rx_vec_i128 v, rx_vec_i128 rkey) {
 	throw std::runtime_error(platformError);
 }
+#endif
+
+#ifdef RANDOMX_DEFAULT_FENV
+
+void rx_reset_float_state();
+
+void rx_set_rounding_mode(uint32_t mode);
+
 #endif
 
 double loadDoublePortable(const void* addr);

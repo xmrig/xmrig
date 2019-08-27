@@ -244,7 +244,7 @@ namespace randomx {
 
 		if (opcode < RandomX_CurrentConfig.CEIL_IMUL_RCP) {
 			uint64_t divisor = instr.getImm32();
-			if (!isPowerOf2(divisor)) {
+			if (!isZeroOrPowerOf2(divisor)) {
 				auto dst = instr.dst % RegistersCount;
 				ibc.type = InstructionType::IMUL_R;
 				ibc.idst = &nreg->r[dst];
