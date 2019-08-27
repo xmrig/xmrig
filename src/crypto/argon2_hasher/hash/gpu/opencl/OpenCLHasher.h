@@ -91,6 +91,7 @@ public:
     virtual int compute(int threadIdx, uint8_t *input, size_t size, uint8_t *output);
     virtual size_t parallelism(int workerIdx);
     virtual size_t deviceCount();
+    virtual DeviceInfo &device(int workerIdx);
 
 private:
     OpenCLDeviceInfo *getDeviceInfo(cl_platform_id platform, cl_device_id device);

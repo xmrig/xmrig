@@ -27,7 +27,7 @@ string OpenCLKernel = R"OCL(
 #define OUT_BYTES	16
 
 #define G(m, r, i, a, b, c, d) \
-do { \
+{ \
 	a = a + b + m[blake2b_sigma[r][2 * i + 0]]; \
 	d = rotr64(d ^ a, 32); \
 	c = c + d; \
@@ -36,10 +36,10 @@ do { \
 	d = rotr64(d ^ a, 16); \
 	c = c + d; \
 	b = rotr64(b ^ c, 63); \
-} while ((void)0, 0)
+}
 
 #define G_S(m, a, b, c, d) \
-do { \
+{ \
 	a = a + b + m; \
 	d = rotr64(d ^ a, 32); \
 	c = c + d; \
@@ -48,10 +48,10 @@ do { \
 	d = rotr64(d ^ a, 16); \
 	c = c + d; \
 	b = rotr64(b ^ c, 63); \
-} while ((void)0, 0)
+}
 
 #define ROUND(m, t, r, shfl) \
-do { \
+{ \
 	G(m, r, t, v0, v1, v2, v3); \
     shfl[t + 4] = v1; \
     shfl[t + 8] = v2; \
@@ -68,10 +68,10 @@ do { \
     v1 = shfl[t + 4]; \
     v2 = shfl[t + 8]; \
     v3 = shfl[t + 12]; \
-} while ((void)0, 0)
+}
 
 #define ROUND_S(m, t, shfl) \
-do { \
+{ \
 	G_S(m, v0, v1, v2, v3); \
     shfl[t + 4] = v1; \
     shfl[t + 8] = v2; \
@@ -88,7 +88,7 @@ do { \
     v1 = shfl[t + 4]; \
     v2 = shfl[t + 8]; \
     v3 = shfl[t + 12]; \
-} while ((void)0, 0)
+}
 
 ulong rotr64(ulong x, ulong n)
 {

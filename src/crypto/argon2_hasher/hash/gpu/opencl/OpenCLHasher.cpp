@@ -217,7 +217,8 @@ OpenCLDeviceInfo *OpenCLHasher::getDeviceInfo(cl_platform_id platform, cl_device
 }
 
 bool OpenCLHasher::configure(xmrig::HasherConfig &config) {
-    int index = config.getGPUCardsCount();
+    int deviceOffset = config.getGPUCardsCount();
+    int index = deviceOffset;
     double intensity = 0;
 
     int total_threads = 0;
@@ -264,7 +265,7 @@ bool OpenCLHasher::configure(xmrig::HasherConfig &config) {
 
         ss << endl;
 
-        double device_intensity = config.getGPUIntensity((*d)->deviceIndex);
+        double device_intensity = config.getGPUIntensity(deviceOffset + m_enabledDevices.size());
 
         m_description += ss.str();
 
@@ -307,7 +308,7 @@ bool OpenCLHasher::configure(xmrig::HasherConfig &config) {
         intensity += device_intensity;
     }
 
-    config.addGPUCardsCount(index - config.getGPUCardsCount());
+    config.addGPUCardsCount(index - deviceOffset);
 
     if(!cards_selected) {
         m_intensity = 0;
@@ -881,6 +882,15 @@ size_t OpenCLHasher::parallelism(int workerIdx) {
 
 size_t OpenCLHasher::deviceCount() {
     return m_enabledDevices.size();
+}
+
+DeviceInfo &OpenCLHasher::device(int workerIdx) {
+    workerIdx /= 2;
+
+    if(workerIdx < 0 || workerIdx > m_enabledDevices.size())
+        return devices().begin()->second;
+
+    return devices()[m_enabledDevices[workerIdx]->deviceIndex];
 }
 
 REGISTER_HASHER(OpenCLHasher);
