@@ -263,19 +263,6 @@ int rxa2_validate_inputs(const argon2_context *context) {
 		return ARGON2_INCORRECT_PARAMETER;
 	}
 
-	if (NULL == context->out) {
-		return ARGON2_OUTPUT_PTR_NULL;
-	}
-
-	/* Validate output length */
-	if (ARGON2_MIN_OUTLEN > context->outlen) {
-		return ARGON2_OUTPUT_TOO_SHORT;
-	}
-
-	if (ARGON2_MAX_OUTLEN < context->outlen) {
-		return ARGON2_OUTPUT_TOO_LONG;
-	}
-
 	/* Validate password (required param) */
 	if (NULL == context->pwd) {
 		if (0 != context->pwdlen) {

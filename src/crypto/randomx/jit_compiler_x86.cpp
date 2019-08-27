@@ -197,7 +197,7 @@ namespace randomx {
 //	static const uint8_t* NOPX[] = { NOP1, NOP2, NOP3, NOP4, NOP5, NOP6, NOP7, NOP8 };
 
 	size_t JitCompilerX86::getCodeSize() {
-		return codePos - prologueSize;
+		return codePos < prologueSize ? 0 : codePos - prologueSize;
 	}
 
 	JitCompilerX86::JitCompilerX86() {
@@ -580,7 +580,7 @@ namespace randomx {
 
 	void JitCompilerX86::h_IMUL_RCP(Instruction& instr, int i) {
 		uint64_t divisor = instr.getImm32();
-		if (!isPowerOf2(divisor)) {
+		if (!isZeroOrPowerOf2(divisor)) {
 			registerUsage[instr.dst] = i;
 			emit(MOV_RAX_I);
 			emit64(randomx_reciprocal_fast(divisor));
