@@ -130,5 +130,10 @@ void xmrig::OclWorker::start()
 
 void xmrig::OclWorker::consumeJob()
 {
+    if (Nonce::sequence(Nonce::OPENCL) == 0) {
+        return;
+    }
+
     m_job.add(m_miner->job(), Nonce::sequence(Nonce::OPENCL), kReserveCount);
+    m_runner->set(m_job.currentJob(), m_job.blob());
 }

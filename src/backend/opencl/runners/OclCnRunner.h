@@ -39,7 +39,8 @@ public:
     ~OclCnRunner() override;
 
 protected:
-    bool selfTest() const override;
+    bool isReadyToBuild() const override;
+    bool set(const Job &job, uint8_t *blob) override;
 
 private:
     cl_mem m_blake256       = nullptr;

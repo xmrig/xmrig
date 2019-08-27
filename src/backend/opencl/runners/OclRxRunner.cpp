@@ -34,3 +34,9 @@ bool xmrig::OclRxRunner::selfTest() const
 {
     return false; // TODO
 }
+
+
+bool xmrig::OclRxRunner::set(const Job &job, uint8_t *blob)
+{
+    return false;
+}

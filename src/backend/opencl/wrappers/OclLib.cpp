@@ -295,7 +295,12 @@ cl_int xmrig::OclLib::enqueueWriteBuffer(cl_command_queue command_queue, cl_mem 
 {
     assert(pEnqueueWriteBuffer != nullptr);
 
-    return pEnqueueWriteBuffer(command_queue, buffer, blocking_write, offset, size, ptr, num_events_in_wait_list, event_wait_list, event);
+    const cl_int ret = pEnqueueWriteBuffer(command_queue, buffer, blocking_write, offset, size, ptr, num_events_in_wait_list, event_wait_list, event);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(ret), kEnqueueWriteBuffer);
+    }
+
+    return ret;
 }
 
 

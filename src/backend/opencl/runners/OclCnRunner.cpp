@@ -23,9 +23,11 @@
  */
 
 
+#include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/runners/OclCnRunner.h"
 #include "backend/opencl/wrappers/OclLib.h"
-#include "backend/opencl/OclLaunchData.h"
+#include "base/io/log/Log.h"
+#include "base/net/stratum/Job.h"
 #include "crypto/cn/CnAlgo.h"
 
 
@@ -87,13 +89,30 @@ xmrig::OclCnRunner::~OclCnRunner()
 }
 
 
-bool xmrig::OclCnRunner::selfTest() const
+bool xmrig::OclCnRunner::isReadyToBuild() const
 {
-    return OclBaseRunner::selfTest() &&
+    return OclBaseRunner::isReadyToBuild() &&
             m_scratchpads   != nullptr &&
             m_states        != nullptr &&
             m_blake256      != nullptr &&
             m_groestl256    != nullptr &&
             m_jh256         != nullptr &&
             m_skein512      != nullptr;
+}
+
+
+bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
+{
+    if (job.size() > (Job::kMaxBlobSize - 4)) {
+        return false;
+    }
+
+    blob[job.size()] = 0x01;
+    memset(blob + job.size() + 1, 0, Job::kMaxBlobSize - job.size() - 1);
+
+    if (OclLib::enqueueWriteBuffer(m_queue, m_input, CL_TRUE, 0, Job::kMaxBlobSize, blob, 0, nullptr, nullptr) != CL_SUCCESS) {
+        return false;
+    }
+
+    return false;
 }

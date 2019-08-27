@@ -39,6 +39,7 @@ public:
 
 protected:
     bool selfTest() const override;
+    bool set(const Job &job, uint8_t *blob) override;
 };
 
 

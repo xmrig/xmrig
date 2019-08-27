@@ -53,10 +53,10 @@ protected:
     inline const OclLaunchData &data() const override   { return m_data; }
     inline size_t threadId() const override             { return m_threadId; }
 
+    bool isReadyToBuild() const override;
     bool selfTest() const override;
     void build() override;
     void run(uint32_t *hashOutput) override;
-    void set(const Job &job) override;
 
 protected:
     Algorithm m_algorithm;

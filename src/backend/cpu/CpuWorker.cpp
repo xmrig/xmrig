@@ -297,6 +297,10 @@ void xmrig::CpuWorker<N>::allocateCnCtx()
 template<size_t N>
 void xmrig::CpuWorker<N>::consumeJob()
 {
+    if (Nonce::sequence(Nonce::CPU) == 0) {
+        return;
+    }
+
     m_job.add(m_miner->job(), Nonce::sequence(Nonce::CPU), kReserveCount);
 
 #   ifdef XMRIG_ALGO_RANDOMX

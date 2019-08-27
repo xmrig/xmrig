@@ -73,15 +73,21 @@ xmrig::OclBaseRunner::~OclBaseRunner()
 }
 
 
-bool xmrig::OclBaseRunner::selfTest() const
+bool xmrig::OclBaseRunner::isReadyToBuild() const
 {
     return m_queue != nullptr && m_input != nullptr && m_output != nullptr && !m_options.empty() && m_source != nullptr;
 }
 
 
+bool xmrig::OclBaseRunner::selfTest() const
+{
+    return isReadyToBuild() && m_program != nullptr;
+}
+
+
 void xmrig::OclBaseRunner::build()
 {
-    if (!selfTest()) {
+    if (!isReadyToBuild()) {
         return;
     }
 
@@ -90,12 +96,6 @@ void xmrig::OclBaseRunner::build()
 
 
 void xmrig::OclBaseRunner::run(uint32_t *hashOutput)
-{
-
-}
-
-
-void xmrig::OclBaseRunner::set(const Job &job)
 {
 
 }
