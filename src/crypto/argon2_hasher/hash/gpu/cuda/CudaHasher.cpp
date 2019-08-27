@@ -292,7 +292,7 @@ bool CudaHasher::buildThreadData() {
                 }
             #else
                 thread_data.threadsIdx = 0;
-                thread_data.threads = device->profile_info.threads;
+                thread_data.threads = device->profileInfo.threads;
             #endif
 
             thread_data.argon2 = new Argon2(cuda_kernel_prehasher, cuda_kernel_filler, cuda_kernel_posthasher,

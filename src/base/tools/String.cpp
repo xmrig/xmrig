@@ -67,6 +67,10 @@ xmrig::String::String(const String &other) :
     memcpy(m_data, other.m_data, m_size + 1);
 }
 
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
 
 bool xmrig::String::isEqual(const char *str, bool caseInsensitive) const
 {

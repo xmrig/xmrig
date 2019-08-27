@@ -51,6 +51,6 @@ using namespace std;
 
 #define LOG(msg) cout<<msg<<endl<<flush
 
-DLLEXPORT vector<string> getFiles(const string &folder);
+vector<string> getFiles(const string &folder);
 
 #endif //ARGON2_COMMON_H

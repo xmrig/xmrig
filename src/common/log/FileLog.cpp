@@ -28,6 +28,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <uv.h>
+#include <fcntl.h>
 
 #include "common/log/FileLog.h"
 #include "common/log/Log.h"
