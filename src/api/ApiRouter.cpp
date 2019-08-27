@@ -59,7 +59,7 @@ rapidjson::Value ApiRouter::normalize(double d)
         return Value(kNullType);
     }
 
-    return Value(floor(d * 100.0) / 100.0);
+    return Value((int)floor(d));
 }
 
 
@@ -93,16 +93,11 @@ void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &
         return finalize(reply, doc);
     }
 
-    if (req.match("/1/threads")) {
-        getThreads(doc);
-
-        return finalize(reply, doc);
-    }
-
     doc.SetObject();
 
     getIdentify(doc);
     getMiner(doc);
+    getThreads(doc);
     getHashrate(doc);
     getResults(doc);
     getConnection(doc);
@@ -208,7 +203,6 @@ void ApiRouter::getHashrate(rapidjson::Document &doc) const
 
     rapidjson::Value hashrate(rapidjson::kObjectType);
     rapidjson::Value total(rapidjson::kArrayType);
-    rapidjson::Value threads(rapidjson::kArrayType);
 
     const Hashrate *hr = Workers::hashrate();
 
@@ -216,21 +210,8 @@ void ApiRouter::getHashrate(rapidjson::Document &doc) const
     total.PushBack(normalize(hr->calc(Hashrate::MediumInterval)), allocator);
     total.PushBack(normalize(hr->calc(Hashrate::LargeInterval)),  allocator);
 
-    vector<Handle *> workers = Workers::workers();
-    for (size_t i = 0; i < workers.size(); i++) {
-        for(size_t j = 0; j < workers[i]->hasher()->deviceCount(); j++) {
-            rapidjson::Value thread(rapidjson::kArrayType);
-            thread.PushBack(normalize(hr->calc(i, j, Hashrate::ShortInterval)),  allocator);
-            thread.PushBack(normalize(hr->calc(i, j, Hashrate::MediumInterval)), allocator);
-            thread.PushBack(normalize(hr->calc(i, j, Hashrate::LargeInterval)),  allocator);
-
-            threads.PushBack(thread, allocator);
-        }
-    }
-
     hashrate.AddMember("total",   total, allocator);
     hashrate.AddMember("highest", normalize(hr->highest()), allocator);
-    hashrate.AddMember("threads", threads, allocator);
     doc.AddMember("hashrate", hashrate, allocator);
 }
 
@@ -281,9 +262,6 @@ void ApiRouter::getResults(rapidjson::Document &doc) const
 
 void ApiRouter::getThreads(rapidjson::Document &doc) const
 {
-    doc.SetObject();
-    auto &allocator = doc.GetAllocator();
-
     Workers::hashersSummary(doc);
 }
 

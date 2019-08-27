@@ -228,12 +228,18 @@ void Workers::hashersSummary(rapidjson::Document &doc)
         Handle *worker = m_workers[i];
         for(int j=0; j < worker->hasher()->deviceCount(); j++) {
             rapidjson::Value hasherDoc(rapidjson::kObjectType);
+            int multiplier = worker->hasher()->computingThreads() / worker->hasher()->deviceCount();
 
             xmrig::String type = worker->hasher()->type().data();
             xmrig::String id = (worker->hasher()->subType(true) + to_string(j)).data();
+            DeviceInfo &deviceInfo = worker->hasher()->device(j * multiplier);
+            xmrig::String device = deviceInfo.name.data();
+            xmrig::String busId = deviceInfo.bus_id.data();
 
             hasherDoc.AddMember("type",  type.toJSON(doc), allocator);
             hasherDoc.AddMember("id",   id.toJSON(doc), allocator);
+            hasherDoc.AddMember("device",   device.toJSON(doc), allocator);
+            hasherDoc.AddMember("bus_id", busId.toJSON(doc), allocator);
 
             rapidjson::Value hashrateEntry(rapidjson::kArrayType);
             hashrateEntry.PushBack(ApiRouter::normalize(m_hashrate->calc(i, j, Hashrate::ShortInterval)), allocator);

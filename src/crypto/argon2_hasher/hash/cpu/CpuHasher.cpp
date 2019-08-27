@@ -224,4 +224,8 @@ size_t CpuHasher::deviceCount() {
     return computingThreads();
 }
 
+DeviceInfo &CpuHasher::device(int workerIdx) {
+    return devices()[0];
+}
+
 REGISTER_HASHER(CpuHasher);

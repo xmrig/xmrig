@@ -119,7 +119,8 @@ CudaDeviceInfo *CudaHasher::getDeviceInfo(int device_index) {
 }
 
 bool CudaHasher::configure(xmrig::HasherConfig &config) {
-    int index = config.getGPUCardsCount();
+    int deviceOffset = config.getGPUCardsCount();
+    int index = deviceOffset;
     double intensity = 0;
 
     int total_threads = 0;
@@ -165,7 +166,7 @@ bool CudaHasher::configure(xmrig::HasherConfig &config) {
 
 		ss << endl;
 
-        double device_intensity = config.getGPUIntensity((*d)->deviceIndex);
+        double device_intensity = config.getGPUIntensity(deviceOffset + m_enabledDevices.size());
 
 		m_description += ss.str();
 
@@ -333,6 +334,15 @@ size_t CudaHasher::parallelism(int workerIdx) {
 
 size_t CudaHasher::deviceCount() {
     return m_enabledDevices.size();
+}
+
+DeviceInfo &CudaHasher::device(int workerIdx) {
+    workerIdx /= 2;
+
+    if(workerIdx < 0 || workerIdx > m_enabledDevices.size())
+        return devices().begin()->second;
+
+    return devices()[m_enabledDevices[workerIdx]->deviceIndex];
 }
 
 REGISTER_HASHER(CudaHasher);

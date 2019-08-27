@@ -28,6 +28,7 @@ public:
     virtual int compute(int threadIdx, uint8_t *input, size_t size, uint8_t *output) = 0;
     virtual size_t parallelism(int workerIdx) = 0;
     virtual size_t deviceCount() = 0;
+    virtual DeviceInfo &device(int workerIdx) = 0;
 
     string type();
 	string subType(bool shortName = false);
