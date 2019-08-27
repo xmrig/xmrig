@@ -1,4 +1,3 @@
-R"===(
 /* $Id: jh.c 255 2011-06-07 19:50:20Z tp $ */
 /*
  * JH implementation.
@@ -270,5 +269,3 @@ static const __constant ulong C[] =
   } while (0)
 
 #endif
-
-)==="

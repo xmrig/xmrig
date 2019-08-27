@@ -1,4 +1,3 @@
-R"===(
 /* $Id: groestl.c 260 2011-07-21 01:02:38Z tp $ */
 /*
  * Groestl256
@@ -123,9 +122,6 @@ static const __constant ulong T0_G[] =
 	0x82c31f5ec35edc82UL, 0x29b052cbb0cbe229UL, 0x5a77b4997799c35aUL, 0x1e113c3311332d1eUL, 
 	0x7bcbf646cb463d7bUL, 0xa8fc4b1ffc1fb7a8UL, 0x6dd6da61d6610c6dUL, 0x2c3a584e3a4e622cUL
 };
-
-)==="
-R"===(
 
 static const __constant ulong T4_G[] =
 {
@@ -291,5 +287,3 @@ static const __constant ulong T4_G[] =
 			ROUND_SMALL_Q(a, r); \
 		} while (0)
 
-)==="
-		

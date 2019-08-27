@@ -1,4 +1,3 @@
-R"===(
 #ifndef FAST_DIV_HEAVY_CL
 #define FAST_DIV_HEAVY_CL
 
@@ -26,4 +25,3 @@ inline long fast_div_heavy(long _a, int _b)
 }
 
 #endif
-)==="

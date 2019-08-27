@@ -23,22 +23,9 @@
  */
 
 
-#include <string>
-#include <regex>
-
-
+#include "backend/opencl/cl/cn/cryptonight_cl.h"
 #include "backend/opencl/cl/OclSource.h"
 #include "crypto/common/Algorithm.h"
-
-
-namespace xmrig {
-
-
-static std::string cn_source;
-
-
-} // namespace xmrig
-
 
 
 const char *xmrig::OclSource::get(const Algorithm &algorithm)
@@ -47,51 +34,5 @@ const char *xmrig::OclSource::get(const Algorithm &algorithm)
         return nullptr; // FIXME
     }
 
-    return cn_source.c_str();
-}
-
-
-void xmrig::OclSource::init()
-{
-    const char *cryptonightCL =
-        #include "./cn/cryptonight.cl"
-    ;
-    const char *cryptonightCL2 =
-        #include "./cn/cryptonight2.cl"
-    ;
-    const char *blake256CL =
-        #include "./cn/blake256.cl"
-    ;
-    const char *groestl256CL =
-        #include "./cn/groestl256.cl"
-    ;
-    const char *jhCL =
-        #include "./cn/jh.cl"
-    ;
-    const char *wolfAesCL =
-        #include "./cn/wolf-aes.cl"
-    ;
-    const char *wolfSkeinCL =
-        #include "./cn/wolf-skein.cl"
-    ;
-    const char *fastIntMathV2CL =
-        #include "./cn/fast_int_math_v2.cl"
-    ;
-    const char *fastDivHeavyCL =
-        #include "./cn/fast_div_heavy.cl"
-    ;
-    const char *cryptonight_gpu =
-        #include "./cn/cryptonight_gpu.cl"
-    ;
-
-    cn_source.append(cryptonightCL);
-    cn_source.append(cryptonightCL2);
-    cn_source = std::regex_replace(cn_source, std::regex("XMRIG_INCLUDE_WOLF_AES"),         wolfAesCL);
-    cn_source = std::regex_replace(cn_source, std::regex("XMRIG_INCLUDE_WOLF_SKEIN"),       wolfSkeinCL);
-    cn_source = std::regex_replace(cn_source, std::regex("XMRIG_INCLUDE_JH"),               jhCL);
-    cn_source = std::regex_replace(cn_source, std::regex("XMRIG_INCLUDE_BLAKE256"),         blake256CL);
-    cn_source = std::regex_replace(cn_source, std::regex("XMRIG_INCLUDE_GROESTL256"),       groestl256CL);
-    cn_source = std::regex_replace(cn_source, std::regex("XMRIG_INCLUDE_FAST_INT_MATH_V2"), fastIntMathV2CL);
-    cn_source = std::regex_replace(cn_source, std::regex("XMRIG_INCLUDE_FAST_DIV_HEAVY"),   fastDivHeavyCL);
-    cn_source = std::regex_replace(cn_source, std::regex("XMRIG_INCLUDE_CN_GPU"),           cryptonight_gpu);
+    return cryptonight_cl;
 }

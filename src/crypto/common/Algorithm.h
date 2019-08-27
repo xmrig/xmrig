@@ -52,30 +52,18 @@ public:
         CN_RWZ,        // "cn/rwz"           CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft).
         CN_ZLS,        // "cn/zls"           CryptoNight variant 2 with 3/4 iterations (Zelerius).
         CN_DOUBLE,     // "cn/double"        CryptoNight variant 2 with double iterations (X-CASH).
-#       ifdef XMRIG_ALGO_CN_GPU
         CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
-#       endif
-#       ifdef XMRIG_ALGO_CN_LITE
         CN_LITE_0,     // "cn-lite/0"        CryptoNight-Lite variant 0.
         CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
-#       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
         CN_HEAVY_0,    // "cn-heavy/0"       CryptoNight-Heavy (4 MB).
         CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
         CN_HEAVY_XHV,  // "cn-heavy/xhv"     CryptoNight-Heavy (modified, Haven Protocol only).
-#       endif
-#       ifdef XMRIG_ALGO_CN_PICO
         CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
-#       endif
-#       ifdef XMRIG_ALGO_RANDOMX
         RX_0,          // "rx/0"             RandomX (reference configuration).
         RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
         RX_LOKI,       // "rx/loki"          RandomXL (Loki).
-#       endif
-#       ifdef XMRIG_ALGO_ARGON2
-        AR2_CHUKWA,    // "argon2/chukwa"
-        AR2_WRKZ,      // "argon2/wrkz"
-#       endif
+        AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
+        AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ)
         MAX
     };
 

@@ -1,4 +1,3 @@
-R"===(
 #ifndef WOLF_AES_CL
 #define WOLF_AES_CL
 
@@ -149,5 +148,3 @@ uint4 AES_Round_Two_Tables(const __local uint *AES0, const __local uint *AES1, c
 }
 
 #endif
-
-)==="
