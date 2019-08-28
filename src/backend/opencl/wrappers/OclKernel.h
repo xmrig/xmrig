@@ -22,43 +22,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCNRUNNER_H
-#define XMRIG_OCLCNRUNNER_H
+#ifndef XMRIG_OCLKERNEL_H
+#define XMRIG_OCLKERNEL_H
 
 
-#include "backend/opencl/runners/OclBaseRunner.h"
+#include "base/tools/String.h"
+
+
+typedef struct _cl_kernel *cl_kernel;
+typedef struct _cl_program *cl_program;
 
 
 namespace xmrig {
 
 
-class Cn0Kernel;
-
-
-class OclCnRunner : public OclBaseRunner
+class OclKernel
 {
 public:
-    OclCnRunner(size_t index, const OclLaunchData &data);
-    ~OclCnRunner() override;
+    OclKernel(cl_program program, const char *name);
+    virtual ~OclKernel();
 
-protected:
-    bool isReadyToBuild() const override;
-    bool selfTest() const override;
-    bool set(const Job &job, uint8_t *blob) override;
-    void build() override;
+    inline bool isValid() const         { return m_kernel != nullptr; }
+    inline cl_kernel kernel() const     { return m_kernel; }
+    inline const String &name() const   { return m_name; }
+
+    bool setArg(uint32_t index, size_t size, const void *value);
 
 private:
-    cl_mem m_blake256       = nullptr;
-    cl_mem m_groestl256     = nullptr;
-    cl_mem m_jh256          = nullptr;
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_skein512       = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
+    cl_kernel m_kernel = nullptr;
+    const String m_name;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif // XMRIG_OCLCNRUNNER_H
+#endif /* XMRIG_OCLKERNEL_H */

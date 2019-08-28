@@ -22,43 +22,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCNRUNNER_H
-#define XMRIG_OCLCNRUNNER_H
+
+#include "backend/opencl/wrappers/OclError.h"
+#include "backend/opencl/wrappers/OclKernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
+#include "base/io/log/Log.h"
 
 
-#include "backend/opencl/runners/OclBaseRunner.h"
-
-
-namespace xmrig {
-
-
-class Cn0Kernel;
-
-
-class OclCnRunner : public OclBaseRunner
+xmrig::OclKernel::OclKernel(cl_program program, const char *name) :
+    m_name(name)
 {
-public:
-    OclCnRunner(size_t index, const OclLaunchData &data);
-    ~OclCnRunner() override;
-
-protected:
-    bool isReadyToBuild() const override;
-    bool selfTest() const override;
-    bool set(const Job &job, uint8_t *blob) override;
-    void build() override;
-
-private:
-    cl_mem m_blake256       = nullptr;
-    cl_mem m_groestl256     = nullptr;
-    cl_mem m_jh256          = nullptr;
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_skein512       = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
-};
+    cl_int ret = 0;
+    m_kernel = OclLib::createKernel(program, name, &ret);
+}
 
 
-} /* namespace xmrig */
+xmrig::OclKernel::~OclKernel()
+{
+    OclLib::releaseKernel(m_kernel);
+}
 
 
-#endif // XMRIG_OCLCNRUNNER_H
+bool xmrig::OclKernel::setArg(uint32_t index, size_t size, const void *value)
+{
+    if (!isValid()) {
+        return false;
+    }
+
+    const cl_int ret = OclLib::setKernelArg(m_kernel, index, size, value);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clSetKernelArg") RED(" for kernel ") RED_BOLD("%s")
+                RED(" argument ") RED_BOLD("%u") RED(" size ") RED_BOLD("%zu"),
+                OclError::toString(ret), name().data(), index, size);
+    }
+
+    return ret == CL_SUCCESS;
+}

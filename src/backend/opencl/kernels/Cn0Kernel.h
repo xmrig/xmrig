@@ -22,43 +22,28 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCNRUNNER_H
-#define XMRIG_OCLCNRUNNER_H
+#ifndef XMRIG_CN0KERNEL_H
+#define XMRIG_CN0KERNEL_H
 
 
-#include "backend/opencl/runners/OclBaseRunner.h"
+#include "backend/opencl/wrappers/OclKernel.h"
+
+
+typedef struct _cl_mem *cl_mem;
 
 
 namespace xmrig {
 
 
-class Cn0Kernel;
-
-
-class OclCnRunner : public OclBaseRunner
+class Cn0Kernel : public OclKernel
 {
 public:
-    OclCnRunner(size_t index, const OclLaunchData &data);
-    ~OclCnRunner() override;
-
-protected:
-    bool isReadyToBuild() const override;
-    bool selfTest() const override;
-    bool set(const Job &job, uint8_t *blob) override;
-    void build() override;
-
-private:
-    cl_mem m_blake256       = nullptr;
-    cl_mem m_groestl256     = nullptr;
-    cl_mem m_jh256          = nullptr;
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_skein512       = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
+    Cn0Kernel(cl_program program);
+    bool setArgs(cl_mem input, cl_mem scratchpads, cl_mem states, uint32_t threads);
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif // XMRIG_OCLCNRUNNER_H
+#endif /* XMRIG_CN0KERNEL_H */

@@ -22,43 +22,21 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCNRUNNER_H
-#define XMRIG_OCLCNRUNNER_H
+
+#include "backend/opencl/kernels/Cn0Kernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
-#include "backend/opencl/runners/OclBaseRunner.h"
-
-
-namespace xmrig {
-
-
-class Cn0Kernel;
-
-
-class OclCnRunner : public OclBaseRunner
+xmrig::Cn0Kernel::Cn0Kernel(cl_program program) : OclKernel(program, "cn0")
 {
-public:
-    OclCnRunner(size_t index, const OclLaunchData &data);
-    ~OclCnRunner() override;
-
-protected:
-    bool isReadyToBuild() const override;
-    bool selfTest() const override;
-    bool set(const Job &job, uint8_t *blob) override;
-    void build() override;
-
-private:
-    cl_mem m_blake256       = nullptr;
-    cl_mem m_groestl256     = nullptr;
-    cl_mem m_jh256          = nullptr;
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_skein512       = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
-};
+}
 
 
-} /* namespace xmrig */
-
-
-#endif // XMRIG_OCLCNRUNNER_H
+// __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, uint Threads)
+bool xmrig::Cn0Kernel::setArgs(cl_mem input, cl_mem scratchpads, cl_mem states, uint32_t threads)
+{
+    return setArg(0, sizeof(cl_mem), &input) &&
+           setArg(1, sizeof(cl_mem), &scratchpads) &&
+           setArg(2, sizeof(cl_mem), &states) &&
+           setArg(3, sizeof(uint32_t), &threads);
+}

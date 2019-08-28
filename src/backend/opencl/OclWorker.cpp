@@ -91,6 +91,8 @@ bool xmrig::OclWorker::selfTest()
 
 void xmrig::OclWorker::start()
 {
+    cl_uint results[0x100];
+
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
         if (Nonce::isPaused()) {
             do {
@@ -116,6 +118,7 @@ void xmrig::OclWorker::start()
                 break;
             }
 
+            m_runner->run(results);
             std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // FIXME
 
             m_job.nextRound(kReserveCount);

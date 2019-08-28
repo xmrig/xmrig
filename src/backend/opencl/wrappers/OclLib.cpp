@@ -469,7 +469,10 @@ cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_nam
 
     auto result = pCreateKernel(program, kernel_name, errcode_ret);
     if (*errcode_ret != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clCreateKernel for kernel %s.", OclError::toString(*errcode_ret), kernel_name);
+        LOG_ERR(MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clCreateKernel") RED(" for kernel ") RED_BOLD("%s"),
+                OclError::toString(*errcode_ret), kernel_name);
+
+        return nullptr;
     }
 
     return result;

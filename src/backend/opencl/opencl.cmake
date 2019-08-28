@@ -6,6 +6,7 @@ if (WITH_OPENCL)
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h
         src/backend/opencl/interfaces/IOclRunner.h
+        src/backend/opencl/kernels/Cn0Kernel.h
         src/backend/opencl/OclBackend.h
         src/backend/opencl/OclCache.h
         src/backend/opencl/OclConfig.h
@@ -18,6 +19,7 @@ if (WITH_OPENCL)
         src/backend/opencl/wrappers/OclContext.h
         src/backend/opencl/wrappers/OclDevice.h
         src/backend/opencl/wrappers/OclError.h
+        src/backend/opencl/wrappers/OclKernel.h
         src/backend/opencl/wrappers/OclLib.h
         src/backend/opencl/wrappers/OclPlatform.h
         src/backend/opencl/wrappers/OclVendor.h
@@ -25,6 +27,7 @@ if (WITH_OPENCL)
 
     set(SOURCES_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.cpp
+        src/backend/opencl/kernels/Cn0Kernel.cpp
         src/backend/opencl/OclBackend.cpp
         src/backend/opencl/OclCache.cpp
         src/backend/opencl/OclConfig.cpp
@@ -37,6 +40,7 @@ if (WITH_OPENCL)
         src/backend/opencl/wrappers/OclContext.cpp
         src/backend/opencl/wrappers/OclDevice.cpp
         src/backend/opencl/wrappers/OclError.cpp
+        src/backend/opencl/wrappers/OclKernel.cpp
         src/backend/opencl/wrappers/OclLib.cpp
         src/backend/opencl/wrappers/OclPlatform.cpp
        )

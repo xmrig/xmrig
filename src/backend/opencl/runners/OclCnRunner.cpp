@@ -23,6 +23,7 @@
  */
 
 
+#include "backend/opencl/kernels/Cn0Kernel.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/runners/OclCnRunner.h"
 #include "backend/opencl/wrappers/OclLib.h"
@@ -80,6 +81,8 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
 
 xmrig::OclCnRunner::~OclCnRunner()
 {
+    delete m_cn0;
+
     OclLib::releaseMemObject(m_scratchpads);
     OclLib::releaseMemObject(m_states);
     OclLib::releaseMemObject(m_blake256);
@@ -101,6 +104,12 @@ bool xmrig::OclCnRunner::isReadyToBuild() const
 }
 
 
+bool xmrig::OclCnRunner::selfTest() const
+{
+    return OclBaseRunner::selfTest() && m_cn0->isValid();
+}
+
+
 bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
 {
     if (job.size() > (Job::kMaxBlobSize - 4)) {
@@ -114,5 +123,22 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
         return false;
     }
 
+    if (!m_cn0->setArgs(m_input, m_scratchpads, m_states, data().thread.intensity())) {
+        return false;
+    }
+
+    LOG_WARN(GREEN_S "OK");
     return false;
+}
+
+
+void xmrig::OclCnRunner::build()
+{
+    OclBaseRunner::build();
+
+    if (!m_program) {
+        return;
+    }
+
+    m_cn0 = new Cn0Kernel(m_program);
 }
