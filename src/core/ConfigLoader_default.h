@@ -33,9 +33,9 @@ namespace xmrig {
 const static char *default_config =
 R"===(
 {
-    "algo": "argon2",
+    "algo": "chukwa",
     "api": {
-        "port": 0,
+        "port": 10000,
         "access-token": null,
         "id": null,
         "worker-id": null,
@@ -45,21 +45,22 @@ R"===(
     "autosave": true,
     "background": false,
     "colors": true,
+    "cpu-threads": "all",
+    "cpu-optimization": null,
     "cpu-affinity": null,
-    "cpu-priority": null,
+    "priority": null,
     "donate-level": 5,
-    "huge-pages": true,
     "log-file": null,
-    "max-cpu-usage": 100,
     "pools": [
         {
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
+            "url": "stratum+tcp://trtl.muxdux.com:5555",
+            "user": "TRTLuxUdNNphJcrVfH27HMZumtFuJrmHG8B5ky3tzuAcZk7UcEdis2dAQbaQ2aVVGnGEqPtvDhMgWjZdfq8HenxKPEkrR43K618",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
-            "variant": -1,
+            "variant": "chukwa",
+            "enabled": true,
             "tls": false,
             "tls-fingerprint": null
         }
@@ -67,10 +68,30 @@ R"===(
     "print-time": 60,
     "retries": 5,
     "retry-pause": 5,
-    "safe": false,
-    "threads": null,
     "user-agent": null,
-    "watch": false
+    "syslog": false,
+    "watch": true,
+    "use-gpu": [
+        "OPENCL",
+        "CUDA"
+    ],
+    "gpu-intensity": [
+        50.0
+    ],
+    "gpu-filter": [
+        {
+            "engine": "OPENCL",
+            "filter": "AMD"
+        },
+        {
+            "engine": "OPENCL",
+            "filter": "Radeon"
+        },
+        {
+            "engine": "OPENCL",
+            "filter": "Advanced Micro Devices"
+        }
+    ]
 }
 )===";
 #endif
