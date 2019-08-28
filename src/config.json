@@ -1,7 +1,7 @@
 {
-    "algo": "chukwa/wrkz",
+    "algo": "chukwa",
     "api": {
-        "port": 0,
+        "port": 10000,
         "access-token": null,
         "id": null,
         "worker-id": null,
@@ -11,22 +11,21 @@
     "autosave": true,
     "background": false,
     "colors": true,
-    "threads": "all",
+    "cpu-threads": "all",
+    "cpu-optimization": null,
     "cpu-affinity": null,
-    "cpu-priority": null,
-    "use-gpu": "CUDA",
-    "gpu-intensity": 50,
-    "donate-level": 1,
-    "log-file": "./log.txt",
+    "priority": null,
+    "donate-level": 5,
+    "log-file": null,
     "pools": [
         {
-            "url": "testnet.wrkz.work:5555",
-            "user": "WrkzRNDQDwFCBynKPc459v3LDa1gEGzG3j962tMUBko1fw9xgdaS9mNiGMgA9s1q7hS1Z8SGRVWzcGc8Sh8xsvfZ6u2wJEtoZB",
+            "url": "stratum+tcp://trtl.muxdux.com:5555",
+            "user": "TRTLuxUdNNphJcrVfH27HMZumtFuJrmHG8B5ky3tzuAcZk7UcEdis2dAQbaQ2aVVGnGEqPtvDhMgWjZdfq8HenxKPEkrR43K618",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
-            "keepalive": true,
-            "variant": "wrkz",
+            "keepalive": false,
+            "variant": "chukwa",
             "enabled": true,
             "tls": false,
             "tls-fingerprint": null
@@ -35,7 +34,28 @@
     "print-time": 60,
     "retries": 5,
     "retry-pause": 5,
-    "safe": false,
     "user-agent": null,
-    "watch": true
+    "syslog": false,
+    "watch": true,
+    "use-gpu": [
+        "OPENCL",
+        "CUDA"
+    ],
+    "gpu-intensity": [
+        50.0
+    ],
+    "gpu-filter": [
+        {
+            "engine": "OPENCL",
+            "filter": "AMD"
+        },
+        {
+            "engine": "OPENCL",
+            "filter": "Radeon"
+        },
+        {
+            "engine": "OPENCL",
+            "filter": "Advanced Micro Devices"
+        }
+    ]
 }
