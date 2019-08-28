@@ -1,5 +1,6 @@
 # v3.1.1
 - [#1142](https://github.com/xmrig/xmrig/pull/1142) RandomX hashrate improved by 0.5-1.5% depending on variant and CPU.
+- [#1146](https://github.com/xmrig/xmrig/pull/1146) Fixed race condition in RandomX thread init.
 - [#1133](https://github.com/xmrig/xmrig/issues/1133) Fixed syslog regression.
 
 # v3.1.0
