@@ -49,7 +49,7 @@
         }
     ],
     "print-time": 60,
-    "retries": 0,
+    "retries": 5,
     "retry-pause": 5,
     "syslog": false,
     "user-agent": null,
