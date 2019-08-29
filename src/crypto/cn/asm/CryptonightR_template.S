@@ -1593,3 +1593,7 @@ FN_PREFIX(CryptonightR_instruction_mov254):
 FN_PREFIX(CryptonightR_instruction_mov255):
 
 FN_PREFIX(CryptonightR_instruction_mov256):
+
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
