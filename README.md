@@ -75,7 +75,7 @@ $ git clone https://github.com/turtlecoin/ninjarig.git
 $ cd build_clang
 $ set CC=clang-cl
 $ set CXX=clang-cl
-$ cmake ../ninjarig -DCMAKE_BUILD_TYPE=Release -WITH_CUDA=OFF -G "MinGW Makefiles"
+$ cmake ../ninjarig -DCMAKE_BUILD_TYPE=Release -DWITH_CUDA=OFF -G "MinGW Makefiles"
 $ cd ../build_vc
 $ cmake ../ninjarig -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 15 2017 Win64"
 $ cd ../build_clang
