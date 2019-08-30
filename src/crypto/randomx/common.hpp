@@ -137,7 +137,7 @@ namespace randomx {
 	constexpr int RegisterNeedsDisplacement = 5; //x86 r13 register
 	constexpr int RegisterNeedsSib = 4; //x86 r12 register
 
-	inline bool isPowerOf2(uint64_t x) {
+	inline bool isZeroOrPowerOf2(uint64_t x) {
 		return (x & (x - 1)) == 0;
 	}
 

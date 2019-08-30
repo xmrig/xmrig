@@ -91,6 +91,10 @@ public:
 
         std::lock_guard<std::mutex> lock(m_mutex);
 
+        if (Log::background && m_backends.empty()) {
+            return;
+        }
+
         timestamp(level, size, offset);
         color(level, size);
 
@@ -111,7 +115,7 @@ public:
         if (!m_backends.empty()) {
             for (ILogBackend *backend : m_backends) {
                 backend->print(level, m_buf, offset, size, true);
-                backend->print(level, txt.c_str(), offset, txt.size(), false);
+                backend->print(level, txt.c_str(), offset ? (offset - 11) : 0, txt.size(), false);
             }
         }
         else {
@@ -190,8 +194,9 @@ private:
 };
 
 
-bool Log::colors   = true;
-LogPrivate *Log::d = new LogPrivate();
+bool Log::background = false;
+bool Log::colors     = true;
+LogPrivate *Log::d   = new LogPrivate();
 
 
 } /* namespace xmrig */

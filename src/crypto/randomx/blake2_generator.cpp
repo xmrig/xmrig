@@ -46,7 +46,7 @@ namespace randomx {
 		return data[dataIndex++];
 	}
 
-	uint32_t Blake2Generator::getInt32() {
+	uint32_t Blake2Generator::getUInt32() {
 		checkData(4);
 		auto ret = load32(&data[dataIndex]);
 		dataIndex += 4;

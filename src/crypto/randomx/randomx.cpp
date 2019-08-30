@@ -44,12 +44,14 @@ RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 	ScratchpadL2_Size = 131072;
 	ScratchpadL3_Size = 1048576;
 
+	RANDOMX_FREQ_IADD_RS = 25;
 	RANDOMX_FREQ_IROR_R = 10;
 	RANDOMX_FREQ_IROL_R = 0;
 	RANDOMX_FREQ_FSWAP_R = 8;
 	RANDOMX_FREQ_FADD_R = 20;
 	RANDOMX_FREQ_FSUB_R = 20;
 	RANDOMX_FREQ_FMUL_R = 20;
+	RANDOMX_FREQ_CBRANCH = 16;
 
 	fillAes4Rx4_Key[0] = rx_set_int_vec_i128(0xcf359e95, 0x141f82b7, 0x7ffbe4a6, 0xf890465d);
 	fillAes4Rx4_Key[1] = rx_set_int_vec_i128(0x6741ffdc, 0xbd5c5ac3, 0xfee8278a, 0x6a55c450);
@@ -68,6 +70,9 @@ RandomX_ConfigurationLoki::RandomX_ConfigurationLoki()
 	ArgonSalt = "RandomXL\x12";
 	ProgramSize = 320;
 	ProgramCount = 7;
+
+	RANDOMX_FREQ_IADD_RS = 25;
+	RANDOMX_FREQ_CBRANCH = 16;
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
@@ -87,7 +92,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	, ProgramCount(8)
 	, JumpBits(8)
 	, JumpOffset(8)
-	, RANDOMX_FREQ_IADD_RS(25)
+	, RANDOMX_FREQ_IADD_RS(16)
 	, RANDOMX_FREQ_IADD_M(7)
 	, RANDOMX_FREQ_ISUB_R(16)
 	, RANDOMX_FREQ_ISUB_M(7)
@@ -113,7 +118,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	, RANDOMX_FREQ_FMUL_R(32)
 	, RANDOMX_FREQ_FDIV_M(4)
 	, RANDOMX_FREQ_FSQRT_R(6)
-	, RANDOMX_FREQ_CBRANCH(16)
+	, RANDOMX_FREQ_CBRANCH(25)
 	, RANDOMX_FREQ_CFROUND(1)
 	, RANDOMX_FREQ_ISTORE(16)
 	, RANDOMX_FREQ_NOP(0)
