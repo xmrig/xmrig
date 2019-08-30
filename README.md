@@ -21,17 +21,37 @@ What you need:
 - CMake 3
 - GCC & G++ version 7 or higher or LLVM/Clang 7 or higher. Provided binaries are compiled with Clang 8, it seems to give a slightly higher hashrate for CPU mining.
 - CUDA developer toolkit 9 or higher. Provided binaries are compiled with CUDA 10.1. Follow instructions from NVidia site to get the latest version up and running: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html (be careful that CUDA might have specific requirements for compiler version as well)
-- OpenCL libraries and headers
+- OpenCL libraries and headers (package ocl-icd-opencl-dev in Ubuntu/Debian)
 - OpenSSL, libuv and microhttpd libraries and headers
 
 Instructions:
-- run the following snippet:
+- run the following snippet taking the parts specific for your system (Ubuntu 16.04 or 18.04):
 ```sh
-$ git clone http://github.com/bogdanadnan/ninjarig.git
-$ cd ninjarig
-$ mkdir build
-$ cd build
-$ cmake .. -DCMAKE_BUILD_TYPE=Release
+# Install dependences 16.04/ Stretch
+$ sudo apt-get install git build-essential cmake libuv1-dev libmicrohttpd-dev libssl-dev
+
+# 18.04/ Buster
+$ sudo apt-get install git build-essential cmake libuv1-dev libmicrohttpd-dev libssl-dev gcc-8 g++-8
+$ export CC=gcc-8
+$ export CXX=g++-8
+
+# Clone Repository
+$ git clone http://github.com/bogdanadnan/ninjarig.git && cd ninjarig
+
+# Make Build Repository
+$ mkdir build && cd build
+
+# For CPU Only
+$ cmake -DWITH_CUDA=OFF -DWITH_OPENCL=OFF .. -DCMAKE_BUILD_TYPE=RELEASE
+
+# For CPU and OpenCL
+$ cmake -DWITH_CUDA=OFF .. -DCMAKE_BUILD_TYPE=RELEASE
+
+# For CPU and CUDA
+$ cmake -DWITH_OPENCL=OFF .. -DCMAKE_BUILD_TYPE=RELEASE
+
+# For CPU, OpenCL, and CUDA
+$ cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 $ make
 ```
 
