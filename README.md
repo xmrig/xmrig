@@ -12,7 +12,7 @@ In order to support development, this miner has 1-5% configurable dev fee - 1-5 
 ## Releases
 There are binaries compiled for Windows 10 and Linux/HiveOS. Just pick the one matching your OS and skip to usage information. If for some reason the binaries don't work for you or you want the cutting edge version of this software you can try building it yourself using below instructions (build instructions are only provided for Ubuntu, you will need to adapt them accordingly for other distribution).
 You can get the binaries from here:
-https://github.com/bogdanadnan/ninjarig/releases
+https://github.com/turtlecoin/ninjarig/releases
 
 ## Build it yourself - Linux
 What you need:
@@ -36,7 +36,7 @@ $ export CC=gcc-8
 $ export CXX=g++-8
 
 # Clone Repository
-$ git clone http://github.com/bogdanadnan/ninjarig.git && cd ninjarig
+$ git clone https://github.com/turtlecoin/ninjarig.git && cd ninjarig
 
 # Make Build Repository
 $ mkdir build && cd build
@@ -71,7 +71,7 @@ So, if you really really really want to do that, these are the basic steps you w
 - in the CMD window opened, navigate to ninja folder.
 - type the following commands:
 ```sh
-$ git clone http://github.com/bogdanadnan/ninjarig.git
+$ git clone https://github.com/turtlecoin/ninjarig.git
 $ cd build_clang
 $ set CC=clang-cl
 $ set CXX=clang-cl
