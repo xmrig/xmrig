@@ -43,7 +43,3 @@ cnv2_rwz_double_mainloop_asm:
 	#include "cn2/cnv2_rwz_double_main_loop.inc"
 	ret 0
 	mov eax, 3735929054
-
-#if defined(__linux__) && defined(__ELF__)
-.section .note.GNU-stack,"",%progbits
-#endif
