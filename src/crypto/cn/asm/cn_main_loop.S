@@ -71,3 +71,7 @@ FN_PREFIX(cnv2_rwz_double_mainloop_asm):
 	add rsp, 48
 	ret 0
 	mov eax, 3735929054
+
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
