@@ -14,7 +14,7 @@ There are binaries compiled for Windows 10 and Linux/HiveOS. Just pick the one m
 You can get the binaries from here:
 https://github.com/bogdanadnan/ninjarig/releases
 
-## Build it yourself
+## Build it yourself - Linux
 What you need:
 - Recent Linux distribution (recommended - Ubuntu 16.04 or higher)
 - Git client
@@ -34,6 +34,38 @@ $ cd build
 $ cmake .. -DCMAKE_BUILD_TYPE=Release
 $ make
 ```
+
+## Build it yourself - Windows
+Compiling NinjaRig for Windows is not for the faint-hearted. It needs a mixed compilation environment, becuase most of the code only compiles with clang/gcc while CUDA is MSVC specific (Visual Studio C/C++ compiler). The binaries made by those 2 compilers needs to be compatible as well, which only leaves clang-cl and msvc combination as a valid one. There are a lot of issues also finding proper binaries for dependencies or compiling them yourself.
+So, if you really really really want to do that, these are the basic steps you will have to do:
+- install CLang environment for Windows - x64 version (http://releases.llvm.org/download.html)
+- install a Git client (https://git-scm.com/downloads)
+- install CMake 3 for Windows (https://cmake.org/download/)
+- install Make for Windows (http://gnuwin32.sourceforge.net/packages/make.htm) or install MinGW. In both cases add the binary to PATH env variable.
+- install Visual Studio 2017 - Community edition should suffice, be sure to install C/C++ support and Windows SDK (https://visualstudio.microsoft.com/vs/community/) 
+- install NVidia CUDA Toolkit (https://developer.nvidia.com/cuda-downloads)
+- search for binaries or compile yourself the following libraries: OpenSSL (https://wiki.openssl.org/index.php/Binaries), libuv (https://github.com/libuv/libuv & https://github.com/WenbinHou/libuv-prebuilt) and microhttpd (https://www.gnu.org/software/libmicrohttpd/). If you don't need TLS and API support, you can ignore OpenSSL and microhttpd dependencies but libuv is mandatory. For each you will need the DLL file, the .LIB - for Visual Studio (not the .A! - for MinGW/gcc) file and the headers. Find the place where Visual Studio has installed the SDK and copy those files in the appropriate lib/include folders. The DLLs will be needed in the final compilation folder.
+- create a folder named ninja somewhere on your drive and add 2 subfolders in it, one named build_clang and another build_vc
+- now comes the fun part. In the Windows Run menu type "vs" - it should find some BAT files installed by Visual Studio with all the paths setup for compilation. Open the one with X64 in the name.
+- test that all dependencies work. You should be able to run in console clang-cl --version, make --version, cmake --version and git --version and get results. 
+- in the CMD window opened, navigate to ninja folder.
+- type the following commands:
+```sh
+$ git clone http://github.com/bogdanadnan/ninjarig.git
+$ cd build_clang
+$ set CC=clang-cl
+$ set CXX=clang-cl
+$ cmake ../ninjarig -DCMAKE_BUILD_TYPE=Release -WITH_CUDA=OFF -G "MinGW Makefiles"
+$ cd ../build_vc
+$ cmake ../ninjarig -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 15 2017 Win64"
+$ cd ../build_clang
+$ make
+```
+- this will do 3 things. First cmake call will create a Makefile for building NinjaRig with clang-cl without CUDA which is not compatible with Clang (!!clang-cl is a LLVM driver compatible with MSVC; don't use clang without cl suffix as the results won't be compatible with visual studio compiled CUDA module!!). Second cmake call will create Visual Studio project files for compiling NinjaRig with Visual Studio - only parts of the code will actually be compilable - CUDA module is fortunately one of them. And the last make call will compile the clang version of the miner. This last step will take a while and spill out LOTS of warnings. As long as there is no error you can ignore the warnings. At this step if you don't need TLS or API you can add -DWITH_TLS=OFF and -DWITH_HTTPD=OFF to both cmake commands.
+- copy OpenSSL, libuv and microhttpd DLLs to build_clang folder.
+- at this point you should have a working NinjaRig executable without CUDA support.
+- open Visual Studio and from there NinjaRig.sln file from build_vc folder. Go to Batch Build menu, search for cuda_hasher/Release in the list and check it, leaving everything else unchecked. Press Build button. This should build the cuda_hasher module. In build_vc folder, go to modules/Release folder and copy the cuda_hasher.hsh file to build_clang/modules folder.
+- open the champagne bottle you bought for this specific moment. You have a windows compiled version of NinjaRig :)
 
 ## Basic usage:
 **!!! In some cases (mostly on Windows) the miner doesn't properly detect AVX2 optimization for CPU. If AVX2 doesn't appear in optimization features list for CPU at miner startup, please verify on google if your CPU model has it. If it does have AVX2 support, please run it with "--cpu-optimization AVX2" option. This will give a serious boost to hash rate speed so it does worth the effort to check. !!!**
