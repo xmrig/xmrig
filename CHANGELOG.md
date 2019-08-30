@@ -5,7 +5,7 @@
 - [#1142](https://github.com/xmrig/xmrig/pull/1142) RandomX hashrate improved by 0.5-1.5% depending on variant and CPU.
 - [#1146](https://github.com/xmrig/xmrig/pull/1146) Fixed race condition in RandomX thread init.
 - [#1148](https://github.com/xmrig/xmrig/pull/1148) Fixed, on Linux linker marking entire executable as having an executable stack.
-- Fixed, for Argon2 algorithms command line options, like `--threads` was ignored.
+- Fixed, for Argon2 algorithms command line options like `--threads` was ignored.
 
 # v3.1.0
 - [#1107](https://github.com/xmrig/xmrig/issues/1107#issuecomment-522235892) Added Argon2 algorithm family: `argon2/chukwa` and `argon2/wrkz`.
