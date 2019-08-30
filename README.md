@@ -21,7 +21,7 @@ What you need:
 - CMake 3
 - GCC & G++ version 7 or higher or LLVM/Clang 7 or higher. Provided binaries are compiled with Clang 8, it seems to give a slightly higher hashrate for CPU mining.
 - CUDA developer toolkit 9 or higher. Provided binaries are compiled with CUDA 10.1. Follow instructions from NVidia site to get the latest version up and running: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html (be careful that CUDA might have specific requirements for compiler version as well)
-- OpenCL libraries and headers
+- OpenCL libraries and headers (package ocl-icd-opencl-dev in Ubuntu/Debian)
 - OpenSSL, libuv and microhttpd libraries and headers
 
 Instructions:
