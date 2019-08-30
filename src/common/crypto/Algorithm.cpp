@@ -53,6 +53,7 @@ struct AlgoData
 
 static AlgoData const algorithms[] = {
     { "chukwa",                 "trtl-chukwa",    xmrig::ARGON2,          xmrig::VARIANT_CHUKWA },
+    { "argon2/chukwa",          "trtl-chukwa",    xmrig::ARGON2,          xmrig::VARIANT_CHUKWA },
     { "argon2/trtl",            "trtl-chukwa",    xmrig::ARGON2,          xmrig::VARIANT_CHUKWA },
     { "chukwa/wrkz",            "wrkz-chukwa",    xmrig::ARGON2,          xmrig::VARIANT_CHUKWA_LITE },
     { "argon2/wrkz",            "wrkz-chukwa",    xmrig::ARGON2,          xmrig::VARIANT_CHUKWA_LITE },
