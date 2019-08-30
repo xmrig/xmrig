@@ -66,7 +66,7 @@ So, if you really really really want to do that, these are the basic steps you w
 - install NVidia CUDA Toolkit (https://developer.nvidia.com/cuda-downloads)
 - search for binaries or compile yourself the following libraries: OpenSSL (https://wiki.openssl.org/index.php/Binaries), libuv (https://github.com/libuv/libuv & https://github.com/WenbinHou/libuv-prebuilt) and microhttpd (https://www.gnu.org/software/libmicrohttpd/). If you don't need TLS and API support, you can ignore OpenSSL and microhttpd dependencies but libuv is mandatory. For each you will need the DLL file, the .LIB - for Visual Studio (not the .A! - for MinGW/gcc) file and the headers. Find the place where Visual Studio has installed the SDK and copy those files in the appropriate lib/include folders. The DLLs will be needed in the final compilation folder.
 - create a folder named ninja somewhere on your drive and add 2 subfolders in it, one named build_clang and another build_vc
-- now comes the fun part. In the Windows Run menu type "vs" - it should find some BAT files installed by Visual Studio with all the paths setup for compilation. Open the one with X64 in the name.
+- now comes the fun part. In the Windows Run menu type "x64 Native Tools Command Prompt" (https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=vs-2019) - and open x64 build console.
 - test that all dependencies work. You should be able to run in console clang-cl --version, make --version, cmake --version and git --version and get results. 
 - in the CMD window opened, navigate to ninja folder.
 - type the following commands:
