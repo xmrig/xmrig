@@ -46,11 +46,17 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
         return;
     }
 
-    m_states     = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, 200 * g_thd, nullptr, &ret);
-    m_blake256   = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
-    m_groestl256 = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
-    m_jh256      = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
-    m_skein512   = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
+    m_states = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, 200 * g_thd, nullptr, &ret);
+    if (ret != CL_SUCCESS) {
+        return;
+    }
+
+    for (size_t i = 0; i < BRANCH_MAX; ++i) {
+        m_branches[i] = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
+        if (ret != CL_SUCCESS) {
+            return;
+        }
+    }
 
     uint32_t stridedIndex = data.thread.stridedIndex();
     if (data.device.vendorId() == OCL_VENDOR_NVIDIA) {
@@ -85,22 +91,22 @@ xmrig::OclCnRunner::~OclCnRunner()
 
     OclLib::releaseMemObject(m_scratchpads);
     OclLib::releaseMemObject(m_states);
-    OclLib::releaseMemObject(m_blake256);
-    OclLib::releaseMemObject(m_groestl256);
-    OclLib::releaseMemObject(m_jh256);
-    OclLib::releaseMemObject(m_skein512);
+
+    for (size_t i = 0; i < BRANCH_MAX; ++i) {
+        OclLib::releaseMemObject(m_branches[i]);
+    }
 }
 
 
 bool xmrig::OclCnRunner::isReadyToBuild() const
 {
     return OclBaseRunner::isReadyToBuild() &&
-            m_scratchpads   != nullptr &&
-            m_states        != nullptr &&
-            m_blake256      != nullptr &&
-            m_groestl256    != nullptr &&
-            m_jh256         != nullptr &&
-            m_skein512      != nullptr;
+            m_scratchpads                   != nullptr &&
+            m_states                        != nullptr &&
+            m_branches[BRANCH_BLAKE_256]    != nullptr &&
+            m_branches[BRANCH_GROESTL_256]  != nullptr &&
+            m_branches[BRANCH_JH_256]       != nullptr &&
+            m_branches[BRANCH_SKEIN_512]    != nullptr;
 }
 
 

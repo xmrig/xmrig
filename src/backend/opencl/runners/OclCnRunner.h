@@ -48,13 +48,19 @@ protected:
     void build() override;
 
 private:
-    cl_mem m_blake256       = nullptr;
-    cl_mem m_groestl256     = nullptr;
-    cl_mem m_jh256          = nullptr;
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_skein512       = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
+    enum Branches : size_t {
+        BRANCH_BLAKE_256,
+        BRANCH_GROESTL_256,
+        BRANCH_JH_256,
+        BRANCH_SKEIN_512,
+        BRANCH_MAX
+    };
+
+
+    cl_mem m_branches[BRANCH_MAX]   = { nullptr, nullptr, nullptr, nullptr };
+    cl_mem m_scratchpads            = nullptr;
+    cl_mem m_states                 = nullptr;
+    Cn0Kernel *m_cn0                = nullptr;
 };
 
 
