@@ -329,7 +329,7 @@ namespace randomx {
 			return false;
 
 		if (availableRegisters.size() > 1) {
-			index = gen.getInt32() % availableRegisters.size();
+			index = gen.getUInt32() % availableRegisters.size();
 		}
 		else {
 			index = 0;
@@ -442,7 +442,7 @@ namespace randomx {
 			case SuperscalarInstructionType::IADD_C8:
 			case SuperscalarInstructionType::IADD_C9: {
 				mod_ = 0;
-				imm32_ = gen.getInt32();
+				imm32_ = gen.getUInt32();
 				opGroup_ = SuperscalarInstructionType::IADD_C7;
 				opGroupPar_ = -1;
 			} break;
@@ -451,7 +451,7 @@ namespace randomx {
 			case SuperscalarInstructionType::IXOR_C8:
 			case SuperscalarInstructionType::IXOR_C9: {
 				mod_ = 0;
-				imm32_ = gen.getInt32();
+				imm32_ = gen.getUInt32();
 				opGroup_ = SuperscalarInstructionType::IXOR_C7;
 				opGroupPar_ = -1;
 			} break;
@@ -461,7 +461,7 @@ namespace randomx {
 				mod_ = 0;
 				imm32_ = 0;
 				opGroup_ = SuperscalarInstructionType::IMULH_R;
-				opGroupPar_ = gen.getInt32();
+				opGroupPar_ = gen.getUInt32();
 			} break;
 
 			case SuperscalarInstructionType::ISMULH_R: {
@@ -469,14 +469,14 @@ namespace randomx {
 				mod_ = 0;
 				imm32_ = 0;
 				opGroup_ = SuperscalarInstructionType::ISMULH_R;
-				opGroupPar_ = gen.getInt32();
+				opGroupPar_ = gen.getUInt32();
 			} break;
 
 			case SuperscalarInstructionType::IMUL_RCP: {
 				mod_ = 0;
 				do {
-					imm32_ = gen.getInt32();
-				} while ((imm32_ & (imm32_ - 1)) == 0);
+					imm32_ = gen.getUInt32();
+				} while (isZeroOrPowerOf2(imm32_));
 				opGroup_ = SuperscalarInstructionType::IMUL_RCP;
 				opGroupPar_ = -1;
 			} break;

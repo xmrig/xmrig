@@ -37,7 +37,7 @@ class SysLog : public ILogBackend
 {
 public:
     SysLog();
-    ~SysLog();
+    ~SysLog() override;
 
 protected:
     void print(int level, const char *line, size_t offset, size_t size, bool colors) override;
