@@ -42,7 +42,8 @@ xmrig::BaseClient::BaseClient(int id, IClientListener *listener) :
     m_retries(5),
     m_failures(0),
     m_state(UnconnectedState),
-    m_retryPause(5000)
+    m_retryPause(5000),
+    m_enabled(true)
 {
 }
 

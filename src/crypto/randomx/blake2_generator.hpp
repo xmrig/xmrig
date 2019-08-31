@@ -36,7 +36,7 @@ namespace randomx {
 	public:
 		Blake2Generator(const void* seed, size_t seedSize, int nonce = 0);
 		uint8_t getByte();
-		uint32_t getInt32();
+		uint32_t getUInt32();
 	private:
 		void checkData(const size_t);
 

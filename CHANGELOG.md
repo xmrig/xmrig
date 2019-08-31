@@ -1,3 +1,13 @@
+# v3.1.1
+- [#1133](https://github.com/xmrig/xmrig/issues/1133) Fixed syslog regression.
+- [#1138](https://github.com/xmrig/xmrig/issues/1138) Fixed multiple network bugs.
+- [#1141](https://github.com/xmrig/xmrig/issues/1141) Fixed log in background mode.
+- [#1142](https://github.com/xmrig/xmrig/pull/1142) RandomX hashrate improved by 0.5-1.5% depending on variant and CPU.
+- [#1146](https://github.com/xmrig/xmrig/pull/1146) Fixed race condition in RandomX thread init.
+- [#1148](https://github.com/xmrig/xmrig/pull/1148) Fixed, on Linux linker marking entire executable as having an executable stack.
+- Fixed, for Argon2 algorithms command line options like `--threads` was ignored.
+- Fixed command line options for single pool, free order allowed again.
+
 # v3.1.0
 - [#1107](https://github.com/xmrig/xmrig/issues/1107#issuecomment-522235892) Added Argon2 algorithm family: `argon2/chukwa` and `argon2/wrkz`.
 

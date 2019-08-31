@@ -91,6 +91,8 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
         if (Nonce::sequence(Nonce::CPU) == 0) {
             return;
         }
+
+        dataset = Rx::dataset(m_job.currentJob(), m_node);
     }
 
     if (!m_vm) {
