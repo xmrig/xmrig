@@ -40,6 +40,7 @@ class OclContext
 {
 public:
     OclContext() = default;
+    OclContext(const OclDevice &device);
     ~OclContext();
 
     bool init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads);

@@ -47,6 +47,7 @@ public:
     ~OclBaseRunner() override;
 
 protected:
+    inline cl_context ctx() const override              { return m_ctx; }
     inline const char *buildOptions() const override    { return m_options.c_str(); }
     inline const char *deviceKey() const override       { return m_deviceKey.c_str(); }
     inline const char *source() const override          { return m_source; }
@@ -60,6 +61,7 @@ protected:
 protected:
     Algorithm m_algorithm;
     cl_command_queue m_queue    = nullptr;
+    cl_context m_ctx;
     cl_mem m_input              = nullptr;
     cl_mem m_output             = nullptr;
     cl_program m_program        = nullptr;

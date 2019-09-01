@@ -41,18 +41,18 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
     const size_t g_thd = data.thread.intensity();
 
     cl_int ret;
-    m_scratchpads = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, data.algorithm.l3() * g_thd, nullptr, &ret);
+    m_scratchpads = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, data.algorithm.l3() * g_thd, nullptr, &ret);
     if (ret != CL_SUCCESS) {
         return;
     }
 
-    m_states = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, 200 * g_thd, nullptr, &ret);
+    m_states = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 200 * g_thd, nullptr, &ret);
     if (ret != CL_SUCCESS) {
         return;
     }
 
     for (size_t i = 0; i < BRANCH_MAX; ++i) {
-        m_branches[i] = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
+        m_branches[i] = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
         if (ret != CL_SUCCESS) {
             return;
         }

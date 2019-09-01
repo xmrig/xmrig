@@ -27,6 +27,13 @@
 #include "backend/opencl/wrappers/OclContext.h"
 
 
+xmrig::OclContext::OclContext(const OclDevice &device)
+{
+    std::vector<cl_device_id> ids = { device.id() };
+    m_ctx = OclLib::createContext(ids);
+}
+
+
 xmrig::OclContext::~OclContext()
 {
     if (m_ctx) {

@@ -55,7 +55,7 @@ static cl_program createFromSource(const IOclRunner *runner)
     const char *source  = runner->source();
     const uint64_t ts   = Chrono::steadyMSecs();
 
-    cl_program program = OclLib::createProgramWithSource(runner->data().ctx, 1, &source, nullptr, &ret);
+    cl_program program = OclLib::createProgramWithSource(runner->ctx(), 1, &source, nullptr, &ret);
     if (ret != CL_SUCCESS) {
         return nullptr;
     }
@@ -91,7 +91,7 @@ static cl_program createFromBinary(const IOclRunner *runner, const std::string &
 
     cl_int clStatus;
     cl_int ret;
-    cl_program program = OclLib::createProgramWithBinary(runner->data().ctx, 1, &device, &bin_size, reinterpret_cast<const unsigned char **>(&data_ptr), &clStatus, &ret);
+    cl_program program = OclLib::createProgramWithBinary(runner->ctx(), 1, &device, &bin_size, reinterpret_cast<const unsigned char **>(&data_ptr), &clStatus, &ret);
     if (ret != CL_SUCCESS) {
         return nullptr;
     }

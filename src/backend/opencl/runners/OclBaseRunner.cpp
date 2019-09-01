@@ -34,18 +34,19 @@
 
 xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
     m_algorithm(data.algorithm),
+    m_ctx(data.ctx),
     m_source(OclSource::get(data.algorithm)),
     m_data(data),
     m_threadId(id)
 {
     cl_int ret;
-    m_queue = OclLib::createCommandQueue(data.ctx, data.device.id(), &ret);
+    m_queue = OclLib::createCommandQueue(m_ctx, data.device.id(), &ret);
     if (ret != CL_SUCCESS) {
         return;
     }
 
-    m_input  = OclLib::createBuffer(data.ctx, CL_MEM_READ_ONLY, Job::kMaxBlobSize, nullptr, &ret);
-    m_output = OclLib::createBuffer(data.ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
+    m_input  = OclLib::createBuffer(m_ctx, CL_MEM_READ_ONLY, Job::kMaxBlobSize, nullptr, &ret);
+    m_output = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
 
     m_deviceKey = data.device.name();
 
