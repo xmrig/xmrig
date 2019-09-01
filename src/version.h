@@ -62,25 +62,4 @@
 #   endif
 #endif
 
-#include <string>
-
-class Version
-{
-public:
-    inline static std::string string()
-    {
-        std::string version = std::to_string(APP_VER_MAJOR) + std::string(".") + std::to_string(APP_VER_MINOR) +
-                              std::string(".") + std::to_string(APP_VER_PATCH);
-
-        return version;
-    }
-
-    inline static int code()
-    {
-        std::string version = std::to_string(APP_VER_MAJOR) + std::to_string(APP_VER_MINOR) + std::to_string(APP_VER_PATCH);
-
-        return std::stoi(version);
-    }
-};
-
 #endif /* XMRIG_VERSION_H */

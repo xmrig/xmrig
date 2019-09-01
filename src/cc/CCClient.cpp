@@ -55,6 +55,15 @@
 
 #endif
 
+namespace
+{
+    static std::string VersionString()
+    {
+        std::string version = std::to_string(APP_VER_MAJOR) + std::string(".") + std::to_string(APP_VER_MINOR) +
+                              std::string(".") + std::to_string(APP_VER_PATCH);
+        return version;
+    }
+}
 
 #ifdef TYPE_AMD_GPU
 xmrig::CCClient::CCClient(xmrig::Config* config, uv_async_t* async)
@@ -120,7 +129,7 @@ void xmrig::CCClient::updateClientInfo()
     auto cpuInfo = xmrig::Cpu::info();
 
     m_clientStatus.setClientId(clientId);
-    m_clientStatus.setVersion(Version::string());
+    m_clientStatus.setVersion(VersionString());
     m_clientStatus.setCpuBrand(cpuInfo->brand());
     m_clientStatus.setCpuAES(cpuInfo->hasAES());
     m_clientStatus.setCpuSockets(static_cast<int>(cpuInfo->packages()));
