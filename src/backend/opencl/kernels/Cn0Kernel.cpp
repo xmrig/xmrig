@@ -32,6 +32,16 @@ xmrig::Cn0Kernel::Cn0Kernel(cl_program program) : OclKernel(program, "cn0")
 }
 
 
+bool xmrig::Cn0Kernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t threads)
+{
+    const size_t offset[2]          = { nonce, 1 };
+    const size_t gthreads[2]        = { threads, 8 };
+    static const size_t lthreads[2] = { 8, 8 };
+
+    return enqueueNDRange(queue, 2, offset, gthreads, lthreads);
+}
+
+
 // __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, uint Threads)
 bool xmrig::Cn0Kernel::setArgs(cl_mem input, cl_mem scratchpads, cl_mem states, uint32_t threads)
 {

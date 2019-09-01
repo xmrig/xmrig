@@ -93,9 +93,3 @@ void xmrig::OclBaseRunner::build()
 
     m_program = OclCache::build(this);
 }
-
-
-void xmrig::OclBaseRunner::run(uint32_t *hashOutput)
-{
-
-}

@@ -42,7 +42,12 @@
 
 namespace xmrig {
 
-static constexpr uint32_t kReserveCount = 4096;
+
+static constexpr uint32_t kReserveCount = 32768;
+
+
+static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
+
 
 } // namespace xmrig
 
@@ -51,7 +56,8 @@ static constexpr uint32_t kReserveCount = 4096;
 xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     Worker(id, data.thread.affinity(), -1),
     m_algorithm(data.algorithm),
-    m_miner(data.miner)
+    m_miner(data.miner),
+    m_intensity(data.thread.intensity())
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -108,20 +114,14 @@ void xmrig::OclWorker::start()
         }
 
         while (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence())) {
-            if ((m_count & 0x7) == 0) {
-                storeStats();
+            storeStats();
+
+            if (!m_runner->run(*m_job.nonce(), results)) {
+                return;
             }
 
-            const Job &job = m_job.currentJob();
-
-            if (job.algorithm().l3() != m_algorithm.l3()) {
-                break;
-            }
-
-            m_runner->run(results);
-            std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // FIXME
-
-            m_job.nextRound(kReserveCount);
+            m_job.nextRound(roundSize(m_intensity), m_intensity);
+            m_count += m_intensity;
 
             std::this_thread::yield();
         }
@@ -137,6 +137,6 @@ void xmrig::OclWorker::consumeJob()
         return;
     }
 
-    m_job.add(m_miner->job(), Nonce::sequence(Nonce::OPENCL), kReserveCount);
+    m_job.add(m_miner->job(), Nonce::sequence(Nonce::OPENCL), roundSize(m_intensity) * m_intensity);
     m_runner->set(m_job.currentJob(), m_job.blob());
 }

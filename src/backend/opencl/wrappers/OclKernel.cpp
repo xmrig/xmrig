@@ -43,6 +43,22 @@ xmrig::OclKernel::~OclKernel()
 }
 
 
+bool xmrig::OclKernel::enqueueNDRange(cl_command_queue queue, uint32_t work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size)
+{
+    if (!isValid()) {
+        return false;
+    }
+
+    const cl_int ret = OclLib::enqueueNDRangeKernel(queue, m_kernel, work_dim, global_work_offset, global_work_size, local_work_size, 0, nullptr, nullptr);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clEnqueueNDRangeKernel") RED(" for kernel ") RED_BOLD("%s"),
+                OclError::toString(ret), name().data());
+    }
+
+    return ret == CL_SUCCESS;
+}
+
+
 bool xmrig::OclKernel::setArg(uint32_t index, size_t size, const void *value)
 {
     if (!isValid()) {

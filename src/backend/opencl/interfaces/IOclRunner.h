@@ -41,18 +41,18 @@ class IOclRunner
 public:
     virtual ~IOclRunner() = default;
 
-    virtual bool selfTest() const                   = 0;
-    virtual bool set(const Job &job, uint8_t *blob) = 0;
-    virtual const char *buildOptions() const        = 0;
-    virtual const char *deviceKey() const           = 0;
-    virtual const char *source() const              = 0;
-    virtual const OclLaunchData &data() const       = 0;
-    virtual size_t threadId() const                 = 0;
-    virtual void build()                            = 0;
-    virtual void run(uint32_t *hashOutput)          = 0;
+    virtual bool run(uint32_t nonce, uint32_t *hashOutput)  = 0;
+    virtual bool selfTest() const                           = 0;
+    virtual bool set(const Job &job, uint8_t *blob)         = 0;
+    virtual const char *buildOptions() const                = 0;
+    virtual const char *deviceKey() const                   = 0;
+    virtual const char *source() const                      = 0;
+    virtual const OclLaunchData &data() const               = 0;
+    virtual size_t threadId() const                         = 0;
+    virtual void build()                                    = 0;
 
 protected:
-    virtual bool isReadyToBuild() const         = 0;
+    virtual bool isReadyToBuild() const                     = 0;
 };
 
 

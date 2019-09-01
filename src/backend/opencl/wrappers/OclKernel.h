@@ -29,8 +29,10 @@
 #include "base/tools/String.h"
 
 
-typedef struct _cl_kernel *cl_kernel;
-typedef struct _cl_program *cl_program;
+typedef struct _cl_command_queue *cl_command_queue;
+typedef struct _cl_kernel        *cl_kernel;
+typedef struct _cl_mem           *cl_mem;
+typedef struct _cl_program       *cl_program;
 
 
 namespace xmrig {
@@ -46,6 +48,7 @@ public:
     inline cl_kernel kernel() const     { return m_kernel; }
     inline const String &name() const   { return m_name; }
 
+    bool enqueueNDRange(cl_command_queue queue, uint32_t work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size);
     bool setArg(uint32_t index, size_t size, const void *value);
 
 private:

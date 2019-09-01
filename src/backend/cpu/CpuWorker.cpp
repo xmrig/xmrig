@@ -46,7 +46,7 @@
 
 namespace xmrig {
 
-static constexpr uint32_t kReserveCount = 4096;
+static constexpr uint32_t kReserveCount = 32768;
 
 } // namespace xmrig
 
@@ -212,7 +212,7 @@ void xmrig::CpuWorker<N>::start()
                 }
             }
 
-            m_job.nextRound(kReserveCount);
+            m_job.nextRound(kReserveCount, 1);
             m_count += N;
 
             std::this_thread::yield();

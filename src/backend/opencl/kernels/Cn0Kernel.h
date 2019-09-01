@@ -29,9 +29,6 @@
 #include "backend/opencl/wrappers/OclKernel.h"
 
 
-typedef struct _cl_mem *cl_mem;
-
-
 namespace xmrig {
 
 
@@ -39,6 +36,7 @@ class Cn0Kernel : public OclKernel
 {
 public:
     Cn0Kernel(cl_program program);
+    bool enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
     bool setArgs(cl_mem input, cl_mem scratchpads, cl_mem states, uint32_t threads);
 };
 

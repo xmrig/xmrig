@@ -30,6 +30,12 @@ xmrig::OclRxRunner::OclRxRunner(size_t index, const OclLaunchData &data) : OclBa
 }
 
 
+bool xmrig::OclRxRunner::run(uint32_t nonce, uint32_t *hashOutput)
+{
+    return false;
+}
+
+
 bool xmrig::OclRxRunner::selfTest() const
 {
     return false; // TODO

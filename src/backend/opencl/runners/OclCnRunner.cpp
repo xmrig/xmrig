@@ -110,6 +110,37 @@ bool xmrig::OclCnRunner::isReadyToBuild() const
 }
 
 
+bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
+{
+    static const cl_uint zero = 0;
+
+    cl_int ret;
+    size_t branchNonces[4] = { 0 };
+
+    const size_t g_intensity = data().thread.intensity();
+    const size_t w_size      = data().thread.worksize();
+    const size_t g_thd       = ((g_intensity + w_size - 1u) / w_size) * w_size;
+
+    for (size_t i = 0; i < BRANCH_MAX; ++i) {
+        if (OclLib::enqueueWriteBuffer(m_queue, m_branches[i], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), &zero, 0, nullptr, nullptr) != CL_SUCCESS) {
+            return false;
+        }
+    }
+
+    if (OclLib::enqueueWriteBuffer(m_queue, m_output, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(cl_uint), &zero, 0, nullptr, nullptr) != CL_SUCCESS) {
+        return false;
+    }
+
+    if (!m_cn0->enqueue(m_queue, nonce, g_thd)) {
+        return false;
+    }
+
+    OclLib::finish(m_queue);
+
+    return true;
+}
+
+
 bool xmrig::OclCnRunner::selfTest() const
 {
     return OclBaseRunner::selfTest() && m_cn0->isValid();
@@ -133,8 +164,7 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
         return false;
     }
 
-    LOG_WARN(GREEN_S "OK");
-    return false;
+    return true;
 }
 
 
