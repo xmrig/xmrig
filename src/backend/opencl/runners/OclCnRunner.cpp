@@ -24,6 +24,7 @@
 
 
 #include "backend/opencl/kernels/Cn0Kernel.h"
+#include "backend/opencl/kernels/Cn1Kernel.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/runners/OclCnRunner.h"
 #include "backend/opencl/wrappers/OclLib.h"
@@ -121,6 +122,8 @@ bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
     const size_t w_size      = data().thread.worksize();
     const size_t g_thd       = ((g_intensity + w_size - 1u) / w_size) * w_size;
 
+    assert(g_thd % w_size == 0);
+
     for (size_t i = 0; i < BRANCH_MAX; ++i) {
         if (OclLib::enqueueWriteBuffer(m_queue, m_branches[i], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), &zero, 0, nullptr, nullptr) != CL_SUCCESS) {
             return false;
@@ -135,6 +138,10 @@ bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
         return false;
     }
 
+    if (!m_cn1->enqueue(m_queue, nonce, g_thd, w_size)) {
+        return false;
+    }
+
     OclLib::finish(m_queue);
 
     return true;
@@ -143,7 +150,9 @@ bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
 
 bool xmrig::OclCnRunner::selfTest() const
 {
-    return OclBaseRunner::selfTest() && m_cn0->isValid();
+    return OclBaseRunner::selfTest() &&
+           m_cn0->isValid() &&
+           m_cn1->isValid();
 }
 
 
@@ -160,7 +169,11 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
         return false;
     }
 
-    if (!m_cn0->setArgs(m_input, m_scratchpads, m_states, data().thread.intensity())) {
+    if (!m_cn0->setArgs(m_input, m_scratchpads, m_states)) {
+        return false;
+    }
+
+    if (!m_cn1->setArgs(m_input, m_scratchpads, m_states)) {
         return false;
     }
 
@@ -177,4 +190,5 @@ void xmrig::OclCnRunner::build()
     }
 
     m_cn0 = new Cn0Kernel(m_program);
+    m_cn1 = new Cn1Kernel(m_program);
 }

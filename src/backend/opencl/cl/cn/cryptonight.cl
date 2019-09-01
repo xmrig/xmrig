@@ -74,7 +74,7 @@ inline ulong getIdx()
 
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, uint Threads)
+__kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states)
 {
     uint ExpandedKey1[40];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -94,10 +94,6 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
     __local ulong State_buf[8 * 25];
 
-#   if (COMP_MODE == 1)
-    // do not use early return here
-    if (gIdx < Threads)
-#   endif
     {
         states += 25 * gIdx;
 
@@ -154,10 +150,6 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
     barrier(CLK_GLOBAL_MEM_FENCE);
 
-#   if (COMP_MODE == 1)
-    // do not use early return here
-    if (gIdx < Threads)
-#   endif
     {
         text = vload4(get_local_id(1) + 4, (__global uint *)(states));
 
@@ -198,10 +190,6 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     }
 #   endif
 
-#   if (COMP_MODE == 1)
-    // do not use early return here
-    if (gIdx < Threads)
-#   endif
     {
         const uint local_id1 = get_local_id(1);
         #pragma unroll 2
@@ -488,7 +476,7 @@ __kernel void cn1_v2(__global uint4 *Scratchpad, __global ulong *states, uint va
 
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input, uint Threads)
+__kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256];
@@ -504,10 +492,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint varia
     barrier(CLK_LOCAL_MEM_FENCE);
 
     uint4 b_x;
-#   if (COMP_MODE == 1)
-    // do not use early return here
-    if (gIdx < Threads)
-#   endif
+
     {
         states += 25 * gIdx;
 #       if (STRIDED_INDEX == 0)
@@ -532,10 +517,6 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint varia
 
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
-#   if (COMP_MODE == 1)
-    // do not use early return here
-    if (gIdx < Threads)
-#   endif
     {
         uint idx0 = a[0];
 
@@ -576,6 +557,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint varia
 #           endif
         }
     }
+
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 }
 

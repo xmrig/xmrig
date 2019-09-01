@@ -7,6 +7,7 @@ if (WITH_OPENCL)
         src/backend/opencl/cl/OclSource.h
         src/backend/opencl/interfaces/IOclRunner.h
         src/backend/opencl/kernels/Cn0Kernel.h
+        src/backend/opencl/kernels/Cn1Kernel.h
         src/backend/opencl/OclBackend.h
         src/backend/opencl/OclCache.h
         src/backend/opencl/OclConfig.h
@@ -28,6 +29,7 @@ if (WITH_OPENCL)
     set(SOURCES_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.cpp
         src/backend/opencl/kernels/Cn0Kernel.cpp
+        src/backend/opencl/kernels/Cn1Kernel.cpp
         src/backend/opencl/OclBackend.cpp
         src/backend/opencl/OclCache.cpp
         src/backend/opencl/OclConfig.cpp

@@ -33,6 +33,7 @@ namespace xmrig {
 
 
 class Cn0Kernel;
+class Cn1Kernel;
 
 
 class OclCnRunner : public OclBaseRunner
@@ -62,6 +63,7 @@ private:
     cl_mem m_scratchpads            = nullptr;
     cl_mem m_states                 = nullptr;
     Cn0Kernel *m_cn0                = nullptr;
+    Cn1Kernel *m_cn1                = nullptr;
 };
 
 

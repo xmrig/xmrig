@@ -22,26 +22,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CN0KERNEL_H
-#define XMRIG_CN0KERNEL_H
+
+#include "backend/opencl/kernels/Cn1Kernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
-#include "backend/opencl/wrappers/OclKernel.h"
-
-
-namespace xmrig {
-
-
-class Cn0Kernel : public OclKernel
+xmrig::Cn1Kernel::Cn1Kernel(cl_program program) : OclKernel(program, "cn1")
 {
-public:
-    Cn0Kernel(cl_program program);
-    bool enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
-    bool setArgs(cl_mem input, cl_mem scratchpads, cl_mem states);
-};
+}
 
 
-} // namespace xmrig
+bool xmrig::Cn1Kernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t threads, size_t worksize)
+{
+    const size_t offset   = nonce;
+    const size_t gthreads = threads;
+    const size_t lthreads = worksize;
+
+    return enqueueNDRange(queue, 1, &offset, &gthreads, &lthreads);
+}
 
 
-#endif /* XMRIG_CN0KERNEL_H */
+// __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states)
+bool xmrig::Cn1Kernel::setArgs(cl_mem input, cl_mem scratchpads, cl_mem states)
+{
+    return setArg(0, sizeof(cl_mem), &input) &&
+           setArg(1, sizeof(cl_mem), &scratchpads) &&
+           setArg(2, sizeof(cl_mem), &states);
+}

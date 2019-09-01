@@ -42,11 +42,10 @@ bool xmrig::Cn0Kernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t th
 }
 
 
-// __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, uint Threads)
-bool xmrig::Cn0Kernel::setArgs(cl_mem input, cl_mem scratchpads, cl_mem states, uint32_t threads)
+// __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states)
+bool xmrig::Cn0Kernel::setArgs(cl_mem input, cl_mem scratchpads, cl_mem states)
 {
     return setArg(0, sizeof(cl_mem), &input) &&
            setArg(1, sizeof(cl_mem), &scratchpads) &&
-           setArg(2, sizeof(cl_mem), &states) &&
-           setArg(3, sizeof(uint32_t), &threads);
+           setArg(2, sizeof(cl_mem), &states);
 }
