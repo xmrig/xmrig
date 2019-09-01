@@ -1,17 +1,26 @@
-/*
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+/* XMRig
+ * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
+ * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
+ * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
+ * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
+ * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /* For Mesa clover support */
 #ifdef cl_clang_storage_class_specifiers
@@ -27,6 +36,7 @@
 #include "groestl256.cl"
 #include "fast_int_math_v2.cl"
 #include "fast_div_heavy.cl"
+#include "keccak.cl"
 
 
 #if defined(__NV_CL_C_VERSION) && STRIDED_INDEX != 0
@@ -35,219 +45,25 @@
 #endif
 
 
-static const __constant ulong keccakf_rndc[24] =
-{
-    0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
-    0x8000000080008000, 0x000000000000808b, 0x0000000080000001,
-    0x8000000080008081, 0x8000000000008009, 0x000000000000008a,
-    0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
-    0x000000008000808b, 0x800000000000008b, 0x8000000000008089,
-    0x8000000000008003, 0x8000000000008002, 0x8000000000000080,
-    0x000000000000800a, 0x800000008000000a, 0x8000000080008081,
-    0x8000000000008080, 0x0000000080000001, 0x8000000080008008
-};
-
-
-static const __constant uchar sbox[256] =
-{
-    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
-    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
-    0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
-    0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
-    0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
-    0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
-    0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
-    0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
-    0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
-    0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
-    0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
-    0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
-    0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
-    0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
-    0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
-    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
-};
-
-
-static const __constant uint keccakf_rotc[24] =
-{
-    1,  3,  6,  10, 15, 21, 28, 36, 45, 55, 2,  14,
-    27, 41, 56, 8,  25, 43, 62, 18, 39, 61, 20, 44
-};
-
-
-static const __constant uint keccakf_piln[24] =
-{
-    10, 7,  11, 17, 18, 3, 5,  16, 8,  21, 24, 4,
-    15, 23, 19, 13, 12, 2, 20, 14, 22, 9,  6,  1
-};
-
-
-void keccakf1600_1(ulong *st)
-{
-    int i, round;
-    ulong t, bc[5];
-
-    #pragma unroll 1
-    for (round = 0; round < 24; ++round) {
-        // Theta
-        bc[0] = st[0] ^ st[5] ^ st[10] ^ st[15] ^ st[20];
-        bc[1] = st[1] ^ st[6] ^ st[11] ^ st[16] ^ st[21];
-        bc[2] = st[2] ^ st[7] ^ st[12] ^ st[17] ^ st[22];
-        bc[3] = st[3] ^ st[8] ^ st[13] ^ st[18] ^ st[23];
-        bc[4] = st[4] ^ st[9] ^ st[14] ^ st[19] ^ st[24];
-
-        #pragma unroll 1
-        for (i = 0; i < 5; ++i) {
-            t = bc[(i + 4) % 5] ^ rotate(bc[(i + 1) % 5], 1UL);
-            st[i     ] ^= t;
-            st[i +  5] ^= t;
-            st[i + 10] ^= t;
-            st[i + 15] ^= t;
-            st[i + 20] ^= t;
-        }
-
-        // Rho Pi
-        t = st[1];
-        #pragma unroll 1
-        for (i = 0; i < 24; ++i) {
-            bc[0] = st[keccakf_piln[i]];
-            st[keccakf_piln[i]] = rotate(t, (ulong)keccakf_rotc[i]);
-            t = bc[0];
-        }
-
-        #pragma unroll 1
-        for (int i = 0; i < 25; i += 5) {
-            ulong tmp[5];
-
-            #pragma unroll 1
-            for (int x = 0; x < 5; ++x) {
-                tmp[x] = bitselect(st[i + x] ^ st[i + ((x + 2) % 5)], st[i + x], st[i + ((x + 1) % 5)]);
-            }
-
-            #pragma unroll 1
-            for (int x = 0; x < 5; ++x) {
-                st[i + x] = tmp[x];
-            }
-        }
-
-        //  Iota
-        st[0] ^= keccakf_rndc[round];
-    }
-}
-
-
-void keccakf1600_2(__local ulong *st)
-{
-    int i, round;
-    ulong t, bc[5];
-
-    #pragma unroll 1
-    for (round = 0; round < 24; ++round) {
-        bc[0] = st[0] ^ st[5] ^ st[10] ^ st[15] ^ st[20] ^ rotate(st[2] ^ st[7] ^ st[12] ^ st[17] ^ st[22], 1UL);
-        bc[1] = st[1] ^ st[6] ^ st[11] ^ st[16] ^ st[21] ^ rotate(st[3] ^ st[8] ^ st[13] ^ st[18] ^ st[23], 1UL);
-        bc[2] = st[2] ^ st[7] ^ st[12] ^ st[17] ^ st[22] ^ rotate(st[4] ^ st[9] ^ st[14] ^ st[19] ^ st[24], 1UL);
-        bc[3] = st[3] ^ st[8] ^ st[13] ^ st[18] ^ st[23] ^ rotate(st[0] ^ st[5] ^ st[10] ^ st[15] ^ st[20], 1UL);
-        bc[4] = st[4] ^ st[9] ^ st[14] ^ st[19] ^ st[24] ^ rotate(st[1] ^ st[6] ^ st[11] ^ st[16] ^ st[21], 1UL);
-
-        st[0]  ^= bc[4];
-        st[5]  ^= bc[4];
-        st[10] ^= bc[4];
-        st[15] ^= bc[4];
-        st[20] ^= bc[4];
-
-        st[1]  ^= bc[0];
-        st[6]  ^= bc[0];
-        st[11] ^= bc[0];
-        st[16] ^= bc[0];
-        st[21] ^= bc[0];
-
-        st[2]  ^= bc[1];
-        st[7]  ^= bc[1];
-        st[12] ^= bc[1];
-        st[17] ^= bc[1];
-        st[22] ^= bc[1];
-
-        st[3]  ^= bc[2];
-        st[8]  ^= bc[2];
-        st[13] ^= bc[2];
-        st[18] ^= bc[2];
-        st[23] ^= bc[2];
-
-        st[4]  ^= bc[3];
-        st[9]  ^= bc[3];
-        st[14] ^= bc[3];
-        st[19] ^= bc[3];
-        st[24] ^= bc[3];
-
-        // Rho Pi
-        t = st[1];
-        #pragma unroll 1
-        for (i = 0; i < 24; ++i) {
-            bc[0] = st[keccakf_piln[i]];
-            st[keccakf_piln[i]] = rotate(t, (ulong)keccakf_rotc[i]);
-            t = bc[0];
-        }
-
-        #pragma unroll 1
-        for (int i = 0; i < 25; i += 5) {
-            ulong tmp1 = st[i], tmp2 = st[i + 1];
-
-            st[i] = bitselect(st[i] ^ st[i + 2], st[i], st[i + 1]);
-            st[i + 1] = bitselect(st[i + 1] ^ st[i + 3], st[i + 1], st[i + 2]);
-            st[i + 2] = bitselect(st[i + 2] ^ st[i + 4], st[i + 2], st[i + 3]);
-            st[i + 3] = bitselect(st[i + 3] ^ tmp1, st[i + 3], st[i + 4]);
-            st[i + 4] = bitselect(st[i + 4] ^ tmp2, st[i + 4], tmp1);
-        }
-
-        //  Iota
-        st[0] ^= keccakf_rndc[round];
-    }
-}
-
-
-static const __constant uchar rcon[8] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40 };
-
-
-#define SubWord(inw) ((sbox[BYTE(inw, 3)] << 24) | (sbox[BYTE(inw, 2)] << 16) | (sbox[BYTE(inw, 1)] << 8) | sbox[BYTE(inw, 0)])
-
-
-void AESExpandKey256(uint *keybuf)
-{
-    //#pragma unroll 4
-    for (uint c = 8, i = 1; c < 40; ++c) {
-        // For 256-bit keys, an sbox permutation is done every other 4th uint generated, AND every 8th
-        uint t = ((!(c & 7)) || ((c & 7) == 4)) ? SubWord(keybuf[c - 1]) : keybuf[c - 1];
-
-        // If the uint we're generating has an index that is a multiple of 8, rotate and XOR with the round constant,
-        // then XOR this with previously generated uint. If it's 4 after a multiple of 8, only the sbox permutation
-        // is done, followed by the XOR. If neither are true, only the XOR with the previously generated uint is done.
-        keybuf[c] = keybuf[c - 8] ^ ((!(c & 7)) ? rotate(t, 24U) ^ as_uint((uchar4)(rcon[i++], 0U, 0U, 0U)) : t);
-    }
-}
-
-
 #define MEM_CHUNK (1 << MEM_CHUNK_EXPONENT)
 
 
 #if (STRIDED_INDEX == 0)
-#   define IDX(x)   (x)
+#   define IDX(x) (x)
 #elif (STRIDED_INDEX == 1)
-#   if (ALGO == CRYPTONIGHT_HEAVY)
-#       define IDX(x)   ((x) * WORKSIZE)
+#   if (ALGO_FAMILY == CN_HEAVY)
+#       define IDX(x) ((x) * WORKSIZE)
 #   else
-#       define IDX(x)   mul24((x), Threads)
+#       define IDX(x) mul24((x), Threads)
 #   endif
 #elif (STRIDED_INDEX == 2)
-#   define IDX(x)   (((x) % MEM_CHUNK) + ((x) / MEM_CHUNK) * WORKSIZE * MEM_CHUNK)
+#   define IDX(x) (((x) % MEM_CHUNK) + ((x) / MEM_CHUNK) * WORKSIZE * MEM_CHUNK)
 #endif
 
 
 inline ulong getIdx()
 {
-#   if (STRIDED_INDEX == 0 || STRIDED_INDEX == 1 || STRIDED_INDEX == 2)
     return get_global_id(0) - get_global_offset(0);
-#   endif
 }
 
 
@@ -288,7 +104,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO == CRYPTONIGHT_HEAVY)
+#       if (ALGO_FAMILY == CN_HEAVY)
             Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       else
             Scratchpad += gIdx;
@@ -355,7 +171,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
-#   if (ALGO == CRYPTONIGHT_HEAVY)
+#   if (ALGO_FAMILY == CN_HEAVY)
     {
         __local uint4 xin[8][8];
 
@@ -452,7 +268,7 @@ __kernel void cn1_v1(__global uint4 *Scratchpad, __global ulong *states, uint va
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO == CRYPTONIGHT_HEAVY)
+#       if (ALGO_FAMILY == CN_HEAVY)
             Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       else
             Scratchpad += gIdx;
@@ -697,7 +513,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint varia
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO == CRYPTONIGHT_HEAVY)
+#       if (ALGO_FAMILY == CN_HEAVY)
             Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + get_local_id(0);
 #       else
             Scratchpad += gIdx;
@@ -745,7 +561,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint varia
 
             b_x = ((uint4 *)c)[0];
 
-#           if (ALGO == CRYPTONIGHT_HEAVY)
+#           if (ALGO_FAMILY == CN_HEAVY)
             {
                 const long2 n = *((__global long2*)(Scratchpad + (IDX((idx0 & MASK) >> 4))));
                 long q = fast_div_heavy(n.s0, as_int4(n).s2 | 0x5);
@@ -792,7 +608,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO == CRYPTONIGHT_HEAVY)
+#       if (ALGO_FAMILY == CN_HEAVY)
             Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       else
             Scratchpad += gIdx;
@@ -818,7 +634,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-#   if (ALGO == CRYPTONIGHT_HEAVY)
+#   if (ALGO_FAMILY == CN_HEAVY)
     __local uint4 xin1[8][8];
     __local uint4 xin2[8][8];
     __local uint4* xin1_store = &xin1[get_local_id(1)][get_local_id(0)];
@@ -833,7 +649,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
     if (gIdx < Threads)
 #   endif
     {
-#       if (ALGO == CRYPTONIGHT_HEAVY)
+#       if (ALGO_FAMILY == CN_HEAVY)
         #pragma unroll 2
         for(int i = 0, i1 = get_local_id(1); i < (MEMORY >> 7); ++i, i1 = (i1 + 16) % (MEMORY >> 4))
         {
@@ -874,7 +690,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 #       endif
     }
 
-#   if (ALGO == CRYPTONIGHT_HEAVY)
+#   if (ALGO_FAMILY == CN_HEAVY)
     /* Also left over threads performe this loop.
      * The left over thread results will be ignored
      */

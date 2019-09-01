@@ -25,3 +25,14 @@ enum Algorithm {
     ALGO_AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ)
     ALGO_MAX
 };
+
+
+enum AlgorithmFamily {
+    FAMILY_UNKNOWN,
+    FAMILY_CN,
+    FAMILY_CN_LITE,
+    FAMILY_CN_HEAVY,
+    FAMILY_CN_PICO,
+    FAMILY_RANDOM_X,
+    FAMILY_ARGON2
+};

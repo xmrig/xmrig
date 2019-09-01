@@ -21,7 +21,8 @@ function cn()
         'blake256.cl',
         'groestl256.cl',
         'fast_int_math_v2.cl',
-        'fast_div_heavy.cl'
+        'fast_div_heavy.cl',
+        'keccak.cl'
     ]);
 
     //fs.writeFileSync('cryptonight_gen.cl', cn);
