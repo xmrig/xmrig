@@ -208,7 +208,7 @@ void xmrig::CpuWorker<N>::start()
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
-                    JobResults::submit(JobResult(job, *m_job.nonce(i), m_hash + (i * 32)));
+                    JobResults::submit(job, *m_job.nonce(i), m_hash + (i * 32));
                 }
             }
 

@@ -188,15 +188,15 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
         return false;
     }
 
-    if (!m_cn0->setArgs(m_input, m_scratchpads, m_states)) {
-        return false;
-    }
-
-    if (!m_cn1->setArgs(m_input, m_scratchpads, m_states)) {
-        return false;
-    }
-
     const uint32_t intensity = data().thread.intensity();
+
+    if (!m_cn0->setArgs(m_input, m_scratchpads, m_states, intensity)) {
+        return false;
+    }
+
+    if (!m_cn1->setArgs(m_input, m_scratchpads, m_states, intensity)) {
+        return false;
+    }
 
     if (!m_cn2->setArgs(m_scratchpads, m_states, m_branches, intensity)) {
         return false;

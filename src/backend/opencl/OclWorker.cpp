@@ -68,7 +68,7 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
 
     case Algorithm::ARGON2:
 #       ifdef XMRIG_ALGO_ARGON2
-        m_runner = nullptr; // TODO
+        m_runner = nullptr; // TODO OclArgon2Runner
 #       endif
         break;
 
@@ -118,6 +118,10 @@ void xmrig::OclWorker::start()
 
             if (!m_runner->run(*m_job.nonce(), results)) {
                 return;
+            }
+
+            if (results[0xFF] > 0) {
+                JobResults::submit(m_job.currentJob(), results, results[0xFF]);
             }
 
             m_job.nextRound(roundSize(m_intensity), m_intensity);

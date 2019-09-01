@@ -74,7 +74,7 @@ inline ulong getIdx()
 
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states)
+__kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, uint Threads)
 {
     uint ExpandedKey1[40];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -476,7 +476,7 @@ __kernel void cn1_v2(__global uint4 *Scratchpad, __global ulong *states, uint va
 
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states)
+__kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, uint Threads)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256];
@@ -548,11 +548,11 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
                 long q = fast_div_heavy(n.s0, as_int4(n).s2 | 0x5);
                 *((__global long*)(Scratchpad + (IDX((idx0 & MASK) >> 4)))) = n.s0 ^ q;
 
-                if (variant == VARIANT_XHV) {
-                    idx0 = (~as_int4(n).s2) ^ q;
-                } else {
-                    idx0 = as_int4(n).s2 ^ q;
-                }
+#               if (ALGO == ALGO_CN_HEAVY_XHV) {
+                idx0 = (~as_int4(n).s2) ^ q;
+#               else
+                idx0 = as_int4(n).s2 ^ q;
+#               endif
             }
 #           endif
         }

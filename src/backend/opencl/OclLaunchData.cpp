@@ -41,6 +41,6 @@ xmrig::OclLaunchData::OclLaunchData(const Miner *miner, const Algorithm &algorit
 
 bool xmrig::OclLaunchData::isEqual(const OclLaunchData &other) const
 {
-    return (other.algorithm.l3() == algorithm.l3() &&
-            other.thread         == thread);
+    return (other.algorithm == algorithm &&
+            other.thread    == thread);
 }

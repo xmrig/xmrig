@@ -38,7 +38,7 @@ bool xmrig::OclRxRunner::run(uint32_t nonce, uint32_t *hashOutput)
 
 bool xmrig::OclRxRunner::selfTest() const
 {
-    return false; // TODO
+    return false; // TODO OclRxRunner
 }
 
 

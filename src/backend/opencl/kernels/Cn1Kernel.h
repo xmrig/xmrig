@@ -37,7 +37,7 @@ class Cn1Kernel : public OclKernel
 public:
     Cn1Kernel(cl_program program);
     bool enqueue(cl_command_queue queue, uint32_t nonce, size_t threads, size_t worksize);
-    bool setArgs(cl_mem input, cl_mem scratchpads, cl_mem states);
+    bool setArgs(cl_mem input, cl_mem scratchpads, cl_mem states, uint32_t threads);
 };
 
 
