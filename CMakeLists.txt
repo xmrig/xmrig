@@ -1,112 +1,160 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+#set(CMAKE_BUILD_TYPE "Debug")
 
-option(WITH_LIBCPUID  "Use Libcpuid" ON)
-option(WITH_HTTPD     "HTTP REST API" OFF)
-option(WITH_CC_CLIENT "CC Client" ON)
-option(WITH_CC_SERVER "CC Server" ON)
-option(WITH_TLS       "TLS support" ON)
-option(WITH_ASM       "ASM optimizations" ON)
-option(BUILD_STATIC   "Build static binary" OFF)
-set(Boost_USE_STATIC_RUNTIME ON)
-set(Boost_USE_STATIC_LIBS ON)
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    message(STATUS "-- XMRigCC: Found ccache package... Activating...")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
+option(WITH_LIBCPUID        "Enable libcpuid support" ON)
+option(WITH_HWLOC           "Enable hwloc support" ON)
+option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
+option(WITH_CN_HEAVY        "Enable CryptoNight-Heavy algorithms family" ON)
+option(WITH_CN_PICO         "Enable CryptoNight-Pico algorithm" ON)
+option(WITH_CN_GPU          "Enable CryptoNight-GPU algorithm" OFF)
+option(WITH_RANDOMX         "Enable RandomX algorithms family" ON)
+option(WITH_ARGON2          "Enable Argon2 algorithms family" ON)
+option(WITH_HTTP            "Enable HTTP protocol support (client/server)" ON)
+option(WITH_CN_EXTREMELITE  "CryptoNight-Extremelite support" ON)
+option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
+option(WITH_TLS             "Enable OpenSSL support" ON)
+option(WITH_ASM             "Enable ASM PoW implementations" ON)
+option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
+option(WITH_CC_CLIENT       "CC Client" ON)
+option(WITH_CC_SERVER       "CC Server" OFF)
+
+option(BUILD_STATIC         "Build static binary" OFF)
+option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
+option(HWLOC_DEBUG          "Enable hwloc debug helpers and log" OFF)
+
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 if(NOT MINER_EXECUTABLE_NAME)
-set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
+    set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
 endif(NOT MINER_EXECUTABLE_NAME)
 
 if(NOT DAEMON_EXECUTABLE_NAME)
-set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
+    set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
 endif(NOT DAEMON_EXECUTABLE_NAME)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
+include (src/base/base.cmake)
+include (src/backend/backend.cmake)
+
+
+set(HEADERS
+    "${HEADERS_BASE}"
+    "${HEADERS_BASE_HTTP}"
+    "${HEADERS_BACKEND}"
+    src/App.h
+    src/core/config/Config_default.h
+    src/core/config/Config_platform.h
+    src/core/config/Config.h
+    src/core/config/ConfigTransform.h
+    src/core/config/usage.h
+    src/core/Controller.h
+    src/core/Miner.h
+    src/net/interfaces/IJobResultListener.h
+    src/net/JobResult.h
+    src/net/JobResults.h
+    src/net/Network.h
+    src/net/NetworkState.h
+    src/net/strategies/DonateStrategy.h
+    src/Summary.h
+    src/version.h
+   )
+
+set(HEADERS_CRYPTO
+    src/crypto/cn/asm/CryptonightR_template.h
+    src/crypto/cn/c_blake256.h
+    src/crypto/cn/c_groestl.h
+    src/crypto/cn/c_jh.h
+    src/crypto/cn/c_skein.h
+    src/crypto/cn/CnAlgo.h
+    src/crypto/cn/CnCtx.h
+    src/crypto/cn/CnHash.h
+    src/crypto/cn/CryptoNight_monero.h
+    src/crypto/cn/CryptoNight_test.h
+    src/crypto/cn/CryptoNight.h
+    src/crypto/cn/groestl_tables.h
+    src/crypto/cn/hash.h
+    src/crypto/cn/skein_port.h
+    src/crypto/cn/soft_aes.h
+    src/crypto/common/Algorithm.h
+    src/crypto/common/keccak.h
+    src/crypto/common/Nonce.h
+    src/crypto/common/portable/mm_malloc.h
+    src/crypto/common/VirtualMemory.h
+   )
+
+if (XMRIG_ARM)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_arm.h)
+else()
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_x86.h)
+endif()
 
 set(SOURCES
-    src/api/NetworkState.cpp
+    "${SOURCES_BASE}"
+    "${SOURCES_BASE_HTTP}"
+    "${SOURCES_BACKEND}"
     src/App.cpp
-    src/net/BoostTcpConnection.cpp
-    src/net/Client.cpp
-    src/net/Connection.cpp
-    src/net/Job.cpp
+    src/core/config/Config.cpp
+    src/core/config/ConfigTransform.cpp
+    src/core/Controller.cpp
+    src/core/Miner.cpp
+    src/net/JobResults.cpp
     src/net/Network.cpp
+    src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp
-    src/net/strategies/FailoverStrategy.cpp
-    src/net/strategies/SinglePoolStrategy.cpp
-    src/net/SubmitResult.cpp
     src/Summary.cpp
-    src/workers/MultiWorker.cpp
-    src/workers/Handle.cpp
-    src/workers/Hashrate.cpp
-    src/workers/Worker.cpp
-    src/workers/Workers.cpp
     src/xmrig.cpp
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/c_keccak.c
-    src/crypto/c_groestl.c
-    src/crypto/c_blake256.c
-    src/crypto/c_jh.c
-    src/crypto/c_skein.c
-    src/crypto/HashSelector.cpp
-    src/crypto/CryptoNightR_gen.cpp
-   )
-
-set(SOURCES_COMMON
-    src/Console.cpp
-    src/Mem.cpp
-    src/net/Url.cpp
-    src/Options.cpp
-    src/log/ConsoleLog.cpp
-    src/log/FileLog.cpp
-    src/log/RemoteLog.cpp
-    src/log/Log.cpp
-    src/Platform.cpp
-    src/Cpu.cpp
-
+    src/crypto/cn/c_blake256.c
+    src/crypto/cn/c_groestl.c
+    src/crypto/cn/c_jh.c
+    src/crypto/cn/c_skein.c
+    src/crypto/cn/CnCtx.cpp
+    src/crypto/cn/CnHash.cpp
+    src/crypto/common/Algorithm.cpp
+    src/crypto/common/keccak.cpp
+    src/crypto/common/Nonce.cpp
+    src/crypto/common/VirtualMemory.cpp
    )
 
 if (WIN32)
     set(SOURCES_OS
+        "${SOURCES_OS}"
         res/app.rc
-        src/api/Api.cpp
-        src/api/ApiState.cpp
         src/App_win.cpp
-        src/Cpu_win.cpp
-        src/Mem_win.cpp
-        src/Platform_win.cpp
+        src/crypto/common/VirtualMemory_win.cpp
         )
 
     add_definitions(/DWIN32)
-    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv crypt32)
+    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 elseif (APPLE)
     set(SOURCES_OS
+        "${SOURCES_OS}"
         src/App_unix.cpp
-        src/Cpu_mac.cpp
-        src/Mem_unix.cpp
-        src/Platform_mac.cpp
+        src/crypto/common/VirtualMemory_unix.cpp
         )
 else()
     set(SOURCES_OS
-        src/api/Api.cpp
-        src/api/ApiState.cpp
+        "${SOURCES_OS}"
         src/App_unix.cpp
-        src/Cpu_unix.cpp
-        src/Mem_unix.cpp
-        src/Platform_unix.cpp
+        src/crypto/common/VirtualMemory_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread rt)
-
     if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    	set(EXTRA_LIBS ${EXTRA_LIBS} kvm)
+        set(EXTRA_LIBS kvm pthread)
     else()
-    	set(EXTRA_LIBS ${EXTRA_LIBS} dl)
+        set(EXTRA_LIBS pthread rt dl)
     endif()
 endif()
 
@@ -120,76 +168,41 @@ endif()
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 add_definitions(/DMINER_EXECUTABLE_NAME=${MINER_EXECUTABLE_NAME})
-#add_definitions(/DAPP_DEBUG)
-
-add_compile_options(-fexceptions)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
 
-if (WIN32)
-    add_definitions(-DBOOST_ALL_NO_LIB)
-endif(WIN32)
-
-find_package(Boost 1.62.0 COMPONENTS system REQUIRED)
-
 include(cmake/flags.cmake)
+include(cmake/randomx.cmake)
+include(cmake/argon2.cmake)
+include(cmake/OpenSSL.cmake)
+include(cmake/asm.cmake)
+include(cmake/cn-gpu.cmake)
 
-if (WITH_TLS)
-    find_package(OpenSSL)
-
-    add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
-
-    if (OPENSSL_FOUND)
-        include_directories(${OPENSSL_INCLUDE_DIR})
-        set(SOURCES_SSL_TLS src/net/BoostTlsConnection.cpp)
-    else()
-        message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
-    endif(OPENSSL_FOUND)
-else()
-    add_definitions(/DXMRIG_NO_TLS)
-endif(WITH_TLS)
-
-if (WITH_LIBCPUID)
-    add_subdirectory(src/3rdparty/libcpuid)
-
-    include_directories(src/3rdparty/libcpuid)
-    set(CPUID_LIB cpuid)
-    set(SOURCES_CPUID src/Cpu_cpuid.cpp)
-else()
-    add_definitions(/DXMRIG_NO_LIBCPUID)
-
-    if (XMRIG_ARM)
-        set(SOURCES_CPUID src/Cpu_arm.cpp)
-    else()
-        set(SOURCES_CPUID src/Cpu_stub.cpp)
-    endif(XMRIG_ARM)
-endif(WITH_LIBCPUID)
-
-CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
-if (HAVE_SYSLOG_H)
-    add_definitions(/DHAVE_SYSLOG_H)
-    set(SOURCES_SYSLOG src/log/SysLog.h src/log/SysLog.cpp)
+if (WITH_CN_LITE)
+    add_definitions(/DXMRIG_ALGO_CN_LITE)
 endif()
 
-if (WITH_HTTPD)
-    find_package(MHD)
+if (WITH_CN_HEAVY)
+    add_definitions(/DXMRIG_ALGO_CN_HEAVY)
+endif()
 
-    if (MHD_FOUND)
-        include_directories(${MHD_INCLUDE_DIRS})
-        set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
-    else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
-    endif(MHD_FOUND)
-else()
-    add_definitions(/DXMRIG_NO_HTTPD)
-    add_definitions(/DXMRIG_NO_API)
-endif(WITH_HTTPD)
+if (WITH_CN_PICO)
+    add_definitions(/DXMRIG_ALGO_CN_PICO)
+endif()
+
+if (WITH_CN_EXTREMELITE)
+    add_definitions(/DXMRIG_ALGO_CN_EXTREMELITE)
+endif()
+
+if (WITH_ARGON2)
+    add_definitions(/DXMRIG_ALGO_ARGON2)
+endif()
+
+if (WITH_EMBEDDED_CONFIG)
+    add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
+endif()
 
 if (WITH_CC_SERVER)
-    find_package(MHD)
-
     if (MHD_FOUND)
         include_directories(${MHD_INCLUDE_DIRS})
     else()
@@ -203,86 +216,44 @@ if (WITH_CC_SERVER)
             src/cc/Httpd.cpp
             src/cc/XMRigCC.cpp
             )
-endif(WITH_CC_SERVER)
+    add_definitions("/DXMRIG_FEATURE_CC_SERVER")
+endif()
 
 if (WITH_CC_CLIENT)
     set(SOURCES_CC_CLIENT
+            src/cc/CCClientConfig.cpp
             src/cc/CCClient.cpp)
-endif(WITH_CC_CLIENT)
+    add_definitions("/DXMRIG_FEATURE_CC_CLIENT")
+
+    if (WITH_TLS)
+        add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
+    endif()
+
+endif()
 
 if (WITH_CC_SERVER OR WITH_CC_CLIENT)
     set(SOURCES_CC_COMMON
             src/cc/ControlCommand.cpp
             src/cc/ClientStatus.cpp
             src/cc/GPUInfo.cpp)
-else()
-    add_definitions(/DXMRIG_NO_CC)
-endif(WITH_CC_SERVER OR WITH_CC_CLIENT)
-
-if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-    include(cmake/asm.cmake)
-else()
-    add_definitions(/DXMRIG_NO_ASM)
-endif(WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-
-add_subdirectory(src/3rdparty/argon2)
-set(ARGON2_LIBRARY argon2)
-
-if (BUILD_STATIC)
-    set(CMAKE_EXE_LINKER_FLAGS " -static")
-endif(BUILD_STATIC)
+endif()
 
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
 
-add_library(xmrig_common STATIC ${SOURCES_COMMON})
-add_library(xmrig_os_dependencies STATIC ${SOURCES_OS} ${SOURCES_SYSLOG})
-add_library(xmrig_cpuid STATIC ${SOURCES_CPUID})
+if (BUILD_STATIC)
+    set(CMAKE_EXE_LINKER_FLAGS " -static")
+endif()
 
-if (WITH_TLS)
-    add_library(xmrig_tls STATIC ${SOURCES_SSL_TLS})
-endif (WITH_TLS)
+if (WITH_DEBUG_LOG)
+    add_definitions(/DAPP_DEBUG)
+endif()
 
-if (WITH_CC_SERVER OR WITH_CC_CLIENT)
-    add_library(xmrig_cc_common STATIC ${SOURCES_CC_COMMON})
-endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
-
-add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} res/app.rc)
-set_target_properties(xmrigMiner PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
-
-target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid ${Boost_LIBRARIES}
-        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB} argon2)
-
-if (WITH_CC_CLIENT)
-    target_link_libraries(xmrigMiner xmrig_cc_common)
-endif(WITH_CC_CLIENT)
-
-if (WITH_TLS)
-    target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
-endif(WITH_TLS)
-
-if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-    target_link_libraries(xmrigMiner xmrig_asm)
-endif(WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES} ${CN_GPU_SOURCES} ${SOURCES_CC_CLIENT} ${SOURCES_CC_COMMON})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB} ${ARGON2_LIBRARY})
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
+
 set_target_properties(xmrigDaemon PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
-
-if (WITH_CC_SERVER AND MHD_FOUND)
-    add_library(xmrig_common_cc STATIC ${SOURCES_COMMON})
-    add_executable(xmrigCCServer ${SOURCES_CC_SERVER} res/app.rc)
-    target_link_libraries(xmrigCCServer
-            xmrig_common_cc xmrig_os_dependencies xmrig_cpuid xmrig_cc_common
-            ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
-
-    if (WITH_TLS)
-	    target_link_libraries(xmrigCCServer xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
-    endif (WITH_TLS)
-
-    set_target_properties(xmrig_common_cc PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
-    set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
-endif(WITH_CC_SERVER AND MHD_FOUND)
-
-add_subdirectory(test EXCLUDE_FROM_ALL)
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})

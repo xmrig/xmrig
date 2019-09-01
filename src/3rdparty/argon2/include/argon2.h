@@ -19,30 +19,7 @@
 #include <limits.h>
 
 /* Symbols visibility control */
-#if defined(_WIN32) || defined(__CYGWIN__)
-  #if defined(A2_VISCTL)
-    #if defined(_MSC_VER)
-      #define ARGON2_PUBLIC __declspec(dllexport)
-    #else
-      #define ARGON2_PUBLIC __attribute__ ((dllexport))
-    #endif
-  #else
-    #if defined(_MSC_VER)
-      #define ARGON2_PUBLIC __declspec(dllimport)
-    #else
-      #define ARGON2_PUBLIC /*__attribute__ ((dllimport))*/
-    #endif
-  #endif
-  #define ARGON2_LOCAL
-#else
-  #if defined(A2_VISCTL)
-    #define ARGON2_PUBLIC __attribute__ ((visibility ("default")))
-    #define ARGON2_LOCAL  __attribute__ ((visibility ("hidden")))
-  #else
-    #define ARGON2_PUBLIC
-    #define ARGON2_LOCAL
-  #endif
-#endif
+#define ARGON2_PUBLIC
 
 #if defined(__cplusplus)
 extern "C" {
@@ -255,7 +232,7 @@ ARGON2_PUBLIC const char *argon2_type2string(argon2_type type, int uppercase);
  * @param  context  Pointer to the Argon2 internal structure
  * @return Error code if smth is wrong, ARGON2_OK otherwise
  */
-ARGON2_PUBLIC int argon2_ctx(argon2_context *context, argon2_type type, void *memory, size_t memory_size);
+ARGON2_PUBLIC int argon2_ctx(argon2_context *context, argon2_type type);
 
 /**
  * Hashes a password with Argon2i, producing an encoded hash
@@ -278,8 +255,7 @@ ARGON2_PUBLIC int argon2i_hash_encoded(const uint32_t t_cost,
                                        const void *pwd, const size_t pwdlen,
                                        const void *salt, const size_t saltlen,
                                        const size_t hashlen, char *encoded,
-                                       const size_t encodedlen, void *memory,
-                                       size_t memory_size);
+                                       const size_t encodedlen);
 
 /**
  * Hashes a password with Argon2i, producing a raw hash by allocating memory at
@@ -300,8 +276,7 @@ ARGON2_PUBLIC int argon2i_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
                                    const uint32_t parallelism, const void *pwd,
                                    const size_t pwdlen, const void *salt,
                                    const size_t saltlen, void *hash,
-                                   const size_t hashlen, void *memory,
-                                   size_t memory_size);
+                                   const size_t hashlen);
 
 ARGON2_PUBLIC int argon2d_hash_encoded(const uint32_t t_cost,
                                        const uint32_t m_cost,
@@ -309,16 +284,14 @@ ARGON2_PUBLIC int argon2d_hash_encoded(const uint32_t t_cost,
                                        const void *pwd, const size_t pwdlen,
                                        const void *salt, const size_t saltlen,
                                        const size_t hashlen, char *encoded,
-                                       const size_t encodedlen, void *memory,
-                                       size_t memory_size);
+                                       const size_t encodedlen);
 
 ARGON2_PUBLIC int argon2d_hash_raw(const uint32_t t_cost,
                                    const uint32_t m_cost,
                                    const uint32_t parallelism, const void *pwd,
                                    const size_t pwdlen, const void *salt,
                                    const size_t saltlen, void *hash,
-                                   const size_t hashlen, void *memory,
-                                   size_t memory_size);
+                                   const size_t hashlen);
 
 ARGON2_PUBLIC int argon2id_hash_encoded(const uint32_t t_cost,
                                         const uint32_t m_cost,
@@ -326,16 +299,22 @@ ARGON2_PUBLIC int argon2id_hash_encoded(const uint32_t t_cost,
                                         const void *pwd, const size_t pwdlen,
                                         const void *salt, const size_t saltlen,
                                         const size_t hashlen, char *encoded,
-                                        const size_t encodedlen, void *memory,
-                                        size_t memory_size);
+                                        const size_t encodedlen);
 
 ARGON2_PUBLIC int argon2id_hash_raw(const uint32_t t_cost,
                                     const uint32_t m_cost,
                                     const uint32_t parallelism, const void *pwd,
                                     const size_t pwdlen, const void *salt,
                                     const size_t saltlen, void *hash,
-                                    const size_t hashlen, void *memory,
-                                    size_t memory_size);
+                                    const size_t hashlen);
+
+ARGON2_PUBLIC int argon2id_hash_raw_ex(const uint32_t t_cost,
+                                       const uint32_t m_cost,
+                                       const uint32_t parallelism, const void *pwd,
+                                       const size_t pwdlen, const void *salt,
+                                       const size_t saltlen, void *hash,
+                                       const size_t hashlen,
+                                       void *memory);
 
 /* generic function underlying the above ones */
 ARGON2_PUBLIC int argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
@@ -344,8 +323,7 @@ ARGON2_PUBLIC int argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
                               const size_t saltlen, void *hash,
                               const size_t hashlen, char *encoded,
                               const size_t encodedlen, argon2_type type,
-                              const uint32_t version, void *memory,
-                              size_t memory_size);
+                              const uint32_t version);
 
 /**
  * Verifies a password against an encoded string
@@ -460,7 +438,9 @@ ARGON2_PUBLIC size_t argon2_encodedlen(uint32_t t_cost, uint32_t m_cost,
  * @param prefix What to print before each line; NULL is equivalent to empty
  * string
  */
-ARGON2_PUBLIC void argon2_select_impl(FILE *out, const char *prefix);
+ARGON2_PUBLIC void argon2_select_impl();
+ARGON2_PUBLIC const char *argon2_get_impl_name();
+ARGON2_PUBLIC int argon2_select_impl_by_name(const char *name);
 
 /* signals support for passing preallocated memory: */
 #define ARGON2_PREALLOCATED_MEMORY

@@ -1,6 +1,10 @@
 #include <string.h>
 
-#include <immintrin.h>
+#ifdef __GNUC__
+#   include <x86intrin.h>
+#else
+#   include <intrin.h>
+#endif
 
 #include "core.h"
 

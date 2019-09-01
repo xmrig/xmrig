@@ -1,5 +1,5 @@
 /* XMRigCC
- * Copyright 2017-     BenDr0id    <ben@graef.in>
+ * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by

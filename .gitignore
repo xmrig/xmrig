@@ -1,9 +1,6 @@
-/test/CMakeFiles
-/test/*/CMakeFiles
 /build
 /CMakeLists.txt.user
 /.idea
-/CMakeFiles
 /src/3rdparty
 /cmake-build-*
 CMakeCache.txt
@@ -14,3 +11,6 @@ src/crypto/asm/*.inc
 src/crypto/asm/win/*.inc
 src/3rdparty/
 test/
+*CMakeFiles*
+*.a
+*.cbp

@@ -60,7 +60,7 @@
  */
 
 /** @mainpage A simple libcpuid introduction
- *
+ * 
  * LibCPUID provides CPU identification and access to the CPUID and RDTSC
  * instructions on the x86.
  * <p>
@@ -82,6 +82,7 @@
  */
 
 /** @defgroup libcpuid LibCPUID
+ * @brief LibCPUID provides CPU identification
  @{ */
 
 /* Include some integer type specifications: */
@@ -535,23 +536,23 @@ typedef enum {
  * @brief Describes common library error codes
  */
 typedef enum {
-	ERR_OK       =  0,	/*!< "No error" */
-	ERR_NO_CPUID = -1,	/*!< "CPUID instruction is not supported" */
-	ERR_NO_RDTSC = -2,	/*!< "RDTSC instruction is not supported" */
-	ERR_NO_MEM   = -3,	/*!< "Memory allocation failed" */
-	ERR_OPEN     = -4,	/*!< "File open operation failed" */
-	ERR_BADFMT   = -5,	/*!< "Bad file format" */
-	ERR_NOT_IMP  = -6,	/*!< "Not implemented" */
-	ERR_CPU_UNKN = -7,	/*!< "Unsupported processor" */
-	ERR_NO_RDMSR = -8,	/*!< "RDMSR instruction is not supported" */
-	ERR_NO_DRIVER= -9,	/*!< "RDMSR driver error (generic)" */
-	ERR_NO_PERMS = -10,	/*!< "No permissions to install RDMSR driver" */
-	ERR_EXTRACT  = -11,	/*!< "Cannot extract RDMSR driver (read only media?)" */
-	ERR_HANDLE   = -12,	/*!< "Bad handle" */
-	ERR_INVMSR   = -13,	/*!< "Invalid MSR" */
-	ERR_INVCNB   = -14,	/*!< "Invalid core number" */
-	ERR_HANDLE_R = -15,	/*!< "Error on handle read" */
-	ERR_INVRANGE = -16,	/*!< "Invalid given range" */
+	ERR_OK       =  0,	/*!< No error */
+	ERR_NO_CPUID = -1,	/*!< CPUID instruction is not supported */
+	ERR_NO_RDTSC = -2,	/*!< RDTSC instruction is not supported */
+	ERR_NO_MEM   = -3,	/*!< Memory allocation failed */
+	ERR_OPEN     = -4,	/*!< File open operation failed */
+	ERR_BADFMT   = -5,	/*!< Bad file format */
+	ERR_NOT_IMP  = -6,	/*!< Not implemented */
+	ERR_CPU_UNKN = -7,	/*!< Unsupported processor */
+	ERR_NO_RDMSR = -8,	/*!< RDMSR instruction is not supported */
+	ERR_NO_DRIVER= -9,	/*!< RDMSR driver error (generic) */
+	ERR_NO_PERMS = -10,	/*!< No permissions to install RDMSR driver */
+	ERR_EXTRACT  = -11,	/*!< Cannot extract RDMSR driver (read only media?) */
+	ERR_HANDLE   = -12,	/*!< Bad handle */
+	ERR_INVMSR   = -13,	/*!< Invalid MSR */
+	ERR_INVCNB   = -14,	/*!< Invalid core number */
+	ERR_HANDLE_R = -15,	/*!< Error on handle read */
+	ERR_INVRANGE = -16,	/*!< Invalid given range */
 } cpu_error_t;
 
 /**
@@ -668,7 +669,7 @@ struct cpu_epc_t cpuid_get_epc(int index, const struct cpu_raw_data_t* raw);
 const char* cpuid_lib_version(void);
 
 #ifdef __cplusplus
-}; /* extern "C" */
+} /* extern "C" */
 #endif
 
 

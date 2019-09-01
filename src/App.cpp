@@ -4,9 +4,10 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- * Copyright 2017-     BenDr0id    <ben@graef.in>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,177 +28,66 @@
 #include <uv.h>
 #include <cc/ControlCommand.h>
 
+
 #include "App.h"
-#include "Console.h"
-#include "Cpu.h"
-#include "crypto/HashSelector.h"
-#include "log/ConsoleLog.h"
-#include "log/FileLog.h"
-#include "log/RemoteLog.h"
-#include "log/Log.h"
-#include "Mem.h"
+#include "base/io/Console.h"
+#include "base/io/log/Log.h"
+#include "base/kernel/Signals.h"
+#include "core/config/Config.h"
+#include "core/Controller.h"
+#include "core/Miner.h"
+#include "crypto/common/VirtualMemory.h"
 #include "net/Network.h"
-#include "Platform.h"
 #include "Summary.h"
-#include "workers/Workers.h"
-#include "cc/CCClient.h"
-#include "net/Url.h"
 
-
-#ifdef HAVE_SYSLOG_H
-#   include "log/SysLog.h"
-#endif
-
-#ifndef XMRIG_NO_HTTPD
-#   include "api/Httpd.h"
-#   include "api/Api.h"
-#endif
-
-
-App *App::m_self = nullptr;
-
-
-App::App(int argc, char **argv) :
-    m_restart(false),
+xmrig::App::App(Process *process) :
     m_console(nullptr),
-    m_httpd(nullptr),
-    m_network(nullptr),
-    m_options(nullptr),
-    m_ccclient(nullptr)
+    m_signals(nullptr)
 {
-    m_self = this;
-
-    Cpu::init();
-
-    m_options = Options::parse(argc, argv);
-    if (!m_options) {
+    m_controller = new Controller(process);
+    if (m_controller->init() != 0) {
         return;
     }
 
-    Log::init();
-
-#   ifdef WIN32
-    if (!m_options->background()) {
-#   endif
-        Log::add(new ConsoleLog(m_options->colors()));
+    if (!m_controller->config()->isBackground()) {
         m_console = new Console(this);
-#   ifdef WIN32
     }
-#   endif
-
-    if (m_options->logFile()) {
-        Log::add(new FileLog(m_options->logFile()));
-    }
-
-    if (m_options->ccUseRemoteLogging()) {
-        // 20 lines per second should be enough
-        Log::add(new RemoteLog(static_cast<size_t>(m_options->ccUpdateInterval() * 20)));
-    }
-
-#   ifdef HAVE_SYSLOG_H
-    if (m_options->syslog()) {
-        Log::add(new SysLog());
-    }
-#   endif
-
-    Platform::init(m_options->userAgent());
-    Platform::setProcessPriority(m_options->priority());
-
-    m_network = new Network(m_options);
-
-    uv_signal_init(uv_default_loop(), &m_sigHUP);
-    uv_signal_init(uv_default_loop(), &m_sigINT);
-    uv_signal_init(uv_default_loop(), &m_sigTERM);
-}
-
-App::~App()
-{
-    delete m_network;
-
-    Options::release();
-    Platform::release();
-
-    uv_tty_reset_mode();
-
-#   ifndef XMRIG_NO_HTTPD
-    delete m_httpd;
-#   endif
-
-#   ifndef XMRIG_NO_CC
-    if (m_ccclient) {
-        delete m_ccclient;
-    }
-#   endif
 }
 
 
-int App::start()
+xmrig::App::~App()
 {
-    if (!m_options) {
-        return EINVAL;
+    delete m_signals;
+    delete m_console;
+    delete m_controller;
+}
+
+
+int xmrig::App::exec()
+{
+    if (!m_controller->isReady()) {
+        return 2;
     }
 
-    uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
-    uv_signal_start(&m_sigINT,  App::onSignal, SIGINT);
-    uv_signal_start(&m_sigTERM, App::onSignal, SIGTERM);
+    m_signals = new Signals(this);
 
     background();
 
-    if (Options::i()->colors()) {
-        LOG_INFO(WHITE_BOLD("%s hash self-test"), m_options->algoName());
-    }
-    else {
-        LOG_INFO("%s hash self-test", m_options->algoName());
-    }
+    VirtualMemory::init(m_controller->config()->cpu().isHugePages());
 
-    if (!HashSelector::init(m_options->algo(), m_options->aesni())) {
-        LOG_ERR("%s hash self-test... failed.", m_options->algoName());
-        return EINVAL;
-    } else {
-        if (Options::i()->colors()) {
-            LOG_INFO(WHITE_BOLD("%s hash self-test... %s."),
-                m_options->algoName(),
-                Options::i()->skipSelfCheck() ?  YELLOW_BOLD("skipped") : GREEN_BOLD("successful"));
-        }
-        else {
-            LOG_INFO("%s hash self-test... %s.",
-                m_options->algoName(),
-                Options::i()->skipSelfCheck() ?  "skipped" : "successful");
-        }
+    Summary::print(m_controller);
+
+    if (m_controller->config()->isDryRun()) {
+        LOG_NOTICE("OK");
+
+        return 0;
     }
 
-    Mem::init(m_options);
+    m_controller->start();
 
-    Summary::print();
-
-#   ifndef XMRIG_NO_API
-    Api::start();
+#   if XMRIG_FEATURE_CC_CLIENT
+    m_controller->ccClient()->addCommandListener(this);
 #   endif
-
-#   ifndef XMRIG_NO_HTTPD
-    m_httpd = new Httpd(m_options->apiPort(), m_options->apiToken());
-    m_httpd->start();
-#   endif
-
-#   ifndef XMRIG_NO_CC
-    if (m_options->ccHost() && m_options->ccPort() > 0) {
-        uv_async_init(uv_default_loop(), &m_async, App::onCommandReceived);
-
-        m_ccclient = new CCClient(m_options, &m_async);
-
-        if (! m_options->pools().front()->isValid()) {
-            LOG_WARN("No pool URL supplied, but CC server configured. Trying.");
-        }
-    } else {
-        LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");
-    }
-#   endif
-
-    Workers::start(m_options->threads(), m_options->affinity(), m_options->priority());
-
-    if (m_options->pools().front()->isValid()) {
-        m_network->connect();
-    }
 
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
@@ -205,35 +95,28 @@ int App::start()
     return m_restart ? EINTR : r;
 }
 
-void App::onConsoleCommand(char command)
+
+void xmrig::App::onConsoleCommand(char command)
 {
     switch (command) {
     case 'h':
     case 'H':
-        Workers::printHashrate(true);
+        m_controller->miner()->printHashrate(true);
         break;
 
     case 'p':
     case 'P':
-        if (Workers::isEnabled()) {
-            LOG_INFO(m_options->colors() ? "\x1B[01;33mpaused\x1B[0m, press \x1B[01;35mr\x1B[0m to resume" : "paused, press 'r' to resume");
-            Workers::setEnabled(false);
-        }
+        m_controller->miner()->setEnabled(false);
         break;
 
     case 'r':
     case 'R':
-        if (!Workers::isEnabled()) {
-            LOG_INFO(m_options->colors() ? "\x1B[01;32mresumed" : "resumed");
-            Workers::setEnabled(true);
-        }
+        m_controller->miner()->setEnabled(true);
         break;
 
-    case 'q':
-    case 'Q':
     case 3:
-        LOG_INFO(m_options->colors() ? "\x1B[01;33mquitting" : "quitting");
-        shutdown();
+        LOG_WARN("Ctrl+C received, exiting");
+        close(false);
         break;
 
     default:
@@ -242,36 +125,7 @@ void App::onConsoleCommand(char command)
 }
 
 
-void App::stop(bool restart)
-{
-    m_restart = restart;
-
-    m_network->stop();
-    Workers::stop();
-
-    uv_stop(uv_default_loop());
-}
-
-void App::restart()
-{
-    m_self->stop(true);
-}
-
-void App::shutdown()
-{
-    m_self->stop(false);
-}
-
-void App::reboot()
-{
-    auto rebootCmd = m_self->m_options->ccRebootCmd();
-    if (rebootCmd) {
-        system(rebootCmd);
-        shutdown();
-    }
-}
-
-void App::onSignal(uv_signal_t* handle, int signum)
+void xmrig::App::onSignal(int signum)
 {
     switch (signum)
     {
@@ -288,34 +142,55 @@ void App::onSignal(uv_signal_t* handle, int signum)
         break;
 
     default:
-        break;
+        return;
     }
 
-    uv_signal_stop(handle);
-    App::shutdown();
+    close(false);
 }
 
-void App::onCommandReceived(uv_async_t* async)
+void xmrig::App::onCommandReceived(const ControlCommand& controlCommand)
 {
-    auto command = reinterpret_cast<ControlCommand::Command &> (async->data);
-    switch (command) {
+#   ifdef XMRIG_FEATURE_CC_CLIENT
+    switch (controlCommand.getCommand()) {
         case ControlCommand::START:
-            Workers::setEnabled(true);
+            m_controller->miner()->setEnabled(true);
             break;
         case ControlCommand::STOP:
-            Workers::setEnabled(false);
+            m_controller->miner()->setEnabled(false);
             break;
-        case ControlCommand::UPDATE_CONFIG:;
         case ControlCommand::RESTART:
-            App::restart();
+            close(true);
             break;
         case ControlCommand::SHUTDOWN:
-            App::shutdown();
+            close(false);
             break;
         case ControlCommand::REBOOT:
-            App::reboot();
-            break;
+            reboot();
+        case ControlCommand::UPDATE_CONFIG:;
         case ControlCommand::PUBLISH_CONFIG:;
             break;
     }
+#   endif
 }
+
+void xmrig::App::close(bool restart)
+{
+    m_restart = restart;
+
+    m_signals->stop();
+    m_console->stop();
+    m_controller->stop();
+
+    Log::destroy();
+}
+
+#   ifdef XMRIG_FEATURE_CC_CLIENT
+void xmrig::App::reboot()
+{
+    auto rebootCmd = m_controller->config()->ccClient().rebootCmd();
+    if (rebootCmd) {
+        system(rebootCmd);
+        close(false);
+    }
+}
+#   endif

@@ -1,5 +1,5 @@
 /* XMRigCC
- * Copyright 2017-     BenDr0id    <ben@graef.in>
+ * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,11 +37,13 @@ ClientStatus::ClientStatus()
       m_totalPages(0),
       m_totalHugepages(0),
       m_currentThreads(0),
+      m_currentWays(0),
       m_cpuSockets(0),
       m_cpuCores(0),
       m_cpuThreads(0),
       m_cpuL2(0),
       m_cpuL3(0),
+      m_nodes(0),
       m_sharesGood(0),
       m_sharesTotal(0),
       m_hashesTotal(0),
@@ -145,6 +147,16 @@ void ClientStatus::setLog(const std::string& log)
 void ClientStatus::clearLog()
 {
     m_log.clear();
+}
+
+std::string ClientStatus::getAssembly() const
+{
+    return m_assembly;
+}
+
+void ClientStatus::setAssembly(const std::string& assembly)
+{
+    m_assembly = assembly;
 }
 
 bool ClientStatus::hasHugepages() const
@@ -267,6 +279,16 @@ void ClientStatus::setCurrentThreads(int currentThreads)
     m_currentThreads = currentThreads;
 }
 
+int ClientStatus::getCurrentWays() const
+{
+    return m_currentWays;
+}
+
+void ClientStatus::setCurrentWays(int currentWays)
+{
+    m_currentWays = currentWays;
+}
+
 int ClientStatus::getCpuSockets() const
 {
     return m_cpuSockets;
@@ -315,6 +337,16 @@ int ClientStatus::getCpuL3() const
 void ClientStatus::setCpuL3(int cpuL3)
 {
     m_cpuL3 = cpuL3;
+}
+
+int ClientStatus::getNodes()
+{
+    return m_nodes;
+}
+
+void ClientStatus::setNodes(int nodes)
+{
+    m_nodes = nodes;
 }
 
 uint64_t ClientStatus::getSharesGood() const
@@ -463,6 +495,10 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_currentThreads = clientStatus["current_threads"].GetInt();
         }
 
+        if (clientStatus.HasMember("current_ways")) {
+            m_currentThreads = clientStatus["current_ways"].GetInt();
+        }
+
         if (clientStatus.HasMember("cpu_sockets")) {
             m_cpuSockets = clientStatus["cpu_sockets"].GetInt();
         }
@@ -553,6 +589,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("total_pages", m_totalPages, allocator);
     clientStatus.AddMember("total_hugepages", m_totalHugepages, allocator);
     clientStatus.AddMember("current_threads", m_currentThreads, allocator);
+    clientStatus.AddMember("current_ways", m_currentWays, allocator);
     clientStatus.AddMember("cpu_sockets", m_cpuSockets, allocator);
     clientStatus.AddMember("cpu_cores", m_cpuCores, allocator);
     clientStatus.AddMember("cpu_threads", m_cpuThreads, allocator);

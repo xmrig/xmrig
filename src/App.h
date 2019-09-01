@@ -4,8 +4,10 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,58 +23,59 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef XMRIG_APP_H
+#define XMRIG_APP_H
 
 
-#include <uv.h>
+#include "base/kernel/interfaces/IConsoleListener.h"
+#include "base/kernel/interfaces/ISignalListener.h"
 
+#include "base/cc/interfaces/ICommandListener.h"
+#include "cc/ControlCommand.h"
 
-#include "interfaces/IConsoleListener.h"
+#if XMRIG_FEATURE_CC_CLIENT
+#include "cc/CCClient.h"
+#endif
+
+namespace xmrig {
 
 
 class Console;
-class Httpd;
+class Controller;
 class Network;
-class Options;
-class CCClient;
+class Process;
+class Signals;
 
-class App : public IConsoleListener
+class App : public IConsoleListener, public ISignalListener, public ICommandListener
 {
 public:
-  App(int argc, char **argv);
-  ~App();
+    App(Process *process);
+    ~App() override;
 
-  int start();
-
-  static void restart();
-  static void shutdown();
-  static void reboot();
+    int exec();
 
 protected:
-  void onConsoleCommand(char command) override;
+    void onConsoleCommand(char command) override;
+    void onSignal(int signum) override;
+    void onCommandReceived(const ControlCommand& controlCommand) override;
 
 private:
-  void background();
-  void stop(bool restart);
+    void background();
+    void close(bool restart);
 
-  static void onSignal(uv_signal_t* handle, int signum);
-  static void onCommandReceived(uv_async_t* handle);
+#   ifdef XMRIG_FEATURE_CC_CLIENT
+    void reboot();
+#   endif
 
-  static App *m_self;
+    bool m_restart = false;
 
-  bool m_restart;
-
-  Console *m_console;
-  Httpd *m_httpd;
-  Network *m_network;
-  Options *m_options;
-  uv_signal_t m_sigHUP;
-  uv_signal_t m_sigINT;
-  uv_signal_t m_sigTERM;
-  CCClient *m_ccclient;
-  uv_async_t m_async;
+    Console *m_console;
+    Controller *m_controller;
+    Signals *m_signals;
 };
 
 
-#endif /* __APP_H__ */
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_APP_H */

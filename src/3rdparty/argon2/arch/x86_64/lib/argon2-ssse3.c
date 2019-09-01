@@ -3,7 +3,13 @@
 #ifdef HAVE_SSSE3
 #include <string.h>
 
-#include <immintrin.h>
+#ifdef __GNUC__
+#   include <x86intrin.h>
+#else
+#   include <intrin.h>
+#endif
+
+#include "cpu-flags.h"
 
 #define r16 (_mm_setr_epi8( \
      2,  3,  4,  5,  6,  7,  0,  1, \
@@ -116,7 +122,7 @@ void fill_segment_ssse3(const argon2_instance_t *instance,
 
 int check_ssse3(void)
 {
-    return 1;
+    return cpu_flags_have_ssse3();
 }
 
 #else

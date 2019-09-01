@@ -5,9 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2017-2018 XMRig       <support@xmrig.com>
- * Copyright 2017-     BenDr0id    <ben@graef.in>
- *
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,23 +29,22 @@
  * Dev donation.
  *
  * Percentage of your hashing power that you want to donate to the developer, can be 0 if you don't want to do that.
- * Example of how it works for the default setting of 1:
- * You miner will mine into your usual pool for 99 minutes, then switch to the developer's pool for 1 minute.
- * Since v1.5.2 start time randomized in range from 30 to 60 minutes minus donation time, to reduce peaks on donation
- * pool when restarting a bunch of miners.
+ *
+ * Example of how it works for the setting of 1%:
+ * You miner will mine into your usual pool for random time (in range from 49.5 to 148.5 minutes),
+ * then switch to the developer's pool for 1 minute, then switch again to your pool for 99 minutes
+ * and then switch agaiin to developer's pool for 1 minute, these rounds will continue until miner working.
+ *
+ * Randomised only first round, to prevent waves on the donation pool.
+ *
  * Switching is instant, and only happens after a successful connection, so you never loose any hashes.
  *
  * If you plan on changing this setting to 0 please consider making a one off donation to my wallet:
- * XMR:  4BEn3sSa2SsHBcwa9dNdKnGvvbyHPABr2JzoY7omn7DA2hPv84pVFvwDrcwMCWgz3dQVcrkw3gE9aTC9Mi5HxzkfF9ev1eH
- * BTC:  128qLZCaGdoWhBTfaS7rytpbvG4mNTyAQm
- * AEON: Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W
- *
- * XMRig's wallet:
  * XMR: 48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD
  * BTC: 1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT
- *
  */
-constexpr const int kDonateLevel = 5;
+constexpr const int kDefaultDonateLevel = 5;
+constexpr const int kMinimumDonateLevel = 1;
 
 
 #endif /* __DONATE_H__ */

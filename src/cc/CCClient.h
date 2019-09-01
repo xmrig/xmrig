@@ -1,6 +1,5 @@
 /* XMRigCC
- * Copyright 2017-     BenDr0id    <ben@graef.in>
- *
+ * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,12 +18,11 @@
 #ifndef __CC_CLIENT_H__
 #define __CC_CLIENT_H__
 
-#ifndef XMRIG_NO_CC
-
 #include <uv.h>
 #include <chrono>
 #include <ctime>
 #include <3rdparty/cpp-httplib/httplib.h>
+
 #include "ClientStatus.h"
 #include "version.h"
 
@@ -32,61 +30,72 @@
 #include "amd/GpuContext.h"
 #include "core/Controller.h"
 #else
-#include "Options.h"
+#include "base/kernel/interfaces/IBaseListener.h"
+#include "base/kernel/interfaces/ITimerListener.h"
 #endif
+
+namespace xmrig
+{
 
 class Hashrate;
 class NetworkState;
+class Base;
+class IClientStatusListener;
+class ICommandListener;
 
-class CCClient
+class CCClient : public IBaseListener, public ITimerListener
 {
 public:
 #ifdef TYPE_AMD_GPU
     CCClient(xmrig::Config* m_config, uv_async_t* async);
     static void updateGpuInfo(const std::vector<GpuContext>& network);
 #else
-    CCClient(Options* config, uv_async_t* async);
+    CCClient(Base *base);
 #endif
 
     ~CCClient();
 
-    static void updateHashrate(const Hashrate *hashrate);
-    static void updateNetworkState(const NetworkState &results);
+    inline void addClientStatusListener(IClientStatusListener *listener) { m_ClientStatislisteners.push_back(listener); }
+    inline void addCommandListener(ICommandListener *listener) { m_Commandlisteners.push_back(listener); }
+
+    void start();
+    void stop();
+
+protected:
+    void onConfigChanged(Config *config, Config *previousConfig) override;
+    void onTimer(const Timer *timer) override;
 
 private:
+    static void publishThread(CCClient* handle);
 
     void publishClientStatusReport();
-    void updateConfig();
+    void updateAuthorization();
+    void updateClientInfo();
+    void updateUptime();
+    void updateLog();
+    void updateStatistics();
+    void fetchConfig();
     void publishConfig();
-    void refreshUptime();
-    void refreshLog();
 
-    std::shared_ptr<httplib::Response> performRequest(const std::string& requestUrl,
-                                                             const std::string& requestBuffer,
-                                                             const std::string& operation);
-    static void onThreadStarted(void *handle);
-    static void onReport(uv_timer_t *handle);
-
+    std::shared_ptr<httplib::Response> performRequest(const std::string &requestUrl,
+                                                      const std::string &requestBuffer,
+                                                      const std::string &operation);
+private:
 #ifdef TYPE_AMD_GPU
     const xmrig::Config* m_config;
 #else
-    const Options* m_config;
+    Base *m_base;
 #endif
-
-    static CCClient* m_self;
-    static uv_mutex_t m_mutex;
-
+    const uint64_t m_startTime;
     ClientStatus m_clientStatus;
 
     std::string m_authorization;
+    bool m_configPublishedOnStart;
 
-    std::chrono::time_point<std::chrono::system_clock> m_startTime;
-
-    uv_async_t* m_async;
-    uv_timer_t m_timer;
-    uv_loop_t m_client_loop;
-    uv_thread_t m_thread;
+    Timer *m_timer;
+    std::vector<ICommandListener *> m_Commandlisteners;
+    std::vector<IClientStatusListener *> m_ClientStatislisteners;
 };
+}
 
-#endif
 #endif /* __CC_CLIENT_H__ */

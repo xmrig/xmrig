@@ -3,7 +3,13 @@
 #ifdef HAVE_XOP
 #include <string.h>
 
-#include <immintrin.h>
+#ifdef __GNUC__
+#   include <x86intrin.h>
+#else
+#   include <intrin.h>
+#endif
+
+#include "cpu-flags.h"
 
 #define ror64(x, c) _mm_roti_epi64((x), -(c))
 
@@ -104,7 +110,7 @@ void fill_segment_xop(const argon2_instance_t *instance,
 
 int check_xop(void)
 {
-    return 1;
+    return cpu_flags_have_xop();
 }
 
 #else

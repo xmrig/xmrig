@@ -1,6 +1,5 @@
-/* XMRigd
- * Copyright 2017-     BenDr0id    <ben@graef.in>
- *
+/* XMRigCC
+ * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -67,13 +66,13 @@ int main(int argc, char **argv) {
     do {
         status = system(xmrigMinerPath.c_str());
 #if defined(_WIN32) || defined(WIN32)
-    } while (status != EINVAL && status != SIGHUP && status != SIGINT);
+    } while (status != EINVAL && status != SIGHUP && status != SIGINT && status != 0);
 
 	if (status == EINVAL) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 	}
 #else
 
-    } while (WEXITSTATUS(status) != EINVAL && WEXITSTATUS(status) != SIGHUP && WEXITSTATUS(status) != SIGINT);
+    } while (WEXITSTATUS(status) != EINVAL && WEXITSTATUS(status) != SIGHUP && WEXITSTATUS(status) != SIGINT && WEXITSTATUS(status) != 0);
 #endif
 }

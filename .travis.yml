@@ -13,8 +13,7 @@ before_install:
 
 script:
   - brew install gcc libuv libmicrohttpd
-  - brew upgrade boost
-  - cmake . -DUV_LIBRARY=/usr/local/lib/libuv.a -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl/lib/libssl.a -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl/lib/libcrypto.a -DBOOST_ROOT=/usr/local/lib
+  - cmake . -DUV_LIBRARY=/usr/local/lib/libuv.a -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_SSL_LIBRARY=/usr/local/opt/openssl/lib/libssl.a -DOPENSSL_CRYPTO_LIBRARY=/usr/local/opt/openssl/lib/libcrypto.a
   - make
   - cp ./src/config.json .
   - ./xmrigDaemon --version

@@ -1,6 +1,5 @@
 /* XMRigCC
- * Copyright 2017-     BenDr0id    <ben@graef.in>
- *
+ * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -81,6 +80,9 @@ public:
     void setLog(const std::string& log);
     void clearLog();
 
+    std::string getAssembly() const;
+    void setAssembly(const std::string& assembly);
+
     bool hasHugepages() const;
     void setHugepages(bool hasHugepages);
 
@@ -117,6 +119,9 @@ public:
     int getCurrentThreads() const;
     void setCurrentThreads(int currentThreads);
 
+    int getCurrentWays() const;
+    void setCurrentWays(int currentWays);
+
     int getCpuSockets() const;
     void setCpuSockets(int cpuSockets);
 
@@ -131,6 +136,9 @@ public:
 
     int getCpuL3() const;
     void setCpuL3(int cpuL3);
+
+    void setNodes(int nodes);
+    int getNodes();
 
     const std::list<GPUInfo> getGPUInfoList() const;
     void addGPUInfo(const GPUInfo gpuInfo);
@@ -174,6 +182,7 @@ private:
     std::string m_externalIp;
     std::string m_version;
     std::string m_log;
+    std::string m_assembly;
 
     bool m_hasHugepages;
     bool m_isHugepagesEnabled;
@@ -189,11 +198,13 @@ private:
     int m_totalPages;
     int m_totalHugepages;
     int m_currentThreads;
+    int m_currentWays;
     int m_cpuSockets;
     int m_cpuCores;
     int m_cpuThreads;
     int m_cpuL2;
     int m_cpuL3;
+    int m_nodes;
 
     std::list<GPUInfo> m_gpuInfoList;
 

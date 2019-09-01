@@ -3,7 +3,13 @@
 #ifdef HAVE_AVX2
 #include <string.h>
 
-#include <immintrin.h>
+#ifdef __GNUC__
+#   include <x86intrin.h>
+#else
+#   include <intrin.h>
+#endif
+
+#include "cpu-flags.h"
 
 #define r16 (_mm256_setr_epi8( \
      2,  3,  4,  5,  6,  7,  0,  1, \
@@ -323,7 +329,7 @@ void fill_segment_avx2(const argon2_instance_t *instance,
 
 int check_avx2(void)
 {
-    return 1;
+    return cpu_flags_have_avx2();
 }
 
 #else

@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,19 +23,43 @@
  */
 
 
-#include <string>
-#include "App.h"
-#include "Cpu.h"
-#include "log/Log.h"
-#include "Options.h"
-#include "version.h"
+#include <stdlib.h>
+#include <signal.h>
+#include <errno.h>
+#include <unistd.h>
 
-void App::background()
+
+#include "App.h"
+#include "base/io/log/Log.h"
+#include "core/config/Config.h"
+#include "core/Controller.h"
+
+
+void xmrig::App::background()
 {
-    if (m_options->background()) {
-        Log::i()->text(Options::i()->colors()
-                       ? "\x1B[01;31m\nBackground mode is not supported by %s on *nix Systems. Please use screen/tmux or systemd service instead.\n"
-                       : "\nBackground mode is not supported by %s on *nix Systems. Please use screen/tmux or systemd service instead.\n",
-                       APP_NAME);
+    signal(SIGPIPE, SIG_IGN);
+
+    if (!m_controller->config()->isBackground()) {
+        return;
+    }
+
+    int i = fork();
+    if (i < 0) {
+        exit(1);
+    }
+
+    if (i > 0) {
+        exit(0);
+    }
+
+    i = setsid();
+
+    if (i < 0) {
+        LOG_ERR("setsid() failed (errno = %d)", errno);
+    }
+
+    i = chdir("/");
+    if (i < 0) {
+        LOG_ERR("chdir() failed (errno = %d)", errno);
     }
 }

@@ -1,5 +1,5 @@
 /* XMRigCC
- * Copyright 2017-     BenDr0id    <ben@graef.in>
+ * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #ifdef TYPE_AMD_GPU
 #include "common/log/Log.h"
 #else
-#include "log/Log.h"
+#include "base/io/log/Log.h"
 #endif
 
 ControlCommand::ControlCommand()

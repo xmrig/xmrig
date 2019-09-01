@@ -4,6 +4,7 @@
 
 #include "impl-select.h"
 
+#include "cpu-flags.h"
 #include "argon2-sse2.h"
 #include "argon2-ssse3.h"
 #include "argon2-xop.h"
@@ -32,6 +33,8 @@ void argon2_get_impl_list(argon2_impl_list *list)
         { "AVX2",       check_avx2,     fill_segment_avx2 },
         { "AVX-512F",   check_avx512f,  fill_segment_avx512f },
     };
+
+    cpu_flags_get();
 
     list->count = sizeof(IMPLS) / sizeof(IMPLS[0]);
     list->entries = IMPLS;

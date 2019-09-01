@@ -1,9 +1,8 @@
 # XMRigCC 
 
+XMRig is a high performance RandomX, CryptoNight and Argon2 CPU miner, with official support for Windows.
+
 :bulb: **This is the CPU variant of XMRigCC, if you're looking for the AMD GPU (OpenCL) variant [click here](https://github.com/Bendr0id/xmrigCC-amd/).**
-
-:warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
-
 
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
 [![Docker Build status](https://img.shields.io/docker/build/bendr0id/xmrigcc.svg)](https://hub.docker.com/r/bendr0id/xmrigcc/)
@@ -16,164 +15,83 @@
 
 ### About XMRigCC
 
-XMRigCC is a fork of [XMRig](https://github.com/xmrig/xmrig) which adds the ability to remote control your XMRig instances via a Webfrontend and REST api.
-This fork is based on XMRig and adds a "Command and Control" (C&amp;C) server, a daemon to reload XMRigCCMiner on config changes and modifications in XMRig to send the current status to the C&amp;C Server.
-The modified version can also handle commands like "update config", "start/stop mining" or "restart/shutdown" which can be send from the C&amp;C-Server.
-
-**AND MANY MORE**
+XMRigCC is a [XMRig](https://github.com/xmrig/xmrig) fork which adds remote control and monitoring functions to XMRigCC miners. It lets you control your miners via a Dashboard or the REST api.
+XMRigCC has a "Command and Control" (C&amp;C) server part, a daemon to keep the XMRigCC miner alive and modifications to send the current status to the C&amp;C Server.
+The modified version can handle commands like "update config", "start/stop mining" or "restart/shutdown/reboot" which can be send from the C&amp;C-Server Dashboard. 
+Assign config templates to multiple miners with a single click and let them switch configs without connecting to each of them.
+Watch your miners logs with the simple remote Log viewer and monitor you miners. When the hashrate drops or one of your miners went offline you can get a notification via 
+PushOver or Telegram automatically so that you dont need to watch your miners all day.
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
-* **NEW Support of Argon2-512 chukwa (TRTL) variant (algo: "argon2-512", variant "auto" or "chukwa")**
-* **NEW Support of Argon2-256 wrkz variant (algo: "argon2-256", variant "auto" or "wrkz")**
-* **NEW Support of Crytptonight Conceal variant (algo: "cryptonight", variant "conceal" or "ccx")**
-* **NEW Support of Crytptonight-Extremelite (UPX 2) variant (algo: "cryptonight-extremelite", variant "auto" (autodetect) or "upx2")**
-* **Support of Crytptonight R (XMR) variant (algo: "cryptonight", variant "auto" (autodetect) or "r")**
-* **Support of Crytptonight WOW (Wownero) variant (algo: "cryptonight", variant "wow")**
-* **Support of Crytptonight Reverse Waltz (Graft) variant (algo: "cryptonight", variant "rwz" (autodetect) or variant "graft")**
-* **Support of Crytptonight Double/Heavyx (XCash) variant (algo: "cryptonight", variant "double")**
-* **Support of Crytptonight Zelerius variant (algo: "cryptonight", variant "zls")**
-* **Support of Crytptonight RTO/HOSP variant (algo: "cryptonight", variant "rto" or variant "hosp")**
-* **Support of Crytptonight-Ultralite TRTL/Turtle variant (algo: "cryptonight-ultralite", variant "auto")**
-* **Support of Crytptonight-Lite UPX/uPlexa variant (algo: "cryptonight-lite", variant "upx")**
-* **Support of Crytptonight XTL v5/v9 PoW changes aka CN-FastV2 (algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))**
-* **Support of Crytptonight XFH/SWAP variant aka CN-Heavy-Fast**
-* **Support of Crytptonight v8 PoW changes aka CNV2 (XMR fork on Block 1685555)**
-* **Support of Crytptonight-Heavy BitTube (TUBE) v4 variant (fork on Block 110000)**
-* **Support of Crytptonight Masari (MSR) v7 variant (use variant "msr" to be ready for the fork, with autodetect)**
-* **Support of Crytptonight-Heavy Haven Protocol (XHV) v3 variant (use variant "xhv")**
-* **Support of Crytptonight Stellite (XTL) v4 variant**
-* **Support of Crytptonight Alloy (XAO) variant**
-* **Support of Crytptonight-Lite IPBC/TUBE variant**
-* **Support of Crytptonight-Heavy (Loki, Ryo, ...)**
-* **Support of Crytptonight v7 PoW changes aka CNV1**
-* **Support of Crytptonight-Lite v7 PoW changes aka CN-LiteV1**
-* Full SSL/TLS support for the whole communication: [Howto](https://github.com/Bendr0id/xmrigCC/wiki/tls)
-    - XMRigCCServer Dashboard <-> Browser
-    - XMRigCCServer <-> XMRigMiner
-    - XMRigMiner <-> Pool
+* **Support of UPX2 variant (algo: "cn-extremelite/upx2")**
+* **Support of CN-Conceal variant (algo: "cn/conceal")**
+* **Better performance for ARMv8 CPUs**
+* Full SSL/TLS support
+* NUMA support
 * Command and control server
 * CC Dashboard with:
     * statistics of all connected miners
     * remote control miners (start/stop/restart/shutdown) 
     * remote configuration changes of miners
-    * simple config editor for miner / mass editor for multiple miners 
-    * monitoring / offline notification
-* Daemon around the miner to restart and apply config changes
-* High optimized mining code ([Benchmarks](#benchmarks))
-* Working CPU affinity for NUMA Cores or CPU's with lots of cores
-* Multihash support (Double, Triple, Quadruple, Quituple)
-* Configuration of multihash per thread
-* Smarter automatic CPU configuration
-* It's still open source software :D
+    * simple config editor for miner / config templates 
+    * monitoring / offline notification push notifications via Pushover and Telegram 
+* Daemon to restart the miner
 
 
-**[Find Help/Howto](https://github.com/Bendr0id/xmrigCC/wiki/)**
+**XMRigCC Miner**
 
-
-**XMRigCC Daemon(miner)**
-
-![Screenshot of XMRig Daemon (miner)](https://i.imgur.com/gYq1QSP.png)
+<img src="doc/screenshot.png" width="800" >
 
 **XMRigCC Server**
 
-![Screenshot of XMRigCC Server](https://i.imgur.com/iS1RzgO.png)
+<img src="doc/screenshot_server.png" width="800" >
 
 **XMRigCC Dashboard**
 
-![Screenshot of XMRigCC Dashboard](https://imgur.com/UrdTHpM.png)
+<img src="doc/screenshot_dashboard.png" width="800" >
 
 #### Table of contents
 * [Download](#download)
-* [Wiki/Building/Howto](https://github.com/Bendr0id/xmrigCC/wiki/)
 * [Usage](#usage)
-* [Multihash factor](#multihash-multihash-factor)
-* [Multihash thread Mask](#multihash-thread-mask-only-for-multihash-factor--1)
+* [Wiki/Building/Howto](https://github.com/Bendr0id/xmrigCC/wiki/)
 * [Common Issues](#common-issues)
-* [Optimizations](#cpu-mining-performance)
-* [Benchmarks](#benchmarks)
 * [Donations](#donations)
 * [Contacts](#contact)
 
 ## Download
 * Binary releases: https://github.com/Bendr0id/xmrigCC/releases
 * Git tree: https://github.com/Bendr0id/xmrigCC.git
-  * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions](https://github.com/Bendr0id/xmrigCC/wiki/Build-Debian%5CUbuntu).
+  * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build.
 
 ## Usage
-### Basic example xmrigCCServer
+### Basic example XMRigCCServer
 ```
 xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER
 ```
 
-### Options xmrigCCServer
+### Options XMRigCCServer
 ```
-        --cc-user=USERNAME                CC Server admin user
-        --cc-pass=PASSWORD                CC Server admin pass
-        --cc-access-token=T               CC Server access token for CC Client
-        --cc-port=N                       CC Server
-        --cc-use-tls                      enable tls encryption for CC communication
-        --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) 
-        --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) 
-        --cc-client-config-folder=FOLDER  Folder contains the client config files
-        --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'
-        --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)
-        --no-color                        disable colored output
-    -S, --syslog                          use system log for output messages
-    -B, --background                      run the miner in the background
-    -c, --config=FILE                     load a JSON-format configuration file
-    -l, --log-file=FILE                   log all output to a file
-    -h, --help                            display this help and exit
-    -V, --version                         output version information and exit
-```
-
-Also you can use configuration via config file, default **[config_cc.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigCCServer)**. You can load multiple config files and combine it with command line options.
-
-
-### Basic example xmrigDaemon
-```
-xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC_SERVER:PORT --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER --cc-worker-id=OPTIONAL_WORKER_NAME
-```
-
-### Options xmrigDaemon
-```
-  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite or cryptonight-heavy
-  -o, --url=URL                         URL of mining server
-  -O, --userpass=U:P                    username:password pair for mining server
-  -u, --user=USERNAME                   username for mining server
-  -p, --pass=PASSWORD                   password for mining server
-  -t, --threads=N                       number of miner threads
-  -A, --aesni=N                         selection of AES-NI mode (0 auto, 1 on, 2 off)
-  -k, --keepalive                       send keepalived for prevent timeout (need pool support)
-  -r, --retries=N                       number of times to retry before switch to backup server (default: 5)
-  -R, --retry-pause=N                   time to pause between retries (default: 5)
-      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), tube (ipbc), alloy, xtl (including autodetect for v5), msr, xhv, rto 
-                                        for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations
-      --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)
-      --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)
-      --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
-      --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)
-      --no-huge-pages                   disable huge pages support
-      --donate-level=N                  donate level, default 5% (5 minutes in 100 minutes)
-      --user-agent                      set custom user-agent string for pool
-      --max-cpu-usage=N                 maximum CPU usage for automatic threads mode (default 75)
-      --safe                            safe adjust threads and av settings for current CPU
-      --nicehash                        enable nicehash/xmrig-proxy support
-      --use-tls                         enable tls on pool communication
-      --print-time=N                    print hashrate report every N seconds
-      --api-port=N                      port for the miner API
-      --api-access-token=T              access token for API
-      --api-worker-id=ID                custom worker-id for API
-      --cc-url=URL                      url of the CC Server
+      --cc-user=USERNAME                CC Server admin user
+      --cc-pass=PASSWORD                CC Server admin pass
+      --cc-access-token=T               CC Server access token for CC Client
+      --cc-port=N                       CC Server port
       --cc-use-tls                      enable tls encryption for CC communication
-      --cc-access-token=T               access token for CC Server
-      --cc-worker-id=ID                 custom worker-id for CC Server
-      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)
-      --cc-use-remote-logging           enable remote logging on CC Server
-      --cc-upload-config-on-startup     upload current miner config to CC Server on startup
+      --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) 
+      --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) 
+      --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)
+      --cc-client-config-folder=FOLDER  Folder contains the client config files
+      --cc-pushover-user-key            your user key for pushover notifications
+      --cc-pushover-api-token           api token/keytoken of the application for pushover notifications
+      --cc-telegram-bot-token           your bot token for telegram notifications
+      --cc-telegram-chat-id             your chat-id for telegram notifications
+      --cc-push-miner-offline-info      push notification for offline miners and recover push
+      --cc-push-miner-zero-hash-info    push notification when miner reports 0 hashrate and recover push
+      --cc-push-periodic-mining-status  push periodic status notification (every hour)
+      --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'
       --no-color                        disable colored output
   -S, --syslog                          use system log for output messages
   -B, --background                      run the miner in the background
@@ -183,46 +101,73 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
   -V, --version                         output version information and exit
 ```
 
-Also you can use configuration via config file, default **[config.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigDaemon)**. You can load multiple config files and combine it with command line options.
 
-## Multihash (multihash-factor)
-With this option it is possible to increase the number of hashblocks calculated by a single thread in each round.
-Selecting multihash-factors greater than 1 increases the L3 cache demands relative to the multihash-factor.
-E.g. at multihash-factor 2, each Cryptonight thread requires 4MB and each Cryptonight-lite thread requires 2 MB of L3 cache.
-With multihash-factor 3, they need 6MB or 3MB respectively.
-
-Setting multihash-factor to 0 will allow automatic detection of the optimal value.
-Xmrig will then try to utilize as much of the L3 cache as possible for the selected number of threads.
-If the threads parameter has been set to auto, Xmrig will detect the optimal number of threads first.
-After that it finds the greatest possible multihash-factor.
-
-### Multihash for low power operation
-Depending the CPU and its L3 caches, it can make sense to replace multiple single hash threads with single multi-hash counterparts.
-This change might come at the price of a minor drop in effective hash-rate, yet it will also reduce heat production and power consumption of the used CPU.
-
-### Multihash for optimal CPU exploitation
-In certain environments (e.g. vServer) the system running xmrig can have access to relatively large amounts of L3 cache, but may has access to only a few CPU cores.
-In such cases, running xmrig with higher multihash-factors can lead to improvements.
-
-
-## Multihash thread Mask (only for multihash-factor > 1)
-With this option you can limit multihash to the given threads (mask).
-This can significantly improve your hashrate by using unused l3 cache.
-The default is to run the configured multihash-factor on all threads.
-
-
+### Basic example xmrigDaemon
 ```
-{
-...
+xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC_SERVER:PORT --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER --cc-worker-id=OPTIONAL_WORKER_NAME
+```
 
-"multihash-factor":2,
-"multihash-thread-mask":"0x5", // in binary -> 0101
-"threads": 4,
-
-...
-}
-``` 
-This will limit multihash mode (multihash-factor = 2) to thread 0 and thread 2, thread 1 and thread 3 will run in single hashmode.
+### Options xmrigDaemon
+```
+  -a, --algo=ALGO                   specify the algorithm to use
+                                      cn/r, cn/2, cn/1, cn/0, cn/double, cn/half, cn/fast,
+                                      cn/rwz, cn/zls, cn/xao, cn/rto, cn/conceal,
+                                      cn-lite/1,
+                                      cn-heavy/xhv, cn-heavy/tube, cn-heavy/0,
+                                      cn-pico
+                                      cn-extremelite
+                                      argon2/chukwa, argon2/wrkz
+                                      rx/wow, rx/loki
+  -o, --url=URL                     URL of mining server
+  -O, --userpass=U:P                username:password pair for mining server
+  -u, --user=USERNAME               username for mining server
+  -p, --pass=PASSWORD               password for mining server
+      --rig-id=ID                   rig identifier for pool-side statistics (needs pool support)
+  -t, --threads=N                   number of miner threads
+  -v, --av=N                        algorithm variation, 0 auto select
+  -k, --keepalive                   send keepalived packet for prevent timeout (needs pool support)
+      --nicehash                    enable nicehash.com support
+      --tls                         enable SSL/TLS support (needs pool support)
+      --tls-fingerprint=F           pool TLS certificate fingerprint, if set enable strict certificate pinning
+      --daemon                      use daemon RPC instead of pool for solo mining
+      --daemon-poll-interval=N      daemon poll interval in milliseconds (default: 1000)
+  -r, --retries=N                   number of times to retry before switch to backup server (default: 5)
+  -R, --retry-pause=N               time to pause between retries (default: 5)
+      --cpu-affinity                set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
+      --cpu-priority                set process priority (0 idle, 2 normal to 5 highest)
+      --no-huge-pages               disable huge pages support
+      --no-color                    disable colored output
+      --donate-level=N              donate level, default 5% (5 minutes in 100 minutes)
+      --user-agent                  set custom user-agent string for pool
+  -B, --background                  run the miner in the background
+  -c, --config=FILE                 load a JSON-format configuration file
+  -l, --log-file=FILE               log all output to a file
+  -S, --syslog                      use system log for output messages
+      --asm=ASM                     ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer.
+      --print-time=N                print hashrate report every N seconds
+      --api-worker-id=ID            custom worker-id for API
+      --api-id=ID                   custom instance ID for API
+      --http-enabled                enable HTTP API
+      --http-host=HOST              bind host for HTTP API (default: 127.0.0.1)
+      --http-port=N                 bind port for HTTP API
+      --http-access-token=T         access token for HTTP API
+      --http-no-restricted          enable full remote access to HTTP API (only if access token set)
+      --randomx-init=N              threads count to initialize RandomX dataset
+      --randomx-no-numa             disable NUMA support for RandomX
+      --export-topology             export hwloc topology to a XML file and exit
+      --cc-disabled                 disable CC Client feature
+      --cc-url=URL                  url of the CC Server
+      --cc-access-token=T           access token for CC Server
+      --cc-worker-id=ID             custom worker-id for CC Server
+      --cc-update-interval-s=N      status update interval in seconds (default: 10 min: 1)
+      --cc-use-tls                  enable tls encryption for CC communication
+      --cc-use-remote-logging       enable remote logging on CC Server
+      --cc-upload-config-on-start   upload current miner config to CC Server on startup
+      --cc-reboot-cmd=CMD           command/bat to execute to Reboot miner machine
+      --dry-run                     test configuration and exit
+  -h, --help                        display this help and exit
+  -V, --version                     output version information and exit
+```
 
 
 ## Common Issues
@@ -239,62 +184,19 @@ This will limit multihash mode (multihash-factor = 2) to thread 0 and thread 2, 
 
 
 ### HUGE PAGES unavailable (Windows)
-* Run XMRig as Administrator.
-* Since version 0.8.0 XMRig automatically enables SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+* Run XMRigDaemon as Administrator.
+* On Windows it automatically enables SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
 
 ### HUGE PAGES unavailable (Linux)
 * Before starting XMRigDaemon set huge pages
 
     `sudo sysctl -w vm.nr_hugepages=128`
 
-
-## Other information
-* No HTTP support, only stratum protocol support.
-
-
-### CPU mining performance
-Please note performance is highly dependent on system load.
-The numbers above are obtained on an idle system.
-Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate.
-Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 4 MB (Cryptonight-Heavy), 2 MB (Cryptonight) or 1MB (Cryptonigh-Lite) of cache.
-
-### Maximum performance checklist
-* Idle operating system.
-* Do not exceed optimal thread count.
-* Use modern CPUs with AES-NI instruction set.
-* Try setup optimal cpu affinity.
-* Try decreasing number of threads while increasing multihash-factor.
-  Allocate unused cores and L3 cache with the help of multihash-thread-mask.
-* Enable fast memory (Large/Huge pages).
-
-## Benchmarks
-
-Here are some result reported by users. Feel free to share your results, i'll add them.
-
-### XMRigCC with max optimizations:
-
-  * AMD Ryzen 1950x
-        
-        AEON: ~5300 h/s     (XMRig Stock: ~4900 h/s)
-        XMR: ~1320 h/s      (XMRig Stock: ~1200 h/s)
-
-  * AMD Ryzen 1600
-  
-        AEON: ~2065 h/s     (XMRig Stock: ~1800 h/s)
-        XMR: ~565 h/s       (XMRig Stock: ~460 h/s)
-  
-  * 4x Intel XEON e7-4820
-  
-        AEON: ~2500 h/s     (XMRig Stock ~2200h/s)
-        
-  * 2x Intel XEON 2x e5-2670
-        
-        AEON: ~3300 h/s     (XMRig Stock ~2500h/s)
  
 ## Donations
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
 
-##### BenDroid (xmrigCC):
+##### BenDroid (XMRigCC):
 XMR:  `4BEn3sSa2SsHBcwa9dNdKnGvvbyHPABr2JzoY7omn7DA2hPv84pVFvwDrcwMCWgz3dQVcrkw3gE9aTC9Mi5HxzkfF9ev1eH`
 
 AEON: `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`

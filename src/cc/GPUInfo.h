@@ -1,5 +1,5 @@
 /* XMRigCC
- * Copyright 2018-     BenDr0id    <ben@graef.in>
+ * Copyright 2018-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -14,7 +14,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 #ifndef XMRIG_GPUINFO_H
 #define XMRIG_GPUINFO_H
 

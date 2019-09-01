@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,187 +23,132 @@
  */
 
 
-#include <string>
 #include <inttypes.h>
 #include <stdio.h>
 #include <uv.h>
 
 
-#include "Cpu.h"
-#include "log/Log.h"
-#include "Mem.h"
-#include "net/Url.h"
-#include "Options.h"
+#include "backend/cpu/Cpu.h"
+#include "base/io/log/Log.h"
+#include "base/net/stratum/Pool.h"
+#include "core/config/Config.h"
+#include "core/Controller.h"
+#include "crypto/common/Assembly.h"
+#include "crypto/common/VirtualMemory.h"
 #include "Summary.h"
 #include "version.h"
 
 
-static void print_versions()
-{
-    char buf[16];
+namespace xmrig {
 
-#   if defined(__clang__)
-    snprintf(buf, 16, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
-#   elif defined(__GNUC__)
-    snprintf(buf, 16, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   elif defined(_MSC_VER)
-    snprintf(buf, 16, " MSVC/%d", MSVC_VERSION);
+
+#ifdef XMRIG_FEATURE_ASM
+static const char *coloredAsmNames[] = {
+    RED_BOLD("none"),
+    "auto",
+    GREEN_BOLD("intel"),
+    GREEN_BOLD("ryzen"),
+    GREEN_BOLD("bulldozer")
+};
+
+
+inline static const char *asmName(Assembly::Id assembly)
+{
+    return coloredAsmNames[assembly];
+}
+#endif
+
+
+static void print_memory(Config *) {
+#   ifdef _WIN32
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
+               "HUGE PAGES", VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable"));
+#   endif
+}
+
+
+static void print_cpu(Config *)
+{
+    const ICpuInfo *info = Cpu::info();
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES",
+               "CPU",
+               info->brand(),
+               info->packages(),
+               info->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-"
+               );
+#   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")
+               CYAN_BOLD(" %zu") "C" BLACK_BOLD("/") CYAN_BOLD("%zu") "T"
+#              ifdef XMRIG_FEATURE_HWLOC
+               BLACK_BOLD(" NUMA:") CYAN_BOLD("%zu")
+#              endif
+               , "",
+               info->L2() / 1048576.0,
+               info->L3() / 1048576.0,
+               info->cores(),
+               info->threads()
+#              ifdef XMRIG_FEATURE_HWLOC
+               , info->nodes()
+#              endif
+               );
 #   else
-    buf[0] = '\0';
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("threads:") CYAN_BOLD("%zu"),
+               "",
+               info->threads()
+               );
 #   endif
-
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36m%s/%s\x1B[01;37m libuv/%s%s \x1B[01;36m(%s)" : " * VERSIONS:     %s/%s libuv/%s%s (%s)",
-                   APP_NAME, APP_VERSION, uv_version_string(), buf, BUILD_TYPE);
 }
 
 
-static void print_cpu()
+static void print_threads(Config *config)
 {
-    if (Options::i()->colors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU:          %s (%d) %sx64 %sAES-NI %sASM-%s",
-                       Cpu::brand(),
-                       Cpu::sockets(),
-                       Cpu::isX64() ? "\x1B[01;32m" : "\x1B[01;31m-",
-                       Cpu::hasAES() && Options::i()->aesni() ? "\x1B[01;32m" : "\x1B[01;31m-",
-                       Options::i()->asmOptimization() != AsmOptimization::ASM_OFF ? "\x1B[01;32m" : "\x1B[01;31m-",
-                       getAsmOptimizationName(Options::i()->asmOptimization()).c_str());
-#       ifndef XMRIG_NO_LIBCPUID
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mCPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
-#       endif
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),
+               "DONATE",
+               config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
+               config->pools().donateLevel()
+               );
+
+#   ifdef XMRIG_FEATURE_ASM
+    if (config->cpu().assembly() == Assembly::AUTO) {
+        const Assembly assembly = Cpu::info()->assembly();
+
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13sauto:%s"), "ASSEMBLY", asmName(assembly));
     }
     else {
-        Log::i()->text(" * CPU:          %s (%d) %sx64 %sAES-NI ASM-%s",
-                       Cpu::brand(), Cpu::sockets(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-",
-                       getAsmOptimizationName(Options::i()->asmOptimization()).c_str());
-#       ifndef XMRIG_NO_LIBCPUID
-        Log::i()->text(" * CPU L2/L3:    %.1f MB/%.1f MB", Cpu::l2() / 1024.0, Cpu::l3() / 1024.0);
-#       endif
-    }
-}
-
-
-static void print_threads()
-{
-    char dhtMaskBuf[256];
-    if (Options::i()->hashFactor() > 1 && Options::i()->multiHashThreadMask() != -1L) {
-
-        std::string singleThreads;
-        std::string multiThreads;
-
-        auto addThread = [](std::string& threads, int id) {
-            if (!threads.empty()) {
-                threads.append(", ");
-            }
-            threads.append(std::to_string(id));
-        };
-
-        for (size_t i=0; i < Options::i()->threads(); i++) {
-            if (Mem::getThreadHashFactor(i) > 1) {
-                addThread(multiThreads, i);
-            }
-            else {
-                addThread(singleThreads, i);
-            }
-        }
-
-        snprintf(dhtMaskBuf, 256, ", multiHashThreadMask=0x%" PRIX64 " [single threads: %s; multihash threads: %s]",
-                 Options::i()->multiHashThreadMask(), singleThreads.c_str(), multiThreads.c_str());
-    }
-    else {
-        dhtMaskBuf[0] = '\0';
-    }
-
-    char affBuf[32];
-    if (Options::i()->affinity() != -1L) {
-        snprintf(affBuf, 32, ", affinity=0x%" PRIX64, Options::i()->affinity());
-    }
-    else {
-        snprintf(affBuf, 32, ", affinity=auto");
-    }
-
-    Log::i()->text(Options::i()->colors() ?
-                     "\x1B[01;32m * \x1B[01;37mTHREADS:      \x1B[01;36m%d\x1B[01;37m, %s, hf=%zu, %sdonate=%d%%\x1B[01;37m%s%s" :
-                     " * THREADS:      %d, %s, hf=%zu, %sdonate=%d%%%s%s",
-                   Options::i()->threads(),
-                   Options::i()->algoName(),
-                   Options::i()->hashFactor(),
-                   Options::i()->colors() && Options::i()->donateLevel() == 0 ? "\x1B[01;31m" : "",
-                   Options::i()->donateLevel(),
-                   affBuf,
-                   dhtMaskBuf);
-}
-
-
-static void print_pools()
-{
-    const std::vector<Url*> &pools = Options::i()->pools();
-
-    for (size_t i = 0; i < pools.size(); ++i) {
-       Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mPOOL #%d:      \x1B[01;36m%s:%d %s" : " * POOL #%d:      %s:%d %s",
-                      i + 1,
-                      pools[i]->host(),
-                      pools[i]->port(),
-                      pools[i]->useTls() ? "(TLS)" : "");
-    }
-
-#   ifdef APP_DEBUG
-    for (size_t i = 0; i < pools.size(); ++i) {
-        Log::i()->text("%s:%d, user: %s, pass: %s, ka: %d, nicehash: %d", pools[i]->host(), pools[i]->port(), pools[i]->user(), pools[i]->password(), pools[i]->isKeepAlive(), pools[i]->isNicehash());
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s"), "ASSEMBLY", asmName(config->cpu().assembly()));
     }
 #   endif
 }
 
 
-#ifndef XMRIG_NO_API
-static void print_api()
+static void print_commands(Config *)
 {
-    if (Options::i()->apiPort() == 0) {
-        return;
-    }
-
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mAPI PORT:     \x1B[01;36m%d" : " * API PORT:     %d", Options::i()->apiPort());
-}
-#endif
-
-#ifndef XMRIG_NO_CC
-static void print_cc()
-{
-    if (Options::i()->ccHost() == nullptr) {
-        return;
-    }
-
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mCC Server:    \x1B[01;36m%s:%d %s" : " * CC Server:    %s:%d %s",
-                   Options::i()->ccHost(),
-                   Options::i()->ccPort(),
-                   Options::i()->ccUseTls() ? "(TLS)" : "");
-}
-#endif
-
-static void print_commands()
-{
-    if (Options::i()->colors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mh\x1B[01;37mashrate, \x1B[01;35mp\x1B[01;37mause, \x1B[01;35mr\x1B[01;37mesume, \x1B[01;35mq\x1B[01;37muit");
+    if (Log::colors) {
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
+                                                                     MAGENTA_BOLD("p") WHITE_BOLD("ause, ")
+                                                                     MAGENTA_BOLD("r") WHITE_BOLD("esume"));
     }
     else {
-        Log::i()->text(" * COMMANDS:     'h' hashrate, 'p' pause, 'r' resume, 'q' shutdown");
+        Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
     }
 }
 
 
-void Summary::print()
+} // namespace xmrig
+
+
+void xmrig::Summary::print(Controller *controller)
 {
-    print_versions();
-    print_cpu();
-    print_threads();
-    print_pools();
+    controller->config()->printVersions();
+    print_memory(controller->config());
+    print_cpu(controller->config());
+    print_threads(controller->config());
+    controller->config()->pools().print();
 
-#   ifndef XMRIG_NO_API
-    print_api();
-#   endif
-
-#   ifndef XMRIG_NO_CC
-    print_cc();
-#   endif
-
-    print_commands();
+    print_commands(controller->config());
 }
+
+
+

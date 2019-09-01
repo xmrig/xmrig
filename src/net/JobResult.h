@@ -4,8 +4,10 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,60 +23,53 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __JOBRESULT_H__
-#define __JOBRESULT_H__
+#ifndef XMRIG_JOBRESULT_H
+#define XMRIG_JOBRESULT_H
 
 
 #include <memory.h>
 #include <stdint.h>
 
 
-#include "Job.h"
+#include "base/tools/String.h"
+#include "base/net/stratum/Job.h"
+
+
+namespace xmrig {
 
 
 class JobResult
 {
 public:
-    inline JobResult() : poolId(0), diff(0), nonce(0) {}
-    inline JobResult(int poolId, const JobId &jobId, uint32_t nonce, const uint8_t *result, uint32_t diff) :
-        poolId(poolId),
-        jobId(jobId),
-        diff(diff),
-        nonce(nonce)
+    inline JobResult() {}
+
+    inline JobResult(const Job &job, uint32_t nonce, const uint8_t *result) :
+        algorithm(job.algorithm()),
+        clientId(job.clientId()),
+        jobId(job.id()),
+        nonce(nonce),
+        diff(job.diff()),
+        index(job.index())
     {
-        memcpy(this->result, result, sizeof(this->result));
+        memcpy(m_result, result, sizeof(m_result));
     }
 
+    inline const uint8_t *result() const    { return m_result; }
+    inline uint64_t actualDiff() const      { return Job::toDiff(reinterpret_cast<const uint64_t*>(m_result)[3]); }
 
-    inline JobResult(const Job &job) : poolId(0), diff(0), nonce(0)
-    {
-        jobId  = job.id();
-        poolId = job.poolId();
-        diff   = job.diff();
-        nonce  = *job.nonce();
-    }
+    const Algorithm algorithm;
+    const String clientId;
+    const String jobId;
+    const uint32_t nonce    = 0;
+    const uint64_t diff     = 0;
+    const uint8_t index     = 0;
 
-
-    inline JobResult &operator=(const Job &job) {
-        jobId  = job.id();
-        poolId = job.poolId();
-        diff   = job.diff();
-
-        return *this;
-    }
-
-
-    inline uint64_t actualDiff() const
-    {
-        return Job::toDiff(reinterpret_cast<const uint64_t*>(result)[3]);
-    }
-
-
-    int poolId;
-    JobId jobId;
-    uint32_t diff;
-    uint32_t nonce;
-    uint8_t result[32];
+private:
+    uint8_t m_result[32];
 };
 
-#endif /* __JOBRESULT_H__ */
+
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_JOBRESULT_H */
