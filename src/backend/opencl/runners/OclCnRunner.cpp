@@ -25,6 +25,8 @@
 
 #include "backend/opencl/kernels/Cn0Kernel.h"
 #include "backend/opencl/kernels/Cn1Kernel.h"
+#include "backend/opencl/kernels/Cn2Kernel.h"
+#include "backend/opencl/kernels/CnBranchKernel.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/runners/OclCnRunner.h"
 #include "backend/opencl/wrappers/OclLib.h"
@@ -89,11 +91,14 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
 xmrig::OclCnRunner::~OclCnRunner()
 {
     delete m_cn0;
+    delete m_cn1;
+    delete m_cn2;
 
     OclLib::releaseMemObject(m_scratchpads);
     OclLib::releaseMemObject(m_states);
 
     for (size_t i = 0; i < BRANCH_MAX; ++i) {
+        delete m_branchKernels[i];
         OclLib::releaseMemObject(m_branches[i]);
     }
 }
@@ -114,9 +119,6 @@ bool xmrig::OclCnRunner::isReadyToBuild() const
 bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
-
-    cl_int ret;
-    size_t branchNonces[4] = { 0 };
 
     const size_t g_intensity = data().thread.intensity();
     const size_t w_size      = data().thread.worksize();
@@ -142,7 +144,24 @@ bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
         return false;
     }
 
-    OclLib::finish(m_queue);
+    if (!m_cn2->enqueue(m_queue, nonce, g_thd)) {
+        return false;
+    }
+
+    for (size_t i = 0; i < BRANCH_MAX; ++i) {
+        if (!m_branchKernels[i]->enqueue(m_queue, nonce, g_thd, w_size)) {
+            return false;
+        }
+    }
+
+    if (OclLib::enqueueReadBuffer(m_queue, m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput, 0, nullptr, nullptr) != CL_SUCCESS) {
+        return false;
+    }
+
+    uint32_t &results = hashOutput[0xFF];
+    if (results > 0xFF) {
+        results = 0xFF;
+    }
 
     return true;
 }
@@ -152,7 +171,7 @@ bool xmrig::OclCnRunner::selfTest() const
 {
     return OclBaseRunner::selfTest() &&
            m_cn0->isValid() &&
-           m_cn1->isValid();
+           m_cn1->isValid() && m_cn2->isValid();
 }
 
 
@@ -177,6 +196,18 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
         return false;
     }
 
+    const uint32_t intensity = data().thread.intensity();
+
+    if (!m_cn2->setArgs(m_scratchpads, m_states, m_branches, intensity)) {
+        return false;
+    }
+
+    for (size_t i = 0; i < BRANCH_MAX; ++i) {
+        if (!m_branchKernels[i]->setArgs(m_states, m_branches[i], m_output, job.target(), intensity)) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -191,4 +222,9 @@ void xmrig::OclCnRunner::build()
 
     m_cn0 = new Cn0Kernel(m_program);
     m_cn1 = new Cn1Kernel(m_program);
+    m_cn2 = new Cn2Kernel(m_program);
+
+    for (size_t i = 0; i < BRANCH_MAX; ++i) {
+        m_branchKernels[i] = new CnBranchKernel(i, m_program);
+    }
 }

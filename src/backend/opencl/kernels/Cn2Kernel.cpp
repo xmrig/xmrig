@@ -22,57 +22,38 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCNRUNNER_H
-#define XMRIG_OCLCNRUNNER_H
+
+#include "backend/opencl/kernels/Cn2Kernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
-#include "backend/opencl/runners/OclBaseRunner.h"
-
-
-namespace xmrig {
-
-
-class Cn0Kernel;
-class Cn1Kernel;
-class Cn2Kernel;
-class CnBranchKernel;
-
-
-class OclCnRunner : public OclBaseRunner
+xmrig::Cn2Kernel::Cn2Kernel(cl_program program) : OclKernel(program, "cn2")
 {
-public:
-    OclCnRunner(size_t index, const OclLaunchData &data);
-    ~OclCnRunner() override;
-
-protected:
-    bool isReadyToBuild() const override;
-    bool run(uint32_t nonce, uint32_t *hashOutput) override;
-    bool selfTest() const override;
-    bool set(const Job &job, uint8_t *blob) override;
-    void build() override;
-
-private:
-    enum Branches : size_t {
-        BRANCH_BLAKE_256,
-        BRANCH_GROESTL_256,
-        BRANCH_JH_256,
-        BRANCH_SKEIN_512,
-        BRANCH_MAX
-    };
+}
 
 
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
-    Cn1Kernel *m_cn1        = nullptr;
-    Cn2Kernel *m_cn2        = nullptr;
+bool xmrig::Cn2Kernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t threads)
+{
+    const size_t offset[2]          = { nonce, 1 };
+    const size_t gthreads[2]        = { threads, 8 };
+    static const size_t lthreads[2] = { 8, 8 };
 
-    std::vector<cl_mem> m_branches                = { nullptr, nullptr, nullptr, nullptr };
-    std::vector<CnBranchKernel *> m_branchKernels = { nullptr, nullptr, nullptr, nullptr };
-};
-
-
-} /* namespace xmrig */
+    return enqueueNDRange(queue, 2, offset, gthreads, lthreads);
+}
 
 
-#endif // XMRIG_OCLCNRUNNER_H
+// __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global uint *Branch0, __global uint *Branch1, __global uint *Branch2, __global uint *Branch3, uint Threads)
+bool xmrig::Cn2Kernel::setArgs(cl_mem scratchpads, cl_mem states, const std::vector<cl_mem> &branches, uint32_t threads)
+{
+    if (!setArg(0, sizeof(cl_mem), &scratchpads) || !setArg(1, sizeof(cl_mem), &states) || !setArg(6, sizeof(uint32_t), &threads)) {
+        return false;
+    }
+
+    for (uint32_t i = 0; i < branches.size(); ++i) {
+        if (!setArg(i + 2, sizeof(cl_mem), &branches[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}

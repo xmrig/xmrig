@@ -22,57 +22,26 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCNRUNNER_H
-#define XMRIG_OCLCNRUNNER_H
+#ifndef XMRIG_CN2KERNEL_H
+#define XMRIG_CN2KERNEL_H
 
 
-#include "backend/opencl/runners/OclBaseRunner.h"
+#include "backend/opencl/wrappers/OclKernel.h"
 
 
 namespace xmrig {
 
 
-class Cn0Kernel;
-class Cn1Kernel;
-class Cn2Kernel;
-class CnBranchKernel;
-
-
-class OclCnRunner : public OclBaseRunner
+class Cn2Kernel : public OclKernel
 {
 public:
-    OclCnRunner(size_t index, const OclLaunchData &data);
-    ~OclCnRunner() override;
-
-protected:
-    bool isReadyToBuild() const override;
-    bool run(uint32_t nonce, uint32_t *hashOutput) override;
-    bool selfTest() const override;
-    bool set(const Job &job, uint8_t *blob) override;
-    void build() override;
-
-private:
-    enum Branches : size_t {
-        BRANCH_BLAKE_256,
-        BRANCH_GROESTL_256,
-        BRANCH_JH_256,
-        BRANCH_SKEIN_512,
-        BRANCH_MAX
-    };
-
-
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
-    Cn1Kernel *m_cn1        = nullptr;
-    Cn2Kernel *m_cn2        = nullptr;
-
-    std::vector<cl_mem> m_branches                = { nullptr, nullptr, nullptr, nullptr };
-    std::vector<CnBranchKernel *> m_branchKernels = { nullptr, nullptr, nullptr, nullptr };
+    Cn2Kernel(cl_program program);
+    bool enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
+    bool setArgs(cl_mem scratchpads, cl_mem states, const std::vector<cl_mem> &branches, uint32_t threads);
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif // XMRIG_OCLCNRUNNER_H
+#endif /* XMRIG_CN2KERNEL_H */

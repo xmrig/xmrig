@@ -22,57 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCNRUNNER_H
-#define XMRIG_OCLCNRUNNER_H
 
-
-#include "backend/opencl/runners/OclBaseRunner.h"
+#include "backend/opencl/kernels/CnBranchKernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
 namespace xmrig {
 
 
-class Cn0Kernel;
-class Cn1Kernel;
-class Cn2Kernel;
-class CnBranchKernel;
+static const char *names[4] = { "Blake", "Groestl", "JH", "Skein" };
 
 
-class OclCnRunner : public OclBaseRunner
+} // namespace xmrig
+
+
+xmrig::CnBranchKernel::CnBranchKernel(size_t index, cl_program program) : OclKernel(program, names[index])
 {
-public:
-    OclCnRunner(size_t index, const OclLaunchData &data);
-    ~OclCnRunner() override;
-
-protected:
-    bool isReadyToBuild() const override;
-    bool run(uint32_t nonce, uint32_t *hashOutput) override;
-    bool selfTest() const override;
-    bool set(const Job &job, uint8_t *blob) override;
-    void build() override;
-
-private:
-    enum Branches : size_t {
-        BRANCH_BLAKE_256,
-        BRANCH_GROESTL_256,
-        BRANCH_JH_256,
-        BRANCH_SKEIN_512,
-        BRANCH_MAX
-    };
+}
 
 
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
-    Cn1Kernel *m_cn1        = nullptr;
-    Cn2Kernel *m_cn2        = nullptr;
+bool xmrig::CnBranchKernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t threads, size_t worksize)
+{
+    const size_t offset   = nonce;
+    const size_t gthreads = threads;
+    const size_t lthreads = worksize;
 
-    std::vector<cl_mem> m_branches                = { nullptr, nullptr, nullptr, nullptr };
-    std::vector<CnBranchKernel *> m_branchKernels = { nullptr, nullptr, nullptr, nullptr };
-};
-
-
-} /* namespace xmrig */
+    return enqueueNDRange(queue, 1, &offset, &gthreads, &lthreads);
+}
 
 
-#endif // XMRIG_OCLCNRUNNER_H
+// __kernel void Skein(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
+bool xmrig::CnBranchKernel::setArgs(cl_mem states, cl_mem branch, cl_mem output, uint64_t target, uint32_t threads)
+{
+    return setArg(0, sizeof(cl_mem), &states) &&
+           setArg(1, sizeof(cl_mem), &branch) &&
+           setArg(2, sizeof(cl_mem), &output) &&
+           setArg(3, sizeof(cl_ulong), &target) &&
+           setArg(4, sizeof(cl_uint), &threads);
+}
