@@ -274,6 +274,7 @@ bool CudaHasher::buildThreadData() {
             thread_data.threadId = threadId;
 
             cudaStream_t stream;
+            cudaSetDevice(device->cudaIndex);		
             device->error = cudaStreamCreate(&stream);
             if(device->error != cudaSuccess) {
                 LOG("Error running kernel: (" + to_string(device->error) + ") cannot create cuda stream.");
