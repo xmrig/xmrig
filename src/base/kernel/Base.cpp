@@ -184,7 +184,7 @@ int xmrig::Base::init()
         return 1;
     }
 
-#ifndef XMRIG_NO_CC
+#ifdef XMRIG_FEATURE_CC_CLIENT
     if (!d_ptr->config->isDaemonized()) {
         LOG_EMERG(APP_ID " is compiled with CC support, please start the daemon instead.\n");
 
