@@ -74,7 +74,6 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
     m_options += " -DWORKSIZE="             + std::to_string(data.thread.worksize()) + "U";
     m_options += " -DSTRIDED_INDEX="        + std::to_string(stridedIndex) + "U";
     m_options += " -DMEM_CHUNK_EXPONENT="   + std::to_string(1u << data.thread.memChunk()) + "U";
-    m_options += " -DCOMP_MODE="            + std::to_string(data.thread.isCompMode() && g_thd % data.thread.worksize() != 0 ? 1u : 0u) + "U";
     m_options += " -DMEMORY="               + std::to_string(m_algorithm.l3()) + "LU";
     m_options += " -DALGO="                 + std::to_string(m_algorithm.id());
     m_options += " -DALGO_FAMILY="          + std::to_string(m_algorithm.family());

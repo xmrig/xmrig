@@ -1,6 +1,8 @@
 #ifndef FAST_DIV_HEAVY_CL
 #define FAST_DIV_HEAVY_CL
 
+#if (ALGO_FAMILY == FAMILY_CN_HEAVY)
+
 inline long fast_div_heavy(long _a, int _b)
 {
 	long a = abs(_a);
@@ -23,5 +25,7 @@ inline long fast_div_heavy(long _a, int _b)
 	const long q = q1 + q2 + q3;
 	return ((as_int2(_a).s1 ^ _b) < 0) ? -q : q;
 }
+
+#endif
 
 #endif

@@ -51,7 +51,7 @@
 #if (STRIDED_INDEX == 0)
 #   define IDX(x) (x)
 #elif (STRIDED_INDEX == 1)
-#   if (ALGO_FAMILY == CN_HEAVY)
+#   if (ALGO_FAMILY == FAMILY_CN_HEAVY)
 #       define IDX(x) ((x) * WORKSIZE)
 #   else
 #       define IDX(x) mul24((x), Threads)
@@ -100,7 +100,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO_FAMILY == CN_HEAVY)
+#       if (ALGO_FAMILY == FAMILY_CN_HEAVY)
             Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       else
             Scratchpad += gIdx;
@@ -163,7 +163,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
-#   if (ALGO_FAMILY == CN_HEAVY)
+#   if (ALGO_FAMILY == FAMILY_CN_HEAVY)
     {
         __local uint4 xin[8][8];
 
@@ -256,7 +256,7 @@ __kernel void cn1_v1(__global uint4 *Scratchpad, __global ulong *states, uint va
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO_FAMILY == CN_HEAVY)
+#       if (ALGO_FAMILY == FAMILY_CN_HEAVY)
             Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       else
             Scratchpad += gIdx;
@@ -498,7 +498,7 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO_FAMILY == CN_HEAVY)
+#       if (ALGO_FAMILY == FAMILY_CN_HEAVY)
             Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + get_local_id(0);
 #       else
             Scratchpad += gIdx;
@@ -542,13 +542,13 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
             b_x = ((uint4 *)c)[0];
 
-#           if (ALGO_FAMILY == CN_HEAVY)
+#           if (ALGO_FAMILY == FAMILY_CN_HEAVY)
             {
                 const long2 n = *((__global long2*)(Scratchpad + (IDX((idx0 & MASK) >> 4))));
                 long q = fast_div_heavy(n.s0, as_int4(n).s2 | 0x5);
                 *((__global long*)(Scratchpad + (IDX((idx0 & MASK) >> 4)))) = n.s0 ^ q;
 
-#               if (ALGO == ALGO_CN_HEAVY_XHV) {
+#               if (ALGO == ALGO_CN_HEAVY_XHV)
                 idx0 = (~as_int4(n).s2) ^ q;
 #               else
                 idx0 = as_int4(n).s2 ^ q;
@@ -590,7 +590,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO_FAMILY == CN_HEAVY)
+#       if (ALGO_FAMILY == FAMILY_CN_HEAVY)
             Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       else
             Scratchpad += gIdx;
@@ -616,7 +616,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-#   if (ALGO_FAMILY == CN_HEAVY)
+#   if (ALGO_FAMILY == FAMILY_CN_HEAVY)
     __local uint4 xin1[8][8];
     __local uint4 xin2[8][8];
     __local uint4* xin1_store = &xin1[get_local_id(1)][get_local_id(0)];
@@ -631,7 +631,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
     if (gIdx < Threads)
 #   endif
     {
-#       if (ALGO_FAMILY == CN_HEAVY)
+#       if (ALGO_FAMILY == FAMILY_CN_HEAVY)
         #pragma unroll 2
         for(int i = 0, i1 = get_local_id(1); i < (MEMORY >> 7); ++i, i1 = (i1 + 16) % (MEMORY >> 4))
         {
@@ -672,7 +672,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 #       endif
     }
 
-#   if (ALGO_FAMILY == CN_HEAVY)
+#   if (ALGO_FAMILY == FAMILY_CN_HEAVY)
     /* Also left over threads performe this loop.
      * The left over thread results will be ignored
      */
