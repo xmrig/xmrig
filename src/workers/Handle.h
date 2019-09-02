@@ -41,7 +41,7 @@ class IWorker;
 class Handle
 {
 public:
-    Handle(xmrig::Config *config, xmrig::HasherConfig *hasherConfig, uint32_t offset);
+    Handle(int id, xmrig::Config *config, xmrig::HasherConfig *hasherConfig, uint32_t offset);
 
     struct HandleArg {
         Handle *handle;
@@ -52,7 +52,7 @@ public:
     void start(void (*callback) (void *));
 
     inline std::vector<IWorker *> &workers()         { return m_workers; }
-    inline size_t hasherId() const         { return m_hasherConfig->index(); }
+    inline size_t hasherId() const         { return m_id; }
     inline size_t parallelism(int workerIdx) const        { return m_hasher != nullptr ? m_hasher->parallelism(workerIdx) : 0; }
     inline size_t computingThreads() const   { return m_hasher != nullptr ? m_hasher->computingThreads() : 0; }
     inline uint32_t offset() const         { return m_offset; }
@@ -61,6 +61,7 @@ public:
     inline Hasher *hasher() const { return m_hasher; }
 
 private:
+    int m_id;
     std::vector<uv_thread_t> m_threads;
     std::vector<IWorker *> m_workers;
 
