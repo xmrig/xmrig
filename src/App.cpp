@@ -88,10 +88,10 @@ int xmrig::App::exec()
 
     m_signals = new Signals(this);
 
-    background();
-
     // load hasher modules
     Hasher::loadHashers(m_appFileName);
+
+    background();
 
     Summary::print(m_controller);
 
