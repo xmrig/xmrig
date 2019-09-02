@@ -76,6 +76,7 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
     m_options += " -DMEM_CHUNK_EXPONENT="   + std::to_string(1u << data.thread.memChunk()) + "U";
     m_options += " -DMEMORY="               + std::to_string(m_algorithm.l3()) + "LU";
     m_options += " -DALGO="                 + std::to_string(m_algorithm.id());
+    m_options += " -DALGO_BASE="            + std::to_string(CnAlgo<>::base(m_algorithm));
     m_options += " -DALGO_FAMILY="          + std::to_string(m_algorithm.family());
     m_options += " -DCN_UNROLL="            + std::to_string(data.thread.unrollFactor());
 

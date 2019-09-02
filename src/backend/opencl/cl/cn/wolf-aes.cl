@@ -114,6 +114,7 @@ static const __constant uint AES0_C[256] =
 
 #define BYTE(x, y) (xmrig_amd_bfe((x), (y) << 3U, 8U))
 
+#if (ALGO == ALGO_CN_HEAVY_TUBE)
 inline uint4 AES_Round_bittube2(const __local uint *AES0, const __local uint *AES1, uint4 x, uint4 k)
 {
     x = ~x;
@@ -126,6 +127,7 @@ inline uint4 AES_Round_bittube2(const __local uint *AES0, const __local uint *AE
     k.s3 ^= AES0[BYTE(x.s3, 0)] ^ AES1[BYTE(x.s0, 1)] ^ rotate(AES0[BYTE(x.s1, 2)] ^ AES1[BYTE(x.s2, 3)], 16U);
     return k;
 }
+#endif
 
 uint4 AES_Round(const __local uint *AES0, const __local uint *AES1, const __local uint *AES2, const __local uint *AES3, const uint4 X, uint4 key)
 {

@@ -143,8 +143,6 @@ public:
                  algo.l3() / 1024
                  );
 
-        workers.stop();
-
         status.start(threads.size());
         workers.start(threads);
     }
@@ -276,6 +274,8 @@ void xmrig::OclBackend::setJob(const Job &job)
 
         return stop();
     }
+
+    stop();
 
     d_ptr->threads = std::move(threads);
     d_ptr->start();

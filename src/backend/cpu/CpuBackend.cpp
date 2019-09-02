@@ -139,8 +139,6 @@ public:
                  algo.l3() / 1024
                  );
 
-        workers.stop();
-
         status.start(threads, algo.l3());
         workers.start(threads);
     }
@@ -309,6 +307,8 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
         return stop();
     }
+
+    stop();
 
     d_ptr->threads = std::move(threads);
     d_ptr->start();
