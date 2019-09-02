@@ -369,7 +369,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
         xout6 = _mm_xor_si128(_mm_load_si128(input + i + 6), xout6);
         xout7 = _mm_xor_si128(_mm_load_si128(input + i + 7), xout7);
 
-        if (SOFT_AES) {
+        if (!SOFT_AES) {
             aes_round<SOFT_AES>(_mm_setzero_si128(), &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         }
 
@@ -383,7 +383,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
         aes_round<SOFT_AES>(k7, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         aes_round<SOFT_AES>(k8, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
 
-        if (SOFT_AES) {
+        if (!SOFT_AES) {
             xout0 ^= k9;
             xout1 ^= k9;
             xout2 ^= k9;
@@ -412,7 +412,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
             xout6 = _mm_xor_si128(_mm_load_si128(input + i + 6), xout6);
             xout7 = _mm_xor_si128(_mm_load_si128(input + i + 7), xout7);
 
-            if (SOFT_AES) {
+            if (!SOFT_AES) {
                 aes_round<SOFT_AES>(_mm_setzero_si128(), &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
             }
 
@@ -426,7 +426,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
             aes_round<SOFT_AES>(k7, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
             aes_round<SOFT_AES>(k8, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
 
-            if (SOFT_AES) {
+            if (!SOFT_AES) {
                 xout0 ^= k9;
                 xout1 ^= k9;
                 xout2 ^= k9;
@@ -443,7 +443,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
         }
 
         for (size_t i = 0; i < 16; i++) {
-            if (SOFT_AES) {
+            if (!SOFT_AES) {
                 aes_round<SOFT_AES>(_mm_setzero_si128(), &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
             }
 
@@ -457,7 +457,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
             aes_round<SOFT_AES>(k7, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
             aes_round<SOFT_AES>(k8, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
 
-            if (SOFT_AES) {
+            if (!SOFT_AES) {
                 xout0 ^= k9;
                 xout1 ^= k9;
                 xout2 ^= k9;
