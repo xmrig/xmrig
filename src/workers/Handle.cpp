@@ -26,7 +26,8 @@
 #include "workers/Handle.h"
 
 
-Handle::Handle(xmrig::Config *config, xmrig::HasherConfig *hasherConfig, uint32_t offset) :
+Handle::Handle(int id, xmrig::Config *config, xmrig::HasherConfig *hasherConfig, uint32_t offset) :
+        m_id(id),
         m_offset(offset),
         m_config(config),
         m_hasherConfig(hasherConfig),

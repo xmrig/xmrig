@@ -167,7 +167,7 @@ bool Workers::start(xmrig::Controller *controller)
     uint32_t offset = 0;
 
     for (xmrig::HasherConfig *hasherConfig : hashers) {
-        Handle *handle = new Handle(controller->config(), hasherConfig, offset);
+        Handle *handle = new Handle((int)(m_workers.size()), controller->config(), hasherConfig, offset);
         if(handle->hasher() != nullptr) {
             offset += handle->computingThreads();
             m_totalThreads += handle->computingThreads();
