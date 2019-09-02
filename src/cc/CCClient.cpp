@@ -292,7 +292,7 @@ void xmrig::CCClient::fetchConfig()
 
                 LOG_WARN("[CC-Client] Config updated. -> reload");
             } else {
-                LOG_ERR("[CC-Client] Not able to store client config to file %s.", m_base->config()->fileName());
+                LOG_ERR("[CC-Client] Not able to store client config to file %s.", m_base->config()->fileName().data());
             }
         } else {
             LOG_ERR("[CC-Client] Not able to store client config. received client config is broken!");
@@ -333,10 +333,10 @@ void xmrig::CCClient::publishConfig()
                         m_base->config()->ccClient().port(), requestUrl.c_str());
             }
         } else {
-            LOG_ERR("[CC-Client] Not able to send config. Client config %s is broken!", m_base->config()->fileName());
+            LOG_ERR("[CC-Client] Not able to send config. Client config %s is broken!", m_base->config()->fileName().data());
         }
     } else {
-        LOG_ERR("[CC-Client] Not able to load client config %s. Please make sure it exists! Using embedded config.", m_base->config()->fileName());
+        LOG_ERR("[CC-Client] Not able to load client config %s. Please make sure it exists! Using embedded config.", m_base->config()->fileName().data());
     }
 }
 
