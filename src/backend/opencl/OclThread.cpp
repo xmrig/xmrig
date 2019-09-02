@@ -57,7 +57,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
     m_intensity = Json::getUint(value, kIntensity);
     m_worksize  = Json::getUint(value, kWorksize);
     m_affinity  = Json::getInt64(value, kAffinity, -1);
-    m_memChunk  = std::max(Json::getUint(value, kMemChunk, m_memChunk), 18u);
+    m_memChunk  = std::min(Json::getUint(value, kMemChunk, m_memChunk), 18u);
     m_compMode  = Json::getBool(value, kCompMode, m_compMode);
 
     setUnrollFactor(Json::getUint(value, kUnroll, m_unrollFactor));
