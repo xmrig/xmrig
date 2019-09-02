@@ -28,7 +28,7 @@
 #define APP_ID        "ninjarig"
 #define APP_NAME      "NinjaRig"
 #define APP_DESC      "NinjaRig CPU/GPU miner"
-#define APP_VERSION   "1.0.1-dev"
+#define APP_VERSION   "1.0.1"
 //#define APP_DOMAIN    "xmrig.com"
 //#define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2019 Haifa Bogdan Adnan"
