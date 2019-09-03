@@ -24,11 +24,11 @@ function bin2h(buf, namespace, name)
 }
 
 
-function text2h(text, namespace, name)
+function text2h_internal(text, name)
 {
     const buf  = Buffer.from(text);
     const size = buf.byteLength;
-    let out    = `#pragma once\n\nnamespace ${namespace} {\n\nstatic char ${name}[${size + 1}] = {\n    `;
+    let out    = `\nstatic char ${name}[${size + 1}] = {\n    `;
 
     let b = 32;
     for (let i = 0; i < size; i++) {
@@ -42,9 +42,27 @@ function text2h(text, namespace, name)
 
     out += '0x00';
 
-    out += `\n};\n\n} // namespace ${namespace}\n`;
+    out += '\n};\n';
 
     return out;
+}
+
+
+function text2h(text, namespace, name)
+{
+    return `#pragma once\n\nnamespace ${namespace} {\n` + text2h_internal(text, name) + `\n} // namespace ${namespace}\n`;
+}
+
+
+function text2h_bundle(namespace, items)
+{
+    let out = `#pragma once\n\nnamespace ${namespace} {\n`;
+
+    for (let key in items) {
+        out += text2h_internal(items[key], key);
+    }
+
+    return out + `\n} // namespace ${namespace}\n`;
 }
 
 
@@ -66,7 +84,8 @@ function addIncludes(inputFileName, names)
 }
 
 
-module.exports.bin2h        = bin2h;
-module.exports.text2h       = text2h;
-module.exports.addInclude   = addInclude;
-module.exports.addIncludes  = addIncludes;
+module.exports.bin2h         = bin2h;
+module.exports.text2h        = text2h;
+module.exports.text2h_bundle = text2h_bundle;
+module.exports.addInclude    = addInclude;
+module.exports.addIncludes   = addIncludes;

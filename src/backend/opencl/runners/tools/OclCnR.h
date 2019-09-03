@@ -22,27 +22,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CN1KERNEL_H
-#define XMRIG_CN1KERNEL_H
+#ifndef XMRIG_OCLCNR_H
+#define XMRIG_OCLCNR_H
 
 
-#include "backend/opencl/wrappers/OclKernel.h"
+#include <stdint.h>
+
+
+typedef struct _cl_program *cl_program;
 
 
 namespace xmrig {
 
 
-class Cn1Kernel : public OclKernel
+class Algorithm;
+class IOclRunner;
+
+
+class OclCnR
 {
 public:
-    Cn1Kernel(cl_program program);
-    Cn1Kernel(cl_program program, uint64_t height);
-    bool enqueue(cl_command_queue queue, uint32_t nonce, size_t threads, size_t worksize);
-    bool setArgs(cl_mem input, cl_mem scratchpads, cl_mem states, uint32_t threads);
+    constexpr static size_t kPrecompilationDepth = 1;
+    constexpr static size_t kHeightChunkSize     = 10;
+
+    static cl_program get(const IOclRunner &runner, uint64_t height, bool background = false);
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_CN1KERNEL_H */
+#endif /* XMRIG_OCLCNR_H */

@@ -488,8 +488,7 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
     uint sqrt_result = as_uint2(states[13]).s0;
 
     #pragma unroll CN_UNROLL
-    for(int i = 0; i < ITERATIONS; ++i)
-    {
+    for (int i = 0; i < ITERATIONS; ++i) {
 #       ifdef __NV_CL_C_VERSION
             uint idx  = a[0] & 0x1FFFC0;
             uint idx1 = a[0] & 0x30;

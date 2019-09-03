@@ -23,12 +23,23 @@
  */
 
 
+#include <string>
+
+
 #include "backend/opencl/kernels/Cn1Kernel.h"
 #include "backend/opencl/wrappers/OclLib.h"
 
 
-xmrig::Cn1Kernel::Cn1Kernel(cl_program program) : OclKernel(program, "cn1")
+xmrig::Cn1Kernel::Cn1Kernel(cl_program program)
+    : OclKernel(program, "cn1")
 {
+}
+
+
+xmrig::Cn1Kernel::Cn1Kernel(cl_program program, uint64_t height)
+    : OclKernel(program, ("cn1_" + std::to_string(height)).c_str())
+{
+
 }
 
 

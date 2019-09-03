@@ -29,6 +29,7 @@
 #include "backend/opencl/kernels/CnBranchKernel.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/runners/OclCnRunner.h"
+#include "backend/opencl/runners/tools/OclCnR.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
@@ -169,9 +170,15 @@ bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
 
 bool xmrig::OclCnRunner::selfTest() const
 {
-    return OclBaseRunner::selfTest() &&
-           m_cn0->isValid() &&
-           m_cn1->isValid() && m_cn2->isValid();
+    if (OclBaseRunner::selfTest() && m_cn0->isValid() && m_cn2->isValid()) {
+        if (m_algorithm != Algorithm::CN_R) {
+            return m_cn1->isValid();
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 
@@ -192,6 +199,13 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
 
     if (!m_cn0->setArgs(m_input, m_scratchpads, m_states, intensity)) {
         return false;
+    }
+
+    if (m_algorithm == Algorithm::CN_R && m_height != job.height()) {
+        delete m_cn1;
+
+        m_height = job.height();
+        m_cn1    = new Cn1Kernel(OclCnR::get(*this, m_height), m_height);
     }
 
     if (!m_cn1->setArgs(m_input, m_scratchpads, m_states, intensity)) {
@@ -221,8 +235,11 @@ void xmrig::OclCnRunner::build()
     }
 
     m_cn0 = new Cn0Kernel(m_program);
-    m_cn1 = new Cn1Kernel(m_program);
     m_cn2 = new Cn2Kernel(m_program);
+
+    if (m_algorithm != Algorithm::CN_R) {
+        m_cn1 = new Cn1Kernel(m_program);
+    }
 
     for (size_t i = 0; i < BRANCH_MAX; ++i) {
         m_branchKernels[i] = new CnBranchKernel(i, m_program);

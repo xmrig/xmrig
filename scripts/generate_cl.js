@@ -4,15 +4,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const { text2h, addIncludes } = require('./js/opencl');
-const cwd = process.cwd();
+const { text2h, text2h_bundle, addIncludes } = require('./js/opencl');
+// const cwd = process.cwd();
 
 
 function cn()
 {
-    process.chdir(cwd);
-    process.chdir(path.resolve('src/backend/opencl/cl/cn'));
-
     const cn = addIncludes('cryptonight.cl', [
         'algorithm.cl',
         'wolf-aes.cl',
@@ -30,4 +27,22 @@ function cn()
 }
 
 
+function cn_r()
+{
+    const items = {};
+
+    items.cryptonight_r_defines_cl = addIncludes('cryptonight_r_defines.cl', [ 'wolf-aes.cl' ]);
+    items.cryptonight_r_cl         = fs.readFileSync('cryptonight_r.cl', 'utf8');
+
+    // for (let key in items) {
+    //     fs.writeFileSync(key + '_gen.cl', items[key]);
+    // }
+
+    fs.writeFileSync('cryptonight_r_cl.h', text2h_bundle('xmrig', items));
+}
+
+
+process.chdir(path.resolve('src/backend/opencl/cl/cn'));
+
 cn();
+cn_r();

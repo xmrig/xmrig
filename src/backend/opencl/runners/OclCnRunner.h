@@ -66,6 +66,7 @@ private:
     Cn0Kernel *m_cn0        = nullptr;
     Cn1Kernel *m_cn1        = nullptr;
     Cn2Kernel *m_cn2        = nullptr;
+    uint64_t m_height       = 0;
 
     std::vector<cl_mem> m_branches                = { nullptr, nullptr, nullptr, nullptr };
     std::vector<CnBranchKernel *> m_branchKernels = { nullptr, nullptr, nullptr, nullptr };

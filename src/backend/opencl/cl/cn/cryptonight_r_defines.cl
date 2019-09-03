@@ -1,4 +1,3 @@
-R"===(
 #ifdef __NV_CL_C_VERSION
 #	define SCRATCHPAD_CHUNK(N) (*(__local uint4*)((__local uchar*)(scratchpad_line) + (idx1 ^ (N << 4))))
 #else
@@ -12,9 +11,6 @@ R"===(
 #endif
 
 #define ROT_BITS 32
-
-#define VARIANT_WOW 12
-#define VARIANT_4  13
-
 #define MEM_CHUNK (1 << MEM_CHUNK_EXPONENT)
-)==="
+
+#include "wolf-aes.cl"

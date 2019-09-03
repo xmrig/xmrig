@@ -48,6 +48,7 @@ public:
 
 protected:
     inline cl_context ctx() const override              { return m_ctx; }
+    inline const Algorithm &algorithm() const override  { return m_algorithm; }
     inline const char *buildOptions() const override    { return m_options.c_str(); }
     inline const char *deviceKey() const override       { return m_deviceKey.c_str(); }
     inline const char *source() const override          { return m_source; }

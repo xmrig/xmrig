@@ -19,6 +19,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclWorker.h
         src/backend/opencl/runners/OclBaseRunner.h
         src/backend/opencl/runners/OclCnRunner.h
+        src/backend/opencl/runners/tools/OclCnR.h
         src/backend/opencl/wrappers/OclContext.h
         src/backend/opencl/wrappers/OclDevice.h
         src/backend/opencl/wrappers/OclError.h
@@ -43,6 +44,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclWorker.cpp
         src/backend/opencl/runners/OclBaseRunner.cpp
         src/backend/opencl/runners/OclCnRunner.cpp
+        src/backend/opencl/runners/tools/OclCnR.cpp
         src/backend/opencl/wrappers/OclContext.cpp
         src/backend/opencl/wrappers/OclDevice.cpp
         src/backend/opencl/wrappers/OclError.cpp
