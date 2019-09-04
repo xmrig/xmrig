@@ -63,6 +63,7 @@ private:
 
     cl_mem m_scratchpads    = nullptr;
     cl_mem m_states         = nullptr;
+    cl_program m_cnr        = nullptr;
     Cn0Kernel *m_cn0        = nullptr;
     Cn1Kernel *m_cn1        = nullptr;
     Cn2Kernel *m_cn2        = nullptr;

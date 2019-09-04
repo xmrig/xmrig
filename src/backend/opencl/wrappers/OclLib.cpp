@@ -375,7 +375,7 @@ cl_int xmrig::OclLib::getProgramInfo(cl_program program, cl_program_info param_n
 }
 
 
-cl_int xmrig::OclLib::releaseCommandQueue(cl_command_queue command_queue)
+cl_int xmrig::OclLib::release(cl_command_queue command_queue)
 {
     assert(pReleaseCommandQueue != nullptr);
     assert(pGetCommandQueueInfo != nullptr);
@@ -391,7 +391,7 @@ cl_int xmrig::OclLib::releaseCommandQueue(cl_command_queue command_queue)
 }
 
 
-cl_int xmrig::OclLib::releaseContext(cl_context context)
+cl_int xmrig::OclLib::release(cl_context context)
 {
     assert(pReleaseContext != nullptr);
 
@@ -404,7 +404,7 @@ cl_int xmrig::OclLib::releaseContext(cl_context context)
 }
 
 
-cl_int xmrig::OclLib::releaseKernel(cl_kernel kernel)
+cl_int xmrig::OclLib::release(cl_kernel kernel)
 {
     assert(pReleaseKernel != nullptr);
 
@@ -421,7 +421,7 @@ cl_int xmrig::OclLib::releaseKernel(cl_kernel kernel)
 }
 
 
-cl_int xmrig::OclLib::releaseMemObject(cl_mem mem_obj)
+cl_int xmrig::OclLib::release(cl_mem mem_obj)
 {
     assert(pReleaseMemObject != nullptr);
 
@@ -438,7 +438,7 @@ cl_int xmrig::OclLib::releaseMemObject(cl_mem mem_obj)
 }
 
 
-cl_int xmrig::OclLib::releaseProgram(cl_program program)
+cl_int xmrig::OclLib::release(cl_program program)
 {
     assert(pReleaseProgram != nullptr);
 
@@ -547,6 +547,15 @@ cl_uint xmrig::OclLib::getNumPlatforms()
     }
 
     return count;
+}
+
+
+cl_uint xmrig::OclLib::getReferenceCount(cl_program program)
+{
+    cl_uint out = 0;
+    OclLib::getProgramInfo(program, CL_PROGRAM_REFERENCE_COUNT, sizeof(cl_uint), &out);
+
+    return out;
 }
 
 

@@ -66,11 +66,10 @@ xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
 
 xmrig::OclBaseRunner::~OclBaseRunner()
 {
-    OclLib::releaseProgram(m_program);
-    OclLib::releaseMemObject(m_input);
-    OclLib::releaseMemObject(m_output);
-
-    OclLib::releaseCommandQueue(m_queue);
+    OclLib::release(m_program);
+    OclLib::release(m_input);
+    OclLib::release(m_output);
+    OclLib::release(m_queue);
 }
 
 
@@ -83,6 +82,12 @@ bool xmrig::OclBaseRunner::isReadyToBuild() const
 bool xmrig::OclBaseRunner::selfTest() const
 {
     return isReadyToBuild() && m_program != nullptr;
+}
+
+
+uint32_t xmrig::OclBaseRunner::deviceIndex() const
+{
+    return data().thread.index();
 }
 
 

@@ -95,12 +95,17 @@ xmrig::OclCnRunner::~OclCnRunner()
     delete m_cn1;
     delete m_cn2;
 
-    OclLib::releaseMemObject(m_scratchpads);
-    OclLib::releaseMemObject(m_states);
+    OclLib::release(m_scratchpads);
+    OclLib::release(m_states);
 
     for (size_t i = 0; i < BRANCH_MAX; ++i) {
         delete m_branchKernels[i];
-        OclLib::releaseMemObject(m_branches[i]);
+        OclLib::release(m_branches[i]);
+    }
+
+    if (m_algorithm == Algorithm::CN_R) {
+        OclLib::release(m_cnr);
+        OclCnR::clear();
     }
 }
 
@@ -205,7 +210,8 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
         delete m_cn1;
 
         m_height = job.height();
-        m_cn1    = new Cn1Kernel(OclCnR::get(*this, m_height), m_height);
+        m_cnr    = OclCnR::get(*this, m_height);
+        m_cn1    = new Cn1Kernel(m_cnr, m_height);
     }
 
     if (!m_cn1->setArgs(m_input, m_scratchpads, m_states, intensity)) {

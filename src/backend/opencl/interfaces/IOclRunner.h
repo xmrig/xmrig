@@ -55,6 +55,7 @@ public:
     virtual const char *source() const                      = 0;
     virtual const OclLaunchData &data() const               = 0;
     virtual size_t threadId() const                         = 0;
+    virtual uint32_t deviceIndex() const                    = 0;
     virtual void build()                                    = 0;
 
 protected:

@@ -39,7 +39,7 @@ xmrig::OclKernel::OclKernel(cl_program program, const char *name) :
 
 xmrig::OclKernel::~OclKernel()
 {
-    OclLib::releaseKernel(m_kernel);
+    OclLib::release(m_kernel);
 }
 
 

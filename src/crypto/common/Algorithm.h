@@ -77,7 +77,7 @@ public:
         ARGON2
     };
 
-    inline Algorithm()                                     {}
+    inline Algorithm() = default;
     inline Algorithm(const char *algo) : m_id(parse(algo)) {}
     inline Algorithm(Id id) : m_id(id)                     {}
 
@@ -109,7 +109,7 @@ private:
 };
 
 
-typedef std::vector<Algorithm> Algorithms;
+using Algorithms = std::vector<Algorithm>;
 
 
 } /* namespace xmrig */

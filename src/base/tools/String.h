@@ -46,9 +46,9 @@ namespace xmrig {
 class String
 {
 public:
-    inline String() : m_data(nullptr), m_size(0)                                     {}
-    inline String(char *str) : m_data(str), m_size(str == nullptr ? 0 : strlen(str)) {}
-    inline String(String &&other) : m_data(other.m_data), m_size(other.m_size)       { other.m_data = nullptr; other.m_size = 0; }
+    inline String() = default;
+    inline String(char *str) : m_data(str), m_size(str == nullptr ? 0 : strlen(str))    {}
+    inline String(String &&other) noexcept : m_data(other.m_data), m_size(other.m_size) { other.m_data = nullptr; other.m_size = 0; }
 
     String(const char *str);
     String(const char *str, size_t size);
@@ -81,7 +81,7 @@ public:
     inline String &operator=(const char *str)          { copy(str); return *this; }
     inline String &operator=(const String &str)        { copy(str); return *this; }
     inline String &operator=(std::nullptr_t)           { delete [] m_data; m_data = nullptr; m_size = 0; return *this; }
-    inline String &operator=(String &&other)           { move(std::move(other)); return *this; }
+    inline String &operator=(String &&other) noexcept  { move(std::move(other)); return *this; }
 
     rapidjson::Value toJSON() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
@@ -97,8 +97,8 @@ private:
     void move(char *str);
     void move(String &&other);
 
-    char *m_data;
-    size_t m_size;
+    char *m_data    = nullptr;
+    size_t m_size   = 0;
 };
 
 

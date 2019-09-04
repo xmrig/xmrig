@@ -42,10 +42,10 @@ class IOclRunner;
 class OclCnR
 {
 public:
-    constexpr static size_t kPrecompilationDepth = 1;
-    constexpr static size_t kHeightChunkSize     = 10;
+    constexpr static size_t kHeightChunkSize = 10;
 
-    static cl_program get(const IOclRunner &runner, uint64_t height, bool background = false);
+    static cl_program get(const IOclRunner &runner, uint64_t height);
+    static void clear();
 };
 
 

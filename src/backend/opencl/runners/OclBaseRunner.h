@@ -57,6 +57,7 @@ protected:
 
     bool isReadyToBuild() const override;
     bool selfTest() const override;
+    uint32_t deviceIndex() const override;
     void build() override;
 
 protected:

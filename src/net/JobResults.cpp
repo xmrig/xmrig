@@ -43,8 +43,6 @@
 #   include "crypto/common/VirtualMemory.h"
 #endif
 
-#include "base/tools/Buffer.h"
-
 
 namespace xmrig {
 

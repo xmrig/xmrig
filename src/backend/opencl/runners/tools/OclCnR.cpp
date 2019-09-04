@@ -22,157 +22,286 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstring>
-#include <mutex>
-#include <regex>
-#include <sstream>
-#include <string>
-#include <thread>
-
+#include "backend/opencl/runners/tools/OclCnR.h"
 
 #include "backend/opencl/cl/cn/cryptonight_r_cl.h"
 #include "backend/opencl/interfaces/IOclRunner.h"
 #include "backend/opencl/OclCache.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/OclThread.h"
-#include "backend/opencl/runners/tools/OclCnR.h"
 #include "backend/opencl/wrappers/OclError.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
+#include "base/tools/Baton.h"
 #include "base/tools/Chrono.h"
 #include "crypto/cn/CryptoNight_monero.h"
+
+
+#include <cstring>
+#include <mutex>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <uv.h>
 
 
 namespace xmrig {
 
 
-static std::string getCode(const V4_Instruction *code, int code_size)
-{
-    std::stringstream s;
-
-    for (int i = 0; i < code_size; ++i) {
-        const V4_Instruction inst = code[i];
-
-        const uint32_t a = inst.dst_index;
-        const uint32_t b = inst.src_index;
-
-        switch (inst.opcode)
-        {
-        case MUL:
-            s << 'r' << a << "*=r" << b << ';';
-            break;
-
-        case ADD:
-            s << 'r' << a << "+=r" << b << '+' << inst.C << "U;";
-            break;
-
-        case SUB:
-            s << 'r' << a << "-=r" << b << ';';
-            break;
-
-        case ROR:
-        case ROL:
-            s << 'r' << a << "=rotate(r" << a << ((inst.opcode == ROR) ? ",ROT_BITS-r" : ",r") << b << ");";
-            break;
-
-        case XOR:
-            s << 'r' << a << "^=r" << b << ';';
-            break;
-        }
-
-        s << '\n';
-    }
-
-    return s.str();
-}
-
-
-class CacheEntry
+class CnrCacheEntry
 {
 public:
-    inline CacheEntry(const Algorithm &algorithm, uint64_t heightOffset, uint32_t deviceIndex, cl_program program) :
-        algorithm(algorithm),
+    inline CnrCacheEntry(const Algorithm &algo, uint64_t offset, uint32_t index, cl_program program) :
         program(program),
-        deviceIndex(deviceIndex),
-        heightOffset(heightOffset)
+        m_algo(algo),
+        m_index(index),
+        m_offset(offset)
     {}
 
-    const Algorithm algorithm;
-    const cl_program program;
-    const uint32_t deviceIndex;
-    const uint64_t heightOffset;
+    inline bool isExpired(uint64_t offset) const                                    { return m_offset + OclCnR::kHeightChunkSize < offset; }
+    inline bool match(const Algorithm &algo, uint64_t offset, uint32_t index) const { return m_algo == algo && m_offset == offset && m_index == index; }
+    inline bool match(const IOclRunner &runner, uint64_t offset) const              { return match(runner.algorithm(), offset, runner.deviceIndex()); }
+    inline void release()                                                           { OclLib::release(program); }
+
+    cl_program program;
+
+private:
+    const Algorithm m_algo;
+    const uint32_t m_index;
+    const uint64_t m_offset;
 };
 
 
-static std::mutex mutex;
-static std::vector<CacheEntry> cache;
-
-
-static cl_program search(const Algorithm &algorithm, uint64_t offset, uint32_t index)
+class CnrCache
 {
-    std::lock_guard<std::mutex> lock(mutex);
+public:
+    CnrCache() = default;
 
-    for (const CacheEntry &entry : cache) {
-        if (entry.heightOffset == offset && entry.deviceIndex == index && entry.algorithm == algorithm) {
-            return entry.program;
+    inline cl_program search(const IOclRunner &runner, uint64_t offset) { return search(runner.algorithm(), offset, runner.deviceIndex()); }
+
+
+    inline cl_program search(const Algorithm &algo, uint64_t offset, uint32_t index)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+
+        for (const auto &entry : m_data) {
+            if (entry.match(algo, offset, index)) {
+                return entry.program;
+            }
+        }
+
+        return nullptr;
+    }
+
+
+    void add(const Algorithm &algo, uint64_t offset, uint32_t index, cl_program program)
+    {
+        if (search(algo, offset, index)) {
+            OclLib::release(program);
+
+            return;
+        }
+
+        std::lock_guard<std::mutex> lock(m_mutex);
+
+        gc(offset);
+        m_data.emplace_back(algo, offset, index, program);
+    }
+
+
+    void clear()
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+
+        for (auto &entry : m_data) {
+            entry.release();
+        }
+
+        m_data.clear();
+    }
+
+
+private:
+    void gc(uint64_t offset)
+    {
+        for (size_t i = 0; i < m_data.size();) {
+            const auto &entry = m_data[i];
+
+            if (entry.isExpired(offset)) {
+                m_data.back().release();
+                m_data.pop_back();
+            }
+            else {
+                ++i;
+            }
         }
     }
 
-    return nullptr;
-}
+
+    std::mutex m_mutex;
+    std::vector<CnrCacheEntry> m_data;
+};
 
 
-static inline cl_program search(const IOclRunner &runner, uint64_t offset) { return search(runner.algorithm(), offset, runner.data().thread.index()); }
+static CnrCache cache;
 
 
-cl_program build(const IOclRunner &runner, const std::string &source, uint64_t offset)
+class CnrBuilder
 {
-    std::lock_guard<std::mutex> lock(mutex);
+public:
+    CnrBuilder() = default;
 
-    cl_int ret;
-    cl_device_id device = runner.data().device.id();
-    const char *s       = source.c_str();
+    cl_program build(const IOclRunner &runner, uint64_t offset)
+    {
+    #   ifdef APP_DEBUG
+        const uint64_t ts = Chrono::steadyMSecs();
+    #   endif
 
-    cl_program program = OclLib::createProgramWithSource(runner.ctx(), 1, &s, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return nullptr;
+        std::lock_guard<std::mutex> lock(m_mutex);
+        cl_program program = cache.search(runner, offset);
+        if (program) {
+            return program;
+        }
+
+        cl_int ret;
+        const std::string source = getSource(offset);
+        cl_device_id device      = runner.data().device.id();
+        const char *s            = source.c_str();
+
+        program = OclLib::createProgramWithSource(runner.ctx(), 1, &s, nullptr, &ret);
+        if (ret != CL_SUCCESS) {
+            return nullptr;
+        }
+
+        if (OclLib::buildProgram(program, 1, &device, runner.buildOptions()) != CL_SUCCESS) {
+            printf("BUILD LOG:\n%s\n", OclLib::getProgramBuildLog(program, device).data());
+
+            OclLib::release(program);
+            return nullptr;
+        }
+
+        LOG_DEBUG(GREEN_BOLD("[ocl]") " programs for heights %" PRIu64 " - %" PRIu64 " compiled. (%" PRIu64 "ms)", offset, offset + OclCnR::kHeightChunkSize - 1, Chrono::steadyMSecs() - ts);
+
+        cache.add(runner.algorithm(), offset, runner.deviceIndex(), program);
+
+        return program;
     }
 
-    if (OclLib::buildProgram(program, 1, &device, runner.buildOptions()) != CL_SUCCESS) {
-        printf("BUILD LOG:\n%s\n", OclLib::getProgramBuildLog(program, device).data());
+private:
+    std::string getCode(const V4_Instruction *code, int code_size) const
+    {
+        std::stringstream s;
 
-        OclLib::releaseProgram(program);
-        return nullptr;
+        for (int i = 0; i < code_size; ++i) {
+            const V4_Instruction inst = code[i];
+
+            const uint32_t a = inst.dst_index;
+            const uint32_t b = inst.src_index;
+
+            switch (inst.opcode)
+            {
+            case MUL:
+                s << 'r' << a << "*=r" << b << ';';
+                break;
+
+            case ADD:
+                s << 'r' << a << "+=r" << b << '+' << inst.C << "U;";
+                break;
+
+            case SUB:
+                s << 'r' << a << "-=r" << b << ';';
+                break;
+
+            case ROR:
+            case ROL:
+                s << 'r' << a << "=rotate(r" << a << ((inst.opcode == ROR) ? ",ROT_BITS-r" : ",r") << b << ");";
+                break;
+
+            case XOR:
+                s << 'r' << a << "^=r" << b << ';';
+                break;
+            }
+
+            s << '\n';
+        }
+
+        return s.str();
     }
 
-    cache.emplace_back(runner.algorithm(), offset, runner.data().thread.index(), program);
 
-    return program;
-}
+    std::string getSource(uint64_t offset) const
+    {
+        std::string source(cryptonight_r_defines_cl);
+
+        for (size_t i = 0; i < OclCnR::kHeightChunkSize; ++i) {
+            V4_Instruction code[256];
+            const int code_size      = v4_random_math_init<Algorithm::CN_R>(code, offset + i);
+            const std::string kernel = std::regex_replace(cryptonight_r_cl, std::regex("XMRIG_INCLUDE_RANDOM_MATH"), getCode(code, code_size));
+
+            source += std::regex_replace(kernel, std::regex("KERNEL_NAME"), "cn1_" + std::to_string(offset + i));
+        }
+
+        return source;
+    }
+
+
+    std::mutex m_mutex;
+};
+
+
+class CnrBaton : public Baton<uv_work_t>
+{
+public:
+    inline CnrBaton(const IOclRunner &runner, uint64_t offset) :
+        runner(runner),
+        offset(offset)
+    {}
+
+    const IOclRunner &runner;
+    const uint64_t offset;
+};
+
+
+static CnrBuilder builder;
+static std::mutex bg_mutex;
 
 
 } // namespace xmrig
 
 
 
-cl_program xmrig::OclCnR::get(const IOclRunner &runner, uint64_t height, bool background)
+cl_program xmrig::OclCnR::get(const IOclRunner &runner, uint64_t height)
 {
     const uint64_t offset = (height / kHeightChunkSize) * kHeightChunkSize;
 
-    cl_program program = search(runner, offset);
+    if (offset + kHeightChunkSize - height == 1) {
+        auto baton = new CnrBaton(runner, offset + kHeightChunkSize);
+
+        uv_queue_work(uv_default_loop(), &baton->req,
+            [](uv_work_t *req) {
+                auto baton = static_cast<CnrBaton*>(req->data);
+
+                std::lock_guard<std::mutex> lock(bg_mutex);
+
+                builder.build(baton->runner, baton->offset);
+            },
+            [](uv_work_t *req, int) { delete static_cast<CnrBaton*>(req->data); }
+        );
+    }
+
+    cl_program program = cache.search(runner, offset);
     if (program) {
         return program;
     }
 
-    std::string source(cryptonight_r_defines_cl);
+    return builder.build(runner, offset);;
+}
 
-    for (size_t i = 0; i < kHeightChunkSize; ++i) {
-        V4_Instruction code[256];
-        const int code_size      = v4_random_math_init<Algorithm::CN_R>(code, offset + i);
-        const std::string kernel = std::regex_replace(cryptonight_r_cl, std::regex("XMRIG_INCLUDE_RANDOM_MATH"), getCode(code, code_size));
 
-        source += std::regex_replace(kernel, std::regex("KERNEL_NAME"), "cn1_" + std::to_string(offset + i));
-    }
+void xmrig::OclCnR::clear()
+{
+    std::lock_guard<std::mutex> lock(bg_mutex);
 
-    return build(runner, source, offset);;
+    cache.clear();
 }

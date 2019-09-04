@@ -31,7 +31,6 @@
 
 
 xmrig::String::String(const char *str) :
-    m_data(nullptr),
     m_size(str == nullptr ? 0 : strlen(str))
 {
     if (m_size == 0) {
@@ -44,7 +43,6 @@ xmrig::String::String(const char *str) :
 
 
 xmrig::String::String(const char *str, size_t size) :
-    m_data(nullptr),
     m_size(size)
 {
     if (str == nullptr) {
@@ -60,7 +58,6 @@ xmrig::String::String(const char *str, size_t size) :
 
 
 xmrig::String::String(const String &other) :
-    m_data(nullptr),
     m_size(other.m_size)
 {
     if (other.m_data == nullptr) {
@@ -117,7 +114,7 @@ std::vector<xmrig::String> xmrig::String::split(char sep) const
     for (pos = 0; pos < m_size; ++pos) {
         if (m_data[pos] == sep) {
             if ((pos - start) > 0) {
-                out.push_back(String(m_data + start, pos - start));
+                out.emplace_back(m_data + start, pos - start);
             }
 
             start = pos + 1;
@@ -125,7 +122,7 @@ std::vector<xmrig::String> xmrig::String::split(char sep) const
     }
 
     if ((pos - start) > 0) {
-        out.push_back(String(m_data + start, pos - start));
+        out.emplace_back(m_data + start, pos - start);
     }
 
     return out;

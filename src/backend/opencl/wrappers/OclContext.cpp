@@ -37,7 +37,7 @@ xmrig::OclContext::OclContext(const OclDevice &device)
 xmrig::OclContext::~OclContext()
 {
     if (m_ctx) {
-        OclLib::releaseContext(m_ctx);
+        OclLib::release(m_ctx);
     }
 }
 

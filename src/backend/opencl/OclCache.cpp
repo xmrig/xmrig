@@ -63,7 +63,7 @@ static cl_program createFromSource(const IOclRunner *runner)
     if (OclLib::buildProgram(program, 1, &device, runner->buildOptions()) != CL_SUCCESS) {
         printf("BUILD LOG:\n%s\n", OclLib::getProgramBuildLog(program, device).data());
 
-        OclLib::releaseProgram(program);
+        OclLib::release(program);
         return nullptr;
     }
 
@@ -97,7 +97,7 @@ static cl_program createFromBinary(const IOclRunner *runner, const std::string &
     }
 
     if (OclLib::buildProgram(program, 1, &device) != CL_SUCCESS) {
-        OclLib::releaseProgram(program);
+        OclLib::release(program);
         return nullptr;
     }
 
