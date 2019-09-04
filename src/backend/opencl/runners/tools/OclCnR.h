@@ -26,10 +26,11 @@
 #define XMRIG_OCLCNR_H
 
 
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 
-typedef struct _cl_program *cl_program;
+using cl_program = struct _cl_program *;
 
 
 namespace xmrig {
