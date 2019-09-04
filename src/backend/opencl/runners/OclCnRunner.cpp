@@ -23,12 +23,13 @@
  */
 
 
+#include "backend/opencl/runners/OclCnRunner.h"
+
 #include "backend/opencl/kernels/Cn0Kernel.h"
 #include "backend/opencl/kernels/Cn1Kernel.h"
 #include "backend/opencl/kernels/Cn2Kernel.h"
 #include "backend/opencl/kernels/CnBranchKernel.h"
 #include "backend/opencl/OclLaunchData.h"
-#include "backend/opencl/runners/OclCnRunner.h"
 #include "backend/opencl/runners/tools/OclCnR.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"

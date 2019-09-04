@@ -41,8 +41,15 @@ class CnBranchKernel;
 class OclCnRunner : public OclBaseRunner
 {
 public:
+    OclCnRunner()                         = delete;
+    OclCnRunner(const OclCnRunner &other) = delete;
+    OclCnRunner(OclCnRunner &&other)      = delete;
     OclCnRunner(size_t index, const OclLaunchData &data);
+
     ~OclCnRunner() override;
+
+    OclCnRunner &operator=(const OclCnRunner &other) = delete;
+    OclCnRunner &operator=(OclCnRunner &&other)      = delete;
 
 protected:
     bool isReadyToBuild() const override;
