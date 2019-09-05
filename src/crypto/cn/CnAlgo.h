@@ -42,6 +42,8 @@ template<Algorithm::Id ALGO = Algorithm::INVALID>
 class CnAlgo
 {
 public:
+    constexpr CnAlgo() {};
+
     constexpr inline Algorithm::Id base() const  { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return Algorithm::CN_2; }
     constexpr inline bool isHeavy() const        { return memory() == CN_MEMORY * 2; }
     constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R; }

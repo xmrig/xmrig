@@ -54,7 +54,7 @@ namespace xmrig {
 extern template class Threads<OclThreads>;
 
 
-constexpr const size_t oneGiB   = 1024u * 1024u * 1024u;
+constexpr const size_t oneMiB   = 1024u * 1024u;
 static const char *tag          = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
 static const String kType       = "opencl";
 static std::mutex mutex;
@@ -122,14 +122,14 @@ public:
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), "OPENCL", platform.index(), platform.name().data(), platform.version().data());
 
         for (const OclDevice &device : devices) {
-            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") " %s " WHITE_BOLD("%uMHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%1.2f/%1.2f") " GB", "OPENCL GPU",
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") " %s " WHITE_BOLD("%uMHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%zu/%zu") " MB", "OPENCL GPU",
                        device.index(),
                        device.hasTopology() ? device.topology().toString().data() : "n/a",
                        device.printableName().data(),
                        device.clock(),
                        device.computeUnits(),
-                       static_cast<double>(device.freeMem()) / oneGiB,
-                       static_cast<double>(device.globalMem()) / oneGiB);
+                       device.freeMem() / oneMiB,
+                       device.globalMem() / oneMiB);
         }
     }
 
@@ -142,6 +142,27 @@ public:
                  threads.size(),
                  algo.l3() / 1024
                  );
+
+        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |  W | SI | MC |  U |  MEM | NAME"));
+
+        size_t i = 0;
+        for (const auto &data : threads) {
+            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5u") " |" CYAN_BOLD("%3u") " |"
+                       CYAN_BOLD("%3u") " |" CYAN_BOLD("%3s") " |" CYAN_BOLD("%3u") " |" CYAN("%5zu") " | %s",
+                       i,
+                       data.thread.index(),
+                       data.device.hasTopology() ? data.device.topology().toString().data() : "n/a",
+                       data.thread.intensity(),
+                       data.thread.worksize(),
+                       data.thread.stridedIndex(),
+                       data.thread.stridedIndex() == 2 ? std::to_string(data.thread.memChunk()).c_str() : "-",
+                       data.thread.unrollFactor(),
+                       data.thread.intensity() * algo.l3() / oneMiB,
+                       data.device.printableName().data()
+                       );
+
+                    i++;
+        }
 
         status.start(threads.size());
         workers.start(threads);
@@ -339,9 +360,8 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
 
     size_t i = 0;
     for (const OclLaunchData &data : d_ptr->threads) {
-        Value thread(kObjectType);
-        thread.AddMember("intensity",   data.thread.intensity(), allocator);
-        thread.AddMember("affinity",    data.affinity, allocator);
+        Value thread = data.thread.toJSON(doc);
+        thread.AddMember("affinity", data.affinity, allocator);
 
         Value hashrate(kArrayType);
         hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);

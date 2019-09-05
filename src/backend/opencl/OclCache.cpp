@@ -67,8 +67,8 @@ static cl_program createFromSource(const IOclRunner *runner)
         return nullptr;
     }
 
-    LOG_INFO("%s GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("compilation completed") BLACK_BOLD( " (%.3fs)"),
-             tag, runner->data().device.index(), (Chrono::steadyMSecs() - ts) / 1000.0);
+    LOG_INFO("%s GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("compilation completed") BLACK_BOLD(" (%" PRIu64 " ms)"),
+             tag, runner->data().device.index(), Chrono::steadyMSecs() - ts);
 
     return program;
 }

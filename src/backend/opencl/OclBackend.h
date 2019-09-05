@@ -43,8 +43,15 @@ class Miner;
 class OclBackend : public IBackend
 {
 public:
+    OclBackend()                        = delete;
+    OclBackend(const OclBackend &other) = delete;
     OclBackend(Controller *controller);
+    OclBackend(OclBackend &&other)      = delete;
+
     ~OclBackend() override;
+
+    OclBackend &operator=(const OclBackend &other) = delete;
+    OclBackend &operator=(OclBackend &&other)      = delete;
 
 protected:
     bool isEnabled() const override;
