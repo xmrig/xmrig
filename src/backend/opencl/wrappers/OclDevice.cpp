@@ -184,14 +184,9 @@ void xmrig::OclDevice::generate(const Algorithm &algorithm, OclThreads &threads)
     const uint32_t worksize     = getWorksize(algorithm);
     const uint32_t stridedIndex = getStridedIndex(algorithm);
     const uint32_t memChunk     = getMemChunk(algorithm);
+    const uint32_t threadCount  = ((globalMem() - intensity * 2 * algorithm.l3()) > 128 * oneMiB) ? 2 : 1;
 
-    intensity -= intensity % worksize;
-
-    threads.add(OclThread(index(), intensity,  worksize, stridedIndex, memChunk));
-
-    if ((globalMem() - intensity * 2 * algorithm.l3()) > 128 * oneMiB) {
-        threads.add(OclThread(index(), intensity, worksize, stridedIndex, memChunk));
-    }
+    threads.add(OclThread(index(), intensity, worksize, stridedIndex, memChunk, threadCount));
 }
 
 

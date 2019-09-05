@@ -34,7 +34,7 @@
 #include "crypto/common/Nonce.h"
 
 
-typedef struct _cl_context *cl_context;
+using cl_context = struct _cl_context *;
 
 
 namespace xmrig {
@@ -47,7 +47,7 @@ class Miner;
 class OclLaunchData
 {
 public:
-    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclPlatform &platform, const OclThread &thread, const OclDevice &device);
+    OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclPlatform &platform, const OclThread &thread, const OclDevice &device, int64_t affinity);
 
     bool isEqual(const OclLaunchData &other) const;
 
@@ -59,6 +59,7 @@ public:
     cl_context ctx = nullptr;
     const Algorithm algorithm;
     const bool cache;
+    const int64_t affinity;
     const Miner *miner;
     const OclDevice device;
     const OclPlatform platform;

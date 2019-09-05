@@ -227,7 +227,7 @@ void xmrig::OclBackend::printHashrate(bool details)
     for (const OclLaunchData &data : d_ptr->threads) {
          Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
                     i,
-                    data.thread.affinity(),
+                    data.affinity,
                     Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3),
@@ -341,7 +341,7 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
     for (const OclLaunchData &data : d_ptr->threads) {
         Value thread(kObjectType);
         thread.AddMember("intensity",   data.thread.intensity(), allocator);
-        thread.AddMember("affinity",    data.thread.affinity(), allocator);
+        thread.AddMember("affinity",    data.affinity, allocator);
 
         Value hashrate(kArrayType);
         hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);

@@ -34,8 +34,8 @@
 #include "base/tools/String.h"
 
 
-typedef struct _cl_device_id *cl_device_id;
-typedef struct _cl_platform_id *cl_platform_id;
+using cl_device_id      = struct _cl_device_id *;
+using cl_platform_id    = struct _cl_platform_id *;
 
 
 namespace xmrig {
@@ -59,7 +59,7 @@ public:
         Navi_10
     };
 
-    OclDevice() = default;
+    OclDevice() = delete;
     OclDevice(uint32_t index, cl_device_id id, cl_platform_id platform);
 
     size_t freeMem() const;

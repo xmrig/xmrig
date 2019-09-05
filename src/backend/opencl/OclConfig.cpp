@@ -96,7 +96,7 @@ xmrig::OclPlatform xmrig::OclConfig::platform() const
 {
     const auto platforms = OclPlatform::get();
     if (platforms.empty()) {
-        return OclPlatform();
+        return {};
     }
 
     if (!m_platformVendor.isEmpty()) {
@@ -127,7 +127,7 @@ xmrig::OclPlatform xmrig::OclConfig::platform() const
         return platforms[m_platformIndex];
     }
 
-    return OclPlatform();
+    return {};
 }
 
 
@@ -166,7 +166,9 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
             continue;
         }
 
-        out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()]);
+        for (int64_t affinity : thread.threads()) {
+            out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()], affinity);
+        }
     }
 
     return out;

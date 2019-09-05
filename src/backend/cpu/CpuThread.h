@@ -35,7 +35,7 @@ namespace xmrig {
 class CpuThread
 {
 public:
-    inline constexpr CpuThread() {}
+    inline constexpr CpuThread() = default;
     inline constexpr CpuThread(int64_t affinity, uint32_t intensity) : m_affinity(affinity), m_intensity(intensity) {}
 
     CpuThread(const rapidjson::Value &value);

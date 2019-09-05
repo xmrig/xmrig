@@ -29,27 +29,30 @@
 #include "rapidjson/fwd.h"
 
 
+#include <vector>
+
+
 namespace xmrig {
 
 
 class OclThread
 {
 public:
-    OclThread() = default;
-    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, int64_t affinity = -1) :
-        m_affinity(affinity),
+    OclThread() = delete;
+    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, uint32_t threads) :
+        m_threads(threads, -1),
         m_index(index),
-        m_intensity(intensity),
         m_memChunk(memChunk),
         m_stridedIndex(stridedIndex),
         m_worksize(worksize)
-    {}
+    {
+        setIntensity(intensity);
+    }
 
     OclThread(const rapidjson::Value &value);
 
-    inline bool isCompMode() const                          { return m_compMode; }
     inline bool isValid() const                             { return m_intensity > 0; }
-    inline int64_t affinity() const                         { return m_affinity; }
+    inline const std::vector<int64_t> &threads() const      { return m_threads; }
     inline uint32_t bfactor() const                         { return m_bfactor; }
     inline uint32_t datasetHost() const                     { return m_datasetHost < 0 ? 0 : static_cast<uint32_t>(m_datasetHost); }
     inline uint32_t gcnAsm() const                          { return m_gcnAsm; }
@@ -67,11 +70,10 @@ public:
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 private:
-    void setUnrollFactor(uint32_t unrollFactor);
+    inline void setIntensity(uint32_t intensity)            { m_intensity = intensity / m_worksize * m_worksize; }
 
-    bool m_compMode         = false;
     int m_datasetHost       = -1;
-    int64_t m_affinity      = -1;
+    std::vector<int64_t> m_threads;
     uint32_t m_bfactor      = 6;
     uint32_t m_gcnAsm       = 1;
     uint32_t m_index        = 0;

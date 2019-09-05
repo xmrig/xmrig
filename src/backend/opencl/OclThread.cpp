@@ -23,22 +23,21 @@
  */
 
 
-#include <algorithm>
-
-
 #include "backend/opencl/OclThread.h"
+
 #include "base/io/json/Json.h"
 #include "rapidjson/document.h"
 
 
+#include <algorithm>
+
+
 namespace xmrig {
 
-static const char *kAffinity     = "affinity";
-static const char *kCompMode     = "comp_mode";
 static const char *kIndex        = "index";
 static const char *kIntensity    = "intensity";
-static const char *kMemChunk     = "mem_chunk";
 static const char *kStridedIndex = "strided_index";
+static const char *kThreads      = "threads";
 static const char *kUnroll       = "unroll";
 static const char *kWorksize     = "worksize";
 
@@ -53,14 +52,11 @@ static const char* kDatasetHost  = "dataset_host";
 
 xmrig::OclThread::OclThread(const rapidjson::Value &value)
 {
-    m_index     = Json::getUint(value, kIndex);
-    m_intensity = Json::getUint(value, kIntensity);
-    m_worksize  = Json::getUint(value, kWorksize);
-    m_affinity  = Json::getInt64(value, kAffinity, -1);
-    m_memChunk  = std::min(Json::getUint(value, kMemChunk, m_memChunk), 18u);
-    m_compMode  = Json::getBool(value, kCompMode, m_compMode);
+    m_index         = Json::getUint(value, kIndex);
+    m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 128u), 1u);
+    m_unrollFactor  = std::max(std::min(Json::getUint(value, kUnroll, m_unrollFactor), 128u), 1u);
 
-    setUnrollFactor(Json::getUint(value, kUnroll, m_unrollFactor));
+    setIntensity(Json::getUint(value, kIntensity));
 
 #   ifdef XMRIG_ALGO_RANDOMX
     m_bfactor     = Json::getUint(value, kBFactor, 6);
@@ -68,20 +64,31 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
     m_datasetHost = Json::getInt(value, kDatasetHost, m_datasetHost);
 #   endif
 
-    const rapidjson::Value &stridedIndex = Json::getValue(value, kStridedIndex);
-    if (stridedIndex.IsBool()) {
-        m_stridedIndex = stridedIndex.GetBool() ? 1 : 0;
+    const rapidjson::Value &si = Json::getArray(value, kStridedIndex);
+    if (si.IsArray() && si.Size() >= 2) {
+        m_stridedIndex = std::min(si[0].GetUint(), 2u);
+        m_memChunk     = std::min(si[1].GetUint(), 18u);
     }
-    else if (stridedIndex.IsUint()) {
-        m_stridedIndex = std::min(stridedIndex.GetUint(), 2u);
+
+    const rapidjson::Value &threads = Json::getArray(value, kThreads);
+    if (threads.IsArray()) {
+        m_threads.reserve(threads.Size());
+
+        for (const auto &affinity : threads.GetArray()) {
+            m_threads.emplace_back(affinity.GetInt64());
+        }
+    }
+
+    if (m_threads.empty()) {
+        m_threads.emplace_back(-1);
     }
 }
 
 
 bool xmrig::OclThread::isEqual(const OclThread &other) const
 {
-    return other.m_compMode     == m_compMode &&
-           other.m_affinity     == m_affinity &&
+    return other.m_threads.size() == m_threads.size() &&
+           std::equal(m_threads.begin(), m_threads.end(), other.m_threads.begin()) &&
            other.m_bfactor      == m_bfactor &&
            other.m_datasetHost  == m_datasetHost &&
            other.m_gcnAsm       == m_gcnAsm &&
@@ -104,18 +111,22 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
     out.AddMember(StringRef(kIndex),        index(), allocator);
     out.AddMember(StringRef(kIntensity),    intensity(), allocator);
     out.AddMember(StringRef(kWorksize),     worksize(), allocator);
-    out.AddMember(StringRef(kStridedIndex), stridedIndex(), allocator);
 
-    if (stridedIndex() == 2) {
-        out.AddMember(StringRef(kMemChunk), memChunk(), allocator);
+    Value si(kArrayType);
+    si.Reserve(2, allocator);
+    si.PushBack(stridedIndex(), allocator);
+    si.PushBack(memChunk(), allocator);
+
+    Value threads(kArrayType);
+    threads.Reserve(m_threads.size(), allocator);
+
+    for (auto thread : m_threads) {
+        threads.PushBack(thread, allocator);
     }
 
+    out.AddMember(StringRef(kStridedIndex), si, allocator);
+    out.AddMember(StringRef(kThreads),      threads, allocator);
     out.AddMember(StringRef(kUnroll),       unrollFactor(), allocator);
-    out.AddMember(StringRef(kAffinity),     affinity(), allocator);
-
-    if (isCompMode()) {
-        out.AddMember(StringRef(kCompMode), true, allocator);
-    }
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_datasetHost != -1) {
@@ -126,10 +137,4 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
 #   endif
 
     return out;
-}
-
-
-void xmrig::OclThread::setUnrollFactor(uint32_t unrollFactor)
-{
-    m_unrollFactor = unrollFactor == 0 ? 1 : std::min(unrollFactor, 128u);
 }

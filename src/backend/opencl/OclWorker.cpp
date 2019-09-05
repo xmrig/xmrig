@@ -54,7 +54,7 @@ static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / in
 
 
 xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
-    Worker(id, data.thread.affinity(), -1),
+    Worker(id, data.affinity, -1),
     m_algorithm(data.algorithm),
     m_miner(data.miner),
     m_intensity(data.thread.intensity())
