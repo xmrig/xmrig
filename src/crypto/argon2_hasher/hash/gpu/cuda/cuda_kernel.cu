@@ -1039,6 +1039,18 @@ void cuda_free(CudaDeviceInfo *device) {
 	cudaDeviceReset();
 }
 
+inline bool cudaCheckError(cudaError &err, string &errStr)
+{
+    err = cudaGetLastError();
+    if ( cudaSuccess != err )
+    {
+        errStr = string("CUDA error: ") + cudaGetErrorString( err );
+        return false;
+    }
+
+    return true;
+}
+
 bool cuda_kernel_prehasher(void *memory, int threads, Argon2Profile *profile, void *user_data) {
     CudaGpuMgmtThreadData *gpumgmt_thread = (CudaGpuMgmtThreadData *)user_data;
     CudaDeviceInfo *device = gpumgmt_thread->device;
@@ -1069,6 +1081,12 @@ bool cuda_kernel_prehasher(void *memory, int threads, Argon2Profile *profile, vo
 			profile->saltLen,
             threads);
 
+    bool success = cudaCheckError(device->error, device->errorMessage);
+    if(!success) {
+        gpumgmt_thread->unlock();
+        return false;
+    }
+
     return true;
 }
 
@@ -1098,7 +1116,13 @@ void *cuda_kernel_filler(int threads, Argon2Profile *profile, void *user_data) {
 			device->profileInfo.threads_per_chunk,
             gpumgmt_thread->threadsIdx);
 
-	return (void *)1;
+	bool success = cudaCheckError(device->error, device->errorMessage);
+	if(!success) {
+        gpumgmt_thread->unlock();
+        return NULL;
+    }
+
+ 	return  (void *)1;
 }
 
 bool cuda_kernel_posthasher(void *memory, int threads, Argon2Profile *profile, void *user_data) {
@@ -1113,6 +1137,11 @@ bool cuda_kernel_posthasher(void *memory, int threads, Argon2Profile *profile, v
             device->arguments.outMemory[gpumgmt_thread->threadId],
             device->arguments.preseedMemory[gpumgmt_thread->threadId]);
 
+    if(!cudaCheckError(device->error, device->errorMessage)) {
+        gpumgmt_thread->unlock();
+        return false;
+    }
+
 	device->error = cudaMemcpyAsync(device->arguments.hostSeedMemory[gpumgmt_thread->threadId], device->arguments.hashMemory[gpumgmt_thread->threadId], threads * (xmrig::ARGON2_HASHLEN + 4), cudaMemcpyDeviceToHost, stream);
 	if (device->error != cudaSuccess) {
 		device->errorMessage = "Error reading gpu memory.";
@@ -1120,13 +1149,16 @@ bool cuda_kernel_posthasher(void *memory, int threads, Argon2Profile *profile, v
 		return false;
 	}
 
-	while(cudaStreamQuery(stream) != cudaSuccess) {
-		this_thread::sleep_for(chrono::milliseconds(10));
-		continue;
-	}
+    cudaStreamSynchronize(stream);
+
+    bool success = cudaCheckError(device->error, device->errorMessage);
+    if(!success) {
+        gpumgmt_thread->unlock();
+        return false;
+    }
 
     memcpy(memory, device->arguments.hostSeedMemory[gpumgmt_thread->threadId], threads * (xmrig::ARGON2_HASHLEN + 4));
 	gpumgmt_thread->unlock();
 
-	return memory;
+	return true;
 }

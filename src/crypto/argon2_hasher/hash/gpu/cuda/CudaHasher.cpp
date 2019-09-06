@@ -53,6 +53,8 @@ bool CudaHasher::initialize(xmrig::Algo algorithm, xmrig::Variant variant) {
 }
 
 vector<CudaDeviceInfo *> CudaHasher::queryCudaDevices(cudaError_t &error, string &error_message) {
+    cudaSetDeviceFlags(cudaDeviceBlockingSync);
+
 	vector<CudaDeviceInfo *> devices;
 	int devCount = 0;
 	error = cudaGetDeviceCount(&devCount);
