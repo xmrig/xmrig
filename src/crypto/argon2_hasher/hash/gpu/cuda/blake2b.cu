@@ -288,6 +288,8 @@ __device__ __forceinline__ void blake2b_final(uint32_t *out, int out_len, uint64
 
     blake2b_compress(h, (uint64_t*)buf, 0xFFFFFFFFFFFFFFFF, thr_id);
 
+    __syncthreads();
+
     uint32_t *cursor_in = (uint32_t *)h;
     cursor_out = out;
 
