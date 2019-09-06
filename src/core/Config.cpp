@@ -86,7 +86,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     if(cpuOptimization().isNull() || cpuOptimization().isEmpty())
         doc.AddMember("cpu-optimization", kNullType, allocator);
     else
-        doc.AddMember("cpu-optimization", StringRef(cpuOptimization().data()), allocator);
+        doc.AddMember("cpu-optimization", cpuOptimization().toJSON(doc), allocator);
 
     if (cpuAffinity() != -1L) {
         snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, cpuAffinity());
