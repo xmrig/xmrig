@@ -394,7 +394,13 @@ if(WITH_CUDA)
     set(
             CUDA_NVCC_FLAGS
             ${CUDA_NVCC_FLAGS};
-            -O3 -arch=compute_35 -std=c++11
+            -O3 -std=c++11 --ptxas-options=-v
+            -gencode=arch=compute_75,code="sm_75,compute_75"
+            -gencode=arch=compute_61,code="sm_61,compute_61"
+            -gencode=arch=compute_52,code="sm_52,compute_52"
+            -gencode=arch=compute_50,code="sm_50,compute_50"
+            -gencode=arch=compute_35,code="sm_35,compute_35"
+            -gencode=arch=compute_30,code="sm_30,compute_30"
     )
     cuda_add_library(cuda_hasher MODULE ${SOURCE_CUDA_HASHER})
     set_target_properties(cuda_hasher

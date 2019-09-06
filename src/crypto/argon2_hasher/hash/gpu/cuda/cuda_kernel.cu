@@ -19,57 +19,95 @@
 
 #include "blake2b.cu"
 
-#define COMPUTE	\
-	asm ("{"	\
-		".reg .u32 s1, s2, s3, s4;\n\t"	\
-		"mul.lo.u32 s3, %0, %2;\n\t"	\
-		"mul.hi.u32 s4, %0, %2;\n\t"	\
-		"add.cc.u32 s3, s3, s3;\n\t"	\
-		"addc.u32 s4, s4, s4;\n\t"	\
-		"add.cc.u32 s1, %0, %2;\n\t"	\
-		"addc.u32 s2, %1, %3;\n\t"	\
-		"add.cc.u32 %0, s1, s3;\n\t"	\
-		"addc.u32 %1, s2, s4;\n\t"	\
-		"xor.b32 s1, %0, %6;\n\t"	\
-		"xor.b32 %6, %1, %7;\n\t"	\
-		"mov.b32 %7, s1;\n\t"	\
-		"mul.lo.u32 s3, %4, %6;\n\t"	\
-		"mul.hi.u32 s4, %4, %6;\n\t"	\
-		"add.cc.u32 s3, s3, s3;\n\t"	\
-		"addc.u32 s4, s4, s4;\n\t"	\
-		"add.cc.u32 s1, %4, %6;\n\t"	\
-		"addc.u32 s2, %5, %7;\n\t"	\
-		"add.cc.u32 %4, s1, s3;\n\t"	\
-		"addc.u32 %5, s2, s4;\n\t"	\
-		"xor.b32 s3, %2, %4;\n\t"	\
-		"xor.b32 s4, %3, %5;\n\t"	\
-		"shf.r.wrap.b32 %3, s4, s3, 24;\n\t"	\
-		"shf.r.wrap.b32 %2, s3, s4, 24;\n\t"	\
-		"mul.lo.u32 s3, %0, %2;\n\t"	\
-		"mul.hi.u32 s4, %0, %2;\n\t"	\
-		"add.cc.u32 s3, s3, s3;\n\t"	\
-		"addc.u32 s4, s4, s4;\n\t"	\
-		"add.cc.u32 s1, %0, %2;\n\t"	\
-		"addc.u32 s2, %1, %3;\n\t"	\
-		"add.cc.u32 %0, s1, s3;\n\t"	\
-		"addc.u32 %1, s2, s4;\n\t"	\
-		"xor.b32 s3, %0, %6;\n\t"	\
-		"xor.b32 s4, %1, %7;\n\t"	\
-		"shf.r.wrap.b32 %7, s4, s3, 16;\n\t"	\
-		"shf.r.wrap.b32 %6, s3, s4, 16;\n\t"	\
-		"mul.lo.u32 s3, %4, %6;\n\t"	\
-		"mul.hi.u32 s4, %4, %6;\n\t"	\
-		"add.cc.u32 s3, s3, s3;\n\t"	\
-		"addc.u32 s4, s4, s4;\n\t"	\
-		"add.cc.u32 s1, %4, %6;\n\t"	\
-		"addc.u32 s2, %5, %7;\n\t"	\
-		"add.cc.u32 %4, s1, s3;\n\t"	\
-		"addc.u32 %5, s2, s4;\n\t"	\
-		"xor.b32 s3, %2, %4;\n\t"	\
-		"xor.b32 s4, %3, %5;\n\t"	\
-		"shf.r.wrap.b32 %3, s3, s4, 31;\n\t"	\
-		"shf.r.wrap.b32 %2, s4, s3, 31;\n\t"	\
-	"}" : "+r"(tmp_a.x), "+r"(tmp_a.y), "+r"(tmp_a.z), "+r"(tmp_a.w), "+r"(tmp_b.x), "+r"(tmp_b.y), "+r"(tmp_b.z), "+r"(tmp_b.w));
+#ifndef __CUDA_ARCH__
+#define __CUDA_ARCH__ 0
+#endif
+
+#if (__CUDA_ARCH__ >= 350)
+    #define COMPUTE	\
+        asm ("{"	\
+            ".reg .u32 s1, s2, s3, s4;\n\t"	\
+            "mul.lo.u32 s3, %0, %2;\n\t"	\
+            "mul.hi.u32 s4, %0, %2;\n\t"	\
+            "add.cc.u32 s3, s3, s3;\n\t"	\
+            "addc.u32 s4, s4, s4;\n\t"	\
+            "add.cc.u32 s1, %0, %2;\n\t"	\
+            "addc.u32 s2, %1, %3;\n\t"	\
+            "add.cc.u32 %0, s1, s3;\n\t"	\
+            "addc.u32 %1, s2, s4;\n\t"	\
+            "xor.b32 s1, %0, %6;\n\t"	\
+            "xor.b32 %6, %1, %7;\n\t"	\
+            "mov.b32 %7, s1;\n\t"	\
+            "mul.lo.u32 s3, %4, %6;\n\t"	\
+            "mul.hi.u32 s4, %4, %6;\n\t"	\
+            "add.cc.u32 s3, s3, s3;\n\t"	\
+            "addc.u32 s4, s4, s4;\n\t"	\
+            "add.cc.u32 s1, %4, %6;\n\t"	\
+            "addc.u32 s2, %5, %7;\n\t"	\
+            "add.cc.u32 %4, s1, s3;\n\t"	\
+            "addc.u32 %5, s2, s4;\n\t"	\
+            "xor.b32 s3, %2, %4;\n\t"	\
+            "xor.b32 s4, %3, %5;\n\t"	\
+            "shf.r.wrap.b32 %3, s4, s3, 24;\n\t"	\
+            "shf.r.wrap.b32 %2, s3, s4, 24;\n\t"	\
+            "mul.lo.u32 s3, %0, %2;\n\t"	\
+            "mul.hi.u32 s4, %0, %2;\n\t"	\
+            "add.cc.u32 s3, s3, s3;\n\t"	\
+            "addc.u32 s4, s4, s4;\n\t"	\
+            "add.cc.u32 s1, %0, %2;\n\t"	\
+            "addc.u32 s2, %1, %3;\n\t"	\
+            "add.cc.u32 %0, s1, s3;\n\t"	\
+            "addc.u32 %1, s2, s4;\n\t"	\
+            "xor.b32 s3, %0, %6;\n\t"	\
+            "xor.b32 s4, %1, %7;\n\t"	\
+            "shf.r.wrap.b32 %7, s4, s3, 16;\n\t"	\
+            "shf.r.wrap.b32 %6, s3, s4, 16;\n\t"	\
+            "mul.lo.u32 s3, %4, %6;\n\t"	\
+            "mul.hi.u32 s4, %4, %6;\n\t"	\
+            "add.cc.u32 s3, s3, s3;\n\t"	\
+            "addc.u32 s4, s4, s4;\n\t"	\
+            "add.cc.u32 s1, %4, %6;\n\t"	\
+            "addc.u32 s2, %5, %7;\n\t"	\
+            "add.cc.u32 %4, s1, s3;\n\t"	\
+            "addc.u32 %5, s2, s4;\n\t"	\
+            "xor.b32 s3, %2, %4;\n\t"	\
+            "xor.b32 s4, %3, %5;\n\t"	\
+            "shf.r.wrap.b32 %3, s3, s4, 31;\n\t"	\
+            "shf.r.wrap.b32 %2, s4, s3, 31;\n\t"	\
+        "}" : "+r"(tmp_a.x), "+r"(tmp_a.y), "+r"(tmp_a.z), "+r"(tmp_a.w), "+r"(tmp_b.x), "+r"(tmp_b.y), "+r"(tmp_b.z), "+r"(tmp_b.w));
+#else
+    #define downsample(x, lo, hi) \
+    { \
+        lo = (uint32_t)x; \
+        hi = (uint32_t)(x >> 32); \
+    }
+
+    #define upsample(lo, hi) (((uint64_t)(hi) << 32) | (uint64_t)(lo))
+
+    #define rotate(x, n) (((x) >> (64-n)) | ((x) << n))
+
+    #define fBlaMka(x, y) ((x) + (y) + 2 * upsample((uint32_t)(x) * (uint32_t)y, __umulhi((uint32_t)(x), (uint32_t)(y))))
+
+    #define COMPUTE \
+    { \
+        uint64_t a64 = upsample(tmp_a.x, tmp_a.y); \
+        uint64_t b64 = upsample(tmp_a.z, tmp_a.w); \
+        uint64_t c64 = upsample(tmp_b.x, tmp_b.y); \
+        uint64_t d64 = upsample(tmp_b.z, tmp_b.w); \
+        a64 = fBlaMka(a64, b64);          \
+        d64 = rotate(d64 ^ a64, 32);      \
+        c64 = fBlaMka(c64, d64);          \
+        b64 = rotate(b64 ^ c64, 40);      \
+        a64 = fBlaMka(a64, b64);          \
+        d64 = rotate(d64 ^ a64, 48);      \
+        c64 = fBlaMka(c64, d64);          \
+        b64 = rotate(b64 ^ c64, 1);       \
+        downsample(a64, tmp_a.x, tmp_a.y); \
+        downsample(b64, tmp_a.z, tmp_a.w); \
+        downsample(c64, tmp_b.x, tmp_b.y); \
+        downsample(d64, tmp_b.z, tmp_b.w); \
+    }
+#endif // __CUDA_ARCH__
 
 #define G1(data)           \
 {                           \
@@ -1039,6 +1077,18 @@ void cuda_free(CudaDeviceInfo *device) {
 	cudaDeviceReset();
 }
 
+inline bool cudaCheckError(cudaError &err, string &errStr)
+{
+    err = cudaGetLastError();
+    if ( cudaSuccess != err )
+    {
+        errStr = string("CUDA error: ") + cudaGetErrorString( err );
+        return false;
+    }
+
+    return true;
+}
+
 bool cuda_kernel_prehasher(void *memory, int threads, Argon2Profile *profile, void *user_data) {
     CudaGpuMgmtThreadData *gpumgmt_thread = (CudaGpuMgmtThreadData *)user_data;
     CudaDeviceInfo *device = gpumgmt_thread->device;
@@ -1069,6 +1119,12 @@ bool cuda_kernel_prehasher(void *memory, int threads, Argon2Profile *profile, vo
 			profile->saltLen,
             threads);
 
+    bool success = cudaCheckError(device->error, device->errorMessage);
+    if(!success) {
+        gpumgmt_thread->unlock();
+        return false;
+    }
+
     return true;
 }
 
@@ -1098,7 +1154,13 @@ void *cuda_kernel_filler(int threads, Argon2Profile *profile, void *user_data) {
 			device->profileInfo.threads_per_chunk,
             gpumgmt_thread->threadsIdx);
 
-	return (void *)1;
+	bool success = cudaCheckError(device->error, device->errorMessage);
+	if(!success) {
+        gpumgmt_thread->unlock();
+        return NULL;
+    }
+
+ 	return  (void *)1;
 }
 
 bool cuda_kernel_posthasher(void *memory, int threads, Argon2Profile *profile, void *user_data) {
@@ -1113,6 +1175,11 @@ bool cuda_kernel_posthasher(void *memory, int threads, Argon2Profile *profile, v
             device->arguments.outMemory[gpumgmt_thread->threadId],
             device->arguments.preseedMemory[gpumgmt_thread->threadId]);
 
+    if(!cudaCheckError(device->error, device->errorMessage)) {
+        gpumgmt_thread->unlock();
+        return false;
+    }
+
 	device->error = cudaMemcpyAsync(device->arguments.hostSeedMemory[gpumgmt_thread->threadId], device->arguments.hashMemory[gpumgmt_thread->threadId], threads * (xmrig::ARGON2_HASHLEN + 4), cudaMemcpyDeviceToHost, stream);
 	if (device->error != cudaSuccess) {
 		device->errorMessage = "Error reading gpu memory.";
@@ -1120,13 +1187,16 @@ bool cuda_kernel_posthasher(void *memory, int threads, Argon2Profile *profile, v
 		return false;
 	}
 
-	while(cudaStreamQuery(stream) != cudaSuccess) {
-		this_thread::sleep_for(chrono::milliseconds(10));
-		continue;
-	}
+    cudaStreamSynchronize(stream);
+
+    bool success = cudaCheckError(device->error, device->errorMessage);
+    if(!success) {
+        gpumgmt_thread->unlock();
+        return false;
+    }
 
     memcpy(memory, device->arguments.hostSeedMemory[gpumgmt_thread->threadId], threads * (xmrig::ARGON2_HASHLEN + 4));
 	gpumgmt_thread->unlock();
 
-	return memory;
+	return true;
 }
