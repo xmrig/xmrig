@@ -13,6 +13,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclBackend.h
         src/backend/opencl/OclCache.h
         src/backend/opencl/OclConfig.h
+        src/backend/opencl/OclInterleave.h
         src/backend/opencl/OclLaunchData.h
         src/backend/opencl/OclThread.h
         src/backend/opencl/OclThreads.h
@@ -38,6 +39,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclBackend.cpp
         src/backend/opencl/OclCache.cpp
         src/backend/opencl/OclConfig.cpp
+        src/backend/opencl/OclInterleave.cpp
         src/backend/opencl/OclLaunchData.cpp
         src/backend/opencl/OclThread.cpp
         src/backend/opencl/OclThreads.cpp
@@ -68,6 +70,10 @@ if (WITH_OPENCL)
        add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
    else()
        remove_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
+   endif()
+
+   if (WITH_INTERLEAVE_DEBUG_LOG)
+       add_definitions(/DXMRIG_INTERLEAVE_DEBUG)
    endif()
 else()
     remove_definitions(/DXMRIG_FEATURE_OPENCL)

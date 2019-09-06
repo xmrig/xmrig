@@ -158,7 +158,7 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
         return out;
     }
 
-    out.reserve(threads.count());
+    out.reserve(threads.count() * 2);
 
     for (const OclThread &thread : threads.data()) {
         if (thread.index() >= devices.size()) {
@@ -166,8 +166,18 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
             continue;
         }
 
-        for (int64_t affinity : thread.threads()) {
-            out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()], affinity);
+        if (thread.threads().size() > 1) {
+            auto interleave = std::make_shared<OclInterleave>(thread.threads().size());
+
+            for (int64_t affinity : thread.threads()) {
+                OclLaunchData data(miner, algorithm, *this, platform, thread, devices[thread.index()], affinity);
+                data.interleave = interleave;
+
+                out.emplace_back(data);
+            }
+        }
+        else {
+           out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()], thread.threads()[0]);
         }
     }
 

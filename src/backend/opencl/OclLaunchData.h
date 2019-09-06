@@ -27,6 +27,7 @@
 #define XMRIG_OCLLAUNCHDATA_H
 
 
+#include "backend/opencl/OclInterleave.h"
 #include "backend/opencl/OclThread.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 #include "backend/opencl/wrappers/OclPlatform.h"
@@ -64,6 +65,7 @@ public:
     const OclDevice device;
     const OclPlatform platform;
     const OclThread thread;
+    OclInterleavePtr interleave;
 };
 
 

@@ -24,12 +24,11 @@
  */
 
 
-#include <assert.h>
-#include <thread>
-
-
 #include "backend/opencl/OclWorker.h"
+
 #include "backend/opencl/runners/OclCnRunner.h"
+#include "base/io/log/Log.h"
+#include "base/tools/Chrono.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
 #include "net/JobResults.h"
@@ -38,6 +37,10 @@
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "backend/opencl/runners/OclRxRunner.h"
 #endif
+
+
+#include <cassert>
+#include <thread>
 
 
 namespace xmrig {
@@ -57,7 +60,8 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     Worker(id, data.affinity, -1),
     m_algorithm(data.algorithm),
     m_miner(data.miner),
-    m_intensity(data.thread.intensity())
+    m_intensity(data.thread.intensity()),
+    m_interleave(data.interleave)
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -101,6 +105,10 @@ void xmrig::OclWorker::start()
 
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
         if (Nonce::isPaused()) {
+            if (m_interleave) {
+                m_interleave->setResumeCounter(0);
+            }
+
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
             }
@@ -110,11 +118,19 @@ void xmrig::OclWorker::start()
                 break;
             }
 
+            if (m_interleave) {
+                m_interleave->resumeDelay(m_id);
+            }
+
             consumeJob();
         }
 
         while (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence())) {
-            storeStats();
+            if (m_interleave) {
+                m_interleave->adjustDelay(m_id);
+            }
+
+            const uint64_t t = Chrono::steadyMSecs();
 
             if (!m_runner->run(*m_job.nonce(), results)) {
                 return;
@@ -125,8 +141,8 @@ void xmrig::OclWorker::start()
             }
 
             m_job.nextRound(roundSize(m_intensity), m_intensity);
-            m_count += m_intensity;
 
+            storeStats(t);
             std::this_thread::yield();
         }
 
@@ -143,4 +159,20 @@ void xmrig::OclWorker::consumeJob()
 
     m_job.add(m_miner->job(), Nonce::sequence(Nonce::OPENCL), roundSize(m_intensity) * m_intensity);
     m_runner->set(m_job.currentJob(), m_job.blob());
+}
+
+
+void xmrig::OclWorker::storeStats(uint64_t t)
+{
+    if (Nonce::isPaused()) {
+        return;
+    }
+
+    m_count += m_intensity;
+
+    if (m_interleave) {
+        m_interleave->setRunTime(Chrono::steadyMSecs() - t);
+    }
+
+    Worker::storeStats();
 }

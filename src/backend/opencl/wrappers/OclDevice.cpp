@@ -186,7 +186,7 @@ void xmrig::OclDevice::generate(const Algorithm &algorithm, OclThreads &threads)
     const uint32_t memChunk     = getMemChunk(algorithm);
     const uint32_t threadCount  = ((globalMem() - intensity * 2 * algorithm.l3()) > 128 * oneMiB) ? 2 : 1;
 
-    threads.add(OclThread(index(), intensity, worksize, stridedIndex, memChunk, threadCount));
+    threads.add(OclThread(index(), intensity, worksize, stridedIndex, memChunk, threadCount, algorithm));
 }
 
 
@@ -258,7 +258,7 @@ uint32_t xmrig::OclDevice::getPossibleIntensity(const Algorithm &algorithm) cons
     const size_t minFreeMem     = (maxThreads == 40000u ? 512u : 128u) * oneMiB;
     const size_t availableMem   = freeMem() - minFreeMem;
     const size_t perThread      = algorithm.l3() + 224u;
-    const uint32_t maxIntensity = static_cast<uint32_t>(availableMem / perThread);
+    const auto maxIntensity     = static_cast<uint32_t>(availableMem / perThread);
 
     return std::min<uint32_t>(maxThreads, maxIntensity);
 }

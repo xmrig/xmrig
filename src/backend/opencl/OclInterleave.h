@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,53 +22,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef XMRIG_OCLINTERLEAVE_H
+#define XMRIG_OCLINTERLEAVE_H
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "net/JobResult.h"
+#include <memory>
+#include <mutex>
 
 
 namespace xmrig {
 
 
-class IOclRunner;
-
-
-class OclWorker : public Worker
+class OclInterleave
 {
 public:
-    OclWorker()                       = delete;
-    OclWorker(const OclWorker &other) = delete;
-    OclWorker(OclWorker &&other)      = delete;
-    OclWorker(size_t id, const OclLaunchData &data);
+    OclInterleave() = delete;
+    inline OclInterleave(size_t threads) : m_threads(threads) {}
 
-    ~OclWorker() override;
-
-    OclWorker &operator=(const OclWorker &other) = delete;
-    OclWorker &operator=(OclWorker &&other)      = delete;
-
-protected:
-    bool selfTest() override;
-    void start() override;
+    uint64_t adjustDelay(size_t id);
+    uint64_t resumeDelay(size_t id);
+    void setResumeCounter(uint32_t value);
+    void setRunTime(uint64_t time);
 
 private:
-    void consumeJob();
-    void storeStats(uint64_t ts);
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    const uint32_t m_intensity;
-    IOclRunner *m_runner = nullptr;
-    OclInterleavePtr m_interleave;
-    WorkerJob<1> m_job;
+    const size_t m_threads;
+    double m_averageRunTime   = 0.0;
+    double m_threshold        = 0.95;
+    std::mutex m_mutex;
+    uint32_t m_resumeCounter  = 0;
+    uint64_t m_timestamp      = 0;
 };
 
 
-} // namespace xmrig
+using OclInterleavePtr = std::shared_ptr<OclInterleave>;
 
 
-#endif /* XMRIG_OCLWORKER_H */
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_OCLINTERLEAVE_H */

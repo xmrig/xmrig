@@ -26,6 +26,7 @@
 #define XMRIG_OCLTHREAD_H
 
 
+#include "crypto/common/Algorithm.h"
 #include "rapidjson/fwd.h"
 
 
@@ -39,7 +40,8 @@ class OclThread
 {
 public:
     OclThread() = delete;
-    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, uint32_t threads) :
+    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, uint32_t threads, const Algorithm &algorithm) :
+        m_algorithm(algorithm),
         m_threads(threads, -1),
         m_index(index),
         m_memChunk(memChunk),
@@ -72,6 +74,7 @@ public:
 private:
     inline void setIntensity(uint32_t intensity)            { m_intensity = intensity / m_worksize * m_worksize; }
 
+    Algorithm m_algorithm;
     int m_datasetHost       = -1;
     std::vector<int64_t> m_threads;
     uint32_t m_bfactor      = 6;
