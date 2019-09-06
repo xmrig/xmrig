@@ -23,16 +23,18 @@
  */
 
 
-#include <algorithm>
-
-
-#include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclDevice.h"
+
+#include "backend/opencl/OclGenerator.h"
+#include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/common/Algorithm.h"
 #include "rapidjson/document.h"
+
+
+#include <algorithm>
 
 
 typedef union
@@ -45,7 +47,14 @@ typedef union
 namespace xmrig {
 
 
-constexpr const size_t oneMiB = 1024u * 1024u;
+extern bool ocl_vega_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
+extern bool ocl_generic_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
+
+
+ocl_gen_config_fun generators[] = {
+    ocl_vega_cn_generator,
+    ocl_generic_cn_generator
+};
 
 
 static OclVendor getVendorId(const String &vendor)
@@ -176,119 +185,9 @@ uint32_t xmrig::OclDevice::clock() const
 
 void xmrig::OclDevice::generate(const Algorithm &algorithm, OclThreads &threads) const
 {
-    uint32_t intensity = getIntensity(algorithm);
-    if (intensity == 0) {
-        return;
-    }
-
-    const uint32_t worksize     = getWorksize(algorithm);
-    const uint32_t stridedIndex = getStridedIndex(algorithm);
-    const uint32_t memChunk     = getMemChunk(algorithm);
-    const uint32_t threadCount  = ((globalMem() - intensity * 2 * algorithm.l3()) > 128 * oneMiB) ? 2 : 1;
-
-    threads.add(OclThread(index(), intensity, worksize, stridedIndex, memChunk, threadCount, algorithm));
-}
-
-
-uint32_t xmrig::OclDevice::getIntensity(const Algorithm &algorithm) const
-{
-    if(m_type == Raven) {
-        return 0;
-    }
-
-    const uint32_t maxIntensity = getPossibleIntensity(algorithm);
-
-    if (m_type == Vega_10) {
-        if (algorithm.family() == Algorithm::CN_HEAVY && m_computeUnits && maxIntensity > 976) {
-            return 976;
-        }
-
-        return maxIntensity / m_computeUnits * m_computeUnits;
-    }
-
-    uint32_t intensity = (maxIntensity / (8 * m_computeUnits)) * m_computeUnits * 8;
-    if (intensity == 0) {
-        return 0;
-    }
-
-    if (m_vendorId == OCL_VENDOR_AMD && (m_type == Lexa || m_type == Baffin || m_computeUnits <= 16)) {
-        intensity /= 2;
-
-        if (algorithm.family() == Algorithm::CN_HEAVY) {
-            intensity /= 2;
+    for (auto fn : generators) {
+        if (fn(*this, algorithm, threads)) {
+            return;
         }
     }
-
-    return intensity;
-}
-
-
-uint32_t xmrig::OclDevice::getMaxThreads(const Algorithm &algorithm) const
-{
-    if (m_vendorId == OCL_VENDOR_NVIDIA && (m_name.contains("P100") || m_name.contains("V100"))) {
-        return 40000u;
-    }
-
-    const uint32_t ratio = (algorithm.l3() <= oneMiB) ? 2u : 1u;
-    if (m_type == Vega_10 || m_type == Vega_20) {
-        if (computeUnits() == 56 && isCNv2(algorithm)) {
-            return 1792u;
-        }
-
-        return ratio * 2024u;
-    }
-
-    return ratio * 1000u;
-}
-
-
-uint32_t xmrig::OclDevice::getMemChunk(const Algorithm &algorithm) const
-{
-    if ((m_type == Vega_10 || m_type == Vega_20) && (algorithm.family() == Algorithm::CN_PICO || isCNv2(algorithm))) {
-        return 1;
-    }
-
-    return 2;
-}
-
-
-uint32_t xmrig::OclDevice::getPossibleIntensity(const Algorithm &algorithm) const
-{
-    const uint32_t maxThreads   = getMaxThreads(algorithm);
-    const size_t minFreeMem     = (maxThreads == 40000u ? 512u : 128u) * oneMiB;
-    const size_t availableMem   = freeMem() - minFreeMem;
-    const size_t perThread      = algorithm.l3() + 224u;
-    const auto maxIntensity     = static_cast<uint32_t>(availableMem / perThread);
-
-    return std::min<uint32_t>(maxThreads, maxIntensity);
-}
-
-
-uint32_t xmrig::OclDevice::getStridedIndex(const Algorithm &algorithm) const
-{
-    if (m_vendorId == OCL_VENDOR_NVIDIA) {
-        return 0;
-    }
-
-    if (algorithm.family() == Algorithm::CN_PICO || isCNv2(algorithm)) {
-        return 2;
-    }
-
-    return 1;
-}
-
-
-uint32_t xmrig::OclDevice::getWorksize(const Algorithm &algorithm) const
-{
-    if (m_type == Vega_10 || m_type == Vega_20) {
-        if (algorithm.family() == Algorithm::CN_PICO) {
-            return 64;
-        }
-
-        if (isCNv2(algorithm)) {
-            return 16;
-        }
-    }
-
-    return 8;
 }

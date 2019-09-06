@@ -40,12 +40,13 @@ class OclThread
 {
 public:
     OclThread() = delete;
-    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, uint32_t threads, const Algorithm &algorithm) :
+    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, uint32_t threads, uint32_t unrollFactor, const Algorithm &algorithm) :
         m_algorithm(algorithm),
         m_threads(threads, -1),
         m_index(index),
         m_memChunk(memChunk),
         m_stridedIndex(stridedIndex),
+        m_unrollFactor(unrollFactor),
         m_worksize(worksize)
     {
         setIntensity(intensity);

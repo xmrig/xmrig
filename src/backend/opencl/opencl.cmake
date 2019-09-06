@@ -5,6 +5,8 @@ if (WITH_OPENCL)
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h
+        src/backend/opencl/generators/ocl_generic_cn_generator.cpp
+        src/backend/opencl/generators/ocl_vega_cn_generator.cpp
         src/backend/opencl/interfaces/IOclRunner.h
         src/backend/opencl/kernels/Cn0Kernel.h
         src/backend/opencl/kernels/Cn1Kernel.h
@@ -13,6 +15,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclBackend.h
         src/backend/opencl/OclCache.h
         src/backend/opencl/OclConfig.h
+        src/backend/opencl/OclGenerator.h
         src/backend/opencl/OclInterleave.h
         src/backend/opencl/OclLaunchData.h
         src/backend/opencl/OclThread.h

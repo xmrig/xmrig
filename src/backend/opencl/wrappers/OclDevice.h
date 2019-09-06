@@ -76,17 +76,11 @@ public:
     inline const String &name() const           { return m_name; }
     inline const String &vendor() const         { return m_vendor; }
     inline OclVendor vendorId() const           { return m_vendorId; }
+    inline Type type() const                    { return m_type; }
     inline uint32_t computeUnits() const        { return m_computeUnits; }
     inline uint32_t index() const               { return m_index; }
 
 private:
-    uint32_t getIntensity(const Algorithm &algorithm) const;
-    uint32_t getMaxThreads(const Algorithm &algorithm) const;
-    uint32_t getMemChunk(const Algorithm &algorithm) const;
-    uint32_t getPossibleIntensity(const Algorithm &algorithm) const;
-    uint32_t getStridedIndex(const Algorithm &algorithm) const;
-    uint32_t getWorksize(const Algorithm &algorithm) const;
-
     bool m_topology                 = false;
     cl_device_id m_id               = nullptr;
     cl_platform_id m_platform       = nullptr;
