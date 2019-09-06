@@ -47,8 +47,10 @@ namespace xmrig {
 
 
 static constexpr uint32_t kReserveCount = 32768;
+std::atomic<bool> OclWorker::ready;
 
 
+static inline bool isReady()                         { return !Nonce::isPaused() && OclWorker::ready; }
 static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
 
 
@@ -104,7 +106,7 @@ void xmrig::OclWorker::start()
     cl_uint results[0x100];
 
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
-        if (Nonce::isPaused()) {
+        if (!isReady()) {
             if (m_interleave) {
                 m_interleave->setResumeCounter(0);
             }
@@ -112,7 +114,7 @@ void xmrig::OclWorker::start()
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
             }
-            while (Nonce::isPaused() && Nonce::sequence(Nonce::OPENCL) > 0);
+            while (!isReady() && Nonce::sequence(Nonce::OPENCL) > 0);
 
             if (Nonce::sequence(Nonce::OPENCL) == 0) {
                 break;
@@ -164,7 +166,7 @@ void xmrig::OclWorker::consumeJob()
 
 void xmrig::OclWorker::storeStats(uint64_t t)
 {
-    if (Nonce::isPaused()) {
+    if (!isReady()) {
         return;
     }
 

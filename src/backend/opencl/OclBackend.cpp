@@ -32,6 +32,7 @@
 #include "backend/opencl/OclBackend.h"
 #include "backend/opencl/OclConfig.h"
 #include "backend/opencl/OclLaunchData.h"
+#include "backend/opencl/OclWorker.h"
 #include "backend/opencl/wrappers/OclContext.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
@@ -71,7 +72,14 @@ struct OclLaunchStatus
 public:
     inline bool started()               { m_started++; return m_started == m_threads; }
     inline size_t threads() const       { return m_threads; }
-    inline void start(size_t threads)   { m_started = 0; m_threads = threads; m_ts = Chrono::steadyMSecs(); }
+
+    inline void start(size_t threads)
+    {
+        m_started        = 0;
+        m_threads        = threads;
+        m_ts             = Chrono::steadyMSecs();
+        OclWorker::ready = false;
+    }
 
     inline void print() const
     {
@@ -309,6 +317,8 @@ void xmrig::OclBackend::start(IWorker *worker)
 
     if (d_ptr->status.started()) {
         d_ptr->status.print();
+
+        OclWorker::ready = true;
     }
 
     mutex.unlock();

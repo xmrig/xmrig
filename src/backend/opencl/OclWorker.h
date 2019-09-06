@@ -52,6 +52,8 @@ public:
     OclWorker &operator=(const OclWorker &other) = delete;
     OclWorker &operator=(OclWorker &&other)      = delete;
 
+    static std::atomic<bool> ready;
+
 protected:
     bool selfTest() override;
     void start() override;
