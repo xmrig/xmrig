@@ -767,11 +767,13 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                         int seg_length,
                         int seg_count,
 						int threads_per_chunk,
+                        int thread_idx,
                         __local ulong *scratchpad) { // lanes * BLOCK_SIZE_ULONG
     ulong4 tmp;
 	ulong a, b, c, d;
 
 	int hash_base = get_group_id(0) * 2;
+	int mem_hash = hash_base + thread_idx;
 	int local_id = get_local_id(0);
 
     int hash_idx = (local_id / THREADS_PER_LANE) % 2;
@@ -789,8 +791,8 @@ __kernel void fill_blocks(__global ulong *chunk_0,
 	chunks[3] = (ulong)chunk_3;
 	chunks[4] = (ulong)chunk_4;
 	chunks[5] = (ulong)chunk_5;
-	int chunk_index = hash_base / threads_per_chunk;
-	int chunk_offset = hash_base - chunk_index * threads_per_chunk;
+	int chunk_index = mem_hash / threads_per_chunk;
+	int chunk_offset = mem_hash - chunk_index * threads_per_chunk;
 	__global ulong *memory = (__global ulong *)chunks[chunk_index] + chunk_offset * (memsize / 8);
 
 	int i1_0 = offsets_round_1[id][0];
