@@ -862,7 +862,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                 cur_idx = seg_idxs[0];
             }
 
-            ulong4 nextref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
+            ref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
 
             for (int i=0;idx < seg_length;i++, idx++) {
     			next_block = memory + (cur_idx & 0x7FFFFFFF) * 2 * BLOCK_SIZE_ULONG;
@@ -870,7 +870,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                 if(with_xor == 1)
                     next = vload4(wave_id, next_block);
 
-                ref = nextref;
+                tmp ^= ref;
 
                 if (idx < seg_length - 1) {
                     ref_idx = seg_refs[i + 1];
@@ -882,10 +882,8 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                     else
                         cur_idx++;
 
-                    nextref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
+                    ref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
                 }
-
-                tmp ^= ref;
 
                 vstore4(tmp, id, state);
 

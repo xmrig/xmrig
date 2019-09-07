@@ -8,7 +8,7 @@ option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 option(WITH_CUDA            "Enable CUDA support" ON)
 option(WITH_OPENCL          "Enable OpenCL support" ON)
-option(WITH_OPENCL_DOUBLE_THREADS  "Enable dual threads for OpenCL jobs" ON)
+option(WITH_OPENCL_DOUBLE_THREADS  "Enable dual threads for OpenCL jobs" OFF)
 option(WITH_CUDA_DOUBLE_THREADS  "Enable dual threads for CUDA jobs" ON)
 
 include (CheckIncludeFile)
