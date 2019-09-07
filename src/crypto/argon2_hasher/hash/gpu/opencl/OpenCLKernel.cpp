@@ -771,12 +771,16 @@ __kernel void fill_blocks(__global ulong *chunk_0,
     ulong4 tmp;
 	ulong a, b, c, d;
 
-	int hash = get_group_id(0);
+	int hash_base = get_group_id(0) * 2;
 	int local_id = get_local_id(0);
 
-	int id = local_id % THREADS_PER_LANE;
-	int lane = local_id / THREADS_PER_LANE;
+    int hash_idx = (local_id / THREADS_PER_LANE) % 2;
+    int wave_id = local_id % (THREADS_PER_LANE * 2);
+	int id = wave_id % THREADS_PER_LANE;
+	int lane = local_id / (THREADS_PER_LANE * 2);
 	int lane_length = seg_length * 4;
+
+    int hash = hash_base + hash_idx;
 
 	ulong chunks[6];
 	chunks[0] = (ulong)chunk_0;
@@ -785,8 +789,8 @@ __kernel void fill_blocks(__global ulong *chunk_0,
 	chunks[3] = (ulong)chunk_3;
 	chunks[4] = (ulong)chunk_4;
 	chunks[5] = (ulong)chunk_5;
-	int chunk_index = hash / threads_per_chunk;
-	int chunk_offset = hash - chunk_index * threads_per_chunk;
+	int chunk_index = hash_base / threads_per_chunk;
+	int chunk_offset = hash_base - chunk_index * threads_per_chunk;
 	__global ulong *memory = (__global ulong *)chunks[chunk_index] + chunk_offset * (memsize / 8);
 
 	int i1_0 = offsets_round_1[id][0];
@@ -809,15 +813,13 @@ __kernel void fill_blocks(__global ulong *chunk_0,
 	int i4_2 = offsets_round_4[id][2];
 	int i4_3 = offsets_round_4[id][3];
 
-	__global ulong *out_mem = out + hash * BLOCK_SIZE_ULONG;
 	__global ulong *seed_mem = seed + hash * lanes * 2 * BLOCK_SIZE_ULONG + lane * 2 * BLOCK_SIZE_ULONG;
-
-	__global ulong *seed_dst = memory + lane * lane_length * BLOCK_SIZE_ULONG;
+	__global ulong *seed_dst = memory + (lane * lane_length * 2 + hash_idx) * BLOCK_SIZE_ULONG;
 
 	vstore4(vload4(id, seed_mem), id, seed_dst);
 
 	seed_mem += BLOCK_SIZE_ULONG;
-	seed_dst += BLOCK_SIZE_ULONG;
+	seed_dst += (2 * BLOCK_SIZE_ULONG);
 
 	vstore4(vload4(id, seed_mem), id, seed_dst);
 
@@ -826,7 +828,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
     __global uint *seg_refs;
     __global uint *seg_idxs;
 
-	__local ulong *state = scratchpad + lane * BLOCK_SIZE_ULONG;
+	__local ulong *state = scratchpad + (lane * 2 + hash_idx) * BLOCK_SIZE_ULONG;
 
 	segments += (lane * 3);
 
@@ -845,9 +847,9 @@ __kernel void fill_blocks(__global ulong *chunk_0,
         int ref_idx = 0;
         ulong4 ref = 0, next = 0;
 
-		prev_block = memory + prev_idx * BLOCK_SIZE_ULONG;
+		prev_block = memory + prev_idx * 2 * BLOCK_SIZE_ULONG;
 
-		tmp = vload4(id, prev_block);
+		tmp = vload4(wave_id, prev_block);
 
         if(seg_type == 0) {
             seg_refs = refs + ((s * lanes + lane) * seg_length - ((s > 0) ? lanes : lane) * 2);
@@ -858,13 +860,13 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                 cur_idx = seg_idxs[0];
             }
 
-            ulong4 nextref = vload4(id, memory + ref_idx * BLOCK_SIZE_ULONG);
+            ulong4 nextref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
 
             for (int i=0;idx < seg_length;i++, idx++) {
-    			next_block = memory + (cur_idx & 0x7FFFFFFF) * BLOCK_SIZE_ULONG;
+    			next_block = memory + (cur_idx & 0x7FFFFFFF) * 2 * BLOCK_SIZE_ULONG;
 
                 if(with_xor == 1)
-                    next = vload4(id, next_block);
+                    next = vload4(wave_id, next_block);
 
                 ref = nextref;
 
@@ -878,7 +880,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                     else
                         cur_idx++;
 
-                    nextref = vload4(id, memory + ref_idx * BLOCK_SIZE_ULONG);
+                    nextref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
                 }
 
                 tmp ^= ref;
@@ -896,7 +898,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                 tmp ^= vload4(id, state);
 
                 if(keep > 0) {
-                    vstore4(tmp, id, next_block);
+                    vstore4(tmp, wave_id, next_block);
                     barrier(CLK_GLOBAL_MEM_FENCE);
                 }
             }
@@ -953,12 +955,12 @@ __kernel void fill_blocks(__global ulong *chunk_0,
     				ref_idx = ref_lane * lane_length + (((pass > 0 && slice < 3) ? ((slice + 1) * seg_length) : 0) + relative_position) % lane_length;
                 }
 
-        		ref = vload4(id, memory + ref_idx * BLOCK_SIZE_ULONG);
+        		ref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
 
-    			next_block = memory + cur_idx * BLOCK_SIZE_ULONG;
+    			next_block = memory + cur_idx * 2 * BLOCK_SIZE_ULONG;
 
                 if(with_xor == 1)
-                    next = vload4(id, next_block);
+                    next = vload4(wave_id, next_block);
 
                 tmp ^= ref;
 
@@ -975,7 +977,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                 tmp ^= vload4(id, state);
 
                 vstore4(tmp, id, state);
-                vstore4(tmp, id, next_block);
+                vstore4(tmp, wave_id, next_block);
                 barrier(CLK_GLOBAL_MEM_FENCE | CLK_LOCAL_MEM_FENCE);
             }
         }
@@ -985,8 +987,9 @@ __kernel void fill_blocks(__global ulong *chunk_0,
     barrier(CLK_LOCAL_MEM_FENCE);
 
 	if(lane == 0) { // first lane needs to acumulate results
+    	__global ulong *out_mem = out + hash * BLOCK_SIZE_ULONG;
 		for(int l=1; l<lanes; l++)
-            tmp ^= vload4(id, scratchpad + l * BLOCK_SIZE_ULONG);
+            tmp ^= vload4(id, scratchpad + (l * 2 + hash_idx) * BLOCK_SIZE_ULONG);
 
         vstore4(tmp, id, out_mem);
 	}

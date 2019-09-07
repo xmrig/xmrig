@@ -760,9 +760,9 @@ void *opencl_kernel_filler(int threads, Argon2Profile *profile, void *user_data)
     cl_int error;
 
 	size_t total_work_items = threads * KERNEL_WORKGROUP_SIZE * profile->thrCost;
-	size_t local_work_items = KERNEL_WORKGROUP_SIZE * profile->thrCost;
+	size_t local_work_items = 2 * KERNEL_WORKGROUP_SIZE * profile->thrCost;
 
-    size_t shared_mem = profile->thrCost * ARGON2_QWORDS_IN_BLOCK;
+    size_t shared_mem = 2 * profile->thrCost * ARGON2_QWORDS_IN_BLOCK;
 
     clSetKernelArg(device->kernelFillBlocks, 6, sizeof(device->arguments.seedMemory[gpumgmt_thread->threadId]), &device->arguments.seedMemory[gpumgmt_thread->threadId]);
     clSetKernelArg(device->kernelFillBlocks, 7, sizeof(device->arguments.outMemory[gpumgmt_thread->threadId]), &device->arguments.outMemory[gpumgmt_thread->threadId]);
