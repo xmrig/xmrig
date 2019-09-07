@@ -28,7 +28,7 @@
 #define APP_ID        "ninjarig"
 #define APP_NAME      "NinjaRig"
 #define APP_DESC      "NinjaRig CPU/GPU miner"
-#define APP_VERSION   "1.0.1"
+#define APP_VERSION   "1.0.2"
 //#define APP_DOMAIN    "xmrig.com"
 //#define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2019 Haifa Bogdan Adnan"
@@ -36,7 +36,7 @@
 
 #define APP_VER_MAJOR  1
 #define APP_VER_MINOR  0
-#define APP_VER_PATCH  1
+#define APP_VER_PATCH  2
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1920)
