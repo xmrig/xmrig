@@ -64,6 +64,7 @@ struct OpenCLDeviceInfo {
     Argon2ProfileInfo profileInfo;
 
     string deviceString;
+    string deviceExtensions;
     uint64_t maxMemSize;
     uint64_t maxAllocableMemSize;
 

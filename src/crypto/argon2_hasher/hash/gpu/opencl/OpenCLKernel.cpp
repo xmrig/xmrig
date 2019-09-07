@@ -26,6 +26,14 @@ string OpenCLKernel = R"OCL(
 #define BLOCK_BYTES	32
 #define OUT_BYTES	16
 
+#ifdef USE_AMD_BITALIGN
+#pragma OPENCL EXTENSION cl_amd_media_ops : enable
+
+#define rotr64(x, n)       ((n) < 32 ? (amd_bitalign((uint)((x) >> 32), (uint)(x), (uint)(n)) | ((ulong)amd_bitalign((uint)(x), (uint)((x) >> 32), (uint)(n)) << 32)) : rotate((x), 64UL - (n)))
+#else
+#define rotr64(x, n)        rotate((x), 64UL - (n))
+#endif
+
 #define G(m, r, i, a, b, c, d) \
 { \
 	a = a + b + m[blake2b_sigma[r][2 * i + 0]]; \
@@ -88,11 +96,6 @@ string OpenCLKernel = R"OCL(
     v1 = shfl[t + 4]; \
     v2 = shfl[t + 8]; \
     v3 = shfl[t + 12]; \
-}
-
-ulong rotr64(ulong x, ulong n)
-{
-	return rotate(x, 64 - n);
 }
 
 __constant ulong blake2b_IV[8] = {
@@ -547,13 +550,13 @@ void blake2b_digestLong_local(__global uint *out, int out_len,
 
 #define COMPUTE \
     a = fBlaMka(a, b);          \
-    d = rotate(d ^ a, (ulong)32);      \
+    d = rotr64(d ^ a, (ulong)32);      \
     c = fBlaMka(c, d);          \
-    b = rotate(b ^ c, (ulong)40);      \
+    b = rotr64(b ^ c, (ulong)24);      \
     a = fBlaMka(a, b);          \
-    d = rotate(d ^ a, (ulong)48);      \
+    d = rotr64(d ^ a, (ulong)16);      \
     c = fBlaMka(c, d);          \
-    b = rotate(b ^ c, (ulong)1);
+    b = rotr64(b ^ c, (ulong)63);
 
 __constant char offsets_round_1[32][4] = {
         { 0, 4, 8, 12 },
@@ -905,31 +908,50 @@ __kernel void fill_blocks(__global ulong *chunk_0,
             for (int i=0;idx < seg_length;i++, idx++, cur_idx++) {
                 ulong pseudo_rand = state[0];
 
-                ulong ref_lane = ((pseudo_rand >> 32)) % lanes; // thr_cost
-                uint reference_area_size = 0;
+                if(lanes == 1) {
+                    uint reference_area_size = 0;
 
-				if(pass > 0) {
-					if (lane == ref_lane) {
-						reference_area_size = lane_length - seg_length + idx - 1;
-					} else {
-						reference_area_size = lane_length - seg_length + ((idx == 0) ? (-1) : 0);
-					}
-				}
-				else {
-					if (lane == ref_lane) {
-						reference_area_size = slice * seg_length + idx - 1; // seg_length
-					} else {
-						reference_area_size = slice * seg_length + ((idx == 0) ? (-1) : 0);
-					}
-				}
+                    if(pass > 0) {
+                        reference_area_size = lane_length - seg_length + idx - 1;
+                    } else {
+                        reference_area_size = slice * seg_length + idx - 1; // seg_length
+                    }
 
-                ulong relative_position = pseudo_rand & 0xFFFFFFFF;
-                relative_position = (relative_position * relative_position) >> 32;
+                    ulong relative_position = pseudo_rand & 0xFFFFFFFF;
+                    relative_position = (relative_position * relative_position) >> 32;
 
-                relative_position = reference_area_size - 1 -
-                                    ((reference_area_size * relative_position) >> 32);
+                    relative_position = reference_area_size - 1 -
+                                        ((reference_area_size * relative_position) >> 32);
 
-				ref_idx = ref_lane * lane_length + (((pass > 0 && slice < 3) ? ((slice + 1) * seg_length) : 0) + relative_position) % lane_length;
+    				ref_idx = (((pass > 0 && slice < 3) ? ((slice + 1) * seg_length) : 0) + relative_position) % lane_length;
+                }
+                else {
+                    ulong ref_lane = ((pseudo_rand >> 32)) % lanes; // thr_cost
+                    uint reference_area_size = 0;
+
+                    if(pass > 0) {
+    					if (lane == ref_lane) {
+                            reference_area_size = lane_length - seg_length + idx - 1;
+    					} else {
+    						reference_area_size = lane_length - seg_length + ((idx == 0) ? (-1) : 0);
+    					}
+                    }
+                    else {
+    					if (lane == ref_lane) {
+                            reference_area_size = slice * seg_length + idx - 1; // seg_length
+    					} else {
+    						reference_area_size = slice * seg_length + ((idx == 0) ? (-1) : 0);
+    					}
+                    }
+
+                    ulong relative_position = pseudo_rand & 0xFFFFFFFF;
+                    relative_position = (relative_position * relative_position) >> 32;
+
+                    relative_position = reference_area_size - 1 -
+                                        ((reference_area_size * relative_position) >> 32);
+
+    				ref_idx = ref_lane * lane_length + (((pass > 0 && slice < 3) ? ((slice + 1) * seg_length) : 0) + relative_position) % lane_length;
+                }
 
         		ref = vload4(id, memory + ref_idx * BLOCK_SIZE_ULONG);
 

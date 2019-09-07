@@ -196,6 +196,24 @@ OpenCLDeviceInfo *OpenCLHasher::getDeviceInfo(cl_platform_id platform, cl_device
 
     device_info->deviceString = device_vendor + " - " + device_name/* + " : " + device_version*/;
 
+    string extensions;
+    sz = 0;
+    clGetDeviceInfo(device, CL_DEVICE_EXTENSIONS, 0, NULL, &sz);
+    buffer = (char *)malloc(sz + 1);
+    device_info->error = clGetDeviceInfo(device, CL_DEVICE_EXTENSIONS, sz, buffer, &sz);
+    if(device_info->error != CL_SUCCESS) {
+        free(buffer);
+        device_info->errorMessage = "Error querying device extensions.";
+        return device_info;
+    }
+    else {
+        buffer[sz] = 0;
+        extensions = buffer;
+        free(buffer);
+    }
+
+    device_info->deviceExtensions = extensions;
+
     device_info->error = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(device_info->maxMemSize), &(device_info->maxMemSize), NULL);
     if(device_info->error != CL_SUCCESS) {
         device_info->errorMessage = "Error querying device global memory size.";
@@ -362,7 +380,10 @@ bool OpenCLHasher::setupDeviceInfo(OpenCLDeviceInfo *device, double intensity) {
         return false;
     }
 
-    error = clBuildProgram(device->program, 1, &device->device, "", NULL, NULL);
+    string options = "";
+    if(device->deviceExtensions.find("cl_amd_media_ops") != string::npos)
+        options += "-D USE_AMD_BITALIGN";
+    error = clBuildProgram(device->program, 1, &device->device, options.c_str(), NULL, NULL);
     if (error != CL_SUCCESS) {
         size_t log_size;
         clGetProgramBuildInfo(device->program, device->device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);

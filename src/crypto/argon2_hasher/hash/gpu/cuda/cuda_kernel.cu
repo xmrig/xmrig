@@ -589,29 +589,47 @@ __global__ void fill_blocks(uint32_t *scratchpad0,
 				}
 
 				uint32_t pseudo_rand_lo = __shfl_sync(0xffffffff, tmp_a.x, 0);
-				uint32_t pseudo_rand_hi = __shfl_sync(0xffffffff, tmp_a.y, 0);
 
-				uint64_t ref_lane = pseudo_rand_hi % lanes; // thr_cost
-				uint32_t reference_area_size = 0;
-				if(pass > 0) {
-					if (lane == ref_lane) {
-						reference_area_size = lane_length - seg_length + idx - 1;
-					} else {
-						reference_area_size = lane_length - seg_length + ((idx == 0) ? (-1) : 0);
-					}
-				}
+				if(lanes > 1) {
+                    uint32_t pseudo_rand_hi = __shfl_sync(0xffffffff, tmp_a.y, 0);
+
+                    uint64_t ref_lane = pseudo_rand_hi % lanes; // thr_cost
+                    uint32_t reference_area_size = 0;
+                    if (pass > 0) {
+                        if (lane == ref_lane) {
+                            reference_area_size = lane_length - seg_length + idx - 1;
+                        } else {
+                            reference_area_size = lane_length - seg_length + ((idx == 0) ? (-1) : 0);
+                        }
+                    } else {
+                        if (lane == ref_lane) {
+                            reference_area_size = slice * seg_length + idx - 1; // seg_length
+                        } else {
+                            reference_area_size = slice * seg_length + ((idx == 0) ? (-1) : 0);
+                        }
+                    }
+                    asm("{mul.hi.u32 %0, %1, %1; mul.hi.u32 %0, %0, %2; }": "=r"(pseudo_rand_lo) : "r"(pseudo_rand_lo), "r"(reference_area_size));
+
+                    uint32_t relative_position = reference_area_size - 1 - pseudo_rand_lo;
+
+                    ref_idx = ref_lane * lane_length +
+                              (((pass > 0 && slice < 3) ? ((slice + 1) * seg_length) : 0) + relative_position) %
+                              lane_length;
+                }
 				else {
-					if (lane == ref_lane) {
-						reference_area_size = slice * seg_length + idx - 1; // seg_length
-					} else {
-						reference_area_size = slice * seg_length + ((idx == 0) ? (-1) : 0);
-					}
+                    uint32_t reference_area_size = 0;
+                    if (pass > 0) {
+                        reference_area_size = lane_length - seg_length + idx - 1;
+                    } else {
+                        reference_area_size = slice * seg_length + idx - 1; // seg_length
+                    }
+                    asm("{mul.hi.u32 %0, %1, %1; mul.hi.u32 %0, %0, %2; }": "=r"(pseudo_rand_lo) : "r"(pseudo_rand_lo), "r"(reference_area_size));
+
+                    uint32_t relative_position = reference_area_size - 1 - pseudo_rand_lo;
+
+                    ref_idx = (((pass > 0 && slice < 3) ? ((slice + 1) * seg_length) : 0) + relative_position) %
+                              lane_length;
 				}
-				asm("{mul.hi.u32 %0, %1, %1; mul.hi.u32 %0, %0, %2; }": "=r"(pseudo_rand_lo) : "r"(pseudo_rand_lo), "r"(reference_area_size));
-
-				uint32_t relative_position = reference_area_size - 1 - pseudo_rand_lo;
-
-				ref_idx = ref_lane * lane_length + (((pass > 0 && slice < 3) ? ((slice + 1) * seg_length) : 0) + relative_position) % lane_length;
 
 				ref_block = memory + ref_idx * BLOCK_SIZE_UINT4;
 
