@@ -161,29 +161,27 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
 #   if (ALGO_FAMILY == FAMILY_CN_HEAVY)
-    {
-        __local uint4 xin[8][8];
+    __local uint4 xin[8][8];
 
-        /* Also left over threads perform this loop.
-         * The left over thread results will be ignored
-         */
-        #pragma unroll 16
-        for (size_t i = 0; i < 16; i++) {
-            #pragma unroll 10
-            for (int j = 0; j < 10; ++j) {
-                uint4 t = ((uint4 *)ExpandedKey1)[j];
-                t.s0 ^= AES0[BYTE(text.s0, 0)] ^ AES1[BYTE(text.s1, 1)] ^ AES2[BYTE(text.s2, 2)] ^ AES3[BYTE(text.s3, 3)];
-                t.s1 ^= AES0[BYTE(text.s1, 0)] ^ AES1[BYTE(text.s2, 1)] ^ AES2[BYTE(text.s3, 2)] ^ AES3[BYTE(text.s0, 3)];
-                t.s2 ^= AES0[BYTE(text.s2, 0)] ^ AES1[BYTE(text.s3, 1)] ^ AES2[BYTE(text.s0, 2)] ^ AES3[BYTE(text.s1, 3)];
-                t.s3 ^= AES0[BYTE(text.s3, 0)] ^ AES1[BYTE(text.s0, 1)] ^ AES2[BYTE(text.s1, 2)] ^ AES3[BYTE(text.s2, 3)];
-                text = t;
-            }
-
-            barrier(CLK_LOCAL_MEM_FENCE);
-            xin[get_local_id(1)][get_local_id(0)] = text;
-            barrier(CLK_LOCAL_MEM_FENCE);
-            text = mix_and_propagate(xin);
+    /* Also left over threads perform this loop.
+     * The left over thread results will be ignored
+     */
+    #pragma unroll 16
+    for (size_t i = 0; i < 16; i++) {
+        #pragma unroll 10
+        for (int j = 0; j < 10; ++j) {
+            uint4 t = ((uint4 *)ExpandedKey1)[j];
+            t.s0 ^= AES0[BYTE(text.s0, 0)] ^ AES1[BYTE(text.s1, 1)] ^ AES2[BYTE(text.s2, 2)] ^ AES3[BYTE(text.s3, 3)];
+            t.s1 ^= AES0[BYTE(text.s1, 0)] ^ AES1[BYTE(text.s2, 1)] ^ AES2[BYTE(text.s3, 2)] ^ AES3[BYTE(text.s0, 3)];
+            t.s2 ^= AES0[BYTE(text.s2, 0)] ^ AES1[BYTE(text.s3, 1)] ^ AES2[BYTE(text.s0, 2)] ^ AES3[BYTE(text.s1, 3)];
+            t.s3 ^= AES0[BYTE(text.s3, 0)] ^ AES1[BYTE(text.s0, 1)] ^ AES2[BYTE(text.s1, 2)] ^ AES3[BYTE(text.s2, 3)];
+            text = t;
         }
+
+        barrier(CLK_LOCAL_MEM_FENCE);
+        xin[get_local_id(1)][get_local_id(0)] = text;
+        barrier(CLK_LOCAL_MEM_FENCE);
+        text = mix_and_propagate(xin);
     }
 #   endif
 
