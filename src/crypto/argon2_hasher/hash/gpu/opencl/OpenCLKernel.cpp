@@ -908,6 +908,11 @@ __kernel void fill_blocks(__global ulong *chunk_0,
             barrier(CLK_LOCAL_MEM_FENCE);
 
             for (int i=0;idx < seg_length;i++, idx++, cur_idx++) {
+    			next_block = memory + cur_idx * 2 * BLOCK_SIZE_ULONG;
+
+                if(with_xor == 1)
+                    next = vload4(wave_id, next_block);
+
                 ulong pseudo_rand = state[0];
 
                 if(lanes == 1) {
@@ -956,11 +961,6 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                 }
 
         		ref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
-
-    			next_block = memory + cur_idx * 2 * BLOCK_SIZE_ULONG;
-
-                if(with_xor == 1)
-                    next = vload4(wave_id, next_block);
 
                 tmp ^= ref;
 
