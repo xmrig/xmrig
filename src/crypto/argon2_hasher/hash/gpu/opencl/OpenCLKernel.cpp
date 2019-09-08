@@ -847,7 +847,6 @@ __kernel void fill_blocks(__global ulong *chunk_0,
         int prev_idx = cur_seg[1];
         int seg_type = cur_seg[2];
         int ref_idx = 0;
-        ulong4 ref = 0, next = 0;
 
 		prev_block = memory + prev_idx * 2 * BLOCK_SIZE_ULONG;
 
@@ -856,24 +855,24 @@ __kernel void fill_blocks(__global ulong *chunk_0,
         if(seg_type == 0) {
             seg_refs = refs + ((s * lanes + lane) * seg_length - ((s > 0) ? lanes : lane) * 2);
             ref_idx = seg_refs[0];
+            prefetch(memory + ref_idx * 2 * BLOCK_SIZE_ULONG, BLOCK_SIZE_ULONG);
 
             if(idxs != 0) {
                 seg_idxs = idxs + ((s * lanes + lane) * seg_length - ((s > 0) ? lanes : lane) * 2);
                 cur_idx = seg_idxs[0];
             }
 
-            ref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
-
             for (int i=0;idx < seg_length;i++, idx++) {
     			next_block = memory + (cur_idx & 0x7FFFFFFF) * 2 * BLOCK_SIZE_ULONG;
 
                 if(with_xor == 1)
-                    next = vload4(wave_id, next_block);
+                    prefetch(next_block, BLOCK_SIZE_ULONG);
 
-                tmp ^= ref;
+                tmp ^= vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
 
                 if (idx < seg_length - 1) {
                     ref_idx = seg_refs[i + 1];
+                    prefetch(memory + ref_idx * 2 * BLOCK_SIZE_ULONG, BLOCK_SIZE_ULONG);
 
                     if(idxs != 0) {
                         keep = cur_idx & 0x80000000;
@@ -881,8 +880,6 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                     }
                     else
                         cur_idx++;
-
-                    ref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
                 }
 
                 vstore4(tmp, id, state);
@@ -893,7 +890,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                 G4(state);
 
                 if(with_xor == 1)
-                    tmp ^= next;
+                    tmp ^= vload4(wave_id, next_block);
 
                 tmp ^= vload4(id, state);
 
@@ -911,7 +908,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
     			next_block = memory + cur_idx * 2 * BLOCK_SIZE_ULONG;
 
                 if(with_xor == 1)
-                    next = vload4(wave_id, next_block);
+                    prefetch(next_block, BLOCK_SIZE_ULONG);
 
                 ulong pseudo_rand = state[0];
 
@@ -960,9 +957,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
     				ref_idx = ref_lane * lane_length + (((pass > 0 && slice < 3) ? ((slice + 1) * seg_length) : 0) + relative_position) % lane_length;
                 }
 
-        		ref = vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
-
-                tmp ^= ref;
+                tmp ^= vload4(wave_id, memory + ref_idx * 2 * BLOCK_SIZE_ULONG);
 
                 vstore4(tmp, id, state);
 
@@ -972,7 +967,7 @@ __kernel void fill_blocks(__global ulong *chunk_0,
                 G4(state);
 
                 if(with_xor == 1)
-                    tmp ^= next;
+                    tmp ^= vload4(wave_id, next_block);
 
                 tmp ^= vload4(id, state);
 
