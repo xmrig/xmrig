@@ -51,12 +51,12 @@ struct OpenCLDeviceInfo {
     cl_platform_id platform;
     cl_device_id device;
     cl_context context;
-    cl_command_queue queue;
+    cl_command_queue queue[2];
 
     cl_program program;
-    cl_kernel kernelPrehash;
-    cl_kernel kernelFillBlocks;
-    cl_kernel kernelPosthash;
+    cl_kernel kernelPrehash[2];
+    cl_kernel kernelFillBlocks[2];
+    cl_kernel kernelPosthash[2];
 
     int deviceIndex;
 
@@ -64,6 +64,7 @@ struct OpenCLDeviceInfo {
     Argon2ProfileInfo profileInfo;
 
     string deviceString;
+    string deviceExtensions;
     uint64_t maxMemSize;
     uint64_t maxAllocableMemSize;
 
@@ -74,10 +75,23 @@ struct OpenCLDeviceInfo {
 };
 
 struct OpenCLGpuMgmtThreadData {
+    void lock() {
+#ifndef PARALLEL_OPENCL
+        device->deviceLock.lock();
+#endif
+    }
+
+    void unlock() {
+#ifndef PARALLEL_OPENCL
+        device->deviceLock.unlock();
+#endif
+    }
     int threadId;
     OpenCLDeviceInfo *device;
     Argon2 *argon2;
     HashData hashData;
+    int threads;
+    int threadsIdx;
 };
 
 class OpenCLHasher : public Hasher {
