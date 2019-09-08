@@ -136,8 +136,8 @@ public:
                        device.printableName().data(),
                        device.clock(),
                        device.computeUnits(),
-                       device.freeMem() / oneMiB,
-                       device.globalMem() / oneMiB);
+                       device.freeMemSize() / oneMiB,
+                       device.globalMemSize() / oneMiB);
         }
     }
 

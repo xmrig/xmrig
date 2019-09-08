@@ -62,8 +62,9 @@ public:
     OclDevice() = delete;
     OclDevice(uint32_t index, cl_device_id id, cl_platform_id platform);
 
-    size_t freeMem() const;
-    size_t globalMem() const;
+    size_t freeMemSize() const;
+    size_t globalMemSize() const;
+    size_t maxMemAllocSize() const;
     String printableName() const;
     uint32_t clock() const;
     void generate(const Algorithm &algorithm, OclThreads &threads) const;

@@ -5,8 +5,6 @@ if (WITH_OPENCL)
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h
-        src/backend/opencl/generators/ocl_generic_cn_generator.cpp
-        src/backend/opencl/generators/ocl_vega_cn_generator.cpp
         src/backend/opencl/interfaces/IOclRunner.h
         src/backend/opencl/kernels/Cn0Kernel.h
         src/backend/opencl/kernels/Cn1Kernel.h
@@ -35,6 +33,8 @@ if (WITH_OPENCL)
 
     set(SOURCES_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.cpp
+        src/backend/opencl/generators/ocl_generic_cn_generator.cpp
+        src/backend/opencl/generators/ocl_vega_cn_generator.cpp
         src/backend/opencl/kernels/Cn0Kernel.cpp
         src/backend/opencl/kernels/Cn1Kernel.cpp
         src/backend/opencl/kernels/Cn2Kernel.cpp
@@ -78,6 +78,7 @@ if (WITH_OPENCL)
            )
 
        list(APPEND SOURCES_BACKEND_OPENCL
+           src/backend/opencl/generators/ocl_generic_cn_gpu_generator.cpp
            src/backend/opencl/kernels/Cn00RyoKernel.cpp
            src/backend/opencl/kernels/Cn1RyoKernel.cpp
            src/backend/opencl/kernels/Cn2RyoKernel.cpp

@@ -44,7 +44,7 @@ static const char *kPlatform    = "platform";
 
 
 #ifdef XMRIG_ALGO_CN_GPU
-//static const char *kCnGPU = "cn/gpu";
+static const char *kCnGPU = "cn/gpu";
 #endif
 
 #ifdef XMRIG_ALGO_CN_LITE
@@ -225,7 +225,7 @@ void xmrig::OclConfig::generate()
     m_threads.move(kCn2, xmrig::generate(Algorithm::CN_2, devices));
 
 #   ifdef XMRIG_ALGO_CN_GPU
-//    m_threads.move(kCnGPU, xmrig::generate(Algorithm::CN_GPU, devices));
+    m_threads.move(kCnGPU, xmrig::generate(Algorithm::CN_GPU, devices));
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE

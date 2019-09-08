@@ -61,7 +61,7 @@ static inline uint32_t getMaxThreads(const OclDevice &device, const Algorithm &a
 static inline uint32_t getPossibleIntensity(const OclDevice &device, const Algorithm &algorithm)
 {
     const uint32_t maxThreads   = getMaxThreads(device, algorithm);
-    const size_t availableMem   = device.freeMem() - (128u * oneMiB);
+    const size_t availableMem   = device.freeMemSize() - (128u * oneMiB);
     const size_t perThread      = algorithm.l3() + 224u;
     const auto maxIntensity     = static_cast<uint32_t>(availableMem / perThread);
 
@@ -123,7 +123,7 @@ bool ocl_vega_cn_generator(const OclDevice &device, const Algorithm &algorithm, 
     const uint32_t worksize = getWorksize(algorithm);
     const uint32_t memChunk = getMemChunk(algorithm);
 
-    threads.add(OclThread(device.index(), intensity, worksize, getStridedIndex(algorithm), memChunk, 2, 8, algorithm));
+    threads.add(OclThread(device.index(), intensity, worksize, getStridedIndex(algorithm), memChunk, 2, 8));
 
     return true;
 }

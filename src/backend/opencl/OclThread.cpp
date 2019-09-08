@@ -69,6 +69,9 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
         m_stridedIndex = std::min(si[0].GetUint(), 2u);
         m_memChunk     = std::min(si[1].GetUint(), 18u);
     }
+    else {
+        m_fields.set(STRIDED_INDEX_FIELD, false);
+    }
 
     const rapidjson::Value &threads = Json::getArray(value, kThreads);
     if (threads.IsArray()) {
@@ -112,10 +115,13 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
     out.AddMember(StringRef(kIntensity),    intensity(), allocator);
     out.AddMember(StringRef(kWorksize),     worksize(), allocator);
 
-    Value si(kArrayType);
-    si.Reserve(2, allocator);
-    si.PushBack(stridedIndex(), allocator);
-    si.PushBack(memChunk(), allocator);
+    if (m_fields.test(STRIDED_INDEX_FIELD)) {
+        Value si(kArrayType);
+        si.Reserve(2, allocator);
+        si.PushBack(stridedIndex(), allocator);
+        si.PushBack(memChunk(), allocator);
+        out.AddMember(StringRef(kStridedIndex), si, allocator);
+    }
 
     Value threads(kArrayType);
     threads.Reserve(m_threads.size(), allocator);
@@ -124,7 +130,6 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
         threads.PushBack(thread, allocator);
     }
 
-    out.AddMember(StringRef(kStridedIndex), si, allocator);
     out.AddMember(StringRef(kThreads),      threads, allocator);
     out.AddMember(StringRef(kUnroll),       unrollFactor(), allocator);
 

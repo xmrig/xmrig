@@ -50,7 +50,7 @@ static inline uint32_t getPossibleIntensity(const OclDevice &device, const Algor
 {
     const uint32_t maxThreads   = getMaxThreads(device, algorithm);
     const size_t minFreeMem     = (maxThreads == 40000u ? 512u : 128u) * oneMiB;
-    const size_t availableMem   = device.freeMem() - minFreeMem;
+    const size_t availableMem   = device.freeMemSize() - minFreeMem;
     const size_t perThread      = algorithm.l3() + 224u;
     const auto maxIntensity     = static_cast<uint32_t>(availableMem / perThread);
 
@@ -104,9 +104,9 @@ bool ocl_generic_cn_generator(const OclDevice &device, const Algorithm &algorith
         return false;
     }
 
-    const uint32_t threadCount = ((device.globalMem() - intensity * 2 * algorithm.l3()) > 128 * oneMiB) ? 2 : 1;
+    const uint32_t threadCount = ((device.globalMemSize() - intensity * 2 * algorithm.l3()) > 128 * oneMiB) ? 2 : 1;
 
-    threads.add(OclThread(device.index(), intensity, 8, getStridedIndex(device, algorithm), 2, threadCount, 8, algorithm));
+    threads.add(OclThread(device.index(), intensity, 8, getStridedIndex(device, algorithm), 2, threadCount, 8));
 
     return true;
 }

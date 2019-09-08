@@ -47,11 +47,18 @@ typedef union
 namespace xmrig {
 
 
+#ifdef XMRIG_ALGO_CN_GPU
+extern bool ocl_generic_cn_gpu_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
+#endif
+
 extern bool ocl_vega_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
 extern bool ocl_generic_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
 
 
 ocl_gen_config_fun generators[] = {
+#   ifdef XMRIG_ALGO_CN_GPU
+    ocl_generic_cn_gpu_generator,
+#   endif
     ocl_vega_cn_generator,
     ocl_generic_cn_generator
 };
@@ -149,15 +156,21 @@ xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id plat
 }
 
 
-size_t xmrig::OclDevice::freeMem() const
+size_t xmrig::OclDevice::freeMemSize() const
 {
-    return std::min<size_t>(OclLib::getDeviceUlong(id(), CL_DEVICE_MAX_MEM_ALLOC_SIZE), globalMem());
+    return std::min(maxMemAllocSize(), globalMemSize());
 }
 
 
-size_t xmrig::OclDevice::globalMem() const
+size_t xmrig::OclDevice::globalMemSize() const
 {
     return OclLib::getDeviceUlong(id(), CL_DEVICE_GLOBAL_MEM_SIZE);
+}
+
+
+size_t xmrig::OclDevice::maxMemAllocSize() const
+{
+    return OclLib::getDeviceUlong(id(), CL_DEVICE_MAX_MEM_ALLOC_SIZE);
 }
 
 

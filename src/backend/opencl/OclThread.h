@@ -30,6 +30,7 @@
 #include "rapidjson/fwd.h"
 
 
+#include <bitset>
 #include <vector>
 
 
@@ -40,8 +41,7 @@ class OclThread
 {
 public:
     OclThread() = delete;
-    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, uint32_t threads, uint32_t unrollFactor, const Algorithm &algorithm) :
-        m_algorithm(algorithm),
+    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t stridedIndex, uint32_t memChunk, uint32_t threads, uint32_t unrollFactor) :
         m_threads(threads, -1),
         m_index(index),
         m_memChunk(memChunk),
@@ -51,6 +51,20 @@ public:
     {
         setIntensity(intensity);
     }
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t threads, uint32_t unrollFactor) :
+        m_fields(0),
+        m_threads(threads, -1),
+        m_index(index),
+        m_memChunk(0),
+        m_stridedIndex(0),
+        m_unrollFactor(unrollFactor),
+        m_worksize(worksize)
+    {
+        setIntensity(intensity);
+    }
+#   endif
 
     OclThread(const rapidjson::Value &value);
 
@@ -73,19 +87,25 @@ public:
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 private:
+    enum Fields {
+        STRIDED_INDEX_FIELD,
+        RANDOMX_FIELDS,
+        FIELD_MAX
+    };
+
     inline void setIntensity(uint32_t intensity)            { m_intensity = intensity / m_worksize * m_worksize; }
 
-    Algorithm m_algorithm;
-    int m_datasetHost       = -1;
+    int m_datasetHost               = -1;
+    std::bitset<FIELD_MAX> m_fields = 1;
     std::vector<int64_t> m_threads;
-    uint32_t m_bfactor      = 6;
-    uint32_t m_gcnAsm       = 1;
-    uint32_t m_index        = 0;
-    uint32_t m_intensity    = 0;
-    uint32_t m_memChunk     = 2;
-    uint32_t m_stridedIndex = 2;
-    uint32_t m_unrollFactor = 8;
-    uint32_t m_worksize     = 0;
+    uint32_t m_bfactor              = 6;
+    uint32_t m_gcnAsm               = 1;
+    uint32_t m_index                = 0;
+    uint32_t m_intensity            = 0;
+    uint32_t m_memChunk             = 2;
+    uint32_t m_stridedIndex         = 2;
+    uint32_t m_unrollFactor         = 8;
+    uint32_t m_worksize             = 0;
 };
 
 
