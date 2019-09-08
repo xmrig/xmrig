@@ -1,4 +1,3 @@
-R"===(
 /*
 Copyright (c) 2019 SChernykh
 
@@ -40,7 +39,7 @@ along with RandomX OpenCL. If not, see <http://www.gnu.org/licenses/>.
 #define RANDOMX_JUMP_OFFSET        8
 
 //Integer instructions
-#define RANDOMX_FREQ_IADD_RS       25
+#define RANDOMX_FREQ_IADD_RS       16
 #define RANDOMX_FREQ_IADD_M         7
 #define RANDOMX_FREQ_ISUB_R        16
 #define RANDOMX_FREQ_ISUB_M         7
@@ -70,7 +69,7 @@ along with RandomX OpenCL. If not, see <http://www.gnu.org/licenses/>.
 #define RANDOMX_FREQ_FSQRT_R        6
 
 //Control instructions
-#define RANDOMX_FREQ_CBRANCH       16
+#define RANDOMX_FREQ_CBRANCH       25
 #define RANDOMX_FREQ_CFROUND        1
 
 //Store instruction
@@ -95,4 +94,3 @@ along with RandomX OpenCL. If not, see <http://www.gnu.org/licenses/>.
 #define LOC_L1 (32 - 14)
 #define LOC_L2 (32 - 18)
 #define LOC_L3 (32 - 21)
-)==="

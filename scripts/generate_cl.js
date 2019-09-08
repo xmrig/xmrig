@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { text2h, text2h_bundle, addIncludes } = require('./js/opencl');
-// const cwd = process.cwd();
+const cwd = process.cwd();
 
 
 function cn()
@@ -51,8 +51,34 @@ function cn_gpu()
 }
 
 
+function rx()
+{
+    let rx = addIncludes('randomx.cl', [
+        '../cn/algorithm.cl',
+        'randomx_constants_monero.h',
+        'randomx_constants_wow.h',
+        'randomx_constants_loki.h',
+        'aes.cl',
+        'blake2b.cl',
+        'randomx_vm.cl',
+        'randomx_jit.cl'
+    ]);
+
+    rx = rx.replace(/	#include "fillAes1Rx4.cl"/g, fs.readFileSync('fillAes1Rx4.cl', 'utf8'));
+    rx = rx.replace(/	#include "blake2b_double_block.cl"/g, fs.readFileSync('blake2b_double_block.cl', 'utf8'));
+
+    //fs.writeFileSync('randomx_gen.cl', rx);
+    fs.writeFileSync('randomx_cl.h', text2h(rx, 'xmrig', 'randomx_cl'));
+}
+
+
 process.chdir(path.resolve('src/backend/opencl/cl/cn'));
 
 cn();
 cn_r();
 cn_gpu();
+
+process.chdir(cwd);
+process.chdir(path.resolve('src/backend/opencl/cl/rx'));
+
+rx();

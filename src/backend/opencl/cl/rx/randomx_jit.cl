@@ -1,4 +1,3 @@
-R"===(
 /*
 Copyright (c) 2019 SChernykh
 Portions Copyright (c) 2018-2019 tevador
@@ -151,9 +150,6 @@ __global uint* jit_scratchpad_load2_fp(__global uint* p, uint vgpr_index, int vm
 
 	return p;
 }
-
-)==="
-R"===(
 
 __global uint* jit_emit_instruction(__global uint* p, __global uint* last_branch_target, const uint2 inst, int prefetch_vgpr_index, int vmcnt, uint batch_size)
 {
@@ -670,9 +666,6 @@ __global uint* jit_emit_instruction(__global uint* p, __global uint* last_branch
 	}
 	opcode -= RANDOMX_FREQ_FADD_R;
 
-)==="
-R"===(
-
 	if (opcode < RANDOMX_FREQ_FADD_M)
 	{
 		if (prefetch_vgpr_index >= 0)
@@ -904,9 +897,6 @@ int jit_prefetch_read(
 	p0[prefetch_data_count] = t;
 	return prefetch_data_count + 1;
 }
-
-)==="
-R"===(
 
 __global uint* generate_jit_code(__global uint2* e, __global uint2* p0, __global uint* p, uint batch_size)
 {
@@ -1440,9 +1430,6 @@ __global uint* generate_jit_code(__global uint2* e, __global uint2* p0, __global
 	return p;
 }
 
-)==="
-R"===(
-
 __attribute__((reqd_work_group_size(64, 1, 1)))
 __kernel void randomx_jit(__global ulong* entropy, __global ulong* registers, __global uint2* intermediate_programs, __global uint* programs, uint batch_size, __global uint32_t* rounding, uint32_t iteration)
 {
@@ -1506,5 +1493,3 @@ __kernel void randomx_jit(__global ulong* entropy, __global ulong* registers, __
 	R[20] = getFloatMask(entropy[14]);
 	R[21] = getFloatMask(entropy[15]);
 }
-
-)==="

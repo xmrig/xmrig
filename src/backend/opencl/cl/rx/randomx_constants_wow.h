@@ -1,4 +1,3 @@
-R"===(
 /*
 Copyright (c) 2019 SChernykh
 
@@ -95,4 +94,3 @@ along with RandomX OpenCL. If not, see <http://www.gnu.org/licenses/>.
 #define LOC_L1 (32 - 14)
 #define LOC_L2 (32 - 17)
 #define LOC_L3 (32 - 20)
-)==="

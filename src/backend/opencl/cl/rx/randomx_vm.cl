@@ -1,4 +1,3 @@
-R"===(
 /*
 Copyright (c) 2019 SChernykh
 Portions Copyright (c) 2018-2019 tevador
@@ -149,9 +148,6 @@ uint64_t imul_rcp_value(uint32_t divisor)
 
 	return quotient;
 }
-
-)==="
-R"===(
 
 #define set_byte(a, position, value) do { ((uint8_t*)&(a))[(position)] = (value); } while (0)
 uint32_t get_byte(uint64_t a, uint32_t position) { return (a >> (position << 3)) & 0xFF; }
@@ -342,9 +338,6 @@ __kernel void init_vm(__global const void* entropy_data, __global void* vm_state
 		//	}
 		//	printf("\n");
 		//}
-
-)==="
-R"===(
 
 		// Schedule instructions
 		bool update_branch_target_mark = false;
@@ -931,9 +924,6 @@ R"===(
 		int32_t imm_index_fscal_r = -1;
 		__global uint32_t* compiled_program = (__global uint32_t*)(R + (REGISTERS_SIZE + IMM_BUF_SIZE) / sizeof(uint64_t));
 
-)==="
-R"===(
-
 		// Generate opcodes for execute_vm
 		int32_t branch_target_slot = -1;
 		int32_t k = -1;
@@ -1413,9 +1403,6 @@ double load_F_E_groups(int value, uint64_t andMask, uint64_t orMask)
 	return as_double(x);
 }
 
-)==="
-R"===(
-
 // You're one ugly motherfucker!
 double fma_soft(double a, double b, double c, uint32_t rounding_mode)
 {
@@ -1881,9 +1868,6 @@ uint32_t inner_loop(
 	return fprc;
 }
 
-)==="
-R"===(
-
 #if WORKERS_PER_HASH == 16
 __attribute__((reqd_work_group_size(32, 1, 1)))
 #else
@@ -2066,5 +2050,3 @@ __kernel void find_shares(__global const uint64_t* hashes, uint64_t target, uint
         }
     }
 }
-
-)==="

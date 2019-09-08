@@ -41,6 +41,7 @@ protected:
     bool run(uint32_t nonce, uint32_t *hashOutput) override;
     bool selfTest() const override;
     bool set(const Job &job, uint8_t *blob) override;
+    void build() override;
 };
 
 

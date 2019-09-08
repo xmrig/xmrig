@@ -33,12 +33,18 @@
 #   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
 #endif
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "backend/opencl/cl/rx/randomx_cl.h"
+#endif
+
 
 const char *xmrig::OclSource::get(const Algorithm &algorithm)
 {
+#   ifdef XMRIG_ALGO_RANDOMX
     if (algorithm.family() == Algorithm::RANDOM_X) {
-        return nullptr; // FIXME
+        return randomx_cl;
     }
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_GPU
     if (algorithm == Algorithm::CN_GPU) {

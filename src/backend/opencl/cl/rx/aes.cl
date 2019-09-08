@@ -1,4 +1,3 @@
-R"===(
 /*
 Copyright (c) 2019 SChernykh
 
@@ -297,8 +296,6 @@ __constant static const uint AES_TABLE[2048] =
 	0x9d532e34U, 0xa055f3a2U, 0x32e18a05U, 0x75ebf6a4U,
 	0x39ec830bU, 0xaaef6040U, 0x069f715eU, 0x51106ebdU,
 	0xf98a213eU, 0x3d06dd96U, 0xae053eddU, 0x46bde64dU,
-)==="
-R"===(
 	0xb58d5491U, 0x055dc471U, 0x6fd40604U, 0xff155060U,
 	0x24fb9819U, 0x97e9bdd6U, 0xcc434089U, 0x779ed967U,
 	0xbd42e8b0U, 0x888b8907U, 0x385b19e7U, 0xdbeec879U,
@@ -536,9 +533,6 @@ R"===(
 	0x7b6184cbU, 0xd570b632U, 0x48745c6cU, 0xd04257b8U,
 };
 
-)==="
-R"===(
-
 __constant static const uint AES_KEY_FILL[16] = {
 	0x6daca553, 0x62716609, 0xdbb5552b, 0xb4f44917,
 	0x6d7caf07, 0x846a710d, 0x1725d378, 0x0da1dc4e,
@@ -639,4 +633,3 @@ __kernel void hashAes1Rx4(__global const void* input, __global void* hash, uint 
 
 	*((__global uint4*)(hash) + idx * (hashStrideBytes / sizeof(uint4)) + sub + (hashOffsetBytes / sizeof(uint4))) = *(uint4*)(x);
 }
-)==="

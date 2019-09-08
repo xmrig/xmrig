@@ -1,4 +1,3 @@
-R"===(
 /*
 Copyright (c) 2019 SChernykh
 
@@ -156,4 +155,3 @@ __kernel void blake2b_initial_hash(__global void *out, __global const void* bloc
 #undef blake2b_hash_registers_name
 #undef blake2b_512_process_double_block_name
 #undef out_len
-)==="

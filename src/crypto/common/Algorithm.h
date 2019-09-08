@@ -39,6 +39,10 @@ namespace xmrig {
 class Algorithm
 {
 public:
+    // Changes in following file is required if this enum changed:
+    //
+    // src/backend/opencl/cl/cn/algorithm.cl
+    //
     enum Id : int {
         INVALID = -1,
         CN_0,          // "cn/0"             CryptoNight (original).

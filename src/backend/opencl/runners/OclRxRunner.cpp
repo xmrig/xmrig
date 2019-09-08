@@ -24,9 +24,33 @@
 
 #include "backend/opencl/runners/OclRxRunner.h"
 
+#include "backend/opencl/OclLaunchData.h"
+
 
 xmrig::OclRxRunner::OclRxRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
 {
+    uint32_t worksize    = 0;
+    uint32_t gcn_version = 12;
+
+    switch (data.thread.worksize()) {
+    case 2:
+    case 4:
+    case 8:
+    case 16:
+        worksize = data.thread.worksize();
+        break;
+
+    default:
+        worksize = 8;
+    }
+
+    if (data.device.type() == OclDevice::Vega_10 || data.device.type() == OclDevice::Vega_20) {
+        gcn_version = 14;
+    }
+
+    m_options += " -DALGO="             + std::to_string(m_algorithm.id());
+    m_options += " -DWORKERS_PER_HASH=" + std::to_string(worksize);
+    m_options += " -DGCN_VERSION="      + std::to_string(gcn_version);
 }
 
 
@@ -45,4 +69,14 @@ bool xmrig::OclRxRunner::selfTest() const
 bool xmrig::OclRxRunner::set(const Job &job, uint8_t *blob)
 {
     return false;
+}
+
+
+void xmrig::OclRxRunner::build()
+{
+    OclBaseRunner::build();
+
+    if (!m_program) {
+        return;
+    }
 }

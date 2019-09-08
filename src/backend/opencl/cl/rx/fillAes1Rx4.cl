@@ -1,4 +1,3 @@
-R"===(
 /*
 Copyright (c) 2019 SChernykh
 
@@ -117,4 +116,3 @@ __kernel void fillAes_name(__global void* state, __global void* out, uint batch_
 
 	*(__global uint4*)(s) = *(uint4*)(x);
 }
-)==="

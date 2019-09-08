@@ -43,8 +43,15 @@ class OclLaunchData;
 class OclBaseRunner : public IOclRunner
 {
 public:
+    OclBaseRunner()                           = delete;
+    OclBaseRunner(const OclBaseRunner &other) = delete;
+    OclBaseRunner(OclBaseRunner &&other)      = delete;
     OclBaseRunner(size_t id, const OclLaunchData &data);
+
     ~OclBaseRunner() override;
+
+    OclBaseRunner &operator=(const OclBaseRunner &other) = delete;
+    OclBaseRunner &operator=(OclBaseRunner &&other)      = delete;
 
 protected:
     inline cl_context ctx() const override              { return m_ctx; }

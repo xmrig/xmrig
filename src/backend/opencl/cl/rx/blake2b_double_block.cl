@@ -1,4 +1,3 @@
-R"===(
 /*
 Copyright (c) 2019 SChernykh
 
@@ -99,4 +98,3 @@ __kernel void blake2b_hash_registers_name(__global void *out, __global const voi
 	if (out_len > 48) h[6] = hash[6];
 	if (out_len > 56) h[7] = hash[7];
 }
-)==="
