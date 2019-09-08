@@ -27,11 +27,6 @@
 #include "backend/opencl/wrappers/OclLib.h"
 
 
-xmrig::Cn0Kernel::Cn0Kernel(cl_program program) : OclKernel(program, "cn0")
-{
-}
-
-
 bool xmrig::Cn0Kernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t threads)
 {
     const size_t offset[2]          = { nonce, 1 };

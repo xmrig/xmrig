@@ -81,12 +81,6 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
     m_options += " -DALGO_BASE="            + std::to_string(CnAlgo<>::base(m_algorithm));
     m_options += " -DALGO_FAMILY="          + std::to_string(m_algorithm.family());
     m_options += " -DCN_UNROLL="            + std::to_string(data.thread.unrollFactor());
-
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (data.algorithm == Algorithm::CN_GPU) {
-        m_options += " -cl-fp32-correctly-rounded-divide-sqrt";
-    }
-#   endif
 }
 
 

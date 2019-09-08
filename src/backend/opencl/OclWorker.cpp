@@ -38,6 +38,10 @@
 #   include "backend/opencl/runners/OclRxRunner.h"
 #endif
 
+#ifdef XMRIG_ALGO_CN_GPU
+#   include "backend/opencl/runners/OclRyoRunner.h"
+#endif
+
 
 #include <cassert>
 #include <thread>
@@ -79,7 +83,15 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
         break;
 
     default:
-        m_runner = new OclCnRunner(id, data);
+#       ifdef XMRIG_ALGO_CN_GPU
+        if (m_algorithm == Algorithm::CN_GPU) {
+            m_runner = new OclRyoRunner(id, data);
+        }
+        else
+#       endif
+        {
+            m_runner = new OclCnRunner(id, data);
+        }
         break;
     }
 

@@ -23,28 +23,21 @@
  */
 
 
-#include "backend/opencl/cl/OclSource.h"
-
-#include "backend/opencl/cl/cn/cryptonight_cl.h"
-#include "crypto/common/Algorithm.h"
+#include "backend/opencl/kernels/Cn00RyoKernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
-#endif
-
-
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+bool xmrig::Cn00RyoKernel::enqueue(cl_command_queue queue, size_t threads)
 {
-    if (algorithm.family() == Algorithm::RANDOM_X) {
-        return nullptr; // FIXME
-    }
+    const size_t gthreads = threads * 64;
+    const size_t lthreads = 64;
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return cryptonight_gpu_cl;
-    }
-#   endif
+    return enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
+}
 
-    return cryptonight_cl;
+
+// __kernel void cn00(__global int *Scratchpad, __global ulong *states)
+bool xmrig::Cn00RyoKernel::setArgs(cl_mem scratchpads, cl_mem states)
+{
+    return setArg(0, sizeof(cl_mem), &scratchpads) && setArg(1, sizeof(cl_mem), &states);
 }

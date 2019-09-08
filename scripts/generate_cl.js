@@ -42,7 +42,17 @@ function cn_r()
 }
 
 
+function cn_gpu()
+{
+    const cn_gpu = addIncludes('cryptonight_gpu.cl', [ 'wolf-aes.cl', 'keccak.cl' ]);
+
+    //fs.writeFileSync('cryptonight_gpu_gen.cl', cn_gpu);
+    fs.writeFileSync('cryptonight_gpu_cl.h', text2h(cn_gpu, 'xmrig', 'cryptonight_gpu_cl'));
+}
+
+
 process.chdir(path.resolve('src/backend/opencl/cl/cn'));
 
 cn();
 cn_r();
+cn_gpu();

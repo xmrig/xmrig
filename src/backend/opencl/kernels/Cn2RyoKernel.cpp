@@ -23,28 +23,26 @@
  */
 
 
-#include "backend/opencl/cl/OclSource.h"
-
-#include "backend/opencl/cl/cn/cryptonight_cl.h"
-#include "crypto/common/Algorithm.h"
+#include "backend/opencl/kernels/Cn2RyoKernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
-#endif
-
-
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+bool xmrig::Cn2RyoKernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t threads)
 {
-    if (algorithm.family() == Algorithm::RANDOM_X) {
-        return nullptr; // FIXME
-    }
+    const size_t offset[2]          = { nonce, 1 };
+    const size_t gthreads[2]        = { threads, 8 };
+    static const size_t lthreads[2] = { 8, 8 };
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return cryptonight_gpu_cl;
-    }
-#   endif
+    return enqueueNDRange(queue, 2, offset, gthreads, lthreads);
+}
 
-    return cryptonight_cl;
+
+// __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global uint *output, ulong Target, uint Threads)
+bool xmrig::Cn2RyoKernel::setArgs(cl_mem scratchpads, cl_mem states, cl_mem output, uint64_t target, uint32_t threads)
+{
+    return setArg(0, sizeof(cl_mem), &scratchpads) &&
+           setArg(1, sizeof(cl_mem), &states) &&
+           setArg(2, sizeof(cl_mem), &output) &&
+           setArg(3, sizeof(cl_ulong), &target) &&
+           setArg(4, sizeof(uint32_t), &threads);
 }

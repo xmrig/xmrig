@@ -69,6 +69,22 @@ if (WITH_OPENCL)
        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/runners/OclRxRunner.cpp)
    endif()
 
+   if (WITH_CN_GPU AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+       list(APPEND HEADERS_BACKEND_OPENCL
+           src/backend/opencl/kernels/Cn00RyoKernel.h
+           src/backend/opencl/kernels/Cn1RyoKernel.h
+           src/backend/opencl/kernels/Cn2RyoKernel.h
+           src/backend/opencl/runners/OclRyoRunner.h
+           )
+
+       list(APPEND SOURCES_BACKEND_OPENCL
+           src/backend/opencl/kernels/Cn00RyoKernel.cpp
+           src/backend/opencl/kernels/Cn1RyoKernel.cpp
+           src/backend/opencl/kernels/Cn2RyoKernel.cpp
+           src/backend/opencl/runners/OclRyoRunner.cpp
+           )
+   endif()
+
    if (WITH_STRICT_CACHE)
        add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
    else()

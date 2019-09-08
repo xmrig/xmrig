@@ -29,10 +29,10 @@
 #include "base/tools/String.h"
 
 
-typedef struct _cl_command_queue *cl_command_queue;
-typedef struct _cl_kernel        *cl_kernel;
-typedef struct _cl_mem           *cl_mem;
-typedef struct _cl_program       *cl_program;
+using cl_command_queue  = struct _cl_command_queue *;
+using cl_kernel         = struct _cl_kernel *;
+using cl_mem            = struct _cl_mem *;
+using cl_program        = struct _cl_program *;
 
 
 namespace xmrig {

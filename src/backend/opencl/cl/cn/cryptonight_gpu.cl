@@ -1,4 +1,14 @@
-R"===(
+#include "wolf-aes.cl"
+#include "keccak.cl"
+
+
+inline uint getIdx()
+{
+    return get_global_id(0) - get_global_offset(0);
+}
+
+
+#define IDX(x) (x)
 
 
 inline float4 _mm_add_ps(float4 a, float4 b)
@@ -6,30 +16,36 @@ inline float4 _mm_add_ps(float4 a, float4 b)
     return a + b;
 }
 
+
 inline float4 _mm_sub_ps(float4 a, float4 b)
 {
     return a - b;
 }
+
 
 inline float4 _mm_mul_ps(float4 a, float4 b)
 {
     return a * b;
 }
 
+
 inline float4 _mm_div_ps(float4 a, float4 b)
 {
     return a / b;
 }
+
 
 inline float4 _mm_and_ps(float4 a, int b)
 {
     return as_float4(as_int4(a) & (int4)(b));
 }
 
+
 inline float4 _mm_or_ps(float4 a, int b)
 {
     return as_float4(as_int4(a) | (int4)(b));
 }
+
 
 inline float4 _mm_fmod_ps(float4 v, float dc)
 {
@@ -40,15 +56,18 @@ inline float4 _mm_fmod_ps(float4 v, float dc)
     return _mm_sub_ps(v, c);
 }
 
+
 inline int4 _mm_xor_si128(int4 a, int4 b)
 {
     return a ^ b;
 }
 
+
 inline float4 _mm_xor_ps(float4 a, int b)
 {
     return as_float4(as_int4(a) ^ (int4)(b));
 }
+
 
 inline int4 _mm_alignr_epi8(int4 a, const uint rot)
 {
@@ -63,7 +82,8 @@ inline int4 _mm_alignr_epi8(int4 a, const uint rot)
 }
 
 
-inline global int4* scratchpad_ptr(uint idx, uint n, __global int *lpad) { return (__global int4*)((__global char*)lpad + (idx & 0x1FFFC0) + n * 16); }
+inline global int4* scratchpad_ptr(uint idx, uint n, __global int *lpad) { return (__global int4*)((__global char*)lpad + (idx & MASK) + n * 16); }
+
 
 inline float4 fma_break(float4 x)
 {
@@ -71,6 +91,7 @@ inline float4 fma_break(float4 x)
     x = _mm_and_ps(x, 0xFEFFFFFF);
     return _mm_or_ps(x, 0x00800000);
 }
+
 
 inline void sub_round(float4 n0, float4 n1, float4 n2, float4 n3, float4 rnd_c, float4* n, float4* d, float4* c)
 {
@@ -96,6 +117,7 @@ inline void sub_round(float4 n0, float4 n1, float4 n2, float4 n3, float4 rnd_c, 
 
 }
 
+
 // 9*8 + 2 = 74
 inline void round_compute(float4 n0, float4 n1, float4 n2, float4 n3, float4 rnd_c, float4* c, float4* r)
 {
@@ -117,14 +139,16 @@ inline void round_compute(float4 n0, float4 n1, float4 n2, float4 n3, float4 rnd
     *r =_mm_add_ps(*r, _mm_div_ps(n,d));
 }
 
+
 inline int4 single_comupte(float4 n0, float4 n1, float4 n2, float4 n3, float cnt, float4 rnd_c, __local float4* sum)
 {
     float4 c= (float4)(cnt);
     // 35 maths calls follow (140 FLOPS)
     float4 r = (float4)(0.0f);
 
-    for(int i = 0; i < 4; ++i)
+    for (int i = 0; i < 4; ++i) {
         round_compute(n0, n1, n2, n3, rnd_c, &c, &r);
+    }
 
     // do a quick fmod by setting exp to 2
     r = _mm_and_ps(r, 0x807FFFFF);
@@ -134,6 +158,7 @@ inline int4 single_comupte(float4 n0, float4 n1, float4 n2, float4 n3, float cnt
     r = _mm_mul_ps(r, x); // 35
     return convert_int4_rte(r);
 }
+
 
 inline void single_comupte_wrap(const uint rot, int4 v0, int4 v1, int4 v2, int4 v3, float cnt, float4 rnd_c, __local float4* sum, __local int4* out)
 {
@@ -146,8 +171,6 @@ inline void single_comupte_wrap(const uint rot, int4 v0, int4 v1, int4 v2, int4 
     *out = rot == 0 ? r : _mm_alignr_epi8(r, rot);
 }
 
-)==="
-R"===(
 
 static const __constant uint look[16][4] = {
     {0, 1, 2, 3},
@@ -171,6 +194,7 @@ static const __constant uint look[16][4] = {
     {3, 0, 2, 1}
 };
 
+
 static const __constant float ccnt[16] = {
     1.34375f,
     1.28125f,
@@ -193,23 +217,18 @@ static const __constant float ccnt[16] = {
     1.4609375f
 };
 
+
 struct SharedMemChunk
 {
     int4 out[16];
     float4 va[16];
 };
 
+
 __attribute__((reqd_work_group_size(WORKSIZE * 16, 1, 1)))
-__kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThreads)
+__kernel void cn1(__global int *lpad_in, __global int *spad, uint numThreads)
 {
     const uint gIdx = getIdx();
-
-#   if (COMP_MODE==1)
-    if (gIdx / 16 >= numThreads) {
-        return;
-    }
-#   endif
-
     uint chunk = get_local_id(0) / 16;
 
     __global int* lpad = (__global int*)((__global char*)lpad_in + MEMORY * (gIdx/16));
@@ -229,9 +248,8 @@ __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThre
     const uint tidm = tid % 4;
     const uint block = tidd * 16 + tidm;
 
-    #pragma unroll 1
-    for(size_t i = 0; i < 0xC000; i++)
-    {
+    #pragma unroll CN_UNROLL
+    for (uint i = 0; i < ITERATIONS; i++)   {
         mem_fence(CLK_LOCAL_MEM_FENCE);
         int tmp = ((__global int*)scratchpad_ptr(s, tidd, lpad))[tidm];
         ((__local int*)(smem->out))[tid] = tmp;
@@ -251,8 +269,9 @@ __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThre
         mem_fence(CLK_LOCAL_MEM_FENCE);
 
         int outXor = ((__local int*)smem->out)[block];
-        for(uint dd = block + 4; dd < (tidd + 1) * 16; dd += 4)
+        for (uint dd = block + 4; dd < (tidd + 1) * 16; dd += 4) {
             outXor ^= ((__local int*)smem->out)[dd];
+        }
 
         ((__global int*)scratchpad_ptr(s, tidd, lpad))[tidm] = outXor ^ tmp;
         ((__local int*)smem->out)[tid] = outXor;
@@ -281,56 +300,53 @@ __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThre
     }
 }
 
-)==="
-R"===(
 
 static const __constant uint skip[3] = {
     20,22,22
 };
+
 
 inline void generate_512(uint idx, __local ulong* in, __global ulong* out)
 {
     ulong hash[25];
 
     hash[0] = in[0] ^ idx;
-    for(int i = 1; i < 25; ++i)
+    for (int i = 1; i < 25; ++i) {
         hash[i] = in[i];
+    }
 
-    for(int a = 0; a < 3;++a)
-    {
+    for (int a = 0; a < 3; ++a) {
         keccakf1600_1(hash);
-        for(int i = 0; i < skip[a]; ++i)
+        for (int i = 0; i < skip[a]; ++i) {
             out[i] = hash[i];
-        out+=skip[a];
+        }
+
+        out += skip[a];
     }
 }
 
+
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn0_cn_gpu(__global ulong *input, __global int *Scratchpad, __global ulong *states, uint Threads)
+__kernel void cn0(__global ulong *input, __global int *Scratchpad, __global ulong *states, uint Threads)
 {
     const uint gIdx = getIdx();
     __local ulong State_buf[8 * 25];
     __local ulong* State = State_buf + get_local_id(0) * 25;
 
-#   if (COMP_MODE==1)
-    // do not use early return here
-    if(gIdx < Threads)
-#   endif
     {
         states += 25 * gIdx;
 
         Scratchpad = (__global int*)((__global char*)Scratchpad + MEMORY * gIdx);
 
-        if (get_local_id(1) == 0)
-        {
+        if (get_local_id(1) == 0) {
 
-// NVIDIA
-#ifdef __NV_CL_C_VERSION
+#           ifdef __NV_CL_C_VERSION
             for(uint i = 0; i < 8; ++i)
                 State[i] = input[i];
-#else
+#           else
             ((__local ulong8 *)State)[0] = vload8(0, input);
-#endif
+#           endif
+
             State[8]  = input[8];
             State[9]  = input[9];
             State[10] = input[10];
@@ -362,8 +378,9 @@ __kernel void cn0_cn_gpu(__global ulong *input, __global int *Scratchpad, __glob
     }
 }
 
+
 __attribute__((reqd_work_group_size(64, 1, 1)))
-__kernel void cn00_cn_gpu(__global int *Scratchpad, __global ulong *states)
+__kernel void cn00(__global int *Scratchpad, __global ulong *states)
 {
     const uint gIdx = getIdx() / 64;
     __local ulong State[25];
@@ -372,20 +389,20 @@ __kernel void cn00_cn_gpu(__global int *Scratchpad, __global ulong *states)
 
     Scratchpad = (__global int*)((__global char*)Scratchpad + MEMORY * gIdx);
 
-    for(int i = get_local_id(0); i < 25; i+=get_local_size(0))
+    for (int i = get_local_id(0); i < 25; i += get_local_size(0)) {
         State[i] = states[i];
+    }
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-
-    for(uint i = get_local_id(0); i < MEMORY / 512; i += get_local_size(0))
-    {
-        generate_512(i, State, (__global ulong*)((__global uchar*)Scratchpad + i*512));
+    for (uint i = get_local_id(0); i < MEMORY / 512; i += get_local_size(0)) {
+        generate_512(i, State, (__global ulong*)((__global uchar*)Scratchpad + i * 512));
     }
 }
 
+
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __global uint *output, ulong Target, uint Threads)
+__kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global uint *output, ulong Target, uint Threads)
 {
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
     uint ExpandedKey2[40];
@@ -406,24 +423,16 @@ __kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __g
     __local uint4 xin1[8][8];
     __local uint4 xin2[8][8];
 
-#   if (COMP_MODE==1)
-    // do not use early return here
-    if(gIdx < Threads)
-#   endif
     {
         states += 25 * gIdx;
         Scratchpad += gIdx * (MEMORY >> 4);
 
         #if defined(__Tahiti__) || defined(__Pitcairn__)
-
         for(int i = 0; i < 4; ++i) ((ulong *)ExpandedKey2)[i] = states[i + 4];
         text = vload4(get_local_id(1) + 4, (__global uint *)states);
-
         #else
-
         text = vload4(get_local_id(1) + 4, (__global uint *)states);
         ((uint8 *)ExpandedKey2)[0] = vload8(1, (__global uint *)states);
-
         #endif
 
         AESExpandKey256(ExpandedKey2);
@@ -437,15 +446,10 @@ __kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __g
     __local uint4* xin2_load = &xin2[(get_local_id(1) + 1) % 8][get_local_id(0)];
     *xin2_store = (uint4)(0, 0, 0, 0);
 
-#   if (COMP_MODE == 1)
-    // do not use early return here
-    if (gIdx < Threads)
-#   endif
     {
 
         #pragma unroll 2
-        for(int i = 0, i1 = get_local_id(1); i < (MEMORY >> 7); ++i, i1 = (i1 + 16) % (MEMORY >> 4))
-        {
+        for (int i = 0, i1 = get_local_id(1); i < (MEMORY >> 7); ++i, i1 = (i1 + 16) % (MEMORY >> 4)) {
             text ^= Scratchpad[(uint)i1];
             barrier(CLK_LOCAL_MEM_FENCE);
             text ^= *xin2_load;
@@ -489,20 +493,12 @@ __kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __g
     }
 
     __local ulong State_buf[8 * 25];
-#   if (COMP_MODE==1)
-    // do not use early return here
-    if(gIdx < Threads)
-#   endif
     {
         vstore2(as_ulong2(text), get_local_id(1) + 4, states);
     }
 
     barrier(CLK_GLOBAL_MEM_FENCE);
 
-#   if (COMP_MODE==1)
-    // do not use early return here
-    if(gIdx < Threads)
-#   endif
     {
         if(!get_local_id(1))
         {
@@ -522,5 +518,3 @@ __kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __g
     }
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 }
-
-)==="

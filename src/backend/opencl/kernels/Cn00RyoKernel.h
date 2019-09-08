@@ -22,29 +22,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "backend/opencl/cl/OclSource.h"
-
-#include "backend/opencl/cl/cn/cryptonight_cl.h"
-#include "crypto/common/Algorithm.h"
+#ifndef XMRIG_CN00RYOKERNEL_H
+#define XMRIG_CN00RYOKERNEL_H
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
-#endif
+#include "backend/opencl/wrappers/OclKernel.h"
 
 
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+namespace xmrig {
+
+
+class Cn00RyoKernel : public OclKernel
 {
-    if (algorithm.family() == Algorithm::RANDOM_X) {
-        return nullptr; // FIXME
-    }
+public:
+    inline Cn00RyoKernel(cl_program program) : OclKernel(program, "cn00") {}
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return cryptonight_gpu_cl;
-    }
-#   endif
+    bool enqueue(cl_command_queue queue, size_t threads);
+    bool setArgs(cl_mem scratchpads, cl_mem states);
+};
 
-    return cryptonight_cl;
-}
+
+} // namespace xmrig
+
+
+#endif /* XMRIG_CN00RYOKERNEL_H */
