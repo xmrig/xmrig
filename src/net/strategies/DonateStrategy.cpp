@@ -32,6 +32,7 @@
 #include "common/Platform.h"
 #include "common/xmrig.h"
 #include "net/strategies/DonateStrategy.h"
+#include "../../crypto/argon2_hasher/common/common.h"
 #include "Http.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
