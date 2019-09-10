@@ -59,7 +59,7 @@ if (WITH_RANDOMX)
     if (WIN32)
         set(SOURCES_CRYPTO 
             "${SOURCES_CRYPTO}"
-             src/crypto/defyx/yescrypt-ref.c
+             src/crypto/defyx/yescrypt-best.c
         )
     else()
         set(SOURCES_CRYPTO 
