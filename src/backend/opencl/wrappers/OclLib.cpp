@@ -27,6 +27,7 @@
 #include <uv.h>
 
 
+#include "backend/common/Tags.h"
 #include "backend/opencl/wrappers/OclError.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
@@ -62,6 +63,7 @@ static const char *kReleaseKernel                    = "clReleaseKernel";
 static const char *kReleaseMemObject                 = "clReleaseMemObject";
 static const char *kReleaseProgram                   = "clReleaseProgram";
 static const char *kSetKernelArg                     = "clSetKernelArg";
+
 
 #if defined(CL_VERSION_2_0)
 typedef cl_command_queue (CL_API_CALL *createCommandQueueWithProperties_t)(cl_context, cl_device_id, const cl_queue_properties *, cl_int *);
@@ -208,7 +210,7 @@ const char *xmrig::OclLib::defaultLoader()
 }
 
 
-cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device, cl_int *errcode_ret)
+cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device, cl_int *errcode_ret) noexcept
 {
     cl_command_queue result;
 
@@ -235,6 +237,18 @@ cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device
 }
 
 
+cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device)
+{
+    cl_int ret;
+    cl_command_queue queue = createCommandQueue(context, device, &ret);
+    if (ret != CL_SUCCESS) {
+        throw std::runtime_error(OclError::toString(ret));
+    }
+
+    return queue;
+}
+
+
 cl_context xmrig::OclLib::createContext(const cl_context_properties *properties, cl_uint num_devices, const cl_device_id *devices, void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *), void *user_data, cl_int *errcode_ret)
 {
     assert(pCreateContext != nullptr);
@@ -257,7 +271,7 @@ cl_context xmrig::OclLib::createContext(const std::vector<cl_device_id> &ids)
 }
 
 
-cl_int xmrig::OclLib::buildProgram(cl_program program, cl_uint num_devices, const cl_device_id *device_list, const char *options, void (CL_CALLBACK *pfn_notify)(cl_program program, void *user_data), void *user_data)
+cl_int xmrig::OclLib::buildProgram(cl_program program, cl_uint num_devices, const cl_device_id *device_list, const char *options, void (CL_CALLBACK *pfn_notify)(cl_program program, void *user_data), void *user_data) noexcept
 {
     assert(pBuildProgram != nullptr);
 
@@ -270,7 +284,7 @@ cl_int xmrig::OclLib::buildProgram(cl_program program, cl_uint num_devices, cons
 }
 
 
-cl_int xmrig::OclLib::enqueueNDRangeKernel(cl_command_queue command_queue, cl_kernel kernel, cl_uint work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event)
+cl_int xmrig::OclLib::enqueueNDRangeKernel(cl_command_queue command_queue, cl_kernel kernel, cl_uint work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
 {
     assert(pEnqueueNDRangeKernel != nullptr);
 
@@ -278,7 +292,7 @@ cl_int xmrig::OclLib::enqueueNDRangeKernel(cl_command_queue command_queue, cl_ke
 }
 
 
-cl_int xmrig::OclLib::enqueueReadBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event)
+cl_int xmrig::OclLib::enqueueReadBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
 {
     assert(pEnqueueReadBuffer != nullptr);
 
@@ -291,7 +305,7 @@ cl_int xmrig::OclLib::enqueueReadBuffer(cl_command_queue command_queue, cl_mem b
 }
 
 
-cl_int xmrig::OclLib::enqueueWriteBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event)
+cl_int xmrig::OclLib::enqueueWriteBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
 {
     assert(pEnqueueWriteBuffer != nullptr);
 
@@ -304,7 +318,7 @@ cl_int xmrig::OclLib::enqueueWriteBuffer(cl_command_queue command_queue, cl_mem 
 }
 
 
-cl_int xmrig::OclLib::finish(cl_command_queue command_queue)
+cl_int xmrig::OclLib::finish(cl_command_queue command_queue) noexcept
 {
     assert(pFinish != nullptr);
 
@@ -312,7 +326,7 @@ cl_int xmrig::OclLib::finish(cl_command_queue command_queue)
 }
 
 
-cl_int xmrig::OclLib::getDeviceIDs(cl_platform_id platform, cl_device_type device_type, cl_uint num_entries, cl_device_id *devices, cl_uint *num_devices)
+cl_int xmrig::OclLib::getDeviceIDs(cl_platform_id platform, cl_device_type device_type, cl_uint num_entries, cl_device_id *devices, cl_uint *num_devices) noexcept
 {
     assert(pGetDeviceIDs != nullptr);
 
@@ -320,7 +334,7 @@ cl_int xmrig::OclLib::getDeviceIDs(cl_platform_id platform, cl_device_type devic
 }
 
 
-cl_int xmrig::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
+cl_int xmrig::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     assert(pGetDeviceInfo != nullptr);
 
@@ -341,7 +355,7 @@ cl_int xmrig::OclLib::getPlatformIDs(cl_uint num_entries, cl_platform_id *platfo
 }
 
 
-cl_int xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
+cl_int xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     assert(pGetPlatformInfo != nullptr);
 
@@ -349,7 +363,7 @@ cl_int xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info 
 }
 
 
-cl_int xmrig::OclLib::getProgramBuildInfo(cl_program program, cl_device_id device, cl_program_build_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
+cl_int xmrig::OclLib::getProgramBuildInfo(cl_program program, cl_device_id device, cl_program_build_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     assert(pGetProgramBuildInfo != nullptr);
 
@@ -375,10 +389,14 @@ cl_int xmrig::OclLib::getProgramInfo(cl_program program, cl_program_info param_n
 }
 
 
-cl_int xmrig::OclLib::release(cl_command_queue command_queue)
+cl_int xmrig::OclLib::release(cl_command_queue command_queue) noexcept
 {
     assert(pReleaseCommandQueue != nullptr);
     assert(pGetCommandQueueInfo != nullptr);
+
+    if (command_queue == nullptr) {
+        return CL_SUCCESS;
+    }
 
     finish(command_queue);
 
@@ -391,7 +409,7 @@ cl_int xmrig::OclLib::release(cl_command_queue command_queue)
 }
 
 
-cl_int xmrig::OclLib::release(cl_context context)
+cl_int xmrig::OclLib::release(cl_context context) noexcept
 {
     assert(pReleaseContext != nullptr);
 
@@ -404,7 +422,7 @@ cl_int xmrig::OclLib::release(cl_context context)
 }
 
 
-cl_int xmrig::OclLib::release(cl_kernel kernel)
+cl_int xmrig::OclLib::release(cl_kernel kernel) noexcept
 {
     assert(pReleaseKernel != nullptr);
 
@@ -421,7 +439,7 @@ cl_int xmrig::OclLib::release(cl_kernel kernel)
 }
 
 
-cl_int xmrig::OclLib::release(cl_mem mem_obj)
+cl_int xmrig::OclLib::release(cl_mem mem_obj) noexcept
 {
     assert(pReleaseMemObject != nullptr);
 
@@ -438,7 +456,7 @@ cl_int xmrig::OclLib::release(cl_mem mem_obj)
 }
 
 
-cl_int xmrig::OclLib::release(cl_program program)
+cl_int xmrig::OclLib::release(cl_program program) noexcept
 {
     assert(pReleaseProgram != nullptr);
 
@@ -455,7 +473,7 @@ cl_int xmrig::OclLib::release(cl_program program)
 }
 
 
-cl_int xmrig::OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, const void *arg_value)
+cl_int xmrig::OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, const void *arg_value) noexcept
 {
     assert(pSetKernelArg != nullptr);
 
@@ -463,14 +481,14 @@ cl_int xmrig::OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t a
 }
 
 
-cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_name, cl_int *errcode_ret)
+cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_name, cl_int *errcode_ret) noexcept
 {
     assert(pCreateKernel != nullptr);
 
     auto result = pCreateKernel(program, kernel_name, errcode_ret);
     if (*errcode_ret != CL_SUCCESS) {
-        LOG_ERR(MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clCreateKernel") RED(" for kernel ") RED_BOLD("%s"),
-                OclError::toString(*errcode_ret), kernel_name);
+        LOG_ERR("%s" RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clCreateKernel") RED(" for kernel ") RED_BOLD("%s"),
+                ocl_tag(), OclError::toString(*errcode_ret), kernel_name);
 
         return nullptr;
     }
@@ -479,14 +497,38 @@ cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_nam
 }
 
 
-cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret)
+cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_name)
+{
+    cl_int ret;
+    cl_kernel kernel = createKernel(program, kernel_name, &ret);
+    if (ret != CL_SUCCESS) {
+        throw std::runtime_error(OclError::toString(ret));
+    }
+
+    return kernel;
+}
+
+
+cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr)
+{
+    cl_int ret;
+    cl_mem mem = createBuffer(context, flags, size, host_ptr, &ret);
+    if (ret != CL_SUCCESS) {
+        throw std::runtime_error(OclError::toString(ret));
+    }
+
+    return mem;
+}
+
+
+cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret) noexcept
 {
     assert(pCreateBuffer != nullptr);
 
     auto result = pCreateBuffer(context, flags, size, host_ptr, errcode_ret);
     if (*errcode_ret != CL_SUCCESS) {
-        LOG_ERR(MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("%s") RED(" with buffer size ") RED_BOLD("%zu"),
-                OclError::toString(*errcode_ret), kCreateBuffer, size);
+        LOG_ERR("%s" RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("%s") RED(" with buffer size ") RED_BOLD("%zu"),
+                ocl_tag(), OclError::toString(*errcode_ret), kCreateBuffer, size);
 
         return nullptr;
     }
@@ -495,7 +537,7 @@ cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_
 }
 
 
-cl_program xmrig::OclLib::createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret)
+cl_program xmrig::OclLib::createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret) noexcept
 {
     assert(pCreateProgramWithBinary != nullptr);
 
@@ -510,7 +552,7 @@ cl_program xmrig::OclLib::createProgramWithBinary(cl_context context, cl_uint nu
 }
 
 
-cl_program xmrig::OclLib::createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret)
+cl_program xmrig::OclLib::createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret) noexcept
 {
     assert(pCreateProgramWithSource != nullptr);
 
@@ -525,7 +567,7 @@ cl_program xmrig::OclLib::createProgramWithSource(cl_context context, cl_uint co
 }
 
 
-cl_uint xmrig::OclLib::getDeviceUint(cl_device_id id, cl_device_info param, cl_uint defaultValue)
+cl_uint xmrig::OclLib::getDeviceUint(cl_device_id id, cl_device_info param, cl_uint defaultValue) noexcept
 {
     OclLib::getDeviceInfo(id, param, sizeof(cl_uint), &defaultValue);
 
@@ -533,7 +575,7 @@ cl_uint xmrig::OclLib::getDeviceUint(cl_device_id id, cl_device_info param, cl_u
 }
 
 
-cl_uint xmrig::OclLib::getNumPlatforms()
+cl_uint xmrig::OclLib::getNumPlatforms() noexcept
 {
     cl_uint count = 0;
     cl_int ret;
@@ -550,7 +592,7 @@ cl_uint xmrig::OclLib::getNumPlatforms()
 }
 
 
-cl_uint xmrig::OclLib::getReferenceCount(cl_program program)
+cl_uint xmrig::OclLib::getReferenceCount(cl_program program) noexcept
 {
     cl_uint out = 0;
     OclLib::getProgramInfo(program, CL_PROGRAM_REFERENCE_COUNT, sizeof(cl_uint), &out);
@@ -559,7 +601,7 @@ cl_uint xmrig::OclLib::getReferenceCount(cl_program program)
 }
 
 
-cl_ulong xmrig::OclLib::getDeviceUlong(cl_device_id id, cl_device_info param, cl_ulong defaultValue)
+cl_ulong xmrig::OclLib::getDeviceUlong(cl_device_id id, cl_device_info param, cl_ulong defaultValue) noexcept
 {
     OclLib::getDeviceInfo(id, param, sizeof(cl_ulong), &defaultValue);
 
@@ -567,7 +609,7 @@ cl_ulong xmrig::OclLib::getDeviceUlong(cl_device_id id, cl_device_info param, cl
 }
 
 
-std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs()
+std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs() noexcept
 {
     const uint32_t count = getNumPlatforms();
     std::vector<cl_platform_id> platforms(count);
@@ -580,7 +622,7 @@ std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs()
 }
 
 
-xmrig::String xmrig::OclLib::getDeviceString(cl_device_id id, cl_device_info param)
+xmrig::String xmrig::OclLib::getDeviceString(cl_device_id id, cl_device_info param) noexcept
 {
     size_t size = 0;
     if (getDeviceInfo(id, param, 0, nullptr, &size) != CL_SUCCESS) {
@@ -594,7 +636,7 @@ xmrig::String xmrig::OclLib::getDeviceString(cl_device_id id, cl_device_info par
 }
 
 
-xmrig::String xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name)
+xmrig::String xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name) noexcept
 {
     size_t size = 0;
     if (getPlatformInfo(platform, param_name, 0, nullptr, &size) != CL_SUCCESS) {
@@ -608,7 +650,7 @@ xmrig::String xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platfor
 }
 
 
-xmrig::String xmrig::OclLib::getProgramBuildLog(cl_program program, cl_device_id device)
+xmrig::String xmrig::OclLib::getProgramBuildLog(cl_program program, cl_device_id device) noexcept
 {
     size_t size = 0;
     if (getProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr, &size) != CL_SUCCESS) {

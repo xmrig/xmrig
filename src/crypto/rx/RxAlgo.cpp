@@ -47,3 +47,29 @@ xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 
     return algorithm;
 }
+
+
+uint32_t xmrig::RxAlgo::version(Algorithm::Id algorithm)
+{
+    return algorithm == Algorithm::RX_WOW ? 103 : 104;
+}
+
+
+uint32_t xmrig::RxAlgo::programSize(Algorithm::Id algorithm)
+{
+    switch (algorithm) {
+    case Algorithm::RX_0:
+        return RandomX_MoneroConfig.ProgramSize;
+
+    case Algorithm::RX_WOW:
+        return RandomX_WowneroConfig.ProgramSize;
+
+    case Algorithm::RX_LOKI:
+        return RandomX_LokiConfig.ProgramSize;
+
+    default:
+        break;
+    }
+
+    return 0;
+}

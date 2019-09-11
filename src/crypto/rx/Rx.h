@@ -28,7 +28,7 @@
 #define XMRIG_RX_H
 
 
-#include <stdint.h>
+#include <cstdint>
 #include <utility>
 
 

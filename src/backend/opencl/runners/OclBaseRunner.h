@@ -43,15 +43,10 @@ class OclLaunchData;
 class OclBaseRunner : public IOclRunner
 {
 public:
-    OclBaseRunner()                           = delete;
-    OclBaseRunner(const OclBaseRunner &other) = delete;
-    OclBaseRunner(OclBaseRunner &&other)      = delete;
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclBaseRunner)
+
     OclBaseRunner(size_t id, const OclLaunchData &data);
-
     ~OclBaseRunner() override;
-
-    OclBaseRunner &operator=(const OclBaseRunner &other) = delete;
-    OclBaseRunner &operator=(OclBaseRunner &&other)      = delete;
 
 protected:
     inline cl_context ctx() const override              { return m_ctx; }
@@ -62,12 +57,14 @@ protected:
     inline const OclLaunchData &data() const override   { return m_data; }
     inline size_t threadId() const override             { return m_threadId; }
 
-    bool isReadyToBuild() const override;
-    bool selfTest() const override;
     uint32_t deviceIndex() const override;
     void build() override;
+    void init() override;
 
 protected:
+    void enqueueReadBuffer(cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr);
+    void enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr);
+
     Algorithm m_algorithm;
     cl_command_queue m_queue    = nullptr;
     cl_context m_ctx;

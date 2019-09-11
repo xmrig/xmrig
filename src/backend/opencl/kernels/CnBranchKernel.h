@@ -36,8 +36,9 @@ class CnBranchKernel : public OclKernel
 {
 public:
     CnBranchKernel(size_t index, cl_program program);
-    bool enqueue(cl_command_queue queue, uint32_t nonce, size_t threads, size_t worksize);
-    bool setArgs(cl_mem states, cl_mem branch, cl_mem output, uint64_t target, uint32_t threads);
+    void enqueue(cl_command_queue queue, uint32_t nonce, size_t threads, size_t worksize);
+    void setArgs(cl_mem states, cl_mem branch, cl_mem output, uint32_t threads);
+    void setTarget(uint64_t target);
 };
 
 

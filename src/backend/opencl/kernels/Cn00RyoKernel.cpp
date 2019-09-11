@@ -27,17 +27,18 @@
 #include "backend/opencl/wrappers/OclLib.h"
 
 
-bool xmrig::Cn00RyoKernel::enqueue(cl_command_queue queue, size_t threads)
+void xmrig::Cn00RyoKernel::enqueue(cl_command_queue queue, size_t threads)
 {
     const size_t gthreads = threads * 64;
     const size_t lthreads = 64;
 
-    return enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
+    enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
 }
 
 
 // __kernel void cn00(__global int *Scratchpad, __global ulong *states)
-bool xmrig::Cn00RyoKernel::setArgs(cl_mem scratchpads, cl_mem states)
+void xmrig::Cn00RyoKernel::setArgs(cl_mem scratchpads, cl_mem states)
 {
-    return setArg(0, sizeof(cl_mem), &scratchpads) && setArg(1, sizeof(cl_mem), &states);
+    setArg(0, sizeof(cl_mem), &scratchpads);
+    setArg(1, sizeof(cl_mem), &states);
 }

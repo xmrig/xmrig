@@ -61,7 +61,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
 #   ifdef XMRIG_ALGO_RANDOMX
     m_bfactor     = Json::getUint(value, kBFactor, 6);
     m_gcnAsm      = Json::getUint(value, kGCNAsm, m_gcnAsm);
-    m_datasetHost = Json::getInt(value, kDatasetHost, m_datasetHost);
+    m_datasetHost = Json::getBool(value, kDatasetHost, m_datasetHost);
 #   endif
 
     const rapidjson::Value &si = Json::getArray(value, kStridedIndex);
@@ -134,11 +134,11 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
     out.AddMember(StringRef(kUnroll),       unrollFactor(), allocator);
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (m_datasetHost != -1) {
-        out.AddMember(StringRef(kBFactor),      bfactor(), allocator);
-        out.AddMember(StringRef(kGCNAsm),       gcnAsm(), allocator);
-        out.AddMember(StringRef(kDatasetHost),  datasetHost(), allocator);
-    }
+//    if (m_datasetHost != -1) {
+//        out.AddMember(StringRef(kBFactor),      bfactor(), allocator);
+//        out.AddMember(StringRef(kGCNAsm),       gcnAsm(), allocator);
+//        out.AddMember(StringRef(kDatasetHost),  isDatasetHost(), allocator);
+//    }
 #   endif
 
     return out;

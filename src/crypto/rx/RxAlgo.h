@@ -28,8 +28,8 @@
 #define XMRIG_RX_ALGO_H
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 
 #include "crypto/common/Algorithm.h"
@@ -43,6 +43,8 @@ class RxAlgo
 {
 public:
     static Algorithm::Id apply(Algorithm::Id algorithm);
+    static uint32_t programSize(Algorithm::Id algorithm);
+    static uint32_t version(Algorithm::Id algorithm);
 };
 
 

@@ -30,6 +30,7 @@
 
 
 #include "3rdparty/base32/base32.h"
+#include "backend/common/Tags.h"
 #include "backend/opencl/interfaces/IOclRunner.h"
 #include "backend/opencl/OclCache.h"
 #include "backend/opencl/OclLaunchData.h"
@@ -42,13 +43,12 @@
 namespace xmrig {
 
 
-static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
 static std::mutex mutex;
 
 
 static cl_program createFromSource(const IOclRunner *runner)
 {
-    LOG_INFO("%s GPU " WHITE_BOLD("#%zu") " " YELLOW_BOLD("compiling..."), tag, runner->data().device.index());
+    LOG_INFO("%s GPU " WHITE_BOLD("#%zu") " " YELLOW_BOLD("compiling..."), ocl_tag(), runner->data().device.index());
 
     cl_int ret;
     cl_device_id device = runner->data().device.id();
@@ -68,7 +68,7 @@ static cl_program createFromSource(const IOclRunner *runner)
     }
 
     LOG_INFO("%s GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("compilation completed") BLACK_BOLD(" (%" PRIu64 " ms)"),
-             tag, runner->data().device.index(), Chrono::steadyMSecs() - ts);
+             ocl_tag(), runner->data().device.index(), Chrono::steadyMSecs() - ts);
 
     return program;
 }

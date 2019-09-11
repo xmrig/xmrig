@@ -26,6 +26,7 @@
 #define XMRIG_OCLKERNEL_H
 
 
+#include "base/tools/Object.h"
 #include "base/tools/String.h"
 
 
@@ -41,6 +42,8 @@ namespace xmrig {
 class OclKernel
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclKernel)
+
     OclKernel(cl_program program, const char *name);
     virtual ~OclKernel();
 
@@ -48,8 +51,8 @@ public:
     inline cl_kernel kernel() const     { return m_kernel; }
     inline const String &name() const   { return m_name; }
 
-    bool enqueueNDRange(cl_command_queue queue, uint32_t work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size);
-    bool setArg(uint32_t index, size_t size, const void *value);
+    void enqueueNDRange(cl_command_queue queue, uint32_t work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size);
+    void setArg(uint32_t index, size_t size, const void *value);
 
 private:
     cl_kernel m_kernel = nullptr;

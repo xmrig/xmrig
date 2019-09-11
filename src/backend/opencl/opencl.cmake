@@ -65,8 +65,33 @@ if (WITH_OPENCL)
    endif()
 
    if (WITH_RANDOMX)
-       list(APPEND HEADERS_BACKEND_OPENCL src/backend/opencl/runners/OclRxRunner.h)
-       list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/runners/OclRxRunner.cpp)
+       list(APPEND HEADERS_BACKEND_OPENCL
+           src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.h
+           src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.h
+           src/backend/opencl/kernels/rx/ExecuteVmKernel.h
+           src/backend/opencl/kernels/rx/FillAesKernel.h
+           src/backend/opencl/kernels/rx/FindSharesKernel.h
+           src/backend/opencl/kernels/rx/HashAesKernel.cpp
+           src/backend/opencl/kernels/rx/InitVmKernel.h
+           src/backend/opencl/runners/OclRxBaseRunner.h
+           src/backend/opencl/runners/OclRxJitRunner.h
+           src/backend/opencl/runners/OclRxVmRunner.h
+           src/backend/opencl/runners/tools/OclRxDataset.h
+           )
+
+       list(APPEND SOURCES_BACKEND_OPENCL
+           src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.cpp
+           src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.cpp
+           src/backend/opencl/kernels/rx/ExecuteVmKernel.cpp
+           src/backend/opencl/kernels/rx/FillAesKernel.cpp
+           src/backend/opencl/kernels/rx/FindSharesKernel.cpp
+           src/backend/opencl/kernels/rx/HashAesKernel.cpp
+           src/backend/opencl/kernels/rx/InitVmKernel.cpp
+           src/backend/opencl/runners/OclRxBaseRunner.cpp
+           src/backend/opencl/runners/OclRxJitRunner.cpp
+           src/backend/opencl/runners/OclRxVmRunner.cpp
+           src/backend/opencl/runners/tools/OclRxDataset.cpp
+           )
    endif()
 
    if (WITH_CN_GPU AND CMAKE_SIZEOF_VOID_P EQUAL 8)

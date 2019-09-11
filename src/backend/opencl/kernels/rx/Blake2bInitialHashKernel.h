@@ -22,30 +22,26 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLRXRUNNER_H
-#define XMRIG_OCLRXRUNNER_H
+#ifndef XMRIG_BLAKE2BINITIALHASHKERNEL_H
+#define XMRIG_BLAKE2BINITIALHASHKERNEL_H
 
 
-#include "backend/opencl/runners/OclBaseRunner.h"
+#include "backend/opencl/wrappers/OclKernel.h"
 
 
 namespace xmrig {
 
 
-class OclRxRunner : public OclBaseRunner
+class Blake2bInitialHashKernel : public OclKernel
 {
 public:
-    OclRxRunner(size_t index, const OclLaunchData &data);
+    inline Blake2bInitialHashKernel(cl_program program) : OclKernel(program, "blake2b_initial_hash") {}
 
-protected:
-    bool run(uint32_t nonce, uint32_t *hashOutput) override;
-    bool selfTest() const override;
-    bool set(const Job &job, uint8_t *blob) override;
-    void build() override;
+    void setArgs(cl_mem out, cl_mem blockTemplate);
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif // XMRIG_OCLRXRUNNER_H
+#endif /* XMRIG_BLAKE2BINITIALHASHKERNEL_H */

@@ -68,11 +68,11 @@ public:
 
     OclThread(const rapidjson::Value &value);
 
+    inline bool isAsm() const                               { return m_gcnAsm; }
+    inline bool isDatasetHost() const                       { return m_datasetHost; }
     inline bool isValid() const                             { return m_intensity > 0; }
     inline const std::vector<int64_t> &threads() const      { return m_threads; }
     inline uint32_t bfactor() const                         { return m_bfactor; }
-    inline uint32_t datasetHost() const                     { return m_datasetHost < 0 ? 0 : static_cast<uint32_t>(m_datasetHost); }
-    inline uint32_t gcnAsm() const                          { return m_gcnAsm; }
     inline uint32_t index() const                           { return m_index; }
     inline uint32_t intensity() const                       { return m_intensity; }
     inline uint32_t memChunk() const                        { return m_memChunk; }
@@ -95,11 +95,11 @@ private:
 
     inline void setIntensity(uint32_t intensity)            { m_intensity = intensity / m_worksize * m_worksize; }
 
-    int m_datasetHost               = -1;
+    bool m_datasetHost              = false;
+    bool m_gcnAsm                   = false;
     std::bitset<FIELD_MAX> m_fields = 1;
     std::vector<int64_t> m_threads;
     uint32_t m_bfactor              = 6;
-    uint32_t m_gcnAsm               = 1;
     uint32_t m_index                = 0;
     uint32_t m_intensity            = 0;
     uint32_t m_memChunk             = 2;

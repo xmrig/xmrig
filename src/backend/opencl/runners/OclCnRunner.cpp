@@ -39,30 +39,6 @@
 
 xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
 {
-    if (m_queue == nullptr) {
-        return;
-    }
-
-    const size_t g_thd = data.thread.intensity();
-
-    cl_int ret;
-    m_scratchpads = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, data.algorithm.l3() * g_thd, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
-
-    m_states = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 200 * g_thd, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
-
-    for (size_t i = 0; i < BRANCH_MAX; ++i) {
-        m_branches[i] = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
-        if (ret != CL_SUCCESS) {
-            return;
-        }
-    }
-
     uint32_t stridedIndex = data.thread.stridedIndex();
     if (data.device.vendorId() == OCL_VENDOR_NVIDIA) {
         stridedIndex = 0;
@@ -105,18 +81,6 @@ xmrig::OclCnRunner::~OclCnRunner()
 }
 
 
-bool xmrig::OclCnRunner::isReadyToBuild() const
-{
-    return OclBaseRunner::isReadyToBuild() &&
-            m_scratchpads                   != nullptr &&
-            m_states                        != nullptr &&
-            m_branches[BRANCH_BLAKE_256]    != nullptr &&
-            m_branches[BRANCH_GROESTL_256]  != nullptr &&
-            m_branches[BRANCH_JH_256]       != nullptr &&
-            m_branches[BRANCH_SKEIN_512]    != nullptr;
-}
-
-
 bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
@@ -128,36 +92,20 @@ bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
     assert(g_thd % w_size == 0);
 
     for (size_t i = 0; i < BRANCH_MAX; ++i) {
-        if (OclLib::enqueueWriteBuffer(m_queue, m_branches[i], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), &zero, 0, nullptr, nullptr) != CL_SUCCESS) {
-            return false;
-        }
+        enqueueWriteBuffer(m_branches[i], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), &zero);
     }
 
-    if (OclLib::enqueueWriteBuffer(m_queue, m_output, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(cl_uint), &zero, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return false;
+    enqueueWriteBuffer(m_output, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(cl_uint), &zero);
+
+    m_cn0->enqueue(m_queue, nonce, g_thd);
+    m_cn1->enqueue(m_queue, nonce, g_thd, w_size);
+    m_cn2->enqueue(m_queue, nonce, g_thd);
+
+    for (auto kernel : m_branchKernels) {
+        kernel->enqueue(m_queue, nonce, g_thd, w_size);
     }
 
-    if (!m_cn0->enqueue(m_queue, nonce, g_thd)) {
-        return false;
-    }
-
-    if (!m_cn1->enqueue(m_queue, nonce, g_thd, w_size)) {
-        return false;
-    }
-
-    if (!m_cn2->enqueue(m_queue, nonce, g_thd)) {
-        return false;
-    }
-
-    for (size_t i = 0; i < BRANCH_MAX; ++i) {
-        if (!m_branchKernels[i]->enqueue(m_queue, nonce, g_thd, w_size)) {
-            return false;
-        }
-    }
-
-    if (OclLib::enqueueReadBuffer(m_queue, m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return false;
-    }
+    enqueueReadBuffer(m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput);
 
     uint32_t &results = hashOutput[0xFF];
     if (results > 0xFF) {
@@ -168,38 +116,16 @@ bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
 }
 
 
-bool xmrig::OclCnRunner::selfTest() const
-{
-    if (OclBaseRunner::selfTest() && m_cn0->isValid() && m_cn2->isValid()) {
-        if (m_algorithm != Algorithm::CN_R) {
-            return m_cn1->isValid();
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-
 bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
 {
     if (job.size() > (Job::kMaxBlobSize - 4)) {
-        return false;
+        throw std::length_error("job size too big");
     }
 
     blob[job.size()] = 0x01;
     memset(blob + job.size() + 1, 0, Job::kMaxBlobSize - job.size() - 1);
 
-    if (OclLib::enqueueWriteBuffer(m_queue, m_input, CL_TRUE, 0, Job::kMaxBlobSize, blob, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return false;
-    }
-
-    const uint32_t intensity = data().thread.intensity();
-
-    if (!m_cn0->setArgs(m_input, m_scratchpads, m_states, intensity)) {
-        return false;
-    }
+    enqueueWriteBuffer(m_input, CL_TRUE, 0, Job::kMaxBlobSize, blob);
 
     if (m_algorithm == Algorithm::CN_R && m_height != job.height()) {
         delete m_cn1;
@@ -207,20 +133,11 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
         m_height = job.height();
         m_cnr    = OclCnR::get(*this, m_height);
         m_cn1    = new Cn1Kernel(m_cnr, m_height);
+        m_cn1->setArgs(m_input, m_scratchpads, m_states, data().thread.intensity());
     }
 
-    if (!m_cn1->setArgs(m_input, m_scratchpads, m_states, intensity)) {
-        return false;
-    }
-
-    if (!m_cn2->setArgs(m_scratchpads, m_states, m_branches, intensity)) {
-        return false;
-    }
-
-    for (size_t i = 0; i < BRANCH_MAX; ++i) {
-        if (!m_branchKernels[i]->setArgs(m_states, m_branches[i], m_output, job.target(), intensity)) {
-            return false;
-        }
+    for (auto kernel : m_branchKernels) {
+        kernel->setTarget(job.target());
     }
 
     return true;
@@ -231,18 +148,38 @@ void xmrig::OclCnRunner::build()
 {
     OclBaseRunner::build();
 
-    if (!m_program) {
-        return;
-    }
+    const uint32_t intensity = data().thread.intensity();
 
     m_cn0 = new Cn0Kernel(m_program);
+    m_cn0->setArgs(m_input, m_scratchpads, m_states, intensity);
+
     m_cn2 = new Cn2Kernel(m_program);
+    m_cn2->setArgs(m_scratchpads, m_states, m_branches, intensity);
 
     if (m_algorithm != Algorithm::CN_R) {
         m_cn1 = new Cn1Kernel(m_program);
+        m_cn1->setArgs(m_input, m_scratchpads, m_states, intensity);
     }
 
     for (size_t i = 0; i < BRANCH_MAX; ++i) {
-        m_branchKernels[i] = new CnBranchKernel(i, m_program);
+        auto kernel = new CnBranchKernel(i, m_program);
+        kernel->setArgs(m_states, m_branches[i], m_output, intensity);
+
+        m_branchKernels[i] = kernel;
+    }
+}
+
+
+void xmrig::OclCnRunner::init()
+{
+    OclBaseRunner::init();
+
+    const size_t g_thd = data().thread.intensity();
+
+    m_scratchpads = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, m_algorithm.l3() * g_thd);
+    m_states      = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 200 * g_thd);
+
+    for (size_t i = 0; i < BRANCH_MAX; ++i) {
+        m_branches[i] = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2));
     }
 }

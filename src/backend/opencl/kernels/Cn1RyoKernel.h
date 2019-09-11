@@ -37,8 +37,8 @@ class Cn1RyoKernel : public OclKernel
 public:
     inline Cn1RyoKernel(cl_program program) : OclKernel(program, "cn1") {}
 
-    bool enqueue(cl_command_queue queue, size_t threads, size_t worksize);
-    bool setArgs(cl_mem scratchpads, cl_mem states, uint32_t threads);
+    void enqueue(cl_command_queue queue, size_t threads, size_t worksize);
+    void setArgs(cl_mem scratchpads, cl_mem states, uint32_t threads);
 };
 
 

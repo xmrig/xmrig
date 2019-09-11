@@ -23,8 +23,8 @@
  */
 
 
-#include "backend/opencl/wrappers/OclLib.h"
 #include "backend/opencl/wrappers/OclContext.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
 xmrig::OclContext::OclContext(const OclDevice &device)
@@ -59,6 +59,12 @@ bool xmrig::OclContext::init(const std::vector<OclDevice> &devices, std::vector<
 
     for (OclLaunchData &data : threads) {
         data.ctx = m_ctx;
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        if (data.algorithm.family() == Algorithm::RANDOM_X) {
+            data.dataset->createBuffer(m_ctx, data.algorithm, data.thread.isDatasetHost());
+        }
+#       endif
     }
 
     return true;

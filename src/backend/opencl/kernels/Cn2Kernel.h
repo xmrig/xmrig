@@ -37,8 +37,8 @@ class Cn2Kernel : public OclKernel
 public:
     inline Cn2Kernel(cl_program program) : OclKernel(program, "cn2") {}
 
-    bool enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
-    bool setArgs(cl_mem scratchpads, cl_mem states, const std::vector<cl_mem> &branches, uint32_t threads);
+    void enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
+    void setArgs(cl_mem scratchpads, cl_mem states, const std::vector<cl_mem> &branches, uint32_t threads);
 };
 
 

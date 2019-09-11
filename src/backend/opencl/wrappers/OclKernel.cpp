@@ -23,17 +23,20 @@
  */
 
 
+#include "backend/common/Tags.h"
 #include "backend/opencl/wrappers/OclError.h"
 #include "backend/opencl/wrappers/OclKernel.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 
 
+#include <stdexcept>
+
+
 xmrig::OclKernel::OclKernel(cl_program program, const char *name) :
     m_name(name)
 {
-    cl_int ret = 0;
-    m_kernel = OclLib::createKernel(program, name, &ret);
+    m_kernel = OclLib::createKernel(program, name);
 }
 
 
@@ -43,34 +46,26 @@ xmrig::OclKernel::~OclKernel()
 }
 
 
-bool xmrig::OclKernel::enqueueNDRange(cl_command_queue queue, uint32_t work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size)
+void xmrig::OclKernel::enqueueNDRange(cl_command_queue queue, uint32_t work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size)
 {
-    if (!isValid()) {
-        return false;
-    }
-
     const cl_int ret = OclLib::enqueueNDRangeKernel(queue, m_kernel, work_dim, global_work_offset, global_work_size, local_work_size, 0, nullptr, nullptr);
     if (ret != CL_SUCCESS) {
-        LOG_ERR(MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clEnqueueNDRangeKernel") RED(" for kernel ") RED_BOLD("%s"),
-                OclError::toString(ret), name().data());
-    }
+        LOG_ERR("%s" RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clEnqueueNDRangeKernel") RED(" for kernel ") RED_BOLD("%s"),
+                ocl_tag(), OclError::toString(ret), name().data());
 
-    return ret == CL_SUCCESS;
+        throw std::runtime_error(OclError::toString(ret));
+    }
 }
 
 
-bool xmrig::OclKernel::setArg(uint32_t index, size_t size, const void *value)
+void xmrig::OclKernel::setArg(uint32_t index, size_t size, const void *value)
 {
-    if (!isValid()) {
-        return false;
-    }
-
     const cl_int ret = OclLib::setKernelArg(m_kernel, index, size, value);
     if (ret != CL_SUCCESS) {
-        LOG_ERR(MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clSetKernelArg") RED(" for kernel ") RED_BOLD("%s")
+        LOG_ERR("%s" RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("clSetKernelArg") RED(" for kernel ") RED_BOLD("%s")
                 RED(" argument ") RED_BOLD("%u") RED(" size ") RED_BOLD("%zu"),
-                OclError::toString(ret), name().data(), index, size);
-    }
+                ocl_tag(), OclError::toString(ret), name().data(), index, size);
 
-    return ret == CL_SUCCESS;
+        throw std::runtime_error(OclError::toString(ret));
+    }
 }

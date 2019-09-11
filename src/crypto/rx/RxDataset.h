@@ -30,6 +30,7 @@
 
 #include "crypto/common/Algorithm.h"
 #include "crypto/randomx/configuration.h"
+#include "base/tools/Object.h"
 
 
 struct randomx_dataset;
@@ -45,6 +46,8 @@ class RxCache;
 class RxDataset
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxDataset)
+
     RxDataset(bool hugePages = true);
     ~RxDataset();
 
@@ -55,7 +58,7 @@ public:
     bool init(const uint8_t *seed, uint32_t numThreads);
     std::pair<size_t, size_t> hugePages() const;
 
-    static inline constexpr size_t size() { return RANDOMX_DATASET_MAX_SIZE; }
+    static inline constexpr size_t maxSize() { return RANDOMX_DATASET_MAX_SIZE; }
 
 private:
     Algorithm m_algorithm;

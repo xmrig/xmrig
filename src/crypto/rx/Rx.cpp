@@ -25,17 +25,7 @@
  */
 
 
-#include <map>
-#include <mutex>
-#include <thread>
-#include <uv.h>
-
-
-#ifdef XMRIG_FEATURE_HWLOC
-#   include <hwloc.h>
-#   include "backend/cpu/platform/HwlocCpuInfo.h"
-#endif
-
+#include "crypto/rx/Rx.h"
 
 #include "backend/common/interfaces/IRxListener.h"
 #include "backend/cpu/Cpu.h"
@@ -45,10 +35,22 @@
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Handle.h"
-#include "crypto/rx/Rx.h"
+#include "base/tools/Object.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
+
+
+#ifdef XMRIG_FEATURE_HWLOC
+#   include <hwloc.h>
+#   include "backend/cpu/platform/HwlocCpuInfo.h"
+#endif
+
+
+#include <map>
+#include <mutex>
+#include <thread>
+#include <uv.h>
 
 
 namespace xmrig {
@@ -92,8 +94,9 @@ inline static void bindToNUMANode(uint32_t) {}
 class RxPrivate
 {
 public:
-    inline RxPrivate() :
-        m_seed()
+    XMRIG_DISABLE_COPY_MOVE(RxPrivate)
+
+    inline RxPrivate()
     {
         m_async = new uv_async_t;
         m_async->data = this;
@@ -144,12 +147,12 @@ public:
         LOG_INFO("%s" CYAN_BOLD("#%u") MAGENTA_BOLD(" allocate") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu) for RandomX dataset & cache"),
                  tag,
                  nodeId,
-                 (RxDataset::size() + RxCache::size()) / 1024 / 1024,
-                 RxDataset::size() / 1024 / 1024,
-                 RxCache::size() / 1024 / 1024
+                 (RxDataset::maxSize() + RxCache::maxSize()) / 1024 / 1024,
+                 RxDataset::maxSize() / 1024 / 1024,
+                 RxCache::maxSize() / 1024 / 1024
                  );
 
-        RxDataset *dataset      = new RxDataset(d_ptr->m_hugePages);
+        auto dataset            = new RxDataset(d_ptr->m_hugePages);
         d_ptr->datasets[nodeId] = dataset;
 
         if (dataset->get() != nullptr) {
@@ -244,7 +247,7 @@ private:
     bool m_numa             = true;
     IRxListener *m_listener = nullptr;
     size_t m_ready          = 0;
-    uint8_t m_seed[32];
+    uint8_t m_seed[32]{ 0 };
     uv_async_t *m_async;
 };
 

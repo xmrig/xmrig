@@ -28,9 +28,10 @@
 
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/wrappers/OclDevice.h"
+#include "base/tools/Object.h"
 
 
-typedef struct _cl_context *cl_context;
+using cl_context = struct _cl_context *;
 
 
 namespace xmrig {
@@ -39,6 +40,8 @@ namespace xmrig {
 class OclContext
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(OclContext)
+
     OclContext() = default;
     OclContext(const OclDevice &device);
     ~OclContext();

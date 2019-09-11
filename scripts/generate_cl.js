@@ -64,8 +64,8 @@ function rx()
         'randomx_jit.cl'
     ]);
 
-    rx = rx.replace(/	#include "fillAes1Rx4.cl"/g, fs.readFileSync('fillAes1Rx4.cl', 'utf8'));
-    rx = rx.replace(/	#include "blake2b_double_block.cl"/g, fs.readFileSync('blake2b_double_block.cl', 'utf8'));
+    rx = rx.replace(/(\t| )*#include "fillAes1Rx4.cl"/g, fs.readFileSync('fillAes1Rx4.cl', 'utf8'));
+    rx = rx.replace(/(\t| )*#include "blake2b_double_block.cl"/g, fs.readFileSync('blake2b_double_block.cl', 'utf8'));
 
     //fs.writeFileSync('randomx_gen.cl', rx);
     fs.writeFileSync('randomx_cl.h', text2h(rx, 'xmrig', 'randomx_cl'));

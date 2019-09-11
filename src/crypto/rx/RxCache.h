@@ -28,7 +28,7 @@
 #define XMRIG_RX_CACHE_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 #include "crypto/randomx/configuration.h"
@@ -55,7 +55,7 @@ public:
 
     bool init(const uint8_t *seed);
 
-    static inline constexpr size_t size() { return RANDOMX_CACHE_MAX_SIZE; }
+    static inline constexpr size_t maxSize() { return RANDOMX_CACHE_MAX_SIZE; }
 
 private:
     bool isReady(const uint8_t *seed) const;

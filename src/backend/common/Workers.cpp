@@ -151,12 +151,13 @@ xmrig::IWorker *xmrig::Workers<T>::create(Thread<T> *)
 template<class T>
 void xmrig::Workers<T>::onReady(void *arg)
 {
-    Thread<T> *handle = static_cast<Thread<T>* >(arg);
+    auto handle = static_cast<Thread<T>* >(arg);
 
     IWorker *worker = create(handle);
     if (!worker || !worker->selfTest()) {
         LOG_ERR("thread %zu error: \"hash self-test failed\".", worker->id());
 
+        delete worker;
         return;
     }
 

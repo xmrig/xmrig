@@ -1,5 +1,6 @@
 set(HEADERS_BACKEND_COMMON
     src/backend/common/Hashrate.h
+    src/backend/common/Tags.h
     src/backend/common/interfaces/IBackend.h
     src/backend/common/interfaces/IRxListener.h
     src/backend/common/interfaces/IThread.h

@@ -41,22 +41,17 @@ class Cn2RyoKernel;
 class OclRyoRunner : public OclBaseRunner
 {
 public:
-    OclRyoRunner()                          = delete;
-    OclRyoRunner(const OclRyoRunner &other) = delete;
-    OclRyoRunner(OclRyoRunner &&other)      = delete;
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclRyoRunner)
+
     OclRyoRunner(size_t index, const OclLaunchData &data);
 
     ~OclRyoRunner() override;
 
-    OclRyoRunner &operator=(const OclRyoRunner &other) = delete;
-    OclRyoRunner &operator=(OclRyoRunner &&other)      = delete;
-
 protected:
-    bool isReadyToBuild() const override;
     bool run(uint32_t nonce, uint32_t *hashOutput) override;
-    bool selfTest() const override;
     bool set(const Job &job, uint8_t *blob) override;
     void build() override;
+    void init() override;
 
 private:
     cl_mem m_scratchpads    = nullptr;

@@ -99,16 +99,16 @@ bool xmrig::RxDataset::init(const uint8_t *seed, uint32_t numThreads)
 std::pair<size_t, size_t> xmrig::RxDataset::hugePages() const
 {
     constexpr size_t twoMiB      = 2u * 1024u * 1024u;
-    constexpr const size_t total = (VirtualMemory::align(size(), twoMiB) + VirtualMemory::align(RxCache::size(), twoMiB)) / twoMiB;
+    constexpr const size_t total = (VirtualMemory::align(maxSize(), twoMiB) + VirtualMemory::align(RxCache::maxSize(), twoMiB)) / twoMiB;
 
     size_t count = 0;
     if (isHugePages()) {
-        count += VirtualMemory::align(size(), twoMiB) / twoMiB;
+        count += VirtualMemory::align(maxSize(), twoMiB) / twoMiB;
     }
 
     if (m_cache->isHugePages()) {
-        count += VirtualMemory::align(RxCache::size(), twoMiB) / twoMiB;
+        count += VirtualMemory::align(RxCache::maxSize(), twoMiB) / twoMiB;
     }
 
-    return std::pair<size_t, size_t>(count, total);
+    return { count, total };
 }

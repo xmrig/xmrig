@@ -59,7 +59,7 @@ protected:
     void start() override;
 
 private:
-    void consumeJob();
+    bool consumeJob();
     void storeStats(uint64_t ts);
 
     const Algorithm m_algorithm;

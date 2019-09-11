@@ -22,61 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "backend/opencl/runners/OclRxRunner.h"
+#ifndef XMRIG_OCLRXDATASET_H
+#define XMRIG_OCLRXDATASET_H
 
-#include "backend/opencl/OclLaunchData.h"
+
+#include <memory>
 
 
-xmrig::OclRxRunner::OclRxRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
+using cl_context = struct _cl_context *;
+using cl_mem     = struct _cl_mem *;
+
+
+namespace xmrig {
+
+
+class Algorithm;
+
+
+class OclRxDataset
 {
-    uint32_t worksize    = 0;
-    uint32_t gcn_version = 12;
+public:
+    OclRxDataset() = default;
 
-    switch (data.thread.worksize()) {
-    case 2:
-    case 4:
-    case 8:
-    case 16:
-        worksize = data.thread.worksize();
-        break;
+    inline cl_mem get() const { return m_dataset; }
 
-    default:
-        worksize = 8;
-    }
+    void createBuffer(cl_context ctx, const Algorithm &algorithm, bool host);
 
-    if (data.device.type() == OclDevice::Vega_10 || data.device.type() == OclDevice::Vega_20) {
-        gcn_version = 14;
-    }
-
-    m_options += " -DALGO="             + std::to_string(m_algorithm.id());
-    m_options += " -DWORKERS_PER_HASH=" + std::to_string(worksize);
-    m_options += " -DGCN_VERSION="      + std::to_string(gcn_version);
-}
+private:
+    cl_mem m_dataset = nullptr;
+};
 
 
-bool xmrig::OclRxRunner::run(uint32_t nonce, uint32_t *hashOutput)
-{
-    return false;
-}
+using OclRxDatasetPtr = std::shared_ptr<OclRxDataset>;
 
 
-bool xmrig::OclRxRunner::selfTest() const
-{
-    return false; // TODO OclRxRunner
-}
+} /* namespace xmrig */
 
 
-bool xmrig::OclRxRunner::set(const Job &job, uint8_t *blob)
-{
-    return false;
-}
-
-
-void xmrig::OclRxRunner::build()
-{
-    OclBaseRunner::build();
-
-    if (!m_program) {
-        return;
-    }
-}
+#endif /* XMRIG_OCLINTERLEAVE_H */

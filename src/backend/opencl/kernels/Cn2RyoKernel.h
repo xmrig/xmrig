@@ -37,8 +37,9 @@ class Cn2RyoKernel : public OclKernel
 public:
     inline Cn2RyoKernel(cl_program program) : OclKernel(program, "cn2") {}
 
-    bool enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
-    bool setArgs(cl_mem scratchpads, cl_mem states, cl_mem output, uint64_t target, uint32_t threads);
+    void enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
+    void setArgs(cl_mem scratchpads, cl_mem states, cl_mem output, uint32_t threads);
+    void setTarget(uint64_t target);
 };
 
 

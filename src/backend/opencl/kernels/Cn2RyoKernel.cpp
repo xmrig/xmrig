@@ -27,22 +27,27 @@
 #include "backend/opencl/wrappers/OclLib.h"
 
 
-bool xmrig::Cn2RyoKernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t threads)
+void xmrig::Cn2RyoKernel::enqueue(cl_command_queue queue, uint32_t nonce, size_t threads)
 {
     const size_t offset[2]          = { nonce, 1 };
     const size_t gthreads[2]        = { threads, 8 };
     static const size_t lthreads[2] = { 8, 8 };
 
-    return enqueueNDRange(queue, 2, offset, gthreads, lthreads);
+    enqueueNDRange(queue, 2, offset, gthreads, lthreads);
 }
 
 
 // __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global uint *output, ulong Target, uint Threads)
-bool xmrig::Cn2RyoKernel::setArgs(cl_mem scratchpads, cl_mem states, cl_mem output, uint64_t target, uint32_t threads)
+void xmrig::Cn2RyoKernel::setArgs(cl_mem scratchpads, cl_mem states, cl_mem output, uint32_t threads)
 {
-    return setArg(0, sizeof(cl_mem), &scratchpads) &&
-           setArg(1, sizeof(cl_mem), &states) &&
-           setArg(2, sizeof(cl_mem), &output) &&
-           setArg(3, sizeof(cl_ulong), &target) &&
-           setArg(4, sizeof(uint32_t), &threads);
+    setArg(0, sizeof(cl_mem), &scratchpads);
+    setArg(1, sizeof(cl_mem), &states);
+    setArg(2, sizeof(cl_mem), &output);
+    setArg(4, sizeof(uint32_t), &threads);
+}
+
+
+void xmrig::Cn2RyoKernel::setTarget(uint64_t target)
+{
+    setArg(3, sizeof(cl_ulong), &target);
 }

@@ -41,22 +41,16 @@ class CnBranchKernel;
 class OclCnRunner : public OclBaseRunner
 {
 public:
-    OclCnRunner()                         = delete;
-    OclCnRunner(const OclCnRunner &other) = delete;
-    OclCnRunner(OclCnRunner &&other)      = delete;
-    OclCnRunner(size_t index, const OclLaunchData &data);
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclCnRunner)
 
+    OclCnRunner(size_t index, const OclLaunchData &data);
     ~OclCnRunner() override;
 
-    OclCnRunner &operator=(const OclCnRunner &other) = delete;
-    OclCnRunner &operator=(OclCnRunner &&other)      = delete;
-
 protected:
-    bool isReadyToBuild() const override;
     bool run(uint32_t nonce, uint32_t *hashOutput) override;
-    bool selfTest() const override;
     bool set(const Job &job, uint8_t *blob) override;
     void build() override;
+    void init() override;
 
 private:
     enum Branches : size_t {

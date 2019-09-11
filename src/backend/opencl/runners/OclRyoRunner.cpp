@@ -39,23 +39,6 @@
 
 xmrig::OclRyoRunner::OclRyoRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
 {
-    if (m_queue == nullptr) {
-        return;
-    }
-
-    const size_t g_thd = data.thread.intensity();
-
-    cl_int ret;
-    m_scratchpads = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, data.algorithm.l3() * g_thd, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
-
-    m_states = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 200 * g_thd, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
-
     m_options += " -DITERATIONS="   + std::to_string(CnAlgo<>::iterations(m_algorithm)) + "U";
     m_options += " -DMASK="         + std::to_string(CnAlgo<>::mask(m_algorithm)) + "U";
     m_options += " -DWORKSIZE="     + std::to_string(data.thread.worksize()) + "U";
@@ -78,14 +61,6 @@ xmrig::OclRyoRunner::~OclRyoRunner()
 }
 
 
-bool xmrig::OclRyoRunner::isReadyToBuild() const
-{
-    return OclBaseRunner::isReadyToBuild() &&
-            m_scratchpads                   != nullptr &&
-            m_states                        != nullptr;
-}
-
-
 bool xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
@@ -96,29 +71,14 @@ bool xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
 
     assert(g_thd % w_size == 0);
 
-    if (OclLib::enqueueWriteBuffer(m_queue, m_output, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(cl_uint), &zero, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return false;
-    }
+    enqueueWriteBuffer(m_output, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(cl_uint), &zero);
 
-    if (!m_cn0->enqueue(m_queue, nonce, g_thd)) {
-        return false;
-    }
+    m_cn0->enqueue(m_queue, nonce, g_thd);
+    m_cn00->enqueue(m_queue, g_thd);
+    m_cn1->enqueue(m_queue, g_thd, w_size);
+    m_cn2->enqueue(m_queue, nonce, g_thd);
 
-    if (!m_cn00->enqueue(m_queue, g_thd)) {
-        return false;
-    }
-
-    if (!m_cn1->enqueue(m_queue, g_thd, w_size)) {
-        return false;
-    }
-
-    if (!m_cn2->enqueue(m_queue, nonce, g_thd)) {
-        return false;
-    }
-
-    if (OclLib::enqueueReadBuffer(m_queue, m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return false;
-    }
+    enqueueReadBuffer(m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput);
 
     uint32_t &results = hashOutput[0xFF];
     if (results > 0xFF) {
@@ -126,12 +86,6 @@ bool xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
     }
 
     return true;
-}
-
-
-bool xmrig::OclRyoRunner::selfTest() const
-{
-    return OclBaseRunner::selfTest() && m_cn0->isValid() && m_cn00->isValid() && m_cn1->isValid() && m_cn2->isValid();
 }
 
 
@@ -144,27 +98,9 @@ bool xmrig::OclRyoRunner::set(const Job &job, uint8_t *blob)
     blob[job.size()] = 0x01;
     memset(blob + job.size() + 1, 0, Job::kMaxBlobSize - job.size() - 1);
 
-    if (OclLib::enqueueWriteBuffer(m_queue, m_input, CL_TRUE, 0, Job::kMaxBlobSize, blob, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return false;
-    }
+    enqueueWriteBuffer(m_input, CL_TRUE, 0, Job::kMaxBlobSize, blob);
 
-    const uint32_t intensity = data().thread.intensity();
-
-    if (!m_cn00->setArgs(m_scratchpads, m_states)) {
-        return false;
-    }
-
-    if (!m_cn0->setArgs(m_input, m_scratchpads, m_states, intensity)) {
-        return false;
-    }
-
-    if (!m_cn1->setArgs(m_scratchpads, m_states, intensity)) {
-        return false;
-    }
-
-    if (!m_cn2->setArgs(m_scratchpads, m_states, m_output, job.target(), intensity)) {
-        return false;
-    }
+    m_cn2->setTarget(job.target());
 
     return true;
 }
@@ -174,12 +110,28 @@ void xmrig::OclRyoRunner::build()
 {
     OclBaseRunner::build();
 
-    if (!m_program) {
-        return;
-    }
+    const uint32_t intensity = data().thread.intensity();
 
     m_cn00 = new Cn00RyoKernel(m_program);
-    m_cn0  = new Cn0Kernel(m_program);
-    m_cn1  = new Cn1RyoKernel(m_program);
-    m_cn2  = new Cn2RyoKernel(m_program);
+    m_cn00->setArgs(m_scratchpads, m_states);
+
+    m_cn0 = new Cn0Kernel(m_program);
+    m_cn0->setArgs(m_input, m_scratchpads, m_states, intensity);
+
+    m_cn1 = new Cn1RyoKernel(m_program);
+    m_cn1->setArgs(m_scratchpads, m_states, intensity);
+
+    m_cn2 = new Cn2RyoKernel(m_program);
+    m_cn2->setArgs(m_scratchpads, m_states, m_output, intensity);
+}
+
+
+void xmrig::OclRyoRunner::init()
+{
+    OclBaseRunner::init();
+
+    const size_t g_thd = data().thread.intensity();
+
+    m_scratchpads = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, data().algorithm.l3() * g_thd);
+    m_states      = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 200 * g_thd);
 }

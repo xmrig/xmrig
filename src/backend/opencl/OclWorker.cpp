@@ -26,6 +26,7 @@
 
 #include "backend/opencl/OclWorker.h"
 
+#include "backend/common/Tags.h"
 #include "backend/opencl/runners/OclCnRunner.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
@@ -35,7 +36,8 @@
 
 
 #ifdef XMRIG_ALGO_RANDOMX
-#   include "backend/opencl/runners/OclRxRunner.h"
+#   include "backend/opencl/runners/OclRxJitRunner.h"
+#   include "backend/opencl/runners/OclRxVmRunner.h"
 #endif
 
 #ifdef XMRIG_ALGO_CN_GPU
@@ -58,6 +60,12 @@ static inline bool isReady()                         { return !Nonce::isPaused()
 static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
 
 
+static inline void printError(size_t id, const char *error)
+{
+    LOG_ERR("%s" RED_S " thread " RED_BOLD("#%zu") RED_S " failed with error " RED_BOLD("%s"), ocl_tag(), id, error);
+}
+
+
 } // namespace xmrig
 
 
@@ -72,7 +80,12 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
 #       ifdef XMRIG_ALGO_RANDOMX
-        m_runner = new OclRxRunner(id, data);
+        if (data.thread.isAsm() && data.device.vendorId() == OCL_VENDOR_AMD) {
+            m_runner = new OclRxJitRunner(id, data);
+        }
+        else {
+            m_runner = new OclRxVmRunner(id, data);
+        }
 #       endif
         break;
 
@@ -95,8 +108,19 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
         break;
     }
 
-    if (m_runner) {
+    if (!m_runner) {
+        return;
+    }
+
+    try {
+        m_runner->init();
         m_runner->build();
+    }
+    catch (std::exception &ex) {
+        printError(id, ex.what());
+
+        delete m_runner;
+        m_runner = nullptr;
     }
 }
 
@@ -109,7 +133,7 @@ xmrig::OclWorker::~OclWorker()
 
 bool xmrig::OclWorker::selfTest()
 {
-    return m_runner && m_runner->selfTest();
+    return m_runner != nullptr;
 }
 
 
@@ -136,7 +160,9 @@ void xmrig::OclWorker::start()
                 m_interleave->resumeDelay(m_id);
             }
 
-            consumeJob();
+            if (!consumeJob()) {
+                return;
+            }
         }
 
         while (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence())) {
@@ -146,7 +172,12 @@ void xmrig::OclWorker::start()
 
             const uint64_t t = Chrono::steadyMSecs();
 
-            if (!m_runner->run(*m_job.nonce(), results)) {
+            try {
+                m_runner->run(*m_job.nonce(), results);
+            }
+            catch (std::exception &ex) {
+                printError(id(), ex.what());
+
                 return;
             }
 
@@ -160,19 +191,31 @@ void xmrig::OclWorker::start()
             std::this_thread::yield();
         }
 
-        consumeJob();
+        if (!consumeJob()) {
+            return;
+        }
     }
 }
 
 
-void xmrig::OclWorker::consumeJob()
+bool xmrig::OclWorker::consumeJob()
 {
     if (Nonce::sequence(Nonce::OPENCL) == 0) {
-        return;
+        return false;
     }
 
     m_job.add(m_miner->job(), Nonce::sequence(Nonce::OPENCL), roundSize(m_intensity) * m_intensity);
-    m_runner->set(m_job.currentJob(), m_job.blob());
+
+    try {
+        m_runner->set(m_job.currentJob(), m_job.blob());
+    }
+    catch (std::exception &ex) {
+        printError(id(), ex.what());
+
+        return false;
+    }
+
+    return true;
 }
 
 

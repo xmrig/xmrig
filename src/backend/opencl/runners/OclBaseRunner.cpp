@@ -30,6 +30,7 @@
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
+#include "backend/opencl/wrappers/OclError.h"
 
 
 xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
@@ -39,15 +40,6 @@ xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
     m_data(data),
     m_threadId(id)
 {
-    cl_int ret;
-    m_queue = OclLib::createCommandQueue(m_ctx, data.device.id(), &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
-
-    m_input  = OclLib::createBuffer(m_ctx, CL_MEM_READ_ONLY, Job::kMaxBlobSize, nullptr, &ret);
-    m_output = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
-
     m_deviceKey = data.device.name();
 
 #   ifdef XMRIG_STRICT_OPENCL_CACHE
@@ -73,18 +65,6 @@ xmrig::OclBaseRunner::~OclBaseRunner()
 }
 
 
-bool xmrig::OclBaseRunner::isReadyToBuild() const
-{
-    return m_queue != nullptr && m_input != nullptr && m_output != nullptr && !m_options.empty() && m_source != nullptr;
-}
-
-
-bool xmrig::OclBaseRunner::selfTest() const
-{
-    return isReadyToBuild() && m_program != nullptr;
-}
-
-
 uint32_t xmrig::OclBaseRunner::deviceIndex() const
 {
     return data().thread.index();
@@ -93,9 +73,35 @@ uint32_t xmrig::OclBaseRunner::deviceIndex() const
 
 void xmrig::OclBaseRunner::build()
 {
-    if (!isReadyToBuild()) {
-        return;
-    }
-
     m_program = OclCache::build(this);
+
+    if (m_program == nullptr) {
+        throw std::runtime_error(OclError::toString(CL_INVALID_PROGRAM));
+    }
+}
+
+
+void xmrig::OclBaseRunner::init()
+{
+    m_queue  = OclLib::createCommandQueue(m_ctx, data().device.id());
+    m_input  = OclLib::createBuffer(m_ctx, CL_MEM_READ_ONLY, Job::kMaxBlobSize);
+    m_output = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100);
+}
+
+
+void xmrig::OclBaseRunner::enqueueReadBuffer(cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr)
+{
+    const cl_int ret = OclLib::enqueueReadBuffer(m_queue, buffer, blocking_read, offset, size, ptr, 0, nullptr, nullptr);
+    if (ret != CL_SUCCESS) {
+        throw std::runtime_error(OclError::toString(ret));
+    }
+}
+
+
+void xmrig::OclBaseRunner::enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr)
+{
+    const cl_int ret = OclLib::enqueueWriteBuffer(m_queue, buffer, blocking_write, offset, size, ptr, 0, nullptr, nullptr);
+    if (ret != CL_SUCCESS) {
+        throw std::runtime_error(OclError::toString(ret));
+    }
 }

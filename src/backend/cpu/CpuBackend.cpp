@@ -28,6 +28,7 @@
 
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
+#include "backend/common/Tags.h"
 #include "backend/common/Workers.h"
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuBackend.h"
@@ -194,6 +195,12 @@ public:
 
 
 } // namespace xmrig
+
+
+const char *xmrig::cpu_tag()
+{
+    return tag;
+}
 
 
 xmrig::CpuBackend::CpuBackend(Controller *controller) :

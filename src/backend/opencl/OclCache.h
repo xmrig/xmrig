@@ -29,7 +29,7 @@
 #include <string>
 
 
-typedef struct _cl_program *cl_program;
+using cl_program = struct _cl_program *;
 
 
 namespace xmrig {

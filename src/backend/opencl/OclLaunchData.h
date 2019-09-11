@@ -35,6 +35,11 @@
 #include "crypto/common/Nonce.h"
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "backend/opencl/runners/tools/OclRxDataset.h"
+#endif
+
+
 using cl_context = struct _cl_context *;
 
 
@@ -66,6 +71,10 @@ public:
     const OclPlatform platform;
     const OclThread thread;
     OclInterleavePtr interleave;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    OclRxDatasetPtr dataset;
+#   endif
 };
 
 
