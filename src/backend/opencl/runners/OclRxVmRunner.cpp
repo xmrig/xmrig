@@ -32,8 +32,6 @@
 #include "backend/opencl/wrappers/OclLib.h"
 #include "crypto/rx/RxAlgo.h"
 
-#include "base/io/log/Log.h"
-
 
 xmrig::OclRxVmRunner::OclRxVmRunner(size_t index, const OclLaunchData &data) : OclRxBaseRunner(index, data)
 {
@@ -76,26 +74,17 @@ void xmrig::OclRxVmRunner::execute(uint32_t iteration)
 
     m_init_vm->enqueue(m_queue, g_intensity, iteration);
 
-//    LOG_WARN("bfactor:%u %u %u", bfactor, RxAlgo::programIterations(m_algorithm), num_iterations);
-
-    uint32_t first = 1;
-    uint32_t last  = 0;
-
     m_execute_vm->setIterations(num_iterations);
-    m_execute_vm->setFirst(first);
-    m_execute_vm->setLast(last);
 
     for (int j = 0, n = 1 << bfactor; j < n; ++j) {
         if (j == n - 1) {
-            last = 1;
-            m_execute_vm->setLast(last);
+            m_execute_vm->setLast(1);
         }
 
-        m_execute_vm->enqueue(m_queue, g_intensity, data().thread.worksize());
+        m_execute_vm->enqueue(m_queue, g_intensity, m_worksize);
 
         if (j == 0) {
-            first = 0;
-            m_execute_vm->setFirst(first);
+            m_execute_vm->setFirst(0);
         }
     }
 }

@@ -96,7 +96,7 @@ private:
     inline void setIntensity(uint32_t intensity)            { m_intensity = intensity / m_worksize * m_worksize; }
 
     bool m_datasetHost              = false;
-    bool m_gcnAsm                   = false;
+    bool m_gcnAsm                   = true;
     std::bitset<FIELD_MAX> m_fields = 1;
     std::vector<int64_t> m_threads;
     uint32_t m_bfactor              = 6;

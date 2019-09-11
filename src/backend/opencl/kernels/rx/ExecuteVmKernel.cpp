@@ -56,6 +56,8 @@ void xmrig::ExecuteVmKernel::setFirst(uint32_t first)
 void xmrig::ExecuteVmKernel::setIterations(uint32_t num_iterations)
 {
     setArg(5, sizeof(uint32_t), &num_iterations);
+    setFirst(1);
+    setLast(0);
 }
 
 

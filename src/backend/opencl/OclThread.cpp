@@ -60,7 +60,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     m_bfactor     = Json::getUint(value, kBFactor, 6);
-    m_gcnAsm      = Json::getUint(value, kGCNAsm, m_gcnAsm);
+    m_gcnAsm      = Json::getBool(value, kGCNAsm, m_gcnAsm);
     m_datasetHost = Json::getBool(value, kDatasetHost, m_datasetHost);
 #   endif
 
@@ -70,6 +70,8 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
         m_memChunk     = std::min(si[1].GetUint(), 18u);
     }
     else {
+        m_stridedIndex = 0;
+        m_memChunk     = 0;
         m_fields.set(STRIDED_INDEX_FIELD, false);
     }
 

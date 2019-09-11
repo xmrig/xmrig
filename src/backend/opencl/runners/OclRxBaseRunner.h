@@ -69,6 +69,8 @@ protected:
     FillAesKernel *m_fillAes4Rx4_entropy                    = nullptr;
     FindSharesKernel *m_find_shares                         = nullptr;
     HashAesKernel *m_hashAes1Rx4                            = nullptr;
+    uint32_t m_gcn_version                                  = 12;
+    uint32_t m_worksize                                     = 8;
 };
 
 

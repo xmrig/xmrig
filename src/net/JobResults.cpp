@@ -53,8 +53,6 @@
 #include <mutex>
 #include <uv.h>
 
-#include "base/tools/Chrono.h"
-
 
 namespace xmrig {
 

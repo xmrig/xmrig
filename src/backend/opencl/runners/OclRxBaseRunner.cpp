@@ -39,28 +39,25 @@
 
 xmrig::OclRxBaseRunner::OclRxBaseRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
 {
-    uint32_t worksize    = 0;
-    uint32_t gcn_version = 12;
-
     switch (data.thread.worksize()) {
     case 2:
     case 4:
     case 8:
     case 16:
-        worksize = data.thread.worksize();
+        m_worksize = data.thread.worksize();
         break;
 
     default:
-        worksize = 8;
+        m_worksize = 8;
     }
 
     if (data.device.type() == OclDevice::Vega_10 || data.device.type() == OclDevice::Vega_20) {
-        gcn_version = 14;
+        m_gcn_version = 14;
     }
 
     m_options += " -DALGO="             + std::to_string(m_algorithm.id());
-    m_options += " -DWORKERS_PER_HASH=" + std::to_string(worksize);
-    m_options += " -DGCN_VERSION="      + std::to_string(gcn_version);
+    m_options += " -DWORKERS_PER_HASH=" + std::to_string(m_worksize);
+    m_options += " -DGCN_VERSION="      + std::to_string(m_gcn_version);
 }
 
 
