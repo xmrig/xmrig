@@ -26,6 +26,24 @@
 #include "backend/opencl/kernels/rx/InitVmKernel.h"
 #include "backend/opencl/wrappers/OclLib.h"
 
+#include "base/io/log/Log.h"
+#include <thread>
+
+
+void xmrig::InitVmKernel::enqueue(cl_command_queue queue, size_t threads, uint32_t iteration)
+{
+    setArg(3, sizeof(uint32_t), &iteration);
+
+    const size_t gthreads        = threads * 8;
+    static const size_t lthreads = 32;
+
+//    LOG_WARN("%zu %zu %u", gthreads, lthreads, iteration);
+
+//    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
+}
+
 
 // __kernel void init_vm(__global const void* entropy_data, __global void* vm_states, __global uint32_t* rounding, uint32_t iteration)
 void xmrig::InitVmKernel::setArgs(cl_mem entropy_data, cl_mem vm_states, cl_mem rounding)

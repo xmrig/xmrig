@@ -61,7 +61,7 @@ xmrig::OclRyoRunner::~OclRyoRunner()
 }
 
 
-bool xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
+void xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
 
@@ -78,21 +78,14 @@ bool xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
     m_cn1->enqueue(m_queue, g_thd, w_size);
     m_cn2->enqueue(m_queue, nonce, g_thd);
 
-    enqueueReadBuffer(m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput);
-
-    uint32_t &results = hashOutput[0xFF];
-    if (results > 0xFF) {
-        results = 0xFF;
-    }
-
-    return true;
+    finalize(hashOutput);
 }
 
 
-bool xmrig::OclRyoRunner::set(const Job &job, uint8_t *blob)
+void xmrig::OclRyoRunner::set(const Job &job, uint8_t *blob)
 {
     if (job.size() > (Job::kMaxBlobSize - 4)) {
-        return false;
+        throw std::length_error("job size too big");
     }
 
     blob[job.size()] = 0x01;
@@ -101,8 +94,6 @@ bool xmrig::OclRyoRunner::set(const Job &job, uint8_t *blob)
     enqueueWriteBuffer(m_input, CL_TRUE, 0, Job::kMaxBlobSize, blob);
 
     m_cn2->setTarget(job.target());
-
-    return true;
 }
 
 

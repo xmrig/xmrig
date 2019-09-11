@@ -131,7 +131,7 @@ public:
 
     inline bool isNUMA() const                  { return m_numa; }
     inline const Algorithm &algorithm() const   { return m_algorithm; }
-    inline const uint8_t *seed() const          { return m_seed; }
+    inline const Buffer &seed() const           { return m_seed; }
     inline size_t count() const                 { return isNUMA() ? datasets.size() : 1; }
     inline void asyncSend()                     { m_ready++; if (m_ready == count()) { uv_async_send(m_async); } }
 
@@ -221,14 +221,13 @@ public:
         m_numa      = numa && Cpu::info()->nodes() > 1;
         m_hugePages = hugePages;
         m_listener  = listener;
-
-        memcpy(m_seed, job.seedHash(), sizeof(m_seed));
+        m_seed      = job.seed();
     }
 
 
     inline bool isReady(const Job &job)
     {
-        return m_ready == count() && m_algorithm == job.algorithm() && memcmp(m_seed, job.seedHash(), sizeof(m_seed)) == 0;
+        return m_ready == count() && m_algorithm == job.algorithm() && m_seed == job.seed();
     }
 
 
@@ -245,9 +244,9 @@ private:
     Algorithm m_algorithm;
     bool m_hugePages        = true;
     bool m_numa             = true;
+    Buffer m_seed;
     IRxListener *m_listener = nullptr;
     size_t m_ready          = 0;
-    uint8_t m_seed[32]{ 0 };
     uv_async_t *m_async;
 };
 
@@ -269,7 +268,7 @@ bool xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa,
 
     d_ptr->setState(job, hugePages, numa, listener);
     const uint32_t threads = initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(initThreads);
-    const String buf       = Buffer::toHex(job.seedHash(), 8);
+    const String buf       = Buffer::toHex(job.seed().data(), 8);
 
     LOG_INFO("%s" MAGENTA_BOLD("init dataset%s") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
              tag,

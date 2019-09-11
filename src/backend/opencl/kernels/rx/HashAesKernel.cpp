@@ -27,6 +27,15 @@
 #include "backend/opencl/wrappers/OclLib.h"
 
 
+void xmrig::HashAesKernel::enqueue(cl_command_queue queue, size_t threads)
+{
+    const size_t gthreads        = threads * 4;
+    static const size_t lthreads = 64;
+
+    enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
+}
+
+
 // __kernel void hashAes1Rx4(__global const void* input, __global void* hash, uint hashOffsetBytes, uint hashStrideBytes, uint batch_size)
 void xmrig::HashAesKernel::setArgs(cl_mem input, cl_mem hash, uint32_t hashStrideBytes, uint32_t batch_size)
 {

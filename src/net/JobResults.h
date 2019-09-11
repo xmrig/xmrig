@@ -27,7 +27,7 @@
 #define XMRIG_JOBRESULTS_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace xmrig {

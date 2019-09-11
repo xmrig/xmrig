@@ -32,20 +32,11 @@
 #include "backend/opencl/wrappers/OclLib.h"
 #include "crypto/rx/RxAlgo.h"
 
+#include "base/io/log/Log.h"
+
 
 xmrig::OclRxVmRunner::OclRxVmRunner(size_t index, const OclLaunchData &data) : OclRxBaseRunner(index, data)
 {
-    if (m_rounding == nullptr) {
-        return;
-    }
-
-    const size_t g_thd = data.thread.intensity();
-    cl_int ret;
-
-    m_vm_states = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 2560 * g_thd, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
 }
 
 
@@ -74,4 +65,45 @@ void xmrig::OclRxVmRunner::build()
 
     m_execute_vm = new ExecuteVmKernel(m_program);
     m_execute_vm->setArgs(m_vm_states, m_rounding, m_scratchpads, data().dataset->get(), batch_size);
+}
+
+
+void xmrig::OclRxVmRunner::execute(uint32_t iteration)
+{
+    const uint32_t bfactor        = std::min(data().thread.bfactor(), 8u);
+    const uint32_t num_iterations = RxAlgo::programIterations(m_algorithm) >> bfactor;
+    const uint32_t g_intensity    = data().thread.intensity();
+
+    m_init_vm->enqueue(m_queue, g_intensity, iteration);
+
+//    LOG_WARN("bfactor:%u %u %u", bfactor, RxAlgo::programIterations(m_algorithm), num_iterations);
+
+    uint32_t first = 1;
+    uint32_t last  = 0;
+
+    m_execute_vm->setIterations(num_iterations);
+    m_execute_vm->setFirst(first);
+    m_execute_vm->setLast(last);
+
+    for (int j = 0, n = 1 << bfactor; j < n; ++j) {
+        if (j == n - 1) {
+            last = 1;
+            m_execute_vm->setLast(last);
+        }
+
+        m_execute_vm->enqueue(m_queue, g_intensity, data().thread.worksize());
+
+        if (j == 0) {
+            first = 0;
+            m_execute_vm->setFirst(first);
+        }
+    }
+}
+
+
+void xmrig::OclRxVmRunner::init()
+{
+    OclRxBaseRunner::init();
+
+    m_vm_states = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 2560 * data().thread.intensity());
 }

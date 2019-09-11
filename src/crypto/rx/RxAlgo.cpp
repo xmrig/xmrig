@@ -55,6 +55,46 @@ uint32_t xmrig::RxAlgo::version(Algorithm::Id algorithm)
 }
 
 
+uint32_t xmrig::RxAlgo::programCount(Algorithm::Id algorithm)
+{
+    switch (algorithm) {
+    case Algorithm::RX_0:
+        return RandomX_MoneroConfig.ProgramCount;
+
+    case Algorithm::RX_WOW:
+        return RandomX_WowneroConfig.ProgramCount;
+
+    case Algorithm::RX_LOKI:
+        return RandomX_LokiConfig.ProgramCount;
+
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+
+uint32_t xmrig::RxAlgo::programIterations(Algorithm::Id algorithm)
+{
+    switch (algorithm) {
+    case Algorithm::RX_0:
+        return RandomX_MoneroConfig.ProgramIterations;
+
+    case Algorithm::RX_WOW:
+        return RandomX_WowneroConfig.ProgramIterations;
+
+    case Algorithm::RX_LOKI:
+        return RandomX_LokiConfig.ProgramIterations;
+
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+
 uint32_t xmrig::RxAlgo::programSize(Algorithm::Id algorithm)
 {
     switch (algorithm) {

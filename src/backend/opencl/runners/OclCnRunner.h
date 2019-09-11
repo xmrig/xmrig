@@ -47,8 +47,8 @@ public:
     ~OclCnRunner() override;
 
 protected:
-    bool run(uint32_t nonce, uint32_t *hashOutput) override;
-    bool set(const Job &job, uint8_t *blob) override;
+    void run(uint32_t nonce, uint32_t *hashOutput) override;
+    void set(const Job &job, uint8_t *blob) override;
     void build() override;
     void init() override;
 

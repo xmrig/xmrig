@@ -64,7 +64,7 @@ xmrig::RxDataset::~RxDataset()
 }
 
 
-bool xmrig::RxDataset::init(const uint8_t *seed, uint32_t numThreads)
+bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
 {
     cache()->init(seed);
 
@@ -111,4 +111,10 @@ std::pair<size_t, size_t> xmrig::RxDataset::hugePages() const
     }
 
     return { count, total };
+}
+
+
+void *xmrig::RxDataset::raw() const
+{
+    return m_dataset ? randomx_get_dataset_memory(m_dataset) : nullptr;
 }

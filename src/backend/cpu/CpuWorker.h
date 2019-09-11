@@ -30,6 +30,7 @@
 #include "backend/common/Worker.h"
 #include "backend/common/WorkerJob.h"
 #include "backend/cpu/CpuLaunchData.h"
+#include "base/tools/Object.h"
 #include "net/JobResult.h"
 
 
@@ -43,6 +44,8 @@ template<size_t N>
 class CpuWorker : public Worker
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(CpuWorker)
+
     CpuWorker(size_t id, const CpuLaunchData &data);
     ~CpuWorker() override;
 
@@ -70,7 +73,7 @@ private:
     const CnHash::AlgoVariant m_av;
     const Miner *m_miner;
     cryptonight_ctx *m_ctx[N];
-    uint8_t m_hash[N * 32];
+    uint8_t m_hash[N * 32]{ 0 };
     VirtualMemory *m_memory = nullptr;
     WorkerJob<N> m_job;
 

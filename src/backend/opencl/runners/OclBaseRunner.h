@@ -64,6 +64,7 @@ protected:
 protected:
     void enqueueReadBuffer(cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr);
     void enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr);
+    void finalize(uint32_t *hashOutput);
 
     Algorithm m_algorithm;
     cl_command_queue m_queue    = nullptr;

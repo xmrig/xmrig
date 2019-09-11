@@ -31,7 +31,10 @@
 #include "backend/opencl/kernels/rx/HashAesKernel.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/wrappers/OclLib.h"
+#include "base/net/stratum/Job.h"
+#include "crypto/rx/Rx.h"
 #include "crypto/rx/RxAlgo.h"
+#include "crypto/rx/RxDataset.h"
 
 
 xmrig::OclRxBaseRunner::OclRxBaseRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
@@ -78,15 +81,61 @@ xmrig::OclRxBaseRunner::~OclRxBaseRunner()
 }
 
 
-bool xmrig::OclRxBaseRunner::run(uint32_t nonce, uint32_t *hashOutput)
+void xmrig::OclRxBaseRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
-    return false;
+    static const uint32_t zero = 0;
+
+    m_blake2b_initial_hash->setNonce(nonce);
+    m_find_shares->setNonce(nonce);
+
+    enqueueWriteBuffer(m_output, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(uint32_t), &zero);
+
+    const uint32_t g_intensity = data().thread.intensity();
+
+    m_blake2b_initial_hash->enqueue(m_queue, g_intensity);
+    m_fillAes1Rx4_scratchpad->enqueue(m_queue, g_intensity);
+
+    const uint32_t programCount = RxAlgo::programCount(m_algorithm);
+
+    for (uint32_t i = 0; i < programCount; ++i) {
+        m_fillAes4Rx4_entropy->enqueue(m_queue, g_intensity);
+
+        execute(i);
+
+        if (i == programCount - 1) {
+            m_hashAes1Rx4->enqueue(m_queue, g_intensity);
+            m_blake2b_hash_registers_32->enqueue(m_queue, g_intensity);
+        }
+        else {
+            m_blake2b_hash_registers_64->enqueue(m_queue, g_intensity);
+        }
+    }
+
+    m_find_shares->enqueue(m_queue, g_intensity);
+
+    finalize(hashOutput);
+
+    OclLib::finish(m_queue);
 }
 
 
-bool xmrig::OclRxBaseRunner::set(const Job &job, uint8_t *blob)
+void xmrig::OclRxBaseRunner::set(const Job &job, uint8_t *blob)
 {
-    return false;
+    if (!data().thread.isDatasetHost() && m_seed != job.seed()) {
+        m_seed = job.seed();
+
+        auto dataset = Rx::dataset(job, 0);
+        enqueueWriteBuffer(data().dataset->get(), CL_TRUE, 0, dataset->size(), dataset->raw());
+    }
+
+    if (job.size() < Job::kMaxBlobSize) {
+        memset(blob + job.size(), 0, Job::kMaxBlobSize - job.size());
+    }
+
+    enqueueWriteBuffer(m_input, CL_TRUE, 0, Job::kMaxBlobSize, blob);
+
+    m_blake2b_initial_hash->setBlobSize(job.size());
+    m_find_shares->setTarget(job.target());
 }
 
 
@@ -101,7 +150,7 @@ void xmrig::OclRxBaseRunner::build()
     m_fillAes1Rx4_scratchpad->setArgs(m_hashes, m_scratchpads, batch_size, rx_version);
 
     m_fillAes4Rx4_entropy = new FillAesKernel(m_program, "fillAes4Rx4_entropy");
-    m_fillAes1Rx4_scratchpad->setArgs(m_hashes, m_entropy, batch_size, rx_version);
+    m_fillAes4Rx4_entropy->setArgs(m_hashes, m_entropy, batch_size, rx_version);
 
     m_hashAes1Rx4 = new HashAesKernel(m_program);
 

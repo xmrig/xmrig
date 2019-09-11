@@ -23,17 +23,21 @@
  */
 
 
-#include <assert.h>
-#include <list>
-#include <mutex>
-#include <uv.h>
-
+#include "net/JobResults.h"
 
 #include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
+#include "base/tools/Object.h"
 #include "net/interfaces/IJobResultListener.h"
 #include "net/JobResult.h"
-#include "net/JobResults.h"
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/randomx/randomx.h"
+#   include "crypto/rx/Rx.h"
+#   include "crypto/rx/RxVm.h"
+#endif
+
 
 #if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
 #   include "base/tools/Baton.h"
@@ -42,6 +46,14 @@
 #   include "crypto/cn/CryptoNight.h"
 #   include "crypto/common/VirtualMemory.h"
 #endif
+
+
+#include <cassert>
+#include <list>
+#include <mutex>
+#include <uv.h>
+
+#include "base/tools/Chrono.h"
 
 
 namespace xmrig {
@@ -80,14 +92,45 @@ public:
 };
 
 
+static inline void checkHash(const JobBundle &bundle, std::vector<JobResult> &results, uint32_t nonce, uint8_t hash[32], uint32_t &errors)
+{
+    if (*reinterpret_cast<uint64_t*>(hash + 24) < bundle.job.target()) {
+        results.emplace_back(bundle.job, nonce, hash);
+    }
+    else {
+        LOG_ERR("COMPUTE ERROR"); // TODO Extend information.
+        errors++;
+    }
+}
+
+
 static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint32_t &errors, bool hwAES)
 {
-    const Algorithm &algorithm  = bundle.job.algorithm();
-    VirtualMemory *memory       = new VirtualMemory(algorithm.l3(), false);
-    uint8_t hash[32];
+    const auto &algorithm = bundle.job.algorithm();
+    auto memory           = new VirtualMemory(algorithm.l3(), false);
+    uint8_t hash[32]{ 0 };
 
     if (algorithm.family() == Algorithm::RANDOM_X) {
-        errors += bundle.nonces.size(); // TODO RANDOM_X
+#       ifdef XMRIG_ALGO_RANDOMX
+        RxDataset *dataset = Rx::dataset(bundle.job, 0);
+        if (dataset == nullptr) {
+            errors += bundle.nonces.size();
+
+            return;
+        }
+
+        auto vm = new RxVm(dataset, memory->scratchpad(), !hwAES);
+
+        for (uint32_t nonce : bundle.nonces) {
+            *bundle.job.nonce() = nonce;
+
+            randomx_calculate_hash(vm->get(), bundle.job.blob(), bundle.job.size(), hash);
+
+            checkHash(bundle, results, nonce, hash, errors);
+        }
+
+        delete vm;
+#       endif
     }
     else if (algorithm.family() == Algorithm::ARGON2) {
         errors += bundle.nonces.size(); // TODO ARGON2
@@ -101,13 +144,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 
             CnHash::fn(algorithm, hwAES ? CnHash::AV_SINGLE : CnHash::AV_SINGLE_SOFT, Assembly::NONE)(bundle.job.blob(), bundle.job.size(), hash, ctx, bundle.job.height());
 
-            if (*reinterpret_cast<uint64_t*>(hash + 24) < bundle.job.target()) {
-                results.push_back(JobResult(bundle.job, nonce, hash));
-            }
-            else {
-                LOG_ERR("COMPUTE ERROR"); // TODO Extend information.
-                errors++;
-            }
+            checkHash(bundle, results, nonce, hash, errors);
         }
     }
 
@@ -119,6 +156,8 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 class JobResultsPrivate
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(JobResultsPrivate)
+
     inline JobResultsPrivate(IJobResultListener *listener, bool hwAES) :
         m_hwAES(hwAES),
         m_listener(listener)
@@ -149,7 +188,7 @@ public:
     inline void submit(const Job &job, uint32_t *results, size_t count)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        m_bundles.push_back(JobBundle(job, results, count));
+        m_bundles.emplace_back(job, results, count);
 
         uv_async_send(m_async);
     }
@@ -171,7 +210,7 @@ private:
         m_results.swap(results);
         m_mutex.unlock();
 
-        for (auto result : results) {
+        for (const auto &result : results) {
             m_listener->onJobResult(result);
         }
 
@@ -179,20 +218,20 @@ private:
             return;
         }
 
-        JobBaton *baton = new JobBaton(std::move(bundles), m_listener, m_hwAES);
+        auto baton = new JobBaton(std::move(bundles), m_listener, m_hwAES);
 
         uv_queue_work(uv_default_loop(), &baton->req,
             [](uv_work_t *req) {
-                JobBaton *baton = static_cast<JobBaton*>(req->data);
+                auto baton = static_cast<JobBaton*>(req->data);
 
                 for (JobBundle &bundle : baton->bundles) {
                     getResults(bundle, baton->results, baton->errors, baton->hwAES);
                 }
             },
             [](uv_work_t *req, int) {
-                JobBaton *baton = static_cast<JobBaton*>(req->data);
+                auto baton = static_cast<JobBaton*>(req->data);
 
-                for (auto result : baton->results) {
+                for (const auto &result : baton->results) {
                     baton->listener->onJobResult(result);
                 }
 
@@ -209,7 +248,7 @@ private:
         m_results.swap(results);
         m_mutex.unlock();
 
-        for (auto result : results) {
+        for (const auto &result : results) {
             m_listener->onJobResult(result);
         }
     }

@@ -32,27 +32,6 @@
 
 xmrig::OclRxJitRunner::OclRxJitRunner(size_t index, const OclLaunchData &data) : OclRxBaseRunner(index, data)
 {
-    if (m_rounding == nullptr) {
-        return;
-    }
-
-    const size_t g_thd = data.thread.intensity();
-    cl_int ret;
-
-    m_registers = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 256 * g_thd, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
-
-    m_intermediate_programs = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 5120 * g_thd, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
-
-    m_programs = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 10048 * g_thd, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return;
-    }
 }
 
 
@@ -73,4 +52,21 @@ void xmrig::OclRxJitRunner::build()
     m_hashAes1Rx4->setArgs(m_scratchpads, m_registers, 256, batch_size);
     m_blake2b_hash_registers_32->setArgs(m_hashes, m_registers, 256);
     m_blake2b_hash_registers_64->setArgs(m_hashes, m_registers, 256);
+}
+
+
+void xmrig::OclRxJitRunner::execute(uint32_t iteration)
+{
+}
+
+
+void xmrig::OclRxJitRunner::init()
+{
+    OclRxBaseRunner::init();
+
+    const size_t g_thd = data().thread.intensity();
+
+    m_registers             = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 256 * g_thd, nullptr);
+    m_intermediate_programs = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 5120 * g_thd, nullptr);
+    m_programs              = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 10048 * g_thd, nullptr);
 }

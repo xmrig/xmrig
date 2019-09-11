@@ -27,6 +27,7 @@
 
 
 #include "backend/opencl/runners/OclBaseRunner.h"
+#include "base/tools/Buffer.h"
 
 
 namespace xmrig {
@@ -48,15 +49,18 @@ public:
     ~OclRxBaseRunner() override;
 
 protected:
-    bool run(uint32_t nonce, uint32_t *hashOutput) override;
-    bool set(const Job &job, uint8_t *blob) override;
+    void run(uint32_t nonce, uint32_t *hashOutput) override;
+    void set(const Job &job, uint8_t *blob) override;
     void build() override;
     void init() override;
 
 protected:
+    virtual void execute(uint32_t iteration) = 0;
+
     Blake2bHashRegistersKernel *m_blake2b_hash_registers_32 = nullptr;
     Blake2bHashRegistersKernel *m_blake2b_hash_registers_64 = nullptr;
     Blake2bInitialHashKernel *m_blake2b_initial_hash        = nullptr;
+    Buffer m_seed;
     cl_mem m_entropy                                        = nullptr;
     cl_mem m_hashes                                         = nullptr;
     cl_mem m_rounding                                       = nullptr;

@@ -42,6 +42,8 @@ public:
 
 protected:
     void build() override;
+    void execute(uint32_t iteration) override;
+    void init() override;
 
 private:
     cl_mem m_intermediate_programs  = nullptr;

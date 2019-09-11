@@ -81,7 +81,7 @@ xmrig::OclCnRunner::~OclCnRunner()
 }
 
 
-bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
+void xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
 
@@ -105,18 +105,11 @@ bool xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
         kernel->enqueue(m_queue, nonce, g_thd, w_size);
     }
 
-    enqueueReadBuffer(m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput);
-
-    uint32_t &results = hashOutput[0xFF];
-    if (results > 0xFF) {
-        results = 0xFF;
-    }
-
-    return true;
+    finalize(hashOutput);
 }
 
 
-bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
+void xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
 {
     if (job.size() > (Job::kMaxBlobSize - 4)) {
         throw std::length_error("job size too big");
@@ -139,8 +132,6 @@ bool xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
     for (auto kernel : m_branchKernels) {
         kernel->setTarget(job.target());
     }
-
-    return true;
 }
 
 

@@ -51,8 +51,8 @@ public:
     IOclRunner()          = default;
     virtual ~IOclRunner() = default;
 
-    virtual bool run(uint32_t nonce, uint32_t *hashOutput)  = 0;
-    virtual bool set(const Job &job, uint8_t *blob)         = 0;
+    virtual void run(uint32_t nonce, uint32_t *hashOutput)  = 0;
+    virtual void set(const Job &job, uint8_t *blob)         = 0;
     virtual cl_context ctx() const                          = 0;
     virtual const Algorithm &algorithm() const              = 0;
     virtual const char *buildOptions() const                = 0;

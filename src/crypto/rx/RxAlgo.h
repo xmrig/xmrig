@@ -43,6 +43,8 @@ class RxAlgo
 {
 public:
     static Algorithm::Id apply(Algorithm::Id algorithm);
+    static uint32_t programCount(Algorithm::Id algorithm);
+    static uint32_t programIterations(Algorithm::Id algorithm);
     static uint32_t programSize(Algorithm::Id algorithm);
     static uint32_t version(Algorithm::Id algorithm);
 };

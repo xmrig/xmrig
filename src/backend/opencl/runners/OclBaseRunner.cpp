@@ -105,3 +105,14 @@ void xmrig::OclBaseRunner::enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_wr
         throw std::runtime_error(OclError::toString(ret));
     }
 }
+
+
+void xmrig::OclBaseRunner::finalize(uint32_t *hashOutput)
+{
+    enqueueReadBuffer(m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput);
+
+    uint32_t &results = hashOutput[0xFF];
+    if (results > 0xFF) {
+        results = 0xFF;
+    }
+}

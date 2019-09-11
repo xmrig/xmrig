@@ -27,6 +27,15 @@
 #include "backend/opencl/wrappers/OclLib.h"
 
 
+void xmrig::FillAesKernel::enqueue(cl_command_queue queue, size_t threads)
+{
+    const size_t gthreads        = threads * 4;
+    static const size_t lthreads = 64;
+
+    enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
+}
+
+
 // __kernel void fillAes1Rx4_scratchpad(__global void* state, __global void* out, uint batch_size, uint rx_version)
 // __kernel void fillAes4Rx4_entropy(__global void* state, __global void* out, uint batch_size, uint rx_version)
 void xmrig::FillAesKernel::setArgs(cl_mem state, cl_mem out, uint32_t batch_size, uint32_t rx_version)
