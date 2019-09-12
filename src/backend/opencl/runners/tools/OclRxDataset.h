@@ -26,6 +26,9 @@
 #define XMRIG_OCLRXDATASET_H
 
 
+#include "base/tools/Object.h"
+
+
 #include <memory>
 
 
@@ -36,17 +39,20 @@ using cl_mem     = struct _cl_mem *;
 namespace xmrig {
 
 
-class Algorithm;
+class Job;
 
 
 class OclRxDataset
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(OclRxDataset)
+
     OclRxDataset() = default;
+    ~OclRxDataset();
 
     inline cl_mem get() const { return m_dataset; }
 
-    void createBuffer(cl_context ctx, const Algorithm &algorithm, bool host);
+    void createBuffer(cl_context ctx,const Job &job, bool host);
 
 private:
     cl_mem m_dataset = nullptr;

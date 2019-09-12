@@ -42,7 +42,7 @@ xmrig::OclContext::~OclContext()
 }
 
 
-bool xmrig::OclContext::init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads)
+bool xmrig::OclContext::init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads, const Job &job)
 {
     if (!m_ctx) {
         std::vector<cl_device_id> ids(devices.size());
@@ -62,7 +62,7 @@ bool xmrig::OclContext::init(const std::vector<OclDevice> &devices, std::vector<
 
 #       ifdef XMRIG_ALGO_RANDOMX
         if (data.algorithm.family() == Algorithm::RANDOM_X) {
-            data.dataset->createBuffer(m_ctx, data.algorithm, data.thread.isDatasetHost());
+            data.dataset->createBuffer(m_ctx, job, data.thread.isDatasetHost());
         }
 #       endif
     }

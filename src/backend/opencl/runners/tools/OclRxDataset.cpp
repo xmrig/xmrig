@@ -23,19 +23,32 @@
  */
 
 
-#include "backend/opencl/wrappers/OclLib.h"
 #include "backend/opencl/runners/tools/OclRxDataset.h"
+#include "backend/opencl/wrappers/OclLib.h"
+#include "crypto/rx/Rx.h"
 #include "crypto/rx/RxDataset.h"
 
 
-void xmrig::OclRxDataset::createBuffer(cl_context ctx, const Algorithm &algorithm, bool host)
+void xmrig::OclRxDataset::createBuffer(cl_context ctx, const Job &job, bool host)
 {
+    if (m_dataset) {
+        return;
+    }
+
     cl_int ret;
 
     if (host) {
-        // TODO use host memory for dataset
+        auto dataset = Rx::dataset(job, 0);
+
+        m_dataset = OclLib::createBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, RxDataset::maxSize(), dataset->raw(), &ret);
     }
     else {
         m_dataset = OclLib::createBuffer(ctx, CL_MEM_READ_ONLY, RxDataset::maxSize(), nullptr, &ret);
     }
+}
+
+
+xmrig::OclRxDataset::~OclRxDataset()
+{
+    OclLib::release(m_dataset);
 }

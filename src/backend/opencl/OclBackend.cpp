@@ -305,7 +305,7 @@ void xmrig::OclBackend::setJob(const Job &job)
         return stop();
     }
 
-    if (!d_ptr->context.init(d_ptr->devices, threads)) {
+    if (!d_ptr->context.init(d_ptr->devices, threads, job)) {
         LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (OpenCL context unavailable)"), tag);
 
         return stop();
