@@ -58,13 +58,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
 
     setIntensity(Json::getUint(value, kIntensity));
 
-#   ifdef XMRIG_ALGO_RANDOMX
-    m_bfactor     = Json::getUint(value, kBFactor, 6);
-    m_gcnAsm      = Json::getBool(value, kGCNAsm, m_gcnAsm);
-    m_datasetHost = Json::getBool(value, kDatasetHost, m_datasetHost);
-#   endif
-
-    const rapidjson::Value &si = Json::getArray(value, kStridedIndex);
+    const auto &si = Json::getArray(value, kStridedIndex);
     if (si.IsArray() && si.Size() >= 2) {
         m_stridedIndex = std::min(si[0].GetUint(), 2u);
         m_memChunk     = std::min(si[1].GetUint(), 18u);
@@ -75,7 +69,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
         m_fields.set(STRIDED_INDEX_FIELD, false);
     }
 
-    const rapidjson::Value &threads = Json::getArray(value, kThreads);
+    const auto &threads = Json::getArray(value, kThreads);
     if (threads.IsArray()) {
         m_threads.reserve(threads.Size());
 
@@ -87,6 +81,17 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
     if (m_threads.empty()) {
         m_threads.emplace_back(-1);
     }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    const auto &gcnAsm = Json::getValue(value, kGCNAsm);
+    if (gcnAsm.IsBool()) {
+        m_fields.set(RANDOMX_FIELDS, true);
+
+        m_gcnAsm      = gcnAsm.GetBool();
+        m_bfactor     = Json::getUint(value, kBFactor, m_bfactor);
+        m_datasetHost = Json::getBool(value, kDatasetHost, m_datasetHost);
+    }
+#   endif
 }
 
 
@@ -132,16 +137,18 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
         threads.PushBack(thread, allocator);
     }
 
-    out.AddMember(StringRef(kThreads),      threads, allocator);
-    out.AddMember(StringRef(kUnroll),       unrollFactor(), allocator);
+    out.AddMember(StringRef(kThreads), threads, allocator);
 
-#   ifdef XMRIG_ALGO_RANDOMX
-//    if (m_datasetHost != -1) {
-//        out.AddMember(StringRef(kBFactor),      bfactor(), allocator);
-//        out.AddMember(StringRef(kGCNAsm),       gcnAsm(), allocator);
-//        out.AddMember(StringRef(kDatasetHost),  isDatasetHost(), allocator);
-//    }
-#   endif
+    if (m_fields.test(RANDOMX_FIELDS)) {
+#       ifdef XMRIG_ALGO_RANDOMX
+        out.AddMember(StringRef(kBFactor),      bfactor(), allocator);
+        out.AddMember(StringRef(kGCNAsm),       isAsm(), allocator);
+        out.AddMember(StringRef(kDatasetHost),  isDatasetHost(), allocator);
+#       endif
+    }
+    else {
+        out.AddMember(StringRef(kUnroll), unrollFactor(), allocator);
+    }
 
     return out;
 }

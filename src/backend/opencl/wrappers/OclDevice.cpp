@@ -47,6 +47,10 @@ typedef union
 namespace xmrig {
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+extern bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
+#endif
+
 #ifdef XMRIG_ALGO_CN_GPU
 extern bool ocl_generic_cn_gpu_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
 #endif
@@ -56,6 +60,9 @@ extern bool ocl_generic_cn_generator(const OclDevice &device, const Algorithm &a
 
 
 ocl_gen_config_fun generators[] = {
+#   ifdef XMRIG_ALGO_RANDOMX
+    ocl_generic_rx_generator,
+#   endif
 #   ifdef XMRIG_ALGO_CN_GPU
     ocl_generic_cn_gpu_generator,
 #   endif

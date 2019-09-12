@@ -60,8 +60,8 @@ static const char *kCnPico = "cn-pico";
 #endif
 
 #ifdef XMRIG_ALGO_RANDOMX
-//static const char *kRx    = "rx";
-//static const char *kRxWOW = "rx/wow";
+static const char *kRx    = "rx";
+static const char *kRxWOW = "rx/wow";
 #endif
 
 #ifdef XMRIG_ALGO_ARGON2
@@ -72,14 +72,21 @@ static const char *kCnPico = "cn-pico";
 extern template class Threads<OclThreads>;
 
 
-static OclThreads generate(const Algorithm &algorithm, const std::vector<OclDevice> &devices)
+static size_t generate(const char *key, Threads<OclThreads> &threads, const Algorithm &algorithm, const std::vector<OclDevice> &devices)
 {
-    OclThreads threads;
-    for (const OclDevice &device : devices) {
-        device.generate(algorithm, threads);
+    if (threads.has(key) || threads.isExist(algorithm)) {
+        return 0;
     }
 
-    return threads;
+    OclThreads profile;
+    for (const OclDevice &device : devices) {
+        device.generate(algorithm, profile);
+    }
+
+    const size_t count = profile.count();
+    threads.move(key, std::move(profile));
+
+    return count;
 }
 
 
@@ -208,7 +215,9 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 
         setPlatform(Json::getValue(value, kPlatform));
 
-        if (isEnabled() && !m_threads.read(value)) {
+        if (isEnabled()) {
+            m_threads.read(value);
+
             generate();
         }
     }
@@ -232,33 +241,43 @@ void xmrig::OclConfig::generate()
         return;
     }
 
-    m_shouldSave  = true;
+    size_t count = 0;
 
-    m_threads.disable(Algorithm::CN_0);
-    m_threads.move(kCn, xmrig::generate(Algorithm::CN_0, devices));
-    m_threads.move(kCn2, xmrig::generate(Algorithm::CN_2, devices));
+    count += xmrig::generate(kCn, m_threads, Algorithm::CN_0, devices);
+    count += xmrig::generate(kCn2, m_threads, Algorithm::CN_2, devices);
+
+    if (!m_threads.isExist(Algorithm::CN_0)) {
+        m_threads.disable(Algorithm::CN_0);
+        count++;
+    }
 
 #   ifdef XMRIG_ALGO_CN_GPU
-    m_threads.move(kCnGPU, xmrig::generate(Algorithm::CN_GPU, devices));
+    count += xmrig::generate(kCnGPU, m_threads, Algorithm::CN_GPU, devices);
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
-    m_threads.disable(Algorithm::CN_LITE_0);
-    m_threads.move(kCnLite, xmrig::generate(Algorithm::CN_LITE_1, devices));
+    count += xmrig::generate(kCnLite, m_threads, Algorithm::CN_LITE_1, devices);
+
+    if (!m_threads.isExist(Algorithm::CN_LITE_0)) {
+        m_threads.disable(Algorithm::CN_LITE_0);
+        count++;
+    }
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_HEAVY
-    m_threads.move(kCnHeavy, xmrig::generate(Algorithm::CN_HEAVY_0, devices));
+    count += xmrig::generate(kCnHeavy, m_threads, Algorithm::CN_HEAVY_0, devices);
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_PICO
-    m_threads.move(kCnPico, xmrig::generate(Algorithm::CN_PICO_0, devices));
+    count += xmrig::generate(kCnPico, m_threads, Algorithm::CN_PICO_0, devices);
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
-//    m_threads.move(kRx, xmrig::generate(Algorithm::RX_0, devices));
-//    m_threads.move(kRxWOW, xmrig::generate(Algorithm::RX_WOW, devices));
+    count += xmrig::generate(kRx, m_threads, Algorithm::RX_0, devices);
+    count += xmrig::generate(kRxWOW, m_threads, Algorithm::RX_WOW, devices);
 #   endif
+
+    m_shouldSave = count > 0;
 }
 
 

@@ -82,6 +82,7 @@ if (WITH_OPENCL)
            )
 
        list(APPEND SOURCES_BACKEND_OPENCL
+           src/backend/opencl/generators/ocl_generic_rx_generator.cpp
            src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.cpp
            src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.cpp
            src/backend/opencl/kernels/rx/ExecuteVmKernel.cpp
