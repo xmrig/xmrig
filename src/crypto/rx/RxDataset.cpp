@@ -72,13 +72,13 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
         return true;
     }
 
-    const uint32_t datasetItemCount = randomx_dataset_item_count();
+    const uint64_t datasetItemCount = randomx_dataset_item_count();
 
     if (numThreads > 1) {
         std::vector<std::thread> threads;
         threads.reserve(numThreads);
 
-        for (uint32_t i = 0; i < numThreads; ++i) {
+        for (uint64_t i = 0; i < numThreads; ++i) {
             const uint32_t a = (datasetItemCount * i) / numThreads;
             const uint32_t b = (datasetItemCount * (i + 1)) / numThreads;
             threads.emplace_back(randomx_init_dataset, m_dataset, m_cache->get(), a, b - a);

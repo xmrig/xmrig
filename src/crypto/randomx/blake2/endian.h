@@ -3,8 +3,10 @@
 #include <string.h>
 
 #if defined(_MSC_VER)
-#define FORCE_INLINE __inline
-#elif defined(__GNUC__) || defined(__clang__)
+#define FORCE_INLINE __forceinline
+#elif defined(__GNUC__)
+#define FORCE_INLINE __attribute__((always_inline)) inline
+#elif defined(__clang__)
 #define FORCE_INLINE __inline__
 #else
 #define FORCE_INLINE
