@@ -22,46 +22,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLRXJITRUNNER_H
-#define XMRIG_OCLRXJITRUNNER_H
+#ifndef XMRIG_RXJITKERNEL_H
+#define XMRIG_RXJITKERNEL_H
 
 
-#include "backend/opencl/runners/OclRxBaseRunner.h"
+#include "backend/opencl/wrappers/OclKernel.h"
 
 
 namespace xmrig {
 
 
-class RxJitKernel;
-class RxRunKernel;
-
-
-class OclRxJitRunner : public OclRxBaseRunner
+class RxJitKernel : public OclKernel
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclRxJitRunner)
+    inline RxJitKernel(cl_program program) : OclKernel(program, "randomx_jit") {}
 
-    OclRxJitRunner(size_t index, const OclLaunchData &data);
-    ~OclRxJitRunner() override;
-
-protected:
-    void build() override;
-    void execute(uint32_t iteration) override;
-    void init() override;
-
-private:
-    bool loadAsmProgram();
-
-    cl_mem m_intermediate_programs  = nullptr;
-    cl_mem m_programs               = nullptr;
-    cl_mem m_registers              = nullptr;
-    cl_program m_asmProgram         = nullptr;
-    RxJitKernel *m_randomx_jit      = nullptr;
-    RxRunKernel *m_randomx_run      = nullptr;
+    void enqueue(cl_command_queue queue, size_t threads, uint32_t iteration);
+    void setArgs(cl_mem entropy, cl_mem registers, cl_mem intermediate_programs, cl_mem programs, uint32_t batch_size, cl_mem rounding);
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif // XMRIG_OCLRXRUNNER_H
+#endif /* XMRIG_RXJITKERNEL_H */

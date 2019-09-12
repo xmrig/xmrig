@@ -22,46 +22,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLRXJITRUNNER_H
-#define XMRIG_OCLRXJITRUNNER_H
+
+#include "backend/opencl/kernels/rx/RxJitKernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
-#include "backend/opencl/runners/OclRxBaseRunner.h"
-
-
-namespace xmrig {
-
-
-class RxJitKernel;
-class RxRunKernel;
-
-
-class OclRxJitRunner : public OclRxBaseRunner
+void xmrig::RxJitKernel::enqueue(cl_command_queue queue, size_t threads, uint32_t iteration)
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclRxJitRunner)
+    setArg(6, sizeof(uint32_t), &iteration);
 
-    OclRxJitRunner(size_t index, const OclLaunchData &data);
-    ~OclRxJitRunner() override;
+    const size_t gthreads        = threads * 32;
+    static const size_t lthreads = 64;
 
-protected:
-    void build() override;
-    void execute(uint32_t iteration) override;
-    void init() override;
-
-private:
-    bool loadAsmProgram();
-
-    cl_mem m_intermediate_programs  = nullptr;
-    cl_mem m_programs               = nullptr;
-    cl_mem m_registers              = nullptr;
-    cl_program m_asmProgram         = nullptr;
-    RxJitKernel *m_randomx_jit      = nullptr;
-    RxRunKernel *m_randomx_run      = nullptr;
-};
+    enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
+}
 
 
-} /* namespace xmrig */
-
-
-#endif // XMRIG_OCLRXRUNNER_H
+// __kernel void randomx_jit(__global ulong* entropy, __global ulong* registers, __global uint2* intermediate_programs, __global uint* programs, uint batch_size, __global uint32_t* rounding, uint32_t iteration)
+void xmrig::RxJitKernel::setArgs(cl_mem entropy, cl_mem registers, cl_mem intermediate_programs, cl_mem programs, uint32_t batch_size, cl_mem rounding)
+{
+    setArg(0, sizeof(cl_mem), &entropy);
+    setArg(1, sizeof(cl_mem), &registers);
+    setArg(2, sizeof(cl_mem), &intermediate_programs);
+    setArg(3, sizeof(cl_mem), &programs);
+    setArg(4, sizeof(uint32_t), &batch_size);
+    setArg(5, sizeof(cl_mem), &rounding);
+}

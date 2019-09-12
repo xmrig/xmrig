@@ -31,21 +31,27 @@
 
 xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 {
+    randomx_apply_config(*base(algorithm));
+
+    return algorithm;
+}
+
+
+RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
+{
     switch (algorithm) {
     case Algorithm::RX_WOW:
-        randomx_apply_config(RandomX_WowneroConfig);
-        break;
+        return &RandomX_WowneroConfig;
 
     case Algorithm::RX_LOKI:
-        randomx_apply_config(RandomX_LokiConfig);
+        return &RandomX_LokiConfig;
         break;
 
     default:
-        randomx_apply_config(RandomX_MoneroConfig);
         break;
     }
 
-    return algorithm;
+    return &RandomX_MoneroConfig;
 }
 
 
@@ -57,59 +63,17 @@ uint32_t xmrig::RxAlgo::version(Algorithm::Id algorithm)
 
 uint32_t xmrig::RxAlgo::programCount(Algorithm::Id algorithm)
 {
-    switch (algorithm) {
-    case Algorithm::RX_0:
-        return RandomX_MoneroConfig.ProgramCount;
-
-    case Algorithm::RX_WOW:
-        return RandomX_WowneroConfig.ProgramCount;
-
-    case Algorithm::RX_LOKI:
-        return RandomX_LokiConfig.ProgramCount;
-
-    default:
-        break;
-    }
-
-    return 0;
+    return base(algorithm)->ProgramCount;
 }
 
 
 uint32_t xmrig::RxAlgo::programIterations(Algorithm::Id algorithm)
 {
-    switch (algorithm) {
-    case Algorithm::RX_0:
-        return RandomX_MoneroConfig.ProgramIterations;
-
-    case Algorithm::RX_WOW:
-        return RandomX_WowneroConfig.ProgramIterations;
-
-    case Algorithm::RX_LOKI:
-        return RandomX_LokiConfig.ProgramIterations;
-
-    default:
-        break;
-    }
-
-    return 0;
+    return base(algorithm)->ProgramIterations;
 }
 
 
 uint32_t xmrig::RxAlgo::programSize(Algorithm::Id algorithm)
 {
-    switch (algorithm) {
-    case Algorithm::RX_0:
-        return RandomX_MoneroConfig.ProgramSize;
-
-    case Algorithm::RX_WOW:
-        return RandomX_WowneroConfig.ProgramSize;
-
-    case Algorithm::RX_LOKI:
-        return RandomX_LokiConfig.ProgramSize;
-
-    default:
-        break;
-    }
-
-    return 0;
+    return base(algorithm)->ProgramSize;
 }

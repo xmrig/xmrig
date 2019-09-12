@@ -73,6 +73,8 @@ if (WITH_OPENCL)
            src/backend/opencl/kernels/rx/FindSharesKernel.h
            src/backend/opencl/kernels/rx/HashAesKernel.cpp
            src/backend/opencl/kernels/rx/InitVmKernel.h
+           src/backend/opencl/kernels/rx/RxJitKernel.h
+           src/backend/opencl/kernels/rx/RxRunKernel.h
            src/backend/opencl/runners/OclRxBaseRunner.h
            src/backend/opencl/runners/OclRxJitRunner.h
            src/backend/opencl/runners/OclRxVmRunner.h
@@ -87,6 +89,8 @@ if (WITH_OPENCL)
            src/backend/opencl/kernels/rx/FindSharesKernel.cpp
            src/backend/opencl/kernels/rx/HashAesKernel.cpp
            src/backend/opencl/kernels/rx/InitVmKernel.cpp
+           src/backend/opencl/kernels/rx/RxJitKernel.cpp
+           src/backend/opencl/kernels/rx/RxRunKernel.cpp
            src/backend/opencl/runners/OclRxBaseRunner.cpp
            src/backend/opencl/runners/OclRxJitRunner.cpp
            src/backend/opencl/runners/OclRxVmRunner.cpp
