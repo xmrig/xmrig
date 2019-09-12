@@ -63,20 +63,12 @@ xmrig::RxCache::~RxCache()
 
 bool xmrig::RxCache::init(const Buffer &seed)
 {
-    if (isReady(seed)) {
+    if (m_seed == seed) {
         return false;
     }
 
     m_seed = seed;
-    randomx_init_cache(m_cache, m_seed.data(), sizeof(m_seed));
-
-    m_initCount++;
+    randomx_init_cache(m_cache, m_seed.data(), m_seed.size());
 
     return true;
-}
-
-
-bool xmrig::RxCache::isReady(const Buffer &seed) const
-{
-    return !m_seed.isEmpty() && m_seed == seed;
 }

@@ -55,19 +55,15 @@ public:
     inline bool isJIT() const               { return m_flags & 8; }
     inline const Buffer &seed() const       { return m_seed; }
     inline randomx_cache *get() const       { return m_cache; }
-    inline uint64_t initCount() const       { return m_initCount; }
 
     bool init(const Buffer &seed);
 
     static inline constexpr size_t maxSize() { return RANDOMX_CACHE_MAX_SIZE; }
 
 private:
-    bool isReady(const Buffer &seed) const;
-
     Buffer m_seed;
     int m_flags            = 0;
     randomx_cache *m_cache = nullptr;
-    uint64_t m_initCount   = 0;
 };
 
 
