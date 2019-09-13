@@ -24,6 +24,7 @@
 
 
 #include <mutex>
+#include <string>
 
 
 #include "backend/common/Hashrate.h"

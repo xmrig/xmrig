@@ -27,13 +27,10 @@
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 #include "crypto/common/Algorithm.h"
+#include "crypto/randomx/randomx.h"
 
 
 namespace xmrig {
-
-
-//constexpr const size_t oneMiB = 1024u * 1024u;
-
 
 
 bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads)
@@ -42,7 +39,69 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
         return false;
     }
 
-//    threads.add(OclThread(device.index(), 500, 8, 1, true, false, 6));
+    const size_t mem = device.globalMemSize();
+
+    RandomX_ConfigurationBase* config = nullptr;
+
+    switch (algorithm) {
+    case Algorithm::RX_0:
+        config = &RandomX_MoneroConfig;
+        break;
+
+    case Algorithm::RX_LOKI:
+        config = &RandomX_LokiConfig;
+        break;
+
+    case Algorithm::RX_WOW:
+        config = &RandomX_WowneroConfig;
+        break;
+
+    default:
+        return false;
+    }
+
+    bool gcnAsm = false;
+
+    switch (device.type()) {
+    case OclDevice::Baffin:
+    case OclDevice::Polaris:
+    case OclDevice::Lexa:
+    case OclDevice::Vega_10:
+    case OclDevice::Vega_20:
+        gcnAsm = true;
+        break;
+    }
+
+    // Must have space for dataset, scratchpads and 128 MB of free memory
+    const uint32_t dataset_mem = config->DatasetBaseSize + config->DatasetExtraSize + (128U << 20);
+
+    // Use dataset on host if not enough memory
+    bool datasetHost = (mem < dataset_mem);
+
+    // Each thread uses 1 scratchpad plus a few small buffers on GPU
+    const uint32_t per_thread_mem = config->ScratchpadL3_Size + 32768;
+
+    uint32_t intensity = static_cast<uint32_t>((mem - (datasetHost ? 0 : dataset_mem)) / per_thread_mem / 2);
+
+    // Too high intensity makes hashrate worse
+    if (intensity > device.computeUnits() * 16) {
+        intensity = device.computeUnits() * 16;
+    }
+
+    intensity -= intensity % 64;
+
+    // If there are too few threads, use dataset on host to get more threads
+    if (intensity < device.computeUnits() * 4) {
+        datasetHost = true;
+        intensity = static_cast<uint32_t>(mem / per_thread_mem / 2);
+        intensity -= intensity % 64;
+    }
+
+    if (!intensity) {
+        return false;
+    }
+
+    threads.add(OclThread(device.index(), intensity, 8, 2, gcnAsm, datasetHost, 6));
 
     return true;
 }
