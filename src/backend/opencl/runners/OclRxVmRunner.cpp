@@ -33,6 +33,9 @@
 #include "crypto/rx/RxAlgo.h"
 
 
+#include <algorithm>
+
+
 xmrig::OclRxVmRunner::OclRxVmRunner(size_t index, const OclLaunchData &data) : OclRxBaseRunner(index, data)
 {
 }

@@ -30,6 +30,9 @@
 #include "crypto/common/Algorithm.h"
 
 
+#include <algorithm>
+
+
 namespace xmrig {
 
 
