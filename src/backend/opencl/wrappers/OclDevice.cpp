@@ -123,12 +123,6 @@ static OclDevice::Type getType(const String &name)
 }
 
 
-static inline bool isCNv2(const Algorithm &algorithm)
-{
-    return algorithm.family() == Algorithm::CN && CnAlgo<>::base(algorithm) == Algorithm::CN_2;
-}
-
-
 } // namespace xmrig
 
 

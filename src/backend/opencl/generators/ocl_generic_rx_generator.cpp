@@ -32,7 +32,7 @@
 namespace xmrig {
 
 
-constexpr const size_t oneMiB = 1024u * 1024u;
+//constexpr const size_t oneMiB = 1024u * 1024u;
 
 
 
