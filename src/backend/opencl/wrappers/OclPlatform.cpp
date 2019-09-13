@@ -111,29 +111,29 @@ std::vector<xmrig::OclDevice> xmrig::OclPlatform::devices() const
 
 xmrig::String xmrig::OclPlatform::extensions() const
 {
-    return OclLib::getPlatformInfo(id(), CL_PLATFORM_EXTENSIONS);
+    return OclLib::getString(id(), CL_PLATFORM_EXTENSIONS);
 }
 
 
 xmrig::String xmrig::OclPlatform::name() const
 {
-    return OclLib::getPlatformInfo(id(), CL_PLATFORM_NAME);
+    return OclLib::getString(id(), CL_PLATFORM_NAME);
 }
 
 
 xmrig::String xmrig::OclPlatform::profile() const
 {
-    return OclLib::getPlatformInfo(id(), CL_PLATFORM_PROFILE);
+    return OclLib::getString(id(), CL_PLATFORM_PROFILE);
 }
 
 
 xmrig::String xmrig::OclPlatform::vendor() const
 {
-    return OclLib::getPlatformInfo(id(), CL_PLATFORM_VENDOR);
+    return OclLib::getString(id(), CL_PLATFORM_VENDOR);
 }
 
 
 xmrig::String xmrig::OclPlatform::version() const
 {
-    return OclLib::getPlatformInfo(id(), CL_PLATFORM_VERSION);
+    return OclLib::getString(id(), CL_PLATFORM_VERSION);
 }

@@ -33,7 +33,7 @@
 #include "base/tools/String.h"
 
 
-typedef struct _cl_platform_id *cl_platform_id;
+using cl_platform_id = struct _cl_platform_id *;
 
 
 namespace xmrig {

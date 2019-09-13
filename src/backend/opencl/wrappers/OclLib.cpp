@@ -32,6 +32,12 @@
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 
+#if defined(OCL_DEBUG_REFERENCE_COUNT)
+#   define LOG_REFS(x, ...) xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
+#else
+#   define LOG_REFS(x, ...)
+#endif
+
 
 static uv_lib_t oclLib;
 
@@ -50,15 +56,18 @@ static const char *kEnqueueReadBuffer                = "clEnqueueReadBuffer";
 static const char *kEnqueueWriteBuffer               = "clEnqueueWriteBuffer";
 static const char *kFinish                           = "clFinish";
 static const char *kGetCommandQueueInfo              = "clGetCommandQueueInfo";
+static const char *kGetContextInfo                   = "clGetContextInfo";
 static const char *kGetDeviceIDs                     = "clGetDeviceIDs";
 static const char *kGetDeviceInfo                    = "clGetDeviceInfo";
 static const char *kGetKernelInfo                    = "clGetKernelInfo";
+static const char *kGetMemObjectInfo                 = "clGetMemObjectInfo";
 static const char *kGetPlatformIDs                   = "clGetPlatformIDs";
 static const char *kGetPlatformInfo                  = "clGetPlatformInfo";
 static const char *kGetProgramBuildInfo              = "clGetProgramBuildInfo";
 static const char *kGetProgramInfo                   = "clGetProgramInfo";
 static const char *kReleaseCommandQueue              = "clReleaseCommandQueue";
 static const char *kReleaseContext                   = "clReleaseContext";
+static const char *kReleaseDevice                    = "clReleaseDevice";
 static const char *kReleaseKernel                    = "clReleaseKernel";
 static const char *kReleaseMemObject                 = "clReleaseMemObject";
 static const char *kReleaseProgram                   = "clReleaseProgram";
@@ -77,15 +86,18 @@ typedef cl_int (CL_API_CALL *enqueueReadBuffer_t)(cl_command_queue, cl_mem, cl_b
 typedef cl_int (CL_API_CALL *enqueueWriteBuffer_t)(cl_command_queue, cl_mem, cl_bool, size_t, size_t, const void *, cl_uint, const cl_event *, cl_event *);
 typedef cl_int (CL_API_CALL *finish_t)(cl_command_queue);
 typedef cl_int (CL_API_CALL *getCommandQueueInfo_t)(cl_command_queue, cl_command_queue_info, size_t, void *, size_t *);
+typedef cl_int (CL_API_CALL *getContextInfo_t)(cl_context, cl_context_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getDeviceIDs_t)(cl_platform_id, cl_device_type, cl_uint, cl_device_id *, cl_uint *);
 typedef cl_int (CL_API_CALL *getDeviceInfo_t)(cl_device_id, cl_device_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getKernelInfo_t)(cl_kernel, cl_kernel_info, size_t, void *, size_t *);
+typedef cl_int (CL_API_CALL *getMemObjectInfo_t)(cl_mem, cl_mem_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getPlatformIDs_t)(cl_uint, cl_platform_id *, cl_uint *);
 typedef cl_int (CL_API_CALL *getPlatformInfo_t)(cl_platform_id, cl_platform_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getProgramBuildInfo_t)(cl_program, cl_device_id, cl_program_build_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getProgramInfo_t)(cl_program, cl_program_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *releaseCommandQueue_t)(cl_command_queue);
 typedef cl_int (CL_API_CALL *releaseContext_t)(cl_context);
+typedef cl_int (CL_API_CALL *releaseDevice_t)(cl_device_id device);
 typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
 typedef cl_int (CL_API_CALL *releaseMemObject_t)(cl_mem);
 typedef cl_int (CL_API_CALL *releaseProgram_t)(cl_program);
@@ -94,7 +106,6 @@ typedef cl_kernel (CL_API_CALL *createKernel_t)(cl_program, const char *, cl_int
 typedef cl_mem (CL_API_CALL *createBuffer_t)(cl_context, cl_mem_flags, size_t, void *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithBinary_t)(cl_context, cl_uint, const cl_device_id *, const size_t *, const unsigned char **, cl_int *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithSource_t)(cl_context, cl_uint, const char **, const size_t *, cl_int *);
-
 
 #if defined(CL_VERSION_2_0)
 static createCommandQueueWithProperties_t pCreateCommandQueueWithProperties = nullptr;
@@ -112,15 +123,18 @@ static enqueueReadBuffer_t pEnqueueReadBuffer                               = nu
 static enqueueWriteBuffer_t pEnqueueWriteBuffer                             = nullptr;
 static finish_t pFinish                                                     = nullptr;
 static getCommandQueueInfo_t pGetCommandQueueInfo                           = nullptr;
+static getContextInfo_t pGetContextInfo                                     = nullptr;
 static getDeviceIDs_t pGetDeviceIDs                                         = nullptr;
 static getDeviceInfo_t pGetDeviceInfo                                       = nullptr;
 static getKernelInfo_t pGetKernelInfo                                       = nullptr;
+static getMemObjectInfo_t pGetMemObjectInfo                                 = nullptr;
 static getPlatformIDs_t pGetPlatformIDs                                     = nullptr;
 static getPlatformInfo_t pGetPlatformInfo                                   = nullptr;
 static getProgramBuildInfo_t pGetProgramBuildInfo                           = nullptr;
 static getProgramInfo_t pGetProgramInfo                                     = nullptr;
 static releaseCommandQueue_t pReleaseCommandQueue                           = nullptr;
 static releaseContext_t pReleaseContext                                     = nullptr;
+static releaseDevice_t pReleaseDevice                                       = nullptr;
 static releaseKernel_t pReleaseKernel                                       = nullptr;
 static releaseMemObject_t pReleaseMemObject                                 = nullptr;
 static releaseProgram_t pReleaseProgram                                     = nullptr;
@@ -134,6 +148,22 @@ namespace xmrig {
 bool OclLib::m_initialized = false;
 bool OclLib::m_ready       = false;
 String OclLib::m_loader;
+
+
+template<typename FUNC, typename OBJ, typename PARAM>
+static String getOclString(FUNC fn, OBJ obj, PARAM param)
+{
+    size_t size = 0;
+    if (fn(obj, param, 0, nullptr, &size) != CL_SUCCESS) {
+        return String();
+    }
+
+    char *buf = new char[size]();
+    fn(obj, param, size, buf, nullptr);
+
+    return String(buf);
+}
+
 
 } // namespace xmrig
 
@@ -189,6 +219,9 @@ bool xmrig::OclLib::load()
     DLSYM(ReleaseContext);
     DLSYM(GetKernelInfo);
     DLSYM(GetCommandQueueInfo);
+    DLSYM(GetMemObjectInfo);
+    DLSYM(GetContextInfo);
+    DLSYM(ReleaseDevice);
 
 #   if defined(CL_VERSION_2_0)
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
@@ -267,7 +300,7 @@ cl_context xmrig::OclLib::createContext(const cl_context_properties *properties,
 cl_context xmrig::OclLib::createContext(const std::vector<cl_device_id> &ids)
 {
     cl_int ret;
-    return OclLib::createContext(nullptr, static_cast<cl_uint>(ids.size()), ids.data(), nullptr, nullptr, &ret);
+    return createContext(nullptr, static_cast<cl_uint>(ids.size()), ids.data(), nullptr, nullptr, &ret);
 }
 
 
@@ -326,6 +359,18 @@ cl_int xmrig::OclLib::finish(cl_command_queue command_queue) noexcept
 }
 
 
+cl_int xmrig::OclLib::getCommandQueueInfo(cl_command_queue command_queue, cl_command_queue_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+{
+    return pGetCommandQueueInfo(command_queue, param_name, param_value_size, param_value, param_value_size_ret);
+}
+
+
+cl_int xmrig::OclLib::getContextInfo(cl_context context, cl_context_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+{
+    return pGetContextInfo(context, param_name, param_value_size, param_value, param_value_size_ret);
+}
+
+
 cl_int xmrig::OclLib::getDeviceIDs(cl_platform_id platform, cl_device_type device_type, cl_uint num_entries, cl_device_id *devices, cl_uint *num_devices) noexcept
 {
     assert(pGetDeviceIDs != nullptr);
@@ -344,6 +389,18 @@ cl_int xmrig::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_na
     }
 
     return ret;
+}
+
+
+cl_int xmrig::OclLib::getKernelInfo(cl_kernel kernel, cl_kernel_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+{
+    return pGetKernelInfo(kernel, param_name, param_value_size, param_value, param_value_size_ret);
+}
+
+
+cl_int xmrig::OclLib::getMemObjectInfo(cl_mem memobj, cl_mem_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+{
+    return pGetMemObjectInfo(memobj, param_name, param_value_size, param_value, param_value_size_ret);
 }
 
 
@@ -398,6 +455,8 @@ cl_int xmrig::OclLib::release(cl_command_queue command_queue) noexcept
         return CL_SUCCESS;
     }
 
+    LOG_REFS("%p %u ~queue", command_queue, getUint(command_queue, CL_QUEUE_REFERENCE_COUNT));
+
     finish(command_queue);
 
     cl_int ret = pReleaseCommandQueue(command_queue);
@@ -413,9 +472,26 @@ cl_int xmrig::OclLib::release(cl_context context) noexcept
 {
     assert(pReleaseContext != nullptr);
 
+    LOG_REFS("%p %u ~context", context, getUint(context, CL_CONTEXT_REFERENCE_COUNT));
+
     const cl_int ret = pReleaseContext(context);
     if (ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseContext);
+    }
+
+    return ret;
+}
+
+
+cl_int xmrig::OclLib::release(cl_device_id id) noexcept
+{
+    assert(pReleaseDevice != nullptr);
+
+    LOG_REFS("%p %u ~device", id, getUint(id, CL_DEVICE_REFERENCE_COUNT));
+
+    const cl_int ret = pReleaseDevice(id);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseDevice);
     }
 
     return ret;
@@ -429,6 +505,8 @@ cl_int xmrig::OclLib::release(cl_kernel kernel) noexcept
     if (kernel == nullptr) {
         return CL_SUCCESS;
     }
+
+    LOG_REFS("%p %u ~kernel %s", kernel, getUint(kernel, CL_KERNEL_REFERENCE_COUNT), getString(kernel, CL_KERNEL_FUNCTION_NAME).data());
 
     const cl_int ret = pReleaseKernel(kernel);
     if (ret != CL_SUCCESS) {
@@ -447,6 +525,8 @@ cl_int xmrig::OclLib::release(cl_mem mem_obj) noexcept
         return CL_SUCCESS;
     }
 
+    LOG_REFS("%p %u ~mem %zub", mem_obj, getUint(mem_obj, CL_MEM_REFERENCE_COUNT), getUlong(mem_obj, CL_MEM_SIZE));
+
     const cl_int ret = pReleaseMemObject(mem_obj);
     if (ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseMemObject);
@@ -463,6 +543,8 @@ cl_int xmrig::OclLib::release(cl_program program) noexcept
     if (program == nullptr) {
         return CL_SUCCESS;
     }
+
+    LOG_REFS("%p %u ~program %s", program, getUint(program, CL_PROGRAM_REFERENCE_COUNT), getString(program, CL_PROGRAM_KERNEL_NAMES).data());
 
     const cl_int ret = pReleaseProgram(program);
     if (ret != CL_SUCCESS) {
@@ -567,14 +649,6 @@ cl_program xmrig::OclLib::createProgramWithSource(cl_context context, cl_uint co
 }
 
 
-cl_uint xmrig::OclLib::getDeviceUint(cl_device_id id, cl_device_info param, cl_uint defaultValue) noexcept
-{
-    OclLib::getDeviceInfo(id, param, sizeof(cl_uint), &defaultValue);
-
-    return defaultValue;
-}
-
-
 cl_uint xmrig::OclLib::getNumPlatforms() noexcept
 {
     cl_uint count = 0;
@@ -592,18 +666,65 @@ cl_uint xmrig::OclLib::getNumPlatforms() noexcept
 }
 
 
-cl_uint xmrig::OclLib::getReferenceCount(cl_program program) noexcept
+cl_uint xmrig::OclLib::getUint(cl_command_queue command_queue, cl_command_queue_info param_name, cl_uint defaultValue) noexcept
 {
-    cl_uint out = 0;
-    OclLib::getProgramInfo(program, CL_PROGRAM_REFERENCE_COUNT, sizeof(cl_uint), &out);
+    getCommandQueueInfo(command_queue, param_name, sizeof(cl_uint), &defaultValue);
 
-    return out;
+    return defaultValue;
 }
 
 
-cl_ulong xmrig::OclLib::getDeviceUlong(cl_device_id id, cl_device_info param, cl_ulong defaultValue) noexcept
+cl_uint xmrig::OclLib::getUint(cl_context context, cl_context_info param_name, cl_uint defaultValue) noexcept
 {
-    OclLib::getDeviceInfo(id, param, sizeof(cl_ulong), &defaultValue);
+    getContextInfo(context, param_name, sizeof(cl_uint), &defaultValue);
+
+    return defaultValue;
+}
+
+
+cl_uint xmrig::OclLib::getUint(cl_device_id id, cl_device_info param, cl_uint defaultValue) noexcept
+{
+    getDeviceInfo(id, param, sizeof(cl_uint), &defaultValue);
+
+    return defaultValue;
+}
+
+
+cl_uint xmrig::OclLib::getUint(cl_kernel kernel, cl_kernel_info  param_name, cl_uint defaultValue) noexcept
+{
+    getKernelInfo(kernel, param_name, sizeof(cl_uint), &defaultValue);
+
+    return defaultValue;
+}
+
+
+cl_uint xmrig::OclLib::getUint(cl_mem memobj, cl_mem_info param_name, cl_uint defaultValue) noexcept
+{
+    getMemObjectInfo(memobj, param_name, sizeof(cl_uint), &defaultValue);
+
+    return defaultValue;
+}
+
+
+cl_uint xmrig::OclLib::getUint(cl_program program, cl_program_info param, cl_uint defaultValue) noexcept
+{
+    getProgramInfo(program, param, sizeof(cl_uint), &defaultValue);
+
+    return defaultValue;
+}
+
+
+cl_ulong xmrig::OclLib::getUlong(cl_device_id id, cl_device_info param, cl_ulong defaultValue) noexcept
+{
+    getDeviceInfo(id, param, sizeof(cl_ulong), &defaultValue);
+
+    return defaultValue;
+}
+
+
+cl_ulong xmrig::OclLib::getUlong(cl_mem memobj, cl_mem_info param_name, cl_ulong defaultValue) noexcept
+{
+    getMemObjectInfo(memobj, param_name, sizeof(cl_ulong), &defaultValue);
 
     return defaultValue;
 }
@@ -615,38 +736,10 @@ std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs() noexcept
     std::vector<cl_platform_id> platforms(count);
 
     if (count) {
-        OclLib::getPlatformIDs(count, platforms.data(), nullptr);
+        getPlatformIDs(count, platforms.data(), nullptr);
     }
 
     return platforms;
-}
-
-
-xmrig::String xmrig::OclLib::getDeviceString(cl_device_id id, cl_device_info param) noexcept
-{
-    size_t size = 0;
-    if (getDeviceInfo(id, param, 0, nullptr, &size) != CL_SUCCESS) {
-        return String();
-    }
-
-    char *buf = new char[size]();
-    getDeviceInfo(id, param, size, buf, nullptr);
-
-    return String(buf);
-}
-
-
-xmrig::String xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name) noexcept
-{
-    size_t size = 0;
-    if (getPlatformInfo(platform, param_name, 0, nullptr, &size) != CL_SUCCESS) {
-        return String();
-    }
-
-    char *buf = new char[size]();
-    OclLib::getPlatformInfo(platform, param_name, size, buf, nullptr);
-
-    return String(buf);
 }
 
 
@@ -659,10 +752,34 @@ xmrig::String xmrig::OclLib::getProgramBuildLog(cl_program program, cl_device_id
 
     char *log = new char[size + 1]();
 
-    if (OclLib::getProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, size, log, nullptr) != CL_SUCCESS) {
+    if (getProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, size, log, nullptr) != CL_SUCCESS) {
         delete [] log;
         return String();
     }
 
     return log;
+}
+
+
+xmrig::String xmrig::OclLib::getString(cl_device_id id, cl_device_info param) noexcept
+{
+    return getOclString(OclLib::getDeviceInfo, id, param);
+}
+
+
+xmrig::String xmrig::OclLib::getString(cl_kernel kernel, cl_kernel_info param_name) noexcept
+{
+    return getOclString(OclLib::getKernelInfo, kernel, param_name);
+}
+
+
+xmrig::String xmrig::OclLib::getString(cl_platform_id platform, cl_platform_info param_name) noexcept
+{
+    return getOclString(OclLib::getPlatformInfo, platform, param_name);
+}
+
+
+xmrig::String xmrig::OclLib::getString(cl_program program, cl_program_info param_name) noexcept
+{
+    return getOclString(OclLib::getProgramInfo, program, param_name);
 }

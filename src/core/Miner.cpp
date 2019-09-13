@@ -34,6 +34,7 @@
 #include "base/io/log/Log.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Job.h"
+#include "base/tools/Object.h"
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
@@ -69,6 +70,8 @@ static std::mutex mutex;
 class MinerPrivate
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(MinerPrivate)
+
     inline MinerPrivate(Controller *controller) : controller(controller)
     {
 #       ifdef XMRIG_ALGO_RANDOMX
@@ -487,6 +490,11 @@ void xmrig::Miner::onRequest(IApiRequest &request)
             request.accept();
 
             setEnabled(true);
+        }
+        else if (request.rpcMethod() == "stop") {
+            request.accept();
+
+            stop();
         }
     }
 

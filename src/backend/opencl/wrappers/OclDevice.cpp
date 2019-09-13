@@ -135,10 +135,10 @@ static inline bool isCNv2(const Algorithm &algorithm)
 xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id platform) :
     m_id(id),
     m_platform(platform),
-    m_board(OclLib::getDeviceString(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */)),
-    m_name(OclLib::getDeviceString(id, CL_DEVICE_NAME)),
-    m_vendor(OclLib::getDeviceString(id, CL_DEVICE_VENDOR)),
-    m_computeUnits(OclLib::getDeviceUint(id, CL_DEVICE_MAX_COMPUTE_UNITS, 1)),
+    m_board(OclLib::getString(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */)),
+    m_name(OclLib::getString(id, CL_DEVICE_NAME)),
+    m_vendor(OclLib::getString(id, CL_DEVICE_VENDOR)),
+    m_computeUnits(OclLib::getUint(id, CL_DEVICE_MAX_COMPUTE_UNITS, 1)),
     m_index(index)
 {
     m_vendorId  = getVendorId(m_vendor);
@@ -156,7 +156,7 @@ xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id plat
         cl_uint bus = 0;
         if (OclLib::getDeviceInfo(id, 0x4008 /* CL_DEVICE_PCI_BUS_ID_NV */, sizeof (bus), &bus, nullptr) == CL_SUCCESS) {
             m_topology    = true;
-            cl_uint slot  = OclLib::getDeviceUint(id, 0x4009 /* CL_DEVICE_PCI_SLOT_ID_NV */);
+            cl_uint slot  = OclLib::getUint(id, 0x4009 /* CL_DEVICE_PCI_SLOT_ID_NV */);
             m_pciTopology = PciTopology(bus, (slot >> 3) & 0xff, slot & 7);
         }
     }
@@ -171,13 +171,13 @@ size_t xmrig::OclDevice::freeMemSize() const
 
 size_t xmrig::OclDevice::globalMemSize() const
 {
-    return OclLib::getDeviceUlong(id(), CL_DEVICE_GLOBAL_MEM_SIZE);
+    return OclLib::getUlong(id(), CL_DEVICE_GLOBAL_MEM_SIZE);
 }
 
 
 size_t xmrig::OclDevice::maxMemAllocSize() const
 {
-    return OclLib::getDeviceUlong(id(), CL_DEVICE_MAX_MEM_ALLOC_SIZE);
+    return OclLib::getUlong(id(), CL_DEVICE_MAX_MEM_ALLOC_SIZE);
 }
 
 
@@ -199,7 +199,7 @@ xmrig::String xmrig::OclDevice::printableName() const
 
 uint32_t xmrig::OclDevice::clock() const
 {
-    return OclLib::getDeviceUint(id(), CL_DEVICE_MAX_CLOCK_FREQUENCY);
+    return OclLib::getUint(id(), CL_DEVICE_MAX_CLOCK_FREQUENCY);
 }
 
 

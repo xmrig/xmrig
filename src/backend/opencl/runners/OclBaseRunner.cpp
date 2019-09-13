@@ -47,7 +47,7 @@ xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
     m_deviceKey += data.platform.version();
 
     m_deviceKey += ":";
-    m_deviceKey += OclLib::getDeviceString(data.device.id(), CL_DRIVER_VERSION);
+    m_deviceKey += OclLib::getString(data.device.id(), CL_DRIVER_VERSION);
 #   endif
 
 #   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
