@@ -34,8 +34,7 @@ static_assert(RANDOMX_FLAG_LARGE_PAGES == 1, "RANDOMX_FLAG_LARGE_PAGES flag mism
 
 
 
-xmrig::RxCache::RxCache(bool hugePages) :
-    m_seed()
+xmrig::RxCache::RxCache(bool hugePages)
 {
     if (hugePages) {
         m_flags = RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES;
@@ -62,22 +61,14 @@ xmrig::RxCache::~RxCache()
 }
 
 
-bool xmrig::RxCache::init(const uint8_t *seed)
+bool xmrig::RxCache::init(const Buffer &seed)
 {
-    if (isReady(seed)) {
+    if (m_seed == seed) {
         return false;
     }
 
-    memcpy(m_seed, seed, sizeof(m_seed));
-    randomx_init_cache(m_cache, m_seed, sizeof(m_seed));
-
-    m_initCount++;
+    m_seed = seed;
+    randomx_init_cache(m_cache, m_seed.data(), m_seed.size());
 
     return true;
-}
-
-
-bool xmrig::RxCache::isReady(const uint8_t *seed) const
-{
-    return m_initCount && memcmp(m_seed, seed, sizeof(m_seed)) == 0;
 }

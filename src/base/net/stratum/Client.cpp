@@ -70,21 +70,15 @@ static const char *states[] = {
     "host-lookup",
     "connecting",
     "connected",
-    "closing"
+    "closing",
+    "reconnecting"
 };
 #endif
 
 
 xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
     BaseClient(id, listener),
-    m_agent(agent),
-    m_tls(nullptr),
-    m_expire(0),
-    m_jobs(0),
-    m_keepAlive(0),
-    m_key(0),
-    m_stream(nullptr),
-    m_socket(nullptr)
+    m_agent(agent)
 {
     m_key = m_storage.add(this);
     m_dns = new Dns(this);
@@ -234,10 +228,16 @@ void xmrig::Client::tick(uint64_t now)
         else if (m_keepAlive && now > m_keepAlive) {
             ping();
         }
+
+        return;
     }
 
-    if (m_expire && now > m_expire && m_state == ConnectingState) {
-        connect();
+    if (m_state == ReconnectingState && m_expire && now > m_expire) {
+        return connect();
+    }
+
+    if (m_state == ConnectingState && m_expire && now > m_expire) {
+        return reconnect();
     }
 }
 
@@ -447,7 +447,6 @@ int xmrig::Client::resolve(const String &host)
 {
     setState(HostLookupState);
 
-    m_expire = 0;
     m_recvBuf.reset();
 
     if (m_failures == -1) {
@@ -754,6 +753,8 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
 void xmrig::Client::ping()
 {
     send(snprintf(m_sendBuf, sizeof(m_sendBuf), "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId.data()));
+
+    m_keepAlive = 0;
 }
 
 
@@ -810,12 +811,10 @@ void xmrig::Client::reconnect()
         return m_listener->onClose(this, -1);
     }
 
-    setState(ConnectingState);
+    setState(ReconnectingState);
 
     m_failures++;
     m_listener->onClose(this, static_cast<int>(m_failures));
-
-    m_expire = Chrono::steadyMSecs() + m_retryPause;
 }
 
 
@@ -825,6 +824,23 @@ void xmrig::Client::setState(SocketState state)
 
     if (m_state == state) {
         return;
+    }
+
+    switch (state) {
+    case HostLookupState:
+        m_expire = 0;
+        break;
+
+    case ConnectingState:
+        m_expire = Chrono::steadyMSecs() + kConnectTimeout;
+        break;
+
+    case ReconnectingState:
+        m_expire = Chrono::steadyMSecs() + m_retryPause;
+        break;
+
+    default:
+        break;
     }
 
     m_state = state;
@@ -882,6 +898,12 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
     if (status < 0) {
         if (!client->isQuiet()) {
             LOG_ERR("[%s] connect error: \"%s\"", client->url(), uv_strerror(status));
+        }
+
+        if (client->state() != ConnectingState) {
+            LOG_ERR("[%s] connect error: \"invalid state: %d\"", client->url(), client->state());
+
+            return;
         }
 
         delete req;

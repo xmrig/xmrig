@@ -46,9 +46,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "argon2_core.h"
-#include "blake2/blake2.h"
-#include "blake2/blake2-impl.h"
+#include "crypto/randomx/argon2_core.h"
+#include "crypto/randomx/blake2/blake2.h"
+#include "crypto/randomx/blake2/blake2-impl.h"
 
 #ifdef GENKAT
 #include "genkat.h"
@@ -263,19 +263,6 @@ int rxa2_validate_inputs(const argon2_context *context) {
 		return ARGON2_INCORRECT_PARAMETER;
 	}
 
-	if (NULL == context->out) {
-		return ARGON2_OUTPUT_PTR_NULL;
-	}
-
-	/* Validate output length */
-	if (ARGON2_MIN_OUTLEN > context->outlen) {
-		return ARGON2_OUTPUT_TOO_SHORT;
-	}
-
-	if (ARGON2_MAX_OUTLEN < context->outlen) {
-		return ARGON2_OUTPUT_TOO_LONG;
-	}
-
 	/* Validate password (required param) */
 	if (NULL == context->pwd) {
 		if (0 != context->pwdlen) {
@@ -418,31 +405,31 @@ void rxa2_initial_hash(uint8_t *blockhash, argon2_context *context, argon2_type 
 		return;
 	}
 
-	blake2b_init(&BlakeHash, ARGON2_PREHASH_DIGEST_LENGTH);
+	rx_blake2b_init(&BlakeHash, ARGON2_PREHASH_DIGEST_LENGTH);
 
 	store32(&value, context->lanes);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	store32(&value, context->outlen);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	store32(&value, context->m_cost);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	store32(&value, context->t_cost);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	store32(&value, context->version);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	store32(&value, (uint32_t)type);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	store32(&value, context->pwdlen);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	if (context->pwd != NULL) {
-		blake2b_update(&BlakeHash, (const uint8_t *)context->pwd,
+		rx_blake2b_update(&BlakeHash, (const uint8_t *)context->pwd,
 			context->pwdlen);
 
 		if (context->flags & ARGON2_FLAG_CLEAR_PASSWORD) {
@@ -452,17 +439,17 @@ void rxa2_initial_hash(uint8_t *blockhash, argon2_context *context, argon2_type 
 	}
 
 	store32(&value, context->saltlen);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	if (context->salt != NULL) {
-		blake2b_update(&BlakeHash, (const uint8_t *)context->salt, context->saltlen);
+		rx_blake2b_update(&BlakeHash, (const uint8_t *)context->salt, context->saltlen);
 	}
 
 	store32(&value, context->secretlen);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	if (context->secret != NULL) {
-		blake2b_update(&BlakeHash, (const uint8_t *)context->secret,
+		rx_blake2b_update(&BlakeHash, (const uint8_t *)context->secret,
 			context->secretlen);
 
 		if (context->flags & ARGON2_FLAG_CLEAR_SECRET) {
@@ -472,14 +459,14 @@ void rxa2_initial_hash(uint8_t *blockhash, argon2_context *context, argon2_type 
 	}
 
 	store32(&value, context->adlen);
-	blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
+	rx_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
 	if (context->ad != NULL) {
-		blake2b_update(&BlakeHash, (const uint8_t *)context->ad,
+		rx_blake2b_update(&BlakeHash, (const uint8_t *)context->ad,
 			context->adlen);
 	}
 
-	blake2b_final(&BlakeHash, blockhash, ARGON2_PREHASH_DIGEST_LENGTH);
+	rx_blake2b_final(&BlakeHash, blockhash, ARGON2_PREHASH_DIGEST_LENGTH);
 }
 
 int rxa2_argon_initialize(argon2_instance_t *instance, argon2_context *context) {

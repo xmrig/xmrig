@@ -29,9 +29,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <cstdint>
-#include "common.hpp"
-#include "instruction.hpp"
-#include "blake2/endian.h"
+#include "crypto/randomx/common.hpp"
+#include "crypto/randomx/instruction.hpp"
+#include "crypto/randomx/blake2/endian.h"
 
 namespace randomx {
 

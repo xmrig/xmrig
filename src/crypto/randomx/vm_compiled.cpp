@@ -26,8 +26,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "vm_compiled.hpp"
-#include "common.hpp"
+#include "crypto/randomx/vm_compiled.hpp"
+#include "crypto/randomx/common.hpp"
 
 namespace randomx {
 

@@ -28,7 +28,7 @@
 
 
 #include <atomic>
-#include <stdint.h>
+#include <cstdint>
 
 
 #include "backend/common/interfaces/IWorker.h"

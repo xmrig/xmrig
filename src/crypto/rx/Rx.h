@@ -28,7 +28,7 @@
 #define XMRIG_RX_H
 
 
-#include <stdint.h>
+#include <cstdint>
 #include <utility>
 
 
@@ -37,19 +37,20 @@ namespace xmrig
 
 
 class Algorithm;
-class RxDataset;
+class IRxListener;
 class Job;
+class RxDataset;
 
 
 class Rx
 {
 public:
+    static bool init(const Job &job, int initThreads, bool hugePages, bool numa, IRxListener *listener);
     static bool isReady(const Job &job);
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
     static std::pair<unsigned, unsigned> hugePages();
     static void destroy();
     static void init();
-    static void init(const Job &job, int initThreads, bool hugePages, bool numa);
 };
 
 

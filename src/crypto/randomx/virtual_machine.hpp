@@ -29,8 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <cstdint>
-#include "common.hpp"
-#include "program.hpp"
+#include "crypto/randomx/common.hpp"
+#include "crypto/randomx/program.hpp"
 
 /* Global namespace for C binding */
 class randomx_vm

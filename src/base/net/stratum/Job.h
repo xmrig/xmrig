@@ -28,10 +28,11 @@
 #define XMRIG_JOB_H
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 
+#include "base/tools/Buffer.h"
 #include "base/tools/String.h"
 #include "crypto/common/Algorithm.h"
 
@@ -45,10 +46,11 @@ public:
     // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
     // SECOR increase requirements for blob size: https://github.com/xmrig/xmrig/issues/913
     static constexpr const size_t kMaxBlobSize = 128;
+    static constexpr const size_t kMaxSeedSize = 32;
 
-    Job();
+    Job() = default;
     Job(bool nicehash, const Algorithm &algorithm, const String &clientId);
-    ~Job();
+    ~Job() = default;
 
     bool isEqual(const Job &other) const;
     bool setBlob(const char *blob);
@@ -60,11 +62,11 @@ public:
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
     inline bool setId(const char *id)                 { return m_id = id; }
     inline const Algorithm &algorithm() const         { return m_algorithm; }
+    inline const Buffer &seed() const                 { return m_seed; }
     inline const String &clientId() const             { return m_clientId; }
     inline const String &id() const                   { return m_id; }
     inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const                { return m_blob; }
-    inline const uint8_t *seedHash() const            { return m_seedHash; }
     inline size_t size() const                        { return m_size; }
     inline uint32_t *nonce()                          { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint64_t diff() const                      { return m_diff; }
@@ -97,15 +99,15 @@ private:
 
     Algorithm m_algorithm;
     bool m_nicehash     = false;
+    Buffer m_seed;
     size_t m_size       = 0;
     String m_clientId;
     String m_id;
     uint64_t m_diff     = 0;
     uint64_t m_height   = 0;
     uint64_t m_target   = 0;
-    uint8_t m_blob[kMaxBlobSize];
+    uint8_t m_blob[kMaxBlobSize]{ 0 };
     uint8_t m_index     = 0;
-    uint8_t m_seedHash[32];
 
 #   ifdef XMRIG_PROXY_PROJECT
     char m_rawBlob[kMaxBlobSize * 2 + 8];

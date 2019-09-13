@@ -31,6 +31,11 @@
 #include "base/io/log/Log.h"
 
 
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/OclWorker.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -129,7 +134,7 @@ void xmrig::Workers<T>::tick(uint64_t)
             return;
         }
 
-        d_ptr->hashrate->add(handle->index(), handle->worker()->hashCount(), handle->worker()->timestamp());
+        d_ptr->hashrate->add(handle->id(), handle->worker()->hashCount(), handle->worker()->timestamp());
     }
 
     d_ptr->hashrate->updateHighest();
@@ -137,7 +142,7 @@ void xmrig::Workers<T>::tick(uint64_t)
 
 
 template<class T>
-xmrig::IWorker *xmrig::Workers<T>::create(Thread<CpuLaunchData> *)
+xmrig::IWorker *xmrig::Workers<T>::create(Thread<T> *)
 {
     return nullptr;
 }
@@ -146,14 +151,17 @@ xmrig::IWorker *xmrig::Workers<T>::create(Thread<CpuLaunchData> *)
 template<class T>
 void xmrig::Workers<T>::onReady(void *arg)
 {
-    Thread<T> *handle = static_cast<Thread<T>* >(arg);
+    auto handle = static_cast<Thread<T>* >(arg);
 
     IWorker *worker = create(handle);
     if (!worker || !worker->selfTest()) {
         LOG_ERR("thread %zu error: \"hash self-test failed\".", worker->id());
 
+        delete worker;
         return;
     }
+
+    assert(handle->backend() != nullptr);
 
     handle->setWorker(worker);
     handle->backend()->start(worker);
@@ -166,32 +174,21 @@ namespace xmrig {
 template<>
 xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
 {
-    const int intensity = handle->config().intensity;
-
-#   if defined(XMRIG_ALGO_RANDOMX) || defined(XMRIG_ALGO_CN_GPU)
-    if (intensity > handle->config().algorithm.maxIntensity()) {
-        LOG_WARN("CPU thread %zu warning: \"intensity %d not supported for %s algorithm\".", handle->index(), handle->config().intensity, handle->config().algorithm.shortName());
-
-        return new CpuWorker<1>(handle->index(), handle->config());
-    }
-#   endif
-
-
-    switch (intensity) {
+    switch (handle->config().intensity) {
     case 1:
-        return new CpuWorker<1>(handle->index(), handle->config());
+        return new CpuWorker<1>(handle->id(), handle->config());
 
     case 2:
-        return new CpuWorker<2>(handle->index(), handle->config());
+        return new CpuWorker<2>(handle->id(), handle->config());
 
     case 3:
-        return new CpuWorker<3>(handle->index(), handle->config());
+        return new CpuWorker<3>(handle->id(), handle->config());
 
     case 4:
-        return new CpuWorker<4>(handle->index(), handle->config());
+        return new CpuWorker<4>(handle->id(), handle->config());
 
     case 5:
-        return new CpuWorker<5>(handle->index(), handle->config());
+        return new CpuWorker<5>(handle->id(), handle->config());
     }
 
     return nullptr;
@@ -199,6 +196,18 @@ xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *han
 
 
 template class Workers<CpuLaunchData>;
+
+
+#ifdef XMRIG_FEATURE_OPENCL
+template<>
+xmrig::IWorker *xmrig::Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle)
+{
+    return new OclWorker(handle->id(), handle->config());
+}
+
+
+template class Workers<OclLaunchData>;
+#endif
 
 
 } // namespace xmrig

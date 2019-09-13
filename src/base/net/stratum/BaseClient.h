@@ -64,7 +64,8 @@ protected:
         HostLookupState,
         ConnectingState,
         ConnectedState,
-        ClosingState
+        ClosingState,
+        ReconnectingState
     };
 
     inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }

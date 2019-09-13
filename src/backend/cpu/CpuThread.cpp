@@ -31,11 +31,11 @@
 xmrig::CpuThread::CpuThread(const rapidjson::Value &value)
 {
     if (value.IsArray() && value.Size() >= 2) {
-        m_intensity = value[0].GetInt();
+        m_intensity = value[0].GetUint();
         m_affinity  = value[1].GetInt();
     }
     else if (value.IsInt()) {
-        m_intensity = -1;
+        m_intensity = 0;
         m_affinity  = value.GetInt();
     }
 }
@@ -44,7 +44,7 @@ xmrig::CpuThread::CpuThread(const rapidjson::Value &value)
 rapidjson::Value xmrig::CpuThread::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
-    if (m_intensity == -1) {
+    if (m_intensity == 0) {
         return Value(m_affinity);
     }
 

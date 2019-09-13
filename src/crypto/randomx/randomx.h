@@ -29,10 +29,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef RANDOMX_H
 #define RANDOMX_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include <type_traits>
-#include "intrin_portable.h"
+#include "crypto/randomx/intrin_portable.h"
 
 #define RANDOMX_HASH_SIZE 32
 #define RANDOMX_DATASET_ITEM_SIZE 64
@@ -41,17 +41,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define RANDOMX_EXPORT
 #endif
 
-typedef enum {
+
+enum randomx_flags {
   RANDOMX_FLAG_DEFAULT = 0,
   RANDOMX_FLAG_LARGE_PAGES = 1,
   RANDOMX_FLAG_HARD_AES = 2,
   RANDOMX_FLAG_FULL_MEM = 4,
   RANDOMX_FLAG_JIT = 8,
-} randomx_flags;
+};
 
-typedef struct randomx_dataset randomx_dataset;
-typedef struct randomx_cache randomx_cache;
-typedef struct randomx_vm randomx_vm;
+
+struct randomx_dataset;
+struct randomx_cache;
+class randomx_vm;
+
 
 struct RandomX_ConfigurationBase
 {
@@ -116,7 +119,7 @@ struct RandomX_ConfigurationBase
 	uint8_t codeShhPrefetchTweaked[20];
 	uint8_t codeReadDatasetTweaked[64];
 	uint8_t codeReadDatasetLightSshInitTweaked[68];
-	uint8_t codeLoopLoadTweaked[140];
+	uint8_t codePrefetchScratchpadTweaked[32];
 
 	uint32_t CacheLineAlignMask_Calculated;
 	uint32_t DatasetExtraItems_Calculated;
