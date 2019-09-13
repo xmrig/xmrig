@@ -52,6 +52,14 @@ xmrig::OclRxJitRunner::~OclRxJitRunner()
 }
 
 
+size_t xmrig::OclRxJitRunner::bufferSize() const
+{
+    const size_t g_thd = data().thread.intensity();
+
+    return OclRxBaseRunner::bufferSize() + align(256 * g_thd) + align(5120 * g_thd) + align(10048 * g_thd);
+}
+
+
 void xmrig::OclRxJitRunner::build()
 {
     OclRxBaseRunner::build();
@@ -92,9 +100,9 @@ void xmrig::OclRxJitRunner::init()
 
     const size_t g_thd = data().thread.intensity();
 
-    m_registers             = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 256 * g_thd, nullptr);
-    m_intermediate_programs = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 5120 * g_thd, nullptr);
-    m_programs              = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 10048 * g_thd, nullptr);
+    m_registers             = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 256 * g_thd);
+    m_intermediate_programs = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 5120 * g_thd);
+    m_programs              = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 10048 * g_thd);
 }
 
 

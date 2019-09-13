@@ -72,10 +72,13 @@ public:
     static cl_int release(cl_mem mem_obj) noexcept;
     static cl_int release(cl_program program) noexcept;
     static cl_int setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, const void *arg_value) noexcept;
+    static cl_int unloadPlatformCompiler(cl_platform_id platform) noexcept;
     static cl_kernel createKernel(cl_program program, const char *kernel_name, cl_int *errcode_ret) noexcept;
     static cl_kernel createKernel(cl_program program, const char *kernel_name);
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr = nullptr);
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret) noexcept;
+    static cl_mem createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size, cl_int *errcode_ret) noexcept;
+    static cl_mem createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size);
     static cl_program createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret) noexcept;
     static cl_program createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret) noexcept;
     static cl_uint getNumPlatforms() noexcept;

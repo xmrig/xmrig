@@ -57,11 +57,14 @@ protected:
     inline const OclLaunchData &data() const override   { return m_data; }
     inline size_t threadId() const override             { return m_threadId; }
 
+    size_t bufferSize() const override;
     uint32_t deviceIndex() const override;
     void build() override;
     void init() override;
 
 protected:
+    cl_mem createSubBuffer(cl_mem_flags flags, size_t size);
+    size_t align(size_t size) const;
     void enqueueReadBuffer(cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr);
     void enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr);
     void finalize(uint32_t *hashOutput);
@@ -69,12 +72,15 @@ protected:
     Algorithm m_algorithm;
     cl_command_queue m_queue    = nullptr;
     cl_context m_ctx;
+    cl_mem m_buffer             = nullptr;
     cl_mem m_input              = nullptr;
     cl_mem m_output             = nullptr;
     cl_program m_program        = nullptr;
     const char *m_source;
     const OclLaunchData &m_data;
+    const size_t m_align;
     const size_t m_threadId;
+    size_t m_offset             = 0;
     std::string m_deviceKey;
     std::string m_options;
 };

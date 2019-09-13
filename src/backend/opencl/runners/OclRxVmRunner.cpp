@@ -47,6 +47,12 @@ xmrig::OclRxVmRunner::~OclRxVmRunner()
 }
 
 
+size_t xmrig::OclRxVmRunner::bufferSize() const
+{
+    return OclRxBaseRunner::bufferSize() + (align(2560 * data().thread.intensity()));
+}
+
+
 void xmrig::OclRxVmRunner::build()
 {
     OclRxBaseRunner::build();
@@ -94,5 +100,5 @@ void xmrig::OclRxVmRunner::init()
 {
     OclRxBaseRunner::init();
 
-    m_vm_states = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 2560 * data().thread.intensity());
+    m_vm_states = createSubBuffer(CL_MEM_READ_WRITE, 2560 * data().thread.intensity());
 }

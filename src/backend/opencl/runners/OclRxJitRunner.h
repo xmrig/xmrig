@@ -45,6 +45,7 @@ public:
     ~OclRxJitRunner() override;
 
 protected:
+    size_t bufferSize() const override;
     void build() override;
     void execute(uint32_t iteration) override;
     void init() override;

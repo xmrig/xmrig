@@ -49,10 +49,11 @@ public:
     ~OclRxBaseRunner() override;
 
 protected:
-    void run(uint32_t nonce, uint32_t *hashOutput) override;
-    void set(const Job &job, uint8_t *blob) override;
+    size_t bufferSize() const override;
     void build() override;
     void init() override;
+    void run(uint32_t nonce, uint32_t *hashOutput) override;
+    void set(const Job &job, uint8_t *blob) override;
 
 protected:
     virtual void execute(uint32_t iteration) = 0;

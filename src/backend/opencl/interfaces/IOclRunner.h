@@ -63,6 +63,9 @@ public:
     virtual uint32_t deviceIndex() const                    = 0;
     virtual void build()                                    = 0;
     virtual void init()                                     = 0;
+
+protected:
+    virtual size_t bufferSize() const                       = 0;
 };
 
 

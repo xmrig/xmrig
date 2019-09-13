@@ -61,6 +61,14 @@ xmrig::OclRyoRunner::~OclRyoRunner()
 }
 
 
+size_t xmrig::OclRyoRunner::bufferSize() const
+{
+    const size_t g_thd = data().thread.intensity();
+
+    return OclBaseRunner::bufferSize() + align(data().algorithm.l3() * g_thd) + align(200 * g_thd);
+}
+
+
 void xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
@@ -123,6 +131,6 @@ void xmrig::OclRyoRunner::init()
 
     const size_t g_thd = data().thread.intensity();
 
-    m_scratchpads = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, data().algorithm.l3() * g_thd);
-    m_states      = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 200 * g_thd);
+    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE, data().algorithm.l3() * g_thd);
+    m_states      = createSubBuffer(CL_MEM_READ_WRITE, 200 * g_thd);
 }

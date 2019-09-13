@@ -51,6 +51,7 @@ static const char *kCreateContext                    = "clCreateContext";
 static const char *kCreateKernel                     = "clCreateKernel";
 static const char *kCreateProgramWithBinary          = "clCreateProgramWithBinary";
 static const char *kCreateProgramWithSource          = "clCreateProgramWithSource";
+static const char *kCreateSubBuffer                  = "clCreateSubBuffer";
 static const char *kEnqueueNDRangeKernel             = "clEnqueueNDRangeKernel";
 static const char *kEnqueueReadBuffer                = "clEnqueueReadBuffer";
 static const char *kEnqueueWriteBuffer               = "clEnqueueWriteBuffer";
@@ -72,6 +73,8 @@ static const char *kReleaseKernel                    = "clReleaseKernel";
 static const char *kReleaseMemObject                 = "clReleaseMemObject";
 static const char *kReleaseProgram                   = "clReleaseProgram";
 static const char *kSetKernelArg                     = "clSetKernelArg";
+static const char *kSetMemObjectDestructorCallback   = "clSetMemObjectDestructorCallback";
+static const char *kUnloadPlatformCompiler           = "clUnloadPlatformCompiler";
 
 
 #if defined(CL_VERSION_2_0)
@@ -102,8 +105,11 @@ typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
 typedef cl_int (CL_API_CALL *releaseMemObject_t)(cl_mem);
 typedef cl_int (CL_API_CALL *releaseProgram_t)(cl_program);
 typedef cl_int (CL_API_CALL *setKernelArg_t)(cl_kernel, cl_uint, size_t, const void *);
+typedef cl_int (CL_API_CALL *setMemObjectDestructorCallback_t)(cl_mem, void (CL_CALLBACK *)(cl_mem, void *), void *);
+typedef cl_int (CL_API_CALL *unloadPlatformCompiler_t)(cl_platform_id);
 typedef cl_kernel (CL_API_CALL *createKernel_t)(cl_program, const char *, cl_int *);
 typedef cl_mem (CL_API_CALL *createBuffer_t)(cl_context, cl_mem_flags, size_t, void *, cl_int *);
+typedef cl_mem (CL_API_CALL *createSubBuffer_t)(cl_mem, cl_mem_flags, cl_buffer_create_type, const void *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithBinary_t)(cl_context, cl_uint, const cl_device_id *, const size_t *, const unsigned char **, cl_int *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithSource_t)(cl_context, cl_uint, const char **, const size_t *, cl_int *);
 
@@ -118,6 +124,7 @@ static createContext_t pCreateContext                                       = nu
 static createKernel_t pCreateKernel                                         = nullptr;
 static createProgramWithBinary_t pCreateProgramWithBinary                   = nullptr;
 static createProgramWithSource_t pCreateProgramWithSource                   = nullptr;
+static createSubBuffer_t pCreateSubBuffer                                   = nullptr;
 static enqueueNDRangeKernel_t pEnqueueNDRangeKernel                         = nullptr;
 static enqueueReadBuffer_t pEnqueueReadBuffer                               = nullptr;
 static enqueueWriteBuffer_t pEnqueueWriteBuffer                             = nullptr;
@@ -139,6 +146,8 @@ static releaseKernel_t pReleaseKernel                                       = nu
 static releaseMemObject_t pReleaseMemObject                                 = nullptr;
 static releaseProgram_t pReleaseProgram                                     = nullptr;
 static setKernelArg_t pSetKernelArg                                         = nullptr;
+static setMemObjectDestructorCallback_t pSetMemObjectDestructorCallback     = nullptr;
+static unloadPlatformCompiler_t pUnloadPlatformCompiler                     = nullptr;
 
 #define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { return false; }
 
@@ -222,6 +231,9 @@ bool xmrig::OclLib::load()
     DLSYM(GetMemObjectInfo);
     DLSYM(GetContextInfo);
     DLSYM(ReleaseDevice);
+    DLSYM(UnloadPlatformCompiler);
+    DLSYM(SetMemObjectDestructorCallback);
+    DLSYM(CreateSubBuffer);
 
 #   if defined(CL_VERSION_2_0)
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
@@ -563,6 +575,12 @@ cl_int xmrig::OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t a
 }
 
 
+cl_int xmrig::OclLib::unloadPlatformCompiler(cl_platform_id platform) noexcept
+{
+    return pUnloadPlatformCompiler(platform);
+}
+
+
 cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_name, cl_int *errcode_ret) noexcept
 {
     assert(pCreateKernel != nullptr);
@@ -616,6 +634,34 @@ cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_
     }
 
     return result;
+}
+
+
+cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size, cl_int *errcode_ret) noexcept
+{
+    const cl_buffer_region region = { offset, size };
+
+    auto result = pCreateSubBuffer(buffer, flags, CL_BUFFER_CREATE_TYPE_REGION, &region, errcode_ret);
+    if (*errcode_ret != CL_SUCCESS) {
+        LOG_ERR("%s" RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("%s") RED(" with offset ") RED_BOLD("%zu") RED(" and size ") RED_BOLD("%zu"),
+                ocl_tag(), OclError::toString(*errcode_ret), kCreateSubBuffer, offset, size);
+
+        return nullptr;
+    }
+
+    return result;
+}
+
+
+cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size)
+{
+    cl_int ret;
+    cl_mem mem = createSubBuffer(buffer, flags, offset, size, &ret);
+    if (ret != CL_SUCCESS) {
+        throw std::runtime_error(OclError::toString(ret));
+    }
+
+    return mem;
 }
 
 

@@ -47,6 +47,7 @@ public:
     ~OclCnRunner() override;
 
 protected:
+    size_t bufferSize() const override;
     void run(uint32_t nonce, uint32_t *hashOutput) override;
     void set(const Job &job, uint8_t *blob) override;
     void build() override;

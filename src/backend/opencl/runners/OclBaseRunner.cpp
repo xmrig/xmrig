@@ -27,10 +27,11 @@
 #include "backend/opencl/OclCache.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/runners/OclBaseRunner.h"
+#include "backend/opencl/wrappers/OclError.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
-#include "backend/opencl/wrappers/OclError.h"
+#include "crypto/common/VirtualMemory.h"
 
 
 xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
@@ -38,6 +39,7 @@ xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
     m_ctx(data.ctx),
     m_source(OclSource::get(data.algorithm)),
     m_data(data),
+    m_align(OclLib::getUint(data.device.id(), CL_DEVICE_MEM_BASE_ADDR_ALIGN)),
     m_threadId(id)
 {
     m_deviceKey = data.device.name();
@@ -61,7 +63,14 @@ xmrig::OclBaseRunner::~OclBaseRunner()
     OclLib::release(m_program);
     OclLib::release(m_input);
     OclLib::release(m_output);
+    OclLib::release(m_buffer);
     OclLib::release(m_queue);
+}
+
+
+size_t xmrig::OclBaseRunner::bufferSize() const
+{
+    return align(Job::kMaxBlobSize) + align(sizeof(cl_uint) * 0x100);
 }
 
 
@@ -84,8 +93,33 @@ void xmrig::OclBaseRunner::build()
 void xmrig::OclBaseRunner::init()
 {
     m_queue  = OclLib::createCommandQueue(m_ctx, data().device.id());
-    m_input  = OclLib::createBuffer(m_ctx, CL_MEM_READ_ONLY, Job::kMaxBlobSize);
-    m_output = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100);
+
+    constexpr size_t oneGiB = 1024 * 1024 * 1024;
+    size_t size             = bufferSize();
+
+    if (size < oneGiB && data().device.freeMemSize() >= oneGiB) {
+        size = oneGiB;
+    }
+
+    m_buffer = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, size);
+    m_input  = createSubBuffer(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, Job::kMaxBlobSize);
+    m_output = createSubBuffer(CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100);
+}
+
+
+cl_mem xmrig::OclBaseRunner::createSubBuffer(cl_mem_flags flags, size_t size)
+{
+    auto mem = OclLib::createSubBuffer(m_buffer, flags, m_offset, size);
+
+    m_offset += align(size);
+
+    return mem;
+}
+
+
+size_t xmrig::OclBaseRunner::align(size_t size) const
+{
+    return VirtualMemory::align(size, m_align);
 }
 
 

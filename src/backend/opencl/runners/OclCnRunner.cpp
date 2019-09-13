@@ -81,6 +81,17 @@ xmrig::OclCnRunner::~OclCnRunner()
 }
 
 
+size_t xmrig::OclCnRunner::bufferSize() const
+{
+    const size_t g_thd = data().thread.intensity();
+
+    return OclBaseRunner::bufferSize() +
+           align(m_algorithm.l3() * g_thd) +
+           align(200 * g_thd) +
+           (align(sizeof(cl_uint) * (g_thd + 2)) * BRANCH_MAX);
+}
+
+
 void xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
@@ -167,10 +178,10 @@ void xmrig::OclCnRunner::init()
 
     const size_t g_thd = data().thread.intensity();
 
-    m_scratchpads = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, m_algorithm.l3() * g_thd);
-    m_states      = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 200 * g_thd);
+    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE, m_algorithm.l3() * g_thd);
+    m_states      = createSubBuffer(CL_MEM_READ_WRITE, 200 * g_thd);
 
     for (size_t i = 0; i < BRANCH_MAX; ++i) {
-        m_branches[i] = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2));
+        m_branches[i] = createSubBuffer(CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2));
     }
 }

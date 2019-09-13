@@ -136,6 +136,18 @@ void xmrig::OclRxBaseRunner::set(const Job &job, uint8_t *blob)
 }
 
 
+size_t xmrig::OclRxBaseRunner::bufferSize() const
+{
+    const size_t g_thd = data().thread.intensity();
+
+    return OclBaseRunner::bufferSize() +
+           align((m_algorithm.l3() + 64) * g_thd) +
+           align(64 * g_thd) +
+           align((128 + 2560) * g_thd) +
+           align(sizeof(uint32_t) * g_thd);
+}
+
+
 void xmrig::OclRxBaseRunner::build()
 {
     OclBaseRunner::build();
@@ -168,8 +180,8 @@ void xmrig::OclRxBaseRunner::init()
 
     const size_t g_thd = data().thread.intensity();
 
-    m_scratchpads = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, (m_algorithm.l3() + 64) * g_thd);
-    m_hashes      = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, 64 * g_thd);
-    m_entropy     = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, (128 + 2560) * g_thd);
-    m_rounding    = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, sizeof(uint32_t) * g_thd);
+    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (m_algorithm.l3() + 64) * g_thd);
+    m_hashes      = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 64 * g_thd);
+    m_entropy     = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (128 + 2560) * g_thd);
+    m_rounding    = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, sizeof(uint32_t) * g_thd);
 }
