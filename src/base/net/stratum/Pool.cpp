@@ -200,6 +200,9 @@ bool xmrig::Pool::isEqual(const Pool &other) const
 bool xmrig::Pool::parse(const char *url)
 {
     assert(url != nullptr);
+    if (url == nullptr) {
+        return false;
+    }
 
     const char *p    = strstr(url, "://");
     const char *base = url;

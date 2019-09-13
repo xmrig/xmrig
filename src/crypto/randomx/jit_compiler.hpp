@@ -29,9 +29,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #if defined(_M_X64) || defined(__x86_64__)
-#include "jit_compiler_x86.hpp"
+#include "crypto/randomx/jit_compiler_x86.hpp"
 #elif defined(__aarch64__)
-#include "jit_compiler_a64.hpp"
+#include "crypto/randomx/jit_compiler_a64.hpp"
 #else
-#include "jit_compiler_fallback.hpp"
+#include "crypto/randomx/jit_compiler_fallback.hpp"
 #endif

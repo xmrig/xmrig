@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>
 #include <stdint.h>
 #include <type_traits>
-#include "intrin_portable.h"
+#include "crypto/randomx/intrin_portable.h"
 
 #define RANDOMX_HASH_SIZE 32
 #define RANDOMX_DATASET_ITEM_SIZE 64
@@ -116,7 +116,7 @@ struct RandomX_ConfigurationBase
 	uint8_t codeShhPrefetchTweaked[20];
 	uint8_t codeReadDatasetTweaked[64];
 	uint8_t codeReadDatasetLightSshInitTweaked[68];
-	uint8_t codeLoopLoadTweaked[140];
+	uint8_t codePrefetchScratchpadTweaked[32];
 
 	uint32_t CacheLineAlignMask_Calculated;
 	uint32_t DatasetExtraItems_Calculated;

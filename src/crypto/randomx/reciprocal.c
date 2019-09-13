@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <assert.h>
-#include "reciprocal.h"
+#include "crypto/randomx/reciprocal.h"
 
 /*
 	Calculates rcp = 2**x / divisor for highest integer x such that rcp < 2**64.

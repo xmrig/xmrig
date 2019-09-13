@@ -45,6 +45,7 @@ R"===(
         "restricted": true
     },
     "autosave": true,
+    "version": 1,
     "background": false,
     "colors": true,
     "randomx": {
@@ -57,6 +58,7 @@ R"===(
         "hw-aes": null,
         "priority": null,
         "asm": true,
+        "argon2-impl": null,
         "cn/0": false,
         "cn-lite/0": false
     },

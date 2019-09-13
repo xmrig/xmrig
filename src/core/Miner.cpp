@@ -24,8 +24,8 @@
 
 
 #include <algorithm>
+#include <mutex>
 #include <thread>
-#include <uv.h>
 
 
 #include "backend/common/Hashrate.h"
@@ -34,6 +34,7 @@
 #include "base/io/log/Log.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Job.h"
+#include "base/tools/Object.h"
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
@@ -50,16 +51,29 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/OclBackend.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/RxConfig.h"
+#endif
+
+
 namespace xmrig {
+
+
+static std::mutex mutex;
 
 
 class MinerPrivate
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(MinerPrivate)
+
     inline MinerPrivate(Controller *controller) : controller(controller)
     {
-        uv_rwlock_init(&rwlock);
-
 #       ifdef XMRIG_ALGO_RANDOMX
         Rx::init();
 #       endif
@@ -68,8 +82,6 @@ public:
 
     inline ~MinerPrivate()
     {
-        uv_rwlock_destroy(&rwlock);
-
         delete timer;
 
         for (IBackend *backend : backends) {
@@ -108,7 +120,7 @@ public:
     }
 
 
-    inline void handleJobChange(bool reset)
+    inline void handleJobChange()
     {
         active = true;
 
@@ -135,7 +147,7 @@ public:
 
 
 #   ifdef XMRIG_FEATURE_API
-    void getMiner(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
+    void getMiner(rapidjson::Value &reply, rapidjson::Document &doc, int) const
     {
         using namespace rapidjson;
         auto &allocator = doc.GetAllocator();
@@ -144,25 +156,6 @@ public:
         reply.AddMember("kind",         APP_KIND, allocator);
         reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
         reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
-
-        Value hugepages;
-
-        if (!backends.empty() && backends.front()->type() == "cpu") {
-            const auto pages = static_cast<CpuBackend *>(backends.front())->hugePages();
-            if (version > 1) {
-                hugepages.SetArray();
-                hugepages.PushBack(pages.first, allocator);
-                hugepages.PushBack(pages.second, allocator);
-            }
-            else {
-                hugepages = pages.first == pages.second;
-            }
-        }
-        else {
-            hugepages = false;
-        }
-
-        reply.AddMember("hugepages",    hugepages, allocator);
         reply.AddMember("donate_level", controller->config()->pools().donateLevel(), allocator);
 
         Value algo(kArrayType);
@@ -239,10 +232,19 @@ public:
 #   endif
 
 
+#   ifdef XMRIG_ALGO_RANDOMX
+    bool initRX(IRxListener *listener)
+    {
+        return Rx::init(job, controller->config()->rx().threads(), controller->config()->cpu().isHugePages(), controller->config()->rx().isNUMA(), listener);
+    }
+#   endif
+
+
     Algorithm algorithm;
     Algorithms algorithms;
     bool active         = false;
     bool enabled        = true;
+    bool reset          = true;
     Controller *controller;
     Job job;
     mutable std::map<Algorithm::Id, double> maxHashrate;
@@ -250,7 +252,6 @@ public:
     String userJobId;
     Timer *timer        = nullptr;
     uint64_t ticks      = 0;
-    uv_rwlock_t rwlock;
 };
 
 
@@ -270,6 +271,10 @@ xmrig::Miner::Miner(Controller *controller)
     d_ptr->timer = new Timer(this);
 
     d_ptr->backends.push_back(new CpuBackend(controller));
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    d_ptr->backends.push_back(new OclBackend(controller));
+#   endif
 
     d_ptr->rebuild();
 }
@@ -307,11 +312,9 @@ const std::vector<xmrig::IBackend *> &xmrig::Miner::backends() const
 
 xmrig::Job xmrig::Miner::job() const
 {
-    uv_rwlock_rdlock(&d_ptr->rwlock);
-    Job job = d_ptr->job;
-    uv_rwlock_rdunlock(&d_ptr->rwlock);
+    std::lock_guard<std::mutex> lock(mutex);
 
-    return job;
+    return d_ptr->job;
 }
 
 
@@ -387,12 +390,12 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 
     d_ptr->algorithm = job.algorithm();
 
-    uv_rwlock_wrlock(&d_ptr->rwlock);
+    mutex.lock();
 
     const uint8_t index = donate ? 1 : 0;
-    const bool reset    = !(d_ptr->job.index() == 1 && index == 0 && d_ptr->userJobId == job.id());
 
-    d_ptr->job = job;
+    d_ptr->reset = !(d_ptr->job.index() == 1 && index == 0 && d_ptr->userJobId == job.id());
+    d_ptr->job   = job;
     d_ptr->job.setIndex(index);
 
     if (index == 0) {
@@ -400,16 +403,16 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    Rx::init(d_ptr->job,
-             d_ptr->controller->config()->rx().threads(),
-             d_ptr->controller->config()->cpu().isHugePages(),
-             d_ptr->controller->config()->rx().isNUMA()
-             );
+    const bool ready = d_ptr->initRX(this);
+#   else
+    constexpr const bool ready = true;
 #   endif
 
-    uv_rwlock_wrunlock(&d_ptr->rwlock);
+    mutex.unlock();
 
-    d_ptr->handleJobChange(reset);
+    if (ready) {
+        d_ptr->handleJobChange();
+    }
 }
 
 
@@ -488,6 +491,27 @@ void xmrig::Miner::onRequest(IApiRequest &request)
 
             setEnabled(true);
         }
+        else if (request.rpcMethod() == "stop") {
+            request.accept();
+
+            stop();
+        }
     }
+
+    for (IBackend *backend : d_ptr->backends) {
+        backend->handleRequest(request);
+    }
+}
+#endif
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+void xmrig::Miner::onDatasetReady()
+{
+    if (!Rx::isReady(job())) {
+        return;
+    }
+
+    d_ptr->handleJobChange();
 }
 #endif

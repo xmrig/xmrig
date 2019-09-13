@@ -246,13 +246,14 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     findByType(cache, HWLOC_OBJ_CORE, [&cores](hwloc_obj_t found) { cores.emplace_back(found); });
 
     size_t L3               = cache->attr->cache.size;
+    const bool L3_exclusive = isCacheExclusive(cache);
     size_t L2               = 0;
     int L2_associativity    = 0;
     size_t extra            = 0;
     const size_t scratchpad = algorithm.l3();
-    int intensity           = algorithm.maxIntensity() == 1 ? -1 : 1;
+    uint32_t intensity      = algorithm.maxIntensity() == 1 ? 0 : 1;
 
-    if (cache->attr->cache.depth == 3 && isCacheExclusive(cache)) {
+    if (cache->attr->cache.depth == 3) {
         for (size_t i = 0; i < cache->arity; ++i) {
             hwloc_obj_t l2 = cache->children[i];
             if (!isCacheObject(l2) || l2->attr == nullptr) {
@@ -262,7 +263,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
             L2 += l2->attr->cache.size;
             L2_associativity = l2->attr->cache.associativity;
 
-            if (l2->attr->cache.size >= scratchpad) {
+            if (L3_exclusive && l2->attr->cache.size >= scratchpad) {
                 extra += scratchpad;
             }
         }

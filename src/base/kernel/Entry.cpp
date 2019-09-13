@@ -35,6 +35,11 @@
 #   include <hwloc.h>
 #endif
 
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/wrappers/OclLib.h"
+#   include "backend/opencl/wrappers/OclPlatform.h"
+#endif
+
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
 #include "core/config/usage.h"
@@ -142,6 +147,12 @@ xmrig::Entry::Id xmrig::Entry::get(const Process &process)
     }
 #   endif
 
+#   ifdef XMRIG_FEATURE_OPENCL
+    if (args.hasArg("--print-platforms")) {
+        return Platforms;
+    }
+#   endif
+
     return Default;
 }
 
@@ -159,6 +170,14 @@ int xmrig::Entry::exec(const Process &process, Id id)
 #   ifdef XMRIG_FEATURE_HWLOC
     case Topo:
         return exportTopology(process);
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    case Platforms:
+        if (OclLib::init()) {
+            OclPlatform::print();
+        }
+        return 0;
 #   endif
 
     default:

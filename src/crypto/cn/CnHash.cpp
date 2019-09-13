@@ -23,7 +23,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 
 #include "backend/cpu/Cpu.h"
@@ -35,6 +35,11 @@
 #   include "crypto/cn/CryptoNight_arm.h"
 #else
 #   include "crypto/cn/CryptoNight_x86.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_ARGON2
+#   include "crypto/argon2/Hash.h"
 #endif
 
 
@@ -59,12 +64,6 @@
     m_map[algo][AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
     m_map[algo][AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
     m_map[algo][AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>;
-
-
-extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx **ctx);
-extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx **ctx);
-extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx **ctx);
-extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx **ctx);
 
 
 namespace xmrig {
@@ -94,7 +93,7 @@ cn_mainloop_fun        cn_double_double_mainloop_sandybridge_asm  = nullptr;
 template<typename T, typename U>
 static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t mask = CnAlgo<Algorithm::CN_HALF>().mask())
 {
-    const uint8_t* p = reinterpret_cast<const uint8_t*>(src);
+    auto p = reinterpret_cast<const uint8_t*>(src);
 
     // Workaround for Visual Studio placing trampoline in debug builds.
 #   if defined(_MSC_VER)
@@ -112,7 +111,7 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 
     memcpy((void*) dst, (const void*) src, size);
 
-    uint8_t* patched_data = reinterpret_cast<uint8_t*>(dst);
+    auto patched_data = reinterpret_cast<uint8_t*>(dst);
     for (size_t i = 0; i + sizeof(uint32_t) <= size; ++i) {
         switch (*(uint32_t*)(patched_data + i)) {
         case CnAlgo<Algorithm::CN_2>().iterations():
@@ -130,7 +129,7 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 static void patchAsmVariants()
 {
     const int allocation_size = 65536;
-    uint8_t *base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size));
+    auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
     cn_half_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1000);
@@ -211,7 +210,6 @@ xmrig::CnHash::CnHash()
     ADD_FN(Algorithm::CN_1);
     ADD_FN(Algorithm::CN_2);
     ADD_FN(Algorithm::CN_R);
-    ADD_FN(Algorithm::CN_WOW);
     ADD_FN(Algorithm::CN_FAST);
     ADD_FN(Algorithm::CN_HALF);
     ADD_FN(Algorithm::CN_XAO);
@@ -223,7 +221,6 @@ xmrig::CnHash::CnHash()
     ADD_FN_ASM(Algorithm::CN_2);
     ADD_FN_ASM(Algorithm::CN_HALF);
     ADD_FN_ASM(Algorithm::CN_R);
-    ADD_FN_ASM(Algorithm::CN_WOW);
     ADD_FN_ASM(Algorithm::CN_RWZ);
     ADD_FN_ASM(Algorithm::CN_ZLS);
     ADD_FN_ASM(Algorithm::CN_DOUBLE);
@@ -247,6 +244,13 @@ xmrig::CnHash::CnHash()
 #   ifdef XMRIG_ALGO_CN_PICO
     ADD_FN(Algorithm::CN_PICO_0);
     ADD_FN_ASM(Algorithm::CN_PICO_0);
+#   endif
+
+#   ifdef XMRIG_ALGO_ARGON2
+    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_CHUKWA>;
+    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE_SOFT][Assembly::NONE] = argon2::single_hash<Algorithm::AR2_CHUKWA>;
+    m_map[Algorithm::AR2_WRKZ][AV_SINGLE][Assembly::NONE]        = argon2::single_hash<Algorithm::AR2_WRKZ>;
+    m_map[Algorithm::AR2_WRKZ][AV_SINGLE_SOFT][Assembly::NONE]   = argon2::single_hash<Algorithm::AR2_WRKZ>;
 #   endif
 
 #   ifdef XMRIG_FEATURE_ASM

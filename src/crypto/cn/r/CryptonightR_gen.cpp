@@ -99,20 +99,6 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
     }
 }
 
-void wow_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
-{
-    uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
-    uint8_t* p = p0;
-
-    add_code(p, CryptonightWOW_template_part1, CryptonightWOW_template_part2);
-    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
-    add_code(p, CryptonightWOW_template_part2, CryptonightWOW_template_part3);
-    *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightWOW_template_mainloop) - ((const uint8_t*)CryptonightWOW_template_part1)) - (p - p0));
-    add_code(p, CryptonightWOW_template_part3, CryptonightWOW_template_end);
-
-    xmrig::VirtualMemory::flushInstructionCache(machine_code, p - p0);
-}
-
 void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
 {
     uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
@@ -123,22 +109,6 @@ void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_co
     add_code(p, CryptonightR_template_part2, CryptonightR_template_part3);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_template_mainloop) - ((const uint8_t*)CryptonightR_template_part1)) - (p - p0));
     add_code(p, CryptonightR_template_part3, CryptonightR_template_end);
-
-    xmrig::VirtualMemory::flushInstructionCache(machine_code, p - p0);
-}
-
-void wow_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
-{
-    uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
-    uint8_t* p = p0;
-
-    add_code(p, CryptonightWOW_template_double_part1, CryptonightWOW_template_double_part2);
-    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
-    add_code(p, CryptonightWOW_template_double_part2, CryptonightWOW_template_double_part3);
-    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
-    add_code(p, CryptonightWOW_template_double_part3, CryptonightWOW_template_double_part4);
-    *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightWOW_template_double_mainloop) - ((const uint8_t*)CryptonightWOW_template_double_part1)) - (p - p0));
-    add_code(p, CryptonightWOW_template_double_part4, CryptonightWOW_template_double_end);
 
     xmrig::VirtualMemory::flushInstructionCache(machine_code, p - p0);
 }
@@ -155,20 +125,6 @@ void v4_compile_code_double(const V4_Instruction* code, int code_size, void* mac
     add_code(p, CryptonightR_template_double_part3, CryptonightR_template_double_part4);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_template_double_mainloop) - ((const uint8_t*)CryptonightR_template_double_part1)) - (p - p0));
     add_code(p, CryptonightR_template_double_part4, CryptonightR_template_double_end);
-
-    xmrig::VirtualMemory::flushInstructionCache(machine_code, p - p0);
-}
-
-void wow_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
-{
-    uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
-    uint8_t* p = p0;
-
-    add_code(p, CryptonightWOW_soft_aes_template_part1, CryptonightWOW_soft_aes_template_part2);
-    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
-    add_code(p, CryptonightWOW_soft_aes_template_part2, CryptonightWOW_soft_aes_template_part3);
-    *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightWOW_soft_aes_template_mainloop) - ((const uint8_t*)CryptonightWOW_soft_aes_template_part1)) - (p - p0));
-    add_code(p, CryptonightWOW_soft_aes_template_part3, CryptonightWOW_soft_aes_template_end);
 
     xmrig::VirtualMemory::flushInstructionCache(machine_code, p - p0);
 }

@@ -27,9 +27,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <stddef.h>
-#include "blake2/blake2.h"
-#include "blake2/endian.h"
-#include "blake2_generator.hpp"
+#include "crypto/randomx/blake2/blake2.h"
+#include "crypto/randomx/blake2/endian.h"
+#include "crypto/randomx/blake2_generator.hpp"
 
 namespace randomx {
 
@@ -46,7 +46,7 @@ namespace randomx {
 		return data[dataIndex++];
 	}
 
-	uint32_t Blake2Generator::getInt32() {
+	uint32_t Blake2Generator::getUInt32() {
 		checkData(4);
 		auto ret = load32(&data[dataIndex]);
 		dataIndex += 4;
@@ -55,7 +55,7 @@ namespace randomx {
 
 	void Blake2Generator::checkData(const size_t bytesNeeded) {
 		if (dataIndex + bytesNeeded > sizeof(data)) {
-			blake2b(data, sizeof(data), data, sizeof(data), nullptr, 0);
+            rx_blake2b(data, sizeof(data), data, sizeof(data), nullptr, 0);
 			dataIndex = 0;
 		}
 	}

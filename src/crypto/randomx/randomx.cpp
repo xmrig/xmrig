@@ -26,14 +26,14 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "randomx.h"
-#include "dataset.hpp"
-#include "vm_interpreted.hpp"
-#include "vm_interpreted_light.hpp"
-#include "vm_compiled.hpp"
-#include "vm_compiled_light.hpp"
-#include "blake2/blake2.h"
-#include "jit_compiler_x86_static.hpp"
+#include "crypto/randomx/randomx.h"
+#include "crypto/randomx/dataset.hpp"
+#include "crypto/randomx/vm_interpreted.hpp"
+#include "crypto/randomx/vm_interpreted_light.hpp"
+#include "crypto/randomx/vm_compiled.hpp"
+#include "crypto/randomx/vm_compiled_light.hpp"
+#include "crypto/randomx/blake2/blake2.h"
+#include "crypto/randomx/jit_compiler_x86_static.hpp"
 #include <cassert>
 
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
@@ -44,12 +44,14 @@ RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 	ScratchpadL2_Size = 131072;
 	ScratchpadL3_Size = 1048576;
 
+	RANDOMX_FREQ_IADD_RS = 25;
 	RANDOMX_FREQ_IROR_R = 10;
 	RANDOMX_FREQ_IROL_R = 0;
 	RANDOMX_FREQ_FSWAP_R = 8;
 	RANDOMX_FREQ_FADD_R = 20;
 	RANDOMX_FREQ_FSUB_R = 20;
 	RANDOMX_FREQ_FMUL_R = 20;
+	RANDOMX_FREQ_CBRANCH = 16;
 
 	fillAes4Rx4_Key[0] = rx_set_int_vec_i128(0xcf359e95, 0x141f82b7, 0x7ffbe4a6, 0xf890465d);
 	fillAes4Rx4_Key[1] = rx_set_int_vec_i128(0x6741ffdc, 0xbd5c5ac3, 0xfee8278a, 0x6a55c450);
@@ -68,6 +70,9 @@ RandomX_ConfigurationLoki::RandomX_ConfigurationLoki()
 	ArgonSalt = "RandomXL\x12";
 	ProgramSize = 320;
 	ProgramCount = 7;
+
+	RANDOMX_FREQ_IADD_RS = 25;
+	RANDOMX_FREQ_CBRANCH = 16;
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
@@ -87,7 +92,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	, ProgramCount(8)
 	, JumpBits(8)
 	, JumpOffset(8)
-	, RANDOMX_FREQ_IADD_RS(25)
+	, RANDOMX_FREQ_IADD_RS(16)
 	, RANDOMX_FREQ_IADD_M(7)
 	, RANDOMX_FREQ_ISUB_R(16)
 	, RANDOMX_FREQ_ISUB_M(7)
@@ -113,7 +118,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	, RANDOMX_FREQ_FMUL_R(32)
 	, RANDOMX_FREQ_FDIV_M(4)
 	, RANDOMX_FREQ_FSQRT_R(6)
-	, RANDOMX_FREQ_CBRANCH(16)
+	, RANDOMX_FREQ_CBRANCH(25)
 	, RANDOMX_FREQ_CFROUND(1)
 	, RANDOMX_FREQ_ISTORE(16)
 	, RANDOMX_FREQ_NOP(0)
@@ -144,9 +149,9 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 		memcpy(codeReadDatasetLightSshInitTweaked, a, b - a);
 	}
 	{
-		const uint8_t* a = (const uint8_t*)&randomx_program_loop_load;
-		const uint8_t* b = (const uint8_t*)&randomx_program_start;
-		memcpy(codeLoopLoadTweaked, a, b - a);
+		const uint8_t* a = (const uint8_t*)&randomx_prefetch_scratchpad;
+		const uint8_t* b = (const uint8_t*)&randomx_prefetch_scratchpad_end;
+		memcpy(codePrefetchScratchpadTweaked, a, b - a);
 	}
 #endif
 }
@@ -172,8 +177,8 @@ void RandomX_ConfigurationBase::Apply()
 	ScratchpadL3Mask64_Calculated = ((ScratchpadL3_Size / sizeof(uint64_t)) / 8 - 1) * 64;
 
 #if defined(_M_X64) || defined(__x86_64__)
-	*(uint32_t*)(codeLoopLoadTweaked + 4) = ScratchpadL3Mask64_Calculated;
-	*(uint32_t*)(codeLoopLoadTweaked + 50) = ScratchpadL3Mask64_Calculated;
+	*(uint32_t*)(codePrefetchScratchpadTweaked + 4) = ScratchpadL3Mask64_Calculated;
+	*(uint32_t*)(codePrefetchScratchpadTweaked + 18) = ScratchpadL3Mask64_Calculated;
 #endif
 
 	ConditionMask_Calculated = (1 << JumpBits) - 1;
@@ -430,12 +435,12 @@ extern "C" {
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+        rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+            rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
 		}
 		machine->run(&tempHash);
 		machine->getFinalResult(output, RANDOMX_HASH_SIZE);

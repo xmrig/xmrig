@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdint>
 #include <type_traits>
-#include "blake2/endian.h"
+#include "crypto/randomx/blake2/endian.h"
 
 namespace randomx {
 
@@ -77,13 +77,13 @@ namespace randomx {
 		void setImm32(uint32_t val) {
 			return store32(&imm32, val);
 		}
-		int getModMem() const {
-			return mod % 4; //bits 0-1
+		uint32_t getModMem() const {
+			return mod & 3; //bits 0-1
 		}
-		int getModShift() const {
-			return (mod >> 2) % 4; //bits 2-3
+		uint32_t getModShift() const {
+			return (mod >> 2) & 3; //bits 2-3
 		}
-		int getModCond() const {
+		uint32_t getModCond() const {
 			return mod >> 4; //bits 4-7
 		}
 		void setMod(uint8_t val) {

@@ -54,6 +54,7 @@ public:
     static void print(const char *fmt, ...);
     static void print(Level level, const char *fmt, ...);
 
+    static bool background;
     static bool colors;
 
 private:

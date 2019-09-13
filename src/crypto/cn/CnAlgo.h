@@ -27,8 +27,8 @@
 #define XMRIG_CN_ALGO_H
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 
 #include "crypto/common/Algorithm.h"
@@ -42,19 +42,13 @@ template<Algorithm::Id ALGO = Algorithm::INVALID>
 class CnAlgo
 {
 public:
-    constexpr inline CnAlgo()
-    {
-        static_assert(ALGO != Algorithm::INVALID && m_memory[ALGO] > 0,                 "invalid CRYPTONIGHT algorithm");
-        static_assert(sizeof(m_memory)     / sizeof(m_memory)[0]     == Algorithm::MAX, "memory table size mismatch");
-        static_assert(sizeof(m_iterations) / sizeof(m_iterations)[0] == Algorithm::MAX, "iterations table size mismatch");
-        static_assert(sizeof(m_base)       / sizeof(m_base)[0]       == Algorithm::MAX, "iterations table size mismatch");
-    }
+    constexpr CnAlgo() {};
 
-    constexpr inline Algorithm::Id base() const  { return m_base[ALGO]; }
+    constexpr inline Algorithm::Id base() const  { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return Algorithm::CN_2; }
     constexpr inline bool isHeavy() const        { return memory() == CN_MEMORY * 2; }
-    constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R || ALGO == Algorithm::CN_WOW; }
-    constexpr inline size_t memory() const       { return m_memory[ALGO]; }
-    constexpr inline uint32_t iterations() const { return m_iterations[ALGO]; }
+    constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R; }
+    constexpr inline size_t memory() const       { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return CN_MEMORY; }
+    constexpr inline uint32_t iterations() const { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return CN_ITER; }
     constexpr inline uint32_t mask() const       { return ((memory() - 1) / 16) * 16; }
 
     inline static size_t memory(Algorithm::Id algo)
@@ -71,6 +65,54 @@ public:
 
         case Algorithm::CN_PICO:
             return CN_MEMORY / 8;
+
+        default:
+            break;
+        }
+
+        return 0;
+    }
+
+    inline static uint32_t iterations(Algorithm::Id algo)
+    {
+        switch (algo) {
+        case Algorithm::CN_0:
+        case Algorithm::CN_1:
+        case Algorithm::CN_2:
+        case Algorithm::CN_R:
+        case Algorithm::CN_RTO:
+            return CN_ITER;
+
+        case Algorithm::CN_FAST:
+        case Algorithm::CN_HALF:
+#       ifdef XMRIG_ALGO_CN_LITE
+        case Algorithm::CN_LITE_0:
+        case Algorithm::CN_LITE_1:
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        case Algorithm::CN_HEAVY_0:
+        case Algorithm::CN_HEAVY_TUBE:
+        case Algorithm::CN_HEAVY_XHV:
+#       endif
+            return CN_ITER / 2;
+
+        case Algorithm::CN_RWZ:
+        case Algorithm::CN_ZLS:
+            return 0x60000;
+
+        case Algorithm::CN_XAO:
+        case Algorithm::CN_DOUBLE:
+            return CN_ITER * 2;
+
+#       ifdef XMRIG_ALGO_CN_GPU
+        case Algorithm::CN_GPU:
+            return 0xC000;
+#       endif
+
+#       ifdef XMRIG_ALGO_CN_PICO
+        case Algorithm::CN_PICO_0:
+            return CN_ITER / 8;
+#       endif
 
         default:
             break;
@@ -96,124 +138,97 @@ public:
         return ((memory(algo) - 1) / 16) * 16;
     }
 
+    inline static Algorithm::Id base(Algorithm::Id algo)
+    {
+        switch (algo) {
+        case Algorithm::CN_0:
+        case Algorithm::CN_XAO:
+#       ifdef XMRIG_ALGO_CN_LITE
+        case Algorithm::CN_LITE_0:
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        case Algorithm::CN_HEAVY_0:
+        case Algorithm::CN_HEAVY_XHV:
+#       endif
+            return Algorithm::CN_0;
+
+        case Algorithm::CN_1:
+        case Algorithm::CN_FAST:
+        case Algorithm::CN_RTO:
+#       ifdef XMRIG_ALGO_CN_LITE
+        case Algorithm::CN_LITE_1:
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        case Algorithm::CN_HEAVY_TUBE:
+            return Algorithm::CN_1;
+#       endif
+
+        case Algorithm::CN_2:
+        case Algorithm::CN_R:
+        case Algorithm::CN_HALF:
+        case Algorithm::CN_RWZ:
+        case Algorithm::CN_ZLS:
+        case Algorithm::CN_DOUBLE:
+#       ifdef XMRIG_ALGO_CN_PICO
+        case Algorithm::CN_PICO_0:
+#       endif
+            return Algorithm::CN_2;
+
+#       ifdef XMRIG_ALGO_CN_GPU
+        case Algorithm::CN_GPU:
+            return Algorithm::CN_GPU;
+#       endif
+
+        default:
+            break;
+        }
+
+        return Algorithm::INVALID;
+    }
+
 private:
     constexpr const static size_t   CN_MEMORY = 0x200000;
     constexpr const static uint32_t CN_ITER   = 0x80000;
-
-    constexpr const static size_t m_memory[] = {
-        CN_MEMORY, // CN_0
-        CN_MEMORY, // CN_1
-        CN_MEMORY, // CN_2
-        CN_MEMORY, // CN_R
-        CN_MEMORY, // CN_WOW
-        CN_MEMORY, // CN_FAST
-        CN_MEMORY, // CN_HALF
-        CN_MEMORY, // CN_XAO
-        CN_MEMORY, // CN_RTO
-        CN_MEMORY, // CN_RWZ
-        CN_MEMORY, // CN_ZLS
-        CN_MEMORY, // CN_DOUBLE
-#       ifdef XMRIG_ALGO_CN_GPU
-        CN_MEMORY, // CN_GPU
-#       endif
-#       ifdef XMRIG_ALGO_CN_LITE
-        CN_MEMORY / 2, // CN_LITE_0
-        CN_MEMORY / 2, // CN_LITE_1
-#       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
-        CN_MEMORY * 2, // CN_HEAVY_0
-        CN_MEMORY * 2, // CN_HEAVY_TUBE
-        CN_MEMORY * 2, // CN_HEAVY_XHV
-#       endif
-#       ifdef XMRIG_ALGO_CN_PICO
-        CN_MEMORY / 8, // CN_PICO_0
-#       endif
-#       ifdef XMRIG_ALGO_RANDOMX
-        0,             // RX_0
-        0,             // RX_WOW
-        0,             // RX_LOKI
-#       endif
-    };
-
-    constexpr const static uint32_t m_iterations[] = {
-        CN_ITER,     // CN_0
-        CN_ITER,     // CN_1
-        CN_ITER,     // CN_2
-        CN_ITER,     // CN_R
-        CN_ITER,     // CN_WOW
-        CN_ITER / 2, // CN_FAST
-        CN_ITER / 2, // CN_HALF
-        CN_ITER * 2, // CN_XAO
-        CN_ITER,     // CN_RTO
-        0x60000,     // CN_RWZ
-        0x60000,     // CN_ZLS
-        CN_ITER * 2, // CN_DOUBLE
-#       ifdef XMRIG_ALGO_CN_GPU
-        0xC000,      // CN_GPU
-#       endif
-#       ifdef XMRIG_ALGO_CN_LITE
-        CN_ITER / 2, // CN_LITE_0
-        CN_ITER / 2, // CN_LITE_1
-#       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
-        CN_ITER / 2, // CN_HEAVY_0
-        CN_ITER / 2, // CN_HEAVY_TUBE
-        CN_ITER / 2, // CN_HEAVY_XHV
-#       endif
-#       ifdef XMRIG_ALGO_CN_PICO
-        CN_ITER / 8, // CN_PICO_0
-#       endif
-#       ifdef XMRIG_ALGO_RANDOMX
-        0,             // RX_0
-        0,             // RX_WOW
-        0,             // RX_LOKI
-#       endif
-    };
-
-    constexpr const static Algorithm::Id m_base[] = {
-        Algorithm::CN_0,   // CN_0
-        Algorithm::CN_1,   // CN_1
-        Algorithm::CN_2,   // CN_2
-        Algorithm::CN_2,   // CN_R
-        Algorithm::CN_2,   // CN_WOW
-        Algorithm::CN_1,   // CN_FAST
-        Algorithm::CN_2,   // CN_HALF
-        Algorithm::CN_0,   // CN_XAO
-        Algorithm::CN_1,   // CN_RTO
-        Algorithm::CN_2,   // CN_RWZ
-        Algorithm::CN_2,   // CN_ZLS
-        Algorithm::CN_2,   // CN_DOUBLE
-#       ifdef XMRIG_ALGO_CN_GPU
-        Algorithm::CN_GPU, // CN_GPU
-#       endif
-#       ifdef XMRIG_ALGO_CN_LITE
-        Algorithm::CN_0,   // CN_LITE_0
-        Algorithm::CN_1,   // CN_LITE_1
-#       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
-        Algorithm::CN_0,   // CN_HEAVY_0
-        Algorithm::CN_1,   // CN_HEAVY_TUBE
-        Algorithm::CN_0,   // CN_HEAVY_XHV
-#       endif
-#       ifdef XMRIG_ALGO_CN_PICO
-        Algorithm::CN_2,    // CN_PICO_0,
-#       endif
-#       ifdef XMRIG_ALGO_RANDOMX
-        Algorithm::INVALID, // RX_0
-        Algorithm::INVALID, // RX_WOW
-        Algorithm::INVALID, // RX_LOKI
-#       endif
-    };
 };
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::mask() const { return 0x1FFFC0; }
-#endif
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_0>::base() const             { return Algorithm::CN_0; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_XAO>::base() const           { return Algorithm::CN_0; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_LITE_0>::base() const        { return Algorithm::CN_0; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_0>::base() const       { return Algorithm::CN_0; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_XHV>::base() const     { return Algorithm::CN_0; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_1>::base() const             { return Algorithm::CN_1; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_FAST>::base() const          { return Algorithm::CN_1; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_RTO>::base() const           { return Algorithm::CN_1; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_LITE_1>::base() const        { return Algorithm::CN_1; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_TUBE>::base() const    { return Algorithm::CN_1; }
 
-#ifdef XMRIG_ALGO_CN_PICO
-template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const { return 0x1FFF0; }
-#endif
+
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_FAST>::iterations() const         { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_HALF>::iterations() const         { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_LITE_0>::iterations() const       { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_LITE_1>::iterations() const       { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_HEAVY_0>::iterations() const      { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_HEAVY_TUBE>::iterations() const   { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_HEAVY_XHV>::iterations() const    { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_XAO>::iterations() const          { return CN_ITER * 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_DOUBLE>::iterations() const       { return CN_ITER * 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_RWZ>::iterations() const          { return 0x60000; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_ZLS>::iterations() const          { return 0x60000; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::iterations() const          { return 0xC000; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::iterations() const       { return CN_ITER / 8; }
+
+
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_LITE_0>::memory() const             { return CN_MEMORY / 2; }
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_LITE_1>::memory() const             { return CN_MEMORY / 2; }
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_0>::memory() const            { return CN_MEMORY * 2; }
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_TUBE>::memory() const         { return CN_MEMORY * 2; }
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_XHV>::memory() const          { return CN_MEMORY * 2; }
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_0>::memory() const             { return CN_MEMORY / 8; }
+
+
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::mask() const                { return 0x1FFFC0; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const             { return 0x1FFF0; }
 
 
 } /* namespace xmrig */

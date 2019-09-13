@@ -1,13 +1,16 @@
 set(HEADERS_BACKEND_COMMON
+    src/backend/common/Hashrate.h
+    src/backend/common/Tags.h
     src/backend/common/interfaces/IBackend.h
+    src/backend/common/interfaces/IRxListener.h
     src/backend/common/interfaces/IThread.h
     src/backend/common/interfaces/IWorker.h
-    src/backend/common/Hashrate.h
+    src/backend/common/misc/PciTopology.h
     src/backend/common/Thread.h
     src/backend/common/Threads.h
     src/backend/common/Worker.h
-    src/backend/common/Workers.h
     src/backend/common/WorkerJob.h
+    src/backend/common/Workers.h
    )
 
 set(SOURCES_BACKEND_COMMON
