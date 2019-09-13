@@ -27,6 +27,7 @@
 #define XMRIG_JOBRESULTS_H
 
 
+#include <cstddef>
 #include <cstdint>
 
 
