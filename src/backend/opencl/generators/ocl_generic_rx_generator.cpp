@@ -28,6 +28,7 @@
 #include "backend/opencl/wrappers/OclDevice.h"
 #include "crypto/common/Algorithm.h"
 #include "crypto/randomx/randomx.h"
+#include "crypto/rx/RxAlgo.h"
 
 
 namespace xmrig {
@@ -40,27 +41,8 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
     }
 
     const size_t mem = device.globalMemSize();
-
-    RandomX_ConfigurationBase* config = nullptr;
-
-    switch (algorithm) {
-    case Algorithm::RX_0:
-        config = &RandomX_MoneroConfig;
-        break;
-
-    case Algorithm::RX_LOKI:
-        config = &RandomX_LokiConfig;
-        break;
-
-    case Algorithm::RX_WOW:
-        config = &RandomX_WowneroConfig;
-        break;
-
-    default:
-        return false;
-    }
-
-    bool gcnAsm = false;
+    auto config      = RxAlgo::base(algorithm);
+    bool gcnAsm      = false;
 
     switch (device.type()) {
     case OclDevice::Baffin:
@@ -69,6 +51,9 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
     case OclDevice::Vega_10:
     case OclDevice::Vega_20:
         gcnAsm = true;
+        break;
+
+    default:
         break;
     }
 
