@@ -1,3 +1,9 @@
+# v3.1.2
+- Many RandomX optimizations and fixes.
+  - [#1163](https://github.com/xmrig/xmrig/pull/1163) Optimized soft AES code, up to +30% hashrate on CPU without AES support and other optimizations.
+  - [#1166](https://github.com/xmrig/xmrig/pull/1166) Fixed crash when initialize dataset with big threads count (eg 272).
+  - [#1168](https://github.com/xmrig/xmrig/pull/1168) Optimized loading from scratchpad.
+
 # v3.1.1
 - [#1133](https://github.com/xmrig/xmrig/issues/1133) Fixed syslog regression.
 - [#1138](https://github.com/xmrig/xmrig/issues/1138) Fixed multiple network bugs.
