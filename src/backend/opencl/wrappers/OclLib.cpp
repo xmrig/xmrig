@@ -24,6 +24,7 @@
 
 
 #include <thread>
+#include <stdexcept>
 #include <uv.h>
 
 
