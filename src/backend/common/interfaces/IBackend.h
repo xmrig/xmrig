@@ -26,7 +26,7 @@
 #define XMRIG_IBACKEND_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 #include "rapidjson/fwd.h"

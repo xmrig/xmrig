@@ -29,6 +29,7 @@
 #include "backend/common/Workers.h"
 #include "backend/cpu/CpuWorker.h"
 #include "base/io/log/Log.h"
+#include "base/tools/Object.h"
 
 
 #ifdef XMRIG_FEATURE_OPENCL
@@ -42,9 +43,10 @@ namespace xmrig {
 class WorkersPrivate
 {
 public:
-    inline WorkersPrivate()
-    {
-    }
+    XMRIG_DISABLE_COPY_MOVE(WorkersPrivate)
+
+
+    WorkersPrivate() = default;
 
 
     inline ~WorkersPrivate()
@@ -155,7 +157,7 @@ void xmrig::Workers<T>::onReady(void *arg)
 
     IWorker *worker = create(handle);
     if (!worker || !worker->selfTest()) {
-        LOG_ERR("thread %zu error: \"hash self-test failed\".", worker->id());
+        LOG_ERR("%s " RED("thread ") RED_BOLD("#%zu") RED(" self-test failed"), T::tag(), worker->id());
 
         delete worker;
         return;
