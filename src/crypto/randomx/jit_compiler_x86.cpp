@@ -76,6 +76,8 @@ namespace randomx {
 
 	*/
 
+	const uint8_t* codePrefetchScratchpad = (uint8_t*)&randomx_prefetch_scratchpad;
+	const uint8_t* codePrefetchScratchpadEnd = (uint8_t*)&randomx_prefetch_scratchpad_end;
 	const uint8_t* codePrologue = (uint8_t*)&randomx_program_prologue;
 	const uint8_t* codeLoopBegin = (uint8_t*)&randomx_program_loop_begin;
 	const uint8_t* codeLoopLoad = (uint8_t*)&randomx_program_loop_load;
@@ -93,6 +95,7 @@ namespace randomx {
 	const uint8_t* codeShhEnd = (uint8_t*)&randomx_sshash_end;
 	const uint8_t* codeShhInit = (uint8_t*)&randomx_sshash_init;
 
+	const int32_t prefetchScratchpadSize = codePrefetchScratchpadEnd - codePrefetchScratchpad;
 	const int32_t prologueSize = codeLoopBegin - codePrologue;
 	const int32_t loopLoadSize = codeProgamStart - codeLoopLoad;
 	const int32_t readDatasetSize = codeReadDatasetLightSshInit - codeReadDataset;
@@ -160,7 +163,7 @@ namespace randomx {
 	static const uint8_t REX_MAXPD[] = { 0x66, 0x41, 0x0f, 0x5f };
 	static const uint8_t REX_DIVPD[] = { 0x66, 0x41, 0x0f, 0x5e };
 	static const uint8_t SQRTPD[] = { 0x66, 0x0f, 0x51 };
-	static const uint8_t AND_OR_MOV_LDMXCSR[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x50, 0x0F, 0xAE, 0x14, 0x24, 0x58 };
+	static const uint8_t AND_OR_MOV_LDMXCSR[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x89, 0x44, 0x24, 0xFC, 0x0F, 0xAE, 0x54, 0x24, 0xFC };
 	static const uint8_t ROL_RAX[] = { 0x48, 0xc1, 0xc0 };
 	static const uint8_t XOR_ECX_ECX[] = { 0x33, 0xC9 };
 	static const uint8_t REX_CMP_R32I[] = { 0x41, 0x81 };
@@ -214,7 +217,7 @@ namespace randomx {
 		generateProgramPrologue(prog, pcfg);
 		memcpy(code + codePos, RandomX_CurrentConfig.codeReadDatasetTweaked, readDatasetSize);
 		codePos += readDatasetSize;
-		generateProgramEpilogue(prog);
+		generateProgramEpilogue(prog, pcfg);
 	}
 
 	void JitCompilerX86::generateProgramLight(Program& prog, ProgramConfiguration& pcfg, uint32_t datasetOffset) {
@@ -225,7 +228,7 @@ namespace randomx {
 		emitByte(CALL, code, codePos);
 		emit32(superScalarHashOffset - (codePos + 4), code, codePos);
 		emit(codeReadDatasetLightSshFin, readDatasetLightFinSize, code, codePos);
-		generateProgramEpilogue(prog);
+		generateProgramEpilogue(prog, pcfg);
 	}
 
 	template<size_t N>
@@ -266,13 +269,16 @@ namespace randomx {
 
 	void JitCompilerX86::generateProgramPrologue(Program& prog, ProgramConfiguration& pcfg) {
 		memset(registerUsage, -1, sizeof(registerUsage));
+
+		codePos = ((uint8_t*)randomx_program_prologue_first_load) - ((uint8_t*)randomx_program_prologue);
+		code[codePos + 2] = 0xc0 + pcfg.readReg0;
+		code[codePos + 5] = 0xc0 + pcfg.readReg1;
+		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+
 		codePos = prologueSize;
 		memcpy(code + codePos - 48, &pcfg.eMask, sizeof(pcfg.eMask));
-		emit(REX_XOR_RAX_R64, code, codePos);
-		emitByte(0xc0 + pcfg.readReg0, code, codePos);
-		emit(REX_XOR_RAX_R64, code, codePos);
-		emitByte(0xc0 + pcfg.readReg1, code, codePos);
-		memcpy(code + codePos, RandomX_CurrentConfig.codeLoopLoadTweaked, loopLoadSize);
+		memcpy(code + codePos, codeLoopLoad, loopLoadSize);
 		codePos += loopLoadSize;
 		for (unsigned i = 0; i < prog.getSize(); ++i) {
 			Instruction& instr = prog(i);
@@ -287,7 +293,12 @@ namespace randomx {
 		emitByte(0xc0 + pcfg.readReg3, code, codePos);
 	}
 
-	void JitCompilerX86::generateProgramEpilogue(Program& prog) {
+	void JitCompilerX86::generateProgramEpilogue(Program& prog, ProgramConfiguration& pcfg) {
+		emit(REX_MOV_RR64, code, codePos);
+		emitByte(0xc0 + pcfg.readReg0, code, codePos);
+		emit(REX_XOR_RAX_R64, code, codePos);
+		emitByte(0xc0 + pcfg.readReg1, code, codePos);
+		emit(RandomX_CurrentConfig.codePrefetchScratchpadTweaked, prefetchScratchpadSize, code, codePos);
 		memcpy(code + codePos, codeLoopStore, loopStoreSize);
 		codePos += loopStoreSize;
 		emit(SUB_EBX, code, codePos);

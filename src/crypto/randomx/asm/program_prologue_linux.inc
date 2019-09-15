@@ -12,6 +12,13 @@
 	mov rcx, rdi
 	mov rbp, qword ptr [rsi]    ;# "mx", "ma"
 	mov rdi, qword ptr [rsi+8]  ;# uint8_t* dataset
+
+	;# dataset prefetch for the first iteration of the main loop
+	mov rax, rbp
+	shr rax, 32
+	and eax, RANDOMX_DATASET_BASE_MASK
+	prefetchnta byte ptr [rdi+rax]
+
 	mov rsi, rdx                ;# uint8_t* scratchpad
 
 	mov rax, rbp
