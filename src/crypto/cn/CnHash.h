@@ -27,8 +27,8 @@
 #define XMRIG_CN_HASH_H
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 
 #include "crypto/cn/CnAlgo.h"
@@ -41,8 +41,8 @@ struct cryptonight_ctx;
 namespace xmrig
 {
 
-typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx, uint64_t height);
-typedef void (*cn_mainloop_fun)(cryptonight_ctx **ctx);
+using cn_hash_fun     = void (*)(const uint8_t *, size_t, uint8_t *, cryptonight_ctx **, uint64_t);
+using cn_mainloop_fun = void (*)(cryptonight_ctx **);
 
 
 class CnHash

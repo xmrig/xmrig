@@ -56,6 +56,7 @@ public:
     inline const String &apiId() const             { return m_apiId; }
     inline const String &apiWorkerId() const       { return m_apiWorkerId; }
     inline uint32_t printTime() const              { return m_printTime; }
+    inline uint32_t version() const                { return m_version; }
 
     inline bool isWatch() const override                   { return m_watch && !m_fileName.isNull(); }
     inline const String &fileName() const override         { return m_fileName; }
@@ -80,7 +81,8 @@ protected:
     String m_fileName;
     String m_logFile;
     String m_userAgent;
-    uint32_t m_printTime;
+    uint32_t m_printTime = 60;
+    uint32_t m_version   = 0;
 
 private:
     inline void setPrintTime(uint32_t printTime) { if (printTime <= 3600) { m_printTime = printTime; } }

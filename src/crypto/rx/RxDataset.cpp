@@ -64,7 +64,7 @@ xmrig::RxDataset::~RxDataset()
 }
 
 
-bool xmrig::RxDataset::init(const uint8_t *seed, uint32_t numThreads)
+bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
 {
     cache()->init(seed);
 
@@ -72,13 +72,13 @@ bool xmrig::RxDataset::init(const uint8_t *seed, uint32_t numThreads)
         return true;
     }
 
-    const uint32_t datasetItemCount = randomx_dataset_item_count();
+    const uint64_t datasetItemCount = randomx_dataset_item_count();
 
     if (numThreads > 1) {
         std::vector<std::thread> threads;
         threads.reserve(numThreads);
 
-        for (uint32_t i = 0; i < numThreads; ++i) {
+        for (uint64_t i = 0; i < numThreads; ++i) {
             const uint32_t a = (datasetItemCount * i) / numThreads;
             const uint32_t b = (datasetItemCount * (i + 1)) / numThreads;
             threads.emplace_back(randomx_init_dataset, m_dataset, m_cache->get(), a, b - a);
@@ -99,16 +99,22 @@ bool xmrig::RxDataset::init(const uint8_t *seed, uint32_t numThreads)
 std::pair<size_t, size_t> xmrig::RxDataset::hugePages() const
 {
     constexpr size_t twoMiB      = 2u * 1024u * 1024u;
-    constexpr const size_t total = (VirtualMemory::align(size(), twoMiB) + VirtualMemory::align(RxCache::size(), twoMiB)) / twoMiB;
+    constexpr const size_t total = (VirtualMemory::align(maxSize(), twoMiB) + VirtualMemory::align(RxCache::maxSize(), twoMiB)) / twoMiB;
 
     size_t count = 0;
     if (isHugePages()) {
-        count += VirtualMemory::align(size(), twoMiB) / twoMiB;
+        count += VirtualMemory::align(maxSize(), twoMiB) / twoMiB;
     }
 
     if (m_cache->isHugePages()) {
-        count += VirtualMemory::align(RxCache::size(), twoMiB) / twoMiB;
+        count += VirtualMemory::align(RxCache::maxSize(), twoMiB) / twoMiB;
     }
 
-    return std::pair<size_t, size_t>(count, total);
+    return { count, total };
+}
+
+
+void *xmrig::RxDataset::raw() const
+{
+    return m_dataset ? randomx_get_dataset_memory(m_dataset) : nullptr;
 }

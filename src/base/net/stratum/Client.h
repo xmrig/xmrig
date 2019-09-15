@@ -56,12 +56,13 @@ class JobResult;
 class Client : public BaseClient, public IDnsListener, public ILineListener
 {
 public:
-    constexpr static int kResponseTimeout = 20 * 1000;
+    constexpr static uint64_t kConnectTimeout  = 20 * 1000;
+    constexpr static uint64_t kResponseTimeout = 20 * 1000;
 
 #   ifdef XMRIG_FEATURE_TLS
-    constexpr static int kInputBufferSize = 1024 * 16;
+    constexpr static size_t kInputBufferSize = 1024 * 16;
 #   else
-    constexpr static int kInputBufferSize = 1024 * 2;
+    constexpr static size_t kInputBufferSize = 1024 * 2;
 #   endif
 
     Client(int id, const char *agent, IClientListener *listener);
@@ -122,19 +123,19 @@ private:
 
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 
-    char m_sendBuf[2048];
+    char m_sendBuf[2048] = { 0 };
     const char *m_agent;
     Dns *m_dns;
     RecvBuf<kInputBufferSize> m_recvBuf;
     std::bitset<EXT_MAX> m_extensions;
     String m_rpcId;
-    Tls *m_tls;
-    uint64_t m_expire;
-    uint64_t m_jobs;
-    uint64_t m_keepAlive;
-    uintptr_t m_key;
-    uv_stream_t *m_stream;
-    uv_tcp_t *m_socket;
+    Tls *m_tls                  = nullptr;
+    uint64_t m_expire           = 0;
+    uint64_t m_jobs             = 0;
+    uint64_t m_keepAlive        = 0;
+    uintptr_t m_key             = 0;
+    uv_stream_t *m_stream       = nullptr;
+    uv_tcp_t *m_socket          = nullptr;
 
     static Storage<Client> m_storage;
 };

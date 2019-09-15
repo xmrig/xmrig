@@ -31,39 +31,49 @@
 
 xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 {
-    switch (algorithm) {
-    case Algorithm::RX_WOW:
-        randomx_apply_config(RandomX_WowneroConfig);
-        break;
-
-    case Algorithm::RX_LOKI:
-        randomx_apply_config(RandomX_LokiConfig);
-        break;
-
-    default:
-        randomx_apply_config(RandomX_MoneroConfig);
-        break;
-    }
+    randomx_apply_config(*base(algorithm));
 
     return algorithm;
 }
 
 
-size_t xmrig::RxAlgo::l3(Algorithm::Id algorithm)
+const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
 {
     switch (algorithm) {
-    case Algorithm::RX_0:
-        return RandomX_MoneroConfig.ScratchpadL3_Size;
-
     case Algorithm::RX_WOW:
-        return RandomX_WowneroConfig.ScratchpadL3_Size;
+        return &RandomX_WowneroConfig;
 
     case Algorithm::RX_LOKI:
-        return RandomX_LokiConfig.ScratchpadL3_Size;
+        return &RandomX_LokiConfig;
+        break;
 
     default:
         break;
     }
 
-    return 0;
+    return &RandomX_MoneroConfig;
+}
+
+
+uint32_t xmrig::RxAlgo::version(Algorithm::Id algorithm)
+{
+    return algorithm == Algorithm::RX_WOW ? 103 : 104;
+}
+
+
+uint32_t xmrig::RxAlgo::programCount(Algorithm::Id algorithm)
+{
+    return base(algorithm)->ProgramCount;
+}
+
+
+uint32_t xmrig::RxAlgo::programIterations(Algorithm::Id algorithm)
+{
+    return base(algorithm)->ProgramIterations;
+}
+
+
+uint32_t xmrig::RxAlgo::programSize(Algorithm::Id algorithm)
+{
+    return base(algorithm)->ProgramSize;
 }

@@ -47,7 +47,13 @@ public:
     inline bool isExist(const Algorithm &algo) const                                   { return isDisabled(algo) || m_aliases.count(algo) > 0 || has(algo.shortName()); }
     inline const T &get(const Algorithm &algo, bool strict = false) const              { return get(profileName(algo, strict)); }
     inline void disable(const Algorithm &algo)                                         { m_disabled.insert(algo); }
-    inline void move(const char *profile, T &&threads)                                 { m_profiles.insert({ profile, threads }); }
+
+    inline void move(const char *profile, T &&threads)
+    {
+        if (!threads.isEmpty()) {
+            m_profiles.insert({ profile, std::move(threads) });
+        }
+    }
 
     const T &get(const String &profileName) const;
     size_t read(const rapidjson::Value &value);

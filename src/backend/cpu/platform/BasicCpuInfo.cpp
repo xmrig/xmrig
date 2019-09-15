@@ -52,7 +52,6 @@
 
 #define VENDOR_ID                  (0)
 #define PROCESSOR_INFO             (1)
-#define CACHE_TLB_DESCRIPTOR       (2)
 #define EXTENDED_FEATURES          (7)
 #define PROCESSOR_BRAND_STRING_1   (0x80000002)
 #define PROCESSOR_BRAND_STRING_2   (0x80000003)
@@ -219,6 +218,12 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
         }
 
         return std::max<size_t>(count / 2, 1);
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_ARGON2
+    if (algorithm.family() == Algorithm::ARGON2) {
+        return count;
     }
 #   endif
 

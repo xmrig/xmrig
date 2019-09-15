@@ -28,7 +28,10 @@ IFDEF RAX
 
 _RANDOMX_JITX86_STATIC SEGMENT PAGE READ EXECUTE
 
+PUBLIC randomx_prefetch_scratchpad
+PUBLIC randomx_prefetch_scratchpad_end
 PUBLIC randomx_program_prologue
+PUBLIC randomx_program_prologue_first_load
 PUBLIC randomx_program_loop_begin
 PUBLIC randomx_program_loop_load
 PUBLIC randomx_program_start
@@ -50,14 +53,35 @@ RANDOMX_SCRATCHPAD_MASK     EQU 2097088
 RANDOMX_DATASET_BASE_MASK   EQU 2147483584
 RANDOMX_CACHE_MASK          EQU 4194303
 
+randomx_prefetch_scratchpad PROC
+	mov rdx, rax
+	and eax, RANDOMX_SCRATCHPAD_MASK
+	prefetcht0 [rsi+rax]
+	ror rdx, 32
+	and edx, RANDOMX_SCRATCHPAD_MASK
+	prefetcht0 [rsi+rdx]
+randomx_prefetch_scratchpad ENDP
+
+randomx_prefetch_scratchpad_end PROC
+randomx_prefetch_scratchpad_end ENDP
+
 ALIGN 64
 randomx_program_prologue PROC
 	include asm/program_prologue_win64.inc
 	movapd xmm13, xmmword ptr [mantissaMask]
 	movapd xmm14, xmmword ptr [exp240]
 	movapd xmm15, xmmword ptr [scaleMask]
-	jmp randomx_program_loop_begin
 randomx_program_prologue ENDP
+
+randomx_program_prologue_first_load PROC
+	xor rax, r8
+	xor rax, r8
+	mov rdx, rax
+	and eax, RANDOMX_SCRATCHPAD_MASK
+	ror rdx, 32
+	and edx, RANDOMX_SCRATCHPAD_MASK
+	jmp randomx_program_loop_begin
+randomx_program_prologue_first_load ENDP
 
 ALIGN 64
 	include asm/program_xmm_constants.inc

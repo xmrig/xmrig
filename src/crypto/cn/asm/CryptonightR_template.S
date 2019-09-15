@@ -529,9 +529,7 @@ PUBLIC FN_PREFIX(CryptonightR_instruction_mov254)
 PUBLIC FN_PREFIX(CryptonightR_instruction_mov255)
 PUBLIC FN_PREFIX(CryptonightR_instruction_mov256)
 
-#include "CryptonightWOW_template.inc"
 #include "CryptonightR_template.inc"
-#include "CryptonightWOW_soft_aes_template.inc"
 #include "CryptonightR_soft_aes_template.inc"
 
 FN_PREFIX(CryptonightR_instruction0):
@@ -1593,3 +1591,7 @@ FN_PREFIX(CryptonightR_instruction_mov254):
 FN_PREFIX(CryptonightR_instruction_mov255):
 
 FN_PREFIX(CryptonightR_instruction_mov256):
+
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif

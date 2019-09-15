@@ -60,7 +60,7 @@ xmrig::Network::Network(Controller *controller) :
     m_donate(nullptr),
     m_timer(nullptr)
 {
-    JobResults::setListener(this);
+    JobResults::setListener(this, controller->config()->cpu().isHwAES());
     controller->addListener(this);
 
 #   ifdef XMRIG_FEATURE_API

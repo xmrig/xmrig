@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <cstdint>
-#include "blake2/endian.h"
+#include "crypto/randomx/blake2/endian.h"
 
 constexpr int32_t unsigned32ToSigned2sCompl(uint32_t x) {
 	return (-1 == ~0) ? (int32_t)x : (x > INT32_MAX ? (-(int32_t)(UINT32_MAX - x) - 1) : (int32_t)x);

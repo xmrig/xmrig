@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdint.h>
 
-#include "endian.h"
+#include "crypto/randomx/blake2/endian.h"
 
 static FORCE_INLINE uint64_t load48(const void *src) {
 	const uint8_t *p = (const uint8_t *)src;

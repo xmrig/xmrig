@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ARGON2_CORE_H
 
 #include <stdint.h>
-#include "argon2.h"
+#include "crypto/randomx/argon2.h"
 
 #if defined(__cplusplus)
 extern "C" {

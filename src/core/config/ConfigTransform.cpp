@@ -96,6 +96,8 @@ void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
     BaseTransform::finalize(doc);
 
     if (m_threads) {
+        doc.AddMember("version", 1, allocator);
+
         if (!doc.HasMember(kCpu)) {
             doc.AddMember(StringRef(kCpu), Value(kObjectType), allocator);
         }

@@ -33,11 +33,12 @@
 #endif
 
 
-#include "base/kernel/config/BaseTransform.h"
-#include "base/kernel/Process.h"
-#include "base/io/log/Log.h"
-#include "base/kernel/interfaces/IConfig.h"
 #include "base/io/json/JsonChain.h"
+#include "base/io/log/Log.h"
+#include "base/kernel/config/BaseTransform.h"
+#include "base/kernel/interfaces/IConfig.h"
+#include "base/kernel/Process.h"
+#include "base/net/stratum/Pool.h"
 #include "core/config/Config_platform.h"
 
 
@@ -138,7 +139,19 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         break;
 
     case IConfig::UrlKey: /* --url */
-        return add(doc, kPools, "url", arg, true);
+    {
+        if (!doc.HasMember(kPools)) {
+            doc.AddMember(rapidjson::StringRef(kPools), rapidjson::kArrayType, doc.GetAllocator());
+        }
+
+        rapidjson::Value &array = doc[kPools];
+        if (array.Size() == 0 || Pool(array[array.Size() - 1]).isValid()) {
+            array.PushBack(rapidjson::kObjectType, doc.GetAllocator());
+        }
+
+        set(doc, array[array.Size() - 1], "url", arg);
+        break;
+    }
 
     case IConfig::UserKey: /* --user */
         return add(doc, kPools, "user", arg);
