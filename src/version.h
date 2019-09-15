@@ -32,7 +32,7 @@
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2016-2019 xmrig.com"
-#define APP_KIND      "cpu"
+#define APP_KIND      "miner"
 
 #define APP_VER_MAJOR  4
 #define APP_VER_MINOR  0
