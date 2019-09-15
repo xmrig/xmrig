@@ -21,3 +21,19 @@ This feature add external dependency to libhwloc (1.10.0+) (except MSVC builds).
 * **`-DWITH_TLS=OFF`** disable SSL/TLS support (secure connections to pool). This feature add external dependency to OpenSSL.
 * **`-DWITH_ASM=OFF`** disable assembly optimizations for modern CryptoNight algorithms.
 * **`-DWITH_EMBEDDED_CONFIG=ON`** Enable [embedded](https://github.com/xmrig/xmrig/issues/957) config support.
+
+## Debug options
+
+* **`-DWITH_DEBUG_LOG=ON`** enable debug log (mostly network requests).
+* **`-DHWLOC_DEBUG=ON`** enable some debug log for hwloc.
+* **`-DCMAKE_BUILD_TYPE=Debug`** enable debug build, only useful for investigate crashes, this option slow down miner.
+
+## Special build options
+
+* **`-DXMRIG_DEPS=<path>`** path to precompiled dependensices https://github.com/xmrig/xmrig-deps
+* **`-DARM_TARGET=<number>`** override ARM target, possible values `7` (ARMv7) and `8` (ARMv8).
+* **`-DUV_INCLUDE_DIR=<path>`** custom path to libuv headers.
+* **`-DUV_LIBRARY=<path>`** custom path to libuv library.
+* **`-DHWLOC_INCLUDE_DIR=<path>`** custom path to hwloc headers.
+* **`-DHWLOC_LIBRARY=<path>`** custom path to hwloc library.
+* **`-DOPENSSL_ROOT_DIR=<path>`** custom path to OpenSSL.
