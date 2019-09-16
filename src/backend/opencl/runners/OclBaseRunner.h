@@ -83,6 +83,7 @@ protected:
     size_t m_offset             = 0;
     std::string m_deviceKey;
     std::string m_options;
+    uint32_t m_intensity;
 };
 
 

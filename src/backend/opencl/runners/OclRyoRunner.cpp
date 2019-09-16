@@ -63,9 +63,7 @@ xmrig::OclRyoRunner::~OclRyoRunner()
 
 size_t xmrig::OclRyoRunner::bufferSize() const
 {
-    const size_t g_thd = data().thread.intensity();
-
-    return OclBaseRunner::bufferSize() + align(data().algorithm.l3() * g_thd) + align(200 * g_thd);
+    return OclBaseRunner::bufferSize() + align(data().algorithm.l3() * m_intensity) + align(200 * m_intensity);
 }
 
 
@@ -73,9 +71,8 @@ void xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
 
-    const size_t g_intensity = data().thread.intensity();
-    const size_t w_size      = data().thread.worksize();
-    const size_t g_thd       = ((g_intensity + w_size - 1u) / w_size) * w_size;
+    const size_t w_size = data().thread.worksize();
+    const size_t g_thd  = ((m_intensity + w_size - 1u) / w_size) * w_size;
 
     assert(g_thd % w_size == 0);
 
@@ -109,19 +106,17 @@ void xmrig::OclRyoRunner::build()
 {
     OclBaseRunner::build();
 
-    const uint32_t intensity = data().thread.intensity();
-
     m_cn00 = new Cn00RyoKernel(m_program);
     m_cn00->setArgs(m_scratchpads, m_states);
 
     m_cn0 = new Cn0Kernel(m_program);
-    m_cn0->setArgs(m_input, m_scratchpads, m_states, intensity);
+    m_cn0->setArgs(m_input, m_scratchpads, m_states, m_intensity);
 
     m_cn1 = new Cn1RyoKernel(m_program);
-    m_cn1->setArgs(m_scratchpads, m_states, intensity);
+    m_cn1->setArgs(m_scratchpads, m_states, m_intensity);
 
     m_cn2 = new Cn2RyoKernel(m_program);
-    m_cn2->setArgs(m_scratchpads, m_states, m_output, intensity);
+    m_cn2->setArgs(m_scratchpads, m_states, m_output, m_intensity);
 }
 
 
@@ -129,8 +124,6 @@ void xmrig::OclRyoRunner::init()
 {
     OclBaseRunner::init();
 
-    const size_t g_thd = data().thread.intensity();
-
-    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE, data().algorithm.l3() * g_thd);
-    m_states      = createSubBuffer(CL_MEM_READ_WRITE, 200 * g_thd);
+    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE, data().algorithm.l3() * m_intensity);
+    m_states      = createSubBuffer(CL_MEM_READ_WRITE, 200 * m_intensity);
 }
