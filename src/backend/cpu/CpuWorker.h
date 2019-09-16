@@ -54,6 +54,7 @@ protected:
     void start() override;
 
     inline const VirtualMemory *memory() const override { return m_memory; }
+    inline size_t intensity() const override            { return N; }
 
 private:
     inline cn_hash_fun fn(const Algorithm &algorithm) const { return CnHash::fn(algorithm, m_av, m_assembly); }

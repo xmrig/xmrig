@@ -133,7 +133,7 @@ void xmrig::Workers<T>::tick(uint64_t)
 
     for (Thread<T> *handle : m_workers) {
         if (!handle->worker()) {
-            return;
+            continue;
         }
 
         d_ptr->hashrate->add(handle->id(), handle->worker()->hashCount(), handle->worker()->timestamp());
@@ -156,17 +156,21 @@ void xmrig::Workers<T>::onReady(void *arg)
     auto handle = static_cast<Thread<T>* >(arg);
 
     IWorker *worker = create(handle);
+    assert(worker != nullptr);
+
     if (!worker || !worker->selfTest()) {
         LOG_ERR("%s " RED("thread ") RED_BOLD("#%zu") RED(" self-test failed"), T::tag(), worker->id());
 
+        handle->backend()->start(worker, false);
         delete worker;
+
         return;
     }
 
     assert(handle->backend() != nullptr);
 
     handle->setWorker(worker);
-    handle->backend()->start(worker);
+    handle->backend()->start(worker, true);
 }
 
 

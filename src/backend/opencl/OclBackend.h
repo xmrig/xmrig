@@ -62,7 +62,7 @@ protected:
     void prepare(const Job &nextJob) override;
     void printHashrate(bool details) override;
     void setJob(const Job &job) override;
-    void start(IWorker *worker) override;
+    void start(IWorker *worker, bool ready) override;
     void stop() override;
     void tick(uint64_t ticks) override;
 

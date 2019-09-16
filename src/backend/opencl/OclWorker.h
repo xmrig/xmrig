@@ -56,6 +56,7 @@ public:
 
 protected:
     bool selfTest() override;
+    size_t intensity() const override;
     void start() override;
 
 private:

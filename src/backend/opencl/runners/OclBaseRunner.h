@@ -55,6 +55,7 @@ protected:
     inline const char *deviceKey() const override       { return m_deviceKey.c_str(); }
     inline const char *source() const override          { return m_source; }
     inline const OclLaunchData &data() const override   { return m_data; }
+    inline size_t intensity() const override            { return m_intensity; }
     inline size_t threadId() const override             { return m_threadId; }
 
     size_t bufferSize() const override;
