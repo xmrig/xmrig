@@ -108,7 +108,6 @@ float Benchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::CN_1:          return m_bench_algo_perf[BenchAlgo::CN_R];
         case Algorithm::CN_2:          return m_bench_algo_perf[BenchAlgo::CN_R];
         case Algorithm::CN_R:          return m_bench_algo_perf[BenchAlgo::CN_R];
-        case Algorithm::CN_WOW:        return m_bench_algo_perf[BenchAlgo::CN_R];
         case Algorithm::CN_FAST:       return m_bench_algo_perf[BenchAlgo::CN_R] * 2;
         case Algorithm::CN_HALF:       return m_bench_algo_perf[BenchAlgo::CN_R] * 2;
         case Algorithm::CN_XAO:        return m_bench_algo_perf[BenchAlgo::CN_R];
