@@ -46,8 +46,6 @@ public:
     CpuBackend(Controller *controller);
     ~CpuBackend() override;
 
-    std::pair<unsigned, unsigned> hugePages() const;
-
 protected:
     bool isEnabled() const override;
     bool isEnabled(const Algorithm &algorithm) const override;
@@ -63,6 +61,7 @@ protected:
 
 #   ifdef XMRIG_FEATURE_API
     rapidjson::Value toJSON(rapidjson::Document &doc) const override;
+    void handleRequest(IApiRequest &request) override;
 #   endif
 
 private:

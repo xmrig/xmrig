@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace randomx {
 
 	class Program;
-	class ProgramConfiguration;
+	struct ProgramConfiguration;
 	class SuperscalarProgram;
 	class JitCompilerX86;
 	class Instruction;
@@ -72,7 +72,7 @@ namespace randomx {
 		int32_t codePos;
 
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
-		void generateProgramEpilogue(Program&);
+		void generateProgramEpilogue(Program&, ProgramConfiguration&);
 		static void genAddressReg(Instruction&, uint8_t* code, int& codePos, bool rax = true);
 		static void genAddressRegDst(Instruction&, uint8_t* code, int& codePos);
 		static void genAddressImm(Instruction&, uint8_t* code, int& codePos);

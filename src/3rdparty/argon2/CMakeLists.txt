@@ -1,23 +1,23 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
-project(Argon2 C)
-set(ARGON2_VERSION 1.0)
+project(argon2 C)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 include(CheckCSourceCompiles)
 
-add_library(argon2 STATIC
+set(ARGON2_SOURCES
     lib/argon2.c
     lib/core.c
     lib/encoding.c
     lib/genkat.c
     lib/impl-select.c
     lib/blake2/blake2.c
-)
+    )
 
-target_include_directories(argon2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(argon2 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+set(ARGON2_X86_64_ENABLED ON)
+set(ARGON2_X86_64_LIBS    argon2-sse2 argon2-ssse3 argon2-xop argon2-avx2 argon2-avx512f)
+set(ARGON2_X86_64_SOURCES arch/x86_64/lib/argon2-arch.c arch/x86_64/lib/cpu-flags.c)
 
 if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     function(add_feature_impl FEATURE MSVC_FLAG DEF)
@@ -28,7 +28,6 @@ if (CMAKE_C_COMPILER_ID MATCHES MSVC)
 
         target_compile_options(argon2-${FEATURE} PRIVATE ${MSVC_FLAG})
         target_compile_definitions(argon2-${FEATURE} PRIVATE ${DEF})
-        target_link_libraries(argon2 PUBLIC argon2-${FEATURE})
     endfunction()
 
     add_feature_impl(sse2    ""              HAVE_SSE2)
@@ -36,8 +35,6 @@ if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     add_feature_impl(xop     ""              HAVE_XOP)
     add_feature_impl(avx2    "/arch:AVX2"    HAVE_AVX2)
     add_feature_impl(avx512f "/arch:AVX512F" HAVE_AVX512F)
-
-    target_sources(argon2 PRIVATE arch/x86_64/lib/argon2-arch.c arch/x86_64/lib/cpu-flags.c)
 elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     function(add_feature_impl FEATURE GCC_FLAG DEF)
         add_library(argon2-${FEATURE} STATIC arch/x86_64/lib/argon2-${FEATURE}.c)
@@ -67,8 +64,6 @@ elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
             message("-- argon2: feature '${FEATURE}' detected!")
             target_compile_definitions(argon2-${FEATURE} PRIVATE ${DEF})
         endif()
-
-        target_link_libraries(argon2 PUBLIC argon2-${FEATURE})
     endfunction()
 
     add_feature_impl(sse2    -msse2    HAVE_SSE2)
@@ -76,8 +71,18 @@ elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_feature_impl(xop     -mxop     HAVE_XOP)
     add_feature_impl(avx2    -mavx2    HAVE_AVX2)
     add_feature_impl(avx512f -mavx512f HAVE_AVX512F)
-
-    target_sources(argon2 PRIVATE arch/x86_64/lib/argon2-arch.c arch/x86_64/lib/cpu-flags.c)
 else()
-    target_sources(argon2 PRIVATE arch/generic/lib/argon2-arch.c)
+    set(ARGON2_X86_64_ENABLED OFF)
+    list(APPEND ARGON2_SOURCES arch/generic/lib/argon2-arch.c)
 endif()
+
+if (ARGON2_X86_64_ENABLED)
+    set(ARGON2_LIBS ${ARGON2_X86_64_LIBS})
+    list(APPEND ARGON2_SOURCES ${ARGON2_X86_64_SOURCES})
+endif()
+
+add_library(argon2 STATIC ${ARGON2_SOURCES})
+target_link_libraries(argon2 ${ARGON2_LIBS})
+
+target_include_directories(argon2 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(argon2 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib)

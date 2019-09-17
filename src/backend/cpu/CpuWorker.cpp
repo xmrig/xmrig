@@ -24,7 +24,7 @@
  */
 
 
-#include <assert.h>
+#include <cassert>
 #include <thread>
 
 
@@ -47,15 +47,15 @@
 
 namespace xmrig {
 
-static constexpr uint32_t kReserveCount = 4096;
+static constexpr uint32_t kReserveCount = 32768;
 
 } // namespace xmrig
 
 
 
 template<size_t N>
-xmrig::CpuWorker<N>::CpuWorker(size_t index, const CpuLaunchData &data) :
-    Worker(index, data.affinity, data.priority),
+xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
+    Worker(id, data.affinity, data.priority),
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
     m_hwAES(data.hwAES),
@@ -121,7 +121,6 @@ bool xmrig::CpuWorker<N>::selfTest()
                         verify(Algorithm::CN_XAO,    test_output_xao)  &&
                         verify(Algorithm::CN_RTO,    test_output_rto)  &&
                         verify(Algorithm::CN_HALF,   test_output_half) &&
-                        verify2(Algorithm::CN_WOW,   test_output_wow)  &&
                         verify2(Algorithm::CN_R,     test_output_r)    &&
                         verify(Algorithm::CN_RWZ,    test_output_rwz)  &&
                         verify(Algorithm::CN_ZLS,    test_output_zls)  &&
@@ -214,11 +213,11 @@ void xmrig::CpuWorker<N>::start()
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
-                    JobResults::submit(JobResult(job, *m_job.nonce(i), m_hash + (i * 32)));
+                    JobResults::submit(job, *m_job.nonce(i), m_hash + (i * 32));
                 }
             }
 
-            m_job.nextRound(kReserveCount);
+            m_job.nextRound(kReserveCount, 1);
             m_count += N;
 
             std::this_thread::yield();
@@ -305,6 +304,10 @@ void xmrig::CpuWorker<N>::allocateCnCtx()
 template<size_t N>
 void xmrig::CpuWorker<N>::consumeJob()
 {
+    if (Nonce::sequence(Nonce::CPU) == 0) {
+        return;
+    }
+
     m_job.add(m_miner->job(), Nonce::sequence(Nonce::CPU), kReserveCount);
 
 #   ifdef XMRIG_ALGO_RANDOMX

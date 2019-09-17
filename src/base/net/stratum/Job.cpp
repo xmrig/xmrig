@@ -25,32 +25,18 @@
  */
 
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 
 
 #include "base/net/stratum/Job.h"
 #include "base/tools/Buffer.h"
 
 
-xmrig::Job::Job() :
-    m_blob(),
-    m_seedHash()
-{
-}
-
-
 xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
     m_algorithm(algorithm),
     m_nicehash(nicehash),
-    m_clientId(clientId),
-    m_blob(),
-    m_seedHash()
-{
-}
-
-
-xmrig::Job::~Job()
+    m_clientId(clientId)
 {
 }
 
@@ -96,7 +82,7 @@ bool xmrig::Job::setBlob(const char *blob)
 
 bool xmrig::Job::setSeedHash(const char *hash)
 {
-    if (!hash || (strlen(hash) != sizeof(m_seedHash) * 2)) {
+    if (!hash || (strlen(hash) != kMaxSeedSize * 2)) {
         return false;
     }
 
@@ -104,7 +90,9 @@ bool xmrig::Job::setSeedHash(const char *hash)
     m_rawSeedHash = hash;
 #   endif
 
-    return Buffer::fromHex(hash, sizeof(m_seedHash) * 2, m_seedHash);
+    m_seed = Buffer::fromHex(hash, kMaxSeedSize * 2);
+
+    return !m_seed.isEmpty();
 }
 
 
@@ -173,9 +161,9 @@ void xmrig::Job::copy(const Job &other)
     m_height    = other.m_height;
     m_target    = other.m_target;
     m_index     = other.m_index;
+    m_seed      = other.m_seed;
 
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
-    memcpy(m_seedHash, other.m_seedHash, sizeof(m_seedHash));
 
 #   ifdef XMRIG_PROXY_PROJECT
     m_rawSeedHash = other.m_rawSeedHash;

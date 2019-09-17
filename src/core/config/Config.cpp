@@ -38,6 +38,16 @@
 #include "rapidjson/prettywriter.h"
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/RxConfig.h"
+#endif
+
+
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/OclConfig.h"
+#endif
+
+
 namespace xmrig {
 
 static const char *kCPU                  = "cpu";
@@ -47,12 +57,60 @@ static constexpr const uint32_t kVersion = 1;
 static const char *kRandomX = "randomx";
 #endif
 
+#ifdef XMRIG_FEATURE_OPENCL
+static const char *kOcl     = "opencl";
+#endif
+
+
+class ConfigPrivate
+{
+public:
+    CpuConfig cpu;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    RxConfig rx;
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    OclConfig cl;
+#   endif
+};
+
 }
 
 
-xmrig::Config::Config() : BaseConfig()
+xmrig::Config::Config() : BaseConfig(),
+    d_ptr(new ConfigPrivate())
 {
 }
+
+
+xmrig::Config::~Config()
+{
+    delete d_ptr;
+}
+
+
+const xmrig::CpuConfig &xmrig::Config::cpu() const
+{
+    return d_ptr->cpu;
+}
+
+
+#ifdef XMRIG_FEATURE_OPENCL
+const xmrig::OclConfig &xmrig::Config::cl() const
+{
+    return d_ptr->cl;
+}
+#endif
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+const xmrig::RxConfig &xmrig::Config::rx() const
+{
+    return d_ptr->rx;
+}
+#endif
 
 
 bool xmrig::Config::isShouldSave() const
@@ -65,7 +123,13 @@ bool xmrig::Config::isShouldSave() const
         return true;
     }
 
-    return (m_shouldSave || m_upgrade || m_cpu.isShouldSave() || m_benchmark.isNewBenchRun());
+#   ifdef XMRIG_FEATURE_OPENCL
+    if (cl().isShouldSave()) {
+        return true;
+    }
+#   endif
+
+    return (m_upgrade || cpu().isShouldSave() || m_benchmark.isNewBenchRun());
 }
 
 
@@ -75,13 +139,17 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    m_cpu.read(reader.getValue(kCPU), version());
+    d_ptr->cpu.read(reader.getValue(kCPU), version());
     m_benchmark.read(reader.getValue("algo-perf"));
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (!m_rx.read(reader.getValue(kRandomX))) {
+    if (!d_ptr->rx.read(reader.getValue(kRandomX))) {
         m_upgrade = true;
     }
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    d_ptr->cl.read(reader.getValue(kOcl));
 #   endif
 
     return true;
@@ -108,10 +176,15 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("colors",            Log::colors, allocator);
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    doc.AddMember(StringRef(kRandomX), m_rx.toJSON(doc), allocator);
+    doc.AddMember(StringRef(kRandomX), rx().toJSON(doc), allocator);
 #   endif
 
-    doc.AddMember(StringRef(kCPU),     m_cpu.toJSON(doc), allocator);
+    doc.AddMember(StringRef(kCPU),     cpu().toJSON(doc), allocator);
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    doc.AddMember(StringRef(kOcl),     cl().toJSON(doc), allocator);
+#   endif
+
     doc.AddMember("algo-perf",         m_benchmark.toJSON(doc), allocator);
     doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
     doc.AddMember("donate-over-proxy", m_pools.proxyDonate(), allocator);

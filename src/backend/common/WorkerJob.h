@@ -64,18 +64,18 @@ public:
     }
 
 
-    inline void nextRound(uint32_t reserveCount)
+    inline void nextRound(uint32_t rounds, uint32_t roundSize)
     {
         m_rounds[index()]++;
 
-        if ((m_rounds[index()] % reserveCount) == 0) {
+        if ((m_rounds[index()] % rounds) == 0) {
             for (size_t i = 0; i < N; ++i) {
-                *nonce(i) = Nonce::next(index(), *nonce(i), reserveCount, currentJob().isNicehash());
+                *nonce(i) = Nonce::next(index(), *nonce(i), rounds * roundSize, currentJob().isNicehash());
             }
         }
         else {
             for (size_t i = 0; i < N; ++i) {
-                *nonce(i) += 1;
+                *nonce(i) += roundSize;
             }
         }
     }
@@ -112,15 +112,15 @@ inline uint32_t *xmrig::WorkerJob<1>::nonce(size_t)
 
 
 template<>
-inline void xmrig::WorkerJob<1>::nextRound(uint32_t reserveCount)
+inline void xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
 {
     m_rounds[index()]++;
 
-    if ((m_rounds[index()] % reserveCount) == 0) {
-        *nonce() = Nonce::next(index(), *nonce(), reserveCount, currentJob().isNicehash());
+    if ((m_rounds[index()] % rounds) == 0) {
+        *nonce() = Nonce::next(index(), *nonce(), rounds * roundSize, currentJob().isNicehash());
     }
     else {
-        *nonce() += 1;
+        *nonce() += roundSize;
     }
 }
 

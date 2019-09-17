@@ -28,9 +28,11 @@
 #define XMRIG_RX_CACHE_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
+#include "base/tools/Buffer.h"
+#include "base/tools/Object.h"
 #include "crypto/randomx/configuration.h"
 
 
@@ -44,26 +46,24 @@ namespace xmrig
 class RxCache
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxCache)
+
     RxCache(bool hugePages = true);
     ~RxCache();
 
     inline bool isHugePages() const         { return m_flags & 1; }
     inline bool isJIT() const               { return m_flags & 8; }
-    inline const uint8_t *seed() const      { return m_seed; }
+    inline const Buffer &seed() const       { return m_seed; }
     inline randomx_cache *get() const       { return m_cache; }
-    inline uint64_t initCount() const       { return m_initCount; }
 
-    bool init(const uint8_t *seed);
+    bool init(const Buffer &seed);
 
-    static inline constexpr size_t size() { return RANDOMX_CACHE_MAX_SIZE; }
+    static inline constexpr size_t maxSize() { return RANDOMX_CACHE_MAX_SIZE; }
 
 private:
-    bool isReady(const uint8_t *seed) const;
-
+    Buffer m_seed;
     int m_flags            = 0;
     randomx_cache *m_cache = nullptr;
-    uint64_t m_initCount   = 0;
-    uint8_t m_seed[32];
 };
 
 

@@ -149,9 +149,9 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 		memcpy(codeReadDatasetLightSshInitTweaked, a, b - a);
 	}
 	{
-		const uint8_t* a = (const uint8_t*)&randomx_program_loop_load;
-		const uint8_t* b = (const uint8_t*)&randomx_program_start;
-		memcpy(codeLoopLoadTweaked, a, b - a);
+		const uint8_t* a = (const uint8_t*)&randomx_prefetch_scratchpad;
+		const uint8_t* b = (const uint8_t*)&randomx_prefetch_scratchpad_end;
+		memcpy(codePrefetchScratchpadTweaked, a, b - a);
 	}
 #endif
 }
@@ -177,8 +177,8 @@ void RandomX_ConfigurationBase::Apply()
 	ScratchpadL3Mask64_Calculated = ((ScratchpadL3_Size / sizeof(uint64_t)) / 8 - 1) * 64;
 
 #if defined(_M_X64) || defined(__x86_64__)
-	*(uint32_t*)(codeLoopLoadTweaked + 4) = ScratchpadL3Mask64_Calculated;
-	*(uint32_t*)(codeLoopLoadTweaked + 50) = ScratchpadL3Mask64_Calculated;
+	*(uint32_t*)(codePrefetchScratchpadTweaked + 4) = ScratchpadL3Mask64_Calculated;
+	*(uint32_t*)(codePrefetchScratchpadTweaked + 18) = ScratchpadL3Mask64_Calculated;
 #endif
 
 	ConditionMask_Calculated = (1 << JumpBits) - 1;

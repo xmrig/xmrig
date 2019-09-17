@@ -140,6 +140,9 @@ void xmrig::Api::exec(IApiRequest &request)
 #       ifdef XMRIG_FEATURE_TLS
         features.PushBack("tls", allocator);
 #       endif
+#       ifdef XMRIG_FEATURE_OPENCL
+        features.PushBack("opencl", allocator);
+#       endif
         request.reply().AddMember("features", features, allocator);
     }
 

@@ -24,24 +24,21 @@
  */
 
 
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "crypto/common/Algorithm.h"
 
 
 #include "crypto/cn/CnAlgo.h"
-#include "crypto/common/Algorithm.h"
 #include "rapidjson/document.h"
+
+
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 
 #ifdef _MSC_VER
 #   define strcasecmp  _stricmp
-#endif
-
-
-#ifndef ARRAY_SIZE
-#   define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif
 
 
@@ -67,7 +64,6 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight_v8",            nullptr,            Algorithm::CN_2            },
     { "cryptonight/r",             "cn/r",             Algorithm::CN_R            },
     { "cryptonight_r",             nullptr,            Algorithm::CN_R            },
-    { "cryptonight/wow",           "cn/wow",           Algorithm::CN_WOW          },
     { "cryptonight/fast",          "cn/fast",          Algorithm::CN_FAST         },
     { "cryptonight/msr",           "cn/msr",           Algorithm::CN_FAST         },
     { "cryptonight/half",          "cn/half",          Algorithm::CN_HALF         },
@@ -239,7 +235,6 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_1:
     case CN_2:
     case CN_R:
-    case CN_WOW:
     case CN_FAST:
     case CN_HALF:
     case CN_XAO:
@@ -284,9 +279,8 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
         return ARGON2;
 #   endif
 
-    case INVALID:
-    case MAX:
-        return UNKNOWN;
+    default:
+        break;
     }
 
     return UNKNOWN;
@@ -299,9 +293,9 @@ xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
         return INVALID;
     }
 
-    for (size_t i = 0; i < ARRAY_SIZE(algorithm_names); i++) {
-        if ((strcasecmp(name, algorithm_names[i].name) == 0) || (algorithm_names[i].shortName != nullptr && strcasecmp(name, algorithm_names[i].shortName) == 0)) {
-            return algorithm_names[i].id;
+    for (const AlgoName &item : algorithm_names) {
+        if ((strcasecmp(name, item.name) == 0) || (item.shortName != nullptr && strcasecmp(name, item.shortName) == 0)) {
+            return item.id;
         }
     }
 
@@ -311,9 +305,9 @@ xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
 
 const char *xmrig::Algorithm::name(bool shortName) const
 {
-    for (size_t i = 0; i < ARRAY_SIZE(algorithm_names); i++) {
-        if (algorithm_names[i].id == m_id) {
-            return (shortName && algorithm_names[i].shortName) ? algorithm_names[i].shortName : algorithm_names[i].name;
+    for (const AlgoName &item : algorithm_names) {
+        if (item.id == m_id) {
+            return (shortName && item.shortName) ? item.shortName : item.name;
         }
     }
 
