@@ -43,7 +43,7 @@ Benchmark::~Benchmark() {
 
 // start performance measurements from the first bench_algo
 void Benchmark::start() {
-    JobResults::setListener(this); // register benchmark as job result listener to compute hashrates there
+    JobResults::setListener(this, m_controller->config()->cpu().isHwAES()); // register benchmark as job result listener to compute hashrates there
     // write text before first benchmark round
     LOG_ALERT(">>>>> STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)", m_controller->config()->benchAlgoTime());
     // start benchmarking from first PerfAlgo in the list
@@ -57,7 +57,7 @@ void Benchmark::finish() {
     }
     m_bench_algo = BenchAlgo::INVALID;
     m_controller->miner()->pause(); // do not compute anything before job from the pool
-    JobResults::setListener(m_controller->network());
+    JobResults::setListener(m_controller->network(), m_controller->config()->cpu().isHwAES());
     m_controller->start();
 }
 
@@ -149,7 +149,7 @@ void Benchmark::start(const BenchAlgo bench_algo) {
 
 void Benchmark::onJobResult(const JobResult& result) {
     if (result.clientId != String("benchmark")) { // switch to network pool jobs
-        JobResults::setListener(m_controller->network());
+        JobResults::setListener(m_controller->network(), m_controller->config()->cpu().isHwAES());
         static_cast<IJobResultListener*>(m_controller->network())->onJobResult(result);
         return;
     }
