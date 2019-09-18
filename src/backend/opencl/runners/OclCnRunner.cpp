@@ -75,6 +75,7 @@ xmrig::OclCnRunner::~OclCnRunner()
     }
 
     if (m_algorithm == Algorithm::CN_R) {
+        OclLib::release(m_cnr);
         OclCnR::clear();
     }
 }
@@ -130,10 +131,15 @@ void xmrig::OclCnRunner::set(const Job &job, uint8_t *blob)
     if (m_algorithm == Algorithm::CN_R && m_height != job.height()) {
         delete m_cn1;
 
-        m_height = job.height();
-        m_cnr    = OclCnR::get(*this, m_height);
-        m_cn1    = new Cn1Kernel(m_cnr, m_height);
+        m_height     = job.height();
+        auto program = OclCnR::get(*this, m_height);
+        m_cn1        = new Cn1Kernel(program, m_height);
         m_cn1->setArgs(m_input, m_scratchpads, m_states, m_intensity);
+
+        if (m_cnr != program) {
+            OclLib::release(m_cnr);
+            m_cnr = OclLib::retain(program);
+        }
     }
 
     for (auto kernel : m_branchKernels) {
