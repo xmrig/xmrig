@@ -54,19 +54,8 @@ if (WITH_RANDOMX)
         src/crypto/defyx/sha256.h
         src/crypto/defyx/sysendian.h
         src/crypto/defyx/yescrypt.h
+        src/crypto/defyx/yescrypt-best.c
     )
-
-    if (WIN32)
-        set(SOURCES_CRYPTO 
-            "${SOURCES_CRYPTO}"
-             src/crypto/defyx/yescrypt-best.c
-        )
-    else()
-        set(SOURCES_CRYPTO 
-            "${SOURCES_CRYPTO}"
-             src/crypto/defyx/yescrypt-best.c
-        )
-    endif()
 
     if (CMAKE_C_COMPILER_ID MATCHES MSVC)
         enable_language(ASM_MASM)
