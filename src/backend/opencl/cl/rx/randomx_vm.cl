@@ -1658,7 +1658,7 @@ uint32_t inner_loop(
 	const int32_t sub2 = sub >> 1;
 	imm_buf[IMM_INDEX_COUNT + 1] = fprc;
 
-	#pragma unroll(1)
+	#pragma unroll 1
 	for (int32_t ip = 0; ip < program_length;)
 	{
 		imm_buf[IMM_INDEX_COUNT] = ip;
@@ -1934,7 +1934,7 @@ __kernel void execute_vm(__global void* vm_states, __global void* rounding, __gl
 	const uint32_t workers_mask = ((1 << WORKERS_PER_HASH) - 1) << ((get_local_id(0) / IDX_WIDTH) * IDX_WIDTH);
 	const uint32_t fp_workers_mask = 3 << (((sub >> 1) << 1) + (get_local_id(0) / IDX_WIDTH) * IDX_WIDTH);
 
-	#pragma unroll(1)
+	#pragma unroll 1
 	for (int ic = 0; ic < num_iterations; ++ic)
 	{
 		__local uint64_t *r;
