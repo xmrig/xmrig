@@ -98,7 +98,7 @@ void xmrig::OclBaseRunner::init()
     constexpr size_t oneGiB = 1024 * 1024 * 1024;
     size_t size             = bufferSize();
 
-    if (size < oneGiB && data().device.freeMemSize() >= oneGiB) {
+    if (size < oneGiB && data().device.vendorId() == OCL_VENDOR_AMD && data().device.freeMemSize() >= oneGiB) {
         size = oneGiB;
     }
 

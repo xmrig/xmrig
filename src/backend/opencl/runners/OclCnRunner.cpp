@@ -75,7 +75,6 @@ xmrig::OclCnRunner::~OclCnRunner()
     }
 
     if (m_algorithm == Algorithm::CN_R) {
-        OclLib::release(m_cnr);
         OclCnR::clear();
     }
 }

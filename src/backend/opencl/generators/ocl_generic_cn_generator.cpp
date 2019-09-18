@@ -45,7 +45,13 @@ static inline uint32_t getMaxThreads(const OclDevice &device, const Algorithm &a
         return 40000u;
     }
 
-    return ((algorithm.l3() <= oneMiB) ? 2u : 1u) * 1000u;
+    const uint32_t ratio = (algorithm.l3() <= oneMiB) ? 2u : 1u;
+
+    if (device.vendorId() == OCL_VENDOR_INTEL) {
+        return ratio * device.computeUnits() * 8;
+    }
+
+    return ratio * 1000u;
 }
 
 
@@ -107,7 +113,7 @@ bool ocl_generic_cn_generator(const OclDevice &device, const Algorithm &algorith
         return false;
     }
 
-    const uint32_t threadCount = ((device.globalMemSize() - intensity * 2 * algorithm.l3()) > 128 * oneMiB) ? 2 : 1;
+    const uint32_t threadCount = (device.vendorId() == OCL_VENDOR_AMD && (device.globalMemSize() - intensity * 2 * algorithm.l3()) > 128 * oneMiB) ? 2 : 1;
 
     threads.add(OclThread(device.index(), intensity, 8, getStridedIndex(device, algorithm), 2, threadCount, 8));
 
