@@ -49,7 +49,7 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
         break;
 
     case Algorithm::DEFYX:
-        randomx_apply_config(RandomX_ScalaConfig);
+        return &RandomX_ScalaConfig;
         break;
 
     default:
