@@ -78,7 +78,6 @@ void xmrig::Nonce::reset(uint8_t index)
     std::lock_guard<std::mutex> lock(mutex);
 
     m_nonces[index] = 0;
-    touch();
 }
 
 
