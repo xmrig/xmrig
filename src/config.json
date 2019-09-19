@@ -30,6 +30,7 @@
         "cn/0": false,
         "cn-lite/0": false
     },
+    "opencl": false,
     "donate-level": 1,
     "donate-over-proxy": 1,
     "log-file": null,
