@@ -137,6 +137,12 @@ bool xmrig::OclWorker::selfTest()
 }
 
 
+size_t xmrig::OclWorker::intensity() const
+{
+    return m_runner ? m_runner->intensity() : 0;
+}
+
+
 void xmrig::OclWorker::start()
 {
     cl_uint results[0x100];

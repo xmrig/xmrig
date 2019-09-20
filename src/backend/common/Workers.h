@@ -29,6 +29,7 @@
 
 #include "backend/common/Thread.h"
 #include "backend/cpu/CpuLaunchData.h"
+#include "base/tools/Object.h"
 
 
 #ifdef XMRIG_FEATURE_OPENCL
@@ -47,6 +48,8 @@ template<class T>
 class Workers
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(Workers)
+
     Workers();
     ~Workers();
 

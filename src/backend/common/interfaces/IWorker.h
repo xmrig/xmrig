@@ -26,8 +26,8 @@
 #define XMRIG_IWORKER_H
 
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 
 
 namespace xmrig {
@@ -44,6 +44,7 @@ public:
     virtual bool selfTest()                         = 0;
     virtual const VirtualMemory *memory() const     = 0;
     virtual size_t id() const                       = 0;
+    virtual size_t intensity() const                = 0;
     virtual uint64_t hashCount() const              = 0;
     virtual uint64_t timestamp() const              = 0;
     virtual void start()                            = 0;

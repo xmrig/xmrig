@@ -25,6 +25,8 @@
 
 
 #include "backend/opencl/OclLaunchData.h"
+
+#include "backend/common/Tags.h"
 #include "backend/opencl/OclConfig.h"
 
 
@@ -44,4 +46,10 @@ bool xmrig::OclLaunchData::isEqual(const OclLaunchData &other) const
 {
     return (other.algorithm == algorithm &&
             other.thread    == thread);
+}
+
+
+const char *xmrig::OclLaunchData::tag()
+{
+    return ocl_tag();
 }

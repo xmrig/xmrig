@@ -81,6 +81,7 @@ public:
     static cl_mem createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size);
     static cl_program createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret) noexcept;
     static cl_program createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret) noexcept;
+    static cl_program retain(cl_program program) noexcept;
     static cl_uint getNumPlatforms() noexcept;
     static cl_uint getUint(cl_command_queue command_queue, cl_command_queue_info param_name, cl_uint defaultValue = 0) noexcept;
     static cl_uint getUint(cl_context context, cl_context_info param_name, cl_uint defaultValue = 0) noexcept;

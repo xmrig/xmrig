@@ -72,7 +72,7 @@ __kernel void fillAes_name(__global void* state, __global void* out, uint batch_
 	const __local uint* const t2 = (sub & 1) ? (T + 512) : (T + 1536);
 	const __local uint* const t3 = (sub & 1) ? (T + 768) : (T + 1280);
 
-	#pragma unroll(unroll_factor)
+	#pragma unroll unroll_factor
 	for (uint i = 0; i < outputSize / sizeof(uint4); i += 4, p += 4)
 	{
 		uint y[4];

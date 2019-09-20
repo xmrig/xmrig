@@ -26,10 +26,11 @@
 #define XMRIG_THREAD_H
 
 
-#include <thread>
-
-
 #include "backend/common/interfaces/IWorker.h"
+#include "base/tools/Object.h"
+
+
+#include <thread>
 
 
 namespace xmrig {
@@ -42,6 +43,8 @@ template<class T>
 class Thread
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Thread)
+
     inline Thread(IBackend *backend, size_t id, const T &config) : m_id(id), m_config(config), m_backend(backend) {}
     inline ~Thread() { m_thread.join(); delete m_worker; }
 

@@ -604,7 +604,7 @@ __kernel void hashAes1Rx4(__global const void* input, __global void* hash, uint 
 	__local const uint* const t2 = ((sub & 1) == 0) ? (T + 512) : (T + 1536);
 	__local const uint* const t3 = ((sub & 1) == 0) ? (T + 768) : (T + 1280);
 
-	#pragma unroll(8)
+	#pragma unroll 8
 	for (uint i = 0; i < inputSize / sizeof(uint4); i += 4, p += 4)
 	{
 		uint k[4], y[4];
