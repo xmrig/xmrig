@@ -72,12 +72,19 @@ static void printDisabled(const char *reason)
 struct OclLaunchStatus
 {
 public:
-    inline bool started()               { m_started++; return m_started == m_threads; }
-    inline size_t threads() const       { return m_threads; }
+    inline size_t threads() const { return m_threads; }
+
+    inline bool started(bool ready)
+    {
+        ready ? m_started++ : m_errors++;
+
+        return (m_started + m_errors) == m_threads;
+    }
 
     inline void start(size_t threads)
     {
         m_started        = 0;
+        m_errors         = 0;
         m_threads        = threads;
         m_ts             = Chrono::steadyMSecs();
         OclWorker::ready = false;
@@ -85,14 +92,23 @@ public:
 
     inline void print() const
     {
-        LOG_INFO("%s" GREEN_BOLD(" READY") " threads " CYAN_BOLD("%zu") BLACK_BOLD(" (%" PRIu64 " ms)"),
+        if (m_started == 0) {
+            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), tag);
+
+            return;
+        }
+
+        LOG_INFO("%s" GREEN_BOLD(" READY") " threads " "%s%zu/%zu" BLACK_BOLD(" (%" PRIu64 " ms)"),
                  tag,
+                 m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
+                 m_started,
                  m_threads,
                  Chrono::steadyMSecs() - m_ts
                  );
     }
 
 private:
+    size_t m_errors     = 0;
     size_t m_started    = 0;
     size_t m_threads    = 0;
     uint64_t m_ts       = 0;
@@ -319,11 +335,11 @@ void xmrig::OclBackend::setJob(const Job &job)
 }
 
 
-void xmrig::OclBackend::start(IWorker *worker)
+void xmrig::OclBackend::start(IWorker *worker, bool ready)
 {
     mutex.lock();
 
-    if (d_ptr->status.started()) {
+    if (d_ptr->status.started(ready)) {
         d_ptr->status.print();
 
         OclWorker::ready = true;
@@ -331,7 +347,9 @@ void xmrig::OclBackend::start(IWorker *worker)
 
     mutex.unlock();
 
-    worker->start();
+    if (ready) {
+        worker->start();
+    }
 }
 
 
@@ -373,22 +391,17 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
         return out;
     }
 
+    out.AddMember("hashrate", hashrate()->toJSON(doc), allocator);
+
     Value threads(kArrayType);
-    const Hashrate *hr = hashrate();
 
     size_t i = 0;
     for (const OclLaunchData &data : d_ptr->threads) {
         Value thread = data.thread.toJSON(doc);
         thread.AddMember("affinity", data.affinity, allocator);
-
-        Value hashrate(kArrayType);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+        thread.AddMember("hashrate", hashrate()->toJSON(i, doc), allocator);
 
         i++;
-
-        thread.AddMember("hashrate", hashrate, allocator);
         threads.PushBack(thread, allocator);
     }
 

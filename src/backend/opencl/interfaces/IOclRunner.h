@@ -51,18 +51,19 @@ public:
     IOclRunner()          = default;
     virtual ~IOclRunner() = default;
 
-    virtual void run(uint32_t nonce, uint32_t *hashOutput)  = 0;
-    virtual void set(const Job &job, uint8_t *blob)         = 0;
     virtual cl_context ctx() const                          = 0;
     virtual const Algorithm &algorithm() const              = 0;
     virtual const char *buildOptions() const                = 0;
     virtual const char *deviceKey() const                   = 0;
     virtual const char *source() const                      = 0;
     virtual const OclLaunchData &data() const               = 0;
+    virtual size_t intensity() const                        = 0;
     virtual size_t threadId() const                         = 0;
     virtual uint32_t deviceIndex() const                    = 0;
     virtual void build()                                    = 0;
     virtual void init()                                     = 0;
+    virtual void run(uint32_t nonce, uint32_t *hashOutput)  = 0;
+    virtual void set(const Job &job, uint8_t *blob)         = 0;
 
 protected:
     virtual size_t bufferSize() const                       = 0;

@@ -40,7 +40,8 @@ xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
     m_source(OclSource::get(data.algorithm)),
     m_data(data),
     m_align(OclLib::getUint(data.device.id(), CL_DEVICE_MEM_BASE_ADDR_ALIGN)),
-    m_threadId(id)
+    m_threadId(id),
+    m_intensity(data.thread.intensity())
 {
     m_deviceKey = data.device.name();
 
@@ -97,7 +98,7 @@ void xmrig::OclBaseRunner::init()
     constexpr size_t oneGiB = 1024 * 1024 * 1024;
     size_t size             = bufferSize();
 
-    if (size < oneGiB && data().device.freeMemSize() >= oneGiB) {
+    if (size < oneGiB && data().device.vendorId() == OCL_VENDOR_AMD && data().device.freeMemSize() >= oneGiB) {
         size = oneGiB;
     }
 

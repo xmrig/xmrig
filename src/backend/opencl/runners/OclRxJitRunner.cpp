@@ -54,9 +54,7 @@ xmrig::OclRxJitRunner::~OclRxJitRunner()
 
 size_t xmrig::OclRxJitRunner::bufferSize() const
 {
-    const size_t g_thd = data().thread.intensity();
-
-    return OclRxBaseRunner::bufferSize() + align(256 * g_thd) + align(5120 * g_thd) + align(10048 * g_thd);
+    return OclRxBaseRunner::bufferSize() + align(256 * m_intensity) + align(5120 * m_intensity) + align(10048 * m_intensity);
 }
 
 
@@ -64,33 +62,29 @@ void xmrig::OclRxJitRunner::build()
 {
     OclRxBaseRunner::build();
 
-    const uint32_t batch_size = data().thread.intensity();
-
-    m_hashAes1Rx4->setArgs(m_scratchpads, m_registers, 256, batch_size);
+    m_hashAes1Rx4->setArgs(m_scratchpads, m_registers, 256, m_intensity);
     m_blake2b_hash_registers_32->setArgs(m_hashes, m_registers, 256);
     m_blake2b_hash_registers_64->setArgs(m_hashes, m_registers, 256);
 
     m_randomx_jit = new RxJitKernel(m_program);
-    m_randomx_jit->setArgs(m_entropy, m_registers, m_intermediate_programs, m_programs, batch_size, m_rounding);
+    m_randomx_jit->setArgs(m_entropy, m_registers, m_intermediate_programs, m_programs, m_intensity, m_rounding);
 
     if (!loadAsmProgram()) {
         throw std::runtime_error(OclError::toString(CL_INVALID_PROGRAM));
     }
 
     m_randomx_run = new RxRunKernel(m_asmProgram);
-    m_randomx_run->setArgs(data().dataset->get(), m_scratchpads, m_registers, m_rounding, m_programs, batch_size, m_algorithm);
+    m_randomx_run->setArgs(data().dataset->get(), m_scratchpads, m_registers, m_rounding, m_programs, m_intensity, m_algorithm);
 }
 
 
 void xmrig::OclRxJitRunner::execute(uint32_t iteration)
 {
-    const uint32_t g_intensity = data().thread.intensity();
-
-    m_randomx_jit->enqueue(m_queue, g_intensity, iteration);
+    m_randomx_jit->enqueue(m_queue, m_intensity, iteration);
 
     OclLib::finish(m_queue);
 
-    m_randomx_run->enqueue(m_queue, g_intensity);
+    m_randomx_run->enqueue(m_queue, m_intensity);
 }
 
 
@@ -98,11 +92,9 @@ void xmrig::OclRxJitRunner::init()
 {
     OclRxBaseRunner::init();
 
-    const size_t g_thd = data().thread.intensity();
-
-    m_registers             = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 256 * g_thd);
-    m_intermediate_programs = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 5120 * g_thd);
-    m_programs              = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 10048 * g_thd);
+    m_registers             = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 256 * m_intensity);
+    m_intermediate_programs = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 5120 * m_intensity);
+    m_programs              = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 10048 * m_intensity);
 }
 
 

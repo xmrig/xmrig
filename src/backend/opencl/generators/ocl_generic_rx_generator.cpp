@@ -86,7 +86,7 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
         return false;
     }
 
-    threads.add(OclThread(device.index(), intensity, 8, 2, gcnAsm, datasetHost, 6));
+    threads.add(OclThread(device.index(), intensity, 8, device.vendorId() == OCL_VENDOR_AMD ? 2 : 1, gcnAsm, datasetHost, 6));
 
     return true;
 }

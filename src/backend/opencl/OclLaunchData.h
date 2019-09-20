@@ -62,6 +62,8 @@ public:
     inline bool operator!=(const OclLaunchData &other) const    { return !isEqual(other); }
     inline bool operator==(const OclLaunchData &other) const    { return isEqual(other); }
 
+    static const char *tag();
+
     cl_context ctx = nullptr;
     const Algorithm algorithm;
     const bool cache;

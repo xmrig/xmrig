@@ -52,7 +52,7 @@ xmrig::OclRxVmRunner::~OclRxVmRunner()
 
 size_t xmrig::OclRxVmRunner::bufferSize() const
 {
-    return OclRxBaseRunner::bufferSize() + (align(2560 * data().thread.intensity()));
+    return OclRxBaseRunner::bufferSize() + (align(2560 * m_intensity));
 }
 
 
@@ -60,10 +60,9 @@ void xmrig::OclRxVmRunner::build()
 {
     OclRxBaseRunner::build();
 
-    const uint32_t batch_size       = data().thread.intensity();
-    const uint32_t hashStrideBytes  = RxAlgo::programSize(m_algorithm) * 8;
+    const uint32_t hashStrideBytes = RxAlgo::programSize(m_algorithm) * 8;
 
-    m_hashAes1Rx4->setArgs(m_scratchpads, m_vm_states, hashStrideBytes, batch_size);
+    m_hashAes1Rx4->setArgs(m_scratchpads, m_vm_states, hashStrideBytes, m_intensity);
     m_blake2b_hash_registers_32->setArgs(m_hashes, m_vm_states, hashStrideBytes);
     m_blake2b_hash_registers_64->setArgs(m_hashes, m_vm_states, hashStrideBytes);
 
@@ -71,7 +70,7 @@ void xmrig::OclRxVmRunner::build()
     m_init_vm->setArgs(m_entropy, m_vm_states, m_rounding);
 
     m_execute_vm = new ExecuteVmKernel(m_program);
-    m_execute_vm->setArgs(m_vm_states, m_rounding, m_scratchpads, data().dataset->get(), batch_size);
+    m_execute_vm->setArgs(m_vm_states, m_rounding, m_scratchpads, data().dataset->get(), m_intensity);
 }
 
 
@@ -79,9 +78,8 @@ void xmrig::OclRxVmRunner::execute(uint32_t iteration)
 {
     const uint32_t bfactor        = std::min(data().thread.bfactor(), 8u);
     const uint32_t num_iterations = RxAlgo::programIterations(m_algorithm) >> bfactor;
-    const uint32_t g_intensity    = data().thread.intensity();
 
-    m_init_vm->enqueue(m_queue, g_intensity, iteration);
+    m_init_vm->enqueue(m_queue, m_intensity, iteration);
 
     m_execute_vm->setIterations(num_iterations);
 
@@ -90,7 +88,7 @@ void xmrig::OclRxVmRunner::execute(uint32_t iteration)
             m_execute_vm->setLast(1);
         }
 
-        m_execute_vm->enqueue(m_queue, g_intensity, m_worksize);
+        m_execute_vm->enqueue(m_queue, m_intensity, m_worksize);
 
         if (j == 0) {
             m_execute_vm->setFirst(0);
@@ -103,5 +101,5 @@ void xmrig::OclRxVmRunner::init()
 {
     OclRxBaseRunner::init();
 
-    m_vm_states = createSubBuffer(CL_MEM_READ_WRITE, 2560 * data().thread.intensity());
+    m_vm_states = createSubBuffer(CL_MEM_READ_WRITE, 2560 * m_intensity);
 }

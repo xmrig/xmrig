@@ -26,10 +26,11 @@
 #define XMRIG_HASHRATE_H
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 
+#include "base/tools/Object.h"
 #include "rapidjson/fwd.h"
 
 
@@ -39,6 +40,8 @@ namespace xmrig {
 class Hashrate
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Hashrate)
+
     enum Intervals {
         ShortInterval  = 10000,
         MediumInterval = 60000,
@@ -57,6 +60,11 @@ public:
 
     static const char *format(double h, char *buf, size_t size);
     static rapidjson::Value normalize(double d);
+
+#   ifdef XMRIG_FEATURE_API
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    rapidjson::Value toJSON(size_t threadId, rapidjson::Document &doc) const;
+#   endif
 
 private:
     constexpr static size_t kBucketSize = 2 << 11;

@@ -60,7 +60,7 @@ namespace xmrig {
 extern template class Threads<CpuThreads>;
 
 
-static const char *tag      = CYAN_BG_BOLD(" cpu ");
+static const char *tag      = CYAN_BG_BOLD(WHITE_BOLD_S " cpu ");
 static const String kType   = "cpu";
 static std::mutex mutex;
 
@@ -80,38 +80,51 @@ public:
         m_memory    = memory;
         m_pages     = 0;
         m_started   = 0;
+        m_errors    = 0;
         m_threads   = threads.size();
         m_ways      = 0;
         m_ts        = Chrono::steadyMSecs();
-
-        for (const CpuLaunchData &data : threads) {
-            m_ways += data.intensity;
-        }
     }
 
-    inline bool started(const std::pair<size_t, size_t> &hugePages)
+    inline bool started(IWorker *worker, bool ready)
     {
-        m_started++;
-        m_hugePages += hugePages.first;
-        m_pages     += hugePages.second;
+        if (ready) {
+            auto hugePages = worker->memory()->hugePages();
 
-        return m_started == m_threads;
+            m_started++;
+            m_hugePages += hugePages.first;
+            m_pages     += hugePages.second;
+            m_ways      += worker->intensity();
+        }
+        else {
+            m_errors++;
+        }
+
+        return (m_started + m_errors) == m_threads;
     }
 
     inline void print() const
     {
-        LOG_INFO("%s" GREEN_BOLD(" READY") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
+        if (m_started == 0) {
+            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), tag);
+
+            return;
+        }
+
+        LOG_INFO("%s" GREEN_BOLD(" READY") " threads %s%zu/%zu (%zu)" CLEAR " huge pages %s%zu/%zu %1.0f%%" CLEAR " memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
                  tag,
-                 m_threads, m_ways,
+                 m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
+                 m_started, m_threads, m_ways,
                  (m_hugePages == m_pages ? GREEN_BOLD_S : (m_hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
                  m_hugePages, m_pages,
                  m_hugePages == 0 ? 0.0 : static_cast<double>(m_hugePages) / m_pages * 100.0,
-                 m_ways * m_memory / 1024,
+                 memory() / 1024,
                  Chrono::steadyMSecs() - m_ts
                  );
     }
 
 private:
+    size_t m_errors       = 0;
     size_t m_hugePages    = 0;
     size_t m_memory       = 0;
     size_t m_pages        = 0;
@@ -322,17 +335,19 @@ void xmrig::CpuBackend::setJob(const Job &job)
 }
 
 
-void xmrig::CpuBackend::start(IWorker *worker)
+void xmrig::CpuBackend::start(IWorker *worker, bool ready)
 {
     mutex.lock();
 
-    if (d_ptr->status.started(worker->memory()->hugePages())) {
+    if (d_ptr->status.started(worker, ready)) {
         d_ptr->status.print();
     }
 
     mutex.unlock();
 
-    worker->start();
+    if (ready) {
+        worker->start();
+    }
 }
 
 
@@ -390,8 +405,9 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
         return out;
     }
 
+    out.AddMember("hashrate", hashrate()->toJSON(doc), allocator);
+
     Value threads(kArrayType);
-    const Hashrate *hr = hashrate();
 
     size_t i = 0;
     for (const CpuLaunchData &data : d_ptr->threads) {
@@ -399,15 +415,9 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
         thread.AddMember("intensity",   data.intensity, allocator);
         thread.AddMember("affinity",    data.affinity, allocator);
         thread.AddMember("av",          data.av(), allocator);
-
-        Value hashrate(kArrayType);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+        thread.AddMember("hashrate",    hashrate()->toJSON(i, doc), allocator);
 
         i++;
-
-        thread.AddMember("hashrate", hashrate, allocator);
         threads.PushBack(thread, allocator);
     }
 

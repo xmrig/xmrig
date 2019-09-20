@@ -62,6 +62,14 @@ R"===(
         "cn/0": false,
         "cn-lite/0": false
     },
+    "opencl": {
+        "enabled": true,
+        "cache": true,
+        "loader": null,
+        "platform": "AMD",
+        "cn/0": false,
+        "cn-lite/0": false
+    },
     "donate-level": 5,
     "donate-over-proxy": 1,
     "log-file": null,

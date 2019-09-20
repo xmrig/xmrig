@@ -87,28 +87,26 @@ void xmrig::OclRxBaseRunner::run(uint32_t nonce, uint32_t *hashOutput)
 
     enqueueWriteBuffer(m_output, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(uint32_t), &zero);
 
-    const uint32_t g_intensity = data().thread.intensity();
-
-    m_blake2b_initial_hash->enqueue(m_queue, g_intensity);
-    m_fillAes1Rx4_scratchpad->enqueue(m_queue, g_intensity);
+    m_blake2b_initial_hash->enqueue(m_queue, m_intensity);
+    m_fillAes1Rx4_scratchpad->enqueue(m_queue, m_intensity);
 
     const uint32_t programCount = RxAlgo::programCount(m_algorithm);
 
     for (uint32_t i = 0; i < programCount; ++i) {
-        m_fillAes4Rx4_entropy->enqueue(m_queue, g_intensity);
+        m_fillAes4Rx4_entropy->enqueue(m_queue, m_intensity);
 
         execute(i);
 
         if (i == programCount - 1) {
-            m_hashAes1Rx4->enqueue(m_queue, g_intensity);
-            m_blake2b_hash_registers_32->enqueue(m_queue, g_intensity);
+            m_hashAes1Rx4->enqueue(m_queue, m_intensity);
+            m_blake2b_hash_registers_32->enqueue(m_queue, m_intensity);
         }
         else {
-            m_blake2b_hash_registers_64->enqueue(m_queue, g_intensity);
+            m_blake2b_hash_registers_64->enqueue(m_queue, m_intensity);
         }
     }
 
-    m_find_shares->enqueue(m_queue, g_intensity);
+    m_find_shares->enqueue(m_queue, m_intensity);
 
     finalize(hashOutput);
 
@@ -138,13 +136,11 @@ void xmrig::OclRxBaseRunner::set(const Job &job, uint8_t *blob)
 
 size_t xmrig::OclRxBaseRunner::bufferSize() const
 {
-    const size_t g_thd = data().thread.intensity();
-
     return OclBaseRunner::bufferSize() +
-           align((m_algorithm.l3() + 64) * g_thd) +
-           align(64 * g_thd) +
-           align((128 + 2560) * g_thd) +
-           align(sizeof(uint32_t) * g_thd);
+           align((m_algorithm.l3() + 64) * m_intensity) +
+           align(64 * m_intensity) +
+           align((128 + 2560) * m_intensity) +
+           align(sizeof(uint32_t) * m_intensity);
 }
 
 
@@ -152,14 +148,13 @@ void xmrig::OclRxBaseRunner::build()
 {
     OclBaseRunner::build();
 
-    const uint32_t batch_size = data().thread.intensity();
     const uint32_t rx_version = RxAlgo::version(m_algorithm);
 
     m_fillAes1Rx4_scratchpad = new FillAesKernel(m_program, "fillAes1Rx4_scratchpad");
-    m_fillAes1Rx4_scratchpad->setArgs(m_hashes, m_scratchpads, batch_size, rx_version);
+    m_fillAes1Rx4_scratchpad->setArgs(m_hashes, m_scratchpads, m_intensity, rx_version);
 
     m_fillAes4Rx4_entropy = new FillAesKernel(m_program, "fillAes4Rx4_entropy");
-    m_fillAes4Rx4_entropy->setArgs(m_hashes, m_entropy, batch_size, rx_version);
+    m_fillAes4Rx4_entropy->setArgs(m_hashes, m_entropy, m_intensity, rx_version);
 
     m_hashAes1Rx4 = new HashAesKernel(m_program);
 
@@ -178,10 +173,8 @@ void xmrig::OclRxBaseRunner::init()
 {
     OclBaseRunner::init();
 
-    const size_t g_thd = data().thread.intensity();
-
-    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (m_algorithm.l3() + 64) * g_thd);
-    m_hashes      = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 64 * g_thd);
-    m_entropy     = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (128 + 2560) * g_thd);
-    m_rounding    = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, sizeof(uint32_t) * g_thd);
+    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (m_algorithm.l3() + 64) * m_intensity);
+    m_hashes      = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 64 * m_intensity);
+    m_entropy     = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (128 + 2560) * m_intensity);
+    m_rounding    = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, sizeof(uint32_t) * m_intensity);
 }
