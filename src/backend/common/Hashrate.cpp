@@ -23,10 +23,10 @@
  */
 
 
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <memory.h>
-#include <stdio.h>
+#include <cstdio>
 
 
 #include "backend/common/Hashrate.h"
@@ -133,8 +133,8 @@ double xmrig::Hashrate::calc(size_t threadId, size_t ms) const
         return nan("");
     }
 
-    const double hashes = static_cast<double>(lastestHashCnt - earliestHashCount);
-    const double time   = static_cast<double>(lastestStamp - earliestStamp) / 1000.0;
+    const auto hashes = static_cast<double>(lastestHashCnt - earliestHashCount);
+    const auto time   = static_cast<double>(lastestStamp - earliestStamp) / 1000.0;
 
     return hashes / time;
 }
@@ -175,3 +175,33 @@ rapidjson::Value xmrig::Hashrate::normalize(double d)
 
     return Value(floor(d * 100.0) / 100.0);
 }
+
+
+#ifdef XMRIG_FEATURE_API
+rapidjson::Value xmrig::Hashrate::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value out(kArrayType);
+    out.PushBack(normalize(calc(ShortInterval)),  allocator);
+    out.PushBack(normalize(calc(MediumInterval)), allocator);
+    out.PushBack(normalize(calc(LargeInterval)),  allocator);
+
+    return out;
+}
+
+
+rapidjson::Value xmrig::Hashrate::toJSON(size_t threadId, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value out(kArrayType);
+    out.PushBack(normalize(calc(threadId, ShortInterval)),  allocator);
+    out.PushBack(normalize(calc(threadId, MediumInterval)), allocator);
+    out.PushBack(normalize(calc(threadId, LargeInterval)),  allocator);
+
+    return out;
+}
+#endif

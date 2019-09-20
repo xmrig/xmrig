@@ -405,8 +405,9 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
         return out;
     }
 
+    out.AddMember("hashrate", hashrate()->toJSON(doc), allocator);
+
     Value threads(kArrayType);
-    const Hashrate *hr = hashrate();
 
     size_t i = 0;
     for (const CpuLaunchData &data : d_ptr->threads) {
@@ -414,15 +415,9 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
         thread.AddMember("intensity",   data.intensity, allocator);
         thread.AddMember("affinity",    data.affinity, allocator);
         thread.AddMember("av",          data.av(), allocator);
-
-        Value hashrate(kArrayType);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+        thread.AddMember("hashrate",    hashrate()->toJSON(i, doc), allocator);
 
         i++;
-
-        thread.AddMember("hashrate", hashrate, allocator);
         threads.PushBack(thread, allocator);
     }
 

@@ -391,22 +391,17 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
         return out;
     }
 
+    out.AddMember("hashrate", hashrate()->toJSON(doc), allocator);
+
     Value threads(kArrayType);
-    const Hashrate *hr = hashrate();
 
     size_t i = 0;
     for (const OclLaunchData &data : d_ptr->threads) {
         Value thread = data.thread.toJSON(doc);
         thread.AddMember("affinity", data.affinity, allocator);
-
-        Value hashrate(kArrayType);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
-        hashrate.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+        thread.AddMember("hashrate", hashrate()->toJSON(i, doc), allocator);
 
         i++;
-
-        thread.AddMember("hashrate", hashrate, allocator);
         threads.PushBack(thread, allocator);
     }
 

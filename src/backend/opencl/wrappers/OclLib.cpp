@@ -561,7 +561,7 @@ cl_int xmrig::OclLib::release(cl_program program) noexcept
         return CL_SUCCESS;
     }
 
-    LOG_REFS("%p %u ~program %s", program, getUint(program, CL_PROGRAM_REFERENCE_COUNT), getString(program, CL_PROGRAM_KERNEL_NAMES).data()); // FIXME
+    LOG_REFS("%p %u ~program %s", program, getUint(program, CL_PROGRAM_REFERENCE_COUNT), getString(program, CL_PROGRAM_KERNEL_NAMES).data());
 
     const cl_int ret = pReleaseProgram(program);
     if (ret != CL_SUCCESS) {
