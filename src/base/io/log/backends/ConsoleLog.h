@@ -27,11 +27,12 @@
 #define XMRIG_CONSOLELOG_H
 
 
-typedef struct uv_stream_s uv_stream_t;
-typedef struct uv_tty_s uv_tty_t;
+using uv_stream_t = struct uv_stream_s;
+using uv_tty_t    = struct uv_tty_s;
 
 
 #include "base/kernel/interfaces/ILogBackend.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -40,6 +41,8 @@ namespace xmrig {
 class ConsoleLog : public ILogBackend
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(ConsoleLog)
+
     ConsoleLog();
     ~ConsoleLog() override;
 
@@ -47,10 +50,11 @@ protected:
     void print(int level, const char *line, size_t offset, size_t size, bool colors) override;
 
 private:
+    bool isSupported() const;
     bool isWritable() const;
 
-    uv_stream_t *m_stream;
-    uv_tty_t *m_tty;
+    uv_stream_t *m_stream = nullptr;
+    uv_tty_t *m_tty       = nullptr;
 };
 
 
