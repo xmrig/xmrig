@@ -1,3 +1,7 @@
+# v3.1.3
+- [#1180](https://github.com/xmrig/xmrig/issues/1180) Fixed possible duplicated shares after algorithm switching.
+- Fixed wrong config file permissions after write (only gcc builds on recent Windows 10 affected).
+
 # v3.1.2
 - Many RandomX optimizations and fixes.
   - [#1132](https://github.com/xmrig/xmrig/issues/1132) Fixed build on CentOS 7.
