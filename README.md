@@ -26,7 +26,7 @@ XMRig is a high performance RandomX and CryptoNight CPU miner, with official sup
   * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
 
 ## Usage
-Preferend way to configure miner is [JSON config file](src/config.json) as more flexible and human frendly, command line interface not cover all features, for example mining profiles for different algorithms. Most impotant options can be changed in runtime without miner restart by editing config or via API.
+The preferred way to configure the miner is the [JSON config file](src/config.json) as it is more flexible and human friendly. The command line interface does not cover all features, such as mining profiles for different algorithms. Important options can be changed during runtime without miner restart by editing the config file or executing API calls.
 
 ### Options
 ```
