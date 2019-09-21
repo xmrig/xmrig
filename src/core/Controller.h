@@ -27,6 +27,7 @@
 
 
 #include "base/kernel/Base.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -40,10 +41,11 @@ class Network;
 class Controller : public Base
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Controller)
+
     Controller(Process *process);
     ~Controller() override;
 
-    bool isReady() const override;
     int init() override;
     void start() override;
     void stop() override;
