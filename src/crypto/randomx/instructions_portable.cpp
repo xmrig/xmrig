@@ -82,12 +82,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#define HAVE_SETROUNDMODE_IMPL
 #endif
 
-#ifndef HAVE_SETROUNDMODE_IMPL
-	static void setRoundMode_(uint32_t mode) {
-		fesetround(mode);
-	}
-#endif
-
 #ifndef HAVE_ROTR64
 	uint64_t rotr64(uint64_t a, unsigned int b) {
 		return (a >> b) | (a << (-b & 63));
@@ -132,6 +126,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef RANDOMX_DEFAULT_FENV
+
+#	ifndef HAVE_SETROUNDMODE_IMPL
+	static void setRoundMode_(uint32_t mode) {
+		fesetround(mode);
+	}
+#	endif
 
 void rx_reset_float_state() {
 	setRoundMode_(FE_TONEAREST);
