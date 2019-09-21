@@ -27,7 +27,7 @@
 #define XMRIG_PCITOPOLOGY_H
 
 
-#include <stdio.h>
+#include <cstdio>
 
 
 #include "base/tools/String.h"
@@ -40,19 +40,29 @@ class PciTopology
 {
 public:
     PciTopology() = default;
-    PciTopology(uint32_t bus, uint32_t device, uint32_t function) : bus(bus), device(device), function(function) {}
+    PciTopology(uint32_t bus, uint32_t device, uint32_t function) : m_bus(bus), m_device(device), m_function(function) {}
 
-    uint32_t bus        = 0;
-    uint32_t device     = 0;
-    uint32_t function   = 0;
+    inline bool isValid() const         { return m_bus >= 0; }
+    inline uint32_t bus() const         { return isValid() ? m_bus : 0; }
+    inline uint32_t device() const      { return m_device; }
+    inline uint32_t function() const    { return m_function; }
 
     String toString() const
     {
+        if (!isValid()) {
+            return "n/a";
+        }
+
         char *buf = new char[8]();
-        snprintf(buf, 8, "%02x:%02x.%01x", bus, device, function);
+        snprintf(buf, 8, "%02x:%02x.%01x", bus(), device(), function());
 
         return buf;
     }
+
+private:
+    int32_t m_bus         = -1;
+    uint32_t m_device     = 0;
+    uint32_t m_function   = 0;
 };
 
 

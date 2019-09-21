@@ -150,7 +150,7 @@ public:
         for (const OclDevice &device : devices) {
             Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") " %s " WHITE_BOLD("%uMHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%zu/%zu") " MB", "OPENCL GPU",
                        device.index(),
-                       device.hasTopology() ? device.topology().toString().data() : "n/a",
+                       device.topology().toString().data(),
                        device.printableName().data(),
                        device.clock(),
                        device.computeUnits(),
@@ -177,7 +177,7 @@ public:
                        CYAN_BOLD("%3u") " |" CYAN_BOLD("%3s") " |" CYAN_BOLD("%3u") " |" CYAN("%5zu") " | %s",
                        i,
                        data.thread.index(),
-                       data.device.hasTopology() ? data.device.topology().toString().data() : "n/a",
+                       data.device.topology().toString().data(),
                        data.thread.intensity(),
                        data.thread.worksize(),
                        data.thread.stridedIndex(),
@@ -285,7 +285,7 @@ void xmrig::OclBackend::printHashrate(bool details)
                     Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3),
                     data.device.index(),
-                    data.device.hasTopology() ? data.device.topology().toString().data() : "n/a",
+                    data.device.topology().toString().data(),
                     data.device.printableName().data()
                     );
 
@@ -400,6 +400,8 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
         Value thread = data.thread.toJSON(doc);
         thread.AddMember("affinity", data.affinity, allocator);
         thread.AddMember("hashrate", hashrate()->toJSON(i, doc), allocator);
+
+        data.device.toJSON(thread, doc);
 
         i++;
         threads.PushBack(thread, allocator);
