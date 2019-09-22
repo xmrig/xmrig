@@ -80,6 +80,7 @@ static const option options[] = {
     { "user-agent",            1, nullptr, IConfig::UserAgentKey          },
     { "userpass",              1, nullptr, IConfig::UserpassKey           },
     { "rig-id",                1, nullptr, IConfig::RigIdKey              },
+    { "no-cpu",                0, nullptr, IConfig::CPUKey                },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },

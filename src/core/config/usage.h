@@ -71,6 +71,7 @@ static inline const std::string &usage()
 
     u += "\nCPU backend:\n";
 
+    u += "      --no-cpu                  disable CPU backend\n";
     u += "  -t, --threads=N               number of CPU threads\n";
     u += "  -v, --av=N                    algorithm variation, 0 auto select\n";
     u += "      --cpu-affinity            set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n";

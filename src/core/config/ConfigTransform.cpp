@@ -118,6 +118,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::HugePagesKey: /* --no-huge-pages */
+    case IConfig::CPUKey:       /* --no-cpu */
         return transformBoolean(doc, key, false);
 
     case IConfig::CPUAffinityKey: /* --cpu-affinity */
@@ -150,6 +151,9 @@ void xmrig::ConfigTransform::transformBoolean(rapidjson::Document &doc, int key,
     switch (key) {
     case IConfig::HugePagesKey: /* --no-huge-pages */
         return set(doc, kCpu, "huge-pages", enable);
+
+    case IConfig::CPUKey:       /* --no-cpu */
+        return set(doc, kCpu, "enabled", enable);
 
     default:
         break;
