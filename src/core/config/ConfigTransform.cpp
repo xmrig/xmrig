@@ -80,12 +80,7 @@ static inline bool isHwAes(uint64_t av)
 }
 
 
-}
-
-
-xmrig::ConfigTransform::ConfigTransform() : BaseTransform()
-{
-}
+} // namespace xmrig
 
 
 void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
@@ -131,7 +126,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
             return transformUint64(doc, key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
 
-#   ifndef XMRIG_NO_ASM
+#   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
         return set(doc, kCpu, "asm", arg);
 #   endif

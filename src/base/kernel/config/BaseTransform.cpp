@@ -23,7 +23,7 @@
  */
 
 
-#include <stdio.h>
+#include <cstdio>
 
 
 #ifdef _MSC_VER
@@ -50,12 +50,7 @@ static const char *kApi   = "api";
 static const char *kHttp  = "http";
 static const char *kPools = "pools";
 
-}
-
-
-xmrig::BaseTransform::BaseTransform()
-{
-}
+} // namespace xmrig
 
 
 void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTransform &transform)
@@ -68,7 +63,7 @@ void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTrans
 
     Document doc(kObjectType);
 
-    while (1) {
+    while (true) {
         key = getopt_long(argc, argv, short_options, options, nullptr);
         if (key < 0) {
             break;
@@ -226,8 +221,10 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::TlsKey: /* --tls */
         return add(doc, kPools, "tls", enable);
 
+#   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonKey: /* --daemon */
         return add(doc, kPools, "daemon", enable);
+#   endif
 
 #   ifndef XMRIG_PROXY_PROJECT
     case IConfig::NicehashKey: /* --nicehash */
@@ -273,8 +270,10 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
     case IConfig::PrintTimeKey: /* --print-time */
         return set(doc, "print-time", arg);
 
+#   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, kPools, "daemon-poll-interval", arg);
+#   endif
 
     default:
         break;

@@ -46,7 +46,6 @@ xmrig::Controller::~Controller()
 
 int xmrig::Controller::init()
 {
-    Cpu::init();
     Base::init();
 
     m_network = new Network(this);

@@ -23,7 +23,7 @@
  */
 
 
-#include <stdio.h>
+#include <cstdio>
 #include <uv.h>
 
 
@@ -161,7 +161,7 @@ int xmrig::Entry::exec(const Process &process, Id id)
 {
     switch (id) {
     case Usage:
-        printf(usage);
+        printf("%s\n", usage().c_str());
         return 0;
 
     case Version:

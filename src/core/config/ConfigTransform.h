@@ -34,9 +34,6 @@ namespace xmrig {
 
 class ConfigTransform : public BaseTransform
 {
-public:
-    ConfigTransform();
-
 protected:
     void finalize(rapidjson::Document &doc) override;
     void transform(rapidjson::Document &doc, int key, const char *arg) override;

@@ -44,8 +44,6 @@ class Process;
 class BaseTransform : public IConfigTransform
 {
 public:
-    BaseTransform();
-
     static void load(JsonChain &chain, Process *process, IConfigTransform &transform);
 
 protected:

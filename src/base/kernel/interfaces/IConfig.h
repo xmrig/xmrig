@@ -78,6 +78,7 @@ public:
         PrintTimeKey         = 1007,
 
         // xmrig cpu
+        CPUKey               = 1024,
         AVKey                = 'v',
         CPUAffinityKey       = 1020,
         DryRunKey            = 5000,
