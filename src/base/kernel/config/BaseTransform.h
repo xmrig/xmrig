@@ -102,6 +102,8 @@ protected:
 private:
     void transformBoolean(rapidjson::Document &doc, int key, bool enable);
     void transformUint64(rapidjson::Document &doc, int key, uint64_t arg);
+
+    bool m_http = false;
 };
 
 

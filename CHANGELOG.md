@@ -1,6 +1,7 @@
 # v4.0.2-beta
 - [#1183](https://github.com/xmrig/xmrig/issues/1183) Fixed compatibility with systemd.
 - [#1185](https://github.com/xmrig/xmrig/pull/1185) Added JIT compiler for RandomX on ARMv8.
+- Command line option `--http-enabled` removed, HTTP API enabled automatically if any other `--http-*` option provided.
 
 # v4.0.1-beta
 - [#1177](https://github.com/xmrig/xmrig/issues/1177) Fixed compatibility with old AMD drivers.

@@ -102,6 +102,10 @@ void xmrig::BaseTransform::finalize(rapidjson::Document &doc)
             }
         }
     }
+
+    if (m_http) {
+        set(doc, kHttp, "enabled", true);
+    }
 }
 
 
@@ -164,9 +168,11 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         return set(doc, "log-file", arg);
 
     case IConfig::HttpAccessTokenKey: /* --http-access-token */
+        m_http = true;
         return set(doc, kHttp, "access-token", arg);
 
     case IConfig::HttpHostKey: /* --http-host */
+        m_http = true;
         return set(doc, kHttp, "host", arg);
 
     case IConfig::ApiWorkerIdKey: /* --api-worker-id */
@@ -235,10 +241,12 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
         return set(doc, "colors", enable);
 
     case IConfig::HttpRestrictedKey: /* --http-no-restricted */
+        m_http = true;
         return set(doc, kHttp, "restricted", enable);
 
     case IConfig::HttpEnabledKey: /* --http-enabled */
-        return set(doc, kHttp, "enabled", enable);
+        m_http = true;
+        break;
 
     case IConfig::DryRunKey: /* --dry-run */
         return set(doc, "dry-run", enable);
@@ -265,6 +273,7 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
         return set(doc, "donate-over-proxy", arg);
 
     case IConfig::HttpPort: /* --http-port */
+        m_http = true;
         return set(doc, kHttp, "port", arg);
 
     case IConfig::PrintTimeKey: /* --print-time */

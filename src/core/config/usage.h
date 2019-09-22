@@ -87,7 +87,6 @@ static inline const std::string &usage()
     u += "\nAPI:\n";
     u += "      --api-worker-id=ID        custom worker-id for API\n";
     u += "      --api-id=ID               custom instance ID for API\n";
-    u += "      --http-enabled            enable HTTP API\n";
     u += "      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)\n";
     u += "      --http-port=N             bind port for HTTP API\n";
     u += "      --http-access-token=T     access token for HTTP API\n";
