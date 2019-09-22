@@ -63,7 +63,7 @@ R"===(
         "cn-lite/0": false
     },
     "opencl": {
-        "enabled": true,
+        "enabled": false,
         "cache": true,
         "loader": null,
         "platform": "AMD",

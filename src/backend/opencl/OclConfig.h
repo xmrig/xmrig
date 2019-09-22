@@ -56,7 +56,7 @@ private:
     void setPlatform(const rapidjson::Value &platform);
 
     bool m_cache         = true;
-    bool m_enabled       = true;
+    bool m_enabled       = false;
     bool m_shouldSave    = false;
     String m_loader;
     String m_platformVendor;

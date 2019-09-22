@@ -215,16 +215,18 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 
         setPlatform(Json::getValue(value, kPlatform));
 
-        if (isEnabled()) {
-            m_threads.read(value);
+        m_threads.read(value);
 
-            generate();
-        }
+        generate();
     }
-    else if (value.IsBool() && value.IsFalse()) {
-        m_enabled = false;
+    else if (value.IsBool()) {
+        m_enabled = value.GetBool();
+
+        generate();
     }
     else {
+        m_shouldSave = true;
+
         generate();
     }
 }
@@ -232,6 +234,10 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 
 void xmrig::OclConfig::generate()
 {
+    if (!isEnabled()) {
+        return;
+    }
+
     if (!OclLib::init(loader())) {
         return;
     }
