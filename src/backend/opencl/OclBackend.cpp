@@ -135,6 +135,10 @@ public:
             return printDisabled(RED_S " (failed to load OpenCL runtime)");
         }
 
+        if (platform.isValid()) {
+            return;
+        }
+
         platform = cl.platform();
         if (!platform.isValid()) {
             return printDisabled(RED_S " (selected OpenCL platform NOT found)");
@@ -302,11 +306,14 @@ void xmrig::OclBackend::printHashrate(bool details)
 
 void xmrig::OclBackend::setJob(const Job &job)
 {
+    const OclConfig &cl = d_ptr->controller->config()->cl();
+    if (cl.isEnabled()) {
+        d_ptr->init(cl);
+    }
+
     if (!isEnabled()) {
         return stop();
     }
-
-    const OclConfig &cl = d_ptr->controller->config()->cl();
 
     std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->platform, d_ptr->devices, tag);
     if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
