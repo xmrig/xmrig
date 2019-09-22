@@ -213,8 +213,8 @@ void xmrig::OclDevice::toJSON(rapidjson::Value &out, rapidjson::Document &doc) c
 
     out.AddMember("board",       board().toJSON(doc), allocator);
     out.AddMember("name",        name().toJSON(doc), allocator);
-    out.AddMember("bus-id",      topology().toString().toJSON(doc), allocator);
+    out.AddMember("bus_id",      topology().toString().toJSON(doc), allocator);
     out.AddMember("cu",          computeUnits(), allocator);
-    out.AddMember("global-mem",  globalMemSize(), allocator);
+    out.AddMember("global_mem",  globalMemSize(), allocator);
 }
 #endif
