@@ -54,7 +54,7 @@ public:
         }
 
         char *buf = new char[8]();
-        snprintf(buf, 8, "%02x:%02x.%01x", bus(), device(), function());
+        snprintf(buf, 8, "%02hhx:%02hhx.%01hhx", bus(), device(), function());
 
         return buf;
     }
