@@ -100,6 +100,7 @@ public:
         OclMemChunkKey       = 1408,
         OclUnrollKey         = 1409,
         OclCompModeKey       = 1410,
+        OclKey               = 1411,
 
         // xmrig-proxy
         AccessLogFileKey     = 'A',

@@ -35,11 +35,16 @@ namespace xmrig
 static const char *kAffinity    = "affinity";
 static const char *kAsterisk    = "*";
 static const char *kCpu         = "cpu";
+static const char *kEnabled     = "enabled";
 static const char *kIntensity   = "intensity";
 static const char *kThreads     = "threads";
 
 #ifdef XMRIG_ALGO_RANDOMX
-static const char *kRandomX = "randomx";
+static const char *kRandomX     = "randomx";
+#endif
+
+#ifdef XMRIG_FEATURE_OPENCL
+static const char *kOcl         = "opencl";
 #endif
 
 
@@ -104,6 +109,12 @@ void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
 
         doc[kCpu].AddMember(StringRef(kAsterisk), profile, doc.GetAllocator());
     }
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    if (m_opencl) {
+        set(doc, kOcl, kEnabled, true);
+    }
+#   endif
 }
 
 
@@ -140,6 +151,12 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
         return set(doc, kRandomX, "numa", false);
 #   endif
 
+#   ifdef XMRIG_FEATURE_OPENCL
+    case IConfig::OclKey: /* --opencl */
+        m_opencl = true;
+        break;
+#   endif
+
     default:
         break;
     }
@@ -153,7 +170,7 @@ void xmrig::ConfigTransform::transformBoolean(rapidjson::Document &doc, int key,
         return set(doc, kCpu, "huge-pages", enable);
 
     case IConfig::CPUKey:       /* --no-cpu */
-        return set(doc, kCpu, "enabled", enable);
+        return set(doc, kCpu, kEnabled, enable);
 
     default:
         break;

@@ -71,7 +71,7 @@ static inline const std::string &usage()
 
     u += "\nCPU backend:\n";
 
-    u += "      --no-cpu                  disable CPU backend\n";
+    u += "      --no-cpu                  disable CPU mining backend\n";
     u += "  -t, --threads=N               number of CPU threads\n";
     u += "  -v, --av=N                    algorithm variation, 0 auto select\n";
     u += "      --cpu-affinity            set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n";
@@ -92,6 +92,11 @@ static inline const std::string &usage()
     u += "      --http-port=N             bind port for HTTP API\n";
     u += "      --http-access-token=T     access token for HTTP API\n";
     u += "      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    u += "\nOpenCL backend:\n";
+    u += "      --opencl                  enable OpenCL mining backend\n";
 #   endif
 
     u += "\nLogging:\n";
