@@ -485,12 +485,13 @@ randomx_calc_dataset_item_aarch64:
 	stp	x10, x11, [sp, 80]
 	stp	x12, x13, [sp, 96]
 
+	ldr	x12, superscalarMul0
+
 	mov	x8, x0
 	mov	x9, x1
 	mov	x10, x2
 
 	# rl[0] = (itemNumber + 1) * superscalarMul0;
-	ldr	x12, superscalarMul0
 	madd	x0, x2, x12, x12
 
 	# rl[1] = rl[0] ^ superscalarAdd1;
