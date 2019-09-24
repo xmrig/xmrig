@@ -162,6 +162,10 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::OclLoaderKey: /* --opencl-loader */
         return set(doc, kOcl, "loader", arg);
 
+    case IConfig::OclDevicesKey: /* --opencl-devices */
+        m_opencl = true;
+        return set(doc, kOcl, "devices-hint", arg);
+
     case IConfig::OclPlatformKey: /* --opencl-platform */
         if (strlen(arg) < 3) {
             return set(doc, kOcl, "platform", static_cast<uint64_t>(strtol(arg, nullptr, 10)));

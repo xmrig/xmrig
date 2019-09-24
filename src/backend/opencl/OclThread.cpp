@@ -52,6 +52,10 @@ static const char* kDatasetHost  = "dataset_host";
 
 xmrig::OclThread::OclThread(const rapidjson::Value &value)
 {
+    if (!value.IsObject()) {
+        return;
+    }
+
     m_index         = Json::getUint(value, kIndex);
     m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 128u), 1u);
     m_unrollFactor  = std::max(std::min(Json::getUint(value, kUnroll, m_unrollFactor), 128u), 1u);
