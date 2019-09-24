@@ -94,6 +94,14 @@ static const option options[] = {
 #   endif
 #   ifdef XMRIG_FEATURE_OPENCL
     { "opencl",                0, nullptr, IConfig::OclKey                },
+    { "opencl-devices",        1, nullptr, IConfig::OclDevicesKey         },
+    { "opencl-launch",         1, nullptr, IConfig::OclLaunchKey          },
+    { "opencl-strided-index",  1, nullptr, IConfig::OclSridedIndexKey     },
+    { "opencl-mem-chunk",      1, nullptr, IConfig::OclMemChunkKey        },
+    { "opencl-affinity",       1, nullptr, IConfig::OclAffinityKey        },
+    { "opencl-platform",       1, nullptr, IConfig::OclPlatformKey        },
+    { "opencl-loader",         1, nullptr, IConfig::OclLoaderKey          },
+    { "opencl-no-cache",       0, nullptr, IConfig::OclCacheKey           },
 #   endif
     { nullptr,                 0, nullptr, 0 }
 };
