@@ -3,6 +3,7 @@
 - [#1183](https://github.com/xmrig/xmrig/issues/1183) Fixed compatibility with systemd.
 - [#1185](https://github.com/xmrig/xmrig/pull/1185) Added JIT compiler for RandomX on ARMv8.
 - Added command line option `--no-cpu` to disable CPU backend.
+- Added OpenCL specific command line options: `--opencl`, `--opencl-devices`, `--opencl-platform`, `--opencl-loader` and `--opencl-no-cache`.
 - Removed command line option `--http-enabled`, HTTP API enabled automatically if any other `--http-*` option provided.
 
 # v4.0.1-beta

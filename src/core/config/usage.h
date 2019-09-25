@@ -98,10 +98,6 @@ static inline const std::string &usage()
     u += "\nOpenCL backend:\n";
     u += "      --opencl                  enable OpenCL mining backend\n";
     u += "      --opencl-devices=N        list of OpenCL devices to use\n";
-    u += "      --opencl-launch=IxW       list of launch config, intensity and worksize\n";
-    u += "      --opencl-strided-index=N  list of strided_index option values for each thread\n";
-    u += "      --opencl-mem-chunk=N      list of mem_chunk option values for each thread\n";
-    u += "      --opencl-affinity=N       list of affinity GPU threads to a CPU\n";
     u += "      --opencl-platform=N       OpenCL platform index or name\n";
     u += "      --opencl-loader=N         path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)\n";
     u += "      --opencl-no-cache         disable OpenCL cache\n";
