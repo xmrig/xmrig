@@ -45,6 +45,7 @@ static const char short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
 
 static const option options[] = {
     { "algo",                  1, nullptr, IConfig::AlgorithmKey          },
+    { "coin",                  1, nullptr, IConfig::CoinKey               },
 #   ifdef XMRIG_FEATURE_HTTP
     { "api-worker-id",         1, nullptr, IConfig::ApiWorkerIdKey        },
     { "api-id",                1, nullptr, IConfig::ApiIdKey              },
