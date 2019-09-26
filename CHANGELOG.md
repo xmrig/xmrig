@@ -1,3 +1,12 @@
+# v4.1.0-beta
+- **OpenCL backend disabled by default.**.
+- [#1183](https://github.com/xmrig/xmrig/issues/1183) Fixed compatibility with systemd.
+- [#1185](https://github.com/xmrig/xmrig/pull/1185) Added JIT compiler for RandomX on ARMv8.
+- Improved API endpoint `GET /2/backends` and added support for this endpoint to [workers.xmrig.info](http://workers.xmrig.info).
+- Added command line option `--no-cpu` to disable CPU backend.
+- Added OpenCL specific command line options: `--opencl`, `--opencl-devices`, `--opencl-platform`, `--opencl-loader` and `--opencl-no-cache`.
+- Removed command line option `--http-enabled`, HTTP API enabled automatically if any other `--http-*` option provided.
+
 # v4.0.1-beta
 - [#1177](https://github.com/xmrig/xmrig/issues/1177) Fixed compatibility with old AMD drivers.
 - [#1180](https://github.com/xmrig/xmrig/issues/1180) Fixed possible duplicated shares after algorithm switching.
@@ -8,6 +17,10 @@
 - [#1172](https://github.com/xmrig/xmrig/issues/1172) **Added OpenCL mining backend.**
   - [#268](https://github.com/xmrig/xmrig-amd/pull/268) [#270](https://github.com/xmrig/xmrig-amd/pull/270) [#271](https://github.com/xmrig/xmrig-amd/pull/271) [#273](https://github.com/xmrig/xmrig-amd/pull/273) [#274](https://github.com/xmrig/xmrig-amd/pull/274) [#1171](https://github.com/xmrig/xmrig/pull/1171) Added RandomX support for OpenCL, thanks [@SChernykh](https://github.com/SChernykh).
 - Algorithm `cn/wow` removed, as no longer alive. 
+
+# v3.1.3
+- [#1180](https://github.com/xmrig/xmrig/issues/1180) Fixed possible duplicated shares after algorithm switching.
+- Fixed wrong config file permissions after write (only gcc builds on recent Windows 10 affected).
 
 # v3.1.2
 - Many RandomX optimizations and fixes.

@@ -23,7 +23,7 @@
  */
 
 
-#include <assert.h>
+#include <cassert>
 #include <memory>
 
 
@@ -64,15 +64,16 @@ static const char *kConfigPathV2 = "/2/config";
 #endif
 
 
-class xmrig::BasePrivate
+namespace xmrig {
+
+
+class BasePrivate
 {
 public:
-    inline BasePrivate(Process *process) :
-        api(nullptr),
-        config(nullptr),
-        process(process),
-        watcher(nullptr)
-    {}
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(BasePrivate)
+
+
+    inline BasePrivate(Process *process) : config(load(process)) {}
 
 
     inline ~BasePrivate()
@@ -94,13 +95,33 @@ public:
     }
 
 
-    inline Config *load()
+    inline void replace(Config *newConfig)
+    {
+        Config *previousConfig = config;
+        config = newConfig;
+
+        for (IBaseListener *listener : listeners) {
+            listener->onConfigChanged(config, previousConfig);
+        }
+
+        delete previousConfig;
+    }
+
+
+    Api *api            = nullptr;
+    Config *config      = nullptr;
+    std::vector<IBaseListener *> listeners;
+    Watcher *watcher    = nullptr;
+
+
+private:
+    inline Config *load(Process *process)
     {
         JsonChain chain;
         ConfigTransform transform;
         std::unique_ptr<Config> config;
 
-        transform.load(chain, process, transform);
+        ConfigTransform::load(chain, process, transform);
 
         if (read(chain, config)) {
             return config.release();
@@ -122,27 +143,10 @@ public:
 
         return nullptr;
     }
-
-
-    inline void replace(Config *newConfig)
-    {
-        Config *previousConfig = config;
-        config = newConfig;
-
-        for (IBaseListener *listener : listeners) {
-            listener->onConfigChanged(config, previousConfig);
-        }
-
-        delete previousConfig;
-    }
-
-
-    Api *api;
-    Config *config;
-    Process *process;
-    std::vector<IBaseListener *> listeners;
-    Watcher *watcher;
 };
+
+
+} // namespace xmrig
 
 
 xmrig::Base::Base(Process *process)
@@ -165,14 +169,6 @@ bool xmrig::Base::isReady() const
 
 int xmrig::Base::init()
 {
-    d_ptr->config = d_ptr->load();
-
-    if (!d_ptr->config) {
-        LOG_EMERG("No valid configuration found. Exiting.");
-
-        return 1;
-    }
-
 #   ifdef XMRIG_FEATURE_API
     d_ptr->api = new Api(this);
     d_ptr->api->addListener(this);
@@ -184,7 +180,7 @@ int xmrig::Base::init()
     Platform::setProcessPriority(config()->cpu().priority());
 #   endif
 
-    if (config()->isBackground()) {
+    if (isBackground()) {
         Log::background = true;
     }
     else {
@@ -240,6 +236,12 @@ xmrig::Api *xmrig::Base::api() const
 }
 
 
+bool xmrig::Base::isBackground() const
+{
+    return d_ptr->config && d_ptr->config->isBackground();
+}
+
+
 bool xmrig::Base::reload(const rapidjson::Value &json)
 {
     JsonReader reader(json);
@@ -247,7 +249,7 @@ bool xmrig::Base::reload(const rapidjson::Value &json)
         return false;
     }
 
-    Config *config = new Config();
+    auto config = new Config();
     if (!config->read(reader, d_ptr->config->fileName())) {
         delete config;
 
@@ -289,7 +291,7 @@ void xmrig::Base::onFileChanged(const String &fileName)
     JsonChain chain;
     chain.addFile(fileName);
 
-    Config *config = new Config();
+    auto config = new Config();
 
     if (!config->read(chain, chain.fileName())) {
         LOG_ERR("reloading failed");

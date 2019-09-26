@@ -142,16 +142,14 @@ xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id plat
         topology_amd topology;
 
         if (OclLib::getDeviceInfo(id, 0x4037 /* CL_DEVICE_TOPOLOGY_AMD */, sizeof(topology), &topology, nullptr) == CL_SUCCESS && topology.raw.type == 1) {
-            m_topology    = true;
-            m_pciTopology = PciTopology(static_cast<uint32_t>(topology.pcie.bus), static_cast<uint32_t>(topology.pcie.device), static_cast<uint32_t>(topology.pcie.function));
+            m_topology = PciTopology(static_cast<uint32_t>(topology.pcie.bus), static_cast<uint32_t>(topology.pcie.device), static_cast<uint32_t>(topology.pcie.function));
         }
     }
     else if (m_vendorId == OCL_VENDOR_NVIDIA) {
         cl_uint bus = 0;
         if (OclLib::getDeviceInfo(id, 0x4008 /* CL_DEVICE_PCI_BUS_ID_NV */, sizeof (bus), &bus, nullptr) == CL_SUCCESS) {
-            m_topology    = true;
             cl_uint slot  = OclLib::getUint(id, 0x4009 /* CL_DEVICE_PCI_SLOT_ID_NV */);
-            m_pciTopology = PciTopology(bus, (slot >> 3) & 0xff, slot & 7);
+            m_topology = PciTopology(bus, (slot >> 3) & 0xff, slot & 7);
         }
     }
 }
@@ -205,3 +203,18 @@ void xmrig::OclDevice::generate(const Algorithm &algorithm, OclThreads &threads)
         }
     }
 }
+
+
+#ifdef XMRIG_FEATURE_API
+void xmrig::OclDevice::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    out.AddMember("board",       board().toJSON(doc), allocator);
+    out.AddMember("name",        name().toJSON(doc), allocator);
+    out.AddMember("bus_id",      topology().toString().toJSON(doc), allocator);
+    out.AddMember("cu",          computeUnits(), allocator);
+    out.AddMember("global_mem",  globalMemSize(), allocator);
+}
+#endif

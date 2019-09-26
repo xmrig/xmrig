@@ -31,8 +31,11 @@
 xmrig::Console::Console(IConsoleListener *listener)
     : m_listener(listener)
 {
-    m_tty = new uv_tty_t;
+    if (!isSupported()) {
+        return;
+    }
 
+    m_tty = new uv_tty_t;
     m_tty->data = this;
     uv_tty_init(uv_default_loop(), m_tty, 0, 1);
 
@@ -53,10 +56,21 @@ xmrig::Console::~Console()
 
 void xmrig::Console::stop()
 {
+    if (!m_tty) {
+        return;
+    }
+
     uv_tty_reset_mode();
 
     Handle::close(m_tty);
     m_tty = nullptr;
+}
+
+
+bool xmrig::Console::isSupported() const
+{
+    const uv_handle_type type = uv_guess_handle(0);
+    return type == UV_TTY || type == UV_NAMED_PIPE;
 }
 
 

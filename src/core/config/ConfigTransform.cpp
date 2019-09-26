@@ -35,11 +35,16 @@ namespace xmrig
 static const char *kAffinity    = "affinity";
 static const char *kAsterisk    = "*";
 static const char *kCpu         = "cpu";
+static const char *kEnabled     = "enabled";
 static const char *kIntensity   = "intensity";
 static const char *kThreads     = "threads";
 
 #ifdef XMRIG_ALGO_RANDOMX
-static const char *kRandomX = "randomx";
+static const char *kRandomX     = "randomx";
+#endif
+
+#ifdef XMRIG_FEATURE_OPENCL
+static const char *kOcl         = "opencl";
 #endif
 
 
@@ -80,12 +85,7 @@ static inline bool isHwAes(uint64_t av)
 }
 
 
-}
-
-
-xmrig::ConfigTransform::ConfigTransform() : BaseTransform()
-{
-}
+} // namespace xmrig
 
 
 void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
@@ -109,6 +109,12 @@ void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
 
         doc[kCpu].AddMember(StringRef(kAsterisk), profile, doc.GetAllocator());
     }
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    if (m_opencl) {
+        set(doc, kOcl, kEnabled, true);
+    }
+#   endif
 }
 
 
@@ -123,6 +129,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::HugePagesKey: /* --no-huge-pages */
+    case IConfig::CPUKey:       /* --no-cpu */
         return transformBoolean(doc, key, false);
 
     case IConfig::CPUAffinityKey: /* --cpu-affinity */
@@ -131,7 +138,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
             return transformUint64(doc, key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
 
-#   ifndef XMRIG_NO_ASM
+#   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
         return set(doc, kCpu, "asm", arg);
 #   endif
@@ -142,6 +149,29 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::RandomXNumaKey: /* --randomx-no-numa */
         return set(doc, kRandomX, "numa", false);
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    case IConfig::OclKey: /* --opencl */
+        m_opencl = true;
+        break;
+
+    case IConfig::OclCacheKey: /* --opencl-no-cache */
+        return set(doc, kOcl, "cache", false);
+
+    case IConfig::OclLoaderKey: /* --opencl-loader */
+        return set(doc, kOcl, "loader", arg);
+
+    case IConfig::OclDevicesKey: /* --opencl-devices */
+        m_opencl = true;
+        return set(doc, kOcl, "devices-hint", arg);
+
+    case IConfig::OclPlatformKey: /* --opencl-platform */
+        if (strlen(arg) < 3) {
+            return set(doc, kOcl, "platform", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+        }
+
+        return set(doc, kOcl, "platform", arg);
 #   endif
 
     default:
@@ -155,6 +185,9 @@ void xmrig::ConfigTransform::transformBoolean(rapidjson::Document &doc, int key,
     switch (key) {
     case IConfig::HugePagesKey: /* --no-huge-pages */
         return set(doc, kCpu, "huge-pages", enable);
+
+    case IConfig::CPUKey:       /* --no-cpu */
+        return set(doc, kCpu, kEnabled, enable);
 
     default:
         break;

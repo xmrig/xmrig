@@ -33,11 +33,9 @@
 
 xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes)
 {
-#   ifndef XMRIG_ARM
     if (!softAes) {
        m_flags |= RANDOMX_FLAG_HARD_AES;
     }
-#   endif
 
     if (dataset->get()) {
         m_flags |= RANDOMX_FLAG_FULL_MEM;

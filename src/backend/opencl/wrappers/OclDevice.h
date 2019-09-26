@@ -69,10 +69,9 @@ public:
     uint32_t clock() const;
     void generate(const Algorithm &algorithm, OclThreads &threads) const;
 
-    inline bool hasTopology() const             { return m_topology; }
     inline bool isValid() const                 { return m_id != nullptr && m_platform != nullptr; }
     inline cl_device_id id() const              { return m_id; }
-    inline const PciTopology &topology() const  { return m_pciTopology; }
+    inline const PciTopology &topology() const  { return m_topology; }
     inline const String &board() const          { return m_board.isNull() ? m_name : m_board; }
     inline const String &name() const           { return m_name; }
     inline const String &vendor() const         { return m_vendor; }
@@ -81,8 +80,11 @@ public:
     inline uint32_t computeUnits() const        { return m_computeUnits; }
     inline uint32_t index() const               { return m_index; }
 
+#   ifdef XMRIG_FEATURE_API
+    void toJSON(rapidjson::Value &out, rapidjson::Document &doc) const;
+#   endif
+
 private:
-    bool m_topology                 = false;
     cl_device_id m_id               = nullptr;
     cl_platform_id m_platform       = nullptr;
     const String m_board;
@@ -91,7 +93,7 @@ private:
     const uint32_t m_computeUnits   = 1;
     const uint32_t m_index          = 0;
     OclVendor m_vendorId            = OCL_VENDOR_UNKNOWN;
-    PciTopology m_pciTopology;
+    PciTopology m_topology;
     Type m_type                     = Unknown;
 };
 

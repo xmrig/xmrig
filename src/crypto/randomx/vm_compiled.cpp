@@ -50,6 +50,9 @@ namespace randomx {
 
 	template<bool softAes>
 	void CompiledVm<softAes>::execute() {
+#ifdef XMRIG_ARM
+		memcpy(reg.f, config.eMask, sizeof(config.eMask));
+#endif
 		compiler.getProgramFunc()(reg, mem, scratchpad, RandomX_CurrentConfig.ProgramIterations);
 	}
 

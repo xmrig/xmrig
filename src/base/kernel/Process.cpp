@@ -23,8 +23,8 @@
  */
 
 
+#include <ctime>
 #include <uv.h>
-#include <time.h>
 
 
 #include "base/kernel/Process.h"
@@ -52,11 +52,6 @@ xmrig::Process::Process(int argc, char **argv) :
     m_arguments(argc, argv)
 {
     srand(static_cast<unsigned int>(Chrono::currentMSecsSinceEpoch() ^ reinterpret_cast<uintptr_t>(this)));
-}
-
-
-xmrig::Process::~Process()
-{
 }
 
 

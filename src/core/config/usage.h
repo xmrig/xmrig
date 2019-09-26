@@ -29,99 +29,105 @@
 #include "version.h"
 
 
+#include <string>
+
+
 namespace xmrig {
 
 
-static char const usage[] = "\
-Usage: " APP_ID " [OPTIONS]\n\
-Options:\n\
-  -a, --algo=ALGO               specify the algorithm to use\n\
-                                  cn/r, cn/2, cn/1, cn/0, cn/double, cn/half, cn/fast,\n\
-                                  cn/rwz, cn/zls, cn/xao, cn/rto"
-#ifdef XMRIG_ALGO_CN_GPU
-", cn/gpu,\n"
-#else
-",\n"
-#endif
-#ifdef XMRIG_ALGO_CN_LITE
-"\
-                                  cn-lite/1,\n"
-#endif
-#ifdef XMRIG_ALGO_CN_HEAVY
-"\
-                                  cn-heavy/xhv, cn-heavy/tube, cn-heavy/0,\n"
-#endif
-#ifdef XMRIG_ALGO_CN_PICO
-"\
-                                  cn-pico,\n"
-#endif
-#ifdef XMRIG_ALGO_RANDOMX
-"\
-                                  rx/wow, rx/loki\n"
-#endif
-"\
-  -o, --url=URL                 URL of mining server\n\
-  -O, --userpass=U:P            username:password pair for mining server\n\
-  -u, --user=USERNAME           username for mining server\n\
-  -p, --pass=PASSWORD           password for mining server\n\
-      --rig-id=ID               rig identifier for pool-side statistics (needs pool support)\n\
-  -t, --threads=N               number of miner threads\n\
-  -v, --av=N                    algorithm variation, 0 auto select\n\
-  -k, --keepalive               send keepalived packet for prevent timeout (needs pool support)\n\
-      --nicehash                enable nicehash.com support\n"
-#ifdef XMRIG_FEATURE_TLS
-"\
-      --tls                     enable SSL/TLS support (needs pool support)\n\
-      --tls-fingerprint=F       pool TLS certificate fingerprint, if set enable strict certificate pinning\n"
-#endif
-#ifdef XMRIG_FEATURE_HTTP
-"\
-      --daemon                  use daemon RPC instead of pool for solo mining\n\
-      --daemon-poll-interval=N  daemon poll interval in milliseconds (default: 1000)\n"
-#endif
-"\
-  -r, --retries=N               number of times to retry before switch to backup server (default: 5)\n\
-  -R, --retry-pause=N           time to pause between retries (default: 5)\n\
-      --cpu-affinity            set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
-      --cpu-priority            set process priority (0 idle, 2 normal to 5 highest)\n\
-      --no-huge-pages           disable huge pages support\n\
-      --no-color                disable colored output\n\
-      --donate-level=N          donate level, default 5%% (5 minutes in 100 minutes)\n\
-      --user-agent              set custom user-agent string for pool\n\
-  -B, --background              run the miner in the background\n\
-  -c, --config=FILE             load a JSON-format configuration file\n\
-  -l, --log-file=FILE           log all output to a file\n"
-# ifdef HAVE_SYSLOG_H
-"\
-  -S, --syslog                  use system log for output messages\n"
-# endif
-"\
-      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer.\n\
-      --print-time=N            print hashrate report every N seconds\n"
-#ifdef XMRIG_FEATURE_HTTP
-"\
-      --api-worker-id=ID        custom worker-id for API\n\
-      --api-id=ID               custom instance ID for API\n\
-      --http-enabled            enable HTTP API\n\
-      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)\n\
-      --http-port=N             bind port for HTTP API\n\
-      --http-access-token=T     access token for HTTP API\n\
-      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n"
-#endif
-#ifdef XMRIG_ALGO_RANDOMX
-"\
-      --randomx-init=N          threads count to initialize RandomX dataset\n\
-      --randomx-no-numa         disable NUMA support for RandomX\n"
-#endif
-#ifdef XMRIG_FEATURE_HWLOC
-"\
-      --export-topology         export hwloc topology to a XML file and exit\n"
-#endif
-"\
-      --dry-run                 test configuration and exit\n\
-  -h, --help                    display this help and exit\n\
-  -V, --version                 output version information and exit\n\
-";
+static inline const std::string &usage()
+{
+    static std::string u;
+
+    if (!u.empty()) {
+        return u;
+    }
+
+    u += "Usage: " APP_ID " [OPTIONS]\n\nNetwork:\n";
+    u += "  -o, --url=URL                 URL of mining server\n";
+    u += "  -a, --algo=ALGO               mining algorithm https://xmrig.com/docs/algorithms\n";
+    u += "  -u, --user=USERNAME           username for mining server\n";
+    u += "  -p, --pass=PASSWORD           password for mining server\n";
+    u += "  -O, --userpass=U:P            username:password pair for mining server\n";
+    u += "  -k, --keepalive               send keepalived packet for prevent timeout (needs pool support)\n";
+    u += "      --nicehash                enable nicehash.com support\n";
+    u += "      --rig-id=ID               rig identifier for pool-side statistics (needs pool support)\n";
+
+#   ifdef XMRIG_FEATURE_TLS
+    u += "      --tls                     enable SSL/TLS support (needs pool support)\n";
+    u += "      --tls-fingerprint=HEX     pool TLS certificate fingerprint for strict certificate pinning\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_HTTP
+    u += "      --daemon                  use daemon RPC instead of pool for solo mining\n";
+    u += "      --daemon-poll-interval=N  daemon poll interval in milliseconds (default: 1000)\n";
+#   endif
+
+    u += "  -r, --retries=N               number of times to retry before switch to backup server (default: 5)\n";
+    u += "  -R, --retry-pause=N           time to pause between retries (default: 5)\n";
+    u += "      --user-agent              set custom user-agent string for pool\n";
+    u += "      --donate-level=N          donate level, default 5%% (5 minutes in 100 minutes)\n";
+    u += "      --donate-over-proxy=N     control donate over xmrig-proxy feature\n";
+
+    u += "\nCPU backend:\n";
+
+    u += "      --no-cpu                  disable CPU mining backend\n";
+    u += "  -t, --threads=N               number of CPU threads\n";
+    u += "  -v, --av=N                    algorithm variation, 0 auto select\n";
+    u += "      --cpu-affinity            set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n";
+    u += "      --cpu-priority            set process priority (0 idle, 2 normal to 5 highest)\n";
+    u += "      --no-huge-pages           disable huge pages support\n";
+    u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    u += "      --randomx-init=N          threads count to initialize RandomX dataset\n";
+    u += "      --randomx-no-numa         disable NUMA support for RandomX\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_HTTP
+    u += "\nAPI:\n";
+    u += "      --api-worker-id=ID        custom worker-id for API\n";
+    u += "      --api-id=ID               custom instance ID for API\n";
+    u += "      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)\n";
+    u += "      --http-port=N             bind port for HTTP API\n";
+    u += "      --http-access-token=T     access token for HTTP API\n";
+    u += "      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    u += "\nOpenCL backend:\n";
+    u += "      --opencl                  enable OpenCL mining backend\n";
+    u += "      --opencl-devices=N        list of OpenCL devices to use\n";
+    u += "      --opencl-platform=N       OpenCL platform index or name\n";
+    u += "      --opencl-loader=N         path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)\n";
+    u += "      --opencl-no-cache         disable OpenCL cache\n";
+    u += "      --print-platforms         print available OpenCL platforms and exit\n";
+#   endif
+
+    u += "\nLogging:\n";
+
+#   ifdef HAVE_SYSLOG_H
+    u += "  -S, --syslog                  use system log for output messages\n";
+#   endif
+
+    u += "  -l, --log-file=FILE           log all output to a file\n";
+    u += "      --print-time=N            print hashrate report every N seconds\n";
+    u += "      --no-color                disable colored output\n";
+
+    u += "\nMisc:\n";
+
+    u += "  -c, --config=FILE             load a JSON-format configuration file\n";
+    u += "  -B, --background              run the miner in the background\n";
+    u += "  -V, --version                 output version information and exit\n";
+    u += "  -h, --help                    display this help and exit\n";
+    u += "      --dry-run                 test configuration and exit\n";
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    u += "      --export-topology         export hwloc topology to a XML file and exit\n";
+#   endif
+
+    return u;
+}
 
 
 } /* namespace xmrig */
