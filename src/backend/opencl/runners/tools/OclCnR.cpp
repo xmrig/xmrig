@@ -237,7 +237,7 @@ private:
         for (size_t i = 0; i < OclCnR::kHeightChunkSize; ++i) {
             V4_Instruction code[256];
             const int code_size      = v4_random_math_init<Algorithm::CN_R>(code, offset + i);
-            const std::string kernel = std::regex_replace(cryptonight_r_cl, std::regex("XMRIG_INCLUDE_RANDOM_MATH"), getCode(code, code_size));
+            const std::string kernel = std::regex_replace(std::string(cryptonight_r_cl), std::regex("XMRIG_INCLUDE_RANDOM_MATH"), getCode(code, code_size));
 
             source += std::regex_replace(kernel, std::regex("KERNEL_NAME"), "cn1_" + std::to_string(offset + i));
         }
