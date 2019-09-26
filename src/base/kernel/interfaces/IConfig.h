@@ -43,6 +43,7 @@ public:
     enum Keys {
         // common
         AlgorithmKey         = 'a',
+        CoinKey              = 1025,
         ApiWorkerIdKey       = 4002,
         ApiIdKey             = 4005,
         HttpPort             = 4100,

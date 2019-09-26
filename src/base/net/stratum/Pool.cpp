@@ -48,6 +48,7 @@
 namespace xmrig {
 
 static const char *kAlgo                   = "algo";
+static const char *kCoin                   = "coin";
 static const char *kDaemon                 = "daemon";
 static const char *kDaemonPollInterval     = "daemon-poll-interval";
 static const char *kEnabled                = "enabled";
@@ -120,6 +121,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_fingerprint  = Json::getString(object, kFingerprint);
     m_pollInterval = Json::getUint64(object, kDaemonPollInterval, kDefaultPollInterval);
     m_algorithm    = Json::getString(object, kAlgo);
+    m_coin         = Json::getString(object, kCoin);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
@@ -186,6 +188,7 @@ bool xmrig::Pool::isEqual(const Pool &other) const
             && m_keepAlive    == other.m_keepAlive
             && m_port         == other.m_port
             && m_algorithm    == other.m_algorithm
+            && m_coin         == other.m_coin
             && m_fingerprint  == other.m_fingerprint
             && m_host         == other.m_host
             && m_password     == other.m_password
@@ -268,6 +271,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
     Value obj(kObjectType);
 
     obj.AddMember(StringRef(kAlgo),  m_algorithm.toJSON(), allocator);
+    obj.AddMember(StringRef(kCoin),  m_coin.toJSON(), allocator);
     obj.AddMember(StringRef(kUrl),   m_url.toJSON(), allocator);
     obj.AddMember(StringRef(kUser),  m_user.toJSON(), allocator);
 

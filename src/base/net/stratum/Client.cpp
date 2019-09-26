@@ -334,6 +334,9 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
     if (algo) {
         job.setAlgorithm(algo);
     }
+    else if (m_pool.coin().isValid()) {
+        job.setAlgorithm(m_pool.coin().algorithm(job.blob()[0]));
+    }
 
     job.setHeight(Json::getUint64(params, "height"));
 
@@ -426,7 +429,12 @@ bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo
 {
     if (!algorithm.isValid()) {
         if (!isQuiet()) {
-            LOG_ERR("[%s] Unknown/unsupported algorithm \"%s\" detected, reconnect", url(), algo);
+            if (algo == nullptr) {
+                LOG_ERR("[%s] unknown algorithm, make sure you set \"algo\" or \"coin\" option", url(), algo);
+            }
+            else {
+                LOG_ERR("[%s] unsupported algorithm \"%s\" detected, reconnect", url(), algo);
+            }
         }
 
         return false;
@@ -436,7 +444,7 @@ bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo
     m_listener->onVerifyAlgorithm(this, algorithm, &ok);
 
     if (!ok && !isQuiet()) {
-        LOG_ERR("[%s] Incompatible/disabled algorithm \"%s\" detected, reconnect", url(), algorithm.shortName());
+        LOG_ERR("[%s] incompatible/disabled algorithm \"%s\" detected, reconnect", url(), algorithm.shortName());
     }
 
     return ok;

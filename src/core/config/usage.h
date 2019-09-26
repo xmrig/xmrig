@@ -60,6 +60,7 @@ Options:\n\
                                   rx/wow, rx/loki\n"
 #endif
 "\
+      --coin=COIN               specify coin instead of algorithm\
   -o, --url=URL                 URL of mining server\n\
   -O, --userpass=U:P            username:password pair for mining server\n\
   -u, --user=USERNAME           username for mining server\n\
