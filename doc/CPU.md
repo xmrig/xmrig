@@ -96,4 +96,4 @@ Enable/configure or disable ASM optimizations. Possible values: `true`, `false`,
 Allow override automatically detected Argon2 implementation, this option added mostly for debug purposes, default value `null` means autodetect. Other possible values: `"x86_64"`, `"SSE2"`, `"SSSE3"`, `"XOP"`, `"AVX2"`, `"AVX-512F"`. Manual selection has no safe guards, if you CPU not support required instuctions, miner will crash.
 
 #### `max-threads-hint` (since v4.2.0)
-Maximum CPU threads count (in percentage) hint for autoconfig. [doc/CPU_MAX_USAGE.md](doc/CPU_MAX_USAGE.md)
+Maximum CPU threads count (in percentage) hint for autoconfig. [CPU_MAX_USAGE.md](CPU_MAX_USAGE.md)
