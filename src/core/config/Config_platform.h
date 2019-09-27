@@ -82,6 +82,8 @@ static const option options[] = {
     { "userpass",              1, nullptr, IConfig::UserpassKey           },
     { "rig-id",                1, nullptr, IConfig::RigIdKey              },
     { "no-cpu",                0, nullptr, IConfig::CPUKey                },
+    { "max-cpu-usage",         1, nullptr, IConfig::CPUMaxThreadsKey      },
+    { "cpu-max-threads-hint",  1, nullptr, IConfig::CPUMaxThreadsKey      },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },

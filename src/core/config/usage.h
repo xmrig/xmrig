@@ -76,6 +76,7 @@ static inline const std::string &usage()
     u += "  -v, --av=N                    algorithm variation, 0 auto select\n";
     u += "      --cpu-affinity            set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n";
     u += "      --cpu-priority            set process priority (0 idle, 2 normal to 5 highest)\n";
+    u += "      --cpu-max-threads-hint=N  maximum CPU threads count (in percentage) hint for autoconfig\n";
     u += "      --no-huge-pages           disable huge pages support\n";
     u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
 
