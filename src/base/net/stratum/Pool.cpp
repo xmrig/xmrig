@@ -174,7 +174,7 @@ bool xmrig::Pool::isEnabled() const
     }
 #   endif
 
-    if (isDaemon() && !algorithm().isValid()) {
+    if (isDaemon() && (!algorithm().isValid() && !coin().isValid())) {
         return false;
     }
 
