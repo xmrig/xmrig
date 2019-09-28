@@ -73,7 +73,7 @@ rapidjson::Value xmrig::OclPlatform::toJSON(rapidjson::Document &doc) const
     }
 
     Value out(kObjectType);
-    out.AddMember("index",      index(), allocator);
+    out.AddMember("index",      static_cast<uint64_t>(index()), allocator);
     out.AddMember("profile",    profile().toJSON(doc), allocator);
     out.AddMember("version",    version().toJSON(doc), allocator);
     out.AddMember("name",       name().toJSON(doc), allocator);
