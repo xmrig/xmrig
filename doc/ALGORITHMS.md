@@ -6,6 +6,8 @@ Algorithm can be defined in 3 ways:
 2. Per pool `coin` option, currently only usable value for this option is `monero`.
 3. Per pool `algo` option.
 
+Option `coin` useful for pools without algorithm negotiation support or daemon to allow automatically switch algorithm in next hard fork.
+
 ## Algorithm names
 
 | Name | Memory | Version | Notes |
