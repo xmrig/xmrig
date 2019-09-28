@@ -24,7 +24,7 @@
  */
 
 
-#include <stdio.h>
+#include <cstdio>
 
 
 #include "base/tools/Handle.h"
@@ -32,9 +32,13 @@
 #include "base/io/log/Log.h"
 
 
-xmrig::ConsoleLog::ConsoleLog() :
-    m_stream(nullptr)
+xmrig::ConsoleLog::ConsoleLog()
 {
+    if (!isSupported()) {
+        Log::colors = false;
+        return;
+    }
+
     m_tty = new uv_tty_t;
 
     if (uv_tty_init(uv_default_loop(), m_tty, 1, 0) < 0) {
@@ -66,7 +70,7 @@ xmrig::ConsoleLog::~ConsoleLog()
 
 void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool colors)
 {
-    if (Log::colors != colors) {
+    if (!m_tty || Log::colors != colors) {
         return;
     }
 
@@ -86,12 +90,18 @@ void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool c
 }
 
 
+bool xmrig::ConsoleLog::isSupported() const
+{
+    const uv_handle_type type = uv_guess_handle(1);
+    return type == UV_TTY || type == UV_NAMED_PIPE;
+}
+
+
 bool xmrig::ConsoleLog::isWritable() const
 {
     if (!m_stream || uv_is_writable(m_stream) != 1) {
         return false;
     }
 
-    const uv_handle_type type = uv_guess_handle(1);
-    return type == UV_TTY || type == UV_NAMED_PIPE;
+    return isSupported();
 }

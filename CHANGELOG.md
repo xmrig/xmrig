@@ -1,3 +1,7 @@
+# v3.2.0
+- Added per pool option `coin` with single possible value `monero` for pools without algorithm negotiation, for upcoming Monero fork.
+- [#1183](https://github.com/xmrig/xmrig/issues/1183) Fixed compatibility with systemd.
+
 # v3.1.3
 - [#1180](https://github.com/xmrig/xmrig/issues/1180) Fixed possible duplicated shares after algorithm switching.
 - Fixed wrong config file permissions after write (only gcc builds on recent Windows 10 affected).
