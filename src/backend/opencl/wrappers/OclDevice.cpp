@@ -59,7 +59,7 @@ extern bool ocl_vega_cn_generator(const OclDevice &device, const Algorithm &algo
 extern bool ocl_generic_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
 
 
-ocl_gen_config_fun generators[] = {
+static ocl_gen_config_fun generators[] = {
 #   ifdef XMRIG_ALGO_RANDOMX
     ocl_generic_rx_generator,
 #   endif
@@ -215,6 +215,6 @@ void xmrig::OclDevice::toJSON(rapidjson::Value &out, rapidjson::Document &doc) c
     out.AddMember("name",        name().toJSON(doc), allocator);
     out.AddMember("bus_id",      topology().toString().toJSON(doc), allocator);
     out.AddMember("cu",          computeUnits(), allocator);
-    out.AddMember("global_mem",  globalMemSize(), allocator);
+    out.AddMember("global_mem",  static_cast<uint64_t>(globalMemSize()), allocator);
 }
 #endif

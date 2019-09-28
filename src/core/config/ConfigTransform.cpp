@@ -138,6 +138,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
             return transformUint64(doc, key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
         }
 
+    case IConfig::CPUMaxThreadsKey: /* --cpu-max-threads-hint */
+        return set(doc, kCpu, "max-threads-hint", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+
 #   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
         return set(doc, kCpu, "asm", arg);

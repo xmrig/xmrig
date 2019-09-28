@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,38 +23,81 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_VERSION_H
-#define XMRIG_VERSION_H
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig miner"
-#define APP_VERSION   "4.2.0-evo"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2019 xmrig.com"
-#define APP_KIND      "miner"
+#include "crypto/common/Coin.h"
+#include "rapidjson/document.h"
 
-#define APP_VER_MAJOR  4
-#define APP_VER_MINOR  2
-#define APP_VER_PATCH  0
+
+#include <cstring>
+
 
 #ifdef _MSC_VER
-#   if (_MSC_VER >= 1920)
-#       define MSVC_VERSION 2019
-#   elif (_MSC_VER >= 1910 && _MSC_VER < 1920)
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
+#   define strcasecmp _stricmp
 #endif
 
-#endif /* XMRIG_VERSION_H */
+
+namespace xmrig {
+
+
+struct CoinName
+{
+    const char *name;
+    const Coin::Id id;
+};
+
+
+static CoinName const coin_names[] = {
+    { "monero",     Coin::MONERO },
+    { "xmr",        Coin::MONERO },
+};
+
+
+} /* namespace xmrig */
+
+
+
+xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
+{
+    if (id() == MONERO) {
+        return (blobVersion >= 12) ? Algorithm::RX_0 : Algorithm::CN_R;
+    }
+
+    return Algorithm::INVALID;
+}
+
+
+
+const char *xmrig::Coin::name() const
+{
+    for (const auto &i : coin_names) {
+        if (i.id == m_id) {
+            return i.name;
+        }
+    }
+
+    return nullptr;
+}
+
+
+rapidjson::Value xmrig::Coin::toJSON() const
+{
+    using namespace rapidjson;
+
+    return isValid() ? Value(StringRef(name())) : Value(kNullType);
+}
+
+
+xmrig::Coin::Id xmrig::Coin::parse(const char *name)
+{
+    if (name == nullptr || strlen(name) < 3) {
+        return INVALID;
+    }
+
+    for (const auto &i : coin_names) {
+        if (strcasecmp(name, i.name) == 0) {
+            return i.id;
+        }
+    }
+
+    return INVALID;
+}

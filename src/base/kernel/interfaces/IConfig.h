@@ -43,6 +43,7 @@ public:
     enum Keys {
         // common
         AlgorithmKey         = 'a',
+        CoinKey              = 1025,
         ApiWorkerIdKey       = 4002,
         ApiIdKey             = 4005,
         HttpPort             = 4100,
@@ -87,6 +88,7 @@ public:
         AssemblyKey          = 1015,
         RandomXInitKey       = 1022,
         RandomXNumaKey       = 1023,
+        CPUMaxThreadsKey     = 1026,
 
         // xmrig amd
         OclPlatformKey       = 1400,

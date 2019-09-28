@@ -28,10 +28,10 @@
 #endif
 
 #include <algorithm>
-#include <inttypes.h>
+#include <cinttypes>
+#include <ctime>
 #include <iterator>
 #include <memory>
-#include <time.h>
 
 
 #include "base/io/log/Log.h"
@@ -83,11 +83,7 @@ xmrig::Network::~Network()
     JobResults::stop();
 
     delete m_timer;
-
-    if (m_donate) {
-        delete m_donate;
-    }
-
+    delete m_donate;
     delete m_strategy;
 }
 
@@ -304,8 +300,8 @@ void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &do
     results.AddMember("hashes_total",  m_state.total, allocator);
 
     Value best(kArrayType);
-    for (size_t i = 0; i < m_state.topDiff.size(); ++i) {
-        best.PushBack(m_state.topDiff[i], allocator);
+    for (uint64_t i : m_state.topDiff) {
+        best.PushBack(i, allocator);
     }
 
     results.AddMember("best", best, allocator);
