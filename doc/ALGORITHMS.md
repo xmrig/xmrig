@@ -25,10 +25,9 @@ Since version 3 mining [algorithm](#algorithm-names) should specified for each p
 
 | Name | Memory | Version | Notes |
 |------|--------|---------|-------|
+| `rx/0` | 2 MB | 3.2.0+ | RandomX (Monero). |
 | `argon2/chukwa` | 512 KB | 3.1.0+ | Argon2id (Chukwa). |
 | `argon2/wrkz` | 256 KB | 3.1.0+ | Argon2id (WRKZ) |
-| `rx/test` | 2 MB | 3.0.0+ | RandomX (reference configuration). |
-| `rx/0` | 2 MB | 3.0.0+ | RandomX (reference configuration), reserved for future use. |
 | `rx/wow` | 1 MB | 3.0.0+ | RandomWOW. |
 | `rx/loki` | 2 MB | 3.0.0+ | RandomXL. |
 | `cn/fast` | 2 MB | 3.0.0+ | CryptoNight variant 1 with half iterations. |
