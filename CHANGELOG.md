@@ -1,4 +1,5 @@
 # v4.2.0-beta
+- [#1202](https://github.com/xmrig/xmrig/issues/1202) Fixed algorithm verification in donate strategy.
 - Added per pool option `coin` with single possible value `monero` for pools without algorithm negotiation, for upcoming Monero fork.
 - Added config option `cpu/max-threads-hint` and command line option `--cpu-max-threads-hint`.
 
