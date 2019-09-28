@@ -97,7 +97,7 @@ public:
     bool isEnabled(const Algorithm &algorithm) const
     {
         for (IBackend *backend : backends) {
-            if (backend->isEnabled(algorithm)) {
+            if (backend->isEnabled() && backend->isEnabled(algorithm)) {
                 return true;
             }
         }
