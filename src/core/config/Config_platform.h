@@ -45,6 +45,8 @@ static const char short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
 
 static const option options[] = {
     { "algo",                  1, nullptr, IConfig::AlgorithmKey          },
+    { "coin",                  1, nullptr, IConfig::CoinKey               },
+#   ifdef XMRIG_FEATURE_HTTP
     { "api-worker-id",         1, nullptr, IConfig::ApiWorkerIdKey        },
     { "api-id",                1, nullptr, IConfig::ApiIdKey              },
     { "http-enabled",          0, nullptr, IConfig::HttpEnabledKey        },
@@ -52,6 +54,9 @@ static const option options[] = {
     { "http-access-token",     1, nullptr, IConfig::HttpAccessTokenKey    },
     { "http-port",             1, nullptr, IConfig::HttpPort              },
     { "http-no-restricted",    0, nullptr, IConfig::HttpRestrictedKey     },
+    { "daemon",                0, nullptr, IConfig::DaemonKey             },
+    { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
+#   endif
     { "av",                    1, nullptr, IConfig::AVKey                 },
     { "background",            0, nullptr, IConfig::BackgroundKey         },
     { "config",                1, nullptr, IConfig::ConfigKey             },
@@ -63,6 +68,8 @@ static const option options[] = {
     { "keepalive",             0, nullptr, IConfig::KeepAliveKey          },
     { "log-file",              1, nullptr, IConfig::LogFileKey            },
     { "nicehash",              0, nullptr, IConfig::NicehashKey           },
+    { "rebench-algo",          0, nullptr, IConfig::RebenchAlgoKey        },
+    { "bench-algo-time",       1, nullptr, IConfig::BenchAlgoTimeKey      },
     { "no-color",              0, nullptr, IConfig::ColorKey              },
     { "no-huge-pages",         0, nullptr, IConfig::HugePagesKey          },
     { "pass",                  1, nullptr, IConfig::PasswordKey           },
@@ -76,15 +83,27 @@ static const option options[] = {
     { "user-agent",            1, nullptr, IConfig::UserAgentKey          },
     { "userpass",              1, nullptr, IConfig::UserpassKey           },
     { "rig-id",                1, nullptr, IConfig::RigIdKey              },
+    { "no-cpu",                0, nullptr, IConfig::CPUKey                },
+    { "max-cpu-usage",         1, nullptr, IConfig::CPUMaxThreadsKey      },
+    { "cpu-max-threads-hint",  1, nullptr, IConfig::CPUMaxThreadsKey      },
+#   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },
+#   endif
+#   ifdef XMRIG_FEATURE_ASM
     { "asm",                   1, nullptr, IConfig::AssemblyKey           },
-    { "daemon",                0, nullptr, IConfig::DaemonKey             },
-    { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
-    { "rebench-algo",          0, nullptr, IConfig::RebenchAlgoKey        },
-    { "bench-algo-time",       1, nullptr, IConfig::BenchAlgoTimeKey      },
+#   endif
+#   ifdef XMRIG_ALGO_RANDOMX
     { "randomx-init",          1, nullptr, IConfig::RandomXInitKey        },
     { "randomx-no-numa",       0, nullptr, IConfig::RandomXNumaKey        },
+#   endif
+#   ifdef XMRIG_FEATURE_OPENCL
+    { "opencl",                0, nullptr, IConfig::OclKey                },
+    { "opencl-devices",        1, nullptr, IConfig::OclDevicesKey         },
+    { "opencl-platform",       1, nullptr, IConfig::OclPlatformKey        },
+    { "opencl-loader",         1, nullptr, IConfig::OclLoaderKey          },
+    { "opencl-no-cache",       0, nullptr, IConfig::OclCacheKey           },
+#   endif
     { nullptr,                 0, nullptr, 0 }
 };
 

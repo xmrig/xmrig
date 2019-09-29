@@ -23,7 +23,7 @@
  */
 
 
-#include <stdio.h>
+#include <cstdio>
 
 
 #ifdef _MSC_VER
@@ -47,15 +47,11 @@ namespace xmrig
 
 static const char *kAlgo  = "algo";
 static const char *kApi   = "api";
+static const char *kCoin  = "coin";
 static const char *kHttp  = "http";
 static const char *kPools = "pools";
 
-}
-
-
-xmrig::BaseTransform::BaseTransform()
-{
-}
+} // namespace xmrig
 
 
 void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTransform &transform)
@@ -68,7 +64,7 @@ void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTrans
 
     Document doc(kObjectType);
 
-    while (1) {
+    while (true) {
         key = getopt_long(argc, argv, short_options, options, nullptr);
         if (key < 0) {
             break;
@@ -107,6 +103,19 @@ void xmrig::BaseTransform::finalize(rapidjson::Document &doc)
             }
         }
     }
+
+    if (m_coin.isValid() && doc.HasMember(kPools)) {
+        auto &pools = doc[kPools];
+        for (Value &pool : pools.GetArray()) {
+            if (!pool.HasMember(kCoin)) {
+                pool.AddMember(StringRef(kCoin), m_coin.toJSON(), allocator);
+            }
+        }
+    }
+
+    if (m_http) {
+        set(doc, kHttp, "enabled", true);
+    }
 }
 
 
@@ -119,6 +128,15 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         }
         else {
             return add(doc, kPools, kAlgo, arg);
+        }
+        break;
+
+    case IConfig::CoinKey: /* --coin */
+        if (!doc.HasMember(kPools)) {
+            m_coin = arg;
+        }
+        else {
+            return add(doc, kPools, kCoin, arg);
         }
         break;
 
@@ -169,9 +187,11 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         return set(doc, "log-file", arg);
 
     case IConfig::HttpAccessTokenKey: /* --http-access-token */
+        m_http = true;
         return set(doc, kHttp, "access-token", arg);
 
     case IConfig::HttpHostKey: /* --http-host */
+        m_http = true;
         return set(doc, kHttp, "host", arg);
 
     case IConfig::ApiWorkerIdKey: /* --api-worker-id */
@@ -228,8 +248,10 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::TlsKey: /* --tls */
         return add(doc, kPools, "tls", enable);
 
+#   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonKey: /* --daemon */
         return add(doc, kPools, "daemon", enable);
+#   endif
 
 #   ifndef XMRIG_PROXY_PROJECT
     case IConfig::NicehashKey: /* --nicehash */
@@ -240,10 +262,12 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
         return set(doc, "colors", enable);
 
     case IConfig::HttpRestrictedKey: /* --http-no-restricted */
+        m_http = true;
         return set(doc, kHttp, "restricted", enable);
 
     case IConfig::HttpEnabledKey: /* --http-enabled */
-        return set(doc, kHttp, "enabled", enable);
+        m_http = true;
+        break;
 
     case IConfig::DryRunKey: /* --dry-run */
         return set(doc, "dry-run", enable);
@@ -273,13 +297,16 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
         return set(doc, "donate-over-proxy", arg);
 
     case IConfig::HttpPort: /* --http-port */
+        m_http = true;
         return set(doc, kHttp, "port", arg);
 
     case IConfig::PrintTimeKey: /* --print-time */
         return set(doc, "print-time", arg);
 
+#   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, kPools, "daemon-poll-interval", arg);
+#   endif
 
     case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
         return set(doc, "bench-algo-time", arg);

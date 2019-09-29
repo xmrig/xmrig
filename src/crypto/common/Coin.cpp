@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,45 +23,81 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONSOLE_H
-#define XMRIG_CONSOLE_H
+
+#include "crypto/common/Coin.h"
+#include "rapidjson/document.h"
 
 
-#include "base/tools/Object.h"
+#include <cstring>
 
 
-#include <uv.h>
+#ifdef _MSC_VER
+#   define strcasecmp _stricmp
+#endif
 
 
 namespace xmrig {
 
 
-class IConsoleListener;
-
-
-class Console
+struct CoinName
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Console)
+    const char *name;
+    const Coin::Id id;
+};
 
-    Console(IConsoleListener *listener);
-    ~Console();
 
-    void stop();
-
-private:
-    bool isSupported() const;
-
-    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
-    static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-
-    char m_buf[1] = { 0 };
-    IConsoleListener *m_listener;
-    uv_tty_t *m_tty = nullptr;
+static CoinName const coin_names[] = {
+    { "monero",     Coin::MONERO },
+    { "xmr",        Coin::MONERO },
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CONSOLE_H */
+
+xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
+{
+    if (id() == MONERO) {
+        return (blobVersion >= 12) ? Algorithm::RX_0 : Algorithm::CN_R;
+    }
+
+    return Algorithm::INVALID;
+}
+
+
+
+const char *xmrig::Coin::name() const
+{
+    for (const auto &i : coin_names) {
+        if (i.id == m_id) {
+            return i.name;
+        }
+    }
+
+    return nullptr;
+}
+
+
+rapidjson::Value xmrig::Coin::toJSON() const
+{
+    using namespace rapidjson;
+
+    return isValid() ? Value(StringRef(name())) : Value(kNullType);
+}
+
+
+xmrig::Coin::Id xmrig::Coin::parse(const char *name)
+{
+    if (name == nullptr || strlen(name) < 3) {
+        return INVALID;
+    }
+
+    for (const auto &i : coin_names) {
+        if (strcasecmp(name, i.name) == 0) {
+            return i.id;
+        }
+    }
+
+    return INVALID;
+}

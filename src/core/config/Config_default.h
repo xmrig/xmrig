@@ -57,13 +57,14 @@ R"===(
         "huge-pages": true,
         "hw-aes": null,
         "priority": null,
+        "max-threads-hint": 100,
         "asm": true,
         "argon2-impl": null,
         "cn/0": false,
         "cn-lite/0": false
     },
     "opencl": {
-        "enabled": true,
+        "enabled": false,
         "cache": true,
         "loader": null,
         "platform": "AMD",
@@ -76,6 +77,7 @@ R"===(
     "pools": [
         {
             "algo": null,
+            "coin": null,
             "url": "donate.v2.xmrig.com:3333",
             "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",

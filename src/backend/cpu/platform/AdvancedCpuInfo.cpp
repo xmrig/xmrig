@@ -23,10 +23,10 @@
  */
 
 #include <algorithm>
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 
 #include "3rdparty/libcpuid/libcpuid.h"
@@ -109,7 +109,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
 }
 
 
-xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) const
+xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
 {
     if (threads() == 1) {
         return 1;
@@ -153,5 +153,12 @@ xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm) co
     }
 #   endif
 
-    return CpuThreads(std::max<size_t>(std::min<size_t>(count, threads()), 1), intensity);
+    if (limit > 0 && limit < 100) {
+        count = std::min(count, static_cast<size_t>(round(threads() * (limit / 100.0))));
+    }
+    else {
+        count = std::min(count, threads());
+    }
+
+    return CpuThreads(std::max<size_t>(count, 1), intensity);
 }

@@ -27,10 +27,11 @@
 
 
 #include <vector>
-#include <stdint.h>
+#include <cstdint>
 
 
 #include "base/kernel/interfaces/IBaseListener.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -47,6 +48,8 @@ class String;
 class Api : public IBaseListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Api)
+
     Api(Base *base);
     ~Api() override;
 

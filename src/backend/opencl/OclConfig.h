@@ -53,11 +53,13 @@ public:
 
 private:
     void generate();
+    void setDevicesHint(const char *devicesHint);
     void setPlatform(const rapidjson::Value &platform);
 
     bool m_cache         = true;
-    bool m_enabled       = true;
+    bool m_enabled       = false;
     bool m_shouldSave    = false;
+    std::vector<uint32_t> m_devicesHint;
     String m_loader;
     String m_platformVendor;
     Threads<OclThreads> m_threads;

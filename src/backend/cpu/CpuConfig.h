@@ -44,7 +44,7 @@ public:
         AES_SOFT
     };
 
-    CpuConfig();
+    CpuConfig() = default;
 
     bool isHwAES() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
@@ -74,6 +74,7 @@ private:
     int m_priority       = -1;
     String m_argon2Impl;
     Threads<CpuThreads> m_threads;
+    uint32_t m_limit     = 100;
 };
 
 

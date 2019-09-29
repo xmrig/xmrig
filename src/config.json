@@ -25,6 +25,7 @@
         "huge-pages": true,
         "hw-aes": null,
         "priority": null,
+        "max-threads-hint": 100,
         "asm": true,
         "argon2-impl": null,
         "cn/0": false,
@@ -44,6 +45,7 @@
     "pools": [
         {
             "algo": null,
+            "coin": null,
             "url": "gulf.moneroocean.stream:10001",
             "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",

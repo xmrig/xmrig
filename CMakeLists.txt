@@ -71,6 +71,7 @@ set(HEADERS_CRYPTO
     src/crypto/cn/skein_port.h
     src/crypto/cn/soft_aes.h
     src/crypto/common/Algorithm.h
+    src/crypto/common/Coin.h
     src/crypto/common/keccak.h
     src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
@@ -109,6 +110,7 @@ set(SOURCES_CRYPTO
     src/crypto/cn/CnCtx.cpp
     src/crypto/cn/CnHash.cpp
     src/crypto/common/Algorithm.cpp
+    src/crypto/common/Coin.cpp
     src/crypto/common/keccak.cpp
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
@@ -144,7 +146,7 @@ else()
     endif()
 endif()
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "Android")
     EXECUTE_PROCESS(COMMAND uname -o COMMAND tr -d '\n' OUTPUT_VARIABLE OPERATING_SYSTEM)
     if (OPERATING_SYSTEM MATCHES "Android")
         set(EXTRA_LIBS ${EXTRA_LIBS} log)

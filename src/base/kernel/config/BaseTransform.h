@@ -27,6 +27,7 @@
 
 
 #include "base/kernel/interfaces/IConfigTransform.h"
+#include "crypto/common/Coin.h"
 #include "rapidjson/document.h"
 
 
@@ -44,8 +45,6 @@ class Process;
 class BaseTransform : public IConfigTransform
 {
 public:
-    BaseTransform();
-
     static void load(JsonChain &chain, Process *process, IConfigTransform &transform);
 
 protected:
@@ -99,11 +98,14 @@ protected:
 
 protected:
     Algorithm m_algorithm;
+    Coin m_coin;
 
 
 private:
     void transformBoolean(rapidjson::Document &doc, int key, bool enable);
     void transformUint64(rapidjson::Document &doc, int key, uint64_t arg);
+
+    bool m_http = false;
 };
 
 

@@ -24,7 +24,7 @@
 
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <iterator>
 
 
@@ -49,33 +49,28 @@ namespace xmrig {
 static inline double randomf(double min, double max)                 { return (max - min) * (((static_cast<double>(rand())) / static_cast<double>(RAND_MAX))) + min; }
 static inline uint64_t random(uint64_t base, double min, double max) { return static_cast<uint64_t>(base * randomf(min, max)); }
 
+static const char *kDonateHost = "xmrig.moneroocean.stream";
+
 } /* namespace xmrig */
 
 
 xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener *listener) :
-    m_tls(false),
-    m_userId(),
     m_donateTime(static_cast<uint64_t>(controller->config()->pools().donateLevel()) * 60 * 1000),
     m_idleTime((100 - static_cast<uint64_t>(controller->config()->pools().donateLevel())) * 60 * 1000),
     m_controller(controller),
-    m_proxy(nullptr),
-    m_strategy(nullptr),
-    m_listener(listener),
-    m_state(STATE_NEW),
-    m_now(0),
-    m_timestamp(0)
+    m_listener(listener)
 {
     static char donate_user[] = "44qJYxdbuqSKarYnDSXB6KLbsH4yR65vpJe3ELLDii9i4ZgKpgQXZYR4AMJxBJbfbKZGWUxZU42QyZSsP4AyZZMbJBCrWr1";
 #   ifndef XMRIG_FEATURE_TLS
-    m_pools.push_back(Pool("xmrig.moneroocean.stream", 20001, donate_user, nullptr, 0, true, true));
+    m_pools.emplace_back(kDonateHost, 20001, donate_user, nullptr, 0, true, true);
 #   endif
-    m_pools.push_back(Pool("xmrig.moneroocean.stream", 10001, donate_user, nullptr, 0, true));
+    m_pools.emplace_back(kDonateHost, 10001, donate_user, nullptr, 0, true);
 
     if (m_pools.size() > 1) {
-        m_strategy = new FailoverStrategy(m_pools, 1, 2, this, true);
+        m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
     }
     else {
-        m_strategy = new SinglePoolStrategy(m_pools.front(), 1, 2, this, true);
+        m_strategy = new SinglePoolStrategy(m_pools.front(), 10, 2, this, true);
     }
 
     m_timer = new Timer(this);
@@ -213,6 +208,18 @@ void xmrig::DonateStrategy::onLoginSuccess(IClient *client)
 }
 
 
+void xmrig::DonateStrategy::onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok)
+{
+    m_listener->onVerifyAlgorithm(this, client, algorithm, ok);
+}
+
+
+void xmrig::DonateStrategy::onVerifyAlgorithm(IStrategy *, const  IClient *client, const Algorithm &algorithm, bool *ok)
+{
+    m_listener->onVerifyAlgorithm(this, client, algorithm, ok);
+}
+
+
 void xmrig::DonateStrategy::onTimer(const Timer *)
 {
     setState(isActive() ? STATE_WAIT : STATE_CONNECT);
@@ -236,7 +243,7 @@ xmrig::Client *xmrig::DonateStrategy::createProxy()
     Pool pool(client->ip(), client->pool().port(), m_userId, client->pool().password(), 0, true, client->isTLS());
     pool.setAlgo(client->pool().algorithm());
 
-    Client *proxy = new Client(-1, Platform::userAgent(), this);
+    auto proxy = new Client(-1, Platform::userAgent(), this);
     proxy->setPool(pool);
     proxy->setQuiet(true);
 

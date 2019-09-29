@@ -29,6 +29,7 @@
 #include "base/api/interfaces/IApiListener.h"
 #include "base/kernel/interfaces/IConfigListener.h"
 #include "base/kernel/interfaces/IWatcherListener.h"
+#include "base/tools/Object.h"
 #include "rapidjson/fwd.h"
 
 
@@ -45,6 +46,8 @@ class Process;
 class Base : public IWatcherListener, public IApiListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Base)
+
     Base(Process *process);
     ~Base() override;
 
@@ -54,6 +57,7 @@ public:
     virtual void stop();
 
     Api *api() const;
+    bool isBackground() const;
     bool reload(const rapidjson::Value &json);
     Config *config() const;
     void addListener(IBaseListener *listener);

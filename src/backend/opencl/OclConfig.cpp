@@ -30,12 +30,16 @@
 #include "rapidjson/document.h"
 
 
+#include <algorithm>
+
+
 namespace xmrig {
 
 static const char *kAMD         = "AMD";
 static const char *kCache       = "cache";
 static const char *kCn          = "cn";
 static const char *kCn2         = "cn/2";
+static const char *kDevicesHint = "devices-hint";
 static const char *kEnabled     = "enabled";
 static const char *kINTEL       = "INTEL";
 static const char *kLoader      = "loader";
@@ -87,6 +91,22 @@ static size_t generate(const char *key, Threads<OclThreads> &threads, const Algo
     threads.move(key, std::move(profile));
 
     return count;
+}
+
+
+static inline std::vector<OclDevice> filterDevices(const std::vector<OclDevice> &devices, const std::vector<uint32_t> &hints)
+{
+    std::vector<OclDevice> out;
+    out.reserve(std::min(devices.size(), hints.size()));
+
+    for (const auto &device  : devices) {
+        auto it = std::find(hints.begin(), hints.end(), device.index());
+        if (it != hints.end()) {
+            out.emplace_back(device);
+        }
+    }
+
+    return out;
 }
 
 
@@ -214,17 +234,20 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
         m_loader    = Json::getString(value, kLoader);
 
         setPlatform(Json::getValue(value, kPlatform));
+        setDevicesHint(Json::getString(value, kDevicesHint));
 
-        if (isEnabled()) {
-            m_threads.read(value);
+        m_threads.read(value);
 
-            generate();
-        }
+        generate();
     }
-    else if (value.IsBool() && value.IsFalse()) {
-        m_enabled = false;
+    else if (value.IsBool()) {
+        m_enabled = value.GetBool();
+
+        generate();
     }
     else {
+        m_shouldSave = true;
+
         generate();
     }
 }
@@ -232,11 +255,15 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 
 void xmrig::OclConfig::generate()
 {
+    if (!isEnabled() || m_threads.has("*")) {
+        return;
+    }
+
     if (!OclLib::init(loader())) {
         return;
     }
 
-    const auto devices = platform().devices();
+    const auto devices = m_devicesHint.empty() ? platform().devices() : filterDevices(platform().devices(), m_devicesHint);
     if (devices.empty()) {
         return;
     }
@@ -278,6 +305,21 @@ void xmrig::OclConfig::generate()
 #   endif
 
     m_shouldSave = count > 0;
+}
+
+
+void xmrig::OclConfig::setDevicesHint(const char *devicesHint)
+{
+    if (devicesHint == nullptr) {
+        return;
+    }
+
+    const auto indexes = String(devicesHint).split(',');
+    m_devicesHint.reserve(indexes.size());
+
+    for (const auto &index : indexes) {
+        m_devicesHint.push_back(strtoul(index, nullptr, 10));
+    }
 }
 
 

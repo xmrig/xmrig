@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,45 +23,53 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONSOLE_H
-#define XMRIG_CONSOLE_H
+#ifndef XMRIG_COIN_H
+#define XMRIG_COIN_H
 
 
-#include "base/tools/Object.h"
-
-
-#include <uv.h>
+#include "crypto/common/Algorithm.h"
+#include "rapidjson/fwd.h"
 
 
 namespace xmrig {
 
 
-class IConsoleListener;
-
-
-class Console
+class Coin
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Console)
+    enum Id : int {
+        INVALID = -1,
+        MONERO,
+    };
 
-    Console(IConsoleListener *listener);
-    ~Console();
 
-    void stop();
+    Coin() = default;
+    inline Coin(const char *name) : m_id(parse(name)) {}
+    inline Coin(Id id) : m_id(id)                     {}
+
+
+    inline bool isEqual(const Coin &other) const        { return m_id == other.m_id; }
+    inline bool isValid() const                         { return m_id != INVALID; }
+    inline Id id() const                                { return m_id; }
+
+    Algorithm::Id algorithm(uint8_t blobVersion) const;
+    const char *name() const;
+    rapidjson::Value toJSON() const;
+
+    inline bool operator!=(Coin::Id id) const           { return m_id != id; }
+    inline bool operator!=(const Coin &other) const     { return !isEqual(other); }
+    inline bool operator==(Coin::Id id) const           { return m_id == id; }
+    inline bool operator==(const Coin &other) const     { return isEqual(other); }
+    inline operator Coin::Id() const                    { return m_id; }
+
+    static Id parse(const char *name);
 
 private:
-    bool isSupported() const;
-
-    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
-    static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-
-    char m_buf[1] = { 0 };
-    IConsoleListener *m_listener;
-    uv_tty_t *m_tty = nullptr;
+    Id m_id = INVALID;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CONSOLE_H */
+#endif /* XMRIG_COIN_H */
