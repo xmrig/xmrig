@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLINTERLEAVE_H
-#define XMRIG_OCLINTERLEAVE_H
+#ifndef XMRIG_OCLSHAREDDATA_H
+#define XMRIG_OCLSHAREDDATA_H
 
 
 #include <memory>
@@ -33,31 +33,32 @@
 namespace xmrig {
 
 
-class OclInterleave
+class OclSharedData
 {
 public:
-    OclInterleave() = delete;
-    inline OclInterleave(size_t threads) : m_threads(threads) {}
+    OclSharedData() = default;
 
     uint64_t adjustDelay(size_t id);
     uint64_t resumeDelay(size_t id);
     void setResumeCounter(uint32_t value);
     void setRunTime(uint64_t time);
 
+    inline OclSharedData &operator++() { ++m_threads; return *this; }
+
 private:
-    const size_t m_threads;
     double m_averageRunTime   = 0.0;
     double m_threshold        = 0.95;
+    size_t m_threads          = 0;
     std::mutex m_mutex;
     uint32_t m_resumeCounter  = 0;
     uint64_t m_timestamp      = 0;
 };
 
 
-using OclInterleavePtr = std::shared_ptr<OclInterleave>;
+using OclSharedDataPtr = std::shared_ptr<OclSharedData>;
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_OCLINTERLEAVE_H */
+#endif /* XMRIG_OCLSHAREDDATA_H */

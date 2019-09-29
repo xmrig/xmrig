@@ -35,6 +35,7 @@
 #include "backend/opencl/OclConfig.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/OclWorker.h"
+#include "backend/opencl/runners/tools/OclSharedState.h"
 #include "backend/opencl/wrappers/OclContext.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
@@ -193,6 +194,8 @@ public:
 
                     i++;
         }
+
+        OclSharedState::start(threads);
 
         status.start(threads.size());
         workers.start(threads);
@@ -370,6 +373,8 @@ void xmrig::OclBackend::stop()
 
     d_ptr->workers.stop();
     d_ptr->threads.clear();
+
+    OclSharedState::release();
 
     LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
 }

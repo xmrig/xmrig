@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,56 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+
+#include "backend/opencl/runners/tools/OclSharedState.h"
+#include "backend/opencl/runners/tools/OclSharedData.h"
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "net/JobResult.h"
+#include <cassert>
+#include <map>
 
 
 namespace xmrig {
 
 
-class IOclRunner;
-
-
-class OclWorker : public Worker
-{
-public:
-    OclWorker()                       = delete;
-    OclWorker(const OclWorker &other) = delete;
-    OclWorker(OclWorker &&other)      = delete;
-    OclWorker(size_t id, const OclLaunchData &data);
-
-    ~OclWorker() override;
-
-    OclWorker &operator=(const OclWorker &other) = delete;
-    OclWorker &operator=(OclWorker &&other)      = delete;
-
-    static std::atomic<bool> ready;
-
-protected:
-    bool selfTest() override;
-    size_t intensity() const override;
-    void start() override;
-
-private:
-    bool consumeJob();
-    void storeStats(uint64_t ts);
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    const uint32_t m_intensity;
-    IOclRunner *m_runner = nullptr;
-    OclSharedData &m_sharedData;
-    WorkerJob<1> m_job;
-};
+static std::map<uint32_t, OclSharedData> map;
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_OCLWORKER_H */
+xmrig::OclSharedData &xmrig::OclSharedState::get(uint32_t index)
+{
+    return map[index];
+}
+
+
+void xmrig::OclSharedState::release()
+{
+    map.clear();
+}
+
+
+void xmrig::OclSharedState::start(const std::vector<OclLaunchData> &threads)
+{
+    assert(map.empty());
+
+    for (const auto &data : threads) {
+        ++map[data.device.index()];
+    }
+}

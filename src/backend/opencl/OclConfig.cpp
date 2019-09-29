@@ -198,11 +198,8 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
 #       endif
 
         if (thread.threads().size() > 1) {
-            auto interleave = std::make_shared<OclInterleave>(thread.threads().size());
-
             for (int64_t affinity : thread.threads()) {
                 OclLaunchData data(miner, algorithm, *this, platform, thread, devices[thread.index()], affinity);
-                data.interleave = interleave;
 
 #               ifdef XMRIG_ALGO_RANDOMX
                 data.dataset = dataset;

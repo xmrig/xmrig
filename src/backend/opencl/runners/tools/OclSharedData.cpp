@@ -23,7 +23,7 @@
  */
 
 
-#include "backend/opencl/OclInterleave.h"
+#include "backend/opencl/runners/tools/OclSharedData.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
 
@@ -32,8 +32,12 @@
 #include <thread>
 
 
-uint64_t xmrig::OclInterleave::adjustDelay(size_t id)
+uint64_t xmrig::OclSharedData::adjustDelay(size_t id)
 {
+    if (m_threads < 2) {
+        return 0;
+    }
+
     const uint64_t t0 = Chrono::steadyMSecs();
     uint64_t delay    = 0;
 
@@ -69,8 +73,12 @@ uint64_t xmrig::OclInterleave::adjustDelay(size_t id)
 }
 
 
-uint64_t xmrig::OclInterleave::resumeDelay(size_t id)
+uint64_t xmrig::OclSharedData::resumeDelay(size_t id)
 {
+    if (m_threads < 2) {
+        return 0;
+    }
+
     uint64_t delay = 0;
 
     {
@@ -99,14 +107,18 @@ uint64_t xmrig::OclInterleave::resumeDelay(size_t id)
 }
 
 
-void xmrig::OclInterleave::setResumeCounter(uint32_t value)
+void xmrig::OclSharedData::setResumeCounter(uint32_t value)
 {
+    if (m_threads < 2) {
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(m_mutex);
     m_resumeCounter = value;
 }
 
 
-void xmrig::OclInterleave::setRunTime(uint64_t time)
+void xmrig::OclSharedData::setRunTime(uint64_t time)
 {
     // averagingBias = 1.0 - only the last delta time is taken into account
     // averagingBias = 0.5 - the last delta time has the same weight as all the previous ones combined
