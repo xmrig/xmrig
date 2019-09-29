@@ -37,8 +37,7 @@ class OclSharedState
 public:
     static OclSharedData &get(uint32_t index);
     static void release();
-    static void start(const std::vector<OclLaunchData> &threads);
-
+    static void start(const std::vector<OclLaunchData> &threads, const Job &job);
 };
 
 

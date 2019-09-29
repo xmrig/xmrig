@@ -74,7 +74,7 @@ void xmrig::OclRxJitRunner::build()
     }
 
     m_randomx_run = new RxRunKernel(m_asmProgram);
-    m_randomx_run->setArgs(data().dataset->get(), m_scratchpads, m_registers, m_rounding, m_programs, m_intensity, m_algorithm);
+    m_randomx_run->setArgs(m_dataset, m_scratchpads, m_registers, m_rounding, m_programs, m_intensity, m_algorithm);
 }
 
 

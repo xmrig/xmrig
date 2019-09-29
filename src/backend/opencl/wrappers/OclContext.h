@@ -49,7 +49,7 @@ public:
     OclContext(const OclDevice &device);
     ~OclContext();
 
-    bool init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads, const Job &job);
+    bool init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads);
 
     inline bool isValid() const     { return m_ctx != nullptr; }
     inline cl_context ctx() const   { return m_ctx; }

@@ -193,29 +193,13 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
             continue;
         }
 
-#       ifdef XMRIG_ALGO_RANDOMX
-        auto dataset = algorithm.family() == Algorithm::RANDOM_X ? std::make_shared<OclRxDataset>() : nullptr;
-#       endif
-
         if (thread.threads().size() > 1) {
             for (int64_t affinity : thread.threads()) {
-                OclLaunchData data(miner, algorithm, *this, platform, thread, devices[thread.index()], affinity);
-
-#               ifdef XMRIG_ALGO_RANDOMX
-                data.dataset = dataset;
-#               endif
-
-                out.emplace_back(std::move(data));
+                out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()], affinity);
             }
         }
         else {
-            OclLaunchData data(miner, algorithm, *this, platform, thread, devices[thread.index()], thread.threads().front());
-
-#           ifdef XMRIG_ALGO_RANDOMX
-            data.dataset = dataset;
-#           endif
-
-            out.emplace_back(std::move(data));
+            out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()], thread.threads().front());
         }
     }
 

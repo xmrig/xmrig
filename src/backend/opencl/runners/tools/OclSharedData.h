@@ -30,7 +30,14 @@
 #include <mutex>
 
 
+using cl_context = struct _cl_context *;
+using cl_mem     = struct _cl_mem *;
+
+
 namespace xmrig {
+
+
+class Job;
 
 
 class OclSharedData
@@ -40,10 +47,16 @@ public:
 
     uint64_t adjustDelay(size_t id);
     uint64_t resumeDelay(size_t id);
+    void release();
     void setResumeCounter(uint32_t value);
     void setRunTime(uint64_t time);
 
     inline OclSharedData &operator++() { ++m_threads; return *this; }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    cl_mem dataset() const;
+    void createDataset(cl_context ctx, const Job &job, bool host);
+#   endif
 
 private:
     double m_averageRunTime   = 0.0;
@@ -52,10 +65,11 @@ private:
     std::mutex m_mutex;
     uint32_t m_resumeCounter  = 0;
     uint64_t m_timestamp      = 0;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    cl_mem m_dataset          = nullptr;
+#   endif
 };
-
-
-using OclSharedDataPtr = std::shared_ptr<OclSharedData>;
 
 
 } /* namespace xmrig */

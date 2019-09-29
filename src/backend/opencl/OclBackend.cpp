@@ -165,7 +165,7 @@ public:
     }
 
 
-    inline void start()
+    inline void start(const Job &job)
     {
         LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
                  tag,
@@ -195,7 +195,7 @@ public:
                     i++;
         }
 
-        OclSharedState::start(threads);
+        OclSharedState::start(threads, job);
 
         status.start(threads.size());
         workers.start(threads);
@@ -332,7 +332,7 @@ void xmrig::OclBackend::setJob(const Job &job)
         return stop();
     }
 
-    if (!d_ptr->context.init(d_ptr->devices, threads, job)) {
+    if (!d_ptr->context.init(d_ptr->devices, threads)) {
         LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (OpenCL context unavailable)"), tag);
 
         return stop();
@@ -341,7 +341,7 @@ void xmrig::OclBackend::setJob(const Job &job)
     stop();
 
     d_ptr->threads = std::move(threads);
-    d_ptr->start();
+    d_ptr->start(job);
 }
 
 

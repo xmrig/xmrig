@@ -48,15 +48,27 @@ xmrig::OclSharedData &xmrig::OclSharedState::get(uint32_t index)
 
 void xmrig::OclSharedState::release()
 {
+    for (auto &kv : map) {
+        kv.second.release();
+    }
+
     map.clear();
 }
 
 
-void xmrig::OclSharedState::start(const std::vector<OclLaunchData> &threads)
+void xmrig::OclSharedState::start(const std::vector<OclLaunchData> &threads, const Job &job)
 {
     assert(map.empty());
 
     for (const auto &data : threads) {
-        ++map[data.device.index()];
+        auto &sharedData = map[data.device.index()];
+
+        ++sharedData;
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        if (data.algorithm.family() == Algorithm::RANDOM_X) {
+            sharedData.createDataset(data.ctx, job, data.thread.isDatasetHost());
+        }
+#       endif
     }
 }

@@ -24,11 +24,15 @@
 
 
 #include "backend/opencl/runners/tools/OclSharedData.h"
+#include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
+#include "crypto/rx/Rx.h"
+#include "crypto/rx/RxDataset.h"
 
 
 #include <cinttypes>
+#include <stdexcept>
 #include <thread>
 
 
@@ -107,6 +111,14 @@ uint64_t xmrig::OclSharedData::resumeDelay(size_t id)
 }
 
 
+void xmrig::OclSharedData::release()
+{
+#   ifdef XMRIG_ALGO_RANDOMX
+    OclLib::release(m_dataset);
+#   endif
+}
+
+
 void xmrig::OclSharedData::setResumeCounter(uint32_t value)
 {
     if (m_threads < 2) {
@@ -128,3 +140,34 @@ void xmrig::OclSharedData::setRunTime(uint64_t time)
     std::lock_guard<std::mutex> lock(m_mutex);
     m_averageRunTime = m_averageRunTime * (1.0 - averagingBias) + time * averagingBias;
 }
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+cl_mem xmrig::OclSharedData::dataset() const
+{
+    if (!m_dataset) {
+        throw std::runtime_error("RandomX dataset is not available");
+    }
+
+    return m_dataset;
+}
+
+
+void xmrig::OclSharedData::createDataset(cl_context ctx, const Job &job, bool host)
+{
+    if (m_dataset) {
+        return;
+    }
+
+    cl_int ret;
+
+    if (host) {
+        auto dataset = Rx::dataset(job, 0);
+
+        m_dataset = OclLib::createBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, RxDataset::maxSize(), dataset->raw(), &ret);
+    }
+    else {
+        m_dataset = OclLib::createBuffer(ctx, CL_MEM_READ_ONLY, RxDataset::maxSize(), nullptr, &ret);
+    }
+}
+#endif

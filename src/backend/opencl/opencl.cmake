@@ -80,7 +80,6 @@ if (WITH_OPENCL)
            src/backend/opencl/runners/OclRxBaseRunner.h
            src/backend/opencl/runners/OclRxJitRunner.h
            src/backend/opencl/runners/OclRxVmRunner.h
-           src/backend/opencl/runners/tools/OclRxDataset.h
            )
 
        list(APPEND SOURCES_BACKEND_OPENCL
@@ -97,7 +96,6 @@ if (WITH_OPENCL)
            src/backend/opencl/runners/OclRxBaseRunner.cpp
            src/backend/opencl/runners/OclRxJitRunner.cpp
            src/backend/opencl/runners/OclRxVmRunner.cpp
-           src/backend/opencl/runners/tools/OclRxDataset.cpp
            )
    endif()
 
