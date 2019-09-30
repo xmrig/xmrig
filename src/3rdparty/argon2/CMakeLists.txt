@@ -22,7 +22,7 @@ set(ARGON2_X86_64_SOURCES arch/x86_64/lib/argon2-arch.c arch/x86_64/lib/cpu-flag
 if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     function(add_feature_impl FEATURE MSVC_FLAG DEF)
         add_library(argon2-${FEATURE} STATIC arch/x86_64/lib/argon2-${FEATURE}.c)
-        target_include_directories(argon2-${FEATURE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+        target_include_directories(argon2-${FEATURE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../)
         target_include_directories(argon2-${FEATURE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib)
         set_target_properties(argon2-${FEATURE} PROPERTIES POSITION_INDEPENDENT_CODE True)
 
