@@ -76,6 +76,7 @@ xmrig::OclRxBaseRunner::~OclRxBaseRunner()
     OclLib::release(m_hashes);
     OclLib::release(m_rounding);
     OclLib::release(m_scratchpads);
+    OclLib::release(m_dataset);
 }
 
 

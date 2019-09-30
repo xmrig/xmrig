@@ -149,7 +149,7 @@ cl_mem xmrig::OclSharedData::dataset() const
         throw std::runtime_error("RandomX dataset is not available");
     }
 
-    return m_dataset;
+    return OclLib::retain(m_dataset);
 }
 
 
