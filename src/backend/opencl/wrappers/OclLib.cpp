@@ -73,6 +73,7 @@ static const char *kReleaseDevice                    = "clReleaseDevice";
 static const char *kReleaseKernel                    = "clReleaseKernel";
 static const char *kReleaseMemObject                 = "clReleaseMemObject";
 static const char *kReleaseProgram                   = "clReleaseProgram";
+static const char *kRetainMemObject                  = "clRetainMemObject";
 static const char *kRetainProgram                    = "clRetainProgram";
 static const char *kSetKernelArg                     = "clSetKernelArg";
 static const char *kSetMemObjectDestructorCallback   = "clSetMemObjectDestructorCallback";
@@ -106,6 +107,7 @@ typedef cl_int (CL_API_CALL *releaseDevice_t)(cl_device_id device);
 typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
 typedef cl_int (CL_API_CALL *releaseMemObject_t)(cl_mem);
 typedef cl_int (CL_API_CALL *releaseProgram_t)(cl_program);
+typedef cl_int (CL_API_CALL *retainMemObject_t)(cl_mem);
 typedef cl_int (CL_API_CALL *retainProgram_t)(cl_program);
 typedef cl_int (CL_API_CALL *setKernelArg_t)(cl_kernel, cl_uint, size_t, const void *);
 typedef cl_int (CL_API_CALL *setMemObjectDestructorCallback_t)(cl_mem, void (CL_CALLBACK *)(cl_mem, void *), void *);
@@ -148,6 +150,7 @@ static releaseDevice_t pReleaseDevice                                       = nu
 static releaseKernel_t pReleaseKernel                                       = nullptr;
 static releaseMemObject_t pReleaseMemObject                                 = nullptr;
 static releaseProgram_t pReleaseProgram                                     = nullptr;
+static retainMemObject_t pRetainMemObject                                   = nullptr;
 static retainProgram_t pRetainProgram                                       = nullptr;
 static setKernelArg_t pSetKernelArg                                         = nullptr;
 static setMemObjectDestructorCallback_t pSetMemObjectDestructorCallback     = nullptr;
@@ -239,6 +242,7 @@ bool xmrig::OclLib::load()
     DLSYM(SetMemObjectDestructorCallback);
     DLSYM(CreateSubBuffer);
     DLSYM(RetainProgram);
+    DLSYM(RetainMemObject);
 
 #   if defined(CL_VERSION_2_0)
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
@@ -667,6 +671,18 @@ cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t 
     }
 
     return mem;
+}
+
+
+cl_mem xmrig::OclLib::retain(cl_mem memobj) noexcept
+{
+    assert(pRetainMemObject != nullptr);
+
+    if (memobj != nullptr) {
+        pRetainMemObject(memobj);
+    }
+
+    return memobj;
 }
 
 

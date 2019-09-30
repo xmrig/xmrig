@@ -23,17 +23,44 @@
  */
 
 
-#include "backend/opencl/OclInterleave.h"
+#include "backend/opencl/runners/tools/OclSharedData.h"
+#include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
+#include "crypto/rx/Rx.h"
+#include "crypto/rx/RxDataset.h"
 
 
+#include <algorithm>
 #include <cinttypes>
+#include <stdexcept>
 #include <thread>
 
 
-uint64_t xmrig::OclInterleave::adjustDelay(size_t id)
+constexpr size_t oneGiB = 1024 * 1024 * 1024;
+
+
+cl_mem xmrig::OclSharedData::createBuffer(cl_context context, size_t size, size_t &offset)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    offset += size * m_offset++;
+    size   = std::max(size * m_threads, oneGiB);
+
+    if (!m_buffer) {
+        m_buffer = OclLib::createBuffer(context, CL_MEM_READ_WRITE, size);
+    }
+
+    return OclLib::retain(m_buffer);
+}
+
+
+uint64_t xmrig::OclSharedData::adjustDelay(size_t id)
+{
+    if (m_threads < 2) {
+        return 0;
+    }
+
     const uint64_t t0 = Chrono::steadyMSecs();
     uint64_t delay    = 0;
 
@@ -69,8 +96,12 @@ uint64_t xmrig::OclInterleave::adjustDelay(size_t id)
 }
 
 
-uint64_t xmrig::OclInterleave::resumeDelay(size_t id)
+uint64_t xmrig::OclSharedData::resumeDelay(size_t id)
 {
+    if (m_threads < 2) {
+        return 0;
+    }
+
     uint64_t delay = 0;
 
     {
@@ -99,14 +130,28 @@ uint64_t xmrig::OclInterleave::resumeDelay(size_t id)
 }
 
 
-void xmrig::OclInterleave::setResumeCounter(uint32_t value)
+void xmrig::OclSharedData::release()
 {
+    OclLib::release(m_buffer);
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    OclLib::release(m_dataset);
+#   endif
+}
+
+
+void xmrig::OclSharedData::setResumeCounter(uint32_t value)
+{
+    if (m_threads < 2) {
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(m_mutex);
     m_resumeCounter = value;
 }
 
 
-void xmrig::OclInterleave::setRunTime(uint64_t time)
+void xmrig::OclSharedData::setRunTime(uint64_t time)
 {
     // averagingBias = 1.0 - only the last delta time is taken into account
     // averagingBias = 0.5 - the last delta time has the same weight as all the previous ones combined
@@ -116,3 +161,34 @@ void xmrig::OclInterleave::setRunTime(uint64_t time)
     std::lock_guard<std::mutex> lock(m_mutex);
     m_averageRunTime = m_averageRunTime * (1.0 - averagingBias) + time * averagingBias;
 }
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+cl_mem xmrig::OclSharedData::dataset() const
+{
+    if (!m_dataset) {
+        throw std::runtime_error("RandomX dataset is not available");
+    }
+
+    return OclLib::retain(m_dataset);
+}
+
+
+void xmrig::OclSharedData::createDataset(cl_context ctx, const Job &job, bool host)
+{
+    if (m_dataset) {
+        return;
+    }
+
+    cl_int ret;
+
+    if (host) {
+        auto dataset = Rx::dataset(job, 0);
+
+        m_dataset = OclLib::createBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, RxDataset::maxSize(), dataset->raw(), &ret);
+    }
+    else {
+        m_dataset = OclLib::createBuffer(ctx, CL_MEM_READ_ONLY, RxDataset::maxSize(), nullptr, &ret);
+    }
+}
+#endif

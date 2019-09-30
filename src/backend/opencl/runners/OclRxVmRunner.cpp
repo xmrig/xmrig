@@ -70,7 +70,7 @@ void xmrig::OclRxVmRunner::build()
     m_init_vm->setArgs(m_entropy, m_vm_states, m_rounding);
 
     m_execute_vm = new ExecuteVmKernel(m_program);
-    m_execute_vm->setArgs(m_vm_states, m_rounding, m_scratchpads, data().dataset->get(), m_intensity);
+    m_execute_vm->setArgs(m_vm_states, m_rounding, m_scratchpads, m_dataset, m_intensity);
 }
 
 
