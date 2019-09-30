@@ -45,13 +45,16 @@ class OclSharedData
 public:
     OclSharedData() = default;
 
+    cl_mem createBuffer(cl_context context, size_t size, size_t &offset);
     uint64_t adjustDelay(size_t id);
     uint64_t resumeDelay(size_t id);
     void release();
     void setResumeCounter(uint32_t value);
     void setRunTime(uint64_t time);
 
-    inline OclSharedData &operator++() { ++m_threads; return *this; }
+    inline size_t threads() const       { return m_threads; }
+
+    inline OclSharedData &operator++()  { ++m_threads; return *this; }
 
 #   ifdef XMRIG_ALGO_RANDOMX
     cl_mem dataset() const;
@@ -59,8 +62,10 @@ public:
 #   endif
 
 private:
+    cl_mem m_buffer           = nullptr;
     double m_averageRunTime   = 0.0;
     double m_threshold        = 0.95;
+    size_t m_offset           = 0;
     size_t m_threads          = 0;
     std::mutex m_mutex;
     uint32_t m_resumeCounter  = 0;

@@ -31,9 +31,28 @@
 #include "crypto/rx/RxDataset.h"
 
 
+#include <algorithm>
 #include <cinttypes>
 #include <stdexcept>
 #include <thread>
+
+
+constexpr size_t oneGiB = 1024 * 1024 * 1024;
+
+
+cl_mem xmrig::OclSharedData::createBuffer(cl_context context, size_t size, size_t &offset)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    offset += size * m_offset++;
+    size   = std::max(size * m_threads, oneGiB);
+
+    if (!m_buffer) {
+        m_buffer = OclLib::createBuffer(context, CL_MEM_READ_WRITE, size);
+    }
+
+    return OclLib::retain(m_buffer);
+}
 
 
 uint64_t xmrig::OclSharedData::adjustDelay(size_t id)
@@ -113,6 +132,8 @@ uint64_t xmrig::OclSharedData::resumeDelay(size_t id)
 
 void xmrig::OclSharedData::release()
 {
+    OclLib::release(m_buffer);
+
 #   ifdef XMRIG_ALGO_RANDOMX
     OclLib::release(m_dataset);
 #   endif
