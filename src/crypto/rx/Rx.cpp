@@ -47,6 +47,7 @@
 #endif
 
 
+#include <atomic>
 #include <map>
 #include <mutex>
 #include <thread>
@@ -96,12 +97,14 @@ class RxPrivate
 public:
     XMRIG_DISABLE_COPY_MOVE(RxPrivate)
 
-    inline RxPrivate()
+    inline RxPrivate() :
+        m_counter(0),
+        m_last(0)
     {
         m_async = new uv_async_t;
         m_async->data = this;
 
-        uv_async_init(uv_default_loop(), m_async, RxPrivate::onReady);
+        uv_async_init(uv_default_loop(), m_async, [](uv_async_t *) { d_ptr->onReady(); });
 
 #       ifdef XMRIG_FEATURE_HWLOC
         if (Cpu::info()->nodes() > 1) {
@@ -130,11 +133,12 @@ public:
 
 
     inline bool isNUMA() const                  { return m_numa; }
+    inline bool isReady(const Job &job) const   { return m_ready == count() && m_algorithm == job.algorithm() && m_seed == job.seed(); }
     inline const Algorithm &algorithm() const   { return m_algorithm; }
     inline const Buffer &seed() const           { return m_seed; }
     inline size_t count() const                 { return isNUMA() ? datasets.size() : 1; }
-    inline void asyncSend()                     { m_ready++; if (m_ready == count()) { uv_async_send(m_async); } }
-
+    inline uint64_t counter()                   { return m_counter.load(std::memory_order_relaxed); }
+    inline void asyncSend(uint64_t counter)     { m_ready++; if (m_ready == count()) { m_last = counter; uv_async_send(m_async); } }
 
     static void allocate(uint32_t nodeId)
     {
@@ -176,14 +180,14 @@ public:
     }
 
 
-    static void initDataset(uint32_t nodeId, uint32_t threads)
+    static void initDataset(uint32_t nodeId, uint32_t threads, uint64_t counter)
     {
         std::lock_guard<std::mutex> lock(mutex);
 
         const uint64_t ts = Chrono::steadyMSecs();
 
         d_ptr->getOrAllocate(nodeId)->init(d_ptr->seed(), threads);
-        d_ptr->asyncSend();
+        d_ptr->asyncSend(counter);
 
         LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" init done ") CYAN_BOLD("%zu/%zu") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, nodeId, d_ptr->m_ready, d_ptr->count(), Chrono::steadyMSecs() - ts);
     }
@@ -222,24 +226,21 @@ public:
         m_hugePages = hugePages;
         m_listener  = listener;
         m_seed      = job.seed();
-    }
 
-
-    inline bool isReady(const Job &job)
-    {
-        return m_ready == count() && m_algorithm == job.algorithm() && m_seed == job.seed();
+        ++m_counter;
     }
 
 
     std::map<uint32_t, RxDataset *> datasets;
 
 private:
-    static void onReady(uv_async_t *)
+    inline void onReady()
     {
-        if (d_ptr->m_listener) {
-            d_ptr->m_listener->onDatasetReady();
+        if (m_listener && counter() == m_last.load(std::memory_order_relaxed)) {
+            m_listener->onDatasetReady();
         }
     }
+
 
     Algorithm m_algorithm;
     bool m_hugePages        = true;
@@ -247,7 +248,9 @@ private:
     Buffer m_seed;
     IRxListener *m_listener = nullptr;
     size_t m_ready          = 0;
-    uv_async_t *m_async;
+    std::atomic<uint64_t> m_counter;
+    std::atomic<uint64_t> m_last;
+    uv_async_t *m_async     = nullptr;
 };
 
 
@@ -269,6 +272,7 @@ bool xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa,
     d_ptr->setState(job, hugePages, numa, listener);
     const uint32_t threads = initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(initThreads);
     const String buf       = Buffer::toHex(job.seed().data(), 8);
+    const uint64_t counter = d_ptr->counter();
 
     LOG_INFO("%s" MAGENTA_BOLD("init dataset%s") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
              tag,
@@ -281,14 +285,14 @@ bool xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa,
 #   ifdef XMRIG_FEATURE_HWLOC
     if (d_ptr->isNUMA()) {
         for (auto const &item : d_ptr->datasets) {
-            std::thread thread(RxPrivate::initDataset, item.first, threads);
+            std::thread thread(RxPrivate::initDataset, item.first, threads, counter);
             thread.detach();
         }
     }
     else
 #   endif
     {
-        std::thread thread(RxPrivate::initDataset, 0, threads);
+        std::thread thread(RxPrivate::initDataset, 0, threads, counter);
         thread.detach();
     }
 

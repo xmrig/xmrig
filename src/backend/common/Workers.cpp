@@ -100,6 +100,7 @@ void xmrig::Workers<T>::start(const std::vector<T> &data)
     }
 
     d_ptr->hashrate = new Hashrate(m_workers.size());
+    Nonce::touch(T::backend());
 
     for (Thread<T> *worker : m_workers) {
         worker->start(Workers<T>::onReady);

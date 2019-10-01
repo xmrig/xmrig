@@ -63,4 +63,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_RX_CACHE_H */
+#endif /* XMRIG_RX_VM_H */
