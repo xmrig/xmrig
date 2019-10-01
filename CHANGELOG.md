@@ -23,6 +23,10 @@
   - [#268](https://github.com/xmrig/xmrig-amd/pull/268) [#270](https://github.com/xmrig/xmrig-amd/pull/270) [#271](https://github.com/xmrig/xmrig-amd/pull/271) [#273](https://github.com/xmrig/xmrig-amd/pull/273) [#274](https://github.com/xmrig/xmrig-amd/pull/274) [#1171](https://github.com/xmrig/xmrig/pull/1171) Added RandomX support for OpenCL, thanks [@SChernykh](https://github.com/SChernykh).
 - Algorithm `cn/wow` removed, as no longer alive. 
 
+# v3.2.0
+- Added per pool option `coin` with single possible value `monero` for pools without algorithm negotiation, for upcoming Monero fork.
+- [#1183](https://github.com/xmrig/xmrig/issues/1183) Fixed compatibility with systemd.
+
 # v3.1.3
 - [#1180](https://github.com/xmrig/xmrig/issues/1180) Fixed possible duplicated shares after algorithm switching.
 - Fixed wrong config file permissions after write (only gcc builds on recent Windows 10 affected).
