@@ -7,6 +7,7 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxCache.h
         src/crypto/rx/RxConfig.h
         src/crypto/rx/RxDataset.h
+        src/crypto/rx/RxSeed.h
         src/crypto/rx/RxVm.h
     )
 

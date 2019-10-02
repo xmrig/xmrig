@@ -39,6 +39,7 @@
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
+#include "crypto/rx/RxSeed.h"
 
 
 #ifdef XMRIG_FEATURE_HWLOC
@@ -133,9 +134,8 @@ public:
 
 
     inline bool isNUMA() const                  { return m_numa; }
-    inline bool isReady(const Job &job) const   { return m_ready == count() && m_algorithm == job.algorithm() && m_seed == job.seed(); }
-    inline const Algorithm &algorithm() const   { return m_algorithm; }
-    inline const Buffer &seed() const           { return m_seed; }
+    inline bool isReady(const Job &job) const   { return m_ready == count() && m_seed == job; }
+    inline const Algorithm &algorithm() const   { return m_seed.algorithm(); }
     inline size_t count() const                 { return isNUMA() ? datasets.size() : 1; }
     inline uint64_t counter()                   { return m_counter.load(std::memory_order_relaxed); }
     inline void asyncSend(uint64_t counter)     { m_ready++; if (m_ready == count()) { m_last = counter; uv_async_send(m_async); } }
@@ -186,7 +186,7 @@ public:
 
         const uint64_t ts = Chrono::steadyMSecs();
 
-        d_ptr->getOrAllocate(nodeId)->init(d_ptr->seed(), threads);
+        d_ptr->getOrAllocate(nodeId)->init(d_ptr->m_seed.data(), threads);
         d_ptr->asyncSend(counter);
 
         LOG_INFO("%s" CYAN_BOLD("#%u") GREEN(" init done ") CYAN_BOLD("%zu/%zu") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, nodeId, d_ptr->m_ready, d_ptr->count(), Chrono::steadyMSecs() - ts);
@@ -217,15 +217,15 @@ public:
 
     inline void setState(const Job &job, bool hugePages, bool numa, IRxListener *listener)
     {
-        if (m_algorithm != job.algorithm()) {
-            m_algorithm = RxAlgo::apply(job.algorithm());
+        if (m_seed.algorithm() != job.algorithm()) {
+            RxAlgo::apply(job.algorithm());
         }
 
         m_ready     = 0;
         m_numa      = numa && Cpu::info()->nodes() > 1;
         m_hugePages = hugePages;
         m_listener  = listener;
-        m_seed      = job.seed();
+        m_seed      = job;
 
         ++m_counter;
     }
@@ -242,10 +242,9 @@ private:
     }
 
 
-    Algorithm m_algorithm;
     bool m_hugePages        = true;
     bool m_numa             = true;
-    Buffer m_seed;
+    RxSeed m_seed;
     IRxListener *m_listener = nullptr;
     size_t m_ready          = 0;
     std::atomic<uint64_t> m_counter;
