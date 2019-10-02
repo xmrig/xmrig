@@ -318,7 +318,7 @@ xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 #ifdef XMRIG_FEATURE_HWLOC
     return d_ptr->datasets.at(d_ptr->isNUMA() ? (d_ptr->datasets.count(nodeId) ? nodeId : HwlocCpuInfo::nodeIndexes().front()) : 0);
 #else
-    return 0;
+    return d_ptr->datasets.at(0);
 #endif
 }
 
