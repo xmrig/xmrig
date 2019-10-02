@@ -67,7 +67,7 @@ private:
     const Miner *m_miner;
     const uint32_t m_intensity;
     IOclRunner *m_runner = nullptr;
-    OclInterleavePtr m_interleave;
+    OclSharedData &m_sharedData;
     WorkerJob<1> m_job;
 };
 

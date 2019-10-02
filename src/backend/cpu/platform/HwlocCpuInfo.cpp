@@ -177,7 +177,7 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
 
     m_threads   = countByType(m_topology, HWLOC_OBJ_PU);
     m_cores     = countByType(m_topology, HWLOC_OBJ_CORE);
-    m_nodes     = std::max<size_t>(countByType(m_topology, HWLOC_OBJ_NUMANODE), 1);
+    m_nodes     = std::max(hwloc_bitmap_weight(hwloc_topology_get_complete_nodeset(m_topology)), 1);
     m_packages  = countByType(m_topology, HWLOC_OBJ_PACKAGE);
 
     if (m_nodes > 1) {

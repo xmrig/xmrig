@@ -62,6 +62,7 @@ protected:
     Blake2bHashRegistersKernel *m_blake2b_hash_registers_64 = nullptr;
     Blake2bInitialHashKernel *m_blake2b_initial_hash        = nullptr;
     Buffer m_seed;
+    cl_mem m_dataset                                        = nullptr;
     cl_mem m_entropy                                        = nullptr;
     cl_mem m_hashes                                         = nullptr;
     cl_mem m_rounding                                       = nullptr;

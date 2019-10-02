@@ -30,6 +30,7 @@
 #include "backend/opencl/kernels/rx/FindSharesKernel.h"
 #include "backend/opencl/kernels/rx/HashAesKernel.h"
 #include "backend/opencl/OclLaunchData.h"
+#include "backend/opencl/runners/tools/OclSharedState.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/net/stratum/Job.h"
 #include "crypto/rx/Rx.h"
@@ -75,6 +76,7 @@ xmrig::OclRxBaseRunner::~OclRxBaseRunner()
     OclLib::release(m_hashes);
     OclLib::release(m_rounding);
     OclLib::release(m_scratchpads);
+    OclLib::release(m_dataset);
 }
 
 
@@ -120,7 +122,7 @@ void xmrig::OclRxBaseRunner::set(const Job &job, uint8_t *blob)
         m_seed = job.seed();
 
         auto dataset = Rx::dataset(job, 0);
-        enqueueWriteBuffer(data().dataset->get(), CL_TRUE, 0, dataset->size(), dataset->raw());
+        enqueueWriteBuffer(m_dataset, CL_TRUE, 0, dataset->size(), dataset->raw());
     }
 
     if (job.size() < Job::kMaxBlobSize) {
@@ -177,4 +179,5 @@ void xmrig::OclRxBaseRunner::init()
     m_hashes      = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 64 * m_intensity);
     m_entropy     = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (128 + 2560) * m_intensity);
     m_rounding    = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, sizeof(uint32_t) * m_intensity);
+    m_dataset     = OclSharedState::get(data().device.index()).dataset();
 }

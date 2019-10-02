@@ -28,6 +28,8 @@
 
 #include "backend/common/Tags.h"
 #include "backend/opencl/runners/OclCnRunner.h"
+#include "backend/opencl/runners/tools/OclSharedData.h"
+#include "backend/opencl/runners/tools/OclSharedState.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
 #include "core/Miner.h"
@@ -75,7 +77,7 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     m_algorithm(data.algorithm),
     m_miner(data.miner),
     m_intensity(data.thread.intensity()),
-    m_interleave(data.interleave)
+    m_sharedData(OclSharedState::get(data.device.index()))
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -149,9 +151,7 @@ void xmrig::OclWorker::start()
 
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
         if (!isReady()) {
-            if (m_interleave) {
-                m_interleave->setResumeCounter(0);
-            }
+            m_sharedData.setResumeCounter(0);
 
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -162,9 +162,7 @@ void xmrig::OclWorker::start()
                 break;
             }
 
-            if (m_interleave) {
-                m_interleave->resumeDelay(m_id);
-            }
+            m_sharedData.resumeDelay(m_id);
 
             if (!consumeJob()) {
                 return;
@@ -172,9 +170,7 @@ void xmrig::OclWorker::start()
         }
 
         while (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence())) {
-            if (m_interleave) {
-                m_interleave->adjustDelay(m_id);
-            }
+            m_sharedData.adjustDelay(m_id);
 
             const uint64_t t = Chrono::steadyMSecs();
 
@@ -233,9 +229,7 @@ void xmrig::OclWorker::storeStats(uint64_t t)
 
     m_count += m_intensity;
 
-    if (m_interleave) {
-        m_interleave->setRunTime(Chrono::steadyMSecs() - t);
-    }
+    m_sharedData.setRunTime(Chrono::steadyMSecs() - t);
 
     Worker::storeStats();
 }

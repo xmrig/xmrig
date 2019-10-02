@@ -22,33 +22,62 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "backend/opencl/runners/tools/OclRxDataset.h"
-#include "backend/opencl/wrappers/OclLib.h"
-#include "crypto/rx/Rx.h"
-#include "crypto/rx/RxDataset.h"
+#ifndef XMRIG_OCLSHAREDDATA_H
+#define XMRIG_OCLSHAREDDATA_H
 
 
-void xmrig::OclRxDataset::createBuffer(cl_context ctx, const Job &job, bool host)
+#include <memory>
+#include <mutex>
+
+
+using cl_context = struct _cl_context *;
+using cl_mem     = struct _cl_mem *;
+
+
+namespace xmrig {
+
+
+class Job;
+
+
+class OclSharedData
 {
-    if (m_dataset) {
-        return;
-    }
+public:
+    OclSharedData() = default;
 
-    cl_int ret;
+    cl_mem createBuffer(cl_context context, size_t size, size_t &offset);
+    uint64_t adjustDelay(size_t id);
+    uint64_t resumeDelay(size_t id);
+    void release();
+    void setResumeCounter(uint32_t value);
+    void setRunTime(uint64_t time);
 
-    if (host) {
-        auto dataset = Rx::dataset(job, 0);
+    inline size_t threads() const       { return m_threads; }
 
-        m_dataset = OclLib::createBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, RxDataset::maxSize(), dataset->raw(), &ret);
-    }
-    else {
-        m_dataset = OclLib::createBuffer(ctx, CL_MEM_READ_ONLY, RxDataset::maxSize(), nullptr, &ret);
-    }
-}
+    inline OclSharedData &operator++()  { ++m_threads; return *this; }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    cl_mem dataset() const;
+    void createDataset(cl_context ctx, const Job &job, bool host);
+#   endif
+
+private:
+    cl_mem m_buffer           = nullptr;
+    double m_averageRunTime   = 0.0;
+    double m_threshold        = 0.95;
+    size_t m_offset           = 0;
+    size_t m_threads          = 0;
+    std::mutex m_mutex;
+    uint32_t m_resumeCounter  = 0;
+    uint64_t m_timestamp      = 0;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    cl_mem m_dataset          = nullptr;
+#   endif
+};
 
 
-xmrig::OclRxDataset::~OclRxDataset()
-{
-    OclLib::release(m_dataset);
-}
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_OCLSHAREDDATA_H */

@@ -1,3 +1,9 @@
+# v4.2.1-beta
+- [#1150](https://github.com/xmrig/xmrig/issues/1150) Fixed build on FreeBSD.
+- [#1175](https://github.com/xmrig/xmrig/issues/1175) Fixed support for systems where total count of NUMA nodes not equal usable nodes count.
+- [#1199](https://github.com/xmrig/xmrig/issues/1199) Fixed excessive memory allocation for OpenCL threads with low intensity.
+- [#1212](https://github.com/xmrig/xmrig/issues/1212) Fixed low RandomX performance after fast algorithm switching.
+
 # v4.2.0-beta
 - [#1202](https://github.com/xmrig/xmrig/issues/1202) Fixed algorithm verification in donate strategy.
 - Added per pool option `coin` with single possible value `monero` for pools without algorithm negotiation, for upcoming Monero fork.
@@ -22,6 +28,10 @@
 - [#1172](https://github.com/xmrig/xmrig/issues/1172) **Added OpenCL mining backend.**
   - [#268](https://github.com/xmrig/xmrig-amd/pull/268) [#270](https://github.com/xmrig/xmrig-amd/pull/270) [#271](https://github.com/xmrig/xmrig-amd/pull/271) [#273](https://github.com/xmrig/xmrig-amd/pull/273) [#274](https://github.com/xmrig/xmrig-amd/pull/274) [#1171](https://github.com/xmrig/xmrig/pull/1171) Added RandomX support for OpenCL, thanks [@SChernykh](https://github.com/SChernykh).
 - Algorithm `cn/wow` removed, as no longer alive. 
+
+# v3.2.0
+- Added per pool option `coin` with single possible value `monero` for pools without algorithm negotiation, for upcoming Monero fork.
+- [#1183](https://github.com/xmrig/xmrig/issues/1183) Fixed compatibility with systemd.
 
 # v3.1.3
 - [#1180](https://github.com/xmrig/xmrig/issues/1180) Fixed possible duplicated shares after algorithm switching.

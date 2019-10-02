@@ -22,47 +22,53 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLRXDATASET_H
-#define XMRIG_OCLRXDATASET_H
+
+#include "backend/opencl/runners/tools/OclSharedState.h"
+#include "backend/opencl/runners/tools/OclSharedData.h"
 
 
-#include "base/tools/Object.h"
-
-
-#include <memory>
-
-
-using cl_context = struct _cl_context *;
-using cl_mem     = struct _cl_mem *;
+#include <cassert>
+#include <map>
 
 
 namespace xmrig {
 
 
-class Job;
+static std::map<uint32_t, OclSharedData> map;
 
 
-class OclRxDataset
+} // namespace xmrig
+
+
+xmrig::OclSharedData &xmrig::OclSharedState::get(uint32_t index)
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE(OclRxDataset)
-
-    OclRxDataset() = default;
-    ~OclRxDataset();
-
-    inline cl_mem get() const { return m_dataset; }
-
-    void createBuffer(cl_context ctx,const Job &job, bool host);
-
-private:
-    cl_mem m_dataset = nullptr;
-};
+    return map[index];
+}
 
 
-using OclRxDatasetPtr = std::shared_ptr<OclRxDataset>;
+void xmrig::OclSharedState::release()
+{
+    for (auto &kv : map) {
+        kv.second.release();
+    }
+
+    map.clear();
+}
 
 
-} /* namespace xmrig */
+void xmrig::OclSharedState::start(const std::vector<OclLaunchData> &threads, const Job &job)
+{
+    assert(map.empty());
 
+    for (const auto &data : threads) {
+        auto &sharedData = map[data.device.index()];
 
-#endif /* XMRIG_OCLINTERLEAVE_H */
+        ++sharedData;
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        if (data.algorithm.family() == Algorithm::RANDOM_X) {
+            sharedData.createDataset(data.ctx, job, data.thread.isDatasetHost());
+        }
+#       endif
+    }
+}
