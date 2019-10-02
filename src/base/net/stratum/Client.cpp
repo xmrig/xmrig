@@ -302,10 +302,6 @@ bool xmrig::Client::isCriticalError(const char *message)
         return true;
     }
 
-    if (strncasecmp(message, "Invalid job id", 14) == 0) {
-        return true;
-    }
-
     return false;
 }
 
