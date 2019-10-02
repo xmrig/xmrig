@@ -1,8 +1,8 @@
 # v4.2.1-beta
 - [#1150](https://github.com/xmrig/xmrig/issues/1150) Fixed build on FreeBSD.
+- [#1175](https://github.com/xmrig/xmrig/issues/1175) Fixed support for systems where total count of NUMA nodes not equal usable nodes count.
 - [#1199](https://github.com/xmrig/xmrig/issues/1199) Fixed excessive memory allocation for OpenCL threads with low intensity.
 - [#1212](https://github.com/xmrig/xmrig/issues/1212) Fixed low RandomX performance after fast algorithm switching.
-- Fixed support for systems where total count of NUMA nodes not equal usable nodes count.
 
 # v4.2.0-beta
 - [#1202](https://github.com/xmrig/xmrig/issues/1202) Fixed algorithm verification in donate strategy.
