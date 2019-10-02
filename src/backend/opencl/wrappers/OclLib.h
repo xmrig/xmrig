@@ -79,6 +79,7 @@ public:
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret) noexcept;
     static cl_mem createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size, cl_int *errcode_ret) noexcept;
     static cl_mem createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size);
+    static cl_mem retain(cl_mem memobj) noexcept;
     static cl_program createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret) noexcept;
     static cl_program createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret) noexcept;
     static cl_program retain(cl_program program) noexcept;

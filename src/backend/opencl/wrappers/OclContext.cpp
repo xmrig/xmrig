@@ -24,6 +24,7 @@
 
 
 #include "backend/opencl/wrappers/OclContext.h"
+#include "backend/opencl/runners/tools/OclSharedState.h"
 #include "backend/opencl/wrappers/OclLib.h"
 
 
@@ -42,7 +43,7 @@ xmrig::OclContext::~OclContext()
 }
 
 
-bool xmrig::OclContext::init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads, const Job &job)
+bool xmrig::OclContext::init(const std::vector<OclDevice> &devices, std::vector<OclLaunchData> &threads)
 {
     if (!m_ctx) {
         std::vector<cl_device_id> ids(devices.size());
@@ -59,12 +60,6 @@ bool xmrig::OclContext::init(const std::vector<OclDevice> &devices, std::vector<
 
     for (OclLaunchData &data : threads) {
         data.ctx = m_ctx;
-
-#       ifdef XMRIG_ALGO_RANDOMX
-        if (data.algorithm.family() == Algorithm::RANDOM_X) {
-            data.dataset->createBuffer(m_ctx, job, data.thread.isDatasetHost());
-        }
-#       endif
     }
 
     return true;

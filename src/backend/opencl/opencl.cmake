@@ -14,7 +14,6 @@ if (WITH_OPENCL)
         src/backend/opencl/OclCache.h
         src/backend/opencl/OclConfig.h
         src/backend/opencl/OclGenerator.h
-        src/backend/opencl/OclInterleave.h
         src/backend/opencl/OclLaunchData.h
         src/backend/opencl/OclThread.h
         src/backend/opencl/OclThreads.h
@@ -22,6 +21,8 @@ if (WITH_OPENCL)
         src/backend/opencl/runners/OclBaseRunner.h
         src/backend/opencl/runners/OclCnRunner.h
         src/backend/opencl/runners/tools/OclCnR.h
+        src/backend/opencl/runners/tools/OclSharedData.h
+        src/backend/opencl/runners/tools/OclSharedState.h
         src/backend/opencl/wrappers/OclContext.h
         src/backend/opencl/wrappers/OclDevice.h
         src/backend/opencl/wrappers/OclError.h
@@ -42,7 +43,6 @@ if (WITH_OPENCL)
         src/backend/opencl/OclBackend.cpp
         src/backend/opencl/OclCache.cpp
         src/backend/opencl/OclConfig.cpp
-        src/backend/opencl/OclInterleave.cpp
         src/backend/opencl/OclLaunchData.cpp
         src/backend/opencl/OclThread.cpp
         src/backend/opencl/OclThreads.cpp
@@ -50,6 +50,8 @@ if (WITH_OPENCL)
         src/backend/opencl/runners/OclBaseRunner.cpp
         src/backend/opencl/runners/OclCnRunner.cpp
         src/backend/opencl/runners/tools/OclCnR.cpp
+        src/backend/opencl/runners/tools/OclSharedData.cpp
+        src/backend/opencl/runners/tools/OclSharedState.cpp
         src/backend/opencl/wrappers/OclContext.cpp
         src/backend/opencl/wrappers/OclDevice.cpp
         src/backend/opencl/wrappers/OclError.cpp
@@ -78,7 +80,6 @@ if (WITH_OPENCL)
            src/backend/opencl/runners/OclRxBaseRunner.h
            src/backend/opencl/runners/OclRxJitRunner.h
            src/backend/opencl/runners/OclRxVmRunner.h
-           src/backend/opencl/runners/tools/OclRxDataset.h
            )
 
        list(APPEND SOURCES_BACKEND_OPENCL
@@ -95,7 +96,6 @@ if (WITH_OPENCL)
            src/backend/opencl/runners/OclRxBaseRunner.cpp
            src/backend/opencl/runners/OclRxJitRunner.cpp
            src/backend/opencl/runners/OclRxVmRunner.cpp
-           src/backend/opencl/runners/tools/OclRxDataset.cpp
            )
    endif()
 

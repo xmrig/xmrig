@@ -27,17 +27,12 @@
 #define XMRIG_OCLLAUNCHDATA_H
 
 
-#include "backend/opencl/OclInterleave.h"
 #include "backend/opencl/OclThread.h"
+#include "backend/opencl/runners/tools/OclSharedData.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 #include "backend/opencl/wrappers/OclPlatform.h"
 #include "crypto/common/Algorithm.h"
 #include "crypto/common/Nonce.h"
-
-
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "backend/opencl/runners/tools/OclRxDataset.h"
-#endif
 
 
 using cl_context = struct _cl_context *;
@@ -72,11 +67,6 @@ public:
     const OclDevice device;
     const OclPlatform platform;
     const OclThread thread;
-    OclInterleavePtr interleave;
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    OclRxDatasetPtr dataset;
-#   endif
 };
 
 
