@@ -23,8 +23,9 @@
  */
 
 
-#include "base/io/json/Json.h"
 #include "crypto/rx/RxConfig.h"
+#include "backend/cpu/Cpu.h"
+#include "base/io/json/Json.h"
 #include "rapidjson/document.h"
 
 
@@ -60,4 +61,18 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
     }
 
     return false;
+}
+
+
+#ifdef XMRIG_FEATURE_HWLOC
+bool xmrig::RxConfig::isNUMA() const
+{
+    return m_numa && Cpu::info()->nodes() > 1;
+}
+#endif
+
+
+uint32_t xmrig::RxConfig::threads() const
+{
+    return m_threads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(m_threads);
 }

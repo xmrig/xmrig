@@ -38,6 +38,7 @@
 #include "base/tools/Object.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
+#include "crypto/rx/RxConfig.h"
 #include "crypto/rx/RxDataset.h"
 #include "crypto/rx/RxSeed.h"
 
@@ -222,7 +223,7 @@ public:
         }
 
         m_ready     = 0;
-        m_numa      = numa && Cpu::info()->nodes() > 1;
+        m_numa      = numa;
         m_hugePages = hugePages;
         m_listener  = listener;
         m_seed      = job;
@@ -256,7 +257,7 @@ private:
 } // namespace xmrig
 
 
-bool xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa, IRxListener *listener)
+bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages, IRxListener *listener)
 {
     if (job.algorithm().family() != Algorithm::RANDOM_X) {
         return true;
@@ -268,8 +269,8 @@ bool xmrig::Rx::init(const Job &job, int initThreads, bool hugePages, bool numa,
         return true;
     }
 
-    d_ptr->setState(job, hugePages, numa, listener);
-    const uint32_t threads = initThreads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(initThreads);
+    d_ptr->setState(job, hugePages, config.isNUMA(), listener);
+    const uint32_t threads = config.threads();
     const String buf       = Buffer::toHex(job.seed().data(), 8);
     const uint64_t counter = d_ptr->counter();
 

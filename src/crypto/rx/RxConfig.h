@@ -38,8 +38,13 @@ public:
     bool read(const rapidjson::Value &value);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
-    inline bool isNUMA() const      { return m_numa; }
-    inline int threads() const      { return m_threads; }
+#   ifdef XMRIG_FEATURE_HWLOC
+    bool isNUMA() const;
+#   else
+    inline constexpr bool isNUMA() const { return false; }
+#   endif
+
+    uint32_t threads() const;
 
 private:
     bool m_numa     = true;

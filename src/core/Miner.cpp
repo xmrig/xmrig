@@ -234,7 +234,7 @@ public:
 #   ifdef XMRIG_ALGO_RANDOMX
     bool initRX(IRxListener *listener)
     {
-        return Rx::init(job, controller->config()->rx().threads(), controller->config()->cpu().isHugePages(), controller->config()->rx().isNUMA(), listener);
+        return Rx::init(job, controller->config()->rx(), controller->config()->cpu().isHugePages(), listener);
     }
 #   endif
 

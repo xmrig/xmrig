@@ -39,13 +39,14 @@ namespace xmrig
 class Algorithm;
 class IRxListener;
 class Job;
+class RxConfig;
 class RxDataset;
 
 
 class Rx
 {
 public:
-    static bool init(const Job &job, int initThreads, bool hugePages, bool numa, IRxListener *listener);
+    static bool init(const Job &job, const RxConfig &config, bool hugePages, IRxListener *listener);
     static bool isReady(const Job &job);
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
     static std::pair<unsigned, unsigned> hugePages();
