@@ -76,6 +76,7 @@ The preferred way to configure the miner is the [JSON config file](src/config.js
       --randomx-no-numa         disable NUMA support for RandomX
       --export-topology         export hwloc topology to a XML file and exit
       --dry-run                 test configuration and exit
+      --coin                    specify the coin to mine
   -h, --help                    display this help and exit
   -V, --version                 output version information and exit
 ```
