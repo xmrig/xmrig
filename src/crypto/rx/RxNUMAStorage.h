@@ -24,28 +24,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_BASICSTORAGE_H
-#define XMRIG_RX_BASICSTORAGE_H
+#ifndef XMRIG_RX_NUMASTORAGE_H
+#define XMRIG_RX_NUMASTORAGE_H
 
 
 #include "backend/common/interfaces/IRxStorage.h"
 #include "base/tools/Object.h"
 
 
+#include <vector>
+
+
 namespace xmrig
 {
 
 
-class RxBasicStoragePrivate;
+class RxNUMAStoragePrivate;
 
 
-class RxBasicStorage : public IRxStorage
+class RxNUMAStorage : public IRxStorage
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(RxBasicStorage);
+    XMRIG_DISABLE_COPY_MOVE(RxNUMAStorage);
 
-    RxBasicStorage();
-    ~RxBasicStorage() override;
+    RxNUMAStorage(const std::vector<uint32_t> &nodeset);
+    ~RxNUMAStorage() override;
 
 protected:
     RxDataset *dataset(const Job &job, uint32_t nodeId) const override;
@@ -53,11 +56,11 @@ protected:
     void init(const RxSeed &seed, uint32_t threads, bool hugePages) override;
 
 private:
-    RxBasicStoragePrivate *d_ptr;
+    RxNUMAStoragePrivate *d_ptr;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_RX_BASICSTORAGE_H */
+#endif /* XMRIG_RX_NUMASTORAGE_H */

@@ -46,6 +46,11 @@
 #include "crypto/rx/RxSeed.h"
 
 
+#ifdef XMRIG_FEATURE_HWLOC
+#   include "crypto/rx/RxNUMAStorage.h"
+#endif
+
+
 #include <atomic>
 #include <map>
 #include <mutex>
@@ -94,10 +99,18 @@ public:
     inline void asyncSend()                                     { --m_pending; if (pending() == 0) { uv_async_send(m_async); } }
 
 
-    inline IRxStorage *storage()
+    inline IRxStorage *storage(const std::vector<uint32_t> &nodeset)
     {
         if (!m_storage) {
-            m_storage = new RxBasicStorage();
+#           ifdef XMRIG_FEATURE_HWLOC
+            if (!nodeset.empty()) {
+                m_storage = new RxNUMAStorage(nodeset);
+            }
+            else
+#           endif
+            {
+                m_storage = new RxBasicStorage();
+            }
         }
 
         return m_storage;
@@ -116,7 +129,7 @@ public:
                  Buffer::toHex(seed.data().data(), 8).data()
                  );
 
-        d_ptr->storage()->init(seed, threads, hugePages);
+        d_ptr->storage(nodeset)->init(seed, threads, hugePages);
         d_ptr->asyncSend();
     }
 

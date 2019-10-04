@@ -30,8 +30,9 @@
 #include "base/tools/Object.h"
 
 
-using hwloc_obj_t       = struct hwloc_obj *;
-using hwloc_topology_t  = struct hwloc_topology *;
+using hwloc_const_bitmap_t  = const struct hwloc_bitmap_s *;
+using hwloc_obj_t           = struct hwloc_obj *;
+using hwloc_topology_t      = struct hwloc_topology *;
 
 
 namespace xmrig {
@@ -55,6 +56,8 @@ public:
 
     inline const std::vector<uint32_t> &nodeset() const         { return m_nodeset; }
     inline hwloc_topology_t topology() const                    { return m_topology; }
+
+    bool membind(hwloc_const_bitmap_t nodeset);
 
 protected:
     CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const override;

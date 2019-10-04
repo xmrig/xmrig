@@ -200,6 +200,20 @@ xmrig::HwlocCpuInfo::~HwlocCpuInfo()
 }
 
 
+bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
+{
+    if (!hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
+        return false;
+    }
+
+#   if HWLOC_API_VERSION >= 0x20000
+    return hwloc_set_membind(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0;
+#   else
+    return hwloc_set_membind_nodeset(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0;
+#   endif
+}
+
+
 xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
 {
     if (L2() == 0 && L3() == 0) {

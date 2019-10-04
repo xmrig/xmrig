@@ -69,7 +69,12 @@ if (WITH_RANDOMX)
 
     if (WITH_HWLOC)
         list(APPEND SOURCES_CRYPTO
+             src/crypto/rx/RxNUMAStorage.h
+            )
+
+        list(APPEND SOURCES_CRYPTO
              src/crypto/rx/RxConfig_hwloc.cpp
+             src/crypto/rx/RxNUMAStorage.cpp
             )
     else()
         list(APPEND SOURCES_CRYPTO
