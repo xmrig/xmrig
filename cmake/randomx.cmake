@@ -4,6 +4,7 @@ if (WITH_RANDOMX)
     list(APPEND HEADERS_CRYPTO
         src/crypto/rx/Rx.h
         src/crypto/rx/RxAlgo.h
+        src/crypto/rx/RxBasicStorage.h
         src/crypto/rx/RxCache.h
         src/crypto/rx/RxConfig.h
         src/crypto/rx/RxDataset.h
@@ -33,6 +34,7 @@ if (WITH_RANDOMX)
         src/crypto/randomx/vm_interpreted.cpp
         src/crypto/rx/Rx.cpp
         src/crypto/rx/RxAlgo.cpp
+        src/crypto/rx/RxBasicStorage.cpp
         src/crypto/rx/RxCache.cpp
         src/crypto/rx/RxConfig.cpp
         src/crypto/rx/RxDataset.cpp

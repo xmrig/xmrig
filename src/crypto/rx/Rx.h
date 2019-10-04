@@ -49,7 +49,7 @@ public:
     static bool init(const Job &job, const RxConfig &config, bool hugePages, IRxListener *listener);
     static bool isReady(const Job &job);
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
-    static std::pair<unsigned, unsigned> hugePages();
+    static std::pair<uint32_t, uint32_t> hugePages();
     static void destroy();
     static void init();
 };

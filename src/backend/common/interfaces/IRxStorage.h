@@ -4,10 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,27 +20,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_TAGS_H
-#define XMRIG_TAGS_H
+#ifndef XMRIG_IRXSTORAGE_H
+#define XMRIG_IRXSTORAGE_H
+
+
+#include <cstdint>
+#include <utility>
 
 
 namespace xmrig {
 
 
-const char *cpu_tag();
+class Job;
+class RxDataset;
+class RxSeed;
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-const char *ocl_tag();
-#endif
+class IRxStorage
+{
+public:
+    virtual ~IRxStorage() = default;
+
+    virtual RxDataset *dataset(const Job &job, uint32_t nodeId) const       = 0;
+    virtual std::pair<uint32_t, uint32_t> hugePages() const                 = 0;
+    virtual void init(const RxSeed &seed, uint32_t threads, bool hugePages) = 0;
+};
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-const char *rx_tag();
-#endif
+} /* namespace xmrig */
 
 
-} // namespace xmrig
-
-
-#endif /* XMRIG_TAGS_H */
+#endif // XMRIG_IRXSTORAGE_H

@@ -49,7 +49,7 @@ class RxDataset
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxDataset)
 
-    RxDataset(bool hugePages = true);
+    RxDataset(bool hugePages, bool cache);
     ~RxDataset();
 
     inline bool isHugePages() const     { return m_flags & 1; }
@@ -58,12 +58,14 @@ public:
     inline size_t size() const          { return maxSize(); }
 
     bool init(const Buffer &seed, uint32_t numThreads);
-    std::pair<size_t, size_t> hugePages() const;
+    std::pair<uint32_t, uint32_t> hugePages(bool cache = true) const;
     void *raw() const;
 
     static inline constexpr size_t maxSize() { return RANDOMX_DATASET_MAX_SIZE; }
 
 private:
+    void allocate(bool hugePages);
+
     Algorithm m_algorithm;
     int m_flags                = 0;
     randomx_dataset *m_dataset = nullptr;
