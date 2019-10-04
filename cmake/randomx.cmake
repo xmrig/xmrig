@@ -66,6 +66,16 @@ if (WITH_RANDOMX)
     if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         set_source_files_properties(src/crypto/randomx/jit_compiler_x86.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-const-variable)
     endif()
+
+    if (WITH_HWLOC)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/rx/RxConfig_hwloc.cpp
+            )
+    else()
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/rx/RxConfig_basic.cpp
+            )
+    endif()
 else()
     remove_definitions(/DXMRIG_ALGO_RANDOMX)
 endif()

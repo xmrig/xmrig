@@ -29,6 +29,9 @@
 #include "rapidjson/fwd.h"
 
 
+#include <vector>
+
+
 namespace xmrig {
 
 
@@ -39,9 +42,9 @@ public:
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 #   ifdef XMRIG_FEATURE_HWLOC
-    bool isNUMA() const;
+    std::vector<uint32_t> nodeset() const;
 #   else
-    inline constexpr bool isNUMA() const { return false; }
+    inline std::vector<uint32_t> nodeset() const { return std::vector<uint32_t>(); }
 #   endif
 
     uint32_t threads() const;
@@ -49,6 +52,11 @@ public:
 private:
     bool m_numa     = true;
     int m_threads   = -1;
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    std::vector<uint32_t> m_nodeset;
+#   endif
+
 };
 
 

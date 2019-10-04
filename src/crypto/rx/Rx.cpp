@@ -104,13 +104,13 @@ public:
     }
 
 
-    static void initDataset(const RxSeed &seed, uint32_t threads, bool hugePages)
+    static void initDataset(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages)
     {
         std::lock_guard<std::mutex> lock(mutex);
 
         LOG_INFO("%s" MAGENTA_BOLD("init dataset%s") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
                  tag,
-                 false ? "s" : "", // FIXME
+                 nodeset.size() > 1 ? "s" : "",
                  seed.algorithm().shortName(),
                  threads,
                  Buffer::toHex(seed.data().data(), 8).data()
@@ -168,7 +168,7 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages, IRx
 
     d_ptr->setState(job, listener);
 
-    std::thread thread(RxPrivate::initDataset, job, config.threads(), hugePages);
+    std::thread thread(RxPrivate::initDataset, job, config.nodeset(), config.threads(), hugePages);
     thread.detach();
 
     return false;

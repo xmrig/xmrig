@@ -24,10 +24,36 @@
 
 
 #include "crypto/rx/RxConfig.h"
-#include "backend/cpu/Cpu.h"
+#include "base/io/json/Json.h"
+#include "rapidjson/document.h"
 
 
-uint32_t xmrig::RxConfig::threads() const
+namespace xmrig {
+
+static const char *kInit = "init";
+
+}
+
+
+rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
 {
-    return m_threads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(m_threads);
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value obj(kObjectType);
+    obj.AddMember(StringRef(kInit), m_threads, allocator);
+
+    return obj;
+}
+
+
+bool xmrig::RxConfig::read(const rapidjson::Value &value)
+{
+    if (value.IsObject()) {
+        m_threads = Json::getInt(value, kInit, m_threads);
+
+        return true;
+    }
+
+    return false;
 }

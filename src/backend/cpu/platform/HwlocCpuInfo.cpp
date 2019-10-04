@@ -46,7 +46,6 @@
 namespace xmrig {
 
 
-std::vector<uint32_t> HwlocCpuInfo::m_nodeIndexes;
 uint32_t HwlocCpuInfo::m_features = 0;
 
 
@@ -185,11 +184,11 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
             m_features |= SET_THISTHREAD_MEMBIND;
         }
 
-        m_nodeIndexes.reserve(m_nodes);
+        m_nodeset.reserve(m_nodes);
         hwloc_obj_t node = nullptr;
 
         while ((node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
-            m_nodeIndexes.emplace_back(node->os_index);
+            m_nodeset.emplace_back(node->os_index);
         }
     }
 }
