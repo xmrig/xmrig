@@ -69,12 +69,12 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
 template<size_t N>
 xmrig::CpuWorker<N>::~CpuWorker()
 {
-    CnCtx::release(m_ctx, N);
-    delete m_memory;
-
 #   ifdef XMRIG_ALGO_RANDOMX
     delete m_vm;
 #   endif
+
+    CnCtx::release(m_ctx, N);
+    delete m_memory;
 }
 
 

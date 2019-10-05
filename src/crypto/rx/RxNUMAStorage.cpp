@@ -87,9 +87,17 @@ class RxNUMAStoragePrivate
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxNUMAStoragePrivate)
 
-    inline RxNUMAStoragePrivate(const std::vector<uint32_t> &nodeset) : m_nodeset(nodeset) {}
+    inline RxNUMAStoragePrivate(const std::vector<uint32_t> &nodeset) :
+        m_nodeset(nodeset)
+    {
+        m_threads.reserve(nodeset.size());
+    }
+
+
     inline ~RxNUMAStoragePrivate()
     {
+        join();
+
         for (auto const &item : m_datasets) {
             delete item.second;
         }
@@ -116,16 +124,11 @@ public:
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
-        std::vector<std::thread> threads;
-        threads.reserve(m_nodeset.size());
-
         for (uint32_t node : m_nodeset) {
-            threads.emplace_back(allocate, this, node, hugePages);
+            m_threads.emplace_back(allocate, this, node, hugePages);
         }
 
-        for (auto &thread : threads) {
-            thread.join();
-        }
+        join();
 
         std::thread thread(allocateCache, this, m_nodeset.front(), hugePages);
         thread.join();
@@ -156,20 +159,15 @@ public:
         printDatasetReady(id, ts);
 
         if (m_datasets.size() > 1) {
-            std::vector<std::thread> threads;
-            threads.reserve(m_datasets.size() - 1);
-
             for (auto const &item : m_datasets) {
                 if (item.first == id) {
                     continue;
                 }
 
-                threads.emplace_back(copyDataset, item.second, item.first, primary->raw());
+                m_threads.emplace_back(copyDataset, item.second, item.first, primary->raw());
             }
 
-            for (auto &thread : threads) {
-                thread.join();
-            }
+            join();
         }
 
         m_ready = true;
@@ -293,11 +291,22 @@ private:
     }
 
 
+    inline void join()
+    {
+        for (auto &thread : m_threads) {
+            thread.join();
+        }
+
+        m_threads.clear();
+    }
+
+
     bool m_allocated        = false;
     bool m_ready            = false;
     RxCache *m_cache        = nullptr;
     RxSeed m_seed;
     std::map<uint32_t, RxDataset *> m_datasets;
+    std::vector<std::thread> m_threads;
     std::vector<uint32_t> m_nodeset;
 };
 

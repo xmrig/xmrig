@@ -86,6 +86,9 @@ public:
 
     inline ~RxPrivate()
     {
+        m_pending = std::numeric_limits<uint32_t>::max();
+
+        std::lock_guard<std::mutex> lock(mutex);
         Handle::close(m_async);
 
         delete m_storage;
@@ -120,6 +123,10 @@ public:
     static void initDataset(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages)
     {
         std::lock_guard<std::mutex> lock(mutex);
+
+        if (d_ptr->pending() > std::numeric_limits<uint16_t>::max()) {
+            return;
+        }
 
         LOG_INFO("%s" MAGENTA_BOLD("init dataset%s") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
                  tag,
