@@ -48,6 +48,12 @@ xmrig::RxDataset::RxDataset(bool hugePages, bool cache)
 }
 
 
+xmrig::RxDataset::RxDataset(RxCache *cache) :
+    m_cache(cache)
+{
+}
+
+
 xmrig::RxDataset::~RxDataset()
 {
     if (m_dataset) {
@@ -94,6 +100,22 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
 }
 
 
+size_t xmrig::RxDataset::size(bool cache) const
+{
+    size_t size = 0;
+
+    if (m_dataset) {
+        size += maxSize();
+    }
+
+    if (cache && m_cache) {
+        size += RxCache::maxSize();
+    }
+
+    return size;
+}
+
+
 std::pair<uint32_t, uint32_t> xmrig::RxDataset::hugePages(bool cache) const
 {
     constexpr size_t twoMiB     = 2u * 1024u * 1024u;
@@ -120,6 +142,16 @@ std::pair<uint32_t, uint32_t> xmrig::RxDataset::hugePages(bool cache) const
 void *xmrig::RxDataset::raw() const
 {
     return m_dataset ? randomx_get_dataset_memory(m_dataset) : nullptr;
+}
+
+
+void xmrig::RxDataset::setRaw(const void *raw)
+{
+    if (!m_dataset) {
+        return;
+    }
+
+    memcpy(randomx_get_dataset_memory(m_dataset), raw, maxSize());
 }
 
 

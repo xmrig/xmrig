@@ -29,6 +29,7 @@
 #include "backend/common/Tags.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
+#include "base/tools/Object.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
@@ -44,6 +45,14 @@ constexpr size_t oneMiB = 1024 * 1024;
 class RxBasicStoragePrivate
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(RxBasicStoragePrivate)
+
+    inline RxBasicStoragePrivate() = default;
+    inline ~RxBasicStoragePrivate()
+    {
+        delete m_dataset;
+    }
+
     inline bool isReady(const Job &job) const   { return m_ready && m_seed == job; }
     inline RxDataset *dataset() const           { return m_dataset; }
 
@@ -69,8 +78,10 @@ public:
     }
 
 
-    inline void initDataset(uint32_t threads, uint64_t ts)
+    inline void initDataset(uint32_t threads)
     {
+        const uint64_t ts = Chrono::steadyMSecs();
+
         m_dataset->init(m_seed.data(), threads);
 
         LOG_INFO("%s" GREEN_BOLD("dataset ready") BLACK_BOLD(" (%" PRIu64 " ms)"), rx_tag(), Chrono::steadyMSecs() - ts);
@@ -86,15 +97,15 @@ private:
             const auto pages     = m_dataset->hugePages();
             const double percent = pages.first == 0 ? 0.0 : static_cast<double>(pages.first) / pages.second * 100.0;
 
-            LOG_INFO("%s" GREEN_BOLD("allocated") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu)") " huge pages %s%u/%u %1.0f%%" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
+            LOG_INFO("%s" GREEN_BOLD("allocated") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu)") " huge pages %s%1.0f%% %u/%u" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
                      rx_tag(),
-                     (RxDataset::maxSize() + RxCache::maxSize()) / oneMiB,
+                     m_dataset->size() / oneMiB,
                      RxDataset::maxSize() / oneMiB,
                      RxCache::maxSize() / oneMiB,
                      (pages.first == pages.second ? GREEN_BOLD_S : (pages.first == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                     percent,
                      pages.first,
                      pages.second,
-                     percent,
                      m_dataset->cache()->isJIT() ? GREEN_BOLD_S "+" : RED_BOLD_S "-",
                      Chrono::steadyMSecs() - ts
                      );
@@ -148,13 +159,11 @@ std::pair<uint32_t, uint32_t> xmrig::RxBasicStorage::hugePages() const
 
 void xmrig::RxBasicStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages)
 {
-    const uint64_t ts = Chrono::steadyMSecs();
-
     d_ptr->setSeed(seed);
 
     if (!d_ptr->dataset()) {
         d_ptr->createDataset(hugePages);
     }
 
-    d_ptr->initDataset(threads, ts);
+    d_ptr->initDataset(threads);
 }

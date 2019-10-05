@@ -25,8 +25,9 @@
  */
 
 
-#include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxCache.h"
+#include "crypto/common/VirtualMemory.h"
+#include "crypto/randomx/randomx.h"
 
 
 static_assert(RANDOMX_FLAG_JIT == 8,         "RANDOMX_FLAG_JIT flag mismatch");
@@ -71,4 +72,18 @@ bool xmrig::RxCache::init(const Buffer &seed)
     randomx_init_cache(m_cache, m_seed.data(), m_seed.size());
 
     return true;
+}
+
+
+std::pair<uint32_t, uint32_t> xmrig::RxCache::hugePages() const
+{
+    constexpr size_t twoMiB = 2u * 1024u * 1024u;
+    constexpr size_t total  = VirtualMemory::align(maxSize(), twoMiB) / twoMiB;
+
+    uint32_t count = 0;
+    if (isHugePages()) {
+        count += total;
+    }
+
+    return { count, total };
 }
