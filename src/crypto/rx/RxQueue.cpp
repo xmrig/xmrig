@@ -132,15 +132,15 @@ bool xmrig::RxQueue::isReadyUnsafe(const Job &job) const
 
 void xmrig::RxQueue::backgroundInit()
 {
-    while (true) {
+    while (m_state != STATE_SHUTDOWN) {
         std::unique_lock<std::mutex> lock(m_mutex);
 
         if (m_state == STATE_IDLE) {
             m_cv.wait(lock, [this]{ return m_state != STATE_IDLE; });
         }
 
-        if (m_state == STATE_SHUTDOWN) {
-            break;
+        if (m_state != STATE_PENDING) {
+            continue;
         }
 
         const auto item = m_queue.back();
@@ -159,7 +159,8 @@ void xmrig::RxQueue::backgroundInit()
         m_storage->init(item.seed, item.threads, item.hugePages);
 
         lock = std::move(std::unique_lock<std::mutex>(m_mutex));
-        if (!m_queue.empty()) {
+
+        if (m_state == STATE_SHUTDOWN || !m_queue.empty()) {
             continue;
         }
 
