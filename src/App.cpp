@@ -80,7 +80,7 @@ int xmrig::App::exec()
         m_console = new Console(this);
     }
 
-    VirtualMemory::init(m_controller->config()->cpu().isHugePages());
+    VirtualMemory::init();
 
     Summary::print(m_controller);
 

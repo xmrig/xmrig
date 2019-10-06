@@ -38,21 +38,18 @@
 #endif
 
 
-int xmrig::VirtualMemory::m_globalFlags = 0;
-
-
 xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, size_t align) :
     m_size(VirtualMemory::align(size))
 {
     if (hugePages) {
         m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
         if (m_scratchpad) {
-            m_flags |= HUGEPAGES;
+            m_flags.set(FLAG_HUGEPAGES, true);
 
             madvise(m_scratchpad, size, MADV_RANDOM | MADV_WILLNEED);
 
             if (mlock(m_scratchpad, m_size) == 0) {
-                m_flags |= LOCK;
+                m_flags.set(FLAG_LOCK, true);
             }
 
             return;
@@ -70,7 +67,7 @@ xmrig::VirtualMemory::~VirtualMemory()
     }
 
     if (isHugePages()) {
-        if (m_flags & LOCK) {
+        if (m_flags.test(FLAG_LOCK)) {
             munlock(m_scratchpad, m_size);
         }
 
@@ -81,6 +78,11 @@ xmrig::VirtualMemory::~VirtualMemory()
     }
 }
 
+
+bool xmrig::VirtualMemory::isHugepagesAvailable()
+{
+    return true;
+}
 
 
 void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
@@ -123,11 +125,8 @@ void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
 }
 
 
-void xmrig::VirtualMemory::init(bool hugePages)
+void xmrig::VirtualMemory::init()
 {
-    if (hugePages) {
-        m_globalFlags = HUGEPAGES | HUGEPAGES_AVAILABLE;
-    }
 }
 
 
