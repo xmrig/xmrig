@@ -28,8 +28,11 @@
 #define XMRIG_VIRTUALMEMORY_H
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include "base/tools/Object.h"
+
+
+#include <cstddef>
+#include <cstdint>
 #include <utility>
 
 
@@ -39,7 +42,9 @@ namespace xmrig {
 class VirtualMemory
 {
 public:
-    inline VirtualMemory() {}
+    XMRIG_DISABLE_COPY_MOVE(VirtualMemory)
+
+    VirtualMemory() = default;
     VirtualMemory(size_t size, bool hugePages = true, size_t align = 64);
     ~VirtualMemory();
 
@@ -49,7 +54,7 @@ public:
 
     inline std::pair<size_t, size_t> hugePages() const
     {
-        return std::pair<size_t, size_t>(isHugePages() ? (align(size()) / 2097152) : 0, align(size()) / 2097152);
+        return { isHugePages() ? (align(size()) / 2097152) : 0, align(size()) / 2097152 };
     }
 
     static uint32_t bindToNUMANode(int64_t affinity);

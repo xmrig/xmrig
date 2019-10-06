@@ -7,7 +7,6 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -25,41 +24,26 @@
  */
 
 
-#ifdef XMRIG_FEATURE_HWLOC
-#   include <hwloc.h>
-#   include "backend/cpu/platform/HwlocCpuInfo.h"
-#endif
-
-
-#include "crypto/common/VirtualMemory.h"
+#include "base/kernel/Platform.h"
+#include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "backend/cpu/Cpu.h"
-#include "base/io/log/Log.h"
 
 
-#include <cinttypes>
+#include <hwloc.h>
 
 
-uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
+bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
-#   ifdef XMRIG_FEATURE_HWLOC
-    if (affinity < 0 || Cpu::info()->nodes() < 2) {
-        return 0;
-    }
-
     auto cpu       = static_cast<HwlocCpuInfo *>(Cpu::info());
-    hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(cpu->topology(), static_cast<unsigned>(affinity));
+    hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(cpu->topology(), static_cast<unsigned>(cpu_id));
 
-    char *buffer;
-    hwloc_bitmap_asprintf(&buffer, pu->cpuset);
-
-    if (pu == nullptr || !cpu->membind(pu->nodeset)) {
-        LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory\"", affinity);
-
-        return 0;
+    if (pu == nullptr) {
+        return false;
     }
 
-    return hwloc_bitmap_first(pu->nodeset);
-#   else
-    return 0;
-#   endif
+    if (hwloc_set_cpubind(cpu->topology(), pu->cpuset, HWLOC_CPUBIND_THREAD | HWLOC_CPUBIND_STRICT) >= 0) {
+        return true;
+    }
+
+    return hwloc_set_cpubind(cpu->topology(), pu->cpuset, HWLOC_CPUBIND_THREAD) >= 0;
 }
