@@ -24,58 +24,85 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_DATASET_H
-#define XMRIG_RX_DATASET_H
+#ifndef XMRIG_RX_QUEUE_H
+#define XMRIG_RX_QUEUE_H
 
 
-#include "crypto/common/Algorithm.h"
-#include "crypto/randomx/configuration.h"
 #include "base/tools/Object.h"
+#include "crypto/rx/RxSeed.h"
 
 
-struct randomx_dataset;
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+
+
+using uv_async_t = struct uv_async_s;
 
 
 namespace xmrig
 {
 
 
-class Buffer;
-class RxCache;
+class IRxListener;
+class IRxStorage;
+class RxDataset;
 
 
-class RxDataset
+class RxQueueItem
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxDataset)
+    RxQueueItem(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages) :
+        hugePages(hugePages),
+        seed(seed),
+        nodeset(nodeset),
+        threads(threads)
+    {}
 
-    RxDataset(bool hugePages, bool cache);
-    RxDataset(RxCache *cache);
-    ~RxDataset();
+    const bool hugePages;
+    const RxSeed seed;
+    const std::vector<uint32_t> nodeset;
+    const uint32_t threads;
+};
 
-    inline bool isHugePages() const         { return m_flags & 1; }
-    inline randomx_dataset *get() const     { return m_dataset; }
-    inline RxCache *cache() const           { return m_cache; }
-    inline void setCache(RxCache *cache)    { m_cache = cache; }
 
-    bool init(const Buffer &seed, uint32_t numThreads);
-    size_t size(bool cache = true) const;
-    std::pair<uint32_t, uint32_t> hugePages(bool cache = true) const;
-    void *raw() const;
-    void setRaw(const void *raw);
+class RxQueue
+{
+public:
+    XMRIG_DISABLE_COPY_MOVE(RxQueue);
 
-    static inline constexpr size_t maxSize() { return RANDOMX_DATASET_MAX_SIZE; }
+    RxQueue(IRxListener *listener);
+    ~RxQueue();
+
+    bool isReady(const Job &job);
+    RxDataset *dataset(const Job &job, uint32_t nodeId);
+    std::pair<uint32_t, uint32_t> hugePages();
+    void enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages);
 
 private:
-    void allocate(bool hugePages);
+    enum State {
+        STATE_IDLE,
+        STATE_PENDING,
+        STATE_SHUTDOWN
+    };
 
-    int m_flags                = 0;
-    randomx_dataset *m_dataset = nullptr;
-    RxCache *m_cache           = nullptr;
+    bool isReadyUnsafe(const Job &job) const;
+    void backgroundInit();
+    void onReady();
+
+    IRxListener *m_listener = nullptr;
+    IRxStorage *m_storage   = nullptr;
+    RxSeed m_seed;
+    State m_state = STATE_IDLE;
+    std::condition_variable m_cv;
+    std::mutex m_mutex;
+    std::thread m_thread;
+    std::vector<RxQueueItem> m_queue;
+    uv_async_t *m_async     = nullptr;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_RX_DATASET_H */
+#endif /* XMRIG_RX_QUEUE_H */

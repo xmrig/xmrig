@@ -28,57 +28,34 @@
 #ifdef XMRIG_FEATURE_HWLOC
 #   include <hwloc.h>
 #   include "backend/cpu/platform/HwlocCpuInfo.h"
-#
-#   if HWLOC_API_VERSION < 0x00010b00
-#       define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
-#   endif
 #endif
 
 
-#include "base/io/log/Log.h"
 #include "crypto/common/VirtualMemory.h"
+#include "backend/cpu/Cpu.h"
+#include "base/io/log/Log.h"
+
+
+#include <cinttypes>
 
 
 uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
 {
 #   ifdef XMRIG_FEATURE_HWLOC
-    if (affinity < 0 || !HwlocCpuInfo::has(HwlocCpuInfo::SET_THISTHREAD_MEMBIND)) {
+    if (affinity < 0 || Cpu::info()->nodes() < 2) {
         return 0;
     }
 
-    hwloc_topology_t topology;
-    hwloc_topology_init(&topology);
-    hwloc_topology_load(topology);
+    auto cpu        = static_cast<HwlocCpuInfo *>(Cpu::info());
+    hwloc_obj_t pu  = hwloc_get_pu_obj_by_os_index(cpu->topology(), static_cast<unsigned>(affinity));
 
-    const unsigned puId = static_cast<unsigned>(affinity);
+    if (pu == nullptr || !cpu->membind(pu->nodeset)) {
+        LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory\"", affinity);
 
-    hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(topology, puId);
-
-#   if HWLOC_API_VERSION >= 0x20000
-    if (pu == nullptr || hwloc_set_membind(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) < 0) {
-#   else
-    if (pu == nullptr || hwloc_set_membind_nodeset(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) < 0) {
-#   endif
-        LOG_WARN("CPU #%02u warning: \"can't bind memory\"", puId);
+        return 0;
     }
 
-    uint32_t nodeId = 0;
-
-    if (pu) {
-        hwloc_obj_t node = nullptr;
-
-        while ((node = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
-          if (hwloc_bitmap_intersects(node->cpuset, pu->cpuset)) {
-              nodeId = node->os_index;
-
-              break;
-          }
-        }
-    }
-
-    hwloc_topology_destroy(topology);
-
-    return nodeId;
+    return hwloc_bitmap_first(pu->nodeset);
 #   else
     return 0;
 #   endif

@@ -24,85 +24,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "crypto/rx/Rx.h"
-#include "backend/common/Tags.h"
-#include "base/io/log/Log.h"
-#include "crypto/rx/RxConfig.h"
-#include "crypto/rx/RxQueue.h"
+#ifndef XMRIG_RX_SEED_H
+#define XMRIG_RX_SEED_H
 
 
-namespace xmrig {
+#include "base/net/stratum/Job.h"
+#include "base/tools/Buffer.h"
 
 
-class RxPrivate;
+namespace xmrig
+{
 
 
-static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx  ") " ";
-static RxPrivate *d_ptr = nullptr;
+class RxSeed;
 
 
-class RxPrivate
+class RxSeed
 {
 public:
-    inline RxPrivate(IRxListener *listener) : queue(listener) {}
+    RxSeed() = default;
 
-    RxQueue queue;
+    inline RxSeed(const Algorithm &algorithm, const Buffer &seed) : m_algorithm(algorithm), m_data(seed)    {}
+    inline RxSeed(const Job &job) : m_algorithm(job.algorithm()), m_data(job.seed())                        {}
+
+    inline bool isEqual(const Job &job) const           { return m_algorithm == job.algorithm() && m_data == job.seed(); }
+    inline bool isEqual(const RxSeed &other) const      { return m_algorithm == other.m_algorithm && m_data == other.m_data; }
+    inline const Algorithm &algorithm() const           { return m_algorithm; }
+    inline const Buffer &data() const                   { return m_data; }
+
+    inline bool operator!=(const Job &job) const        { return !isEqual(job); }
+    inline bool operator!=(const RxSeed &other) const   { return !isEqual(other); }
+    inline bool operator==(const Job &job) const        { return isEqual(job); }
+    inline bool operator==(const RxSeed &other) const   { return isEqual(other); }
+
+private:
+    Algorithm m_algorithm;
+    Buffer m_data;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-const char *xmrig::rx_tag()
-{
-    return tag;
-}
-
-
-bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages)
-{
-    if (job.algorithm().family() != Algorithm::RANDOM_X) {
-        return true;
-    }
-
-    if (isReady(job)) {
-        return true;
-    }
-
-    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(), hugePages);
-
-    return false;
-}
-
-
-bool xmrig::Rx::isReady(const Job &job)
-{
-    return d_ptr->queue.isReady(job);
-}
-
-
-xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
-{
-    return d_ptr->queue.dataset(job, nodeId);
-}
-
-
-std::pair<uint32_t, uint32_t> xmrig::Rx::hugePages()
-{
-    return d_ptr->queue.hugePages();
-}
-
-
-void xmrig::Rx::destroy()
-{
-    delete d_ptr;
-
-    d_ptr = nullptr;
-}
-
-
-void xmrig::Rx::init(IRxListener *listener)
-{
-    d_ptr = new RxPrivate(listener);
-}
+#endif /* XMRIG_RX_CACHE_H */

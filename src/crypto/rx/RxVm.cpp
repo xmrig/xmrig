@@ -41,11 +41,13 @@ xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes)
         m_flags |= RANDOMX_FLAG_FULL_MEM;
     }
 
-    if (dataset->cache()->isJIT()) {
+    if (!dataset->cache() || dataset->cache()->isJIT()) {
         m_flags |= RANDOMX_FLAG_JIT;
+        m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), nullptr, dataset->get(), scratchpad);
     }
-
-    m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get(), scratchpad);
+    else {
+        m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache()->get(), dataset->get(), scratchpad);
+    }
 }
 
 

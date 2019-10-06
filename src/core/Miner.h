@@ -33,6 +33,7 @@
 #include "base/api/interfaces/IApiListener.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
+#include "base/tools/Object.h"
 #include "crypto/common/Algorithm.h"
 
 
@@ -48,6 +49,8 @@ class IBackend;
 class Miner : public ITimerListener, public IBaseListener, public IApiListener, public IRxListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Miner)
+
     Miner(Controller *controller);
     ~Miner() override;
 

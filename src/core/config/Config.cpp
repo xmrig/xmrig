@@ -23,9 +23,9 @@
  */
 
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 #include <uv.h>
-#include <inttypes.h>
+#include <cinttypes>
 
 
 #include "backend/cpu/Cpu.h"
@@ -79,7 +79,7 @@ public:
 }
 
 
-xmrig::Config::Config() : BaseConfig(),
+xmrig::Config::Config() :
     d_ptr(new ConfigPrivate())
 {
 }

@@ -4,9 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2018 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,12 +20,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_IRXSTORAGE_H
+#define XMRIG_IRXSTORAGE_H
 
-#include "crypto/rx/RxConfig.h"
-#include "backend/cpu/Cpu.h"
+
+#include <cstdint>
+#include <utility>
 
 
-uint32_t xmrig::RxConfig::threads() const
+namespace xmrig {
+
+
+class Job;
+class RxDataset;
+class RxSeed;
+
+
+class IRxStorage
 {
-    return m_threads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(m_threads);
-}
+public:
+    virtual ~IRxStorage() = default;
+
+    virtual RxDataset *dataset(const Job &job, uint32_t nodeId) const       = 0;
+    virtual std::pair<uint32_t, uint32_t> hugePages() const                 = 0;
+    virtual void init(const RxSeed &seed, uint32_t threads, bool hugePages) = 0;
+};
+
+
+} /* namespace xmrig */
+
+
+#endif // XMRIG_IRXSTORAGE_H
