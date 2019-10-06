@@ -8,6 +8,7 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxCache.h
         src/crypto/rx/RxConfig.h
         src/crypto/rx/RxDataset.h
+        src/crypto/rx/RxQueue.h
         src/crypto/rx/RxSeed.h
         src/crypto/rx/RxVm.h
     )
@@ -38,6 +39,7 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxCache.cpp
         src/crypto/rx/RxConfig.cpp
         src/crypto/rx/RxDataset.cpp
+        src/crypto/rx/RxQueue.cpp
         src/crypto/rx/RxVm.cpp
     )
 

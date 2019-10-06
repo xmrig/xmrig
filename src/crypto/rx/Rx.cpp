@@ -26,36 +26,10 @@
 
 
 #include "crypto/rx/Rx.h"
-
-#include "backend/common/interfaces/IRxListener.h"
-#include "backend/common/interfaces/IRxStorage.h"
 #include "backend/common/Tags.h"
-#include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
-#include "base/kernel/Platform.h"
-#include "base/net/stratum/Job.h"
-#include "base/tools/Buffer.h"
-#include "base/tools/Chrono.h"
-#include "base/tools/Handle.h"
-#include "base/tools/Object.h"
-#include "crypto/rx/RxAlgo.h"
-#include "crypto/rx/RxBasicStorage.h"
-#include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxConfig.h"
-#include "crypto/rx/RxDataset.h"
-#include "crypto/rx/RxSeed.h"
-
-
-#ifdef XMRIG_FEATURE_HWLOC
-#   include "crypto/rx/RxNUMAStorage.h"
-#endif
-
-
-#include <atomic>
-#include <map>
-#include <mutex>
-#include <thread>
-#include <uv.h>
+#include "crypto/rx/RxQueue.h"
 
 
 namespace xmrig {
@@ -66,104 +40,14 @@ class RxPrivate;
 
 static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx  ") " ";
 static RxPrivate *d_ptr = nullptr;
-static std::mutex mutex;
 
 
 class RxPrivate
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(RxPrivate)
+    inline RxPrivate(IRxListener *listener) : queue(listener) {}
 
-    inline RxPrivate() :
-        m_pending(0)
-    {
-        m_async = new uv_async_t;
-        m_async->data = this;
-
-        uv_async_init(uv_default_loop(), m_async, [](uv_async_t *handle) { static_cast<RxPrivate *>(handle->data)->onReady(); });
-    }
-
-
-    inline ~RxPrivate()
-    {
-        m_pending = std::numeric_limits<uint32_t>::max();
-
-        std::lock_guard<std::mutex> lock(mutex);
-        Handle::close(m_async);
-
-        delete m_storage;
-    }
-
-
-    inline bool isReady(const Job &job) const                   { return pending() == 0 && m_seed == job; }
-    inline RxDataset *dataset(const Job &job, uint32_t nodeId)  { return m_storage ? m_storage->dataset(job, nodeId) : nullptr; }
-    inline std::pair<uint32_t, uint32_t> hugePages()            { return m_storage ? m_storage->hugePages() : std::pair<uint32_t, uint32_t>(0u, 0u); }
-    inline uint64_t pending() const                             { return m_pending.load(std::memory_order_relaxed); }
-    inline void asyncSend()                                     { --m_pending; if (pending() == 0) { uv_async_send(m_async); } }
-
-
-    inline IRxStorage *storage(const std::vector<uint32_t> &nodeset)
-    {
-        if (!m_storage) {
-#           ifdef XMRIG_FEATURE_HWLOC
-            if (!nodeset.empty()) {
-                m_storage = new RxNUMAStorage(nodeset);
-            }
-            else
-#           endif
-            {
-                m_storage = new RxBasicStorage();
-            }
-        }
-
-        return m_storage;
-    }
-
-
-    static void initDataset(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages)
-    {
-        std::lock_guard<std::mutex> lock(mutex);
-
-        if (d_ptr->pending() > std::numeric_limits<uint16_t>::max()) {
-            return;
-        }
-
-        LOG_INFO("%s" MAGENTA_BOLD("init dataset%s") " algo " WHITE_BOLD("%s (") CYAN_BOLD("%u") WHITE_BOLD(" threads)") BLACK_BOLD(" seed %s..."),
-                 tag,
-                 nodeset.size() > 1 ? "s" : "",
-                 seed.algorithm().shortName(),
-                 threads,
-                 Buffer::toHex(seed.data().data(), 8).data()
-                 );
-
-        d_ptr->storage(nodeset)->init(seed, threads, hugePages);
-        d_ptr->asyncSend();
-    }
-
-
-    inline void setState(const Job &job, IRxListener *listener)
-    {
-        m_listener  = listener;
-        m_seed      = job;
-
-        ++m_pending;
-    }
-
-
-private:
-    inline void onReady()
-    {
-        if (m_listener && pending() == 0) {
-            m_listener->onDatasetReady();
-        }
-    }
-
-
-    IRxListener *m_listener = nullptr;
-    IRxStorage *m_storage   = nullptr;
-    RxSeed m_seed;
-    std::atomic<uint64_t> m_pending;
-    uv_async_t *m_async     = nullptr;
+    RxQueue queue;
 };
 
 
@@ -176,20 +60,17 @@ const char *xmrig::rx_tag()
 }
 
 
-bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages, IRxListener *listener)
+bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages)
 {
     if (job.algorithm().family() != Algorithm::RANDOM_X) {
         return true;
     }
 
-    if (d_ptr->isReady(job)) {
+    if (isReady(job)) {
         return true;
     }
 
-    d_ptr->setState(job, listener);
-
-    std::thread thread(RxPrivate::initDataset, job, config.nodeset(), config.threads(), hugePages);
-    thread.detach();
+    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(), hugePages);
 
     return false;
 }
@@ -197,23 +78,19 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages, IRx
 
 bool xmrig::Rx::isReady(const Job &job)
 {
-    return d_ptr->isReady(job);
+    return d_ptr->queue.isReady(job);
 }
 
 
 xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 {
-    std::lock_guard<std::mutex> lock(mutex);
-
-    return d_ptr->dataset(job, nodeId);
+    return d_ptr->queue.dataset(job, nodeId);
 }
 
 
 std::pair<uint32_t, uint32_t> xmrig::Rx::hugePages()
 {
-    std::lock_guard<std::mutex> lock(mutex);
-
-    return d_ptr->hugePages();
+    return d_ptr->queue.hugePages();
 }
 
 
@@ -225,7 +102,7 @@ void xmrig::Rx::destroy()
 }
 
 
-void xmrig::Rx::init()
+void xmrig::Rx::init(IRxListener *listener)
 {
-    d_ptr = new RxPrivate();
+    d_ptr = new RxPrivate(listener);
 }
