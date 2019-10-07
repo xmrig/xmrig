@@ -119,8 +119,13 @@ set(SOURCES_CRYPTO
    )
 
 if (WITH_HWLOC)
+    list(APPEND HEADERS_CRYPTO
+        src/crypto/common/NUMAMemoryPool.h
+        )
+
     list(APPEND SOURCES_CRYPTO
-         src/crypto/common/VirtualMemory_hwloc.cpp
+        src/crypto/common/NUMAMemoryPool.cpp
+        src/crypto/common/VirtualMemory_hwloc.cpp
         )
 endif()
 

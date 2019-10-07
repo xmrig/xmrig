@@ -32,6 +32,11 @@
 #include "crypto/common/portable/mm_malloc.h"
 
 
+#ifdef XMRIG_FEATURE_HWLOC
+#   include "crypto/common/NUMAMemoryPool.h"
+#endif
+
+
 #include <cinttypes>
 #include <mutex>
 
@@ -111,5 +116,12 @@ void xmrig::VirtualMemory::init(bool hugePages, int poolSize)
         osInit();
     }
 
-    pool = new MemoryPool(poolSize < 0 ? Cpu::info()->threads() : poolSize, hugePages);
+#   ifdef XMRIG_FEATURE_HWLOC
+    if (Cpu::info()->nodes() > 1) {
+        pool = new NUMAMemoryPool(align(poolSize < 0 ? Cpu::info()->threads() : poolSize, Cpu::info()->nodes()), hugePages);
+    } else
+#   endif
+    {
+        pool = new MemoryPool(poolSize < 0 ? Cpu::info()->threads() : poolSize, hugePages);
+    }
 }
