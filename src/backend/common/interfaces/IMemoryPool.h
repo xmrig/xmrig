@@ -28,6 +28,7 @@
 #define XMRIG_IMEMORYPOOL_H
 
 
+#include <cstddef>
 #include <cstdint>
 
 

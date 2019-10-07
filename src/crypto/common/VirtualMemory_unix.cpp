@@ -107,7 +107,7 @@ bool xmrig::VirtualMemory::allocateLargePagesMemory()
     if (m_scratchpad) {
         m_flags.set(FLAG_HUGEPAGES, true);
 
-        madvise(m_scratchpad, size, MADV_RANDOM | MADV_WILLNEED);
+        madvise(m_scratchpad, m_size, MADV_RANDOM | MADV_WILLNEED);
 
         if (mlock(m_scratchpad, m_size) == 0) {
             m_flags.set(FLAG_LOCK, true);
