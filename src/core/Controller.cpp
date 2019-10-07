@@ -52,7 +52,7 @@ int xmrig::Controller::init()
 {
     Base::init();
 
-    VirtualMemory::init(config()->cpu().isHugePages(), -1);
+    VirtualMemory::init(config()->cpu().memPoolSize(), config()->cpu().isHugePages());
 
     m_network = new Network(this);
 

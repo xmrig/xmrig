@@ -110,7 +110,7 @@ void xmrig::VirtualMemory::destroy()
 }
 
 
-void xmrig::VirtualMemory::init(bool hugePages, int poolSize)
+void xmrig::VirtualMemory::init(size_t poolSize, bool hugePages)
 {
     if (!pool) {
         osInit();
@@ -118,10 +118,10 @@ void xmrig::VirtualMemory::init(bool hugePages, int poolSize)
 
 #   ifdef XMRIG_FEATURE_HWLOC
     if (Cpu::info()->nodes() > 1) {
-        pool = new NUMAMemoryPool(align(poolSize < 0 ? Cpu::info()->threads() : poolSize, Cpu::info()->nodes()), hugePages);
+        pool = new NUMAMemoryPool(align(poolSize, Cpu::info()->nodes()), hugePages);
     } else
 #   endif
     {
-        pool = new MemoryPool(poolSize < 0 ? Cpu::info()->threads() : poolSize, hugePages);
+        pool = new MemoryPool(poolSize, hugePages);
     }
 }

@@ -64,7 +64,7 @@ public:
     static void destroy();
     static void flushInstructionCache(void *p, size_t size);
     static void freeLargePagesMemory(void *p, size_t size);
-    static void init(bool hugePages, int poolSize);
+    static void init(size_t poolSize, bool hugePages);
     static void protectExecutableMemory(void *p, size_t size);
     static void unprotectExecutableMemory(void *p, size_t size);
 

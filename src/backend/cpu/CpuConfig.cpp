@@ -36,6 +36,7 @@ static const char *kEnabled             = "enabled";
 static const char *kHugePages           = "huge-pages";
 static const char *kHwAes               = "hw-aes";
 static const char *kMaxThreadsHint      = "max-threads-hint";
+static const char *kMemoryPool          = "memory-pool";
 static const char *kPriority            = "priority";
 
 #ifdef XMRIG_FEATURE_ASM
@@ -90,6 +91,7 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kHugePages),    m_hugePages, allocator);
     obj.AddMember(StringRef(kHwAes),        m_aes == AES_AUTO ? Value(kNullType) : Value(m_aes == AES_HW), allocator);
     obj.AddMember(StringRef(kPriority),     priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
+    obj.AddMember(StringRef(kMemoryPool),   m_memoryPool < 1 ? Value(m_memoryPool < 0) : Value(m_memoryPool), allocator);
 
     if (m_threads.isEmpty()) {
         obj.AddMember(StringRef(kMaxThreadsHint), m_limit, allocator);
@@ -106,6 +108,12 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
     m_threads.toJSON(obj, doc);
 
     return obj;
+}
+
+
+size_t xmrig::CpuConfig::memPoolSize() const
+{
+    return m_memoryPool < 0 ? Cpu::info()->threads() : m_memoryPool;
 }
 
 
@@ -137,6 +145,7 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value, uint32_t version)
 
         setAesMode(Json::getValue(value, kHwAes));
         setPriority(Json::getInt(value,  kPriority, -1));
+        setMemoryPool(Json::getValue(value, kMemoryPool));
 
 #       ifdef XMRIG_FEATURE_ASM
         m_assembly = Json::getValue(value, kAsm);
@@ -205,12 +214,23 @@ void xmrig::CpuConfig::generateArgon2()
 }
 
 
-void xmrig::CpuConfig::setAesMode(const rapidjson::Value &aesMode)
+void xmrig::CpuConfig::setAesMode(const rapidjson::Value &value)
 {
-    if (aesMode.IsBool()) {
-        m_aes = aesMode.GetBool() ? AES_HW : AES_SOFT;
+    if (value.IsBool()) {
+        m_aes = value.GetBool() ? AES_HW : AES_SOFT;
     }
     else {
         m_aes = AES_AUTO;
+    }
+}
+
+
+void xmrig::CpuConfig::setMemoryPool(const rapidjson::Value &value)
+{
+    if (value.IsBool()) {
+        m_memoryPool = value.GetBool() ? -1 : 0;
+    }
+    else if (value.IsInt()) {
+        m_memoryPool = value.GetInt();
     }
 }
