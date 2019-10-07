@@ -5,7 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,56 +24,72 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIG_H
-#define XMRIG_CONFIG_H
+
+#include "crypto/common/MemoryPool.h"
+#include "crypto/common/VirtualMemory.h"
 
 
-#include <cstdint>
-
-
-#include "backend/cpu/CpuConfig.h"
-#include "base/kernel/config/BaseConfig.h"
-#include "base/tools/Object.h"
-#include "rapidjson/fwd.h"
+#include <cassert>
 
 
 namespace xmrig {
 
 
-class ConfigPrivate;
-class IThread;
-class RxConfig;
-class OclConfig;
+constexpr size_t pageSize = 2 * 1024 * 1024;
 
 
-class Config : public BaseConfig
+} // namespace xmrig
+
+
+xmrig::MemoryPool::MemoryPool(size_t size, bool hugePages, uint32_t node) :
+    m_size(size)
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE(Config);
+    if (!size) {
+        return;
+    }
 
-    Config();
-    ~Config() override;
-
-    const CpuConfig &cpu() const;
-
-#   ifdef XMRIG_FEATURE_OPENCL
-    const OclConfig &cl() const;
-#   endif
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    const RxConfig &rx() const;
-#   endif
-
-    bool isShouldSave() const;
-    bool read(const IJsonReader &reader, const char *fileName) override;
-    void getJSON(rapidjson::Document &doc) const override;
-
-private:
-    ConfigPrivate *d_ptr;
-};
+    m_memory = new VirtualMemory(size * pageSize, hugePages, false, node);
+}
 
 
-} /* namespace xmrig */
+xmrig::MemoryPool::~MemoryPool()
+{
+    delete m_memory;
+}
 
 
-#endif /* XMRIG_CONFIG_H */
+bool xmrig::MemoryPool::isHugePages(uint32_t) const
+{
+    return m_memory && m_memory->isHugePages();
+}
+
+
+uint8_t *xmrig::MemoryPool::get(size_t size, uint32_t)
+{
+    assert(!(size % pageSize));
+
+    if (!m_memory || (m_memory->size() - m_offset) < size) {
+        return nullptr;
+    }
+
+    uint8_t *out = m_memory->scratchpad() + m_offset;
+
+    m_offset += size;
+    ++m_refs;
+
+    return out;
+}
+
+
+void xmrig::MemoryPool::release(uint32_t)
+{
+    assert(m_refs > 0);
+
+    if (m_refs > 0) {
+        --m_refs;
+    }
+
+    if (m_refs == 0) {
+        m_offset = 0;
+    }
+}

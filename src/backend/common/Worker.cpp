@@ -34,8 +34,7 @@ xmrig::Worker::Worker(size_t id, int64_t affinity, int priority) :
     m_affinity(affinity),
     m_id(id),
     m_hashCount(0),
-    m_timestamp(0),
-    m_count(0)
+    m_timestamp(0)
 {
     m_node = VirtualMemory::bindToNUMANode(affinity);
 

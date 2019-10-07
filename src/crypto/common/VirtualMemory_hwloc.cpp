@@ -5,7 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,56 +24,33 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIG_H
-#define XMRIG_CONFIG_H
+
+#include "crypto/common/VirtualMemory.h"
+#include "backend/cpu/Cpu.h"
+#include "backend/cpu/platform/HwlocCpuInfo.h"
+#include "base/io/log/Log.h"
 
 
-#include <cstdint>
+#include <hwloc.h>
 
 
-#include "backend/cpu/CpuConfig.h"
-#include "base/kernel/config/BaseConfig.h"
-#include "base/tools/Object.h"
-#include "rapidjson/fwd.h"
-
-
-namespace xmrig {
-
-
-class ConfigPrivate;
-class IThread;
-class RxConfig;
-class OclConfig;
-
-
-class Config : public BaseConfig
+uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE(Config);
+    if (affinity < 0 || Cpu::info()->nodes() < 2) {
+        return 0;
+    }
 
-    Config();
-    ~Config() override;
+    auto cpu       = static_cast<HwlocCpuInfo *>(Cpu::info());
+    hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(cpu->topology(), static_cast<unsigned>(affinity));
 
-    const CpuConfig &cpu() const;
+    char *buffer;
+    hwloc_bitmap_asprintf(&buffer, pu->cpuset);
 
-#   ifdef XMRIG_FEATURE_OPENCL
-    const OclConfig &cl() const;
-#   endif
+    if (pu == nullptr || !cpu->membind(pu->nodeset)) {
+        LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory\"", affinity);
 
-#   ifdef XMRIG_ALGO_RANDOMX
-    const RxConfig &rx() const;
-#   endif
+        return 0;
+    }
 
-    bool isShouldSave() const;
-    bool read(const IJsonReader &reader, const char *fileName) override;
-    void getJSON(rapidjson::Document &doc) const override;
-
-private:
-    ConfigPrivate *d_ptr;
-};
-
-
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_CONFIG_H */
+    return hwloc_bitmap_first(pu->nodeset);
+}

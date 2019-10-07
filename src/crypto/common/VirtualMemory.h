@@ -45,7 +45,7 @@ class VirtualMemory
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(VirtualMemory)
 
-    VirtualMemory(size_t size, bool hugePages = true, size_t align = 64);
+    VirtualMemory(size_t size, bool hugePages, bool usePool, uint32_t node = 0, size_t alignSize = 64);
     ~VirtualMemory();
 
     inline bool isHugePages() const     { return m_flags.test(FLAG_HUGEPAGES); }
@@ -61,9 +61,10 @@ public:
     static uint32_t bindToNUMANode(int64_t affinity);
     static void *allocateExecutableMemory(size_t size);
     static void *allocateLargePagesMemory(size_t size);
+    static void destroy();
     static void flushInstructionCache(void *p, size_t size);
     static void freeLargePagesMemory(void *p, size_t size);
-    static void init();
+    static void init(bool hugePages, int poolSize);
     static void protectExecutableMemory(void *p, size_t size);
     static void unprotectExecutableMemory(void *p, size_t size);
 
@@ -77,9 +78,15 @@ private:
         FLAG_MAX
     };
 
+    static void osInit();
+
+    bool allocateLargePagesMemory();
+    void freeLargePagesMemory();
+
+    const size_t m_size;
+    const uint32_t m_node;
     std::bitset<FLAG_MAX> m_flags;
-    size_t m_size                   = 0;
-    uint8_t *m_scratchpad           = nullptr;
+    uint8_t *m_scratchpad = nullptr;
 };
 
 

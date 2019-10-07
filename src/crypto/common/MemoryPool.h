@@ -5,7 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,56 +24,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIG_H
-#define XMRIG_CONFIG_H
+#ifndef XMRIG_MEMORYPOOL_H
+#define XMRIG_MEMORYPOOL_H
 
 
-#include <cstdint>
-
-
-#include "backend/cpu/CpuConfig.h"
-#include "base/kernel/config/BaseConfig.h"
+#include "backend/common/interfaces/IMemoryPool.h"
 #include "base/tools/Object.h"
-#include "rapidjson/fwd.h"
 
 
 namespace xmrig {
 
 
-class ConfigPrivate;
-class IThread;
-class RxConfig;
-class OclConfig;
+class VirtualMemory;
 
 
-class Config : public BaseConfig
+class MemoryPool : public IMemoryPool
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(Config);
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(MemoryPool)
 
-    Config();
-    ~Config() override;
+    MemoryPool(size_t size, bool hugePages, uint32_t node = 0);
+    ~MemoryPool() override;
 
-    const CpuConfig &cpu() const;
-
-#   ifdef XMRIG_FEATURE_OPENCL
-    const OclConfig &cl() const;
-#   endif
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    const RxConfig &rx() const;
-#   endif
-
-    bool isShouldSave() const;
-    bool read(const IJsonReader &reader, const char *fileName) override;
-    void getJSON(rapidjson::Document &doc) const override;
+protected:
+    bool isHugePages(uint32_t node) const override;
+    uint8_t *get(size_t size, uint32_t node) override;
+    void release(uint32_t node) override;
 
 private:
-    ConfigPrivate *d_ptr;
+    size_t m_size           = 0;
+    size_t m_refs           = 0;
+    size_t m_offset         = 0;
+    VirtualMemory *m_memory = nullptr;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CONFIG_H */
+
+#endif /* XMRIG_MEMORYPOOL_H */

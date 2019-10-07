@@ -25,7 +25,7 @@
  */
 
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/mman.h>
 
 
@@ -36,47 +36,6 @@
 #if defined(__APPLE__)
 #   include <mach/vm_statistics.h>
 #endif
-
-
-xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, size_t align) :
-    m_size(VirtualMemory::align(size))
-{
-    if (hugePages) {
-        m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
-        if (m_scratchpad) {
-            m_flags.set(FLAG_HUGEPAGES, true);
-
-            madvise(m_scratchpad, size, MADV_RANDOM | MADV_WILLNEED);
-
-            if (mlock(m_scratchpad, m_size) == 0) {
-                m_flags.set(FLAG_LOCK, true);
-            }
-
-            return;
-        }
-    }
-
-    m_scratchpad = static_cast<uint8_t*>(_mm_malloc(m_size, align));
-}
-
-
-xmrig::VirtualMemory::~VirtualMemory()
-{
-    if (!m_scratchpad) {
-        return;
-    }
-
-    if (isHugePages()) {
-        if (m_flags.test(FLAG_LOCK)) {
-            munlock(m_scratchpad, m_size);
-        }
-
-        freeLargePagesMemory(m_scratchpad, m_size);
-    }
-    else {
-        _mm_free(m_scratchpad);
-    }
-}
 
 
 bool xmrig::VirtualMemory::isHugepagesAvailable()
@@ -125,11 +84,6 @@ void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
 }
 
 
-void xmrig::VirtualMemory::init()
-{
-}
-
-
 void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
 {
     mprotect(p, size, PROT_READ | PROT_EXEC);
@@ -139,4 +93,38 @@ void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
 void xmrig::VirtualMemory::unprotectExecutableMemory(void *p, size_t size)
 {
     mprotect(p, size, PROT_WRITE | PROT_EXEC);
+}
+
+
+void xmrig::VirtualMemory::osInit()
+{
+}
+
+
+bool xmrig::VirtualMemory::allocateLargePagesMemory()
+{
+    m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
+    if (m_scratchpad) {
+        m_flags.set(FLAG_HUGEPAGES, true);
+
+        madvise(m_scratchpad, size, MADV_RANDOM | MADV_WILLNEED);
+
+        if (mlock(m_scratchpad, m_size) == 0) {
+            m_flags.set(FLAG_LOCK, true);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+void xmrig::VirtualMemory::freeLargePagesMemory()
+{
+    if (m_flags.test(FLAG_LOCK)) {
+        munlock(m_scratchpad, m_size);
+    }
+
+    freeLargePagesMemory(m_scratchpad, m_size);
 }

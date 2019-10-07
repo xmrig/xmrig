@@ -5,7 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,56 +24,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIG_H
-#define XMRIG_CONFIG_H
+#ifndef XMRIG_IMEMORYPOOL_H
+#define XMRIG_IMEMORYPOOL_H
 
 
 #include <cstdint>
 
 
-#include "backend/cpu/CpuConfig.h"
-#include "base/kernel/config/BaseConfig.h"
-#include "base/tools/Object.h"
-#include "rapidjson/fwd.h"
-
-
 namespace xmrig {
 
 
-class ConfigPrivate;
-class IThread;
-class RxConfig;
-class OclConfig;
-
-
-class Config : public BaseConfig
+class IMemoryPool
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(Config);
+    virtual ~IMemoryPool() = default;
 
-    Config();
-    ~Config() override;
-
-    const CpuConfig &cpu() const;
-
-#   ifdef XMRIG_FEATURE_OPENCL
-    const OclConfig &cl() const;
-#   endif
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    const RxConfig &rx() const;
-#   endif
-
-    bool isShouldSave() const;
-    bool read(const IJsonReader &reader, const char *fileName) override;
-    void getJSON(rapidjson::Document &doc) const override;
-
-private:
-    ConfigPrivate *d_ptr;
+    virtual bool isHugePages(uint32_t node) const       = 0;
+    virtual uint8_t *get(size_t size, uint32_t node)    = 0;
+    virtual void release(uint32_t node)                 = 0;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_CONFIG_H */
+
+#endif /* XMRIG_IMEMORYPOOL_H */
