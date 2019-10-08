@@ -26,11 +26,12 @@
 #define XMRIG_CONFIG_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 #include "backend/cpu/CpuConfig.h"
 #include "base/kernel/config/BaseConfig.h"
+#include "base/tools/Object.h"
 #include "rapidjson/fwd.h"
 
 
@@ -46,6 +47,8 @@ class OclConfig;
 class Config : public BaseConfig
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(Config);
+
     Config();
     ~Config() override;
 

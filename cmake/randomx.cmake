@@ -70,7 +70,7 @@ if (WITH_RANDOMX)
     endif()
 
     if (WITH_HWLOC)
-        list(APPEND SOURCES_CRYPTO
+        list(APPEND HEADERS_CRYPTO
              src/crypto/rx/RxNUMAStorage.h
             )
 

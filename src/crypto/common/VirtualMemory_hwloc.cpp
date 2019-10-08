@@ -5,7 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -23,78 +25,32 @@
  */
 
 
-#include "core/Controller.h"
-#include "backend/cpu/Cpu.h"
-#include "core/config/Config.h"
-#include "core/Miner.h"
 #include "crypto/common/VirtualMemory.h"
-#include "net/Network.h"
+#include "backend/cpu/Cpu.h"
+#include "backend/cpu/platform/HwlocCpuInfo.h"
+#include "base/io/log/Log.h"
 
 
-#include <cassert>
+#include <hwloc.h>
 
 
-xmrig::Controller::Controller(Process *process) :
-    Base(process)
+uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
 {
-}
+    if (affinity < 0 || Cpu::info()->nodes() < 2) {
+        return 0;
+    }
 
+    auto cpu       = static_cast<HwlocCpuInfo *>(Cpu::info());
+    hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(cpu->topology(), static_cast<unsigned>(affinity));
 
-xmrig::Controller::~Controller()
-{
-    delete m_network;
+    char *buffer;
+    hwloc_bitmap_asprintf(&buffer, pu->cpuset);
 
-    VirtualMemory::destroy();
-}
+    if (pu == nullptr || !cpu->membind(pu->nodeset)) {
+        LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory\"", affinity);
 
+        return 0;
+    }
 
-int xmrig::Controller::init()
-{
-    Base::init();
-
-    VirtualMemory::init(config()->cpu().memPoolSize(), config()->cpu().isHugePages());
-
-    m_network = new Network(this);
-
-    return 0;
-}
-
-
-void xmrig::Controller::start()
-{
-    Base::start();
-
-    m_miner = new Miner(this);
-
-    network()->connect();
-}
-
-
-void xmrig::Controller::stop()
-{
-    Base::stop();
-
-    delete m_network;
-    m_network = nullptr;
-
-    m_miner->stop();
-
-    delete m_miner;
-    m_miner = nullptr;
-}
-
-
-xmrig::Miner *xmrig::Controller::miner() const
-{
-    assert(m_miner != nullptr);
-
-    return m_miner;
-}
-
-
-xmrig::Network *xmrig::Controller::network() const
-{
-    assert(m_network != nullptr);
-
-    return m_network;
+    return hwloc_bitmap_first(pu->nodeset);
 }

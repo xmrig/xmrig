@@ -5,7 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,79 +24,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "core/Controller.h"
-#include "backend/cpu/Cpu.h"
-#include "core/config/Config.h"
-#include "core/Miner.h"
-#include "crypto/common/VirtualMemory.h"
-#include "net/Network.h"
+#ifndef XMRIG_NUMAMEMORYPOOL_H
+#define XMRIG_NUMAMEMORYPOOL_H
 
 
-#include <cassert>
+#include "backend/common/interfaces/IMemoryPool.h"
+#include "base/tools/Object.h"
 
 
-xmrig::Controller::Controller(Process *process) :
-    Base(process)
+#include <map>
+
+
+namespace xmrig {
+
+
+class IMemoryPool;
+
+
+class NUMAMemoryPool : public IMemoryPool
 {
-}
+public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(NUMAMemoryPool)
+
+    NUMAMemoryPool(size_t size, bool hugePages);
+    ~NUMAMemoryPool() override;
+
+protected:
+    bool isHugePages(uint32_t node) const override;
+    uint8_t *get(size_t size, uint32_t node) override;
+    void release(uint32_t node) override;
+
+private:
+    IMemoryPool *get(uint32_t node) const;
+    IMemoryPool *getOrCreate(uint32_t node) const;
+
+    bool m_hugePages        = true;
+    size_t m_nodeSize       = 0;
+    size_t m_size           = 0;
+    mutable std::map<uint32_t, IMemoryPool *> m_map;
+};
 
 
-xmrig::Controller::~Controller()
-{
-    delete m_network;
-
-    VirtualMemory::destroy();
-}
+} /* namespace xmrig */
 
 
-int xmrig::Controller::init()
-{
-    Base::init();
 
-    VirtualMemory::init(config()->cpu().memPoolSize(), config()->cpu().isHugePages());
-
-    m_network = new Network(this);
-
-    return 0;
-}
-
-
-void xmrig::Controller::start()
-{
-    Base::start();
-
-    m_miner = new Miner(this);
-
-    network()->connect();
-}
-
-
-void xmrig::Controller::stop()
-{
-    Base::stop();
-
-    delete m_network;
-    m_network = nullptr;
-
-    m_miner->stop();
-
-    delete m_miner;
-    m_miner = nullptr;
-}
-
-
-xmrig::Miner *xmrig::Controller::miner() const
-{
-    assert(m_miner != nullptr);
-
-    return m_miner;
-}
-
-
-xmrig::Network *xmrig::Controller::network() const
-{
-    assert(m_network != nullptr);
-
-    return m_network;
-}
+#endif /* XMRIG_NUMAMEMORYPOOL_H */

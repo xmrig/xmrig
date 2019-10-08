@@ -55,6 +55,7 @@ set(HEADERS
    )
 
 set(HEADERS_CRYPTO
+    src/backend/common/interfaces/IMemoryPool.h
     src/crypto/cn/asm/CryptonightR_template.h
     src/crypto/cn/c_blake256.h
     src/crypto/cn/c_groestl.h
@@ -73,6 +74,7 @@ set(HEADERS_CRYPTO
     src/crypto/common/Algorithm.h
     src/crypto/common/Coin.h
     src/crypto/common/keccak.h
+    src/crypto/common/MemoryPool.h
     src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
@@ -111,9 +113,21 @@ set(SOURCES_CRYPTO
     src/crypto/common/Algorithm.cpp
     src/crypto/common/Coin.cpp
     src/crypto/common/keccak.cpp
+    src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
    )
+
+if (WITH_HWLOC)
+    list(APPEND HEADERS_CRYPTO
+        src/crypto/common/NUMAMemoryPool.h
+        )
+
+    list(APPEND SOURCES_CRYPTO
+        src/crypto/common/NUMAMemoryPool.cpp
+        src/crypto/common/VirtualMemory_hwloc.cpp
+        )
+endif()
 
 if (WIN32)
     set(SOURCES_OS
