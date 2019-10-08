@@ -86,8 +86,7 @@ xmrig::VirtualMemory::~VirtualMemory()
         std::lock_guard<std::mutex> lock(mutex);
         pool->release(m_node);
     }
-
-    if (isHugePages()) {
+    else if (isHugePages()) {
         freeLargePagesMemory();
     }
     else {
