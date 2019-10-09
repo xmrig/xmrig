@@ -49,11 +49,19 @@ public:
     inline const T &get(const Algorithm &algo, bool strict = false) const              { return get(profileName(algo, strict)); }
     inline void disable(const Algorithm &algo)                                         { m_disabled.insert(algo); }
 
-    inline void move(const char *profile, T &&threads)
+    inline size_t move(const char *profile, T &&threads)
     {
+        if (has(profile)) {
+            return 0;
+        }
+
+        const size_t count = threads.count();
+
         if (!threads.isEmpty()) {
             m_profiles.insert({ profile, std::move(threads) });
         }
+
+        return count;
     }
 
     const T &get(const String &profileName) const;

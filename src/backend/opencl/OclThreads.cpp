@@ -44,6 +44,24 @@ xmrig::OclThreads::OclThreads(const rapidjson::Value &value)
 }
 
 
+xmrig::OclThreads::OclThreads(const std::vector<OclDevice> &devices, const Algorithm &algorithm)
+{
+    for (const OclDevice &device : devices) {
+        device.generate(algorithm, *this);
+    }
+}
+
+
+bool xmrig::OclThreads::isEqual(const OclThreads &other) const
+{
+    if (isEmpty() && other.isEmpty()) {
+        return true;
+    }
+
+    return count() == other.count() && std::equal(m_data.begin(), m_data.end(), other.m_data.begin());
+}
+
+
 rapidjson::Value xmrig::OclThreads::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
