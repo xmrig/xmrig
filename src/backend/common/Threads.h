@@ -48,6 +48,7 @@ public:
     inline bool isExist(const Algorithm &algo) const                                   { return isDisabled(algo) || m_aliases.count(algo) > 0 || has(algo.shortName()); }
     inline const T &get(const Algorithm &algo, bool strict = false) const              { return get(profileName(algo, strict)); }
     inline void disable(const Algorithm &algo)                                         { m_disabled.insert(algo); }
+    inline void setAlias(const Algorithm &algo, const char *profile)                   { m_aliases[algo] = profile; }
 
     inline size_t move(const char *profile, T &&threads)
     {

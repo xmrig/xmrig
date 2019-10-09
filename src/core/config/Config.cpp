@@ -50,8 +50,7 @@
 
 namespace xmrig {
 
-static const char *kCPU                  = "cpu";
-static constexpr const uint32_t kVersion = 1;
+static const char *kCPU     = "cpu";
 
 #ifdef XMRIG_ALGO_RANDOMX
 static const char *kRandomX = "randomx";
@@ -119,10 +118,6 @@ bool xmrig::Config::isShouldSave() const
         return false;
     }
 
-    if (version() < kVersion) {
-        return true;
-    }
-
 #   ifdef XMRIG_FEATURE_OPENCL
     if (cl().isShouldSave()) {
         return true;
@@ -139,7 +134,7 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    d_ptr->cpu.read(reader.getValue(kCPU), version());
+    d_ptr->cpu.read(reader.getValue(kCPU));
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (!d_ptr->rx.read(reader.getValue(kRandomX))) {
@@ -170,7 +165,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("api",               api, allocator);
     doc.AddMember("http",              m_http.toJSON(doc), allocator);
     doc.AddMember("autosave",          isAutoSave(), allocator);
-    doc.AddMember("version",           kVersion, allocator);
     doc.AddMember("background",        isBackground(), allocator);
     doc.AddMember("colors",            Log::colors, allocator);
 

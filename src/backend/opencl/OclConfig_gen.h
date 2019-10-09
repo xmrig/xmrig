@@ -38,7 +38,7 @@ namespace xmrig {
 
 static inline size_t generate(const char *key, Threads<OclThreads> &threads, const Algorithm &algorithm, const std::vector<OclDevice> &devices)
 {
-    if (threads.isExist(algorithm)) {
+    if (threads.isExist(algorithm) || threads.has(key)) {
         return 0;
     }
 
