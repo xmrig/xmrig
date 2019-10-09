@@ -38,7 +38,7 @@ The preferred way to configure the miner is the [JSON config file](src/config.js
                                   cn-lite/1,
                                   cn-heavy/xhv, cn-heavy/tube, cn-heavy/0,
                                   cn-pico,
-                                  rx/wow, rx/loki
+                                  rx/wow, rx/loki, rx/arq
   -o, --url=URL                 URL of mining server
   -O, --userpass=U:P            username:password pair for mining server
   -u, --user=USERNAME           username for mining server

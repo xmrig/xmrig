@@ -45,7 +45,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
 
     case Algorithm::RX_LOKI:
         return &RandomX_LokiConfig;
-        break;
+
+    case Algorithm::RX_ARQ:
+        return &RandomX_ArqmaConfig;
 
     default:
         break;
