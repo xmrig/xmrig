@@ -48,8 +48,9 @@ public:
 
     bool isHwAES() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    size_t memPoolSize() const;
     std::vector<CpuLaunchData> get(const Miner *miner, const Algorithm &algorithm) const;
-    void read(const rapidjson::Value &value, uint32_t version);
+    void read(const rapidjson::Value &value);
 
     inline bool isEnabled() const                       { return m_enabled; }
     inline bool isHugePages() const                     { return m_hugePages; }
@@ -61,8 +62,8 @@ public:
 
 private:
     void generate();
-    void generateArgon2();
-    void setAesMode(const rapidjson::Value &aesMode);
+    void setAesMode(const rapidjson::Value &value);
+    void setMemoryPool(const rapidjson::Value &value);
 
     inline void setPriority(int priority)   { m_priority = (priority >= -1 && priority <= 5) ? priority : -1; }
 
@@ -71,6 +72,7 @@ private:
     bool m_enabled       = true;
     bool m_hugePages     = true;
     bool m_shouldSave    = false;
+    int m_memoryPool     = 0;
     int m_priority       = -1;
     String m_argon2Impl;
     Threads<CpuThreads> m_threads;

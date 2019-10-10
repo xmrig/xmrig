@@ -26,10 +26,13 @@
 #define XMRIG_PLATFORM_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 #include "base/tools/String.h"
+
+
+namespace xmrig {
 
 
 class Platform
@@ -56,8 +59,11 @@ public:
 private:
     static char *createUserAgent();
 
-    static xmrig::String m_userAgent;
+    static String m_userAgent;
 };
+
+
+} // namespace xmrig
 
 
 #endif /* XMRIG_PLATFORM_H */

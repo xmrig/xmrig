@@ -908,8 +908,14 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
             LOG_ERR("[%s] connect error: \"%s\"", client->url(), uv_strerror(status));
         }
 
+        if (client->state() == ReconnectingState) {
+            return;
+        }
+
         if (client->state() != ConnectingState) {
-            LOG_ERR("[%s] connect error: \"invalid state: %d\"", client->url(), client->state());
+            if (!client->isQuiet()) {
+                LOG_ERR("[%s] connect error: \"invalid state: %d\"", client->url(), client->state());
+            }
 
             return;
         }

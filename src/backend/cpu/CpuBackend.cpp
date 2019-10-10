@@ -111,13 +111,13 @@ public:
             return;
         }
 
-        LOG_INFO("%s" GREEN_BOLD(" READY") " threads %s%zu/%zu (%zu)" CLEAR " huge pages %s%zu/%zu %1.0f%%" CLEAR " memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
+        LOG_INFO("%s" GREEN_BOLD(" READY") " threads %s%zu/%zu (%zu)" CLEAR " huge pages %s%1.0f%% %zu/%zu" CLEAR " memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
                  tag,
                  m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
                  m_started, m_threads, m_ways,
                  (m_hugePages == m_pages ? GREEN_BOLD_S : (m_hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
-                 m_hugePages, m_pages,
                  m_hugePages == 0 ? 0.0 : static_cast<double>(m_hugePages) / m_pages * 100.0,
+                 m_hugePages, m_pages,
                  memory() / 1024,
                  Chrono::steadyMSecs() - m_ts
                  );

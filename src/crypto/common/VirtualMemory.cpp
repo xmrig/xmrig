@@ -25,61 +25,102 @@
  */
 
 
+#include "crypto/common/VirtualMemory.h"
+#include "backend/cpu/Cpu.h"
+#include "base/io/log/Log.h"
+#include "crypto/common/MemoryPool.h"
+#include "crypto/common/portable/mm_malloc.h"
+
+
 #ifdef XMRIG_FEATURE_HWLOC
-#   include <hwloc.h>
-#   include "backend/cpu/platform/HwlocCpuInfo.h"
-#
-#   if HWLOC_API_VERSION < 0x00010b00
-#       define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
-#   endif
+#   include "crypto/common/NUMAMemoryPool.h"
 #endif
 
 
-#include "base/io/log/Log.h"
-#include "crypto/common/VirtualMemory.h"
+#include <cinttypes>
+#include <mutex>
 
 
-uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
+namespace xmrig {
+
+static IMemoryPool *pool = nullptr;
+static std::mutex mutex;
+
+} // namespace xmrig
+
+
+xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool usePool, uint32_t node, size_t alignSize) :
+    m_size(align(size)),
+    m_node(node)
 {
-#   ifdef XMRIG_FEATURE_HWLOC
-    if (affinity < 0 || !HwlocCpuInfo::has(HwlocCpuInfo::SET_THISTHREAD_MEMBIND)) {
-        return 0;
-    }
+    if (usePool) {
+        std::lock_guard<std::mutex> lock(mutex);
+        if (hugePages && !pool->isHugePages(node) && allocateLargePagesMemory()) {
+            return;
+        }
 
-    hwloc_topology_t topology;
-    hwloc_topology_init(&topology);
-    hwloc_topology_load(topology);
+        m_scratchpad = pool->get(m_size, node);
+        if (m_scratchpad) {
+            m_flags.set(FLAG_HUGEPAGES, pool->isHugePages(node));
+            m_flags.set(FLAG_EXTERNAL,  true);
 
-    const unsigned puId = static_cast<unsigned>(affinity);
-
-    hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(topology, puId);
-
-#   if HWLOC_API_VERSION >= 0x20000
-    if (pu == nullptr || hwloc_set_membind(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) < 0) {
-#   else
-    if (pu == nullptr || hwloc_set_membind_nodeset(topology, pu->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) < 0) {
-#   endif
-        LOG_WARN("CPU #%02u warning: \"can't bind memory\"", puId);
-    }
-
-    uint32_t nodeId = 0;
-
-    if (pu) {
-        hwloc_obj_t node = nullptr;
-
-        while ((node = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
-          if (hwloc_bitmap_intersects(node->cpuset, pu->cpuset)) {
-              nodeId = node->os_index;
-
-              break;
-          }
+            return;
         }
     }
 
-    hwloc_topology_destroy(topology);
+    if (hugePages && allocateLargePagesMemory()) {
+        return;
+    }
 
-    return nodeId;
-#   else
+    m_scratchpad = static_cast<uint8_t*>(_mm_malloc(m_size, alignSize));
+}
+
+
+xmrig::VirtualMemory::~VirtualMemory()
+{
+    if (!m_scratchpad) {
+        return;
+    }
+
+    if (m_flags.test(FLAG_EXTERNAL)) {
+        std::lock_guard<std::mutex> lock(mutex);
+        pool->release(m_node);
+    }
+    else if (isHugePages()) {
+        freeLargePagesMemory();
+    }
+    else {
+        _mm_free(m_scratchpad);
+    }
+}
+
+
+#ifndef XMRIG_FEATURE_HWLOC
+uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t)
+{
     return 0;
+}
+#endif
+
+
+void xmrig::VirtualMemory::destroy()
+{
+    delete pool;
+}
+
+
+void xmrig::VirtualMemory::init(size_t poolSize, bool hugePages)
+{
+    if (!pool) {
+        osInit();
+    }
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    if (Cpu::info()->nodes() > 1) {
+        pool = new NUMAMemoryPool(align(poolSize, Cpu::info()->nodes()), hugePages);
+    } else
 #   endif
+    {
+        pool = new MemoryPool(poolSize, hugePages);
+    }
 }

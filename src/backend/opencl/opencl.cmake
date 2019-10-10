@@ -13,6 +13,7 @@ if (WITH_OPENCL)
         src/backend/opencl/OclBackend.h
         src/backend/opencl/OclCache.h
         src/backend/opencl/OclConfig.h
+        src/backend/opencl/OclConfig_gen.h
         src/backend/opencl/OclGenerator.h
         src/backend/opencl/OclLaunchData.h
         src/backend/opencl/OclThread.h

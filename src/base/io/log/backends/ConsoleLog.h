@@ -51,10 +51,8 @@ protected:
 
 private:
     bool isSupported() const;
-    bool isWritable() const;
 
-    uv_stream_t *m_stream = nullptr;
-    uv_tty_t *m_tty       = nullptr;
+    uv_tty_t *m_tty = nullptr;
 };
 
 

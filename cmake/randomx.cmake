@@ -4,9 +4,12 @@ if (WITH_RANDOMX)
     list(APPEND HEADERS_CRYPTO
         src/crypto/rx/Rx.h
         src/crypto/rx/RxAlgo.h
+        src/crypto/rx/RxBasicStorage.h
         src/crypto/rx/RxCache.h
         src/crypto/rx/RxConfig.h
         src/crypto/rx/RxDataset.h
+        src/crypto/rx/RxQueue.h
+        src/crypto/rx/RxSeed.h
         src/crypto/rx/RxVm.h
     )
 
@@ -32,9 +35,11 @@ if (WITH_RANDOMX)
         src/crypto/randomx/vm_interpreted.cpp
         src/crypto/rx/Rx.cpp
         src/crypto/rx/RxAlgo.cpp
+        src/crypto/rx/RxBasicStorage.cpp
         src/crypto/rx/RxCache.cpp
         src/crypto/rx/RxConfig.cpp
         src/crypto/rx/RxDataset.cpp
+        src/crypto/rx/RxQueue.cpp
         src/crypto/rx/RxVm.cpp
     )
 
@@ -62,6 +67,21 @@ if (WITH_RANDOMX)
 
     if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         set_source_files_properties(src/crypto/randomx/jit_compiler_x86.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-const-variable)
+    endif()
+
+    if (WITH_HWLOC)
+        list(APPEND HEADERS_CRYPTO
+             src/crypto/rx/RxNUMAStorage.h
+            )
+
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/rx/RxConfig_hwloc.cpp
+             src/crypto/rx/RxNUMAStorage.cpp
+            )
+    else()
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/rx/RxConfig_basic.cpp
+            )
     endif()
 else()
     remove_definitions(/DXMRIG_ALGO_RANDOMX)
