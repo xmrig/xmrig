@@ -43,31 +43,6 @@ static const char *kPriority            = "priority";
 static const char *kAsm = "asm";
 #endif
 
-<<<<<<< HEAD
-#ifdef XMRIG_ALGO_CN_GPU
-static const char *kCnGPU = "cn/gpu";
-#endif
-
-#ifdef XMRIG_ALGO_CN_LITE
-static const char *kCnLite = "cn-lite";
-#endif
-
-#ifdef XMRIG_ALGO_CN_HEAVY
-static const char *kCnHeavy = "cn-heavy";
-#endif
-
-#ifdef XMRIG_ALGO_CN_PICO
-static const char *kCnPico = "cn-pico";
-#endif
-
-#ifdef XMRIG_ALGO_RANDOMX
-static const char *kRx    = "rx";
-static const char *kRxWOW = "rx/wow";
-static const char *kDefyX = "defyx";
-#endif
-
-=======
->>>>>>> 72b7d934f615de1e17cf14453a8776e8ce0ad937
 #ifdef XMRIG_ALGO_ARGON2
 static const char *kArgon2Impl = "argon2-impl";
 #endif
