@@ -122,7 +122,7 @@ void xmrig::OclRxBaseRunner::set(const Job &job, uint8_t *blob)
         m_seed = job.seed();
 
         auto dataset = Rx::dataset(job, 0);
-        enqueueWriteBuffer(m_dataset, CL_TRUE, 0, dataset->size(), dataset->raw());
+        enqueueWriteBuffer(m_dataset, CL_TRUE, 0, RxDataset::maxSize(), dataset->raw());
     }
 
     if (job.size() < Job::kMaxBlobSize) {

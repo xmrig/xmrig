@@ -46,7 +46,6 @@
 namespace xmrig {
 
 
-std::vector<uint32_t> HwlocCpuInfo::m_nodeIndexes;
 uint32_t HwlocCpuInfo::m_features = 0;
 
 
@@ -185,11 +184,11 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
             m_features |= SET_THISTHREAD_MEMBIND;
         }
 
-        m_nodeIndexes.reserve(m_nodes);
+        m_nodeset.reserve(m_nodes);
         hwloc_obj_t node = nullptr;
 
         while ((node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
-            m_nodeIndexes.emplace_back(node->os_index);
+            m_nodeset.emplace_back(node->os_index);
         }
     }
 }
@@ -198,6 +197,20 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
 xmrig::HwlocCpuInfo::~HwlocCpuInfo()
 {
     hwloc_topology_destroy(m_topology);
+}
+
+
+bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
+{
+    if (!hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
+        return false;
+    }
+
+#   if HWLOC_API_VERSION >= 0x20000
+    return hwloc_set_membind(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0;
+#   else
+    return hwloc_set_membind_nodeset(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0;
+#   endif
 }
 
 

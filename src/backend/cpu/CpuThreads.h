@@ -38,7 +38,7 @@ namespace xmrig {
 class CpuThreads
 {
 public:
-    inline CpuThreads() {}
+    inline CpuThreads() = default;
     inline CpuThreads(size_t count) : m_data(count) {}
 
     CpuThreads(const rapidjson::Value &value);
@@ -51,6 +51,10 @@ public:
     inline void add(int64_t affinity, uint32_t intensity)   { add(CpuThread(affinity, intensity)); }
     inline void reserve(size_t capacity)                    { m_data.reserve(capacity); }
 
+    inline bool operator!=(const CpuThreads &other) const   { return !isEqual(other); }
+    inline bool operator==(const CpuThreads &other) const   { return isEqual(other); }
+
+    bool isEqual(const CpuThreads &other) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 private:

@@ -55,8 +55,10 @@ public:
     inline bool isJIT() const               { return m_flags & 8; }
     inline const Buffer &seed() const       { return m_seed; }
     inline randomx_cache *get() const       { return m_cache; }
+    inline size_t size() const              { return maxSize(); }
 
     bool init(const Buffer &seed);
+    std::pair<uint32_t, uint32_t> hugePages() const;
 
     static inline constexpr size_t maxSize() { return RANDOMX_CACHE_MAX_SIZE; }
 

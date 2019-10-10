@@ -98,7 +98,14 @@ elseif (APPLE)
 else()
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
-        src/base/kernel//Platform_unix.cpp
+        src/base/kernel/Platform_unix.cpp
+        )
+endif()
+
+
+if (WITH_HWLOC)
+    list(APPEND SOURCES_OS
+        src/base/kernel/Platform_hwloc.cpp
         )
 endif()
 

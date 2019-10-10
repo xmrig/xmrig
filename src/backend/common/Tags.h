@@ -38,6 +38,11 @@ const char *ocl_tag();
 #endif
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+const char *rx_tag();
+#endif
+
+
 } // namespace xmrig
 
 

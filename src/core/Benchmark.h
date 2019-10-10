@@ -35,6 +35,7 @@ class Benchmark : public IJobResultListener {
             RX_LOKI,       // "rx/loki"          RandomXL (Loki).
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
             DEFYX,         // "defyx             DefyX.
+            RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
             CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
             CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
             CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
@@ -51,6 +52,7 @@ class Benchmark : public IJobResultListener {
             Algorithm::RX_LOKI,
             Algorithm::RX_WOW,
             Algorithm::DEFYX,
+            Algorithm::RX_ARQ,
             Algorithm::CN_R,
             Algorithm::CN_GPU,
             Algorithm::CN_LITE_1,

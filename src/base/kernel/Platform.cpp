@@ -23,7 +23,10 @@
  */
 
 
-#include <string.h>
+#include "base/kernel/Platform.h"
+
+
+#include <cstring>
 #include <uv.h>
 
 
@@ -33,13 +36,14 @@
 #endif
 
 
-#include "Platform.h"
+namespace xmrig {
+
+String Platform::m_userAgent;
+
+} // namespace xmrig
 
 
-xmrig::String Platform::m_userAgent;
-
-
-void Platform::init(const char *userAgent)
+void xmrig::Platform::init(const char *userAgent)
 {
 #   ifdef XMRIG_FEATURE_TLS
     SSL_library_init();

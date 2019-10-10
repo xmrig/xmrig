@@ -47,7 +47,6 @@ xmrig::ConsoleLog::ConsoleLog()
     }
 
     uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
-    m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
 
 #   ifdef WIN32
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
@@ -68,25 +67,14 @@ xmrig::ConsoleLog::~ConsoleLog()
 }
 
 
-void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool colors)
+void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t, bool colors)
 {
     if (!m_tty || Log::colors != colors) {
         return;
     }
 
-#   ifdef _WIN32
-    uv_buf_t buf = uv_buf_init(const_cast<char *>(line), static_cast<unsigned int>(size));
-#   else
-    uv_buf_t buf = uv_buf_init(const_cast<char *>(line), size);
-#   endif
-
-    if (!isWritable()) {
-        fputs(line, stdout);
-        fflush(stdout);
-    }
-    else {
-        uv_try_write(m_stream, &buf, 1);
-    }
+    fputs(line, stdout);
+    fflush(stdout);
 }
 
 
@@ -94,14 +82,4 @@ bool xmrig::ConsoleLog::isSupported() const
 {
     const uv_handle_type type = uv_guess_handle(1);
     return type == UV_TTY || type == UV_NAMED_PIPE;
-}
-
-
-bool xmrig::ConsoleLog::isWritable() const
-{
-    if (!m_stream || uv_is_writable(m_stream) != 1) {
-        return false;
-    }
-
-    return isSupported();
 }

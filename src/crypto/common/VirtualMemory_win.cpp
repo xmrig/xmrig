@@ -36,6 +36,12 @@
 #include "crypto/common/VirtualMemory.h"
 
 
+namespace xmrig {
+
+
+static bool hugepagesAvailable = false;
+
+
 /*****************************************************************
 SetLockPagesPrivilege: a function to obtain or
 release the privilege of locking physical pages.
@@ -83,7 +89,7 @@ static BOOL SetLockPagesPrivilege() {
 static LSA_UNICODE_STRING StringToLsaUnicodeString(LPCTSTR string) {
     LSA_UNICODE_STRING lsaString;
 
-    DWORD dwLen = (DWORD) wcslen(string);
+    const auto dwLen = (DWORD) wcslen(string);
     lsaString.Buffer = (LPWSTR) string;
     lsaString.Length = (USHORT)((dwLen) * sizeof(WCHAR));
     lsaString.MaximumLength = (USHORT)((dwLen + 1) * sizeof(WCHAR));
@@ -141,37 +147,12 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-int xmrig::VirtualMemory::m_globalFlags = 0;
+} // namespace xmrig
 
 
-xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, size_t align) :
-    m_size(VirtualMemory::align(size))
+bool xmrig::VirtualMemory::isHugepagesAvailable()
 {
-    if (hugePages) {
-        m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
-        if (m_scratchpad) {
-            m_flags |= HUGEPAGES;
-
-            return;
-        }
-    }
-
-    m_scratchpad = static_cast<uint8_t*>(_mm_malloc(m_size, align));
-}
-
-
-xmrig::VirtualMemory::~VirtualMemory()
-{
-    if (!m_scratchpad) {
-        return;
-    }
-
-    if (isHugePages()) {
-        freeLargePagesMemory(m_scratchpad, m_size);
-    }
-    else {
-        _mm_free(m_scratchpad);
-    }
+    return hugepagesAvailable;
 }
 
 
@@ -206,20 +187,6 @@ void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t)
 }
 
 
-void xmrig::VirtualMemory::init(bool hugePages)
-{
-    if (!hugePages) {
-        return;
-    }
-
-    m_globalFlags = HUGEPAGES;
-
-    if (TrySetLockPagesPrivilege()) {
-        m_globalFlags |= HUGEPAGES_AVAILABLE;
-    }
-}
-
-
 void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
 {
     DWORD oldProtect;
@@ -231,4 +198,29 @@ void xmrig::VirtualMemory::unprotectExecutableMemory(void *p, size_t size)
 {
     DWORD oldProtect;
     VirtualProtect(p, size, PAGE_EXECUTE_READWRITE, &oldProtect);
+}
+
+
+void xmrig::VirtualMemory::osInit()
+{
+    hugepagesAvailable = TrySetLockPagesPrivilege();
+}
+
+
+bool xmrig::VirtualMemory::allocateLargePagesMemory()
+{
+    m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
+    if (m_scratchpad) {
+        m_flags.set(FLAG_HUGEPAGES, true);
+
+        return true;
+    }
+
+    return false;
+}
+
+
+void xmrig::VirtualMemory::freeLargePagesMemory()
+{
+    freeLargePagesMemory(m_scratchpad, m_size);
 }

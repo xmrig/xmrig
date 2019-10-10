@@ -28,8 +28,12 @@
 #define XMRIG_VIRTUALMEMORY_H
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include "base/tools/Object.h"
+
+
+#include <bitset>
+#include <cstddef>
+#include <cstdint>
 #include <utility>
 
 
@@ -39,43 +43,50 @@ namespace xmrig {
 class VirtualMemory
 {
 public:
-    inline VirtualMemory() {}
-    VirtualMemory(size_t size, bool hugePages = true, size_t align = 64);
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(VirtualMemory)
+
+    VirtualMemory(size_t size, bool hugePages, bool usePool, uint32_t node = 0, size_t alignSize = 64);
     ~VirtualMemory();
 
-    inline bool isHugePages() const     { return m_flags & HUGEPAGES; }
+    inline bool isHugePages() const     { return m_flags.test(FLAG_HUGEPAGES); }
     inline size_t size() const          { return m_size; }
     inline uint8_t *scratchpad() const  { return m_scratchpad; }
 
     inline std::pair<size_t, size_t> hugePages() const
     {
-        return std::pair<size_t, size_t>(isHugePages() ? (align(size()) / 2097152) : 0, align(size()) / 2097152);
+        return { isHugePages() ? (align(size()) / 2097152) : 0, align(size()) / 2097152 };
     }
 
+    static bool isHugepagesAvailable();
     static uint32_t bindToNUMANode(int64_t affinity);
     static void *allocateExecutableMemory(size_t size);
     static void *allocateLargePagesMemory(size_t size);
+    static void destroy();
     static void flushInstructionCache(void *p, size_t size);
     static void freeLargePagesMemory(void *p, size_t size);
-    static void init(bool hugePages);
+    static void init(size_t poolSize, bool hugePages);
     static void protectExecutableMemory(void *p, size_t size);
     static void unprotectExecutableMemory(void *p, size_t size);
 
-    static inline bool isHugepagesAvailable()                                { return (m_globalFlags & HUGEPAGES_AVAILABLE) != 0; }
     static inline constexpr size_t align(size_t pos, size_t align = 2097152) { return ((pos - 1) / align + 1) * align; }
 
 private:
     enum Flags {
-        HUGEPAGES_AVAILABLE = 1,
-        HUGEPAGES           = 2,
-        LOCK                = 4
+        FLAG_HUGEPAGES,
+        FLAG_LOCK,
+        FLAG_EXTERNAL,
+        FLAG_MAX
     };
 
-    static int m_globalFlags;
+    static void osInit();
 
-    int m_flags             = 0;
-    size_t m_size           = 0;
-    uint8_t *m_scratchpad   = nullptr;
+    bool allocateLargePagesMemory();
+    void freeLargePagesMemory();
+
+    const size_t m_size;
+    const uint32_t m_node;
+    std::bitset<FLAG_MAX> m_flags;
+    uint8_t *m_scratchpad = nullptr;
 };
 
 

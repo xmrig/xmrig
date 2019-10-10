@@ -24,21 +24,18 @@
 
 
 #include "backend/opencl/OclConfig.h"
+#include "backend/opencl/OclConfig_gen.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
 #include "rapidjson/document.h"
 
 
-#include <algorithm>
-
-
 namespace xmrig {
+
 
 static const char *kAMD         = "AMD";
 static const char *kCache       = "cache";
-static const char *kCn          = "cn";
-static const char *kCn2         = "cn/2";
 static const char *kDevicesHint = "devices-hint";
 static const char *kEnabled     = "enabled";
 static const char *kINTEL       = "INTEL";
@@ -47,67 +44,7 @@ static const char *kNVIDIA      = "NVIDIA";
 static const char *kPlatform    = "platform";
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-static const char *kCnGPU = "cn/gpu";
-#endif
-
-#ifdef XMRIG_ALGO_CN_LITE
-static const char *kCnLite = "cn-lite";
-#endif
-
-#ifdef XMRIG_ALGO_CN_HEAVY
-static const char *kCnHeavy = "cn-heavy";
-#endif
-
-#ifdef XMRIG_ALGO_CN_PICO
-static const char *kCnPico = "cn-pico";
-#endif
-
-#ifdef XMRIG_ALGO_RANDOMX
-static const char *kRx    = "rx";
-static const char *kRxWOW = "rx/wow";
-#endif
-
-#ifdef XMRIG_ALGO_ARGON2
-//static const char *kArgon2     = "argon2";
-#endif
-
-
 extern template class Threads<OclThreads>;
-
-
-static size_t generate(const char *key, Threads<OclThreads> &threads, const Algorithm &algorithm, const std::vector<OclDevice> &devices)
-{
-    if (threads.has(key) || threads.isExist(algorithm)) {
-        return 0;
-    }
-
-    OclThreads profile;
-    for (const OclDevice &device : devices) {
-        device.generate(algorithm, profile);
-    }
-
-    const size_t count = profile.count();
-    threads.move(key, std::move(profile));
-
-    return count;
-}
-
-
-static inline std::vector<OclDevice> filterDevices(const std::vector<OclDevice> &devices, const std::vector<uint32_t> &hints)
-{
-    std::vector<OclDevice> out;
-    out.reserve(std::min(devices.size(), hints.size()));
-
-    for (const auto &device  : devices) {
-        auto it = std::find(hints.begin(), hints.end(), device.index());
-        if (it != hints.end()) {
-            out.emplace_back(device);
-        }
-    }
-
-    return out;
-}
 
 
 }
@@ -251,39 +188,11 @@ void xmrig::OclConfig::generate()
 
     size_t count = 0;
 
-    count += xmrig::generate(kCn, m_threads, Algorithm::CN_0, devices);
-    count += xmrig::generate(kCn2, m_threads, Algorithm::CN_2, devices);
-
-    if (!m_threads.isExist(Algorithm::CN_0)) {
-        m_threads.disable(Algorithm::CN_0);
-        count++;
-    }
-
-#   ifdef XMRIG_ALGO_CN_GPU
-    count += xmrig::generate(kCnGPU, m_threads, Algorithm::CN_GPU, devices);
-#   endif
-
-#   ifdef XMRIG_ALGO_CN_LITE
-    count += xmrig::generate(kCnLite, m_threads, Algorithm::CN_LITE_1, devices);
-
-    if (!m_threads.isExist(Algorithm::CN_LITE_0)) {
-        m_threads.disable(Algorithm::CN_LITE_0);
-        count++;
-    }
-#   endif
-
-#   ifdef XMRIG_ALGO_CN_HEAVY
-    count += xmrig::generate(kCnHeavy, m_threads, Algorithm::CN_HEAVY_0, devices);
-#   endif
-
-#   ifdef XMRIG_ALGO_CN_PICO
-    count += xmrig::generate(kCnPico, m_threads, Algorithm::CN_PICO_0, devices);
-#   endif
-
-#   ifdef XMRIG_ALGO_RANDOMX
-    count += xmrig::generate(kRx, m_threads, Algorithm::RX_0, devices);
-    count += xmrig::generate(kRxWOW, m_threads, Algorithm::RX_WOW, devices);
-#   endif
+    count += xmrig::generate<Algorithm::CN>(m_threads, devices);
+    count += xmrig::generate<Algorithm::CN_LITE>(m_threads, devices);
+    count += xmrig::generate<Algorithm::CN_HEAVY>(m_threads, devices);
+    count += xmrig::generate<Algorithm::CN_PICO>(m_threads, devices);
+    count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, devices);
 
     m_shouldSave = count > 0;
 }

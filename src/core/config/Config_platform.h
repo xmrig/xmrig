@@ -86,6 +86,7 @@ static const option options[] = {
     { "no-cpu",                0, nullptr, IConfig::CPUKey                },
     { "max-cpu-usage",         1, nullptr, IConfig::CPUMaxThreadsKey      },
     { "cpu-max-threads-hint",  1, nullptr, IConfig::CPUMaxThreadsKey      },
+    { "cpu-memory-pool",       1, nullptr, IConfig::MemoryPoolKey         },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },

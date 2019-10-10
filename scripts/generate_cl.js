@@ -59,6 +59,7 @@ function rx()
         'randomx_constants_monero.h',
         'randomx_constants_wow.h',
         'randomx_constants_loki.h',
+        'randomx_constants_arqma.h',
         'aes.cl',
         'blake2b.cl',
         'randomx_vm.cl',

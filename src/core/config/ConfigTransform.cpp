@@ -141,6 +141,10 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::CPUMaxThreadsKey: /* --cpu-max-threads-hint */
         return set(doc, kCpu, "max-threads-hint", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
+    case IConfig::MemoryPoolKey: /* --cpu-memory-pool */
+        return set(doc, kCpu, "memory-pool", static_cast<int64_t>(strtol(arg, nullptr, 10)));
+        break;
+
 #   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
         return set(doc, kCpu, "asm", arg);

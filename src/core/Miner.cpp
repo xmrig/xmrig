@@ -72,12 +72,8 @@ class MinerPrivate
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(MinerPrivate)
 
-    inline MinerPrivate(Controller *controller) : controller(controller)
-    {
-#       ifdef XMRIG_ALGO_RANDOMX
-        Rx::init();
-#       endif
-    }
+
+    inline MinerPrivate(Controller *controller) : controller(controller) {}
 
 
     inline ~MinerPrivate()
@@ -232,9 +228,9 @@ public:
 
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    bool initRX(IRxListener *listener)
+    inline bool initRX()
     {
-        return Rx::init(job, controller->config()->rx().threads(), controller->config()->cpu().isHugePages(), controller->config()->rx().isNUMA(), listener);
+        return Rx::init(job, controller->config()->rx(), controller->config()->cpu().isHugePages());
     }
 #   endif
 
@@ -261,6 +257,10 @@ public:
 xmrig::Miner::Miner(Controller *controller)
     : d_ptr(new MinerPrivate(controller))
 {
+#   ifdef XMRIG_ALGO_RANDOMX
+    Rx::init(this);
+#   endif
+
     controller->addListener(this);
 
 #   ifdef XMRIG_FEATURE_API
@@ -402,7 +402,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    const bool ready = d_ptr->initRX(this);
+    const bool ready = d_ptr->initRX();
 #   else
     constexpr const bool ready = true;
 #   endif
