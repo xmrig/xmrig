@@ -46,6 +46,7 @@ class BaseClient : public IClient
 public:
     BaseClient(int id, IClientListener *listener);
 
+protected:
     inline bool isEnabled() const override                     { return m_enabled; }
     inline const Job &job() const override                     { return m_job; }
     inline const Pool &pool() const override                   { return m_pool; }

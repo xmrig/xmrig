@@ -22,40 +22,19 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ICLIENTLISTENER_H
-#define XMRIG_ICLIENTLISTENER_H
+
+#include "base/net/stratum/SelfSelectClient.h"
+#include "base/net/stratum/Client.h"
 
 
-#include <cstdint>
-
-
-#include "rapidjson/fwd.h"
-
-
-namespace xmrig {
-
-
-class Algorithm;
-class IClient;
-class Job;
-class SubmitResult;
-
-
-class IClientListener
+xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener) :
+    m_listener(listener)
 {
-public:
-    virtual ~IClientListener() = default;
-
-    virtual void onClose(IClient *client, int failures)                                           = 0;
-    virtual void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params)   = 0;
-    virtual void onLogin(IClient *client, rapidjson::Document &doc, rapidjson::Value &params)     = 0;
-    virtual void onLoginSuccess(IClient *client)                                                  = 0;
-    virtual void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) = 0;
-    virtual void onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok)   = 0;
-};
+    m_client = new Client(id, agent, this);
+}
 
 
-} /* namespace xmrig */
-
-
-#endif // XMRIG_ICLIENTLISTENER_H
+xmrig::SelfSelectClient::~SelfSelectClient()
+{
+    delete m_client;
+}

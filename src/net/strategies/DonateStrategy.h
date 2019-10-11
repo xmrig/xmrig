@@ -91,7 +91,7 @@ private:
 
     inline State state() const { return m_state; }
 
-    Client *createProxy();
+    IClient *createProxy();
     void idle(double min, double max);
     void setAlgorithms(rapidjson::Document &doc, rapidjson::Value &params);
     void setJob(IClient *client, const Job &job);

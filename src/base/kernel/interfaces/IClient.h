@@ -26,7 +26,7 @@
 #define XMRIG_ICLIENT_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace xmrig {

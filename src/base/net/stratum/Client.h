@@ -40,10 +40,11 @@
 #include "base/net/stratum/SubmitResult.h"
 #include "base/net/tools/RecvBuf.h"
 #include "base/net/tools/Storage.h"
+#include "base/tools/Object.h"
 #include "crypto/common/Algorithm.h"
 
 
-typedef struct bio_st BIO;
+using BIO = struct bio_st;
 
 
 namespace xmrig {
@@ -56,6 +57,8 @@ class JobResult;
 class Client : public BaseClient, public IDnsListener, public ILineListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Client)
+
     constexpr static uint64_t kConnectTimeout  = 20 * 1000;
     constexpr static uint64_t kResponseTimeout = 20 * 1000;
 

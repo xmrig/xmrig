@@ -139,6 +139,7 @@ if (WITH_HTTP)
         src/base/net/http/HttpResponse.h
         src/base/net/http/HttpServer.h
         src/base/net/stratum/DaemonClient.h
+        src/base/net/stratum/SelfSelectClient.h
         src/base/net/tools/TcpServer.h
         )
 
@@ -154,6 +155,7 @@ if (WITH_HTTP)
         src/base/net/http/HttpResponse.cpp
         src/base/net/http/HttpServer.cpp
         src/base/net/stratum/DaemonClient.cpp
+        src/base/net/stratum/SelfSelectClient.cpp
         src/base/net/tools/TcpServer.cpp
         )
 

@@ -33,7 +33,15 @@
 #include "base/net/stratum/Pool.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
+#include "base/net/stratum/Client.h"
 #include "rapidjson/document.h"
+
+
+#ifdef XMRIG_FEATURE_HTTP
+#   include "base/net/stratum/DaemonClient.h"
+#   include "base/net/stratum/SelfSelectClient.h"
+#endif
 
 
 namespace xmrig {
@@ -128,7 +136,13 @@ bool xmrig::Pool::isEnabled() const
 #   endif
 
 #   ifndef XMRIG_FEATURE_HTTP
-    if (isDaemon()) {
+    if (m_mode == MODE_DAEMON) {
+        return false;
+    }
+#   endif
+
+#   ifndef XMRIG_FEATURE_HTTP
+    if (m_mode == MODE_SELF_SELECT) {
         return false;
     }
 #   endif
@@ -155,6 +169,32 @@ bool xmrig::Pool::isEqual(const Pool &other) const
             && m_user         == other.m_user
             && m_pollInterval == other.m_pollInterval
             );
+}
+
+
+xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) const
+{
+    IClient *client = nullptr;
+
+    if (m_mode == MODE_POOL) {
+        client = new Client(id, Platform::userAgent(), listener);
+    }
+#   ifdef XMRIG_FEATURE_HTTP
+    else if (m_mode == MODE_DAEMON) {
+        client = new DaemonClient(id, listener);
+    }
+    else if (m_mode == MODE_SELF_SELECT) {
+        client = new SelfSelectClient(id, Platform::userAgent(), listener);
+    }
+#   endif
+
+    assert(client != nullptr);
+
+    if (client) {
+        client->setPool(*this);
+    }
+
+    return client;
 }
 
 

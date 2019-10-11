@@ -39,6 +39,10 @@
 namespace xmrig {
 
 
+class IClient;
+class IClientListener;
+
+
 class Pool
 {
 public:
@@ -67,7 +71,6 @@ public:
          bool tls               = false
        );
 
-    inline bool isDaemon() const                        { return m_mode == MODE_DAEMON; }
     inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS); }
     inline bool isValid() const                         { return m_url.isValid(); }
@@ -94,6 +97,7 @@ public:
 
     bool isEnabled() const;
     bool isEqual(const Pool &other) const;
+    IClient *createClient(int id, IClientListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     std::string printableName() const;
 

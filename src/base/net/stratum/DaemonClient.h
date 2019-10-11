@@ -27,9 +27,10 @@
 #define XMRIG_DAEMONCLIENT_H
 
 
-#include "base/net/stratum/BaseClient.h"
-#include "base/kernel/interfaces/ITimerListener.h"
 #include "base/kernel/interfaces/IHttpListener.h"
+#include "base/kernel/interfaces/ITimerListener.h"
+#include "base/net/stratum/BaseClient.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -38,6 +39,8 @@ namespace xmrig {
 class DaemonClient : public BaseClient, public ITimerListener, public IHttpListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(DaemonClient)
+
     DaemonClient(int id, IClientListener *listener);
     ~DaemonClient() override;
 
