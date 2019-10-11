@@ -30,14 +30,10 @@
 #include <cstdio>
 
 
-#include "base/io/json/Json.h"
 #include "base/net/stratum/Pool.h"
+#include "base/io/json/Json.h"
+#include "base/io/log/Log.h"
 #include "rapidjson/document.h"
-
-
-#ifdef APP_DEBUG
-#   include "base/io/log/Log.h"
-#endif
 
 
 namespace xmrig {
@@ -52,6 +48,7 @@ static const char *kKeepalive              = "keepalive";
 static const char *kNicehash               = "nicehash";
 static const char *kPass                   = "pass";
 static const char *kRigId                  = "rig-id";
+static const char *kSelfSelect             = "self-select";
 static const char *kTls                    = "tls";
 static const char *kUrl                    = "url";
 static const char *kUser                   = "user";
@@ -86,11 +83,18 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_pollInterval = Json::getUint64(object, kDaemonPollInterval, kDefaultPollInterval);
     m_algorithm    = Json::getString(object, kAlgo);
     m_coin         = Json::getString(object, kCoin);
+    m_daemon       = Json::getString(object, kSelfSelect);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
     m_flags.set(FLAG_TLS,      Json::getBool(object, kTls) || m_url.isTLS());
-    m_flags.set(FLAG_DAEMON,   Json::getBool(object, kDaemon));
+
+    if (m_daemon.isValid()) {
+        m_mode = MODE_SELF_SELECT;
+    }
+    else if (Json::getBool(object, kDaemon)) {
+        m_mode = MODE_DAEMON;
+    }
 
     const rapidjson::Value &keepalive = Json::getValue(object, kKeepalive);
     if (keepalive.IsInt()) {
@@ -129,7 +133,7 @@ bool xmrig::Pool::isEnabled() const
     }
 #   endif
 
-    if (isDaemon() && (!algorithm().isValid() && !coin().isValid())) {
+    if (m_mode == MODE_DAEMON && (!algorithm().isValid() && !coin().isValid())) {
         return false;
     }
 
@@ -143,6 +147,7 @@ bool xmrig::Pool::isEqual(const Pool &other) const
             && m_keepAlive    == other.m_keepAlive
             && m_algorithm    == other.m_algorithm
             && m_coin         == other.m_coin
+            && m_mode         == other.m_mode
             && m_fingerprint  == other.m_fingerprint
             && m_password     == other.m_password
             && m_rigId        == other.m_rigId
@@ -166,7 +171,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kUrl),   url().toJSON(), allocator);
     obj.AddMember(StringRef(kUser),  m_user.toJSON(), allocator);
 
-    if (!isDaemon()) {
+    if (m_mode != MODE_DAEMON) {
         obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
         obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
 
@@ -185,13 +190,34 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kEnabled),            m_flags.test(FLAG_ENABLED), allocator);
     obj.AddMember(StringRef(kTls),                isTLS(), allocator);
     obj.AddMember(StringRef(kFingerprint),        m_fingerprint.toJSON(), allocator);
-    obj.AddMember(StringRef(kDaemon),             m_flags.test(FLAG_DAEMON), allocator);
+    obj.AddMember(StringRef(kDaemon),             m_mode == MODE_DAEMON, allocator);
 
-    if (isDaemon()) {
+    if (m_mode == MODE_DAEMON) {
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
     }
 
+    obj.AddMember(StringRef(kSelfSelect), m_daemon.url().toJSON(), allocator);
+
     return obj;
+}
+
+
+std::string xmrig::Pool::printableName() const
+{
+    std::string out(CSI "1;" + std::to_string(isEnabled() ? (isTLS() ? 32 : 36) : 31) + "m" + url().data() + CLEAR);
+
+    if (m_coin.isValid()) {
+        out += std::string(" coin ") + WHITE_BOLD_S + m_coin.name() + CLEAR;
+    }
+    else {
+        out += std::string(" algo ") + WHITE_BOLD_S + (m_algorithm.isValid() ? m_algorithm.shortName() : "auto") + CLEAR;
+    }
+
+    if (m_mode == MODE_SELF_SELECT) {
+        out += std::string(" self-select ") + CSI "1;" + std::to_string(m_daemon.isTLS() ? 32 : 36) + "m" + m_daemon.url().data() + CLEAR;
+    }
+
+    return out;
 }
 
 

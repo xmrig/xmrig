@@ -72,6 +72,7 @@ public:
         ProxyDonateKey       = 1017,
         DaemonKey            = 1018,
         DaemonPollKey        = 1019,
+        SelfSelectKey        = 1028,
 
         // xmrig common
         CPUPriorityKey       = 1021,

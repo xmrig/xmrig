@@ -42,12 +42,10 @@ namespace xmrig {
 class Pool
 {
 public:
-    enum Flags {
-        FLAG_ENABLED,
-        FLAG_NICEHASH,
-        FLAG_TLS,
-        FLAG_DAEMON,
-        FLAG_MAX
+    enum Mode {
+        MODE_POOL,
+        MODE_DAEMON,
+        MODE_SELF_SELECT
     };
 
     static const String kDefaultPassword;
@@ -69,7 +67,7 @@ public:
          bool tls               = false
        );
 
-    inline bool isDaemon() const                        { return m_flags.test(FLAG_DAEMON); }
+    inline bool isDaemon() const                        { return m_mode == MODE_DAEMON; }
     inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS); }
     inline bool isValid() const                         { return m_url.isValid(); }
@@ -81,7 +79,9 @@ public:
     inline const String &rigId() const                  { return m_rigId; }
     inline const String &url() const                    { return m_url.url(); }
     inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
+    inline const Url &daemon() const                    { return m_daemon; }
     inline int keepAlive() const                        { return m_keepAlive; }
+    inline Mode mode() const                            { return m_mode; }
     inline uint16_t port() const                        { return m_url.port(); }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
     inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
@@ -95,24 +95,34 @@ public:
     bool isEnabled() const;
     bool isEqual(const Pool &other) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    std::string printableName() const;
 
 #   ifdef APP_DEBUG
     void print() const;
 #   endif
 
 private:
+    enum Flags {
+        FLAG_ENABLED,
+        FLAG_NICEHASH,
+        FLAG_TLS,
+        FLAG_MAX
+    };
+
     inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? kKeepAliveTimeout : 0); }
     inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
 
     Algorithm m_algorithm;
     Coin m_coin;
     int m_keepAlive                 = 0;
+    Mode m_mode                     = MODE_POOL;
     std::bitset<FLAG_MAX> m_flags   = 0;
     String m_fingerprint;
     String m_password;
     String m_rigId;
     String m_user;
     uint64_t m_pollInterval         = kDefaultPollInterval;
+    Url m_daemon;
     Url m_url;
 };
 

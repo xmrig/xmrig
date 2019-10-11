@@ -81,8 +81,6 @@ bool xmrig::Url::isEqual(const Url &other) const
 
 bool xmrig::Url::parse(const char *url)
 {
-    assert(url != nullptr);
-
     if (url == nullptr) {
         return false;
     }
