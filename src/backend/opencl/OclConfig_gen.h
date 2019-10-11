@@ -55,7 +55,7 @@ size_t inline generate<Algorithm::CN>(Threads<OclThreads> &threads, const std::v
 {
     size_t count = 0;
 
-    count += generate("cn", threads, Algorithm::CN_0, devices);
+    count += generate("cn", threads, Algorithm::CN_1, devices);
     count += generate("cn/2", threads, Algorithm::CN_2, devices);
 
     if (!threads.isExist(Algorithm::CN_0)) {
