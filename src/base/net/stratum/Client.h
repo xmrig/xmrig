@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -76,6 +77,7 @@ protected:
     bool isTLS() const override;
     const char *tlsFingerprint() const override;
     const char *tlsVersion() const override;
+    int64_t send(const rapidjson::Value &obj) override;
     int64_t submit(const JobResult &result) override;
     void connect() override;
     void connect(const Pool &pool) override;
@@ -98,7 +100,6 @@ private:
     bool send(BIO *bio);
     bool verifyAlgorithm(const Algorithm &algorithm, const char *algo) const;
     int resolve(const String &host);
-    int64_t send(const rapidjson::Document &doc);
     int64_t send(size_t size);
     void connect(sockaddr *addr);
     void handshake();

@@ -52,6 +52,7 @@ protected:
     inline const Pool &pool() const override                   { return m_pool; }
     inline const String &ip() const override                   { return m_ip; }
     inline int id() const override                             { return m_id; }
+    inline int64_t sequence() const override                   { return m_sequence; }
     inline void setAlgo(const Algorithm &algo) override        { m_pool.setAlgo(algo); }
     inline void setEnabled(bool enabled) override              { m_enabled = enabled; }
     inline void setPool(const Pool &pool) override             { if (pool.isValid()) { m_pool = pool; } }
@@ -73,22 +74,22 @@ protected:
 
     bool handleSubmitResponse(int64_t id, const char *error = nullptr);
 
-    bool m_quiet;
+    bool m_quiet                    = false;
     IClientListener *m_listener;
     int m_id;
-    int m_retries;
-    int64_t m_failures;
+    int m_retries                   = 5;
+    int64_t m_failures              = 0;
     Job m_job;
     Pool m_pool;
-    SocketState m_state;
+    SocketState m_state             = UnconnectedState;
     std::map<int64_t, SubmitResult> m_results;
     String m_ip;
-    uint64_t m_retryPause;
+    uint64_t m_retryPause           = 5000;
 
     static int64_t m_sequence;
 
 private:
-    bool m_enabled;
+    bool m_enabled = true;
 };
 
 

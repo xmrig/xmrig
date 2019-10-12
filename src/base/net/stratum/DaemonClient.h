@@ -58,6 +58,7 @@ protected:
     inline const char *mode() const override                    { return "daemon"; }
     inline const char *tlsFingerprint() const override          { return m_tlsFingerprint; }
     inline const char *tlsVersion() const override              { return m_tlsVersion; }
+    inline int64_t send(const rapidjson::Value &) override      { return -1; }
     inline void deleteLater() override                          { delete this; }
     inline void tick(uint64_t) override                         {}
 

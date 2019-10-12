@@ -26,7 +26,7 @@
 #define XMRIG_ICLIENT_H
 
 
-#include <cstdint>
+#include "rapidjson/fwd.h"
 
 
 namespace xmrig {
@@ -64,6 +64,8 @@ public:
     virtual const Pool &pool() const                               = 0;
     virtual const String &ip() const                               = 0;
     virtual int id() const                                         = 0;
+    virtual int64_t send(const rapidjson::Value &obj)              = 0;
+    virtual int64_t sequence() const                               = 0;
     virtual int64_t submit(const JobResult &result)                = 0;
     virtual void connect()                                         = 0;
     virtual void connect(const Pool &pool)                         = 0;
@@ -75,7 +77,6 @@ public:
     virtual void setRetries(int retries)                           = 0;
     virtual void setRetryPause(uint64_t ms)                        = 0;
     virtual void tick(uint64_t now)                                = 0;
-
 };
 
 

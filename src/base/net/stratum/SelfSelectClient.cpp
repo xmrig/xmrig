@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -24,7 +25,39 @@
 
 
 #include "base/net/stratum/SelfSelectClient.h"
+#include "3rdparty/http-parser/http_parser.h"
+#include "base/io/json/Json.h"
+#include "base/io/json/JsonRequest.h"
+#include "base/io/log/Log.h"
+#include "base/net/http/HttpClient.h"
 #include "base/net/stratum/Client.h"
+#include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
+
+#ifdef XMRIG_FEATURE_TLS
+#   include "base/net/http/HttpsClient.h"
+#endif
+
+
+namespace xmrig {
+
+static const char *kBlob                = "blob";
+static const char *kBlockhashingBlob    = "blockhashing_blob";
+static const char *kBlocktemplateBlob   = "blocktemplate_blob";
+static const char *kDifficulty          = "difficulty";
+static const char *kHeight              = "height";
+static const char *kId                  = "id";
+static const char *kJobId               = "job_id";
+static const char *kNextSeedHash        = "next_seed_hash";
+static const char *kPrevHash            = "prev_hash";
+static const char *kSeedHash            = "seed_hash";
+
+static const char * const required_fields[] = { kBlocktemplateBlob, kBlockhashingBlob, kHeight, kDifficulty, kPrevHash };
+
+} /* namespace xmrig */
 
 
 xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener) :
@@ -37,4 +70,165 @@ xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientList
 xmrig::SelfSelectClient::~SelfSelectClient()
 {
     delete m_client;
+}
+
+
+void xmrig::SelfSelectClient::onJobReceived(IClient *, const Job &job, const rapidjson::Value &)
+{
+    m_job = job;
+
+    getBlockTemplate();
+}
+
+
+void xmrig::SelfSelectClient::onLogin(IClient *, rapidjson::Document &doc, rapidjson::Value &params)
+{
+    params.AddMember("mode", "self-select", doc.GetAllocator());
+
+    m_listener->onLogin(this, doc, params);
+}
+
+
+bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result, const rapidjson::Value &error)
+{
+    if (id == -1) {
+        return false;
+    }
+
+    if (error.IsObject()) {
+        LOG_ERR("[%s:%d] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", pool().daemon().host().data(), pool().daemon().port(), Json::getString(error, "message"), Json::getInt(error, "code"));
+
+        return false;
+    }
+
+    if (!result.IsObject()) {
+        return false;
+    }
+
+    for (auto field : required_fields) {
+        if (!result.HasMember(field)) {
+            LOG_ERR("[%s:%d] required field " RED_BOLD("\"%s\"") RED_S " not found", pool().daemon().host().data(), pool().daemon().port(), field);
+
+            return false;
+        }
+    }
+
+    if (!m_job.setBlob(result[kBlockhashingBlob].GetString())) {
+        return false;
+    }
+
+    m_job.setHeight(Json::getUint64(result, kHeight));
+    m_job.setSeedHash(Json::getString(result, kSeedHash));
+
+    submitBlockTemplate(result);
+
+    m_listener->onJobReceived(this, m_job, rapidjson::Value{});
+
+    return true;
+}
+
+
+void xmrig::SelfSelectClient::getBlockTemplate()
+{
+    using namespace rapidjson;
+    Document doc(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    Value params(kObjectType);
+    params.AddMember("wallet_address",  m_job.poolWallet().toJSON(), allocator);
+    params.AddMember("extra_nonce",     m_job.extraNonce().toJSON(), allocator);
+
+    JsonRequest::create(doc, sequence(), "getblocktemplate", params);
+
+    send(HTTP_POST, "/json_rpc", doc);
+}
+
+
+void xmrig::SelfSelectClient::retry()
+{
+    // FIXME
+}
+
+
+void xmrig::SelfSelectClient::send(int method, const char *url, const char *data, size_t size)
+{
+    LOG_DEBUG("[%s:%d] " MAGENTA_BOLD("\"%s %s\"") BLACK_BOLD_S " send (%zu bytes): \"%.*s\"",
+              pool().daemon().host().data(),
+              pool().daemon().port(),
+              http_method_str(static_cast<http_method>(method)),
+              url,
+              size,
+              static_cast<int>(size),
+              data);
+
+    HttpClient *client;
+#   ifdef XMRIG_FEATURE_TLS
+    if (pool().daemon().isTLS()) {
+        client = new HttpsClient(method, url, this, data, size, String());
+    }
+    else
+#   endif
+    {
+        client = new HttpClient(method, url, this, data, size);
+    }
+
+    client->setQuiet(m_quiet);
+    client->connect(pool().daemon().host(), pool().daemon().port());
+}
+
+
+void xmrig::SelfSelectClient::send(int method, const char *url, const rapidjson::Document &doc)
+{
+    using namespace rapidjson;
+
+    StringBuffer buffer(nullptr, 512);
+    Writer<StringBuffer> writer(buffer);
+    doc.Accept(writer);
+
+    send(method, url, buffer.GetString(), buffer.GetSize());
+}
+
+
+void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
+{
+    using namespace rapidjson;
+    Document doc(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    Value params(kObjectType);
+    params.AddMember(StringRef(kId),              m_job.clientId().toJSON(), allocator);
+    params.AddMember(StringRef(kJobId),          m_job.id().toJSON(), allocator);
+    params.AddMember(StringRef(kBlob),            result[kBlocktemplateBlob], allocator);
+    params.AddMember(StringRef(kHeight),          m_job.height(), allocator);
+    params.AddMember(StringRef(kDifficulty),      result[kDifficulty], allocator);
+    params.AddMember(StringRef(kPrevHash),       result[kPrevHash], allocator);
+    params.AddMember(StringRef(kSeedHash),       result[kSeedHash], allocator);
+    params.AddMember(StringRef(kNextSeedHash),  result[kNextSeedHash], allocator);
+
+    JsonRequest::create(doc, sequence(), "block_template", params);
+
+    send(doc);
+}
+
+
+void xmrig::SelfSelectClient::onHttpData(const HttpData &data)
+{
+    if (data.status != HTTP_STATUS_OK) {
+        return retry();
+    }
+
+    LOG_DEBUG("[%s:%d] received (%d bytes): \"%.*s\"", pool().daemon().host().data(), pool().daemon().port(), static_cast<int>(data.body.size()), static_cast<int>(data.body.size()), data.body.c_str());
+
+    rapidjson::Document doc;
+    if (doc.Parse(data.body.c_str()).HasParseError()) {
+        if (!m_quiet) {
+            LOG_ERR("[%s:%d] JSON decode failed: \"%s\"",  pool().daemon().host().data(), pool().daemon().port(), rapidjson::GetParseError_En(doc.GetParseError()));
+        }
+
+        return retry();
+    }
+
+    if (!parseResponse(Json::getInt64(doc, "id", -1), doc["result"], Json::getObject(doc, "error"))) {
+        retry();
+    }
 }

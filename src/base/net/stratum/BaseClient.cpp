@@ -36,14 +36,8 @@ int64_t BaseClient::m_sequence = 1;
 
 
 xmrig::BaseClient::BaseClient(int id, IClientListener *listener) :
-    m_quiet(false),
     m_listener(listener),
-    m_id(id),
-    m_retries(5),
-    m_failures(0),
-    m_state(UnconnectedState),
-    m_retryPause(5000),
-    m_enabled(true)
+    m_id(id)
 {
 }
 
