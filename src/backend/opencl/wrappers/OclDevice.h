@@ -76,7 +76,7 @@ public:
     inline OclVendor vendorId() const           { return m_vendorId; }
     inline Type type() const                    { return m_type; }
     inline uint32_t computeUnits() const        { return m_computeUnits; }
-    inline size_t freeMemSize() const           { return std::min(m_maxMemoryAlloc, m_globalMemory); }
+    inline size_t freeMemSize() const           { return std::min(maxMemAllocSize(), globalMemSize()); }
     inline size_t globalMemSize() const         { return m_globalMemory; }
     inline size_t maxMemAllocSize() const       { return m_maxMemoryAlloc; }
     inline uint32_t index() const               { return m_index; }
