@@ -132,6 +132,8 @@ xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id plat
     m_board(OclLib::getString(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */)),
     m_name(OclLib::getString(id, CL_DEVICE_NAME)),
     m_vendor(OclLib::getString(id, CL_DEVICE_VENDOR)),
+    m_maxMemoryAlloc(OclLib::getUlong(id, CL_DEVICE_MAX_MEM_ALLOC_SIZE)),
+    m_globalMemory(OclLib::getUlong(id, CL_DEVICE_GLOBAL_MEM_SIZE)),
     m_computeUnits(OclLib::getUint(id, CL_DEVICE_MAX_COMPUTE_UNITS, 1)),
     m_index(index)
 {
@@ -152,24 +154,6 @@ xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id plat
             m_topology = PciTopology(bus, (slot >> 3) & 0xff, slot & 7);
         }
     }
-}
-
-
-size_t xmrig::OclDevice::freeMemSize() const
-{
-    return std::min(maxMemAllocSize(), globalMemSize());
-}
-
-
-size_t xmrig::OclDevice::globalMemSize() const
-{
-    return OclLib::getUlong(id(), CL_DEVICE_GLOBAL_MEM_SIZE);
-}
-
-
-size_t xmrig::OclDevice::maxMemAllocSize() const
-{
-    return OclLib::getUlong(id(), CL_DEVICE_MAX_MEM_ALLOC_SIZE);
 }
 
 
