@@ -32,6 +32,7 @@
 #include "base/kernel/interfaces/IClient.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
+#include "base/tools/Chrono.h"
 
 
 namespace xmrig {
@@ -70,8 +71,17 @@ protected:
         ReconnectingState
     };
 
+    struct SendResult
+    {
+        inline SendResult(Callback &&callback) : callback(callback), ts(Chrono::steadyMSecs()) {}
+
+        Callback callback;
+        const uint64_t ts;
+    };
+
     inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }
 
+    bool handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     bool handleSubmitResponse(int64_t id, const char *error = nullptr);
 
     bool m_quiet                    = false;
@@ -82,6 +92,7 @@ protected:
     Job m_job;
     Pool m_pool;
     SocketState m_state             = UnconnectedState;
+    std::map<int64_t, SendResult> m_callbacks;
     std::map<int64_t, SubmitResult> m_results;
     String m_ip;
     uint64_t m_retryPause           = 5000;

@@ -77,6 +77,7 @@ protected:
     bool isTLS() const override;
     const char *tlsFingerprint() const override;
     const char *tlsVersion() const override;
+    int64_t send(const rapidjson::Value &obj, Callback callback) override;
     int64_t send(const rapidjson::Value &obj) override;
     int64_t submit(const JobResult &result) override;
     void connect() override;

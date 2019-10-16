@@ -47,30 +47,31 @@ public:
 
 protected:
     // IClient
-    inline bool disconnect() override                                          { return m_client->disconnect(); }
-    inline bool hasExtension(Extension extension) const noexcept override      { return m_client->hasExtension(extension); }
-    inline bool isEnabled() const override                                     { return m_client->isEnabled(); }
-    inline bool isTLS() const override                                         { return m_client->isTLS(); }
-    inline const char *mode() const override                                   { return m_client->mode(); }
-    inline const char *tlsFingerprint() const override                         { return m_client->tlsFingerprint(); }
-    inline const char *tlsVersion() const override                             { return m_client->tlsVersion(); }
-    inline const Job &job() const override                                     { return m_client->job(); }
-    inline const Pool &pool() const override                                   { return m_client->pool(); }
-    inline const String &ip() const override                                   { return m_client->ip(); }
-    inline int id() const override                                             { return m_client->id(); }
-    inline int64_t send(const rapidjson::Value &obj) override                  { return m_client->send(obj); }
-    inline int64_t sequence() const override                                   { return m_client->sequence(); }
-    inline int64_t submit(const JobResult &result) override                    { return m_client->submit(result); }
-    inline void connect() override                                             { m_client->connect(); }
-    inline void connect(const Pool &pool) override                             { m_client->connect(pool); }
-    inline void deleteLater() override                                         { m_client->deleteLater(); }
-    inline void setAlgo(const Algorithm &algo) override                        { m_client->setAlgo(algo); }
-    inline void setEnabled(bool enabled) override                              { m_client->setEnabled(enabled); }
-    inline void setPool(const Pool &pool) override                             { m_client->setPool(pool); }
-    inline void setQuiet(bool quiet) override                                  { m_client->setQuiet(quiet); m_quiet = quiet;  }
-    inline void setRetries(int retries) override                               { m_client->setRetries(retries); }
-    inline void setRetryPause(uint64_t ms) override                            { m_client->setRetryPause(ms); }
-    inline void tick(uint64_t now) override                                    { m_client->tick(now); }
+    inline bool disconnect() override                                               { return m_client->disconnect(); }
+    inline bool hasExtension(Extension extension) const noexcept override           { return m_client->hasExtension(extension); }
+    inline bool isEnabled() const override                                          { return m_client->isEnabled(); }
+    inline bool isTLS() const override                                              { return m_client->isTLS(); }
+    inline const char *mode() const override                                        { return m_client->mode(); }
+    inline const char *tlsFingerprint() const override                              { return m_client->tlsFingerprint(); }
+    inline const char *tlsVersion() const override                                  { return m_client->tlsVersion(); }
+    inline const Job &job() const override                                          { return m_client->job(); }
+    inline const Pool &pool() const override                                        { return m_client->pool(); }
+    inline const String &ip() const override                                        { return m_client->ip(); }
+    inline int id() const override                                                  { return m_client->id(); }
+    inline int64_t send(const rapidjson::Value &obj, Callback callback) override    { return m_client->send(obj, callback); }
+    inline int64_t send(const rapidjson::Value &obj) override                       { return m_client->send(obj); }
+    inline int64_t sequence() const override                                        { return m_client->sequence(); }
+    inline int64_t submit(const JobResult &result) override                         { return m_client->submit(result); }
+    inline void connect() override                                                  { m_client->connect(); }
+    inline void connect(const Pool &pool) override                                  { m_client->connect(pool); }
+    inline void deleteLater() override                                              { m_client->deleteLater(); }
+    inline void setAlgo(const Algorithm &algo) override                             { m_client->setAlgo(algo); }
+    inline void setEnabled(bool enabled) override                                   { m_client->setEnabled(enabled); }
+    inline void setPool(const Pool &pool) override                                  { m_client->setPool(pool); }
+    inline void setQuiet(bool quiet) override                                       { m_client->setQuiet(quiet); m_quiet = quiet;  }
+    inline void setRetries(int retries) override                                    { m_client->setRetries(retries); }
+    inline void setRetryPause(uint64_t ms) override                                 { m_client->setRetryPause(ms); }
+    inline void tick(uint64_t now) override                                         { m_client->tick(now); }
 
     // IClientListener
     inline void onClose(IClient *, int failures) override                                           { m_listener->onClose(this, failures); }

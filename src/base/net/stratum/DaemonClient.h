@@ -54,13 +54,14 @@ protected:
     void onHttpData(const HttpData &data) override;
     void onTimer(const Timer *timer) override;
 
-    inline bool hasExtension(Extension) const noexcept override { return false; }
-    inline const char *mode() const override                    { return "daemon"; }
-    inline const char *tlsFingerprint() const override          { return m_tlsFingerprint; }
-    inline const char *tlsVersion() const override              { return m_tlsVersion; }
-    inline int64_t send(const rapidjson::Value &) override      { return -1; }
-    inline void deleteLater() override                          { delete this; }
-    inline void tick(uint64_t) override                         {}
+    inline bool hasExtension(Extension) const noexcept override         { return false; }
+    inline const char *mode() const override                            { return "daemon"; }
+    inline const char *tlsFingerprint() const override                  { return m_tlsFingerprint; }
+    inline const char *tlsVersion() const override                      { return m_tlsVersion; }
+    inline int64_t send(const rapidjson::Value &, Callback) override    { return -1; }
+    inline int64_t send(const rapidjson::Value &) override              { return -1; }
+    inline void deleteLater() override                                  { delete this; }
+    inline void tick(uint64_t) override                                 {}
 
 private:
     bool isOutdated(uint64_t height, const char *hash) const;

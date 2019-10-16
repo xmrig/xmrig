@@ -122,7 +122,7 @@ bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result
 
     submitBlockTemplate(result);
 
-    m_listener->onJobReceived(this, m_job, rapidjson::Value{});
+
 
     return true;
 }
@@ -207,7 +207,9 @@ void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
 
     JsonRequest::create(doc, sequence(), "block_template", params);
 
-    send(doc);
+    send(doc, [this](const rapidjson::Value &result, bool success, uint64_t elapsed) {
+        m_listener->onJobReceived(this, m_job, rapidjson::Value{});
+    });
 }
 
 

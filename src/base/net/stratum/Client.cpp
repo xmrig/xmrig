@@ -137,6 +137,16 @@ const char *xmrig::Client::tlsVersion() const
 }
 
 
+int64_t xmrig::Client::send(const rapidjson::Value &obj, Callback callback)
+{
+    assert(obj["id"] == sequence());
+
+    m_callbacks.insert({ sequence(), std::move(callback) });
+
+    return send(obj);
+}
+
+
 int64_t xmrig::Client::send(const rapidjson::Value &obj)
 {
     using namespace rapidjson;
@@ -736,6 +746,10 @@ void xmrig::Client::parseNotification(const char *method, const rapidjson::Value
 
 void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
 {
+    if (handleResponse(id, result, error)) {
+        return;
+    }
+
     if (error.IsObject()) {
         const char *message = error["message"].GetString();
 
