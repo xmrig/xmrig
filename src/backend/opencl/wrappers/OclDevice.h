@@ -33,6 +33,7 @@
 #include "backend/opencl/wrappers/OclVendor.h"
 #include "base/tools/String.h"
 
+#include <algorithm>
 
 using cl_device_id      = struct _cl_device_id *;
 using cl_platform_id    = struct _cl_platform_id *;
@@ -62,9 +63,6 @@ public:
     OclDevice() = delete;
     OclDevice(uint32_t index, cl_device_id id, cl_platform_id platform);
 
-    size_t freeMemSize() const;
-    size_t globalMemSize() const;
-    size_t maxMemAllocSize() const;
     String printableName() const;
     uint32_t clock() const;
     void generate(const Algorithm &algorithm, OclThreads &threads) const;
@@ -78,6 +76,9 @@ public:
     inline OclVendor vendorId() const           { return m_vendorId; }
     inline Type type() const                    { return m_type; }
     inline uint32_t computeUnits() const        { return m_computeUnits; }
+    inline size_t freeMemSize() const           { return std::min(maxMemAllocSize(), globalMemSize()); }
+    inline size_t globalMemSize() const         { return m_globalMemory; }
+    inline size_t maxMemAllocSize() const       { return m_maxMemoryAlloc; }
     inline uint32_t index() const               { return m_index; }
 
 #   ifdef XMRIG_FEATURE_API
@@ -90,6 +91,9 @@ private:
     const String m_board;
     const String m_name;
     const String m_vendor;
+    const size_t m_freeMemory       = 0;
+    const size_t m_maxMemoryAlloc   = 0;
+    const size_t m_globalMemory     = 0;
     const uint32_t m_computeUnits   = 1;
     const uint32_t m_index          = 0;
     OclVendor m_vendorId            = OCL_VENDOR_UNKNOWN;
