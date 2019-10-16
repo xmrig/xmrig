@@ -73,6 +73,20 @@ xmrig::SelfSelectClient::~SelfSelectClient()
 }
 
 
+void xmrig::SelfSelectClient::tick(uint64_t now)
+{
+    m_client->tick(now);
+
+    if (m_state == RetryState) {
+        if (Chrono::steadyMSecs() - m_timestamp < m_retryPause) {
+            return;
+        }
+
+        getBlockTemplate();
+    }
+}
+
+
 void xmrig::SelfSelectClient::onJobReceived(IClient *, const Job &job, const rapidjson::Value &)
 {
     m_job = job;
@@ -96,7 +110,7 @@ bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result
     }
 
     if (error.IsObject()) {
-        LOG_ERR("[%s:%d] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", pool().daemon().host().data(), pool().daemon().port(), Json::getString(error, "message"), Json::getInt(error, "code"));
+        LOG_ERR("[%s] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", pool().daemon().url().data(), Json::getString(error, "message"), Json::getInt(error, "code"));
 
         return false;
     }
@@ -107,7 +121,7 @@ bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result
 
     for (auto field : required_fields) {
         if (!result.HasMember(field)) {
-            LOG_ERR("[%s:%d] required field " RED_BOLD("\"%s\"") RED_S " not found", pool().daemon().host().data(), pool().daemon().port(), field);
+            LOG_ERR("[%s] required field " RED_BOLD("\"%s\"") RED_S " not found", pool().daemon().url().data(), field);
 
             return false;
         }
@@ -122,14 +136,14 @@ bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result
 
     submitBlockTemplate(result);
 
-
-
     return true;
 }
 
 
 void xmrig::SelfSelectClient::getBlockTemplate()
 {
+    setState(WaitState);
+
     using namespace rapidjson;
     Document doc(kObjectType);
     auto &allocator = doc.GetAllocator();
@@ -138,7 +152,7 @@ void xmrig::SelfSelectClient::getBlockTemplate()
     params.AddMember("wallet_address",  m_job.poolWallet().toJSON(), allocator);
     params.AddMember("extra_nonce",     m_job.extraNonce().toJSON(), allocator);
 
-    JsonRequest::create(doc, sequence(), "getblocktemplate", params);
+    JsonRequest::create(doc, m_sequence++, "getblocktemplate", params);
 
     send(HTTP_POST, "/json_rpc", doc);
 }
@@ -146,15 +160,14 @@ void xmrig::SelfSelectClient::getBlockTemplate()
 
 void xmrig::SelfSelectClient::retry()
 {
-    // FIXME
+    setState(RetryState);
 }
 
 
 void xmrig::SelfSelectClient::send(int method, const char *url, const char *data, size_t size)
 {
-    LOG_DEBUG("[%s:%d] " MAGENTA_BOLD("\"%s %s\"") BLACK_BOLD_S " send (%zu bytes): \"%.*s\"",
-              pool().daemon().host().data(),
-              pool().daemon().port(),
+    LOG_DEBUG("[%s] " MAGENTA_BOLD("\"%s %s\"") BLACK_BOLD_S " send (%zu bytes): \"%.*s\"",
+              pool().daemon().url().data(),
               http_method_str(static_cast<http_method>(method)),
               url,
               size,
@@ -172,7 +185,7 @@ void xmrig::SelfSelectClient::send(int method, const char *url, const char *data
         client = new HttpClient(method, url, this, data, size);
     }
 
-    client->setQuiet(m_quiet);
+    client->setQuiet(isQuiet());
     client->connect(pool().daemon().host(), pool().daemon().port());
 }
 
@@ -189,6 +202,37 @@ void xmrig::SelfSelectClient::send(int method, const char *url, const rapidjson:
 }
 
 
+void xmrig::SelfSelectClient::setState(State state)
+{
+    if (m_state == state) {
+        return;
+    }
+
+    switch (state) {
+    case IdleState:
+        m_timestamp = 0;
+        m_failures  = 0;
+        break;
+
+    case WaitState:
+        m_timestamp = Chrono::steadyMSecs();
+        break;
+
+    case RetryState:
+        m_timestamp = Chrono::steadyMSecs();
+
+        if (m_failures > m_retries) {
+            m_listener->onClose(this, static_cast<int>(m_failures));
+        }
+
+        m_failures++;
+        break;
+    }
+
+    m_state = state;
+}
+
+
 void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
 {
     using namespace rapidjson;
@@ -196,18 +240,35 @@ void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
     auto &allocator = doc.GetAllocator();
 
     Value params(kObjectType);
-    params.AddMember(StringRef(kId),              m_job.clientId().toJSON(), allocator);
-    params.AddMember(StringRef(kJobId),          m_job.id().toJSON(), allocator);
-    params.AddMember(StringRef(kBlob),            result[kBlocktemplateBlob], allocator);
-    params.AddMember(StringRef(kHeight),          m_job.height(), allocator);
-    params.AddMember(StringRef(kDifficulty),      result[kDifficulty], allocator);
-    params.AddMember(StringRef(kPrevHash),       result[kPrevHash], allocator);
-    params.AddMember(StringRef(kSeedHash),       result[kSeedHash], allocator);
+    params.AddMember(StringRef(kId),            m_job.clientId().toJSON(), allocator);
+    params.AddMember(StringRef(kJobId),         m_job.id().toJSON(), allocator);
+    params.AddMember(StringRef(kBlob),          result[kBlocktemplateBlob], allocator);
+    params.AddMember(StringRef(kHeight),        m_job.height(), allocator);
+    params.AddMember(StringRef(kDifficulty),    result[kDifficulty], allocator);
+    params.AddMember(StringRef(kPrevHash),      result[kPrevHash], allocator);
+    params.AddMember(StringRef(kSeedHash),      result[kSeedHash], allocator);
     params.AddMember(StringRef(kNextSeedHash),  result[kNextSeedHash], allocator);
 
     JsonRequest::create(doc, sequence(), "block_template", params);
 
     send(doc, [this](const rapidjson::Value &result, bool success, uint64_t elapsed) {
+        if (!success) {
+            if (!isQuiet()) {
+                LOG_ERR("[%s] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", pool().daemon().url().data(), Json::getString(result, "message"), Json::getInt(result, "code"));
+            }
+
+            return retry();
+        }
+
+        if (!m_active) {
+            return;
+        }
+
+        if (m_failures > m_retries) {
+            m_listener->onLoginSuccess(this);
+        }
+
+        setState(IdleState);
         m_listener->onJobReceived(this, m_job, rapidjson::Value{});
     });
 }
@@ -219,18 +280,23 @@ void xmrig::SelfSelectClient::onHttpData(const HttpData &data)
         return retry();
     }
 
-    LOG_DEBUG("[%s:%d] received (%d bytes): \"%.*s\"", pool().daemon().host().data(), pool().daemon().port(), static_cast<int>(data.body.size()), static_cast<int>(data.body.size()), data.body.c_str());
+    LOG_DEBUG("[%s] received (%d bytes): \"%.*s\"", pool().daemon().url().data(), static_cast<int>(data.body.size()), static_cast<int>(data.body.size()), data.body.c_str());
 
     rapidjson::Document doc;
     if (doc.Parse(data.body.c_str()).HasParseError()) {
-        if (!m_quiet) {
-            LOG_ERR("[%s:%d] JSON decode failed: \"%s\"",  pool().daemon().host().data(), pool().daemon().port(), rapidjson::GetParseError_En(doc.GetParseError()));
+        if (!isQuiet()) {
+            LOG_ERR("[%s] JSON decode failed: \"%s\"",  pool().daemon().url().data(), rapidjson::GetParseError_En(doc.GetParseError()));
         }
 
         return retry();
     }
 
-    if (!parseResponse(Json::getInt64(doc, "id", -1), doc["result"], Json::getObject(doc, "error"))) {
+    const int64_t id = Json::getInt64(doc, "id", -1);
+    if (id > 0 && m_sequence - id != 1) {
+        return;
+    }
+
+    if (!parseResponse(id, doc["result"], Json::getObject(doc, "error"))) {
         retry();
     }
 }

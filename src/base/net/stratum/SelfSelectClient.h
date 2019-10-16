@@ -69,13 +69,14 @@ protected:
     inline void setEnabled(bool enabled) override                                   { m_client->setEnabled(enabled); }
     inline void setPool(const Pool &pool) override                                  { m_client->setPool(pool); }
     inline void setQuiet(bool quiet) override                                       { m_client->setQuiet(quiet); m_quiet = quiet;  }
-    inline void setRetries(int retries) override                                    { m_client->setRetries(retries); }
-    inline void setRetryPause(uint64_t ms) override                                 { m_client->setRetryPause(ms); }
-    inline void tick(uint64_t now) override                                         { m_client->tick(now); }
+    inline void setRetries(int retries) override                                    { m_client->setRetries(retries); m_retries = retries; }
+    inline void setRetryPause(uint64_t ms) override                                 { m_client->setRetryPause(ms); m_retryPause = ms; }
+
+    void tick(uint64_t now) override;
 
     // IClientListener
-    inline void onClose(IClient *, int failures) override                                           { m_listener->onClose(this, failures); }
-    inline void onLoginSuccess(IClient *) override                                                  { m_listener->onLoginSuccess(this); }
+    inline void onClose(IClient *, int failures) override                                           { m_listener->onClose(this, failures); setState(IdleState); m_active = false; }
+    inline void onLoginSuccess(IClient *) override                                                  { m_listener->onLoginSuccess(this); setState(IdleState); m_active = true; }
     inline void onResultAccepted(IClient *, const SubmitResult &result, const char *error) override { m_listener->onResultAccepted(this, result, error); }
     inline void onVerifyAlgorithm(const IClient *, const Algorithm &algorithm, bool *ok) override   { m_listener->onVerifyAlgorithm(this, algorithm, ok); }
 
@@ -86,17 +87,33 @@ protected:
     void onHttpData(const HttpData &data) override;
 
 private:
+    enum State {
+        IdleState,
+        WaitState,
+        RetryState
+    };
+
+    inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }
+
     bool parseResponse(int64_t id, rapidjson::Value &result, const rapidjson::Value &error);
     void getBlockTemplate();
     void retry();
     void send(int method, const char *url, const char *data = nullptr, size_t size = 0);
     void send(int method, const char *url, const rapidjson::Document &doc);
+    void setState(State state);
     void submitBlockTemplate(rapidjson::Value &result);
 
-    bool m_quiet = false;
+    bool m_active           = false;
+    bool m_quiet            = false;
     IClient *m_client;
     IClientListener *m_listener;
+    int m_retries           = 5;
+    int64_t m_failures      = 0;
+    int64_t m_sequence      = 1;
     Job m_job;
+    State m_state           = IdleState;
+    uint64_t m_retryPause   = 5000;
+    uint64_t m_timestamp    = 0;
 };
 
 
