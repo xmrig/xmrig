@@ -24,7 +24,7 @@
  */
 
 
-#include <assert.h>
+#include <cassert>
 #include <openssl/ssl.h>
 #include <uv.h>
 

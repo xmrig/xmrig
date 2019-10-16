@@ -28,15 +28,16 @@
 #define XMRIG_HTTPCONTEXT_H
 
 
-typedef struct http_parser http_parser;
-typedef struct http_parser_settings http_parser_settings;
-typedef struct uv_connect_s uv_connect_t;
-typedef struct uv_handle_s uv_handle_t;
-typedef struct uv_stream_s uv_stream_t;
-typedef struct uv_tcp_s uv_tcp_t;
+using http_parser           = struct http_parser;
+using http_parser_settings  = struct http_parser_settings;
+using uv_connect_t          = struct uv_connect_s;
+using uv_handle_t           = struct uv_handle_s;
+using uv_stream_t           = struct uv_stream_s;
+using uv_tcp_t              = struct uv_tcp_s;
 
 
 #include "base/net/http/HttpData.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -48,6 +49,8 @@ class IHttpListener;
 class HttpContext : public HttpData
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpContext)
+
     HttpContext(int parser_type, IHttpListener *listener);
     virtual ~HttpContext();
 

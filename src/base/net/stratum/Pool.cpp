@@ -24,24 +24,23 @@
  */
 
 
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
 
 
-#include "base/io/json/Json.h"
 #include "base/net/stratum/Pool.h"
+#include "base/io/json/Json.h"
+#include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
+#include "base/net/stratum/Client.h"
 #include "rapidjson/document.h"
 
 
-#ifdef APP_DEBUG
-#   include "base/io/log/Log.h"
-#endif
-
-
-#ifdef _MSC_VER
-#   define strncasecmp _strnicmp
+#ifdef XMRIG_FEATURE_HTTP
+#   include "base/net/stratum/DaemonClient.h"
+#   include "base/net/stratum/SelfSelectClient.h"
 #endif
 
 
@@ -57,6 +56,7 @@ static const char *kKeepalive              = "keepalive";
 static const char *kNicehash               = "nicehash";
 static const char *kPass                   = "pass";
 static const char *kRigId                  = "rig-id";
+static const char *kSelfSelect             = "self-select";
 static const char *kTls                    = "tls";
 static const char *kUrl                    = "url";
 static const char *kUser                   = "user";
@@ -64,54 +64,23 @@ static const char *kUser                   = "user";
 const String Pool::kDefaultPassword        = "x";
 const String Pool::kDefaultUser            = "x";
 
-static const char kStratumTcp[]            = "stratum+tcp://";
-static const char kStratumSsl[]            = "stratum+ssl://";
-
-#ifdef XMRIG_FEATURE_HTTP
-static const char kDaemonHttp[]            = "daemon+http://";
-static const char kDaemonHttps[]           = "daemon+https://";
-#endif
-
 }
 
 
-xmrig::Pool::Pool() :
-    m_keepAlive(0),
-    m_flags(0),
-    m_port(kDefaultPort),
-    m_pollInterval(kDefaultPollInterval)
-{
-}
-
-
-/**
- * @brief Parse url.
- *
- * Valid urls:
- * example.com
- * example.com:3333
- * stratum+tcp://example.com
- * stratum+tcp://example.com:3333
- *
- * @param url
- */
 xmrig::Pool::Pool(const char *url) :
-    m_keepAlive(0),
-    m_flags(1),
-    m_port(kDefaultPort),
-    m_pollInterval(kDefaultPollInterval)
+    m_flags(1 << FLAG_ENABLED),
+    m_pollInterval(kDefaultPollInterval),
+    m_url(url)
 {
-    parse(url);
 }
 
 
 xmrig::Pool::Pool(const rapidjson::Value &object) :
-    m_keepAlive(0),
-    m_flags(1),
-    m_port(kDefaultPort),
-    m_pollInterval(kDefaultPollInterval)
+    m_flags(1 << FLAG_ENABLED),
+    m_pollInterval(kDefaultPollInterval),
+    m_url(Json::getString(object, kUrl))
 {
-    if (!parse(Json::getString(object, kUrl))) {
+    if (!m_url.isValid()) {
         return;
     }
 
@@ -122,11 +91,18 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_pollInterval = Json::getUint64(object, kDaemonPollInterval, kDefaultPollInterval);
     m_algorithm    = Json::getString(object, kAlgo);
     m_coin         = Json::getString(object, kCoin);
+    m_daemon       = Json::getString(object, kSelfSelect);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
-    m_flags.set(FLAG_TLS,      Json::getBool(object, kTls, m_flags.test(FLAG_TLS)));
-    m_flags.set(FLAG_DAEMON,   Json::getBool(object, kDaemon, m_flags.test(FLAG_DAEMON)));
+    m_flags.set(FLAG_TLS,      Json::getBool(object, kTls) || m_url.isTLS());
+
+    if (m_daemon.isValid()) {
+        m_mode = MODE_SELF_SELECT;
+    }
+    else if (Json::getBool(object, kDaemon)) {
+        m_mode = MODE_DAEMON;
+    }
 
     const rapidjson::Value &keepalive = Json::getValue(object, kKeepalive);
     if (keepalive.IsInt()) {
@@ -140,21 +116,12 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
 xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
     m_keepAlive(keepAlive),
-    m_flags(1),
-    m_host(host),
+    m_flags(1 << FLAG_ENABLED),
     m_password(password),
     m_user(user),
-    m_port(port),
-    m_pollInterval(kDefaultPollInterval)
+    m_pollInterval(kDefaultPollInterval),
+    m_url(host, port, tls)
 {
-    const size_t size = m_host.size() + 8;
-    assert(size > 8);
-
-    char *url = new char[size]();
-    snprintf(url, size - 1, "%s:%d", m_host.data(), m_port);
-
-    m_url = url;
-
     m_flags.set(FLAG_NICEHASH, nicehash);
     m_flags.set(FLAG_TLS,      tls);
 }
@@ -169,12 +136,18 @@ bool xmrig::Pool::isEnabled() const
 #   endif
 
 #   ifndef XMRIG_FEATURE_HTTP
-    if (isDaemon()) {
+    if (m_mode == MODE_DAEMON) {
         return false;
     }
 #   endif
 
-    if (isDaemon() && (!algorithm().isValid() && !coin().isValid())) {
+#   ifndef XMRIG_FEATURE_HTTP
+    if (m_mode == MODE_SELF_SELECT) {
+        return false;
+    }
+#   endif
+
+    if (m_mode == MODE_DAEMON && (!algorithm().isValid() && !coin().isValid())) {
         return false;
     }
 
@@ -186,79 +159,43 @@ bool xmrig::Pool::isEqual(const Pool &other) const
 {
     return (m_flags           == other.m_flags
             && m_keepAlive    == other.m_keepAlive
-            && m_port         == other.m_port
             && m_algorithm    == other.m_algorithm
             && m_coin         == other.m_coin
+            && m_mode         == other.m_mode
             && m_fingerprint  == other.m_fingerprint
-            && m_host         == other.m_host
             && m_password     == other.m_password
             && m_rigId        == other.m_rigId
             && m_url          == other.m_url
             && m_user         == other.m_user
             && m_pollInterval == other.m_pollInterval
+            && m_daemon       == other.m_daemon
             );
 }
 
 
-bool xmrig::Pool::parse(const char *url)
+xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) const
 {
-    assert(url != nullptr);
-    if (url == nullptr) {
-        return false;
+    IClient *client = nullptr;
+
+    if (m_mode == MODE_POOL) {
+        client = new Client(id, Platform::userAgent(), listener);
+    }
+#   ifdef XMRIG_FEATURE_HTTP
+    else if (m_mode == MODE_DAEMON) {
+        client = new DaemonClient(id, listener);
+    }
+    else if (m_mode == MODE_SELF_SELECT) {
+        client = new SelfSelectClient(id, Platform::userAgent(), listener);
+    }
+#   endif
+
+    assert(client != nullptr);
+
+    if (client) {
+        client->setPool(*this);
     }
 
-    const char *p    = strstr(url, "://");
-    const char *base = url;
-
-    if (p) {
-        if (strncasecmp(url, kStratumTcp, sizeof(kStratumTcp) - 1) == 0) {
-            m_flags.set(FLAG_DAEMON, false);
-            m_flags.set(FLAG_TLS,    false);
-        }
-        else if (strncasecmp(url, kStratumSsl, sizeof(kStratumSsl) - 1) == 0) {
-            m_flags.set(FLAG_DAEMON, false);
-            m_flags.set(FLAG_TLS,    true);
-        }
-#       ifdef XMRIG_FEATURE_HTTP
-        else if (strncasecmp(url, kDaemonHttps, sizeof(kDaemonHttps) - 1) == 0) {
-            m_flags.set(FLAG_DAEMON, true);
-            m_flags.set(FLAG_TLS,    true);
-        }
-        else if (strncasecmp(url, kDaemonHttp, sizeof(kDaemonHttp) - 1) == 0) {
-            m_flags.set(FLAG_DAEMON, true);
-            m_flags.set(FLAG_TLS,    false);
-        }
-#       endif
-        else {
-            return false;
-        }
-
-        base = p + 3;
-    }
-
-    if (!strlen(base) || *base == '/') {
-        return false;
-    }
-
-    m_url = url;
-    if (base[0] == '[') {
-        return parseIPv6(base);
-    }
-
-    const char *port = strchr(base, ':');
-    if (!port) {
-        m_host = base;
-        return true;
-    }
-
-    const size_t size = static_cast<size_t>(port++ - base + 1);
-    char *host        = new char[size]();
-    memcpy(host, base, size - 1);
-
-    m_host = host;
-    m_port = static_cast<uint16_t>(strtol(port, nullptr, 10));
-
-    return true;
+    return client;
 }
 
 
@@ -272,10 +209,10 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 
     obj.AddMember(StringRef(kAlgo),  m_algorithm.toJSON(), allocator);
     obj.AddMember(StringRef(kCoin),  m_coin.toJSON(), allocator);
-    obj.AddMember(StringRef(kUrl),   m_url.toJSON(), allocator);
+    obj.AddMember(StringRef(kUrl),   url().toJSON(), allocator);
     obj.AddMember(StringRef(kUser),  m_user.toJSON(), allocator);
 
-    if (!isDaemon()) {
+    if (m_mode != MODE_DAEMON) {
         obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
         obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
 
@@ -294,22 +231,43 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kEnabled),            m_flags.test(FLAG_ENABLED), allocator);
     obj.AddMember(StringRef(kTls),                isTLS(), allocator);
     obj.AddMember(StringRef(kFingerprint),        m_fingerprint.toJSON(), allocator);
-    obj.AddMember(StringRef(kDaemon),             m_flags.test(FLAG_DAEMON), allocator);
+    obj.AddMember(StringRef(kDaemon),             m_mode == MODE_DAEMON, allocator);
 
-    if (isDaemon()) {
+    if (m_mode == MODE_DAEMON) {
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
     }
 
+    obj.AddMember(StringRef(kSelfSelect), m_daemon.url().toJSON(), allocator);
+
     return obj;
+}
+
+
+std::string xmrig::Pool::printableName() const
+{
+    std::string out(CSI "1;" + std::to_string(isEnabled() ? (isTLS() ? 32 : 36) : 31) + "m" + url().data() + CLEAR);
+
+    if (m_coin.isValid()) {
+        out += std::string(" coin ") + WHITE_BOLD_S + m_coin.name() + CLEAR;
+    }
+    else {
+        out += std::string(" algo ") + WHITE_BOLD_S + (m_algorithm.isValid() ? m_algorithm.shortName() : "auto") + CLEAR;
+    }
+
+    if (m_mode == MODE_SELF_SELECT) {
+        out += std::string(" self-select ") + CSI "1;" + std::to_string(m_daemon.isTLS() ? 32 : 36) + "m" + m_daemon.url().data() + CLEAR;
+    }
+
+    return out;
 }
 
 
 #ifdef APP_DEBUG
 void xmrig::Pool::print() const
 {
-    LOG_NOTICE("url:       %s", m_url.data());
-    LOG_DEBUG ("host:      %s", m_host.data());
-    LOG_DEBUG ("port:      %d", static_cast<int>(m_port));
+    LOG_NOTICE("url:       %s", url().data());
+    LOG_DEBUG ("host:      %s", host().data());
+    LOG_DEBUG ("port:      %d", static_cast<int>(port()));
     LOG_DEBUG ("user:      %s", m_user.data());
     LOG_DEBUG ("pass:      %s", m_password.data());
     LOG_DEBUG ("rig-id     %s", m_rigId.data());
@@ -318,26 +276,3 @@ void xmrig::Pool::print() const
     LOG_DEBUG ("keepAlive: %d", m_keepAlive);
 }
 #endif
-
-
-bool xmrig::Pool::parseIPv6(const char *addr)
-{
-    const char *end = strchr(addr, ']');
-    if (!end) {
-        return false;
-    }
-
-    const char *port = strchr(end, ':');
-    if (!port) {
-        return false;
-    }
-
-    const size_t size = static_cast<size_t>(end - addr);
-    char *host        = new char[size]();
-    memcpy(host, addr + 1, size - 1);
-
-    m_host = host;
-    m_port = static_cast<uint16_t>(strtol(port + 1, nullptr, 10));
-
-    return true;
-}

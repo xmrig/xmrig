@@ -152,16 +152,18 @@ void xmrig::Job::setDiff(uint64_t diff)
 
 void xmrig::Job::copy(const Job &other)
 {
-    m_algorithm = other.m_algorithm;
-    m_nicehash  = other.m_nicehash;
-    m_size      = other.m_size;
-    m_clientId  = other.m_clientId;
-    m_id        = other.m_id;
-    m_diff      = other.m_diff;
-    m_height    = other.m_height;
-    m_target    = other.m_target;
-    m_index     = other.m_index;
-    m_seed      = other.m_seed;
+    m_algorithm  = other.m_algorithm;
+    m_nicehash   = other.m_nicehash;
+    m_size       = other.m_size;
+    m_clientId   = other.m_clientId;
+    m_id         = other.m_id;
+    m_diff       = other.m_diff;
+    m_height     = other.m_height;
+    m_target     = other.m_target;
+    m_index      = other.m_index;
+    m_seed       = other.m_seed;
+    m_extraNonce = other.m_extraNonce;
+    m_poolWallet = other.m_poolWallet;
 
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
 

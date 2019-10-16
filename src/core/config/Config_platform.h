@@ -56,6 +56,7 @@ static const option options[] = {
     { "http-no-restricted",    0, nullptr, IConfig::HttpRestrictedKey     },
     { "daemon",                0, nullptr, IConfig::DaemonKey             },
     { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
+    { "self-select",           1, nullptr, IConfig::SelfSelectKey         },
 #   endif
     { "av",                    1, nullptr, IConfig::AVKey                 },
     { "background",            0, nullptr, IConfig::BackgroundKey         },
