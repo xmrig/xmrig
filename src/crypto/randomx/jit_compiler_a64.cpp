@@ -73,7 +73,7 @@ static size_t CalcDatasetItemSize()
 {
 	return
 	// Prologue
-	((uint8_t*)randomx_calc_dataset_item_aarch64_prefetch - (uint8_t*)randomx_calc_dataset_item_aarch64) + 
+	((uint8_t*)randomx_calc_dataset_item_aarch64_prefetch - (uint8_t*)randomx_calc_dataset_item_aarch64) +
 	// Main loop
 	RandomX_CurrentConfig.CacheAccesses * (
 		// Main loop prologue
@@ -82,7 +82,7 @@ static size_t CalcDatasetItemSize()
 		((RandomX_CurrentConfig.SuperscalarLatency * 3) + 2) * 16 +
 		// Main loop epilogue
 		((uint8_t*)randomx_calc_dataset_item_aarch64_store_result - (uint8_t*)randomx_calc_dataset_item_aarch64_mix) + 4
-	) + 
+	) +
 	// Epilogue
 	((uint8_t*)randomx_calc_dataset_item_aarch64_end - (uint8_t*)randomx_calc_dataset_item_aarch64_store_result);
 }
@@ -865,7 +865,7 @@ void JitCompilerA64::h_FADD_M(Instruction& instr, uint32_t& codePos)
 	const uint32_t dst = (instr.dst % 4) + 16;
 
 	constexpr uint32_t tmp_reg_fp = 28;
-	emitMemLoadFP<tmp_reg_fp>(src, instr, code, k); 
+	emitMemLoadFP<tmp_reg_fp>(src, instr, code, k);
 
 	emit32(ARMV8A::FADD | dst | (dst << 5) | (tmp_reg_fp << 16), code, k);
 
@@ -888,7 +888,7 @@ void JitCompilerA64::h_FSUB_M(Instruction& instr, uint32_t& codePos)
 	const uint32_t dst = (instr.dst % 4) + 16;
 
 	constexpr uint32_t tmp_reg_fp = 28;
-	emitMemLoadFP<tmp_reg_fp>(src, instr, code, k); 
+	emitMemLoadFP<tmp_reg_fp>(src, instr, code, k);
 
 	emit32(ARMV8A::FSUB | dst | (dst << 5) | (tmp_reg_fp << 16), code, k);
 
@@ -918,7 +918,7 @@ void JitCompilerA64::h_FDIV_M(Instruction& instr, uint32_t& codePos)
 	const uint32_t dst = (instr.dst % 4) + 20;
 
 	constexpr uint32_t tmp_reg_fp = 28;
-	emitMemLoadFP<tmp_reg_fp>(src, instr, code, k); 
+	emitMemLoadFP<tmp_reg_fp>(src, instr, code, k);
 
 	// and tmp_reg_fp, tmp_reg_fp, and_mask_reg
 	emit32(0x4E201C00 | tmp_reg_fp | (tmp_reg_fp << 5) | (29 << 16), code, k);
