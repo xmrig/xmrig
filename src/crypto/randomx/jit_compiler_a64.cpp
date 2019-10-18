@@ -109,7 +109,7 @@ void sys_icache_invalidate(void *start, size_t len);
 
 static void clear_code_cache(void* p, size_t size)
 {
-#	ifdef HAVE_BUILTIN_CLEAR_CACHE_
+#	ifdef HAVE_BUILTIN_CLEAR_CACHE
 	__builtin___clear_cache(p, size);
 #	elif defined(ios_HOST_OS) || defined (darwin_HOST_OS)
 	sys_icache_invalidate(p, size);
