@@ -107,12 +107,12 @@ JitCompilerA64::~JitCompilerA64()
 void sys_icache_invalidate(void *start, size_t len);
 #endif
 
-static void clear_code_cache(void* p, size_t size)
+static void clear_code_cache(char* p1, char* p2)
 {
 #	ifdef HAVE_BUILTIN_CLEAR_CACHE
-	__builtin___clear_cache(p, size);
+	__builtin___clear_cache(p1, p2);
 #	elif defined(ios_HOST_OS) || defined (darwin_HOST_OS)
-	sys_icache_invalidate(p, size);
+	sys_icache_invalidate(p1, static_cast<size_t>(p2 - p1));
 #	endif
 }
 
