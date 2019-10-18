@@ -98,6 +98,7 @@
 # v30 -> E 'or' mask  = 0x3*00000000******3*00000000******
 # v31 -> scale mask   = 0x81f000000000000081f0000000000000
 
+	.balign 4
 randomx_program_aarch64:
 	# Save callee-saved registers
 	sub	sp, sp, 192
