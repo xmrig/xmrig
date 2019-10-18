@@ -236,8 +236,9 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
     if (m_mode == MODE_DAEMON) {
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
     }
-
-    obj.AddMember(StringRef(kSelfSelect), m_daemon.url().toJSON(), allocator);
+    else {
+        obj.AddMember(StringRef(kSelfSelect), m_daemon.url().toJSON(), allocator);
+    }
 
     return obj;
 }
