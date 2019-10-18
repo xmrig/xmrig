@@ -103,6 +103,19 @@ JitCompilerA64::~JitCompilerA64()
 	freePagedMemory(code, CodeSize + CalcDatasetItemSize());
 }
 
+#if defined(ios_HOST_OS) || defined (darwin_HOST_OS)
+void sys_icache_invalidate(void *start, size_t len);
+#endif
+
+static void clear_code_cache(void* p, size_t size)
+{
+#	ifdef HAVE_BUILTIN_CLEAR_CACHE_
+	__builtin___clear_cache(p, size);
+#	elif defined(ios_HOST_OS) || defined (darwin_HOST_OS)
+	sys_icache_invalidate(p, size);
+#	endif
+}
+
 void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config)
 {
 	uint32_t codePos = MainLoopBegin + 4;
@@ -149,9 +162,7 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	codePos = ((uint8_t*)randomx_program_aarch64_update_spMix1) - ((uint8_t*)randomx_program_aarch64);
 	emit32(ARMV8A::EOR | 10 | (IntRegMap[config.readReg0] << 5) | (IntRegMap[config.readReg1] << 16), code, codePos);
 
-#	ifdef HAVE_BUILTIN_CLEAR_CACHE_
-	__builtin___clear_cache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
-#	endif
+	clear_code_cache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
 }
 
 void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration& config, uint32_t datasetOffset)
@@ -206,9 +217,7 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	emit32(ARMV8A::ADD_IMM_LO | 2 | (2 << 5) | (imm_lo << 10), code, codePos);
 	emit32(ARMV8A::ADD_IMM_HI | 2 | (2 << 5) | (imm_hi << 10), code, codePos);
 
-#	ifdef HAVE_BUILTIN_CLEAR_CACHE
-	__builtin___clear_cache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
-#	endif
+	clear_code_cache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
 }
 
 template<size_t N>
@@ -324,9 +333,7 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N], s
 	memcpy(code + codePos, p1, p2 - p1);
 	codePos += p2 - p1;
 
-#	ifdef HAVE_BUILTIN_CLEAR_CACHE
-	__builtin___clear_cache(reinterpret_cast<char*>(code + CodeSize), reinterpret_cast<char*>(code + codePos));
-#	endif
+	clear_code_cache(reinterpret_cast<char*>(code + CodeSize), reinterpret_cast<char*>(code + codePos));
 }
 
 template void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[RANDOMX_CACHE_MAX_ACCESSES], std::vector<uint64_t> &reciprocalCache);
