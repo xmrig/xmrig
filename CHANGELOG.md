@@ -1,3 +1,10 @@
+# v4.4.0-beta
+- [#1068](https://github.com/xmrig/xmrig/pull/1068) Added support for `self-select` stratum protocol extension.
+- [#1240](https://github.com/xmrig/xmrig/pull/1240) Sync with latest RandomX code.
+- [#1243](https://github.com/xmrig/xmrig/pull/1243) Fixed incorrect OpenCL memory size detection in some cases.
+- [#1247](https://github.com/xmrig/xmrig/pull/1247) Fixed ARM64 RandomX code alignment.
+- [#1248](https://github.com/xmrig/xmrig/pull/1248) Fixed RandomX code cache cleanup on iOS/Darwin.
+
 # v4.3.1-beta
 - Fixed regression in v4.3.0, miner didn't create `cn` mining profile with default config example.
 
