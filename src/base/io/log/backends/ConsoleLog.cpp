@@ -49,6 +49,8 @@ xmrig::ConsoleLog::ConsoleLog()
     uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
 
 #   ifdef WIN32
+    m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
+
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
     if (handle != INVALID_HANDLE_VALUE) {
         DWORD mode = 0;
@@ -67,14 +69,26 @@ xmrig::ConsoleLog::~ConsoleLog()
 }
 
 
-void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t, bool colors)
+void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool colors)
 {
     if (!m_tty || Log::colors != colors) {
         return;
     }
 
+#   ifdef _WIN32
+    uv_buf_t buf = uv_buf_init(const_cast<char *>(line), static_cast<unsigned int>(size));
+
+    if (!isWritable()) {
+        fputs(line, stdout);
+        fflush(stdout);
+    }
+    else {
+        uv_try_write(m_stream, &buf, 1);
+    }
+#   else
     fputs(line, stdout);
     fflush(stdout);
+#   endif
 }
 
 
@@ -83,3 +97,15 @@ bool xmrig::ConsoleLog::isSupported() const
     const uv_handle_type type = uv_guess_handle(1);
     return type == UV_TTY || type == UV_NAMED_PIPE;
 }
+
+
+#ifdef WIN32
+bool xmrig::ConsoleLog::isWritable() const
+{
+    if (!m_stream || uv_is_writable(m_stream) != 1) {
+        return false;
+    }
+
+    return isSupported();
+}
+#endif
