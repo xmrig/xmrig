@@ -78,7 +78,7 @@ private:
         FLAG_MAX
     };
 
-    static void osInit();
+    static void osInit(bool hugePages);
 
     bool allocateLargePagesMemory();
     void freeLargePagesMemory();
