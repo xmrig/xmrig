@@ -52,7 +52,6 @@ protected:
     void release(uint32_t node) override;
 
 private:
-    size_t m_size           = 0;
     size_t m_refs           = 0;
     size_t m_offset         = 0;
     VirtualMemory *m_memory = nullptr;

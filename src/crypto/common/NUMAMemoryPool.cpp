@@ -34,15 +34,6 @@
 #include <algorithm>
 
 
-namespace xmrig {
-
-
-constexpr size_t pageSize = 2 * 1024 * 1024;
-
-
-} // namespace xmrig
-
-
 xmrig::NUMAMemoryPool::NUMAMemoryPool(size_t size, bool hugePages) :
     m_hugePages(hugePages),
     m_nodeSize(std::max<size_t>(size / Cpu::info()->nodes(), 1)),
