@@ -91,7 +91,6 @@ private:
     const String m_board;
     const String m_name;
     const String m_vendor;
-    const size_t m_freeMemory       = 0;
     const size_t m_maxMemoryAlloc   = 0;
     const size_t m_globalMemory     = 0;
     const uint32_t m_computeUnits   = 1;
