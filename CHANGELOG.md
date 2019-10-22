@@ -1,6 +1,6 @@
 # v4.4.0-beta
 - [#1068](https://github.com/xmrig/xmrig/pull/1068) Added support for `self-select` stratum protocol extension.
-- [#1240](https://github.com/xmrig/xmrig/pull/1240) Sync with latest RandomX code.
+- [#1240](https://github.com/xmrig/xmrig/pull/1240) Sync with the latest RandomX code.
 - [#1241](https://github.com/xmrig/xmrig/issues/1241) Fixed regression with colors on old Windows systems.
 - [#1243](https://github.com/xmrig/xmrig/pull/1243) Fixed incorrect OpenCL memory size detection in some cases.
 - [#1247](https://github.com/xmrig/xmrig/pull/1247) Fixed ARM64 RandomX code alignment.
