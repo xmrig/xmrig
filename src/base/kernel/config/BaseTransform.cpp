@@ -47,6 +47,7 @@ namespace xmrig
 
 static const char *kAlgo  = "algo";
 static const char *kApi   = "api";
+static const char *kCoin  = "coin";
 static const char *kHttp  = "http";
 static const char *kPools = "pools";
 
@@ -107,6 +108,15 @@ void xmrig::BaseTransform::finalize(rapidjson::Document &doc)
             }
         }
     }
+
+    if (m_coin.isValid() && doc.HasMember(kPools)) {
+        auto &pools = doc[kPools];
+        for (Value &pool : pools.GetArray()) {
+            if (!pool.HasMember(kCoin)) {
+                pool.AddMember(StringRef(kCoin), m_coin.toJSON(), allocator);
+            }
+        }
+    }
 }
 
 
@@ -119,6 +129,15 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         }
         else {
             return add(doc, kPools, kAlgo, arg);
+        }
+        break;
+
+    case IConfig::CoinKey: /* --coin */
+        if (!doc.HasMember(kPools)) {
+            m_coin = arg;
+        }
+        else {
+            return add(doc, kPools, kCoin, arg);
         }
         break;
 

@@ -22,45 +22,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONSOLE_H
-#define XMRIG_CONSOLE_H
+#ifndef XMRIG_OBJECT_H
+#define XMRIG_OBJECT_H
 
 
-#include "base/tools/Object.h"
-
-
-#include <uv.h>
+#include <chrono>
 
 
 namespace xmrig {
 
 
-class IConsoleListener;
+#define XMRIG_DISABLE_COPY_MOVE(X) \
+    X(const X &other)            = delete; \
+    X(X &&other)                 = delete; \
+    X &operator=(const X &other) = delete; \
+    X &operator=(X &&other)      = delete;
 
 
-class Console
-{
-public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Console)
-
-    Console(IConsoleListener *listener);
-    ~Console();
-
-    void stop();
-
-private:
-    bool isSupported() const;
-
-    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
-    static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-
-    char m_buf[1] = { 0 };
-    IConsoleListener *m_listener;
-    uv_tty_t *m_tty = nullptr;
-};
+#define XMRIG_DISABLE_COPY_MOVE_DEFAULT(X) \
+    X()                          = delete; \
+    X(const X &other)            = delete; \
+    X(X &&other)                 = delete; \
+    X &operator=(const X &other) = delete; \
+    X &operator=(X &&other)      = delete;
 
 
 } /* namespace xmrig */
 
-
-#endif /* XMRIG_CONSOLE_H */
+#endif /* XMRIG_OBJECT_H */

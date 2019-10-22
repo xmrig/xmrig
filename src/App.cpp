@@ -150,7 +150,11 @@ void xmrig::App::onSignal(int signum)
 void xmrig::App::close()
 {
     m_signals->stop();
-    m_console->stop();
+
+    if (m_console) {
+        m_console->stop();
+    }
+
     m_controller->stop();
 
     Log::destroy();

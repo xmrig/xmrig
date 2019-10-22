@@ -73,6 +73,7 @@ public:
     inline uint8_t fixedByte() const                  { return *(m_blob + 42); }
     inline uint8_t index() const                      { return m_index; }
     inline void reset()                               { m_size = 0; m_diff = 0; }
+    inline void setAlgorithm(const Algorithm::Id id)  { m_algorithm = id; }
     inline void setAlgorithm(const char *algo)        { m_algorithm = algo; }
     inline void setClientId(const String &id)         { m_clientId = id; }
     inline void setHeight(uint64_t height)            { m_height = height; }
