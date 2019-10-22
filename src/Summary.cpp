@@ -23,8 +23,8 @@
  */
 
 
-#include <inttypes.h>
-#include <stdio.h>
+#include <cinttypes>
+#include <cstdio>
 #include <uv.h>
 
 
@@ -59,10 +59,10 @@ inline static const char *asmName(Assembly::Id assembly)
 #endif
 
 
-static void print_memory(Config *) {
+static void print_memory(Config *config) {
 #   ifdef _WIN32
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-               "HUGE PAGES", VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable"));
+               "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
 #   endif
 }
 

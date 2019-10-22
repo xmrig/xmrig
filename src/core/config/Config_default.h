@@ -88,7 +88,8 @@ R"===(
             "enabled": true,
             "tls": false,
             "tls-fingerprint": null,
-            "daemon": false
+            "daemon": false,
+            "self-select": null
         }
     ],
     "print-time": 60,

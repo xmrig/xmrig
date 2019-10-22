@@ -26,6 +26,7 @@
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/stratum/BaseClient.h"
 #include "base/net/stratum/SubmitResult.h"
+#include "rapidjson/document.h"
 
 
 namespace xmrig {
@@ -36,15 +37,35 @@ int64_t BaseClient::m_sequence = 1;
 
 
 xmrig::BaseClient::BaseClient(int id, IClientListener *listener) :
-    m_quiet(false),
     m_listener(listener),
-    m_id(id),
-    m_retries(5),
-    m_failures(0),
-    m_state(UnconnectedState),
-    m_retryPause(5000),
-    m_enabled(true)
+    m_id(id)
 {
+}
+
+
+bool xmrig::BaseClient::handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
+{
+    if (id == 1) {
+        return false;
+    }
+
+    auto it = m_callbacks.find(id);
+    if (it != m_callbacks.end()) {
+        const uint64_t elapsed = Chrono::steadyMSecs() - it->second.ts;
+
+        if (error.IsObject()) {
+            it->second.callback(error, false, elapsed);
+        }
+        else {
+            it->second.callback(result, true, elapsed);
+        }
+
+        m_callbacks.erase(it);
+
+        return true;
+    }
+
+    return false;
 }
 
 

@@ -58,28 +58,32 @@ public:
     bool setTarget(const char *target);
     void setDiff(uint64_t diff);
 
-    inline bool isNicehash() const                    { return m_nicehash; }
-    inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
-    inline bool setId(const char *id)                 { return m_id = id; }
-    inline const Algorithm &algorithm() const         { return m_algorithm; }
-    inline const Buffer &seed() const                 { return m_seed; }
-    inline const String &clientId() const             { return m_clientId; }
-    inline const String &id() const                   { return m_id; }
-    inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
-    inline const uint8_t *blob() const                { return m_blob; }
-    inline size_t size() const                        { return m_size; }
-    inline uint32_t *nonce()                          { return reinterpret_cast<uint32_t*>(m_blob + 39); }
-    inline uint64_t diff() const                      { return m_diff; }
-    inline uint64_t height() const                    { return m_height; }
-    inline uint64_t target() const                    { return m_target; }
-    inline uint8_t fixedByte() const                  { return *(m_blob + 42); }
-    inline uint8_t index() const                      { return m_index; }
-    inline void reset()                               { m_size = 0; m_diff = 0; }
-    inline void setAlgorithm(const Algorithm::Id id)  { m_algorithm = id; }
-    inline void setAlgorithm(const char *algo)        { m_algorithm = algo; }
-    inline void setClientId(const String &id)         { m_clientId = id; }
-    inline void setHeight(uint64_t height)            { m_height = height; }
-    inline void setIndex(uint8_t index)               { m_index = index; }
+    inline bool isNicehash() const                      { return m_nicehash; }
+    inline bool isValid() const                         { return m_size > 0 && m_diff > 0; }
+    inline bool setId(const char *id)                   { return m_id = id; }
+    inline const Algorithm &algorithm() const           { return m_algorithm; }
+    inline const Buffer &seed() const                   { return m_seed; }
+    inline const String &clientId() const               { return m_clientId; }
+    inline const String &extraNonce() const             { return m_extraNonce; }
+    inline const String &id() const                     { return m_id; }
+    inline const String &poolWallet() const             { return m_poolWallet; }
+    inline const uint32_t *nonce() const                { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
+    inline const uint8_t *blob() const                  { return m_blob; }
+    inline size_t size() const                          { return m_size; }
+    inline uint32_t *nonce()                            { return reinterpret_cast<uint32_t*>(m_blob + 39); }
+    inline uint64_t diff() const                        { return m_diff; }
+    inline uint64_t height() const                      { return m_height; }
+    inline uint64_t target() const                      { return m_target; }
+    inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
+    inline uint8_t index() const                        { return m_index; }
+    inline void reset()                                 { m_size = 0; m_diff = 0; }
+    inline void setAlgorithm(const Algorithm::Id id)    { m_algorithm = id; }
+    inline void setAlgorithm(const char *algo)          { m_algorithm = algo; }
+    inline void setClientId(const String &id)           { m_clientId = id; }
+    inline void setExtraNonce(const String &extraNonce) { m_extraNonce = extraNonce; }
+    inline void setHeight(uint64_t height)              { m_height = height; }
+    inline void setIndex(uint8_t index)                 { m_index = index; }
+    inline void setPoolWallet(const String &poolWallet) { m_poolWallet = poolWallet; }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                            { return m_rawBlob; }
@@ -103,7 +107,9 @@ private:
     Buffer m_seed;
     size_t m_size       = 0;
     String m_clientId;
+    String m_extraNonce;
     String m_id;
+    String m_poolWallet;
     uint64_t m_diff     = 0;
     uint64_t m_height   = 0;
     uint64_t m_target   = 0;
