@@ -48,6 +48,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_CUDA
+#   include "backend/cuda/CudaConfig.h"
+#endif
+
+
 namespace xmrig {
 
 static const char *kCPU     = "cpu";
@@ -58,6 +63,10 @@ static const char *kRandomX = "randomx";
 
 #ifdef XMRIG_FEATURE_OPENCL
 static const char *kOcl     = "opencl";
+#endif
+
+#ifdef XMRIG_FEATURE_CUDA
+static const char *kCuda    = "cuda";
 #endif
 
 
@@ -72,6 +81,10 @@ public:
 
 #   ifdef XMRIG_FEATURE_OPENCL
     OclConfig cl;
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    CudaConfig cuda;
 #   endif
 };
 
@@ -104,6 +117,14 @@ const xmrig::OclConfig &xmrig::Config::cl() const
 #endif
 
 
+#ifdef XMRIG_FEATURE_CUDA
+const xmrig::CudaConfig &xmrig::Config::cuda() const
+{
+    return d_ptr->cuda;
+}
+#endif
+
+
 #ifdef XMRIG_ALGO_RANDOMX
 const xmrig::RxConfig &xmrig::Config::rx() const
 {
@@ -120,6 +141,12 @@ bool xmrig::Config::isShouldSave() const
 
 #   ifdef XMRIG_FEATURE_OPENCL
     if (cl().isShouldSave()) {
+        return true;
+    }
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    if (cuda().isShouldSave()) {
         return true;
     }
 #   endif
@@ -144,6 +171,10 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 
 #   ifdef XMRIG_FEATURE_OPENCL
     d_ptr->cl.read(reader.getValue(kOcl));
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    d_ptr->cuda.read(reader.getValue(kCuda));
 #   endif
 
     return true;
@@ -176,6 +207,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_FEATURE_OPENCL
     doc.AddMember(StringRef(kOcl),     cl().toJSON(doc), allocator);
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    doc.AddMember(StringRef(kCuda),    cuda().toJSON(doc), allocator);
 #   endif
 
     doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);

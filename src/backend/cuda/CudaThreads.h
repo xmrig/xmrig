@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,33 +22,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_TAGS_H
-#define XMRIG_TAGS_H
+#ifndef XMRIG_CUDATHREADS_H
+#define XMRIG_CUDATHREADS_H
+
+
+#include <vector>
+
+
+#include "backend/cuda/CudaThread.h"
 
 
 namespace xmrig {
 
 
-const char *cpu_tag();
+class CudaThreads
+{
+public:
+    CudaThreads() = default;
+    CudaThreads(const rapidjson::Value &value);
+
+    inline bool isEmpty() const                              { return m_data.empty(); }
+    inline const std::vector<CudaThread> &data() const       { return m_data; }
+    inline size_t count() const                              { return m_data.size(); }
+    inline void add(CudaThread &&thread)                     { m_data.push_back(thread); }
+    inline void reserve(size_t capacity)                     { m_data.reserve(capacity); }
+
+    inline bool operator!=(const CudaThreads &other) const   { return !isEqual(other); }
+    inline bool operator==(const CudaThreads &other) const   { return isEqual(other); }
+
+    bool isEqual(const CudaThreads &other) const;
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+
+private:
+    std::vector<CudaThread> m_data;
+};
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-const char *ocl_tag();
-#endif
+} /* namespace xmrig */
 
 
-#ifdef XMRIG_FEATURE_CUDA
-const char *cuda_tag();
-#endif
-
-
-
-#ifdef XMRIG_ALGO_RANDOMX
-const char *rx_tag();
-#endif
-
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_TAGS_H */
+#endif /* XMRIG_CUDATHREADS_H */

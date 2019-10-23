@@ -30,6 +30,7 @@
 
 
 #include "backend/common/interfaces/IBackend.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -43,15 +44,11 @@ class Miner;
 class OclBackend : public IBackend
 {
 public:
-    OclBackend()                        = delete;
-    OclBackend(const OclBackend &other) = delete;
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclBackend)
+
     OclBackend(Controller *controller);
-    OclBackend(OclBackend &&other)      = delete;
 
     ~OclBackend() override;
-
-    OclBackend &operator=(const OclBackend &other) = delete;
-    OclBackend &operator=(OclBackend &&other)      = delete;
 
 protected:
     bool isEnabled() const override;

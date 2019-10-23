@@ -39,9 +39,10 @@ namespace xmrig {
 
 
 class ConfigPrivate;
+class CudaConfig;
 class IThread;
-class RxConfig;
 class OclConfig;
+class RxConfig;
 
 
 class Config : public BaseConfig
@@ -56,6 +57,10 @@ public:
 
 #   ifdef XMRIG_FEATURE_OPENCL
     const OclConfig &cl() const;
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    const CudaConfig &cuda() const;
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX

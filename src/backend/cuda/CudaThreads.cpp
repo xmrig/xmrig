@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,33 +22,50 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_TAGS_H
-#define XMRIG_TAGS_H
+
+#include "backend/cuda/CudaThreads.h"
+#include "base/io/json/Json.h"
+#include "rapidjson/document.h"
 
 
-namespace xmrig {
+#include <algorithm>
 
 
-const char *cpu_tag();
+xmrig::CudaThreads::CudaThreads(const rapidjson::Value &value)
+{
+    if (value.IsArray()) {
+        for (auto &v : value.GetArray()) {
+            CudaThread thread(v);
+            if (thread.isValid()) {
+                add(std::move(thread));
+            }
+        }
+    }
+}
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-const char *ocl_tag();
-#endif
+bool xmrig::CudaThreads::isEqual(const CudaThreads &other) const
+{
+    if (isEmpty() && other.isEmpty()) {
+        return true;
+    }
+
+    return count() == other.count() && std::equal(m_data.begin(), m_data.end(), other.m_data.begin());
+}
 
 
-#ifdef XMRIG_FEATURE_CUDA
-const char *cuda_tag();
-#endif
+rapidjson::Value xmrig::CudaThreads::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
 
+    Value out(kArrayType);
 
+    out.SetArray();
 
-#ifdef XMRIG_ALGO_RANDOMX
-const char *rx_tag();
-#endif
+    for (const CudaThread &thread : m_data) {
+        out.PushBack(thread.toJSON(doc), allocator);
+    }
 
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_TAGS_H */
+    return out;
+}
