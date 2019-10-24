@@ -1,6 +1,7 @@
 # XMRigCC 
 
-**:warning: [Monero will change PoW algorithm to RandomX on November 30.](https://github.com/xmrig/xmrig/issues/1204)**
+**:warning: Monero will change PoW algorithm to RandomX on November 30. Make sure you upgrade to the latest Release before that**
+
 XMRig is a high performance RandomX, CryptoNight and Argon2 CPU miner, with official support for Windows.
 
 :bulb: **This is the CPU variant of XMRigCC, if you're looking for the AMD GPU (OpenCL) variant [click here](https://github.com/Bendr0id/xmrigCC-amd/).**
