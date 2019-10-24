@@ -48,7 +48,6 @@
 #include "net/strategies/DonateStrategy.h"
 #include "rapidjson/document.h"
 
-
 #ifdef XMRIG_FEATURE_API
 #   include "base/api/Api.h"
 #   include "base/api/interfaces/IApiRequest.h"

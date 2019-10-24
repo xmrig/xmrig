@@ -62,7 +62,6 @@ set(SOURCES_BASE
     src/base/io/json/JsonRequest.cpp
     src/base/io/log/backends/ConsoleLog.cpp
     src/base/io/log/backends/FileLog.cpp
-    src/base/io/log/backends/RemoteLog.cpp
     src/base/io/log/Log.cpp
     src/base/io/Watcher.cpp
     src/base/kernel/Base.cpp

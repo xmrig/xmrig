@@ -1,5 +1,5 @@
 /* XMRigCC
- * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
+ * Copyright 2019-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,46 +18,32 @@
 #ifndef __HTTPD_H__
 #define __HTTPD_H__
 
+#include <memory>
 #include <string>
 #include <sstream>
-#include <uv.h>
 
-#include "Options.h"
+#include "3rdparty/cpp-httplib/httplib.h"
 
-
-struct MHD_Connection;
-struct MHD_Daemon;
-struct MHD_Response;
+#include "CCServerConfig.h"
+#include "Service.h"
 
 class Httpd
 {
 public:
-    Httpd(const Options *options);
-    bool start();
+  explicit Httpd(const std::shared_ptr<CCServerConfig>& config);
+  ~Httpd();
+
+public:
+  int start();
+  void stop();
 
 private:
+  int basicAuth(const httplib::Request& req, httplib::Response& res);
+  int bearerAuth(const httplib::Request& req, httplib::Response& res);
 
-    typedef struct PostContext
-	{
-		std::stringstream data;
-    } ConnectionContext;
-
-    static int sendResponse(MHD_Connection* connection, unsigned status, MHD_Response* rsp, const char* contentType);
-
-    unsigned basicAuth(MHD_Connection* connection, const std::string& clientIp, std::string &resp);
-    unsigned tokenAuth(MHD_Connection* connection, const std::string& clientIp);
-
-    static int handler(void* httpd, MHD_Connection* connection, const char* url, const char* method, const char* version, const char* upload_data, size_t* upload_data_size, void**con_cls);
-    static int handleGET(const Httpd* httpd, MHD_Connection* connection, const std::string& clientIp, const char* url);
-    static int handlePOST(const Httpd* httpd, MHD_Connection* connection, const std::string& clientIp, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls);
-
-	static std::string readFile(const std::string &fileName);
-
-	const Options* m_options;
-    MHD_Daemon* m_daemon;
-
-	std::string m_keyPem;
-	std::string m_certPem;
+  const std::shared_ptr<CCServerConfig> m_config;
+  std::shared_ptr<Service> m_service;
+  std::shared_ptr<httplib::Server> m_srv;
 };
 
 #endif /* __HTTPD_H__ */

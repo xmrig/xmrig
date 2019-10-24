@@ -33,6 +33,7 @@
     "pools": [
         {
             "algo": null,
+            "coin": null,
             "url": "donate.graef.in:80",
             "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",

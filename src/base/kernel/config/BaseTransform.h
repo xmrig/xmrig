@@ -27,6 +27,7 @@
 
 
 #include "base/kernel/interfaces/IConfigTransform.h"
+#include "crypto/common/Coin.h"
 #include "rapidjson/document.h"
 
 
@@ -99,6 +100,7 @@ protected:
 
 protected:
     Algorithm m_algorithm;
+    Coin m_coin;
 
 
 private:

@@ -25,13 +25,13 @@
 
 #include <assert.h>
 #include <memory>
-#include <base/io/log/backends/RemoteLog.h>
 
 
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonChain.h"
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/backends/FileLog.h"
+#include "base/io/log/backends/RemoteLog.h"
 #include "base/io/log/Log.h"
 #include "base/io/Watcher.h"
 #include "base/kernel/Base.h"
@@ -277,6 +277,7 @@ void xmrig::Base::stop()
     d_ptr->watcher = nullptr;
 }
 
+
 xmrig::Api *xmrig::Base::api() const
 {
     assert(d_ptr->api != nullptr);
@@ -284,12 +285,14 @@ xmrig::Api *xmrig::Base::api() const
     return d_ptr->api;
 }
 
+
 xmrig::CCClient *xmrig::Base::ccClient() const
 {
     assert(d_ptr->ccClient != nullptr);
 
     return d_ptr->ccClient;
 }
+
 
 bool xmrig::Base::reload(const rapidjson::Value &json)
 {

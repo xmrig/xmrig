@@ -41,7 +41,6 @@
 
 namespace xmrig {
 
-
 class Controller;
 class IStrategy;
 
@@ -53,7 +52,6 @@ public:
     ~Network() override;
 
     inline IStrategy *strategy() const { return m_strategy; }
-
     void connect();
 
 protected:

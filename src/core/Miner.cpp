@@ -115,16 +115,15 @@ public:
     {
         active = true;
 
+        if (reset) {
+            Nonce::reset(job.index());
+        }
+
         for (IBackend *backend : backends) {
             backend->setJob(job);
         }
 
-        if (reset) {
-            Nonce::reset(job.index());
-        }
-        else {
-            Nonce::touch();
-        }
+        Nonce::touch();
 
         if (enabled) {
             Nonce::pause(false);;
@@ -498,7 +497,6 @@ void xmrig::Miner::onRequest(IApiRequest &request)
     }
 }
 #endif
-
 
 #ifdef XMRIG_FEATURE_CC_CLIENT
 void xmrig::Miner::onUpdateRequest(ClientStatus& clientStatus)

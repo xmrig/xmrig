@@ -1,3 +1,14 @@
+# 2.1.0
+* New XMRigCCServer without dependencies and now with full TLS support on Windows
+* Dashboard
+    * Added all columns to the dashboard
+    * Dynamic table view (column visibility)
+    * Grouping by Algo
+    * GZIP compression for the whole traffic
+* Full Rebase on XMRig 3.2.0 
+    * Final randomX/0 (XMR)
+    * Coin config
+    * Bugfixes
 # 2.0.0
 **Thx to @xmrig and @SChernykh awesome work!**
 * Full Rebase on XMRig 3.1.1 

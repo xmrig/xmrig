@@ -1,32 +1,18 @@
 # Algorithms
 
-Since version 2 mining [algorithm](#algorithm-names) should specified for each pool separately (`algo` option), earlier versions was use one global `algo` option and per pool `variant/powVariant` option (this option was removed in v2). If your pool support [mining algorithm negotiation](https://github.com/xmrig/xmrig-proxy/issues/168) you may not specify this option at all.
- 
-#### Example
-```json
-{
-  "pools": [
-    {
-      "url": "...",
-      "algo": "cn/r",
-      ...
-    }
- ],
- ...
-}
-```
+Algorithm can be defined in 3 ways:
 
-#### Pools with mining algorithm negotiation support.
+1. By pool, using algorithm negotiation, in this case no need specify algorithm on miner side.
+2. Per pool `coin` option, currently only usable value for this option is `monero`.
+3. Per pool `algo` option.
 
- * [www.hashvault.pro](https://www.hashvault.pro/)
- * [moneroocean.stream](https://moneroocean.stream)
- 
- ## Algorithm names
+Option `coin` useful for pools without algorithm negotiation support or daemon to allow automatically switch algorithm in next hard fork.
+
+## Algorithm names
 
 | Name | Memory | Version | Notes |
 |------|--------|---------|-------|
-| `rx/test` | 2 MB | 2.0.0+ | RandomX (reference configuration). |
-| `rx/0` | 2 MB | 2.0.0+ | RandomX (reference configuration), reserved for future use. |
+| `rx/0` | 2 MB | 2.1.0+ | RandomX (Monero). |
 | `rx/wow` | 1 MB | 2.0.0+ | RandomWOW. |
 | `rx/loki` | 2 MB | 2.0.0+ | RandomXL. |
 | `cn/conceal` | 2 MB | 1.9.5+ | CryptoNight variant 1 (modified). |
@@ -51,3 +37,21 @@ Since version 2 mining [algorithm](#algorithm-names) should specified for each p
 | `cn-lite/1` | 1 MB | <1.9.5+ | CryptoNight-Lite variant 1. |
 | `cn-lite/0` | 1 MB | <1.9.5+ | CryptoNight-Lite variant 0. |
 | `cn/0` | 2 MB | <1.9.5+ | CryptoNight (original). |
+
+## Migration to v2
+Since version 2 mining [algorithm](#algorithm-names) should specified for each pool separately (`algo` option), earlier versions was use one global `algo` option and per pool `variant` option (this option was removed in v3). If your pool support [mining algorithm negotiation](https://github.com/xmrig/xmrig-proxy/issues/168) you may not specify this option at all.
+ 
+#### Example
+```json
+{
+  "pools": [
+    {
+      "url": "...",
+      "algo": "cn/r",
+      "coin": null,
+      ...
+    }
+ ],
+ ...
+}
+```

@@ -37,7 +37,7 @@
 #   define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
 #endif
 
-
+#include "crypto/cn/CnAlgo.h"
 #include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "base/io/log/Log.h"
 
@@ -289,6 +289,11 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         intensity = 2;
     }
 #   endif
+
+    if (CnAlgo<>::base(algorithm) == Algorithm::CN_0 || CnAlgo<>::base(algorithm) == Algorithm::CN_1) {
+        intensity = std::min<uint32_t >(static_cast<const uint32_t &>(cacheHashes / PUs), algorithm.maxIntensity());
+    }
+
 
 #   ifdef XMRIG_ALGO_CN_GPU
     if (algorithm == Algorithm::CN_GPU) {

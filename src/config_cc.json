@@ -1,27 +1,26 @@
 {
-    "background": false,                            // true to run the cc-server in the background (no console)
-    "colors": true,                                 // false to disable colored output
-    "log-file": null,                               // log all output to a file
-    "syslog": false,                                // use system log for output messages
-    "cc-server": {
-        "port": 3344,                               // port the CC Server will listens on
-        "use-tls" : false,                          // use tls for CC communication (needs to be enabled on miners too)
-        "cert-file" : "server.pem",                 // when tls is turned on, use this to point to the right cert file
-        "key-file" : "server.key",                  // when tls is turned on, use this to point to the right key file
-        "access-token": "mySecret",                 // access token for CC Clients (should be set!!!)
-        "user": "admin",                            // admin user for access CC Dashboard
-        "pass": "pass",                             // admin pass for access CC Dashboard
-        "client-config-folder" : null,              // folder which contains the client-config files (null=current)
-        "client-log-lines-history" : 100,           // maximum lines of log history kept per miner
-        "custom-dashboard" : "index.html",          // dashboard html file
-        // Pushnotification Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Pushover
-        "pushover-user-key" : "",                   // your user key for pushover notifications
-        "pushover-api-token" : "",                  // api token/keytoken of the application for pushover notifications
-        // Telegram Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Telegram
-        "telegram-bot-token" : "",                  // pushover token to use for push notifications
-        "telegram-chat-id" : "",                    // pushover token to use for push notifications
-        "push-miner-offline-info" : true,           // push notification for offline miners
-        "push-miner-zero-hash-info" : true,         // push notification when miner reports 0 hashrate
-        "push-periodic-mining-status" : true        // push periodic status notification (every hour)
-    }
+    "background": false,                        // true to run the cc-server in the background (no console)
+    "colors": true,                             // false to disable colored output
+    "log-file": null,                           // log all output to a file
+    "syslog": false,                            // use system log for output messages
+    "bind-ip": "0.0.0.0",                       // ip the CC Server will listens on
+    "port": 3344,                               // port the CC Server will listens on
+    "user": "admin",                            // admin user for access CC Dashboard
+    "pass": "pass",                             // admin pass for access CC Dashboard
+    "access-token": "mySecret",                 // access token for CC Clients (should be set!!!)
+    "use-tls" : false,                          // use tls for CC communication (needs to be enabled on miners too)
+    "cert-file" : "server.pem",                 // when tls is turned on, use this to point to the right cert file
+    "key-file" : "server.key",                  // when tls is turned on, use this to point to the right key file
+    "client-config-folder" : null,              // folder which contains the client-config files (null=current)
+    "client-log-lines-history" : 100,           // maximum lines of log history kept per miner
+    "custom-dashboard" : "index.html",          // dashboard html file
+    // Pushnotification Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Pushover
+    "pushover-user-key" : "",                   // your user key for pushover notifications
+    "pushover-api-token" : "",                  // api token/keytoken of the application for pushover notifications
+    // Telegram Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Telegram
+    "telegram-bot-token" : "",                  // pushover token to use for push notifications
+    "telegram-chat-id" : "",                    // pushover token to use for push notifications
+    "push-miner-offline-info" : true,           // push notification for offline miners
+    "push-miner-zero-hash-info" : true,         // push notification when miner reports 0 hashrate
+    "push-periodic-mining-status" : true        // push periodic status notification (every hour)
 }

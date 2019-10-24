@@ -26,10 +26,8 @@
 #ifndef XMRIG_APP_H
 #define XMRIG_APP_H
 
-
 #include "base/kernel/interfaces/IConsoleListener.h"
 #include "base/kernel/interfaces/ISignalListener.h"
-
 #include "base/cc/interfaces/ICommandListener.h"
 #include "cc/ControlCommand.h"
 
@@ -76,6 +74,5 @@ private:
 
 
 } /* namespace xmrig */
-
 
 #endif /* XMRIG_APP_H */

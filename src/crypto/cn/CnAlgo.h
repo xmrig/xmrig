@@ -105,6 +105,43 @@ public:
         return ((memory(algo) - 1) / 16) * 16;
     }
 
+    inline static Algorithm::Id base(Algorithm::Id algo)
+    {
+        switch (algo)
+        {
+            case Algorithm::CN_0:
+            case Algorithm::CN_XAO:
+            case Algorithm::CN_CONCEAL:
+#       ifdef XMRIG_ALGO_CN_LITE
+            case Algorithm::CN_LITE_0:
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+            case Algorithm::CN_HEAVY_0:
+            case Algorithm::CN_HEAVY_XHV:
+#       endif
+                return Algorithm::CN_0;
+
+#       ifdef XMRIG_ALGO_CN_GPU
+            case Algorithm::CN_GPU:
+                Algorithm::CN_GPU,
+#       endif
+
+            case Algorithm::CN_1:
+            case Algorithm::CN_FAST:
+            case Algorithm::CN_RTO:
+#       ifdef XMRIG_ALGO_CN_LITE
+            case Algorithm::CN_LITE_1:
+#       endif
+#       ifdef XMRIG_ALGO_CN_HEAVY
+            case Algorithm::CN_HEAVY_TUBE:
+#       endif
+                return Algorithm::CN_1;
+
+            default:
+                return Algorithm::CN_2;
+        }
+    }
+
 private:
     constexpr const static size_t   CN_MEMORY = 0x200000;
     constexpr const static uint32_t CN_ITER   = 0x80000;

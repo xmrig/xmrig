@@ -1,5 +1,5 @@
 /* XMRigCC
- * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
+ * Copyright 2019-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,178 +16,185 @@
  */
 
 #include <uv.h>
+#include <memory>
 
-#include "CCServer.h"
-#include "Service.h"
-#include "Httpd.h"
-#include "Console.h"
-#include "log/ConsoleLog.h"
-#include "log/FileLog.h"
-#include "log/Log.h"
-#include "Options.h"
-#include "Summary.h"
-
-#if _WIN32
-    #include <winsock2.h>
-    #include <windows.h>
-#else
-#   include "unistd.h"
-#endif
+#include "base/io/log/backends/ConsoleLog.h"
+#include "base/io/log/backends/FileLog.h"
+#include "base/io/json/JsonChain.h"
+#include "base/io/log/Log.h"
 
 #ifdef HAVE_SYSLOG_H
-#   include "log/SysLog.h"
+#include "base/io/log/backends/SysLog.h"
 #endif
 
-CCServer *CCServer::m_self = nullptr;
+#include "CCServerConfig.h"
+#include "Httpd.h"
+#include "CCServer.h"
+#include "Summary.h"
 
-
-CCServer::CCServer(int argc, char** argv) :
-    m_console(nullptr),
-    m_httpd(nullptr),
-    m_options(nullptr)
+CCServer::CCServer(cxxopts::ParseResult& parseResult)
 {
-    m_self = this;
+  m_config = std::make_shared<CCServerConfig>(parseResult);
 
-    Log::init();
+  if (!m_config->background())
+  {
+    xmrig::Log::colors = m_config->colors();
+    xmrig::Log::add(new xmrig::ConsoleLog());
+    m_console = std::make_shared<xmrig::Console>(this);
+  }
 
-    m_options = Options::parse(argc, argv);
-    if (!m_options) {
-        return;
-    }
-    
-    if (!m_options->background()) {
-        Log::add(new ConsoleLog(m_options->colors()));
-        m_console = new Console(this);
-    }
+  if (!m_config->logFile().empty())
+  {
+    xmrig::Log::add(new xmrig::FileLog(m_config->logFile().c_str()));
+  }
 
-    if (m_options->logFile()) {
-        Log::add(new FileLog(m_options->logFile()));
-    }
-
-#   ifdef HAVE_SYSLOG_H
-    if (m_options->syslog()) {
-        Log::add(new SysLog());
-    }
-#   endif
-
-    uv_signal_init(uv_default_loop(), &m_signal);
+#ifdef HAVE_SYSLOG_H
+  if (m_config->syslog())
+  {
+    xmrig::Log::add(new xmrig::SysLog());
+  }
+#endif
 }
 
 CCServer::~CCServer()
 {
-    uv_tty_reset_mode();
-
-    delete m_httpd;
+  m_signals.reset();
+  m_console.reset();
+  m_httpd.reset();
+  m_config.reset();
 }
 
 int CCServer::start()
 {
-    if (!m_options) {
-        return EINVAL;
-    }
+  if (!m_config->isValid())
+  {
+    LOG_ERR("Invalid config provided");
+    return EINVAL;
+  }
 
-    uv_signal_start(&m_signal, CCServer::onSignal, SIGHUP);
-    uv_signal_start(&m_signal, CCServer::onSignal, SIGTERM);
-    uv_signal_start(&m_signal, CCServer::onSignal, SIGINT);
+  m_signals = std::make_shared<xmrig::Signals>(this);
 
-    if (m_options->background()) {
-        moveToBackground();
-    }
+  if (m_config->background())
+  {
+    moveToBackground();
+  }
 
-    Summary::print();
+  Summary::print(m_config);
 
-    Service::start();
+  startUvLoopThread();
 
-    m_httpd = new Httpd(m_options);
-    if (!m_httpd->start()) {
-        return EINVAL;
-    }
+  m_httpd = std::make_shared<Httpd>(m_config);
+  int retVal = m_httpd->start();
+  if (retVal > 0)
+  {
+    LOG_ERR("Failed to bind %sServer to %s:%d", m_config->useTLS() ? "TLS " : "", m_config->bindIp().c_str(),
+            m_config->port());
+  }
+  else if (retVal < 0)
+  {
+    LOG_ERR("Invalid config. %s", m_config->useTLS() ? "Check bindIp, port and the certificate/key file"
+                                                     : "Check bindIp and port");
+  }
+  else
+  {
+    LOG_INFO("Server stopped. Exit.");
+  }
 
-    const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-    uv_loop_close(uv_default_loop());
+  return retVal;
+}
 
-    Options::release();
-
-    return r;
+void CCServer::startUvLoopThread() const
+{
+  std::thread([]()
+              {
+                uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+                uv_loop_close(uv_default_loop());
+              }).detach();
 }
 
 void CCServer::onConsoleCommand(char command)
 {
-    switch (command) {
+  switch (command)
+  {
     case 'q':
     case 'Q':
-        stop();
-        break;
+      stop();
+      break;
 
     case 3:
-        LOG_WARN("Ctrl+C received, exiting");
-        stop();
-        break;
+      LOG_WARN("Ctrl+C received, exiting");
+      stop();
+      break;
 
     default:
-        break;
-    }
+      break;
+  }
 }
 
 void CCServer::stop()
 {
-    uv_stop(uv_default_loop());
+  m_httpd->stop();
+
+  uv_stop(uv_default_loop());
 }
 
-void CCServer::onSignal(uv_signal_t* handle, int signum)
+void CCServer::onSignal(int signum)
 {
-    switch (signum)
-    {
+  switch (signum)
+  {
     case SIGHUP:
-        LOG_WARN("SIGHUP received, exiting");
-        break;
+      LOG_WARN("SIGHUP received, exiting");
+      break;
 
     case SIGTERM:
-        LOG_WARN("SIGTERM received, exiting");
-        break;
+      LOG_WARN("SIGTERM received, exiting");
+      break;
 
     case SIGINT:
-        LOG_WARN("SIGINT received, exiting");
-        break;
+      LOG_WARN("SIGINT received, exiting");
+      break;
 
     default:
-        break;
-    }
+      break;
+  }
 
-    uv_signal_stop(handle);
-    m_self->stop();
+  stop();
 }
 
 void CCServer::moveToBackground()
 {
 #ifdef WIN32
-    HWND hcon = GetConsoleWindow();
-    if (hcon) {
-        ShowWindow(hcon, SW_HIDE);
-    } else {
-        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-        CloseHandle(h);
-        FreeConsole();
-    }
+  HWND hcon = GetConsoleWindow();
+  if (hcon) {
+      ShowWindow(hcon, SW_HIDE);
+  } else {
+      HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+      CloseHandle(h);
+      FreeConsole();
+  }
 #else
-    int i = fork();
-    if (i < 0) {
-        exit(1);
-    }
+  int i = fork();
+  if (i < 0)
+  {
+    exit(1);
+  }
 
-    if (i > 0) {
-        exit(0);
-    }
+  if (i > 0)
+  {
+    exit(0);
+  }
 
-    i = setsid();
+  i = setsid();
 
-    if (i < 0) {
-        LOG_ERR("setsid() failed (errno = %d)", errno);
-    }
+  if (i < 0)
+  {
+    LOG_ERR("setsid() failed (errno = %d)", errno);
+  }
 
-    i = chdir("/");
-    if (i < 0) {
-        LOG_ERR("chdir() failed (errno = %d)", errno);
-    }
+  i = chdir("/");
+  if (i < 0)
+  {
+    LOG_ERR("chdir() failed (errno = %d)", errno);
+  }
 #endif
 }

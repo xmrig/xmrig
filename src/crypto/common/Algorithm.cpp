@@ -116,9 +116,8 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-extremelite",   nullptr,            Algorithm::CN_EXTREMELITE_0},
 #   endif
 #   ifdef XMRIG_ALGO_RANDOMX
+    { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
     { "randomx/test",              "rx/test",          Algorithm::RX_0            },
-    { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
-    { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
     { "RandomX",                   "rx",               Algorithm::RX_0            },
     { "randomx/wow",               "rx/wow",           Algorithm::RX_WOW          },
     { "RandomWOW",                 nullptr,            Algorithm::RX_WOW          },

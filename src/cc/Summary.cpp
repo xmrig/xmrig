@@ -1,5 +1,5 @@
 /* XMRigCC
- * Copyright 2017-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
+ * Copyright 2019-     BenDr0id    <https://github.com/BenDr0id>, <ben@graef.in>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -14,80 +14,70 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <string>
-#include <uv.h>
 
-#include "log/Log.h"
-#include "Options.h"
-#include "Summary.h"
+#ifdef XMRIG_FEATURE_TLS
+#   include <openssl/opensslv.h>
+#   include <cstring>
+#endif
+
+#include "base/io/log/Log.h"
 #include "version.h"
+#include "Summary.h"
 
-static void print_versions()
+static void printVersions()
 {
-    char buf[16];
+  char buf[256] = { 0 };
 
 #   if defined(__clang__)
-    snprintf(buf, 16, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
+  snprintf(buf, sizeof buf, "clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
 #   elif defined(__GNUC__)
-    snprintf(buf, 16, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+  snprintf(buf, sizeof buf, "gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #   elif defined(_MSC_VER)
-    snprintf(buf, 16, " MSVC/%d", MSVC_VERSION);
-#   else
-    buf[0] = '\0';
+  snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
 #   endif
 
-    Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36m%s/%s\x1B[01;37m libuv/%s%s \x1B[01;36m(%s)" : " * VERSIONS:     %s/%s libuv/%s%s (%s)",
-		APP_NAME, APP_VERSION, uv_version_string(), buf, BUILD_TYPE);				   
-}
+  xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s") BLUE_BOLD(" (%s)"), "ABOUT", APP_NAME, APP_VERSION, buf, BUILD_TYPE);
 
-static void print_commands()
+  std::string libs;
+
+#if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
 {
-    if (Options::i()->colors()) {
-        Log::i()->text("\x1B[01;32m * \x1B[01;37mCOMMANDS:     \x1B[01;35mq\x1B[01;37muit");
-    }
-    else {
-        Log::i()->text(" * COMMANDS:     'q' Quit");
-    }
+  constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
+  snprintf(buf, sizeof buf, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
+  libs += buf;
 }
-
-void Summary::print_pushinfo() {
-    if (Options::i()->ccUsePushover() || Options::i()->ccUseTelegram())
-    {
-#ifndef XMRIG_NO_TLS
-        if (Options::i()->colors()) {
-            Log::i()->text("\x1B[01;32m * \x1B[01;37mPUSHSERVICE:  \x1B[01;32m%s%s%s",
-                Options::i()->ccUsePushover() ? "Pushover" : "",
-                Options::i()->ccUsePushover() && Options::i()->ccUseTelegram() ? ", " : "",
-                Options::i()->ccUseTelegram() ? "Telegram" : "");
-        }
-        else {
-            Log::i()->text(" * PUSHSERVICE:  %s%s%s",
-                Options::i()->ccUsePushover() ? "Pushover" : "",
-                Options::i()->ccUsePushover() && Options::i()->ccUseTelegram() ? ", " : "",
-                Options::i()->ccUseTelegram() ? "Telegram" : "");
-        }
-#else
-        if (Options::i()->colors()) {
-            Log::i()->text("\x1B[01;32m * \x1B[01;37mPUSHSERVICE:  \x1B[01;31mUnavailable requires TLS");
-        }
-        else {
-            Log::i()->text(" * PUSHSERVICE:  Unavailable requires TLS");
-        }
 #endif
-    } else {
-        if (Options::i()->colors()) {
-            Log::i()->text("\x1B[01;32m * \x1B[01;37mPUSHSERVICE:  \x1B[01;31mDisabled");
-        }
-        else {
-            Log::i()->text(" * PUSHSERVICE:  Disabled");
-        }
-    }
 }
 
-void Summary::print()
+static void printCommands()
 {
-    print_versions();
-    print_pushinfo();
-    print_commands();
+  xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("q") WHITE_BOLD("uit, "));
+}
+
+static void printPushinfo(const std::shared_ptr<CCServerConfig>& config)
+{
+  if (config->usePushover() || config->useTelegram())
+  {
+#ifdef XMRIG_FEATURE_TLS
+    xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s%s%s"), "PUSHSERVICE",
+                   config->usePushover() ? "Pushover" : "",
+                   config->usePushover() && config->useTelegram() ? ", " : "",
+                   config->useTelegram() ? "Telegram" : "");
+
+#else
+    xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("Unavailable requires TLS"), "PUSHSERVICE");
+#endif
+  }
+  else
+  {
+    xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("Disabled"), "PUSHSERVICE");
+  }
+}
+
+void Summary::print(const std::shared_ptr<CCServerConfig>& config)
+{
+  printVersions();
+  printPushinfo(config);
+  printCommands();
 }

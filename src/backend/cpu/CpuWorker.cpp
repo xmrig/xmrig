@@ -123,9 +123,6 @@ bool xmrig::CpuWorker<N>::selfTest()
                         verify2(Algorithm::CN_R,      test_output_r)    &&
                         verify(Algorithm::CN_RWZ,     test_output_rwz)  &&
                         verify(Algorithm::CN_ZLS,     test_output_zls)  &&
-#ifndef XMRIG_ARM
-                        verify(Algorithm::CN_CONCEAL, test_output_conceal) &&
-#endif
                         verify(Algorithm::CN_DOUBLE,  test_output_double);
 
 #       ifdef XMRIG_ALGO_CN_GPU

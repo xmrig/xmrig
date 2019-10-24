@@ -32,7 +32,7 @@
 
 
 #include "base/tools/String.h"
-#include "crypto/common/Algorithm.h"
+#include "crypto/common/Coin.h"
 #include "rapidjson/fwd.h"
 
 
@@ -74,6 +74,7 @@ public:
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS); }
     inline bool isValid() const                         { return !m_host.isNull() && m_port > 0; }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
+    inline const Coin &coin() const                     { return m_coin; }
     inline const String &fingerprint() const            { return m_fingerprint; }
     inline const String &host() const                   { return m_host; }
     inline const String &password() const               { return !m_password.isNull() ? m_password : kDefaultPassword; }
@@ -107,6 +108,7 @@ private:
     bool parseIPv6(const char *addr);
 
     Algorithm m_algorithm;
+    Coin m_coin;
     int m_keepAlive;
     std::bitset<FLAG_MAX> m_flags;
     String m_fingerprint;

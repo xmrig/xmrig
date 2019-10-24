@@ -18,40 +18,39 @@
 #ifndef __CC_SERVER_H__
 #define __CC_SERVER_H__
 
+#include <memory>
+#include <cxxopts/cxxopts.hpp>
 
-#include <uv.h>
+#include "base/kernel/interfaces/IConsoleListener.h"
+#include "base/kernel/interfaces/ISignalListener.h"
+#include "base/kernel/Signals.h"
+#include "base/io/Console.h"
 
+#include "CCServerConfig.h"
+#include "Httpd.h"
 
-#include "interfaces/IConsoleListener.h"
-
-
-class Console;
-class Httpd;
-class Options;
-
-class CCServer : public IConsoleListener
+class CCServer : public xmrig::IConsoleListener, public xmrig::ISignalListener
 {
 public:
-  CCServer(int argc, char **argv);
+  CCServer(cxxopts::ParseResult& parseResult);
   ~CCServer();
 
   int start();
 
 protected:
   void onConsoleCommand(char command) override;
+  void onSignal(int signum) override;
 
 private:
   void stop();
   void moveToBackground();
 
-  static void onSignal(uv_signal_t* handle, int signum);
+  std::shared_ptr<xmrig::Console> m_console;
+  std::shared_ptr<xmrig::Signals> m_signals;
+  std::shared_ptr<CCServerConfig> m_config;
+  std::shared_ptr<Httpd> m_httpd;
 
-  static CCServer* m_self;
-
-  Console* m_console;
-  Httpd* m_httpd;
-  Options* m_options;
-  uv_signal_t m_signal;
+  void startUvLoopThread() const;
 };
 
 

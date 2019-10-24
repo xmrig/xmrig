@@ -30,6 +30,7 @@
 
 
 #include "App.h"
+#include "backend/cpu/Cpu.h"
 #include "base/io/Console.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/Signals.h"
@@ -178,7 +179,11 @@ void xmrig::App::close(bool restart)
     m_restart = restart;
 
     m_signals->stop();
-    m_console->stop();
+
+    if (m_console) {
+        m_console->stop();
+    }
+
     m_controller->stop();
 
     Log::destroy();

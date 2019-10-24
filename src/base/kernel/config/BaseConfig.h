@@ -25,7 +25,6 @@
 #ifndef XMRIG_BASECONFIG_H
 #define XMRIG_BASECONFIG_H
 
-#include "base/tools/String.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/net/http/Http.h"
 #include "base/net/stratum/Pools.h"
@@ -91,7 +90,7 @@ protected:
     CCClientConfig m_ccClient;
 #   endif
 
-    String m_apiId;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              String m_apiId;
     String m_apiWorkerId;
     String m_fileName;
     String m_logFile;

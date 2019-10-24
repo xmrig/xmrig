@@ -67,6 +67,7 @@ R"===(
     "pools": [
         {
             "algo": null,
+            "coin": null,
             "url": "donate.graef.in:80",
             "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",
@@ -94,7 +95,7 @@ R"===(
     "retry-pause": 5,
     "syslog": false,
     "user-agent": null,
-    "watch": false
+    "watch": true
 }
 )===";
 #endif

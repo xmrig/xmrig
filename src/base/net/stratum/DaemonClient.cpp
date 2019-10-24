@@ -25,7 +25,7 @@
 
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 
 
 #include "3rdparty/http-parser/http_parser.h"
@@ -224,6 +224,10 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     job.setHeight(Json::getUint64(params, kHeight));
     job.setDiff(Json::getUint64(params, "difficulty"));
     job.setId(blocktemplate.data() + blocktemplate.size() - 32);
+
+    if (m_pool.coin().isValid()) {
+        job.setAlgorithm(m_pool.coin().algorithm(job.blob()[0]));
+    }
 
     m_job           = std::move(job);
     m_blocktemplate = std::move(blocktemplate);
