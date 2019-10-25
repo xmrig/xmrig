@@ -47,14 +47,24 @@ static uv_lib_t cudaLib;
 
 static const char *kAlloc                               = "alloc";
 static const char *kDeviceCount                         = "deviceCount";
+static const char *kDeviceInfo                          = "deviceInfo";
+static const char *kDeviceInt                           = "deviceInt";
+static const char *kDeviceName                          = "deviceName";
+static const char *kDeviceUint                          = "deviceUint";
+static const char *kDeviceUlong                         = "deviceUlong";
 static const char *kPluginVersion                       = "pluginVersion";
 static const char *kRelease                             = "release";
 static const char *kSymbolNotFound                      = "symbol not found";
 static const char *kVersion                             = "version";
 
 
-using alloc_t                                           = nvid_ctx * (*)(size_t, int, int, int, int, int);
-using deviceCount_t                                     = size_t (*)();
+using alloc_t                                           = nvid_ctx * (*)(size_t, int32_t, int32_t, int32_t, int32_t, int32_t);
+using deviceCount_t                                     = uint32_t (*)();
+using deviceInfo_t                                      = int32_t (*)(nvid_ctx *);
+using deviceInt_t                                       = int32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
+using deviceName_t                                      = const char * (*)(nvid_ctx *);
+using deviceUint_t                                      = uint32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
+using deviceUlong_t                                     = uint64_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
 using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
 using version_t                                         = uint32_t (*)(Version);
@@ -62,6 +72,11 @@ using version_t                                         = uint32_t (*)(Version);
 
 static alloc_t pAlloc                                   = nullptr;
 static deviceCount_t pDeviceCount                       = nullptr;
+static deviceInfo_t pDeviceInfo                         = nullptr;
+static deviceInt_t pDeviceInt                           = nullptr;
+static deviceName_t pDeviceName                         = nullptr;
+static deviceUint_t pDeviceUint                         = nullptr;
+static deviceUlong_t pDeviceUlong                       = nullptr;
 static pluginVersion_t pPluginVersion                   = nullptr;
 static release_t pRelease                               = nullptr;
 static version_t pVersion                               = nullptr;
@@ -102,9 +117,27 @@ void xmrig::CudaLib::close()
 }
 
 
+const char *xmrig::CudaLib::deviceName(nvid_ctx *ctx) noexcept
+{
+    return pDeviceName(ctx);
+}
+
+
 const char *xmrig::CudaLib::pluginVersion() noexcept
 {
     return pPluginVersion();
+}
+
+
+int xmrig::CudaLib::deviceInfo(nvid_ctx *ctx) noexcept
+{
+    return pDeviceInfo(ctx);
+}
+
+
+int32_t xmrig::CudaLib::deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept
+{
+    return pDeviceInt(ctx, property);
 }
 
 
@@ -114,9 +147,36 @@ nvid_ctx *xmrig::CudaLib::alloc(size_t id, int blocks, int threads, int bfactor,
 }
 
 
-size_t xmrig::CudaLib::deviceCount() noexcept
+std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices() noexcept
+{
+    const uint32_t count = deviceCount();
+    if (!count) {
+        return {};
+    }
+
+    std::vector<CudaDevice> out;
+    out.reserve(count);
+
+    for (uint32_t i = 0; i < count; ++i) {
+        CudaDevice device(i);
+        if (device.isValid()) {
+            out.emplace_back(std::move(device));
+        }
+    }
+
+    return out;
+}
+
+
+uint32_t xmrig::CudaLib::deviceCount() noexcept
 {
     return pDeviceCount();
+}
+
+
+uint32_t xmrig::CudaLib::deviceUint(nvid_ctx *ctx, DeviceProperty property) noexcept
+{
+    return pDeviceUint(ctx, property);
 }
 
 
@@ -129,6 +189,12 @@ uint32_t xmrig::CudaLib::driverVersion() noexcept
 uint32_t xmrig::CudaLib::runtimeVersion() noexcept
 {
     return pVersion(RuntimeVersion);
+}
+
+
+uint64_t xmrig::CudaLib::deviceUlong(nvid_ctx *ctx, DeviceProperty property) noexcept
+{
+    return pDeviceUlong(ctx, property);
 }
 
 
@@ -151,6 +217,11 @@ bool xmrig::CudaLib::load()
     try {
         DLSYM(Alloc);
         DLSYM(DeviceCount);
+        DLSYM(DeviceInfo);
+        DLSYM(DeviceInt);
+        DLSYM(DeviceName);
+        DLSYM(DeviceUint);
+        DLSYM(DeviceUlong);
         DLSYM(PluginVersion);
         DLSYM(Release);
         DLSYM(Version);

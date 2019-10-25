@@ -26,14 +26,15 @@
 #define XMRIG_CUDALIB_H
 
 
-#include <vector>
+using nvid_ctx = struct nvid_ctx;
 
 
+#include "backend/cuda/wrappers/CudaDevice.h"
 #include "base/tools/String.h"
 #include "crypto/common/Algorithm.h"
 
 
-using nvid_ctx = struct nvid_ctx;
+#include <vector>
 
 
 namespace xmrig {
@@ -42,6 +43,26 @@ namespace xmrig {
 class CudaLib
 {
 public:
+    enum DeviceProperty : uint32_t
+    {
+        DeviceId,
+        DeviceAlgorithm,
+        DeviceArchMajor,
+        DeviceArchMinor,
+        DeviceSmx,
+        DeviceBlocks,
+        DeviceThreads,
+        DeviceBFactor,
+        DeviceBSleep,
+        DeviceClockRate,
+        DeviceMemoryClockRate,
+        DeviceMemoryTotal,
+        DeviceMemoryFree,
+        DevicePciBusID,
+        DevicePciDeviceID,
+        DevicePciDomainID
+    };
+
     static bool init(const char *fileName = nullptr);
     static const char *lastError();
     static void close();
@@ -49,11 +70,17 @@ public:
     static inline bool isInitialized()   { return m_initialized; }
     static inline const String &loader() { return m_loader; }
 
+    static const char *deviceName(nvid_ctx *ctx) noexcept;
     static const char *pluginVersion() noexcept;
+    static int deviceInfo(nvid_ctx *ctx) noexcept;
+    static int32_t deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept;
     static nvid_ctx *alloc(size_t id, int blocks, int threads, int bfactor, int bsleep, const Algorithm &algorithm) noexcept;
-    static size_t deviceCount() noexcept;
+    static std::vector<CudaDevice> devices() noexcept;
+    static uint32_t deviceCount() noexcept;
+    static uint32_t deviceUint(nvid_ctx *ctx, DeviceProperty property) noexcept;
     static uint32_t driverVersion() noexcept;
     static uint32_t runtimeVersion() noexcept;
+    static uint64_t deviceUlong(nvid_ctx *ctx, DeviceProperty property) noexcept;
     static void release(nvid_ctx *ctx) noexcept;
 
 private:

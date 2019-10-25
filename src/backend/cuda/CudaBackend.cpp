@@ -34,6 +34,7 @@
 #include "backend/common/Workers.h"
 #include "backend/cuda/CudaConfig.h"
 #include "backend/cuda/CudaThreads.h"
+#include "backend/cuda/wrappers/CudaDevice.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
@@ -89,15 +90,32 @@ public:
             return printDisabled(RED_S " (failed to load CUDA plugin)");
         }
 
-        if (!CudaLib::runtimeVersion() || !CudaLib::driverVersion() || !CudaLib::deviceCount()) {
-            return printDisabled(RED_S " (no devices)");
-        }
-
         const uint32_t runtimeVersion = CudaLib::runtimeVersion();
         const uint32_t driverVersion  = CudaLib::driverVersion();
 
+        if (!runtimeVersion || !driverVersion || !CudaLib::deviceCount()) {
+            return printDisabled(RED_S " (no devices)");
+        }
+
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%u.%u") "/" WHITE_BOLD("%u.%u") BLACK_BOLD("/%s"), "CUDA",
                    runtimeVersion / 1000, runtimeVersion % 100, driverVersion / 1000, driverVersion % 100, CudaLib::pluginVersion());
+
+        devices = CudaLib::devices();
+
+        for (const CudaDevice &device : devices) {
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") GREEN_BOLD(" %s ") WHITE_BOLD("%u/%u MHz") " smx:" WHITE_BOLD("%u") " arch:" WHITE_BOLD("%u%u") " mem:" CYAN("%zu/%zu") " MB",
+                       "CUDA GPU",
+                       device.index(),
+                       device.topology().toString().data(),
+                       device.name().data(),
+                       device.clock(),
+                       device.memoryClock(),
+                       device.smx(),
+                       device.computeCapability(true),
+                       device.computeCapability(false),
+                       device.freeMemSize() / oneMiB,
+                       device.globalMemSize() / oneMiB);
+        }
     }
 
 
@@ -108,6 +126,7 @@ public:
 
     Algorithm algo;
     Controller *controller;
+    std::vector<CudaDevice> devices;
     String profileName;
 };
 
