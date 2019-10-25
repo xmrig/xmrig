@@ -58,9 +58,9 @@ static const char *kSymbolNotFound                      = "symbol not found";
 static const char *kVersion                             = "version";
 
 
-using alloc_t                                           = nvid_ctx * (*)(size_t, int32_t, int32_t, int32_t, int32_t, int32_t);
+using alloc_t                                           = nvid_ctx * (*)(uint32_t, int32_t, int32_t);
 using deviceCount_t                                     = uint32_t (*)();
-using deviceInfo_t                                      = int32_t (*)(nvid_ctx *);
+using deviceInfo_t                                      = int32_t (*)(nvid_ctx *, int32_t, int32_t, int32_t);
 using deviceInt_t                                       = int32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
 using deviceName_t                                      = const char * (*)(nvid_ctx *);
 using deviceUint_t                                      = uint32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
@@ -129,9 +129,9 @@ const char *xmrig::CudaLib::pluginVersion() noexcept
 }
 
 
-int xmrig::CudaLib::deviceInfo(nvid_ctx *ctx) noexcept
+int xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm) noexcept
 {
-    return pDeviceInfo(ctx);
+    return pDeviceInfo(ctx, blocks, threads, algorithm);
 }
 
 
@@ -141,13 +141,13 @@ int32_t xmrig::CudaLib::deviceInt(nvid_ctx *ctx, DeviceProperty property) noexce
 }
 
 
-nvid_ctx *xmrig::CudaLib::alloc(size_t id, int blocks, int threads, int bfactor, int bsleep, const Algorithm &algorithm) noexcept
+nvid_ctx *xmrig::CudaLib::alloc(uint32_t id, int32_t bfactor, int32_t bsleep) noexcept
 {
-    return pAlloc(id, blocks, threads, bfactor, bsleep, algorithm);
+    return pAlloc(id, bfactor, bsleep);
 }
 
 
-std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices() noexcept
+std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices(int32_t bfactor, int32_t bsleep) noexcept
 {
     const uint32_t count = deviceCount();
     if (!count) {
@@ -158,7 +158,7 @@ std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices() noexcept
     out.reserve(count);
 
     for (uint32_t i = 0; i < count; ++i) {
-        CudaDevice device(i);
+        CudaDevice device(i, bfactor, bsleep);
         if (device.isValid()) {
             out.emplace_back(std::move(device));
         }

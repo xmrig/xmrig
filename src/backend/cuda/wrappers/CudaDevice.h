@@ -46,7 +46,7 @@ public:
     CudaDevice() = delete;
     CudaDevice(const CudaDevice &other) = delete;
     CudaDevice(CudaDevice &&other) noexcept;
-    CudaDevice(uint32_t index);
+    CudaDevice(uint32_t index, int32_t bfactor, int32_t bsleep);
     ~CudaDevice();
 
     size_t freeMemSize() const;

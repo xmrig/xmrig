@@ -34,12 +34,11 @@
 #include <algorithm>
 
 
-
-xmrig::CudaDevice::CudaDevice(uint32_t index) :
+xmrig::CudaDevice::CudaDevice(uint32_t index, int32_t bfactor, int32_t bsleep) :
     m_index(index)
 {
-    auto ctx = CudaLib::alloc(index, 0, 0, 0, 0, Algorithm::INVALID);
-    if (CudaLib::deviceInfo(ctx) != 0) {
+    auto ctx = CudaLib::alloc(index, bfactor, bsleep);
+    if (CudaLib::deviceInfo(ctx, 0, 0, Algorithm::INVALID) != 0) {
         CudaLib::release(ctx);
 
         return;
@@ -105,6 +104,11 @@ uint32_t xmrig::CudaDevice::smx() const
 
 void xmrig::CudaDevice::generate(const Algorithm &algorithm, CudaThreads &threads) const
 {
+    if (CudaLib::deviceInfo(m_ctx, -1, -1, algorithm) != 0) {
+        return;
+    }
+
+    threads.add(CudaThread(m_index, m_ctx));
 }
 
 

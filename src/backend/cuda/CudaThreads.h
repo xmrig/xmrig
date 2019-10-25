@@ -30,6 +30,7 @@
 
 
 #include "backend/cuda/CudaThread.h"
+#include "backend/cuda/wrappers/CudaDevice.h"
 
 
 namespace xmrig {
@@ -40,6 +41,7 @@ class CudaThreads
 public:
     CudaThreads() = default;
     CudaThreads(const rapidjson::Value &value);
+    CudaThreads(const std::vector<CudaDevice> &devices, const Algorithm &algorithm);
 
     inline bool isEmpty() const                              { return m_data.empty(); }
     inline const std::vector<CudaThread> &data() const       { return m_data; }

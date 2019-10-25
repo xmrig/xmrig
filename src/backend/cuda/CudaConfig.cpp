@@ -25,6 +25,7 @@
 
 #include "backend/cuda/CudaConfig.h"
 #include "backend/cuda/CudaConfig_gen.h"
+#include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
 #include "rapidjson/document.h"
@@ -91,13 +92,26 @@ void xmrig::CudaConfig::generate()
         return;
     }
 
+    if (!CudaLib::init(loader())) {
+        return;
+    }
+
+    if (!CudaLib::runtimeVersion() || !CudaLib::driverVersion() || !CudaLib::deviceCount()) {
+        return;
+    }
+
+    const auto devices = CudaLib::devices(bfactor(), bsleep());
+    if (devices.empty()) {
+        return;
+    }
+
     size_t count = 0;
 
-//    count += xmrig::generate<Algorithm::CN>(m_threads, devices);
-//    count += xmrig::generate<Algorithm::CN_LITE>(m_threads, devices);
-//    count += xmrig::generate<Algorithm::CN_HEAVY>(m_threads, devices);
-//    count += xmrig::generate<Algorithm::CN_PICO>(m_threads, devices);
-//    count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, devices);
+    count += xmrig::generate<Algorithm::CN>(m_threads, devices);
+    count += xmrig::generate<Algorithm::CN_LITE>(m_threads, devices);
+    count += xmrig::generate<Algorithm::CN_HEAVY>(m_threads, devices);
+    count += xmrig::generate<Algorithm::CN_PICO>(m_threads, devices);
+    count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, devices);
 
     m_shouldSave = count > 0;
 }

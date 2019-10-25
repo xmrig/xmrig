@@ -72,10 +72,10 @@ public:
 
     static const char *deviceName(nvid_ctx *ctx) noexcept;
     static const char *pluginVersion() noexcept;
-    static int deviceInfo(nvid_ctx *ctx) noexcept;
+    static int deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm) noexcept;
     static int32_t deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept;
-    static nvid_ctx *alloc(size_t id, int blocks, int threads, int bfactor, int bsleep, const Algorithm &algorithm) noexcept;
-    static std::vector<CudaDevice> devices() noexcept;
+    static nvid_ctx *alloc(uint32_t id, int32_t bfactor, int32_t bsleep) noexcept;
+    static std::vector<CudaDevice> devices(int32_t bfactor, int32_t bsleep) noexcept;
     static uint32_t deviceCount() noexcept;
     static uint32_t deviceUint(nvid_ctx *ctx, DeviceProperty property) noexcept;
     static uint32_t driverVersion() noexcept;

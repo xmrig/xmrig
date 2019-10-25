@@ -97,10 +97,14 @@ public:
             return printDisabled(RED_S " (no devices)");
         }
 
+        if (!devices.empty()) {
+            return;
+        }
+
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%u.%u") "/" WHITE_BOLD("%u.%u") BLACK_BOLD("/%s"), "CUDA",
                    runtimeVersion / 1000, runtimeVersion % 100, driverVersion / 1000, driverVersion % 100, CudaLib::pluginVersion());
 
-        devices = CudaLib::devices();
+        devices = CudaLib::devices(cuda.bfactor(), cuda.bsleep());
 
         for (const CudaDevice &device : devices) {
             Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") GREEN_BOLD(" %s ") WHITE_BOLD("%u/%u MHz") " smx:" WHITE_BOLD("%u") " arch:" WHITE_BOLD("%u%u") " mem:" CYAN("%zu/%zu") " MB",
@@ -156,13 +160,13 @@ xmrig::CudaBackend::~CudaBackend()
 
 bool xmrig::CudaBackend::isEnabled() const
 {
-    return false;
+    return d_ptr->controller->config()->cuda().isEnabled() && CudaLib::isInitialized() && !d_ptr->devices.empty();;
 }
 
 
 bool xmrig::CudaBackend::isEnabled(const Algorithm &algorithm) const
 {
-    return false;
+    return !d_ptr->controller->config()->cuda().threads().get(algorithm).isEmpty();
 }
 
 

@@ -44,6 +44,14 @@ xmrig::CudaThreads::CudaThreads(const rapidjson::Value &value)
 }
 
 
+xmrig::CudaThreads::CudaThreads(const std::vector<CudaDevice> &devices, const Algorithm &algorithm)
+{
+    for (const auto &device : devices) {
+        device.generate(algorithm, *this);
+    }
+}
+
+
 bool xmrig::CudaThreads::isEqual(const CudaThreads &other) const
 {
     if (isEmpty() && other.isEmpty()) {
