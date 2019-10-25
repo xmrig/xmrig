@@ -32,6 +32,9 @@
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/common/Workers.h"
+#include "backend/cuda/CudaConfig.h"
+#include "backend/cuda/CudaThreads.h"
+#include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
@@ -49,7 +52,7 @@
 namespace xmrig {
 
 
-extern template class Threads<OclThreads>;
+extern template class Threads<CudaThreads>;
 
 
 constexpr const size_t oneMiB   = 1024u * 1024u;
@@ -59,17 +62,42 @@ static std::mutex mutex;
 
 
 
+static void printDisabled(const char *reason)
+{
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", "CUDA", reason);
+}
+
+
+
 class CudaBackendPrivate
 {
 public:
     inline CudaBackendPrivate(Controller *controller) :
         controller(controller)
     {
+        init(controller->config()->cuda());
     }
 
 
-    void init(const OclConfig &cl)
+    void init(const CudaConfig &cuda)
     {
+        if (!cuda.isEnabled()) {
+            return printDisabled("");
+        }
+
+        if (!CudaLib::init(cuda.loader())) {
+            return printDisabled(RED_S " (failed to load CUDA plugin)");
+        }
+
+        if (!CudaLib::runtimeVersion() || !CudaLib::driverVersion() || !CudaLib::deviceCount()) {
+            return printDisabled(RED_S " (no devices)");
+        }
+
+        const uint32_t runtimeVersion = CudaLib::runtimeVersion();
+        const uint32_t driverVersion  = CudaLib::driverVersion();
+
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%u.%u") "/" WHITE_BOLD("%u.%u") BLACK_BOLD("/%s"), "CUDA",
+                   runtimeVersion / 1000, runtimeVersion % 100, driverVersion / 1000, driverVersion % 100, CudaLib::pluginVersion());
     }
 
 
@@ -102,6 +130,8 @@ xmrig::CudaBackend::CudaBackend(Controller *controller) :
 xmrig::CudaBackend::~CudaBackend()
 {
     delete d_ptr;
+
+    CudaLib::close();
 }
 
 

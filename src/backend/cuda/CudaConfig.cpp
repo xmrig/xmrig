@@ -35,6 +35,7 @@ namespace xmrig {
 
 static const char *kDevicesHint = "devices-hint";
 static const char *kEnabled     = "enabled";
+static const char *kLoader      = "loader";
 
 
 extern template class Threads<CudaThreads>;
@@ -51,6 +52,7 @@ rapidjson::Value xmrig::CudaConfig::toJSON(rapidjson::Document &doc) const
     Value obj(kObjectType);
 
     obj.AddMember(StringRef(kEnabled),  m_enabled, allocator);
+    obj.AddMember(StringRef(kLoader),   m_loader.toJSON(), allocator);
 
     m_threads.toJSON(obj, doc);
 
@@ -62,6 +64,7 @@ void xmrig::CudaConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
         m_enabled   = Json::getBool(value, kEnabled, m_enabled);
+        m_loader    = Json::getString(value, kLoader);
 
         setDevicesHint(Json::getString(value, kDevicesHint));
 

@@ -22,43 +22,51 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CUDACONFIG_H
-#define XMRIG_CUDACONFIG_H
+#ifndef XMRIG_CUDALIB_H
+#define XMRIG_CUDALIB_H
 
 
-#include "backend/common/Threads.h"
-#include "backend/cuda/CudaThreads.h"
+#include <vector>
+
+
+#include "base/tools/String.h"
+#include "crypto/common/Algorithm.h"
+
+
+using nvid_ctx = struct nvid_ctx;
 
 
 namespace xmrig {
 
 
-class CudaConfig
+class CudaLib
 {
 public:
-    CudaConfig() = default;
+    static bool init(const char *fileName = nullptr);
+    static const char *lastError();
+    static void close();
 
-    rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    void read(const rapidjson::Value &value);
+    static inline bool isInitialized()   { return m_initialized; }
+    static inline const String &loader() { return m_loader; }
 
-    inline bool isEnabled() const                       { return m_enabled; }
-    inline bool isShouldSave() const                    { return m_shouldSave; }
-    inline const String &loader() const                 { return m_loader; }
-    inline const Threads<CudaThreads> &threads() const  { return m_threads; }
+    static const char *pluginVersion() noexcept;
+    static nvid_ctx *alloc(size_t id, int blocks, int threads, int bfactor, int bsleep, const Algorithm &algorithm) noexcept;
+    static size_t deviceCount() noexcept;
+    static uint32_t driverVersion() noexcept;
+    static uint32_t runtimeVersion() noexcept;
+    static void release(nvid_ctx *ctx) noexcept;
 
 private:
-    void generate();
-    void setDevicesHint(const char *devicesHint);
+    static bool load();
+    static const char *defaultLoader();
 
-    bool m_enabled       = false;
-    bool m_shouldSave    = false;
-    std::vector<uint32_t> m_devicesHint;
-    String m_loader;
-    Threads<CudaThreads> m_threads;
+    static bool m_initialized;
+    static bool m_ready;
+    static String m_loader;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_CUDACONFIG_H */
+#endif /* XMRIG_CUDALIB_H */
