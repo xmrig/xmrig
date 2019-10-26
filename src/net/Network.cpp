@@ -247,9 +247,10 @@ void xmrig::Network::onUpdateRequest(ClientStatus& clientStatus)
     clientStatus.setHashesTotal(m_state.total);
     clientStatus.setAvgTime(m_state.avgTime());
 
-    clientStatus.setCurrentPool(m_state.pool);
-
-    clientStatus.setCurrentAlgoName(m_strategy->client()->job().algorithm().name());
+    if (!m_donate || !m_donate->isActive()) {
+        clientStatus.setCurrentPool(m_state.pool);
+        clientStatus.setCurrentAlgoName(m_strategy->client()->job().algorithm().name());
+    }
 }
 #endif
 

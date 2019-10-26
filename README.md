@@ -72,35 +72,48 @@ Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-con
 ## Usage
 ### Basic example XMRigCCServer
 ```
-xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER
+xmrigServer --port=3344 --user=admin --pass=pass --access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER
 ```
 
 ### Options XMRigCCServer
 ```
-      --cc-user=USERNAME                CC Server admin user
-      --cc-pass=PASSWORD                CC Server admin pass
-      --cc-access-token=T               CC Server access token for CC Client
-      --cc-port=N                       CC Server port
-      --cc-use-tls                      enable tls encryption for CC communication
-      --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) 
-      --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) 
-      --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)
-      --cc-client-config-folder=FOLDER  Folder contains the client config files
-      --cc-pushover-user-key            your user key for pushover notifications
-      --cc-pushover-api-token           api token/keytoken of the application for pushover notifications
-      --cc-telegram-bot-token           your bot token for telegram notifications
-      --cc-telegram-chat-id             your chat-id for telegram notifications
-      --cc-push-miner-offline-info      push notification for offline miners and recover push
-      --cc-push-miner-zero-hash-info    push notification when miner reports 0 hashrate and recover push
-      --cc-push-periodic-mining-status  push periodic status notification (every hour)
-      --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'
-      --no-color                        disable colored output
-  -S, --syslog                          use system log for output messages
-  -B, --background                      run the miner in the background
-  -c, --config=FILE                     load a JSON-format configuration file
-  -l, --log-file=FILE                   log all output to a file
-  -h, --help                            display this help and exit
-  -V, --version                         output version information and exit
+  -b, --bind arg                The CC Server bind ip (default: 0.0.0.0)
+  -p, --port N                  The CC Server port
+  -U, --user arg                The CC Server admin user
+  -P, --pass arg                The CC Server admin pass
+  -T, --token arg               The CC Server access token for the CC Client
+  -t, --tls                     Enable SSL/TLS support
+  -K, --key-file FILE           The private key file to use when TLS is ON
+                                (default: server.key)
+  -C, --cert-file FILE          The cert file to use when TLS is ON (default:
+                                server.pem)
+  -B, --background              Run the Server in the background
+  -S, --syslog                  Log to the syslog
+      --no-colors               Disable colored output
+      --pushover-user-key arg   The user key for pushover notifications
+      --pushover-api-token arg  The api token/keytoken of the application for
+                                pushover notification
+      --telegram-bot-token arg  The bot token for telegram notifications
+      --telegram-chat-id arg    The chat-id for telegram notifications
+      --push-miner-offline-info
+                                Push notification for offline miners and
+                                recovery (default: true)
+      --push-miner-zero-hash-info
+                                Push notification when miner reports 0
+                                hashrate and recovers (default: true)
+      --push-periodic-mining-status
+                                Push every hour a status notification
+                                (default: true)
+      --custom-dashboard FILE   The custom dashboard to use (default:
+                                index.html)
+      --client-config-folder FOLDER
+                                The CC Server access token for the CC Client
+      --log-file FILE           The log file to write
+      --client-log-lines-history N
+                                Maximum lines of log history kept per miner
+                                (default: 100)
+  -c, --config FILE             The JSON-format configuration file to use
+  -h, --help                    Print this help
 ```
 
 
@@ -120,6 +133,7 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
                                       cn-extremelite
                                       argon2/chukwa, argon2/wrkz
                                       rx/wow, rx/loki
+      --coin=COIN                   specify coin instead of algorithm                                      
   -o, --url=URL                     URL of mining server
   -O, --userpass=U:P                username:password pair for mining server
   -u, --user=USERNAME               username for mining server
