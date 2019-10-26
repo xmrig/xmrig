@@ -24,6 +24,7 @@
 
 
 #include "backend/cuda/CudaConfig.h"
+#include "backend/common/Tags.h"
 #include "backend/cuda/CudaConfig_gen.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/json/Json.h"
@@ -58,6 +59,30 @@ rapidjson::Value xmrig::CudaConfig::toJSON(rapidjson::Document &doc) const
     m_threads.toJSON(obj, doc);
 
     return obj;
+}
+
+
+std::vector<xmrig::CudaLaunchData> xmrig::CudaConfig::get(const Miner *miner, const Algorithm &algorithm, const std::vector<CudaDevice> &devices) const
+{
+    std::vector<CudaLaunchData> out;
+    const auto &threads = m_threads.get(algorithm);
+
+    if (threads.isEmpty()) {
+        return out;
+    }
+
+    out.reserve(threads.count() * 2);
+
+    for (const auto &thread : threads.data()) {
+        if (thread.index() >= devices.size()) {
+            LOG_INFO("%s" YELLOW(" skip non-existing device with index ") YELLOW_BOLD("%u"), cuda_tag(), thread.index());
+            continue;
+        }
+
+        out.emplace_back(miner, algorithm, thread, devices[thread.index()]);
+    }
+
+    return out;
 }
 
 

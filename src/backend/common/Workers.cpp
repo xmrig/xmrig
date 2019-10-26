@@ -37,6 +37,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_CUDA
+#   include "backend/cuda/CudaWorker.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -214,6 +219,18 @@ xmrig::IWorker *xmrig::Workers<OclLaunchData>::create(Thread<OclLaunchData> *han
 
 
 template class Workers<OclLaunchData>;
+#endif
+
+
+#ifdef XMRIG_FEATURE_CUDA
+template<>
+xmrig::IWorker *xmrig::Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle)
+{
+    return new CudaWorker(handle->id(), handle->config());
+}
+
+
+template class Workers<CudaLaunchData>;
 #endif
 
 

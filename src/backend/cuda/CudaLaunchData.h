@@ -23,53 +23,44 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef XMRIG_CUDALAUNCHDATA_H
+#define XMRIG_CUDALAUNCHDATA_H
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "base/tools/Object.h"
-#include "net/JobResult.h"
+#include "backend/cuda/CudaThread.h"
+#include "crypto/common/Algorithm.h"
+#include "crypto/common/Nonce.h"
 
 
 namespace xmrig {
 
 
-class IOclRunner;
+class CudaDevice;
+class Miner;
 
 
-class OclWorker : public Worker
+class CudaLaunchData
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+    CudaLaunchData(const Miner *miner, const Algorithm &algorithm, const CudaThread &thread, const CudaDevice &device);
 
-    OclWorker(size_t id, const OclLaunchData &data);
+    bool isEqual(const CudaLaunchData &other) const;
 
-    ~OclWorker() override;
+    inline constexpr static Nonce::Backend backend() { return Nonce::CUDA; }
 
-    static std::atomic<bool> ready;
+    inline bool operator!=(const CudaLaunchData &other) const    { return !isEqual(other); }
+    inline bool operator==(const CudaLaunchData &other) const    { return isEqual(other); }
 
-protected:
-    bool selfTest() override;
-    size_t intensity() const override;
-    void start() override;
+    static const char *tag();
 
-private:
-    bool consumeJob();
-    void storeStats(uint64_t ts);
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    const uint32_t m_intensity;
-    IOclRunner *m_runner = nullptr;
-    OclSharedData &m_sharedData;
-    WorkerJob<1> m_job;
+    const Algorithm algorithm;
+    const Miner *miner;
+    const CudaDevice &device;
+    const CudaThread thread;
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_OCLWORKER_H */
+#endif /* XMRIG_OCLLAUNCHDATA_H */

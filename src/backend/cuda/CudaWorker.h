@@ -23,13 +23,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef XMRIG_CUDAWORKER_H
+#define XMRIG_CUDAWORKER_H
 
 
 #include "backend/common/Worker.h"
 #include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
+#include "backend/cuda/CudaLaunchData.h"
 #include "base/tools/Object.h"
 #include "net/JobResult.h"
 
@@ -37,17 +37,14 @@
 namespace xmrig {
 
 
-class IOclRunner;
-
-
-class OclWorker : public Worker
+class CudaWorker : public Worker
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(CudaWorker)
 
-    OclWorker(size_t id, const OclLaunchData &data);
+    CudaWorker(size_t id, const CudaLaunchData &data);
 
-    ~OclWorker() override;
+    ~CudaWorker() override;
 
     static std::atomic<bool> ready;
 
@@ -58,13 +55,11 @@ protected:
 
 private:
     bool consumeJob();
-    void storeStats(uint64_t ts);
+    void storeStats();
 
     const Algorithm m_algorithm;
     const Miner *m_miner;
     const uint32_t m_intensity;
-    IOclRunner *m_runner = nullptr;
-    OclSharedData &m_sharedData;
     WorkerJob<1> m_job;
 };
 
@@ -72,4 +67,4 @@ private:
 } // namespace xmrig
 
 
-#endif /* XMRIG_OCLWORKER_H */
+#endif /* XMRIG_CUDAWORKER_H */

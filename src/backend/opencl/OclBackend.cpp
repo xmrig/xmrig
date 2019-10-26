@@ -285,7 +285,7 @@ void xmrig::OclBackend::printHashrate(bool details)
     Log::print(WHITE_BOLD_S "| OPENCL # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
 
     size_t i = 0;
-    for (const OclLaunchData &data : d_ptr->threads) {
+    for (const auto &data : d_ptr->threads) {
          Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
                     i,
                     data.affinity,
@@ -310,7 +310,7 @@ void xmrig::OclBackend::printHashrate(bool details)
 
 void xmrig::OclBackend::setJob(const Job &job)
 {
-    const OclConfig &cl = d_ptr->controller->config()->cl();
+    const auto &cl = d_ptr->controller->config()->cl();
     if (cl.isEnabled()) {
         d_ptr->init(cl);
     }
@@ -319,7 +319,7 @@ void xmrig::OclBackend::setJob(const Job &job)
         return stop();
     }
 
-    std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->platform, d_ptr->devices);
+    auto threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->platform, d_ptr->devices);
     if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }

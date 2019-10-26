@@ -5,8 +5,10 @@ if (WITH_CUDA)
         src/backend/cuda/CudaBackend.h
         src/backend/cuda/CudaConfig_gen.h
         src/backend/cuda/CudaConfig.h
+        src/backend/cuda/CudaLaunchData.h
         src/backend/cuda/CudaThread.h
         src/backend/cuda/CudaThreads.h
+        src/backend/cuda/CudaWorker.h
         src/backend/cuda/wrappers/CudaDevice.h
         src/backend/cuda/wrappers/CudaLib.h
        )
@@ -14,8 +16,10 @@ if (WITH_CUDA)
     set(SOURCES_BACKEND_CUDA
         src/backend/cuda/CudaBackend.cpp
         src/backend/cuda/CudaConfig.cpp
+        src/backend/cuda/CudaLaunchData.cpp
         src/backend/cuda/CudaThread.cpp
         src/backend/cuda/CudaThreads.cpp
+        src/backend/cuda/CudaWorker.cpp
         src/backend/cuda/wrappers/CudaDevice.cpp
         src/backend/cuda/wrappers/CudaLib.cpp
        )

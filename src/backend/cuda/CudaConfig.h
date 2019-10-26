@@ -26,6 +26,7 @@
 #define XMRIG_CUDACONFIG_H
 
 
+#include "backend/cuda/CudaLaunchData.h"
 #include "backend/common/Threads.h"
 #include "backend/cuda/CudaThreads.h"
 
@@ -39,6 +40,7 @@ public:
     CudaConfig() = default;
 
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    std::vector<CudaLaunchData> get(const Miner *miner, const Algorithm &algorithm, const std::vector<CudaDevice> &devices) const;
     void read(const rapidjson::Value &value);
 
     inline bool isEnabled() const                       { return m_enabled; }

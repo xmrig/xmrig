@@ -34,6 +34,7 @@
 #include "backend/common/Workers.h"
 #include "backend/cuda/CudaConfig.h"
 #include "backend/cuda/CudaThreads.h"
+#include "backend/cuda/CudaWorker.h"
 #include "backend/cuda/wrappers/CudaDevice.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/log/Log.h"
@@ -57,7 +58,7 @@ extern template class Threads<CudaThreads>;
 
 
 constexpr const size_t oneMiB   = 1024u * 1024u;
-static const char *tag          = MAGENTA_BG_BOLD(WHITE_BOLD_S " nv  ");
+static const char *tag          = GREEN_BG_BOLD(WHITE_BOLD_S " nv  ");
 static const String kType       = "cuda";
 static std::mutex mutex;
 
@@ -68,6 +69,51 @@ static void printDisabled(const char *reason)
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", "CUDA", reason);
 }
 
+
+struct CudaLaunchStatus
+{
+public:
+    inline size_t threads() const { return m_threads; }
+
+    inline bool started(bool ready)
+    {
+        ready ? m_started++ : m_errors++;
+
+        return (m_started + m_errors) == m_threads;
+    }
+
+    inline void start(size_t threads)
+    {
+        m_started         = 0;
+        m_errors          = 0;
+        m_threads         = threads;
+        m_ts              = Chrono::steadyMSecs();
+        CudaWorker::ready = false;
+    }
+
+    inline void print() const
+    {
+        if (m_started == 0) {
+            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), tag);
+
+            return;
+        }
+
+        LOG_INFO("%s" GREEN_BOLD(" READY") " threads " "%s%zu/%zu" BLACK_BOLD(" (%" PRIu64 " ms)"),
+                 tag,
+                 m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
+                 m_started,
+                 m_threads,
+                 Chrono::steadyMSecs() - m_ts
+                 );
+    }
+
+private:
+    size_t m_errors     = 0;
+    size_t m_started    = 0;
+    size_t m_threads    = 0;
+    uint64_t m_ts       = 0;
+};
 
 
 class CudaBackendPrivate
@@ -125,13 +171,46 @@ public:
 
     inline void start(const Job &job)
     {
+        LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
+                 tag,
+                 profileName.data(),
+                 threads.size(),
+                 algo.l3() / 1024
+                 );
+
+        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |   T |   B | BF |  BS |  MEM | NAME"));
+
+        size_t i = 0;
+        for (const auto &data : threads) {
+            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5d") " |" CYAN_BOLD("%4d") " |"
+                       CYAN_BOLD("%4d") " |" CYAN_BOLD("%3d") " |" CYAN_BOLD("%4d") " |" CYAN("%5zu") " | " GREEN("%s"),
+                       i,
+                       data.thread.index(),
+                       data.device.topology().toString().data(),
+                       data.thread.threads() * data.thread.blocks(),
+                       data.thread.threads(),
+                       data.thread.blocks(),
+                       data.thread.bfactor(),
+                       data.thread.bsleep(),
+                       (data.thread.threads() * data.thread.blocks()) * algo.l3() / oneMiB,
+                       data.device.name().data()
+                       );
+
+                    i++;
+        }
+
+        status.start(threads.size());
+        workers.start(threads);
     }
 
 
     Algorithm algo;
     Controller *controller;
+    CudaLaunchStatus status;
     std::vector<CudaDevice> devices;
+    std::vector<CudaLaunchData> threads;
     String profileName;
+    Workers<CudaLaunchData> workers;
 };
 
 
@@ -147,6 +226,7 @@ const char *xmrig::cuda_tag()
 xmrig::CudaBackend::CudaBackend(Controller *controller) :
     d_ptr(new CudaBackendPrivate(controller))
 {
+    d_ptr->workers.setBackend(this);
 }
 
 
@@ -172,8 +252,7 @@ bool xmrig::CudaBackend::isEnabled(const Algorithm &algorithm) const
 
 const xmrig::Hashrate *xmrig::CudaBackend::hashrate() const
 {
-    return nullptr;
-//    return d_ptr->workers.hashrate();
+    return d_ptr->workers.hashrate();
 }
 
 
@@ -204,21 +283,21 @@ void xmrig::CudaBackend::printHashrate(bool details)
 
     Log::print(WHITE_BOLD_S "|   CUDA # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
 
-//    size_t i = 0;
-//    for (const OclLaunchData &data : d_ptr->threads) {
-//         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
-//                    i,
-//                    data.affinity,
-//                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
-//                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
-//                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3),
-//                    data.device.index(),
-//                    data.device.topology().toString().data(),
-//                    data.device.printableName().data()
-//                    );
+    size_t i = 0;
+    for (const auto &data : d_ptr->threads) {
+         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
+                    i,
+                    data.thread.affinity(),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3),
+                    data.device.index(),
+                    data.device.topology().toString().data(),
+                    data.device.name().data()
+                    );
 
-//         i++;
-//    }
+         i++;
+    }
 
     Log::print(WHITE_BOLD_S "|        - |        - | %7s | %7s | %7s |",
                Hashrate::format(hashrate()->calc(Hashrate::ShortInterval),  num,         sizeof num / 3),
@@ -230,21 +309,72 @@ void xmrig::CudaBackend::printHashrate(bool details)
 
 void xmrig::CudaBackend::setJob(const Job &job)
 {
+    const auto &cuda = d_ptr->controller->config()->cuda();
+    if (cuda.isEnabled()) {
+        d_ptr->init(cuda);
+    }
+
+    if (!isEnabled()) {
+        return stop();
+    }
+
+    auto threads = cuda.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->devices);
+    if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
+        return;
+    }
+
+    d_ptr->algo         = job.algorithm();
+    d_ptr->profileName  = cuda.threads().profileName(job.algorithm());
+
+    if (d_ptr->profileName.isNull() || threads.empty()) {
+        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), tag);
+
+        return stop();
+    }
+
+    stop();
+
+    d_ptr->threads = std::move(threads);
+    d_ptr->start(job);
 }
 
 
 void xmrig::CudaBackend::start(IWorker *worker, bool ready)
 {
+    mutex.lock();
+
+    if (d_ptr->status.started(ready)) {
+        d_ptr->status.print();
+
+        CudaWorker::ready = true;
+    }
+
+    mutex.unlock();
+
+    if (ready) {
+        worker->start();
+    }
 }
 
 
 void xmrig::CudaBackend::stop()
 {
+    if (d_ptr->threads.empty()) {
+        return;
+    }
+
+    const uint64_t ts = Chrono::steadyMSecs();
+
+    d_ptr->workers.stop();
+    d_ptr->threads.clear();
+
+    LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
 }
 
 
 void xmrig::CudaBackend::tick(uint64_t ticks)
 {
+    d_ptr->workers.tick(ticks);
 }
 
 

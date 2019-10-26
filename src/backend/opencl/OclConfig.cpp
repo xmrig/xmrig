@@ -117,7 +117,7 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
 std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, const Algorithm &algorithm, const OclPlatform &platform, const std::vector<OclDevice> &devices) const
 {
     std::vector<OclLaunchData> out;
-    const OclThreads &threads = m_threads.get(algorithm);
+    const auto &threads = m_threads.get(algorithm);
 
     if (threads.isEmpty()) {
         return out;
@@ -125,7 +125,7 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
 
     out.reserve(threads.count() * 2);
 
-    for (const OclThread &thread : threads.data()) {
+    for (const auto &thread : threads.data()) {
         if (thread.index() >= devices.size()) {
             LOG_INFO("%s" YELLOW(" skip non-existing device with index ") YELLOW_BOLD("%u"), ocl_tag(), thread.index());
             continue;
