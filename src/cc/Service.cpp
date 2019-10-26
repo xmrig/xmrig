@@ -92,7 +92,10 @@ void Service::stop()
 {
   std::lock_guard<std::mutex> lock(m_mutex);
 
-  m_timer->stop();
+  if (m_timer)
+  {
+    m_timer->stop();
+  }
 
   m_clientCommand.clear();
   m_clientStatus.clear();
