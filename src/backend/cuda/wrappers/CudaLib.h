@@ -64,7 +64,7 @@ public:
     };
 
     static bool init(const char *fileName = nullptr);
-    static const char *lastError();
+    static const char *lastError() noexcept;
     static void close();
 
     static inline bool isInitialized()   { return m_initialized; }
@@ -74,6 +74,7 @@ public:
     static bool deviceInit(nvid_ctx *ctx) noexcept;
     static bool setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept;
     static const char *deviceName(nvid_ctx *ctx) noexcept;
+    static const char *lastError(nvid_ctx *ctx) noexcept;
     static const char *pluginVersion() noexcept;
     static int deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm) noexcept;
     static int32_t deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept;

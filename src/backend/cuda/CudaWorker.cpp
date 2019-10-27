@@ -54,12 +54,6 @@ static inline bool isReady()                         { return !Nonce::isPaused()
 static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
 
 
-static inline void printError(size_t id, const char *error)
-{
-    LOG_ERR("%s" RED_S " thread " RED_BOLD("#%zu") RED_S " failed with error " RED_BOLD("%s"), cuda_tag(), id, error);
-}
-
-
 } // namespace xmrig
 
 

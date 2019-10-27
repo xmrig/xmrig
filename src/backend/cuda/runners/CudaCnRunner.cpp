@@ -34,5 +34,11 @@ xmrig::CudaCnRunner::CudaCnRunner(size_t index, const CudaLaunchData &data) : Cu
 
 bool xmrig::CudaCnRunner::run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)
 {
-    return CudaLib::cnHash(m_ctx, startNonce, m_height, m_target, rescount, resnonce);
+    if (!CudaLib::cnHash(m_ctx, startNonce, m_height, m_target, rescount, resnonce)) {
+        printError(CudaLib::lastError(m_ctx));
+
+        return false;
+    }
+
+    return true;
 }

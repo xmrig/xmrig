@@ -52,6 +52,8 @@ protected:
     size_t intensity() const override;
 
 protected:
+    void printError(const char *error) const;
+
     const CudaLaunchData &m_data;
     const size_t m_threadId;
     nvid_ctx *m_ctx     = nullptr;

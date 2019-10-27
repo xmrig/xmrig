@@ -55,6 +55,7 @@ static const char *kDeviceName                          = "deviceName";
 static const char *kDeviceUint                          = "deviceUint";
 static const char *kDeviceUlong                         = "deviceUlong";
 static const char *kInit                                = "init";
+static const char *kLastError                           = "lastError";
 static const char *kPluginVersion                       = "pluginVersion";
 static const char *kRelease                             = "release";
 static const char *kSetJob                              = "setJob";
@@ -72,6 +73,7 @@ using deviceName_t                                      = const char * (*)(nvid_
 using deviceUint_t                                      = uint32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
 using deviceUlong_t                                     = uint64_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
 using init_t                                            = void (*)();
+using lastError_t                                       = const char * (*)(nvid_ctx *);
 using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
@@ -88,6 +90,7 @@ static deviceName_t pDeviceName                         = nullptr;
 static deviceUint_t pDeviceUint                         = nullptr;
 static deviceUlong_t pDeviceUlong                       = nullptr;
 static init_t pInit                                     = nullptr;
+static lastError_t pLastError                           = nullptr;
 static pluginVersion_t pPluginVersion                   = nullptr;
 static release_t pRelease                               = nullptr;
 static setJob_t pSetJob                                 = nullptr;
@@ -117,7 +120,7 @@ bool xmrig::CudaLib::init(const char *fileName)
 }
 
 
-const char *xmrig::CudaLib::lastError()
+const char *xmrig::CudaLib::lastError() noexcept
 {
     return uv_dlerror(&cudaLib);
 }
@@ -150,6 +153,12 @@ bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const 
 const char *xmrig::CudaLib::deviceName(nvid_ctx *ctx) noexcept
 {
     return pDeviceName(ctx);
+}
+
+
+const char *xmrig::CudaLib::lastError(nvid_ctx *ctx) noexcept
+{
+    return pLastError(ctx);
 }
 
 
@@ -255,6 +264,7 @@ bool xmrig::CudaLib::load()
         DLSYM(DeviceUint);
         DLSYM(DeviceUlong);
         DLSYM(Init);
+        DLSYM(LastError);
         DLSYM(PluginVersion);
         DLSYM(Release);
         DLSYM(SetJob);

@@ -26,15 +26,9 @@
 #include "backend/cuda/runners/CudaBaseRunner.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "backend/cuda/CudaLaunchData.h"
-//#include "backend/opencl/cl/OclSource.h"
-//#include "backend/opencl/OclCache.h"
-//#include "backend/opencl/OclLaunchData.h"
-//#include "backend/opencl/runners/tools/OclSharedState.h"
-//#include "backend/opencl/wrappers/OclError.h"
-//#include "backend/opencl/wrappers/OclLib.h"
+#include "backend/common/Tags.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
-//#include "crypto/common/VirtualMemory.h"
 
 
 xmrig::CudaBaseRunner::CudaBaseRunner(size_t id, const CudaLaunchData &data) :
@@ -57,7 +51,13 @@ bool xmrig::CudaBaseRunner::init()
         return false;
     }
 
-    return CudaLib::deviceInit(m_ctx);
+    if (!CudaLib::deviceInit(m_ctx)) {
+        printError(CudaLib::lastError(m_ctx));
+
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -66,11 +66,25 @@ bool xmrig::CudaBaseRunner::set(const Job &job, uint8_t *blob)
     m_height = job.height();
     m_target = job.target();
 
-    return CudaLib::setJob(m_ctx, blob, job.size(), job.algorithm());
+    if (!CudaLib::setJob(m_ctx, blob, job.size(), job.algorithm())) {
+        printError(CudaLib::lastError(m_ctx));
+
+        return false;
+    }
+
+    return true;
 }
 
 
 size_t xmrig::CudaBaseRunner::intensity() const
 {
     return m_data.thread.threads() * m_data.thread.blocks();
+}
+
+
+void xmrig::CudaBaseRunner::printError(const char *error) const
+{
+    if (error) {
+        LOG_ERR("%s" RED_S " thread " RED_BOLD("#%zu") RED_S " failed with error " RED_BOLD("%s"), cuda_tag(), m_threadId, error);
+    }
 }
