@@ -70,6 +70,9 @@ public:
     static inline bool isInitialized()   { return m_initialized; }
     static inline const String &loader() { return m_loader; }
 
+    static bool cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height, uint64_t target, uint32_t *rescount, uint32_t *resnonce);
+    static bool deviceInit(nvid_ctx *ctx) noexcept;
+    static bool setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept;
     static const char *deviceName(nvid_ctx *ctx) noexcept;
     static const char *pluginVersion() noexcept;
     static int deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm) noexcept;

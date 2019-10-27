@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -24,28 +23,54 @@
  */
 
 
+#include "backend/cuda/runners/CudaBaseRunner.h"
+#include "backend/cuda/wrappers/CudaLib.h"
 #include "backend/cuda/CudaLaunchData.h"
-#include "backend/common/Tags.h"
+//#include "backend/opencl/cl/OclSource.h"
+//#include "backend/opencl/OclCache.h"
+//#include "backend/opencl/OclLaunchData.h"
+//#include "backend/opencl/runners/tools/OclSharedState.h"
+//#include "backend/opencl/wrappers/OclError.h"
+//#include "backend/opencl/wrappers/OclLib.h"
+#include "base/io/log/Log.h"
+#include "base/net/stratum/Job.h"
+//#include "crypto/common/VirtualMemory.h"
 
 
-xmrig::CudaLaunchData::CudaLaunchData(const Miner *miner, const Algorithm &algorithm, const CudaThread &thread, const CudaDevice &device) :
-    algorithm(algorithm),
-    miner(miner),
-    device(device),
-    thread(thread)
+xmrig::CudaBaseRunner::CudaBaseRunner(size_t id, const CudaLaunchData &data) :
+    m_data(data),
+    m_threadId(id)
 {
 }
 
 
-bool xmrig::CudaLaunchData::isEqual(const CudaLaunchData &other) const
+xmrig::CudaBaseRunner::~CudaBaseRunner()
 {
-    return (other.algorithm.family() == algorithm.family() &&
-            other.algorithm.l3()     == algorithm.l3() &&
-            other.thread             == thread);
+    CudaLib::release(m_ctx);
 }
 
 
-const char *xmrig::CudaLaunchData::tag()
+bool xmrig::CudaBaseRunner::init()
 {
-    return cuda_tag();
+    m_ctx = CudaLib::alloc(m_data.thread.index(), m_data.thread.bfactor(), m_data.thread.bsleep());
+    if (CudaLib::deviceInfo(m_ctx, m_data.thread.blocks(), m_data.thread.threads(), m_data.algorithm) != 0) {
+        return false;
+    }
+
+    return CudaLib::deviceInit(m_ctx);
+}
+
+
+bool xmrig::CudaBaseRunner::set(const Job &job, uint8_t *blob)
+{
+    m_height = job.height();
+    m_target = job.target();
+
+    return CudaLib::setJob(m_ctx, blob, job.size(), job.algorithm());
+}
+
+
+size_t xmrig::CudaBaseRunner::intensity() const
+{
+    return m_data.thread.threads() * m_data.thread.blocks();
 }

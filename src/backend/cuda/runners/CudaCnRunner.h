@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,29 +22,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_CUDACNRUNNER_H
+#define XMRIG_CUDACNRUNNER_H
 
-#include "backend/cuda/CudaLaunchData.h"
-#include "backend/common/Tags.h"
+
+#include "backend/cuda/runners/CudaBaseRunner.h"
 
 
-xmrig::CudaLaunchData::CudaLaunchData(const Miner *miner, const Algorithm &algorithm, const CudaThread &thread, const CudaDevice &device) :
-    algorithm(algorithm),
-    miner(miner),
-    device(device),
-    thread(thread)
+namespace xmrig {
+
+
+class CudaCnRunner : public CudaBaseRunner
 {
-}
+public:
+    CudaCnRunner(size_t index, const CudaLaunchData &data);
+
+protected:
+    bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce) override;
+};
 
 
-bool xmrig::CudaLaunchData::isEqual(const CudaLaunchData &other) const
-{
-    return (other.algorithm.family() == algorithm.family() &&
-            other.algorithm.l3()     == algorithm.l3() &&
-            other.thread             == thread);
-}
+} /* namespace xmrig */
 
 
-const char *xmrig::CudaLaunchData::tag()
-{
-    return cuda_tag();
-}
+#endif // XMRIG_CUDACNRUNNER_H

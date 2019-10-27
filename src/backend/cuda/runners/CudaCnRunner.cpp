@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -24,28 +23,16 @@
  */
 
 
-#include "backend/cuda/CudaLaunchData.h"
-#include "backend/common/Tags.h"
+#include "backend/cuda/runners/CudaCnRunner.h"
+#include "backend/cuda/wrappers/CudaLib.h"
 
 
-xmrig::CudaLaunchData::CudaLaunchData(const Miner *miner, const Algorithm &algorithm, const CudaThread &thread, const CudaDevice &device) :
-    algorithm(algorithm),
-    miner(miner),
-    device(device),
-    thread(thread)
+xmrig::CudaCnRunner::CudaCnRunner(size_t index, const CudaLaunchData &data) : CudaBaseRunner(index, data)
 {
 }
 
 
-bool xmrig::CudaLaunchData::isEqual(const CudaLaunchData &other) const
+bool xmrig::CudaCnRunner::run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)
 {
-    return (other.algorithm.family() == algorithm.family() &&
-            other.algorithm.l3()     == algorithm.l3() &&
-            other.thread             == thread);
-}
-
-
-const char *xmrig::CudaLaunchData::tag()
-{
-    return cuda_tag();
+    return CudaLib::cnHash(m_ctx, startNonce, m_height, m_target, rescount, resnonce);
 }

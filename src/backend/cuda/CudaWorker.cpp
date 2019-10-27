@@ -26,11 +26,17 @@
 
 #include "backend/cuda/CudaWorker.h"
 #include "backend/common/Tags.h"
+#include "backend/cuda/runners/CudaCnRunner.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
 #include "net/JobResults.h"
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "backend/cuda/runners/CudaRxRunner.h"
+#endif
 
 
 #include <cassert>
@@ -64,25 +70,42 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     m_miner(data.miner),
     m_intensity(data.thread.threads() * data.thread.blocks())
 {
+    switch (m_algorithm.family()) {
+    case Algorithm::RANDOM_X:
+#       ifdef XMRIG_ALGO_RANDOMX
+        m_runner = new CudaRxRunner(id, data);
+#       endif
+        break;
+
+    case Algorithm::ARGON2:
+        break;
+
+    default:
+        m_runner = new CudaCnRunner(id, data);
+        break;
+    }
+
+    if (!m_runner || !m_runner->init()) {
+        return;
+    }
 }
 
 
 xmrig::CudaWorker::~CudaWorker()
 {
-//    delete m_runner;
+    delete m_runner;
 }
 
 
 bool xmrig::CudaWorker::selfTest()
 {
-    return false; // FIXME
+    return m_runner != nullptr;
 }
 
 
 size_t xmrig::CudaWorker::intensity() const
 {
-    return 0; // FIXME;
-//    return m_runner ? m_runner->intensity() : 0;
+    return m_runner ? m_runner->intensity() : 0;
 }
 
 
@@ -105,18 +128,16 @@ void xmrig::CudaWorker::start()
         }
 
         while (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence())) {
-//            try {
-//                m_runner->run(*m_job.nonce(), results);
-//            }
-//            catch (std::exception &ex) {
-//                printError(id(), ex.what());
+            uint32_t foundNonce[10] = { 0 };
+            uint32_t foundCount     = 0;
 
-//                return;
-//            }
+            if (!m_runner->run(*m_job.nonce(), &foundCount, foundNonce)) {
+                return;
+            }
 
-//            if (results[0xFF] > 0) {
-//                JobResults::submit(m_job.currentJob(), results, results[0xFF]);
-//            }
+            if (foundCount) {
+                JobResults::submit(m_job.currentJob(), foundNonce, foundCount);
+            }
 
             m_job.nextRound(roundSize(m_intensity), m_intensity);
 
@@ -139,16 +160,7 @@ bool xmrig::CudaWorker::consumeJob()
 
     m_job.add(m_miner->job(), Nonce::sequence(Nonce::CUDA), roundSize(m_intensity) * m_intensity);
 
-//    try {
-//        m_runner->set(m_job.currentJob(), m_job.blob());
-//    }
-//    catch (std::exception &ex) {
-//        printError(id(), ex.what());
-
-//        return false;
-//    }
-
-    return true;
+    return m_runner->set(m_job.currentJob(), m_job.blob());;
 }
 
 

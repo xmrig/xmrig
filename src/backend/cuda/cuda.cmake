@@ -9,6 +9,10 @@ if (WITH_CUDA)
         src/backend/cuda/CudaThread.h
         src/backend/cuda/CudaThreads.h
         src/backend/cuda/CudaWorker.h
+        src/backend/cuda/interfaces/ICudaRunner.h
+        src/backend/cuda/runners/CudaBaseRunner.h
+        src/backend/cuda/runners/CudaCnRunner.h
+        src/backend/cuda/runners/CudaRxRunner.h
         src/backend/cuda/wrappers/CudaDevice.h
         src/backend/cuda/wrappers/CudaLib.h
        )
@@ -20,6 +24,9 @@ if (WITH_CUDA)
         src/backend/cuda/CudaThread.cpp
         src/backend/cuda/CudaThreads.cpp
         src/backend/cuda/CudaWorker.cpp
+        src/backend/cuda/runners/CudaBaseRunner.cpp
+        src/backend/cuda/runners/CudaCnRunner.cpp
+        src/backend/cuda/runners/CudaRxRunner.cpp
         src/backend/cuda/wrappers/CudaDevice.cpp
         src/backend/cuda/wrappers/CudaLib.cpp
        )

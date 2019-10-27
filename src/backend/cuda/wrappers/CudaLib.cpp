@@ -46,39 +46,51 @@ static uv_lib_t cudaLib;
 
 
 static const char *kAlloc                               = "alloc";
+static const char *kCnHash                              = "cnHash";
 static const char *kDeviceCount                         = "deviceCount";
 static const char *kDeviceInfo                          = "deviceInfo";
+static const char *kDeviceInit                          = "deviceInit";
 static const char *kDeviceInt                           = "deviceInt";
 static const char *kDeviceName                          = "deviceName";
 static const char *kDeviceUint                          = "deviceUint";
 static const char *kDeviceUlong                         = "deviceUlong";
+static const char *kInit                                = "init";
 static const char *kPluginVersion                       = "pluginVersion";
 static const char *kRelease                             = "release";
+static const char *kSetJob                              = "setJob";
 static const char *kSymbolNotFound                      = "symbol not found";
 static const char *kVersion                             = "version";
 
 
 using alloc_t                                           = nvid_ctx * (*)(uint32_t, int32_t, int32_t);
+using cnHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint64_t, uint32_t *, uint32_t *);
 using deviceCount_t                                     = uint32_t (*)();
 using deviceInfo_t                                      = int32_t (*)(nvid_ctx *, int32_t, int32_t, int32_t);
+using deviceInit_t                                      = bool (*)(nvid_ctx *);
 using deviceInt_t                                       = int32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
 using deviceName_t                                      = const char * (*)(nvid_ctx *);
 using deviceUint_t                                      = uint32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
 using deviceUlong_t                                     = uint64_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
+using init_t                                            = void (*)();
 using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
+using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using version_t                                         = uint32_t (*)(Version);
 
 
 static alloc_t pAlloc                                   = nullptr;
+static cnHash_t pCnHash                                 = nullptr;
 static deviceCount_t pDeviceCount                       = nullptr;
 static deviceInfo_t pDeviceInfo                         = nullptr;
+static deviceInit_t pDeviceInit                         = nullptr;
 static deviceInt_t pDeviceInt                           = nullptr;
 static deviceName_t pDeviceName                         = nullptr;
 static deviceUint_t pDeviceUint                         = nullptr;
 static deviceUlong_t pDeviceUlong                       = nullptr;
+static init_t pInit                                     = nullptr;
 static pluginVersion_t pPluginVersion                   = nullptr;
 static release_t pRelease                               = nullptr;
+static setJob_t pSetJob                                 = nullptr;
 static version_t pVersion                               = nullptr;
 
 
@@ -114,6 +126,24 @@ const char *xmrig::CudaLib::lastError()
 void xmrig::CudaLib::close()
 {
     uv_dlclose(&cudaLib);
+}
+
+
+bool xmrig::CudaLib::cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height, uint64_t target, uint32_t *rescount, uint32_t *resnonce)
+{
+    return pCnHash(ctx, startNonce, height, target, rescount, resnonce);
+}
+
+
+bool xmrig::CudaLib::deviceInit(nvid_ctx *ctx) noexcept
+{
+    return pDeviceInit(ctx);
+}
+
+
+bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept
+{
+    return pSetJob(ctx, data, size, algorithm);
 }
 
 
@@ -216,18 +246,24 @@ bool xmrig::CudaLib::load()
 
     try {
         DLSYM(Alloc);
+        DLSYM(CnHash);
         DLSYM(DeviceCount);
         DLSYM(DeviceInfo);
+        DLSYM(DeviceInit);
         DLSYM(DeviceInt);
         DLSYM(DeviceName);
         DLSYM(DeviceUint);
         DLSYM(DeviceUlong);
+        DLSYM(Init);
         DLSYM(PluginVersion);
         DLSYM(Release);
+        DLSYM(SetJob);
         DLSYM(Version);
     } catch (std::exception &ex) {
         return false;
     }
+
+    pInit();
 
     return true;
 }
