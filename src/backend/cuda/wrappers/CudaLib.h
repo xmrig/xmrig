@@ -72,6 +72,8 @@ public:
 
     static bool cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height, uint64_t target, uint32_t *rescount, uint32_t *resnonce);
     static bool deviceInit(nvid_ctx *ctx) noexcept;
+    static bool rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept;
+    static bool rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, uint32_t batchSize) noexcept;
     static bool setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept;
     static const char *deviceName(nvid_ctx *ctx) noexcept;
     static const char *lastError(nvid_ctx *ctx) noexcept;

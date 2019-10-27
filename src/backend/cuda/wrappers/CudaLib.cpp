@@ -58,6 +58,8 @@ static const char *kInit                                = "init";
 static const char *kLastError                           = "lastError";
 static const char *kPluginVersion                       = "pluginVersion";
 static const char *kRelease                             = "release";
+static const char *kRxHash                              = "rxHash";
+static const char *kRxPrepare                           = "rxPrepare";
 static const char *kSetJob                              = "setJob";
 static const char *kSymbolNotFound                      = "symbol not found";
 static const char *kVersion                             = "version";
@@ -76,6 +78,8 @@ using init_t                                            = void (*)();
 using lastError_t                                       = const char * (*)(nvid_ctx *);
 using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
+using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
+using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, uint32_t);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using version_t                                         = uint32_t (*)(Version);
 
@@ -93,6 +97,8 @@ static init_t pInit                                     = nullptr;
 static lastError_t pLastError                           = nullptr;
 static pluginVersion_t pPluginVersion                   = nullptr;
 static release_t pRelease                               = nullptr;
+static rxHash_t pRxHash                                 = nullptr;
+static rxPrepare_t pRxPrepare                           = nullptr;
 static setJob_t pSetJob                                 = nullptr;
 static version_t pVersion                               = nullptr;
 
@@ -141,6 +147,18 @@ bool xmrig::CudaLib::cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height,
 bool xmrig::CudaLib::deviceInit(nvid_ctx *ctx) noexcept
 {
     return pDeviceInit(ctx);
+}
+
+
+bool xmrig::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
+{
+    return pRxHash(ctx, startNonce, target, rescount, resnonce);
+}
+
+
+bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, uint32_t batchSize) noexcept
+{
+    return pRxPrepare(ctx, dataset, datasetSize, batchSize);
 }
 
 
@@ -267,6 +285,8 @@ bool xmrig::CudaLib::load()
         DLSYM(LastError);
         DLSYM(PluginVersion);
         DLSYM(Release);
+        DLSYM(RxHash);
+        DLSYM(RxPrepare);
         DLSYM(SetJob);
         DLSYM(Version);
     } catch (std::exception &ex) {

@@ -35,15 +35,17 @@ namespace xmrig {
 class CudaRxRunner : public CudaBaseRunner
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(CudaRxRunner)
-
     CudaRxRunner(size_t index, const CudaLaunchData &data);
-    ~CudaRxRunner() override;
 
 protected:
+    inline size_t intensity() const override { return m_intensity; }
+
     bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce) override;
+    bool set(const Job &job, uint8_t *blob) override;
 
 private:
+    bool m_ready        = false;
+    size_t m_intensity  = 0;
 };
 
 

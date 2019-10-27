@@ -106,6 +106,31 @@ size_t inline generate<Algorithm::CN_PICO>(Threads<CudaThreads> &threads, const 
 #endif
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+template<>
+size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
+{
+    size_t count = 0;
+
+    auto rx  = CudaThreads(devices, Algorithm::RX_0);
+    auto wow = CudaThreads(devices, Algorithm::RX_WOW);
+    auto arq = CudaThreads(devices, Algorithm::RX_ARQ);
+
+    if (!threads.isExist(Algorithm::RX_WOW) && wow != rx) {
+        count += threads.move("rx/wow", std::move(wow));
+    }
+
+    if (!threads.isExist(Algorithm::RX_ARQ) && arq != rx) {
+        count += threads.move("rx/arq", std::move(arq));
+    }
+
+    count += threads.move("rx", std::move(rx));
+
+    return count;
+}
+#endif
+
+
 } /* namespace xmrig */
 
 

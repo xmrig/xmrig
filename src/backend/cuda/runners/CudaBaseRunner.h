@@ -52,7 +52,7 @@ protected:
     size_t intensity() const override;
 
 protected:
-    void printError(const char *error) const;
+    bool callWrapper(bool result) const;
 
     const CudaLaunchData &m_data;
     const size_t m_threadId;

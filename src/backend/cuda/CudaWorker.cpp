@@ -61,8 +61,7 @@ static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / in
 xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     Worker(id, data.thread.affinity(), -1),
     m_algorithm(data.algorithm),
-    m_miner(data.miner),
-    m_intensity(data.thread.threads() * data.thread.blocks())
+    m_miner(data.miner)
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -133,7 +132,8 @@ void xmrig::CudaWorker::start()
                 JobResults::submit(m_job.currentJob(), foundNonce, foundCount);
             }
 
-            m_job.nextRound(roundSize(m_intensity), m_intensity);
+            const size_t batch_size = intensity();
+            m_job.nextRound(roundSize(batch_size), batch_size);
 
             storeStats();
             std::this_thread::yield();
@@ -152,7 +152,8 @@ bool xmrig::CudaWorker::consumeJob()
         return false;
     }
 
-    m_job.add(m_miner->job(), Nonce::sequence(Nonce::CUDA), roundSize(m_intensity) * m_intensity);
+    const size_t batch_size = intensity();
+    m_job.add(m_miner->job(), Nonce::sequence(Nonce::CUDA), roundSize(batch_size) * batch_size);
 
     return m_runner->set(m_job.currentJob(), m_job.blob());;
 }
@@ -164,7 +165,7 @@ void xmrig::CudaWorker::storeStats()
         return;
     }
 
-    m_count += m_intensity;
+    m_count += intensity();
 
     Worker::storeStats();
 }

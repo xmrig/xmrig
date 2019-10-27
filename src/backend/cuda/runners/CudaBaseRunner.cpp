@@ -51,13 +51,7 @@ bool xmrig::CudaBaseRunner::init()
         return false;
     }
 
-    if (!CudaLib::deviceInit(m_ctx)) {
-        printError(CudaLib::lastError(m_ctx));
-
-        return false;
-    }
-
-    return true;
+    return callWrapper(CudaLib::deviceInit(m_ctx));
 }
 
 
@@ -66,13 +60,7 @@ bool xmrig::CudaBaseRunner::set(const Job &job, uint8_t *blob)
     m_height = job.height();
     m_target = job.target();
 
-    if (!CudaLib::setJob(m_ctx, blob, job.size(), job.algorithm())) {
-        printError(CudaLib::lastError(m_ctx));
-
-        return false;
-    }
-
-    return true;
+    return callWrapper(CudaLib::setJob(m_ctx, blob, job.size(), job.algorithm()));
 }
 
 
@@ -82,9 +70,14 @@ size_t xmrig::CudaBaseRunner::intensity() const
 }
 
 
-void xmrig::CudaBaseRunner::printError(const char *error) const
+bool xmrig::CudaBaseRunner::callWrapper(bool result) const
 {
-    if (error) {
-        LOG_ERR("%s" RED_S " thread " RED_BOLD("#%zu") RED_S " failed with error " RED_BOLD("%s"), cuda_tag(), m_threadId, error);
+    if (!result) {
+        const char *error = CudaLib::lastError(m_ctx);
+        if (error) {
+            LOG_ERR("%s" RED_S " thread " RED_BOLD("#%zu") RED_S " failed with error " RED_BOLD("%s"), cuda_tag(), m_threadId, error);
+        }
     }
+
+    return result;
 }
