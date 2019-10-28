@@ -306,6 +306,6 @@ const char *xmrig::CudaLib::defaultLoader()
 #   elif defined(_WIN32)
     return "xmrig-cuda.dll";
 #   else
-    return "xmrig-cuda.so";
+    return "libxmrig-cuda.so";
 #   endif
 }
