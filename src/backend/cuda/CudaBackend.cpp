@@ -27,17 +27,16 @@
 #include <string>
 
 
+#include "backend/cuda/CudaBackend.h"
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/common/Workers.h"
-#include "backend/opencl/OclBackend.h"
-#include "backend/opencl/OclConfig.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "backend/opencl/OclWorker.h"
-#include "backend/opencl/runners/tools/OclSharedState.h"
-#include "backend/opencl/wrappers/OclContext.h"
-#include "backend/opencl/wrappers/OclLib.h"
+#include "backend/cuda/CudaConfig.h"
+#include "backend/cuda/CudaThreads.h"
+#include "backend/cuda/CudaWorker.h"
+#include "backend/cuda/wrappers/CudaDevice.h"
+#include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
@@ -55,22 +54,23 @@
 namespace xmrig {
 
 
-extern template class Threads<OclThreads>;
+extern template class Threads<CudaThreads>;
 
 
 constexpr const size_t oneMiB   = 1024u * 1024u;
-static const char *tag          = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
-static const String kType       = "opencl";
+static const char *tag          = GREEN_BG_BOLD(WHITE_BOLD_S " nv  ");
+static const String kType       = "cuda";
 static std::mutex mutex;
+
 
 
 static void printDisabled(const char *reason)
 {
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", "OPENCL", reason);
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", "CUDA", reason);
 }
 
 
-struct OclLaunchStatus
+struct CudaLaunchStatus
 {
 public:
     inline size_t threads() const { return m_threads; }
@@ -84,11 +84,11 @@ public:
 
     inline void start(size_t threads)
     {
-        m_started        = 0;
-        m_errors         = 0;
-        m_threads        = threads;
-        m_ts             = Chrono::steadyMSecs();
-        OclWorker::ready = false;
+        m_started         = 0;
+        m_errors          = 0;
+        m_threads         = threads;
+        m_ts              = Chrono::steadyMSecs();
+        CudaWorker::ready = false;
     }
 
     inline void print() const
@@ -116,57 +116,60 @@ private:
 };
 
 
-class OclBackendPrivate
+class CudaBackendPrivate
 {
 public:
-    inline OclBackendPrivate(Controller *controller) :
+    inline CudaBackendPrivate(Controller *controller) :
         controller(controller)
     {
-        init(controller->config()->cl());
+        init(controller->config()->cuda());
     }
 
 
-    void init(const OclConfig &cl)
+    void init(const CudaConfig &cuda)
     {
-        if (!cl.isEnabled()) {
+        if (!cuda.isEnabled()) {
             return printDisabled("");
         }
 
-        if (!OclLib::init(cl.loader())) {
-            return printDisabled(RED_S " (failed to load OpenCL runtime)");
+        if (!CudaLib::init(cuda.loader())) {
+            return printDisabled(RED_S " (failed to load CUDA plugin)");
         }
 
-        if (platform.isValid()) {
-            return;
-        }
+        const uint32_t runtimeVersion = CudaLib::runtimeVersion();
+        const uint32_t driverVersion  = CudaLib::driverVersion();
 
-        platform = cl.platform();
-        if (!platform.isValid()) {
-            return printDisabled(RED_S " (selected OpenCL platform NOT found)");
-        }
-
-        devices = platform.devices();
-        if (devices.empty()) {
+        if (!runtimeVersion || !driverVersion || !CudaLib::deviceCount()) {
             return printDisabled(RED_S " (no devices)");
         }
 
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), "OPENCL", platform.index(), platform.name().data(), platform.version().data());
+        if (!devices.empty()) {
+            return;
+        }
 
-        for (const OclDevice &device : devices) {
-            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") " %s " WHITE_BOLD("%u MHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%zu/%zu") " MB",
-                       "OPENCL GPU",
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%u.%u") "/" WHITE_BOLD("%u.%u") BLACK_BOLD("/%s"), "CUDA",
+                   runtimeVersion / 1000, runtimeVersion % 100, driverVersion / 1000, driverVersion % 100, CudaLib::pluginVersion());
+
+        devices = CudaLib::devices(cuda.bfactor(), cuda.bsleep());
+
+        for (const CudaDevice &device : devices) {
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") GREEN_BOLD(" %s ") WHITE_BOLD("%u/%u MHz") " smx:" WHITE_BOLD("%u") " arch:" WHITE_BOLD("%u%u") " mem:" CYAN("%zu/%zu") " MB",
+                       "CUDA GPU",
                        device.index(),
                        device.topology().toString().data(),
-                       device.printableName().data(),
+                       device.name().data(),
                        device.clock(),
-                       device.computeUnits(),
+                       device.memoryClock(),
+                       device.smx(),
+                       device.computeCapability(true),
+                       device.computeCapability(false),
                        device.freeMemSize() / oneMiB,
                        device.globalMemSize() / oneMiB);
         }
     }
 
 
-    inline void start(const Job &job)
+    inline void start(const Job &)
     {
         LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
                  tag,
@@ -175,28 +178,26 @@ public:
                  algo.l3() / 1024
                  );
 
-        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |  W | SI | MC |  U |  MEM | NAME"));
+        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |   T |   B | BF |  BS |  MEM | NAME"));
 
         size_t i = 0;
         for (const auto &data : threads) {
-            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5u") " |" CYAN_BOLD("%3u") " |"
-                       CYAN_BOLD("%3u") " |" CYAN_BOLD("%3s") " |" CYAN_BOLD("%3u") " |" CYAN("%5zu") " | %s",
+            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5d") " |" CYAN_BOLD("%4d") " |"
+                       CYAN_BOLD("%4d") " |" CYAN_BOLD("%3d") " |" CYAN_BOLD("%4d") " |" CYAN("%5zu") " | " GREEN("%s"),
                        i,
                        data.thread.index(),
                        data.device.topology().toString().data(),
-                       data.thread.intensity(),
-                       data.thread.worksize(),
-                       data.thread.stridedIndex(),
-                       data.thread.stridedIndex() == 2 ? std::to_string(data.thread.memChunk()).c_str() : "-",
-                       data.thread.unrollFactor(),
-                       data.thread.intensity() * algo.l3() / oneMiB,
-                       data.device.printableName().data()
+                       data.thread.threads() * data.thread.blocks(),
+                       data.thread.threads(),
+                       data.thread.blocks(),
+                       data.thread.bfactor(),
+                       data.thread.bsleep(),
+                       (data.thread.threads() * data.thread.blocks()) * algo.l3() / oneMiB,
+                       data.device.name().data()
                        );
 
                     i++;
         }
-
-        OclSharedState::start(threads, job);
 
         status.start(threads.size());
         workers.start(threads);
@@ -205,76 +206,74 @@ public:
 
     Algorithm algo;
     Controller *controller;
-    OclContext context;
-    OclLaunchStatus status;
-    OclPlatform platform;
-    std::vector<OclDevice> devices;
-    std::vector<OclLaunchData> threads;
+    CudaLaunchStatus status;
+    std::vector<CudaDevice> devices;
+    std::vector<CudaLaunchData> threads;
     String profileName;
-    Workers<OclLaunchData> workers;
+    Workers<CudaLaunchData> workers;
 };
 
 
 } // namespace xmrig
 
 
-const char *xmrig::ocl_tag()
+const char *xmrig::cuda_tag()
 {
     return tag;
 }
 
 
-xmrig::OclBackend::OclBackend(Controller *controller) :
-    d_ptr(new OclBackendPrivate(controller))
+xmrig::CudaBackend::CudaBackend(Controller *controller) :
+    d_ptr(new CudaBackendPrivate(controller))
 {
     d_ptr->workers.setBackend(this);
 }
 
 
-xmrig::OclBackend::~OclBackend()
+xmrig::CudaBackend::~CudaBackend()
 {
     delete d_ptr;
 
-    OclLib::close();
+    CudaLib::close();
 }
 
 
-bool xmrig::OclBackend::isEnabled() const
+bool xmrig::CudaBackend::isEnabled() const
 {
-    return d_ptr->controller->config()->cl().isEnabled() && OclLib::isInitialized() && d_ptr->platform.isValid() && !d_ptr->devices.empty();
+    return d_ptr->controller->config()->cuda().isEnabled() && CudaLib::isInitialized() && !d_ptr->devices.empty();;
 }
 
 
-bool xmrig::OclBackend::isEnabled(const Algorithm &algorithm) const
+bool xmrig::CudaBackend::isEnabled(const Algorithm &algorithm) const
 {
-    return !d_ptr->controller->config()->cl().threads().get(algorithm).isEmpty();
+    return !d_ptr->controller->config()->cuda().threads().get(algorithm).isEmpty();
 }
 
 
-const xmrig::Hashrate *xmrig::OclBackend::hashrate() const
+const xmrig::Hashrate *xmrig::CudaBackend::hashrate() const
 {
     return d_ptr->workers.hashrate();
 }
 
 
-const xmrig::String &xmrig::OclBackend::profileName() const
+const xmrig::String &xmrig::CudaBackend::profileName() const
 {
     return d_ptr->profileName;
 }
 
 
-const xmrig::String &xmrig::OclBackend::type() const
+const xmrig::String &xmrig::CudaBackend::type() const
 {
     return kType;
 }
 
 
-void xmrig::OclBackend::prepare(const Job &)
+void xmrig::CudaBackend::prepare(const Job &)
 {
 }
 
 
-void xmrig::OclBackend::printHashrate(bool details)
+void xmrig::CudaBackend::printHashrate(bool details)
 {
     if (!details || !hashrate()) {
         return;
@@ -282,19 +281,19 @@ void xmrig::OclBackend::printHashrate(bool details)
 
     char num[8 * 3] = { 0 };
 
-    Log::print(WHITE_BOLD_S "| OPENCL # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
+    Log::print(WHITE_BOLD_S "|   CUDA # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
 
     size_t i = 0;
     for (const auto &data : d_ptr->threads) {
-         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
+         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") GREEN(" %s"),
                     i,
-                    data.affinity,
+                    data.thread.affinity(),
                     Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                     Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3),
                     data.device.index(),
                     data.device.topology().toString().data(),
-                    data.device.printableName().data()
+                    data.device.name().data()
                     );
 
          i++;
@@ -308,33 +307,27 @@ void xmrig::OclBackend::printHashrate(bool details)
 }
 
 
-void xmrig::OclBackend::setJob(const Job &job)
+void xmrig::CudaBackend::setJob(const Job &job)
 {
-    const auto &cl = d_ptr->controller->config()->cl();
-    if (cl.isEnabled()) {
-        d_ptr->init(cl);
+    const auto &cuda = d_ptr->controller->config()->cuda();
+    if (cuda.isEnabled()) {
+        d_ptr->init(cuda);
     }
 
     if (!isEnabled()) {
         return stop();
     }
 
-    auto threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->platform, d_ptr->devices);
+    auto threads = cuda.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->devices);
     if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }
 
     d_ptr->algo         = job.algorithm();
-    d_ptr->profileName  = cl.threads().profileName(job.algorithm());
+    d_ptr->profileName  = cuda.threads().profileName(job.algorithm());
 
     if (d_ptr->profileName.isNull() || threads.empty()) {
         LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), tag);
-
-        return stop();
-    }
-
-    if (!d_ptr->context.init(d_ptr->devices, threads)) {
-        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (OpenCL context unavailable)"), tag);
 
         return stop();
     }
@@ -346,14 +339,14 @@ void xmrig::OclBackend::setJob(const Job &job)
 }
 
 
-void xmrig::OclBackend::start(IWorker *worker, bool ready)
+void xmrig::CudaBackend::start(IWorker *worker, bool ready)
 {
     mutex.lock();
 
     if (d_ptr->status.started(ready)) {
         d_ptr->status.print();
 
-        OclWorker::ready = true;
+        CudaWorker::ready = true;
     }
 
     mutex.unlock();
@@ -364,7 +357,7 @@ void xmrig::OclBackend::start(IWorker *worker, bool ready)
 }
 
 
-void xmrig::OclBackend::stop()
+void xmrig::CudaBackend::stop()
 {
     if (d_ptr->threads.empty()) {
         return;
@@ -375,20 +368,18 @@ void xmrig::OclBackend::stop()
     d_ptr->workers.stop();
     d_ptr->threads.clear();
 
-    OclSharedState::release();
-
     LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
 }
 
 
-void xmrig::OclBackend::tick(uint64_t ticks)
+void xmrig::CudaBackend::tick(uint64_t ticks)
 {
     d_ptr->workers.tick(ticks);
 }
 
 
 #ifdef XMRIG_FEATURE_API
-rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmrig::CudaBackend::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -398,7 +389,6 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("enabled",    isEnabled(), allocator);
     out.AddMember("algo",       d_ptr->algo.toJSON(), allocator);
     out.AddMember("profile",    profileName().toJSON(), allocator);
-    out.AddMember("platform",   d_ptr->platform.toJSON(doc), allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
         return out;
@@ -411,7 +401,6 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
     size_t i = 0;
     for (const auto &data : d_ptr->threads) {
         Value thread = data.thread.toJSON(doc);
-        thread.AddMember("affinity", data.affinity, allocator);
         thread.AddMember("hashrate", hashrate()->toJSON(i, doc), allocator);
 
         data.device.toJSON(thread, doc);
@@ -426,7 +415,7 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
 }
 
 
-void xmrig::OclBackend::handleRequest(IApiRequest &)
+void xmrig::CudaBackend::handleRequest(IApiRequest &)
 {
 }
 #endif

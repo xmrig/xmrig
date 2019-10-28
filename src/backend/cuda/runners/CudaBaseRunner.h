@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,53 +22,47 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef XMRIG_CUDABASERUNNER_H
+#define XMRIG_CUDABASERUNNER_H
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "base/tools/Object.h"
-#include "net/JobResult.h"
+#include "backend/cuda/interfaces/ICudaRunner.h"
+
+
+using nvid_ctx = struct nvid_ctx;
 
 
 namespace xmrig {
 
 
-class IOclRunner;
+class CudaLaunchData;
 
 
-class OclWorker : public Worker
+class CudaBaseRunner : public ICudaRunner
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(CudaBaseRunner)
 
-    OclWorker(size_t id, const OclLaunchData &data);
-
-    ~OclWorker() override;
-
-    static std::atomic<bool> ready;
+    CudaBaseRunner(size_t id, const CudaLaunchData &data);
+    ~CudaBaseRunner() override;
 
 protected:
-    bool selfTest() override;
+    bool init() override;
+    bool set(const Job &job, uint8_t *blob) override;
     size_t intensity() const override;
-    void start() override;
 
-private:
-    bool consumeJob();
-    void storeStats(uint64_t ts);
+protected:
+    bool callWrapper(bool result) const;
 
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    const uint32_t m_intensity;
-    IOclRunner *m_runner = nullptr;
-    OclSharedData &m_sharedData;
-    WorkerJob<1> m_job;
+    const CudaLaunchData &m_data;
+    const size_t m_threadId;
+    nvid_ctx *m_ctx     = nullptr;
+    uint64_t m_height   = 0;
+    uint64_t m_target   = 0;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif /* XMRIG_OCLWORKER_H */
+#endif // XMRIG_CUDABASERUNNER_H

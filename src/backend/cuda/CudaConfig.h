@@ -22,52 +22,55 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCONFIG_H
-#define XMRIG_OCLCONFIG_H
+#ifndef XMRIG_CUDACONFIG_H
+#define XMRIG_CUDACONFIG_H
 
 
+#include "backend/cuda/CudaLaunchData.h"
 #include "backend/common/Threads.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "backend/opencl/OclThreads.h"
-#include "backend/opencl/wrappers/OclPlatform.h"
+#include "backend/cuda/CudaThreads.h"
 
 
 namespace xmrig {
 
 
-class OclConfig
+class CudaConfig
 {
 public:
-    OclConfig();
+    CudaConfig() = default;
 
-    OclPlatform platform() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
-    std::vector<OclLaunchData> get(const Miner *miner, const Algorithm &algorithm, const OclPlatform &platform, const std::vector<OclDevice> &devices) const;
+    std::vector<CudaLaunchData> get(const Miner *miner, const Algorithm &algorithm, const std::vector<CudaDevice> &devices) const;
     void read(const rapidjson::Value &value);
 
-    inline bool isCacheEnabled() const                  { return m_cache; }
     inline bool isEnabled() const                       { return m_enabled; }
     inline bool isShouldSave() const                    { return m_shouldSave; }
     inline const String &loader() const                 { return m_loader; }
-    inline const Threads<OclThreads> &threads() const   { return m_threads; }
+    inline const Threads<CudaThreads> &threads() const  { return m_threads; }
+    inline int32_t bfactor() const                      { return m_bfactor; }
+    inline int32_t bsleep() const                       { return m_bsleep; }
 
 private:
     void generate();
     void setDevicesHint(const char *devicesHint);
-    void setPlatform(const rapidjson::Value &platform);
 
-    bool m_cache         = true;
-    bool m_enabled       = false;
-    bool m_shouldSave    = false;
+    bool m_enabled          = false;
+    bool m_shouldSave       = false;
     std::vector<uint32_t> m_devicesHint;
     String m_loader;
-    String m_platformVendor;
-    Threads<OclThreads> m_threads;
-    uint32_t m_platformIndex = 0;
+    Threads<CudaThreads> m_threads;
+
+#   ifdef _WIN32
+    int32_t m_bfactor      = 6;
+    int32_t m_bsleep       = 25;
+#   else
+    int32_t m_bfactor      = 0;
+    int32_t m_bsleep       = 0;
+#   endif
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_OCLCONFIG_H */
+#endif /* XMRIG_CUDACONFIG_H */

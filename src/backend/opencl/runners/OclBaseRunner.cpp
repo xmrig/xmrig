@@ -39,8 +39,8 @@ constexpr size_t oneGiB = 1024 * 1024 * 1024;
 
 
 xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
-    m_algorithm(data.algorithm),
     m_ctx(data.ctx),
+    m_algorithm(data.algorithm),
     m_source(OclSource::get(data.algorithm)),
     m_data(data),
     m_align(OclLib::getUint(data.device.id(), CL_DEVICE_MEM_BASE_ADDR_ALIGN)),

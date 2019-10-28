@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,53 +22,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef XMRIG_CUDATHREADS_H
+#define XMRIG_CUDATHREADS_H
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "base/tools/Object.h"
-#include "net/JobResult.h"
+#include <vector>
+
+
+#include "backend/cuda/CudaThread.h"
+#include "backend/cuda/wrappers/CudaDevice.h"
 
 
 namespace xmrig {
 
 
-class IOclRunner;
-
-
-class OclWorker : public Worker
+class CudaThreads
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+    CudaThreads() = default;
+    CudaThreads(const rapidjson::Value &value);
+    CudaThreads(const std::vector<CudaDevice> &devices, const Algorithm &algorithm);
 
-    OclWorker(size_t id, const OclLaunchData &data);
+    inline bool isEmpty() const                              { return m_data.empty(); }
+    inline const std::vector<CudaThread> &data() const       { return m_data; }
+    inline size_t count() const                              { return m_data.size(); }
+    inline void add(CudaThread &&thread)                     { m_data.push_back(thread); }
+    inline void reserve(size_t capacity)                     { m_data.reserve(capacity); }
 
-    ~OclWorker() override;
+    inline bool operator!=(const CudaThreads &other) const   { return !isEqual(other); }
+    inline bool operator==(const CudaThreads &other) const   { return isEqual(other); }
 
-    static std::atomic<bool> ready;
-
-protected:
-    bool selfTest() override;
-    size_t intensity() const override;
-    void start() override;
+    bool isEqual(const CudaThreads &other) const;
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
 private:
-    bool consumeJob();
-    void storeStats(uint64_t ts);
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    const uint32_t m_intensity;
-    IOclRunner *m_runner = nullptr;
-    OclSharedData &m_sharedData;
-    WorkerJob<1> m_job;
+    std::vector<CudaThread> m_data;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif /* XMRIG_OCLWORKER_H */
+#endif /* XMRIG_CUDATHREADS_H */

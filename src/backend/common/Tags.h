@@ -38,6 +38,12 @@ const char *ocl_tag();
 #endif
 
 
+#ifdef XMRIG_FEATURE_CUDA
+const char *cuda_tag();
+#endif
+
+
+
 #ifdef XMRIG_ALGO_RANDOMX
 const char *rx_tag();
 #endif

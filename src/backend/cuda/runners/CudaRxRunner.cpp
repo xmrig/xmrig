@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,53 +22,44 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+
+#include "backend/cuda/runners/CudaRxRunner.h"
+#include "backend/cuda/CudaLaunchData.h"
+#include "backend/cuda/wrappers/CudaLib.h"
+#include "base/net/stratum/Job.h"
+#include "crypto/rx/Rx.h"
+#include "crypto/rx/RxDataset.h"
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "base/tools/Object.h"
-#include "net/JobResult.h"
-
-
-namespace xmrig {
-
-
-class IOclRunner;
-
-
-class OclWorker : public Worker
+xmrig::CudaRxRunner::CudaRxRunner(size_t index, const CudaLaunchData &data) : CudaBaseRunner(index, data)
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+    m_intensity                   = m_data.thread.threads() * m_data.thread.blocks();
+    const size_t scratchpads_size = m_intensity * m_data.algorithm.l3();
+    const size_t num_scratchpads  = scratchpads_size / m_data.algorithm.l3();
 
-    OclWorker(size_t id, const OclLaunchData &data);
+    if (m_intensity > num_scratchpads) {
+        m_intensity = num_scratchpads;
+    }
 
-    ~OclWorker() override;
-
-    static std::atomic<bool> ready;
-
-protected:
-    bool selfTest() override;
-    size_t intensity() const override;
-    void start() override;
-
-private:
-    bool consumeJob();
-    void storeStats(uint64_t ts);
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    const uint32_t m_intensity;
-    IOclRunner *m_runner = nullptr;
-    OclSharedData &m_sharedData;
-    WorkerJob<1> m_job;
-};
+    m_intensity -= m_intensity % 32;
+}
 
 
-} // namespace xmrig
+bool xmrig::CudaRxRunner::run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)
+{
+    return callWrapper(CudaLib::rxHash(m_ctx, startNonce, m_target, rescount, resnonce));
+}
 
 
-#endif /* XMRIG_OCLWORKER_H */
+bool xmrig::CudaRxRunner::set(const Job &job, uint8_t *blob)
+{
+    const bool rc = CudaBaseRunner::set(job, blob);
+    if (!rc || m_ready) {
+        return rc;
+    }
+
+    auto dataset = Rx::dataset(job, 0);
+    m_ready = callWrapper(CudaLib::rxPrepare(m_ctx, dataset->raw(), dataset->size(false), m_intensity));
+
+    return m_ready;
+}

@@ -23,10 +23,10 @@
  */
 
 
-#include "backend/opencl/OclConfig.h"
+#include "backend/cuda/CudaConfig.h"
 #include "backend/common/Tags.h"
-#include "backend/opencl/OclConfig_gen.h"
-#include "backend/opencl/wrappers/OclLib.h"
+#include "backend/cuda/CudaConfig_gen.h"
+#include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
 #include "rapidjson/document.h"
@@ -35,68 +35,19 @@
 namespace xmrig {
 
 
-static const char *kAMD         = "AMD";
-static const char *kCache       = "cache";
+static bool generated           = false;
 static const char *kDevicesHint = "devices-hint";
 static const char *kEnabled     = "enabled";
-static const char *kINTEL       = "INTEL";
 static const char *kLoader      = "loader";
-static const char *kNVIDIA      = "NVIDIA";
-static const char *kPlatform    = "platform";
 
 
-extern template class Threads<OclThreads>;
+extern template class Threads<CudaThreads>;
 
 
 }
 
 
-xmrig::OclConfig::OclConfig() :
-    m_platformVendor(kAMD)
-{
-}
-
-
-xmrig::OclPlatform xmrig::OclConfig::platform() const
-{
-    const auto platforms = OclPlatform::get();
-    if (platforms.empty()) {
-        return {};
-    }
-
-    if (!m_platformVendor.isEmpty()) {
-        String search;
-        String vendor = m_platformVendor;
-        vendor.toUpper();
-
-        if (vendor == kAMD) {
-            search = "Advanced Micro Devices";
-        }
-        else if (vendor == kNVIDIA) {
-            search = kNVIDIA;
-        }
-        else if (vendor == kINTEL) {
-            search = "Intel";
-        }
-        else {
-            search = m_platformVendor;
-        }
-
-        for (const auto &platform : platforms) {
-            if (platform.vendor().contains(search)) {
-                return platform;
-            }
-        }
-    }
-    else if (m_platformIndex < platforms.size()) {
-        return platforms[m_platformIndex];
-    }
-
-    return {};
-}
-
-
-rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmrig::CudaConfig::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -104,9 +55,7 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
     Value obj(kObjectType);
 
     obj.AddMember(StringRef(kEnabled),  m_enabled, allocator);
-    obj.AddMember(StringRef(kCache),    m_cache, allocator);
     obj.AddMember(StringRef(kLoader),   m_loader.toJSON(), allocator);
-    obj.AddMember(StringRef(kPlatform), m_platformVendor.isEmpty() ? Value(m_platformIndex) : m_platformVendor.toJSON(), allocator);
 
     m_threads.toJSON(obj, doc);
 
@@ -114,9 +63,9 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
 }
 
 
-std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, const Algorithm &algorithm, const OclPlatform &platform, const std::vector<OclDevice> &devices) const
+std::vector<xmrig::CudaLaunchData> xmrig::CudaConfig::get(const Miner *miner, const Algorithm &algorithm, const std::vector<CudaDevice> &devices) const
 {
-    std::vector<OclLaunchData> out;
+    std::vector<CudaLaunchData> out;
     const auto &threads = m_threads.get(algorithm);
 
     if (threads.isEmpty()) {
@@ -127,32 +76,23 @@ std::vector<xmrig::OclLaunchData> xmrig::OclConfig::get(const Miner *miner, cons
 
     for (const auto &thread : threads.data()) {
         if (thread.index() >= devices.size()) {
-            LOG_INFO("%s" YELLOW(" skip non-existing device with index ") YELLOW_BOLD("%u"), ocl_tag(), thread.index());
+            LOG_INFO("%s" YELLOW(" skip non-existing device with index ") YELLOW_BOLD("%u"), cuda_tag(), thread.index());
             continue;
         }
 
-        if (thread.threads().size() > 1) {
-            for (int64_t affinity : thread.threads()) {
-                out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()], affinity);
-            }
-        }
-        else {
-            out.emplace_back(miner, algorithm, *this, platform, thread, devices[thread.index()], thread.threads().front());
-        }
+        out.emplace_back(miner, algorithm, thread, devices[thread.index()]);
     }
 
     return out;
 }
 
 
-void xmrig::OclConfig::read(const rapidjson::Value &value)
+void xmrig::CudaConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
         m_enabled   = Json::getBool(value, kEnabled, m_enabled);
-        m_cache     = Json::getBool(value, kCache, m_cache);
         m_loader    = Json::getString(value, kLoader);
 
-        setPlatform(Json::getValue(value, kPlatform));
         setDevicesHint(Json::getString(value, kDevicesHint));
 
         m_threads.read(value);
@@ -172,17 +112,25 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 }
 
 
-void xmrig::OclConfig::generate()
+void xmrig::CudaConfig::generate()
 {
+    if (generated) {
+        return;
+    }
+
     if (!isEnabled() || m_threads.has("*")) {
         return;
     }
 
-    if (!OclLib::init(loader())) {
+    if (!CudaLib::init(loader())) {
         return;
     }
 
-    const auto devices = m_devicesHint.empty() ? platform().devices() : filterDevices(platform().devices(), m_devicesHint);
+    if (!CudaLib::runtimeVersion() || !CudaLib::driverVersion() || !CudaLib::deviceCount()) {
+        return;
+    }
+
+    const auto devices = CudaLib::devices(bfactor(), bsleep());
     if (devices.empty()) {
         return;
     }
@@ -195,11 +143,12 @@ void xmrig::OclConfig::generate()
     count += xmrig::generate<Algorithm::CN_PICO>(m_threads, devices);
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, devices);
 
+    generated    = true;
     m_shouldSave = count > 0;
 }
 
 
-void xmrig::OclConfig::setDevicesHint(const char *devicesHint)
+void xmrig::CudaConfig::setDevicesHint(const char *devicesHint)
 {
     if (devicesHint == nullptr) {
         return;
@@ -210,17 +159,5 @@ void xmrig::OclConfig::setDevicesHint(const char *devicesHint)
 
     for (const auto &index : indexes) {
         m_devicesHint.push_back(strtoul(index, nullptr, 10));
-    }
-}
-
-
-void xmrig::OclConfig::setPlatform(const rapidjson::Value &platform)
-{
-    if (platform.IsString()) {
-        m_platformVendor = platform.GetString();
-    }
-    else if (platform.IsUint()) {
-        m_platformVendor = nullptr;
-        m_platformIndex  = platform.GetUint();
     }
 }

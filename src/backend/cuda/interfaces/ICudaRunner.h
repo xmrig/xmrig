@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,53 +22,50 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef XMRIG_ICUDARUNNER_H
+#define XMRIG_ICUDARUNNER_H
 
 
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
 #include "base/tools/Object.h"
-#include "net/JobResult.h"
+
+
+#include <cstdint>
 
 
 namespace xmrig {
 
 
-class IOclRunner;
+class Job;
 
 
-class OclWorker : public Worker
+class ICudaRunner
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+    XMRIG_DISABLE_COPY_MOVE(ICudaRunner)
 
-    OclWorker(size_t id, const OclLaunchData &data);
+    ICudaRunner()          = default;
+    virtual ~ICudaRunner() = default;
 
-    ~OclWorker() override;
-
-    static std::atomic<bool> ready;
+//    virtual cl_context ctx() const                          = 0;
+//    virtual const Algorithm &algorithm() const              = 0;
+//    virtual const char *buildOptions() const                = 0;
+//    virtual const char *deviceKey() const                   = 0;
+//    virtual const char *source() const                      = 0;
+//    virtual const OclLaunchData &data() const               = 0;
+    virtual size_t intensity() const                        = 0;
+//    virtual size_t threadId() const                         = 0;
+//    virtual uint32_t deviceIndex() const                    = 0;
+//    virtual void build()                                    = 0;
+    virtual bool init()                                     = 0;
+    virtual bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)   = 0;
+    virtual bool set(const Job &job, uint8_t *blob)         = 0;
 
 protected:
-    bool selfTest() override;
-    size_t intensity() const override;
-    void start() override;
-
-private:
-    bool consumeJob();
-    void storeStats(uint64_t ts);
-
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    const uint32_t m_intensity;
-    IOclRunner *m_runner = nullptr;
-    OclSharedData &m_sharedData;
-    WorkerJob<1> m_job;
+//    virtual size_t bufferSize() const                       = 0;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif /* XMRIG_OCLWORKER_H */
+#endif // XMRIG_ICUDARUNNER_H
