@@ -72,6 +72,10 @@ R"===(
         "cn/0": false,
         "cn-lite/0": false
     },
+    "cuda": {
+        "enabled": false,
+        "loader": null,
+    },
     "donate-level": 5,
     "donate-over-proxy": 1,
     "log-file": null,

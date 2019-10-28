@@ -77,11 +77,16 @@ OpenCL backend:
       --opencl                  enable OpenCL mining backend
       --opencl-devices=N        list of OpenCL devices to use
       --opencl-platform=N       OpenCL platform index or name
-      --opencl-loader=N         path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)
+      --opencl-loader=PATH      path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)
       --opencl-no-cache         disable OpenCL cache
       --print-platforms         print available OpenCL platforms and exit
 
+CUDA backend:
+      --cuda                    enable CUDA mining backend
+      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)
+
 Logging:
+  -S, --syslog                  use system log for output messages
   -l, --log-file=FILE           log all output to a file
       --print-time=N            print hashrate report every N seconds
       --no-color                disable colored output
