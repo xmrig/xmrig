@@ -409,7 +409,7 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
     Value threads(kArrayType);
 
     size_t i = 0;
-    for (const OclLaunchData &data : d_ptr->threads) {
+    for (const auto &data : d_ptr->threads) {
         Value thread = data.thread.toJSON(doc);
         thread.AddMember("affinity", data.affinity, allocator);
         thread.AddMember("hashrate", hashrate()->toJSON(i, doc), allocator);

@@ -60,6 +60,7 @@ public:
     inline bool isValid() const                 { return m_ctx != nullptr; }
     inline const PciTopology &topology() const  { return m_topology; }
     inline const String &name() const           { return m_name; }
+    inline uint32_t arch() const                { return (computeCapability(true) * 10) + computeCapability(false); }
     inline uint32_t index() const               { return m_index; }
 
 #   ifdef XMRIG_FEATURE_API

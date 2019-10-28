@@ -169,7 +169,7 @@ public:
     }
 
 
-    inline void start(const Job &job)
+    inline void start(const Job &)
     {
         LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
                  tag,
@@ -285,7 +285,7 @@ void xmrig::CudaBackend::printHashrate(bool details)
 
     size_t i = 0;
     for (const auto &data : d_ptr->threads) {
-         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
+         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") GREEN(" %s"),
                     i,
                     data.thread.affinity(),
                     Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
@@ -389,6 +389,27 @@ rapidjson::Value xmrig::CudaBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("enabled",    isEnabled(), allocator);
     out.AddMember("algo",       d_ptr->algo.toJSON(), allocator);
     out.AddMember("profile",    profileName().toJSON(), allocator);
+
+    if (d_ptr->threads.empty() || !hashrate()) {
+        return out;
+    }
+
+    out.AddMember("hashrate", hashrate()->toJSON(doc), allocator);
+
+    Value threads(kArrayType);
+
+    size_t i = 0;
+    for (const auto &data : d_ptr->threads) {
+        Value thread = data.thread.toJSON(doc);
+        thread.AddMember("hashrate", hashrate()->toJSON(i, doc), allocator);
+
+        data.device.toJSON(thread, doc);
+
+        i++;
+        threads.PushBack(thread, allocator);
+    }
+
+    out.AddMember("threads", threads, allocator);
 
     return out;
 }

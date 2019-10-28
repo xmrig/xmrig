@@ -115,5 +115,15 @@ void xmrig::CudaDevice::generate(const Algorithm &algorithm, CudaThreads &thread
 #ifdef XMRIG_FEATURE_API
 void xmrig::CudaDevice::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
 {
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    out.AddMember("name",           name().toJSON(doc), allocator);
+    out.AddMember("bus_id",         topology().toString().toJSON(doc), allocator);
+    out.AddMember("smx",            smx(), allocator);
+    out.AddMember("arch",           arch(), allocator);
+    out.AddMember("global_mem",     static_cast<uint64_t>(globalMemSize()), allocator);
+    out.AddMember("clock",          clock(), allocator);
+    out.AddMember("memory_clock",   memoryClock(), allocator);
 }
 #endif
