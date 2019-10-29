@@ -204,6 +204,12 @@ nvid_ctx *xmrig::CudaLib::alloc(uint32_t id, int32_t bfactor, int32_t bsleep) no
 }
 
 
+std::string xmrig::CudaLib::version(uint32_t version)
+{
+    return std::to_string(version / 1000) + "." + std::to_string((version % 1000) / 10);
+}
+
+
 std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices(int32_t bfactor, int32_t bsleep) noexcept
 {
     const uint32_t count = deviceCount();

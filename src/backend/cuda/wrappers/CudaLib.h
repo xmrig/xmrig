@@ -35,6 +35,7 @@ using nvid_ctx = struct nvid_ctx;
 
 
 #include <vector>
+#include <string>
 
 
 namespace xmrig {
@@ -81,6 +82,7 @@ public:
     static int deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm) noexcept;
     static int32_t deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept;
     static nvid_ctx *alloc(uint32_t id, int32_t bfactor, int32_t bsleep) noexcept;
+    static std::string version(uint32_t version);
     static std::vector<CudaDevice> devices(int32_t bfactor, int32_t bsleep) noexcept;
     static uint32_t deviceCount() noexcept;
     static uint32_t deviceUint(nvid_ctx *ctx, DeviceProperty property) noexcept;

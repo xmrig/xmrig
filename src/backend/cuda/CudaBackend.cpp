@@ -136,8 +136,8 @@ public:
             return printDisabled(RED_S " (failed to load CUDA plugin)");
         }
 
-        const uint32_t runtimeVersion = CudaLib::runtimeVersion();
-        const uint32_t driverVersion  = CudaLib::driverVersion();
+        runtimeVersion = CudaLib::runtimeVersion();
+        driverVersion  = CudaLib::driverVersion();
 
         if (!runtimeVersion || !driverVersion || !CudaLib::deviceCount()) {
             return printDisabled(RED_S " (no devices)");
@@ -147,8 +147,8 @@ public:
             return;
         }
 
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%u.%u") "/" WHITE_BOLD("%u.%u") BLACK_BOLD("/%s"), "CUDA",
-                   runtimeVersion / 1000, runtimeVersion % 100, driverVersion / 1000, driverVersion % 100, CudaLib::pluginVersion());
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" WHITE_BOLD("%s") BLACK_BOLD("/%s"), "CUDA",
+                   CudaLib::version(runtimeVersion).c_str(), CudaLib::version(driverVersion).c_str(), CudaLib::pluginVersion());
 
         devices = CudaLib::devices(cuda.bfactor(), cuda.bsleep());
 
@@ -210,6 +210,8 @@ public:
     std::vector<CudaDevice> devices;
     std::vector<CudaLaunchData> threads;
     String profileName;
+    uint32_t driverVersion      = 0;
+    uint32_t runtimeVersion     = 0;
     Workers<CudaLaunchData> workers;
 };
 
@@ -389,6 +391,12 @@ rapidjson::Value xmrig::CudaBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("enabled",    isEnabled(), allocator);
     out.AddMember("algo",       d_ptr->algo.toJSON(), allocator);
     out.AddMember("profile",    profileName().toJSON(), allocator);
+
+    Value versions(kObjectType);
+    versions.AddMember("runtime",   Value(CudaLib::version(d_ptr->runtimeVersion).c_str(), allocator), allocator);
+    versions.AddMember("driver",    Value(CudaLib::version(d_ptr->driverVersion).c_str(), allocator), allocator);
+    versions.AddMember("plugin",    String(CudaLib::pluginVersion()).toJSON(doc), allocator);
+    out.AddMember("versions",       versions, allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
         return out;
