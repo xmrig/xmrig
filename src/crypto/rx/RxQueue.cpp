@@ -46,7 +46,7 @@ xmrig::RxQueue::RxQueue(IRxListener *listener) :
 
     uv_async_init(uv_default_loop(), m_async, [](uv_async_t *handle) { static_cast<RxQueue *>(handle->data)->onReady(); });
 
-    m_thread = std::move(std::thread(&RxQueue::backgroundInit, this));
+    m_thread = std::thread(&RxQueue::backgroundInit, this);
 }
 
 
@@ -158,7 +158,7 @@ void xmrig::RxQueue::backgroundInit()
 
         m_storage->init(item.seed, item.threads, item.hugePages);
 
-        lock = std::move(std::unique_lock<std::mutex>(m_mutex));
+        lock = std::unique_lock<std::mutex>(m_mutex);
 
         if (m_state == STATE_SHUTDOWN || !m_queue.empty()) {
             continue;

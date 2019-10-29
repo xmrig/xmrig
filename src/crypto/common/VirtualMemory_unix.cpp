@@ -96,7 +96,7 @@ void xmrig::VirtualMemory::unprotectExecutableMemory(void *p, size_t size)
 }
 
 
-void xmrig::VirtualMemory::osInit()
+void xmrig::VirtualMemory::osInit(bool)
 {
 }
 

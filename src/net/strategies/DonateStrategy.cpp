@@ -226,7 +226,7 @@ void xmrig::DonateStrategy::onTimer(const Timer *)
 }
 
 
-xmrig::Client *xmrig::DonateStrategy::createProxy()
+xmrig::IClient *xmrig::DonateStrategy::createProxy()
 {
     if (m_controller->config()->pools().proxyDonate() == Pools::PROXY_DONATE_NONE) {
         return nullptr;
@@ -243,7 +243,7 @@ xmrig::Client *xmrig::DonateStrategy::createProxy()
     Pool pool(client->ip(), client->pool().port(), m_userId, client->pool().password(), 0, true, client->isTLS());
     pool.setAlgo(client->pool().algorithm());
 
-    auto proxy = new Client(-1, Platform::userAgent(), this);
+    IClient *proxy = new Client(-1, Platform::userAgent(), this);
     proxy->setPool(pool);
     proxy->setQuiet(true);
 

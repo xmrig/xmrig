@@ -65,7 +65,7 @@ xmrig::IStrategy *xmrig::Pools::createStrategy(IStrategyListener *listener) cons
         }
     }
 
-    FailoverStrategy *strategy = new FailoverStrategy(retryPause(), retries(), listener);
+    auto strategy = new FailoverStrategy(retryPause(), retries(), listener);
     for (const Pool &pool : m_data) {
         if (pool.isEnabled()) {
             strategy->add(pool);
@@ -138,13 +138,7 @@ void xmrig::Pools::print() const
 {
     size_t i = 1;
     for (const Pool &pool : m_data) {
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") CSI "1;%dm%s" CLEAR " %s " WHITE_BOLD("%s"),
-                   i,
-                   (pool.isEnabled() ? (pool.isTLS() ? 32 : 36) : 31),
-                   pool.url().data(),
-                   pool.coin().isValid() ? "coin" : "algo",
-                   pool.coin().isValid() ? pool.coin().name() : (pool.algorithm().isValid() ? pool.algorithm().shortName() : "auto")
-                   );
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "%s", i, pool.printableName().c_str());
 
         i++;
     }

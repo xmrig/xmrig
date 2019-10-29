@@ -32,6 +32,7 @@
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/kernel/interfaces/IStrategy.h"
 #include "base/net/stratum/Pool.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -44,6 +45,8 @@ class IStrategyListener;
 class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(FailoverStrategy)
+
     FailoverStrategy(const std::vector<Pool> &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     FailoverStrategy(int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     ~FailoverStrategy() override;

@@ -631,7 +631,7 @@ namespace randomx {
 				int cycle1 = scheduleUop<false>(mop.getUop1(), portBusy, cycle);
 				int cycle2 = scheduleUop<false>(mop.getUop2(), portBusy, cycle);
 
-				if (cycle1 == cycle2) {
+				if (cycle1 >= 0 && cycle1 == cycle2) {
 					if (commit) {
 						scheduleUop<true>(mop.getUop1(), portBusy, cycle1);
 						scheduleUop<true>(mop.getUop2(), portBusy, cycle2);
@@ -754,6 +754,12 @@ namespace randomx {
 
 				//recalculate when the instruction can be scheduled for execution based on operand availability
 				scheduleCycle = scheduleMop<true>(mop, portBusy, scheduleCycle, scheduleCycle);
+
+				if (scheduleCycle < 0) {
+					if (trace) std::cout << "Unable to map operation '" << mop.getName() << "' to execution port (cycle " << scheduleCycle << ")" << std::endl;
+					portsSaturated = true;
+					break;
+				}
 
 				//calculate when the result will be ready
 				depCycle = scheduleCycle + mop.getLatency();

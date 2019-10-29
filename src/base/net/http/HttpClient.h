@@ -30,6 +30,7 @@
 
 #include "base/net/http/HttpContext.h"
 #include "base/kernel/interfaces/IDnsListener.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -41,6 +42,8 @@ class String;
 class HttpClient : public HttpContext, public IDnsListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpClient);
+
     HttpClient(int method, const String &url, IHttpListener *listener, const char *data = nullptr, size_t size = 0);
     ~HttpClient() override;
 
@@ -57,13 +60,13 @@ protected:
     virtual void read(const char *data, size_t size);
     virtual void write(const std::string &header);
 
-    bool m_quiet;
+    bool m_quiet = false;
 
 private:
     static void onConnect(uv_connect_t *req, int status);
 
     Dns *m_dns;
-    uint16_t m_port;
+    uint16_t m_port = 0;
 };
 
 

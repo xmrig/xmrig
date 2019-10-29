@@ -31,7 +31,7 @@
 #include <vector>
 
 
-#include "base/tools/String.h"
+#include "base/net/stratum/Url.h"
 #include "crypto/common/Coin.h"
 #include "rapidjson/fwd.h"
 
@@ -39,15 +39,17 @@
 namespace xmrig {
 
 
+class IClient;
+class IClientListener;
+
+
 class Pool
 {
 public:
-    enum Flags {
-        FLAG_ENABLED,
-        FLAG_NICEHASH,
-        FLAG_TLS,
-        FLAG_DAEMON,
-        FLAG_MAX
+    enum Mode {
+        MODE_POOL,
+        MODE_DAEMON,
+        MODE_SELF_SELECT
     };
 
     static const String kDefaultPassword;
@@ -57,7 +59,7 @@ public:
     constexpr static uint16_t kDefaultPort         = 3333;
     constexpr static uint64_t kDefaultPollInterval = 1000;
 
-    Pool();
+    Pool() = default;
     Pool(const char *url);
     Pool(const rapidjson::Value &object);
     Pool(const char *host,
@@ -69,20 +71,21 @@ public:
          bool tls               = false
        );
 
-    inline bool isDaemon() const                        { return m_flags.test(FLAG_DAEMON); }
     inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS); }
-    inline bool isValid() const                         { return !m_host.isNull() && m_port > 0; }
+    inline bool isValid() const                         { return m_url.isValid(); }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
     inline const Coin &coin() const                     { return m_coin; }
     inline const String &fingerprint() const            { return m_fingerprint; }
-    inline const String &host() const                   { return m_host; }
+    inline const String &host() const                   { return m_url.host(); }
     inline const String &password() const               { return !m_password.isNull() ? m_password : kDefaultPassword; }
     inline const String &rigId() const                  { return m_rigId; }
-    inline const String &url() const                    { return m_url; }
+    inline const String &url() const                    { return m_url.url(); }
     inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
+    inline const Url &daemon() const                    { return m_daemon; }
     inline int keepAlive() const                        { return m_keepAlive; }
-    inline uint16_t port() const                        { return m_port; }
+    inline Mode mode() const                            { return m_mode; }
+    inline uint16_t port() const                        { return m_url.port(); }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
     inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
     inline void setPassword(const String &password)     { m_password = password; }
@@ -94,31 +97,37 @@ public:
 
     bool isEnabled() const;
     bool isEqual(const Pool &other) const;
-    bool parse(const char *url);
+    IClient *createClient(int id, IClientListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    std::string printableName() const;
 
 #   ifdef APP_DEBUG
     void print() const;
 #   endif
 
 private:
+    enum Flags {
+        FLAG_ENABLED,
+        FLAG_NICEHASH,
+        FLAG_TLS,
+        FLAG_MAX
+    };
+
     inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? kKeepAliveTimeout : 0); }
     inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
 
-    bool parseIPv6(const char *addr);
-
     Algorithm m_algorithm;
     Coin m_coin;
-    int m_keepAlive;
-    std::bitset<FLAG_MAX> m_flags;
+    int m_keepAlive                 = 0;
+    Mode m_mode                     = MODE_POOL;
+    std::bitset<FLAG_MAX> m_flags   = 0;
     String m_fingerprint;
-    String m_host;
     String m_password;
     String m_rigId;
-    String m_url;
     String m_user;
-    uint16_t m_port;
-    uint64_t m_pollInterval;
+    uint64_t m_pollInterval         = kDefaultPollInterval;
+    Url m_daemon;
+    Url m_url;
 };
 
 

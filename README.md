@@ -9,9 +9,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/network)
 
-XMRig is a high performance RandomX and CryptoNight CPU miner, with official support for Windows.
-
-* This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
+XMRig High performance, open source, cross platform RandomX, CryptoNight and Argon2 CPU/GPU miner, with official support for Windows
 
 <img src="doc/screenshot.png" width="808" >
 
@@ -29,6 +27,8 @@ XMRig is a high performance RandomX and CryptoNight CPU miner, with official sup
 
 ## Usage
 The preferred way to configure the miner is the [JSON config file](src/config.json) as it is more flexible and human friendly. The command line interface does not cover all features, such as mining profiles for different algorithms. Important options can be changed during runtime without miner restart by editing the config file or executing API calls.
+
+* **[xmrig.com/wizard](https://xmrig.com/wizard)** helps you create initial configuration for the miner.
 
 ### Command line options
 ```

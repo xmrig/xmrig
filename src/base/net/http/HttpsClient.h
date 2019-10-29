@@ -28,10 +28,10 @@
 #define XMRIG_HTTPSCLIENT_H
 
 
-typedef struct bio_st BIO;
-typedef struct ssl_ctx_st SSL_CTX;
-typedef struct ssl_st SSL;
-typedef struct x509_st X509;
+using BIO       = struct bio_st;
+using SSL_CTX   = struct ssl_ctx_st;
+using SSL       = struct ssl_st;
+using X509      = struct x509_st;
 
 
 #include "base/net/http/HttpClient.h"
@@ -44,6 +44,8 @@ namespace xmrig {
 class HttpsClient : public HttpClient
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpsClient)
+
     HttpsClient(int method, const String &url, IHttpListener *listener, const char *data, size_t size, const String &fingerprint);
     ~HttpsClient() override;
 

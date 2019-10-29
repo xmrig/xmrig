@@ -112,7 +112,7 @@ void xmrig::VirtualMemory::destroy()
 void xmrig::VirtualMemory::init(size_t poolSize, bool hugePages)
 {
     if (!pool) {
-        osInit();
+        osInit(hugePages);
     }
 
 #   ifdef XMRIG_FEATURE_HWLOC

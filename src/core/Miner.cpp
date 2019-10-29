@@ -152,6 +152,7 @@ public:
         reply.AddMember("ua",           StringRef(Platform::userAgent()), allocator);
         reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
         reply.AddMember("donate_level", controller->config()->pools().donateLevel(), allocator);
+        reply.AddMember("paused",       !enabled, allocator);
 
         Value algo(kArrayType);
 
