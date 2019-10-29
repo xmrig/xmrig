@@ -50,6 +50,10 @@ public:
 
     Job() = default;
     Job(bool nicehash, const Algorithm &algorithm, const String &clientId);
+
+    inline Job(const Job &other)        { copy(other); }
+    inline Job(Job &&other) noexcept    { move(std::move(other)); }
+
     ~Job() = default;
 
     bool isEqual(const Job &other) const;
@@ -71,6 +75,7 @@ public:
     inline const uint8_t *blob() const                  { return m_blob; }
     inline size_t size() const                          { return m_size; }
     inline uint32_t *nonce()                            { return reinterpret_cast<uint32_t*>(m_blob + 39); }
+    inline uint32_t backend() const                     { return m_backend; }
     inline uint64_t diff() const                        { return m_diff; }
     inline uint64_t height() const                      { return m_height; }
     inline uint64_t target() const                      { return m_target; }
@@ -79,6 +84,7 @@ public:
     inline void reset()                                 { m_size = 0; m_diff = 0; }
     inline void setAlgorithm(const Algorithm::Id id)    { m_algorithm = id; }
     inline void setAlgorithm(const char *algo)          { m_algorithm = algo; }
+    inline void setBackend(uint32_t backend)            { m_backend = backend; }
     inline void setClientId(const String &id)           { m_clientId = id; }
     inline void setExtraNonce(const String &extraNonce) { m_extraNonce = extraNonce; }
     inline void setHeight(uint64_t height)              { m_height = height; }
@@ -95,12 +101,14 @@ public:
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
     static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
 
-    inline bool operator==(const Job &other) const { return isEqual(other); }
     inline bool operator!=(const Job &other) const { return !isEqual(other); }
+    inline bool operator==(const Job &other) const { return isEqual(other); }
     inline Job &operator=(const Job &other)        { copy(other); return *this; }
+    inline Job &operator=(Job &&other) noexcept    { move(std::move(other)); return *this; }
 
 private:
     void copy(const Job &other);
+    void move(Job &&other);
 
     Algorithm m_algorithm;
     bool m_nicehash     = false;
@@ -110,6 +118,7 @@ private:
     String m_extraNonce;
     String m_id;
     String m_poolWallet;
+    uint32_t m_backend  = 0;
     uint64_t m_diff     = 0;
     uint64_t m_height   = 0;
     uint64_t m_target   = 0;

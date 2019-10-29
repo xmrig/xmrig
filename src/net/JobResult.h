@@ -47,6 +47,7 @@ public:
         algorithm(job.algorithm()),
         clientId(job.clientId()),
         jobId(job.id()),
+        backend(job.backend()),
         nonce(nonce),
         diff(job.diff()),
         index(job.index())
@@ -61,9 +62,10 @@ public:
     const Algorithm algorithm;
     const String clientId;
     const String jobId;
-    const uint32_t nonce    = 0;
-    const uint64_t diff     = 0;
-    const uint8_t index     = 0;
+    const uint32_t backend;
+    const uint32_t nonce;
+    const uint64_t diff;
+    const uint8_t index;
 
 private:
     uint8_t m_result[32] = { 0 };

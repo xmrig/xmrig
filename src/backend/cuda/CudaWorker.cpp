@@ -153,7 +153,7 @@ bool xmrig::CudaWorker::consumeJob()
     }
 
     const size_t batch_size = intensity();
-    m_job.add(m_miner->job(), Nonce::sequence(Nonce::CUDA), roundSize(batch_size) * batch_size);
+    m_job.add(m_miner->job(), roundSize(batch_size) * batch_size, Nonce::CUDA);
 
     return m_runner->set(m_job.currentJob(), m_job.blob());;
 }

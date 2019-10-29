@@ -27,10 +27,15 @@
 #define XMRIG_TAGS_H
 
 
+#include <cstdint>
+
+
 namespace xmrig {
 
 
+const char *backend_tag(uint32_t backend);
 const char *cpu_tag();
+const char *net_tag();
 
 
 #ifdef XMRIG_FEATURE_OPENCL

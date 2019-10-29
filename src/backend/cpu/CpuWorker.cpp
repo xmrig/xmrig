@@ -303,7 +303,7 @@ void xmrig::CpuWorker<N>::consumeJob()
         return;
     }
 
-    m_job.add(m_miner->job(), Nonce::sequence(Nonce::CPU), kReserveCount);
+    m_job.add(m_miner->job(), kReserveCount, Nonce::CPU);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
