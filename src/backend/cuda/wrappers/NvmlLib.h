@@ -22,78 +22,41 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_NVMLLIB_H
+#define XMRIG_NVMLLIB_H
 
-#include <mutex>
 
-
-#include "crypto/common/Nonce.h"
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-std::atomic<bool> Nonce::m_paused;
-std::atomic<uint64_t> Nonce::m_sequence[Nonce::MAX];
-uint32_t Nonce::m_nonces[2] = { 0, 0 };
+class NvmlLib
+{
+public:
+    static bool init(const char *fileName = nullptr);
+    static const char *lastError() noexcept;
+    static void close();
 
+    static inline bool isInitialized() noexcept         { return m_initialized; }
+    static inline bool isReady() noexcept               { return m_ready; }
+    static inline const char *driverVersion() noexcept  { return m_driverVersion; }
+    static inline const char *version() noexcept        { return m_nvmlVersion; }
 
-static std::mutex mutex;
-static Nonce nonce;
+private:
+    static bool dlopen();
+    static bool load();
+
+    static bool m_initialized;
+    static bool m_ready;
+    static char m_driverVersion[80];
+    static char m_nvmlVersion[80];
+    static String m_loader;
+};
 
 
 } // namespace xmrig
 
 
-xmrig::Nonce::Nonce()
-{
-    m_paused = true;
-
-    for (auto &i : m_sequence) {
-        i = 1;
-    }
-}
-
-
-uint32_t xmrig::Nonce::next(uint8_t index, uint32_t nonce, uint32_t reserveCount, bool nicehash)
-{
-    uint32_t next;
-
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if (nicehash) {
-        next = (nonce & 0xFF000000) | m_nonces[index];
-    }
-    else {
-        next = m_nonces[index];
-    }
-
-    m_nonces[index] += reserveCount;
-
-    return next;
-}
-
-
-void xmrig::Nonce::reset(uint8_t index)
-{
-    std::lock_guard<std::mutex> lock(mutex);
-
-    m_nonces[index] = 0;
-}
-
-
-void xmrig::Nonce::stop()
-{
-    pause(false);
-
-    for (auto &i : m_sequence) {
-        i = 0;
-    }
-}
-
-
-void xmrig::Nonce::touch()
-{
-    for (auto &i : m_sequence) {
-        i++;
-    }
-}
+#endif /* XMRIG_NVMLLIB_H */

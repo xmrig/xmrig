@@ -22,78 +22,17 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <mutex>
-
-
-#include "crypto/common/Nonce.h"
+#ifndef XMRIG_NVML_LITE_H
+#define XMRIG_NVML_LITE_H
 
 
-namespace xmrig {
+#include <cstdint>
 
 
-std::atomic<bool> Nonce::m_paused;
-std::atomic<uint64_t> Nonce::m_sequence[Nonce::MAX];
-uint32_t Nonce::m_nonces[2] = { 0, 0 };
+#define NVML_SUCCESS 0
 
 
-static std::mutex mutex;
-static Nonce nonce;
+using nvmlReturn_t = uint32_t;
 
 
-} // namespace xmrig
-
-
-xmrig::Nonce::Nonce()
-{
-    m_paused = true;
-
-    for (auto &i : m_sequence) {
-        i = 1;
-    }
-}
-
-
-uint32_t xmrig::Nonce::next(uint8_t index, uint32_t nonce, uint32_t reserveCount, bool nicehash)
-{
-    uint32_t next;
-
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if (nicehash) {
-        next = (nonce & 0xFF000000) | m_nonces[index];
-    }
-    else {
-        next = m_nonces[index];
-    }
-
-    m_nonces[index] += reserveCount;
-
-    return next;
-}
-
-
-void xmrig::Nonce::reset(uint8_t index)
-{
-    std::lock_guard<std::mutex> lock(mutex);
-
-    m_nonces[index] = 0;
-}
-
-
-void xmrig::Nonce::stop()
-{
-    pause(false);
-
-    for (auto &i : m_sequence) {
-        i = 0;
-    }
-}
-
-
-void xmrig::Nonce::touch()
-{
-    for (auto &i : m_sequence) {
-        i++;
-    }
-}
+#endif /* XMRIG_NVML_LITE_H */

@@ -30,8 +30,22 @@ if (WITH_CUDA)
         src/backend/cuda/wrappers/CudaDevice.cpp
         src/backend/cuda/wrappers/CudaLib.cpp
        )
+
+   if (WITH_NVML AND NOT APPLE)
+       add_definitions(/DXMRIG_FEATURE_NVML)
+
+       list(APPEND HEADERS_BACKEND_CUDA
+           src/backend/cuda/wrappers/nvml_lite.h
+           src/backend/cuda/wrappers/NvmlLib.h
+           )
+
+       list(APPEND SOURCES_BACKEND_CUDA src/backend/cuda/wrappers/NvmlLib.cpp)
+   else()
+       remove_definitions(/DXMRIG_FEATURE_NVML)
+   endif()
 else()
     remove_definitions(/DXMRIG_FEATURE_CUDA)
+    remove_definitions(/DXMRIG_FEATURE_NVML)
 
     set(HEADERS_BACKEND_CUDA "")
     set(SOURCES_BACKEND_CUDA "")

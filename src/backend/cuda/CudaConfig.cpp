@@ -40,6 +40,10 @@ static const char *kDevicesHint = "devices-hint";
 static const char *kEnabled     = "enabled";
 static const char *kLoader      = "loader";
 
+#ifdef XMRIG_FEATURE_NVML
+static const char *kNvml        = "nvml";
+#endif
+
 
 extern template class Threads<CudaThreads>;
 
@@ -56,6 +60,15 @@ rapidjson::Value xmrig::CudaConfig::toJSON(rapidjson::Document &doc) const
 
     obj.AddMember(StringRef(kEnabled),  m_enabled, allocator);
     obj.AddMember(StringRef(kLoader),   m_loader.toJSON(), allocator);
+
+#   ifdef XMRIG_FEATURE_NVML
+    if (m_nvmlLoader.isNull()) {
+        obj.AddMember(StringRef(kNvml), m_nvml, allocator);
+    }
+    else {
+        obj.AddMember(StringRef(kNvml), m_nvmlLoader.toJSON(), allocator);
+    }
+#   endif
 
     m_threads.toJSON(obj, doc);
 
@@ -94,6 +107,16 @@ void xmrig::CudaConfig::read(const rapidjson::Value &value)
         m_loader    = Json::getString(value, kLoader);
 
         setDevicesHint(Json::getString(value, kDevicesHint));
+
+#       ifdef XMRIG_FEATURE_NVML
+        auto &nvml = Json::getValue(value, kNvml);
+        if (nvml.IsString()) {
+            m_nvmlLoader = nvml.GetString();
+        }
+        else if (nvml.IsBool()) {
+            m_nvml = nvml.GetBool();
+        }
+#       endif
 
         m_threads.read(value);
 
