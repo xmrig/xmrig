@@ -31,7 +31,7 @@ class Benchmark : public IJobResultListener {
 
         enum BenchAlgo : int {
             AR2_CHUKWA,    // "argon2/chukwa"
-            RX_LOKI,       // "rx/loki"          RandomXL (Loki).
+            RX_0,          // "rx/0"             RandomX (Monero).
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
             DEFYX,         // "defyx             DefyX.
             RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
@@ -47,7 +47,7 @@ class Benchmark : public IJobResultListener {
 
         const Algorithm::Id ba2a[BenchAlgo::MAX] = {
             Algorithm::AR2_CHUKWA,
-            Algorithm::RX_LOKI,
+            Algorithm::RX_0,
             Algorithm::RX_WOW,
             Algorithm::DEFYX,
             Algorithm::RX_ARQ,
