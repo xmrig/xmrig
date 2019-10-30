@@ -393,7 +393,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (d_ptr->algorithm.family() == Algorithm::RANDOM_X && job.algorithm().family() == Algorithm::RANDOM_X && !Rx::isReady(job)) {
+    if (job.algorithm().family() == Algorithm::RANDOM_X && !Rx::isReady(job)) {
         stop();
     }
 #   endif
