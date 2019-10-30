@@ -36,6 +36,7 @@ if (WITH_CUDA)
 
        list(APPEND HEADERS_BACKEND_CUDA
            src/backend/cuda/wrappers/nvml_lite.h
+           src/backend/cuda/wrappers/NvmlHealth.h
            src/backend/cuda/wrappers/NvmlLib.h
            )
 

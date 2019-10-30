@@ -163,6 +163,8 @@ public:
 #       ifdef XMRIG_FEATURE_NVML
         if (cuda.isNvmlEnabled()) {
             if (NvmlLib::init(cuda.nvmlLoader())) {
+                NvmlLib::assign(devices);
+
                 Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" GREEN_BOLD("%s"), kNvmlLabel,
                            NvmlLib::version(), NvmlLib::driverVersion());
             }

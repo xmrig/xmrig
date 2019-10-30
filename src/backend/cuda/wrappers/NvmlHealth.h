@@ -22,34 +22,22 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_NVML_LITE_H
-#define XMRIG_NVML_LITE_H
+#ifndef XMRIG_NVMLHEALTH_H
+#define XMRIG_NVMLHEALTH_H
 
 
 #include <cstdint>
+#include <vector>
 
 
-#define NVML_SUCCESS         0
-#define NVML_TEMPERATURE_GPU 0
-#define NVML_CLOCK_SM        1
-#define NVML_CLOCK_MEM       2
-
-
-using nvmlReturn_t = uint32_t;
-using nvmlDevice_t = struct nvmlDevice_st *;
-
-
-struct nvmlPciInfo_t
+struct NvmlHealth
 {
-    char busIdLegacy[16]{};
-    unsigned int domain         = 0;
-    unsigned int bus            = 0;
-    unsigned int device         = 0;
-    unsigned int pciDeviceId    = 0;
-    unsigned int pciSubSystemId = 0;
-
-    char busId[32]{};
+    std::vector<uint32_t> fanSpeed;
+    uint32_t clock          = 0;
+    uint32_t memClock       = 0;
+    uint32_t power          = 0;
+    uint32_t temperature    = 0;
 };
 
 
-#endif /* XMRIG_NVML_LITE_H */
+#endif /* XMRIG_NVMLHEALTH_H */

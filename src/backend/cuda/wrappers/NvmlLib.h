@@ -26,7 +26,8 @@
 #define XMRIG_NVMLLIB_H
 
 
-#include "base/tools/String.h"
+#include "backend/cuda/wrappers/CudaDevice.h"
+#include "backend/cuda/wrappers/NvmlHealth.h"
 
 
 namespace xmrig {
@@ -38,6 +39,9 @@ public:
     static bool init(const char *fileName = nullptr);
     static const char *lastError() noexcept;
     static void close();
+
+    static bool assign(std::vector<CudaDevice> &devices);
+    static NvmlHealth health(nvmlDevice_t device);
 
     static inline bool isInitialized() noexcept         { return m_initialized; }
     static inline bool isReady() noexcept               { return m_ready; }
