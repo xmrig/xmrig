@@ -193,6 +193,14 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
         return set(doc, kCuda, "loader", arg);
 #   endif
 
+#   ifdef XMRIG_FEATURE_NVML
+    case IConfig::NvmlKey: /* --no-nvml */
+        return set(doc, kCuda, "nvml", false);
+
+    case IConfig::HealthPrintTimeKey: /* --health-print-time */
+        return set(doc, "health-print-time", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+#   endif
+
     default:
         break;
     }

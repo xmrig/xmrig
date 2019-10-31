@@ -70,6 +70,11 @@ static const char *kCuda    = "cuda";
 #endif
 
 
+#if defined(XMRIG_FEATURE_NVML)
+static const char *kHealthPrintTime = "health-print-time";
+#endif
+
+
 class ConfigPrivate
 {
 public:
@@ -85,6 +90,10 @@ public:
 
 #   ifdef XMRIG_FEATURE_CUDA
     CudaConfig cuda;
+#   endif
+
+#   if defined(XMRIG_FEATURE_NVML)
+    uint32_t healthPrintTime = 60;
 #   endif
 };
 
@@ -133,6 +142,14 @@ const xmrig::RxConfig &xmrig::Config::rx() const
 #endif
 
 
+#if defined(XMRIG_FEATURE_NVML)
+uint32_t xmrig::Config::healthPrintTime() const
+{
+    return d_ptr->healthPrintTime;
+}
+#endif
+
+
 bool xmrig::Config::isShouldSave() const
 {
     if (!isAutoSave()) {
@@ -177,6 +194,10 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     d_ptr->cuda.read(reader.getValue(kCuda));
 #   endif
 
+#   ifdef XMRIG_FEATURE_NVML
+    d_ptr->healthPrintTime = reader.getUint(kHealthPrintTime, d_ptr->healthPrintTime);
+#   endif
+
     return true;
 }
 
@@ -213,14 +234,17 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kCuda),    cuda().toJSON(doc), allocator);
 #   endif
 
-    doc.AddMember("donate-level",      m_pools.donateLevel(), allocator);
-    doc.AddMember("donate-over-proxy", m_pools.proxyDonate(), allocator);
-    doc.AddMember("log-file",          m_logFile.toJSON(), allocator);
-    doc.AddMember("pools",             m_pools.toJSON(doc), allocator);
-    doc.AddMember("print-time",        printTime(), allocator);
-    doc.AddMember("retries",           m_pools.retries(), allocator);
-    doc.AddMember("retry-pause",       m_pools.retryPause(), allocator);
-    doc.AddMember("syslog",            isSyslog(), allocator);
-    doc.AddMember("user-agent",        m_userAgent.toJSON(), allocator);
-    doc.AddMember("watch",             m_watch, allocator);
+    doc.AddMember("donate-level",               m_pools.donateLevel(), allocator);
+    doc.AddMember("donate-over-proxy",          m_pools.proxyDonate(), allocator);
+    doc.AddMember("log-file",                   m_logFile.toJSON(), allocator);
+    doc.AddMember("pools",                      m_pools.toJSON(doc), allocator);
+    doc.AddMember("print-time",                 printTime(), allocator);
+#   if defined(XMRIG_FEATURE_NVML)
+    doc.AddMember(StringRef(kHealthPrintTime),  healthPrintTime(), allocator);
+#   endif
+    doc.AddMember("retries",                    m_pools.retries(), allocator);
+    doc.AddMember("retry-pause",                m_pools.retryPause(), allocator);
+    doc.AddMember("syslog",                     isSyslog(), allocator);
+    doc.AddMember("user-agent",                 m_userAgent.toJSON(), allocator);
+    doc.AddMember("watch",                      m_watch, allocator);
 }

@@ -75,6 +75,9 @@ R"===(
     "cuda": {
         "enabled": false,
         "loader": null,
+        "nvml": true,
+        "cn/0": false,
+        "cn-lite/0": false
     },
     "donate-level": 5,
     "donate-over-proxy": 1,
@@ -97,6 +100,7 @@ R"===(
         }
     ],
     "print-time": 60,
+    "health-print-time": 60,
     "retries": 5,
     "retry-pause": 5,
     "syslog": false,

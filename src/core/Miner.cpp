@@ -494,7 +494,8 @@ void xmrig::Miner::onTimer(const Timer *)
 
     d_ptr->maxHashrate[d_ptr->algorithm] = std::max(d_ptr->maxHashrate[d_ptr->algorithm], maxHashrate);
 
-    if ((d_ptr->ticks % (d_ptr->controller->config()->printTime() * 2)) == 0) {
+    auto seconds = d_ptr->controller->config()->printTime();
+    if (seconds && (d_ptr->ticks % (seconds * 2)) == 0) {
         printHashrate(false);
     }
 
