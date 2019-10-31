@@ -165,8 +165,11 @@ public:
             if (NvmlLib::init(cuda.nvmlLoader())) {
                 NvmlLib::assign(devices);
 
-                Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" GREEN_BOLD("%s"), kNvmlLabel,
-                           NvmlLib::version(), NvmlLib::driverVersion());
+                Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" GREEN_BOLD("%s") " press " MAGENTA_BG(WHITE_BOLD_S "e") " for health report",
+                           kNvmlLabel,
+                           NvmlLib::version(),
+                           NvmlLib::driverVersion()
+                           );
             }
             else {
                 printDisabled(kLabel, RED_S " (failed to load NVML)");
@@ -228,6 +231,38 @@ public:
         status.start(threads.size());
         workers.start(threads);
     }
+
+
+#   ifdef XMRIG_FEATURE_NVML
+    void printHealth()
+    {
+        for (const auto &device : devices) {
+            const auto health = NvmlLib::health(device.nvmlDevice());
+
+            std::string clocks;
+            if (health.clock && health.memClock) {
+                clocks += " " + std::to_string(health.clock) + "/" + std::to_string(health.memClock) + " MHz";
+            }
+
+            std::string fans;
+            if (!health.fanSpeed.empty()) {
+                for (uint32_t i = 0; i < health.fanSpeed.size(); ++i) {
+                    fans += " fan" + std::to_string(i) + ":" CYAN_BOLD_S + std::to_string(health.fanSpeed[i]) + "%" CLEAR;
+                }
+            }
+
+            LOG_INFO(CYAN_BOLD("#%u") YELLOW(" %s") MAGENTA_BOLD("%4uW") CSI "1;%um %2uC" CLEAR WHITE_BOLD("%s") "%s",
+                     device.index(),
+                     device.topology().toString().data(),
+                     health.power,
+                     health.temperature < 60 ? 32 : (health.temperature > 85 ? 31 : 33),
+                     health.temperature,
+                     clocks.c_str(),
+                     fans.c_str()
+                     );
+        }
+    }
+#   endif
 
 
     Algorithm algo;
@@ -297,6 +332,16 @@ const xmrig::String &xmrig::CudaBackend::profileName() const
 const xmrig::String &xmrig::CudaBackend::type() const
 {
     return kType;
+}
+
+
+void xmrig::CudaBackend::execCommand(char command)
+{
+#   ifdef XMRIG_FEATURE_NVML
+    if (command == 'e' || command == 'E') {
+        d_ptr->printHealth();
+    }
+#   endif
 }
 
 

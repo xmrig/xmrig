@@ -328,6 +328,34 @@ xmrig::Job xmrig::Miner::job() const
 }
 
 
+void xmrig::Miner::execCommand(char command)
+{
+    switch (command) {
+    case 'h':
+    case 'H':
+        printHashrate(true);
+        break;
+
+    case 'p':
+    case 'P':
+        setEnabled(false);
+        break;
+
+    case 'r':
+    case 'R':
+        setEnabled(true);
+        break;
+
+    default:
+        break;
+    }
+
+    for (auto backend : d_ptr->backends) {
+        backend->execCommand(command);
+    }
+}
+
+
 void xmrig::Miner::pause()
 {
     d_ptr->active = false;
