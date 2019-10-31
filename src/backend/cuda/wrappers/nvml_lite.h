@@ -22,60 +22,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLBACKEND_H
-#define XMRIG_OCLBACKEND_H
+#ifndef XMRIG_NVML_LITE_H
+#define XMRIG_NVML_LITE_H
 
 
-#include <utility>
+#include <cstdint>
 
 
-#include "backend/common/interfaces/IBackend.h"
-#include "base/tools/Object.h"
+#define NVML_SUCCESS         0
+#define NVML_TEMPERATURE_GPU 0
+#define NVML_CLOCK_SM        1
+#define NVML_CLOCK_MEM       2
 
 
-namespace xmrig {
+using nvmlReturn_t = uint32_t;
+using nvmlDevice_t = struct nvmlDevice_st *;
 
 
-class Controller;
-class OclBackendPrivate;
-class Miner;
-
-
-class OclBackend : public IBackend
+struct nvmlPciInfo_t
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclBackend)
+    char busIdLegacy[16]{};
+    unsigned int domain         = 0;
+    unsigned int bus            = 0;
+    unsigned int device         = 0;
+    unsigned int pciDeviceId    = 0;
+    unsigned int pciSubSystemId = 0;
 
-    OclBackend(Controller *controller);
-
-    ~OclBackend() override;
-
-protected:
-    inline void execCommand(char) override {}
-
-    bool isEnabled() const override;
-    bool isEnabled(const Algorithm &algorithm) const override;
-    const Hashrate *hashrate() const override;
-    const String &profileName() const override;
-    const String &type() const override;
-    void prepare(const Job &nextJob) override;
-    void printHashrate(bool details) override;
-    void setJob(const Job &job) override;
-    void start(IWorker *worker, bool ready) override;
-    void stop() override;
-    void tick(uint64_t ticks) override;
-
-#   ifdef XMRIG_FEATURE_API
-    rapidjson::Value toJSON(rapidjson::Document &doc) const override;
-    void handleRequest(IApiRequest &request) override;
-#   endif
-
-private:
-    OclBackendPrivate *d_ptr;
+    char busId[32]{};
 };
 
 
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_OCLBACKEND_H */
+#endif /* XMRIG_NVML_LITE_H */

@@ -51,6 +51,13 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_NVML
+#include "backend/cuda/wrappers/NvmlLib.h"
+
+namespace xmrig { static const char *kNvmlLabel = "NVML"; }
+#endif
+
+
 namespace xmrig {
 
 
@@ -58,15 +65,16 @@ extern template class Threads<CudaThreads>;
 
 
 constexpr const size_t oneMiB   = 1024u * 1024u;
+static const char *kLabel       = "CUDA";
 static const char *tag          = GREEN_BG_BOLD(WHITE_BOLD_S " nv  ");
 static const String kType       = "cuda";
 static std::mutex mutex;
 
 
 
-static void printDisabled(const char *reason)
+static void printDisabled(const char *label, const char *reason)
 {
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", "CUDA", reason);
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", label, reason);
 }
 
 
@@ -129,28 +137,48 @@ public:
     void init(const CudaConfig &cuda)
     {
         if (!cuda.isEnabled()) {
-            return printDisabled("");
+            return printDisabled(kLabel, "");
         }
 
         if (!CudaLib::init(cuda.loader())) {
-            return printDisabled(RED_S " (failed to load CUDA plugin)");
+            return printDisabled(kLabel, RED_S " (failed to load CUDA plugin)");
         }
 
         runtimeVersion = CudaLib::runtimeVersion();
         driverVersion  = CudaLib::driverVersion();
 
         if (!runtimeVersion || !driverVersion || !CudaLib::deviceCount()) {
-            return printDisabled(RED_S " (no devices)");
+            return printDisabled(kLabel, RED_S " (no devices)");
         }
 
         if (!devices.empty()) {
             return;
         }
 
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" WHITE_BOLD("%s") BLACK_BOLD("/%s"), "CUDA",
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" WHITE_BOLD("%s") BLACK_BOLD("/%s"), kLabel,
                    CudaLib::version(runtimeVersion).c_str(), CudaLib::version(driverVersion).c_str(), CudaLib::pluginVersion());
 
         devices = CudaLib::devices(cuda.bfactor(), cuda.bsleep());
+
+#       ifdef XMRIG_FEATURE_NVML
+        if (cuda.isNvmlEnabled()) {
+            if (NvmlLib::init(cuda.nvmlLoader())) {
+                NvmlLib::assign(devices);
+
+                Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" GREEN_BOLD("%s") " press " MAGENTA_BG(WHITE_BOLD_S "e") " for health report",
+                           kNvmlLabel,
+                           NvmlLib::version(),
+                           NvmlLib::driverVersion()
+                           );
+            }
+            else {
+                printDisabled(kLabel, RED_S " (failed to load NVML)");
+            }
+        }
+        else {
+            printDisabled(kNvmlLabel, "");
+        }
+#       endif
 
         for (const CudaDevice &device : devices) {
             Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") GREEN_BOLD(" %s ") WHITE_BOLD("%u/%u MHz") " smx:" WHITE_BOLD("%u") " arch:" WHITE_BOLD("%u%u") " mem:" CYAN("%zu/%zu") " MB",
@@ -205,6 +233,38 @@ public:
     }
 
 
+#   ifdef XMRIG_FEATURE_NVML
+    void printHealth()
+    {
+        for (const auto &device : devices) {
+            const auto health = NvmlLib::health(device.nvmlDevice());
+
+            std::string clocks;
+            if (health.clock && health.memClock) {
+                clocks += " " + std::to_string(health.clock) + "/" + std::to_string(health.memClock) + " MHz";
+            }
+
+            std::string fans;
+            if (!health.fanSpeed.empty()) {
+                for (uint32_t i = 0; i < health.fanSpeed.size(); ++i) {
+                    fans += " fan" + std::to_string(i) + ":" CYAN_BOLD_S + std::to_string(health.fanSpeed[i]) + "%" CLEAR;
+                }
+            }
+
+            LOG_INFO(CYAN_BOLD("#%u") YELLOW(" %s") MAGENTA_BOLD("%4uW") CSI "1;%um %2uC" CLEAR WHITE_BOLD("%s") "%s",
+                     device.index(),
+                     device.topology().toString().data(),
+                     health.power,
+                     health.temperature < 60 ? 32 : (health.temperature > 85 ? 31 : 33),
+                     health.temperature,
+                     clocks.c_str(),
+                     fans.c_str()
+                     );
+        }
+    }
+#   endif
+
+
     Algorithm algo;
     Controller *controller;
     CudaLaunchStatus status;
@@ -238,6 +298,10 @@ xmrig::CudaBackend::~CudaBackend()
     delete d_ptr;
 
     CudaLib::close();
+
+#   ifdef XMRIG_FEATURE_NVML
+    NvmlLib::close();
+#   endif
 }
 
 
@@ -268,6 +332,16 @@ const xmrig::String &xmrig::CudaBackend::profileName() const
 const xmrig::String &xmrig::CudaBackend::type() const
 {
     return kType;
+}
+
+
+void xmrig::CudaBackend::execCommand(char command)
+{
+#   ifdef XMRIG_FEATURE_NVML
+    if (command == 'e' || command == 'E') {
+        d_ptr->printHealth();
+    }
+#   endif
 }
 
 
@@ -378,6 +452,13 @@ void xmrig::CudaBackend::stop()
 void xmrig::CudaBackend::tick(uint64_t ticks)
 {
     d_ptr->workers.tick(ticks);
+
+#   ifdef XMRIG_FEATURE_NVML
+    auto seconds = d_ptr->controller->config()->healthPrintTime();
+    if (seconds && ticks && (ticks % (seconds * 2)) == 0) {
+        d_ptr->printHealth();
+    }
+#   endif
 }
 
 
@@ -394,10 +475,18 @@ rapidjson::Value xmrig::CudaBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("profile",    profileName().toJSON(), allocator);
 
     Value versions(kObjectType);
-    versions.AddMember("runtime",   Value(CudaLib::version(d_ptr->runtimeVersion).c_str(), allocator), allocator);
-    versions.AddMember("driver",    Value(CudaLib::version(d_ptr->driverVersion).c_str(), allocator), allocator);
-    versions.AddMember("plugin",    String(CudaLib::pluginVersion()).toJSON(doc), allocator);
-    out.AddMember("versions",       versions, allocator);
+    versions.AddMember("cuda-runtime",   Value(CudaLib::version(d_ptr->runtimeVersion).c_str(), allocator), allocator);
+    versions.AddMember("cuda-driver",    Value(CudaLib::version(d_ptr->driverVersion).c_str(), allocator), allocator);
+    versions.AddMember("plugin",         String(CudaLib::pluginVersion()).toJSON(doc), allocator);
+
+#   ifdef XMRIG_FEATURE_NVML
+    if (NvmlLib::isReady()) {
+        versions.AddMember("nvml",       StringRef(NvmlLib::version()), allocator);
+        versions.AddMember("driver",     StringRef(NvmlLib::driverVersion()), allocator);
+    }
+#   endif
+
+    out.AddMember("versions", versions, allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
         return out;

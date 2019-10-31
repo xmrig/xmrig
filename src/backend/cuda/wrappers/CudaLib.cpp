@@ -28,7 +28,6 @@
 
 
 #include "backend/cuda/wrappers/CudaLib.h"
-#include "base/io/log/Log.h"
 
 
 namespace xmrig {

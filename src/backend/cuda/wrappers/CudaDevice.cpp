@@ -30,6 +30,9 @@
 #include "crypto/common/Algorithm.h"
 #include "rapidjson/document.h"
 
+#ifdef XMRIG_FEATURE_NVML
+#   include "backend/cuda/wrappers/NvmlLib.h"
+#endif
 
 #include <algorithm>
 
@@ -125,5 +128,25 @@ void xmrig::CudaDevice::toJSON(rapidjson::Value &out, rapidjson::Document &doc) 
     out.AddMember("global_mem",     static_cast<uint64_t>(globalMemSize()), allocator);
     out.AddMember("clock",          clock(), allocator);
     out.AddMember("memory_clock",   memoryClock(), allocator);
+
+#   ifdef XMRIG_FEATURE_NVML
+    if (m_nvmlDevice) {
+        auto data = NvmlLib::health(m_nvmlDevice);
+
+        Value health(kObjectType);
+        health.AddMember("temperature", data.temperature, allocator);
+        health.AddMember("power",       data.power, allocator);
+        health.AddMember("clock",       data.clock, allocator);
+        health.AddMember("mem_clock",   data.memClock, allocator);
+
+        Value fanSpeed(kArrayType);
+        for (auto speed : data.fanSpeed) {
+            fanSpeed.PushBack(speed, allocator);
+        }
+        health.AddMember("fan_speed", fanSpeed, allocator);
+
+        out.AddMember("health", health, allocator);
+    }
+#   endif
 }
 #endif

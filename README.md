@@ -84,11 +84,13 @@ OpenCL backend:
 CUDA backend:
       --cuda                    enable CUDA mining backend
       --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)
+      --no-nvml                 disable NVML (NVIDIA Management Library) support
 
 Logging:
   -S, --syslog                  use system log for output messages
   -l, --log-file=FILE           log all output to a file
       --print-time=N            print hashrate report every N seconds
+      --health-print-time=N     print health report every N seconds
       --no-color                disable colored output
 
 Misc:

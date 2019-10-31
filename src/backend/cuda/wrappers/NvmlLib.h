@@ -22,60 +22,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLBACKEND_H
-#define XMRIG_OCLBACKEND_H
+#ifndef XMRIG_NVMLLIB_H
+#define XMRIG_NVMLLIB_H
 
 
-#include <utility>
-
-
-#include "backend/common/interfaces/IBackend.h"
-#include "base/tools/Object.h"
+#include "backend/cuda/wrappers/CudaDevice.h"
+#include "backend/cuda/wrappers/NvmlHealth.h"
 
 
 namespace xmrig {
 
 
-class Controller;
-class OclBackendPrivate;
-class Miner;
-
-
-class OclBackend : public IBackend
+class NvmlLib
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclBackend)
+    static bool init(const char *fileName = nullptr);
+    static const char *lastError() noexcept;
+    static void close();
 
-    OclBackend(Controller *controller);
+    static bool assign(std::vector<CudaDevice> &devices);
+    static NvmlHealth health(nvmlDevice_t device);
 
-    ~OclBackend() override;
-
-protected:
-    inline void execCommand(char) override {}
-
-    bool isEnabled() const override;
-    bool isEnabled(const Algorithm &algorithm) const override;
-    const Hashrate *hashrate() const override;
-    const String &profileName() const override;
-    const String &type() const override;
-    void prepare(const Job &nextJob) override;
-    void printHashrate(bool details) override;
-    void setJob(const Job &job) override;
-    void start(IWorker *worker, bool ready) override;
-    void stop() override;
-    void tick(uint64_t ticks) override;
-
-#   ifdef XMRIG_FEATURE_API
-    rapidjson::Value toJSON(rapidjson::Document &doc) const override;
-    void handleRequest(IApiRequest &request) override;
-#   endif
+    static inline bool isInitialized() noexcept         { return m_initialized; }
+    static inline bool isReady() noexcept               { return m_ready; }
+    static inline const char *driverVersion() noexcept  { return m_driverVersion; }
+    static inline const char *version() noexcept        { return m_nvmlVersion; }
 
 private:
-    OclBackendPrivate *d_ptr;
+    static bool dlopen();
+    static bool load();
+
+    static bool m_initialized;
+    static bool m_ready;
+    static char m_driverVersion[80];
+    static char m_nvmlVersion[80];
+    static String m_loader;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_OCLBACKEND_H */
+#endif /* XMRIG_NVMLLIB_H */

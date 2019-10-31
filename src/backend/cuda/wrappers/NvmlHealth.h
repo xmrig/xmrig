@@ -22,60 +22,22 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLBACKEND_H
-#define XMRIG_OCLBACKEND_H
+#ifndef XMRIG_NVMLHEALTH_H
+#define XMRIG_NVMLHEALTH_H
 
 
-#include <utility>
+#include <cstdint>
+#include <vector>
 
 
-#include "backend/common/interfaces/IBackend.h"
-#include "base/tools/Object.h"
-
-
-namespace xmrig {
-
-
-class Controller;
-class OclBackendPrivate;
-class Miner;
-
-
-class OclBackend : public IBackend
+struct NvmlHealth
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclBackend)
-
-    OclBackend(Controller *controller);
-
-    ~OclBackend() override;
-
-protected:
-    inline void execCommand(char) override {}
-
-    bool isEnabled() const override;
-    bool isEnabled(const Algorithm &algorithm) const override;
-    const Hashrate *hashrate() const override;
-    const String &profileName() const override;
-    const String &type() const override;
-    void prepare(const Job &nextJob) override;
-    void printHashrate(bool details) override;
-    void setJob(const Job &job) override;
-    void start(IWorker *worker, bool ready) override;
-    void stop() override;
-    void tick(uint64_t ticks) override;
-
-#   ifdef XMRIG_FEATURE_API
-    rapidjson::Value toJSON(rapidjson::Document &doc) const override;
-    void handleRequest(IApiRequest &request) override;
-#   endif
-
-private:
-    OclBackendPrivate *d_ptr;
+    std::vector<uint32_t> fanSpeed;
+    uint32_t clock          = 0;
+    uint32_t memClock       = 0;
+    uint32_t power          = 0;
+    uint32_t temperature    = 0;
 };
 
 
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_OCLBACKEND_H */
+#endif /* XMRIG_NVMLHEALTH_H */

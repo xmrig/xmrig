@@ -113,6 +113,9 @@ static inline const std::string &usage()
     u += "      --cuda                    enable CUDA mining backend\n";
     u += "      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)\n";
 #   endif
+#   ifdef XMRIG_FEATURE_NVML
+    u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";
+#   endif
 
     u += "\nLogging:\n";
 
@@ -122,6 +125,9 @@ static inline const std::string &usage()
 
     u += "  -l, --log-file=FILE           log all output to a file\n";
     u += "      --print-time=N            print hashrate report every N seconds\n";
+#   ifdef XMRIG_FEATURE_NVML
+    u += "      --health-print-time=N     print health report every N seconds\n";
+#   endif
     u += "      --no-color                disable colored output\n";
 
     u += "\nMisc:\n";

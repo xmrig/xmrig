@@ -67,6 +67,10 @@ public:
     const RxConfig &rx() const;
 #   endif
 
+#   if defined(XMRIG_FEATURE_NVML)
+    uint32_t healthPrintTime() const;
+#   endif
+
     bool isShouldSave() const;
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
