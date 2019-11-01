@@ -18,13 +18,6 @@ XMRig High performance, open source, cross platform RandomX, CryptoNight and Arg
 
 <img src="doc/screenshot.png" width="808" >
 
-#### Table of contents
-* [Download](#download)
-* [Usage](#usage)
-* [Build](https://github.com/xmrig/xmrig/wiki/Build)
-* [Donations](#donations)
-* [Contacts](#contacts)
-
 ## Download
 * Binary releases: https://github.com/xmrig/xmrig/releases
 * Git tree: https://github.com/xmrig/xmrig.git
