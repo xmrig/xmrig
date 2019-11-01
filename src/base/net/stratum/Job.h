@@ -126,8 +126,8 @@ private:
     uint8_t m_index     = 0;
 
 #   ifdef XMRIG_PROXY_PROJECT
-    char m_rawBlob[kMaxBlobSize * 2 + 8];
-    char m_rawTarget[24];
+    char m_rawBlob[kMaxBlobSize * 2 + 8]{};
+    char m_rawTarget[24]{};
     String m_rawSeedHash;
 #   endif
 };
