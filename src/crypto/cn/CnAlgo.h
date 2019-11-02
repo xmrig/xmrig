@@ -49,7 +49,7 @@ public:
     constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R; }
     constexpr inline size_t memory() const       { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return CN_MEMORY; }
     constexpr inline uint32_t iterations() const { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return CN_ITER; }
-    constexpr inline uint32_t mask() const       { return ((memory() - 1) / 16) * 16; }
+    constexpr inline uint32_t mask() const       { return static_cast<uint32_t>(((memory() - 1) / 16) * 16); }
 
     inline static size_t memory(Algorithm::Id algo)
     {

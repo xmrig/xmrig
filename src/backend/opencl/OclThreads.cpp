@@ -46,7 +46,7 @@ xmrig::OclThreads::OclThreads(const rapidjson::Value &value)
 
 xmrig::OclThreads::OclThreads(const std::vector<OclDevice> &devices, const Algorithm &algorithm)
 {
-    for (const OclDevice &device : devices) {
+    for (const auto &device : devices) {
         device.generate(algorithm, *this);
     }
 }

@@ -153,7 +153,8 @@ public:
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), "OPENCL", platform.index(), platform.name().data(), platform.version().data());
 
         for (const OclDevice &device : devices) {
-            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") " %s " WHITE_BOLD("%uMHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%zu/%zu") " MB", "OPENCL GPU",
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu") YELLOW(" %s") " %s " WHITE_BOLD("%u MHz") " cu:" WHITE_BOLD("%u") " mem:" CYAN("%zu/%zu") " MB",
+                       "OPENCL GPU",
                        device.index(),
                        device.topology().toString().data(),
                        device.printableName().data(),
@@ -167,10 +168,11 @@ public:
 
     inline void start(const Job &job)
     {
-        LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
+        LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" thread%s)") " scratchpad " CYAN_BOLD("%zu KB"),
                  tag,
                  profileName.data(),
                  threads.size(),
+                 threads.size() > 1 ? "s" : "",
                  algo.l3() / 1024
                  );
 
@@ -284,7 +286,7 @@ void xmrig::OclBackend::printHashrate(bool details)
     Log::print(WHITE_BOLD_S "| OPENCL # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
 
     size_t i = 0;
-    for (const OclLaunchData &data : d_ptr->threads) {
+    for (const auto &data : d_ptr->threads) {
          Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
                     i,
                     data.affinity,
@@ -309,7 +311,7 @@ void xmrig::OclBackend::printHashrate(bool details)
 
 void xmrig::OclBackend::setJob(const Job &job)
 {
-    const OclConfig &cl = d_ptr->controller->config()->cl();
+    const auto &cl = d_ptr->controller->config()->cl();
     if (cl.isEnabled()) {
         d_ptr->init(cl);
     }
@@ -318,7 +320,7 @@ void xmrig::OclBackend::setJob(const Job &job)
         return stop();
     }
 
-    std::vector<OclLaunchData> threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->platform, d_ptr->devices, tag);
+    auto threads = cl.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->platform, d_ptr->devices);
     if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }
@@ -408,7 +410,7 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
     Value threads(kArrayType);
 
     size_t i = 0;
-    for (const OclLaunchData &data : d_ptr->threads) {
+    for (const auto &data : d_ptr->threads) {
         Value thread = data.thread.toJSON(doc);
         thread.AddMember("affinity", data.affinity, allocator);
         thread.AddMember("hashrate", hashrate()->toJSON(i, doc), allocator);

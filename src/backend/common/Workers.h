@@ -37,6 +37,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_CUDA
+#   include "backend/cuda/CudaLaunchData.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -77,6 +82,13 @@ extern template class Workers<CpuLaunchData>;
 template<>
 IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
 extern template class Workers<OclLaunchData>;
+#endif
+
+
+#ifdef XMRIG_FEATURE_CUDA
+template<>
+IWorker *Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle);
+extern template class Workers<CudaLaunchData>;
 #endif
 
 

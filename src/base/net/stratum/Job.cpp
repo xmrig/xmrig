@@ -157,6 +157,7 @@ void xmrig::Job::copy(const Job &other)
     m_size       = other.m_size;
     m_clientId   = other.m_clientId;
     m_id         = other.m_id;
+    m_backend    = other.m_backend;
     m_diff       = other.m_diff;
     m_height     = other.m_height;
     m_target     = other.m_target;
@@ -169,6 +170,37 @@ void xmrig::Job::copy(const Job &other)
 
 #   ifdef XMRIG_PROXY_PROJECT
     m_rawSeedHash = other.m_rawSeedHash;
+
+    memcpy(m_rawBlob, other.m_rawBlob, sizeof(m_rawBlob));
+    memcpy(m_rawTarget, other.m_rawTarget, sizeof(m_rawTarget));
+#   endif
+}
+
+
+void xmrig::Job::move(Job &&other)
+{
+    m_algorithm  = other.m_algorithm;
+    m_nicehash   = other.m_nicehash;
+    m_size       = other.m_size;
+    m_clientId   = std::move(other.m_clientId);
+    m_id         = std::move(other.m_id);
+    m_backend    = other.m_backend;
+    m_diff       = other.m_diff;
+    m_height     = other.m_height;
+    m_target     = other.m_target;
+    m_index      = other.m_index;
+    m_seed       = std::move(other.m_seed);
+    m_extraNonce = std::move(other.m_extraNonce);
+    m_poolWallet = std::move(other.m_poolWallet);
+
+    memcpy(m_blob, other.m_blob, sizeof(m_blob));
+
+    other.m_size        = 0;
+    other.m_diff        = 0;
+    other.m_algorithm   = Algorithm::INVALID;
+
+#   ifdef XMRIG_PROXY_PROJECT
+    m_rawSeedHash = std::move(other.m_rawSeedHash);
 
     memcpy(m_rawBlob, other.m_rawBlob, sizeof(m_rawBlob));
     memcpy(m_rawTarget, other.m_rawTarget, sizeof(m_rawTarget));

@@ -134,6 +134,10 @@ public:
         CudaLaunchKey        = 1204,
         CudaAffinityKey      = 1205,
         CudaMaxUsageKey      = 1206,
+        CudaKey              = 1207,
+        CudaLoaderKey        = 1208,
+        NvmlKey              = 1209,
+        HealthPrintTimeKey   = 1210,
     };
 
     virtual ~IConfig() = default;

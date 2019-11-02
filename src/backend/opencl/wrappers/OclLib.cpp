@@ -77,6 +77,7 @@ static const char *kRetainMemObject                  = "clRetainMemObject";
 static const char *kRetainProgram                    = "clRetainProgram";
 static const char *kSetKernelArg                     = "clSetKernelArg";
 static const char *kSetMemObjectDestructorCallback   = "clSetMemObjectDestructorCallback";
+static const char *kSymbolNotFound                   = "symbol not found";
 static const char *kUnloadPlatformCompiler           = "clUnloadPlatformCompiler";
 
 
@@ -156,7 +157,7 @@ static setKernelArg_t pSetKernelArg                                         = nu
 static setMemObjectDestructorCallback_t pSetMemObjectDestructorCallback     = nullptr;
 static unloadPlatformCompiler_t pUnloadPlatformCompiler                     = nullptr;
 
-#define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { return false; }
+#define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { throw std::runtime_error(kSymbolNotFound); }
 
 
 namespace xmrig {
@@ -210,39 +211,43 @@ void xmrig::OclLib::close()
 
 bool xmrig::OclLib::load()
 {
-    DLSYM(CreateCommandQueue);
-    DLSYM(CreateContext);
-    DLSYM(BuildProgram);
-    DLSYM(EnqueueNDRangeKernel);
-    DLSYM(EnqueueReadBuffer);
-    DLSYM(EnqueueWriteBuffer);
-    DLSYM(Finish);
-    DLSYM(GetDeviceIDs);
-    DLSYM(GetDeviceInfo);
-    DLSYM(GetPlatformInfo);
-    DLSYM(GetPlatformIDs);
-    DLSYM(GetProgramBuildInfo);
-    DLSYM(GetProgramInfo);
-    DLSYM(SetKernelArg);
-    DLSYM(CreateKernel);
-    DLSYM(CreateBuffer);
-    DLSYM(CreateProgramWithBinary);
-    DLSYM(CreateProgramWithSource);
-    DLSYM(ReleaseMemObject);
-    DLSYM(ReleaseProgram);
-    DLSYM(ReleaseKernel);
-    DLSYM(ReleaseCommandQueue);
-    DLSYM(ReleaseContext);
-    DLSYM(GetKernelInfo);
-    DLSYM(GetCommandQueueInfo);
-    DLSYM(GetMemObjectInfo);
-    DLSYM(GetContextInfo);
-    DLSYM(ReleaseDevice);
-    DLSYM(UnloadPlatformCompiler);
-    DLSYM(SetMemObjectDestructorCallback);
-    DLSYM(CreateSubBuffer);
-    DLSYM(RetainProgram);
-    DLSYM(RetainMemObject);
+    try {
+        DLSYM(CreateCommandQueue);
+        DLSYM(CreateContext);
+        DLSYM(BuildProgram);
+        DLSYM(EnqueueNDRangeKernel);
+        DLSYM(EnqueueReadBuffer);
+        DLSYM(EnqueueWriteBuffer);
+        DLSYM(Finish);
+        DLSYM(GetDeviceIDs);
+        DLSYM(GetDeviceInfo);
+        DLSYM(GetPlatformInfo);
+        DLSYM(GetPlatformIDs);
+        DLSYM(GetProgramBuildInfo);
+        DLSYM(GetProgramInfo);
+        DLSYM(SetKernelArg);
+        DLSYM(CreateKernel);
+        DLSYM(CreateBuffer);
+        DLSYM(CreateProgramWithBinary);
+        DLSYM(CreateProgramWithSource);
+        DLSYM(ReleaseMemObject);
+        DLSYM(ReleaseProgram);
+        DLSYM(ReleaseKernel);
+        DLSYM(ReleaseCommandQueue);
+        DLSYM(ReleaseContext);
+        DLSYM(GetKernelInfo);
+        DLSYM(GetCommandQueueInfo);
+        DLSYM(GetMemObjectInfo);
+        DLSYM(GetContextInfo);
+        DLSYM(ReleaseDevice);
+        DLSYM(UnloadPlatformCompiler);
+        DLSYM(SetMemObjectDestructorCallback);
+        DLSYM(CreateSubBuffer);
+        DLSYM(RetainProgram);
+        DLSYM(RetainMemObject);
+    } catch (std::exception &ex) {
+        return false;
+    }
 
 #   if defined(CL_VERSION_2_0)
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));

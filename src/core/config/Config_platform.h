@@ -104,6 +104,14 @@ static const option options[] = {
     { "opencl-loader",         1, nullptr, IConfig::OclLoaderKey          },
     { "opencl-no-cache",       0, nullptr, IConfig::OclCacheKey           },
 #   endif
+#   ifdef XMRIG_FEATURE_CUDA
+    { "cuda",                  0, nullptr, IConfig::CudaKey               },
+    { "cuda-loader",           1, nullptr, IConfig::CudaLoaderKey         },
+#   endif
+#   ifdef XMRIG_FEATURE_NVML
+    { "no-nvml",               0, nullptr, IConfig::NvmlKey               },
+    { "health-print-time",     1, nullptr, IConfig::HealthPrintTimeKey    },
+#   endif
     { nullptr,                 0, nullptr, 0 }
 };
 

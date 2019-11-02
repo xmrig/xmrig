@@ -98,29 +98,12 @@ int xmrig::App::exec()
 
 void xmrig::App::onConsoleCommand(char command)
 {
-    switch (command) {
-    case 'h':
-    case 'H':
-        m_controller->miner()->printHashrate(true);
-        break;
-
-    case 'p':
-    case 'P':
-        m_controller->miner()->setEnabled(false);
-        break;
-
-    case 'r':
-    case 'R':
-        m_controller->miner()->setEnabled(true);
-        break;
-
-    case 3:
+    if (command == 3) {
         LOG_WARN("Ctrl+C received, exiting");
         close();
-        break;
-
-    default:
-        break;
+    }
+    else {
+        m_controller->miner()->execCommand(command);
     }
 }
 

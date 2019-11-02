@@ -53,6 +53,7 @@ public:
     virtual const Hashrate *hashrate() const                            = 0;
     virtual const String &profileName() const                           = 0;
     virtual const String &type() const                                  = 0;
+    virtual void execCommand(char command)                              = 0;
     virtual void prepare(const Job &nextJob)                            = 0;
     virtual void printHashrate(bool details)                            = 0;
     virtual void setJob(const Job &job)                                 = 0;

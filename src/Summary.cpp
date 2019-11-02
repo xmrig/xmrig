@@ -126,9 +126,9 @@ static void print_threads(Config *config)
 static void print_commands(Config *)
 {
     if (Log::colors) {
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
-                                                                     MAGENTA_BOLD("p") WHITE_BOLD("ause, ")
-                                                                     MAGENTA_BOLD("r") WHITE_BOLD("esume"));
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BG(WHITE_BOLD_S "h") WHITE_BOLD("ashrate, ")
+                                                                     MAGENTA_BG(WHITE_BOLD_S "p") WHITE_BOLD("ause, ")
+                                                                     MAGENTA_BG(WHITE_BOLD_S "r") WHITE_BOLD("esume"));
     }
     else {
         Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
