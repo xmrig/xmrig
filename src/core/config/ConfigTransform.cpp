@@ -47,6 +47,10 @@ static const char *kRandomX     = "randomx";
 static const char *kOcl         = "opencl";
 #endif
 
+#ifdef XMRIG_FEATURE_CUDA
+static const char *kCuda        = "cuda";
+#endif
+
 
 static inline uint64_t intensity(uint64_t av)
 {
@@ -179,6 +183,22 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
         }
 
         return set(doc, kOcl, "platform", arg);
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    case IConfig::CudaKey: /* --cuda */
+        return set(doc, kCuda, "enabled", true);
+
+    case IConfig::CudaLoaderKey: /* --cuda-loader */
+        return set(doc, kCuda, "loader", arg);
+#   endif
+
+#   ifdef XMRIG_FEATURE_NVML
+    case IConfig::NvmlKey: /* --no-nvml */
+        return set(doc, kCuda, "nvml", false);
+
+    case IConfig::HealthPrintTimeKey: /* --health-print-time */
+        return set(doc, "health-print-time", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 #   endif
 
     default:

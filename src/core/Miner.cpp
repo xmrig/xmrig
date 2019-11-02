@@ -56,6 +56,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_CUDA
+#   include "backend/cuda/CudaBackend.h"
+#endif
+
+
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "crypto/rx/RxConfig.h"
 #endif
@@ -270,10 +275,15 @@ xmrig::Miner::Miner(Controller *controller)
 
     d_ptr->timer = new Timer(this);
 
+    d_ptr->backends.reserve(3);
     d_ptr->backends.push_back(new CpuBackend(controller));
 
 #   ifdef XMRIG_FEATURE_OPENCL
     d_ptr->backends.push_back(new OclBackend(controller));
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    d_ptr->backends.push_back(new CudaBackend(controller));
 #   endif
 
     d_ptr->rebuild();
@@ -315,6 +325,34 @@ xmrig::Job xmrig::Miner::job() const
     std::lock_guard<std::mutex> lock(mutex);
 
     return d_ptr->job;
+}
+
+
+void xmrig::Miner::execCommand(char command)
+{
+    switch (command) {
+    case 'h':
+    case 'H':
+        printHashrate(true);
+        break;
+
+    case 'p':
+    case 'P':
+        setEnabled(false);
+        break;
+
+    case 'r':
+    case 'R':
+        setEnabled(true);
+        break;
+
+    default:
+        break;
+    }
+
+    for (auto backend : d_ptr->backends) {
+        backend->execCommand(command);
+    }
 }
 
 
@@ -383,7 +421,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (d_ptr->algorithm.family() == Algorithm::RANDOM_X && job.algorithm().family() == Algorithm::RANDOM_X && !Rx::isReady(job)) {
+    if (job.algorithm().family() == Algorithm::RANDOM_X && !Rx::isReady(job)) {
         stop();
     }
 #   endif
@@ -456,7 +494,8 @@ void xmrig::Miner::onTimer(const Timer *)
 
     d_ptr->maxHashrate[d_ptr->algorithm] = std::max(d_ptr->maxHashrate[d_ptr->algorithm], maxHashrate);
 
-    if ((d_ptr->ticks % (d_ptr->controller->config()->printTime() * 2)) == 0) {
+    auto seconds = d_ptr->controller->config()->printTime();
+    if (seconds && (d_ptr->ticks % (seconds * 2)) == 0) {
         printHashrate(false);
     }
 

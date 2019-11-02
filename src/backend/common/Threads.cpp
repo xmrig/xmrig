@@ -34,6 +34,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_CUDA
+#   include "backend/cuda/CudaThreads.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -167,6 +172,10 @@ template class Threads<CpuThreads>;
 
 #ifdef XMRIG_FEATURE_OPENCL
 template class Threads<OclThreads>;
+#endif
+
+#ifdef XMRIG_FEATURE_CUDA
+template class Threads<CudaThreads>;
 #endif
 
 } // namespace xmrig

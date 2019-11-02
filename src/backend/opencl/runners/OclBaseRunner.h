@@ -70,21 +70,21 @@ protected:
     void enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr);
     void finalize(uint32_t *hashOutput);
 
-    Algorithm m_algorithm;
     cl_command_queue m_queue    = nullptr;
     cl_context m_ctx;
     cl_mem m_buffer             = nullptr;
     cl_mem m_input              = nullptr;
     cl_mem m_output             = nullptr;
     cl_program m_program        = nullptr;
+    const Algorithm m_algorithm;
     const char *m_source;
     const OclLaunchData &m_data;
     const size_t m_align;
     const size_t m_threadId;
+    const uint32_t m_intensity;
     size_t m_offset             = 0;
     std::string m_deviceKey;
     std::string m_options;
-    uint32_t m_intensity;
 };
 
 

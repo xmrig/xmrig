@@ -9,16 +9,14 @@
 [![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/network)
 
-XMRig High performance, open source, cross platform RandomX, CryptoNight and Argon2 CPU/GPU miner, with official support for Windows
+XMRig High performance, open source, cross platform RandomX, CryptoNight and Argon2 CPU/GPU miner, with official support for Windows.
+
+## Mining backends
+- **CPU** (x64/x86/ARM)
+- **OpenCL** for AMD GPUs.
+- **CUDA** for NVIDIA GPUs via external [CUDA plugin](https://github.com/xmrig/xmrig-cuda).
 
 <img src="doc/screenshot.png" width="808" >
-
-#### Table of contents
-* [Download](#download)
-* [Usage](#usage)
-* [Build](https://github.com/xmrig/xmrig/wiki/Build)
-* [Donations](#donations)
-* [Contacts](#contacts)
 
 ## Download
 * Binary releases: https://github.com/xmrig/xmrig/releases
@@ -29,6 +27,7 @@ XMRig High performance, open source, cross platform RandomX, CryptoNight and Arg
 The preferred way to configure the miner is the [JSON config file](src/config.json) as it is more flexible and human friendly. The command line interface does not cover all features, such as mining profiles for different algorithms. Important options can be changed during runtime without miner restart by editing the config file or executing API calls.
 
 * **[xmrig.com/wizard](https://xmrig.com/wizard)** helps you create initial configuration for the miner.
+* **[workers.xmrig.info](http://workers.xmrig.info)** helps manage your miners via HTTP API.
 
 ### Command line options
 ```
@@ -77,13 +76,20 @@ OpenCL backend:
       --opencl                  enable OpenCL mining backend
       --opencl-devices=N        list of OpenCL devices to use
       --opencl-platform=N       OpenCL platform index or name
-      --opencl-loader=N         path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)
+      --opencl-loader=PATH      path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)
       --opencl-no-cache         disable OpenCL cache
       --print-platforms         print available OpenCL platforms and exit
 
+CUDA backend:
+      --cuda                    enable CUDA mining backend
+      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)
+      --no-nvml                 disable NVML (NVIDIA Management Library) support
+
 Logging:
+  -S, --syslog                  use system log for output messages
   -l, --log-file=FILE           log all output to a file
       --print-time=N            print hashrate report every N seconds
+      --health-print-time=N     print health report every N seconds
       --no-color                disable colored output
 
 Misc:

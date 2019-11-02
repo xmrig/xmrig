@@ -103,9 +103,18 @@ static inline const std::string &usage()
     u += "      --opencl                  enable OpenCL mining backend\n";
     u += "      --opencl-devices=N        list of OpenCL devices to use\n";
     u += "      --opencl-platform=N       OpenCL platform index or name\n";
-    u += "      --opencl-loader=N         path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)\n";
+    u += "      --opencl-loader=PATH      path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)\n";
     u += "      --opencl-no-cache         disable OpenCL cache\n";
     u += "      --print-platforms         print available OpenCL platforms and exit\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    u += "\nCUDA backend:\n";
+    u += "      --cuda                    enable CUDA mining backend\n";
+    u += "      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)\n";
+#   endif
+#   ifdef XMRIG_FEATURE_NVML
+    u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";
 #   endif
 
     u += "\nLogging:\n";
@@ -116,6 +125,9 @@ static inline const std::string &usage()
 
     u += "  -l, --log-file=FILE           log all output to a file\n";
     u += "      --print-time=N            print hashrate report every N seconds\n";
+#   ifdef XMRIG_FEATURE_NVML
+    u += "      --health-print-time=N     print health report every N seconds\n";
+#   endif
     u += "      --no-color                disable colored output\n";
 
     u += "\nMisc:\n";

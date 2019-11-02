@@ -30,6 +30,7 @@
 #include "backend/common/Worker.h"
 #include "backend/common/WorkerJob.h"
 #include "backend/opencl/OclLaunchData.h"
+#include "base/tools/Object.h"
 #include "net/JobResult.h"
 
 
@@ -42,15 +43,11 @@ class IOclRunner;
 class OclWorker : public Worker
 {
 public:
-    OclWorker()                       = delete;
-    OclWorker(const OclWorker &other) = delete;
-    OclWorker(OclWorker &&other)      = delete;
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+
     OclWorker(size_t id, const OclLaunchData &data);
 
     ~OclWorker() override;
-
-    OclWorker &operator=(const OclWorker &other) = delete;
-    OclWorker &operator=(OclWorker &&other)      = delete;
 
     static std::atomic<bool> ready;
 

@@ -146,10 +146,11 @@ public:
 
     inline void start()
     {
-        LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" threads)") " scratchpad " CYAN_BOLD("%zu KB"),
+        LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" thread%s)") " scratchpad " CYAN_BOLD("%zu KB"),
                  tag,
                  profileName.data(),
                  threads.size(),
+                 threads.size() > 1 ? "s" : "",
                  algo.l3() / 1024
                  );
 
@@ -208,6 +209,24 @@ public:
 
 
 } // namespace xmrig
+
+
+const char *xmrig::backend_tag(uint32_t backend)
+{
+#   ifdef XMRIG_FEATURE_OPENCL
+    if (backend == Nonce::OPENCL) {
+        return ocl_tag();
+    }
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    if (backend == Nonce::CUDA) {
+        return cuda_tag();
+    }
+#   endif
+
+    return tag;
+}
 
 
 const char *xmrig::cpu_tag()

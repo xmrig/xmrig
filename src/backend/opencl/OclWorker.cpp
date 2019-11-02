@@ -206,7 +206,7 @@ bool xmrig::OclWorker::consumeJob()
         return false;
     }
 
-    m_job.add(m_miner->job(), Nonce::sequence(Nonce::OPENCL), roundSize(m_intensity) * m_intensity);
+    m_job.add(m_miner->job(), roundSize(m_intensity) * m_intensity, Nonce::OPENCL);
 
     try {
         m_runner->set(m_job.currentJob(), m_job.blob());

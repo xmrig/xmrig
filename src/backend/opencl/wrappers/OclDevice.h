@@ -26,14 +26,13 @@
 #define XMRIG_OCLDEVICE_H
 
 
-#include <vector>
-
-
 #include "backend/common/misc/PciTopology.h"
 #include "backend/opencl/wrappers/OclVendor.h"
 #include "base/tools/String.h"
 
 #include <algorithm>
+#include <vector>
+
 
 using cl_device_id      = struct _cl_device_id *;
 using cl_platform_id    = struct _cl_platform_id *;

@@ -15,6 +15,8 @@ option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 option(WITH_OPENCL          "Enable OpenCL backend" ON)
+option(WITH_CUDA            "Enable CUDA backend" ON)
+option(WITH_NVML            "Enable NVML (NVIDIA Management Library) support (only if CUDA backend enabled)" ON)
 option(WITH_STRICT_CACHE    "Enable strict checks for OpenCL cache" ON)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 
