@@ -23,6 +23,8 @@
  */
 
 
+#include <type_traits>
+
 #include "backend/common/Threads.h"
 #include "backend/cpu/CpuThreads.h"
 #include "crypto/cn/CnAlgo.h"
@@ -136,7 +138,7 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         }
     }
 
-    if (name == "defyx" && has("rx")) return "rx";
+    if (std::is_same<T, CpuThreads>::value && name == "defyx" && has("rx")) return "rx";
 
     if (has(kAsterisk)) {
         return kAsterisk;

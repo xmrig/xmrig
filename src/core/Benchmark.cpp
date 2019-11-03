@@ -48,6 +48,7 @@ void Benchmark::start() {
     LOG_ALERT(">>>>> STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)", m_controller->config()->benchAlgoTime());
     // start benchmarking from first PerfAlgo in the list
     start(xmrig::Benchmark::MIN);
+    m_isNewBenchRun = true;
 }
 
 // end of benchmarks, switch to jobs from the pool (network), fill algo_perf
@@ -134,6 +135,13 @@ float Benchmark::get_algo_perf(Algorithm::Id algo) const {
 
 // start performance measurements for specified perf bench_algo
 void Benchmark::start(const BenchAlgo bench_algo) {
+    // calculate number of active miner backends in m_enabled_backend_count
+    m_enabled_backend_count = 0;
+    for (backend : m_controller->miner()->backends) if (backend.isEnabled(Algorithm(ba2a[bench_algo]))) ++ m_enabled_backend_count;
+    if (m_enabled_backend_count == 0) {
+        run_next_bench_algo(m_bench_algo);
+        return;
+    }
     // prepare test job for benchmark runs ("benchmark" client id is to make sure we can detect benchmark jobs)
     Job& job = *m_bench_job[bench_algo];
     job.setId(Algorithm(ba2a[bench_algo]).shortName()); // need to set different id so that workers will see job change
@@ -141,10 +149,22 @@ void Benchmark::start(const BenchAlgo bench_algo) {
     job.setBlob("9905A0DBD6BF05CF16E503F3A66F78007CBF34144332ECBFC22ED95C8700383B309ACE1923A0964B00000008BA939A62724C0D7581FCE5761E9D8A0E6A1C3F924FDD8493D1115649C05EB601");
     job.setTarget("FFFFFFFFFFFFFF20"); // set difficulty to 8 cause onJobResult after every 8-th computed hash
     job.setSeedHash("0000000000000000000000000000000000000000000000000000000000000001");
-    m_bench_algo = bench_algo;    // current perf bench_algo
-    m_hash_count = 0; // number of hashes calculated for current perf bench_algo
-    m_time_start = 0; // init time of measurements start (in ms) during the first onJobResult
+    m_bench_algo  = bench_algo; // current perf bench_algo
+    m_hash_count  = 0;          // number of hashes calculated for current perf bench_algo
+    m_time_start  = 0;          // init time of the first result (in ms) during the first onJobResult
+    m_bench_start = 0;          // init time of measurements start (in ms) during the first onJobResult
+    m_backends_started.clear();
     m_controller->miner()->setJob(job, false); // set job for workers to compute
+}
+
+// run next bench algo or finish benchmark for the last one
+void Benchmark::run_next_bench_algo(const BenchAlgo bench_algo) {
+    const BenchAlgo next_bench_algo = static_cast<BenchAlgo>(bench_algo + 1); // compute next perf bench_algo to benchmark
+    if (next_bench_algo != BenchAlgo::MAX) {
+        start(next_bench_algo);
+    } else {
+        finish();
+    }
 }
 
 void Benchmark::onJobResult(const JobResult& result) {
@@ -155,19 +175,20 @@ void Benchmark::onJobResult(const JobResult& result) {
     }
     // ignore benchmark results for other perf bench_algo
     if (m_bench_algo == BenchAlgo::INVALID || result.jobId != String(Algorithm(ba2a[m_bench_algo]).shortName())) return;
-    ++ m_hash_count;
     const uint64_t now = get_now();
-    if (!m_time_start) m_time_start = now; // time of measurements start (in ms)
-    else if (now - m_time_start > static_cast<unsigned>(m_controller->config()->benchAlgoTime()*1000)) { // end of benchmark round for m_bench_algo
-        const float hashrate = static_cast<float>(m_hash_count) * result.diff / (now - m_time_start) * 1000.0f;
+    if (!m_time_start) m_time_start = now; // time of the first result (in ms)
+    m_backends_started.insert(result.backend);
+    // waiting for all backends to start
+    if (m_backends_started.size() < m_enabled_backend_count && (now - m_time_start < static_cast<unsigned>(3*60*1000))) return;
+    ++ m_hash_count;
+    if (!m_bench_start) {
+       LOG_ALERT(" ===> Starting benchmark of %s algo", Algorithm(ba2a[m_bench_algo]).shortName());
+       m_bench_start = now; // time of measurements start (in ms)
+    } else if (now - m_bench_start > static_cast<unsigned>(m_controller->config()->benchAlgoTime()*1000)) { // end of benchmark round for m_bench_algo
+        const float hashrate = static_cast<float>(m_hash_count) * result.diff / (now - m_bench_start) * 1000.0f;
         m_bench_algo_perf[m_bench_algo] = hashrate; // store hashrate result
         LOG_ALERT(" ===> %s hasrate: %f", Algorithm(ba2a[m_bench_algo]).shortName(), hashrate);
-        const BenchAlgo next_bench_algo = static_cast<BenchAlgo>(m_bench_algo + 1); // compute next perf bench_algo to benchmark
-        if (next_bench_algo != BenchAlgo::MAX) {
-            start(next_bench_algo);
-        } else {
-            finish();
-        }
+        run_next_bench_algo(m_bench_algo);
     }
 }
 
