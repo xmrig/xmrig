@@ -137,14 +137,15 @@ float Benchmark::get_algo_perf(Algorithm::Id algo) const {
 void Benchmark::start(const BenchAlgo bench_algo) {
     // calculate number of active miner backends in m_enabled_backend_count
     m_enabled_backend_count = 0;
-    for (auto backend : m_controller->miner()->backends) if (backend.isEnabled(Algorithm(ba2a[bench_algo]))) ++ m_enabled_backend_count;
+    const Algorithm algo(ba2a[bench_algo]);
+    for (IBackend *backend : m_controller->miner()->backends) if (backend->isEnabled(algo)) ++ m_enabled_backend_count;
     if (m_enabled_backend_count == 0) {
         run_next_bench_algo(m_bench_algo);
         return;
     }
     // prepare test job for benchmark runs ("benchmark" client id is to make sure we can detect benchmark jobs)
     Job& job = *m_bench_job[bench_algo];
-    job.setId(Algorithm(ba2a[bench_algo]).shortName()); // need to set different id so that workers will see job change
+    job.setId(algo.shortName()); // need to set different id so that workers will see job change
     // 99 here to trigger all future bench_algo versions for auto veriant detection based on block version
     job.setBlob("9905A0DBD6BF05CF16E503F3A66F78007CBF34144332ECBFC22ED95C8700383B309ACE1923A0964B00000008BA939A62724C0D7581FCE5761E9D8A0E6A1C3F924FDD8493D1115649C05EB601");
     job.setTarget("FFFFFFFFFFFFFF20"); // set difficulty to 8 cause onJobResult after every 8-th computed hash
