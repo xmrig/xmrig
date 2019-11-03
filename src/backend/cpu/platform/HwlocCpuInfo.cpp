@@ -290,7 +290,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     }
 #   endif
 
-    if (CnAlgo<>::base(algorithm) == Algorithm::CN_0 || CnAlgo<>::base(algorithm) == Algorithm::CN_1) {
+    if (algorithm == Algorithm::CN_CONCEAL)
         intensity = std::min<uint32_t >(static_cast<const uint32_t &>(cacheHashes / PUs), algorithm.maxIntensity());
     }
 

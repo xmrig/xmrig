@@ -224,19 +224,6 @@
                 buttons: [
                     'colvis',
                     {
-                        text: '<i class="fa fa-download"> Pull miner config</i>',
-                        className: 'btn-info',
-                        enabled: false,
-                        action: function () {
-                            table.rows({selected: true}).eq(0).each(function (index) {
-                                var row = table.row(index);
-                                var data = row.data();
-
-                                sendAction("PUBLISH_CONFIG", data.client_status.client_id);
-                            });
-                        }
-                    },
-                    {
                         text: '<i class="fa fa-upload"> Push miner config</i>',
                         className: 'btn-primary',
                         enabled: false,
@@ -246,6 +233,19 @@
                                 var data = row.data();
 
                                 sendAction("UPDATE_CONFIG", data.client_status.client_id);
+                            });
+                        }
+                    },
+                    {
+                        text: '<i class="fa fa-download"> Pull miner config</i>',
+                        className: 'btn-info',
+                        enabled: false,
+                        action: function () {
+                            table.rows({selected: true}).eq(0).each(function (index) {
+                                var row = table.row(index);
+                                var data = row.data();
+
+                                sendAction("PUBLISH_CONFIG", data.client_status.client_id);
                             });
                         }
                     },
