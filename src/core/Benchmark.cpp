@@ -139,7 +139,7 @@ void Benchmark::start(const BenchAlgo bench_algo) {
     // calculate number of active miner backends in m_enabled_backend_count
     m_enabled_backend_count = 0;
     const Algorithm algo(ba2a[bench_algo]);
-    for (auto backend : m_controller->miner()->backends()) if (backend->isEnabled(algo)) ++ m_enabled_backend_count;
+    for (auto backend : m_controller->miner()->backends()) if (backend->isEnabled() && backend->isEnabled(algo)) ++ m_enabled_backend_count;
     if (m_enabled_backend_count == 0) {
         run_next_bench_algo(m_bench_algo);
         return;
