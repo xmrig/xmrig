@@ -150,7 +150,7 @@ void Benchmark::start(const BenchAlgo bench_algo) {
     // 99 here to trigger all future bench_algo versions for auto veriant detection based on block version
     job.setBlob("9905A0DBD6BF05CF16E503F3A66F78007CBF34144332ECBFC22ED95C8700383B309ACE1923A0964B00000008BA939A62724C0D7581FCE5761E9D8A0E6A1C3F924FDD8493D1115649C05EB601");
     job.setTarget("FFFFFFFFFFFFFF20"); // set difficulty to 8 cause onJobResult after every 8-th computed hash
-    job.setTarget(1000);
+    job.setHeight(1000);
     job.setSeedHash("0000000000000000000000000000000000000000000000000000000000000001");
     m_bench_algo  = bench_algo; // current perf bench_algo
     m_hash_count  = 0;          // number of hashes calculated for current perf bench_algo
