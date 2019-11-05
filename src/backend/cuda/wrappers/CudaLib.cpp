@@ -273,7 +273,7 @@ bool xmrig::CudaLib::load()
         return false;
     }
 
-    if (pVersion(ApiVersion) != 1u) {
+    if (pVersion(ApiVersion) != 2u) {
         return false;
     }
 
