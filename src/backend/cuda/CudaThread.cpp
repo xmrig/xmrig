@@ -40,6 +40,7 @@ static const char *kBlocks      = "blocks";
 static const char *kBSleep      = "bsleep";
 static const char *kIndex       = "index";
 static const char *kThreads     = "threads";
+static const char *kDatasetHost = "dataset_host";
 
 } // namespace xmrig
 
@@ -56,6 +57,13 @@ xmrig::CudaThread::CudaThread(const rapidjson::Value &value)
     m_bfactor   = std::min(Json::getUint(value, kBFactor, m_bfactor), 12u);
     m_bsleep    = Json::getUint(value, kBSleep, m_bsleep);
     m_affinity  = Json::getUint64(value, kAffinity, m_affinity);
+
+    if (Json::getValue(value, kDatasetHost).IsInt()) {
+        m_dataset_host = Json::getInt(value, kDatasetHost) != 0;
+    }
+    else {
+        m_dataset_host = Json::getBool(value, kDatasetHost);
+    }
 }
 
 
@@ -64,7 +72,8 @@ xmrig::CudaThread::CudaThread(uint32_t index, nvid_ctx *ctx) :
     m_threads(CudaLib::deviceInt(ctx, CudaLib::DeviceThreads)),
     m_index(index),
     m_bfactor(CudaLib::deviceUint(ctx, CudaLib::DeviceBFactor)),
-    m_bsleep(CudaLib::deviceUint(ctx, CudaLib::DeviceBSleep))
+    m_bsleep(CudaLib::deviceUint(ctx, CudaLib::DeviceBSleep)),
+    m_dataset_host(CudaLib::deviceInt(ctx, CudaLib::DeviceDatasetHost) != 0)
 {
 
 }
@@ -77,7 +86,8 @@ bool xmrig::CudaThread::isEqual(const CudaThread &other) const
            m_affinity   == other.m_affinity &&
            m_index      == other.m_index &&
            m_bfactor    == other.m_bfactor &&
-           m_bsleep     == other.m_bsleep;
+           m_bsleep     == other.m_bsleep &&
+           m_dataset_host == other.m_dataset_host;
 }
 
 
@@ -94,6 +104,7 @@ rapidjson::Value xmrig::CudaThread::toJSON(rapidjson::Document &doc) const
     out.AddMember(StringRef(kBFactor),      bfactor(), allocator);
     out.AddMember(StringRef(kBSleep),       bsleep(), allocator);
     out.AddMember(StringRef(kAffinity),     affinity(), allocator);
+    out.AddMember(StringRef(kDatasetHost),  dataset_host(), allocator);
 
     return out;
 }

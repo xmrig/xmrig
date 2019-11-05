@@ -50,6 +50,7 @@ public:
     inline int32_t threads() const                           { return m_threads; }
     inline int64_t affinity() const                          { return m_affinity; }
     inline uint32_t index() const                            { return m_index; }
+    inline uint32_t dataset_host() const                     { return m_dataset_host; }
 
     inline bool operator!=(const CudaThread &other) const    { return !isEqual(other); }
     inline bool operator==(const CudaThread &other) const    { return isEqual(other); }
@@ -62,6 +63,7 @@ private:
     int32_t m_threads   = 0;
     int64_t m_affinity  = -1;
     uint32_t m_index    = 0;
+    bool m_dataset_host = false;
 
 #   ifdef _WIN32
     uint32_t m_bfactor      = 6;
