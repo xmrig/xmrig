@@ -1,3 +1,9 @@
+# 2.2.0
+* Integrated RandomxARQ algo (rx/arq)
+* Dashboard:
+    * Flipped push/pull button on Dashboard
+    * Only update algo+pool when its not donating
+* Fixed segfault when stopping xmrigCCServer
 # 2.1.0
 * New XMRigCCServer without dependencies and now with full TLS support on Windows
 * Dashboard

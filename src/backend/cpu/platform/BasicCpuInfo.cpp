@@ -219,7 +219,7 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm) const
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (algorithm.family() == Algorithm::RANDOM_X) {
-        if (algorithm == Algorithm::RX_WOW) {
+        if (algorithm == Algorithm::RX_WOW || algorithm == Algorithm::RX_ARQ) {
             return count;
         }
 

@@ -76,6 +76,7 @@ public:
         RX_0,          // "rx/0"             RandomX (reference configuration).
         RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
         RX_LOKI,       // "rx/loki"          RandomXL (Loki).
+        RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
 #       endif
 #       ifdef XMRIG_ALGO_ARGON2
         AR2_CHUKWA,    // "argon2/chukwa"

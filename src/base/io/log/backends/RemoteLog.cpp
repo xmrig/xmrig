@@ -51,7 +51,7 @@ void xmrig::RemoteLog::print(int, const char *line, size_t, size_t size, bool co
 
     m_mutex.lock();
 
-    if (m_rows.size() == m_maxRows) {
+    if (m_rows.size() >= m_maxRows) {
         m_rows.pop_front();
     }
 

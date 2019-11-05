@@ -64,6 +64,7 @@ static const char *kCnExtremelite = "cn-extremelite";
 #ifdef XMRIG_ALGO_RANDOMX
 static const char *kRx    = "rx";
 static const char *kRxWOW = "rx/wow";
+static const char *kRxARQ = "rx/arq";
 #endif
 
 #ifdef XMRIG_ALGO_ARGON2
@@ -198,6 +199,7 @@ void xmrig::CpuConfig::generate()
 #   ifdef XMRIG_ALGO_RANDOMX
     m_threads.move(kRx, cpu->threads(Algorithm::RX_0));
     m_threads.move(kRxWOW, cpu->threads(Algorithm::RX_WOW));
+    m_threads.move(kRxARQ, cpu->threads(Algorithm::RX_ARQ));
 #   endif
 
     generateArgon2();

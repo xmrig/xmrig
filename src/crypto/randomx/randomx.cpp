@@ -75,6 +75,16 @@ RandomX_ConfigurationLoki::RandomX_ConfigurationLoki()
 	RANDOMX_FREQ_CBRANCH = 16;
 }
 
+RandomX_ConfigurationArqma::RandomX_ConfigurationArqma()
+{
+	ArgonIterations = 1;
+	ArgonSalt = "RandomARQ\x01";
+	ProgramIterations = 1024;
+	ProgramCount = 4;
+	ScratchpadL2_Size = 131072;
+	ScratchpadL3_Size = 262144;
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonMemory(262144)
 	, ArgonIterations(3)
@@ -232,6 +242,7 @@ void RandomX_ConfigurationBase::Apply()
 RandomX_ConfigurationMonero RandomX_MoneroConfig;
 RandomX_ConfigurationWownero RandomX_WowneroConfig;
 RandomX_ConfigurationLoki RandomX_LokiConfig;
+RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 
 RandomX_ConfigurationBase RandomX_CurrentConfig;
 
