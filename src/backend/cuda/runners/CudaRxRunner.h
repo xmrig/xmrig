@@ -44,9 +44,9 @@ protected:
     bool set(const Job &job, uint8_t *blob) override;
 
 private:
-    bool m_ready        = false;
-    size_t m_intensity  = 0;
-    bool m_dataset_host = false;
+    bool m_ready             = false;
+    const bool m_datasetHost = false;
+    size_t m_intensity       = 0;
 };
 
 

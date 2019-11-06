@@ -80,7 +80,7 @@ public:
     static const char *deviceName(nvid_ctx *ctx) noexcept;
     static const char *lastError(nvid_ctx *ctx) noexcept;
     static const char *pluginVersion() noexcept;
-    static int deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host) noexcept;
+    static int deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host = -1) noexcept;
     static int32_t deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept;
     static nvid_ctx *alloc(uint32_t id, int32_t bfactor, int32_t bsleep) noexcept;
     static std::string version(uint32_t version);
