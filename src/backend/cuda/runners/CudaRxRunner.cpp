@@ -42,6 +42,8 @@ xmrig::CudaRxRunner::CudaRxRunner(size_t index, const CudaLaunchData &data) : Cu
     }
 
     m_intensity -= m_intensity % 32;
+
+    m_dataset_host = m_data.thread.dataset_host();
 }
 
 
@@ -59,7 +61,7 @@ bool xmrig::CudaRxRunner::set(const Job &job, uint8_t *blob)
     }
 
     auto dataset = Rx::dataset(job, 0);
-    m_ready = callWrapper(CudaLib::rxPrepare(m_ctx, dataset->raw(), dataset->size(false), m_intensity));
+    m_ready = callWrapper(CudaLib::rxPrepare(m_ctx, dataset->raw(), dataset->size(false), m_dataset_host, m_intensity));
 
     return m_ready;
 }

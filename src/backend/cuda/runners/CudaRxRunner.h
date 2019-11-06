@@ -46,6 +46,7 @@ protected:
 private:
     bool m_ready        = false;
     size_t m_intensity  = 0;
+    bool m_dataset_host = false;
 };
 
 
