@@ -53,9 +53,7 @@ public:
     double calc(size_t ms) const;
     double calc(size_t threadId, size_t ms) const;
     void add(size_t threadId, uint64_t count, uint64_t timestamp);
-    void updateHighest();
 
-    inline double highest() const { return m_highest; }
     inline size_t threads() const { return m_threads; }
 
     static const char *format(double h, char *buf, size_t size);
@@ -70,7 +68,6 @@ private:
     constexpr static size_t kBucketSize = 2 << 11;
     constexpr static size_t kBucketMask = kBucketSize - 1;
 
-    double m_highest;
     size_t m_threads;
     uint32_t* m_top;
     uint64_t** m_counts;

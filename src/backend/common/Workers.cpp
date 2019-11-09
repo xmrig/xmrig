@@ -144,8 +144,6 @@ void xmrig::Workers<T>::tick(uint64_t)
 
         d_ptr->hashrate->add(handle->id(), handle->worker()->hashCount(), handle->worker()->timestamp());
     }
-
-    d_ptr->hashrate->updateHighest();
 }
 
 
