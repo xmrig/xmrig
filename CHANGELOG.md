@@ -1,3 +1,6 @@
+# v4.6.0-beta
+- [#1263](https://github.com/xmrig/xmrig/pull/1263) Added new option `dataset_host` for NVIDIA GPUs with less than 4 GB memory (RandomX only).
+
 # v4.5.0-beta
 - Added NVIDIA CUDA support via external [CUDA plugun](https://github.com/xmrig/xmrig-cuda). XMRig now is unified 3 in 1 miner.
 

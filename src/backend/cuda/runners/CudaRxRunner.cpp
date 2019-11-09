@@ -31,7 +31,8 @@
 #include "crypto/rx/RxDataset.h"
 
 
-xmrig::CudaRxRunner::CudaRxRunner(size_t index, const CudaLaunchData &data) : CudaBaseRunner(index, data)
+xmrig::CudaRxRunner::CudaRxRunner(size_t index, const CudaLaunchData &data) : CudaBaseRunner(index, data),
+  m_datasetHost(data.thread.datasetHost() > 0)
 {
     m_intensity                   = m_data.thread.threads() * m_data.thread.blocks();
     const size_t scratchpads_size = m_intensity * m_data.algorithm.l3();
@@ -59,7 +60,7 @@ bool xmrig::CudaRxRunner::set(const Job &job, uint8_t *blob)
     }
 
     auto dataset = Rx::dataset(job, 0);
-    m_ready = callWrapper(CudaLib::rxPrepare(m_ctx, dataset->raw(), dataset->size(false), m_intensity));
+    m_ready = callWrapper(CudaLib::rxPrepare(m_ctx, dataset->raw(), dataset->size(false), m_datasetHost, m_intensity));
 
     return m_ready;
 }

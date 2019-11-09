@@ -67,7 +67,7 @@ static const char *kVersion                             = "version";
 using alloc_t                                           = nvid_ctx * (*)(uint32_t, int32_t, int32_t);
 using cnHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint64_t, uint32_t *, uint32_t *);
 using deviceCount_t                                     = uint32_t (*)();
-using deviceInfo_t                                      = int32_t (*)(nvid_ctx *, int32_t, int32_t, int32_t);
+using deviceInfo_t                                      = int32_t (*)(nvid_ctx *, int32_t, int32_t, int32_t, int32_t);
 using deviceInit_t                                      = bool (*)(nvid_ctx *);
 using deviceInt_t                                       = int32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
 using deviceName_t                                      = const char * (*)(nvid_ctx *);
@@ -78,7 +78,7 @@ using lastError_t                                       = const char * (*)(nvid_
 using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
 using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
-using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, uint32_t);
+using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, bool, uint32_t);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using version_t                                         = uint32_t (*)(Version);
 
@@ -155,9 +155,9 @@ bool xmrig::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target,
 }
 
 
-bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, uint32_t batchSize) noexcept
+bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept
 {
-    return pRxPrepare(ctx, dataset, datasetSize, batchSize);
+    return pRxPrepare(ctx, dataset, datasetSize, dataset_host, batchSize);
 }
 
 
@@ -185,9 +185,9 @@ const char *xmrig::CudaLib::pluginVersion() noexcept
 }
 
 
-int xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm) noexcept
+int xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host) noexcept
 {
-    return pDeviceInfo(ctx, blocks, threads, algorithm);
+    return pDeviceInfo(ctx, blocks, threads, algorithm, dataset_host);
 }
 
 
@@ -272,7 +272,7 @@ bool xmrig::CudaLib::load()
         return false;
     }
 
-    if (pVersion(ApiVersion) != 1u) {
+    if (pVersion(ApiVersion) != 2u) {
         return false;
     }
 
