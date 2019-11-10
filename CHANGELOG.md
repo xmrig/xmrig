@@ -1,3 +1,7 @@
+# v4.6.1-beta
+- [#1272](https://github.com/xmrig/xmrig/pull/1272) Optimized hashrate calculation.
+- [#1273](https://github.com/xmrig/xmrig/issues/1273) Fixed crash when use `GET /2/backends` API endpoint with disabled CUDA.
+
 # v4.6.0-beta
 - [#1263](https://github.com/xmrig/xmrig/pull/1263) Added new option `dataset_host` for NVIDIA GPUs with less than 4 GB memory (RandomX only).
 
