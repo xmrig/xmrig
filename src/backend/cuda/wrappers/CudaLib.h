@@ -69,8 +69,9 @@ public:
     static const char *lastError() noexcept;
     static void close();
 
-    static inline bool isInitialized()   { return m_initialized; }
-    static inline const String &loader() { return m_loader; }
+    static inline bool isInitialized()    { return m_initialized; }
+    static inline bool isReady() noexcept { return m_ready; }
+    static inline const String &loader()  { return m_loader; }
 
     static bool cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height, uint64_t target, uint32_t *rescount, uint32_t *resnonce);
     static bool deviceInit(nvid_ctx *ctx) noexcept;
