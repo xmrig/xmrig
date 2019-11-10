@@ -474,19 +474,21 @@ rapidjson::Value xmrig::CudaBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("algo",       d_ptr->algo.toJSON(), allocator);
     out.AddMember("profile",    profileName().toJSON(), allocator);
 
-    Value versions(kObjectType);
-    versions.AddMember("cuda-runtime",   Value(CudaLib::version(d_ptr->runtimeVersion).c_str(), allocator), allocator);
-    versions.AddMember("cuda-driver",    Value(CudaLib::version(d_ptr->driverVersion).c_str(), allocator), allocator);
-    versions.AddMember("plugin",         String(CudaLib::pluginVersion()).toJSON(doc), allocator);
+    if (CudaLib::isReady()) {
+        Value versions(kObjectType);
+        versions.AddMember("cuda-runtime",   Value(CudaLib::version(d_ptr->runtimeVersion).c_str(), allocator), allocator);
+        versions.AddMember("cuda-driver",    Value(CudaLib::version(d_ptr->driverVersion).c_str(), allocator), allocator);
+        versions.AddMember("plugin",         String(CudaLib::pluginVersion()).toJSON(doc), allocator);
 
-#   ifdef XMRIG_FEATURE_NVML
-    if (NvmlLib::isReady()) {
-        versions.AddMember("nvml",       StringRef(NvmlLib::version()), allocator);
-        versions.AddMember("driver",     StringRef(NvmlLib::driverVersion()), allocator);
+#       ifdef XMRIG_FEATURE_NVML
+        if (NvmlLib::isReady()) {
+            versions.AddMember("nvml",       StringRef(NvmlLib::version()), allocator);
+            versions.AddMember("driver",     StringRef(NvmlLib::driverVersion()), allocator);
+        }
+#       endif
+
+        out.AddMember("versions", versions, allocator);
     }
-#   endif
-
-    out.AddMember("versions", versions, allocator);
 
     if (d_ptr->threads.empty() || !hashrate()) {
         return out;
