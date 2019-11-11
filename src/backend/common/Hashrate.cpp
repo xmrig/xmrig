@@ -47,7 +47,6 @@ inline static const char *format(double h, char *buf, size_t size)
 
 
 xmrig::Hashrate::Hashrate(size_t threads) :
-    m_highest(0.0),
     m_threads(threads)
 {
     m_counts     = new uint64_t*[threads];
@@ -100,30 +99,30 @@ double xmrig::Hashrate::calc(size_t threadId, size_t ms) const
 
     uint64_t earliestHashCount = 0;
     uint64_t earliestStamp     = 0;
-    uint64_t lastestStamp      = 0;
-    uint64_t lastestHashCnt    = 0;
     bool haveFullSet           = false;
 
-    for (size_t i = 1; i < kBucketSize; i++) {
-        const size_t idx = (m_top[threadId] - i) & kBucketMask;
+    const uint64_t timeStampLimit = xmrig::Chrono::highResolutionMSecs() - ms;
+    uint64_t* timestamps = m_timestamps[threadId];
+    uint64_t* counts = m_counts[threadId];
 
-        if (m_timestamps[threadId][idx] == 0) {
+    const size_t idx_start = (m_top[threadId] - 1) & kBucketMask;
+    size_t idx = idx_start;
+
+    uint64_t lastestStamp = timestamps[idx];
+    uint64_t lastestHashCnt = counts[idx];
+
+    do {
+        if (timestamps[idx] < timeStampLimit) {
+            haveFullSet = (timestamps[idx] != 0);
+            if (idx != idx_start) {
+                idx = (idx + 1) & kBucketMask;
+                earliestStamp = timestamps[idx];
+                earliestHashCount = counts[idx];
+            }
             break;
         }
-
-        if (lastestStamp == 0) {
-            lastestStamp = m_timestamps[threadId][idx];
-            lastestHashCnt = m_counts[threadId][idx];
-        }
-
-        if (xmrig::Chrono::highResolutionMSecs() - m_timestamps[threadId][idx] > ms) {
-            haveFullSet = true;
-            break;
-        }
-
-        earliestStamp = m_timestamps[threadId][idx];
-        earliestHashCount = m_counts[threadId][idx];
-    }
+        idx = (idx - 1) & kBucketMask;
+    } while (idx != idx_start);
 
     if (!haveFullSet || earliestStamp == 0 || lastestStamp == 0) {
         return nan("");
@@ -147,15 +146,6 @@ void xmrig::Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
     m_timestamps[threadId][top] = timestamp;
 
     m_top[threadId] = (top + 1) & kBucketMask;
-}
-
-
-void xmrig::Hashrate::updateHighest()
-{
-   double highest = calc(ShortInterval);
-   if (std::isnormal(highest) && highest > m_highest) {
-       m_highest = highest;
-   }
 }
 
 
