@@ -101,7 +101,7 @@ static inline const std::string &usage()
 #   ifdef XMRIG_FEATURE_OPENCL
     u += "\nOpenCL backend:\n";
     u += "      --opencl                  enable OpenCL mining backend\n";
-    u += "      --opencl-devices=N        list of OpenCL devices to use\n";
+    u += "      --opencl-devices=N        comma separated list of OpenCL devices to use\n";
     u += "      --opencl-platform=N       OpenCL platform index or name\n";
     u += "      --opencl-loader=PATH      path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)\n";
     u += "      --opencl-no-cache         disable OpenCL cache\n";
@@ -112,6 +112,7 @@ static inline const std::string &usage()
     u += "\nCUDA backend:\n";
     u += "      --cuda                    enable CUDA mining backend\n";
     u += "      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)\n";
+    u += "      --cuda-devices=N          comma separated list of CUDA devices to use\n";
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";

@@ -43,16 +43,17 @@ public:
     std::vector<CudaLaunchData> get(const Miner *miner, const Algorithm &algorithm, const std::vector<CudaDevice> &devices) const;
     void read(const rapidjson::Value &value);
 
-    inline bool isEnabled() const                       { return m_enabled; }
-    inline bool isShouldSave() const                    { return m_shouldSave; }
-    inline const String &loader() const                 { return m_loader; }
-    inline const Threads<CudaThreads> &threads() const  { return m_threads; }
-    inline int32_t bfactor() const                      { return m_bfactor; }
-    inline int32_t bsleep() const                       { return m_bsleep; }
+    inline bool isEnabled() const                               { return m_enabled; }
+    inline bool isShouldSave() const                            { return m_shouldSave; }
+    inline const std::vector<uint32_t> &devicesHint() const     { return m_devicesHint; }
+    inline const String &loader() const                         { return m_loader; }
+    inline const Threads<CudaThreads> &threads() const          { return m_threads; }
+    inline int32_t bfactor() const                              { return m_bfactor; }
+    inline int32_t bsleep() const                               { return m_bsleep; }
 
 #   ifdef XMRIG_FEATURE_NVML
-    inline bool isNvmlEnabled() const                   { return m_nvml; }
-    inline const String &nvmlLoader() const             { return m_nvmlLoader; }
+    inline bool isNvmlEnabled() const                           { return m_nvml; }
+    inline const String &nvmlLoader() const                     { return m_nvmlLoader; }
 #   endif
 
 private:

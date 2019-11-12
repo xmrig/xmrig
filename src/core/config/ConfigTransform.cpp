@@ -187,10 +187,14 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
 #   ifdef XMRIG_FEATURE_CUDA
     case IConfig::CudaKey: /* --cuda */
-        return set(doc, kCuda, "enabled", true);
+        return set(doc, kCuda, kEnabled, true);
 
     case IConfig::CudaLoaderKey: /* --cuda-loader */
         return set(doc, kCuda, "loader", arg);
+
+    case IConfig::CudaDevicesKey: /* --cuda-devices */
+        set(doc, kCuda, kEnabled, true);
+        return set(doc, kCuda, "devices-hint", arg);
 #   endif
 
 #   ifdef XMRIG_FEATURE_NVML

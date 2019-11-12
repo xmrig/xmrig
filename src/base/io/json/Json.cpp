@@ -50,7 +50,7 @@ bool xmrig::Json::getBool(const rapidjson::Value &obj, const char *key, bool def
 }
 
 
-const char *xmrig::Json::getString(const rapidjson::Value &obj, const char *key,  const char *defaultValue)
+const char *xmrig::Json::getString(const rapidjson::Value &obj, const char *key, const char *defaultValue)
 {
     assert(obj.IsObject());
 

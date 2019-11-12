@@ -85,7 +85,7 @@ public:
     static int32_t deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept;
     static nvid_ctx *alloc(uint32_t id, int32_t bfactor, int32_t bsleep) noexcept;
     static std::string version(uint32_t version);
-    static std::vector<CudaDevice> devices(int32_t bfactor, int32_t bsleep) noexcept;
+    static std::vector<CudaDevice> devices(int32_t bfactor, int32_t bsleep, const std::vector<uint32_t> &hints) noexcept;
     static uint32_t deviceCount() noexcept;
     static uint32_t deviceUint(nvid_ctx *ctx, DeviceProperty property) noexcept;
     static uint32_t driverVersion() noexcept;

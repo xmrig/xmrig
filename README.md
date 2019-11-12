@@ -74,7 +74,7 @@ API:
 
 OpenCL backend:
       --opencl                  enable OpenCL mining backend
-      --opencl-devices=N        list of OpenCL devices to use
+      --opencl-devices=N        comma separated list of OpenCL devices to use
       --opencl-platform=N       OpenCL platform index or name
       --opencl-loader=PATH      path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)
       --opencl-no-cache         disable OpenCL cache
@@ -83,6 +83,7 @@ OpenCL backend:
 CUDA backend:
       --cuda                    enable CUDA mining backend
       --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)
+      --cuda-devices=N          comma separated list of CUDA devices to use
       --no-nvml                 disable NVML (NVIDIA Management Library) support
 
 Logging:

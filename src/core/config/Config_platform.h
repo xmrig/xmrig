@@ -107,6 +107,7 @@ static const option options[] = {
 #   ifdef XMRIG_FEATURE_CUDA
     { "cuda",                  0, nullptr, IConfig::CudaKey               },
     { "cuda-loader",           1, nullptr, IConfig::CudaLoaderKey         },
+    { "cuda-devices",          1, nullptr, IConfig::CudaDevicesKey        },
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     { "no-nvml",               0, nullptr, IConfig::NvmlKey               },
