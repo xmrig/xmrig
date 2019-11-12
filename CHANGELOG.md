@@ -1,3 +1,7 @@
+# v4.6.2-beta
+- [#1274](https://github.com/xmrig/xmrig/issues/1274) Added `--cuda-devices` command line option.
+- [#1277](https://github.com/xmrig/xmrig/pull/1277) Fixed function names for clang on Apple.
+
 # v4.6.1-beta
 - [#1272](https://github.com/xmrig/xmrig/pull/1272) Optimized hashrate calculation.
 - [#1273](https://github.com/xmrig/xmrig/issues/1273) Fixed crash when use `GET /2/backends` API endpoint with disabled CUDA.
