@@ -209,7 +209,7 @@ std::string xmrig::CudaLib::version(uint32_t version)
 }
 
 
-std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices(int32_t bfactor, int32_t bsleep) noexcept
+std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices(int32_t bfactor, int32_t bsleep, const std::vector<uint32_t> &hints) noexcept
 {
     const uint32_t count = deviceCount();
     if (!count) {
@@ -219,10 +219,24 @@ std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices(int32_t bfactor, int32_t 
     std::vector<CudaDevice> out;
     out.reserve(count);
 
-    for (uint32_t i = 0; i < count; ++i) {
-        CudaDevice device(i, bfactor, bsleep);
-        if (device.isValid()) {
-            out.emplace_back(std::move(device));
+    if (hints.empty()) {
+        for (uint32_t i = 0; i < count; ++i) {
+            CudaDevice device(i, bfactor, bsleep);
+            if (device.isValid()) {
+                out.emplace_back(std::move(device));
+            }
+        }
+    }
+    else {
+        for (const uint32_t i : hints) {
+            if (i >= count) {
+                continue;
+            }
+
+            CudaDevice device(i, bfactor, bsleep);
+            if (device.isValid()) {
+                out.emplace_back(std::move(device));
+            }
         }
     }
 
