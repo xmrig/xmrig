@@ -3,7 +3,7 @@
 
 #include "impl-select.h"
 
-#include "argon2.h"
+#include "3rdparty/argon2.h"
 
 #define BENCH_SAMPLES 1024
 #define BENCH_MEM_BLOCKS 512

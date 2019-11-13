@@ -516,9 +516,7 @@ PUBLIC CryptonightR_instruction_mov254
 PUBLIC CryptonightR_instruction_mov255
 PUBLIC CryptonightR_instruction_mov256
 
-INCLUDE CryptonightWOW_template_win.inc
 INCLUDE CryptonightR_template_win.inc
-INCLUDE CryptonightWOW_soft_aes_template_win.inc
 INCLUDE CryptonightR_soft_aes_template_win.inc
 
 CryptonightR_instruction0:

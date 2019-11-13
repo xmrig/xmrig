@@ -117,9 +117,10 @@ void xmrig::Api::exec(IApiRequest &request)
         auto &allocator = request.doc().GetAllocator();
 
         request.accept();
-        request.reply().AddMember("id",        StringRef(m_id),       allocator);
-        request.reply().AddMember("worker_id", StringRef(m_workerId), allocator);
-        request.reply().AddMember("uptime",    (Chrono::currentMSecsSinceEpoch() - m_timestamp) / 1000, allocator);
+        request.reply().AddMember("id",         StringRef(m_id),       allocator);
+        request.reply().AddMember("worker_id",  StringRef(m_workerId), allocator);
+        request.reply().AddMember("uptime",     (Chrono::currentMSecsSinceEpoch() - m_timestamp) / 1000, allocator);
+        request.reply().AddMember("restricted", request.isRestricted(), allocator);
 
         Value features(kArrayType);
 #       ifdef XMRIG_FEATURE_API
@@ -139,6 +140,9 @@ void xmrig::Api::exec(IApiRequest &request)
 #       endif
 #       ifdef XMRIG_FEATURE_TLS
         features.PushBack("tls", allocator);
+#       endif
+#       ifdef XMRIG_FEATURE_OPENCL
+        features.PushBack("opencl", allocator);
 #       endif
         request.reply().AddMember("features", features, allocator);
     }

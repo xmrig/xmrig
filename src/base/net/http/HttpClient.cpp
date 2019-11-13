@@ -78,9 +78,7 @@ private:
 
 
 xmrig::HttpClient::HttpClient(int method, const String &url, IHttpListener *listener, const char *data, size_t size) :
-    HttpContext(HTTP_RESPONSE, listener),
-    m_quiet(false),
-    m_port(0)
+    HttpContext(HTTP_RESPONSE, listener)
 {
     this->method = method;
     this->url    = url;
@@ -127,7 +125,7 @@ void xmrig::HttpClient::onResolved(const Dns &dns, int status)
 
     sockaddr *addr = dns.get().addr(m_port);
 
-    uv_connect_t *req = new uv_connect_t;
+    auto req  = new uv_connect_t;
     req->data = this;
 
     uv_tcp_connect(req, m_tcp, addr, onConnect);
@@ -140,7 +138,7 @@ void xmrig::HttpClient::handshake()
     headers.insert({ "Connection", "close" });
     headers.insert({ "User-Agent", Platform::userAgent() });
 
-    if (body.size()) {
+    if (!body.empty()) {
         headers.insert({ "Content-Length", std::to_string(body.size()) });
     }
 
@@ -169,14 +167,14 @@ void xmrig::HttpClient::read(const char *data, size_t size)
 
 void xmrig::HttpClient::write(const std::string &header)
 {
-    ClientWriteBaton *baton = new ClientWriteBaton(header, std::move(body));
+    auto baton = new ClientWriteBaton(header, std::move(body));
     uv_write(&baton->req, stream(), baton->bufs, baton->count(), ClientWriteBaton::onWrite);
 }
 
 
 void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
 {
-    HttpClient *client = static_cast<HttpClient *>(req->data);
+    auto client = static_cast<HttpClient *>(req->data);
     if (!client) {
         delete req;
         return;
@@ -205,7 +203,7 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
         },
         [](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
         {
-            HttpClient *client = static_cast<HttpClient*>(tcp->data);
+            auto client = static_cast<HttpClient*>(tcp->data);
 
             if (nread >= 0) {
                 client->read(buf->base, static_cast<size_t>(nread));

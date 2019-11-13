@@ -41,6 +41,7 @@ set(HEADERS_BASE
     src/base/net/stratum/strategies/FailoverStrategy.h
     src/base/net/stratum/strategies/SinglePoolStrategy.h
     src/base/net/stratum/SubmitResult.h
+    src/base/net/stratum/Url.h
     src/base/net/tools/RecvBuf.h
     src/base/net/tools/Storage.h
     src/base/tools/Arguments.h
@@ -78,6 +79,7 @@ set(SOURCES_BASE
     src/base/net/stratum/Pools.cpp
     src/base/net/stratum/strategies/FailoverStrategy.cpp
     src/base/net/stratum/strategies/SinglePoolStrategy.cpp
+    src/base/net/stratum/Url.cpp
     src/base/tools/Arguments.cpp
     src/base/tools/Buffer.cpp
     src/base/tools/String.cpp
@@ -98,7 +100,14 @@ elseif (APPLE)
 else()
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
-        src/base/kernel//Platform_unix.cpp
+        src/base/kernel/Platform_unix.cpp
+        )
+endif()
+
+
+if (WITH_HWLOC)
+    list(APPEND SOURCES_OS
+        src/base/kernel/Platform_hwloc.cpp
         )
 endif()
 
@@ -130,6 +139,7 @@ if (WITH_HTTP)
         src/base/net/http/HttpResponse.h
         src/base/net/http/HttpServer.h
         src/base/net/stratum/DaemonClient.h
+        src/base/net/stratum/SelfSelectClient.h
         src/base/net/tools/TcpServer.h
         )
 
@@ -145,6 +155,7 @@ if (WITH_HTTP)
         src/base/net/http/HttpResponse.cpp
         src/base/net/http/HttpServer.cpp
         src/base/net/stratum/DaemonClient.cpp
+        src/base/net/stratum/SelfSelectClient.cpp
         src/base/net/tools/TcpServer.cpp
         )
 

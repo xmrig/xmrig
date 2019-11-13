@@ -35,7 +35,7 @@ namespace xmrig {
 class Nonce
 {
 public:
-    enum Backend {
+    enum Backend : uint32_t {
         CPU,
         OPENCL,
         CUDA,

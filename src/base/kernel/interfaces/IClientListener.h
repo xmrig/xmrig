@@ -26,7 +26,7 @@
 #define XMRIG_ICLIENTLISTENER_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 #include "rapidjson/fwd.h"

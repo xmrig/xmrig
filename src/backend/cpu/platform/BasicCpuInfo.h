@@ -39,7 +39,7 @@ public:
 
 protected:
     const char *backend() const override;
-    CpuThreads threads(const Algorithm &algorithm) const override;
+    CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const override;
 
     inline Assembly::Id assembly() const override   { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }

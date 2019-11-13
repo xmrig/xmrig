@@ -14,6 +14,11 @@ option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
+option(WITH_OPENCL          "Enable OpenCL backend" ON)
+option(WITH_CUDA            "Enable CUDA backend" ON)
+option(WITH_NVML            "Enable NVML (NVIDIA Management Library) support (only if CUDA backend enabled)" ON)
+option(WITH_STRICT_CACHE    "Enable strict checks for OpenCL cache" ON)
+option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
@@ -52,6 +57,7 @@ set(HEADERS
    )
 
 set(HEADERS_CRYPTO
+    src/backend/common/interfaces/IMemoryPool.h
     src/crypto/cn/asm/CryptonightR_template.h
     src/crypto/cn/c_blake256.h
     src/crypto/cn/c_groestl.h
@@ -70,6 +76,7 @@ set(HEADERS_CRYPTO
     src/crypto/common/Algorithm.h
     src/crypto/common/Coin.h
     src/crypto/common/keccak.h
+    src/crypto/common/MemoryPool.h
     src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
@@ -108,9 +115,21 @@ set(SOURCES_CRYPTO
     src/crypto/common/Algorithm.cpp
     src/crypto/common/Coin.cpp
     src/crypto/common/keccak.cpp
+    src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
    )
+
+if (WITH_HWLOC)
+    list(APPEND HEADERS_CRYPTO
+        src/crypto/common/NUMAMemoryPool.h
+        )
+
+    list(APPEND SOURCES_CRYPTO
+        src/crypto/common/NUMAMemoryPool.cpp
+        src/crypto/common/VirtualMemory_hwloc.cpp
+        )
+endif()
 
 if (WIN32)
     set(SOURCES_OS
@@ -142,7 +161,7 @@ else()
     endif()
 endif()
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "Android")
     EXECUTE_PROCESS(COMMAND uname -o COMMAND tr -d '\n' OUTPUT_VARIABLE OPERATING_SYSTEM)
     if (OPERATING_SYSTEM MATCHES "Android")
         set(EXTRA_LIBS ${EXTRA_LIBS} log)

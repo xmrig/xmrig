@@ -23,33 +23,18 @@
  */
 
 
+#include "base/net/stratum/strategies/SinglePoolStrategy.h"
+#include "base/kernel/interfaces/IClient.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/Platform.h"
-#include "base/net/stratum/Client.h"
-#include "base/net/stratum/strategies/SinglePoolStrategy.h"
-
-
-#ifdef XMRIG_FEATURE_HTTP
-#   include "base/net/stratum/DaemonClient.h"
-#endif
+#include "base/net/stratum/Pool.h"
 
 
 xmrig::SinglePoolStrategy::SinglePoolStrategy(const Pool &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
     m_active(false),
     m_listener(listener)
 {
-#   ifdef XMRIG_FEATURE_HTTP
-    if (!pool.isDaemon()) {
-        m_client = new Client(0, Platform::userAgent(), this);
-    }
-    else {
-        m_client = new DaemonClient(0, this);
-    }
-#   else
-    m_client = new Client(0, Platform::userAgent(), this);
-#   endif
-
-    m_client->setPool(pool);
+    m_client = pool.createClient(0, this);
     m_client->setRetries(retries);
     m_client->setRetryPause(retryPause * 1000);
     m_client->setQuiet(quiet);

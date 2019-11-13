@@ -34,6 +34,7 @@
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
+#include "base/tools/Object.h"
 #include "interfaces/IJobResultListener.h"
 #include "net/NetworkState.h"
 #include "rapidjson/fwd.h"
@@ -49,6 +50,8 @@ class IStrategy;
 class Network : public IJobResultListener, public IStrategyListener, public IBaseListener, public ITimerListener, public IApiListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Network)
+
     Network(Controller *controller);
     ~Network() override;
 

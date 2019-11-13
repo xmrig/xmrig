@@ -28,6 +28,7 @@
 
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/kernel/interfaces/IStrategy.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -41,6 +42,8 @@ class Pool;
 class SinglePoolStrategy : public IStrategy, public IClientListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(SinglePoolStrategy)
+
     SinglePoolStrategy(const Pool &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     ~SinglePoolStrategy() override;
 

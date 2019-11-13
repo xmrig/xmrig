@@ -48,8 +48,8 @@ xmrig::Nonce::Nonce()
 {
     m_paused = true;
 
-    for (int i = 0; i < MAX; ++i) {
-        m_sequence[i] = 1;
+    for (auto &i : m_sequence) {
+        i = 1;
     }
 }
 
@@ -85,15 +85,15 @@ void xmrig::Nonce::stop()
 {
     pause(false);
 
-    for (int i = 0; i < MAX; ++i) {
-        m_sequence[i] = 0;
+    for (auto &i : m_sequence) {
+        i = 0;
     }
 }
 
 
 void xmrig::Nonce::touch()
 {
-    for (int i = 0; i < MAX; ++i) {
-        m_sequence[i]++;
+    for (auto &i : m_sequence) {
+        i++;
     }
 }
