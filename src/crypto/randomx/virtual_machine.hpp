@@ -64,7 +64,7 @@ protected:
 	alignas(64) randomx::RegisterFile reg;
 	alignas(16) randomx::ProgramConfiguration config;
 	randomx::MemoryRegisters mem;
-	uint8_t* scratchpad;
+	uint8_t* scratchpad = nullptr;
 	union {
 		randomx_cache* cachePtr = nullptr;
 		randomx_dataset* datasetPtr;

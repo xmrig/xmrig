@@ -25,32 +25,32 @@
  */
 
 
-#include <thread>
-
-
+#include "crypto/rx/RxDataset.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
-#include "crypto/rx/RxDataset.h"
+
+
+#include <thread>
 
 
 static_assert(RANDOMX_FLAG_LARGE_PAGES == 1, "RANDOMX_FLAG_LARGE_PAGES flag mismatch");
 
 
-xmrig::RxDataset::RxDataset(bool hugePages)
+xmrig::RxDataset::RxDataset(bool hugePages, bool cache)
 {
-    if (hugePages) {
-        m_flags   = RANDOMX_FLAG_LARGE_PAGES;
-        m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));
-    }
+    allocate(hugePages);
 
-    if (!m_dataset) {
-        m_flags   = RANDOMX_FLAG_DEFAULT;
-        m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));
+    if (cache) {
+        m_cache = new RxCache(hugePages);
     }
+}
 
-    m_cache = new RxCache(hugePages);
+
+xmrig::RxDataset::RxDataset(RxCache *cache) :
+    m_cache(cache)
+{
 }
 
 
@@ -64,9 +64,13 @@ xmrig::RxDataset::~RxDataset()
 }
 
 
-bool xmrig::RxDataset::init(const uint8_t *seed, uint32_t numThreads)
+bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
 {
-    cache()->init(seed);
+    if (!m_cache) {
+        return false;
+    }
+
+    m_cache->init(seed);
 
     if (!get()) {
         return true;
@@ -96,19 +100,70 @@ bool xmrig::RxDataset::init(const uint8_t *seed, uint32_t numThreads)
 }
 
 
-std::pair<size_t, size_t> xmrig::RxDataset::hugePages() const
+size_t xmrig::RxDataset::size(bool cache) const
 {
-    constexpr size_t twoMiB      = 2u * 1024u * 1024u;
-    constexpr const size_t total = (VirtualMemory::align(size(), twoMiB) + VirtualMemory::align(RxCache::size(), twoMiB)) / twoMiB;
+    size_t size = 0;
 
-    size_t count = 0;
+    if (m_dataset) {
+        size += maxSize();
+    }
+
+    if (cache && m_cache) {
+        size += RxCache::maxSize();
+    }
+
+    return size;
+}
+
+
+std::pair<uint32_t, uint32_t> xmrig::RxDataset::hugePages(bool cache) const
+{
+    constexpr size_t twoMiB     = 2u * 1024u * 1024u;
+    constexpr size_t cacheSize  = VirtualMemory::align(RxCache::maxSize(), twoMiB) / twoMiB;
+    size_t total                = VirtualMemory::align(maxSize(), twoMiB) / twoMiB;
+
+    uint32_t count = 0;
     if (isHugePages()) {
-        count += VirtualMemory::align(size(), twoMiB) / twoMiB;
+        count += total;
     }
 
-    if (m_cache->isHugePages()) {
-        count += VirtualMemory::align(RxCache::size(), twoMiB) / twoMiB;
+    if (cache && m_cache) {
+        total += cacheSize;
+
+        if (m_cache->isHugePages()) {
+            count += cacheSize;
+        }
     }
 
-    return std::pair<size_t, size_t>(count, total);
+    return { count, total };
+}
+
+
+void *xmrig::RxDataset::raw() const
+{
+    return m_dataset ? randomx_get_dataset_memory(m_dataset) : nullptr;
+}
+
+
+void xmrig::RxDataset::setRaw(const void *raw)
+{
+    if (!m_dataset) {
+        return;
+    }
+
+    memcpy(randomx_get_dataset_memory(m_dataset), raw, maxSize());
+}
+
+
+void xmrig::RxDataset::allocate(bool hugePages)
+{
+    if (hugePages) {
+        m_flags   = RANDOMX_FLAG_LARGE_PAGES;
+        m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));
+    }
+
+    if (!m_dataset) {
+        m_flags   = RANDOMX_FLAG_DEFAULT;
+        m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));
+    }
 }

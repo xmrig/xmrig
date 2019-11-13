@@ -54,6 +54,8 @@ public:
     inline bool operator!=(const CpuLaunchData &other) const    { return !isEqual(other); }
     inline bool operator==(const CpuLaunchData &other) const    { return isEqual(other); }
 
+    static const char *tag();
+
     const Algorithm algorithm;
     const Assembly assembly;
     const bool hugePages;

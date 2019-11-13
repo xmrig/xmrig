@@ -24,11 +24,13 @@
  */
 
 
-#include <algorithm>
-
-
 #include "backend/cpu/CpuLaunchData.h"
+
+#include "backend/common/Tags.h"
 #include "backend/cpu/CpuConfig.h"
+
+
+#include <algorithm>
 
 
 xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorithm, const CpuConfig &config, const CpuThread &thread) :
@@ -64,4 +66,10 @@ xmrig::CnHash::AlgoVariant xmrig::CpuLaunchData::av() const
     }
 
     return static_cast<CnHash::AlgoVariant>(!hwAES ? (intensity + 5) : (intensity + 2));
+}
+
+
+const char *xmrig::CpuLaunchData::tag()
+{
+    return cpu_tag();
 }

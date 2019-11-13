@@ -2,6 +2,7 @@ set(HEADERS_BACKEND_CPU
     src/backend/cpu/Cpu.h
     src/backend/cpu/CpuBackend.h
     src/backend/cpu/CpuConfig.h
+    src/backend/cpu/CpuConfig_gen.h
     src/backend/cpu/CpuLaunchData.cpp
     src/backend/cpu/CpuThread.h
     src/backend/cpu/CpuThreads.h

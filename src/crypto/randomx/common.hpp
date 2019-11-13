@@ -108,7 +108,7 @@ namespace randomx {
 	class JitCompilerX86;
 	using JitCompiler = JitCompilerX86;
 #elif defined(__aarch64__)
-	#define RANDOMX_HAVE_COMPILER 0
+	#define RANDOMX_HAVE_COMPILER 1
 	class JitCompilerA64;
 	using JitCompiler = JitCompilerA64;
 #else

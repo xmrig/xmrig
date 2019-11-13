@@ -27,10 +27,12 @@
 
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
+#include "base/tools/Object.h"
 
 
-typedef struct hwloc_obj *hwloc_obj_t;
-typedef struct hwloc_topology *hwloc_topology_t;
+using hwloc_const_bitmap_t  = const struct hwloc_bitmap_s *;
+using hwloc_obj_t           = struct hwloc_obj *;
+using hwloc_topology_t      = struct hwloc_topology *;
 
 
 namespace xmrig {
@@ -39,6 +41,9 @@ namespace xmrig {
 class HwlocCpuInfo : public BasicCpuInfo
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(HwlocCpuInfo)
+
+
     enum Feature : uint32_t {
         SET_THISTHREAD_MEMBIND = 1
     };
@@ -48,10 +53,14 @@ public:
     ~HwlocCpuInfo() override;
 
     static inline bool has(Feature feature)                     { return m_features & feature; }
-    static inline const std::vector<uint32_t> &nodeIndexes()    { return m_nodeIndexes; }
+
+    inline const std::vector<uint32_t> &nodeset() const         { return m_nodeset; }
+    inline hwloc_topology_t topology() const                    { return m_topology; }
+
+    bool membind(hwloc_const_bitmap_t nodeset);
 
 protected:
-    CpuThreads threads(const Algorithm &algorithm) const override;
+    CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const override;
 
     inline const char *backend() const override     { return m_backend; }
     inline size_t cores() const override            { return m_cores; }
@@ -61,17 +70,18 @@ protected:
     inline size_t packages() const override         { return m_packages; }
 
 private:
-    void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads) const;
+    void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const;
 
-    static std::vector<uint32_t> m_nodeIndexes;
+
     static uint32_t m_features;
 
-    char m_backend[20];
-    hwloc_topology_t m_topology;
-    size_t m_cache[5];
-    size_t m_cores      = 0;
-    size_t m_nodes      = 0;
-    size_t m_packages   = 0;
+    char m_backend[20]          = { 0 };
+    hwloc_topology_t m_topology = nullptr;
+    size_t m_cache[5]           = { 0 };
+    size_t m_cores              = 0;
+    size_t m_nodes              = 0;
+    size_t m_packages           = 0;
+    std::vector<uint32_t> m_nodeset;
 };
 
 

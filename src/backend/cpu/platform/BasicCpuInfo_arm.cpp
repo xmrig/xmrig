@@ -63,7 +63,7 @@ const char *xmrig::BasicCpuInfo::backend() const
 }
 
 
-xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &) const
+xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &, uint32_t) const
 {
     return CpuThreads(threads());
 }

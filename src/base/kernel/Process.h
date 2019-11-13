@@ -47,7 +47,6 @@ public:
 #   endif
 
     Process(int argc, char **argv);
-    ~Process();
 
     String location(Location location, const char *fileName = nullptr) const;
 

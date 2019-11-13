@@ -23,15 +23,10 @@
  */
 
 
+#include "base/net/stratum/strategies/FailoverStrategy.h"
+#include "base/kernel/interfaces/IClient.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/Platform.h"
-#include "base/net/stratum/Client.h"
-#include "base/net/stratum/strategies/FailoverStrategy.h"
-
-
-#ifdef XMRIG_FEATURE_HTTP
-#   include "base/net/stratum/DaemonClient.h"
-#endif
 
 
 xmrig::FailoverStrategy::FailoverStrategy(const std::vector<Pool> &pools, int retryPause, int retries, IStrategyListener *listener, bool quiet) :
@@ -69,16 +64,8 @@ xmrig::FailoverStrategy::~FailoverStrategy()
 
 void xmrig::FailoverStrategy::add(const Pool &pool)
 {
-    const int id = static_cast<int>(m_pools.size());
+    IClient *client = pool.createClient(static_cast<int>(m_pools.size()), this);
 
-#   ifdef XMRIG_FEATURE_HTTP
-    IClient *client = !pool.isDaemon() ? static_cast<IClient *>(new Client(id, Platform::userAgent(), this))
-                                       : static_cast<IClient *>(new DaemonClient(id, this));
-#   else
-    IClient *client = new Client(id, Platform::userAgent(), this);
-#   endif
-
-    client->setPool(pool);
     client->setRetries(m_retries);
     client->setRetryPause(m_retryPause * 1000);
     client->setQuiet(m_quiet);
@@ -123,8 +110,8 @@ void xmrig::FailoverStrategy::setAlgo(const Algorithm &algo)
 
 void xmrig::FailoverStrategy::stop()
 {
-    for (size_t i = 0; i < m_pools.size(); ++i) {
-        m_pools[i]->disconnect();
+    for (auto &pool : m_pools) {
+        pool->disconnect();
     }
 
     m_index  = 0;

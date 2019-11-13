@@ -45,18 +45,18 @@ public:
     inline constexpr static bool isX64() { return false; }
 #   endif
 
-    virtual Assembly::Id assembly() const                                     = 0;
-    virtual bool hasAES() const                                               = 0;
-    virtual bool hasAVX2() const                                              = 0;
-    virtual const char *backend() const                                       = 0;
-    virtual const char *brand() const                                         = 0;
-    virtual CpuThreads threads(const Algorithm &algorithm) const              = 0;
-    virtual size_t cores() const                                              = 0;
-    virtual size_t L2() const                                                 = 0;
-    virtual size_t L3() const                                                 = 0;
-    virtual size_t nodes() const                                              = 0;
-    virtual size_t packages() const                                           = 0;
-    virtual size_t threads() const                                            = 0;
+    virtual Assembly::Id assembly() const                                           = 0;
+    virtual bool hasAES() const                                                     = 0;
+    virtual bool hasAVX2() const                                                    = 0;
+    virtual const char *backend() const                                             = 0;
+    virtual const char *brand() const                                               = 0;
+    virtual CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const    = 0;
+    virtual size_t cores() const                                                    = 0;
+    virtual size_t L2() const                                                       = 0;
+    virtual size_t L3() const                                                       = 0;
+    virtual size_t nodes() const                                                    = 0;
+    virtual size_t packages() const                                                 = 0;
+    virtual size_t threads() const                                                  = 0;
 };
 
 

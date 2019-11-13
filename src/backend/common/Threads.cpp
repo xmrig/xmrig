@@ -25,13 +25,25 @@
 
 #include "backend/common/Threads.h"
 #include "backend/cpu/CpuThreads.h"
+#include "crypto/cn/CnAlgo.h"
 #include "rapidjson/document.h"
+
+
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/OclThreads.h"
+#endif
+
+
+#ifdef XMRIG_FEATURE_CUDA
+#   include "backend/cuda/CudaThreads.h"
+#endif
 
 
 namespace xmrig {
 
 
 static const char *kAsterisk = "*";
+static const char *kCn2      = "cn/2";
 
 
 } // namespace xmrig
@@ -113,6 +125,10 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         return String();
     }
 
+    if (algorithm.family() == Algorithm::CN && CnAlgo<>::base(algorithm) == Algorithm::CN_2 && has(kCn2)) {
+        return kCn2;
+    }
+
     if (name.contains("/")) {
         const String base = name.split('/').at(0);
         if (has(base)) {
@@ -151,5 +167,13 @@ void xmrig::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) 
 namespace xmrig {
 
 template class Threads<CpuThreads>;
+
+#ifdef XMRIG_FEATURE_OPENCL
+template class Threads<OclThreads>;
+#endif
+
+#ifdef XMRIG_FEATURE_CUDA
+template class Threads<CudaThreads>;
+#endif
 
 } // namespace xmrig

@@ -23,7 +23,7 @@
  */
 
 
-#include <assert.h>
+#include <cassert>
 
 
 #include "backend/cpu/Cpu.h"
@@ -44,7 +44,15 @@ static xmrig::ICpuInfo *cpuInfo = nullptr;
 
 xmrig::ICpuInfo *xmrig::Cpu::info()
 {
-    assert(cpuInfo != nullptr);
+    if (cpuInfo == nullptr) {
+#       if defined(XMRIG_FEATURE_HWLOC)
+        cpuInfo = new HwlocCpuInfo();
+#       elif defined(XMRIG_FEATURE_LIBCPUID)
+        cpuInfo = new AdvancedCpuInfo();
+#       else
+        cpuInfo = new BasicCpuInfo();
+#       endif
+    }
 
     return cpuInfo;
 }
@@ -62,7 +70,7 @@ rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
     cpu.AddMember("brand",      StringRef(i->brand()), allocator);
     cpu.AddMember("aes",        i->hasAES(), allocator);
     cpu.AddMember("avx2",       i->hasAVX2(), allocator);
-    cpu.AddMember("x64",        i->isX64(), allocator);
+    cpu.AddMember("x64",        ICpuInfo::isX64(), allocator);
     cpu.AddMember("l2",         static_cast<uint64_t>(i->L2()), allocator);
     cpu.AddMember("l3",         static_cast<uint64_t>(i->L3()), allocator);
     cpu.AddMember("cores",      static_cast<uint64_t>(i->cores()), allocator);
@@ -78,20 +86,6 @@ rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
 #   endif
 
     return cpu;
-}
-
-
-void xmrig::Cpu::init()
-{
-    assert(cpuInfo == nullptr);
-
-#   if defined(XMRIG_FEATURE_HWLOC)
-    cpuInfo = new HwlocCpuInfo();
-#   elif defined(XMRIG_FEATURE_LIBCPUID)
-    cpuInfo = new AdvancedCpuInfo();
-#   else
-    cpuInfo = new BasicCpuInfo();
-#   endif
 }
 
 

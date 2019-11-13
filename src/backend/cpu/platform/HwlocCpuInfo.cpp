@@ -29,6 +29,7 @@
 
 
 #include <algorithm>
+#include <cmath>
 #include <hwloc.h>
 
 
@@ -45,7 +46,6 @@
 namespace xmrig {
 
 
-std::vector<uint32_t> HwlocCpuInfo::m_nodeIndexes;
 uint32_t HwlocCpuInfo::m_features = 0;
 
 
@@ -127,9 +127,7 @@ static inline bool isCacheExclusive(hwloc_obj_t obj)
 } // namespace xmrig
 
 
-xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
-    m_backend(),
-    m_cache()
+xmrig::HwlocCpuInfo::HwlocCpuInfo()
 {
     m_threads = 0;
 
@@ -149,7 +147,7 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
 #   endif
 
     const std::vector<hwloc_obj_t> packages = findByType(hwloc_get_root_obj(m_topology), HWLOC_OBJ_PACKAGE);
-    if (packages.size()) {
+    if (!packages.empty()) {
         const char *value = hwloc_obj_get_info_by_name(packages[0], "CPUModel");
         if (value) {
             strncpy(m_brand, value, 64);
@@ -186,11 +184,11 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
             m_features |= SET_THISTHREAD_MEMBIND;
         }
 
-        m_nodeIndexes.reserve(m_nodes);
+        m_nodeset.reserve(m_nodes);
         hwloc_obj_t node = nullptr;
 
         while ((node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
-            m_nodeIndexes.emplace_back(node->os_index);
+            m_nodeset.emplace_back(node->os_index);
         }
     }
 }
@@ -202,10 +200,24 @@ xmrig::HwlocCpuInfo::~HwlocCpuInfo()
 }
 
 
-xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
+bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
+{
+    if (!hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
+        return false;
+    }
+
+#   if HWLOC_API_VERSION >= 0x20000
+    return hwloc_set_membind(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0;
+#   else
+    return hwloc_set_membind_nodeset(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0;
+#   endif
+}
+
+
+xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
 {
     if (L2() == 0 && L3() == 0) {
-        return BasicCpuInfo::threads(algorithm);
+        return BasicCpuInfo::threads(algorithm, limit);
     }
 
     const unsigned depth = L3() > 0 ? 3 : 2;
@@ -218,21 +230,37 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm) const
 
     findCache(hwloc_get_root_obj(m_topology), depth, depth, [&caches](hwloc_obj_t found) { caches.emplace_back(found); });
 
-    for (hwloc_obj_t cache : caches) {
-        processTopLevelCache(cache, algorithm, threads);
+    if (limit > 0 && limit < 100 && !caches.empty()) {
+        const double maxTotalThreads = round(m_threads * (limit / 100.0));
+        const auto maxPerCache       = std::max(static_cast<int>(round(maxTotalThreads / caches.size())), 1);
+        int remaining                = std::max(static_cast<int>(maxTotalThreads), 1);
+
+        for (hwloc_obj_t cache : caches) {
+            processTopLevelCache(cache, algorithm, threads, std::min(maxPerCache, remaining));
+
+            remaining -= maxPerCache;
+            if (remaining <= 0) {
+                break;
+            }
+        }
+    }
+    else {
+        for (hwloc_obj_t cache : caches) {
+            processTopLevelCache(cache, algorithm, threads, 0);
+        }
     }
 
     if (threads.isEmpty()) {
         LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.shortName());
 
-        return BasicCpuInfo::threads(algorithm);
+        return BasicCpuInfo::threads(algorithm, limit);
     }
 
     return threads;
 }
 
 
-void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads) const
+void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const
 {
     constexpr size_t oneMiB = 1024u * 1024u;
 
@@ -295,6 +323,10 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         cacheHashes = std::min<size_t>(std::max<size_t>(L2 / algorithm.l2(), cores.size()), cacheHashes);
     }
 #   endif
+
+    if (limit > 0) {
+        cacheHashes = std::min(cacheHashes, limit);
+    }
 
     if (cacheHashes >= PUs) {
         for (hwloc_obj_t core : cores) {

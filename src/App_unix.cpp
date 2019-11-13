@@ -23,33 +23,36 @@
  */
 
 
-#include <stdlib.h>
-#include <signal.h>
-#include <errno.h>
+#include <cstdlib>
+#include <csignal>
+#include <cerrno>
 #include <unistd.h>
 
 
 #include "App.h"
 #include "base/io/log/Log.h"
-#include "core/config/Config.h"
 #include "core/Controller.h"
 
 
-void xmrig::App::background()
+bool xmrig::App::background(int &rc)
 {
     signal(SIGPIPE, SIG_IGN);
 
-    if (!m_controller->config()->isBackground()) {
-        return;
+    if (!m_controller->isBackground()) {
+        return false;
     }
 
     int i = fork();
     if (i < 0) {
-        exit(1);
+        rc = 1;
+
+        return true;
     }
 
     if (i > 0) {
-        exit(0);
+        rc = 0;
+
+        return true;
     }
 
     i = setsid();
@@ -62,4 +65,6 @@ void xmrig::App::background()
     if (i < 0) {
         LOG_ERR("chdir() failed (errno = %d)", errno);
     }
+
+    return false;
 }

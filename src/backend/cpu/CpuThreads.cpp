@@ -120,6 +120,16 @@ xmrig::CpuThreads::CpuThreads(size_t count, uint32_t intensity)
 }
 
 
+bool xmrig::CpuThreads::isEqual(const CpuThreads &other) const
+{
+    if (isEmpty() && other.isEmpty()) {
+        return true;
+    }
+
+    return count() == other.count() && std::equal(m_data.begin(), m_data.end(), other.m_data.begin());
+}
+
+
 rapidjson::Value xmrig::CpuThreads::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;

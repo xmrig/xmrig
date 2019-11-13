@@ -26,7 +26,7 @@
 #define XMRIG_WORKERJOB_H
 
 
-#include <string.h>
+#include <cstring>
 
 
 #include "base/net/stratum/Job.h"
@@ -47,9 +47,9 @@ public:
     inline uint8_t index() const            { return m_index; }
 
 
-    inline void add(const Job &job, uint64_t sequence, uint32_t reserveCount)
+    inline void add(const Job &job, uint32_t reserveCount, Nonce::Backend backend)
     {
-        m_sequence = sequence;
+        m_sequence = Nonce::sequence(backend);
 
         if (currentJob() == job) {
             return;
@@ -60,34 +60,36 @@ public:
             return;
         }
 
-        save(job, reserveCount);
+        save(job, reserveCount, backend);
     }
 
 
-    inline void nextRound(uint32_t reserveCount)
+    inline void nextRound(uint32_t rounds, uint32_t roundSize)
     {
         m_rounds[index()]++;
 
-        if ((m_rounds[index()] % reserveCount) == 0) {
+        if ((m_rounds[index()] % rounds) == 0) {
             for (size_t i = 0; i < N; ++i) {
-                *nonce(i) = Nonce::next(index(), *nonce(i), reserveCount, currentJob().isNicehash());
+                *nonce(i) = Nonce::next(index(), *nonce(i), rounds * roundSize, currentJob().isNicehash());
             }
         }
         else {
             for (size_t i = 0; i < N; ++i) {
-                *nonce(i) += 1;
+                *nonce(i) += roundSize;
             }
         }
     }
 
 
 private:
-    inline void save(const Job &job, uint32_t reserveCount)
+    inline void save(const Job &job, uint32_t reserveCount, Nonce::Backend backend)
     {
         m_index           = job.index();
         const size_t size = job.size();
         m_jobs[index()]   = job;
         m_rounds[index()] = 0;
+
+        m_jobs[index()].setBackend(backend);
 
         for (size_t i = 0; i < N; ++i) {
             memcpy(m_blobs[index()] + (i * size), job.blob(), size);
@@ -96,7 +98,7 @@ private:
     }
 
 
-    alignas(16) uint8_t m_blobs[2][Job::kMaxBlobSize * N];
+    alignas(16) uint8_t m_blobs[2][Job::kMaxBlobSize * N]{};
     Job m_jobs[2];
     uint32_t m_rounds[2] = { 0, 0 };
     uint64_t m_sequence  = 0;
@@ -112,25 +114,27 @@ inline uint32_t *xmrig::WorkerJob<1>::nonce(size_t)
 
 
 template<>
-inline void xmrig::WorkerJob<1>::nextRound(uint32_t reserveCount)
+inline void xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
 {
     m_rounds[index()]++;
 
-    if ((m_rounds[index()] % reserveCount) == 0) {
-        *nonce() = Nonce::next(index(), *nonce(), reserveCount, currentJob().isNicehash());
+    if ((m_rounds[index()] % rounds) == 0) {
+        *nonce() = Nonce::next(index(), *nonce(), rounds * roundSize, currentJob().isNicehash());
     }
     else {
-        *nonce() += 1;
+        *nonce() += roundSize;
     }
 }
 
 
 template<>
-inline void xmrig::WorkerJob<1>::save(const Job &job, uint32_t reserveCount)
+inline void xmrig::WorkerJob<1>::save(const Job &job, uint32_t reserveCount, Nonce::Backend backend)
 {
     m_index           = job.index();
     m_jobs[index()]   = job;
     m_rounds[index()] = 0;
+
+    m_jobs[index()].setBackend(backend);
 
     memcpy(blob(), job.blob(), job.size());
     *nonce() = Nonce::next(index(), *nonce(), reserveCount, currentJob().isNicehash());

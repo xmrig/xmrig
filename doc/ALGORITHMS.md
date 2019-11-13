@@ -3,7 +3,7 @@
 Algorithm can be defined in 3 ways:
 
 1. By pool, using algorithm negotiation, in this case no need specify algorithm on miner side.
-2. Per pool `coin` option, currently only usable value for this option is `monero`.
+2. Per pool `coin` option, currently only usable values for this option is `monero` and `arqma`.
 3. Per pool `algo` option.
 
 Option `coin` useful for pools without algorithm negotiation support or daemon to allow automatically switch algorithm in next hard fork.
@@ -12,11 +12,12 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name | Memory | Version | Notes |
 |------|--------|---------|-------|
+| `rx/arq` | 256 KB | 4.3.0+ | RandomARQ (RandomX variant for ArQmA). |
 | `rx/0` | 2 MB | 3.2.0+ | RandomX (Monero). |
 | `argon2/chukwa` | 512 KB | 3.1.0+ | Argon2id (Chukwa). |
 | `argon2/wrkz` | 256 KB | 3.1.0+ | Argon2id (WRKZ) |
-| `rx/wow` | 1 MB | 3.0.0+ | RandomWOW. |
-| `rx/loki` | 2 MB | 3.0.0+ | RandomXL. |
+| `rx/wow` | 1 MB | 3.0.0+ | RandomWOW (RandomX variant for Wownero). |
+| `rx/loki` | 2 MB | 3.0.0+ | RandomXL (RandomX variant for Loki). |
 | `cn/fast` | 2 MB | 3.0.0+ | CryptoNight variant 1 with half iterations. |
 | `cn/rwz` | 2 MB | 2.14.0+ | CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation. |
 | `cn/zls` | 2 MB | 2.14.0+ | CryptoNight variant 2 with 3/4 iterations. |
