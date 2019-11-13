@@ -30,6 +30,7 @@
 
 #include "crypto/common/Algorithm.h"
 #include "crypto/randomx/configuration.h"
+#include "base/tools/Object.h"
 
 
 struct randomx_dataset;
@@ -39,26 +40,35 @@ namespace xmrig
 {
 
 
+class Buffer;
 class RxCache;
 
 
 class RxDataset
 {
 public:
-    RxDataset(bool hugePages = true);
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxDataset)
+
+    RxDataset(bool hugePages, bool cache);
+    RxDataset(RxCache *cache);
     ~RxDataset();
 
-    inline bool isHugePages() const     { return m_flags & 1; }
-    inline randomx_dataset *get() const { return m_dataset; }
-    inline RxCache *cache() const       { return m_cache; }
+    inline bool isHugePages() const         { return m_flags & 1; }
+    inline randomx_dataset *get() const     { return m_dataset; }
+    inline RxCache *cache() const           { return m_cache; }
+    inline void setCache(RxCache *cache)    { m_cache = cache; }
 
-    bool init(const uint8_t *seed, uint32_t numThreads);
-    std::pair<size_t, size_t> hugePages() const;
+    bool init(const Buffer &seed, uint32_t numThreads);
+    size_t size(bool cache = true) const;
+    std::pair<uint32_t, uint32_t> hugePages(bool cache = true) const;
+    void *raw() const;
+    void setRaw(const void *raw);
 
-    static inline constexpr size_t size() { return RANDOMX_DATASET_MAX_SIZE; }
+    static inline constexpr size_t maxSize() { return RANDOMX_DATASET_MAX_SIZE; }
 
 private:
-    Algorithm m_algorithm;
+    void allocate(bool hugePages);
+
     int m_flags                = 0;
     randomx_dataset *m_dataset = nullptr;
     RxCache *m_cache           = nullptr;

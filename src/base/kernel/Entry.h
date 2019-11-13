@@ -39,7 +39,8 @@ public:
         Default,
         Usage,
         Version,
-        Topo
+        Topo,
+        Platforms
     };
 
     static Id get(const Process &process);

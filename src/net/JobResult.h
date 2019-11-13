@@ -28,7 +28,7 @@
 
 
 #include <memory.h>
-#include <stdint.h>
+#include <cstdint>
 
 
 #include "base/tools/String.h"
@@ -41,12 +41,13 @@ namespace xmrig {
 class JobResult
 {
 public:
-    inline JobResult() {}
+    JobResult() = delete;
 
     inline JobResult(const Job &job, uint32_t nonce, const uint8_t *result) :
         algorithm(job.algorithm()),
         clientId(job.clientId()),
         jobId(job.id()),
+        backend(job.backend()),
         nonce(nonce),
         diff(job.diff()),
         index(job.index())
@@ -56,16 +57,18 @@ public:
 
     inline const uint8_t *result() const    { return m_result; }
     inline uint64_t actualDiff() const      { return Job::toDiff(reinterpret_cast<const uint64_t*>(m_result)[3]); }
+    inline uint8_t *result()                { return m_result; }
 
     const Algorithm algorithm;
     const String clientId;
     const String jobId;
-    const uint32_t nonce    = 0;
-    const uint64_t diff     = 0;
-    const uint8_t index     = 0;
+    const uint32_t backend;
+    const uint32_t nonce;
+    const uint64_t diff;
+    const uint8_t index;
 
 private:
-    uint8_t m_result[32];
+    uint8_t m_result[32] = { 0 };
 };
 
 

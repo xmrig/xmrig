@@ -14,7 +14,7 @@
 #ifndef ARGON2_CORE_H
 #define ARGON2_CORE_H
 
-#include "argon2.h"
+#include "3rdparty/argon2.h"
 
 #if defined(_MSC_VER)
 #define ALIGN(n) __declspec(align(16))

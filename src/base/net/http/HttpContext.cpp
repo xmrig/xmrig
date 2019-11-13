@@ -136,7 +136,7 @@ void xmrig::HttpContext::closeAll()
 
 int xmrig::HttpContext::onHeaderField(http_parser *parser, const char *at, size_t length)
 {
-    HttpContext *ctx = static_cast<HttpContext*>(parser->data);
+    auto ctx = static_cast<HttpContext*>(parser->data);
 
     if (ctx->m_wasHeaderValue) {
         if (!ctx->m_lastHeaderField.empty()) {
@@ -155,7 +155,7 @@ int xmrig::HttpContext::onHeaderField(http_parser *parser, const char *at, size_
 
 int xmrig::HttpContext::onHeaderValue(http_parser *parser, const char *at, size_t length)
 {
-    HttpContext *ctx = static_cast<HttpContext*>(parser->data);
+    auto ctx = static_cast<HttpContext*>(parser->data);
 
     if (!ctx->m_wasHeaderValue) {
         ctx->m_lastHeaderValue = std::string(at, length);
@@ -185,7 +185,7 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
     settings->on_header_value = onHeaderValue;
 
     settings->on_headers_complete = [](http_parser* parser) -> int {
-        HttpContext *ctx = static_cast<HttpContext*>(parser->data);
+        auto ctx = static_cast<HttpContext*>(parser->data);
         ctx->status = parser->status_code;
 
         if (parser->type == HTTP_REQUEST) {
@@ -208,7 +208,7 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 
     settings->on_message_complete = [](http_parser *parser) -> int
     {
-        HttpContext *ctx = static_cast<HttpContext*>(parser->data);
+        auto ctx = static_cast<HttpContext*>(parser->data);
         ctx->m_listener->onHttpData(*ctx);
         ctx->m_listener = nullptr;
 
