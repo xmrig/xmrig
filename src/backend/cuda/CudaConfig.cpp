@@ -78,6 +78,16 @@ rapidjson::Value xmrig::CudaConfig::toJSON(rapidjson::Document &doc) const
 
 std::vector<xmrig::CudaLaunchData> xmrig::CudaConfig::get(const Miner *miner, const Algorithm &algorithm, const std::vector<CudaDevice> &devices) const
 {
+    auto deviceIndex = [&devices](uint32_t index) -> int {
+        for (uint32_t i = 0; i < devices.size(); ++i) {
+            if (devices[i].index() == index) {
+                return i;
+            }
+        }
+
+        return -1;
+    };
+
     std::vector<CudaLaunchData> out;
     const auto &threads = m_threads.get(algorithm);
 
@@ -85,15 +95,16 @@ std::vector<xmrig::CudaLaunchData> xmrig::CudaConfig::get(const Miner *miner, co
         return out;
     }
 
-    out.reserve(threads.count() * 2);
+    out.reserve(threads.count());
 
     for (const auto &thread : threads.data()) {
-        if (thread.index() >= devices.size()) {
+        const int index = deviceIndex(thread.index());
+        if (index == -1) {
             LOG_INFO("%s" YELLOW(" skip non-existing device with index ") YELLOW_BOLD("%u"), cuda_tag(), thread.index());
             continue;
         }
 
-        out.emplace_back(miner, algorithm, thread, devices[thread.index()]);
+        out.emplace_back(miner, algorithm, thread, devices[static_cast<size_t>(index)]);
     }
 
     return out;
@@ -153,7 +164,7 @@ void xmrig::CudaConfig::generate()
         return;
     }
 
-    const auto devices = CudaLib::devices(bfactor(), bsleep());
+    const auto devices = CudaLib::devices(bfactor(), bsleep(), m_devicesHint);
     if (devices.empty()) {
         return;
     }

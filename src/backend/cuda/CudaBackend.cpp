@@ -155,10 +155,13 @@ public:
             return;
         }
 
+        devices = CudaLib::devices(cuda.bfactor(), cuda.bsleep(), cuda.devicesHint());
+        if (devices.empty()) {
+            return printDisabled(kLabel, RED_S " (no devices)");
+        }
+
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" WHITE_BOLD("%s") BLACK_BOLD("/%s"), kLabel,
                    CudaLib::version(runtimeVersion).c_str(), CudaLib::version(driverVersion).c_str(), CudaLib::pluginVersion());
-
-        devices = CudaLib::devices(cuda.bfactor(), cuda.bsleep());
 
 #       ifdef XMRIG_FEATURE_NVML
         if (cuda.isNvmlEnabled()) {
@@ -172,7 +175,7 @@ public:
                            );
             }
             else {
-                printDisabled(kLabel, RED_S " (failed to load NVML)");
+                printDisabled(kNvmlLabel, RED_S " (failed to load NVML)");
             }
         }
         else {
