@@ -108,6 +108,8 @@ static const option options[] = {
     { "cuda",                  0, nullptr, IConfig::CudaKey               },
     { "cuda-loader",           1, nullptr, IConfig::CudaLoaderKey         },
     { "cuda-devices",          1, nullptr, IConfig::CudaDevicesKey        },
+    { "cuda-bfactor-hint",     1, nullptr, IConfig::CudaBFactorKey        },
+    { "cuda-bsleep-hint",      1, nullptr, IConfig::CudaBSleepKey         },
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     { "no-nvml",               0, nullptr, IConfig::NvmlKey               },

@@ -84,6 +84,8 @@ CUDA backend:
       --cuda                    enable CUDA mining backend
       --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)
       --cuda-devices=N          comma separated list of CUDA devices to use
+      --cuda-bfactor-hint=N     bfactor hint for autoconfig (0-12)
+      --cuda-bsleep-hint=N      bsleep hint for autoconfig
       --no-nvml                 disable NVML (NVIDIA Management Library) support
 
 Logging:
