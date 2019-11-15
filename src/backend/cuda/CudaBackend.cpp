@@ -457,9 +457,11 @@ void xmrig::CudaBackend::tick(uint64_t ticks)
     d_ptr->workers.tick(ticks);
 
 #   ifdef XMRIG_FEATURE_NVML
-    auto seconds = d_ptr->controller->config()->healthPrintTime();
-    if (seconds && ticks && (ticks % (seconds * 2)) == 0) {
-        d_ptr->printHealth();
+    if (isEnabled()) {
+        auto seconds = d_ptr->controller->config()->healthPrintTime();
+        if (seconds && ticks && (ticks % (seconds * 2)) == 0) {
+            d_ptr->printHealth();
+        }
     }
 #   endif
 }
