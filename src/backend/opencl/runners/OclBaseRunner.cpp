@@ -99,12 +99,14 @@ void xmrig::OclBaseRunner::init()
 {
     m_queue = OclLib::createCommandQueue(m_ctx, data().device.id());
 
-    size_t size = align(bufferSize());
+    size_t size         = align(bufferSize());
+    const size_t limit  = data().device.freeMemSize();
 
-    if (size < oneGiB && data().device.vendorId() == OCL_VENDOR_AMD && data().device.freeMemSize() >= oneGiB) {
-        m_buffer = OclSharedState::get(data().device.index()).createBuffer(m_ctx, size, m_offset);
+    if (size < oneGiB && data().device.vendorId() == OCL_VENDOR_AMD && limit >= oneGiB) {
+        m_buffer = OclSharedState::get(data().device.index()).createBuffer(m_ctx, size, m_offset, limit);
     }
-    else {
+
+    if (!m_buffer) {
         m_buffer = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, size);
     }
 
