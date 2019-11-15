@@ -133,7 +133,7 @@ struct RandomX_ConfigurationBase
 
 	uint32_t ConditionMask_Calculated;
 
-#if defined(XMRIG_ARM) && defined(__aarch64__)
+#if defined(XMRIG_ARMv8)
 	uint32_t Log2_ScratchpadL1;
 	uint32_t Log2_ScratchpadL2;
 	uint32_t Log2_ScratchpadL3;
