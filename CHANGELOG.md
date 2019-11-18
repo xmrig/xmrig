@@ -2,6 +2,7 @@
 - [#1234](https://github.com/xmrig/xmrig/issues/1234) Fixed compatibility with some AMD GPUs.
 - [#1284](https://github.com/xmrig/xmrig/issues/1284) Fixed build without RandomX.
 - [#1285](https://github.com/xmrig/xmrig/issues/1285) Added command line options `--cuda-bfactor-hint` and `--cuda-bsleep-hint`.
+- [#1290](https://github.com/xmrig/xmrig/pull/1290) Fixed 32-bit ARM compilation.
 
 # v5.0.0
 This version is first stable unified 3 in 1 GPU+CPU release, OpenCL support built in in miner and not require additional external dependencies on compile time, NVIDIA CUDA available as external [CUDA plugin](https://github.com/xmrig/xmrig-cuda), for convenient, 3 in 1 downloads with recent CUDA version also provided.
