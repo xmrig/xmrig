@@ -195,6 +195,12 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::CudaDevicesKey: /* --cuda-devices */
         set(doc, kCuda, kEnabled, true);
         return set(doc, kCuda, "devices-hint", arg);
+
+    case IConfig::CudaBFactorKey: /* --cuda-bfactor-hint */
+        return set(doc, kCuda, "bfactor-hint", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::CudaBSleepKey: /* --cuda-bsleep-hint */
+        return set(doc, kCuda, "bsleep-hint", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 #   endif
 
 #   ifdef XMRIG_FEATURE_NVML

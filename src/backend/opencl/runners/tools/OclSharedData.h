@@ -45,7 +45,7 @@ class OclSharedData
 public:
     OclSharedData() = default;
 
-    cl_mem createBuffer(cl_context context, size_t size, size_t &offset);
+    cl_mem createBuffer(cl_context context, size_t size, size_t &offset, size_t limit);
     uint64_t adjustDelay(size_t id);
     uint64_t resumeDelay(size_t id);
     void release();

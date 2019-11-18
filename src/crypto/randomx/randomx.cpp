@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(_M_X64) || defined(__x86_64__)
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
-#elif defined(XMRIG_ARM)
+#elif defined(XMRIG_ARMv8)
 #include "crypto/randomx/jit_compiler_a64_static.hpp"
 #endif
 
@@ -201,7 +201,7 @@ void RandomX_ConfigurationBase::Apply()
 
 #define JIT_HANDLE(x, prev) randomx::JitCompilerX86::engine[k] = &randomx::JitCompilerX86::h_##x
 
-#elif defined(XMRIG_ARM)
+#elif defined(XMRIG_ARMv8)
 
 	Log2_ScratchpadL1 = Log2(ScratchpadL1_Size);
 	Log2_ScratchpadL2 = Log2(ScratchpadL2_Size);
