@@ -54,7 +54,7 @@ protected:
     inline const char *mode() const override                                        { return m_client->mode(); }
     inline const char *tlsFingerprint() const override                              { return m_client->tlsFingerprint(); }
     inline const char *tlsVersion() const override                                  { return m_client->tlsVersion(); }
-    inline const Job &job() const override                                          { return m_client->job(); }
+    inline const Job &job() const override                                          { return m_job; }
     inline const Pool &pool() const override                                        { return m_client->pool(); }
     inline const String &ip() const override                                        { return m_client->ip(); }
     inline int id() const override                                                  { return m_client->id(); }
