@@ -163,7 +163,7 @@ void xmrig::Workers<T>::onReady(void *arg)
     assert(worker != nullptr);
 
     if (!worker || !worker->selfTest()) {
-        LOG_ERR("%s " RED("thread ") RED_BOLD("#%zu") RED(" self-test failed"), T::tag(), worker->id());
+        LOG_ERR("%s " RED("thread ") RED_BOLD("#%zu") RED(" self-test failed"), T::tag(), worker ? worker->id() : 0);
 
         handle->backend()->start(worker, false);
         delete worker;
