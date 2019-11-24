@@ -2,6 +2,8 @@
 
 #if (ALGO == ALGO_RX_0)
 #include "randomx_constants_monero.h"
+#elif (ALGO == ALGO_RX_V)
+#include "randomx_constants_v.h"
 #elif (ALGO == ALGO_RX_WOW)
 #include "randomx_constants_wow.h"
 #elif (ALGO == ALGO_RX_LOKI)
