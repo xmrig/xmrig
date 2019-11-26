@@ -157,7 +157,9 @@ size_t xmrig::Algorithm::l2() const
 
 size_t xmrig::Algorithm::l3() const
 {
+#   if defined(XMRIG_ALGO_RANDOMX) || defined(XMRIG_ALGO_ARGON2)
     constexpr size_t oneMiB = 0x100000;
+#   endif
 
     const Family f = family();
     assert(f != UNKNOWN);
