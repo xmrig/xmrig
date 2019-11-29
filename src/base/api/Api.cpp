@@ -49,6 +49,44 @@
 #endif
 
 
+#include <thread>
+
+
+namespace xmrig {
+
+
+static rapidjson::Value getResources(rapidjson::Document &doc)
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    size_t rss = 0;
+    uv_resident_set_memory(&rss);
+
+    Value out(kObjectType);
+    Value memory(kObjectType);
+    Value load_average(kArrayType);
+
+    memory.AddMember("total",               uv_get_total_memory(), allocator);
+    memory.AddMember("resident_set_memory", static_cast<uint64_t>(rss), allocator);
+
+    double loadavg[3] = { 0.0 };
+    uv_loadavg(loadavg);
+    load_average.PushBack(loadavg[0], allocator);
+    load_average.PushBack(loadavg[1], allocator);
+    load_average.PushBack(loadavg[2], allocator);
+
+    out.AddMember("memory",               memory, allocator);
+    out.AddMember("load_average",         load_average, allocator);
+    out.AddMember("hardware_concurrency", std::thread::hardware_concurrency(), allocator);
+
+    return out;
+}
+
+
+} // namespace xmrig
+
+
 xmrig::Api::Api(Base *base) :
     m_base(base),
     m_timestamp(Chrono::currentMSecsSinceEpoch())
@@ -114,10 +152,13 @@ void xmrig::Api::exec(IApiRequest &request)
         auto &allocator = request.doc().GetAllocator();
 
         request.accept();
-        request.reply().AddMember("id",         StringRef(m_id),       allocator);
-        request.reply().AddMember("worker_id",  StringRef(m_workerId), allocator);
-        request.reply().AddMember("uptime",     (Chrono::currentMSecsSinceEpoch() - m_timestamp) / 1000, allocator);
-        request.reply().AddMember("restricted", request.isRestricted(), allocator);
+
+        auto &reply = request.reply();
+        reply.AddMember("id",         StringRef(m_id),       allocator);
+        reply.AddMember("worker_id",  StringRef(m_workerId), allocator);
+        reply.AddMember("uptime",     (Chrono::currentMSecsSinceEpoch() - m_timestamp) / 1000, allocator);
+        reply.AddMember("restricted", request.isRestricted(), allocator);
+        reply.AddMember("resources",  getResources(request.doc()), allocator);
 
         Value features(kArrayType);
 #       ifdef XMRIG_FEATURE_API
@@ -141,7 +182,7 @@ void xmrig::Api::exec(IApiRequest &request)
 #       ifdef XMRIG_FEATURE_OPENCL
         features.PushBack("opencl", allocator);
 #       endif
-        request.reply().AddMember("features", features, allocator);
+        reply.AddMember("features", features, allocator);
     }
 
     for (IApiListener *listener : m_listeners) {
