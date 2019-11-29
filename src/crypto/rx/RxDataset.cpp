@@ -167,7 +167,7 @@ void xmrig::RxDataset::allocate(bool hugePages)
         return;
     }
 
-    if (m_mode == RxConfig::AutoMode && uv_get_total_memory() < (maxSize() + RxCache::maxSize())) {
+    if (m_mode == RxConfig::AutoMode && uv_get_free_memory() < (maxSize() + RxCache::maxSize())) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "not enough memory for RandomX dataset", rx_tag());
 
         return;

@@ -104,9 +104,12 @@ static void print_cpu(Config *)
 
 static void print_threads(Config *config)
 {
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%.1f GB"),
+    constexpr size_t oneGiB = 1024U * 1024U * 1024U;
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%.1f/%.1f GB"),
                "MEMORY",
-               static_cast<double>(uv_get_total_memory()) / (1024U * 1024U * 1024U)
+               static_cast<double>(uv_get_free_memory()) / oneGiB,
+               static_cast<double>(uv_get_total_memory()) / oneGiB
                );
 
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),

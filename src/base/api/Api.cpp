@@ -67,6 +67,7 @@ static rapidjson::Value getResources(rapidjson::Document &doc)
     Value memory(kObjectType);
     Value load_average(kArrayType);
 
+    memory.AddMember("free",                uv_get_free_memory(), allocator);
     memory.AddMember("total",               uv_get_total_memory(), allocator);
     memory.AddMember("resident_set_memory", static_cast<uint64_t>(rss), allocator);
 
