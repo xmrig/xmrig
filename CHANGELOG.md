@@ -1,3 +1,9 @@
+# v5.1.0
+- [#1307](https://github.com/xmrig/xmrig/issues/1307) Fixed mining resume after donation round for pools with `self-select` feature.
+- [#1318](https://github.com/xmrig/xmrig/issues/1318#issuecomment-559676080) Added option `"mode"` (or `--randomx-mode`) for RandomX.
+  - Added memory information on miner startup.
+  - Added `resources` field to summary API with memory information and load average.
+
 # v5.0.1
 - [#1234](https://github.com/xmrig/xmrig/issues/1234) Fixed compatibility with some AMD GPUs.
 - [#1284](https://github.com/xmrig/xmrig/issues/1284) Fixed build without RandomX.
