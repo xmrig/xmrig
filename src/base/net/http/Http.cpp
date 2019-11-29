@@ -23,9 +23,9 @@
  */
 
 
+#include "base/net/http/Http.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
-#include "base/net/http/Http.h"
 
 
 namespace xmrig {
@@ -41,10 +41,7 @@ static const char *kToken      = "access-token";
 
 
 xmrig::Http::Http() :
-    m_enabled(false),
-    m_restricted(true),
-    m_host(kLocalhost),
-    m_port(0)
+    m_host(kLocalhost)
 {
 }
 

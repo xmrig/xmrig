@@ -59,6 +59,7 @@ public:
 
     size_t parse(const char *data, size_t size);
     std::string ip() const;
+    uint64_t elapsed() const;
     void close(int status = 0);
 
     static HttpContext *get(uint64_t id);
@@ -74,7 +75,8 @@ private:
 
     void setHeader();
 
-    bool m_wasHeaderValue;
+    bool m_wasHeaderValue           = false;
+    const uint64_t m_timestamp;
     http_parser *m_parser;
     IHttpListener *m_listener;
     std::string m_lastHeaderField;

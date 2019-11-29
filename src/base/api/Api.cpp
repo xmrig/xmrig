@@ -51,10 +51,7 @@
 
 xmrig::Api::Api(Base *base) :
     m_base(base),
-    m_id(),
-    m_workerId(),
-    m_timestamp(Chrono::currentMSecsSinceEpoch()),
-    m_httpd(nullptr)
+    m_timestamp(Chrono::currentMSecsSinceEpoch())
 {
     base->addListener(this);
 
@@ -180,9 +177,9 @@ void xmrig::Api::genId(const String &id)
             uint8_t hash[200];
             const size_t addrSize = sizeof(interfaces[i].phys_addr);
             const size_t inSize   = (sizeof(APP_KIND) - 1) + addrSize + sizeof(uint16_t);
-            const uint16_t port   = static_cast<uint16_t>(m_base->config()->http().port());
+            const auto port       = static_cast<uint16_t>(m_base->config()->http().port());
 
-            uint8_t *input = new uint8_t[inSize]();
+            auto*input = new uint8_t[inSize]();
             memcpy(input, &port, sizeof(uint16_t));
             memcpy(input + sizeof(uint16_t), interfaces[i].phys_addr, addrSize);
             memcpy(input + sizeof(uint16_t) + addrSize, APP_KIND, (sizeof(APP_KIND) - 1));
