@@ -102,16 +102,25 @@ static void print_cpu(Config *)
 }
 
 
-static void print_threads(Config *config)
+static void print_memory()
 {
     constexpr size_t oneGiB = 1024U * 1024U * 1024U;
+    const auto freeMem      = static_cast<double>(uv_get_free_memory());
+    const auto totalMem     = static_cast<double>(uv_get_total_memory());
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%.1f/%.1f GB"),
+    const double percent = freeMem > 0 ? ((totalMem - freeMem) / totalMem * 100.0) : 100.0;
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%.1f/%.1f GB") BLACK_BOLD(" (%.0f%%)"),
                "MEMORY",
-               static_cast<double>(uv_get_free_memory()) / oneGiB,
-               static_cast<double>(uv_get_total_memory()) / oneGiB
+               (totalMem - freeMem) / oneGiB,
+               totalMem / oneGiB,
+               percent
                );
+}
 
+
+static void print_threads(Config *config)
+{
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),
                "DONATE",
                config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
@@ -152,6 +161,7 @@ void xmrig::Summary::print(Controller *controller)
     controller->config()->printVersions();
     print_memory(controller->config());
     print_cpu(controller->config());
+    print_memory();
     print_threads(controller->config());
     controller->config()->pools().print();
 
