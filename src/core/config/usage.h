@@ -86,6 +86,7 @@ static inline const std::string &usage()
 #   ifdef XMRIG_ALGO_RANDOMX
     u += "      --randomx-init=N          threads count to initialize RandomX dataset\n";
     u += "      --randomx-no-numa         disable NUMA support for RandomX\n";
+    u += "      --randomx-mode=MODE       RandomX mode: auto, fast, light\n";
 #   endif
 
 #   ifdef XMRIG_FEATURE_HTTP

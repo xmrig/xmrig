@@ -25,9 +25,54 @@
 
 #include "crypto/rx/RxConfig.h"
 #include "backend/cpu/Cpu.h"
+#include "rapidjson/document.h"
+
+
+#include <array>
+#include <algorithm>
+
+
+#ifdef _MSC_VER
+#   define strcasecmp  _stricmp
+#endif
+
+
+namespace xmrig {
+
+
+static const std::array<const char *, RxConfig::ModeMax> modeNames = { "auto", "fast", "light" };
+
+
+} // namespace xmrig
+
+
+const char *xmrig::RxConfig::modeName() const
+{
+    return modeNames[m_mode];
+}
 
 
 uint32_t xmrig::RxConfig::threads() const
 {
     return m_threads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(m_threads);
+}
+
+
+xmrig::RxConfig::Mode xmrig::RxConfig::readMode(const rapidjson::Value &value) const
+{
+    if (value.IsUint()) {
+        return static_cast<Mode>(std::min(value.GetUint(), ModeMax - 1));
+    }
+
+    if (value.IsString()) {
+        auto mode = value.GetString();
+
+        for (size_t i = 0; i < modeNames.size(); i++) {
+            if (strcasecmp(mode, modeNames[i]) == 0) {
+                return static_cast<Mode>(i);
+            }
+        }
+    }
+
+    return LightMode;
 }

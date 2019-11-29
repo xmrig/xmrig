@@ -89,6 +89,7 @@ public:
         AssemblyKey          = 1015,
         RandomXInitKey       = 1022,
         RandomXNumaKey       = 1023,
+        RandomXModeKey       = 1029,
         CPUMaxThreadsKey     = 1026,
         MemoryPoolKey        = 1027,
 
