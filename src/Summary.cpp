@@ -104,6 +104,11 @@ static void print_cpu(Config *)
 
 static void print_threads(Config *config)
 {
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%.1f GB"),
+               "MEMORY",
+               static_cast<double>(uv_get_total_memory()) / (1024U * 1024U * 1024U)
+               );
+
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),
                "DONATE",
                config->pools().donateLevel() == 0 ? RED_BOLD_S : "",
