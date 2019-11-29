@@ -113,6 +113,8 @@ static inline const std::string &usage()
     u += "      --cuda                    enable CUDA mining backend\n";
     u += "      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)\n";
     u += "      --cuda-devices=N          comma separated list of CUDA devices to use\n";
+    u += "      --cuda-bfactor-hint=N     bfactor hint for autoconfig (0-12)\n";
+    u += "      --cuda-bsleep-hint=N      bsleep hint for autoconfig\n";
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";
