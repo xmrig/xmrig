@@ -74,5 +74,5 @@ xmrig::RxConfig::Mode xmrig::RxConfig::readMode(const rapidjson::Value &value) c
         }
     }
 
-    return LightMode;
+    return AutoMode;
 }
