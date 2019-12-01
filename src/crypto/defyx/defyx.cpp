@@ -126,8 +126,8 @@ extern "C" {
 
 		// Finish current hash and fill the scratchpad for the next hash at the same time
 		//rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
-		sipesh(tempHash, sizeof(tempHash), input, inputSize, input, inputSize, 0, 0);
-		k12(input, inputSize, tempHash);
+		sipesh(tempHash, sizeof(tempHash), nextInput, nextInputSize, nextInput, nextInputSize, 0, 0);
+		k12(nextInput, nextInputSize, tempHash);
 		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
 	}
 
