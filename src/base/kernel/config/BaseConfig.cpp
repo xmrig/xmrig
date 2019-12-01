@@ -63,11 +63,6 @@
 #include "version.h"
 
 
-xmrig::BaseConfig::BaseConfig()
-{
-}
-
-
 void xmrig::BaseConfig::printVersions()
 {
     char buf[256] = { 0 };

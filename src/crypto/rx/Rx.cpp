@@ -70,7 +70,7 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages)
         return true;
     }
 
-    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(), hugePages);
+    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(), hugePages, config.mode());
 
     return false;
 }

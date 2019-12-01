@@ -38,12 +38,12 @@ namespace xmrig {
 class HttpData
 {
 public:
-    inline HttpData(uint64_t id) : method(0), status(0), m_id(id) {}
+    inline HttpData(uint64_t id) : m_id(id) {}
 
     inline uint64_t id() const { return m_id; }
 
-    int method;
-    int status;
+    int method  = 0;
+    int status  = 0;
     std::map<const std::string, const std::string> headers;
     std::string body;
     std::string url;

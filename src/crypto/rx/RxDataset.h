@@ -28,9 +28,10 @@
 #define XMRIG_RX_DATASET_H
 
 
+#include "base/tools/Object.h"
 #include "crypto/common/Algorithm.h"
 #include "crypto/randomx/configuration.h"
-#include "base/tools/Object.h"
+#include "crypto/rx/RxConfig.h"
 
 
 struct randomx_dataset;
@@ -49,7 +50,7 @@ class RxDataset
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxDataset)
 
-    RxDataset(bool hugePages, bool cache);
+    RxDataset(bool hugePages, bool cache, RxConfig::Mode mode);
     RxDataset(RxCache *cache);
     ~RxDataset();
 
@@ -69,9 +70,10 @@ public:
 private:
     void allocate(bool hugePages);
 
-    int m_flags                = 0;
-    randomx_dataset *m_dataset = nullptr;
-    RxCache *m_cache           = nullptr;
+    const RxConfig::Mode m_mode = RxConfig::FastMode;
+    int m_flags                 = 0;
+    randomx_dataset *m_dataset  = nullptr;
+    RxCache *m_cache            = nullptr;
 };
 
 

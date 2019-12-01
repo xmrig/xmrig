@@ -63,6 +63,7 @@ CPU backend:
       --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer
       --randomx-init=N          threads count to initialize RandomX dataset
       --randomx-no-numa         disable NUMA support for RandomX
+      --randomx-mode=MODE       RandomX mode: auto, fast, light
 
 API:
       --api-worker-id=ID        custom worker-id for API

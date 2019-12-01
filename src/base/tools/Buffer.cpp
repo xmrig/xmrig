@@ -31,10 +31,12 @@ static inline uint8_t hf_hex2bin(uint8_t c, bool &err)
     if (c >= '0' && c <= '9') {
         return c - '0';
     }
-    else if (c >= 'a' && c <= 'f') {
+
+    if (c >= 'a' && c <= 'f') {
         return c - 'a' + 0xA;
     }
-    else if (c >= 'A' && c <= 'F') {
+
+    if (c >= 'A' && c <= 'F') {
         return c - 'A' + 0xA;
     }
 
@@ -77,7 +79,9 @@ xmrig::Buffer::Buffer(const char *data, size_t size)
 xmrig::Buffer::Buffer(size_t size) :
     m_size(size)
 {
-    m_data = new char[size]();
+    if (size > 0) {
+        m_data = new char[size]();
+    }
 }
 
 
@@ -105,6 +109,10 @@ void xmrig::Buffer::from(const char *data, size_t size)
 
 xmrig::Buffer xmrig::Buffer::allocUnsafe(size_t size)
 {
+    if (size == 0) {
+        return {};
+    }
+
     Buffer buf;
     buf.m_size = size;
     buf.m_data = new char[size];
@@ -169,6 +177,13 @@ xmrig::String xmrig::Buffer::toHex() const
 
 void xmrig::Buffer::copy(const char *data, size_t size)
 {
+    if (size == 0) {
+        m_data = nullptr;
+        m_size = 0;
+
+        return;
+    }
+
     m_data = new char[size];
     m_size = size;
 

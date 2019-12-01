@@ -198,7 +198,7 @@ private:
             return;
         }
 
-        auto dataset = new RxDataset(hugePages, false);
+        auto dataset = new RxDataset(hugePages, false, RxConfig::FastMode);
         if (!dataset->get()) {
             printSkipped(nodeId, "failed to allocate dataset");
 
@@ -339,14 +339,14 @@ xmrig::RxDataset *xmrig::RxNUMAStorage::dataset(const Job &job, uint32_t nodeId)
 std::pair<uint32_t, uint32_t> xmrig::RxNUMAStorage::hugePages() const
 {
     if (!d_ptr->isAllocated()) {
-        return { 0u, 0u };
+        return { 0U, 0U };
     }
 
     return d_ptr->hugePages();
 }
 
 
-void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages)
+void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, RxConfig::Mode)
 {
     d_ptr->setSeed(seed);
 

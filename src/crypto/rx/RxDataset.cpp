@@ -26,6 +26,8 @@
 
 
 #include "crypto/rx/RxDataset.h"
+#include "backend/common/Tags.h"
+#include "base/io/log/Log.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
@@ -33,12 +35,14 @@
 
 
 #include <thread>
+#include <uv.h>
 
 
 static_assert(RANDOMX_FLAG_LARGE_PAGES == 1, "RANDOMX_FLAG_LARGE_PAGES flag mismatch");
 
 
-xmrig::RxDataset::RxDataset(bool hugePages, bool cache)
+xmrig::RxDataset::RxDataset(bool hugePages, bool cache, RxConfig::Mode mode) :
+    m_mode(mode)
 {
     allocate(hugePages);
 
@@ -118,7 +122,7 @@ size_t xmrig::RxDataset::size(bool cache) const
 
 std::pair<uint32_t, uint32_t> xmrig::RxDataset::hugePages(bool cache) const
 {
-    constexpr size_t twoMiB     = 2u * 1024u * 1024u;
+    constexpr size_t twoMiB     = 2U * 1024U * 1024U;
     constexpr size_t cacheSize  = VirtualMemory::align(RxCache::maxSize(), twoMiB) / twoMiB;
     size_t total                = VirtualMemory::align(maxSize(), twoMiB) / twoMiB;
 
@@ -157,6 +161,18 @@ void xmrig::RxDataset::setRaw(const void *raw)
 
 void xmrig::RxDataset::allocate(bool hugePages)
 {
+    if (m_mode == RxConfig::LightMode) {
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "fast RandomX mode disabled by config", rx_tag());
+
+        return;
+    }
+
+    if (m_mode == RxConfig::AutoMode && uv_get_total_memory() < (maxSize() + RxCache::maxSize())) {
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "not enough memory for RandomX dataset", rx_tag());
+
+        return;
+    }
+
     if (hugePages) {
         m_flags   = RANDOMX_FLAG_LARGE_PAGES;
         m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));

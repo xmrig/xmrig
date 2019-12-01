@@ -58,7 +58,7 @@ namespace xmrig {
 extern template class Threads<OclThreads>;
 
 
-constexpr const size_t oneMiB   = 1024u * 1024u;
+constexpr const size_t oneMiB   = 1024U * 1024U;
 static const char *tag          = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
 static const String kType       = "opencl";
 static std::mutex mutex;

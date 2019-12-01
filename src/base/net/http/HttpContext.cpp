@@ -24,27 +24,30 @@
  */
 
 
+#include "base/net/http/HttpContext.h"
+#include "3rdparty/http-parser/http_parser.h"
+#include "base/kernel/interfaces/IHttpListener.h"
+#include "base/tools/Chrono.h"
+
+
 #include <algorithm>
 #include <uv.h>
 
 
-#include "3rdparty/http-parser/http_parser.h"
-#include "base/kernel/interfaces/IHttpListener.h"
-#include "base/net/http/HttpContext.h"
-
-
 namespace xmrig {
+
 
 static http_parser_settings http_settings;
 static std::map<uint64_t, HttpContext *> storage;
 static uint64_t SEQUENCE = 0;
+
 
 } // namespace xmrig
 
 
 xmrig::HttpContext::HttpContext(int parser_type, IHttpListener *listener) :
     HttpData(SEQUENCE++),
-    m_wasHeaderValue(false),
+    m_timestamp(Chrono::steadyMSecs()),
     m_listener(listener)
 {
     storage[id()] = this;
@@ -93,6 +96,12 @@ std::string xmrig::HttpContext::ip() const
     }
 
     return ip;
+}
+
+
+uint64_t xmrig::HttpContext::elapsed() const
+{
+    return Chrono::steadyMSecs() - m_timestamp;
 }
 
 
