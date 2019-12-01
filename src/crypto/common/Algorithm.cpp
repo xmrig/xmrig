@@ -183,7 +183,7 @@ size_t xmrig::Algorithm::l3() const
             return oneMiB;
 
         case DEFYX:
-            return 0x40000;
+            return oneMiB / 4;
 
         case RX_ARQ:
             return oneMiB / 4;
