@@ -24,19 +24,22 @@
  */
 
 
-#include <sstream>
-#include <string.h>
-#include <uv.h>
-
-
+#include "base/net/http/HttpResponse.h"
 #include "3rdparty/http-parser/http_parser.h"
 #include "base/io/log/Log.h"
 #include "base/net/http/HttpContext.h"
-#include "base/net/http/HttpResponse.h"
 #include "base/tools/Baton.h"
+#include "base/tools/Object.h"
+
+
+#include <cinttypes>
+#include <cstring>
+#include <sstream>
+#include <uv.h>
 
 
 namespace xmrig {
+
 
 static const char *kCRLF      = "\r\n";
 static const char *kUserAgent = "user-agent";
@@ -45,6 +48,8 @@ static const char *kUserAgent = "user-agent";
 class WriteBaton : public Baton<uv_write_t>
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(WriteBaton)
+
     inline WriteBaton(const std::stringstream &ss, const char *data, size_t size, HttpContext *ctx) :
         m_ctx(ctx),
         m_header(ss.str())
@@ -79,7 +84,7 @@ public:
     inline static void onWrite(uv_write_t *req, int) { delete reinterpret_cast<WriteBaton *>(req->data); }
 
 
-    uv_buf_t bufs[2];
+    uv_buf_t bufs[2]{};
 
 private:
     HttpContext *m_ctx;
@@ -98,7 +103,7 @@ xmrig::HttpResponse::HttpResponse(uint64_t id, int statusCode) :
 
 bool xmrig::HttpResponse::isAlive() const
 {
-    HttpContext *ctx = HttpContext::get(m_id);
+    auto ctx = HttpContext::get(m_id);
 
     return ctx && uv_is_writable(ctx->stream());
 }
@@ -129,8 +134,8 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
 
     ss << kCRLF;
 
-    HttpContext *ctx  = HttpContext::get(m_id);
-    WriteBaton *baton = new WriteBaton(ss, data, size, ctx);
+    auto ctx   = HttpContext::get(m_id);
+    auto baton = new WriteBaton(ss, data, size, ctx);
 
 #   ifndef APP_DEBUG
     if (statusCode() >= 400)
@@ -138,13 +143,14 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
     {
         const bool err = statusCode() >= 400;
 
-        Log::print(err ? Log::ERR : Log::INFO, CYAN("%s ") CLEAR MAGENTA_BOLD("%s") WHITE_BOLD(" %s ") CSI "1;%dm%d " CLEAR WHITE_BOLD("%zu ") BLACK_BOLD("\"%s\""),
+        Log::print(err ? Log::ERR : Log::INFO, CYAN("%s ") CLEAR MAGENTA_BOLD("%s") WHITE_BOLD(" %s ") CSI "1;%dm%d " CLEAR WHITE_BOLD("%zu ") CYAN_BOLD("%" PRIu64 "ms ") BLACK_BOLD("\"%s\""),
                    ctx->ip().c_str(),
                    http_method_str(static_cast<http_method>(ctx->method)),
                    ctx->url.c_str(),
                    err ? 31 : 32,
                    statusCode(),
                    baton->size(),
+                   ctx->elapsed(),
                    ctx->headers.count(kUserAgent) ? ctx->headers.at(kUserAgent).c_str() : nullptr
                    );
     }

@@ -33,6 +33,4 @@ xmrig::ApiRequest::ApiRequest(Source source, bool restricted) :
 }
 
 
-xmrig::ApiRequest::~ApiRequest()
-{
-}
+xmrig::ApiRequest::~ApiRequest() = default;

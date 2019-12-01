@@ -160,6 +160,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::RandomXNumaKey: /* --randomx-no-numa */
         return set(doc, kRandomX, "numa", false);
+
+    case IConfig::RandomXModeKey: /* --randomx-mode */
+        return set(doc, kRandomX, "mode", arg);
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL

@@ -98,6 +98,7 @@ static const option options[] = {
 #   ifdef XMRIG_ALGO_RANDOMX
     { "randomx-init",          1, nullptr, IConfig::RandomXInitKey        },
     { "randomx-no-numa",       0, nullptr, IConfig::RandomXNumaKey        },
+    { "randomx-mode",          1, nullptr, IConfig::RandomXModeKey        },
 #   endif
 #   ifdef XMRIG_FEATURE_OPENCL
     { "opencl",                0, nullptr, IConfig::OclKey                },

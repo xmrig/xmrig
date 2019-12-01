@@ -109,4 +109,26 @@ extern "C" {
 		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
 	}
 
+	void defyx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
+		//rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		sipesh(tempHash, sizeof(tempHash), input, inputSize, input, inputSize, 0, 0);
+		k12(input, inputSize, tempHash);
+		machine->initScratchpad(tempHash);
+	}
+
+	void defyx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
+		machine->resetRoundingMode();
+		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+			machine->run(&tempHash);
+			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+		}
+		machine->run(&tempHash);
+
+		// Finish current hash and fill the scratchpad for the next hash at the same time
+		//rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
+		sipesh(tempHash, sizeof(tempHash), input, inputSize, input, inputSize, 0, 0);
+		k12(input, inputSize, tempHash);
+		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
+	}
+
 }

@@ -64,7 +64,7 @@ namespace xmrig {
 extern template class Threads<CudaThreads>;
 
 
-constexpr const size_t oneMiB   = 1024u * 1024u;
+constexpr const size_t oneMiB   = 1024U * 1024U;
 static const char *kLabel       = "CUDA";
 static const char *tag          = GREEN_BG_BOLD(WHITE_BOLD_S " nv  ");
 static const String kType       = "cuda";
@@ -249,7 +249,7 @@ public:
 
             std::string fans;
             if (!health.fanSpeed.empty()) {
-                for (uint32_t i = 0; i < health.fanSpeed.size(); ++i) {
+                for (size_t i = 0; i < health.fanSpeed.size(); ++i) {
                     fans += " fan" + std::to_string(i) + ":" CYAN_BOLD_S + std::to_string(health.fanSpeed[i]) + "%" CLEAR;
                 }
             }

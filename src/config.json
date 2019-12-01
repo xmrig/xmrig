@@ -18,6 +18,7 @@
     "colors": true,
     "randomx": {
         "init": -1,
+        "mode": "auto",
         "numa": true
     },
     "cpu": {

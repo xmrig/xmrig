@@ -66,7 +66,7 @@ public:
     inline static void onWrite(uv_write_t *req, int) { delete reinterpret_cast<ClientWriteBaton *>(req->data); }
 
 
-    uv_buf_t bufs[2];
+    uv_buf_t bufs[2]{};
 
 private:
     std::string m_body;
