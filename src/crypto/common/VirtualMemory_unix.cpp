@@ -69,11 +69,19 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
     return mem == MAP_FAILED ? nullptr : mem;
 }
 
+#   ifndef HAVE_BUILTIN_CLEAR_CACHE
+// Even though Clang doesn't provide __builtin___clear_cache, compiler-rt,
+// which is part of the LLVM project, still defines this function, same as libgcc.
+// So calling this should do the same thing as the builtin.
+extern "C" void __clear_cache(void* start, void* end);
+#   endif
 
 void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 {
 #   ifdef HAVE_BUILTIN_CLEAR_CACHE
     __builtin___clear_cache(reinterpret_cast<char*>(p), reinterpret_cast<char*>(p) + size);
+#   else
+    __clear_cache(p, (void*)((char*)p + size));
 #   endif
 }
 

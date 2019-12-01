@@ -29,6 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdexcept>
 #include <cstring>
 #include <climits>
+#include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/jit_compiler_x86.hpp"
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
 #include "crypto/randomx/superscalar.hpp"
@@ -218,6 +219,7 @@ namespace randomx {
 		memcpy(code + codePos, RandomX_CurrentConfig.codeReadDatasetTweaked, readDatasetSize);
 		codePos += readDatasetSize;
 		generateProgramEpilogue(prog, pcfg);
+		xmrig::VirtualMemory::flushInstructionCache(code, getCodeSize());
 	}
 
 	void JitCompilerX86::generateProgramLight(Program& prog, ProgramConfiguration& pcfg, uint32_t datasetOffset) {
@@ -229,6 +231,7 @@ namespace randomx {
 		emit32(superScalarHashOffset - (codePos + 4), code, codePos);
 		emit(codeReadDatasetLightSshFin, readDatasetLightFinSize, code, codePos);
 		generateProgramEpilogue(prog, pcfg);
+        xmrig::VirtualMemory::flushInstructionCache(code, getCodeSize());
 	}
 
 	template<size_t N>
@@ -258,6 +261,7 @@ namespace randomx {
 			}
 		}
 		emitByte(RET, code, codePos);
+        xmrig::VirtualMemory::flushInstructionCache(code, getCodeSize());
 	}
 
 	template
@@ -265,6 +269,7 @@ namespace randomx {
 
 	void JitCompilerX86::generateDatasetInitCode() {
 		memcpy(code, codeDatasetInit, datasetInitSize);
+        xmrig::VirtualMemory::flushInstructionCache(code, getCodeSize());
 	}
 
 	void JitCompilerX86::generateProgramPrologue(Program& prog, ProgramConfiguration& pcfg) {
