@@ -31,9 +31,6 @@
 #include "base/net/stratum/Pools.h"
 
 
-struct option;
-
-
 namespace xmrig {
 
 
@@ -43,7 +40,7 @@ class IJsonReader;
 class BaseConfig : public IConfig
 {
 public:
-    BaseConfig();
+    BaseConfig() = default;
 
     inline bool isAutoSave() const                 { return m_autoSave; }
     inline bool isBackground() const               { return m_background; }

@@ -38,6 +38,13 @@ namespace xmrig {
 class RxConfig
 {
 public:
+    enum Mode : uint32_t {
+        AutoMode,
+        FastMode,
+        LightMode,
+        ModeMax
+    };
+
     bool read(const rapidjson::Value &value);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
@@ -47,11 +54,17 @@ public:
     inline std::vector<uint32_t> nodeset() const { return std::vector<uint32_t>(); }
 #   endif
 
+    const char *modeName() const;
     uint32_t threads() const;
 
+    inline Mode mode() const    { return m_mode; }
+
 private:
+    Mode readMode(const rapidjson::Value &value) const;
+
     bool m_numa     = true;
     int m_threads   = -1;
+    Mode m_mode     = AutoMode;
 
 #   ifdef XMRIG_FEATURE_HWLOC
     std::vector<uint32_t> m_nodeset;

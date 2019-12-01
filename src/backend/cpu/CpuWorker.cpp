@@ -185,8 +185,20 @@ void xmrig::CpuWorker<N>::start()
             consumeJob();
         }
 
+        uint64_t storeStatsMask = 7;
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        bool first = true;
+        uint64_t tempHash[8] = {};
+
+        // RandomX is faster, we don't need to store stats so often
+        if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
+            storeStatsMask = 63;
+        }
+#       endif
+
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
-            if ((m_count & 0x7) == 0) {
+            if ((m_count & storeStatsMask) == 0) {
                 storeStats();
             }
 
@@ -196,26 +208,34 @@ void xmrig::CpuWorker<N>::start()
                 break;
             }
 
+            uint32_t current_job_nonces[N];
+            for (size_t i = 0; i < N; ++i) {
+                current_job_nonces[i] = *m_job.nonce(i);
+            }
+
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
-                randomx_calculate_hash(m_vm->get(), m_job.blob(), job.size(), m_hash);
+                if (first) {
+                    first = false;
+                    randomx_calculate_hash_first(m_vm->get(), tempHash, m_job.blob(), job.size());
+                }
+                m_job.nextRound(kReserveCount, 1);
+                randomx_calculate_hash_next(m_vm->get(), tempHash, m_job.blob(), job.size(), m_hash);
             }
             else
 #           endif
             {
                 fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
+                m_job.nextRound(kReserveCount, 1);
             }
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
-                    JobResults::submit(job, *m_job.nonce(i), m_hash + (i * 32));
+                    JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
                 }
             }
 
-            m_job.nextRound(kReserveCount, 1);
             m_count += N;
-
-            std::this_thread::yield();
         }
 
         consumeJob();

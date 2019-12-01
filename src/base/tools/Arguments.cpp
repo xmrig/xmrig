@@ -60,17 +60,17 @@ void xmrig::Arguments::add(const char *arg)
 
     const size_t size = strlen(arg);
     if (size > 4 && arg[0] == '-' && arg[1] == '-') {
-        const char *p = strstr(arg, "=");
+        const char *p = strchr(arg, '=');
 
         if (p) {
-            const size_t keySize = static_cast<size_t>(p - arg);
+            const auto keySize = static_cast<size_t>(p - arg);
 
-            m_data.push_back(String(arg, keySize));
-            m_data.push_back(arg + keySize + 1);
+            m_data.emplace_back(arg, keySize);
+            m_data.emplace_back(arg + keySize + 1);
 
             return;
         }
     }
 
-    m_data.push_back(arg);
+    m_data.emplace_back(arg);
 }

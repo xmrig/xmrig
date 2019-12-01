@@ -70,10 +70,10 @@ private:
     void genWorkerId(const String &id);
 
     Base *m_base;
-    char m_id[32];
-    char m_workerId[128];
+    char m_id[32]{};
+    char m_workerId[128]{};
     const uint64_t m_timestamp;
-    Httpd *m_httpd;
+    Httpd *m_httpd = nullptr;
     std::vector<IApiListener *> m_listeners;
 };
 

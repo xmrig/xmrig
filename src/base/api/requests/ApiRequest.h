@@ -29,6 +29,7 @@
 
 #include "base/api/interfaces/IApiRequest.h"
 #include "base/tools/String.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -37,6 +38,8 @@ namespace xmrig {
 class ApiRequest : public IApiRequest
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(ApiRequest)
+
     ApiRequest(Source source, bool restricted);
     ~ApiRequest() override;
 
@@ -63,8 +66,8 @@ protected:
     String m_rpcMethod;
 
 private:
-    bool m_restricted;
-    Source m_source;
+    const bool m_restricted;
+    const Source m_source;
 };
 
 

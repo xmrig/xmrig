@@ -1,5 +1,5 @@
 # CMake options
-This document contains list of useful cmake options.
+**Recent version of this document: https://xmrig.com/docs/miner/cmake-options**
 
 ## Algorithms
 

@@ -109,6 +109,11 @@ void xmrig::Workers<T>::start(const std::vector<T> &data)
 
     for (Thread<T> *worker : m_workers) {
         worker->start(Workers<T>::onReady);
+
+        // This sleep is important for optimal caching!
+        // Threads must allocate scratchpads in order so that adjacent cores will use adjacent scratchpads
+        // Sub-optimal caching can result in up to 0.5% hashrate penalty
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
 
@@ -163,7 +168,7 @@ void xmrig::Workers<T>::onReady(void *arg)
     assert(worker != nullptr);
 
     if (!worker || !worker->selfTest()) {
-        LOG_ERR("%s " RED("thread ") RED_BOLD("#%zu") RED(" self-test failed"), T::tag(), worker->id());
+        LOG_ERR("%s " RED("thread ") RED_BOLD("#%zu") RED(" self-test failed"), T::tag(), worker ? worker->id() : 0);
 
         handle->backend()->start(worker, false);
         delete worker;

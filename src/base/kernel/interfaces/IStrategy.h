@@ -26,7 +26,7 @@
 #define XMRIG_ISTRATEGY_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace xmrig {

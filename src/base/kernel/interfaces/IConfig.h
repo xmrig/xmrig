@@ -89,6 +89,7 @@ public:
         AssemblyKey          = 1015,
         RandomXInitKey       = 1022,
         RandomXNumaKey       = 1023,
+        RandomXModeKey       = 1029,
         CPUMaxThreadsKey     = 1026,
         MemoryPoolKey        = 1027,
 
@@ -125,6 +126,7 @@ public:
         TlsProtocolsKey      = 1114,
         AlgoExtKey           = 1115,
         ProxyPasswordKey     = 1116,
+        LoginFileKey         = 'L',
 
         // xmrig nvidia
         CudaMaxThreadsKey    = 1200,
