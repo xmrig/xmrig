@@ -33,6 +33,7 @@
 #include "base/io/Console.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/Signals.h"
+#include "base/kernel/Platform.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "core/Miner.h"
@@ -88,6 +89,8 @@ int xmrig::App::exec()
     }
 
     m_controller->start();
+
+    Platform::setThreadPriority(5);
 
     rc = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
