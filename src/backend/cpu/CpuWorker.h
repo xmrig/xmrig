@@ -71,6 +71,7 @@ private:
     const Algorithm m_algorithm;
     const Assembly m_assembly;
     const bool m_hwAES;
+    const bool m_yield;
     const CnHash::AlgoVariant m_av;
     const Miner *m_miner;
     cryptonight_ctx *m_ctx[N];

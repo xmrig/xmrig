@@ -38,6 +38,7 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
     assembly(config.assembly()),
     hugePages(config.isHugePages()),
     hwAES(config.isHwAES()),
+    yield(config.isYield()),
     priority(config.priority()),
     affinity(thread.affinity()),
     miner(miner),

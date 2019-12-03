@@ -58,6 +58,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
     m_hwAES(data.hwAES),
+    m_yield(data.yield),
     m_av(data.av()),
     m_miner(data.miner),
     m_ctx()
@@ -236,6 +237,10 @@ void xmrig::CpuWorker<N>::start()
             }
 
             m_count += N;
+
+            if (m_yield) {
+                std::this_thread::yield();
+            }
         }
 
         consumeJob();
