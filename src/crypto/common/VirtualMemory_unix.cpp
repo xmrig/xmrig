@@ -58,12 +58,24 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
 
 void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 {
+    int flag_1gb = 0;
+
 #   if defined(__APPLE__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
 #   elif defined(__FreeBSD__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
 #   else
-    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
+
+#   if defined(MAP_HUGE_1GB)
+    flag_1gb = (size > (1UL << 30)) ? MAP_HUGE_1GB : 0;
+#   elif defined(MAP_HUGE_SHIFT)
+    flag_1gb = (size > (1UL << 30)) ? (30 << MAP_HUGE_SHIFT) : 0;
+#   endif
+
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | flag_1gb, 0, 0);
+    if (mem == MAP_FAILED) {
+        mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
+    }
 #   endif
 
     return mem == MAP_FAILED ? nullptr : mem;
