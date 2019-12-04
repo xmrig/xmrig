@@ -147,7 +147,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::MemoryPoolKey: /* --cpu-memory-pool */
         return set(doc, kCpu, "memory-pool", static_cast<int64_t>(strtol(arg, nullptr, 10)));
-        break;
+
+    case IConfig::YieldKey: /* --cpu-no-yield */
+        return set(doc, kCpu, "yield", false);
 
 #   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */

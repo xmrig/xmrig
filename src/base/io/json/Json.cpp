@@ -28,6 +28,7 @@
 
 
 #include <cassert>
+#include <cmath>
 
 
 namespace xmrig {
@@ -151,6 +152,18 @@ unsigned xmrig::Json::getUint(const rapidjson::Value &obj, const char *key, unsi
     }
 
     return defaultValue;
+}
+
+
+rapidjson::Value xmrig::Json::normalize(double value, bool zero)
+{
+    using namespace rapidjson;
+
+    if (!std::isnormal(value)) {
+        return zero ? Value(0.0) : Value(kNullType);
+    }
+
+    return Value(floor(value * 100.0) / 100.0);
 }
 
 
