@@ -73,7 +73,7 @@ private:
     bool m_enabled       = true;
     bool m_hugePages     = true;
     bool m_shouldSave    = false;
-    bool m_yield         = false;
+    bool m_yield         = true;
     int m_memoryPool     = 0;
     int m_priority       = -1;
     String m_argon2Impl;
