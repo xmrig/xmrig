@@ -1,3 +1,8 @@
+# v5.1.1
+- [#1365](https://github.com/xmrig/xmrig/issues/1365) Fixed various system response/stability issues.
+  - Added new CPU option `yield` and command line equivalent `--cpu-no-yield`.
+- [#1363](https://github.com/xmrig/xmrig/issues/1363) Fixed wrong priority of main miner thread.
+
 # v5.1.0
 - [#1351](https://github.com/xmrig/xmrig/pull/1351) RandomX optimizations and fixes.
   - Improved RandomX performance (up to +6-7% on Intel CPUs, +2-3% on Ryzen CPUs)

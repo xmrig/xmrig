@@ -90,8 +90,6 @@ int xmrig::App::exec()
 
     m_controller->start();
 
-    Platform::setThreadPriority(5);
-
     rc = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 

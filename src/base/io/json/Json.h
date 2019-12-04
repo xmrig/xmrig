@@ -48,6 +48,8 @@ public:
 
     static bool get(const char *fileName, rapidjson::Document &doc);
     static bool save(const char *fileName, const rapidjson::Document &doc);
+
+    static rapidjson::Value normalize(double value, bool zero);
 };
 
 
