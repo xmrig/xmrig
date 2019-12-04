@@ -131,43 +131,6 @@ void xmrig::Platform::restoreTimerResolution()
 }
 
 
-void xmrig::Platform::setProcessPriority(int priority)
-{
-    if (priority == -1) {
-        return;
-    }
-
-    DWORD prio = IDLE_PRIORITY_CLASS;
-    switch (priority)
-    {
-    case 1:
-        prio = BELOW_NORMAL_PRIORITY_CLASS;
-        break;
-
-    case 2:
-        prio = NORMAL_PRIORITY_CLASS;
-        break;
-
-    case 3:
-        prio = ABOVE_NORMAL_PRIORITY_CLASS;
-        break;
-
-    case 4:
-        prio = HIGH_PRIORITY_CLASS;
-        break;
-
-    case 5:
-        prio = REALTIME_PRIORITY_CLASS;
-        break;
-
-    default:
-        break;
-    }
-
-    SetPriorityClass(GetCurrentProcess(), prio);
-}
-
-
 void xmrig::Platform::setThreadPriority(int priority)
 {
     if (priority == -1) {

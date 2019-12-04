@@ -43,9 +43,6 @@ uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
     auto cpu       = static_cast<HwlocCpuInfo *>(Cpu::info());
     hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(cpu->topology(), static_cast<unsigned>(affinity));
 
-    char *buffer;
-    hwloc_bitmap_asprintf(&buffer, pu->cpuset);
-
     if (pu == nullptr || !cpu->membind(pu->nodeset)) {
         LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory\"", affinity);
 
