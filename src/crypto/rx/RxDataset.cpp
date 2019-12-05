@@ -29,7 +29,6 @@
 #include "backend/common/Tags.h"
 #include "base/io/log/Log.h"
 #include "crypto/common/VirtualMemory.h"
-#include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 
@@ -41,10 +40,10 @@
 static_assert(RANDOMX_FLAG_LARGE_PAGES == 1, "RANDOMX_FLAG_LARGE_PAGES flag mismatch");
 
 
-xmrig::RxDataset::RxDataset(bool hugePages, bool cache, RxConfig::Mode mode) :
+xmrig::RxDataset::RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode) :
     m_mode(mode)
 {
-    allocate(hugePages);
+    allocate(hugePages, oneGbPages);
 
     if (cache) {
         m_cache = new RxCache(hugePages);
@@ -123,11 +122,13 @@ size_t xmrig::RxDataset::size(bool cache) const
 std::pair<uint32_t, uint32_t> xmrig::RxDataset::hugePages(bool cache) const
 {
     constexpr size_t twoMiB     = 2U * 1024U * 1024U;
+    constexpr size_t oneGiB     = 1024U * 1024U * 1024U;
     constexpr size_t cacheSize  = VirtualMemory::align(RxCache::maxSize(), twoMiB) / twoMiB;
-    size_t total                = VirtualMemory::align(maxSize(), twoMiB) / twoMiB;
+    size_t datasetPageSize      = isOneGbPages() ? oneGiB : twoMiB;
+    size_t total                = VirtualMemory::align(maxSize(), datasetPageSize) / datasetPageSize;
 
     uint32_t count = 0;
-    if (isHugePages()) {
+    if (isHugePages() || isOneGbPages()) {
         count += total;
     }
 
@@ -159,7 +160,7 @@ void xmrig::RxDataset::setRaw(const void *raw)
 }
 
 
-void xmrig::RxDataset::allocate(bool hugePages)
+void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
 {
     if (m_mode == RxConfig::LightMode) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "fast RandomX mode disabled by config", rx_tag());
@@ -174,8 +175,14 @@ void xmrig::RxDataset::allocate(bool hugePages)
     }
 
     if (hugePages) {
-        m_flags   = RANDOMX_FLAG_LARGE_PAGES;
+        m_flags   = oneGbPages ? RANDOMX_FLAG_1GB_PAGES : RANDOMX_FLAG_LARGE_PAGES;
         m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));
+
+        if (oneGbPages && !m_dataset) {
+            LOG_ERR(CLEAR "%s" RED_BOLD_S "Failed to allocate RandomX dataset using 1GB pages", rx_tag());
+            m_flags = RANDOMX_FLAG_LARGE_PAGES;
+            m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));
+        }
     }
 
     if (!m_dataset) {

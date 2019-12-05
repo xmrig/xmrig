@@ -46,7 +46,7 @@ class RxDataset;
 class Rx
 {
 public:
-    static bool init(const Job &job, const RxConfig &config, bool hugePages);
+    static bool init(const Job &job, const RxConfig &config, bool hugePages, bool oneGbPages);
     static bool isReady(const Job &job);
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
     static std::pair<uint32_t, uint32_t> hugePages();

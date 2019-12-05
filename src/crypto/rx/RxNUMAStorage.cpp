@@ -120,12 +120,12 @@ public:
     }
 
 
-    inline void createDatasets(bool hugePages)
+    inline void createDatasets(bool hugePages, bool oneGbPages)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
         for (uint32_t node : m_nodeset) {
-            m_threads.emplace_back(allocate, this, node, hugePages);
+            m_threads.emplace_back(allocate, this, node, hugePages, oneGbPages);
         }
 
         join();
@@ -188,7 +188,7 @@ public:
 
 
 private:
-    static void allocate(RxNUMAStoragePrivate *d_ptr, uint32_t nodeId, bool hugePages)
+    static void allocate(RxNUMAStoragePrivate *d_ptr, uint32_t nodeId, bool hugePages, bool oneGbPages)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
@@ -198,7 +198,7 @@ private:
             return;
         }
 
-        auto dataset = new RxDataset(hugePages, false, RxConfig::FastMode);
+        auto dataset = new RxDataset(hugePages, oneGbPages, false, RxConfig::FastMode);
         if (!dataset->get()) {
             printSkipped(nodeId, "failed to allocate dataset");
 
@@ -346,12 +346,12 @@ std::pair<uint32_t, uint32_t> xmrig::RxNUMAStorage::hugePages() const
 }
 
 
-void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, RxConfig::Mode)
+void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode)
 {
     d_ptr->setSeed(seed);
 
     if (!d_ptr->isAllocated()) {
-        d_ptr->createDatasets(hugePages);
+        d_ptr->createDatasets(hugePages, oneGbPages);
     }
 
     d_ptr->initDatasets(threads);

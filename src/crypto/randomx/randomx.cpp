@@ -333,7 +333,11 @@ extern "C" {
 
 		try {
 			dataset = new randomx_dataset();
-			if (flags & RANDOMX_FLAG_LARGE_PAGES) {
+			if (flags & RANDOMX_FLAG_1GB_PAGES) {
+				dataset->dealloc = &randomx::deallocDataset<randomx::OneGbPageAllocator>;
+				dataset->memory = (uint8_t*)randomx::OneGbPageAllocator::allocMemory(RANDOMX_DATASET_MAX_SIZE);
+			}
+			else if (flags & RANDOMX_FLAG_LARGE_PAGES) {
 				dataset->dealloc = &randomx::deallocDataset<randomx::LargePageAllocator>;
 				dataset->memory = (uint8_t*)randomx::LargePageAllocator::allocMemory(RANDOMX_DATASET_MAX_SIZE);
 			}

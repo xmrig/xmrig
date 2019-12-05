@@ -69,11 +69,11 @@ public:
     }
 
 
-    inline void createDataset(bool hugePages, RxConfig::Mode mode)
+    inline void createDataset(bool hugePages, bool oneGbPages, RxConfig::Mode mode)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
-        m_dataset = new RxDataset(hugePages, true, mode);
+        m_dataset = new RxDataset(hugePages, oneGbPages, true, mode);
         printAllocStatus(ts);
     }
 
@@ -157,12 +157,12 @@ std::pair<uint32_t, uint32_t> xmrig::RxBasicStorage::hugePages() const
 }
 
 
-void xmrig::RxBasicStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, RxConfig::Mode mode)
+void xmrig::RxBasicStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode)
 {
     d_ptr->setSeed(seed);
 
     if (!d_ptr->dataset()) {
-        d_ptr->createDataset(hugePages, mode);
+        d_ptr->createDataset(hugePages, oneGbPages, mode);
     }
 
     d_ptr->initDataset(threads);

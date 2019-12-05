@@ -175,6 +175,12 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 }
 
 
+void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
+{
+    return nullptr;
+}
+
+
 void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 {
     ::FlushInstructionCache(GetCurrentProcess(), p, size);
@@ -218,6 +224,12 @@ bool xmrig::VirtualMemory::allocateLargePagesMemory()
         return true;
     }
 
+    return false;
+}
+
+bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
+{
+    m_scratchpad = nullptr;
     return false;
 }
 

@@ -44,9 +44,9 @@ class IRxStorage
 public:
     virtual ~IRxStorage() = default;
 
-    virtual RxDataset *dataset(const Job &job, uint32_t nodeId) const                               = 0;
-    virtual std::pair<uint32_t, uint32_t> hugePages() const                                         = 0;
-    virtual void init(const RxSeed &seed, uint32_t threads, bool hugePages, RxConfig::Mode mode)    = 0;
+    virtual RxDataset *dataset(const Job &job, uint32_t nodeId) const                                                = 0;
+    virtual std::pair<uint32_t, uint32_t> hugePages() const                                                          = 0;
+    virtual void init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode)    = 0;
 };
 
 

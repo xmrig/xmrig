@@ -58,24 +58,33 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
 
 void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 {
-    int flag_1gb = 0;
-
 #   if defined(__APPLE__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
 #   elif defined(__FreeBSD__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
 #   else
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
+#   endif
+
+    return mem == MAP_FAILED ? nullptr : mem;
+}
+
+
+void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
+{
+#   if defined(__APPLE__)
+    void *mem = MAP_FAILED;
+#   elif defined(__FreeBSD__)
+    void *mem = MAP_FAILED;
+#   else
 
 #   if defined(MAP_HUGE_1GB)
-    flag_1gb = (size > (1UL << 30)) ? MAP_HUGE_1GB : 0;
+    constexpr int flag_1gb = MAP_HUGE_1GB;
 #   elif defined(MAP_HUGE_SHIFT)
-    flag_1gb = (size > (1UL << 30)) ? (30 << MAP_HUGE_SHIFT) : 0;
+    constexpr int flag_1gb = (30 << MAP_HUGE_SHIFT);
 #   endif
 
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | flag_1gb, 0, 0);
-    if (mem == MAP_FAILED) {
-        mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
-    }
 #   endif
 
     return mem == MAP_FAILED ? nullptr : mem;
@@ -116,6 +125,25 @@ void xmrig::VirtualMemory::osInit(bool)
 bool xmrig::VirtualMemory::allocateLargePagesMemory()
 {
     m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
+    if (m_scratchpad) {
+        m_flags.set(FLAG_HUGEPAGES, true);
+
+        madvise(m_scratchpad, m_size, MADV_RANDOM | MADV_WILLNEED);
+
+        if (mlock(m_scratchpad, m_size) == 0) {
+            m_flags.set(FLAG_LOCK, true);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
+{
+    m_scratchpad = static_cast<uint8_t*>(allocateOneGbPagesMemory(m_size));
     if (m_scratchpad) {
         m_flags.set(FLAG_HUGEPAGES, true);
 

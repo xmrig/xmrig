@@ -31,6 +31,7 @@
 #include "base/tools/Object.h"
 #include "crypto/common/Algorithm.h"
 #include "crypto/randomx/configuration.h"
+#include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxConfig.h"
 
 
@@ -50,11 +51,12 @@ class RxDataset
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxDataset)
 
-    RxDataset(bool hugePages, bool cache, RxConfig::Mode mode);
+    RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode);
     RxDataset(RxCache *cache);
     ~RxDataset();
 
-    inline bool isHugePages() const         { return m_flags & 1; }
+    inline bool isHugePages() const         { return m_flags & RANDOMX_FLAG_LARGE_PAGES; }
+    inline bool isOneGbPages() const        { return m_flags & RANDOMX_FLAG_1GB_PAGES; }
     inline randomx_dataset *get() const     { return m_dataset; }
     inline RxCache *cache() const           { return m_cache; }
     inline void setCache(RxCache *cache)    { m_cache = cache; }
@@ -68,7 +70,7 @@ public:
     static inline constexpr size_t maxSize() { return RANDOMX_DATASET_MAX_SIZE; }
 
 private:
-    void allocate(bool hugePages);
+    void allocate(bool hugePages, bool oneGbPages);
 
     const RxConfig::Mode m_mode = RxConfig::FastMode;
     int m_flags                 = 0;

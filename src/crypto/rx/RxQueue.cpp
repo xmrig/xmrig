@@ -94,7 +94,7 @@ std::pair<uint32_t, uint32_t> xmrig::RxQueue::hugePages()
 }
 
 
-void xmrig::RxQueue::enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, RxConfig::Mode mode)
+void xmrig::RxQueue::enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -114,7 +114,7 @@ void xmrig::RxQueue::enqueue(const RxSeed &seed, const std::vector<uint32_t> &no
         return;
     }
 
-    m_queue.emplace_back(seed, nodeset, threads, hugePages, mode);
+    m_queue.emplace_back(seed, nodeset, threads, hugePages, oneGbPages, mode);
     m_seed  = seed;
     m_state = STATE_PENDING;
 
@@ -156,7 +156,7 @@ void xmrig::RxQueue::backgroundInit()
                  Buffer::toHex(item.seed.data().data(), 8).data()
                  );
 
-        m_storage->init(item.seed, item.threads, item.hugePages, item.mode);
+        m_storage->init(item.seed, item.threads, item.hugePages, item.oneGbPages, item.mode);
 
         lock = std::unique_lock<std::mutex>(m_mutex);
 

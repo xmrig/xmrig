@@ -43,4 +43,9 @@ namespace randomx {
 		static void freeMemory(void*, size_t);
 	};
 
+	struct OneGbPageAllocator {
+		static void* allocMemory(size_t);
+		static void freeMemory(void*, size_t);
+	};
+
 }

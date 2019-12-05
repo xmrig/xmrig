@@ -60,7 +60,7 @@ const char *xmrig::rx_tag()
 }
 
 
-bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages)
+bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages, bool oneGbPages)
 {
     if (job.algorithm().family() != Algorithm::RANDOM_X) {
         return true;
@@ -70,7 +70,7 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages)
         return true;
     }
 
-    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(), hugePages, config.mode());
+    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(), hugePages, oneGbPages, config.mode());
 
     return false;
 }

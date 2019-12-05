@@ -45,6 +45,10 @@
 #   define bit_AVX2 (1 << 5)
 #endif
 
+#ifndef bit_PDPE1GB
+#   define bit_PDPE1GB (1 << 26)
+#endif
+
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
 #include "crypto/common/Assembly.h"
@@ -53,6 +57,7 @@
 #define VENDOR_ID                  (0)
 #define PROCESSOR_INFO             (1)
 #define EXTENDED_FEATURES          (7)
+#define PROCESSOR_EXT_INFO         (0x80000001)
 #define PROCESSOR_BRAND_STRING_1   (0x80000002)
 #define PROCESSOR_BRAND_STRING_2   (0x80000003)
 #define PROCESSOR_BRAND_STRING_3   (0x80000004)
@@ -136,6 +141,12 @@ static inline bool has_avx2()
 }
 
 
+static inline bool has_pdpe1gb()
+{
+    return has_feature(PROCESSOR_EXT_INFO, EDX_Reg, bit_PDPE1GB);
+}
+
+
 } // namespace xmrig
 
 
@@ -144,7 +155,8 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_threads(std::thread::hardware_concurrency()),
     m_assembly(Assembly::NONE),
     m_aes(has_aes_ni()),
-    m_avx2(has_avx2())
+    m_avx2(has_avx2()),
+    m_pdpe1gb(has_pdpe1gb())
 {
     cpu_brand_string(m_brand);
 
