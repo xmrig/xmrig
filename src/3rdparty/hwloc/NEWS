@@ -13,8 +13,96 @@ $HEADER$
 
 This file contains the main features as well as overviews of specific
 bug fixes (and other actions) for each version of hwloc since version
-0.9 (as initially released as "libtopology", then re-branded to "hwloc"
-in v0.9.1).
+0.9.
+
+
+Version 2.1.0
+-------------
+* API
+  + Add a new "Die" object (HWLOC_OBJ_DIE) for upcoming x86 processors
+    with multiple dies per package, in the x86 and Linux backends.
+  + Add the new HWLOC_OBJ_MEMCACHE object type for memory-side caches.
+    - They are filtered-out by default, except in command-line tools.
+    - They are only available on very recent platforms running Linux 5.2+
+      and uptodate ACPI tables.
+    - The KNL MCDRAM in cache mode is still exposed as a L3 unless
+      HWLOC_KNL_MSCACHE_L3=0 in the environment.
+  + Add HWLOC_RESTRICT_FLAG_BYNODESET and _REMOVE_MEMLESS for restricting
+    topologies based on some memory nodes.
+  + Add hwloc_topology_set_components() for blacklisting some components
+    from being enabled in a topology.
+  + Add hwloc_bitmap_nr_ulongs() and hwloc_bitmap_from/to_ulongs(),
+    thanks to Junchao Zhang for the suggestion.
+  + Improve the API for dealing with disallowed resources
+    - HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM is replaced with FLAG_INCLUDE_DISALLOWED
+      and --whole-system command-line options with --disallowed.
+      . Former names are still accepted for backward compatibility.
+    - Add hwloc_topology_allow() for changing allowed sets after load().
+    - Add the HWLOC_ALLOW=all environment variable to totally ignore
+      administrative restrictions such as Linux Cgroups.
+    - Add disallowed_pu and disallowed_numa bits to the discovery support
+      structure.
+  + Group objects have a new "dont_merge" attribute to prevent them from
+    being automatically merged with identical parent or children.
+  + Add more distances-related features:
+    - Add hwloc_distances_get_name() to retrieve a string describing
+      what a distances structure contain.
+    - Add hwloc_distances_get_by_name() to retrieve distances structures
+      based on their name.
+    - Add hwloc_distances_release_remove()
+    - Distances may now cover objects of different types with new kind
+      HWLOC_DISTANCES_KIND_HETEROGENEOUS_TYPES.
+* Backends
+  + Add support for Linux 5.3 new sysfs cpu topology files with Die information.
+  + Add support for Intel v2 Extended Topology Enumeration in the x86 backend.
+  + Improve memory locality on Linux by using HMAT initiators (exposed
+    since Linux 5.2+), and NUMA distances for CPU-less NUMA nodes.
+  + The x86 backend now properly handles offline CPUs.
+  + Detect the locality of NVIDIA GPU OpenCL devices.
+  + Ignore NUMA nodes that correspond to NVIDIA GPU by default.
+    - They may be unignored if HWLOC_KEEP_NVIDIA_GPU_NUMA_NODES=1 in the environment.
+    - Fix their CPU locality and add info attributes to identify them.
+    Thanks to Max Katz and Edgar Leon for the help.
+  + Add support for IBM S/390 drawers.
+  + Rework the heuristics for discovering KNL Cluster and Memory modes
+    to stop assuming all CPUs are online (required for mOS support).
+    Thanks to Sharath K Bhat for testing patches.
+  + Ignore NUMA node information from AMD topoext in the x86 backend,
+    unless HWLOC_X86_TOPOEXT_NUMANODES=1 is set in the environment.
+  + Expose Linux DAX devices as hwloc Block OS devices.
+  + Remove support for /proc/cpuinfo-only topology discovery in Linux
+    kernel prior to 2.6.16.
+  + Disable POWER device-tree-based topology on Linux by default.
+    - It may be reenabled by setting HWLOC_USE_DT=1 in the environment.
+  + Discovery components are now divided in phases that may be individually
+    blacklisted.
+    - The linuxio component has been merged back into the linux component.
+* Tools
+  + lstopo
+    - lstopo factorizes objects by default in the graphical output when
+      there are more than 4 identical children.
+      . New options --no-factorize and --factorize may be used to configure this.
+      . Hit the 'f' key to disable factorizing in interactive outputs.
+    - Both logical and OS/physical indexes are now displayed by default
+      for PU and NUMA nodes.
+    - The X11 and Windows interactive outputs support many keyboard
+      shortcuts to dynamically customize the attributes, legend, etc.
+    - Add --linespacing and change default margins and linespacing.
+    - Add --allow for changing allowed sets.
+    - Add a native SVG backend. Its graphical output may be slightly less
+      pretty than Cairo (still used by default if available) but the SVG
+      code provides attributes to manipulate objects from HTML/JS.
+      See dynamic_SVG_example.html for an example.
+  + Add --nodeset options to hwloc-calc for converting between cpusets and
+    nodesets.
+  + Add --no-smt to lstopo, hwloc-bind and hwloc-calc to ignore multiple
+    PU in SMT cores.
+  + hwloc-annotate may annotate multiple locations at once.
+  + Add a HTML/JS version of hwloc-ps. See contrib/hwloc-ps.www/README.
+  + Add bash completions.
+* Misc
+  + Add several FAQ entries in "Compatibility between hwloc versions"
+    about API version, ABI, XML, Synthetic strings, and shmem topologies.
 
 
 Version 2.0.4 (also included in 1.11.13 when appropriate)
@@ -212,6 +300,54 @@ Version 2.0.0
     - HWLOC_COMPONENTS takes precedence over other environment variables
       for selecting components.
   + hwloc now requires a C99 compliant compiler.
+
+
+Version 1.11.13 (also included in 2.0.4)
+---------------
+* Add support for Linux 5.3 new sysfs cpu topology files with Die information.
+* Add support for Intel v2 Extended Topology Enumeration in the x86 backend.
+* Tiles, Modules and Dies are exposed as Groups for now.
+  + HWLOC_DONT_MERGE_DIE_GROUPS=1 may be set in the environment to prevent
+    Die groups from being automatically merged with identical parent or children.
+* Ignore NUMA node information from AMD topoext in the x86 backend,
+  unless HWLOC_X86_TOPOEXT_NUMANODES=1 is set in the environment.
+* Group objects have a new "dont_merge" attribute to prevent them from
+  being automatically merged with identical parent or children.
+
+
+Version 1.11.12 (also included in 2.0.3)
+---------------
+* Fix a corner case of hwloc_topology_restrict() where children would
+  become out-of-order.
+* Fix the return length of export_xmlbuffer() functions to always
+  include the ending \0.
+
+
+Version 1.11.11 (also included in 2.0.2)
+---------------
+* Add support for Hygon Dhyana processors in the x86 backend,
+  thanks to Pu Wen for the patch.
+* Fix symbol renaming to also rename internal components,
+  thanks to Evan Ramos for the patch.
+* Fix build on HP-UX, thanks to Richard Lloyd for reporting the issues.
+* Detect PCI link speed without being root on Linux >= 4.13.
+
+
+Version 1.11.10 (also included in 2.0.1)
+---------------
+* Fix detection of cores and hyperthreads on Mac OS X.
+* Serialize pciaccess discovery to fix concurrent topology loads in
+  multiple threads.
+* Fix first touch area memory binding on Linux when thread memory
+  binding is different.
+* Some minor fixes to memory binding.
+* Fix hwloc-dump-hwdata to only process SMBIOS information that correspond
+  to the KNL and KNM configuration.
+* Add a heuristic for guessing KNL/KNM memory and cluster modes when
+  hwloc-dump-hwdata could not run as root earlier.
+* Fix discovery of NVMe OS devices on Linux >= 4.0.
+* Add get_area_memlocation() on Windows.
+* Add CPUVendor, Model, ... attributes on Mac OS X.
 
 
 Version 1.11.9
@@ -941,7 +1077,7 @@ Version 1.6.0
   + Add a section about Synthetic topologies in the documentation.
 
 
-Version 1.5.2 (some of these changes are in v1.6.2 but not in v1.6)
+Version 1.5.2 (some of these changes are in 1.6.2 but not in 1.6)
 -------------
 * Use libpciaccess instead of pciutils/libpci by default for I/O discovery.
   pciutils/libpci is only used if --enable-libpci is given to configure
@@ -1076,9 +1212,8 @@ Version 1.4.2
   for most of them.
 
 
-Version 1.4.1
+Version 1.4.1 (contains all 1.3.2 changes)
 -------------
-* This release contains all changes from v1.3.2.
 * Fix hwloc_alloc_membind, thanks Karl Napf for reporting the issue.
 * Fix memory leaks in some get_membind() functions.
 * Fix helpers converting from Linux libnuma to hwloc (hwloc/linux-libnuma.h)
@@ -1091,7 +1226,7 @@ Version 1.4.1
   issues.
 
 
-Version 1.4.0 (does not contain all v1.3.2 changes)
+Version 1.4.0 (does not contain all 1.3.2 changes)
 -------------
 * Major features
   + Add "custom" interface and "assembler" tools to build multi-node
@@ -1536,7 +1671,7 @@ Version 1.0.0
 
 
 Version 0.9.4 (unreleased)
---------------------------
+-------------
 
 * Fix reseting colors to normal in lstopo -.txt output.
 * Fix Linux pthread_t binding error report.
@@ -1593,7 +1728,7 @@ Version 0.9.1
   the physical location of IB devices.
 
 
-Version 0.9 (libtopology)
--------------------------
+Version 0.9 (formerly named "libtopology")
+-----------
 
 * First release.

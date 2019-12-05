@@ -17,8 +17,9 @@
 #ifndef HWLOC_GLIBC_SCHED_H
 #define HWLOC_GLIBC_SCHED_H
 
-#include <hwloc.h>
-#include <hwloc/helper.h>
+#include "hwloc.h"
+#include "hwloc/helper.h"
+
 #include <assert.h>
 
 #if !defined _GNU_SOURCE || !defined _SCHED_H || (!defined CPU_SETSIZE && !defined sched_priority)

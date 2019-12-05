@@ -1,11 +1,11 @@
 /*
- * Copyright © 2013-2018 Inria.  All rights reserved.
+ * Copyright © 2013-2019 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
-#include <private/private.h>
-#include <private/misc.h>
+#include "private/autogen/config.h"
+#include "private/private.h"
+#include "private/misc.h"
 
 int hwloc_topology_diff_destroy(hwloc_topology_diff_t diff)
 {
@@ -351,7 +351,8 @@ int hwloc_topology_diff_build(hwloc_topology_t topo1,
 				err = 1;
 				break;
 			}
-			if (dist1->type != dist2->type
+			if (dist1->unique_type != dist2->unique_type
+			    || dist1->different_types || dist2->different_types /* too lazy to support this case */
 			    || dist1->nbobjs != dist2->nbobjs
 			    || dist1->kind != dist2->kind
 			    || memcmp(dist1->values, dist2->values, dist1->nbobjs * dist1->nbobjs * sizeof(*dist1->values))) {
@@ -461,6 +462,10 @@ int hwloc_topology_diff_apply(hwloc_topology_t topology,
 
 	if (!topology->is_loaded) {
 	  errno = EINVAL;
+	  return -1;
+	}
+	if (topology->adopted_shmem_addr) {
+	  errno = EPERM;
 	  return -1;
 	}
 

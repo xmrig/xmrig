@@ -19,10 +19,10 @@
 #ifndef HWLOC_OPENFABRICS_VERBS_H
 #define HWLOC_OPENFABRICS_VERBS_H
 
-#include <hwloc.h>
-#include <hwloc/autogen/config.h>
+#include "hwloc.h"
+#include "hwloc/autogen/config.h"
 #ifdef HWLOC_LINUX_SYS
-#include <hwloc/linux.h>
+#include "hwloc/linux.h"
 #endif
 
 #include <infiniband/verbs.h>
