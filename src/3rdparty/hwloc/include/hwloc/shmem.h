@@ -10,7 +10,7 @@
 #ifndef HWLOC_SHMEM_H
 #define HWLOC_SHMEM_H
 
-#include <hwloc.h>
+#include "hwloc.h"
 
 #ifdef __cplusplus
 extern "C" {

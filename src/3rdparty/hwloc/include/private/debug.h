@@ -11,8 +11,8 @@
 #ifndef HWLOC_DEBUG_H
 #define HWLOC_DEBUG_H
 
-#include <private/autogen/config.h>
-#include <private/misc.h>
+#include "private/autogen/config.h"
+#include "private/misc.h"
 
 #ifdef HWLOC_DEBUG
 #include <stdarg.h>

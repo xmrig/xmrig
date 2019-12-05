@@ -1,18 +1,18 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2017 Inria.  All rights reserved.
+ * Copyright © 2009-2018 Inria.  All rights reserved.
  * Copyright © 2009-2011 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
-#include <hwloc/autogen/config.h>
-#include <hwloc.h>
-#include <private/misc.h>
-#include <private/private.h>
-#include <private/debug.h>
-#include <hwloc/bitmap.h>
+#include "private/autogen/config.h"
+#include "hwloc/autogen/config.h"
+#include "hwloc.h"
+#include "private/misc.h"
+#include "private/private.h"
+#include "private/debug.h"
+#include "hwloc/bitmap.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -766,6 +766,21 @@ int hwloc_bitmap_from_ith_ulong(struct hwloc_bitmap_s *set, unsigned i, unsigned
 	return 0;
 }
 
+int hwloc_bitmap_from_ulongs(struct hwloc_bitmap_s *set, unsigned nr, const unsigned long *masks)
+{
+	unsigned j;
+
+	HWLOC__BITMAP_CHECK(set);
+
+	if (hwloc_bitmap_reset_by_ulongs(set, nr) < 0)
+		return -1;
+
+	for(j=0; j<nr; j++)
+		set->ulongs[j] = masks[j];
+	set->infinite = 0;
+	return 0;
+}
+
 unsigned long hwloc_bitmap_to_ulong(const struct hwloc_bitmap_s *set)
 {
 	HWLOC__BITMAP_CHECK(set);
@@ -778,6 +793,30 @@ unsigned long hwloc_bitmap_to_ith_ulong(const struct hwloc_bitmap_s *set, unsign
 	HWLOC__BITMAP_CHECK(set);
 
 	return HWLOC_SUBBITMAP_READULONG(set, i);
+}
+
+int hwloc_bitmap_to_ulongs(const struct hwloc_bitmap_s *set, unsigned nr, unsigned long *masks)
+{
+	unsigned j;
+
+	HWLOC__BITMAP_CHECK(set);
+
+	for(j=0; j<nr; j++)
+		masks[j] = HWLOC_SUBBITMAP_READULONG(set, j);
+	return 0;
+}
+
+int hwloc_bitmap_nr_ulongs(const struct hwloc_bitmap_s *set)
+{
+	unsigned last;
+
+	HWLOC__BITMAP_CHECK(set);
+
+	if (set->infinite)
+		return -1;
+
+	last = hwloc_bitmap_last(set);
+	return (last + HWLOC_BITS_PER_LONG-1)/HWLOC_BITS_PER_LONG;
 }
 
 int hwloc_bitmap_only(struct hwloc_bitmap_s * set, unsigned cpu)

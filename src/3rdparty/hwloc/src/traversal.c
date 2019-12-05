@@ -1,16 +1,17 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2018 Inria.  All rights reserved.
+ * Copyright © 2009-2019 Inria.  All rights reserved.
  * Copyright © 2009-2010 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
-#include <hwloc.h>
-#include <private/private.h>
-#include <private/misc.h>
-#include <private/debug.h>
+#include "private/autogen/config.h"
+#include "hwloc.h"
+#include "private/private.h"
+#include "private/misc.h"
+#include "private/debug.h"
+
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif /* HAVE_STRINGS_H */
@@ -40,6 +41,8 @@ hwloc_get_depth_type (hwloc_topology_t topology, int depth)
       return HWLOC_OBJ_OS_DEVICE;
     case HWLOC_TYPE_DEPTH_MISC:
       return HWLOC_OBJ_MISC;
+    case HWLOC_TYPE_DEPTH_MEMCACHE:
+      return HWLOC_OBJ_MEMCACHE;
     default:
       return HWLOC_OBJ_TYPE_NONE;
     }
@@ -237,8 +240,10 @@ hwloc_obj_type_string (hwloc_obj_type_t obj)
     case HWLOC_OBJ_MACHINE: return "Machine";
     case HWLOC_OBJ_MISC: return "Misc";
     case HWLOC_OBJ_GROUP: return "Group";
+    case HWLOC_OBJ_MEMCACHE: return "MemCache";
     case HWLOC_OBJ_NUMANODE: return "NUMANode";
     case HWLOC_OBJ_PACKAGE: return "Package";
+    case HWLOC_OBJ_DIE: return "Die";
     case HWLOC_OBJ_L1CACHE: return "L1Cache";
     case HWLOC_OBJ_L2CACHE: return "L2Cache";
     case HWLOC_OBJ_L3CACHE: return "L3Cache";
@@ -256,6 +261,41 @@ hwloc_obj_type_string (hwloc_obj_type_t obj)
     }
 }
 
+/* Check if string matches the given type at least on minmatch chars.
+ * On success, return the address of where matching stop, either pointing to \0 or to a suffix (digits, colon, etc)
+ * On error, return NULL;
+ */
+static __hwloc_inline const char *
+hwloc__type_match(const char *string,
+		  const char *type, /* type must be lowercase */
+		  size_t minmatch)
+{
+  const char *s, *t;
+  unsigned i;
+  for(i=0, s=string, t=type; ; i++, s++, t++) {
+    if (!*s) {
+      /* string ends before type */
+      if (i<minmatch)
+	return NULL;
+      else
+	return s;
+    }
+    if (*s != *t && *s != *t + 'A' - 'a') {
+      /* string is different */
+      if ((*s >= 'a' && *s <= 'z') || (*s >= 'A' && *s <= 'Z') || *s == '-')
+	/* valid character that doesn't match */
+	return NULL;
+      /* invalid character, we reached the end of the type namein string, stop matching here */
+      if (i<minmatch)
+	return NULL;
+      else
+	return s;
+    }
+  }
+
+  return NULL;
+}
+
 int
 hwloc_type_sscanf(const char *string, hwloc_obj_type_t *typep,
 		  union hwloc_obj_attr_u *attrp, size_t attrsize)
@@ -267,86 +307,102 @@ hwloc_type_sscanf(const char *string, hwloc_obj_type_t *typep,
   hwloc_obj_osdev_type_t ostype = (hwloc_obj_osdev_type_t) -1;
   char *end;
 
-  /* never match the ending \0 since we want to match things like core:2 too.
-   * just use hwloc_strncasecmp() everywhere.
+  /* Never match the ending \0 since we want to match things like core:2 too.
+   * We'll only compare the beginning substring only made of letters and dash.
    */
 
   /* types without a custom depth */
 
   /* osdev subtype first to avoid conflicts coproc/core etc */
-  if (!hwloc_strncasecmp(string, "os", 2)) {
+  if (hwloc__type_match(string, "osdev", 2)) {
     type = HWLOC_OBJ_OS_DEVICE;
-  } else if (!hwloc_strncasecmp(string, "bloc", 4)) {
+  } else if (hwloc__type_match(string, "block", 4)) {
     type = HWLOC_OBJ_OS_DEVICE;
     ostype = HWLOC_OBJ_OSDEV_BLOCK;
-  } else if (!hwloc_strncasecmp(string, "net", 3)) {
+  } else if (hwloc__type_match(string, "network", 3)) {
     type = HWLOC_OBJ_OS_DEVICE;
     ostype = HWLOC_OBJ_OSDEV_NETWORK;
-  } else if (!hwloc_strncasecmp(string, "openfab", 7)) {
+  } else if (hwloc__type_match(string, "openfabrics", 7)) {
     type = HWLOC_OBJ_OS_DEVICE;
     ostype = HWLOC_OBJ_OSDEV_OPENFABRICS;
-  } else if (!hwloc_strncasecmp(string, "dma", 3)) {
+  } else if (hwloc__type_match(string, "dma", 3)) {
     type = HWLOC_OBJ_OS_DEVICE;
     ostype = HWLOC_OBJ_OSDEV_DMA;
-  } else if (!hwloc_strncasecmp(string, "gpu", 3)) {
+  } else if (hwloc__type_match(string, "gpu", 3)) {
     type = HWLOC_OBJ_OS_DEVICE;
     ostype = HWLOC_OBJ_OSDEV_GPU;
-  } else if (!hwloc_strncasecmp(string, "copro", 5)
-	     || !hwloc_strncasecmp(string, "co-pro", 6)) {
+  } else if (hwloc__type_match(string, "coproc", 5)
+	     || hwloc__type_match(string, "co-processor", 6)) {
     type = HWLOC_OBJ_OS_DEVICE;
     ostype = HWLOC_OBJ_OSDEV_COPROC;
 
-  } else if (!hwloc_strncasecmp(string, "machine", 2)) {
+  } else if (hwloc__type_match(string, "machine", 2)) {
     type = HWLOC_OBJ_MACHINE;
-  } else if (!hwloc_strncasecmp(string, "node", 2)
-	     || !hwloc_strncasecmp(string, "numa", 2)) { /* matches node and numanode */
+  } else if (hwloc__type_match(string, "numanode", 2)
+	     || hwloc__type_match(string, "node", 2)) { /* for convenience */
     type = HWLOC_OBJ_NUMANODE;
-  } else if (!hwloc_strncasecmp(string, "package", 2)
-	     || !hwloc_strncasecmp(string, "socket", 2)) { /* backward compat with v1.10 */
+  } else if (hwloc__type_match(string, "memcache", 5)
+	     || hwloc__type_match(string, "memory-side cache", 8)) {
+    type = HWLOC_OBJ_MEMCACHE;
+  } else if (hwloc__type_match(string, "package", 2)
+	     || hwloc__type_match(string, "socket", 2)) { /* backward compat with v1.10 */
     type = HWLOC_OBJ_PACKAGE;
-  } else if (!hwloc_strncasecmp(string, "core", 2)) {
+  } else if (hwloc__type_match(string, "die", 2)) {
+    type = HWLOC_OBJ_DIE;
+  } else if (hwloc__type_match(string, "core", 2)) {
     type = HWLOC_OBJ_CORE;
-  } else if (!hwloc_strncasecmp(string, "pu", 2)) {
+  } else if (hwloc__type_match(string, "pu", 2)) {
     type = HWLOC_OBJ_PU;
-  } else if (!hwloc_strncasecmp(string, "misc", 4)) {
+  } else if (hwloc__type_match(string, "misc", 4)) {
     type = HWLOC_OBJ_MISC;
 
-  } else if (!hwloc_strncasecmp(string, "bridge", 4)) {
+  } else if (hwloc__type_match(string, "bridge", 4)) {
     type = HWLOC_OBJ_BRIDGE;
-  } else if (!hwloc_strncasecmp(string, "hostbridge", 6)) {
+  } else if (hwloc__type_match(string, "hostbridge", 6)) {
     type = HWLOC_OBJ_BRIDGE;
     ubtype = HWLOC_OBJ_BRIDGE_HOST;
-  } else if (!hwloc_strncasecmp(string, "pcibridge", 5)) {
+  } else if (hwloc__type_match(string, "pcibridge", 5)) {
     type = HWLOC_OBJ_BRIDGE;
     ubtype = HWLOC_OBJ_BRIDGE_PCI;
 
-  } else if (!hwloc_strncasecmp(string, "pci", 3)) {
+  } else if (hwloc__type_match(string, "pcidev", 3)) {
     type = HWLOC_OBJ_PCI_DEVICE;
 
   /* types with depthattr */
   } else if ((string[0] == 'l' || string[0] == 'L') && string[1] >= '0' && string[1] <= '9') {
+    char *suffix;
     depthattr = strtol(string+1, &end, 10);
-    if (*end == 'i') {
+    if (*end == 'i' || *end == 'I') {
       if (depthattr >= 1 && depthattr <= 3) {
 	type = HWLOC_OBJ_L1ICACHE + depthattr-1;
 	cachetypeattr = HWLOC_OBJ_CACHE_INSTRUCTION;
+	suffix = end+1;
       } else
 	return -1;
     } else {
       if (depthattr >= 1 && depthattr <= 5) {
 	type = HWLOC_OBJ_L1CACHE + depthattr-1;
-	cachetypeattr = *end == 'd' ? HWLOC_OBJ_CACHE_DATA : HWLOC_OBJ_CACHE_UNIFIED;
+	if (*end == 'd' || *end == 'D') {
+	  cachetypeattr = HWLOC_OBJ_CACHE_DATA;
+	  suffix = end+1;
+	} else if (*end == 'u' || *end == 'U') {
+	  cachetypeattr = HWLOC_OBJ_CACHE_UNIFIED;
+	  suffix = end+1;
+	} else {
+	  cachetypeattr = HWLOC_OBJ_CACHE_UNIFIED;
+	  suffix = end;
+	}
       } else
 	return -1;
     }
+    /* check whether the optional suffix matches "cache" */
+    if (!hwloc__type_match(suffix, "cache", 0))
+      return -1;
 
-  } else if (!hwloc_strncasecmp(string, "group", 2)) {
-    size_t length;
+  } else if ((end = (char *) hwloc__type_match(string, "group", 2)) != NULL) {
     type = HWLOC_OBJ_GROUP;
-    length = strcspn(string, "0123456789");
-    if (length <= 5 && !hwloc_strncasecmp(string, "group", length)
-	&& string[length] >= '0' && string[length] <= '9') {
-      depthattr = strtol(string+length, &end, 10);
+    if (*end >= '0' && *end <= '9') {
+      depthattr = strtol(end, &end, 10);
     }
 
   } else
@@ -421,7 +477,9 @@ hwloc_obj_type_snprintf(char * __hwloc_restrict string, size_t size, hwloc_obj_t
   case HWLOC_OBJ_MISC:
   case HWLOC_OBJ_MACHINE:
   case HWLOC_OBJ_NUMANODE:
+  case HWLOC_OBJ_MEMCACHE:
   case HWLOC_OBJ_PACKAGE:
+  case HWLOC_OBJ_DIE:
   case HWLOC_OBJ_CORE:
   case HWLOC_OBJ_PU:
     return hwloc_snprintf(string, size, "%s", hwloc_obj_type_string(type));
@@ -523,6 +581,7 @@ hwloc_obj_attr_snprintf(char * __hwloc_restrict string, size_t size, hwloc_obj_t
   case HWLOC_OBJ_L1ICACHE:
   case HWLOC_OBJ_L2ICACHE:
   case HWLOC_OBJ_L3ICACHE:
+  case HWLOC_OBJ_MEMCACHE:
     if (verbose) {
       char assoc[32];
       if (obj->attr->cache.associativity == -1)

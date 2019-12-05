@@ -6,11 +6,11 @@
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
-#include <hwloc.h>
-#include <private/private.h>
-#include <private/misc.h>
-#include <private/debug.h>
+#include "private/autogen/config.h"
+#include "hwloc.h"
+#include "private/private.h"
+#include "private/misc.h"
+#include "private/debug.h"
 
 #include <limits.h>
 #include <assert.h>
@@ -122,6 +122,7 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
     unsigned long nbs = 1;
     unsigned j, mul;
     const char *tmp;
+    struct hwloc_synthetic_intlv_loop_s *loops;
 
     tmp = attr;
     while (tmp) {
@@ -132,9 +133,10 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
       tmp++;
     }
 
-   {
     /* nr_loops colon-separated fields, but we may need one more at the end */
-    HWLOC_VLA(struct hwloc_synthetic_intlv_loop_s, loops, nr_loops+1);
+    loops = malloc((nr_loops+1) * sizeof(*loops));
+    if (!loops)
+      goto out_with_array;
 
     if (*attr >= '0' && *attr <= '9') {
       /* interleaving as x*y:z*t:... */
@@ -148,11 +150,13 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
 	if (tmp2 == tmp || *tmp2 != '*') {
 	  if (verbose)
 	    fprintf(stderr, "Failed to read synthetic index interleaving loop '%s' without number before '*'\n", tmp);
+	  free(loops);
 	  goto out_with_array;
 	}
 	if (!step) {
 	  if (verbose)
 	    fprintf(stderr, "Invalid interleaving loop with step 0 at '%s'\n", tmp);
+	  free(loops);
 	  goto out_with_array;
 	}
 	tmp2++;
@@ -160,11 +164,13 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
 	if (tmp3 == tmp2 || (*tmp3 && *tmp3 != ':' && *tmp3 != ')' && *tmp3 != ' ')) {
 	  if (verbose)
 	    fprintf(stderr, "Failed to read synthetic index interleaving loop '%s' without number between '*' and ':'\n", tmp);
+	  free(loops);
 	  goto out_with_array;
 	}
 	if (!nb) {
 	  if (verbose)
 	    fprintf(stderr, "Invalid interleaving loop with number 0 at '%s'\n", tmp2);
+	  free(loops);
 	  goto out_with_array;
 	}
 	loops[cur_loop].step = step;
@@ -192,11 +198,13 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
 	if (err < 0) {
 	  if (verbose)
 	    fprintf(stderr, "Failed to read synthetic index interleaving loop type '%s'\n", tmp);
+	  free(loops);
 	  goto out_with_array;
 	}
 	if (type == HWLOC_OBJ_MISC || type == HWLOC_OBJ_BRIDGE || type == HWLOC_OBJ_PCI_DEVICE || type == HWLOC_OBJ_OS_DEVICE) {
 	  if (verbose)
 	    fprintf(stderr, "Misc object type disallowed in synthetic index interleaving loop type '%s'\n", tmp);
+	  free(loops);
 	  goto out_with_array;
 	}
 	for(i=0; ; i++) {
@@ -217,6 +225,7 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
 	  if (verbose)
 	    fprintf(stderr, "Failed to find level for synthetic index interleaving loop type '%s'\n",
 		    tmp);
+	  free(loops);
 	  goto out_with_array;
 	}
 	tmp = strchr(tmp, ':');
@@ -235,6 +244,7 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
 	  if (loops[i].level_depth == mydepth && i != cur_loop) {
 	    if (verbose)
 	      fprintf(stderr, "Invalid duplicate interleaving loop type in synthetic index '%s'\n", attr);
+	    free(loops);
 	    goto out_with_array;
 	  }
 	  if (loops[i].level_depth < mydepth
@@ -264,6 +274,7 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
       } else {
 	if (verbose)
 	  fprintf(stderr, "Invalid index interleaving total width %lu instead of %lu\n", nbs, total);
+	free(loops);
 	goto out_with_array;
       }
     }
@@ -277,6 +288,8 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
 	array[j] += ((j / step) % nb) * mul;
       mul *= nb;
     }
+
+    free(loops);
 
     /* check that we have the right values (cannot pass total, cannot give duplicate 0) */
     for(j=0; j<total; j++) {
@@ -293,7 +306,6 @@ hwloc_synthetic_process_indexes(struct hwloc_synthetic_backend_data_s *data,
     }
 
     indexes->array = array;
-   }
   }
 
   return;
@@ -527,7 +539,8 @@ hwloc_backend_synthetic_init(struct hwloc_synthetic_backend_data_s *data,
 
     if (*pos < '0' || *pos > '9') {
       if (hwloc_type_sscanf(pos, &type, &attrs, sizeof(attrs)) < 0) {
-	if (!strncmp(pos, "Die", 3) || !strncmp(pos, "Tile", 4) || !strncmp(pos, "Module", 6)) {
+	if (!strncmp(pos, "Tile", 4) || !strncmp(pos, "Module", 6)) {
+	  /* possible future types */
 	  type = HWLOC_OBJ_GROUP;
 	} else {
 	  /* FIXME: allow generic "Cache" string? would require to deal with possibly duplicate cache levels */
@@ -642,6 +655,12 @@ hwloc_backend_synthetic_init(struct hwloc_synthetic_backend_data_s *data,
   if (type_count[HWLOC_OBJ_PACKAGE] > 1) {
     if (verbose)
       fprintf(stderr, "Synthetic string cannot have several package levels\n");
+    errno = EINVAL;
+    return -1;
+  }
+  if (type_count[HWLOC_OBJ_DIE] > 1) {
+    if (verbose)
+      fprintf(stderr, "Synthetic string cannot have several die levels\n");
     errno = EINVAL;
     return -1;
   }
@@ -829,6 +848,7 @@ hwloc_synthetic_set_attr(struct hwloc_synthetic_attr_s *sattr,
     obj->attr->numanode.page_types[0].count = sattr->memorysize / 4096;
     break;
   case HWLOC_OBJ_PACKAGE:
+  case HWLOC_OBJ_DIE:
     break;
   case HWLOC_OBJ_L1CACHE:
   case HWLOC_OBJ_L2CACHE:
@@ -953,12 +973,18 @@ hwloc__look_synthetic(struct hwloc_topology *topology,
 }
 
 static int
-hwloc_look_synthetic(struct hwloc_backend *backend)
+hwloc_look_synthetic(struct hwloc_backend *backend, struct hwloc_disc_status *dstatus)
 {
+  /*
+   * This backend enforces !topology->is_thissystem by default.
+   */
+
   struct hwloc_topology *topology = backend->topology;
   struct hwloc_synthetic_backend_data_s *data = backend->private_data;
   hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
   unsigned i;
+
+  assert(dstatus->phase == HWLOC_DISC_PHASE_GLOBAL);
 
   assert(!topology->levels[0][0]->cpuset);
 
@@ -1001,7 +1027,9 @@ hwloc_synthetic_backend_disable(struct hwloc_backend *backend)
 }
 
 static struct hwloc_backend *
-hwloc_synthetic_component_instantiate(struct hwloc_disc_component *component,
+hwloc_synthetic_component_instantiate(struct hwloc_topology *topology,
+				      struct hwloc_disc_component *component,
+				      unsigned excluded_phases __hwloc_attribute_unused,
 				      const void *_data1,
 				      const void *_data2 __hwloc_attribute_unused,
 				      const void *_data3 __hwloc_attribute_unused)
@@ -1021,7 +1049,7 @@ hwloc_synthetic_component_instantiate(struct hwloc_disc_component *component,
     }
   }
 
-  backend = hwloc_backend_alloc(component);
+  backend = hwloc_backend_alloc(topology, component);
   if (!backend)
     goto out;
 
@@ -1051,8 +1079,8 @@ hwloc_synthetic_component_instantiate(struct hwloc_disc_component *component,
 }
 
 static struct hwloc_disc_component hwloc_synthetic_disc_component = {
-  HWLOC_DISC_COMPONENT_TYPE_GLOBAL,
   "synthetic",
+  HWLOC_DISC_PHASE_GLOBAL,
   ~0,
   hwloc_synthetic_component_instantiate,
   30,
@@ -1267,6 +1295,12 @@ hwloc__export_synthetic_obj(struct hwloc_topology * topology, unsigned long flag
     /* if exporting to v1 or without extended-types, use all-v1-compatible Socket name */
     res = hwloc_snprintf(tmp, tmplen, "Socket%s", aritys);
 
+  } else if (obj->type == HWLOC_OBJ_DIE
+	     && (flags & (HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES
+			  |HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_V1))) {
+    /* if exporting to v1 or without extended-types, use all-v1-compatible Group name */
+    res = hwloc_snprintf(tmp, tmplen, "Group%s", aritys);
+
   } else if (obj->type == HWLOC_OBJ_GROUP /* don't export group depth */
       || flags & HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES) {
     res = hwloc_snprintf(tmp, tmplen, "%s%s", hwloc_obj_type_string(obj->type), aritys);
@@ -1323,16 +1357,26 @@ hwloc__export_synthetic_memory_children(struct hwloc_topology * topology, unsign
   }
 
   while (mchild) {
-    /* v2: export all NUMA children */
-
-    assert(mchild->type == HWLOC_OBJ_NUMANODE); /* only NUMA node memory children for now */
+    /* FIXME: really recurse to export memcaches and numanode,
+     * but it requires clever parsing of [ memcache [numa] [numa] ] during import,
+     * better attaching of things to describe the hierarchy.
+     */
+    hwloc_obj_t numanode = mchild;
+    /* only export the first NUMA node leaf of each memory child
+     * FIXME: This assumes mscache aren't shared between nodes, that's true in current platforms
+     */
+    while (numanode && numanode->type != HWLOC_OBJ_NUMANODE) {
+      assert(numanode->arity == 1);
+      numanode = numanode->memory_first_child;
+    }
+    assert(numanode); /* there's always a numanode at the bottom of the memory tree */
 
     if (needprefix)
       hwloc__export_synthetic_add_char(&ret, &tmp, &tmplen, ' ');
 
     hwloc__export_synthetic_add_char(&ret, &tmp, &tmplen, '[');
 
-    res = hwloc__export_synthetic_obj(topology, flags, mchild, (unsigned)-1, tmp, tmplen);
+    res = hwloc__export_synthetic_obj(topology, flags, numanode, (unsigned)-1, tmp, tmplen);
     if (hwloc__export_synthetic_update_status(&ret, &tmp, &tmplen, res) < 0)
       return -1;
 
@@ -1366,9 +1410,8 @@ hwloc_check_memory_symmetric(struct hwloc_topology * topology)
     assert(node);
 
     first_parent = node->parent;
-    assert(hwloc__obj_type_is_normal(first_parent->type)); /* only depth-1 memory children for now */
 
-    /* check whether all object on parent's level have same number of NUMA children */
+    /* check whether all object on parent's level have same number of NUMA bits */
     for(i=0; i<hwloc_get_nbobjs_by_depth(topology, first_parent->depth); i++) {
       hwloc_obj_t parent, mchild;
 
@@ -1379,10 +1422,9 @@ hwloc_check_memory_symmetric(struct hwloc_topology * topology)
       if (parent->memory_arity != first_parent->memory_arity)
 	goto out_with_bitmap;
 
-      /* clear these NUMA children from remaining_nodes */
+      /* clear children NUMA bits from remaining_nodes */
       mchild = parent->memory_first_child;
       while (mchild) {
-	assert(mchild->type == HWLOC_OBJ_NUMANODE); /* only NUMA node memory children for now */
 	hwloc_bitmap_clr(remaining_nodes, mchild->os_index); /* cannot use parent->nodeset, some normal children may have other NUMA nodes */
 	mchild = mchild->next_sibling;
       }

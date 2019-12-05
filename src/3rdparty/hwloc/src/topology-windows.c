@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2018 Inria.  All rights reserved.
+ * Copyright © 2009-2019 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -9,10 +9,10 @@
 /* To try to get all declarations duplicated below.  */
 #define _WIN32_WINNT 0x0601
 
-#include <private/autogen/config.h>
-#include <hwloc.h>
-#include <private/private.h>
-#include <private/debug.h>
+#include "private/autogen/config.h"
+#include "hwloc.h"
+#include "private/private.h"
+#include "private/debug.h"
 
 #include <windows.h>
 
@@ -731,14 +731,22 @@ hwloc_win_get_area_memlocation(hwloc_topology_t topology __hwloc_attribute_unuse
  */
 
 static int
-hwloc_look_windows(struct hwloc_backend *backend)
+hwloc_look_windows(struct hwloc_backend *backend, struct hwloc_disc_status *dstatus)
 {
+  /*
+   * This backend uses the underlying OS.
+   * However we don't enforce topology->is_thissystem so that
+   * we may still force use this backend when debugging with !thissystem.
+   */
+
   struct hwloc_topology *topology = backend->topology;
   hwloc_bitmap_t groups_pu_set = NULL;
   SYSTEM_INFO SystemInfo;
   DWORD length;
   int gotnuma = 0;
   int gotnumamemory = 0;
+
+  assert(dstatus->phase == HWLOC_DISC_PHASE_CPU);
 
   if (topology->levels[0][0]->cpuset)
     /* somebody discovered things */
@@ -1136,13 +1144,15 @@ static void hwloc_windows_component_finalize(unsigned long flags __hwloc_attribu
 }
 
 static struct hwloc_backend *
-hwloc_windows_component_instantiate(struct hwloc_disc_component *component,
+hwloc_windows_component_instantiate(struct hwloc_topology *topology,
+				    struct hwloc_disc_component *component,
+				    unsigned excluded_phases __hwloc_attribute_unused,
 				    const void *_data1 __hwloc_attribute_unused,
 				    const void *_data2 __hwloc_attribute_unused,
 				    const void *_data3 __hwloc_attribute_unused)
 {
   struct hwloc_backend *backend;
-  backend = hwloc_backend_alloc(component);
+  backend = hwloc_backend_alloc(topology, component);
   if (!backend)
     return NULL;
   backend->discover = hwloc_look_windows;
@@ -1150,9 +1160,9 @@ hwloc_windows_component_instantiate(struct hwloc_disc_component *component,
 }
 
 static struct hwloc_disc_component hwloc_windows_disc_component = {
-  HWLOC_DISC_COMPONENT_TYPE_CPU,
   "windows",
-  HWLOC_DISC_COMPONENT_TYPE_GLOBAL,
+  HWLOC_DISC_PHASE_CPU,
+  HWLOC_DISC_PHASE_GLOBAL,
   hwloc_windows_component_instantiate,
   50,
   1,
@@ -1168,9 +1178,11 @@ const struct hwloc_component hwloc_windows_component = {
 };
 
 int
-hwloc_fallback_nbprocessors(struct hwloc_topology *topology __hwloc_attribute_unused) {
+hwloc_fallback_nbprocessors(unsigned flags __hwloc_attribute_unused) {
   int n;
   SYSTEM_INFO sysinfo;
+
+  /* TODO handle flags & HWLOC_FALLBACK_NBPROCESSORS_INCLUDE_OFFLINE */
 
   /* by default, ignore groups (return only the number in the current group) */
   GetSystemInfo(&sysinfo);

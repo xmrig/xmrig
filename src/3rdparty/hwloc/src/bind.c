@@ -1,15 +1,16 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2018 Inria.  All rights reserved.
+ * Copyright © 2009-2019 Inria.  All rights reserved.
  * Copyright © 2009-2010, 2012 Université Bordeaux
  * Copyright © 2011-2015 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
-#include <hwloc.h>
-#include <private/private.h>
-#include <hwloc/helper.h>
+#include "private/autogen/config.h"
+#include "hwloc.h"
+#include "private/private.h"
+#include "hwloc/helper.h"
+
 #ifdef HAVE_SYS_MMAN_H
 #  include <sys/mman.h>
 #endif
@@ -885,6 +886,8 @@ hwloc_set_binding_hooks(struct hwloc_topology *topology)
   } else {
     /* not this system, use dummy binding hooks that do nothing (but don't return ENOSYS) */
     hwloc_set_dummy_hooks(&topology->binding_hooks, &topology->support);
+
+    /* Linux has some hooks that also work in this case, but they are not strictly needed yet. */
   }
 
   /* if not is_thissystem, set_cpubind is fake

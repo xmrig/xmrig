@@ -13,11 +13,13 @@
 #ifndef HWLOC_INTEL_MIC_H
 #define HWLOC_INTEL_MIC_H
 
-#include <hwloc.h>
-#include <hwloc/autogen/config.h>
-#include <hwloc/helper.h>
+#include "hwloc.h"
+#include "hwloc/autogen/config.h"
+#include "hwloc/helper.h"
+
 #ifdef HWLOC_LINUX_SYS
-#include <hwloc/linux.h>
+#include "hwloc/linux.h"
+
 #include <dirent.h>
 #include <string.h>
 #endif
