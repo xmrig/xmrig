@@ -82,6 +82,8 @@ void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
     constexpr int flag_1gb = MAP_HUGE_1GB;
 #   elif defined(MAP_HUGE_SHIFT)
     constexpr int flag_1gb = (30 << MAP_HUGE_SHIFT);
+#   else
+    constexpr int flag_1gb = 0;
 #   endif
 
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | flag_1gb, 0, 0);
