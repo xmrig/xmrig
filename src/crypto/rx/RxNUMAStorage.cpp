@@ -148,13 +148,13 @@ public:
     }
 
 
-    inline void initDatasets(uint32_t threads)
+    inline void initDatasets(uint32_t threads, int priority)
     {
         uint64_t ts  = Chrono::steadyMSecs();
         auto id      = m_nodeset.front();
         auto primary = dataset(id);
 
-        primary->init(m_seed.data(), threads);
+        primary->init(m_seed.data(), threads, priority);
 
         printDatasetReady(id, ts);
 
@@ -346,7 +346,7 @@ std::pair<uint32_t, uint32_t> xmrig::RxNUMAStorage::hugePages() const
 }
 
 
-void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode)
+void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode, int priority)
 {
     d_ptr->setSeed(seed);
 
@@ -354,5 +354,5 @@ void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugeP
         d_ptr->createDatasets(hugePages, oneGbPages);
     }
 
-    d_ptr->initDatasets(threads);
+    d_ptr->initDatasets(threads, priority);
 }

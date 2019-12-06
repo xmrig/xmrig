@@ -236,7 +236,9 @@ public:
 #   ifdef XMRIG_ALGO_RANDOMX
     inline bool initRX()
     {
-        return Rx::init(job, controller->config()->rx(), controller->config()->cpu().isHugePages(), controller->config()->cpu().isOneGbPages());
+        const auto &cpu = controller->config()->cpu();
+
+        return Rx::init(job, controller->config()->rx(), cpu.isHugePages(), cpu.isOneGbPages(), cpu.priority());
     }
 #   endif
 

@@ -28,6 +28,7 @@
 #include "crypto/rx/RxDataset.h"
 #include "backend/common/Tags.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
@@ -38,6 +39,20 @@
 
 
 static_assert(RANDOMX_FLAG_LARGE_PAGES == 1, "RANDOMX_FLAG_LARGE_PAGES flag mismatch");
+
+
+namespace xmrig {
+
+
+static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache, unsigned long startItem, unsigned long itemCount, int priority)
+{
+    Platform::setThreadPriority(priority);
+
+    randomx_init_dataset(dataset, cache, startItem, itemCount);
+}
+
+
+} // namespace xmrig
 
 
 xmrig::RxDataset::RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode) :
@@ -67,7 +82,7 @@ xmrig::RxDataset::~RxDataset()
 }
 
 
-bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
+bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priority)
 {
     if (!m_cache) {
         return false;
@@ -88,7 +103,7 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
         for (uint64_t i = 0; i < numThreads; ++i) {
             const uint32_t a = (datasetItemCount * i) / numThreads;
             const uint32_t b = (datasetItemCount * (i + 1)) / numThreads;
-            threads.emplace_back(randomx_init_dataset, m_dataset, m_cache->get(), a, b - a);
+            threads.emplace_back(init_dataset_wrapper, m_dataset, m_cache->get(), a, b - a, priority);
         }
 
         for (uint32_t i = 0; i < numThreads; ++i) {
@@ -96,7 +111,7 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
         }
     }
     else {
-        randomx_init_dataset(m_dataset, m_cache->get(), 0, datasetItemCount);
+        init_dataset_wrapper(m_dataset, m_cache->get(), 0, datasetItemCount, priority);
     }
 
     return true;

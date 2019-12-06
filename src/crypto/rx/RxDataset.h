@@ -61,7 +61,7 @@ public:
     inline RxCache *cache() const           { return m_cache; }
     inline void setCache(RxCache *cache)    { m_cache = cache; }
 
-    bool init(const Buffer &seed, uint32_t numThreads);
+    bool init(const Buffer &seed, uint32_t numThreads, int priority);
     size_t size(bool cache = true) const;
     std::pair<uint32_t, uint32_t> hugePages(bool cache = true) const;
     void *raw() const;

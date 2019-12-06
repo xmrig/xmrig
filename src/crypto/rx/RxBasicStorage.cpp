@@ -78,11 +78,11 @@ public:
     }
 
 
-    inline void initDataset(uint32_t threads)
+    inline void initDataset(uint32_t threads, int priority)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
-        m_dataset->init(m_seed.data(), threads);
+        m_dataset->init(m_seed.data(), threads, priority);
 
         LOG_INFO("%s" GREEN_BOLD("dataset ready") BLACK_BOLD(" (%" PRIu64 " ms)"), rx_tag(), Chrono::steadyMSecs() - ts);
 
@@ -157,7 +157,7 @@ std::pair<uint32_t, uint32_t> xmrig::RxBasicStorage::hugePages() const
 }
 
 
-void xmrig::RxBasicStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode)
+void xmrig::RxBasicStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority)
 {
     d_ptr->setSeed(seed);
 
@@ -165,5 +165,5 @@ void xmrig::RxBasicStorage::init(const RxSeed &seed, uint32_t threads, bool huge
         d_ptr->createDataset(hugePages, oneGbPages, mode);
     }
 
-    d_ptr->initDataset(threads);
+    d_ptr->initDataset(threads, priority);
 }
