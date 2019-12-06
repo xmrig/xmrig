@@ -57,4 +57,12 @@ namespace randomx {
 		freePagedMemory(ptr, count);
 	};
 
+	void* OneGbPageAllocator::allocMemory(size_t count) {
+		return allocOneGbPagesMemory(count);
+	}
+
+	void OneGbPageAllocator::freeMemory(void* ptr, size_t count) {
+		freePagedMemory(ptr, count);
+	};
+
 }

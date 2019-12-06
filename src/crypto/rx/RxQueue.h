@@ -53,8 +53,9 @@ class RxDataset;
 class RxQueueItem
 {
 public:
-    RxQueueItem(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, RxConfig::Mode mode) :
+    RxQueueItem(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode) :
         hugePages(hugePages),
+        oneGbPages(oneGbPages),
         mode(mode),
         seed(seed),
         nodeset(nodeset),
@@ -62,6 +63,7 @@ public:
     {}
 
     const bool hugePages;
+    const bool oneGbPages;
     const RxConfig::Mode mode;
     const RxSeed seed;
     const std::vector<uint32_t> nodeset;
@@ -80,7 +82,7 @@ public:
     bool isReady(const Job &job);
     RxDataset *dataset(const Job &job, uint32_t nodeId);
     std::pair<uint32_t, uint32_t> hugePages();
-    void enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, RxConfig::Mode mode);
+    void enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode);
 
 private:
     enum State {

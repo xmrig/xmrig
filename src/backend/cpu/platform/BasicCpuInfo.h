@@ -44,6 +44,7 @@ protected:
     inline Assembly::Id assembly() const override   { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
     inline bool hasAVX2() const override            { return m_avx2; }
+    inline bool hasOneGbPages() const override      { return m_pdpe1gb; }
     inline const char *brand() const override       { return m_brand; }
     inline size_t cores() const override            { return 0; }
     inline size_t L2() const override               { return 0; }
@@ -60,6 +61,7 @@ private:
     Assembly m_assembly;
     bool m_aes;
     const bool m_avx2;
+    const bool m_pdpe1gb;
 };
 
 

@@ -63,6 +63,8 @@ static void print_memory(Config *config) {
 #   ifdef _WIN32
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
                "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
+               "1GB PAGES", Cpu::info()->hasOneGbPages() ? GREEN_BOLD("available on Linux") : RED_BOLD("unavailable"));
 #   endif
 }
 
@@ -71,12 +73,13 @@ static void print_cpu(Config *)
 {
     const ICpuInfo *info = Cpu::info();
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES",
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES %sPDPE1GB",
                "CPU",
                info->brand(),
                info->packages(),
-               info->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
-               info->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-"
+               info->isX64()          ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasOneGbPages()  ? GREEN_BOLD_S : RED_BOLD_S "-"
                );
 #   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
     Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")

@@ -48,6 +48,7 @@ enum randomx_flags {
   RANDOMX_FLAG_HARD_AES = 2,
   RANDOMX_FLAG_FULL_MEM = 4,
   RANDOMX_FLAG_JIT = 8,
+  RANDOMX_FLAG_1GB_PAGES = 16,
 };
 
 

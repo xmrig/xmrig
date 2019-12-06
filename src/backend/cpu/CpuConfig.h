@@ -54,6 +54,7 @@ public:
 
     inline bool isEnabled() const                       { return m_enabled; }
     inline bool isHugePages() const                     { return m_hugePages; }
+    inline bool isOneGbPages() const                    { return m_oneGbPages; }
     inline bool isShouldSave() const                    { return m_shouldSave; }
     inline bool isYield() const                         { return m_yield; }
     inline const Assembly &assembly() const             { return m_assembly; }
@@ -72,6 +73,7 @@ private:
     Assembly m_assembly;
     bool m_enabled       = true;
     bool m_hugePages     = true;
+    bool m_oneGbPages    = false;
     bool m_shouldSave    = false;
     bool m_yield         = true;
     int m_memoryPool     = 0;

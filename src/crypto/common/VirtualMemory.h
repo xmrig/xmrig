@@ -61,6 +61,7 @@ public:
     static uint32_t bindToNUMANode(int64_t affinity);
     static void *allocateExecutableMemory(size_t size);
     static void *allocateLargePagesMemory(size_t size);
+    static void *allocateOneGbPagesMemory(size_t size);
     static void destroy();
     static void flushInstructionCache(void *p, size_t size);
     static void freeLargePagesMemory(void *p, size_t size);
@@ -81,6 +82,7 @@ private:
     static void osInit(bool hugePages);
 
     bool allocateLargePagesMemory();
+    bool allocateOneGbPagesMemory();
     void freeLargePagesMemory();
 
     const size_t m_size;
