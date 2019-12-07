@@ -30,6 +30,7 @@
 
 #include <array>
 #include <algorithm>
+#include <cmath>
 
 
 #ifdef _MSC_VER
@@ -52,9 +53,17 @@ const char *xmrig::RxConfig::modeName() const
 }
 
 
-uint32_t xmrig::RxConfig::threads() const
+uint32_t xmrig::RxConfig::threads(uint32_t limit) const
 {
-    return m_threads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(m_threads);
+    if (m_threads > 0) {
+        return m_threads;
+    }
+
+    if (limit < 100) {
+        return std::max(static_cast<uint32_t>(round(Cpu::info()->threads() * (limit / 100.0))), 1U);
+    }
+
+    return Cpu::info()->threads();
 }
 
 

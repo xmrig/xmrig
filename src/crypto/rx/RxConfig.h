@@ -55,7 +55,7 @@ public:
 #   endif
 
     const char *modeName() const;
-    uint32_t threads() const;
+    uint32_t threads(uint32_t limit = 100) const;
 
     inline Mode mode() const    { return m_mode; }
 
