@@ -29,6 +29,7 @@
 #include <sys/mman.h>
 
 
+#include "backend/cpu/Cpu.h"
 #include "crypto/common/portable/mm_malloc.h"
 #include "crypto/common/VirtualMemory.h"
 
@@ -38,9 +39,24 @@
 #endif
 
 
+#if defined (XMRIG_OS_LINUX) && (defined(MAP_HUGE_1GB) || defined(MAP_HUGE_SHIFT))
+#   define XMRIG_HAS_1GB_PAGES
+#endif
+
+
 bool xmrig::VirtualMemory::isHugepagesAvailable()
 {
     return true;
+}
+
+
+bool xmrig::VirtualMemory::isOneGbPagesAvailable()
+{
+#   ifdef XMRIG_HAS_1GB_PAGES
+    return Cpu::info()->hasOneGbPages();
+#   else
+    return false;
+#   endif
 }
 
 
@@ -72,24 +88,23 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 
 void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
 {
-#   if defined(__APPLE__)
-    void *mem = MAP_FAILED;
-#   elif defined(__FreeBSD__)
-    void *mem = MAP_FAILED;
-#   else
+#   ifdef XMRIG_HAS_1GB_PAGES
+    if (isOneGbPagesAvailable()) {
+#       if defined(MAP_HUGE_1GB)
+        constexpr int flag_1gb = MAP_HUGE_1GB;
+#       elif defined(MAP_HUGE_SHIFT)
+        constexpr int flag_1gb = (30 << MAP_HUGE_SHIFT);
+#       else
+        constexpr int flag_1gb = 0;
+#       endif
 
-#   if defined(MAP_HUGE_1GB)
-    constexpr int flag_1gb = MAP_HUGE_1GB;
-#   elif defined(MAP_HUGE_SHIFT)
-    constexpr int flag_1gb = (30 << MAP_HUGE_SHIFT);
-#   else
-    constexpr int flag_1gb = 0;
+        void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | flag_1gb, 0, 0);
+
+        return mem == MAP_FAILED ? nullptr : mem;
+    }
 #   endif
 
-    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | flag_1gb, 0, 0);
-#   endif
-
-    return mem == MAP_FAILED ? nullptr : mem;
+    return nullptr;
 }
 
 

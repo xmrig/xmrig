@@ -58,6 +58,7 @@ public:
     }
 
     static bool isHugepagesAvailable();
+    static bool isOneGbPagesAvailable();
     static uint32_t bindToNUMANode(int64_t affinity);
     static void *allocateExecutableMemory(size_t size);
     static void *allocateLargePagesMemory(size_t size);
