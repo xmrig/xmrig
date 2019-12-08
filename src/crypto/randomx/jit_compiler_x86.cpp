@@ -305,12 +305,12 @@ namespace randomx {
 		uint8_t* p;
 		uint32_t n;
 		if (flags & RANDOMX_FLAG_RYZEN) {
-            p = RandomX_CurrentConfig.codeReadDatasetRyzenTweaked;
-            n = RandomX_CurrentConfig.codeReadDatasetRyzenTweakedSize;
+			p = RandomX_CurrentConfig.codeReadDatasetRyzenTweaked;
+			n = RandomX_CurrentConfig.codeReadDatasetRyzenTweakedSize;
 		}
 		else {
-            p = RandomX_CurrentConfig.codeReadDatasetTweaked;
-            n = RandomX_CurrentConfig.codeReadDatasetTweakedSize;
+			p = RandomX_CurrentConfig.codeReadDatasetTweaked;
+			n = RandomX_CurrentConfig.codeReadDatasetTweakedSize;
 		}
 		memcpy(code + codePos, p, n);
 		codePos += n;
