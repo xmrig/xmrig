@@ -50,6 +50,8 @@ xmrig::App::App(Process *process)
 
 xmrig::App::~App()
 {
+    Cpu::release();
+
     delete m_signals;
     delete m_console;
     delete m_controller;
