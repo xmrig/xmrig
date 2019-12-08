@@ -76,6 +76,7 @@ set(HEADERS_CRYPTO
     src/crypto/cn/soft_aes.h
     src/crypto/common/Algorithm.h
     src/crypto/common/Coin.h
+    src/crypto/common/HugePagesInfo.h
     src/crypto/common/keccak.h
     src/crypto/common/MemoryPool.h
     src/crypto/common/Nonce.h
@@ -115,6 +116,7 @@ set(SOURCES_CRYPTO
     src/crypto/cn/CnHash.cpp
     src/crypto/common/Algorithm.cpp
     src/crypto/common/Coin.cpp
+    src/crypto/common/HugePagesInfo.cpp
     src/crypto/common/keccak.cpp
     src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
@@ -154,6 +156,11 @@ else()
     if (XMRIG_OS_ANDROID)
         set(EXTRA_LIBS pthread rt dl log)
     elseif (XMRIG_OS_LINUX)
+        list(APPEND SOURCES_OS
+            src/crypto/common/LinuxMemory.h
+            src/crypto/common/LinuxMemory.cpp
+            )
+
         set(EXTRA_LIBS pthread rt dl)
     elseif (XMRIG_OS_FREEBSD)
         set(EXTRA_LIBS kvm pthread)

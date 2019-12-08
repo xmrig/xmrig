@@ -215,7 +215,7 @@ extern "C" {
  *         NULL is returned if memory allocation fails or if the RANDOMX_FLAG_JIT
  *         is set and JIT compilation is not supported on the current platform.
  */
-RANDOMX_EXPORT randomx_cache *randomx_alloc_cache(randomx_flags flags);
+RANDOMX_EXPORT randomx_cache *randomx_create_cache(randomx_flags flags, uint8_t *memory);
 
 /**
  * Initializes the cache memory and SuperscalarHash using the provided key value.
@@ -242,7 +242,7 @@ RANDOMX_EXPORT void randomx_release_cache(randomx_cache* cache);
  * @return Pointer to an allocated randomx_dataset structure.
  *         NULL is returned if memory allocation fails.
  */
-RANDOMX_EXPORT randomx_dataset *randomx_alloc_dataset(randomx_flags flags);
+RANDOMX_EXPORT randomx_dataset *randomx_create_dataset(uint8_t *memory);
 
 /**
  * Gets the number of items contained in the dataset.

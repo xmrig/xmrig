@@ -86,11 +86,11 @@ xmrig::RxDataset *xmrig::RxQueue::dataset(const Job &job, uint32_t nodeId)
 }
 
 
-std::pair<uint32_t, uint32_t> xmrig::RxQueue::hugePages()
+xmrig::HugePagesInfo xmrig::RxQueue::hugePages()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    return m_storage && m_state == STATE_IDLE ? m_storage->hugePages() : std::pair<uint32_t, uint32_t>(0U, 0U);
+    return m_storage && m_state == STATE_IDLE ? m_storage->hugePages() : HugePagesInfo();
 }
 
 

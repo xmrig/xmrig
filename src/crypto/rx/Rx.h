@@ -32,6 +32,9 @@
 #include <utility>
 
 
+#include "crypto/common/HugePagesInfo.h"
+
+
 namespace xmrig
 {
 
@@ -49,8 +52,8 @@ class Rx
 public:
     static bool init(const Job &job, const RxConfig &config, const CpuConfig &cpu);
     static bool isReady(const Job &job);
+    static HugePagesInfo hugePages();
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
-    static std::pair<uint32_t, uint32_t> hugePages();
     static void destroy();
     static void init(IRxListener *listener);
 };

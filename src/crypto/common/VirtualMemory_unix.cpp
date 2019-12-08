@@ -39,8 +39,11 @@
 #endif
 
 
-#if defined (XMRIG_OS_LINUX) && (defined(MAP_HUGE_1GB) || defined(MAP_HUGE_SHIFT))
-#   define XMRIG_HAS_1GB_PAGES
+#if defined(XMRIG_OS_LINUX)
+#   if (defined(MAP_HUGE_1GB) || defined(MAP_HUGE_SHIFT))
+#       define XMRIG_HAS_1GB_PAGES
+#   endif
+#   include "crypto/common/LinuxMemory.h"
 #endif
 
 
@@ -141,6 +144,10 @@ void xmrig::VirtualMemory::osInit(bool)
 
 bool xmrig::VirtualMemory::allocateLargePagesMemory()
 {
+#   if defined(XMRIG_OS_LINUX)
+    LinuxMemory::reserve(m_size, m_node);
+#   endif
+
     m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
     if (m_scratchpad) {
         m_flags.set(FLAG_HUGEPAGES, true);
@@ -160,9 +167,13 @@ bool xmrig::VirtualMemory::allocateLargePagesMemory()
 
 bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
 {
+#   if defined(XMRIG_HAS_1GB_PAGES)
+    LinuxMemory::reserve(m_size, m_node, true);
+#   endif
+
     m_scratchpad = static_cast<uint8_t*>(allocateOneGbPagesMemory(m_size));
     if (m_scratchpad) {
-        m_flags.set(FLAG_HUGEPAGES, true);
+        m_flags.set(FLAG_1GB_PAGES, true);
 
         madvise(m_scratchpad, m_size, MADV_RANDOM | MADV_WILLNEED);
 

@@ -43,7 +43,7 @@ namespace randomx {
 	}
 
 	template<size_t alignment>
-	void AlignedAllocator<alignment>::freeMemory(void* ptr, size_t count) {
+	void AlignedAllocator<alignment>::freeMemory(void* ptr, size_t) {
 		rx_aligned_free(ptr);
 	}
 
@@ -54,14 +54,6 @@ namespace randomx {
 	}
 
 	void LargePageAllocator::freeMemory(void* ptr, size_t count) {
-		freePagedMemory(ptr, count);
-	};
-
-	void* OneGbPageAllocator::allocMemory(size_t count) {
-		return allocOneGbPagesMemory(count);
-	}
-
-	void OneGbPageAllocator::freeMemory(void* ptr, size_t count) {
 		freePagedMemory(ptr, count);
 	};
 

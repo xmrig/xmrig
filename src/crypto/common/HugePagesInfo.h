@@ -4,9 +4,7 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -24,40 +22,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_BASICSTORAGE_H
-#define XMRIG_RX_BASICSTORAGE_H
+#ifndef XMRIG_HUGEPAGESINFO_H
+#define XMRIG_HUGEPAGESINFO_H
 
 
-#include "backend/common/interfaces/IRxStorage.h"
-#include "base/tools/Object.h"
+#include <cstdint>
+#include <cstddef>
 
 
-namespace xmrig
-{
+namespace xmrig {
 
 
-class RxBasicStoragePrivate;
+class VirtualMemory;
 
 
-class RxBasicStorage : public IRxStorage
+class HugePagesInfo
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(RxBasicStorage);
+    HugePagesInfo() = default;
+    HugePagesInfo(const VirtualMemory *memory);
 
-    RxBasicStorage();
-    ~RxBasicStorage() override;
+    size_t allocated    = 0;
+    size_t total        = 0;
+    size_t size         = 0;
 
-protected:
-    HugePagesInfo hugePages() const override;
-    RxDataset *dataset(const Job &job, uint32_t nodeId) const override;
-    void init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority) override;
+    inline bool isFullyAllocated() const { return allocated == total; }
+    inline double percent() const        { return allocated == 0 ? 0.0 : static_cast<double>(allocated) / total * 100.0; }
+    inline void reset()                  { allocated = 0; total = 0; size = 0; }
 
-private:
-    RxBasicStoragePrivate *d_ptr;
+    inline HugePagesInfo &operator+=(const HugePagesInfo &other)
+    {
+        allocated += other.allocated;
+        total     += other.total;
+        size      += other.size;
+
+        return *this;
+    }
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_RX_BASICSTORAGE_H */
+#endif /* XMRIG_HUGEPAGESINFO_H */

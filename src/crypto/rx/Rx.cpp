@@ -83,15 +83,15 @@ bool xmrig::Rx::isReady(const Job &job)
 }
 
 
-xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
+xmrig::HugePagesInfo xmrig::Rx::hugePages()
 {
-    return d_ptr->queue.dataset(job, nodeId);
+    return d_ptr->queue.hugePages();
 }
 
 
-std::pair<uint32_t, uint32_t> xmrig::Rx::hugePages()
+xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 {
-    return d_ptr->queue.hugePages();
+    return d_ptr->queue.dataset(job, nodeId);
 }
 
 

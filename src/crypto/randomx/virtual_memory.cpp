@@ -53,16 +53,6 @@ void* allocLargePagesMemory(std::size_t bytes) {
 }
 
 
-void* allocOneGbPagesMemory(std::size_t bytes) {
-    void* mem = xmrig::VirtualMemory::allocateOneGbPagesMemory(bytes);
-    if (mem == nullptr) {
-        throw std::runtime_error("Failed to allocate 1GB pages memory");
-    }
-
-    return mem;
-}
-
-
 void freePagedMemory(void* ptr, std::size_t bytes) {
     xmrig::VirtualMemory::freeLargePagesMemory(ptr, bytes);
 }

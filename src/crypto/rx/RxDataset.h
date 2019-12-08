@@ -30,6 +30,7 @@
 
 #include "base/tools/Object.h"
 #include "crypto/common/Algorithm.h"
+#include "crypto/common/HugePagesInfo.h"
 #include "crypto/randomx/configuration.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxConfig.h"
@@ -44,6 +45,7 @@ namespace xmrig
 
 class Buffer;
 class RxCache;
+class VirtualMemory;
 
 
 class RxDataset
@@ -51,19 +53,19 @@ class RxDataset
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxDataset)
 
-    RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode);
+    RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode, uint32_t node);
     RxDataset(RxCache *cache);
     ~RxDataset();
 
-    inline bool isHugePages() const         { return m_flags & RANDOMX_FLAG_LARGE_PAGES; }
-    inline bool isOneGbPages() const        { return m_flags & RANDOMX_FLAG_1GB_PAGES; }
     inline randomx_dataset *get() const     { return m_dataset; }
     inline RxCache *cache() const           { return m_cache; }
     inline void setCache(RxCache *cache)    { m_cache = cache; }
 
     bool init(const Buffer &seed, uint32_t numThreads, int priority);
+    bool isHugePages() const;
+    bool isOneGbPages() const;
+    HugePagesInfo hugePages(bool cache = true) const;
     size_t size(bool cache = true) const;
-    std::pair<uint32_t, uint32_t> hugePages(bool cache = true) const;
     void *raw() const;
     void setRaw(const void *raw);
 
@@ -73,9 +75,10 @@ private:
     void allocate(bool hugePages, bool oneGbPages);
 
     const RxConfig::Mode m_mode = RxConfig::FastMode;
-    int m_flags                 = 0;
+    const uint32_t m_node;
     randomx_dataset *m_dataset  = nullptr;
     RxCache *m_cache            = nullptr;
+    VirtualMemory *m_memory     = nullptr;
 };
 
 
