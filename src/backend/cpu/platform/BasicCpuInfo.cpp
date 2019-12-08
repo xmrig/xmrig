@@ -113,7 +113,7 @@ static void cpu_brand_string(char out[64 + 6]) {
 }
 
 
-static bool has_feature(uint32_t level, uint32_t reg, int32_t bit)
+static inline bool has_feature(uint32_t level, uint32_t reg, int32_t bit)
 {
     int32_t cpu_info[4] = { 0 };
     cpuid(level, cpu_info);
@@ -191,7 +191,7 @@ const char *xmrig::BasicCpuInfo::backend() const
 }
 
 
-xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
+xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint32_t) const
 {
     const size_t count = std::thread::hardware_concurrency();
 
