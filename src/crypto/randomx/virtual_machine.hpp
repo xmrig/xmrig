@@ -46,6 +46,9 @@ public:
 	virtual void run(void* seed) = 0;
 	void resetRoundingMode();
 
+	void setFlags(uint32_t flags) { vm_flags = flags; }
+	uint32_t getFlags() const { return vm_flags; }
+
 	randomx::RegisterFile *getRegisterFile() {
 		return &reg;
 	}
@@ -71,6 +74,7 @@ protected:
 		randomx_dataset* datasetPtr;
 	};
 	uint64_t datasetOffset;
+	uint32_t vm_flags;
 };
 
 namespace randomx {

@@ -49,7 +49,7 @@ namespace randomx {
 	public:
 		JitCompilerX86();
 		~JitCompilerX86();
-		void generateProgram(Program&, ProgramConfiguration&);
+		void generateProgram(Program&, ProgramConfiguration&, uint32_t);
 		void generateProgramLight(Program&, ProgramConfiguration&, uint32_t);
 		template<size_t N>
 		void generateSuperscalarHash(SuperscalarProgram (&programs)[N], std::vector<uint64_t> &);

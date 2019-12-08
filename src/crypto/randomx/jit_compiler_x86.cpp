@@ -89,7 +89,6 @@ namespace randomx {
 	const uint8_t* codeLoopBegin = (uint8_t*)&randomx_program_loop_begin;
 	const uint8_t* codeLoopLoad = (uint8_t*)&randomx_program_loop_load;
 	const uint8_t* codeProgamStart = (uint8_t*)&randomx_program_start;
-	const uint8_t* codeReadDataset = (uint8_t*)&randomx_program_read_dataset;
 	const uint8_t* codeReadDatasetLightSshInit = (uint8_t*)&randomx_program_read_dataset_sshash_init;
 	const uint8_t* codeReadDatasetLightSshFin = (uint8_t*)&randomx_program_read_dataset_sshash_fin;
 	const uint8_t* codeDatasetInit = (uint8_t*)&randomx_dataset_init;
@@ -105,7 +104,6 @@ namespace randomx {
 	const int32_t prefetchScratchpadSize = codePrefetchScratchpadEnd - codePrefetchScratchpad;
 	const int32_t prologueSize = codeLoopBegin - codePrologue;
 	const int32_t loopLoadSize = codeProgamStart - codeLoopLoad;
-	const int32_t readDatasetSize = codeReadDatasetLightSshInit - codeReadDataset;
 	const int32_t readDatasetLightInitSize = codeReadDatasetLightSshFin - codeReadDatasetLightSshInit;
 	const int32_t readDatasetLightFinSize = codeLoopStore - codeReadDatasetLightSshFin;
 	const int32_t loopStoreSize = codeLoopEnd - codeLoopStore;
@@ -301,10 +299,22 @@ namespace randomx {
 		freePagedMemory(allocatedCode, CodeSize);
 	}
 
-	void JitCompilerX86::generateProgram(Program& prog, ProgramConfiguration& pcfg) {
+	void JitCompilerX86::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t flags) {
 		generateProgramPrologue(prog, pcfg);
-		memcpy(code + codePos, RandomX_CurrentConfig.codeReadDatasetTweaked, readDatasetSize);
-		codePos += readDatasetSize;
+
+		uint8_t* p;
+		uint32_t n;
+		if (flags & RANDOMX_FLAG_RYZEN) {
+			p = RandomX_CurrentConfig.codeReadDatasetRyzenTweaked;
+			n = RandomX_CurrentConfig.codeReadDatasetRyzenTweakedSize;
+		}
+		else {
+			p = RandomX_CurrentConfig.codeReadDatasetTweaked;
+			n = RandomX_CurrentConfig.codeReadDatasetTweakedSize;
+		}
+		memcpy(code + codePos, p, n);
+		codePos += n;
+
 		generateProgramEpilogue(prog, pcfg);
 	}
 
