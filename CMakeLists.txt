@@ -30,6 +30,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
+include (cmake/os.cmake)
 include (src/base/base.cmake)
 include (src/backend/backend.cmake)
 
@@ -131,40 +132,31 @@ if (WITH_HWLOC)
         )
 endif()
 
-if (WIN32)
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+if (XMRIG_OS_WIN)
+    list(APPEND SOURCES_OS
         res/app.rc
         src/App_win.cpp
         src/crypto/common/VirtualMemory_win.cpp
         )
 
-    add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
-elseif (APPLE)
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+elseif (XMRIG_OS_APPLE)
+    list(APPEND SOURCES_OS
         src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 else()
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+    list(APPEND SOURCES_OS
         src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 
-    if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-        set(EXTRA_LIBS kvm pthread)
-    else()
+    if (XMRIG_OS_ANDROID)
+        set(EXTRA_LIBS pthread rt dl log)
+    elseif (XMRIG_OS_LINUX)
         set(EXTRA_LIBS pthread rt dl)
-    endif()
-endif()
-
-if (CMAKE_SYSTEM_NAME MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "Android")
-    EXECUTE_PROCESS(COMMAND uname -o COMMAND tr -d '\n' OUTPUT_VARIABLE OPERATING_SYSTEM)
-    if (OPERATING_SYSTEM MATCHES "Android")
-        set(EXTRA_LIBS ${EXTRA_LIBS} log)
+    elseif (XMRIG_OS_FREEBSD)
+        set(EXTRA_LIBS kvm pthread)
     endif()
 endif()
 
