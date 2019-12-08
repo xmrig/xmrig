@@ -29,6 +29,7 @@
 
 
 #include "base/tools/Object.h"
+#include "backend/cpu/Cpu.h"
 
 
 #include <cstdint>
@@ -49,7 +50,7 @@ class RxVm
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxVm);
 
-    RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes);
+    RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly);
     ~RxVm();
 
     inline randomx_vm *get() const       { return m_vm; }
