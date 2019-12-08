@@ -59,7 +59,8 @@ inline static const char *asmName(Assembly::Id assembly)
 #endif
 
 
-static void print_memory(Config *config) {
+static void print_memory(Config *config)
+{
 #   ifdef XMRIG_OS_WIN
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
                "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
@@ -67,7 +68,7 @@ static void print_memory(Config *config) {
 #   else
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "HUGE PAGES",  config->cpu().isHugePages() ? GREEN_BOLD("supported") : RED_BOLD("disabled"));
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-               "1GB PAGES", config->cpu().isOneGbPages() ? (VirtualMemory::isOneGbPagesAvailable() ? GREEN_BOLD("supported") : YELLOW_BOLD("unavailable")) : YELLOW_BOLD("disabled"));
+               "1GB PAGES", (VirtualMemory::isOneGbPagesAvailable() ? (config->cpu().isOneGbPages() ? GREEN_BOLD("supported") : YELLOW_BOLD("disabled")) : YELLOW_BOLD("unavailable")));
 #   endif
 }
 
