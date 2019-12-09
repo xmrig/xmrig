@@ -191,8 +191,17 @@ void xmrig::CpuWorker<N>::start()
             consumeJob();
         }
 
+        uint64_t storeStatsMask = 7;
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        // RandomX is faster, we don't need to store stats so often
+        if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
+            storeStatsMask = 63;
+        }
+#       endif
+
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
-            if ((m_count & 0x7) == 0) {
+            if ((m_count & storeStatsMask) == 0) {
                 storeStats();
             }
 

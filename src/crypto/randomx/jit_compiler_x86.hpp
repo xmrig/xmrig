@@ -36,12 +36,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace randomx {
 
 	class Program;
-	class ProgramConfiguration;
+	struct ProgramConfiguration;
 	class SuperscalarProgram;
 	class JitCompilerX86;
 	class Instruction;
 
-	typedef void(JitCompilerX86::*InstructionGeneratorX86)(Instruction&, int);
+	typedef void(JitCompilerX86::*InstructionGeneratorX86)(const Instruction&);
 
 	constexpr uint32_t CodeSize = 64 * 1024;
 
@@ -66,16 +66,20 @@ namespace randomx {
 		size_t getCodeSize();
 
 		static InstructionGeneratorX86 engine[256];
-		int32_t instructionOffsets[512];
 		int registerUsage[RegistersCount];
+		uint8_t* allocatedCode;
 		uint8_t* code;
 		int32_t codePos;
 
+		static bool BranchesWithin32B;
+
+		static void applyTweaks();
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
 		void generateProgramEpilogue(Program&, ProgramConfiguration&);
-		static void genAddressReg(Instruction&, uint8_t* code, int& codePos, bool rax = true);
-		static void genAddressRegDst(Instruction&, uint8_t* code, int& codePos);
-		static void genAddressImm(Instruction&, uint8_t* code, int& codePos);
+		template<bool rax>
+		static void genAddressReg(const Instruction&, uint8_t* code, int& codePos);
+		static void genAddressRegDst(const Instruction&, uint8_t* code, int& codePos);
+		static void genAddressImm(const Instruction&, uint8_t* code, int& codePos);
 		static void genSIB(int scale, int index, int base, uint8_t* code, int& codePos);
 
 		void generateSuperscalarCode(Instruction &, std::vector<uint64_t> &);
@@ -105,36 +109,36 @@ namespace randomx {
 			codePos += count;
 		}
 
-		void h_IADD_RS(Instruction&, int);
-		void h_IADD_M(Instruction&, int);
-		void h_ISUB_R(Instruction&, int);
-		void h_ISUB_M(Instruction&, int);
-		void h_IMUL_R(Instruction&, int);
-		void h_IMUL_M(Instruction&, int);
-		void h_IMULH_R(Instruction&, int);
-		void h_IMULH_M(Instruction&, int);
-		void h_ISMULH_R(Instruction&, int);
-		void h_ISMULH_M(Instruction&, int);
-		void h_IMUL_RCP(Instruction&, int);
-		void h_INEG_R(Instruction&, int);
-		void h_IXOR_R(Instruction&, int);
-		void h_IXOR_M(Instruction&, int);
-		void h_IROR_R(Instruction&, int);
-		void h_IROL_R(Instruction&, int);
-		void h_ISWAP_R(Instruction&, int);
-		void h_FSWAP_R(Instruction&, int);
-		void h_FADD_R(Instruction&, int);
-		void h_FADD_M(Instruction&, int);
-		void h_FSUB_R(Instruction&, int);
-		void h_FSUB_M(Instruction&, int);
-		void h_FSCAL_R(Instruction&, int);
-		void h_FMUL_R(Instruction&, int);
-		void h_FDIV_M(Instruction&, int);
-		void h_FSQRT_R(Instruction&, int);
-		void h_CBRANCH(Instruction&, int);
-		void h_CFROUND(Instruction&, int);
-		void h_ISTORE(Instruction&, int);
-		void h_NOP(Instruction&, int);
+		void h_IADD_RS(const Instruction&);
+		void h_IADD_M(const Instruction&);
+		void h_ISUB_R(const Instruction&);
+		void h_ISUB_M(const Instruction&);
+		void h_IMUL_R(const Instruction&);
+		void h_IMUL_M(const Instruction&);
+		void h_IMULH_R(const Instruction&);
+		void h_IMULH_M(const Instruction&);
+		void h_ISMULH_R(const Instruction&);
+		void h_ISMULH_M(const Instruction&);
+		void h_IMUL_RCP(const Instruction&);
+		void h_INEG_R(const Instruction&);
+		void h_IXOR_R(const Instruction&);
+		void h_IXOR_M(const Instruction&);
+		void h_IROR_R(const Instruction&);
+		void h_IROL_R(const Instruction&);
+		void h_ISWAP_R(const Instruction&);
+		void h_FSWAP_R(const Instruction&);
+		void h_FADD_R(const Instruction&);
+		void h_FADD_M(const Instruction&);
+		void h_FSUB_R(const Instruction&);
+		void h_FSUB_M(const Instruction&);
+		void h_FSCAL_R(const Instruction&);
+		void h_FMUL_R(const Instruction&);
+		void h_FDIV_M(const Instruction&);
+		void h_FSQRT_R(const Instruction&);
+		void h_CBRANCH(const Instruction&);
+		void h_CFROUND(const Instruction&);
+		void h_ISTORE(const Instruction&);
+		void h_NOP(const Instruction&);
 	};
 
 }

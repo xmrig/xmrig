@@ -107,8 +107,9 @@ int Service::handleGET(const httplib::Request& req, httplib::Response& res)
   int resultCode = HTTP_NOT_FOUND;
 
   std::string clientId = req.get_param_value("clientId");
+  std::string removeAddr = req.get_header_value("REMOTE_ADDR");
 
-  LOG_INFO("[%s] GET %s%s%s", req.remoteAddr.c_str(), req.path.c_str(), clientId.empty() ? "" : "/?clientId=", clientId.c_str());
+  LOG_INFO("[%s] GET %s%s%s", removeAddr.c_str(), req.path.c_str(), clientId.empty() ? "" : "/?clientId=", clientId.c_str());
 
   if (req.path == "/")
   {
@@ -140,14 +141,14 @@ int Service::handleGET(const httplib::Request& req, httplib::Response& res)
       }
       else
       {
-        LOG_WARN("[%s] 404 NOT FOUND (%s)", req.remoteAddr.c_str(), req.path.c_str());
+        LOG_WARN("[%s] 404 NOT FOUND (%s)", removeAddr.c_str(), req.path.c_str());
       }
     }
     else
     {
       resultCode = HTTP_BAD_REQUEST;
       LOG_ERR("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)",
-              req.remoteAddr.c_str(), req.path.c_str());
+              removeAddr.c_str(), req.path.c_str());
     }
   }
 
@@ -161,8 +162,9 @@ int Service::handlePOST(const httplib::Request& req, httplib::Response& res)
   int resultCode = HTTP_NOT_FOUND;
 
   std::string clientId = req.get_param_value("clientId");
+  std::string removeAddr = req.get_header_value("REMOTE_ADDR");
 
-  LOG_INFO("[%s] POST %s%s%s", req.remoteAddr.c_str(), req.path.c_str(), clientId.empty() ? "" : "/?clientId=", clientId.c_str());
+  LOG_INFO("[%s] POST %s%s%s", removeAddr.c_str(), req.path.c_str(), clientId.empty() ? "" : "/?clientId=", clientId.c_str());
 
   if (!clientId.empty())
   {
@@ -185,7 +187,7 @@ int Service::handlePOST(const httplib::Request& req, httplib::Response& res)
     else
     {
       resultCode = HTTP_BAD_REQUEST;
-      LOG_WARN("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", req.remoteAddr.c_str(), req.path.c_str());
+      LOG_WARN("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)", removeAddr.c_str(), req.path.c_str());
     }
   }
   else
@@ -196,7 +198,7 @@ int Service::handlePOST(const httplib::Request& req, httplib::Response& res)
     }
     else
     {
-      LOG_WARN("[%s] 404 NOT FOUND (%s)", req.remoteAddr.c_str(), req.path.c_str());
+      LOG_WARN("[%s] 404 NOT FOUND (%s)", removeAddr.c_str(), req.path.c_str());
     }
   }
 
@@ -271,12 +273,14 @@ int Service::setClientStatus(const httplib::Request& req, const std::string& cli
 {
   int resultCode = HTTP_BAD_REQUEST;
 
+  std::string removeAddr = req.get_header_value("REMOTE_ADDR");
+
   rapidjson::Document document;
   if (!document.Parse(req.body.c_str()).HasParseError())
   {
     ClientStatus clientStatus;
     clientStatus.parseFromJson(document);
-    clientStatus.setExternalIp(req.remoteAddr);
+    clientStatus.setExternalIp(removeAddr);
 
     setClientLog(static_cast<size_t>(m_config->clientLogHistory()), clientId, clientStatus.getLog());
 
@@ -294,7 +298,7 @@ int Service::setClientStatus(const httplib::Request& req, const std::string& cli
   else
   {
     LOG_ERR("[%s] ClientStatus for client '%s' - Parse Error Occured: %d",
-            req.remoteAddr.c_str(), clientId.c_str(), document.GetParseError());
+            removeAddr.c_str(), clientId.c_str(), document.GetParseError());
   }
 
   return resultCode;

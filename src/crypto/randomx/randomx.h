@@ -29,8 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef RANDOMX_H
 #define RANDOMX_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include <type_traits>
 #include "crypto/randomx/intrin_portable.h"
 
@@ -41,17 +41,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define RANDOMX_EXPORT
 #endif
 
-typedef enum {
-  RANDOMX_FLAG_DEFAULT = 0,
-  RANDOMX_FLAG_LARGE_PAGES = 1,
-  RANDOMX_FLAG_HARD_AES = 2,
-  RANDOMX_FLAG_FULL_MEM = 4,
-  RANDOMX_FLAG_JIT = 8,
-} randomx_flags;
 
-typedef struct randomx_dataset randomx_dataset;
-typedef struct randomx_cache randomx_cache;
-typedef struct randomx_vm randomx_vm;
+enum randomx_flags {
+	RANDOMX_FLAG_DEFAULT = 0,
+	RANDOMX_FLAG_LARGE_PAGES = 1,
+	RANDOMX_FLAG_HARD_AES = 2,
+	RANDOMX_FLAG_FULL_MEM = 4,
+	RANDOMX_FLAG_JIT = 8,
+};
+
+
+struct randomx_dataset;
+struct randomx_cache;
+class randomx_vm;
+
 
 struct RandomX_ConfigurationBase
 {
@@ -130,6 +133,14 @@ struct RandomX_ConfigurationBase
 
 	uint32_t ConditionMask_Calculated;
 
+#if defined(XMRIG_ARMv8)
+	uint32_t Log2_ScratchpadL1;
+	uint32_t Log2_ScratchpadL2;
+	uint32_t Log2_ScratchpadL3;
+	uint32_t Log2_DatasetBaseSize;
+	uint32_t Log2_CacheSize;
+#endif
+
 	int CEIL_IADD_RS;
 	int CEIL_IADD_M;
 	int CEIL_ISUB_R;
@@ -166,11 +177,13 @@ struct RandomX_ConfigurationMonero : public RandomX_ConfigurationBase {};
 struct RandomX_ConfigurationWownero : public RandomX_ConfigurationBase { RandomX_ConfigurationWownero(); };
 struct RandomX_ConfigurationLoki : public RandomX_ConfigurationBase { RandomX_ConfigurationLoki(); };
 struct RandomX_ConfigurationArqma : public RandomX_ConfigurationBase { RandomX_ConfigurationArqma(); };
+struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_ConfigurationSafex(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
 extern RandomX_ConfigurationWownero RandomX_WowneroConfig;
 extern RandomX_ConfigurationLoki RandomX_LokiConfig;
 extern RandomX_ConfigurationArqma RandomX_ArqmaConfig;
+extern RandomX_ConfigurationSafex RandomX_SafexConfig;
 
 extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 
@@ -326,6 +339,9 @@ RANDOMX_EXPORT void randomx_destroy_vm(randomx_vm *machine);
  *        be NULL and at least RANDOMX_HASH_SIZE bytes must be available for writing.
 */
 RANDOMX_EXPORT void randomx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output);
+
+RANDOMX_EXPORT void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize);
+RANDOMX_EXPORT void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output);
 
 #if defined(__cplusplus)
 }

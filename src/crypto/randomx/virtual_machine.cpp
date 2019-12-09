@@ -111,7 +111,13 @@ namespace randomx {
 	template<bool softAes>
 	void VmBase<softAes>::getFinalResult(void* out, size_t outSize) {
 		hashAes1Rx4<softAes>(scratchpad, ScratchpadSize, &reg.a);
-        rx_blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
+		rx_blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
+	}
+
+	template<bool softAes>
+	void VmBase<softAes>::hashAndFill(void* out, size_t outSize, uint64_t (&fill_state)[8]) {
+		hashAndFillAes1Rx4<softAes>(scratchpad, ScratchpadSize, &reg.a, fill_state);
+		rx_blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
 	}
 
 	template<bool softAes>

@@ -261,6 +261,8 @@ if (WITH_CC_SERVER OR WITH_CC_CLIENT)
             src/cc/ClientStatus.cpp
             src/cc/GPUInfo.cpp)
 
+    add_definitions("/DCPPHTTPLIB_USE_POLL")
+
     if (WITH_ZLIB)
         set(ZLIB_ROOT ${XMRIG_DEPS})
         find_package(ZLIB)

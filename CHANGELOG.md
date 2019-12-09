@@ -1,3 +1,7 @@
+# 2.2.1
+* Integrated RandomSFX algo (rx/sfx)
+* Performance improvements for RandomX variants
+* Fixed some cc connection problems
 # 2.2.0
 * Integrated RandomxARQ algo (rx/arq)
 * Dashboard:

@@ -379,6 +379,8 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
 
     auto res = std::make_shared<httplib::Response>();
 
+    cli->follow_location(false);
+
     return cli->send(req, *res) ? res : nullptr;
 }
 
