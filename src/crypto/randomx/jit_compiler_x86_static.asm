@@ -81,6 +81,7 @@ randomx_program_prologue_first_load PROC
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
+	stmxcsr dword ptr [rsp-20]
 	jmp randomx_program_loop_begin
 randomx_program_prologue_first_load ENDP
 
