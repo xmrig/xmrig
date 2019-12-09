@@ -45,7 +45,7 @@ xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::
         m_flags |= RANDOMX_FLAG_JIT;
     }
 
-    if (assembly == Assembly::RYZEN) {
+    if ((assembly == Assembly::RYZEN) || ((assembly == Assembly::AUTO) && (Cpu::info()->assembly() == Assembly::RYZEN))) {
         m_flags |= RANDOMX_FLAG_RYZEN;
     }
 
