@@ -32,9 +32,10 @@
 
 namespace xmrig {
 
-static const char *kInit = "init";
-static const char *kMode = "mode";
-static const char *kNUMA = "numa";
+static const char *kInit        = "init";
+static const char *kMode        = "mode";
+static const char *kNUMA        = "numa";
+static const char *kOneGbPages  = "1gb-pages";
 
 }
 
@@ -46,8 +47,9 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
 
-    obj.AddMember(StringRef(kInit), m_threads, allocator);
-    obj.AddMember(StringRef(kMode), StringRef(modeName()), allocator);
+    obj.AddMember(StringRef(kInit),         m_threads, allocator);
+    obj.AddMember(StringRef(kMode),         StringRef(modeName()), allocator);
+    obj.AddMember(StringRef(kOneGbPages),   m_oneGbPages, allocator);
 
     if (!m_nodeset.empty()) {
         Value numa(kArrayType);
@@ -69,8 +71,12 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
 bool xmrig::RxConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
-        m_threads = Json::getInt(value, kInit, m_threads);
-        m_mode    = readMode(Json::getValue(value, kMode));
+        m_threads    = Json::getInt(value, kInit, m_threads);
+        m_mode       = readMode(Json::getValue(value, kMode));
+
+#       ifdef XMRIG_OS_LINUX
+        m_oneGbPages = Json::getBool(value, kOneGbPages, m_oneGbPages);
+#       endif
 
         if (m_mode == LightMode) {
             m_numa = false;

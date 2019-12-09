@@ -17,12 +17,12 @@
     "randomx": {
         "init": -1,
         "mode": "auto",
+        "1gb-pages": false,
         "numa": true
     },
     "cpu": {
         "enabled": true,
         "huge-pages": true,
-        "1gb-pages": false,
         "hw-aes": null,
         "priority": null,
         "memory-pool": false,

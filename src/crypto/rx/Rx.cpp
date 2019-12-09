@@ -71,7 +71,7 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cp
         return true;
     }
 
-    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(cpu.limit()), cpu.isHugePages(), cpu.isOneGbPages(), config.mode(), cpu.priority());
+    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(cpu.limit()), cpu.isHugePages(), config.isOneGbPages(), config.mode(), cpu.priority());
 
     return false;
 }

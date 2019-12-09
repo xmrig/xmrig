@@ -39,6 +39,11 @@
 #include "version.h"
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/RxConfig.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -64,11 +69,17 @@ static void print_memory(Config *config)
 #   ifdef XMRIG_OS_WIN
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
                "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "1GB PAGES", YELLOW_BOLD("unavailable"));
 #   else
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "HUGE PAGES",  config->cpu().isHugePages() ? GREEN_BOLD("supported") : RED_BOLD("disabled"));
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef XMRIG_OS_LINUX
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-               "1GB PAGES", (VirtualMemory::isOneGbPagesAvailable() ? (config->cpu().isOneGbPages() ? GREEN_BOLD("supported") : YELLOW_BOLD("disabled")) : YELLOW_BOLD("unavailable")));
+               "1GB PAGES", (VirtualMemory::isOneGbPagesAvailable() ? (config->rx().isOneGbPages() ? GREEN_BOLD("supported") : YELLOW_BOLD("disabled")) : YELLOW_BOLD("unavailable")));
+#   else
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "1GB PAGES", YELLOW_BOLD("unavailable"));
+#   endif
 #   endif
 }
 
