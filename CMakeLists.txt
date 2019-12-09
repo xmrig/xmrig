@@ -26,6 +26,7 @@ option(WITH_ASM             "Enable ASM PoW implementations" ON)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 option(WITH_CC_CLIENT       "CC Client" ON)
 option(WITH_CC_SERVER       "CC Server" ON)
+option(WITH_HTTPLIB_POLL    "Use poll.h (recommended) instead of old plain sockets for HTTP" OFF)
 
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
@@ -261,7 +262,9 @@ if (WITH_CC_SERVER OR WITH_CC_CLIENT)
             src/cc/ClientStatus.cpp
             src/cc/GPUInfo.cpp)
 
-    add_definitions("/DCPPHTTPLIB_USE_POLL")
+    if (WITH_HTTPLIB_POLL)
+        add_definitions("/DCPPHTTPLIB_USE_POLL")
+    endif()
 
     if (WITH_ZLIB)
         set(ZLIB_ROOT ${XMRIG_DEPS})
