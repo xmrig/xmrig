@@ -70,6 +70,7 @@ namespace randomx {
 		uint8_t* allocatedCode;
 		uint8_t* code;
 		int32_t codePos;
+		uint32_t vm_flags;
 
 		static bool BranchesWithin32B;
 
