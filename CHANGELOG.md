@@ -1,3 +1,14 @@
+# v5.2.0
+- **[#1388](https://github.com/xmrig/xmrig/pull/1388) Added 1GB huge pages support for Linux.**
+  - Added new option `1gb-pages` in `randomx` object.
+  - Added automatic huge pages configuration on Linux if use the miner with root privileges.
+  - Added new [hugepages documentation](https://xmrig.com/docs/miner/hugepages) article.
+- [#1396](https://github.com/xmrig/xmrig/pull/1396) [#1401](https://github.com/xmrig/xmrig/pull/1401) New performance optimizations for Ryzen CPUs. 
+- [#1385](https://github.com/xmrig/xmrig/issues/1385) Added `max-threads-hint` option support for RandomX dataset initialization threads.  
+- [#1386](https://github.com/xmrig/xmrig/issues/1386) Added `priority` option support for RandomX dataset initialization threads. 
+- For official builds all dependencies (libuv, hwloc, openssl) updated to recent versions.
+- Windows `msvc` builds now use Visual Studio 2019 instead of 2017.
+
 # v5.1.1
 - [#1365](https://github.com/xmrig/xmrig/issues/1365) Fixed various system response/stability issues.
   - Added new CPU option `yield` and command line equivalent `--cpu-no-yield`.
