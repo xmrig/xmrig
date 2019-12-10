@@ -65,6 +65,7 @@ CPU backend:
       --randomx-init=N          threads count to initialize RandomX dataset
       --randomx-no-numa         disable NUMA support for RandomX
       --randomx-mode=MODE       RandomX mode: auto, fast, light
+      --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)
 
 API:
       --api-worker-id=ID        custom worker-id for API

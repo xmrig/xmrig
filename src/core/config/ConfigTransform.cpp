@@ -165,6 +165,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::RandomXModeKey: /* --randomx-mode */
         return set(doc, kRandomX, "mode", arg);
+
+    case IConfig::RandomX1GbPagesKey: /* --randomx-1gb-pages */
+        return set(doc, kRandomX, "1gb-pages", true);
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL
