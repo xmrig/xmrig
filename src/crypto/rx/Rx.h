@@ -56,6 +56,9 @@ public:
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
     static void destroy();
     static void init(IRxListener *listener);
+
+private:
+    static void osInit(const RxConfig &config);
 };
 
 

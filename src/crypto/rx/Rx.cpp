@@ -39,8 +39,9 @@ namespace xmrig {
 class RxPrivate;
 
 
-static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx  ") " ";
-static RxPrivate *d_ptr = nullptr;
+static bool osInitialized   = false;
+static const char *tag      = BLUE_BG(WHITE_BOLD_S " rx  ") " ";
+static RxPrivate *d_ptr     = nullptr;
 
 
 class RxPrivate
@@ -69,6 +70,11 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cp
 
     if (isReady(job)) {
         return true;
+    }
+
+    if (!osInitialized) {
+        osInit(config);
+        osInitialized = true;
     }
 
     d_ptr->queue.enqueue(job, config.nodeset(), config.threads(cpu.limit()), cpu.isHugePages(), config.isOneGbPages(), config.mode(), cpu.priority());
@@ -107,3 +113,10 @@ void xmrig::Rx::init(IRxListener *listener)
 {
     d_ptr = new RxPrivate(listener);
 }
+
+
+#ifndef XMRIG_OS_LINUX
+void xmrig::Rx::osInit(const RxConfig &)
+{
+}
+#endif
