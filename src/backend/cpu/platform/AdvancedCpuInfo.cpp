@@ -103,6 +103,13 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     cpu_brand_string(m_brand, data.brand_str);
     snprintf(m_backend, sizeof m_backend, "libcpuid/%s", cpuid_lib_version());
 
+    if (data.vendor == ::VENDOR_INTEL) {
+        m_vendor = VENDOR_INTEL;
+    }
+    else if (data.vendor == ::VENDOR_AMD) {
+        m_vendor = VENDOR_AMD;
+    }
+
     m_threads  = static_cast<size_t>(data.total_logical_cpus);
     m_packages = std::max<size_t>(threads() / static_cast<size_t>(data.num_logical_cpus), 1);
     m_cores    = static_cast<size_t>(data.num_cores) * m_packages;
@@ -111,13 +118,13 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     const auto l2 = static_cast<size_t>(data.l2_cache);
 
     // Workaround for AMD CPUs https://github.com/anrieff/libcpuid/issues/97
-    if (data.vendor == VENDOR_AMD && data.ext_family >= 0x15 && data.ext_family < 0x17) {
+    if (m_vendor == VENDOR_AMD && data.ext_family >= 0x15 && data.ext_family < 0x17) {
         m_L2 = l2 * (cores() / 2) * m_packages;
         m_L2_exclusive = true;
     }
     // Workaround for Intel Pentium Dual-Core, Core Duo, Core 2 Duo, Core 2 Quad and their Xeon homologue
     // These processors have L2 cache shared by 2 cores.
-    else if (data.vendor == VENDOR_INTEL && data.ext_family == 0x06 && (data.ext_model == 0x0E || data.ext_model == 0x0F || data.ext_model == 0x17)) {
+    else if (m_vendor == VENDOR_INTEL && data.ext_family == 0x06 && (data.ext_model == 0x0E || data.ext_model == 0x0F || data.ext_model == 0x17)) {
         size_t l2_count_per_socket = cores() > 1 ? cores() / 2 : 1;
         m_L2 = data.l2_cache > 0 ? l2 * l2_count_per_socket * m_packages : 0;
     }
@@ -131,10 +138,10 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     if (data.flags[CPU_FEATURE_AES]) {
         m_aes = true;
 
-        if (data.vendor == VENDOR_AMD) {
+        if (m_vendor == VENDOR_AMD) {
             m_assembly = (data.ext_family >= 23) ? Assembly::RYZEN : Assembly::BULLDOZER;
         }
-        else if (data.vendor == VENDOR_INTEL) {
+        else if (m_vendor == VENDOR_INTEL) {
             m_assembly = Assembly::INTEL;
         }
     }

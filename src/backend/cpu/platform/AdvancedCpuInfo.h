@@ -52,6 +52,7 @@ protected:
     inline size_t nodes() const override            { return 0; }
     inline size_t packages() const override         { return m_packages; }
     inline size_t threads() const override          { return m_threads; }
+    inline Vendor vendor() const override           { return m_vendor; }
 
 private:
     Assembly m_assembly;
@@ -66,6 +67,7 @@ private:
     size_t m_L3           = 0;
     size_t m_packages     = 1;
     size_t m_threads      = 0;
+    Vendor m_vendor       = VENDOR_UNKNOWN;
 };
 
 

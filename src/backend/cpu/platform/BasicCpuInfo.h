@@ -52,16 +52,18 @@ protected:
     inline size_t nodes() const override            { return 0; }
     inline size_t packages() const override         { return 1; }
     inline size_t threads() const override          { return m_threads; }
+    inline Vendor vendor() const override           { return m_vendor; }
 
 protected:
-    char m_brand[64 + 6];
+    char m_brand[64 + 6]{};
     size_t m_threads;
 
 private:
-    Assembly m_assembly;
-    bool m_aes;
-    const bool m_avx2;
-    const bool m_pdpe1gb;
+    Assembly m_assembly     = Assembly::NONE;
+    bool m_aes              = false;
+    const bool m_avx2       = false;
+    const bool m_pdpe1gb    = false;
+    Vendor m_vendor         = VENDOR_UNKNOWN;
 };
 
 

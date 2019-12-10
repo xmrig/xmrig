@@ -151,9 +151,7 @@ static inline bool has_pdpe1gb()
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
-    m_brand(),
     m_threads(std::thread::hardware_concurrency()),
-    m_assembly(Assembly::NONE),
     m_aes(has_aes_ni()),
     m_avx2(has_avx2()),
     m_pdpe1gb(has_pdpe1gb())
@@ -172,12 +170,15 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         memcpy(vendor + 8, &data[2], 4);
 
         if (memcmp(vendor, "AuthenticAMD", 12) == 0) {
+            m_vendor = VENDOR_AMD;
+
             cpuid(PROCESSOR_INFO, data);
             const int32_t family = get_masked(data[EAX_Reg], 12, 8) + get_masked(data[EAX_Reg], 28, 20);
 
             m_assembly = family >= 23 ? Assembly::RYZEN : Assembly::BULLDOZER;
         }
-        else {
+        else if (memcmp(vendor, "GenuineIntel", 12) == 0) {
+            m_vendor   = VENDOR_INTEL;
             m_assembly = Assembly::INTEL;
         }
     }
