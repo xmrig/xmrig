@@ -115,7 +115,7 @@ void xmrig::Rx::init(IRxListener *listener)
 }
 
 
-#ifndef XMRIG_OS_LINUX
+#if !defined(XMRIG_OS_LINUX) || defined(XMRIG_ARM)
 void xmrig::Rx::osInit(const RxConfig &)
 {
 }
