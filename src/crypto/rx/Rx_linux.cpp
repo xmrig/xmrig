@@ -95,6 +95,18 @@ static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value)
 }
 
 
+static bool wrmsr_modprobe()
+{
+    if (system("/sbin/modprobe msr > /dev/null 2>&1") != 0) {
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "msr kernel module is not available", rx_tag());
+
+        return false;
+    }
+
+    return true;
+}
+
+
 } // namespace xmrig
 
 
@@ -104,17 +116,14 @@ void xmrig::Rx::osInit(const RxConfig &config)
         return;
     }
 
-    if (system("/sbin/modprobe msr > /dev/null 2>&1") != 0) {
-        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "msr kernel module is not available", rx_tag());
+    if (Cpu::info()->assembly() == Assembly::RYZEN && wrmsr_modprobe()) {
+        wrmsr_on_all_cpus(0xC0011022, 0x510000);
+        wrmsr_on_all_cpus(0xC001102b, 0x1808cc16);
 
         return;
     }
 
-    if (Cpu::info()->vendor() == ICpuInfo::VENDOR_AMD) {
-        wrmsr_on_all_cpus(0xC0011022, 0x510000);
-        wrmsr_on_all_cpus(0xC001102b, 0x1808cc16);
-    }
-    else if (Cpu::info()->vendor() == ICpuInfo::VENDOR_INTEL) {
+    if (Cpu::info()->vendor() == ICpuInfo::VENDOR_INTEL && wrmsr_modprobe()) {
         wrmsr_on_all_cpus(0x1a4, config.wrmsr());
     }
 }
