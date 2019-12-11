@@ -1,8 +1,9 @@
 # v5.2.0
-- **[#1388](https://github.com/xmrig/xmrig/pull/1388) Added 1GB huge pages support for Linux.**
-  - Added new option `1gb-pages` in `randomx` object.
+- **[#1388](https://github.com/xmrig/xmrig/pull/1388) Added [1GB huge pages support](https://xmrig.com/docs/miner/hugepages#onegb-huge-pages) for Linux.**
+  - Added new option `1gb-pages` in `randomx` object with command line equivalent `--randomx-1gb-pages`.
   - Added automatic huge pages configuration on Linux if use the miner with root privileges.
-  - Added new [hugepages documentation](https://xmrig.com/docs/miner/hugepages) article.
+- **Added [automatic Intel prefetchers configuration](https://xmrig.com/docs/miner/randomx-optimization-guide#intel-specific-optimizations) on Linux.**
+   - Added new option `wrmsr` in `randomx` object with command line equivalent `--randomx-wrmsr`.
 - [#1396](https://github.com/xmrig/xmrig/pull/1396) [#1401](https://github.com/xmrig/xmrig/pull/1401) New performance optimizations for Ryzen CPUs. 
 - [#1385](https://github.com/xmrig/xmrig/issues/1385) Added `max-threads-hint` option support for RandomX dataset initialization threads.  
 - [#1386](https://github.com/xmrig/xmrig/issues/1386) Added `priority` option support for RandomX dataset initialization threads. 
