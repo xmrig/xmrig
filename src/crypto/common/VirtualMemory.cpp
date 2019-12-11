@@ -46,10 +46,13 @@ namespace xmrig {
 static IMemoryPool *pool = nullptr;
 static std::mutex mutex;
 
+constexpr size_t twoMiB = 2U * 1024U * 1024U;
+constexpr size_t oneGiB = 1024U * 1024U * 1024U;
+
 } // namespace xmrig
 
 
-xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool usePool, uint32_t node, size_t alignSize) :
+xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages, bool usePool, uint32_t node, size_t alignSize) :
     m_size(align(size)),
     m_node(node)
 {
@@ -66,6 +69,10 @@ xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool usePool, u
 
             return;
         }
+    }
+
+    if (oneGbPages && allocateOneGbPagesMemory()) {
+        return;
     }
 
     if (hugePages && allocateLargePagesMemory()) {
@@ -86,12 +93,18 @@ xmrig::VirtualMemory::~VirtualMemory()
         std::lock_guard<std::mutex> lock(mutex);
         pool->release(m_node);
     }
-    else if (isHugePages()) {
+    else if (isHugePages() || isOneGbPages()) {
         freeLargePagesMemory();
     }
     else {
         _mm_free(m_scratchpad);
     }
+}
+
+
+xmrig::HugePagesInfo xmrig::VirtualMemory::hugePages() const
+{
+    return { this };
 }
 
 

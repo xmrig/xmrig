@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Inria.  All rights reserved.
+ * Copyright © 2018-2019 Inria.  All rights reserved.
  *
  * See COPYING in top-level directory.
  */
@@ -29,7 +29,6 @@ HWLOC_DECLSPEC extern const struct hwloc_component hwloc_x86_component;
 /* I/O discovery */
 HWLOC_DECLSPEC extern const struct hwloc_component hwloc_cuda_component;
 HWLOC_DECLSPEC extern const struct hwloc_component hwloc_gl_component;
-HWLOC_DECLSPEC extern const struct hwloc_component hwloc_linuxio_component;
 HWLOC_DECLSPEC extern const struct hwloc_component hwloc_nvml_component;
 HWLOC_DECLSPEC extern const struct hwloc_component hwloc_opencl_component;
 HWLOC_DECLSPEC extern const struct hwloc_component hwloc_pci_component;

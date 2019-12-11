@@ -51,9 +51,9 @@ public:
     ~RxNUMAStorage() override;
 
 protected:
+    HugePagesInfo hugePages() const override;
     RxDataset *dataset(const Job &job, uint32_t nodeId) const override;
-    std::pair<uint32_t, uint32_t> hugePages() const override;
-    void init(const RxSeed &seed, uint32_t threads, bool hugePages, RxConfig::Mode mode) override;
+    void init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority) override;
 
 private:
     RxNUMAStoragePrivate *d_ptr;

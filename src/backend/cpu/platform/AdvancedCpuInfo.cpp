@@ -22,15 +22,22 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "backend/cpu/platform/AdvancedCpuInfo.h"
+#include "3rdparty/libcpuid/libcpuid.h"
+
+
+#ifdef _MSC_VER
+#   include <intrin.h>
+#else
+#   include <cpuid.h>
+#endif
+
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-
-
-#include "3rdparty/libcpuid/libcpuid.h"
-#include "backend/cpu/platform/AdvancedCpuInfo.h"
 
 
 namespace xmrig {
@@ -54,11 +61,38 @@ static inline void cpu_brand_string(char out[64], const char *in) {
 }
 
 
+static inline void cpuid(uint32_t level, int32_t output[4])
+{
+    memset(output, 0, sizeof(int32_t) * 4);
+
+#   ifdef _MSC_VER
+    __cpuid(output, static_cast<int>(level));
+#   else
+    __cpuid_count(level, 0, output[0], output[1], output[2], output[3]);
+#   endif
+}
+
+
+static inline bool has_feature(uint32_t level, uint32_t reg, int32_t bit)
+{
+    int32_t cpu_info[4] = { 0 };
+    cpuid(level, cpu_info);
+
+    return (cpu_info[reg] & bit) != 0;
+}
+
+
+static inline bool has_pdpe1gb()
+{
+    return has_feature(0x80000001, 3, 1 << 26);
+}
+
+
 } // namespace xmrig
 
 
 xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
-    m_brand()
+    m_pdpe1gb(has_pdpe1gb())
 {
     struct cpu_raw_data_t raw = {};
     struct cpu_id_t data      = {};
@@ -69,21 +103,28 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     cpu_brand_string(m_brand, data.brand_str);
     snprintf(m_backend, sizeof m_backend, "libcpuid/%s", cpuid_lib_version());
 
+    if (data.vendor == ::VENDOR_INTEL) {
+        m_vendor = VENDOR_INTEL;
+    }
+    else if (data.vendor == ::VENDOR_AMD) {
+        m_vendor = VENDOR_AMD;
+    }
+
     m_threads  = static_cast<size_t>(data.total_logical_cpus);
     m_packages = std::max<size_t>(threads() / static_cast<size_t>(data.num_logical_cpus), 1);
     m_cores    = static_cast<size_t>(data.num_cores) * m_packages;
     m_L3       = data.l3_cache > 0 ? static_cast<size_t>(data.l3_cache) * m_packages : 0;
 
-    const size_t l2 = static_cast<size_t>(data.l2_cache);
+    const auto l2 = static_cast<size_t>(data.l2_cache);
 
     // Workaround for AMD CPUs https://github.com/anrieff/libcpuid/issues/97
-    if (data.vendor == VENDOR_AMD && data.ext_family >= 0x15 && data.ext_family < 0x17) {
+    if (m_vendor == VENDOR_AMD && data.ext_family >= 0x15 && data.ext_family < 0x17) {
         m_L2 = l2 * (cores() / 2) * m_packages;
         m_L2_exclusive = true;
     }
     // Workaround for Intel Pentium Dual-Core, Core Duo, Core 2 Duo, Core 2 Quad and their Xeon homologue
     // These processors have L2 cache shared by 2 cores.
-    else if (data.vendor == VENDOR_INTEL && data.ext_family == 0x06 && (data.ext_model == 0x0E || data.ext_model == 0x0F || data.ext_model == 0x17)) {
+    else if (m_vendor == VENDOR_INTEL && data.ext_family == 0x06 && (data.ext_model == 0x0E || data.ext_model == 0x0F || data.ext_model == 0x17)) {
         size_t l2_count_per_socket = cores() > 1 ? cores() / 2 : 1;
         m_L2 = data.l2_cache > 0 ? l2 * l2_count_per_socket * m_packages : 0;
     }
@@ -97,10 +138,10 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     if (data.flags[CPU_FEATURE_AES]) {
         m_aes = true;
 
-        if (data.vendor == VENDOR_AMD) {
+        if (m_vendor == VENDOR_AMD) {
             m_assembly = (data.ext_family >= 23) ? Assembly::RYZEN : Assembly::BULLDOZER;
         }
-        else if (data.vendor == VENDOR_INTEL) {
+        else if (m_vendor == VENDOR_INTEL) {
             m_assembly = Assembly::INTEL;
         }
     }

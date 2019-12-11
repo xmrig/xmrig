@@ -22,11 +22,12 @@
 #ifndef HWLOC_PRIVATE_H
 #define HWLOC_PRIVATE_H
 
-#include <private/autogen/config.h>
-#include <hwloc.h>
-#include <hwloc/bitmap.h>
-#include <private/components.h>
-#include <private/misc.h>
+#include "private/autogen/config.h"
+#include "hwloc.h"
+#include "hwloc/bitmap.h"
+#include "private/components.h"
+#include "private/misc.h"
+
 #include <sys/types.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -39,7 +40,7 @@
 #endif
 #include <string.h>
 
-#define HWLOC_TOPOLOGY_ABI 0x20000 /* version of the layout of struct topology */
+#define HWLOC_TOPOLOGY_ABI 0x20100 /* version of the layout of struct topology */
 
 /*****************************************************
  * WARNING:
@@ -67,12 +68,13 @@ struct hwloc_topology {
   void *adopted_shmem_addr;
   size_t adopted_shmem_length;
 
-#define HWLOC_NR_SLEVELS 5
+#define HWLOC_NR_SLEVELS 6
 #define HWLOC_SLEVEL_NUMANODE 0
 #define HWLOC_SLEVEL_BRIDGE 1
 #define HWLOC_SLEVEL_PCIDEV 2
 #define HWLOC_SLEVEL_OSDEV 3
 #define HWLOC_SLEVEL_MISC 4
+#define HWLOC_SLEVEL_MEMCACHE 5
   /* order must match negative depth, it's asserted in setup_defaults() */
 #define HWLOC_SLEVEL_FROM_DEPTH(x) (HWLOC_TYPE_DEPTH_NUMANODE-(x))
 #define HWLOC_SLEVEL_TO_DEPTH(x) (HWLOC_TYPE_DEPTH_NUMANODE-(x))
@@ -86,6 +88,7 @@ struct hwloc_topology {
   hwloc_bitmap_t allowed_nodeset;
 
   struct hwloc_binding_hooks {
+    /* These are actually rather OS hooks since some of them are not about binding */
     int (*set_thisproc_cpubind)(hwloc_topology_t topology, hwloc_const_cpuset_t set, int flags);
     int (*get_thisproc_cpubind)(hwloc_topology_t topology, hwloc_cpuset_t set, int flags);
     int (*set_thisthread_cpubind)(hwloc_topology_t topology, hwloc_const_cpuset_t set, int flags);
@@ -127,20 +130,35 @@ struct hwloc_topology {
   int userdata_not_decoded;
 
   struct hwloc_internal_distances_s {
-    hwloc_obj_type_t type;
+    char *name; /* FIXME: needs an API to set it from user */
+
+    unsigned id; /* to match the container id field of public distances structure
+		  * not exported to XML, regenerated during _add()
+		  */
+
+    /* if all objects have the same type, different_types is NULL and unique_type is valid.
+     * otherwise unique_type is HWLOC_OBJ_TYPE_NONE and different_types contains individual objects types.
+     */
+    hwloc_obj_type_t unique_type;
+    hwloc_obj_type_t *different_types;
+
     /* add union hwloc_obj_attr_u if we ever support groups */
     unsigned nbobjs;
-    uint64_t *indexes; /* array of OS or GP indexes before we can convert them into objs. */
+    uint64_t *indexes; /* array of OS or GP indexes before we can convert them into objs.
+			* OS indexes for distances covering only PUs or only NUMAnodes.
+			*/
+#define HWLOC_DIST_TYPE_USE_OS_INDEX(_type) ((_type) == HWLOC_OBJ_PU || (_type == HWLOC_OBJ_NUMANODE))
     uint64_t *values; /* distance matrices, ordered according to the above indexes/objs array.
 		       * distance from i to j is stored in slot i*nbnodes+j.
 		       */
     unsigned long kind;
 
+#define HWLOC_INTERNAL_DIST_FLAG_OBJS_VALID (1U<<0) /* if the objs array is valid below */
+    unsigned iflags;
+
     /* objects are currently stored in physical_index order */
     hwloc_obj_t *objs; /* array of objects */
-    int objs_are_valid; /* set to 1 if the array objs is still valid, 0 if needs refresh */
 
-    unsigned id; /* to match the container id field of public distances structure */
     struct hwloc_internal_distances_s *prev, *next;
   } *first_dist, *last_dist;
   unsigned next_dist_id;
@@ -153,8 +171,9 @@ struct hwloc_topology {
 
   /* list of enabled backends. */
   struct hwloc_backend * backends;
-  struct hwloc_backend * get_pci_busid_cpuset_backend;
-  unsigned backend_excludes;
+  struct hwloc_backend * get_pci_busid_cpuset_backend; /* first backend that provides get_pci_busid_cpuset() callback */
+  unsigned backend_phases;
+  unsigned backend_excluded_phases;
 
   /* memory allocator for topology objects */
   struct hwloc_tma * tma;
@@ -176,7 +195,6 @@ struct hwloc_topology {
   struct hwloc_numanode_attr_s machine_memory;
 
   /* pci stuff */
-  int need_pci_belowroot_apply_locality;
   int pci_has_forced_locality;
   unsigned pci_forced_locality_nr;
   struct hwloc_pci_forced_locality_s {
@@ -185,13 +203,32 @@ struct hwloc_topology {
     hwloc_bitmap_t cpuset;
   } * pci_forced_locality;
 
+  /* component blacklisting */
+  unsigned nr_blacklisted_components;
+  struct hwloc_topology_forced_component_s {
+    struct hwloc_disc_component *component;
+    unsigned phases;
+  } *blacklisted_components;
+
+  /* FIXME: keep until topo destroy and reuse for finding specific buses */
+  struct hwloc_pci_locality_s {
+    unsigned domain;
+    unsigned bus_min;
+    unsigned bus_max;
+    hwloc_bitmap_t cpuset;
+    hwloc_obj_t parent;
+    struct hwloc_pci_locality_s *prev, *next;
+  } *first_pci_locality, *last_pci_locality;
 };
 
 extern void hwloc_alloc_root_sets(hwloc_obj_t root);
 extern void hwloc_setup_pu_level(struct hwloc_topology *topology, unsigned nb_pus);
 extern int hwloc_get_sysctlbyname(const char *name, int64_t *n);
 extern int hwloc_get_sysctl(int name[], unsigned namelen, int *n);
-extern int hwloc_fallback_nbprocessors(struct hwloc_topology *topology);
+
+/* returns the number of CPU from the OS (only valid if thissystem) */
+#define HWLOC_FALLBACK_NBPROCESSORS_INCLUDE_OFFLINE 1 /* by default we try to get only the online CPUs */
+extern int hwloc_fallback_nbprocessors(unsigned flags);
 
 extern int hwloc__object_cpusets_compare_first(hwloc_obj_t obj1, hwloc_obj_t obj2);
 extern void hwloc__reorder_children(hwloc_obj_t parent);
@@ -208,18 +245,16 @@ extern void hwloc_pci_discovery_init(struct hwloc_topology *topology);
 extern void hwloc_pci_discovery_prepare(struct hwloc_topology *topology);
 extern void hwloc_pci_discovery_exit(struct hwloc_topology *topology);
 
+/* Look for an object matching the given domain/bus/func,
+ * either exactly or return the smallest container bridge
+ */
+extern struct hwloc_obj * hwloc_pci_find_by_busid(struct hwloc_topology *topology, unsigned domain, unsigned bus, unsigned dev, unsigned func);
+
 /* Look for an object matching complete cpuset exactly, or insert one.
  * Return NULL on failure.
  * Return a good fallback (object above) on failure to insert.
  */
 extern hwloc_obj_t hwloc_find_insert_io_parent_by_complete_cpuset(struct hwloc_topology *topology, hwloc_cpuset_t cpuset);
-
-/* Move PCI objects currently attached to the root object ot their actual location.
- * Called by the core at the end of hwloc_topology_load().
- * Prior to this call, all PCI objects may be found below the root object.
- * After this call and a reconnect of levels, all PCI objects are available through levels.
- */
-extern int hwloc_pci_belowroot_apply_locality(struct hwloc_topology *topology);
 
 extern int hwloc__add_info(struct hwloc_info_s **infosp, unsigned *countp, const char *name, const char *value);
 extern int hwloc__add_info_nodup(struct hwloc_info_s **infosp, unsigned *countp, const char *name, const char *value, int replace);
@@ -313,8 +348,8 @@ extern void hwloc_internal_distances_prepare(hwloc_topology_t topology);
 extern void hwloc_internal_distances_destroy(hwloc_topology_t topology);
 extern int hwloc_internal_distances_dup(hwloc_topology_t new, hwloc_topology_t old);
 extern void hwloc_internal_distances_refresh(hwloc_topology_t topology);
-extern int hwloc_internal_distances_add(hwloc_topology_t topology, unsigned nbobjs, hwloc_obj_t *objs, uint64_t *values, unsigned long kind, unsigned long flags);
-extern int hwloc_internal_distances_add_by_index(hwloc_topology_t topology, hwloc_obj_type_t type, unsigned nbobjs, uint64_t *indexes, uint64_t *values, unsigned long kind, unsigned long flags);
+extern int hwloc_internal_distances_add(hwloc_topology_t topology, const char *name, unsigned nbobjs, hwloc_obj_t *objs, uint64_t *values, unsigned long kind, unsigned long flags);
+extern int hwloc_internal_distances_add_by_index(hwloc_topology_t topology, const char *name, hwloc_obj_type_t unique_type, hwloc_obj_type_t *different_types, unsigned nbobjs, uint64_t *indexes, uint64_t *values, unsigned long kind, unsigned long flags);
 extern void hwloc_internal_distances_invalidate_cached_objs(hwloc_topology_t topology);
 
 /* encode src buffer into target buffer.
@@ -330,13 +365,19 @@ extern int hwloc_encode_to_base64(const char *src, size_t srclength, char *targe
  */
 extern int hwloc_decode_from_base64(char const *src, char *target, size_t targsize);
 
-/* Check whether needle matches the beginning of haystack, at least n, and up
- * to a colon or \0 */
-extern int hwloc_namecoloncmp(const char *haystack, const char *needle, size_t n);
-
 /* On some systems, snprintf returns the size of written data, not the actually
- * required size.  hwloc_snprintf always report the actually required size. */
+ * required size. Sometimes it returns -1 on truncation too.
+ * And sometimes it doesn't like NULL output buffers.
+ * http://www.gnu.org/software/gnulib/manual/html_node/snprintf.html
+ *
+ * hwloc_snprintf behaves properly, but it's a bit overkill on the vast majority
+ * of platforms, so don't enable it unless really needed.
+ */
+#ifdef HWLOC_HAVE_CORRECT_SNPRINTF
+#define hwloc_snprintf snprintf
+#else
 extern int hwloc_snprintf(char *str, size_t size, const char *format, ...) __hwloc_attribute_format(printf, 3, 4);
+#endif
 
 /* Return the name of the currently running program, if supported.
  * If not NULL, must be freed by the caller.
@@ -356,7 +397,7 @@ extern char * hwloc_progname(struct hwloc_topology *topology);
 #define HWLOC_GROUP_KIND_INTEL_MODULE			102	/* no subkind */
 #define HWLOC_GROUP_KIND_INTEL_TILE			103	/* no subkind */
 #define HWLOC_GROUP_KIND_INTEL_DIE			104	/* no subkind */
-#define HWLOC_GROUP_KIND_S390_BOOK			110	/* no subkind */
+#define HWLOC_GROUP_KIND_S390_BOOK			110	/* subkind 0 is book, subkind 1 is drawer (group of books) */
 #define HWLOC_GROUP_KIND_AMD_COMPUTE_UNIT		120	/* no subkind */
 /* then, OS-specific groups */
 #define HWLOC_GROUP_KIND_SOLARIS_PG_HW_PERF		200	/* subkind is group width */

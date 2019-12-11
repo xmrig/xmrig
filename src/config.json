@@ -11,12 +11,13 @@
         "restricted": true
     },
     "autosave": true,
-    "version": 1,
     "background": false,
     "colors": true,
     "randomx": {
         "init": -1,
         "mode": "auto",
+        "1gb-pages": false,
+        "wrmsr": 6,
         "numa": true
     },
     "cpu": {

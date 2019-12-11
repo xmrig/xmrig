@@ -1,14 +1,14 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2015 Inria.  All rights reserved.
+ * Copyright © 2009-2018 Inria.  All rights reserved.
  * Copyright © 2009-2010 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
-#include <private/private.h>
-#include <private/misc.h>
+#include "private/autogen/config.h"
+#include "private/private.h"
+#include "private/misc.h"
 
 #include <stdarg.h>
 #ifdef HAVE_SYS_UTSNAME_H
@@ -28,6 +28,7 @@ extern char *program_invocation_name;
 extern char *__progname;
 #endif
 
+#ifndef HWLOC_HAVE_CORRECT_SNPRINTF
 int hwloc_snprintf(char *str, size_t size, const char *format, ...)
 {
   int ret;
@@ -77,21 +78,7 @@ int hwloc_snprintf(char *str, size_t size, const char *format, ...)
 
   return ret;
 }
-
-int hwloc_namecoloncmp(const char *haystack, const char *needle, size_t n)
-{
-  size_t i = 0;
-  while (*haystack && *haystack != ':') {
-    int ha = *haystack++;
-    int low_h = tolower(ha);
-    int ne = *needle++;
-    int low_n = tolower(ne);
-    if (low_h != low_n)
-      return 1;
-    i++;
-  }
-  return i < n;
-}
+#endif
 
 void hwloc_add_uname_info(struct hwloc_topology *topology __hwloc_attribute_unused,
 			  void *cached_uname __hwloc_attribute_unused)

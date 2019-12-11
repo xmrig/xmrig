@@ -14,7 +14,7 @@
 #ifndef HWLOC_GL_H
 #define HWLOC_GL_H
 
-#include <hwloc.h>
+#include "hwloc.h"
 
 #include <stdio.h>
 #include <string.h>

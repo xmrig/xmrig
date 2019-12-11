@@ -44,6 +44,7 @@ protected:
     inline Assembly::Id assembly() const override   { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
     inline bool hasAVX2() const override            { return m_avx2; }
+    inline bool hasOneGbPages() const override      { return m_pdpe1gb; }
     inline const char *brand() const override       { return m_brand; }
     inline size_t cores() const override            { return 0; }
     inline size_t L2() const override               { return 0; }
@@ -51,15 +52,18 @@ protected:
     inline size_t nodes() const override            { return 0; }
     inline size_t packages() const override         { return 1; }
     inline size_t threads() const override          { return m_threads; }
+    inline Vendor vendor() const override           { return m_vendor; }
 
 protected:
-    char m_brand[64 + 6];
+    char m_brand[64 + 6]{};
     size_t m_threads;
 
 private:
-    Assembly m_assembly;
-    bool m_aes;
-    const bool m_avx2;
+    Assembly m_assembly     = Assembly::NONE;
+    bool m_aes              = false;
+    const bool m_avx2       = false;
+    const bool m_pdpe1gb    = false;
+    Vendor m_vendor         = VENDOR_UNKNOWN;
 };
 
 

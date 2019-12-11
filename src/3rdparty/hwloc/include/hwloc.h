@@ -53,7 +53,8 @@
 #ifndef HWLOC_H
 #define HWLOC_H
 
-#include <hwloc/autogen/config.h>
+#include "hwloc/autogen/config.h"
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
@@ -62,13 +63,13 @@
 /*
  * Symbol transforms
  */
-#include <hwloc/rename.h>
+#include "hwloc/rename.h"
 
 /*
  * Bitmap definitions
  */
 
-#include <hwloc/bitmap.h>
+#include "hwloc/bitmap.h"
 
 
 #ifdef __cplusplus
@@ -86,13 +87,13 @@ extern "C" {
  * actually modifies the API.
  *
  * Users may check for available features at build time using this number
- * (see \ref faq_upgrade).
+ * (see \ref faq_version_api).
  *
  * \note This should not be confused with HWLOC_VERSION, the library version.
  * Two stable releases of the same series usually have the same ::HWLOC_API_VERSION
  * even if their HWLOC_VERSION are different.
  */
-#define HWLOC_API_VERSION 0x00020000
+#define HWLOC_API_VERSION 0x00020100
 
 /** \brief Indicate at runtime which hwloc API version was used at build time.
  *
@@ -101,7 +102,7 @@ extern "C" {
 HWLOC_DECLSPEC unsigned hwloc_get_api_version(void);
 
 /** \brief Current component and plugin ABI version (see hwloc/plugins.h) */
-#define HWLOC_COMPONENT_ABI 5
+#define HWLOC_COMPONENT_ABI 6
 
 /** @} */
 
@@ -186,7 +187,8 @@ typedef enum {
   HWLOC_OBJ_PACKAGE,	/**< \brief Physical package.
 			  * The physical package that usually gets inserted
 			  * into a socket on the motherboard.
-			  * A processor package usually contains multiple cores.
+			  * A processor package usually contains multiple cores,
+			  * and possibly some dies.
 			  */
   HWLOC_OBJ_CORE,	/**< \brief Core.
 			  * A computation unit (may be shared by several
@@ -232,6 +234,10 @@ typedef enum {
 			  * and byte-accessible to the host processors.
 			  * It is usually close to some cores (the corresponding objects
 			  * are descendants of the NUMA node object in the hwloc tree).
+			  *
+			  * This is the smallest object representing Memory resources,
+			  * it cannot have any child except Misc objects.
+			  * However it may have Memory-side cache parents.
 			  *
 			  * There is always at least one such object in the topology
 			  * even if the machine is not NUMA.
@@ -279,6 +285,24 @@ typedef enum {
 			  * Misc objects have NULL CPU and node sets.
 			  */
 
+  HWLOC_OBJ_MEMCACHE,	/**< \brief Memory-side cache (filtered out by default).
+			  * A cache in front of a specific NUMA node.
+			  *
+			  * This object always has at least one NUMA node as a memory child.
+			  *
+			  * Memory objects are not listed in the main children list,
+			  * but rather in the dedicated Memory children list.
+			  *
+			  * Memory-side cache have a special depth ::HWLOC_TYPE_DEPTH_MEMCACHE
+			  * instead of a normal depth just like other objects in the
+			  * main tree.
+			  */
+
+  HWLOC_OBJ_DIE,	/**< \brief Die within a physical package.
+			 * A subpart of the physical package, that contains multiple cores.
+			 * \hideinitializer
+			 */
+
   HWLOC_OBJ_TYPE_MAX    /**< \private Sentinel value */
 } hwloc_obj_type_t;
 
@@ -297,8 +321,8 @@ typedef enum hwloc_obj_bridge_type_e {
 
 /** \brief Type of a OS device. */
 typedef enum hwloc_obj_osdev_type_e {
-  HWLOC_OBJ_OSDEV_BLOCK,	/**< \brief Operating system block device.
-				  * For instance "sda" on Linux. */
+  HWLOC_OBJ_OSDEV_BLOCK,	/**< \brief Operating system block device, or non-volatile memory device.
+				  * For instance "sda" or "dax2.0" on Linux. */
   HWLOC_OBJ_OSDEV_GPU,		/**< \brief Operating system GPU device.
 				  * For instance ":0.0" for a GL display,
 				  * "card0" for a Linux DRM device. */
@@ -434,9 +458,15 @@ struct hwloc_obj {
 					 * These children are listed in \p memory_first_child.
 					 */
   struct hwloc_obj *memory_first_child;	/**< \brief First Memory child.
-					 * NUMA nodes are listed here (\p memory_arity and \p memory_first_child)
+					 * NUMA nodes and Memory-side caches are listed here
+					 * (\p memory_arity and \p memory_first_child)
 					 * instead of in the normal children list.
 					 * See also hwloc_obj_type_is_memory().
+					 *
+					 * A memory hierarchy starts from a normal CPU-side object
+					 * (e.g. Package) and ends with NUMA nodes as leaves.
+					 * There might exist some memory-side caches between them
+					 * in the middle of the memory subtree.
 					 */
   /**@}*/
 
@@ -471,7 +501,7 @@ struct hwloc_obj {
                                           * object and known how (the children path between this object and the PU
                                           * objects).
                                           *
-                                          * If the ::HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM configuration flag is set,
+                                          * If the ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED configuration flag is set,
                                           * some of these CPUs may not be allowed for binding,
                                           * see hwloc_topology_get_allowed_cpuset().
                                           *
@@ -483,7 +513,7 @@ struct hwloc_obj {
                                           *
                                           * This may include not only the same as the cpuset field, but also some CPUs for
                                           * which topology information is unknown or incomplete, some offlines CPUs, and
-                                          * the CPUs that are ignored when the ::HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM flag
+                                          * the CPUs that are ignored when the ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED flag
                                           * is not set.
                                           * Thus no corresponding PU object may be found in the topology, because the
                                           * precise position is undefined. It is however known that it would be somewhere
@@ -501,7 +531,7 @@ struct hwloc_obj {
                                           *
                                           * In the end, these nodes are those that are close to the current object.
                                           *
-                                          * If the ::HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM configuration flag is set,
+                                          * If the ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED configuration flag is set,
                                           * some of these nodes may not be allowed for allocation,
                                           * see hwloc_topology_get_allowed_nodeset().
                                           *
@@ -516,7 +546,7 @@ struct hwloc_obj {
                                           *
                                           * This may include not only the same as the nodeset field, but also some NUMA
                                           * nodes for which topology information is unknown or incomplete, some offlines
-                                          * nodes, and the nodes that are ignored when the ::HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM
+                                          * nodes, and the nodes that are ignored when the ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED
                                           * flag is not set.
                                           * Thus no corresponding NUMA node object may be found in the topology, because the
                                           * precise position is undefined. It is however known that it would be
@@ -770,7 +800,8 @@ enum hwloc_get_type_depth_e {
     HWLOC_TYPE_DEPTH_BRIDGE = -4,     /**< \brief Virtual depth for bridge object level. \hideinitializer */
     HWLOC_TYPE_DEPTH_PCI_DEVICE = -5, /**< \brief Virtual depth for PCI device object level. \hideinitializer */
     HWLOC_TYPE_DEPTH_OS_DEVICE = -6,  /**< \brief Virtual depth for software device object level. \hideinitializer */
-    HWLOC_TYPE_DEPTH_MISC = -7        /**< \brief Virtual depth for Misc object. \hideinitializer */
+    HWLOC_TYPE_DEPTH_MISC = -7,       /**< \brief Virtual depth for Misc object. \hideinitializer */
+    HWLOC_TYPE_DEPTH_MEMCACHE = -8    /**< \brief Virtual depth for MemCache object. \hideinitializer */
 };
 
 /** \brief Return the depth of parents where memory objects are attached.
@@ -1781,6 +1812,31 @@ HWLOC_DECLSPEC int hwloc_topology_set_xml(hwloc_topology_t __hwloc_restrict topo
  */
 HWLOC_DECLSPEC int hwloc_topology_set_xmlbuffer(hwloc_topology_t __hwloc_restrict topology, const char * __hwloc_restrict buffer, int size);
 
+/** \brief Flags to be passed to hwloc_topology_set_components()
+ */
+enum hwloc_topology_components_flag_e {
+  /** \brief Blacklist the target component from being used.
+   * \hideinitializer
+   */
+  HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST = (1UL<<0)
+};
+
+/** \brief Prevent a discovery component from being used for a topology.
+ *
+ * \p name is the name of the discovery component that should not be used
+ * when loading topology \p topology. The name is a string such as "cuda".
+ *
+ * For components with multiple phases, it may also be suffixed with the name
+ * of a phase, for instance "linux:io".
+ *
+ * \p flags should be ::HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST.
+ *
+ * This may be used to avoid expensive parts of the discovery process.
+ * For instance, CUDA-specific discovery may be expensive and unneeded
+ * while generic I/O discovery could still be useful.
+ */
+HWLOC_DECLSPEC int hwloc_topology_set_components(hwloc_topology_t __hwloc_restrict topology, unsigned long flags, const char * __hwloc_restrict name);
+
 /** @} */
 
 
@@ -1800,28 +1856,27 @@ HWLOC_DECLSPEC int hwloc_topology_set_xmlbuffer(hwloc_topology_t __hwloc_restric
  * They may also be returned by hwloc_topology_get_flags().
  */
 enum hwloc_topology_flags_e {
- /** \brief Detect the whole system, ignore reservations.
+ /** \brief Detect the whole system, ignore reservations, include disallowed objects.
    *
    * Gather all resources, even if some were disabled by the administrator.
    * For instance, ignore Linux Cgroup/Cpusets and gather all processors and memory nodes.
    *
    * When this flag is not set, PUs and NUMA nodes that are disallowed are not added to the topology.
    * Parent objects (package, core, cache, etc.) are added only if some of their children are allowed.
+   * All existing PUs and NUMA nodes in the topology are allowed.
+   * hwloc_topology_get_allowed_cpuset() and hwloc_topology_get_allowed_nodeset()
+   * are equal to the root object cpuset and nodeset.
    *
    * When this flag is set, the actual sets of allowed PUs and NUMA nodes are given
    * by hwloc_topology_get_allowed_cpuset() and hwloc_topology_get_allowed_nodeset().
    * They may be smaller than the root object cpuset and nodeset.
-   *
-   * When this flag is not set, all existing PUs and NUMA nodes in the topology
-   * are allowed. hwloc_topology_get_allowed_cpuset() and hwloc_topology_get_allowed_nodeset()
-   * are equal to the root object cpuset and nodeset.
    *
    * If the current topology is exported to XML and reimported later, this flag
    * should be set again in the reimported topology so that disallowed resources
    * are reimported as well.
    * \hideinitializer
    */
-  HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM = (1UL<<0),
+  HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED = (1UL<<0),
 
  /** \brief Assume that the selected backend provides the topology for the
    * system on which we are running.
@@ -1901,6 +1956,10 @@ struct hwloc_topology_discovery_support {
   unsigned char numa;
   /** \brief Detecting the amount of memory in NUMA nodes is supported. */
   unsigned char numa_memory;
+  /** \brief Detecting and identifying PU objects that are not available to the current process is supported. */
+  unsigned char disallowed_pu;
+  /** \brief Detecting and identifying NUMA nodes that are not available to the current process is supported. */
+  unsigned char disallowed_numa;
 };
 
 /** \brief Flags describing actual PU binding support for this topology.
@@ -1998,7 +2057,7 @@ HWLOC_DECLSPEC const struct hwloc_topology_support *hwloc_topology_get_support(h
  *
  * By default, most objects are kept (::HWLOC_TYPE_FILTER_KEEP_ALL).
  * Instruction caches, I/O and Misc objects are ignored by default (::HWLOC_TYPE_FILTER_KEEP_NONE).
- * Group levels are ignored unless they bring structure (::HWLOC_TYPE_FILTER_KEEP_STRUCTURE).
+ * Die and Group levels are ignored unless they bring structure (::HWLOC_TYPE_FILTER_KEEP_STRUCTURE).
  *
  * Note that group objects are also ignored individually (without the entire level)
  * when they do not bring structure.
@@ -2063,11 +2122,15 @@ HWLOC_DECLSPEC int hwloc_topology_get_type_filter(hwloc_topology_t topology, hwl
  */
 HWLOC_DECLSPEC int hwloc_topology_set_all_types_filter(hwloc_topology_t topology, enum hwloc_type_filter_e filter);
 
-/** \brief Set the filtering for all cache object types.
+/** \brief Set the filtering for all CPU cache object types.
+ *
+ * Memory-side caches are not involved since they are not CPU caches.
  */
 HWLOC_DECLSPEC int hwloc_topology_set_cache_types_filter(hwloc_topology_t topology, enum hwloc_type_filter_e filter);
 
-/** \brief Set the filtering for all instruction cache object types.
+/** \brief Set the filtering for all CPU instruction cache object types.
+ *
+ * Memory-side caches are not involved since they are not CPU caches.
  */
 HWLOC_DECLSPEC int hwloc_topology_set_icache_types_filter(hwloc_topology_t topology, enum hwloc_type_filter_e filter);
 
@@ -2110,6 +2173,19 @@ enum hwloc_restrict_flags_e {
    */
   HWLOC_RESTRICT_FLAG_REMOVE_CPULESS = (1UL<<0),
 
+  /** \brief Restrict by nodeset instead of CPU set.
+   * Only keep objects whose nodeset is included or partially included in the given set.
+   * This flag may not be used with ::HWLOC_RESTRICT_FLAG_BYNODESET.
+   */
+  HWLOC_RESTRICT_FLAG_BYNODESET =  (1UL<<3),
+
+  /** \brief Remove all objects that became Memory-less.
+   * By default, only objects that contain no PU and no memory are removed.
+   * This flag may only be used with ::HWLOC_RESTRICT_FLAG_BYNODESET.
+   * \hideinitializer
+   */
+  HWLOC_RESTRICT_FLAG_REMOVE_MEMLESS = (1UL<<4),
+
   /** \brief Move Misc objects to ancestors if their parents are removed during restriction.
    * If this flag is not set, Misc objects are removed when their parents are removed.
    * \hideinitializer
@@ -2123,28 +2199,70 @@ enum hwloc_restrict_flags_e {
   HWLOC_RESTRICT_FLAG_ADAPT_IO = (1UL<<2)
 };
 
-/** \brief Restrict the topology to the given CPU set.
+/** \brief Restrict the topology to the given CPU set or nodeset.
  *
  * Topology \p topology is modified so as to remove all objects that
- * are not included (or partially included) in the CPU set \p cpuset.
+ * are not included (or partially included) in the CPU set \p set.
  * All objects CPU and node sets are restricted accordingly.
+ *
+ * If ::HWLOC_RESTRICT_FLAG_BYNODESET is passed in \p flags,
+ * \p set is considered a nodeset instead of a CPU set.
  *
  * \p flags is a OR'ed set of ::hwloc_restrict_flags_e.
  *
  * \note This call may not be reverted by restricting back to a larger
- * cpuset. Once dropped during restriction, objects may not be brought
+ * set. Once dropped during restriction, objects may not be brought
  * back, except by loading another topology with hwloc_topology_load().
  *
  * \return 0 on success.
  *
- * \return -1 with errno set to EINVAL if the input cpuset is invalid.
+ * \return -1 with errno set to EINVAL if the input set is invalid.
  * The topology is not modified in this case.
  *
  * \return -1 with errno set to ENOMEM on failure to allocate internal data.
  * The topology is reinitialized in this case. It should be either
  * destroyed with hwloc_topology_destroy() or configured and loaded again.
  */
-HWLOC_DECLSPEC int hwloc_topology_restrict(hwloc_topology_t __hwloc_restrict topology, hwloc_const_cpuset_t cpuset, unsigned long flags);
+HWLOC_DECLSPEC int hwloc_topology_restrict(hwloc_topology_t __hwloc_restrict topology, hwloc_const_bitmap_t set, unsigned long flags);
+
+/** \brief Flags to be given to hwloc_topology_allow(). */
+enum hwloc_allow_flags_e {
+  /** \brief Mark all objects as allowed in the topology.
+   *
+   * \p cpuset and \p nođeset given to hwloc_topology_allow() must be \c NULL.
+   * \hideinitializer */
+  HWLOC_ALLOW_FLAG_ALL = (1UL<<0),
+
+  /** \brief Only allow objects that are available to the current process.
+   *
+   * The topology must have ::HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM so that the set
+   * of available resources can actually be retrieved from the operating system.
+   *
+   * \p cpuset and \p nođeset given to hwloc_topology_allow() must be \c NULL.
+   * \hideinitializer */
+  HWLOC_ALLOW_FLAG_LOCAL_RESTRICTIONS = (1UL<<1),
+
+  /** \brief Allow a custom set of objects, given to hwloc_topology_allow() as \p cpuset and/or \p nodeset parameters.
+   * \hideinitializer */
+  HWLOC_ALLOW_FLAG_CUSTOM = (1UL<<2)
+};
+
+/** \brief Change the sets of allowed PUs and NUMA nodes in the topology.
+ *
+ * This function only works if the ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED
+ * was set on the topology. It does not modify any object, it only changes
+ * the sets returned by hwloc_topology_get_allowed_cpuset() and
+ * hwloc_topology_get_allowed_nodeset().
+ *
+ * It is notably useful when importing a topology from another process
+ * running in a different Linux Cgroup.
+ *
+ * \p flags must be set to one flag among ::hwloc_allow_flags_e.
+ *
+ * \note Removing objects from a topology should rather be performed with
+ * hwloc_topology_restrict().
+ */
+HWLOC_DECLSPEC int hwloc_topology_allow(hwloc_topology_t __hwloc_restrict topology, hwloc_const_cpuset_t cpuset, hwloc_const_nodeset_t nodeset, unsigned long flags);
 
 /** \brief Add a MISC object as a leaf of the topology
  *
@@ -2250,21 +2368,21 @@ HWLOC_DECLSPEC int hwloc_obj_add_other_obj_sets(hwloc_obj_t dst, hwloc_obj_t src
 
 
 /* high-level helpers */
-#include <hwloc/helper.h>
+#include "hwloc/helper.h"
 
 /* inline code of some functions above */
-#include <hwloc/inlines.h>
+#include "hwloc/inlines.h"
 
 /* exporting to XML or synthetic */
-#include <hwloc/export.h>
+#include "hwloc/export.h"
 
 /* distances */
-#include <hwloc/distances.h>
+#include "hwloc/distances.h"
 
 /* topology diffs */
-#include <hwloc/diff.h>
+#include "hwloc/diff.h"
 
 /* deprecated headers */
-#include <hwloc/deprecated.h>
+#include "hwloc/deprecated.h"
 
 #endif /* HWLOC_H */

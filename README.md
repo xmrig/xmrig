@@ -16,7 +16,7 @@ XMRig High performance, open source, cross platform RandomX, CryptoNight and Arg
 - **OpenCL** for AMD GPUs.
 - **CUDA** for NVIDIA GPUs via external [CUDA plugin](https://github.com/xmrig/xmrig-cuda).
 
-<img src="doc/screenshot.png" width="808" >
+<img src="doc/screenshot_v5_2_0.png" width="833" >
 
 ## Download
 * Binary releases: https://github.com/xmrig/xmrig/releases
@@ -65,6 +65,8 @@ CPU backend:
       --randomx-init=N          threads count to initialize RandomX dataset
       --randomx-no-numa         disable NUMA support for RandomX
       --randomx-mode=MODE       RandomX mode: auto, fast, light
+      --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)
+      --randomx-wrmsr=N         write value (0-15) to Intel MSR register 0x1a4 or do nothing (-1) (Linux only)
 
 API:
       --api-worker-id=ID        custom worker-id for API

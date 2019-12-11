@@ -527,30 +527,36 @@ hwloc_obj_type_is_io(hwloc_obj_type_t type);
  *
  * Memory objects are objects attached to their parents
  * in the Memory children list.
- * This current only includes NUMA nodes.
+ * This current includes NUMA nodes and Memory-side caches.
  *
  * \return 1 if an object of type \p type is a Memory object, 0 otherwise.
  */
 HWLOC_DECLSPEC int
 hwloc_obj_type_is_memory(hwloc_obj_type_t type);
 
-/** \brief Check whether an object type is a Cache (Data, Unified or Instruction).
+/** \brief Check whether an object type is a CPU Cache (Data, Unified or Instruction).
+ *
+ * Memory-side caches are not CPU caches.
  *
  * \return 1 if an object of type \p type is a Cache, 0 otherwise.
  */
 HWLOC_DECLSPEC int
 hwloc_obj_type_is_cache(hwloc_obj_type_t type);
 
-/** \brief Check whether an object type is a Data or Unified Cache.
+/** \brief Check whether an object type is a CPU Data or Unified Cache.
  *
- * \return 1 if an object of type \p type is a Data or Unified Cache, 0 otherwise.
+ * Memory-side caches are not CPU caches.
+ *
+ * \return 1 if an object of type \p type is a CPU Data or Unified Cache, 0 otherwise.
  */
 HWLOC_DECLSPEC int
 hwloc_obj_type_is_dcache(hwloc_obj_type_t type);
 
-/** \brief Check whether an object type is a Instruction Cache,
+/** \brief Check whether an object type is a CPU Instruction Cache,
  *
- * \return 1 if an object of type \p type is a Instruction Cache, 0 otherwise.
+ * Memory-side caches are not CPU caches.
+ *
+ * \return 1 if an object of type \p type is a CPU Instruction Cache, 0 otherwise.
  */
 HWLOC_DECLSPEC int
 hwloc_obj_type_is_icache(hwloc_obj_type_t type);
@@ -914,7 +920,7 @@ hwloc_topology_get_complete_cpuset(hwloc_topology_t topology) __hwloc_attribute_
  * \note The returned cpuset is not newly allocated and should thus not be
  * changed or freed; hwloc_bitmap_dup() must be used to obtain a local copy.
  *
- * \note This is equivalent to retrieving the root object complete CPU-set.
+ * \note This is equivalent to retrieving the root object CPU-set.
  */
 HWLOC_DECLSPEC hwloc_const_cpuset_t
 hwloc_topology_get_topology_cpuset(hwloc_topology_t topology) __hwloc_attribute_pure;
@@ -923,11 +929,11 @@ hwloc_topology_get_topology_cpuset(hwloc_topology_t topology) __hwloc_attribute_
  *
  * \return the CPU set of allowed logical processors of the system.
  *
- * \note If the topology flag ::HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM was not set,
+ * \note If the topology flag ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED was not set,
  * this is identical to hwloc_topology_get_topology_cpuset(), which means
  * all PUs are allowed.
  *
- * \note If ::HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM was set, applying
+ * \note If ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED was set, applying
  * hwloc_bitmap_intersects() on the result of this function and on an object
  * cpuset checks whether there are allowed PUs inside that object.
  * Applying hwloc_bitmap_and() returns the list of these allowed PUs.
@@ -945,7 +951,7 @@ hwloc_topology_get_allowed_cpuset(hwloc_topology_t topology) __hwloc_attribute_p
  * \note The returned nodeset is not newly allocated and should thus not be
  * changed or freed; hwloc_bitmap_dup() must be used to obtain a local copy.
  *
- * \note This is equivalent to retrieving the root object complete CPU-set.
+ * \note This is equivalent to retrieving the root object complete nodeset.
  */
 HWLOC_DECLSPEC hwloc_const_nodeset_t
 hwloc_topology_get_complete_nodeset(hwloc_topology_t topology) __hwloc_attribute_pure;
@@ -959,7 +965,7 @@ hwloc_topology_get_complete_nodeset(hwloc_topology_t topology) __hwloc_attribute
  * \note The returned nodeset is not newly allocated and should thus not be
  * changed or freed; hwloc_bitmap_dup() must be used to obtain a local copy.
  *
- * \note This is equivalent to retrieving the root object complete CPU-set.
+ * \note This is equivalent to retrieving the root object nodeset.
  */
 HWLOC_DECLSPEC hwloc_const_nodeset_t
 hwloc_topology_get_topology_nodeset(hwloc_topology_t topology) __hwloc_attribute_pure;
@@ -968,11 +974,11 @@ hwloc_topology_get_topology_nodeset(hwloc_topology_t topology) __hwloc_attribute
  *
  * \return the node set of allowed memory of the system.
  *
- * \note If the topology flag ::HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM was not set,
+ * \note If the topology flag ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED was not set,
  * this is identical to hwloc_topology_get_topology_nodeset(), which means
  * all NUMA nodes are allowed.
  *
- * \note If ::HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM was set, applying
+ * \note If ::HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED was set, applying
  * hwloc_bitmap_intersects() on the result of this function and on an object
  * nodeset checks whether there are allowed NUMA nodes inside that object.
  * Applying hwloc_bitmap_and() returns the list of these allowed NUMA nodes.

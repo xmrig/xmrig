@@ -63,7 +63,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_miner(data.miner),
     m_ctx()
 {
-    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, true, m_node);
+    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, m_node);
 }
 
 
@@ -96,7 +96,7 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
     }
 
     if (!m_vm) {
-        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES);
+        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly);
     }
 }
 #endif

@@ -60,6 +60,7 @@ public:
     inline const String &argon2Impl() const             { return m_argon2Impl; }
     inline const Threads<CpuThreads> &threads() const   { return m_threads; }
     inline int priority() const                         { return m_priority; }
+    inline uint32_t limit() const                       { return m_limit; }
 
 private:
     void generate();

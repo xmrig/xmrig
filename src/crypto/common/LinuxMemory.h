@@ -4,9 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <support@xmrig.com>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,45 +22,28 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstring>
-#include <thread>
+#ifndef XMRIG_LINUXMEMORY_H
+#define XMRIG_LINUXMEMORY_H
 
 
-#if __ARM_FEATURE_CRYPTO && !defined(__APPLE__)
-#   include <sys/auxv.h>
-#   include <asm/hwcap.h>
-#endif
+#include <cstdint>
+#include <cstddef>
 
 
-#include "backend/cpu/platform/BasicCpuInfo.h"
+namespace xmrig {
 
 
-xmrig::BasicCpuInfo::BasicCpuInfo() :
-    m_threads(std::thread::hardware_concurrency())
+class LinuxMemory
 {
-#   ifdef XMRIG_ARMv8
-    memcpy(m_brand, "ARMv8", 5);
-#   else
-    memcpy(m_brand, "ARMv7", 5);
-#   endif
+public:
+    static bool reserve(size_t size, uint32_t node, bool oneGbPages = false);
 
-#   if __ARM_FEATURE_CRYPTO
-#   if !defined(__APPLE__)
-    m_aes = getauxval(AT_HWCAP) & HWCAP_AES;
-#   else
-    m_aes = true;
-#   endif
-#   endif
-}
+    static bool write(const char *path, uint64_t value);
+    static int64_t read(const char *path);
+};
 
 
-const char *xmrig::BasicCpuInfo::backend() const
-{
-    return "basic_arm";
-}
+} /* namespace xmrig */
 
 
-xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &, uint32_t) const
-{
-    return CpuThreads(threads());
-}
+#endif /* XMRIG_LINUXMEMORY_H */

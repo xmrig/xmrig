@@ -338,6 +338,10 @@ bool xmrig::Client::isCriticalError(const char *message)
         return true;
     }
 
+    if (strncasecmp(message, "Invalid job id", 14) == 0) {
+        return true;
+    }
+
     return false;
 }
 
@@ -558,7 +562,7 @@ void xmrig::Client::connect(sockaddr *addr)
 {
     setState(ConnectingState);
 
-    uv_connect_t *req = new uv_connect_t;
+    auto req = new uv_connect_t;
     req->data = m_storage.ptr(m_key);
 
     m_socket = new uv_tcp_t;
@@ -799,7 +803,7 @@ void xmrig::Client::ping()
 
 void xmrig::Client::read(ssize_t nread)
 {
-    const size_t size = static_cast<size_t>(nread);
+    const auto size = static_cast<size_t>(nread);
 
     if (nread > 0 && size > m_recvBuf.available()) {
         nread = UV_ENOBUFS;
@@ -859,7 +863,7 @@ void xmrig::Client::reconnect()
 
 void xmrig::Client::setState(SocketState state)
 {
-    LOG_DEBUG("[%s] state: \"%s\"", url(), states[state]);
+    LOG_DEBUG("[%s] state: \"%s\" -> \"%s\"", url(), states[m_state], states[state]);
 
     if (m_state == state) {
         return;
@@ -953,6 +957,12 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
 
         delete req;
         client->close();
+        return;
+    }
+
+    if (client->state() == ConnectedState) {
+        LOG_ERR("[%s] already connected");
+
         return;
     }
 
