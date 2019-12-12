@@ -119,6 +119,8 @@ void xmrig::Rx::osInit(const RxConfig &config)
     if (Cpu::info()->assembly() == Assembly::RYZEN && wrmsr_modprobe()) {
         wrmsr_on_all_cpus(0xC0011022, 0x510000);
         wrmsr_on_all_cpus(0xC001102b, 0x1808cc16);
+        wrmsr_on_all_cpus(0xC0011020, 0);
+        wrmsr_on_all_cpus(0xC0011021, 0x40);
 
         return;
     }
