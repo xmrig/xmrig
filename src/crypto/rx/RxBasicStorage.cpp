@@ -69,20 +69,20 @@ public:
     }
 
 
-    inline void createDataset(bool hugePages, RxConfig::Mode mode)
+    inline void createDataset(bool hugePages, bool oneGbPages, RxConfig::Mode mode)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
-        m_dataset = new RxDataset(hugePages, true, mode);
+        m_dataset = new RxDataset(hugePages, oneGbPages, true, mode, 0);
         printAllocStatus(ts);
     }
 
 
-    inline void initDataset(uint32_t threads)
+    inline void initDataset(uint32_t threads, int priority)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
-        m_dataset->init(m_seed.data(), threads);
+        m_dataset->init(m_seed.data(), threads, priority);
 
         LOG_INFO("%s" GREEN_BOLD("dataset ready") BLACK_BOLD(" (%" PRIu64 " ms)"), rx_tag(), Chrono::steadyMSecs() - ts);
 
@@ -94,18 +94,17 @@ private:
     void printAllocStatus(uint64_t ts)
     {
         if (m_dataset->get() != nullptr) {
-            const auto pages     = m_dataset->hugePages();
-            const double percent = pages.first == 0 ? 0.0 : static_cast<double>(pages.first) / pages.second * 100.0;
+            const auto pages = m_dataset->hugePages();
 
             LOG_INFO("%s" GREEN_BOLD("allocated") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu)") " huge pages %s%1.0f%% %u/%u" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
                      rx_tag(),
-                     m_dataset->size() / oneMiB,
+                     pages.size / oneMiB,
                      RxDataset::maxSize() / oneMiB,
                      RxCache::maxSize() / oneMiB,
-                     (pages.first == pages.second ? GREEN_BOLD_S : (pages.first == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
-                     percent,
-                     pages.first,
-                     pages.second,
+                     (pages.isFullyAllocated() ? GREEN_BOLD_S : (pages.allocated == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                     pages.percent(),
+                     pages.allocated,
+                     pages.total,
                      m_dataset->cache()->isJIT() ? GREEN_BOLD_S "+" : RED_BOLD_S "-",
                      Chrono::steadyMSecs() - ts
                      );
@@ -137,6 +136,16 @@ xmrig::RxBasicStorage::~RxBasicStorage()
 }
 
 
+xmrig::HugePagesInfo xmrig::RxBasicStorage::hugePages() const
+{
+    if (!d_ptr->dataset()) {
+        return {};
+    }
+
+    return d_ptr->dataset()->hugePages();
+}
+
+
 xmrig::RxDataset *xmrig::RxBasicStorage::dataset(const Job &job, uint32_t) const
 {
     if (!d_ptr->isReady(job)) {
@@ -147,23 +156,13 @@ xmrig::RxDataset *xmrig::RxBasicStorage::dataset(const Job &job, uint32_t) const
 }
 
 
-std::pair<uint32_t, uint32_t> xmrig::RxBasicStorage::hugePages() const
-{
-    if (!d_ptr->dataset()) {
-        return { 0U, 0U };
-    }
-
-    return d_ptr->dataset()->hugePages();
-}
-
-
-void xmrig::RxBasicStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, RxConfig::Mode mode)
+void xmrig::RxBasicStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority)
 {
     d_ptr->setSeed(seed);
 
     if (!d_ptr->dataset()) {
-        d_ptr->createDataset(hugePages, mode);
+        d_ptr->createDataset(hugePages, oneGbPages, mode);
     }
 
-    d_ptr->initDataset(threads);
+    d_ptr->initDataset(threads, priority);
 }

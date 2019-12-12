@@ -31,10 +31,11 @@
 #endif
 
 
-#include "3rdparty/http-parser/http_parser.h"
 #include "base/api/Api.h"
+#include "3rdparty/http-parser/http_parser.h"
 #include "base/api/interfaces/IApiListener.h"
 #include "base/api/requests/HttpApiRequest.h"
+#include "base/io/json/Json.h"
 #include "base/kernel/Base.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
@@ -73,9 +74,10 @@ static rapidjson::Value getResources(rapidjson::Document &doc)
 
     double loadavg[3] = { 0.0 };
     uv_loadavg(loadavg);
-    load_average.PushBack(loadavg[0], allocator);
-    load_average.PushBack(loadavg[1], allocator);
-    load_average.PushBack(loadavg[2], allocator);
+
+    for (double value : loadavg) {
+        load_average.PushBack(Json::normalize(value, true), allocator);
+    }
 
     out.AddMember("memory",               memory, allocator);
     out.AddMember("load_average",         load_average, allocator);
@@ -182,6 +184,9 @@ void xmrig::Api::exec(IApiRequest &request)
 #       endif
 #       ifdef XMRIG_FEATURE_OPENCL
         features.PushBack("opencl", allocator);
+#       endif
+#       ifdef XMRIG_FEATURE_CUDA
+        features.PushBack("cuda", allocator);
 #       endif
         reply.AddMember("features", features, allocator);
     }

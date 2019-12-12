@@ -38,6 +38,7 @@ static const char *kHwAes               = "hw-aes";
 static const char *kMaxThreadsHint      = "max-threads-hint";
 static const char *kMemoryPool          = "memory-pool";
 static const char *kPriority            = "priority";
+static const char *kYield               = "yield";
 
 #ifdef XMRIG_FEATURE_ASM
 static const char *kAsm = "asm";
@@ -70,6 +71,7 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kHwAes),        m_aes == AES_AUTO ? Value(kNullType) : Value(m_aes == AES_HW), allocator);
     obj.AddMember(StringRef(kPriority),     priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
     obj.AddMember(StringRef(kMemoryPool),   m_memoryPool < 1 ? Value(m_memoryPool < 0) : Value(m_memoryPool), allocator);
+    obj.AddMember(StringRef(kYield),        m_yield, allocator);
 
     if (m_threads.isEmpty()) {
         obj.AddMember(StringRef(kMaxThreadsHint), m_limit, allocator);
@@ -117,9 +119,10 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
 void xmrig::CpuConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
-        m_enabled   = Json::getBool(value, kEnabled, m_enabled);
-        m_hugePages = Json::getBool(value, kHugePages, m_hugePages);
-        m_limit     = Json::getUint(value, kMaxThreadsHint, m_limit);
+        m_enabled    = Json::getBool(value, kEnabled, m_enabled);
+        m_hugePages  = Json::getBool(value, kHugePages, m_hugePages);
+        m_limit      = Json::getUint(value, kMaxThreadsHint, m_limit);
+        m_yield      = Json::getBool(value, kYield, m_yield);
 
         setAesMode(Json::getValue(value, kHwAes));
         setPriority(Json::getInt(value,  kPriority, -1));

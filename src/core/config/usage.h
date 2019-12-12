@@ -80,6 +80,7 @@ static inline const std::string &usage()
     u += "      --cpu-priority            set process priority (0 idle, 2 normal to 5 highest)\n";
     u += "      --cpu-max-threads-hint=N  maximum CPU threads count (in percentage) hint for autoconfig\n";
     u += "      --cpu-memory-pool=N       number of 2 MB pages for persistent memory pool, -1 (auto), 0 (disable)\n";
+    u += "      --cpu-no-yield            prefer maximum hashrate rather than system response/stability\n";
     u += "      --no-huge-pages           disable huge pages support\n";
     u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
 
@@ -87,6 +88,8 @@ static inline const std::string &usage()
     u += "      --randomx-init=N          threads count to initialize RandomX dataset\n";
     u += "      --randomx-no-numa         disable NUMA support for RandomX\n";
     u += "      --randomx-mode=MODE       RandomX mode: auto, fast, light\n";
+    u += "      --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)\n";
+    u += "      --randomx-wrmsr=N         write value (0-15) to Intel MSR register 0x1a4 or do nothing (-1) (Linux only)\n";
 #   endif
 
 #   ifdef XMRIG_FEATURE_HTTP

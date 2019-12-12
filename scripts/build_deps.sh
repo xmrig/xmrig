@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-UV_VERSION="1.33.1"
+UV_VERSION="1.34.0"
 OPENSSL_VERSION="1.1.1d"
 HWLOC_VERSION="2.1.0"
 

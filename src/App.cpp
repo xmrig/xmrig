@@ -50,6 +50,8 @@ xmrig::App::App(Process *process)
 
 xmrig::App::~App()
 {
+    Cpu::release();
+
     delete m_signals;
     delete m_console;
     delete m_controller;
@@ -89,8 +91,6 @@ int xmrig::App::exec()
     }
 
     m_controller->start();
-
-    Platform::setThreadPriority(5);
 
     rc = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());

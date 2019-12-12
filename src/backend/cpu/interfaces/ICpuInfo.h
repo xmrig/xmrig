@@ -37,6 +37,12 @@ namespace xmrig {
 class ICpuInfo
 {
 public:
+    enum Vendor {
+        VENDOR_UNKNOWN,
+        VENDOR_INTEL,
+        VENDOR_AMD
+    };
+
     virtual ~ICpuInfo() = default;
 
 #   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
@@ -48,6 +54,7 @@ public:
     virtual Assembly::Id assembly() const                                           = 0;
     virtual bool hasAES() const                                                     = 0;
     virtual bool hasAVX2() const                                                    = 0;
+    virtual bool hasOneGbPages() const                                              = 0;
     virtual const char *backend() const                                             = 0;
     virtual const char *brand() const                                               = 0;
     virtual CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const    = 0;
@@ -57,6 +64,7 @@ public:
     virtual size_t nodes() const                                                    = 0;
     virtual size_t packages() const                                                 = 0;
     virtual size_t threads() const                                                  = 0;
+    virtual Vendor vendor() const                                                   = 0;
 };
 
 

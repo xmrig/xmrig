@@ -47,7 +47,7 @@ xmrig::MemoryPool::MemoryPool(size_t size, bool hugePages, uint32_t node)
         return;
     }
 
-    m_memory = new VirtualMemory(size * pageSize, hugePages, false, node);
+    m_memory = new VirtualMemory(size * pageSize, hugePages, false, false, node);
 }
 
 

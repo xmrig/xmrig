@@ -24,11 +24,12 @@
  */
 
 
-#include <string.h>
-#include <uv.h>
-
-
 #include "base/io/log/backends/FileLog.h"
+
+
+#include <cassert>
+#include <cstring>
+#include <uv.h>
 
 
 xmrig::FileLog::FileLog(const char *fileName)
@@ -45,13 +46,12 @@ void xmrig::FileLog::print(int, const char *line, size_t, size_t size, bool colo
         return;
     }
 
-#   ifdef _WIN32
-    uv_buf_t buf = uv_buf_init(strdup(line), static_cast<unsigned int>(size));
-#   else
-    uv_buf_t buf = uv_buf_init(strdup(line), size);
-#   endif
+    assert(strlen(line) == size);
 
-    uv_fs_t *req = new uv_fs_t;
+    uv_buf_t buf = uv_buf_init(new char[size], size);
+    memcpy(buf.base, line, size);
+
+    auto req = new uv_fs_t;
     req->data = buf.base;
 
     uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, -1, FileLog::onWrite);

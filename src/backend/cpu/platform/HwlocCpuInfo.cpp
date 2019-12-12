@@ -262,7 +262,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint3
 
 void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const
 {
-    constexpr size_t oneMiB = 1024u * 1024u;
+    constexpr size_t oneMiB = 1024U * 1024U;
 
     size_t PUs = countByType(cache, HWLOC_OBJ_PU);
     if (PUs == 0) {

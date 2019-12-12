@@ -39,6 +39,11 @@
 #include "version.h"
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/RxConfig.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -59,24 +64,36 @@ inline static const char *asmName(Assembly::Id assembly)
 #endif
 
 
-static void print_memory(Config *config) {
-#   ifdef _WIN32
+static void print_memory(Config *config)
+{
+#   ifdef XMRIG_OS_WIN
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
                "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
+#   else
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "HUGE PAGES",  config->cpu().isHugePages() ? GREEN_BOLD("supported") : RED_BOLD("disabled"));
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef XMRIG_OS_LINUX
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
+               "1GB PAGES", (VirtualMemory::isOneGbPagesAvailable() ? (config->rx().isOneGbPages() ? GREEN_BOLD("supported") : YELLOW_BOLD("disabled")) : YELLOW_BOLD("unavailable")));
+#   else
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "1GB PAGES", YELLOW_BOLD("unavailable"));
+#   endif
 #   endif
 }
 
 
 static void print_cpu(Config *)
 {
-    const ICpuInfo *info = Cpu::info();
+    const auto info = Cpu::info();
 
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES",
                "CPU",
                info->brand(),
                info->packages(),
-               info->isX64()   ? GREEN_BOLD_S : RED_BOLD_S "-",
-               info->hasAES()  ? GREEN_BOLD_S : RED_BOLD_S "-"
+               info->isX64()          ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-"
                );
 #   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
     Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")

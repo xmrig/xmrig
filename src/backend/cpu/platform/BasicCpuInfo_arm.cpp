@@ -22,7 +22,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#include <cstring>
 #include <thread>
 
 
@@ -36,10 +36,7 @@
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
-    m_brand(),
-    m_threads(std::thread::hardware_concurrency()),
-    m_aes(false),
-    m_avx2(false)
+    m_threads(std::thread::hardware_concurrency())
 {
 #   ifdef XMRIG_ARMv8
     memcpy(m_brand, "ARMv8", 5);

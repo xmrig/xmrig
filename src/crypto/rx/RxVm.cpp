@@ -31,7 +31,7 @@
 #include "crypto/rx/RxVm.h"
 
 
-xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes)
+xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly)
 {
     if (!softAes) {
        m_flags |= RANDOMX_FLAG_HARD_AES;
@@ -43,6 +43,10 @@ xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes)
 
     if (!dataset->cache() || dataset->cache()->isJIT()) {
         m_flags |= RANDOMX_FLAG_JIT;
+    }
+
+    if ((assembly == Assembly::RYZEN) || ((assembly == Assembly::AUTO) && (Cpu::info()->assembly() == Assembly::RYZEN))) {
+        m_flags |= RANDOMX_FLAG_RYZEN;
     }
 
     m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad);

@@ -176,10 +176,6 @@ int xmrig::Base::init()
 
     Platform::init(config()->userAgent());
 
-#   ifndef XMRIG_PROXY_PROJECT
-    Platform::setProcessPriority(config()->cpu().priority());
-#   endif
-
     if (isBackground()) {
         Log::background = true;
     }

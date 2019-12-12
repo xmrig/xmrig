@@ -30,6 +30,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
+include (cmake/os.cmake)
 include (src/base/base.cmake)
 include (src/backend/backend.cmake)
 
@@ -75,6 +76,7 @@ set(HEADERS_CRYPTO
     src/crypto/cn/soft_aes.h
     src/crypto/common/Algorithm.h
     src/crypto/common/Coin.h
+    src/crypto/common/HugePagesInfo.h
     src/crypto/common/keccak.h
     src/crypto/common/MemoryPool.h
     src/crypto/common/Nonce.h
@@ -114,6 +116,7 @@ set(SOURCES_CRYPTO
     src/crypto/cn/CnHash.cpp
     src/crypto/common/Algorithm.cpp
     src/crypto/common/Coin.cpp
+    src/crypto/common/HugePagesInfo.cpp
     src/crypto/common/keccak.cpp
     src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
@@ -131,40 +134,36 @@ if (WITH_HWLOC)
         )
 endif()
 
-if (WIN32)
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+if (XMRIG_OS_WIN)
+    list(APPEND SOURCES_OS
         res/app.rc
         src/App_win.cpp
         src/crypto/common/VirtualMemory_win.cpp
         )
 
-    add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
-elseif (APPLE)
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+elseif (XMRIG_OS_APPLE)
+    list(APPEND SOURCES_OS
         src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 else()
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+    list(APPEND SOURCES_OS
         src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 
-    if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-        set(EXTRA_LIBS kvm pthread)
-    else()
-        set(EXTRA_LIBS pthread rt dl)
-    endif()
-endif()
+    if (XMRIG_OS_ANDROID)
+        set(EXTRA_LIBS pthread rt dl log)
+    elseif (XMRIG_OS_LINUX)
+        list(APPEND SOURCES_OS
+            src/crypto/common/LinuxMemory.h
+            src/crypto/common/LinuxMemory.cpp
+            )
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "Android")
-    EXECUTE_PROCESS(COMMAND uname -o COMMAND tr -d '\n' OUTPUT_VARIABLE OPERATING_SYSTEM)
-    if (OPERATING_SYSTEM MATCHES "Android")
-        set(EXTRA_LIBS ${EXTRA_LIBS} log)
+        set(EXTRA_LIBS pthread rt dl)
+    elseif (XMRIG_OS_FREEBSD)
+        set(EXTRA_LIBS kvm pthread)
     endif()
 endif()
 

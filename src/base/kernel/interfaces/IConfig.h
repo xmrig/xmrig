@@ -90,8 +90,11 @@ public:
         RandomXInitKey       = 1022,
         RandomXNumaKey       = 1023,
         RandomXModeKey       = 1029,
+        RandomX1GbPagesKey   = 1031,
+        RandomXWrmsrKey      = 1032,
         CPUMaxThreadsKey     = 1026,
         MemoryPoolKey        = 1027,
+        YieldKey             = 1030,
 
         // xmrig amd
         OclPlatformKey       = 1400,

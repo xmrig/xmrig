@@ -234,10 +234,7 @@ public:
 
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    inline bool initRX()
-    {
-        return Rx::init(job, controller->config()->rx(), controller->config()->cpu().isHugePages());
-    }
+    inline bool initRX() { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
 #   endif
 
 
@@ -263,6 +260,11 @@ public:
 xmrig::Miner::Miner(Controller *controller)
     : d_ptr(new MinerPrivate(controller))
 {
+    const int priority = controller->config()->cpu().priority();
+    if (priority >= 0) {
+        Platform::setThreadPriority(std::min(priority + 1, 5));
+    }
+
 #   ifdef XMRIG_ALGO_RANDOMX
     Rx::init(this);
 #   endif

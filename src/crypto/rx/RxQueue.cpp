@@ -86,15 +86,15 @@ xmrig::RxDataset *xmrig::RxQueue::dataset(const Job &job, uint32_t nodeId)
 }
 
 
-std::pair<uint32_t, uint32_t> xmrig::RxQueue::hugePages()
+xmrig::HugePagesInfo xmrig::RxQueue::hugePages()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    return m_storage && m_state == STATE_IDLE ? m_storage->hugePages() : std::pair<uint32_t, uint32_t>(0U, 0U);
+    return m_storage && m_state == STATE_IDLE ? m_storage->hugePages() : HugePagesInfo();
 }
 
 
-void xmrig::RxQueue::enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, RxConfig::Mode mode)
+void xmrig::RxQueue::enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -114,7 +114,7 @@ void xmrig::RxQueue::enqueue(const RxSeed &seed, const std::vector<uint32_t> &no
         return;
     }
 
-    m_queue.emplace_back(seed, nodeset, threads, hugePages, mode);
+    m_queue.emplace_back(seed, nodeset, threads, hugePages, oneGbPages, mode, priority);
     m_seed  = seed;
     m_state = STATE_PENDING;
 
@@ -156,7 +156,7 @@ void xmrig::RxQueue::backgroundInit()
                  Buffer::toHex(item.seed.data().data(), 8).data()
                  );
 
-        m_storage->init(item.seed, item.threads, item.hugePages, item.mode);
+        m_storage->init(item.seed, item.threads, item.hugePages, item.oneGbPages, item.mode, item.priority);
 
         lock = std::unique_lock<std::mutex>(m_mutex);
 
