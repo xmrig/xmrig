@@ -1,3 +1,8 @@
+# v5.2.1
+- [#1408](https://github.com/xmrig/xmrig/pull/1408) Added RandomX boost script for Linux (if you don't like run miner with root privileges).
+- Added support for [AMD Ryzen MSR registers](https://www.reddit.com/r/MoneroMining/comments/e962fu/9526_hs_on_ryzen_7_3700x_xmrig_520_1gb_pages_msr/) (Linux only).
+- Fixed command line option `--randomx-wrmsr` option without parameters.
+
 # v5.2.0
 - **[#1388](https://github.com/xmrig/xmrig/pull/1388) Added [1GB huge pages support](https://xmrig.com/docs/miner/hugepages#onegb-huge-pages) for Linux.**
   - Added new option `1gb-pages` in `randomx` object with command line equivalent `--randomx-1gb-pages`.
