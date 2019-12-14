@@ -190,7 +190,7 @@ void xmrig::Rx::osInit(const RxConfig &config)
     LOG_INFO(CLEAR "%s" GREEN_BOLD_S "MSR mod: setting MSR register values for %s", xmrig::rx_tag(), msr_mod_variant);
 
     std::thread wrmsr_thread([hDriver, &config]() {
-        for (uint32_t i = 0, n = std::thread::hardware_concurrency(); i < n; ++i) {
+        for (uint32_t i = 0, n = Cpu::info()->threads(); i < n; ++i) {
             Platform::setThreadAffinity(i);
             if (Cpu::info()->assembly() == Assembly::RYZEN) {
                 wrmsr(hDriver, 0xC0011020, 0);
