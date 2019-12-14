@@ -117,7 +117,7 @@ static HANDLE wrmsr_install_driver()
     } while (err == ERROR_INSUFFICIENT_BUFFER);
 
     if (err != ERROR_SUCCESS) {
-        LOG_ERR(CLEAR "%s" RED_S "failed to get path to driver, error %u", err);
+        LOG_ERR(CLEAR "%s" RED_S "failed to get path to driver, error %u", tag, err);
         return nullptr;
     }
 
