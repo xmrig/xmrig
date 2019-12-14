@@ -198,11 +198,10 @@ void RandomX_ConfigurationBase::Apply()
 
 #if defined(_M_X64) || defined(__x86_64__)
 	*(uint32_t*)(codeShhPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
-	// Not needed right now because all variants use default dataset base size
-	//const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
-	//*(uint32_t*)(codeReadDatasetTweaked + 9) = DatasetBaseMask;
-	//*(uint32_t*)(codeReadDatasetTweaked + 24) = DatasetBaseMask;
-	//*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
+	const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
+	*(uint32_t*)(codeReadDatasetTweaked + 7) = DatasetBaseMask;
+	*(uint32_t*)(codeReadDatasetTweaked + 23) = DatasetBaseMask;
+	*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
 
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 4) = ScratchpadL3Mask64_Calculated;
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 18) = ScratchpadL3Mask64_Calculated;
