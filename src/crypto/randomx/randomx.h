@@ -48,6 +48,8 @@ enum randomx_flags {
   RANDOMX_FLAG_HARD_AES = 2,
   RANDOMX_FLAG_FULL_MEM = 4,
   RANDOMX_FLAG_JIT = 8,
+  RANDOMX_FLAG_1GB_PAGES = 16,
+  RANDOMX_FLAG_RYZEN = 64,
 };
 
 
@@ -117,7 +119,10 @@ struct RandomX_ConfigurationBase
 	rx_vec_i128 fillAes4Rx4_Key[8];
 
 	uint8_t codeShhPrefetchTweaked[20];
-	uint8_t codeReadDatasetTweaked[64];
+	uint8_t codeReadDatasetTweaked[256];
+	uint32_t codeReadDatasetTweakedSize;
+	uint8_t codeReadDatasetRyzenTweaked[256];
+	uint32_t codeReadDatasetRyzenTweakedSize;
 	uint8_t codeReadDatasetLightSshInitTweaked[68];
 	uint8_t codePrefetchScratchpadTweaked[32];
 
@@ -210,7 +215,7 @@ extern "C" {
  *         NULL is returned if memory allocation fails or if the RANDOMX_FLAG_JIT
  *         is set and JIT compilation is not supported on the current platform.
  */
-RANDOMX_EXPORT randomx_cache *randomx_alloc_cache(randomx_flags flags);
+RANDOMX_EXPORT randomx_cache *randomx_create_cache(randomx_flags flags, uint8_t *memory);
 
 /**
  * Initializes the cache memory and SuperscalarHash using the provided key value.
@@ -237,7 +242,7 @@ RANDOMX_EXPORT void randomx_release_cache(randomx_cache* cache);
  * @return Pointer to an allocated randomx_dataset structure.
  *         NULL is returned if memory allocation fails.
  */
-RANDOMX_EXPORT randomx_dataset *randomx_alloc_dataset(randomx_flags flags);
+RANDOMX_EXPORT randomx_dataset *randomx_create_dataset(uint8_t *memory);
 
 /**
  * Gets the number of items contained in the dataset.

@@ -55,16 +55,21 @@ public:
 #   endif
 
     const char *modeName() const;
-    uint32_t threads() const;
+    uint32_t threads(uint32_t limit = 100) const;
 
-    inline Mode mode() const    { return m_mode; }
+    inline bool isOneGbPages() const    { return m_oneGbPages; }
+    inline int wrmsr() const            { return m_wrmsr; }
+    inline Mode mode() const            { return m_mode; }
 
 private:
+    int readMSR(const rapidjson::Value &value) const;
     Mode readMode(const rapidjson::Value &value) const;
 
-    bool m_numa     = true;
-    int m_threads   = -1;
-    Mode m_mode     = AutoMode;
+    bool m_numa         = true;
+    bool m_oneGbPages   = false;
+    int m_threads       = -1;
+    int m_wrmsr         = 6;
+    Mode m_mode         = AutoMode;
 
 #   ifdef XMRIG_FEATURE_HWLOC
     std::vector<uint32_t> m_nodeset;

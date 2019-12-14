@@ -29,6 +29,7 @@
 
 
 #include "base/tools/Object.h"
+#include "crypto/common/HugePagesInfo.h"
 
 
 #include <bitset>
@@ -45,22 +46,23 @@ class VirtualMemory
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(VirtualMemory)
 
-    VirtualMemory(size_t size, bool hugePages, bool usePool, uint32_t node = 0, size_t alignSize = 64);
+    VirtualMemory(size_t size, bool hugePages, bool oneGbPages, bool usePool, uint32_t node = 0, size_t alignSize = 64);
     ~VirtualMemory();
 
     inline bool isHugePages() const     { return m_flags.test(FLAG_HUGEPAGES); }
+    inline bool isOneGbPages() const    { return m_flags.test(FLAG_1GB_PAGES); }
     inline size_t size() const          { return m_size; }
+    inline uint8_t *raw() const         { return m_scratchpad; }
     inline uint8_t *scratchpad() const  { return m_scratchpad; }
 
-    inline std::pair<size_t, size_t> hugePages() const
-    {
-        return { isHugePages() ? (align(size()) / 2097152) : 0, align(size()) / 2097152 };
-    }
+    HugePagesInfo hugePages() const;
 
     static bool isHugepagesAvailable();
+    static bool isOneGbPagesAvailable();
     static uint32_t bindToNUMANode(int64_t affinity);
     static void *allocateExecutableMemory(size_t size);
     static void *allocateLargePagesMemory(size_t size);
+    static void *allocateOneGbPagesMemory(size_t size);
     static void destroy();
     static void flushInstructionCache(void *p, size_t size);
     static void freeLargePagesMemory(void *p, size_t size);
@@ -73,6 +75,7 @@ public:
 private:
     enum Flags {
         FLAG_HUGEPAGES,
+        FLAG_1GB_PAGES,
         FLAG_LOCK,
         FLAG_EXTERNAL,
         FLAG_MAX
@@ -81,6 +84,7 @@ private:
     static void osInit(bool hugePages);
 
     bool allocateLargePagesMemory();
+    bool allocateOneGbPagesMemory();
     void freeLargePagesMemory();
 
     const size_t m_size;

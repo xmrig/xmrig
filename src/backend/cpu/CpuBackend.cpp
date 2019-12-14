@@ -68,17 +68,15 @@ static std::mutex mutex;
 struct CpuLaunchStatus
 {
 public:
-    inline size_t hugePages() const     { return m_hugePages; }
-    inline size_t memory() const        { return m_ways * m_memory; }
-    inline size_t pages() const         { return m_pages; }
-    inline size_t threads() const       { return m_threads; }
-    inline size_t ways() const          { return m_ways; }
+    inline const HugePagesInfo &hugePages() const   { return m_hugePages; }
+    inline size_t memory() const                    { return m_ways * m_memory; }
+    inline size_t threads() const                   { return m_threads; }
+    inline size_t ways() const                      { return m_ways; }
 
     inline void start(const std::vector<CpuLaunchData> &threads, size_t memory)
     {
-        m_hugePages = 0;
+        m_hugePages.reset();
         m_memory    = memory;
-        m_pages     = 0;
         m_started   = 0;
         m_errors    = 0;
         m_threads   = threads.size();
@@ -89,11 +87,9 @@ public:
     inline bool started(IWorker *worker, bool ready)
     {
         if (ready) {
-            auto hugePages = worker->memory()->hugePages();
-
             m_started++;
-            m_hugePages += hugePages.first;
-            m_pages     += hugePages.second;
+
+            m_hugePages += worker->memory()->hugePages();
             m_ways      += worker->intensity();
         }
         else {
@@ -115,19 +111,18 @@ public:
                  tag,
                  m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
                  m_started, m_threads, m_ways,
-                 (m_hugePages == m_pages ? GREEN_BOLD_S : (m_hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
-                 m_hugePages == 0 ? 0.0 : static_cast<double>(m_hugePages) / m_pages * 100.0,
-                 m_hugePages, m_pages,
+                 (m_hugePages.isFullyAllocated() ? GREEN_BOLD_S : (m_hugePages.allocated == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                 m_hugePages.percent(),
+                 m_hugePages.allocated, m_hugePages.total,
                  memory() / 1024,
                  Chrono::steadyMSecs() - m_ts
                  );
     }
 
 private:
+    HugePagesInfo m_hugePages;
     size_t m_errors       = 0;
-    size_t m_hugePages    = 0;
     size_t m_memory       = 0;
-    size_t m_pages        = 0;
     size_t m_started      = 0;
     size_t m_threads      = 0;
     size_t m_ways         = 0;
@@ -169,18 +164,17 @@ public:
 
     rapidjson::Value hugePages(int version, rapidjson::Document &doc)
     {
-        std::pair<unsigned, unsigned> pages(0, 0);
+        HugePagesInfo pages;
 
     #   ifdef XMRIG_ALGO_RANDOMX
         if (algo.family() == Algorithm::RANDOM_X) {
-            pages = Rx::hugePages();
+            pages += Rx::hugePages();
         }
     #   endif
 
         mutex.lock();
 
-        pages.first  += status.hugePages();
-        pages.second += status.pages();
+        pages += status.hugePages();
 
         mutex.unlock();
 
@@ -188,11 +182,11 @@ public:
 
         if (version > 1) {
             hugepages.SetArray();
-            hugepages.PushBack(pages.first, doc.GetAllocator());
-            hugepages.PushBack(pages.second, doc.GetAllocator());
+            hugepages.PushBack(static_cast<uint64_t>(pages.allocated), doc.GetAllocator());
+            hugepages.PushBack(static_cast<uint64_t>(pages.total), doc.GetAllocator());
         }
         else {
-            hugepages = pages.first == pages.second;
+            hugepages = pages.isFullyAllocated();
         }
 
         return hugepages;

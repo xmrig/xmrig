@@ -1,18 +1,19 @@
 /*
- * Copyright © 2009-2017 Inria.  All rights reserved.
+ * Copyright © 2009-2019 Inria.  All rights reserved.
  * Copyright © 2012 Université Bordeaux
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
-#include <hwloc.h>
-#include <private/private.h>
-#include <private/xml.h>
-#include <private/misc.h>
+#include "private/autogen/config.h"
+#include "hwloc.h"
+#include "private/private.h"
+#include "private/xml.h"
+#include "private/misc.h"
 
 #define HWLOC_COMPONENT_STOP_NAME "stop"
 #define HWLOC_COMPONENT_EXCLUDE_CHAR '-'
 #define HWLOC_COMPONENT_SEPS ","
+#define HWLOC_COMPONENT_PHASESEP_CHAR ':'
 
 /* list of all registered discovery components, sorted by priority, higher priority first.
  * noos is last because its priority is 0.
@@ -232,17 +233,6 @@ hwloc_plugins_init(void)
 
 #endif /* HWLOC_HAVE_PLUGINS */
 
-static const char *
-hwloc_disc_component_type_string(hwloc_disc_component_type_t type)
-{
-  switch (type) {
-  case HWLOC_DISC_COMPONENT_TYPE_CPU: return "cpu";
-  case HWLOC_DISC_COMPONENT_TYPE_GLOBAL: return "global";
-  case HWLOC_DISC_COMPONENT_TYPE_MISC: return "misc";
-  default: return "**unknown**";
-  }
-}
-
 static int
 hwloc_disc_component_register(struct hwloc_disc_component *component,
 			      const char *filename)
@@ -256,21 +246,26 @@ hwloc_disc_component_register(struct hwloc_disc_component *component,
     return -1;
   }
   if (strchr(component->name, HWLOC_COMPONENT_EXCLUDE_CHAR)
+      || strchr(component->name, HWLOC_COMPONENT_PHASESEP_CHAR)
       || strcspn(component->name, HWLOC_COMPONENT_SEPS) != strlen(component->name)) {
     if (hwloc_components_verbose)
       fprintf(stderr, "Cannot register discovery component with name `%s' containing reserved characters `%c" HWLOC_COMPONENT_SEPS "'\n",
 	      component->name, HWLOC_COMPONENT_EXCLUDE_CHAR);
     return -1;
   }
-  /* check that the component type is valid */
-  switch ((unsigned) component->type) {
-  case HWLOC_DISC_COMPONENT_TYPE_CPU:
-  case HWLOC_DISC_COMPONENT_TYPE_GLOBAL:
-  case HWLOC_DISC_COMPONENT_TYPE_MISC:
-    break;
-  default:
-    fprintf(stderr, "Cannot register discovery component `%s' with unknown type %u\n",
-	    component->name, (unsigned) component->type);
+
+  /* check that the component phases are valid */
+  if (!component->phases
+      || (component->phases != HWLOC_DISC_PHASE_GLOBAL
+	  && component->phases & ~(HWLOC_DISC_PHASE_CPU
+				   |HWLOC_DISC_PHASE_MEMORY
+				   |HWLOC_DISC_PHASE_PCI
+				   |HWLOC_DISC_PHASE_IO
+				   |HWLOC_DISC_PHASE_MISC
+				   |HWLOC_DISC_PHASE_ANNOTATE
+				   |HWLOC_DISC_PHASE_TWEAK))) {
+    fprintf(stderr, "Cannot register discovery component `%s' with invalid phases 0x%x\n",
+	    component->name, component->phases);
     return -1;
   }
 
@@ -295,8 +290,8 @@ hwloc_disc_component_register(struct hwloc_disc_component *component,
     prev = &((*prev)->next);
   }
   if (hwloc_components_verbose)
-    fprintf(stderr, "Registered %s discovery component `%s' with priority %u (%s%s)\n",
-	    hwloc_disc_component_type_string(component->type), component->name, component->priority,
+    fprintf(stderr, "Registered discovery component `%s' phases 0x%x with priority %u (%s%s)\n",
+	    component->name, component->phases, component->priority,
 	    filename ? "from plugin " : "statically build", filename ? filename : "");
 
   prev = &hwloc_disc_components;
@@ -310,7 +305,7 @@ hwloc_disc_component_register(struct hwloc_disc_component *component,
   return 0;
 }
 
-#include <static-components.h>
+#include "static-components.h"
 
 static void (**hwloc_component_finalize_cbs)(unsigned long);
 static unsigned hwloc_component_finalize_cb_count;
@@ -415,31 +410,152 @@ hwloc_components_init(void)
 }
 
 void
-hwloc_backends_init(struct hwloc_topology *topology)
+hwloc_topology_components_init(struct hwloc_topology *topology)
 {
+  topology->nr_blacklisted_components = 0;
+  topology->blacklisted_components = NULL;
+
   topology->backends = NULL;
-  topology->backend_excludes = 0;
+  topology->backend_phases = 0;
+  topology->backend_excluded_phases = 0;
 }
 
+/* look for name among components, ignoring things after `:' */
 static struct hwloc_disc_component *
-hwloc_disc_component_find(int type /* hwloc_disc_component_type_t or -1 if any */,
-			       const char *name /* name of NULL if any */)
+hwloc_disc_component_find(const char *name, const char **endp)
 {
-  struct hwloc_disc_component *comp = hwloc_disc_components;
+  struct hwloc_disc_component *comp;
+  size_t length;
+  const char *end = strchr(name, HWLOC_COMPONENT_PHASESEP_CHAR);
+  if (end) {
+    length = end-name;
+    if (endp)
+      *endp = end+1;
+  } else {
+    length = strlen(name);
+    if (endp)
+      *endp = NULL;
+  }
+
+  comp = hwloc_disc_components;
   while (NULL != comp) {
-    if ((-1 == type || type == (int) comp->type)
-       && (NULL == name || !strcmp(name, comp->name)))
+    if (!strncmp(name, comp->name, length))
       return comp;
     comp = comp->next;
   }
   return NULL;
 }
 
+static unsigned
+hwloc_phases_from_string(const char *s)
+{
+  if (!s)
+    return ~0U;
+  if (s[0]<'0' || s[0]>'9') {
+    if (!strcasecmp(s, "global"))
+      return HWLOC_DISC_PHASE_GLOBAL;
+    else if (!strcasecmp(s, "cpu"))
+      return HWLOC_DISC_PHASE_CPU;
+    if (!strcasecmp(s, "memory"))
+      return HWLOC_DISC_PHASE_MEMORY;
+    if (!strcasecmp(s, "pci"))
+      return HWLOC_DISC_PHASE_PCI;
+    if (!strcasecmp(s, "io"))
+      return HWLOC_DISC_PHASE_IO;
+    if (!strcasecmp(s, "misc"))
+      return HWLOC_DISC_PHASE_MISC;
+    if (!strcasecmp(s, "annotate"))
+      return HWLOC_DISC_PHASE_ANNOTATE;
+    if (!strcasecmp(s, "tweak"))
+      return HWLOC_DISC_PHASE_TWEAK;
+    return 0;
+  }
+  return (unsigned) strtoul(s, NULL, 0);
+}
+
+static int
+hwloc_disc_component_blacklist_one(struct hwloc_topology *topology,
+				   const char *name)
+{
+  struct hwloc_topology_forced_component_s *blacklisted;
+  struct hwloc_disc_component *comp;
+  unsigned phases;
+  unsigned i;
+
+  if (!strcmp(name, "linuxpci") || !strcmp(name, "linuxio")) {
+    /* replace linuxpci and linuxio with linux (with IO phases)
+     * for backward compatibility with pre-v2.0 and v2.0 respectively */
+    if (hwloc_components_verbose)
+      fprintf(stderr, "Replacing deprecated component `%s' with `linux' IO phases in blacklisting\n", name);
+    comp = hwloc_disc_component_find("linux", NULL);
+    phases = HWLOC_DISC_PHASE_PCI | HWLOC_DISC_PHASE_IO | HWLOC_DISC_PHASE_MISC | HWLOC_DISC_PHASE_ANNOTATE;
+
+  } else {
+    /* normal lookup */
+    const char *end;
+    comp = hwloc_disc_component_find(name, &end);
+    phases = hwloc_phases_from_string(end);
+  }
+  if (!comp) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (hwloc_components_verbose)
+    fprintf(stderr, "Blacklisting component `%s` phases 0x%x\n", comp->name, phases);
+
+  for(i=0; i<topology->nr_blacklisted_components; i++) {
+    if (topology->blacklisted_components[i].component == comp) {
+      topology->blacklisted_components[i].phases |= phases;
+      return 0;
+    }
+  }
+
+  blacklisted = realloc(topology->blacklisted_components, (topology->nr_blacklisted_components+1)*sizeof(*blacklisted));
+  if (!blacklisted)
+    return -1;
+
+  blacklisted[topology->nr_blacklisted_components].component = comp;
+  blacklisted[topology->nr_blacklisted_components].phases = phases;
+  topology->blacklisted_components = blacklisted;
+  topology->nr_blacklisted_components++;
+  return 0;
+}
+
+int
+hwloc_topology_set_components(struct hwloc_topology *topology,
+			      unsigned long flags,
+			      const char *name)
+{
+  if (topology->is_loaded) {
+    errno = EBUSY;
+    return -1;
+  }
+
+  if (flags & ~HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  /* this flag is strictly required for now */
+  if (flags != HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (!strncmp(name, "all", 3) && name[3] == HWLOC_COMPONENT_PHASESEP_CHAR) {
+    topology->backend_excluded_phases = hwloc_phases_from_string(name+4);
+    return 0;
+  }
+
+  return hwloc_disc_component_blacklist_one(topology, name);
+}
+
 /* used by set_xml(), set_synthetic(), ... environment variables, ... to force the first backend */
 int
 hwloc_disc_component_force_enable(struct hwloc_topology *topology,
 				  int envvar_forced,
-				  int type, const char *name,
+				  const char *name,
 				  const void *data1, const void *data2, const void *data3)
 {
   struct hwloc_disc_component *comp;
@@ -450,18 +566,28 @@ hwloc_disc_component_force_enable(struct hwloc_topology *topology,
     return -1;
   }
 
-  comp = hwloc_disc_component_find(type, name);
+  comp = hwloc_disc_component_find(name, NULL);
   if (!comp) {
     errno = ENOSYS;
     return -1;
   }
 
-  backend = comp->instantiate(comp, data1, data2, data3);
+  backend = comp->instantiate(topology, comp, 0U /* force-enabled don't get any phase blacklisting */,
+			      data1, data2, data3);
   if (backend) {
+    int err;
     backend->envvar_forced = envvar_forced;
     if (topology->backends)
       hwloc_backends_disable_all(topology);
-    return hwloc_backend_enable(topology, backend);
+    err = hwloc_backend_enable(backend);
+
+    if (comp->phases == HWLOC_DISC_PHASE_GLOBAL) {
+      char *env = getenv("HWLOC_ANNOTATE_GLOBAL_COMPONENTS");
+      if (env && atoi(env))
+	topology->backend_excluded_phases &= ~HWLOC_DISC_PHASE_ANNOTATE;
+    }
+
+    return err;
   } else
     return -1;
 }
@@ -469,29 +595,32 @@ hwloc_disc_component_force_enable(struct hwloc_topology *topology,
 static int
 hwloc_disc_component_try_enable(struct hwloc_topology *topology,
 				struct hwloc_disc_component *comp,
-				const char *comparg,
-				int envvar_forced)
+				int envvar_forced,
+				unsigned blacklisted_phases)
 {
   struct hwloc_backend *backend;
 
-  if (topology->backend_excludes & comp->type) {
+  if (!(comp->phases & ~(topology->backend_excluded_phases | blacklisted_phases))) {
+    /* all this backend phases are already excluded, exclude the backend entirely */
     if (hwloc_components_verbose)
       /* do not warn if envvar_forced since system-wide HWLOC_COMPONENTS must be silently ignored after set_xml() etc.
        */
-      fprintf(stderr, "Excluding %s discovery component `%s', conflicts with excludes 0x%x\n",
-	      hwloc_disc_component_type_string(comp->type), comp->name, topology->backend_excludes);
+      fprintf(stderr, "Excluding discovery component `%s' phases 0x%x, conflicts with excludes 0x%x\n",
+	      comp->name, comp->phases, topology->backend_excluded_phases);
     return -1;
   }
 
-  backend = comp->instantiate(comp, comparg, NULL, NULL);
+  backend = comp->instantiate(topology, comp, topology->backend_excluded_phases | blacklisted_phases,
+			      NULL, NULL, NULL);
   if (!backend) {
     if (hwloc_components_verbose || envvar_forced)
       fprintf(stderr, "Failed to instantiate discovery component `%s'\n", comp->name);
     return -1;
   }
 
+  backend->phases &= ~blacklisted_phases;
   backend->envvar_forced = envvar_forced;
-  return hwloc_backend_enable(topology, backend);
+  return hwloc_backend_enable(backend);
 }
 
 void
@@ -502,11 +631,12 @@ hwloc_disc_components_enable_others(struct hwloc_topology *topology)
   int tryall = 1;
   const char *_env;
   char *env; /* we'll to modify the env value, so duplicate it */
+  unsigned i;
 
   _env = getenv("HWLOC_COMPONENTS");
   env = _env ? strdup(_env) : NULL;
 
-  /* enable explicitly listed components */
+  /* blacklist disabled components */
   if (env) {
     char *curenv = env;
     size_t s;
@@ -516,21 +646,41 @@ hwloc_disc_components_enable_others(struct hwloc_topology *topology)
       if (s) {
 	char c;
 
-	/* replace linuxpci with linuxio for backward compatibility with pre-v2.0 */
-	if (!strncmp(curenv, "linuxpci", 8) && s == 8) {
-	  curenv[5] = 'i';
-	  curenv[6] = 'o';
-	  curenv[7] = *HWLOC_COMPONENT_SEPS;
-	} else if (curenv[0] == HWLOC_COMPONENT_EXCLUDE_CHAR && !strncmp(curenv+1, "linuxpci", 8) && s == 9) {
-	  curenv[6] = 'i';
-	  curenv[7] = 'o';
-	  curenv[8] = *HWLOC_COMPONENT_SEPS;
-	  /* skip this name, it's a negated one */
+	if (curenv[0] != HWLOC_COMPONENT_EXCLUDE_CHAR)
 	  goto nextname;
-	}
 
-	if (curenv[0] == HWLOC_COMPONENT_EXCLUDE_CHAR)
-	  goto nextname;
+	/* save the last char and replace with \0 */
+	c = curenv[s];
+	curenv[s] = '\0';
+
+	/* blacklist it, and just ignore failures to allocate */
+	hwloc_disc_component_blacklist_one(topology, curenv+1);
+
+	/* remove that blacklisted name from the string */
+	for(i=0; i<s; i++)
+	  curenv[i] = *HWLOC_COMPONENT_SEPS;
+
+	/* restore chars (the second loop below needs env to be unmodified) */
+	curenv[s] = c;
+      }
+
+    nextname:
+      curenv += s;
+      if (*curenv)
+	/* Skip comma */
+	curenv++;
+    }
+  }
+
+  /* enable explicitly listed components */
+  if (env) {
+    char *curenv = env;
+    size_t s;
+
+    while (*curenv) {
+      s = strcspn(curenv, HWLOC_COMPONENT_SEPS);
+      if (s) {
+	char c, *name;
 
 	if (!strncmp(curenv, HWLOC_COMPONENT_STOP_NAME, s)) {
 	  tryall = 0;
@@ -541,18 +691,31 @@ hwloc_disc_components_enable_others(struct hwloc_topology *topology)
 	c = curenv[s];
 	curenv[s] = '\0';
 
-	comp = hwloc_disc_component_find(-1, curenv);
+	name = curenv;
+	if (!strcmp(name, "linuxpci") || !strcmp(name, "linuxio")) {
+	  if (hwloc_components_verbose)
+	    fprintf(stderr, "Replacing deprecated component `%s' with `linux' in envvar forcing\n", name);
+	  name = "linux";
+	}
+
+	comp = hwloc_disc_component_find(name, NULL /* we enable the entire component, phases must be blacklisted separately */);
 	if (comp) {
-	  hwloc_disc_component_try_enable(topology, comp, NULL, 1 /* envvar forced */);
+	  unsigned blacklisted_phases = 0U;
+	  for(i=0; i<topology->nr_blacklisted_components; i++)
+	    if (comp == topology->blacklisted_components[i].component) {
+	      blacklisted_phases = topology->blacklisted_components[i].phases;
+	      break;
+	    }
+	  if (comp->phases & ~blacklisted_phases)
+	    hwloc_disc_component_try_enable(topology, comp, 1 /* envvar forced */, blacklisted_phases);
 	} else {
-	  fprintf(stderr, "Cannot find discovery component `%s'\n", curenv);
+	  fprintf(stderr, "Cannot find discovery component `%s'\n", name);
 	}
 
 	/* restore chars (the second loop below needs env to be unmodified) */
 	curenv[s] = c;
       }
 
-nextname:
       curenv += s;
       if (*curenv)
 	/* Skip comma */
@@ -566,26 +729,24 @@ nextname:
   if (tryall) {
     comp = hwloc_disc_components;
     while (NULL != comp) {
+      unsigned blacklisted_phases = 0U;
       if (!comp->enabled_by_default)
 	goto nextcomp;
-      /* check if this component was explicitly excluded in env */
-      if (env) {
-	char *curenv = env;
-	while (*curenv) {
-	  size_t s = strcspn(curenv, HWLOC_COMPONENT_SEPS);
-	  if (curenv[0] == HWLOC_COMPONENT_EXCLUDE_CHAR && !strncmp(curenv+1, comp->name, s-1) && strlen(comp->name) == s-1) {
-	    if (hwloc_components_verbose)
-	      fprintf(stderr, "Excluding %s discovery component `%s' because of HWLOC_COMPONENTS environment variable\n",
-	    hwloc_disc_component_type_string(comp->type), comp->name);
-	    goto nextcomp;
-	  }
-	  curenv += s;
-	  if (*curenv)
-	    /* Skip comma */
-	    curenv++;
+      /* check if this component was blacklisted by the application */
+      for(i=0; i<topology->nr_blacklisted_components; i++)
+	if (comp == topology->blacklisted_components[i].component) {
+	  blacklisted_phases = topology->blacklisted_components[i].phases;
+	  break;
 	}
+
+      if (!(comp->phases & ~blacklisted_phases)) {
+	if (hwloc_components_verbose)
+	  fprintf(stderr, "Excluding blacklisted discovery component `%s' phases 0x%x\n",
+		  comp->name, comp->phases);
+	goto nextcomp;
       }
-      hwloc_disc_component_try_enable(topology, comp, NULL, 0 /* defaults, not envvar forced */);
+
+      hwloc_disc_component_try_enable(topology, comp, 0 /* defaults, not envvar forced */, blacklisted_phases);
 nextcomp:
       comp = comp->next;
     }
@@ -597,7 +758,7 @@ nextcomp:
     backend = topology->backends;
     fprintf(stderr, "Final list of enabled discovery components: ");
     while (backend != NULL) {
-      fprintf(stderr, "%s%s", first ? "" : ",", backend->component->name);
+      fprintf(stderr, "%s%s(0x%x)", first ? "" : ",", backend->component->name, backend->phases);
       backend = backend->next;
       first = 0;
     }
@@ -638,7 +799,8 @@ hwloc_components_fini(void)
 }
 
 struct hwloc_backend *
-hwloc_backend_alloc(struct hwloc_disc_component *component)
+hwloc_backend_alloc(struct hwloc_topology *topology,
+		    struct hwloc_disc_component *component)
 {
   struct hwloc_backend * backend = malloc(sizeof(*backend));
   if (!backend) {
@@ -646,6 +808,12 @@ hwloc_backend_alloc(struct hwloc_disc_component *component)
     return NULL;
   }
   backend->component = component;
+  backend->topology = topology;
+  /* filter-out component phases that are excluded */
+  backend->phases = component->phases & ~topology->backend_excluded_phases;
+  if (backend->phases != component->phases && hwloc_components_verbose)
+    fprintf(stderr, "Trying discovery component `%s' with phases 0x%x instead of 0x%x\n",
+	    component->name, backend->phases, component->phases);
   backend->flags = 0;
   backend->discover = NULL;
   backend->get_pci_busid_cpuset = NULL;
@@ -665,14 +833,15 @@ hwloc_backend_disable(struct hwloc_backend *backend)
 }
 
 int
-hwloc_backend_enable(struct hwloc_topology *topology, struct hwloc_backend *backend)
+hwloc_backend_enable(struct hwloc_backend *backend)
 {
+  struct hwloc_topology *topology = backend->topology;
   struct hwloc_backend **pprev;
 
   /* check backend flags */
   if (backend->flags) {
-    fprintf(stderr, "Cannot enable %s discovery component `%s' with unknown flags %lx\n",
-	    hwloc_disc_component_type_string(backend->component->type), backend->component->name, backend->flags);
+    fprintf(stderr, "Cannot enable discovery component `%s' phases 0x%x with unknown flags %lx\n",
+	    backend->component->name, backend->component->phases, backend->flags);
     return -1;
   }
 
@@ -681,8 +850,8 @@ hwloc_backend_enable(struct hwloc_topology *topology, struct hwloc_backend *back
   while (NULL != *pprev) {
     if ((*pprev)->component == backend->component) {
       if (hwloc_components_verbose)
-	fprintf(stderr, "Cannot enable %s discovery component `%s' twice\n",
-		hwloc_disc_component_type_string(backend->component->type), backend->component->name);
+	fprintf(stderr, "Cannot enable  discovery component `%s' phases 0x%x twice\n",
+		backend->component->name, backend->component->phases);
       hwloc_backend_disable(backend);
       errno = EBUSY;
       return -1;
@@ -691,8 +860,8 @@ hwloc_backend_enable(struct hwloc_topology *topology, struct hwloc_backend *back
   }
 
   if (hwloc_components_verbose)
-    fprintf(stderr, "Enabling %s discovery component `%s'\n",
-	    hwloc_disc_component_type_string(backend->component->type), backend->component->name);
+    fprintf(stderr, "Enabling discovery component `%s' with phases 0x%x (among 0x%x)\n",
+	    backend->component->name, backend->phases, backend->component->phases);
 
   /* enqueue at the end */
   pprev = &topology->backends;
@@ -701,8 +870,8 @@ hwloc_backend_enable(struct hwloc_topology *topology, struct hwloc_backend *back
   backend->next = *pprev;
   *pprev = backend;
 
-  backend->topology = topology;
-  topology->backend_excludes |= backend->component->excludes;
+  topology->backend_phases |= backend->component->phases;
+  topology->backend_excluded_phases |= backend->component->excluded_phases;
   return 0;
 }
 
@@ -712,7 +881,7 @@ hwloc_backends_is_thissystem(struct hwloc_topology *topology)
   struct hwloc_backend *backend;
   const char *local_env;
 
-  /* Apply is_thissystem topology flag before we enforce envvar backends.
+  /*
    * If the application changed the backend with set_foo(),
    * it may use set_flags() update the is_thissystem flag here.
    * If it changes the backend with environment variables below,
@@ -775,11 +944,20 @@ hwloc_backends_disable_all(struct hwloc_topology *topology)
   while (NULL != (backend = topology->backends)) {
     struct hwloc_backend *next = backend->next;
     if (hwloc_components_verbose)
-      fprintf(stderr, "Disabling %s discovery component `%s'\n",
-	      hwloc_disc_component_type_string(backend->component->type), backend->component->name);
+      fprintf(stderr, "Disabling discovery component `%s'\n",
+	      backend->component->name);
     hwloc_backend_disable(backend);
     topology->backends = next;
   }
   topology->backends = NULL;
-  topology->backend_excludes = 0;
+  topology->backend_excluded_phases = 0;
+}
+
+void
+hwloc_topology_components_fini(struct hwloc_topology *topology)
+{
+  /* hwloc_backends_disable_all() must have been called earlier */
+  assert(!topology->backends);
+
+  free(topology->blacklisted_components);
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2018 Inria.  All rights reserved.
+ * Copyright © 2009-2019 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -11,9 +11,9 @@
 #ifndef HWLOC_PRIVATE_MISC_H
 #define HWLOC_PRIVATE_MISC_H
 
-#include <hwloc/autogen/config.h>
-#include <private/autogen/config.h>
-#include <hwloc.h>
+#include "hwloc/autogen/config.h"
+#include "private/autogen/config.h"
+#include "hwloc.h"
 
 #ifdef HWLOC_HAVE_DECL_STRNCASECMP
 #ifdef HAVE_STRINGS_H
@@ -439,14 +439,14 @@ hwloc_linux_pci_link_speed_from_string(const char *string)
 static __hwloc_inline int hwloc__obj_type_is_normal (hwloc_obj_type_t type)
 {
   /* type contiguity is asserted in topology_check() */
-  return type <= HWLOC_OBJ_GROUP;
+  return type <= HWLOC_OBJ_GROUP || type == HWLOC_OBJ_DIE;
 }
 
-/* Any object attached to memory children, currently only NUMA nodes */
+/* Any object attached to memory children, currently NUMA nodes or Memory-side caches */
 static __hwloc_inline int hwloc__obj_type_is_memory (hwloc_obj_type_t type)
 {
   /* type contiguity is asserted in topology_check() */
-  return type == HWLOC_OBJ_NUMANODE;
+  return type == HWLOC_OBJ_NUMANODE || type == HWLOC_OBJ_MEMCACHE;
 }
 
 /* I/O or Misc object, without cpusets or nodesets. */
@@ -463,6 +463,7 @@ static __hwloc_inline int hwloc__obj_type_is_io (hwloc_obj_type_t type)
   return type >= HWLOC_OBJ_BRIDGE && type <= HWLOC_OBJ_OS_DEVICE;
 }
 
+/* Any CPU caches (not Memory-side caches) */
 static __hwloc_inline int
 hwloc__obj_type_is_cache(hwloc_obj_type_t type)
 {
@@ -570,14 +571,6 @@ typedef SSIZE_T ssize_t;
 #  if HAVE_DECL__PUTENV
 #    define putenv _putenv
 #  endif
-#endif
-
-#if defined HWLOC_WIN_SYS && !defined __MINGW32__ && !defined(__CYGWIN__)
-/* MSVC doesn't support C99 variable-length array */
-#include <malloc.h>
-#define HWLOC_VLA(_type, _name, _nb) _type *_name = (_type*) _alloca((_nb)*sizeof(_type))
-#else
-#define HWLOC_VLA(_type, _name, _nb) _type _name[_nb]
 #endif
 
 #endif /* HWLOC_PRIVATE_MISC_H */

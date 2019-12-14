@@ -13,12 +13,13 @@
     "autosave": true,
     "rebench-algo": false,
     "bench-algo-time": 10,
-    "version": 1,
     "background": false,
     "colors": true,
     "randomx": {
         "init": -1,
         "mode": "auto",
+        "1gb-pages": false,
+        "wrmsr": true,
         "numa": true
     },
     "cpu": {

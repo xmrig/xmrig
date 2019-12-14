@@ -28,8 +28,8 @@
 #include "crypto/rx/RxDataset.h"
 #include "backend/common/Tags.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
 #include "crypto/common/VirtualMemory.h"
-#include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 
@@ -38,21 +38,40 @@
 #include <uv.h>
 
 
-static_assert(RANDOMX_FLAG_LARGE_PAGES == 1, "RANDOMX_FLAG_LARGE_PAGES flag mismatch");
+namespace xmrig {
 
 
-xmrig::RxDataset::RxDataset(bool hugePages, bool cache, RxConfig::Mode mode) :
-    m_mode(mode)
+static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache, unsigned long startItem, unsigned long itemCount, int priority)
 {
-    allocate(hugePages);
+    Platform::setThreadPriority(priority);
+
+    randomx_init_dataset(dataset, cache, startItem, itemCount);
+}
+
+
+} // namespace xmrig
+
+
+xmrig::RxDataset::RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode, uint32_t node) :
+    m_mode(mode),
+    m_node(node)
+{
+    allocate(hugePages, oneGbPages);
+
+    if (isOneGbPages()) {
+        m_cache = new RxCache(m_memory->raw() + VirtualMemory::align(maxSize()));
+
+        return;
+    }
 
     if (cache) {
-        m_cache = new RxCache(hugePages);
+        m_cache = new RxCache(hugePages, node);
     }
 }
 
 
 xmrig::RxDataset::RxDataset(RxCache *cache) :
+    m_node(0),
     m_cache(cache)
 {
 }
@@ -60,15 +79,14 @@ xmrig::RxDataset::RxDataset(RxCache *cache) :
 
 xmrig::RxDataset::~RxDataset()
 {
-    if (m_dataset) {
-        randomx_release_dataset(m_dataset);
-    }
+    randomx_release_dataset(m_dataset);
 
     delete m_cache;
+    delete m_memory;
 }
 
 
-bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
+bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priority)
 {
     if (!m_cache) {
         return false;
@@ -89,7 +107,7 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
         for (uint64_t i = 0; i < numThreads; ++i) {
             const uint32_t a = (datasetItemCount * i) / numThreads;
             const uint32_t b = (datasetItemCount * (i + 1)) / numThreads;
-            threads.emplace_back(randomx_init_dataset, m_dataset, m_cache->get(), a, b - a);
+            threads.emplace_back(init_dataset_wrapper, m_dataset, m_cache->get(), a, b - a, priority);
         }
 
         for (uint32_t i = 0; i < numThreads; ++i) {
@@ -97,10 +115,34 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads)
         }
     }
     else {
-        randomx_init_dataset(m_dataset, m_cache->get(), 0, datasetItemCount);
+        init_dataset_wrapper(m_dataset, m_cache->get(), 0, datasetItemCount, priority);
     }
 
     return true;
+}
+
+
+bool xmrig::RxDataset::isHugePages() const
+{
+    return m_memory && m_memory->isHugePages();
+}
+
+
+bool xmrig::RxDataset::isOneGbPages() const
+{
+    return m_memory && m_memory->isOneGbPages();
+}
+
+
+xmrig::HugePagesInfo xmrig::RxDataset::hugePages(bool cache) const
+{
+    auto pages = m_memory ? m_memory->hugePages() : HugePagesInfo();
+
+    if (cache && m_cache) {
+        pages += m_cache->hugePages();
+    }
+
+    return pages;
 }
 
 
@@ -120,29 +162,6 @@ size_t xmrig::RxDataset::size(bool cache) const
 }
 
 
-std::pair<uint32_t, uint32_t> xmrig::RxDataset::hugePages(bool cache) const
-{
-    constexpr size_t twoMiB     = 2U * 1024U * 1024U;
-    constexpr size_t cacheSize  = VirtualMemory::align(RxCache::maxSize(), twoMiB) / twoMiB;
-    size_t total                = VirtualMemory::align(maxSize(), twoMiB) / twoMiB;
-
-    uint32_t count = 0;
-    if (isHugePages()) {
-        count += total;
-    }
-
-    if (cache && m_cache) {
-        total += cacheSize;
-
-        if (m_cache->isHugePages()) {
-            count += cacheSize;
-        }
-    }
-
-    return { count, total };
-}
-
-
 void *xmrig::RxDataset::raw() const
 {
     return m_dataset ? randomx_get_dataset_memory(m_dataset) : nullptr;
@@ -159,7 +178,7 @@ void xmrig::RxDataset::setRaw(const void *raw)
 }
 
 
-void xmrig::RxDataset::allocate(bool hugePages)
+void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
 {
     if (m_mode == RxConfig::LightMode) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "fast RandomX mode disabled by config", rx_tag());
@@ -173,13 +192,12 @@ void xmrig::RxDataset::allocate(bool hugePages)
         return;
     }
 
-    if (hugePages) {
-        m_flags   = RANDOMX_FLAG_LARGE_PAGES;
-        m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));
-    }
+    m_memory  = new VirtualMemory(maxSize(), hugePages, oneGbPages, false, m_node);
+    m_dataset = randomx_create_dataset(m_memory->raw());
 
-    if (!m_dataset) {
-        m_flags   = RANDOMX_FLAG_DEFAULT;
-        m_dataset = randomx_alloc_dataset(static_cast<randomx_flags>(m_flags));
+#   ifdef XMRIG_OS_LINUX
+    if (oneGbPages && !isOneGbPages()) {
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to allocate RandomX dataset using 1GB pages", rx_tag());
     }
+#   endif
 }

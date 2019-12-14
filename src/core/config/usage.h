@@ -88,6 +88,8 @@ static inline const std::string &usage()
     u += "      --randomx-init=N          threads count to initialize RandomX dataset\n";
     u += "      --randomx-no-numa         disable NUMA support for RandomX\n";
     u += "      --randomx-mode=MODE       RandomX mode: auto, fast, light\n";
+    u += "      --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)\n";
+    u += "      --randomx-wrmsr=N         write value (0-15) to Intel MSR register 0x1a4 or do nothing (-1) (Linux only)\n";
 #   endif
 
 #   ifdef XMRIG_FEATURE_HTTP

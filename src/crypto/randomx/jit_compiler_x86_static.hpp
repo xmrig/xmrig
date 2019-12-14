@@ -37,6 +37,7 @@ extern "C" {
 	void randomx_program_loop_load();
 	void randomx_program_start();
 	void randomx_program_read_dataset();
+	void randomx_program_read_dataset_ryzen();
 	void randomx_program_read_dataset_sshash_init();
 	void randomx_program_read_dataset_sshash_fin();
 	void randomx_program_loop_store();

@@ -118,7 +118,7 @@ static void clear_code_cache(char* p1, char* p2)
 #	endif
 }
 
-void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config)
+void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t)
 {
 	uint32_t codePos = MainLoopBegin + 4;
 

@@ -25,11 +25,18 @@
 
 #include "crypto/rx/RxConfig.h"
 #include "backend/cpu/Cpu.h"
+#include "base/io/json/Json.h"
 #include "rapidjson/document.h"
+
+
+#ifdef XMRIG_FEATURE_HWLOC
+#   include "backend/cpu/platform/HwlocCpuInfo.h"
+#endif
 
 
 #include <array>
 #include <algorithm>
+#include <cmath>
 
 
 #ifdef _MSC_VER
@@ -39,11 +46,106 @@
 
 namespace xmrig {
 
+static const char *kInit        = "init";
+static const char *kMode        = "mode";
+static const char *kOneGbPages  = "1gb-pages";
+static const char *kWrmsr       = "wrmsr";
+
+#ifdef XMRIG_FEATURE_HWLOC
+static const char *kNUMA        = "numa";
+#endif
 
 static const std::array<const char *, RxConfig::ModeMax> modeNames = { "auto", "fast", "light" };
 
+}
 
-} // namespace xmrig
+
+bool xmrig::RxConfig::read(const rapidjson::Value &value)
+{
+    if (value.IsObject()) {
+        m_threads    = Json::getInt(value, kInit, m_threads);
+        m_mode       = readMode(Json::getValue(value, kMode));
+        m_wrmsr      = readMSR(Json::getValue(value, kWrmsr));
+
+#       ifdef XMRIG_OS_LINUX
+        m_oneGbPages = Json::getBool(value, kOneGbPages, m_oneGbPages);
+#       endif
+
+#       ifdef XMRIG_FEATURE_HWLOC
+        if (m_mode == LightMode) {
+            m_numa = false;
+
+            return true;
+        }
+
+        const auto &numa = Json::getValue(value, kNUMA);
+        if (numa.IsArray()) {
+            m_nodeset.reserve(numa.Size());
+
+            for (const auto &node : numa.GetArray()) {
+                if (node.IsUint()) {
+                    m_nodeset.emplace_back(node.GetUint());
+                }
+            }
+        }
+        else if (numa.IsBool()) {
+            m_numa = numa.GetBool();
+        }
+#       endif
+
+        return true;
+    }
+
+    return false;
+}
+
+
+rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value obj(kObjectType);
+    obj.AddMember(StringRef(kInit),         m_threads, allocator);
+    obj.AddMember(StringRef(kMode),         StringRef(modeName()), allocator);
+    obj.AddMember(StringRef(kOneGbPages),   m_oneGbPages, allocator);
+
+    if (m_wrmsr < 0 || m_wrmsr == 6) {
+        obj.AddMember(StringRef(kWrmsr), m_wrmsr == 6, allocator);
+    }
+    else {
+        obj.AddMember(StringRef(kWrmsr), m_wrmsr, allocator);
+    }
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    if (!m_nodeset.empty()) {
+        Value numa(kArrayType);
+
+        for (uint32_t i : m_nodeset) {
+            numa.PushBack(i, allocator);
+        }
+
+        obj.AddMember(StringRef(kNUMA), numa, allocator);
+    }
+    else {
+        obj.AddMember(StringRef(kNUMA), m_numa, allocator);
+    }
+#   endif
+
+    return obj;
+}
+
+
+#ifdef XMRIG_FEATURE_HWLOC
+std::vector<uint32_t> xmrig::RxConfig::nodeset() const
+{
+    if (!m_nodeset.empty()) {
+        return m_nodeset;
+    }
+
+    return (m_numa && Cpu::info()->nodes() > 1) ? static_cast<HwlocCpuInfo *>(Cpu::info())->nodeset() : std::vector<uint32_t>();
+}
+#endif
 
 
 const char *xmrig::RxConfig::modeName() const
@@ -52,9 +154,31 @@ const char *xmrig::RxConfig::modeName() const
 }
 
 
-uint32_t xmrig::RxConfig::threads() const
+uint32_t xmrig::RxConfig::threads(uint32_t limit) const
 {
-    return m_threads < 1 ? static_cast<uint32_t>(Cpu::info()->threads()) : static_cast<uint32_t>(m_threads);
+    if (m_threads > 0) {
+        return m_threads;
+    }
+
+    if (limit < 100) {
+        return std::max(static_cast<uint32_t>(round(Cpu::info()->threads() * (limit / 100.0))), 1U);
+    }
+
+    return Cpu::info()->threads();
+}
+
+
+int xmrig::RxConfig::readMSR(const rapidjson::Value &value) const
+{
+    if (value.IsInt()) {
+        return std::min(value.GetInt(), 15);
+    }
+
+    if (value.IsBool() && !value.GetBool()) {
+        return -1;
+    }
+
+    return m_wrmsr;
 }
 
 

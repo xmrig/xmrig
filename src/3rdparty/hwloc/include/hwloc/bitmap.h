@@ -13,7 +13,8 @@
 #ifndef HWLOC_BITMAP_H
 #define HWLOC_BITMAP_H
 
-#include <hwloc/autogen/config.h>
+#include "hwloc/autogen/config.h"
+
 #include <assert.h>
 
 
@@ -198,6 +199,9 @@ HWLOC_DECLSPEC int hwloc_bitmap_from_ulong(hwloc_bitmap_t bitmap, unsigned long 
 /** \brief Setup bitmap \p bitmap from unsigned long \p mask used as \p i -th subset */
 HWLOC_DECLSPEC int hwloc_bitmap_from_ith_ulong(hwloc_bitmap_t bitmap, unsigned i, unsigned long mask);
 
+/** \brief Setup bitmap \p bitmap from unsigned longs \p masks used as first \p nr subsets */
+HWLOC_DECLSPEC int hwloc_bitmap_from_ulongs(hwloc_bitmap_t bitmap, unsigned nr, const unsigned long *masks);
+
 
 /*
  * Modifying bitmaps.
@@ -255,6 +259,29 @@ HWLOC_DECLSPEC unsigned long hwloc_bitmap_to_ulong(hwloc_const_bitmap_t bitmap) 
 
 /** \brief Convert the \p i -th subset of bitmap \p bitmap into unsigned long mask */
 HWLOC_DECLSPEC unsigned long hwloc_bitmap_to_ith_ulong(hwloc_const_bitmap_t bitmap, unsigned i) __hwloc_attribute_pure;
+
+/** \brief Convert the first \p nr subsets of bitmap \p bitmap into the array of \p nr unsigned long \p masks
+ *
+ * \p nr may be determined earlier with hwloc_bitmap_nr_ulongs().
+ *
+ * \return 0
+ */
+HWLOC_DECLSPEC int hwloc_bitmap_to_ulongs(hwloc_const_bitmap_t bitmap, unsigned nr, unsigned long *masks);
+
+/** \brief Return the number of unsigned longs required for storing bitmap \p bitmap entirely
+ *
+ * This is the number of contiguous unsigned longs from the very first bit of the bitmap
+ * (even if unset) up to the last set bit.
+ * This is useful for knowing the \p nr parameter to pass to hwloc_bitmap_to_ulongs()
+ * (or which calls to hwloc_bitmap_to_ith_ulong() are needed)
+ * to entirely convert a bitmap into multiple unsigned longs.
+ *
+ * When called on the output of hwloc_topology_get_topology_cpuset(),
+ * the returned number is large enough for all cpusets of the topology.
+ *
+ * \return -1 if \p bitmap is infinite.
+ */
+HWLOC_DECLSPEC int hwloc_bitmap_nr_ulongs(hwloc_const_bitmap_t bitmap) __hwloc_attribute_pure;
 
 /** \brief Test whether index \p id is part of bitmap \p bitmap.
  *

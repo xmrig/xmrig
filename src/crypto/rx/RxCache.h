@@ -33,6 +33,7 @@
 
 #include "base/tools/Buffer.h"
 #include "base/tools/Object.h"
+#include "crypto/common/HugePagesInfo.h"
 #include "crypto/randomx/configuration.h"
 
 
@@ -48,24 +49,27 @@ class RxCache
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxCache)
 
-    RxCache(bool hugePages = true);
+    RxCache(bool hugePages, uint32_t nodeId);
+    RxCache(uint8_t *memory);
     ~RxCache();
 
-    inline bool isHugePages() const         { return m_flags & 1; }
-    inline bool isJIT() const               { return m_flags & 8; }
+    inline bool isJIT() const               { return m_jit; }
     inline const Buffer &seed() const       { return m_seed; }
     inline randomx_cache *get() const       { return m_cache; }
     inline size_t size() const              { return maxSize(); }
 
     bool init(const Buffer &seed);
-    std::pair<uint32_t, uint32_t> hugePages() const;
+    HugePagesInfo hugePages() const;
 
     static inline constexpr size_t maxSize() { return RANDOMX_CACHE_MAX_SIZE; }
 
 private:
+    void create(uint8_t *memory);
+
+    bool m_jit              = true;
     Buffer m_seed;
-    int m_flags            = 0;
-    randomx_cache *m_cache = nullptr;
+    randomx_cache *m_cache  = nullptr;
+    VirtualMemory *m_memory = nullptr;
 };
 
 

@@ -14,19 +14,17 @@
 #ifndef HWLOC_OPENCL_H
 #define HWLOC_OPENCL_H
 
-#include <hwloc.h>
-#include <hwloc/autogen/config.h>
-#include <hwloc/helper.h>
+#include "hwloc.h"
+#include "hwloc/autogen/config.h"
+#include "hwloc/helper.h"
 #ifdef HWLOC_LINUX_SYS
-#include <hwloc/linux.h>
+#include "hwloc/linux.h"
 #endif
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
-#include <OpenCL/cl_ext.h>
 #else
 #include <CL/cl.h>
-#include <CL/cl_ext.h>
 #endif
 
 #include <stdio.h>
@@ -37,16 +35,74 @@ extern "C" {
 #endif
 
 
+/* OpenCL extensions aren't always shipped with default headers, and
+ * they don't always reflect what the installed implementations support.
+ * Try everything and let the implementation return errors when non supported.
+ */
+/* Copyright (c) 2008-2018 The Khronos Group Inc. */
+
+/* needs "cl_amd_device_attribute_query" device extension, but not strictly required for clGetDeviceInfo() */
+#define HWLOC_CL_DEVICE_TOPOLOGY_AMD 0x4037
+typedef union {
+    struct { cl_uint type; cl_uint data[5]; } raw;
+    struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
+} hwloc_cl_device_topology_amd;
+#define HWLOC_CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD 1
+
+/* needs "cl_nv_device_attribute_query" device extension, but not strictly required for clGetDeviceInfo() */
+#define HWLOC_CL_DEVICE_PCI_BUS_ID_NV 0x4008
+#define HWLOC_CL_DEVICE_PCI_SLOT_ID_NV 0x4009
+
+
 /** \defgroup hwlocality_opencl Interoperability with OpenCL
  *
  * This interface offers ways to retrieve topology information about
  * OpenCL devices.
  *
- * Only the AMD OpenCL interface currently offers useful locality information
- * about its devices.
+ * Only AMD and NVIDIA OpenCL implementations currently offer useful locality
+ * information about their devices.
  *
  * @{
  */
+
+/** \brief Return the domain, bus and device IDs of the OpenCL device \p device.
+ *
+ * Device \p device must match the local machine.
+ */
+static __hwloc_inline int
+hwloc_opencl_get_device_pci_busid(cl_device_id device,
+                               unsigned *domain, unsigned *bus, unsigned *dev, unsigned *func)
+{
+	hwloc_cl_device_topology_amd amdtopo;
+	cl_uint nvbus, nvslot;
+	cl_int clret;
+
+	clret = clGetDeviceInfo(device, HWLOC_CL_DEVICE_TOPOLOGY_AMD, sizeof(amdtopo), &amdtopo, NULL);
+	if (CL_SUCCESS == clret
+	    && HWLOC_CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD == amdtopo.raw.type) {
+		*domain = 0; /* can't do anything better */
+		*bus = (unsigned) amdtopo.pcie.bus;
+		*dev = (unsigned) amdtopo.pcie.device;
+		*func = (unsigned) amdtopo.pcie.function;
+		return 0;
+	}
+
+	clret = clGetDeviceInfo(device, HWLOC_CL_DEVICE_PCI_BUS_ID_NV, sizeof(nvbus), &nvbus, NULL);
+	if (CL_SUCCESS == clret) {
+		clret = clGetDeviceInfo(device, HWLOC_CL_DEVICE_PCI_SLOT_ID_NV, sizeof(nvslot), &nvslot, NULL);
+		if (CL_SUCCESS == clret) {
+			/* FIXME: PCI bus only uses 8bit, assume nvidia hardcodes the domain in higher bits */
+			*domain = nvbus >> 8;
+			*bus = nvbus & 0xff;
+			/* non-documented but used in many other projects */
+			*dev = nvslot >> 3;
+			*func = nvslot & 0x7;
+			return 0;
+		}
+	}
+
+	return -1;
+}
 
 /** \brief Get the CPU set of logical processors that are physically
  * close to OpenCL device \p device.
@@ -62,7 +118,7 @@ extern "C" {
  * and hwloc_opencl_get_device_osdev_by_index().
  *
  * This function is currently only implemented in a meaningful way for
- * Linux with the AMD OpenCL implementation; other systems will simply
+ * Linux with the AMD or NVIDIA OpenCL implementation; other systems will simply
  * get a full cpuset.
  */
 static __hwloc_inline int
@@ -70,35 +126,28 @@ hwloc_opencl_get_device_cpuset(hwloc_topology_t topology __hwloc_attribute_unuse
 			       cl_device_id device __hwloc_attribute_unused,
 			       hwloc_cpuset_t set)
 {
-#if (defined HWLOC_LINUX_SYS) && (defined CL_DEVICE_TOPOLOGY_AMD)
-	/* If we're on Linux + AMD OpenCL, use the AMD extension + the sysfs mechanism to get the local cpus */
+#if (defined HWLOC_LINUX_SYS)
+	/* If we're on Linux, try AMD/NVIDIA extensions + the sysfs mechanism to get the local cpus */
 #define HWLOC_OPENCL_DEVICE_SYSFS_PATH_MAX 128
 	char path[HWLOC_OPENCL_DEVICE_SYSFS_PATH_MAX];
-	cl_device_topology_amd amdtopo;
-	cl_int clret;
+	unsigned pcidomain, pcibus, pcidev, pcifunc;
 
 	if (!hwloc_topology_is_thissystem(topology)) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	clret = clGetDeviceInfo(device, CL_DEVICE_TOPOLOGY_AMD, sizeof(amdtopo), &amdtopo, NULL);
-	if (CL_SUCCESS != clret) {
-		hwloc_bitmap_copy(set, hwloc_topology_get_complete_cpuset(topology));
-		return 0;
-	}
-	if (CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD != amdtopo.raw.type) {
+	if (hwloc_opencl_get_device_pci_busid(device, &pcidomain, &pcibus, &pcidev, &pcifunc) < 0) {
 		hwloc_bitmap_copy(set, hwloc_topology_get_complete_cpuset(topology));
 		return 0;
 	}
 
-	sprintf(path, "/sys/bus/pci/devices/0000:%02x:%02x.%01x/local_cpus",
-		(unsigned) amdtopo.pcie.bus, (unsigned) amdtopo.pcie.device, (unsigned) amdtopo.pcie.function);
+	sprintf(path, "/sys/bus/pci/devices/%04x:%02x:%02x.%01x/local_cpus", pcidomain, pcibus, pcidev, pcifunc);
 	if (hwloc_linux_read_path_as_cpumask(path, set) < 0
 	    || hwloc_bitmap_iszero(set))
 		hwloc_bitmap_copy(set, hwloc_topology_get_complete_cpuset(topology));
 #else
-	/* Non-Linux + AMD OpenCL systems simply get a full cpuset */
+	/* Non-Linux systems simply get a full cpuset */
 	hwloc_bitmap_copy(set, hwloc_topology_get_complete_cpuset(topology));
 #endif
   return 0;
@@ -140,8 +189,8 @@ hwloc_opencl_get_device_osdev_by_index(hwloc_topology_t topology,
  * Use OpenCL device attributes to find the corresponding hwloc OS device object.
  * Return NULL if there is none or if useful attributes are not available.
  *
- * This function currently only works on AMD OpenCL devices that support
- * the CL_DEVICE_TOPOLOGY_AMD extension. hwloc_opencl_get_device_osdev_by_index()
+ * This function currently only works on AMD and NVIDIA OpenCL devices that support
+ * relevant OpenCL extensions. hwloc_opencl_get_device_osdev_by_index()
  * should be preferred whenever possible, i.e. when platform and device index
  * are known.
  *
@@ -159,17 +208,10 @@ static __hwloc_inline hwloc_obj_t
 hwloc_opencl_get_device_osdev(hwloc_topology_t topology __hwloc_attribute_unused,
 			      cl_device_id device __hwloc_attribute_unused)
 {
-#ifdef CL_DEVICE_TOPOLOGY_AMD
 	hwloc_obj_t osdev;
-	cl_device_topology_amd amdtopo;
-	cl_int clret;
+	unsigned pcidomain, pcibus, pcidevice, pcifunc;
 
-	clret = clGetDeviceInfo(device, CL_DEVICE_TOPOLOGY_AMD, sizeof(amdtopo), &amdtopo, NULL);
-	if (CL_SUCCESS != clret) {
-		errno = EINVAL;
-		return NULL;
-	}
-	if (CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD != amdtopo.raw.type) {
+	if (hwloc_opencl_get_device_pci_busid(device, &pcidomain, &pcibus, &pcidevice, &pcifunc) < 0) {
 		errno = EINVAL;
 		return NULL;
 	}
@@ -181,18 +223,15 @@ hwloc_opencl_get_device_osdev(hwloc_topology_t topology __hwloc_attribute_unused
 			continue;
 		if (pcidev
 		    && pcidev->type == HWLOC_OBJ_PCI_DEVICE
-		    && pcidev->attr->pcidev.domain == 0
-		    && pcidev->attr->pcidev.bus == amdtopo.pcie.bus
-		    && pcidev->attr->pcidev.dev == amdtopo.pcie.device
-		    && pcidev->attr->pcidev.func == amdtopo.pcie.function)
+		    && pcidev->attr->pcidev.domain == pcidomain
+		    && pcidev->attr->pcidev.bus == pcibus
+		    && pcidev->attr->pcidev.dev == pcidevice
+		    && pcidev->attr->pcidev.func == pcifunc)
 			return osdev;
 		/* if PCI are filtered out, we need a info attr to match on */
 	}
 
 	return NULL;
-#else
-	return NULL;
-#endif
 }
 
 /** @} */
