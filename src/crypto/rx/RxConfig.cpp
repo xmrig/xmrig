@@ -109,7 +109,13 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kInit),         m_threads, allocator);
     obj.AddMember(StringRef(kMode),         StringRef(modeName()), allocator);
     obj.AddMember(StringRef(kOneGbPages),   m_oneGbPages, allocator);
-    obj.AddMember(StringRef(kWrmsr),        m_wrmsr < 0 ? Value(kFalseType) : Value(m_wrmsr), allocator);
+
+    if (m_wrmsr < 0 || m_wrmsr == 6) {
+        obj.AddMember(StringRef(kWrmsr), m_wrmsr == 6, allocator);
+    }
+    else {
+        obj.AddMember(StringRef(kWrmsr), m_wrmsr, allocator);
+    }
 
 #   ifdef XMRIG_FEATURE_HWLOC
     if (!m_nodeset.empty()) {

@@ -79,7 +79,7 @@ if (WITH_RANDOMX)
             )
     endif()
 
-    if (XMRIG_OS_LINUX)
+    if (XMRIG_OS_LINUX AND NOT XMRIG_ARM)
         list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_linux.cpp)
     endif()
 else()
