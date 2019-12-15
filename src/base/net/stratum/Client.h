@@ -128,7 +128,7 @@ private:
 
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 
-    char m_sendBuf[2048] = { 0 };
+    char m_sendBuf[4096] = { 0 };
     const char *m_agent;
     Dns *m_dns;
     RecvBuf<kInputBufferSize> m_recvBuf;
