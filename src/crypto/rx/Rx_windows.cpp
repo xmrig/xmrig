@@ -40,9 +40,7 @@
 #include <array>
 #include <string>
 #include <thread>
-
-
-#define SERVICE_NAME L"WinRing0_1_2_0"
+#include <sstream>
 
 
 namespace xmrig {
@@ -132,12 +130,20 @@ static HANDLE wrmsr_install_driver()
     std::wstring driverPath = dir.data();
     driverPath += L"WinRing0x64.sys";
 
-    hService = OpenServiceW(hManager, SERVICE_NAME, SERVICE_ALL_ACCESS);
+    FILETIME curTime;
+    GetSystemTimeAsFileTime(&curTime);
+
+    std::wstringstream s;
+    s << L"xmrig_WinRing0_service_" << curTime.dwLowDateTime;
+
+    const std::wstring serviceName = s.str();
+
+    hService = OpenServiceW(hManager, serviceName.c_str(), SERVICE_ALL_ACCESS);
     if (hService && !wrmsr_uninstall_driver()) {
         return nullptr;
     }
 
-    hService = CreateServiceW(hManager, SERVICE_NAME, SERVICE_NAME, SERVICE_ALL_ACCESS, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, driverPath.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
+    hService = CreateServiceW(hManager, serviceName.c_str(), serviceName.c_str(), SERVICE_ALL_ACCESS, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, driverPath.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
     if (!hService) {
         LOG_ERR(CLEAR "%s" RED_S "failed to install WinRing0 driver, error %u", tag, GetLastError());
 
@@ -156,7 +162,7 @@ static HANDLE wrmsr_install_driver()
         }
     }
 
-    HANDLE hDriver = CreateFileW(L"\\\\.\\" SERVICE_NAME, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    HANDLE hDriver = CreateFileW(L"\\\\.\\WinRing0_1_2_0", GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (!hDriver) {
         LOG_ERR(CLEAR "%s" RED_S "failed to connect to WinRing0 driver, error %u", tag, GetLastError());
 
