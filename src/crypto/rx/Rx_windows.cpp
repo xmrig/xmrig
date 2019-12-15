@@ -216,6 +216,7 @@ void xmrig::Rx::osInit(const RxConfig &config)
     }
 
     const uint64_t ts = Chrono::steadyMSecs();
+    bool success      = true;
 
     HANDLE hDriver = wrmsr_install_driver();
     if (!hDriver) {
@@ -228,18 +229,24 @@ void xmrig::Rx::osInit(const RxConfig &config)
         return;
     }
 
-    std::thread wrmsr_thread([hDriver, mod, &config]() {
+    std::thread wrmsr_thread([hDriver, mod, &config, &success]() {
         for (uint32_t i = 0, n = Cpu::info()->threads(); i < n; ++i) {
-            Platform::setThreadAffinity(i);
+            if (!Platform::setThreadAffinity(i)) {
+                continue;
+            }
 
             if (mod == MSR_MOD_RYZEN) {
-                wrmsr(hDriver, 0xC0011020, 0);
-                wrmsr(hDriver, 0xC0011021, 0x40);
-                wrmsr(hDriver, 0xC0011022, 0x510000);
-                wrmsr(hDriver, 0xC001102b, 0x1808cc16);
+                success = wrmsr(hDriver, 0xC0011020, 0) &&
+                          wrmsr(hDriver, 0xC0011021, 0x40) &&
+                          wrmsr(hDriver, 0xC0011022, 0x510000) &&
+                          wrmsr(hDriver, 0xC001102b, 0x1808cc16);
             }
             else if (mod == MSR_MOD_INTEL) {
-                wrmsr(hDriver, 0x1a4, config.wrmsr());
+                success = wrmsr(hDriver, 0x1a4, config.wrmsr());
+            }
+
+            if (!success) {
+                break;
             }
         }
     });
@@ -251,5 +258,10 @@ void xmrig::Rx::osInit(const RxConfig &config)
     wrmsr_uninstall_driver();
     CloseServiceHandle(hManager);
 
-    LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for %s has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, modNames[mod], Chrono::steadyMSecs() - ts);
+    if (success) {
+        LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for %s has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, modNames[mod], Chrono::steadyMSecs() - ts);
+    }
+    else {
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to write MSR registers" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
+    }
 }
