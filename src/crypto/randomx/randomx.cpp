@@ -92,6 +92,11 @@ RandomX_ConfigurationArqma::RandomX_ConfigurationArqma()
 	ScratchpadL3_Size = 262144;
 }
 
+RandomX_ConfigurationV::RandomX_ConfigurationV()
+{
+	ArgonSalt = "RandomV\x03";
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonMemory(262144)
 	, ArgonIterations(3)
@@ -264,6 +269,7 @@ void RandomX_ConfigurationBase::Apply()
 
 RandomX_ConfigurationMonero RandomX_MoneroConfig;
 RandomX_ConfigurationWownero RandomX_WowneroConfig;
+RandomX_ConfigurationV RandomX_VConfig;
 RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 

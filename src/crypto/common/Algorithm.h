@@ -68,6 +68,7 @@ public:
         RX_LOKI,       // "rx/loki"          RandomXL (Loki).
         DEFYX,         // "defyx"            DefyX (Scala).
         RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
+        RX_V,          // "rx/v"             RandomV (Monerov).
         AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
         AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ)
         MAX
