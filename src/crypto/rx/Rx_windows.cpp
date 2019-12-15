@@ -137,13 +137,6 @@ static HANDLE wrmsr_install_driver()
         return nullptr;
     }
 
-    err = GetLastError();
-    if (err != ERROR_SERVICE_DOES_NOT_EXIST) {
-        LOG_ERR(CLEAR "%s" RED_S "failed to open WinRing0 driver, error %u", tag, err);
-
-        return nullptr;
-    }
-
     hService = CreateServiceW(hManager, SERVICE_NAME, SERVICE_NAME, SERVICE_ALL_ACCESS, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, driverPath.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
     if (!hService) {
         LOG_ERR(CLEAR "%s" RED_S "failed to install WinRing0 driver, error %u", tag, GetLastError());
