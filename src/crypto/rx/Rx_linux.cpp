@@ -28,12 +28,13 @@
 
 
 #include "crypto/rx/Rx.h"
-#include "backend/common/Tags.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
+#include "base/tools/Chrono.h"
 #include "crypto/rx/RxConfig.h"
 
 
+#include <array>
 #include <cctype>
 #include <cinttypes>
 #include <cstdio>
@@ -45,6 +46,18 @@
 
 
 namespace xmrig {
+
+
+enum MsrMod : uint32_t {
+    MSR_MOD_NONE,
+    MSR_MOD_RYZEN,
+    MSR_MOD_INTEL,
+    MSR_MOD_MAX
+};
+
+
+static const char *tag                                      = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
+static const std::array<const char *, MSR_MOD_MAX> modNames = { nullptr, "Ryzen", "Intel" };
 
 
 static inline int dir_filter(const struct dirent *dirp)
@@ -88,10 +101,22 @@ static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value)
     free(namelist);
 
     if (errors) {
-        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot set MSR 0x%04" PRIx32 " to 0x%04" PRIx64, rx_tag(), reg, value);
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot set MSR 0x%08" PRIx32 " to 0x%08" PRIx64, tag, reg, value);
     }
 
     return errors == 0;
+}
+
+
+static bool wrmsr_modprobe()
+{
+    if (system("/sbin/modprobe msr > /dev/null 2>&1") != 0) {
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "msr kernel module is not available", tag);
+
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -100,15 +125,37 @@ static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value)
 
 void xmrig::Rx::osInit(const RxConfig &config)
 {
-    if (config.wrmsr() < 0 || Cpu::info()->vendor() != ICpuInfo::VENDOR_INTEL) {
+    if (config.wrmsr() < 0) {
         return;
     }
 
-    if (system("/sbin/modprobe msr > /dev/null 2>&1") != 0) {
-        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "msr kernel module is not available", rx_tag());
+    MsrMod mod = MSR_MOD_NONE;
+    if (Cpu::info()->assembly() == Assembly::RYZEN) {
+        mod = MSR_MOD_RYZEN;
+    }
+    else if (Cpu::info()->vendor() == ICpuInfo::VENDOR_INTEL) {
+        mod = MSR_MOD_INTEL;
+    }
 
+    if (mod == MSR_MOD_NONE) {
         return;
     }
 
-    wrmsr_on_all_cpus(0x1a4, config.wrmsr());
+    const uint64_t ts = Chrono::steadyMSecs();
+
+    if (!wrmsr_modprobe()) {
+        return;
+    }
+
+    if (mod == MSR_MOD_RYZEN) {
+        wrmsr_on_all_cpus(0xC0011020, 0);
+        wrmsr_on_all_cpus(0xC0011021, 0x40);
+        wrmsr_on_all_cpus(0xC0011022, 0x510000);
+        wrmsr_on_all_cpus(0xC001102b, 0x1808cc16);
+    }
+    else if (mod == MSR_MOD_INTEL) {
+        wrmsr_on_all_cpus(0x1a4, config.wrmsr());
+    }
+
+    LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for %s has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, modNames[mod], Chrono::steadyMSecs() - ts);
 }

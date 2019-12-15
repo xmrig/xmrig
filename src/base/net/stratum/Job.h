@@ -99,7 +99,7 @@ public:
 #   endif
 
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
-    static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
+    static inline uint64_t toDiff(uint64_t target) { return target ? (0xFFFFFFFFFFFFFFFFULL / target) : 0; }
 
     inline bool operator!=(const Job &other) const { return !isEqual(other); }
     inline bool operator==(const Job &other) const { return isEqual(other); }
