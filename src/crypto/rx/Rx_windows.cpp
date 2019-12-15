@@ -58,6 +58,7 @@ enum MsrMod : uint32_t {
 
 static const char *tag                                      = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
 static const std::array<const char *, MSR_MOD_MAX> modNames = { nullptr, "Ryzen", "Intel" };
+static bool reuseDriver                                     = false;
 
 
 static SC_HANDLE hManager;
@@ -71,16 +72,18 @@ static bool wrmsr_uninstall_driver()
     }
 
     bool result = true;
-    SERVICE_STATUS serviceStatus;
 
-    if (!ControlService(hService, SERVICE_CONTROL_STOP, &serviceStatus)) {
-        LOG_ERR(CLEAR "%s" RED_S "failed to stop WinRing0 driver, error %u", tag, GetLastError());
-        result = false;
-    }
+    if (!reuseDriver) {
+        SERVICE_STATUS serviceStatus;
 
-    if (!DeleteService(hService)) {
-        LOG_ERR(CLEAR "%s" RED_S "failed to remove WinRing0 driver, error %u", tag, GetLastError());
-        result = false;
+        if (!ControlService(hService, SERVICE_CONTROL_STOP, &serviceStatus)) {
+            result = false;
+        }
+
+        if (!DeleteService(hService)) {
+            LOG_ERR(CLEAR "%s" RED_S "failed to remove WinRing0 driver, error %u", tag, GetLastError());
+            result = false;
+        }
     }
 
     CloseServiceHandle(hService);
@@ -133,26 +136,42 @@ static HANDLE wrmsr_install_driver()
     driverPath += L"WinRing0x64.sys";
 
     hService = OpenServiceW(hManager, SERVICE_NAME, SERVICE_ALL_ACCESS);
-    if (hService && !wrmsr_uninstall_driver()) {
-        return nullptr;
+    if (hService) {
+        LOG_WARN(CLEAR "%s" YELLOW("service ") YELLOW_BOLD("WinRing0_1_2_0") YELLOW(" is already exists"), tag);
+
+        SERVICE_STATUS status;
+        const auto rc = QueryServiceStatus(hService, &status);
+
+        if (rc && status.dwCurrentState == SERVICE_RUNNING) {
+            reuseDriver = true;
+        }
+        else if (!wrmsr_uninstall_driver()) {
+            return nullptr;
+        }
     }
 
-    hService = CreateServiceW(hManager, SERVICE_NAME, SERVICE_NAME, SERVICE_ALL_ACCESS, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, driverPath.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
-    if (!hService) {
-        LOG_ERR(CLEAR "%s" RED_S "failed to install WinRing0 driver, error %u", tag, GetLastError());
-
-        return nullptr;
-    }
-
-    if (!StartService(hService, 0, nullptr)) {
-        err = GetLastError();
-        if (err != ERROR_SERVICE_ALREADY_RUNNING) {
-            LOG_ERR(CLEAR "%s" RED_S "failed to start WinRing0 driver, error %u", tag, err);
-
-            CloseServiceHandle(hService);
-            hService = nullptr;
+    if (!reuseDriver) {
+        hService = CreateServiceW(hManager, SERVICE_NAME, SERVICE_NAME, SERVICE_ALL_ACCESS, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, driverPath.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
+        if (!hService) {
+            LOG_ERR(CLEAR "%s" RED_S "failed to install WinRing0 driver, error %u", tag, GetLastError());
 
             return nullptr;
+        }
+
+        if (!StartService(hService, 0, nullptr)) {
+            err = GetLastError();
+            if (err != ERROR_SERVICE_ALREADY_RUNNING) {
+                if (err == ERROR_FILE_NOT_FOUND) {
+                    LOG_ERR(CLEAR "%s" RED("failed to start WinRing0 driver: ") RED_BOLD("\"WinRing0x64.sys not found\""), tag);
+                }
+                else {
+                    LOG_ERR(CLEAR "%s" RED_S "failed to start WinRing0 driver, error %u", tag, err);
+                }
+
+                wrmsr_uninstall_driver();
+
+                return nullptr;
+            }
         }
     }
 
