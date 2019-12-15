@@ -1,6 +1,7 @@
 # v5.3.0
 - [#1414](https://github.com/xmrig/xmrig/pull/1414) Added native MSR support for Windows, by using signed **WinRing0 driver** (© 2007-2009 OpenLibSys.org).
 - Added new [MSR documentation](https://xmrig.com/docs/miner/randomx-optimization-guide/msr).
+- [#1418](https://github.com/xmrig/xmrig/pull/1418) Increased stratum send buffer size.
 
 # v5.2.1
 - [#1408](https://github.com/xmrig/xmrig/pull/1408) Added RandomX boost script for Linux (if you don't like run miner with root privileges).
