@@ -83,6 +83,7 @@ private:
 #define WHITE_BOLD_S        CSI "1;37m" // actually white
 
 #define GREEN_BG_BOLD_S     CSI "42;1m"
+#define YELLOW_BG_BOLD_S    CSI "43;1m"
 #define BLUE_BG_S           CSI "44m"
 #define BLUE_BG_BOLD_S      CSI "44;1m"
 #define MAGENTA_BG_S        CSI "45m"
@@ -109,6 +110,7 @@ private:
 #define WHITE_BOLD(x)       WHITE_BOLD_S x CLEAR
 
 #define GREEN_BG_BOLD(x)    GREEN_BG_BOLD_S x CLEAR
+#define YELLOW_BG_BOLD(x)   YELLOW_BG_BOLD_S x CLEAR
 #define BLUE_BG(x)          BLUE_BG_S x CLEAR
 #define BLUE_BG_BOLD(x)     BLUE_BG_BOLD_S x CLEAR
 #define MAGENTA_BG(x)       MAGENTA_BG_S x CLEAR
