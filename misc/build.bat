@@ -13,6 +13,7 @@ cmake .. -G "Visual Studio 16 2019" -DXMRIG_DEPS=%~dp0\build\xmrig-deps\msvc2019
 msbuild /p:Configuration=Release xmrig.sln &&^
 cd Release &&^
 copy ..\..\src\config.json . &&^
-7z a -tzip -mx %~dp0\xmrig-%1-win64.zip xmrig.exe config.json &&^
+copy ..\..\bin\WinRing0\WinRing0x64.sys . &&^
+7z a -tzip -mx %~dp0\xmrig-%1-win64.zip xmrig.exe config.json WinRing0x64.sys &&^
 cd %~dp0 &&^
 rmdir /S /Q build
