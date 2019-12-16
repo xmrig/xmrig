@@ -159,6 +159,13 @@ int64_t xmrig::Client::send(const rapidjson::Value &obj)
     obj.Accept(writer);
 
     const size_t size = buffer.GetSize();
+    if (size > kMaxSendBufferSize) {
+        LOG_ERR("[%s] send failed: \"max send buffer size exceeded: %zu\"", url(), size);
+        close();
+
+        return -1;
+    }
+
     if (size > (m_sendBuf.size() - 2)) {
         m_sendBuf.resize(((size + 1) / 1024 + 1) * 1024);
     }

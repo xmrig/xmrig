@@ -60,14 +60,10 @@ class Client : public BaseClient, public IDnsListener, public ILineListener
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Client)
 
-    constexpr static uint64_t kConnectTimeout  = 20 * 1000;
-    constexpr static uint64_t kResponseTimeout = 20 * 1000;
-
-#   ifdef XMRIG_FEATURE_TLS
-    constexpr static size_t kInputBufferSize = 1024 * 16;
-#   else
-    constexpr static size_t kInputBufferSize = 1024 * 2;
-#   endif
+    constexpr static uint64_t kConnectTimeout   = 20 * 1000;
+    constexpr static uint64_t kResponseTimeout  = 20 * 1000;
+    constexpr static size_t kInputBufferSize    = 1024 * 16;
+    constexpr static size_t kMaxSendBufferSize  = 1024 * 16;
 
     Client(int id, const char *agent, IClientListener *listener);
     ~Client() override;
