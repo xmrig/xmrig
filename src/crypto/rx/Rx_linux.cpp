@@ -120,42 +120,74 @@ static bool wrmsr_modprobe()
 }
 
 
+static bool wrmsr(const MsrItems &preset)
+{
+    if (!wrmsr_modprobe()) {
+        return false;
+    }
+
+    for (const auto &i : preset) {
+        if (!wrmsr_on_all_cpus(i.reg(), i.value())) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 } // namespace xmrig
 
 
-void xmrig::Rx::osInit(const RxConfig &config)
+void xmrig::Rx::msrInit(const RxConfig &config)
 {
-    if (config.wrmsr() < 0) {
-        return;
-    }
-
-    MsrMod mod = MSR_MOD_NONE;
-    if (Cpu::info()->assembly() == Assembly::RYZEN) {
-        mod = MSR_MOD_RYZEN;
-    }
-    else if (Cpu::info()->vendor() == ICpuInfo::VENDOR_INTEL) {
-        mod = MSR_MOD_INTEL;
-    }
-
-    if (mod == MSR_MOD_NONE) {
+    const auto &preset = config.msrPreset();
+    if (preset.empty()) {
         return;
     }
 
     const uint64_t ts = Chrono::steadyMSecs();
 
-    if (!wrmsr_modprobe()) {
-        return;
+    if (wrmsr(preset)) {
+        LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
     }
 
-    if (mod == MSR_MOD_RYZEN) {
-        wrmsr_on_all_cpus(0xC0011020, 0);
-        wrmsr_on_all_cpus(0xC0011021, 0x40);
-        wrmsr_on_all_cpus(0xC0011022, 0x510000);
-        wrmsr_on_all_cpus(0xC001102b, 0x1808cc16);
-    }
-    else if (mod == MSR_MOD_INTEL) {
-        wrmsr_on_all_cpus(0x1a4, config.wrmsr());
-    }
+//    if (config.wrmsr() < 0) {
+//        return;
+//    }
 
-    LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for %s has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, modNames[mod], Chrono::steadyMSecs() - ts);
+//    MsrMod mod = MSR_MOD_NONE;
+//    if (Cpu::info()->assembly() == Assembly::RYZEN) {
+//        mod = MSR_MOD_RYZEN;
+//    }
+//    else if (Cpu::info()->vendor() == ICpuInfo::VENDOR_INTEL) {
+//        mod = MSR_MOD_INTEL;
+//    }
+
+//    if (mod == MSR_MOD_NONE) {
+//        return;
+//    }
+
+//    const uint64_t ts = Chrono::steadyMSecs();
+
+//    if (!wrmsr_modprobe()) {
+//        return;
+//    }
+
+//    if (mod == MSR_MOD_RYZEN) {
+//        wrmsr_on_all_cpus(0xC0011020, 0);
+//        wrmsr_on_all_cpus(0xC0011021, 0x40);
+//        wrmsr_on_all_cpus(0xC0011022, 0x510000);
+//        wrmsr_on_all_cpus(0xC001102b, 0x1808cc16);
+//    }
+//    else if (mod == MSR_MOD_INTEL) {
+//        wrmsr_on_all_cpus(0x1a4, config.wrmsr());
+//    }
+
+//    LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for %s has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, modNames[mod], Chrono::steadyMSecs() - ts);
+}
+
+
+void xmrig::Rx::msrDestroy()
+{
 }

@@ -46,6 +46,7 @@ protected:
     inline bool hasAVX2() const override            { return m_avx2; }
     inline bool hasOneGbPages() const override      { return m_pdpe1gb; }
     inline const char *brand() const override       { return m_brand; }
+    inline MsrMod msrMod() const override           { return m_msrMod; }
     inline size_t cores() const override            { return 0; }
     inline size_t L2() const override               { return 0; }
     inline size_t L3() const override               { return 0; }
@@ -63,6 +64,7 @@ private:
     bool m_aes              = false;
     const bool m_avx2       = false;
     const bool m_pdpe1gb    = false;
+    MsrMod m_msrMod         = MSR_MOD_NONE;
     Vendor m_vendor         = VENDOR_UNKNOWN;
 };
 

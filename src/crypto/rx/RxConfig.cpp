@@ -57,6 +57,23 @@ static const char *kNUMA        = "numa";
 
 static const std::array<const char *, RxConfig::ModeMax> modeNames = { "auto", "fast", "light" };
 
+
+#ifdef XMRIG_FEATURE_MSR
+constexpr size_t kMsrArraySize = 4;
+
+static const std::array<MsrItems, kMsrArraySize> msrPresets = {
+    MsrItems(),
+    MsrItems{{ 0xC0011020, 0x0 }, { 0xC0011021, 0x40 }, { 0xC0011022, 0x510000 }, { 0xC001102b, 0x1808cc16 }},
+    MsrItems{{ 0x1a4, 0x6 }},
+    MsrItems()
+};
+
+static const std::array<const char *, kMsrArraySize> modNames = { "none", "ryzen", "intel", "custom" };
+
+static_assert (kMsrArraySize == ICpuInfo::MSR_MOD_MAX, "kMsrArraySize and MSR_MOD_MAX mismatch");
+#endif
+
+
 }
 
 
@@ -65,7 +82,10 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
     if (value.IsObject()) {
         m_threads    = Json::getInt(value, kInit, m_threads);
         m_mode       = readMode(Json::getValue(value, kMode));
-        m_wrmsr      = readMSR(Json::getValue(value, kWrmsr));
+
+#       ifdef XMRIG_FEATURE_MSR
+        readMSR(Json::getValue(value, kWrmsr));
+#       endif
 
 #       ifdef XMRIG_OS_LINUX
         m_oneGbPages = Json::getBool(value, kOneGbPages, m_oneGbPages);
@@ -110,12 +130,23 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kMode),         StringRef(modeName()), allocator);
     obj.AddMember(StringRef(kOneGbPages),   m_oneGbPages, allocator);
 
-    if (m_wrmsr < 0 || m_wrmsr == 6) {
-        obj.AddMember(StringRef(kWrmsr), m_wrmsr == 6, allocator);
+#   ifdef XMRIG_FEATURE_MSR
+    if (!m_msrPreset.empty()) {
+        Value wrmsr(kArrayType);
+        wrmsr.Reserve(m_msrPreset.size(), allocator);
+
+        for (const auto &i : m_msrPreset) {
+            wrmsr.PushBack(i.toJSON(doc), allocator);
+        }
+
+        obj.AddMember(StringRef(kWrmsr), wrmsr, allocator);
     }
     else {
         obj.AddMember(StringRef(kWrmsr), m_wrmsr, allocator);
     }
+#   else
+    obj.AddMember(StringRef(kWrmsr), false, allocator);
+#   endif
 
 #   ifdef XMRIG_FEATURE_HWLOC
     if (!m_nodeset.empty()) {
@@ -168,18 +199,69 @@ uint32_t xmrig::RxConfig::threads(uint32_t limit) const
 }
 
 
-int xmrig::RxConfig::readMSR(const rapidjson::Value &value) const
+#ifdef XMRIG_FEATURE_MSR
+const char *xmrig::RxConfig::msrPresetName() const
 {
-    if (value.IsInt()) {
-        return std::min(value.GetInt(), 15);
-    }
-
-    if (value.IsBool() && !value.GetBool()) {
-        return -1;
-    }
-
-    return m_wrmsr;
+    return modNames[msrMod()];
 }
+
+
+const xmrig::MsrItems &xmrig::RxConfig::msrPreset() const
+{
+    const auto mod = msrMod();
+
+    if (mod == ICpuInfo::MSR_MOD_CUSTOM) {
+        return m_msrPreset;
+    }
+
+    return msrPresets[mod];
+}
+
+
+uint32_t xmrig::RxConfig::msrMod() const
+{
+    if (!wrmsr()) {
+        return ICpuInfo::MSR_MOD_NONE;
+    }
+
+    if (!m_msrPreset.empty()) {
+        return ICpuInfo::MSR_MOD_CUSTOM;
+    }
+
+    return Cpu::info()->msrMod();
+}
+
+
+void xmrig::RxConfig::readMSR(const rapidjson::Value &value)
+{
+    if (value.IsBool()) {
+        m_wrmsr = value.GetBool();
+
+        return;
+    }
+
+    if (value.IsInt()) {
+        const int i = std::min(value.GetInt(), 15);
+        if (i >= 0) {
+            m_msrPreset.emplace_back(0x1a4, i);
+        }
+        else {
+            m_wrmsr = false;
+        }
+    }
+
+    if (value.IsArray()) {
+        for (const auto &i : value.GetArray()) {
+            MsrItem item(i);
+            if (item.isValid()) {
+                m_msrPreset.emplace_back(item);
+            }
+        }
+
+        m_wrmsr = !m_msrPreset.empty();
+    }
+}
+#endif
 
 
 xmrig::RxConfig::Mode xmrig::RxConfig::readMode(const rapidjson::Value &value) const

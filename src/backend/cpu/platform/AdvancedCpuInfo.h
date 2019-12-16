@@ -46,6 +46,7 @@ protected:
     inline bool hasOneGbPages() const override      { return m_pdpe1gb; }
     inline const char *backend() const override     { return m_backend; }
     inline const char *brand() const override       { return m_brand; }
+    inline MsrMod msrMod() const override           { return m_msrMod; }
     inline size_t cores() const override            { return m_cores; }
     inline size_t L2() const override               { return m_L2; }
     inline size_t L3() const override               { return m_L3; }
@@ -62,6 +63,7 @@ private:
     char m_backend[32]{};
     char m_brand[64 + 5]{};
     const bool m_pdpe1gb  = false;
+    MsrMod m_msrMod       = MSR_MOD_NONE;
     size_t m_cores        = 0;
     size_t m_L2           = 0;
     size_t m_L3           = 0;
