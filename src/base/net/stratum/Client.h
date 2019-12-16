@@ -128,11 +128,11 @@ private:
 
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 
-    char m_sendBuf[4096] = { 0 };
     const char *m_agent;
     Dns *m_dns;
     RecvBuf<kInputBufferSize> m_recvBuf;
     std::bitset<EXT_MAX> m_extensions;
+    std::vector<char> m_sendBuf;
     String m_rpcId;
     Tls *m_tls                  = nullptr;
     uint64_t m_expire           = 0;
