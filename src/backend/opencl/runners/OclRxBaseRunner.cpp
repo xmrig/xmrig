@@ -56,7 +56,10 @@ xmrig::OclRxBaseRunner::OclRxBaseRunner(size_t index, const OclLaunchData &data)
         m_gcn_version = 14;
     }
 
-    m_options += " -DALGO="             + std::to_string(m_algorithm.id());
+    // rx/sfx is the same as rx/0 except Argon salt for dataset generation
+    Algorithm::Id id = (m_algorithm.id() == Algorithm::RX_SFX) ? Algorithm::RX_0 : m_algorithm.id();
+
+    m_options += " -DALGO="             + std::to_string(id);
     m_options += " -DWORKERS_PER_HASH=" + std::to_string(m_worksize);
     m_options += " -DGCN_VERSION="      + std::to_string(m_gcn_version);
 }

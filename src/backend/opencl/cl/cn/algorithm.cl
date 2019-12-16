@@ -20,8 +20,9 @@
 #define ALGO_RX_WOW         19
 #define ALGO_RX_LOKI        20
 #define ALGO_RX_ARQMA       21
-#define ALGO_AR2_CHUKWA     22
-#define ALGO_AR2_WRKZ       23
+#define ALGO_RX_SFX         22
+#define ALGO_AR2_CHUKWA     23
+#define ALGO_AR2_WRKZ       24
 
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1
