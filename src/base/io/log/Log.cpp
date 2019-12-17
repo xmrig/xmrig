@@ -195,9 +195,10 @@ private:
 };
 
 
-bool Log::background = false;
-bool Log::colors     = true;
-LogPrivate *Log::d   = new LogPrivate();
+bool Log::background    = false;
+bool Log::colors        = true;
+LogPrivate *Log::d      = new LogPrivate();
+uint32_t Log::verbose   = 0;
 
 
 } /* namespace xmrig */

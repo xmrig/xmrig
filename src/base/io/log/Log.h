@@ -27,6 +27,9 @@
 #define XMRIG_LOG_H
 
 
+#include <cstdint>
+
+
 namespace xmrig {
 
 
@@ -56,6 +59,7 @@ public:
 
     static bool background;
     static bool colors;
+    static uint32_t verbose;
 
 private:
     static LogPrivate *d;
@@ -119,13 +123,14 @@ private:
 #define CYAN_BG_BOLD(x)     CYAN_BG_BOLD_S x CLEAR
 
 
-#define LOG_EMERG(x, ...)  xmrig::Log::print(xmrig::Log::EMERG,   x, ##__VA_ARGS__)
-#define LOG_ALERT(x, ...)  xmrig::Log::print(xmrig::Log::ALERT,   x, ##__VA_ARGS__)
-#define LOG_CRIT(x, ...)   xmrig::Log::print(xmrig::Log::CRIT,    x, ##__VA_ARGS__)
-#define LOG_ERR(x, ...)    xmrig::Log::print(xmrig::Log::ERR,     x, ##__VA_ARGS__)
-#define LOG_WARN(x, ...)   xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
-#define LOG_NOTICE(x, ...) xmrig::Log::print(xmrig::Log::NOTICE,  x, ##__VA_ARGS__)
-#define LOG_INFO(x, ...)   xmrig::Log::print(xmrig::Log::INFO,    x, ##__VA_ARGS__)
+#define LOG_EMERG(x, ...)   xmrig::Log::print(xmrig::Log::EMERG,   x, ##__VA_ARGS__)
+#define LOG_ALERT(x, ...)   xmrig::Log::print(xmrig::Log::ALERT,   x, ##__VA_ARGS__)
+#define LOG_CRIT(x, ...)    xmrig::Log::print(xmrig::Log::CRIT,    x, ##__VA_ARGS__)
+#define LOG_ERR(x, ...)     xmrig::Log::print(xmrig::Log::ERR,     x, ##__VA_ARGS__)
+#define LOG_WARN(x, ...)    xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
+#define LOG_NOTICE(x, ...)  xmrig::Log::print(xmrig::Log::NOTICE,  x, ##__VA_ARGS__)
+#define LOG_INFO(x, ...)    xmrig::Log::print(xmrig::Log::INFO,    x, ##__VA_ARGS__)
+#define LOG_VERBOSE(x, ...) if (xmrig::Log::verbose) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
 
 #ifdef APP_DEBUG
 #   define LOG_DEBUG(x, ...) xmrig::Log::print(xmrig::Log::DEBUG, x, ##__VA_ARGS__)

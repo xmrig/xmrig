@@ -23,10 +23,18 @@
  */
 
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "base/kernel/config/BaseConfig.h"
+#include "base/io/json/Json.h"
+#include "base/io/log/Log.h"
+#include "base/kernel/interfaces/IJsonReader.h"
+#include "rapidjson/document.h"
+#include "version.h"
+
+
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <uv.h>
 
 
@@ -37,80 +45,6 @@
 #ifdef XMRIG_FEATURE_HWLOC
 #   include "backend/cpu/Cpu.h"
 #endif
-
-#ifdef XMRIG_AMD_PROJECT
-#   if defined(__APPLE__)
-#       include <OpenCL/cl.h>
-#   else
-#       include "3rdparty/CL/cl.h"
-#   endif
-#endif
-
-
-#ifdef XMRIG_NVIDIA_PROJECT
-#   include "nvidia/cryptonight.h"
-#endif
-
-
-#include "base/io/json/Json.h"
-#include "base/io/log/Log.h"
-#include "base/kernel/config/BaseConfig.h"
-#include "base/kernel/interfaces/IJsonReader.h"
-#include "donate.h"
-#include "rapidjson/document.h"
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/prettywriter.h"
-#include "version.h"
-
-
-void xmrig::BaseConfig::printVersions()
-{
-    char buf[256] = { 0 };
-
-#   if defined(__clang__)
-    snprintf(buf, sizeof buf, "clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
-#   elif defined(__GNUC__)
-    snprintf(buf, sizeof buf, "gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   elif defined(_MSC_VER)
-    snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
-#   endif
-
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s"), "ABOUT", APP_NAME, APP_VERSION, buf);
-
-#   if defined(XMRIG_AMD_PROJECT)
-#   if CL_VERSION_2_0
-    const char *ocl = "2.0";
-#   elif CL_VERSION_1_2
-    const char *ocl = "1.2";
-#   elif CL_VERSION_1_1
-    const char *ocl = "1.1";
-#   elif CL_VERSION_1_0
-    const char *ocl = "1.0";
-#   else
-    const char *ocl = "0.0";
-#   endif
-    int length = snprintf(buf, sizeof buf, "OpenCL/%s ", ocl);
-#   elif defined(XMRIG_NVIDIA_PROJECT)
-    const int cudaVersion = cuda_get_runtime_version();
-    int length = snprintf(buf, sizeof buf, "CUDA/%d.%d ", cudaVersion / 1000, cudaVersion % 100);
-#   endif
-
-    std::string libs;
-
-#   if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
-    {
-        constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
-        snprintf(buf, sizeof buf, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
-        libs += buf;
-    }
-#   endif
-
-#   if defined(XMRIG_FEATURE_HWLOC)
-    libs += Cpu::info()->backend();
-#   endif
-
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), libs.c_str());
-}
 
 
 bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
@@ -132,6 +66,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_version      = reader.getUint("version");
 
     setPrintTime(reader.getUint("print-time", 60));
+    setVerbose(reader.getValue("verbose"));
 
     const rapidjson::Value &api = reader.getObject("api");
     if (api.IsObject()) {
@@ -161,4 +96,47 @@ bool xmrig::BaseConfig::save()
     }
 
     return false;
+}
+
+
+void xmrig::BaseConfig::printVersions()
+{
+    char buf[256] = { 0 };
+
+#   if defined(__clang__)
+    snprintf(buf, sizeof buf, "clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
+#   elif defined(__GNUC__)
+    snprintf(buf, sizeof buf, "gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#   elif defined(_MSC_VER)
+    snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
+#   endif
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s"), "ABOUT", APP_NAME, APP_VERSION, buf);
+
+    std::string libs;
+
+#   if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
+    {
+        constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
+        snprintf(buf, sizeof buf, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
+        libs += buf;
+    }
+#   endif
+
+#   if defined(XMRIG_FEATURE_HWLOC)
+    libs += Cpu::info()->backend();
+#   endif
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), libs.c_str());
+}
+
+
+void xmrig::BaseConfig::setVerbose(const rapidjson::Value &value)
+{
+    if (value.IsBool()) {
+        Log::verbose = value.GetBool() ? 1 : 0;
+    }
+    else if (value.IsUint()) {
+        Log::verbose = value.GetUint();
+    }
 }

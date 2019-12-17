@@ -152,6 +152,8 @@ static bool wrmsr(const MsrItems &preset, bool save)
     if (save) {
         for (const auto &i : preset) {
             auto item = rdmsr(i.reg());
+            LOG_VERBOSE(CLEAR "%s" CYAN_BOLD("0x%08" PRIx32) CYAN(":0x%016" PRIx64) CYAN_BOLD(" -> 0x%016" PRIx64), tag, i.reg(), item.value(), i.value());
+
             if (item.isValid()) {
                 savedState.emplace_back(item);
             }

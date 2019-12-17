@@ -246,5 +246,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retry-pause",                m_pools.retryPause(), allocator);
     doc.AddMember("syslog",                     isSyslog(), allocator);
     doc.AddMember("user-agent",                 m_userAgent.toJSON(), allocator);
+    doc.AddMember("verbose",                    Log::verbose, allocator);
     doc.AddMember("watch",                      m_watch, allocator);
 }

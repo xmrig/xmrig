@@ -134,6 +134,20 @@ static HANDLE wrmsr_install_driver()
         SERVICE_STATUS status;
         const auto rc = QueryServiceStatus(hService, &status);
 
+        if (rc && Log::verbose) {
+            DWORD dwBytesNeeded;
+
+            QueryServiceConfigA(hService, nullptr, 0, &dwBytesNeeded);
+            if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+                std::vector<BYTE> buffer(dwBytesNeeded);
+                auto config = reinterpret_cast<LPQUERY_SERVICE_CONFIGA>(buffer.data());
+
+                if (QueryServiceConfigA(hService, config, buffer.size(), &dwBytesNeeded)) {
+                    LOG_INFO(CLEAR "%s" YELLOW("service path: ") YELLOW_BOLD("\"%s\""), tag, config->lpBinaryPathName);
+                }
+            }
+        }
+
         if (rc && status.dwCurrentState == SERVICE_RUNNING) {
             reuseDriver = true;
         }
@@ -246,6 +260,8 @@ static bool wrmsr(const MsrItems &preset, bool save)
     if (save) {
         for (const auto &i : preset) {
             auto item = rdmsr(driver, i.reg());
+            LOG_VERBOSE(CLEAR "%s" CYAN_BOLD("0x%08" PRIx32) CYAN(":0x%016" PRIx64) CYAN_BOLD(" -> 0x%016" PRIx64), tag, i.reg(), item.value(), i.value());
+
             if (item.isValid()) {
                 savedState.emplace_back(item);
             }
