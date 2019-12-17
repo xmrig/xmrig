@@ -84,7 +84,7 @@ if (WITH_RANDOMX)
         message("-- WITH_MSR=ON")
 
         if (XMRIG_OS_WIN)
-            list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_windows.cpp)
+            list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_win.cpp)
         elseif (XMRIG_OS_LINUX)
             list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_linux.cpp)
         endif()
