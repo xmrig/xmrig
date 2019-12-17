@@ -49,6 +49,7 @@ namespace xmrig {
 static const char *kInit        = "init";
 static const char *kMode        = "mode";
 static const char *kOneGbPages  = "1gb-pages";
+static const char *kRdmsr       = "rdmsr";
 static const char *kWrmsr       = "wrmsr";
 
 #ifdef XMRIG_FEATURE_HWLOC
@@ -82,6 +83,7 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
     if (value.IsObject()) {
         m_threads    = Json::getInt(value, kInit, m_threads);
         m_mode       = readMode(Json::getValue(value, kMode));
+        m_rdmsr      = Json::getBool(value, kRdmsr, m_rdmsr);
 
 #       ifdef XMRIG_FEATURE_MSR
         readMSR(Json::getValue(value, kWrmsr));
@@ -129,6 +131,7 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kInit),         m_threads, allocator);
     obj.AddMember(StringRef(kMode),         StringRef(modeName()), allocator);
     obj.AddMember(StringRef(kOneGbPages),   m_oneGbPages, allocator);
+    obj.AddMember(StringRef(kRdmsr),        m_rdmsr, allocator);
 
 #   ifdef XMRIG_FEATURE_MSR
     if (!m_msrPreset.empty()) {

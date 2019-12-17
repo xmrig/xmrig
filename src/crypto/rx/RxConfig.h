@@ -63,6 +63,7 @@ public:
     uint32_t threads(uint32_t limit = 100) const;
 
     inline bool isOneGbPages() const    { return m_oneGbPages; }
+    inline bool rdmsr() const           { return m_rdmsr; }
     inline bool wrmsr() const           { return m_wrmsr; }
     inline Mode mode() const            { return m_mode; }
 
@@ -86,6 +87,7 @@ private:
 
     bool m_numa         = true;
     bool m_oneGbPages   = false;
+    bool m_rdmsr        = true;
     int m_threads       = -1;
     Mode m_mode         = AutoMode;
 

@@ -48,8 +48,9 @@
 namespace xmrig {
 
 
-static const char *tag  = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
 static bool reuseDriver = false;
+static const char *tag  = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
+static MsrItems savedState;
 
 
 static SC_HANDLE hManager;
@@ -177,10 +178,12 @@ static HANDLE wrmsr_install_driver()
 }
 
 
+#define IOCTL_READ_MSR  CTL_CODE(40000, 0x821, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define IOCTL_WRITE_MSR CTL_CODE(40000, 0x822, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 
-static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value) {
+static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value)
+{
     struct {
         uint32_t reg = 0;
         uint32_t value[2]{};
@@ -204,7 +207,32 @@ static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value) {
 }
 
 
-static bool wrmsr(const MsrItems &preset)
+static bool rdmsr(HANDLE driver, uint32_t reg, uint64_t &value)
+{
+    DWORD size = 0;
+
+    if (!DeviceIoControl(driver, IOCTL_READ_MSR, &reg, sizeof(reg), &value, sizeof(value), &size, nullptr)) {
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot read MSR 0x%08" PRIx32, tag, reg);
+
+        return false;
+    }
+
+    return true;
+}
+
+
+static MsrItem rdmsr(HANDLE driver, uint32_t reg)
+{
+    uint64_t value = 0;
+    if (!rdmsr(driver, reg, value)) {
+        return {};
+    }
+
+    return { reg, value };
+}
+
+
+static bool wrmsr(const MsrItems &preset, bool save)
 {
     bool success = true;
 
@@ -217,6 +245,15 @@ static bool wrmsr(const MsrItems &preset)
         }
 
         return false;
+    }
+
+    if (save) {
+        for (const auto &i : preset) {
+            auto item = rdmsr(driver, i.reg());
+            if (item.isValid()) {
+                savedState.emplace_back(item);
+            }
+        }
     }
 
     std::thread wrmsr_thread([driver, &preset, &success]() {
@@ -258,7 +295,7 @@ void xmrig::Rx::msrInit(const RxConfig &config)
 
     const uint64_t ts = Chrono::steadyMSecs();
 
-    if (wrmsr(preset)) {
+    if (wrmsr(preset, config.rdmsr())) {
         LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
     }
 }
@@ -266,4 +303,13 @@ void xmrig::Rx::msrInit(const RxConfig &config)
 
 void xmrig::Rx::msrDestroy()
 {
+    if (savedState.empty()) {
+        return;
+    }
+
+    const uint64_t ts = Chrono::steadyMSecs();
+
+    if (!wrmsr(savedState, false)) {
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to restore initial state" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
+    }
 }
