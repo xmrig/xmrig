@@ -48,17 +48,9 @@
 namespace xmrig {
 
 
-enum MsrMod : uint32_t {
-    MSR_MOD_NONE,
-    MSR_MOD_RYZEN,
-    MSR_MOD_INTEL,
-    MSR_MOD_MAX
-};
-
-
-static const char *tag                                      = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
-static const std::array<const char *, MSR_MOD_MAX> modNames = { nullptr, "Ryzen", "Intel" };
-static bool reuseDriver                                     = false;
+static bool reuseDriver = false;
+static const char *tag  = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
+static MsrItems savedState;
 
 
 static SC_HANDLE hManager;
@@ -186,10 +178,12 @@ static HANDLE wrmsr_install_driver()
 }
 
 
+#define IOCTL_READ_MSR  CTL_CODE(40000, 0x821, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define IOCTL_WRITE_MSR CTL_CODE(40000, 0x822, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 
-static bool wrmsr(HANDLE hDriver, uint32_t reg, uint64_t value) {
+static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value)
+{
     struct {
         uint32_t reg = 0;
         uint32_t value[2]{};
@@ -198,12 +192,12 @@ static bool wrmsr(HANDLE hDriver, uint32_t reg, uint64_t value) {
     static_assert(sizeof(input) == 12, "Invalid struct size for WinRing0 driver");
 
     input.reg = reg;
-    *((uint64_t*)input.value) = value;
+    *(reinterpret_cast<uint64_t*>(input.value)) = value;
 
     DWORD output;
     DWORD k;
 
-    if (!DeviceIoControl(hDriver, IOCTL_WRITE_MSR, &input, sizeof(input), &output, sizeof(output), &k, nullptr)) {
+    if (!DeviceIoControl(driver, IOCTL_WRITE_MSR, &input, sizeof(input), &output, sizeof(output), &k, nullptr)) {
         LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot set MSR 0x%08" PRIx32 " to 0x%08" PRIx64, tag, reg, value);
 
         return false;
@@ -213,55 +207,59 @@ static bool wrmsr(HANDLE hDriver, uint32_t reg, uint64_t value) {
 }
 
 
-} // namespace xmrig
-
-
-void xmrig::Rx::osInit(const RxConfig &config)
+static bool rdmsr(HANDLE driver, uint32_t reg, uint64_t &value)
 {
-    if ((config.wrmsr() < 0) || !ICpuInfo::isX64()) {
-        return;
+    DWORD size = 0;
+
+    return DeviceIoControl(driver, IOCTL_READ_MSR, &reg, sizeof(reg), &value, sizeof(value), &size, nullptr) != 0;
+}
+
+
+static MsrItem rdmsr(HANDLE driver, uint32_t reg)
+{
+    uint64_t value = 0;
+    if (!rdmsr(driver, reg, value)) {
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot read MSR 0x%08" PRIx32, tag, reg);
+
+        return {};
     }
 
-    MsrMod mod = MSR_MOD_NONE;
-    if (Cpu::info()->assembly() == Assembly::RYZEN) {
-        mod = MSR_MOD_RYZEN;
-    }
-    else if (Cpu::info()->vendor() == ICpuInfo::VENDOR_INTEL) {
-        mod = MSR_MOD_INTEL;
-    }
+    return { reg, value };
+}
 
-    if (mod == MSR_MOD_NONE) {
-        return;
-    }
 
-    const uint64_t ts = Chrono::steadyMSecs();
-    bool success      = true;
+static bool wrmsr(const MsrItems &preset, bool save)
+{
+    bool success = true;
 
-    HANDLE hDriver = wrmsr_install_driver();
-    if (!hDriver) {
+    HANDLE driver = wrmsr_install_driver();
+    if (!driver) {
         wrmsr_uninstall_driver();
 
         if (hManager) {
             CloseServiceHandle(hManager);
         }
 
-        return;
+        return false;
     }
 
-    std::thread wrmsr_thread([hDriver, mod, &config, &success]() {
+    if (save) {
+        for (const auto &i : preset) {
+            auto item = rdmsr(driver, i.reg());
+            if (item.isValid()) {
+                savedState.emplace_back(item);
+            }
+        }
+    }
+
+    std::thread wrmsr_thread([driver, &preset, &success]() {
         for (uint32_t i = 0, n = Cpu::info()->threads(); i < n; ++i) {
             if (!Platform::setThreadAffinity(i)) {
                 continue;
             }
 
-            if (mod == MSR_MOD_RYZEN) {
-                success = wrmsr(hDriver, 0xC0011020, 0) &&
-                          wrmsr(hDriver, 0xC0011021, 0x40) &&
-                          wrmsr(hDriver, 0xC0011022, 0x510000) &&
-                          wrmsr(hDriver, 0xC001102b, 0x1808cc16);
-            }
-            else if (mod == MSR_MOD_INTEL) {
-                success = wrmsr(hDriver, 0x1a4, config.wrmsr());
+            for (const auto &i : preset) {
+                success = wrmsr(driver, i.reg(), i.value());
             }
 
             if (!success) {
@@ -272,15 +270,42 @@ void xmrig::Rx::osInit(const RxConfig &config)
 
     wrmsr_thread.join();
 
-    CloseHandle(hDriver);
+    CloseHandle(driver);
 
     wrmsr_uninstall_driver();
     CloseServiceHandle(hManager);
 
-    if (success) {
-        LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for %s has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, modNames[mod], Chrono::steadyMSecs() - ts);
+    return success;
+}
+
+
+} // namespace xmrig
+
+
+void xmrig::Rx::msrInit(const RxConfig &config)
+{
+    const auto &preset = config.msrPreset();
+    if (preset.empty()) {
+        return;
     }
-    else {
-        LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to write MSR registers" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
+
+    const uint64_t ts = Chrono::steadyMSecs();
+
+    if (wrmsr(preset, config.rdmsr())) {
+        LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
+    }
+}
+
+
+void xmrig::Rx::msrDestroy()
+{
+    if (savedState.empty()) {
+        return;
+    }
+
+    const uint64_t ts = Chrono::steadyMSecs();
+
+    if (!wrmsr(savedState, false)) {
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to restore initial state" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
     }
 }

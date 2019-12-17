@@ -48,16 +48,8 @@
 namespace xmrig {
 
 
-enum MsrMod : uint32_t {
-    MSR_MOD_NONE,
-    MSR_MOD_RYZEN,
-    MSR_MOD_INTEL,
-    MSR_MOD_MAX
-};
-
-
-static const char *tag                                      = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
-static const std::array<const char *, MSR_MOD_MAX> modNames = { nullptr, "Ryzen", "Intel" };
+static const char *tag      = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
+static MsrItems savedState;
 
 
 static inline int dir_filter(const struct dirent *dirp)
@@ -108,6 +100,37 @@ static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value)
 }
 
 
+bool rdmsr_on_cpu(uint32_t reg, uint32_t cpu, uint64_t &value)
+{
+    char msr_file_name[64]{};
+
+    sprintf(msr_file_name, "/dev/cpu/%u/msr", cpu);
+    int fd = open(msr_file_name, O_RDONLY);
+    if (fd < 0) {
+        return false;
+    }
+
+    const bool success = pread(fd, &value, sizeof value, reg) == sizeof value;
+
+    close(fd);
+
+    return success;
+}
+
+
+static MsrItem rdmsr(uint32_t reg)
+{
+    uint64_t value = 0;
+    if (!rdmsr_on_cpu(reg, 0, value)) {
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot read MSR 0x%08" PRIx32, tag, reg);
+
+        return {};
+    }
+
+    return { reg, value };
+}
+
+
 static bool wrmsr_modprobe()
 {
     if (system("/sbin/modprobe msr > /dev/null 2>&1") != 0) {
@@ -120,42 +143,58 @@ static bool wrmsr_modprobe()
 }
 
 
+static bool wrmsr(const MsrItems &preset, bool save)
+{
+    if (!wrmsr_modprobe()) {
+        return false;
+    }
+
+    if (save) {
+        for (const auto &i : preset) {
+            auto item = rdmsr(i.reg());
+            if (item.isValid()) {
+                savedState.emplace_back(item);
+            }
+        }
+    }
+
+    for (const auto &i : preset) {
+        if (!wrmsr_on_all_cpus(i.reg(), i.value())) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 } // namespace xmrig
 
 
-void xmrig::Rx::osInit(const RxConfig &config)
+void xmrig::Rx::msrInit(const RxConfig &config)
 {
-    if (config.wrmsr() < 0) {
-        return;
-    }
-
-    MsrMod mod = MSR_MOD_NONE;
-    if (Cpu::info()->assembly() == Assembly::RYZEN) {
-        mod = MSR_MOD_RYZEN;
-    }
-    else if (Cpu::info()->vendor() == ICpuInfo::VENDOR_INTEL) {
-        mod = MSR_MOD_INTEL;
-    }
-
-    if (mod == MSR_MOD_NONE) {
+    const auto &preset = config.msrPreset();
+    if (preset.empty()) {
         return;
     }
 
     const uint64_t ts = Chrono::steadyMSecs();
 
-    if (!wrmsr_modprobe()) {
+    if (wrmsr(preset, config.rdmsr())) {
+        LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
+    }
+}
+
+
+void xmrig::Rx::msrDestroy()
+{
+    if (savedState.empty()) {
         return;
     }
 
-    if (mod == MSR_MOD_RYZEN) {
-        wrmsr_on_all_cpus(0xC0011020, 0);
-        wrmsr_on_all_cpus(0xC0011021, 0x40);
-        wrmsr_on_all_cpus(0xC0011022, 0x510000);
-        wrmsr_on_all_cpus(0xC001102b, 0x1808cc16);
-    }
-    else if (mod == MSR_MOD_INTEL) {
-        wrmsr_on_all_cpus(0x1a4, config.wrmsr());
-    }
+    const uint64_t ts = Chrono::steadyMSecs();
 
-    LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for %s has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, modNames[mod], Chrono::steadyMSecs() - ts);
+    if (!wrmsr(savedState, false)) {
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to restore initial state" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
+    }
 }

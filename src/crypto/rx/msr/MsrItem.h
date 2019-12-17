@@ -24,46 +24,48 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_H
-#define XMRIG_RX_H
+#ifndef XMRIG_MSRITEM_H
+#define XMRIG_MSRITEM_H
 
 
-#include <cstdint>
-#include <utility>
+#include "base/tools/String.h"
 
 
-#include "crypto/common/HugePagesInfo.h"
+#include <vector>
 
 
 namespace xmrig
 {
 
 
-class Algorithm;
-class CpuConfig;
-class IRxListener;
-class Job;
-class RxConfig;
 class RxDataset;
 
 
-class Rx
+class MsrItem
 {
 public:
-    static bool init(const Job &job, const RxConfig &config, const CpuConfig &cpu);
-    static bool isReady(const Job &job);
-    static HugePagesInfo hugePages();
-    static RxDataset *dataset(const Job &job, uint32_t nodeId);
-    static void destroy();
-    static void init(IRxListener *listener);
+    inline MsrItem() = default;
+    inline MsrItem(uint32_t reg, uint64_t value) : m_reg(reg), m_value(value) {}
+
+    MsrItem(const rapidjson::Value &value);
+
+    inline bool isValid() const     { return m_reg > 0; }
+    inline uint32_t reg() const     { return m_reg; }
+    inline uint64_t value() const   { return m_value; }
+
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    String toString() const;
 
 private:
-    static void msrInit(const RxConfig &config);
-    static void msrDestroy();
+    uint32_t m_reg      = 0;
+    uint64_t m_value    = 0;
 };
+
+
+using MsrItems = std::vector<MsrItem>;
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_RX_H */
+#endif /* XMRIG_MSRITEM_H */

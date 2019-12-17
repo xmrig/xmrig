@@ -24,46 +24,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_H
-#define XMRIG_RX_H
+
+#include "crypto/rx/msr/MsrItem.h"
+#include "rapidjson/document.h"
 
 
-#include <cstdint>
-#include <utility>
+#include <cstdio>
 
 
-#include "crypto/common/HugePagesInfo.h"
-
-
-namespace xmrig
+xmrig::MsrItem::MsrItem(const rapidjson::Value &value)
 {
+    if (!value.IsString()) {
+        return;
+    }
+
+    auto kv = String(value.GetString()).split(':');
+    if (kv.size() < 2) {
+        return;
+    }
+
+    m_reg   = strtoul(kv[0], nullptr, 0);
+    m_value = strtoul(kv[1], nullptr, 0);
+}
 
 
-class Algorithm;
-class CpuConfig;
-class IRxListener;
-class Job;
-class RxConfig;
-class RxDataset;
-
-
-class Rx
+rapidjson::Value xmrig::MsrItem::toJSON(rapidjson::Document &doc) const
 {
-public:
-    static bool init(const Job &job, const RxConfig &config, const CpuConfig &cpu);
-    static bool isReady(const Job &job);
-    static HugePagesInfo hugePages();
-    static RxDataset *dataset(const Job &job, uint32_t nodeId);
-    static void destroy();
-    static void init(IRxListener *listener);
-
-private:
-    static void msrInit(const RxConfig &config);
-    static void msrDestroy();
-};
+    return toString().toJSON(doc);
+}
 
 
-} /* namespace xmrig */
+xmrig::String xmrig::MsrItem::toString() const
+{
+    constexpr size_t size = 32;
 
+    auto buf = new char[size]();
+    snprintf(buf, size, "0x%" PRIx32 ":0x%" PRIx64, m_reg, m_value);
 
-#endif /* XMRIG_RX_H */
+    return buf;
+}
