@@ -45,13 +45,14 @@ class MsrItem
 {
 public:
     inline MsrItem() = default;
-    inline MsrItem(uint32_t reg, uint64_t value) : m_reg(reg), m_value(value) {}
+    inline MsrItem(uint32_t reg, uint64_t value, uint64_t mask = uint64_t(-1)) : m_reg(reg), m_value(value), m_mask(mask) {}
 
     MsrItem(const rapidjson::Value &value);
 
     inline bool isValid() const     { return m_reg > 0; }
     inline uint32_t reg() const     { return m_reg; }
     inline uint64_t value() const   { return m_value; }
+    inline uint64_t mask() const    { return m_mask; }
 
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     String toString() const;
@@ -59,6 +60,7 @@ public:
 private:
     uint32_t m_reg      = 0;
     uint64_t m_value    = 0;
+    uint64_t m_mask     = uint64_t(-1);
 };
 
 
