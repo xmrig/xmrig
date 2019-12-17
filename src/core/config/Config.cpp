@@ -218,7 +218,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("http",              m_http.toJSON(doc), allocator);
     doc.AddMember("autosave",          isAutoSave(), allocator);
     doc.AddMember("background",        isBackground(), allocator);
-    doc.AddMember("colors",            Log::colors, allocator);
+    doc.AddMember("colors",            Log::isColors(), allocator);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     doc.AddMember(StringRef(kRandomX), rx().toJSON(doc), allocator);
@@ -246,6 +246,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retry-pause",                m_pools.retryPause(), allocator);
     doc.AddMember("syslog",                     isSyslog(), allocator);
     doc.AddMember("user-agent",                 m_userAgent.toJSON(), allocator);
-    doc.AddMember("verbose",                    Log::verbose, allocator);
+    doc.AddMember("verbose",                    Log::verbose(), allocator);
     doc.AddMember("watch",                      m_watch, allocator);
 }

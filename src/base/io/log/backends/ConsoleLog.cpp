@@ -35,14 +35,14 @@
 xmrig::ConsoleLog::ConsoleLog()
 {
     if (!isSupported()) {
-        Log::colors = false;
+        Log::setColors(false);
         return;
     }
 
     m_tty = new uv_tty_t;
 
     if (uv_tty_init(uv_default_loop(), m_tty, 1, 0) < 0) {
-        Log::colors = false;
+        Log::setColors(false);
         return;
     }
 
@@ -71,7 +71,7 @@ xmrig::ConsoleLog::~ConsoleLog()
 
 void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool colors)
 {
-    if (!m_tty || Log::colors != colors) {
+    if (!m_tty || Log::isColors() != colors) {
         return;
     }
 

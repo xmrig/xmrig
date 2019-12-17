@@ -57,11 +57,19 @@ public:
     static void print(const char *fmt, ...);
     static void print(Level level, const char *fmt, ...);
 
-    static bool background;
-    static bool colors;
-    static uint32_t verbose;
+    static inline bool isBackground()                   { return m_background; }
+    static inline bool isColors()                       { return m_colors; }
+    static inline bool isVerbose()                      { return m_verbose > 0; }
+    static inline uint32_t verbose()                    { return m_verbose; }
+    static inline void setBackground(bool background)   { m_background = background; }
+    static inline void setColors(bool colors)           { m_colors = colors; }
+    static inline void setVerbose(uint32_t verbose)     { m_verbose = verbose; }
 
 private:
+    static bool m_background;
+    static bool m_colors;
+    static uint32_t m_verbose;
+
     static LogPrivate *d;
 };
 
@@ -130,7 +138,7 @@ private:
 #define LOG_WARN(x, ...)    xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
 #define LOG_NOTICE(x, ...)  xmrig::Log::print(xmrig::Log::NOTICE,  x, ##__VA_ARGS__)
 #define LOG_INFO(x, ...)    xmrig::Log::print(xmrig::Log::INFO,    x, ##__VA_ARGS__)
-#define LOG_VERBOSE(x, ...) if (xmrig::Log::verbose) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
+#define LOG_VERBOSE(x, ...) if (xmrig::Log::isVerbose()) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
 
 #ifdef APP_DEBUG
 #   define LOG_DEBUG(x, ...) xmrig::Log::print(xmrig::Log::DEBUG, x, ##__VA_ARGS__)

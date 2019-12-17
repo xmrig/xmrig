@@ -60,11 +60,11 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_dryRun       = reader.getBool("dry-run", m_dryRun);
     m_syslog       = reader.getBool("syslog", m_syslog);
     m_watch        = reader.getBool("watch", m_watch);
-    Log::colors    = reader.getBool("colors", Log::colors);
     m_logFile      = reader.getString("log-file");
     m_userAgent    = reader.getString("user-agent");
     m_version      = reader.getUint("version");
 
+    Log::setColors(reader.getBool("colors", Log::isColors()));
     setPrintTime(reader.getUint("print-time", 60));
     setVerbose(reader.getValue("verbose"));
 
@@ -134,9 +134,9 @@ void xmrig::BaseConfig::printVersions()
 void xmrig::BaseConfig::setVerbose(const rapidjson::Value &value)
 {
     if (value.IsBool()) {
-        Log::verbose = value.GetBool() ? 1 : 0;
+        Log::setVerbose(value.GetBool() ? 1 : 0);
     }
     else if (value.IsUint()) {
-        Log::verbose = value.GetUint();
+        Log::setVerbose(value.GetUint());
     }
 }
