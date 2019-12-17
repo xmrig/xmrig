@@ -211,13 +211,7 @@ static bool rdmsr(HANDLE driver, uint32_t reg, uint64_t &value)
 {
     DWORD size = 0;
 
-    if (!DeviceIoControl(driver, IOCTL_READ_MSR, &reg, sizeof(reg), &value, sizeof(value), &size, nullptr)) {
-        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot read MSR 0x%08" PRIx32, tag, reg);
-
-        return false;
-    }
-
-    return true;
+    return DeviceIoControl(driver, IOCTL_READ_MSR, &reg, sizeof(reg), &value, sizeof(value), &size, nullptr) != 0;
 }
 
 
@@ -225,6 +219,8 @@ static MsrItem rdmsr(HANDLE driver, uint32_t reg)
 {
     uint64_t value = 0;
     if (!rdmsr(driver, reg, value)) {
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot read MSR 0x%08" PRIx32, tag, reg);
+
         return {};
     }
 
