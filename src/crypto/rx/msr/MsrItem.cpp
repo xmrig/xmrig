@@ -44,8 +44,8 @@ xmrig::MsrItem::MsrItem(const rapidjson::Value &value)
     }
 
     m_reg   = strtoul(kv[0], nullptr, 0);
-    m_value = strtoul(kv[1], nullptr, 0);
-    m_mask  = (kv.size() > 2) ? strtoul(kv[2], nullptr, 0) : kNoMask;
+    m_value = strtoull(kv[1], nullptr, 0);
+    m_mask  = (kv.size() > 2) ? strtoull(kv[2], nullptr, 0) : kNoMask;
 }
 
 
@@ -57,10 +57,16 @@ rapidjson::Value xmrig::MsrItem::toJSON(rapidjson::Document &doc) const
 
 xmrig::String xmrig::MsrItem::toString() const
 {
-    constexpr size_t size = 32;
+    constexpr size_t size = 48;
 
     auto buf = new char[size]();
-    snprintf(buf, size, "0x%" PRIx32 ":0x%" PRIx64, m_reg, m_value);
+
+    if (m_mask != kNoMask) {
+        snprintf(buf, size, "0x%" PRIx32 ":0x%" PRIx64 ":0x%" PRIx64, m_reg, m_value, m_mask);
+    }
+    else {
+        snprintf(buf, size, "0x%" PRIx32 ":0x%" PRIx64, m_reg, m_value);
+    }
 
     return buf;
 }
