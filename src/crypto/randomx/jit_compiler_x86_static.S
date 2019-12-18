@@ -94,6 +94,9 @@ DECL(randomx_program_prologue_first_load):
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
 	stmxcsr dword ptr [rsp-20]
+	nop
+	nop
+	nop
 	jmp DECL(randomx_program_loop_begin)
 
 .balign 64
