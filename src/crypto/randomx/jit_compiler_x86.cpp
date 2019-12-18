@@ -289,6 +289,11 @@ namespace randomx {
 
 	JitCompilerX86::JitCompilerX86() {
 		applyTweaks();
+
+		int32_t info[4];
+		cpuid(1, info);
+		hasAVX = (info[2] & (1 << 28)) != 0;
+
 		allocatedCode = (uint8_t*)allocExecutableMemory(CodeSize * 2);
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
 		code = allocatedCode + (codeOffset.fetch_add(59 * 64) % CodeSize);
@@ -374,6 +379,9 @@ namespace randomx {
 		code[codePos + 5] = 0xc0 + pcfg.readReg1;
 		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		if (hasAVX) {
+			*(uint32_t*)(code + codePos + 29) = 0xE977F8C5;
+		}
 
 		codePos = prologueSize;
 		memcpy(code + codePos - 48, &pcfg.eMask, sizeof(pcfg.eMask));

@@ -73,6 +73,7 @@ namespace randomx {
 		uint32_t vm_flags;
 
 		static bool BranchesWithin32B;
+		bool hasAVX;
 
 		static void applyTweaks();
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
