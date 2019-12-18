@@ -58,48 +58,6 @@ static inline int dir_filter(const struct dirent *dirp)
 }
 
 
-static bool wrmsr_on_cpu(uint32_t reg, uint32_t cpu, uint64_t value)
-{
-    char msr_file_name[64]{};
-
-    sprintf(msr_file_name, "/dev/cpu/%d/msr", cpu);
-    int fd = open(msr_file_name, O_WRONLY);
-    if (fd < 0) {
-        return false;
-    }
-
-    const bool success = pwrite(fd, &value, sizeof value, reg) == sizeof value;
-
-    close(fd);
-
-    return success;
-}
-
-
-static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value)
-{
-    struct dirent **namelist;
-    int dir_entries = scandir("/dev/cpu", &namelist, dir_filter, 0);
-    int errors      = 0;
-
-    while (dir_entries--) {
-        if (!wrmsr_on_cpu(reg, strtoul(namelist[dir_entries]->d_name, nullptr, 10), value)) {
-            ++errors;
-        }
-
-        free(namelist[dir_entries]);
-    }
-
-    free(namelist);
-
-    if (errors) {
-        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot set MSR 0x%08" PRIx32 " to 0x%08" PRIx64, tag, reg, value);
-    }
-
-    return errors == 0;
-}
-
-
 bool rdmsr_on_cpu(uint32_t reg, uint32_t cpu, uint64_t &value)
 {
     char msr_file_name[64]{};
@@ -128,6 +86,56 @@ static MsrItem rdmsr(uint32_t reg)
     }
 
     return { reg, value };
+}
+
+
+static bool wrmsr_on_cpu(uint32_t reg, uint32_t cpu, uint64_t value, uint64_t mask)
+{
+    // If a bit in mask is set to 1, use new value, otherwise use old value
+    if (mask != uint64_t(-1)) {
+        uint64_t old_value;
+        if (rdmsr_on_cpu(reg, cpu, old_value)) {
+            value = (value & mask) | (old_value & ~mask);
+        }
+    }
+
+    char msr_file_name[64]{};
+
+    sprintf(msr_file_name, "/dev/cpu/%d/msr", cpu);
+    int fd = open(msr_file_name, O_WRONLY);
+    if (fd < 0) {
+        return false;
+    }
+
+    const bool success = pwrite(fd, &value, sizeof value, reg) == sizeof value;
+
+    close(fd);
+
+    return success;
+}
+
+
+static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value, uint64_t mask)
+{
+    struct dirent **namelist;
+    int dir_entries = scandir("/dev/cpu", &namelist, dir_filter, 0);
+    int errors      = 0;
+
+    while (dir_entries--) {
+        if (!wrmsr_on_cpu(reg, strtoul(namelist[dir_entries]->d_name, nullptr, 10), value, mask)) {
+            ++errors;
+        }
+
+        free(namelist[dir_entries]);
+    }
+
+    free(namelist);
+
+    if (errors) {
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot set MSR 0x%08" PRIx32 " to 0x%08" PRIx64, tag, reg, value);
+    }
+
+    return errors == 0;
 }
 
 
@@ -161,7 +169,7 @@ static bool wrmsr(const MsrItems &preset, bool save)
     }
 
     for (const auto &i : preset) {
-        if (!wrmsr_on_all_cpus(i.reg(), i.value())) {
+        if (!wrmsr_on_all_cpus(i.reg(), i.value(), i.mask())) {
             return false;
         }
     }

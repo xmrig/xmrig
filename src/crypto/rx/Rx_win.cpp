@@ -196,31 +196,6 @@ static HANDLE wrmsr_install_driver()
 #define IOCTL_WRITE_MSR CTL_CODE(40000, 0x822, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 
-static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value)
-{
-    struct {
-        uint32_t reg = 0;
-        uint32_t value[2]{};
-    } input;
-
-    static_assert(sizeof(input) == 12, "Invalid struct size for WinRing0 driver");
-
-    input.reg = reg;
-    *(reinterpret_cast<uint64_t*>(input.value)) = value;
-
-    DWORD output;
-    DWORD k;
-
-    if (!DeviceIoControl(driver, IOCTL_WRITE_MSR, &input, sizeof(input), &output, sizeof(output), &k, nullptr)) {
-        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot set MSR 0x%08" PRIx32 " to 0x%08" PRIx64, tag, reg, value);
-
-        return false;
-    }
-
-    return true;
-}
-
-
 static bool rdmsr(HANDLE driver, uint32_t reg, uint64_t &value)
 {
     DWORD size = 0;
@@ -239,6 +214,39 @@ static MsrItem rdmsr(HANDLE driver, uint32_t reg)
     }
 
     return { reg, value };
+}
+
+
+static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value, uint64_t mask)
+{
+    struct {
+        uint32_t reg = 0;
+        uint32_t value[2]{};
+    } input;
+
+    static_assert(sizeof(input) == 12, "Invalid struct size for WinRing0 driver");
+
+    // If a bit in mask is set to 1, use new value, otherwise use old value
+    if (mask != uint64_t(-1)) {
+        uint64_t old_value;
+        if (rdmsr(driver, reg, old_value)) {
+            value = (value & mask) | (old_value & ~mask);
+        }
+    }
+
+    input.reg = reg;
+    *(reinterpret_cast<uint64_t*>(input.value)) = value;
+
+    DWORD output;
+    DWORD k;
+
+    if (!DeviceIoControl(driver, IOCTL_WRITE_MSR, &input, sizeof(input), &output, sizeof(output), &k, nullptr)) {
+        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "cannot set MSR 0x%08" PRIx32 " to 0x%08" PRIx64, tag, reg, value);
+
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -275,7 +283,7 @@ static bool wrmsr(const MsrItems &preset, bool save)
             }
 
             for (const auto &i : preset) {
-                success = wrmsr(driver, i.reg(), i.value());
+                success = wrmsr(driver, i.reg(), i.value(), i.mask());
             }
 
             if (!success) {
