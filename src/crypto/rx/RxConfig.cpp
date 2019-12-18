@@ -243,7 +243,7 @@ void xmrig::RxConfig::readMSR(const rapidjson::Value &value)
         return;
     }
 
-    if (value.IsInt()) {
+    if (value.IsInt() && Cpu::info()->vendor() == ICpuInfo::VENDOR_INTEL) {
         const int i = std::min(value.GetInt(), 15);
         if (i >= 0) {
             m_msrPreset.emplace_back(0x1a4, i);
