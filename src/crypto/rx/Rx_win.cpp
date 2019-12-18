@@ -227,7 +227,7 @@ static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value, uint64_t mask)
     static_assert(sizeof(input) == 12, "Invalid struct size for WinRing0 driver");
 
     // If a bit in mask is set to 1, use new value, otherwise use old value
-    if (mask != uint64_t(-1)) {
+    if (mask != MsrItem::kNoMask) {
         uint64_t old_value;
         if (rdmsr(driver, reg, old_value)) {
             value = (value & mask) | (old_value & ~mask);

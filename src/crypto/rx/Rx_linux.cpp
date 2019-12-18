@@ -92,7 +92,7 @@ static MsrItem rdmsr(uint32_t reg)
 static bool wrmsr_on_cpu(uint32_t reg, uint32_t cpu, uint64_t value, uint64_t mask)
 {
     // If a bit in mask is set to 1, use new value, otherwise use old value
-    if (mask != uint64_t(-1)) {
+    if (mask != MsrItem::kNoMask) {
         uint64_t old_value;
         if (rdmsr_on_cpu(reg, cpu, old_value)) {
             value = (value & mask) | (old_value & ~mask);

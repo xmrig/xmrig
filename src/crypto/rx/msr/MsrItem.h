@@ -31,6 +31,7 @@
 #include "base/tools/String.h"
 
 
+#include <limits>
 #include <vector>
 
 
@@ -44,8 +45,10 @@ class RxDataset;
 class MsrItem
 {
 public:
+    constexpr static uint64_t kNoMask = std::numeric_limits<uint64_t>::max();
+
     inline MsrItem() = default;
-    inline MsrItem(uint32_t reg, uint64_t value, uint64_t mask = uint64_t(-1)) : m_reg(reg), m_value(value), m_mask(mask) {}
+    inline MsrItem(uint32_t reg, uint64_t value, uint64_t mask = kNoMask) : m_reg(reg), m_value(value), m_mask(mask) {}
 
     MsrItem(const rapidjson::Value &value);
 
@@ -60,7 +63,7 @@ public:
 private:
     uint32_t m_reg      = 0;
     uint64_t m_value    = 0;
-    uint64_t m_mask     = uint64_t(-1);
+    uint64_t m_mask     = kNoMask;
 };
 
 

@@ -45,7 +45,7 @@ xmrig::MsrItem::MsrItem(const rapidjson::Value &value)
 
     m_reg   = strtoul(kv[0], nullptr, 0);
     m_value = strtoul(kv[1], nullptr, 0);
-    m_mask  = (kv.size() > 2) ? strtoul(kv[2], nullptr, 0) : uint64_t(-1);
+    m_mask  = (kv.size() > 2) ? strtoul(kv[2], nullptr, 0) : kNoMask;
 }
 
 
