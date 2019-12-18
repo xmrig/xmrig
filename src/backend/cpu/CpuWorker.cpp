@@ -218,10 +218,16 @@ void xmrig::CpuWorker<N>::start()
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 if (first) {
                     first = false;
-                    randomx_calculate_hash_first(m_vm->get(), tempHash, m_job.blob(), job.size());
+                    if (job.algorithm() == Algorithm::DEFYX)
+                        defyx_calculate_hash_first(m_vm->get(), tempHash, m_job.blob(), job.size());
+                    else
+                        randomx_calculate_hash_first(m_vm->get(), tempHash, m_job.blob(), job.size());
                 }
                 m_job.nextRound(kReserveCount, 1);
-                randomx_calculate_hash_next(m_vm->get(), tempHash, m_job.blob(), job.size(), m_hash);
+                if (job.algorithm() == Algorithm::DEFYX)
+                    defyx_calculate_hash_next(m_vm->get(), tempHash, m_job.blob(), job.size(), m_hash);
+                else
+                    randomx_calculate_hash_next(m_vm->get(), tempHash, m_job.blob(), job.size(), m_hash);
             }
             else
 #           endif

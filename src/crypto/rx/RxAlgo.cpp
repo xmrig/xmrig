@@ -52,6 +52,10 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_SFX:
         return &RandomX_SafexConfig;
 
+    case Algorithm::DEFYX:
+        return &RandomX_ScalaConfig;
+        break;
+
     default:
         break;
     }

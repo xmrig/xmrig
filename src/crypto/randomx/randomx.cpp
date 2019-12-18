@@ -43,6 +43,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cassert>
 
+extern "C" {
+#include "crypto/defyx/yescrypt.h"
+#include "crypto/defyx/KangarooTwelve.h"
+}
+#define YESCRYPT_FLAGS YESCRYPT_RW
+#define YESCRYPT_BASE_N 2048
+#define YESCRYPT_R 8
+#define YESCRYPT_P 1
+
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 {
 	ArgonSalt = "RandomWOW\x01";
@@ -95,6 +104,24 @@ RandomX_ConfigurationArqma::RandomX_ConfigurationArqma()
 RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 {
 	ArgonSalt = "RandomSFX\x01";
+}
+
+RandomX_ConfigurationScala::RandomX_ConfigurationScala()
+{
+	ArgonMemory       = 131072;
+	ArgonIterations   = 2;
+	ArgonSalt         = "DefyXScala\x13";
+	CacheAccesses     = 2;
+	DatasetBaseSize   = 33554432;
+	ScratchpadL1_Size = 65536;
+	ScratchpadL2_Size = 131072;
+	ScratchpadL3_Size = 262144;
+	ProgramSize       = 64;
+	ProgramIterations = 1024;
+	ProgramCount      = 4;
+
+	RANDOMX_FREQ_IADD_RS = 25;
+	RANDOMX_FREQ_CBRANCH = 16;
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
@@ -203,11 +230,10 @@ void RandomX_ConfigurationBase::Apply()
 
 #if defined(_M_X64) || defined(__x86_64__)
 	*(uint32_t*)(codeShhPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
-	// Not needed right now because all variants use default dataset base size
-	//const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
-	//*(uint32_t*)(codeReadDatasetTweaked + 9) = DatasetBaseMask;
-	//*(uint32_t*)(codeReadDatasetTweaked + 24) = DatasetBaseMask;
-	//*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
+	const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
+	*(uint32_t*)(codeReadDatasetTweaked + 7) = DatasetBaseMask;
+	*(uint32_t*)(codeReadDatasetTweaked + 23) = DatasetBaseMask;
+	*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
 
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 4) = ScratchpadL3Mask64_Calculated;
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 18) = ScratchpadL3Mask64_Calculated;
@@ -273,8 +299,31 @@ RandomX_ConfigurationWownero RandomX_WowneroConfig;
 RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
+RandomX_ConfigurationScala RandomX_ScalaConfig;
 
 RandomX_ConfigurationBase RandomX_CurrentConfig;
+
+int sipesh(void *out, size_t outlen, const void *in, size_t inlen, const void *salt, size_t saltlen, unsigned int t_cost, unsigned int m_cost)
+{
+	yescrypt_local_t local;
+	int retval;
+
+	if (yescrypt_init_local(&local))
+		return -1;
+	retval = yescrypt_kdf(NULL, &local, (const uint8_t*)in, inlen, (const uint8_t*)salt, saltlen,
+	    (uint64_t)YESCRYPT_BASE_N << m_cost, YESCRYPT_R, YESCRYPT_P,
+	    t_cost, 0, YESCRYPT_FLAGS, (uint8_t*)out, outlen);
+	if (yescrypt_free_local(&local))
+		return -1;
+	return retval;
+}
+
+int k12(const void *data, size_t length, void *hash)
+{
+
+  int kDo = KangarooTwelve((const unsigned char *)data, length, (unsigned char *)hash, 32, 0, 0);
+  return kDo;
+}
 
 extern "C" {
 
@@ -464,6 +513,43 @@ extern "C" {
 
 		// Finish current hash and fill the scratchpad for the next hash at the same time
 		rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
+		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
+	}
+
+	void defyx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output) {
+		assert(machine != nullptr);
+		assert(inputSize == 0 || input != nullptr);
+		assert(output != nullptr);
+		alignas(16) uint64_t tempHash[8];
+		sipesh(tempHash, sizeof(tempHash), input, inputSize, input, inputSize, 0, 0);
+		k12(input, inputSize, tempHash);
+		machine->initScratchpad(&tempHash);
+		machine->resetRoundingMode();
+		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+			machine->run(&tempHash);
+			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+		}
+		machine->run(&tempHash);
+		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
+	}
+
+	void defyx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
+		sipesh(tempHash, sizeof(tempHash), input, inputSize, input, inputSize, 0, 0);
+		k12(input, inputSize, tempHash);
+		machine->initScratchpad(tempHash);
+	}
+
+	void defyx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
+		machine->resetRoundingMode();
+		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+			machine->run(&tempHash);
+			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+		}
+		machine->run(&tempHash);
+
+		// Finish current hash and fill the scratchpad for the next hash at the same time
+		sipesh(tempHash, sizeof(tempHash), nextInput, nextInputSize, nextInput, nextInputSize, 0, 0);
+		k12(nextInput, nextInputSize, tempHash);
 		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
 	}
 
