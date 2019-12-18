@@ -292,7 +292,7 @@ namespace randomx {
 
 		int32_t info[4];
 		cpuid(1, info);
-		hasAVX = (info[2] & (1 << 28)) != 0;
+		hasAVX = ((info[2] & (1 << 27)) != 0) && ((info[2] & (1 << 28)) != 0);
 
 		allocatedCode = (uint8_t*)allocExecutableMemory(CodeSize * 2);
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
