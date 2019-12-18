@@ -380,7 +380,8 @@ namespace randomx {
 		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		if (hasAVX) {
-			*(uint32_t*)(code + codePos + 29) = 0xE977F8C5;
+			uint32_t* p = (uint32_t*)(code + codePos + 29);
+			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
 		}
 
 		codePos = prologueSize;
