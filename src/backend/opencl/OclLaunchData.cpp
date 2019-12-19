@@ -25,9 +25,9 @@
 
 
 #include "backend/opencl/OclLaunchData.h"
-
 #include "backend/common/Tags.h"
 #include "backend/opencl/OclConfig.h"
+#include "crypto/rx/RxAlgo.h"
 
 
 xmrig::OclLaunchData::OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclPlatform &platform, const OclThread &thread, const OclDevice &device, int64_t affinity) :
@@ -44,8 +44,8 @@ xmrig::OclLaunchData::OclLaunchData(const Miner *miner, const Algorithm &algorit
 
 bool xmrig::OclLaunchData::isEqual(const OclLaunchData &other) const
 {
-    return (other.algorithm == algorithm &&
-            other.thread    == thread);
+    return (RxAlgo::id(other.algorithm) == RxAlgo::id(algorithm) &&
+            other.thread                == thread);
 }
 
 
