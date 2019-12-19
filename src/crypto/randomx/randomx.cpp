@@ -97,6 +97,11 @@ RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 	ArgonSalt = "RandomSFX\x01";
 }
 
+RandomX_ConfigurationV::RandomX_ConfigurationV()
+{
+	ArgonSalt = "RandomV\x03";
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonMemory(262144)
 	, ArgonIterations(3)
@@ -273,6 +278,7 @@ RandomX_ConfigurationWownero RandomX_WowneroConfig;
 RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
+RandomX_ConfigurationV RandomX_VConfig;
 
 RandomX_ConfigurationBase RandomX_CurrentConfig;
 

@@ -46,6 +46,7 @@ class RxAlgo
 {
 public:
     static Algorithm::Id apply(Algorithm::Id algorithm);
+    static Algorithm::Id id(Algorithm::Id algorithm);
     static const RandomX_ConfigurationBase *base(Algorithm::Id algorithm);
     static uint32_t programCount(Algorithm::Id algorithm);
     static uint32_t programIterations(Algorithm::Id algorithm);
