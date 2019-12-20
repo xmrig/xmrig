@@ -37,16 +37,6 @@ xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 }
 
 
-xmrig::Algorithm::Id xmrig::RxAlgo::id(Algorithm::Id algorithm)
-{
-    if (algorithm == Algorithm::RX_SFX || algorithm == Algorithm::RX_V) {
-        return Algorithm::RX_0;
-    }
-
-    return algorithm;
-}
-
-
 const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
 {
     switch (algorithm) {
