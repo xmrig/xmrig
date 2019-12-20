@@ -466,11 +466,7 @@ bool xmrig::Client::send(BIO *bio)
 
     bool result = false;
     if (state() == ConnectedState && uv_is_writable(m_stream)) {
-        result = uv_try_write(m_stream, &buf, 1) > 0;
-
-        if (!result) {
-            close();
-        }
+        result = write(buf);
     }
     else {
         LOG_DEBUG_ERR("[%s] send failed, invalid state: %d", url(), m_state);
@@ -508,6 +504,23 @@ bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo
     }
 
     return ok;
+}
+
+
+bool xmrig::Client::write(const uv_buf_t &buf)
+{
+    const int rc = uv_try_write(m_stream, &buf, 1);
+    if (static_cast<size_t>(rc) == buf.len) {
+        return true;
+    }
+
+    if (!isQuiet()) {
+        LOG_ERR("[%s] write error: \"%s\"", url(), uv_strerror(rc));
+    }
+
+    close();
+
+    return false;
 }
 
 
@@ -553,8 +566,7 @@ int64_t xmrig::Client::send(size_t size)
 
         uv_buf_t buf = uv_buf_init(m_sendBuf.data(), (unsigned int) size);
 
-        if (uv_try_write(m_stream, &buf, 1) < 0) {
-            close();
+        if (!write(buf)) {
             return -1;
         }
     }
