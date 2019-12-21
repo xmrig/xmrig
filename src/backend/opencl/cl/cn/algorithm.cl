@@ -16,14 +16,15 @@
 #define ALGO_CN_HEAVY_TUBE  15
 #define ALGO_CN_HEAVY_XHV   16
 #define ALGO_CN_PICO_0      17
-#define ALGO_RX_0           18
-#define ALGO_RX_WOW         19
-#define ALGO_RX_LOKI        20
-#define ALGO_RX_ARQMA       21
-#define ALGO_RX_SFX         22
-#define ALGO_RX_V           23
-#define ALGO_AR2_CHUKWA     24
-#define ALGO_AR2_WRKZ       25
+#define ALGO_CN_PICO_TLO    18
+#define ALGO_RX_0           19
+#define ALGO_RX_WOW         20
+#define ALGO_RX_LOKI        21
+#define ALGO_RX_ARQMA       22
+#define ALGO_RX_SFX         23
+#define ALGO_RX_V           24
+#define ALGO_AR2_CHUKWA     25
+#define ALGO_AR2_WRKZ       26
 
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1

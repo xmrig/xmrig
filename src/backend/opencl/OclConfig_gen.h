@@ -100,7 +100,8 @@ size_t inline generate<Algorithm::CN_HEAVY>(Threads<OclThreads> &threads, const 
 template<>
 size_t inline generate<Algorithm::CN_PICO>(Threads<OclThreads> &threads, const std::vector<OclDevice> &devices)
 {
-    return generate("cn-pico", threads, Algorithm::CN_PICO_0, devices);
+    return generate("cn-pico", threads, Algorithm::CN_PICO_0, devices) &&
+           generate("cn-pico/tlo", threads, Algorithm::CN_PICO_TLO, devices);
 }
 #endif
 

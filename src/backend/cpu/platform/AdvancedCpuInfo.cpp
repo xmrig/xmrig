@@ -195,7 +195,7 @@ xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm, ui
     uint32_t intensity = algorithm.maxIntensity() == 1 ? 0 : 1;
 
 #   ifdef XMRIG_ALGO_CN_PICO
-    if (algorithm == Algorithm::CN_PICO_0 && (count / cores()) >= 2) {
+    if ((algorithm == Algorithm::CN_PICO_0 || algorithm == Algorithm::CN_PICO_TLO) && (count / cores()) >= 2) {
         intensity = 2;
     }
 #   endif

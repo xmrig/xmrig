@@ -63,6 +63,7 @@ public:
         CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
         CN_HEAVY_XHV,  // "cn-heavy/xhv"     CryptoNight-Heavy (modified, Haven Protocol only).
         CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
+        CN_PICO_TLO,   // "cn-pico/tlo"      CryptoNight Talleo (TLO)
         RX_0,          // "rx/0"             RandomX (reference configuration).
         RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
         RX_LOKI,       // "rx/loki"          RandomXL (Loki).

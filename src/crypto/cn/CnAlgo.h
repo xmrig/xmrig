@@ -111,6 +111,7 @@ public:
 
 #       ifdef XMRIG_ALGO_CN_PICO
         case Algorithm::CN_PICO_0:
+        case Algorithm::CN_PICO_TLO:
             return CN_ITER / 8;
 #       endif
 
@@ -132,6 +133,8 @@ public:
 #       ifdef XMRIG_ALGO_CN_PICO
         if (algo == Algorithm::CN_PICO_0) {
             return 0x1FFF0;
+        } else if (algo == Algorithm::CN_PICO_TLO) {
+            return 0x3FFF0;
         }
 #       endif
 
@@ -171,6 +174,7 @@ public:
         case Algorithm::CN_DOUBLE:
 #       ifdef XMRIG_ALGO_CN_PICO
         case Algorithm::CN_PICO_0:
+        case Algorithm::CN_PICO_TLO:
 #       endif
             return Algorithm::CN_2;
 
@@ -217,6 +221,7 @@ template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_RWZ>::iterations() con
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_ZLS>::iterations() const          { return 0x60000; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::iterations() const          { return 0xC000; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::iterations() const       { return CN_ITER / 8; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_TLO>::iterations() const     { return CN_ITER / 8; }
 
 
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_LITE_0>::memory() const             { return CN_MEMORY / 2; }
@@ -225,10 +230,12 @@ template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_0>::memory() const
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_TUBE>::memory() const         { return CN_MEMORY * 2; }
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_XHV>::memory() const          { return CN_MEMORY * 2; }
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_0>::memory() const             { return CN_MEMORY / 8; }
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_TLO>::memory() const           { return CN_MEMORY / 8; }
 
 
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::mask() const                { return 0x1FFFC0; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const             { return 0x1FFF0; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_TLO>::mask() const           { return 0x3FFF0; }
 
 
 } /* namespace xmrig */
