@@ -82,6 +82,8 @@ protected:
 
 private:
     inline void setPrintTime(uint32_t printTime) { if (printTime <= 3600) { m_printTime = printTime; } }
+
+    void setVerbose(const rapidjson::Value &value);
 };
 
 

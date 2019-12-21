@@ -60,14 +60,10 @@ class Client : public BaseClient, public IDnsListener, public ILineListener
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Client)
 
-    constexpr static uint64_t kConnectTimeout  = 20 * 1000;
-    constexpr static uint64_t kResponseTimeout = 20 * 1000;
-
-#   ifdef XMRIG_FEATURE_TLS
-    constexpr static size_t kInputBufferSize = 1024 * 16;
-#   else
-    constexpr static size_t kInputBufferSize = 1024 * 2;
-#   endif
+    constexpr static uint64_t kConnectTimeout   = 20 * 1000;
+    constexpr static uint64_t kResponseTimeout  = 20 * 1000;
+    constexpr static size_t kInputBufferSize    = 1024 * 16;
+    constexpr static size_t kMaxSendBufferSize  = 1024 * 16;
 
     Client(int id, const char *agent, IClientListener *listener);
     ~Client() override;
@@ -100,6 +96,7 @@ private:
     bool parseLogin(const rapidjson::Value &result, int *code);
     bool send(BIO *bio);
     bool verifyAlgorithm(const Algorithm &algorithm, const char *algo) const;
+    bool write(const uv_buf_t &buf);
     int resolve(const String &host);
     int64_t send(size_t size);
     void connect(sockaddr *addr);
@@ -128,11 +125,11 @@ private:
 
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 
-    char m_sendBuf[4096] = { 0 };
     const char *m_agent;
     Dns *m_dns;
     RecvBuf<kInputBufferSize> m_recvBuf;
     std::bitset<EXT_MAX> m_extensions;
+    std::vector<char> m_sendBuf;
     String m_rpcId;
     Tls *m_tls                  = nullptr;
     uint64_t m_expire           = 0;

@@ -28,6 +28,7 @@
 
 
 #include "backend/cuda/wrappers/CudaLib.h"
+#include "crypto/rx/RxAlgo.h"
 
 
 namespace xmrig {
@@ -163,7 +164,7 @@ bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datase
 
 bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept
 {
-    return pSetJob(ctx, data, size, algorithm);
+    return pSetJob(ctx, data, size, RxAlgo::id(algorithm));
 }
 
 
@@ -187,7 +188,7 @@ const char *xmrig::CudaLib::pluginVersion() noexcept
 
 int xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host) noexcept
 {
-    return pDeviceInfo(ctx, blocks, threads, algorithm, dataset_host);
+    return pDeviceInfo(ctx, blocks, threads, RxAlgo::id(algorithm), dataset_host);
 }
 
 

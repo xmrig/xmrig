@@ -92,7 +92,7 @@ public:
 
         std::lock_guard<std::mutex> lock(m_mutex);
 
-        if (Log::background && m_backends.empty()) {
+        if (Log::isBackground() && m_backends.empty()) {
             return;
         }
 
@@ -195,9 +195,10 @@ private:
 };
 
 
-bool Log::background = false;
-bool Log::colors     = true;
-LogPrivate *Log::d   = new LogPrivate();
+bool Log::m_background    = false;
+bool Log::m_colors        = true;
+LogPrivate *Log::d      = new LogPrivate();
+uint32_t Log::m_verbose   = 0;
 
 
 } /* namespace xmrig */

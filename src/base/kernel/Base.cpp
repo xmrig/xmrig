@@ -177,7 +177,7 @@ int xmrig::Base::init()
     Platform::init(config()->userAgent());
 
     if (isBackground()) {
-        Log::background = true;
+        Log::setBackground(true);
     }
     else {
         Log::add(new ConsoleLog());
