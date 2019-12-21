@@ -66,7 +66,8 @@ CPU backend:
       --randomx-no-numa         disable NUMA support for RandomX
       --randomx-mode=MODE       RandomX mode: auto, fast, light
       --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)
-      --randomx-wrmsr=N         write value (0-15) to Intel MSR register 0x1a4 or do nothing (-1) (Linux only)
+      --randomx-wrmsr=N         write custom value (0-15) to Intel MSR register 0x1a4 or disable MSR mod (-1)
+      --randomx-no-rdmsr        disable reverting initial MSR values on exit
 
 API:
       --api-worker-id=ID        custom worker-id for API
