@@ -274,7 +274,6 @@ void RandomX_ConfigurationBase::Apply()
 
 RandomX_ConfigurationMonero RandomX_MoneroConfig;
 RandomX_ConfigurationWownero RandomX_WowneroConfig;
-RandomX_ConfigurationV RandomX_VConfig;
 RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
