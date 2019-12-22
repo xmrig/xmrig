@@ -142,7 +142,6 @@ size_t xmrig::Algorithm::l2() const
 #   ifdef XMRIG_ALGO_RANDOMX
     switch (m_id) {
     case RX_0:
-    case RX_V:
     case RX_LOKI:
     case RX_SFX:
     case RX_V:
@@ -183,7 +182,6 @@ size_t xmrig::Algorithm::l3() const
     if (f == RANDOM_X) {
         switch (m_id) {
         case RX_0:
-        case RX_V:
         case RX_LOKI:
         case RX_SFX:
         case RX_V:
@@ -286,7 +284,6 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     case RX_0:
-    case RX_V:
     case RX_WOW:
     case RX_LOKI:
     case DEFYX:
