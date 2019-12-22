@@ -28,6 +28,7 @@
 
 
 #include "backend/cuda/wrappers/CudaLib.h"
+#include "base/kernel/Env.h"
 #include "crypto/rx/RxAlgo.h"
 
 
@@ -117,7 +118,7 @@ String CudaLib::m_loader;
 bool xmrig::CudaLib::init(const char *fileName)
 {
     if (!m_initialized) {
-        m_loader      = fileName == nullptr ? defaultLoader() : fileName;
+        m_loader      = fileName == nullptr ? defaultLoader() : Env::expand(fileName);
         m_ready       = uv_dlopen(m_loader, &cudaLib) == 0 && load();
         m_initialized = true;
     }
@@ -319,7 +320,7 @@ bool xmrig::CudaLib::load()
 }
 
 
-const char *xmrig::CudaLib::defaultLoader()
+xmrig::String xmrig::CudaLib::defaultLoader()
 {
 #   if defined(__APPLE__)
     return "/System/Library/Frameworks/OpenCL.framework/OpenCL"; // FIXME

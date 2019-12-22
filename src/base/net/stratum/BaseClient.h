@@ -56,10 +56,11 @@ protected:
     inline int64_t sequence() const override                   { return m_sequence; }
     inline void setAlgo(const Algorithm &algo) override        { m_pool.setAlgo(algo); }
     inline void setEnabled(bool enabled) override              { m_enabled = enabled; }
-    inline void setPool(const Pool &pool) override             { if (pool.isValid()) { m_pool = pool; } }
     inline void setQuiet(bool quiet) override                  { m_quiet = quiet; }
     inline void setRetries(int retries) override               { m_retries = retries; }
     inline void setRetryPause(uint64_t ms) override            { m_retryPause = ms; }
+
+    void setPool(const Pool &pool) override;
 
 protected:
     enum SocketState {
@@ -95,6 +96,9 @@ protected:
     std::map<int64_t, SendResult> m_callbacks;
     std::map<int64_t, SubmitResult> m_results;
     String m_ip;
+    String m_password;
+    String m_rigId;
+    String m_user;
     uint64_t m_retryPause           = 5000;
 
     static int64_t m_sequence;

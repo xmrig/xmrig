@@ -23,15 +23,18 @@
  */
 
 
-#include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/stratum/BaseClient.h"
+#include "base/kernel/Env.h"
+#include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "rapidjson/document.h"
 
 
 namespace xmrig {
 
+
 int64_t BaseClient::m_sequence = 1;
+
 
 } /* namespace xmrig */
 
@@ -40,6 +43,19 @@ xmrig::BaseClient::BaseClient(int id, IClientListener *listener) :
     m_listener(listener),
     m_id(id)
 {
+}
+
+
+void xmrig::BaseClient::setPool(const Pool &pool)
+{
+    if (!pool.isValid()) {
+        return;
+    }
+
+    m_pool      = pool;
+    m_user      = Env::expand(pool.user());
+    m_password  = Env::expand(pool.password());
+    m_rigId     = Env::expand(pool.rigId());
 }
 
 
