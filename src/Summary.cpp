@@ -159,7 +159,7 @@ static void print_threads(Config *config)
 
 static void print_commands(Config *)
 {
-    if (Log::colors) {
+    if (Log::isColors()) {
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BG(WHITE_BOLD_S "h") WHITE_BOLD("ashrate, ")
                                                                      MAGENTA_BG(WHITE_BOLD_S "p") WHITE_BOLD("ause, ")
                                                                      MAGENTA_BG(WHITE_BOLD_S "r") WHITE_BOLD("esume"));

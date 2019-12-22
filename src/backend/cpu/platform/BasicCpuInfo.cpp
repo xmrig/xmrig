@@ -175,11 +175,18 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
             cpuid(PROCESSOR_INFO, data);
             const int32_t family = get_masked(data[EAX_Reg], 12, 8) + get_masked(data[EAX_Reg], 28, 20);
 
-            m_assembly = family >= 23 ? Assembly::RYZEN : Assembly::BULLDOZER;
+            if (family >= 23) {
+                m_assembly = Assembly::RYZEN;
+                m_msrMod   = MSR_MOD_RYZEN;
+            }
+            else {
+                m_assembly = Assembly::BULLDOZER;
+            }
         }
         else if (memcmp(vendor, "GenuineIntel", 12) == 0) {
             m_vendor   = VENDOR_INTEL;
             m_assembly = Assembly::INTEL;
+            m_msrMod   = MSR_MOD_INTEL;
         }
     }
 #   endif

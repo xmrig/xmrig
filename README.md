@@ -98,6 +98,7 @@ Logging:
       --print-time=N            print hashrate report every N seconds
       --health-print-time=N     print health report every N seconds
       --no-color                disable colored output
+      --verbose                 verbose output
 
 Misc:
   -c, --config=FILE             load a JSON-format configuration file

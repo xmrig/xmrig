@@ -224,6 +224,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::HttpEnabledKey: /* --http-enabled */
     case IConfig::DaemonKey:      /* --daemon */
     case IConfig::RebenchAlgoKey: /* --rebench-algo */
+    case IConfig::VerboseKey:     /* --verbose */
         return transformBoolean(doc, key, true);
 
     case IConfig::ColorKey:          /* --no-color */
@@ -277,6 +278,9 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
 
     case IConfig::RebenchAlgoKey: /* --rebench-algo */
         return set(doc, "rebench-algo", enable);
+
+    case IConfig::VerboseKey: /* --verbose */
+        return set(doc, "verbose", enable);
 
     default:
         break;
