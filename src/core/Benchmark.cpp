@@ -35,13 +35,13 @@
 namespace xmrig {
 
 Benchmark::Benchmark() : m_controller(nullptr), m_isNewBenchRun(true) {
-  for (BenchAlgo bench_algo = static_cast<BenchAlgo>(0); bench_algo != BenchAlgo::MAX; bench_algo = static_cast<BenchAlgo>(bench_algo + 1)) {
+  for (BenchAlgo bench_algo = BenchAlgo::MIN; bench_algo != BenchAlgo::MAX; bench_algo = static_cast<BenchAlgo>(bench_algo + 1)) {
     m_bench_job[bench_algo] = new Job(false, Algorithm(ba2a[bench_algo]), "benchmark");
   }
 }
 
 Benchmark::~Benchmark() {
-  for (BenchAlgo bench_algo = static_cast<BenchAlgo>(0); bench_algo != BenchAlgo::MAX; bench_algo = static_cast<BenchAlgo>(bench_algo + 1)) {
+  for (BenchAlgo bench_algo = BenchAlgo::MIN; bench_algo != BenchAlgo::MAX; bench_algo = static_cast<BenchAlgo>(bench_algo + 1)) {
     delete m_bench_job[bench_algo];
   }
 }
@@ -50,19 +50,19 @@ Benchmark::~Benchmark() {
 void Benchmark::start() {
     JobResults::setListener(this, m_controller->config()->cpu().isHwAES()); // register benchmark as job result listener to compute hashrates there
     // write text before first benchmark round
-    LOG_INFO("%s " BLUE_BG(WHITE_BOLD_S "STARTING ALGO PERFORMANCE CALIBRATION (with " MAGENTA_BOLD_S "%i" WHITE_BOLD_S " seconds round)"), Tags::benchmark(), m_controller->config()->benchAlgoTime());
+    LOG_INFO("%s " BRIGHT_BLACK_BG(CYAN_BOLD_S " STARTING ALGO PERFORMANCE CALIBRATION (with " MAGENTA_BOLD_S "%i" CYAN_BOLD_S " seconds round) "), Tags::benchmark(), m_controller->config()->benchAlgoTime());
     // start benchmarking from first PerfAlgo in the list
-    start(xmrig::Benchmark::MIN);
+    start(BenchAlgo::MIN);
     m_isNewBenchRun = true;
 }
 
 // end of benchmarks, switch to jobs from the pool (network), fill algo_perf
 void Benchmark::finish() {
-    for (Algorithm::Id algo = static_cast<Algorithm::Id>(0); algo != Algorithm::MAX; algo = static_cast<Algorithm::Id>(algo + 1)) {
+    for (Algorithm::Id algo = Algorithm::MIN; algo != Algorithm::MAX; algo = static_cast<Algorithm::Id>(algo + 1)) {
         algo_perf[algo] = get_algo_perf(algo);
     }
     m_bench_algo = BenchAlgo::INVALID;
-    LOG_INFO("%s " BLUE_BG(WHITE_BOLD_S "ALGO PERFORMANCE CALIBRATION COMPLETE"), Tags::benchmark());
+    LOG_INFO("%s " BRIGHT_BLACK_BG(CYAN_BOLD_S " ALGO PERFORMANCE CALIBRATION COMPLETE "), Tags::benchmark());
     m_controller->miner()->pause(); // do not compute anything before job from the pool
     JobResults::stop();
     JobResults::setListener(m_controller->network(), m_controller->config()->cpu().isHwAES());
@@ -85,14 +85,14 @@ rapidjson::Value Benchmark::toJSON(rapidjson::Document &doc) const
 
 void Benchmark::read(const rapidjson::Value &value)
 {
-    for (Algorithm::Id algo = static_cast<Algorithm::Id>(0); algo != Algorithm::MAX; algo = static_cast<Algorithm::Id>(algo + 1)) {
+    for (Algorithm::Id algo = Algorithm::MIN; algo != Algorithm::MAX; algo = static_cast<Algorithm::Id>(algo + 1)) {
         algo_perf[algo] = 0.0f;
     }
     if (value.IsObject()) {
         for (auto &member : value.GetObject()) {
             const Algorithm algo(member.name.GetString());
             if (!algo.isValid()) {
-                LOG_INFO("%s " BLUE_BG(BLACK_BOLD_S "Ignoring wrong name for algo-perf[%s]"), Tags::benchmark(), member.name.GetString());
+                LOG_INFO("%s " BRIGHT_BLACK_BG(MAGENTA_BOLD_S " Ignoring wrong name for algo-perf[%s] "), Tags::benchmark(), member.name.GetString());
                 continue;
             }
             if (member.value.IsFloat()) {
@@ -105,7 +105,7 @@ void Benchmark::read(const rapidjson::Value &value)
                 m_isNewBenchRun = false;
                 continue;
             }
-            LOG_INFO("%s " BLUE_BG(WHITE_BOLD_S "Ignoring wrong value for algo-perf[%s]"), Tags::benchmark(), member.name.GetString());
+            LOG_INFO("%s " BRIGHT_BLACK_BG(MAGENTA_BOLD_S " Ignoring wrong value for algo-perf[%s] "), Tags::benchmark(), member.name.GetString());
         }
     }
 }
@@ -128,14 +128,13 @@ double Benchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::CN_LITE_1:     return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
         case Algorithm::CN_HEAVY_0:    return m_bench_algo_perf[BenchAlgo::CN_HEAVY_TUBE];
         case Algorithm::CN_HEAVY_TUBE: return m_bench_algo_perf[BenchAlgo::CN_HEAVY_TUBE];
-        case Algorithm::CN_HEAVY_XHV:  return m_bench_algo_perf[BenchAlgo::CN_HEAVY_TUBE];
+        case Algorithm::CN_HEAVY_XHV:  return m_bench_algo_perf[BenchAlgo::CN_HEAVY_XHV];
         case Algorithm::CN_PICO_0:     return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
         case Algorithm::CN_PICO_TLO:   return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
         case Algorithm::CN_GPU:        return m_bench_algo_perf[BenchAlgo::CN_GPU];
         case Algorithm::AR2_CHUKWA:    return m_bench_algo_perf[BenchAlgo::AR2_CHUKWA];
         case Algorithm::AR2_WRKZ:      return m_bench_algo_perf[BenchAlgo::AR2_WRKZ];
         case Algorithm::ASTROBWT_DERO: return m_bench_algo_perf[BenchAlgo::ASTROBWT_DERO];
-        case Algorithm::KAWPOW_RVN:    return m_bench_algo_perf[BenchAlgo::KAWPOW_RVN];
         case Algorithm::RX_0:          return m_bench_algo_perf[BenchAlgo::RX_0];
         case Algorithm::RX_LOKI:       return m_bench_algo_perf[BenchAlgo::RX_0];
         case Algorithm::RX_SFX:        return m_bench_algo_perf[BenchAlgo::RX_0];
@@ -157,7 +156,7 @@ void Benchmark::start(const BenchAlgo bench_algo) {
         run_next_bench_algo(bench_algo);
         return;
     }
-    LOG_INFO("%s " BLUE_BG(WHITE_BOLD_S "Algo %s Preparation"), Tags::benchmark(), algo.shortName());
+    LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " Preparation "), Tags::benchmark(), algo.shortName());
     // prepare test job for benchmark runs ("benchmark" client id is to make sure we can detect benchmark jobs)
     Job& job = *m_bench_job[bench_algo];
     job.setId(algo.shortName()); // need to set different id so that workers will see job change
@@ -199,7 +198,7 @@ void Benchmark::onJobResult(const JobResult& result) {
     if (m_backends_started.size() < m_enabled_backend_count && (now - m_time_start < static_cast<unsigned>(3*60*1000))) return;
     ++ m_hash_count;
     if (!m_bench_start) {
-       LOG_INFO("%s " BLUE_BG(WHITE_BOLD_S "Algo %s Starting test"), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).shortName());
+       LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " Starting test "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).shortName());
        m_bench_start = now; // time of measurements start (in ms)
     } else if (now - m_bench_start > static_cast<unsigned>(m_controller->config()->benchAlgoTime()*1000)) { // end of benchmark round for m_bench_algo
         double t[3] = { 0.0 };
@@ -218,7 +217,7 @@ void Benchmark::onJobResult(const JobResult& result) {
                 if (!(hashrate = t[0]))
                     hashrate = static_cast<double>(m_hash_count) * result.diff / (now - m_bench_start) * 1000.0f;
         m_bench_algo_perf[m_bench_algo] = hashrate; // store hashrate result
-        LOG_INFO("%s " BLUE_BG(WHITE_BOLD_S "Algo %s hashrate: %f"), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).shortName(), hashrate);
+        LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " hashrate: " CYAN_BOLD_S "%f "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).shortName(), hashrate);
         run_next_bench_algo(m_bench_algo);
     }
 }

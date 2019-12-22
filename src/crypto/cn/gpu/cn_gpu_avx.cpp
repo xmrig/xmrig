@@ -45,11 +45,11 @@ inline void prep_dv_avx(__m256i* idx, __m256i& v, __m256& n01)
     n01 = _mm256_cvtepi32_ps(v);
 }
 
-inline __m256 fma_break(const __m256& x) 
-{ 
-    // Break the dependency chain by setitng the exp to ?????01 
-    __m256 xx = _mm256_and_ps(_mm256_castsi256_ps(_mm256_set1_epi32(0xFEFFFFFF)), x); 
-    return _mm256_or_ps(_mm256_castsi256_ps(_mm256_set1_epi32(0x00800000)), xx); 
+inline __m256 fma_break(const __m256& x)
+{
+    // Break the dependency chain by setting the exp to ?????01
+    __m256 xx = _mm256_and_ps(_mm256_castsi256_ps(_mm256_set1_epi32(0xFEFFFFFF)), x);
+    return _mm256_or_ps(_mm256_castsi256_ps(_mm256_set1_epi32(0x00800000)), xx);
 }
 
 // 14
@@ -151,13 +151,13 @@ void cn_gpu_inner_avx(const uint8_t* spad, uint8_t* lpad)
         __m256 n01, n23;
         prep_dv_avx(idx0, v01, n01);
         prep_dv_avx(idx2, v23, n23);
-        
+
         __m256i out, out2;
         __m256 n10, n22, n33;
         n10 = _mm256_permute2f128_ps(n01, n01, 0x01);
         n22 = _mm256_permute2f128_ps(n23, n23, 0x00);
         n33 = _mm256_permute2f128_ps(n23, n23, 0x11);
-        
+
         out = _mm256_setzero_si256();
         double_compute_wrap<0>(n01, n10, n22, n33, 1.3437500f, 1.4296875f, rc, suma, out);
         double_compute_wrap<1>(n01, n22, n33, n10, 1.2812500f, 1.3984375f, rc, suma, out);
@@ -166,7 +166,7 @@ void cn_gpu_inner_avx(const uint8_t* spad, uint8_t* lpad)
         _mm256_store_si256(idx0, _mm256_xor_si256(v01, out));
         sum0 = _mm256_add_ps(suma, sumb);
         out2 = out;
-        
+
         __m256 n11, n02, n30;
         n11 = _mm256_permute2f128_ps(n01, n01, 0x11);
         n02 = _mm256_permute2f128_ps(n01, n23, 0x20);
@@ -191,7 +191,7 @@ void cn_gpu_inner_avx(const uint8_t* spad, uint8_t* lpad)
         __m128 sum = _mm256_castps256_ps128(sum0);
 
         sum = _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7fffffff)), sum); // take abs(va) by masking the float sign bit
-        // vs range 0 - 64 
+        // vs range 0 - 64
         __m128i v0 = _mm_cvttps_epi32(_mm_mul_ps(sum, _mm_set1_ps(16777216.0f)));
         v0 = _mm_xor_si128(v0, _mm256_castsi256_si128(out2));
         __m128i v1 = _mm_shuffle_epi32(v0, _MM_SHUFFLE(0, 1, 2, 3));

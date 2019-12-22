@@ -97,6 +97,7 @@ private:
 #define WHITE_S             CSI "0;37m" // another name for LT.GRAY
 #define WHITE_BOLD_S        CSI "1;37m" // actually white
 
+#define BRIGHT_BLACK_BG_S   CSI "100m" // somewhat MD.GRAY
 #define GREEN_BG_BOLD_S     CSI "42;1m"
 #define YELLOW_BG_BOLD_S    CSI "43;1m"
 #define BLUE_BG_S           CSI "44m"
@@ -124,6 +125,7 @@ private:
 #define WHITE(x)            WHITE_S x CLEAR
 #define WHITE_BOLD(x)       WHITE_BOLD_S x CLEAR
 
+#define BRIGHT_BLACK_BG(x)  BRIGHT_BLACK_BG_S x CLEAR
 #define GREEN_BG_BOLD(x)    GREEN_BG_BOLD_S x CLEAR
 #define YELLOW_BG_BOLD(x)   YELLOW_BG_BOLD_S x CLEAR
 #define BLUE_BG(x)          BLUE_BG_S x CLEAR

@@ -28,10 +28,6 @@
 #include "base/crypto/Algorithm.h"
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
-#endif
-
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "backend/opencl/cl/rx/randomx_cl.h"
 #endif
@@ -43,6 +39,10 @@
 #ifdef XMRIG_ALGO_KAWPOW
 #   include "backend/opencl/cl/kawpow/kawpow_cl.h"
 #   include "backend/opencl/cl/kawpow/kawpow_dag_cl.h"
+#endif
+
+#ifdef XMRIG_ALGO_CN_GPU
+#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
 #endif
 
 

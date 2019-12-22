@@ -39,11 +39,11 @@ inline void prep_dv(__m128i* idx, __m128i& v, __m128& n)
     n = _mm_cvtepi32_ps(v);
 }
 
-inline __m128 fma_break(__m128 x) 
-{ 
-    // Break the dependency chain by setitng the exp to ?????01 
-    x = _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0xFEFFFFFF)), x); 
-    return _mm_or_ps(_mm_castsi128_ps(_mm_set1_epi32(0x00800000)), x); 
+inline __m128 fma_break(__m128 x)
+{
+    // Break the dependency chain by setting the exp to ?????01
+    x = _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0xFEFFFFFF)), x);
+    return _mm_or_ps(_mm_castsi128_ps(_mm_set1_epi32(0x00800000)), x);
 }
 
 // 14
@@ -136,13 +136,13 @@ void cn_gpu_inner_ssse3(const uint8_t* spad, uint8_t* lpad)
     __m128i* idx2 = scratchpad_ptr<MASK>(lpad, s, 2);
     __m128i* idx3 = scratchpad_ptr<MASK>(lpad, s, 3);
     __m128 sum0 = _mm_setzero_ps();
-    
+
     for(size_t i = 0; i < ITER; i++)
     {
         __m128 n0, n1, n2, n3;
         __m128i v0, v1, v2, v3;
         __m128 suma, sumb, sum1, sum2, sum3;
-        
+
         prep_dv(idx0, v0, n0);
         prep_dv(idx1, v1, n1);
         prep_dv(idx2, v2, n2);
@@ -158,7 +158,7 @@ void cn_gpu_inner_ssse3(const uint8_t* spad, uint8_t* lpad)
         sum0 = _mm_add_ps(suma, sumb);
         _mm_store_si128(idx0, _mm_xor_si128(v0, out));
         out2 = out;
-    
+
         out = _mm_setzero_si128();
         single_compute_wrap<0>(n1, n0, n2, n3, 1.4296875f, rc, suma, out);
         single_compute_wrap<1>(n1, n2, n3, n0, 1.3984375f, rc, suma, out);
@@ -190,7 +190,7 @@ void cn_gpu_inner_ssse3(const uint8_t* spad, uint8_t* lpad)
         sum0 = _mm_add_ps(sum0, sum2);
 
         sum0 = _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7fffffff)), sum0); // take abs(va) by masking the float sign bit
-        // vs range 0 - 64 
+        // vs range 0 - 64
         n0 = _mm_mul_ps(sum0, _mm_set1_ps(16777216.0f));
         v0 = _mm_cvttps_epi32(n0);
         v0 = _mm_xor_si128(v0, out2);

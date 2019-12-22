@@ -87,7 +87,7 @@ inline global int4* scratchpad_ptr(uint idx, uint n, __global int *lpad) { retur
 
 inline float4 fma_break(float4 x)
 {
-    // Break the dependency chain by setitng the exp to ?????01
+    // Break the dependency chain by setting the exp to ?????01
     x = _mm_and_ps(x, 0xFEFFFFFF);
     return _mm_or_ps(x, 0x00800000);
 }

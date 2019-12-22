@@ -252,11 +252,6 @@ xmrig::CnHash::CnHash()
     ADD_FN_ASM(Algorithm::CN_ZLS);
     ADD_FN_ASM(Algorithm::CN_DOUBLE);
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    m_map[Algorithm::CN_GPU][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash_gpu<Algorithm::CN_GPU, false>;
-    m_map[Algorithm::CN_GPU][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash_gpu<Algorithm::CN_GPU, true>;
-#   endif
-
 #   ifdef XMRIG_ALGO_CN_LITE
     ADD_FN(Algorithm::CN_LITE_0);
     ADD_FN(Algorithm::CN_LITE_1);
@@ -287,6 +282,11 @@ xmrig::CnHash::CnHash()
 #   ifdef XMRIG_ALGO_ASTROBWT
     m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
     m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    m_map[Algorithm::CN_GPU][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash_gpu<Algorithm::CN_GPU, false>;
+    m_map[Algorithm::CN_GPU][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash_gpu<Algorithm::CN_GPU, true>;
 #   endif
 
 #   ifdef XMRIG_FEATURE_ASM

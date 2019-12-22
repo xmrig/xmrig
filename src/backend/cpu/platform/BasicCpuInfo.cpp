@@ -228,12 +228,6 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
         return 1;
     }
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return count;
-    }
-#   endif
-
 #   ifdef XMRIG_ALGO_CN_LITE
     if (algorithm.family() == Algorithm::CN_LITE) {
         return CpuThreads(count, 1);
@@ -275,6 +269,12 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
             threads.add(i, 0);
         }
         return threads;
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    if (algorithm == Algorithm::CN_GPU) {
+        return count;
     }
 #   endif
 
