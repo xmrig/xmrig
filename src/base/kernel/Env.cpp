@@ -24,6 +24,8 @@
 
 
 #include "base/kernel/Env.h"
+#include "base/kernel/Process.h"
+#include "version.h"
 
 
 #include <regex>
@@ -42,6 +44,23 @@
 #       define UV_MAXHOSTNAMESIZE 256
 #   endif
 #endif
+
+
+namespace xmrig {
+
+
+static std::map<String, String> variables;
+
+
+static void createVariables()
+{
+    variables.insert({ "XMRIG_VERSION", APP_VERSION });
+    variables.insert({ "XMRIG_EXE_DIR", Process::location(Process::ExeLocation, "") });
+    variables.insert({ "XMRIG_CWD",     Process::location(Process::CwdLocation, "") });
+}
+
+
+} // namespace xmrig
 
 
 xmrig::String xmrig::Env::expand(const char *in)
@@ -86,8 +105,16 @@ xmrig::String xmrig::Env::expand(const char *in)
 }
 
 
-xmrig::String xmrig::Env::get(const char *name)
+xmrig::String xmrig::Env::get(const String &name)
 {
+    if (variables.empty()) {
+        createVariables();
+    }
+
+    if (variables.count(name)) {
+        return variables.at(name);
+    }
+
     return static_cast<const char *>(getenv(name));
 }
 

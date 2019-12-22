@@ -36,7 +36,7 @@ class Env
 {
 public:
     static String expand(const char *in);
-    static String get(const char *name);
+    static String get(const String &name);
     static String hostname();
 };
 
