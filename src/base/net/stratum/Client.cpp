@@ -624,12 +624,12 @@ void xmrig::Client::login()
     auto &allocator = doc.GetAllocator();
 
     Value params(kObjectType);
-    params.AddMember("login", m_pool.user().toJSON(),     allocator);
-    params.AddMember("pass",  m_pool.password().toJSON(), allocator);
+    params.AddMember("login", m_user.toJSON(),     allocator);
+    params.AddMember("pass",  m_password.toJSON(), allocator);
     params.AddMember("agent", StringRef(m_agent),         allocator);
 
-    if (!m_pool.rigId().isNull()) {
-        params.AddMember("rigid", m_pool.rigId().toJSON(), allocator);
+    if (!m_rigId.isNull()) {
+        params.AddMember("rigid", m_rigId.toJSON(), allocator);
     }
 
     m_listener->onLogin(this, doc, params);

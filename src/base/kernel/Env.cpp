@@ -30,6 +30,11 @@
 #include <uv.h>
 
 
+#ifndef _WIN32
+#   include <unistd.h>
+#endif
+
+
 #ifndef UV_MAXHOSTNAMESIZE
 #   ifdef MAXHOSTNAMELEN
 #       define UV_MAXHOSTNAMESIZE (MAXHOSTNAMELEN + 1)

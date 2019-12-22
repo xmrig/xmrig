@@ -26,11 +26,6 @@
 #include <uv.h>
 
 
-#ifndef _WIN32
-#   include <unistd.h>
-#endif
-
-
 #include "base/api/Api.h"
 #include "3rdparty/http-parser/http_parser.h"
 #include "base/api/interfaces/IApiListener.h"
