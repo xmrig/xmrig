@@ -30,6 +30,7 @@
 
 #include <regex>
 #include <uv.h>
+#include <map>
 
 
 #ifndef _WIN32
