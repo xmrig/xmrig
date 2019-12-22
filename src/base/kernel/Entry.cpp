@@ -101,9 +101,9 @@ static int showVersion()
 
 
 #ifdef XMRIG_FEATURE_HWLOC
-static int exportTopology(const Process &process)
+static int exportTopology(const Process &)
 {
-    const String path = process.location(Process::ExeLocation, "topology.xml");
+    const String path = Process::location(Process::ExeLocation, "topology.xml");
 
     hwloc_topology_t topology;
     hwloc_topology_init(&topology);
