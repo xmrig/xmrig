@@ -179,7 +179,6 @@ struct RandomX_ConfigurationBase
 };
 
 struct RandomX_ConfigurationMonero : public RandomX_ConfigurationBase {};
-struct RandomX_ConfigurationV : public RandomX_ConfigurationBase { RandomX_ConfigurationV(); };
 struct RandomX_ConfigurationWownero : public RandomX_ConfigurationBase { RandomX_ConfigurationWownero(); };
 struct RandomX_ConfigurationLoki : public RandomX_ConfigurationBase { RandomX_ConfigurationLoki(); };
 struct RandomX_ConfigurationArqma : public RandomX_ConfigurationBase { RandomX_ConfigurationArqma(); };
@@ -187,7 +186,6 @@ struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_C
 struct RandomX_ConfigurationV : public RandomX_ConfigurationBase { RandomX_ConfigurationV(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
-extern RandomX_ConfigurationV RandomX_VConfig;
 extern RandomX_ConfigurationWownero RandomX_WowneroConfig;
 extern RandomX_ConfigurationLoki RandomX_LokiConfig;
 extern RandomX_ConfigurationArqma RandomX_ArqmaConfig;
