@@ -1,6 +1,6 @@
 # XMRig
 
-**:warning: [Monero will change PoW algorithm to RandomX on November 30.](https://github.com/xmrig/xmrig/issues/1204)**
+**:warning: [Monero changed PoW algorithm to RandomX on November 30.](https://github.com/xmrig/xmrig/issues/1204)**
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
@@ -38,7 +38,7 @@ Network:
   -u, --user=USERNAME           username for mining server
   -p, --pass=PASSWORD           password for mining server
   -O, --userpass=U:P            username:password pair for mining server
-  -k, --keepalive               send keepalived packet for prevent timeout (needs pool support)
+  -k, --keepalive               send keepalive packet for prevent timeout (needs pool support)
       --nicehash                enable nicehash.com support
       --rig-id=ID               rig identifier for pool-side statistics (needs pool support)
       --tls                     enable SSL/TLS support (needs pool support)
@@ -62,7 +62,7 @@ CPU backend:
       --cpu-no-yield            prefer maximum hashrate rather than system response/stability
       --no-huge-pages           disable huge pages support
       --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer
-      --randomx-init=N          threads count to initialize RandomX dataset
+      --randomx-init=N          thread count to initialize RandomX dataset
       --randomx-no-numa         disable NUMA support for RandomX
       --randomx-mode=MODE       RandomX mode: auto, fast, light
       --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)
