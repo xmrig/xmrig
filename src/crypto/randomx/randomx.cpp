@@ -285,6 +285,10 @@ RandomX_ConfigurationBase RandomX_CurrentConfig;
 extern "C" {
 
 	randomx_cache *randomx_create_cache(randomx_flags flags, uint8_t *memory) {
+		if (!memory) {
+			return nullptr;
+		}
+
 		randomx_cache *cache = nullptr;
 
 		try {
@@ -329,6 +333,10 @@ extern "C" {
 	}
 
 	randomx_dataset *randomx_create_dataset(uint8_t *memory) {
+		if (!memory) {
+			return nullptr;
+		}
+
 		auto dataset = new randomx_dataset();
 		dataset->memory = memory;
 

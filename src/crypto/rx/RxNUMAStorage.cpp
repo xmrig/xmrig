@@ -120,7 +120,7 @@ public:
     }
 
 
-    inline void createDatasets(bool hugePages, bool oneGbPages)
+    inline bool createDatasets(bool hugePages, bool oneGbPages)
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
@@ -133,6 +133,10 @@ public:
         if (isCacheRequired()) {
             std::thread thread(allocateCache, this, m_nodeset.front(), hugePages);
             thread.join();
+
+            if (!m_cache) {
+                return false;
+            }
         }
 
         if (m_datasets.empty()) {
@@ -149,6 +153,8 @@ public:
         }
 
         m_allocated = true;
+
+        return true;
     }
 
 
@@ -237,6 +243,13 @@ private:
         bindToNUMANode(nodeId);
 
         auto cache = new RxCache(hugePages, nodeId);
+        if (!cache->get()) {
+            delete cache;
+
+            LOG_INFO("%s" RED_BOLD("failed to allocate RandomX memory") BLACK_BOLD(" (%" PRIu64 " ms)"), rx_tag(), Chrono::steadyMSecs() - ts);
+
+            return;
+        }
 
         std::lock_guard<std::mutex> lock(mutex);
         d_ptr->m_cache = cache;
@@ -336,6 +349,12 @@ xmrig::RxNUMAStorage::~RxNUMAStorage()
 }
 
 
+bool xmrig::RxNUMAStorage::isAllocated() const
+{
+    return d_ptr->isAllocated();
+}
+
+
 xmrig::HugePagesInfo xmrig::RxNUMAStorage::hugePages() const
 {
     if (!d_ptr->isAllocated()) {
@@ -360,8 +379,8 @@ void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugeP
 {
     d_ptr->setSeed(seed);
 
-    if (!d_ptr->isAllocated()) {
-        d_ptr->createDatasets(hugePages, oneGbPages);
+    if (!d_ptr->isAllocated() && !d_ptr->createDatasets(hugePages, oneGbPages)) {
+        return;
     }
 
     d_ptr->initDatasets(threads, priority);
