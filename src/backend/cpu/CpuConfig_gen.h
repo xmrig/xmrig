@@ -99,12 +99,15 @@ size_t inline generate<Algorithm::CN_HEAVY>(Threads<CpuThreads> &threads, uint32
 template<>
 size_t inline generate<Algorithm::CN_PICO>(Threads<CpuThreads> &threads, uint32_t limit)
 {
-    size_t count = 0;
+    return generate("cn-pico", threads, Algorithm::CN_PICO_0, limit);
+}
+#endif
 
-    count += generate("cn-pico", threads, Algorithm::CN_PICO_0, limit);
-    count += generate("cn-pico/tlo", threads, Algorithm::CN_PICO_TLO, limit);
-
-    return count;
+#ifdef XMRIG_ALGO_CN_ULTRA
+template<>
+size_t inline generate<Algorithm::CN_ULTRA>(Threads<CpuThreads> &threads, uint32_t limit)
+{
+    return generate("cn-ultra", threads, Algorithm::CN_ULTRA_0, limit);
 }
 #endif
 

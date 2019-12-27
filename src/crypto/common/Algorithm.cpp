@@ -101,9 +101,13 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-turtle",        "cn-trtl",          Algorithm::CN_PICO_0       },
     { "cryptonight-ultralite",     "cn-ultralite",     Algorithm::CN_PICO_0       },
     { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO_0       },
-    { "cryptonight-pico/tlo",      "cn-pico/tlo",      Algorithm::CN_PICO_TLO     },
-    { "cryptonight-talleo",        "cn-talleo",        Algorithm::CN_PICO_TLO     },
-    { "cryptonight_talleo",        "cn_talleo",        Algorithm::CN_PICO_TLO     },
+#   endif
+#   ifdef XMRIG_ALGO_CN_ULTRA
+    { "cryptonight-ultra",         "cn-ultra",         Algorithm::CN_ULTRA_0      },
+    { "cryptonight-ultra/tlo",     "cn-ultra/tlo",     Algorithm::CN_ULTRA_0      },
+    { "cryptonight-talleo",        "cn-talleo",        Algorithm::CN_ULTRA_0      },
+    { "cryptonight_talleo",        "cn_talleo",        Algorithm::CN_ULTRA_0      },
+    { "cryptonight/ultra",         "cn/ultra",         Algorithm::CN_ULTRA_0      },
 #   endif
 #   ifdef XMRIG_ALGO_RANDOMX
     { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
@@ -275,8 +279,12 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 
 #   ifdef XMRIG_ALGO_CN_PICO
     case CN_PICO_0:
-    case CN_PICO_TLO:
         return CN_PICO;
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_ULTRA
+    case CN_ULTRA_0:
+        return CN_ULTRA;
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX

@@ -225,6 +225,12 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_CN_ULTRA
+    if (algorithm.family() == Algorithm::CN_ULTRA) {
+        return CpuThreads(count, 2);
+    }
+#   endif
+
 #   ifdef XMRIG_ALGO_CN_HEAVY
     if (algorithm.family() == Algorithm::CN_HEAVY) {
         return CpuThreads(std::max<size_t>(count / 4, 1), 1);

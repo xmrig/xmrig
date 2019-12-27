@@ -101,12 +101,15 @@ size_t inline generate<Algorithm::CN_HEAVY>(Threads<CudaThreads> &threads, const
 template<>
 size_t inline generate<Algorithm::CN_PICO>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
 {
-    size_t count = 0;
+    return generate("cn-pico", threads, Algorithm::CN_PICO_0, devices);
+}
+#endif
 
-    count += generate("cn-pico", threads, Algorithm::CN_PICO_0, devices);
-    count += generate("cn-pico/tlo", threads, Algorithm::CN_PICO_TLO, devices);
-
-    return count;
+#ifdef XMRIG_ALGO_CN_ULTRA
+template<>
+size_t inline generate<Algorithm::CN_ULTRA>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
+{
+    return generate("cn-ultra", threads, Algorithm::CN_ULTRA_0, devices);
 }
 #endif
 

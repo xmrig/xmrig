@@ -16,7 +16,7 @@
 #define ALGO_CN_HEAVY_TUBE  15
 #define ALGO_CN_HEAVY_XHV   16
 #define ALGO_CN_PICO_0      17
-#define ALGO_CN_PICO_TLO    18
+#define ALGO_CN_ULTRA_0     18
 #define ALGO_RX_0           19
 #define ALGO_RX_WOW         20
 #define ALGO_RX_LOKI        21
@@ -31,5 +31,6 @@
 #define FAMILY_CN_LITE      2
 #define FAMILY_CN_HEAVY     3
 #define FAMILY_CN_PICO      4
-#define FAMILY_RANDOM_X     5
-#define FAMILY_ARGON2       6
+#define FAMILY_CN_ULTRA     5
+#define FAMILY_RANDOM_X     6
+#define FAMILY_ARGON2       7

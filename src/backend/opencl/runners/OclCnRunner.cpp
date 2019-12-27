@@ -43,7 +43,7 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
     if (data.device.vendorId() == OCL_VENDOR_NVIDIA) {
         stridedIndex = 0;
     }
-    else if (stridedIndex == 1 && (m_algorithm.family() == Algorithm::CN_PICO || (m_algorithm.family() == Algorithm::CN && CnAlgo<>::base(m_algorithm) == Algorithm::CN_2))) {
+    else if (stridedIndex == 1 && (m_algorithm.family() == Algorithm::CN_PICO || m_algorithm.family() == Algorithm::CN_ULTRA || (m_algorithm.family() == Algorithm::CN && CnAlgo<>::base(m_algorithm) == Algorithm::CN_2))) {
         stridedIndex = 2;
     }
 

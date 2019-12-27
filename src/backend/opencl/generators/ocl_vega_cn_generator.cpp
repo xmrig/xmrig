@@ -88,7 +88,7 @@ static inline uint32_t getIntensity(const OclDevice &device, const Algorithm &al
 
 static inline uint32_t getWorksize(const Algorithm &algorithm)
 {
-    if (algorithm.family() == Algorithm::CN_PICO) {
+    if (algorithm.family() == Algorithm::CN_PICO || algorithm.family() == Algorithm::CN_ULTRA) {
         return 64;
     }
 

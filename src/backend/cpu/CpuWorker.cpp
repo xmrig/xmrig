@@ -154,8 +154,13 @@ bool xmrig::CpuWorker<N>::selfTest()
 
 #   ifdef XMRIG_ALGO_CN_PICO
     if (m_algorithm.family() == Algorithm::CN_PICO) {
-        return verify(Algorithm::CN_PICO_0, test_output_pico_trtl) &&
-               verify(Algorithm::CN_PICO_TLO, test_output_pico_tlo);
+        return verify(Algorithm::CN_PICO_0, test_output_pico_trtl);
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_ULTRA
+    if (m_algorithm.family() == Algorithm::CN_ULTRA) {
+        return verify(Algorithm::CN_ULTRA_0, test_output_ultra_tlo);
     }
 #   endif
 
@@ -252,9 +257,6 @@ void xmrig::CpuWorker<N>::start()
 template<size_t N>
 bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
-    // FIXME: Disabled until 'cn-pico/tlo' test code added
-    return true;
-
     cn_hash_fun func = fn(algorithm);
     if (!func) {
         return false;
@@ -268,9 +270,6 @@ bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *refe
 template<size_t N>
 bool xmrig::CpuWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
-    // FIXME: Disabled until 'cn-pico/tlo' test code added
-    return true;
-
     cn_hash_fun func = fn(algorithm);
     if (!func) {
         return false;
@@ -300,9 +299,6 @@ namespace xmrig {
 template<>
 bool CpuWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
-    // FIXME: Disabled until 'cn-pico/tlo' test code added
-    return true;
-
     cn_hash_fun func = fn(algorithm);
     if (!func) {
         return false;
