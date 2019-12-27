@@ -57,9 +57,20 @@ public:
     static void destroy();
     static void init(IRxListener *listener);
 
+    static void setMainLoopBounds(const void* loopBegin, const void* loopEnd)
+    {
+        mainLoopBounds.first = loopBegin;
+        mainLoopBounds.second = loopEnd;
+    }
+
+    static const std::pair<const void*, const void*>& getMainLoopBounds() { return mainLoopBounds; }
+
 private:
     static void msrInit(const RxConfig &config);
     static void msrDestroy();
+    static void SetupMainLoopExceptionFrame();
+
+    static thread_local std::pair<const void*, const void*> mainLoopBounds;
 };
 
 

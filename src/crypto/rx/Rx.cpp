@@ -74,6 +74,7 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cp
 
     if (!osInitialized) {
         msrInit(config);
+        SetupMainLoopExceptionFrame();
         osInitialized = true;
     }
 

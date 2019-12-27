@@ -81,7 +81,8 @@ randomx_program_prologue_first_load PROC
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
-	stmxcsr dword ptr [rsp-20]
+	sub rsp, 24
+	stmxcsr dword ptr [rsp]
 	nop
 	nop
 	nop
