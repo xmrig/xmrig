@@ -303,6 +303,37 @@ static bool wrmsr(const MsrItems &preset, bool save)
 }
 
 
+static LONG WINAPI MainLoopHandler(_EXCEPTION_POINTERS *ExceptionInfo)
+{
+    if (ExceptionInfo->ExceptionRecord->ExceptionCode == 0xC0000005) {
+        const char* accessType;
+        switch (ExceptionInfo->ExceptionRecord->ExceptionInformation[0]) {
+        case 0: accessType = "read"; break;
+        case 1: accessType = "write"; break;
+        case 8: accessType = "DEP violation"; break;
+        default: accessType = "unknown"; break;
+        }
+        LOG_INFO(YELLOW_BOLD("[THREAD %u] Access violation at 0x%p: %s at address 0x%p"), GetCurrentThreadId(), ExceptionInfo->ExceptionRecord->ExceptionAddress, accessType, ExceptionInfo->ExceptionRecord->ExceptionInformation[1]);
+    }
+    else {
+        LOG_INFO(YELLOW_BOLD("[THREAD %u] Exception 0x%08X at 0x%p"), GetCurrentThreadId(), ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
+    }
+
+    void* p = reinterpret_cast<void*>(ExceptionInfo->ContextRecord->Rip);
+    const std::pair<const void*, const void*>& loopBounds = xmrig::Rx::getMainLoopBounds();
+
+    if ((loopBounds.first <= p) && (p < loopBounds.second)) {
+        ExceptionInfo->ContextRecord->Rip = reinterpret_cast<DWORD64>(loopBounds.second);
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+
+thread_local std::pair<const void*, const void*> Rx::mainLoopBounds = { nullptr, nullptr };
+
+
 } // namespace xmrig
 
 
@@ -332,4 +363,10 @@ void xmrig::Rx::msrDestroy()
     if (!wrmsr(savedState, false)) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to restore initial state" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
     }
+}
+
+
+void xmrig::Rx::SetupMainLoopExceptionFrame()
+{
+    AddVectoredExceptionHandler(1, MainLoopHandler);
 }

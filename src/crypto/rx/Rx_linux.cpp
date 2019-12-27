@@ -43,6 +43,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <signal.h>
+#include <ucontext.h>
 
 
 namespace xmrig {
@@ -178,6 +180,29 @@ static bool wrmsr(const MsrItems &preset, bool save)
 }
 
 
+static void MainLoopHandler(int sig, siginfo_t *info, void *ucontext)
+{
+#   if defined(__x86_64__) || defined(__amd64__)
+    ucontext_t *ucp = (ucontext_t*) ucontext;
+
+    LOG_INFO(YELLOW_BOLD("%s at %p"), (sig == SIGSEGV) ? "SIGSEGV" : "SIGILL", ucp->uc_mcontext.gregs[REG_RIP]);
+
+    void* p = reinterpret_cast<void*>(ucp->uc_mcontext.gregs[REG_RIP]);
+    const std::pair<const void*, const void*>& loopBounds = xmrig::Rx::getMainLoopBounds();
+
+    if ((loopBounds.first <= p) && (p < loopBounds.second)) {
+        ucp->uc_mcontext.gregs[REG_RIP] = reinterpret_cast<size_t>(loopBounds.second);
+    }
+    else {
+        abort();
+    }
+#   endif
+}
+
+
+thread_local std::pair<const void*, const void*> Rx::mainLoopBounds = { nullptr, nullptr };
+
+
 } // namespace xmrig
 
 
@@ -208,3 +233,16 @@ void xmrig::Rx::msrDestroy()
         LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to restore initial state" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
     }
 }
+
+
+void xmrig::Rx::SetupMainLoopExceptionFrame()
+{
+#   if defined(__x86_64__) || defined(__amd64__)
+    struct sigaction act = {};
+    act.sa_sigaction = MainLoopHandler;
+    act.sa_flags = SA_RESTART | SA_SIGINFO;
+    sigaction(SIGSEGV, &act, nullptr);
+    sigaction(SIGILL, &act, nullptr);
+#   endif
+}
+
