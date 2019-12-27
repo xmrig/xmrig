@@ -74,7 +74,7 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cp
 
     if (!osInitialized) {
         msrInit(config);
-        SetupMainLoopExceptionFrame();
+        setupMainLoopExceptionFrame();
         osInitialized = true;
     }
 
@@ -132,4 +132,8 @@ void xmrig::Rx::msrDestroy()
 #endif
 
 
-
+#ifndef XMRIG_FIX_RYZEN
+void xmrig::Rx::setupMainLoopExceptionFrame()
+{
+}
+#endif

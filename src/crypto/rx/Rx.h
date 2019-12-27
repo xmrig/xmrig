@@ -57,20 +57,20 @@ public:
     static void destroy();
     static void init(IRxListener *listener);
 
-    static void setMainLoopBounds(const void* loopBegin, const void* loopEnd)
-    {
-        mainLoopBounds.first = loopBegin;
-        mainLoopBounds.second = loopEnd;
-    }
-
-    static const std::pair<const void*, const void*>& getMainLoopBounds() { return mainLoopBounds; }
+#   ifdef XMRIG_FIX_RYZEN
+    static inline const std::pair<const void*, const void*> &mainLoopBounds()           { return m_mainLoopBounds; }
+    static inline void setMainLoopBounds(const void* loopBegin, const void* loopEnd)    { m_mainLoopBounds.first = loopBegin; m_mainLoopBounds.second = loopEnd; }
+#   endif
 
 private:
     static void msrInit(const RxConfig &config);
     static void msrDestroy();
-    static void SetupMainLoopExceptionFrame();
 
-    static thread_local std::pair<const void*, const void*> mainLoopBounds;
+#   ifdef XMRIG_FIX_RYZEN
+    static void setupMainLoopExceptionFrame();
+
+    static thread_local std::pair<const void*, const void*> m_mainLoopBounds;
+#   endif
 };
 
 
