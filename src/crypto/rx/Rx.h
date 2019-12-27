@@ -65,10 +65,9 @@ public:
 private:
     static void msrInit(const RxConfig &config);
     static void msrDestroy();
-
-#   ifdef XMRIG_FIX_RYZEN
     static void setupMainLoopExceptionFrame();
 
+#   ifdef XMRIG_FIX_RYZEN
     static thread_local std::pair<const void*, const void*> m_mainLoopBounds;
 #   endif
 };

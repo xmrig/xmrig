@@ -385,7 +385,9 @@ namespace randomx {
 			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
 		}
 
+#		ifdef XMRIG_FIX_RYZEN
 		xmrig::Rx::setMainLoopBounds(code + prologueSize, code + epilogueOffset);
+#		endif
 
 		codePos = prologueSize;
 		memcpy(code + codePos - 48, &pcfg.eMask, sizeof(pcfg.eMask));
