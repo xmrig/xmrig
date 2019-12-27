@@ -1,9 +1,11 @@
 # v5.5.0
 - [#179](https://github.com/xmrig/xmrig/issues/179) Added support for [environment variables](https://xmrig.com/docs/miner/environment-variables) in config file.
+- [#1445](https://github.com/xmrig/xmrig/pull/1445) Removed `rx/v` algorithm.
 - [#1453](https://github.com/xmrig/xmrig/issues/1453) Fixed crash on 32bit systems.
 - [#1459](https://github.com/xmrig/xmrig/issues/1459) Fixed crash on very low memory systems.
 - Added `--randomx-no-rdmsr` command line option.
 - Added console title for Windows with miner name and version.
+- On Windows `priority` option now also change base priority.
 
 # v5.4.0
 - [#1434](https://github.com/xmrig/xmrig/pull/1434) Added RandomSFX (`rx/sfx`) algorithm for Safex Cash.
