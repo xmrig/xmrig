@@ -3,6 +3,8 @@
 - [#1445](https://github.com/xmrig/xmrig/pull/1445) Removed `rx/v` algorithm.
 - [#1453](https://github.com/xmrig/xmrig/issues/1453) Fixed crash on 32bit systems.
 - [#1459](https://github.com/xmrig/xmrig/issues/1459) Fixed crash on very low memory systems.
+- [#1465](https://github.com/xmrig/xmrig/pull/1465) Added fix for 1st-gen Ryzen crashes.
+- [#1466](https://github.com/xmrig/xmrig/pull/1466) Added `cn-pico/tlo` algorithm.
 - Added `--randomx-no-rdmsr` command line option.
 - Added console title for Windows with miner name and version.
 - On Windows `priority` option now also change base priority.
