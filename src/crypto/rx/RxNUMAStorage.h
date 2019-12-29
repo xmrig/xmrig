@@ -51,6 +51,7 @@ public:
     ~RxNUMAStorage() override;
 
 protected:
+    bool isAllocated() const override;
     HugePagesInfo hugePages() const override;
     RxDataset *dataset(const Job &job, uint32_t nodeId) const override;
     void init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority) override;

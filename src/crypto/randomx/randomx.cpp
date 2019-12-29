@@ -97,11 +97,6 @@ RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 	ArgonSalt = "RandomSFX\x01";
 }
 
-RandomX_ConfigurationV::RandomX_ConfigurationV()
-{
-	ArgonSalt = "RandomV\x03";
-}
-
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonMemory(262144)
 	, ArgonIterations(3)
@@ -278,13 +273,16 @@ RandomX_ConfigurationWownero RandomX_WowneroConfig;
 RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
-RandomX_ConfigurationV RandomX_VConfig;
 
 RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 extern "C" {
 
 	randomx_cache *randomx_create_cache(randomx_flags flags, uint8_t *memory) {
+		if (!memory) {
+			return nullptr;
+		}
+
 		randomx_cache *cache = nullptr;
 
 		try {
@@ -329,6 +327,10 @@ extern "C" {
 	}
 
 	randomx_dataset *randomx_create_dataset(uint8_t *memory) {
+		if (!memory) {
+			return nullptr;
+		}
+
 		auto dataset = new randomx_dataset();
 		dataset->memory = memory;
 

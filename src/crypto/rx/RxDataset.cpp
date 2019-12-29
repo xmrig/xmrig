@@ -88,7 +88,7 @@ xmrig::RxDataset::~RxDataset()
 
 bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priority)
 {
-    if (!m_cache) {
+    if (!m_cache || !m_cache->get()) {
         return false;
     }
 

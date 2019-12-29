@@ -102,6 +102,9 @@ static const option options[] = {
     { "randomx-1gb-pages",     0, nullptr, IConfig::RandomX1GbPagesKey    },
     { "1gb-pages",             0, nullptr, IConfig::RandomX1GbPagesKey    },
     { "randomx-wrmsr",         2, nullptr, IConfig::RandomXWrmsrKey       },
+    { "wrmsr",                 2, nullptr, IConfig::RandomXWrmsrKey       },
+    { "randomx-no-rdmsr",      0, nullptr, IConfig::RandomXRdmsrKey       },
+    { "no-rdmsr",              0, nullptr, IConfig::RandomXRdmsrKey       },
 #   endif
 #   ifdef XMRIG_FEATURE_OPENCL
     { "opencl",                0, nullptr, IConfig::OclKey                },

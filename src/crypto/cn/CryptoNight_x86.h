@@ -794,6 +794,11 @@ extern cn_mainloop_fun cn_trtl_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_trtl_mainloop_bulldozer_asm;
 extern cn_mainloop_fun cn_trtl_double_mainloop_sandybridge_asm;
 
+extern cn_mainloop_fun cn_tlo_mainloop_ivybridge_asm;
+extern cn_mainloop_fun cn_tlo_mainloop_ryzen_asm;
+extern cn_mainloop_fun cn_tlo_mainloop_bulldozer_asm;
+extern cn_mainloop_fun cn_tlo_double_mainloop_sandybridge_asm;
+
 extern cn_mainloop_fun cn_zls_mainloop_ivybridge_asm;
 extern cn_mainloop_fun cn_zls_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_zls_mainloop_bulldozer_asm;
@@ -879,6 +884,17 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_trtl_mainloop_bulldozer_asm(ctx);
         }
     }
+    else if (ALGO == Algorithm::CN_PICO_TLO) {
+        if (ASM == Assembly::INTEL) {
+            cn_tlo_mainloop_ivybridge_asm(ctx);
+        }
+        else if (ASM == Assembly::RYZEN) {
+            cn_tlo_mainloop_ryzen_asm(ctx);
+        }
+        else {
+            cn_tlo_mainloop_bulldozer_asm(ctx);
+        }
+    }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {
         cnv2_rwz_mainloop_asm(ctx);
@@ -943,6 +959,9 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 #   ifdef XMRIG_ALGO_CN_PICO
     else if (ALGO == Algorithm::CN_PICO_0) {
         cn_trtl_double_mainloop_sandybridge_asm(ctx);
+    }
+    else if (ALGO == Algorithm::CN_PICO_TLO) {
+        cn_tlo_double_mainloop_sandybridge_asm(ctx);
     }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {

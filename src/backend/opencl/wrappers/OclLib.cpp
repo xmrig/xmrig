@@ -28,10 +28,12 @@
 #include <uv.h>
 
 
+#include "backend/opencl/wrappers/OclLib.h"
 #include "backend/common/Tags.h"
 #include "backend/opencl/wrappers/OclError.h"
-#include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Env.h"
+
 
 #if defined(OCL_DEBUG_REFERENCE_COUNT)
 #   define LOG_REFS(x, ...) xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
@@ -188,7 +190,7 @@ static String getOclString(FUNC fn, OBJ obj, PARAM param)
 bool xmrig::OclLib::init(const char *fileName)
 {
     if (!m_initialized) {
-        m_loader      = fileName == nullptr ? defaultLoader() : fileName;
+        m_loader      = fileName == nullptr ? defaultLoader() : Env::expand(fileName);
         m_ready       = uv_dlopen(m_loader, &oclLib) == 0 && load();
         m_initialized = true;
     }
@@ -257,7 +259,7 @@ bool xmrig::OclLib::load()
 }
 
 
-const char *xmrig::OclLib::defaultLoader()
+xmrig::String xmrig::OclLib::defaultLoader()
 {
 #   if defined(__APPLE__)
     return "/System/Library/Frameworks/OpenCL.framework/OpenCL";

@@ -126,7 +126,7 @@ void xmrig::RxQueue::enqueue(const RxSeed &seed, const std::vector<uint32_t> &no
 
 bool xmrig::RxQueue::isReadyUnsafe(const Job &job) const
 {
-    return m_storage != nullptr && m_state == STATE_IDLE && m_seed == job;
+    return m_storage != nullptr && m_storage->isAllocated() && m_state == STATE_IDLE && m_seed == job;
 }
 
 

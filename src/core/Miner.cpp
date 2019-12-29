@@ -262,6 +262,7 @@ xmrig::Miner::Miner(Controller *controller)
 {
     const int priority = controller->config()->cpu().priority();
     if (priority >= 0) {
+        Platform::setProcessPriority(priority);
         Platform::setThreadPriority(std::min(priority + 1, 5));
     }
 

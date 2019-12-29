@@ -101,6 +101,10 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-turtle",        "cn-trtl",          Algorithm::CN_PICO_0       },
     { "cryptonight-ultralite",     "cn-ultralite",     Algorithm::CN_PICO_0       },
     { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO_0       },
+    { "cryptonight-pico/tlo",      "cn-pico/tlo",      Algorithm::CN_PICO_TLO     },
+    { "cryptonight/ultra",         "cn/ultra",         Algorithm::CN_PICO_TLO     },
+    { "cryptonight-talleo",        "cn-talleo",        Algorithm::CN_PICO_TLO     },
+    { "cryptonight_talleo",        "cn_talleo",        Algorithm::CN_PICO_TLO     },
 #   endif
 #   ifdef XMRIG_ALGO_RANDOMX
     { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
@@ -114,8 +118,6 @@ static AlgoName const algorithm_names[] = {
     { "RandomARQ",                 nullptr,            Algorithm::RX_ARQ          },
     { "randomx/sfx",               "rx/sfx",           Algorithm::RX_SFX          },
     { "RandomSFX",                 nullptr,            Algorithm::RX_SFX          },
-    { "randomx/v",                 "rx/v",             Algorithm::RX_V            },
-    { "RandomV",                   nullptr,            Algorithm::RX_V            },
 #   endif
 #   ifdef XMRIG_ALGO_ARGON2
     { "argon2/chukwa",             nullptr,            Algorithm::AR2_CHUKWA      },
@@ -143,7 +145,6 @@ size_t xmrig::Algorithm::l2() const
     case RX_0:
     case RX_LOKI:
     case RX_SFX:
-    case RX_V:
         return 0x40000;
 
     case RX_WOW:
@@ -180,7 +181,6 @@ size_t xmrig::Algorithm::l3() const
         case RX_0:
         case RX_LOKI:
         case RX_SFX:
-        case RX_V:
             return oneMiB * 2;
 
         case RX_WOW:
@@ -272,6 +272,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 
 #   ifdef XMRIG_ALGO_CN_PICO
     case CN_PICO_0:
+    case CN_PICO_TLO:
         return CN_PICO;
 #   endif
 
@@ -281,7 +282,6 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case RX_LOKI:
     case RX_ARQ:
     case RX_SFX:
-    case RX_V:
         return RANDOM_X;
 #   endif
 
