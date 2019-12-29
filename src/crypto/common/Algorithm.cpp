@@ -102,6 +102,7 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-ultralite",     "cn-ultralite",     Algorithm::CN_PICO_0       },
     { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO_0       },
     { "cryptonight-pico/tlo",      "cn-pico/tlo",      Algorithm::CN_PICO_TLO     },
+    { "cryptonight/ultra",         "cn/ultra",         Algorithm::CN_PICO_TLO     },
     { "cryptonight-talleo",        "cn-talleo",        Algorithm::CN_PICO_TLO     },
     { "cryptonight_talleo",        "cn_talleo",        Algorithm::CN_PICO_TLO     },
 #   endif
