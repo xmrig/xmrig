@@ -50,6 +50,7 @@
 namespace xmrig {
 
 
+#ifdef XMRIG_FEATURE_ENV
 static std::map<String, String> variables;
 
 
@@ -59,6 +60,7 @@ static void createVariables()
     variables.insert({ "XMRIG_EXE_DIR", Process::location(Process::ExeLocation, "") });
     variables.insert({ "XMRIG_CWD",     Process::location(Process::CwdLocation, "") });
 }
+#endif
 
 
 } // namespace xmrig
@@ -66,6 +68,7 @@ static void createVariables()
 
 xmrig::String xmrig::Env::expand(const char *in)
 {
+#   ifdef XMRIG_FEATURE_ENV
     if (in == nullptr) {
         return {};
     }
@@ -103,11 +106,15 @@ xmrig::String xmrig::Env::expand(const char *in)
     }
 
     return text.c_str();
+#   else
+    return in;
+#   endif
 }
 
 
 xmrig::String xmrig::Env::get(const String &name)
 {
+#   ifdef XMRIG_FEATURE_ENV
     if (variables.empty()) {
         createVariables();
     }
@@ -115,6 +122,7 @@ xmrig::String xmrig::Env::get(const String &name)
     if (variables.count(name)) {
         return variables.at(name);
     }
+#   endif
 
     return static_cast<const char *>(getenv(name));
 }
