@@ -40,6 +40,12 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
         return false;
     }
 
+    // Mobile Ryzen APUs
+    if (device.type() == OclDevice::Raven) {
+        threads.add(OclThread(device.index(), (device.computeUnits() > 4) ? 256 : 128, 8, 1, true, true, 6));
+        return true;
+    }
+
     const size_t mem = device.globalMemSize();
     auto config      = RxAlgo::base(algorithm);
     bool gcnAsm      = false;
