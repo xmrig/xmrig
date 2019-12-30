@@ -169,3 +169,15 @@ else()
     remove_definitions(/DXMRIG_FEATURE_HTTP)
     remove_definitions(/DXMRIG_FEATURE_API)
 endif()
+
+
+if (WITH_ENV_VARS AND CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
+    set(WITH_ENV_VARS OFF)
+endif()
+
+
+if (WITH_ENV_VARS)
+    add_definitions(/DXMRIG_FEATURE_ENV)
+else()
+    remove_definitions(/DXMRIG_FEATURE_ENV)
+endif()
