@@ -29,7 +29,6 @@
 #include "crypto/common/Algorithm.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
-#include "base/io/log/Log.h"
 
 
 namespace xmrig {
