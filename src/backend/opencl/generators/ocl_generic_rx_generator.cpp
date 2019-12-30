@@ -29,6 +29,7 @@
 #include "crypto/common/Algorithm.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
+#include "base/io/log/Log.h"
 
 
 namespace xmrig {
@@ -38,6 +39,12 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
 {
     if (algorithm.family() != Algorithm::RANDOM_X) {
         return false;
+    }
+
+    // Mobile Ryzen APUs
+    if (device.type() == OclDevice::Raven) {
+        threads.add(OclThread(device.index(), (device.computeUnits() > 4) ? 256 : 128, 8, 1, true, true, 6));
+        return true;
     }
 
     const size_t mem = device.globalMemSize();
