@@ -300,6 +300,10 @@ namespace randomx {
 		code = allocatedCode + (codeOffset.fetch_add(59 * 64) % CodeSize);
 		memcpy(code, codePrologue, prologueSize);
 		memcpy(code + epilogueOffset, codeEpilogue, epilogueSize);
+#		ifdef XMRIG_FIX_RYZEN
+		mainLoopBounds.first = code + prologueSize;
+		mainLoopBounds.second = code + epilogueOffset;
+#		endif
 	}
 
 	JitCompilerX86::~JitCompilerX86() {
@@ -386,7 +390,7 @@ namespace randomx {
 		}
 
 #		ifdef XMRIG_FIX_RYZEN
-		xmrig::Rx::setMainLoopBounds(code + prologueSize, code + epilogueOffset);
+		xmrig::Rx::setMainLoopBounds(mainLoopBounds);
 #		endif
 
 		codePos = prologueSize;
