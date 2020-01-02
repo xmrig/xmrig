@@ -180,6 +180,9 @@ static bool wrmsr(const MsrItems &preset, bool save)
 }
 
 
+#ifdef XMRIG_FIX_RYZEN
+static thread_local std::pair<const void*, const void*> mainLoopBounds = { nullptr, nullptr };
+
 static void MainLoopHandler(int sig, siginfo_t *info, void *ucontext)
 {
     ucontext_t *ucp = (ucontext_t*) ucontext;
@@ -187,7 +190,7 @@ static void MainLoopHandler(int sig, siginfo_t *info, void *ucontext)
     LOG_VERBOSE(YELLOW_BOLD("%s at %p"), (sig == SIGSEGV) ? "SIGSEGV" : "SIGILL", ucp->uc_mcontext.gregs[REG_RIP]);
 
     void* p = reinterpret_cast<void*>(ucp->uc_mcontext.gregs[REG_RIP]);
-    const std::pair<const void*, const void*>& loopBounds = Rx::mainLoopBounds();
+    const std::pair<const void*, const void*>& loopBounds = mainLoopBounds;
 
     if ((loopBounds.first <= p) && (p < loopBounds.second)) {
         ucp->uc_mcontext.gregs[REG_RIP] = reinterpret_cast<size_t>(loopBounds.second);
@@ -197,8 +200,11 @@ static void MainLoopHandler(int sig, siginfo_t *info, void *ucontext)
     }
 }
 
-
-thread_local std::pair<const void*, const void*> Rx::m_mainLoopBounds = { nullptr, nullptr };
+void Rx::setMainLoopBounds(const std::pair<const void*, const void*>& bounds)
+{
+    mainLoopBounds = bounds;
+}
+#endif
 
 
 } // namespace xmrig
@@ -235,9 +241,11 @@ void xmrig::Rx::msrDestroy()
 
 void xmrig::Rx::setupMainLoopExceptionFrame()
 {
+#   ifdef XMRIG_FIX_RYZEN
     struct sigaction act = {};
     act.sa_sigaction = MainLoopHandler;
     act.sa_flags = SA_RESTART | SA_SIGINFO;
     sigaction(SIGSEGV, &act, nullptr);
     sigaction(SIGILL, &act, nullptr);
+#   endif
 }

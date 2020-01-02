@@ -303,6 +303,9 @@ static bool wrmsr(const MsrItems &preset, bool save)
 }
 
 
+#ifdef XMRIG_FIX_RYZEN
+static thread_local std::pair<const void*, const void*> mainLoopBounds = { nullptr, nullptr };
+
 static LONG WINAPI MainLoopHandler(_EXCEPTION_POINTERS *ExceptionInfo)
 {
     if (ExceptionInfo->ExceptionRecord->ExceptionCode == 0xC0000005) {
@@ -320,7 +323,7 @@ static LONG WINAPI MainLoopHandler(_EXCEPTION_POINTERS *ExceptionInfo)
     }
 
     void* p = reinterpret_cast<void*>(ExceptionInfo->ContextRecord->Rip);
-    const std::pair<const void*, const void*>& loopBounds = Rx::mainLoopBounds();
+    const std::pair<const void*, const void*>& loopBounds = mainLoopBounds;
 
     if ((loopBounds.first <= p) && (p < loopBounds.second)) {
         ExceptionInfo->ContextRecord->Rip = reinterpret_cast<DWORD64>(loopBounds.second);
@@ -330,8 +333,11 @@ static LONG WINAPI MainLoopHandler(_EXCEPTION_POINTERS *ExceptionInfo)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-
-thread_local std::pair<const void*, const void*> Rx::m_mainLoopBounds = { nullptr, nullptr };
+void Rx::setMainLoopBounds(const std::pair<const void*, const void*>& bounds)
+{
+    mainLoopBounds = bounds;
+}
+#endif
 
 
 } // namespace xmrig
@@ -368,5 +374,7 @@ void xmrig::Rx::msrDestroy()
 
 void xmrig::Rx::setupMainLoopExceptionFrame()
 {
+#   ifdef XMRIG_FIX_RYZEN
     AddVectoredExceptionHandler(1, MainLoopHandler);
+#   endif
 }
