@@ -407,9 +407,10 @@ namespace randomx {
 		}
 
 		for (int i = 0, n = static_cast<int>(RandomX_CurrentConfig.ProgramSize); i < n; ++i) {
-			Instruction instr = prog(i);
+			Instruction& instr = prog(i);
+			const uint8_t opcode = instr.opcode;
 			*((uint64_t*)&instr) &= (uint64_t(-1) - (0xFFFF << 8)) | ((RegistersCount - 1) << 8) | ((RegistersCount - 1) << 16);
-			(this->*(engine[instr.opcode]))(instr);
+			(this->*(engine[opcode]))(instr);
 		}
 
 		emit(REX_MOV_RR, code, codePos);
@@ -605,32 +606,22 @@ namespace randomx {
 		codePos = pos;
 	}
 
-	static const uint32_t template_IADD_M[8] = {
-		0x0604034c,
-		0x060c034c,
-		0x0614034c,
-		0x061c034c,
-		0x0624034c,
-		0x062c034c,
-		0x0634034c,
-		0x063c034c,
-	};
-
 	void JitCompilerX86::h_IADD_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
 		
-		if (instr.src != instr.dst) {
+		const uint32_t dst = instr.dst;
+		if (instr.src != dst) {
 			genAddressReg<true>(instr, p, pos);
-			emit32(template_IADD_M[instr.dst], p, pos);
+			emit32(0x0604034c + (dst << 19), p, pos);
 		}
 		else {
 			emit(REX_ADD_RM, p, pos);
-			emitByte(0x86 + 8 * instr.dst, p, pos);
+			emitByte(0x86 + (dst << 3), p, pos);
 			genAddressImm(instr, p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
@@ -660,19 +651,18 @@ namespace randomx {
 		uint8_t* const p = code;
 		int pos = codePos;
 		
-		if (instr.src != instr.dst) {
+		const uint32_t dst = instr.dst;
+		if (instr.src != dst) {
 			genAddressReg<true>(instr, p, pos);
-			emit(REX_SUB_RM, p, pos);
-			emitByte(0x04 + 8 * instr.dst, p, pos);
-			emitByte(0x06, p, pos);
+			emit32(0x06042b4c + (dst << 19), p, pos);
 		}
 		else {
 			emit(REX_SUB_RM, p, pos);
-			emitByte(0x86 + 8 * instr.dst, p, pos);
+			emitByte(0x86 + (dst << 3), p, pos);
 			genAddressImm(instr, p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
@@ -1060,14 +1050,12 @@ namespace randomx {
 			}
 		}
 
-		emit(REX_ADD_I, p, pos);
-		emitByte(0xc0 + reg, p, pos);
+		*(uint32_t*)(p + pos) = 0x00c08149 + (reg << 16);
 		const int shift = instr.getModCond() + RandomX_CurrentConfig.JumpOffset;
-		const uint32_t imm = (instr.getImm32() | (1UL << shift)) & ~(1UL << (shift - 1));
-		emit32(imm, p, pos);
-		emit(REX_TEST, p, pos);
-		emitByte(0xc0 + reg, p, pos);
-		emit32(RandomX_CurrentConfig.ConditionMask_Calculated << shift, p, pos);
+		*(uint32_t*)(p + pos + 3) = (instr.getImm32() | (1UL << shift)) & ~(1UL << (shift - 1));
+		*(uint32_t*)(p + pos + 7) = 0x00c0f749 + (reg << 16);
+		*(uint32_t*)(p + pos + 10) = RandomX_CurrentConfig.ConditionMask_Calculated << shift;
+		pos += 14;
 
 		if (jmp_offset >= -128) {
 			emitByte(JZ_SHORT, p, pos);
@@ -1094,9 +1082,7 @@ namespace randomx {
 		int pos = codePos;
 
 		genAddressRegDst(instr, p, pos);
-		emit(REX_MOV_MR, p, pos);
-		emitByte(0x04 + 8 * instr.src, p, pos);
-		emitByte(0x06, p, pos);
+		emit32(0x0604894c + (static_cast<uint32_t>(instr.src) << 19), p, pos);
 
 		codePos = pos;
 	}
