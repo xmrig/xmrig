@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,20 +23,30 @@
  */
 
 
+#include "base/net/stratum/Pools.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IJsonReader.h"
-#include "base/net/stratum/Pools.h"
 #include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "donate.h"
 #include "rapidjson/document.h"
 
 
+namespace xmrig {
+
+
+const char *Pools::kDonateLevel     = "donate-level";
+const char *Pools::kDonateOverProxy = "donate-over-proxy";
+const char *Pools::kPools           = "pools";
+const char *Pools::kRetries         = "retries";
+const char *Pools::kRetryPause      = "retry-pause";
+
+
+} // namespace xmrig
+
+
 xmrig::Pools::Pools() :
-    m_donateLevel(kDefaultDonateLevel),
-    m_retries(5),
-    m_retryPause(5),
-    m_proxyDonate(PROXY_DONATE_AUTO)
+    m_donateLevel(kDefaultDonateLevel)
 {
 #   ifdef XMRIG_PROXY_PROJECT
     m_retries    = 2;
@@ -108,7 +118,7 @@ void xmrig::Pools::load(const IJsonReader &reader)
 {
     m_data.clear();
 
-    const rapidjson::Value &pools = reader.getArray("pools");
+    const rapidjson::Value &pools = reader.getArray(kPools);
     if (!pools.IsArray()) {
         return;
     }
@@ -124,10 +134,10 @@ void xmrig::Pools::load(const IJsonReader &reader)
         }
     }
 
-    setDonateLevel(reader.getInt("donate-level", kDefaultDonateLevel));
-    setProxyDonate(reader.getInt("donate-over-proxy", PROXY_DONATE_AUTO));
-    setRetries(reader.getInt("retries"));
-    setRetryPause(reader.getInt("retry-pause"));
+    setDonateLevel(reader.getInt(kDonateLevel, kDefaultDonateLevel));
+    setProxyDonate(reader.getInt(kDonateOverProxy, PROXY_DONATE_AUTO));
+    setRetries(reader.getInt(kRetries));
+    setRetryPause(reader.getInt(kRetryPause));
 }
 
 

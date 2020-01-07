@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,6 +47,28 @@
 #endif
 
 
+namespace xmrig {
+
+
+const char *BaseConfig::kApi            = "api";
+const char *BaseConfig::kApiId          = "id";
+const char *BaseConfig::kApiWorkerId    = "worker-id";
+const char *BaseConfig::kAutosave       = "autosave";
+const char *BaseConfig::kBackground     = "background";
+const char *BaseConfig::kColors         = "colors";
+const char *BaseConfig::kDryRun         = "dry-run";
+const char *BaseConfig::kHttp           = "http";
+const char *BaseConfig::kLogFile        = "log-file";
+const char *BaseConfig::kPrintTime      = "print-time";
+const char *BaseConfig::kSyslog         = "syslog";
+const char *BaseConfig::kUserAgent      = "user-agent";
+const char *BaseConfig::kVerbose        = "verbose";
+const char *BaseConfig::kWatch          = "watch";
+
+
+} // namespace xmrig
+
+
 bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
 {
     m_fileName = fileName;
@@ -55,26 +77,25 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    m_autoSave     = reader.getBool("autosave", m_autoSave);
-    m_background   = reader.getBool("background", m_background);
-    m_dryRun       = reader.getBool("dry-run", m_dryRun);
-    m_syslog       = reader.getBool("syslog", m_syslog);
-    m_watch        = reader.getBool("watch", m_watch);
-    m_logFile      = reader.getString("log-file");
-    m_userAgent    = reader.getString("user-agent");
-    m_version      = reader.getUint("version");
+    m_autoSave     = reader.getBool(kAutosave, m_autoSave);
+    m_background   = reader.getBool(kBackground, m_background);
+    m_dryRun       = reader.getBool(kDryRun, m_dryRun);
+    m_syslog       = reader.getBool(kSyslog, m_syslog);
+    m_watch        = reader.getBool(kWatch, m_watch);
+    m_logFile      = reader.getString(kLogFile);
+    m_userAgent    = reader.getString(kUserAgent);
 
-    Log::setColors(reader.getBool("colors", Log::isColors()));
-    setPrintTime(reader.getUint("print-time", 60));
-    setVerbose(reader.getValue("verbose"));
+    Log::setColors(reader.getBool(kColors, Log::isColors()));
+    setPrintTime(reader.getUint(kPrintTime, 60));
+    setVerbose(reader.getValue(kVerbose));
 
-    const rapidjson::Value &api = reader.getObject("api");
+    const rapidjson::Value &api = reader.getObject(kApi);
     if (api.IsObject()) {
-        m_apiId       = Json::getString(api, "id");
-        m_apiWorkerId = Json::getString(api, "worker-id");
+        m_apiId       = Json::getString(api, kApiId);
+        m_apiWorkerId = Json::getString(api, kApiWorkerId);
     }
 
-    m_http.load(reader.getObject("http"));
+    m_http.load(reader.getObject(kHttp));
     m_pools.load(reader);
 
     return m_pools.active() > 0;
