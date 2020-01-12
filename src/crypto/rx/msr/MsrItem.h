@@ -4,7 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,42 +24,53 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_PROCESS_H
-#define XMRIG_PROCESS_H
+#ifndef XMRIG_MSRITEM_H
+#define XMRIG_MSRITEM_H
 
 
-#include "base/tools/Arguments.h"
+#include "base/tools/String.h"
 
 
-namespace xmrig {
+#include <limits>
+#include <vector>
 
 
-class Process
+namespace xmrig
+{
+
+
+class RxDataset;
+
+
+class MsrItem
 {
 public:
-    enum Location {
-        ExeLocation,
-        CwdLocation
-    };
+    constexpr static uint64_t kNoMask = std::numeric_limits<uint64_t>::max();
 
-#   ifdef WIN32
-    constexpr const static char kDirSeparator = '\\';
-#   else
-    constexpr const static char kDirSeparator = '/';
-#   endif
+    inline MsrItem() = default;
+    inline MsrItem(uint32_t reg, uint64_t value, uint64_t mask = kNoMask) : m_reg(reg), m_value(value), m_mask(mask) {}
 
-    Process(int argc, char **argv);
+    MsrItem(const rapidjson::Value &value);
 
-    static String location(Location location, const char *fileName = nullptr);
+    inline bool isValid() const     { return m_reg > 0; }
+    inline uint32_t reg() const     { return m_reg; }
+    inline uint64_t value() const   { return m_value; }
+    inline uint64_t mask() const    { return m_mask; }
 
-    inline const Arguments &arguments() const { return m_arguments; }
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    String toString() const;
 
 private:
-    Arguments m_arguments;
+    uint32_t m_reg      = 0;
+    uint64_t m_value    = 0;
+    uint64_t m_mask     = kNoMask;
 };
+
+
+using MsrItems = std::vector<MsrItem>;
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_PROCESS_H */
+#endif /* XMRIG_MSRITEM_H */

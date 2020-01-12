@@ -73,7 +73,8 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cp
     }
 
     if (!osInitialized) {
-        osInit(config);
+        msrInit(config);
+        setupMainLoopExceptionFrame();
         osInitialized = true;
     }
 
@@ -103,6 +104,10 @@ xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 
 void xmrig::Rx::destroy()
 {
+    if (osInitialized) {
+        msrDestroy();
+    }
+
     delete d_ptr;
 
     d_ptr = nullptr;
@@ -115,8 +120,20 @@ void xmrig::Rx::init(IRxListener *listener)
 }
 
 
-#if (!defined(XMRIG_OS_LINUX) && !defined(_WIN32)) || defined(XMRIG_ARM)
-void xmrig::Rx::osInit(const RxConfig &)
+#ifndef XMRIG_FEATURE_MSR
+void xmrig::Rx::msrInit(const RxConfig &)
+{
+}
+
+
+void xmrig::Rx::msrDestroy()
+{
+}
+#endif
+
+
+#ifndef XMRIG_FIX_RYZEN
+void xmrig::Rx::setupMainLoopExceptionFrame()
 {
 }
 #endif

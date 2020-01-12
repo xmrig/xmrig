@@ -12,6 +12,8 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name | Memory | Version | Notes |
 |------|--------|---------|-------|
+| `rx/sfx` | 2 MB | 5.4.0+ | RandomSFX (RandomX variant for Safex). |
+| `rx/v` | 2 MB | 5.4.0+ | RandomV (RandomX variant for new MoneroV). |
 | `rx/arq` | 256 KB | 4.3.0+ | RandomARQ (RandomX variant for ArQmA). |
 | `rx/0` | 2 MB | 3.2.0+ | RandomX (Monero). |
 | `argon2/chukwa` | 512 KB | 3.1.0+ | Argon2id (Chukwa). |
@@ -23,7 +25,6 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 | `cn/zls` | 2 MB | 2.14.0+ | CryptoNight variant 2 with 3/4 iterations. |
 | `cn/double` | 2 MB | 2.14.0+ | CryptoNight variant 2 with double iterations. |
 | `cn/r` | 2 MB | 2.13.0+ | CryptoNightR (Monero's variant 4). |
-| `cn/wow` | 2 MB | 2.12.0+ | CryptoNightR (Wownero). |
 | `cn/gpu` | 2 MB | 2.11.0+ | CryptoNight-GPU. |
 | `cn-pico` | 256 KB | 2.10.0+ | CryptoNight-Pico. |
 | `cn/half` | 2 MB | 2.9.0+ | CryptoNight variant 2 with half iterations. |

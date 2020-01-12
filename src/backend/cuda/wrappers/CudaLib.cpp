@@ -28,6 +28,8 @@
 
 
 #include "backend/cuda/wrappers/CudaLib.h"
+#include "base/kernel/Env.h"
+#include "crypto/rx/RxAlgo.h"
 
 
 namespace xmrig {
@@ -48,6 +50,7 @@ static const char *kAlloc                               = "alloc";
 static const char *kCnHash                              = "cnHash";
 static const char *kDeviceCount                         = "deviceCount";
 static const char *kDeviceInfo                          = "deviceInfo";
+static const char *kDeviceInfo_v2                       = "deviceInfo_v2";
 static const char *kDeviceInit                          = "deviceInit";
 static const char *kDeviceInt                           = "deviceInt";
 static const char *kDeviceName                          = "deviceName";
@@ -60,6 +63,7 @@ static const char *kRelease                             = "release";
 static const char *kRxHash                              = "rxHash";
 static const char *kRxPrepare                           = "rxPrepare";
 static const char *kSetJob                              = "setJob";
+static const char *kSetJob_v2                           = "setJob_v2";
 static const char *kSymbolNotFound                      = "symbol not found";
 static const char *kVersion                             = "version";
 
@@ -68,6 +72,7 @@ using alloc_t                                           = nvid_ctx * (*)(uint32_
 using cnHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint64_t, uint32_t *, uint32_t *);
 using deviceCount_t                                     = uint32_t (*)();
 using deviceInfo_t                                      = int32_t (*)(nvid_ctx *, int32_t, int32_t, int32_t, int32_t);
+using deviceInfo_v2_t                                   = bool (*)(nvid_ctx *, int32_t, int32_t, const char *, int32_t);
 using deviceInit_t                                      = bool (*)(nvid_ctx *);
 using deviceInt_t                                       = int32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
 using deviceName_t                                      = const char * (*)(nvid_ctx *);
@@ -80,6 +85,7 @@ using release_t                                         = void (*)(nvid_ctx *);
 using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
 using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, bool, uint32_t);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
+using setJob_v2_t                                       = bool (*)(nvid_ctx *, const void *, size_t, const char *);
 using version_t                                         = uint32_t (*)(Version);
 
 
@@ -87,6 +93,7 @@ static alloc_t pAlloc                                   = nullptr;
 static cnHash_t pCnHash                                 = nullptr;
 static deviceCount_t pDeviceCount                       = nullptr;
 static deviceInfo_t pDeviceInfo                         = nullptr;
+static deviceInfo_v2_t pDeviceInfo_v2                   = nullptr;
 static deviceInit_t pDeviceInit                         = nullptr;
 static deviceInt_t pDeviceInt                           = nullptr;
 static deviceName_t pDeviceName                         = nullptr;
@@ -99,6 +106,7 @@ static release_t pRelease                               = nullptr;
 static rxHash_t pRxHash                                 = nullptr;
 static rxPrepare_t pRxPrepare                           = nullptr;
 static setJob_t pSetJob                                 = nullptr;
+static setJob_v2_t pSetJob_v2                           = nullptr;
 static version_t pVersion                               = nullptr;
 
 
@@ -116,7 +124,7 @@ String CudaLib::m_loader;
 bool xmrig::CudaLib::init(const char *fileName)
 {
     if (!m_initialized) {
-        m_loader      = fileName == nullptr ? defaultLoader() : fileName;
+        m_loader      = fileName == nullptr ? defaultLoader() : Env::expand(fileName);
         m_ready       = uv_dlopen(m_loader, &cudaLib) == 0 && load();
         m_initialized = true;
     }
@@ -143,6 +151,18 @@ bool xmrig::CudaLib::cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height,
 }
 
 
+bool xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host) noexcept
+{
+    const Algorithm algo = RxAlgo::id(algorithm);
+
+    if (pDeviceInfo_v2) {
+        return pDeviceInfo_v2(ctx, blocks, threads, algo.isValid() ? algo.shortName() : nullptr, dataset_host);
+    }
+
+    return pDeviceInfo(ctx, blocks, threads, algo, dataset_host) == 0;
+}
+
+
 bool xmrig::CudaLib::deviceInit(nvid_ctx *ctx) noexcept
 {
     return pDeviceInit(ctx);
@@ -163,7 +183,12 @@ bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datase
 
 bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept
 {
-    return pSetJob(ctx, data, size, algorithm);
+    const Algorithm algo = RxAlgo::id(algorithm);
+    if (pSetJob_v2) {
+        return pSetJob_v2(ctx, data, size, algo.shortName());
+    }
+
+    return pSetJob(ctx, data, size, algo);
 }
 
 
@@ -182,12 +207,6 @@ const char *xmrig::CudaLib::lastError(nvid_ctx *ctx) noexcept
 const char *xmrig::CudaLib::pluginVersion() noexcept
 {
     return pPluginVersion();
-}
-
-
-int xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host) noexcept
-{
-    return pDeviceInfo(ctx, blocks, threads, algorithm, dataset_host);
 }
 
 
@@ -290,11 +309,13 @@ bool xmrig::CudaLib::load()
         return false;
     }
 
+    uv_dlsym(&cudaLib, kDeviceInfo_v2,  reinterpret_cast<void**>(&pDeviceInfo_v2));
+    uv_dlsym(&cudaLib, kSetJob_v2,      reinterpret_cast<void**>(&pSetJob_v2));
+
     try {
         DLSYM(Alloc);
         DLSYM(CnHash);
         DLSYM(DeviceCount);
-        DLSYM(DeviceInfo);
         DLSYM(DeviceInit);
         DLSYM(DeviceInt);
         DLSYM(DeviceName);
@@ -306,8 +327,15 @@ bool xmrig::CudaLib::load()
         DLSYM(Release);
         DLSYM(RxHash);
         DLSYM(RxPrepare);
-        DLSYM(SetJob);
         DLSYM(Version);
+
+        if (!pDeviceInfo_v2) {
+            DLSYM(DeviceInfo);
+        }
+
+        if (!pSetJob_v2) {
+            DLSYM(SetJob);
+        }
     } catch (std::exception &ex) {
         return false;
     }
@@ -318,7 +346,7 @@ bool xmrig::CudaLib::load()
 }
 
 
-const char *xmrig::CudaLib::defaultLoader()
+xmrig::String xmrig::CudaLib::defaultLoader()
 {
 #   if defined(__APPLE__)
     return "/System/Library/Frameworks/OpenCL.framework/OpenCL"; // FIXME

@@ -52,11 +52,11 @@ xmrig::OclRxBaseRunner::OclRxBaseRunner(size_t index, const OclLaunchData &data)
         m_worksize = 8;
     }
 
-    if (data.device.type() == OclDevice::Vega_10 || data.device.type() == OclDevice::Vega_20) {
+    if (data.device.type() == OclDevice::Vega_10 || data.device.type() == OclDevice::Vega_20 || data.device.type() == OclDevice::Raven) {
         m_gcn_version = 14;
     }
 
-    m_options += " -DALGO="             + std::to_string(m_algorithm.id());
+    m_options += " -DALGO="             + std::to_string(RxAlgo::id(m_algorithm));
     m_options += " -DWORKERS_PER_HASH=" + std::to_string(m_worksize);
     m_options += " -DGCN_VERSION="      + std::to_string(m_gcn_version);
 }

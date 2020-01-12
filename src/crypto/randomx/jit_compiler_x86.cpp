@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/virtual_memory.hpp"
+#include "crypto/rx/Rx.h"
 
 #ifdef _MSC_VER
 #   include <intrin.h>
@@ -168,8 +169,8 @@ namespace randomx {
 	static const uint8_t REX_MAXPD[] = { 0x66, 0x41, 0x0f, 0x5f };
 	static const uint8_t REX_DIVPD[] = { 0x66, 0x41, 0x0f, 0x5e };
 	static const uint8_t SQRTPD[] = { 0x66, 0x0f, 0x51 };
-	static const uint8_t AND_OR_MOV_LDMXCSR[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x89, 0x44, 0x24, 0xFC, 0x0F, 0xAE, 0x54, 0x24, 0xFC };
-	static const uint8_t AND_OR_MOV_LDMXCSR_RYZEN[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x3B, 0x44, 0x24, 0xFC, 0x74, 0x09, 0x89, 0x44, 0x24, 0xFC, 0x0F, 0xAE, 0x54, 0x24, 0xFC };
+	static const uint8_t AND_OR_MOV_LDMXCSR[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x89, 0x04, 0x24, 0x0F, 0xAE, 0x14, 0x24 };
+	static const uint8_t AND_OR_MOV_LDMXCSR_RYZEN[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x3B, 0x04, 0x24, 0x74, 0x07, 0x89, 0x04, 0x24, 0x0F, 0xAE, 0x14, 0x24 };
 	static const uint8_t ROL_RAX[] = { 0x48, 0xc1, 0xc0 };
 	static const uint8_t XOR_ECX_ECX[] = { 0x33, 0xC9 };
 	static const uint8_t REX_CMP_R32I[] = { 0x41, 0x81 };
@@ -289,11 +290,20 @@ namespace randomx {
 
 	JitCompilerX86::JitCompilerX86() {
 		applyTweaks();
+
+		int32_t info[4];
+		cpuid(1, info);
+		hasAVX = ((info[2] & (1 << 27)) != 0) && ((info[2] & (1 << 28)) != 0);
+
 		allocatedCode = (uint8_t*)allocExecutableMemory(CodeSize * 2);
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
 		code = allocatedCode + (codeOffset.fetch_add(59 * 64) % CodeSize);
 		memcpy(code, codePrologue, prologueSize);
 		memcpy(code + epilogueOffset, codeEpilogue, epilogueSize);
+#		ifdef XMRIG_FIX_RYZEN
+		mainLoopBounds.first = code + prologueSize;
+		mainLoopBounds.second = code + epilogueOffset;
+#		endif
 	}
 
 	JitCompilerX86::~JitCompilerX86() {
@@ -374,6 +384,14 @@ namespace randomx {
 		code[codePos + 5] = 0xc0 + pcfg.readReg1;
 		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		if (hasAVX) {
+			uint32_t* p = (uint32_t*)(code + codePos + 32);
+			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
+		}
+
+#		ifdef XMRIG_FIX_RYZEN
+		xmrig::Rx::setMainLoopBounds(mainLoopBounds);
+#		endif
 
 		codePos = prologueSize;
 		memcpy(code + codePos - 48, &pcfg.eMask, sizeof(pcfg.eMask));
@@ -389,9 +407,10 @@ namespace randomx {
 		}
 
 		for (int i = 0, n = static_cast<int>(RandomX_CurrentConfig.ProgramSize); i < n; ++i) {
-			Instruction instr = prog(i);
+			Instruction& instr = prog(i);
+			const uint8_t opcode = instr.opcode;
 			*((uint64_t*)&instr) &= (uint64_t(-1) - (0xFFFF << 8)) | ((RegistersCount - 1) << 8) | ((RegistersCount - 1) << 16);
-			(this->*(engine[instr.opcode]))(instr);
+			(this->*(engine[opcode]))(instr);
 		}
 
 		emit(REX_MOV_RR, code, codePos);
@@ -587,32 +606,22 @@ namespace randomx {
 		codePos = pos;
 	}
 
-	static const uint32_t template_IADD_M[8] = {
-		0x0604034c,
-		0x060c034c,
-		0x0614034c,
-		0x061c034c,
-		0x0624034c,
-		0x062c034c,
-		0x0634034c,
-		0x063c034c,
-	};
-
 	void JitCompilerX86::h_IADD_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
 		
-		if (instr.src != instr.dst) {
+		const uint32_t dst = instr.dst;
+		if (instr.src != dst) {
 			genAddressReg<true>(instr, p, pos);
-			emit32(template_IADD_M[instr.dst], p, pos);
+			emit32(0x0604034c + (dst << 19), p, pos);
 		}
 		else {
 			emit(REX_ADD_RM, p, pos);
-			emitByte(0x86 + 8 * instr.dst, p, pos);
+			emitByte(0x86 + (dst << 3), p, pos);
 			genAddressImm(instr, p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
@@ -642,19 +651,18 @@ namespace randomx {
 		uint8_t* const p = code;
 		int pos = codePos;
 		
-		if (instr.src != instr.dst) {
+		const uint32_t dst = instr.dst;
+		if (instr.src != dst) {
 			genAddressReg<true>(instr, p, pos);
-			emit(REX_SUB_RM, p, pos);
-			emitByte(0x04 + 8 * instr.dst, p, pos);
-			emitByte(0x06, p, pos);
+			emit32(0x06042b4c + (dst << 19), p, pos);
 		}
 		else {
 			emit(REX_SUB_RM, p, pos);
-			emitByte(0x86 + 8 * instr.dst, p, pos);
+			emitByte(0x86 + (dst << 3), p, pos);
 			genAddressImm(instr, p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
@@ -1042,14 +1050,12 @@ namespace randomx {
 			}
 		}
 
-		emit(REX_ADD_I, p, pos);
-		emitByte(0xc0 + reg, p, pos);
+		*(uint32_t*)(p + pos) = 0x00c08149 + (reg << 16);
 		const int shift = instr.getModCond() + RandomX_CurrentConfig.JumpOffset;
-		const uint32_t imm = (instr.getImm32() | (1UL << shift)) & ~(1UL << (shift - 1));
-		emit32(imm, p, pos);
-		emit(REX_TEST, p, pos);
-		emitByte(0xc0 + reg, p, pos);
-		emit32(RandomX_CurrentConfig.ConditionMask_Calculated << shift, p, pos);
+		*(uint32_t*)(p + pos + 3) = (instr.getImm32() | (1UL << shift)) & ~(1UL << (shift - 1));
+		*(uint32_t*)(p + pos + 7) = 0x00c0f749 + (reg << 16);
+		*(uint32_t*)(p + pos + 10) = RandomX_CurrentConfig.ConditionMask_Calculated << shift;
+		pos += 14;
 
 		if (jmp_offset >= -128) {
 			emitByte(JZ_SHORT, p, pos);
@@ -1076,9 +1082,7 @@ namespace randomx {
 		int pos = codePos;
 
 		genAddressRegDst(instr, p, pos);
-		emit(REX_MOV_MR, p, pos);
-		emitByte(0x04 + 8 * instr.src, p, pos);
-		emitByte(0x06, p, pos);
+		emit32(0x0604894c + (static_cast<uint32_t>(instr.src) << 19), p, pos);
 
 		codePos = pos;
 	}

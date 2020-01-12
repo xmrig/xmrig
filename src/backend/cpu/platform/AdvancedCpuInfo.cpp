@@ -139,7 +139,13 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
         m_aes = true;
 
         if (m_vendor == VENDOR_AMD) {
-            m_assembly = (data.ext_family >= 23) ? Assembly::RYZEN : Assembly::BULLDOZER;
+            if (data.ext_family >= 23) {
+                m_assembly = Assembly::RYZEN;
+                m_msrMod   = MSR_MOD_RYZEN;
+            }
+            else {
+                m_assembly = Assembly::BULLDOZER;
+            }
         }
         else if (m_vendor == VENDOR_INTEL) {
             m_assembly = Assembly::INTEL;

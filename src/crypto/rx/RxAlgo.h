@@ -51,6 +51,15 @@ public:
     static uint32_t programIterations(Algorithm::Id algorithm);
     static uint32_t programSize(Algorithm::Id algorithm);
     static uint32_t version(Algorithm::Id algorithm);
+
+    static inline Algorithm::Id id(Algorithm::Id algorithm)
+    {
+        if (algorithm == Algorithm::RX_SFX) {
+            return Algorithm::RX_0;
+        }
+
+        return algorithm;
+    }
 };
 
 

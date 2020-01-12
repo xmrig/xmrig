@@ -25,7 +25,6 @@
 
 
 #include "backend/opencl/OclLaunchData.h"
-
 #include "backend/common/Tags.h"
 #include "backend/opencl/OclConfig.h"
 

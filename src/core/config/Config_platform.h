@@ -87,6 +87,7 @@ static const option options[] = {
     { "cpu-max-threads-hint",  1, nullptr, IConfig::CPUMaxThreadsKey      },
     { "cpu-memory-pool",       1, nullptr, IConfig::MemoryPoolKey         },
     { "cpu-no-yield",          0, nullptr, IConfig::YieldKey              },
+    { "verbose",               0, nullptr, IConfig::VerboseKey            },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },
@@ -101,6 +102,9 @@ static const option options[] = {
     { "randomx-1gb-pages",     0, nullptr, IConfig::RandomX1GbPagesKey    },
     { "1gb-pages",             0, nullptr, IConfig::RandomX1GbPagesKey    },
     { "randomx-wrmsr",         2, nullptr, IConfig::RandomXWrmsrKey       },
+    { "wrmsr",                 2, nullptr, IConfig::RandomXWrmsrKey       },
+    { "randomx-no-rdmsr",      0, nullptr, IConfig::RandomXRdmsrKey       },
+    { "no-rdmsr",              0, nullptr, IConfig::RandomXRdmsrKey       },
 #   endif
 #   ifdef XMRIG_FEATURE_OPENCL
     { "opencl",                0, nullptr, IConfig::OclKey                },

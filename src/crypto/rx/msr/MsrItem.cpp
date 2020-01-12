@@ -4,7 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,42 +24,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_PROCESS_H
-#define XMRIG_PROCESS_H
+
+#include "crypto/rx/msr/MsrItem.h"
+#include "rapidjson/document.h"
 
 
-#include "base/tools/Arguments.h"
+#include <cstdio>
 
 
-namespace xmrig {
-
-
-class Process
+xmrig::MsrItem::MsrItem(const rapidjson::Value &value)
 {
-public:
-    enum Location {
-        ExeLocation,
-        CwdLocation
-    };
+    if (!value.IsString()) {
+        return;
+    }
 
-#   ifdef WIN32
-    constexpr const static char kDirSeparator = '\\';
-#   else
-    constexpr const static char kDirSeparator = '/';
-#   endif
+    auto kv = String(value.GetString()).split(':');
+    if (kv.size() < 2) {
+        return;
+    }
 
-    Process(int argc, char **argv);
-
-    static String location(Location location, const char *fileName = nullptr);
-
-    inline const Arguments &arguments() const { return m_arguments; }
-
-private:
-    Arguments m_arguments;
-};
+    m_reg   = strtoul(kv[0], nullptr, 0);
+    m_value = strtoull(kv[1], nullptr, 0);
+    m_mask  = (kv.size() > 2) ? strtoull(kv[2], nullptr, 0) : kNoMask;
+}
 
 
-} /* namespace xmrig */
+rapidjson::Value xmrig::MsrItem::toJSON(rapidjson::Document &doc) const
+{
+    return toString().toJSON(doc);
+}
 
 
-#endif /* XMRIG_PROCESS_H */
+xmrig::String xmrig::MsrItem::toString() const
+{
+    constexpr size_t size = 48;
+
+    auto buf = new char[size]();
+
+    if (m_mask != kNoMask) {
+        snprintf(buf, size, "0x%" PRIx32 ":0x%" PRIx64 ":0x%" PRIx64, m_reg, m_value, m_mask);
+    }
+    else {
+        snprintf(buf, size, "0x%" PRIx32 ":0x%" PRIx64, m_reg, m_value);
+    }
+
+    return buf;
+}
