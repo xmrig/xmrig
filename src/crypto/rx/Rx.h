@@ -58,18 +58,13 @@ public:
     static void init(IRxListener *listener);
 
 #   ifdef XMRIG_FIX_RYZEN
-    static inline const std::pair<const void*, const void*> &mainLoopBounds()           { return m_mainLoopBounds; }
-    static inline void setMainLoopBounds(const void* loopBegin, const void* loopEnd)    { m_mainLoopBounds.first = loopBegin; m_mainLoopBounds.second = loopEnd; }
+    static void setMainLoopBounds(const std::pair<const void*, const void*>& bounds);
 #   endif
 
 private:
     static void msrInit(const RxConfig &config);
     static void msrDestroy();
     static void setupMainLoopExceptionFrame();
-
-#   ifdef XMRIG_FIX_RYZEN
-    static thread_local std::pair<const void*, const void*> m_mainLoopBounds;
-#   endif
 };
 
 

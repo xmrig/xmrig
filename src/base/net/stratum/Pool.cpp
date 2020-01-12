@@ -5,9 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,23 +47,26 @@
 
 namespace xmrig {
 
-static const char *kAlgo                   = "algo";
-static const char *kCoin                   = "coin";
-static const char *kDaemon                 = "daemon";
-static const char *kDaemonPollInterval     = "daemon-poll-interval";
-static const char *kEnabled                = "enabled";
-static const char *kFingerprint            = "tls-fingerprint";
-static const char *kKeepalive              = "keepalive";
-static const char *kNicehash               = "nicehash";
-static const char *kPass                   = "pass";
-static const char *kRigId                  = "rig-id";
-static const char *kSelfSelect             = "self-select";
-static const char *kTls                    = "tls";
-static const char *kUrl                    = "url";
-static const char *kUser                   = "user";
 
-const String Pool::kDefaultPassword        = "x";
-const String Pool::kDefaultUser            = "x";
+const String Pool::kDefaultPassword       = "x";
+const String Pool::kDefaultUser           = "x";
+
+
+const char *Pool::kAlgo                   = "algo";
+const char *Pool::kCoin                   = "coin";
+const char *Pool::kDaemon                 = "daemon";
+const char *Pool::kDaemonPollInterval     = "daemon-poll-interval";
+const char *Pool::kEnabled                = "enabled";
+const char *Pool::kFingerprint            = "tls-fingerprint";
+const char *Pool::kKeepalive              = "keepalive";
+const char *Pool::kNicehash               = "nicehash";
+const char *Pool::kPass                   = "pass";
+const char *Pool::kRigId                  = "rig-id";
+const char *Pool::kSelfSelect             = "self-select";
+const char *Pool::kTls                    = "tls";
+const char *Pool::kUrl                    = "url";
+const char *Pool::kUser                   = "user";
+
 
 }
 

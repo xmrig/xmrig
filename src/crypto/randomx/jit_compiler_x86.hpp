@@ -69,6 +69,9 @@ namespace randomx {
 		int registerUsage[RegistersCount];
 		uint8_t* allocatedCode;
 		uint8_t* code;
+#		ifdef XMRIG_FIX_RYZEN
+		std::pair<const void*, const void*> mainLoopBounds;
+#		endif
 		int32_t codePos;
 		uint32_t vm_flags;
 
