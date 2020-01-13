@@ -299,6 +299,7 @@ namespace randomx {
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
 		code = allocatedCode + (codeOffset.fetch_add(59 * 64) % CodeSize);
 		memcpy(code, codePrologue, prologueSize);
+		memcpy(code + prologueSize, codeLoopLoad, loopLoadSize);
 		memcpy(code + epilogueOffset, codeEpilogue, epilogueSize);
 #		ifdef XMRIG_FIX_RYZEN
 		mainLoopBounds.first = code + prologueSize;
@@ -393,10 +394,8 @@ namespace randomx {
 		xmrig::Rx::setMainLoopBounds(mainLoopBounds);
 #		endif
 
-		codePos = prologueSize;
-		memcpy(code + codePos - 48, &pcfg.eMask, sizeof(pcfg.eMask));
-		memcpy(code + codePos, codeLoopLoad, loopLoadSize);
-		codePos += loopLoadSize;
+		memcpy(code + prologueSize - 48, &pcfg.eMask, sizeof(pcfg.eMask));
+		codePos = prologueSize + loopLoadSize;
 
 		//mark all registers as used
 		uint64_t* r = (uint64_t*)registerUsage;

@@ -18,11 +18,11 @@
 	cvtdq2pd xmm5, qword ptr [rcx+40]
 	cvtdq2pd xmm6, qword ptr [rcx+48]
 	cvtdq2pd xmm7, qword ptr [rcx+56]
-	andps xmm4, xmm13
-	andps xmm5, xmm13
-	andps xmm6, xmm13
-	andps xmm7, xmm13
-	orps xmm4, xmm14
-	orps xmm5, xmm14
-	orps xmm6, xmm14
-	orps xmm7, xmm14
+	andpd xmm4, xmm13
+	andpd xmm5, xmm13
+	andpd xmm6, xmm13
+	andpd xmm7, xmm13
+	orpd xmm4, xmm14
+	orpd xmm5, xmm14
+	orpd xmm6, xmm14
+	orpd xmm7, xmm14
