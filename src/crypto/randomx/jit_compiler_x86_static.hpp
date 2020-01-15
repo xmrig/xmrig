@@ -35,6 +35,7 @@ extern "C" {
 	void randomx_program_prologue_first_load();
 	void randomx_program_loop_begin();
 	void randomx_program_loop_load();
+	void randomx_program_loop_load_xop();
 	void randomx_program_start();
 	void randomx_program_read_dataset();
 	void randomx_program_read_dataset_ryzen();

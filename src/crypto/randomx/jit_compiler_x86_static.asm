@@ -34,6 +34,7 @@ PUBLIC randomx_program_prologue
 PUBLIC randomx_program_prologue_first_load
 PUBLIC randomx_program_loop_begin
 PUBLIC randomx_program_loop_load
+PUBLIC randomx_program_loop_load_xop
 PUBLIC randomx_program_start
 PUBLIC randomx_program_read_dataset
 PUBLIC randomx_program_read_dataset_ryzen
@@ -100,6 +101,10 @@ randomx_program_loop_begin ENDP
 randomx_program_loop_load PROC
 	include asm/program_loop_load.inc
 randomx_program_loop_load ENDP
+
+randomx_program_loop_load_xop PROC
+	include asm/program_loop_load_xop.inc
+randomx_program_loop_load_xop ENDP
 
 randomx_program_start PROC
 	nop

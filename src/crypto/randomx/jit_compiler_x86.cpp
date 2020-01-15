@@ -89,6 +89,7 @@ namespace randomx {
 	const uint8_t* codePrologue = (uint8_t*)&randomx_program_prologue;
 	const uint8_t* codeLoopBegin = (uint8_t*)&randomx_program_loop_begin;
 	const uint8_t* codeLoopLoad = (uint8_t*)&randomx_program_loop_load;
+	const uint8_t* codeLoopLoadXOP = (uint8_t*)&randomx_program_loop_load_xop;
 	const uint8_t* codeProgamStart = (uint8_t*)&randomx_program_start;
 	const uint8_t* codeReadDatasetLightSshInit = (uint8_t*)&randomx_program_read_dataset_sshash_init;
 	const uint8_t* codeReadDatasetLightSshFin = (uint8_t*)&randomx_program_read_dataset_sshash_fin;
@@ -104,7 +105,8 @@ namespace randomx {
 
 	const int32_t prefetchScratchpadSize = codePrefetchScratchpadEnd - codePrefetchScratchpad;
 	const int32_t prologueSize = codeLoopBegin - codePrologue;
-	const int32_t loopLoadSize = codeProgamStart - codeLoopLoad;
+	const int32_t loopLoadSize = codeLoopLoadXOP - codeLoopLoad;
+	const int32_t loopLoadXOPSize = codeProgamStart - codeLoopLoadXOP;
 	const int32_t readDatasetLightInitSize = codeReadDatasetLightSshFin - codeReadDatasetLightSshInit;
 	const int32_t readDatasetLightFinSize = codeLoopStore - codeReadDatasetLightSshFin;
 	const int32_t loopStoreSize = codeLoopEnd - codeLoopStore;
@@ -184,6 +186,7 @@ namespace randomx {
 	static const uint8_t REX_XOR_RAX_R64[] = { 0x49, 0x33 };
 	static const uint8_t REX_XCHG[] = { 0x4d, 0x87 };
 	static const uint8_t REX_ANDPS_XMM12[] = { 0x45, 0x0F, 0x54, 0xE5, 0x45, 0x0F, 0x56, 0xE6 };
+	static const uint8_t REX_VPCMOV_XMM12[] = { 0x8F, 0x48, 0x18, 0xA2, 0xE6, 0xD0 };
 	static const uint8_t REX_PADD[] = { 0x66, 0x44, 0x0f };
 	static const uint8_t PADD_OPCODES[] = { 0xfc, 0xfd, 0xfe, 0xd4 };
 	static const uint8_t CALL = 0xe8;
@@ -295,12 +298,23 @@ namespace randomx {
 		cpuid(1, info);
 		hasAVX = ((info[2] & (1 << 27)) != 0) && ((info[2] & (1 << 28)) != 0);
 
+		cpuid(0x80000001, info);
+		hasXOP = ((info[2] & (1 << 11)) != 0);
+
 		allocatedCode = (uint8_t*)allocExecutableMemory(CodeSize * 2);
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
 		code = allocatedCode + (codeOffset.fetch_add(59 * 64) % CodeSize);
 		memcpy(code, codePrologue, prologueSize);
-		memcpy(code + prologueSize, codeLoopLoad, loopLoadSize);
+		if (hasXOP) {
+			memcpy(code + prologueSize, codeLoopLoadXOP, loopLoadXOPSize);
+		}
+		else {
+			memcpy(code + prologueSize, codeLoopLoad, loopLoadSize);
+		}
 		memcpy(code + epilogueOffset, codeEpilogue, epilogueSize);
+
+		codePosFirst = prologueSize + (hasXOP ? loopLoadXOPSize : loopLoadSize);
+
 #		ifdef XMRIG_FIX_RYZEN
 		mainLoopBounds.first = code + prologueSize;
 		mainLoopBounds.second = code + epilogueOffset;
@@ -318,7 +332,7 @@ namespace randomx {
 
 		uint8_t* p;
 		uint32_t n;
-		if (flags & RANDOMX_FLAG_RYZEN) {
+		if (flags & RANDOMX_FLAG_AMD) {
 			p = RandomX_CurrentConfig.codeReadDatasetRyzenTweaked;
 			n = RandomX_CurrentConfig.codeReadDatasetRyzenTweakedSize;
 		}
@@ -395,7 +409,7 @@ namespace randomx {
 #		endif
 
 		memcpy(code + prologueSize - 48, &pcfg.eMask, sizeof(pcfg.eMask));
-		codePos = prologueSize + loopLoadSize;
+		codePos = codePosFirst;
 
 		//mark all registers as used
 		uint64_t* r = (uint64_t*)registerUsage;
@@ -991,7 +1005,12 @@ namespace randomx {
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		genAddressReg<true>(instr, p, pos);
 		emit(REX_CVTDQ2PD_XMM12, p, pos);
-		emit(REX_ANDPS_XMM12, p, pos);
+		if (hasXOP) {
+			emit(REX_VPCMOV_XMM12, p, pos);
+		}
+		else {
+			emit(REX_ANDPS_XMM12, p, pos);
+		}
 		emit(REX_DIVPD, p, pos);
 		emitByte(0xe4 + 8 * dst, p, pos);
 
@@ -1020,7 +1039,7 @@ namespace randomx {
 			emit(ROL_RAX, p, pos);
 			emitByte(rotate, p, pos);
 		}
-		if (vm_flags & RANDOMX_FLAG_RYZEN) {
+		if (vm_flags & RANDOMX_FLAG_AMD) {
 			emit(AND_OR_MOV_LDMXCSR_RYZEN, p, pos);
 		}
 		else {
