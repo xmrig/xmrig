@@ -145,6 +145,9 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
             }
             else {
                 m_assembly = Assembly::BULLDOZER;
+                if (family == 21) {
+                    m_msrMod = MSR_MOD_BULLDOZER;
+                }
             }
         }
         else if (m_vendor == VENDOR_INTEL) {

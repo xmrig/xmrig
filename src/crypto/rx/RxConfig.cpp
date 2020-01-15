@@ -60,16 +60,17 @@ static const std::array<const char *, RxConfig::ModeMax> modeNames = { "auto", "
 
 
 #ifdef XMRIG_FEATURE_MSR
-constexpr size_t kMsrArraySize = 4;
+constexpr size_t kMsrArraySize = 5;
 
 static const std::array<MsrItems, kMsrArraySize> msrPresets = {
     MsrItems(),
     MsrItems{{ 0xC0011020, 0x0 }, { 0xC0011021, 0x40, ~0x20ULL }, { 0xC0011022, 0x510000 }, { 0xC001102b, 0x1808cc16 }},
     MsrItems{{ 0x1a4, 0xf }},
+    MsrItems{{ 0xc0011022, 0x2010, 0x2010 }, { 0xc001102b, 0x70000, 0x770000 }},
     MsrItems()
 };
 
-static const std::array<const char *, kMsrArraySize> modNames = { "none", "ryzen", "intel", "custom" };
+static const std::array<const char *, kMsrArraySize> modNames = { "none", "ryzen", "intel", "bulldozer", "custom" };
 
 static_assert (kMsrArraySize == ICpuInfo::MSR_MOD_MAX, "kMsrArraySize and MSR_MOD_MAX mismatch");
 #endif
