@@ -43,6 +43,7 @@
 .global DECL(randomx_program_prologue_first_load)
 .global DECL(randomx_program_loop_begin)
 .global DECL(randomx_program_loop_load)
+.global DECL(randomx_program_loop_load_xop)
 .global DECL(randomx_program_start)
 .global DECL(randomx_program_read_dataset)
 .global DECL(randomx_program_read_dataset_ryzen)
@@ -109,6 +110,9 @@ DECL(randomx_program_loop_begin):
 
 DECL(randomx_program_loop_load):
 	#include "asm/program_loop_load.inc"
+
+DECL(randomx_program_loop_load_xop):
+	#include "asm/program_loop_load_xop.inc"
 
 DECL(randomx_program_start):
 	nop

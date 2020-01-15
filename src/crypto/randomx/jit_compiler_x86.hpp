@@ -73,10 +73,12 @@ namespace randomx {
 		std::pair<const void*, const void*> mainLoopBounds;
 #		endif
 		int32_t codePos;
+		int32_t codePosFirst;
 		uint32_t vm_flags;
 
 		static bool BranchesWithin32B;
 		bool hasAVX;
+		bool hasXOP;
 
 		static void applyTweaks();
 		void generateProgramPrologue(Program&, ProgramConfiguration&);

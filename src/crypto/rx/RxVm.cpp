@@ -45,8 +45,12 @@ xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::
         m_flags |= RANDOMX_FLAG_JIT;
     }
 
-    if ((assembly == Assembly::RYZEN) || ((assembly == Assembly::AUTO) && (Cpu::info()->assembly() == Assembly::RYZEN))) {
-        m_flags |= RANDOMX_FLAG_RYZEN;
+    if (assembly == Assembly::AUTO) {
+        assembly = Cpu::info()->assembly();
+    }
+
+    if ((assembly == Assembly::RYZEN) || (assembly == Assembly::BULLDOZER)) {
+        m_flags |= RANDOMX_FLAG_AMD;
     }
 
     m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad);
