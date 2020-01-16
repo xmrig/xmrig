@@ -53,7 +53,6 @@ set(HEADERS
     src/net/JobResult.h
     src/net/JobResults.h
     src/net/Network.h
-    src/net/NetworkState.h
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
@@ -103,7 +102,6 @@ set(SOURCES
     src/core/Miner.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
-    src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
     src/xmrig.cpp
