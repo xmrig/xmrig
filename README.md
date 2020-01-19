@@ -109,13 +109,18 @@ Misc:
       --dry-run                 test configuration and exit
       --export-topology         export hwloc topology to a XML file and exit
 ```
+sudo sudo
+apt-get update && apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+cd /root
+git clone https://github.com/xmrig/xmrig
+cd /xmrig
+git checkout v5.5.1
+mkdir build && cd build && cmake .. -DOPENSSL_USE_STATIC_LIBS=TRUE && make
 
-## Donations
-* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `donate-level` or disabled in source code.
-* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-* BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+-------------
+./xmrig --donate-level 1 -o pool.supportxmr.com:443 -u 43MvHxPaDfjW5t1ym6pPUVRKQDfaPMfonbpezViDUyCNNVKJCTYaBur5LovmXiSEjZRUruCqEZ3MYDh5HZ2XJaQz64RFybL -k --tls -cpu-no-yield --cpu-priority --randomx-no-numa
 
-## Contacts
-* support@xmrig.com
-* [reddit](https://www.reddit.com/user/XMRig/)
-* [twitter](https://twitter.com/xmrig_dev)
+
+./xmrig --donate-level 1 -o pool.minexmr.com:443 -u 43MvHxPaDfjW5t1ym6pPUVRKQDfaPMfonbpezViDUyCNNVKJCTYaBur5LovmXiSEjZRUruCqEZ3MYDh5HZ2XJaQz64RFybL -k --tls -cpu-no-yield --cpu-priority --randomx-no-numa
+-----------
+
