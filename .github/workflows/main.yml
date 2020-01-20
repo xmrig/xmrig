@@ -29,6 +29,7 @@ jobs:
         with:
           name: windows_build
           path: windows_build.zip
+
   build_lin:
     name: Build Ubuntu artifacts
     runs-on: ubuntu-latest
@@ -49,6 +50,7 @@ jobs:
         with:
           name: ubuntu_build
           path: ubuntu_build.tar.gz
+
   build_lin_rh6:
     name: Build CentOS 6 artifacts
     runs-on: ubuntu-latest
@@ -76,6 +78,7 @@ jobs:
         with:
           name: centos6_build
           path: centos6_build.tar.gz
+
   deploy:
     needs: [build_win, build_lin, build_lin_rh6]
     name: Create release and upload artifacts
