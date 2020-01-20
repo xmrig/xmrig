@@ -56,8 +56,9 @@ jobs:
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${GITHUB_REF:10}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: centos6_build/centos6_build.tar.gz
-          asset_name: xmrig-${GITHUB_REF:10}-lin64.tar.gz
+          asset_name: xmrig-${{VERSION}}-lin64.tar.gz
           asset_content_type: application/zip
