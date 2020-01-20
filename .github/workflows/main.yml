@@ -31,7 +31,10 @@ jobs:
           mv xmrig-notls xmrig
           tar cfz xmrig-${GITHUB_REF:10}-lin64.tar.gz xmrig config.json
           pwd
+          env
           ls -la
+          ls -la ..
+          ls -la ../..
       - name: Upload CentOS 6 build artifacts
         uses: actions/upload-artifact@v1
         with:
