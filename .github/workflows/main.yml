@@ -17,7 +17,8 @@ jobs:
       - name: Build project on Windows
         run: |
           cmake . -G "Visual Studio 16 2019" -DXMRIG_DEPS=xmrig-deps\msvc2019\x64
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" /p:Configuration=Release $Env:GITHUB_WORKSPACE\xmrig.sln
+          cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
+          .\MSBuild.exe /p:Configuration=Release $Env:GITHUB_WORKSPACE\xmrig.sln
           cd $Env:GITHUB_WORKSPACE
           copy Release\xmrig.exe .
           copy src\config.json .
