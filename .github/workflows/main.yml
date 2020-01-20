@@ -19,27 +19,21 @@ jobs:
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-devel-1.8.0-1.el6.x86_64.rpm
       - name: Checkout code
         run: |
-          git clone https://github.com/MoneroOcean/xmrig.git
-          cd xmrig
+          git clone https://github.com/MoneroOcean/xmrig.git .
           git checkout ${GITHUB_REF:10}
       - name: Build project on CentOS 6
         run: |
-          cd xmrig
           scl enable devtoolset-6 "cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF"
           scl enable devtoolset-6 "make -j$(nproc)"
           cp src/config.json .
           mv xmrig-notls xmrig
           tar cfz xmrig-${GITHUB_REF:10}-lin64.tar.gz xmrig config.json
-          pwd
-          env
-          ls -la
-          ls -la ..
-          ls -la ../..
+          ls -la ${RUNNER_WORKSPACE}
       - name: Upload CentOS 6 build artifacts
         uses: actions/upload-artifact@v1
         with:
           name: centos6_build
-          path: ./xmrig-${GITHUB_REF:10}-lin64.tar.gz
+          path: ${RUNNER_WORKSPACE}/xmrig-${GITHUB_REF:10}-lin64.tar.gz
   deploy:
     needs: build_lin_rh6
     name: Create release and upload artifacts
