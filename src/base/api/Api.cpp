@@ -26,17 +26,13 @@
 #include <uv.h>
 
 
-#ifndef _WIN32
-#   include <unistd.h>
-#endif
-
-
 #include "base/api/Api.h"
 #include "3rdparty/http-parser/http_parser.h"
 #include "base/api/interfaces/IApiListener.h"
 #include "base/api/requests/HttpApiRequest.h"
 #include "base/io/json/Json.h"
 #include "base/kernel/Base.h"
+#include "base/kernel/Env.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "core/config/Config.h"
@@ -158,7 +154,7 @@ void xmrig::Api::exec(IApiRequest &request)
 
         auto &reply = request.reply();
         reply.AddMember("id",         StringRef(m_id),       allocator);
-        reply.AddMember("worker_id",  StringRef(m_workerId), allocator);
+        reply.AddMember("worker_id",  m_workerId.toJSON(), allocator);
         reply.AddMember("uptime",     (Chrono::currentMSecsSinceEpoch() - m_timestamp) / 1000, allocator);
         reply.AddMember("restricted", request.isRestricted(), allocator);
         reply.AddMember("resources",  getResources(request.doc()), allocator);
@@ -245,12 +241,8 @@ void xmrig::Api::genId(const String &id)
 
 void xmrig::Api::genWorkerId(const String &id)
 {
-    memset(m_workerId, 0, sizeof(m_workerId));
-
-    if (id.size() > 0) {
-        strncpy(m_workerId, id.data(), sizeof(m_workerId) - 1);
-    }
-    else {
-        gethostname(m_workerId, sizeof(m_workerId) - 1);
+    m_workerId = Env::expand(id);
+    if (m_workerId.isEmpty()) {
+        m_workerId = Env::hostname();
     }
 }

@@ -83,6 +83,11 @@ void xmrig::Platform::restoreTimerResolution()
 }
 
 
+void xmrig::Platform::setProcessPriority(int)
+{
+}
+
+
 void xmrig::Platform::setThreadPriority(int priority)
 {
     if (priority == -1) {

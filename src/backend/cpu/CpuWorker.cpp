@@ -155,7 +155,8 @@ bool xmrig::CpuWorker<N>::selfTest()
 
 #   ifdef XMRIG_ALGO_CN_PICO
     if (m_algorithm.family() == Algorithm::CN_PICO) {
-        return verify(Algorithm::CN_PICO_0, test_output_pico_trtl);
+        return verify(Algorithm::CN_PICO_0, test_output_pico_trtl) &&
+               verify(Algorithm::CN_PICO_TLO, test_output_pico_tlo);
     }
 #   endif
 

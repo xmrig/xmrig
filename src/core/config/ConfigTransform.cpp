@@ -175,6 +175,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
         }
 
         return set(doc, kRandomX, "wrmsr", static_cast<int64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::RandomXRdmsrKey: /* --randomx-no-rdmsr */
+        return set(doc, kRandomX, "rdmsr", false);
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL

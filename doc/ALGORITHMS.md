@@ -25,7 +25,6 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 | `cn/zls` | 2 MB | 2.14.0+ | CryptoNight variant 2 with 3/4 iterations. |
 | `cn/double` | 2 MB | 2.14.0+ | CryptoNight variant 2 with double iterations. |
 | `cn/r` | 2 MB | 2.13.0+ | CryptoNightR (Monero's variant 4). |
-| `cn/wow` | 2 MB | 2.12.0+ | CryptoNightR (Wownero). |
 | `cn/gpu` | 2 MB | 2.11.0+ | CryptoNight-GPU. |
 | `cn-pico` | 256 KB | 2.10.0+ | CryptoNight-Pico. |
 | `cn/half` | 2 MB | 2.9.0+ | CryptoNight variant 2 with half iterations. |

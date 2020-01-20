@@ -30,9 +30,7 @@
 #include "crypto/randomx/randomx.h"
 
 
-static_assert(RANDOMX_FLAG_JIT == 8,         "RANDOMX_FLAG_JIT flag mismatch");
-static_assert(RANDOMX_FLAG_LARGE_PAGES == 1, "RANDOMX_FLAG_LARGE_PAGES flag mismatch");
-
+static_assert(RANDOMX_FLAG_JIT == 8, "RANDOMX_FLAG_JIT flag mismatch");
 
 
 xmrig::RxCache::RxCache(bool hugePages, uint32_t nodeId)
@@ -64,9 +62,14 @@ bool xmrig::RxCache::init(const Buffer &seed)
     }
 
     m_seed = seed;
-    randomx_init_cache(m_cache, m_seed.data(), m_seed.size());
 
-    return true;
+    if (m_cache) {
+        randomx_init_cache(m_cache, m_seed.data(), m_seed.size());
+
+        return true;
+    }
+
+    return false;
 }
 
 
@@ -78,6 +81,10 @@ xmrig::HugePagesInfo xmrig::RxCache::hugePages() const
 
 void xmrig::RxCache::create(uint8_t *memory)
 {
+    if (!memory) {
+        return;
+    }
+
     m_cache = randomx_create_cache(RANDOMX_FLAG_JIT, memory);
 
     if (!m_cache) {

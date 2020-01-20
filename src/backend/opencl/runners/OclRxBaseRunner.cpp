@@ -52,7 +52,7 @@ xmrig::OclRxBaseRunner::OclRxBaseRunner(size_t index, const OclLaunchData &data)
         m_worksize = 8;
     }
 
-    if (data.device.type() == OclDevice::Vega_10 || data.device.type() == OclDevice::Vega_20) {
+    if (data.device.type() == OclDevice::Vega_10 || data.device.type() == OclDevice::Vega_20 || data.device.type() == OclDevice::Raven) {
         m_gcn_version = 14;
     }
 

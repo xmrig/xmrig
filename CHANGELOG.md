@@ -1,3 +1,22 @@
+# v5.5.1
+- [#1469](https://github.com/xmrig/xmrig/issues/1469) Fixed build with gcc 4.8.
+- [#1473](https://github.com/xmrig/xmrig/pull/1473) Added RandomX auto-config for mobile Ryzen APUs.
+- [#1477](https://github.com/xmrig/xmrig/pull/1477) Fixed build with Clang.
+- [#1489](https://github.com/xmrig/xmrig/pull/1489) RandomX JIT compiler tweaks.
+- [#1493](https://github.com/xmrig/xmrig/pull/1493) Default value for Intel MSR preset changed to `15`.
+- Fixed unwanted resume after RandomX dataset change.
+
+# v5.5.0
+- [#179](https://github.com/xmrig/xmrig/issues/179) Added support for [environment variables](https://xmrig.com/docs/miner/environment-variables) in config file.
+- [#1445](https://github.com/xmrig/xmrig/pull/1445) Removed `rx/v` algorithm.
+- [#1453](https://github.com/xmrig/xmrig/issues/1453) Fixed crash on 32bit systems.
+- [#1459](https://github.com/xmrig/xmrig/issues/1459) Fixed crash on very low memory systems.
+- [#1465](https://github.com/xmrig/xmrig/pull/1465) Added fix for 1st-gen Ryzen crashes.
+- [#1466](https://github.com/xmrig/xmrig/pull/1466) Added `cn-pico/tlo` algorithm.
+- Added `--randomx-no-rdmsr` command line option.
+- Added console title for Windows with miner name and version.
+- On Windows `priority` option now also change base priority.
+
 # v5.4.0
 - [#1434](https://github.com/xmrig/xmrig/pull/1434) Added RandomSFX (`rx/sfx`) algorithm for Safex Cash.
 - [#1445](https://github.com/xmrig/xmrig/pull/1445) Added RandomV (`rx/v`) algorithm for *new* MoneroV.

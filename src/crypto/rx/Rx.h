@@ -57,9 +57,14 @@ public:
     static void destroy();
     static void init(IRxListener *listener);
 
+#   ifdef XMRIG_FIX_RYZEN
+    static void setMainLoopBounds(const std::pair<const void*, const void*>& bounds);
+#   endif
+
 private:
     static void msrInit(const RxConfig &config);
     static void msrDestroy();
+    static void setupMainLoopExceptionFrame();
 };
 
 

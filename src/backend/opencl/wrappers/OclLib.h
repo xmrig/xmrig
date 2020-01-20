@@ -102,7 +102,7 @@ public:
 
 private:
     static bool load();
-    static const char *defaultLoader();
+    static String defaultLoader();
 
     static bool m_initialized;
     static bool m_ready;

@@ -25,6 +25,7 @@
 
 
 #include "base/io/log/backends/FileLog.h"
+#include "base/kernel/Env.h"
 
 
 #include <cassert>
@@ -35,7 +36,7 @@
 xmrig::FileLog::FileLog(const char *fileName)
 {
     uv_fs_t req;
-    m_file = uv_fs_open(uv_default_loop(), &req, fileName, O_CREAT | O_APPEND | O_WRONLY, 0644, nullptr);
+    m_file = uv_fs_open(uv_default_loop(), &req, Env::expand(fileName), O_CREAT | O_APPEND | O_WRONLY, 0644, nullptr);
     uv_fs_req_cleanup(&req);
 }
 

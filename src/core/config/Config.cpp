@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -212,43 +212,43 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     auto &allocator = doc.GetAllocator();
 
     Value api(kObjectType);
-    api.AddMember("id",                m_apiId.toJSON(), allocator);
-    api.AddMember("worker-id",         m_apiWorkerId.toJSON(), allocator);
+    api.AddMember(StringRef(kApiId),                m_apiId.toJSON(), allocator);
+    api.AddMember(StringRef(kApiWorkerId),              m_apiWorkerId.toJSON(), allocator);
 
-    doc.AddMember("api",               api, allocator);
-    doc.AddMember("http",              m_http.toJSON(doc), allocator);
-    doc.AddMember("autosave",          isAutoSave(), allocator);
-    doc.AddMember("background",        isBackground(), allocator);
-    doc.AddMember("colors",            Log::isColors(), allocator);
+    doc.AddMember(StringRef(kApi),                      api, allocator);
+    doc.AddMember(StringRef(kHttp),                     m_http.toJSON(doc), allocator);
+    doc.AddMember(StringRef(kAutosave),                 isAutoSave(), allocator);
+    doc.AddMember(StringRef(kBackground),               isBackground(), allocator);
+    doc.AddMember(StringRef(kColors),                   Log::isColors(), allocator);
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    doc.AddMember(StringRef(kRandomX), rx().toJSON(doc), allocator);
+    doc.AddMember(StringRef(kRandomX),                  rx().toJSON(doc), allocator);
 #   endif
 
-    doc.AddMember(StringRef(kCPU),     cpu().toJSON(doc), allocator);
+    doc.AddMember(StringRef(kCPU),                      cpu().toJSON(doc), allocator);
 
 #   ifdef XMRIG_FEATURE_OPENCL
-    doc.AddMember(StringRef(kOcl),     cl().toJSON(doc), allocator);
+    doc.AddMember(StringRef(kOcl),                      cl().toJSON(doc), allocator);
 #   endif
 
 #   ifdef XMRIG_FEATURE_CUDA
-    doc.AddMember(StringRef(kCuda),    cuda().toJSON(doc), allocator);
+    doc.AddMember(StringRef(kCuda),                     cuda().toJSON(doc), allocator);
 #   endif
 
-    doc.AddMember("donate-level",               m_pools.donateLevel(), allocator);
-    doc.AddMember("donate-over-proxy",          m_pools.proxyDonate(), allocator);
-    doc.AddMember("log-file",                   m_logFile.toJSON(), allocator);
-    doc.AddMember("pools",                      m_pools.toJSON(doc), allocator);
-    doc.AddMember("print-time",                 printTime(), allocator);
+    doc.AddMember(StringRef(Pools::kDonateLevel),       m_pools.donateLevel(), allocator);
+    doc.AddMember(StringRef(Pools::kDonateOverProxy),   m_pools.proxyDonate(), allocator);
+    doc.AddMember(StringRef(kLogFile),                  m_logFile.toJSON(), allocator);
+    doc.AddMember(StringRef(Pools::kPools),             m_pools.toJSON(doc), allocator);
+    doc.AddMember(StringRef(kPrintTime),                printTime(), allocator);
 #   if defined(XMRIG_FEATURE_NVML)
-    doc.AddMember(StringRef(kHealthPrintTime),  healthPrintTime(), allocator);
+    doc.AddMember(StringRef(kHealthPrintTime),          healthPrintTime(), allocator);
 #   endif
-    doc.AddMember("retries",                    m_pools.retries(), allocator);
-    doc.AddMember("retry-pause",                m_pools.retryPause(), allocator);
-    doc.AddMember("syslog",                     isSyslog(), allocator);
-    doc.AddMember("user-agent",                 m_userAgent.toJSON(), allocator);
-    doc.AddMember("verbose",                    Log::verbose(), allocator);
-    doc.AddMember("watch",                      m_watch, allocator);
+    doc.AddMember(StringRef(Pools::kRetries),           m_pools.retries(), allocator);
+    doc.AddMember(StringRef(Pools::kRetryPause),        m_pools.retryPause(), allocator);
+    doc.AddMember(StringRef(kSyslog),                   isSyslog(), allocator);
+    doc.AddMember(StringRef(kUserAgent),                m_userAgent.toJSON(), allocator);
+    doc.AddMember(StringRef(kVerbose),                  Log::verbose(), allocator);
+    doc.AddMember(StringRef(kWatch),                    m_watch, allocator);
 
     doc.AddMember("algo-perf",                  m_benchmark.toJSON(doc), allocator);
     doc.AddMember("rebench-algo",               isRebenchAlgo(), allocator);

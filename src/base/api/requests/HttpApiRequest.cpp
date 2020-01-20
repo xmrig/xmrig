@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -53,6 +53,10 @@ static inline const char *rpcError(int code) {
         return "Invalid params";
     }
 
+    if (code >= HTTP_STATUS_BAD_REQUEST && code <= HTTP_STATUS_NETWORK_AUTHENTICATION_REQUIRED) {
+        return http_status_str(static_cast<http_status>(code));
+    }
+
     return "Internal error";
 }
 
@@ -82,7 +86,7 @@ xmrig::HttpApiRequest::HttpApiRequest(const HttpData &req, bool restricted) :
             return;
         }
 
-        m_rpcMethod = Json::getString(json(), "method");
+        m_rpcMethod = Json::getString(m_body, "method");
         if (m_rpcMethod.isEmpty()) {
             done(RPC_INVALID_REQUEST);
 
@@ -129,6 +133,10 @@ bool xmrig::HttpApiRequest::accept()
 
 const rapidjson::Value &xmrig::HttpApiRequest::json() const
 {
+    if (type() == REQ_JSON_RPC) {
+        return Json::getValue(m_body, "params");
+    }
+
     return m_body;
 }
 
@@ -150,29 +158,53 @@ void xmrig::HttpApiRequest::done(int status)
         m_res.setStatus(HTTP_STATUS_OK);
 
         if (status != HTTP_STATUS_OK) {
-            if (status == HTTP_STATUS_NOT_FOUND) {
-                status = RPC_METHOD_NOT_FOUND;
-            }
-
-            Value error(kObjectType);
-            error.AddMember("code",    status, allocator);
-            error.AddMember("message", StringRef(rpcError(status)), allocator);
-
-            reply().AddMember(StringRef(kError), error, allocator);
+            setRpcError(status == HTTP_STATUS_NOT_FOUND ? RPC_METHOD_NOT_FOUND : status);
         }
         else if (!reply().HasMember(kResult)) {
             Value result(kObjectType);
             result.AddMember("status", "OK", allocator);
 
-            reply().AddMember(StringRef(kResult), result, allocator);
+            setRpcResult(result);
         }
-
-        reply().AddMember("jsonrpc", "2.0", allocator);
-        reply().AddMember(StringRef(kId), Value().CopyFrom(Json::getValue(json(), kId), allocator), allocator);
     }
     else {
         m_res.setStatus(status);
     }
 
+    m_res.end();
+}
+
+
+void xmrig::HttpApiRequest::setRpcError(int code, const char *message)
+{
+    using namespace rapidjson;
+    auto &allocator = doc().GetAllocator();
+
+    Value error(kObjectType);
+    error.AddMember("code",    code, allocator);
+    error.AddMember("message", message ? StringRef(message) : StringRef(rpcError(code)), allocator);
+
+    rpcDone(kError, error);
+}
+
+
+void xmrig::HttpApiRequest::setRpcResult(rapidjson::Value &result)
+{
+    rpcDone(kResult, result);
+}
+
+
+void xmrig::HttpApiRequest::rpcDone(const char *key, rapidjson::Value &value)
+{
+    ApiRequest::done(0);
+
+    using namespace rapidjson;
+    auto &allocator = doc().GetAllocator();
+
+    reply().AddMember(StringRef(key), value, allocator);
+    reply().AddMember("jsonrpc", "2.0", allocator);
+    reply().AddMember(StringRef(kId), Value().CopyFrom(Json::getValue(m_body, kId), allocator), allocator);
+
+    m_res.setStatus(HTTP_STATUS_OK);
     m_res.end();
 }
