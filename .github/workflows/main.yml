@@ -1,9 +1,42 @@
-on: [push]
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create release and build artifacts from v* tag
 
 jobs:
   build:
+    name: Create release and build artifacts from v* tag
     runs-on: ubuntu-latest
-    name: Builds xmrig
     steps:
-    - name: Builds xmrig
-      run: echo OK
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Build project on Linux
+        run: |
+          cmake . -DWITH_TLS=OFF -DWITH_HTTPD=OFF -DWITH_HWLOC=OFF
+          make -j$(nproc)
+          cp src/config.json .
+          mv xmrig-notls xmrig
+          tar cfz xmrig-${{github.ref}}-lin64.tar.gz xmrig config.json
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Linux Build Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./xmrig-${{github.ref}}-lin64.tar.gz
+          asset_name: xmrig-${{github.ref}}-lin64.tar.gz
+          asset_content_type: application/zip
