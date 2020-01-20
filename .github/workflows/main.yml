@@ -18,7 +18,7 @@ jobs:
 
         run: |
           cmake . -G "Visual Studio 16 2019" -DXMRIG_DEPS=xmrig-deps\msvc2019\x64
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild" /p:Configuration=Release xmrig.sln
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" /p:Configuration=Release xmrig.sln
           copy Release\xmrig.exe .
           copy src\config.json .
           copy bin\WinRing0\WinRing0x64.sys .
