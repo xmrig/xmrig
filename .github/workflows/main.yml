@@ -48,6 +48,9 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
+      - name: Set version
+        id: version
+        run: echo ::set-output name=VERSION::${GITHUB_REF:10}
       - name: Download CentOS 6 build artifacts
         uses: actions/download-artifact@v1
         with:
@@ -56,9 +59,8 @@ jobs:
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${GITHUB_REF:10}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: centos6_build/centos6_build.tar.gz
-          asset_name: xmrig-${{VERSION}}-lin64.tar.gz
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64.tar.gz
           asset_content_type: application/zip
