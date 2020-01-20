@@ -17,7 +17,10 @@ jobs:
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-1.8.0-1.el6.x86_64.rpm
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-devel-1.8.0-1.el6.x86_64.rpm
       - name: Checkout code
-        uses: actions/checkout@master
+        run: |
+          git clone git clone https://github.com/MoneroOcean/xmrig.git
+          git checkout ${{github.ref}}
+          cd xmrig
       - name: Build project on CentOS 6
         run: |
           scl enable devtoolset-6 "cmake3 . -DWITH_TLS=OFF -DWITH_HTTPD=OFF -DWITH_HWLOC=OFF"
