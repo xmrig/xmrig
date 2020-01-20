@@ -6,6 +6,27 @@ on:
 name: Create release and build artifacts
 
 jobs:
+  build_win:
+    name: Build Windows artifacts
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Checkout deps
+        run:  git clone https://github.com/xmrig/xmrig-deps.git
+      - name: Build project on Windows
+        run: |
+          cmake . -G "Visual Studio 16 2019" -DXMRIG_DEPS=xmrig-deps\msvc2019\x64
+          msbuild /p:Configuration=Release xmrig.sln
+          copy Release\xmrig.exe .
+          copy src\config.json .
+          copy bin\WinRing0\WinRing0x64.sys .
+          7za a -tzip -mx windows_build.zip xmrig.exe config.json WinRing0x64.sys
+      - name: Upload Windows build artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: windows_build
+          path: windows_build.zip
   build_lin:
     name: Build Ubuntu artifacts
     runs-on: ubuntu-latest
@@ -33,7 +54,7 @@ jobs:
     steps:
       - name: Prepare CentOS 6 tools
         run: |
-          yum install -y git cmake make openssl-devel libmicrohttpd-devel centos-release-scl-rh
+          yum install -y git cmake openssl-devel libmicrohttpd-devel centos-release-scl-rh
           yum install -y --nogpgcheck devtoolset-6-gcc devtoolset-6-binutils devtoolset-6-gcc-c++
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-1.8.0-1.el6.x86_64.rpm
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-devel-1.8.0-1.el6.x86_64.rpm
@@ -54,7 +75,7 @@ jobs:
           name: centos6_build
           path: centos6_build.tar.gz
   deploy:
-    needs: [build_lin, build_lin_rh6]
+    needs: [build_win, build_lin, build_lin_rh6]
     name: Create release and upload artifacts
     runs-on: ubuntu-latest
     steps:
@@ -71,6 +92,10 @@ jobs:
       - name: Set version
         id: version
         run: echo ::set-output name=VERSION::${GITHUB_REF:10}
+      - name: Download Windows build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: windows_build
       - name: Download Ubuntu build artifacts
         uses: actions/download-artifact@v1
         with:
@@ -79,6 +104,15 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: centos6_build
+      - name: Upload Windows build release asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: windows_build/windows_build.zip
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-win64.zip
+          asset_content_type: application/zip
       - name: Upload Ubuntu build release asset
         uses: actions/upload-release-asset@v1.0.1
         env:
