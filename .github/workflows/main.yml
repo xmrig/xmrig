@@ -18,7 +18,7 @@ jobs:
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-devel-1.8.0-1.el6.x86_64.rpm
       - name: Checkout code
         run: |
-          git clone git clone https://github.com/MoneroOcean/xmrig.git
+          git clone https://github.com/MoneroOcean/xmrig.git
           git checkout ${{github.ref}}
           cd xmrig
       - name: Build project on CentOS 6
