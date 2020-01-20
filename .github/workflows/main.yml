@@ -1,25 +1,39 @@
 on:
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
-    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    - 'v*'
 
 name: Create release and build artifacts from v* tag
 
 jobs:
-  build:
-    name: Create release and build artifacts from v* tag
+  build_lin_rh6:
+    name: Builds CentOS 6 artifacts from v* tag
     runs-on: ubuntu-latest
+    container: centos:6
     steps:
+      - name: Prepare tools
+        run: |
+          yum install -y --nogpgcheck git cmake3 make openssl-devel libmicrohttpd-devel centos-release-scl-rh devtoolset-6-gcc devtoolset-6-binutils devtoolset-6-gcc-c++
+          rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-1.8.0-1.el6.x86_64.rpm
+          rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-devel-1.8.0-1.el6.x86_64.rpm
       - name: Checkout code
         uses: actions/checkout@master
-      - name: Build project on Linux
+      - name: Build project on CentOS 6
         run: |
-          cmake . -DWITH_TLS=OFF -DWITH_HTTPD=OFF -DWITH_HWLOC=OFF
-          make -j$(nproc)
+          scl enable devtoolset-6 "cmake3 . -DWITH_TLS=OFF -DWITH_HTTPD=OFF -DWITH_HWLOC=OFF"
+          scl enable devtoolset-6 "make -j$(nproc)"
           cp src/config.json .
           mv xmrig-notls xmrig
           tar cfz xmrig-${{github.ref}}-lin64.tar.gz xmrig config.json
+      - name: Upload CentOS 6 build artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: xmrig-${{github.ref}}-lin64.tar.gz
+          path: ./xmrig-${{github.ref}}-lin64.tar.gz
+  deploy:
+    needs: build_lin_rh6
+    name: Create release and upload artifacts from v* tag
+    runs-on: ubuntu-latest
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1.0.0
@@ -30,7 +44,11 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-      - name: Upload Linux Build Release Asset
+      - name: Download CentOS 6 build artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: homework
+      - name: Upload CentOS 6 build release asset
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1.0.1
         env:
