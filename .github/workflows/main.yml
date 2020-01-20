@@ -3,7 +3,7 @@ on:
     tags:
     - 'v*'
 
-name: Create release and build artifacts from v* tag
+name: Create release and build artifacts
 
 jobs:
   build_lin_rh6:
@@ -27,12 +27,12 @@ jobs:
           scl enable devtoolset-6 "make -j$(nproc)"
           cp src/config.json .
           mv xmrig-notls xmrig
-          tar cfz centos6.tar.gz xmrig config.json
+          tar cfz centos6_build.tar.gz xmrig config.json
       - name: Upload CentOS 6 build artifacts
         uses: actions/upload-artifact@v1
         with:
           name: centos6_build
-          path: centos6.tar.gz
+          path: centos6_build.tar.gz
   deploy:
     needs: build_lin_rh6
     name: Create release and upload artifacts
@@ -58,6 +58,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: centos6.tar.gz
+          asset_path: centos6_build/centos6_build.tar.gz
           asset_name: xmrig-${GITHUB_REF:10}-lin64.tar.gz
           asset_content_type: application/zip
