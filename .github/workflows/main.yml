@@ -6,6 +6,26 @@ on:
 name: Create release and build artifacts
 
 jobs:
+  build_lin:
+    name: Build Ubuntu artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare Ubuntu tools
+        run: |
+          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Build project on Ubuntu
+        run: |
+          cmake .
+          make -j$(nproc)
+          cp src/config.json .
+          tar cfz ubuntu_build.tar.gz xmrig config.json
+      - name: Upload Ubuntu build artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ubuntu_build
+          path: ubuntu_build.tar.gz
   build_lin_rh6:
     name: Build CentOS 6 artifacts
     runs-on: ubuntu-latest
@@ -34,7 +54,7 @@ jobs:
           name: centos6_build
           path: centos6_build.tar.gz
   deploy:
-    needs: build_lin_rh6
+    needs: [build_lin, build_lin_rh6]
     name: Create release and upload artifacts
     runs-on: ubuntu-latest
     steps:
@@ -51,10 +71,23 @@ jobs:
       - name: Set version
         id: version
         run: echo ::set-output name=VERSION::${GITHUB_REF:10}
+      - name: Download Ubuntu build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: ubuntu_build
       - name: Download CentOS 6 build artifacts
         uses: actions/download-artifact@v1
         with:
           name: centos6_build
+      - name: Upload Ubuntu build release asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ubuntu_build/ubuntu_build.tar.gz
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64.tar.gz
+          asset_content_type: application/zip
       - name: Upload CentOS 6 build release asset
         uses: actions/upload-release-asset@v1.0.1
         env:
@@ -62,5 +95,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: centos6_build/centos6_build.tar.gz
-          asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64.tar.gz
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64-compat.tar.gz
           asset_content_type: application/zip
