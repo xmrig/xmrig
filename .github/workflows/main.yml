@@ -28,12 +28,12 @@ jobs:
           cp src/config.json .
           mv xmrig-notls xmrig
           tar cfz xmrig-${GITHUB_REF:10}-lin64.tar.gz xmrig config.json
-          ls -la ${RUNNER_WORKSPACE}/xmrig/xmrig-${GITHUB_REF:10}-lin64.tar.gz
+          ls -la ${GITHUB_WORKSPACE}/xmrig-${GITHUB_REF:10}-lin64.tar.gz
       - name: Upload CentOS 6 build artifacts
         uses: actions/upload-artifact@v1
         with:
           name: centos6_build
-          path: ${RUNNER_WORKSPACE}/xmrig/xmrig-${GITHUB_REF:10}-lin64.tar.gz
+          path: xmrig-${GITHUB_REF:10}-lin64.tar.gz
   deploy:
     needs: build_lin_rh6
     name: Create release and upload artifacts
