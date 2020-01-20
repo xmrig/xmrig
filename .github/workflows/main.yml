@@ -16,6 +16,7 @@ jobs:
         run:  git clone https://github.com/xmrig/xmrig-deps.git
       - name: Build project on Windows
         run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
           cmake . -G "Visual Studio 16 2019" -DXMRIG_DEPS=xmrig-deps\msvc2019\x64
           msbuild /p:Configuration=Release xmrig.sln
           copy Release\xmrig.exe .
