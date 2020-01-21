@@ -721,14 +721,31 @@ namespace randomx {
 		uint8_t* const p = code;
 		int pos = codePos;
 
+		const uint32_t dst = instr.dst;
+
 		emit(REX_MOV_RR64, p, pos);
-		emitByte(0xc0 + instr.dst, p, pos);
+		emitByte(0xc0 + dst, p, pos);
 		emit(REX_MUL_R, p, pos);
 		emitByte(0xe0 + instr.src, p, pos);
 		emit(REX_MOV_R64R, p, pos);
-		emitByte(0xc2 + 8 * instr.dst, p, pos);
+		emitByte(0xc2 + 8 * dst, p, pos);
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
+		codePos = pos;
+	}
+
+	void JitCompilerX86::h_IMULH_R_BMI2(const Instruction& instr) {
+		uint8_t* const p = code;
+		int pos = codePos;
+
+		const uint32_t src = instr.src;
+		const uint32_t dst = instr.dst;
+
+		*(uint32_t*)(p + pos) = 0xC4D08B49 + (dst << 16);
+		*(uint32_t*)(p + pos + 4) = 0xC0F6FB42 + (dst << 27) + (src << 24);
+		pos += 8;
+
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
@@ -753,6 +770,29 @@ namespace randomx {
 		emitByte(0xc2 + 8 * instr.dst, p, pos);
 
 		registerUsage[instr.dst] = pos;
+		codePos = pos;
+	}
+
+	void JitCompilerX86::h_IMULH_M_BMI2(const Instruction& instr) {
+		uint8_t* const p = code;
+		int pos = codePos;
+
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			genAddressReg<false>(instr, p, pos);
+			*(uint32_t*)(p + pos) = static_cast<uint32_t>(0xC4D08B49 + (dst << 16));
+			*(uint64_t*)(p + pos + 4) = 0x0E04F6FB62ULL + (dst << 27);
+			pos += 9;
+		}
+		else {
+			*(uint64_t*)(p + pos) = 0x86F6FB62C4D08B49ULL + (dst << 16) + (dst << 59);
+			*(uint32_t*)(p + pos + 8) = instr.getImm32() & ScratchpadL3Mask;
+			pos += 12;
+		}
+
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 

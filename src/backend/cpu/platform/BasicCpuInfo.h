@@ -44,6 +44,7 @@ protected:
     inline Assembly::Id assembly() const override   { return m_assembly; }
     inline bool hasAES() const override             { return m_aes; }
     inline bool hasAVX2() const override            { return m_avx2; }
+    inline bool hasBMI2() const override            { return m_bmi2; }
     inline bool hasOneGbPages() const override      { return m_pdpe1gb; }
     inline const char *brand() const override       { return m_brand; }
     inline MsrMod msrMod() const override           { return m_msrMod; }
@@ -63,6 +64,7 @@ private:
     Assembly m_assembly     = Assembly::NONE;
     bool m_aes              = false;
     const bool m_avx2       = false;
+    const bool m_bmi2       = false;
     const bool m_pdpe1gb    = false;
     MsrMod m_msrMod         = MSR_MOD_NONE;
     Vendor m_vendor         = VENDOR_UNKNOWN;

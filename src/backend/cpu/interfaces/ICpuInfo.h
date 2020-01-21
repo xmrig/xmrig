@@ -63,6 +63,7 @@ public:
     virtual Assembly::Id assembly() const                                           = 0;
     virtual bool hasAES() const                                                     = 0;
     virtual bool hasAVX2() const                                                    = 0;
+    virtual bool hasBMI2() const                                                    = 0;
     virtual bool hasOneGbPages() const                                              = 0;
     virtual const char *backend() const                                             = 0;
     virtual const char *brand() const                                               = 0;
