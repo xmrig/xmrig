@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Update xmrig_setup repo
         run: |
-          git clone https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/MoneroOcean/xmrig_setup.git
+          git clone https://$GITHUB_ACTOR:${{secrets.xmrig_setup_key}}@github.com/MoneroOcean/xmrig_setup.git
           cd xmrig_setup
           git config user.name  MoneroOcean
           git config user.email support@moneroocean.stream
