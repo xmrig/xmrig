@@ -140,6 +140,8 @@ jobs:
         run: |
           git clone https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/MoneroOcean/xmrig_setup.git
           cd xmrig_setup
+          git config user.name  MoneroOcean
+          git config user.email support@moneroocean.stream
           mv ../centos6_build/centos6_build.tar.gz xmrig.tar.gz
           mv ../windows_build/windows_build.zip xmrig.zip
           git commit -m "xmrig "${GITHUB_REF:10}" based release" xmrig.tar.gz xmrig.zip
