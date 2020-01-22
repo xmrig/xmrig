@@ -123,7 +123,9 @@ namespace randomx {
 		void h_IMUL_R(const Instruction&);
 		void h_IMUL_M(const Instruction&);
 		void h_IMULH_R(const Instruction&);
+		void h_IMULH_R_BMI2(const Instruction&);
 		void h_IMULH_M(const Instruction&);
+		void h_IMULH_M_BMI2(const Instruction&);
 		void h_ISMULH_R(const Instruction&);
 		void h_ISMULH_M(const Instruction&);
 		void h_IMUL_RCP(const Instruction&);

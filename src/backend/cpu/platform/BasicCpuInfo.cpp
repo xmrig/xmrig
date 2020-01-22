@@ -45,6 +45,10 @@
 #   define bit_AVX2 (1 << 5)
 #endif
 
+#ifndef bit_BMI2
+#   define bit_BMI2 (1 << 8)
+#endif
+
 #ifndef bit_PDPE1GB
 #   define bit_PDPE1GB (1 << 26)
 #endif
@@ -141,6 +145,12 @@ static inline bool has_avx2()
 }
 
 
+static inline bool has_bmi2()
+{
+    return has_feature(EXTENDED_FEATURES, EBX_Reg, bit_BMI2);
+}
+
+
 static inline bool has_pdpe1gb()
 {
     return has_feature(PROCESSOR_EXT_INFO, EDX_Reg, bit_PDPE1GB);
@@ -154,6 +164,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_threads(std::thread::hardware_concurrency()),
     m_aes(has_aes_ni()),
     m_avx2(has_avx2()),
+    m_bmi2(has_bmi2()),
     m_pdpe1gb(has_pdpe1gb())
 {
     cpu_brand_string(m_brand);

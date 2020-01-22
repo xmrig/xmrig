@@ -156,6 +156,7 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     }
 
     m_avx2 = data.flags[CPU_FEATURE_AVX2] && data.flags[CPU_FEATURE_OSXSAVE];
+    m_bmi2 = data.flags[CPU_FEATURE_BMI2];
 }
 
 
