@@ -400,7 +400,7 @@ namespace randomx {
 		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		if (hasAVX) {
-			uint32_t* p = (uint32_t*)(code + codePos + 32);
+			uint32_t* p = (uint32_t*)(code + codePos + 67);
 			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
 		}
 
@@ -1072,18 +1072,21 @@ namespace randomx {
 		uint8_t* const p = code;
 		int pos = codePos;
 
-		emit(REX_MOV_RR64, p, pos);
-		emitByte(0xc0 + instr.src, p, pos);
-		int rotate = (13 - (instr.getImm32() & 63)) & 63;
-		if (rotate != 0) {
-			emit(ROL_RAX, p, pos);
-			emitByte(rotate, p, pos);
-		}
+		const uint32_t src = instr.src;
+
+		*(uint32_t*)(p + pos) = 0x00C08B49 + (src << 16);
+		const int rotate = (static_cast<int>(instr.getImm32() & 63) - 2) & 63;
+		*(uint32_t*)(p + pos + 3) = 0x00C8C148 + (rotate << 24);
+
 		if (vm_flags & RANDOMX_FLAG_AMD) {
-			emit(AND_OR_MOV_LDMXCSR_RYZEN, p, pos);
+			*(uint64_t*)(p + pos + 7) = 0x742024443B0CE083ULL;
+			*(uint8_t*)(p + pos + 15) = 8;
+			*(uint64_t*)(p + pos + 16) = 0x202444890414AE0FULL;
+			pos += 24;
 		}
 		else {
-			emit(AND_OR_MOV_LDMXCSR, p, pos);
+			*(uint64_t*)(p + pos + 7) = 0x0414AE0F0CE083ULL;
+			pos += 14;
 		}
 
 		codePos = pos;
