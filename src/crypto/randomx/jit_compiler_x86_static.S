@@ -95,10 +95,10 @@ DECL(randomx_program_prologue_first_load):
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
 	sub rsp, 40
-	mov dword ptr [rsp], 9FC0h
-	mov dword ptr [rsp+4], 0BFC0h
-	mov dword ptr [rsp+8], 0DFC0h
-	mov dword ptr [rsp+12], 0FFC0h
+	mov dword ptr [rsp], 0x9FC0
+	mov dword ptr [rsp+4], 0xBFC0
+	mov dword ptr [rsp+8], 0xDFC0
+	mov dword ptr [rsp+12], 0xFFC0
 	mov dword ptr [rsp+32], -1
 	nop
 	nop
