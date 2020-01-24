@@ -1,3 +1,10 @@
+# v5.5.2
+- [#1500](https://github.com/xmrig/xmrig/pull/1500) Removed unnecessary code from RandomX JIT compiler.
+- [#1501](https://github.com/xmrig/xmrig/pull/1501) Added MSR preset for Bulldozer CPUs.
+- [#1502](https://github.com/xmrig/xmrig/pull/1502) Optimizations for AMD Bulldozer.
+- [#1508](https://github.com/xmrig/xmrig/pull/1508) Added support for BMI2 instructions.
+- [#1510](https://github.com/xmrig/xmrig/pull/1510) Optimized `CFROUND` instruction for RandomX.
+
 # v5.5.1
 - [#1469](https://github.com/xmrig/xmrig/issues/1469) Fixed build with gcc 4.8.
 - [#1473](https://github.com/xmrig/xmrig/pull/1473) Added RandomX auto-config for mobile Ryzen APUs.
