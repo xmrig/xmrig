@@ -192,9 +192,6 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
             }
             else {
                 m_assembly = Assembly::BULLDOZER;
-                if (family == 21) {
-                    m_msrMod = MSR_MOD_BULLDOZER;
-                }
             }
         }
         else if (memcmp(vendor, "GenuineIntel", 12) == 0) {
