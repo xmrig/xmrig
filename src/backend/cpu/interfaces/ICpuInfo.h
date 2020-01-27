@@ -47,7 +47,6 @@ public:
         MSR_MOD_NONE,
         MSR_MOD_RYZEN,
         MSR_MOD_INTEL,
-        MSR_MOD_BULLDOZER,
         MSR_MOD_CUSTOM,
         MSR_MOD_MAX
     };
