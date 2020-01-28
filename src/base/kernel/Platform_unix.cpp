@@ -37,6 +37,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #include <uv.h>
+#include <thread>
 
 
 #include "base/kernel/Platform.h"
@@ -92,10 +93,13 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     CPU_SET(cpu_id, &mn);
 
 #   ifndef __ANDROID__
-    return pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) == 0;
+    const bool result = (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) == 0);
 #   else
-    return sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0;
+    const bool result = (sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0);
 #   endif
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    return result;
 }
 #endif
 

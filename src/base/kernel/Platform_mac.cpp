@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <sys/resource.h>
 #include <uv.h>
+#include <thread>
 
 
 #include "base/kernel/Platform.h"
@@ -67,7 +68,9 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     thread_affinity_policy_data_t policy = { static_cast<integer_t>(cpu_id) };
     mach_thread = pthread_mach_thread_np(pthread_self());
 
-    return thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) == KERN_SUCCESS;
+    const bool result = (thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) == KERN_SUCCESS);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    return result;
 }
 #endif
 

@@ -30,6 +30,7 @@
 
 
 #include <hwloc.h>
+#include <thread>
 
 
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
@@ -42,8 +43,11 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     }
 
     if (hwloc_set_cpubind(cpu->topology(), pu->cpuset, HWLOC_CPUBIND_THREAD | HWLOC_CPUBIND_STRICT) >= 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         return true;
     }
 
-    return hwloc_set_cpubind(cpu->topology(), pu->cpuset, HWLOC_CPUBIND_THREAD) >= 0;
+    const bool result = (hwloc_set_cpubind(cpu->topology(), pu->cpuset, HWLOC_CPUBIND_THREAD) >= 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    return result;
 }
