@@ -98,7 +98,9 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
         LOG_ERR("Unable to set affinity. Windows supports only affinity up to 63.");
     }
 
-    return SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu_id) != 0;
+    const bool result = (SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu_id) != 0);
+    Sleep(1);
+    return result;
 }
 #endif
 
