@@ -10,8 +10,8 @@
  * Copyright 2000      Transmeta Corporation    <https://github.com/intel/msr-tools>
  * Copyright 2004-2008 H. Peter Anvin           <https://github.com/intel/msr-tools>
  * Copyright 2007-2009 hiyohiyo                 <https://openlibsys.org>, <hiyohiyo@crystalmark.info>
- * Copyright 2018-2019 SChernykh                <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig                    <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh                <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig                    <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
