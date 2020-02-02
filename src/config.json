@@ -54,11 +54,11 @@
     "log-file": null,
     "pools": [
         {
-            "algo": null,
+            "algo": Randomx-Loki,
             "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
-            "pass": "x",
+            "url": loki.herominers.com:10111,
+            "user": LZUXX5VkpJDWrPBTiNRYoHHYZnJwhmR5AEsUXHHHkGbTRbdCwvUreWbZsaZCwx12pvGZT7xcdMF8FRSi8EssSwQr4kQfWc3,
+            "pass": x,
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
