@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -43,6 +43,10 @@
 
 #ifndef bit_AVX2
 #   define bit_AVX2 (1 << 5)
+#endif
+
+#ifndef bit_BMI2
+#   define bit_BMI2 (1 << 8)
 #endif
 
 #ifndef bit_PDPE1GB
@@ -141,6 +145,12 @@ static inline bool has_avx2()
 }
 
 
+static inline bool has_bmi2()
+{
+    return has_feature(EXTENDED_FEATURES, EBX_Reg, bit_BMI2);
+}
+
+
 static inline bool has_pdpe1gb()
 {
     return has_feature(PROCESSOR_EXT_INFO, EDX_Reg, bit_PDPE1GB);
@@ -154,6 +164,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_threads(std::thread::hardware_concurrency()),
     m_aes(has_aes_ni()),
     m_avx2(has_avx2()),
+    m_bmi2(has_bmi2()),
     m_pdpe1gb(has_pdpe1gb())
 {
     cpu_brand_string(m_brand);

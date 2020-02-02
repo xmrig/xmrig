@@ -89,6 +89,7 @@ namespace randomx {
 	const uint8_t* codePrologue = (uint8_t*)&randomx_program_prologue;
 	const uint8_t* codeLoopBegin = (uint8_t*)&randomx_program_loop_begin;
 	const uint8_t* codeLoopLoad = (uint8_t*)&randomx_program_loop_load;
+	const uint8_t* codeLoopLoadXOP = (uint8_t*)&randomx_program_loop_load_xop;
 	const uint8_t* codeProgamStart = (uint8_t*)&randomx_program_start;
 	const uint8_t* codeReadDatasetLightSshInit = (uint8_t*)&randomx_program_read_dataset_sshash_init;
 	const uint8_t* codeReadDatasetLightSshFin = (uint8_t*)&randomx_program_read_dataset_sshash_fin;
@@ -104,7 +105,8 @@ namespace randomx {
 
 	const int32_t prefetchScratchpadSize = codePrefetchScratchpadEnd - codePrefetchScratchpad;
 	const int32_t prologueSize = codeLoopBegin - codePrologue;
-	const int32_t loopLoadSize = codeProgamStart - codeLoopLoad;
+	const int32_t loopLoadSize = codeLoopLoadXOP - codeLoopLoad;
+	const int32_t loopLoadXOPSize = codeProgamStart - codeLoopLoadXOP;
 	const int32_t readDatasetLightInitSize = codeReadDatasetLightSshFin - codeReadDatasetLightSshInit;
 	const int32_t readDatasetLightFinSize = codeLoopStore - codeReadDatasetLightSshFin;
 	const int32_t loopStoreSize = codeLoopEnd - codeLoopStore;
@@ -184,6 +186,7 @@ namespace randomx {
 	static const uint8_t REX_XOR_RAX_R64[] = { 0x49, 0x33 };
 	static const uint8_t REX_XCHG[] = { 0x4d, 0x87 };
 	static const uint8_t REX_ANDPS_XMM12[] = { 0x45, 0x0F, 0x54, 0xE5, 0x45, 0x0F, 0x56, 0xE6 };
+	static const uint8_t REX_VPCMOV_XMM12[] = { 0x8F, 0x48, 0x18, 0xA2, 0xE6, 0xD0 };
 	static const uint8_t REX_PADD[] = { 0x66, 0x44, 0x0f };
 	static const uint8_t PADD_OPCODES[] = { 0xfc, 0xfd, 0xfe, 0xd4 };
 	static const uint8_t CALL = 0xe8;
@@ -295,11 +298,23 @@ namespace randomx {
 		cpuid(1, info);
 		hasAVX = ((info[2] & (1 << 27)) != 0) && ((info[2] & (1 << 28)) != 0);
 
+		cpuid(0x80000001, info);
+		hasXOP = ((info[2] & (1 << 11)) != 0);
+
 		allocatedCode = (uint8_t*)allocExecutableMemory(CodeSize * 2);
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
 		code = allocatedCode + (codeOffset.fetch_add(59 * 64) % CodeSize);
 		memcpy(code, codePrologue, prologueSize);
+		if (hasXOP) {
+			memcpy(code + prologueSize, codeLoopLoadXOP, loopLoadXOPSize);
+		}
+		else {
+			memcpy(code + prologueSize, codeLoopLoad, loopLoadSize);
+		}
 		memcpy(code + epilogueOffset, codeEpilogue, epilogueSize);
+
+		codePosFirst = prologueSize + (hasXOP ? loopLoadXOPSize : loopLoadSize);
+
 #		ifdef XMRIG_FIX_RYZEN
 		mainLoopBounds.first = code + prologueSize;
 		mainLoopBounds.second = code + epilogueOffset;
@@ -317,7 +332,7 @@ namespace randomx {
 
 		uint8_t* p;
 		uint32_t n;
-		if (flags & RANDOMX_FLAG_RYZEN) {
+		if (flags & RANDOMX_FLAG_AMD) {
 			p = RandomX_CurrentConfig.codeReadDatasetRyzenTweaked;
 			n = RandomX_CurrentConfig.codeReadDatasetRyzenTweakedSize;
 		}
@@ -385,7 +400,7 @@ namespace randomx {
 		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		if (hasAVX) {
-			uint32_t* p = (uint32_t*)(code + codePos + 32);
+			uint32_t* p = (uint32_t*)(code + codePos + 67);
 			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
 		}
 
@@ -393,10 +408,8 @@ namespace randomx {
 		xmrig::Rx::setMainLoopBounds(mainLoopBounds);
 #		endif
 
-		codePos = prologueSize;
-		memcpy(code + codePos - 48, &pcfg.eMask, sizeof(pcfg.eMask));
-		memcpy(code + codePos, codeLoopLoad, loopLoadSize);
-		codePos += loopLoadSize;
+		memcpy(code + prologueSize - 48, &pcfg.eMask, sizeof(pcfg.eMask));
+		codePos = codePosFirst;
 
 		//mark all registers as used
 		uint64_t* r = (uint64_t*)registerUsage;
@@ -708,14 +721,31 @@ namespace randomx {
 		uint8_t* const p = code;
 		int pos = codePos;
 
+		const uint32_t dst = instr.dst;
+
 		emit(REX_MOV_RR64, p, pos);
-		emitByte(0xc0 + instr.dst, p, pos);
+		emitByte(0xc0 + dst, p, pos);
 		emit(REX_MUL_R, p, pos);
 		emitByte(0xe0 + instr.src, p, pos);
 		emit(REX_MOV_R64R, p, pos);
-		emitByte(0xc2 + 8 * instr.dst, p, pos);
+		emitByte(0xc2 + 8 * dst, p, pos);
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
+		codePos = pos;
+	}
+
+	void JitCompilerX86::h_IMULH_R_BMI2(const Instruction& instr) {
+		uint8_t* const p = code;
+		int pos = codePos;
+
+		const uint32_t src = instr.src;
+		const uint32_t dst = instr.dst;
+
+		*(uint32_t*)(p + pos) = 0xC4D08B49 + (dst << 16);
+		*(uint32_t*)(p + pos + 4) = 0xC0F6FB42 + (dst << 27) + (src << 24);
+		pos += 8;
+
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
@@ -740,6 +770,29 @@ namespace randomx {
 		emitByte(0xc2 + 8 * instr.dst, p, pos);
 
 		registerUsage[instr.dst] = pos;
+		codePos = pos;
+	}
+
+	void JitCompilerX86::h_IMULH_M_BMI2(const Instruction& instr) {
+		uint8_t* const p = code;
+		int pos = codePos;
+
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			genAddressReg<false>(instr, p, pos);
+			*(uint32_t*)(p + pos) = static_cast<uint32_t>(0xC4D08B49 + (dst << 16));
+			*(uint64_t*)(p + pos + 4) = 0x0E04F6FB62ULL + (dst << 27);
+			pos += 9;
+		}
+		else {
+			*(uint64_t*)(p + pos) = 0x86F6FB62C4D08B49ULL + (dst << 16) + (dst << 59);
+			*(uint32_t*)(p + pos + 8) = instr.getImm32() & ScratchpadL3Mask;
+			pos += 12;
+		}
+
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
@@ -992,7 +1045,12 @@ namespace randomx {
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		genAddressReg<true>(instr, p, pos);
 		emit(REX_CVTDQ2PD_XMM12, p, pos);
-		emit(REX_ANDPS_XMM12, p, pos);
+		if (hasXOP) {
+			emit(REX_VPCMOV_XMM12, p, pos);
+		}
+		else {
+			emit(REX_ANDPS_XMM12, p, pos);
+		}
 		emit(REX_DIVPD, p, pos);
 		emitByte(0xe4 + 8 * dst, p, pos);
 
@@ -1014,18 +1072,21 @@ namespace randomx {
 		uint8_t* const p = code;
 		int pos = codePos;
 
-		emit(REX_MOV_RR64, p, pos);
-		emitByte(0xc0 + instr.src, p, pos);
-		int rotate = (13 - (instr.getImm32() & 63)) & 63;
-		if (rotate != 0) {
-			emit(ROL_RAX, p, pos);
-			emitByte(rotate, p, pos);
-		}
-		if (vm_flags & RANDOMX_FLAG_RYZEN) {
-			emit(AND_OR_MOV_LDMXCSR_RYZEN, p, pos);
+		const uint32_t src = instr.src;
+
+		*(uint32_t*)(p + pos) = 0x00C08B49 + (src << 16);
+		const int rotate = (static_cast<int>(instr.getImm32() & 63) - 2) & 63;
+		*(uint32_t*)(p + pos + 3) = 0x00C8C148 + (rotate << 24);
+
+		if (vm_flags & RANDOMX_FLAG_AMD) {
+			*(uint64_t*)(p + pos + 7) = 0x742024443B0CE083ULL;
+			*(uint8_t*)(p + pos + 15) = 8;
+			*(uint64_t*)(p + pos + 16) = 0x202444890414AE0FULL;
+			pos += 24;
 		}
 		else {
-			emit(AND_OR_MOV_LDMXCSR, p, pos);
+			*(uint64_t*)(p + pos + 7) = 0x0414AE0F0CE083ULL;
+			pos += 14;
 		}
 
 		codePos = pos;

@@ -34,6 +34,7 @@ PUBLIC randomx_program_prologue
 PUBLIC randomx_program_prologue_first_load
 PUBLIC randomx_program_loop_begin
 PUBLIC randomx_program_loop_load
+PUBLIC randomx_program_loop_load_xop
 PUBLIC randomx_program_start
 PUBLIC randomx_program_read_dataset
 PUBLIC randomx_program_read_dataset_ryzen
@@ -81,8 +82,12 @@ randomx_program_prologue_first_load PROC
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
-	sub rsp, 24
-	stmxcsr dword ptr [rsp]
+	sub rsp, 40
+	mov dword ptr [rsp], 9FC0h
+	mov dword ptr [rsp+4], 0BFC0h
+	mov dword ptr [rsp+8], 0DFC0h
+	mov dword ptr [rsp+12], 0FFC0h
+	mov dword ptr [rsp+32], -1
 	nop
 	nop
 	nop
@@ -100,6 +105,10 @@ randomx_program_loop_begin ENDP
 randomx_program_loop_load PROC
 	include asm/program_loop_load.inc
 randomx_program_loop_load ENDP
+
+randomx_program_loop_load_xop PROC
+	include asm/program_loop_load_xop.inc
+randomx_program_loop_load_xop ENDP
 
 randomx_program_start PROC
 	nop

@@ -10,8 +10,8 @@
  * Copyright 2000      Transmeta Corporation    <https://github.com/intel/msr-tools>
  * Copyright 2004-2008 H. Peter Anvin           <https://github.com/intel/msr-tools>
  * Copyright 2007-2009 hiyohiyo                 <https://openlibsys.org>, <hiyohiyo@crystalmark.info>
- * Copyright 2018-2019 SChernykh                <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig                    <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh                <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig                    <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -217,6 +217,12 @@ static MsrItem rdmsr(HANDLE driver, uint32_t reg)
 }
 
 
+static uint64_t get_masked_value(uint64_t old_value, uint64_t new_value, uint64_t mask)
+{
+    return (new_value & mask) | (old_value & ~mask);
+}
+
+
 static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value, uint64_t mask)
 {
     struct {
@@ -230,7 +236,7 @@ static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value, uint64_t mask)
     if (mask != MsrItem::kNoMask) {
         uint64_t old_value;
         if (rdmsr(driver, reg, old_value)) {
-            value = (value & mask) | (old_value & ~mask);
+            value = get_masked_value(old_value, value, mask);
         }
     }
 
@@ -268,7 +274,7 @@ static bool wrmsr(const MsrItems &preset, bool save)
     if (save) {
         for (const auto &i : preset) {
             auto item = rdmsr(driver, i.reg());
-            LOG_VERBOSE(CLEAR "%s" CYAN_BOLD("0x%08" PRIx32) CYAN(":0x%016" PRIx64) CYAN_BOLD(" -> 0x%016" PRIx64), tag, i.reg(), item.value(), i.value());
+            LOG_VERBOSE(CLEAR "%s" CYAN_BOLD("0x%08" PRIx32) CYAN(":0x%016" PRIx64) CYAN_BOLD(" -> 0x%016" PRIx64), tag, i.reg(), item.value(), get_masked_value(item.value(), i.value(), i.mask()));
 
             if (item.isValid()) {
                 savedState.emplace_back(item);
