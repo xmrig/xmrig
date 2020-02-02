@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #include <uv.h>
+#include <thread>
 
 
 #include "base/kernel/Platform.h"
@@ -92,10 +93,13 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     CPU_SET(cpu_id, &mn);
 
 #   ifndef __ANDROID__
-    return pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) == 0;
+    const bool result = (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) == 0);
 #   else
-    return sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0;
+    const bool result = (sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0);
 #   endif
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    return result;
 }
 #endif
 

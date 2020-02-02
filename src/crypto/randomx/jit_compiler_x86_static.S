@@ -43,6 +43,7 @@
 .global DECL(randomx_program_prologue_first_load)
 .global DECL(randomx_program_loop_begin)
 .global DECL(randomx_program_loop_load)
+.global DECL(randomx_program_loop_load_xop)
 .global DECL(randomx_program_start)
 .global DECL(randomx_program_read_dataset)
 .global DECL(randomx_program_read_dataset_ryzen)
@@ -93,8 +94,12 @@ DECL(randomx_program_prologue_first_load):
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
-	sub rsp, 24
-	stmxcsr dword ptr [rsp]
+	sub rsp, 40
+	mov dword ptr [rsp], 0x9FC0
+	mov dword ptr [rsp+4], 0xBFC0
+	mov dword ptr [rsp+8], 0xDFC0
+	mov dword ptr [rsp+12], 0xFFC0
+	mov dword ptr [rsp+32], -1
 	nop
 	nop
 	nop
@@ -109,6 +114,9 @@ DECL(randomx_program_loop_begin):
 
 DECL(randomx_program_loop_load):
 	#include "asm/program_loop_load.inc"
+
+DECL(randomx_program_loop_load_xop):
+	#include "asm/program_loop_load_xop.inc"
 
 DECL(randomx_program_start):
 	nop
