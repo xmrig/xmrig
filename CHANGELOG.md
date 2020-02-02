@@ -1,3 +1,6 @@
+# v5.5.3
+- [#1529](https://github.com/xmrig/xmrig/pull/1529) Fixed crash on Bulldozer CPUs.
+
 # v5.5.2
 - [#1500](https://github.com/xmrig/xmrig/pull/1500) Removed unnecessary code from RandomX JIT compiler.
 - [#1502](https://github.com/xmrig/xmrig/pull/1502) Optimizations for AMD Bulldozer.
