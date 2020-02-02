@@ -54,11 +54,11 @@
     "log-file": null,
     "pools": [
         {
-            "algo": Randomx-Loki,
+            "algo": "Randomx-Loki",
             "coin": null,
-            "url": loki.herominers.com:10111,
-            "user": LZUXX5VkpJDWrPBTiNRYoHHYZnJwhmR5AEsUXHHHkGbTRbdCwvUreWbZsaZCwx12pvGZT7xcdMF8FRSi8EssSwQr4kQfWc3,
-            "pass": x,
+            "url": "loki.herominers.com:10111,
+            "user": "LZUXX5VkpJDWrPBTiNRYoHHYZnJwhmR5AEsUXHHHkGbTRbdCwvUreWbZsaZCwx12pvGZT7xcdMF8FRSi8EssSwQr4kQfWc3",
+            "pass": "x",
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
