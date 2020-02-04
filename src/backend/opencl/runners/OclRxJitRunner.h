@@ -57,7 +57,7 @@ private:
     cl_mem m_programs               = nullptr;
     cl_mem m_registers              = nullptr;
     cl_program m_asmProgram         = nullptr;
-    RxJitKernel *m_randomx_jit      = nullptr;
+    RxJitKernel *m_randomx_jit[3]   = {};
     RxRunKernel *m_randomx_run      = nullptr;
 };
 

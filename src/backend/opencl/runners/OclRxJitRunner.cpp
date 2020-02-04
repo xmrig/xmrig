@@ -42,7 +42,9 @@ xmrig::OclRxJitRunner::OclRxJitRunner(size_t index, const OclLaunchData &data) :
 
 xmrig::OclRxJitRunner::~OclRxJitRunner()
 {
-    delete m_randomx_jit;
+    delete m_randomx_jit[0];
+    delete m_randomx_jit[1];
+    delete m_randomx_jit[2];
     delete m_randomx_run;
 
     OclLib::release(m_asmProgram);
@@ -66,8 +68,12 @@ void xmrig::OclRxJitRunner::build()
     m_blake2b_hash_registers_32->setArgs(m_hashes, m_registers, 256);
     m_blake2b_hash_registers_64->setArgs(m_hashes, m_registers, 256);
 
-    m_randomx_jit = new RxJitKernel(m_program);
-    m_randomx_jit->setArgs(m_entropy, m_registers, m_intermediate_programs, m_programs, m_intensity, m_rounding);
+    m_randomx_jit[0] = new RxJitKernel(m_program, "randomx_jit1");
+    m_randomx_jit[1] = new RxJitKernel(m_program, "randomx_jit2");
+    m_randomx_jit[2] = new RxJitKernel(m_program, "randomx_jit3");
+    m_randomx_jit[0]->setArgs(m_entropy, m_registers, m_intermediate_programs, m_programs, m_intensity, m_rounding);
+    m_randomx_jit[1]->setArgs(m_entropy, m_registers, m_intermediate_programs, m_programs, m_intensity, m_rounding);
+    m_randomx_jit[2]->setArgs(m_entropy, m_registers, m_intermediate_programs, m_programs, m_intensity, m_rounding);
 
     if (!loadAsmProgram()) {
         throw std::runtime_error(OclError::toString(CL_INVALID_PROGRAM));
@@ -80,7 +86,9 @@ void xmrig::OclRxJitRunner::build()
 
 void xmrig::OclRxJitRunner::execute(uint32_t iteration)
 {
-    m_randomx_jit->enqueue(m_queue, m_intensity, iteration);
+    m_randomx_jit[0]->enqueue(m_queue, m_intensity, iteration);
+    m_randomx_jit[1]->enqueue(m_queue, m_intensity, iteration);
+    m_randomx_jit[2]->enqueue(m_queue, m_intensity, iteration);
 
     OclLib::finish(m_queue);
 

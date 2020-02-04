@@ -898,7 +898,7 @@ int jit_prefetch_read(
 	return prefetch_data_count + 1;
 }
 
-__global uint* generate_jit_code(__global uint2* e, __global uint2* p0, __global uint* p, uint batch_size)
+void generate_jit_code1(__global uint2* e, __global uint2* p0, __global uint* p)
 {
 	int prefetch_data_count;
 
@@ -1333,7 +1333,12 @@ __global uint* generate_jit_code(__global uint2* e, __global uint2* p0, __global
 	}
 	p0[prefetch_data_count].x = RANDOMX_PROGRAM_SIZE;
 
-	__global int* prefecth_vgprs_stack = (__global int*)(p0 + prefetch_data_count + 1);
+	p[0] = prefetch_data_count;
+}
+
+void generate_jit_code2(__global uint2* e, __global uint2* p0, __global uint* p, uint batch_size)
+{
+	__global int* prefecth_vgprs_stack = (__global int*)(p0 + p[0] + 1);
 
 	// v86 - v127 will be used for global memory loads
 	enum { num_prefetch_vgprs = 21 };
@@ -1419,19 +1424,18 @@ __global uint* generate_jit_code(__global uint2* e, __global uint2* p0, __global
 			{
 				// Code size limit exceeded!!!
 				// Jump back to randomx_run kernel
-				*(p++) = 0xbe801d0cu; // s_setpc_b64 s[12:13]
-				return p;
+				*p = 0xbe801d0cu; // s_setpc_b64 s[12:13]
+				return;
 			}
 		} while (!done);
 	}
 
 	// Jump back to randomx_run kernel
-	*(p++) = 0xbe801d0cu; // s_setpc_b64 s[12:13]
-	return p;
+	*p = 0xbe801d0cu; // s_setpc_b64 s[12:13]
 }
 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-__kernel void randomx_jit(__global ulong* entropy, __global ulong* registers, __global uint2* intermediate_programs, __global uint* programs, uint batch_size, __global uint32_t* rounding, uint32_t iteration)
+__kernel void randomx_jit1(__global ulong* entropy, __global ulong* registers, __global uint2* intermediate_programs, __global uint* programs, uint batch_size, __global uint32_t* rounding, uint32_t iteration)
 {
 	const uint global_index = get_global_id(0) / 32;
 	const uint sub = get_global_id(0) % 32;
@@ -1443,7 +1447,33 @@ __kernel void randomx_jit(__global ulong* entropy, __global ulong* registers, __
 	__global uint2* p0 = intermediate_programs + global_index * (INTERMEDIATE_PROGRAM_SIZE / sizeof(uint2));
 	__global uint* p = programs + global_index * (COMPILED_PROGRAM_SIZE / sizeof(uint));
 
-	generate_jit_code(e, p0, p, batch_size);
+	generate_jit_code1(e, p0, p);
+}
+
+__attribute__((reqd_work_group_size(64, 1, 1)))
+__kernel void randomx_jit2(__global ulong* entropy, __global ulong* registers, __global uint2* intermediate_programs, __global uint* programs, uint batch_size, __global uint32_t* rounding, uint32_t iteration)
+{
+	const uint global_index = get_global_id(0) / 32;
+	const uint sub = get_global_id(0) % 32;
+
+	if (sub != 0)
+		return;
+
+	__global uint2* e = (__global uint2*)(entropy + global_index * (ENTROPY_SIZE / sizeof(ulong)) + (128 / sizeof(ulong)));
+	__global uint2* p0 = intermediate_programs + global_index * (INTERMEDIATE_PROGRAM_SIZE / sizeof(uint2));
+	__global uint* p = programs + global_index * (COMPILED_PROGRAM_SIZE / sizeof(uint));
+
+	generate_jit_code2(e, p0, p, batch_size);
+}
+
+__attribute__((reqd_work_group_size(64, 1, 1)))
+__kernel void randomx_jit3(__global ulong* entropy, __global ulong* registers, __global uint2* intermediate_programs, __global uint* programs, uint batch_size, __global uint32_t* rounding, uint32_t iteration)
+{
+	const uint global_index = get_global_id(0) / 32;
+	const uint sub = get_global_id(0) % 32;
+
+	if (sub != 0)
+		return;
 
 	if (iteration == 0)
 		rounding[global_index] = 0;

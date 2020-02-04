@@ -35,7 +35,7 @@ namespace xmrig {
 class RxJitKernel : public OclKernel
 {
 public:
-    inline RxJitKernel(cl_program program) : OclKernel(program, "randomx_jit") {}
+    inline RxJitKernel(cl_program program, const char* name) : OclKernel(program, name) {}
 
     void enqueue(cl_command_queue queue, size_t threads, uint32_t iteration);
     void setArgs(cl_mem entropy, cl_mem registers, cl_mem intermediate_programs, cl_mem programs, uint32_t batch_size, cl_mem rounding);
