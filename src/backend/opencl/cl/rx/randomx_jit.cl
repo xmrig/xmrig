@@ -903,7 +903,7 @@ __global uint* generate_jit_code(__global uint2* e, __global uint2* p0, __global
 	int prefetch_data_count;
 
 	#pragma unroll 1
-	for (int pass = 0; pass < 2; ++pass)
+	for (volatile int pass = 0; pass < 2; ++pass)
 	{
 #if RANDOMX_PROGRAM_SIZE > 256
 		int registerLastChanged[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
