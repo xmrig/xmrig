@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,51 +26,59 @@
 #define XMRIG_NETWORKSTATE_H
 
 
+#include "base/net/stratum/strategies/StrategyProxy.h"
+#include "base/tools/String.h"
+#include "crypto/common/Algorithm.h"
+
+
 #include <array>
 #include <vector>
-
-
-#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class IClient;
-class SubmitResult;
-
-
-class NetworkState
+class NetworkState : public StrategyProxy
 {
 public:
-    NetworkState();
+    NetworkState(IStrategyListener *listener);
 
-    inline const String &fingerprint() const { return m_fingerprint; }
-    inline const String &ip() const          { return m_ip; }
-    inline const String &tls() const         { return m_tls; }
+    inline const Algorithm &algorithm() const   { return m_algorithm; }
+    inline uint64_t accepted() const            { return m_accepted; }
+    inline uint64_t rejected() const            { return m_rejected; }
 
+#   ifdef XMRIG_FEATURE_API
+    rapidjson::Value getConnection(rapidjson::Document &doc, int version) const;
+    rapidjson::Value getResults(rapidjson::Document &doc, int version) const;
+#   endif
+
+protected:
+    void onActive(IStrategy *strategy, IClient *client) override;
+    void onJob(IStrategy *strategy, IClient *client, const Job &job) override;
+    void onPause(IStrategy *strategy) override;
+    void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override;
+
+private:
     uint32_t avgTime() const;
     uint32_t latency() const;
     uint64_t connectionTime() const;
     void add(const SubmitResult &result, const char *error);
-    void onActive(IClient *client);
     void stop();
 
-    char pool[256];
+    Algorithm m_algorithm;
+    bool m_active               = false;
+    char m_pool[256]{};
     std::array<uint64_t, 10> topDiff { { } };
-    uint64_t accepted;
-    uint64_t diff;
-    uint64_t failures;
-    uint64_t rejected;
-    uint64_t total;
-
-private:
-    bool m_active;
     std::vector<uint16_t> m_latency;
     String m_fingerprint;
     String m_ip;
     String m_tls;
-    uint64_t m_connectionTime;
+    uint64_t m_accepted         = 0;
+    uint64_t m_connectionTime   = 0;
+    uint64_t m_diff             = 0;
+    uint64_t m_failures         = 0;
+    uint64_t m_hashes           = 0;
+    uint64_t m_rejected         = 0;
 };
 
 

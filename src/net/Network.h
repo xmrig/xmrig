@@ -5,9 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,17 +27,16 @@
 #define XMRIG_NETWORK_H
 
 
-#include <vector>
-
-
 #include "base/api/interfaces/IApiListener.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "base/tools/Object.h"
 #include "interfaces/IJobResultListener.h"
-#include "net/NetworkState.h"
 #include "rapidjson/fwd.h"
+
+
+#include <vector>
 
 
 namespace xmrig {
@@ -45,6 +44,7 @@ namespace xmrig {
 
 class Controller;
 class IStrategy;
+class NetworkState;
 
 
 class Network : public IJobResultListener, public IStrategyListener, public IBaseListener, public ITimerListener, public IApiListener
@@ -87,10 +87,10 @@ private:
 #   endif
 
     Controller *m_controller;
-    IStrategy *m_donate;
-    IStrategy *m_strategy;
-    NetworkState m_state;
-    Timer *m_timer;
+    IStrategy *m_donate     = nullptr;
+    IStrategy *m_strategy   = nullptr;
+    NetworkState *m_state   = nullptr;
+    Timer *m_timer          = nullptr;
 };
 
 
