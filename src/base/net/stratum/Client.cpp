@@ -5,9 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -181,10 +181,16 @@ int64_t xmrig::Client::send(const rapidjson::Value &obj)
 int64_t xmrig::Client::submit(const JobResult &result)
 {
 #   ifndef XMRIG_PROXY_PROJECT
-    if (result.clientId != m_rpcId) {
+    if (result.clientId != m_rpcId || m_state != ConnectedState) {
         return -1;
     }
 #   endif
+
+    if (result.diff == 0) {
+        close();
+
+        return -1;
+    }
 
     using namespace rapidjson;
 
