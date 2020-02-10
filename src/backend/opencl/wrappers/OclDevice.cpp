@@ -107,6 +107,14 @@ static OclDevice::Type getType(const String &name)
         return OclDevice::Navi_10;
     }
 
+    if (name == "gfx1011") {
+        return OclDevice::Navi_12;
+    }
+
+    if (name == "gfx1012") {
+        return OclDevice::Navi_14;
+    }
+
     if (name == "gfx804") {
         return OclDevice::Lexa;
     }

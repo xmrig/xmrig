@@ -56,7 +56,9 @@ public:
         Vega_10,
         Vega_20,
         Raven,
-        Navi_10
+        Navi_10,
+        Navi_12,
+        Navi_14
     };
 
     OclDevice() = delete;
