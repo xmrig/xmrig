@@ -49,6 +49,7 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
     const size_t mem = device.globalMemSize();
     auto config      = RxAlgo::base(algorithm);
     bool gcnAsm      = false;
+    bool isNavi      = false;
 
     switch (device.type()) {
     case OclDevice::Baffin:
@@ -57,6 +58,12 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
     case OclDevice::Vega_10:
     case OclDevice::Vega_20:
         gcnAsm = true;
+        break;
+
+    case OclDevice::Navi_10:
+    case OclDevice::Navi_12:
+    case OclDevice::Navi_14:
+        isNavi = true;
         break;
 
     default:
@@ -75,8 +82,9 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
     uint32_t intensity = static_cast<uint32_t>((mem - (datasetHost ? 0 : dataset_mem)) / per_thread_mem / 2);
 
     // Too high intensity makes hashrate worse
-    if (intensity > device.computeUnits() * 16) {
-        intensity = device.computeUnits() * 16;
+    const uint32_t intensityCoeff = isNavi ? 64 : 16;
+    if (intensity > device.computeUnits() * intensityCoeff) {
+        intensity = device.computeUnits() * intensityCoeff;
     }
 
     intensity -= intensity % 64;
