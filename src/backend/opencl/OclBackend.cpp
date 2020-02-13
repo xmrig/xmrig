@@ -324,13 +324,8 @@ const xmrig::String &xmrig::OclBackend::type() const
 }
 
 
-void xmrig::OclBackend::execCommand(char command)
+void xmrig::OclBackend::execCommand(char)
 {
-#   ifdef XMRIG_FEATURE_ADL
-    if (command == 'e' || command == 'E') {
-        d_ptr->printHealth();
-    }
-#   endif
 }
 
 
@@ -370,6 +365,14 @@ void xmrig::OclBackend::printHashrate(bool details)
                Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
                );
+}
+
+
+void xmrig::OclBackend::printHealth()
+{
+#   ifdef XMRIG_FEATURE_ADL
+    d_ptr->printHealth();
+#   endif
 }
 
 
@@ -449,15 +452,6 @@ void xmrig::OclBackend::stop()
 void xmrig::OclBackend::tick(uint64_t ticks)
 {
     d_ptr->workers.tick(ticks);
-
-#   ifdef XMRIG_FEATURE_ADL
-    if (isEnabled()) {
-        auto seconds = d_ptr->controller->config()->healthPrintTime();
-        if (seconds && ticks && (ticks % (seconds * 2)) == 0) {
-            d_ptr->printHealth();
-        }
-    }
-#   endif
 }
 
 

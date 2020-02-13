@@ -59,6 +59,7 @@ protected:
     void execCommand(char command) override;
     void prepare(const Job &nextJob) override;
     void printHashrate(bool details) override;
+    void printHealth() override;
     void setJob(const Job &job) override;
     void start(IWorker *worker, bool ready) override;
     void stop() override;
