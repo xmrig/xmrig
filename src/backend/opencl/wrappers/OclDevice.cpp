@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 
 #include "backend/opencl/wrappers/OclDevice.h"
-
 #include "backend/opencl/OclGenerator.h"
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclLib.h"
@@ -32,6 +31,10 @@
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/common/Algorithm.h"
 #include "rapidjson/document.h"
+
+#ifdef XMRIG_FEATURE_ADL
+#   include "backend/opencl/wrappers/AdlLib.h"
+#endif
 
 
 #include <algorithm>
@@ -208,5 +211,20 @@ void xmrig::OclDevice::toJSON(rapidjson::Value &out, rapidjson::Document &doc) c
     out.AddMember("bus_id",      topology().toString().toJSON(doc), allocator);
     out.AddMember("cu",          computeUnits(), allocator);
     out.AddMember("global_mem",  static_cast<uint64_t>(globalMemSize()), allocator);
+
+#   ifdef XMRIG_FEATURE_ADL
+    if (AdlLib::isReady()) {
+        auto data = AdlLib::health(*this);
+
+        Value health(kObjectType);
+        health.AddMember("temperature", data.temperature, allocator);
+        health.AddMember("power",       data.power, allocator);
+        health.AddMember("clock",       data.clock, allocator);
+        health.AddMember("mem_clock",   data.memClock, allocator);
+        health.AddMember("rpm",         data.rpm, allocator);
+
+        out.AddMember("health", health, allocator);
+    }
+#   endif
 }
 #endif

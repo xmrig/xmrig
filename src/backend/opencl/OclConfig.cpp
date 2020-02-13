@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -43,6 +43,10 @@ static const char *kINTEL       = "INTEL";
 static const char *kLoader      = "loader";
 static const char *kNVIDIA      = "NVIDIA";
 static const char *kPlatform    = "platform";
+
+#ifdef XMRIG_FEATURE_ADL
+static const char *kAdl         = "adl";
+#endif
 
 
 extern template class Threads<OclThreads>;
@@ -108,6 +112,10 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kLoader),   m_loader.toJSON(), allocator);
     obj.AddMember(StringRef(kPlatform), m_platformVendor.isEmpty() ? Value(m_platformIndex) : m_platformVendor.toJSON(), allocator);
 
+#   ifdef XMRIG_FEATURE_ADL
+    obj.AddMember(StringRef(kAdl),      m_adl, allocator);
+#   endif
+
     m_threads.toJSON(obj, doc);
 
     return obj;
@@ -154,6 +162,10 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
 
         setPlatform(Json::getValue(value, kPlatform));
         setDevicesHint(Json::getString(value, kDevicesHint));
+
+#       ifdef XMRIG_FEATURE_ADL
+        m_adl = Json::getBool(value, kAdl, m_adl);
+#       endif
 
         m_threads.read(value);
 

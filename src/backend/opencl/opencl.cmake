@@ -31,7 +31,7 @@ if (WITH_OPENCL)
         src/backend/opencl/wrappers/OclLib.h
         src/backend/opencl/wrappers/OclPlatform.h
         src/backend/opencl/wrappers/OclVendor.h
-       )
+        )
 
     set(SOURCES_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.cpp
@@ -59,75 +59,89 @@ if (WITH_OPENCL)
         src/backend/opencl/wrappers/OclKernel.cpp
         src/backend/opencl/wrappers/OclLib.cpp
         src/backend/opencl/wrappers/OclPlatform.cpp
-       )
+        )
 
-   if (WIN32)
-       list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_win.cpp)
-   else()
-       list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_unix.cpp)
-   endif()
+    if (WIN32)
+        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_win.cpp)
+    else()
+        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_unix.cpp)
+    endif()
 
-   if (WITH_RANDOMX)
-       list(APPEND HEADERS_BACKEND_OPENCL
-           src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.h
-           src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.h
-           src/backend/opencl/kernels/rx/ExecuteVmKernel.h
-           src/backend/opencl/kernels/rx/FillAesKernel.h
-           src/backend/opencl/kernels/rx/FindSharesKernel.h
-           src/backend/opencl/kernels/rx/HashAesKernel.cpp
-           src/backend/opencl/kernels/rx/InitVmKernel.h
-           src/backend/opencl/kernels/rx/RxJitKernel.h
-           src/backend/opencl/kernels/rx/RxRunKernel.h
-           src/backend/opencl/runners/OclRxBaseRunner.h
-           src/backend/opencl/runners/OclRxJitRunner.h
-           src/backend/opencl/runners/OclRxVmRunner.h
-           )
+    if (WITH_RANDOMX)
+        list(APPEND HEADERS_BACKEND_OPENCL
+             src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.h
+             src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.h
+             src/backend/opencl/kernels/rx/ExecuteVmKernel.h
+             src/backend/opencl/kernels/rx/FillAesKernel.h
+             src/backend/opencl/kernels/rx/FindSharesKernel.h
+             src/backend/opencl/kernels/rx/HashAesKernel.cpp
+             src/backend/opencl/kernels/rx/InitVmKernel.h
+             src/backend/opencl/kernels/rx/RxJitKernel.h
+             src/backend/opencl/kernels/rx/RxRunKernel.h
+             src/backend/opencl/runners/OclRxBaseRunner.h
+             src/backend/opencl/runners/OclRxJitRunner.h
+             src/backend/opencl/runners/OclRxVmRunner.h
+             )
 
-       list(APPEND SOURCES_BACKEND_OPENCL
-           src/backend/opencl/generators/ocl_generic_rx_generator.cpp
-           src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.cpp
-           src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.cpp
-           src/backend/opencl/kernels/rx/ExecuteVmKernel.cpp
-           src/backend/opencl/kernels/rx/FillAesKernel.cpp
-           src/backend/opencl/kernels/rx/FindSharesKernel.cpp
-           src/backend/opencl/kernels/rx/HashAesKernel.cpp
-           src/backend/opencl/kernels/rx/InitVmKernel.cpp
-           src/backend/opencl/kernels/rx/RxJitKernel.cpp
-           src/backend/opencl/kernels/rx/RxRunKernel.cpp
-           src/backend/opencl/runners/OclRxBaseRunner.cpp
-           src/backend/opencl/runners/OclRxJitRunner.cpp
-           src/backend/opencl/runners/OclRxVmRunner.cpp
-           )
-   endif()
+        list(APPEND SOURCES_BACKEND_OPENCL
+             src/backend/opencl/generators/ocl_generic_rx_generator.cpp
+             src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.cpp
+             src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.cpp
+             src/backend/opencl/kernels/rx/ExecuteVmKernel.cpp
+             src/backend/opencl/kernels/rx/FillAesKernel.cpp
+             src/backend/opencl/kernels/rx/FindSharesKernel.cpp
+             src/backend/opencl/kernels/rx/HashAesKernel.cpp
+             src/backend/opencl/kernels/rx/InitVmKernel.cpp
+             src/backend/opencl/kernels/rx/RxJitKernel.cpp
+             src/backend/opencl/kernels/rx/RxRunKernel.cpp
+             src/backend/opencl/runners/OclRxBaseRunner.cpp
+             src/backend/opencl/runners/OclRxJitRunner.cpp
+             src/backend/opencl/runners/OclRxVmRunner.cpp
+             )
+    endif()
 
-   if (WITH_CN_GPU AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-       list(APPEND HEADERS_BACKEND_OPENCL
-           src/backend/opencl/kernels/Cn00RyoKernel.h
-           src/backend/opencl/kernels/Cn1RyoKernel.h
-           src/backend/opencl/kernels/Cn2RyoKernel.h
-           src/backend/opencl/runners/OclRyoRunner.h
-           )
+    if (WITH_CN_GPU AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+        list(APPEND HEADERS_BACKEND_OPENCL
+             src/backend/opencl/kernels/Cn00RyoKernel.h
+             src/backend/opencl/kernels/Cn1RyoKernel.h
+             src/backend/opencl/kernels/Cn2RyoKernel.h
+             src/backend/opencl/runners/OclRyoRunner.h
+             )
 
-       list(APPEND SOURCES_BACKEND_OPENCL
-           src/backend/opencl/generators/ocl_generic_cn_gpu_generator.cpp
-           src/backend/opencl/kernels/Cn00RyoKernel.cpp
-           src/backend/opencl/kernels/Cn1RyoKernel.cpp
-           src/backend/opencl/kernels/Cn2RyoKernel.cpp
-           src/backend/opencl/runners/OclRyoRunner.cpp
-           )
-   endif()
+        list(APPEND SOURCES_BACKEND_OPENCL
+             src/backend/opencl/generators/ocl_generic_cn_gpu_generator.cpp
+             src/backend/opencl/kernels/Cn00RyoKernel.cpp
+             src/backend/opencl/kernels/Cn1RyoKernel.cpp
+             src/backend/opencl/kernels/Cn2RyoKernel.cpp
+             src/backend/opencl/runners/OclRyoRunner.cpp
+             )
+    endif()
 
-   if (WITH_STRICT_CACHE)
-       add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
-   else()
-       remove_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
-   endif()
+    if (WITH_STRICT_CACHE)
+        add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
+    else()
+        remove_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
+    endif()
 
-   if (WITH_INTERLEAVE_DEBUG_LOG)
-       add_definitions(/DXMRIG_INTERLEAVE_DEBUG)
-   endif()
+    if (WITH_INTERLEAVE_DEBUG_LOG)
+        add_definitions(/DXMRIG_INTERLEAVE_DEBUG)
+    endif()
+
+    if (WITH_ADL AND XMRIG_OS_WIN)
+        add_definitions(/DXMRIG_FEATURE_ADL)
+
+        list(APPEND HEADERS_BACKEND_OPENCL
+             src/backend/opencl/wrappers/AdlHealth.h
+             src/backend/opencl/wrappers/AdlLib.h
+             )
+
+        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/wrappers/AdlLib.cpp)
+    else()
+       remove_definitions(/DXMRIG_FEATURE_ADL)
+    endif()
 else()
     remove_definitions(/DXMRIG_FEATURE_OPENCL)
+    remove_definitions(/DXMRIG_FEATURE_ADL)
 
     set(HEADERS_BACKEND_OPENCL "")
     set(SOURCES_BACKEND_OPENCL "")
