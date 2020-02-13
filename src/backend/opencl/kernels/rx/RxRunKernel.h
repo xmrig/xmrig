@@ -40,7 +40,7 @@ class RxRunKernel : public OclKernel
 public:
     inline RxRunKernel(cl_program program) : OclKernel(program, "randomx_run") {}
 
-    void enqueue(cl_command_queue queue, size_t threads);
+    void enqueue(cl_command_queue queue, size_t threads, size_t workgroup_size);
     void setArgs(cl_mem dataset, cl_mem scratchpads, cl_mem registers, cl_mem rounding, cl_mem programs, uint32_t batch_size, const Algorithm &algorithm);
 };
 

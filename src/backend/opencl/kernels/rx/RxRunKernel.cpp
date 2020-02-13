@@ -30,12 +30,10 @@
 #include "crypto/rx/RxAlgo.h"
 
 
-void xmrig::RxRunKernel::enqueue(cl_command_queue queue, size_t threads)
+void xmrig::RxRunKernel::enqueue(cl_command_queue queue, size_t threads, size_t workgroup_size)
 {
-    const size_t gthreads        = threads * 64;
-    static const size_t lthreads = 64;
-
-    enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
+    const size_t gthreads        = threads * workgroup_size;
+    enqueueNDRange(queue, 1, nullptr, &gthreads, &workgroup_size);
 }
 
 

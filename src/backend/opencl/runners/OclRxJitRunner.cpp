@@ -26,6 +26,7 @@
 
 #include "backend/opencl/cl/rx/randomx_run_gfx803.h"
 #include "backend/opencl/cl/rx/randomx_run_gfx900.h"
+#include "backend/opencl/cl/rx/randomx_run_gfx1010.h"
 #include "backend/opencl/kernels/rx/Blake2bHashRegistersKernel.h"
 #include "backend/opencl/kernels/rx/HashAesKernel.h"
 #include "backend/opencl/kernels/rx/RxJitKernel.h"
@@ -84,7 +85,7 @@ void xmrig::OclRxJitRunner::execute(uint32_t iteration)
 
     OclLib::finish(m_queue);
 
-    m_randomx_run->enqueue(m_queue, m_intensity);
+    m_randomx_run->enqueue(m_queue, m_intensity, (m_gcn_version == 15) ? 32 : 64);
 }
 
 
@@ -120,8 +121,23 @@ bool xmrig::OclRxJitRunner::loadAsmProgram()
         elf_header_flags = *reinterpret_cast<uint32_t*>((binary_data.data() + elf_header_flags_offset));
     }
 
-    const size_t len      = (m_gcn_version == 14) ? randomx_run_gfx900_bin_size : randomx_run_gfx803_bin_size;
-    unsigned char *binary = (m_gcn_version == 14) ? randomx_run_gfx900_bin      : randomx_run_gfx803_bin;
+    size_t len;
+    unsigned char *binary;
+
+    switch (m_gcn_version) {
+    case 14:
+        len = randomx_run_gfx900_bin_size;
+        binary = randomx_run_gfx900_bin;
+        break;
+    case 15:
+        len = randomx_run_gfx1010_bin_size;
+        binary = randomx_run_gfx1010_bin;
+        break;
+    default:
+        len = randomx_run_gfx803_bin_size;
+        binary = randomx_run_gfx803_bin;
+        break;
+    }
 
     // Set correct internal device ID in the pre-compiled binary
     if (elf_header_flags) {
