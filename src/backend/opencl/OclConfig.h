@@ -58,16 +58,20 @@ public:
 private:
     void generate();
     void setDevicesHint(const char *devicesHint);
-    void setPlatform(const rapidjson::Value &platform);
 
     bool m_cache         = true;
     bool m_enabled       = false;
     bool m_shouldSave    = false;
     std::vector<uint32_t> m_devicesHint;
     String m_loader;
-    String m_platformVendor;
     Threads<OclThreads> m_threads;
+
+#   ifndef XMRIG_OS_APPLE
+    void setPlatform(const rapidjson::Value &platform);
+
+    String m_platformVendor;
     uint32_t m_platformIndex = 0;
+#   endif
 
 #   ifdef XMRIG_FEATURE_ADL
     bool m_adl          = true;

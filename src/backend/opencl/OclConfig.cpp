@@ -35,14 +35,17 @@
 namespace xmrig {
 
 
-static const char *kAMD         = "AMD";
 static const char *kCache       = "cache";
 static const char *kDevicesHint = "devices-hint";
 static const char *kEnabled     = "enabled";
-static const char *kINTEL       = "INTEL";
 static const char *kLoader      = "loader";
+
+#ifndef XMRIG_OS_APPLE
+static const char *kAMD         = "AMD";
+static const char *kINTEL       = "INTEL";
 static const char *kNVIDIA      = "NVIDIA";
 static const char *kPlatform    = "platform";
+#endif
 
 #ifdef XMRIG_FEATURE_ADL
 static const char *kAdl         = "adl";
@@ -55,10 +58,11 @@ extern template class Threads<OclThreads>;
 }
 
 
-xmrig::OclConfig::OclConfig() :
-    m_platformVendor(kAMD)
-{
-}
+#ifndef XMRIG_OS_APPLE
+xmrig::OclConfig::OclConfig() : m_platformVendor(kAMD) {}
+#else
+xmrig::OclConfig::OclConfig() = default;
+#endif
 
 
 xmrig::OclPlatform xmrig::OclConfig::platform() const
@@ -68,6 +72,7 @@ xmrig::OclPlatform xmrig::OclConfig::platform() const
         return {};
     }
 
+#   ifndef XMRIG_OS_APPLE
     if (!m_platformVendor.isEmpty()) {
         String search;
         String vendor = m_platformVendor;
@@ -97,6 +102,9 @@ xmrig::OclPlatform xmrig::OclConfig::platform() const
     }
 
     return {};
+#   else
+    return platforms[0];
+#   endif
 }
 
 
@@ -110,7 +118,10 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kEnabled),  m_enabled, allocator);
     obj.AddMember(StringRef(kCache),    m_cache, allocator);
     obj.AddMember(StringRef(kLoader),   m_loader.toJSON(), allocator);
+
+#   ifndef XMRIG_OS_APPLE
     obj.AddMember(StringRef(kPlatform), m_platformVendor.isEmpty() ? Value(m_platformIndex) : m_platformVendor.toJSON(), allocator);
+#   endif
 
 #   ifdef XMRIG_FEATURE_ADL
     obj.AddMember(StringRef(kAdl),      m_adl, allocator);
@@ -160,7 +171,10 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
         m_cache     = Json::getBool(value, kCache, m_cache);
         m_loader    = Json::getString(value, kLoader);
 
+#       ifndef XMRIG_OS_APPLE
         setPlatform(Json::getValue(value, kPlatform));
+#       endif
+
         setDevicesHint(Json::getString(value, kDevicesHint));
 
 #       ifdef XMRIG_FEATURE_ADL
@@ -226,6 +240,7 @@ void xmrig::OclConfig::setDevicesHint(const char *devicesHint)
 }
 
 
+#ifndef XMRIG_OS_APPLE
 void xmrig::OclConfig::setPlatform(const rapidjson::Value &platform)
 {
     if (platform.IsString()) {
@@ -236,3 +251,4 @@ void xmrig::OclConfig::setPlatform(const rapidjson::Value &platform)
         m_platformIndex  = platform.GetUint();
     }
 }
+#endif

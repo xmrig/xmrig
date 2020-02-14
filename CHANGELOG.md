@@ -4,6 +4,7 @@
 - [#1551](https://github.com/xmrig/xmrig/pull/1551) Added RandomX JIT for AMD Navi  GPUs.
 - Added health information for AMD GPUs (clocks/power/fan/temperature) via ADL (Windows) and sysfs (Linux).
 - Fixed possible nicehash nonce overflow in some conditions.
+- Fixed wrong OpenCL platform on macOS, option `platform` now ignored on this OS.
 
 # v5.5.3
 - [#1529](https://github.com/xmrig/xmrig/pull/1529) Fixed crash on Bulldozer CPUs.
