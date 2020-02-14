@@ -25,7 +25,6 @@
 #include "backend/opencl/wrappers/AdlLib.h"
 #include "3rdparty/adl/adl_sdk.h"
 #include "3rdparty/adl/adl_structures.h"
-#include "base/io/log/Log.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 
 
@@ -188,7 +187,7 @@ void xmrig::AdlLib::close()
 
 AdlHealth xmrig::AdlLib::health(const OclDevice &device)
 {
-    if (!isReady()) {
+    if (!isReady() || device.vendorId() != OCL_VENDOR_AMD) {
         return {};
     }
 

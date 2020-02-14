@@ -127,7 +127,7 @@ if (WITH_OPENCL)
         add_definitions(/DXMRIG_INTERLEAVE_DEBUG)
     endif()
 
-    if (WITH_ADL AND XMRIG_OS_WIN)
+    if (WITH_ADL AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
         add_definitions(/DXMRIG_FEATURE_ADL)
 
         list(APPEND HEADERS_BACKEND_OPENCL
@@ -135,7 +135,11 @@ if (WITH_OPENCL)
              src/backend/opencl/wrappers/AdlLib.h
              )
 
-        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/wrappers/AdlLib.cpp)
+        if (XMRIG_OS_WIN)
+            list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/wrappers/AdlLib.cpp)
+        else()
+            list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/wrappers/AdlLib_linux.cpp)
+        endif()
     else()
        remove_definitions(/DXMRIG_FEATURE_ADL)
     endif()
