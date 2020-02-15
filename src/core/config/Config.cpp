@@ -70,7 +70,7 @@ static const char *kCuda    = "cuda";
 #endif
 
 
-#if defined(XMRIG_FEATURE_NVML)
+#if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
 static const char *kHealthPrintTime = "health-print-time";
 #endif
 
@@ -92,7 +92,7 @@ public:
     CudaConfig cuda;
 #   endif
 
-#   if defined(XMRIG_FEATURE_NVML)
+#   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     uint32_t healthPrintTime = 60;
 #   endif
 };
@@ -142,7 +142,7 @@ const xmrig::RxConfig &xmrig::Config::rx() const
 #endif
 
 
-#if defined(XMRIG_FEATURE_NVML)
+#if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
 uint32_t xmrig::Config::healthPrintTime() const
 {
     return d_ptr->healthPrintTime;
@@ -194,7 +194,7 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     d_ptr->cuda.read(reader.getValue(kCuda));
 #   endif
 
-#   ifdef XMRIG_FEATURE_NVML
+#   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     d_ptr->healthPrintTime = reader.getUint(kHealthPrintTime, d_ptr->healthPrintTime);
 #   endif
 
@@ -239,7 +239,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kLogFile),                  m_logFile.toJSON(), allocator);
     doc.AddMember(StringRef(Pools::kPools),             m_pools.toJSON(doc), allocator);
     doc.AddMember(StringRef(kPrintTime),                printTime(), allocator);
-#   if defined(XMRIG_FEATURE_NVML)
+#   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     doc.AddMember(StringRef(kHealthPrintTime),          healthPrintTime(), allocator);
 #   endif
     doc.AddMember(StringRef(Pools::kRetries),           m_pools.retries(), allocator);

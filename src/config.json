@@ -39,6 +39,7 @@
         "cache": true,
         "loader": null,
         "platform": "AMD",
+        "adl": true,
         "cn/0": false,
         "cn-lite/0": false
     },

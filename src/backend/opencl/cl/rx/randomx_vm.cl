@@ -316,7 +316,7 @@ __kernel void init_vm(__global const void* entropy_data, __global void* vm_state
 		uint64_t registerLatencyFP = 0;
 		uint64_t registerReadCycleFP = 0;
 		uint32_t ScratchpadHighLatency = 0;
-		uint32_t ScratchpadLatency = 0;
+		volatile uint32_t ScratchpadLatency = 0;
 
 		int32_t first_available_slot = 0;
 		int32_t first_allowed_slot_cfround = 0;
@@ -1425,8 +1425,7 @@ double fma_soft(double a, double b, double c, uint32_t rounding_mode)
 	}
 
 	const uint64_t mantissa_size = 52;
-	const uint64_t mantissa_mask = (1UL << mantissa_size) - 1;
-	const uint64_t mantissa_high_bit = 1UL << mantissa_size;
+	const uint64_t mantissa_mask = (1UL << 52) - 1;
 
 	const uint64_t exponent_size = 11;
 	const uint64_t exponent_mask = (1 << exponent_size) - 1;
@@ -1441,9 +1440,13 @@ double fma_soft(double a, double b, double c, uint32_t rounding_mode)
 		return as_double(inf);
 	}
 
-	const uint64_t mantissa_a = (as_ulong(a) & mantissa_mask) | mantissa_high_bit;
-	const uint64_t mantissa_b = (as_ulong(b) & mantissa_mask) | mantissa_high_bit;
-	const uint64_t mantissa_c = (as_ulong(c) & mantissa_mask) | mantissa_high_bit;
+	uint64_t mantissa_a = (as_ulong(a) & mantissa_mask);
+	uint64_t mantissa_b = (as_ulong(b) & mantissa_mask);
+	uint64_t mantissa_c = (as_ulong(c) & mantissa_mask);
+
+	((uint2*)&mantissa_a)->y |= 1U << 20;
+	((uint2*)&mantissa_b)->y |= 1U << 20;
+	((uint2*)&mantissa_c)->y |= 1U << 20;
 
 	const uint32_t sign_a = as_uint2(a).y >> 31;
 	const uint32_t sign_b = as_uint2(b).y >> 31;
@@ -1585,7 +1588,7 @@ double fma_soft(double a, double b, double c, uint32_t rounding_mode)
 	if (rounding_mode + sign_fma_result == 2)
 	{
 		fma_result[1] += round_up;
-		if (fma_result[1] == mantissa_high_bit)
+		if (fma_result[1] == (1UL << mantissa_size))
 		{
 			fma_result[1] = 0;
 			++exponent_fma_result;
