@@ -142,6 +142,7 @@ namespace randomx {
 		void h_FSUB_M(const Instruction&);
 		void h_FSCAL_R(const Instruction&);
 		void h_FMUL_R(const Instruction&);
+		void h_FMUL2I_R(const Instruction&);
 		void h_FDIV_M(const Instruction&);
 		void h_FSQRT_R(const Instruction&);
 		void h_CBRANCH(const Instruction&);

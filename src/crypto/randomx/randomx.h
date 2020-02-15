@@ -109,6 +109,7 @@ struct RandomX_ConfigurationBase
 	uint32_t RANDOMX_FREQ_FSUB_M;
 	uint32_t RANDOMX_FREQ_FSCAL_R;
 	uint32_t RANDOMX_FREQ_FMUL_R;
+	uint32_t RANDOMX_FREQ_FMUL2I_R;
 	uint32_t RANDOMX_FREQ_FDIV_M;
 	uint32_t RANDOMX_FREQ_FSQRT_R;
 	uint32_t RANDOMX_FREQ_CBRANCH;
@@ -170,6 +171,7 @@ struct RandomX_ConfigurationBase
 	int CEIL_FSUB_M;
 	int CEIL_FSCAL_R;
 	int CEIL_FMUL_R;
+	int CEIL_FMUL2I_R;
 	int CEIL_FDIV_M;
 	int CEIL_FSQRT_R;
 	int CEIL_CBRANCH;
@@ -183,12 +185,14 @@ struct RandomX_ConfigurationWownero : public RandomX_ConfigurationBase { RandomX
 struct RandomX_ConfigurationLoki : public RandomX_ConfigurationBase { RandomX_ConfigurationLoki(); };
 struct RandomX_ConfigurationArqma : public RandomX_ConfigurationBase { RandomX_ConfigurationArqma(); };
 struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_ConfigurationSafex(); };
+struct RandomX_ConfigurationKlaro : public RandomX_ConfigurationBase { RandomX_ConfigurationKlaro(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
 extern RandomX_ConfigurationWownero RandomX_WowneroConfig;
 extern RandomX_ConfigurationLoki RandomX_LokiConfig;
 extern RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 extern RandomX_ConfigurationSafex RandomX_SafexConfig;
+extern RandomX_ConfigurationKlaro RandomX_KlaroConfig;
 
 extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 

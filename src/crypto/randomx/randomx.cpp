@@ -99,6 +99,27 @@ RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 	ArgonSalt = "RandomSFX\x01";
 }
 
+RandomX_ConfigurationKlaro::RandomX_ConfigurationKlaro()
+{
+RANDOMX_FREQ_IADD_RS = 15;
+RANDOMX_FREQ_IADD_M = 2;
+RANDOMX_FREQ_ISUB_M = 2;
+RANDOMX_FREQ_IXOR_R = 5;
+RANDOMX_FREQ_IXOR_M = 2;
+RANDOMX_FREQ_IROR_R = 2;
+
+RANDOMX_FREQ_FADD_R = 20;
+RANDOMX_FREQ_FADD_M = 10;
+RANDOMX_FREQ_FSUB_R = 20;
+RANDOMX_FREQ_FSUB_M = 10;
+RANDOMX_FREQ_FMUL_R = 20;
+RANDOMX_FREQ_FMUL2I_R = 20;
+RANDOMX_FREQ_FDIV_M = 7;
+RANDOMX_FREQ_FSQRT_R = 16;
+RANDOMX_FREQ_CBRANCH = 16;
+
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonMemory(262144)
 	, ArgonIterations(3)
@@ -276,7 +297,8 @@ void RandomX_ConfigurationBase::Apply()
 	INST_HANDLE(FSUB_M, FSUB_R);
 	INST_HANDLE(FSCAL_R, FSUB_M);
 	INST_HANDLE(FMUL_R, FSCAL_R);
-	INST_HANDLE(FDIV_M, FMUL_R);
+	INST_HANDLE(FMUL2I_R, FMUL_R);
+	INST_HANDLE(FDIV_M, FMUL2I_R);
 	INST_HANDLE(FSQRT_R, FDIV_M);
 	INST_HANDLE(CBRANCH, FSQRT_R);
 	INST_HANDLE(CFROUND, CBRANCH);
@@ -290,6 +312,7 @@ RandomX_ConfigurationWownero RandomX_WowneroConfig;
 RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
+RandomX_ConfigurationKlaro RandomX_KlaroConfig;
 
 RandomX_ConfigurationBase RandomX_CurrentConfig;
 

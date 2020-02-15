@@ -63,6 +63,7 @@ namespace randomx {
 			INSTR_CASE(FSUB_M)
 			INSTR_CASE(FSCAL_R)
 			INSTR_CASE(FMUL_R)
+			INSTR_CASE(FMUL2I_R)
 			INSTR_CASE(FDIV_M)
 			INSTR_CASE(FSQRT_R)
 			INSTR_CASE(CBRANCH)
@@ -411,6 +412,17 @@ namespace randomx {
 			ibc.type = InstructionType::FMUL_R;
 			ibc.fdst = &nreg->e[dst];
 			ibc.fsrc = &nreg->a[src];
+			return;
+		}
+
+		if (opcode < RandomX_CurrentConfig.CEIL_FMUL2I_R) {
+			auto dst = instr.dst % RegisterCountFlt;
+			int reg_a = (instr.getImm32() & 0xff) % RegistersCount;
+			int reg_b = (instr.getImm32()>>8 & 0xff) % RegistersCount;
+			ibc.type = InstructionType::FMUL2I_R;
+			ibc.fdst = &nreg->e[dst];
+			ibc.isrc = &nreg->r[reg_a];
+			ibc.isrc2 = &nreg->r[reg_b];
 			return;
 		}
 

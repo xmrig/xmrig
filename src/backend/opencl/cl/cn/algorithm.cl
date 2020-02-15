@@ -25,6 +25,7 @@
 #define ALGO_AR2_CHUKWA     24
 #define ALGO_AR2_WRKZ       25
 
+
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1
 #define FAMILY_CN_LITE      2

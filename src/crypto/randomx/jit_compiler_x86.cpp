@@ -1038,6 +1038,33 @@ namespace randomx {
 		codePos = pos;
 	}
 
+    static const uint8_t MOVQ_XMM12_REX[] = { 0x66, 0x4d, 0x0f, 0x6e };
+	static const uint8_t CVTDQ2PD_XMM12[] = { 0xf3, 0x45, 0x0f, 0xe6, 0xe4 };
+	static const uint8_t MULPD_XMM12[] = { 0x66, 0x41, 0x0f, 0x59 };
+    
+  	void JitCompilerX86::h_FMUL2I_R(const Instruction& instr) {
+        uint8_t* const p = code;
+		int pos = codePos;
+        
+		const uint32_t dst = instr.dst % RegisterCountFlt;
+		int reg_a = (instr.getImm32() & 0xff) % RegistersCount;
+		int reg_b = (instr.getImm32()>>8 & 0xff) % RegistersCount;
+		emit(MOVQ_XMM12_REX, p, pos);
+		emitByte(0xe0 + reg_a, p, pos);
+		emit(CVTDQ2PD_XMM12, p, pos);
+		emit(MULPD_XMM12, p, pos);
+		emitByte(0xc4 + 8 * (dst+4), p, pos);
+		emit(MOVQ_XMM12_REX, p, pos);
+		emitByte(0xe0 + reg_b, p, pos);
+		emit(CVTDQ2PD_XMM12, p, pos);
+		emit(MULPD_XMM12, p, pos);
+		emitByte(0xc4 + 8 * (dst+4), p, pos);
+		emit(SQRTPD, p, pos);
+		emitByte(0xe4 + 9 * dst, p, pos);
+        
+        codePos = pos;
+	}
+
 	void JitCompilerX86::h_FDIV_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
