@@ -353,6 +353,13 @@ void xmrig::Miner::execCommand(char command)
         setEnabled(true);
         break;
 
+    case 'e':
+    case 'E':
+        for (auto backend : d_ptr->backends) {
+            backend->printHealth();
+        }
+        break;
+
     default:
         break;
     }
@@ -489,10 +496,15 @@ void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
 
 void xmrig::Miner::onTimer(const Timer *)
 {
-    double maxHashrate = 0.0;
+    double maxHashrate          = 0.0;
+    const auto healthPrintTime  = d_ptr->controller->config()->healthPrintTime();
 
     for (IBackend *backend : d_ptr->backends) {
         backend->tick(d_ptr->ticks);
+
+        if (healthPrintTime && d_ptr->ticks && (d_ptr->ticks % (healthPrintTime * 2)) == 0 && backend->isEnabled()) {
+            backend->printHealth();
+        }
 
         if (backend->hashrate()) {
             maxHashrate += backend->hashrate()->calc(Hashrate::ShortInterval);
@@ -501,8 +513,8 @@ void xmrig::Miner::onTimer(const Timer *)
 
     d_ptr->maxHashrate[d_ptr->algorithm] = std::max(d_ptr->maxHashrate[d_ptr->algorithm], maxHashrate);
 
-    auto seconds = d_ptr->controller->config()->printTime();
-    if (seconds && (d_ptr->ticks % (seconds * 2)) == 0) {
+    const auto printTime = d_ptr->controller->config()->printTime();
+    if (printTime && d_ptr->ticks && (d_ptr->ticks % (printTime * 2)) == 0) {
         printHashrate(false);
     }
 
