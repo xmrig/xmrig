@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -64,13 +64,17 @@ public:
     }
 
 
-    inline void nextRound(uint32_t rounds, uint32_t roundSize)
+    inline bool nextRound(uint32_t rounds, uint32_t roundSize)
     {
+        bool ok = true;
         m_rounds[index()]++;
 
         if ((m_rounds[index()] % rounds) == 0) {
             for (size_t i = 0; i < N; ++i) {
-                *nonce(i) = Nonce::next(index(), *nonce(i), rounds * roundSize, currentJob().isNicehash());
+                *nonce(i) = Nonce::next(index(), *nonce(i), rounds * roundSize, currentJob().isNicehash(), &ok);
+                if (!ok) {
+                    break;
+                }
             }
         }
         else {
@@ -78,6 +82,8 @@ public:
                 *nonce(i) += roundSize;
             }
         }
+
+        return ok;
     }
 
 
@@ -114,16 +120,19 @@ inline uint32_t *xmrig::WorkerJob<1>::nonce(size_t)
 
 
 template<>
-inline void xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
+inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
 {
+    bool ok = true;
     m_rounds[index()]++;
 
     if ((m_rounds[index()] % rounds) == 0) {
-        *nonce() = Nonce::next(index(), *nonce(), rounds * roundSize, currentJob().isNicehash());
+        *nonce() = Nonce::next(index(), *nonce(), rounds * roundSize, currentJob().isNicehash(), &ok);
     }
     else {
         *nonce() += roundSize;
     }
+
+    return ok;
 }
 
 
