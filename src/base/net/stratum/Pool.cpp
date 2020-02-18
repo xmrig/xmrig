@@ -63,6 +63,7 @@ const char *Pool::kNicehash               = "nicehash";
 const char *Pool::kPass                   = "pass";
 const char *Pool::kRigId                  = "rig-id";
 const char *Pool::kSelfSelect             = "self-select";
+const char *Pool::kSOCKS5                 = "socks5";
 const char *Pool::kTls                    = "tls";
 const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
@@ -96,6 +97,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_algorithm    = Json::getString(object, kAlgo);
     m_coin         = Json::getString(object, kCoin);
     m_daemon       = Json::getString(object, kSelfSelect);
+    m_proxy        = Json::getValue(object, kSOCKS5);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
@@ -173,6 +175,7 @@ bool xmrig::Pool::isEqual(const Pool &other) const
             && m_user         == other.m_user
             && m_pollInterval == other.m_pollInterval
             && m_daemon       == other.m_daemon
+            && m_proxy        == other.m_proxy
             );
 }
 
@@ -232,10 +235,11 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
         }
     }
 
-    obj.AddMember(StringRef(kEnabled),            m_flags.test(FLAG_ENABLED), allocator);
-    obj.AddMember(StringRef(kTls),                isTLS(), allocator);
-    obj.AddMember(StringRef(kFingerprint),        m_fingerprint.toJSON(), allocator);
-    obj.AddMember(StringRef(kDaemon),             m_mode == MODE_DAEMON, allocator);
+    obj.AddMember(StringRef(kEnabled),      m_flags.test(FLAG_ENABLED), allocator);
+    obj.AddMember(StringRef(kTls),          isTLS(), allocator);
+    obj.AddMember(StringRef(kFingerprint),  m_fingerprint.toJSON(), allocator);
+    obj.AddMember(StringRef(kDaemon),       m_mode == MODE_DAEMON, allocator);
+    obj.AddMember(StringRef(kSOCKS5),       m_proxy.toJSON(doc), allocator);
 
     if (m_mode == MODE_DAEMON) {
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);

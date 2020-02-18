@@ -31,7 +31,7 @@
 #include <vector>
 
 
-#include "base/net/stratum/Url.h"
+#include "base/net/stratum/ProxyUrl.h"
 #include "crypto/common/Coin.h"
 #include "rapidjson/fwd.h"
 
@@ -66,6 +66,7 @@ public:
     static const char *kPass;
     static const char *kRigId;
     static const char *kSelfSelect;
+    static const char *kSOCKS5;
     static const char *kTls;
     static const char *kUrl;
     static const char *kUser;
@@ -91,6 +92,7 @@ public:
     inline bool isValid() const                         { return m_url.isValid(); }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
     inline const Coin &coin() const                     { return m_coin; }
+    inline const ProxyUrl &proxy() const                { return m_proxy; }
     inline const String &fingerprint() const            { return m_fingerprint; }
     inline const String &host() const                   { return m_url.host(); }
     inline const String &password() const               { return !m_password.isNull() ? m_password : kDefaultPassword; }
@@ -104,6 +106,7 @@ public:
     inline uint64_t pollInterval() const                { return m_pollInterval; }
     inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
     inline void setPassword(const String &password)     { m_password = password; }
+    inline void setProxy(const ProxyUrl &proxy)         { m_proxy = proxy; }
     inline void setRigId(const String &rigId)           { m_rigId = rigId; }
     inline void setUser(const String &user)             { m_user = user; }
 
@@ -135,6 +138,7 @@ private:
     Coin m_coin;
     int m_keepAlive                 = 0;
     Mode m_mode                     = MODE_POOL;
+    ProxyUrl m_proxy;
     std::bitset<FLAG_MAX> m_flags   = 0;
     String m_fingerprint;
     String m_password;
