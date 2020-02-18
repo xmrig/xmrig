@@ -1430,9 +1430,13 @@ double fma_soft(double a, double b, double c, uint32_t rounding_mode)
 	const uint64_t exponent_size = 11;
 	const uint64_t exponent_mask = (1 << exponent_size) - 1;
 
-	const uint32_t exponent_a = (as_uint2(a).y >> 20) & exponent_mask;
-	const uint32_t exponent_b = (as_uint2(b).y >> 20) & exponent_mask;
-	const uint32_t exponent_c = (as_uint2(c).y >> 20) & exponent_mask;
+	uint2 a2 = as_uint2(a);
+	uint2 b2 = as_uint2(b);
+	uint2 c2 = as_uint2(c);
+
+	const uint32_t exponent_a = (a2.y >> 20) & exponent_mask;
+	const uint32_t exponent_b = (b2.y >> 20) & exponent_mask;
+	const uint32_t exponent_c = (c2.y >> 20) & exponent_mask;
 
 	if ((exponent_a == 2047) || (exponent_b == 2047) || (exponent_c == 2047))
 	{
@@ -1440,17 +1444,17 @@ double fma_soft(double a, double b, double c, uint32_t rounding_mode)
 		return as_double(inf);
 	}
 
-	uint64_t mantissa_a = (as_ulong(a) & mantissa_mask);
-	uint64_t mantissa_b = (as_ulong(b) & mantissa_mask);
-	uint64_t mantissa_c = (as_ulong(c) & mantissa_mask);
+	const uint32_t sign_a = a2.y >> 31;
+	const uint32_t sign_b = b2.y >> 31;
+	const uint32_t sign_c = c2.y >> 31;
 
-	((uint2*)&mantissa_a)->y |= 1U << 20;
-	((uint2*)&mantissa_b)->y |= 1U << 20;
-	((uint2*)&mantissa_c)->y |= 1U << 20;
+	a2.y = (a2.y & ((1U << 20) - 1)) | (1U << 20);
+	b2.y = (b2.y & ((1U << 20) - 1)) | (1U << 20);
+	c2.y = (c2.y & ((1U << 20) - 1)) | (1U << 20);
 
-	const uint32_t sign_a = as_uint2(a).y >> 31;
-	const uint32_t sign_b = as_uint2(b).y >> 31;
-	const uint32_t sign_c = as_uint2(c).y >> 31;
+	uint64_t mantissa_a = as_ulong(a2);
+	uint64_t mantissa_b = as_ulong(b2);
+	uint64_t mantissa_c = as_ulong(c2);
 
 	uint64_t mul_result[2];
 	mul_result[0] = mantissa_a * mantissa_b;
