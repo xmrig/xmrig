@@ -176,6 +176,9 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::SelfSelectKey: /* --self-select */
         return add(doc, Pools::kPools, Pool::kSelfSelect, arg);
 
+    case IConfig::ProxyKey: /* --proxy */
+        return add(doc, Pools::kPools, Pool::kSOCKS5, arg);
+
     case IConfig::LogFileKey: /* --log-file */
         return set(doc, BaseConfig::kLogFile, arg);
 
