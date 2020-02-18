@@ -59,15 +59,15 @@ void xmrig::Client::Socks5::handshake()
 }
 
 
-bool xmrig::Client::Socks5::isIPv4(const String &) const
+bool xmrig::Client::Socks5::isIPv4(const String &host, sockaddr_storage *addr) const
 {
-    return false;
+    return uv_ip4_addr(host.data(), 0, reinterpret_cast<sockaddr_in *>(addr)) == 0;
 }
 
 
-bool xmrig::Client::Socks5::isIPv6(const String &) const
+bool xmrig::Client::Socks5::isIPv6(const String &host, sockaddr_storage *addr) const
 {
-   return false;
+   return uv_ip6_addr(host.data(), 0, reinterpret_cast<sockaddr_in6 *>(addr)) == 0;
 }
 
 
@@ -78,12 +78,17 @@ void xmrig::Client::Socks5::connect()
 
     const auto &host = m_client->pool().host();
     std::vector<uint8_t> buf;
+    sockaddr_storage addr;
 
-    if (isIPv4(host)) {
-
+    if (isIPv4(host, &addr)) {
+        buf.resize(10);
+        buf[3] = 0x01;
+        memcpy(buf.data() + 4, &reinterpret_cast<sockaddr_in *>(&addr)->sin_addr, 4);
     }
-    else if (isIPv6(host)) {
-
+    else if (isIPv6(host, &addr)) {
+        buf.resize(22);
+        buf[3] = 0x04;
+        memcpy(buf.data() + 4, &reinterpret_cast<sockaddr_in6 *>(&addr)->sin6_addr, 16);
     }
     else {
         buf.resize(host.size() + 7);
