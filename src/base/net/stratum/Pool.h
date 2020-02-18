@@ -106,6 +106,7 @@ public:
     inline uint64_t pollInterval() const                { return m_pollInterval; }
     inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
     inline void setPassword(const String &password)     { m_password = password; }
+    inline void setProxy(const ProxyUrl &proxy)         { m_proxy = proxy; }
     inline void setRigId(const String &rigId)           { m_rigId = rigId; }
     inline void setUser(const String &user)             { m_user = user; }
 

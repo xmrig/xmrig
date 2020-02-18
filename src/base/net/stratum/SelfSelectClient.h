@@ -5,9 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -68,6 +68,7 @@ protected:
     inline void setAlgo(const Algorithm &algo) override                             { m_client->setAlgo(algo); }
     inline void setEnabled(bool enabled) override                                   { m_client->setEnabled(enabled); }
     inline void setPool(const Pool &pool) override                                  { m_client->setPool(pool); }
+    inline void setProxy(const ProxyUrl &proxy) override                            { m_client->setProxy(proxy); }
     inline void setQuiet(bool quiet) override                                       { m_client->setQuiet(quiet); m_quiet = quiet;  }
     inline void setRetries(int retries) override                                    { m_client->setRetries(retries); m_retries = retries; }
     inline void setRetryPause(uint64_t ms) override                                 { m_client->setRetryPause(ms); m_retryPause = ms; }

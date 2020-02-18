@@ -256,6 +256,7 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 
     if (!donate && m_donate) {
         m_donate->setAlgo(job.algorithm());
+        m_donate->setProxy(client->pool().proxy());
     }
 
     m_controller->miner()->setJob(job, donate);
