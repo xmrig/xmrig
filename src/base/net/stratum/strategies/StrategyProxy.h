@@ -22,60 +22,58 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLBACKEND_H
-#define XMRIG_OCLBACKEND_H
+#ifndef XMRIG_STRATEGYPROXY_H
+#define XMRIG_STRATEGYPROXY_H
 
 
-#include <utility>
-
-
-#include "backend/common/interfaces/IBackend.h"
-#include "base/tools/Object.h"
+#include "base/kernel/interfaces/IStrategyListener.h"
 
 
 namespace xmrig {
 
 
-class Controller;
-class OclBackendPrivate;
-class Miner;
-
-
-class OclBackend : public IBackend
+class StrategyProxy : public IStrategyListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclBackend)
-
-    OclBackend(Controller *controller);
-
-    ~OclBackend() override;
+    inline StrategyProxy(IStrategyListener *listener) : m_listener(listener) {}
 
 protected:
-    bool isEnabled() const override;
-    bool isEnabled(const Algorithm &algorithm) const override;
-    const Hashrate *hashrate() const override;
-    const String &profileName() const override;
-    const String &type() const override;
-    void execCommand(char command) override;
-    void prepare(const Job &nextJob) override;
-    void printHashrate(bool details) override;
-    void printHealth() override;
-    void setJob(const Job &job) override;
-    void start(IWorker *worker, bool ready) override;
-    void stop() override;
-    void tick(uint64_t ticks) override;
+    inline void onActive(IStrategy *strategy, IClient *client) override
+    {
+        m_listener->onActive(strategy, client);
+    }
 
-#   ifdef XMRIG_FEATURE_API
-    rapidjson::Value toJSON(rapidjson::Document &doc) const override;
-    void handleRequest(IApiRequest &request) override;
-#   endif
+    inline void onJob(IStrategy *strategy, IClient *client, const Job &job) override
+    {
+        m_listener->onJob(strategy, client, job);
+    }
+
+    inline void onLogin(IStrategy *strategy, IClient *client, rapidjson::Document &doc, rapidjson::Value &params) override
+    {
+        m_listener->onLogin(strategy, client, doc, params);
+    }
+
+    inline void onPause(IStrategy *strategy) override
+    {
+        m_listener->onPause(strategy);
+    }
+
+    inline void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override
+    {
+        m_listener->onResultAccepted(strategy, client, result, error);
+    }
+
+    inline void onVerifyAlgorithm(IStrategy *strategy, const IClient *client, const Algorithm &algorithm, bool *ok) override
+    {
+        m_listener->onVerifyAlgorithm(strategy, client, algorithm, ok);
+    }
 
 private:
-    OclBackendPrivate *d_ptr;
+    IStrategyListener *m_listener;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_OCLBACKEND_H */
+#endif /* XMRIG_STRATEGYPROXY_H */

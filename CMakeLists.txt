@@ -19,6 +19,7 @@ option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 option(WITH_OPENCL          "Enable OpenCL backend" ON)
 option(WITH_CUDA            "Enable CUDA backend" ON)
 option(WITH_NVML            "Enable NVML (NVIDIA Management Library) support (only if CUDA backend enabled)" ON)
+option(WITH_ADL             "Enable ADL (AMD Display Library) or sysfs support (only if OpenCL backend enabled)" ON)
 option(WITH_STRICT_CACHE    "Enable strict checks for OpenCL cache" ON)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 
@@ -53,7 +54,6 @@ set(HEADERS
     src/net/JobResult.h
     src/net/JobResults.h
     src/net/Network.h
-    src/net/NetworkState.h
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
@@ -103,7 +103,6 @@ set(SOURCES
     src/core/Miner.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
-    src/net/NetworkState.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
     src/xmrig.cpp
