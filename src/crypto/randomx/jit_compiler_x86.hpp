@@ -49,6 +49,7 @@ namespace randomx {
 	public:
 		JitCompilerX86();
 		~JitCompilerX86();
+		void prepare();
 		void generateProgram(Program&, ProgramConfiguration&, uint32_t);
 		void generateProgramLight(Program&, ProgramConfiguration&, uint32_t);
 		template<size_t N>
@@ -65,7 +66,7 @@ namespace randomx {
 		}
 		size_t getCodeSize();
 
-		static InstructionGeneratorX86 engine[256];
+		alignas(64) static InstructionGeneratorX86 engine[256];
 		int registerUsage[RegistersCount];
 		uint8_t* allocatedCode;
 		uint8_t* code;

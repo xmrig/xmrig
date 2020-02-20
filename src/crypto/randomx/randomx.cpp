@@ -291,7 +291,7 @@ RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 
-RandomX_ConfigurationBase RandomX_CurrentConfig;
+alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 extern "C" {
 

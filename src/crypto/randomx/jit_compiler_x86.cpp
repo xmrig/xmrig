@@ -325,6 +325,13 @@ namespace randomx {
 		freePagedMemory(allocatedCode, CodeSize);
 	}
 
+	void JitCompilerX86::prepare() {
+		for (int i = 0; i < sizeof(engine); i += 64)
+			rx_prefetch_nta((const char*)(&engine) + i);
+		for (int i = 0; i < sizeof(RandomX_CurrentConfig); i += 64)
+			rx_prefetch_nta((const char*)(&RandomX_CurrentConfig) + i);
+	}
+
 	void JitCompilerX86::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t flags) {
 		vm_flags = flags;
 
@@ -419,11 +426,29 @@ namespace randomx {
 			r[j] = k;
 		}
 
-		for (int i = 0, n = static_cast<int>(RandomX_CurrentConfig.ProgramSize); i < n; ++i) {
-			Instruction& instr = prog(i);
-			const uint8_t opcode = instr.opcode;
-			*((uint64_t*)&instr) &= (uint64_t(-1) - (0xFFFF << 8)) | ((RegistersCount - 1) << 8) | ((RegistersCount - 1) << 16);
-			(this->*(engine[opcode]))(instr);
+		constexpr uint64_t instr_mask = (uint64_t(-1) - (0xFFFF << 8)) | ((RegistersCount - 1) << 8) | ((RegistersCount - 1) << 16);
+		for (int i = 0, n = static_cast<int>(RandomX_CurrentConfig.ProgramSize); i < n; i += 4) {
+			Instruction& instr1 = prog(i);
+			Instruction& instr2 = prog(i + 1);
+			Instruction& instr3 = prog(i + 2);
+			Instruction& instr4 = prog(i + 3);
+
+			InstructionGeneratorX86 gen1 = engine[instr1.opcode];
+			InstructionGeneratorX86 gen2 = engine[instr2.opcode];
+			InstructionGeneratorX86 gen3 = engine[instr3.opcode];
+			InstructionGeneratorX86 gen4 = engine[instr4.opcode];
+
+			*((uint64_t*)&instr1) &= instr_mask;
+			(this->*gen1)(instr1);
+
+			*((uint64_t*)&instr2) &= instr_mask;
+			(this->*gen2)(instr2);
+
+			*((uint64_t*)&instr3) &= instr_mask;
+			(this->*gen3)(instr3);
+
+			*((uint64_t*)&instr4) &= instr_mask;
+			(this->*gen4)(instr4);
 		}
 
 		emit(REX_MOV_RR, code, codePos);
@@ -609,13 +634,14 @@ namespace randomx {
 		int pos = codePos;
 		uint8_t* const p = code + pos;
 
-		const uint32_t sib = (instr.getModShift() << 6) | (instr.src << 3) | instr.dst;
-		*(uint32_t*)(p) = template_IADD_RS[instr.dst] | (sib << 24);
+		const uint32_t dst = instr.dst;
+		const uint32_t sib = (instr.getModShift() << 6) | (instr.src << 3) | dst;
+		*(uint32_t*)(p) = template_IADD_RS[dst] | (sib << 24);
 		*(uint32_t*)(p + 4) = instr.getImm32();
 
-		pos += ((instr.dst == RegisterNeedsDisplacement) ? 8 : 4);
+		pos += ((dst == RegisterNeedsDisplacement) ? 8 : 4);
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
@@ -1152,6 +1178,6 @@ namespace randomx {
 		emit(NOP1, code, codePos);
 	}
 
-	InstructionGeneratorX86 JitCompilerX86::engine[256] = {};
+	alignas(64) InstructionGeneratorX86 JitCompilerX86::engine[256] = {};
 
 }
