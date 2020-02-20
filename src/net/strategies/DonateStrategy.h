@@ -65,6 +65,7 @@ protected:
     int64_t submit(const JobResult &result) override;
     void connect() override;
     void setAlgo(const Algorithm &algo) override;
+    void setProxy(const ProxyUrl &proxy) override;
     void stop() override;
     void tick(uint64_t now) override;
 

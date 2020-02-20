@@ -38,6 +38,7 @@ Network:
   -u, --user=USERNAME           username for mining server
   -p, --pass=PASSWORD           password for mining server
   -O, --userpass=U:P            username:password pair for mining server
+  -x, --proxy=HOST:PORT         connect through a SOCKS5 proxy
   -k, --keepalive               send keepalive packet for prevent timeout (needs pool support)
       --nicehash                enable nicehash.com support
       --rig-id=ID               rig identifier for pool-side statistics (needs pool support)

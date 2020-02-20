@@ -40,6 +40,8 @@ set(HEADERS_BASE
     src/base/net/stratum/NetworkState.h
     src/base/net/stratum/Pool.h
     src/base/net/stratum/Pools.h
+    src/base/net/stratum/ProxyUrl.h
+    src/base/net/stratum/Socks5.h
     src/base/net/stratum/strategies/FailoverStrategy.h
     src/base/net/stratum/strategies/SinglePoolStrategy.h
     src/base/net/stratum/strategies/StrategyProxy.h
@@ -82,6 +84,8 @@ set(SOURCES_BASE
     src/base/net/stratum/NetworkState.cpp
     src/base/net/stratum/Pool.cpp
     src/base/net/stratum/Pools.cpp
+    src/base/net/stratum/ProxyUrl.cpp
+    src/base/net/stratum/Socks5.cpp
     src/base/net/stratum/strategies/FailoverStrategy.cpp
     src/base/net/stratum/strategies/SinglePoolStrategy.cpp
     src/base/net/stratum/Url.cpp
