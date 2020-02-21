@@ -142,7 +142,7 @@ void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
     config->pools().print();
 
     delete m_strategy;
-    m_strategy = config->pools().createStrategy(this);
+    m_strategy = config->pools().createStrategy(m_state);
     connect();
 }
 
