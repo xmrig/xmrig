@@ -147,6 +147,7 @@ namespace randomx {
 		void h_FSQRT_R(const Instruction&);
 		void h_CBRANCH(const Instruction&);
 		void h_CFROUND(const Instruction&);
+		void h_CFROUND_BMI2(const Instruction&);
 		void h_ISTORE(const Instruction&);
 		void h_NOP(const Instruction&);
 	};

@@ -1118,6 +1118,29 @@ namespace randomx {
 		codePos = pos;
 	}
 
+	void JitCompilerX86::h_CFROUND_BMI2(const Instruction& instr) {
+		uint8_t* const p = code;
+		int pos = codePos;
+
+		const uint64_t src = instr.src;
+
+		const uint64_t rotate = (static_cast<int>(instr.getImm32() & 63) - 2) & 63;
+		*(uint64_t*)(p + pos) = 0xC0F0FBC3C4ULL | (src << 32) | (rotate << 40);
+
+		if (vm_flags & RANDOMX_FLAG_AMD) {
+			*(uint64_t*)(p + pos + 6) = 0x742024443B0CE083ULL;
+			*(uint8_t*)(p + pos + 14) = 8;
+			*(uint64_t*)(p + pos + 15) = 0x202444890414AE0FULL;
+			pos += 23;
+		}
+		else {
+			*(uint64_t*)(p + pos + 6) = 0x0414AE0F0CE083ULL;
+			pos += 13;
+		}
+
+		codePos = pos;
+	}
+
 	void JitCompilerX86::h_CBRANCH(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
