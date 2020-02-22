@@ -29,9 +29,12 @@
 
 #include "base/kernel/interfaces/IClient.h"
 #include "base/kernel/interfaces/IClientListener.h"
-#include "base/kernel/interfaces/IHttpListener.h"
+#include "base/net/http/HttpListener.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Object.h"
+
+
+#include <memory>
 
 
 namespace xmrig {
@@ -113,6 +116,7 @@ private:
     int64_t m_sequence      = 1;
     Job m_job;
     State m_state           = IdleState;
+    std::shared_ptr<IHttpListener> m_httpListener;
     uint64_t m_retryPause   = 5000;
     uint64_t m_timestamp    = 0;
 };

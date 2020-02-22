@@ -24,17 +24,13 @@
  */
 
 
-#include <algorithm>
-#include <cassert>
-
-
+#include "base/net/stratum/DaemonClient.h"
 #include "3rdparty/http-parser/http_parser.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/http/HttpClient.h"
-#include "base/net/stratum/DaemonClient.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Timer.h"
@@ -48,6 +44,10 @@
 #ifdef XMRIG_FEATURE_TLS
 #   include "base/net/http/HttpsClient.h"
 #endif
+
+
+#include <algorithm>
+#include <cassert>
 
 
 namespace xmrig {
@@ -66,7 +66,8 @@ xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
     BaseClient(id, listener),
     m_monero(true)
 {
-    m_timer = new Timer(this);
+    m_httpListener  = std::make_shared<HttpListener>(this);
+    m_timer         = new Timer(this);
 }
 
 
@@ -327,12 +328,12 @@ void xmrig::DaemonClient::send(int method, const char *url, const char *data, si
     HttpClient *client;
 #   ifdef XMRIG_FEATURE_TLS
     if (m_pool.isTLS()) {
-        client = new HttpsClient(method, url, this, data, size, m_pool.fingerprint());
+        client = new HttpsClient(method, url, m_httpListener, data, size, m_pool.fingerprint());
     }
     else
 #   endif
     {
-        client = new HttpClient(method, url, this, data, size);
+        client = new HttpClient(method, url, m_httpListener, data, size);
     }
 
     client->setQuiet(isQuiet());

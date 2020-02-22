@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ static uint64_t SEQUENCE = 0;
 } // namespace xmrig
 
 
-xmrig::HttpContext::HttpContext(int parser_type, IHttpListener *listener) :
+xmrig::HttpContext::HttpContext(int parser_type, const std::weak_ptr<IHttpListener> &listener) :
     HttpData(SEQUENCE++),
     m_timestamp(Chrono::steadyMSecs()),
     m_listener(listener)
@@ -107,15 +107,14 @@ uint64_t xmrig::HttpContext::elapsed() const
 
 void xmrig::HttpContext::close(int status)
 {
-    if (status < 0 && m_listener) {
+    auto listener = httpListener();
+
+    if (status < 0 && listener) {
         this->status = status;
-        m_listener->onHttpData(*this);
+        listener->onHttpData(*this);
     }
 
-    auto it = storage.find(id());
-    if (it != storage.end()) {
-        storage.erase(it);
-    }
+    storage.erase(id());
 
     if (!uv_is_closing(handle())) {
         uv_close(handle(), [](uv_handle_t *handle) -> void { delete reinterpret_cast<HttpContext*>(handle->data); });
@@ -135,7 +134,7 @@ xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
 
 void xmrig::HttpContext::closeAll()
 {
-    for (auto kv : storage) {
+    for (auto &kv : storage) {
         if (!uv_is_closing(kv.second->handle())) {
             uv_close(kv.second->handle(), [](uv_handle_t *handle) -> void { delete reinterpret_cast<HttpContext*>(handle->data); });
         }
@@ -217,9 +216,13 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 
     settings->on_message_complete = [](http_parser *parser) -> int
     {
-        auto ctx = static_cast<HttpContext*>(parser->data);
-        ctx->m_listener->onHttpData(*ctx);
-        ctx->m_listener = nullptr;
+        auto ctx      = static_cast<HttpContext*>(parser->data);
+        auto listener = ctx->httpListener();
+
+        if (listener) {
+            listener->onHttpData(*ctx);
+            ctx->m_listener.reset();
+        }
 
         return 0;
     };

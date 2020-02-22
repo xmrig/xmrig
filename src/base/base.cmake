@@ -34,6 +34,7 @@ set(HEADERS_BASE
     src/base/net/dns/Dns.h
     src/base/net/dns/DnsRecord.h
     src/base/net/http/Http.h
+    src/base/net/http/HttpListener.h
     src/base/net/stratum/BaseClient.h
     src/base/net/stratum/Client.h
     src/base/net/stratum/Job.h

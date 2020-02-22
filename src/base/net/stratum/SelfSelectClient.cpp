@@ -63,7 +63,8 @@ static const char * const required_fields[] = { kBlocktemplateBlob, kBlockhashin
 xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener) :
     m_listener(listener)
 {
-    m_client = new Client(id, agent, this);
+    m_httpListener  = std::make_shared<HttpListener>(this);
+    m_client        = new Client(id, agent, this);
 }
 
 
@@ -181,12 +182,12 @@ void xmrig::SelfSelectClient::send(int method, const char *url, const char *data
     HttpClient *client;
 #   ifdef XMRIG_FEATURE_TLS
     if (pool().daemon().isTLS()) {
-        client = new HttpsClient(method, url, this, data, size, String());
+        client = new HttpsClient(method, url, m_httpListener, data, size, String());
     }
     else
 #   endif
     {
-        client = new HttpClient(method, url, this, data, size);
+        client = new HttpClient(method, url, m_httpListener, data, size);
     }
 
     client->setQuiet(isQuiet());

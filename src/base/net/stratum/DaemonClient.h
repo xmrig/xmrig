@@ -27,10 +27,13 @@
 #define XMRIG_DAEMONCLIENT_H
 
 
-#include "base/kernel/interfaces/IHttpListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
+#include "base/net/http/HttpListener.h"
 #include "base/net/stratum/BaseClient.h"
 #include "base/tools/Object.h"
+
+
+#include <memory>
 
 
 namespace xmrig {
@@ -74,6 +77,7 @@ private:
     void setState(SocketState state);
 
     bool m_monero;
+    std::shared_ptr<IHttpListener> m_httpListener;
     String m_blocktemplate;
     String m_prevHash;
     String m_tlsFingerprint;
