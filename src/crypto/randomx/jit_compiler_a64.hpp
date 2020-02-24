@@ -49,6 +49,7 @@ namespace randomx {
 		JitCompilerA64();
 		~JitCompilerA64();
 
+		void prepare() {}
 		void generateProgram(Program&, ProgramConfiguration&, uint32_t);
 		void generateProgramLight(Program&, ProgramConfiguration&, uint32_t);
 

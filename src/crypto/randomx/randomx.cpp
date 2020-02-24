@@ -279,7 +279,17 @@ void RandomX_ConfigurationBase::Apply()
 	INST_HANDLE(FDIV_M, FMUL_R);
 	INST_HANDLE(FSQRT_R, FDIV_M);
 	INST_HANDLE(CBRANCH, FSQRT_R);
-	INST_HANDLE(CFROUND, CBRANCH);
+
+#if defined(_M_X64) || defined(__x86_64__)
+	if (xmrig::Cpu::info()->hasBMI2()) {
+		INST_HANDLE2(CFROUND, CFROUND_BMI2, CBRANCH);
+	}
+	else
+#endif
+	{
+		INST_HANDLE(CFROUND, CBRANCH);
+	}
+
 	INST_HANDLE(ISTORE, CFROUND);
 	INST_HANDLE(NOP, ISTORE);
 #undef INST_HANDLE
@@ -291,7 +301,7 @@ RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 
-RandomX_ConfigurationBase RandomX_CurrentConfig;
+alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 extern "C" {
 

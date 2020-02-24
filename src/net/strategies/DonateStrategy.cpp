@@ -125,6 +125,12 @@ void xmrig::DonateStrategy::setAlgo(const xmrig::Algorithm &algo)
 }
 
 
+void xmrig::DonateStrategy::setProxy(const ProxyUrl &proxy)
+{
+    m_strategy->setProxy(proxy);
+}
+
+
 void xmrig::DonateStrategy::stop()
 {
     m_timer->stop();
@@ -246,8 +252,9 @@ xmrig::IClient *xmrig::DonateStrategy::createProxy()
     const IClient *client = strategy->client();
     m_tls                 = client->hasExtension(IClient::EXT_TLS);
 
-    Pool pool(client->ip(), client->pool().port(), m_userId, client->pool().password(), 0, true, client->isTLS());
+    Pool pool(client->pool().proxy().isValid() ? client->pool().host() : client->ip(), client->pool().port(), m_userId, client->pool().password(), 0, true, client->isTLS());
     pool.setAlgo(client->pool().algorithm());
+    pool.setProxy(client->pool().proxy());
 
     IClient *proxy = new Client(-1, Platform::userAgent(), this);
     proxy->setPool(pool);

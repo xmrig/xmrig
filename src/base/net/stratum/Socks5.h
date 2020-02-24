@@ -1,11 +1,4 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,27 +16,45 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "base/io/log/backends/FileLog.h"
-
-
-#include <cassert>
-#include <cstring>
+#ifndef XMRIG_SOCKS5_H
+#define XMRIG_SOCKS5_H
 
 
-xmrig::FileLog::FileLog(const char *fileName) :
-    m_writer(fileName)
+#include "base/net/stratum/Client.h"
+
+
+namespace xmrig {
+
+
+class Client::Socks5
 {
-}
+public:
+    Socks5(Client *client);
+
+    inline bool isReady() const     { return m_state == Ready; }
+
+    bool read(const char *data, size_t size);
+    void handshake();
+
+private:
+    enum State {
+        Created,
+        SentInitialHandshake,
+        SentFinalHandshake,
+        Ready
+    };
+
+    bool isIPv4(const String &host, sockaddr_storage *addr) const;
+    bool isIPv6(const String &host, sockaddr_storage *addr) const;
+    void connect();
+
+    Client *m_client;
+    size_t m_nextSize   = 0;
+    State m_state       = Created;
+};
 
 
-void xmrig::FileLog::print(int, const char *line, size_t, size_t size, bool colors)
-{
-    if (!m_writer.isOpen() || colors) {
-        return;
-    }
+} /* namespace xmrig */
 
-    assert(strlen(line) == size);
 
-    m_writer.write(line, size);
-}
+#endif /* XMRIG_SOCKS5_H */

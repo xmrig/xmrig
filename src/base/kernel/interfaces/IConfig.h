@@ -66,6 +66,7 @@ public:
         UserAgentKey         = 1008,
         UserKey              = 'u',
         UserpassKey          = 'O',
+        ProxyKey             = 'x',
         VerboseKey           = 1100,
         TlsKey               = 1013,
         FingerprintKey       = 1014,
