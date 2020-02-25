@@ -1,11 +1,4 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -24,26 +17,46 @@
  */
 
 
-#include "base/io/log/backends/FileLog.h"
+#include "base/net/stratum/ProxyUrl.h"
+#include "rapidjson/document.h"
 
 
-#include <cassert>
-#include <cstring>
+namespace xmrig {
+
+static const String kLocalhost = "127.0.0.1";
+
+} // namespace xmrig
 
 
-xmrig::FileLog::FileLog(const char *fileName) :
-    m_writer(fileName)
+xmrig::ProxyUrl::ProxyUrl(const rapidjson::Value &value)
 {
+    m_port = 0;
+
+    if (value.IsString()) {
+        parse(value.GetString());
+    }
+    else if (value.IsUint()) {
+        m_port = value.GetUint();
+    }
 }
 
 
-void xmrig::FileLog::print(int, const char *line, size_t, size_t size, bool colors)
+const xmrig::String &xmrig::ProxyUrl::host() const
 {
-    if (!m_writer.isOpen() || colors) {
-        return;
+    return m_host.isNull() && isValid() ? kLocalhost : m_host;
+}
+
+
+rapidjson::Value xmrig::ProxyUrl::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    if (!isValid()) {
+        return Value(kNullType);
     }
 
-    assert(strlen(line) == size);
+    if (!m_host.isNull()) {
+        return m_url.toJSON(doc);
+    }
 
-    m_writer.write(line, size);
+    return Value(m_port);
 }

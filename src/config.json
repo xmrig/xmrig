@@ -70,6 +70,7 @@
             "tls": false,
             "tls-fingerprint": null,
             "daemon": false,
+            "socks5": null,
             "self-select": null
         }
     ],

@@ -108,6 +108,14 @@ void xmrig::FailoverStrategy::setAlgo(const Algorithm &algo)
 }
 
 
+void xmrig::FailoverStrategy::setProxy(const ProxyUrl &proxy)
+{
+    for (IClient *client : m_pools) {
+        client->setProxy(proxy);
+    }
+}
+
+
 void xmrig::FailoverStrategy::stop()
 {
     for (auto &pool : m_pools) {

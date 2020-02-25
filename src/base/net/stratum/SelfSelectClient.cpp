@@ -5,9 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -63,7 +63,8 @@ static const char * const required_fields[] = { kBlocktemplateBlob, kBlockhashin
 xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener) :
     m_listener(listener)
 {
-    m_client = new Client(id, agent, this);
+    m_httpListener  = std::make_shared<HttpListener>(this);
+    m_client        = new Client(id, agent, this);
 }
 
 
@@ -181,12 +182,12 @@ void xmrig::SelfSelectClient::send(int method, const char *url, const char *data
     HttpClient *client;
 #   ifdef XMRIG_FEATURE_TLS
     if (pool().daemon().isTLS()) {
-        client = new HttpsClient(method, url, this, data, size, String());
+        client = new HttpsClient(method, url, m_httpListener, data, size, String());
     }
     else
 #   endif
     {
-        client = new HttpClient(method, url, this, data, size);
+        client = new HttpClient(method, url, m_httpListener, data, size);
     }
 
     client->setQuiet(isQuiet());

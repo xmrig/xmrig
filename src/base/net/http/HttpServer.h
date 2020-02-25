@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,6 +36,9 @@ using http_parser_settings  = struct http_parser_settings;
 #include "base/tools/Object.h"
 
 
+#include <memory>
+
+
 namespace xmrig {
 
 
@@ -47,14 +50,14 @@ class HttpServer : public ITcpServerListener
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpServer)
 
-    HttpServer(IHttpListener *listener);
+    HttpServer(const std::shared_ptr<IHttpListener> &listener);
     ~HttpServer() override;
 
 protected:
     void onConnection(uv_stream_t *stream, uint16_t port) override;
 
 private:
-    IHttpListener *m_listener;
+    std::weak_ptr<IHttpListener> m_listener;
 };
 
 

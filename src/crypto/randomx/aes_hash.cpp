@@ -234,7 +234,7 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 	rx_vec_i128 fill_state2 = rx_load_vec_i128((rx_vec_i128*)fill_state + 2);
 	rx_vec_i128 fill_state3 = rx_load_vec_i128((rx_vec_i128*)fill_state + 3);
 
-	constexpr int PREFETCH_DISTANCE = 4096;
+	constexpr int PREFETCH_DISTANCE = 7168;
 	const char* prefetchPtr = ((const char*)scratchpad) + PREFETCH_DISTANCE;
 	scratchpadEnd -= PREFETCH_DISTANCE;
 
@@ -258,8 +258,25 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 
 			rx_prefetch_t0(prefetchPtr);
 
-			scratchpadPtr += 64;
-			prefetchPtr += 64;
+			hash_state0 = aesenc<softAes>(hash_state0, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 4));
+			hash_state1 = aesdec<softAes>(hash_state1, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 5));
+			hash_state2 = aesenc<softAes>(hash_state2, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 6));
+			hash_state3 = aesdec<softAes>(hash_state3, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 7));
+
+			fill_state0 = aesdec<softAes>(fill_state0, key0);
+			fill_state1 = aesenc<softAes>(fill_state1, key1);
+			fill_state2 = aesdec<softAes>(fill_state2, key2);
+			fill_state3 = aesenc<softAes>(fill_state3, key3);
+
+			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 4, fill_state0);
+			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 5, fill_state1);
+			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 6, fill_state2);
+			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 7, fill_state3);
+
+			rx_prefetch_t0(prefetchPtr + 64);
+
+			scratchpadPtr += 128;
+			prefetchPtr += 128;
 		}
 		prefetchPtr = (const char*) scratchpad;
 		scratchpadEnd += PREFETCH_DISTANCE;

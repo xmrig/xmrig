@@ -142,7 +142,7 @@ void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
     config->pools().print();
 
     delete m_strategy;
-    m_strategy = config->pools().createStrategy(this);
+    m_strategy = config->pools().createStrategy(m_state);
     connect();
 }
 
@@ -264,6 +264,7 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 
     if (!donate && m_donate) {
         m_donate->setAlgo(job.algorithm());
+        m_donate->setProxy(client->pool().proxy());
     }
 
     m_controller->miner()->setJob(job, donate);
