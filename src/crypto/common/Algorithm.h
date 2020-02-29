@@ -71,6 +71,7 @@ public:
         RX_SFX,        // "rx/sfx"           RandomSFX (Safex Cash).
         AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
         AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ)
+        ASTROBWT_DERO, // "astrobwt/dero"    AstroBWT (Dero)
         MAX
     };
 
@@ -81,7 +82,8 @@ public:
         CN_HEAVY,
         CN_PICO,
         RANDOM_X,
-        ARGON2
+        ARGON2,
+        ASTROBWT
     };
 
     inline Algorithm() = default;

@@ -76,9 +76,15 @@ private:
     void send(int method, const char *url, const rapidjson::Document &doc);
     void setState(SocketState state);
 
-    bool m_monero;
+    enum {
+        API_CRYPTONOTE_DEFAULT,
+        API_MONERO,
+        API_DERO,
+    } m_apiVersion;
+
     std::shared_ptr<IHttpListener> m_httpListener;
     String m_blocktemplate;
+    String m_blockhashingblob;
     String m_prevHash;
     String m_tlsFingerprint;
     String m_tlsVersion;

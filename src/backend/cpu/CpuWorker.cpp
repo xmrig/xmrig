@@ -44,6 +44,11 @@
 #endif
 
 
+#ifdef XMRIG_ALGO_ASTROBWT
+#   include "crypto/astrobwt/AstroBWT.h"
+#endif
+
+
 namespace xmrig {
 
 static constexpr uint32_t kReserveCount = 32768;
@@ -177,6 +182,12 @@ bool xmrig::CpuWorker<N>::selfTest()
     if (m_algorithm.family() == Algorithm::ARGON2) {
         return verify(Algorithm::AR2_CHUKWA, argon2_chukwa_test_out) &&
                verify(Algorithm::AR2_WRKZ, argon2_wrkz_test_out);
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    if (m_algorithm.family() == Algorithm::ASTROBWT) {
+        return verify(Algorithm::ASTROBWT_DERO, astrobwt_dero_test_out);
     }
 #   endif
 

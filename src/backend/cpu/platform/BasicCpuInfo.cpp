@@ -258,5 +258,15 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_ASTROBWT
+    if (algorithm.family() == Algorithm::ASTROBWT) {
+        CpuThreads threads;
+        for (size_t i = 0; i < count; ++i) {
+            threads.add(i, 0);
+        }
+        return threads;
+    }
+#   endif
+
     return CpuThreads(std::max<size_t>(count / 2, 1), 1);
 }
