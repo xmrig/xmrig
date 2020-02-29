@@ -183,6 +183,7 @@ size_t xmrig::Algorithm::l3() const
         case RX_0:
         case RX_LOKI:
         case RX_SFX:
+        case RX_KLARO:
             return oneMiB * 2;
 
         case RX_WOW:
@@ -284,6 +285,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case RX_LOKI:
     case RX_ARQ:
     case RX_SFX:
+    case RX_KLARO:
         return RANDOM_X;
 #   endif
 
