@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #define XMRIG_CRYPTONIGHT_TEST_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace xmrig {
@@ -405,7 +405,7 @@ const static uint8_t argon2_wrkz_test_out[160] = {
 
 
 #ifdef XMRIG_ALGO_ASTROBWT
-// "astrobwt/dero"
+// "astrobwt"
 const static uint8_t astrobwt_dero_test_out[160] = {
     0x7E, 0x88, 0x44, 0xF2, 0xD6, 0xB7, 0xA4, 0x34, 0x98, 0xFE, 0x6D, 0x22, 0x65, 0x27, 0x68, 0x90,
     0x23, 0xDA, 0x8A, 0x52, 0xF9, 0xFC, 0x4E, 0xC6, 0x9E, 0x5A, 0xAA, 0xA6, 0x3E, 0xDC, 0xE1, 0xC1,
