@@ -105,10 +105,11 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
         return -1;
     }
 
+    char *data = (m_apiVersion == API_DERO) ? m_blockhashingblob.data() : m_blocktemplate.data();
+
 #   ifdef XMRIG_PROXY_PROJECT
-    memcpy(m_blocktemplate.data() + 78, result.nonce, 8);
+    memcpy(data + 78, result.nonce, 8);
 #   else
-    char* data = (m_apiVersion == API_DERO) ? m_blockhashingblob.data() : m_blocktemplate.data();
     Buffer::toHex(reinterpret_cast<const uint8_t *>(&result.nonce), 4, data + 78);
 #   endif
 
