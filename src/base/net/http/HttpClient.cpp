@@ -140,7 +140,6 @@ void xmrig::HttpClient::handshake()
 
     if (!body.empty()) {
         headers.insert({ "Content-Length", std::to_string(body.size()) });
-        headers.insert({ "Content-Type", "application/json" });
     }
 
     std::stringstream ss;

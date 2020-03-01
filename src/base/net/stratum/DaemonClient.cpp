@@ -384,6 +384,10 @@ void xmrig::DaemonClient::send(int method, const char *url, const char *data, si
 
     client->setQuiet(isQuiet());
     client->connect(m_pool.host(), m_pool.port());
+
+    if (method != HTTP_GET) {
+        client->headers.insert({ "Content-Type", "application/json" });
+    }
 }
 
 
