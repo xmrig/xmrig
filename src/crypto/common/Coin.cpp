@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -50,7 +50,8 @@ static CoinName const coin_names[] = {
     { "monero",     Coin::MONERO },
     { "xmr",        Coin::MONERO },
     { "arqma",      Coin::ARQMA  },
-    { "arq",        Coin::ARQMA  }
+    { "arq",        Coin::ARQMA  },
+    { "dero",       Coin::DERO   },
 };
 
 
@@ -66,6 +67,9 @@ xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
 
     case ARQMA:
         return (blobVersion >= 15) ? Algorithm::RX_ARQ : Algorithm::CN_PICO_0;
+
+    case DERO:
+        return (blobVersion >= 4) ? Algorithm::ASTROBWT_DERO : Algorithm::CN_0;
 
     case INVALID:
         break;

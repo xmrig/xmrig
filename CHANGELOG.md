@@ -1,3 +1,6 @@
+# v5.8.0
+- [#1573](https://github.com/xmrig/xmrig/pull/1573) Added new AstroBWT algorithm for upcoming DERO fork, as `"algo": "astrobwt"` or `"coin": "dero"`.
+
 # v5.7.0
 - **Added SOCKS5 proxies support for Tor https://xmrig.com/docs/miner/tor.**
 - [#377](https://github.com/xmrig/xmrig-proxy/issues/377) Fixed duplicate jobs in daemon (solo) mining client.

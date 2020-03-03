@@ -59,12 +59,14 @@ static const char *kHash                    = "hash";
 static const char *kHeight                  = "height";
 static const char *kJsonRPC                 = "/json_rpc";
 
+static const size_t BlobReserveSize         = 8;
+
 }
 
 
 xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
     BaseClient(id, listener),
-    m_monero(true)
+    m_apiVersion(API_MONERO)
 {
     m_httpListener  = std::make_shared<HttpListener>(this);
     m_timer         = new Timer(this);
@@ -103,17 +105,25 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
         return -1;
     }
 
+    char *data = (m_apiVersion == API_DERO) ? m_blockhashingblob.data() : m_blocktemplate.data();
+
 #   ifdef XMRIG_PROXY_PROJECT
-    memcpy(m_blocktemplate.data() + 78, result.nonce, 8);
+    memcpy(data + 78, result.nonce, 8);
 #   else
-    Buffer::toHex(reinterpret_cast<const uint8_t *>(&result.nonce), 4, m_blocktemplate.data() + 78);
+    Buffer::toHex(reinterpret_cast<const uint8_t *>(&result.nonce), 4, data + 78);
 #   endif
 
     using namespace rapidjson;
     Document doc(kObjectType);
 
     Value params(kArrayType);
-    params.PushBack(m_blocktemplate.toJSON(), doc.GetAllocator());
+    if (m_apiVersion == API_DERO) {
+        params.PushBack(m_blocktemplate.toJSON(), doc.GetAllocator());
+        params.PushBack(m_blockhashingblob.toJSON(), doc.GetAllocator());
+    }
+    else {
+        params.PushBack(m_blocktemplate.toJSON(), doc.GetAllocator());
+    }
 
     JsonRequest::create(doc, m_sequence, "submitblock", params);
 
@@ -131,6 +141,10 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
 void xmrig::DaemonClient::connect()
 {
+    if ((m_pool.algorithm() == Algorithm::ASTROBWT_DERO) || (m_pool.coin() == Coin::DERO)) {
+        m_apiVersion = API_DERO;
+    }
+
     setState(ConnectingState);
     getBlockTemplate();
 }
@@ -172,7 +186,7 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
     if (data.method == HTTP_GET) {
         if (data.url == kGetHeight) {
             if (!doc.HasMember(kHash)) {
-                m_monero = false;
+                m_apiVersion = API_CRYPTONOTE_DEFAULT;
 
                 return send(HTTP_GET, kGetInfo);
             }
@@ -200,7 +214,21 @@ void xmrig::DaemonClient::onTimer(const Timer *)
         getBlockTemplate();
     }
     else if (m_state == ConnectedState) {
-        send(HTTP_GET, m_monero ? kGetHeight : kGetInfo);
+        if (m_apiVersion == API_DERO) {
+            using namespace rapidjson;
+            Document doc(kObjectType);
+            auto& allocator = doc.GetAllocator();
+
+            doc.AddMember("id", m_sequence, allocator);
+            doc.AddMember("jsonrpc", "2.0", allocator);
+            doc.AddMember("method", "get_info", allocator);
+
+            send(HTTP_POST, kJsonRPC, doc);
+            ++m_sequence;
+        }
+        else {
+            send(HTTP_GET, (m_apiVersion == API_MONERO) ? kGetHeight : kGetInfo);
+        }
     }
 }
 
@@ -216,7 +244,14 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     Job job(false, m_pool.algorithm(), String());
 
     String blocktemplate = Json::getString(params, kBlocktemplateBlob);
-    if (blocktemplate.isNull() || !job.setBlob(Json::getString(params, "blockhashing_blob"))) {
+
+    m_blockhashingblob = Json::getString(params, "blockhashing_blob");
+    if (m_apiVersion == API_DERO) {
+        const uint64_t offset = Json::getUint64(params, "reserved_offset");
+        Buffer::toHex(Buffer::randomBytes(BlobReserveSize).data(), BlobReserveSize, m_blockhashingblob.data() + offset * 2);
+    }
+
+    if (blocktemplate.isNull() || !job.setBlob(m_blockhashingblob)) {
         *code = 4;
         return false;
     }
@@ -263,6 +298,13 @@ bool xmrig::DaemonClient::parseResponse(int64_t id, const rapidjson::Value &resu
         return false;
     }
 
+    if (result.HasMember("top_block_hash")) {
+        if (m_prevHash != Json::getString(result, "top_block_hash")) {
+            getBlockTemplate();
+        }
+        return true;
+    }
+
     int code = -1;
     if (result.HasMember(kBlocktemplateBlob) && parseJob(result, &code)) {
         return true;
@@ -286,7 +328,12 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
 
     Value params(kObjectType);
     params.AddMember("wallet_address", m_user.toJSON(), allocator);
-    params.AddMember("extra_nonce",    Buffer::randomBytes(8).toHex().toJSON(doc), allocator);
+    if (m_apiVersion == API_DERO) {
+        params.AddMember("reserve_size", BlobReserveSize, allocator);
+    }
+    else {
+        params.AddMember("extra_nonce", Buffer::randomBytes(BlobReserveSize).toHex().toJSON(doc), allocator);
+    }
 
     JsonRequest::create(doc, m_sequence, "getblocktemplate", params);
 
@@ -338,6 +385,10 @@ void xmrig::DaemonClient::send(int method, const char *url, const char *data, si
 
     client->setQuiet(isQuiet());
     client->connect(m_pool.host(), m_pool.port());
+
+    if (method != HTTP_GET) {
+        client->headers.insert({ "Content-Type", "application/json" });
+    }
 }
 
 

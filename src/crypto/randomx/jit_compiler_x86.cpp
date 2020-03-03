@@ -326,9 +326,9 @@ namespace randomx {
 	}
 
 	void JitCompilerX86::prepare() {
-		for (int i = 0; i < sizeof(engine); i += 64)
+		for (size_t i = 0; i < sizeof(engine); i += 64)
 			rx_prefetch_nta((const char*)(&engine) + i);
-		for (int i = 0; i < sizeof(RandomX_CurrentConfig); i += 64)
+		for (size_t i = 0; i < sizeof(RandomX_CurrentConfig); i += 64)
 			rx_prefetch_nta((const char*)(&RandomX_CurrentConfig) + i);
 	}
 

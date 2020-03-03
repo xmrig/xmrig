@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,8 +25,6 @@
 
 
 #include "crypto/common/Algorithm.h"
-
-
 #include "crypto/cn/CnAlgo.h"
 #include "rapidjson/document.h"
 
@@ -124,6 +122,10 @@ static AlgoName const algorithm_names[] = {
     { "chukwa",                    nullptr,            Algorithm::AR2_CHUKWA      },
     { "argon2/wrkz",               nullptr,            Algorithm::AR2_WRKZ        },
 #   endif
+#   ifdef XMRIG_ALGO_ASTROBWT
+    { "astrobwt",                  nullptr,            Algorithm::ASTROBWT_DERO   },
+    { "astrobwt/dero",             nullptr,            Algorithm::ASTROBWT_DERO   },
+#   endif
 };
 
 
@@ -210,6 +212,18 @@ size_t xmrig::Algorithm::l3() const
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_ASTROBWT
+    if (f == ASTROBWT) {
+        switch (m_id) {
+        case ASTROBWT_DERO:
+            return oneMiB * 20;
+
+        default:
+            break;
+        }
+    }
+#   endif
+
     return 0;
 }
 
@@ -224,6 +238,12 @@ uint32_t xmrig::Algorithm::maxIntensity() const
 
 #   ifdef XMRIG_ALGO_ARGON2
     if (family() == ARGON2) {
+        return 1;
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    if (family() == ASTROBWT) {
         return 1;
     }
 #   endif
@@ -289,6 +309,11 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case AR2_CHUKWA:
     case AR2_WRKZ:
         return ARGON2;
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    case ASTROBWT_DERO:
+        return ASTROBWT;
 #   endif
 
     default:

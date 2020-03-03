@@ -172,6 +172,17 @@ xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm, ui
     size_t cache = 0;
     size_t count = 0;
 
+#   ifdef XMRIG_ALGO_ASTROBWT
+    if (algorithm == Algorithm::ASTROBWT_DERO) {
+        CpuThreads t;
+        count = threads();
+        for (size_t i = 0; i < count; ++i) {
+            t.add(i, 0);
+        }
+        return t;
+    }
+#   endif
+
     if (m_L3) {
         cache = m_L2_exclusive ? (m_L2 + m_L3) : m_L3;
     }
