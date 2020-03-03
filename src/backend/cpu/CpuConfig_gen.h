@@ -123,6 +123,17 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
         }
     }
 
+    if (!threads.isExist(Algorithm::RX_KEVA)) {
+        auto keva = Cpu::info()->threads(Algorithm::RX_KEVA, limit);
+        if (keva == wow) {
+            threads.setAlias(Algorithm::RX_KEVA, "rx/wow");
+            ++count;
+        }
+        else {
+            count += threads.move("rx/keva", std::move(keva));
+        }
+    }
+
     if (!threads.isExist(Algorithm::RX_WOW)) {
         count += threads.move("rx/wow", std::move(wow));
     }
