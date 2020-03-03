@@ -271,8 +271,9 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 
     if (m_apiVersion == API_DERO) {
         // Truncate to 32 bytes to have the same data as in get_info RPC
-        if (m_prevHash.size() > 64)
+        if (m_prevHash.size() > 64) {
             m_prevHash.data()[64] = '\0';
+        }
     }
 
     if (m_state == ConnectingState) {
