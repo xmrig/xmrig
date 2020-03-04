@@ -29,8 +29,8 @@
 #include <uv.h>
 
 
-#include "base/io/log/Log.h"
 #include "base/net/http/HttpsClient.h"
+#include "base/io/log/Log.h"
 #include "base/tools/Buffer.h"
 
 
@@ -41,9 +41,6 @@
 
 xmrig::HttpsClient::HttpsClient(int method, const String &url, const std::weak_ptr<IHttpListener> &listener, const char *data, size_t size, const String &fingerprint) :
     HttpClient(method, url, listener, data, size),
-    m_ready(false),
-    m_buf(),
-    m_ssl(nullptr),
     m_fp(fingerprint)
 {
     m_ctx = SSL_CTX_new(SSLv23_method());
