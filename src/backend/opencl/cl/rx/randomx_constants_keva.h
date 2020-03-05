@@ -92,5 +92,5 @@ along with RandomX OpenCL. If not, see <http://www.gnu.org/licenses/>.
 
 // Scratchpad L1/L2/L3 bits
 #define LOC_L1 (32 - 14)
-#define LOC_L2 (32 - 18)
-#define LOC_L3 (32 - 21)
+#define LOC_L2 (32 - 17)
+#define LOC_L3 (32 - 20)
