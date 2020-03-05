@@ -58,6 +58,7 @@ public:
     inline bool isYield() const                         { return m_yield; }
     inline const Assembly &assembly() const             { return m_assembly; }
     inline const String &argon2Impl() const             { return m_argon2Impl; }
+    inline int astrobwtMaxSize() const                  { return m_astrobwtMaxSize; }
     inline const Threads<CpuThreads> &threads() const   { return m_threads; }
     inline int priority() const                         { return m_priority; }
     inline uint32_t limit() const                       { return m_limit; }
@@ -78,6 +79,7 @@ private:
     int m_memoryPool     = 0;
     int m_priority       = -1;
     String m_argon2Impl;
+    int m_astrobwtMaxSize = 550;
     Threads<CpuThreads> m_threads;
     uint32_t m_limit     = 100;
 };

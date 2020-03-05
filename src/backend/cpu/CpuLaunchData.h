@@ -65,6 +65,7 @@ public:
     const int64_t affinity;
     const Miner *miner;
     const uint32_t intensity;
+    const int astrobwtMaxSize;
 };
 
 

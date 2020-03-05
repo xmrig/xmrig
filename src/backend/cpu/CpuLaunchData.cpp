@@ -42,7 +42,8 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
     priority(config.priority()),
     affinity(thread.affinity()),
     miner(miner),
-    intensity(std::min<uint32_t>(thread.intensity(), algorithm.maxIntensity()))
+    intensity(std::min<uint32_t>(thread.intensity(), algorithm.maxIntensity())),
+    astrobwtMaxSize(config.astrobwtMaxSize())
 {
 }
 
