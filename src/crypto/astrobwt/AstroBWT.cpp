@@ -30,6 +30,7 @@
 #include "AstroBWT.h"
 #include "sha3.h"
 #include "crypto/cn/CryptoNight.h"
+#include <limits>
 
 constexpr int STAGE1_SIZE = 147253;
 constexpr int ALLOCATION_SIZE = (STAGE1_SIZE + 1048576) + (128 - (STAGE1_SIZE & 63));
@@ -152,7 +153,7 @@ void sort_indices(int N, const uint8_t* v, uint64_t* indices, uint64_t* tmp_indi
 	}
 }
 
-void astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash)
+bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size)
 {
 	uint8_t key[32];
 	uint8_t* scratchpad_ptr = (uint8_t*)(scratchpad) + 64;
@@ -178,6 +179,9 @@ void astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad
 	sha3_HashBuffer(256, SHA3_FLAGS_NONE, stage1_result, STAGE1_SIZE + 1, key, sizeof(key));
 
 	const int stage2_size = STAGE1_SIZE + (*(uint32_t*)(key) & 0xfffff);
+	if (stage2_size > stage2_max_size)
+		return false;
+
 	Salsa20_XORKeyStream(key, stage2_output, stage2_size);
 
 	sort_indices(stage2_size + 1, stage2_output, indices, tmp_indices);
@@ -198,10 +202,12 @@ void astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad
 	}
 
 	sha3_HashBuffer(256, SHA3_FLAGS_NONE, stage2_result, stage2_size + 1, output_hash, 32);
+
+	return true;
 }
 
 template<>
 void xmrig::astrobwt::single_hash<xmrig::Algorithm::ASTROBWT_DERO>(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t)
 {
-	astrobwt_dero(input, static_cast<uint32_t>(size), ctx[0]->memory, output);
+	astrobwt_dero(input, static_cast<uint32_t>(size), ctx[0]->memory, output, std::numeric_limits<int>::max());
 }
