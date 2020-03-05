@@ -130,6 +130,7 @@ float Benchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::DEFYX:         return m_bench_algo_perf[BenchAlgo::DEFYX];
         case Algorithm::RX_ARQ:        return m_bench_algo_perf[BenchAlgo::RX_ARQ];
         case Algorithm::AR2_CHUKWA:    return m_bench_algo_perf[BenchAlgo::AR2_CHUKWA];
+        case Algorithm::ASTROBWT_DERO: return m_bench_algo_perf[BenchAlgo::ASTROBWT_DERO];
         default: return 0.0f;
     }
 }

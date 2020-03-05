@@ -41,6 +41,7 @@ class Benchmark : public IJobResultListener {
             CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
             CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
             CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
+            ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero)
             MAX,
             MIN = 0,
             INVALID = -1,
@@ -57,6 +58,7 @@ class Benchmark : public IJobResultListener {
             Algorithm::CN_LITE_1,
             Algorithm::CN_HEAVY_TUBE,
             Algorithm::CN_PICO_0,
+            Algorithm::ASTROBWT_DERO,
         };
 
         Job* m_bench_job[BenchAlgo::MAX];

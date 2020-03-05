@@ -147,6 +147,14 @@ size_t inline generate<Algorithm::ARGON2>(Threads<CpuThreads> &threads, uint32_t
 #endif
 
 
+#ifdef XMRIG_ALGO_ASTROBWT
+template<>
+size_t inline generate<Algorithm::ASTROBWT>(Threads<CpuThreads>& threads, uint32_t limit)
+{
+    return generate("astrobwt", threads, Algorithm::ASTROBWT_DERO, limit);
+}
+#endif
+
 } /* namespace xmrig */
 
 
