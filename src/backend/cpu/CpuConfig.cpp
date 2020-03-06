@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 #include "base/io/json/Json.h"
 #include "rapidjson/document.h"
 
+#include <algorithm>
+
 
 namespace xmrig {
 
@@ -47,6 +49,11 @@ static const char *kAsm = "asm";
 #ifdef XMRIG_ALGO_ARGON2
 static const char *kArgon2Impl = "argon2-impl";
 #endif
+
+#ifdef XMRIG_ALGO_ASTROBWT
+static const char* kAstroBWTMaxSize = "astrobwt-max-size";
+#endif
+
 
 extern template class Threads<CpuThreads>;
 
@@ -83,6 +90,10 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_ALGO_ARGON2
     obj.AddMember(StringRef(kArgon2Impl), m_argon2Impl.toJSON(), allocator);
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    obj.AddMember(StringRef(kAstroBWTMaxSize), m_astrobwtMaxSize, allocator);
 #   endif
 
     m_threads.toJSON(obj, doc);
@@ -136,6 +147,16 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
         m_argon2Impl = Json::getString(value, kArgon2Impl);
 #       endif
 
+#       ifdef XMRIG_ALGO_ASTROBWT
+        const auto& obj = Json::getValue(value, kAstroBWTMaxSize);
+        if (obj.IsNull() || !obj.IsInt()) {
+            m_shouldSave = true;
+        }
+        else {
+            m_astrobwtMaxSize = std::min(std::max(obj.GetInt(), 400), 1200);
+        }
+#       endif
+
         m_threads.read(value);
 
         generate();
@@ -167,7 +188,7 @@ void xmrig::CpuConfig::generate()
     count += xmrig::generate<Algorithm::ARGON2>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::ASTROBWT>(m_threads, m_limit);
 
-    m_shouldSave = count > 0;
+    m_shouldSave |= count > 0;
 }
 
 

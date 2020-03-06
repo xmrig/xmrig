@@ -63,6 +63,7 @@ R"===(
         "max-threads-hint": 100,
         "asm": true,
         "argon2-impl": null,
+        "astrobwt-max-size": 550,
         "cn/0": false,
         "cn-lite/0": false
     },

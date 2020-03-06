@@ -30,20 +30,14 @@
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
-#include "base/net/http/HttpClient.h"
+#include "base/net/http/Fetch.h"
+#include "base/net/http/HttpData.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Timer.h"
 #include "net/JobResult.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
-
-
-#ifdef XMRIG_FEATURE_TLS
-#   include "base/net/http/HttpsClient.h"
-#endif
 
 
 #include <algorithm>
@@ -65,8 +59,7 @@ static const size_t BlobReserveSize         = 8;
 
 
 xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
-    BaseClient(id, listener),
-    m_apiVersion(API_MONERO)
+    BaseClient(id, listener)
 {
     m_httpListener  = std::make_shared<HttpListener>(this);
     m_timer         = new Timer(this);
@@ -133,9 +126,7 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), 0, result.backend);
 #   endif
 
-    send(HTTP_POST, kJsonRPC, doc);
-
-    return m_sequence++;
+    return rpcSend(doc);
 }
 
 
@@ -163,15 +154,11 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
         return retry();
     }
 
-    LOG_DEBUG("[%s:%d] received (%d bytes): \"%.*s\"", m_pool.host().data(), m_pool.port(), static_cast<int>(data.body.size()), static_cast<int>(data.body.size()), data.body.c_str());
-
-    m_ip = static_cast<const HttpContext &>(data).ip().c_str();
+    m_ip = data.ip().c_str();
 
 #   ifdef XMRIG_FEATURE_TLS
-    if (isTLS()) {
-        m_tlsVersion     = static_cast<const HttpsClient &>(data).version();
-        m_tlsFingerprint = static_cast<const HttpsClient &>(data).fingerprint();
-    }
+    m_tlsVersion     = data.tlsVersion();
+    m_tlsFingerprint = data.tlsFingerprint();
 #   endif
 
     rapidjson::Document doc;
@@ -188,7 +175,7 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
             if (!doc.HasMember(kHash)) {
                 m_apiVersion = API_CRYPTONOTE_DEFAULT;
 
-                return send(HTTP_GET, kGetInfo);
+                return send(kGetInfo);
             }
 
             if (isOutdated(Json::getUint64(doc, kHeight), Json::getString(doc, kHash))) {
@@ -215,19 +202,10 @@ void xmrig::DaemonClient::onTimer(const Timer *)
     }
     else if (m_state == ConnectedState) {
         if (m_apiVersion == API_DERO) {
-            using namespace rapidjson;
-            Document doc(kObjectType);
-            auto& allocator = doc.GetAllocator();
-
-            doc.AddMember("id", m_sequence, allocator);
-            doc.AddMember("jsonrpc", "2.0", allocator);
-            doc.AddMember("method", "get_info", allocator);
-
-            send(HTTP_POST, kJsonRPC, doc);
-            ++m_sequence;
+            rpcSend(JsonRequest::create(m_sequence, "get_info"));
         }
         else {
-            send(HTTP_GET, (m_apiVersion == API_MONERO) ? kGetHeight : kGetInfo);
+            send((m_apiVersion == API_MONERO) ? kGetHeight : kGetInfo);
         }
     }
 }
@@ -336,7 +314,7 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
     Value params(kObjectType);
     params.AddMember("wallet_address", m_user.toJSON(), allocator);
     if (m_apiVersion == API_DERO) {
-        params.AddMember("reserve_size", BlobReserveSize, allocator);
+        params.AddMember("reserve_size", static_cast<uint64_t>(BlobReserveSize), allocator);
     }
     else {
         params.AddMember("extra_nonce", Buffer::randomBytes(BlobReserveSize).toHex().toJSON(doc), allocator);
@@ -344,7 +322,14 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
 
     JsonRequest::create(doc, m_sequence, "getblocktemplate", params);
 
-    send(HTTP_POST, kJsonRPC, doc);
+    return rpcSend(doc);
+}
+
+
+int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc)
+{
+    FetchRequest req(HTTP_POST, m_pool, kJsonRPC, doc, isQuiet());
+    fetch(std::move(req), m_httpListener);
 
     return m_sequence++;
 }
@@ -368,46 +353,10 @@ void xmrig::DaemonClient::retry()
 }
 
 
-void xmrig::DaemonClient::send(int method, const char *url, const char *data, size_t size)
+void xmrig::DaemonClient::send(const char *path)
 {
-    LOG_DEBUG("[%s:%d] " MAGENTA_BOLD("\"%s %s\"") BLACK_BOLD_S " send (%zu bytes): \"%.*s\"",
-              m_pool.host().data(),
-              m_pool.port(),
-              http_method_str(static_cast<http_method>(method)),
-              url,
-              size,
-              static_cast<int>(size),
-              data);
-
-    HttpClient *client;
-#   ifdef XMRIG_FEATURE_TLS
-    if (m_pool.isTLS()) {
-        client = new HttpsClient(method, url, m_httpListener, data, size, m_pool.fingerprint());
-    }
-    else
-#   endif
-    {
-        client = new HttpClient(method, url, m_httpListener, data, size);
-    }
-
-    client->setQuiet(isQuiet());
-    client->connect(m_pool.host(), m_pool.port());
-
-    if (method != HTTP_GET) {
-        client->headers.insert({ "Content-Type", "application/json" });
-    }
-}
-
-
-void xmrig::DaemonClient::send(int method, const char *url, const rapidjson::Document &doc)
-{
-    using namespace rapidjson;
-
-    StringBuffer buffer(nullptr, 512);
-    Writer<StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    send(method, url, buffer.GetString(), buffer.GetSize());
+    FetchRequest req(HTTP_GET, m_pool, path, isQuiet());
+    fetch(std::move(req), m_httpListener);
 }
 
 

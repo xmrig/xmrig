@@ -16,30 +16,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_HTTPLISTENER_H
-#define XMRIG_HTTPLISTENER_H
 
-
-#include "base/kernel/interfaces/IHttpListener.h"
+#include "base/net/http/HttpData.h"
 
 
 namespace xmrig {
 
 
-class HttpListener : public IHttpListener
-{
-public:
-    inline HttpListener(IHttpListener *listener) : m_listener(listener) {}
-
-protected:
-    void onHttpData(const HttpData &data) override;
-
-private:
-    IHttpListener *m_listener;
-};
+const std::string HttpData::kApplicationJson    = "application/json";
+const std::string HttpData::kContentType        = "Content-Type";
+const std::string HttpData::kContentTypeL       = "content-type";
 
 
-} /* namespace xmrig */
-
-
-#endif // XMRIG_HTTPLISTENER_H
+} // namespace xmrig

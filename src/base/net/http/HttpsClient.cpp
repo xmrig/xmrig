@@ -29,8 +29,8 @@
 #include <uv.h>
 
 
-#include "base/io/log/Log.h"
 #include "base/net/http/HttpsClient.h"
+#include "base/io/log/Log.h"
 #include "base/tools/Buffer.h"
 
 
@@ -39,12 +39,8 @@
 #endif
 
 
-xmrig::HttpsClient::HttpsClient(int method, const String &url, const std::weak_ptr<IHttpListener> &listener, const char *data, size_t size, const String &fingerprint) :
-    HttpClient(method, url, listener, data, size),
-    m_ready(false),
-    m_buf(),
-    m_ssl(nullptr),
-    m_fp(fingerprint)
+xmrig::HttpsClient::HttpsClient(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener) :
+    HttpClient(std::move(req), listener)
 {
     m_ctx = SSL_CTX_new(SSLv23_method());
     assert(m_ctx != nullptr);
@@ -71,13 +67,13 @@ xmrig::HttpsClient::~HttpsClient()
 }
 
 
-const char *xmrig::HttpsClient::fingerprint() const
+const char *xmrig::HttpsClient::tlsFingerprint() const
 {
     return m_ready ? m_fingerprint : nullptr;
 }
 
 
-const char *xmrig::HttpsClient::version() const
+const char *xmrig::HttpsClient::tlsVersion() const
 {
     return m_ready ? SSL_get_version(m_ssl) : nullptr;
 }
@@ -94,7 +90,7 @@ void xmrig::HttpsClient::handshake()
 
     SSL_set_connect_state(m_ssl);
     SSL_set_bio(m_ssl, m_readBio, m_writeBio);
-    SSL_set_tlsext_host_name(m_ssl, host().data());
+    SSL_set_tlsext_host_name(m_ssl, host());
 
     SSL_do_handshake(m_ssl);
 
@@ -150,12 +146,12 @@ bool xmrig::HttpsClient::verify(X509 *cert)
     }
 
     if (!verifyFingerprint(cert)) {
-        if (!m_quiet) {
-            LOG_ERR("[%s:%d] Failed to verify server certificate fingerprint", host().data(), port());
+        if (!isQuiet()) {
+            LOG_ERR("[%s:%d] Failed to verify server certificate fingerprint", host(), port());
 
-            if (strlen(m_fingerprint) == 64 && !m_fp.isNull()) {
+            if (strlen(m_fingerprint) == 64 && !req().fingerprint.isNull()) {
                 LOG_ERR("\"%s\" was given", m_fingerprint);
-                LOG_ERR("\"%s\" was configured", m_fp.data());
+                LOG_ERR("\"%s\" was configured", req().fingerprint.data());
             }
         }
 
@@ -182,7 +178,7 @@ bool xmrig::HttpsClient::verifyFingerprint(X509 *cert)
 
     Buffer::toHex(md, 32, m_fingerprint);
 
-    return m_fp.isNull() || strncasecmp(m_fingerprint, m_fp.data(), 64) == 0;
+    return req().fingerprint.isNull() || strncasecmp(m_fingerprint, req().fingerprint.data(), 64) == 0;
 }
 
 
