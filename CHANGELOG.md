@@ -1,3 +1,8 @@
+# v5.8.2
+- [#1580](https://github.com/xmrig/xmrig/pull/1580) AstroBWT algorithm 20-50% speedup.
+  - Added new option `astrobwt-max-size`.
+- [#1581](https://github.com/xmrig/xmrig/issues/1581) Fixed macOS build.
+
 # v5.8.1
 - [#1575](https://github.com/xmrig/xmrig/pull/1575) Fixed new block detection for DERO solo mining.
 
