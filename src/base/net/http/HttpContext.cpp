@@ -75,6 +75,12 @@ xmrig::HttpContext::~HttpContext()
 }
 
 
+bool xmrig::HttpContext::isRequest() const
+{
+    return m_parser->type == HTTP_REQUEST;
+}
+
+
 size_t xmrig::HttpContext::parse(const char *data, size_t size)
 {
     return http_parser_execute(m_parser, &http_settings, data, size);

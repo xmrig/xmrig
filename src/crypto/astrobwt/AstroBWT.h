@@ -34,6 +34,7 @@ struct cryptonight_ctx;
 
 namespace xmrig { namespace astrobwt {
 
+bool astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size);
 
 template<Algorithm::Id ALGO>
 void single_hash(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t);
