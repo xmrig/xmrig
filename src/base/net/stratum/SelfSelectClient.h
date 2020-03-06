@@ -102,8 +102,6 @@ private:
     bool parseResponse(int64_t id, rapidjson::Value &result, const rapidjson::Value &error);
     void getBlockTemplate();
     void retry();
-    void send(int method, const char *url, const char *data = nullptr, size_t size = 0);
-    void send(int method, const char *url, const rapidjson::Document &doc);
     void setState(State state);
     void submitBlockTemplate(rapidjson::Value &result);
 
