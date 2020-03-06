@@ -314,7 +314,7 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
     Value params(kObjectType);
     params.AddMember("wallet_address", m_user.toJSON(), allocator);
     if (m_apiVersion == API_DERO) {
-        params.AddMember("reserve_size", BlobReserveSize, allocator);
+        params.AddMember("reserve_size", static_cast<uint64_t>(BlobReserveSize), allocator);
     }
     else {
         params.AddMember("extra_nonce", Buffer::randomBytes(BlobReserveSize).toHex().toJSON(doc), allocator);
