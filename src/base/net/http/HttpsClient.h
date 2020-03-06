@@ -46,11 +46,11 @@ class HttpsClient : public HttpClient
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpsClient)
 
-    HttpsClient(int method, const String &url, const std::weak_ptr<IHttpListener> &listener, const char *data, size_t size, const String &fingerprint);
+    HttpsClient(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener);
     ~HttpsClient() override;
 
-    const char *fingerprint() const;
-    const char *version() const;
+    const char *tlsFingerprint() const override;
+    const char *tlsVersion() const override;
 
 protected:
     void handshake() override;
@@ -69,7 +69,6 @@ private:
     char m_fingerprint[32 * 2 + 8]{};
     SSL *m_ssl                          = nullptr;
     SSL_CTX *m_ctx                      = nullptr;
-    String m_fp;
 };
 
 

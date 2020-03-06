@@ -38,7 +38,6 @@
 namespace xmrig {
 
 static const char *kAuthorization = "authorization";
-static const char *kContentType   = "content-type";
 
 #ifdef _WIN32
 static const char *favicon = nullptr;
@@ -138,7 +137,7 @@ void xmrig::Httpd::onHttpData(const HttpData &data)
 #       ifdef _WIN32
         if (favicon != nullptr) {
             HttpResponse response(data.id());
-            response.setHeader("Content-Type", "image/x-icon");
+            response.setHeader(HttpData::kContentType, "image/x-icon");
 
             return response.end(favicon, faviconSize);
         }
@@ -161,7 +160,7 @@ void xmrig::Httpd::onHttpData(const HttpData &data)
             return HttpApiResponse(data.id(), HTTP_STATUS_FORBIDDEN).end();
         }
 
-        if (!data.headers.count(kContentType) || data.headers.at(kContentType) != "application/json") {
+        if (!data.headers.count(HttpData::kContentTypeL) || data.headers.at(HttpData::kContentTypeL) != HttpData::kApplicationJson) {
             return HttpApiResponse(data.id(), HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE).end();
         }
     }
