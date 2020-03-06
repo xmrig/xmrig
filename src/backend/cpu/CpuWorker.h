@@ -70,10 +70,10 @@ private:
 
     const Algorithm m_algorithm;
     const Assembly m_assembly;
-    const int m_astrobwtMaxSize;
     const bool m_hwAES;
     const bool m_yield;
     const CnHash::AlgoVariant m_av;
+    const int m_astrobwtMaxSize;
     const Miner *m_miner;
     cryptonight_ctx *m_ctx[N];
     uint8_t m_hash[N * 32]{ 0 };
