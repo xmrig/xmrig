@@ -36,6 +36,7 @@ public:
 
     bool open(const char *fileName);
     bool write(const char *data, size_t size);
+    bool writeLine(const char *data, size_t size);
 
 private:
     int m_file = -1;
