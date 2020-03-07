@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -109,11 +109,11 @@ template<>
 size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32_t limit)
 {
     size_t count = 0;
-
-    auto wow = Cpu::info()->threads(Algorithm::RX_WOW, limit);
+    auto cpuInfo = Cpu::info();
+    auto wow     = cpuInfo->threads(Algorithm::RX_WOW, limit);
 
     if (!threads.isExist(Algorithm::RX_ARQ)) {
-        auto arq = Cpu::info()->threads(Algorithm::RX_ARQ, limit);
+        auto arq = cpuInfo->threads(Algorithm::RX_ARQ, limit);
         if (arq == wow) {
             threads.setAlias(Algorithm::RX_ARQ, "rx/wow");
             ++count;
@@ -124,7 +124,7 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
     }
 
     if (!threads.isExist(Algorithm::RX_KEVA)) {
-        auto keva = Cpu::info()->threads(Algorithm::RX_KEVA, limit);
+        auto keva = cpuInfo->threads(Algorithm::RX_KEVA, limit);
         if (keva == wow) {
             threads.setAlias(Algorithm::RX_KEVA, "rx/wow");
             ++count;
