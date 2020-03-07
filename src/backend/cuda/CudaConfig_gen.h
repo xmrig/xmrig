@@ -115,6 +115,7 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const
     auto rx  = CudaThreads(devices, Algorithm::RX_0);
     auto wow = CudaThreads(devices, Algorithm::RX_WOW);
     auto arq = CudaThreads(devices, Algorithm::RX_ARQ);
+    auto kva = CudaThreads(devices, Algorithm::RX_KEVA);
 
     if (!threads.isExist(Algorithm::RX_WOW) && wow != rx) {
         count += threads.move("rx/wow", std::move(wow));
@@ -122,6 +123,10 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const
 
     if (!threads.isExist(Algorithm::RX_ARQ) && arq != rx) {
         count += threads.move("rx/arq", std::move(arq));
+    }
+
+    if (!threads.isExist(Algorithm::RX_KEVA) && kva != rx) {
+        count += threads.move("rx/kva", std::move(kva));
     }
 
     count += threads.move("rx", std::move(rx));
