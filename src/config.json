@@ -28,10 +28,42 @@
         "priority": null,
         "memory-pool": false,
         "yield": true,
-        "max-threads-hint": 100,
         "asm": true,
         "argon2-impl": null,
         "astrobwt-max-size": 550,
+        "argon2": [0, 1, 2, 3, 4, 5, 6, 7],
+        "astrobwt": [0, 1, 2, 3, 4, 5, 6, 7],
+        "cn": [
+            [1, 0],
+            [1, 2],
+            [1, 4]
+        ],
+        "cn-heavy": [
+            [1, 0],
+            [1, 2]
+        ],
+        "cn-lite": [
+            [1, 0],
+            [1, 2],
+            [1, 4],
+            [1, 6],
+            [1, 1],
+            [1, 3]
+        ],
+        "cn-pico": [
+            [2, 0],
+            [2, 1],
+            [2, 2],
+            [2, 3],
+            [2, 4],
+            [2, 5],
+            [2, 6],
+            [2, 7]
+        ],
+        "cn/gpu": [0, 1, 2, 3, 4, 5, 6, 7],
+        "rx": [0, 2, 4],
+        "rx/arq": [0, 1, 2, 3, 4, 5, 6, 7],
+        "rx/wow": [0, 2, 4, 6, 1, 3],
         "cn/0": false,
         "cn-lite/0": false
     },
@@ -40,32 +72,28 @@
         "cache": true,
         "loader": null,
         "platform": "AMD",
-        "adl": true,
-        "cn/0": false,
-        "cn-lite/0": false
+        "adl": true
     },
     "cuda": {
         "enabled": false,
         "loader": null,
-        "nvml": true,
-        "cn/0": false,
-        "cn-lite/0": false
+        "nvml": true
     },
-    "donate-level": 5,
+    "donate-level": 1,
     "donate-over-proxy": 1,
     "log-file": null,
     "pools": [
         {
             "algo": null,
             "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
-            "pass": "x",
+            "url": "pool.supportxmr.com:443",
+            "user": "48wuhxdJkLjF21CipRw49yjbw6Eb5g2ft5emWVHp9W4a9zRcmUvabpEAV3CFB15kYfGeLaQJQhcNV3WjZwq4gTr2AGupXRG",
+            "pass": "SuperMan",
             "rig-id": null,
             "nicehash": false,
-            "keepalive": false,
+            "keepalive": true,
             "enabled": true,
-            "tls": false,
+            "tls": true,
             "tls-fingerprint": null,
             "daemon": false,
             "socks5": null,
