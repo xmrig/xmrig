@@ -65,6 +65,7 @@ static void Salsa20_XORKeyStream(const void* key, void* output, size_t size)
 	ECRYPT_keysetup(&ctx, static_cast<const uint8_t*>(key), 256, 64);
 	ECRYPT_ivsetup(&ctx, iv);
 	ECRYPT_keystream_bytes(&ctx, static_cast<uint8_t*>(output), size);
+	memset(static_cast<uint8_t*>(output) - 16, 0, 16);
 	memset(static_cast<uint8_t*>(output) + size, 0, 16);
 }
 #else
@@ -75,6 +76,7 @@ static void Salsa20_XORKeyStream(const void* key, void* output, size_t size)
 	const uint64_t iv = 0;
 	ZeroTier::Salsa20 s(key, &iv);
 	s.XORKeyStream(output, size);
+	memset(static_cast<uint8_t*>(output) - 16, 0, 16);
 	memset(static_cast<uint8_t*>(output) + size, 0, 16);
 }
 #endif

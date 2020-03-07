@@ -58,8 +58,8 @@ public:
     inline bool isYield() const                         { return m_yield; }
     inline const Assembly &assembly() const             { return m_assembly; }
     inline const String &argon2Impl() const             { return m_argon2Impl; }
-    inline int astrobwtMaxSize() const                  { return m_astrobwtMaxSize; }
     inline const Threads<CpuThreads> &threads() const   { return m_threads; }
+    inline int astrobwtMaxSize() const                  { return m_astrobwtMaxSize; }
     inline int priority() const                         { return m_priority; }
     inline uint32_t limit() const                       { return m_limit; }
 
@@ -70,18 +70,18 @@ private:
 
     inline void setPriority(int priority)   { m_priority = (priority >= -1 && priority <= 5) ? priority : -1; }
 
-    AesMode m_aes        = AES_AUTO;
+    AesMode m_aes           = AES_AUTO;
     Assembly m_assembly;
-    bool m_enabled       = true;
-    bool m_hugePages     = true;
-    bool m_shouldSave    = false;
-    bool m_yield         = true;
-    int m_memoryPool     = 0;
-    int m_priority       = -1;
+    bool m_enabled          = true;
+    bool m_hugePages        = true;
+    bool m_shouldSave       = false;
+    bool m_yield            = true;
+    int m_astrobwtMaxSize   = 550;
+    int m_memoryPool        = 0;
+    int m_priority          = -1;
     String m_argon2Impl;
-    int m_astrobwtMaxSize = 550;
     Threads<CpuThreads> m_threads;
-    uint32_t m_limit     = 100;
+    uint32_t m_limit        = 100;
 };
 
 

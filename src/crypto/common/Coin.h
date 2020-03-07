@@ -41,7 +41,8 @@ public:
         INVALID = -1,
         MONERO,
         ARQMA,
-        DERO
+        DERO,
+        KEVA
     };
 
 
