@@ -1,3 +1,6 @@
+# v5.9.0
+- [#1578](https://github.com/xmrig/xmrig/pull/1578) Added new RandomKEVA algorithm for upcoming Kevacoin fork, as `"algo": "rx/keva"` or `"coin": "keva"`.
+
 # v5.8.2
 - [#1580](https://github.com/xmrig/xmrig/pull/1580) AstroBWT algorithm 20-50% speedup.
   - Added new option `astrobwt-max-size`.
