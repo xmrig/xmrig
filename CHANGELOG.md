@@ -1,6 +1,7 @@
 # v5.9.0
 - [#1578](https://github.com/xmrig/xmrig/pull/1578) Added new RandomKEVA algorithm for upcoming Kevacoin fork, as `"algo": "rx/keva"` or `"coin": "keva"`.
 - [#1584](https://github.com/xmrig/xmrig/pull/1584) Fixed invalid AstroBWT hashes after algorithm switching.
+- [#1585](https://github.com/xmrig/xmrig/issues/1585) Fixed build without HTTP support.
 - Added command line option `--astrobwt-max-size`.
 
 # v5.8.2
