@@ -1,5 +1,9 @@
 set(HEADERS_BASE
     src/base/api/interfaces/IApiListener.h
+    src/base/crypto/Algorithm.h
+    src/base/crypto/CnAlgo.h
+    src/base/crypto/Coin.h
+    src/base/crypto/keccak.h
     src/base/io/Console.h
     src/base/io/json/Json.h
     src/base/io/json/JsonChain.h
@@ -61,6 +65,9 @@ set(HEADERS_BASE
    )
 
 set(SOURCES_BASE
+    src/base/crypto/Algorithm.cpp
+    src/base/crypto/Coin.cpp
+    src/base/crypto/keccak.cpp
     src/base/io/Console.cpp
     src/base/io/json/Json.cpp
     src/base/io/json/JsonChain.cpp

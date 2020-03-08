@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 
 #include "backend/opencl/runners/OclCnRunner.h"
-
 #include "backend/opencl/kernels/Cn0Kernel.h"
 #include "backend/opencl/kernels/Cn1Kernel.h"
 #include "backend/opencl/kernels/Cn2Kernel.h"
@@ -32,9 +31,9 @@
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/runners/tools/OclCnR.h"
 #include "backend/opencl/wrappers/OclLib.h"
+#include "base/crypto/CnAlgo.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
-#include "crypto/cn/CnAlgo.h"
 
 
 xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)

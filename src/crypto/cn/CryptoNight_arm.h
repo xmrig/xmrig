@@ -7,8 +7,8 @@
  * Copyright 2016      Imran Yusuff <https://github.com/imranyusuff>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,11 +28,11 @@
 #define XMRIG_CRYPTONIGHT_ARM_H
 
 
-#include "crypto/cn/CnAlgo.h"
+#include "base/crypto/CnAlgo.h"
+#include "base/crypto/keccak.h"
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
-#include "crypto/common/keccak.h"
 #include "crypto/common/portable/mm_malloc.h"
 
 

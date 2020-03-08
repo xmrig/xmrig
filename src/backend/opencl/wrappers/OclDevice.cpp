@@ -28,8 +28,6 @@
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
-#include "crypto/cn/CnAlgo.h"
-#include "crypto/common/Algorithm.h"
 #include "rapidjson/document.h"
 
 #ifdef XMRIG_FEATURE_ADL
