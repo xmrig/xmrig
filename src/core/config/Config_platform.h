@@ -107,6 +107,9 @@ static const option options[] = {
     { "randomx-no-rdmsr",      0, nullptr, IConfig::RandomXRdmsrKey       },
     { "no-rdmsr",              0, nullptr, IConfig::RandomXRdmsrKey       },
 #   endif
+    #ifdef XMRIG_ALGO_ASTROBWT
+    { "astrobwt-max-size",     1, nullptr, IConfig::AstroBWTMaxSizeKey    },
+    #endif
 #   ifdef XMRIG_FEATURE_OPENCL
     { "opencl",                0, nullptr, IConfig::OclKey                },
     { "opencl-devices",        1, nullptr, IConfig::OclDevicesKey         },

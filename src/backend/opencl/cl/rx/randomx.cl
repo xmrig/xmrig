@@ -8,6 +8,8 @@
 #include "randomx_constants_loki.h"
 #elif (ALGO == ALGO_RX_ARQMA)
 #include "randomx_constants_arqma.h"
+#elif (ALGO == ALGO_RX_KEVA)
+#include "randomx_constants_keva.h"
 #endif
 
 #include "aes.cl"

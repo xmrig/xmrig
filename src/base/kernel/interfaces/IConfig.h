@@ -97,6 +97,7 @@ public:
         CPUMaxThreadsKey     = 1026,
         MemoryPoolKey        = 1027,
         YieldKey             = 1030,
+        AstroBWTMaxSizeKey   = 1034,
 
         // xmrig amd
         OclPlatformKey       = 1400,
