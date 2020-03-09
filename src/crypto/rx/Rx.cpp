@@ -40,6 +40,7 @@ class RxPrivate;
 
 
 static bool osInitialized   = false;
+static bool msrInitialized  = false;
 static const char *tag      = BLUE_BG(WHITE_BOLD_S " rx  ") " ";
 static RxPrivate *d_ptr     = nullptr;
 
@@ -65,6 +66,10 @@ const char *xmrig::rx_tag()
 bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cpu)
 {
     if (job.algorithm().family() != Algorithm::RANDOM_X) {
+        if (msrInitialized) {
+            msrDestroy();
+            msrInitialized = false;
+        }
         return true;
     }
 
@@ -72,8 +77,12 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cp
         return true;
     }
 
-    if (!osInitialized) {
+    if (!msrInitialized) {
         msrInit(config);
+        msrInitialized = true;
+    }
+
+    if (!osInitialized) {
         setupMainLoopExceptionFrame();
         osInitialized = true;
     }
