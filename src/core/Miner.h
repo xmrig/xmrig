@@ -31,10 +31,10 @@
 
 #include "backend/common/interfaces/IRxListener.h"
 #include "base/api/interfaces/IApiListener.h"
+#include "base/crypto/Algorithm.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "base/tools/Object.h"
-#include "crypto/common/Algorithm.h"
 
 
 namespace xmrig {

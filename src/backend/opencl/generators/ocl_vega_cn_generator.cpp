@@ -26,8 +26,8 @@
 
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclDevice.h"
-#include "crypto/cn/CnAlgo.h"
-#include "crypto/common/Algorithm.h"
+#include "base/crypto/Algorithm.h"
+#include "base/crypto/CnAlgo.h"
 
 
 #include <algorithm>

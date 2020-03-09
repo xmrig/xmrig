@@ -26,7 +26,6 @@
 #define XMRIG_ICONFIG_H
 
 
-#include "crypto/common/Algorithm.h"
 #include "rapidjson/fwd.h"
 
 

@@ -27,7 +27,8 @@
  */
 
 
-#include "crypto/common/Algorithm.h"
+#include "base/crypto/Algorithm.h"
+
 
 struct cryptonight_ctx;
 

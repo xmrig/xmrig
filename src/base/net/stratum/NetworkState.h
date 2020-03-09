@@ -26,9 +26,9 @@
 #define XMRIG_NETWORKSTATE_H
 
 
+#include "base/crypto/Algorithm.h"
 #include "base/net/stratum/strategies/StrategyProxy.h"
 #include "base/tools/String.h"
-#include "crypto/common/Algorithm.h"
 
 
 #include <array>

@@ -24,8 +24,8 @@
  */
 
 
-#include "crypto/common/Algorithm.h"
-#include "crypto/cn/CnAlgo.h"
+#include "base/crypto/Algorithm.h"
+#include "base/crypto/CnAlgo.h"
 #include "rapidjson/document.h"
 
 

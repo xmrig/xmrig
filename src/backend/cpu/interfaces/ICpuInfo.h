@@ -27,8 +27,8 @@
 
 
 #include "backend/cpu/CpuThreads.h"
+#include "base/crypto/Algorithm.h"
 #include "crypto/common/Assembly.h"
-#include "crypto/common/Algorithm.h"
 
 
 namespace xmrig {
