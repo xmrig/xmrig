@@ -39,6 +39,7 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
     hwAES(config.isHwAES()),
     yield(config.isYield()),
     astrobwtMaxSize(config.astrobwtMaxSize()),
+    astrobwtAVX2(config.astrobwtAVX2()),
     priority(config.priority()),
     affinity(thread.affinity()),
     miner(miner),
