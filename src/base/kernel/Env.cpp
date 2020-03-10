@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,9 +56,13 @@ static std::map<String, String> variables;
 
 static void createVariables()
 {
-    variables.insert({ "XMRIG_VERSION", APP_VERSION });
-    variables.insert({ "XMRIG_EXE_DIR", Process::location(Process::ExeLocation, "") });
-    variables.insert({ "XMRIG_CWD",     Process::location(Process::CwdLocation, "") });
+    variables.insert({ "XMRIG_VERSION",  APP_VERSION });
+    variables.insert({ "XMRIG_EXE",      Process::exepath() });
+    variables.insert({ "XMRIG_EXE_DIR",  Process::location(Process::ExeLocation) });
+    variables.insert({ "XMRIG_CWD",      Process::location(Process::CwdLocation) });
+    variables.insert({ "XMRIG_HOME_DIR", Process::location(Process::HomeLocation) });
+    variables.insert({ "XMRIG_TEMP_DIR", Process::location(Process::TempLocation) });
+    variables.insert({ "XMRIG_DATA_DIR", Process::location(Process::DataLocation) });
 }
 #endif
 

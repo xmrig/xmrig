@@ -73,6 +73,7 @@ public:
         DaemonKey            = 1018,
         DaemonPollKey        = 1019,
         SelfSelectKey        = 1028,
+        DataDirKey           = 1035,
 
         // xmrig common
         CPUPriorityKey       = 1021,

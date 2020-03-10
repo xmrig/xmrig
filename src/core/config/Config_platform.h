@@ -89,6 +89,7 @@ static const option options[] = {
     { "cpu-no-yield",          0, nullptr, IConfig::YieldKey              },
     { "verbose",               0, nullptr, IConfig::VerboseKey            },
     { "proxy",                 1, nullptr, IConfig::ProxyKey              },
+    { "data-dir",              1, nullptr, IConfig::DataDirKey            },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },
