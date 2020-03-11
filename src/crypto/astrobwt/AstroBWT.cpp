@@ -48,7 +48,7 @@ static bool astrobwtInitialized = false;
 static bool hasAVX2 = false;
 
 extern "C"
-#ifdef __GNUC__
+#ifndef _MSC_VER
 __attribute__((ms_abi))
 #endif
 void SHA3_256_AVX2_ASM(const void* in, size_t inBytes, void* out);
