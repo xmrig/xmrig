@@ -73,12 +73,12 @@ private:
 
     AesMode m_aes           = AES_AUTO;
     Assembly m_assembly;
+    bool m_astrobwtAVX2     = false;
     bool m_enabled          = true;
     bool m_hugePages        = true;
     bool m_shouldSave       = false;
     bool m_yield            = true;
     int m_astrobwtMaxSize   = 550;
-    bool m_astrobwtAVX2     = false;
     int m_memoryPool        = 0;
     int m_priority          = -1;
     String m_argon2Impl;

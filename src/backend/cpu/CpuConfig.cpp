@@ -52,7 +52,7 @@ static const char *kArgon2Impl = "argon2-impl";
 
 #ifdef XMRIG_ALGO_ASTROBWT
 static const char* kAstroBWTMaxSize = "astrobwt-max-size";
-static const char* kAstroBWTAVX2 = "astrobwt-avx2";
+static const char* kAstroBWTAVX2    = "astrobwt-avx2";
 #endif
 
 
@@ -94,8 +94,8 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 #   endif
 
 #   ifdef XMRIG_ALGO_ASTROBWT
-    obj.AddMember(StringRef(kAstroBWTMaxSize), m_astrobwtMaxSize, allocator);
-    obj.AddMember(StringRef(kAstroBWTAVX2), m_astrobwtAVX2, allocator);
+    obj.AddMember(StringRef(kAstroBWTMaxSize),  m_astrobwtMaxSize, allocator);
+    obj.AddMember(StringRef(kAstroBWTAVX2),     m_astrobwtAVX2, allocator);
 #   endif
 
     m_threads.toJSON(obj, doc);

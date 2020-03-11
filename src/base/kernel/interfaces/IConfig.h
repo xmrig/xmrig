@@ -98,6 +98,7 @@ public:
         MemoryPoolKey        = 1027,
         YieldKey             = 1030,
         AstroBWTMaxSizeKey   = 1034,
+        AstroBWTAVX2Key      = 1036,
 
         // xmrig amd
         OclPlatformKey       = 1400,

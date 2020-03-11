@@ -96,6 +96,7 @@ static inline const std::string &usage()
 
 #   ifdef XMRIG_ALGO_ASTROBWT
     u += "      --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200\n";
+    u += "      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm";
 #   endif
 
 #   ifdef XMRIG_FEATURE_HTTP

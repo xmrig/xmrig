@@ -110,6 +110,7 @@ static const option options[] = {
 #   endif
     #ifdef XMRIG_ALGO_ASTROBWT
     { "astrobwt-max-size",     1, nullptr, IConfig::AstroBWTMaxSizeKey    },
+    { "astrobwt-avx2",         0, nullptr, IConfig::AstroBWTAVX2Key       },
     #endif
 #   ifdef XMRIG_FEATURE_OPENCL
     { "opencl",                0, nullptr, IConfig::OclKey                },

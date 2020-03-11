@@ -159,6 +159,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 #   ifdef XMRIG_ALGO_ASTROBWT
     case IConfig::AstroBWTMaxSizeKey: /* --astrobwt-max-size */
         return set(doc, kCpu, "astrobwt-max-size", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::AstroBWTAVX2Key: /* --astrobwt-avx2 */
+        return set(doc, kCpu, "astrobwt-avx2", true);
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX

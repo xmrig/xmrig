@@ -68,6 +68,7 @@ CPU backend:
       --randomx-wrmsr=N         write custom value (0-15) to Intel MSR register 0x1a4 or disable MSR mod (-1)
       --randomx-no-rdmsr        disable reverting initial MSR values on exit
       --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200
+      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm
 
 API:
       --api-worker-id=ID        custom worker-id for API

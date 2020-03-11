@@ -77,11 +77,11 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     Worker(id, data.affinity, data.priority),
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
+    m_astrobwtAVX2(data.astrobwtAVX2),
     m_hwAES(data.hwAES),
     m_yield(data.yield),
     m_av(data.av()),
     m_astrobwtMaxSize(data.astrobwtMaxSize * 1000),
-    m_astrobwtAVX2(data.astrobwtAVX2),
     m_miner(data.miner),
     m_ctx()
 {
