@@ -26,8 +26,6 @@
 ;#   along with this program. If not, see <http://www.gnu.org/licenses/>.
 ;#
 
-ALIGN 64
-SHA3_256_AVX2_ASM:
 	vzeroupper
 
 	mov qword ptr [rsp+8],rbx

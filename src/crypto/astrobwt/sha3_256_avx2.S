@@ -40,6 +40,9 @@
 
 .global DECL(SHA3_256_AVX2_ASM)
 
+ALIGN 64
+DECL(SHA3_256_AVX2_ASM):
+
 #include "sha3_256_avx2.inc"
 
 KeccakF1600_AVX2_ASM:
