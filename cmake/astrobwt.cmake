@@ -23,6 +23,16 @@ if (WITH_ASTROBWT)
             src/crypto/astrobwt/salsa20_ref/salsa20.c
         )
     else()
+        if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+            enable_language(ASM_MASM)
+            add_definitions(/DASTROBWT_AVX2)
+            if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+                list(APPEND SOURCES_CRYPTO src/crypto/astrobwt/sha3_256_avx2.asm)
+            else()
+                list(APPEND SOURCES_CRYPTO src/crypto/astrobwt/sha3_256_avx2.S)
+            endif()
+        endif()
+
         list(APPEND HEADERS_CRYPTO
             src/crypto/astrobwt/Salsa20.hpp
         )

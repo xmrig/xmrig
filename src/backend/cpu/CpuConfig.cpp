@@ -52,6 +52,7 @@ static const char *kArgon2Impl = "argon2-impl";
 
 #ifdef XMRIG_ALGO_ASTROBWT
 static const char* kAstroBWTMaxSize = "astrobwt-max-size";
+static const char* kAstroBWTAVX2 = "astrobwt-avx2";
 #endif
 
 
@@ -94,6 +95,7 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_ALGO_ASTROBWT
     obj.AddMember(StringRef(kAstroBWTMaxSize), m_astrobwtMaxSize, allocator);
+    obj.AddMember(StringRef(kAstroBWTAVX2), m_astrobwtAVX2, allocator);
 #   endif
 
     m_threads.toJSON(obj, doc);
@@ -148,12 +150,20 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 #       endif
 
 #       ifdef XMRIG_ALGO_ASTROBWT
-        const auto& obj = Json::getValue(value, kAstroBWTMaxSize);
-        if (obj.IsNull() || !obj.IsInt()) {
+        const auto& astroBWTMaxSize = Json::getValue(value, kAstroBWTMaxSize);
+        if (astroBWTMaxSize.IsNull() || !astroBWTMaxSize.IsInt()) {
             m_shouldSave = true;
         }
         else {
-            m_astrobwtMaxSize = std::min(std::max(obj.GetInt(), 400), 1200);
+            m_astrobwtMaxSize = std::min(std::max(astroBWTMaxSize.GetInt(), 400), 1200);
+        }
+
+        const auto& astroBWTAVX2 = Json::getValue(value, kAstroBWTAVX2);
+        if (astroBWTAVX2.IsNull() || !astroBWTAVX2.IsBool()) {
+            m_shouldSave = true;
+        }
+        else {
+            m_astrobwtAVX2 = astroBWTAVX2.GetBool();
         }
 #       endif
 

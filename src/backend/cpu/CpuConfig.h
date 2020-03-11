@@ -60,6 +60,7 @@ public:
     inline const String &argon2Impl() const             { return m_argon2Impl; }
     inline const Threads<CpuThreads> &threads() const   { return m_threads; }
     inline int astrobwtMaxSize() const                  { return m_astrobwtMaxSize; }
+    inline bool astrobwtAVX2() const                    { return m_astrobwtAVX2; }
     inline int priority() const                         { return m_priority; }
     inline uint32_t limit() const                       { return m_limit; }
 
@@ -77,6 +78,7 @@ private:
     bool m_shouldSave       = false;
     bool m_yield            = true;
     int m_astrobwtMaxSize   = 550;
+    bool m_astrobwtAVX2     = false;
     int m_memoryPool        = 0;
     int m_priority          = -1;
     String m_argon2Impl;

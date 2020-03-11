@@ -62,6 +62,7 @@ public:
     const bool hwAES;
     const bool yield;
     const int astrobwtMaxSize;
+    const bool astrobwtAVX2;
     const int priority;
     const int64_t affinity;
     const Miner *miner;
