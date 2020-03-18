@@ -132,6 +132,7 @@ public:
         TlsCiphersKey        = 1112,
         TlsCipherSuitesKey   = 1113,
         TlsProtocolsKey      = 1114,
+        TlsGenKey            = 1117,
         AlgoExtKey           = 1115,
         ProxyPasswordKey     = 1116,
         LoginFileKey         = 'L',

@@ -93,6 +93,13 @@ static const option options[] = {
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },
+    { "tls-cert",              1, nullptr, IConfig::TlsCertKey            },
+    { "tls-cert-key",          1, nullptr, IConfig::TlsCertKeyKey         },
+    { "tls-dhparam",           1, nullptr, IConfig::TlsDHparamKey         },
+    { "tls-protocols",         1, nullptr, IConfig::TlsProtocolsKey       },
+    { "tls-ciphers",           1, nullptr, IConfig::TlsCiphersKey         },
+    { "tls-ciphersuites",      1, nullptr, IConfig::TlsCipherSuitesKey    },
+    { "tls-gen",               1, nullptr, IConfig::TlsGenKey             },
 #   endif
 #   ifdef XMRIG_FEATURE_ASM
     { "asm",                   1, nullptr, IConfig::AssemblyKey           },

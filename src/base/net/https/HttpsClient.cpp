@@ -29,7 +29,7 @@
 #include <uv.h>
 
 
-#include "base/net/http/HttpsClient.h"
+#include "base/net/https/HttpsClient.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Buffer.h"
 
@@ -49,8 +49,8 @@ xmrig::HttpsClient::HttpsClient(FetchRequest &&req, const std::weak_ptr<IHttpLis
         return;
     }
 
-    m_writeBio = BIO_new(BIO_s_mem());
-    m_readBio  = BIO_new(BIO_s_mem());
+    m_write = BIO_new(BIO_s_mem());
+    m_read  = BIO_new(BIO_s_mem());
     SSL_CTX_set_options(m_ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 }
 
@@ -89,24 +89,24 @@ void xmrig::HttpsClient::handshake()
     }
 
     SSL_set_connect_state(m_ssl);
-    SSL_set_bio(m_ssl, m_readBio, m_writeBio);
+    SSL_set_bio(m_ssl, m_read, m_write);
     SSL_set_tlsext_host_name(m_ssl, host());
 
     SSL_do_handshake(m_ssl);
 
-    flush();
+    flush(false);
 }
 
 
 void xmrig::HttpsClient::read(const char *data, size_t size)
 {
-    BIO_write(m_readBio, data, size);
+    BIO_write(m_read, data, size);
 
     if (!SSL_is_init_finished(m_ssl)) {
         const int rc = SSL_connect(m_ssl);
 
         if (rc < 0 && SSL_get_error(m_ssl, rc) == SSL_ERROR_WANT_READ) {
-            flush();
+            flush(false);
         } else if (rc == 1) {
             X509 *cert = SSL_get_peer_certificate(m_ssl);
             if (!verify(cert)) {
@@ -123,19 +123,25 @@ void xmrig::HttpsClient::read(const char *data, size_t size)
       return;
     }
 
-    int bytes_read = 0;
-    while ((bytes_read = SSL_read(m_ssl, m_buf, sizeof(m_buf))) > 0) {
-        HttpClient::read(m_buf, static_cast<size_t>(bytes_read));
+    static char buf[16384]{};
+
+    int rc = 0;
+    while ((rc = SSL_read(m_ssl, buf, sizeof(buf))) > 0) {
+        HttpClient::read(buf, static_cast<size_t>(rc));
+    }
+
+    if (rc == 0) {
+        close(UV_EOF);
     }
 }
 
 
-void xmrig::HttpsClient::write(const std::string &header)
+void xmrig::HttpsClient::write(std::string &&data, bool close)
 {
-    SSL_write(m_ssl, (header + body).c_str(), header.size() + body.size());
-    body.clear();
+    const std::string body = std::move(data);
+    SSL_write(m_ssl, body.data(), body.size());
 
-    flush();
+    flush(close);
 }
 
 
@@ -182,23 +188,17 @@ bool xmrig::HttpsClient::verifyFingerprint(X509 *cert)
 }
 
 
-void xmrig::HttpsClient::flush()
+void xmrig::HttpsClient::flush(bool close)
 {
-    uv_buf_t buf;
-    buf.len = BIO_get_mem_data(m_writeBio, &buf.base);
-
-    if (buf.len == 0) {
+    if (uv_is_writable(stream()) != 1) {
         return;
     }
 
-    bool result = false;
-    if (uv_is_writable(stream())) {
-        result = uv_try_write(stream(), &buf, 1) == static_cast<int>(buf.len);
+    char *data        = nullptr;
+    const size_t size = BIO_get_mem_data(m_write, &data);
+    std::string body(data, size);
 
-        if (!result) {
-            close(UV_EIO);
-        }
-    }
+    (void) BIO_reset(m_write);
 
-    (void) BIO_reset(m_writeBio);
+    HttpContext::write(std::move(body), close);
 }

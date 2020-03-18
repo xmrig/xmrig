@@ -24,38 +24,55 @@
  */
 
 
-#ifndef XMRIG_HTTPRESPONSE_H
-#define XMRIG_HTTPRESPONSE_H
+#ifndef XMRIG_HTTPSCLIENT_H
+#define XMRIG_HTTPSCLIENT_H
 
 
-#include <map>
-#include <string>
+using BIO       = struct bio_st;
+using SSL_CTX   = struct ssl_ctx_st;
+using SSL       = struct ssl_st;
+using X509      = struct x509_st;
+
+
+#include "base/net/http/HttpClient.h"
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class HttpResponse
+class HttpsClient : public HttpClient
 {
 public:
-    HttpResponse(uint64_t id, int statusCode = 200);
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpsClient)
 
-    inline int statusCode() const                                           { return m_statusCode; }
-    inline void setHeader(const std::string &key, const std::string &value) { m_headers.insert({ key, value }); }
-    inline void setStatus(int code)                                         { m_statusCode = code; }
+    HttpsClient(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener);
+    ~HttpsClient() override;
 
-    bool isAlive() const;
-    void end(const char *data = nullptr, size_t size = 0);
+    const char *tlsFingerprint() const override;
+    const char *tlsVersion() const override;
+
+protected:
+    void handshake() override;
+    void read(const char *data, size_t size) override;
 
 private:
-    const uint64_t m_id;
-    int m_statusCode;
-    std::map<const std::string, const std::string> m_headers;
+    void write(std::string &&data, bool close) override;
+
+    bool verify(X509 *cert);
+    bool verifyFingerprint(X509 *cert);
+    void flush(bool close);
+
+    BIO *m_read                         = nullptr;
+    BIO *m_write                        = nullptr;
+    bool m_ready                        = false;
+    char m_fingerprint[32 * 2 + 8]{};
+    SSL *m_ssl                          = nullptr;
+    SSL_CTX *m_ctx                      = nullptr;
 };
 
 
 } // namespace xmrig
 
 
-#endif // XMRIG_HTTPRESPONSE_H
-
+#endif // XMRIG_HTTPSCLIENT_H

@@ -211,7 +211,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     auto &allocator = doc.GetAllocator();
 
     Value api(kObjectType);
-    api.AddMember(StringRef(kApiId),                m_apiId.toJSON(), allocator);
+    api.AddMember(StringRef(kApiId),                    m_apiId.toJSON(), allocator);
     api.AddMember(StringRef(kApiWorkerId),              m_apiWorkerId.toJSON(), allocator);
 
     doc.AddMember(StringRef(kApi),                      api, allocator);
@@ -245,6 +245,11 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(Pools::kRetries),           m_pools.retries(), allocator);
     doc.AddMember(StringRef(Pools::kRetryPause),        m_pools.retryPause(), allocator);
     doc.AddMember(StringRef(kSyslog),                   isSyslog(), allocator);
+
+#   ifdef XMRIG_FEATURE_TLS
+    doc.AddMember(StringRef(kTls),                      m_tls.toJSON(doc), allocator);
+#   endif
+
     doc.AddMember(StringRef(kUserAgent),                m_userAgent.toJSON(), allocator);
     doc.AddMember(StringRef(kVerbose),                  Log::verbose(), allocator);
     doc.AddMember(StringRef(kWatch),                    m_watch, allocator);

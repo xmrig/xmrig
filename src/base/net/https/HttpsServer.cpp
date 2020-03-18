@@ -1,11 +1,4 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -28,28 +21,40 @@
 #include <uv.h>
 
 
-#include "base/net/http/HttpServer.h"
+#include "base/net/https/HttpsServer.h"
 #include "3rdparty/http-parser/http_parser.h"
 #include "base/kernel/interfaces/IHttpListener.h"
-#include "base/net/http/HttpContext.h"
 #include "base/net/http/HttpResponse.h"
+#include "base/net/https/HttpsContext.h"
+#include "base/net/tls/TlsConfig.h"
+#include "base/net/tls/TlsContext.h"
 
 
-xmrig::HttpServer::HttpServer(const std::shared_ptr<IHttpListener> &listener) :
+xmrig::HttpsServer::HttpsServer(const std::shared_ptr<IHttpListener> &listener) :
     m_listener(listener)
 {
 }
 
 
-xmrig::HttpServer::~HttpServer()
+xmrig::HttpsServer::~HttpsServer()
 {
     HttpContext::closeAll();
+
+    delete m_tls;
 }
 
 
-void xmrig::HttpServer::onConnection(uv_stream_t *stream, uint16_t)
+bool xmrig::HttpsServer::setTls(const TlsConfig &config)
 {
-    auto ctx = new HttpContext(HTTP_REQUEST, m_listener);
+    m_tls = TlsContext::create(config);
+
+    return m_tls != nullptr;
+}
+
+
+void xmrig::HttpsServer::onConnection(uv_stream_t *stream, uint16_t)
+{
+    auto ctx = new HttpsContext(m_tls, m_listener);
     uv_accept(stream, ctx->stream());
 
     uv_read_start(ctx->stream(),
@@ -58,21 +63,19 @@ void xmrig::HttpServer::onConnection(uv_stream_t *stream, uint16_t)
             buf->base = new char[suggested_size];
             buf->len  = suggested_size;
         },
-        [](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
-        {
-            auto ctx = static_cast<HttpContext*>(tcp->data);
+        onRead);
+}
 
-            if (nread >= 0) {
-                const auto size   = static_cast<size_t>(nread);
-                const auto parsed = ctx->parse(buf->base, size);
 
-                if (parsed < size) {
-                    ctx->close();
-                }
-            } else {
-                ctx->close();
-            }
+void xmrig::HttpsServer::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+{
+    auto ctx = static_cast<HttpsContext*>(stream->data);
+    if (nread >= 0) {
+        ctx->append(buf->base, static_cast<size_t>(nread));
+    }
+    else {
+        ctx->close();
+    }
 
-            delete [] buf->base;
-        });
+    delete [] buf->base;
 }

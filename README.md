@@ -94,6 +94,15 @@ CUDA backend:
       --cuda-bsleep-hint=N      bsleep hint for autoconfig
       --no-nvml                 disable NVML (NVIDIA Management Library) support
 
+TLS:
+      --tls-gen=HOSTNAME        generate TLS certificate for specific hostname
+      --tls-cert=FILE           load TLS certificate chain from a file in the PEM format
+      --tls-cert-key=FILE       load TLS certificate private key from a file in the PEM format
+      --tls-dhparam=FILE        load DH parameters for DHE ciphers from a file in the PEM format
+      --tls-protocols=N         enable specified TLS protocols, example: "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3"
+      --tls-ciphers=S           set list of available ciphers (TLSv1.2 and below)
+      --tls-ciphersuites=S      set list of available TLSv1.3 ciphersuites
+
 Logging:
   -S, --syslog                  use system log for output messages
   -l, --log-file=FILE           log all output to a file

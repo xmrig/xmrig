@@ -29,7 +29,6 @@
 #include "base/io/log/Log.h"
 #include "base/kernel/Platform.h"
 #include "base/net/dns/Dns.h"
-#include "base/tools/Baton.h"
 
 
 #include <sstream>
@@ -39,31 +38,6 @@ namespace xmrig {
 
 
 static const char *kCRLF = "\r\n";
-
-
-class HttpClientWriteBaton : public Baton<uv_write_t>
-{
-public:
-    inline HttpClientWriteBaton(const std::string &header, std::string &&body) :
-        m_body(std::move(body)),
-        m_header(header)
-    {
-        m_bufs[0] = uv_buf_init(const_cast<char *>(m_header.c_str()), m_header.size());
-        m_bufs[1] = m_body.empty() ? uv_buf_init(nullptr, 0) : uv_buf_init(const_cast<char *>(m_body.c_str()), m_body.size());
-    }
-
-    void write(uv_stream_t *stream)
-    {
-        uv_write(&req, stream, m_bufs, nbufs(), [](uv_write_t *req, int) { delete reinterpret_cast<HttpClientWriteBaton *>(req->data); });
-    }
-
-private:
-    inline size_t nbufs() const { return m_bufs[1].len > 0 ? 2 : 1; }
-
-    std::string m_body;
-    std::string m_header;
-    uv_buf_t m_bufs[2]{};
-};
 
 
 } // namespace xmrig
@@ -137,7 +111,8 @@ void xmrig::HttpClient::handshake()
 
     headers.clear();
 
-    write(ss.str());
+    body.insert(0, ss.str());
+    write(std::move(body), false);
 }
 
 
@@ -146,13 +121,6 @@ void xmrig::HttpClient::read(const char *data, size_t size)
     if (parse(data, size) < size) {
         close(UV_EPROTO);
     }
-}
-
-
-void xmrig::HttpClient::write(const std::string &header)
-{
-    auto baton = new HttpClientWriteBaton(header, std::move(body));
-    baton->write(stream());
 }
 
 
