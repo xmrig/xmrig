@@ -27,16 +27,17 @@
 #include <memory>
 
 
+#include "base/kernel/Base.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonChain.h"
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/backends/FileLog.h"
 #include "base/io/log/Log.h"
 #include "base/io/Watcher.h"
-#include "base/kernel/Base.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/Platform.h"
 #include "base/kernel/Process.h"
+#include "base/net/tools/NetBuffer.h"
 #include "core/config/Config.h"
 #include "core/config/ConfigTransform.h"
 
@@ -84,6 +85,8 @@ public:
 
         delete config;
         delete watcher;
+
+        NetBuffer::destroy();
     }
 
 

@@ -53,7 +53,9 @@ set(HEADERS_BASE
     src/base/net/stratum/strategies/StrategyProxy.h
     src/base/net/stratum/SubmitResult.h
     src/base/net/stratum/Url.h
-    src/base/net/tools/RecvBuf.h
+    src/base/net/tools/LineReader.h
+    src/base/net/tools/MemPool.h
+    src/base/net/tools/NetBuffer.h
     src/base/net/tools/Storage.h
     src/base/tools/Arguments.h
     src/base/tools/Baton.h
@@ -99,6 +101,8 @@ set(SOURCES_BASE
     src/base/net/stratum/strategies/FailoverStrategy.cpp
     src/base/net/stratum/strategies/SinglePoolStrategy.cpp
     src/base/net/stratum/Url.cpp
+    src/base/net/tools/LineReader.cpp
+    src/base/net/tools/NetBuffer.cpp
     src/base/tools/Arguments.cpp
     src/base/tools/Buffer.cpp
     src/base/tools/String.cpp

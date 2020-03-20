@@ -1,10 +1,4 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,26 +16,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ILINELISTENER_H
-#define XMRIG_ILINELISTENER_H
+#ifndef XMRIG_NETBUFFER_H
+#define XMRIG_NETBUFFER_H
 
 
-#include <cstdint>
+struct uv_buf_t;
+using uv_handle_t = struct uv_handle_s;
+
+
+#include <cstddef>
 
 
 namespace xmrig {
 
 
-class ILineListener
+class NetBuffer
 {
 public:
-    virtual ~ILineListener() = default;
+    static constexpr size_t kChunkSize = 16 * 1024;
 
-    virtual void onLine(char *line, size_t size) = 0;
+    static char *allocate();
+    static void destroy();
+    static void onAlloc(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+    static void release(const char *buf);
+    static void release(const uv_buf_t *buf);
 };
 
 
 } /* namespace xmrig */
 
 
-#endif // XMRIG_ILINELISTENER_H
+#endif /* XMRIG_NETBUFFER_H */

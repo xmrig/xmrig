@@ -39,7 +39,7 @@
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/SubmitResult.h"
-#include "base/net/tools/RecvBuf.h"
+#include "base/net/tools/LineReader.h"
 #include "base/net/tools/Storage.h"
 #include "base/tools/Object.h"
 
@@ -61,7 +61,6 @@ public:
 
     constexpr static uint64_t kConnectTimeout   = 20 * 1000;
     constexpr static uint64_t kResponseTimeout  = 20 * 1000;
-    constexpr static size_t kInputBufferSize    = 1024 * 16;
     constexpr static size_t kMaxSendBufferSize  = 1024 * 16;
 
     Client(int id, const char *agent, IClientListener *listener);
@@ -108,7 +107,7 @@ private:
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
-    void read(ssize_t nread);
+    void read(ssize_t nread, const uv_buf_t *buf);
     void reconnect();
     void setState(SocketState state);
     void startTimeout();
@@ -118,7 +117,6 @@ private:
     inline void setExtension(Extension ext, bool enable) noexcept { m_extensions.set(ext, enable); }
     template<Extension ext> inline bool has() const noexcept      { return m_extensions.test(ext); }
 
-    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
     static void onClose(uv_handle_t *handle);
     static void onConnect(uv_connect_t *req, int status);
     static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
@@ -127,7 +125,7 @@ private:
 
     const char *m_agent;
     Dns *m_dns;
-    RecvBuf<kInputBufferSize> m_recvBuf;
+    LineReader m_reader;
     Socks5 *m_socks5            = nullptr;
     std::bitset<EXT_MAX> m_extensions;
     std::vector<char> m_sendBuf;

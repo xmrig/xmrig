@@ -38,13 +38,14 @@
 #endif
 
 
+#include "base/net/stratum/Client.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
-#include "base/net/stratum/Client.h"
 #include "base/net/stratum/Socks5.h"
+#include "base/net/tools/NetBuffer.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "net/JobResult.h"
@@ -83,6 +84,7 @@ xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
     m_agent(agent),
     m_sendBuf(1024)
 {
+    m_reader.setListener(this);
     m_key = m_storage.add(this);
     m_dns = new Dns(this);
 }
@@ -542,7 +544,7 @@ int xmrig::Client::resolve(const String &host)
 {
     setState(HostLookupState);
 
-    m_recvBuf.reset();
+    m_reader.reset();
 
     if (m_failures == -1) {
         m_failures = 0;
@@ -837,13 +839,9 @@ void xmrig::Client::ping()
 }
 
 
-void xmrig::Client::read(ssize_t nread)
+void xmrig::Client::read(ssize_t nread, const uv_buf_t *buf)
 {
     const auto size = static_cast<size_t>(nread);
-
-    if (nread > 0 && size > m_recvBuf.available()) {
-        nread = UV_ENOBUFS;
-    }
 
     if (nread < 0) {
         if (!isQuiet()) {
@@ -859,12 +857,8 @@ void xmrig::Client::read(ssize_t nread)
         return reconnect();
     }
 
-    m_recvBuf.nread(size);
-
     if (m_socks5) {
-        if (m_socks5->read(m_recvBuf.base(), m_recvBuf.pos())) {
-            m_recvBuf.reset();
-        }
+        m_socks5->read(buf->base, size);
 
         if (m_socks5->isReady()) {
             delete m_socks5;
@@ -886,13 +880,12 @@ void xmrig::Client::read(ssize_t nread)
     if (isTLS()) {
         LOG_DEBUG("[%s] TLS received (%d bytes)", url(), static_cast<int>(nread));
 
-        m_tls->read(m_recvBuf.base(), m_recvBuf.pos());
-        m_recvBuf.reset();
+        m_tls->read(buf->base, size);
     }
     else
 #   endif
     {
-        m_recvBuf.getline(this);
+        m_reader.parse(buf->base, size);
     }
 }
 
@@ -959,23 +952,6 @@ void xmrig::Client::startTimeout()
 }
 
 
-void xmrig::Client::onAllocBuffer(uv_handle_t *handle, size_t, uv_buf_t *buf)
-{
-    auto client = getClient(handle->data);
-    if (!client) {
-        return;
-    }
-
-    buf->base = client->m_recvBuf.current();
-
-#   ifdef _WIN32
-    buf->len = static_cast<ULONG>(client->m_recvBuf.available());
-#   else
-    buf->len = client->m_recvBuf.available();
-#   endif
-}
-
-
 void xmrig::Client::onClose(uv_handle_t *handle)
 {
     auto client = getClient(handle->data);
@@ -1027,17 +1003,19 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
     client->m_stream->data = req->data;
     client->setState(ConnectedState);
 
-    uv_read_start(client->m_stream, onAllocBuffer, onRead);
+    uv_read_start(client->m_stream, NetBuffer::onAlloc, onRead);
     delete req;
 
     client->handshake();
 }
 
 
-void xmrig::Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *)
+void xmrig::Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     auto client = getClient(stream->data);
     if (client) {
-        client->read(nread);
+        client->read(nread, buf);
     }
+
+    NetBuffer::release(buf);
 }

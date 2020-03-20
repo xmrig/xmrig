@@ -17,17 +17,13 @@
  */
 
 
-#include <functional>
 #include <uv.h>
 
 
 #include "base/net/https/HttpsServer.h"
-#include "3rdparty/http-parser/http_parser.h"
-#include "base/kernel/interfaces/IHttpListener.h"
-#include "base/net/http/HttpResponse.h"
 #include "base/net/https/HttpsContext.h"
-#include "base/net/tls/TlsConfig.h"
 #include "base/net/tls/TlsContext.h"
+#include "base/net/tools/NetBuffer.h"
 
 
 xmrig::HttpsServer::HttpsServer(const std::shared_ptr<IHttpListener> &listener) :
@@ -57,13 +53,7 @@ void xmrig::HttpsServer::onConnection(uv_stream_t *stream, uint16_t)
     auto ctx = new HttpsContext(m_tls, m_listener);
     uv_accept(stream, ctx->stream());
 
-    uv_read_start(ctx->stream(),
-        [](uv_handle_t *, size_t suggested_size, uv_buf_t *buf)
-        {
-            buf->base = new char[suggested_size];
-            buf->len  = suggested_size;
-        },
-        onRead);
+    uv_read_start(ctx->stream(), NetBuffer::onAlloc, onRead);
 }
 
 
@@ -77,5 +67,5 @@ void xmrig::HttpsServer::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf
         ctx->close();
     }
 
-    delete [] buf->base;
+    NetBuffer::release(buf);
 }

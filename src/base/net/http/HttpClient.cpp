@@ -29,6 +29,7 @@
 #include "base/io/log/Log.h"
 #include "base/kernel/Platform.h"
 #include "base/net/dns/Dns.h"
+#include "base/net/tools/NetBuffer.h"
 
 
 #include <sstream>
@@ -142,12 +143,7 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
         return;
     }
 
-    uv_read_start(client->stream(),
-        [](uv_handle_t *, size_t suggested_size, uv_buf_t *buf)
-        {
-            buf->base = new char[suggested_size];
-            buf->len  = suggested_size;
-        },
+    uv_read_start(client->stream(), NetBuffer::onAlloc,
         [](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
         {
             auto client = static_cast<HttpClient*>(tcp->data);
@@ -162,7 +158,7 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
                 client->close(static_cast<int>(nread));
             }
 
-            delete [] buf->base;
+            NetBuffer::release(buf);
         });
 
     client->handshake();
