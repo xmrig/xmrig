@@ -110,7 +110,7 @@ bool xmrig::TlsGen::generate_x509(const char *commonName)
     X509_gmtime_adj(X509_get_notAfter(m_x509), 315360000L);
 
     auto name = X509_get_subject_name(m_x509);
-    X509_NAME_add_entry_by_NID(name, NID_commonName, MBSTRING_ASC, reinterpret_cast<const uint8_t *>(commonName), -1, -1, 0);
+    X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, reinterpret_cast<const uint8_t *>(commonName), -1, -1, 0);
 
     X509_set_issuer_name(m_x509, name);
 

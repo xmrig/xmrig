@@ -34,6 +34,20 @@
 #include <openssl/err.h>
 
 
+// https://wiki.openssl.org/index.php/OpenSSL_1.1.0_Changes#Compatibility_Layer
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
+{
+    assert(q == nullptr);
+
+    dh->p = p;
+    dh->g = g;
+
+    return 1;
+ }
+#endif
+
+
 namespace xmrig {
 
 
