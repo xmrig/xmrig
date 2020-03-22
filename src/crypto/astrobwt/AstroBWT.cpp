@@ -30,6 +30,10 @@
 #include "AstroBWT.h"
 #include "sha3.h"
 #include "crypto/cn/CryptoNight.h"
+#include "base/net/stratum/Job.h"
+#include "base/crypto/Algorithm.h"
+#include "base/io/log/Log.h"
+#include "backend/cpu/Cpu.h"
 #include <limits>
 
 constexpr int STAGE1_SIZE = 147253;
@@ -37,6 +41,18 @@ constexpr int ALLOCATION_SIZE = (STAGE1_SIZE + 1048576) + (128 - (STAGE1_SIZE & 
 
 constexpr int COUNTING_SORT_BITS = 10;
 constexpr int COUNTING_SORT_SIZE = 1 << COUNTING_SORT_BITS;
+
+static bool astrobwtInitialized = false;
+
+#ifdef ASTROBWT_AVX2
+static bool hasAVX2 = false;
+
+extern "C"
+#ifndef _MSC_VER
+__attribute__((ms_abi))
+#endif
+void SHA3_256_AVX2_ASM(const void* in, size_t inBytes, void* out);
+#endif
 
 #ifdef _MSC_VER
 
@@ -155,7 +171,25 @@ void sort_indices(int N, const uint8_t* v, uint64_t* indices, uint64_t* tmp_indi
 	}
 }
 
-bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size)
+bool xmrig::astrobwt::init(const xmrig::Job& job)
+{
+	if (job.algorithm().family() != xmrig::Algorithm::ASTROBWT)
+		return true;
+
+	if (astrobwtInitialized)
+		return true;
+
+#ifdef ASTROBWT_AVX2
+	if (xmrig::Cpu::info()->hasAVX2()) {
+		hasAVX2 = true;
+	}
+#endif
+
+	astrobwtInitialized = true;
+	return true;
+}
+
+bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size, bool avx2)
 {
 	uint8_t key[32];
 	uint8_t* scratchpad_ptr = (uint8_t*)(scratchpad) + 64;
@@ -166,7 +200,12 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 	uint8_t* stage1_result = (uint8_t*)(tmp_indices);
 	uint8_t* stage2_result = (uint8_t*)(tmp_indices);
 
-	sha3_HashBuffer(256, SHA3_FLAGS_NONE, input_data, input_size, key, sizeof(key));
+#ifdef ASTROBWT_AVX2
+	if (hasAVX2 && avx2)
+		SHA3_256_AVX2_ASM(input_data, input_size, key);
+	else
+#endif
+		sha3_HashBuffer(256, SHA3_FLAGS_NONE, input_data, input_size, key, sizeof(key));
 
 	Salsa20_XORKeyStream(key, stage1_output, STAGE1_SIZE);
 
@@ -178,7 +217,12 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 			stage1_result[i] = tmp[indices[i] & ((1 << 21) - 1)];
 	}
 
-	sha3_HashBuffer(256, SHA3_FLAGS_NONE, stage1_result, STAGE1_SIZE + 1, key, sizeof(key));
+#ifdef ASTROBWT_AVX2
+	if (hasAVX2 && avx2)
+		SHA3_256_AVX2_ASM(stage1_result, STAGE1_SIZE + 1, key);
+	else
+#endif
+		sha3_HashBuffer(256, SHA3_FLAGS_NONE, stage1_result, STAGE1_SIZE + 1, key, sizeof(key));
 
 	const int stage2_size = STAGE1_SIZE + (*(uint32_t*)(key) & 0xfffff);
 	if (stage2_size > stage2_max_size)
@@ -203,7 +247,12 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 			stage2_result[i] = tmp[indices[i] & ((1 << 21) - 1)];
 	}
 
-	sha3_HashBuffer(256, SHA3_FLAGS_NONE, stage2_result, stage2_size + 1, output_hash, 32);
+#ifdef ASTROBWT_AVX2
+	if (hasAVX2 && avx2)
+		SHA3_256_AVX2_ASM(stage2_result, stage2_size + 1, output_hash);
+	else
+#endif
+		sha3_HashBuffer(256, SHA3_FLAGS_NONE, stage2_result, stage2_size + 1, output_hash, 32);
 
 	return true;
 }
@@ -211,5 +260,5 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 template<>
 void xmrig::astrobwt::single_hash<xmrig::Algorithm::ASTROBWT_DERO>(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t)
 {
-	astrobwt_dero(input, static_cast<uint32_t>(size), ctx[0]->memory, output, std::numeric_limits<int>::max());
+	astrobwt_dero(input, static_cast<uint32_t>(size), ctx[0]->memory, output, std::numeric_limits<int>::max(), true);
 }

@@ -78,7 +78,7 @@ void xmrig::Client::Socks5::connect()
 
     const auto &host = m_client->pool().host();
     std::vector<uint8_t> buf;
-    sockaddr_storage addr;
+    sockaddr_storage addr{};
 
     if (isIPv4(host, &addr)) {
         buf.resize(10);

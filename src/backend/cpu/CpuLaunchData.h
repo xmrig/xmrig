@@ -58,6 +58,7 @@ public:
 
     const Algorithm algorithm;
     const Assembly assembly;
+    const bool astrobwtAVX2;
     const bool hugePages;
     const bool hwAES;
     const bool yield;

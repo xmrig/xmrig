@@ -57,6 +57,8 @@ protected:
     inline const OclLaunchData &data() const override   { return m_data; }
     inline size_t intensity() const override            { return m_intensity; }
     inline size_t threadId() const override             { return m_threadId; }
+    inline uint32_t roundSize() const override          { return m_intensity; }
+    inline uint32_t processedHashes() const override    { return m_intensity; }
 
     size_t bufferSize() const override;
     uint32_t deviceIndex() const override;

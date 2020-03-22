@@ -66,6 +66,11 @@ const char *BaseConfig::kVerbose        = "verbose";
 const char *BaseConfig::kWatch          = "watch";
 
 
+#ifdef XMRIG_FEATURE_TLS
+const char *BaseConfig::kTls            = "tls";
+#endif
+
+
 } // namespace xmrig
 
 
@@ -87,11 +92,16 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
 
     m_rebenchAlgo   = reader.getBool("rebench-algo", m_rebenchAlgo);
     m_benchAlgoTime = reader.getInt("bench-algo-time", m_benchAlgoTime);
+
+#   ifdef XMRIG_FEATURE_TLS
+    m_tls = reader.getValue(kTls);
+#   endif
+
     Log::setColors(reader.getBool(kColors, Log::isColors()));
     setPrintTime(reader.getUint(kPrintTime, 60));
     setVerbose(reader.getValue(kVerbose));
 
-    const rapidjson::Value &api = reader.getObject(kApi);
+    const auto &api = reader.getObject(kApi);
     if (api.IsObject()) {
         m_apiId       = Json::getString(api, kApiId);
         m_apiWorkerId = Json::getString(api, kApiWorkerId);

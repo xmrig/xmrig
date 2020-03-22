@@ -44,6 +44,11 @@
 #include "core/config/Config_platform.h"
 
 
+#ifdef XMRIG_FEATURE_TLS
+#   include "base/net/tls/TlsConfig.h"
+#endif
+
+
 void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTransform &transform)
 {
     using namespace rapidjson;
@@ -198,6 +203,29 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 
     case IConfig::UserAgentKey: /* --user-agent */
         return set(doc, BaseConfig::kUserAgent, arg);
+
+#   ifdef XMRIG_FEATURE_TLS
+    case IConfig::TlsCertKey: /* --tls-cert */
+        return set(doc, BaseConfig::kTls, TlsConfig::kCert, arg);
+
+    case IConfig::TlsCertKeyKey: /* --tls-cert-key */
+        return set(doc, BaseConfig::kTls, TlsConfig::kCertKey, arg);
+
+    case IConfig::TlsDHparamKey: /* --tls-dhparam */
+        return set(doc, BaseConfig::kTls, TlsConfig::kDhparam, arg);
+
+    case IConfig::TlsCiphersKey: /* --tls-ciphers */
+        return set(doc, BaseConfig::kTls, TlsConfig::kCiphers, arg);
+
+    case IConfig::TlsCipherSuitesKey: /* --tls-ciphersuites */
+        return set(doc, BaseConfig::kTls, TlsConfig::kCipherSuites, arg);
+
+    case IConfig::TlsProtocolsKey: /* --tls-protocols */
+        return set(doc, BaseConfig::kTls, TlsConfig::kProtocols, arg);
+
+    case IConfig::TlsGenKey: /* --tls-gen */
+        return set(doc, BaseConfig::kTls, TlsConfig::kGen, arg);
+#   endif
 
     case IConfig::RetriesKey:     /* --retries */
     case IConfig::RetryPauseKey:  /* --retry-pause */

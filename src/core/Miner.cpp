@@ -41,6 +41,7 @@
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
 #include "crypto/rx/Rx.h"
+#include "crypto/astrobwt/AstroBWT.h"
 #include "rapidjson/document.h"
 #include "version.h"
 
@@ -241,6 +242,10 @@ public:
     inline bool initRX() { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
 #   endif
 
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    inline bool initAstroBWT() { return astrobwt::init(job); }
+#   endif
 
     Algorithm algorithm;
     Algorithms algorithms;
@@ -454,10 +459,14 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
         d_ptr->userJobId = job.id();
     }
 
+    bool ready = true;
+
 #   ifdef XMRIG_ALGO_RANDOMX
-    const bool ready = d_ptr->initRX();
-#   else
-    constexpr const bool ready = true;
+    ready &= d_ptr->initRX();
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    ready &= d_ptr->initAstroBWT();
 #   endif
 
     mutex.unlock();

@@ -59,7 +59,6 @@ protected:
 
     virtual void handshake();
     virtual void read(const char *data, size_t size);
-    virtual void write(const std::string &header);
 
 protected:
     inline const FetchRequest &req() const  { return m_req; }

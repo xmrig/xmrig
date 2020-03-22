@@ -53,12 +53,13 @@ public:
 
     inline uint64_t id() const { return m_id; }
 
-    virtual bool isRequest() const              = 0;
-    virtual const char *host() const            = 0;
-    virtual const char *tlsFingerprint() const  = 0;
-    virtual const char *tlsVersion() const      = 0;
-    virtual std::string ip() const              = 0;
-    virtual uint16_t port() const               = 0;
+    virtual bool isRequest() const                      = 0;
+    virtual const char *host() const                    = 0;
+    virtual const char *tlsFingerprint() const          = 0;
+    virtual const char *tlsVersion() const              = 0;
+    virtual std::string ip() const                      = 0;
+    virtual uint16_t port() const                       = 0;
+    virtual void write(std::string &&data, bool close)  = 0;
 
     int method      = 0;
     int status      = 0;

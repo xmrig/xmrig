@@ -40,6 +40,7 @@ namespace xmrig {
 
 class Base;
 class HttpServer;
+class HttpsServer;
 class TcpServer;
 
 
@@ -61,11 +62,16 @@ protected:
 private:
     int auth(const HttpData &req) const;
 
-    Base *m_base;
-    HttpServer *m_http;
+    const Base *m_base;
     std::shared_ptr<IHttpListener> m_httpListener;
-    TcpServer *m_server;
-    uint16_t m_port;
+    TcpServer *m_server     = nullptr;
+    uint16_t m_port         = 0;
+
+#   ifdef XMRIG_FEATURE_TLS
+    HttpsServer *m_http     = nullptr;
+#   else
+    HttpServer *m_http      = nullptr;
+#   endif
 };
 
 
