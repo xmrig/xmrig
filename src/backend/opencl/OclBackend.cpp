@@ -207,7 +207,7 @@ public:
 
 #       ifdef XMRIG_ALGO_ASTROBWT
         if (algo.family() == Algorithm::ASTROBWT) {
-            algo_l3 = xmrig::OclAstroBWTRunner::BWT_DATA_STRIDE * 17 + 324;
+            algo_l3 = OclAstroBWTRunner::BWT_DATA_STRIDE * 17 + 324;
         }
 #       endif
 

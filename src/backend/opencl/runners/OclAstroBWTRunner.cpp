@@ -37,8 +37,15 @@
 #include "base/net/stratum/Job.h"
 
 
+namespace xmrig {
+
+
 constexpr int STAGE1_SIZE = 147253;
 constexpr uint32_t STAGE1_DATA_STRIDE = (STAGE1_SIZE + 256 + 255) & ~255U;
+constexpr uint32_t OclAstroBWTRunner::BWT_DATA_STRIDE;
+
+
+} // namespace xmrig
 
 
 xmrig::OclAstroBWTRunner::OclAstroBWTRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
