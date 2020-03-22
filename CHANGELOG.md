@@ -1,4 +1,5 @@
 # v5.10.0
+- [#1602](https://github.com/xmrig/xmrig/pull/1602) Added AMD GPUs support for AstroBWT algorithm.
 - [#1590](https://github.com/xmrig/xmrig/pull/1590) MSR mod automatically deactivated after switching from RandomX algorithms.
 - [#1592](https://github.com/xmrig/xmrig/pull/1592) Added AVX2 optimized code for AstroBWT algorithm.
   - Added new config option `astrobwt-avx2` in `cpu` object and command line option `--astrobwt-avx2`.
