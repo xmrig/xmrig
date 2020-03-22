@@ -22,44 +22,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "backend/opencl/cl/OclSource.h"
-#include "backend/opencl/cl/cn/cryptonight_cl.h"
-#include "base/crypto/Algorithm.h"
+#ifndef XMRIG_ASTROBWT_SALSA20KERNEL_H
+#define XMRIG_ASTROBWT_SALSA20KERNEL_H
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "backend/opencl/cl/rx/randomx_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/opencl/cl/astrobwt/astrobwt_cl.h"
-#endif
+#include "backend/opencl/wrappers/OclKernel.h"
 
 
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+namespace xmrig {
+
+
+class AstroBWT_Salsa20Kernel : public OclKernel
 {
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (algorithm.family() == Algorithm::RANDOM_X) {
-        return randomx_cl;
-    }
-#   endif
+public:
+    inline AstroBWT_Salsa20Kernel(cl_program program) : OclKernel(program, "Salsa20_XORKeyStream") {}
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm.family() == Algorithm::ASTROBWT) {
-        return astrobwt_cl;
-    }
-#   endif
+    void enqueue(cl_command_queue queue, size_t threads, size_t workgroup_size);
+    void setArgs(cl_mem salsa20_keys, cl_mem outputs, cl_mem output_sizes, uint32_t output_stride);
+};
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return cryptonight_gpu_cl;
-    }
-#   endif
 
-    return cryptonight_cl;
-}
+} // namespace xmrig
+
+
+#endif /* XMRIG_ASTROBWT_SALSA20KERNEL_H */

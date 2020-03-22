@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,43 +24,41 @@
  */
 
 
-#include "backend/opencl/cl/OclSource.h"
-#include "backend/opencl/cl/cn/cryptonight_cl.h"
+#include "backend/opencl/OclThreads.h"
+#include "backend/opencl/wrappers/OclDevice.h"
 #include "base/crypto/Algorithm.h"
+#include "crypto/randomx/randomx.h"
+#include "crypto/rx/RxAlgo.h"
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "backend/opencl/cl/rx/randomx_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/opencl/cl/astrobwt/astrobwt_cl.h"
-#endif
+namespace xmrig {
 
 
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+bool ocl_generic_astrobwt_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads)
 {
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (algorithm.family() == Algorithm::RANDOM_X) {
-        return randomx_cl;
+    if (algorithm.family() != Algorithm::ASTROBWT) {
+        return false;
     }
-#   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm.family() == Algorithm::ASTROBWT) {
-        return astrobwt_cl;
+    const size_t mem = device.globalMemSize();
+
+    uint32_t per_thread_mem = 10 << 20;
+    uint32_t intensity = static_cast<uint32_t>((mem - (128 << 20)) / per_thread_mem / 2);
+
+    intensity &= ~63U;
+
+    if (!intensity) {
+        return false;
     }
-#   endif
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return cryptonight_gpu_cl;
+    if (intensity > 256) {
+        intensity = 256;
     }
-#   endif
 
-    return cryptonight_cl;
+    threads.add(OclThread(device.index(), intensity, 2));
+
+    return true;
 }
+
+
+} // namespace xmrig

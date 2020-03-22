@@ -41,6 +41,10 @@
 #   include "backend/opencl/runners/OclRxVmRunner.h"
 #endif
 
+#ifdef XMRIG_ALGO_ASTROBWT
+#   include "backend/opencl/runners/OclAstroBWTRunner.h"
+#endif
+
 #ifdef XMRIG_ALGO_CN_GPU
 #   include "backend/opencl/runners/OclRyoRunner.h"
 #endif
@@ -96,6 +100,12 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
 #       endif
         break;
 
+    case Algorithm::ASTROBWT:
+#       ifdef XMRIG_ALGO_ASTROBWT
+        m_runner = new OclAstroBWTRunner(id, data);
+#       endif
+        break;
+
     default:
 #       ifdef XMRIG_ALGO_CN_GPU
         if (m_algorithm == Algorithm::CN_GPU) {
@@ -148,6 +158,8 @@ void xmrig::OclWorker::start()
 {
     cl_uint results[0x100];
 
+    const uint32_t runnerRoundSize = m_runner->roundSize();
+
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
         if (!isReady()) {
             m_sharedData.setResumeCounter(0);
@@ -186,7 +198,7 @@ void xmrig::OclWorker::start()
                 JobResults::submit(m_job.currentJob(), results, results[0xFF]);
             }
 
-            if (!m_job.nextRound(roundSize(m_intensity), m_intensity)) {
+            if (!m_job.nextRound(roundSize(runnerRoundSize), runnerRoundSize)) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -228,7 +240,7 @@ void xmrig::OclWorker::storeStats(uint64_t t)
         return;
     }
 
-    m_count += m_intensity;
+    m_count += m_runner->processedHashes();
 
     m_sharedData.setRunTime(Chrono::steadyMSecs() - t);
 
