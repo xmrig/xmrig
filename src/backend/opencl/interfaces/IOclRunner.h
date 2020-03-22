@@ -59,6 +59,8 @@ public:
     virtual const OclLaunchData &data() const               = 0;
     virtual size_t intensity() const                        = 0;
     virtual size_t threadId() const                         = 0;
+    virtual uint32_t roundSize() const                      = 0;
+    virtual uint32_t processedHashes() const                = 0;
     virtual uint32_t deviceIndex() const                    = 0;
     virtual void build()                                    = 0;
     virtual void init()                                     = 0;

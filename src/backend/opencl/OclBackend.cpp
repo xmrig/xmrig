@@ -36,6 +36,7 @@
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/OclWorker.h"
 #include "backend/opencl/runners/tools/OclSharedState.h"
+#include "backend/opencl/runners/OclAstroBWTRunner.h"
 #include "backend/opencl/wrappers/OclContext.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
@@ -202,6 +203,14 @@ public:
 
         Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |  W | SI | MC |  U |  MEM | NAME"));
 
+        size_t algo_l3 = algo.l3();
+
+#       ifdef XMRIG_ALGO_ASTROBWT
+        if (algo.family() == Algorithm::ASTROBWT) {
+            algo_l3 = xmrig::OclAstroBWTRunner::BWT_DATA_STRIDE * 17 + 324;
+        }
+#       endif
+
         size_t i = 0;
         for (const auto &data : threads) {
             Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5u") " |" CYAN_BOLD("%3u") " |"
@@ -214,7 +223,7 @@ public:
                        data.thread.stridedIndex(),
                        data.thread.stridedIndex() == 2 ? std::to_string(data.thread.memChunk()).c_str() : "-",
                        data.thread.unrollFactor(),
-                       data.thread.intensity() * algo.l3() / oneMiB,
+                       data.thread.intensity() * algo_l3 / oneMiB,
                        data.device.printableName().data()
                        );
 
