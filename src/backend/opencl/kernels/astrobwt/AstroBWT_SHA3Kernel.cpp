@@ -23,43 +23,22 @@
  */
 
 
-#include "backend/opencl/cl/OclSource.h"
-#include "backend/opencl/cl/cn/cryptonight_cl.h"
-#include "base/crypto/Algorithm.h"
+#include "backend/opencl/kernels/astrobwt/AstroBWT_SHA3Kernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "backend/opencl/cl/rx/randomx_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/opencl/cl/astrobwt/astrobwt_cl.h"
-#endif
-
-
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+void xmrig::AstroBWT_SHA3Kernel::enqueue(cl_command_queue queue, size_t threads)
 {
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (algorithm.family() == Algorithm::RANDOM_X) {
-        return randomx_cl;
-    }
-#   endif
+    const size_t workgroup_size = 32;
+    const size_t gthreads       = threads * workgroup_size;
+    enqueueNDRange(queue, 1, nullptr, &gthreads, &workgroup_size);
+}
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm.family() == Algorithm::ASTROBWT) {
-        return astrobwt_cl;
-    }
-#   endif
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return cryptonight_gpu_cl;
-    }
-#   endif
-
-    return cryptonight_cl;
+void xmrig::AstroBWT_SHA3Kernel::setArgs(cl_mem inputs, cl_mem input_sizes, uint32_t input_stride, cl_mem output_salsa20_keys)
+{
+    setArg(0, sizeof(cl_mem), &inputs);
+    setArg(1, sizeof(cl_mem), &input_sizes);
+    setArg(2, sizeof(uint32_t), &input_stride);
+    setArg(3, sizeof(cl_mem), &output_salsa20_keys);
 }
