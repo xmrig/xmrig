@@ -51,6 +51,33 @@ jobs:
           name: ubuntu_build
           path: ubuntu_build.tar.gz
 
+  build_macos:
+    name: Build MacOS artifacts
+    runs-on: macos-latest
+    steps:
+      - name: Prepare MacOS tools
+        run: |
+          brew install cmake libuv openssl hwloc
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Build project on MacOS
+        run: |
+          curl -O https://download.open-mpi.org/release/hwloc/v2.1/hwloc-2.1.0.tar.bz2
+          tar xjf hwloc-2.1.0.tar.bz2
+          cd hwloc-2.1.0
+          ./configure --disable-shared --enable-static --disable-io --disable-libxml2
+          make -j$(sysctl -n hw.logicalcpu)
+          cd ..
+          cmake . -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DHWLOC_INCLUDE_DIR=hwloc-2.1.0/include -DHWLOC_LIBRARY=.hwloc-2.1.0/hwloc/.libs/libhwloc.a
+          make -j$(sysctl -n hw.logicalcpu)
+          cp src/config.json .
+          tar cfz macos_build.tar.gz xmrig config.json
+      - name: Upload MacOS build artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: macos_build
+          path: macos_build.tar.gz
+
   build_lin_rh6:
     name: Build CentOS 6 artifacts
     runs-on: ubuntu-latest
@@ -58,7 +85,7 @@ jobs:
     steps:
       - name: Prepare CentOS 6 tools
         run: |
-          yum install -y git cmake openssl-devel libmicrohttpd-devel centos-release-scl-rh
+          yum install -y git cmake nasm openssl-devel libmicrohttpd-devel centos-release-scl-rh
           yum install -y --nogpgcheck devtoolset-6-gcc devtoolset-6-binutils devtoolset-6-gcc-c++
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-1.8.0-1.el6.x86_64.rpm
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-devel-1.8.0-1.el6.x86_64.rpm
@@ -80,7 +107,7 @@ jobs:
           path: centos6_build.tar.gz
 
   deploy:
-    needs: [build_win, build_lin, build_lin_rh6]
+    needs: [build_win, build_lin, build_macos, build_lin_rh6]
     name: Create release and upload artifacts
     runs-on: ubuntu-latest
     steps:
@@ -105,6 +132,10 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: ubuntu_build
+      - name: Download MacOS build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: macos_build
       - name: Download CentOS 6 build artifacts
         uses: actions/download-artifact@v1
         with:
@@ -126,6 +157,15 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ubuntu_build/ubuntu_build.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64.tar.gz
+          asset_content_type: application/zip
+      - name: Upload MacOS build release asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: macos_build/macos_build.tar.gz
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-mac64.tar.gz
           asset_content_type: application/zip
       - name: Upload CentOS 6 build release asset
         uses: actions/upload-release-asset@v1.0.1
