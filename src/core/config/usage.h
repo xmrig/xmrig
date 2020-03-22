@@ -96,6 +96,7 @@ static inline const std::string &usage()
 
 #   ifdef XMRIG_ALGO_ASTROBWT
     u += "      --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200\n";
+    u += "      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm";
 #   endif
 
 #   ifdef XMRIG_FEATURE_HTTP
@@ -128,6 +129,17 @@ static inline const std::string &usage()
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_TLS
+    u += "\nTLS:\n";
+    u += "      --tls-gen=HOSTNAME        generate TLS certificate for specific hostname\n";
+    u += "      --tls-cert=FILE           load TLS certificate chain from a file in the PEM format\n";
+    u += "      --tls-cert-key=FILE       load TLS certificate private key from a file in the PEM format\n";
+    u += "      --tls-dhparam=FILE        load DH parameters for DHE ciphers from a file in the PEM format\n";
+    u += "      --tls-protocols=N         enable specified TLS protocols, example: \"TLSv1 TLSv1.1 TLSv1.2 TLSv1.3\"\n";
+    u += "      --tls-ciphers=S           set list of available ciphers (TLSv1.2 and below)\n";
+    u += "      --tls-ciphersuites=S      set list of available TLSv1.3 ciphersuites\n";
 #   endif
 
     u += "\nLogging:\n";

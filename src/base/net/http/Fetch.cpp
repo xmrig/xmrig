@@ -27,7 +27,7 @@
 
 
 #ifdef XMRIG_FEATURE_TLS
-#   include "base/net/http/HttpsClient.h"
+#   include "base/net/https/HttpsClient.h"
 #endif
 
 

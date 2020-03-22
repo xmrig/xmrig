@@ -65,6 +65,8 @@ public:
     inline const char *tlsVersion() const override      { return nullptr; }
     inline uint16_t port() const override               { return 0; }
 
+    void write(std::string &&data, bool close) override;
+
     bool isRequest() const override;
     size_t parse(const char *data, size_t size);
     std::string ip() const override;

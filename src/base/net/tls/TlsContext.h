@@ -5,7 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,56 +23,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef XMRIG_HTTPSCLIENT_H
-#define XMRIG_HTTPSCLIENT_H
-
-
-using BIO       = struct bio_st;
-using SSL_CTX   = struct ssl_ctx_st;
-using SSL       = struct ssl_st;
-using X509      = struct x509_st;
+#ifndef XMRIG_TLSCONTEXT_H
+#define XMRIG_TLSCONTEXT_H
 
 
-#include "base/net/http/HttpClient.h"
-#include "base/tools/String.h"
+#include "base/tools/Object.h"
+
+
+#include <cstdint>
+
+
+using SSL_CTX = struct ssl_ctx_st;
 
 
 namespace xmrig {
 
 
-class HttpsClient : public HttpClient
+class TlsConfig;
+
+
+class TlsContext
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpsClient)
+    XMRIG_DISABLE_COPY_MOVE(TlsContext)
 
-    HttpsClient(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener);
-    ~HttpsClient() override;
+    ~TlsContext();
 
-    const char *tlsFingerprint() const override;
-    const char *tlsVersion() const override;
+    static TlsContext *create(const TlsConfig &config);
 
-protected:
-    void handshake() override;
-    void read(const char *data, size_t size) override;
-    void write(const std::string &header) override;
+    inline SSL_CTX *ctx() const { return m_ctx; }
 
 private:
-    bool verify(X509 *cert);
-    bool verifyFingerprint(X509 *cert);
-    void flush();
+    TlsContext() = default;
 
-    BIO *m_readBio                      = nullptr;
-    BIO *m_writeBio                     = nullptr;
-    bool m_ready                        = false;
-    char m_buf[1024 * 2]{};
-    char m_fingerprint[32 * 2 + 8]{};
-    SSL *m_ssl                          = nullptr;
-    SSL_CTX *m_ctx                      = nullptr;
+    bool load(const TlsConfig &config);
+    bool setCiphers(const char *ciphers);
+    bool setCipherSuites(const char *ciphersuites);
+    bool setDH(const char *dhparam);
+    void setProtocols(uint32_t protocols);
+
+    SSL_CTX *m_ctx = nullptr;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
-
-#endif // XMRIG_HTTPSCLIENT_H
+#endif /* XMRIG_TLSCONTEXT_H */

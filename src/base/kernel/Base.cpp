@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,16 +27,17 @@
 #include <memory>
 
 
+#include "base/kernel/Base.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonChain.h"
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/backends/FileLog.h"
 #include "base/io/log/Log.h"
 #include "base/io/Watcher.h"
-#include "base/kernel/Base.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/Platform.h"
 #include "base/kernel/Process.h"
+#include "base/net/tools/NetBuffer.h"
 #include "core/config/Config.h"
 #include "core/config/ConfigTransform.h"
 
@@ -84,6 +85,8 @@ public:
 
         delete config;
         delete watcher;
+
+        NetBuffer::destroy();
     }
 
 
@@ -127,7 +130,7 @@ private:
             return config.release();
         }
 
-        chain.addFile(Process::location(Process::ExeLocation, "config.json"));
+        chain.addFile(Process::location(Process::DataLocation, "config.json"));
 
         if (read(chain, config)) {
             return config.release();

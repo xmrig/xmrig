@@ -68,6 +68,7 @@ CPU backend:
       --randomx-wrmsr=N         write custom value (0-15) to Intel MSR register 0x1a4 or disable MSR mod (-1)
       --randomx-no-rdmsr        disable reverting initial MSR values on exit
       --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200
+      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm
 
 API:
       --api-worker-id=ID        custom worker-id for API
@@ -92,6 +93,15 @@ CUDA backend:
       --cuda-bfactor-hint=N     bfactor hint for autoconfig (0-12)
       --cuda-bsleep-hint=N      bsleep hint for autoconfig
       --no-nvml                 disable NVML (NVIDIA Management Library) support
+
+TLS:
+      --tls-gen=HOSTNAME        generate TLS certificate for specific hostname
+      --tls-cert=FILE           load TLS certificate chain from a file in the PEM format
+      --tls-cert-key=FILE       load TLS certificate private key from a file in the PEM format
+      --tls-dhparam=FILE        load DH parameters for DHE ciphers from a file in the PEM format
+      --tls-protocols=N         enable specified TLS protocols, example: "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3"
+      --tls-ciphers=S           set list of available ciphers (TLSv1.2 and below)
+      --tls-ciphersuites=S      set list of available TLSv1.3 ciphersuites
 
 Logging:
   -S, --syslog                  use system log for output messages

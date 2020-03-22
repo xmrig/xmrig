@@ -27,8 +27,8 @@
 #define XMRIG_CPULAUNCHDATA_H
 
 
+#include "base/crypto/Algorithm.h"
 #include "crypto/cn/CnHash.h"
-#include "crypto/common/Algorithm.h"
 #include "crypto/common/Assembly.h"
 #include "crypto/common/Nonce.h"
 
@@ -58,6 +58,7 @@ public:
 
     const Algorithm algorithm;
     const Assembly assembly;
+    const bool astrobwtAVX2;
     const bool hugePages;
     const bool hwAES;
     const bool yield;

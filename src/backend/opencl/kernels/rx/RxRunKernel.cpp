@@ -25,7 +25,7 @@
 
 #include "backend/opencl/kernels/rx/RxRunKernel.h"
 #include "backend/opencl/wrappers/OclLib.h"
-#include "crypto/common/Algorithm.h"
+#include "base/crypto/Algorithm.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
 

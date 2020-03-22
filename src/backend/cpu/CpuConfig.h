@@ -60,6 +60,7 @@ public:
     inline const String &argon2Impl() const             { return m_argon2Impl; }
     inline const Threads<CpuThreads> &threads() const   { return m_threads; }
     inline int astrobwtMaxSize() const                  { return m_astrobwtMaxSize; }
+    inline bool astrobwtAVX2() const                    { return m_astrobwtAVX2; }
     inline int priority() const                         { return m_priority; }
     inline uint32_t limit() const                       { return m_limit; }
 
@@ -72,6 +73,7 @@ private:
 
     AesMode m_aes           = AES_AUTO;
     Assembly m_assembly;
+    bool m_astrobwtAVX2     = false;
     bool m_enabled          = true;
     bool m_hugePages        = true;
     bool m_shouldSave       = false;

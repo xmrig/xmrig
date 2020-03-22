@@ -26,8 +26,8 @@
 #define XMRIG_BASETRANSFORM_H
 
 
+#include "base/crypto/Coin.h"
 #include "base/kernel/interfaces/IConfigTransform.h"
-#include "crypto/common/Coin.h"
 #include "rapidjson/document.h"
 
 

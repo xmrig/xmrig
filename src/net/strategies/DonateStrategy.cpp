@@ -28,6 +28,8 @@
 #include <iterator>
 
 
+#include "net/strategies/DonateStrategy.h"
+#include "base/crypto/keccak.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/Job.h"
@@ -38,9 +40,7 @@
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "core/Miner.h"
-#include "crypto/common/keccak.h"
 #include "net/Network.h"
-#include "net/strategies/DonateStrategy.h"
 #include "rapidjson/document.h"
 
 

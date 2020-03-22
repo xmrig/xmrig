@@ -26,7 +26,7 @@
 
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclDevice.h"
-#include "crypto/common/Algorithm.h"
+#include "base/crypto/Algorithm.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
 

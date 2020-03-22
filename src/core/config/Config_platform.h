@@ -89,9 +89,17 @@ static const option options[] = {
     { "cpu-no-yield",          0, nullptr, IConfig::YieldKey              },
     { "verbose",               0, nullptr, IConfig::VerboseKey            },
     { "proxy",                 1, nullptr, IConfig::ProxyKey              },
+    { "data-dir",              1, nullptr, IConfig::DataDirKey            },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },
+    { "tls-cert",              1, nullptr, IConfig::TlsCertKey            },
+    { "tls-cert-key",          1, nullptr, IConfig::TlsCertKeyKey         },
+    { "tls-dhparam",           1, nullptr, IConfig::TlsDHparamKey         },
+    { "tls-protocols",         1, nullptr, IConfig::TlsProtocolsKey       },
+    { "tls-ciphers",           1, nullptr, IConfig::TlsCiphersKey         },
+    { "tls-ciphersuites",      1, nullptr, IConfig::TlsCipherSuitesKey    },
+    { "tls-gen",               1, nullptr, IConfig::TlsGenKey             },
 #   endif
 #   ifdef XMRIG_FEATURE_ASM
     { "asm",                   1, nullptr, IConfig::AssemblyKey           },
@@ -109,6 +117,7 @@ static const option options[] = {
 #   endif
     #ifdef XMRIG_ALGO_ASTROBWT
     { "astrobwt-max-size",     1, nullptr, IConfig::AstroBWTMaxSizeKey    },
+    { "astrobwt-avx2",         0, nullptr, IConfig::AstroBWTAVX2Key       },
     #endif
 #   ifdef XMRIG_FEATURE_OPENCL
     { "opencl",                0, nullptr, IConfig::OclKey                },

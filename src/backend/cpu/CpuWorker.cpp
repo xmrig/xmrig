@@ -77,6 +77,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     Worker(id, data.affinity, data.priority),
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
+    m_astrobwtAVX2(data.astrobwtAVX2),
     m_hwAES(data.hwAES),
     m_yield(data.yield),
     m_av(data.av()),
@@ -262,7 +263,7 @@ void xmrig::CpuWorker<N>::start()
             {
 #               ifdef XMRIG_ALGO_ASTROBWT
                 if (job.algorithm().family() == Algorithm::ASTROBWT) {
-                    if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize))
+                    if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2))
                         valid = false;
                 }
                 else

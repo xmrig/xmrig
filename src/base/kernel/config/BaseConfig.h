@@ -31,6 +31,11 @@
 #include "base/net/stratum/Pools.h"
 
 
+#ifdef XMRIG_FEATURE_TLS
+#   include "base/net/tls/TlsConfig.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -55,23 +60,31 @@ public:
     static const char *kVerbose;
     static const char *kWatch;
 
+#   ifdef XMRIG_FEATURE_TLS
+    static const char *kTls;
+#   endif
+
     BaseConfig() = default;
 
-    inline bool isAutoSave() const                 { return m_autoSave; }
-    inline bool isBackground() const               { return m_background; }
-    inline bool isDryRun() const                   { return m_dryRun; }
-    inline bool isSyslog() const                   { return m_syslog; }
-    inline const char *logFile() const             { return m_logFile.data(); }
-    inline const char *userAgent() const           { return m_userAgent.data(); }
-    inline const Http &http() const                { return m_http; }
-    inline const Pools &pools() const              { return m_pools; }
-    inline const String &apiId() const             { return m_apiId; }
-    inline const String &apiWorkerId() const       { return m_apiWorkerId; }
-    inline uint32_t printTime() const              { return m_printTime; }
+    inline bool isAutoSave() const                          { return m_autoSave; }
+    inline bool isBackground() const                        { return m_background; }
+    inline bool isDryRun() const                            { return m_dryRun; }
+    inline bool isSyslog() const                            { return m_syslog; }
+    inline const char *logFile() const                      { return m_logFile.data(); }
+    inline const char *userAgent() const                    { return m_userAgent.data(); }
+    inline const Http &http() const                         { return m_http; }
+    inline const Pools &pools() const                       { return m_pools; }
+    inline const String &apiId() const                      { return m_apiId; }
+    inline const String &apiWorkerId() const                { return m_apiWorkerId; }
+    inline uint32_t printTime() const                       { return m_printTime; }
 
-    inline bool isWatch() const override                   { return m_watch && !m_fileName.isNull(); }
-    inline const String &fileName() const override         { return m_fileName; }
-    inline void setFileName(const char *fileName) override { m_fileName = fileName; }
+#   ifdef XMRIG_FEATURE_TLS
+    inline const TlsConfig &tls() const                     { return m_tls; }
+#   endif
+
+    inline bool isWatch() const override                    { return m_watch && !m_fileName.isNull(); }
+    inline const String &fileName() const override          { return m_fileName; }
+    inline void setFileName(const char *fileName) override  { m_fileName = fileName; }
 
     bool read(const IJsonReader &reader, const char *fileName) override;
     bool save() override;
@@ -93,6 +106,10 @@ protected:
     String m_logFile;
     String m_userAgent;
     uint32_t m_printTime = 60;
+
+#   ifdef XMRIG_FEATURE_TLS
+    TlsConfig m_tls;
+#   endif
 
 private:
     inline void setPrintTime(uint32_t printTime) { if (printTime <= 3600) { m_printTime = printTime; } }

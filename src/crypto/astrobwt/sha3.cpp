@@ -16,12 +16,12 @@
  * Aug 2015. Andrey Jivsov. crypto@brainhub.org
  * ---------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
 
 #include "sha3.h"
-#include "crypto/common/keccak.h"
+#include "base/crypto/keccak.h"
 
 #define SHA3_ASSERT( x )
 #if defined(_MSC_VER)
