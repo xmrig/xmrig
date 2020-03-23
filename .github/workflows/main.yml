@@ -60,7 +60,7 @@ jobs:
           brew install cmake libuv openssl hwloc
       - name: Checkout code
         uses: actions/checkout@master
-      - name: Build project on MacOS
+      - name: Build hwloc on MacOS
         run: |
           curl -O https://download.open-mpi.org/release/hwloc/v2.1/hwloc-2.1.0.tar.bz2
           tar xjf hwloc-2.1.0.tar.bz2
@@ -68,7 +68,9 @@ jobs:
           ./configure --disable-shared --enable-static --disable-io --disable-libxml2
           make -j$(sysctl -n hw.logicalcpu)
           cd ..
-          cmake . -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DHWLOC_INCLUDE_DIR=hwloc-2.1.0/include -DHWLOC_LIBRARY=.hwloc-2.1.0/hwloc/.libs/libhwloc.a
+      - name: Build project on MacOS
+        run: |
+          cmake . -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DHWLOC_INCLUDE_DIR=hwloc-2.1.0/include -DHWLOC_LIBRARY=hwloc-2.1.0/hwloc/.libs/libhwloc.a
           make -j$(sysctl -n hw.logicalcpu)
           cp src/config.json .
           tar cfz macos_build.tar.gz xmrig config.json
@@ -95,7 +97,7 @@ jobs:
           git checkout ${GITHUB_REF:10}
       - name: Build project on CentOS 6
         run: |
-          scl enable devtoolset-6 "cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF"
+          scl enable devtoolset-6 "cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF -DCMAKE_ASM_MASM_COMPILER=nasm"
           scl enable devtoolset-6 "make -j$(nproc)"
           cp src/config.json .
           mv xmrig-notls xmrig
