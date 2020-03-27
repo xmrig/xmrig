@@ -13,15 +13,15 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
+    strategy:1JTUECDj7edgyngbnzyDJzryCEd5pj5Dky
       matrix:
         python-version: [3.5, 3.6, 3.7, 3.8]
 
-    steps:
+    steps:1JTUECDj7edgyngbnzyDJzryCEd5pj5Dky
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Bartosz
       uses: actions/setup-python@v1
-      with:
+      with:1JTUECDj7edgyngbnzyDJzryCEd5pj5Dky
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
@@ -35,6 +35,6 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
-      run: |
+      run: |1JTUECDj7edgyngbnzyDJzryCEd5pj5Dky
         pip install pytest
         pytest
