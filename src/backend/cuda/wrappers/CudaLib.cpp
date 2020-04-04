@@ -62,6 +62,8 @@ static const char *kPluginVersion                       = "pluginVersion";
 static const char *kRelease                             = "release";
 static const char *kRxHash                              = "rxHash";
 static const char *kRxPrepare                           = "rxPrepare";
+static const char *kAstroBWTHash                        = "AstroBWTHash";
+static const char *kAstroBWTPrepare                     = "AstroBWTPrepare";
 static const char *kSetJob                              = "setJob";
 static const char *kSetJob_v2                           = "setJob_v2";
 static const char *kSymbolNotFound                      = "symbol not found";
@@ -83,6 +85,8 @@ using lastError_t                                       = const char * (*)(nvid_
 using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
 using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
+using AstroBWTHash_t                                    = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
+using AstroBWTPrepare_t                                 = bool (*)(nvid_ctx *, uint32_t);
 using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, bool, uint32_t);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using setJob_v2_t                                       = bool (*)(nvid_ctx *, const void *, size_t, const char *);
@@ -104,6 +108,8 @@ static lastError_t pLastError                           = nullptr;
 static pluginVersion_t pPluginVersion                   = nullptr;
 static release_t pRelease                               = nullptr;
 static rxHash_t pRxHash                                 = nullptr;
+static AstroBWTHash_t pAstroBWTHash                     = nullptr;
+static AstroBWTPrepare_t pAstroBWTPrepare               = nullptr;
 static rxPrepare_t pRxPrepare                           = nullptr;
 static setJob_t pSetJob                                 = nullptr;
 static setJob_v2_t pSetJob_v2                           = nullptr;
@@ -178,6 +184,18 @@ bool xmrig::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target,
 bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept
 {
     return pRxPrepare(ctx, dataset, datasetSize, dataset_host, batchSize);
+}
+
+
+bool xmrig::CudaLib::AstroBWTHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
+{
+    return pAstroBWTHash(ctx, startNonce, target, rescount, resnonce);
+}
+
+
+bool xmrig::CudaLib::AstroBWTPrepare(nvid_ctx *ctx, uint32_t batchSize) noexcept
+{
+    return pAstroBWTPrepare(ctx, batchSize);
 }
 
 
@@ -305,7 +323,7 @@ bool xmrig::CudaLib::load()
         return false;
     }
 
-    if (pVersion(ApiVersion) != 2u) {
+    if (pVersion(ApiVersion) != 3u) {
         return false;
     }
 
@@ -327,6 +345,8 @@ bool xmrig::CudaLib::load()
         DLSYM(Release);
         DLSYM(RxHash);
         DLSYM(RxPrepare);
+        DLSYM(AstroBWTHash);
+        DLSYM(AstroBWTPrepare);
         DLSYM(Version);
 
         if (!pDeviceInfo_v2) {

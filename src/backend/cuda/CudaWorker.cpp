@@ -39,6 +39,11 @@
 #endif
 
 
+#ifdef XMRIG_ALGO_ASTROBWT
+#   include "backend/cuda/runners/CudaAstroBWTRunner.h"
+#endif
+
+
 #include <cassert>
 #include <thread>
 
@@ -73,6 +78,12 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     case Algorithm::ARGON2:
         break;
 
+    case Algorithm::ASTROBWT:
+#       ifdef XMRIG_ALGO_ASTROBWT
+        m_runner = new CudaAstroBWTRunner(id, data);
+#       endif
+        break;
+
     default:
         m_runner = new CudaCnRunner(id, data);
         break;
@@ -104,7 +115,7 @@ bool xmrig::CudaWorker::selfTest()
 
 size_t xmrig::CudaWorker::intensity() const
 {
-    return m_runner ? m_runner->intensity() : 0;
+    return m_runner ? m_runner->roundSize() : 0;
 }
 
 
@@ -173,7 +184,7 @@ void xmrig::CudaWorker::storeStats()
         return;
     }
 
-    m_count += intensity();
+    m_count += m_runner ? m_runner->processedHashes() : 0;
 
     Worker::storeStats();
 }
