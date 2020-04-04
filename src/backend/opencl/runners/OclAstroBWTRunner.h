@@ -51,7 +51,7 @@ public:
     OclAstroBWTRunner(size_t index, const OclLaunchData &data);
     ~OclAstroBWTRunner() override;
 
-    inline uint32_t roundSize() const override { return m_batch_size1; }
+    inline uint32_t roundSize() const override { return static_cast<uint32_t>(m_batch_size1); }
 
     // ~0.5% of all hashes are invalid
     inline uint32_t processedHashes() const override { return static_cast<uint32_t>(m_processedHashes * 0.995); }
@@ -83,7 +83,7 @@ private:
     uint32_t m_workgroup_size                             = 0;
     uint64_t m_bwt_allocation_size                        = 0;
     uint64_t m_batch_size1                                = 0;
-    uint32_t m_processedHashes                                = 0;
+    uint32_t m_processedHashes                            = 0;
 
     uint32_t* m_bwt_data_sizes_host                       = nullptr;
 };

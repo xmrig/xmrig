@@ -22,40 +22,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ICUDARUNNER_H
-#define XMRIG_ICUDARUNNER_H
+#ifndef XMRIG_CUDAASTROBWTRUNNER_H
+#define XMRIG_CUDAASTROBWTRUNNER_H
 
 
-#include "base/tools/Object.h"
-
-
-#include <cstdint>
+#include "backend/cuda/runners/CudaBaseRunner.h"
 
 
 namespace xmrig {
 
 
-class Job;
-
-
-class ICudaRunner
+class CudaAstroBWTRunner : public CudaBaseRunner
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(ICudaRunner)
+    static constexpr uint32_t BWT_DATA_MAX_SIZE = 560 * 1024 - 256;
+    static constexpr uint32_t BWT_DATA_STRIDE = (BWT_DATA_MAX_SIZE + 256 + 255) & ~255U;
 
-    ICudaRunner()          = default;
-    virtual ~ICudaRunner() = default;
+    CudaAstroBWTRunner(size_t index, const CudaLaunchData &data);
 
-    virtual size_t intensity() const                                                = 0;
-    virtual size_t roundSize() const                                                = 0;
-    virtual size_t processedHashes() const                                          = 0;
-    virtual bool init()                                                             = 0;
-    virtual bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)   = 0;
-    virtual bool set(const Job &job, uint8_t *blob)                                 = 0;
+protected:
+    inline size_t intensity() const override { return m_intensity; }
+    inline size_t roundSize() const override;
+    inline size_t processedHashes() const override;
+
+    bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce) override;
+    bool set(const Job &job, uint8_t *blob) override;
+
+private:
+    bool m_ready             = false;
+    size_t m_intensity       = 0;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif // XMRIG_ICUDARUNNER_H
+#endif // XMRIG_CUDAASTROBWTRUNNER_H
