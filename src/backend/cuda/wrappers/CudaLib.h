@@ -73,13 +73,13 @@ public:
     static inline bool isReady() noexcept { return m_ready; }
     static inline const String &loader()  { return m_loader; }
 
+    static bool astroBWTHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept;
+    static bool astroBWTPrepare(nvid_ctx *ctx, uint32_t batchSize) noexcept;
     static bool cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height, uint64_t target, uint32_t *rescount, uint32_t *resnonce);
     static bool deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host = -1) noexcept;
     static bool deviceInit(nvid_ctx *ctx) noexcept;
     static bool rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept;
     static bool rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept;
-    static bool AstroBWTHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept;
-    static bool AstroBWTPrepare(nvid_ctx *ctx, uint32_t batchSize) noexcept;
     static bool setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept;
     static const char *deviceName(nvid_ctx *ctx) noexcept;
     static const char *lastError(nvid_ctx *ctx) noexcept;

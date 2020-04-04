@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,6 +47,8 @@ static uv_lib_t cudaLib;
 
 
 static const char *kAlloc                               = "alloc";
+static const char *kAstroBWTHash                        = "astroBWTHash";
+static const char *kAstroBWTPrepare                     = "astroBWTPrepare";
 static const char *kCnHash                              = "cnHash";
 static const char *kDeviceCount                         = "deviceCount";
 static const char *kDeviceInfo                          = "deviceInfo";
@@ -62,8 +64,6 @@ static const char *kPluginVersion                       = "pluginVersion";
 static const char *kRelease                             = "release";
 static const char *kRxHash                              = "rxHash";
 static const char *kRxPrepare                           = "rxPrepare";
-static const char *kAstroBWTHash                        = "AstroBWTHash";
-static const char *kAstroBWTPrepare                     = "AstroBWTPrepare";
 static const char *kSetJob                              = "setJob";
 static const char *kSetJob_v2                           = "setJob_v2";
 static const char *kSymbolNotFound                      = "symbol not found";
@@ -71,6 +71,8 @@ static const char *kVersion                             = "version";
 
 
 using alloc_t                                           = nvid_ctx * (*)(uint32_t, int32_t, int32_t);
+using astroBWTHash_t                                    = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
+using astroBWTPrepare_t                                 = bool (*)(nvid_ctx *, uint32_t);
 using cnHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint64_t, uint32_t *, uint32_t *);
 using deviceCount_t                                     = uint32_t (*)();
 using deviceInfo_t                                      = int32_t (*)(nvid_ctx *, int32_t, int32_t, int32_t, int32_t);
@@ -85,8 +87,6 @@ using lastError_t                                       = const char * (*)(nvid_
 using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
 using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
-using AstroBWTHash_t                                    = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
-using AstroBWTPrepare_t                                 = bool (*)(nvid_ctx *, uint32_t);
 using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, bool, uint32_t);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using setJob_v2_t                                       = bool (*)(nvid_ctx *, const void *, size_t, const char *);
@@ -94,6 +94,8 @@ using version_t                                         = uint32_t (*)(Version);
 
 
 static alloc_t pAlloc                                   = nullptr;
+static astroBWTHash_t pAstroBWTHash                     = nullptr;
+static astroBWTPrepare_t pAstroBWTPrepare               = nullptr;
 static cnHash_t pCnHash                                 = nullptr;
 static deviceCount_t pDeviceCount                       = nullptr;
 static deviceInfo_t pDeviceInfo                         = nullptr;
@@ -108,8 +110,6 @@ static lastError_t pLastError                           = nullptr;
 static pluginVersion_t pPluginVersion                   = nullptr;
 static release_t pRelease                               = nullptr;
 static rxHash_t pRxHash                                 = nullptr;
-static AstroBWTHash_t pAstroBWTHash                     = nullptr;
-static AstroBWTPrepare_t pAstroBWTPrepare               = nullptr;
 static rxPrepare_t pRxPrepare                           = nullptr;
 static setJob_t pSetJob                                 = nullptr;
 static setJob_v2_t pSetJob_v2                           = nullptr;
@@ -151,6 +151,18 @@ void xmrig::CudaLib::close()
 }
 
 
+bool xmrig::CudaLib::astroBWTHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
+{
+    return pAstroBWTHash(ctx, startNonce, target, rescount, resnonce);
+}
+
+
+bool xmrig::CudaLib::astroBWTPrepare(nvid_ctx *ctx, uint32_t batchSize) noexcept
+{
+    return pAstroBWTPrepare(ctx, batchSize);
+}
+
+
 bool xmrig::CudaLib::cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height, uint64_t target, uint32_t *rescount, uint32_t *resnonce)
 {
     return pCnHash(ctx, startNonce, height, target, rescount, resnonce);
@@ -184,18 +196,6 @@ bool xmrig::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target,
 bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept
 {
     return pRxPrepare(ctx, dataset, datasetSize, dataset_host, batchSize);
-}
-
-
-bool xmrig::CudaLib::AstroBWTHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
-{
-    return pAstroBWTHash(ctx, startNonce, target, rescount, resnonce);
-}
-
-
-bool xmrig::CudaLib::AstroBWTPrepare(nvid_ctx *ctx, uint32_t batchSize) noexcept
-{
-    return pAstroBWTPrepare(ctx, batchSize);
 }
 
 

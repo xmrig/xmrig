@@ -50,7 +50,7 @@ xmrig::CudaAstroBWTRunner::CudaAstroBWTRunner(size_t index, const CudaLaunchData
 
 bool xmrig::CudaAstroBWTRunner::run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)
 {
-    return callWrapper(CudaLib::AstroBWTHash(m_ctx, startNonce, m_target, rescount, resnonce));
+    return callWrapper(CudaLib::astroBWTHash(m_ctx, startNonce, m_target, rescount, resnonce));
 }
 
 
@@ -60,7 +60,7 @@ bool xmrig::CudaAstroBWTRunner::set(const Job &job, uint8_t *blob)
         return false;
     }
 
-    return callWrapper(CudaLib::AstroBWTPrepare(m_ctx, static_cast<uint32_t>(m_intensity)));
+    return callWrapper(CudaLib::astroBWTPrepare(m_ctx, static_cast<uint32_t>(m_intensity)));
 }
 
 size_t xmrig::CudaAstroBWTRunner::roundSize() const

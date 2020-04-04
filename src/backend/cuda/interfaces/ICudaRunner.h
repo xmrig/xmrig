@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -46,24 +46,12 @@ public:
     ICudaRunner()          = default;
     virtual ~ICudaRunner() = default;
 
-//    virtual cl_context ctx() const                          = 0;
-//    virtual const Algorithm &algorithm() const              = 0;
-//    virtual const char *buildOptions() const                = 0;
-//    virtual const char *deviceKey() const                   = 0;
-//    virtual const char *source() const                      = 0;
-//    virtual const OclLaunchData &data() const               = 0;
-    virtual size_t intensity() const                        = 0;
-    virtual size_t roundSize() const                        = 0;
-    virtual size_t processedHashes() const                  = 0;
-//    virtual size_t threadId() const                         = 0;
-//    virtual uint32_t deviceIndex() const                    = 0;
-//    virtual void build()                                    = 0;
-    virtual bool init()                                     = 0;
+    virtual size_t intensity() const                                                = 0;
+    virtual size_t roundSize() const                                                = 0;
+    virtual size_t processedHashes() const                                          = 0;
+    virtual bool init()                                                             = 0;
     virtual bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)   = 0;
-    virtual bool set(const Job &job, uint8_t *blob)         = 0;
-
-protected:
-//    virtual size_t bufferSize() const                       = 0;
+    virtual bool set(const Job &job, uint8_t *blob)                                 = 0;
 };
 
 
