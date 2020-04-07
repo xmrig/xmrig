@@ -413,7 +413,7 @@ extern "C" {
 
 		constexpr size_t VM_POOL_SIZE = 2 * 1024 * 1024;
 
-		if (node > 64) {
+		if (node >= 64) {
 			node = 0;
 		}
 
