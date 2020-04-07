@@ -37,16 +37,8 @@ namespace randomx {
 	class CompiledLightVm : public CompiledVm<softAes>
 	{
 	public:
-		void* operator new(size_t size) {
-			void* ptr = AlignedAllocator<CacheLineSize>::allocMemory(size);
-			if (ptr == nullptr)
-				throw std::bad_alloc();
-			return ptr;
-		}
-
-		void operator delete(void* ptr) {
-			AlignedAllocator<CacheLineSize>::freeMemory(ptr, sizeof(CompiledLightVm));
-		}
+		void* operator new(size_t, void* ptr) { return ptr; }
+		void operator delete(void*) {}
 
 		void setCache(randomx_cache* cache) override;
 		void setDataset(randomx_dataset* dataset) override { }

@@ -118,7 +118,7 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
     }
 
     if (!m_vm) {
-        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly);
+        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly, m_affinity);
     }
 }
 #endif
