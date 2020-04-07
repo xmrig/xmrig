@@ -399,24 +399,23 @@ extern "C" {
 		delete dataset;
 	}
 
-	randomx_vm* randomx_create_vm(randomx_flags flags, randomx_cache* cache, randomx_dataset* dataset, uint8_t* scratchpad, int64_t affinity) {
+	randomx_vm* randomx_create_vm(randomx_flags flags, randomx_cache* cache, randomx_dataset* dataset, uint8_t* scratchpad, uint32_t node) {
 		assert(cache != nullptr || (flags & RANDOMX_FLAG_FULL_MEM));
 		assert(cache == nullptr || cache->isInitialized());
 		assert(dataset != nullptr || !(flags & RANDOMX_FLAG_FULL_MEM));
 
 		randomx_vm* vm = nullptr;
 
-		std::lock_guard<std::mutex> lock(vm_pool_mutex);
-
 		static uint8_t* vm_pool[64] = {};
 		static size_t vm_pool_offset[64] = {};
 
 		constexpr size_t VM_POOL_SIZE = 2 * 1024 * 1024;
 
-		uint32_t node = xmrig::VirtualMemory::bindToNUMANode(affinity);
 		if (node > 64) {
 			node = 0;
 		}
+
+		std::lock_guard<std::mutex> lock(vm_pool_mutex);
 
 		if (!vm_pool[node]) {
 			vm_pool[node] = (uint8_t*) xmrig::VirtualMemory::allocateLargePagesMemory(VM_POOL_SIZE);

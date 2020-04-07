@@ -116,7 +116,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
             return;
         }
 
-        auto vm = new RxVm(dataset, memory->scratchpad(), !hwAES, Assembly::NONE, -1);
+        auto vm = new RxVm(dataset, memory->scratchpad(), !hwAES, Assembly::NONE, 0);
 
         for (uint32_t nonce : bundle.nonces) {
             *bundle.job.nonce() = nonce;
