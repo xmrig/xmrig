@@ -406,6 +406,8 @@ extern "C" {
 
 		randomx_vm* vm = nullptr;
 
+		std::lock_guard<std::mutex> lock(vm_pool_mutex);
+
 		static uint8_t* vm_pool[64] = {};
 		static size_t vm_pool_offset[64] = {};
 
@@ -414,8 +416,6 @@ extern "C" {
 		if (node > 64) {
 			node = 0;
 		}
-
-		std::lock_guard<std::mutex> lock(vm_pool_mutex);
 
 		if (!vm_pool[node]) {
 			vm_pool[node] = (uint8_t*) xmrig::VirtualMemory::allocateLargePagesMemory(VM_POOL_SIZE);
