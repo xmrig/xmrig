@@ -511,7 +511,8 @@ extern "C" {
 		machine->setDataset(dataset);
 	}
 
-	void randomx_destroy_vm(randomx_vm*) {
+	void randomx_destroy_vm(randomx_vm* vm) {
+		vm->~randomx_vm();
 	}
 
 	void randomx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output) {
