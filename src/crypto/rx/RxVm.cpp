@@ -31,7 +31,7 @@
 #include "crypto/rx/RxVm.h"
 
 
-xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly)
+xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly, uint32_t node)
 {
     if (!softAes) {
        m_flags |= RANDOMX_FLAG_HARD_AES;
@@ -53,7 +53,7 @@ xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::
         m_flags |= RANDOMX_FLAG_AMD;
     }
 
-    m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad);
+    m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad, node);
 }
 
 
