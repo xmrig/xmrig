@@ -10,6 +10,11 @@ if (WITH_TLS)
         set(OPENSSL_USE_STATIC_LIBS TRUE)
     endif()
 
+    if (BUILD_STATIC)
+        set(OPENSSL_USE_STATIC_LIBS TRUE)
+    endif()
+
+
     find_package(OpenSSL)
 
     if (OPENSSL_FOUND)
