@@ -84,120 +84,41 @@ namespace randomx {
 
 	*/
 
-	const uint8_t* codePrefetchScratchpad = (uint8_t*)&randomx_prefetch_scratchpad;
-	const uint8_t* codePrefetchScratchpadEnd = (uint8_t*)&randomx_prefetch_scratchpad_end;
-	const uint8_t* codePrologue = (uint8_t*)&randomx_program_prologue;
-	const uint8_t* codeLoopBegin = (uint8_t*)&randomx_program_loop_begin;
-	const uint8_t* codeLoopLoad = (uint8_t*)&randomx_program_loop_load;
-	const uint8_t* codeLoopLoadXOP = (uint8_t*)&randomx_program_loop_load_xop;
-	const uint8_t* codeProgamStart = (uint8_t*)&randomx_program_start;
-	const uint8_t* codeReadDatasetLightSshInit = (uint8_t*)&randomx_program_read_dataset_sshash_init;
-	const uint8_t* codeReadDatasetLightSshFin = (uint8_t*)&randomx_program_read_dataset_sshash_fin;
-	const uint8_t* codeDatasetInit = (uint8_t*)&randomx_dataset_init;
-	const uint8_t* codeLoopStore = (uint8_t*)&randomx_program_loop_store;
-	const uint8_t* codeLoopEnd = (uint8_t*)&randomx_program_loop_end;
-	const uint8_t* codeEpilogue = (uint8_t*)&randomx_program_epilogue;
-	const uint8_t* codeProgramEnd = (uint8_t*)&randomx_program_end;
-	const uint8_t* codeShhLoad = (uint8_t*)&randomx_sshash_load;
-	const uint8_t* codeShhPrefetch = (uint8_t*)&randomx_sshash_prefetch;
-	const uint8_t* codeShhEnd = (uint8_t*)&randomx_sshash_end;
-	const uint8_t* codeShhInit = (uint8_t*)&randomx_sshash_init;
+	#define codePrefetchScratchpad ((uint8_t*)&randomx_prefetch_scratchpad)
+	#define codePrefetchScratchpadEnd ((uint8_t*)&randomx_prefetch_scratchpad_end)
+	#define codePrologue ((uint8_t*)&randomx_program_prologue)
+	#define codeLoopBegin ((uint8_t*)&randomx_program_loop_begin)
+	#define codeLoopLoad ((uint8_t*)&randomx_program_loop_load)
+	#define codeLoopLoadXOP ((uint8_t*)&randomx_program_loop_load_xop)
+	#define codeProgamStart ((uint8_t*)&randomx_program_start)
+	#define codeReadDatasetLightSshInit ((uint8_t*)&randomx_program_read_dataset_sshash_init)
+	#define codeReadDatasetLightSshFin ((uint8_t*)&randomx_program_read_dataset_sshash_fin)
+	#define codeDatasetInit ((uint8_t*)&randomx_dataset_init)
+	#define codeLoopStore ((uint8_t*)&randomx_program_loop_store)
+	#define codeLoopEnd ((uint8_t*)&randomx_program_loop_end)
+	#define codeEpilogue ((uint8_t*)&randomx_program_epilogue)
+	#define codeProgramEnd ((uint8_t*)&randomx_program_end)
+	#define codeShhLoad ((uint8_t*)&randomx_sshash_load)
+	#define codeShhPrefetch ((uint8_t*)&randomx_sshash_prefetch)
+	#define codeShhEnd ((uint8_t*)&randomx_sshash_end)
+	#define codeShhInit ((uint8_t*)&randomx_sshash_init)
 
-	const int32_t prefetchScratchpadSize = codePrefetchScratchpadEnd - codePrefetchScratchpad;
-	const int32_t prologueSize = codeLoopBegin - codePrologue;
-	const int32_t loopLoadSize = codeLoopLoadXOP - codeLoopLoad;
-	const int32_t loopLoadXOPSize = codeProgamStart - codeLoopLoadXOP;
-	const int32_t readDatasetLightInitSize = codeReadDatasetLightSshFin - codeReadDatasetLightSshInit;
-	const int32_t readDatasetLightFinSize = codeLoopStore - codeReadDatasetLightSshFin;
-	const int32_t loopStoreSize = codeLoopEnd - codeLoopStore;
-	const int32_t datasetInitSize = codeEpilogue - codeDatasetInit;
-	const int32_t epilogueSize = codeShhLoad - codeEpilogue;
-	const int32_t codeSshLoadSize = codeShhPrefetch - codeShhLoad;
-	const int32_t codeSshPrefetchSize = codeShhEnd - codeShhPrefetch;
-	const int32_t codeSshInitSize = codeProgramEnd - codeShhInit;
+	#define prefetchScratchpadSize (codePrefetchScratchpadEnd - codePrefetchScratchpad)
+	#define prologueSize (codeLoopBegin - codePrologue)
+	#define loopLoadSize (codeLoopLoadXOP - codeLoopLoad)
+	#define loopLoadXOPSize (codeProgamStart - codeLoopLoadXOP)
+	#define readDatasetLightInitSize (codeReadDatasetLightSshFin - codeReadDatasetLightSshInit)
+	#define readDatasetLightFinSize (codeLoopStore - codeReadDatasetLightSshFin)
+	#define loopStoreSize (codeLoopEnd - codeLoopStore)
+	#define datasetInitSize (codeEpilogue - codeDatasetInit)
+	#define epilogueSize (codeShhLoad - codeEpilogue)
+	#define codeSshLoadSize (codeShhPrefetch - codeShhLoad)
+	#define codeSshPrefetchSize (codeShhEnd - codeShhPrefetch)
+	#define codeSshInitSize (codeProgramEnd - codeShhInit)
 
-	const int32_t epilogueOffset = (CodeSize - epilogueSize) & ~63;
+	#define epilogueOffset ((CodeSize - epilogueSize) & ~63)
+
 	constexpr int32_t superScalarHashOffset = 32768;
-
-	static const uint8_t REX_ADD_RR[] = { 0x4d, 0x03 };
-	static const uint8_t REX_ADD_RM[] = { 0x4c, 0x03 };
-	static const uint8_t REX_SUB_RR[] = { 0x4d, 0x2b };
-	static const uint8_t REX_SUB_RM[] = { 0x4c, 0x2b };
-	static const uint8_t REX_MOV_RR[] = { 0x41, 0x8b };
-	static const uint8_t REX_MOV_RR64[] = { 0x49, 0x8b };
-	static const uint8_t REX_MOV_R64R[] = { 0x4c, 0x8b };
-	static const uint8_t REX_IMUL_RR[] = { 0x4d, 0x0f, 0xaf };
-	static const uint8_t REX_IMUL_RRI[] = { 0x4d, 0x69 };
-	static const uint8_t REX_IMUL_RM[] = { 0x4c, 0x0f, 0xaf };
-	static const uint8_t REX_MUL_R[] = { 0x49, 0xf7 };
-	static const uint8_t REX_MUL_M[] = { 0x48, 0xf7 };
-	static const uint8_t REX_81[] = { 0x49, 0x81 };
-	static const uint8_t AND_EAX_I = 0x25;
-	static const uint8_t MOV_EAX_I = 0xb8;
-	static const uint8_t MOV_RAX_I[] = { 0x48, 0xb8 };
-	static const uint8_t MOV_RCX_I[] = { 0x48, 0xb9 };
-	static const uint8_t REX_LEA[] = { 0x4f, 0x8d };
-	static const uint8_t REX_MUL_MEM[] = { 0x48, 0xf7, 0x24, 0x0e };
-	static const uint8_t REX_IMUL_MEM[] = { 0x48, 0xf7, 0x2c, 0x0e };
-	static const uint8_t REX_SHR_RAX[] = { 0x48, 0xc1, 0xe8 };
-	static const uint8_t RAX_ADD_SBB_1[] = { 0x48, 0x83, 0xC0, 0x01, 0x48, 0x83, 0xD8, 0x00 };
-	static const uint8_t MUL_RCX[] = { 0x48, 0xf7, 0xe1 };
-	static const uint8_t REX_SHR_RDX[] = { 0x48, 0xc1, 0xea };
-	static const uint8_t REX_SH[] = { 0x49, 0xc1 };
-	static const uint8_t MOV_RCX_RAX_SAR_RCX_63[] = { 0x48, 0x89, 0xc1, 0x48, 0xc1, 0xf9, 0x3f };
-	static const uint8_t AND_ECX_I[] = { 0x81, 0xe1 };
-	static const uint8_t ADD_RAX_RCX[] = { 0x48, 0x01, 0xC8 };
-	static const uint8_t SAR_RAX_I8[] = { 0x48, 0xC1, 0xF8 };
-	static const uint8_t NEG_RAX[] = { 0x48, 0xF7, 0xD8 };
-	static const uint8_t ADD_R_RAX[] = { 0x4C, 0x03 };
-	static const uint8_t XOR_EAX_EAX[] = { 0x33, 0xC0 };
-	static const uint8_t ADD_RDX_R[] = { 0x4c, 0x01 };
-	static const uint8_t SUB_RDX_R[] = { 0x4c, 0x29 };
-	static const uint8_t SAR_RDX_I8[] = { 0x48, 0xC1, 0xFA };
-	static const uint8_t TEST_RDX_RDX[] = { 0x48, 0x85, 0xD2 };
-	static const uint8_t SETS_AL_ADD_RDX_RAX[] = { 0x0F, 0x98, 0xC0, 0x48, 0x03, 0xD0 };
-	static const uint8_t REX_NEG[] = { 0x49, 0xF7 };
-	static const uint8_t REX_XOR_RR[] = { 0x4D, 0x33 };
-	static const uint8_t REX_XOR_RI[] = { 0x49, 0x81 };
-	static const uint8_t REX_XOR_RM[] = { 0x4c, 0x33 };
-	static const uint8_t REX_ROT_CL[] = { 0x49, 0xd3 };
-	static const uint8_t REX_ROT_I8[] = { 0x49, 0xc1 };
-	static const uint8_t SHUFPD[] = { 0x66, 0x0f, 0xc6 };
-	static const uint8_t REX_ADDPD[] = { 0x66, 0x41, 0x0f, 0x58 };
-	static const uint8_t REX_CVTDQ2PD_XMM12[] = { 0xf3, 0x44, 0x0f, 0xe6, 0x24, 0x06 };
-	static const uint8_t REX_SUBPD[] = { 0x66, 0x41, 0x0f, 0x5c };
-	static const uint8_t REX_XORPS[] = { 0x41, 0x0f, 0x57 };
-	static const uint8_t REX_MULPD[] = { 0x66, 0x41, 0x0f, 0x59 };
-	static const uint8_t REX_MAXPD[] = { 0x66, 0x41, 0x0f, 0x5f };
-	static const uint8_t REX_DIVPD[] = { 0x66, 0x41, 0x0f, 0x5e };
-	static const uint8_t SQRTPD[] = { 0x66, 0x0f, 0x51 };
-	static const uint8_t AND_OR_MOV_LDMXCSR[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x89, 0x04, 0x24, 0x0F, 0xAE, 0x14, 0x24 };
-	static const uint8_t AND_OR_MOV_LDMXCSR_RYZEN[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x3B, 0x04, 0x24, 0x74, 0x07, 0x89, 0x04, 0x24, 0x0F, 0xAE, 0x14, 0x24 };
-	static const uint8_t ROL_RAX[] = { 0x48, 0xc1, 0xc0 };
-	static const uint8_t XOR_ECX_ECX[] = { 0x33, 0xC9 };
-	static const uint8_t REX_CMP_R32I[] = { 0x41, 0x81 };
-	static const uint8_t REX_CMP_M32I[] = { 0x81, 0x3c, 0x06 };
-	static const uint8_t MOVAPD[] = { 0x66, 0x0f, 0x29 };
-	static const uint8_t REX_MOV_MR[] = { 0x4c, 0x89 };
-	static const uint8_t REX_XOR_EAX[] = { 0x41, 0x33 };
-	static const uint8_t SUB_EBX[] = { 0x83, 0xEB, 0x01 };
-	static const uint8_t JNZ[] = { 0x0f, 0x85 };
-	static const uint8_t JMP = 0xe9;
-	static const uint8_t REX_XOR_RAX_R64[] = { 0x49, 0x33 };
-	static const uint8_t REX_XCHG[] = { 0x4d, 0x87 };
-	static const uint8_t REX_ANDPS_XMM12[] = { 0x45, 0x0F, 0x54, 0xE5, 0x45, 0x0F, 0x56, 0xE6 };
-	static const uint8_t REX_VPCMOV_XMM12[] = { 0x8F, 0x48, 0x18, 0xA2, 0xE6, 0xD0 };
-	static const uint8_t REX_PADD[] = { 0x66, 0x44, 0x0f };
-	static const uint8_t PADD_OPCODES[] = { 0xfc, 0xfd, 0xfe, 0xd4 };
-	static const uint8_t CALL = 0xe8;
-	static const uint8_t REX_ADD_I[] = { 0x49, 0x81 };
-	static const uint8_t REX_TEST[] = { 0x49, 0xF7 };
-	static const uint8_t JZ[] = { 0x0f, 0x84 };
-	static const uint8_t JZ_SHORT = 0x74;
-	static const uint8_t RET = 0xc3;
-	static const uint8_t LEA_32[] = { 0x41, 0x8d };
-	static const uint8_t MOVNTI[] = { 0x4c, 0x0f, 0xc3 };
-	static const uint8_t ADD_EBX_I[] = { 0x81, 0xc3 };
 
 	static const uint8_t NOP1[] = { 0x90 };
 	static const uint8_t NOP2[] = { 0x66, 0x90 };
@@ -226,8 +147,6 @@ namespace randomx {
 		{0x0F, 0x1F, 0x40, 0x00, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E},
 		{0x0F, 0x1F, 0x44, 0x00, 0x00, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E},
 	};
-
-	bool JitCompilerX86::BranchesWithin32B = false;
 
 	size_t JitCompilerX86::getCodeSize() {
 		return codePos < prologueSize ? 0 : codePos - prologueSize;
@@ -356,9 +275,10 @@ namespace randomx {
 	void JitCompilerX86::generateProgramLight(Program& prog, ProgramConfiguration& pcfg, uint32_t datasetOffset) {
 		generateProgramPrologue(prog, pcfg);
 		emit(RandomX_CurrentConfig.codeReadDatasetLightSshInitTweaked, readDatasetLightInitSize, code, codePos);
-		emit(ADD_EBX_I, code, codePos);
+		*(uint32_t*)(code + codePos) = 0xc381;
+		codePos += 2;
 		emit32(datasetOffset / CacheLineSize, code, codePos);
-		emitByte(CALL, code, codePos);
+		emitByte(0xe8, code, codePos);
 		emit32(superScalarHashOffset - (codePos + 4), code, codePos);
 		emit(codeReadDatasetLightSshFin, readDatasetLightFinSize, code, codePos);
 		generateProgramEpilogue(prog, pcfg);
@@ -376,21 +296,12 @@ namespace randomx {
 			}
 			emit(codeShhLoad, codeSshLoadSize, code, codePos);
 			if (j < RandomX_CurrentConfig.CacheAccesses - 1) {
-				emit(REX_MOV_RR64, code, codePos);
-				emitByte(0xd8 + prog.getAddressRegister(), code, codePos);
+				*(uint32_t*)(code + codePos) = 0xd88b49 + (static_cast<uint32_t>(prog.getAddressRegister()) << 16);
+				codePos += 3;
 				emit(RandomX_CurrentConfig.codeShhPrefetchTweaked, codeSshPrefetchSize, code, codePos);
-#ifdef RANDOMX_ALIGN
-				int align = (codePos % 16);
-				while (align != 0) {
-					int nopSize = 16 - align;
-					if (nopSize > 8) nopSize = 8;
-					emit(NOPX[nopSize - 1], nopSize, code, codePos);
-					align = (codePos % 16);
-				}
-#endif
 			}
 		}
-		emitByte(RET, code, codePos);
+		emitByte(0xc3, code, codePos);
 	}
 
 	template
@@ -451,17 +362,13 @@ namespace randomx {
 			(this->*gen4)(instr4);
 		}
 
-		emit(REX_MOV_RR, code, codePos);
-		emitByte(0xc0 + pcfg.readReg2, code, codePos);
-		emit(REX_XOR_EAX, code, codePos);
-		emitByte(0xc0 + pcfg.readReg3, code, codePos);
+		*(uint64_t*)(code + codePos) = 0xc03341c08b41ull + (static_cast<uint64_t>(pcfg.readReg2) << 16) + (static_cast<uint64_t>(pcfg.readReg3) << 40);
+		codePos += 6;
 	}
 
 	void JitCompilerX86::generateProgramEpilogue(Program& prog, ProgramConfiguration& pcfg) {
-		emit(REX_MOV_RR64, code, codePos);
-		emitByte(0xc0 + pcfg.readReg0, code, codePos);
-		emit(REX_XOR_RAX_R64, code, codePos);
-		emitByte(0xc0 + pcfg.readReg1, code, codePos);
+		*(uint64_t*)(code + codePos) = 0xc03349c08b49ull + (static_cast<uint64_t>(pcfg.readReg0) << 16) + (static_cast<uint64_t>(pcfg.readReg1) << 40);
+		codePos += 6;
 		emit(RandomX_CurrentConfig.codePrefetchScratchpadTweaked, prefetchScratchpadSize, code, codePos);
 		memcpy(code + codePos, codeLoopStore, loopStoreSize);
 		codePos += loopStoreSize;
@@ -481,14 +388,27 @@ namespace randomx {
 			}
 		}
 
-		emit(SUB_EBX, code, codePos);
-		emit(JNZ, code, codePos);
+		*(uint64_t*)(code + codePos) = 0x850f01eb83ull;
+		codePos += 5;
 		emit32(prologueSize - codePos - 4, code, codePos);
-		emitByte(JMP, code, codePos);
+		emitByte(0xe9, code, codePos);
 		emit32(epilogueOffset - codePos - 4, code, codePos);
 	}
 
 	void JitCompilerX86::generateSuperscalarCode(Instruction& instr, std::vector<uint64_t> &reciprocalCache) {
+		static constexpr uint8_t REX_SUB_RR[] = { 0x4d, 0x2b };
+		static constexpr uint8_t REX_MOV_RR64[] = { 0x49, 0x8b };
+		static constexpr uint8_t REX_MOV_R64R[] = { 0x4c, 0x8b };
+		static constexpr uint8_t REX_IMUL_RR[] = { 0x4d, 0x0f, 0xaf };
+		static constexpr uint8_t REX_IMUL_RM[] = { 0x4c, 0x0f, 0xaf };
+		static constexpr uint8_t REX_MUL_R[] = { 0x49, 0xf7 };
+		static constexpr uint8_t REX_81[] = { 0x49, 0x81 };
+		static constexpr uint8_t MOV_RAX_I[] = { 0x48, 0xb8 };
+		static constexpr uint8_t REX_LEA[] = { 0x4f, 0x8d };
+		static constexpr uint8_t REX_XOR_RR[] = { 0x4D, 0x33 };
+		static constexpr uint8_t REX_XOR_RI[] = { 0x49, 0x81 };
+		static constexpr uint8_t REX_ROT_I8[] = { 0x49, 0xc1 };
+
 		switch ((SuperscalarInstructionType)instr.opcode)
 		{
 		case randomx::SuperscalarInstructionType::ISUB_R:
@@ -527,33 +447,21 @@ namespace randomx {
 			emit(REX_81, code, codePos);
 			emitByte(0xc0 + instr.dst, code, codePos);
 			emit32(instr.getImm32(), code, codePos);
-#ifdef RANDOMX_ALIGN
-			emit(NOP1, code, codePos);
-#endif
 			break;
 		case randomx::SuperscalarInstructionType::IXOR_C8:
 			emit(REX_XOR_RI, code, codePos);
 			emitByte(0xf0 + instr.dst, code, codePos);
 			emit32(instr.getImm32(), code, codePos);
-#ifdef RANDOMX_ALIGN
-			emit(NOP1, code, codePos);
-#endif
 			break;
 		case randomx::SuperscalarInstructionType::IADD_C9:
 			emit(REX_81, code, codePos);
 			emitByte(0xc0 + instr.dst, code, codePos);
 			emit32(instr.getImm32(), code, codePos);
-#ifdef RANDOMX_ALIGN
-			emit(NOP2, code, codePos);
-#endif
 			break;
 		case randomx::SuperscalarInstructionType::IXOR_C9:
 			emit(REX_XOR_RI, code, codePos);
 			emitByte(0xf0 + instr.dst, code, codePos);
 			emit32(instr.getImm32(), code, codePos);
-#ifdef RANDOMX_ALIGN
-			emit(NOP2, code, codePos);
-#endif
 			break;
 		case randomx::SuperscalarInstructionType::IMULH_R:
 			emit(REX_MOV_RR64, code, codePos);
@@ -583,30 +491,33 @@ namespace randomx {
 	}
 
 	template<bool rax>
-	FORCE_INLINE void JitCompilerX86::genAddressReg(const Instruction& instr, uint8_t* code, int& codePos) {
-		const uint32_t src = *((uint32_t*)&instr) & 0xFF0000;
+	FORCE_INLINE void JitCompilerX86::genAddressReg(const Instruction& instr, const uint32_t src, uint8_t* code, uint32_t& codePos) {
+		*(uint32_t*)(code + codePos) = (rax ? 0x24808d41 : 0x24888d41) + (src << 16);
 
-		*(uint32_t*)(code + codePos) = (rax ? 0x24808d41 : 0x24888d41) + src;
-		codePos += (src == (RegisterNeedsSib << 16)) ? 4 : 3;
+		constexpr uint32_t add_table = 0x33333333u + (1u << (RegisterNeedsSib * 4));
+		codePos += (add_table >> (src * 4)) & 0xf;
 
 		emit32(instr.getImm32(), code, codePos);
-		if (rax)
-			emitByte(AND_EAX_I, code, codePos);
-		else
-			emit(AND_ECX_I, code, codePos);
+		if (rax) {
+			emitByte(0x25, code, codePos);
+		}
+		else {
+			*(uint32_t*)(code + codePos) = 0xe181;
+			codePos += 2;
+		}
 		emit32(instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask, code, codePos);
 	}
 
-	template void JitCompilerX86::genAddressReg<false>(const Instruction& instr, uint8_t* code, int& codePos);
-	template void JitCompilerX86::genAddressReg<true>(const Instruction& instr, uint8_t* code, int& codePos);
+	template void JitCompilerX86::genAddressReg<false>(const Instruction& instr, const uint32_t src, uint8_t* code, uint32_t& codePos);
+	template void JitCompilerX86::genAddressReg<true>(const Instruction& instr, const uint32_t src, uint8_t* code, uint32_t& codePos);
 
-	FORCE_INLINE void JitCompilerX86::genAddressRegDst(const Instruction& instr, uint8_t* code, int& codePos) {
+	FORCE_INLINE void JitCompilerX86::genAddressRegDst(const Instruction& instr, uint8_t* code, uint32_t& codePos) {
 		const uint32_t dst = static_cast<uint32_t>(instr.dst) << 16;
 		*(uint32_t*)(code + codePos) = 0x24808d41 + dst;
 		codePos += (dst == (RegisterNeedsSib << 16)) ? 4 : 3;
 
 		emit32(instr.getImm32(), code, codePos);
-		emitByte(AND_EAX_I, code, codePos);
+		emitByte(0x25, code, codePos);
 		if (instr.getModCond() < StoreL3Condition) {
 			emit32(instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask, code, codePos);
 		}
@@ -615,28 +526,22 @@ namespace randomx {
 		}
 	}
 
-	FORCE_INLINE void JitCompilerX86::genAddressImm(const Instruction& instr, uint8_t* code, int& codePos) {
+	FORCE_INLINE void JitCompilerX86::genAddressImm(const Instruction& instr, uint8_t* code, uint32_t& codePos) {
 		emit32(instr.getImm32() & ScratchpadL3Mask, code, codePos);
 	}
 
-	static const uint32_t template_IADD_RS[8] = {
-		0x048d4f,
-		0x0c8d4f,
-		0x148d4f,
-		0x1c8d4f,
-		0x248d4f,
-		0xac8d4f,
-		0x348d4f,
-		0x3c8d4f,
-	};
-
 	void JitCompilerX86::h_IADD_RS(const Instruction& instr) {
-		int pos = codePos;
+		uint32_t pos = codePos;
 		uint8_t* const p = code + pos;
 
 		const uint32_t dst = instr.dst;
 		const uint32_t sib = (instr.getModShift() << 6) | (instr.src << 3) | dst;
-		*(uint32_t*)(p) = template_IADD_RS[dst] | (sib << 24);
+
+		uint32_t k = 0x048d4f + (dst << 19);
+		if (dst == RegisterNeedsDisplacement)
+			k = 0xac8d4f;
+
+		*(uint32_t*)(p) = k | (sib << 24);
 		*(uint32_t*)(p + 4) = instr.getImm32();
 
 		pos += ((dst == RegisterNeedsDisplacement) ? 8 : 4);
@@ -647,16 +552,18 @@ namespace randomx {
 
 	void JitCompilerX86::h_IADD_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
+		uint32_t pos = codePos;
+
+		const uint32_t src = instr.src;
 		const uint32_t dst = instr.dst;
-		if (instr.src != dst) {
-			genAddressReg<true>(instr, p, pos);
+
+		if (src != dst) {
+			genAddressReg<true>(instr, src, p, pos);
 			emit32(0x0604034c + (dst << 19), p, pos);
 		}
 		else {
-			emit(REX_ADD_RM, p, pos);
-			emitByte(0x86 + (dst << 3), p, pos);
+			*(uint32_t*)(p + pos) = 0x86034c + (dst << 19);
+			pos += 3;
 			genAddressImm(instr, p, pos);
 		}
 
@@ -664,40 +571,45 @@ namespace randomx {
 		codePos = pos;
 	}
 
-	void JitCompilerX86::genSIB(int scale, int index, int base, uint8_t* code, int& codePos) {
+	void JitCompilerX86::genSIB(int scale, int index, int base, uint8_t* code, uint32_t& codePos) {
 		emitByte((scale << 6) | (index << 3) | base, code, codePos);
 	}
 
 	void JitCompilerX86::h_ISUB_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 		
-		if (instr.src != instr.dst) {
-			emit(REX_SUB_RR, p, pos);
-			emitByte(0xc0 + 8 * instr.dst + instr.src, p, pos);
+		const uint32_t src = instr.src;
+		const uint32_t dst = instr.dst;
+
+		if (src != dst) {
+			*(uint32_t*)(p + pos) = 0xc02b4d + (dst << 19) + (src << 16);
+			pos += 3;
 		}
 		else {
-			emit(REX_81, p, pos);
-			emitByte(0xe8 + instr.dst, p, pos);
+			*(uint32_t*)(p + pos) = 0xe88149 + (dst << 16);
+			pos += 3;
 			emit32(instr.getImm32(), p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_ISUB_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
+		uint32_t pos = codePos;
+
+		const uint32_t src = instr.src;
 		const uint32_t dst = instr.dst;
-		if (instr.src != dst) {
-			genAddressReg<true>(instr, p, pos);
+
+		if (src != dst) {
+			genAddressReg<true>(instr, src, p, pos);
 			emit32(0x06042b4c + (dst << 19), p, pos);
 		}
 		else {
-			emit(REX_SUB_RM, p, pos);
-			emitByte(0x86 + (dst << 3), p, pos);
+			*(uint32_t*)(p + pos) = 0x862b4c + (dst << 19);
+			pos += 3;
 			genAddressImm(instr, p, pos);
 		}
 
@@ -707,54 +619,56 @@ namespace randomx {
 
 	void JitCompilerX86::h_IMUL_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		if (instr.src != instr.dst) {
-			emit(REX_IMUL_RR, p, pos);
-			emitByte(0xc0 + 8 * instr.dst + instr.src, p, pos);
+		uint32_t pos = codePos;
+
+		const uint32_t src = instr.src;
+		const uint32_t dst = instr.dst;
+
+		if (src != dst) {
+			emit32(0xc0af0f4d + ((dst * 8 + src) << 24), p, pos);
 		}
 		else {
-			emit(REX_IMUL_RRI, p, pos);
-			emitByte(0xc0 + 9 * instr.dst, p, pos);
+			*(uint32_t*)(p + pos) = 0xc0694d + (((dst << 3) + dst) << 16);
+			pos += 3;
 			emit32(instr.getImm32(), p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_IMUL_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		if (instr.src != instr.dst) {
-			genAddressReg<true>(instr, p, pos);
-			emit(REX_IMUL_RM, p, pos);
-			emitByte(0x04 + 8 * instr.dst, p, pos);
-			emitByte(0x06, p, pos);
+		uint32_t pos = codePos;
+
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			genAddressReg<true>(instr, src, p, pos);
+			*(uint64_t*)(p + pos) = 0x0604af0f4cull + (dst << 27);
+			pos += 5;
 		}
 		else {
-			emit(REX_IMUL_RM, p, pos);
-			emitByte(0x86 + 8 * instr.dst, p, pos);
+			emit32(0x86af0f4c + (dst << 27), p, pos);
 			genAddressImm(instr, p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_IMULH_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 
+		const uint32_t src = instr.src;
 		const uint32_t dst = instr.dst;
 
-		emit(REX_MOV_RR64, p, pos);
-		emitByte(0xc0 + dst, p, pos);
-		emit(REX_MUL_R, p, pos);
-		emitByte(0xe0 + instr.src, p, pos);
-		emit(REX_MOV_R64R, p, pos);
-		emitByte(0xc2 + 8 * dst, p, pos);
+		*(uint32_t*)(p + pos) = 0xc08b49 + (dst << 16);
+		*(uint32_t*)(p + pos + 3) = 0xe0f749 + (src << 16);
+		*(uint32_t*)(p + pos + 6) = 0xc28b4c + (dst << 19);
+		pos += 9;
 
 		registerUsage[dst] = pos;
 		codePos = pos;
@@ -762,7 +676,7 @@ namespace randomx {
 
 	void JitCompilerX86::h_IMULH_R_BMI2(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 
 		const uint32_t src = instr.src;
 		const uint32_t dst = instr.dst;
@@ -777,37 +691,37 @@ namespace randomx {
 
 	void JitCompilerX86::h_IMULH_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		if (instr.src != instr.dst) {
-			genAddressReg<false>(instr, p, pos);
-			emit(REX_MOV_RR64, p, pos);
-			emitByte(0xc0 + instr.dst, p, pos);
-			emit(REX_MUL_MEM, p, pos);
-		}
-		else {
-			emit(REX_MOV_RR64, p, pos);
-			emitByte(0xc0 + instr.dst, p, pos);
-			emit(REX_MUL_M, p, pos);
-			emitByte(0xa6, p, pos);
-			genAddressImm(instr, p, pos);
-		}
-		emit(REX_MOV_R64R, p, pos);
-		emitByte(0xc2 + 8 * instr.dst, p, pos);
-
-		registerUsage[instr.dst] = pos;
-		codePos = pos;
-	}
-
-	void JitCompilerX86::h_IMULH_M_BMI2(const Instruction& instr) {
-		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 
 		const uint64_t src = instr.src;
 		const uint64_t dst = instr.dst;
 
 		if (src != dst) {
-			genAddressReg<false>(instr, p, pos);
+			genAddressReg<false>(instr, src, p, pos);
+			*(uint64_t*)(p + pos) = 0x0e24f748c08b49ull + (dst << 16);
+			pos += 7;
+		}
+		else {
+			*(uint64_t*)(p + pos) = 0xa6f748c08b49ull + (dst << 16);
+			pos += 6;
+			genAddressImm(instr, p, pos);
+		}
+		*(uint32_t*)(p + pos) = 0xc28b4c + (dst << 19);
+		pos += 3;
+
+		registerUsage[dst] = pos;
+		codePos = pos;
+	}
+
+	void JitCompilerX86::h_IMULH_M_BMI2(const Instruction& instr) {
+		uint8_t* const p = code;
+		uint32_t pos = codePos;
+
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			genAddressReg<false>(instr, src, p, pos);
 			*(uint32_t*)(p + pos) = static_cast<uint32_t>(0xC4D08B49 + (dst << 16));
 			*(uint64_t*)(p + pos + 4) = 0x0E04F6FB62ULL + (dst << 27);
 			pos += 9;
@@ -824,54 +738,58 @@ namespace randomx {
 
 	void JitCompilerX86::h_ISMULH_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		emit(REX_MOV_RR64, p, pos);
-		emitByte(0xc0 + instr.dst, p, pos);
-		emit(REX_MUL_R, p, pos);
-		emitByte(0xe8 + instr.src, p, pos);
-		emit(REX_MOV_R64R, p, pos);
-		emitByte(0xc2 + 8 * instr.dst, p, pos);
+		uint32_t pos = codePos;
 
-		registerUsage[instr.dst] = pos;
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		*(uint64_t*)(p + pos) = 0x8b4ce8f749c08b49ull + (dst << 16) + (src << 40);
+		pos += 8;
+		emitByte(0xc2 + 8 * dst, p, pos);
+
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_ISMULH_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		if (instr.src != instr.dst) {
-			genAddressReg<false>(instr, p, pos);
-			emit(REX_MOV_RR64, p, pos);
-			emitByte(0xc0 + instr.dst, p, pos);
-			emit(REX_IMUL_MEM, p, pos);
+		uint32_t pos = codePos;
+
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			genAddressReg<false>(instr, src, p, pos);
+			*(uint64_t*)(p + pos) = 0x0e2cf748c08b49ull + (dst << 16);
+			pos += 7;
 		}
 		else {
-			emit(REX_MOV_RR64, p, pos);
-			emitByte(0xc0 + instr.dst, p, pos);
-			emit(REX_MUL_M, p, pos);
-			emitByte(0xae, p, pos);
+			*(uint64_t*)(p + pos) = 0xaef748c08b49ull + (dst << 16);
+			pos += 6;
 			genAddressImm(instr, p, pos);
 		}
-		emit(REX_MOV_R64R, p, pos);
-		emitByte(0xc2 + 8 * instr.dst, p, pos);
+		*(uint32_t*)(p + pos) = 0xc28b4c + (dst << 19);
+		pos += 3;
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_IMUL_RCP(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 		
 		uint64_t divisor = instr.getImm32();
 		if (!isZeroOrPowerOf2(divisor)) {
-			emit(MOV_RAX_I, p, pos);
+			*(uint32_t*)(p + pos) = 0xb848;
+			pos += 2;
+
 			emit64(randomx_reciprocal_fast(divisor), p, pos);
-			emit(REX_IMUL_RM, p, pos);
-			emitByte(0xc0 + 8 * instr.dst, p, pos);
-			registerUsage[instr.dst] = pos;
+
+			const uint32_t dst = instr.dst;
+			emit32(0xc0af0f4c + (dst << 27), p, pos);
+
+			registerUsage[dst] = pos;
 		}
 
 		codePos = pos;
@@ -879,102 +797,112 @@ namespace randomx {
 
 	void JitCompilerX86::h_INEG_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		emit(REX_NEG, p, pos);
-		emitByte(0xd8 + instr.dst, p, pos);
+		uint32_t pos = codePos;
 
-		registerUsage[instr.dst] = pos;
+		const uint32_t dst = instr.dst;
+		*(uint32_t*)(p + pos) = 0xd8f749 + (dst << 16);
+		pos += 3;
+
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_IXOR_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		if (instr.src != instr.dst) {
-			emit(REX_XOR_RR, p, pos);
-			emitByte(0xc0 + 8 * instr.dst + instr.src, p, pos);
+		uint32_t pos = codePos;
+
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			*(uint32_t*)(p + pos) = 0xc0334d + (((dst << 3) + src) << 16);
+			pos += 3;
 		}
 		else {
-			emit(REX_XOR_RI, p, pos);
-			emitByte(0xf0 + instr.dst, p, pos);
-			emit32(instr.getImm32(), p, pos);
+			const uint64_t imm = instr.getImm32();
+			*(uint64_t*)(p + pos) = (imm << 24) + 0xf08149 + (dst << 16);
+			pos += 7;
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_IXOR_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		if (instr.src != instr.dst) {
-			genAddressReg<true>(instr, p, pos);
-			emit(REX_XOR_RM, p, pos);
-			emitByte(0x04 + 8 * instr.dst, p, pos);
-			emitByte(0x06, p, pos);
+		uint32_t pos = codePos;
+
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			genAddressReg<true>(instr, src, p, pos);
+			emit32(0x0604334c + (dst << 19), p, pos);
 		}
 		else {
-			emit(REX_XOR_RM, p, pos);
-			emitByte(0x86 + 8 * instr.dst, p, pos);
+			*(uint32_t*)(p + pos) = 0x86334c + (dst << 19);
+			pos += 3;
 			genAddressImm(instr, p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_IROR_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		if (instr.src != instr.dst) {
-			emit(REX_MOV_RR, p, pos);
-			emitByte(0xc8 + instr.src, p, pos);
-			emit(REX_ROT_CL, p, pos);
-			emitByte(0xc8 + instr.dst, p, pos);
+		uint32_t pos = codePos;
+
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			*(uint64_t*)(p + pos) = 0xc8d349c88b41ull + (src << 16) + (dst << 40);
+			pos += 6;
 		}
 		else {
-			emit(REX_ROT_I8, p, pos);
-			emitByte(0xc8 + instr.dst, p, pos);
+			*(uint32_t*)(p + pos) = 0xc8c149 + (dst << 16);
+			pos += 3;
 			emitByte(instr.getImm32() & 63, p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_IROL_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 
-		if (instr.src != instr.dst) {
-			emit(REX_MOV_RR, p, pos);
-			emitByte(0xc8 + instr.src, p, pos);
-			emit(REX_ROT_CL, p, pos);
-			emitByte(0xc0 + instr.dst, p, pos);
+		const uint64_t src = instr.src;
+		const uint64_t dst = instr.dst;
+
+		if (src != dst) {
+			*(uint64_t*)(p + pos) = 0xc0d349c88b41ull + (src << 16) + (dst << 40);
+			pos += 6;
 		}
 		else {
-			emit(REX_ROT_I8, p, pos);
-			emitByte(0xc0 + instr.dst, p, pos);
+			*(uint32_t*)(p + pos) = 0xc0c149 + (dst << 16);
+			pos += 3;
 			emitByte(instr.getImm32() & 63, p, pos);
 		}
 
-		registerUsage[instr.dst] = pos;
+		registerUsage[dst] = pos;
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_ISWAP_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		if (instr.src != instr.dst) {
-			emit(REX_XCHG, p, pos);
-			emitByte(0xc0 + instr.src + 8 * instr.dst, p, pos);
-			registerUsage[instr.dst] = pos;
-			registerUsage[instr.src] = pos;
+		uint32_t pos = codePos;
+
+		const uint32_t src = instr.src;
+		const uint32_t dst = instr.dst;
+
+		if (src != dst) {
+			*(uint32_t*)(p + pos) = 0xc0874d + (((dst << 3) + src) << 16);
+			pos += 3;
+			registerUsage[dst] = pos;
+			registerUsage[src] = pos;
 		}
 
 		codePos = pos;
@@ -982,121 +910,135 @@ namespace randomx {
 
 	void JitCompilerX86::h_FSWAP_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		emit(SHUFPD, p, pos);
-		emitByte(0xc0 + 9 * instr.dst, p, pos);
-		emitByte(1, p, pos);
+		uint32_t pos = codePos;
+
+		const uint64_t dst = instr.dst;
+
+		*(uint64_t*)(p + pos) = 0x01c0c60f66ull + (((dst << 3) + dst) << 24);
+		pos += 5;
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_FADD_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 
-		const uint32_t dst = instr.dst % RegisterCountFlt;
-		const uint32_t src = instr.src % RegisterCountFlt;
-		emit(REX_ADDPD, p, pos);
-		emitByte(0xc0 + src + 8 * dst, p, pos);
+		const uint64_t dst = instr.dst % RegisterCountFlt;
+		const uint64_t src = instr.src % RegisterCountFlt;
+
+		*(uint64_t*)(p + pos) = 0xc0580f4166ull + (((dst << 3) + src) << 32);
+		pos += 5;
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_FADD_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
+		uint32_t pos = codePos;
+
+		const uint32_t src = instr.src;
 		const uint32_t dst = instr.dst % RegisterCountFlt;
-		genAddressReg<true>(instr, p, pos);
-		emit(REX_CVTDQ2PD_XMM12, p, pos);
-		emit(REX_ADDPD, p, pos);
-		emitByte(0xc4 + 8 * dst, p, pos);
+
+		genAddressReg<true>(instr, src, p, pos);
+		*(uint64_t*)(p + pos) = 0x41660624e60f44f3ull;
+		*(uint32_t*)(p + pos + 8) = 0xc4580f + (dst << 19);
+		pos += 11;
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_FSUB_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		const uint32_t dst = instr.dst % RegisterCountFlt;
-		const uint32_t src = instr.src % RegisterCountFlt;
-		emit(REX_SUBPD, p, pos);
-		emitByte(0xc0 + src + 8 * dst, p, pos);
+		uint32_t pos = codePos;
+
+		const uint64_t dst = instr.dst % RegisterCountFlt;
+		const uint64_t src = instr.src % RegisterCountFlt;
+
+		*(uint64_t*)(p + pos) = 0xc05c0f4166ull + (((dst << 3) + src) << 32);
+		pos += 5;
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_FSUB_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
+		uint32_t pos = codePos;
+
+		const uint32_t src = instr.src;
 		const uint32_t dst = instr.dst % RegisterCountFlt;
-		genAddressReg<true>(instr, p, pos);
-		emit(REX_CVTDQ2PD_XMM12, p, pos);
-		emit(REX_SUBPD, p, pos);
-		emitByte(0xc4 + 8 * dst, p, pos);
+
+		genAddressReg<true>(instr, src, p, pos);
+		*(uint64_t*)(p + pos) = 0x41660624e60f44f3ull;
+		*(uint32_t*)(p + pos + 8) = 0xc45c0f + (dst << 19);
+		pos += 11;
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_FSCAL_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
+		uint32_t pos = codePos;
+
 		const uint32_t dst = instr.dst % RegisterCountFlt;
-		emit(REX_XORPS, p, pos);
-		emitByte(0xc7 + 8 * dst, p, pos);
+
+		emit32(0xc7570f41 + (dst << 27), p, pos);
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_FMUL_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 		
-		const uint32_t dst = instr.dst % RegisterCountFlt;
-		const uint32_t src = instr.src % RegisterCountFlt;
-		emit(REX_MULPD, p, pos);
-		emitByte(0xe0 + src + 8 * dst, p, pos);
+		const uint64_t dst = instr.dst % RegisterCountFlt;
+		const uint64_t src = instr.src % RegisterCountFlt;
+
+		*(uint64_t*)(p + pos) = 0xe0590f4166ull + (((dst << 3) + src) << 32);
+		pos += 5;
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_FDIV_M(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
-		const uint32_t dst = instr.dst % RegisterCountFlt;
-		genAddressReg<true>(instr, p, pos);
-		emit(REX_CVTDQ2PD_XMM12, p, pos);
+		uint32_t pos = codePos;
+
+		const uint32_t src = instr.src;
+		const uint64_t dst = instr.dst % RegisterCountFlt;
+
+		genAddressReg<true>(instr, src, p, pos);
+
+		*(uint64_t*)(p + pos) = 0x0624e60f44f3ull;
+		pos += 6;
 		if (hasXOP) {
-			emit(REX_VPCMOV_XMM12, p, pos);
+			*(uint64_t*)(p + pos) = 0xd0e6a218488full;
+			pos += 6;
 		}
 		else {
-			emit(REX_ANDPS_XMM12, p, pos);
+			*(uint64_t*)(p + pos) = 0xe6560f45e5540f45ull;
+			pos += 8;
 		}
-		emit(REX_DIVPD, p, pos);
-		emitByte(0xe4 + 8 * dst, p, pos);
+		*(uint64_t*)(p + pos) = 0xe45e0f4166ull + (dst << 35);
+		pos += 5;
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_FSQRT_R(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
-		
+		uint32_t pos = codePos;
+
 		const uint32_t dst = instr.dst % RegisterCountFlt;
-		emit(SQRTPD, p, pos);
-		emitByte(0xe4 + 9 * dst, p, pos);
+
+		emit32(0xe4510f66 + (((dst << 3) + dst) << 24), p, pos);
 
 		codePos = pos;
 	}
 
 	void JitCompilerX86::h_CFROUND(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 
 		const uint32_t src = instr.src;
 
@@ -1120,7 +1062,7 @@ namespace randomx {
 
 	void JitCompilerX86::h_CFROUND_BMI2(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 
 		const uint64_t src = instr.src;
 
@@ -1143,7 +1085,7 @@ namespace randomx {
 
 	void JitCompilerX86::h_CBRANCH(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 		
 		const int reg = instr.dst;
 		int32_t jmp_offset = registerUsage[reg] - (pos + 16);
@@ -1168,12 +1110,12 @@ namespace randomx {
 		pos += 14;
 
 		if (jmp_offset >= -128) {
-			emitByte(JZ_SHORT, p, pos);
-			emitByte(jmp_offset, p, pos);
+			*(uint32_t*)(p + pos) = 0x74 + (jmp_offset << 8);
+			pos += 2;
 		}
 		else {
-			emit(JZ, p, pos);
-			emit32(jmp_offset - 4, p, pos);
+			*(uint64_t*)(p + pos) = 0x840f + ((static_cast<int64_t>(jmp_offset) - 4) << 16);
+			pos += 6;
 		}
 
 		//mark all registers as used
@@ -1189,7 +1131,7 @@ namespace randomx {
 
 	void JitCompilerX86::h_ISTORE(const Instruction& instr) {
 		uint8_t* const p = code;
-		int pos = codePos;
+		uint32_t pos = codePos;
 
 		genAddressRegDst(instr, p, pos);
 		emit32(0x0604894c + (static_cast<uint32_t>(instr.src) << 19), p, pos);
@@ -1198,7 +1140,7 @@ namespace randomx {
 	}
 
 	void JitCompilerX86::h_NOP(const Instruction& instr) {
-		emit(NOP1, code, codePos);
+		emitByte(0x90, code, codePos);
 	}
 
 	alignas(64) InstructionGeneratorX86 JitCompilerX86::engine[256] = {};
