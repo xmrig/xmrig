@@ -116,7 +116,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
             return;
         }
 
-        auto vm = RxVm::Create(dataset, memory->scratchpad(), !hwAES, Assembly::NONE, 0);
+        auto vm = RxVm::create(dataset, memory->scratchpad(), !hwAES, Assembly::NONE, 0);
 
         for (uint32_t nonce : bundle.nonces) {
             *bundle.job.nonce() = nonce;
@@ -126,7 +126,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
             checkHash(bundle, results, nonce, hash, errors);
         }
 
-        RxVm::Destroy(vm);
+        RxVm::destroy(vm);
 #       endif
     }
     else if (algorithm.family() == Algorithm::ARGON2) {

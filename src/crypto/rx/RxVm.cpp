@@ -31,7 +31,7 @@
 #include "crypto/rx/RxVm.h"
 
 
-randomx_vm* xmrig::RxVm::Create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly, uint32_t node)
+randomx_vm* xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly, uint32_t node)
 {
     int flags = 0;
 
@@ -59,7 +59,7 @@ randomx_vm* xmrig::RxVm::Create(RxDataset *dataset, uint8_t *scratchpad, bool so
 }
 
 
-void xmrig::RxVm::Destroy(randomx_vm* vm)
+void xmrig::RxVm::destroy(randomx_vm* vm)
 {
     if (vm) {
         randomx_destroy_vm(vm);

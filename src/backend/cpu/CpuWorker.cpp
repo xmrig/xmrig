@@ -93,7 +93,7 @@ template<size_t N>
 xmrig::CpuWorker<N>::~CpuWorker()
 {
 #   ifdef XMRIG_ALGO_RANDOMX
-    RxVm::Destroy(m_vm);
+    RxVm::destroy(m_vm);
 #   endif
 
     CnCtx::release(m_ctx, N);
@@ -118,7 +118,7 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
     }
 
     if (!m_vm) {
-        m_vm = RxVm::Create(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly, m_node);
+        m_vm = RxVm::create(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly, m_node);
     }
 }
 #endif

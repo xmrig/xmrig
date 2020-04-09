@@ -50,8 +50,8 @@ class RxVm
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxVm);
 
-    static randomx_vm* Create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly, uint32_t node);
-    static void Destroy(randomx_vm* vm);
+    static randomx_vm* create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly, uint32_t node);
+    static void destroy(randomx_vm* vm);
 };
 
 
