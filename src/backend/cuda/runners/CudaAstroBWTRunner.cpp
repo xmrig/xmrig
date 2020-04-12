@@ -31,13 +31,7 @@
 #include "crypto/rx/RxDataset.h"
 
 
-namespace xmrig {
-
-
-    constexpr uint32_t CudaAstroBWTRunner::BWT_DATA_STRIDE;
-
-
-} // namespace xmrig
+constexpr uint32_t xmrig::CudaAstroBWTRunner::BWT_DATA_STRIDE;
 
 
 xmrig::CudaAstroBWTRunner::CudaAstroBWTRunner(size_t index, const CudaLaunchData &data) :
@@ -63,6 +57,7 @@ bool xmrig::CudaAstroBWTRunner::set(const Job &job, uint8_t *blob)
     return callWrapper(CudaLib::astroBWTPrepare(m_ctx, static_cast<uint32_t>(m_intensity)));
 }
 
+
 size_t xmrig::CudaAstroBWTRunner::roundSize() const
 {
     constexpr uint32_t STAGE1_SIZE = 147253;
@@ -74,6 +69,7 @@ size_t xmrig::CudaAstroBWTRunner::roundSize() const
 
     return BATCH1_SIZE;
 }
+
 
 size_t xmrig::CudaAstroBWTRunner::processedHashes() const
 {
