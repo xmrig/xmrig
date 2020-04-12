@@ -45,7 +45,7 @@ public:
         AAAA
     };
 
-    DnsRecord() = default;
+    DnsRecord() {}
     DnsRecord(const addrinfo *addr);
 
     sockaddr *addr(uint16_t port = 0) const;
