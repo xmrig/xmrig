@@ -50,7 +50,7 @@ static inline const std::string &usage()
     u += "  -u, --user=USERNAME           username for mining server\n";
     u += "  -p, --pass=PASSWORD           password for mining server\n";
     u += "  -O, --userpass=U:P            username:password pair for mining server\n";
-    u += "  -x, --proxy=HOST:PORT         connect through a SOCKS5 proxy";
+    u += "  -x, --proxy=HOST:PORT         connect through a SOCKS5 proxy\n";
     u += "  -k, --keepalive               send keepalived packet for prevent timeout (needs pool support)\n";
     u += "      --nicehash                enable nicehash.com support\n";
     u += "      --rig-id=ID               rig identifier for pool-side statistics (needs pool support)\n";

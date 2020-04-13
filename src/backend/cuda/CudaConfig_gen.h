@@ -136,6 +136,15 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const
 #endif
 
 
+#ifdef XMRIG_ALGO_ASTROBWT
+template<>
+size_t inline generate<Algorithm::ASTROBWT>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
+{
+    return generate("astrobwt", threads, Algorithm::ASTROBWT_DERO, devices);
+}
+#endif
+
+
 } /* namespace xmrig */
 
 

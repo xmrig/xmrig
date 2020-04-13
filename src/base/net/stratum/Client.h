@@ -112,10 +112,11 @@ private:
     void setState(SocketState state);
     void startTimeout();
 
-    inline const char *url() const                                { return m_pool.url(); }
-    inline SocketState state() const                              { return m_state; }
-    inline void setExtension(Extension ext, bool enable) noexcept { m_extensions.set(ext, enable); }
-    template<Extension ext> inline bool has() const noexcept      { return m_extensions.test(ext); }
+    inline const char *url() const                                  { return m_pool.url(); }
+    inline SocketState state() const                                { return m_state; }
+    inline uv_stream_t *stream() const                              { return reinterpret_cast<uv_stream_t *>(m_socket); }
+    inline void setExtension(Extension ext, bool enable) noexcept   { m_extensions.set(ext, enable); }
+    template<Extension ext> inline bool has() const noexcept        { return m_extensions.test(ext); }
 
     static void onClose(uv_handle_t *handle);
     static void onConnect(uv_connect_t *req, int status);
@@ -135,7 +136,6 @@ private:
     uint64_t m_jobs             = 0;
     uint64_t m_keepAlive        = 0;
     uintptr_t m_key             = 0;
-    uv_stream_t *m_stream       = nullptr;
     uv_tcp_t *m_socket          = nullptr;
 
     static Storage<Client> m_storage;

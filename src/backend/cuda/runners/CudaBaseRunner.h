@@ -50,6 +50,8 @@ protected:
     bool init() override;
     bool set(const Job &job, uint8_t *blob) override;
     size_t intensity() const override;
+    size_t roundSize() const override { return intensity(); }
+    size_t processedHashes() const override { return intensity(); }
 
 protected:
     bool callWrapper(bool result) const;

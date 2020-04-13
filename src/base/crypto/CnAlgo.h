@@ -53,24 +53,9 @@ public:
 
     inline static size_t memory(Algorithm::Id algo)
     {
-        switch (Algorithm::family(algo)) {
-        case Algorithm::CN:
-            return CN_MEMORY;
+        Algorithm algorithm(algo);
 
-        case Algorithm::CN_LITE:
-            return CN_MEMORY / 2;
-
-        case Algorithm::CN_HEAVY:
-            return CN_MEMORY * 2;
-
-        case Algorithm::CN_PICO:
-            return CN_MEMORY / 8;
-
-        default:
-            break;
-        }
-
-        return 0;
+        return algorithm.isCN() ? algorithm.l3() : 0;
     }
 
     inline static uint32_t iterations(Algorithm::Id algo)

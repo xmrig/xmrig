@@ -155,8 +155,6 @@ int64_t xmrig::Client::send(const rapidjson::Value &obj)
 {
     using namespace rapidjson;
 
-    Value value;
-
     StringBuffer buffer(nullptr, 512);
     Writer<StringBuffer> writer(buffer);
     obj.Accept(writer);
@@ -481,7 +479,7 @@ bool xmrig::Client::send(BIO *bio)
     LOG_DEBUG("[%s] TLS send     (%d bytes)", url(), static_cast<int>(buf.len));
 
     bool result = false;
-    if (state() == ConnectedState && uv_is_writable(m_stream)) {
+    if (state() == ConnectedState && uv_is_writable(stream())) {
         result = write(buf);
     }
     else {
@@ -525,7 +523,7 @@ bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo
 
 bool xmrig::Client::write(const uv_buf_t &buf)
 {
-    const int rc = uv_try_write(m_stream, &buf, 1);
+    const int rc = uv_try_write(stream(), &buf, 1);
     if (static_cast<size_t>(rc) == buf.len) {
         return true;
     }
@@ -575,7 +573,7 @@ int64_t xmrig::Client::send(size_t size)
     else
 #   endif
     {
-        if (state() != ConnectedState || !uv_is_writable(m_stream)) {
+        if (state() != ConnectedState || !uv_is_writable(stream())) {
             LOG_DEBUG_ERR("[%s] send failed, invalid state: %d", url(), m_state);
             return -1;
         }
@@ -664,7 +662,6 @@ void xmrig::Client::onClose()
 {
     delete m_socket;
 
-    m_stream = nullptr;
     m_socket = nullptr;
     setState(UnconnectedState);
 
@@ -966,8 +963,9 @@ void xmrig::Client::onClose(uv_handle_t *handle)
 void xmrig::Client::onConnect(uv_connect_t *req, int status)
 {
     auto client = getClient(req->data);
+    delete req;
+
     if (!client) {
-        delete req;
         return;
     }
 
@@ -988,7 +986,6 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
             return;
         }
 
-        delete req;
         client->close();
         return;
     }
@@ -999,12 +996,9 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
         return;
     }
 
-    client->m_stream = static_cast<uv_stream_t*>(req->handle);
-    client->m_stream->data = req->data;
     client->setState(ConnectedState);
 
-    uv_read_start(client->m_stream, NetBuffer::onAlloc, onRead);
-    delete req;
+    uv_read_start(client->stream(), NetBuffer::onAlloc, onRead);
 
     client->handshake();
 }

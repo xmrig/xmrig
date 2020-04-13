@@ -61,7 +61,6 @@ private:
 
     std::weak_ptr<IHttpListener> m_listener;
     TlsContext *m_tls   = nullptr;
-    uv_tcp_t *m_tcp     = nullptr;
 };
 
 
