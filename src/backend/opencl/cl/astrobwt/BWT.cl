@@ -97,6 +97,7 @@ __kernel void BWT(__global uint8_t* datas, __global uint32_t* data_sizes, uint32
 		const int k = atomic_sub((volatile __local int*)(counters_atomic + (((data >> (64 - COUNTING_SORT_BITS * 2)) & (COUNTING_SORT_SIZE - 1)) << 3)), 1);
 		tmp_indices[k] = data;
 	}
+	barrier(CLK_GLOBAL_MEM_FENCE);
 
 	for (int i = N - 1 - tid; i >= 0; i -= BWT_GROUP_SIZE)
 	{
@@ -104,6 +105,7 @@ __kernel void BWT(__global uint8_t* datas, __global uint32_t* data_sizes, uint32
 		const int k = atomic_sub((volatile __local int*)(counters_atomic + ((data >> (64 - COUNTING_SORT_BITS)) << 3) + 4), 1);
 		indices[k] = data;
 	}
+	barrier(CLK_GLOBAL_MEM_FENCE);
 
 	__local uint64_t* buf = (__local uint64_t*)(counters);
 	for (uint32_t i = 0; i < N; i += FINAL_SORT_BATCH_SIZE - FINAL_SORT_OVERLAP_SIZE)

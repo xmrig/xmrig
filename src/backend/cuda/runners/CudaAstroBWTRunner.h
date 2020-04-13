@@ -22,45 +22,38 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSRECORD_H
-#define XMRIG_DNSRECORD_H
+#ifndef XMRIG_CUDAASTROBWTRUNNER_H
+#define XMRIG_CUDAASTROBWTRUNNER_H
 
 
-struct addrinfo;
-struct sockaddr;
-
-
-#include "base/tools/String.h"
+#include "backend/cuda/runners/CudaBaseRunner.h"
 
 
 namespace xmrig {
 
 
-class DnsRecord
+class CudaAstroBWTRunner : public CudaBaseRunner
 {
 public:
-    enum Type {
-        Unknown,
-        A,
-        AAAA
-    };
+    static constexpr uint32_t BWT_DATA_MAX_SIZE = 560 * 1024 - 256;
+    static constexpr uint32_t BWT_DATA_STRIDE = (BWT_DATA_MAX_SIZE + 256 + 255) & ~255U;
 
-    DnsRecord() {}
-    DnsRecord(const addrinfo *addr);
+    CudaAstroBWTRunner(size_t index, const CudaLaunchData &data);
 
-    sockaddr *addr(uint16_t port = 0) const;
+protected:
+    inline size_t intensity() const override { return m_intensity; }
+    inline size_t roundSize() const override;
+    inline size_t processedHashes() const override;
 
-    inline bool isValid() const     { return m_type != Unknown; }
-    inline const String &ip() const { return m_ip; }
-    inline Type type() const        { return m_type; }
+    bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce) override;
+    bool set(const Job &job, uint8_t *blob) override;
 
 private:
-    Type m_type = Unknown;
-    String m_ip;
+    size_t m_intensity  = 0;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_DNSRECORD_H */
+#endif // XMRIG_CUDAASTROBWTRUNNER_H

@@ -34,6 +34,11 @@
 #include "net/JobResult.h"
 
 
+#ifdef XMRIG_ALGO_RANDOMX
+class randomx_vm;
+#endif
+
+
 namespace xmrig {
 
 
@@ -82,7 +87,7 @@ private:
     WorkerJob<N> m_job;
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    RxVm *m_vm = nullptr;
+    randomx_vm *m_vm = nullptr;
 #   endif
 };
 

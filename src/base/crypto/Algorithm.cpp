@@ -25,7 +25,6 @@
 
 
 #include "base/crypto/Algorithm.h"
-#include "base/crypto/CnAlgo.h"
 #include "rapidjson/document.h"
 
 
@@ -173,15 +172,26 @@ size_t xmrig::Algorithm::l2() const
 
 size_t xmrig::Algorithm::l3() const
 {
-#   if defined(XMRIG_ALGO_RANDOMX) || defined(XMRIG_ALGO_ARGON2) || defined(XMRIG_ALGO_ASTROBWT)
     constexpr size_t oneMiB = 0x100000;
-#   endif
 
-    const Family f = family();
+    const auto f = family();
     assert(f != UNKNOWN);
 
-    if (f < RANDOM_X) {
-        return CnAlgo<>::memory(m_id);
+    switch (f) {
+    case CN:
+        return oneMiB * 2;
+
+    case CN_LITE:
+        return oneMiB;
+
+    case CN_HEAVY:
+        return oneMiB * 4;
+
+    case CN_PICO:
+        return oneMiB / 4;
+
+    default:
+        break;
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX

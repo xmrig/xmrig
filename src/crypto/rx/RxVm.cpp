@@ -31,18 +31,20 @@
 #include "crypto/rx/RxVm.h"
 
 
-xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly)
+randomx_vm* xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly, uint32_t node)
 {
+    int flags = 0;
+
     if (!softAes) {
-       m_flags |= RANDOMX_FLAG_HARD_AES;
+       flags |= RANDOMX_FLAG_HARD_AES;
     }
 
     if (dataset->get()) {
-        m_flags |= RANDOMX_FLAG_FULL_MEM;
+        flags |= RANDOMX_FLAG_FULL_MEM;
     }
 
     if (!dataset->cache() || dataset->cache()->isJIT()) {
-        m_flags |= RANDOMX_FLAG_JIT;
+        flags |= RANDOMX_FLAG_JIT;
     }
 
     if (assembly == Assembly::AUTO) {
@@ -50,16 +52,16 @@ xmrig::RxVm::RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::
     }
 
     if ((assembly == Assembly::RYZEN) || (assembly == Assembly::BULLDOZER)) {
-        m_flags |= RANDOMX_FLAG_AMD;
+        flags |= RANDOMX_FLAG_AMD;
     }
 
-    m_vm = randomx_create_vm(static_cast<randomx_flags>(m_flags), dataset->cache() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad);
+    return randomx_create_vm(static_cast<randomx_flags>(flags), dataset->cache() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad, node);
 }
 
 
-xmrig::RxVm::~RxVm()
+void xmrig::RxVm::destroy(randomx_vm* vm)
 {
-    if (m_vm) {
-        randomx_destroy_vm(m_vm);
+    if (vm) {
+        randomx_destroy_vm(vm);
     }
 }

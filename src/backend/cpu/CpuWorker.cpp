@@ -94,7 +94,7 @@ template<size_t N>
 xmrig::CpuWorker<N>::~CpuWorker()
 {
 #   ifdef XMRIG_ALGO_RANDOMX
-    delete m_vm;
+    RxVm::destroy(m_vm);
 #   endif
 
     CnCtx::release(m_ctx, N);
@@ -119,7 +119,7 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
     }
 
     if (!m_vm) {
-        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly);
+        m_vm = RxVm::create(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly, m_node);
     }
 }
 #endif
@@ -248,26 +248,30 @@ void xmrig::CpuWorker<N>::start()
 
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
-                if (job.algorithm() == Algorithm::DEFYX) {
-                    if (first) {
-                        first = false;
-                        defyx_calculate_hash_first(m_vm->get(), tempHash, m_job.blob(), job.size());
-                    }
-                    if (!nextRound(m_job)) {
-                        break;
-                    }
-                    defyx_calculate_hash_next(m_vm->get(), tempHash, m_job.blob(), job.size(), m_hash);
-                } else {
-                    if (first) {
-                        first = false;
-                        randomx_calculate_hash_first(m_vm->get(), tempHash, m_job.blob(), job.size());
-                    }
-                    if (!nextRound(m_job)) {
-                        break;
-                    }
-                    m_job.nextRound(kReserveCount, 1);
-                    randomx_calculate_hash_next(m_vm->get(), tempHash, m_job.blob(), job.size(), m_hash);
+
+              if (job.algorithm() == Algorithm::DEFYX) {
+                if (first) {
+                    first = false;
+                    defyx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
                 }
+
+                if (!nextRound(m_job)) {
+                    break;
+                }
+
+                defyx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+              } else {
+                if (first) {
+                    first = false;
+                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                }
+
+                if (!nextRound(m_job)) {
+                    break;
+                }
+
+                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+              }
             }
             else
 #           endif

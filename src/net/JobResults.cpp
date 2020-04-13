@@ -116,17 +116,17 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
             return;
         }
 
-        auto vm = new RxVm(dataset, memory->scratchpad(), !hwAES, Assembly::NONE);
+        auto vm = RxVm::create(dataset, memory->scratchpad(), !hwAES, Assembly::NONE, 0);
 
         for (uint32_t nonce : bundle.nonces) {
             *bundle.job.nonce() = nonce;
 
-            randomx_calculate_hash(vm->get(), bundle.job.blob(), bundle.job.size(), hash);
+            randomx_calculate_hash(vm, bundle.job.blob(), bundle.job.size(), hash);
 
             checkHash(bundle, results, nonce, hash, errors);
         }
 
-        delete vm;
+        RxVm::destroy(vm);
 #       endif
     }
     else if (algorithm.family() == Algorithm::ARGON2) {
