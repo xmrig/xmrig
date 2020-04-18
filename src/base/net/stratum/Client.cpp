@@ -744,6 +744,7 @@ void xmrig::Client::parseExtensions(const rapidjson::Value &result)
         }
         else if (strcmp(name, "keepalive") == 0) {
             setExtension(EXT_KEEPALIVE, true);
+            startTimeout();
         }
 #       ifdef XMRIG_FEATURE_TLS
         else if (strcmp(name, "tls") == 0) {
