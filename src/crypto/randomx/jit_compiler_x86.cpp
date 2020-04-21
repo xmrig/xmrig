@@ -1048,9 +1048,9 @@ namespace randomx {
 
 		if (vm_flags & RANDOMX_FLAG_AMD) {
 			*(uint64_t*)(p + pos + 7) = 0x742024443B0CE083ULL;
-			*(uint8_t*)(p + pos + 15) = 8;
-			*(uint64_t*)(p + pos + 16) = 0x202444890414AE0FULL;
-			pos += 24;
+			*(uint64_t*)(p + pos + 15) = 0x8900EB0414AE0F0AULL;
+			*(uint32_t*)(p + pos + 23) = 0x202444;
+			pos += 26;
 		}
 		else {
 			*(uint64_t*)(p + pos + 7) = 0x0414AE0F0CE083ULL;
@@ -1071,9 +1071,9 @@ namespace randomx {
 
 		if (vm_flags & RANDOMX_FLAG_AMD) {
 			*(uint64_t*)(p + pos + 6) = 0x742024443B0CE083ULL;
-			*(uint8_t*)(p + pos + 14) = 8;
-			*(uint64_t*)(p + pos + 15) = 0x202444890414AE0FULL;
-			pos += 23;
+			*(uint64_t*)(p + pos + 14) = 0x8900EB0414AE0F0AULL;
+			*(uint32_t*)(p + pos + 22) = 0x202444;
+			pos += 25;
 		}
 		else {
 			*(uint64_t*)(p + pos + 6) = 0x0414AE0F0CE083ULL;
