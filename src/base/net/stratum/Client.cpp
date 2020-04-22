@@ -992,7 +992,7 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
     }
 
     if (client->state() == ConnectedState) {
-        LOG_ERR("[%s] already connected");
+        LOG_ERR("[%s] already connected", client->url());
 
         return;
     }
