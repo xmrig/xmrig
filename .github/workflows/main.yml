@@ -88,7 +88,7 @@ jobs:
       - name: Prepare CentOS 6 tools
         run: |
           yum install -y git cmake nasm openssl-devel libmicrohttpd-devel centos-release-scl-rh
-          yum install -y --nogpgcheck devtoolset-6-gcc devtoolset-6-binutils devtoolset-6-gcc-c++
+          yum install -y --nogpgcheck devtoolset-7-gcc devtoolset-7-binutils devtoolset-7-gcc-c++
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-1.8.0-1.el6.x86_64.rpm
           rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-devel-1.8.0-1.el6.x86_64.rpm
       - name: Checkout code
@@ -97,8 +97,8 @@ jobs:
           git checkout ${GITHUB_REF:10}
       - name: Build project on CentOS 6
         run: |
-          scl enable devtoolset-6 "cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF -DCMAKE_ASM_MASM_COMPILER=nasm"
-          scl enable devtoolset-6 "make -j$(nproc)"
+          scl enable devtoolset-7 "cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF -DCMAKE_ASM_MASM_COMPILER=nasm"
+          scl enable devtoolset-7 "make -j$(nproc)"
           cp src/config.json .
           mv xmrig-notls xmrig
           tar cfz centos6_build.tar.gz xmrig config.json
