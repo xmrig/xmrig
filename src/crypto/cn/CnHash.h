@@ -31,7 +31,7 @@
 #include <cstdint>
 
 
-#include "base/crypto/CnAlgo.h"
+#include "crypto/cn/CnAlgo.h"
 #include "crypto/common/Assembly.h"
 
 

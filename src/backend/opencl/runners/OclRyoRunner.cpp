@@ -31,9 +31,9 @@
 #include "backend/opencl/kernels/CnBranchKernel.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/wrappers/OclLib.h"
-#include "base/crypto/CnAlgo.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
+#include "crypto/cn/CnAlgo.h"
 
 
 xmrig::OclRyoRunner::OclRyoRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)

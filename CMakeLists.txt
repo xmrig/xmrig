@@ -67,6 +67,7 @@ set(HEADERS_CRYPTO
     src/crypto/cn/c_groestl.h
     src/crypto/cn/c_jh.h
     src/crypto/cn/c_skein.h
+    src/crypto/cn/CnAlgo.h
     src/crypto/cn/CnCtx.h
     src/crypto/cn/CnHash.h
     src/crypto/cn/CryptoNight_monero.h

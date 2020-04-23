@@ -36,8 +36,8 @@
 
 
 #include "backend/cpu/Cpu.h"
-#include "base/crypto/CnAlgo.h"
 #include "base/crypto/keccak.h"
+#include "crypto/cn/CnAlgo.h"
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
