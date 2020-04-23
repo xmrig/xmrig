@@ -23,7 +23,7 @@
  */
 
 
-#include "base/crypto/CnAlgo.h"
+#include "crypto/cn/CnAlgo.h"
 
 
 #ifdef __GNUC__

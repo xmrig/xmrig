@@ -1,7 +1,6 @@
 set(HEADERS_BASE
     src/base/api/interfaces/IApiListener.h
     src/base/crypto/Algorithm.h
-    src/base/crypto/CnAlgo.h
     src/base/crypto/Coin.h
     src/base/crypto/keccak.h
     src/base/io/Console.h

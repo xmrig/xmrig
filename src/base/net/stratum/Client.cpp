@@ -293,7 +293,7 @@ void xmrig::Client::tick(uint64_t now)
     }
 
     if (m_state == ConnectingState && m_expire && now > m_expire) {
-        return reconnect();
+        close();
     }
 }
 
@@ -744,6 +744,7 @@ void xmrig::Client::parseExtensions(const rapidjson::Value &result)
         }
         else if (strcmp(name, "keepalive") == 0) {
             setExtension(EXT_KEEPALIVE, true);
+            startTimeout();
         }
 #       ifdef XMRIG_FEATURE_TLS
         else if (strcmp(name, "tls") == 0) {
@@ -974,7 +975,7 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
             LOG_ERR("[%s] connect error: \"%s\"", client->url(), uv_strerror(status));
         }
 
-        if (client->state() == ReconnectingState) {
+        if (client->state() == ReconnectingState || client->state() == ClosingState) {
             return;
         }
 
@@ -991,7 +992,7 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
     }
 
     if (client->state() == ConnectedState) {
-        LOG_ERR("[%s] already connected");
+        LOG_ERR("[%s] already connected", client->url());
 
         return;
     }

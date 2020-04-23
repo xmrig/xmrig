@@ -27,7 +27,7 @@
 
 #include "backend/common/Threads.h"
 #include "backend/cpu/CpuThreads.h"
-#include "base/crypto/CnAlgo.h"
+#include "crypto/cn/CnAlgo.h"
 #include "rapidjson/document.h"
 
 

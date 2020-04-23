@@ -1,3 +1,8 @@
+# v5.11.1
+- [#1652](https://github.com/xmrig/xmrig/pull/1652) Up to 1% RandomX perfomance improvement on recent AMD CPUs.
+- [#1306](https://github.com/xmrig/xmrig/issues/1306) Fixed possible double connection to a pool.
+- [#1654](https://github.com/xmrig/xmrig/issues/1654) Fixed build with LibreSSL.
+
 # v5.11.0
 - **[#1632](https://github.com/xmrig/xmrig/pull/1632) Added AstroBWT CUDA support ([CUDA plugin](https://github.com/xmrig/xmrig-cuda) v3.0.0 or newer required).**
 - [#1605](https://github.com/xmrig/xmrig/pull/1605) Fixed AstroBWT OpenCL for NVIDIA GPUs.
