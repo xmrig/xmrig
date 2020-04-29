@@ -22,8 +22,8 @@
 
 
 #include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/rapidjson/fwd.h"
 #include "base/tools/String.h"
-#include "rapidjson/fwd.h"
 
 
 #include <map>
@@ -35,7 +35,6 @@ namespace xmrig {
 
 
 class IHttpListener;
-class Pool;
 
 
 class FetchRequest
@@ -43,12 +42,10 @@ class FetchRequest
 public:
     FetchRequest() = default;
     FetchRequest(http_method method, const String &host, uint16_t port, const String &path, bool tls = false, bool quiet = false, const char *data = nullptr, size_t size = 0, const char *contentType = nullptr);
-    FetchRequest(http_method method, const String &host, uint16_t port, const String &path, const rapidjson::Document &doc, bool tls = false, bool quiet = false);
-    FetchRequest(int method, const Pool &pool, const String &path, bool quiet = false, const char *data = nullptr, size_t size = 0, const char *contentType = nullptr);
-    FetchRequest(int method, const Pool &pool, const String &path, const rapidjson::Document &doc, bool quiet = false);
+    FetchRequest(http_method method, const String &host, uint16_t port, const String &path, const rapidjson::Value &value, bool tls = false, bool quiet = false);
 
     void setBody(const char *data, size_t size, const char *contentType = nullptr);
-    void setBody(const rapidjson::Document &doc);
+    void setBody(const rapidjson::Value &value);
 
     inline bool hasBody() const { return method != HTTP_GET && method != HTTP_HEAD && !body.empty(); }
 

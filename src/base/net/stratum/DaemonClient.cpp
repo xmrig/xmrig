@@ -328,7 +328,7 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
 
 int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc)
 {
-    FetchRequest req(HTTP_POST, m_pool, kJsonRPC, doc, isQuiet());
+    FetchRequest req(HTTP_POST, m_pool.host(), m_pool.port(), kJsonRPC, doc, m_pool.isTLS(), isQuiet());
     fetch(std::move(req), m_httpListener);
 
     return m_sequence++;
@@ -355,7 +355,7 @@ void xmrig::DaemonClient::retry()
 
 void xmrig::DaemonClient::send(const char *path)
 {
-    FetchRequest req(HTTP_GET, m_pool, path, isQuiet());
+    FetchRequest req(HTTP_GET, m_pool.host(), m_pool.port(), path, m_pool.isTLS(), isQuiet());
     fetch(std::move(req), m_httpListener);
 }
 

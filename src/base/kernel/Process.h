@@ -51,6 +51,8 @@ public:
 
     Process(int argc, char **argv);
 
+    static int pid();
+    static int ppid();
     static String exepath();
     static String location(Location location, const char *fileName = nullptr);
 

@@ -32,7 +32,7 @@
 #include "backend/cpu/Cpu.h"
 #include "base/io/Console.h"
 #include "base/io/log/Log.h"
-#include "base/kernel/Signals.h"
+#include "base/io/Signals.h"
 #include "base/kernel/Platform.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"

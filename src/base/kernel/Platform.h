@@ -48,9 +48,7 @@ public:
     }
 
     static bool setThreadAffinity(uint64_t cpu_id);
-    static uint32_t setTimerResolution(uint32_t resolution);
     static void init(const char *userAgent);
-    static void restoreTimerResolution();
     static void setProcessPriority(int priority);
     static void setThreadPriority(int priority);
 

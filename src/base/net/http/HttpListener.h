@@ -29,12 +29,13 @@ namespace xmrig {
 class HttpListener : public IHttpListener
 {
 public:
-    inline HttpListener(IHttpListener *listener) : m_listener(listener) {}
+    inline HttpListener(IHttpListener *listener, const char *tag = nullptr) : m_tag(tag), m_listener(listener) {}
 
 protected:
     void onHttpData(const HttpData &data) override;
 
 private:
+    const char *m_tag;
     IHttpListener *m_listener;
 };
 
