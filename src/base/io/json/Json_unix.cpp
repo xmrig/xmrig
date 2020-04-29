@@ -62,3 +62,14 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
 
     return true;
 }
+
+
+bool xmrig::Json::convertOffset(const char* fileName, size_t offset, size_t& line, size_t& pos, std::vector<std::string>& s)
+{
+    std::ifstream ifs(fileName, std::ios_base::in | std::ios_base::binary);
+    if (!ifs.is_open()) {
+        return false;
+    }
+
+    return convertOffset(ifs, offset, line, pos, s);
+}
