@@ -64,7 +64,27 @@ bool xmrig::JsonChain::addFile(const char *fileName)
     }
 
     if (doc.HasParseError()) {
-        LOG_ERR("%s<offset:%zu>: \"%s\"", fileName, doc.GetErrorOffset(), GetParseError_En(doc.GetParseError()));
+        const size_t offset = doc.GetErrorOffset();
+
+        size_t line, pos;
+        std::vector<std::string> s;
+        if (Json::convertOffset(fileName, offset, line, pos, s)) {
+            for (const auto& t : s) {
+                LOG_ERR("%s", t.c_str());
+            }
+
+            std::string t;
+            if (pos > 0) {
+                t.assign(pos - 1, ' ');
+            }
+            t += '^';
+            LOG_ERR("%s", t.c_str());
+
+            LOG_ERR("%s<line:%zu, position:%zu>: \"%s\"", fileName, line, pos, GetParseError_En(doc.GetParseError()));
+        }
+        else {
+            LOG_ERR("%s<offset:%zu>: \"%s\"", fileName, offset, GetParseError_En(doc.GetParseError()));
+        }
     }
     else {
         LOG_ERR("unable to open \"%s\".", fileName);

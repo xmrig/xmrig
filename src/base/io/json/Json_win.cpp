@@ -125,3 +125,31 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
 
     return true;
 }
+
+
+bool xmrig::Json::convertOffset(const char* fileName, size_t offset, size_t& line, size_t& pos, std::vector<std::string>& s)
+{
+    constexpr const std::ios_base::openmode mode = std::ios_base::in | std::ios_base::binary;
+
+#   if defined(_MSC_VER)
+    std::ifstream ifs(toUtf16(fileName), mode);
+    if (!ifs.is_open()) {
+        return false;
+    }
+#   elif defined(__GNUC__)
+    const int fd = _wopen(toUtf16(fileName).c_str(), _O_RDONLY | _O_BINARY);
+    if (fd == -1) {
+        return false;
+    }
+
+    __gnu_cxx::stdio_filebuf<char> buf(fd, mode);
+    std::istream ifs(&buf);
+#   else
+    std::ifstream ifs(fileName, mode);
+    if (!ifs.is_open()) {
+        return false;
+    }
+#   endif
+
+    return convertOffset(ifs, offset, line, pos, s);
+}
