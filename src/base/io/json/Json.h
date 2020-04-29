@@ -58,7 +58,7 @@ public:
     static rapidjson::Value normalize(double value, bool zero);
 
 private:
-    static bool convertOffset(std::ifstream& ifs, size_t offset, size_t& line, size_t& pos, std::vector<std::string>& s);
+    static bool convertOffset(std::istream& ifs, size_t offset, size_t& line, size_t& pos, std::vector<std::string>& s);
 };
 
 
