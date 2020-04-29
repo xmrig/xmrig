@@ -27,7 +27,7 @@
 
 
 #include "backend/cpu/Cpu.h"
-#include "rapidjson/document.h"
+#include "3rdparty/rapidjson/document.h"
 
 
 #if defined(XMRIG_FEATURE_HWLOC)

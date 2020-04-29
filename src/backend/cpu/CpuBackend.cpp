@@ -26,12 +26,13 @@
 #include <mutex>
 
 
+#include "backend/cpu/CpuBackend.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/common/Workers.h"
 #include "backend/cpu/Cpu.h"
-#include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
@@ -41,7 +42,6 @@
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxDataset.h"
-#include "rapidjson/document.h"
 
 
 #ifdef XMRIG_FEATURE_API

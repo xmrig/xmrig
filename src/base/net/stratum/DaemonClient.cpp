@@ -26,6 +26,8 @@
 
 #include "base/net/stratum/DaemonClient.h"
 #include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/rapidjson/document.h"
+#include "3rdparty/rapidjson/error/en.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
@@ -36,8 +38,6 @@
 #include "base/tools/Buffer.h"
 #include "base/tools/Timer.h"
 #include "net/JobResult.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/en.h"
 
 
 #include <algorithm>
