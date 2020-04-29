@@ -191,7 +191,7 @@ rapidjson::Value xmrig::Json::normalize(double value, bool zero)
 }
 
 
-bool xmrig::Json::convertOffset(std::istream& ifs, size_t offset, size_t& line, size_t& pos, std::vector<std::string>& s)
+bool xmrig::Json::convertOffset(std::istream &ifs, size_t offset, size_t &line, size_t &pos, std::vector<std::string> &s)
 {
     std::string prev_t;
     std::string t;

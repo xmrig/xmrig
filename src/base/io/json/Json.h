@@ -53,12 +53,11 @@ public:
     static bool get(const char *fileName, rapidjson::Document &doc);
     static bool save(const char *fileName, const rapidjson::Document &doc);
 
-    static bool convertOffset(const char *fileName, size_t offset, size_t &line, size_t &pos, std::vector<std::string>& s);
-
+    static bool convertOffset(const char *fileName, size_t offset, size_t &line, size_t &pos, std::vector<std::string> &s);
     static rapidjson::Value normalize(double value, bool zero);
 
 private:
-    static bool convertOffset(std::istream& ifs, size_t offset, size_t& line, size_t& pos, std::vector<std::string>& s);
+    static bool convertOffset(std::istream &ifs, size_t offset, size_t &line, size_t &pos, std::vector<std::string> &s);
 };
 
 
