@@ -87,7 +87,7 @@ static FORCE_INLINE void blake2b_init0(blake2b_state *S) {
 	memcpy(S->h, blake2b_IV, sizeof(S->h));
 }
 
-int blake2b_init_param(blake2b_state *S, const blake2b_param *P) {
+int rx_blake2b_init_param(blake2b_state *S, const blake2b_param *P) {
 	const unsigned char *p = (const unsigned char *)P;
 	unsigned int i;
 
@@ -130,7 +130,7 @@ int rx_blake2b_init(blake2b_state *S, size_t outlen) {
 	memset(P.salt, 0, sizeof(P.salt));
 	memset(P.personal, 0, sizeof(P.personal));
 
-	return blake2b_init_param(S, &P);
+	return rx_blake2b_init_param(S, &P);
 }
 
 int rx_blake2b_init_key(blake2b_state *S, size_t outlen, const void *key, size_t keylen) {
@@ -163,7 +163,7 @@ int rx_blake2b_init_key(blake2b_state *S, size_t outlen, const void *key, size_t
 	memset(P.salt, 0, sizeof(P.salt));
 	memset(P.personal, 0, sizeof(P.personal));
 
-	if (blake2b_init_param(S, &P) < 0) {
+	if (rx_blake2b_init_param(S, &P) < 0) {
 		blake2b_invalidate_state(S);
 		return -1;
 	}
