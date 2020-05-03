@@ -275,12 +275,27 @@ const xmrig::String &xmrig::CpuBackend::type() const
 void xmrig::CpuBackend::prepare(const Job &nextJob)
 {
 #   ifdef XMRIG_ALGO_ARGON2
-    if (nextJob.algorithm().family() == Algorithm::ARGON2 && argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
-        LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
-                 tag,
-                 argon2::Impl::name() == "default" ? 33 : 32,
-                 argon2::Impl::name().data()
-                 );
+    const xmrig::Algorithm::Family f = nextJob.algorithm().family();
+    if ((f == Algorithm::ARGON2) || (f == Algorithm::RANDOM_X)) {
+
+        xmrig::String impl = d_ptr->controller->config()->cpu().argon2Impl();
+
+        if (impl.isEmpty()) {
+            if (xmrig::Cpu::info()->hasAVX2()) {
+                impl = "AVX2";
+            }
+            else if (xmrig::Cpu::info()->isX64()) {
+                impl = "SSE2";
+            }
+        }
+
+        if (argon2::Impl::select(impl)) {
+            LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
+                     tag,
+                     argon2::Impl::name() == "default" ? 33 : 32,
+                     argon2::Impl::name().data()
+                     );
+        }
     }
 #   endif
 }

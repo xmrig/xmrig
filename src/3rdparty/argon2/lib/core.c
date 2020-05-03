@@ -147,7 +147,7 @@ void clear_internal_memory(void *v, size_t n) {
 }
 
 void finalize(const argon2_context *context, argon2_instance_t *instance) {
-    if (context != NULL && instance != NULL) {
+    if (context != NULL && instance != NULL && context->out != NULL) {
         block blockhash;
         uint32_t l;
 
@@ -281,14 +281,14 @@ int validate_inputs(const argon2_context *context) {
         return ARGON2_INCORRECT_PARAMETER;
     }
 
-    if (NULL == context->out) {
-        return ARGON2_OUTPUT_PTR_NULL;
-    }
+    //if (NULL == context->out) {
+    //    return ARGON2_OUTPUT_PTR_NULL;
+    //}
 
     /* Validate output length */
-    if (ARGON2_MIN_OUTLEN > context->outlen) {
-        return ARGON2_OUTPUT_TOO_SHORT;
-    }
+    //if (ARGON2_MIN_OUTLEN > context->outlen) {
+    //    return ARGON2_OUTPUT_TOO_SHORT;
+    //}
 
     if (ARGON2_MAX_OUTLEN < context->outlen) {
         return ARGON2_OUTPUT_TOO_LONG;
