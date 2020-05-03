@@ -69,8 +69,6 @@ namespace randomx {
 	template void deallocCache<LargePageAllocator>(randomx_cache* cache);
 
 	void initCache(randomx_cache* cache, const void* key, size_t keySize) {
-		uint32_t memory_blocks, segment_length;
-		argon2_instance_t instance;
 		argon2_context context;
 
 		context.out = nullptr;
