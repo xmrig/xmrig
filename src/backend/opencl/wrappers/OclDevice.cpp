@@ -24,11 +24,12 @@
 
 
 #include "backend/opencl/wrappers/OclDevice.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/opencl/OclGenerator.h"
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
-#include "rapidjson/document.h"
+
 
 #ifdef XMRIG_FEATURE_ADL
 #   include "backend/opencl/wrappers/AdlLib.h"

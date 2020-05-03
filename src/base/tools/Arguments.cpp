@@ -52,7 +52,7 @@ bool xmrig::Arguments::hasArg(const char *name) const
 }
 
 
-const char *xmrig::Arguments::value(const char *key) const
+const char *xmrig::Arguments::value(const char *key1, const char *key2) const
 {
     const size_t size = m_data.size();
     if (size < 3) {
@@ -60,7 +60,7 @@ const char *xmrig::Arguments::value(const char *key) const
     }
 
     for (size_t i = 1; i < size - 1; ++i) {
-        if (m_data[i] == key) {
+        if (m_data[i] == key1 || (key2 && m_data[i] == key2)) {
             return m_data[i + 1];
         }
     }

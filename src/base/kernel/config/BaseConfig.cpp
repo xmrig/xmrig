@@ -24,10 +24,10 @@
 
 
 #include "base/kernel/config/BaseConfig.h"
+#include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IJsonReader.h"
-#include "rapidjson/document.h"
 #include "version.h"
 
 

@@ -25,10 +25,10 @@
 
 
 #include "base/net/tls/TlsConfig.h"
+#include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
 #include "base/net/tls/TlsGen.h"
-#include "rapidjson/document.h"
 
 
 namespace xmrig {
@@ -86,7 +86,7 @@ xmrig::TlsConfig::TlsConfig(const rapidjson::Value &value)
             generate();
         }
     }
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef XMRIG_FORCE_TLS
     else if (value.IsNull()) {
         generate();
     }

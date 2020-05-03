@@ -24,13 +24,13 @@
 
 
 #include "base/net/stratum/NetworkState.h"
+#include "3rdparty/rapidjson/document.h"
 #include "base/kernel/interfaces/IClient.h"
 #include "base/kernel/interfaces/IStrategy.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Chrono.h"
-#include "rapidjson/document.h"
 
 
 #include <algorithm>

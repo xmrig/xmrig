@@ -115,7 +115,27 @@ xmrig::Process::Process(int argc, char **argv) :
 {
     srand(static_cast<unsigned int>(Chrono::currentMSecsSinceEpoch() ^ reinterpret_cast<uintptr_t>(this)));
 
-    setDataDir(m_arguments.value("--data-dir"));
+    setDataDir(m_arguments.value("--data-dir", "-d"));
+}
+
+
+int xmrig::Process::pid()
+{
+#   if UV_VERSION_HEX >= 0x011200
+    return uv_os_getpid();
+#   else
+    return 0;
+#   endif
+}
+
+
+int xmrig::Process::ppid()
+{
+#   if UV_VERSION_HEX >= 0x011000
+    return uv_os_getppid();
+#   else
+    return 0;
+#   endif
 }
 
 

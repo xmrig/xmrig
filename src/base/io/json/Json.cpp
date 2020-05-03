@@ -24,7 +24,7 @@
 
 
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
+#include "3rdparty/rapidjson/document.h"
 
 
 #include <cassert>

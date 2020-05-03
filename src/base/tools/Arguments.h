@@ -41,7 +41,7 @@ public:
     Arguments(int argc, char **argv);
 
     bool hasArg(const char *name) const;
-    const char *value(const char *key) const;
+    const char *value(const char *key1, const char *key2 = nullptr) const;
 
     inline char **argv() const                     { return m_argv; }
     inline const std::vector<String> &data() const { return m_data; }

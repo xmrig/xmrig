@@ -26,6 +26,8 @@
 
 #include "base/net/stratum/DaemonClient.h"
 #include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/rapidjson/document.h"
+#include "3rdparty/rapidjson/error/en.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
@@ -36,8 +38,6 @@
 #include "base/tools/Buffer.h"
 #include "base/tools/Timer.h"
 #include "net/JobResult.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/en.h"
 
 
 #include <algorithm>
@@ -328,7 +328,7 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
 
 int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc)
 {
-    FetchRequest req(HTTP_POST, m_pool, kJsonRPC, doc, isQuiet());
+    FetchRequest req(HTTP_POST, m_pool.host(), m_pool.port(), kJsonRPC, doc, m_pool.isTLS(), isQuiet());
     fetch(std::move(req), m_httpListener);
 
     return m_sequence++;
@@ -355,7 +355,7 @@ void xmrig::DaemonClient::retry()
 
 void xmrig::DaemonClient::send(const char *path)
 {
-    FetchRequest req(HTTP_GET, m_pool, path, isQuiet());
+    FetchRequest req(HTTP_GET, m_pool.host(), m_pool.port(), path, m_pool.isTLS(), isQuiet());
     fetch(std::move(req), m_httpListener);
 }
 

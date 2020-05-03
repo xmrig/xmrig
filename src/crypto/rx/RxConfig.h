@@ -26,7 +26,7 @@
 #define XMRIG_RXCONFIG_H
 
 
-#include "rapidjson/fwd.h"
+#include "3rdparty/rapidjson/fwd.h"
 
 
 #ifdef XMRIG_FEATURE_MSR

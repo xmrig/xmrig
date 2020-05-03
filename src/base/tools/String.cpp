@@ -23,11 +23,11 @@
  */
 
 
-#include <ctype.h>
-
-
 #include "base/tools/String.h"
-#include "rapidjson/document.h"
+#include "3rdparty/rapidjson/document.h"
+
+
+#include <cctype>
 
 
 xmrig::String::String(const char *str) :

@@ -28,6 +28,8 @@
 #include <thread>
 
 
+#include "core/Miner.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuBackend.h"
@@ -38,11 +40,9 @@
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "core/Miner.h"
+#include "crypto/astrobwt/AstroBWT.h"
 #include "crypto/common/Nonce.h"
 #include "crypto/rx/Rx.h"
-#include "crypto/astrobwt/AstroBWT.h"
-#include "rapidjson/document.h"
 #include "version.h"
 
 

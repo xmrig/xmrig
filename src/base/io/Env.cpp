@@ -23,7 +23,7 @@
  */
 
 
-#include "base/kernel/Env.h"
+#include "base/io/Env.h"
 #include "base/kernel/Process.h"
 #include "version.h"
 
@@ -57,6 +57,8 @@ static std::map<String, String> variables;
 static void createVariables()
 {
     variables.insert({ "XMRIG_VERSION",  APP_VERSION });
+    variables.insert({ "XMRIG_KIND",     APP_KIND });
+    variables.insert({ "XMRIG_HOSTNAME", Env::hostname() });
     variables.insert({ "XMRIG_EXE",      Process::exepath() });
     variables.insert({ "XMRIG_EXE_DIR",  Process::location(Process::ExeLocation) });
     variables.insert({ "XMRIG_CWD",      Process::location(Process::CwdLocation) });

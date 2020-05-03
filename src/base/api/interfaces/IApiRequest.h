@@ -26,7 +26,7 @@
 #define XMRIG_IAPIREQUEST_H
 
 
-#include "rapidjson/fwd.h"
+#include "3rdparty/rapidjson/fwd.h"
 
 
 namespace xmrig {

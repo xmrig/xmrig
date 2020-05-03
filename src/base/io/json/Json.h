@@ -26,8 +26,10 @@
 #define XMRIG_JSON_H
 
 
+#include "3rdparty/rapidjson/fwd.h"
 #include "base/kernel/interfaces/IJsonReader.h"
-#include "rapidjson/fwd.h"
+
+
 #include <string>
 #include <vector>
 #include <fstream>
