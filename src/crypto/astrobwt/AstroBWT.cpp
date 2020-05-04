@@ -27,14 +27,14 @@
  */
 
 
-#include "AstroBWT.h"
-#include "sha3.h"
-#include "crypto/cn/CryptoNight.h"
-#include "base/net/stratum/Job.h"
-#include "base/crypto/Algorithm.h"
-#include "base/io/log/Log.h"
+#include "crypto/astrobwt/AstroBWT.h"
 #include "backend/cpu/Cpu.h"
+#include "crypto/astrobwt/sha3.h"
+#include "crypto/cn/CryptoNight.h"
+
+
 #include <limits>
+
 
 constexpr int STAGE1_SIZE = 147253;
 constexpr int ALLOCATION_SIZE = (STAGE1_SIZE + 1048576) + (128 - (STAGE1_SIZE & 63));
@@ -171,24 +171,6 @@ void sort_indices(int N, const uint8_t* v, uint64_t* indices, uint64_t* tmp_indi
 	}
 }
 
-bool xmrig::astrobwt::init(const xmrig::Job& job)
-{
-	if (job.algorithm().family() != xmrig::Algorithm::ASTROBWT)
-		return true;
-
-	if (astrobwtInitialized)
-		return true;
-
-#ifdef ASTROBWT_AVX2
-	if (xmrig::Cpu::info()->hasAVX2()) {
-		hasAVX2 = true;
-	}
-#endif
-
-	astrobwtInitialized = true;
-	return true;
-}
-
 bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size, bool avx2)
 {
 	uint8_t key[32];
@@ -256,6 +238,19 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 
 	return true;
 }
+
+
+void xmrig::astrobwt::init()
+{
+	if (!astrobwtInitialized) {
+#		ifdef ASTROBWT_AVX2
+		hasAVX2 = Cpu::info()->hasAVX2();
+#		endif
+
+		astrobwtInitialized = true;
+	}
+}
+
 
 template<>
 void xmrig::astrobwt::single_hash<xmrig::Algorithm::ASTROBWT_DERO>(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t)

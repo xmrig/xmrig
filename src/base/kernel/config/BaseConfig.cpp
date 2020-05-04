@@ -89,13 +89,13 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_watch        = reader.getBool(kWatch, m_watch);
     m_logFile      = reader.getString(kLogFile);
     m_userAgent    = reader.getString(kUserAgent);
+    m_printTime    = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
 
 #   ifdef XMRIG_FEATURE_TLS
     m_tls = reader.getValue(kTls);
 #   endif
 
     Log::setColors(reader.getBool(kColors, Log::isColors()));
-    setPrintTime(reader.getUint(kPrintTime, 60));
     setVerbose(reader.getValue(kVerbose));
 
     const auto &api = reader.getObject(kApi);
