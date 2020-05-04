@@ -150,8 +150,7 @@ static void fill_segment_128(const argon2_instance_t *instance,
          * lane.
          */
         position.index = i;
-        ref_index = index_alpha(instance, &position, pseudo_rand & 0xFFFFFFFF,
-                                ref_lane == position.lane);
+        ref_index = xmrig_ar2_index_alpha(instance, &position, pseudo_rand & 0xFFFFFFFF, ref_lane == position.lane);
 
         /* 2 Creating a new block */
         ref_block =

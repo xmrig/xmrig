@@ -225,8 +225,7 @@ static void next_addresses(block *address_block, block *input_block)
     fill_block(zero2_block, address_block, address_block, 0);
 }
 
-void fill_segment_avx2(const argon2_instance_t *instance,
-                       argon2_position_t position)
+void xmrig_ar2_fill_segment_avx2(const argon2_instance_t *instance, argon2_position_t position)
 {
     block *ref_block = NULL, *curr_block = NULL;
     block address_block, input_block;
@@ -310,8 +309,7 @@ void fill_segment_avx2(const argon2_instance_t *instance,
          * lane.
          */
         position.index = i;
-        ref_index = index_alpha(instance, &position, pseudo_rand & 0xFFFFFFFF,
-                                ref_lane == position.lane);
+        ref_index = xmrig_ar2_index_alpha(instance, &position, pseudo_rand & 0xFFFFFFFF, ref_lane == position.lane);
 
         /* 2 Creating a new block */
         ref_block =
@@ -327,21 +325,14 @@ void fill_segment_avx2(const argon2_instance_t *instance,
     }
 }
 
-int check_avx2(void)
+int xmrig_ar2_check_avx2(void)
 {
     return cpu_flags_have_avx2();
 }
 
 #else
 
-void fill_segment_avx2(const argon2_instance_t *instance,
-                       argon2_position_t position)
-{
-}
-
-int check_avx2(void)
-{
-    return 0;
-}
+void xmrig_ar2_fill_segment_avx2(const argon2_instance_t *instance, argon2_position_t position) {}
+int xmrig_ar2_check_avx2(void) { return 0; }
 
 #endif

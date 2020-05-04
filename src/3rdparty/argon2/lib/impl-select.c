@@ -83,7 +83,7 @@ void argon2_select_impl()
     }
 }
 
-void fill_segment(const argon2_instance_t *instance, argon2_position_t position)
+void xmrig_ar2_fill_segment(const argon2_instance_t *instance, argon2_position_t position)
 {
     selected_argon_impl.fill_segment(instance, position);
 }
