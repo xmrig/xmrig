@@ -31,6 +31,7 @@
 #include "version.h"
 
 
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
