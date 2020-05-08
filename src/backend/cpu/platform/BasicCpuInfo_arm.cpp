@@ -37,9 +37,6 @@
 #include "3rdparty/rapidjson/document.h"
 
 
-std::bitset<xmrig::ICpuInfo::FLAG_MAX> xmrig::BasicCpuInfo::m_flags;
-
-
 xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_threads(std::thread::hardware_concurrency())
 {

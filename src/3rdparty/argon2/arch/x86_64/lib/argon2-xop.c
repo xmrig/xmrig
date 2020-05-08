@@ -9,8 +9,6 @@
 #   include <intrin.h>
 #endif
 
-#include "cpu-flags.h"
-
 #define ror64(x, c) _mm_roti_epi64((x), -(c))
 
 static __m128i f(__m128i x, __m128i y)
@@ -107,10 +105,8 @@ void xmrig_ar2_fill_segment_xop(const argon2_instance_t *instance, argon2_positi
     fill_segment_128(instance, position);
 }
 
-int xmrig_ar2_check_xop(void)
-{
-    return cpu_flags_have_xop();
-}
+extern int cpu_flags_has_xop(void);
+int xmrig_ar2_check_xop(void) { return cpu_flags_has_xop(); }
 
 #else
 

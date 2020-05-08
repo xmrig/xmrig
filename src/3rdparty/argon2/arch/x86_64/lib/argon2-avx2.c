@@ -9,8 +9,6 @@
 #   include <intrin.h>
 #endif
 
-#include "cpu-flags.h"
-
 #define r16 (_mm256_setr_epi8( \
      2,  3,  4,  5,  6,  7,  0,  1, \
     10, 11, 12, 13, 14, 15,  8,  9, \
@@ -325,10 +323,9 @@ void xmrig_ar2_fill_segment_avx2(const argon2_instance_t *instance, argon2_posit
     }
 }
 
-int xmrig_ar2_check_avx2(void)
-{
-    return cpu_flags_have_avx2();
-}
+
+extern int cpu_flags_has_avx2(void);
+int xmrig_ar2_check_avx2(void) { return cpu_flags_has_avx2(); }
 
 #else
 

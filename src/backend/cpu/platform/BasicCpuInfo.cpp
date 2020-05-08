@@ -59,7 +59,6 @@ namespace xmrig {
 
 static const std::array<const char *, ICpuInfo::FLAG_MAX> flagNames     = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "xop" };
 static const std::array<const char *, ICpuInfo::MSR_MOD_MAX> msrNames   = { "none", "ryzen", "intel", "custom" };
-std::bitset<ICpuInfo::FLAG_MAX> BasicCpuInfo::m_flags;
 
 
 static inline void cpuid(uint32_t level, int32_t output[4])
@@ -132,6 +131,21 @@ static inline bool has_xop()        { return has_feature(0x80000001,            
 
 
 } // namespace xmrig
+
+
+#ifdef XMRIG_ALGO_ARGON2
+extern "C" {
+
+
+int cpu_flags_has_avx2()    { return xmrig::has_avx2(); }
+int cpu_flags_has_avx512f() { return xmrig::has_avx512f(); }
+int cpu_flags_has_sse2()    { return xmrig::has_sse2(); }
+int cpu_flags_has_ssse3()   { return xmrig::has_ssse3(); }
+int cpu_flags_has_xop()     { return xmrig::has_xop(); }
+
+
+}
+#endif
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :

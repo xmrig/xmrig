@@ -10,8 +10,6 @@
 #   include <intrin.h>
 #endif
 
-#include "cpu-flags.h"
-
 #define ror64(x, n) _mm512_ror_epi64((x), (n))
 
 static __m512i f(__m512i x, __m512i y)
@@ -310,10 +308,8 @@ void xmrig_ar2_fill_segment_avx512f(const argon2_instance_t *instance, argon2_po
     }
 }
 
-int xmrig_ar2_check_avx512f(void)
-{
-    return cpu_flags_have_avx512f();
-}
+extern int cpu_flags_has_avx512f(void);
+int xmrig_ar2_check_avx512f(void) { return cpu_flags_has_avx512f(); }
 
 #else
 

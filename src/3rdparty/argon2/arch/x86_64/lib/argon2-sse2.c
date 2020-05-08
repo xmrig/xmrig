@@ -7,8 +7,6 @@
 #   include <intrin.h>
 #endif
 
-#include "cpu-flags.h"
-
 #define ror64_16(x) \
     _mm_shufflehi_epi16( \
         _mm_shufflelo_epi16((x), _MM_SHUFFLE(0, 3, 2, 1)), \
@@ -107,10 +105,8 @@ void xmrig_ar2_fill_segment_sse2(const argon2_instance_t *instance, argon2_posit
     fill_segment_128(instance, position);
 }
 
-int xmrig_ar2_check_sse2(void)
-{
-    return cpu_flags_have_sse2();
-}
+extern int cpu_flags_has_sse2(void);
+int xmrig_ar2_check_sse2(void) { return cpu_flags_has_sse2(); }
 
 #else
 

@@ -67,10 +67,9 @@ protected:
     Vendor m_vendor         = VENDOR_UNKNOWN;
 
 private:
-    static std::bitset<FLAG_MAX> m_flags;
-
     Assembly m_assembly     = Assembly::NONE;
     MsrMod m_msrMod         = MSR_MOD_NONE;
+    std::bitset<FLAG_MAX> m_flags;
 };
 
 
