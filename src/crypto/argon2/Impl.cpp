@@ -54,6 +54,7 @@ extern int xmrig_ar2_check_sse2();
 bool xmrig::argon2::Impl::select(const String &nameHint, bool benchmark)
 {
     if (!selected) {
+#       if !defined(XMRIG_ARM) || defined(__x86_64__) || defined(_M_AMD64)
         auto hint = nameHint;
 
         if (hint.isEmpty() && !benchmark) {
@@ -74,6 +75,7 @@ bool xmrig::argon2::Impl::select(const String &nameHint, bool benchmark)
         if (hint.isEmpty() || argon2_select_impl_by_name(hint) == 0) {
             argon2_select_impl();
         }
+#       endif
 
         selected = true;
         implName = argon2_get_impl_name();
