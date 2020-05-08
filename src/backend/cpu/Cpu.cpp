@@ -60,32 +60,7 @@ xmrig::ICpuInfo *xmrig::Cpu::info()
 
 rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
 {
-    using namespace rapidjson;
-    auto &allocator = doc.GetAllocator();
-
-    ICpuInfo *i = info();
-    Value cpu(kObjectType);
-    Assembly assembly(i->assembly());
-
-    cpu.AddMember("brand",      StringRef(i->brand()), allocator);
-    cpu.AddMember("aes",        i->hasAES(), allocator);
-    cpu.AddMember("avx2",       i->hasAVX2(), allocator);
-    cpu.AddMember("x64",        ICpuInfo::isX64(), allocator);
-    cpu.AddMember("l2",         static_cast<uint64_t>(i->L2()), allocator);
-    cpu.AddMember("l3",         static_cast<uint64_t>(i->L3()), allocator);
-    cpu.AddMember("cores",      static_cast<uint64_t>(i->cores()), allocator);
-    cpu.AddMember("threads",    static_cast<uint64_t>(i->threads()), allocator);
-    cpu.AddMember("packages",   static_cast<uint64_t>(i->packages()), allocator);
-    cpu.AddMember("nodes",      static_cast<uint64_t>(i->nodes()), allocator);
-    cpu.AddMember("backend",    StringRef(i->backend()), allocator);
-
-#   ifdef XMRIG_FEATURE_ASM
-    cpu.AddMember("assembly", StringRef(assembly.toString()), allocator);
-#   else
-    cpu.AddMember("assembly", "none", allocator);
-#   endif
-
-    return cpu;
+    return info()->toJSON(doc);
 }
 
 

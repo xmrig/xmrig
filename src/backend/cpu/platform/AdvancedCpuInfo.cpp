@@ -26,13 +26,6 @@
 #include "3rdparty/libcpuid/libcpuid.h"
 
 
-#ifdef _MSC_VER
-#   include <intrin.h>
-#else
-#   include <cpuid.h>
-#endif
-
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -40,59 +33,7 @@
 #include <cstring>
 
 
-namespace xmrig {
-
-
-static inline void cpu_brand_string(char out[64], const char *in) {
-    size_t pos        = 0;
-    const size_t size = strlen(in);
-
-    for (size_t i = 0; i < size; ++i) {
-        if (in[i] == ' ' && ((pos > 0 && out[pos - 1] == ' ') || pos == 0)) {
-            continue;
-        }
-
-        out[pos++] = in[i];
-    }
-
-    if (pos > 0 && out[pos - 1] == ' ') {
-        out[pos - 1] = '\0';
-    }
-}
-
-
-static inline void cpuid(uint32_t level, int32_t output[4])
-{
-    memset(output, 0, sizeof(int32_t) * 4);
-
-#   ifdef _MSC_VER
-    __cpuid(output, static_cast<int>(level));
-#   else
-    __cpuid_count(level, 0, output[0], output[1], output[2], output[3]);
-#   endif
-}
-
-
-static inline bool has_feature(uint32_t level, uint32_t reg, int32_t bit)
-{
-    int32_t cpu_info[4] = { 0 };
-    cpuid(level, cpu_info);
-
-    return (cpu_info[reg] & bit) != 0;
-}
-
-
-static inline bool has_pdpe1gb()
-{
-    return has_feature(0x80000001, 3, 1 << 26);
-}
-
-
-} // namespace xmrig
-
-
-xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
-    m_pdpe1gb(has_pdpe1gb())
+xmrig::AdvancedCpuInfo::AdvancedCpuInfo()
 {
     struct cpu_raw_data_t raw = {};
     struct cpu_id_t data      = {};
@@ -100,18 +41,10 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
     cpuid_get_raw_data(&raw);
     cpu_identify(&raw, &data);
 
-    cpu_brand_string(m_brand, data.brand_str);
     snprintf(m_backend, sizeof m_backend, "libcpuid/%s", cpuid_lib_version());
 
-    if (data.vendor == ::VENDOR_INTEL) {
-        m_vendor = VENDOR_INTEL;
-    }
-    else if (data.vendor == ::VENDOR_AMD) {
-        m_vendor = VENDOR_AMD;
-    }
-
     m_threads  = static_cast<size_t>(data.total_logical_cpus);
-    m_packages = std::max<size_t>(threads() / static_cast<size_t>(data.num_logical_cpus), 1);
+    m_packages = std::max<size_t>(m_threads / static_cast<size_t>(data.num_logical_cpus), 1);
     m_cores    = static_cast<size_t>(data.num_cores) * m_packages;
     m_L3       = data.l3_cache > 0 ? static_cast<size_t>(data.l3_cache) * m_packages : 0;
 
@@ -134,26 +67,6 @@ xmrig::AdvancedCpuInfo::AdvancedCpuInfo() :
 
     m_L2 *= 1024;
     m_L3 *= 1024;
-
-    if (data.flags[CPU_FEATURE_AES]) {
-        m_aes = true;
-
-        if (m_vendor == VENDOR_AMD) {
-            if (data.ext_family >= 23) {
-                m_assembly = Assembly::RYZEN;
-                m_msrMod   = MSR_MOD_RYZEN;
-            }
-            else {
-                m_assembly = Assembly::BULLDOZER;
-            }
-        }
-        else if (m_vendor == VENDOR_INTEL) {
-            m_assembly = Assembly::INTEL;
-        }
-    }
-
-    m_avx2 = data.flags[CPU_FEATURE_AVX2] && data.flags[CPU_FEATURE_OSXSAVE];
-    m_bmi2 = data.flags[CPU_FEATURE_BMI2];
 }
 
 

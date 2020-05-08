@@ -29,6 +29,9 @@
 #include "backend/cpu/interfaces/ICpuInfo.h"
 
 
+#include <bitset>
+
+
 namespace xmrig {
 
 
@@ -40,12 +43,14 @@ public:
 protected:
     const char *backend() const override;
     CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const override;
+    rapidjson::Value toJSON(rapidjson::Document &doc) const override;
 
     inline Assembly::Id assembly() const override   { return m_assembly; }
-    inline bool hasAES() const override             { return m_aes; }
-    inline bool hasAVX2() const override            { return m_avx2; }
-    inline bool hasBMI2() const override            { return m_bmi2; }
-    inline bool hasOneGbPages() const override      { return m_pdpe1gb; }
+    inline bool has(Flag flag) const override       { return m_flags.test(flag); }
+    inline bool hasAES() const override             { return has(FLAG_AES); }
+    inline bool hasAVX2() const override            { return has(FLAG_AVX2); }
+    inline bool hasBMI2() const override            { return has(FLAG_BMI2); }
+    inline bool hasOneGbPages() const override      { return has(FLAG_PDPE1GB); }
     inline const char *brand() const override       { return m_brand; }
     inline MsrMod msrMod() const override           { return m_msrMod; }
     inline size_t cores() const override            { return 0; }
@@ -59,15 +64,13 @@ protected:
 protected:
     char m_brand[64 + 6]{};
     size_t m_threads;
+    Vendor m_vendor         = VENDOR_UNKNOWN;
 
 private:
+    static std::bitset<FLAG_MAX> m_flags;
+
     Assembly m_assembly     = Assembly::NONE;
-    bool m_aes              = false;
-    const bool m_avx2       = false;
-    const bool m_bmi2       = false;
-    const bool m_pdpe1gb    = false;
     MsrMod m_msrMod         = MSR_MOD_NONE;
-    Vendor m_vendor         = VENDOR_UNKNOWN;
 };
 
 

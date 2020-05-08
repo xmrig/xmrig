@@ -26,13 +26,13 @@
 #define XMRIG_ADVANCEDCPUINFO_H
 
 
-#include "backend/cpu/interfaces/ICpuInfo.h"
+#include "backend/cpu/platform/BasicCpuInfo.h"
 
 
 namespace xmrig {
 
 
-class AdvancedCpuInfo : public ICpuInfo
+class AdvancedCpuInfo : public BasicCpuInfo
 {
 public:
     AdvancedCpuInfo();
@@ -40,38 +40,20 @@ public:
 protected:
     CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const override;
 
-    inline Assembly::Id assembly() const override   { return m_assembly; }
-    inline bool hasAES() const override             { return m_aes; }
-    inline bool hasAVX2() const override            { return m_avx2; }
-    inline bool hasBMI2() const override            { return m_bmi2; }
-    inline bool hasOneGbPages() const override      { return m_pdpe1gb; }
     inline const char *backend() const override     { return m_backend; }
-    inline const char *brand() const override       { return m_brand; }
-    inline MsrMod msrMod() const override           { return m_msrMod; }
     inline size_t cores() const override            { return m_cores; }
     inline size_t L2() const override               { return m_L2; }
     inline size_t L3() const override               { return m_L3; }
-    inline size_t nodes() const override            { return 0; }
     inline size_t packages() const override         { return m_packages; }
     inline size_t threads() const override          { return m_threads; }
-    inline Vendor vendor() const override           { return m_vendor; }
 
 private:
-    Assembly m_assembly;
-    bool m_aes            = false;
-    bool m_avx2           = false;
-    bool m_bmi2           = false;
     bool m_L2_exclusive   = false;
     char m_backend[32]{};
-    char m_brand[64 + 5]{};
-    const bool m_pdpe1gb  = false;
-    MsrMod m_msrMod       = MSR_MOD_NONE;
     size_t m_cores        = 0;
     size_t m_L2           = 0;
     size_t m_L3           = 0;
     size_t m_packages     = 1;
-    size_t m_threads      = 0;
-    Vendor m_vendor       = VENDOR_UNKNOWN;
 };
 
 
