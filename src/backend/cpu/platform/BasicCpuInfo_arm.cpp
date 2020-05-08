@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <array>
 #include <cstring>
 #include <thread>
 
@@ -33,6 +34,10 @@
 
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
+#include "3rdparty/rapidjson/document.h"
+
+
+std::bitset<xmrig::ICpuInfo::FLAG_MAX> xmrig::BasicCpuInfo::m_flags;
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
@@ -56,11 +61,44 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 
 const char *xmrig::BasicCpuInfo::backend() const
 {
-    return "basic_arm";
+    return "basic/1";
 }
 
 
 xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &, uint32_t) const
 {
     return CpuThreads(threads());
+}
+
+
+rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value out(kObjectType);
+
+    out.AddMember("brand",      StringRef(brand()), allocator);
+    out.AddMember("aes",        hasAES(), allocator);
+    out.AddMember("avx2",       false, allocator);
+    out.AddMember("x64",        isX64(), allocator);
+    out.AddMember("l2",         static_cast<uint64_t>(L2()), allocator);
+    out.AddMember("l3",         static_cast<uint64_t>(L3()), allocator);
+    out.AddMember("cores",      static_cast<uint64_t>(cores()), allocator);
+    out.AddMember("threads",    static_cast<uint64_t>(threads()), allocator);
+    out.AddMember("packages",   static_cast<uint64_t>(packages()), allocator);
+    out.AddMember("nodes",      static_cast<uint64_t>(nodes()), allocator);
+    out.AddMember("backend",    StringRef(backend()), allocator);
+    out.AddMember("msr",        "none", allocator);
+    out.AddMember("assembly",   "none", allocator);
+
+    Value flags(kArrayType);
+
+    if (hasAES()) {
+        flags.PushBack("aes", allocator);
+    }
+
+    out.AddMember("flags", flags, allocator);
+
+    return out;
 }
