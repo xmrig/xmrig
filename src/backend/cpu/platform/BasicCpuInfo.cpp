@@ -23,6 +23,7 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <thread>
 
@@ -274,7 +275,7 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
 #   ifdef XMRIG_FEATURE_ASM
     out.AddMember("assembly",   StringRef(Assembly(assembly()).toString()), allocator);
 #   else
-    cpu.AddMember("assembly",   "none", allocator);
+    out.AddMember("assembly",   "none", allocator);
 #   endif
 
     Value flags(kArrayType);
