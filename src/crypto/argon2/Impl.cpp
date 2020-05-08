@@ -54,7 +54,7 @@ extern int xmrig_ar2_check_sse2();
 bool xmrig::argon2::Impl::select(const String &nameHint, bool benchmark)
 {
     if (!selected) {
-#       if !defined(XMRIG_ARM) || defined(__x86_64__) || defined(_M_AMD64)
+#       if defined(__x86_64__) || defined(_M_AMD64)
         auto hint = nameHint;
 
         if (hint.isEmpty() && !benchmark) {
