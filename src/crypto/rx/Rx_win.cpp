@@ -36,7 +36,7 @@
 #include "crypto/rx/RxConfig.h"
 
 
-#include <Windows.h>
+#include <windows.h>
 #include <array>
 #include <string>
 #include <thread>
