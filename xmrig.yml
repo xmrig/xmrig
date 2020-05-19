@@ -14,7 +14,7 @@ metadata:
   labels:
     app: xmrig
 spec:
-  replicas: 9
+  replicas: 1
   selector:
     matchLabels:
       app: xmrig
