@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xmrig
+  labels:
+    name: xmrig
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: xmrig
+  name: xmrig-deployment
+  labels:
+    app: xmrig
+spec:
+  replicas: 9
+  selector:
+    matchLabels:
+      app: xmrig
+  template:
+    metadata:
+      labels:
+        app: xmrig
+    spec:
+      containers:
+        - name: xmrig
+          image: drailz/monero
+          imagePullPolicy: Always
