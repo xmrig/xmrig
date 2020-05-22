@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -366,7 +366,7 @@ hwloc_pcidisc_add_hostbridges(struct hwloc_topology *topology,
     struct hwloc_obj **dstnextp;
     struct hwloc_obj **srcnextp;
     struct hwloc_obj *child;
-    unsigned short current_domain;
+    unsigned current_domain;
     unsigned char current_bus;
     unsigned char current_subordinate;
 

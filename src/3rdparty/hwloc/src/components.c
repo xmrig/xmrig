@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2012 Université Bordeaux
  * See COPYING in top-level directory.
  */
@@ -63,14 +63,128 @@ static pthread_mutex_t hwloc_components_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef HWLOC_HAVE_PLUGINS
 
+#ifdef HWLOC_HAVE_LTDL
+/* ltdl-based plugin load */
 #include <ltdl.h>
+typedef lt_dlhandle hwloc_dlhandle;
+#define hwloc_dlinit lt_dlinit
+#define hwloc_dlexit lt_dlexit
+#define hwloc_dlopenext lt_dlopenext
+#define hwloc_dlclose lt_dlclose
+#define hwloc_dlerror lt_dlerror
+#define hwloc_dlsym lt_dlsym
+#define hwloc_dlforeachfile lt_dlforeachfile
+
+#else /* !HWLOC_HAVE_LTDL */
+/* no-ltdl plugin load relies on less portable libdl */
+#include <dlfcn.h>
+typedef void * hwloc_dlhandle;
+static __hwloc_inline int hwloc_dlinit(void) { return 0; }
+static __hwloc_inline int hwloc_dlexit(void) { return 0; }
+#define hwloc_dlclose dlclose
+#define hwloc_dlerror dlerror
+#define hwloc_dlsym dlsym
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <unistd.h>
+
+static hwloc_dlhandle hwloc_dlopenext(const char *_filename)
+{
+  hwloc_dlhandle handle;
+  char *filename = NULL;
+  (void) asprintf(&filename, "%s.so", _filename);
+  if (!filename)
+    return NULL;
+  handle = dlopen(filename, RTLD_NOW|RTLD_LOCAL);
+  free(filename);
+  return handle;
+}
+
+static int
+hwloc_dlforeachfile(const char *_paths,
+		    int (*func)(const char *filename, void *data),
+		    void *data)
+{
+  char *paths = NULL, *path;
+
+  paths = strdup(_paths);
+  if (!paths)
+    return -1;
+
+  path = paths;
+  while (*path) {
+    char *colon;
+    DIR *dir;
+    struct dirent *dirent;
+
+    colon = strchr(path, ':');
+    if (colon)
+      *colon = '\0';
+
+    if (hwloc_plugins_verbose)
+      fprintf(stderr, " Looking under %s\n", path);
+
+    dir = opendir(path);
+    if (!dir)
+      goto next;
+
+    while ((dirent = readdir(dir)) != NULL) {
+      char *abs_name, *suffix;
+      struct stat stbuf;
+      int err;
+
+      err = asprintf(&abs_name, "%s/%s", path, dirent->d_name);
+      if (err < 0)
+	continue;
+
+      err = stat(abs_name, &stbuf);
+      if (err < 0) {
+	free(abs_name);
+        continue;
+      }
+      if (!S_ISREG(stbuf.st_mode)) {
+	free(abs_name);
+	continue;
+      }
+
+      /* Only keep .so files, and remove that suffix to get the component basename */
+      suffix = strrchr(abs_name, '.');
+      if (!suffix || strcmp(suffix, ".so")) {
+	free(abs_name);
+	continue;
+      }
+      *suffix = '\0';
+
+      err = func(abs_name, data);
+      if (err) {
+	free(abs_name);
+	continue;
+      }
+
+      free(abs_name);
+    }
+
+    closedir(dir);
+
+  next:
+    if (!colon)
+      break;
+    path = colon+1;
+  }
+
+  free(paths);
+  return 0;
+}
+#endif /* !HWLOC_HAVE_LTDL */
 
 /* array of pointers to dynamically loaded plugins */
 static struct hwloc__plugin_desc {
   char *name;
   struct hwloc_component *component;
   char *filename;
-  lt_dlhandle handle;
+  hwloc_dlhandle handle;
   struct hwloc__plugin_desc *next;
 } *hwloc_plugins = NULL;
 
@@ -78,9 +192,10 @@ static int
 hwloc__dlforeach_cb(const char *filename, void *_data __hwloc_attribute_unused)
 {
   const char *basename;
-  lt_dlhandle handle;
+  hwloc_dlhandle handle;
   struct hwloc_component *component;
   struct hwloc__plugin_desc *desc, **prevdesc;
+  char *componentsymbolname;
 
   if (hwloc_plugins_verbose)
     fprintf(stderr, "Plugin dlforeach found `%s'\n", filename);
@@ -98,33 +213,40 @@ hwloc__dlforeach_cb(const char *filename, void *_data __hwloc_attribute_unused)
   }
 
   /* dlopen and get the component structure */
-  handle = lt_dlopenext(filename);
+  handle = hwloc_dlopenext(filename);
   if (!handle) {
     if (hwloc_plugins_verbose)
-      fprintf(stderr, "Failed to load plugin: %s\n", lt_dlerror());
+      fprintf(stderr, "Failed to load plugin: %s\n", hwloc_dlerror());
     goto out;
   }
 
-{
-  char componentsymbolname[strlen(basename)+10+1];
+  componentsymbolname = malloc(strlen(basename)+10+1);
+  if (!componentsymbolname) {
+    if (hwloc_plugins_verbose)
+      fprintf(stderr, "Failed to allocation component `%s' symbol\n",
+	      basename);
+    goto out_with_handle;
+  }
   sprintf(componentsymbolname, "%s_component", basename);
-  component = lt_dlsym(handle, componentsymbolname);
+  component = hwloc_dlsym(handle, componentsymbolname);
   if (!component) {
     if (hwloc_plugins_verbose)
       fprintf(stderr, "Failed to find component symbol `%s'\n",
 	      componentsymbolname);
+    free(componentsymbolname);
     goto out_with_handle;
   }
   if (component->abi != HWLOC_COMPONENT_ABI) {
     if (hwloc_plugins_verbose)
       fprintf(stderr, "Plugin symbol ABI %u instead of %d\n",
 	      component->abi, HWLOC_COMPONENT_ABI);
+    free(componentsymbolname);
     goto out_with_handle;
   }
   if (hwloc_plugins_verbose)
     fprintf(stderr, "Plugin contains expected symbol `%s'\n",
 	    componentsymbolname);
-}
+  free(componentsymbolname);
 
   if (HWLOC_COMPONENT_TYPE_DISC == component->type) {
     if (strncmp(basename, "hwloc_", 6)) {
@@ -167,7 +289,7 @@ hwloc__dlforeach_cb(const char *filename, void *_data __hwloc_attribute_unused)
   return 0;
 
  out_with_handle:
-  lt_dlclose(handle);
+  hwloc_dlclose(handle);
  out:
   return 0;
 }
@@ -183,7 +305,7 @@ hwloc_plugins_exit(void)
   desc = hwloc_plugins;
   while (desc) {
     next = desc->next;
-    lt_dlclose(desc->handle);
+    hwloc_dlclose(desc->handle);
     free(desc->name);
     free(desc->filename);
     free(desc);
@@ -191,7 +313,7 @@ hwloc_plugins_exit(void)
   }
   hwloc_plugins = NULL;
 
-  lt_dlexit();
+  hwloc_dlexit();
 }
 
 static int
@@ -207,7 +329,7 @@ hwloc_plugins_init(void)
 
   hwloc_plugins_blacklist = getenv("HWLOC_PLUGINS_BLACKLIST");
 
-  err = lt_dlinit();
+  err = hwloc_dlinit();
   if (err)
     goto out;
 
@@ -219,7 +341,7 @@ hwloc_plugins_init(void)
 
   if (hwloc_plugins_verbose)
     fprintf(stderr, "Starting plugin dlforeach in %s\n", path);
-  err = lt_dlforeachfile(path, hwloc__dlforeach_cb, NULL);
+  err = hwloc_dlforeachfile(path, hwloc__dlforeach_cb, NULL);
   if (err)
     goto out_with_init;
 
@@ -680,7 +802,8 @@ hwloc_disc_components_enable_others(struct hwloc_topology *topology)
     while (*curenv) {
       s = strcspn(curenv, HWLOC_COMPONENT_SEPS);
       if (s) {
-	char c, *name;
+	char c;
+	const char *name;
 
 	if (!strncmp(curenv, HWLOC_COMPONENT_STOP_NAME, s)) {
 	  tryall = 0;

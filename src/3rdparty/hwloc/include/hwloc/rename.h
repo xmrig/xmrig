@@ -28,6 +28,7 @@ extern "C" {
 #define HWLOC_MUNGE_NAME(a, b) HWLOC_MUNGE_NAME2(a, b)
 #define HWLOC_MUNGE_NAME2(a, b) a ## b
 #define HWLOC_NAME(name) HWLOC_MUNGE_NAME(HWLOC_SYM_PREFIX, hwloc_ ## name)
+/* FIXME: should be "HWLOC_ ## name" below, unchanged because it doesn't matter much and could break some embedders hacks */
 #define HWLOC_NAME_CAPS(name) HWLOC_MUNGE_NAME(HWLOC_SYM_PREFIX_CAPS, hwloc_ ## name)
 
 /* Now define all the "real" names to be the prefixed names.  This
@@ -91,9 +92,6 @@ extern "C" {
 #define HWLOC_OBJ_OSDEV_COPROC HWLOC_NAME_CAPS(OBJ_OSDEV_COPROC)
 
 #define hwloc_compare_types HWLOC_NAME(compare_types)
-
-#define hwloc_compare_types_e HWLOC_NAME(compare_types_e)
-#define HWLOC_TYPE_UNORDERED HWLOC_NAME_CAPS(TYPE_UNORDERED)
 
 #define hwloc_obj HWLOC_NAME(obj)
 #define hwloc_obj_t HWLOC_NAME(obj_t)
@@ -324,6 +322,7 @@ extern "C" {
 #define hwloc_get_ancestor_obj_by_type HWLOC_NAME(get_ancestor_obj_by_type)
 #define hwloc_get_next_obj_by_depth HWLOC_NAME(get_next_obj_by_depth)
 #define hwloc_get_next_obj_by_type HWLOC_NAME(get_next_obj_by_type)
+#define hwloc_bitmap_singlify_per_core HWLOC_NAME(bitmap_singlify_by_core)
 #define hwloc_get_pu_obj_by_os_index HWLOC_NAME(get_pu_obj_by_os_index)
 #define hwloc_get_numanode_obj_by_os_index HWLOC_NAME(get_numanode_obj_by_os_index)
 #define hwloc_get_next_child HWLOC_NAME(get_next_child)
@@ -481,11 +480,6 @@ extern "C" {
 #define hwloc_ibv_get_device_cpuset HWLOC_NAME(ibv_get_device_cpuset)
 #define hwloc_ibv_get_device_osdev HWLOC_NAME(ibv_get_device_osdev)
 #define hwloc_ibv_get_device_osdev_by_name HWLOC_NAME(ibv_get_device_osdev_by_name)
-
-/* intel-mic.h */
-
-#define hwloc_intel_mic_get_device_cpuset HWLOC_NAME(intel_mic_get_device_cpuset)
-#define hwloc_intel_mic_get_device_osdev_by_index HWLOC_NAME(intel_mic_get_device_osdev_by_index)
 
 /* opencl.h */
 
@@ -709,6 +703,7 @@ extern "C" {
 #define hwloc_get_sysctlbyname HWLOC_NAME(get_sysctlbyname)
 #define hwloc_get_sysctl HWLOC_NAME(get_sysctl)
 #define hwloc_fallback_nbprocessors HWLOC_NAME(fallback_nbprocessors)
+#define hwloc_fallback_memsize HWLOC_NAME(fallback_memsize)
 
 #define hwloc__object_cpusets_compare_first HWLOC_NAME(_object_cpusets_compare_first)
 #define hwloc__reorder_children HWLOC_NAME(_reorder_children)
