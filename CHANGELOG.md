@@ -1,3 +1,8 @@
+# v5.11.2
+- [#1664](https://github.com/xmrig/xmrig/pull/1664) Improved JSON config error reporting.
+- [#1668](https://github.com/xmrig/xmrig/pull/1668) Optimized RandomX dataset initialization.
+- Fixed memory leak in HTTP client.
+
 # v5.11.1
 - [#1652](https://github.com/xmrig/xmrig/pull/1652) Up to 1% RandomX perfomance improvement on recent AMD CPUs.
 - [#1306](https://github.com/xmrig/xmrig/issues/1306) Fixed possible double connection to a pool.
