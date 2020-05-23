@@ -1,6 +1,7 @@
 # v5.11.2
 - [#1664](https://github.com/xmrig/xmrig/pull/1664) Improved JSON config error reporting.
 - [#1668](https://github.com/xmrig/xmrig/pull/1668) Optimized RandomX dataset initialization.
+- [#1675](https://github.com/xmrig/xmrig/pull/1675) Fixed cross-compiling on Linux.
 - Fixed memory leak in HTTP client.
 - Build [dependencies](https://github.com/xmrig/xmrig-deps/releases/tag/v4.1) updated to recent versions.
 - Compiler for Windows gcc builds updated to v10.1.
