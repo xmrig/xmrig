@@ -505,14 +505,16 @@ int hwloc_bitmap_list_sscanf(struct hwloc_bitmap_s *set, const char * __hwloc_re
 
     if (begin != -1) {
       /* finishing a range */
-      hwloc_bitmap_set_range(set, begin, val);
+      if (hwloc_bitmap_set_range(set, begin, val) < 0)
+        goto failed;
       begin = -1;
 
     } else if (*next == '-') {
       /* starting a new range */
       if (*(next+1) == '\0') {
 	/* infinite range */
-	hwloc_bitmap_set_range(set, val, -1);
+	if (hwloc_bitmap_set_range(set, val, -1) < 0)
+	  goto failed;
         break;
       } else {
 	/* normal range */

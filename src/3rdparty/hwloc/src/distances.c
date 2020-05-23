@@ -323,6 +323,8 @@ hwloc_internal_distances__add(hwloc_topology_t topology, const char *name,
   return 0;
 
  err_with_dist:
+  if (name)
+    free(dist->name);
   free(dist);
  err:
   free(different_types);

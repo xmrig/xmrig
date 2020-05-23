@@ -26,6 +26,9 @@
 #define XMRIG_ILINELISTENER_H
 
 
+#include "base/tools/Object.h"
+
+
 #include <cstdint>
 
 
@@ -35,7 +38,10 @@ namespace xmrig {
 class ILineListener
 {
 public:
-    virtual ~ILineListener() = default;
+    XMRIG_DISABLE_COPY_MOVE(ILineListener)
+
+    ILineListener()             = default;
+    virtual ~ILineListener()    = default;
 
     virtual void onLine(char *line, size_t size) = 0;
 };

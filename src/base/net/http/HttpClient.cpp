@@ -128,8 +128,9 @@ void xmrig::HttpClient::read(const char *data, size_t size)
 void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
 {
     auto client = static_cast<HttpClient *>(req->data);
+    delete req;
+
     if (!client) {
-        delete req;
         return;
     }
 
@@ -138,9 +139,7 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
             LOG_ERR("[%s:%d] connect error: \"%s\"", client->m_dns->host().data(), client->port(), uv_strerror(status));
         }
 
-        delete req;
-        client->close(status);
-        return;
+        return client->close(status);
     }
 
     uv_read_start(client->stream(), NetBuffer::onAlloc,

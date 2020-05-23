@@ -30,9 +30,9 @@
 #include <set>
 
 
+#include "3rdparty/rapidjson/fwd.h"
 #include "base/crypto/Algorithm.h"
 #include "base/tools/String.h"
-#include "rapidjson/fwd.h"
 
 
 namespace xmrig {

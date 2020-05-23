@@ -24,7 +24,7 @@
 
 
 #include "base/io/json/JsonRequest.h"
-#include "rapidjson/document.h"
+#include "3rdparty/rapidjson/document.h"
 
 
 namespace xmrig {

@@ -1,7 +1,7 @@
 /*
  * Copyright © 2009      CNRS
  * Copyright © 2009-2019 Inria.  All rights reserved.
- * Copyright © 2009-2012 Université Bordeaux
+ * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  *
  * See COPYING in top-level directory.
@@ -224,11 +224,13 @@ struct hwloc_topology {
 extern void hwloc_alloc_root_sets(hwloc_obj_t root);
 extern void hwloc_setup_pu_level(struct hwloc_topology *topology, unsigned nb_pus);
 extern int hwloc_get_sysctlbyname(const char *name, int64_t *n);
-extern int hwloc_get_sysctl(int name[], unsigned namelen, int *n);
+extern int hwloc_get_sysctl(int name[], unsigned namelen, int64_t *n);
 
 /* returns the number of CPU from the OS (only valid if thissystem) */
 #define HWLOC_FALLBACK_NBPROCESSORS_INCLUDE_OFFLINE 1 /* by default we try to get only the online CPUs */
 extern int hwloc_fallback_nbprocessors(unsigned flags);
+/* returns the memory size from the OS (only valid if thissystem) */
+extern int64_t hwloc_fallback_memsize(void);
 
 extern int hwloc__object_cpusets_compare_first(hwloc_obj_t obj1, hwloc_obj_t obj2);
 extern void hwloc__reorder_children(hwloc_obj_t parent);

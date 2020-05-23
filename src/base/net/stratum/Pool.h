@@ -31,9 +31,9 @@
 #include <vector>
 
 
+#include "3rdparty/rapidjson/fwd.h"
 #include "base/crypto/Coin.h"
 #include "base/net/stratum/ProxyUrl.h"
-#include "rapidjson/fwd.h"
 
 
 namespace xmrig {

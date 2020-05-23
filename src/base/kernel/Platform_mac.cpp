@@ -34,10 +34,6 @@
 #include "base/kernel/Platform.h"
 #include "version.h"
 
-#ifdef XMRIG_NVIDIA_PROJECT
-#   include "nvidia/cryptonight.h"
-#endif
-
 
 char *xmrig::Platform::createUserAgent()
 {
@@ -45,11 +41,6 @@ char *xmrig::Platform::createUserAgent()
 
     char *buf = new char[max]();
     int length = snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s", APP_NAME, APP_VERSION, uv_version_string());
-
-#   ifdef XMRIG_NVIDIA_PROJECT
-    const int cudaVersion = cuda_get_runtime_version();
-    length += snprintf(buf + length, max - length, " CUDA/%d.%d", cudaVersion / 1000, cudaVersion % 100);
-#   endif
 
 #   ifdef __clang__
     length += snprintf(buf + length, max - length, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
@@ -73,17 +64,6 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     return result;
 }
 #endif
-
-
-uint32_t xmrig::Platform::setTimerResolution(uint32_t resolution)
-{
-    return resolution;
-}
-
-
-void xmrig::Platform::restoreTimerResolution()
-{
-}
 
 
 void xmrig::Platform::setProcessPriority(int)

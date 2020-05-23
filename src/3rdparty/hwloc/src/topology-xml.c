@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2011 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -107,7 +107,8 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 			      struct hwloc_xml_backend_data_s *data,
 			      struct hwloc_obj *obj,
 			      const char *name, const char *value,
-			      hwloc__xml_import_state_t state)
+			      hwloc__xml_import_state_t state,
+			      int *ignore)
 {
   if (!strcmp(name, "type")) {
     /* already handled */
@@ -252,11 +253,20 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
     case HWLOC_OBJ_PCI_DEVICE:
     case HWLOC_OBJ_BRIDGE: {
       unsigned domain, bus, dev, func;
-      if (sscanf(value, "%04x:%02x:%02x.%01x",
+      if (sscanf(value, "%x:%02x:%02x.%01x",
 		 &domain, &bus, &dev, &func) != 4) {
 	if (hwloc__xml_verbose())
 	  fprintf(stderr, "%s: ignoring invalid pci_busid format string %s\n",
 		  state->global->msgprefix, value);
+	*ignore = 1;
+#ifndef HWLOC_HAVE_32BITS_PCI_DOMAIN
+      } else if (domain > 0xffff) {
+	static int warned = 0;
+	if (!warned && !hwloc_hide_errors())
+	  fprintf(stderr, "Ignoring PCI device with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
+	warned = 1;
+	*ignore = 1;
+#endif
       } else {
 	obj->attr->pcidev.domain = domain;
 	obj->attr->pcidev.bus = bus;
@@ -278,7 +288,7 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
     case HWLOC_OBJ_PCI_DEVICE:
     case HWLOC_OBJ_BRIDGE: {
       unsigned classid, vendor, device, subvendor, subdevice, revision;
-      if (sscanf(value, "%04x [%04x:%04x] [%04x:%04x] %02x",
+      if (sscanf(value, "%x [%04x:%04x] [%04x:%04x] %02x",
 		 &classid, &vendor, &device, &subvendor, &subdevice, &revision) != 6) {
 	if (hwloc__xml_verbose())
 	  fprintf(stderr, "%s: ignoring invalid pci_type format string %s\n",
@@ -342,11 +352,20 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
     switch (obj->type) {
     case HWLOC_OBJ_BRIDGE: {
       unsigned domain, secbus, subbus;
-      if (sscanf(value, "%04x:[%02x-%02x]",
+      if (sscanf(value, "%x:[%02x-%02x]",
 		 &domain, &secbus, &subbus) != 3) {
 	if (hwloc__xml_verbose())
 	  fprintf(stderr, "%s: ignoring invalid bridge_pci format string %s\n",
 		  state->global->msgprefix, value);
+	*ignore = 1;
+#ifndef HWLOC_HAVE_32BITS_PCI_DOMAIN
+      } else if (domain > 0xffff) {
+	static int warned = 0;
+	if (!warned && !hwloc_hide_errors())
+	  fprintf(stderr, "Ignoring bridge to PCI with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
+	warned = 1;
+	*ignore = 1;
+#endif
       } else {
 	obj->attr->bridge.downstream.pci.domain = domain;
 	obj->attr->bridge.downstream.pci.secondary_bus = secbus;
@@ -426,6 +445,7 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 	    memory->page_types = malloc(sizeof(*memory->page_types));
 	    memory->page_types_len = 1;
 	  }
+	  assert(memory->page_types);
 	  memory->page_types[0].size = lvalue << 10;
 	} else if (hwloc__xml_verbose()) {
 	  fprintf(stderr, "%s: ignoring huge_page_size_kB attribute for non-NUMAnode non-root object\n",
@@ -440,6 +460,7 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 	    memory->page_types = malloc(sizeof(*memory->page_types));
 	    memory->page_types_len = 1;
 	  }
+	  assert(memory->page_types);
 	  memory->page_types[0].count = lvalue;
 	} else if (hwloc__xml_verbose()) {
 	  fprintf(stderr, "%s: ignoring huge_page_free attribute for non-NUMAnode non-root object\n",
@@ -835,7 +856,7 @@ hwloc__xml_import_object(hwloc_topology_t topology,
 		  state->global->msgprefix,  attrname);
 	goto error_with_object;
       }
-      hwloc__xml_import_object_attr(topology, data, obj, attrname, attrvalue, state);
+      hwloc__xml_import_object_attr(topology, data, obj, attrname, attrvalue, state, &ignored);
     }
   }
 
@@ -1140,15 +1161,23 @@ hwloc__xml_import_object(hwloc_topology_t topology,
       ret = -1;
     }
 
-    if (ret < 0)
-      goto error;
+    if (ret < 0) {
+      if (parent && !ignored)
+        goto error;
+      else
+        goto error_with_object;
+    }
 
     state->global->close_child(&childstate);
 
     tag = NULL;
     ret = state->global->find_child(state, &childstate, &tag);
-    if (ret < 0)
-      goto error;
+    if (ret < 0) {
+      if (parent && !ignored)
+        goto error;
+      else
+        goto error_with_object;
+    }
     if (!ret)
       break;
   }
@@ -1548,7 +1577,7 @@ hwloc__xml_import_diff_one(hwloc__xml_import_state_t state,
       memset(&diff->obj_attr.diff, 0, sizeof(diff->obj_attr.diff));
       diff->obj_attr.diff.generic.type = obj_attr_type;
 
-      switch (atoi(obj_attr_type_s)) {
+      switch (obj_attr_type) {
       case HWLOC_TOPOLOGY_DIFF_OBJ_ATTR_SIZE:
 	diff->obj_attr.diff.uint64.oldvalue = strtoull(obj_attr_oldvalue_s, NULL, 0);
 	diff->obj_attr.diff.uint64.newvalue = strtoull(obj_attr_newvalue_s, NULL, 0);
@@ -1732,7 +1761,7 @@ hwloc_look_xml(struct hwloc_backend *backend, struct hwloc_disc_status *dstatus)
 	  goto failed;
       } else {
 	if (hwloc__xml_verbose())
-	  fprintf(stderr, "%s: ignoring unknown tag `%s' after root object, expected `distances2'\n",
+	  fprintf(stderr, "%s: ignoring unknown tag `%s' after root object.\n",
 		  data->msgprefix, tag);
 	goto done;
       }
@@ -1778,6 +1807,8 @@ done:
       if (nbobjs == data->nbnumanodes) {
 	hwloc_obj_t *objs = malloc(nbobjs*sizeof(hwloc_obj_t));
 	uint64_t *values = malloc(nbobjs*nbobjs*sizeof(*values));
+        assert(data->nbnumanodes > 0); /* v1dist->nbobjs is >0 after import */
+        assert(data->first_numanode);
 	if (objs && values) {
 	  hwloc_obj_t node;
 	  unsigned i;
@@ -2051,13 +2082,17 @@ hwloc__xml_export_object_contents (hwloc__xml_export_state_t state, hwloc_topolo
 	state->new_prop(state, "online_cpuset", setstring);
       free(setstring);
 
-      if (v1export || !obj->parent) {
+      if (v1export) {
 	hwloc_bitmap_t allowed_cpuset = hwloc_bitmap_dup(obj->cpuset);
 	hwloc_bitmap_and(allowed_cpuset, allowed_cpuset, topology->allowed_cpuset);
 	hwloc_bitmap_asprintf(&setstring, allowed_cpuset);
 	state->new_prop(state, "allowed_cpuset", setstring);
 	free(setstring);
 	hwloc_bitmap_free(allowed_cpuset);
+      } else if (!obj->parent) {
+	hwloc_bitmap_asprintf(&setstring, topology->allowed_cpuset);
+	state->new_prop(state, "allowed_cpuset", setstring);
+	free(setstring);
       }
     }
 
@@ -2072,13 +2107,17 @@ hwloc__xml_export_object_contents (hwloc__xml_export_state_t state, hwloc_topolo
     state->new_prop(state, "complete_nodeset", setstring);
     free(setstring);
 
-    if (v1export || !obj->parent) {
+    if (v1export) {
       hwloc_bitmap_t allowed_nodeset = hwloc_bitmap_dup(obj->nodeset);
       hwloc_bitmap_and(allowed_nodeset, allowed_nodeset, topology->allowed_nodeset);
       hwloc_bitmap_asprintf(&setstring, allowed_nodeset);
       state->new_prop(state, "allowed_nodeset", setstring);
       free(setstring);
       hwloc_bitmap_free(allowed_nodeset);
+    } else if (!obj->parent) {
+      hwloc_bitmap_asprintf(&setstring, topology->allowed_nodeset);
+      state->new_prop(state, "allowed_nodeset", setstring);
+      free(setstring);
     }
   }
 
@@ -2921,6 +2960,7 @@ hwloc_export_obj_userdata(void *reserved,
     int encoded;
     size_t encoded_length;
     const char *realname;
+    assert(name);
     if (!strncmp(name, "base64", 6)) {
       encoded = 1;
       encoded_length = BASE64_ENCODED_LENGTH(length);

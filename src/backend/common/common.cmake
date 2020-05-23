@@ -4,7 +4,6 @@ set(HEADERS_BACKEND_COMMON
     src/backend/common/interfaces/IBackend.h
     src/backend/common/interfaces/IRxListener.h
     src/backend/common/interfaces/IRxStorage.h
-    src/backend/common/interfaces/IThread.h
     src/backend/common/interfaces/IWorker.h
     src/backend/common/misc/PciTopology.h
     src/backend/common/Thread.h

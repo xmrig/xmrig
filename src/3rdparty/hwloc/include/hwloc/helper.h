@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -672,6 +672,24 @@ hwloc_get_shared_cache_covering_obj (hwloc_topology_t topology __hwloc_attribute
  * package has fewer caches than its peers.
  */
 
+/** \brief Remove simultaneous multithreading PUs from a CPU set.
+ *
+ * For each core in \p topology, if \p cpuset contains some PUs of that core,
+ * modify \p cpuset to only keep a single PU for that core.
+ *
+ * \p which specifies which PU will be kept.
+ * PU are considered in physical index order.
+ * If 0, for each core, the function keeps the first PU that was originally set in \p cpuset.
+ *
+ * If \p which is larger than the number of PUs in a core there were originally set in \p cpuset,
+ * no PU is kept for that core.
+ *
+ * \note PUs that are not below a Core object are ignored
+ * (for instance if the topology does not contain any Core object).
+ * None of them is removed from \p cpuset.
+ */
+HWLOC_DECLSPEC int hwloc_bitmap_singlify_per_core(hwloc_topology_t topology, hwloc_bitmap_t cpuset, unsigned which);
+
 /** \brief Returns the object of type ::HWLOC_OBJ_PU with \p os_index.
  *
  * This function is useful for converting a CPU set into the PU
@@ -998,15 +1016,16 @@ hwloc_topology_get_allowed_nodeset(hwloc_topology_t topology) __hwloc_attribute_
  * @{
  */
 
-/** \brief Convert a CPU set into a NUMA node set and handle non-NUMA cases
+/** \brief Convert a CPU set into a NUMA node set
+ *
+ * For each PU included in the input \p _cpuset, set the corresponding
+ * local NUMA node(s) in the output \p nodeset.
  *
  * If some NUMA nodes have no CPUs at all, this function never sets their
  * indexes in the output node set, even if a full CPU set is given in input.
  *
- * If the topology contains no NUMA nodes, the machine is considered
- * as a single memory node, and the following behavior is used:
- * If \p cpuset is empty, \p nodeset will be emptied as well.
- * Otherwise \p nodeset will be entirely filled.
+ * Hence the entire topology CPU set is converted into the set of all nodes
+ * that have some local CPUs.
  */
 static __hwloc_inline int
 hwloc_cpuset_to_nodeset(hwloc_topology_t topology, hwloc_const_cpuset_t _cpuset, hwloc_nodeset_t nodeset)
@@ -1021,13 +1040,16 @@ hwloc_cpuset_to_nodeset(hwloc_topology_t topology, hwloc_const_cpuset_t _cpuset,
 	return 0;
 }
 
-/** \brief Convert a NUMA node set into a CPU set and handle non-NUMA cases
+/** \brief Convert a NUMA node set into a CPU set
  *
- * If the topology contains no NUMA nodes, the machine is considered
- * as a single memory node, and the following behavior is used:
- * If \p nodeset is empty, \p cpuset will be emptied as well.
- * Otherwise \p cpuset will be entirely filled.
- * This is useful for manipulating memory binding sets.
+ * For each NUMA node included in the input \p nodeset, set the corresponding
+ * local PUs in the output \p _cpuset.
+ *
+ * If some CPUs have no local NUMA nodes, this function never sets their
+ * indexes in the output CPU set, even if a full node set is given in input.
+ *
+ * Hence the entire topology node set is converted into the set of all CPUs
+ * that have some local NUMA nodes.
  */
 static __hwloc_inline int
 hwloc_cpuset_from_nodeset(hwloc_topology_t topology, hwloc_cpuset_t _cpuset, hwloc_const_nodeset_t nodeset)

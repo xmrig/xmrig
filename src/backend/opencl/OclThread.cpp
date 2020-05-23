@@ -24,8 +24,8 @@
 
 
 #include "backend/opencl/OclThread.h"
+#include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
 
 
 #include <algorithm>

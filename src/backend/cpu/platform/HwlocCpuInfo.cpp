@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -313,7 +313,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     size_t cacheHashes = ((L3 + extra) + (scratchpad / 2)) / scratchpad;
 
 #   ifdef XMRIG_ALGO_CN_PICO
-    if (algorithm == Algorithm::CN_PICO_0 && (cacheHashes / PUs) >= 2) {
+    if (intensity && algorithm == Algorithm::CN_PICO_0 && (cacheHashes / PUs) >= 2) {
         intensity = 2;
     }
 #   endif

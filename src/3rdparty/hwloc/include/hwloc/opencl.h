@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2018 Inria.  All rights reserved.
+ * Copyright © 2012-2019 Inria.  All rights reserved.
  * Copyright © 2013, 2018 Université Bordeaux.  All right reserved.
  * See COPYING in top-level directory.
  */
@@ -52,6 +52,7 @@ typedef union {
 /* needs "cl_nv_device_attribute_query" device extension, but not strictly required for clGetDeviceInfo() */
 #define HWLOC_CL_DEVICE_PCI_BUS_ID_NV 0x4008
 #define HWLOC_CL_DEVICE_PCI_SLOT_ID_NV 0x4009
+#define HWLOC_CL_DEVICE_PCI_DOMAIN_ID_NV 0x400A
 
 
 /** \defgroup hwlocality_opencl Interoperability with OpenCL
@@ -74,7 +75,7 @@ hwloc_opencl_get_device_pci_busid(cl_device_id device,
                                unsigned *domain, unsigned *bus, unsigned *dev, unsigned *func)
 {
 	hwloc_cl_device_topology_amd amdtopo;
-	cl_uint nvbus, nvslot;
+	cl_uint nvbus, nvslot, nvdomain;
 	cl_int clret;
 
 	clret = clGetDeviceInfo(device, HWLOC_CL_DEVICE_TOPOLOGY_AMD, sizeof(amdtopo), &amdtopo, NULL);
@@ -91,8 +92,12 @@ hwloc_opencl_get_device_pci_busid(cl_device_id device,
 	if (CL_SUCCESS == clret) {
 		clret = clGetDeviceInfo(device, HWLOC_CL_DEVICE_PCI_SLOT_ID_NV, sizeof(nvslot), &nvslot, NULL);
 		if (CL_SUCCESS == clret) {
-			/* FIXME: PCI bus only uses 8bit, assume nvidia hardcodes the domain in higher bits */
-			*domain = nvbus >> 8;
+			clret = clGetDeviceInfo(device, HWLOC_CL_DEVICE_PCI_DOMAIN_ID_NV, sizeof(nvdomain), &nvdomain, NULL);
+			if (CL_SUCCESS == clret) { /* available since CUDA 10.2 */
+				*domain = nvdomain;
+			} else {
+				*domain = 0;
+			}
 			*bus = nvbus & 0xff;
 			/* non-documented but used in many other projects */
 			*dev = nvslot >> 3;

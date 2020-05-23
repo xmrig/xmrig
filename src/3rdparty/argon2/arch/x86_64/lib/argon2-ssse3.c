@@ -9,8 +9,6 @@
 #   include <intrin.h>
 #endif
 
-#include "cpu-flags.h"
-
 #define r16 (_mm_setr_epi8( \
      2,  3,  4,  5,  6,  7,  0,  1, \
     10, 11, 12, 13, 14, 15,  8,  9))
@@ -114,27 +112,17 @@ static __m128i f(__m128i x, __m128i y)
 
 #include "argon2-template-128.h"
 
-void fill_segment_ssse3(const argon2_instance_t *instance,
-                        argon2_position_t position)
+void xmrig_ar2_fill_segment_ssse3(const argon2_instance_t *instance, argon2_position_t position)
 {
     fill_segment_128(instance, position);
 }
 
-int check_ssse3(void)
-{
-    return cpu_flags_have_ssse3();
-}
+extern int cpu_flags_has_ssse3(void);
+int xmrig_ar2_check_ssse3(void) { return cpu_flags_has_ssse3(); }
 
 #else
 
-void fill_segment_ssse3(const argon2_instance_t *instance,
-                        argon2_position_t position)
-{
-}
-
-int check_ssse3(void)
-{
-    return 0;
-}
+void xmrig_ar2_fill_segment_ssse3(const argon2_instance_t *instance, argon2_position_t position) {}
+int xmrig_ar2_check_ssse3(void) { return 0; }
 
 #endif

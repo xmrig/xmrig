@@ -24,9 +24,9 @@
 
 
 #include "crypto/rx/RxConfig.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
 
 
 #ifdef XMRIG_FEATURE_HWLOC

@@ -28,6 +28,7 @@
 
 
 #include "backend/cuda/CudaBackend.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Tags.h"
@@ -43,7 +44,6 @@
 #include "base/tools/String.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "rapidjson/document.h"
 
 
 #ifdef XMRIG_ALGO_ASTROBWT

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -173,8 +173,12 @@ typedef hwloc_const_bitmap_t hwloc_const_nodeset_t;
  * may be defined in the future!  If you need to compare types, use
  * hwloc_compare_types() instead.
  */
-#define HWLOC_OBJ_TYPE_MIN HWLOC_OBJ_MACHINE /**< \private Sentinel value */
 typedef enum {
+
+/** \cond */
+#define HWLOC_OBJ_TYPE_MIN HWLOC_OBJ_MACHINE /* Sentinel value */
+/** \endcond */
+
   HWLOC_OBJ_MACHINE,	/**< \brief Machine.
 			  * A set of processors and memory with cache
 			  * coherency.
@@ -251,7 +255,7 @@ typedef enum {
 			  */
 
   HWLOC_OBJ_BRIDGE,	/**< \brief Bridge (filtered out by default).
-			  * Any bridge that connects the host or an I/O bus,
+			  * Any bridge (or PCI switch) that connects the host or an I/O bus,
 			  * to another I/O bus.
 			  * They are not added to the topology unless I/O discovery
 			  * is enabled with hwloc_topology_set_flags().
@@ -360,9 +364,8 @@ typedef enum hwloc_obj_osdev_type_e {
  */
 HWLOC_DECLSPEC int hwloc_compare_types (hwloc_obj_type_t type1, hwloc_obj_type_t type2) __hwloc_attribute_const;
 
-enum hwloc_compare_types_e {
-    HWLOC_TYPE_UNORDERED = INT_MAX	/**< \brief Value returned by hwloc_compare_types() when types can not be compared. \hideinitializer */
-};
+/** \brief Value returned by hwloc_compare_types() when types can not be compared. \hideinitializer */
+#define HWLOC_TYPE_UNORDERED INT_MAX
 
 /** @} */
 
@@ -614,7 +617,11 @@ union hwloc_obj_attr_u {
   } group;
   /** \brief PCI Device specific Object Attributes */
   struct hwloc_pcidev_attr_s {
-    unsigned short domain;
+#ifndef HWLOC_HAVE_32BITS_PCI_DOMAIN
+    unsigned short domain; /* Only 16bits PCI domains are supported by default */
+#else
+    unsigned int domain; /* 32bits PCI domain support break the library ABI, hence it's disabled by default */
+#endif
     unsigned char bus, dev, func;
     unsigned short class_id;
     unsigned short vendor_id, device_id, subvendor_id, subdevice_id;
@@ -629,7 +636,11 @@ union hwloc_obj_attr_u {
     hwloc_obj_bridge_type_t upstream_type;
     union {
       struct {
-	unsigned short domain;
+#ifndef HWLOC_HAVE_32BITS_PCI_DOMAIN
+	unsigned short domain; /* Only 16bits PCI domains are supported by default */
+#else
+	unsigned int domain; /* 32bits PCI domain support break the library ABI, hence it's disabled by default */
+#endif
 	unsigned char secondary_bus, subordinate_bus;
       } pci;
     } downstream;
@@ -859,7 +870,8 @@ hwloc_get_type_or_above_depth (hwloc_topology_t topology, hwloc_obj_type_t type)
 
 /** \brief Returns the type of objects at depth \p depth.
  *
- * \p depth should between 0 and hwloc_topology_get_depth()-1.
+ * \p depth should between 0 and hwloc_topology_get_depth()-1,
+ * or a virtual depth such as ::HWLOC_TYPE_DEPTH_NUMANODE.
  *
  * \return (hwloc_obj_type_t)-1 if depth \p depth does not exist.
  */
@@ -1355,7 +1367,7 @@ HWLOC_DECLSPEC int hwloc_get_proc_last_cpu_location(hwloc_topology_t topology, h
 typedef enum {
   /** \brief Reset the memory allocation policy to the system default.
    * Depending on the operating system, this may correspond to
-   * ::HWLOC_MEMBIND_FIRSTTOUCH (Linux),
+   * ::HWLOC_MEMBIND_FIRSTTOUCH (Linux, FreeBSD),
    * or ::HWLOC_MEMBIND_BIND (AIX, HP-UX, Solaris, Windows).
    * This policy is never returned by get membind functions.
    * The nodeset argument is ignored.
@@ -2169,13 +2181,14 @@ HWLOC_DECLSPEC void * hwloc_topology_get_userdata(hwloc_topology_t topology);
 enum hwloc_restrict_flags_e {
   /** \brief Remove all objects that became CPU-less.
    * By default, only objects that contain no PU and no memory are removed.
+   * This flag may not be used with ::HWLOC_RESTRICT_FLAG_BYNODESET.
    * \hideinitializer
    */
   HWLOC_RESTRICT_FLAG_REMOVE_CPULESS = (1UL<<0),
 
   /** \brief Restrict by nodeset instead of CPU set.
    * Only keep objects whose nodeset is included or partially included in the given set.
-   * This flag may not be used with ::HWLOC_RESTRICT_FLAG_BYNODESET.
+   * This flag may not be used with ::HWLOC_RESTRICT_FLAG_REMOVE_CPULESS.
    */
   HWLOC_RESTRICT_FLAG_BYNODESET =  (1UL<<3),
 
