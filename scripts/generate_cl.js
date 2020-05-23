@@ -60,6 +60,7 @@ function rx()
         'randomx_constants_wow.h',
         'randomx_constants_loki.h',
         'randomx_constants_arqma.h',
+        'randomx_constants_keva.h',
         'aes.cl',
         'blake2b.cl',
         'randomx_vm.cl',
@@ -75,6 +76,15 @@ function rx()
 }
 
 
+function astrobwt()
+{
+    const astrobwt = opencl_minify(addIncludes('astrobwt.cl', [ 'BWT.cl', 'salsa20.cl', 'sha3.cl' ]));
+
+    // fs.writeFileSync('astrobwt_gen.cl', astrobwt);
+    fs.writeFileSync('astrobwt_cl.h', text2h(astrobwt, 'xmrig', 'astrobwt_cl'));
+}
+
+
 process.chdir(path.resolve('src/backend/opencl/cl/cn'));
 
 cn();
@@ -85,3 +95,8 @@ process.chdir(cwd);
 process.chdir(path.resolve('src/backend/opencl/cl/rx'));
 
 rx();
+
+process.chdir(cwd);
+process.chdir(path.resolve('src/backend/opencl/cl/astrobwt'));
+
+astrobwt();

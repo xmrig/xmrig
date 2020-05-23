@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include "core/Miner.h"
 #include "crypto/cn/CnCtx.h"
 #include "crypto/cn/CryptoNight_test.h"
+#include "crypto/cn/CryptoNight.h"
 #include "crypto/common/Nonce.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/Rx.h"
@@ -44,9 +45,28 @@
 #endif
 
 
+#ifdef XMRIG_ALGO_ASTROBWT
+#   include "crypto/astrobwt/AstroBWT.h"
+#endif
+
+
 namespace xmrig {
 
 static constexpr uint32_t kReserveCount = 32768;
+
+
+template<size_t N>
+inline bool nextRound(WorkerJob<N> &job)
+{
+    if (!job.nextRound(kReserveCount, 1)) {
+        JobResults::done(job.currentJob());
+
+        return false;
+    }
+
+    return true;
+}
+
 
 } // namespace xmrig
 
@@ -57,12 +77,15 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     Worker(id, data.affinity, data.priority),
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
+    m_astrobwtAVX2(data.astrobwtAVX2),
     m_hwAES(data.hwAES),
+    m_yield(data.yield),
     m_av(data.av()),
+    m_astrobwtMaxSize(data.astrobwtMaxSize * 1000),
     m_miner(data.miner),
     m_ctx()
 {
-    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, true, m_node);
+    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, m_node);
 }
 
 
@@ -70,7 +93,7 @@ template<size_t N>
 xmrig::CpuWorker<N>::~CpuWorker()
 {
 #   ifdef XMRIG_ALGO_RANDOMX
-    delete m_vm;
+    RxVm::destroy(m_vm);
 #   endif
 
     CnCtx::release(m_ctx, N);
@@ -95,7 +118,7 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
     }
 
     if (!m_vm) {
-        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES);
+        m_vm = RxVm::create(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly, m_node);
     }
 }
 #endif
@@ -153,7 +176,8 @@ bool xmrig::CpuWorker<N>::selfTest()
 
 #   ifdef XMRIG_ALGO_CN_PICO
     if (m_algorithm.family() == Algorithm::CN_PICO) {
-        return verify(Algorithm::CN_PICO_0, test_output_pico_trtl);
+        return verify(Algorithm::CN_PICO_0, test_output_pico_trtl) &&
+               verify(Algorithm::CN_PICO_TLO, test_output_pico_tlo);
     }
 #   endif
 
@@ -161,6 +185,12 @@ bool xmrig::CpuWorker<N>::selfTest()
     if (m_algorithm.family() == Algorithm::ARGON2) {
         return verify(Algorithm::AR2_CHUKWA, argon2_chukwa_test_out) &&
                verify(Algorithm::AR2_WRKZ, argon2_wrkz_test_out);
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    if (m_algorithm.family() == Algorithm::ASTROBWT) {
+        return verify(Algorithm::ASTROBWT_DERO, astrobwt_dero_test_out);
     }
 #   endif
 
@@ -185,8 +215,20 @@ void xmrig::CpuWorker<N>::start()
             consumeJob();
         }
 
+        uint64_t storeStatsMask = 7;
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        bool first = true;
+        uint64_t tempHash[8] = {};
+
+        // RandomX is faster, we don't need to store stats so often
+        if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
+            storeStatsMask = 63;
+        }
+#       endif
+
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
-            if ((m_count & 0x7) == 0) {
+            if ((m_count & storeStatsMask) == 0) {
                 storeStats();
             }
 
@@ -196,26 +238,57 @@ void xmrig::CpuWorker<N>::start()
                 break;
             }
 
+            uint32_t current_job_nonces[N];
+            for (size_t i = 0; i < N; ++i) {
+                current_job_nonces[i] = *m_job.nonce(i);
+            }
+
+            bool valid = true;
+
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
-                randomx_calculate_hash(m_vm->get(), m_job.blob(), job.size(), m_hash);
+                if (first) {
+                    first = false;
+                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                }
+
+                if (!nextRound(m_job)) {
+                    break;
+                }
+
+                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
             }
             else
 #           endif
             {
-                fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
-            }
-
-            for (size_t i = 0; i < N; ++i) {
-                if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
-                    JobResults::submit(job, *m_job.nonce(i), m_hash + (i * 32));
+#               ifdef XMRIG_ALGO_ASTROBWT
+                if (job.algorithm().family() == Algorithm::ASTROBWT) {
+                    if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2))
+                        valid = false;
                 }
+                else
+#               endif
+                {
+                    fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
+                }
+
+                if (!nextRound(m_job)) {
+                    break;
+                };
             }
 
-            m_job.nextRound(kReserveCount, 1);
-            m_count += N;
+            if (valid) {
+                for (size_t i = 0; i < N; ++i) {
+                    if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
+                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
+                    }
+                }
+                m_count += N;
+            }
 
-            std::this_thread::yield();
+            if (m_yield) {
+                std::this_thread::yield();
+            }
         }
 
         consumeJob();

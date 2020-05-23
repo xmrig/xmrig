@@ -79,10 +79,14 @@ static int showVersion()
 
     printf("\nlibuv/%s\n", uv_version_string());
 
-#   if defined(XMRIG_FEATURE_TLS) && defined(OPENSSL_VERSION_TEXT)
+#   if defined(XMRIG_FEATURE_TLS)
     {
+#       if defined(LIBRESSL_VERSION_TEXT)
+        printf("LibreSSL/%s\n", LIBRESSL_VERSION_TEXT + 9);
+#       elif defined(OPENSSL_VERSION_TEXT)
         constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
         printf("OpenSSL/%.*s\n", static_cast<int>(strchr(v, ' ') - v), v);
+#       endif
     }
 #   endif
 
@@ -101,9 +105,9 @@ static int showVersion()
 
 
 #ifdef XMRIG_FEATURE_HWLOC
-static int exportTopology(const Process &process)
+static int exportTopology(const Process &)
 {
-    const String path = process.location(Process::ExeLocation, "topology.xml");
+    const String path = Process::location(Process::ExeLocation, "topology.xml");
 
     hwloc_topology_t topology;
     hwloc_topology_init(&topology);

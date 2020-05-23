@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,15 +27,17 @@
 #include <string>
 
 
+#include "backend/opencl/OclBackend.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/common/Workers.h"
-#include "backend/opencl/OclBackend.h"
 #include "backend/opencl/OclConfig.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/OclWorker.h"
 #include "backend/opencl/runners/tools/OclSharedState.h"
+#include "backend/opencl/runners/OclAstroBWTRunner.h"
 #include "backend/opencl/wrappers/OclContext.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
@@ -44,11 +46,17 @@
 #include "base/tools/String.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "rapidjson/document.h"
 
 
 #ifdef XMRIG_FEATURE_API
 #   include "base/api/interfaces/IApiRequest.h"
+#endif
+
+
+#ifdef XMRIG_FEATURE_ADL
+#include "backend/opencl/wrappers/AdlLib.h"
+
+namespace xmrig { static const char *kAdlLabel = "ADL"; }
 #endif
 
 
@@ -58,15 +66,16 @@ namespace xmrig {
 extern template class Threads<OclThreads>;
 
 
-constexpr const size_t oneMiB   = 1024u * 1024u;
+constexpr const size_t oneMiB   = 1024U * 1024U;
+static const char *kLabel       = "OPENCL";
 static const char *tag          = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ");
 static const String kType       = "opencl";
 static std::mutex mutex;
 
 
-static void printDisabled(const char *reason)
+static void printDisabled(const char *label, const char *reason)
 {
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", "OPENCL", reason);
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled") "%s", label, reason);
 }
 
 
@@ -129,11 +138,11 @@ public:
     void init(const OclConfig &cl)
     {
         if (!cl.isEnabled()) {
-            return printDisabled("");
+            return printDisabled(kLabel, "");
         }
 
         if (!OclLib::init(cl.loader())) {
-            return printDisabled(RED_S " (failed to load OpenCL runtime)");
+            return printDisabled(kLabel, RED_S " (failed to load OpenCL runtime)");
         }
 
         if (platform.isValid()) {
@@ -142,13 +151,29 @@ public:
 
         platform = cl.platform();
         if (!platform.isValid()) {
-            return printDisabled(RED_S " (selected OpenCL platform NOT found)");
+            return printDisabled(kLabel, RED_S " (selected OpenCL platform NOT found)");
         }
 
         devices = platform.devices();
         if (devices.empty()) {
-            return printDisabled(RED_S " (no devices)");
+            return printDisabled(kLabel, RED_S " (no devices)");
         }
+
+#       ifdef XMRIG_FEATURE_ADL
+        if (cl.isAdlEnabled()) {
+            if (AdlLib::init()) {
+                Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "press " MAGENTA_BG(WHITE_BOLD_S "e") " for health report",
+                           kAdlLabel
+                           );
+            }
+            else {
+                printDisabled(kAdlLabel, RED_S " (failed to load ADL)");
+            }
+        }
+        else {
+            printDisabled(kAdlLabel, "");
+        }
+#       endif
 
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("#%zu ") WHITE_BOLD("%s") "/" WHITE_BOLD("%s"), "OPENCL", platform.index(), platform.name().data(), platform.version().data());
 
@@ -178,6 +203,14 @@ public:
 
         Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |  W | SI | MC |  U |  MEM | NAME"));
 
+        size_t algo_l3 = algo.l3();
+
+#       ifdef XMRIG_ALGO_ASTROBWT
+        if (algo.family() == Algorithm::ASTROBWT) {
+            algo_l3 = OclAstroBWTRunner::BWT_DATA_STRIDE * 17 + 324;
+        }
+#       endif
+
         size_t i = 0;
         for (const auto &data : threads) {
             Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5u") " |" CYAN_BOLD("%3u") " |"
@@ -190,7 +223,7 @@ public:
                        data.thread.stridedIndex(),
                        data.thread.stridedIndex() == 2 ? std::to_string(data.thread.memChunk()).c_str() : "-",
                        data.thread.unrollFactor(),
-                       data.thread.intensity() * algo.l3() / oneMiB,
+                       data.thread.intensity() * algo_l3 / oneMiB,
                        data.device.printableName().data()
                        );
 
@@ -202,6 +235,32 @@ public:
         status.start(threads.size());
         workers.start(threads);
     }
+
+
+#   ifdef XMRIG_FEATURE_ADL
+    void printHealth()
+    {
+        if (!AdlLib::isReady()) {
+            return;
+        }
+
+        for (const auto &device : devices) {
+            const auto health = AdlLib::health(device);
+
+            LOG_INFO("%s" CYAN_BOLD(" #%u") YELLOW(" %s") MAGENTA_BOLD("%4uW") CSI "1;%um %2uC" CYAN_BOLD(" %4u") CYAN("RPM") WHITE_BOLD(" %u/%u") "MHz",
+                     tag,
+                     device.index(),
+                     device.topology().toString().data(),
+                     health.power,
+                     health.temperature < 60 ? 32 : (health.temperature > 85 ? 31 : 33),
+                     health.temperature,
+                     health.rpm,
+                     health.clock,
+                     health.memClock
+                     );
+        }
+    }
+#   endif
 
 
     Algorithm algo;
@@ -237,6 +296,10 @@ xmrig::OclBackend::~OclBackend()
     delete d_ptr;
 
     OclLib::close();
+
+#   ifdef XMRIG_FEATURE_ADL
+    AdlLib::close();
+#   endif
 }
 
 
@@ -267,6 +330,11 @@ const xmrig::String &xmrig::OclBackend::profileName() const
 const xmrig::String &xmrig::OclBackend::type() const
 {
     return kType;
+}
+
+
+void xmrig::OclBackend::execCommand(char)
+{
 }
 
 
@@ -306,6 +374,14 @@ void xmrig::OclBackend::printHashrate(bool details)
                Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
                );
+}
+
+
+void xmrig::OclBackend::printHealth()
+{
+#   ifdef XMRIG_FEATURE_ADL
+    d_ptr->printHealth();
+#   endif
 }
 
 

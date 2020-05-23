@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,21 +26,18 @@
 #include <uv.h>
 
 
-#ifndef _WIN32
-#   include <unistd.h>
-#endif
-
-
-#include "3rdparty/http-parser/http_parser.h"
 #include "base/api/Api.h"
+#include "3rdparty/http-parser/http_parser.h"
 #include "base/api/interfaces/IApiListener.h"
 #include "base/api/requests/HttpApiRequest.h"
+#include "base/crypto/keccak.h"
+#include "base/io/Env.h"
+#include "base/io/json/Json.h"
 #include "base/kernel/Base.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "crypto/common/keccak.h"
 #include "version.h"
 
 
@@ -49,12 +46,49 @@
 #endif
 
 
+#include <thread>
+
+
+namespace xmrig {
+
+
+static rapidjson::Value getResources(rapidjson::Document &doc)
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    size_t rss = 0;
+    uv_resident_set_memory(&rss);
+
+    Value out(kObjectType);
+    Value memory(kObjectType);
+    Value load_average(kArrayType);
+
+    memory.AddMember("free",                uv_get_free_memory(), allocator);
+    memory.AddMember("total",               uv_get_total_memory(), allocator);
+    memory.AddMember("resident_set_memory", static_cast<uint64_t>(rss), allocator);
+
+    double loadavg[3] = { 0.0 };
+    uv_loadavg(loadavg);
+
+    for (double value : loadavg) {
+        load_average.PushBack(Json::normalize(value, true), allocator);
+    }
+
+    out.AddMember("memory",               memory, allocator);
+    out.AddMember("load_average",         load_average, allocator);
+    out.AddMember("hardware_concurrency", std::thread::hardware_concurrency(), allocator);
+
+    return out;
+}
+
+
+} // namespace xmrig
+
+
 xmrig::Api::Api(Base *base) :
     m_base(base),
-    m_id(),
-    m_workerId(),
-    m_timestamp(Chrono::currentMSecsSinceEpoch()),
-    m_httpd(nullptr)
+    m_timestamp(Chrono::currentMSecsSinceEpoch())
 {
     base->addListener(this);
 
@@ -117,10 +151,13 @@ void xmrig::Api::exec(IApiRequest &request)
         auto &allocator = request.doc().GetAllocator();
 
         request.accept();
-        request.reply().AddMember("id",         StringRef(m_id),       allocator);
-        request.reply().AddMember("worker_id",  StringRef(m_workerId), allocator);
-        request.reply().AddMember("uptime",     (Chrono::currentMSecsSinceEpoch() - m_timestamp) / 1000, allocator);
-        request.reply().AddMember("restricted", request.isRestricted(), allocator);
+
+        auto &reply = request.reply();
+        reply.AddMember("id",         StringRef(m_id),       allocator);
+        reply.AddMember("worker_id",  m_workerId.toJSON(), allocator);
+        reply.AddMember("uptime",     (Chrono::currentMSecsSinceEpoch() - m_timestamp) / 1000, allocator);
+        reply.AddMember("restricted", request.isRestricted(), allocator);
+        reply.AddMember("resources",  getResources(request.doc()), allocator);
 
         Value features(kArrayType);
 #       ifdef XMRIG_FEATURE_API
@@ -144,7 +181,10 @@ void xmrig::Api::exec(IApiRequest &request)
 #       ifdef XMRIG_FEATURE_OPENCL
         features.PushBack("opencl", allocator);
 #       endif
-        request.reply().AddMember("features", features, allocator);
+#       ifdef XMRIG_FEATURE_CUDA
+        features.PushBack("cuda", allocator);
+#       endif
+        reply.AddMember("features", features, allocator);
     }
 
     for (IApiListener *listener : m_listeners) {
@@ -179,13 +219,13 @@ void xmrig::Api::genId(const String &id)
         if (!interfaces[i].is_internal && interfaces[i].address.address4.sin_family == AF_INET) {
             uint8_t hash[200];
             const size_t addrSize = sizeof(interfaces[i].phys_addr);
-            const size_t inSize   = strlen(APP_KIND) + addrSize + sizeof(uint16_t);
-            const uint16_t port   = static_cast<uint16_t>(m_base->config()->http().port());
+            const size_t inSize   = (sizeof(APP_KIND) - 1) + addrSize + sizeof(uint16_t);
+            const auto port       = static_cast<uint16_t>(m_base->config()->http().port());
 
-            uint8_t *input = new uint8_t[inSize]();
+            auto*input = new uint8_t[inSize]();
             memcpy(input, &port, sizeof(uint16_t));
             memcpy(input + sizeof(uint16_t), interfaces[i].phys_addr, addrSize);
-            memcpy(input + sizeof(uint16_t) + addrSize, APP_KIND, strlen(APP_KIND));
+            memcpy(input + sizeof(uint16_t) + addrSize, APP_KIND, (sizeof(APP_KIND) - 1));
 
             keccak(input, inSize, hash);
             Buffer::toHex(hash, 8, m_id);
@@ -201,12 +241,8 @@ void xmrig::Api::genId(const String &id)
 
 void xmrig::Api::genWorkerId(const String &id)
 {
-    memset(m_workerId, 0, sizeof(m_workerId));
-
-    if (id.size() > 0) {
-        strncpy(m_workerId, id.data(), sizeof(m_workerId) - 1);
-    }
-    else {
-        gethostname(m_workerId, sizeof(m_workerId) - 1);
+    m_workerId = Env::expand(id);
+    if (m_workerId.isEmpty()) {
+        m_workerId = Env::hostname();
     }
 }

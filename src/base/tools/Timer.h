@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,10 +20,13 @@
 #define XMRIG_TIMER_H
 
 
-#include <stdint.h>
+using uv_timer_t = struct uv_timer_s;
 
 
-typedef struct uv_timer_s uv_timer_t;
+#include "base/tools/Object.h"
+
+
+#include <cstdint>
 
 
 namespace xmrig {
@@ -41,12 +38,17 @@ class ITimerListener;
 class Timer
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Timer);
+
     Timer(ITimerListener *listener);
     Timer(ITimerListener *listener, uint64_t timeout, uint64_t repeat);
     ~Timer();
 
+    inline int id() const { return m_id; }
+
     uint64_t repeat() const;
     void setRepeat(uint64_t repeat);
+    void singleShot(uint64_t timeout, int id = 0);
     void start(uint64_t timeout, uint64_t repeat);
     void stop();
 
@@ -55,8 +57,9 @@ private:
 
     static void onTimer(uv_timer_t *handle);
 
+    int m_id                    = 0;
     ITimerListener *m_listener;
-    uv_timer_t *m_timer;
+    uv_timer_t *m_timer         = nullptr;
 };
 
 

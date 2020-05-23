@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,8 +28,9 @@
 #define XMRIG_HTTPCLIENT_H
 
 
-#include "base/net/http/HttpContext.h"
 #include "base/kernel/interfaces/IDnsListener.h"
+#include "base/net/http/Fetch.h"
+#include "base/net/http/HttpContext.h"
 #include "base/tools/Object.h"
 
 
@@ -44,29 +45,29 @@ class HttpClient : public HttpContext, public IDnsListener
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpClient);
 
-    HttpClient(int method, const String &url, IHttpListener *listener, const char *data = nullptr, size_t size = 0);
+    HttpClient(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener);
     ~HttpClient() override;
 
-    inline uint16_t port() const     { return m_port; }
-    inline void setQuiet(bool quiet) { m_quiet = quiet; }
+    inline bool isQuiet() const                 { return m_req.quiet; }
+    inline const char *host() const override    { return m_req.host; }
+    inline uint16_t port() const override       { return m_req.port; }
 
-    bool connect(const String &host, uint16_t port);
-    const String &host() const;
+    bool connect();
 
 protected:
     void onResolved(const Dns &dns, int status) override;
 
     virtual void handshake();
     virtual void read(const char *data, size_t size);
-    virtual void write(const std::string &header);
 
-    bool m_quiet = false;
+protected:
+    inline const FetchRequest &req() const  { return m_req; }
 
 private:
     static void onConnect(uv_connect_t *req, int status);
 
     Dns *m_dns;
-    uint16_t m_port = 0;
+    FetchRequest m_req;
 };
 
 

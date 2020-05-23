@@ -5,9 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,20 +26,14 @@
 
 #include "base/net/stratum/SelfSelectClient.h"
 #include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/rapidjson/document.h"
+#include "3rdparty/rapidjson/error/en.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
-#include "base/net/http/HttpClient.h"
+#include "base/net/http/Fetch.h"
+#include "base/net/http/HttpData.h"
 #include "base/net/stratum/Client.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/en.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
-
-
-#ifdef XMRIG_FEATURE_TLS
-#   include "base/net/http/HttpsClient.h"
-#endif
 
 
 namespace xmrig {
@@ -63,7 +57,8 @@ static const char * const required_fields[] = { kBlocktemplateBlob, kBlockhashin
 xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener) :
     m_listener(listener)
 {
-    m_client = new Client(id, agent, this);
+    m_httpListener  = std::make_shared<HttpListener>(this);
+    m_client        = new Client(id, agent, this);
 }
 
 
@@ -158,51 +153,14 @@ void xmrig::SelfSelectClient::getBlockTemplate()
 
     JsonRequest::create(doc, m_sequence++, "getblocktemplate", params);
 
-    send(HTTP_POST, "/json_rpc", doc);
+    FetchRequest req(HTTP_POST, pool().daemon().host(), pool().daemon().port(), "/json_rpc", doc, pool().daemon().isTLS(), isQuiet());
+    fetch(std::move(req), m_httpListener);
 }
 
 
 void xmrig::SelfSelectClient::retry()
 {
     setState(RetryState);
-}
-
-
-void xmrig::SelfSelectClient::send(int method, const char *url, const char *data, size_t size)
-{
-    LOG_DEBUG("[%s] " MAGENTA_BOLD("\"%s %s\"") BLACK_BOLD_S " send (%zu bytes): \"%.*s\"",
-              pool().daemon().url().data(),
-              http_method_str(static_cast<http_method>(method)),
-              url,
-              size,
-              static_cast<int>(size),
-              data);
-
-    HttpClient *client;
-#   ifdef XMRIG_FEATURE_TLS
-    if (pool().daemon().isTLS()) {
-        client = new HttpsClient(method, url, this, data, size, String());
-    }
-    else
-#   endif
-    {
-        client = new HttpClient(method, url, this, data, size);
-    }
-
-    client->setQuiet(isQuiet());
-    client->connect(pool().daemon().host(), pool().daemon().port());
-}
-
-
-void xmrig::SelfSelectClient::send(int method, const char *url, const rapidjson::Document &doc)
-{
-    using namespace rapidjson;
-
-    StringBuffer buffer(nullptr, 512);
-    Writer<StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    send(method, url, buffer.GetString(), buffer.GetSize());
 }
 
 
@@ -255,7 +213,7 @@ void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
 
     JsonRequest::create(doc, sequence(), "block_template", params);
 
-    send(doc, [this](const rapidjson::Value &result, bool success, uint64_t elapsed) {
+    send(doc, [this](const rapidjson::Value &result, bool success, uint64_t) {
         if (!success) {
             if (!isQuiet()) {
                 LOG_ERR("[%s] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", pool().daemon().url().data(), Json::getString(result, "message"), Json::getInt(result, "code"));
@@ -283,8 +241,6 @@ void xmrig::SelfSelectClient::onHttpData(const HttpData &data)
     if (data.status != HTTP_STATUS_OK) {
         return retry();
     }
-
-    LOG_DEBUG("[%s] received (%d bytes): \"%.*s\"", pool().daemon().url().data(), static_cast<int>(data.body.size()), static_cast<int>(data.body.size()), data.body.c_str());
 
     rapidjson::Document doc;
     if (doc.Parse(data.body.c_str()).HasParseError()) {

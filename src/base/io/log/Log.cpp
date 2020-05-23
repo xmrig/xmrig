@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ public:
 
         std::lock_guard<std::mutex> lock(m_mutex);
 
-        if (Log::background && m_backends.empty()) {
+        if (Log::isBackground() && m_backends.empty()) {
             return;
         }
 
@@ -189,15 +189,16 @@ private:
     }
 
 
-    char m_buf[4096]{};
+    char m_buf[Log::kMaxBufferSize]{};
     std::mutex m_mutex;
     std::vector<ILogBackend*> m_backends;
 };
 
 
-bool Log::background = false;
-bool Log::colors     = true;
-LogPrivate *Log::d   = new LogPrivate();
+bool Log::m_background    = false;
+bool Log::m_colors        = true;
+LogPrivate *Log::d      = new LogPrivate();
+uint32_t Log::m_verbose   = 0;
 
 
 } /* namespace xmrig */

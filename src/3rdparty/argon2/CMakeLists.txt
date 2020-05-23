@@ -17,7 +17,7 @@ set(ARGON2_SOURCES
 
 set(ARGON2_X86_64_ENABLED ON)
 set(ARGON2_X86_64_LIBS    argon2-sse2 argon2-ssse3 argon2-xop argon2-avx2 argon2-avx512f)
-set(ARGON2_X86_64_SOURCES arch/x86_64/lib/argon2-arch.c arch/x86_64/lib/cpu-flags.c)
+set(ARGON2_X86_64_SOURCES arch/x86_64/lib/argon2-arch.c)
 
 if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     function(add_feature_impl FEATURE MSVC_FLAG DEF)

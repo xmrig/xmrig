@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,11 +36,11 @@
 
 
 #include "backend/cpu/Cpu.h"
+#include "base/crypto/keccak.h"
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
-#include "crypto/common/keccak.h"
 
 
 extern "C"
@@ -794,6 +794,11 @@ extern cn_mainloop_fun cn_trtl_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_trtl_mainloop_bulldozer_asm;
 extern cn_mainloop_fun cn_trtl_double_mainloop_sandybridge_asm;
 
+extern cn_mainloop_fun cn_tlo_mainloop_ivybridge_asm;
+extern cn_mainloop_fun cn_tlo_mainloop_ryzen_asm;
+extern cn_mainloop_fun cn_tlo_mainloop_bulldozer_asm;
+extern cn_mainloop_fun cn_tlo_double_mainloop_sandybridge_asm;
+
 extern cn_mainloop_fun cn_zls_mainloop_ivybridge_asm;
 extern cn_mainloop_fun cn_zls_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_zls_mainloop_bulldozer_asm;
@@ -879,6 +884,17 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_trtl_mainloop_bulldozer_asm(ctx);
         }
     }
+    else if (ALGO == Algorithm::CN_PICO_TLO) {
+        if (ASM == Assembly::INTEL) {
+            cn_tlo_mainloop_ivybridge_asm(ctx);
+        }
+        else if (ASM == Assembly::RYZEN) {
+            cn_tlo_mainloop_ryzen_asm(ctx);
+        }
+        else {
+            cn_tlo_mainloop_bulldozer_asm(ctx);
+        }
+    }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {
         cnv2_rwz_mainloop_asm(ctx);
@@ -943,6 +959,9 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 #   ifdef XMRIG_ALGO_CN_PICO
     else if (ALGO == Algorithm::CN_PICO_0) {
         cn_trtl_double_mainloop_sandybridge_asm(ctx);
+    }
+    else if (ALGO == Algorithm::CN_PICO_TLO) {
+        cn_tlo_double_mainloop_sandybridge_asm(ctx);
     }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {

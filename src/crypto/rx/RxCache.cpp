@@ -30,35 +30,28 @@
 #include "crypto/randomx/randomx.h"
 
 
-static_assert(RANDOMX_FLAG_JIT == 8,         "RANDOMX_FLAG_JIT flag mismatch");
-static_assert(RANDOMX_FLAG_LARGE_PAGES == 1, "RANDOMX_FLAG_LARGE_PAGES flag mismatch");
+static_assert(RANDOMX_FLAG_JIT == 8, "RANDOMX_FLAG_JIT flag mismatch");
 
 
-
-xmrig::RxCache::RxCache(bool hugePages)
+xmrig::RxCache::RxCache(bool hugePages, uint32_t nodeId)
 {
-    if (hugePages) {
-        m_flags = RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES;
-        m_cache = randomx_alloc_cache(static_cast<randomx_flags>(m_flags));
-    }
+    m_memory = new VirtualMemory(maxSize(), hugePages, false, false, nodeId);
 
-    if (!m_cache) {
-        m_flags = RANDOMX_FLAG_JIT;
-        m_cache = randomx_alloc_cache(static_cast<randomx_flags>(m_flags));
-    }
+    create(m_memory->raw());
+}
 
-    if (!m_cache) {
-        m_flags = RANDOMX_FLAG_DEFAULT;
-        m_cache = randomx_alloc_cache(static_cast<randomx_flags>(m_flags));
-    }
+
+xmrig::RxCache::RxCache(uint8_t *memory)
+{
+    create(memory);
 }
 
 
 xmrig::RxCache::~RxCache()
 {
-    if (m_cache) {
-        randomx_release_cache(m_cache);
-    }
+    randomx_release_cache(m_cache);
+
+    delete m_memory;
 }
 
 
@@ -69,21 +62,33 @@ bool xmrig::RxCache::init(const Buffer &seed)
     }
 
     m_seed = seed;
-    randomx_init_cache(m_cache, m_seed.data(), m_seed.size());
 
-    return true;
+    if (m_cache) {
+        randomx_init_cache(m_cache, m_seed.data(), m_seed.size());
+
+        return true;
+    }
+
+    return false;
 }
 
 
-std::pair<uint32_t, uint32_t> xmrig::RxCache::hugePages() const
+xmrig::HugePagesInfo xmrig::RxCache::hugePages() const
 {
-    constexpr size_t twoMiB = 2u * 1024u * 1024u;
-    constexpr size_t total  = VirtualMemory::align(maxSize(), twoMiB) / twoMiB;
+    return m_memory ? m_memory->hugePages() : HugePagesInfo();
+}
 
-    uint32_t count = 0;
-    if (isHugePages()) {
-        count += total;
+
+void xmrig::RxCache::create(uint8_t *memory)
+{
+    if (!memory) {
+        return;
     }
 
-    return { count, total };
+    m_cache = randomx_create_cache(RANDOMX_FLAG_JIT, memory);
+
+    if (!m_cache) {
+        m_jit   = false;
+        m_cache = randomx_create_cache(RANDOMX_FLAG_DEFAULT, memory);
+    }
 }

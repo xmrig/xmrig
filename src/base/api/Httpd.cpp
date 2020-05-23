@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,22 +23,27 @@
  */
 
 
+#include "base/api/Httpd.h"
 #include "3rdparty/http-parser/http_parser.h"
 #include "base/api/Api.h"
-#include "base/api/Httpd.h"
 #include "base/io/log/Log.h"
 #include "base/net/http/HttpApiResponse.h"
 #include "base/net/http/HttpData.h"
-#include "base/net/http/HttpServer.h"
 #include "base/net/tools/TcpServer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 
 
+#ifdef XMRIG_FEATURE_TLS
+#   include "base/net/https/HttpsServer.h"
+#else
+#   include "base/net/http/HttpServer.h"
+#endif
+
+
 namespace xmrig {
 
 static const char *kAuthorization = "authorization";
-static const char *kContentType   = "content-type";
 
 #ifdef _WIN32
 static const char *favicon = nullptr;
@@ -49,34 +54,40 @@ static size_t faviconSize  = 0;
 
 
 xmrig::Httpd::Httpd(Base *base) :
-    m_base(base),
-    m_http(nullptr),
-    m_server(nullptr),
-    m_port(0)
+    m_base(base)
 {
+    m_httpListener = std::make_shared<HttpListener>(this);
+
     base->addListener(this);
 }
 
 
-xmrig::Httpd::~Httpd()
-{
-}
+xmrig::Httpd::~Httpd() = default;
 
 
 bool xmrig::Httpd::start()
 {
-    const Http &config = m_base->config()->http();
+    const auto &config = m_base->config()->http();
 
     if (!config.isEnabled()) {
         return true;
     }
 
-    m_http   = new HttpServer(this);
+    bool tls = false;
+
+#   ifdef XMRIG_FEATURE_TLS
+    m_http = new HttpsServer(m_httpListener);
+    tls = m_http->setTls(m_base->config()->tls());
+#   else
+    m_http = new HttpServer(m_httpListener);
+#   endif
+
     m_server = new TcpServer(config.host(), config.port(), m_http);
 
     const int rc = m_server->bind();
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") BLUE_BOLD("%s:%d") " " RED_BOLD("%s"),
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CSI "1;%dm%s:%d" " " RED_BOLD("%s"),
                "HTTP API",
+               tls ? 32 : 36,
                config.host().data(),
                rc < 0 ? config.port() : rc,
                rc < 0 ? uv_strerror(rc) : ""
@@ -138,13 +149,13 @@ void xmrig::Httpd::onHttpData(const HttpData &data)
 #       ifdef _WIN32
         if (favicon != nullptr) {
             HttpResponse response(data.id());
-            response.setHeader("Content-Type", "image/x-icon");
+            response.setHeader(HttpData::kContentType, "image/x-icon");
 
             return response.end(favicon, faviconSize);
         }
 #       endif
 
-        return HttpResponse(data.id(), 404).end();
+        return HttpResponse(data.id(), HTTP_STATUS_NOT_FOUND).end();
     }
 
     if (data.method > 4) {
@@ -161,7 +172,7 @@ void xmrig::Httpd::onHttpData(const HttpData &data)
             return HttpApiResponse(data.id(), HTTP_STATUS_FORBIDDEN).end();
         }
 
-        if (!data.headers.count(kContentType) || data.headers.at(kContentType) != "application/json") {
+        if (!data.headers.count(HttpData::kContentTypeL) || data.headers.at(HttpData::kContentTypeL) != HttpData::kApplicationJson) {
             return HttpApiResponse(data.id(), HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE).end();
         }
     }

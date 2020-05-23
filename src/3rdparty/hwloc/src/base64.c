@@ -11,7 +11,7 @@
 /* include hwloc's config before anything else
  * so that extensions and features are properly enabled
  */
-#include <private/private.h>
+#include "private/private.h"
 
 /*	$OpenBSD: base64.c,v 1.5 2006/10/21 09:55:03 otto Exp $	*/
 

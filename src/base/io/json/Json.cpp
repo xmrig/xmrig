@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,10 +24,11 @@
 
 
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
+#include "3rdparty/rapidjson/document.h"
 
 
 #include <cassert>
+#include <cmath>
 
 
 namespace xmrig {
@@ -39,7 +40,9 @@ static const rapidjson::Value kNullValue;
 
 bool xmrig::Json::getBool(const rapidjson::Value &obj, const char *key, bool defaultValue)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return defaultValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd() && i->value.IsBool()) {
@@ -50,9 +53,17 @@ bool xmrig::Json::getBool(const rapidjson::Value &obj, const char *key, bool def
 }
 
 
+bool xmrig::Json::isEmpty(const rapidjson::Value &obj)
+{
+    return !obj.IsObject() || obj.ObjectEmpty();
+}
+
+
 const char *xmrig::Json::getString(const rapidjson::Value &obj, const char *key, const char *defaultValue)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return defaultValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd() && i->value.IsString()) {
@@ -65,7 +76,9 @@ const char *xmrig::Json::getString(const rapidjson::Value &obj, const char *key,
 
 const rapidjson::Value &xmrig::Json::getArray(const rapidjson::Value &obj, const char *key)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return kNullValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd() && i->value.IsArray()) {
@@ -78,7 +91,9 @@ const rapidjson::Value &xmrig::Json::getArray(const rapidjson::Value &obj, const
 
 const rapidjson::Value &xmrig::Json::getObject(const rapidjson::Value &obj, const char *key)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return kNullValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd() && i->value.IsObject()) {
@@ -91,7 +106,9 @@ const rapidjson::Value &xmrig::Json::getObject(const rapidjson::Value &obj, cons
 
 const rapidjson::Value &xmrig::Json::getValue(const rapidjson::Value &obj, const char *key)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return kNullValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd()) {
@@ -104,7 +121,9 @@ const rapidjson::Value &xmrig::Json::getValue(const rapidjson::Value &obj, const
 
 int xmrig::Json::getInt(const rapidjson::Value &obj, const char *key, int defaultValue)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return defaultValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd() && i->value.IsInt()) {
@@ -117,7 +136,9 @@ int xmrig::Json::getInt(const rapidjson::Value &obj, const char *key, int defaul
 
 int64_t xmrig::Json::getInt64(const rapidjson::Value &obj, const char *key, int64_t defaultValue)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return defaultValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd() && i->value.IsInt64()) {
@@ -130,7 +151,9 @@ int64_t xmrig::Json::getInt64(const rapidjson::Value &obj, const char *key, int6
 
 uint64_t xmrig::Json::getUint64(const rapidjson::Value &obj, const char *key, uint64_t defaultValue)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return defaultValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd() && i->value.IsUint64()) {
@@ -143,7 +166,9 @@ uint64_t xmrig::Json::getUint64(const rapidjson::Value &obj, const char *key, ui
 
 unsigned xmrig::Json::getUint(const rapidjson::Value &obj, const char *key, unsigned defaultValue)
 {
-    assert(obj.IsObject());
+    if (isEmpty(obj)) {
+        return defaultValue;
+    }
 
     auto i = obj.FindMember(key);
     if (i != obj.MemberEnd() && i->value.IsUint()) {
@@ -154,7 +179,50 @@ unsigned xmrig::Json::getUint(const rapidjson::Value &obj, const char *key, unsi
 }
 
 
+rapidjson::Value xmrig::Json::normalize(double value, bool zero)
+{
+    using namespace rapidjson;
+
+    if (!std::isnormal(value)) {
+        return zero ? Value(0.0) : Value(kNullType);
+    }
+
+    return Value(floor(value * 100.0) / 100.0);
+}
+
+
+bool xmrig::Json::convertOffset(std::istream &ifs, size_t offset, size_t &line, size_t &pos, std::vector<std::string> &s)
+{
+    std::string prev_t;
+    std::string t;
+    line = 0;
+    pos = 0;
+    size_t k = 0;
+
+    while (!ifs.eof()) {
+        prev_t = t;
+        std::getline(ifs, t);
+        k += t.length() + 1;
+        ++line;
+
+        if (k > offset) {
+            pos = offset + t.length() + 1 - k + 1;
+
+            s.clear();
+            if (!prev_t.empty()) {
+                s.emplace_back(prev_t);
+            }
+            s.emplace_back(t);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 bool xmrig::JsonReader::isEmpty() const
 {
-    return !m_obj.IsObject() || m_obj.ObjectEmpty();
+    return Json::isEmpty(m_obj);
 }

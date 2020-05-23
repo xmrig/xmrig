@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,10 +23,10 @@
  */
 
 
-#include "base/io/json/Json.h"
 #include "base/io/json/JsonChain.h"
+#include "3rdparty/rapidjson/error/en.h"
+#include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
-#include "rapidjson/error/en.h"
 
 
 namespace xmrig {
@@ -64,7 +64,27 @@ bool xmrig::JsonChain::addFile(const char *fileName)
     }
 
     if (doc.HasParseError()) {
-        LOG_ERR("%s<offset:%zu>: \"%s\"", fileName, doc.GetErrorOffset(), GetParseError_En(doc.GetParseError()));
+        const size_t offset = doc.GetErrorOffset();
+
+        size_t line, pos;
+        std::vector<std::string> s;
+        if (Json::convertOffset(fileName, offset, line, pos, s)) {
+            for (const auto& t : s) {
+                LOG_ERR("%s", t.c_str());
+            }
+
+            std::string t;
+            if (pos > 0) {
+                t.assign(pos - 1, ' ');
+            }
+            t += '^';
+            LOG_ERR("%s", t.c_str());
+
+            LOG_ERR("%s<line:%zu, position:%zu>: \"%s\"", fileName, line, pos, GetParseError_En(doc.GetParseError()));
+        }
+        else {
+            LOG_ERR("%s<offset:%zu>: \"%s\"", fileName, offset, GetParseError_En(doc.GetParseError()));
+        }
     }
     else {
         LOG_ERR("unable to open \"%s\".", fileName);

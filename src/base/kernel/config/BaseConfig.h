@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,9 @@
 #include "base/net/stratum/Pools.h"
 
 
-struct option;
+#ifdef XMRIG_FEATURE_TLS
+#   include "base/net/tls/TlsConfig.h"
+#endif
 
 
 namespace xmrig {
@@ -43,23 +45,46 @@ class IJsonReader;
 class BaseConfig : public IConfig
 {
 public:
-    BaseConfig();
+    static const char *kApi;
+    static const char *kApiId;
+    static const char *kApiWorkerId;
+    static const char *kAutosave;
+    static const char *kBackground;
+    static const char *kColors;
+    static const char *kDryRun;
+    static const char *kHttp;
+    static const char *kLogFile;
+    static const char *kPrintTime;
+    static const char *kSyslog;
+    static const char *kUserAgent;
+    static const char *kVerbose;
+    static const char *kWatch;
 
-    inline bool isAutoSave() const                 { return m_autoSave; }
-    inline bool isBackground() const               { return m_background; }
-    inline bool isDryRun() const                   { return m_dryRun; }
-    inline bool isSyslog() const                   { return m_syslog; }
-    inline const char *logFile() const             { return m_logFile.data(); }
-    inline const char *userAgent() const           { return m_userAgent.data(); }
-    inline const Http &http() const                { return m_http; }
-    inline const Pools &pools() const              { return m_pools; }
-    inline const String &apiId() const             { return m_apiId; }
-    inline const String &apiWorkerId() const       { return m_apiWorkerId; }
-    inline uint32_t printTime() const              { return m_printTime; }
+#   ifdef XMRIG_FEATURE_TLS
+    static const char *kTls;
+#   endif
 
-    inline bool isWatch() const override                   { return m_watch && !m_fileName.isNull(); }
-    inline const String &fileName() const override         { return m_fileName; }
-    inline void setFileName(const char *fileName) override { m_fileName = fileName; }
+    BaseConfig() = default;
+
+    inline bool isAutoSave() const                          { return m_autoSave; }
+    inline bool isBackground() const                        { return m_background; }
+    inline bool isDryRun() const                            { return m_dryRun; }
+    inline bool isSyslog() const                            { return m_syslog; }
+    inline const char *logFile() const                      { return m_logFile.data(); }
+    inline const char *userAgent() const                    { return m_userAgent.data(); }
+    inline const Http &http() const                         { return m_http; }
+    inline const Pools &pools() const                       { return m_pools; }
+    inline const String &apiId() const                      { return m_apiId; }
+    inline const String &apiWorkerId() const                { return m_apiWorkerId; }
+    inline uint32_t printTime() const                       { return m_printTime; }
+
+#   ifdef XMRIG_FEATURE_TLS
+    inline const TlsConfig &tls() const                     { return m_tls; }
+#   endif
+
+    inline bool isWatch() const override                    { return m_watch && !m_fileName.isNull(); }
+    inline const String &fileName() const override          { return m_fileName; }
+    inline void setFileName(const char *fileName) override  { m_fileName = fileName; }
 
     bool read(const IJsonReader &reader, const char *fileName) override;
     bool save() override;
@@ -81,10 +106,13 @@ protected:
     String m_logFile;
     String m_userAgent;
     uint32_t m_printTime = 60;
-    uint32_t m_version   = 0;
+
+#   ifdef XMRIG_FEATURE_TLS
+    TlsConfig m_tls;
+#   endif
 
 private:
-    inline void setPrintTime(uint32_t printTime) { if (printTime <= 3600) { m_printTime = printTime; } }
+    void setVerbose(const rapidjson::Value &value);
 };
 
 

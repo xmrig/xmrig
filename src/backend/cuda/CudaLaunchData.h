@@ -28,7 +28,7 @@
 
 
 #include "backend/cuda/CudaThread.h"
-#include "crypto/common/Algorithm.h"
+#include "base/crypto/Algorithm.h"
 #include "crypto/common/Nonce.h"
 
 

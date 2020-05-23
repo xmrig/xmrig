@@ -57,7 +57,7 @@ size_t argon2_memory_size(uint32_t m_cost, uint32_t parallelism) {
 int argon2_ctx_mem(argon2_context *context, argon2_type type, void *memory,
                    size_t memory_size) {
     /* 1. Validate all inputs */
-    int result = validate_inputs(context);
+    int result = xmrig_ar2_validate_inputs(context);
     uint32_t memory_blocks, segment_length;
     argon2_instance_t instance;
 
@@ -98,20 +98,20 @@ int argon2_ctx_mem(argon2_context *context, argon2_type type, void *memory,
     /* 3. Initialization: Hashing inputs, allocating memory, filling first
      * blocks
      */
-    result = initialize(&instance, context);
+    result = xmrig_ar2_initialize(&instance, context);
 
     if (ARGON2_OK != result) {
         return result;
     }
 
     /* 4. Filling memory */
-    result = fill_memory_blocks(&instance);
+    result = xmrig_ar2_fill_memory_blocks(&instance);
 
     if (ARGON2_OK != result) {
         return result;
     }
     /* 5. Finalization */
-    finalize(context, &instance);
+    xmrig_ar2_finalize(context, &instance);
 
     return ARGON2_OK;
 }
@@ -174,7 +174,7 @@ int argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
     result = argon2_ctx(&context, type);
 
     if (result != ARGON2_OK) {
-        clear_internal_memory(out, hashlen);
+        xmrig_ar2_clear_internal_memory(out, hashlen);
         free(out);
         return result;
     }
@@ -187,13 +187,13 @@ int argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
     /* if encoding requested, write it */
     if (encoded && encodedlen) {
         if (encode_string(encoded, encodedlen, &context, type) != ARGON2_OK) {
-            clear_internal_memory(out, hashlen); /* wipe buffers if error */
-            clear_internal_memory(encoded, encodedlen);
+            xmrig_ar2_clear_internal_memory(out, hashlen); /* wipe buffers if error */
+            xmrig_ar2_clear_internal_memory(encoded, encodedlen);
             free(out);
             return ARGON2_ENCODING_FAIL;
         }
     }
-    clear_internal_memory(out, hashlen);
+    xmrig_ar2_clear_internal_memory(out, hashlen);
     free(out);
 
     return ARGON2_OK;

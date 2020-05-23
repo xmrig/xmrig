@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
 namespace xmrig {
 
 
-static const char short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
+static const char short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:Sx:";
 
 
 static const option options[] = {
@@ -86,9 +86,20 @@ static const option options[] = {
     { "max-cpu-usage",         1, nullptr, IConfig::CPUMaxThreadsKey      },
     { "cpu-max-threads-hint",  1, nullptr, IConfig::CPUMaxThreadsKey      },
     { "cpu-memory-pool",       1, nullptr, IConfig::MemoryPoolKey         },
+    { "cpu-no-yield",          0, nullptr, IConfig::YieldKey              },
+    { "verbose",               0, nullptr, IConfig::VerboseKey            },
+    { "proxy",                 1, nullptr, IConfig::ProxyKey              },
+    { "data-dir",              1, nullptr, IConfig::DataDirKey            },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },
+    { "tls-cert",              1, nullptr, IConfig::TlsCertKey            },
+    { "tls-cert-key",          1, nullptr, IConfig::TlsCertKeyKey         },
+    { "tls-dhparam",           1, nullptr, IConfig::TlsDHparamKey         },
+    { "tls-protocols",         1, nullptr, IConfig::TlsProtocolsKey       },
+    { "tls-ciphers",           1, nullptr, IConfig::TlsCiphersKey         },
+    { "tls-ciphersuites",      1, nullptr, IConfig::TlsCipherSuitesKey    },
+    { "tls-gen",               1, nullptr, IConfig::TlsGenKey             },
 #   endif
 #   ifdef XMRIG_FEATURE_ASM
     { "asm",                   1, nullptr, IConfig::AssemblyKey           },
@@ -96,7 +107,18 @@ static const option options[] = {
 #   ifdef XMRIG_ALGO_RANDOMX
     { "randomx-init",          1, nullptr, IConfig::RandomXInitKey        },
     { "randomx-no-numa",       0, nullptr, IConfig::RandomXNumaKey        },
+    { "randomx-mode",          1, nullptr, IConfig::RandomXModeKey        },
+    { "randomx-1gb-pages",     0, nullptr, IConfig::RandomX1GbPagesKey    },
+    { "1gb-pages",             0, nullptr, IConfig::RandomX1GbPagesKey    },
+    { "randomx-wrmsr",         2, nullptr, IConfig::RandomXWrmsrKey       },
+    { "wrmsr",                 2, nullptr, IConfig::RandomXWrmsrKey       },
+    { "randomx-no-rdmsr",      0, nullptr, IConfig::RandomXRdmsrKey       },
+    { "no-rdmsr",              0, nullptr, IConfig::RandomXRdmsrKey       },
 #   endif
+    #ifdef XMRIG_ALGO_ASTROBWT
+    { "astrobwt-max-size",     1, nullptr, IConfig::AstroBWTMaxSizeKey    },
+    { "astrobwt-avx2",         0, nullptr, IConfig::AstroBWTAVX2Key       },
+    #endif
 #   ifdef XMRIG_FEATURE_OPENCL
     { "opencl",                0, nullptr, IConfig::OclKey                },
     { "opencl-devices",        1, nullptr, IConfig::OclDevicesKey         },
@@ -108,6 +130,8 @@ static const option options[] = {
     { "cuda",                  0, nullptr, IConfig::CudaKey               },
     { "cuda-loader",           1, nullptr, IConfig::CudaLoaderKey         },
     { "cuda-devices",          1, nullptr, IConfig::CudaDevicesKey        },
+    { "cuda-bfactor-hint",     1, nullptr, IConfig::CudaBFactorKey        },
+    { "cuda-bsleep-hint",      1, nullptr, IConfig::CudaBSleepKey         },
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     { "no-nvml",               0, nullptr, IConfig::NvmlKey               },

@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclDevice.h"
-#include "crypto/common/Algorithm.h"
+#include "base/crypto/Algorithm.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
 
@@ -40,9 +40,16 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
         return false;
     }
 
+    // Mobile Ryzen APUs
+    if (device.type() == OclDevice::Raven) {
+        threads.add(OclThread(device.index(), (device.computeUnits() > 4) ? 256 : 128, 8, 1, true, true, 6));
+        return true;
+    }
+
     const size_t mem = device.globalMemSize();
     auto config      = RxAlgo::base(algorithm);
     bool gcnAsm      = false;
+    bool isNavi      = false;
 
     switch (device.type()) {
     case OclDevice::Baffin:
@@ -51,6 +58,13 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
     case OclDevice::Vega_10:
     case OclDevice::Vega_20:
         gcnAsm = true;
+        break;
+
+    case OclDevice::Navi_10:
+    case OclDevice::Navi_12:
+    case OclDevice::Navi_14:
+        gcnAsm = true;
+        isNavi = true;
         break;
 
     default:
@@ -69,8 +83,9 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
     uint32_t intensity = static_cast<uint32_t>((mem - (datasetHost ? 0 : dataset_mem)) / per_thread_mem / 2);
 
     // Too high intensity makes hashrate worse
-    if (intensity > device.computeUnits() * 16) {
-        intensity = device.computeUnits() * 16;
+    const uint32_t intensityCoeff = isNavi ? 64 : 16;
+    if (intensity > device.computeUnits() * intensityCoeff) {
+        intensity = device.computeUnits() * intensityCoeff;
     }
 
     intensity -= intensity % 64;

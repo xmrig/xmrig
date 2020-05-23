@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,28 +23,27 @@
  */
 
 
+#include "base/net/http/Http.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
-#include "base/net/http/Http.h"
 
 
 namespace xmrig {
 
-static const char *kEnabled    = "enabled";
-static const char *kHost       = "host";
-static const char *kLocalhost  = "127.0.0.1";
-static const char *kPort       = "port";
-static const char *kRestricted = "restricted";
-static const char *kToken      = "access-token";
+
+const char *Http::kEnabled    = "enabled";
+const char *Http::kHost       = "host";
+const char *Http::kLocalhost  = "127.0.0.1";
+const char *Http::kPort       = "port";
+const char *Http::kRestricted = "restricted";
+const char *Http::kToken      = "access-token";
+
 
 }
 
 
 xmrig::Http::Http() :
-    m_enabled(false),
-    m_restricted(true),
-    m_host(kLocalhost),
-    m_port(0)
+    m_host(kLocalhost)
 {
 }
 

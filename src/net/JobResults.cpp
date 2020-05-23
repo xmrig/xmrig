@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 
 #include "net/JobResults.h"
-
 #include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
 #include "base/tools/Object.h"
@@ -105,7 +104,7 @@ static inline void checkHash(const JobBundle &bundle, std::vector<JobResult> &re
 static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint32_t &errors, bool hwAES)
 {
     const auto &algorithm = bundle.job.algorithm();
-    auto memory           = new VirtualMemory(algorithm.l3(), false, false);
+    auto memory           = new VirtualMemory(algorithm.l3(), false, false, false);
     uint8_t hash[32]{ 0 };
 
     if (algorithm.family() == Algorithm::RANDOM_X) {
@@ -117,17 +116,17 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
             return;
         }
 
-        auto vm = new RxVm(dataset, memory->scratchpad(), !hwAES);
+        auto vm = RxVm::create(dataset, memory->scratchpad(), !hwAES, Assembly::NONE, 0);
 
         for (uint32_t nonce : bundle.nonces) {
             *bundle.job.nonce() = nonce;
 
-            randomx_calculate_hash(vm->get(), bundle.job.blob(), bundle.job.size(), hash);
+            randomx_calculate_hash(vm, bundle.job.blob(), bundle.job.size(), hash);
 
             checkHash(bundle, results, nonce, hash, errors);
         }
 
-        delete vm;
+        RxVm::destroy(vm);
 #       endif
     }
     else if (algorithm.family() == Algorithm::ARGON2) {
@@ -271,6 +270,11 @@ static JobResultsPrivate *handler = nullptr;
 
 } // namespace xmrig
 
+
+void xmrig::JobResults::done(const Job &job)
+{
+    submit(JobResult(job));
+}
 
 
 void xmrig::JobResults::setListener(IJobResultListener *listener, bool hwAES)

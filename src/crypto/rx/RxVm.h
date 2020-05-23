@@ -7,8 +7,8 @@
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 
 
 #include "base/tools/Object.h"
+#include "backend/cpu/Cpu.h"
 
 
 #include <cstdint>
@@ -49,14 +50,8 @@ class RxVm
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxVm);
 
-    RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes);
-    ~RxVm();
-
-    inline randomx_vm *get() const       { return m_vm; }
-
-private:
-    int m_flags      = 0;
-    randomx_vm *m_vm = nullptr;
+    static randomx_vm* create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly, uint32_t node);
+    static void destroy(randomx_vm* vm);
 };
 
 

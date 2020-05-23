@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #define XMRIG_IAPIREQUEST_H
 
 
-#include "rapidjson/fwd.h"
+#include "3rdparty/rapidjson/fwd.h"
 
 
 namespace xmrig {
@@ -69,21 +69,23 @@ public:
 
     virtual ~IApiRequest() = default;
 
-    virtual bool accept()                                        = 0;
-    virtual bool hasParseError() const                           = 0;
-    virtual bool isDone() const                                  = 0;
-    virtual bool isNew() const                                   = 0;
-    virtual bool isRestricted() const                            = 0;
-    virtual const rapidjson::Value &json() const                 = 0;
-    virtual const String &rpcMethod() const                      = 0;
-    virtual const String &url() const                            = 0;
-    virtual int version() const                                  = 0;
-    virtual Method method() const                                = 0;
-    virtual rapidjson::Document &doc()                           = 0;
-    virtual rapidjson::Value &reply()                            = 0;
-    virtual RequestType type() const                             = 0;
-    virtual Source source() const                                = 0;
-    virtual void done(int status)                                = 0;
+    virtual bool accept()                                               = 0;
+    virtual bool hasParseError() const                                  = 0;
+    virtual bool isDone() const                                         = 0;
+    virtual bool isNew() const                                          = 0;
+    virtual bool isRestricted() const                                   = 0;
+    virtual const rapidjson::Value &json() const                        = 0;
+    virtual const String &rpcMethod() const                             = 0;
+    virtual const String &url() const                                   = 0;
+    virtual int version() const                                         = 0;
+    virtual Method method() const                                       = 0;
+    virtual rapidjson::Document &doc()                                  = 0;
+    virtual rapidjson::Value &reply()                                   = 0;
+    virtual RequestType type() const                                    = 0;
+    virtual Source source() const                                       = 0;
+    virtual void done(int status)                                       = 0;
+    virtual void setRpcError(int code, const char *message = nullptr)   = 0;
+    virtual void setRpcResult(rapidjson::Value &result)                 = 0;
 };
 
 

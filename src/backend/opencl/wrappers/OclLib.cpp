@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,10 +28,12 @@
 #include <uv.h>
 
 
+#include "backend/opencl/wrappers/OclLib.h"
 #include "backend/common/Tags.h"
 #include "backend/opencl/wrappers/OclError.h"
-#include "backend/opencl/wrappers/OclLib.h"
+#include "base/io/Env.h"
 #include "base/io/log/Log.h"
+
 
 #if defined(OCL_DEBUG_REFERENCE_COUNT)
 #   define LOG_REFS(x, ...) xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
@@ -188,7 +190,7 @@ static String getOclString(FUNC fn, OBJ obj, PARAM param)
 bool xmrig::OclLib::init(const char *fileName)
 {
     if (!m_initialized) {
-        m_loader      = fileName == nullptr ? defaultLoader() : fileName;
+        m_loader      = fileName == nullptr ? defaultLoader() : Env::expand(fileName);
         m_ready       = uv_dlopen(m_loader, &oclLib) == 0 && load();
         m_initialized = true;
     }
@@ -257,7 +259,7 @@ bool xmrig::OclLib::load()
 }
 
 
-const char *xmrig::OclLib::defaultLoader()
+xmrig::String xmrig::OclLib::defaultLoader()
 {
 #   if defined(__APPLE__)
     return "/System/Library/Frameworks/OpenCL.framework/OpenCL";

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,12 +26,13 @@
 #include <mutex>
 
 
+#include "backend/cpu/CpuBackend.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/common/Workers.h"
 #include "backend/cpu/Cpu.h"
-#include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
@@ -41,7 +42,6 @@
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxDataset.h"
-#include "rapidjson/document.h"
 
 
 #ifdef XMRIG_FEATURE_API
@@ -68,17 +68,15 @@ static std::mutex mutex;
 struct CpuLaunchStatus
 {
 public:
-    inline size_t hugePages() const     { return m_hugePages; }
-    inline size_t memory() const        { return m_ways * m_memory; }
-    inline size_t pages() const         { return m_pages; }
-    inline size_t threads() const       { return m_threads; }
-    inline size_t ways() const          { return m_ways; }
+    inline const HugePagesInfo &hugePages() const   { return m_hugePages; }
+    inline size_t memory() const                    { return m_ways * m_memory; }
+    inline size_t threads() const                   { return m_threads; }
+    inline size_t ways() const                      { return m_ways; }
 
     inline void start(const std::vector<CpuLaunchData> &threads, size_t memory)
     {
-        m_hugePages = 0;
+        m_hugePages.reset();
         m_memory    = memory;
-        m_pages     = 0;
         m_started   = 0;
         m_errors    = 0;
         m_threads   = threads.size();
@@ -89,11 +87,9 @@ public:
     inline bool started(IWorker *worker, bool ready)
     {
         if (ready) {
-            auto hugePages = worker->memory()->hugePages();
-
             m_started++;
-            m_hugePages += hugePages.first;
-            m_pages     += hugePages.second;
+
+            m_hugePages += worker->memory()->hugePages();
             m_ways      += worker->intensity();
         }
         else {
@@ -115,19 +111,18 @@ public:
                  tag,
                  m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
                  m_started, m_threads, m_ways,
-                 (m_hugePages == m_pages ? GREEN_BOLD_S : (m_hugePages == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
-                 m_hugePages == 0 ? 0.0 : static_cast<double>(m_hugePages) / m_pages * 100.0,
-                 m_hugePages, m_pages,
+                 (m_hugePages.isFullyAllocated() ? GREEN_BOLD_S : (m_hugePages.allocated == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
+                 m_hugePages.percent(),
+                 m_hugePages.allocated, m_hugePages.total,
                  memory() / 1024,
                  Chrono::steadyMSecs() - m_ts
                  );
     }
 
 private:
+    HugePagesInfo m_hugePages;
     size_t m_errors       = 0;
-    size_t m_hugePages    = 0;
     size_t m_memory       = 0;
-    size_t m_pages        = 0;
     size_t m_started      = 0;
     size_t m_threads      = 0;
     size_t m_ways         = 0;
@@ -169,18 +164,17 @@ public:
 
     rapidjson::Value hugePages(int version, rapidjson::Document &doc)
     {
-        std::pair<unsigned, unsigned> pages(0, 0);
+        HugePagesInfo pages;
 
     #   ifdef XMRIG_ALGO_RANDOMX
         if (algo.family() == Algorithm::RANDOM_X) {
-            pages = Rx::hugePages();
+            pages += Rx::hugePages();
         }
     #   endif
 
         mutex.lock();
 
-        pages.first  += status.hugePages();
-        pages.second += status.pages();
+        pages += status.hugePages();
 
         mutex.unlock();
 
@@ -188,11 +182,11 @@ public:
 
         if (version > 1) {
             hugepages.SetArray();
-            hugepages.PushBack(pages.first, doc.GetAllocator());
-            hugepages.PushBack(pages.second, doc.GetAllocator());
+            hugepages.PushBack(static_cast<uint64_t>(pages.allocated), doc.GetAllocator());
+            hugepages.PushBack(static_cast<uint64_t>(pages.total), doc.GetAllocator());
         }
         else {
-            hugepages = pages.first == pages.second;
+            hugepages = pages.isFullyAllocated();
         }
 
         return hugepages;
@@ -281,12 +275,15 @@ const xmrig::String &xmrig::CpuBackend::type() const
 void xmrig::CpuBackend::prepare(const Job &nextJob)
 {
 #   ifdef XMRIG_ALGO_ARGON2
-    if (nextJob.algorithm().family() == Algorithm::ARGON2 && argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
-        LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
-                 tag,
-                 argon2::Impl::name() == "default" ? 33 : 32,
-                 argon2::Impl::name().data()
-                 );
+    const xmrig::Algorithm::Family f = nextJob.algorithm().family();
+    if ((f == Algorithm::ARGON2) || (f == Algorithm::RANDOM_X)) {
+        if (argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
+            LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
+                     tag,
+                     argon2::Impl::name() == "default" ? 33 : 32,
+                     argon2::Impl::name().data()
+                     );
+        }
     }
 #   endif
 }
@@ -322,6 +319,11 @@ void xmrig::CpuBackend::printHashrate(bool details)
                Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
                );
 #   endif
+}
+
+
+void xmrig::CpuBackend::printHealth()
+{
 }
 
 
@@ -415,6 +417,10 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_ALGO_ARGON2
     out.AddMember("argon2-impl", argon2::Impl::name().toJSON(), allocator);
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    out.AddMember("astrobwt-max-size", cpu.astrobwtMaxSize(), allocator);
 #   endif
 
     out.AddMember("hugepages", d_ptr->hugePages(2, doc), allocator);

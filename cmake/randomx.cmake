@@ -1,5 +1,6 @@
 if (WITH_RANDOMX)
     add_definitions(/DXMRIG_ALGO_RANDOMX)
+    set(WITH_ARGON2 ON)
 
     list(APPEND HEADERS_CRYPTO
         src/crypto/rx/Rx.h
@@ -16,8 +17,6 @@ if (WITH_RANDOMX)
     list(APPEND SOURCES_CRYPTO
         src/crypto/randomx/aes_hash.cpp
         src/crypto/randomx/allocator.cpp
-        src/crypto/randomx/argon2_core.c
-        src/crypto/randomx/argon2_ref.c
         src/crypto/randomx/blake2_generator.cpp
         src/crypto/randomx/blake2/blake2b.c
         src/crypto/randomx/bytecode_machine.cpp
@@ -75,13 +74,27 @@ if (WITH_RANDOMX)
             )
 
         list(APPEND SOURCES_CRYPTO
-             src/crypto/rx/RxConfig_hwloc.cpp
              src/crypto/rx/RxNUMAStorage.cpp
             )
+    endif()
+
+    if (WITH_MSR AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
+        add_definitions(/DXMRIG_FEATURE_MSR)
+        add_definitions(/DXMRIG_FIX_RYZEN)
+        message("-- WITH_MSR=ON")
+
+        if (XMRIG_OS_WIN)
+            list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_win.cpp)
+        elseif (XMRIG_OS_LINUX)
+            list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_linux.cpp)
+        endif()
+
+        list(APPEND HEADERS_CRYPTO src/crypto/rx/msr/MsrItem.h)
+        list(APPEND SOURCES_CRYPTO src/crypto/rx/msr/MsrItem.cpp)
     else()
-        list(APPEND SOURCES_CRYPTO
-             src/crypto/rx/RxConfig_basic.cpp
-            )
+        remove_definitions(/DXMRIG_FEATURE_MSR)
+        remove_definitions(/DXMRIG_FIX_RYZEN)
+        message("-- WITH_MSR=OFF")
     endif()
 else()
     remove_definitions(/DXMRIG_ALGO_RANDOMX)

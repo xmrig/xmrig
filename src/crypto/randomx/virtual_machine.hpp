@@ -39,11 +39,15 @@ public:
 	virtual ~randomx_vm() = 0;
 	virtual void setScratchpad(uint8_t *scratchpad) = 0;
 	virtual void getFinalResult(void* out, size_t outSize) = 0;
+	virtual void hashAndFill(void* out, size_t outSize, uint64_t (&fill_state)[8]) = 0;
 	virtual void setDataset(randomx_dataset* dataset) { }
 	virtual void setCache(randomx_cache* cache) { }
 	virtual void initScratchpad(void* seed) = 0;
 	virtual void run(void* seed) = 0;
 	void resetRoundingMode();
+
+	void setFlags(uint32_t flags) { vm_flags = flags; }
+	uint32_t getFlags() const { return vm_flags; }
 
 	randomx::RegisterFile *getRegisterFile() {
 		return &reg;
@@ -70,6 +74,7 @@ protected:
 		randomx_dataset* datasetPtr;
 	};
 	uint64_t datasetOffset;
+	uint32_t vm_flags;
 };
 
 namespace randomx {
@@ -82,6 +87,7 @@ namespace randomx {
 		void setScratchpad(uint8_t *scratchpad) override;
 		void initScratchpad(void* seed) override;
 		void getFinalResult(void* out, size_t outSize) override;
+		void hashAndFill(void* out, size_t outSize, uint64_t (&fill_state)[8]) override;
 
 	protected:
 		void generateProgram(void* seed);

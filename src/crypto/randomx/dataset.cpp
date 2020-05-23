@@ -46,13 +46,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/blake2_generator.hpp"
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/blake2/endian.h"
-#include "crypto/randomx/argon2.h"
-#include "crypto/randomx/argon2_core.h"
 #include "crypto/randomx/jit_compiler.hpp"
 #include "crypto/randomx/intrin_portable.h"
 
+#include "3rdparty/argon2/include/argon2.h"
+#include "3rdparty/argon2/lib/core.h"
+
 //static_assert(RANDOMX_ARGON_MEMORY % (RANDOMX_ARGON_LANES * ARGON2_SYNC_POINTS) == 0, "RANDOMX_ARGON_MEMORY - invalid value");
-static_assert(ARGON2_BLOCK_SIZE == randomx::ArgonBlockSize, "Unpexpected value of ARGON2_BLOCK_SIZE");
+static_assert(ARGON2_BLOCK_SIZE == randomx::ArgonBlockSize, "Unexpected value of ARGON2_BLOCK_SIZE");
 
 namespace randomx {
 
@@ -68,8 +69,6 @@ namespace randomx {
 	template void deallocCache<LargePageAllocator>(randomx_cache* cache);
 
 	void initCache(randomx_cache* cache, const void* key, size_t keySize) {
-		uint32_t memory_blocks, segment_length;
-		argon2_instance_t instance;
 		argon2_context context;
 
 		context.out = nullptr;
@@ -91,33 +90,7 @@ namespace randomx {
 		context.flags = ARGON2_DEFAULT_FLAGS;
 		context.version = ARGON2_VERSION_NUMBER;
 
-		/* 2. Align memory size */
-		/* Minimum memory_blocks = 8L blocks, where L is the number of lanes */
-		memory_blocks = context.m_cost;
-
-		segment_length = memory_blocks / (context.lanes * ARGON2_SYNC_POINTS);
-
-		instance.version = context.version;
-		instance.memory = NULL;
-		instance.passes = context.t_cost;
-		instance.memory_blocks = memory_blocks;
-		instance.segment_length = segment_length;
-		instance.lane_length = segment_length * ARGON2_SYNC_POINTS;
-		instance.lanes = context.lanes;
-		instance.threads = context.threads;
-		instance.type = Argon2_d;
-		instance.memory = (block*)cache->memory;
-
-		if (instance.threads > instance.lanes) {
-			instance.threads = instance.lanes;
-		}
-
-		/* 3. Initialization: Hashing inputs, allocating memory, filling first
-		 * blocks
-		 */
-		rxa2_argon_initialize(&instance, &context);
-
-		rxa2_fill_memory_blocks(&instance);
+		argon2_ctx_mem(&context, Argon2_d, cache->memory, RandomX_CurrentConfig.ArgonMemory * 1024);
 
 		cache->reciprocalCache.clear();
 		randomx::Blake2Generator gen(key, keySize);

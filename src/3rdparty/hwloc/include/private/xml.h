@@ -1,12 +1,12 @@
 /*
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2017 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
 #ifndef PRIVATE_XML_H
 #define PRIVATE_XML_H 1
 
-#include <hwloc.h>
+#include "hwloc.h"
 
 #include <sys/types.h>
 
@@ -54,7 +54,6 @@ struct hwloc_xml_backend_data_s {
   unsigned nbnumanodes;
   hwloc_obj_t first_numanode, last_numanode; /* temporary cousin-list for handling v1distances */
   struct hwloc__xml_imported_v1distances_s *first_v1dist, *last_v1dist;
-  int dont_merge_die_groups;
 };
 
 /**************

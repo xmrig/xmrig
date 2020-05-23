@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,6 +36,11 @@
 
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "backend/cuda/runners/CudaRxRunner.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_ASTROBWT
+#   include "backend/cuda/runners/CudaAstroBWTRunner.h"
 #endif
 
 
@@ -73,13 +78,25 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     case Algorithm::ARGON2:
         break;
 
+    case Algorithm::ASTROBWT:
+#       ifdef XMRIG_ALGO_ASTROBWT
+        m_runner = new CudaAstroBWTRunner(id, data);
+#       endif
+        break;
+
     default:
         m_runner = new CudaCnRunner(id, data);
         break;
     }
 
-    if (!m_runner || !m_runner->init()) {
+    if (!m_runner) {
         return;
+    }
+
+    if (!m_runner->init()) {
+        delete m_runner;
+
+        m_runner = nullptr;
     }
 }
 
@@ -98,7 +115,7 @@ bool xmrig::CudaWorker::selfTest()
 
 size_t xmrig::CudaWorker::intensity() const
 {
-    return m_runner ? m_runner->intensity() : 0;
+    return m_runner ? m_runner->roundSize() : 0;
 }
 
 
@@ -133,7 +150,9 @@ void xmrig::CudaWorker::start()
             }
 
             const size_t batch_size = intensity();
-            m_job.nextRound(roundSize(batch_size), batch_size);
+            if (!m_job.nextRound(roundSize(batch_size), batch_size)) {
+                JobResults::done(m_job.currentJob());
+            }
 
             storeStats();
             std::this_thread::yield();
@@ -165,7 +184,7 @@ void xmrig::CudaWorker::storeStats()
         return;
     }
 
-    m_count += intensity();
+    m_count += m_runner ? m_runner->processedHashes() : 0;
 
     Worker::storeStats();
 }
