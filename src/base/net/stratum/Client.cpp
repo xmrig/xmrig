@@ -39,6 +39,10 @@
 
 
 #include "base/net/stratum/Client.h"
+#include "3rdparty/rapidjson/document.h"
+#include "3rdparty/rapidjson/error/en.h"
+#include "3rdparty/rapidjson/stringbuffer.h"
+#include "3rdparty/rapidjson/writer.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
@@ -49,10 +53,6 @@
 #include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
 #include "net/JobResult.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/en.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
 
 
 #ifdef _MSC_VER

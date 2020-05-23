@@ -24,12 +24,12 @@
 
 
 #include "backend/opencl/OclConfig.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Tags.h"
 #include "backend/opencl/OclConfig_gen.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
-#include "rapidjson/document.h"
 
 
 namespace xmrig {

@@ -26,8 +26,8 @@
 #include <uv.h>
 
 
+#include "base/io/Signals.h"
 #include "base/kernel/interfaces/ISignalListener.h"
-#include "base/kernel/Signals.h"
 #include "base/tools/Handle.h"
 
 

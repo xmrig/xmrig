@@ -18,12 +18,11 @@
 
 
 #include "base/net/http/Fetch.h"
+#include "3rdparty/rapidjson/document.h"
+#include "3rdparty/rapidjson/stringbuffer.h"
+#include "3rdparty/rapidjson/writer.h"
 #include "base/io/log/Log.h"
 #include "base/net/http/HttpClient.h"
-#include "base/net/stratum/Pool.h"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
 
 
 #ifdef XMRIG_FEATURE_TLS
@@ -45,7 +44,7 @@ xmrig::FetchRequest::FetchRequest(http_method method, const String &host, uint16
 }
 
 
-xmrig::FetchRequest::FetchRequest(http_method method, const String &host, uint16_t port, const String &path, const rapidjson::Document &doc, bool tls, bool quiet) :
+xmrig::FetchRequest::FetchRequest(http_method method, const String &host, uint16_t port, const String &path, const rapidjson::Value &value, bool tls, bool quiet) :
     quiet(quiet),
     tls(tls),
     method(method),
@@ -55,40 +54,8 @@ xmrig::FetchRequest::FetchRequest(http_method method, const String &host, uint16
 {
     assert(port > 0);
 
-    setBody(doc);
+    setBody(value);
 }
-
-
-xmrig::FetchRequest::FetchRequest(int method, const Pool &pool, const String &path, bool quiet, const char *data, size_t size, const char *contentType) :
-    quiet(quiet),
-    tls(pool.isTLS()),
-    method(static_cast<http_method>(method)),
-    fingerprint(pool.fingerprint()),
-    host(pool.host()),
-    path(path),
-    port(pool.port())
-{
-    assert(pool.isValid());
-
-    setBody(data, size, contentType);
-}
-
-
-
-xmrig::FetchRequest::FetchRequest(int method, const Pool &pool, const String &path, const rapidjson::Document &doc, bool quiet) :
-    quiet(quiet),
-    tls(pool.isTLS()),
-    method(static_cast<http_method>(method)),
-    fingerprint(pool.fingerprint()),
-    host(pool.host()),
-    path(path),
-    port(pool.port())
-{
-    assert(pool.isValid());
-
-    setBody(doc);
-}
-
 
 
 void xmrig::FetchRequest::setBody(const char *data, size_t size, const char *contentType)
@@ -110,7 +77,7 @@ void xmrig::FetchRequest::setBody(const char *data, size_t size, const char *con
 }
 
 
-void xmrig::FetchRequest::setBody(const rapidjson::Document &doc)
+void xmrig::FetchRequest::setBody(const rapidjson::Value &value)
 {
     assert(method != HTTP_GET && method != HTTP_HEAD);
 
@@ -122,7 +89,7 @@ void xmrig::FetchRequest::setBody(const rapidjson::Document &doc)
 
     StringBuffer buffer(nullptr, 512);
     Writer<StringBuffer> writer(buffer);
-    doc.Accept(writer);
+    value.Accept(writer);
 
     setBody(buffer.GetString(), buffer.GetSize(), HttpData::kApplicationJson.c_str());
 }

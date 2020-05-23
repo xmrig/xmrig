@@ -24,11 +24,12 @@
 
 
 #include "backend/cuda/wrappers/CudaDevice.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/cuda/CudaThreads.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/crypto/Algorithm.h"
 #include "base/io/log/Log.h"
-#include "rapidjson/document.h"
+
 
 #ifdef XMRIG_FEATURE_NVML
 #   include "backend/cuda/wrappers/NvmlLib.h"

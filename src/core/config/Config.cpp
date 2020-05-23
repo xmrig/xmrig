@@ -28,14 +28,12 @@
 #include <cinttypes>
 
 
+#include "core/config/Config.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IJsonReader.h"
-#include "core/config/Config.h"
 #include "crypto/common/Assembly.h"
-#include "rapidjson/document.h"
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/prettywriter.h"
 
 
 #ifdef XMRIG_ALGO_RANDOMX

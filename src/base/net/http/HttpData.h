@@ -46,12 +46,13 @@ public:
     static const std::string kApplicationJson;
     static const std::string kContentType;
     static const std::string kContentTypeL;
+    static const std::string kTextPlain;
 
 
     inline HttpData(uint64_t id) : m_id(id) {}
     virtual ~HttpData() = default;
 
-    inline uint64_t id() const { return m_id; }
+    inline uint64_t id() const  { return m_id; }
 
     virtual bool isRequest() const                      = 0;
     virtual const char *host() const                    = 0;
@@ -60,6 +61,8 @@ public:
     virtual std::string ip() const                      = 0;
     virtual uint16_t port() const                       = 0;
     virtual void write(std::string &&data, bool close)  = 0;
+
+    bool isJSON() const;
 
     int method      = 0;
     int status      = 0;

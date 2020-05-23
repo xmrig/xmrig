@@ -27,13 +27,13 @@
 #define XMRIG_NETWORK_H
 
 
+#include "3rdparty/rapidjson/fwd.h"
 #include "base/api/interfaces/IApiListener.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "base/tools/Object.h"
 #include "interfaces/IJobResultListener.h"
-#include "rapidjson/fwd.h"
 
 
 #include <vector>

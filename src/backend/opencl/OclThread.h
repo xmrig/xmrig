@@ -26,7 +26,7 @@
 #define XMRIG_OCLTHREAD_H
 
 
-#include "rapidjson/fwd.h"
+#include "3rdparty/rapidjson/fwd.h"
 
 
 #include <bitset>

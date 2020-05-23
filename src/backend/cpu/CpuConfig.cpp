@@ -24,10 +24,10 @@
 
 
 #include "backend/cpu/CpuConfig.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/cpu/CpuConfig_gen.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
 
 #include <algorithm>
 

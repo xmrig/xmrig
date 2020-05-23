@@ -1,7 +1,7 @@
 /*
  * Copyright © 2009 CNRS
  * Copyright © 2009-2019 Inria.  All rights reserved.
- * Copyright © 2009-2012 Université Bordeaux
+ * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
@@ -32,6 +32,9 @@
 
 #ifdef HAVE_MACH_MACH_INIT_H
 #include <mach/mach_init.h>
+#endif
+#ifdef HAVE_MACH_INIT_H
+#include <mach_init.h>
 #endif
 #ifdef HAVE_MACH_MACH_HOST_H
 #include <mach/mach_host.h>
@@ -123,15 +126,25 @@ int hwloc_get_sysctlbyname(const char *name, int64_t *ret)
 #endif
 
 #if defined(HAVE_SYSCTL)
-int hwloc_get_sysctl(int name[], unsigned namelen, int *ret)
+int hwloc_get_sysctl(int name[], unsigned namelen, int64_t *ret)
 {
-  int n;
+  union {
+    int32_t i32;
+    int64_t i64;
+  } n;
   size_t size = sizeof(n);
   if (sysctl(name, namelen, &n, &size, NULL, 0))
     return -1;
-  if (size != sizeof(n))
-    return -1;
-  *ret = n;
+  switch (size) {
+    case sizeof(n.i32):
+      *ret = n.i32;
+      break;
+    case sizeof(n.i64):
+      *ret = n.i64;
+      break;
+    default:
+      return -1;
+  }
   return 0;
 }
 #endif
@@ -178,8 +191,10 @@ hwloc_fallback_nbprocessors(unsigned flags) {
   n = nn;
 #elif defined(HAVE_SYSCTL) && HAVE_DECL_CTL_HW && HAVE_DECL_HW_NCPU
   static int name[2] = {CTL_HW, HW_NCPU};
-  if (hwloc_get_sysctl(name, sizeof(name)/sizeof(*name), &n))
+  int64_t nn;
+  if (hwloc_get_sysctl(name, sizeof(name)/sizeof(*name), &nn))
     n = -1;
+  n = nn;
 #else
 #ifdef __GNUC__
 #warning No known way to discover number of available processors on this system
@@ -187,6 +202,46 @@ hwloc_fallback_nbprocessors(unsigned flags) {
   n = -1;
 #endif
   return n;
+}
+
+int64_t
+hwloc_fallback_memsize(void) {
+  int64_t size;
+#if defined(HAVE_HOST_INFO) && HAVE_HOST_INFO
+  struct host_basic_info info;
+  mach_msg_type_number_t count = HOST_BASIC_INFO_COUNT;
+  host_info(mach_host_self(), HOST_BASIC_INFO, (integer_t*) &info, &count);
+  size = info.memory_size;
+#elif defined(HAVE_SYSCTL) && HAVE_DECL_CTL_HW && (HAVE_DECL_HW_REALMEM64 || HAVE_DECL_HW_MEMSIZE64 || HAVE_DECL_HW_PHYSMEM64 || HAVE_DECL_HW_USERMEM64 || HAVE_DECL_HW_REALMEM || HAVE_DECL_HW_MEMSIZE || HAVE_DECL_HW_PHYSMEM || HAVE_DECL_HW_USERMEM)
+#if HAVE_DECL_HW_MEMSIZE64
+  static int name[2] = {CTL_HW, HW_MEMSIZE64};
+#elif HAVE_DECL_HW_REALMEM64
+  static int name[2] = {CTL_HW, HW_REALMEM64};
+#elif HAVE_DECL_HW_PHYSMEM64
+  static int name[2] = {CTL_HW, HW_PHYSMEM64};
+#elif HAVE_DECL_HW_USERMEM64
+  static int name[2] = {CTL_HW, HW_USERMEM64};
+#elif HAVE_DECL_HW_MEMSIZE
+  static int name[2] = {CTL_HW, HW_MEMSIZE};
+#elif HAVE_DECL_HW_REALMEM
+  static int name[2] = {CTL_HW, HW_REALMEM};
+#elif HAVE_DECL_HW_PHYSMEM
+  static int name[2] = {CTL_HW, HW_PHYSMEM};
+#elif HAVE_DECL_HW_USERMEM
+  static int name[2] = {CTL_HW, HW_USERMEM};
+#endif
+  if (hwloc_get_sysctl(name, sizeof(name)/sizeof(*name), &size))
+    size = -1;
+#elif defined(HAVE_SYSCTLBYNAME)
+  if (hwloc_get_sysctlbyname("hw.memsize", &size) &&
+      hwloc_get_sysctlbyname("hw.realmem", &size) &&
+      hwloc_get_sysctlbyname("hw.physmem", &size) &&
+      hwloc_get_sysctlbyname("hw.usermem", &size))
+      size = -1;
+#else
+  size = -1;
+#endif
+  return size;
 }
 #endif /* !HWLOC_WIN_SYS */
 
@@ -2043,15 +2098,17 @@ propagate_total_memory(hwloc_obj_t obj)
   if (obj->type == HWLOC_OBJ_NUMANODE) {
     obj->total_memory += obj->attr->numanode.local_memory;
 
-    /* By the way, sort the page_type array.
-     * Cannot do it on insert since some backends (e.g. XML) add page_types after inserting the object.
-     */
-    qsort(obj->attr->numanode.page_types, obj->attr->numanode.page_types_len, sizeof(*obj->attr->numanode.page_types), hwloc_memory_page_type_compare);
-    /* Ignore 0-size page_types, they are at the end */
-    for(i=obj->attr->numanode.page_types_len; i>=1; i--)
-      if (obj->attr->numanode.page_types[i-1].size)
-	break;
-    obj->attr->numanode.page_types_len = i;
+    if (obj->attr->numanode.page_types_len) {
+      /* By the way, sort the page_type array.
+       * Cannot do it on insert since some backends (e.g. XML) add page_types after inserting the object.
+       */
+      qsort(obj->attr->numanode.page_types, obj->attr->numanode.page_types_len, sizeof(*obj->attr->numanode.page_types), hwloc_memory_page_type_compare);
+      /* Ignore 0-size page_types, they are at the end */
+      for(i=obj->attr->numanode.page_types_len; i>=1; i--)
+	if (obj->attr->numanode.page_types[i-1].size)
+	  break;
+      obj->attr->numanode.page_types_len = i;
+    }
   }
 }
 
@@ -2966,7 +3023,8 @@ hwloc_connect_levels(hwloc_topology_t topology)
       if (hwloc_type_cmp(top_obj, objs[i]) == HWLOC_OBJ_EQUAL) {
 	/* Take it, add main children.  */
 	taken_objs[n_taken_objs++] = objs[i];
-	memcpy(&new_objs[n_new_objs], objs[i]->children, objs[i]->arity * sizeof(new_objs[0]));
+	if (objs[i]->arity)
+	  memcpy(&new_objs[n_new_objs], objs[i]->children, objs[i]->arity * sizeof(new_objs[0]));
 	n_new_objs += objs[i]->arity;
       } else {
 	/* Leave it.  */
@@ -4113,6 +4171,7 @@ hwloc_topology_restrict(struct hwloc_topology *topology, hwloc_const_bitmap_t se
     /* cpuset to clear */
     if (flags & HWLOC_RESTRICT_FLAG_REMOVE_MEMLESS) {
       hwloc_obj_t pu = hwloc_get_obj_by_type(topology, HWLOC_OBJ_PU, 0);
+      assert(pu);
       do {
 	/* PU will be removed if cpuset gets or was empty */
 	if (hwloc_bitmap_iszero(pu->cpuset)
@@ -4148,6 +4207,7 @@ hwloc_topology_restrict(struct hwloc_topology *topology, hwloc_const_bitmap_t se
     /* nodeset to clear */
     if (flags & HWLOC_RESTRICT_FLAG_REMOVE_CPULESS) {
       hwloc_obj_t node = hwloc_get_obj_by_type(topology, HWLOC_OBJ_NUMANODE, 0);
+      assert(node);
       do {
 	/* node will be removed if nodeset gets or was empty */
 	if (hwloc_bitmap_iszero(node->cpuset)
@@ -4242,6 +4302,9 @@ hwloc_topology_allow(struct hwloc_topology *topology,
       goto error;
     }
     topology->binding_hooks.get_allowed_resources(topology);
+    /* make sure the backend returned something sane (Linux cpusets may return offline PUs in some cases) */
+    hwloc_bitmap_and(topology->allowed_cpuset, topology->allowed_cpuset, hwloc_get_root_obj(topology)->cpuset);
+    hwloc_bitmap_and(topology->allowed_nodeset, topology->allowed_nodeset, hwloc_get_root_obj(topology)->nodeset);
     break;
   }
   case HWLOC_ALLOW_FLAG_CUSTOM: {

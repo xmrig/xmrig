@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 
 #include "base/net/dns/DnsRecord.h"
 #include "base/net/tools/Storage.h"
+#include "base/tools/Object.h"
 #include "base/tools/String.h"
 
 
@@ -44,6 +45,8 @@ class IDnsListener;
 class Dns
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Dns)
+
     Dns(IDnsListener *listener);
     ~Dns();
 
@@ -62,14 +65,14 @@ private:
 
     static void onResolved(uv_getaddrinfo_t *req, int status, addrinfo *res);
 
-    addrinfo m_hints;
+    addrinfo m_hints{};
     IDnsListener *m_listener;
-    int m_status;
+    int m_status                    = 0;
     std::vector<DnsRecord> m_ipv4;
     std::vector<DnsRecord> m_ipv6;
     String m_host;
     uintptr_t m_key;
-    uv_getaddrinfo_t *m_resolver;
+    uv_getaddrinfo_t *m_resolver    = nullptr;
 
     static Storage<Dns> m_storage;
 };

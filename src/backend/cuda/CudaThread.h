@@ -29,7 +29,7 @@
 using nvid_ctx = struct nvid_ctx;
 
 
-#include "rapidjson/fwd.h"
+#include "3rdparty/rapidjson/fwd.h"
 
 
 namespace xmrig {

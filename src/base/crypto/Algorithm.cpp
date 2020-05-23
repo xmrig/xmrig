@@ -25,7 +25,7 @@
 
 
 #include "base/crypto/Algorithm.h"
-#include "rapidjson/document.h"
+#include "3rdparty/rapidjson/document.h"
 
 
 #include <cassert>

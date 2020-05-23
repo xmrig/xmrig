@@ -29,11 +29,11 @@
 #include <cstdint>
 
 
+#include "3rdparty/rapidjson/fwd.h"
 #include "backend/cpu/CpuConfig.h"
 #include "base/kernel/config/BaseConfig.h"
 #include "base/tools/Object.h"
 #include "core/Benchmark.h"
-#include "rapidjson/fwd.h"
 
 
 namespace xmrig {

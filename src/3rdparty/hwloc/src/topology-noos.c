@@ -1,7 +1,7 @@
 /*
  * Copyright © 2009 CNRS
  * Copyright © 2009-2019 Inria.  All rights reserved.
- * Copyright © 2009-2012 Université Bordeaux
+ * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
@@ -20,22 +20,27 @@ hwloc_look_noos(struct hwloc_backend *backend, struct hwloc_disc_status *dstatus
    */
 
   struct hwloc_topology *topology = backend->topology;
-  int nbprocs;
+  int64_t memsize;
 
   assert(dstatus->phase == HWLOC_DISC_PHASE_CPU);
 
-  if (topology->levels[0][0]->cpuset)
-    /* somebody discovered things */
-    return -1;
+  if (!topology->levels[0][0]->cpuset) {
+    int nbprocs;
+    /* Nobody (even the x86 backend) created objects yet, setup basic objects */
 
-  nbprocs = hwloc_fallback_nbprocessors(0);
-  if (nbprocs >= 1)
-    topology->support.discovery->pu = 1;
-  else
-    nbprocs = 1;
+    nbprocs = hwloc_fallback_nbprocessors(0);
+    if (nbprocs >= 1)
+      topology->support.discovery->pu = 1;
+    else
+      nbprocs = 1;
+    hwloc_alloc_root_sets(topology->levels[0][0]);
+    hwloc_setup_pu_level(topology, nbprocs);
+  }
 
-  hwloc_alloc_root_sets(topology->levels[0][0]);
-  hwloc_setup_pu_level(topology, nbprocs);
+  memsize = hwloc_fallback_memsize();
+  if (memsize > 0)
+    topology->machine_memory.local_memory = memsize;;
+
   hwloc_add_uname_info(topology, NULL);
   return 0;
 }

@@ -26,7 +26,7 @@
 #define XMRIG_ICLIENT_H
 
 
-#include "rapidjson/fwd.h"
+#include "3rdparty/rapidjson/fwd.h"
 
 
 #include <functional>

@@ -29,6 +29,7 @@
 
 
 #include "net/strategies/DonateStrategy.h"
+#include "3rdparty/rapidjson/document.h"
 #include "base/crypto/keccak.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
@@ -41,7 +42,6 @@
 #include "core/Controller.h"
 #include "core/Miner.h"
 #include "net/Network.h"
-#include "rapidjson/document.h"
 
 
 namespace xmrig {

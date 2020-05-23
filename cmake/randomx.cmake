@@ -1,5 +1,6 @@
 if (WITH_RANDOMX)
     add_definitions(/DXMRIG_ALGO_RANDOMX)
+    set(WITH_ARGON2 ON)
 
     list(APPEND HEADERS_CRYPTO
         src/crypto/rx/Rx.h
@@ -16,8 +17,6 @@ if (WITH_RANDOMX)
     list(APPEND SOURCES_CRYPTO
         src/crypto/randomx/aes_hash.cpp
         src/crypto/randomx/allocator.cpp
-        src/crypto/randomx/argon2_core.c
-        src/crypto/randomx/argon2_ref.c
         src/crypto/randomx/blake2_generator.cpp
         src/crypto/randomx/blake2/blake2b.c
         src/crypto/randomx/bytecode_machine.cpp

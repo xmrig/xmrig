@@ -1,5 +1,5 @@
 Copyright © 2009 CNRS
-Copyright © 2009-2019 Inria.  All rights reserved.
+Copyright © 2009-2020 Inria.  All rights reserved.
 Copyright © 2009-2013 Université Bordeaux
 Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
 
@@ -14,6 +14,27 @@ $HEADER$
 This file contains the main features as well as overviews of specific
 bug fixes (and other actions) for each version of hwloc since version
 0.9.
+
+
+Version 2.2.0
+-------------
+* API
+  + Add hwloc_bitmap_singlify_by_core() to remove SMT from a given cpuset,
+    thanks to Florian Reynier for the suggestion.
+  + Add --enable-32bits-pci-domain to stop ignoring PCI devices with domain
+    >16bits (e.g. 10000:02:03.4). Enabling this option breaks the library ABI.
+    Thanks to Dylan Simon for the help.
+* Backends
+  + Add support for Linux cgroups v2.
+  + Add NUMA support for FreeBSD.
+  + Add get_last_cpu_location support for FreeBSD.
+  + Remove support for Intel Xeon Phi (MIC, Knights Corner) co-processors.
+* Tools
+  + Add --uid to filter the hwloc-ps output by uid on Linux.
+  + Add a GRAPHICAL OUTPUT section in the manpage of lstopo.
+* Misc
+  + Use the native dlopen instead of libltdl,
+    unless --disable-plugin-dlopen is passed at configure time.
 
 
 Version 2.1.0

@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,22 +17,20 @@
  */
 
 
+#include "base/tools/Timer.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "base/tools/Handle.h"
-#include "base/tools/Timer.h"
 
 
 xmrig::Timer::Timer(ITimerListener *listener) :
-    m_listener(listener),
-    m_timer(nullptr)
+    m_listener(listener)
 {
     init();
 }
 
 
 xmrig::Timer::Timer(ITimerListener *listener, uint64_t timeout, uint64_t repeat) :
-    m_listener(listener),
-    m_timer(nullptr)
+    m_listener(listener)
 {
     init();
     start(timeout, repeat);
@@ -63,6 +55,15 @@ void xmrig::Timer::setRepeat(uint64_t repeat)
 }
 
 
+void xmrig::Timer::singleShot(uint64_t timeout, int id)
+{
+    m_id = id;
+
+    stop();
+    start(timeout, 0);
+}
+
+
 void xmrig::Timer::start(uint64_t timeout, uint64_t repeat)
 {
     uv_timer_start(m_timer, onTimer, timeout, repeat);
@@ -71,6 +72,7 @@ void xmrig::Timer::start(uint64_t timeout, uint64_t repeat)
 
 void xmrig::Timer::stop()
 {
+    setRepeat(0);
     uv_timer_stop(m_timer);
 }
 
@@ -85,7 +87,7 @@ void xmrig::Timer::init()
 
 void xmrig::Timer::onTimer(uv_timer_t *handle)
 {
-    const Timer *timer = static_cast<Timer *>(handle->data);
+    const auto timer = static_cast<Timer *>(handle->data);
 
     timer->m_listener->onTimer(timer);
 }

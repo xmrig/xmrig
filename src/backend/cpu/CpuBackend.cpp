@@ -26,12 +26,13 @@
 #include <mutex>
 
 
+#include "backend/cpu/CpuBackend.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/common/Workers.h"
 #include "backend/cpu/Cpu.h"
-#include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
@@ -41,7 +42,6 @@
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxDataset.h"
-#include "rapidjson/document.h"
 
 
 #ifdef XMRIG_FEATURE_API
@@ -275,12 +275,15 @@ const xmrig::String &xmrig::CpuBackend::type() const
 void xmrig::CpuBackend::prepare(const Job &nextJob)
 {
 #   ifdef XMRIG_ALGO_ARGON2
-    if (nextJob.algorithm().family() == Algorithm::ARGON2 && argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
-        LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
-                 tag,
-                 argon2::Impl::name() == "default" ? 33 : 32,
-                 argon2::Impl::name().data()
-                 );
+    const xmrig::Algorithm::Family f = nextJob.algorithm().family();
+    if ((f == Algorithm::ARGON2) || (f == Algorithm::RANDOM_X)) {
+        if (argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
+            LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
+                     tag,
+                     argon2::Impl::name() == "default" ? 33 : 32,
+                     argon2::Impl::name().data()
+                     );
+        }
     }
 #   endif
 }

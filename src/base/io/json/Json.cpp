@@ -24,7 +24,7 @@
 
 
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
+#include "3rdparty/rapidjson/document.h"
 
 
 #include <cassert>
@@ -188,6 +188,37 @@ rapidjson::Value xmrig::Json::normalize(double value, bool zero)
     }
 
     return Value(floor(value * 100.0) / 100.0);
+}
+
+
+bool xmrig::Json::convertOffset(std::istream &ifs, size_t offset, size_t &line, size_t &pos, std::vector<std::string> &s)
+{
+    std::string prev_t;
+    std::string t;
+    line = 0;
+    pos = 0;
+    size_t k = 0;
+
+    while (!ifs.eof()) {
+        prev_t = t;
+        std::getline(ifs, t);
+        k += t.length() + 1;
+        ++line;
+
+        if (k > offset) {
+            pos = offset + t.length() + 1 - k + 1;
+
+            s.clear();
+            if (!prev_t.empty()) {
+                s.emplace_back(prev_t);
+            }
+            s.emplace_back(t);
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 

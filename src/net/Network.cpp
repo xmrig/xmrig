@@ -28,6 +28,7 @@
 #endif
 
 #include "net/Network.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Tags.h"
 #include "base/io/log/Log.h"
 #include "base/net/stratum/Client.h"
@@ -41,7 +42,6 @@
 #include "net/JobResult.h"
 #include "net/JobResults.h"
 #include "net/strategies/DonateStrategy.h"
-#include "rapidjson/document.h"
 
 
 #ifdef XMRIG_FEATURE_API

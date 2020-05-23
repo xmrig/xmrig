@@ -23,11 +23,11 @@
  */
 
 
-#include "3rdparty/http-parser/http_parser.h"
 #include "base/api/requests/HttpApiRequest.h"
+#include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/rapidjson/error/en.h"
 #include "base/io/json/Json.h"
 #include "base/net/http/HttpData.h"
-#include "rapidjson/error/en.h"
 
 
 namespace xmrig {

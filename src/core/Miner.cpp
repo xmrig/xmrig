@@ -28,6 +28,8 @@
 #include <thread>
 
 
+#include "core/Miner.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuBackend.h"
@@ -38,11 +40,8 @@
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "core/Miner.h"
 #include "crypto/common/Nonce.h"
 #include "crypto/rx/Rx.h"
-#include "crypto/astrobwt/AstroBWT.h"
-#include "rapidjson/document.h"
 #include "version.h"
 
 
@@ -64,6 +63,11 @@
 
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "crypto/rx/RxConfig.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_ASTROBWT
+#   include "crypto/astrobwt/AstroBWT.h"
 #endif
 
 
@@ -238,14 +242,35 @@ public:
 #   endif
 
 
+    void printHashrate(bool details)
+    {
+        char num[8 * 4] = { 0 };
+        double speed[3] = { 0.0 };
+
+        for (auto backend : backends) {
+            const auto hashrate = backend->hashrate();
+            if (hashrate) {
+                speed[0] += hashrate->calc(Hashrate::ShortInterval);
+                speed[1] += hashrate->calc(Hashrate::MediumInterval);
+                speed[2] += hashrate->calc(Hashrate::LargeInterval);
+            }
+
+            backend->printHashrate(details);
+        }
+
+        LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
+                 Hashrate::format(speed[0],                 num,         sizeof(num) / 4),
+                 Hashrate::format(speed[1],                 num + 8,     sizeof(num) / 4),
+                 Hashrate::format(speed[2],                 num + 8 * 2, sizeof(num) / 4 ),
+                 Hashrate::format(maxHashrate[algorithm],   num + 8 * 3, sizeof(num) / 4)
+                 );
+    }
+
+
 #   ifdef XMRIG_ALGO_RANDOMX
     inline bool initRX() { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
 #   endif
 
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    inline bool initAstroBWT() { return astrobwt::init(job); }
-#   endif
 
     Algorithm algorithm;
     Algorithms algorithms;
@@ -277,6 +302,10 @@ xmrig::Miner::Miner(Controller *controller)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     Rx::init(this);
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    astrobwt::init();
 #   endif
 
     controller->addListener(this);
@@ -345,7 +374,7 @@ void xmrig::Miner::execCommand(char command)
     switch (command) {
     case 'h':
     case 'H':
-        printHashrate(true);
+        d_ptr->printHashrate(true);
         break;
 
     case 'p':
@@ -381,31 +410,6 @@ void xmrig::Miner::pause()
 
     Nonce::pause(true);
     Nonce::touch();
-}
-
-
-void xmrig::Miner::printHashrate(bool details)
-{
-    char num[8 * 4] = { 0 };
-    double speed[3] = { 0.0 };
-
-    for (IBackend *backend : d_ptr->backends) {
-        const Hashrate *hashrate = backend->hashrate();
-        if (hashrate) {
-            speed[0] += hashrate->calc(Hashrate::ShortInterval);
-            speed[1] += hashrate->calc(Hashrate::MediumInterval);
-            speed[2] += hashrate->calc(Hashrate::LargeInterval);
-        }
-
-        backend->printHashrate(details);
-    }
-
-    LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
-             Hashrate::format(speed[0],                                 num,         sizeof(num) / 4),
-             Hashrate::format(speed[1],                                 num + 8,     sizeof(num) / 4),
-             Hashrate::format(speed[2],                                 num + 8 * 2, sizeof(num) / 4 ),
-             Hashrate::format(d_ptr->maxHashrate[d_ptr->algorithm],     num + 8 * 3, sizeof(num) / 4)
-             );
 }
 
 
@@ -459,14 +463,10 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
         d_ptr->userJobId = job.id();
     }
 
-    bool ready = true;
-
 #   ifdef XMRIG_ALGO_RANDOMX
-    ready &= d_ptr->initRX();
-#   endif
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    ready &= d_ptr->initAstroBWT();
+    const bool ready = d_ptr->initRX();
+#   else
+    constexpr const bool ready = true;
 #   endif
 
     mutex.unlock();
@@ -524,7 +524,7 @@ void xmrig::Miner::onTimer(const Timer *)
 
     const auto printTime = d_ptr->controller->config()->printTime();
     if (printTime && d_ptr->ticks && (d_ptr->ticks % (printTime * 2)) == 0) {
-        printHashrate(false);
+        d_ptr->printHashrate(false);
     }
 
     d_ptr->ticks++;
