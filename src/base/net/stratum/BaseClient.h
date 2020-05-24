@@ -83,7 +83,7 @@ protected:
 
     inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }
 
-    bool handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
+    virtual bool handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     bool handleSubmitResponse(int64_t id, const char *error = nullptr);
 
     bool m_quiet                    = false;

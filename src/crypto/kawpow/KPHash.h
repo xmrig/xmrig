@@ -4,8 +4,10 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,27 +24,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CN00RYOKERNEL_H
-#define XMRIG_CN00RYOKERNEL_H
+#ifndef XMRIG_KP_HASH_H
+#define XMRIG_KP_HASH_H
 
 
-#include "backend/opencl/wrappers/OclKernel.h"
+#include <stdint.h>
 
 
-namespace xmrig {
+namespace xmrig
+{
 
 
-class Cn00RyoKernel : public OclKernel
+class KPCache;
+
+
+class KPHash
 {
 public:
-    inline Cn00RyoKernel(cl_program program) : OclKernel(program, "cn00") {}
+    static constexpr uint32_t EPOCH_LENGTH  = 7500;
+    static constexpr uint32_t PERIOD_LENGTH = 3;
+    static constexpr int CNT_CACHE = 11;
+    static constexpr int CNT_MATH = 18;
+    static constexpr uint32_t REGS = 32;
+    static constexpr uint32_t LANES = 16;
 
-    void enqueue(cl_command_queue queue, size_t threads);
-    void setArgs(cl_mem scratchpads, cl_mem states);
+    static void calculate(const KPCache& light_cache, uint32_t block_height, const uint8_t (&header_hash)[32], uint64_t nonce, uint32_t (&output)[8], uint32_t (&mix_hash)[8]);
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif /* XMRIG_CN00RYOKERNEL_H */
+#endif /* XMRIG_KP_HASH_H */

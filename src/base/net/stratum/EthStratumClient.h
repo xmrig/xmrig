@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,49 +23,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLRYORUNNER_H
-#define XMRIG_OCLRYORUNNER_H
+#ifndef XMRIG_ETHSTRATUMCLIENT_H
+#define XMRIG_ETHSTRATUMCLIENT_H
 
 
-#include "backend/opencl/runners/OclBaseRunner.h"
+#include "base/net/stratum/Client.h"
 
 
 namespace xmrig {
 
 
-class Cn00RyoKernel;
-class Cn0Kernel;
-class Cn1RyoKernel;
-class Cn2RyoKernel;
+class IClientListener;
 
 
-class OclRyoRunner : public OclBaseRunner
+class EthStratumClient : public Client
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclRyoRunner)
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(EthStratumClient)
 
-    OclRyoRunner(size_t index, const OclLaunchData &data);
+    EthStratumClient(int id, const char *agent, IClientListener *listener);
 
-    ~OclRyoRunner() override;
+    void login() override;
+    void onClose() override;
 
 protected:
-    size_t bufferSize() const override;
-    void run(uint32_t nonce, uint32_t *hashOutput) override;
-    void set(const Job &job, uint8_t *blob) override;
-    void build() override;
-    void init() override;
+    int64_t submit(const JobResult& result) override;
+
+    bool handleResponse(int64_t id, const rapidjson::Value& result, const rapidjson::Value& error) override;
+    void parseNotification(const char* method, const rapidjson::Value& params, const rapidjson::Value& error) override;
+
+    bool disconnect() override;
 
 private:
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn00RyoKernel *m_cn00   = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
-    Cn1RyoKernel *m_cn1     = nullptr;
-    Cn2RyoKernel *m_cn2     = nullptr;
+    void OnSubscribeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed);
+    void OnAuthorizeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed);
+
+    bool m_authorized = false;
+
+    uint64_t m_target = 0;
+    uint64_t m_extraNonce = 0;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif // XMRIG_OCLRYORUNNER_H
+#endif /* XMRIG_ETHSTRATUMCLIENT_H */

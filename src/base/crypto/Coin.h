@@ -42,7 +42,8 @@ public:
         MONERO,
         ARQMA,
         DERO,
-        KEVA
+        KEVA,
+        RAVEN
     };
 
 

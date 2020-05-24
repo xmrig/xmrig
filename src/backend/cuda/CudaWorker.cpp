@@ -44,6 +44,11 @@
 #endif
 
 
+#ifdef XMRIG_ALGO_KAWPOW
+#   include "backend/cuda/runners/CudaKawPowRunner.h"
+#endif
+
+
 #include <cassert>
 #include <thread>
 
@@ -81,6 +86,12 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     case Algorithm::ASTROBWT:
 #       ifdef XMRIG_ALGO_ASTROBWT
         m_runner = new CudaAstroBWTRunner(id, data);
+#       endif
+        break;
+
+    case Algorithm::KAWPOW:
+#       ifdef XMRIG_ALGO_KAWPOW
+        m_runner = new CudaKawPowRunner(id, data);
 #       endif
         break;
 
@@ -138,7 +149,7 @@ void xmrig::CudaWorker::start()
         }
 
         while (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence())) {
-            uint32_t foundNonce[10] = { 0 };
+            uint32_t foundNonce[16] = { 0 };
             uint32_t foundCount     = 0;
 
             if (!m_runner->run(*m_job.nonce(), &foundCount, foundNonce)) {
@@ -150,7 +161,7 @@ void xmrig::CudaWorker::start()
             }
 
             const size_t batch_size = intensity();
-            if (!m_job.nextRound(roundSize(batch_size), batch_size)) {
+            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(roundSize(batch_size), batch_size)) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -174,7 +185,7 @@ bool xmrig::CudaWorker::consumeJob()
     const size_t batch_size = intensity();
     m_job.add(m_miner->job(), roundSize(batch_size) * batch_size, Nonce::CUDA);
 
-    return m_runner->set(m_job.currentJob(), m_job.blob());;
+    return m_runner->set(m_job.currentJob(), m_job.blob());
 }
 
 

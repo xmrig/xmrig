@@ -55,17 +55,19 @@ void sha3_Init256(void *priv);
 void sha3_Init384(void *priv);
 void sha3_Init512(void *priv);
 
-SHA3_FLAGS sha3_SetFlags(void *priv, SHA3_FLAGS);
+enum SHA3_FLAGS sha3_SetFlags(void *priv, enum SHA3_FLAGS);
 
 void sha3_Update(void *priv, void const *bufIn, size_t len);
 
 void const *sha3_Finalize(void *priv);
 
 /* Single-call hashing */
+#ifdef __cplusplus
+extern "C"
+#endif
 sha3_return_t sha3_HashBuffer( 
     unsigned bitSize,   /* 256, 384, 512 */
-    SHA3_FLAGS flags, /* SHA3_FLAGS_NONE or SHA3_FLAGS_KECCAK */
+    enum SHA3_FLAGS flags, /* SHA3_FLAGS_NONE or SHA3_FLAGS_KECCAK */
     const void *in, unsigned inBytes, 
     void *out, unsigned outBytes );     /* up to bitSize/8; truncation OK */
-
 #endif

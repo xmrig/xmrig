@@ -37,6 +37,7 @@
 #include "base/io/log/Log.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
+#include "base/net/stratum/EthStratumClient.h"
 
 
 #ifdef XMRIG_FEATURE_HTTP
@@ -185,7 +186,12 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
     IClient *client = nullptr;
 
     if (m_mode == MODE_POOL) {
-        client = new Client(id, Platform::userAgent(), listener);
+        if ((m_algorithm.family() == Algorithm::KAWPOW) || (m_coin == Coin::RAVEN)) {
+            client = new EthStratumClient(id, Platform::userAgent(), listener);
+        }
+        else {
+            client = new Client(id, Platform::userAgent(), listener);
+        }
     }
 #   ifdef XMRIG_FEATURE_HTTP
     else if (m_mode == MODE_DAEMON) {
