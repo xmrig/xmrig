@@ -39,7 +39,6 @@
 #include "crypto/kawpow/KPHash.h"
 
 #include "3rdparty/libethash/ethash_internal.h"
-#include <Windows.h>
 
 
 namespace xmrig {
