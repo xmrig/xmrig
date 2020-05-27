@@ -244,7 +244,7 @@ public:
 
     void printHashrate(bool details)
     {
-        char num[8 * 4] = { 0 };
+        char num[16 * 4] = { 0 };
         double speed[3] = { 0.0 };
 
         for (auto backend : backends) {
@@ -259,10 +259,10 @@ public:
         }
 
         LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
-                 Hashrate::format(speed[0],                 num,         sizeof(num) / 4),
-                 Hashrate::format(speed[1],                 num + 8,     sizeof(num) / 4),
-                 Hashrate::format(speed[2],                 num + 8 * 2, sizeof(num) / 4 ),
-                 Hashrate::format(maxHashrate[algorithm],   num + 8 * 3, sizeof(num) / 4)
+                 Hashrate::format(speed[0],                 num,          sizeof(num) / 4),
+                 Hashrate::format(speed[1],                 num + 16,     sizeof(num) / 4),
+                 Hashrate::format(speed[2],                 num + 16 * 2, sizeof(num) / 4 ),
+                 Hashrate::format(maxHashrate[algorithm],   num + 16 * 3, sizeof(num) / 4)
                  );
     }
 

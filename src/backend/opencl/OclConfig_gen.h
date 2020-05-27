@@ -63,10 +63,6 @@ size_t inline generate<Algorithm::CN>(Threads<OclThreads> &threads, const std::v
         count++;
     }
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    count += generate("cn/gpu", threads, Algorithm::CN_GPU, devices);
-#   endif
-
     return count;
 }
 
@@ -135,6 +131,15 @@ template<>
 size_t inline generate<Algorithm::ASTROBWT>(Threads<OclThreads>& threads, const std::vector<OclDevice>& devices)
 {
     return generate("astrobwt", threads, Algorithm::ASTROBWT_DERO, devices);
+}
+#endif
+
+
+#ifdef XMRIG_ALGO_KAWPOW
+template<>
+size_t inline generate<Algorithm::KAWPOW>(Threads<OclThreads>& threads, const std::vector<OclDevice>& devices)
+{
+    return generate("kawpow", threads, Algorithm::KAWPOW_RVN, devices);
 }
 #endif
 

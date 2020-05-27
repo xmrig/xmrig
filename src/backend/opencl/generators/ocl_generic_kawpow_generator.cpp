@@ -27,59 +27,20 @@
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 #include "base/crypto/Algorithm.h"
-
-
-#include <algorithm>
+#include "crypto/randomx/randomx.h"
+#include "crypto/rx/RxAlgo.h"
 
 
 namespace xmrig {
 
 
-constexpr const size_t oneMiB = 1024u * 1024u;
-
-
-
-bool ocl_generic_cn_gpu_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads)
+bool ocl_generic_kawpow_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads)
 {
-    if (algorithm != Algorithm::CN_GPU) {
+    if (algorithm.family() != Algorithm::KAWPOW) {
         return false;
     }
 
-    uint32_t worksize   = 8;
-    uint32_t numThreads = 1u;
-    size_t minFreeMem   = 128u * oneMiB;
-
-    if (device.type() == OclDevice::Vega_10 || device.type() == OclDevice::Vega_20) {
-        minFreeMem  = oneMiB;
-        worksize    = 16;
-    }
-    else if (device.type() == OclDevice::Navi_10) {
-        numThreads = 2u;
-    }
-    else if (device.name() == "Fiji") {
-        worksize = 16;
-    }
-
-    size_t maxThreads = device.computeUnits() * 6 * 8;
-
-    const size_t maxAvailableFreeMem = device.freeMemSize() - minFreeMem;
-    const size_t memPerThread        = std::min(device.maxMemAllocSize(), maxAvailableFreeMem);
-
-    size_t memPerHash           = algorithm.l3() + 240u;
-    size_t maxIntensity         = memPerThread / memPerHash;
-    size_t possibleIntensity    = std::min(maxThreads, maxIntensity);
-    size_t intensity            = 0;
-    size_t cuUtilization        = ((possibleIntensity * 100)  / (worksize * device.computeUnits())) % 100;
-
-    if (cuUtilization >= 75) {
-        intensity = (possibleIntensity / worksize) * worksize;
-    }
-    else {
-        intensity = (possibleIntensity / (worksize * device.computeUnits())) * device.computeUnits() * worksize;
-    }
-
-    threads.add(OclThread(device.index(), intensity, worksize, numThreads, 1));
-
+    threads.add(OclThread(device.index(), device.computeUnits() * 262144, 1));
     return true;
 }
 

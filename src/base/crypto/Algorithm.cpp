@@ -70,10 +70,6 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight/rwz",           "cn/rwz",           Algorithm::CN_RWZ          },
     { "cryptonight/zls",           "cn/zls",           Algorithm::CN_ZLS          },
     { "cryptonight/double",        "cn/double",        Algorithm::CN_DOUBLE       },
-#   ifdef XMRIG_ALGO_CN_GPU
-    { "cryptonight/gpu",           "cn/gpu",           Algorithm::CN_GPU          },
-    { "cryptonight_gpu",           nullptr,            Algorithm::CN_GPU          },
-#   endif
 #   ifdef XMRIG_ALGO_CN_LITE
     { "cryptonight-lite/0",        "cn-lite/0",        Algorithm::CN_LITE_0       },
     { "cryptonight-lite/1",        "cn-lite/1",        Algorithm::CN_LITE_1       },
@@ -126,6 +122,10 @@ static AlgoName const algorithm_names[] = {
 #   ifdef XMRIG_ALGO_ASTROBWT
     { "astrobwt",                  nullptr,            Algorithm::ASTROBWT_DERO   },
     { "astrobwt/dero",             nullptr,            Algorithm::ASTROBWT_DERO   },
+#   endif
+#   ifdef XMRIG_ALGO_KAWPOW
+    { "kawpow",                    nullptr,            Algorithm::KAWPOW_RVN      },
+    { "kawpow/rvn",                nullptr,            Algorithm::KAWPOW_RVN      },
 #   endif
 };
 
@@ -238,6 +238,18 @@ size_t xmrig::Algorithm::l3() const
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_KAWPOW
+    if (f == KAWPOW) {
+        switch (m_id) {
+        case KAWPOW_RVN:
+            return 32768;
+
+        default:
+            break;
+        }
+    }
+#   endif
+
     return 0;
 }
 
@@ -262,12 +274,6 @@ uint32_t xmrig::Algorithm::maxIntensity() const
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (m_id == CN_GPU) {
-        return 1;
-    }
-#   endif
-
     return 5;
 }
 
@@ -286,9 +292,6 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_RWZ:
     case CN_ZLS:
     case CN_DOUBLE:
-#   ifdef XMRIG_ALGO_CN_GPU
-    case CN_GPU:
-#   endif
         return CN;
 
 #   ifdef XMRIG_ALGO_CN_LITE
@@ -329,6 +332,11 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 #   ifdef XMRIG_ALGO_ASTROBWT
     case ASTROBWT_DERO:
         return ASTROBWT;
+#   endif
+
+#   ifdef XMRIG_ALGO_KAWPOW
+    case KAWPOW_RVN:
+        return KAWPOW;
 #   endif
 
     default:

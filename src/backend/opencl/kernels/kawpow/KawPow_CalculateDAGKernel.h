@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CN1RYOKERNEL_H
-#define XMRIG_CN1RYOKERNEL_H
+#ifndef XMRIG_KAWPOW_CALCULATEDAGKERNEL_H
+#define XMRIG_KAWPOW_CALCULATEDAGKERNEL_H
 
 
 #include "backend/opencl/wrappers/OclKernel.h"
@@ -32,17 +32,17 @@
 namespace xmrig {
 
 
-class Cn1RyoKernel : public OclKernel
+class KawPow_CalculateDAGKernel : public OclKernel
 {
 public:
-    inline Cn1RyoKernel(cl_program program) : OclKernel(program, "cn1") {}
+    inline KawPow_CalculateDAGKernel(cl_program program) : OclKernel(program, "ethash_calculate_dag_item") {}
 
-    void enqueue(cl_command_queue queue, size_t threads, size_t worksize);
-    void setArgs(cl_mem scratchpads, cl_mem states, uint32_t threads);
+    void enqueue(cl_command_queue queue, size_t threads, size_t workgroup_size);
+    void setArgs(uint32_t start, cl_mem g_light, cl_mem g_dag, uint32_t dag_words, uint32_t light_words);
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_CN1RYOKERNEL_H */
+#endif /* XMRIG_KAWPOW_CALCULATEDAGKERNEL_H */

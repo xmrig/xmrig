@@ -3,6 +3,7 @@ set(HEADERS_BASE
     src/base/crypto/Algorithm.h
     src/base/crypto/Coin.h
     src/base/crypto/keccak.h
+    src/base/crypto/sha3.h
     src/base/io/Console.h
     src/base/io/Env.h
     src/base/io/json/Json.h
@@ -41,6 +42,7 @@ set(HEADERS_BASE
     src/base/net/http/HttpListener.h
     src/base/net/stratum/BaseClient.h
     src/base/net/stratum/Client.h
+    src/base/net/stratum/EthStratumClient.h
     src/base/net/stratum/Job.h
     src/base/net/stratum/NetworkState.h
     src/base/net/stratum/Pool.h
@@ -69,6 +71,7 @@ set(SOURCES_BASE
     src/base/crypto/Algorithm.cpp
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp
+    src/base/crypto/sha3.cpp
     src/base/io/Console.cpp
     src/base/io/Env.cpp
     src/base/io/json/Json.cpp
@@ -91,6 +94,7 @@ set(SOURCES_BASE
     src/base/net/http/Http.cpp
     src/base/net/stratum/BaseClient.cpp
     src/base/net/stratum/Client.cpp
+    src/base/net/stratum/EthStratumClient.cpp
     src/base/net/stratum/Job.cpp
     src/base/net/stratum/NetworkState.cpp
     src/base/net/stratum/Pool.cpp

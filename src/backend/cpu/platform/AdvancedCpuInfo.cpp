@@ -76,12 +76,6 @@ xmrig::CpuThreads xmrig::AdvancedCpuInfo::threads(const Algorithm &algorithm, ui
         return 1;
     }
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return CpuThreads(threads());
-    }
-#   endif
-
     size_t cache = 0;
     size_t count = 0;
 

@@ -238,7 +238,7 @@ sha3_Finalize(void *priv)
     return (ctx->sb);
 }
 
-sha3_return_t sha3_HashBuffer( unsigned bitSize, enum SHA3_FLAGS flags, const void *in, unsigned inBytes, void *out, unsigned outBytes ) {
+extern "C" sha3_return_t sha3_HashBuffer( unsigned bitSize, enum SHA3_FLAGS flags, const void *in, unsigned inBytes, void *out, unsigned outBytes ) {
     sha3_return_t err;
     sha3_context c;
 
