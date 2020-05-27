@@ -44,7 +44,7 @@ xmrig::CudaKawPowRunner::CudaKawPowRunner(size_t index, const CudaLaunchData &da
 
 bool xmrig::CudaKawPowRunner::run(uint32_t /*startNonce*/, uint32_t *rescount, uint32_t *resnonce)
 {
-    return callWrapper(CudaLib::KawPowHash(m_ctx, m_jobBlob, m_target, rescount, resnonce));
+    return callWrapper(CudaLib::kawPowHash(m_ctx, m_jobBlob, m_target, rescount, resnonce));
 }
 
 
@@ -67,7 +67,7 @@ bool xmrig::CudaKawPowRunner::set(const Job &job, uint8_t *blob)
 
     const uint64_t start_ms = Chrono::steadyMSecs();
 
-    const bool result = CudaLib::KawPowPrepare(m_ctx, cache.data(), cache.size(), cache.dag_size(epoch), height, dag_sizes);
+    const bool result = CudaLib::kawPowPrepare(m_ctx, cache.data(), cache.size(), cache.dag_size(epoch), height, dag_sizes);
 
     const int64_t dt = Chrono::steadyMSecs() - start_ms;
     if (dt > 500) {
