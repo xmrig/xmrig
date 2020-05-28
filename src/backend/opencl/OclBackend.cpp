@@ -47,6 +47,8 @@
 #include "base/tools/String.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "crypto/kawpow/KPCache.h"
+#include "crypto/kawpow/KPHash.h"
 
 
 #ifdef XMRIG_FEATURE_API
@@ -201,7 +203,7 @@ public:
                  algo.l3() / 1024
                  );
 
-        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |  W | SI | MC |  U |  MEM | NAME"));
+        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |        I |   W | SI | MC |  U |  MEM | NAME"));
 
         size_t algo_l3 = algo.l3();
 
@@ -213,7 +215,16 @@ public:
 
         size_t i = 0;
         for (const auto &data : threads) {
-            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5u") " |" CYAN_BOLD("%3u") " |"
+            size_t mem_used = data.thread.intensity() * algo_l3 / oneMiB;
+
+#           ifdef XMRIG_ALGO_KAWPOW
+            if (algo.family() == Algorithm::KAWPOW) {
+                const uint32_t epoch = job.height() / KPHash::EPOCH_LENGTH;
+                mem_used = (KPCache::cache_size(epoch) + KPCache::dag_size(epoch)) / oneMiB;
+            }
+#           endif
+
+            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%9u") " |" CYAN_BOLD("%4u") " |"
                        CYAN_BOLD("%3u") " |" CYAN_BOLD("%3s") " |" CYAN_BOLD("%3u") " |" CYAN("%5zu") " | %s",
                        i,
                        data.thread.index(),
@@ -223,7 +234,7 @@ public:
                        data.thread.stridedIndex(),
                        data.thread.stridedIndex() == 2 ? std::to_string(data.thread.memChunk()).c_str() : "-",
                        data.thread.unrollFactor(),
-                       data.thread.intensity() * algo_l3 / oneMiB,
+                       mem_used,
                        data.device.printableName().data()
                        );
 
@@ -349,18 +360,30 @@ void xmrig::OclBackend::printHashrate(bool details)
         return;
     }
 
-    char num[8 * 3] = { 0 };
+    char num[16 * 3] = { 0 };
 
-    Log::print(WHITE_BOLD_S "| OPENCL # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
+    const double hashrate_short  = hashrate()->calc(Hashrate::ShortInterval);
+    const double hashrate_medium = hashrate()->calc(Hashrate::MediumInterval);
+    const double hashrate_large  = hashrate()->calc(Hashrate::LargeInterval);
+
+    double scale = 1.0;
+    const char* h = " H/s";
+
+    if ((hashrate_short >= 1e6) || (hashrate_medium >= 1e6) || (hashrate_large >= 1e6)) {
+        scale = 1e-6;
+        h = "MH/s";
+    }
+
+    Log::print(WHITE_BOLD_S "| OPENCL # | AFFINITY | 10s %s | 60s %s | 15m %s |", h, h, h);
 
     size_t i = 0;
     for (const auto &data : d_ptr->threads) {
-         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
+         Log::print("| %8zu | %8" PRId64 " | %8s | %8s | %8s |" CYAN_BOLD(" #%u") YELLOW(" %s") " %s",
                     i,
                     data.affinity,
-                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval)  * scale, num,          sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval) * scale, num + 16,     sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval)  * scale, num + 16 * 2, sizeof num / 3),
                     data.device.index(),
                     data.device.topology().toString().data(),
                     data.device.printableName().data()
@@ -369,10 +392,10 @@ void xmrig::OclBackend::printHashrate(bool details)
          i++;
     }
 
-    Log::print(WHITE_BOLD_S "|        - |        - | %7s | %7s | %7s |",
-               Hashrate::format(hashrate()->calc(Hashrate::ShortInterval),  num,         sizeof num / 3),
-               Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
-               Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
+    Log::print(WHITE_BOLD_S "|        - |        - | %8s | %8s | %8s |",
+               Hashrate::format(hashrate()->calc(Hashrate::ShortInterval)  * scale, num,          sizeof num / 3),
+               Hashrate::format(hashrate()->calc(Hashrate::MediumInterval) * scale, num + 16,     sizeof num / 3),
+               Hashrate::format(hashrate()->calc(Hashrate::LargeInterval)  * scale, num + 16 * 2, sizeof num / 3)
                );
 }
 

@@ -59,6 +59,7 @@ public:
 
     const uint32_t* l1_cache() const { return m_l1Cache; }
 
+    static uint64_t cache_size(uint32_t epoch);
     static uint64_t dag_size(uint32_t epoch);
 
     static void calculate_fast_mod_data(uint32_t divisor, uint32_t &reciprocal, uint32_t &increment, uint32_t& shift);

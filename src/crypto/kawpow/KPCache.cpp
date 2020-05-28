@@ -114,6 +114,16 @@ static inline uint32_t clz(uint32_t a)
 }
 
 
+uint64_t KPCache::cache_size(uint32_t epoch)
+{
+    if (epoch >= sizeof(cache_sizes) / sizeof(cache_sizes[0])) {
+        return 0;
+    }
+
+    return cache_sizes[epoch];
+}
+
+
 uint64_t KPCache::dag_size(uint32_t epoch)
 {
     if (epoch >= sizeof(dag_sizes) / sizeof(dag_sizes[0])) {
