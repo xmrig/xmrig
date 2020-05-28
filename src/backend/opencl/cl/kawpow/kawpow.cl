@@ -201,8 +201,8 @@ __kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blo
         // initialize mix for all lanes
         fill_mix(share[group_id].uint32s, lane_id, mix);
 
-#pragma unroll 1
-        for (uint32_t loop = 0; loop < PROGPOW_CNT_DAG; ++loop)
+	#pragma unroll 2
+	for (uint32_t loop = 0; loop < PROGPOW_CNT_DAG; ++loop)
 	{
 		// global load
 		if(lane_id == (loop % PROGPOW_LANES))
