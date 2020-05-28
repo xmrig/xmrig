@@ -40,7 +40,20 @@ bool ocl_generic_kawpow_generator(const OclDevice &device, const Algorithm &algo
         return false;
     }
 
-    threads.add(OclThread(device.index(), device.computeUnits() * 262144, 1));
+    bool isNavi = false;
+
+    switch (device.type()) {
+    case OclDevice::Navi_10:
+    case OclDevice::Navi_12:
+    case OclDevice::Navi_14:
+        isNavi = true;
+        break;
+
+    default:
+        break;
+    }
+
+    threads.add(OclThread(device.index(), device.computeUnits() * 262144, isNavi ? 128 : 256, 1));
     return true;
 }
 

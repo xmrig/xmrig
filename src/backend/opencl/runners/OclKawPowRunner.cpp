@@ -46,9 +46,19 @@ namespace xmrig {
 
 OclKawPowRunner::OclKawPowRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
 {
+    switch (data.thread.worksize())
+    {
+    case 64:
+    case 128:
+    case 256:
+    case 512:
+        m_workGroupSize = data.thread.worksize();
+        break;
+    }
+
     if (data.device.vendorId() == OclVendor::OCL_VENDOR_NVIDIA) {
         m_options += " -DPLATFORM=OPENCL_PLATFORM_NVIDIA";
-        m_workGroupSize = 32;
+        m_dagWorkGroupSize = 32;
     }
 }
 
@@ -68,9 +78,9 @@ OclKawPowRunner::~OclKawPowRunner()
 
 void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
 {
-    const size_t local_work_size = 128;
+    const size_t local_work_size = m_workGroupSize;
     const size_t global_work_offset = nonce;
-    const size_t global_work_size = m_intensity - (m_intensity % local_work_size);
+    const size_t global_work_size = m_intensity - (m_intensity % m_workGroupSize);
 
     enqueueWriteBuffer(m_input, CL_FALSE, 0, 40, m_blob);
 
@@ -100,7 +110,7 @@ void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
 void OclKawPowRunner::set(const Job &job, uint8_t *blob)
 {
     m_blockHeight = static_cast<uint32_t>(job.height());
-    m_searchProgram = OclKawPow::get(*this, m_blockHeight);
+    m_searchProgram = OclKawPow::get(*this, m_blockHeight, m_workGroupSize);
     m_searchKernel = OclLib::createKernel(m_searchProgram, "progpow_search");
 
     const uint32_t epoch = m_blockHeight / KPHash::EPOCH_LENGTH;
@@ -137,11 +147,11 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
         const uint32_t dag_words = dag_size / sizeof(node);
         m_calculateDagKernel->setArgs(0, m_lightCache, m_dag, dag_words, m_lightCacheSize / sizeof(node));
 
-        constexpr uint32_t N = 1 << 18;
+        constexpr uint32_t N = 1 << 20;
 
         for (uint32_t start = 0; start < dag_words; start += N) {
             m_calculateDagKernel->setArg(0, sizeof(start), &start);
-            m_calculateDagKernel->enqueue(m_queue, N, m_workGroupSize);
+            m_calculateDagKernel->enqueue(m_queue, N, m_dagWorkGroupSize);
         }
 
         OclLib::finish(m_queue);
