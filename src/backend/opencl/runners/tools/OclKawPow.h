@@ -42,7 +42,7 @@ class IOclRunner;
 class OclKawPow
 {
 public:
-    static cl_program get(const IOclRunner &runner, uint64_t height);
+    static cl_program get(const IOclRunner &runner, uint64_t height, uint32_t worksize);
     static void clear();
 };
 

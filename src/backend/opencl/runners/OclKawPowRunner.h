@@ -52,7 +52,7 @@ protected:
     void init() override;
 
 private:
-    uint8_t* m_blob;
+    uint8_t* m_blob = nullptr;
 
     uint32_t m_blockHeight = 0;
     uint32_t m_epoch = 0xFFFFFFFFUL;
@@ -69,7 +69,8 @@ private:
     cl_program m_searchProgram = nullptr;
     cl_kernel m_searchKernel = nullptr;
 
-    size_t m_workGroupSize = 64;
+    size_t m_workGroupSize = 256;
+    size_t m_dagWorkGroupSize = 64;
 };
 
 

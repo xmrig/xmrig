@@ -3,7 +3,7 @@
 #endif
 
 #ifndef GROUP_SIZE
-#define GROUP_SIZE 128
+#define GROUP_SIZE 256
 #endif
 #define GROUP_SHARE (GROUP_SIZE / 16)
 

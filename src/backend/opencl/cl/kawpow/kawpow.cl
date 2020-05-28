@@ -6,7 +6,7 @@ inline void progPowLoop(const uint32_t loop,
 	volatile uint32_t mix_arg[PROGPOW_REGS],
 	__global const dag_t *g_dag,
 	__local const uint32_t c_dag[PROGPOW_CACHE_WORDS],
-	__local uint64_t share[GROUP_SHARE],
+	__local uint32_t share[GROUP_SHARE],
 	const bool hack_false)
 {
 	dag_t data_dag;
@@ -166,7 +166,6 @@ void fill_mix(local uint32_t* seed, uint32_t lane_id, uint32_t* mix)
 typedef struct
 {
     uint32_t uint32s[PROGPOW_LANES];
-    uint64_t uint64s[PROGPOW_LANES / 2];
 } shuffle_t;
 
 typedef struct
@@ -247,7 +246,7 @@ __kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blo
 
 #pragma unroll 1
         for (uint32_t l = 0; l < PROGPOW_CNT_DAG; l++)
-            progPowLoop(l, mix, g_dag, c_dag, share[0].uint64s, hack_false);
+            progPowLoop(l, mix, g_dag, c_dag, share[0].uint32s, hack_false);
 
         // Reduce mix data to a per-lane 32-bit digest
         uint32_t mix_hash = FNV_OFFSET_BASIS;
