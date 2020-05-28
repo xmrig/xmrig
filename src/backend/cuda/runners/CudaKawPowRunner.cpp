@@ -24,16 +24,15 @@
 
 
 #include "backend/cuda/runners/CudaKawPowRunner.h"
+#include "3rdparty/libethash/data_sizes.h"
 #include "backend/cuda/CudaLaunchData.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
-
 #include "crypto/kawpow/KPCache.h"
 #include "crypto/kawpow/KPHash.h"
-
-#include "3rdparty/libethash/data_sizes.h"
 
 
 xmrig::CudaKawPowRunner::CudaKawPowRunner(size_t index, const CudaLaunchData &data) :
@@ -71,7 +70,7 @@ bool xmrig::CudaKawPowRunner::set(const Job &job, uint8_t *blob)
 
     const int64_t dt = Chrono::steadyMSecs() - start_ms;
     if (dt > 500) {
-        LOG_INFO("KawPow DAG for epoch %u calculated (%" PRIu64 " ms)", epoch, dt);
+        LOG_INFO("%s " YELLOW("KawPow") " DAG for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::nvidia(), epoch, dt);
     }
 
     return result;

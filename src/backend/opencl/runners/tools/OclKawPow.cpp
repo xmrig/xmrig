@@ -23,7 +23,8 @@
  */
 
 #include "backend/opencl/runners/tools/OclKawPow.h"
-
+#include "3rdparty/libethash/data_sizes.h"
+#include "3rdparty/libethash/ethash_internal.h"
 #include "backend/opencl/cl/kawpow/kawpow_cl.h"
 #include "backend/opencl/interfaces/IOclRunner.h"
 #include "backend/opencl/OclCache.h"
@@ -32,12 +33,10 @@
 #include "backend/opencl/wrappers/OclError.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/tools/Baton.h"
 #include "base/tools/Chrono.h"
 #include "crypto/kawpow/KPHash.h"
-
-#include "3rdparty/libethash/ethash_internal.h"
-#include "3rdparty/libethash/data_sizes.h"
 
 
 #include <cstring>
@@ -200,7 +199,7 @@ public:
             return nullptr;
         }
 
-        LOG_INFO("KawPow program for period %" PRIu64 " compiled. (%" PRIu64 "ms)", period, Chrono::steadyMSecs() - ts);
+        LOG_INFO("%s " YELLOW("KawPow") " program for period " WHITE_BOLD("%" PRIu64) " compiled " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::opencl(), period, Chrono::steadyMSecs() - ts);
 
         cache.add(runner.algorithm(), period, worksize, runner.deviceIndex(), program);
 
@@ -238,7 +237,7 @@ private:
         int mix_seq_dst_cnt = 0;
         int mix_seq_cache_cnt = 0;
 
-        for (int i = 0; i < KPHash::REGS; i++) {
+        for (uint32_t i = 0; i < KPHash::REGS; i++) {
             mix_seq_dst[i] = i;
             mix_seq_cache[i] = i;
         }
@@ -286,7 +285,7 @@ private:
         ret << merge("mix[0]", "data_dag.s[0]", rnd());
 
         constexpr size_t num_words_per_lane = 256 / (sizeof(uint32_t) * KPHash::LANES);
-        for (int i = 1; i < num_words_per_lane; i++)
+        for (size_t i = 1; i < num_words_per_lane; i++)
         {
             std::string dest = mix_dst();
             uint32_t    r = rnd();

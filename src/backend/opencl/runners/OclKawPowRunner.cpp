@@ -23,22 +23,21 @@
  */
 
 
-#include "backend/common/Tags.h"
-#include "backend/opencl/kernels/kawpow/KawPow_CalculateDAGKernel.h"
 #include "backend/opencl/runners/OclKawPowRunner.h"
-#include "backend/opencl/runners/tools/OclKawPow.h"
+#include "backend/common/Tags.h"
+#include "3rdparty/libethash/ethash_internal.h"
+#include "backend/opencl/kernels/kawpow/KawPow_CalculateDAGKernel.h"
 #include "backend/opencl/OclLaunchData.h"
+#include "backend/opencl/runners/tools/OclKawPow.h"
 #include "backend/opencl/wrappers/OclError.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
-#include "base/net/stratum/Job.h"
-
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
+#include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/kawpow/KPHash.h"
-
-#include "3rdparty/libethash/ethash_internal.h"
 
 
 namespace xmrig {
@@ -156,7 +155,7 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
 
         OclLib::finish(m_queue);
 
-        LOG_INFO("KawPow DAG for epoch %u calculated (%" PRIu64 " ms)", epoch, Chrono::steadyMSecs() - start_ms);
+        LOG_INFO("%s " YELLOW("KawPow") " DAG for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::opencl(), epoch, Chrono::steadyMSecs() - start_ms);
     }
 
     const uint64_t target = job.target();

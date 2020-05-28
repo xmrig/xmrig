@@ -215,7 +215,7 @@ public:
                  algo.l3() / 1024
                  );
 
-        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |   T |   B | BF |  BS |  MEM | NAME"));
+        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID | INTENSITY | THREADS | BLOCKS | BF |  BS | MEMORY | NAME"));
 
         size_t algo_l3 = algo.l3();
 
@@ -227,8 +227,8 @@ public:
 
         size_t i = 0;
         for (const auto &data : threads) {
-            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5d") " |" CYAN_BOLD("%4d") " |"
-                       CYAN_BOLD("%4d") " |" CYAN_BOLD("%3d") " |" CYAN_BOLD("%4d") " |" CYAN("%5zu") " | " GREEN("%s"),
+            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%10d") " |" CYAN_BOLD("%8d") " |"
+                       CYAN_BOLD("%7d") " |" CYAN_BOLD("%3d") " |" CYAN_BOLD("%4d") " |" CYAN("%7zu") " | " GREEN("%s"),
                        i,
                        data.thread.index(),
                        data.device.topology().toString().data(),
