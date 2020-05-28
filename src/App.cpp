@@ -32,6 +32,7 @@
 #include "backend/cpu/Cpu.h"
 #include "base/io/Console.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/io/Signals.h"
 #include "base/kernel/Platform.h"
 #include "core/config/Config.h"
@@ -85,7 +86,7 @@ int xmrig::App::exec()
     Summary::print(m_controller);
 
     if (m_controller->config()->isDryRun()) {
-        LOG_NOTICE("OK");
+        LOG_NOTICE("%s " WHITE_BOLD("OK"), Tags::config());
 
         return 0;
     }
@@ -102,7 +103,7 @@ int xmrig::App::exec()
 void xmrig::App::onConsoleCommand(char command)
 {
     if (command == 3) {
-        LOG_WARN("Ctrl+C received, exiting");
+        LOG_WARN("%s " YELLOW("Ctrl+C received, exiting"), Tags::signal());
         close();
     }
     else {
@@ -116,15 +117,15 @@ void xmrig::App::onSignal(int signum)
     switch (signum)
     {
     case SIGHUP:
-        LOG_WARN("SIGHUP received, exiting");
+        LOG_WARN("%s " YELLOW("SIGHUP received, exiting"), Tags::signal());
         break;
 
     case SIGTERM:
-        LOG_WARN("SIGTERM received, exiting");
+        LOG_WARN("%s " YELLOW("SIGTERM received, exiting"), Tags::signal());
         break;
 
     case SIGINT:
-        LOG_WARN("SIGINT received, exiting");
+        LOG_WARN("%s " YELLOW("SIGINT received, exiting"), Tags::signal());
         break;
 
     default:

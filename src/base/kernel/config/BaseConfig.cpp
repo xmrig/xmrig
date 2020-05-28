@@ -27,6 +27,7 @@
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IJsonReader.h"
 #include "version.h"
 
@@ -122,7 +123,7 @@ bool xmrig::BaseConfig::save()
     getJSON(doc);
 
     if (Json::save(m_fileName, doc)) {
-        LOG_NOTICE("configuration saved to: \"%s\"", m_fileName.data());
+        LOG_NOTICE("%s " WHITE_BOLD("configuration saved to: \"%s\""), Tags::config(), m_fileName.data());
         return true;
     }
 

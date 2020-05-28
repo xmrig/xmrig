@@ -13,6 +13,7 @@ set(HEADERS_BASE
     src/base/io/log/backends/FileLog.h
     src/base/io/log/FileLogWriter.h
     src/base/io/log/Log.h
+    src/base/io/log/Tags.h
     src/base/io/Signals.h
     src/base/io/Watcher.h
     src/base/kernel/Base.h
@@ -81,6 +82,7 @@ set(SOURCES_BASE
     src/base/io/log/backends/FileLog.cpp
     src/base/io/log/FileLogWriter.cpp
     src/base/io/log/Log.cpp
+    src/base/io/log/Tags.cpp
     src/base/io/Signals.cpp
     src/base/io/Watcher.cpp
     src/base/kernel/Base.cpp

@@ -34,6 +34,7 @@
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Object.h"
@@ -258,7 +259,8 @@ public:
             backend->printHashrate(details);
         }
 
-        LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
+        LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
+                 Tags::miner(),
                  Hashrate::format(speed[0],                 num,          sizeof(num) / 4),
                  Hashrate::format(speed[1],                 num + 16,     sizeof(num) / 4),
                  Hashrate::format(speed[2],                 num + 16 * 2, sizeof(num) / 4 ),

@@ -163,8 +163,8 @@ else()
     endif()
 endif()
 
-add_definitions(/D__STDC_FORMAT_MACROS)
-add_definitions(/DUNICODE)
+add_definitions(-DXMRIG_MINER_PROJECT)
+add_definitions(-D__STDC_FORMAT_MACROS -DUNICODE)
 
 find_package(UV REQUIRED)
 

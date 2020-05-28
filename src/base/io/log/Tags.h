@@ -1,11 +1,4 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,36 +16,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_BACKEND_TAGS_H
-#define XMRIG_BACKEND_TAGS_H
+#ifndef XMRIG_TAGS_H
+#define XMRIG_TAGS_H
 
 
+#include <cstddef>
 #include <cstdint>
 
 
 namespace xmrig {
 
 
-const char *backend_tag(uint32_t backend);
-const char *cpu_tag();
+class Tags
+{
+public:
+    static const char *config();
+    static const char *network();
+    static const char *signal();
+
+#   ifdef XMRIG_MINER_PROJECT
+    static const char *cpu();
+    static const char *miner();
+#   ifdef XMRIG_ALGO_RANDOMX
+    static const char *randomx();
+#   endif
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    static const char *nvidia();
+#   endif
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    static const char *opencl();
+#   endif
+};
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-const char *ocl_tag();
-#endif
+} /* namespace xmrig */
 
 
-#ifdef XMRIG_FEATURE_CUDA
-const char *cuda_tag();
-#endif
-
-
-#ifdef XMRIG_ALGO_RANDOMX
-const char *rx_tag();
-#endif
-
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_BACKEND_TAGS_H */
+#endif /* XMRIG_TAGS_H */
