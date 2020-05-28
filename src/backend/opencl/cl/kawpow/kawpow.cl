@@ -2,49 +2,6 @@
 
 typedef struct __attribute__ ((aligned(16))) {uint32_t s[PROGPOW_DAG_LOADS];} dag_t;
 
-inline void progPowLoop(const uint32_t loop,
-	volatile uint32_t mix_arg[PROGPOW_REGS],
-	__global const dag_t *g_dag,
-	__local const uint32_t c_dag[PROGPOW_CACHE_WORDS],
-	__local uint32_t share[GROUP_SHARE],
-	const bool hack_false)
-{
-	dag_t data_dag;
-	uint32_t offset, data;
-	uint32_t mix[PROGPOW_REGS];
-
-	for(int i=0; i<PROGPOW_REGS; i++)
-		mix[i] = mix_arg[i];
-
-	const uint32_t lane_id = get_local_id(0) & (PROGPOW_LANES-1);
-	const uint32_t group_id = get_local_id(0) / PROGPOW_LANES;
-
-	// global load
-	if(lane_id == (loop % PROGPOW_LANES))
-		share[group_id] = mix[0];
-
-	barrier(CLK_LOCAL_MEM_FENCE);
-
-	offset = share[group_id];
-	offset %= PROGPOW_DAG_ELEMENTS;
-	offset = offset * PROGPOW_LANES + (lane_id ^ loop) % PROGPOW_LANES;
-	data_dag = g_dag[offset];
-
-	// hack to prevent compiler from reordering LD and usage
-	if (hack_false) barrier(CLK_LOCAL_MEM_FENCE);
-
-	XMRIG_INCLUDE_PROGPOW_RANDOM_MATH
-
-	// consume global load data
-	// hack to prevent compiler from reordering LD and usage
-	if (hack_false) barrier(CLK_LOCAL_MEM_FENCE);
-
-	XMRIG_INCLUDE_PROGPOW_DATA_LOADS
-
-	for(int i=0; i<PROGPOW_REGS; i++)
-		mix_arg[i] = mix[i];
-}
-
 // Implementation based on:
 // https://github.com/mjosaarinen/tiny_sha3/blob/master/sha3.c
 
@@ -245,8 +202,31 @@ __kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blo
         fill_mix(share[group_id].uint32s, lane_id, mix);
 
 #pragma unroll 1
-        for (uint32_t l = 0; l < PROGPOW_CNT_DAG; l++)
-            progPowLoop(l, mix, g_dag, c_dag, share[0].uint32s, hack_false);
+        for (uint32_t loop = 0; loop < PROGPOW_CNT_DAG; ++loop)
+	{
+		// global load
+		if(lane_id == (loop % PROGPOW_LANES))
+			share[0].uint32s[group_id] = mix[0];
+
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+		uint32_t offset = share[0].uint32s[group_id];
+		offset %= PROGPOW_DAG_ELEMENTS;
+		offset = offset * PROGPOW_LANES + (lane_id ^ loop) % PROGPOW_LANES;
+		dag_t data_dag = g_dag[offset];
+
+		// hack to prevent compiler from reordering LD and usage
+		if (hack_false) barrier(CLK_LOCAL_MEM_FENCE);
+
+		uint32_t data;
+		XMRIG_INCLUDE_PROGPOW_RANDOM_MATH
+
+		// consume global load data
+		// hack to prevent compiler from reordering LD and usage
+		if (hack_false) barrier(CLK_LOCAL_MEM_FENCE);
+
+		XMRIG_INCLUDE_PROGPOW_DATA_LOADS
+	}
 
         // Reduce mix data to a per-lane 32-bit digest
         uint32_t mix_hash = FNV_OFFSET_BASIS;
