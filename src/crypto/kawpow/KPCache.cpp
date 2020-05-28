@@ -27,14 +27,14 @@
 
 #include <cinttypes>
 
-#include "3rdparty/libethash/ethash.h"
-#include "3rdparty/libethash/ethash_internal.h"
+#include "crypto/kawpow/KPCache.h"
 #include "3rdparty/libethash/data_sizes.h"
-
+#include "3rdparty/libethash/ethash_internal.h"
+#include "3rdparty/libethash/ethash.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/tools/Chrono.h"
 #include "crypto/common/VirtualMemory.h"
-#include "crypto/kawpow/KPCache.h"
 
 
 namespace xmrig {
@@ -90,7 +90,7 @@ bool KPCache::init(uint32_t epoch)
     m_size = size;
     m_epoch = epoch;
 
-    LOG_INFO("KawPow light cache for epoch %u calculated (%" PRIu64 " ms)", epoch, Chrono::steadyMSecs() - start_ms);
+    LOG_INFO("%s " YELLOW("KawPow") " light cache for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::miner(), epoch, Chrono::steadyMSecs() - start_ms);
 
     return true;
 }
