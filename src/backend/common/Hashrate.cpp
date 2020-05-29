@@ -39,7 +39,7 @@
 inline static const char *format(double h, char *buf, size_t size)
 {
     if (std::isnormal(h)) {
-        snprintf(buf, size, "%03.1f", h);
+        snprintf(buf, size, (h < 100.0) ? "%04.2f" : "%03.1f", h);
         return buf;
     }
 

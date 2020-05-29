@@ -192,15 +192,32 @@ void xmrig::Network::onPause(IStrategy *strategy)
 }
 
 
+static void scale_diff(uint64_t& diff, const char* &scale)
+{
+    if (diff >= 100000000) {
+        diff /= 1000000;
+        scale = "M";
+    }
+    else if (diff >= 1000000) {
+        diff /= 1000;
+        scale = "K";
+    }
+}
+
+
 void xmrig::Network::onResultAccepted(IStrategy *, IClient *, const SubmitResult &result, const char *error)
 {
+    uint64_t diff = result.diff;
+    const char* scale = "";
+    scale_diff(diff, scale);
+
     if (error) {
-        LOG_INFO("%s " RED_BOLD("rejected") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%" PRIu64) " " RED("\"%s\"") " " BLACK_BOLD("(%" PRIu64 " ms)"),
-                 backend_tag(result.backend), m_state->accepted(), m_state->rejected(), result.diff, error, result.elapsed);
+        LOG_INFO("%s " RED_BOLD("rejected") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%" PRIu64 "%s") " " RED("\"%s\"") " " BLACK_BOLD("(%" PRIu64 " ms)"),
+                 backend_tag(result.backend), m_state->accepted(), m_state->rejected(), diff, scale, error, result.elapsed);
     }
     else {
-        LOG_INFO("%s " GREEN_BOLD("accepted") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%" PRIu64) " " BLACK_BOLD("(%" PRIu64 " ms)"),
-                 backend_tag(result.backend), m_state->accepted(), m_state->rejected(), result.diff, result.elapsed);
+        LOG_INFO("%s " GREEN_BOLD("accepted") " (%" PRId64 "/%" PRId64 ") diff " WHITE_BOLD("%" PRIu64 "%s") " " BLACK_BOLD("(%" PRIu64 " ms)"),
+                 backend_tag(result.backend), m_state->accepted(), m_state->rejected(), diff, scale, result.elapsed);
     }
 }
 
@@ -230,13 +247,17 @@ void xmrig::Network::onRequest(IApiRequest &request)
 
 void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 {
+    uint64_t diff = job.diff();
+    const char* scale = "";
+    scale_diff(diff, scale);
+
     if (job.height()) {
-        LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64) " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
-                 Tags::network(), client->pool().host().data(), client->pool().port(), job.diff(), job.algorithm().shortName(), job.height());
+        LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
+                 Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName(), job.height());
     }
     else {
-        LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64) " algo " WHITE_BOLD("%s"),
-                 Tags::network(), client->pool().host().data(), client->pool().port(), job.diff(), job.algorithm().shortName());
+        LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s"),
+                 Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName());
     }
 
     if (!donate && m_donate) {
