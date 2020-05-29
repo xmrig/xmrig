@@ -247,6 +247,15 @@ void EthStratumClient::parseNotification(const char* method, const rapidjson::Va
 
         job.setHeight(arr[5].GetUint64());
 
+        bool ok = true;
+        m_listener->onVerifyAlgorithm(this, algo, &ok);
+
+        if (!ok && !isQuiet()) {
+            LOG_ERR("[%s] incompatible/disabled algorithm \"%s\" detected, reconnect", url(), algo.shortName());
+            disconnect();
+            return;
+        }
+
         m_listener->onJobReceived(this, job, params);
     }
 }
