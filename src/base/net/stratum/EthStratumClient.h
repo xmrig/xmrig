@@ -39,20 +39,20 @@ public:
 protected:
 
 protected:
-    int64_t submit(const JobResult& result) override;
+    int64_t submit(const JobResult &result) override;
     void login() override;
     void onClose() override;
 
-    bool handleResponse(int64_t id, const rapidjson::Value& result, const rapidjson::Value& error) override;
+    bool handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error) override;
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error) override;
 
-    bool disconnect() override;
-
 private:
+    const char *errorMessage(const rapidjson::Value &error) const;
+    uint64_t extraNonce(const rapidjson::Value &result) const;
     uint64_t target(const rapidjson::Value &params) const;
     void authorize();
-    void onAuthorizeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed);
-    void onSubscribeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed);
+    void onAuthorizeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed);
+    void onSubscribeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed);
     void setTarget(const rapidjson::Value &params);
     void subscribe();
 

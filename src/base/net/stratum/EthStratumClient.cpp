@@ -51,8 +51,9 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
 #   endif
 
     if (result.diff == 0) {
-        LOG_ERR("result.diff is 0");
-        disconnect();
+        LOG_ERR("%s " RED("result.diff is 0"), tag());
+        close();
+
         return -1;
     }
 
@@ -116,13 +117,13 @@ void xmrig::EthStratumClient::onClose()
 }
 
 
-bool xmrig::EthStratumClient::handleResponse(int64_t id, const rapidjson::Value& result, const rapidjson::Value& error)
+bool xmrig::EthStratumClient::handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
 {
     auto it = m_callbacks.find(id);
     if (it != m_callbacks.end()) {
         const uint64_t elapsed = Chrono::steadyMSecs() - it->second.ts;
 
-        if (error.IsObject()) {
+        if (error.IsArray() || error.IsObject() || error.IsString()) {
             it->second.callback(error, false, elapsed);
         }
         else {
@@ -134,15 +135,7 @@ bool xmrig::EthStratumClient::handleResponse(int64_t id, const rapidjson::Value&
         return true;
     }
 
-    const char* err = nullptr;
-    if (error.IsArray() && error.GetArray().Size() > 1) {
-        auto& value = error.GetArray()[1];
-        if (value.IsString()) {
-            err = value.GetString();
-        }
-    }
-
-    handleSubmitResponse(id, err);
+    handleSubmitResponse(id, errorMessage(error));
     return false;
 }
 
@@ -155,14 +148,14 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
 
     if (strcmp(method, "mining.notify") == 0) {
         if (!params.IsArray()) {
-            LOG_ERR("Invalid mining.notify notification: params is not an array");
+            LOG_ERR("%s " RED("invalid mining.notify notification: params is not an array"), tag());
             return;
         }
 
         auto arr = params.GetArray();
 
         if (arr.Size() < 6) {
-            LOG_ERR("Invalid mining.notify notification: params array has wrong size");
+            LOG_ERR("%s " RED("invalid mining.notify notification: params array has wrong size"), tag());
             return;
         }
 
@@ -205,29 +198,87 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
             if (!isQuiet()) {
                 LOG_ERR("[%s] incompatible/disabled algorithm \"%s\" detected, reconnect", url(), algo.shortName());
             }
-            disconnect();
+            close();
             return;
         }
 
         if (m_job != job) {
             m_job = std::move(job);
+
+            // Workaround for nanopool.org, mining.notify received before mining.authorize response.
+            if (!m_authorized) {
+                m_authorized = true;
+                m_listener->onLoginSuccess(this);
+            }
+
             m_listener->onJobReceived(this, m_job, params);
         }
         else {
             if (!isQuiet()) {
                 LOG_WARN("%s " YELLOW("duplicate job received, reconnect"), tag());
             }
-            disconnect();
+            close();
         }
     }
 }
 
 
-bool xmrig::EthStratumClient::disconnect()
+const char *xmrig::EthStratumClient::errorMessage(const rapidjson::Value &error) const
 {
-    m_authorized = false;
+    if (error.IsArray() && error.GetArray().Size() > 1) {
+        auto &value = error.GetArray()[1];
+        if (value.IsString()) {
+            return value.GetString();
+        }
+    }
 
-    return Client::disconnect();
+    if (error.IsString()) {
+        return error.GetString();
+    }
+
+    return nullptr;
+}
+
+
+uint64_t xmrig::EthStratumClient::extraNonce(const rapidjson::Value &result) const
+{
+    if (!result.IsArray()) {
+        throw std::runtime_error("invalid mining.subscribe response: result is not an array");
+    }
+
+    if (result.GetArray().Size() <= 1) {
+        throw std::runtime_error("invalid mining.subscribe response: result array is too short");
+    }
+
+    auto &extra_nonce = result.GetArray()[1];
+    if (!extra_nonce.IsString()) {
+        throw std::runtime_error("invalid mining.subscribe response: extra nonce is not a string");
+    }
+
+    const char* s = extra_nonce.GetString();
+    size_t len = extra_nonce.GetStringLength();
+
+    // Skip "0x"
+    if ((len >= 2) && (s[0] == '0') && (s[1] == 'x')) {
+        s += 2;
+        len -= 2;
+    }
+
+    if (len & 1) {
+        throw std::runtime_error("invalid mining.subscribe response: extra nonce has an odd number of hex chars");
+    }
+
+    if (len > 8) {
+        throw std::runtime_error("Invalid mining.subscribe response: extra nonce is too long");
+    }
+
+    std::string extra_nonce_str(s);
+    extra_nonce_str.resize(16, '0');
+
+    LOG_DEBUG("[%s] extra nonce set to %s", url(), s);
+
+    return std::stoull(extra_nonce_str, nullptr, 16);
+
 }
 
 
@@ -270,79 +321,52 @@ void xmrig::EthStratumClient::authorize()
 }
 
 
-void xmrig::EthStratumClient::onAuthorizeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed)
+void xmrig::EthStratumClient::onAuthorizeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed)
 {
-    if (!success) {
-        LOG_ERR("mining.authorize call failed");
-        disconnect();
+    try {
+        if (!success) {
+            const auto message = errorMessage(result);
+            if (message) {
+                throw std::runtime_error(message);
+            }
+
+            throw std::runtime_error("mining.authorize call failed");
+        }
+
+        if (!result.IsBool()) {
+            throw std::runtime_error("invalid mining.authorize response: result is not a boolean");
+        }
+
+        if (!result.GetBool()) {
+            throw std::runtime_error("login failed");
+        }
+    } catch (const std::exception &ex) {
+        LOG_ERR("%s " RED_BOLD("%s"), tag(), ex.what());
+
+        close();
         return;
     }
 
-    if (!result.IsBool()) {
-        LOG_ERR("Invalid mining.authorize response: result is not a boolean");
-        disconnect();
-        return;
+    LOG_DEBUG("[%s] login succeeded", url());
+
+    if (!m_authorized) {
+        m_authorized = true;
+        m_listener->onLoginSuccess(this);
     }
-
-    if (!result.GetBool()) {
-        LOG_ERR("Login failed");
-        disconnect();
-        return;
-    }
-
-    LOG_DEBUG("Login succeeded");
-
-    m_authorized = true;
-    m_listener->onLoginSuccess(this);
 }
 
 
-void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed)
+void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed)
 {
     if (!success) {
         return;
     }
 
-    if (!result.IsArray()) {
-        LOG_ERR("Invalid mining.subscribe response: result is not an array");
-        return;
+    try {
+        m_extraNonce = extraNonce(result);
+    } catch (const std::exception &ex) {
+        LOG_ERR("%s " RED("%s"), tag(), ex.what());
     }
-
-    if (result.GetArray().Size() <= 1) {
-        LOG_ERR("Invalid mining.subscribe response: result array is too short");
-        return;
-    }
-
-    auto& extra_nonce = result.GetArray()[1];
-    if (!extra_nonce.IsString()) {
-        LOG_ERR("Invalid mining.subscribe response: extra nonce is not a string");
-        return;
-    }
-
-    const char* s = extra_nonce.GetString();
-    size_t len = extra_nonce.GetStringLength();
-
-    // Skip "0x"
-    if ((len >= 2) && (s[0] == '0') && (s[1] == 'x')) {
-        s += 2;
-        len -= 2;
-    }
-
-    if (len & 1) {
-        LOG_ERR("Invalid mining.subscribe response: extra nonce has an odd number of hex chars");
-        return;
-    }
-
-    if (len > 8) {
-        LOG_ERR("Invalid mining.subscribe response: extra nonce is too long");
-        return;
-    }
-
-    std::string extra_nonce_str(s);
-    extra_nonce_str.resize(16, '0');
-
-    m_extraNonce = std::stoull(extra_nonce_str, nullptr, 16);
-    LOG_DEBUG("Extra nonce set to %s", s);
 }
 
 
