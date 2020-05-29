@@ -348,6 +348,7 @@ void EthStratumClient::OnAuthorizeResponse(const rapidjson::Value& result, bool 
     LOG_DEBUG("Login succeeded");
 
     m_authorized = true;
+    m_listener->onLoginSuccess(this);
 }
 
 }
