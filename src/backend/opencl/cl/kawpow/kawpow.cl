@@ -152,10 +152,6 @@ __kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blo
             c_dag[word + i] = load.s[i];
     }
 
-    // Sync threads so shared mem is in sync
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-
     uint32_t hash_seed[2];  // KISS99 initiator
     hash32_t digest;        // Carry-over from mix output
 

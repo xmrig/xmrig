@@ -84,6 +84,7 @@ int64_t EthStratumClient::submit(const JobResult& result)
 #   endif
 
     if (result.diff == 0) {
+        LOG_ERR("result.diff is 0");
         disconnect();
         return -1;
     }
@@ -258,7 +259,16 @@ void EthStratumClient::parseNotification(const char* method, const rapidjson::Va
             return;
         }
 
-        m_listener->onJobReceived(this, job, params);
+        if (m_job != job) {
+            m_job = std::move(job);
+            m_listener->onJobReceived(this, m_job, params);
+        }
+        else {
+            if (!isQuiet()) {
+                LOG_WARN("[%s] duplicate job received, reconnect", url());
+            }
+            disconnect();
+        }
     }
 }
 
@@ -339,13 +349,13 @@ void EthStratumClient::OnSubscribeResponse(const rapidjson::Value& result, bool 
 void EthStratumClient::OnAuthorizeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed)
 {
     if (!success) {
+        LOG_ERR("mining.authorize call failed");
         disconnect();
         return;
     }
 
     if (!result.IsBool()) {
         LOG_ERR("Invalid mining.authorize response: result is not a boolean");
-
         disconnect();
         return;
     }
