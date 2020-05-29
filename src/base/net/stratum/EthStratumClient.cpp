@@ -1,11 +1,4 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -24,58 +17,32 @@
  */
 
 #include <cinttypes>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
+#include <stdexcept>
 
+
+#include "base/net/stratum/EthStratumClient.h"
 #include "3rdparty/libethash/endian.h"
 #include "3rdparty/rapidjson/document.h"
 #include "3rdparty/rapidjson/error/en.h"
 #include "3rdparty/rapidjson/stringbuffer.h"
 #include "3rdparty/rapidjson/writer.h"
-
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
-#include "base/net/stratum/EthStratumClient.h"
-
 #include "net/JobResult.h"
 
 
-namespace xmrig {
 
-
-EthStratumClient::EthStratumClient(int id, const char *agent, IClientListener *listener) :
+xmrig::EthStratumClient::EthStratumClient(int id, const char *agent, IClientListener *listener) :
     Client(id, agent, listener)
 {
 }
 
 
-void EthStratumClient::login()
-{
-    using namespace rapidjson;
-    m_results.clear();
-
-    Document doc(kObjectType);
-    auto& allocator = doc.GetAllocator();
-
-    Value params(kArrayType);
-    params.PushBack(StringRef(agent()), allocator);
-
-    JsonRequest::create(doc, m_sequence, "mining.subscribe", params);
-
-    send(doc, [this](const rapidjson::Value& result, bool success, uint64_t elapsed) { OnSubscribeResponse(result, success, elapsed); });
-}
-
-
-void EthStratumClient::onClose()
-{
-    m_authorized = false;
-    Client::onClose();
-}
-
-
-int64_t EthStratumClient::submit(const JobResult& result)
+int64_t xmrig::EthStratumClient::submit(const JobResult& result)
 {
 #   ifndef XMRIG_PROXY_PROJECT
     if ((m_state != ConnectedState) || !m_authorized) {
@@ -100,7 +67,7 @@ int64_t EthStratumClient::submit(const JobResult& result)
 
     std::stringstream s;
     s << "0x" << std::hex << std::setw(16) << std::setfill('0') << result.nonce;
-    params.PushBack(rapidjson::Value(s.str().c_str(), allocator), allocator);
+    params.PushBack(Value(s.str().c_str(), allocator), allocator);
 
     s.str(std::string());
     s << "0x";
@@ -108,7 +75,7 @@ int64_t EthStratumClient::submit(const JobResult& result)
         const uint32_t k = result.headerHash()[i];
         s << std::hex << std::setw(2) << std::setfill('0') << k;
     }
-    params.PushBack(rapidjson::Value(s.str().c_str(), allocator), allocator);
+    params.PushBack(Value(s.str().c_str(), allocator), allocator);
 
     s.str(std::string());
     s << "0x";
@@ -116,7 +83,7 @@ int64_t EthStratumClient::submit(const JobResult& result)
         const uint32_t k = result.mixHash()[i];
         s << std::hex << std::setw(2) << std::setfill('0') << k;
     }
-    params.PushBack(rapidjson::Value(s.str().c_str(), allocator), allocator);
+    params.PushBack(Value(s.str().c_str(), allocator), allocator);
 
     JsonRequest::create(doc, m_sequence, "mining.submit", params);
 
@@ -133,7 +100,23 @@ int64_t EthStratumClient::submit(const JobResult& result)
 }
 
 
-bool EthStratumClient::handleResponse(int64_t id, const rapidjson::Value& result, const rapidjson::Value& error)
+void xmrig::EthStratumClient::login()
+{
+    m_results.clear();
+
+    subscribe();
+    authorize();
+}
+
+
+void xmrig::EthStratumClient::onClose()
+{
+    m_authorized = false;
+    Client::onClose();
+}
+
+
+bool xmrig::EthStratumClient::handleResponse(int64_t id, const rapidjson::Value& result, const rapidjson::Value& error)
 {
     auto it = m_callbacks.find(id);
     if (it != m_callbacks.end()) {
@@ -164,43 +147,10 @@ bool EthStratumClient::handleResponse(int64_t id, const rapidjson::Value& result
 }
 
 
-void EthStratumClient::parseNotification(const char* method, const rapidjson::Value& params, const rapidjson::Value& error)
+void xmrig::EthStratumClient::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &)
 {
-    if (error.IsObject()) {
-        if (!isQuiet()) {
-            LOG_ERR("[%s] error: \"%s\", code: %d", url(), error["message"].GetString(), error["code"].GetInt());
-        }
-        return;
-    }
-
-    if (!method) {
-        return;
-    }
-
     if (strcmp(method, "mining.set_target") == 0) {
-        if (!params.IsArray()) {
-            LOG_ERR("Invalid mining.set_target notification: params is not an array");
-            return;
-        }
-
-        if (params.GetArray().Size() != 1) {
-            LOG_ERR("Invalid mining.set_target notification: params array has wrong size");
-            return;
-        }
- 
-        auto& new_target = params.GetArray()[0];
-        if (!new_target.IsString()) {
-            LOG_ERR("Invalid mining.set_target notification: target is not a string");
-            return;
-        }
-
-        std::string new_target_str = new_target.GetString();
-        new_target_str.resize(16, '0');
-
-        m_target = std::stoull(new_target_str, nullptr, 16);
-        LOG_DEBUG("Target set to %016" PRIX64, m_target);
-
-        return;
+        return setTarget(params);
     }
 
     if (strcmp(method, "mining.notify") == 0) {
@@ -265,7 +215,7 @@ void EthStratumClient::parseNotification(const char* method, const rapidjson::Va
         }
         else {
             if (!isQuiet()) {
-                LOG_WARN("[%s] duplicate job received, reconnect", url());
+                LOG_WARN("%s " YELLOW("duplicate job received, reconnect"), tag());
             }
             disconnect();
         }
@@ -273,7 +223,7 @@ void EthStratumClient::parseNotification(const char* method, const rapidjson::Va
 }
 
 
-bool EthStratumClient::disconnect()
+bool xmrig::EthStratumClient::disconnect()
 {
     m_authorized = false;
 
@@ -281,7 +231,73 @@ bool EthStratumClient::disconnect()
 }
 
 
-void EthStratumClient::OnSubscribeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed)
+uint64_t xmrig::EthStratumClient::target(const rapidjson::Value &params) const
+{
+    if (!params.IsArray()) {
+        throw std::runtime_error("invalid mining.set_target notification: params is not an array");
+    }
+
+    if (params.GetArray().Size() != 1) {
+        throw std::runtime_error("invalid mining.set_target notification: params array has wrong size");
+    }
+
+    auto &new_target = params.GetArray()[0];
+    if (!new_target.IsString()) {
+        throw std::runtime_error("invalid mining.set_target notification: target is not a string");
+    }
+
+    std::string new_target_str = new_target.GetString();
+    new_target_str.resize(16, '0');
+
+    return std::stoull(new_target_str, nullptr, 16);
+}
+
+
+void xmrig::EthStratumClient::authorize()
+{
+    using namespace rapidjson;
+
+    Document doc(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    Value params(kArrayType);
+    params.PushBack(m_pool.user().toJSON(), allocator);
+    params.PushBack(m_pool.password().toJSON(), allocator);
+
+    JsonRequest::create(doc, m_sequence, "mining.authorize", params);
+
+    send(doc, [this](const rapidjson::Value& result, bool success, uint64_t elapsed) { onAuthorizeResponse(result, success, elapsed); });
+}
+
+
+void xmrig::EthStratumClient::onAuthorizeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed)
+{
+    if (!success) {
+        LOG_ERR("mining.authorize call failed");
+        disconnect();
+        return;
+    }
+
+    if (!result.IsBool()) {
+        LOG_ERR("Invalid mining.authorize response: result is not a boolean");
+        disconnect();
+        return;
+    }
+
+    if (!result.GetBool()) {
+        LOG_ERR("Login failed");
+        disconnect();
+        return;
+    }
+
+    LOG_DEBUG("Login succeeded");
+
+    m_authorized = true;
+    m_listener->onLoginSuccess(this);
+}
+
+
+void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed)
 {
     if (!success) {
         return;
@@ -327,49 +343,34 @@ void EthStratumClient::OnSubscribeResponse(const rapidjson::Value& result, bool 
 
     m_extraNonce = std::stoull(extra_nonce_str, nullptr, 16);
     LOG_DEBUG("Extra nonce set to %s", s);
+}
 
+
+void xmrig::EthStratumClient::setTarget(const rapidjson::Value &params)
+{
+    try {
+        m_target = target(params);
+    } catch (const std::exception &ex) {
+        LOG_ERR("%s " RED("%s"), tag(), ex.what());
+
+        return;
+    }
+
+    LOG_DEBUG("[%s] target set to %016" PRIX64, url(), m_target);
+}
+
+
+void xmrig::EthStratumClient::subscribe()
+{
     using namespace rapidjson;
 
     Document doc(kObjectType);
-    auto& allocator = doc.GetAllocator();
+    auto &allocator = doc.GetAllocator();
 
     Value params(kArrayType);
+    params.PushBack(StringRef(agent()), allocator);
 
-    const char* user = m_pool.user().data();
-    const char* pass = m_pool.password().data();
+    JsonRequest::create(doc, m_sequence, "mining.subscribe", params);
 
-    params.PushBack(StringRef(user), allocator);
-    params.PushBack(StringRef(pass), allocator);
-
-    JsonRequest::create(doc, m_sequence, "mining.authorize", params);
-
-    send(doc, [this](const rapidjson::Value& result, bool success, uint64_t elapsed) { OnAuthorizeResponse(result, success, elapsed); });
-}
-
-void EthStratumClient::OnAuthorizeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed)
-{
-    if (!success) {
-        LOG_ERR("mining.authorize call failed");
-        disconnect();
-        return;
-    }
-
-    if (!result.IsBool()) {
-        LOG_ERR("Invalid mining.authorize response: result is not a boolean");
-        disconnect();
-        return;
-    }
-
-    if (!result.GetBool()) {
-        LOG_ERR("Login failed");
-        disconnect();
-        return;
-    }
-
-    LOG_DEBUG("Login succeeded");
-
-    m_authorized = true;
-    m_listener->onLoginSuccess(this);
-}
-
+    send(doc, [this](const rapidjson::Value& result, bool success, uint64_t elapsed) { onSubscribeResponse(result, success, elapsed); });
 }

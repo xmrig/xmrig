@@ -1,11 +1,4 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -43,25 +36,29 @@ public:
 
     EthStratumClient(int id, const char *agent, IClientListener *listener);
 
-    void login() override;
-    void onClose() override;
+protected:
 
 protected:
     int64_t submit(const JobResult& result) override;
+    void login() override;
+    void onClose() override;
 
     bool handleResponse(int64_t id, const rapidjson::Value& result, const rapidjson::Value& error) override;
-    void parseNotification(const char* method, const rapidjson::Value& params, const rapidjson::Value& error) override;
+    void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error) override;
 
     bool disconnect() override;
 
 private:
-    void OnSubscribeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed);
-    void OnAuthorizeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed);
+    uint64_t target(const rapidjson::Value &params) const;
+    void authorize();
+    void onAuthorizeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed);
+    void onSubscribeResponse(const rapidjson::Value& result, bool success, uint64_t elapsed);
+    void setTarget(const rapidjson::Value &params);
+    void subscribe();
 
-    bool m_authorized = false;
-
-    uint64_t m_target = 0;
-    uint64_t m_extraNonce = 0;
+    bool m_authorized       = false;
+    uint64_t m_target       = 0;
+    uint64_t m_extraNonce   = 0;
 };
 
 

@@ -26,6 +26,8 @@
 #include "base/net/stratum/BaseClient.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/Env.h"
+#include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/stratum/SubmitResult.h"
 
@@ -56,6 +58,7 @@ void xmrig::BaseClient::setPool(const Pool &pool)
     m_user      = Env::expand(pool.user());
     m_password  = Env::expand(pool.password());
     m_rigId     = Env::expand(pool.rigId());
+    m_tag       = std::string(Tags::network()) + " " CYAN_BOLD_S + m_pool.url().data() + CLEAR;
 }
 
 
