@@ -25,6 +25,7 @@
 #include <stddef.h>
 #include <errno.h>
 #include <math.h>
+#include <stdlib.h>
 #include "ethash.h"
 #include "fnv.h"
 #include "endian.h"

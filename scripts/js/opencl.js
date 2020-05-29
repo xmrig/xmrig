@@ -6,7 +6,7 @@ const fs = require('fs');
 function bin2h(buf, namespace, name)
 {
     const size = buf.byteLength;
-    let out    = `#pragma once\n\nnamespace ${namespace} {\n\nstatic unsigned char ${name}[${size}] = {\n    `;
+    let out    = `#pragma once\n\nnamespace ${namespace} {\n\nstatic const unsigned char ${name}[${size}] = {\n    `;
 
     let b = 32;
     for (let i = 0; i < size; i++) {
@@ -28,7 +28,7 @@ function text2h_internal(text, name)
 {
     const buf  = Buffer.from(text);
     const size = buf.byteLength;
-    let out    = `\nstatic char ${name}[${size + 1}] = {\n    `;
+    let out    = `\nstatic const char ${name}[${size + 1}] = {\n    `;
 
     let b = 32;
     for (let i = 0; i < size; i++) {
