@@ -139,6 +139,14 @@ xmrig::OclWorker::~OclWorker()
 }
 
 
+void xmrig::OclWorker::jobEarlyNotification(const Job& job)
+{
+    if (m_runner) {
+        m_runner->jobEarlyNotification(job);
+    }
+}
+
+
 bool xmrig::OclWorker::selfTest()
 {
     return m_runner != nullptr;

@@ -53,7 +53,10 @@ bool ocl_generic_kawpow_generator(const OclDevice &device, const Algorithm &algo
         break;
     }
 
-    threads.add(OclThread(device.index(), device.computeUnits() * 262144, isNavi ? 128 : 256, 1));
+    const uint32_t cu_intensity = isNavi ? 524288 : 262144;
+    const uint32_t worksize = isNavi ? 128 : 256;
+    threads.add(OclThread(device.index(), device.computeUnits() * cu_intensity, worksize, 1));
+
     return true;
 }
 

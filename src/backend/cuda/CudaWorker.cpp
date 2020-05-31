@@ -118,6 +118,14 @@ xmrig::CudaWorker::~CudaWorker()
 }
 
 
+void xmrig::CudaWorker::jobEarlyNotification(const Job& job)
+{
+    if (m_runner) {
+        m_runner->jobEarlyNotification(job);
+    }
+}
+
+
 bool xmrig::CudaWorker::selfTest()
 {
     return m_runner != nullptr;

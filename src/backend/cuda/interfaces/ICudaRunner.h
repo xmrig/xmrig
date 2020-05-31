@@ -52,6 +52,7 @@ public:
     virtual bool init()                                                             = 0;
     virtual bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)   = 0;
     virtual bool set(const Job &job, uint8_t *blob)                                 = 0;
+    virtual void jobEarlyNotification(const Job&)                                   = 0;
 };
 
 

@@ -71,6 +71,9 @@ OclKawPowRunner::~OclKawPowRunner()
 
     OclLib::release(m_searchKernel);
 
+    OclLib::release(m_controlQueue);
+    OclLib::release(m_stop);
+
     OclKawPow::clear();
 }
 
@@ -83,8 +86,11 @@ void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
 
     enqueueWriteBuffer(m_input, CL_FALSE, 0, 40, m_blob);
 
-    const uint32_t zero = 0;
-    enqueueWriteBuffer(m_output, CL_FALSE, 0, sizeof(uint32_t), &zero);
+    const uint32_t zero[2] = {};
+    enqueueWriteBuffer(m_output, CL_FALSE, 0, sizeof(uint32_t), zero);
+    enqueueWriteBuffer(m_stop, CL_FALSE, 0, sizeof(uint32_t) * 2, zero);
+
+    m_skippedHashes = 0;
 
     const cl_int ret = OclLib::enqueueNDRangeKernel(m_queue, m_searchKernel, 1, &global_work_offset, &global_work_size, &local_work_size, 0, nullptr, nullptr);
     if (ret != CL_SUCCESS) {
@@ -94,8 +100,13 @@ void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
         throw std::runtime_error(OclError::toString(ret));
     }
 
+    uint32_t stop[2] = {};
+    enqueueReadBuffer(m_stop, CL_FALSE, 0, sizeof(stop), stop);
+
     uint32_t output[16] = {};
     enqueueReadBuffer(m_output, CL_TRUE, 0, sizeof(output), output);
+
+    m_skippedHashes = stop[1] * m_workGroupSize;
 
     if (output[0] > 15) {
         output[0] = 15;
@@ -166,9 +177,20 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
     OclLib::setKernelArg(m_searchKernel, 2, sizeof(target), &target);
     OclLib::setKernelArg(m_searchKernel, 3, sizeof(hack_false), &hack_false);
     OclLib::setKernelArg(m_searchKernel, 4, sizeof(m_output), &m_output);
+    OclLib::setKernelArg(m_searchKernel, 5, sizeof(m_stop), &m_stop);
 
     m_blob = blob;
     enqueueWriteBuffer(m_input, CL_TRUE, 0, sizeof(m_blob), m_blob);
+}
+
+
+void OclKawPowRunner::jobEarlyNotification(const Job&)
+{
+    const uint32_t one = 1;
+    const cl_int ret = OclLib::enqueueWriteBuffer(m_controlQueue, m_stop, CL_TRUE, 0, sizeof(one), &one, 0, nullptr, nullptr);
+    if (ret != CL_SUCCESS) {
+        throw std::runtime_error(OclError::toString(ret));
+    }
 }
 
 
@@ -183,6 +205,9 @@ void xmrig::OclKawPowRunner::build()
 void xmrig::OclKawPowRunner::init()
 {
     OclBaseRunner::init();
+
+    m_controlQueue = OclLib::createCommandQueue(m_ctx, data().device.id());
+    m_stop = OclLib::createBuffer(m_ctx, CL_MEM_READ_ONLY, sizeof(uint32_t) * 2);
 }
 
 } // namespace xmrig
