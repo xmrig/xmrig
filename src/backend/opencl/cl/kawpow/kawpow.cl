@@ -133,13 +133,21 @@ typedef struct
 #if PLATFORM != OPENCL_PLATFORM_NVIDIA  // use maxrregs on nv
 __attribute__((reqd_work_group_size(GROUP_SIZE, 1, 1)))
 #endif
-__kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blob, ulong target, uint hack_false, volatile __global uint* results)
+__kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blob, ulong target, uint hack_false, volatile __global uint* results, volatile __global uint* stop)
 {
+    const uint32_t lid = get_local_id(0);
+    const uint32_t gid = get_global_id(0);
+
+    if (stop[0]) {
+        if (lid == 0) {
+            // Count groups of skipped hashes (if we don't count them we'll break hashrate display)
+            atomic_inc(stop + 1);
+        }
+        return;
+    }
+
     __local shuffle_t share[HASHES_PER_GROUP];
     __local uint32_t c_dag[PROGPOW_CACHE_WORDS];
-
-    uint32_t const lid = get_local_id(0);
-    uint32_t const gid = get_global_id(0);
 
     const uint32_t lane_id = lid & (PROGPOW_LANES - 1);
     const uint32_t group_id = lid / PROGPOW_LANES;
@@ -271,6 +279,8 @@ __kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blo
 
     if (result <= target)
     {
+        *stop = 1;
+
         const uint k = atomic_inc(results) + 1;
         if (k <= 15)
             results[k] = gid;

@@ -49,16 +49,17 @@ public:
     ~OclBaseRunner() override;
 
 protected:
-    inline cl_context ctx() const override              { return m_ctx; }
-    inline const Algorithm &algorithm() const override  { return m_algorithm; }
-    inline const char *buildOptions() const override    { return m_options.c_str(); }
-    inline const char *deviceKey() const override       { return m_deviceKey.c_str(); }
-    inline const char *source() const override          { return m_source; }
-    inline const OclLaunchData &data() const override   { return m_data; }
-    inline size_t intensity() const override            { return m_intensity; }
-    inline size_t threadId() const override             { return m_threadId; }
-    inline uint32_t roundSize() const override          { return m_intensity; }
-    inline uint32_t processedHashes() const override    { return m_intensity; }
+    inline cl_context ctx() const override                { return m_ctx; }
+    inline const Algorithm &algorithm() const override    { return m_algorithm; }
+    inline const char *buildOptions() const override      { return m_options.c_str(); }
+    inline const char *deviceKey() const override         { return m_deviceKey.c_str(); }
+    inline const char *source() const override            { return m_source; }
+    inline const OclLaunchData &data() const override     { return m_data; }
+    inline size_t intensity() const override              { return m_intensity; }
+    inline size_t threadId() const override               { return m_threadId; }
+    inline uint32_t roundSize() const override            { return m_intensity; }
+    inline uint32_t processedHashes() const override      { return m_intensity; }
+    inline void jobEarlyNotification(const Job&) override {}
 
     size_t bufferSize() const override;
     uint32_t deviceIndex() const override;

@@ -372,8 +372,11 @@ void xmrig::CudaBackend::execCommand(char)
 }
 
 
-void xmrig::CudaBackend::prepare(const Job &)
+void xmrig::CudaBackend::prepare(const Job &job)
 {
+    if (d_ptr) {
+        d_ptr->workers.jobEarlyNotification(job);
+    }
 }
 
 

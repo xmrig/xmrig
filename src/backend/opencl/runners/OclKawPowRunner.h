@@ -50,9 +50,12 @@ protected:
     void set(const Job &job, uint8_t *blob) override;
     void build() override;
     void init() override;
+    void jobEarlyNotification(const Job& job) override;
+    uint32_t processedHashes() const override { return m_intensity - m_skippedHashes; }
 
 private:
     uint8_t* m_blob = nullptr;
+    uint32_t m_skippedHashes = 0;
 
     uint32_t m_blockHeight = 0;
     uint32_t m_epoch = 0xFFFFFFFFUL;
@@ -71,6 +74,9 @@ private:
 
     size_t m_workGroupSize = 256;
     size_t m_dagWorkGroupSize = 64;
+
+    cl_command_queue m_controlQueue = nullptr;
+    cl_mem m_stop = nullptr;
 };
 
 

@@ -350,8 +350,11 @@ void xmrig::OclBackend::execCommand(char)
 }
 
 
-void xmrig::OclBackend::prepare(const Job &)
+void xmrig::OclBackend::prepare(const Job &job)
 {
+    if (d_ptr) {
+        d_ptr->workers.jobEarlyNotification(job);
+    }
 }
 
 

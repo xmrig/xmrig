@@ -67,6 +67,7 @@ static const char *kRxHash                              = "rxHash";
 static const char *kRxPrepare                           = "rxPrepare";
 static const char *kKawPowHash                          = "kawPowHash";
 static const char *kKawPowPrepare                       = "kawPowPrepare";
+static const char *kKawPowStopHash                      = "kawPowStopHash";
 static const char *kSetJob                              = "setJob";
 static const char *kSetJob_v2                           = "setJob_v2";
 static const char *kVersion                             = "version";
@@ -90,8 +91,9 @@ using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
 using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
 using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, bool, uint32_t);
-using kawPowHash_t                                      = bool (*)(nvid_ctx *, uint8_t*, uint64_t, uint32_t *, uint32_t *);
+using kawPowHash_t                                      = bool (*)(nvid_ctx *, uint8_t*, uint64_t, uint32_t *, uint32_t *, uint32_t *);
 using kawPowPrepare_t                                   = bool (*)(nvid_ctx *, const void *, size_t, size_t, uint32_t, const uint64_t*);
+using kawPowStopHash_t                                  = bool (*)(nvid_ctx *);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using setJob_v2_t                                       = bool (*)(nvid_ctx *, const void *, size_t, const char *);
 using version_t                                         = uint32_t (*)(Version);
@@ -117,6 +119,7 @@ static rxHash_t pRxHash                                 = nullptr;
 static rxPrepare_t pRxPrepare                           = nullptr;
 static kawPowHash_t pKawPowHash                         = nullptr;
 static kawPowPrepare_t pKawPowPrepare                   = nullptr;
+static kawPowStopHash_t pKawPowStopHash                 = nullptr;
 static setJob_t pSetJob                                 = nullptr;
 static setJob_v2_t pSetJob_v2                           = nullptr;
 static version_t pVersion                               = nullptr;
@@ -205,15 +208,21 @@ bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datase
 }
 
 
-bool xmrig::CudaLib::kawPowHash(nvid_ctx *ctx, uint8_t* job_blob, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
+bool xmrig::CudaLib::kawPowHash(nvid_ctx *ctx, uint8_t* job_blob, uint64_t target, uint32_t *rescount, uint32_t *resnonce, uint32_t *skipped_hashes) noexcept
 {
-    return pKawPowHash(ctx, job_blob, target, rescount, resnonce);
+    return pKawPowHash(ctx, job_blob, target, rescount, resnonce, skipped_hashes);
 }
 
 
 bool xmrig::CudaLib::kawPowPrepare(nvid_ctx *ctx, const void* cache, size_t cache_size, size_t dag_size, uint32_t height, const uint64_t* dag_sizes) noexcept
 {
     return pKawPowPrepare(ctx, cache, cache_size, dag_size, height, dag_sizes);
+}
+
+
+bool xmrig::CudaLib::kawPowStopHash(nvid_ctx *ctx) noexcept
+{
+    return pKawPowStopHash(ctx);
 }
 
 
@@ -367,6 +376,7 @@ bool xmrig::CudaLib::load()
         DLSYM(AstroBWTPrepare);
         DLSYM(KawPowHash);
         DLSYM(KawPowPrepare);
+        DLSYM(KawPowStopHash);
         DLSYM(Version);
 
         if (!pDeviceInfo_v2) {

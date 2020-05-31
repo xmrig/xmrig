@@ -49,6 +49,8 @@ public:
 
     ~CudaWorker() override;
 
+    void jobEarlyNotification(const Job&) override;
+
     static std::atomic<bool> ready;
 
 protected:
