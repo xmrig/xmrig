@@ -445,23 +445,6 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
 }
 
 
-bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
-{
-    m_rpcId = result["id"].GetString();
-    if (m_rpcId.isNull()) {
-        *code = 1;
-        return false;
-    }
-
-    parseExtensions(result);
-
-    const bool rc = parseJob(result["job"], code);
-    m_jobs = 0;
-
-    return rc;
-}
-
-
 bool xmrig::Client::send(BIO *bio)
 {
 #   ifdef XMRIG_FEATURE_TLS
@@ -626,6 +609,23 @@ void xmrig::Client::handshake()
     {
         login();
     }
+}
+
+
+bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
+{
+    setRpcId(Json::getString(result, "id"));
+    if (rpcId().isNull()) {
+        *code = 1;
+        return false;
+    }
+
+    parseExtensions(result);
+
+    const bool rc = parseJob(result["job"], code);
+    m_jobs = 0;
+
+    return rc;
 }
 
 
@@ -819,7 +819,11 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
 
         m_failures = 0;
         m_listener->onLoginSuccess(this);
-        m_listener->onJobReceived(this, m_job, result["job"]);
+
+        if (m_job.isValid()) {
+            m_listener->onJobReceived(this, m_job, result["job"]);
+        }
+
         return;
     }
 

@@ -49,7 +49,8 @@ public:
     enum Mode {
         MODE_POOL,
         MODE_DAEMON,
-        MODE_SELF_SELECT
+        MODE_SELF_SELECT,
+        MODE_AUTO_ETH
     };
 
     static const String kDefaultPassword;
@@ -76,16 +77,9 @@ public:
     constexpr static uint64_t kDefaultPollInterval = 1000;
 
     Pool() = default;
+    Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls, Mode mode);
     Pool(const char *url);
     Pool(const rapidjson::Value &object);
-    Pool(const char *host,
-         uint16_t port,
-         const char *user       = nullptr,
-         const char *password   = nullptr,
-         int keepAlive          = 0,
-         bool nicehash          = false,
-         bool tls               = false
-       );
 
     inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS) || m_url.isTLS(); }

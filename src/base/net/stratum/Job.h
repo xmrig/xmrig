@@ -71,17 +71,18 @@ public:
     inline const String &extraNonce() const             { return m_extraNonce; }
     inline const String &id() const                     { return m_id; }
     inline const String &poolWallet() const             { return m_poolWallet; }
-    inline int32_t nonce_offset() const                 { return (algorithm().family() == Algorithm::KAWPOW) ? 32 : 39; }
-    inline size_t nonce_size() const                    { return (algorithm().family() == Algorithm::KAWPOW) ?  8 :  4; }
-    inline const uint32_t *nonce() const                { return reinterpret_cast<const uint32_t*>(m_blob + nonce_offset()); }
+    inline const uint32_t *nonce() const                { return reinterpret_cast<const uint32_t*>(m_blob + nonceOffset()); }
     inline const uint8_t *blob() const                  { return m_blob; }
-    inline uint8_t *blob()                              { return m_blob; }
+    inline int32_t nonceOffset() const                  { return (algorithm().family() == Algorithm::KAWPOW) ? 32 : 39; }
+    inline size_t nonceSize() const                     { return (algorithm().family() == Algorithm::KAWPOW) ?  8 :  4; }
     inline size_t size() const                          { return m_size; }
-    inline uint32_t *nonce()                            { return reinterpret_cast<uint32_t*>(m_blob + nonce_offset()); }
+    inline uint32_t *nonce()                            { return reinterpret_cast<uint32_t*>(m_blob + nonceOffset()); }
     inline uint32_t backend() const                     { return m_backend; }
     inline uint64_t diff() const                        { return m_diff; }
     inline uint64_t height() const                      { return m_height; }
     inline uint64_t target() const                      { return m_target; }
+    inline uint8_t *blob()                              { return m_blob; }
+    inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
     inline uint8_t index() const                        { return m_index; }
     inline void reset()                                 { m_size = 0; m_diff = 0; }
     inline void setAlgorithm(const Algorithm::Id id)    { m_algorithm = id; }

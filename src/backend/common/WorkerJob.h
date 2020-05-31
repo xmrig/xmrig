@@ -41,7 +41,7 @@ class WorkerJob
 {
 public:
     inline const Job &currentJob() const    { return m_jobs[index()]; }
-    inline uint32_t *nonce(size_t i = 0)    { return reinterpret_cast<uint32_t*>(blob() + (i * currentJob().size()) + nonce_offset()); }
+    inline uint32_t *nonce(size_t i = 0)    { return reinterpret_cast<uint32_t*>(blob() + (i * currentJob().size()) + nonceOffset()); }
     inline uint64_t sequence() const        { return m_sequence; }
     inline uint8_t *blob()                  { return m_blobs[index()]; }
     inline uint8_t index() const            { return m_index; }
@@ -88,8 +88,8 @@ public:
 
 
 private:
-    inline int32_t nonce_offset() const { return currentJob().nonce_offset(); }
-    inline size_t nonce_size() const { return currentJob().nonce_size(); }
+    inline int32_t nonceOffset() const  { return currentJob().nonceOffset(); }
+    inline size_t nonceSize() const     { return currentJob().nonceSize(); }
 
     inline void save(const Job &job, uint32_t reserveCount, Nonce::Backend backend)
     {
@@ -118,7 +118,7 @@ private:
 template<>
 inline uint32_t *xmrig::WorkerJob<1>::nonce(size_t)
 {
-    return reinterpret_cast<uint32_t*>(blob() + nonce_offset());
+    return reinterpret_cast<uint32_t*>(blob() + nonceOffset());
 }
 
 
@@ -139,7 +139,7 @@ inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
     }
 
     // Increment higher 32 bits of a 64-bit nonce when lower 32 bits overflow
-    if (!currentJob().isNicehash() && (nonce_size() == sizeof(uint64_t)) && (*n < prev_nonce)) {
+    if (!currentJob().isNicehash() && (nonceSize() == sizeof(uint64_t)) && (*n < prev_nonce)) {
         ++n[1];
 
         Job& job = m_jobs[index()];

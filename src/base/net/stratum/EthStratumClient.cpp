@@ -63,8 +63,8 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
     auto& allocator = doc.GetAllocator();
 
     Value params(kArrayType);
-    params.PushBack(StringRef(m_pool.user().data()), allocator);
-    params.PushBack(StringRef(result.jobId.data()), allocator);
+    params.PushBack(m_pool.user().toJSON(), allocator);
+    params.PushBack(result.jobId.toJSON(), allocator);
 
     std::stringstream s;
     s << "0x" << std::hex << std::setw(16) << std::setfill('0') << result.nonce;
@@ -135,15 +135,14 @@ bool xmrig::EthStratumClient::handleResponse(int64_t id, const rapidjson::Value 
         return true;
     }
 
-    handleSubmitResponse(id, errorMessage(error));
-    return false;
+    return handleSubmitResponse(id, errorMessage(error));
 }
 
 
 void xmrig::EthStratumClient::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &)
 {
     if (strcmp(method, "mining.set_target") == 0) {
-        return setTarget(params);
+        return;
     }
 
     if (strcmp(method, "mining.notify") == 0) {
@@ -162,11 +161,13 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         Job job;
         job.setId(arr[0].GetString());
 
-        Algorithm algo = m_pool.algorithm();
-        if (algo == Algorithm::INVALID) {
-            algo = m_pool.coin().algorithm(0);
+        auto algo = m_pool.algorithm();
+        if (!algo.isValid()) {
+            algo = m_pool.coin().algorithm();
         }
+
         job.setAlgorithm(algo);
+        job.setExtraNonce(m_extraNonce.second);
 
         std::stringstream s;
 
@@ -174,7 +175,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         s << arr[1].GetString();
 
         // nonce template (8 bytes)
-        for (uint64_t i = 0, k = m_extraNonce; i < sizeof(m_extraNonce); ++i, k >>= 8) {
+        for (uint64_t i = 0, k = m_extraNonce.first; i < sizeof(m_extraNonce.first); ++i, k >>= 8) {
             s << std::hex << std::setw(2) << std::setfill('0') << (k & 0xFF);
         }
 
@@ -187,7 +188,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         std::string target_str = arr[3].GetString();
         target_str.resize(16, '0');
         const uint64_t target = strtoull(target_str.c_str(), nullptr, 16);
-        job.setDiff(job.toDiff(target));
+        job.setDiff(Job::toDiff(target));
 
         job.setHeight(arr[5].GetUint64());
 
@@ -223,40 +224,14 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
 }
 
 
-const char *xmrig::EthStratumClient::errorMessage(const rapidjson::Value &error) const
+void xmrig::EthStratumClient::setExtraNonce(const rapidjson::Value &nonce)
 {
-    if (error.IsArray() && error.GetArray().Size() > 1) {
-        auto &value = error.GetArray()[1];
-        if (value.IsString()) {
-            return value.GetString();
-        }
-    }
-
-    if (error.IsString()) {
-        return error.GetString();
-    }
-
-    return nullptr;
-}
-
-
-uint64_t xmrig::EthStratumClient::extraNonce(const rapidjson::Value &result) const
-{
-    if (!result.IsArray()) {
-        throw std::runtime_error("invalid mining.subscribe response: result is not an array");
-    }
-
-    if (result.GetArray().Size() <= 1) {
-        throw std::runtime_error("invalid mining.subscribe response: result array is too short");
-    }
-
-    auto &extra_nonce = result.GetArray()[1];
-    if (!extra_nonce.IsString()) {
+    if (!nonce.IsString()) {
         throw std::runtime_error("invalid mining.subscribe response: extra nonce is not a string");
     }
 
-    const char* s = extra_nonce.GetString();
-    size_t len = extra_nonce.GetStringLength();
+    const char *s = nonce.GetString();
+    size_t len    = nonce.GetStringLength();
 
     // Skip "0x"
     if ((len >= 2) && (s[0] == '0') && (s[1] == 'x')) {
@@ -277,30 +252,28 @@ uint64_t xmrig::EthStratumClient::extraNonce(const rapidjson::Value &result) con
 
     LOG_DEBUG("[%s] extra nonce set to %s", url(), s);
 
-    return std::stoull(extra_nonce_str, nullptr, 16);
-
+    m_extraNonce = { std::stoull(extra_nonce_str, nullptr, 16), s };
 }
 
 
-uint64_t xmrig::EthStratumClient::target(const rapidjson::Value &params) const
+const char *xmrig::EthStratumClient::errorMessage(const rapidjson::Value &error) const
 {
-    if (!params.IsArray()) {
-        throw std::runtime_error("invalid mining.set_target notification: params is not an array");
+    if (error.IsArray() && error.GetArray().Size() > 1) {
+        auto &value = error.GetArray()[1];
+        if (value.IsString()) {
+            return value.GetString();
+        }
     }
 
-    if (params.GetArray().Size() != 1) {
-        throw std::runtime_error("invalid mining.set_target notification: params array has wrong size");
+    if (error.IsString()) {
+        return error.GetString();
     }
 
-    auto &new_target = params.GetArray()[0];
-    if (!new_target.IsString()) {
-        throw std::runtime_error("invalid mining.set_target notification: target is not a string");
+    if (error.IsObject()) {
+        return Json::getString(error, "message");
     }
 
-    std::string new_target_str = new_target.GetString();
-    new_target_str.resize(16, '0');
-
-    return std::stoull(new_target_str, nullptr, 16);
+    return nullptr;
 }
 
 
@@ -321,7 +294,7 @@ void xmrig::EthStratumClient::authorize()
 }
 
 
-void xmrig::EthStratumClient::onAuthorizeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed)
+void xmrig::EthStratumClient::onAuthorizeResponse(const rapidjson::Value &result, bool success, uint64_t)
 {
     try {
         if (!success) {
@@ -356,31 +329,27 @@ void xmrig::EthStratumClient::onAuthorizeResponse(const rapidjson::Value &result
 }
 
 
-void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed)
+void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result, bool success, uint64_t)
 {
     if (!success) {
         return;
     }
 
     try {
-        m_extraNonce = extraNonce(result);
+        if (!result.IsArray()) {
+            throw std::runtime_error("invalid mining.subscribe response: result is not an array");
+        }
+
+        if (result.GetArray().Size() <= 1) {
+            throw std::runtime_error("invalid mining.subscribe response: result array is too short");
+        }
+
+        setExtraNonce(result.GetArray()[1]);
     } catch (const std::exception &ex) {
         LOG_ERR("%s " RED("%s"), tag(), ex.what());
+
+        m_extraNonce = { 0, {} };
     }
-}
-
-
-void xmrig::EthStratumClient::setTarget(const rapidjson::Value &params)
-{
-    try {
-        m_target = target(params);
-    } catch (const std::exception &ex) {
-        LOG_ERR("%s " RED("%s"), tag(), ex.what());
-
-        return;
-    }
-
-    LOG_DEBUG("[%s] target set to %016" PRIX64, url(), m_target);
 }
 
 

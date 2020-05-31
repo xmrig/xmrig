@@ -43,7 +43,6 @@ set(HEADERS_BASE
     src/base/net/http/HttpListener.h
     src/base/net/stratum/BaseClient.h
     src/base/net/stratum/Client.h
-    src/base/net/stratum/EthStratumClient.h
     src/base/net/stratum/Job.h
     src/base/net/stratum/NetworkState.h
     src/base/net/stratum/Pool.h
@@ -96,7 +95,6 @@ set(SOURCES_BASE
     src/base/net/http/Http.cpp
     src/base/net/stratum/BaseClient.cpp
     src/base/net/stratum/Client.cpp
-    src/base/net/stratum/EthStratumClient.cpp
     src/base/net/stratum/Job.cpp
     src/base/net/stratum/NetworkState.cpp
     src/base/net/stratum/Pool.cpp
@@ -208,4 +206,17 @@ if (WITH_ENV_VARS)
     add_definitions(/DXMRIG_FEATURE_ENV)
 else()
     remove_definitions(/DXMRIG_FEATURE_ENV)
+endif()
+
+
+if (WITH_KAWPOW)
+    list(APPEND HEADERS_BASE
+        src/base/net/stratum/AutoClient.h
+        src/base/net/stratum/EthStratumClient.h
+        )
+
+    list(APPEND SOURCES_BASE
+        src/base/net/stratum/AutoClient.cpp
+        src/base/net/stratum/EthStratumClient.cpp
+        )
 endif()

@@ -54,7 +54,7 @@ public:
 
 protected:
     void onActive(IStrategy *strategy, IClient *client) override;
-    void onJob(IStrategy *strategy, IClient *client, const Job &job) override;
+    void onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &params) override;
     void onPause(IStrategy *strategy) override;
     void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override;
 

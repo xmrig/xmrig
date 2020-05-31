@@ -132,7 +132,7 @@ void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
 }
 
 
-void xmrig::Network::onJob(IStrategy *strategy, IClient *client, const Job &job)
+void xmrig::Network::onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &)
 {
     if (m_donate && m_donate->isActive() && m_donate != strategy) {
         return;
