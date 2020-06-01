@@ -6,7 +6,7 @@ Algorithm can be defined in 3 ways:
 2. Per pool `coin` option, currently only usable values for this option is `monero` and `arqma`.
 3. Per pool `algo` option.
 
-Option `coin` useful for pools without algorithm negotiation support or daemon to allow automatically switch algorithm in next hard fork.
+Option `coin` useful for pools without [algorithm negotiation](https://xmrig.com/docs/extensions/algorithm-negotiation) support or daemon to allow automatically switch algorithm in next hard fork. If you use xmrig-proxy don't need specify algorithm on miner side.
 
 ## Algorithm names
 
