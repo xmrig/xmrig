@@ -1,3 +1,8 @@
+# v6.0.0-beta
+- [#1694](https://github.com/xmrig/xmrig/pull/1694) Added support for KawPow algorithm (Ravencoin) on AMD/NVIDIA.
+- Removed previously deprecated `cn/gpu` algorithm.
+- Default donation level reduced to 1% but you still can increase it if you like.
+
 # v5.11.2
 - [#1664](https://github.com/xmrig/xmrig/pull/1664) Improved JSON config error reporting.
 - [#1668](https://github.com/xmrig/xmrig/pull/1668) Optimized RandomX dataset initialization.
