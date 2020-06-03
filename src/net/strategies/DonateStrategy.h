@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,8 +56,8 @@ public:
 protected:
     inline bool isActive() const override                                                                              { return state() == STATE_ACTIVE; }
     inline IClient *client() const override                                                                            { return m_proxy ? m_proxy : m_strategy->client(); }
-    inline void onJob(IStrategy *, IClient *client, const Job &job) override                                           { setJob(client, job); }
-    inline void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &) override                      { setJob(client, job); }
+    inline void onJob(IStrategy *, IClient *client, const Job &job, const rapidjson::Value &params) override           { setJob(client, job, params); }
+    inline void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params) override                { setJob(client, job, params); }
     inline void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override              { setResult(client, result, error); }
     inline void onResultAccepted(IStrategy *, IClient *client, const SubmitResult &result, const char *error) override { setResult(client, result, error); }
     inline void resume() override                                                                                      {}
@@ -65,6 +65,7 @@ protected:
     int64_t submit(const JobResult &result) override;
     void connect() override;
     void setAlgo(const Algorithm &algo) override;
+    void setProxy(const ProxyUrl &proxy) override;
     void stop() override;
     void tick(uint64_t now) override;
 
@@ -94,7 +95,7 @@ private:
     IClient *createProxy();
     void idle(double min, double max);
     void setAlgorithms(rapidjson::Document &doc, rapidjson::Value &params);
-    void setJob(IClient *client, const Job &job);
+    void setJob(IClient *client, const Job &job, const rapidjson::Value &params);
     void setResult(IClient *client, const SubmitResult &result, const char *error);
     void setState(State state);
 

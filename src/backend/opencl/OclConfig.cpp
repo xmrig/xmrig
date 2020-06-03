@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,25 +24,32 @@
 
 
 #include "backend/opencl/OclConfig.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/common/Tags.h"
 #include "backend/opencl/OclConfig_gen.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
-#include "rapidjson/document.h"
 
 
 namespace xmrig {
 
 
-static const char *kAMD         = "AMD";
 static const char *kCache       = "cache";
 static const char *kDevicesHint = "devices-hint";
 static const char *kEnabled     = "enabled";
-static const char *kINTEL       = "INTEL";
 static const char *kLoader      = "loader";
+
+#ifndef XMRIG_OS_APPLE
+static const char *kAMD         = "AMD";
+static const char *kINTEL       = "INTEL";
 static const char *kNVIDIA      = "NVIDIA";
 static const char *kPlatform    = "platform";
+#endif
+
+#ifdef XMRIG_FEATURE_ADL
+static const char *kAdl         = "adl";
+#endif
 
 
 extern template class Threads<OclThreads>;
@@ -51,10 +58,11 @@ extern template class Threads<OclThreads>;
 }
 
 
-xmrig::OclConfig::OclConfig() :
-    m_platformVendor(kAMD)
-{
-}
+#ifndef XMRIG_OS_APPLE
+xmrig::OclConfig::OclConfig() : m_platformVendor(kAMD) {}
+#else
+xmrig::OclConfig::OclConfig() = default;
+#endif
 
 
 xmrig::OclPlatform xmrig::OclConfig::platform() const
@@ -64,6 +72,7 @@ xmrig::OclPlatform xmrig::OclConfig::platform() const
         return {};
     }
 
+#   ifndef XMRIG_OS_APPLE
     if (!m_platformVendor.isEmpty()) {
         String search;
         String vendor = m_platformVendor;
@@ -93,6 +102,9 @@ xmrig::OclPlatform xmrig::OclConfig::platform() const
     }
 
     return {};
+#   else
+    return platforms[0];
+#   endif
 }
 
 
@@ -106,7 +118,14 @@ rapidjson::Value xmrig::OclConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kEnabled),  m_enabled, allocator);
     obj.AddMember(StringRef(kCache),    m_cache, allocator);
     obj.AddMember(StringRef(kLoader),   m_loader.toJSON(), allocator);
+
+#   ifndef XMRIG_OS_APPLE
     obj.AddMember(StringRef(kPlatform), m_platformVendor.isEmpty() ? Value(m_platformIndex) : m_platformVendor.toJSON(), allocator);
+#   endif
+
+#   ifdef XMRIG_FEATURE_ADL
+    obj.AddMember(StringRef(kAdl),      m_adl, allocator);
+#   endif
 
     m_threads.toJSON(obj, doc);
 
@@ -152,8 +171,15 @@ void xmrig::OclConfig::read(const rapidjson::Value &value)
         m_cache     = Json::getBool(value, kCache, m_cache);
         m_loader    = Json::getString(value, kLoader);
 
+#       ifndef XMRIG_OS_APPLE
         setPlatform(Json::getValue(value, kPlatform));
+#       endif
+
         setDevicesHint(Json::getString(value, kDevicesHint));
+
+#       ifdef XMRIG_FEATURE_ADL
+        m_adl = Json::getBool(value, kAdl, m_adl);
+#       endif
 
         m_threads.read(value);
 
@@ -194,6 +220,8 @@ void xmrig::OclConfig::generate()
     count += xmrig::generate<Algorithm::CN_HEAVY>(m_threads, devices);
     count += xmrig::generate<Algorithm::CN_PICO>(m_threads, devices);
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, devices);
+    count += xmrig::generate<Algorithm::ASTROBWT>(m_threads, devices);
+    count += xmrig::generate<Algorithm::KAWPOW>(m_threads, devices);
 
     m_shouldSave = count > 0;
 }
@@ -214,6 +242,7 @@ void xmrig::OclConfig::setDevicesHint(const char *devicesHint)
 }
 
 
+#ifndef XMRIG_OS_APPLE
 void xmrig::OclConfig::setPlatform(const rapidjson::Value &platform)
 {
     if (platform.IsString()) {
@@ -224,3 +253,4 @@ void xmrig::OclConfig::setPlatform(const rapidjson::Value &platform)
         m_platformIndex  = platform.GetUint();
     }
 }
+#endif

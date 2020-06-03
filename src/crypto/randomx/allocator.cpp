@@ -43,7 +43,7 @@ namespace randomx {
 	}
 
 	template<size_t alignment>
-	void AlignedAllocator<alignment>::freeMemory(void* ptr, size_t count) {
+	void AlignedAllocator<alignment>::freeMemory(void* ptr, size_t) {
 		rx_aligned_free(ptr);
 	}
 

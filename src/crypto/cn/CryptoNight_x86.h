@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,11 +36,11 @@
 
 
 #include "backend/cpu/Cpu.h"
+#include "base/crypto/keccak.h"
 #include "crypto/cn/CnAlgo.h"
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
-#include "crypto/common/keccak.h"
 
 
 extern "C"
@@ -371,11 +371,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 {
     constexpr CnAlgo<ALGO> props;
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    constexpr bool IS_HEAVY = props.isHeavy() || ALGO == Algorithm::CN_GPU;
-#   else
     constexpr bool IS_HEAVY = props.isHeavy();
-#   endif
 
     __m128i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
     __m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -702,73 +698,6 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 } /* namespace xmrig */
 
 
-#ifdef XMRIG_ALGO_CN_GPU
-template<size_t ITER, uint32_t MASK>
-void cn_gpu_inner_avx(const uint8_t *spad, uint8_t *lpad);
-
-
-template<size_t ITER, uint32_t MASK>
-void cn_gpu_inner_ssse3(const uint8_t *spad, uint8_t *lpad);
-
-
-namespace xmrig {
-
-
-template<size_t MEM>
-void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
-{
-    constexpr size_t hash_size = 200; // 25x8 bytes
-    alignas(16) uint64_t hash[25];
-
-    for (uint64_t i = 0; i < MEM / 512; i++) {
-        memcpy(hash, input, hash_size);
-        hash[0] ^= i;
-
-        xmrig::keccakf(hash, 24);
-        memcpy(output, hash, 160);
-        output += 160;
-
-        xmrig::keccakf(hash, 24);
-        memcpy(output, hash, 176);
-        output += 176;
-
-        xmrig::keccakf(hash, 24);
-        memcpy(output, hash, 176);
-        output += 176;
-    }
-}
-
-
-template<Algorithm::Id ALGO, bool SOFT_AES>
-inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t)
-{
-    constexpr CnAlgo<ALGO> props;
-
-    keccak(input, size, ctx[0]->state);
-    cn_explode_scratchpad_gpu<props.memory()>(ctx[0]->state, ctx[0]->memory);
-
-#   ifdef _MSC_VER
-    _control87(RC_NEAR, MCW_RC);
-#   else
-    fesetround(FE_TONEAREST);
-#   endif
-
-    if (xmrig::Cpu::info()->hasAVX2()) {
-        cn_gpu_inner_avx<props.iterations(), props.mask()>(ctx[0]->state, ctx[0]->memory);
-    } else {
-        cn_gpu_inner_ssse3<props.iterations(), props.mask()>(ctx[0]->state, ctx[0]->memory);
-    }
-
-    cn_implode_scratchpad<ALGO, SOFT_AES>(reinterpret_cast<const __m128i *>(ctx[0]->memory), reinterpret_cast<__m128i *>(ctx[0]->state));
-    keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
-    memcpy(output, ctx[0]->state, 32);
-}
-
-
-} /* namespace xmrig */
-#endif
-
-
 #ifdef XMRIG_FEATURE_ASM
 extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx **ctx);
@@ -793,6 +722,11 @@ extern cn_mainloop_fun cn_trtl_mainloop_ivybridge_asm;
 extern cn_mainloop_fun cn_trtl_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_trtl_mainloop_bulldozer_asm;
 extern cn_mainloop_fun cn_trtl_double_mainloop_sandybridge_asm;
+
+extern cn_mainloop_fun cn_tlo_mainloop_ivybridge_asm;
+extern cn_mainloop_fun cn_tlo_mainloop_ryzen_asm;
+extern cn_mainloop_fun cn_tlo_mainloop_bulldozer_asm;
+extern cn_mainloop_fun cn_tlo_double_mainloop_sandybridge_asm;
 
 extern cn_mainloop_fun cn_zls_mainloop_ivybridge_asm;
 extern cn_mainloop_fun cn_zls_mainloop_ryzen_asm;
@@ -879,6 +813,17 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_trtl_mainloop_bulldozer_asm(ctx);
         }
     }
+    else if (ALGO == Algorithm::CN_PICO_TLO) {
+        if (ASM == Assembly::INTEL) {
+            cn_tlo_mainloop_ivybridge_asm(ctx);
+        }
+        else if (ASM == Assembly::RYZEN) {
+            cn_tlo_mainloop_ryzen_asm(ctx);
+        }
+        else {
+            cn_tlo_mainloop_bulldozer_asm(ctx);
+        }
+    }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {
         cnv2_rwz_mainloop_asm(ctx);
@@ -943,6 +888,9 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 #   ifdef XMRIG_ALGO_CN_PICO
     else if (ALGO == Algorithm::CN_PICO_0) {
         cn_trtl_double_mainloop_sandybridge_asm(ctx);
+    }
+    else if (ALGO == Algorithm::CN_PICO_TLO) {
+        cn_tlo_double_mainloop_sandybridge_asm(ctx);
     }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,8 @@
 #define XMRIG_ISTRATEGYLISTENER_H
 
 
-#include "rapidjson/fwd.h"
+#include "3rdparty/rapidjson/fwd.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -42,10 +43,13 @@ class SubmitResult;
 class IStrategyListener
 {
 public:
-    virtual ~IStrategyListener() = default;
+    XMRIG_DISABLE_COPY_MOVE(IStrategyListener);
+
+    IStrategyListener()             = default;
+    virtual ~IStrategyListener()    = default;
 
     virtual void onActive(IStrategy *strategy, IClient *client)                                                        = 0;
-    virtual void onJob(IStrategy *strategy, IClient *client, const Job &job)                                           = 0;
+    virtual void onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &params)           = 0;
     virtual void onLogin(IStrategy *strategy, IClient *client, rapidjson::Document &doc, rapidjson::Value &params)     = 0;
     virtual void onPause(IStrategy *strategy)                                                                          = 0;
     virtual void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) = 0;

@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,6 +32,11 @@
 #include "backend/cpu/CpuLaunchData.h"
 #include "base/tools/Object.h"
 #include "net/JobResult.h"
+
+
+#ifdef XMRIG_ALGO_RANDOMX
+class randomx_vm;
+#endif
 
 
 namespace xmrig {
@@ -70,8 +75,11 @@ private:
 
     const Algorithm m_algorithm;
     const Assembly m_assembly;
+    const bool m_astrobwtAVX2;
     const bool m_hwAES;
+    const bool m_yield;
     const CnHash::AlgoVariant m_av;
+    const int m_astrobwtMaxSize;
     const Miner *m_miner;
     cryptonight_ctx *m_ctx[N];
     uint8_t m_hash[N * 32]{ 0 };
@@ -79,7 +87,7 @@ private:
     WorkerJob<N> m_job;
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    RxVm *m_vm = nullptr;
+    randomx_vm *m_vm = nullptr;
 #   endif
 };
 

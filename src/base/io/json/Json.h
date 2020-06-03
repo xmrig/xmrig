@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,8 +26,13 @@
 #define XMRIG_JSON_H
 
 
+#include "3rdparty/rapidjson/fwd.h"
 #include "base/kernel/interfaces/IJsonReader.h"
-#include "rapidjson/fwd.h"
+
+
+#include <string>
+#include <vector>
+#include <fstream>
 
 
 namespace xmrig {
@@ -37,6 +42,7 @@ class Json
 {
 public:
     static bool getBool(const rapidjson::Value &obj, const char *key, bool defaultValue = false);
+    static bool isEmpty(const rapidjson::Value &obj);
     static const char *getString(const rapidjson::Value &obj, const char *key, const char *defaultValue = nullptr);
     static const rapidjson::Value &getArray(const rapidjson::Value &obj, const char *key);
     static const rapidjson::Value &getObject(const rapidjson::Value &obj, const char *key);
@@ -48,6 +54,12 @@ public:
 
     static bool get(const char *fileName, rapidjson::Document &doc);
     static bool save(const char *fileName, const rapidjson::Document &doc);
+
+    static bool convertOffset(const char *fileName, size_t offset, size_t &line, size_t &pos, std::vector<std::string> &s);
+    static rapidjson::Value normalize(double value, bool zero);
+
+private:
+    static bool convertOffset(std::istream &ifs, size_t offset, size_t &line, size_t &pos, std::vector<std::string> &s);
 };
 
 

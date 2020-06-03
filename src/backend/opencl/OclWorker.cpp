@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@
 
 
 #include "backend/opencl/OclWorker.h"
-
 #include "backend/common/Tags.h"
 #include "backend/opencl/runners/OclCnRunner.h"
 #include "backend/opencl/runners/tools/OclSharedData.h"
@@ -42,10 +41,13 @@
 #   include "backend/opencl/runners/OclRxVmRunner.h"
 #endif
 
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/runners/OclRyoRunner.h"
+#ifdef XMRIG_ALGO_ASTROBWT
+#   include "backend/opencl/runners/OclAstroBWTRunner.h"
 #endif
 
+#ifdef XMRIG_ALGO_KAWPOW
+#   include "backend/opencl/runners/OclKawPowRunner.h"
+#endif
 
 #include <cassert>
 #include <thread>
@@ -97,16 +99,20 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
 #       endif
         break;
 
-    default:
-#       ifdef XMRIG_ALGO_CN_GPU
-        if (m_algorithm == Algorithm::CN_GPU) {
-            m_runner = new OclRyoRunner(id, data);
-        }
-        else
+    case Algorithm::ASTROBWT:
+#       ifdef XMRIG_ALGO_ASTROBWT
+        m_runner = new OclAstroBWTRunner(id, data);
 #       endif
-        {
-            m_runner = new OclCnRunner(id, data);
-        }
+        break;
+
+    case Algorithm::KAWPOW:
+#       ifdef XMRIG_ALGO_KAWPOW
+        m_runner = new OclKawPowRunner(id, data);
+#       endif
+        break;
+
+    default:
+        m_runner = new OclCnRunner(id, data);
         break;
     }
 
@@ -133,6 +139,14 @@ xmrig::OclWorker::~OclWorker()
 }
 
 
+void xmrig::OclWorker::jobEarlyNotification(const Job& job)
+{
+    if (m_runner) {
+        m_runner->jobEarlyNotification(job);
+    }
+}
+
+
 bool xmrig::OclWorker::selfTest()
 {
     return m_runner != nullptr;
@@ -148,6 +162,8 @@ size_t xmrig::OclWorker::intensity() const
 void xmrig::OclWorker::start()
 {
     cl_uint results[0x100];
+
+    const uint32_t runnerRoundSize = m_runner->roundSize();
 
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
         if (!isReady()) {
@@ -187,7 +203,9 @@ void xmrig::OclWorker::start()
                 JobResults::submit(m_job.currentJob(), results, results[0xFF]);
             }
 
-            m_job.nextRound(roundSize(m_intensity), m_intensity);
+            if (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence()) && !m_job.nextRound(roundSize(runnerRoundSize), runnerRoundSize)) {
+                JobResults::done(m_job.currentJob());
+            }
 
             storeStats(t);
             std::this_thread::yield();
@@ -227,7 +245,7 @@ void xmrig::OclWorker::storeStats(uint64_t t)
         return;
     }
 
-    m_count += m_intensity;
+    m_count += m_runner->processedHashes();
 
     m_sharedData.setRunTime(Chrono::steadyMSecs() - t);
 

@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DONATE_H__
-#define __DONATE_H__
+#ifndef XMRIG_DONATE_H
+#define XMRIG_DONATE_H
 
 
 /*
@@ -43,8 +44,8 @@
  * XMR: 48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD
  * BTC: 1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT
  */
-constexpr const int kDefaultDonateLevel = 5;
+constexpr const int kDefaultDonateLevel = 1;
 constexpr const int kMinimumDonateLevel = 1;
 
 
-#endif /* __DONATE_H__ */
+#endif /* XMRIG_DONATE_H */

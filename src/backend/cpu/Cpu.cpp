@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 
 
 #include "backend/cpu/Cpu.h"
-#include "rapidjson/document.h"
+#include "3rdparty/rapidjson/document.h"
 
 
 #if defined(XMRIG_FEATURE_HWLOC)
@@ -60,39 +60,12 @@ xmrig::ICpuInfo *xmrig::Cpu::info()
 
 rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
 {
-    using namespace rapidjson;
-    auto &allocator = doc.GetAllocator();
-
-    ICpuInfo *i = info();
-    Value cpu(kObjectType);
-    Assembly assembly(i->assembly());
-
-    cpu.AddMember("brand",      StringRef(i->brand()), allocator);
-    cpu.AddMember("aes",        i->hasAES(), allocator);
-    cpu.AddMember("avx2",       i->hasAVX2(), allocator);
-    cpu.AddMember("x64",        ICpuInfo::isX64(), allocator);
-    cpu.AddMember("l2",         static_cast<uint64_t>(i->L2()), allocator);
-    cpu.AddMember("l3",         static_cast<uint64_t>(i->L3()), allocator);
-    cpu.AddMember("cores",      static_cast<uint64_t>(i->cores()), allocator);
-    cpu.AddMember("threads",    static_cast<uint64_t>(i->threads()), allocator);
-    cpu.AddMember("packages",   static_cast<uint64_t>(i->packages()), allocator);
-    cpu.AddMember("nodes",      static_cast<uint64_t>(i->nodes()), allocator);
-    cpu.AddMember("backend",    StringRef(i->backend()), allocator);
-
-#   ifdef XMRIG_FEATURE_ASM
-    cpu.AddMember("assembly", StringRef(assembly.toString()), allocator);
-#   else
-    cpu.AddMember("assembly", "none", allocator);
-#   endif
-
-    return cpu;
+    return info()->toJSON(doc);
 }
 
 
 void xmrig::Cpu::release()
 {
-    assert(cpuInfo != nullptr);
-
     delete cpuInfo;
     cpuInfo = nullptr;
 }

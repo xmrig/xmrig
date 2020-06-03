@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@
 
 #include "backend/common/interfaces/IRxListener.h"
 #include "base/api/interfaces/IApiListener.h"
+#include "base/crypto/Algorithm.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "base/tools/Object.h"
-#include "crypto/common/Algorithm.h"
 
 
 namespace xmrig {
@@ -61,7 +61,6 @@ public:
     Job job() const;
     void execCommand(char command);
     void pause();
-    void printHashrate(bool details);
     void setEnabled(bool enabled);
     void setJob(const Job &job, bool donate);
     void stop();

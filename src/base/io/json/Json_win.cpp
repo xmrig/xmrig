@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,10 +37,13 @@
 
 
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
-#include "rapidjson/istreamwrapper.h"
-#include "rapidjson/ostreamwrapper.h"
-#include "rapidjson/prettywriter.h"
+#include "3rdparty/rapidjson/document.h"
+#include "3rdparty/rapidjson/istreamwrapper.h"
+#include "3rdparty/rapidjson/ostreamwrapper.h"
+#include "3rdparty/rapidjson/prettywriter.h"
+
+
+namespace xmrig {
 
 
 #if defined(_MSC_VER) || defined (__GNUC__)
@@ -60,31 +63,36 @@ static std::wstring toUtf16(const char *str)
 #endif
 
 
+#if defined(_MSC_VER)
+#   define OPEN_IFS(name)                                                               \
+    std::ifstream ifs(toUtf16(name), std::ios_base::in | std::ios_base::binary);        \
+    if (!ifs.is_open()) {                                                               \
+        return false;                                                                   \
+    }
+#elif defined(__GNUC__)
+#   define OPEN_IFS(name)                                                               \
+    const int fd = _wopen(toUtf16(name).c_str(), _O_RDONLY | _O_BINARY);                \
+    if (fd == -1) {                                                                     \
+        return false;                                                                   \
+    }                                                                                   \
+    __gnu_cxx::stdio_filebuf<char> buf(fd, std::ios_base::in | std::ios_base::binary);  \
+    std::istream ifs(&buf);
+#else
+#   define OPEN_IFS(name)                                                               \
+    std::ifstream ifs(name, std::ios_base::in | std::ios_base::binary);                 \
+    if (!ifs.is_open()) {                                                               \
+        return false;                                                                   \
+    }
+#endif
+
+} // namespace xmrig
+
+
 bool xmrig::Json::get(const char *fileName, rapidjson::Document &doc)
 {
+    OPEN_IFS(fileName)
+
     using namespace rapidjson;
-    constexpr const std::ios_base::openmode mode = std::ios_base::in | std::ios_base::binary;
-
-#   if defined(_MSC_VER)
-    std::ifstream ifs(toUtf16(fileName), mode);
-    if (!ifs.is_open()) {
-        return false;
-    }
-#   elif defined(__GNUC__)
-    const int fd = _wopen(toUtf16(fileName).c_str(), _O_RDONLY | _O_BINARY);
-    if (fd == -1) {
-        return false;
-    }
-
-    __gnu_cxx::stdio_filebuf<char> buf(fd, mode);
-    std::istream ifs(&buf);
-#   else
-    std::ifstream ifs(fileName, mode);
-    if (!ifs.is_open()) {
-        return false;
-    }
-#   endif
-
     IStreamWrapper isw(ifs);
     doc.ParseStream<kParseCommentsFlag | kParseTrailingCommasFlag>(isw);
 
@@ -124,4 +132,12 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
     doc.Accept(writer);
 
     return true;
+}
+
+
+bool xmrig::Json::convertOffset(const char *fileName, size_t offset, size_t &line, size_t &pos, std::vector<std::string> &s)
+{
+    OPEN_IFS(fileName)
+
+    return convertOffset(ifs, offset, line, pos, s);
 }

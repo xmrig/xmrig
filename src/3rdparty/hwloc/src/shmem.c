@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017-2018 Inria.  All rights reserved.
+ * Copyright © 2017-2019 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
-#include <hwloc.h>
-#include <hwloc/shmem.h>
-#include <private/private.h>
+#include "private/autogen/config.h"
+#include "hwloc.h"
+#include "hwloc/shmem.h"
+#include "private/private.h"
 
 #ifndef HWLOC_WIN_SYS
 
@@ -214,6 +214,8 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
   new->support.discovery = malloc(sizeof(*new->support.discovery));
   new->support.cpubind = malloc(sizeof(*new->support.cpubind));
   new->support.membind = malloc(sizeof(*new->support.membind));
+  if (!new->support.discovery || !new->support.cpubind || !new->support.membind)
+    goto out_with_support;
   memcpy(new->support.discovery, old->support.discovery, sizeof(*new->support.discovery));
   memcpy(new->support.cpubind, old->support.cpubind, sizeof(*new->support.cpubind));
   memcpy(new->support.membind, old->support.membind, sizeof(*new->support.membind));
@@ -230,6 +232,11 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
   *topologyp = new;
   return 0;
 
+ out_with_support:
+  free(new->support.discovery);
+  free(new->support.cpubind);
+  free(new->support.membind);
+  free(new);
  out_with_components:
   hwloc_components_fini();
  out_with_mmap:

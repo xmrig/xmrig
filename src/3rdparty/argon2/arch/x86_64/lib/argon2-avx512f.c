@@ -10,8 +10,6 @@
 #   include <intrin.h>
 #endif
 
-#include "cpu-flags.h"
-
 #define ror64(x, n) _mm512_ror_epi64((x), (n))
 
 static __m512i f(__m512i x, __m512i y)
@@ -210,8 +208,7 @@ static void next_addresses(block *address_block, block *input_block)
     fill_block(zero2_block, address_block, address_block, 0);
 }
 
-void fill_segment_avx512f(const argon2_instance_t *instance,
-                          argon2_position_t position)
+void xmrig_ar2_fill_segment_avx512f(const argon2_instance_t *instance, argon2_position_t position)
 {
     block *ref_block = NULL, *curr_block = NULL;
     block address_block, input_block;
@@ -295,8 +292,7 @@ void fill_segment_avx512f(const argon2_instance_t *instance,
          * lane.
          */
         position.index = i;
-        ref_index = index_alpha(instance, &position, pseudo_rand & 0xFFFFFFFF,
-                                ref_lane == position.lane);
+        ref_index = xmrig_ar2_index_alpha(instance, &position, pseudo_rand & 0xFFFFFFFF, ref_lane == position.lane);
 
         /* 2 Creating a new block */
         ref_block =
@@ -312,21 +308,12 @@ void fill_segment_avx512f(const argon2_instance_t *instance,
     }
 }
 
-int check_avx512f(void)
-{
-    return cpu_flags_have_avx512f();
-}
+extern int cpu_flags_has_avx512f(void);
+int xmrig_ar2_check_avx512f(void) { return cpu_flags_has_avx512f(); }
 
 #else
 
-void fill_segment_avx512f(const argon2_instance_t *instance,
-                          argon2_position_t position)
-{
-}
-
-int check_avx512f(void)
-{
-    return 0;
-}
+void xmrig_ar2_fill_segment_avx512f(const argon2_instance_t *instance, argon2_position_t position) {}
+int xmrig_ar2_check_avx512f(void) { return 0; }
 
 #endif

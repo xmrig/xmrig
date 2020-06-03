@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -99,12 +99,14 @@ void xmrig::OclBaseRunner::init()
 {
     m_queue = OclLib::createCommandQueue(m_ctx, data().device.id());
 
-    size_t size = align(bufferSize());
+    size_t size         = align(bufferSize());
+    const size_t limit  = data().device.freeMemSize();
 
-    if (size < oneGiB && data().device.vendorId() == OCL_VENDOR_AMD && data().device.freeMemSize() >= oneGiB) {
-        m_buffer = OclSharedState::get(data().device.index()).createBuffer(m_ctx, size, m_offset);
+    if (size < oneGiB && data().device.vendorId() == OCL_VENDOR_AMD && limit >= oneGiB) {
+        m_buffer = OclSharedState::get(data().device.index()).createBuffer(m_ctx, size, m_offset, limit);
     }
-    else {
+
+    if (!m_buffer) {
         m_buffer = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, size);
     }
 

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ static inline const std::string &usage()
     u += "  -u, --user=USERNAME           username for mining server\n";
     u += "  -p, --pass=PASSWORD           password for mining server\n";
     u += "  -O, --userpass=U:P            username:password pair for mining server\n";
+    u += "  -x, --proxy=HOST:PORT         connect through a SOCKS5 proxy\n";
     u += "  -k, --keepalive               send keepalived packet for prevent timeout (needs pool support)\n";
     u += "      --nicehash                enable nicehash.com support\n";
     u += "      --rig-id=ID               rig identifier for pool-side statistics (needs pool support)\n";
@@ -80,12 +81,22 @@ static inline const std::string &usage()
     u += "      --cpu-priority            set process priority (0 idle, 2 normal to 5 highest)\n";
     u += "      --cpu-max-threads-hint=N  maximum CPU threads count (in percentage) hint for autoconfig\n";
     u += "      --cpu-memory-pool=N       number of 2 MB pages for persistent memory pool, -1 (auto), 0 (disable)\n";
+    u += "      --cpu-no-yield            prefer maximum hashrate rather than system response/stability\n";
     u += "      --no-huge-pages           disable huge pages support\n";
     u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
 
 #   ifdef XMRIG_ALGO_RANDOMX
     u += "      --randomx-init=N          threads count to initialize RandomX dataset\n";
     u += "      --randomx-no-numa         disable NUMA support for RandomX\n";
+    u += "      --randomx-mode=MODE       RandomX mode: auto, fast, light\n";
+    u += "      --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)\n";
+    u += "      --randomx-wrmsr=N         write custom value (0-15) to Intel MSR register 0x1a4 or disable MSR mod (-1)\n";
+    u += "      --randomx-no-rdmsr        disable reverting initial MSR values on exit\n";
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    u += "      --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200\n";
+    u += "      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm";
 #   endif
 
 #   ifdef XMRIG_FEATURE_HTTP
@@ -113,9 +124,22 @@ static inline const std::string &usage()
     u += "      --cuda                    enable CUDA mining backend\n";
     u += "      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)\n";
     u += "      --cuda-devices=N          comma separated list of CUDA devices to use\n";
+    u += "      --cuda-bfactor-hint=N     bfactor hint for autoconfig (0-12)\n";
+    u += "      --cuda-bsleep-hint=N      bsleep hint for autoconfig\n";
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_TLS
+    u += "\nTLS:\n";
+    u += "      --tls-gen=HOSTNAME        generate TLS certificate for specific hostname\n";
+    u += "      --tls-cert=FILE           load TLS certificate chain from a file in the PEM format\n";
+    u += "      --tls-cert-key=FILE       load TLS certificate private key from a file in the PEM format\n";
+    u += "      --tls-dhparam=FILE        load DH parameters for DHE ciphers from a file in the PEM format\n";
+    u += "      --tls-protocols=N         enable specified TLS protocols, example: \"TLSv1 TLSv1.1 TLSv1.2 TLSv1.3\"\n";
+    u += "      --tls-ciphers=S           set list of available ciphers (TLSv1.2 and below)\n";
+    u += "      --tls-ciphersuites=S      set list of available TLSv1.3 ciphersuites\n";
 #   endif
 
     u += "\nLogging:\n";
@@ -130,6 +154,7 @@ static inline const std::string &usage()
     u += "      --health-print-time=N     print health report every N seconds\n";
 #   endif
     u += "      --no-color                disable colored output\n";
+    u += "      --verbose                 verbose output\n";
 
     u += "\nMisc:\n";
 

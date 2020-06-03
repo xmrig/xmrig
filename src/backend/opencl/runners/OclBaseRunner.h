@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 
 #include "3rdparty/cl.h"
 #include "backend/opencl/interfaces/IOclRunner.h"
-#include "crypto/common/Algorithm.h"
+#include "base/crypto/Algorithm.h"
 
 
 namespace xmrig {
@@ -49,14 +49,17 @@ public:
     ~OclBaseRunner() override;
 
 protected:
-    inline cl_context ctx() const override              { return m_ctx; }
-    inline const Algorithm &algorithm() const override  { return m_algorithm; }
-    inline const char *buildOptions() const override    { return m_options.c_str(); }
-    inline const char *deviceKey() const override       { return m_deviceKey.c_str(); }
-    inline const char *source() const override          { return m_source; }
-    inline const OclLaunchData &data() const override   { return m_data; }
-    inline size_t intensity() const override            { return m_intensity; }
-    inline size_t threadId() const override             { return m_threadId; }
+    inline cl_context ctx() const override                { return m_ctx; }
+    inline const Algorithm &algorithm() const override    { return m_algorithm; }
+    inline const char *buildOptions() const override      { return m_options.c_str(); }
+    inline const char *deviceKey() const override         { return m_deviceKey.c_str(); }
+    inline const char *source() const override            { return m_source; }
+    inline const OclLaunchData &data() const override     { return m_data; }
+    inline size_t intensity() const override              { return m_intensity; }
+    inline size_t threadId() const override               { return m_threadId; }
+    inline uint32_t roundSize() const override            { return m_intensity; }
+    inline uint32_t processedHashes() const override      { return m_intensity; }
+    inline void jobEarlyNotification(const Job&) override {}
 
     size_t bufferSize() const override;
     uint32_t deviceIndex() const override;

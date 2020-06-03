@@ -128,14 +128,14 @@ static void blake2b_init_state(blake2b_state *S)
     S->buflen = 0;
 }
 
-void blake2b_init(blake2b_state *S, size_t outlen)
+void xmrig_ar2_blake2b_init(blake2b_state *S, size_t outlen)
 {
     blake2b_init_state(S);
     /* XOR initial state with param block: */
     S->h[0] ^= (uint64_t)outlen | (UINT64_C(1) << 16) | (UINT64_C(1) << 24);
 }
 
-void blake2b_update(blake2b_state *S, const void *in, size_t inlen)
+void xmrig_ar2_blake2b_update(blake2b_state *S, const void *in, size_t inlen)
 {
     const uint8_t *pin = (const uint8_t *)in;
 
@@ -160,7 +160,7 @@ void blake2b_update(blake2b_state *S, const void *in, size_t inlen)
     S->buflen += inlen;
 }
 
-void blake2b_final(blake2b_state *S, void *out, size_t outlen)
+void xmrig_ar2_blake2b_final(blake2b_state *S, void *out, size_t outlen)
 {
     uint8_t buffer[BLAKE2B_OUTBYTES] = {0};
     unsigned int i;
@@ -174,12 +174,12 @@ void blake2b_final(blake2b_state *S, void *out, size_t outlen)
     }
 
     memcpy(out, buffer, outlen);
-    clear_internal_memory(buffer, sizeof(buffer));
-    clear_internal_memory(S->buf, sizeof(S->buf));
-    clear_internal_memory(S->h, sizeof(S->h));
+    xmrig_ar2_clear_internal_memory(buffer, sizeof(buffer));
+    xmrig_ar2_clear_internal_memory(S->buf, sizeof(S->buf));
+    xmrig_ar2_clear_internal_memory(S->h, sizeof(S->h));
 }
 
-void blake2b_long(void *out, size_t outlen, const void *in, size_t inlen)
+void xmrig_ar2_blake2b_long(void *out, size_t outlen, const void *in, size_t inlen)
 {
     uint8_t *pout = (uint8_t *)out;
     blake2b_state blake_state;
@@ -187,39 +187,39 @@ void blake2b_long(void *out, size_t outlen, const void *in, size_t inlen)
 
     store32(outlen_bytes, (uint32_t)outlen);
     if (outlen <= BLAKE2B_OUTBYTES) {
-        blake2b_init(&blake_state, outlen);
-        blake2b_update(&blake_state, outlen_bytes, sizeof(outlen_bytes));
-        blake2b_update(&blake_state, in, inlen);
-        blake2b_final(&blake_state, pout, outlen);
+        xmrig_ar2_blake2b_init(&blake_state, outlen);
+        xmrig_ar2_blake2b_update(&blake_state, outlen_bytes, sizeof(outlen_bytes));
+        xmrig_ar2_blake2b_update(&blake_state, in, inlen);
+        xmrig_ar2_blake2b_final(&blake_state, pout, outlen);
     } else {
         uint32_t toproduce;
         uint8_t out_buffer[BLAKE2B_OUTBYTES];
 
-        blake2b_init(&blake_state, BLAKE2B_OUTBYTES);
-        blake2b_update(&blake_state, outlen_bytes, sizeof(outlen_bytes));
-        blake2b_update(&blake_state, in, inlen);
-        blake2b_final(&blake_state, out_buffer, BLAKE2B_OUTBYTES);
+        xmrig_ar2_blake2b_init(&blake_state, BLAKE2B_OUTBYTES);
+        xmrig_ar2_blake2b_update(&blake_state, outlen_bytes, sizeof(outlen_bytes));
+        xmrig_ar2_blake2b_update(&blake_state, in, inlen);
+        xmrig_ar2_blake2b_final(&blake_state, out_buffer, BLAKE2B_OUTBYTES);
 
         memcpy(pout, out_buffer, BLAKE2B_OUTBYTES / 2);
         pout += BLAKE2B_OUTBYTES / 2;
         toproduce = (uint32_t)outlen - BLAKE2B_OUTBYTES / 2;
 
         while (toproduce > BLAKE2B_OUTBYTES) {
-            blake2b_init(&blake_state, BLAKE2B_OUTBYTES);
-            blake2b_update(&blake_state, out_buffer, BLAKE2B_OUTBYTES);
-            blake2b_final(&blake_state, out_buffer, BLAKE2B_OUTBYTES);
+            xmrig_ar2_blake2b_init(&blake_state, BLAKE2B_OUTBYTES);
+            xmrig_ar2_blake2b_update(&blake_state, out_buffer, BLAKE2B_OUTBYTES);
+            xmrig_ar2_blake2b_final(&blake_state, out_buffer, BLAKE2B_OUTBYTES);
 
             memcpy(pout, out_buffer, BLAKE2B_OUTBYTES / 2);
             pout += BLAKE2B_OUTBYTES / 2;
             toproduce -= BLAKE2B_OUTBYTES / 2;
         }
 
-        blake2b_init(&blake_state, toproduce);
-        blake2b_update(&blake_state, out_buffer, BLAKE2B_OUTBYTES);
-        blake2b_final(&blake_state, out_buffer, toproduce);
+        xmrig_ar2_blake2b_init(&blake_state, toproduce);
+        xmrig_ar2_blake2b_update(&blake_state, out_buffer, BLAKE2B_OUTBYTES);
+        xmrig_ar2_blake2b_final(&blake_state, out_buffer, toproduce);
 
         memcpy(pout, out_buffer, toproduce);
 
-        clear_internal_memory(out_buffer, sizeof(out_buffer));
+        xmrig_ar2_clear_internal_memory(out_buffer, sizeof(out_buffer));
     }
 }

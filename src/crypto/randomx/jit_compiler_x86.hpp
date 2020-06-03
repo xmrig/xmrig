@@ -49,7 +49,8 @@ namespace randomx {
 	public:
 		JitCompilerX86();
 		~JitCompilerX86();
-		void generateProgram(Program&, ProgramConfiguration&);
+		void prepare();
+		void generateProgram(Program&, ProgramConfiguration&, uint32_t);
 		void generateProgramLight(Program&, ProgramConfiguration&, uint32_t);
 		template<size_t N>
 		void generateSuperscalarHash(SuperscalarProgram (&programs)[N], std::vector<uint64_t> &);
@@ -65,41 +66,56 @@ namespace randomx {
 		}
 		size_t getCodeSize();
 
-		static InstructionGeneratorX86 engine[256];
+		alignas(64) static InstructionGeneratorX86 engine[256];
+
 		int registerUsage[RegistersCount];
 		uint8_t* code;
-		int32_t codePos;
+		uint32_t codePos;
+		uint32_t codePosFirst;
+		uint32_t vm_flags;
 
+#		ifdef XMRIG_FIX_RYZEN
+		std::pair<const void*, const void*> mainLoopBounds;
+#		endif
+
+		bool BranchesWithin32B = false;
+		bool hasAVX;
+		bool hasXOP;
+
+		uint8_t* allocatedCode;
+
+		void applyTweaks();
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
 		void generateProgramEpilogue(Program&, ProgramConfiguration&);
-		static void genAddressReg(const Instruction&, uint8_t* code, int& codePos, bool rax = true);
-		static void genAddressRegDst(const Instruction&, uint8_t* code, int& codePos);
-		static void genAddressImm(const Instruction&, uint8_t* code, int& codePos);
-		static void genSIB(int scale, int index, int base, uint8_t* code, int& codePos);
+		template<bool rax>
+		static void genAddressReg(const Instruction&, const uint32_t src, uint8_t* code, uint32_t& codePos);
+		static void genAddressRegDst(const Instruction&, uint8_t* code, uint32_t& codePos);
+		static void genAddressImm(const Instruction&, uint8_t* code, uint32_t& codePos);
+		static void genSIB(int scale, int index, int base, uint8_t* code, uint32_t& codePos);
 
 		void generateSuperscalarCode(Instruction &, std::vector<uint64_t> &);
 
-		static void emitByte(uint8_t val, uint8_t* code, int& codePos) {
+		static void emitByte(uint8_t val, uint8_t* code, uint32_t& codePos) {
 			code[codePos] = val;
 			++codePos;
 		}
 
-		static void emit32(uint32_t val, uint8_t* code, int& codePos) {
+		static void emit32(uint32_t val, uint8_t* code, uint32_t& codePos) {
 			memcpy(code + codePos, &val, sizeof val);
 			codePos += sizeof val;
 		}
 
-		static void emit64(uint64_t val, uint8_t* code, int& codePos) {
+		static void emit64(uint64_t val, uint8_t* code, uint32_t& codePos) {
 			memcpy(code + codePos, &val, sizeof val);
 			codePos += sizeof val;
 		}
 
 		template<size_t N>
-		static void emit(const uint8_t (&src)[N], uint8_t* code, int& codePos) {
+		static void emit(const uint8_t (&src)[N], uint8_t* code, uint32_t& codePos) {
 			emit(src, N, code, codePos);
 		}
 
-		static void emit(const uint8_t* src, size_t count, uint8_t* code, int& codePos) {
+		static void emit(const uint8_t* src, size_t count, uint8_t* code, uint32_t& codePos) {
 			memcpy(code + codePos, src, count);
 			codePos += count;
 		}
@@ -111,7 +127,9 @@ namespace randomx {
 		void h_IMUL_R(const Instruction&);
 		void h_IMUL_M(const Instruction&);
 		void h_IMULH_R(const Instruction&);
+		void h_IMULH_R_BMI2(const Instruction&);
 		void h_IMULH_M(const Instruction&);
+		void h_IMULH_M_BMI2(const Instruction&);
 		void h_ISMULH_R(const Instruction&);
 		void h_ISMULH_M(const Instruction&);
 		void h_IMUL_RCP(const Instruction&);
@@ -132,6 +150,7 @@ namespace randomx {
 		void h_FSQRT_R(const Instruction&);
 		void h_CBRANCH(const Instruction&);
 		void h_CFROUND(const Instruction&);
+		void h_CFROUND_BMI2(const Instruction&);
 		void h_ISTORE(const Instruction&);
 		void h_NOP(const Instruction&);
 	};

@@ -41,9 +41,10 @@ namespace randomx {
 
 	template<bool softAes>
 	void CompiledVm<softAes>::run(void* seed) {
+		compiler.prepare();
 		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
-		compiler.generateProgram(program, config);
+		compiler.generateProgram(program, config, randomx_vm::getFlags());
 		mem.memory = datasetPtr->memory + datasetOffset;
 		execute();
 	}

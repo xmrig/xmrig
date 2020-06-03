@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,14 +37,11 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #include <uv.h>
+#include <thread>
 
 
 #include "base/kernel/Platform.h"
 #include "version.h"
-
-#ifdef XMRIG_NVIDIA_PROJECT
-#   include "nvidia/cryptonight.h"
-#endif
 
 
 #ifdef __FreeBSD__
@@ -69,11 +66,6 @@ char *xmrig::Platform::createUserAgent()
     length += snprintf(buf + length, max - length, "i686) libuv/%s", uv_version_string());
 #   endif
 
-#   ifdef XMRIG_NVIDIA_PROJECT
-    const int cudaVersion = cuda_get_runtime_version();
-    length += snprintf(buf + length, max - length, " CUDA/%d.%d", cudaVersion / 1000, cudaVersion % 100);
-#   endif
-
 #   ifdef __clang__
     length += snprintf(buf + length, max - length, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
 #   elif defined(__GNUC__)
@@ -92,26 +84,18 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     CPU_SET(cpu_id, &mn);
 
 #   ifndef __ANDROID__
-    return pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) == 0;
+    const bool result = (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) == 0);
 #   else
-    return sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0;
+    const bool result = (sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == 0);
 #   endif
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    return result;
 }
 #endif
 
 
-uint32_t xmrig::Platform::setTimerResolution(uint32_t resolution)
-{
-    return resolution;
-}
-
-
-void xmrig::Platform::restoreTimerResolution()
-{
-}
-
-
-void xmrig::Platform::setProcessPriority(int priority)
+void xmrig::Platform::setProcessPriority(int)
 {
 }
 

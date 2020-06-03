@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -64,10 +64,6 @@ size_t inline generate<Algorithm::CN>(Threads<CudaThreads> &threads, const std::
         count++;
     }
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    count += generate("cn/gpu", threads, Algorithm::CN_GPU, devices);
-#   endif
-
     return count;
 }
 
@@ -115,6 +111,7 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const
     auto rx  = CudaThreads(devices, Algorithm::RX_0);
     auto wow = CudaThreads(devices, Algorithm::RX_WOW);
     auto arq = CudaThreads(devices, Algorithm::RX_ARQ);
+    auto kva = CudaThreads(devices, Algorithm::RX_KEVA);
 
     if (!threads.isExist(Algorithm::RX_WOW) && wow != rx) {
         count += threads.move("rx/wow", std::move(wow));
@@ -124,9 +121,31 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const
         count += threads.move("rx/arq", std::move(arq));
     }
 
+    if (!threads.isExist(Algorithm::RX_KEVA) && kva != rx) {
+        count += threads.move("rx/keva", std::move(kva));
+    }
+
     count += threads.move("rx", std::move(rx));
 
     return count;
+}
+#endif
+
+
+#ifdef XMRIG_ALGO_ASTROBWT
+template<>
+size_t inline generate<Algorithm::ASTROBWT>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
+{
+    return generate("astrobwt", threads, Algorithm::ASTROBWT_DERO, devices);
+}
+#endif
+
+
+#ifdef XMRIG_ALGO_KAWPOW
+template<>
+size_t inline generate<Algorithm::KAWPOW>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
+{
+    return generate("kawpow", threads, Algorithm::KAWPOW_RVN, devices);
 }
 #endif
 

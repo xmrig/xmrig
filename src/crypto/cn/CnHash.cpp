@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,6 +40,11 @@
 
 #ifdef XMRIG_ALGO_ARGON2
 #   include "crypto/argon2/Hash.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_ASTROBWT
+#   include "crypto/astrobwt/AstroBWT.h"
 #endif
 
 
@@ -78,6 +83,11 @@ cn_mainloop_fun        cn_trtl_mainloop_ivybridge_asm             = nullptr;
 cn_mainloop_fun        cn_trtl_mainloop_ryzen_asm                 = nullptr;
 cn_mainloop_fun        cn_trtl_mainloop_bulldozer_asm             = nullptr;
 cn_mainloop_fun        cn_trtl_double_mainloop_sandybridge_asm    = nullptr;
+
+cn_mainloop_fun        cn_tlo_mainloop_ivybridge_asm              = nullptr;
+cn_mainloop_fun        cn_tlo_mainloop_ryzen_asm                  = nullptr;
+cn_mainloop_fun        cn_tlo_mainloop_bulldozer_asm              = nullptr;
+cn_mainloop_fun        cn_tlo_double_mainloop_sandybridge_asm     = nullptr;
 
 cn_mainloop_fun        cn_zls_mainloop_ivybridge_asm              = nullptr;
 cn_mainloop_fun        cn_zls_mainloop_ryzen_asm                  = nullptr;
@@ -128,7 +138,7 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 
 static void patchAsmVariants()
 {
-    const int allocation_size = 65536;
+    const int allocation_size = 81920;
     auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
@@ -153,6 +163,13 @@ static void patchAsmVariants()
     cn_double_mainloop_bulldozer_asm            = reinterpret_cast<cn_mainloop_fun>         (base + 0xE000);
     cn_double_double_mainloop_sandybridge_asm   = reinterpret_cast<cn_mainloop_fun>         (base + 0xF000);
 
+#   ifdef XMRIG_ALGO_CN_PICO
+    cn_tlo_mainloop_ivybridge_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0x10000);
+    cn_tlo_mainloop_ryzen_asm                   = reinterpret_cast<cn_mainloop_fun>         (base + 0x11000);
+    cn_tlo_mainloop_bulldozer_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0x12000);
+    cn_tlo_double_mainloop_sandybridge_asm      = reinterpret_cast<cn_mainloop_fun>         (base + 0x13000);
+#   endif
+
     {
         constexpr uint32_t ITER = CnAlgo<Algorithm::CN_HALF>().iterations();
 
@@ -171,6 +188,16 @@ static void patchAsmVariants()
         patchCode(cn_trtl_mainloop_ryzen_asm,                cnv2_mainloop_ryzen_asm,               ITER,   MASK);
         patchCode(cn_trtl_mainloop_bulldozer_asm,            cnv2_mainloop_bulldozer_asm,           ITER,   MASK);
         patchCode(cn_trtl_double_mainloop_sandybridge_asm,   cnv2_double_mainloop_sandybridge_asm,  ITER,   MASK);
+    }
+
+    {
+        constexpr uint32_t ITER = CnAlgo<Algorithm::CN_PICO_TLO>().iterations();
+        constexpr uint32_t MASK = CnAlgo<Algorithm::CN_PICO_TLO>().mask();
+
+        patchCode(cn_tlo_mainloop_ivybridge_asm,             cnv2_mainloop_ivybridge_asm,           ITER,   MASK);
+        patchCode(cn_tlo_mainloop_ryzen_asm,                 cnv2_mainloop_ryzen_asm,               ITER,   MASK);
+        patchCode(cn_tlo_mainloop_bulldozer_asm,             cnv2_mainloop_bulldozer_asm,           ITER,   MASK);
+        patchCode(cn_tlo_double_mainloop_sandybridge_asm,    cnv2_double_mainloop_sandybridge_asm,  ITER,   MASK);
     }
 #   endif
 
@@ -225,11 +252,6 @@ xmrig::CnHash::CnHash()
     ADD_FN_ASM(Algorithm::CN_ZLS);
     ADD_FN_ASM(Algorithm::CN_DOUBLE);
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    m_map[Algorithm::CN_GPU][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash_gpu<Algorithm::CN_GPU, false>;
-    m_map[Algorithm::CN_GPU][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash_gpu<Algorithm::CN_GPU, true>;
-#   endif
-
 #   ifdef XMRIG_ALGO_CN_LITE
     ADD_FN(Algorithm::CN_LITE_0);
     ADD_FN(Algorithm::CN_LITE_1);
@@ -244,6 +266,8 @@ xmrig::CnHash::CnHash()
 #   ifdef XMRIG_ALGO_CN_PICO
     ADD_FN(Algorithm::CN_PICO_0);
     ADD_FN_ASM(Algorithm::CN_PICO_0);
+    ADD_FN(Algorithm::CN_PICO_TLO);
+    ADD_FN_ASM(Algorithm::CN_PICO_TLO);
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
@@ -251,6 +275,11 @@ xmrig::CnHash::CnHash()
     m_map[Algorithm::AR2_CHUKWA][AV_SINGLE_SOFT][Assembly::NONE] = argon2::single_hash<Algorithm::AR2_CHUKWA>;
     m_map[Algorithm::AR2_WRKZ][AV_SINGLE][Assembly::NONE]        = argon2::single_hash<Algorithm::AR2_WRKZ>;
     m_map[Algorithm::AR2_WRKZ][AV_SINGLE_SOFT][Assembly::NONE]   = argon2::single_hash<Algorithm::AR2_WRKZ>;
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
+    m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
 #   endif
 
 #   ifdef XMRIG_FEATURE_ASM

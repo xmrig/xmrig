@@ -29,6 +29,7 @@
 #include <sys/mman.h>
 
 
+#include "backend/cpu/Cpu.h"
 #include "crypto/common/portable/mm_malloc.h"
 #include "crypto/common/VirtualMemory.h"
 
@@ -38,9 +39,27 @@
 #endif
 
 
+#if defined(XMRIG_OS_LINUX)
+#   if (defined(MAP_HUGE_1GB) || defined(MAP_HUGE_SHIFT))
+#       define XMRIG_HAS_1GB_PAGES
+#   endif
+#   include "crypto/common/LinuxMemory.h"
+#endif
+
+
 bool xmrig::VirtualMemory::isHugepagesAvailable()
 {
     return true;
+}
+
+
+bool xmrig::VirtualMemory::isOneGbPagesAvailable()
+{
+#   ifdef XMRIG_HAS_1GB_PAGES
+    return Cpu::info()->hasOneGbPages();
+#   else
+    return false;
+#   endif
 }
 
 
@@ -67,6 +86,28 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 #   endif
 
     return mem == MAP_FAILED ? nullptr : mem;
+}
+
+
+void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
+{
+#   ifdef XMRIG_HAS_1GB_PAGES
+    if (isOneGbPagesAvailable()) {
+#       if defined(MAP_HUGE_1GB)
+        constexpr int flag_1gb = MAP_HUGE_1GB;
+#       elif defined(MAP_HUGE_SHIFT)
+        constexpr int flag_1gb = (30 << MAP_HUGE_SHIFT);
+#       else
+        constexpr int flag_1gb = 0;
+#       endif
+
+        void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | flag_1gb, 0, 0);
+
+        return mem == MAP_FAILED ? nullptr : mem;
+    }
+#   endif
+
+    return nullptr;
 }
 
 
@@ -103,9 +144,36 @@ void xmrig::VirtualMemory::osInit(bool)
 
 bool xmrig::VirtualMemory::allocateLargePagesMemory()
 {
+#   if defined(XMRIG_OS_LINUX)
+    LinuxMemory::reserve(m_size, m_node);
+#   endif
+
     m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
     if (m_scratchpad) {
         m_flags.set(FLAG_HUGEPAGES, true);
+
+        madvise(m_scratchpad, m_size, MADV_RANDOM | MADV_WILLNEED);
+
+        if (mlock(m_scratchpad, m_size) == 0) {
+            m_flags.set(FLAG_LOCK, true);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
+{
+#   if defined(XMRIG_HAS_1GB_PAGES)
+    LinuxMemory::reserve(m_size, m_node, true);
+#   endif
+
+    m_scratchpad = static_cast<uint8_t*>(allocateOneGbPagesMemory(m_size));
+    if (m_scratchpad) {
+        m_flags.set(FLAG_1GB_PAGES, true);
 
         madvise(m_scratchpad, m_size, MADV_RANDOM | MADV_WILLNEED);
 

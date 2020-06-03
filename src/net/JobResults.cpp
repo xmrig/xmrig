@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 
 #include "net/JobResults.h"
-
 #include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
 #include "base/tools/Object.h"
@@ -36,6 +35,12 @@
 #   include "crypto/randomx/randomx.h"
 #   include "crypto/rx/Rx.h"
 #   include "crypto/rx/RxVm.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_KAWPOW
+#   include "crypto/kawpow/KPCache.h"
+#   include "crypto/kawpow/KPHash.h"
 #endif
 
 
@@ -105,7 +110,7 @@ static inline void checkHash(const JobBundle &bundle, std::vector<JobResult> &re
 static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint32_t &errors, bool hwAES)
 {
     const auto &algorithm = bundle.job.algorithm();
-    auto memory           = new VirtualMemory(algorithm.l3(), false, false);
+    auto memory           = new VirtualMemory(algorithm.l3(), false, false, false);
     uint8_t hash[32]{ 0 };
 
     if (algorithm.family() == Algorithm::RANDOM_X) {
@@ -117,21 +122,54 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
             return;
         }
 
-        auto vm = new RxVm(dataset, memory->scratchpad(), !hwAES);
+        auto vm = RxVm::create(dataset, memory->scratchpad(), !hwAES, Assembly::NONE, 0);
 
         for (uint32_t nonce : bundle.nonces) {
             *bundle.job.nonce() = nonce;
 
-            randomx_calculate_hash(vm->get(), bundle.job.blob(), bundle.job.size(), hash);
+            randomx_calculate_hash(vm, bundle.job.blob(), bundle.job.size(), hash);
 
             checkHash(bundle, results, nonce, hash, errors);
         }
 
-        delete vm;
+        RxVm::destroy(vm);
 #       endif
     }
     else if (algorithm.family() == Algorithm::ARGON2) {
         errors += bundle.nonces.size(); // TODO ARGON2
+    }
+    else if (algorithm.family() == Algorithm::KAWPOW) {
+#       ifdef XMRIG_ALGO_KAWPOW
+        for (uint32_t nonce : bundle.nonces) {
+            *bundle.job.nonce() = nonce;
+
+            uint8_t header_hash[32];
+            uint64_t full_nonce;
+            memcpy(header_hash, bundle.job.blob(), sizeof(header_hash));
+            memcpy(&full_nonce, bundle.job.blob() + sizeof(header_hash), sizeof(full_nonce));
+
+            uint32_t output[8];
+            uint32_t mix_hash[8];
+            {
+                std::lock_guard<std::mutex> lock(KPCache::s_cacheMutex);
+
+                KPCache::s_cache.init(bundle.job.height() / KPHash::EPOCH_LENGTH);
+                KPHash::calculate(KPCache::s_cache, bundle.job.height(), header_hash, full_nonce, output, mix_hash);
+            }
+
+            for (size_t i = 0; i < sizeof(hash); ++i) {
+                hash[i] = ((uint8_t*)output)[sizeof(hash) - 1 - i];
+            }
+
+            if (*reinterpret_cast<uint64_t*>(hash + 24) < bundle.job.target()) {
+                results.emplace_back(bundle.job, full_nonce, (uint8_t*)output, bundle.job.blob(), (uint8_t*)mix_hash);
+            }
+            else {
+                LOG_ERR("COMPUTE ERROR"); // TODO Extend information.
+                ++errors;
+            }
+        }
+#       endif
     }
     else {
         cryptonight_ctx *ctx[1];
@@ -271,6 +309,11 @@ static JobResultsPrivate *handler = nullptr;
 
 } // namespace xmrig
 
+
+void xmrig::JobResults::done(const Job &job)
+{
+    submit(JobResult(job));
+}
 
 
 void xmrig::JobResults::setListener(IJobResultListener *listener, bool hwAES)

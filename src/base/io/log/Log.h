@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,6 +25,10 @@
 
 #ifndef XMRIG_LOG_H
 #define XMRIG_LOG_H
+
+
+#include <cstddef>
+#include <cstdint>
 
 
 namespace xmrig {
@@ -49,15 +53,26 @@ public:
         DEBUG,   // debug-level messages
     };
 
+    constexpr static size_t kMaxBufferSize = 16384;
+
     static void add(ILogBackend *backend);
     static void destroy();
     static void print(const char *fmt, ...);
     static void print(Level level, const char *fmt, ...);
 
-    static bool background;
-    static bool colors;
+    static inline bool isBackground()                   { return m_background; }
+    static inline bool isColors()                       { return m_colors; }
+    static inline bool isVerbose()                      { return m_verbose > 0; }
+    static inline uint32_t verbose()                    { return m_verbose; }
+    static inline void setBackground(bool background)   { m_background = background; }
+    static inline void setColors(bool colors)           { m_colors = colors; }
+    static inline void setVerbose(uint32_t verbose)     { m_verbose = verbose; }
 
 private:
+    static bool m_background;
+    static bool m_colors;
+    static uint32_t m_verbose;
+
     static LogPrivate *d;
 };
 
@@ -83,6 +98,7 @@ private:
 #define WHITE_BOLD_S        CSI "1;37m" // actually white
 
 #define GREEN_BG_BOLD_S     CSI "42;1m"
+#define YELLOW_BG_BOLD_S    CSI "43;1m"
 #define BLUE_BG_S           CSI "44m"
 #define BLUE_BG_BOLD_S      CSI "44;1m"
 #define MAGENTA_BG_S        CSI "45m"
@@ -109,6 +125,7 @@ private:
 #define WHITE_BOLD(x)       WHITE_BOLD_S x CLEAR
 
 #define GREEN_BG_BOLD(x)    GREEN_BG_BOLD_S x CLEAR
+#define YELLOW_BG_BOLD(x)   YELLOW_BG_BOLD_S x CLEAR
 #define BLUE_BG(x)          BLUE_BG_S x CLEAR
 #define BLUE_BG_BOLD(x)     BLUE_BG_BOLD_S x CLEAR
 #define MAGENTA_BG(x)       MAGENTA_BG_S x CLEAR
@@ -117,13 +134,19 @@ private:
 #define CYAN_BG_BOLD(x)     CYAN_BG_BOLD_S x CLEAR
 
 
-#define LOG_EMERG(x, ...)  xmrig::Log::print(xmrig::Log::EMERG,   x, ##__VA_ARGS__)
-#define LOG_ALERT(x, ...)  xmrig::Log::print(xmrig::Log::ALERT,   x, ##__VA_ARGS__)
-#define LOG_CRIT(x, ...)   xmrig::Log::print(xmrig::Log::CRIT,    x, ##__VA_ARGS__)
-#define LOG_ERR(x, ...)    xmrig::Log::print(xmrig::Log::ERR,     x, ##__VA_ARGS__)
-#define LOG_WARN(x, ...)   xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
-#define LOG_NOTICE(x, ...) xmrig::Log::print(xmrig::Log::NOTICE,  x, ##__VA_ARGS__)
-#define LOG_INFO(x, ...)   xmrig::Log::print(xmrig::Log::INFO,    x, ##__VA_ARGS__)
+#define LOG_EMERG(x, ...)   xmrig::Log::print(xmrig::Log::EMERG,   x, ##__VA_ARGS__)
+#define LOG_ALERT(x, ...)   xmrig::Log::print(xmrig::Log::ALERT,   x, ##__VA_ARGS__)
+#define LOG_CRIT(x, ...)    xmrig::Log::print(xmrig::Log::CRIT,    x, ##__VA_ARGS__)
+#define LOG_ERR(x, ...)     xmrig::Log::print(xmrig::Log::ERR,     x, ##__VA_ARGS__)
+#define LOG_WARN(x, ...)    xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
+#define LOG_NOTICE(x, ...)  xmrig::Log::print(xmrig::Log::NOTICE,  x, ##__VA_ARGS__)
+#define LOG_INFO(x, ...)    xmrig::Log::print(xmrig::Log::INFO,    x, ##__VA_ARGS__)
+#define LOG_VERBOSE(x, ...) if (xmrig::Log::verbose() > 0) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
+#define LOG_V1(x, ...)      if (xmrig::Log::verbose() > 0) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
+#define LOG_V2(x, ...)      if (xmrig::Log::verbose() > 1) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
+#define LOG_V3(x, ...)      if (xmrig::Log::verbose() > 2) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
+#define LOG_V4(x, ...)      if (xmrig::Log::verbose() > 3) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
+#define LOG_V5(x, ...)      if (xmrig::Log::verbose() > 4) { xmrig::Log::print(xmrig::Log::INFO, x, ##__VA_ARGS__); }
 
 #ifdef APP_DEBUG
 #   define LOG_DEBUG(x, ...) xmrig::Log::print(xmrig::Log::DEBUG, x, ##__VA_ARGS__)

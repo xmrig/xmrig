@@ -24,7 +24,7 @@
 
 
 #include <direct.h>
-#include <Shlobj.h>
+#include <shlobj.h>
 #include <windows.h>
 
 

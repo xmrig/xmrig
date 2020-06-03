@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,9 +24,8 @@
 
 
 #include "backend/opencl/OclThread.h"
-
+#include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
 
 
 #include <algorithm>
@@ -57,7 +56,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
     }
 
     m_index         = Json::getUint(value, kIndex);
-    m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 128u), 1u);
+    m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 512u), 1u);
     m_unrollFactor  = std::max(std::min(Json::getUint(value, kUnroll, m_unrollFactor), 128u), 1u);
 
     setIntensity(Json::getUint(value, kIntensity));
@@ -124,7 +123,9 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
 
     out.AddMember(StringRef(kIndex),        index(), allocator);
     out.AddMember(StringRef(kIntensity),    intensity(), allocator);
-    out.AddMember(StringRef(kWorksize),     worksize(), allocator);
+    if (!m_fields.test(ASTROBWT_FIELDS)) {
+        out.AddMember(StringRef(kWorksize), worksize(), allocator);
+    }
 
     if (m_fields.test(STRIDED_INDEX_FIELD)) {
         Value si(kArrayType);
@@ -150,7 +151,7 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
         out.AddMember(StringRef(kDatasetHost),  isDatasetHost(), allocator);
 #       endif
     }
-    else {
+    else if (!m_fields.test(ASTROBWT_FIELDS) && !m_fields.test(KAWPOW_FIELDS)) {
         out.AddMember(StringRef(kUnroll), unrollFactor(), allocator);
     }
 

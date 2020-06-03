@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,9 @@
 #include "backend/cpu/Cpu.h"
 #include "base/io/Console.h"
 #include "base/io/log/Log.h"
-#include "base/kernel/Signals.h"
+#include "base/io/log/Tags.h"
+#include "base/io/Signals.h"
+#include "base/kernel/Platform.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "core/Miner.h"
@@ -49,6 +51,8 @@ xmrig::App::App(Process *process)
 
 xmrig::App::~App()
 {
+    Cpu::release();
+
     delete m_signals;
     delete m_console;
     delete m_controller;
@@ -58,7 +62,7 @@ xmrig::App::~App()
 int xmrig::App::exec()
 {
     if (!m_controller->isReady()) {
-        LOG_EMERG("no valid configuration found.");
+        LOG_EMERG("no valid configuration found, try https://xmrig.com/wizard");
 
         return 2;
     }
@@ -82,7 +86,7 @@ int xmrig::App::exec()
     Summary::print(m_controller);
 
     if (m_controller->config()->isDryRun()) {
-        LOG_NOTICE("OK");
+        LOG_NOTICE("%s " WHITE_BOLD("OK"), Tags::config());
 
         return 0;
     }
@@ -99,7 +103,7 @@ int xmrig::App::exec()
 void xmrig::App::onConsoleCommand(char command)
 {
     if (command == 3) {
-        LOG_WARN("Ctrl+C received, exiting");
+        LOG_WARN("%s " YELLOW("Ctrl+C received, exiting"), Tags::signal());
         close();
     }
     else {
@@ -113,15 +117,15 @@ void xmrig::App::onSignal(int signum)
     switch (signum)
     {
     case SIGHUP:
-        LOG_WARN("SIGHUP received, exiting");
+        LOG_WARN("%s " YELLOW("SIGHUP received, exiting"), Tags::signal());
         break;
 
     case SIGTERM:
-        LOG_WARN("SIGTERM received, exiting");
+        LOG_WARN("%s " YELLOW("SIGTERM received, exiting"), Tags::signal());
         break;
 
     case SIGINT:
-        LOG_WARN("SIGINT received, exiting");
+        LOG_WARN("%s " YELLOW("SIGINT received, exiting"), Tags::signal());
         break;
 
     default:

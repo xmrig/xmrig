@@ -6,9 +6,9 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,9 +32,9 @@
 #include <cstdint>
 
 
+#include "base/crypto/Algorithm.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/String.h"
-#include "crypto/common/Algorithm.h"
 
 
 namespace xmrig {
@@ -71,14 +71,17 @@ public:
     inline const String &extraNonce() const             { return m_extraNonce; }
     inline const String &id() const                     { return m_id; }
     inline const String &poolWallet() const             { return m_poolWallet; }
-    inline const uint32_t *nonce() const                { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
+    inline const uint32_t *nonce() const                { return reinterpret_cast<const uint32_t*>(m_blob + nonceOffset()); }
     inline const uint8_t *blob() const                  { return m_blob; }
+    inline int32_t nonceOffset() const                  { return (algorithm().family() == Algorithm::KAWPOW) ? 32 : 39; }
+    inline size_t nonceSize() const                     { return (algorithm().family() == Algorithm::KAWPOW) ?  8 :  4; }
     inline size_t size() const                          { return m_size; }
-    inline uint32_t *nonce()                            { return reinterpret_cast<uint32_t*>(m_blob + 39); }
+    inline uint32_t *nonce()                            { return reinterpret_cast<uint32_t*>(m_blob + nonceOffset()); }
     inline uint32_t backend() const                     { return m_backend; }
     inline uint64_t diff() const                        { return m_diff; }
     inline uint64_t height() const                      { return m_height; }
     inline uint64_t target() const                      { return m_target; }
+    inline uint8_t *blob()                              { return m_blob; }
     inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
     inline uint8_t index() const                        { return m_index; }
     inline void reset()                                 { m_size = 0; m_diff = 0; }
@@ -98,8 +101,7 @@ public:
     inline const String &rawSeedHash() const          { return m_rawSeedHash; }
 #   endif
 
-    static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
-    static inline uint64_t toDiff(uint64_t target) { return 0xFFFFFFFFFFFFFFFFULL / target; }
+    static inline uint64_t toDiff(uint64_t target) { return target ? (0xFFFFFFFFFFFFFFFFULL / target) : 0; }
 
     inline bool operator!=(const Job &other) const { return !isEqual(other); }
     inline bool operator==(const Job &other) const { return isEqual(other); }

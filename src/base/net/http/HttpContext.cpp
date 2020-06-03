@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,27 +24,62 @@
  */
 
 
+#include "base/net/http/HttpContext.h"
+#include "3rdparty/http-parser/http_parser.h"
+#include "base/kernel/interfaces/IHttpListener.h"
+#include "base/tools/Baton.h"
+#include "base/tools/Chrono.h"
+
+
 #include <algorithm>
 #include <uv.h>
 
 
-#include "3rdparty/http-parser/http_parser.h"
-#include "base/kernel/interfaces/IHttpListener.h"
-#include "base/net/http/HttpContext.h"
-
-
 namespace xmrig {
+
 
 static http_parser_settings http_settings;
 static std::map<uint64_t, HttpContext *> storage;
 static uint64_t SEQUENCE = 0;
 
+
+class HttpWriteBaton : public Baton<uv_write_t>
+{
+public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpWriteBaton)
+
+    inline HttpWriteBaton(std::string &&body, HttpContext *ctx) :
+        m_ctx(ctx),
+        m_body(std::move(body))
+    {
+        m_buf = uv_buf_init(&m_body.front(), m_body.size());
+    }
+
+    inline ~HttpWriteBaton()
+    {
+        if (m_ctx) {
+            m_ctx->close();
+        }
+    }
+
+    void write(uv_stream_t *stream)
+    {
+        uv_write(&req, stream, &m_buf, 1, [](uv_write_t *req, int) { delete reinterpret_cast<HttpWriteBaton *>(req->data); });
+    }
+
+private:
+    HttpContext *m_ctx;
+    std::string m_body;
+    uv_buf_t m_buf{};
+};
+
+
 } // namespace xmrig
 
 
-xmrig::HttpContext::HttpContext(int parser_type, IHttpListener *listener) :
+xmrig::HttpContext::HttpContext(int parser_type, const std::weak_ptr<IHttpListener> &listener) :
     HttpData(SEQUENCE++),
-    m_wasHeaderValue(false),
+    m_timestamp(Chrono::steadyMSecs()),
     m_listener(listener)
 {
     storage[id()] = this;
@@ -72,6 +107,23 @@ xmrig::HttpContext::~HttpContext()
 }
 
 
+void xmrig::HttpContext::write(std::string &&data, bool close)
+{
+    if (uv_is_writable(stream()) != 1) {
+        return;
+    }
+
+    auto baton = new HttpWriteBaton(std::move(data), close ? this : nullptr);
+    baton->write(stream());
+}
+
+
+bool xmrig::HttpContext::isRequest() const
+{
+    return m_parser->type == HTTP_REQUEST;
+}
+
+
 size_t xmrig::HttpContext::parse(const char *data, size_t size)
 {
     return http_parser_execute(m_parser, &http_settings, data, size);
@@ -96,17 +148,22 @@ std::string xmrig::HttpContext::ip() const
 }
 
 
+uint64_t xmrig::HttpContext::elapsed() const
+{
+    return Chrono::steadyMSecs() - m_timestamp;
+}
+
+
 void xmrig::HttpContext::close(int status)
 {
-    if (status < 0 && m_listener) {
+    auto listener = httpListener();
+
+    if (status < 0 && listener) {
         this->status = status;
-        m_listener->onHttpData(*this);
+        listener->onHttpData(*this);
     }
 
-    auto it = storage.find(id());
-    if (it != storage.end()) {
-        storage.erase(it);
-    }
+    storage.erase(id());
 
     if (!uv_is_closing(handle())) {
         uv_close(handle(), [](uv_handle_t *handle) -> void { delete reinterpret_cast<HttpContext*>(handle->data); });
@@ -126,7 +183,7 @@ xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
 
 void xmrig::HttpContext::closeAll()
 {
-    for (auto kv : storage) {
+    for (auto &kv : storage) {
         if (!uv_is_closing(kv.second->handle())) {
             uv_close(kv.second->handle(), [](uv_handle_t *handle) -> void { delete reinterpret_cast<HttpContext*>(handle->data); });
         }
@@ -208,9 +265,13 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 
     settings->on_message_complete = [](http_parser *parser) -> int
     {
-        auto ctx = static_cast<HttpContext*>(parser->data);
-        ctx->m_listener->onHttpData(*ctx);
-        ctx->m_listener = nullptr;
+        auto ctx      = static_cast<HttpContext*>(parser->data);
+        auto listener = ctx->httpListener();
+
+        if (listener) {
+            listener->onHttpData(*ctx);
+            ctx->m_listener.reset();
+        }
 
         return 0;
     };

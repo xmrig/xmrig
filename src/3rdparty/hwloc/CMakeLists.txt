@@ -5,7 +5,7 @@ include_directories(include)
 include_directories(src)
 
 add_definitions(/D_CRT_SECURE_NO_WARNINGS)
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
+set(CMAKE_C_FLAGS_RELEASE "/MT /O2 /Ob2 /DNDEBUG")
 
 set(HEADERS
     include/hwloc.h

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,10 +24,12 @@
 
 
 #include "backend/cpu/CpuConfig.h"
+#include "3rdparty/rapidjson/document.h"
 #include "backend/cpu/CpuConfig_gen.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/json/Json.h"
-#include "rapidjson/document.h"
+
+#include <algorithm>
 
 
 namespace xmrig {
@@ -38,6 +40,7 @@ static const char *kHwAes               = "hw-aes";
 static const char *kMaxThreadsHint      = "max-threads-hint";
 static const char *kMemoryPool          = "memory-pool";
 static const char *kPriority            = "priority";
+static const char *kYield               = "yield";
 
 #ifdef XMRIG_FEATURE_ASM
 static const char *kAsm = "asm";
@@ -46,6 +49,12 @@ static const char *kAsm = "asm";
 #ifdef XMRIG_ALGO_ARGON2
 static const char *kArgon2Impl = "argon2-impl";
 #endif
+
+#ifdef XMRIG_ALGO_ASTROBWT
+static const char* kAstroBWTMaxSize = "astrobwt-max-size";
+static const char* kAstroBWTAVX2    = "astrobwt-avx2";
+#endif
+
 
 extern template class Threads<CpuThreads>;
 
@@ -70,6 +79,7 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kHwAes),        m_aes == AES_AUTO ? Value(kNullType) : Value(m_aes == AES_HW), allocator);
     obj.AddMember(StringRef(kPriority),     priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
     obj.AddMember(StringRef(kMemoryPool),   m_memoryPool < 1 ? Value(m_memoryPool < 0) : Value(m_memoryPool), allocator);
+    obj.AddMember(StringRef(kYield),        m_yield, allocator);
 
     if (m_threads.isEmpty()) {
         obj.AddMember(StringRef(kMaxThreadsHint), m_limit, allocator);
@@ -81,6 +91,11 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_ALGO_ARGON2
     obj.AddMember(StringRef(kArgon2Impl), m_argon2Impl.toJSON(), allocator);
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    obj.AddMember(StringRef(kAstroBWTMaxSize),  m_astrobwtMaxSize, allocator);
+    obj.AddMember(StringRef(kAstroBWTAVX2),     m_astrobwtAVX2, allocator);
 #   endif
 
     m_threads.toJSON(obj, doc);
@@ -117,9 +132,10 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
 void xmrig::CpuConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
-        m_enabled   = Json::getBool(value, kEnabled, m_enabled);
-        m_hugePages = Json::getBool(value, kHugePages, m_hugePages);
-        m_limit     = Json::getUint(value, kMaxThreadsHint, m_limit);
+        m_enabled    = Json::getBool(value, kEnabled, m_enabled);
+        m_hugePages  = Json::getBool(value, kHugePages, m_hugePages);
+        m_limit      = Json::getUint(value, kMaxThreadsHint, m_limit);
+        m_yield      = Json::getBool(value, kYield, m_yield);
 
         setAesMode(Json::getValue(value, kHwAes));
         setPriority(Json::getInt(value,  kPriority, -1));
@@ -131,6 +147,24 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 
 #       ifdef XMRIG_ALGO_ARGON2
         m_argon2Impl = Json::getString(value, kArgon2Impl);
+#       endif
+
+#       ifdef XMRIG_ALGO_ASTROBWT
+        const auto& astroBWTMaxSize = Json::getValue(value, kAstroBWTMaxSize);
+        if (astroBWTMaxSize.IsNull() || !astroBWTMaxSize.IsInt()) {
+            m_shouldSave = true;
+        }
+        else {
+            m_astrobwtMaxSize = std::min(std::max(astroBWTMaxSize.GetInt(), 400), 1200);
+        }
+
+        const auto& astroBWTAVX2 = Json::getValue(value, kAstroBWTAVX2);
+        if (astroBWTAVX2.IsNull() || !astroBWTAVX2.IsBool()) {
+            m_shouldSave = true;
+        }
+        else {
+            m_astrobwtAVX2 = astroBWTAVX2.GetBool();
+        }
 #       endif
 
         m_threads.read(value);
@@ -162,8 +196,9 @@ void xmrig::CpuConfig::generate()
     count += xmrig::generate<Algorithm::CN_PICO>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::ARGON2>(m_threads, m_limit);
+    count += xmrig::generate<Algorithm::ASTROBWT>(m_threads, m_limit);
 
-    m_shouldSave = count > 0;
+    m_shouldSave |= count > 0;
 }
 
 

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ public:
 
 protected:
     inline bool isEnabled() const override                     { return m_enabled; }
+    inline const char *tag() const override                    { return m_tag.c_str(); }
     inline const Job &job() const override                     { return m_job; }
     inline const Pool &pool() const override                   { return m_pool; }
     inline const String &ip() const override                   { return m_ip; }
@@ -56,10 +57,12 @@ protected:
     inline int64_t sequence() const override                   { return m_sequence; }
     inline void setAlgo(const Algorithm &algo) override        { m_pool.setAlgo(algo); }
     inline void setEnabled(bool enabled) override              { m_enabled = enabled; }
-    inline void setPool(const Pool &pool) override             { if (pool.isValid()) { m_pool = pool; } }
+    inline void setProxy(const ProxyUrl &proxy) override       { m_pool.setProxy(proxy); }
     inline void setQuiet(bool quiet) override                  { m_quiet = quiet; }
     inline void setRetries(int retries) override               { m_retries = retries; }
     inline void setRetryPause(uint64_t ms) override            { m_retryPause = ms; }
+
+    void setPool(const Pool &pool) override;
 
 protected:
     enum SocketState {
@@ -81,7 +84,7 @@ protected:
 
     inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }
 
-    bool handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
+    virtual bool handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     bool handleSubmitResponse(int64_t id, const char *error = nullptr);
 
     bool m_quiet                    = false;
@@ -94,7 +97,11 @@ protected:
     SocketState m_state             = UnconnectedState;
     std::map<int64_t, SendResult> m_callbacks;
     std::map<int64_t, SubmitResult> m_results;
+    std::string m_tag;
     String m_ip;
+    String m_password;
+    String m_rigId;
+    String m_user;
     uint64_t m_retryPause           = 5000;
 
     static int64_t m_sequence;

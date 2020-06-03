@@ -7,8 +7,8 @@
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,7 +27,9 @@
 
 #include "crypto/rx/Rx.h"
 #include "backend/common/Tags.h"
+#include "backend/cpu/CpuConfig.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "crypto/rx/RxConfig.h"
 #include "crypto/rx/RxQueue.h"
 
@@ -38,8 +40,9 @@ namespace xmrig {
 class RxPrivate;
 
 
-static const char *tag  = BLUE_BG(WHITE_BOLD_S " rx  ") " ";
-static RxPrivate *d_ptr = nullptr;
+static bool osInitialized   = false;
+static bool msrInitialized  = false;
+static RxPrivate *d_ptr     = nullptr;
 
 
 class RxPrivate
@@ -56,13 +59,17 @@ public:
 
 const char *xmrig::rx_tag()
 {
-    return tag;
+    return Tags::randomx();
 }
 
 
-bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages)
+bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cpu)
 {
     if (job.algorithm().family() != Algorithm::RANDOM_X) {
+        if (msrInitialized) {
+            msrDestroy();
+            msrInitialized = false;
+        }
         return true;
     }
 
@@ -70,7 +77,17 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, bool hugePages)
         return true;
     }
 
-    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(), hugePages);
+    if (!msrInitialized) {
+        msrInit(config);
+        msrInitialized = true;
+    }
+
+    if (!osInitialized) {
+        setupMainLoopExceptionFrame();
+        osInitialized = true;
+    }
+
+    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(cpu.limit()), cpu.isHugePages(), config.isOneGbPages(), config.mode(), cpu.priority());
 
     return false;
 }
@@ -82,20 +99,24 @@ bool xmrig::Rx::isReady(const Job &job)
 }
 
 
+xmrig::HugePagesInfo xmrig::Rx::hugePages()
+{
+    return d_ptr->queue.hugePages();
+}
+
+
 xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 {
     return d_ptr->queue.dataset(job, nodeId);
 }
 
 
-std::pair<uint32_t, uint32_t> xmrig::Rx::hugePages()
-{
-    return d_ptr->queue.hugePages();
-}
-
-
 void xmrig::Rx::destroy()
 {
+    if (osInitialized) {
+        msrDestroy();
+    }
+
     delete d_ptr;
 
     d_ptr = nullptr;
@@ -106,3 +127,22 @@ void xmrig::Rx::init(IRxListener *listener)
 {
     d_ptr = new RxPrivate(listener);
 }
+
+
+#ifndef XMRIG_FEATURE_MSR
+void xmrig::Rx::msrInit(const RxConfig &)
+{
+}
+
+
+void xmrig::Rx::msrDestroy()
+{
+}
+#endif
+
+
+#ifndef XMRIG_FIX_RYZEN
+void xmrig::Rx::setupMainLoopExceptionFrame()
+{
+}
+#endif

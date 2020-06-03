@@ -27,28 +27,29 @@
 #include <cstdio>
 
 
-#include "base/tools/Handle.h"
 #include "base/io/log/backends/ConsoleLog.h"
+#include "base/tools/Handle.h"
 #include "base/io/log/Log.h"
+#include "version.h"
 
 
 xmrig::ConsoleLog::ConsoleLog()
 {
     if (!isSupported()) {
-        Log::colors = false;
+        Log::setColors(false);
         return;
     }
 
     m_tty = new uv_tty_t;
 
     if (uv_tty_init(uv_default_loop(), m_tty, 1, 0) < 0) {
-        Log::colors = false;
+        Log::setColors(false);
         return;
     }
 
     uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
 
-#   ifdef WIN32
+#   ifdef XMRIG_OS_WIN
     m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
 
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
@@ -59,6 +60,8 @@ xmrig::ConsoleLog::ConsoleLog()
            SetConsoleMode(handle, mode | ENABLE_EXTENDED_FLAGS);
         }
     }
+
+    SetConsoleTitleA(APP_NAME " " APP_VERSION);
 #   endif
 }
 
@@ -71,11 +74,11 @@ xmrig::ConsoleLog::~ConsoleLog()
 
 void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool colors)
 {
-    if (!m_tty || Log::colors != colors) {
+    if (!m_tty || Log::isColors() != colors) {
         return;
     }
 
-#   ifdef _WIN32
+#   ifdef XMRIG_OS_WIN
     uv_buf_t buf = uv_buf_init(const_cast<char *>(line), static_cast<unsigned int>(size));
 
     if (!isWritable()) {
@@ -99,7 +102,7 @@ bool xmrig::ConsoleLog::isSupported() const
 }
 
 
-#ifdef WIN32
+#ifdef XMRIG_OS_WIN
 bool xmrig::ConsoleLog::isWritable() const
 {
     if (!m_stream || uv_is_writable(m_stream) != 1) {

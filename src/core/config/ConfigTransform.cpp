@@ -147,11 +147,21 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::MemoryPoolKey: /* --cpu-memory-pool */
         return set(doc, kCpu, "memory-pool", static_cast<int64_t>(strtol(arg, nullptr, 10)));
-        break;
+
+    case IConfig::YieldKey: /* --cpu-no-yield */
+        return set(doc, kCpu, "yield", false);
 
 #   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
         return set(doc, kCpu, "asm", arg);
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    case IConfig::AstroBWTMaxSizeKey: /* --astrobwt-max-size */
+        return set(doc, kCpu, "astrobwt-max-size", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::AstroBWTAVX2Key: /* --astrobwt-avx2 */
+        return set(doc, kCpu, "astrobwt-avx2", true);
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
@@ -160,6 +170,22 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::RandomXNumaKey: /* --randomx-no-numa */
         return set(doc, kRandomX, "numa", false);
+
+    case IConfig::RandomXModeKey: /* --randomx-mode */
+        return set(doc, kRandomX, "mode", arg);
+
+    case IConfig::RandomX1GbPagesKey: /* --randomx-1gb-pages */
+        return set(doc, kRandomX, "1gb-pages", true);
+
+    case IConfig::RandomXWrmsrKey: /* --randomx-wrmsr */
+        if (arg == nullptr) {
+            return set(doc, kRandomX, "wrmsr", true);
+        }
+
+        return set(doc, kRandomX, "wrmsr", static_cast<int64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::RandomXRdmsrKey: /* --randomx-no-rdmsr */
+        return set(doc, kRandomX, "rdmsr", false);
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL
@@ -195,6 +221,12 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::CudaDevicesKey: /* --cuda-devices */
         set(doc, kCuda, kEnabled, true);
         return set(doc, kCuda, "devices-hint", arg);
+
+    case IConfig::CudaBFactorKey: /* --cuda-bfactor-hint */
+        return set(doc, kCuda, "bfactor-hint", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::CudaBSleepKey: /* --cuda-bsleep-hint */
+        return set(doc, kCuda, "bsleep-hint", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 #   endif
 
 #   ifdef XMRIG_FEATURE_NVML

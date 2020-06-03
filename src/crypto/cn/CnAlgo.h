@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include <cstdint>
 
 
-#include "crypto/common/Algorithm.h"
+#include "base/crypto/Algorithm.h"
 
 
 namespace xmrig
@@ -53,24 +53,9 @@ public:
 
     inline static size_t memory(Algorithm::Id algo)
     {
-        switch (Algorithm::family(algo)) {
-        case Algorithm::CN:
-            return CN_MEMORY;
+        Algorithm algorithm(algo);
 
-        case Algorithm::CN_LITE:
-            return CN_MEMORY / 2;
-
-        case Algorithm::CN_HEAVY:
-            return CN_MEMORY * 2;
-
-        case Algorithm::CN_PICO:
-            return CN_MEMORY / 8;
-
-        default:
-            break;
-        }
-
-        return 0;
+        return algorithm.isCN() ? algorithm.l3() : 0;
     }
 
     inline static uint32_t iterations(Algorithm::Id algo)
@@ -104,13 +89,9 @@ public:
         case Algorithm::CN_DOUBLE:
             return CN_ITER * 2;
 
-#       ifdef XMRIG_ALGO_CN_GPU
-        case Algorithm::CN_GPU:
-            return 0xC000;
-#       endif
-
 #       ifdef XMRIG_ALGO_CN_PICO
         case Algorithm::CN_PICO_0:
+        case Algorithm::CN_PICO_TLO:
             return CN_ITER / 8;
 #       endif
 
@@ -123,12 +104,6 @@ public:
 
     inline static uint32_t mask(Algorithm::Id algo)
     {
-#       ifdef XMRIG_ALGO_CN_GPU
-        if (algo == Algorithm::CN_GPU) {
-            return 0x1FFFC0;
-        }
-#       endif
-
 #       ifdef XMRIG_ALGO_CN_PICO
         if (algo == Algorithm::CN_PICO_0) {
             return 0x1FFF0;
@@ -171,13 +146,9 @@ public:
         case Algorithm::CN_DOUBLE:
 #       ifdef XMRIG_ALGO_CN_PICO
         case Algorithm::CN_PICO_0:
+        case Algorithm::CN_PICO_TLO:
 #       endif
             return Algorithm::CN_2;
-
-#       ifdef XMRIG_ALGO_CN_GPU
-        case Algorithm::CN_GPU:
-            return Algorithm::CN_GPU;
-#       endif
 
         default:
             break;
@@ -215,8 +186,8 @@ template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_XAO>::iterations() con
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_DOUBLE>::iterations() const       { return CN_ITER * 2; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_RWZ>::iterations() const          { return 0x60000; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_ZLS>::iterations() const          { return 0x60000; }
-template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::iterations() const          { return 0xC000; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::iterations() const       { return CN_ITER / 8; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_TLO>::iterations() const     { return CN_ITER / 8; }
 
 
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_LITE_0>::memory() const             { return CN_MEMORY / 2; }
@@ -225,9 +196,9 @@ template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_0>::memory() const
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_TUBE>::memory() const         { return CN_MEMORY * 2; }
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_XHV>::memory() const          { return CN_MEMORY * 2; }
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_0>::memory() const             { return CN_MEMORY / 8; }
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_TLO>::memory() const           { return CN_MEMORY / 8; }
 
 
-template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::mask() const                { return 0x1FFFC0; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const             { return 0x1FFF0; }
 
 

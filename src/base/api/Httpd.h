@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,11 +26,13 @@
 #define XMRIG_HTTPD_H
 
 
-#include <stdint.h>
-
-
 #include "base/kernel/interfaces/IBaseListener.h"
-#include "base/kernel/interfaces/IHttpListener.h"
+#include "base/net/http/HttpListener.h"
+#include "base/tools/Object.h"
+
+
+#include <cstdint>
+#include <memory>
 
 
 namespace xmrig {
@@ -38,12 +40,15 @@ namespace xmrig {
 
 class Base;
 class HttpServer;
+class HttpsServer;
 class TcpServer;
 
 
 class Httpd : public IBaseListener, public IHttpListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Httpd)
+
     Httpd(Base *base);
     ~Httpd() override;
 
@@ -57,10 +62,16 @@ protected:
 private:
     int auth(const HttpData &req) const;
 
-    Base *m_base;
-    HttpServer *m_http;
-    TcpServer *m_server;
-    uint16_t m_port;
+    const Base *m_base;
+    std::shared_ptr<IHttpListener> m_httpListener;
+    TcpServer *m_server     = nullptr;
+    uint16_t m_port         = 0;
+
+#   ifdef XMRIG_FEATURE_TLS
+    HttpsServer *m_http     = nullptr;
+#   else
+    HttpServer *m_http      = nullptr;
+#   endif
 };
 
 

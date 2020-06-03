@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ class WorkerJob
 {
 public:
     inline const Job &currentJob() const    { return m_jobs[index()]; }
-    inline uint32_t *nonce(size_t i = 0)    { return reinterpret_cast<uint32_t*>(blob() + (i * currentJob().size()) + 39); }
+    inline uint32_t *nonce(size_t i = 0)    { return reinterpret_cast<uint32_t*>(blob() + (i * currentJob().size()) + nonceOffset()); }
     inline uint64_t sequence() const        { return m_sequence; }
     inline uint8_t *blob()                  { return m_blobs[index()]; }
     inline uint8_t index() const            { return m_index; }
@@ -64,13 +64,17 @@ public:
     }
 
 
-    inline void nextRound(uint32_t rounds, uint32_t roundSize)
+    inline bool nextRound(uint32_t rounds, uint32_t roundSize)
     {
+        bool ok = true;
         m_rounds[index()]++;
 
         if ((m_rounds[index()] % rounds) == 0) {
             for (size_t i = 0; i < N; ++i) {
-                *nonce(i) = Nonce::next(index(), *nonce(i), rounds * roundSize, currentJob().isNicehash());
+                *nonce(i) = Nonce::next(index(), *nonce(i), rounds * roundSize, currentJob().isNicehash(), &ok);
+                if (!ok) {
+                    break;
+                }
             }
         }
         else {
@@ -78,10 +82,15 @@ public:
                 *nonce(i) += roundSize;
             }
         }
+
+        return ok;
     }
 
 
 private:
+    inline int32_t nonceOffset() const  { return currentJob().nonceOffset(); }
+    inline size_t nonceSize() const     { return currentJob().nonceSize(); }
+
     inline void save(const Job &job, uint32_t reserveCount, Nonce::Backend backend)
     {
         m_index           = job.index();
@@ -109,21 +118,35 @@ private:
 template<>
 inline uint32_t *xmrig::WorkerJob<1>::nonce(size_t)
 {
-    return reinterpret_cast<uint32_t*>(blob() + 39);
+    return reinterpret_cast<uint32_t*>(blob() + nonceOffset());
 }
 
 
 template<>
-inline void xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
+inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
 {
+    bool ok = true;
     m_rounds[index()]++;
 
+    uint32_t* n = nonce();
+    const uint32_t prev_nonce = *n;
+
     if ((m_rounds[index()] % rounds) == 0) {
-        *nonce() = Nonce::next(index(), *nonce(), rounds * roundSize, currentJob().isNicehash());
+        *n = Nonce::next(index(), *n, rounds * roundSize, currentJob().isNicehash(), &ok);
     }
     else {
-        *nonce() += roundSize;
+        *n += roundSize;
     }
+
+    // Increment higher 32 bits of a 64-bit nonce when lower 32 bits overflow
+    if (!currentJob().isNicehash() && (nonceSize() == sizeof(uint64_t)) && (*n < prev_nonce)) {
+        ++n[1];
+
+        Job& job = m_jobs[index()];
+        memcpy(job.blob(), blob(), job.size());
+    }
+
+    return ok;
 }
 
 
