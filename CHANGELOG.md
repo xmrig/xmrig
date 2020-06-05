@@ -1,3 +1,7 @@
+# v6.0.1-beta
+- [#1711](https://github.com/xmrig/xmrig/pull/1711) [cuda] Print errors from KawPow DAG initialization.
+- [#1713](https://github.com/xmrig/xmrig/pull/1713) [cuda] Reduced memory usage for KawPow.
+
 # v6.0.0-beta
 - [#1694](https://github.com/xmrig/xmrig/pull/1694) Added support for KawPow algorithm (Ravencoin) on AMD/NVIDIA.
 - Removed previously deprecated `cn/gpu` algorithm.
