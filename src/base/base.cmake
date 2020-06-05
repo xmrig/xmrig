@@ -19,6 +19,7 @@ set(HEADERS_BASE
     src/base/kernel/Base.h
     src/base/kernel/config/BaseConfig.h
     src/base/kernel/config/BaseTransform.h
+    src/base/kernel/config/Title.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IBaseListener.h
     src/base/kernel/interfaces/IClient.h
@@ -87,6 +88,7 @@ set(SOURCES_BASE
     src/base/kernel/Base.cpp
     src/base/kernel/config/BaseConfig.cpp
     src/base/kernel/config/BaseTransform.cpp
+    src/base/kernel/config/Title.cpp
     src/base/kernel/Entry.cpp
     src/base/kernel/Platform.cpp
     src/base/kernel/Process.cpp

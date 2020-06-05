@@ -204,6 +204,9 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::UserAgentKey: /* --user-agent */
         return set(doc, BaseConfig::kUserAgent, arg);
 
+    case IConfig::TitleKey: /* --title */
+        return set(doc, BaseConfig::kTitle, arg);
+
 #   ifdef XMRIG_FEATURE_TLS
     case IConfig::TlsCertKey: /* --tls-cert */
         return set(doc, BaseConfig::kTls, TlsConfig::kCert, arg);
@@ -248,6 +251,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 
     case IConfig::ColorKey:          /* --no-color */
     case IConfig::HttpRestrictedKey: /* --http-no-restricted */
+    case IConfig::NoTitleKey:        /* --no-title */
         return transformBoolean(doc, key, false);
 
     default:
@@ -297,6 +301,9 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
 
     case IConfig::VerboseKey: /* --verbose */
         return set(doc, BaseConfig::kVerbose, enable);
+
+    case IConfig::NoTitleKey: /* --no-title */
+        return set(doc, BaseConfig::kTitle, enable);
 
     default:
         break;

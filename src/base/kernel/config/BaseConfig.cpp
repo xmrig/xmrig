@@ -63,6 +63,7 @@ const char *BaseConfig::kHttp           = "http";
 const char *BaseConfig::kLogFile        = "log-file";
 const char *BaseConfig::kPrintTime      = "print-time";
 const char *BaseConfig::kSyslog         = "syslog";
+const char *BaseConfig::kTitle          = "title";
 const char *BaseConfig::kUserAgent      = "user-agent";
 const char *BaseConfig::kVerbose        = "verbose";
 const char *BaseConfig::kWatch          = "watch";
@@ -92,6 +93,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_logFile      = reader.getString(kLogFile);
     m_userAgent    = reader.getString(kUserAgent);
     m_printTime    = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
+    m_title        = reader.getValue(kTitle);
 
 #   ifdef XMRIG_FEATURE_TLS
     m_tls = reader.getValue(kTls);

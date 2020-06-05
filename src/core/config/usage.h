@@ -168,6 +168,11 @@ static inline const std::string &usage()
     u += "      --export-topology         export hwloc topology to a XML file and exit\n";
 #   endif
 
+#   ifdef XMRIG_OS_WIN
+    u += "      --title                   set custom console window title\n";
+    u += "      --no-title                disable setting console window title\n";
+#   endif
+
     return u;
 }
 
