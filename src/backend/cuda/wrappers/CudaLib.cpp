@@ -66,7 +66,7 @@ static const char *kRelease                             = "release";
 static const char *kRxHash                              = "rxHash";
 static const char *kRxPrepare                           = "rxPrepare";
 static const char *kKawPowHash                          = "kawPowHash";
-static const char *kKawPowPrepare                       = "kawPowPrepare";
+static const char *kKawPowPrepare_v2                    = "kawPowPrepare_v2";
 static const char *kKawPowStopHash                      = "kawPowStopHash";
 static const char *kSetJob                              = "setJob";
 static const char *kSetJob_v2                           = "setJob_v2";
@@ -92,7 +92,7 @@ using release_t                                         = void (*)(nvid_ctx *);
 using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
 using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, bool, uint32_t);
 using kawPowHash_t                                      = bool (*)(nvid_ctx *, uint8_t*, uint64_t, uint32_t *, uint32_t *, uint32_t *);
-using kawPowPrepare_t                                   = bool (*)(nvid_ctx *, const void *, size_t, size_t, uint32_t, const uint64_t*);
+using kawPowPrepare_v2_t                                = bool (*)(nvid_ctx *, const void *, size_t, const void *, size_t, uint32_t, const uint64_t*);
 using kawPowStopHash_t                                  = bool (*)(nvid_ctx *);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using setJob_v2_t                                       = bool (*)(nvid_ctx *, const void *, size_t, const char *);
@@ -118,7 +118,7 @@ static release_t pRelease                               = nullptr;
 static rxHash_t pRxHash                                 = nullptr;
 static rxPrepare_t pRxPrepare                           = nullptr;
 static kawPowHash_t pKawPowHash                         = nullptr;
-static kawPowPrepare_t pKawPowPrepare                   = nullptr;
+static kawPowPrepare_v2_t pKawPowPrepare_v2             = nullptr;
 static kawPowStopHash_t pKawPowStopHash                 = nullptr;
 static setJob_t pSetJob                                 = nullptr;
 static setJob_v2_t pSetJob_v2                           = nullptr;
@@ -214,9 +214,9 @@ bool xmrig::CudaLib::kawPowHash(nvid_ctx *ctx, uint8_t* job_blob, uint64_t targe
 }
 
 
-bool xmrig::CudaLib::kawPowPrepare(nvid_ctx *ctx, const void* cache, size_t cache_size, size_t dag_size, uint32_t height, const uint64_t* dag_sizes) noexcept
+bool xmrig::CudaLib::kawPowPrepare(nvid_ctx *ctx, const void* cache, size_t cache_size, const void* dag_precalc, size_t dag_size, uint32_t height, const uint64_t* dag_sizes) noexcept
 {
-    return pKawPowPrepare(ctx, cache, cache_size, dag_size, height, dag_sizes);
+    return pKawPowPrepare_v2(ctx, cache, cache_size, dag_precalc, dag_size, height, dag_sizes);
 }
 
 
@@ -375,7 +375,7 @@ bool xmrig::CudaLib::load()
         DLSYM(AstroBWTHash);
         DLSYM(AstroBWTPrepare);
         DLSYM(KawPowHash);
-        DLSYM(KawPowPrepare);
+        DLSYM(KawPowPrepare_v2);
         DLSYM(KawPowStopHash);
         DLSYM(Version);
 

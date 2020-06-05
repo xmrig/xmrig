@@ -30,6 +30,7 @@
 
 #include "base/tools/Object.h"
 #include <mutex>
+#include <vector>
 
 
 namespace xmrig
@@ -57,7 +58,7 @@ public:
     size_t size() const { return m_size; }
     uint32_t epoch() const { return m_epoch; }
 
-    const uint32_t* l1_cache() const { return m_l1Cache; }
+    const uint32_t* l1_cache() const { return m_DAGCache.data(); }
 
     static uint64_t cache_size(uint32_t epoch);
     static uint64_t dag_size(uint32_t epoch);
@@ -71,7 +72,7 @@ private:
     VirtualMemory* m_memory = nullptr;
     size_t m_size = 0;
     uint32_t m_epoch = 0xFFFFFFFFUL;
-    uint32_t m_l1Cache[l1_cache_num_items] = {};
+    std::vector<uint32_t> m_DAGCache;
 };
 
 

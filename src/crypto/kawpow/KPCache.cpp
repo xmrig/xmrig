@@ -26,6 +26,7 @@
 
 
 #include <cinttypes>
+#include <algorithm>
 
 #include "crypto/kawpow/KPCache.h"
 #include "3rdparty/libethash/data_sizes.h"
@@ -83,8 +84,30 @@ bool KPCache::init(uint32_t epoch)
     cache.num_parent_nodes = cache.cache_size / sizeof(node);
     calculate_fast_mod_data(cache.num_parent_nodes, cache.reciprocal, cache.increment, cache.shift);
 
-    for (uint32_t i = 0; i < sizeof(m_l1Cache) / sizeof(node); ++i) {
-        ethash_calculate_dag_item_opt(((node*)m_l1Cache) + i, i, num_dataset_parents, &cache);
+    const uint64_t cache_nodes = (size + sizeof(node) * 4 - 1) / sizeof(node);
+    m_DAGCache.resize(cache_nodes * (sizeof(node) / sizeof(uint32_t)));
+
+    // Init DAG cache
+    {
+        const uint64_t n = std::max(std::thread::hardware_concurrency(), 1U);
+
+        std::vector<std::thread> threads;
+        threads.reserve(n);
+
+        for (uint64_t i = 0; i < n; ++i) {
+            const uint32_t a = (cache_nodes * i) / n;
+            const uint32_t b = (cache_nodes * (i + 1)) / n;
+
+            threads.emplace_back([this, a, b, cache_nodes, &cache]() {
+                for (uint32_t j = a; j < b; ++j) {
+                    ethash_calculate_dag_item_opt(((node*)m_DAGCache.data()) + j, j, num_dataset_parents, &cache);
+                }
+            });
+        }
+
+        for (auto& t : threads) {
+            t.join();
+        }
     }
 
     m_size = size;
