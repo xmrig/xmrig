@@ -238,7 +238,7 @@ public:
 #           ifdef XMRIG_ALGO_KAWPOW
             if (algo.family() == Algorithm::KAWPOW) {
                 const uint32_t epoch = job.height() / KPHash::EPOCH_LENGTH;
-                mem_used = (KPCache::cache_size(epoch) + KPCache::dag_size(epoch)) / oneMiB;
+                mem_used = (KPCache::dag_size(epoch) + oneMiB - 1) / oneMiB;
             }
 #           endif
 
