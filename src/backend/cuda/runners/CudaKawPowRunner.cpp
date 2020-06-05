@@ -67,9 +67,12 @@ bool xmrig::CudaKawPowRunner::set(const Job &job, uint8_t *blob)
     const uint64_t start_ms = Chrono::steadyMSecs();
 
     const bool result = CudaLib::kawPowPrepare(m_ctx, cache.data(), cache.size(), cache.dag_size(epoch), height, dag_sizes);
+    if (!result) {
+        LOG_ERR("Failed to initialize DAG: %s", CudaLib::lastError(m_ctx));
+    }
 
     const int64_t dt = Chrono::steadyMSecs() - start_ms;
-    if (dt > 500) {
+    if (dt > 1000) {
         LOG_INFO("%s " YELLOW("KawPow") " DAG for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::nvidia(), epoch, dt);
     }
 
