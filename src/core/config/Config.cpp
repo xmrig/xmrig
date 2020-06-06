@@ -217,6 +217,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kAutosave),                 isAutoSave(), allocator);
     doc.AddMember(StringRef(kBackground),               isBackground(), allocator);
     doc.AddMember(StringRef(kColors),                   Log::isColors(), allocator);
+    doc.AddMember(StringRef(kTitle),                    title().toJSON(), allocator);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     doc.AddMember(StringRef(kRandomX),                  rx().toJSON(doc), allocator);

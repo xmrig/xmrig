@@ -1,14 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,6 +18,8 @@
 
 
 #include <cinttypes>
+#include <algorithm>
+#include <thread>
 
 #include "crypto/kawpow/KPCache.h"
 #include "3rdparty/libethash/data_sizes.h"
@@ -83,8 +77,30 @@ bool KPCache::init(uint32_t epoch)
     cache.num_parent_nodes = cache.cache_size / sizeof(node);
     calculate_fast_mod_data(cache.num_parent_nodes, cache.reciprocal, cache.increment, cache.shift);
 
-    for (uint32_t i = 0; i < sizeof(m_l1Cache) / sizeof(node); ++i) {
-        ethash_calculate_dag_item_opt(((node*)m_l1Cache) + i, i, num_dataset_parents, &cache);
+    const uint64_t cache_nodes = (size + sizeof(node) * 4 - 1) / sizeof(node);
+    m_DAGCache.resize(cache_nodes * (sizeof(node) / sizeof(uint32_t)));
+
+    // Init DAG cache
+    {
+        const uint64_t n = std::max(std::thread::hardware_concurrency(), 1U);
+
+        std::vector<std::thread> threads;
+        threads.reserve(n);
+
+        for (uint64_t i = 0; i < n; ++i) {
+            const uint32_t a = (cache_nodes * i) / n;
+            const uint32_t b = (cache_nodes * (i + 1)) / n;
+
+            threads.emplace_back([this, a, b, cache_nodes, &cache]() {
+                for (uint32_t j = a; j < b; ++j) {
+                    ethash_calculate_dag_item_opt(((node*)m_DAGCache.data()) + j, j, num_dataset_parents, &cache);
+                }
+            });
+        }
+
+        for (auto& t : threads) {
+            t.join();
+        }
     }
 
     m_size = size;
