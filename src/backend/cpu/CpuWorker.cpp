@@ -146,6 +146,7 @@ bool xmrig::CpuWorker<N>::selfTest()
                         verify2(Algorithm::CN_R,     test_output_r)    &&
                         verify(Algorithm::CN_RWZ,    test_output_rwz)  &&
                         verify(Algorithm::CN_ZLS,    test_output_zls)  &&
+                        verify(Algorithm::CN_CCX,    test_output_ccx)  &&
                         verify(Algorithm::CN_DOUBLE, test_output_double);
 
         return rc;

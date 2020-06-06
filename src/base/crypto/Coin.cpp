@@ -47,15 +47,16 @@ struct CoinName
 
 
 static CoinName const coin_names[] = {
-    { "monero",     Coin::MONERO },
-    { "xmr",        Coin::MONERO },
-    { "arqma",      Coin::ARQMA  },
-    { "arq",        Coin::ARQMA  },
-    { "dero",       Coin::DERO   },
-    { "keva",       Coin::KEVA   },
-    { "ravencoin",  Coin::RAVEN  },
-    { "raven",      Coin::RAVEN  },
-    { "rvn",        Coin::RAVEN  }
+    { "monero",     Coin::MONERO  },
+    { "xmr",        Coin::MONERO  },
+    { "arqma",      Coin::ARQMA   },
+    { "arq",        Coin::ARQMA   },
+    { "dero",       Coin::DERO    },
+    { "keva",       Coin::KEVA    },
+    { "ravencoin",  Coin::RAVEN   },
+    { "raven",      Coin::RAVEN   },
+    { "rvn",        Coin::RAVEN   },
+    { "conceal",    Coin::CONCEAL }
 };
 
 
@@ -80,6 +81,9 @@ xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
 
     case RAVEN:
         return Algorithm::KAWPOW_RVN;
+
+    case CONCEAL:
+        return Algorithm::CN_CCX;
 
     case INVALID:
         break;

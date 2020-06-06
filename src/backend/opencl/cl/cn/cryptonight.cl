@@ -253,11 +253,34 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
     {
         uint idx0 = a[0];
 
+#       if (ALGO == ALGO_CN_CCX)
+        float4 conc_var = (float4)(0.0f);
+        const uint4 conc_t = (uint4)(0x807FFFFFU);
+        const uint4 conc_u = (uint4)(0x40000000U);
+        const uint4 conc_v = (uint4)(0x4DFFFFFFU);
+#       endif
+
         #pragma unroll CN_UNROLL
         for (int i = 0; i < ITERATIONS; ++i) {
             ulong c[2];
 
             ((uint4 *)c)[0] = Scratchpad[IDX((idx0 & MASK) >> 4)];
+
+#           if (ALGO == ALGO_CN_CCX)
+            {
+                float4 r = convert_float4_rte(((int4 *)c)[0]) + conc_var;
+                r = r * r * r;
+                r = as_float4((as_uint4(r) & conc_t) | conc_u);
+
+                float4 c_old = conc_var;
+                conc_var += r;
+
+                c_old = as_float4((as_uint4(c_old) & conc_t) | conc_u);
+
+                ((int4 *)c)[0] ^= convert_int4_rtz(c_old * as_float4(conc_v));
+            }
+#           endif
+
             ((uint4 *)c)[0] = AES_Round_Two_Tables(AES0, AES1, ((uint4 *)c)[0], ((uint4 *)a)[0]);
 
             Scratchpad[IDX((idx0 & MASK) >> 4)] = b_x ^ ((uint4 *)c)[0];

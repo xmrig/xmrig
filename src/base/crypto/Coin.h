@@ -43,7 +43,8 @@ public:
         ARQMA,
         DERO,
         KEVA,
-        RAVEN
+        RAVEN,
+        CONCEAL
     };
 
 
