@@ -128,6 +128,7 @@ static AlgoName const algorithm_names[] = {
     { "kawpow/rvn",                nullptr,            Algorithm::KAWPOW_RVN      },
 #   endif
     { "cryptonight/ccx",           "cn/ccx",           Algorithm::CN_CCX          },
+    { "cryptonight/conceal",       "cn/conceal",       Algorithm::CN_CCX          },
 };
 
 
