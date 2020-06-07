@@ -8,6 +8,10 @@
 - Removed previously deprecated `cn/gpu` algorithm.
 - Default donation level reduced to 1% but you still can increase it if you like.
 
+# v5.11.3
+- [#1718](https://github.com/xmrig/xmrig/pull/1718) Fixed, linker on Linux was marking entire executable as having an executable stack.
+- [#1720](https://github.com/xmrig/xmrig/pull/1720) Fixed broken CryptoNight algorithms family with gcc 10.1.
+
 # v5.11.2
 - [#1664](https://github.com/xmrig/xmrig/pull/1664) Improved JSON config error reporting.
 - [#1668](https://github.com/xmrig/xmrig/pull/1668) Optimized RandomX dataset initialization.
