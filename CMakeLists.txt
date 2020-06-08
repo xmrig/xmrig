@@ -24,6 +24,7 @@ option(WITH_NVML            "Enable NVML (NVIDIA Management Library) support (on
 option(WITH_ADL             "Enable ADL (AMD Display Library) or sysfs support (only if OpenCL backend enabled)" ON)
 option(WITH_STRICT_CACHE    "Enable strict checks for OpenCL cache" ON)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
+option(WITH_BENCHMARK       "Enable Benchmark module and algo-perf feature (for MoneroOcean)" ON)
 
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
@@ -100,7 +101,6 @@ set(SOURCES
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
     src/core/Miner.cpp
-    src/core/Benchmark.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
@@ -120,6 +120,13 @@ set(SOURCES_CRYPTO
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
    )
+
+if (WITH_BENCHMARK)
+    list(APPEND SOURCES
+        src/core/Benchmark.cpp
+        )
+    add_definitions(/DXMRIG_FEATURE_BENCHMARK)
+endif()
 
 if (WITH_HWLOC)
     list(APPEND HEADERS_CRYPTO

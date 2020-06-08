@@ -52,20 +52,32 @@
 namespace xmrig {
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
+const char *BaseConfig::kAlgoPerf       = "algo-perf";
+#endif
 const char *BaseConfig::kApi            = "api";
 const char *BaseConfig::kApiId          = "id";
 const char *BaseConfig::kApiWorkerId    = "worker-id";
 const char *BaseConfig::kAutosave       = "autosave";
 const char *BaseConfig::kBackground     = "background";
+#ifdef XMRIG_FEATURE_BENCHMARK
+const char *BaseConfig::kBenchAlgoTime  = "bench-algo-time";
+#endif
 const char *BaseConfig::kColors         = "colors";
 const char *BaseConfig::kDryRun         = "dry-run";
 const char *BaseConfig::kHttp           = "http";
 const char *BaseConfig::kLogFile        = "log-file";
 const char *BaseConfig::kPrintTime      = "print-time";
+#ifdef XMRIG_FEATURE_BENCHMARK
+const char *BaseConfig::kRebenchAlgo    = "rebench-algo";
+#endif
 const char *BaseConfig::kSyslog         = "syslog";
 const char *BaseConfig::kTitle          = "title";
 const char *BaseConfig::kUserAgent      = "user-agent";
 const char *BaseConfig::kVerbose        = "verbose";
+#ifdef XMRIG_FEATURE_BENCHMARK
+const char *BaseConfig::kVersion        = "version";
+#endif
 const char *BaseConfig::kWatch          = "watch";
 
 
@@ -88,6 +100,9 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_autoSave     = reader.getBool(kAutosave, m_autoSave);
     m_background   = reader.getBool(kBackground, m_background);
     m_dryRun       = reader.getBool(kDryRun, m_dryRun);
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    m_rebenchAlgo  = reader.getBool(kRebenchAlgo, m_rebenchAlgo);
+#   endif
     m_syslog       = reader.getBool(kSyslog, m_syslog);
     m_watch        = reader.getBool(kWatch, m_watch);
     m_logFile      = reader.getString(kLogFile);
@@ -95,14 +110,15 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_printTime    = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
     m_title        = reader.getValue(kTitle);
 
-    m_rebenchAlgo   = reader.getBool("rebench-algo", m_rebenchAlgo);
-    m_benchAlgoTime = reader.getInt("bench-algo-time", m_benchAlgoTime);
-
 #   ifdef XMRIG_FEATURE_TLS
     m_tls = reader.getValue(kTls);
 #   endif
 
     Log::setColors(reader.getBool(kColors, Log::isColors()));
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    m_version       = reader.getUint(kVersion);
+    m_benchAlgoTime = reader.getInt(kBenchAlgoTime, m_benchAlgoTime);
+#   endif
     setVerbose(reader.getValue(kVerbose));
 
     const auto &api = reader.getObject(kApi);

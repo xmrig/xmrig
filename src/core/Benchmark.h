@@ -31,38 +31,46 @@ class Job;
 class Benchmark : public IJobResultListener {
 
         enum BenchAlgo : int {
-            AR2_CHUKWA,    // "argon2/chukwa"
-            RX_0,          // "rx/0"             RandomX (Monero).
-            RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
-            DEFYX,         // "defyx             DefyX.
-            RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
             CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
-            CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
             CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
             CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
-            CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
-            ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero)
+            CN_PICO_0,     // "cn-pico"          CryptoNight-Pico.
+            CN_CCX,        // "cn/ccx"           Conceal (CCX).
+            CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
+            AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
+            AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ).
+            ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero).
+            KAWPOW_RVN,    // "kawpow/rvn"       KawPow (RVN).
+            RX_0,          // "rx/0"             RandomX (Monero).
+            RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
+            RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
+            RX_KEVA,       // "rx/keva"          RandomKEVA (Keva).
+            RX_DEFYX,      // "defyx             DefyX.
             MAX,
             MIN = 0,
             INVALID = -1,
         };
 
         const Algorithm::Id ba2a[BenchAlgo::MAX] = {
-            Algorithm::AR2_CHUKWA,
-            Algorithm::RX_0,
-            Algorithm::RX_WOW,
-            Algorithm::DEFYX,
-            Algorithm::RX_ARQ,
             Algorithm::CN_R,
-            Algorithm::CN_GPU,
             Algorithm::CN_LITE_1,
             Algorithm::CN_HEAVY_TUBE,
             Algorithm::CN_PICO_0,
+            Algorithm::CN_CCX,
+            Algorithm::CN_GPU,
+            Algorithm::AR2_CHUKWA,
+            Algorithm::AR2_WRKZ,
             Algorithm::ASTROBWT_DERO,
+            Algorithm::KAWPOW_RVN,
+            Algorithm::RX_0,
+            Algorithm::RX_WOW,
+            Algorithm::RX_ARQ,
+            Algorithm::RX_KEVA,
+            Algorithm::RX_DEFYX,
         };
 
         Job* m_bench_job[BenchAlgo::MAX];
-        float m_bench_algo_perf[BenchAlgo::MAX];
+        double m_bench_algo_perf[BenchAlgo::MAX];
 
         Controller* m_controller;          // to get access to config and network
         bool m_isNewBenchRun;              // true if benchmark is need to be executed or was executed
@@ -74,7 +82,7 @@ class Benchmark : public IJobResultListener {
         std::set<uint32_t> m_backends_started; // id of backend started for benchmark
 
         uint64_t get_now() const;                      // get current time in ms
-        float get_algo_perf(Algorithm::Id algo) const; // get algo perf based on m_bench_algo_perf
+        double get_algo_perf(Algorithm::Id algo) const; // get algo perf based on m_bench_algo_perf
         void start(const Benchmark::BenchAlgo);        // start benchmark for specified perf algo
         void finish();                                 // end of benchmarks, switch to jobs from the pool (network), fill algo_perf
         void onJobResult(const JobResult&) override;   // onJobResult is called after each computed benchmark hash
@@ -89,7 +97,7 @@ class Benchmark : public IJobResultListener {
         void start(); // start benchmarks
 
         bool isNewBenchRun() const { return m_isNewBenchRun; }
-        float algo_perf[Algorithm::MAX];
+        double algo_perf[Algorithm::MAX];
 
         rapidjson::Value toJSON(rapidjson::Document &doc) const;
         void read(const rapidjson::Value &value);

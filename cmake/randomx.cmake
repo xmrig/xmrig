@@ -40,11 +40,8 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxDataset.cpp
         src/crypto/rx/RxQueue.cpp
         src/crypto/rx/RxVm.cpp
-
         src/crypto/defyx/align.h
         src/crypto/defyx/brg_endian.h
-        src/crypto/defyx/defyx.cpp
-        src/crypto/defyx/defyx.h
         src/crypto/defyx/KangarooTwelve.c
         src/crypto/defyx/KangarooTwelve.h
         src/crypto/defyx/KeccakP-1600-reference.c

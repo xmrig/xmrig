@@ -59,15 +59,20 @@ int xmrig::Controller::init()
     return 0;
 }
 
+#ifdef XMRIG_FEATURE_BENCHMARK
 void xmrig::Controller::pre_start()
 {
     m_miner = new Miner(this);
 }
+#endif
 
 
 void xmrig::Controller::start()
 {
     Base::start();
+#ifndef XMRIG_FEATURE_BENCHMARK
+    m_miner = new Miner(this);
+#endif
     network()->connect();
 }
 

@@ -47,7 +47,9 @@ public:
     ~Controller() override;
 
     int init() override;
+#   ifdef XMRIG_FEATURE_BENCHMARK
     void pre_start();
+#   endif
     void start() override;
     void stop() override;
 

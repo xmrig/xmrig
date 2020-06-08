@@ -26,9 +26,10 @@
 #include "net/Network.h"
 #include "rapidjson/document.h"
 #include "backend/common/interfaces/IBackend.h"
+#include "backend/common/Hashrate.h"
 #include <chrono>
 
-namespace xmrig {                          
+namespace xmrig {
 
 Benchmark::Benchmark() : m_controller(nullptr), m_isNewBenchRun(true) {
   for (BenchAlgo bench_algo = static_cast<BenchAlgo>(0); bench_algo != BenchAlgo::MAX; bench_algo = static_cast<BenchAlgo>(bench_algo + 1)) {
@@ -59,6 +60,7 @@ void Benchmark::finish() {
     }
     m_bench_algo = BenchAlgo::INVALID;
     m_controller->miner()->pause(); // do not compute anything before job from the pool
+    JobResults::stop();
     JobResults::setListener(m_controller->network(), m_controller->config()->cpu().isHwAES());
     m_controller->start();
 }
@@ -104,33 +106,39 @@ void Benchmark::read(const rapidjson::Value &value)
     }
 }
 
-float Benchmark::get_algo_perf(Algorithm::Id algo) const {
+double Benchmark::get_algo_perf(Algorithm::Id algo) const {
     switch (algo) {
-        case Algorithm::CN_0:          return m_bench_algo_perf[BenchAlgo::CN_R];
+        case Algorithm::CN_CCX:        return m_bench_algo_perf[BenchAlgo::CN_CCX];
+        case Algorithm::CN_0:          return m_bench_algo_perf[BenchAlgo::CN_CCX] / 2;
         case Algorithm::CN_1:          return m_bench_algo_perf[BenchAlgo::CN_R];
         case Algorithm::CN_2:          return m_bench_algo_perf[BenchAlgo::CN_R];
         case Algorithm::CN_R:          return m_bench_algo_perf[BenchAlgo::CN_R];
+        case Algorithm::CN_RTO:        return m_bench_algo_perf[BenchAlgo::CN_R];
+        case Algorithm::CN_XAO:        return m_bench_algo_perf[BenchAlgo::CN_R];
         case Algorithm::CN_FAST:       return m_bench_algo_perf[BenchAlgo::CN_R] * 2;
         case Algorithm::CN_HALF:       return m_bench_algo_perf[BenchAlgo::CN_R] * 2;
-        case Algorithm::CN_XAO:        return m_bench_algo_perf[BenchAlgo::CN_R];
-        case Algorithm::CN_RTO:        return m_bench_algo_perf[BenchAlgo::CN_R];
         case Algorithm::CN_RWZ:        return m_bench_algo_perf[BenchAlgo::CN_R] / 3 * 4;
         case Algorithm::CN_ZLS:        return m_bench_algo_perf[BenchAlgo::CN_R] / 3 * 4;
         case Algorithm::CN_DOUBLE:     return m_bench_algo_perf[BenchAlgo::CN_R] / 2;
-        case Algorithm::CN_GPU:        return m_bench_algo_perf[BenchAlgo::CN_GPU];
         case Algorithm::CN_LITE_0:     return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
         case Algorithm::CN_LITE_1:     return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
         case Algorithm::CN_HEAVY_0:    return m_bench_algo_perf[BenchAlgo::CN_HEAVY_TUBE];
         case Algorithm::CN_HEAVY_TUBE: return m_bench_algo_perf[BenchAlgo::CN_HEAVY_TUBE];
         case Algorithm::CN_HEAVY_XHV:  return m_bench_algo_perf[BenchAlgo::CN_HEAVY_TUBE];
         case Algorithm::CN_PICO_0:     return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
-        case Algorithm::RX_LOKI:       return m_bench_algo_perf[BenchAlgo::RX_0];
-        case Algorithm::RX_WOW:        return m_bench_algo_perf[BenchAlgo::RX_WOW];
-        case Algorithm::RX_0:          return m_bench_algo_perf[BenchAlgo::RX_0];
-        case Algorithm::DEFYX:         return m_bench_algo_perf[BenchAlgo::DEFYX];
-        case Algorithm::RX_ARQ:        return m_bench_algo_perf[BenchAlgo::RX_ARQ];
+        case Algorithm::CN_PICO_TLO:   return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
+        case Algorithm::CN_GPU:        return m_bench_algo_perf[BenchAlgo::CN_GPU];
         case Algorithm::AR2_CHUKWA:    return m_bench_algo_perf[BenchAlgo::AR2_CHUKWA];
+        case Algorithm::AR2_WRKZ:      return m_bench_algo_perf[BenchAlgo::AR2_WRKZ];
         case Algorithm::ASTROBWT_DERO: return m_bench_algo_perf[BenchAlgo::ASTROBWT_DERO];
+        case Algorithm::KAWPOW_RVN:    return m_bench_algo_perf[BenchAlgo::KAWPOW_RVN];
+        case Algorithm::RX_0:          return m_bench_algo_perf[BenchAlgo::RX_0];
+        case Algorithm::RX_LOKI:       return m_bench_algo_perf[BenchAlgo::RX_0];
+        case Algorithm::RX_SFX:        return m_bench_algo_perf[BenchAlgo::RX_0];
+        case Algorithm::RX_WOW:        return m_bench_algo_perf[BenchAlgo::RX_WOW];
+        case Algorithm::RX_ARQ:        return m_bench_algo_perf[BenchAlgo::RX_ARQ];
+        case Algorithm::RX_KEVA:       return m_bench_algo_perf[BenchAlgo::RX_KEVA];
+        case Algorithm::RX_DEFYX:      return m_bench_algo_perf[BenchAlgo::RX_DEFYX];
         default: return 0.0f;
     }
 }
@@ -189,9 +197,23 @@ void Benchmark::onJobResult(const JobResult& result) {
        LOG_ALERT(" ===> Starting benchmark of %s algo", Algorithm(ba2a[m_bench_algo]).shortName());
        m_bench_start = now; // time of measurements start (in ms)
     } else if (now - m_bench_start > static_cast<unsigned>(m_controller->config()->benchAlgoTime()*1000)) { // end of benchmark round for m_bench_algo
-        const float hashrate = static_cast<float>(m_hash_count) * result.diff / (now - m_bench_start) * 1000.0f;
+        double t[3] = { 0.0 };
+        for (auto backend : m_controller->miner()->backends()) {
+            const Hashrate *hr = backend->hashrate();
+            if (!hr) {
+                continue;
+            }
+            t[0] += hr->calc(Hashrate::ShortInterval);
+            t[1] += hr->calc(Hashrate::MediumInterval);
+            t[2] += hr->calc(Hashrate::LargeInterval);
+        }
+        double hashrate = 0.0f;
+        if (!(hashrate = t[2]))
+            if (!(hashrate = t[1]))
+                if (!(hashrate = t[0]))
+                    hashrate = static_cast<double>(m_hash_count) * result.diff / (now - m_bench_start) * 1000.0f;
         m_bench_algo_perf[m_bench_algo] = hashrate; // store hashrate result
-        LOG_ALERT(" ===> %s hasrate: %f", Algorithm(ba2a[m_bench_algo]).shortName(), hashrate);
+        LOG_ALERT(" ===> %s hashrate: %f", Algorithm(ba2a[m_bench_algo]).shortName(), hashrate);
         run_next_bench_algo(m_bench_algo);
     }
 }

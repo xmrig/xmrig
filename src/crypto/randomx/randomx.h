@@ -184,6 +184,7 @@ struct RandomX_ConfigurationLoki : public RandomX_ConfigurationBase { RandomX_Co
 struct RandomX_ConfigurationArqma : public RandomX_ConfigurationBase { RandomX_ConfigurationArqma(); };
 struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_ConfigurationSafex(); };
 struct RandomX_ConfigurationKeva : public RandomX_ConfigurationBase { RandomX_ConfigurationKeva(); };
+struct RandomX_ConfigurationScala : public RandomX_ConfigurationBase { RandomX_ConfigurationScala(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
 extern RandomX_ConfigurationWownero RandomX_WowneroConfig;
@@ -191,6 +192,7 @@ extern RandomX_ConfigurationLoki RandomX_LokiConfig;
 extern RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 extern RandomX_ConfigurationSafex RandomX_SafexConfig;
 extern RandomX_ConfigurationKeva RandomX_KevaConfig;
+extern RandomX_ConfigurationScala RandomX_ScalaConfig;
 
 extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 
@@ -349,6 +351,20 @@ RANDOMX_EXPORT void randomx_calculate_hash(randomx_vm *machine, const void *inpu
 
 RANDOMX_EXPORT void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize);
 RANDOMX_EXPORT void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output);
+
+/**
+ * Calculates a RandomX hash value (Scala variant).
+ *
+ * @param machine is a pointer to a randomx_vm structure. Must not be NULL.
+ * @param input is a pointer to memory to be hashed. Must not be NULL.
+ * @param inputSize is the number of bytes to be hashed.
+ * @param output is a pointer to memory where the hash will be stored. Must not
+ *        be NULL and at least RANDOMX_HASH_SIZE bytes must be available for writing.
+*/
+RANDOMX_EXPORT void defyx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output);
+
+RANDOMX_EXPORT void defyx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize);
+RANDOMX_EXPORT void defyx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output);
 
 #if defined(__cplusplus)
 }

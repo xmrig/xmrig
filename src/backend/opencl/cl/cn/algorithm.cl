@@ -24,10 +24,11 @@
 #define ALGO_RX_ARQMA       23
 #define ALGO_RX_SFX         24
 #define ALGO_RX_KEVA        25
-#define ALGO_AR2_CHUKWA     26
-#define ALGO_AR2_WRKZ       27
-#define ALGO_ASTROBWT_DERO  28
-#define ALGO_KAWPOW_RVN     29
+#define ALGO_RX_DEFYX       26
+#define ALGO_AR2_CHUKWA     27
+#define ALGO_AR2_WRKZ       28
+#define ALGO_ASTROBWT_DERO  29
+#define ALGO_KAWPOW_RVN     30
 
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1

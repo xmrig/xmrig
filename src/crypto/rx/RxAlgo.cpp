@@ -26,7 +26,6 @@
 
 
 #include "crypto/randomx/randomx.h"
-#include "crypto/defyx/defyx.h"
 #include "crypto/rx/RxAlgo.h"
 
 
@@ -50,15 +49,14 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_ARQ:
         return &RandomX_ArqmaConfig;
 
-    case Algorithm::DEFYX:
-        return &RandomX_ScalaConfig;
-        break;
-
     case Algorithm::RX_SFX:
         return &RandomX_SafexConfig;
 
     case Algorithm::RX_KEVA:
         return &RandomX_KevaConfig;
+
+    case Algorithm::RX_DEFYX:
+        return &RandomX_ScalaConfig;
 
     default:
         break;

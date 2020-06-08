@@ -166,7 +166,13 @@ bool xmrig::Config::isShouldSave() const
     }
 #   endif
 
-    return (m_upgrade || cpu().isShouldSave() || m_benchmark.isNewBenchRun());
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (m_benchmark.isNewBenchRun()) {
+        return true;
+    }
+#   endif
+
+    return (m_upgrade || cpu().isShouldSave());
 }
 
 
@@ -177,7 +183,6 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     }
 
     d_ptr->cpu.read(reader.getValue(kCPU));
-    m_benchmark.read(reader.getValue("algo-perf"));
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (!d_ptr->rx.read(reader.getValue(kRandomX))) {
@@ -195,6 +200,10 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 
 #   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     d_ptr->healthPrintTime = reader.getUint(kHealthPrintTime, d_ptr->healthPrintTime);
+#   endif
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    m_benchmark.read(reader.getValue(kAlgoPerf));
 #   endif
 
     return true;
@@ -254,7 +263,9 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kVerbose),                  Log::verbose(), allocator);
     doc.AddMember(StringRef(kWatch),                    m_watch, allocator);
 
-    doc.AddMember("algo-perf",                  m_benchmark.toJSON(doc), allocator);
-    doc.AddMember("rebench-algo",               isRebenchAlgo(), allocator);
-    doc.AddMember("bench-algo-time",            benchAlgoTime(), allocator);
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    doc.AddMember(StringRef(kRebenchAlgo),              isRebenchAlgo(), allocator);
+    doc.AddMember(StringRef(kBenchAlgoTime),            benchAlgoTime(), allocator);
+    doc.AddMember(StringRef(kAlgoPerf),                 m_benchmark.toJSON(doc), allocator);
+#   endif
 }

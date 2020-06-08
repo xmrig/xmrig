@@ -82,8 +82,10 @@ public:
         NicehashKey          = 1006,
         PrintTimeKey         = 1007,
 
+#       ifdef XMRIG_FEATURE_BENCHMARK
         RebenchAlgoKey       = 10001,
         BenchAlgoTimeKey     = 10002,
+#       endif
 
         // xmrig cpu
         CPUKey               = 1024,

@@ -138,8 +138,8 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
         count += threads.move("rx/wow", std::move(wow));
     }
 
-    if (!threads.isExist(Algorithm::DEFYX)) {
-        count += generate("defyx", threads, Algorithm::DEFYX, limit);
+    if (!threads.isExist(Algorithm::RX_DEFYX)) {
+        count += generate("defyx", threads, Algorithm::RX_DEFYX, limit);
     }
 
     count += generate("rx", threads, Algorithm::RX_0, limit);
