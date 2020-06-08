@@ -79,6 +79,7 @@ public:
         case Algorithm::CN_HEAVY_TUBE:
         case Algorithm::CN_HEAVY_XHV:
 #       endif
+        case Algorithm::CN_CCX:
             return CN_ITER / 2;
 
         case Algorithm::CN_RWZ:
@@ -125,6 +126,7 @@ public:
         case Algorithm::CN_HEAVY_0:
         case Algorithm::CN_HEAVY_XHV:
 #       endif
+        case Algorithm::CN_CCX:
             return Algorithm::CN_0;
 
         case Algorithm::CN_1:
@@ -168,6 +170,7 @@ template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_XAO>::base() cons
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_LITE_0>::base() const        { return Algorithm::CN_0; }
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_0>::base() const       { return Algorithm::CN_0; }
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_XHV>::base() const     { return Algorithm::CN_0; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_CCX>::base() const           { return Algorithm::CN_0; }
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_1>::base() const             { return Algorithm::CN_1; }
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_FAST>::base() const          { return Algorithm::CN_1; }
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_RTO>::base() const           { return Algorithm::CN_1; }
@@ -188,6 +191,7 @@ template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_RWZ>::iterations() con
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_ZLS>::iterations() const          { return 0x60000; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::iterations() const       { return CN_ITER / 8; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_TLO>::iterations() const     { return CN_ITER / 8; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_CCX>::iterations() const          { return CN_ITER / 2; }
 
 
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_LITE_0>::memory() const             { return CN_MEMORY / 2; }

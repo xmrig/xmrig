@@ -67,8 +67,10 @@
 
 #ifdef _MSC_VER
 #   define VARIANT2_SET_ROUNDING_MODE() if (BASE == Algorithm::CN_2) { _control87(RC_DOWN, MCW_RC); }
+#   define RESTORE_ROUNDING_MODE() _control87(RC_NEAR, MCW_RC);
 #else
 #   define VARIANT2_SET_ROUNDING_MODE() if (BASE == Algorithm::CN_2) { fesetround(FE_DOWNWARD); }
+#   define RESTORE_ROUNDING_MODE() fesetround(FE_TONEAREST);
 #endif
 
 #   define VARIANT2_INTEGER_MATH(part, cl, cx) \
