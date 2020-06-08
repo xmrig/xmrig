@@ -56,6 +56,7 @@ public:
         CN_RWZ,        // "cn/rwz"           CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft).
         CN_ZLS,        // "cn/zls"           CryptoNight variant 2 with 3/4 iterations (Zelerius).
         CN_DOUBLE,     // "cn/double"        CryptoNight variant 2 with double iterations (X-CASH).
+        CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
         CN_LITE_0,     // "cn-lite/0"        CryptoNight-Lite variant 0.
         CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
         CN_HEAVY_0,    // "cn-heavy/0"       CryptoNight-Heavy (4 MB).

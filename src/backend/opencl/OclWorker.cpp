@@ -49,6 +49,10 @@
 #   include "backend/opencl/runners/OclKawPowRunner.h"
 #endif
 
+#ifdef XMRIG_ALGO_CN_GPU
+#   include "backend/opencl/runners/OclRyoRunner.h"
+#endif
+
 #include <cassert>
 #include <thread>
 
@@ -108,6 +112,12 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     case Algorithm::KAWPOW:
 #       ifdef XMRIG_ALGO_KAWPOW
         m_runner = new OclKawPowRunner(id, data);
+#       endif
+        break;
+
+    case Algorithm::CN_GPU:
+#       ifdef XMRIG_ALGO_CN_GPU
+        m_runner = new OclRyoRunner(id, data);
 #       endif
         break;
 

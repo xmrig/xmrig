@@ -90,6 +90,11 @@ public:
         case Algorithm::CN_DOUBLE:
             return CN_ITER * 2;
 
+#       ifdef XMRIG_ALGO_CN_GPU
+        case Algorithm::CN_GPU:
+            return 0xC000;
+#       endif
+
 #       ifdef XMRIG_ALGO_CN_PICO
         case Algorithm::CN_PICO_0:
         case Algorithm::CN_PICO_TLO:
@@ -105,6 +110,12 @@ public:
 
     inline static uint32_t mask(Algorithm::Id algo)
     {
+#       ifdef XMRIG_ALGO_CN_GPU
+        if (algo == Algorithm::CN_GPU) {
+            return 0x1FFFC0;
+        }
+#       endif
+
 #       ifdef XMRIG_ALGO_CN_PICO
         if (algo == Algorithm::CN_PICO_0) {
             return 0x1FFF0;
@@ -152,6 +163,11 @@ public:
 #       endif
             return Algorithm::CN_2;
 
+#       ifdef XMRIG_ALGO_CN_GPU
+        case Algorithm::CN_GPU:
+            return Algorithm::CN_GPU;
+#       endif
+
         default:
             break;
         }
@@ -189,6 +205,7 @@ template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_XAO>::iterations() con
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_DOUBLE>::iterations() const       { return CN_ITER * 2; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_RWZ>::iterations() const          { return 0x60000; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_ZLS>::iterations() const          { return 0x60000; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::iterations() const          { return 0xC000; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::iterations() const       { return CN_ITER / 8; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_TLO>::iterations() const     { return CN_ITER / 8; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_CCX>::iterations() const          { return CN_ITER / 2; }
@@ -203,6 +220,7 @@ template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_0>::memory() const 
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_TLO>::memory() const           { return CN_MEMORY / 8; }
 
 
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::mask() const                { return 0x1FFFC0; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const             { return 0x1FFF0; }
 
 
