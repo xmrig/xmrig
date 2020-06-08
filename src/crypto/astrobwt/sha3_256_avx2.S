@@ -51,3 +51,7 @@ KeccakF1600_AVX2_ASM:
 	lea r10,[rip+rndc]
 
 #include "sha3_256_keccakf1600_avx2.inc"
+
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
