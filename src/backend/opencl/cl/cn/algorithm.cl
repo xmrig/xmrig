@@ -21,7 +21,7 @@
 #define ALGO_RX_0           20
 #define ALGO_RX_WOW         21
 #define ALGO_RX_LOKI        22
-#define ALGO_RX_ARQMA       23
+#define ALGO_RX_ARQ         23
 #define ALGO_RX_SFX         24
 #define ALGO_RX_KEVA        25
 #define ALGO_RX_DEFYX       26

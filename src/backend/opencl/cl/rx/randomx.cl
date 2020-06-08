@@ -6,7 +6,7 @@
 #include "randomx_constants_wow.h"
 #elif (ALGO == ALGO_RX_LOKI)
 #include "randomx_constants_loki.h"
-#elif (ALGO == ALGO_RX_ARQMA)
+#elif (ALGO == ALGO_RX_ARQ)
 #include "randomx_constants_arqma.h"
 #elif (ALGO == ALGO_RX_KEVA)
 #include "randomx_constants_keva.h"
