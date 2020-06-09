@@ -91,3 +91,13 @@ const char *xmrig::Tags::opencl()
     return tag;
 }
 #endif
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+const char *xmrig::Tags::benchmark()
+{
+    static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " benchmk ");
+
+    return tag;
+}
+#endif

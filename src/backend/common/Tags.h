@@ -52,6 +52,11 @@ const char *rx_tag();
 #endif
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
+const char *bm_tag();
+#endif
+
+
 } // namespace xmrig
 
 
