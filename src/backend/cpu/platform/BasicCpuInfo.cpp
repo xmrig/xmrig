@@ -119,10 +119,24 @@ static inline int32_t get_masked(int32_t val, int32_t h, int32_t l)
 }
 
 
+static inline uint64_t xgetbv()
+{
+#ifdef _MSC_VER
+    return _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
+#else
+    uint32_t eax_reg = 0;
+    uint32_t edx_reg = 0;
+    __asm__ __volatile__("xgetbv": "=a"(eax_reg), "=d"(edx_reg) : "c"(0) : "cc");
+    return (static_cast<uint64_t>(edx_reg) << 32) | eax_reg;
+#endif
+}
+
+static inline bool has_xcr_avx2()   { return (xgetbv() & 0x06) == 0x06; }
+static inline bool has_xcr_avx512() { return (xgetbv() & 0xE6) == 0xE6; }
 static inline bool has_osxsave()    { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 27); }
 static inline bool has_aes_ni()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 25); }
-static inline bool has_avx2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 5) && has_osxsave(); }
-static inline bool has_avx512f()    { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 16) && has_osxsave(); }
+static inline bool has_avx2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 5) && has_osxsave() && has_xcr_avx2(); }
+static inline bool has_avx512f()    { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 16) && has_osxsave() && has_xcr_avx512(); }
 static inline bool has_bmi2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 8); }
 static inline bool has_pdpe1gb()    { return has_feature(PROCESSOR_EXT_INFO,    EDX_Reg, 1 << 26); }
 static inline bool has_sse2()       { return has_feature(PROCESSOR_INFO,        EDX_Reg, 1 << 26); }
