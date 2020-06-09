@@ -309,7 +309,10 @@ void xmrig_ar2_fill_segment_avx512f(const argon2_instance_t *instance, argon2_po
 }
 
 extern int cpu_flags_has_avx512f(void);
-int xmrig_ar2_check_avx512f(void) { return cpu_flags_has_avx512f(); }
+
+// Argon2 AVX-512F implementation is broken
+// TODO: enable it back when it's fixed
+int xmrig_ar2_check_avx512f(void) { return 0 /*cpu_flags_has_avx512f()*/; }
 
 #else
 
