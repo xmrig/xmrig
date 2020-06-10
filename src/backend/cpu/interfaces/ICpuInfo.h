@@ -61,6 +61,7 @@ public:
         FLAG_SSE2,
         FLAG_SSSE3,
         FLAG_XOP,
+        FLAG_POPCNT,
         FLAG_MAX
     };
 
