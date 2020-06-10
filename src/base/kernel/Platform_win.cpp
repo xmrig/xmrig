@@ -34,7 +34,7 @@
 
 static inline OSVERSIONINFOEX winOsVersion()
 {
-    using RtlGetVersionFunction = NTSTATUS (*)(LPOSVERSIONINFO);
+    typedef NTSTATUS (NTAPI *RtlGetVersionFunction)(LPOSVERSIONINFO);
     OSVERSIONINFOEX result = { sizeof(OSVERSIONINFOEX), 0, 0, 0, 0, {'\0'}, 0, 0, 0, 0, 0};
 
     HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
