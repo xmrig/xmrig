@@ -213,16 +213,17 @@ static void E8(hashState *state)
 /*The compression function F8 */
 static void F8(hashState *state)
 {
-      uint64  i;
+      uint64_t* x = (uint64_t*)state->x;
+      const uint64_t* buf = (uint64*)state->buffer;
 
       /*xor the 512-bit message with the fist half of the 1024-bit hash state*/
-      for (i = 0; i < 8; i++)  state->x[i >> 1][i & 1] ^= ((uint64*)state->buffer)[i];
+      for (int i = 0; i < 8; ++i) x[i] ^= buf[i];
 
       /*the bijective function E8 */
       E8(state);
 
       /*xor the 512-bit message with the second half of the 1024-bit hash state*/
-      for (i = 0; i < 8; i++)  state->x[(8+i) >> 1][(8+i) & 1] ^= ((uint64*)state->buffer)[i];
+      for (int i = 0; i < 8; ++i) x[i + 8] ^= buf[i];
 }
 
 /*before hashing a message, initialize the hash state as H0 */
@@ -240,6 +241,7 @@ static HashReturn Init(hashState *state, int hashbitlen)
             case 224: memcpy(state->x,JH224_H0,128); break;
             case 256: memcpy(state->x,JH256_H0,128); break;
             case 384: memcpy(state->x,JH384_H0,128); break;
+            default:
             case 512: memcpy(state->x,JH512_H0,128); break;
       }
 
