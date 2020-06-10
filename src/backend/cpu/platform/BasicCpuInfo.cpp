@@ -142,6 +142,7 @@ static inline bool has_pdpe1gb()    { return has_feature(PROCESSOR_EXT_INFO,    
 static inline bool has_sse2()       { return has_feature(PROCESSOR_INFO,        EDX_Reg, 1 << 26); }
 static inline bool has_ssse3()      { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 9); }
 static inline bool has_xop()        { return has_feature(0x80000001,            ECX_Reg, 1 << 11); }
+static inline bool has_popcnt()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 23); }
 
 
 } // namespace xmrig
@@ -176,6 +177,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_flags.set(FLAG_SSE2,    has_sse2());
     m_flags.set(FLAG_SSSE3,   has_ssse3());
     m_flags.set(FLAG_XOP,     has_xop());
+    m_flags.set(FLAG_POPCNT,  has_popcnt());
 
 #   ifdef XMRIG_FEATURE_ASM
     if (hasAES()) {
