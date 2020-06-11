@@ -29,6 +29,7 @@
 #include "base/tools/Object.h"
 #include "net/interfaces/IJobResultListener.h"
 #include "net/JobResult.h"
+#include "backend/common/Tags.h"
 
 
 #ifdef XMRIG_ALGO_RANDOMX
@@ -66,15 +67,17 @@ namespace xmrig {
 class JobBundle
 {
 public:
-    inline JobBundle(const Job &job, uint32_t *results, size_t count) :
+    inline JobBundle(const Job &job, uint32_t *results, size_t count, uint32_t device_index) :
         job(job),
-        nonces(count)
+        nonces(count),
+        device_index(device_index)
     {
         memcpy(nonces.data(), results, sizeof(uint32_t) * count);
     }
 
     Job job;
     std::vector<uint32_t> nonces;
+    uint32_t device_index;
 };
 
 
@@ -101,7 +104,7 @@ static inline void checkHash(const JobBundle &bundle, std::vector<JobResult> &re
         results.emplace_back(bundle.job, nonce, hash);
     }
     else {
-        LOG_ERR("COMPUTE ERROR"); // TODO Extend information.
+        LOG_ERR("%s " RED_S "GPU #%u COMPUTE ERROR", backend_tag(bundle.job.backend()), bundle.device_index);
         errors++;
     }
 }
@@ -165,7 +168,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
                 results.emplace_back(bundle.job, full_nonce, (uint8_t*)output, bundle.job.blob(), (uint8_t*)mix_hash);
             }
             else {
-                LOG_ERR("COMPUTE ERROR"); // TODO Extend information.
+                LOG_ERR("%s " RED_S "GPU #%u COMPUTE ERROR", backend_tag(bundle.job.backend()), bundle.device_index);
                 ++errors;
             }
         }
@@ -221,10 +224,10 @@ public:
 
 
 #   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
-    inline void submit(const Job &job, uint32_t *results, size_t count)
+    inline void submit(const Job &job, uint32_t *results, size_t count, uint32_t device_index)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        m_bundles.emplace_back(job, results, count);
+        m_bundles.emplace_back(job, results, count, device_index);
 
         uv_async_send(m_async);
     }
@@ -351,10 +354,10 @@ void xmrig::JobResults::submit(const JobResult &result)
 
 
 #if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
-void xmrig::JobResults::submit(const Job &job, uint32_t *results, size_t count)
+void xmrig::JobResults::submit(const Job &job, uint32_t *results, size_t count, uint32_t device_index)
 {
     if (handler) {
-        handler->submit(job, results, count);
+        handler->submit(job, results, count, device_index);
     }
 }
 #endif

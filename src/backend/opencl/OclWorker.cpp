@@ -79,7 +79,8 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     m_algorithm(data.algorithm),
     m_miner(data.miner),
     m_intensity(data.thread.intensity()),
-    m_sharedData(OclSharedState::get(data.device.index()))
+    m_sharedData(OclSharedState::get(data.device.index())),
+    m_deviceIndex(data.device.index())
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -200,7 +201,7 @@ void xmrig::OclWorker::start()
             }
 
             if (results[0xFF] > 0) {
-                JobResults::submit(m_job.currentJob(), results, results[0xFF]);
+                JobResults::submit(m_job.currentJob(), results, results[0xFF], m_deviceIndex);
             }
 
             if (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence()) && !m_job.nextRound(roundSize(runnerRoundSize), runnerRoundSize)) {
