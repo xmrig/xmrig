@@ -41,11 +41,11 @@ class Benchmark : public IJobResultListener {
             AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ).
             ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero).
             KAWPOW_RVN,    // "kawpow/rvn"       KawPow (RVN).
+            RX_DEFYX,      // "defyx             DefyX.
             RX_0,          // "rx/0"             RandomX (Monero).
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
             RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
             RX_KEVA,       // "rx/keva"          RandomKEVA (Keva).
-            RX_DEFYX,      // "defyx             DefyX.
             MAX,
             MIN = 0,
             INVALID = -1,
@@ -62,11 +62,11 @@ class Benchmark : public IJobResultListener {
             Algorithm::AR2_WRKZ,
             Algorithm::ASTROBWT_DERO,
             Algorithm::KAWPOW_RVN,
+            Algorithm::RX_DEFYX,
             Algorithm::RX_0,
             Algorithm::RX_WOW,
             Algorithm::RX_ARQ,
             Algorithm::RX_KEVA,
-            Algorithm::RX_DEFYX,
         };
 
         Job* m_bench_job[BenchAlgo::MAX];
