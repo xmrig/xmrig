@@ -63,6 +63,7 @@ const char *xmrig::OclSource::get(const Algorithm &algorithm)
 #   ifdef XMRIG_ALGO_KAWPOW
     if (algorithm.family() == Algorithm::KAWPOW) {
         return kawpow_dag_cl;
+    }
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_GPU
