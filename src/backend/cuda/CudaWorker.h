@@ -66,6 +66,7 @@ private:
     const Miner *m_miner;
     ICudaRunner *m_runner = nullptr;
     WorkerJob<1> m_job;
+    uint32_t m_deviceIndex;
 };
 
 

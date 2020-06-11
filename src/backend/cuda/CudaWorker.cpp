@@ -27,6 +27,7 @@
 #include "backend/cuda/CudaWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/cuda/runners/CudaCnRunner.h"
+#include "backend/cuda/wrappers/CudaDevice.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
 #include "core/Miner.h"
@@ -71,7 +72,8 @@ static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / in
 xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     Worker(id, data.thread.affinity(), -1),
     m_algorithm(data.algorithm),
-    m_miner(data.miner)
+    m_miner(data.miner),
+    m_deviceIndex(data.device.index())
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -165,7 +167,7 @@ void xmrig::CudaWorker::start()
             }
 
             if (foundCount) {
-                JobResults::submit(m_job.currentJob(), foundNonce, foundCount);
+                JobResults::submit(m_job.currentJob(), foundNonce, foundCount, m_deviceIndex);
             }
 
             const size_t batch_size = intensity();
