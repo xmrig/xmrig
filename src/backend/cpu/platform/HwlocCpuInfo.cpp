@@ -318,12 +318,6 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        cacheHashes = PUs;
-    }
-#   endif
-
 #   ifdef XMRIG_ALGO_RANDOMX
     if (extra == 0 && algorithm.l2() > 0) {
         cacheHashes = std::min<size_t>(std::max<size_t>(L2 / algorithm.l2(), cores.size()), cacheHashes);

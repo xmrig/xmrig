@@ -67,9 +67,9 @@ public:
     cl_program program;
 
 private:
-    const Algorithm m_algo;
-    const uint32_t m_index;
-    const uint64_t m_offset;
+    Algorithm m_algo;
+    uint32_t m_index;
+    uint64_t m_offset;
 };
 
 
@@ -126,10 +126,11 @@ private:
     void gc(uint64_t offset)
     {
         for (size_t i = 0; i < m_data.size();) {
-            const auto &entry = m_data[i];
+            auto &entry = m_data[i];
 
             if (entry.isExpired(offset)) {
-                m_data.back().release();
+                entry.release();
+                entry = m_data.back();
                 m_data.pop_back();
             }
             else {

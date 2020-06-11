@@ -24,6 +24,7 @@
 
 
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
+#include "3rdparty/rapidjson/document.h"
 #include "base/kernel/interfaces/IClient.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/Platform.h"
@@ -65,7 +66,7 @@ void xmrig::SinglePoolStrategy::resume()
         return;
     }
 
-    m_listener->onJob(this, m_client, m_client->job());
+    m_listener->onJob(this, m_client, m_client->job(), rapidjson::Value(rapidjson::kNullType));
 }
 
 
@@ -104,9 +105,9 @@ void xmrig::SinglePoolStrategy::onClose(IClient *, int)
 }
 
 
-void xmrig::SinglePoolStrategy::onJobReceived(IClient *client, const Job &job, const rapidjson::Value &)
+void xmrig::SinglePoolStrategy::onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params)
 {
-    m_listener->onJob(this, client, job);
+    m_listener->onJob(this, client, job, params);
 }
 
 

@@ -92,6 +92,8 @@ static const option options[] = {
     { "verbose",               0, nullptr, IConfig::VerboseKey            },
     { "proxy",                 1, nullptr, IConfig::ProxyKey              },
     { "data-dir",              1, nullptr, IConfig::DataDirKey            },
+    { "title",                 1, nullptr, IConfig::TitleKey              },
+    { "no-title",              0, nullptr, IConfig::NoTitleKey            },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },

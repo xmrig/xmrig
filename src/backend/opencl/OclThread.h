@@ -51,20 +51,6 @@ public:
         setIntensity(intensity);
     }
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t threads, uint32_t unrollFactor) :
-        m_fields(0),
-        m_threads(threads, -1),
-        m_index(index),
-        m_memChunk(0),
-        m_stridedIndex(0),
-        m_unrollFactor(unrollFactor),
-        m_worksize(worksize)
-    {
-        setIntensity(intensity);
-    }
-#   endif
-
 #   ifdef XMRIG_ALGO_RANDOMX
     OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t threads, bool gcnAsm, bool datasetHost, uint32_t bfactor) :
         m_datasetHost(datasetHost),
@@ -95,6 +81,20 @@ public:
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_KAWPOW
+    OclThread(uint32_t index, uint32_t intensity, uint32_t worksize, uint32_t threads) :
+        m_fields(8),
+        m_threads(threads, -1),
+        m_index(index),
+        m_memChunk(0),
+        m_stridedIndex(0),
+        m_unrollFactor(1),
+        m_worksize(worksize)
+    {
+        setIntensity(intensity);
+    }
+#   endif
+
     OclThread(const rapidjson::Value &value);
 
     inline bool isAsm() const                               { return m_gcnAsm; }
@@ -120,6 +120,7 @@ private:
         STRIDED_INDEX_FIELD,
         RANDOMX_FIELDS,
         ASTROBWT_FIELDS,
+        KAWPOW_FIELDS,
         FIELD_MAX
     };
 

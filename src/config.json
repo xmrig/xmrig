@@ -15,6 +15,7 @@
     "bench-algo-time": 10,
     "background": false,
     "colors": true,
+    "title": true,
     "randomx": {
         "init": -1,
         "mode": "auto",
@@ -35,9 +36,9 @@
         "argon2-impl": null,
         "astrobwt-max-size": 550,
         "cn/0": false,
-        "cn-lite/0": false
+        "cn-lite/0": false,
+        "kawpow": false
     },
-    "donate-level": 1,
     "opencl": {
         "enabled": false,
         "cache": true,
@@ -54,6 +55,7 @@
         "cn/0": false,
         "cn-lite/0": false
     },
+    "donate-level": 1,
     "donate-over-proxy": 1,
     "log-file": null,
     "pools": [

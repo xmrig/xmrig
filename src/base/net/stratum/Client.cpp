@@ -161,7 +161,7 @@ int64_t xmrig::Client::send(const rapidjson::Value &obj)
 
     const size_t size = buffer.GetSize();
     if (size > kMaxSendBufferSize) {
-        LOG_ERR("[%s] send failed: \"max send buffer size exceeded: %zu\"", url(), size);
+        LOG_ERR("%s " RED("send failed: ") RED_BOLD("\"max send buffer size exceeded: %zu\""), tag(), size);
         close();
 
         return -1;
@@ -307,7 +307,7 @@ void xmrig::Client::onResolved(const Dns &dns, int status)
 
     if (status < 0 && dns.isEmpty()) {
         if (!isQuiet()) {
-            LOG_ERR("[%s] DNS error: \"%s\"", url(), uv_strerror(status));
+            LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(status));
         }
 
         return reconnect();
@@ -420,10 +420,6 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
     }
 
     if (m_pool.mode() != Pool::MODE_SELF_SELECT && job.algorithm().family() == Algorithm::RANDOM_X && !job.setSeedHash(Json::getString(params, "seed_hash"))) {
-        if (!isQuiet()) {
-            LOG_ERR("[%s] failed to parse field \"seed_hash\" required by RandomX", url(), algo);
-        }
-
         *code = 7;
         return false;
     }
@@ -441,28 +437,11 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
     }
 
     if (!isQuiet()) {
-        LOG_WARN("[%s] duplicate job received, reconnect", url());
+        LOG_WARN("%s " YELLOW("duplicate job received, reconnect"), tag());
     }
 
     close();
     return false;
-}
-
-
-bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
-{
-    m_rpcId = result["id"].GetString();
-    if (m_rpcId.isNull()) {
-        *code = 1;
-        return false;
-    }
-
-    parseExtensions(result);
-
-    const bool rc = parseJob(result["job"], code);
-    m_jobs = 0;
-
-    return rc;
 }
 
 
@@ -500,10 +479,10 @@ bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo
     if (!algorithm.isValid()) {
         if (!isQuiet()) {
             if (algo == nullptr) {
-                LOG_ERR("[%s] unknown algorithm, make sure you set \"algo\" or \"coin\" option", url(), algo);
+                LOG_ERR("%s " RED("unknown algorithm, make sure you set \"algo\" or \"coin\" option"), tag(), algo);
             }
             else {
-                LOG_ERR("[%s] unsupported algorithm \"%s\" detected, reconnect", url(), algo);
+                LOG_ERR("%s " RED("unsupported algorithm ") RED_BOLD("\"%s\" ") RED("detected, reconnect"), tag(), algo);
             }
         }
 
@@ -514,7 +493,7 @@ bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo
     m_listener->onVerifyAlgorithm(this, algorithm, &ok);
 
     if (!ok && !isQuiet()) {
-        LOG_ERR("[%s] incompatible/disabled algorithm \"%s\" detected, reconnect", url(), algorithm.shortName());
+        LOG_ERR("%s " RED("incompatible/disabled algorithm ") RED_BOLD("\"%s\" ") RED("detected, reconnect"), tag(), algorithm.shortName());
     }
 
     return ok;
@@ -529,7 +508,7 @@ bool xmrig::Client::write(const uv_buf_t &buf)
     }
 
     if (!isQuiet()) {
-        LOG_ERR("[%s] write error: \"%s\"", url(), uv_strerror(rc));
+        LOG_ERR("%s " RED("write error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(rc));
     }
 
     close();
@@ -550,7 +529,7 @@ int xmrig::Client::resolve(const String &host)
 
     if (!m_dns->resolve(host)) {
         if (!isQuiet()) {
-            LOG_ERR("[%s:%u] getaddrinfo error: \"%s\"", host.data(), m_pool.port(), uv_strerror(m_dns->status()));
+            LOG_ERR("%s " RED("getaddrinfo error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(m_dns->status()));
         }
 
         return 1;
@@ -633,6 +612,23 @@ void xmrig::Client::handshake()
 }
 
 
+bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
+{
+    setRpcId(Json::getString(result, "id"));
+    if (rpcId().isNull()) {
+        *code = 1;
+        return false;
+    }
+
+    parseExtensions(result);
+
+    const bool rc = parseJob(result["job"], code);
+    m_jobs = 0;
+
+    return rc;
+}
+
+
 void xmrig::Client::login()
 {
     using namespace rapidjson;
@@ -644,7 +640,7 @@ void xmrig::Client::login()
     Value params(kObjectType);
     params.AddMember("login", m_user.toJSON(),     allocator);
     params.AddMember("pass",  m_password.toJSON(), allocator);
-    params.AddMember("agent", StringRef(m_agent),         allocator);
+    params.AddMember("agent", StringRef(m_agent),  allocator);
 
     if (!m_rigId.isNull()) {
         params.AddMember("rigid", m_rigId.toJSON(), allocator);
@@ -684,7 +680,7 @@ void xmrig::Client::parse(char *line, size_t len)
 
     if (len < 32 || line[0] != '{') {
         if (!isQuiet()) {
-            LOG_ERR("[%s] JSON decode failed", url());
+            LOG_ERR("%s " RED("JSON decode failed"), tag());
         }
 
         return;
@@ -693,7 +689,7 @@ void xmrig::Client::parse(char *line, size_t len)
     rapidjson::Document doc;
     if (doc.ParseInsitu(line).HasParseError()) {
         if (!isQuiet()) {
-            LOG_ERR("[%s] JSON decode failed: \"%s\"", url(), rapidjson::GetParseError_En(doc.GetParseError()));
+            LOG_ERR("%s " RED("JSON decode failed: ") RED_BOLD("\"%s\""), tag(), rapidjson::GetParseError_En(doc.GetParseError()));
         }
 
         return;
@@ -703,13 +699,28 @@ void xmrig::Client::parse(char *line, size_t len)
         return;
     }
 
-    const rapidjson::Value &id = doc["id"];
+    const auto &id    = Json::getValue(doc, "id");
+    const auto &error = Json::getValue(doc, "error");
+
     if (id.IsInt64()) {
-        parseResponse(id.GetInt64(), doc["result"], doc["error"]);
+        return parseResponse(id.GetInt64(), Json::getValue(doc, "result"), error);
     }
-    else {
-        parseNotification(doc["method"].GetString(), doc["params"], doc["error"]);
+
+    const char *method = Json::getString(doc, "method");
+    if (!method) {
+        return;
     }
+
+    if (error.IsObject()) {
+        if (!isQuiet()) {
+            LOG_ERR("%s " RED("error: ") RED_BOLD("\"%s\"") RED(", code: ") RED_BOLD("%d"),
+                    tag(), Json::getString(error, "message"), Json::getInt(error, "code"));
+        }
+
+        return;
+    }
+
+    parseNotification(method, Json::getValue(doc, "params"), error);
 }
 
 
@@ -755,19 +766,8 @@ void xmrig::Client::parseExtensions(const rapidjson::Value &result)
 }
 
 
-void xmrig::Client::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error)
+void xmrig::Client::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &)
 {
-    if (error.IsObject()) {
-        if (!isQuiet()) {
-            LOG_ERR("[%s] error: \"%s\", code: %d", url(), error["message"].GetString(), error["code"].GetInt());
-        }
-        return;
-    }
-
-    if (!method) {
-        return;
-    }
-
     if (strcmp(method, "job") == 0) {
         int code = -1;
         if (parseJob(params, &code)) {
@@ -779,8 +779,6 @@ void xmrig::Client::parseNotification(const char *method, const rapidjson::Value
 
         return;
     }
-
-    LOG_WARN("[%s] unsupported method: \"%s\"", url(), method);
 }
 
 
@@ -794,7 +792,7 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
         const char *message = error["message"].GetString();
 
         if (!handleSubmitResponse(id, message) && !isQuiet()) {
-            LOG_ERR("[%s] error: " RED_BOLD("\"%s\"") RED_S ", code: %d", url(), message, error["code"].GetInt());
+            LOG_ERR("%s " RED("error: ") RED_BOLD("\"%s\"") RED(", code: ") RED_BOLD("%d"), tag(), message, Json::getInt(error, "code"));
         }
 
         if (m_id == 1 || isCriticalError(message)) {
@@ -812,7 +810,7 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
         int code = -1;
         if (!parseLogin(result, &code)) {
             if (!isQuiet()) {
-                LOG_ERR("[%s] login error code: %d", url(), code);
+                LOG_ERR("%s " RED("login error code: ") RED_BOLD("%d"), tag(), code);
             }
 
             close();
@@ -821,7 +819,11 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
 
         m_failures = 0;
         m_listener->onLoginSuccess(this);
-        m_listener->onJobReceived(this, m_job, result["job"]);
+
+        if (m_job.isValid()) {
+            m_listener->onJobReceived(this, m_job, result["job"]);
+        }
+
         return;
     }
 
@@ -840,10 +842,9 @@ void xmrig::Client::ping()
 void xmrig::Client::read(ssize_t nread, const uv_buf_t *buf)
 {
     const auto size = static_cast<size_t>(nread);
-
     if (nread < 0) {
         if (!isQuiet()) {
-            LOG_ERR("[%s] read error: \"%s\"", url(), uv_strerror(static_cast<int>(nread)));
+            LOG_ERR("%s " RED("read error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(static_cast<int>(nread)));
         }
 
         close();
@@ -972,7 +973,7 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
 
     if (status < 0) {
         if (!client->isQuiet()) {
-            LOG_ERR("[%s] connect error: \"%s\"", client->url(), uv_strerror(status));
+            LOG_ERR("%s " RED("connect error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(status));
         }
 
         if (client->state() == ReconnectingState || client->state() == ClosingState) {
@@ -980,10 +981,6 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
         }
 
         if (client->state() != ConnectingState) {
-            if (!client->isQuiet()) {
-                LOG_ERR("[%s] connect error: \"invalid state: %d\"", client->url(), client->state());
-            }
-
             return;
         }
 
@@ -992,8 +989,6 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
     }
 
     if (client->state() == ConnectedState) {
-        LOG_ERR("[%s] already connected", client->url());
-
         return;
     }
 

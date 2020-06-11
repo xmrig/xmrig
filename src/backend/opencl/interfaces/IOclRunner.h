@@ -66,6 +66,7 @@ public:
     virtual void init()                                     = 0;
     virtual void run(uint32_t nonce, uint32_t *hashOutput)  = 0;
     virtual void set(const Job &job, uint8_t *blob)         = 0;
+    virtual void jobEarlyNotification(const Job&)           = 0;
 
 protected:
     virtual size_t bufferSize() const                       = 0;

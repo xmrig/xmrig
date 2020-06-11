@@ -27,8 +27,6 @@
 #include "backend/cuda/CudaLaunchData.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/net/stratum/Job.h"
-#include "crypto/rx/Rx.h"
-#include "crypto/rx/RxDataset.h"
 
 
 constexpr uint32_t xmrig::CudaAstroBWTRunner::BWT_DATA_STRIDE;

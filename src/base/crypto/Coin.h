@@ -42,7 +42,9 @@ public:
         MONERO,
         ARQMA,
         DERO,
-        KEVA
+        KEVA,
+        RAVEN,
+        CONCEAL
     };
 
 
@@ -55,7 +57,7 @@ public:
     inline bool isValid() const                         { return m_id != INVALID; }
     inline Id id() const                                { return m_id; }
 
-    Algorithm::Id algorithm(uint8_t blobVersion) const;
+    Algorithm::Id algorithm(uint8_t blobVersion = 255) const;
     const char *name() const;
     rapidjson::Value toJSON() const;
 

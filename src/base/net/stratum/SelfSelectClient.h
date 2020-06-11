@@ -55,6 +55,7 @@ protected:
     inline bool isEnabled() const override                                          { return m_client->isEnabled(); }
     inline bool isTLS() const override                                              { return m_client->isTLS(); }
     inline const char *mode() const override                                        { return m_client->mode(); }
+    inline const char *tag() const override                                         { return m_client->tag(); }
     inline const char *tlsFingerprint() const override                              { return m_client->tlsFingerprint(); }
     inline const char *tlsVersion() const override                                  { return m_client->tlsVersion(); }
     inline const Job &job() const override                                          { return m_job; }

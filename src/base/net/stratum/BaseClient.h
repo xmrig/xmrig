@@ -49,6 +49,7 @@ public:
 
 protected:
     inline bool isEnabled() const override                     { return m_enabled; }
+    inline const char *tag() const override                    { return m_tag.c_str(); }
     inline const Job &job() const override                     { return m_job; }
     inline const Pool &pool() const override                   { return m_pool; }
     inline const String &ip() const override                   { return m_ip; }
@@ -83,7 +84,7 @@ protected:
 
     inline bool isQuiet() const { return m_quiet || m_failures >= m_retries; }
 
-    bool handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
+    virtual bool handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     bool handleSubmitResponse(int64_t id, const char *error = nullptr);
 
     bool m_quiet                    = false;
@@ -96,6 +97,7 @@ protected:
     SocketState m_state             = UnconnectedState;
     std::map<int64_t, SendResult> m_callbacks;
     std::map<int64_t, SubmitResult> m_results;
+    std::string m_tag;
     String m_ip;
     String m_password;
     String m_rigId;

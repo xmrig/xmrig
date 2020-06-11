@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -22,49 +23,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLRYORUNNER_H
-#define XMRIG_OCLRYORUNNER_H
 
-
-#include "backend/opencl/runners/OclBaseRunner.h"
+#include "backend/opencl/OclThreads.h"
+#include "backend/opencl/wrappers/OclDevice.h"
+#include "base/crypto/Algorithm.h"
+#include "crypto/randomx/randomx.h"
+#include "crypto/rx/RxAlgo.h"
 
 
 namespace xmrig {
 
 
-class Cn00RyoKernel;
-class Cn0Kernel;
-class Cn1RyoKernel;
-class Cn2RyoKernel;
-
-
-class OclRyoRunner : public OclBaseRunner
+bool ocl_generic_kawpow_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads)
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclRyoRunner)
+    if (algorithm.family() != Algorithm::KAWPOW) {
+        return false;
+    }
 
-    OclRyoRunner(size_t index, const OclLaunchData &data);
+    bool isNavi = false;
 
-    ~OclRyoRunner() override;
+    switch (device.type()) {
+    case OclDevice::Navi_10:
+    case OclDevice::Navi_12:
+    case OclDevice::Navi_14:
+        isNavi = true;
+        break;
 
-protected:
-    size_t bufferSize() const override;
-    void run(uint32_t nonce, uint32_t *hashOutput) override;
-    void set(const Job &job, uint8_t *blob) override;
-    void build() override;
-    void init() override;
+    default:
+        break;
+    }
 
-private:
-    cl_mem m_scratchpads    = nullptr;
-    cl_mem m_states         = nullptr;
-    Cn00RyoKernel *m_cn00   = nullptr;
-    Cn0Kernel *m_cn0        = nullptr;
-    Cn1RyoKernel *m_cn1     = nullptr;
-    Cn2RyoKernel *m_cn2     = nullptr;
-};
+    const uint32_t cu_intensity = isNavi ? 524288 : 262144;
+    const uint32_t worksize = isNavi ? 128 : 256;
+    threads.add(OclThread(device.index(), device.computeUnits() * cu_intensity, worksize, 1));
 
-
-} /* namespace xmrig */
+    return true;
+}
 
 
-#endif // XMRIG_OCLRYORUNNER_H
+} // namespace xmrig

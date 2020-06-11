@@ -50,7 +50,7 @@
 namespace xmrig {
 
 
-static const char *tag      = YELLOW_BG_BOLD(WHITE_BOLD_S " msr ") " ";
+static const char *tag = YELLOW_BG_BOLD(WHITE_BOLD_S " msr     ") " ";
 static MsrItems savedState;
 
 
