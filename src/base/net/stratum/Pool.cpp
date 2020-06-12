@@ -74,6 +74,9 @@ const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
 
 
+const char *Pool::kNicehashHost = "nicehash.com";
+
+
 }
 
 
@@ -94,7 +97,7 @@ xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char 
     m_pollInterval(kDefaultPollInterval),
     m_url(host, port, tls)
 {
-    m_flags.set(FLAG_NICEHASH, nicehash);
+    m_flags.set(FLAG_NICEHASH, nicehash || strstr(host, kNicehashHost));
     m_flags.set(FLAG_TLS,      tls);
 }
 
@@ -119,7 +122,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_proxy        = Json::getValue(object, kSOCKS5);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
-    m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
+    m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash) || m_url.host().contains(kNicehashHost));
     m_flags.set(FLAG_TLS,      Json::getBool(object, kTls) || m_url.isTLS());
 
     if (m_daemon.isValid()) {

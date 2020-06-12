@@ -145,6 +145,22 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         return;
     }
 
+    if (strcmp(method, "mining.set_extranonce") == 0) {
+        if (!params.IsArray()) {
+            LOG_ERR("%s " RED("invalid mining.set_extranonce notification: params is not an array"), tag());
+            return;
+        }
+
+        auto arr = params.GetArray();
+
+        if (arr.Empty()) {
+            LOG_ERR("%s " RED("invalid mining.set_extranonce notification: params array is empty"), tag());
+            return;
+        }
+
+        setExtraNonce(arr[0]);
+    }
+
     if (strcmp(method, "mining.notify") == 0) {
         if (!params.IsArray()) {
             LOG_ERR("%s " RED("invalid mining.notify notification: params is not an array"), tag());
@@ -345,6 +361,14 @@ void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result
         }
 
         setExtraNonce(result.GetArray()[1]);
+
+        if (m_pool.isNicehash()) {
+            using namespace rapidjson;
+            Document doc(kObjectType);
+            Value params(kArrayType);
+            JsonRequest::create(doc, m_sequence, "mining.extranonce.subscribe", params);
+            send(doc);
+        }
     } catch (const std::exception &ex) {
         LOG_ERR("%s " RED("%s"), tag(), ex.what());
 

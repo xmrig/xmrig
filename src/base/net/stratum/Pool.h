@@ -71,6 +71,7 @@ public:
     static const char *kTls;
     static const char *kUrl;
     static const char *kUser;
+    static const char *kNicehashHost;
 
     constexpr static int kKeepAliveTimeout         = 60;
     constexpr static uint16_t kDefaultPort         = 3333;
