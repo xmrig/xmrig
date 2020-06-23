@@ -1,4 +1,5 @@
 # v5.11.4
+- [#1726](https://github.com/xmrig/xmrig/issues/1726) Fixed detection of AVX2/AVX512.
 - [#1728](https://github.com/xmrig/xmrig/issues/1728) Fixed, 32 bit Windows builds was crash on start.
 - Fixed AMD GPU health (temperatures/power/clocks/fans) readings on Linux.
 
