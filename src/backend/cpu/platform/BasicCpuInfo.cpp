@@ -57,7 +57,7 @@
 namespace xmrig {
 
 
-static const std::array<const char *, ICpuInfo::FLAG_MAX> flagNames     = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "xop" };
+static const std::array<const char *, ICpuInfo::FLAG_MAX> flagNames     = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "xop", "popcnt" };
 static const std::array<const char *, ICpuInfo::MSR_MOD_MAX> msrNames   = { "none", "ryzen", "intel", "custom" };
 
 
