@@ -47,6 +47,7 @@ namespace xmrig {
 
 class Hashrate;
 class WorkersPrivate;
+class Job;
 
 
 template<class T>
@@ -63,6 +64,7 @@ public:
     void start(const std::vector<T> &data);
     void stop();
     void tick(uint64_t ticks);
+    void jobEarlyNotification(const Job&);
 
 private:
     static IWorker *create(Thread<T> *handle);
@@ -71,6 +73,17 @@ private:
     std::vector<Thread<T> *> m_workers;
     WorkersPrivate *d_ptr;
 };
+
+
+template<class T>
+void xmrig::Workers<T>::jobEarlyNotification(const Job& job)
+{
+    for (Thread<T>* t : m_workers) {
+        if (t->worker()) {
+            t->worker()->jobEarlyNotification(job);
+        }
+    }
+}
 
 
 template<>

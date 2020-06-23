@@ -34,6 +34,7 @@
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Object.h"
@@ -244,7 +245,7 @@ public:
 
     void printHashrate(bool details)
     {
-        char num[8 * 4] = { 0 };
+        char num[16 * 4] = { 0 };
         double speed[3] = { 0.0 };
 
         for (auto backend : backends) {
@@ -258,11 +259,20 @@ public:
             backend->printHashrate(details);
         }
 
-        LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
-                 Hashrate::format(speed[0],                 num,         sizeof(num) / 4),
-                 Hashrate::format(speed[1],                 num + 8,     sizeof(num) / 4),
-                 Hashrate::format(speed[2],                 num + 8 * 2, sizeof(num) / 4 ),
-                 Hashrate::format(maxHashrate[algorithm],   num + 8 * 3, sizeof(num) / 4)
+        double scale = 1.0;
+        const char* h = "H/s";
+
+        if ((speed[0] >= 1e6) || (speed[1] >= 1e6) || (speed[2] >= 1e6) || (maxHashrate[algorithm] >= 1e6)) {
+            scale = 1e-6;
+            h = "MH/s";
+        }
+
+        LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
+                 Tags::miner(),
+                 Hashrate::format(speed[0] * scale,                 num,          sizeof(num) / 4),
+                 Hashrate::format(speed[1] * scale,                 num + 16,     sizeof(num) / 4),
+                 Hashrate::format(speed[2] * scale,                 num + 16 * 2, sizeof(num) / 4), h,
+                 Hashrate::format(maxHashrate[algorithm] * scale,   num + 16 * 3, sizeof(num) / 4), h
                  );
     }
 

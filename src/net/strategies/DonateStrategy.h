@@ -56,8 +56,8 @@ public:
 protected:
     inline bool isActive() const override                                                                              { return state() == STATE_ACTIVE; }
     inline IClient *client() const override                                                                            { return m_proxy ? m_proxy : m_strategy->client(); }
-    inline void onJob(IStrategy *, IClient *client, const Job &job) override                                           { setJob(client, job); }
-    inline void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &) override                      { setJob(client, job); }
+    inline void onJob(IStrategy *, IClient *client, const Job &job, const rapidjson::Value &params) override           { setJob(client, job, params); }
+    inline void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params) override                { setJob(client, job, params); }
     inline void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override              { setResult(client, result, error); }
     inline void onResultAccepted(IStrategy *, IClient *client, const SubmitResult &result, const char *error) override { setResult(client, result, error); }
     inline void resume() override                                                                                      {}
@@ -95,7 +95,7 @@ private:
     IClient *createProxy();
     void idle(double min, double max);
     void setAlgorithms(rapidjson::Document &doc, rapidjson::Value &params);
-    void setJob(IClient *client, const Job &job);
+    void setJob(IClient *client, const Job &job, const rapidjson::Value &params);
     void setResult(IClient *client, const SubmitResult &result, const char *error);
     void setState(State state);
 

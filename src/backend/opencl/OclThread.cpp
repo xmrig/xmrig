@@ -56,7 +56,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
     }
 
     m_index         = Json::getUint(value, kIndex);
-    m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 128u), 1u);
+    m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 512u), 1u);
     m_unrollFactor  = std::max(std::min(Json::getUint(value, kUnroll, m_unrollFactor), 128u), 1u);
 
     setIntensity(Json::getUint(value, kIntensity));
@@ -151,7 +151,7 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
         out.AddMember(StringRef(kDatasetHost),  isDatasetHost(), allocator);
 #       endif
     }
-    else if (!m_fields.test(ASTROBWT_FIELDS)) {
+    else if (!m_fields.test(ASTROBWT_FIELDS) && !m_fields.test(KAWPOW_FIELDS)) {
         out.AddMember(StringRef(kUnroll), unrollFactor(), allocator);
     }
 

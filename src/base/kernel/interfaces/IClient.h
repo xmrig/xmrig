@@ -64,6 +64,7 @@ public:
     virtual bool isEnabled() const                                          = 0;
     virtual bool isTLS() const                                              = 0;
     virtual const char *mode() const                                        = 0;
+    virtual const char *tag() const                                         = 0;
     virtual const char *tlsFingerprint() const                              = 0;
     virtual const char *tlsVersion() const                                  = 0;
     virtual const Job &job() const                                          = 0;

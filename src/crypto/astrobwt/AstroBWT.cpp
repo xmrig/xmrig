@@ -29,7 +29,7 @@
 
 #include "crypto/astrobwt/AstroBWT.h"
 #include "backend/cpu/Cpu.h"
-#include "crypto/astrobwt/sha3.h"
+#include "base/crypto/sha3.h"
 #include "crypto/cn/CryptoNight.h"
 
 

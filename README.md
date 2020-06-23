@@ -7,7 +7,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/network)
 
-XMRig High performance, open source, cross platform RandomX, CryptoNight, AstroBWT and Argon2 CPU/GPU miner, with official support for Windows.
+XMRig High performance, open source, cross platform RandomX, KawPow, CryptoNight, AstroBWT and Argon2 CPU/GPU miner, with official support for Windows.
 
 ## Mining backends
 - **CPU** (x64/x86/ARM)
@@ -118,6 +118,8 @@ Misc:
   -h, --help                    display this help and exit
       --dry-run                 test configuration and exit
       --export-topology         export hwloc topology to a XML file and exit
+      --title                   set custom console window title
+      --no-title                disable setting console window title      
 ```
 
 ## Donations

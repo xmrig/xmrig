@@ -9,14 +9,14 @@
 #define ALGO_CN_RWZ         8
 #define ALGO_CN_ZLS         9
 #define ALGO_CN_DOUBLE      10
-#define ALGO_CN_GPU         11
-#define ALGO_CN_LITE_0      12
-#define ALGO_CN_LITE_1      13
-#define ALGO_CN_HEAVY_0     14
-#define ALGO_CN_HEAVY_TUBE  15
-#define ALGO_CN_HEAVY_XHV   16
-#define ALGO_CN_PICO_0      17
-#define ALGO_CN_PICO_TLO    18
+#define ALGO_CN_LITE_0      11
+#define ALGO_CN_LITE_1      12
+#define ALGO_CN_HEAVY_0     13
+#define ALGO_CN_HEAVY_TUBE  14
+#define ALGO_CN_HEAVY_XHV   15
+#define ALGO_CN_PICO_0      16
+#define ALGO_CN_PICO_TLO    17
+#define ALGO_CN_CCX         18
 #define ALGO_RX_0           19
 #define ALGO_RX_WOW         20
 #define ALGO_RX_LOKI        21
@@ -26,6 +26,7 @@
 #define ALGO_AR2_CHUKWA     25
 #define ALGO_AR2_WRKZ       26
 #define ALGO_ASTROBWT_DERO  27
+#define ALGO_KAWPOW_RVN     28
 
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1
@@ -35,3 +36,4 @@
 #define FAMILY_RANDOM_X     5
 #define FAMILY_ARGON2       6
 #define FAMILY_ASTROBWT     7
+#define FAMILY_KAWPOW       8

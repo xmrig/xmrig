@@ -118,12 +118,12 @@ void xmrig::NetworkState::onActive(IStrategy *strategy, IClient *client)
 }
 
 
-void xmrig::NetworkState::onJob(IStrategy *strategy, IClient *client, const Job &job)
+void xmrig::NetworkState::onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &params)
 {
     m_algorithm = job.algorithm();
     m_diff      = job.diff();
 
-    StrategyProxy::onJob(strategy, client, job);
+    StrategyProxy::onJob(strategy, client, job, params);
 }
 
 

@@ -38,6 +38,11 @@
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 
+#ifdef XMRIG_ALGO_KAWPOW
+#   include "base/net/stratum/AutoClient.h"
+#   include "base/net/stratum/EthStratumClient.h"
+#endif
+
 
 #ifdef XMRIG_FEATURE_HTTP
 #   include "base/net/stratum/DaemonClient.h"
@@ -69,6 +74,9 @@ const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
 
 
+const char *Pool::kNicehashHost = "nicehash.com";
+
+
 }
 
 
@@ -77,6 +85,20 @@ xmrig::Pool::Pool(const char *url) :
     m_pollInterval(kDefaultPollInterval),
     m_url(url)
 {
+}
+
+
+xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls, Mode mode) :
+    m_keepAlive(keepAlive),
+    m_mode(mode),
+    m_flags(1 << FLAG_ENABLED),
+    m_password(password),
+    m_user(user),
+    m_pollInterval(kDefaultPollInterval),
+    m_url(host, port, tls)
+{
+    m_flags.set(FLAG_NICEHASH, nicehash || strstr(host, kNicehashHost));
+    m_flags.set(FLAG_TLS,      tls);
 }
 
 
@@ -100,7 +122,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_proxy        = Json::getValue(object, kSOCKS5);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
-    m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash));
+    m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash) || m_url.host().contains(kNicehashHost));
     m_flags.set(FLAG_TLS,      Json::getBool(object, kTls) || m_url.isTLS());
 
     if (m_daemon.isValid()) {
@@ -117,19 +139,6 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     else if (keepalive.IsBool()) {
         setKeepAlive(keepalive.GetBool());
     }
-}
-
-
-xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
-    m_keepAlive(keepAlive),
-    m_flags(1 << FLAG_ENABLED),
-    m_password(password),
-    m_user(user),
-    m_pollInterval(kDefaultPollInterval),
-    m_url(host, port, tls)
-{
-    m_flags.set(FLAG_NICEHASH, nicehash);
-    m_flags.set(FLAG_TLS,      tls);
 }
 
 
@@ -185,7 +194,15 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
     IClient *client = nullptr;
 
     if (m_mode == MODE_POOL) {
-        client = new Client(id, Platform::userAgent(), listener);
+#       ifdef XMRIG_ALGO_KAWPOW
+        if ((m_algorithm.family() == Algorithm::KAWPOW) || (m_coin == Coin::RAVEN)) {
+            client = new EthStratumClient(id, Platform::userAgent(), listener);
+        }
+        else
+#       endif
+        {
+            client = new Client(id, Platform::userAgent(), listener);
+        }
     }
 #   ifdef XMRIG_FEATURE_HTTP
     else if (m_mode == MODE_DAEMON) {
@@ -193,6 +210,11 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
     }
     else if (m_mode == MODE_SELF_SELECT) {
         client = new SelfSelectClient(id, Platform::userAgent(), listener);
+    }
+#   endif
+#   ifdef XMRIG_ALGO_KAWPOW
+    else if (m_mode == MODE_AUTO_ETH) {
+        client = new AutoClient(id, Platform::userAgent(), listener);
     }
 #   endif
 

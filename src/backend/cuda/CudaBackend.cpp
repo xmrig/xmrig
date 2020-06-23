@@ -39,6 +39,7 @@
 #include "backend/cuda/wrappers/CudaDevice.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/String.h"
@@ -48,6 +49,12 @@
 
 #ifdef XMRIG_ALGO_ASTROBWT
 #   include "backend/cuda/runners/CudaAstroBWTRunner.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_KAWPOW
+#   include "crypto/kawpow/KPCache.h"
+#   include "crypto/kawpow/KPHash.h"
 #endif
 
 
@@ -71,7 +78,6 @@ extern template class Threads<CudaThreads>;
 
 constexpr const size_t oneMiB   = 1024U * 1024U;
 static const char *kLabel       = "CUDA";
-static const char *tag          = GREEN_BG_BOLD(WHITE_BOLD_S " nv  ");
 static const String kType       = "cuda";
 static std::mutex mutex;
 
@@ -107,13 +113,13 @@ public:
     inline void print() const
     {
         if (m_started == 0) {
-            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), tag);
+            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), Tags::nvidia());
 
             return;
         }
 
         LOG_INFO("%s" GREEN_BOLD(" READY") " threads " "%s%zu/%zu" BLACK_BOLD(" (%" PRIu64 " ms)"),
-                 tag,
+                 Tags::nvidia(),
                  m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
                  m_started,
                  m_threads,
@@ -205,17 +211,17 @@ public:
     }
 
 
-    inline void start(const Job &)
+    inline void start(const Job &job)
     {
         LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" thread%s)") " scratchpad " CYAN_BOLD("%zu KB"),
-                 tag,
+                 Tags::nvidia(),
                  profileName.data(),
                  threads.size(),
                  threads.size() > 1 ? "s" : "",
                  algo.l3() / 1024
                  );
 
-        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID |    I |   T |   B | BF |  BS |  MEM | NAME"));
+        Log::print(WHITE_BOLD("|  # | GPU |  BUS ID | INTENSITY | THREADS | BLOCKS | BF |  BS | MEMORY | NAME"));
 
         size_t algo_l3 = algo.l3();
 
@@ -227,8 +233,17 @@ public:
 
         size_t i = 0;
         for (const auto &data : threads) {
-            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%5d") " |" CYAN_BOLD("%4d") " |"
-                       CYAN_BOLD("%4d") " |" CYAN_BOLD("%3d") " |" CYAN_BOLD("%4d") " |" CYAN("%5zu") " | " GREEN("%s"),
+            size_t mem_used = (data.thread.threads() * data.thread.blocks()) * algo_l3 / oneMiB;
+
+#           ifdef XMRIG_ALGO_KAWPOW
+            if (algo.family() == Algorithm::KAWPOW) {
+                const uint32_t epoch = job.height() / KPHash::EPOCH_LENGTH;
+                mem_used = (KPCache::dag_size(epoch) + oneMiB - 1) / oneMiB;
+            }
+#           endif
+
+            Log::print("|" CYAN_BOLD("%3zu") " |" CYAN_BOLD("%4u") " |" YELLOW(" %7s") " |" CYAN_BOLD("%10d") " |" CYAN_BOLD("%8d") " |"
+                       CYAN_BOLD("%7d") " |" CYAN_BOLD("%3d") " |" CYAN_BOLD("%4d") " |" CYAN("%7zu") " | " GREEN("%s"),
                        i,
                        data.thread.index(),
                        data.device.topology().toString().data(),
@@ -237,7 +252,7 @@ public:
                        data.thread.blocks(),
                        data.thread.bfactor(),
                        data.thread.bsleep(),
-                       (data.thread.threads() * data.thread.blocks()) * algo_l3 / oneMiB,
+                       mem_used,
                        data.device.name().data()
                        );
 
@@ -268,7 +283,7 @@ public:
             }
 
             LOG_INFO("%s" CYAN_BOLD(" #%u") YELLOW(" %s") MAGENTA_BOLD("%4uW") CSI "1;%um %2uC" CLEAR WHITE_BOLD("%s") "%s",
-                     tag,
+                     Tags::nvidia(),
                      device.index(),
                      device.topology().toString().data(),
                      health.power,
@@ -299,7 +314,7 @@ public:
 
 const char *xmrig::cuda_tag()
 {
-    return tag;
+    return Tags::nvidia();
 }
 
 
@@ -357,8 +372,11 @@ void xmrig::CudaBackend::execCommand(char)
 }
 
 
-void xmrig::CudaBackend::prepare(const Job &)
+void xmrig::CudaBackend::prepare(const Job &job)
 {
+    if (d_ptr) {
+        d_ptr->workers.jobEarlyNotification(job);
+    }
 }
 
 
@@ -368,18 +386,30 @@ void xmrig::CudaBackend::printHashrate(bool details)
         return;
     }
 
-    char num[8 * 3] = { 0 };
+    char num[16 * 3] = { 0 };
 
-    Log::print(WHITE_BOLD_S "|   CUDA # | AFFINITY | 10s H/s | 60s H/s | 15m H/s |");
+    const double hashrate_short  = hashrate()->calc(Hashrate::ShortInterval);
+    const double hashrate_medium = hashrate()->calc(Hashrate::MediumInterval);
+    const double hashrate_large  = hashrate()->calc(Hashrate::LargeInterval);
+
+    double scale = 1.0;
+    const char* h = " H/s";
+
+    if ((hashrate_short >= 1e6) || (hashrate_medium >= 1e6) || (hashrate_large >= 1e6)) {
+        scale = 1e-6;
+        h = "MH/s";
+    }
+
+    Log::print(WHITE_BOLD_S "|   CUDA # | AFFINITY | 10s %s | 60s %s | 15m %s |", h, h, h);
 
     size_t i = 0;
-    for (const auto &data : d_ptr->threads) {
-         Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |" CYAN_BOLD(" #%u") YELLOW(" %s") GREEN(" %s"),
+    for (const auto& data : d_ptr->threads) {
+         Log::print("| %8zu | %8" PRId64 " | %8s | %8s | %8s |" CYAN_BOLD(" #%u") YELLOW(" %s") GREEN(" %s"),
                     i,
                     data.thread.affinity(),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval)  * scale, num,          sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval) * scale, num + 16,      sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval)  * scale, num + 16 * 2, sizeof num / 3),
                     data.device.index(),
                     data.device.topology().toString().data(),
                     data.device.name().data()
@@ -388,10 +418,10 @@ void xmrig::CudaBackend::printHashrate(bool details)
          i++;
     }
 
-    Log::print(WHITE_BOLD_S "|        - |        - | %7s | %7s | %7s |",
-               Hashrate::format(hashrate()->calc(Hashrate::ShortInterval),  num,         sizeof num / 3),
-               Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
-               Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
+    Log::print(WHITE_BOLD_S "|        - |        - | %8s | %8s | %8s |",
+               Hashrate::format(hashrate()->calc(Hashrate::ShortInterval)  * scale, num,          sizeof num / 3),
+               Hashrate::format(hashrate()->calc(Hashrate::MediumInterval) * scale, num + 16,     sizeof num / 3),
+               Hashrate::format(hashrate()->calc(Hashrate::LargeInterval)  * scale, num + 16 * 2, sizeof num / 3)
                );
 }
 
@@ -424,7 +454,7 @@ void xmrig::CudaBackend::setJob(const Job &job)
     d_ptr->profileName  = cuda.threads().profileName(job.algorithm());
 
     if (d_ptr->profileName.isNull() || threads.empty()) {
-        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), tag);
+        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), Tags::nvidia());
 
         return stop();
     }
@@ -465,7 +495,7 @@ void xmrig::CudaBackend::stop()
     d_ptr->workers.stop();
     d_ptr->threads.clear();
 
-    LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
+    LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), Tags::nvidia(), Chrono::steadyMSecs() - ts);
 }
 
 

@@ -119,15 +119,30 @@ static inline int32_t get_masked(int32_t val, int32_t h, int32_t l)
 }
 
 
+static inline uint64_t xgetbv()
+{
+#ifdef _MSC_VER
+    return _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
+#else
+    uint32_t eax_reg = 0;
+    uint32_t edx_reg = 0;
+    __asm__ __volatile__("xgetbv": "=a"(eax_reg), "=d"(edx_reg) : "c"(0) : "cc");
+    return (static_cast<uint64_t>(edx_reg) << 32) | eax_reg;
+#endif
+}
+
+static inline bool has_xcr_avx2()   { return (xgetbv() & 0x06) == 0x06; }
+static inline bool has_xcr_avx512() { return (xgetbv() & 0xE6) == 0xE6; }
 static inline bool has_osxsave()    { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 27); }
 static inline bool has_aes_ni()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 25); }
-static inline bool has_avx2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 5) && has_osxsave(); }
-static inline bool has_avx512f()    { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 16) && has_osxsave(); }
+static inline bool has_avx2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 5) && has_osxsave() && has_xcr_avx2(); }
+static inline bool has_avx512f()    { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 16) && has_osxsave() && has_xcr_avx512(); }
 static inline bool has_bmi2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 8); }
 static inline bool has_pdpe1gb()    { return has_feature(PROCESSOR_EXT_INFO,    EDX_Reg, 1 << 26); }
 static inline bool has_sse2()       { return has_feature(PROCESSOR_INFO,        EDX_Reg, 1 << 26); }
 static inline bool has_ssse3()      { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 9); }
 static inline bool has_xop()        { return has_feature(0x80000001,            ECX_Reg, 1 << 11); }
+static inline bool has_popcnt()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 23); }
 
 
 } // namespace xmrig
@@ -162,6 +177,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_flags.set(FLAG_SSE2,    has_sse2());
     m_flags.set(FLAG_SSSE3,   has_ssse3());
     m_flags.set(FLAG_XOP,     has_xop());
+    m_flags.set(FLAG_POPCNT,  has_popcnt());
 
 #   ifdef XMRIG_FEATURE_ASM
     if (hasAES()) {
@@ -211,12 +227,6 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
     if (count == 1) {
         return 1;
     }
-
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return count;
-    }
-#   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
     if (algorithm.family() == Algorithm::CN_LITE) {

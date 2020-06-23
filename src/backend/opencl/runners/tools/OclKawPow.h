@@ -22,27 +22,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <string>
-
-
-#include "backend/opencl/kernels/Cn1RyoKernel.h"
-#include "backend/opencl/wrappers/OclLib.h"
+#ifndef XMRIG_OCLKAWPOW_H
+#define XMRIG_OCLKAWPOW_H
 
 
-void xmrig::Cn1RyoKernel::enqueue(cl_command_queue queue, size_t threads, size_t worksize)
+#include <cstddef>
+#include <cstdint>
+
+
+using cl_program = struct _cl_program *;
+
+
+namespace xmrig {
+
+
+class IOclRunner;
+
+
+class OclKawPow
 {
-    const size_t gthreads = threads * 16;
-    const size_t lthreads = worksize * 16;
+public:
+    static cl_program get(const IOclRunner &runner, uint64_t height, uint32_t worksize);
+    static void clear();
+};
 
-    enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
-}
+
+} // namespace xmrig
 
 
-// __kernel void cn1(__global int *lpad_in, __global int *spad, uint numThreads)
-void xmrig::Cn1RyoKernel::setArgs(cl_mem scratchpads, cl_mem states, uint32_t threads)
-{
-    setArg(0, sizeof(cl_mem), &scratchpads);
-    setArg(1, sizeof(cl_mem), &states);
-    setArg(2, sizeof(uint32_t), &threads);
-}
+#endif /* XMRIG_OCLKAWPOW_H */

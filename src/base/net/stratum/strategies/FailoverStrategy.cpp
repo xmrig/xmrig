@@ -24,6 +24,7 @@
 
 
 #include "base/net/stratum/strategies/FailoverStrategy.h"
+#include "3rdparty/rapidjson/document.h"
 #include "base/kernel/interfaces/IClient.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/Platform.h"
@@ -96,7 +97,7 @@ void xmrig::FailoverStrategy::resume()
         return;
     }
 
-    m_listener->onJob(this, active(), active()->job());
+    m_listener->onJob(this, active(), active()->job(), rapidjson::Value(rapidjson::kNullType));
 }
 
 
@@ -164,10 +165,10 @@ void xmrig::FailoverStrategy::onLogin(IClient *client, rapidjson::Document &doc,
 }
 
 
-void xmrig::FailoverStrategy::onJobReceived(IClient *client, const Job &job, const rapidjson::Value &)
+void xmrig::FailoverStrategy::onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params)
 {
     if (m_active == client->id()) {
-        m_listener->onJob(this, client, job);
+        m_listener->onJob(this, client, job, params);
     }
 }
 

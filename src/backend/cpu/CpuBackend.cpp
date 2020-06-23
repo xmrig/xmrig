@@ -34,6 +34,7 @@
 #include "backend/common/Workers.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/String.h"
@@ -60,7 +61,6 @@ namespace xmrig {
 extern template class Threads<CpuThreads>;
 
 
-static const char *tag      = CYAN_BG_BOLD(WHITE_BOLD_S " cpu ");
 static const String kType   = "cpu";
 static std::mutex mutex;
 
@@ -102,13 +102,13 @@ public:
     inline void print() const
     {
         if (m_started == 0) {
-            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), tag);
+            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), Tags::cpu());
 
             return;
         }
 
         LOG_INFO("%s" GREEN_BOLD(" READY") " threads %s%zu/%zu (%zu)" CLEAR " huge pages %s%1.0f%% %zu/%zu" CLEAR " memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
-                 tag,
+                 Tags::cpu(),
                  m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
                  m_started, m_threads, m_ways,
                  (m_hugePages.isFullyAllocated() ? GREEN_BOLD_S : (m_hugePages.allocated == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
@@ -142,7 +142,7 @@ public:
     inline void start()
     {
         LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" thread%s)") " scratchpad " CYAN_BOLD("%zu KB"),
-                 tag,
+                 Tags::cpu(),
                  profileName.data(),
                  threads.size(),
                  threads.size() > 1 ? "s" : "",
@@ -219,13 +219,13 @@ const char *xmrig::backend_tag(uint32_t backend)
     }
 #   endif
 
-    return tag;
+    return Tags::cpu();
 }
 
 
 const char *xmrig::cpu_tag()
 {
-    return tag;
+    return Tags::cpu();
 }
 
 
@@ -279,7 +279,7 @@ void xmrig::CpuBackend::prepare(const Job &nextJob)
     if ((f == Algorithm::ARGON2) || (f == Algorithm::RANDOM_X)) {
         if (argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
             LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
-                     tag,
+                     Tags::cpu(),
                      argon2::Impl::name() == "default" ? 33 : 32,
                      argon2::Impl::name().data()
                      );
@@ -344,7 +344,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
     d_ptr->profileName  = cpu.threads().profileName(job.algorithm());
 
     if (d_ptr->profileName.isNull() || threads.empty()) {
-        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), tag);
+        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), Tags::cpu());
 
         return stop();
     }
@@ -383,7 +383,7 @@ void xmrig::CpuBackend::stop()
     d_ptr->workers.stop();
     d_ptr->threads.clear();
 
-    LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
+    LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), Tags::cpu(), Chrono::steadyMSecs() - ts);
 }
 
 

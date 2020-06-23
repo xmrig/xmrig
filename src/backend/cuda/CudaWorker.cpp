@@ -27,6 +27,7 @@
 #include "backend/cuda/CudaWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/cuda/runners/CudaCnRunner.h"
+#include "backend/cuda/wrappers/CudaDevice.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
 #include "core/Miner.h"
@@ -41,6 +42,11 @@
 
 #ifdef XMRIG_ALGO_ASTROBWT
 #   include "backend/cuda/runners/CudaAstroBWTRunner.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_KAWPOW
+#   include "backend/cuda/runners/CudaKawPowRunner.h"
 #endif
 
 
@@ -66,7 +72,8 @@ static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / in
 xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     Worker(id, data.thread.affinity(), -1),
     m_algorithm(data.algorithm),
-    m_miner(data.miner)
+    m_miner(data.miner),
+    m_deviceIndex(data.device.index())
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -81,6 +88,12 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     case Algorithm::ASTROBWT:
 #       ifdef XMRIG_ALGO_ASTROBWT
         m_runner = new CudaAstroBWTRunner(id, data);
+#       endif
+        break;
+
+    case Algorithm::KAWPOW:
+#       ifdef XMRIG_ALGO_KAWPOW
+        m_runner = new CudaKawPowRunner(id, data);
 #       endif
         break;
 
@@ -104,6 +117,14 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
 xmrig::CudaWorker::~CudaWorker()
 {
     delete m_runner;
+}
+
+
+void xmrig::CudaWorker::jobEarlyNotification(const Job& job)
+{
+    if (m_runner) {
+        m_runner->jobEarlyNotification(job);
+    }
 }
 
 
@@ -138,7 +159,7 @@ void xmrig::CudaWorker::start()
         }
 
         while (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence())) {
-            uint32_t foundNonce[10] = { 0 };
+            uint32_t foundNonce[16] = { 0 };
             uint32_t foundCount     = 0;
 
             if (!m_runner->run(*m_job.nonce(), &foundCount, foundNonce)) {
@@ -146,11 +167,11 @@ void xmrig::CudaWorker::start()
             }
 
             if (foundCount) {
-                JobResults::submit(m_job.currentJob(), foundNonce, foundCount);
+                JobResults::submit(m_job.currentJob(), foundNonce, foundCount, m_deviceIndex);
             }
 
             const size_t batch_size = intensity();
-            if (!m_job.nextRound(roundSize(batch_size), batch_size)) {
+            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(roundSize(batch_size), batch_size)) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -174,7 +195,7 @@ bool xmrig::CudaWorker::consumeJob()
     const size_t batch_size = intensity();
     m_job.add(m_miner->job(), roundSize(batch_size) * batch_size, Nonce::CUDA);
 
-    return m_runner->set(m_job.currentJob(), m_job.blob());;
+    return m_runner->set(m_job.currentJob(), m_job.blob());
 }
 
 

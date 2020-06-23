@@ -3,12 +3,10 @@ if (WITH_ASTROBWT)
 
     list(APPEND HEADERS_CRYPTO
         src/crypto/astrobwt/AstroBWT.h
-        src/crypto/astrobwt/sha3.h
     )
 
     list(APPEND SOURCES_CRYPTO
         src/crypto/astrobwt/AstroBWT.cpp
-        src/crypto/astrobwt/sha3.cpp
     )
 
     if (XMRIG_ARM)

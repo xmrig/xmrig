@@ -33,6 +33,7 @@
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/backends/FileLog.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/io/Watcher.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/Platform.h"
@@ -183,7 +184,7 @@ int xmrig::Base::init()
         Log::setBackground(true);
     }
     else {
-        Log::add(new ConsoleLog());
+        Log::add(new ConsoleLog(config()->title()));
     }
 
     if (config()->logFile()) {
@@ -285,7 +286,7 @@ void xmrig::Base::addListener(IBaseListener *listener)
 
 void xmrig::Base::onFileChanged(const String &fileName)
 {
-    LOG_WARN("\"%s\" was changed, reloading configuration", fileName.data());
+    LOG_WARN("%s " YELLOW("\"%s\" was changed, reloading configuration"), Tags::config(), fileName.data());
 
     JsonChain chain;
     chain.addFile(fileName);
@@ -293,7 +294,7 @@ void xmrig::Base::onFileChanged(const String &fileName)
     auto config = new Config();
 
     if (!config->read(chain, chain.fileName())) {
-        LOG_ERR("reloading failed");
+        LOG_ERR("%s " RED("reloading failed"), Tags::config());
 
         delete config;
         return;

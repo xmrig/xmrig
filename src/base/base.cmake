@@ -3,6 +3,7 @@ set(HEADERS_BASE
     src/base/crypto/Algorithm.h
     src/base/crypto/Coin.h
     src/base/crypto/keccak.h
+    src/base/crypto/sha3.h
     src/base/io/Console.h
     src/base/io/Env.h
     src/base/io/json/Json.h
@@ -12,11 +13,13 @@ set(HEADERS_BASE
     src/base/io/log/backends/FileLog.h
     src/base/io/log/FileLogWriter.h
     src/base/io/log/Log.h
+    src/base/io/log/Tags.h
     src/base/io/Signals.h
     src/base/io/Watcher.h
     src/base/kernel/Base.h
     src/base/kernel/config/BaseConfig.h
     src/base/kernel/config/BaseTransform.h
+    src/base/kernel/config/Title.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IBaseListener.h
     src/base/kernel/interfaces/IClient.h
@@ -69,6 +72,7 @@ set(SOURCES_BASE
     src/base/crypto/Algorithm.cpp
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp
+    src/base/crypto/sha3.cpp
     src/base/io/Console.cpp
     src/base/io/Env.cpp
     src/base/io/json/Json.cpp
@@ -78,11 +82,13 @@ set(SOURCES_BASE
     src/base/io/log/backends/FileLog.cpp
     src/base/io/log/FileLogWriter.cpp
     src/base/io/log/Log.cpp
+    src/base/io/log/Tags.cpp
     src/base/io/Signals.cpp
     src/base/io/Watcher.cpp
     src/base/kernel/Base.cpp
     src/base/kernel/config/BaseConfig.cpp
     src/base/kernel/config/BaseTransform.cpp
+    src/base/kernel/config/Title.cpp
     src/base/kernel/Entry.cpp
     src/base/kernel/Platform.cpp
     src/base/kernel/Process.cpp
@@ -202,4 +208,17 @@ if (WITH_ENV_VARS)
     add_definitions(/DXMRIG_FEATURE_ENV)
 else()
     remove_definitions(/DXMRIG_FEATURE_ENV)
+endif()
+
+
+if (WITH_KAWPOW)
+    list(APPEND HEADERS_BASE
+        src/base/net/stratum/AutoClient.h
+        src/base/net/stratum/EthStratumClient.h
+        )
+
+    list(APPEND SOURCES_BASE
+        src/base/net/stratum/AutoClient.cpp
+        src/base/net/stratum/EthStratumClient.cpp
+        )
 endif()

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,28 +22,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CN2RYOKERNEL_H
-#define XMRIG_CN2RYOKERNEL_H
+
+#include "KawPow_CalculateDAGKernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
+#include "crypto/kawpow/KPCache.h"
 
 
-#include "backend/opencl/wrappers/OclKernel.h"
-
-
-namespace xmrig {
-
-
-class Cn2RyoKernel : public OclKernel
+void xmrig::KawPow_CalculateDAGKernel::enqueue(cl_command_queue queue, size_t threads, size_t workgroup_size)
 {
-public:
-    inline Cn2RyoKernel(cl_program program) : OclKernel(program, "cn2") {}
-
-    void enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
-    void setArgs(cl_mem scratchpads, cl_mem states, cl_mem output, uint32_t threads);
-    void setTarget(uint64_t target);
-};
+    enqueueNDRange(queue, 1, nullptr, &threads, &workgroup_size);
+}
 
 
-} // namespace xmrig
+void xmrig::KawPow_CalculateDAGKernel::setArgs(uint32_t start, cl_mem g_light, cl_mem g_dag, uint32_t dag_words, uint32_t light_words)
+{
+    setArg(0, sizeof(start), &start);
+    setArg(1, sizeof(g_light), &g_light);
+    setArg(2, sizeof(g_dag), &g_dag);
 
+    const uint32_t isolate = 1;
+    setArg(3, sizeof(isolate), &isolate);
 
-#endif /* XMRIG_CN2RYOKERNEL_H */
+    setArg(4, sizeof(dag_words), &dag_words);
+
+    uint32_t light_words4[4];
+    KPCache::calculate_fast_mod_data(light_words, light_words4[0], light_words4[1], light_words4[2]);
+    light_words4[3] = light_words;
+
+    setArg(5, sizeof(light_words4), light_words4);
+}

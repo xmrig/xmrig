@@ -43,9 +43,9 @@ protected:
         m_listener->onActive(strategy, client);
     }
 
-    inline void onJob(IStrategy *strategy, IClient *client, const Job &job) override
+    inline void onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &params) override
     {
-        m_listener->onJob(strategy, client, job);
+        m_listener->onJob(strategy, client, job, params);
     }
 
     inline void onLogin(IStrategy *strategy, IClient *client, rapidjson::Document &doc, rapidjson::Value &params) override
