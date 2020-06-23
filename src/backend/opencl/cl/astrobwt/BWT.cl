@@ -163,7 +163,7 @@ __kernel void filter(uint32_t nonce, uint32_t bwt_max_size, __global const uint3
 
 		filtered_hashes[index] = nonce + global_id;
 
-		#pragma unroll(8)
+		#pragma unroll 8
 		for (uint32_t i = 0; i < 8; ++i)
 			filtered_hashes[index + i + 1] = hash[i];
 	}
@@ -183,7 +183,7 @@ __kernel void prepare_batch2(__global uint32_t* hashes, __global uint32_t* filte
 	const uint32_t stage2_size = STAGE1_SIZE + (filtered_hash[1] & 0xfffff);
 	data_sizes[global_id] = stage2_size;
 
-	#pragma unroll(8)
+	#pragma unroll 8
 	for (uint32_t i = 0; i < 8; ++i)
 		hash[i] = filtered_hash[i + 1];
 }
