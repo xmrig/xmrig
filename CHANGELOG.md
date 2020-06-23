@@ -1,3 +1,7 @@
+# v5.11.4
+- [#1728](https://github.com/xmrig/xmrig/issues/1728) Fixed, 32 bit Windows builds was crash on start.
+- Fixed AMD GPU health (temperatures/power/clocks/fans) readings on Linux.
+
 # v5.11.3
 - [#1718](https://github.com/xmrig/xmrig/pull/1718) Fixed, linker on Linux was marking entire executable as having an executable stack.
 - [#1720](https://github.com/xmrig/xmrig/pull/1720) Fixed broken CryptoNight algorithms family with gcc 10.1.
