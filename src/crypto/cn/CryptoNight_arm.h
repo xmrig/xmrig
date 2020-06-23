@@ -294,11 +294,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 {
     constexpr CnAlgo<ALGO> props;
 
-#   ifdef XMRIG_ALGO_CN_GPU
-    constexpr bool IS_HEAVY = props.isHeavy() || ALGO == Algorithm::CN_GPU;
-#   else
     constexpr bool IS_HEAVY = props.isHeavy();
-#   endif
 
     __m128i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
     __m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -446,6 +442,24 @@ static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m1
 }
 
 
+static inline void cryptonight_conceal_tweak(__m128i& cx, __m128& conc_var)
+{
+    __m128 r = _mm_add_ps(_mm_cvtepi32_ps(cx), conc_var);
+    r = _mm_mul_ps(r, _mm_mul_ps(r, r));
+    r = _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x807FFFFF)), r);
+    r = _mm_or_ps(_mm_castsi128_ps(_mm_set1_epi32(0x40000000)), r);
+
+    __m128 c_old = conc_var;
+    conc_var = _mm_add_ps(conc_var, r);
+
+    c_old = _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x807FFFFF)), c_old);
+    c_old = _mm_or_ps(_mm_castsi128_ps(_mm_set1_epi32(0x40000000)), c_old);
+
+    __m128 nc = _mm_mul_ps(c_old, _mm_set1_ps(536870880.0f));
+    cx = _mm_xor_si128(cx, _mm_cvttps_epi32(nc));
+}
+
+
 template<Algorithm::Id ALGO, bool SOFT_AES>
 inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
@@ -479,12 +493,20 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     __m128i bx0  = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
     __m128i bx1  = _mm_set_epi64x(h0[9] ^ h0[11], h0[8] ^ h0[10]);
 
+    __m128 conc_var;
+    if (ALGO == Algorithm::CN_CCX) {
+        conc_var = _mm_setzero_ps();
+    }
+
     uint64_t idx0 = al0;
 
     for (size_t i = 0; i < props.iterations(); i++) {
         __m128i cx;
         if (IS_CN_HEAVY_TUBE || !SOFT_AES) {
             cx = _mm_load_si128(reinterpret_cast<const __m128i *>(&l0[idx0 & MASK]));
+            if (ALGO == Algorithm::CN_CCX) {
+                cryptonight_conceal_tweak(cx, conc_var);
+            }
         }
 
         const __m128i ax0 = _mm_set_epi64x(ah0, al0);
@@ -492,7 +514,14 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             cx = aes_round_tweak_div(cx, ax0);
         }
         else if (SOFT_AES) {
-            cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], ax0);
+            if (ALGO == Algorithm::CN_CCX) {
+                cx = _mm_load_si128(reinterpret_cast<const __m128i*>(&l0[idx0 & MASK]));
+                cryptonight_conceal_tweak(cx, conc_var);
+                cx = soft_aesenc((uint32_t*)&cx, ax0);
+            }
+            else {
+                cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], ax0);
+            }
         }
         else {
             cx = _mm_aesenc_si128(cx, ax0);
@@ -580,66 +609,6 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
-} /* namespace xmrig */
-
-
-#ifdef XMRIG_ALGO_CN_GPU
-template<size_t ITER, uint32_t MASK>
-void cn_gpu_inner_arm(const uint8_t *spad, uint8_t *lpad);
-
-
-namespace xmrig {
-
-
-template<size_t MEM>
-void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
-{
-    constexpr size_t hash_size = 200; // 25x8 bytes
-    alignas(16) uint64_t hash[25];
-
-    for (uint64_t i = 0; i < MEM / 512; i++) {
-        memcpy(hash, input, hash_size);
-        hash[0] ^= i;
-
-        xmrig::keccakf(hash, 24);
-        memcpy(output, hash, 160);
-        output += 160;
-
-        xmrig::keccakf(hash, 24);
-        memcpy(output, hash, 176);
-        output += 176;
-
-        xmrig::keccakf(hash, 24);
-        memcpy(output, hash, 176);
-        output += 176;
-    }
-}
-
-
-template<xmrig::Algorithm::Id ALGO, bool SOFT_AES>
-inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
-{
-    constexpr CnAlgo<ALGO> props;
-
-    keccak(input, size, ctx[0]->state);
-    cn_explode_scratchpad_gpu<props.memory()>(ctx[0]->state, ctx[0]->memory);
-
-    fesetround(FE_TONEAREST);
-
-    cn_gpu_inner_arm<props.iterations(), props.mask()>(ctx[0]->state, ctx[0]->memory);
-
-    cn_implode_scratchpad<ALGO, SOFT_AES>(reinterpret_cast<const __m128i *>(ctx[0]->memory), reinterpret_cast<__m128i *>(ctx[0]->state));
-    keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
-    memcpy(output, ctx[0]->state, 32);
-}
-
-} /* namespace xmrig */
-#endif
-
-
-namespace xmrig {
-
-
 template<Algorithm::Id ALGO, bool SOFT_AES>
 inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, struct cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
@@ -686,6 +655,12 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     __m128i bx10 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
     __m128i bx11 = _mm_set_epi64x(h1[9] ^ h1[11], h1[8] ^ h1[10]);
 
+    __m128 conc_var0, conc_var1;
+    if (ALGO == Algorithm::CN_CCX) {
+        conc_var0 = _mm_setzero_ps();
+        conc_var1 = _mm_setzero_ps();
+    }
+
     uint64_t idx0 = al0;
     uint64_t idx1 = al1;
 
@@ -694,6 +669,10 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         if (IS_CN_HEAVY_TUBE || !SOFT_AES) {
             cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
             cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
+            if (ALGO == Algorithm::CN_CCX) {
+                cryptonight_conceal_tweak(cx0, conc_var0);
+                cryptonight_conceal_tweak(cx1, conc_var1);
+            }
         }
 
         const __m128i ax0 = _mm_set_epi64x(ah0, al0);
@@ -703,8 +682,18 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             cx1 = aes_round_tweak_div(cx1, ax1);
         }
         else if (SOFT_AES) {
-            cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], ax0);
-            cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], ax1);
+            if (ALGO == Algorithm::CN_CCX) {
+                cx0 = _mm_load_si128((__m128i *) &l0[idx0 & MASK]);
+                cx1 = _mm_load_si128((__m128i *) &l1[idx1 & MASK]);
+                cryptonight_conceal_tweak(cx0, conc_var0);
+                cryptonight_conceal_tweak(cx1, conc_var1);
+                cx0 = soft_aesenc((uint32_t*)&cx0, ax0);
+                cx1 = soft_aesenc((uint32_t*)&cx1, ax1);
+            }
+            else {
+                cx0 = soft_aesenc((uint32_t*)&l0[idx0 & MASK], ax0);
+                cx1 = soft_aesenc((uint32_t*)&l1[idx1 & MASK], ax1);
+            }
         }
         else {
             cx0 = _mm_aesenc_si128(cx0, ax0);

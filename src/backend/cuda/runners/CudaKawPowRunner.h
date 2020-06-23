@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,23 +22,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_CUDAKAWPOWRUNNER_H
+#define XMRIG_CUDAKAWPOWRUNNER_H
 
-#include "backend/opencl/kernels/Cn00RyoKernel.h"
-#include "backend/opencl/wrappers/OclLib.h"
+
+#include "backend/cuda/runners/CudaBaseRunner.h"
 
 
-void xmrig::Cn00RyoKernel::enqueue(cl_command_queue queue, size_t threads)
+namespace xmrig {
+
+
+class CudaKawPowRunner : public CudaBaseRunner
 {
-    const size_t gthreads = threads * 64;
-    const size_t lthreads = 64;
+public:
+    CudaKawPowRunner(size_t index, const CudaLaunchData &data);
 
-    enqueueNDRange(queue, 1, nullptr, &gthreads, &lthreads);
-}
+protected:
+    bool run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce) override;
+    bool set(const Job &job, uint8_t *blob) override;
+    size_t processedHashes() const override { return intensity() - m_skippedHashes; }
+    void jobEarlyNotification(const Job&) override;
+
+private:
+    uint8_t* m_jobBlob = nullptr;
+    uint32_t m_skippedHashes = 0;
+};
 
 
-// __kernel void cn00(__global int *Scratchpad, __global ulong *states)
-void xmrig::Cn00RyoKernel::setArgs(cl_mem scratchpads, cl_mem states)
-{
-    setArg(0, sizeof(cl_mem), &scratchpads);
-    setArg(1, sizeof(cl_mem), &states);
-}
+} /* namespace xmrig */
+
+
+#endif // XMRIG_CUDAKAWPOWRUNNER_H

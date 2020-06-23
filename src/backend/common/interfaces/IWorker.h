@@ -34,6 +34,7 @@ namespace xmrig {
 
 
 class VirtualMemory;
+class Job;
 
 
 class IWorker
@@ -48,6 +49,7 @@ public:
     virtual uint64_t hashCount() const              = 0;
     virtual uint64_t timestamp() const              = 0;
     virtual void start()                            = 0;
+    virtual void jobEarlyNotification(const Job&)   = 0;
 };
 
 

@@ -26,6 +26,7 @@
 #define XMRIG_BASECONFIG_H
 
 
+#include "base/kernel/config/Title.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/net/http/Http.h"
 #include "base/net/stratum/Pools.h"
@@ -56,6 +57,7 @@ public:
     static const char *kLogFile;
     static const char *kPrintTime;
     static const char *kSyslog;
+    static const char *kTitle;
     static const char *kUserAgent;
     static const char *kVerbose;
     static const char *kWatch;
@@ -76,6 +78,7 @@ public:
     inline const Pools &pools() const                       { return m_pools; }
     inline const String &apiId() const                      { return m_apiId; }
     inline const String &apiWorkerId() const                { return m_apiWorkerId; }
+    inline const Title &title() const                       { return m_title; }
     inline uint32_t printTime() const                       { return m_printTime; }
 
 #   ifdef XMRIG_FEATURE_TLS
@@ -105,6 +108,7 @@ protected:
     String m_fileName;
     String m_logFile;
     String m_userAgent;
+    Title m_title;
     uint32_t m_printTime = 60;
 
 #   ifdef XMRIG_FEATURE_TLS

@@ -38,6 +38,7 @@ namespace xmrig {
 
 
 class IOclRunner;
+class Job;
 
 
 class OclWorker : public Worker
@@ -48,6 +49,8 @@ public:
     OclWorker(size_t id, const OclLaunchData &data);
 
     ~OclWorker() override;
+
+    void jobEarlyNotification(const Job&) override;
 
     static std::atomic<bool> ready;
 
@@ -66,6 +69,7 @@ private:
     IOclRunner *m_runner = nullptr;
     OclSharedData &m_sharedData;
     WorkerJob<1> m_job;
+    uint32_t m_deviceIndex;
 };
 
 

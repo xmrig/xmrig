@@ -29,6 +29,7 @@
 
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/Env.h"
+#include "base/io/log/Log.h"
 #include "crypto/rx/RxAlgo.h"
 
 
@@ -64,9 +65,11 @@ static const char *kPluginVersion                       = "pluginVersion";
 static const char *kRelease                             = "release";
 static const char *kRxHash                              = "rxHash";
 static const char *kRxPrepare                           = "rxPrepare";
+static const char *kKawPowHash                          = "kawPowHash";
+static const char *kKawPowPrepare_v2                    = "kawPowPrepare_v2";
+static const char *kKawPowStopHash                      = "kawPowStopHash";
 static const char *kSetJob                              = "setJob";
 static const char *kSetJob_v2                           = "setJob_v2";
-static const char *kSymbolNotFound                      = "symbol not found";
 static const char *kVersion                             = "version";
 
 
@@ -88,6 +91,9 @@ using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
 using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
 using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, bool, uint32_t);
+using kawPowHash_t                                      = bool (*)(nvid_ctx *, uint8_t*, uint64_t, uint32_t *, uint32_t *, uint32_t *);
+using kawPowPrepare_v2_t                                = bool (*)(nvid_ctx *, const void *, size_t, const void *, size_t, uint32_t, const uint64_t*);
+using kawPowStopHash_t                                  = bool (*)(nvid_ctx *);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using setJob_v2_t                                       = bool (*)(nvid_ctx *, const void *, size_t, const char *);
 using version_t                                         = uint32_t (*)(Version);
@@ -111,12 +117,15 @@ static pluginVersion_t pPluginVersion                   = nullptr;
 static release_t pRelease                               = nullptr;
 static rxHash_t pRxHash                                 = nullptr;
 static rxPrepare_t pRxPrepare                           = nullptr;
+static kawPowHash_t pKawPowHash                         = nullptr;
+static kawPowPrepare_v2_t pKawPowPrepare_v2             = nullptr;
+static kawPowStopHash_t pKawPowStopHash                 = nullptr;
 static setJob_t pSetJob                                 = nullptr;
 static setJob_v2_t pSetJob_v2                           = nullptr;
 static version_t pVersion                               = nullptr;
 
 
-#define DLSYM(x) if (uv_dlsym(&cudaLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { throw std::runtime_error(kSymbolNotFound); }
+#define DLSYM(x) if (uv_dlsym(&cudaLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { throw std::runtime_error("symbol not found (" #x ")"); }
 
 
 bool CudaLib::m_initialized = false;
@@ -196,6 +205,24 @@ bool xmrig::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target,
 bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept
 {
     return pRxPrepare(ctx, dataset, datasetSize, dataset_host, batchSize);
+}
+
+
+bool xmrig::CudaLib::kawPowHash(nvid_ctx *ctx, uint8_t* job_blob, uint64_t target, uint32_t *rescount, uint32_t *resnonce, uint32_t *skipped_hashes) noexcept
+{
+    return pKawPowHash(ctx, job_blob, target, rescount, resnonce, skipped_hashes);
+}
+
+
+bool xmrig::CudaLib::kawPowPrepare(nvid_ctx *ctx, const void* cache, size_t cache_size, const void* dag_precalc, size_t dag_size, uint32_t height, const uint64_t* dag_sizes) noexcept
+{
+    return pKawPowPrepare_v2(ctx, cache, cache_size, dag_precalc, dag_size, height, dag_sizes);
+}
+
+
+bool xmrig::CudaLib::kawPowStopHash(nvid_ctx *ctx) noexcept
+{
+    return pKawPowStopHash(ctx);
 }
 
 
@@ -323,7 +350,7 @@ bool xmrig::CudaLib::load()
         return false;
     }
 
-    if (pVersion(ApiVersion) != 3u) {
+    if (pVersion(ApiVersion) != 3U) {
         return false;
     }
 
@@ -347,6 +374,9 @@ bool xmrig::CudaLib::load()
         DLSYM(RxPrepare);
         DLSYM(AstroBWTHash);
         DLSYM(AstroBWTPrepare);
+        DLSYM(KawPowHash);
+        DLSYM(KawPowPrepare_v2);
+        DLSYM(KawPowStopHash);
         DLSYM(Version);
 
         if (!pDeviceInfo_v2) {
@@ -357,6 +387,7 @@ bool xmrig::CudaLib::load()
             DLSYM(SetJob);
         }
     } catch (std::exception &ex) {
+        LOG_ERR("Error loading CUDA library: %s", ex.what());
         return false;
     }
 

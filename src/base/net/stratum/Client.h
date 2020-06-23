@@ -81,18 +81,28 @@ protected:
 
     void onResolved(const Dns &dns, int status) override;
 
-    inline bool hasExtension(Extension extension) const noexcept override { return m_extensions.test(extension); }
-    inline const char *mode() const override                              { return "pool"; }
-    inline void onLine(char *line, size_t size) override                  { parse(line, size); }
+    inline bool hasExtension(Extension extension) const noexcept override   { return m_extensions.test(extension); }
+    inline const char *mode() const override                                { return "pool"; }
+    inline void onLine(char *line, size_t size) override                    { parse(line, size); }
+
+    inline const char *agent() const                                        { return m_agent; }
+    inline const char *url() const                                          { return m_pool.url(); }
+    inline const String &rpcId() const                                      { return m_rpcId; }
+    inline void setRpcId(const char *id)                                    { m_rpcId = id; }
+
+    virtual bool parseLogin(const rapidjson::Value &result, int *code);
+    virtual void login();
+    virtual void parseNotification(const char* method, const rapidjson::Value& params, const rapidjson::Value& error);
+
+    bool close();
+    virtual void onClose();
 
 private:
     class Socks5;
     class Tls;
 
-    bool close();
     bool isCriticalError(const char *message);
     bool parseJob(const rapidjson::Value &params, int *code);
-    bool parseLogin(const rapidjson::Value &result, int *code);
     bool send(BIO *bio);
     bool verifyAlgorithm(const Algorithm &algorithm, const char *algo) const;
     bool write(const uv_buf_t &buf);
@@ -100,11 +110,8 @@ private:
     int64_t send(size_t size);
     void connect(sockaddr *addr);
     void handshake();
-    void login();
-    void onClose();
     void parse(char *line, size_t len);
     void parseExtensions(const rapidjson::Value &result);
-    void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
     void read(ssize_t nread, const uv_buf_t *buf);
@@ -112,7 +119,6 @@ private:
     void setState(SocketState state);
     void startTimeout();
 
-    inline const char *url() const                                  { return m_pool.url(); }
     inline SocketState state() const                                { return m_state; }
     inline uv_stream_t *stream() const                              { return reinterpret_cast<uv_stream_t *>(m_socket); }
     inline void setExtension(Extension ext, bool enable) noexcept   { m_extensions.set(ext, enable); }

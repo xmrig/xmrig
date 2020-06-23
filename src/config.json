@@ -13,6 +13,7 @@
     "autosave": true,
     "background": false,
     "colors": true,
+    "title": true,
     "randomx": {
         "init": -1,
         "mode": "auto",
@@ -33,7 +34,8 @@
         "argon2-impl": null,
         "astrobwt-max-size": 550,
         "cn/0": false,
-        "cn-lite/0": false
+        "cn-lite/0": false,
+        "kawpow": false
     },
     "opencl": {
         "enabled": false,
@@ -51,7 +53,7 @@
         "cn/0": false,
         "cn-lite/0": false
     },
-    "donate-level": 5,
+    "donate-level": 1,
     "donate-over-proxy": 1,
     "log-file": null,
     "pools": [
