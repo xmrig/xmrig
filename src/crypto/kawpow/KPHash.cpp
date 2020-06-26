@@ -285,10 +285,7 @@ void KPHash::calculate(const KPCache& light_cache, uint32_t block_height, const 
         uint32_t item_index = (mix[r % LANES][0] % num_items) * 4;
 
         node item[4];
-        ethash_calculate_dag_item_opt(item + 0, item_index + 0, KPCache::num_dataset_parents, &cache);
-        ethash_calculate_dag_item_opt(item + 1, item_index + 1, KPCache::num_dataset_parents, &cache);
-        ethash_calculate_dag_item_opt(item + 2, item_index + 2, KPCache::num_dataset_parents, &cache);
-        ethash_calculate_dag_item_opt(item + 3, item_index + 3, KPCache::num_dataset_parents, &cache);
+        ethash_calculate_dag_item4_opt(item, item_index, KPCache::num_dataset_parents, &cache);
 
         uint32_t dst_counter = 0;
         uint32_t src_counter = 0;
