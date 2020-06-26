@@ -228,6 +228,9 @@ void xmrig::Rx::msrInit(const RxConfig &config)
     if (wrmsr(preset, config.rdmsr())) {
         LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
     }
+    else {
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "FAILED TO APPLY MSR MOD, HASHRATE WILL BE LOW", tag);
+    }
 }
 
 
