@@ -2,6 +2,7 @@
  * Copyright 2008-2018 Advanced Micro Devices, Inc.
  * Copyright 2018-2020 SChernykh                    <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2020      Patrick Bollinger            <https://github.com/pjbollinger>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -82,12 +83,28 @@ static inline std::string sysfs_prefix(const PciTopology &topology)
 
     for (uint32_t i = 1; i < 10; ++i) {
         const std::string prefix = path + std::to_string(i) + "/";
-        if (sysfs_is_amdgpu(prefix + "name") && sysfs_read(prefix + "freq1_input")) {
+        if (sysfs_is_amdgpu(prefix + "name")) {
             return prefix;
         }
     }
 
     return {};
+}
+
+
+static inline uint32_t sysfs_metric(const std::string prefix, const std::string &property, const std::string &type)
+{
+    uint32_t value = 0;
+
+    for (uint32_t i = 1; i < 10; ++i) {
+        const std::string path = prefix + property + std::to_string(i) + "_" + type;
+        value = sysfs_read(path);
+        if (value != 0) {
+            return value;
+        }
+    }
+
+    return value;
 }
 
 
@@ -130,9 +147,9 @@ AdlHealth xmrig::AdlLib::health(const OclDevice &device)
     AdlHealth health;
     health.clock        = sysfs_read(prefix + "freq1_input") / 1000000;
     health.memClock     = sysfs_read(prefix + "freq2_input") / 1000000;
-    health.power        = sysfs_read(prefix + "power1_average") / 1000000;
-    health.rpm          = sysfs_read(prefix + "fan1_input");
-    health.temperature  = sysfs_read(prefix + "temp2_input") / 1000;
+    health.power        = sysfs_metric(prefix, "power", "average") / 1000000;
+    health.rpm          = sysfs_metric(prefix, "fan", "input");
+    health.temperature  = sysfs_metric(prefix, "temp", "input") / 1000;
 
     return health;
 }
