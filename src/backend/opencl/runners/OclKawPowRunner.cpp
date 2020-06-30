@@ -157,7 +157,7 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
         const uint32_t dag_words = dag_size / sizeof(node);
         m_calculateDagKernel->setArgs(0, m_lightCache, m_dag, dag_words, m_lightCacheSize / sizeof(node));
 
-        constexpr uint32_t N = 1 << 20;
+        constexpr uint32_t N = 1 << 18;
 
         for (uint32_t start = 0; start < dag_words; start += N) {
             m_calculateDagKernel->setArg(0, sizeof(start), &start);
