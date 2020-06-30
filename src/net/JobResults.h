@@ -49,7 +49,7 @@ public:
     static void submit(const JobResult &result);
 
 #   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
-    static void submit(const Job &job, uint32_t *results, size_t count);
+    static void submit(const Job &job, uint32_t *results, size_t count, uint32_t device_index);
 #   endif
 };
 

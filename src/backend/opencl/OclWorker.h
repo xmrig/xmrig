@@ -69,6 +69,7 @@ private:
     IOclRunner *m_runner = nullptr;
     OclSharedData &m_sharedData;
     WorkerJob<1> m_job;
+    uint32_t m_deviceIndex;
 };
 
 

@@ -25,6 +25,7 @@
  */
 
 
+#include "backend/cpu/Cpu.h"
 #include "crypto/kawpow/KPHash.h"
 #include "crypto/kawpow/KPCache.h"
 #include "3rdparty/libethash/ethash.h"
@@ -156,7 +157,22 @@ static inline uint32_t popcount(uint32_t a)
 }
 
 
-static inline uint32_t random_math(uint32_t a, uint32_t b, uint32_t selector)
+// Taken from https://en.wikipedia.org/wiki/Hamming_weight
+static inline uint32_t popcount_soft(uint64_t x)
+{
+    constexpr uint64_t m1 = 0x5555555555555555ull;
+    constexpr uint64_t m2 = 0x3333333333333333ull;
+    constexpr uint64_t m4 = 0x0f0f0f0f0f0f0f0full;
+    constexpr uint64_t h01 = 0x0101010101010101ull;
+
+    x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
+    x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
+    x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
+    return (x * h01) >> 56;         //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ... 
+}
+
+
+static inline uint32_t random_math(uint32_t a, uint32_t b, uint32_t selector, bool has_popcnt)
 {
     switch (selector % 11)
     {
@@ -181,7 +197,10 @@ static inline uint32_t random_math(uint32_t a, uint32_t b, uint32_t selector)
     case 9:
         return clz(a) + clz(b);
     case 10:
-        return popcount(a) + popcount(b);
+        if (has_popcnt)
+            return popcount(a) + popcount(b);
+        else
+            return popcount_soft(a) + popcount_soft(b);
     default:
 #ifdef _MSC_VER
         __assume(false);
@@ -260,6 +279,8 @@ void KPHash::calculate(const KPCache& light_cache, uint32_t block_height, const 
     uint32_t jsr0 = jsr;
     uint32_t jcong0 = jcong;
 
+    const bool has_popcnt = Cpu::info()->has(ICpuInfo::FLAG_POPCNT);
+
     for (uint32_t r = 0; r < ETHASH_ACCESSES; ++r) {
         uint32_t item_index = (mix[r % LANES][0] % num_items) * 4;
 
@@ -302,7 +323,7 @@ void KPHash::calculate(const KPCache& light_cache, uint32_t block_height, const 
 
                 for (size_t l = 0; l < LANES; ++l)
                 {
-                    const uint32_t data = random_math(mix[l][src1], mix[l][src2], sel1);
+                    const uint32_t data = random_math(mix[l][src1], mix[l][src2], sel1, has_popcnt);
                     random_merge(mix[l][dst], data, sel2);
                 }
             }
