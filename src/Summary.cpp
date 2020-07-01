@@ -161,11 +161,14 @@ static void print_commands(Config *)
 {
     if (Log::isColors()) {
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BG(WHITE_BOLD_S "h") WHITE_BOLD("ashrate, ")
-                                                                     MAGENTA_BG(WHITE_BOLD_S "p") WHITE_BOLD("ause, ")
-                                                                     MAGENTA_BG(WHITE_BOLD_S "r") WHITE_BOLD("esume"));
+                                                                 MAGENTA_BG(WHITE_BOLD_S "p") WHITE_BOLD("ause, ")
+                                                                 MAGENTA_BG(WHITE_BOLD_S "r") WHITE_BOLD("esume, ")
+                                                                 WHITE_BOLD("re") MAGENTA_BG(WHITE_BOLD_S "s") WHITE_BOLD("ults, ")
+                                                                 MAGENTA_BG(WHITE_BOLD_S "c") WHITE_BOLD("onnection")
+                   );
     }
     else {
-        Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
+        Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume, 's' results, 'c' connection");
     }
 }
 
