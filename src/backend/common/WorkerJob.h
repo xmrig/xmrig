@@ -139,11 +139,18 @@ inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
     }
 
     // Increment higher 32 bits of a 64-bit nonce when lower 32 bits overflow
-    if (!currentJob().isNicehash() && (nonceSize() == sizeof(uint64_t)) && (*n < prev_nonce)) {
-        ++n[1];
+    if (!currentJob().isNicehash() && (nonceSize() == sizeof(uint64_t))) {
+        const bool wrapped = (*n < prev_nonce);
+        const bool wraps_this_round = (static_cast<uint64_t>(*n) + roundSize > (1ULL << 32));
 
-        Job& job = m_jobs[index()];
-        memcpy(job.blob(), blob(), job.size());
+        // Account for the case when starting nonce hasn't wrapped yet, but some nonces in the current round will wrap
+        if (wrapped | wraps_this_round) {
+            *n = 0; // Set lower 32 bits to 0 when higher 32 bits change
+            ++n[1];
+
+            Job& job = m_jobs[index()];
+            memcpy(job.blob(), blob(), job.size());
+        }
     }
 
     return ok;
