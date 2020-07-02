@@ -144,7 +144,7 @@ inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
         const bool wraps_this_round = (static_cast<uint64_t>(*n) + roundSize > (1ULL << 32));
 
         // Account for the case when starting nonce hasn't wrapped yet, but some nonces in the current round will wrap
-        if (wrapped | wraps_this_round) {
+        if (wrapped || wraps_this_round) {
             *n = 0; // Set lower 32 bits to 0 when higher 32 bits change
             ++n[1];
 
