@@ -187,7 +187,7 @@ void ethash_calculate_dag_item4_opt(
 	ethash_light_t const light
 )
 {
-    node const* cache_nodes = (node const*)light->cache;
+	node const* cache_nodes = (node const*)light->cache;
 
 	for (size_t i = 0; i < 4; ++i) {
 		node const* init = &cache_nodes[fast_mod(node_index + i, light->num_parent_nodes, light->reciprocal, light->increment, light->shift)];
