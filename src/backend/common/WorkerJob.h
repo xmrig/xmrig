@@ -145,7 +145,13 @@ inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
 
         // Account for the case when starting nonce hasn't wrapped yet, but some nonces in the current round will wrap
         if (wrapped || wraps_this_round) {
-            *n = 0; // Set lower 32 bits to 0 when higher 32 bits change
+            // Set lower 32 bits to 0 when higher 32 bits change
+            Nonce::reset(index());
+
+            // Sets *n to 0 and Nonce::m_nonce[index] to the correct next value
+            *n = 0;
+            Nonce::next(index(), *n, rounds * roundSize, currentJob().isNicehash(), &ok);
+
             ++n[1];
 
             Job& job = m_jobs[index()];
