@@ -187,7 +187,7 @@ void ethash_calculate_dag_item4_opt(
 	ethash_light_t const light
 )
 {
-	node const* cache_nodes = (node const*)light->cache;
+    node const* cache_nodes = (node const*)light->cache;
 
 	for (size_t i = 0; i < 4; ++i) {
 		node const* init = &cache_nodes[fast_mod(node_index + i, light->num_parent_nodes, light->reciprocal, light->increment, light->shift)];
@@ -197,7 +197,7 @@ void ethash_calculate_dag_item4_opt(
 	}
 
 	for (uint32_t i = 0; i != num_parents; ++i) {
-		node* parent[4];
+		node const* parent[4];
 
 		for (uint32_t j = 0; j < 4; ++j) {
 			const uint32_t parent_index = fast_mod(fnv_hash((node_index + j) ^ i, ret[j].words[i % NODE_WORDS]), light->num_parent_nodes, light->reciprocal, light->increment, light->shift);
