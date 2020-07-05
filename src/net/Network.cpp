@@ -176,15 +176,13 @@ void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &
     params.AddMember("algo", algo, allocator);
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    if (strstr(client->pool().host(), "moneroocean.stream")) {
-        Value algo_perf(kObjectType);
+    Value algo_perf(kObjectType);
 
-        for (const auto &a : algorithms) {
-            algo_perf.AddMember(StringRef(a.shortName()), m_controller->config()->benchmark().algo_perf[a.id()], allocator);
-        }
-
-        params.AddMember("algo-perf", algo_perf, allocator);
+    for (const auto &a : algorithms) {
+        algo_perf.AddMember(StringRef(a.shortName()), m_controller->config()->benchmark().algo_perf[a.id()], allocator);
     }
+
+    params.AddMember("algo-perf", algo_perf, allocator);
 #   endif
 }
 
