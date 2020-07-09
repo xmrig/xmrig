@@ -6,6 +6,7 @@
 - [#1756](https://github.com/xmrig/xmrig/issues/1756) Added results and connection reports.
 - [#1759](https://github.com/xmrig/xmrig/pull/1759) KawPow: fixed DAG initialization on slower AMD GPUs.
 - [#1763](https://github.com/xmrig/xmrig/pull/1763) KawPow: fixed rare duplicate share errors.
+- [#1766](https://github.com/xmrig/xmrig/pull/1766) RandomX: small speedup on Ryzen CPUs.
 
 # v6.2.2
 - [#1742](https://github.com/xmrig/xmrig/issues/1742) Fixed crash when use HTTP API.
