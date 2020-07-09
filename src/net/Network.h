@@ -58,6 +58,7 @@ public:
     inline IStrategy *strategy() const { return m_strategy; }
 
     void connect();
+    void execCommand(char command);
 
 protected:
     inline void onTimer(const Timer *) override { tick(); }

@@ -161,6 +161,13 @@ void ethash_calculate_dag_item_opt(
 	ethash_light_t const cache
 );
 
+void ethash_calculate_dag_item4_opt(
+	node* ret,
+	uint32_t node_index,
+	uint32_t num_parents,
+	ethash_light_t const cache
+);
+
 void ethash_quick_hash(
 	ethash_h256_t* return_hash,
 	ethash_h256_t const* header_hash,

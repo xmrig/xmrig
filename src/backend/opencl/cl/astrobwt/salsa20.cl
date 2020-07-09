@@ -82,7 +82,7 @@ __kernel void Salsa20_XORKeyStream(__global const uint32_t* keys, __global uint3
 		uint32_t x14 = j14;
 		uint32_t x15 = j15;
 
-		#pragma unroll(5)
+		#pragma unroll 5
 		for (uint32_t j = 0; j < 10; ++j)
 		{
 			x4  = XOR( x4,ROTATE(PLUS( x0,x12), 7));

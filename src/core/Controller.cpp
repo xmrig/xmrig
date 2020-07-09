@@ -105,3 +105,10 @@ xmrig::Network *xmrig::Controller::network() const
 
     return m_network;
 }
+
+
+void xmrig::Controller::execCommand(char command)
+{
+    miner()->execCommand(command);
+    network()->execCommand(command);
+}
