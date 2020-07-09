@@ -37,8 +37,6 @@
 #include "base/kernel/Platform.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "core/Miner.h"
-#include "net/Network.h"
 #include "Summary.h"
 #include "version.h"
 
@@ -107,7 +105,7 @@ void xmrig::App::onConsoleCommand(char command)
         close();
     }
     else {
-        m_controller->miner()->execCommand(command);
+        m_controller->execCommand(command);
     }
 }
 

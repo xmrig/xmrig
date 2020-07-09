@@ -33,6 +33,18 @@
 #include "data_sizes.h"
 #include "base/crypto/sha3.h"
 
+#if defined(_M_X64) || defined(__x86_64__) || defined(__SSE2__)
+	#ifdef __GNUC__
+		#include <x86intrin.h>
+	#else
+		#include <intrin.h>
+	#endif
+
+	#define kp_prefetch(x) _mm_prefetch((x), _MM_HINT_T0);
+#else
+	#define kp_prefetch(x)
+#endif
+
 #define SHA3_256(a, b, c) sha3_HashBuffer(256, SHA3_FLAGS_KECCAK, b, c, a, 32)
 #define SHA3_512(a, b, c) sha3_HashBuffer(512, SHA3_FLAGS_KECCAK, b, c, a, 64)
 
@@ -157,44 +169,51 @@ void ethash_calculate_dag_item_opt(
 	memcpy(ret, init, sizeof(node));
 	ret->words[0] ^= node_index;
 	SHA3_512(ret->bytes, ret->bytes, sizeof(node));
-#if defined(_M_X64) && ENABLE_SSE
-	__m128i const fnv_prime = _mm_set1_epi32(FNV_PRIME);
-	__m128i xmm0 = ret->xmm[0];
-	__m128i xmm1 = ret->xmm[1];
-	__m128i xmm2 = ret->xmm[2];
-	__m128i xmm3 = ret->xmm[3];
-#endif
 
 	for (uint32_t i = 0; i != num_parents; ++i) {
 		uint32_t parent_index = fast_mod(fnv_hash(node_index ^ i, ret->words[i % NODE_WORDS]), light->num_parent_nodes, light->reciprocal, light->increment, light->shift);
 		node const* parent = &cache_nodes[parent_index];
-
-#if defined(_M_X64) && ENABLE_SSE
-		{
-			xmm0 = _mm_mullo_epi32(xmm0, fnv_prime);
-			xmm1 = _mm_mullo_epi32(xmm1, fnv_prime);
-			xmm2 = _mm_mullo_epi32(xmm2, fnv_prime);
-			xmm3 = _mm_mullo_epi32(xmm3, fnv_prime);
-			xmm0 = _mm_xor_si128(xmm0, parent->xmm[0]);
-			xmm1 = _mm_xor_si128(xmm1, parent->xmm[1]);
-			xmm2 = _mm_xor_si128(xmm2, parent->xmm[2]);
-			xmm3 = _mm_xor_si128(xmm3, parent->xmm[3]);
-
-			// have to write to ret as values are used to compute index
-			ret->xmm[0] = xmm0;
-			ret->xmm[1] = xmm1;
-			ret->xmm[2] = xmm2;
-			ret->xmm[3] = xmm3;
+		for (unsigned w = 0; w != NODE_WORDS; ++w) {
+			ret->words[w] = fnv_hash(ret->words[w], parent->words[w]);
 		}
-#else
-		{
-			for (unsigned w = 0; w != NODE_WORDS; ++w) {
-				ret->words[w] = fnv_hash(ret->words[w], parent->words[w]);
-			}
-		}
-#endif
 	}
 	SHA3_512(ret->bytes, ret->bytes, sizeof(node));
+}
+
+void ethash_calculate_dag_item4_opt(
+	node* ret,
+	uint32_t node_index,
+	uint32_t num_parents,
+	ethash_light_t const light
+)
+{
+	node const* cache_nodes = (node const*)light->cache;
+
+	for (size_t i = 0; i < 4; ++i) {
+		node const* init = &cache_nodes[fast_mod(node_index + i, light->num_parent_nodes, light->reciprocal, light->increment, light->shift)];
+		memcpy(ret + i, init, sizeof(node));
+		ret[i].words[0] ^= node_index + i;
+		SHA3_512(ret[i].bytes, ret[i].bytes, sizeof(node));
+	}
+
+	for (uint32_t i = 0; i != num_parents; ++i) {
+		node const* parent[4];
+
+		for (uint32_t j = 0; j < 4; ++j) {
+			const uint32_t parent_index = fast_mod(fnv_hash((node_index + j) ^ i, ret[j].words[i % NODE_WORDS]), light->num_parent_nodes, light->reciprocal, light->increment, light->shift);
+			parent[j] = &cache_nodes[parent_index];
+			kp_prefetch(parent[j]);
+		}
+
+		for (unsigned w = 0; w != NODE_WORDS; ++w) ret[0].words[w] = fnv_hash(ret[0].words[w], parent[0]->words[w]);
+		for (unsigned w = 0; w != NODE_WORDS; ++w) ret[1].words[w] = fnv_hash(ret[1].words[w], parent[1]->words[w]);
+		for (unsigned w = 0; w != NODE_WORDS; ++w) ret[2].words[w] = fnv_hash(ret[2].words[w], parent[2]->words[w]);
+		for (unsigned w = 0; w != NODE_WORDS; ++w) ret[3].words[w] = fnv_hash(ret[3].words[w], parent[3]->words[w]);
+	}
+
+	for (size_t i = 0; i < 4; ++i) {
+		SHA3_512(ret[i].bytes, ret[i].bytes, sizeof(node));
+	}
 }
 
 bool ethash_compute_full_data(

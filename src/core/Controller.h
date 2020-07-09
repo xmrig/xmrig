@@ -52,6 +52,7 @@ public:
 
     Miner *miner() const;
     Network *network() const;
+    void execCommand(char command);
 
 private:
     Miner *m_miner     = nullptr;

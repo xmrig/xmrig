@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright 2008-2018 Advanced Micro Devices, Inc.
  * Copyright 2018-2020 SChernykh                    <https://github.com/SChernykh>
+ * Copyright 2020      Patrick Bollinger            <https://github.com/pjbollinger>
  * Copyright 2016-2020 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -82,7 +83,7 @@ static inline std::string sysfs_prefix(const PciTopology &topology)
 
     for (uint32_t i = 1; i < 10; ++i) {
         const std::string prefix = path + std::to_string(i) + "/";
-        if (sysfs_is_amdgpu(prefix + "name") && sysfs_read(prefix + "freq1_input")) {
+        if (sysfs_is_amdgpu(prefix + "name") && (sysfs_read(prefix + "temp1_input") || sysfs_read(prefix + "power1_average"))) {
             return prefix;
         }
     }
@@ -116,6 +117,7 @@ void xmrig::AdlLib::close()
 }
 
 
+// https://dri.freedesktop.org/docs/drm/gpu/amdgpu.html#gpu-power-thermal-controls-and-monitoring
 AdlHealth xmrig::AdlLib::health(const OclDevice &device)
 {
     if (!isReady() || device.vendorId() != OCL_VENDOR_AMD) {
@@ -133,6 +135,10 @@ AdlHealth xmrig::AdlLib::health(const OclDevice &device)
     health.power        = sysfs_read(prefix + "power1_average") / 1000000;
     health.rpm          = sysfs_read(prefix + "fan1_input");
     health.temperature  = sysfs_read(prefix + "temp2_input") / 1000;
+
+    if (!health.temperature) {
+        health.temperature = sysfs_read(prefix + "temp1_input") / 1000;
+    }
 
     return health;
 }

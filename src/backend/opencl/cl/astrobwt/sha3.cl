@@ -111,7 +111,7 @@ __kernel void sha3(__global const uint8_t* inputs, __global const uint32_t* inpu
 		++wordIndex;
 		if (wordIndex == 17)
 		{
-			#pragma unroll(ROUNDS)
+			#pragma unroll ROUNDS
 			for (int i = 0; i < ROUNDS; ++i)
 			{
 				C[t] = A[s] ^ A[s+5] ^ A[s+10] ^ A[s+15] ^ A[s+20];
@@ -133,7 +133,7 @@ __kernel void sha3(__global const uint8_t* inputs, __global const uint32_t* inpu
 	A[wordIndex] ^= tail ^ ((uint64_t)(((uint64_t)(0x02 | (1 << 2))) << (tail_size * 8)));
 	A[16] ^= 0x8000000000000000UL;
 
-	#pragma unroll(1)
+	#pragma unroll 1
 	for (int i = 0; i < ROUNDS; ++i)
 	{
 		C[t] = A[s] ^ A[s+5] ^ A[s+10] ^ A[s+15] ^ A[s+20];
@@ -180,7 +180,7 @@ __kernel void sha3_initial(__global const uint8_t* input_data, uint32_t input_si
 	A[wordIndex] ^= (uint64_t)(((uint64_t)(0x02 | (1 << 2))) << (tail_size * 8));
 	A[16] ^= 0x8000000000000000UL;
 
-	#pragma unroll(ROUNDS)
+	#pragma unroll ROUNDS
 	for (int i = 0; i < ROUNDS; ++i)
 	{
 		C[t] = A[s] ^ A[s+5] ^ A[s+10] ^ A[s+15] ^ A[s+20];

@@ -32,6 +32,7 @@
 
 
 #include <array>
+#include <string>
 #include <vector>
 
 
@@ -52,6 +53,12 @@ public:
     rapidjson::Value getResults(rapidjson::Document &doc, int version) const;
 #   endif
 
+    void printConnection() const;
+    void printResults() const;
+
+    static const char *scaleDiff(uint64_t &diff);
+    static std::string humanDiff(uint64_t diff);
+
 protected:
     void onActive(IStrategy *strategy, IClient *client) override;
     void onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &params) override;
@@ -59,8 +66,8 @@ protected:
     void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override;
 
 private:
-    uint32_t avgTime() const;
     uint32_t latency() const;
+    uint64_t avgTime() const;
     uint64_t connectionTime() const;
     void add(const SubmitResult &result, const char *error);
     void stop();
@@ -68,7 +75,7 @@ private:
     Algorithm m_algorithm;
     bool m_active               = false;
     char m_pool[256]{};
-    std::array<uint64_t, 10> topDiff { { } };
+    std::array<uint64_t, 10> m_topDiff { { } };
     std::vector<uint16_t> m_latency;
     String m_fingerprint;
     String m_ip;
