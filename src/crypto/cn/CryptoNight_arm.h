@@ -33,7 +33,6 @@
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
-#include "crypto/common/portable/mm_malloc.h"
 
 
 extern "C"
@@ -66,34 +65,6 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
 
 
 void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
-
-
-static inline __attribute__((always_inline)) __m128i _mm_set_epi64x(const uint64_t a, const uint64_t b)
-{
-    return vcombine_u64(vcreate_u64(b), vcreate_u64(a));
-}
-
-
-#if __ARM_FEATURE_CRYPTO
-static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
-{
-    alignas(16) const __m128i zero = { 0 };
-    return veorq_u8(vaesmcq_u8(vaeseq_u8(v, zero)), rkey );
-}
-#else
-static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
-{
-    alignas(16) const __m128i zero = { 0 };
-    return zero;
-}
-#endif
-
-
-/* this one was not implemented yet so here it is */
-static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i a)
-{
-    return vgetq_lane_u64(a, 0);
-}
 
 
 #if defined (__arm64__) || defined (__aarch64__)
