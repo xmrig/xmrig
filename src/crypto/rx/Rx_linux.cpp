@@ -221,7 +221,10 @@ static bool wrmsr(const MsrItems& preset, const std::vector<CpuThread>& threads,
             else {
                 // Disable L3 cache for Class Of Service 1
                 if (!wrmsr_on_cpu(0xC91, cpu, 0, MsrItem::kNoMask)) {
-                    return false;
+                    // Some CPUs don't let set it to all zeros
+                    if (!wrmsr_on_cpu(0xC91, cpu, 1, MsrItem::kNoMask)) {
+                        return false;
+                    }
                 }
 
                 // Assign Class Of Service 1 to current CPU core

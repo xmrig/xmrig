@@ -324,7 +324,12 @@ static bool wrmsr(const MsrItems &preset, const std::vector<CpuThread>& threads,
                 }
                 else {
                     // Disable L3 cache for Class Of Service 1
-                    success &= wrmsr(driver, 0xC91, 0, MsrItem::kNoMask);
+                    if (!wrmsr(driver, 0xC91, 0, MsrItem::kNoMask)) {
+                        // Some CPUs don't let set it to all zeros
+                        if (!wrmsr(driver, 0xC91, 1, MsrItem::kNoMask)) {
+                            success = false;
+                        }
+                    }
 
                     // Assign Class Of Service 1 to current CPU core
                     success &= wrmsr(driver, 0xC8F, 1ULL << 32, MsrItem::kNoMask);
