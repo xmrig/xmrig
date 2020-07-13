@@ -65,6 +65,7 @@ public:
     inline bool isOneGbPages() const    { return m_oneGbPages; }
     inline bool rdmsr() const           { return m_rdmsr; }
     inline bool wrmsr() const           { return m_wrmsr; }
+    inline bool cacheQoS() const        { return m_cacheQoS; }
     inline Mode mode() const            { return m_mode; }
 
 #   ifdef XMRIG_FEATURE_MSR
@@ -82,6 +83,8 @@ private:
 #   else
     bool m_wrmsr = false;
 #   endif
+
+    bool m_cacheQoS = false;
 
     Mode readMode(const rapidjson::Value &value) const;
 
