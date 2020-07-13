@@ -28,6 +28,7 @@
 #include "crypto/rx/Rx.h"
 #include "backend/common/Tags.h"
 #include "backend/cpu/CpuConfig.h"
+#include "backend/cpu/CpuThreads.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "crypto/rx/RxConfig.h"
@@ -78,7 +79,7 @@ bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cp
     }
 
     if (!msrInitialized) {
-        msrInit(config);
+        msrInit(config, cpu.threads().get(job.algorithm()).data());
         msrInitialized = true;
     }
 

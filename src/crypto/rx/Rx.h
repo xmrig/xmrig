@@ -30,6 +30,7 @@
 
 #include <cstdint>
 #include <utility>
+#include <vector>
 
 
 #include "crypto/common/HugePagesInfo.h"
@@ -41,6 +42,7 @@ namespace xmrig
 
 class Algorithm;
 class CpuConfig;
+class CpuThread;
 class IRxListener;
 class Job;
 class RxConfig;
@@ -62,7 +64,7 @@ public:
 #   endif
 
 private:
-    static void msrInit(const RxConfig &config);
+    static void msrInit(const RxConfig &config, const std::vector<CpuThread>& threads);
     static void msrDestroy();
     static void setupMainLoopExceptionFrame();
 };
