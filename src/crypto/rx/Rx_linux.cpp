@@ -204,7 +204,9 @@ static bool wrmsr(const MsrItems& preset, const std::vector<CpuThread>& threads,
     }
 
     if (cache_qos && !Cpu::info()->hasCatL3()) {
-        LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "This CPU doesn't support cat_l3, cache QoS is unavailable", tag);
+        if (!threads.empty()) {
+            LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "This CPU doesn't support cat_l3, cache QoS is unavailable", tag);
+        }
         cache_qos = false;
     }
 
