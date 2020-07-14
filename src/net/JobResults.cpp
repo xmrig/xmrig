@@ -130,7 +130,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
         for (uint32_t nonce : bundle.nonces) {
             *bundle.job.nonce() = nonce;
 
-            randomx_calculate_hash(vm, bundle.job.blob(), bundle.job.size(), hash);
+            randomx_calculate_hash(vm, bundle.job.blob(), bundle.job.size(), hash, algorithm);
 
             checkHash(bundle, results, nonce, hash, errors);
         }

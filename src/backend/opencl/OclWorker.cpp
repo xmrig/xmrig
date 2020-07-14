@@ -116,14 +116,16 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
 #       endif
         break;
 
-    case Algorithm::CN_GPU:
-#       ifdef XMRIG_ALGO_CN_GPU
-        m_runner = new OclRyoRunner(id, data);
-#       endif
-        break;
-
     default:
-        m_runner = new OclCnRunner(id, data);
+#       ifdef XMRIG_ALGO_CN_GPU
+        if (m_algorithm == Algorithm::CN_GPU) {
+            m_runner = new OclRyoRunner(id, data);
+        }
+        else
+#       endif
+        {
+            m_runner = new OclCnRunner(id, data);
+        }
         break;
     }
 

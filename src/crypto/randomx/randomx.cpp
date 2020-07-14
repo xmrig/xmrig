@@ -48,13 +48,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cassert>
 
 extern "C" {
-#include "crypto/defyx/yescrypt.h"
-#include "crypto/defyx/KangarooTwelve.h"
+#include "crypto/randomx/defyx/yescrypt.h"
+#include "crypto/randomx/defyx/KangarooTwelve.h"
 }
-#define YESCRYPT_FLAGS YESCRYPT_RW
-#define YESCRYPT_BASE_N 2048
-#define YESCRYPT_R 8
-#define YESCRYPT_P 1
 
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 {
@@ -127,8 +123,8 @@ RandomX_ConfigurationScala::RandomX_ConfigurationScala()
 	ScratchpadL1_Size = 65536;
 	ScratchpadL2_Size = 131072;
 	ScratchpadL3_Size = 262144;
-  ProgramSize       = 64;
-  ProgramIterations = 1024;
+	ProgramSize       = 64;
+	ProgramIterations = 1024;
 	ProgramCount      = 4;
 
 	RANDOMX_FREQ_IADD_RS = 25;
@@ -344,29 +340,23 @@ alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 static std::mutex vm_pool_mutex;
 
-int sipesh(void *out, size_t outlen, const void *in, size_t inlen)
+int rx_sipesh_k12(void *out, size_t outlen, const void *in, size_t inlen)
 {
-  const void *salt = in;
-  size_t saltlen = inlen;
-  unsigned int t_cost = 0;
-  unsigned int m_cost = 0;
+	const void *salt = in;
+	size_t saltlen = inlen;
 	yescrypt_local_t local;
 	int retval;
 
-	if (yescrypt_init_local(&local))
-		return -1;
-	retval = yescrypt_kdf(NULL, &local, (const uint8_t*)in, inlen, (const uint8_t*)salt, saltlen,
-	    (uint64_t)YESCRYPT_BASE_N << m_cost, YESCRYPT_R, YESCRYPT_P,
-	    t_cost, 0, YESCRYPT_FLAGS, (uint8_t*)out, outlen);
-	if (yescrypt_free_local(&local))
-		return -1;
+	if (yescrypt_init_local(&local)) return -1;
+	retval = yescrypt_kdf(NULL, &local,
+		(const uint8_t*)in, inlen,
+		(const uint8_t*)salt, saltlen,
+		(uint64_t)2048, 8, 1, 0, 0, (yescrypt_flags_t)1,
+		(uint8_t*)out, outlen
+	);
+	if (yescrypt_free_local(&local) || retval) return -1;
+	retval = KangarooTwelve((const unsigned char *)in, inlen, (unsigned char *)out, 32, 0, 0);
 	return retval;
-}
-
-int k12(void *hash, const void *data, size_t length)
-{
-  int kDo = KangarooTwelve((const unsigned char *)data, length, (unsigned char *)hash, 32, 0, 0);
-  return kDo;
 }
 
 extern "C" {
@@ -569,12 +559,16 @@ extern "C" {
 		vm->~randomx_vm();
 	}
 
-	void randomx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output) {
+	void randomx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output, const xmrig::Algorithm algo) {
 		assert(machine != nullptr);
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		if (algo == xmrig::Algorithm::RX_DEFYX) {
+			rx_sipesh_k12(tempHash, sizeof(tempHash), input, inputSize);
+		} else {
+			rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		}
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
@@ -585,12 +579,16 @@ extern "C" {
 		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
 	}
 
-	void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+	void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize, const xmrig::Algorithm algo) {
+		if (algo == xmrig::Algorithm::RX_DEFYX) {
+			rx_sipesh_k12(tempHash, sizeof(tempHash), input, inputSize);
+		} else {
+			rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		}
 		machine->initScratchpad(tempHash);
 	}
 
-	void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
+	void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output, const xmrig::Algorithm algo) {
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
@@ -599,44 +597,12 @@ extern "C" {
 		machine->run(&tempHash);
 
 		// Finish current hash and fill the scratchpad for the next hash at the same time
-		rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
+		if (algo == xmrig::Algorithm::RX_DEFYX) {
+			rx_sipesh_k12(tempHash, sizeof(tempHash), nextInput, nextInputSize);
+		} else {
+			rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
+		}
 		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
 	}
 
-	void defyx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output) {
-		assert(machine != nullptr);
-		assert(inputSize == 0 || input != nullptr);
-		assert(output != nullptr);
-		alignas(16) uint64_t tempHash[8];
-		sipesh(tempHash, sizeof(tempHash), input, inputSize);
-		k12(tempHash, input, inputSize);
-		machine->initScratchpad(&tempHash);
-		machine->resetRoundingMode();
-		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
-			machine->run(&tempHash);
-			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
-		}
-		machine->run(&tempHash);
-		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
-	}
-
-	void defyx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
-		sipesh(tempHash, sizeof(tempHash), input, inputSize);
-		k12(tempHash, input, inputSize);
-		machine->initScratchpad(tempHash);
-	}
-
-	void defyx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
-		machine->resetRoundingMode();
-		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
-			machine->run(&tempHash);
-			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
-		}
-		machine->run(&tempHash);
-
-		// Finish current hash and fill the scratchpad for the next hash at the same time
-		sipesh(tempHash, sizeof(tempHash), nextInput, nextInputSize);
-		k12(tempHash, nextInput, nextInputSize);
-		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
-	}
 }

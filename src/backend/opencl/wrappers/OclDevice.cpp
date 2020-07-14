@@ -61,12 +61,12 @@ extern bool ocl_generic_astrobwt_generator(const OclDevice& device, const Algori
 extern bool ocl_generic_kawpow_generator(const OclDevice& device, const Algorithm& algorithm, OclThreads& threads);
 #endif
 
+extern bool ocl_vega_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
+extern bool ocl_generic_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
+
 #ifdef XMRIG_ALGO_CN_GPU
 extern bool ocl_generic_cn_gpu_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
 #endif
-
-extern bool ocl_vega_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
-extern bool ocl_generic_cn_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
 
 
 static ocl_gen_config_fun generators[] = {
@@ -79,11 +79,11 @@ static ocl_gen_config_fun generators[] = {
 #   ifdef XMRIG_ALGO_KAWPOW
     ocl_generic_kawpow_generator,
 #   endif
+    ocl_vega_cn_generator,
+    ocl_generic_cn_generator,
 #   ifdef XMRIG_ALGO_CN_GPU
     ocl_generic_cn_gpu_generator,
 #   endif
-    ocl_vega_cn_generator,
-    ocl_generic_cn_generator
 };
 
 

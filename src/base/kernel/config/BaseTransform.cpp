@@ -311,14 +311,16 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::DryRunKey: /* --dry-run */
         return set(doc, BaseConfig::kDryRun, enable);
 
-    case IConfig::RebenchAlgoKey: /* --rebench-algo */
-        return set(doc, "rebench-algo", enable);
-
     case IConfig::VerboseKey: /* --verbose */
         return set(doc, BaseConfig::kVerbose, enable);
 
     case IConfig::NoTitleKey: /* --no-title */
         return set(doc, BaseConfig::kTitle, enable);
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    case IConfig::RebenchAlgoKey: /* --rebench-algo */
+        return set(doc, BaseConfig::kRebenchAlgo, enable);
+#   endif
 
     default:
         break;
@@ -355,7 +357,7 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
-        return set(doc, "bench-algo-time", arg);
+        return set(doc, BaseConfig::kBenchAlgoTime, arg);
 #   endif
 
     default:

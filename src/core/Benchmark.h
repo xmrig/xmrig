@@ -1,5 +1,5 @@
 /* XMRig
- * Copyright 2018-20120 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
+ * Copyright 2018-2020 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,18 +34,18 @@ class Benchmark : public IJobResultListener {
             CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
             CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
             CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
+            CN_HEAVY_XHV,  // "cn-heavy/xhv"     CryptoNight-Heavy (modified, Haven Protocol only).
             CN_PICO_0,     // "cn-pico"          CryptoNight-Pico.
             CN_CCX,        // "cn/ccx"           Conceal (CCX).
             CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
             AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
             AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ).
             ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero).
-            KAWPOW_RVN,    // "kawpow/rvn"       KawPow (RVN).
-            RX_DEFYX,      // "defyx             DefyX.
             RX_0,          // "rx/0"             RandomX (Monero).
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
             RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
             RX_KEVA,       // "rx/keva"          RandomKEVA (Keva).
+            RX_DEFYX,      // "defyx"            DefyX (Scala).
             MAX,
             MIN = 0,
             INVALID = -1,
@@ -55,18 +55,18 @@ class Benchmark : public IJobResultListener {
             Algorithm::CN_R,
             Algorithm::CN_LITE_1,
             Algorithm::CN_HEAVY_TUBE,
+            Algorithm::CN_HEAVY_XHV,
             Algorithm::CN_PICO_0,
             Algorithm::CN_CCX,
             Algorithm::CN_GPU,
             Algorithm::AR2_CHUKWA,
             Algorithm::AR2_WRKZ,
             Algorithm::ASTROBWT_DERO,
-            Algorithm::KAWPOW_RVN,
-            Algorithm::RX_DEFYX,
             Algorithm::RX_0,
             Algorithm::RX_WOW,
             Algorithm::RX_ARQ,
             Algorithm::RX_KEVA,
+            Algorithm::RX_DEFYX,
         };
 
         Job* m_bench_job[BenchAlgo::MAX];
