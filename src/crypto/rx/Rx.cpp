@@ -131,7 +131,7 @@ void xmrig::Rx::init(IRxListener *listener)
 
 
 #ifndef XMRIG_FEATURE_MSR
-void xmrig::Rx::msrInit(const RxConfig &)
+void xmrig::Rx::msrInit(const RxConfig &, const std::vector<CpuThread> &)
 {
 }
 
