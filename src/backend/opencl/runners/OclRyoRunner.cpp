@@ -109,7 +109,7 @@ void xmrig::OclRyoRunner::build()
     m_cn00->setArgs(m_scratchpads, m_states);
 
     m_cn0 = new Cn0Kernel(m_program);
-    m_cn0->setArgs(m_input, m_scratchpads, m_states, m_intensity);
+    m_cn0->setArgs(m_input, 0, m_scratchpads, m_states, m_intensity);
 
     m_cn1 = new Cn1RyoKernel(m_program);
     m_cn1->setArgs(m_scratchpads, m_states, m_intensity);
