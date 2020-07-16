@@ -46,7 +46,8 @@ public:
     // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
     // SECOR increase requirements for blob size: https://github.com/xmrig/xmrig/issues/913
     // Haven (XHV) offshore increases requirements by adding pricing_record struct (192 bytes) to block_header.
-    static constexpr const size_t kMaxBlobSize = 384;
+    // Round it up to 408 (136*3) for a convenient keccak calculation in OpenCL
+    static constexpr const size_t kMaxBlobSize = 408;
     static constexpr const size_t kMaxSeedSize = 32;
 
     Job() = default;
