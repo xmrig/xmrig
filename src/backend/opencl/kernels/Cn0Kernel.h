@@ -38,7 +38,7 @@ public:
     inline Cn0Kernel(cl_program program) : OclKernel(program, "cn0") {}
 
     void enqueue(cl_command_queue queue, uint32_t nonce, size_t threads);
-    void setArgs(cl_mem input, cl_mem scratchpads, cl_mem states, uint32_t threads);
+    void setArgs(cl_mem input, int inlen, cl_mem scratchpads, cl_mem states, uint32_t threads);
 };
 
 

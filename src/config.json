@@ -20,6 +20,7 @@
         "1gb-pages": false,
         "rdmsr": true,
         "wrmsr": true,
+        "cache_qos": false,
         "numa": true
     },
     "cpu": {

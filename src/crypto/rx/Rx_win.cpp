@@ -30,6 +30,7 @@
 
 #include "crypto/rx/Rx.h"
 #include "backend/cpu/Cpu.h"
+#include "backend/cpu/CpuThread.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/Platform.h"
 #include "base/tools/Chrono.h"
@@ -256,7 +257,7 @@ static bool wrmsr(HANDLE driver, uint32_t reg, uint64_t value, uint64_t mask)
 }
 
 
-static bool wrmsr(const MsrItems &preset, bool save)
+static bool wrmsr(const MsrItems &preset, const std::vector<CpuThread>& threads, bool cache_qos, bool save)
 {
     bool success = true;
 
@@ -282,14 +283,59 @@ static bool wrmsr(const MsrItems &preset, bool save)
         }
     }
 
-    std::thread wrmsr_thread([driver, &preset, &success]() {
-        for (uint32_t i = 0, n = Cpu::info()->threads(); i < n; ++i) {
+    const uint32_t n = Cpu::info()->threads();
+
+    // Which CPU cores will have access to the full L3 cache
+    std::vector<bool> cacheEnabled(n, false);
+    bool cacheQoSDisabled = threads.empty();
+
+    for (const CpuThread& t : threads) {
+        // If some thread has no affinity or wrong affinity, disable cache QoS
+        if ((t.affinity() < 0) || (t.affinity() >= n)) {
+            cacheQoSDisabled = true;
+            if (cache_qos) {
+                LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "Cache QoS can only be enabled when all mining threads have affinity set", tag);
+            }
+            break;
+        }
+
+        cacheEnabled[t.affinity()] = true;
+    }
+
+    if (cache_qos && !Cpu::info()->hasCatL3()) {
+        if (!threads.empty()) {
+            LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "This CPU doesn't support cat_l3, cache QoS is unavailable", tag);
+        }
+        cache_qos = false;
+    }
+
+    std::thread wrmsr_thread([n, driver, &preset, &cacheEnabled, cache_qos, cacheQoSDisabled, &success]() {
+        for (uint32_t i = 0; i < n; ++i) {
             if (!Platform::setThreadAffinity(i)) {
                 continue;
             }
 
             for (const auto &i : preset) {
-                success = wrmsr(driver, i.reg(), i.value(), i.mask());
+                success &= wrmsr(driver, i.reg(), i.value(), i.mask());
+            }
+
+            if (cache_qos) {
+                if (cacheQoSDisabled || cacheEnabled[i]) {
+                    // Assign Class Of Service 0 to current CPU core (default, full L3 cache available)
+                    success &= wrmsr(driver, 0xC8F, 0, MsrItem::kNoMask);
+                }
+                else {
+                    // Disable L3 cache for Class Of Service 1
+                    if (!wrmsr(driver, 0xC91, 0, MsrItem::kNoMask)) {
+                        // Some CPUs don't let set it to all zeros
+                        if (!wrmsr(driver, 0xC91, 1, MsrItem::kNoMask)) {
+                            success = false;
+                        }
+                    }
+
+                    // Assign Class Of Service 1 to current CPU core
+                    success &= wrmsr(driver, 0xC8F, 1ULL << 32, MsrItem::kNoMask);
+                }
             }
 
             if (!success) {
@@ -349,7 +395,7 @@ void Rx::setMainLoopBounds(const std::pair<const void*, const void*>& bounds)
 } // namespace xmrig
 
 
-void xmrig::Rx::msrInit(const RxConfig &config)
+void xmrig::Rx::msrInit(const RxConfig &config, const std::vector<CpuThread>& threads)
 {
     const auto &preset = config.msrPreset();
     if (preset.empty()) {
@@ -358,7 +404,7 @@ void xmrig::Rx::msrInit(const RxConfig &config)
 
     const uint64_t ts = Chrono::steadyMSecs();
 
-    if (wrmsr(preset, config.rdmsr())) {
+    if (wrmsr(preset, threads, config.cacheQoS(), config.rdmsr())) {
         LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
     }
     else {
@@ -375,7 +421,7 @@ void xmrig::Rx::msrDestroy()
 
     const uint64_t ts = Chrono::steadyMSecs();
 
-    if (!wrmsr(savedState, false)) {
+    if (!wrmsr(savedState, std::vector<CpuThread>(), true, false)) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to restore initial state" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
     }
 }

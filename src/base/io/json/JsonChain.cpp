@@ -36,9 +36,7 @@ static const rapidjson::Value kNullValue;
 }
 
 
-xmrig::JsonChain::JsonChain()
-{
-}
+xmrig::JsonChain::JsonChain() = default;
 
 
 bool xmrig::JsonChain::add(rapidjson::Document &&doc)
@@ -66,8 +64,10 @@ bool xmrig::JsonChain::addFile(const char *fileName)
     if (doc.HasParseError()) {
         const size_t offset = doc.GetErrorOffset();
 
-        size_t line, pos;
+        size_t line;
+        size_t pos;
         std::vector<std::string> s;
+
         if (Json::convertOffset(fileName, offset, line, pos, s)) {
             for (const auto& t : s) {
                 LOG_ERR("%s", t.c_str());

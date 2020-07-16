@@ -42,6 +42,10 @@ public:
 #   endif
 #   endif
 
+#   ifdef XMRIG_PROXY_PROJECT
+    static const char *proxy();
+#   endif
+
 #   ifdef XMRIG_FEATURE_CUDA
     static const char *nvidia();
 #   endif

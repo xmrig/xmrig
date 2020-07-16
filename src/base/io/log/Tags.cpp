@@ -73,6 +73,16 @@ const char *xmrig::Tags::randomx()
 #endif
 
 
+#ifdef XMRIG_PROXY_PROJECT
+const char *xmrig::Tags::proxy()
+{
+    static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " proxy   ");
+
+    return tag;
+}
+#endif
+
+
 #ifdef XMRIG_FEATURE_CUDA
 const char *xmrig::Tags::nvidia()
 {
