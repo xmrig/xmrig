@@ -62,6 +62,7 @@ public:
         FLAG_SSSE3,
         FLAG_XOP,
         FLAG_POPCNT,
+        FLAG_CAT_L3,
         FLAG_MAX
     };
 
@@ -79,6 +80,7 @@ public:
     virtual bool hasAVX2() const                                                    = 0;
     virtual bool hasBMI2() const                                                    = 0;
     virtual bool hasOneGbPages() const                                              = 0;
+    virtual bool hasCatL3() const                                                   = 0;
     virtual const char *backend() const                                             = 0;
     virtual const char *brand() const                                               = 0;
     virtual CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const    = 0;

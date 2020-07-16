@@ -29,6 +29,7 @@
 
 #include "crypto/rx/Rx.h"
 #include "backend/cpu/Cpu.h"
+#include "backend/cpu/CpuThread.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Chrono.h"
 #include "crypto/rx/RxConfig.h"
@@ -123,14 +124,15 @@ static bool wrmsr_on_cpu(uint32_t reg, uint32_t cpu, uint64_t value, uint64_t ma
 }
 
 
-static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value, uint64_t mask)
+template<typename T>
+static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value, uint64_t mask, T&& callback)
 {
     struct dirent **namelist;
     int dir_entries = scandir("/dev/cpu", &namelist, dir_filter, 0);
     int errors      = 0;
 
     while (dir_entries--) {
-        if (!wrmsr_on_cpu(reg, strtoul(namelist[dir_entries]->d_name, nullptr, 10), value, mask)) {
+        if (!callback(reg, strtoul(namelist[dir_entries]->d_name, nullptr, 10), value, mask)) {
             ++errors;
         }
 
@@ -159,7 +161,7 @@ static bool wrmsr_modprobe()
 }
 
 
-static bool wrmsr(const MsrItems &preset, bool save)
+static bool wrmsr(const MsrItems& preset, const std::vector<CpuThread>& threads, bool cache_qos, bool save)
 {
     if (!wrmsr_modprobe()) {
         return false;
@@ -177,12 +179,66 @@ static bool wrmsr(const MsrItems &preset, bool save)
     }
 
     for (const auto &i : preset) {
-        if (!wrmsr_on_all_cpus(i.reg(), i.value(), i.mask())) {
+        if (!wrmsr_on_all_cpus(i.reg(), i.value(), i.mask(), [](uint32_t reg, uint32_t cpu, uint64_t value, uint64_t mask) { return wrmsr_on_cpu(reg, cpu, value, mask); })) {
             return false;
         }
     }
 
-    return true;
+    const uint32_t n = Cpu::info()->threads();
+
+    // Which CPU cores will have access to the full L3 cache
+    std::vector<bool> cacheEnabled(n, false);
+    bool cacheQoSDisabled = threads.empty();
+
+    for (const CpuThread& t : threads) {
+        // If some thread has no affinity or wrong affinity, disable cache QoS
+        if ((t.affinity() < 0) || (t.affinity() >= n)) {
+            cacheQoSDisabled = true;
+            if (cache_qos) {
+                LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "Cache QoS can only be enabled when all mining threads have affinity set", tag);
+            }
+            break;
+        }
+
+        cacheEnabled[t.affinity()] = true;
+    }
+
+    if (cache_qos && !Cpu::info()->hasCatL3()) {
+        if (!threads.empty()) {
+            LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "This CPU doesn't support cat_l3, cache QoS is unavailable", tag);
+        }
+        cache_qos = false;
+    }
+
+    bool result = true;
+
+    if (cache_qos) {
+        result = wrmsr_on_all_cpus(0xC8F, 0, MsrItem::kNoMask, [&cacheEnabled, cacheQoSDisabled](uint32_t, uint32_t cpu, uint64_t, uint64_t) {
+            if (cacheQoSDisabled || (cpu >= cacheEnabled.size()) || cacheEnabled[cpu]) {
+                // Assign Class Of Service 0 to current CPU core (default, full L3 cache available)
+                if (!wrmsr_on_cpu(0xC8F, cpu, 0, MsrItem::kNoMask)) {
+                    return false;
+                }
+            }
+            else {
+                // Disable L3 cache for Class Of Service 1
+                if (!wrmsr_on_cpu(0xC91, cpu, 0, MsrItem::kNoMask)) {
+                    // Some CPUs don't let set it to all zeros
+                    if (!wrmsr_on_cpu(0xC91, cpu, 1, MsrItem::kNoMask)) {
+                        return false;
+                    }
+                }
+
+                // Assign Class Of Service 1 to current CPU core
+                if (!wrmsr_on_cpu(0xC8F, cpu, 1ULL << 32, MsrItem::kNoMask)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    return result;
 }
 
 
@@ -216,7 +272,7 @@ void Rx::setMainLoopBounds(const std::pair<const void*, const void*>& bounds)
 } // namespace xmrig
 
 
-void xmrig::Rx::msrInit(const RxConfig &config)
+void xmrig::Rx::msrInit(const RxConfig &config, const std::vector<CpuThread>& threads)
 {
     const auto &preset = config.msrPreset();
     if (preset.empty()) {
@@ -225,7 +281,7 @@ void xmrig::Rx::msrInit(const RxConfig &config)
 
     const uint64_t ts = Chrono::steadyMSecs();
 
-    if (wrmsr(preset, config.rdmsr())) {
+    if (wrmsr(preset, threads, config.cacheQoS(), config.rdmsr())) {
         LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
     }
     else {
@@ -242,7 +298,7 @@ void xmrig::Rx::msrDestroy()
 
     const uint64_t ts = Chrono::steadyMSecs();
 
-    if (!wrmsr(savedState, false)) {
+    if (!wrmsr(savedState, std::vector<CpuThread>(), true, false)) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to restore initial state" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, Chrono::steadyMSecs() - ts);
     }
 }

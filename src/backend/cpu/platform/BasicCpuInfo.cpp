@@ -57,7 +57,7 @@
 namespace xmrig {
 
 
-static const std::array<const char *, ICpuInfo::FLAG_MAX> flagNames     = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "xop", "popcnt" };
+static const std::array<const char *, ICpuInfo::FLAG_MAX> flagNames     = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "xop", "popcnt", "cat_l3" };
 static const std::array<const char *, ICpuInfo::MSR_MOD_MAX> msrNames   = { "none", "ryzen", "intel", "custom" };
 
 
@@ -66,7 +66,7 @@ static inline void cpuid(uint32_t level, int32_t output[4])
     memset(output, 0, sizeof(int32_t) * 4);
 
 #   ifdef _MSC_VER
-    __cpuid(output, static_cast<int>(level));
+    __cpuidex(output, static_cast<int>(level), 0);
 #   else
     __cpuid_count(level, 0, output[0], output[1], output[2], output[3]);
 #   endif
@@ -143,6 +143,7 @@ static inline bool has_sse2()       { return has_feature(PROCESSOR_INFO,        
 static inline bool has_ssse3()      { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 9); }
 static inline bool has_xop()        { return has_feature(0x80000001,            ECX_Reg, 1 << 11); }
 static inline bool has_popcnt()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 23); }
+static inline bool has_cat_l3()     { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 15) && has_feature(0x10, EBX_Reg, 1 << 1); }
 
 
 } // namespace xmrig
@@ -178,6 +179,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_flags.set(FLAG_SSSE3,   has_ssse3());
     m_flags.set(FLAG_XOP,     has_xop());
     m_flags.set(FLAG_POPCNT,  has_popcnt());
+    m_flags.set(FLAG_CAT_L3,  has_cat_l3());
 
 #   ifdef XMRIG_FEATURE_ASM
     if (hasAES()) {

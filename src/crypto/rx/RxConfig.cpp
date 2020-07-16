@@ -51,6 +51,7 @@ static const char *kMode        = "mode";
 static const char *kOneGbPages  = "1gb-pages";
 static const char *kRdmsr       = "rdmsr";
 static const char *kWrmsr       = "wrmsr";
+static const char *kCacheQoS    = "cache_qos";
 
 #ifdef XMRIG_FEATURE_HWLOC
 static const char *kNUMA        = "numa";
@@ -88,6 +89,8 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
 #       ifdef XMRIG_FEATURE_MSR
         readMSR(Json::getValue(value, kWrmsr));
 #       endif
+
+        m_cacheQoS = Json::getBool(value, kCacheQoS, m_cacheQoS);
 
 #       ifdef XMRIG_OS_LINUX
         m_oneGbPages = Json::getBool(value, kOneGbPages, m_oneGbPages);
@@ -150,6 +153,8 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
 #   else
     obj.AddMember(StringRef(kWrmsr), false, allocator);
 #   endif
+
+    obj.AddMember(StringRef(kCacheQoS), m_cacheQoS, allocator);
 
 #   ifdef XMRIG_FEATURE_HWLOC
     if (!m_nodeset.empty()) {
