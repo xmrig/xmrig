@@ -51,11 +51,22 @@ if (WITH_RANDOMX)
         src/crypto/randomx/defyx/KeccakSpongeWidth1600.c
         src/crypto/randomx/defyx/KeccakSpongeWidth1600.h
         src/crypto/randomx/defyx/Phases.h
-        src/crypto/randomx/defyx/sha256.c
         src/crypto/randomx/defyx/sha256.h
         src/crypto/randomx/defyx/sysendian.h
-        src/crypto/randomx/defyx/yescrypt.h
         src/crypto/randomx/defyx/yescrypt-best.c
+        src/crypto/randomx/defyx/yescrypt-opt.c
+        src/crypto/randomx/defyx/yescrypt-platform.c
+        src/crypto/randomx/defyx/yescrypt-ref.c
+        src/crypto/randomx/defyx/yescrypt-simd.c
+        src/crypto/randomx/defyx/yescrypt.h
+        src/crypto/randomx/panthera/insecure_memzero.h
+        src/crypto/randomx/panthera/sha256.c
+        src/crypto/randomx/panthera/sha256.h
+        src/crypto/randomx/panthera/sysendian.h
+        src/crypto/randomx/panthera/yespower-opt.c
+        src/crypto/randomx/panthera/yespower-platform.c
+        src/crypto/randomx/panthera/yespower-ref.c
+        src/crypto/randomx/panthera/yespower.h
     )
 
     if (CMAKE_C_COMPILER_ID MATCHES MSVC)

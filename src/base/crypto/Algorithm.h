@@ -78,6 +78,7 @@ public:
         ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero)
         KAWPOW_RVN,    // "kawpow/rvn"       KawPow (RVN)
         RX_DEFYX,      // "defyx"            DefyX (Scala).
+        RX_XLA,        // "panthera"         Panthera (Scala2).
         MAX,
         MIN = 0,
         INVALID = -1,

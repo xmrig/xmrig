@@ -138,7 +138,7 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         }
     }
 
-    if (std::is_same<T, CpuThreads>::value && name == "defyx" && has("rx")) return "rx";
+    if (std::is_same<T, CpuThreads>::value && (name == "defyx" || name == "panthera") && has("rx")) return "rx";
 
     if (has(kAsterisk)) {
         return kAsterisk;

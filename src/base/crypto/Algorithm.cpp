@@ -115,6 +115,8 @@ static AlgoName const algorithm_names[] = {
     { "RandomKEVA",                nullptr,            Algorithm::RX_KEVA         },
     { "defyx",                     "defyx",            Algorithm::RX_DEFYX        },
     { "DefyX",                     nullptr,            Algorithm::RX_DEFYX        },
+    { "panthera",                  "panthera",         Algorithm::RX_XLA        },
+    { "Panthera",                  "panthera",         Algorithm::RX_XLA        },
 #   endif
 #   ifdef XMRIG_ALGO_ARGON2
     { "argon2/chukwa",             nullptr,            Algorithm::AR2_CHUKWA      },

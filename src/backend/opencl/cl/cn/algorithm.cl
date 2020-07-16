@@ -29,6 +29,7 @@
 #define ALGO_ASTROBWT_DERO  28
 #define ALGO_KAWPOW_RVN     29
 #define ALGO_RX_DEFYX       30
+#define ALGO_RX_XLA         31
 
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1

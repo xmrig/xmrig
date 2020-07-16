@@ -49,6 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 extern "C" {
 #include "crypto/randomx/defyx/yescrypt.h"
+#include "crypto/randomx/panthera/yespower.h"
 #include "crypto/randomx/defyx/KangarooTwelve.h"
 }
 
@@ -129,6 +130,10 @@ RandomX_ConfigurationScala::RandomX_ConfigurationScala()
 
 	RANDOMX_FREQ_IADD_RS = 25;
 	RANDOMX_FREQ_CBRANCH = 16;
+}
+
+RandomX_ConfigurationScala2::RandomX_ConfigurationScala2()
+{
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
@@ -335,6 +340,7 @@ RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
 RandomX_ConfigurationScala RandomX_ScalaConfig;
+RandomX_ConfigurationScala2 RandomX_Scala2Config;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
@@ -357,6 +363,13 @@ int rx_sipesh_k12(void *out, size_t outlen, const void *in, size_t inlen)
 	if (yescrypt_free_local(&local) || retval) return -1;
 	retval = KangarooTwelve((const unsigned char *)in, inlen, (unsigned char *)out, 32, 0, 0);
 	return retval;
+}
+
+int rx_yespower_k12(void *out, size_t outlen, const void *in, size_t inlen)
+{
+	rx_blake2b(out, outlen, in, inlen, 0, 0);
+	yespower_hash(out, outlen, out);
+	return KangarooTwelve((const unsigned char *)in, inlen, (unsigned char *)out, 32, 0, 0);
 }
 
 extern "C" {
@@ -564,10 +577,10 @@ extern "C" {
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		if (algo == xmrig::Algorithm::RX_DEFYX) {
-			rx_sipesh_k12(tempHash, sizeof(tempHash), input, inputSize);
-		} else {
-			rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+                switch (algo) {
+		    case xmrig::Algorithm::RX_DEFYX: rx_sipesh_k12(tempHash, sizeof(tempHash), input, inputSize); break;
+                    case xmrig::Algorithm::RX_XLA:   rx_yespower_k12(tempHash, sizeof(tempHash), input, inputSize); break;
+		    default: rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
 		}
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
@@ -580,10 +593,10 @@ extern "C" {
 	}
 
 	void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize, const xmrig::Algorithm algo) {
-		if (algo == xmrig::Algorithm::RX_DEFYX) {
-			rx_sipesh_k12(tempHash, sizeof(tempHash), input, inputSize);
-		} else {
-			rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+                switch (algo) {
+		    case xmrig::Algorithm::RX_DEFYX: rx_sipesh_k12(tempHash, sizeof(tempHash), input, inputSize); break;
+                    case xmrig::Algorithm::RX_XLA:   rx_yespower_k12(tempHash, sizeof(tempHash), input, inputSize); break;
+		    default: rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
 		}
 		machine->initScratchpad(tempHash);
 	}
@@ -597,10 +610,10 @@ extern "C" {
 		machine->run(&tempHash);
 
 		// Finish current hash and fill the scratchpad for the next hash at the same time
-		if (algo == xmrig::Algorithm::RX_DEFYX) {
-			rx_sipesh_k12(tempHash, sizeof(tempHash), nextInput, nextInputSize);
-		} else {
-			rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
+                switch (algo) {
+		    case xmrig::Algorithm::RX_DEFYX: rx_sipesh_k12(tempHash, sizeof(tempHash), nextInput, nextInputSize); break;
+                    case xmrig::Algorithm::RX_XLA:   rx_yespower_k12(tempHash, sizeof(tempHash), nextInput, nextInputSize); break;
+		    default: rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
 		}
 		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
 	}

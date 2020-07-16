@@ -142,6 +142,7 @@ double Benchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::RX_ARQ:        return m_bench_algo_perf[BenchAlgo::RX_ARQ];
         case Algorithm::RX_KEVA:       return m_bench_algo_perf[BenchAlgo::RX_KEVA];
         case Algorithm::RX_DEFYX:      return m_bench_algo_perf[BenchAlgo::RX_DEFYX];
+        case Algorithm::RX_XLA:        return m_bench_algo_perf[BenchAlgo::RX_XLA];
         default: return 0.0f;
     }
 }
