@@ -375,7 +375,6 @@ int rx_yespower_k12(void *out, size_t outlen, const void *in, size_t inlen)
 		.pers = NULL
 	};
 	if (yespower_tls((const uint8_t *)out, outlen, &params, (yespower_binary_t *)out)) return -1;
-	yespower_hash(out, outlen, out);
 	return KangarooTwelve((const unsigned char *)in, inlen, (unsigned char *)out, 32, 0, 0);
 }
 
