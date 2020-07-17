@@ -163,6 +163,7 @@ size_t xmrig::Algorithm::l2() const
     case RX_WOW:
     case RX_KEVA:
     case RX_DEFYX:
+    case RX_XLA:
         return 0x20000;
 
     case RX_ARQ:
@@ -215,6 +216,7 @@ size_t xmrig::Algorithm::l3() const
 
         case RX_ARQ:
         case RX_DEFYX:
+        case RX_XLA:
             return oneMiB / 4;
 
         default:
@@ -343,6 +345,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case RX_SFX:
     case RX_KEVA:
     case RX_DEFYX:
+    case RX_XLA:
         return RANDOM_X;
 #   endif
 
