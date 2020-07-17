@@ -36,7 +36,7 @@
 
 #if defined(_MSC_VER)
 #define static_restrict(n)
-#elif
+#else
 #define static_restrict(n) static restrict n
 #endif
 
