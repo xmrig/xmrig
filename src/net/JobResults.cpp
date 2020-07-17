@@ -321,7 +321,7 @@ void xmrig::JobResults::done(const Job &job)
 
 void xmrig::JobResults::setListener(IJobResultListener *listener, bool hwAES)
 {
-    assert(handler == nullptr);
+    if (handler) delete handler;
 
     handler = new JobResultsPrivate(listener, hwAES);
 }
