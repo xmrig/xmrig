@@ -34,12 +34,12 @@
 
 #include "sha256.h"
 
-#ifdef __ICC
+#if defined(__ICC) || defined(_MSC_VER)
 /* Miscompile with icc 14.0.0 (at least), so don't use restrict there */
 #define restrict
 #elif __STDC_VERSION__ >= 199901L
 /* Have restrict */
-#elif defined(__GNUC__) && !defined(_MSC_VER)
+#elif defined(__GNUC__)
 #define restrict __restrict
 #else
 #define restrict
