@@ -39,7 +39,7 @@
 #define restrict
 #elif __STDC_VERSION__ >= 199901L
 /* Have restrict */
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !defined(_MSC_VER)
 #define restrict __restrict
 #else
 #define restrict
