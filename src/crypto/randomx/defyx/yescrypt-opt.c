@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "insecure_memzero.h"
 #include "sha256.h"
 #include "sysendian.h"
 
@@ -768,10 +769,10 @@ smix(uint64_t * B, size_t r, uint64_t N, uint32_t p, uint32_t t,
 			/* 23: if i = 0 */
 			if (i == 0) {
 				/* 24: passwd <-- HMAC-SHA256(B_{0,2r-1}, passwd) */
-				HMAC_SHA256_CTX_Y ctx;
-				HMAC_SHA256_Init_Y(&ctx, Bp + (s - 8), 64);
-				HMAC_SHA256_Update_Y(&ctx, passwd, 32);
-				HMAC_SHA256_Final_Y(passwd, &ctx);
+				HMAC_SHA256_CTX ctx;
+				HMAC_SHA256_Init(&ctx, Bp + (s - 8), 64);
+				HMAC_SHA256_Update(&ctx, passwd, 32);
+				HMAC_SHA256_Final(passwd, &ctx);
 			}
 		}
 		if (!(flags & __YESCRYPT_INIT_SHARED_2)) {
@@ -966,11 +967,11 @@ yescrypt_kdf_body(const yescrypt_shared_t * shared, yescrypt_local_t * local,
 		S = (uint8_t *)XY + XY_size;
 
 	if (flags) {
-		HMAC_SHA256_CTX_Y ctx;
-		HMAC_SHA256_Init_Y(&ctx, "yescrypt-prehash",
+		HMAC_SHA256_CTX ctx;
+		HMAC_SHA256_Init(&ctx, "yescrypt-prehash",
 		    (flags & __YESCRYPT_PREHASH) ? 16 : 8);
-		HMAC_SHA256_Update_Y(&ctx, passwd, passwdlen);
-		HMAC_SHA256_Final_Y((uint8_t *)sha256, &ctx);
+		HMAC_SHA256_Update(&ctx, passwd, passwdlen);
+		HMAC_SHA256_Final((uint8_t *)sha256, &ctx);
 		passwd = (uint8_t *)sha256;
 		passwdlen = sizeof(sha256);
 	}
@@ -1026,20 +1027,20 @@ yescrypt_kdf_body(const yescrypt_shared_t * shared, yescrypt_local_t * local,
 	if (flags && !(flags & __YESCRYPT_PREHASH)) {
 		/* Compute ClientKey */
 		{
-			HMAC_SHA256_CTX_Y ctx;
-			HMAC_SHA256_Init_Y(&ctx, dkp, sizeof(dk));
-			HMAC_SHA256_Update_Y(&ctx, "Client Key", 10);
-			HMAC_SHA256_Final_Y((uint8_t *)sha256, &ctx);
+			HMAC_SHA256_CTX ctx;
+			HMAC_SHA256_Init(&ctx, dkp, sizeof(dk));
+			HMAC_SHA256_Update(&ctx, "Client Key", 10);
+			HMAC_SHA256_Final((uint8_t *)sha256, &ctx);
 		}
 		/* Compute StoredKey */
 		{
-			SHA256_CTX_Y ctx;
+			SHA256_CTX ctx;
 			size_t clen = buflen;
 			if (clen > sizeof(dk))
 				clen = sizeof(dk);
-			SHA256_Init_Y(&ctx);
-			SHA256_Update_Y(&ctx, (uint8_t *)sha256, sizeof(sha256));
-			SHA256_Final_Y(dk, &ctx);
+			SHA256_Init(&ctx);
+			SHA256_Update(&ctx, (uint8_t *)sha256, sizeof(sha256));
+			SHA256_Final(dk, &ctx);
 			memcpy(buf, dk, clen);
 		}
 	}
