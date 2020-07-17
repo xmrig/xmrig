@@ -16,11 +16,8 @@ jobs:
         run:  git clone https://github.com/xmrig/xmrig-deps.git
       - name: Build project on Windows
         run: |
-          cmake . -G "Visual Studio 16 2019" -DXMRIG_DEPS=xmrig-deps\msvc2019\x64
-          cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
-          .\MSBuild.exe /p:Configuration=Release $Env:GITHUB_WORKSPACE\xmrig.sln
-          cd $Env:GITHUB_WORKSPACE
-          copy Release\xmrig.exe .
+          cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
+          make -j%NUMBER_OF_PROCESSORS%
           copy src\config.json .
           copy bin\WinRing0\WinRing0x64.sys .
           7z a -tzip -mx windows_build.zip xmrig.exe config.json WinRing0x64.sys
