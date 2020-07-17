@@ -14,7 +14,7 @@ jobs:
       - name: Build project on Windows
         run: |
           cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
-          make -j%NUMBER_OF_PROCESSORS%
+          make -j2
 
   build_lin:
     name: Ubuntu build

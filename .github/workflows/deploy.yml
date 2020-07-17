@@ -17,7 +17,7 @@ jobs:
       - name: Build project on Windows
         run: |
           cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
-          make -j%NUMBER_OF_PROCESSORS%
+          make -j2
           copy src\config.json .
           copy bin\WinRing0\WinRing0x64.sys .
           7z a -tzip -mx windows_build.zip xmrig.exe config.json WinRing0x64.sys
