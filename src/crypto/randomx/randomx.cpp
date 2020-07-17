@@ -370,7 +370,7 @@ int rx_yespower_k12(void *out, size_t outlen, const void *in, size_t inlen)
 	rx_blake2b(out, outlen, in, inlen, 0, 0);
 	yespower_params_t params = { YESPOWER_1_0, 2048, 8, NULL };
 	if (yespower_tls((const uint8_t *)out, outlen, &params, (yespower_binary_t *)out)) return -1;
-	return KangarooTwelve((const unsigned char *)in, inlen, (unsigned char *)out, 32, 0, 0);
+	return KangarooTwelve((const unsigned char *)out, outlen, (unsigned char *)out, 32, 0, 0);
 }
 
 extern "C" {
