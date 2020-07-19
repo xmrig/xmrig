@@ -93,5 +93,5 @@
     "verbose": 0,
     "watch": true,
     "rebench-algo": false,
-    "bench-algo-time": 10
+    "bench-algo-time": 20
 }
