@@ -87,6 +87,9 @@ static const option options[] = {
     { "cpu-max-threads-hint",  1, nullptr, IConfig::CPUMaxThreadsKey      },
     { "cpu-memory-pool",       1, nullptr, IConfig::MemoryPoolKey         },
     { "cpu-no-yield",          0, nullptr, IConfig::YieldKey              },
+    { "no-yield",              0, nullptr, IConfig::YieldKey              },
+    { "cpu-argon2-impl",       1, nullptr, IConfig::Argon2ImplKey         },
+    { "argon2-impl",           1, nullptr, IConfig::Argon2ImplKey         },
     { "verbose",               0, nullptr, IConfig::VerboseKey            },
     { "proxy",                 1, nullptr, IConfig::ProxyKey              },
     { "data-dir",              1, nullptr, IConfig::DataDirKey            },
@@ -116,6 +119,8 @@ static const option options[] = {
     { "wrmsr",                 2, nullptr, IConfig::RandomXWrmsrKey       },
     { "randomx-no-rdmsr",      0, nullptr, IConfig::RandomXRdmsrKey       },
     { "no-rdmsr",              0, nullptr, IConfig::RandomXRdmsrKey       },
+    { "randomx-cache-qos",     0, nullptr, IConfig::RandomXCacheQoSKey    },
+    { "cache-qos",             0, nullptr, IConfig::RandomXCacheQoSKey    },
 #   endif
     #ifdef XMRIG_ALGO_ASTROBWT
     { "astrobwt-max-size",     1, nullptr, IConfig::AstroBWTMaxSizeKey    },

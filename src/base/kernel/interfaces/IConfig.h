@@ -101,6 +101,8 @@ public:
         YieldKey             = 1030,
         AstroBWTMaxSizeKey   = 1034,
         AstroBWTAVX2Key      = 1036,
+        Argon2ImplKey        = 1039,
+        RandomXCacheQoSKey   = 1040,
 
         // xmrig amd
         OclPlatformKey       = 1400,
