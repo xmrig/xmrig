@@ -93,8 +93,8 @@ static inline const std::string &usage()
     u += "      --randomx-init=N          threads count to initialize RandomX dataset\n";
     u += "      --randomx-no-numa         disable NUMA support for RandomX\n";
     u += "      --randomx-mode=MODE       RandomX mode: auto, fast, light\n";
-    u += "      --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)\n";
-    u += "      --randomx-wrmsr=N         write custom value (0-15) to Intel MSR register 0x1a4 or disable MSR mod (-1)\n";
+    u += "      --randomx-1gb-pages       use 1GB hugepages for RandomX dataset (Linux only)\n";
+    u += "      --randomx-wrmsr=N         write custom value(s) to MSR registers or disable MSR mod (-1)\n";
     u += "      --randomx-no-rdmsr        disable reverting initial MSR values on exit\n";
     u += "      --randomx-cache-qos       enable Cache QoS\n";
 #   endif
@@ -102,16 +102,6 @@ static inline const std::string &usage()
 #   ifdef XMRIG_ALGO_ASTROBWT
     u += "      --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200\n";
     u += "      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm";
-#   endif
-
-#   ifdef XMRIG_FEATURE_HTTP
-    u += "\nAPI:\n";
-    u += "      --api-worker-id=ID        custom worker-id for API\n";
-    u += "      --api-id=ID               custom instance ID for API\n";
-    u += "      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)\n";
-    u += "      --http-port=N             bind port for HTTP API\n";
-    u += "      --http-access-token=T     access token for HTTP API\n";
-    u += "      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n";
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL
@@ -134,6 +124,16 @@ static inline const std::string &usage()
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_HTTP
+    u += "\nAPI:\n";
+    u += "      --api-worker-id=ID        custom worker-id for API\n";
+    u += "      --api-id=ID               custom instance ID for API\n";
+    u += "      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)\n";
+    u += "      --http-port=N             bind port for HTTP API\n";
+    u += "      --http-access-token=T     access token for HTTP API\n";
+    u += "      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n";
 #   endif
 
 #   ifdef XMRIG_FEATURE_TLS
