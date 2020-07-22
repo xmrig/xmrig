@@ -26,8 +26,8 @@
 
 
 #include "crypto/rx/RxDataset.h"
-#include "backend/common/Tags.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/kernel/Platform.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/RxAlgo.h"
@@ -181,13 +181,13 @@ void xmrig::RxDataset::setRaw(const void *raw)
 void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
 {
     if (m_mode == RxConfig::LightMode) {
-        LOG_ERR(CLEAR "%s" RED_BOLD_S "fast RandomX mode disabled by config", rx_tag());
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "fast RandomX mode disabled by config", Tags::randomx());
 
         return;
     }
 
     if (m_mode == RxConfig::AutoMode && uv_get_total_memory() < (maxSize() + RxCache::maxSize())) {
-        LOG_ERR(CLEAR "%s" RED_BOLD_S "not enough memory for RandomX dataset", rx_tag());
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "not enough memory for RandomX dataset", Tags::randomx());
 
         return;
     }
@@ -197,7 +197,7 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
 
 #   ifdef XMRIG_OS_LINUX
     if (oneGbPages && !isOneGbPages()) {
-        LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to allocate RandomX dataset using 1GB pages", rx_tag());
+        LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to allocate RandomX dataset using 1GB pages", Tags::randomx());
     }
 #   endif
 }
