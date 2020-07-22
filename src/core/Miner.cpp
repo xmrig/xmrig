@@ -287,6 +287,7 @@ public:
     bool active         = false;
     bool enabled        = true;
     bool reset          = true;
+    bool battery_power  = false;
     Controller *controller;
     Job job;
     mutable std::map<Algorithm::Id, double> maxHashrate;
@@ -429,13 +430,23 @@ void xmrig::Miner::setEnabled(bool enabled)
         return;
     }
 
+    if (d_ptr->battery_power && enabled) {
+        LOG_INFO(YELLOW_BOLD("Can't resume while on battery power"));
+        return;
+    }
+
     d_ptr->enabled = enabled;
 
     if (enabled) {
         LOG_INFO(GREEN_BOLD("resumed"));
     }
     else {
-        LOG_INFO(YELLOW_BOLD("paused") ", press " MAGENTA_BG_BOLD(" r ") " to resume");
+        if (d_ptr->battery_power) {
+            LOG_INFO(YELLOW_BOLD("paused"));
+        }
+        else {
+            LOG_INFO(YELLOW_BOLD("paused") ", press " MAGENTA_BG_BOLD(" r ") " to resume");
+        }
     }
 
     if (!d_ptr->active) {
@@ -538,6 +549,20 @@ void xmrig::Miner::onTimer(const Timer *)
     }
 
     d_ptr->ticks++;
+
+    if (!d_ptr->controller->config()->mineOnBattery()) {
+        const bool battery_power = xmrig::Platform::isOnBatteryPower();
+        if (battery_power && d_ptr->enabled) {
+            LOG_INFO(YELLOW_BOLD("On battery power"));
+            d_ptr->battery_power = true;
+            setEnabled(false);
+        }
+        else if (!battery_power && !d_ptr->enabled && d_ptr->battery_power) {
+            LOG_INFO(GREEN_BOLD("On AC power"));
+            d_ptr->battery_power = false;
+            setEnabled(true);
+        }
+    }
 }
 
 

@@ -157,3 +157,12 @@ void xmrig::Platform::setThreadPriority(int priority)
     SetThreadPriority(GetCurrentThread(), prio);
 }
 
+
+bool xmrig::Platform::isOnBatteryPower()
+{
+    SYSTEM_POWER_STATUS st;
+    if (GetSystemPowerStatus(&st)) {
+        return (st.ACLineStatus == 0);
+    }
+    return false;
+}

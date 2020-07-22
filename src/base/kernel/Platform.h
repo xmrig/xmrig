@@ -54,6 +54,8 @@ public:
 
     static inline const char *userAgent() { return m_userAgent; }
 
+    static bool isOnBatteryPower();
+
 private:
     static char *createUserAgent();
 

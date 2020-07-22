@@ -61,6 +61,7 @@ public:
     static const char *kUserAgent;
     static const char *kVerbose;
     static const char *kWatch;
+    static const char* kMineOnBattery;
 
 #   ifdef XMRIG_FEATURE_TLS
     static const char *kTls;
@@ -80,6 +81,7 @@ public:
     inline const String &apiWorkerId() const                { return m_apiWorkerId; }
     inline const Title &title() const                       { return m_title; }
     inline uint32_t printTime() const                       { return m_printTime; }
+    inline bool mineOnBattery() const                       { return m_mineOnBattery; }
 
 #   ifdef XMRIG_FEATURE_TLS
     inline const TlsConfig &tls() const                     { return m_tls; }
@@ -95,12 +97,13 @@ public:
     void printVersions();
 
 protected:
-    bool m_autoSave    = true;
-    bool m_background  = false;
-    bool m_dryRun      = false;
-    bool m_syslog      = false;
-    bool m_upgrade     = false;
-    bool m_watch       = true;
+    bool m_autoSave      = true;
+    bool m_background    = false;
+    bool m_dryRun        = false;
+    bool m_syslog        = false;
+    bool m_upgrade       = false;
+    bool m_watch         = true;
+    bool m_mineOnBattery = true;
     Http m_http;
     Pools m_pools;
     String m_apiId;
