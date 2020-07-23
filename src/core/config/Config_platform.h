@@ -95,6 +95,7 @@ static const option options[] = {
     { "data-dir",              1, nullptr, IConfig::DataDirKey            },
     { "title",                 1, nullptr, IConfig::TitleKey              },
     { "no-title",              0, nullptr, IConfig::NoTitleKey            },
+    { "pause-on-battery",      0, nullptr, IConfig::PauseOnBatteryKey     },
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },

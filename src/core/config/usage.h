@@ -177,6 +177,7 @@ static inline const std::string &usage()
     u += "      --title                   set custom console window title\n";
     u += "      --no-title                disable setting console window title\n";
 #   endif
+    u += "      --pause-on-battery        pause mine on battery power\n";
 
     return u;
 }

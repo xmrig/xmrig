@@ -76,6 +76,7 @@ public:
         DataDirKey           = 1035,
         TitleKey             = 1037,
         NoTitleKey           = 1038,
+        PauseOnBatteryKey    = 1041,
 
         // xmrig common
         CPUPriorityKey       = 1021,

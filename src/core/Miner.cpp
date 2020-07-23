@@ -551,8 +551,8 @@ void xmrig::Miner::onTimer(const Timer *)
 
     d_ptr->ticks++;
 
-    if (!d_ptr->controller->config()->mineOnBattery()) {
-        const bool battery_power = xmrig::Platform::isOnBatteryPower();
+    if (d_ptr->controller->config()->isPauseOnBattery()) {
+        const bool battery_power = Platform::isOnBatteryPower();
         if (battery_power && d_ptr->enabled) {
             LOG_INFO("%s " YELLOW_BOLD("on battery power"), Tags::miner());
             d_ptr->battery_power = true;

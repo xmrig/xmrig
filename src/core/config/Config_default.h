@@ -110,7 +110,7 @@ R"===(
     "syslog": false,
     "user-agent": null,
     "watch": true,
-    "mine-on-battery": true
+    "pause-on-battery": false
 }
 )===";
 #endif

@@ -55,13 +55,13 @@ public:
     static const char *kDryRun;
     static const char *kHttp;
     static const char *kLogFile;
+    static const char *kPauseOnBattery;
     static const char *kPrintTime;
     static const char *kSyslog;
     static const char *kTitle;
     static const char *kUserAgent;
     static const char *kVerbose;
     static const char *kWatch;
-    static const char* kMineOnBattery;
 
 #   ifdef XMRIG_FEATURE_TLS
     static const char *kTls;
@@ -72,6 +72,7 @@ public:
     inline bool isAutoSave() const                          { return m_autoSave; }
     inline bool isBackground() const                        { return m_background; }
     inline bool isDryRun() const                            { return m_dryRun; }
+    inline bool isPauseOnBattery() const                    { return m_pauseOnBattery; }
     inline bool isSyslog() const                            { return m_syslog; }
     inline const char *logFile() const                      { return m_logFile.data(); }
     inline const char *userAgent() const                    { return m_userAgent.data(); }
@@ -81,7 +82,6 @@ public:
     inline const String &apiWorkerId() const                { return m_apiWorkerId; }
     inline const Title &title() const                       { return m_title; }
     inline uint32_t printTime() const                       { return m_printTime; }
-    inline bool mineOnBattery() const                       { return m_mineOnBattery; }
 
 #   ifdef XMRIG_FEATURE_TLS
     inline const TlsConfig &tls() const                     { return m_tls; }
@@ -97,13 +97,13 @@ public:
     void printVersions();
 
 protected:
-    bool m_autoSave      = true;
-    bool m_background    = false;
-    bool m_dryRun        = false;
-    bool m_syslog        = false;
-    bool m_upgrade       = false;
-    bool m_watch         = true;
-    bool m_mineOnBattery = true;
+    bool m_autoSave         = true;
+    bool m_background       = false;
+    bool m_dryRun           = false;
+    bool m_pauseOnBattery   = false;
+    bool m_syslog           = false;
+    bool m_upgrade          = false;
+    bool m_watch            = true;
     Http m_http;
     Pools m_pools;
     String m_apiId;
