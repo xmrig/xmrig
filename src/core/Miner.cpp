@@ -431,21 +431,22 @@ void xmrig::Miner::setEnabled(bool enabled)
     }
 
     if (d_ptr->battery_power && enabled) {
-        LOG_INFO(YELLOW_BOLD("Can't resume while on battery power"));
+        LOG_INFO("%s " YELLOW_BOLD("can't resume while on battery power"), Tags::miner());
+
         return;
     }
 
     d_ptr->enabled = enabled;
 
     if (enabled) {
-        LOG_INFO(GREEN_BOLD("resumed"));
+        LOG_INFO("%s " GREEN_BOLD("resumed"), Tags::miner());
     }
     else {
         if (d_ptr->battery_power) {
-            LOG_INFO(YELLOW_BOLD("paused"));
+            LOG_INFO("%s " YELLOW_BOLD("paused"), Tags::miner());
         }
         else {
-            LOG_INFO(YELLOW_BOLD("paused") ", press " MAGENTA_BG_BOLD(" r ") " to resume");
+            LOG_INFO("%s " YELLOW_BOLD("paused") ", press " MAGENTA_BG_BOLD(" r ") " to resume", Tags::miner());
         }
     }
 
@@ -553,12 +554,12 @@ void xmrig::Miner::onTimer(const Timer *)
     if (!d_ptr->controller->config()->mineOnBattery()) {
         const bool battery_power = xmrig::Platform::isOnBatteryPower();
         if (battery_power && d_ptr->enabled) {
-            LOG_INFO(YELLOW_BOLD("On battery power"));
+            LOG_INFO("%s " YELLOW_BOLD("on battery power"), Tags::miner());
             d_ptr->battery_power = true;
             setEnabled(false);
         }
         else if (!battery_power && !d_ptr->enabled && d_ptr->battery_power) {
-            LOG_INFO(GREEN_BOLD("On AC power"));
+            LOG_INFO("%s " GREEN_BOLD("on AC power"), Tags::miner());
             d_ptr->battery_power = false;
             setEnabled(true);
         }
