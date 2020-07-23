@@ -67,6 +67,7 @@ const char *BaseConfig::kTitle          = "title";
 const char *BaseConfig::kUserAgent      = "user-agent";
 const char *BaseConfig::kVerbose        = "verbose";
 const char *BaseConfig::kWatch          = "watch";
+const char *BaseConfig::kMineOnBattery  = "mine-on-battery";
 
 
 #ifdef XMRIG_FEATURE_TLS
@@ -85,15 +86,16 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    m_autoSave     = reader.getBool(kAutosave, m_autoSave);
-    m_background   = reader.getBool(kBackground, m_background);
-    m_dryRun       = reader.getBool(kDryRun, m_dryRun);
-    m_syslog       = reader.getBool(kSyslog, m_syslog);
-    m_watch        = reader.getBool(kWatch, m_watch);
-    m_logFile      = reader.getString(kLogFile);
-    m_userAgent    = reader.getString(kUserAgent);
-    m_printTime    = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
-    m_title        = reader.getValue(kTitle);
+    m_autoSave      = reader.getBool(kAutosave, m_autoSave);
+    m_background    = reader.getBool(kBackground, m_background);
+    m_dryRun        = reader.getBool(kDryRun, m_dryRun);
+    m_syslog        = reader.getBool(kSyslog, m_syslog);
+    m_watch         = reader.getBool(kWatch, m_watch);
+    m_mineOnBattery = reader.getBool(kMineOnBattery, m_mineOnBattery);
+    m_logFile       = reader.getString(kLogFile);
+    m_userAgent     = reader.getString(kUserAgent);
+    m_printTime     = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
+    m_title         = reader.getValue(kTitle);
 
 #   ifdef XMRIG_FEATURE_TLS
     m_tls = reader.getValue(kTls);
