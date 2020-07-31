@@ -1,3 +1,7 @@
+# v6.3.1
+- [#1786](https://github.com/xmrig/xmrig/pull/1786) Added `pause-on-battery` option, supported on Windows and Linux.
+- Added command line options `--randomx-cache-qos` and `--argon2-impl`.
+
 # v6.3.0
 - [#1771](https://github.com/xmrig/xmrig/pull/1771) Adopted new SSE2NEON and reduced ARM-specific changes.
 - [#1774](https://github.com/xmrig/xmrig/pull/1774) RandomX: Added new option `cache_qos` in `randomx` object for cache QoS support.
