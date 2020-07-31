@@ -29,6 +29,7 @@
 
 
 #include "base/crypto/Algorithm.h"
+#include "base/tools/Buffer.h"
 #include "base/tools/Object.h"
 #include "crypto/common/HugePagesInfo.h"
 #include "crypto/randomx/configuration.h"
@@ -43,7 +44,6 @@ namespace xmrig
 {
 
 
-class Buffer;
 class RxCache;
 class VirtualMemory;
 

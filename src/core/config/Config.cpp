@@ -268,4 +268,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kBenchAlgoTime),            benchAlgoTime(), allocator);
     doc.AddMember(StringRef(kAlgoPerf),                 m_benchmark.toJSON(doc), allocator);
 #   endif
+
+    doc.AddMember(StringRef(kPauseOnBattery),           isPauseOnBattery(), allocator);
 }

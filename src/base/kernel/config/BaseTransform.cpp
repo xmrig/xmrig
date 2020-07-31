@@ -259,6 +259,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 #   ifdef XMRIG_FEATURE_BENCHMARK
     case IConfig::RebenchAlgoKey: /* --rebench-algo */
 #   endif
+    case IConfig::PauseOnBatteryKey: /* --pause-on-battery */
         return transformBoolean(doc, key, true);
 
     case IConfig::ColorKey:          /* --no-color */
@@ -321,6 +322,9 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::RebenchAlgoKey: /* --rebench-algo */
         return set(doc, BaseConfig::kRebenchAlgo, enable);
 #   endif
+
+    case IConfig::PauseOnBatteryKey: /* --pause-on-battery */
+        return set(doc, BaseConfig::kPauseOnBattery, enable);
 
     default:
         break;

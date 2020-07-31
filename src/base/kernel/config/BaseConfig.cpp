@@ -67,6 +67,7 @@ const char *BaseConfig::kColors         = "colors";
 const char *BaseConfig::kDryRun         = "dry-run";
 const char *BaseConfig::kHttp           = "http";
 const char *BaseConfig::kLogFile        = "log-file";
+const char *BaseConfig::kPauseOnBattery = "pause-on-battery";
 const char *BaseConfig::kPrintTime      = "print-time";
 #ifdef XMRIG_FEATURE_BENCHMARK
 const char *BaseConfig::kRebenchAlgo    = "rebench-algo";
@@ -97,18 +98,19 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    m_autoSave     = reader.getBool(kAutosave, m_autoSave);
-    m_background   = reader.getBool(kBackground, m_background);
-    m_dryRun       = reader.getBool(kDryRun, m_dryRun);
+    m_autoSave          = reader.getBool(kAutosave, m_autoSave);
+    m_background        = reader.getBool(kBackground, m_background);
+    m_dryRun            = reader.getBool(kDryRun, m_dryRun);
 #   ifdef XMRIG_FEATURE_BENCHMARK
     m_rebenchAlgo  = reader.getBool(kRebenchAlgo, m_rebenchAlgo);
 #   endif
-    m_syslog       = reader.getBool(kSyslog, m_syslog);
-    m_watch        = reader.getBool(kWatch, m_watch);
-    m_logFile      = reader.getString(kLogFile);
-    m_userAgent    = reader.getString(kUserAgent);
-    m_printTime    = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
-    m_title        = reader.getValue(kTitle);
+    m_syslog            = reader.getBool(kSyslog, m_syslog);
+    m_watch             = reader.getBool(kWatch, m_watch);
+    m_pauseOnBattery    = reader.getBool(kPauseOnBattery, m_pauseOnBattery);
+    m_logFile           = reader.getString(kLogFile);
+    m_userAgent         = reader.getString(kUserAgent);
+    m_printTime         = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
+    m_title             = reader.getValue(kTitle);
 
 #   ifdef XMRIG_FEATURE_TLS
     m_tls = reader.getValue(kTls);

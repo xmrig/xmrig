@@ -7,8 +7,8 @@
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -82,9 +82,9 @@ public:
     RxQueue(IRxListener *listener);
     ~RxQueue();
 
-    bool isReady(const Job &job);
-    RxDataset *dataset(const Job &job, uint32_t nodeId);
     HugePagesInfo hugePages();
+    RxDataset *dataset(const Job &job, uint32_t nodeId);
+    template<typename T> bool isReady(const T &seed);
     void enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority);
 
 private:
@@ -94,7 +94,7 @@ private:
         STATE_SHUTDOWN
     };
 
-    bool isReadyUnsafe(const Job &job) const;
+    template<typename T> bool isReadyUnsafe(const T &seed) const;
     void backgroundInit();
     void onReady();
 
