@@ -51,6 +51,7 @@ static std::mutex mutex;
 
 xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages, bool usePool, uint32_t node, size_t alignSize) :
     m_size(align(size)),
+    m_capacity(m_size),
     m_node(node)
 {
     if (usePool) {
@@ -69,6 +70,7 @@ xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages
     }
 
     if (oneGbPages && allocateOneGbPagesMemory()) {
+        m_capacity = align(size, 1ULL << 30);
         return;
     }
 

@@ -36,6 +36,8 @@
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxConfig.h"
 
+#include <atomic>
+
 
 struct randomx_dataset;
 
@@ -69,6 +71,8 @@ public:
     void *raw() const;
     void setRaw(const void *raw);
 
+    uint8_t *tryAllocateScrathpad();
+
     static inline constexpr size_t maxSize() { return RANDOMX_DATASET_MAX_SIZE; }
 
 private:
@@ -79,6 +83,9 @@ private:
     randomx_dataset *m_dataset  = nullptr;
     RxCache *m_cache            = nullptr;
     VirtualMemory *m_memory     = nullptr;
+
+    std::atomic<size_t> m_scratchpadOffset;
+    size_t m_scratchpadLimit    = 0;
 };
 
 

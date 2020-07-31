@@ -36,6 +36,7 @@
 #include "crypto/common/Nonce.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/Rx.h"
+#include "crypto/rx/RxDataset.h"
 #include "crypto/rx/RxVm.h"
 #include "net/JobResults.h"
 
@@ -118,7 +119,9 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
     }
 
     if (!m_vm) {
-        m_vm = RxVm::create(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly, m_node);
+        // Try to allocate scratchpad from dataset's 1 GB huge pages, if normal huge pages are not available
+        uint8_t* scratchpad = m_memory->isHugePages() ? m_memory->scratchpad() : dataset->tryAllocateScrathpad();
+        m_vm = RxVm::create(dataset, scratchpad ? scratchpad : m_memory->scratchpad(), !m_hwAES, m_assembly, m_node);
     }
 }
 #endif
