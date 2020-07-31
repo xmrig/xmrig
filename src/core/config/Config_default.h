@@ -109,7 +109,8 @@ R"===(
     "retry-pause": 5,
     "syslog": false,
     "user-agent": null,
-    "watch": true
+    "watch": true,
+    "pause-on-battery": false
 }
 )===";
 #endif

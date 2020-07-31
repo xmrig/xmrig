@@ -7,8 +7,8 @@
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -52,12 +52,12 @@ class RxDataset;
 class Rx
 {
 public:
-    static bool init(const Job &job, const RxConfig &config, const CpuConfig &cpu);
-    static bool isReady(const Job &job);
     static HugePagesInfo hugePages();
     static RxDataset *dataset(const Job &job, uint32_t nodeId);
     static void destroy();
     static void init(IRxListener *listener);
+    template<typename T> static bool init(const T &seed, const RxConfig &config, const CpuConfig &cpu);
+    template<typename T> static bool isReady(const T &seed);
 
 #   ifdef XMRIG_FIX_RYZEN
     static void setMainLoopBounds(const std::pair<const void*, const void*>& bounds);

@@ -69,7 +69,7 @@ static inline const std::string &usage()
     u += "  -r, --retries=N               number of times to retry before switch to backup server (default: 5)\n";
     u += "  -R, --retry-pause=N           time to pause between retries (default: 5)\n";
     u += "      --user-agent              set custom user-agent string for pool\n";
-    u += "      --donate-level=N          donate level, default 5%% (5 minutes in 100 minutes)\n";
+    u += "      --donate-level=N          donate level, default 1%% (1 minute in 100 minutes)\n";
     u += "      --donate-over-proxy=N     control donate over xmrig-proxy feature\n";
 
     u += "\nCPU backend:\n";
@@ -85,28 +85,23 @@ static inline const std::string &usage()
     u += "      --no-huge-pages           disable huge pages support\n";
     u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
 
+#   if defined(__x86_64__) || defined(_M_AMD64)
+    u += "      --argon2-impl=IMPL        argon2 implementation: x86_64, SSE2, SSSE3, XOP, AVX2, AVX-512F\n";
+#   endif
+
 #   ifdef XMRIG_ALGO_RANDOMX
     u += "      --randomx-init=N          threads count to initialize RandomX dataset\n";
     u += "      --randomx-no-numa         disable NUMA support for RandomX\n";
     u += "      --randomx-mode=MODE       RandomX mode: auto, fast, light\n";
-    u += "      --randomx-1gb-pages       use 1GB hugepages for dataset (Linux only)\n";
-    u += "      --randomx-wrmsr=N         write custom value (0-15) to Intel MSR register 0x1a4 or disable MSR mod (-1)\n";
+    u += "      --randomx-1gb-pages       use 1GB hugepages for RandomX dataset (Linux only)\n";
+    u += "      --randomx-wrmsr=N         write custom value(s) to MSR registers or disable MSR mod (-1)\n";
     u += "      --randomx-no-rdmsr        disable reverting initial MSR values on exit\n";
+    u += "      --randomx-cache-qos       enable Cache QoS\n";
 #   endif
 
 #   ifdef XMRIG_ALGO_ASTROBWT
     u += "      --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200\n";
     u += "      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm";
-#   endif
-
-#   ifdef XMRIG_FEATURE_HTTP
-    u += "\nAPI:\n";
-    u += "      --api-worker-id=ID        custom worker-id for API\n";
-    u += "      --api-id=ID               custom instance ID for API\n";
-    u += "      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)\n";
-    u += "      --http-port=N             bind port for HTTP API\n";
-    u += "      --http-access-token=T     access token for HTTP API\n";
-    u += "      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n";
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL
@@ -129,6 +124,16 @@ static inline const std::string &usage()
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";
+#   endif
+
+#   ifdef XMRIG_FEATURE_HTTP
+    u += "\nAPI:\n";
+    u += "      --api-worker-id=ID        custom worker-id for API\n";
+    u += "      --api-id=ID               custom instance ID for API\n";
+    u += "      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)\n";
+    u += "      --http-port=N             bind port for HTTP API\n";
+    u += "      --http-access-token=T     access token for HTTP API\n";
+    u += "      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n";
 #   endif
 
 #   ifdef XMRIG_FEATURE_TLS
@@ -172,6 +177,7 @@ static inline const std::string &usage()
     u += "      --title                   set custom console window title\n";
     u += "      --no-title                disable setting console window title\n";
 #   endif
+    u += "      --pause-on-battery        pause mine on battery power\n";
 
     return u;
 }

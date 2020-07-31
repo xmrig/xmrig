@@ -72,8 +72,8 @@ bool xmrig::argon2::Impl::select(const String &nameHint, bool benchmark)
             }
         }
 
-        if (hint.isEmpty() || argon2_select_impl_by_name(hint) == 0) {
-            argon2_select_impl();
+        if (!hint.isEmpty()) {
+            argon2_select_impl_by_name(hint);
         }
 #       endif
 

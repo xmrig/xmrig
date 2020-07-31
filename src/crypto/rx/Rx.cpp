@@ -30,7 +30,6 @@
 #include "backend/cpu/CpuConfig.h"
 #include "backend/cpu/CpuThreads.h"
 #include "base/io/log/Log.h"
-#include "base/io/log/Tags.h"
 #include "crypto/rx/RxConfig.h"
 #include "crypto/rx/RxQueue.h"
 
@@ -56,48 +55,6 @@ public:
 
 
 } // namespace xmrig
-
-
-const char *xmrig::rx_tag()
-{
-    return Tags::randomx();
-}
-
-
-bool xmrig::Rx::init(const Job &job, const RxConfig &config, const CpuConfig &cpu)
-{
-    if (job.algorithm().family() != Algorithm::RANDOM_X) {
-        if (msrInitialized) {
-            msrDestroy();
-            msrInitialized = false;
-        }
-        return true;
-    }
-
-    if (isReady(job)) {
-        return true;
-    }
-
-    if (!msrInitialized) {
-        msrInit(config, cpu.threads().get(job.algorithm()).data());
-        msrInitialized = true;
-    }
-
-    if (!osInitialized) {
-        setupMainLoopExceptionFrame();
-        osInitialized = true;
-    }
-
-    d_ptr->queue.enqueue(job, config.nodeset(), config.threads(cpu.limit()), cpu.isHugePages(), config.isOneGbPages(), config.mode(), cpu.priority());
-
-    return false;
-}
-
-
-bool xmrig::Rx::isReady(const Job &job)
-{
-    return d_ptr->queue.isReady(job);
-}
 
 
 xmrig::HugePagesInfo xmrig::Rx::hugePages()
@@ -130,6 +87,45 @@ void xmrig::Rx::init(IRxListener *listener)
 }
 
 
+template<typename T>
+bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu)
+{
+    if (seed.algorithm().family() != Algorithm::RANDOM_X) {
+        if (msrInitialized) {
+            msrDestroy();
+            msrInitialized = false;
+        }
+
+        return true;
+    }
+
+    if (isReady(seed)) {
+        return true;
+    }
+
+    if (!msrInitialized) {
+        msrInit(config, cpu.threads().get(seed.algorithm()).data());
+        msrInitialized = true;
+    }
+
+    if (!osInitialized) {
+        setupMainLoopExceptionFrame();
+        osInitialized = true;
+    }
+
+    d_ptr->queue.enqueue(seed, config.nodeset(), config.threads(cpu.limit()), cpu.isHugePages(), config.isOneGbPages(), config.mode(), cpu.priority());
+
+    return false;
+}
+
+
+template<typename T>
+bool xmrig::Rx::isReady(const T &seed)
+{
+    return d_ptr->queue.isReady(seed);
+}
+
+
 #ifndef XMRIG_FEATURE_MSR
 void xmrig::Rx::msrInit(const RxConfig &, const std::vector<CpuThread> &)
 {
@@ -147,3 +143,15 @@ void xmrig::Rx::setupMainLoopExceptionFrame()
 {
 }
 #endif
+
+
+namespace xmrig {
+
+
+template bool Rx::init(const RxSeed &seed, const RxConfig &config, const CpuConfig &cpu);
+template bool Rx::isReady(const RxSeed &seed);
+template bool Rx::init(const Job &seed, const RxConfig &config, const CpuConfig &cpu);
+template bool Rx::isReady(const Job &seed);
+
+
+} // namespace xmrig

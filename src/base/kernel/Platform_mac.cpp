@@ -29,6 +29,7 @@
 #include <sys/resource.h>
 #include <uv.h>
 #include <thread>
+#include <fstream>
 
 
 #include "base/kernel/Platform.h"
@@ -107,3 +108,18 @@ void xmrig::Platform::setThreadPriority(int priority)
     setpriority(PRIO_PROCESS, 0, prio);
 }
 
+
+bool xmrig::Platform::isOnBatteryPower()
+{
+    for (int i = 0; i <= 1; ++i) {
+        char buf[64];
+        snprintf(buf, 64, "/sys/class/power_supply/BAT%d/status", i);
+        std::ifstream f(buf);
+        if (f.is_open()) {
+            std::string status;
+            f >> status;
+            return (status == "Discharging");
+        }
+    }
+    return false;
+}

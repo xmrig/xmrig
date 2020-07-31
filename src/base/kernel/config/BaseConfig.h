@@ -55,6 +55,7 @@ public:
     static const char *kDryRun;
     static const char *kHttp;
     static const char *kLogFile;
+    static const char *kPauseOnBattery;
     static const char *kPrintTime;
     static const char *kSyslog;
     static const char *kTitle;
@@ -71,6 +72,7 @@ public:
     inline bool isAutoSave() const                          { return m_autoSave; }
     inline bool isBackground() const                        { return m_background; }
     inline bool isDryRun() const                            { return m_dryRun; }
+    inline bool isPauseOnBattery() const                    { return m_pauseOnBattery; }
     inline bool isSyslog() const                            { return m_syslog; }
     inline const char *logFile() const                      { return m_logFile.data(); }
     inline const char *userAgent() const                    { return m_userAgent.data(); }
@@ -95,12 +97,13 @@ public:
     void printVersions();
 
 protected:
-    bool m_autoSave    = true;
-    bool m_background  = false;
-    bool m_dryRun      = false;
-    bool m_syslog      = false;
-    bool m_upgrade     = false;
-    bool m_watch       = true;
+    bool m_autoSave         = true;
+    bool m_background       = false;
+    bool m_dryRun           = false;
+    bool m_pauseOnBattery   = false;
+    bool m_syslog           = false;
+    bool m_upgrade          = false;
+    bool m_watch            = true;
     Http m_http;
     Pools m_pools;
     String m_apiId;
