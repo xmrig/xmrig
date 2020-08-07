@@ -1,3 +1,9 @@
+# v6.3.2
+- [#1794](https://github.com/xmrig/xmrig/pull/1794) More robust 1 GB pages handling.
+  - Don't allocate 1 GB per thread if 1 GB is the default huge page size.
+  - Try to allocate scratchpad from dataset's 1 GB huge pages, if normal huge pages are not available.
+  - Correctly initialize RandomX cache if 1 GB pages fail to allocate on a first NUMA node.
+
 # v6.3.1
 - [#1786](https://github.com/xmrig/xmrig/pull/1786) Added `pause-on-battery` option, supported on Windows and Linux.
 - Added command line options `--randomx-cache-qos` and `--argon2-impl`.
