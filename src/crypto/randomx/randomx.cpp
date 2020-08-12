@@ -211,10 +211,14 @@ static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) 
 
 void RandomX_ConfigurationBase::Apply()
 {
-	ScratchpadL1Mask_Calculated = (ScratchpadL1_Size / sizeof(uint64_t) - 1) * 8;
-	ScratchpadL1Mask16_Calculated = (ScratchpadL1_Size / sizeof(uint64_t) / 2 - 1) * 16;
-	ScratchpadL2Mask_Calculated = (ScratchpadL2_Size / sizeof(uint64_t) - 1) * 8;
-	ScratchpadL2Mask16_Calculated = (ScratchpadL2_Size / sizeof(uint64_t) / 2 - 1) * 16;
+	const uint32_t ScratchpadL1Mask_Calculated = (ScratchpadL1_Size / sizeof(uint64_t) - 1) * 8;
+	const uint32_t ScratchpadL2Mask_Calculated = (ScratchpadL2_Size / sizeof(uint64_t) - 1) * 8;
+
+	AddressMask_Calculated[0] = ScratchpadL2Mask_Calculated;
+	AddressMask_Calculated[1] = ScratchpadL1Mask_Calculated;
+	AddressMask_Calculated[2] = ScratchpadL1Mask_Calculated;
+	AddressMask_Calculated[3] = ScratchpadL1Mask_Calculated;
+
 	ScratchpadL3Mask_Calculated = (((ScratchpadL3_Size / sizeof(uint64_t)) - 1) * 8);
 	ScratchpadL3Mask64_Calculated = ((ScratchpadL3_Size / sizeof(uint64_t)) / 8 - 1) * 64;
 

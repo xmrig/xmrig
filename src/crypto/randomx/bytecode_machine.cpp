@@ -108,7 +108,7 @@ namespace randomx {
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			if (src != dst) {
 				ibc.isrc = &nreg->r[src];
-				ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+				ibc.memMask = AddressMask[instr.getModMem()];
 			}
 			else {
 				ibc.isrc = &zero;
@@ -142,7 +142,7 @@ namespace randomx {
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			if (src != dst) {
 				ibc.isrc = &nreg->r[src];
-				ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+				ibc.memMask = AddressMask[instr.getModMem()];
 			}
 			else {
 				ibc.isrc = &zero;
@@ -176,7 +176,7 @@ namespace randomx {
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			if (src != dst) {
 				ibc.isrc = &nreg->r[src];
-				ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+				ibc.memMask = AddressMask[instr.getModMem()];
 			}
 			else {
 				ibc.isrc = &zero;
@@ -204,7 +204,7 @@ namespace randomx {
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			if (src != dst) {
 				ibc.isrc = &nreg->r[src];
-				ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+				ibc.memMask = AddressMask[instr.getModMem()];
 			}
 			else {
 				ibc.isrc = &zero;
@@ -232,7 +232,7 @@ namespace randomx {
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			if (src != dst) {
 				ibc.isrc = &nreg->r[src];
-				ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+				ibc.memMask = AddressMask[instr.getModMem()];
 			}
 			else {
 				ibc.isrc = &zero;
@@ -290,7 +290,7 @@ namespace randomx {
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			if (src != dst) {
 				ibc.isrc = &nreg->r[src];
-				ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+				ibc.memMask = AddressMask[instr.getModMem()];
 			}
 			else {
 				ibc.isrc = &zero;
@@ -373,7 +373,7 @@ namespace randomx {
 			ibc.type = InstructionType::FADD_M;
 			ibc.fdst = &nreg->f[dst];
 			ibc.isrc = &nreg->r[src];
-			ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+			ibc.memMask = AddressMask[instr.getModMem()];
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			return;
 		}
@@ -393,7 +393,7 @@ namespace randomx {
 			ibc.type = InstructionType::FSUB_M;
 			ibc.fdst = &nreg->f[dst];
 			ibc.isrc = &nreg->r[src];
-			ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+			ibc.memMask = AddressMask[instr.getModMem()];
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			return;
 		}
@@ -420,7 +420,7 @@ namespace randomx {
 			ibc.type = InstructionType::FDIV_M;
 			ibc.fdst = &nreg->e[dst];
 			ibc.isrc = &nreg->r[src];
-			ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+			ibc.memMask = AddressMask[instr.getModMem()];
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			return;
 		}
@@ -466,7 +466,7 @@ namespace randomx {
 			ibc.isrc = &nreg->r[src];
 			ibc.imm = signExtend2sCompl(instr.getImm32());
 			if (instr.getModCond() < StoreL3Condition)
-				ibc.memMask = (instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask);
+				ibc.memMask = AddressMask[instr.getModMem()];
 			else
 				ibc.memMask = ScratchpadL3Mask;
 			return;
