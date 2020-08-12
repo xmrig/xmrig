@@ -126,10 +126,7 @@ namespace randomx {
 		double hi;
 	};
 
-	#define ScratchpadL1Mask RandomX_CurrentConfig.ScratchpadL1Mask_Calculated
-	#define ScratchpadL1Mask16 RandomX_CurrentConfig.ScratchpadL1Mask16_Calculated
-	#define ScratchpadL2Mask RandomX_CurrentConfig.ScratchpadL2Mask_Calculated
-	#define ScratchpadL2Mask16 RandomX_CurrentConfig.ScratchpadL2Mask16_Calculated
+	#define AddressMask RandomX_CurrentConfig.AddressMask_Calculated
 	#define ScratchpadL3Mask RandomX_CurrentConfig.ScratchpadL3Mask_Calculated
 	#define ScratchpadL3Mask64 RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated
 	constexpr int RegistersCount = 8;
