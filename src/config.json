@@ -28,7 +28,7 @@
         "huge-pages": true,
         "hw-aes": null,
         "priority": null,
-        "memory-pool": false,
+        "memory-pool": true,
         "yield": true,
         "max-threads-hint": 100,
         "asm": true,
