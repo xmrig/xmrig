@@ -72,6 +72,10 @@ endif()
 
 if (XMRIG_ARM)
     list(APPEND SOURCES_CPUID src/backend/cpu/platform/BasicCpuInfo_arm.cpp)
+
+    if (XMRIG_OS_UNIX)
+        list(APPEND SOURCES_CPUID src/backend/cpu/platform/lscpu_arm.cpp)
+    endif()
 else()
     list(APPEND SOURCES_CPUID src/backend/cpu/platform/BasicCpuInfo.cpp)
 endif()
