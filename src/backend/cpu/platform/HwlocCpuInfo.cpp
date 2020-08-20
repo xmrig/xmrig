@@ -218,10 +218,11 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint3
 {
 #   ifdef XMRIG_ALGO_ASTROBWT
     if (algorithm == Algorithm::ASTROBWT_DERO) {
-        return BasicCpuInfo::threads(algorithm, limit);
+        return allThreads(algorithm, limit);
     }
 #   endif
 
+#   ifndef XMRIG_ARM
     if (L2() == 0 && L3() == 0) {
         return BasicCpuInfo::threads(algorithm, limit);
     }
@@ -263,11 +264,35 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint3
     }
 
     return threads;
+#   else
+    return allThreads(algorithm, limit);
+#   endif
 }
+
+
+xmrig::CpuThreads xmrig::HwlocCpuInfo::allThreads(const Algorithm &algorithm, uint32_t limit) const
+{
+    CpuThreads threads;
+    threads.reserve(m_threads);
+
+    hwloc_obj_t pu = nullptr;
+
+    while ((pu = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_PU, pu)) != nullptr) {
+        threads.add(pu->os_index, 0);
+    }
+
+    if (threads.isEmpty()) {
+        return BasicCpuInfo::threads(algorithm, limit);
+    }
+
+    return threads;
+}
+
 
 
 void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const
 {
+#   ifndef XMRIG_ARM
     constexpr size_t oneMiB = 1024U * 1024U;
 
     size_t PUs = countByType(cache, HWLOC_OBJ_PU);
@@ -372,4 +397,5 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
         pu_id++;
     }
+#   endif
 }

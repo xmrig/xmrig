@@ -82,7 +82,17 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 #   elif defined(__FreeBSD__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
 #   else
-    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE, 0, 0);
+
+#   if defined(MAP_HUGE_2MB)
+    constexpr int flag_2mb = MAP_HUGE_2MB;
+#   elif defined(MAP_HUGE_SHIFT)
+    constexpr int flag_2mb = (21 << MAP_HUGE_SHIFT);
+#   else
+    constexpr int flag_2mb = 0;
+#   endif
+
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | flag_2mb, 0, 0);
+
 #   endif
 
     return mem == MAP_FAILED ? nullptr : mem;

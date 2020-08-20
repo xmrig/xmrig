@@ -70,6 +70,7 @@ protected:
     inline size_t packages() const override         { return m_packages; }
 
 private:
+    CpuThreads allThreads(const Algorithm &algorithm, uint32_t limit) const;
     void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const;
 
 

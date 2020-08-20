@@ -126,6 +126,10 @@ bool xmrig::HttpContext::isRequest() const
 
 size_t xmrig::HttpContext::parse(const char *data, size_t size)
 {
+    if (size == 0) {
+        return size;
+    }
+
     return http_parser_execute(m_parser, &http_settings, data, size);
 }
 

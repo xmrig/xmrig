@@ -130,10 +130,7 @@ struct RandomX_ConfigurationBase
 	uint32_t CacheLineAlignMask_Calculated;
 	uint32_t DatasetExtraItems_Calculated;
 
-	uint32_t ScratchpadL1Mask_Calculated;
-	uint32_t ScratchpadL1Mask16_Calculated;
-	uint32_t ScratchpadL2Mask_Calculated;
-	uint32_t ScratchpadL2Mask16_Calculated;
+	uint32_t AddressMask_Calculated[4];
 	uint32_t ScratchpadL3Mask_Calculated;
 	uint32_t ScratchpadL3Mask64_Calculated;
 

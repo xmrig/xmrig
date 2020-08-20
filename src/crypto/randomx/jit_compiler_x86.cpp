@@ -508,7 +508,7 @@ namespace randomx {
 			*(uint32_t*)(code + codePos) = 0xe181;
 			codePos += 2;
 		}
-		emit32(instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask, code, codePos);
+		emit32(AddressMask[instr.getModMem()], code, codePos);
 	}
 
 	template void JitCompilerX86::genAddressReg<false>(const Instruction& instr, const uint32_t src, uint8_t* code, uint32_t& codePos);
@@ -522,7 +522,7 @@ namespace randomx {
 		emit32(instr.getImm32(), code, codePos);
 		emitByte(0x25, code, codePos);
 		if (instr.getModCond() < StoreL3Condition) {
-			emit32(instr.getModMem() ? ScratchpadL1Mask : ScratchpadL2Mask, code, codePos);
+			emit32(AddressMask[instr.getModMem()], code, codePos);
 		}
 		else {
 			emit32(ScratchpadL3Mask, code, codePos);

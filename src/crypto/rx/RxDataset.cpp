@@ -193,6 +193,12 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
     }
 
     m_memory  = new VirtualMemory(maxSize(), hugePages, oneGbPages, false, m_node);
+
+    if (m_memory->isOneGbPages()) {
+        m_scratchpadOffset = maxSize() + RANDOMX_CACHE_MAX_SIZE;
+        m_scratchpadLimit = m_memory->capacity();
+    }
+
     m_dataset = randomx_create_dataset(m_memory->raw());
 
 #   ifdef XMRIG_OS_LINUX
@@ -200,4 +206,20 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
         LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to allocate RandomX dataset using 1GB pages", Tags::randomx());
     }
 #   endif
+}
+
+
+uint8_t* xmrig::RxDataset::tryAllocateScrathpad()
+{
+    uint8_t* p = reinterpret_cast<uint8_t*>(raw());
+    if (!p) {
+        return nullptr;
+    }
+
+    const size_t offset = m_scratchpadOffset.fetch_add(RANDOMX_SCRATCHPAD_L3_MAX_SIZE);
+    if (offset + RANDOMX_SCRATCHPAD_L3_MAX_SIZE > m_scratchpadLimit) {
+        return nullptr;
+    }
+
+    return p + offset;
 }

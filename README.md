@@ -29,7 +29,7 @@ The preferred way to configure the miner is the [JSON config file](src/config.js
 * **[Command line options](https://xmrig.com/docs/miner/command-line-options)**
 
 ## Donations
-* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `donate-level` or disabled in source code.
+* Default donation 1% (1 minute in 100 minutes) can be increased via option `donate-level` or disabled in source code.
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
 
