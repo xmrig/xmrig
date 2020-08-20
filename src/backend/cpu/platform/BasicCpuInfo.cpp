@@ -226,8 +226,8 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
 {
     const uint32_t count = std::thread::hardware_concurrency();
     const uint32_t count_limit  = std::max(static_cast<uint32_t>(count * (limit / 100.0f)), 1U);
-    const uint32_t count_limit2 = std::max(count_limit / 2, 1U);
-    const uint32_t count_limit4 = std::max(count_limit / 4, 1U);
+    const uint32_t count_limit2 = std::max(static_cast<uint32_t>(count / 2), count_limit);
+    const uint32_t count_limit4 = std::max(static_cast<uint32_t>(count / 4), count_limit);
 
     if (count == 1) {
         return 1;
