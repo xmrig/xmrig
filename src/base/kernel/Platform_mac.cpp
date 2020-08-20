@@ -22,6 +22,8 @@
  */
 
 
+#include <IOKit/IOKitLib.h>
+#include <IOKit/ps/IOPowerSources.h>
 #include <mach/thread_act.h>
 #include <mach/thread_policy.h>
 #include <stdio.h>
@@ -111,15 +113,5 @@ void xmrig::Platform::setThreadPriority(int priority)
 
 bool xmrig::Platform::isOnBatteryPower()
 {
-    for (int i = 0; i <= 1; ++i) {
-        char buf[64];
-        snprintf(buf, 64, "/sys/class/power_supply/BAT%d/status", i);
-        std::ifstream f(buf);
-        if (f.is_open()) {
-            std::string status;
-            f >> status;
-            return (status == "Discharging");
-        }
-    }
-    return false;
+    return IOPSGetTimeRemainingEstimate() != kIOPSTimeRemainingUnlimited;
 }

@@ -176,10 +176,16 @@ public:
 
     inline void initDatasets(uint32_t threads, int priority)
     {
-        uint64_t ts  = Chrono::steadyMSecs();
-        auto id      = m_nodeset.front();
-        auto primary = dataset(id);
+        uint64_t ts = Chrono::steadyMSecs();
+        uint32_t id = 0;
 
+        for (const auto &kv : m_datasets) {
+            if (kv.second->cache()) {
+                id = kv.first;
+            }
+        }
+
+        auto primary = dataset(id);
         primary->init(m_seed.data(), threads, priority);
 
         printDatasetReady(id, ts);
