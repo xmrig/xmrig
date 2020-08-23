@@ -1,4 +1,4 @@
-if (BUILD_STATIC AND XMRIG_OS_LINUX AND WITH_OPENCL)
+if (BUILD_STATIC AND XMRIG_OS_UNIX AND WITH_OPENCL)
     message(WARNING "OpenCL backend is not compatible with static build, use -DWITH_OPENCL=OFF to suppress this warning")
 
     set(WITH_OPENCL OFF)

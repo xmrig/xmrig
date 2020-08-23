@@ -13,8 +13,8 @@ tar -xzf openssl-${OPENSSL_VERSION}.tar.gz
 
 cd openssl-${OPENSSL_VERSION}
 ./config -no-shared -no-asm -no-zlib -no-comp -no-dgram -no-filenames -no-cms
-make -j$(nproc)
-cp -fr include/ ../../deps
+make -j$(nproc || sysctl -n hw.ncpu || sysctl -n hw.logicalcpu)
+cp -fr include ../../deps
 cp libcrypto.a ../../deps/lib
 cp libssl.a ../../deps/lib
 cd ..
