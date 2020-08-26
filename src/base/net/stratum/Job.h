@@ -65,7 +65,7 @@ public:
     void setDiff(uint64_t diff);
 
     inline bool isNicehash() const                      { return m_nicehash; }
-    inline bool isValid() const                         { return m_size > 0 && m_diff > 0; }
+    inline bool isValid() const                         { return (m_size > 0 && m_diff > 0) || !m_poolWallet.isEmpty(); }
     inline bool setId(const char *id)                   { return m_id = id; }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
     inline const Buffer &seed() const                   { return m_seed; }
