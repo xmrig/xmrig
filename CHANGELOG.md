@@ -1,3 +1,13 @@
+# v6.3.3
+- [#1817](https://github.com/xmrig/xmrig/pull/1817) Fixed self-select login sequence.
+- Added brand new [build from source](https://xmrig.com/docs/miner/build) documentation.
+- New binary downloads for macOS (`macos-x64`), FreeBSD (`freebsd-static-x64`), Linux (`linux-static-x64`), Ubuntu 18.04 (`bionic-x64`), Ubuntu 20.04 (`focal-x64`).
+- Generic Linux download `xenial-x64` renamed to `linux-x64`.
+- Builds without SSL/TLS support are no longer provided.
+- Improved CUDA loader error reporting and fixed plugin load on Linux.
+- Fixed build warnings with Clang compiler.
+- Fixed colors on macOS.
+
 # v6.3.2
 - [#1794](https://github.com/xmrig/xmrig/pull/1794) More robust 1 GB pages handling.
   - Don't allocate 1 GB per thread if 1 GB is the default huge page size.
