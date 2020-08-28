@@ -81,7 +81,13 @@ private:
 #define CLEAR               CSI "0m"    // all attributes off
 #define BRIGHT_BLACK_S      CSI "0;90m" // somewhat MD.GRAY
 #define BLACK_S             CSI "0;30m"
-#define BLACK_BOLD_S        CSI "1;30m" // another name for GRAY
+
+#ifdef XMRIG_OS_APPLE
+#   define BLACK_BOLD_S     CSI "0;37m"
+#else
+#   define BLACK_BOLD_S     CSI "1;30m" // another name for GRAY
+#endif
+
 #define RED_S               CSI "0;31m"
 #define RED_BOLD_S          CSI "1;31m"
 #define GREEN_S             CSI "0;32m"

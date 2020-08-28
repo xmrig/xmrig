@@ -208,10 +208,6 @@ include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
 
-if (BUILD_STATIC)
-    set(CMAKE_EXE_LINKER_FLAGS " -static")
-endif()
-
 if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
@@ -222,4 +218,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRA
 if (WIN32)
     add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/bin/WinRing0/WinRing0x64.sys" $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang AND CMAKE_BUILD_TYPE STREQUAL Release)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_STRIP} ${CMAKE_PROJECT_NAME})
 endif()

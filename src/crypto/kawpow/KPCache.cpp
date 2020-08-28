@@ -91,7 +91,7 @@ bool KPCache::init(uint32_t epoch)
             const uint32_t a = (cache_nodes * i) / n;
             const uint32_t b = (cache_nodes * (i + 1)) / n;
 
-            threads.emplace_back([this, a, b, cache_nodes, &cache]() {
+            threads.emplace_back([this, a, b, &cache]() {
                 uint32_t j = a;
                 for (; j + 4 <= b; j += 4) ethash_calculate_dag_item4_opt(((node*)m_DAGCache.data()) + j, j, num_dataset_parents, &cache);
                 for (; j < b; ++j) ethash_calculate_dag_item_opt(((node*)m_DAGCache.data()) + j, j, num_dataset_parents, &cache);

@@ -152,7 +152,9 @@ public:
         }
 
         if (!CudaLib::init(cuda.loader())) {
-            return printDisabled(kLabel, RED_S " (failed to load CUDA plugin)");
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("disabled ") RED("(%s)"), kLabel, CudaLib::lastError());
+
+            return;
         }
 
         runtimeVersion = CudaLib::runtimeVersion();

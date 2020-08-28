@@ -1,3 +1,9 @@
+if (BUILD_STATIC AND XMRIG_OS_UNIX AND WITH_CUDA)
+    message(WARNING "CUDA backend is not compatible with static build, use -DWITH_CUDA=OFF to suppress this warning")
+
+    set(WITH_CUDA OFF)
+endif()
+
 if (WITH_CUDA)
     add_definitions(/DXMRIG_FEATURE_CUDA)
 

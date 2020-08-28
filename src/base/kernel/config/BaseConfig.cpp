@@ -176,7 +176,7 @@ void xmrig::BaseConfig::printVersions()
         snprintf(buf, sizeof buf, "LibreSSL/%s ", LIBRESSL_VERSION_TEXT + 9);
         libs += buf;
 #       elif defined(OPENSSL_VERSION_TEXT)
-        constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
+        constexpr const char *v = &OPENSSL_VERSION_TEXT[8];
         snprintf(buf, sizeof buf, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
         libs += buf;
 #       endif

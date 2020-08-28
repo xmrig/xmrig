@@ -235,7 +235,9 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 #	endif
 }
 
+#ifdef XMRIG_ARMv8
 static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) : 0; }
+#endif
 
 void RandomX_ConfigurationBase::Apply()
 {

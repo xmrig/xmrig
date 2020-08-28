@@ -44,7 +44,7 @@
 
 static uv_lib_t oclLib;
 
-static const char *kErrorTemplate                    = MAGENTA_BG_BOLD(WHITE_BOLD_S " ocl ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("%s");
+static const char *kErrorTemplate                    = MAGENTA_BG_BOLD(WHITE_BOLD_S " opencl  ") RED(" error ") RED_BOLD("%s") RED(" when calling ") RED_BOLD("%s");
 
 static const char *kBuildProgram                     = "clBuildProgram";
 static const char *kCreateBuffer                     = "clCreateBuffer";
