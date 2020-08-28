@@ -164,7 +164,7 @@ public:
             return true;
         }
 
-        for (const auto kv : m_datasets) {
+        for (const auto &kv : m_datasets) {
             if (kv.second->isOneGbPages()) {
                 return false;
             }

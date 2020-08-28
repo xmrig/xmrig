@@ -30,6 +30,7 @@
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/Env.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Process.h"
 #include "crypto/rx/RxAlgo.h"
 
 
@@ -45,6 +46,14 @@ enum Version : uint32_t
 
 
 static uv_lib_t cudaLib;
+
+#if defined(__APPLE__)
+static String defaultLoader = "/System/Library/Frameworks/OpenCL.framework/OpenCL";
+#elif defined(_WIN32)
+static String defaultLoader = "xmrig-cuda.dll";
+#else
+static String defaultLoader = "libxmrig-cuda.so";
+#endif
 
 
 static const char *kAlloc                               = "alloc";
@@ -125,11 +134,12 @@ static setJob_v2_t pSetJob_v2                           = nullptr;
 static version_t pVersion                               = nullptr;
 
 
-#define DLSYM(x) if (uv_dlsym(&cudaLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { throw std::runtime_error("symbol not found (" #x ")"); }
+#define DLSYM(x) if (uv_dlsym(&cudaLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { throw std::runtime_error(std::string("symbol not found: ") + k##x); }
 
 
 bool CudaLib::m_initialized = false;
 bool CudaLib::m_ready       = false;
+String CudaLib::m_error;
 String CudaLib::m_loader;
 
 
@@ -139,9 +149,22 @@ String CudaLib::m_loader;
 bool xmrig::CudaLib::init(const char *fileName)
 {
     if (!m_initialized) {
-        m_loader      = fileName == nullptr ? defaultLoader() : Env::expand(fileName);
-        m_ready       = uv_dlopen(m_loader, &cudaLib) == 0 && load();
         m_initialized = true;
+        m_loader      = fileName == nullptr ? defaultLoader : Env::expand(fileName);
+
+        if (!open()) {
+            return false;
+        }
+
+        try {
+            load();
+        } catch (std::exception &ex) {
+            m_error = (std::string(m_loader) + ": " + ex.what()).c_str();
+
+            return false;
+        }
+
+        m_ready = true;
     }
 
     return m_ready;
@@ -150,7 +173,7 @@ bool xmrig::CudaLib::init(const char *fileName)
 
 const char *xmrig::CudaLib::lastError() noexcept
 {
-    return uv_dlerror(&cudaLib);
+    return m_error;
 }
 
 
@@ -344,66 +367,70 @@ void xmrig::CudaLib::release(nvid_ctx *ctx) noexcept
 }
 
 
-bool xmrig::CudaLib::load()
+bool xmrig::CudaLib::open()
 {
-    if (uv_dlsym(&cudaLib, kVersion, reinterpret_cast<void**>(&pVersion)) == -1) {
+    m_error = nullptr;
+
+    if (uv_dlopen(m_loader, &cudaLib) == 0) {
+        return true;
+    }
+
+#   ifdef XMRIG_OS_LINUX
+    if (m_loader == defaultLoader) {
+        m_loader = Process::location(Process::ExeLocation, m_loader);
+    }
+    else {
         return false;
     }
 
-    if (pVersion(ApiVersion) != 3U) {
-        return false;
+    if (uv_dlopen(m_loader, &cudaLib) == 0) {
+        return true;
     }
+#   endif
 
-    uv_dlsym(&cudaLib, kDeviceInfo_v2,  reinterpret_cast<void**>(&pDeviceInfo_v2));
-    uv_dlsym(&cudaLib, kSetJob_v2,      reinterpret_cast<void**>(&pSetJob_v2));
+    m_error = uv_dlerror(&cudaLib);
 
-    try {
-        DLSYM(Alloc);
-        DLSYM(CnHash);
-        DLSYM(DeviceCount);
-        DLSYM(DeviceInit);
-        DLSYM(DeviceInt);
-        DLSYM(DeviceName);
-        DLSYM(DeviceUint);
-        DLSYM(DeviceUlong);
-        DLSYM(Init);
-        DLSYM(LastError);
-        DLSYM(PluginVersion);
-        DLSYM(Release);
-        DLSYM(RxHash);
-        DLSYM(RxPrepare);
-        DLSYM(AstroBWTHash);
-        DLSYM(AstroBWTPrepare);
-        DLSYM(KawPowHash);
-        DLSYM(KawPowPrepare_v2);
-        DLSYM(KawPowStopHash);
-        DLSYM(Version);
-
-        if (!pDeviceInfo_v2) {
-            DLSYM(DeviceInfo);
-        }
-
-        if (!pSetJob_v2) {
-            DLSYM(SetJob);
-        }
-    } catch (std::exception &ex) {
-        LOG_ERR("Error loading CUDA library: %s", ex.what());
-        return false;
-    }
-
-    pInit();
-
-    return true;
+    return false;
 }
 
 
-xmrig::String xmrig::CudaLib::defaultLoader()
+void xmrig::CudaLib::load()
 {
-#   if defined(__APPLE__)
-    return "/System/Library/Frameworks/OpenCL.framework/OpenCL"; // FIXME
-#   elif defined(_WIN32)
-    return "xmrig-cuda.dll";
-#   else
-    return "libxmrig-cuda.so";
-#   endif
+    DLSYM(Version);
+
+    if (pVersion(ApiVersion) != 3U) {
+        throw std::runtime_error("API version mismatch");
+    }
+
+    DLSYM(Alloc);
+    DLSYM(CnHash);
+    DLSYM(DeviceCount);
+    DLSYM(DeviceInit);
+    DLSYM(DeviceInt);
+    DLSYM(DeviceName);
+    DLSYM(DeviceUint);
+    DLSYM(DeviceUlong);
+    DLSYM(Init);
+    DLSYM(LastError);
+    DLSYM(PluginVersion);
+    DLSYM(Release);
+    DLSYM(RxHash);
+    DLSYM(RxPrepare);
+    DLSYM(AstroBWTHash);
+    DLSYM(AstroBWTPrepare);
+    DLSYM(KawPowHash);
+    DLSYM(KawPowPrepare_v2);
+    DLSYM(KawPowStopHash);
+
+    uv_dlsym(&cudaLib, kDeviceInfo_v2, reinterpret_cast<void**>(&pDeviceInfo_v2));
+    if (!pDeviceInfo_v2) {
+        DLSYM(DeviceInfo);
+    }
+
+    uv_dlsym(&cudaLib, kSetJob_v2, reinterpret_cast<void**>(&pSetJob_v2));
+    if (!pSetJob_v2) {
+        DLSYM(SetJob);
+    }
+
+    pInit();
 }

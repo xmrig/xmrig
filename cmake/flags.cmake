@@ -45,6 +45,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
     endif()
 
+    if (BUILD_STATIC)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+    endif()
+
     add_definitions(/D_GNU_SOURCE)
 
     if (${CMAKE_VERSION} VERSION_LESS "3.1.0")
@@ -90,6 +94,10 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         if (HAVE_ROTR)
             add_definitions(/DHAVE_ROTR)
         endif()
+    endif()
+
+    if (BUILD_STATIC)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
     endif()
 
 endif()

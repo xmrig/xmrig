@@ -1,3 +1,9 @@
+if (BUILD_STATIC AND XMRIG_OS_UNIX AND WITH_OPENCL)
+    message(WARNING "OpenCL backend is not compatible with static build, use -DWITH_OPENCL=OFF to suppress this warning")
+
+    set(WITH_OPENCL OFF)
+endif()
+
 if (WITH_OPENCL)
     add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
     add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)

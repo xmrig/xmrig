@@ -99,11 +99,12 @@ public:
     static void release(nvid_ctx *ctx) noexcept;
 
 private:
-    static bool load();
-    static String defaultLoader();
+    static bool open();
+    static void load();
 
     static bool m_initialized;
     static bool m_ready;
+    static String m_error;
     static String m_loader;
 };
 
