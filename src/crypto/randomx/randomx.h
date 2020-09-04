@@ -200,6 +200,8 @@ void randomx_apply_config(const T& config)
 	RandomX_CurrentConfig.Apply();
 }
 
+void randomx_set_scratchpad_prefetch_mode(int mode);
+
 #if defined(__cplusplus)
 extern "C" {
 #endif

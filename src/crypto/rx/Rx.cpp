@@ -32,6 +32,7 @@
 #include "base/io/log/Log.h"
 #include "crypto/rx/RxConfig.h"
 #include "crypto/rx/RxQueue.h"
+#include "crypto/randomx/randomx.h"
 
 
 namespace xmrig {
@@ -98,6 +99,8 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
 
         return true;
     }
+
+    randomx_set_scratchpad_prefetch_mode(config.scratchpadPrefetchMode());
 
     if (isReady(seed)) {
         return true;
