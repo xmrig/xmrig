@@ -211,6 +211,13 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) : 0; }
 #endif
 
+static int scratchpadPrefetchMode = 1;
+
+void randomx_set_scratchpad_prefetch_mode(int mode)
+{
+	scratchpadPrefetchMode = mode;
+}
+
 void RandomX_ConfigurationBase::Apply()
 {
 	const uint32_t ScratchpadL1Mask_Calculated = (ScratchpadL1_Size / sizeof(uint64_t) - 1) * 8;
@@ -239,6 +246,36 @@ void RandomX_ConfigurationBase::Apply()
 
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 4) = ScratchpadL3Mask64_Calculated;
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 18) = ScratchpadL3Mask64_Calculated;
+
+	// Apply scratchpad prefetch mode
+	{
+		uint32_t* a = (uint32_t*)(codePrefetchScratchpadTweaked + 8);
+		uint32_t* b = (uint32_t*)(codePrefetchScratchpadTweaked + 22);
+
+		switch (scratchpadPrefetchMode)
+		{
+		case 0:
+			*a = 0x00401F0FUL; // 4-byte nop
+			*b = 0x00401F0FUL; // 4-byte nop
+			break;
+
+		case 1:
+		default:
+			*a = 0x060C180FUL; // prefetcht0 [rsi+rax]
+			*b = 0x160C180FUL; // prefetcht0 [rsi+rdx]
+			break;
+
+		case 2:
+			*a = 0x0604180FUL; // prefetchnta [rsi+rax]
+			*b = 0x1604180FUL; // prefetchnta [rsi+rdx]
+			break;
+
+		case 3:
+			*a = 0x060C8B48UL; // mov rcx, [rsi+rax]
+			*b = 0x160C8B48UL; // mov rcx, [rsi+rdx]
+			break;
+		}
+	}
 
 #define JIT_HANDLE(x, prev) randomx::JitCompilerX86::engine[k] = &randomx::JitCompilerX86::h_##x
 
