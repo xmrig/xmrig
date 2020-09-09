@@ -70,7 +70,7 @@ public:
 
         if ((m_rounds[index()] % rounds) == 0) {
             for (size_t i = 0; i < N; ++i) {
-                if (!Nonce::next(index(), nonce(i), rounds * roundSize, currentJob().isNicehash(), nonceSize())) {
+                if (!Nonce::next(index(), nonce(i), rounds * roundSize, nonceMask())) {
                     return false;
                 }
             }
@@ -88,6 +88,7 @@ public:
 private:
     inline int32_t nonceOffset() const  { return currentJob().nonceOffset(); }
     inline size_t nonceSize() const     { return currentJob().nonceSize(); }
+    inline uint64_t nonceMask() const     { return m_nonce_mask[index()]; }
 
     inline void save(const Job &job, uint32_t reserveCount, Nonce::Backend backend)
     {
@@ -95,12 +96,13 @@ private:
         const size_t size = job.size();
         m_jobs[index()]   = job;
         m_rounds[index()] = 0;
+        m_nonce_mask[index()] = job.isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (-1ull  >> (job.extraNonce().size() * 4 + 1)): 0xFFFFFFFFULL);
 
         m_jobs[index()].setBackend(backend);
 
         for (size_t i = 0; i < N; ++i) {
             memcpy(m_blobs[index()] + (i * size), job.blob(), size);
-            Nonce::next(index(), nonce(i), reserveCount, job.isNicehash(), nonceSize());
+            Nonce::next(index(), nonce(i), reserveCount, nonceMask());
         }
     }
 
@@ -108,6 +110,7 @@ private:
     alignas(16) uint8_t m_blobs[2][Job::kMaxBlobSize * N]{};
     Job m_jobs[2];
     uint32_t m_rounds[2] = { 0, 0 };
+    uint64_t m_nonce_mask[2];
     uint64_t m_sequence  = 0;
     uint8_t m_index      = 0;
 };
@@ -128,7 +131,7 @@ inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
     uint32_t* n = nonce();
 
     if ((m_rounds[index()] % rounds) == 0) {
-        if (!Nonce::next(index(), n, rounds * roundSize, currentJob().isNicehash(), nonceSize())) {
+        if (!Nonce::next(index(), n, rounds * roundSize, nonceMask())) {
             return false;
         }
         if (nonceSize() == sizeof(uint64_t)) {
@@ -149,11 +152,12 @@ inline void xmrig::WorkerJob<1>::save(const Job &job, uint32_t reserveCount, Non
     m_index           = job.index();
     m_jobs[index()]   = job;
     m_rounds[index()] = 0;
+    m_nonce_mask[index()] = job.isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (-1ull  >> (job.extraNonce().size() * 4 + 1)): 0xFFFFFFFFULL);
 
     m_jobs[index()].setBackend(backend);
 
     memcpy(blob(), job.blob(), job.size());
-    Nonce::next(index(), nonce(), reserveCount, currentJob().isNicehash(), nonceSize());
+    Nonce::next(index(), nonce(), reserveCount, nonceMask());
 }
 
 

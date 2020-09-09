@@ -50,9 +50,8 @@ xmrig::Nonce::Nonce()
 }
 
 
-bool xmrig::Nonce::next(uint8_t index, uint32_t *nonce, uint32_t reserveCount, bool nicehash, size_t nonceSize)
+bool xmrig::Nonce::next(uint8_t index, uint32_t *nonce, uint32_t reserveCount, uint64_t mask)
 {
-    const uint64_t mask = nicehash ? 0xFFFFFFULL : (nonceSize == sizeof(uint64_t) ? 0x7FFFFFFFFFFFFFFFULL : 0xFFFFFFFFULL);
     if (reserveCount == 0 || mask < reserveCount - 1) {
         return false;
     }
@@ -73,7 +72,7 @@ bool xmrig::Nonce::next(uint8_t index, uint32_t *nonce, uint32_t reserveCount, b
         }
         *nonce = (nonce[0] & ~mask) | counter;
         if (mask > 0xFFFFFFFFULL) {
-            nonce[1] = (counter >> 32);
+            nonce[1] = (nonce[1] & (~mask >> 32)) | (counter  >> 32);
         }
         return true;
     }
