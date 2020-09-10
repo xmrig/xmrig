@@ -63,6 +63,7 @@ public:
         FLAG_PDPE1GB,
         FLAG_SSE2,
         FLAG_SSSE3,
+        FLAG_SSE41,
         FLAG_XOP,
         FLAG_POPCNT,
         FLAG_CAT_L3,

@@ -39,6 +39,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/blake2/blake2.h"
 #include "crypto/randomx/blake2/blake2-impl.h"
 
+#if defined(_M_X64) || defined(__x86_64__)
+
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+
+#include <smmintrin.h>
+#include "blake2b-round.h"
+
+#endif
+
 static const uint64_t blake2b_IV[8] = {
 	UINT64_C(0x6a09e667f3bcc908), UINT64_C(0xbb67ae8584caa73b),
 	UINT64_C(0x3c6ef372fe94f82b), UINT64_C(0xa54ff53a5f1d36f1),
@@ -179,7 +190,63 @@ int rx_blake2b_init_key(blake2b_state *S, size_t outlen, const void *key, size_t
 	return 0;
 }
 
-static void rx_blake2b_compress(blake2b_state *S, const uint8_t *block) {
+#if defined(_M_X64) || defined(__x86_64__)
+static void rx_blake2b_compress_sse41(blake2b_state* S, const uint8_t *block)
+{
+	__m128i row1l, row1h;
+	__m128i row2l, row2h;
+	__m128i row3l, row3h;
+	__m128i row4l, row4h;
+	__m128i b0, b1;
+	__m128i t0, t1;
+
+	const __m128i r16 = _mm_setr_epi8(2, 3, 4, 5, 6, 7, 0, 1, 10, 11, 12, 13, 14, 15, 8, 9);
+	const __m128i r24 = _mm_setr_epi8(3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10);
+
+	const __m128i m0 = LOADU(block + 00);
+	const __m128i m1 = LOADU(block + 16);
+	const __m128i m2 = LOADU(block + 32);
+	const __m128i m3 = LOADU(block + 48);
+	const __m128i m4 = LOADU(block + 64);
+	const __m128i m5 = LOADU(block + 80);
+	const __m128i m6 = LOADU(block + 96);
+	const __m128i m7 = LOADU(block + 112);
+
+	row1l = LOADU(&S->h[0]);
+	row1h = LOADU(&S->h[2]);
+	row2l = LOADU(&S->h[4]);
+	row2h = LOADU(&S->h[6]);
+	row3l = LOADU(&blake2b_IV[0]);
+	row3h = LOADU(&blake2b_IV[2]);
+	row4l = _mm_xor_si128(LOADU(&blake2b_IV[4]), LOADU(&S->t[0]));
+	row4h = _mm_xor_si128(LOADU(&blake2b_IV[6]), LOADU(&S->f[0]));
+
+	ROUND(0);
+	ROUND(1);
+	ROUND(2);
+	ROUND(3);
+	ROUND(4);
+	ROUND(5);
+	ROUND(6);
+	ROUND(7);
+	ROUND(8);
+	ROUND(9);
+	ROUND(10);
+	ROUND(11);
+
+	row1l = _mm_xor_si128(row3l, row1l);
+	row1h = _mm_xor_si128(row3h, row1h);
+	STOREU(&S->h[0], _mm_xor_si128(LOADU(&S->h[0]), row1l));
+	STOREU(&S->h[2], _mm_xor_si128(LOADU(&S->h[2]), row1h));
+	row2l = _mm_xor_si128(row4l, row2l);
+	row2h = _mm_xor_si128(row4h, row2h);
+	STOREU(&S->h[4], _mm_xor_si128(LOADU(&S->h[4]), row2l));
+	STOREU(&S->h[6], _mm_xor_si128(LOADU(&S->h[6]), row2h));
+}
+#undef ROUND
+#endif
+
+static void rx_blake2b_compress_integer(blake2b_state *S, const uint8_t *block) {
 	uint64_t m[16];
 	uint64_t v[16];
 	unsigned int i, r;
@@ -237,6 +304,20 @@ static void rx_blake2b_compress(blake2b_state *S, const uint8_t *block) {
 #undef ROUND
 }
 
+#if defined(_M_X64) || defined(__x86_64__)
+
+uint32_t rx_blake2b_use_sse41 = 0;
+
+#define rx_blake2b_compress(S, block) \
+	if (rx_blake2b_use_sse41) \
+		rx_blake2b_compress_sse41(S, block); \
+	else \
+		rx_blake2b_compress_integer(S, block);
+
+#else
+#define rx_blake2b_compress(S, block) rx_blake2b_compress_integer(S, block);
+#endif
+
 int rx_blake2b_update(blake2b_state *S, const void *in, size_t inlen) {
 	const uint8_t *pin = (const uint8_t *)in;
 
@@ -260,14 +341,14 @@ int rx_blake2b_update(blake2b_state *S, const void *in, size_t inlen) {
 		size_t fill = BLAKE2B_BLOCKBYTES - left;
 		memcpy(&S->buf[left], pin, fill);
 		blake2b_increment_counter(S, BLAKE2B_BLOCKBYTES);
-        rx_blake2b_compress(S, S->buf);
+		rx_blake2b_compress(S, S->buf);
 		S->buflen = 0;
 		inlen -= fill;
 		pin += fill;
 		/* Avoid buffer copies when possible */
 		while (inlen > BLAKE2B_BLOCKBYTES) {
 			blake2b_increment_counter(S, BLAKE2B_BLOCKBYTES);
-            rx_blake2b_compress(S, pin);
+			rx_blake2b_compress(S, pin);
 			inlen -= BLAKE2B_BLOCKBYTES;
 			pin += BLAKE2B_BLOCKBYTES;
 		}
@@ -294,7 +375,7 @@ int rx_blake2b_final(blake2b_state *S, void *out, size_t outlen) {
 	blake2b_increment_counter(S, S->buflen);
 	blake2b_set_lastblock(S);
 	memset(&S->buf[S->buflen], 0, BLAKE2B_BLOCKBYTES - S->buflen); /* Padding */
-    rx_blake2b_compress(S, S->buf);
+	rx_blake2b_compress(S, S->buf);
 
 	for (i = 0; i < 8; ++i) { /* Output full hash to temp buffer */
 		store64(buffer + sizeof(S->h[i]) * i, S->h[i]);
