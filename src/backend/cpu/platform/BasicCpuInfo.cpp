@@ -57,7 +57,7 @@
 namespace xmrig {
 
 
-static const std::array<const char *, ICpuInfo::FLAG_MAX> flagNames     = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "xop", "popcnt", "cat_l3" };
+static const std::array<const char *, ICpuInfo::FLAG_MAX> flagNames     = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "sse4.1", "xop", "popcnt", "cat_l3" };
 static const std::array<const char *, ICpuInfo::MSR_MOD_MAX> msrNames   = { "none", "ryzen", "intel", "custom" };
 
 
@@ -141,6 +141,7 @@ static inline bool has_bmi2()       { return has_feature(EXTENDED_FEATURES,     
 static inline bool has_pdpe1gb()    { return has_feature(PROCESSOR_EXT_INFO,    EDX_Reg, 1 << 26); }
 static inline bool has_sse2()       { return has_feature(PROCESSOR_INFO,        EDX_Reg, 1 << 26); }
 static inline bool has_ssse3()      { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 9); }
+static inline bool has_sse41()      { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 19); }
 static inline bool has_xop()        { return has_feature(0x80000001,            ECX_Reg, 1 << 11); }
 static inline bool has_popcnt()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 23); }
 static inline bool has_cat_l3()     { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 15) && has_feature(0x10, EBX_Reg, 1 << 1); }
@@ -177,6 +178,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_flags.set(FLAG_PDPE1GB, has_pdpe1gb());
     m_flags.set(FLAG_SSE2,    has_sse2());
     m_flags.set(FLAG_SSSE3,   has_ssse3());
+    m_flags.set(FLAG_SSE41,   has_sse41());
     m_flags.set(FLAG_XOP,     has_xop());
     m_flags.set(FLAG_POPCNT,  has_popcnt());
     m_flags.set(FLAG_CAT_L3,  has_cat_l3());
