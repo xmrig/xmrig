@@ -96,7 +96,7 @@ private:
         const size_t size = job.size();
         m_jobs[index()]   = job;
         m_rounds[index()] = 0;
-        m_nonce_mask[index()] = job.isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (-1ull  >> (job.extraNonce().size() * 4 + 1)): 0xFFFFFFFFULL);
+        m_nonce_mask[index()] = job.nonceMask();
 
         m_jobs[index()].setBackend(backend);
 
@@ -152,7 +152,7 @@ inline void xmrig::WorkerJob<1>::save(const Job &job, uint32_t reserveCount, Non
     m_index           = job.index();
     m_jobs[index()]   = job;
     m_rounds[index()] = 0;
-    m_nonce_mask[index()] = job.isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (-1ull  >> (job.extraNonce().size() * 4 + 1)): 0xFFFFFFFFULL);
+    m_nonce_mask[index()] = job.nonceMask();
 
     m_jobs[index()].setBackend(backend);
 

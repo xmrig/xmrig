@@ -52,6 +52,7 @@ xmrig::Nonce::Nonce()
 
 bool xmrig::Nonce::next(uint8_t index, uint32_t *nonce, uint32_t reserveCount, uint64_t mask)
 {
+    mask &= 0x7FFFFFFFFFFFFFFFULL;
     if (reserveCount == 0 || mask < reserveCount - 1) {
         return false;
     }
@@ -60,7 +61,8 @@ bool xmrig::Nonce::next(uint8_t index, uint32_t *nonce, uint32_t reserveCount, u
     while (true) {
         if (mask < counter) {
             return false;
-        } else if (mask - counter <= reserveCount - 1) {
+        }
+        else if (mask - counter <= reserveCount - 1) {
             pause(true);
             if (mask - counter < reserveCount - 1) {
                 return false;
@@ -72,7 +74,7 @@ bool xmrig::Nonce::next(uint8_t index, uint32_t *nonce, uint32_t reserveCount, u
         }
         *nonce = (nonce[0] & ~mask) | counter;
         if (mask > 0xFFFFFFFFULL) {
-            nonce[1] = (nonce[1] & (~mask >> 32)) | (counter  >> 32);
+            nonce[1] = (nonce[1] & (~mask >> 32)) | (counter >> 32);
         }
         return true;
     }
