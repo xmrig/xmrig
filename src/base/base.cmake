@@ -222,3 +222,15 @@ if (WITH_KAWPOW)
         src/base/net/stratum/EthStratumClient.cpp
         )
 endif()
+
+if (WITH_PROFILING)
+    add_definitions(/DXMRIG_FEATURE_PROFILING)
+
+    list(APPEND HEADERS_BASE
+        src/base/tools/Profiler.h
+        )
+
+    list(APPEND SOURCES_BASE
+        src/base/tools/Profiler.cpp
+        )
+endif()

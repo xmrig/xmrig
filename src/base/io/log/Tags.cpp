@@ -101,3 +101,13 @@ const char *xmrig::Tags::opencl()
     return tag;
 }
 #endif
+
+
+#ifdef XMRIG_FEATURE_PROFILING
+const char* xmrig::Tags::profiler()
+{
+    static const char* tag = CYAN_BG_BOLD(WHITE_BOLD_S " profile ");
+
+    return tag;
+}
+#endif

@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/virtual_memory.hpp"
+#include "base/tools/Profiler.h"
 
 #ifdef XMRIG_FIX_RYZEN
 #   include "crypto/rx/Rx.h"
@@ -255,6 +256,8 @@ namespace randomx {
 	}
 
 	void JitCompilerX86::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t flags) {
+		PROFILE_SCOPE(RandomX_JIT_compile);
+
 		vm_flags = flags;
 
 		generateProgramPrologue(prog, pcfg);

@@ -102,17 +102,21 @@
   row4l = t1; \
   row4h = t0;
 
-#include "blake2b-load-sse41.h"
+#define LOAD_MSG(r, i, b0, b1) \
+do { \
+  b0 = _mm_set_epi64x(m[blake2b_sigma_sse41[r][i * 4 + 1]], m[blake2b_sigma_sse41[r][i * 4 + 0]]); \
+  b1 = _mm_set_epi64x(m[blake2b_sigma_sse41[r][i * 4 + 3]], m[blake2b_sigma_sse41[r][i * 4 + 2]]); \
+} while(0)
 
 #define ROUND(r) \
-  LOAD_MSG_ ##r ##_1(b0, b1); \
+  LOAD_MSG(r, 0, b0, b1); \
   G1(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h,b0,b1); \
-  LOAD_MSG_ ##r ##_2(b0, b1); \
+  LOAD_MSG(r, 1, b0, b1); \
   G2(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h,b0,b1); \
   DIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h); \
-  LOAD_MSG_ ##r ##_3(b0, b1); \
+  LOAD_MSG(r, 2, b0, b1); \
   G1(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h,b0,b1); \
-  LOAD_MSG_ ##r ##_4(b0, b1); \
+  LOAD_MSG(r, 3, b0, b1); \
   G2(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h,b0,b1); \
   UNDIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h);
 
