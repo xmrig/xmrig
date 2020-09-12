@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "crypto/randomx/vm_compiled.hpp"
 #include "crypto/randomx/common.hpp"
+#include "base/tools/Profiler.h"
 
 namespace randomx {
 
@@ -41,6 +42,8 @@ namespace randomx {
 
 	template<bool softAes>
 	void CompiledVm<softAes>::run(void* seed) {
+		PROFILE_SCOPE(RandomX_run);
+
 		compiler.prepare();
 		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
@@ -51,6 +54,8 @@ namespace randomx {
 
 	template<bool softAes>
 	void CompiledVm<softAes>::execute() {
+		PROFILE_SCOPE(RandomX_JIT_execute);
+
 #ifdef XMRIG_ARM
 		memcpy(reg.f, config.eMask, sizeof(config.eMask));
 #endif

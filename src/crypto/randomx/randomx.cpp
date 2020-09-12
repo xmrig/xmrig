@@ -47,6 +47,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cassert>
 
+#include "base/tools/Profiler.h"
+
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 {
 	ArgonSalt = "RandomWOW\x01";
@@ -574,33 +576,35 @@ extern "C" {
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), input, inputSize);
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
 		machine->run(&tempHash);
-		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
+		machine->getFinalResult(output);
 	}
 
 	void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), input, inputSize);
 		machine->initScratchpad(tempHash);
 	}
 
 	void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
+		PROFILE_SCOPE(RandomX_hash);
+
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
 		machine->run(&tempHash);
 
 		// Finish current hash and fill the scratchpad for the next hash at the same time
-		rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
-		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), nextInput, nextInputSize);
+		machine->hashAndFill(output, tempHash);
 	}
 
 }

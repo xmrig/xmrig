@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/blake2/blake2.h"
 #include "crypto/randomx/intrin_portable.h"
 #include "crypto/randomx/allocator.hpp"
+#include "base/tools/Profiler.h"
 
 randomx_vm::~randomx_vm() {
 
@@ -109,15 +110,15 @@ namespace randomx {
 	}
 
 	template<bool softAes>
-	void VmBase<softAes>::getFinalResult(void* out, size_t outSize) {
+	void VmBase<softAes>::getFinalResult(void* out) {
 		hashAes1Rx4<softAes>(scratchpad, ScratchpadSize, &reg.a);
-        rx_blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
+		rx_blake2b_wrapper::run(out, RANDOMX_HASH_SIZE, &reg, sizeof(RegisterFile));
 	}
 
 	template<bool softAes>
-	void VmBase<softAes>::hashAndFill(void* out, size_t outSize, uint64_t (&fill_state)[8]) {
+	void VmBase<softAes>::hashAndFill(void* out, uint64_t (&fill_state)[8]) {
 		hashAndFillAes1Rx4<softAes>(scratchpad, ScratchpadSize, &reg.a, fill_state);
-        rx_blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
+		rx_blake2b_wrapper::run(out, RANDOMX_HASH_SIZE, &reg, sizeof(RegisterFile));
 	}
 
 	template<bool softAes>
@@ -127,6 +128,7 @@ namespace randomx {
 
 	template<bool softAes>
 	void VmBase<softAes>::generateProgram(void* seed) {
+		PROFILE_SCOPE(RandomX_generate_program);
 		fillAes4Rx4<softAes>(seed, 128 + RandomX_CurrentConfig.ProgramSize * 8, &program);
 	}
 
