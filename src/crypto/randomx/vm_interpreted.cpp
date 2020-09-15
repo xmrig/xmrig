@@ -33,20 +33,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	void InterpretedVm<softAes>::setDataset(randomx_dataset* dataset) {
 		datasetPtr = dataset;
 		mem.memory = dataset->memory;
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void InterpretedVm<softAes>::run(void* seed) {
 		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
 		execute();
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void InterpretedVm<softAes>::execute() {
 
 		NativeRegisterFile nreg;
@@ -106,14 +106,14 @@ namespace randomx {
 			rx_store_vec_f128(&reg.e[i].lo, nreg.e[i]);
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void InterpretedVm<softAes>::datasetRead(uint64_t address, int_reg_t(&r)[RegistersCount]) {
 		uint64_t* datasetLine = (uint64_t*)(mem.memory + address);
 		for (int i = 0; i < RegistersCount; ++i)
 			r[i] ^= datasetLine[i];
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void InterpretedVm<softAes>::datasetPrefetch(uint64_t address) {
 		rx_prefetch_nta(mem.memory + address);
 	}

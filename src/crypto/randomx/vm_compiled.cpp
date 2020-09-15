@@ -35,12 +35,12 @@ namespace randomx {
 	static_assert(sizeof(MemoryRegisters) == 2 * sizeof(addr_t) + sizeof(uintptr_t), "Invalid alignment of struct randomx::MemoryRegisters");
 	static_assert(sizeof(RegisterFile) == 256, "Invalid alignment of struct randomx::RegisterFile");
 
-	template<bool softAes>
+	template<int softAes>
 	void CompiledVm<softAes>::setDataset(randomx_dataset* dataset) {
 		datasetPtr = dataset;
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void CompiledVm<softAes>::run(void* seed) {
 		PROFILE_SCOPE(RandomX_run);
 
@@ -52,7 +52,7 @@ namespace randomx {
 		execute();
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void CompiledVm<softAes>::execute() {
 		PROFILE_SCOPE(RandomX_JIT_execute);
 
