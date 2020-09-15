@@ -79,7 +79,7 @@ protected:
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	class VmBase : public randomx_vm
 	{
 	public:

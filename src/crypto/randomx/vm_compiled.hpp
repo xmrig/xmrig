@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	class CompiledVm : public VmBase<softAes>
 	{
 	public:
@@ -61,6 +61,6 @@ namespace randomx {
 		JitCompiler compiler;
 	};
 
-	using CompiledVmDefault = CompiledVm<true>;
-	using CompiledVmHardAes = CompiledVm<false>;
+	using CompiledVmDefault = CompiledVm<1>;
+	using CompiledVmHardAes = CompiledVm<0>;
 }

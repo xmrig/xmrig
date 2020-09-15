@@ -33,6 +33,7 @@
 #include "crypto/rx/RxConfig.h"
 #include "crypto/rx/RxQueue.h"
 #include "crypto/randomx/randomx.h"
+#include "crypto/randomx/soft_aes.h"
 
 
 namespace xmrig {
@@ -113,6 +114,9 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
 
     if (!osInitialized) {
         setupMainLoopExceptionFrame();
+        if (!cpu.isHwAES()) {
+            SelectSoftAESImpl();
+        }
         osInitialized = true;
     }
 
