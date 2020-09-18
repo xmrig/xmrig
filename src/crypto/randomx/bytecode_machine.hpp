@@ -225,7 +225,7 @@ namespace randomx {
 		}
 
 		static void exe_CFROUND(RANDOMX_EXE_ARGS) {
-			rx_set_rounding_mode(rotr64(*ibc.isrc, ibc.imm) % 4);
+			rx_set_rounding_mode(rotr64(*ibc.isrc, static_cast<uint32_t>(ibc.imm)) % 4);
 		}
 
 		static void exe_ISTORE(RANDOMX_EXE_ARGS) {

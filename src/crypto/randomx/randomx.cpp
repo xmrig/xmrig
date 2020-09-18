@@ -111,22 +111,15 @@ RandomX_ConfigurationKeva::RandomX_ConfigurationKeva()
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
-	: ArgonMemory(262144)
-	, ArgonIterations(3)
+	: ArgonIterations(3)
 	, ArgonLanes(1)
 	, ArgonSalt("RandomX\x03")
-	, CacheAccesses(8)
-	, SuperscalarLatency(170)
-	, DatasetBaseSize(2147483648)
-	, DatasetExtraSize(33554368)
 	, ScratchpadL1_Size(16384)
 	, ScratchpadL2_Size(262144)
 	, ScratchpadL3_Size(2097152)
 	, ProgramSize(256)
 	, ProgramIterations(2048)
 	, ProgramCount(8)
-	, JumpBits(8)
-	, JumpOffset(8)
 	, RANDOMX_FREQ_IADD_RS(16)
 	, RANDOMX_FREQ_IADD_M(7)
 	, RANDOMX_FREQ_ISUB_R(16)
@@ -233,11 +226,6 @@ void RandomX_ConfigurationBase::Apply()
 	ScratchpadL3Mask_Calculated = (((ScratchpadL3_Size / sizeof(uint64_t)) - 1) * 8);
 	ScratchpadL3Mask64_Calculated = ((ScratchpadL3_Size / sizeof(uint64_t)) / 8 - 1) * 64;
 
-	CacheLineAlignMask_Calculated = (DatasetBaseSize - 1) & ~(RANDOMX_DATASET_ITEM_SIZE - 1);
-	DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE;
-
-	ConditionMask_Calculated = (1 << JumpBits) - 1;
-
 #if defined(_M_X64) || defined(__x86_64__)
 	*(uint32_t*)(codeShhPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
 	// Not needed right now because all variants use default dataset base size
@@ -295,16 +283,16 @@ void RandomX_ConfigurationBase::Apply()
 #define JIT_HANDLE(x, prev)
 #endif
 
-	constexpr int CEIL_NULL = 0;
-	int k = 0;
+	uint32_t k = 0;
+	uint32_t freq_sum = 0;
 
 #define INST_HANDLE(x, prev) \
-	CEIL_##x = CEIL_##prev + RANDOMX_FREQ_##x; \
-	for (; k < CEIL_##x; ++k) { JIT_HANDLE(x, prev); }
+	freq_sum += RANDOMX_FREQ_##x; \
+	for (; k < freq_sum; ++k) { JIT_HANDLE(x, prev); }
 
 #define INST_HANDLE2(x, func_name, prev) \
-	CEIL_##x = CEIL_##prev + RANDOMX_FREQ_##x; \
-	for (; k < CEIL_##x; ++k) { JIT_HANDLE(func_name, prev); }
+	freq_sum += RANDOMX_FREQ_##x; \
+	for (; k < freq_sum; ++k) { JIT_HANDLE(func_name, prev); }
 
 	INST_HANDLE(IADD_RS, NULL);
 	INST_HANDLE(IADD_M, IADD_RS);
@@ -343,7 +331,13 @@ void RandomX_ConfigurationBase::Apply()
 	INST_HANDLE(FMUL_R, FSCAL_R);
 	INST_HANDLE(FDIV_M, FMUL_R);
 	INST_HANDLE(FSQRT_R, FDIV_M);
-	INST_HANDLE(CBRANCH, FSQRT_R);
+
+	if (xmrig::Cpu::info()->jccErratum()) {
+		INST_HANDLE2(CBRANCH, CBRANCH<true>, FSQRT_R);
+	}
+	else {
+		INST_HANDLE2(CBRANCH, CBRANCH<false>, FSQRT_R);
+	}
 
 #if defined(_M_X64) || defined(__x86_64__)
 	if (xmrig::Cpu::info()->hasBMI2()) {
