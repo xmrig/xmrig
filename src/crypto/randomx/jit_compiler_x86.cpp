@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/virtual_memory.hpp"
 #include "base/tools/Profiler.h"
+#include "backend/cpu/Cpu.h"
 
 #ifdef XMRIG_FIX_RYZEN
 #   include "crypto/rx/Rx.h"
@@ -167,55 +168,10 @@ namespace randomx {
 #   endif
     }
 
-    // CPU-specific tweaks
-	void JitCompilerX86::applyTweaks() {
-		int32_t info[4];
-		cpuid(0, info);
-
-		int32_t manufacturer[4];
-		manufacturer[0] = info[1];
-		manufacturer[1] = info[3];
-		manufacturer[2] = info[2];
-		manufacturer[3] = 0;
-
-		if (strcmp((const char*)manufacturer, "GenuineIntel") == 0) {
-			struct
-			{
-				unsigned int stepping : 4;
-				unsigned int model : 4;
-				unsigned int family : 4;
-				unsigned int processor_type : 2;
-				unsigned int reserved1 : 2;
-				unsigned int ext_model : 4;
-				unsigned int ext_family : 8;
-				unsigned int reserved2 : 4;
-			} processor_info;
-
-			cpuid(1, info);
-			memcpy(&processor_info, info, sizeof(processor_info));
-
-			// Intel JCC erratum mitigation
-			if (processor_info.family == 6) {
-				const uint32_t model = processor_info.model | (processor_info.ext_model << 4);
-				const uint32_t stepping = processor_info.stepping;
-
-				// Affected CPU models and stepping numbers are taken from https://www.intel.com/content/dam/support/us/en/documents/processors/mitigations-jump-conditional-code-erratum.pdf
-				BranchesWithin32B =
-					((model == 0x4E) && (stepping == 0x3)) ||
-					((model == 0x55) && (stepping == 0x4)) ||
-					((model == 0x5E) && (stepping == 0x3)) ||
-					((model == 0x8E) && (stepping >= 0x9) && (stepping <= 0xC)) ||
-					((model == 0x9E) && (stepping >= 0x9) && (stepping <= 0xD)) ||
-					((model == 0xA6) && (stepping == 0x0)) ||
-					((model == 0xAE) && (stepping == 0xA));
-			}
-		}
-	}
-
 	static std::atomic<size_t> codeOffset;
 
 	JitCompilerX86::JitCompilerX86() {
-		applyTweaks();
+		BranchesWithin32B = xmrig::Cpu::info()->jccErratum();
 
 		int32_t info[4];
 		cpuid(1, info);
@@ -1081,6 +1037,7 @@ namespace randomx {
 		codePos = pos;
 	}
 
+	template<bool jccErratum>
 	void JitCompilerX86::h_CBRANCH(const Instruction& instr) {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
@@ -1088,7 +1045,7 @@ namespace randomx {
 		const int reg = instr.dst % RegistersCount;
 		int32_t jmp_offset = registerUsage[reg] - (pos + 16);
 
-		if (BranchesWithin32B) {
+		if (jccErratum) {
 			const uint32_t branch_begin = static_cast<uint32_t>(pos + 7);
 			const uint32_t branch_end = static_cast<uint32_t>(branch_begin + ((jmp_offset >= -128) ? 9 : 13));
 
@@ -1101,10 +1058,12 @@ namespace randomx {
 		}
 
 		*(uint32_t*)(p + pos) = 0x00c08149 + (reg << 16);
-		const int shift = instr.getModCond() + RandomX_CurrentConfig.JumpOffset;
-		*(uint32_t*)(p + pos + 3) = (instr.getImm32() | (1UL << shift)) & ~(1UL << (shift - 1));
+		const int shift = instr.getModCond();
+		const uint32_t or_mask = (1UL << RandomX_ConfigurationBase::JumpOffset) << shift;
+		const uint32_t and_mask = ~((1UL << (RandomX_ConfigurationBase::JumpOffset - 1)) << shift);
+		*(uint32_t*)(p + pos + 3) = (instr.getImm32() | or_mask) & and_mask;
 		*(uint32_t*)(p + pos + 7) = 0x00c0f749 + (reg << 16);
-		*(uint32_t*)(p + pos + 10) = RandomX_CurrentConfig.ConditionMask_Calculated << shift;
+		*(uint32_t*)(p + pos + 10) = RandomX_ConfigurationBase::ConditionMask_Calculated << shift;
 		pos += 14;
 
 		if (jmp_offset >= -128) {
@@ -1126,6 +1085,9 @@ namespace randomx {
 
 		codePos = pos;
 	}
+
+	template void JitCompilerX86::h_CBRANCH<false>(const Instruction&);
+	template void JitCompilerX86::h_CBRANCH<true>(const Instruction&);
 
 	void JitCompilerX86::h_ISTORE(const Instruction& instr) {
 		uint8_t* const p = code;

@@ -74,8 +74,8 @@ namespace randomx {
 	constexpr int SuperscalarMaxSize = 3 * RANDOMX_SUPERSCALAR_MAX_LATENCY + 2;
 	constexpr size_t CacheLineSize = RANDOMX_DATASET_ITEM_SIZE;
 	#define ScratchpadSize RandomX_CurrentConfig.ScratchpadL3_Size
-	#define CacheLineAlignMask RandomX_CurrentConfig.CacheLineAlignMask_Calculated
-	#define DatasetExtraItems RandomX_CurrentConfig.DatasetExtraItems_Calculated
+	#define CacheLineAlignMask RandomX_ConfigurationBase::CacheLineAlignMask_Calculated
+	#define DatasetExtraItems RandomX_ConfigurationBase::DatasetExtraItems_Calculated
 	constexpr int StoreL3Condition = 14;
 
 	//Prevent some unsafe configurations.

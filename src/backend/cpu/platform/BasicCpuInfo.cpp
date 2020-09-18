@@ -212,6 +212,37 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
             m_vendor   = VENDOR_INTEL;
             m_assembly = Assembly::INTEL;
             m_msrMod   = MSR_MOD_INTEL;
+
+            struct
+            {
+                unsigned int stepping : 4;
+                unsigned int model : 4;
+                unsigned int family : 4;
+                unsigned int processor_type : 2;
+                unsigned int reserved1 : 2;
+                unsigned int ext_model : 4;
+                unsigned int ext_family : 8;
+                unsigned int reserved2 : 4;
+            } processor_info;
+
+            cpuid(1, data);
+            memcpy(&processor_info, data, sizeof(processor_info));
+
+            // Intel JCC erratum mitigation
+            if (processor_info.family == 6) {
+                const uint32_t model = processor_info.model | (processor_info.ext_model << 4);
+                const uint32_t stepping = processor_info.stepping;
+
+                // Affected CPU models and stepping numbers are taken from https://www.intel.com/content/dam/support/us/en/documents/processors/mitigations-jump-conditional-code-erratum.pdf
+                m_jccErratum =
+                    ((model == 0x4E) && (stepping == 0x3)) ||
+                    ((model == 0x55) && (stepping == 0x4)) ||
+                    ((model == 0x5E) && (stepping == 0x3)) ||
+                    ((model == 0x8E) && (stepping >= 0x9) && (stepping <= 0xC)) ||
+                    ((model == 0x9E) && (stepping >= 0x9) && (stepping <= 0xD)) ||
+                    ((model == 0xA6) && (stepping == 0x0)) ||
+                    ((model == 0xAE) && (stepping == 0xA));
+            }
         }
     }
 #   endif
