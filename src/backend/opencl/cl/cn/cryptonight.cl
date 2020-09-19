@@ -899,7 +899,7 @@ __kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global u
 
         ((uint8 *)h)[0] = vload8(0U, c_IV256);
 
-        for (uint i = 0; i < 3; ++i) {
+        for (volatile uint i = 0; i < 3; ++i) {
             ((uint16 *)m)[0] = vload16(i, (__global uint *)states);
             for (uint x = 0; x < 16; ++x) {
                 m[x] = SWAP4(m[x]);
