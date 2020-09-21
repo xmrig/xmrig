@@ -131,31 +131,35 @@ uint32_t GetSoftAESImpl()
 void SelectSoftAESImpl()
 {
 	constexpr int test_length_ms = 100;
-	double speed[2];
+	double speed[2] = {};
 
-	for (int i = 0; i < 2; ++i)
-	{
-		std::vector<uint8_t> scratchpad(10 * 1024);
-		uint8_t hash[64] = {};
-		uint8_t state[64] = {};
+	for (int run = 0; run < 3; ++run) {
+		for (int i = 0; i < 2; ++i) {
+			std::vector<uint8_t> scratchpad(10 * 1024);
+			uint8_t hash[64] = {};
+			uint8_t state[64] = {};
 
-		uint64_t t1, t2;
+			uint64_t t1, t2;
 
-		uint32_t count = 0;
-		t1 = xmrig::Chrono::highResolutionMSecs();
-		do {
-			if (i == 0) {
-				hashAndFillAes1Rx4<1>(scratchpad.data(), scratchpad.size(), hash, state);
+			uint32_t count = 0;
+			t1 = xmrig::Chrono::highResolutionMSecs();
+			do {
+				if (i == 0) {
+					hashAndFillAes1Rx4<1>(scratchpad.data(), scratchpad.size(), hash, state);
+				}
+				else {
+					hashAndFillAes1Rx4<2>(scratchpad.data(), scratchpad.size(), hash, state);
+				}
+				++count;
+
+				t2 = xmrig::Chrono::highResolutionMSecs();
+			} while (t2 - t1 < test_length_ms);
+
+			const double x = count * 1e3 / (t2 - t1);
+			if (x > speed[i]) {
+				speed[i] = x;
 			}
-			else {
-				hashAndFillAes1Rx4<2>(scratchpad.data(), scratchpad.size(), hash, state);
-			}
-			++count;
-
-			t2 = xmrig::Chrono::highResolutionMSecs();
-		} while (t2 - t1 < test_length_ms);
-
-		speed[i] = count * 1e3 / (t2 - t1);
+		}
 	}
 
 	softAESImpl = (speed[0] > speed[1]) ? 1 : 2;
