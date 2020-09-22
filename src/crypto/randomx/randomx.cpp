@@ -267,7 +267,12 @@ void RandomX_ConfigurationBase::Apply()
 		}
 	}
 
-#define JIT_HANDLE(x, prev) randomx::JitCompilerX86::engine[k] = &randomx::JitCompilerX86::h_##x
+typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx::Instruction&);
+
+#define JIT_HANDLE(x, prev) do { \
+		const InstructionGeneratorX86_2 p = &randomx::JitCompilerX86::h_##x; \
+		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(p)); \
+	} while (0)
 
 #elif defined(XMRIG_ARMv8)
 

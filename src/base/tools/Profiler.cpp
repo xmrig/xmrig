@@ -20,6 +20,7 @@
 #include "base/tools/Profiler.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
+#include <cstring>
 #include <sstream>
 #include <thread>
 #include <chrono>

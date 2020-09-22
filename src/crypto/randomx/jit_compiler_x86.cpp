@@ -168,6 +168,12 @@ namespace randomx {
 #   endif
     }
 
+#	ifdef _MSC_VER
+	static FORCE_INLINE uint32_t rotl32(uint32_t a, int shift) { return _rotl(a, shift); }
+#	else
+	static FORCE_INLINE uint32_t rotl32(uint32_t a, int shift) { return (a << shift) | (a >> (-shift & 31)); }
+#	endif
+
 	static std::atomic<size_t> codeOffset;
 
 	JitCompilerX86::JitCompilerX86() {
@@ -310,10 +316,10 @@ namespace randomx {
 			InstructionGeneratorX86 gen3 = engine[instr3.opcode];
 			InstructionGeneratorX86 gen4 = engine[instr4.opcode];
 
-			(this->*gen1)(instr1);
-			(this->*gen2)(instr2);
-			(this->*gen3)(instr3);
-			(this->*gen4)(instr4);
+			(*gen1)(this, instr1);
+			(*gen2)(this, instr2);
+			(*gen3)(this, instr3);
+			(*gen4)(this, instr4);
 		}
 
 		*(uint64_t*)(code + codePos) = 0xc03341c08b41ull + (static_cast<uint64_t>(pcfg.readReg2) << 16) + (static_cast<uint64_t>(pcfg.readReg3) << 40);
@@ -1060,7 +1066,7 @@ namespace randomx {
 		*(uint32_t*)(p + pos) = 0x00c08149 + (reg << 16);
 		const int shift = instr.getModCond();
 		const uint32_t or_mask = (1UL << RandomX_ConfigurationBase::JumpOffset) << shift;
-		const uint32_t and_mask = ~((1UL << (RandomX_ConfigurationBase::JumpOffset - 1)) << shift);
+		const uint32_t and_mask = rotl32(~static_cast<uint32_t>(1UL << (RandomX_ConfigurationBase::JumpOffset - 1)), shift);
 		*(uint32_t*)(p + pos + 3) = (instr.getImm32() | or_mask) & and_mask;
 		*(uint32_t*)(p + pos + 7) = 0x00c0f749 + (reg << 16);
 		*(uint32_t*)(p + pos + 10) = RandomX_ConfigurationBase::ConditionMask_Calculated << shift;
