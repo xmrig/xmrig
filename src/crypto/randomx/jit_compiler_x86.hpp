@@ -41,7 +41,7 @@ namespace randomx {
 	class JitCompilerX86;
 	class Instruction;
 
-	typedef void(JitCompilerX86::*InstructionGeneratorX86)(const Instruction&);
+	typedef void(*InstructionGeneratorX86)(JitCompilerX86*, const Instruction&);
 
 	constexpr uint32_t CodeSize = 64 * 1024;
 
@@ -84,7 +84,6 @@ namespace randomx {
 
 		uint8_t* allocatedCode;
 
-		void applyTweaks();
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
 		void generateProgramEpilogue(Program&, ProgramConfiguration&);
 		template<bool rax>
@@ -148,11 +147,13 @@ namespace randomx {
 		void h_FMUL_R(const Instruction&);
 		void h_FDIV_M(const Instruction&);
 		void h_FSQRT_R(const Instruction&);
+
+		template<bool jccErratum>
 		void h_CBRANCH(const Instruction&);
+
 		void h_CFROUND(const Instruction&);
 		void h_CFROUND_BMI2(const Instruction&);
 		void h_ISTORE(const Instruction&);
 		void h_NOP(const Instruction&);
 	};
-
 }

@@ -21,7 +21,8 @@
         "rdmsr": true,
         "wrmsr": true,
         "cache_qos": false,
-        "numa": true
+        "numa": true,
+        "scratchpad_prefetch_mode": 1
     },
     "cpu": {
         "enabled": true,

@@ -32,14 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	void CompiledLightVm<softAes>::setCache(randomx_cache* cache) {
 		cachePtr = cache;
 		mem.memory = cache->memory;
 		compiler.generateSuperscalarHash(cache->programs, cache->reciprocalCache);
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void CompiledLightVm<softAes>::run(void* seed) {
 		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();

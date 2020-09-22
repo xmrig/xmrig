@@ -63,6 +63,7 @@ public:
         FLAG_PDPE1GB,
         FLAG_SSE2,
         FLAG_SSSE3,
+        FLAG_SSE41,
         FLAG_XOP,
         FLAG_POPCNT,
         FLAG_CAT_L3,
@@ -97,6 +98,7 @@ public:
     virtual size_t packages() const                                                 = 0;
     virtual size_t threads() const                                                  = 0;
     virtual Vendor vendor() const                                                   = 0;
+    virtual bool jccErratum() const                                                 = 0;
 };
 
 

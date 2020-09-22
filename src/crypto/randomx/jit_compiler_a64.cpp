@@ -75,11 +75,11 @@ static size_t CalcDatasetItemSize()
 	// Prologue
 	((uint8_t*)randomx_calc_dataset_item_aarch64_prefetch - (uint8_t*)randomx_calc_dataset_item_aarch64) +
 	// Main loop
-	RandomX_CurrentConfig.CacheAccesses * (
+	RandomX_ConfigurationBase::CacheAccesses * (
 		// Main loop prologue
 		((uint8_t*)randomx_calc_dataset_item_aarch64_mix - ((uint8_t*)randomx_calc_dataset_item_aarch64_prefetch)) + 4 +
 		// Inner main loop (instructions)
-		((RandomX_CurrentConfig.SuperscalarLatency * 3) + 2) * 16 +
+		((RandomX_ConfigurationBase::SuperscalarLatency * 3) + 2) * 16 +
 		// Main loop epilogue
 		((uint8_t*)randomx_calc_dataset_item_aarch64_store_result - (uint8_t*)randomx_calc_dataset_item_aarch64_mix) + 4
 	) +
@@ -235,7 +235,7 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N], s
 	num32bitLiterals = 64;
 	constexpr uint32_t tmp_reg = 12;
 
-	for (size_t i = 0; i < RandomX_CurrentConfig.CacheAccesses; ++i)
+	for (size_t i = 0; i < RandomX_ConfigurationBase::CacheAccesses; ++i)
 	{
 		// and x11, x10, CacheSize / CacheLineSize - 1
 		emit32(0x92400000 | 11 | (10 << 5) | ((RandomX_CurrentConfig.Log2_CacheSize - 1) << 10), code, codePos);
@@ -946,7 +946,7 @@ void JitCompilerA64::h_CBRANCH(Instruction& instr, uint32_t& codePos)
 
 	const uint32_t dst = IntRegMap[instr.dst];
 	const uint32_t modCond = instr.getModCond();
-	const uint32_t shift = modCond + RandomX_CurrentConfig.JumpOffset;
+	const uint32_t shift = modCond + RandomX_ConfigurationBase::JumpOffset;
 	const uint32_t imm = (instr.getImm32() | (1U << shift)) & ~(1U << (shift - 1));
 
 	emitAddImmediate(dst, dst, imm, code, k);

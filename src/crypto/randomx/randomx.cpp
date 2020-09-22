@@ -47,6 +47,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cassert>
 
+#include "base/tools/Profiler.h"
+
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 {
 	ArgonSalt = "RandomWOW\x01";
@@ -109,22 +111,15 @@ RandomX_ConfigurationKeva::RandomX_ConfigurationKeva()
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
-	: ArgonMemory(262144)
-	, ArgonIterations(3)
+	: ArgonIterations(3)
 	, ArgonLanes(1)
 	, ArgonSalt("RandomX\x03")
-	, CacheAccesses(8)
-	, SuperscalarLatency(170)
-	, DatasetBaseSize(2147483648)
-	, DatasetExtraSize(33554368)
 	, ScratchpadL1_Size(16384)
 	, ScratchpadL2_Size(262144)
 	, ScratchpadL3_Size(2097152)
 	, ProgramSize(256)
 	, ProgramIterations(2048)
 	, ProgramCount(8)
-	, JumpBits(8)
-	, JumpOffset(8)
 	, RANDOMX_FREQ_IADD_RS(16)
 	, RANDOMX_FREQ_IADD_M(7)
 	, RANDOMX_FREQ_ISUB_R(16)
@@ -211,6 +206,13 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) : 0; }
 #endif
 
+static int scratchpadPrefetchMode = 1;
+
+void randomx_set_scratchpad_prefetch_mode(int mode)
+{
+	scratchpadPrefetchMode = mode;
+}
+
 void RandomX_ConfigurationBase::Apply()
 {
 	const uint32_t ScratchpadL1Mask_Calculated = (ScratchpadL1_Size / sizeof(uint64_t) - 1) * 8;
@@ -224,11 +226,6 @@ void RandomX_ConfigurationBase::Apply()
 	ScratchpadL3Mask_Calculated = (((ScratchpadL3_Size / sizeof(uint64_t)) - 1) * 8);
 	ScratchpadL3Mask64_Calculated = ((ScratchpadL3_Size / sizeof(uint64_t)) / 8 - 1) * 64;
 
-	CacheLineAlignMask_Calculated = (DatasetBaseSize - 1) & ~(RANDOMX_DATASET_ITEM_SIZE - 1);
-	DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE;
-
-	ConditionMask_Calculated = (1 << JumpBits) - 1;
-
 #if defined(_M_X64) || defined(__x86_64__)
 	*(uint32_t*)(codeShhPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
 	// Not needed right now because all variants use default dataset base size
@@ -240,7 +237,42 @@ void RandomX_ConfigurationBase::Apply()
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 4) = ScratchpadL3Mask64_Calculated;
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 18) = ScratchpadL3Mask64_Calculated;
 
-#define JIT_HANDLE(x, prev) randomx::JitCompilerX86::engine[k] = &randomx::JitCompilerX86::h_##x
+	// Apply scratchpad prefetch mode
+	{
+		uint32_t* a = (uint32_t*)(codePrefetchScratchpadTweaked + 8);
+		uint32_t* b = (uint32_t*)(codePrefetchScratchpadTweaked + 22);
+
+		switch (scratchpadPrefetchMode)
+		{
+		case 0:
+			*a = 0x00401F0FUL; // 4-byte nop
+			*b = 0x00401F0FUL; // 4-byte nop
+			break;
+
+		case 1:
+		default:
+			*a = 0x060C180FUL; // prefetcht0 [rsi+rax]
+			*b = 0x160C180FUL; // prefetcht0 [rsi+rdx]
+			break;
+
+		case 2:
+			*a = 0x0604180FUL; // prefetchnta [rsi+rax]
+			*b = 0x1604180FUL; // prefetchnta [rsi+rdx]
+			break;
+
+		case 3:
+			*a = 0x060C8B48UL; // mov rcx, [rsi+rax]
+			*b = 0x160C8B48UL; // mov rcx, [rsi+rdx]
+			break;
+		}
+	}
+
+typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx::Instruction&);
+
+#define JIT_HANDLE(x, prev) do { \
+		const InstructionGeneratorX86_2 p = &randomx::JitCompilerX86::h_##x; \
+		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(p)); \
+	} while (0)
 
 #elif defined(XMRIG_ARMv8)
 
@@ -256,16 +288,16 @@ void RandomX_ConfigurationBase::Apply()
 #define JIT_HANDLE(x, prev)
 #endif
 
-	constexpr int CEIL_NULL = 0;
-	int k = 0;
+	uint32_t k = 0;
+	uint32_t freq_sum = 0;
 
 #define INST_HANDLE(x, prev) \
-	CEIL_##x = CEIL_##prev + RANDOMX_FREQ_##x; \
-	for (; k < CEIL_##x; ++k) { JIT_HANDLE(x, prev); }
+	freq_sum += RANDOMX_FREQ_##x; \
+	for (; k < freq_sum; ++k) { JIT_HANDLE(x, prev); }
 
 #define INST_HANDLE2(x, func_name, prev) \
-	CEIL_##x = CEIL_##prev + RANDOMX_FREQ_##x; \
-	for (; k < CEIL_##x; ++k) { JIT_HANDLE(func_name, prev); }
+	freq_sum += RANDOMX_FREQ_##x; \
+	for (; k < freq_sum; ++k) { JIT_HANDLE(func_name, prev); }
 
 	INST_HANDLE(IADD_RS, NULL);
 	INST_HANDLE(IADD_M, IADD_RS);
@@ -304,7 +336,13 @@ void RandomX_ConfigurationBase::Apply()
 	INST_HANDLE(FMUL_R, FSCAL_R);
 	INST_HANDLE(FDIV_M, FMUL_R);
 	INST_HANDLE(FSQRT_R, FDIV_M);
-	INST_HANDLE(CBRANCH, FSQRT_R);
+
+	if (xmrig::Cpu::info()->jccErratum()) {
+		INST_HANDLE2(CBRANCH, CBRANCH<true>, FSQRT_R);
+	}
+	else {
+		INST_HANDLE2(CBRANCH, CBRANCH<false>, FSQRT_R);
+	}
 
 #if defined(_M_X64) || defined(__x86_64__)
 	if (xmrig::Cpu::info()->hasBMI2()) {
@@ -537,33 +575,35 @@ extern "C" {
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), input, inputSize);
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
 		machine->run(&tempHash);
-		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
+		machine->getFinalResult(output);
 	}
 
 	void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), input, inputSize);
 		machine->initScratchpad(tempHash);
 	}
 
 	void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
+		PROFILE_SCOPE(RandomX_hash);
+
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
 		machine->run(&tempHash);
 
 		// Finish current hash and fill the scratchpad for the next hash at the same time
-		rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
-		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), nextInput, nextInputSize);
+		machine->hashAndFill(output, tempHash);
 	}
 
 }

@@ -36,6 +36,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/virtual_memory.hpp"
+#include "base/tools/Profiler.h"
+#include "backend/cpu/Cpu.h"
 
 #ifdef XMRIG_FIX_RYZEN
 #   include "crypto/rx/Rx.h"
@@ -166,55 +168,16 @@ namespace randomx {
 #   endif
     }
 
-    // CPU-specific tweaks
-	void JitCompilerX86::applyTweaks() {
-		int32_t info[4];
-		cpuid(0, info);
-
-		int32_t manufacturer[4];
-		manufacturer[0] = info[1];
-		manufacturer[1] = info[3];
-		manufacturer[2] = info[2];
-		manufacturer[3] = 0;
-
-		if (strcmp((const char*)manufacturer, "GenuineIntel") == 0) {
-			struct
-			{
-				unsigned int stepping : 4;
-				unsigned int model : 4;
-				unsigned int family : 4;
-				unsigned int processor_type : 2;
-				unsigned int reserved1 : 2;
-				unsigned int ext_model : 4;
-				unsigned int ext_family : 8;
-				unsigned int reserved2 : 4;
-			} processor_info;
-
-			cpuid(1, info);
-			memcpy(&processor_info, info, sizeof(processor_info));
-
-			// Intel JCC erratum mitigation
-			if (processor_info.family == 6) {
-				const uint32_t model = processor_info.model | (processor_info.ext_model << 4);
-				const uint32_t stepping = processor_info.stepping;
-
-				// Affected CPU models and stepping numbers are taken from https://www.intel.com/content/dam/support/us/en/documents/processors/mitigations-jump-conditional-code-erratum.pdf
-				BranchesWithin32B =
-					((model == 0x4E) && (stepping == 0x3)) ||
-					((model == 0x55) && (stepping == 0x4)) ||
-					((model == 0x5E) && (stepping == 0x3)) ||
-					((model == 0x8E) && (stepping >= 0x9) && (stepping <= 0xC)) ||
-					((model == 0x9E) && (stepping >= 0x9) && (stepping <= 0xD)) ||
-					((model == 0xA6) && (stepping == 0x0)) ||
-					((model == 0xAE) && (stepping == 0xA));
-			}
-		}
-	}
+#	ifdef _MSC_VER
+	static FORCE_INLINE uint32_t rotl32(uint32_t a, int shift) { return _rotl(a, shift); }
+#	else
+	static FORCE_INLINE uint32_t rotl32(uint32_t a, int shift) { return (a << shift) | (a >> (-shift & 31)); }
+#	endif
 
 	static std::atomic<size_t> codeOffset;
 
 	JitCompilerX86::JitCompilerX86() {
-		applyTweaks();
+		BranchesWithin32B = xmrig::Cpu::info()->jccErratum();
 
 		int32_t info[4];
 		cpuid(1, info);
@@ -255,6 +218,8 @@ namespace randomx {
 	}
 
 	void JitCompilerX86::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t flags) {
+		PROFILE_SCOPE(RandomX_JIT_compile);
+
 		vm_flags = flags;
 
 		generateProgramPrologue(prog, pcfg);
@@ -340,7 +305,6 @@ namespace randomx {
 			r[j] = k;
 		}
 
-		constexpr uint64_t instr_mask = (uint64_t(-1) - (0xFFFF << 8)) | ((RegistersCount - 1) << 8) | ((RegistersCount - 1) << 16);
 		for (int i = 0, n = static_cast<int>(RandomX_CurrentConfig.ProgramSize); i < n; i += 4) {
 			Instruction& instr1 = prog(i);
 			Instruction& instr2 = prog(i + 1);
@@ -352,17 +316,10 @@ namespace randomx {
 			InstructionGeneratorX86 gen3 = engine[instr3.opcode];
 			InstructionGeneratorX86 gen4 = engine[instr4.opcode];
 
-			*((uint64_t*)&instr1) &= instr_mask;
-			(this->*gen1)(instr1);
-
-			*((uint64_t*)&instr2) &= instr_mask;
-			(this->*gen2)(instr2);
-
-			*((uint64_t*)&instr3) &= instr_mask;
-			(this->*gen3)(instr3);
-
-			*((uint64_t*)&instr4) &= instr_mask;
-			(this->*gen4)(instr4);
+			(*gen1)(this, instr1);
+			(*gen2)(this, instr2);
+			(*gen3)(this, instr3);
+			(*gen4)(this, instr4);
 		}
 
 		*(uint64_t*)(code + codePos) = 0xc03341c08b41ull + (static_cast<uint64_t>(pcfg.readReg2) << 16) + (static_cast<uint64_t>(pcfg.readReg3) << 40);
@@ -515,7 +472,7 @@ namespace randomx {
 	template void JitCompilerX86::genAddressReg<true>(const Instruction& instr, const uint32_t src, uint8_t* code, uint32_t& codePos);
 
 	FORCE_INLINE void JitCompilerX86::genAddressRegDst(const Instruction& instr, uint8_t* code, uint32_t& codePos) {
-		const uint32_t dst = static_cast<uint32_t>(instr.dst) << 16;
+		const uint32_t dst = static_cast<uint32_t>(instr.dst % RegistersCount) << 16;
 		*(uint32_t*)(code + codePos) = 0x24808d41 + dst;
 		codePos += (dst == (RegisterNeedsSib << 16)) ? 4 : 3;
 
@@ -537,8 +494,8 @@ namespace randomx {
 		uint32_t pos = codePos;
 		uint8_t* const p = code + pos;
 
-		const uint32_t dst = instr.dst;
-		const uint32_t sib = (instr.getModShift() << 6) | (instr.src << 3) | dst;
+		const uint32_t dst = instr.dst % RegistersCount;
+		const uint32_t sib = (instr.getModShift() << 6) | ((instr.src % RegistersCount) << 3) | dst;
 
 		uint32_t k = 0x048d4f + (dst << 19);
 		if (dst == RegisterNeedsDisplacement)
@@ -557,8 +514,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
-		const uint32_t dst = instr.dst;
+		const uint32_t src = instr.src % RegistersCount;
+		const uint32_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			genAddressReg<true>(instr, src, p, pos);
@@ -582,8 +539,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 		
-		const uint32_t src = instr.src;
-		const uint32_t dst = instr.dst;
+		const uint32_t src = instr.src % RegistersCount;
+		const uint32_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			*(uint32_t*)(p + pos) = 0xc02b4d + (dst << 19) + (src << 16);
@@ -603,8 +560,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
-		const uint32_t dst = instr.dst;
+		const uint32_t src = instr.src % RegistersCount;
+		const uint32_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			genAddressReg<true>(instr, src, p, pos);
@@ -624,8 +581,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
-		const uint32_t dst = instr.dst;
+		const uint32_t src = instr.src % RegistersCount;
+		const uint32_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			emit32(0xc0af0f4d + ((dst * 8 + src) << 24), p, pos);
@@ -644,8 +601,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			genAddressReg<true>(instr, src, p, pos);
@@ -665,8 +622,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
-		const uint32_t dst = instr.dst;
+		const uint32_t src = instr.src % RegistersCount;
+		const uint32_t dst = instr.dst % RegistersCount;
 
 		*(uint32_t*)(p + pos) = 0xc08b49 + (dst << 16);
 		*(uint32_t*)(p + pos + 3) = 0xe0f749 + (src << 16);
@@ -681,8 +638,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
-		const uint32_t dst = instr.dst;
+		const uint32_t src = instr.src % RegistersCount;
+		const uint32_t dst = instr.dst % RegistersCount;
 
 		*(uint32_t*)(p + pos) = 0xC4D08B49 + (dst << 16);
 		*(uint32_t*)(p + pos + 4) = 0xC0F6FB42 + (dst << 27) + (src << 24);
@@ -696,8 +653,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			genAddressReg<false>(instr, src, p, pos);
@@ -720,8 +677,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			genAddressReg<false>(instr, src, p, pos);
@@ -743,8 +700,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		*(uint64_t*)(p + pos) = 0x8b4ce8f749c08b49ull + (dst << 16) + (src << 40);
 		pos += 8;
@@ -758,8 +715,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			genAddressReg<false>(instr, src, p, pos);
@@ -789,7 +746,7 @@ namespace randomx {
 
 			emit64(randomx_reciprocal_fast(divisor), p, pos);
 
-			const uint32_t dst = instr.dst;
+			const uint32_t dst = instr.dst % RegistersCount;
 			emit32(0xc0af0f4c + (dst << 27), p, pos);
 
 			registerUsage[dst] = pos;
@@ -802,7 +759,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t dst = instr.dst;
+		const uint32_t dst = instr.dst % RegistersCount;
 		*(uint32_t*)(p + pos) = 0xd8f749 + (dst << 16);
 		pos += 3;
 
@@ -814,8 +771,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			*(uint32_t*)(p + pos) = 0xc0334d + (((dst << 3) + src) << 16);
@@ -835,8 +792,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			genAddressReg<true>(instr, src, p, pos);
@@ -856,8 +813,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			*(uint64_t*)(p + pos) = 0xc8d349c88b41ull + (src << 16) + (dst << 40);
@@ -877,8 +834,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
-		const uint64_t dst = instr.dst;
+		const uint64_t src = instr.src % RegistersCount;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			*(uint64_t*)(p + pos) = 0xc0d349c88b41ull + (src << 16) + (dst << 40);
@@ -898,8 +855,8 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
-		const uint32_t dst = instr.dst;
+		const uint32_t src = instr.src % RegistersCount;
+		const uint32_t dst = instr.dst % RegistersCount;
 
 		if (src != dst) {
 			*(uint32_t*)(p + pos) = 0xc0874d + (((dst << 3) + src) << 16);
@@ -915,7 +872,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t dst = instr.dst;
+		const uint64_t dst = instr.dst % RegistersCount;
 
 		*(uint64_t*)(p + pos) = 0x01c0c60f66ull + (((dst << 3) + dst) << 24);
 		pos += 5;
@@ -940,7 +897,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
+		const uint32_t src = instr.src % RegistersCount;
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 
 		genAddressReg<true>(instr, src, p, pos);
@@ -968,7 +925,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
+		const uint32_t src = instr.src % RegistersCount;
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 
 		genAddressReg<true>(instr, src, p, pos);
@@ -1007,7 +964,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
+		const uint32_t src = instr.src % RegistersCount;
 		const uint64_t dst = instr.dst % RegisterCountFlt;
 
 		genAddressReg<true>(instr, src, p, pos);
@@ -1043,7 +1000,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint32_t src = instr.src;
+		const uint32_t src = instr.src % RegistersCount;
 
 		*(uint32_t*)(p + pos) = 0x00C08B49 + (src << 16);
 		const int rotate = (static_cast<int>(instr.getImm32() & 63) - 2) & 63;
@@ -1067,7 +1024,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		const uint64_t src = instr.src;
+		const uint64_t src = instr.src % RegistersCount;
 
 		const uint64_t rotate = (static_cast<int>(instr.getImm32() & 63) - 2) & 63;
 		*(uint64_t*)(p + pos) = 0xC0F0FBC3C4ULL | (src << 32) | (rotate << 40);
@@ -1086,14 +1043,15 @@ namespace randomx {
 		codePos = pos;
 	}
 
+	template<bool jccErratum>
 	void JitCompilerX86::h_CBRANCH(const Instruction& instr) {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 		
-		const int reg = instr.dst;
+		const int reg = instr.dst % RegistersCount;
 		int32_t jmp_offset = registerUsage[reg] - (pos + 16);
 
-		if (BranchesWithin32B) {
+		if (jccErratum) {
 			const uint32_t branch_begin = static_cast<uint32_t>(pos + 7);
 			const uint32_t branch_end = static_cast<uint32_t>(branch_begin + ((jmp_offset >= -128) ? 9 : 13));
 
@@ -1106,10 +1064,12 @@ namespace randomx {
 		}
 
 		*(uint32_t*)(p + pos) = 0x00c08149 + (reg << 16);
-		const int shift = instr.getModCond() + RandomX_CurrentConfig.JumpOffset;
-		*(uint32_t*)(p + pos + 3) = (instr.getImm32() | (1UL << shift)) & ~(1UL << (shift - 1));
+		const int shift = instr.getModCond();
+		const uint32_t or_mask = (1UL << RandomX_ConfigurationBase::JumpOffset) << shift;
+		const uint32_t and_mask = rotl32(~static_cast<uint32_t>(1UL << (RandomX_ConfigurationBase::JumpOffset - 1)), shift);
+		*(uint32_t*)(p + pos + 3) = (instr.getImm32() | or_mask) & and_mask;
 		*(uint32_t*)(p + pos + 7) = 0x00c0f749 + (reg << 16);
-		*(uint32_t*)(p + pos + 10) = RandomX_CurrentConfig.ConditionMask_Calculated << shift;
+		*(uint32_t*)(p + pos + 10) = RandomX_ConfigurationBase::ConditionMask_Calculated << shift;
 		pos += 14;
 
 		if (jmp_offset >= -128) {
@@ -1132,12 +1092,15 @@ namespace randomx {
 		codePos = pos;
 	}
 
+	template void JitCompilerX86::h_CBRANCH<false>(const Instruction&);
+	template void JitCompilerX86::h_CBRANCH<true>(const Instruction&);
+
 	void JitCompilerX86::h_ISTORE(const Instruction& instr) {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
 		genAddressRegDst(instr, p, pos);
-		emit32(0x0604894c + (static_cast<uint32_t>(instr.src) << 19), p, pos);
+		emit32(0x0604894c + (static_cast<uint32_t>(instr.src % RegistersCount) << 19), p, pos);
 
 		codePos = pos;
 	}

@@ -53,6 +53,10 @@ public:
 #   ifdef XMRIG_FEATURE_OPENCL
     static const char *opencl();
 #   endif
+
+#   ifdef XMRIG_FEATURE_PROFILING
+    static const char* profiler();
+#   endif
 };
 
 

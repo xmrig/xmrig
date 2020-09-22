@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	class InterpretedLightVm : public InterpretedVm<softAes> {
 	public:
 		using VmBase<softAes>::mem;
@@ -50,6 +50,6 @@ namespace randomx {
 		void datasetPrefetch(uint64_t address) override { }
 	};
 
-	using InterpretedLightVmDefault = InterpretedLightVm<true>;
-	using InterpretedLightVmHardAes = InterpretedLightVm<false>;
+	using InterpretedLightVmDefault = InterpretedLightVm<1>;
+	using InterpretedLightVmHardAes = InterpretedLightVm<0>;
 }
