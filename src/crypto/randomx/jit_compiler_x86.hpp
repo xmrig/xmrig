@@ -41,7 +41,7 @@ namespace randomx {
 	class JitCompilerX86;
 	class Instruction;
 
-	typedef void(JitCompilerX86::*InstructionGeneratorX86)(const Instruction&);
+	typedef void(*InstructionGeneratorX86)(JitCompilerX86*, const Instruction&);
 
 	constexpr uint32_t CodeSize = 64 * 1024;
 
