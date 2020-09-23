@@ -139,9 +139,9 @@ RandomX_ConfigurationScala2::RandomX_ConfigurationScala2()
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
-	: ArgonMemory = 262144
-        , CacheAccesses = 8
-        , DatasetBaseSize = 2147483648
+	: ArgonMemory(262144)
+        , CacheAccesses(8)
+        , DatasetBaseSize(2147483648)
         , ArgonIterations(3)
 	, ArgonLanes(1)
 	, ArgonSalt("RandomX\x03")
