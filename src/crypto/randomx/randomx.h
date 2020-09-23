@@ -72,7 +72,6 @@ struct RandomX_ConfigurationBase
 		DatasetExtraSize = 33554368,
 		JumpBits = 8,
 		JumpOffset = 8,
-		CacheLineAlignMask_Calculated = (DatasetBaseSize - 1) & ~(RANDOMX_DATASET_ITEM_SIZE - 1),
 		DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE,
 		ConditionMask_Calculated = ((1 << JumpBits) - 1) << JumpOffset,
 	};
@@ -133,6 +132,8 @@ struct RandomX_ConfigurationBase
 	uint32_t codeReadDatasetRyzenTweakedSize;
 	uint8_t codeReadDatasetLightSshInitTweaked[68];
 	uint8_t codePrefetchScratchpadTweaked[32];
+
+        uint32_t CacheLineAlignMask_Calculated;
 
 	uint32_t AddressMask_Calculated[4];
 	uint32_t ScratchpadL3Mask_Calculated;
