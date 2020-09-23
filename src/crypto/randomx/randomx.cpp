@@ -678,7 +678,7 @@ extern "C" {
                     case xmrig::Algorithm::RX_XLA:   rx_yespower_k12(tempHash, sizeof(tempHash), nextInput, nextInputSize); break;
 		    default: rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), nextInput, nextInputSize);
 		}
-		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
+		machine->hashAndFill(output, tempHash);
 	}
 
 }
