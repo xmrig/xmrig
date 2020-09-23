@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	class CompiledLightVm : public CompiledVm<softAes>
 	{
 	public:
@@ -52,6 +52,6 @@ namespace randomx {
 		using CompiledVm<softAes>::datasetOffset;
 	};
 
-	using CompiledLightVmDefault = CompiledLightVm<true>;
-	using CompiledLightVmHardAes = CompiledLightVm<false>;
+	using CompiledLightVmDefault = CompiledLightVm<1>;
+	using CompiledLightVmHardAes = CompiledLightVm<0>;
 }

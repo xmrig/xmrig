@@ -57,6 +57,10 @@ public:
 #   ifdef XMRIG_FEATURE_BENCHMARK
     static const char *benchmark();
 #   endif
+
+#   ifdef XMRIG_FEATURE_PROFILING
+    static const char* profiler();
+#   endif
 };
 
 

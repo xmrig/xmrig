@@ -57,6 +57,8 @@ static const char *kCacheQoS    = "cache_qos";
 static const char *kNUMA        = "numa";
 #endif
 
+static const char *kScratchpadPrefetchMode = "scratchpad_prefetch_mode";
+
 static const std::array<const char *, RxConfig::ModeMax> modeNames = { "auto", "fast", "light" };
 
 
@@ -118,6 +120,11 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
         }
 #       endif
 
+        const uint32_t mode = static_cast<uint32_t>(Json::getInt(value, kScratchpadPrefetchMode, static_cast<int>(m_scratchpadPrefetchMode)));
+        if (mode < ScratchpadPrefetchMax) {
+            m_scratchpadPrefetchMode = static_cast<ScratchpadPrefetchMode>(mode);
+        }
+
         return true;
     }
 
@@ -170,6 +177,8 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
         obj.AddMember(StringRef(kNUMA), m_numa, allocator);
     }
 #   endif
+
+    obj.AddMember(StringRef(kScratchpadPrefetchMode), static_cast<int>(m_scratchpadPrefetchMode), allocator);
 
     return obj;
 }

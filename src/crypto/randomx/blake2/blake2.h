@@ -92,7 +92,7 @@ extern "C" {
     int rx_blake2b_final(blake2b_state *S, void *out, size_t outlen);
 
 	/* Simple API */
-    int rx_blake2b(void *out, size_t outlen, const void *in, size_t inlen, const void *key, size_t keylen);
+    int rx_blake2b(void *out, size_t outlen, const void *in, size_t inlen);
 
 	/* Argon2 Team - Begin Code */
 	int rxa2_blake2b_long(void *out, size_t outlen, const void *in, size_t inlen);

@@ -38,8 +38,8 @@ class randomx_vm
 public:
 	virtual ~randomx_vm() = 0;
 	virtual void setScratchpad(uint8_t *scratchpad) = 0;
-	virtual void getFinalResult(void* out, size_t outSize) = 0;
-	virtual void hashAndFill(void* out, size_t outSize, uint64_t (&fill_state)[8]) = 0;
+	virtual void getFinalResult(void* out) = 0;
+	virtual void hashAndFill(void* out, uint64_t (&fill_state)[8]) = 0;
 	virtual void setDataset(randomx_dataset* dataset) { }
 	virtual void setCache(randomx_cache* cache) { }
 	virtual void initScratchpad(void* seed) = 0;
@@ -79,15 +79,15 @@ protected:
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	class VmBase : public randomx_vm
 	{
 	public:
 		~VmBase() override;
 		void setScratchpad(uint8_t *scratchpad) override;
 		void initScratchpad(void* seed) override;
-		void getFinalResult(void* out, size_t outSize) override;
-		void hashAndFill(void* out, size_t outSize, uint64_t (&fill_state)[8]) override;
+		void getFinalResult(void* out) override;
+		void hashAndFill(void* out, uint64_t (&fill_state)[8]) override;
 
 	protected:
 		void generateProgram(void* seed);

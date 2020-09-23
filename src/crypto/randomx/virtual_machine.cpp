@@ -35,6 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/blake2/blake2.h"
 #include "crypto/randomx/intrin_portable.h"
 #include "crypto/randomx/allocator.hpp"
+#include "crypto/randomx/soft_aes.h"
+#include "base/tools/Profiler.h"
 
 randomx_vm::~randomx_vm() {
 
@@ -95,11 +97,11 @@ void randomx_vm::initialize() {
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	VmBase<softAes>::~VmBase() {
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void VmBase<softAes>::setScratchpad(uint8_t *scratchpad) {
 		if (datasetPtr == nullptr) {
 			throw std::invalid_argument("Cache/Dataset not set");
@@ -108,25 +110,37 @@ namespace randomx {
 		this->scratchpad = scratchpad;
 	}
 
-	template<bool softAes>
-	void VmBase<softAes>::getFinalResult(void* out, size_t outSize) {
+	template<int softAes>
+	void VmBase<softAes>::getFinalResult(void* out) {
 		hashAes1Rx4<softAes>(scratchpad, ScratchpadSize, &reg.a);
-        rx_blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
+		rx_blake2b_wrapper::run(out, RANDOMX_HASH_SIZE, &reg, sizeof(RegisterFile));
 	}
 
-	template<bool softAes>
-	void VmBase<softAes>::hashAndFill(void* out, size_t outSize, uint64_t (&fill_state)[8]) {
-		hashAndFillAes1Rx4<softAes>(scratchpad, ScratchpadSize, &reg.a, fill_state);
-        rx_blake2b(out, outSize, &reg, sizeof(RegisterFile), nullptr, 0);
+	template<int softAes>
+	void VmBase<softAes>::hashAndFill(void* out, uint64_t (&fill_state)[8]) {
+		if (!softAes) {
+			hashAndFillAes1Rx4<0>(scratchpad, ScratchpadSize, &reg.a, fill_state);
+		}
+		else {
+			if (GetSoftAESImpl() == 1) {
+				hashAndFillAes1Rx4<1>(scratchpad, ScratchpadSize, &reg.a, fill_state);
+			}
+			else {
+				hashAndFillAes1Rx4<2>(scratchpad, ScratchpadSize, &reg.a, fill_state);
+			}
+		}
+
+		rx_blake2b_wrapper::run(out, RANDOMX_HASH_SIZE, &reg, sizeof(RegisterFile));
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void VmBase<softAes>::initScratchpad(void* seed) {
 		fillAes1Rx4<softAes>(seed, ScratchpadSize, scratchpad);
 	}
 
-	template<bool softAes>
+	template<int softAes>
 	void VmBase<softAes>::generateProgram(void* seed) {
+		PROFILE_SCOPE(RandomX_generate_program);
 		fillAes4Rx4<softAes>(seed, 128 + RandomX_CurrentConfig.ProgramSize * 8, &program);
 	}
 

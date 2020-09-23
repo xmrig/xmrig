@@ -82,6 +82,7 @@ public:
     inline uint32_t backend() const                     { return m_backend; }
     inline uint64_t diff() const                        { return m_diff; }
     inline uint64_t height() const                      { return m_height; }
+    inline uint64_t nonceMask() const                   { return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (-1ull  >> (extraNonce().size() * 4)): 0xFFFFFFFFULL); }
     inline uint64_t target() const                      { return m_target; }
     inline uint8_t *blob()                              { return m_blob; }
     inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
