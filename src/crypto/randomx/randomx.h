@@ -68,10 +68,7 @@ struct RandomX_ConfigurationBase
 	// Common parameters for all RandomX variants
 	enum Params : uint64_t
 	{
-		ArgonMemory = 262144,
-		CacheAccesses = 8,
 		SuperscalarLatency = 170,
-		DatasetBaseSize = 2147483648,
 		DatasetExtraSize = 33554368,
 		JumpBits = 8,
 		JumpOffset = 8,
@@ -79,6 +76,10 @@ struct RandomX_ConfigurationBase
 		DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE,
 		ConditionMask_Calculated = ((1 << JumpBits) - 1) << JumpOffset,
 	};
+
+        uint32_t ArgonMemory;
+        uint32_t CacheAccesses;
+        uint32_t DatasetBaseSize;
 
 	uint32_t ArgonIterations;
 	uint32_t ArgonLanes;
