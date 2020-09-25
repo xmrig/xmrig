@@ -69,7 +69,6 @@ private:
 
     KawPow_CalculateDAGKernel* m_calculateDagKernel = nullptr;
 
-    cl_program m_searchProgram = nullptr;
     cl_kernel m_searchKernel = nullptr;
 
     size_t m_workGroupSize = 256;
