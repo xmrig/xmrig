@@ -121,7 +121,7 @@ public:
         for (int i = 0; i < Algorithm::MAX; ++i) {
             const Algorithm algo(static_cast<Algorithm::Id>(i));
 
-            if (isEnabled(algo)) {
+            if (algo.isValid() && isEnabled(algo)) {
                 algorithms.push_back(algo);
             }
         }
