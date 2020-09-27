@@ -244,7 +244,7 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
     {
         uint idx0 = a[0];
 
-#       if (ALGO == ALGO_CN_CCX)
+#       if ((ALGO == ALGO_CN_CCX) || (ALGO == ALGO_CN_CACHE_HASH))
         float4 conc_var = (float4)(0.0f);
         const uint4 conc_t = (uint4)(0x807FFFFFU);
         const uint4 conc_u = (uint4)(0x40000000U);
@@ -257,7 +257,7 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
             ((uint4 *)c)[0] = Scratchpad[IDX((idx0 & MASK) >> 4)];
 
-#           if (ALGO == ALGO_CN_CCX)
+#           if ((ALGO == ALGO_CN_CCX) || (ALGO == ALGO_CN_CACHE_HASH))
             {
                 float4 r = convert_float4_rte(((int4 *)c)[0]) + conc_var;
                 r = r * r * r;

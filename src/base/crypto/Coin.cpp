@@ -56,7 +56,8 @@ static CoinName const coin_names[] = {
     { "ravencoin",  Coin::RAVEN   },
     { "raven",      Coin::RAVEN   },
     { "rvn",        Coin::RAVEN   },
-    { "conceal",    Coin::CONCEAL }
+    { "conceal",    Coin::CONCEAL },
+    { "cache",      Coin::CACHE }
 };
 
 
@@ -84,6 +85,9 @@ xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
 
     case CONCEAL:
         return Algorithm::CN_CCX;
+
+    case CACHE:
+        return Algorithm::CN_CACHE_HASH;
 
     case INVALID:
         break;

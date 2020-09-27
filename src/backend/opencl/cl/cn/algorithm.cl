@@ -27,6 +27,7 @@
 #define ALGO_AR2_WRKZ       26
 #define ALGO_ASTROBWT_DERO  27
 #define ALGO_KAWPOW_RVN     28
+#define ALGO_CN_CACHE_HASH  29
 
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1
