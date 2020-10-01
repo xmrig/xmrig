@@ -237,7 +237,7 @@ static void rx_blake2b_compress_integer(blake2b_state *S, const uint8_t *block) 
 #undef ROUND
 }
 
-#if defined(_M_X64) || defined(__x86_64__)
+#if defined(XMRIG_FEATURE_SSE4_1)
 
 uint32_t rx_blake2b_use_sse41 = 0;
 void rx_blake2b_compress_sse41(blake2b_state* S, const uint8_t* block);
