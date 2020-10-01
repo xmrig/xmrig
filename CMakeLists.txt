@@ -24,7 +24,7 @@ option(WITH_ADL             "Enable ADL (AMD Display Library) or sysfs support (
 option(WITH_STRICT_CACHE    "Enable strict checks for OpenCL cache" ON)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 option(WITH_PROFILING       "Enable profiling for developers" OFF)
-option(WITH_SSE             "Enable SSE for Blake2" ON)
+option(WITH_SSE4_1          "Enable SSE 4.1 for Blake2" ON)
 
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
