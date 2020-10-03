@@ -371,12 +371,16 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	INST_HANDLE(FDIV_M, FMUL_R);
 	INST_HANDLE(FSQRT_R, FDIV_M);
 
+#if defined(_M_X64) || defined(__x86_64__)
 	if (xmrig::Cpu::info()->jccErratum()) {
 		INST_HANDLE2(CBRANCH, CBRANCH<true>, FSQRT_R);
 	}
 	else {
 		INST_HANDLE2(CBRANCH, CBRANCH<false>, FSQRT_R);
 	}
+#else
+	INST_HANDLE(CBRANCH, FSQRT_R);
+#endif
 
 #if defined(_M_X64) || defined(__x86_64__)
 	if (xmrig::Cpu::info()->hasBMI2()) {

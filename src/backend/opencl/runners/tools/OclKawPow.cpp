@@ -54,8 +54,9 @@ namespace xmrig {
 class KawPowCacheEntry
 {
 public:
-    inline KawPowCacheEntry(const Algorithm &algo, uint64_t period, uint32_t worksize, uint32_t index, cl_program program) :
+    inline KawPowCacheEntry(const Algorithm &algo, uint64_t period, uint32_t worksize, uint32_t index, cl_program program, cl_kernel kernel) :
         program(program),
+        kernel(kernel),
         m_algo(algo),
         m_index(index),
         m_period(period),
@@ -65,9 +66,10 @@ public:
     inline bool isExpired(uint64_t period) const                                                       { return m_period + 1 < period; }
     inline bool match(const Algorithm &algo, uint64_t period, uint32_t worksize, uint32_t index) const { return m_algo == algo && m_period == period && m_worksize == worksize && m_index == index; }
     inline bool match(const IOclRunner &runner, uint64_t period, uint32_t worksize) const              { return match(runner.algorithm(), period, worksize, runner.deviceIndex()); }
-    inline void release()                                                                              { OclLib::release(program); }
+    inline void release()                                                                              { OclLib::release(kernel); OclLib::release(program); }
 
     cl_program program;
+    cl_kernel kernel;
 
 private:
     Algorithm m_algo;
@@ -82,16 +84,16 @@ class KawPowCache
 public:
     KawPowCache() = default;
 
-    inline cl_program search(const IOclRunner &runner, uint64_t period, uint32_t worksize) { return search(runner.algorithm(), period, worksize, runner.deviceIndex()); }
+    inline cl_kernel search(const IOclRunner &runner, uint64_t period, uint32_t worksize) { return search(runner.algorithm(), period, worksize, runner.deviceIndex()); }
 
 
-    inline cl_program search(const Algorithm &algo, uint64_t period, uint32_t worksize, uint32_t index)
+    inline cl_kernel search(const Algorithm &algo, uint64_t period, uint32_t worksize, uint32_t index)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         for (const auto &entry : m_data) {
             if (entry.match(algo, period, worksize, index)) {
-                return entry.program;
+                return entry.kernel;
             }
         }
 
@@ -99,9 +101,10 @@ public:
     }
 
 
-    void add(const Algorithm &algo, uint64_t period, uint32_t worksize, uint32_t index, cl_program program)
+    void add(const Algorithm &algo, uint64_t period, uint32_t worksize, uint32_t index, cl_program program, cl_kernel kernel)
     {
         if (search(algo, period, worksize, index)) {
+            OclLib::release(kernel);
             OclLib::release(program);
             return;
         }
@@ -109,7 +112,7 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
 
         gc(period);
-        m_data.emplace_back(algo, period, worksize, index, program);
+        m_data.emplace_back(algo, period, worksize, index, program, kernel);
     }
 
 
@@ -159,15 +162,15 @@ static KawPowCache cache;
 class KawPowBuilder
 {
 public:
-    cl_program build(const IOclRunner &runner, uint64_t period, uint32_t worksize)
+    cl_kernel build(const IOclRunner &runner, uint64_t period, uint32_t worksize)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         const uint64_t ts = Chrono::steadyMSecs();
 
-        cl_program program = cache.search(runner, period, worksize);
-        if (program) {
-            return program;
+        cl_kernel kernel = cache.search(runner, period, worksize);
+        if (kernel) {
+            return kernel;
         }
 
         cl_int ret;
@@ -175,7 +178,7 @@ public:
         cl_device_id device      = runner.data().device.id();
         const char *s            = source.c_str();
 
-        program = OclLib::createProgramWithSource(runner.ctx(), 1, &s, nullptr, &ret);
+        cl_program program = OclLib::createProgramWithSource(runner.ctx(), 1, &s, nullptr, &ret);
         if (ret != CL_SUCCESS) {
             return nullptr;
         }
@@ -199,11 +202,17 @@ public:
             return nullptr;
         }
 
+        kernel = OclLib::createKernel(program, "progpow_search", &ret);
+        if (ret != CL_SUCCESS) {
+            OclLib::release(program);
+            return nullptr;
+        }
+
         LOG_INFO("%s " YELLOW("KawPow") " program for period " WHITE_BOLD("%" PRIu64) " compiled " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::opencl(), period, Chrono::steadyMSecs() - ts);
 
-        cache.add(runner.algorithm(), period, worksize, runner.deviceIndex(), program);
+        cache.add(runner.algorithm(), period, worksize, runner.deviceIndex(), program, kernel);
 
-        return program;
+        return kernel;
     }
 
 
@@ -382,7 +391,7 @@ public:
 static KawPowBuilder builder;
 
 
-cl_program OclKawPow::get(const IOclRunner &runner, uint64_t height, uint32_t worksize)
+cl_kernel OclKawPow::get(const IOclRunner &runner, uint64_t height, uint32_t worksize)
 {
     const uint64_t period = height / KPHash::PERIOD_LENGTH;
 
@@ -396,9 +405,9 @@ cl_program OclKawPow::get(const IOclRunner &runner, uint64_t height, uint32_t wo
         [](uv_work_t *req, int) { delete static_cast<KawPowBaton*>(req->data); }
     );
 
-    cl_program program = cache.search(runner, period, worksize);
-    if (program) {
-        return program;
+    cl_kernel kernel = cache.search(runner, period, worksize);
+    if (kernel) {
+        return kernel;
     }
 
     return builder.build(runner, period, worksize);

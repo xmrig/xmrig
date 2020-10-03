@@ -23,6 +23,7 @@ This feature add external dependency to libhwloc (1.10.0+) (except MSVC builds).
 * **`-DWITH_EMBEDDED_CONFIG=ON`** Enable [embedded](https://github.com/xmrig/xmrig/issues/957) config support.
 * **`-DWITH_OPENCL=OFF`** Disable OpenCL backend.
 * **`-DWITH_CUDA=OFF`** Disable CUDA backend.
+* **`-DWITH_SSE4_1=OFF`** Disable SSE 4.1 for Blake2 (useful for arm builds).
 
 ## Debug options
 

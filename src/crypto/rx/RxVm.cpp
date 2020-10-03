@@ -31,7 +31,7 @@
 #include "crypto/rx/RxVm.h"
 
 
-#if defined(_M_X64) || defined(__x86_64__)
+#if defined(XMRIG_FEATURE_SSE4_1)
 extern "C" uint32_t rx_blake2b_use_sse41;
 #endif
 
@@ -60,7 +60,7 @@ randomx_vm* xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool so
         flags |= RANDOMX_FLAG_AMD;
     }
 
-#   if defined(_M_X64) || defined(__x86_64__)
+#   if defined(XMRIG_FEATURE_SSE4_1)
     rx_blake2b_use_sse41 = Cpu::info()->has(ICpuInfo::FLAG_SSE41) ? 1 : 0;
 #   endif
 

@@ -2,9 +2,10 @@ if (NOT CMAKE_SYSTEM_PROCESSOR)
     message(WARNING "CMAKE_SYSTEM_PROCESSOR not defined")
 endif()
 
-
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_definitions(/DRAPIDJSON_SSE2)
+else()
+    set(WITH_SSE4_1 OFF)
 endif()
 
 if (NOT ARM_TARGET)
@@ -40,4 +41,8 @@ if (ARM_TARGET AND ARM_TARGET GREATER 6)
         set(XMRIG_ARMv7 ON)
         add_definitions(/DXMRIG_ARMv7)
     endif()
+endif()
+
+if (WITH_SSE4_1)
+    add_definitions(/DXMRIG_FEATURE_SSE4_1)
 endif()

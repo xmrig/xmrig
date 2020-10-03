@@ -70,6 +70,14 @@ if (WITH_RANDOMX)
         set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
     endif()
 
+    if (WITH_SSE4_1)
+        list(APPEND SOURCES_CRYPTO src/crypto/randomx/blake2/blake2b_sse41.c)
+
+        if (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
+            set_source_files_properties(src/crypto/randomx/blake2/blake2b_sse41.c PROPERTIES COMPILE_FLAGS -msse4.1)
+        endif()
+    endif()
+
     if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         set_source_files_properties(src/crypto/randomx/jit_compiler_x86.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-const-variable)
     endif()
