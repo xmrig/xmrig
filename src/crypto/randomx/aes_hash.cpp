@@ -260,17 +260,32 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 2, fill_state2); \
 			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 3, fill_state3);
 
-			HASH_STATE(0);
-			HASH_STATE(1);
+			switch(softAes) {
+				case 0:
+					HASH_STATE(0);
+					HASH_STATE(1);
 
-			FILL_STATE(0);
-			FILL_STATE(1);
+					FILL_STATE(0);
+					FILL_STATE(1);
 
-			rx_prefetch_t0(prefetchPtr);
-			rx_prefetch_t0(prefetchPtr + 64);
+					rx_prefetch_t0(prefetchPtr);
+					rx_prefetch_t0(prefetchPtr + 64);
 
-			scratchpadPtr += 128;
-			prefetchPtr += 128;
+					scratchpadPtr += 128;
+					prefetchPtr += 128;
+
+					break;
+
+				default:
+					HASH_STATE(0);
+					FILL_STATE(0);
+					rx_prefetch_t0(prefetchPtr);
+
+					scratchpadPtr += 64;
+					prefetchPtr += 64;
+
+					break;
+			}
 		}
 		prefetchPtr = (const char*) scratchpad;
 		scratchpadEnd += PREFETCH_DISTANCE;

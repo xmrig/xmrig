@@ -33,7 +33,7 @@
 xmrig::String::String(const char *str) :
     m_size(str == nullptr ? 0 : strlen(str))
 {
-    if (m_size == 0) {
+    if (str == nullptr) {
         return;
     }
 

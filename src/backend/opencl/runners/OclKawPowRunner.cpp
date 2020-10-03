@@ -69,8 +69,6 @@ OclKawPowRunner::~OclKawPowRunner()
 
     delete m_calculateDagKernel;
 
-    OclLib::release(m_searchKernel);
-
     OclLib::release(m_controlQueue);
     OclLib::release(m_stop);
 
@@ -120,8 +118,7 @@ void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
 void OclKawPowRunner::set(const Job &job, uint8_t *blob)
 {
     m_blockHeight = static_cast<uint32_t>(job.height());
-    m_searchProgram = OclKawPow::get(*this, m_blockHeight, m_workGroupSize);
-    m_searchKernel = OclLib::createKernel(m_searchProgram, "progpow_search");
+    m_searchKernel = OclKawPow::get(*this, m_blockHeight, m_workGroupSize);
 
     const uint32_t epoch = m_blockHeight / KPHash::EPOCH_LENGTH;
 
