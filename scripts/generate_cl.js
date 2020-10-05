@@ -49,7 +49,6 @@ function rx()
         '../cn/algorithm.cl',
         'randomx_constants_monero.h',
         'randomx_constants_wow.h',
-        'randomx_constants_loki.h',
         'randomx_constants_arqma.h',
         'randomx_constants_keva.h',
         'aes.cl',
