@@ -134,8 +134,6 @@ public:
             Nonce::pause(true);
         }
 
-        active = true;
-
         if (reset) {
             Nonce::reset(job.index());
         }
@@ -146,7 +144,7 @@ public:
 
         Nonce::touch();
 
-        if (enabled) {
+        if (active && enabled) {
             Nonce::pause(false);
         }
 
@@ -535,6 +533,8 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 #   endif
 
     mutex.unlock();
+
+    d_ptr->active = true;
 
     if (ready) {
         d_ptr->handleJobChange();
