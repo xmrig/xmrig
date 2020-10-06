@@ -28,26 +28,12 @@
 
 namespace xmrig {
 
-
-std::atomic<bool> Nonce::m_paused;
-std::atomic<uint64_t> Nonce::m_sequence[Nonce::MAX];
+std::atomic<bool> Nonce::m_paused = {true};
+std::atomic<uint64_t>  Nonce::m_sequence[Nonce::MAX] = { {1}, {1}, {1} };
 std::atomic<uint64_t> Nonce::m_nonces[2] = { {0}, {0} };
 
 
-static Nonce nonce;
-
-
 } // namespace xmrig
-
-
-xmrig::Nonce::Nonce()
-{
-    m_paused = true;
-
-    for (auto &i : m_sequence) {
-        i = 1;
-    }
-}
 
 
 bool xmrig::Nonce::next(uint8_t index, uint32_t *nonce, uint32_t reserveCount, uint64_t mask)
