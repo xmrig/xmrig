@@ -387,8 +387,8 @@ void SelectSoftAESImpl(size_t threadsCount)
       for (size_t t = 0; t < threadsCount; ++t) {
         threads.emplace_back([&, t]() {
           std::vector<uint8_t> scratchpad(10 * 1024);
-          uint8_t hash[64] = {};
-          uint8_t state[64] = {};
+          alignas(16) uint8_t hash[64] = {};
+          alignas(16) uint8_t state[64] = {};
           do {
           (*impl[i])(scratchpad.data(), scratchpad.size(), hash, state);
           ++count[t];

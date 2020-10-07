@@ -215,7 +215,7 @@ void xmrig::CpuWorker<N>::start()
 
 #       ifdef XMRIG_ALGO_RANDOMX
         bool first = true;
-        uint64_t tempHash[8] = {};
+        alignas(16) uint64_t tempHash[8] = {};
 
         // RandomX is faster, we don't need to store stats so often
         if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
