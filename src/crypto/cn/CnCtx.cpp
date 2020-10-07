@@ -39,7 +39,7 @@ void xmrig::CnCtx::create(cryptonight_ctx **ctx, uint8_t *memory, size_t size, s
         cryptonight_ctx *c = static_cast<cryptonight_ctx *>(_mm_malloc(sizeof(cryptonight_ctx), 4096));
         c->memory          = memory + (i * size);
 
-        c->generated_code              = reinterpret_cast<cn_mainloop_fun_ms_abi>(VirtualMemory::allocateExecutableMemory(0x4000));
+        c->generated_code              = reinterpret_cast<cn_mainloop_fun_ms_abi>(VirtualMemory::allocateExecutableMemory(0x4000, false));
         c->generated_code_data.algo    = Algorithm::INVALID;
         c->generated_code_data.height  = std::numeric_limits<uint64_t>::max();
 

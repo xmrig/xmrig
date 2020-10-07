@@ -169,6 +169,7 @@ void randomx_apply_config(const T& config)
 }
 
 void randomx_set_scratchpad_prefetch_mode(int mode);
+void randomx_set_huge_pages_jit(bool hugePages);
 
 #if defined(__cplusplus)
 extern "C" {

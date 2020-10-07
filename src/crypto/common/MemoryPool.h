@@ -54,6 +54,7 @@ protected:
 private:
     size_t m_refs           = 0;
     size_t m_offset         = 0;
+    size_t m_alignOffset    = 0;
     VirtualMemory *m_memory = nullptr;
 };
 

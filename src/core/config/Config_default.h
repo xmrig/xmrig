@@ -61,6 +61,7 @@ R"===(
     "cpu": {
         "enabled": true,
         "huge-pages": true,
+        "huge-pages-jit": false,
         "hw-aes": null,
         "priority": null,
         "memory-pool": false,
