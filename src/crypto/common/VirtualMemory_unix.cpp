@@ -63,7 +63,7 @@ bool xmrig::VirtualMemory::isOneGbPagesAvailable()
 }
 
 
-void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
+void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
 {
 #   if defined(__APPLE__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
@@ -77,7 +77,12 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size)
     constexpr int flag_2mb = 0;
 #   endif
 
-    void *mem = mmap(0, align(size), PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE | flag_2mb, -1, 0);
+    void *mem = nullptr;
+
+    if (hugePages) {
+        mem = mmap(0, align(size), PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE | flag_2mb, -1, 0);
+    }
+
     if (!mem) {
         void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     }

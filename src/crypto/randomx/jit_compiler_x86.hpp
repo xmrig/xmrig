@@ -47,7 +47,7 @@ namespace randomx {
 
 	class JitCompilerX86 {
 	public:
-		JitCompilerX86();
+		explicit JitCompilerX86(bool hugePagesEnable);
 		~JitCompilerX86();
 		void prepare();
 		void generateProgram(Program&, ProgramConfiguration&, uint32_t);

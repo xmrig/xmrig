@@ -381,7 +381,7 @@ extern "C" {
 					break;
 
 				case RANDOMX_FLAG_JIT:
-					cache->jit          = new randomx::JitCompiler();
+					cache->jit          = new randomx::JitCompiler(false);
 					cache->initialize   = &randomx::initCacheCompile;
 					cache->datasetInit  = cache->jit->getDatasetInitFunc();
 					cache->memory       = memory;

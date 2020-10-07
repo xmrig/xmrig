@@ -100,6 +100,7 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
     }
 
     randomx_set_scratchpad_prefetch_mode(config.scratchpadPrefetchMode());
+    randomx_set_huge_pages_jit(cpu.isHugePagesJit());
 
     if (isReady(seed)) {
         return true;

@@ -33,8 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/virtual_memory.hpp"
 
 
-void* allocExecutableMemory(std::size_t bytes) {
-    void *mem = xmrig::VirtualMemory::allocateExecutableMemory(bytes);
+void* allocExecutableMemory(std::size_t bytes, bool hugePages) {
+    void *mem = xmrig::VirtualMemory::allocateExecutableMemory(bytes, hugePages);
     if (mem == nullptr) {
         throw std::runtime_error("Failed to allocate executable memory");
     }
