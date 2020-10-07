@@ -82,7 +82,7 @@ private:
     const int m_astrobwtMaxSize;
     const Miner *m_miner;
     cryptonight_ctx *m_ctx[N];
-    uint8_t m_hash[N * 32]{ 0 };
+    alignas(16) uint8_t m_hash[N * 32]{ 0 };
     VirtualMemory *m_memory = nullptr;
     WorkerJob<N> m_job;
 
