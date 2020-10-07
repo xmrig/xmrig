@@ -67,6 +67,17 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
 {
 #   if defined(__APPLE__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
+#   elif defined(__FreeBSD__)
+    void *mem = nullptr;
+
+    if (hugePages) {
+        mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
+    }
+
+    if (!mem) {
+        mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    }
+
 #   else
 
 #   if defined(MAP_HUGE_2MB)
@@ -84,7 +95,7 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
     }
 
     if (!mem) {
-        void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     }
 
 #   endif
