@@ -33,7 +33,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/virtual_memory.hpp"
 
-void randomx_set_huge_pages_jit(bool) {}
+static bool hugePagesJIT = false;
+
+void randomx_set_huge_pages_jit(bool hugePages)
+{
+	hugePagesJIT = hugePages;
+}
 
 namespace ARMV8A {
 
@@ -91,8 +96,8 @@ static size_t CalcDatasetItemSize()
 
 constexpr uint32_t IntRegMap[8] = { 4, 5, 6, 7, 12, 13, 14, 15 };
 
-JitCompilerA64::JitCompilerA64(bool)
-	: code((uint8_t*) allocExecutableMemory(CodeSize + CalcDatasetItemSize()))
+JitCompilerA64::JitCompilerA64(bool hugePagesEnable)
+	: code((uint8_t*) allocExecutableMemory(CodeSize + CalcDatasetItemSize(), hugePagesJIT && hugePagesEnable))
 	, literalPos(ImulRcpLiteralsEnd)
 	, num32bitLiterals(0)
 {
