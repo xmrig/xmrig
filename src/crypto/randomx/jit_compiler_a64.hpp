@@ -46,7 +46,7 @@ namespace randomx {
 
 	class JitCompilerA64 {
 	public:
-		explicit JitCompilerA64(bool);
+		explicit JitCompilerA64(bool hugePagesEnable);
 		~JitCompilerA64();
 
 		void prepare() {}
