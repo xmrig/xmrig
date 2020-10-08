@@ -72,7 +72,6 @@ namespace randomx {
 	void deallocCache(randomx_cache* cache);
 
 	void initCache(randomx_cache*, const void*, size_t);
-	void initCacheCompile(randomx_cache*, const void*, size_t);
 	void initDatasetItem(randomx_cache* cache, uint8_t* out, uint64_t blockNumber);
 	void initDataset(randomx_cache* cache, uint8_t* dataset, uint32_t startBlock, uint32_t endBlock);
 }
