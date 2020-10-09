@@ -143,11 +143,11 @@ void xmrig::Workers<T>::tick(uint64_t)
     }
 
     for (Thread<T> *handle : m_workers) {
-        if (!handle->worker()) {
-            continue;
+        if (handle->worker()) {
+            uint64_t hashCount, timeStamp;
+            handle->worker()->getHashrateData(hashCount, timeStamp);
+            d_ptr->hashrate->add(handle->id(), hashCount, timeStamp);
         }
-
-        d_ptr->hashrate->add(handle->id(), handle->worker()->hashCount(), handle->worker()->timestamp());
     }
 }
 
