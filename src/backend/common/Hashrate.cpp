@@ -183,7 +183,7 @@ rapidjson::Value xmrig::Hashrate::toJSON(rapidjson::Document &doc) const
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
 
-    Value out(kArrayType);
+    rapidjson::Value out(kArrayType);
     out.PushBack(normalize(calc(ShortInterval)),  allocator);
     out.PushBack(normalize(calc(MediumInterval)), allocator);
     out.PushBack(normalize(calc(LargeInterval)),  allocator);
@@ -197,7 +197,7 @@ rapidjson::Value xmrig::Hashrate::toJSON(size_t threadId, rapidjson::Document &d
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
 
-    Value out(kArrayType);
+    rapidjson::Value out(kArrayType);
     out.PushBack(normalize(calc(threadId, ShortInterval)),  allocator);
     out.PushBack(normalize(calc(threadId, MediumInterval)), allocator);
     out.PushBack(normalize(calc(threadId, LargeInterval)),  allocator);
