@@ -28,6 +28,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 
 
 #include "3rdparty/rapidjson/fwd.h"
@@ -42,6 +43,21 @@ class Hashrate
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Hashrate)
 
+    struct Value {
+        Value() = default;
+        Value(const double estimate, const double errorDown, const double errorUp): estimate(estimate), errorDown(errorDown), errorUp(errorUp) {}
+
+        inline operator double() const                { return estimate; }
+        inline Value operator *(const double v) const { return { estimate * v , errorDown * v, errorUp * v}; }
+        inline Value& operator +=(const Value &o)     { estimate += o.estimate; errorDown += o.errorDown; errorUp += o.errorUp; return *this; }
+
+        double estimate;
+        double errorDown;
+        double errorUp;
+    };
+
+    typedef std::pair<uint64_t, uint64_t> TimeRange;
+
     enum Intervals {
         ShortInterval  = 10000,
         MediumInterval = 60000,
@@ -50,13 +66,13 @@ public:
 
     Hashrate(size_t threads);
     ~Hashrate();
-    double calc(size_t ms) const;
-    double calc(size_t threadId, size_t ms) const;
+    Value calc(Intervals ms) const;
+    Value calc(size_t threadId, Intervals ms) const;
     void add(size_t threadId, uint64_t count, uint64_t timestamp);
 
     inline size_t threads() const { return m_threads; }
 
-    static const char *format(double h, char *buf, size_t size);
+    static const char *format(Value h, char *buf, size_t size);
     static rapidjson::Value normalize(double d);
 
 #   ifdef XMRIG_FEATURE_API
@@ -65,11 +81,14 @@ public:
 #   endif
 
 private:
+    bool findRecords(size_t threadId, Intervals ms, TimeRange &time, uint64_t &count) const;
+
     constexpr static size_t kBucketSize = 2 << 11;
     constexpr static size_t kBucketMask = kBucketSize - 1;
 
     size_t m_threads;
-    uint32_t* m_top;
+    uint32_t* m_head;
+    uint32_t** m_tail;
     uint64_t** m_counts;
     uint64_t** m_timestamps;
 };

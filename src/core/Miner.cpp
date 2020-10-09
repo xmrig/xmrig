@@ -244,8 +244,9 @@ public:
 
     void printHashrate(bool details)
     {
-        char num[16 * 4] = { 0 };
-        double speed[3] = { 0.0 };
+        constexpr size_t num_width = 32;
+        char num[num_width * 4] = {};
+        Hashrate::Value speed[3] = {};
 
         for (auto backend : backends) {
             const auto hashrate = backend->hashrate();
@@ -304,12 +305,12 @@ public:
         }
 #       endif
 
-        LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
+        LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") " " CYAN("%s") " " CYAN("%s") " " CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
                  Tags::miner(),
-                 Hashrate::format(speed[0] * scale,                 num,          sizeof(num) / 4),
-                 Hashrate::format(speed[1] * scale,                 num + 16,     sizeof(num) / 4),
-                 Hashrate::format(speed[2] * scale,                 num + 16 * 2, sizeof(num) / 4), h,
-                 Hashrate::format(maxHashrate[algorithm] * scale,   num + 16 * 3, sizeof(num) / 4), h
+                 Hashrate::format(speed[0] * scale,                 num,                 num_width),
+                 Hashrate::format(speed[1] * scale,                 num + num_width,     num_width),
+                 Hashrate::format(speed[2] * scale,                 num + num_width,     num_width), h,
+                 Hashrate::format(maxHashrate[algorithm] * scale,   num + num_width * 3, num_width), h
                  );
     }
 
@@ -327,7 +328,7 @@ public:
     bool battery_power  = false;
     Controller *controller;
     Job job;
-    mutable std::map<Algorithm::Id, double> maxHashrate;
+    mutable std::map<Algorithm::Id, Hashrate::Value> maxHashrate;
     std::vector<IBackend *> backends;
     String userJobId;
     Timer *timer        = nullptr;
@@ -570,7 +571,7 @@ void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
 
 void xmrig::Miner::onTimer(const Timer *)
 {
-    double maxHashrate          = 0.0;
+    Hashrate::Value maxHashrate{};
     const auto healthPrintTime  = d_ptr->controller->config()->healthPrintTime();
 
     for (IBackend *backend : d_ptr->backends) {

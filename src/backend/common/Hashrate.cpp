@@ -34,12 +34,18 @@
 #include "base/io/json/Json.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Handle.h"
+#include "base/io/log/Log.h"
 
 
-inline static const char *format(double h, char *buf, size_t size)
+inline static const char *format(double h, char *buf, size_t size, double errorDown, double errorUp)
 {
     if (std::isnormal(h)) {
-        snprintf(buf, size, (h < 100.0) ? "%04.2f" : "%03.1f", h);
+        if (std::max(errorDown, errorUp) >= (h < 100.0 ? 0.01 : 0.1)) {
+            snprintf(buf, size, (h < 100.0) ? "%5.2f" BLACK_BOLD("(-%.2f/+%.2f}") : "%5.1f" BLACK_BOLD("(-%.1f/+%.1f)"), h, errorDown, errorUp);
+        }
+        else {
+            snprintf(buf, size, (h < 100.0) ? "%5.2f" : "%5.1f", h);
+        }
         return buf;
     }
 
@@ -52,12 +58,16 @@ xmrig::Hashrate::Hashrate(size_t threads) :
 {
     m_counts     = new uint64_t*[threads];
     m_timestamps = new uint64_t*[threads];
-    m_top        = new uint32_t[threads];
+    m_head       = new uint32_t[threads];
+    m_tail       = new uint32_t*[threads];
 
+    const uint64_t now = xmrig::Chrono::highResolutionMSecs();
     for (size_t i = 0; i < threads; i++) {
         m_counts[i]     = new uint64_t[kBucketSize]();
         m_timestamps[i] = new uint64_t[kBucketSize]();
-        m_top[i]        = 0;
+        m_head[i]       = 0;
+        m_tail[i]       = new uint32_t[3]();
+        m_timestamps[i][0] = now;
     }
 }
 
@@ -67,92 +77,97 @@ xmrig::Hashrate::~Hashrate()
     for (size_t i = 0; i < m_threads; i++) {
         delete [] m_counts[i];
         delete [] m_timestamps[i];
+        delete [] m_tail[i];
     }
 
     delete [] m_counts;
     delete [] m_timestamps;
-    delete [] m_top;
+    delete [] m_head;
+    delete [] m_tail;
 }
 
 
-double xmrig::Hashrate::calc(size_t ms) const
+
+xmrig::Hashrate::Value xmrig::Hashrate::calc(size_t threadId, Intervals ms) const
 {
-    double result = 0.0;
-    double data;
-
-    for (size_t i = 0; i < m_threads; ++i) {
-        data = calc(i, ms);
-        if (std::isnormal(data)) {
-            result += data;
-        }
+    TimeRange time;
+    uint64_t count;
+    if (!findRecords(threadId, ms, time, count)) {
+        return { nan(""), nan(""), nan("") };
     }
+    return { count * 1000.0 / (time.second - time.first), 0.0, 0.0 };
+}
 
-    return result;
+xmrig::Hashrate::Value xmrig::Hashrate::calc(Intervals ms) const
+{
+    const uint64_t now = xmrig::Chrono::highResolutionMSecs();
+    uint64_t time_earliest[2] = { now, 0 };
+    uint64_t time_latest[2]   = { 0, now };
+    uint64_t total_count      = 0;
+    double result             = 0.0;
+    for (size_t threadId = 0; threadId < m_threads; ++threadId) {
+        TimeRange time;
+        uint64_t count;
+        if (!findRecords(threadId, ms, time, count)) {
+            continue;
+        }
+        for (size_t j = 0; j < 2; ++j) {
+            if ((time.first < time_earliest[j]) ^ j) {
+                time_earliest[j] = time.first;
+            }
+            if ((time.second > time_latest[j]) ^ j) {
+                time_latest[j] = time.second;
+            }
+        }
+        total_count += count;
+        result += count * 1000.0 / (time.second - time.first);
+    }
+    const double lower = total_count  * 1000.0 / (time_latest[0] - time_earliest[0]);
+    const double upper = total_count  * 1000.0 / (time_latest[1] - time_earliest[1]);
+    return { result, result - lower, upper - result };
 }
 
 
-double xmrig::Hashrate::calc(size_t threadId, size_t ms) const
+bool xmrig::Hashrate::findRecords(size_t threadId, Intervals ms, TimeRange &time, uint64_t &count) const
 {
     assert(threadId < m_threads);
     if (threadId >= m_threads) {
-        return nan("");
+        return false;
     }
-
-    uint64_t earliestHashCount = 0;
-    uint64_t earliestStamp     = 0;
-    bool haveFullSet           = false;
 
     const uint64_t timeStampLimit = xmrig::Chrono::highResolutionMSecs() - ms;
-    uint64_t* timestamps = m_timestamps[threadId];
-    uint64_t* counts = m_counts[threadId];
-
-    const size_t idx_start = (m_top[threadId] - 1) & kBucketMask;
-    size_t idx = idx_start;
-
-    uint64_t lastestStamp = timestamps[idx];
-    uint64_t lastestHashCnt = counts[idx];
-
-    do {
-        if (timestamps[idx] < timeStampLimit) {
-            haveFullSet = (timestamps[idx] != 0);
-            if (idx != idx_start) {
-                idx = (idx + 1) & kBucketMask;
-                earliestStamp = timestamps[idx];
-                earliestHashCount = counts[idx];
-            }
-            break;
+    const uint32_t head = m_head[threadId];
+    // time[tale] < timeStampLimit <= time[later_tail] <= time[head]
+    uint32_t &tail = m_tail[threadId][ms == ShortInterval ? 0 : (ms == MediumInterval ? 1 : 2)];
+    if (m_timestamps[threadId][tail] >= timeStampLimit) {
+        return false;
+    }
+    while (tail != head) {
+        const uint32_t later_tail = (tail + 1) & kBucketMask;
+        if (m_timestamps[threadId][later_tail] >= timeStampLimit) {
+            time = { m_timestamps[threadId][later_tail], m_timestamps[threadId][head] };
+            count = m_counts[threadId][head] - m_counts[threadId][later_tail];
+            return true;
         }
-        idx = (idx - 1) & kBucketMask;
-    } while (idx != idx_start);
-
-    if (!haveFullSet || earliestStamp == 0 || lastestStamp == 0) {
-        return nan("");
+        tail = later_tail;
     }
-
-    if (lastestStamp - earliestStamp == 0) {
-        return nan("");
-    }
-
-    const auto hashes = static_cast<double>(lastestHashCnt - earliestHashCount);
-    const auto time   = static_cast<double>(lastestStamp - earliestStamp) / 1000.0;
-
-    return hashes / time;
+    return false;
 }
 
 
 void xmrig::Hashrate::add(size_t threadId, uint64_t count, uint64_t timestamp)
 {
-    const size_t top = m_top[threadId];
-    m_counts[threadId][top]     = count;
-    m_timestamps[threadId][top] = timestamp;
+    const uint32_t head = (m_head[threadId] + 1) & kBucketMask;
+    m_counts[threadId][head]     = count;
+    m_timestamps[threadId][head] = timestamp;
 
-    m_top[threadId] = (top + 1) & kBucketMask;
+    m_head[threadId] = head;
 }
 
 
-const char *xmrig::Hashrate::format(double h, char *buf, size_t size)
+const char *xmrig::Hashrate::format(Value h, char *buf, size_t size)
 {
-    return ::format(h, buf, size);
+    return ::format(h.estimate, buf, size, h.errorDown, h.errorUp);
 }
 
 
