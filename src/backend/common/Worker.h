@@ -54,7 +54,7 @@ protected:
     const size_t m_id;
     uint64_t m_hashCount[2] = {};
     uint64_t m_timestamp[2] = {};
-    std::atomic<uint32_t> m_index;
+    std::atomic<uint32_t> m_index = {};
     uint32_t m_node     = 0;
     uint64_t m_count    = 0;
 };
