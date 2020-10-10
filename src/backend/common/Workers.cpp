@@ -160,6 +160,29 @@ void xmrig::Workers<T>::tick(uint64_t)
 }
 
 
+template<>
+void xmrig::Workers<xmrig::CpuLaunchData>::tick(uint64_t)
+{
+    if (!d_ptr->hashrate) {
+        return;
+    }
+
+    const uint64_t timestamp = Chrono::steadyMSecs();
+    uint64_t totalHashCount = 0;
+    for (Thread<CpuLaunchData> *handle : m_workers) {
+        if (handle->worker()) {
+            const uint64_t hashCount = handle->worker()->rawHashes();
+            d_ptr->hashrate->add(handle->id() + 1, hashCount, timestamp);
+            totalHashCount += hashCount;
+        }
+    }
+
+    if (totalHashCount > 0) {
+        d_ptr->hashrate->add(0, totalHashCount, timestamp);
+    }
+}
+
+
 template<class T>
 xmrig::IWorker *xmrig::Workers<T>::create(Thread<T> *)
 {
