@@ -218,9 +218,11 @@ void xmrig::CpuWorker<N>::start()
         alignas(16) uint64_t tempHash[8] = {};
 
         // RandomX is faster, we don't need to store stats so often
+#       ifndef XMRIG_ARM
         if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
             storeStatsMask = 63;
         }
+#       endif
 #       endif
 
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {

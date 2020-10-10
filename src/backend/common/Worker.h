@@ -44,6 +44,7 @@ public:
 
     inline const VirtualMemory *memory() const override   { return nullptr; }
     inline size_t id() const override                     { return m_id; }
+    inline uint64_t rawHashes() const override            { return m_count; }
     void getHashrateData(uint64_t& hashCount, uint64_t& timeStamp) const override;
     inline void jobEarlyNotification(const Job&) override {}
 

@@ -203,7 +203,7 @@ public:
                 continue;
             }
 
-            for (size_t i = 0; i < hr->threads(); i++) {
+            for (size_t i = 1; i < hr->threads(); i++) {
                 Value thread(kArrayType);
                 thread.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
                 thread.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);

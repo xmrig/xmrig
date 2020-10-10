@@ -27,6 +27,7 @@
 #define XMRIG_CUDAWORKER_H
 
 
+#include "backend/common/HashrateInterpolator.h"
 #include "backend/common/Worker.h"
 #include "backend/common/WorkerJob.h"
 #include "backend/cuda/CudaLaunchData.h"
@@ -49,6 +50,7 @@ public:
 
     ~CudaWorker() override;
 
+    uint64_t rawHashes() const override;
     void jobEarlyNotification(const Job&) override;
 
     static std::atomic<bool> ready;
@@ -67,6 +69,8 @@ private:
     ICudaRunner *m_runner = nullptr;
     WorkerJob<1> m_job;
     uint32_t m_deviceIndex;
+
+    HashrateInterpolator m_hashrateData;
 };
 
 

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,38 +22,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_IWORKER_H
-#define XMRIG_IWORKER_H
+
+#include "backend/common/HashrateInterpolator.h"
 
 
-#include <cstdint>
-#include <cstddef>
-
-
-namespace xmrig {
-
-
-class VirtualMemory;
-class Job;
-
-
-class IWorker
+uint64_t xmrig::HashrateInterpolator::interpolate(uint64_t timeStamp) const
 {
-public:
-    virtual ~IWorker() = default;
+    timeStamp -= LagMS;
 
-    virtual bool selfTest()                                   = 0;
-    virtual const VirtualMemory *memory() const               = 0;
-    virtual size_t id() const                                 = 0;
-    virtual size_t intensity() const                          = 0;
-    virtual uint64_t rawHashes() const                        = 0;
-    virtual void getHashrateData(uint64_t&, uint64_t&) const  = 0;
-    virtual void start()                                      = 0;
-    virtual void jobEarlyNotification(const Job&)             = 0;
-};
+    std::lock_guard<std::mutex> l(m_lock);
 
+    const size_t N = m_data.size();
 
-} // namespace xmrig
+    if (N < 2) {
+        return 0;
+    }
 
+    for (size_t i = 0; i < N - 1; ++i) {
+        const auto& a = m_data[i];
+        const auto& b = m_data[i + 1];
 
-#endif // XMRIG_IWORKER_H
+        if (a.second <= timeStamp && timeStamp <= b.second) {
+            return a.first + static_cast<int64_t>(b.first - a.first) * (timeStamp - a.second) / (b.second - a.second);
+        }
+    }
+
+    return 0;
+}
+
+void xmrig::HashrateInterpolator::addDataPoint(uint64_t count, uint64_t timeStamp)
+{
+    std::lock_guard<std::mutex> l(m_lock);
+
+    // Clean up old data
+    while (!m_data.empty() && (timeStamp - m_data.front().second > LagMS * 2)) {
+        m_data.pop_front();
+    }
+
+    m_data.emplace_back(count, timeStamp);
+}

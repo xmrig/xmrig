@@ -140,6 +140,12 @@ xmrig::OclWorker::~OclWorker()
 }
 
 
+uint64_t xmrig::OclWorker::rawHashes() const
+{
+    return m_hashrateData.interpolate(Chrono::steadyMSecs());
+}
+
+
 void xmrig::OclWorker::jobEarlyNotification(const Job& job)
 {
     if (m_runner) {
@@ -247,8 +253,11 @@ void xmrig::OclWorker::storeStats(uint64_t t)
     }
 
     m_count += m_runner->processedHashes();
+    const uint64_t timeStamp = Chrono::steadyMSecs();
 
-    m_sharedData.setRunTime(Chrono::steadyMSecs() - t);
+    m_hashrateData.addDataPoint(m_count, timeStamp);
+
+    m_sharedData.setRunTime(timeStamp - t);
 
     Worker::storeStats();
 }

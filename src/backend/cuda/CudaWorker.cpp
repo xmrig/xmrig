@@ -120,6 +120,12 @@ xmrig::CudaWorker::~CudaWorker()
 }
 
 
+uint64_t xmrig::CudaWorker::rawHashes() const
+{
+    return m_hashrateData.interpolate(Chrono::steadyMSecs());
+}
+
+
 void xmrig::CudaWorker::jobEarlyNotification(const Job& job)
 {
     if (m_runner) {
@@ -206,6 +212,9 @@ void xmrig::CudaWorker::storeStats()
     }
 
     m_count += m_runner ? m_runner->processedHashes() : 0;
+
+    const uint64_t timeStamp = Chrono::steadyMSecs();
+    m_hashrateData.addDataPoint(m_count, timeStamp);
 
     Worker::storeStats();
 }
