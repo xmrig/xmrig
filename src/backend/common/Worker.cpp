@@ -48,7 +48,7 @@ void xmrig::Worker::storeStats()
 
     // Fill in the data for that index
     m_hashCount[index] = m_count;
-    m_timestamp[index] = Chrono::highResolutionMSecs();
+    m_timestamp[index] = Chrono::steadyMSecs();
 
     // Switch to that index
     // All data will be in memory by the time it completes thanks to std::memory_order_seq_cst

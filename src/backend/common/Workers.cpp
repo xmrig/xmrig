@@ -29,6 +29,7 @@
 #include "backend/common/Workers.h"
 #include "backend/cpu/CpuWorker.h"
 #include "base/io/log/Log.h"
+#include "base/tools/Chrono.h"
 #include "base/tools/Object.h"
 
 
@@ -142,12 +143,19 @@ void xmrig::Workers<T>::tick(uint64_t)
         return;
     }
 
+    uint64_t totalHashCount = 0;
+
     for (Thread<T> *handle : m_workers) {
         if (handle->worker()) {
             uint64_t hashCount, timeStamp;
             handle->worker()->getHashrateData(hashCount, timeStamp);
-            d_ptr->hashrate->add(handle->id(), hashCount, timeStamp);
+            d_ptr->hashrate->add(handle->id() + 1, hashCount, timeStamp);
+            totalHashCount += handle->worker()->rawHashes();
         }
+    }
+
+    if (totalHashCount > 0) {
+        d_ptr->hashrate->add(0, totalHashCount, Chrono::steadyMSecs());
     }
 }
 

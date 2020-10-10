@@ -304,9 +304,9 @@ void xmrig::CpuBackend::printHashrate(bool details)
          Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |",
                     i,
                     data.affinity,
-                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
+                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::ShortInterval),  num,         sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
                     );
 
          i++;
