@@ -143,6 +143,7 @@ void xmrig::Workers<T>::tick(uint64_t)
         return;
     }
 
+    bool totalAvailable = true;
     uint64_t totalHashCount = 0;
 
     for (Thread<T> *handle : m_workers) {
@@ -150,11 +151,16 @@ void xmrig::Workers<T>::tick(uint64_t)
             uint64_t hashCount, timeStamp;
             handle->worker()->getHashrateData(hashCount, timeStamp);
             d_ptr->hashrate->add(handle->id() + 1, hashCount, timeStamp);
-            totalHashCount += handle->worker()->rawHashes();
+
+            const uint64_t n = handle->worker()->rawHashes();
+            if (n == 0) {
+                totalAvailable = false;
+            }
+            totalHashCount += n;
         }
     }
 
-    if (totalHashCount > 0) {
+    if (totalAvailable) {
         d_ptr->hashrate->add(0, totalHashCount, Chrono::steadyMSecs());
     }
 }
