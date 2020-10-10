@@ -55,10 +55,8 @@ void xmrig::HashrateInterpolator::addDataPoint(uint64_t count, uint64_t timeStam
     std::lock_guard<std::mutex> l(m_lock);
 
     // Clean up old data
-    if (!m_data.empty()) {
-        while (timeStamp - m_data.front().second > LagMS * 2) {
-            m_data.pop_front();
-        }
+    while (!m_data.empty() && (timeStamp - m_data.front().second > LagMS * 2)) {
+        m_data.pop_front();
     }
 
     m_data.emplace_back(count, timeStamp);
