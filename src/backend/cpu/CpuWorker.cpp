@@ -180,6 +180,7 @@ bool xmrig::CpuWorker<N>::selfTest()
 #   ifdef XMRIG_ALGO_ARGON2
     if (m_algorithm.family() == Algorithm::ARGON2) {
         return verify(Algorithm::AR2_CHUKWA, argon2_chukwa_test_out) &&
+               verify(Algorithm::AR2_CHUKWA_V2, argon2_chukwa_v2_test_out) &&
                verify(Algorithm::AR2_WRKZ, argon2_wrkz_test_out);
     }
 #   endif
