@@ -130,6 +130,9 @@ else()
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_unix.cpp
         )
+    list(APPEND SOURCES_BASE
+        src/base/io/Async.cpp
+        )
 endif()
 
 

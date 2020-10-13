@@ -24,6 +24,7 @@
 
 
 #include "net/JobResults.h"
+#include "base/io/Async.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
 #include "base/tools/Object.h"
