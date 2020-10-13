@@ -38,12 +38,7 @@ void xmrig::LineReader::parse(char *data, size_t size)
         return;
     }
 
-    if (!m_buf) {
-        return getline(data, size);
-    }
-
-    add(data, size);
-    getline(m_buf, m_pos);
+    getline(data, size);
 }
 
 
@@ -60,6 +55,7 @@ void xmrig::LineReader::reset()
 void xmrig::LineReader::add(const char *data, size_t size)
 {
     if (size > NetBuffer::kChunkSize - m_pos) {
+        // it breakes correctness silently for long lines
         return;
     }
 
@@ -85,7 +81,12 @@ void xmrig::LineReader::getline(char *data, size_t size)
         end++;
 
         const auto len = static_cast<size_t>(end - start);
-        if (len > 1) {
+        if (m_pos) {
+            add(start, len);
+            m_listener->onLine(m_buf, m_pos - 1);
+            m_pos = 0;
+        }
+        else if (len > 1) {
             m_listener->onLine(start, len - 1);
         }
 
@@ -97,7 +98,5 @@ void xmrig::LineReader::getline(char *data, size_t size)
         return reset();
     }
 
-    if (!m_buf || m_buf != data) {
-        add(start, remaining);
-    }
+    add(start, remaining);
 }
