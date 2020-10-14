@@ -573,8 +573,12 @@ void xmrig::Miner::onTimer(const Timer *)
     double maxHashrate          = 0.0;
     const auto healthPrintTime  = d_ptr->controller->config()->healthPrintTime();
 
+    bool stopMiner = false;
+
     for (IBackend *backend : d_ptr->backends) {
-        backend->tick(d_ptr->ticks);
+        if (!backend->tick(d_ptr->ticks)) {
+            stopMiner = true;
+        }
 
         if (healthPrintTime && d_ptr->ticks && (d_ptr->ticks % (healthPrintTime * 2)) == 0 && backend->isEnabled()) {
             backend->printHealth();
@@ -606,6 +610,10 @@ void xmrig::Miner::onTimer(const Timer *)
             d_ptr->battery_power = false;
             setEnabled(true);
         }
+    }
+
+    if (stopMiner) {
+        stop();
     }
 }
 

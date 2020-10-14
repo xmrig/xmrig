@@ -50,6 +50,9 @@
 #endif
 
 
+#include "base/net/stratum/NullClient.h"
+
+
 namespace xmrig {
 
 
@@ -72,6 +75,7 @@ const char *Pool::kSOCKS5                 = "socks5";
 const char *Pool::kTls                    = "tls";
 const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
+const char *Pool::kBenchmark              = "benchmark";
 
 
 const char *Pool::kNicehashHost = "nicehash.com";
@@ -125,7 +129,20 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash) || m_url.host().contains(kNicehashHost));
     m_flags.set(FLAG_TLS,      Json::getBool(object, kTls) || m_url.isTLS());
 
-    if (m_daemon.isValid()) {
+    const char* benchSize = Json::getString(object, kBenchmark, nullptr);
+    if (benchSize) {
+        if (stricmp(benchSize, "1M") == 0) {
+            m_benchSize = 1000000;
+        }
+        else if (stricmp(benchSize, "10M") == 0) {
+            m_benchSize = 10000000;
+        }
+    }
+
+    if (m_benchSize) {
+        m_mode = MODE_BENCHMARK;
+    }
+    else if (m_daemon.isValid()) {
         m_mode = MODE_SELF_SELECT;
     }
     else if (Json::getBool(object, kDaemon)) {
@@ -217,6 +234,9 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
         client = new AutoClient(id, Platform::userAgent(), listener);
     }
 #   endif
+    else if (m_mode == MODE_BENCHMARK) {
+        client = new NullClient(listener);
+    }
 
     assert(client != nullptr);
 

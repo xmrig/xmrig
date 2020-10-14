@@ -29,8 +29,10 @@
 #include "backend/common/Workers.h"
 #include "backend/cpu/CpuWorker.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Object.h"
+#include "core/Miner.h"
 
 
 #ifdef XMRIG_FEATURE_OPENCL
@@ -63,6 +65,10 @@ public:
 
     Hashrate *hashrate = nullptr;
     IBackend *backend  = nullptr;
+
+    uint32_t bench      = 0;
+    Algorithm benchAlgo = Algorithm::RX_0;
+    uint64_t startTime  = 0;
 };
 
 
@@ -101,6 +107,11 @@ void xmrig::Workers<T>::setBackend(IBackend *backend)
 template<class T>
 void xmrig::Workers<T>::start(const std::vector<T> &data)
 {
+    if (!data.empty()) {
+        d_ptr->bench = data.front().miner->job().bench();
+        d_ptr->benchAlgo = data.front().miner->job().algorithm();
+    }
+
     for (const T &item : data) {
         m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
     }
@@ -111,11 +122,12 @@ void xmrig::Workers<T>::start(const std::vector<T> &data)
     for (Thread<T> *worker : m_workers) {
         worker->start(Workers<T>::onReady);
 
-        // This sleep is important for optimal caching!
-        // Threads must allocate scratchpads in order so that adjacent cores will use adjacent scratchpads
-        // Sub-optimal caching can result in up to 0.5% hashrate penalty
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        if (!d_ptr->bench) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
     }
+
+    d_ptr->startTime = Chrono::steadyMSecs();
 }
 
 
@@ -137,55 +149,91 @@ void xmrig::Workers<T>::stop()
 
 
 template<class T>
-void xmrig::Workers<T>::tick(uint64_t)
+static void getHashrateData(xmrig::IWorker* worker, uint64_t& hashCount, uint64_t& timeStamp)
+{
+    worker->getHashrateData(hashCount, timeStamp);
+}
+
+
+template<>
+static void getHashrateData<xmrig::CpuLaunchData>(xmrig::IWorker* worker, uint64_t& hashCount, uint64_t&)
+{
+    hashCount = worker->rawHashes();
+}
+
+
+template<class T>
+bool xmrig::Workers<T>::tick(uint64_t)
 {
     if (!d_ptr->hashrate) {
-        return;
+        return true;
     }
+
+    uint64_t timeStamp = Chrono::steadyMSecs();
 
     bool totalAvailable = true;
     uint64_t totalHashCount = 0;
 
+    uint32_t benchDone = 0;
+    uint64_t benchData = 0;
+    uint64_t benchDoneTime = 0;
+
     for (Thread<T> *handle : m_workers) {
-        if (handle->worker()) {
-            uint64_t hashCount, timeStamp;
-            handle->worker()->getHashrateData(hashCount, timeStamp);
+        IWorker* worker = handle->worker();
+        if (worker) {
+            uint64_t hashCount;
+            getHashrateData<T>(worker, hashCount, timeStamp);
             d_ptr->hashrate->add(handle->id() + 1, hashCount, timeStamp);
 
-            const uint64_t n = handle->worker()->rawHashes();
+            const uint64_t n = worker->rawHashes();
             if (n == 0) {
                 totalAvailable = false;
             }
             totalHashCount += n;
+
+            if (d_ptr->bench && worker->benchDoneTime()) {
+                ++benchDone;
+                benchData ^= worker->benchData();
+                if (worker->benchDoneTime() > benchDoneTime) {
+                    benchDoneTime = worker->benchDoneTime();
+                }
+            }
         }
     }
 
     if (totalAvailable) {
         d_ptr->hashrate->add(0, totalHashCount, Chrono::steadyMSecs());
     }
-}
 
+    if (d_ptr->bench && (benchDone == m_workers.size())) {
+        const double dt = (benchDoneTime - d_ptr->startTime) / 1000.0;
 
-template<>
-void xmrig::Workers<xmrig::CpuLaunchData>::tick(uint64_t)
-{
-    if (!d_ptr->hashrate) {
-        return;
-    }
+        static uint64_t hashCheck[Algorithm::MAX][2] = {};
+        hashCheck[Algorithm::RX_0][0] = 0x898B6E0431C28A6BULL;
+        hashCheck[Algorithm::RX_0][1] = 0xB5231262E2792B26ULL;
+        hashCheck[Algorithm::RX_WOW][0] = 0x0F3E5400B39EA96AULL;
+        hashCheck[Algorithm::RX_WOW][1] = 0x0F9E00C5A511C200ULL;
 
-    const uint64_t timestamp = Chrono::steadyMSecs();
-    uint64_t totalHashCount = 0;
-    for (Thread<CpuLaunchData> *handle : m_workers) {
-        if (handle->worker()) {
-            const uint64_t hashCount = handle->worker()->rawHashes();
-            d_ptr->hashrate->add(handle->id() + 1, hashCount, timestamp);
-            totalHashCount += hashCount;
+        int k = -1;
+
+        switch (d_ptr->bench) {
+        case 1000000:
+            k = 0;
+            break;
+
+        case 10000000:
+            k = 1;
+            break;
         }
+
+        const uint64_t checkData = (k >= 0) ? hashCheck[d_ptr->benchAlgo.id()][k] : 0;
+        const char* color = checkData ? ((benchData == checkData) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
+
+        LOG_INFO("%s Benchmark finished in %.3f seconds, hash sum = %s%016" PRIX64 CLEAR, Tags::miner(), dt, color, benchData);
+        return false;
     }
 
-    if (totalHashCount > 0) {
-        d_ptr->hashrate->add(0, totalHashCount, timestamp);
-    }
+    return true;
 }
 
 

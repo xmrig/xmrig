@@ -63,7 +63,7 @@ public:
     void setBackend(IBackend *backend);
     void start(const std::vector<T> &data);
     void stop();
-    void tick(uint64_t ticks);
+    bool tick(uint64_t ticks);
     void jobEarlyNotification(const Job&);
 
 private:
@@ -88,8 +88,6 @@ void xmrig::Workers<T>::jobEarlyNotification(const Job& job)
 
 template<>
 IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
-template<>
-void Workers<CpuLaunchData>::tick(uint64_t);
 extern template class Workers<CpuLaunchData>;
 
 

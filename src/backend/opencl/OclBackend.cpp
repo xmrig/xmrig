@@ -485,9 +485,9 @@ void xmrig::OclBackend::stop()
 }
 
 
-void xmrig::OclBackend::tick(uint64_t ticks)
+bool xmrig::OclBackend::tick(uint64_t ticks)
 {
-    d_ptr->workers.tick(ticks);
+    return d_ptr->workers.tick(ticks);
 }
 
 

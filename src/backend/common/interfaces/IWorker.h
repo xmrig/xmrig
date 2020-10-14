@@ -47,6 +47,8 @@ public:
     virtual size_t id() const                                 = 0;
     virtual size_t intensity() const                          = 0;
     virtual uint64_t rawHashes() const                        = 0;
+    virtual uint64_t benchData() const                        = 0;
+    virtual uint64_t benchDoneTime() const                    = 0;
     virtual void getHashrateData(uint64_t&, uint64_t&) const  = 0;
     virtual void start()                                      = 0;
     virtual void jobEarlyNotification(const Job&)             = 0;

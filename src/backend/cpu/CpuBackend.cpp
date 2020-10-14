@@ -387,9 +387,9 @@ void xmrig::CpuBackend::stop()
 }
 
 
-void xmrig::CpuBackend::tick(uint64_t ticks)
+bool xmrig::CpuBackend::tick(uint64_t ticks)
 {
-    d_ptr->workers.tick(ticks);
+    return d_ptr->workers.tick(ticks);
 }
 
 

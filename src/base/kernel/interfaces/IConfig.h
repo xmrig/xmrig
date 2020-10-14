@@ -77,6 +77,8 @@ public:
         TitleKey             = 1037,
         NoTitleKey           = 1038,
         PauseOnBatteryKey    = 1041,
+        StressKey            = 1042,
+        BenchKey             = 1043,
 
         // xmrig common
         CPUPriorityKey       = 1021,
