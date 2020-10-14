@@ -45,7 +45,6 @@ class Benchmark : public IJobResultListener {
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
             RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
             RX_KEVA,       // "rx/keva"          RandomKEVA (Keva).
-            RX_DEFYX,      // "defyx"            DefyX (Scala).
             RX_XLA,        // "panthera"         Panthera (Scala2).
             MAX,
             MIN = 0,
@@ -67,7 +66,6 @@ class Benchmark : public IJobResultListener {
             Algorithm::RX_WOW,
             Algorithm::RX_ARQ,
             Algorithm::RX_KEVA,
-            Algorithm::RX_DEFYX,
             Algorithm::RX_XLA,
         };
 
