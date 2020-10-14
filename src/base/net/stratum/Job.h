@@ -87,6 +87,7 @@ public:
     inline uint8_t *blob()                              { return m_blob; }
     inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
     inline uint8_t index() const                        { return m_index; }
+    inline uint32_t bench() const                       { return m_bench; }
     inline void reset()                                 { m_size = 0; m_diff = 0; }
     inline void setAlgorithm(const Algorithm::Id id)    { m_algorithm = id; }
     inline void setAlgorithm(const char *algo)          { m_algorithm = algo; }
@@ -96,6 +97,7 @@ public:
     inline void setHeight(uint64_t height)              { m_height = height; }
     inline void setIndex(uint8_t index)                 { m_index = index; }
     inline void setPoolWallet(const String &poolWallet) { m_poolWallet = poolWallet; }
+    inline void setBench(uint32_t bench)                { m_bench = bench; }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                            { return m_rawBlob; }
@@ -117,6 +119,7 @@ private:
 
     Algorithm m_algorithm;
     bool m_nicehash     = false;
+    uint32_t m_bench    = 0;
     Buffer m_seed;
     size_t m_size       = 0;
     String m_clientId;

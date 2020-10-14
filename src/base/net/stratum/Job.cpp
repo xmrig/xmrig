@@ -154,6 +154,7 @@ void xmrig::Job::copy(const Job &other)
 {
     m_algorithm  = other.m_algorithm;
     m_nicehash   = other.m_nicehash;
+    m_bench      = other.m_bench;
     m_size       = other.m_size;
     m_clientId   = other.m_clientId;
     m_id         = other.m_id;
@@ -181,6 +182,7 @@ void xmrig::Job::move(Job &&other)
 {
     m_algorithm  = other.m_algorithm;
     m_nicehash   = other.m_nicehash;
+    m_bench      = other.m_bench;
     m_size       = other.m_size;
     m_clientId   = std::move(other.m_clientId);
     m_id         = std::move(other.m_id);

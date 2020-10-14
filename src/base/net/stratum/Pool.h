@@ -50,7 +50,8 @@ public:
         MODE_POOL,
         MODE_DAEMON,
         MODE_SELF_SELECT,
-        MODE_AUTO_ETH
+        MODE_AUTO_ETH,
+        MODE_BENCHMARK,
     };
 
     static const String kDefaultPassword;
@@ -71,6 +72,7 @@ public:
     static const char *kTls;
     static const char *kUrl;
     static const char *kUser;
+    static const char* kBenchmark;
     static const char *kNicehashHost;
 
     constexpr static int kKeepAliveTimeout         = 60;
@@ -97,6 +99,7 @@ public:
     inline const Url &daemon() const                    { return m_daemon; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline Mode mode() const                            { return m_mode; }
+    inline uint64_t benchSize() const                   { return m_benchSize; }
     inline uint16_t port() const                        { return m_url.port(); }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
     inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
@@ -133,6 +136,7 @@ private:
     Coin m_coin;
     int m_keepAlive                 = 0;
     Mode m_mode                     = MODE_POOL;
+    uint32_t m_benchSize            = 0;
     ProxyUrl m_proxy;
     std::bitset<FLAG_MAX> m_flags   = 0;
     String m_fingerprint;

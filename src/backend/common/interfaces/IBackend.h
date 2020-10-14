@@ -60,7 +60,7 @@ public:
     virtual void setJob(const Job &job)                                 = 0;
     virtual void start(IWorker *worker, bool ready)                     = 0;
     virtual void stop()                                                 = 0;
-    virtual void tick(uint64_t ticks)                                   = 0;
+    virtual bool tick(uint64_t ticks)                                   = 0;
 
 #   ifdef XMRIG_FEATURE_API
     virtual rapidjson::Value toJSON(rapidjson::Document &doc) const     = 0;

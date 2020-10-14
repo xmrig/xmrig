@@ -63,7 +63,7 @@ protected:
     void setJob(const Job &job) override;
     void start(IWorker *worker, bool ready) override;
     void stop() override;
-    void tick(uint64_t ticks) override;
+    bool tick(uint64_t ticks) override;
 
 #   ifdef XMRIG_FEATURE_API
     rapidjson::Value toJSON(rapidjson::Document &doc) const override;

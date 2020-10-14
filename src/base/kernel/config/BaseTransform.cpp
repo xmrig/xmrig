@@ -152,6 +152,8 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         break;
 
     case IConfig::UrlKey: /* --url */
+    case IConfig::StressKey: /* --stress */
+    case IConfig::BenchKey: /* --bench */
     {
         if (!doc.HasMember(Pools::kPools)) {
             doc.AddMember(rapidjson::StringRef(Pools::kPools), rapidjson::kArrayType, doc.GetAllocator());
@@ -162,7 +164,19 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
             array.PushBack(rapidjson::kObjectType, doc.GetAllocator());
         }
 
-        set(doc, array[array.Size() - 1], Pool::kUrl, arg);
+        if (key == IConfig::UrlKey) {
+            set(doc, array[array.Size() - 1], Pool::kUrl, arg);
+        }
+        else {
+            set(doc, array[array.Size() - 1], Pool::kUrl, (key == IConfig::BenchKey) ? "offline" : "donate.v2.xmrig.com:3333");
+            set(doc, "cpu", "huge-pages-jit", true);
+            set(doc, "cpu", "priority", 2);
+            set(doc, "cpu", "yield", false);
+            if (key == IConfig::BenchKey) {
+                set(doc, array[array.Size() - 1], Pool::kBenchmark, arg);
+            }
+        }
+
         break;
     }
 

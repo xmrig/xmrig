@@ -501,9 +501,9 @@ void xmrig::CudaBackend::stop()
 }
 
 
-void xmrig::CudaBackend::tick(uint64_t ticks)
+bool xmrig::CudaBackend::tick(uint64_t ticks)
 {
-    d_ptr->workers.tick(ticks);
+    return d_ptr->workers.tick(ticks);
 }
 
 

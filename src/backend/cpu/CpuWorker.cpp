@@ -29,6 +29,7 @@
 
 
 #include "backend/cpu/CpuWorker.h"
+#include "base/tools/Chrono.h"
 #include "core/Miner.h"
 #include "crypto/cn/CnCtx.h"
 #include "crypto/cn/CryptoNight_test.h"
@@ -59,8 +60,10 @@ static constexpr uint32_t kReserveCount = 32768;
 template<size_t N>
 inline bool nextRound(WorkerJob<N> &job)
 {
-    if (!job.nextRound(kReserveCount, 1)) {
-        JobResults::done(job.currentJob());
+    const Job& curJob = job.currentJob();
+    const uint32_t bench = curJob.bench();
+    if (!job.nextRound(bench ? 1 : kReserveCount, 1)) {
+        JobResults::done(curJob);
 
         return false;
     }
@@ -265,7 +268,18 @@ void xmrig::CpuWorker<N>::start()
 
             if (valid) {
                 for (size_t i = 0; i < N; ++i) {
-                    if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
+                    const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
+
+                    if (job.bench()) {
+                        if (current_job_nonces[i] < job.bench()) {
+                            m_benchData ^= value;
+                        }
+                        else {
+                            m_benchDoneTime = Chrono::steadyMSecs();
+                            return;
+                        }
+                    }
+                    else if (value < job.target()) {
                         JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
                     }
                 }
@@ -362,7 +376,8 @@ void xmrig::CpuWorker<N>::consumeJob()
         return;
     }
 
-    m_job.add(m_miner->job(), kReserveCount, Nonce::CPU);
+    const uint32_t bench = m_miner->job().bench();
+    m_job.add(m_miner->job(), bench ? 1 : kReserveCount, Nonce::CPU);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {

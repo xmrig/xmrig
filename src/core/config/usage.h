@@ -178,6 +178,8 @@ static inline const std::string &usage()
     u += "      --no-title                disable setting console window title\n";
 #   endif
     u += "      --pause-on-battery        pause mine on battery power\n";
+    u += "      --stress                  run continuous stress test to check system stability\n";
+    u += "      --bench=N                 run benchmark in offline mode, N can be 1M or 10M\n";
 
     return u;
 }
