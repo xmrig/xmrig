@@ -53,6 +53,11 @@
 #include "base/net/stratum/NullClient.h"
 
 
+#ifdef _MSC_VER
+#   define strcasecmp  _stricmp
+#endif
+
+
 namespace xmrig {
 
 
@@ -131,10 +136,10 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
     const char* benchSize = Json::getString(object, kBenchmark, nullptr);
     if (benchSize) {
-        if (stricmp(benchSize, "1M") == 0) {
+        if (strcasecmp(benchSize, "1M") == 0) {
             m_benchSize = 1000000;
         }
-        else if (stricmp(benchSize, "10M") == 0) {
+        else if (strcasecmp(benchSize, "10M") == 0) {
             m_benchSize = 10000000;
         }
     }

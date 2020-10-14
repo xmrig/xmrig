@@ -156,7 +156,7 @@ static void getHashrateData(xmrig::IWorker* worker, uint64_t& hashCount, uint64_
 
 
 template<>
-static void getHashrateData<xmrig::CpuLaunchData>(xmrig::IWorker* worker, uint64_t& hashCount, uint64_t&)
+void getHashrateData<xmrig::CpuLaunchData>(xmrig::IWorker* worker, uint64_t& hashCount, uint64_t&)
 {
     hashCount = worker->rawHashes();
 }
