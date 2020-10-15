@@ -30,6 +30,7 @@
 #include "backend/cpu/CpuWorker.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
+#include "base/net/stratum/Pool.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Object.h"
 #include "core/Miner.h"
@@ -205,32 +206,31 @@ bool xmrig::Workers<T>::tick(uint64_t)
         d_ptr->hashrate->add(0, totalHashCount, Chrono::steadyMSecs());
     }
 
-    if (d_ptr->bench && (benchDone == m_workers.size())) {
-        const double dt = (benchDoneTime - d_ptr->startTime) / 1000.0;
+    if (d_ptr->bench) {
+        Pool::benchProgress = std::min<uint32_t>(static_cast<uint32_t>((totalHashCount * 100U) / d_ptr->bench), 100U);
 
-        static uint64_t hashCheck[Algorithm::MAX][2] = {};
-        hashCheck[Algorithm::RX_0][0] = 0x898B6E0431C28A6BULL;
-        hashCheck[Algorithm::RX_0][1] = 0xB5231262E2792B26ULL;
-        hashCheck[Algorithm::RX_WOW][0] = 0x0F3E5400B39EA96AULL;
-        hashCheck[Algorithm::RX_WOW][1] = 0x0F9E00C5A511C200ULL;
+        if (benchDone == m_workers.size()) {
+            const double dt = (benchDoneTime - d_ptr->startTime) / 1000.0;
 
-        int k = -1;
+            uint64_t checkData = 0;
 
-        switch (d_ptr->bench) {
-        case 1000000:
-            k = 0;
-            break;
+            const Algorithm::Id algo = d_ptr->benchAlgo.id();
+            const uint32_t N = (d_ptr->bench / 1000000) - 1;
 
-        case 10000000:
-            k = 1;
-            break;
+            if (((algo == Algorithm::RX_0) || (algo == Algorithm::RX_WOW)) && ((d_ptr->bench % 1000000) == 0) && (N < 10)) {
+                static uint64_t hashCheck[2][10] = {
+                    { 0x898B6E0431C28A6BULL, 0xEE9468F8B40926BCULL, 0xC2BC5D11724813C0ULL, 0x3A2C7B285B87F941ULL, 0x3B5BD2C3A16B450EULL, 0x5CD0602F20C5C7C4ULL, 0x101DE939474B6812ULL, 0x52B765A1B156C6ECULL, 0x323935102AB6B45CULL, 0xB5231262E2792B26ULL },
+                    { 0x0F3E5400B39EA96AULL, 0x85944CCFA2752D1FULL, 0x64AFFCAE991811BAULL, 0x3E4D0B836D3B13BAULL, 0xEB7417D621271166ULL, 0x97FFE10C0949FFA5ULL, 0x84CAC0F8879A4BA1ULL, 0xA1B79F031DA2459FULL, 0x9B65226DA873E65DULL, 0x0F9E00C5A511C200ULL },
+                };
+
+                checkData = hashCheck[(algo == Algorithm::RX_0) ? 0 : 1][N];
+            }
+
+            const char* color = checkData ? ((benchData == checkData) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
+
+            LOG_INFO("%s Benchmark finished in %.3f seconds, hash sum = %s%016" PRIX64 CLEAR, Tags::miner(), dt, color, benchData);
+            return false;
         }
-
-        const uint64_t checkData = (k >= 0) ? hashCheck[d_ptr->benchAlgo.id()][k] : 0;
-        const char* color = checkData ? ((benchData == checkData) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
-
-        LOG_INFO("%s Benchmark finished in %.3f seconds, hash sum = %s%016" PRIX64 CLEAR, Tags::miner(), dt, color, benchData);
-        return false;
     }
 
     return true;

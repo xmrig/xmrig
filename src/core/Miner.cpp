@@ -304,8 +304,13 @@ public:
         }
 #       endif
 
-        LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
-                 Tags::miner(),
+        char benchProgress[8] = {};
+        if (Pool::benchProgress) {
+            sprintf(benchProgress, "%3u%% ", Pool::benchProgress);
+        }
+
+        LOG_INFO("%s %s" WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
+                 Tags::miner(), benchProgress,
                  Hashrate::format(speed[0] * scale,                 num,          sizeof(num) / 4),
                  Hashrate::format(speed[1] * scale,                 num + 16,     sizeof(num) / 4),
                  Hashrate::format(speed[2] * scale,                 num + 16 * 2, sizeof(num) / 4), h,
