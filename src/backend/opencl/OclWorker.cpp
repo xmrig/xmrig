@@ -56,12 +56,22 @@
 namespace xmrig {
 
 
-static constexpr uint32_t kReserveCount = 32768;
 std::atomic<bool> OclWorker::ready;
 
 
 static inline bool isReady()                         { return !Nonce::isPaused() && OclWorker::ready; }
-static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
+
+static inline uint32_t roundSize(uint32_t intensity)
+{
+#ifdef _MSC_VER
+    unsigned long index;
+    _BitScanReverse(&index, intensity - 1);
+    const uint32_t n = 31 - index;
+#else
+    const uint32_t n = __builtin_clz(intensity - 1);
+#endif
+    return 1U << (32 - n);
+}
 
 
 static inline void printError(size_t id, const char *error)

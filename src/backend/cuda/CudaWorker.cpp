@@ -62,7 +62,19 @@ std::atomic<bool> CudaWorker::ready;
 
 
 static inline bool isReady()                         { return !Nonce::isPaused() && CudaWorker::ready; }
-static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
+
+
+static inline uint32_t roundSize(uint32_t intensity)
+{
+#ifdef _MSC_VER
+    unsigned long index;
+    _BitScanReverse(&index, intensity - 1);
+    const uint32_t n = 31 - index;
+#else
+    const uint32_t n = __builtin_clz(intensity - 1);
+#endif
+    return 1U << (32 - n);
+}
 
 
 } // namespace xmrig
