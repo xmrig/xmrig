@@ -60,10 +60,16 @@ static constexpr uint32_t kReserveCount = 32768;
 template<size_t N>
 inline bool nextRound(WorkerJob<N> &job)
 {
-    const Job& curJob = job.currentJob();
-    const uint32_t bench = curJob.bench();
-    if (!job.nextRound(bench ? 1 : kReserveCount, 1)) {
-        JobResults::done(curJob);
+    const auto &currentJob = job.currentJob();
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    const uint32_t rounds = currentJob.bench() ? 1 : kReserveCount;
+#   else
+    constexpr uint32_t rounds = kReserveCount;
+#   endif
+
+    if (!job.nextRound(rounds, 1)) {
+        JobResults::done(currentJob);
 
         return false;
     }
@@ -270,6 +276,7 @@ void xmrig::CpuWorker<N>::start()
                 for (size_t i = 0; i < N; ++i) {
                     const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
 
+#                   ifdef XMRIG_FEATURE_BENCHMARK
                     if (job.bench()) {
                         if (current_job_nonces[i] < job.bench()) {
                             m_benchData ^= value;
@@ -279,7 +286,9 @@ void xmrig::CpuWorker<N>::start()
                             return;
                         }
                     }
-                    else if (value < job.target()) {
+                    else
+#                   endif
+                    if (value < job.target()) {
                         JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
                     }
                 }
@@ -376,8 +385,15 @@ void xmrig::CpuWorker<N>::consumeJob()
         return;
     }
 
-    const uint32_t bench = m_miner->job().bench();
-    m_job.add(m_miner->job(), bench ? 1 : kReserveCount, Nonce::CPU);
+    auto job = m_miner->job();
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    const uint32_t rounds = job.bench() ? 1 : kReserveCount;
+#   else
+    constexpr uint32_t rounds = kReserveCount;
+#   endif
+
+    m_job.add(job, rounds, Nonce::CPU);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {

@@ -51,7 +51,9 @@ public:
         MODE_DAEMON,
         MODE_SELF_SELECT,
         MODE_AUTO_ETH,
+#       ifdef XMRIG_FEATURE_BENCHMARK
         MODE_BENCHMARK,
+#       endif
     };
 
     static const String kDefaultPassword;
@@ -72,8 +74,11 @@ public:
     static const char *kTls;
     static const char *kUrl;
     static const char *kUser;
-    static const char* kBenchmark;
     static const char *kNicehashHost;
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    static const char *kBenchmark;
+#   endif
 
     constexpr static int kKeepAliveTimeout         = 60;
     constexpr static uint16_t kDefaultPort         = 3333;
@@ -99,7 +104,6 @@ public:
     inline const Url &daemon() const                    { return m_daemon; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline Mode mode() const                            { return m_mode; }
-    inline uint64_t benchSize() const                   { return m_benchSize; }
     inline uint16_t port() const                        { return m_url.port(); }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
     inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
@@ -107,6 +111,10 @@ public:
     inline void setProxy(const ProxyUrl &proxy)         { m_proxy = proxy; }
     inline void setRigId(const String &rigId)           { m_rigId = rigId; }
     inline void setUser(const String &user)             { m_user = user; }
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    inline uint64_t benchSize() const                   { return m_benchSize; }
+#   endif
 
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
     inline bool operator==(const Pool &other) const     { return isEqual(other); }
@@ -134,11 +142,12 @@ private:
     inline void setKeepAlive(bool enable)               { setKeepAlive(enable ? kKeepAliveTimeout : 0); }
     inline void setKeepAlive(int keepAlive)             { m_keepAlive = keepAlive >= 0 ? keepAlive : 0; }
 
+    void setKeepAlive(const rapidjson::Value &value);
+
     Algorithm m_algorithm;
     Coin m_coin;
     int m_keepAlive                 = 0;
     Mode m_mode                     = MODE_POOL;
-    uint32_t m_benchSize            = 0;
     ProxyUrl m_proxy;
     std::bitset<FLAG_MAX> m_flags   = 0;
     String m_fingerprint;
@@ -148,6 +157,12 @@ private:
     uint64_t m_pollInterval         = kDefaultPollInterval;
     Url m_daemon;
     Url m_url;
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    bool setBenchSize(const char *benchmark);
+
+    uint32_t m_benchSize            = 0;
+#   endif
 };
 
 

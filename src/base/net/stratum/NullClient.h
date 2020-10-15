@@ -34,37 +34,37 @@ public:
     NullClient(IClientListener* listener);
     ~NullClient() override = default;
 
-    virtual bool disconnect() override { return true; }
-    virtual bool hasExtension(Extension extension) const noexcept override { return false; }
-    virtual bool isEnabled() const override { return true; }
-    virtual bool isTLS() const override { return false; }
-    virtual const char* mode() const override { return "benchmark"; }
-    virtual const char* tag() const override { return "null"; }
-    virtual const char* tlsFingerprint() const override { return nullptr; }
-    virtual const char* tlsVersion() const override { return nullptr; }
-    virtual const Job& job() const override { return m_job; }
-    virtual const Pool& pool() const override { return m_pool; }
-    virtual const String& ip() const override { return m_ip; }
-    virtual int id() const override { return 0; }
-    virtual int64_t send(const rapidjson::Value& obj, Callback callback) override { return 0; }
-    virtual int64_t send(const rapidjson::Value& obj) override { return 0; }
-    virtual int64_t sequence() const override { return 0; }
-    virtual int64_t submit(const JobResult& result) override { return 0; }
-    virtual void connect() override;
-    virtual void connect(const Pool& pool) override { setPool(pool); }
-    virtual void deleteLater() override {}
-    virtual void setAlgo(const Algorithm& algo) override {}
-    virtual void setEnabled(bool enabled) override {}
-    virtual void setPool(const Pool& pool) override;
-    virtual void setProxy(const ProxyUrl& proxy) override {}
-    virtual void setQuiet(bool quiet) override {}
-    virtual void setRetries(int retries) override {}
-    virtual void setRetryPause(uint64_t ms) override {}
-    virtual void tick(uint64_t now) override {}
+    inline bool disconnect() override                                               { return true; }
+    inline bool hasExtension(Extension extension) const noexcept override           { return false; }
+    inline bool isEnabled() const override                                          { return true; }
+    inline bool isTLS() const override                                              { return false; }
+    inline const char *mode() const override                                        { return "benchmark"; }
+    inline const char *tag() const override                                         { return "null"; }
+    inline const char *tlsFingerprint() const override                              { return nullptr; }
+    inline const char *tlsVersion() const override                                  { return nullptr; }
+    inline const Job &job() const override                                          { return m_job; }
+    inline const Pool &pool() const override                                        { return m_pool; }
+    inline const String &ip() const override                                        { return m_ip; }
+    inline int id() const override                                                  { return 0; }
+    inline int64_t send(const rapidjson::Value& obj, Callback callback) override    { return 0; }
+    inline int64_t send(const rapidjson::Value& obj) override                       { return 0; }
+    inline int64_t sequence() const override                                        { return 0; }
+    inline int64_t submit(const JobResult& result) override                         { return 0; }
+    inline void connect(const Pool& pool) override                                  { setPool(pool); }
+    inline void deleteLater() override                                              {}
+    inline void setAlgo(const Algorithm& algo) override                             {}
+    inline void setEnabled(bool enabled) override                                   {}
+    inline void setProxy(const ProxyUrl& proxy) override                            {}
+    inline void setQuiet(bool quiet) override                                       {}
+    inline void setRetries(int retries) override                                    {}
+    inline void setRetryPause(uint64_t ms) override                                 {}
+    inline void tick(uint64_t now) override                                         {}
+
+    void connect() override;
+    void setPool(const Pool& pool) override;
 
 private:
     IClientListener* m_listener;
-
     Job m_job;
     Pool m_pool;
     String m_ip;

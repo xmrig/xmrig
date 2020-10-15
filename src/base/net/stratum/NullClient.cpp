@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "3rdparty/rapidjson/document.h"
 #include "base/net/stratum/NullClient.h"
+#include "3rdparty/rapidjson/document.h"
 #include "base/kernel/interfaces/IClientListener.h"
 
 

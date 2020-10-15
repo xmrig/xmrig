@@ -24,6 +24,8 @@
 
 
 #include "base/kernel/interfaces/IConfig.h"
+#include "base/net/stratum/Pool.h"
+#include "base/net/stratum/Pools.h"
 #include "core/config/ConfigTransform.h"
 #include "crypto/cn/CnHash.h"
 
@@ -241,6 +243,19 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::HealthPrintTimeKey: /* --health-print-time */
         return set(doc, "health-print-time", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+#   endif
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    case IConfig::StressKey: /* --stress */
+    case IConfig::BenchKey:  /* --bench */
+        set(doc, kCpu, "huge-pages-jit", true);
+        set(doc, kCpu, "priority", 2);
+        set(doc, kCpu, "yield", false);
+
+        if (key == IConfig::BenchKey) {
+            add(doc, Pools::kPools, Pool::kBenchmark, arg);
+        }
+        break;
 #   endif
 
     default:

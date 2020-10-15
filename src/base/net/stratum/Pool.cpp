@@ -50,7 +50,9 @@
 #endif
 
 
-#include "base/net/stratum/NullClient.h"
+#ifdef XMRIG_FEATURE_BENCHMARK
+#   include "base/net/stratum/NullClient.h"
+#endif
 
 
 #ifdef _MSC_VER
@@ -80,10 +82,11 @@ const char *Pool::kSOCKS5                 = "socks5";
 const char *Pool::kTls                    = "tls";
 const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
+const char *Pool::kNicehashHost           = "nicehash.com";
+
+#ifdef XMRIG_FEATURE_BENCHMARK
 const char *Pool::kBenchmark              = "benchmark";
-
-
-const char *Pool::kNicehashHost = "nicehash.com";
+#endif
 
 
 uint32_t Pool::benchProgress = 0;
@@ -137,34 +140,21 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash) || m_url.host().contains(kNicehashHost));
     m_flags.set(FLAG_TLS,      Json::getBool(object, kTls) || m_url.isTLS());
 
-    const char* benchSize = Json::getString(object, kBenchmark, nullptr);
-    if (benchSize) {
-        std::string s;
-        for (int i = 1; i <= 10; ++i) {
-            s = std::to_string(i) + "M";
-            if (strcasecmp(benchSize, s.c_str()) == 0) {
-                m_benchSize = i * 1000000;
-                break;
-            }
-        }
-    }
+    setKeepAlive(Json::getValue(object, kKeepalive));
 
-    if (m_benchSize) {
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (setBenchSize(Json::getString(object, kBenchmark, nullptr))) {
         m_mode = MODE_BENCHMARK;
+
+        return;
     }
-    else if (m_daemon.isValid()) {
+#   endif
+
+    if (m_daemon.isValid()) {
         m_mode = MODE_SELF_SELECT;
     }
     else if (Json::getBool(object, kDaemon)) {
         m_mode = MODE_DAEMON;
-    }
-
-    const rapidjson::Value &keepalive = Json::getValue(object, kKeepalive);
-    if (keepalive.IsInt()) {
-        setKeepAlive(keepalive.GetInt());
-    }
-    else if (keepalive.IsBool()) {
-        setKeepAlive(keepalive.GetBool());
     }
 }
 
@@ -244,9 +234,11 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
         client = new AutoClient(id, Platform::userAgent(), listener);
     }
 #   endif
+#   ifdef XMRIG_FEATURE_BENCHMARK
     else if (m_mode == MODE_BENCHMARK) {
         client = new NullClient(listener);
     }
+#   endif
 
     assert(client != nullptr);
 
@@ -335,5 +327,36 @@ void xmrig::Pool::print() const
     LOG_DEBUG ("algo:      %s", m_algorithm.name());
     LOG_DEBUG ("nicehash:  %d", static_cast<int>(m_flags.test(FLAG_NICEHASH)));
     LOG_DEBUG ("keepAlive: %d", m_keepAlive);
+}
+#endif
+
+
+void xmrig::Pool::setKeepAlive(const rapidjson::Value &value)
+{
+    if (value.IsInt()) {
+        setKeepAlive(value.GetInt());
+    }
+    else if (value.IsBool()) {
+        setKeepAlive(value.GetBool());
+    }
+}
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+bool xmrig::Pool::setBenchSize(const char *benchmark)
+{
+    if (!benchmark) {
+        return false;
+    }
+
+    const auto size = strtoul(benchmark, nullptr, 10);
+    if (size < 1 || size > 10) {
+        return false;
+    }
+
+    const std::string s = std::to_string(size) + "M";
+    m_benchSize = strcasecmp(benchmark, s.c_str()) == 0 ? size * 1000000 : 0;
+
+    return m_benchSize > 0;
 }
 #endif

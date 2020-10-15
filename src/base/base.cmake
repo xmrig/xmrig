@@ -44,7 +44,6 @@ set(HEADERS_BASE
     src/base/net/http/HttpListener.h
     src/base/net/stratum/BaseClient.h
     src/base/net/stratum/Client.h
-    src/base/net/stratum/NullClient.h
     src/base/net/stratum/Job.h
     src/base/net/stratum/NetworkState.h
     src/base/net/stratum/Pool.h
@@ -98,7 +97,6 @@ set(SOURCES_BASE
     src/base/net/http/Http.cpp
     src/base/net/stratum/BaseClient.cpp
     src/base/net/stratum/Client.cpp
-    src/base/net/stratum/NullClient.cpp
     src/base/net/stratum/Job.cpp
     src/base/net/stratum/NetworkState.cpp
     src/base/net/stratum/Pool.cpp
@@ -229,11 +227,16 @@ endif()
 if (WITH_PROFILING)
     add_definitions(/DXMRIG_FEATURE_PROFILING)
 
-    list(APPEND HEADERS_BASE
-        src/base/tools/Profiler.h
-        )
+    list(APPEND HEADERS_BASE src/base/tools/Profiler.h)
+    list(APPEND SOURCES_BASE src/base/tools/Profiler.cpp)
+endif()
 
-    list(APPEND SOURCES_BASE
-        src/base/tools/Profiler.cpp
-        )
+
+if (WITH_RANDOMX AND WITH_BENCHMARK)
+    add_definitions(/DXMRIG_FEATURE_BENCHMARK)
+
+    list(APPEND HEADERS_BASE src/base/net/stratum/NullClient.h)
+    list(APPEND SOURCES_BASE src/base/net/stratum/NullClient.cpp)
+else()
+    remove_definitions(/DXMRIG_FEATURE_BENCHMARK)
 endif()

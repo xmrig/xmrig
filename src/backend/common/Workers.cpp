@@ -67,9 +67,11 @@ public:
     Hashrate *hashrate = nullptr;
     IBackend *backend  = nullptr;
 
-    uint32_t bench      = 0;
+#   ifdef XMRIG_FEATURE_BENCHMARK
     Algorithm benchAlgo = Algorithm::RX_0;
+    uint32_t bench      = 0;
     uint64_t startTime  = 0;
+#   endif
 };
 
 
@@ -108,10 +110,12 @@ void xmrig::Workers<T>::setBackend(IBackend *backend)
 template<class T>
 void xmrig::Workers<T>::start(const std::vector<T> &data)
 {
+#   ifdef XMRIG_FEATURE_BENCHMARK
     if (!data.empty()) {
-        d_ptr->bench = data.front().miner->job().bench();
-        d_ptr->benchAlgo = data.front().miner->job().algorithm();
+        d_ptr->bench     = data.front().miner->job().bench();
+        d_ptr->benchAlgo = data.front().algorithm;
     }
+#   endif
 
     for (const T &item : data) {
         m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
@@ -123,12 +127,17 @@ void xmrig::Workers<T>::start(const std::vector<T> &data)
     for (Thread<T> *worker : m_workers) {
         worker->start(Workers<T>::onReady);
 
-        if (!d_ptr->bench) {
+#       ifdef XMRIG_FEATURE_BENCHMARK
+        if (!d_ptr->bench)
+#       endif
+        {
             std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
     }
 
+#   ifdef XMRIG_FEATURE_BENCHMARK
     d_ptr->startTime = Chrono::steadyMSecs();
+#   endif
 }
 
 
@@ -170,21 +179,22 @@ bool xmrig::Workers<T>::tick(uint64_t)
         return true;
     }
 
-    uint64_t timeStamp = Chrono::steadyMSecs();
-
-    bool totalAvailable = true;
+    uint64_t ts             = Chrono::steadyMSecs();
+    bool totalAvailable     = true;
     uint64_t totalHashCount = 0;
 
-    uint32_t benchDone = 0;
-    uint64_t benchData = 0;
-    uint64_t benchDoneTime = 0;
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    uint32_t benchDone      = 0;
+    uint64_t benchData      = 0;
+    uint64_t benchDoneTime  = 0;
+#   endif
 
     for (Thread<T> *handle : m_workers) {
         IWorker* worker = handle->worker();
         if (worker) {
             uint64_t hashCount;
-            getHashrateData<T>(worker, hashCount, timeStamp);
-            d_ptr->hashrate->add(handle->id() + 1, hashCount, timeStamp);
+            getHashrateData<T>(worker, hashCount, ts);
+            d_ptr->hashrate->add(handle->id() + 1, hashCount, ts);
 
             const uint64_t n = worker->rawHashes();
             if (n == 0) {
@@ -192,6 +202,7 @@ bool xmrig::Workers<T>::tick(uint64_t)
             }
             totalHashCount += n;
 
+#           ifdef XMRIG_FEATURE_BENCHMARK
             if (d_ptr->bench && worker->benchDoneTime()) {
                 ++benchDone;
                 benchData ^= worker->benchData();
@@ -199,6 +210,7 @@ bool xmrig::Workers<T>::tick(uint64_t)
                     benchDoneTime = worker->benchDoneTime();
                 }
             }
+#           endif
         }
     }
 
@@ -206,6 +218,7 @@ bool xmrig::Workers<T>::tick(uint64_t)
         d_ptr->hashrate->add(0, totalHashCount, Chrono::steadyMSecs());
     }
 
+#   ifdef XMRIG_FEATURE_BENCHMARK
     if (d_ptr->bench) {
         Pool::benchProgress = std::min<uint32_t>(static_cast<uint32_t>((totalHashCount * 100U) / d_ptr->bench), 100U);
 
@@ -232,6 +245,7 @@ bool xmrig::Workers<T>::tick(uint64_t)
             return false;
         }
     }
+#   endif
 
     return true;
 }
