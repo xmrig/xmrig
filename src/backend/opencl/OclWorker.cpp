@@ -61,18 +61,6 @@ std::atomic<bool> OclWorker::ready;
 
 static inline bool isReady()                         { return !Nonce::isPaused() && OclWorker::ready; }
 
-static inline uint32_t roundSize(uint32_t intensity)
-{
-#ifdef _MSC_VER
-    unsigned long index;
-    _BitScanReverse(&index, intensity - 1);
-    const uint32_t n = 31 - index;
-#else
-    const uint32_t n = __builtin_clz(intensity - 1);
-#endif
-    return 1U << (32 - n);
-}
-
 
 static inline void printError(size_t id, const char *error)
 {
@@ -88,7 +76,6 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     Worker(id, data.affinity, -1),
     m_algorithm(data.algorithm),
     m_miner(data.miner),
-    m_intensity(data.thread.intensity()),
     m_sharedData(OclSharedState::get(data.device.index())),
     m_deviceIndex(data.device.index())
 {
@@ -180,8 +167,6 @@ void xmrig::OclWorker::start()
 {
     cl_uint results[0x100];
 
-    const uint32_t runnerRoundSize = roundSize(m_runner->roundSize());
-
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
         if (!isReady()) {
             m_sharedData.setResumeCounter(0);
@@ -220,7 +205,7 @@ void xmrig::OclWorker::start()
                 JobResults::submit(m_job.currentJob(), results, results[0xFF], m_deviceIndex);
             }
 
-            if (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence()) && !m_job.nextRound(1, runnerRoundSize)) {
+            if (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence()) && !m_job.nextRound(1, intensity())) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -241,7 +226,7 @@ bool xmrig::OclWorker::consumeJob()
         return false;
     }
 
-    m_job.add(m_miner->job(), roundSize(m_intensity), Nonce::OPENCL);
+    m_job.add(m_miner->job(), intensity(), Nonce::OPENCL);
 
     try {
         m_runner->set(m_job.currentJob(), m_job.blob());
