@@ -86,6 +86,9 @@ const char *Pool::kBenchmark              = "benchmark";
 const char *Pool::kNicehashHost = "nicehash.com";
 
 
+uint32_t Pool::benchProgress = 0;
+
+
 }
 
 
@@ -136,11 +139,13 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
     const char* benchSize = Json::getString(object, kBenchmark, nullptr);
     if (benchSize) {
-        if (strcasecmp(benchSize, "1M") == 0) {
-            m_benchSize = 1000000;
-        }
-        else if (strcasecmp(benchSize, "10M") == 0) {
-            m_benchSize = 10000000;
+        std::string s;
+        for (int i = 1; i <= 10; ++i) {
+            s = std::to_string(i) + "M";
+            if (strcasecmp(benchSize, s.c_str()) == 0) {
+                m_benchSize = i * 1000000;
+                break;
+            }
         }
     }
 

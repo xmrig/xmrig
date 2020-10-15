@@ -121,6 +121,8 @@ public:
     void print() const;
 #   endif
 
+    static uint32_t benchProgress;
+
 private:
     enum Flags {
         FLAG_ENABLED,
