@@ -180,7 +180,7 @@ void xmrig::OclWorker::start()
 {
     cl_uint results[0x100];
 
-    const uint32_t runnerRoundSize = m_runner->roundSize();
+    const uint32_t runnerRoundSize = roundSize(m_runner->roundSize());
 
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
         if (!isReady()) {
@@ -220,7 +220,7 @@ void xmrig::OclWorker::start()
                 JobResults::submit(m_job.currentJob(), results, results[0xFF], m_deviceIndex);
             }
 
-            if (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence()) && !m_job.nextRound(roundSize(runnerRoundSize), runnerRoundSize)) {
+            if (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence()) && !m_job.nextRound(1, runnerRoundSize)) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -241,7 +241,7 @@ bool xmrig::OclWorker::consumeJob()
         return false;
     }
 
-    m_job.add(m_miner->job(), roundSize(m_intensity) * m_intensity, Nonce::OPENCL);
+    m_job.add(m_miner->job(), roundSize(m_intensity), Nonce::OPENCL);
 
     try {
         m_runner->set(m_job.currentJob(), m_job.blob());

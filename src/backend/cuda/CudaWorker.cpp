@@ -189,7 +189,7 @@ void xmrig::CudaWorker::start()
             }
 
             const size_t batch_size = intensity();
-            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(roundSize(batch_size), batch_size)) {
+            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(1, roundSize(batch_size))) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -211,7 +211,7 @@ bool xmrig::CudaWorker::consumeJob()
     }
 
     const size_t batch_size = intensity();
-    m_job.add(m_miner->job(), roundSize(batch_size) * batch_size, Nonce::CUDA);
+    m_job.add(m_miner->job(), roundSize(batch_size), Nonce::CUDA);
 
     return m_runner->set(m_job.currentJob(), m_job.blob());
 }
