@@ -241,7 +241,9 @@ bool xmrig::Workers<T>::tick(uint64_t)
 
             const char* color = checkData ? ((benchData == checkData) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
 
-            LOG_INFO("%s Benchmark finished in %.3f seconds, hash sum = %s%016" PRIX64 CLEAR, Tags::miner(), dt, color, benchData);
+            LOG_INFO("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR,
+                     Tags::bench(), dt, color, benchData);
+
             return false;
         }
     }
