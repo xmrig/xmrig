@@ -64,19 +64,6 @@ std::atomic<bool> CudaWorker::ready;
 static inline bool isReady()                         { return !Nonce::isPaused() && CudaWorker::ready; }
 
 
-static inline uint32_t roundSize(uint32_t intensity)
-{
-#ifdef _MSC_VER
-    unsigned long index;
-    _BitScanReverse(&index, intensity - 1);
-    const uint32_t n = 31 - index;
-#else
-    const uint32_t n = __builtin_clz(intensity - 1);
-#endif
-    return 1U << (32 - n);
-}
-
-
 } // namespace xmrig
 
 
@@ -188,8 +175,7 @@ void xmrig::CudaWorker::start()
                 JobResults::submit(m_job.currentJob(), foundNonce, foundCount, m_deviceIndex);
             }
 
-            const size_t batch_size = intensity();
-            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(1, roundSize(batch_size))) {
+            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(1, intensity())) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -210,8 +196,7 @@ bool xmrig::CudaWorker::consumeJob()
         return false;
     }
 
-    const size_t batch_size = intensity();
-    m_job.add(m_miner->job(), roundSize(batch_size), Nonce::CUDA);
+    m_job.add(m_miner->job(), intensity(), Nonce::CUDA);
 
     return m_runner->set(m_job.currentJob(), m_job.blob());
 }
