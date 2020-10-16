@@ -54,9 +54,10 @@ public:
     static const char *tag();
 
     const Algorithm algorithm;
-    const Miner *miner;
     const CudaDevice &device;
     const CudaThread thread;
+    const Miner *miner;
+    const uint32_t benchSize = 0;
 };
 
 

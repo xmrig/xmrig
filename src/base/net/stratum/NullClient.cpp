@@ -59,5 +59,4 @@ void xmrig::NullClient::setPool(const Pool& pool)
     }
 
     m_job.setAlgorithm(m_pool.algorithm().id());
-    m_job.setBench(m_pool.benchSize());
 }

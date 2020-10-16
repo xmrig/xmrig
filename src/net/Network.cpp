@@ -128,6 +128,8 @@ void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     if (pool.mode() == Pool::MODE_BENCHMARK) {
+        m_benchSize = pool.benchSize();
+
         LOG_NOTICE("%s " MAGENTA_BOLD("start benchmark ") "hashes " CYAN_BOLD("%" PRIu64 "M") " algo " WHITE_BOLD("%s") " print_time " CYAN_BOLD("%us"),
                    Tags::bench(),
                    pool.benchSize() / 1000000,
@@ -270,7 +272,7 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
     const char *scale = NetworkState::scaleDiff(diff);
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    if (!job.bench())
+    if (!m_benchSize)
 #   endif
     {
         if (job.height()) {

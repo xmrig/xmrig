@@ -65,18 +65,6 @@ bool xmrig::Pools::isEqual(const Pools &other) const
 }
 
 
-int xmrig::Pools::donateLevel() const
-{
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    if (m_data.size() == 1 && m_data.front().mode() == Pool::MODE_BENCHMARK) {
-        return 0;
-    }
-#   endif
-
-    return m_donateLevel;
-}
-
-
 xmrig::IStrategy *xmrig::Pools::createStrategy(IStrategyListener *listener) const
 {
     if (active() == 1) {
@@ -150,6 +138,18 @@ void xmrig::Pools::load(const IJsonReader &reader)
     setProxyDonate(reader.getInt(kDonateOverProxy, PROXY_DONATE_AUTO));
     setRetries(reader.getInt(kRetries));
     setRetryPause(reader.getInt(kRetryPause));
+}
+
+
+uint32_t xmrig::Pools::benchSize() const
+{
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (m_data.size() == 1 && m_data.front().mode() == Pool::MODE_BENCHMARK) {
+        return m_data.front().benchSize();
+    }
+#   endif
+
+    return 0;
 }
 
 

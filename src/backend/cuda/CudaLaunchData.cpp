@@ -30,9 +30,9 @@
 
 xmrig::CudaLaunchData::CudaLaunchData(const Miner *miner, const Algorithm &algorithm, const CudaThread &thread, const CudaDevice &device) :
     algorithm(algorithm),
-    miner(miner),
     device(device),
-    thread(thread)
+    thread(thread),
+    miner(miner)
 {
 }
 

@@ -58,18 +58,10 @@ static constexpr uint32_t kReserveCount = 32768;
 
 
 template<size_t N>
-inline bool nextRound(WorkerJob<N> &job)
+inline bool nextRound(WorkerJob<N> &job, uint32_t benchSize)
 {
-    const auto &currentJob = job.currentJob();
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    const uint32_t rounds = currentJob.bench() ? 1 : kReserveCount;
-#   else
-    constexpr uint32_t rounds = kReserveCount;
-#   endif
-
-    if (!job.nextRound(rounds, 1)) {
-        JobResults::done(currentJob);
+    if (!job.nextRound(benchSize ? 1 : kReserveCount, 1)) {
+        JobResults::done(job.currentJob());
 
         return false;
     }
@@ -93,6 +85,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_av(data.av()),
     m_astrobwtMaxSize(data.astrobwtMaxSize * 1000),
     m_miner(data.miner),
+    m_benchSize(data.benchSize),
     m_ctx()
 {
     m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, m_node);
@@ -247,7 +240,7 @@ void xmrig::CpuWorker<N>::start()
                     randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
                 }
 
-                if (!nextRound(m_job)) {
+                if (!nextRound(m_job, m_benchSize)) {
                     break;
                 }
 
@@ -267,7 +260,7 @@ void xmrig::CpuWorker<N>::start()
                     fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
                 }
 
-                if (!nextRound(m_job)) {
+                if (!nextRound(m_job, m_benchSize)) {
                     break;
                 };
             }
@@ -277,8 +270,8 @@ void xmrig::CpuWorker<N>::start()
                     const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
 
 #                   ifdef XMRIG_FEATURE_BENCHMARK
-                    if (job.bench()) {
-                        if (current_job_nonces[i] < job.bench()) {
+                    if (m_benchSize) {
+                        if (current_job_nonces[i] < m_benchSize) {
                             m_benchData ^= value;
                         }
                         else {
@@ -385,15 +378,7 @@ void xmrig::CpuWorker<N>::consumeJob()
         return;
     }
 
-    auto job = m_miner->job();
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    const uint32_t rounds = job.bench() ? 1 : kReserveCount;
-#   else
-    constexpr uint32_t rounds = kReserveCount;
-#   endif
-
-    m_job.add(job, rounds, Nonce::CPU);
+    m_job.add(m_miner->job(), m_benchSize ? 1 : kReserveCount, Nonce::CPU);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {

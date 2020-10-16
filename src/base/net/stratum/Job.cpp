@@ -174,10 +174,6 @@ void xmrig::Job::copy(const Job &other)
     memcpy(m_rawBlob, other.m_rawBlob, sizeof(m_rawBlob));
     memcpy(m_rawTarget, other.m_rawTarget, sizeof(m_rawTarget));
 #   endif
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    m_bench = other.m_bench;
-#   endif
 }
 
 
@@ -208,9 +204,5 @@ void xmrig::Job::move(Job &&other)
 
     memcpy(m_rawBlob, other.m_rawBlob, sizeof(m_rawBlob));
     memcpy(m_rawTarget, other.m_rawTarget, sizeof(m_rawTarget));
-#   endif
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    m_bench = other.m_bench;
 #   endif
 }

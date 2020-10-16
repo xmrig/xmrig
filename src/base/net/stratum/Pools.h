@@ -58,6 +58,7 @@ public:
     Pools();
 
     inline const std::vector<Pool> &data() const        { return m_data; }
+    inline int donateLevel() const                      { return benchSize() ? 0 : m_donateLevel; }
     inline int retries() const                          { return m_retries; }
     inline int retryPause() const                       { return m_retryPause; }
     inline ProxyDonate proxyDonate() const              { return m_proxyDonate; }
@@ -66,10 +67,10 @@ public:
     inline bool operator==(const Pools &other) const    { return isEqual(other); }
 
     bool isEqual(const Pools &other) const;
-    int donateLevel() const;
     IStrategy *createStrategy(IStrategyListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t active() const;
+    uint32_t benchSize() const;
     void load(const IJsonReader &reader);
     void print() const;
 

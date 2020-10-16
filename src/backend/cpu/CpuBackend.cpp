@@ -335,7 +335,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
     const CpuConfig &cpu = d_ptr->controller->config()->cpu();
 
-    std::vector<CpuLaunchData> threads = cpu.get(d_ptr->controller->miner(), job.algorithm());
+    std::vector<CpuLaunchData> threads = cpu.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->controller->config()->pools().benchSize());
     if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }

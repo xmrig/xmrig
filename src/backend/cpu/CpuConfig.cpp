@@ -113,7 +113,7 @@ size_t xmrig::CpuConfig::memPoolSize() const
 }
 
 
-std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, const Algorithm &algorithm) const
+std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, const Algorithm &algorithm, uint32_t benchSize) const
 {
     std::vector<CpuLaunchData> out;
     const CpuThreads &threads = m_threads.get(algorithm);
@@ -125,7 +125,7 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
     out.reserve(threads.count());
 
     for (const CpuThread &thread : threads.data()) {
-        out.emplace_back(miner, algorithm, *this, thread);
+        out.emplace_back(miner, algorithm, *this, thread, benchSize);
     }
 
     return out;

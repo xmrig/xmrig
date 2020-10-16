@@ -113,7 +113,7 @@ public:
     inline void setUser(const String &user)             { m_user = user; }
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    inline uint64_t benchSize() const                   { return m_benchSize; }
+    inline uint32_t benchSize() const                   { return m_benchSize; }
 #   endif
 
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }

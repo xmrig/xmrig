@@ -112,7 +112,7 @@ void xmrig::Workers<T>::start(const std::vector<T> &data)
 {
 #   ifdef XMRIG_FEATURE_BENCHMARK
     if (!data.empty()) {
-        d_ptr->bench     = data.front().miner->job().bench();
+        d_ptr->bench     = data.front().benchSize;
         d_ptr->benchAlgo = data.front().algorithm;
     }
 #   endif
