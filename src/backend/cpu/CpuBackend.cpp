@@ -55,6 +55,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
+#   include "backend/common/Benchmark.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -456,6 +461,23 @@ void xmrig::CpuBackend::handleRequest(IApiRequest &request)
 {
     if (request.type() == IApiRequest::REQ_SUMMARY) {
         request.reply().AddMember("hugepages", d_ptr->hugePages(request.version(), request.doc()), request.doc().GetAllocator());
+    }
+}
+#endif
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+xmrig::Benchmark *xmrig::CpuBackend::benchmark() const
+{
+    return d_ptr->workers.benchmark();
+}
+
+
+void xmrig::CpuBackend::printBenchProgress() const
+{
+    auto benchmark = d_ptr->workers.benchmark();
+    if (benchmark) {
+        benchmark->printProgress();
     }
 }
 #endif

@@ -70,6 +70,11 @@ protected:
     void handleRequest(IApiRequest &request) override;
 #   endif
 
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    inline Benchmark *benchmark() const override        { return nullptr; }
+    inline void printBenchProgress() const override     {}
+#   endif
+
 private:
     CudaBackendPrivate *d_ptr;
 };

@@ -21,3 +21,8 @@ set(SOURCES_BACKEND_COMMON
     src/backend/common/Worker.cpp
     src/backend/common/Workers.cpp
    )
+
+if (WITH_RANDOMX AND WITH_BENCHMARK)
+    list(APPEND HEADERS_BACKEND_COMMON src/backend/common/Benchmark.h)
+    list(APPEND SOURCES_BACKEND_COMMON src/backend/common/Benchmark.cpp)
+endif()

@@ -89,9 +89,6 @@ const char *Pool::kBenchmark              = "benchmark";
 #endif
 
 
-uint32_t Pool::benchProgress = 0;
-
-
 }
 
 

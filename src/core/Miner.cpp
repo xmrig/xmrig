@@ -242,30 +242,8 @@ public:
 #   endif
 
 
-    void printHashrate(bool details)
+    static inline void printProfile()
     {
-        char num[16 * 4] = { 0 };
-        double speed[3] = { 0.0 };
-
-        for (auto backend : backends) {
-            const auto hashrate = backend->hashrate();
-            if (hashrate) {
-                speed[0] += hashrate->calc(Hashrate::ShortInterval);
-                speed[1] += hashrate->calc(Hashrate::MediumInterval);
-                speed[2] += hashrate->calc(Hashrate::LargeInterval);
-            }
-
-            backend->printHashrate(details);
-        }
-
-        double scale = 1.0;
-        const char* h = "H/s";
-
-        if ((speed[0] >= 1e6) || (speed[1] >= 1e6) || (speed[2] >= 1e6) || (maxHashrate[algorithm] >= 1e6)) {
-            scale = 1e-6;
-            h = "MH/s";
-        }
-
 #       ifdef XMRIG_FEATURE_PROFILING
         ProfileScopeData* data[ProfileScopeData::MAX_DATA_COUNT];
 
@@ -303,19 +281,55 @@ public:
             i = n1;
         }
 #       endif
+    }
 
-        char benchProgress[8] = {};
-        if (Pool::benchProgress) {
-            sprintf(benchProgress, "%3u%% ", Pool::benchProgress);
+
+    void printHashrate(bool details)
+    {
+        char num[16 * 4] = { 0 };
+        double speed[3]  = { 0.0 };
+        uint32_t count   = 0;
+
+        for (auto backend : backends) {
+            const auto hashrate = backend->hashrate();
+            if (hashrate) {
+                ++count;
+
+                speed[0] += hashrate->calc(Hashrate::ShortInterval);
+                speed[1] += hashrate->calc(Hashrate::MediumInterval);
+                speed[2] += hashrate->calc(Hashrate::LargeInterval);
+            }
+
+            backend->printHashrate(details);
         }
 
-        LOG_INFO("%s %s" WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
-                 Tags::miner(), benchProgress,
+        if (!count) {
+            return;
+        }
+
+        printProfile();
+
+        double scale  = 1.0;
+        const char* h = "H/s";
+
+        if ((speed[0] >= 1e6) || (speed[1] >= 1e6) || (speed[2] >= 1e6) || (maxHashrate[algorithm] >= 1e6)) {
+            scale = 1e-6;
+            h = "MH/s";
+        }
+
+        LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
+                 Tags::miner(),
                  Hashrate::format(speed[0] * scale,                 num,          sizeof(num) / 4),
                  Hashrate::format(speed[1] * scale,                 num + 16,     sizeof(num) / 4),
                  Hashrate::format(speed[2] * scale,                 num + 16 * 2, sizeof(num) / 4), h,
                  Hashrate::format(maxHashrate[algorithm] * scale,   num + 16 * 3, sizeof(num) / 4), h
                  );
+
+#       ifdef XMRIG_FEATURE_BENCHMARK
+        for (auto backend : backends) {
+            backend->printBenchProgress();
+        }
+#       endif
     }
 
 

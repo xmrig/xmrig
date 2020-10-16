@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -46,6 +46,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
+#   include "backend/common/Benchmark.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -55,23 +60,12 @@ public:
     XMRIG_DISABLE_COPY_MOVE(WorkersPrivate)
 
 
-    WorkersPrivate() = default;
+    WorkersPrivate()    = default;
+    ~WorkersPrivate()   = default;
 
-
-    inline ~WorkersPrivate()
-    {
-        delete hashrate;
-    }
-
-
-    Hashrate *hashrate = nullptr;
-    IBackend *backend  = nullptr;
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    Algorithm benchAlgo = Algorithm::RX_0;
-    uint32_t bench      = 0;
-    uint64_t startTime  = 0;
-#   endif
+    IBackend *backend   = nullptr;
+    std::shared_ptr<Benchmark> benchmark;
+    std::shared_ptr<Hashrate> hashrate;
 };
 
 
@@ -94,67 +88,9 @@ xmrig::Workers<T>::~Workers()
 
 
 template<class T>
-const xmrig::Hashrate *xmrig::Workers<T>::hashrate() const
+xmrig::Benchmark *xmrig::Workers<T>::benchmark() const
 {
-    return d_ptr->hashrate;
-}
-
-
-template<class T>
-void xmrig::Workers<T>::setBackend(IBackend *backend)
-{
-    d_ptr->backend = backend;
-}
-
-
-template<class T>
-void xmrig::Workers<T>::start(const std::vector<T> &data)
-{
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    if (!data.empty()) {
-        d_ptr->bench     = data.front().benchSize;
-        d_ptr->benchAlgo = data.front().algorithm;
-    }
-#   endif
-
-    for (const T &item : data) {
-        m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
-    }
-
-    d_ptr->hashrate = new Hashrate(m_workers.size());
-    Nonce::touch(T::backend());
-
-    for (Thread<T> *worker : m_workers) {
-        worker->start(Workers<T>::onReady);
-
-#       ifdef XMRIG_FEATURE_BENCHMARK
-        if (!d_ptr->bench)
-#       endif
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        }
-    }
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    d_ptr->startTime = Chrono::steadyMSecs();
-#   endif
-}
-
-
-template<class T>
-void xmrig::Workers<T>::stop()
-{
-    Nonce::stop(T::backend());
-
-    for (Thread<T> *worker : m_workers) {
-        delete worker;
-    }
-
-    m_workers.clear();
-    Nonce::touch(T::backend());
-
-    delete d_ptr->hashrate;
-    d_ptr->hashrate = nullptr;
+    return d_ptr->benchmark.get();
 }
 
 
@@ -183,14 +119,8 @@ bool xmrig::Workers<T>::tick(uint64_t)
     bool totalAvailable     = true;
     uint64_t totalHashCount = 0;
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    uint32_t benchDone      = 0;
-    uint64_t benchData      = 0;
-    uint64_t benchDoneTime  = 0;
-#   endif
-
     for (Thread<T> *handle : m_workers) {
-        IWorker* worker = handle->worker();
+        IWorker *worker = handle->worker();
         if (worker) {
             uint64_t hashCount;
             getHashrateData<T>(worker, hashCount, ts);
@@ -203,12 +133,8 @@ bool xmrig::Workers<T>::tick(uint64_t)
             totalHashCount += n;
 
 #           ifdef XMRIG_FEATURE_BENCHMARK
-            if (d_ptr->bench && worker->benchDoneTime()) {
-                ++benchDone;
-                benchData ^= worker->benchData();
-                if (worker->benchDoneTime() > benchDoneTime) {
-                    benchDoneTime = worker->benchDoneTime();
-                }
+            if (d_ptr->benchmark) {
+                d_ptr->benchmark->tick(worker);
             }
 #           endif
         }
@@ -219,37 +145,77 @@ bool xmrig::Workers<T>::tick(uint64_t)
     }
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    if (d_ptr->bench) {
-        Pool::benchProgress = std::min<uint32_t>(static_cast<uint32_t>((totalHashCount * 100U) / d_ptr->bench), 100U);
-
-        if (benchDone == m_workers.size()) {
-            const double dt = (benchDoneTime - d_ptr->startTime) / 1000.0;
-
-            uint64_t checkData = 0;
-
-            const Algorithm::Id algo = d_ptr->benchAlgo.id();
-            const uint32_t N = (d_ptr->bench / 1000000) - 1;
-
-            if (((algo == Algorithm::RX_0) || (algo == Algorithm::RX_WOW)) && ((d_ptr->bench % 1000000) == 0) && (N < 10)) {
-                static uint64_t hashCheck[2][10] = {
-                    { 0x898B6E0431C28A6BULL, 0xEE9468F8B40926BCULL, 0xC2BC5D11724813C0ULL, 0x3A2C7B285B87F941ULL, 0x3B5BD2C3A16B450EULL, 0x5CD0602F20C5C7C4ULL, 0x101DE939474B6812ULL, 0x52B765A1B156C6ECULL, 0x323935102AB6B45CULL, 0xB5231262E2792B26ULL },
-                    { 0x0F3E5400B39EA96AULL, 0x85944CCFA2752D1FULL, 0x64AFFCAE991811BAULL, 0x3E4D0B836D3B13BAULL, 0xEB7417D621271166ULL, 0x97FFE10C0949FFA5ULL, 0x84CAC0F8879A4BA1ULL, 0xA1B79F031DA2459FULL, 0x9B65226DA873E65DULL, 0x0F9E00C5A511C200ULL },
-                };
-
-                checkData = hashCheck[(algo == Algorithm::RX_0) ? 0 : 1][N];
-            }
-
-            const char* color = checkData ? ((benchData == checkData) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
-
-            LOG_INFO("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR,
-                     Tags::bench(), dt, color, benchData);
-
-            return false;
-        }
+    if (d_ptr->benchmark && d_ptr->benchmark->finish(totalHashCount)) {
+        return false;
     }
 #   endif
 
     return true;
+}
+
+
+template<class T>
+const xmrig::Hashrate *xmrig::Workers<T>::hashrate() const
+{
+    return d_ptr->hashrate.get();
+}
+
+
+template<class T>
+void xmrig::Workers<T>::setBackend(IBackend *backend)
+{
+    d_ptr->backend = backend;
+}
+
+
+template<class T>
+void xmrig::Workers<T>::start(const std::vector<T> &data)
+{
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (!data.empty() && data.front().benchSize) {
+        d_ptr->benchmark = std::make_shared<Benchmark>(data.front().benchSize, data.front().algorithm, data.size());
+    }
+#   endif
+
+    for (const T &item : data) {
+        m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
+    }
+
+    d_ptr->hashrate = std::make_shared<Hashrate>(m_workers.size());
+    Nonce::touch(T::backend());
+
+    for (Thread<T> *worker : m_workers) {
+        worker->start(Workers<T>::onReady);
+
+#       ifdef XMRIG_FEATURE_BENCHMARK
+        if (!d_ptr->benchmark)
+#       endif
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+    }
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (d_ptr->benchmark) {
+        d_ptr->benchmark->start();
+    }
+#   endif
+}
+
+
+template<class T>
+void xmrig::Workers<T>::stop()
+{
+    Nonce::stop(T::backend());
+
+    for (Thread<T> *worker : m_workers) {
+        delete worker;
+    }
+
+    m_workers.clear();
+    Nonce::touch(T::backend());
+
+    d_ptr->hashrate.reset();
 }
 
 
