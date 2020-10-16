@@ -46,18 +46,19 @@
 
 namespace xmrig {
 
-static const char *kInit        = "init";
-static const char *kMode        = "mode";
-static const char *kOneGbPages  = "1gb-pages";
-static const char *kRdmsr       = "rdmsr";
-static const char *kWrmsr       = "wrmsr";
-static const char *kCacheQoS    = "cache_qos";
+const char *RxConfig::kInit                     = "init";
+const char *RxConfig::kField                    = "randomx";
+const char *RxConfig::kMode                     = "mode";
+const char *RxConfig::kOneGbPages               = "1gb-pages";
+const char *RxConfig::kRdmsr                    = "rdmsr";
+const char *RxConfig::kWrmsr                    = "wrmsr";
+const char *RxConfig::kScratchpadPrefetchMode   = "scratchpad_prefetch_mode";
+const char *RxConfig::kCacheQoS                 = "cache_qos";
 
 #ifdef XMRIG_FEATURE_HWLOC
-static const char *kNUMA        = "numa";
+const char *RxConfig::kNUMA                     = "numa";
 #endif
 
-static const char *kScratchpadPrefetchMode = "scratchpad_prefetch_mode";
 
 static const std::array<const char *, RxConfig::ModeMax> modeNames = { "auto", "fast", "light" };
 

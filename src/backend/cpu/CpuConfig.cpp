@@ -34,26 +34,27 @@
 
 namespace xmrig {
 
-static const char *kEnabled             = "enabled";
-static const char *kHugePages           = "huge-pages";
-static const char *kHugePagesJit        = "huge-pages-jit";
-static const char *kHwAes               = "hw-aes";
-static const char *kMaxThreadsHint      = "max-threads-hint";
-static const char *kMemoryPool          = "memory-pool";
-static const char *kPriority            = "priority";
-static const char *kYield               = "yield";
+const char *CpuConfig::kEnabled             = "enabled";
+const char *CpuConfig::kField               = "cpu";
+const char *CpuConfig::kHugePages           = "huge-pages";
+const char *CpuConfig::kHugePagesJit        = "huge-pages-jit";
+const char *CpuConfig::kHwAes               = "hw-aes";
+const char *CpuConfig::kMaxThreadsHint      = "max-threads-hint";
+const char *CpuConfig::kMemoryPool          = "memory-pool";
+const char *CpuConfig::kPriority            = "priority";
+const char *CpuConfig::kYield               = "yield";
 
 #ifdef XMRIG_FEATURE_ASM
-static const char *kAsm = "asm";
+const char *CpuConfig::kAsm                 = "asm";
 #endif
 
 #ifdef XMRIG_ALGO_ARGON2
-static const char *kArgon2Impl = "argon2-impl";
+const char *CpuConfig::kArgon2Impl          = "argon2-impl";
 #endif
 
 #ifdef XMRIG_ALGO_ASTROBWT
-static const char* kAstroBWTMaxSize = "astrobwt-max-size";
-static const char* kAstroBWTAVX2    = "astrobwt-avx2";
+const char *CpuConfig::kAstroBWTMaxSize     = "astrobwt-max-size";
+const char *CpuConfig::kAstroBWTAVX2        = "astrobwt-avx2";
 #endif
 
 

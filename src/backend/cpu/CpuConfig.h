@@ -44,6 +44,29 @@ public:
         AES_SOFT
     };
 
+    static const char *kEnabled;
+    static const char *kField;
+    static const char *kHugePages;
+    static const char *kHugePagesJit;
+    static const char *kHwAes;
+    static const char *kMaxThreadsHint;
+    static const char *kMemoryPool;
+    static const char *kPriority;
+    static const char *kYield;
+
+#   ifdef XMRIG_FEATURE_ASM
+    static const char *kAsm;
+#   endif
+
+#   ifdef XMRIG_ALGO_ARGON2
+    static const char *kArgon2Impl;
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    static const char *kAstroBWTMaxSize;
+    static const char *kAstroBWTAVX2;
+#   endif
+
     CpuConfig() = default;
 
     bool isHwAES() const;

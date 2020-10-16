@@ -29,7 +29,6 @@
 
 #include "backend/common/Thread.h"
 #include "backend/cpu/CpuLaunchData.h"
-#include "base/tools/Object.h"
 
 
 #ifdef XMRIG_FEATURE_OPENCL
