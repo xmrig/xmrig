@@ -34,7 +34,7 @@
 #include "base/kernel/config/BaseConfig.h"
 #include "base/tools/Object.h"
 #ifdef XMRIG_FEATURE_BENCHMARK
-#include "core/Benchmark.h"
+#include "core/MoBenchmark.h"
 #endif
 
 

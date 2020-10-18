@@ -126,7 +126,7 @@ set(SOURCES_CRYPTO
 
 if (WITH_BENCHMARK)
     list(APPEND SOURCES
-        src/core/Benchmark.cpp
+        src/core/MoBenchmark.cpp
         )
     add_definitions(/DXMRIG_FEATURE_BENCHMARK)
 endif()

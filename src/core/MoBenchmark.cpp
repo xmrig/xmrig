@@ -15,7 +15,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "core/Benchmark.h"
+#include "core/MoBenchmark.h"
 #include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IBackend.h"
@@ -34,20 +34,20 @@
 
 namespace xmrig {
 
-Benchmark::Benchmark() : m_controller(nullptr), m_isNewBenchRun(true) {
+MoBenchmark::MoBenchmark() : m_controller(nullptr), m_isNewBenchRun(true) {
   for (BenchAlgo bench_algo = BenchAlgo::MIN; bench_algo != BenchAlgo::MAX; bench_algo = static_cast<BenchAlgo>(bench_algo + 1)) {
     m_bench_job[bench_algo] = new Job(false, Algorithm(ba2a[bench_algo]), "benchmark");
   }
 }
 
-Benchmark::~Benchmark() {
+MoBenchmark::~MoBenchmark() {
   for (BenchAlgo bench_algo = BenchAlgo::MIN; bench_algo != BenchAlgo::MAX; bench_algo = static_cast<BenchAlgo>(bench_algo + 1)) {
     delete m_bench_job[bench_algo];
   }
 }
 
 // start performance measurements from the first bench_algo
-void Benchmark::start() {
+void MoBenchmark::start() {
     JobResults::setListener(this, m_controller->config()->cpu().isHwAES()); // register benchmark as job result listener to compute hashrates there
     // write text before first benchmark round
     LOG_INFO("%s " BRIGHT_BLACK_BG(CYAN_BOLD_S " STARTING ALGO PERFORMANCE CALIBRATION (with " MAGENTA_BOLD_S "%i" CYAN_BOLD_S " seconds round) "), Tags::benchmark(), m_controller->config()->benchAlgoTime());
@@ -57,7 +57,7 @@ void Benchmark::start() {
 }
 
 // end of benchmarks, switch to jobs from the pool (network), fill algo_perf
-void Benchmark::finish() {
+void MoBenchmark::finish() {
     for (Algorithm::Id algo = Algorithm::MIN; algo != Algorithm::MAX; algo = static_cast<Algorithm::Id>(algo + 1)) {
         algo_perf[algo] = get_algo_perf(algo);
     }
@@ -69,7 +69,7 @@ void Benchmark::finish() {
     m_controller->start();
 }
 
-rapidjson::Value Benchmark::toJSON(rapidjson::Document &doc) const
+rapidjson::Value MoBenchmark::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -83,7 +83,7 @@ rapidjson::Value Benchmark::toJSON(rapidjson::Document &doc) const
     return obj;
 }
 
-void Benchmark::read(const rapidjson::Value &value)
+void MoBenchmark::read(const rapidjson::Value &value)
 {
     for (Algorithm::Id algo = Algorithm::MIN; algo != Algorithm::MAX; algo = static_cast<Algorithm::Id>(algo + 1)) {
         algo_perf[algo] = 0.0f;
@@ -110,7 +110,7 @@ void Benchmark::read(const rapidjson::Value &value)
     }
 }
 
-double Benchmark::get_algo_perf(Algorithm::Id algo) const {
+double MoBenchmark::get_algo_perf(Algorithm::Id algo) const {
     switch (algo) {
         case Algorithm::CN_CCX:        return m_bench_algo_perf[BenchAlgo::CN_CCX];
         case Algorithm::CN_0:          return m_bench_algo_perf[BenchAlgo::CN_CCX] / 2;
@@ -132,21 +132,19 @@ double Benchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::CN_PICO_0:     return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
         case Algorithm::CN_PICO_TLO:   return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
         case Algorithm::CN_GPU:        return m_bench_algo_perf[BenchAlgo::CN_GPU];
-        case Algorithm::AR2_CHUKWA:    return m_bench_algo_perf[BenchAlgo::AR2_CHUKWA];
-        case Algorithm::AR2_WRKZ:      return m_bench_algo_perf[BenchAlgo::AR2_WRKZ];
+        case Algorithm::AR2_CHUKWA_V2: return m_bench_algo_perf[BenchAlgo::AR2_CHUKWA_V2];
         case Algorithm::ASTROBWT_DERO: return m_bench_algo_perf[BenchAlgo::ASTROBWT_DERO];
         case Algorithm::RX_0:          return m_bench_algo_perf[BenchAlgo::RX_0];
         case Algorithm::RX_SFX:        return m_bench_algo_perf[BenchAlgo::RX_0];
         case Algorithm::RX_WOW:        return m_bench_algo_perf[BenchAlgo::RX_WOW];
         case Algorithm::RX_ARQ:        return m_bench_algo_perf[BenchAlgo::RX_ARQ];
-        case Algorithm::RX_KEVA:       return m_bench_algo_perf[BenchAlgo::RX_KEVA];
         case Algorithm::RX_XLA:        return m_bench_algo_perf[BenchAlgo::RX_XLA];
         default: return 0.0f;
     }
 }
 
 // start performance measurements for specified perf bench_algo
-void Benchmark::start(const BenchAlgo bench_algo) {
+void MoBenchmark::start(const BenchAlgo bench_algo) {
     // calculate number of active miner backends in m_enabled_backend_count
     m_enabled_backend_count = 0;
     const Algorithm algo(ba2a[bench_algo]);
@@ -173,7 +171,7 @@ void Benchmark::start(const BenchAlgo bench_algo) {
 }
 
 // run next bench algo or finish benchmark for the last one
-void Benchmark::run_next_bench_algo(const BenchAlgo bench_algo) {
+void MoBenchmark::run_next_bench_algo(const BenchAlgo bench_algo) {
     const BenchAlgo next_bench_algo = static_cast<BenchAlgo>(bench_algo + 1); // compute next perf bench_algo to benchmark
     if (next_bench_algo != BenchAlgo::MAX) {
         start(next_bench_algo);
@@ -182,7 +180,7 @@ void Benchmark::run_next_bench_algo(const BenchAlgo bench_algo) {
     }
 }
 
-void Benchmark::onJobResult(const JobResult& result) {
+void MoBenchmark::onJobResult(const JobResult& result) {
     if (result.clientId != String("benchmark")) { // switch to network pool jobs
         JobResults::setListener(m_controller->network(), m_controller->config()->cpu().isHwAES());
         static_cast<IJobResultListener*>(m_controller->network())->onJobResult(result);
@@ -221,7 +219,7 @@ void Benchmark::onJobResult(const JobResult& result) {
     }
 }
 
-uint64_t Benchmark::get_now() const { // get current time in ms
+uint64_t MoBenchmark::get_now() const { // get current time in ms
     using namespace std::chrono;
     return time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
 }

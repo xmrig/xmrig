@@ -28,7 +28,7 @@ class Controller;
 class Miner;
 class Job;
 
-class Benchmark : public IJobResultListener {
+class MoBenchmark : public IJobResultListener {
 
         enum BenchAlgo : int {
             CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
@@ -38,13 +38,11 @@ class Benchmark : public IJobResultListener {
             CN_PICO_0,     // "cn-pico"          CryptoNight-Pico.
             CN_CCX,        // "cn/ccx"           Conceal (CCX).
             CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
-            AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
-            AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ).
+            AR2_CHUKWA_V2, // "argon2/chukwav2"  Argon2id (Chukwa v2).
             ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero).
             RX_0,          // "rx/0"             RandomX (Monero).
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
             RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
-            RX_KEVA,       // "rx/keva"          RandomKEVA (Keva).
             RX_XLA,        // "panthera"         Panthera (Scala2).
             MAX,
             MIN = 0,
@@ -59,13 +57,11 @@ class Benchmark : public IJobResultListener {
             Algorithm::CN_PICO_0,
             Algorithm::CN_CCX,
             Algorithm::CN_GPU,
-            Algorithm::AR2_CHUKWA,
-            Algorithm::AR2_WRKZ,
+            Algorithm::AR2_CHUKWA_V2,
             Algorithm::ASTROBWT_DERO,
             Algorithm::RX_0,
             Algorithm::RX_WOW,
             Algorithm::RX_ARQ,
-            Algorithm::RX_KEVA,
             Algorithm::RX_XLA,
         };
 
@@ -74,7 +70,7 @@ class Benchmark : public IJobResultListener {
 
         Controller* m_controller;          // to get access to config and network
         bool m_isNewBenchRun;              // true if benchmark is need to be executed or was executed
-        Benchmark::BenchAlgo m_bench_algo; // current perf algo we benchmark
+        MoBenchmark::BenchAlgo m_bench_algo; // current perf algo we benchmark
         uint64_t m_hash_count;             // number of hashes calculated for current perf algo
         uint64_t m_time_start;             // time of the first resultt for current perf algo (in ms)
         uint64_t m_bench_start;            // time of measurements start for current perf algo (in ms) after all backends are started
@@ -83,14 +79,14 @@ class Benchmark : public IJobResultListener {
 
         uint64_t get_now() const;                      // get current time in ms
         double get_algo_perf(Algorithm::Id algo) const; // get algo perf based on m_bench_algo_perf
-        void start(const Benchmark::BenchAlgo);        // start benchmark for specified perf algo
+        void start(const MoBenchmark::BenchAlgo);        // start benchmark for specified perf algo
         void finish();                                 // end of benchmarks, switch to jobs from the pool (network), fill algo_perf
         void onJobResult(const JobResult&) override;   // onJobResult is called after each computed benchmark hash
         void run_next_bench_algo(BenchAlgo);           // run next bench algo or finish benchmark for the last one
 
     public:
-        Benchmark();
-        virtual ~Benchmark();
+        MoBenchmark();
+        virtual ~MoBenchmark();
 
         void set_controller(Controller* controller) { m_controller = controller; }
 
