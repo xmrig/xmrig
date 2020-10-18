@@ -179,6 +179,11 @@ static inline const std::string &usage()
 #   endif
     u += "      --pause-on-battery        pause mine on battery power\n";
 
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    u += "      --stress                  run continuous stress test to check system stability\n";
+    u += "      --bench=N                 run benchmark in offline mode, N can be between 1M and 10M\n";
+#   endif
+
     return u;
 }
 

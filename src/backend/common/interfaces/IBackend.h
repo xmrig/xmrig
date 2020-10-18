@@ -36,6 +36,7 @@ namespace xmrig {
 
 
 class Algorithm;
+class Benchmark;
 class Hashrate;
 class IApiRequest;
 class IWorker;
@@ -60,11 +61,16 @@ public:
     virtual void setJob(const Job &job)                                 = 0;
     virtual void start(IWorker *worker, bool ready)                     = 0;
     virtual void stop()                                                 = 0;
-    virtual void tick(uint64_t ticks)                                   = 0;
+    virtual bool tick(uint64_t ticks)                                   = 0;
 
 #   ifdef XMRIG_FEATURE_API
     virtual rapidjson::Value toJSON(rapidjson::Document &doc) const     = 0;
     virtual void handleRequest(IApiRequest &request)                    = 0;
+#   endif
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    virtual Benchmark *benchmark() const                                = 0;
+    virtual void printBenchProgress() const                             = 0;
 #   endif
 };
 

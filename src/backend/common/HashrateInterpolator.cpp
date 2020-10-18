@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,60 +22,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
-
 
 #include "backend/common/HashrateInterpolator.h"
-#include "backend/common/Worker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/opencl/OclLaunchData.h"
-#include "base/tools/Object.h"
-#include "net/JobResult.h"
 
 
-namespace xmrig {
-
-
-class IOclRunner;
-class Job;
-
-
-class OclWorker : public Worker
+uint64_t xmrig::HashrateInterpolator::interpolate(uint64_t timeStamp) const
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+    timeStamp -= LagMS;
 
-    OclWorker(size_t id, const OclLaunchData &data);
+    std::lock_guard<std::mutex> l(m_lock);
 
-    ~OclWorker() override;
+    const size_t N = m_data.size();
 
-    uint64_t rawHashes() const override;
-    void jobEarlyNotification(const Job&) override;
+    if (N < 2) {
+        return 0;
+    }
 
-    static std::atomic<bool> ready;
+    for (size_t i = 0; i < N - 1; ++i) {
+        const auto& a = m_data[i];
+        const auto& b = m_data[i + 1];
 
-protected:
-    bool selfTest() override;
-    size_t intensity() const override;
-    void start() override;
+        if (a.second <= timeStamp && timeStamp <= b.second) {
+            return a.first + static_cast<int64_t>(b.first - a.first) * (timeStamp - a.second) / (b.second - a.second);
+        }
+    }
 
-private:
-    bool consumeJob();
-    void storeStats(uint64_t ts);
+    return 0;
+}
 
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    IOclRunner *m_runner = nullptr;
-    OclSharedData &m_sharedData;
-    WorkerJob<1> m_job;
-    uint32_t m_deviceIndex;
+void xmrig::HashrateInterpolator::addDataPoint(uint64_t count, uint64_t timeStamp)
+{
+    std::lock_guard<std::mutex> l(m_lock);
 
-    HashrateInterpolator m_hashrateData;
-};
+    // Clean up old data
+    while (!m_data.empty() && (timeStamp - m_data.front().second > LagMS * 2)) {
+        m_data.pop_front();
+    }
 
-
-} // namespace xmrig
-
-
-#endif /* XMRIG_OCLWORKER_H */
+    m_data.emplace_back(count, timeStamp);
+}

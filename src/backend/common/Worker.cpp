@@ -32,9 +32,7 @@
 
 xmrig::Worker::Worker(size_t id, int64_t affinity, int priority) :
     m_affinity(affinity),
-    m_id(id),
-    m_hashCount(0),
-    m_timestamp(0)
+    m_id(id)
 {
     m_node = VirtualMemory::bindToNUMANode(affinity);
 
@@ -45,6 +43,23 @@ xmrig::Worker::Worker(size_t id, int64_t affinity, int priority) :
 
 void xmrig::Worker::storeStats()
 {
-    m_hashCount.store(m_count, std::memory_order_relaxed);
-    m_timestamp.store(Chrono::highResolutionMSecs(), std::memory_order_relaxed);
+    // Get index which is unused now
+    const uint32_t index = m_index.load(std::memory_order_relaxed) ^ 1;
+
+    // Fill in the data for that index
+    m_hashCount[index] = m_count;
+    m_timestamp[index] = Chrono::steadyMSecs();
+
+    // Switch to that index
+    // All data will be in memory by the time it completes thanks to std::memory_order_seq_cst
+    m_index.fetch_xor(1, std::memory_order_seq_cst);
+}
+
+
+void xmrig::Worker::getHashrateData(uint64_t& hashCount, uint64_t& timeStamp) const
+{
+    const uint32_t index = m_index.load(std::memory_order_relaxed);
+
+    hashCount = m_hashCount[index];
+    timeStamp = m_timestamp[index];
 }

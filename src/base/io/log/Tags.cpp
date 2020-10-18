@@ -70,6 +70,16 @@ const char *xmrig::Tags::randomx()
     return tag;
 }
 #endif
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+const char *xmrig::Tags::bench()
+{
+    static const char *tag = GREEN_BG_BOLD(WHITE_BOLD_S " bench   ");
+
+    return tag;
+}
+#endif
 #endif
 
 

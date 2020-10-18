@@ -58,6 +58,19 @@ public:
         ScratchpadPrefetchMax,
     };
 
+    static const char *kCacheQoS;
+    static const char *kField;
+    static const char *kInit;
+    static const char *kMode;
+    static const char *kOneGbPages;
+    static const char *kRdmsr;
+    static const char *kScratchpadPrefetchMode;
+    static const char *kWrmsr;
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    static const char *kNUMA;
+#   endif
+
     bool read(const rapidjson::Value &value);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 

@@ -62,7 +62,6 @@ std::atomic<bool> CudaWorker::ready;
 
 
 static inline bool isReady()                         { return !Nonce::isPaused() && CudaWorker::ready; }
-static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
 
 
 } // namespace xmrig
@@ -120,6 +119,12 @@ xmrig::CudaWorker::~CudaWorker()
 }
 
 
+uint64_t xmrig::CudaWorker::rawHashes() const
+{
+    return m_hashrateData.interpolate(Chrono::steadyMSecs());
+}
+
+
 void xmrig::CudaWorker::jobEarlyNotification(const Job& job)
 {
     if (m_runner) {
@@ -170,8 +175,7 @@ void xmrig::CudaWorker::start()
                 JobResults::submit(m_job.currentJob(), foundNonce, foundCount, m_deviceIndex);
             }
 
-            const size_t batch_size = intensity();
-            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(roundSize(batch_size), batch_size)) {
+            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(1, intensity())) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -192,8 +196,7 @@ bool xmrig::CudaWorker::consumeJob()
         return false;
     }
 
-    const size_t batch_size = intensity();
-    m_job.add(m_miner->job(), roundSize(batch_size) * batch_size, Nonce::CUDA);
+    m_job.add(m_miner->job(), intensity(), Nonce::CUDA);
 
     return m_runner->set(m_job.currentJob(), m_job.blob());
 }
@@ -206,6 +209,9 @@ void xmrig::CudaWorker::storeStats()
     }
 
     m_count += m_runner ? m_runner->processedHashes() : 0;
+
+    const uint64_t timeStamp = Chrono::steadyMSecs();
+    m_hashrateData.addDataPoint(m_count, timeStamp);
 
     Worker::storeStats();
 }

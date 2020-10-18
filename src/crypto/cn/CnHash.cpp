@@ -139,7 +139,7 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 static void patchAsmVariants()
 {
     const int allocation_size = 81920;
-    auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size));
+    auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size, false));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
     cn_half_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1000);
@@ -273,10 +273,12 @@ xmrig::CnHash::CnHash()
     ADD_FN(Algorithm::CN_CCX);
 
 #   ifdef XMRIG_ALGO_ARGON2
-    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_CHUKWA>;
-    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE_SOFT][Assembly::NONE] = argon2::single_hash<Algorithm::AR2_CHUKWA>;
-    m_map[Algorithm::AR2_WRKZ][AV_SINGLE][Assembly::NONE]        = argon2::single_hash<Algorithm::AR2_WRKZ>;
-    m_map[Algorithm::AR2_WRKZ][AV_SINGLE_SOFT][Assembly::NONE]   = argon2::single_hash<Algorithm::AR2_WRKZ>;
+    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE][Assembly::NONE]         = argon2::single_hash<Algorithm::AR2_CHUKWA>;
+    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE_SOFT][Assembly::NONE]    = argon2::single_hash<Algorithm::AR2_CHUKWA>;
+    m_map[Algorithm::AR2_CHUKWA_V2][AV_SINGLE][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_CHUKWA_V2>;
+    m_map[Algorithm::AR2_CHUKWA_V2][AV_SINGLE_SOFT][Assembly::NONE] = argon2::single_hash<Algorithm::AR2_CHUKWA_V2>;
+    m_map[Algorithm::AR2_WRKZ][AV_SINGLE][Assembly::NONE]           = argon2::single_hash<Algorithm::AR2_WRKZ>;
+    m_map[Algorithm::AR2_WRKZ][AV_SINGLE_SOFT][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_WRKZ>;
 #   endif
 
 #   ifdef XMRIG_ALGO_ASTROBWT

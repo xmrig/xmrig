@@ -73,6 +73,7 @@ private:
     void allocateCnCtx();
     void consumeJob();
 
+    alignas(16) uint8_t m_hash[N * 32]{ 0 };
     const Algorithm m_algorithm;
     const Assembly m_assembly;
     const bool m_astrobwtAVX2;
@@ -81,8 +82,8 @@ private:
     const CnHash::AlgoVariant m_av;
     const int m_astrobwtMaxSize;
     const Miner *m_miner;
+    const uint32_t m_benchSize;
     cryptonight_ctx *m_ctx[N];
-    uint8_t m_hash[N * 32]{ 0 };
     VirtualMemory *m_memory = nullptr;
     WorkerJob<N> m_job;
 

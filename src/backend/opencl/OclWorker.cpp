@@ -56,12 +56,10 @@
 namespace xmrig {
 
 
-static constexpr uint32_t kReserveCount = 32768;
 std::atomic<bool> OclWorker::ready;
 
 
 static inline bool isReady()                         { return !Nonce::isPaused() && OclWorker::ready; }
-static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
 
 
 static inline void printError(size_t id, const char *error)
@@ -78,7 +76,6 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     Worker(id, data.affinity, -1),
     m_algorithm(data.algorithm),
     m_miner(data.miner),
-    m_intensity(data.thread.intensity()),
     m_sharedData(OclSharedState::get(data.device.index())),
     m_deviceIndex(data.device.index())
 {
@@ -140,6 +137,12 @@ xmrig::OclWorker::~OclWorker()
 }
 
 
+uint64_t xmrig::OclWorker::rawHashes() const
+{
+    return m_hashrateData.interpolate(Chrono::steadyMSecs());
+}
+
+
 void xmrig::OclWorker::jobEarlyNotification(const Job& job)
 {
     if (m_runner) {
@@ -163,8 +166,6 @@ size_t xmrig::OclWorker::intensity() const
 void xmrig::OclWorker::start()
 {
     cl_uint results[0x100];
-
-    const uint32_t runnerRoundSize = m_runner->roundSize();
 
     while (Nonce::sequence(Nonce::OPENCL) > 0) {
         if (!isReady()) {
@@ -204,7 +205,7 @@ void xmrig::OclWorker::start()
                 JobResults::submit(m_job.currentJob(), results, results[0xFF], m_deviceIndex);
             }
 
-            if (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence()) && !m_job.nextRound(roundSize(runnerRoundSize), runnerRoundSize)) {
+            if (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence()) && !m_job.nextRound(1, intensity())) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -225,7 +226,7 @@ bool xmrig::OclWorker::consumeJob()
         return false;
     }
 
-    m_job.add(m_miner->job(), roundSize(m_intensity) * m_intensity, Nonce::OPENCL);
+    m_job.add(m_miner->job(), intensity(), Nonce::OPENCL);
 
     try {
         m_runner->set(m_job.currentJob(), m_job.blob());
@@ -247,8 +248,11 @@ void xmrig::OclWorker::storeStats(uint64_t t)
     }
 
     m_count += m_runner->processedHashes();
+    const uint64_t timeStamp = Chrono::steadyMSecs();
 
-    m_sharedData.setRunTime(Chrono::steadyMSecs() - t);
+    m_hashrateData.addDataPoint(m_count, timeStamp);
+
+    m_sharedData.setRunTime(timeStamp - t);
 
     Worker::storeStats();
 }

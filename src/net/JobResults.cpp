@@ -24,6 +24,7 @@
 
 
 #include "net/JobResults.h"
+#include "base/io/Async.h"
 #include "base/io/log/Log.h"
 #include "base/tools/Handle.h"
 #include "base/tools/Object.h"
@@ -114,7 +115,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 {
     const auto &algorithm = bundle.job.algorithm();
     auto memory           = new VirtualMemory(algorithm.l3(), false, false, false);
-    uint8_t hash[32]{ 0 };
+    alignas(16) uint8_t hash[32]{ 0 };
 
     if (algorithm.family() == Algorithm::RANDOM_X) {
 #       ifdef XMRIG_ALGO_RANDOMX

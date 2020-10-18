@@ -41,9 +41,6 @@ extern uint32_t lutDec1[256];
 extern uint32_t lutDec2[256];
 extern uint32_t lutDec3[256];
 
-uint32_t GetSoftAESImpl();
-void SelectSoftAESImpl();
-
 template<int soft> rx_vec_i128 aesenc(rx_vec_i128 in, rx_vec_i128 key);
 template<int soft> rx_vec_i128 aesdec(rx_vec_i128 in, rx_vec_i128 key);
 

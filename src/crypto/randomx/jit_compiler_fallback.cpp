@@ -1,5 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
+ * Copyright 2018-2019, tevador    <tevador@gmail.com>
+ * Copyright 2018-2020, SChernykh  <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -26,33 +28,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdexcept>
+#pragma once
 
 
-#include "crypto/common/VirtualMemory.h"
-#include "crypto/randomx/virtual_memory.hpp"
-
-
-void* allocExecutableMemory(std::size_t bytes, bool hugePages) {
-    void *mem = xmrig::VirtualMemory::allocateExecutableMemory(bytes, hugePages);
-    if (mem == nullptr) {
-        throw std::runtime_error("Failed to allocate executable memory");
-    }
-
-    return mem;
+void randomx_set_huge_pages_jit(bool)
+{
 }
 
-
-void* allocLargePagesMemory(std::size_t bytes) {
-    void *mem = xmrig::VirtualMemory::allocateLargePagesMemory(bytes);
-    if (mem == nullptr) {
-        throw std::runtime_error("Failed to allocate large pages memory");
-    }
-
-    return mem;
-}
-
-
-void freePagedMemory(void* ptr, std::size_t bytes) {
-    xmrig::VirtualMemory::freeLargePagesMemory(ptr, bytes);
-}

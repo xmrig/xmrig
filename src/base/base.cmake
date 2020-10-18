@@ -127,6 +127,7 @@ elseif (APPLE)
         )
 else()
     set(SOURCES_OS
+        src/base/io/Async.cpp
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_unix.cpp
         )
@@ -226,11 +227,16 @@ endif()
 if (WITH_PROFILING)
     add_definitions(/DXMRIG_FEATURE_PROFILING)
 
-    list(APPEND HEADERS_BASE
-        src/base/tools/Profiler.h
-        )
+    list(APPEND HEADERS_BASE src/base/tools/Profiler.h)
+    list(APPEND SOURCES_BASE src/base/tools/Profiler.cpp)
+endif()
 
-    list(APPEND SOURCES_BASE
-        src/base/tools/Profiler.cpp
-        )
+
+if (WITH_RANDOMX AND WITH_BENCHMARK)
+    add_definitions(/DXMRIG_FEATURE_BENCHMARK)
+
+    list(APPEND HEADERS_BASE src/base/net/stratum/NullClient.h)
+    list(APPEND SOURCES_BASE src/base/net/stratum/NullClient.cpp)
+else()
+    remove_definitions(/DXMRIG_FEATURE_BENCHMARK)
 endif()

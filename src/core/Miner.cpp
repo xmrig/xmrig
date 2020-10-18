@@ -134,8 +134,6 @@ public:
             Nonce::pause(true);
         }
 
-        active = true;
-
         if (reset) {
             Nonce::reset(job.index());
         }
@@ -146,7 +144,7 @@ public:
 
         Nonce::touch();
 
-        if (enabled) {
+        if (active && enabled) {
             Nonce::pause(false);
         }
 
@@ -205,7 +203,7 @@ public:
                 continue;
             }
 
-            for (size_t i = 0; i < hr->threads(); i++) {
+            for (size_t i = 1; i < hr->threads(); i++) {
                 Value thread(kArrayType);
                 thread.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
                 thread.PushBack(Hashrate::normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
@@ -244,30 +242,8 @@ public:
 #   endif
 
 
-    void printHashrate(bool details)
+    static inline void printProfile()
     {
-        char num[16 * 4] = { 0 };
-        double speed[3] = { 0.0 };
-
-        for (auto backend : backends) {
-            const auto hashrate = backend->hashrate();
-            if (hashrate) {
-                speed[0] += hashrate->calc(Hashrate::ShortInterval);
-                speed[1] += hashrate->calc(Hashrate::MediumInterval);
-                speed[2] += hashrate->calc(Hashrate::LargeInterval);
-            }
-
-            backend->printHashrate(details);
-        }
-
-        double scale = 1.0;
-        const char* h = "H/s";
-
-        if ((speed[0] >= 1e6) || (speed[1] >= 1e6) || (speed[2] >= 1e6) || (maxHashrate[algorithm] >= 1e6)) {
-            scale = 1e-6;
-            h = "MH/s";
-        }
-
 #       ifdef XMRIG_FEATURE_PROFILING
         ProfileScopeData* data[ProfileScopeData::MAX_DATA_COUNT];
 
@@ -305,6 +281,41 @@ public:
             i = n1;
         }
 #       endif
+    }
+
+
+    void printHashrate(bool details)
+    {
+        char num[16 * 4] = { 0 };
+        double speed[3]  = { 0.0 };
+        uint32_t count   = 0;
+
+        for (auto backend : backends) {
+            const auto hashrate = backend->hashrate();
+            if (hashrate) {
+                ++count;
+
+                speed[0] += hashrate->calc(Hashrate::ShortInterval);
+                speed[1] += hashrate->calc(Hashrate::MediumInterval);
+                speed[2] += hashrate->calc(Hashrate::LargeInterval);
+            }
+
+            backend->printHashrate(details);
+        }
+
+        if (!count) {
+            return;
+        }
+
+        printProfile();
+
+        double scale  = 1.0;
+        const char* h = "H/s";
+
+        if ((speed[0] >= 1e6) || (speed[1] >= 1e6) || (speed[2] >= 1e6) || (maxHashrate[algorithm] >= 1e6)) {
+            scale = 1e-6;
+            h = "MH/s";
+        }
 
         LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
                  Tags::miner(),
@@ -313,6 +324,12 @@ public:
                  Hashrate::format(speed[2] * scale,                 num + 16 * 2, sizeof(num) / 4), h,
                  Hashrate::format(maxHashrate[algorithm] * scale,   num + 16 * 3, sizeof(num) / 4), h
                  );
+
+#       ifdef XMRIG_FEATURE_BENCHMARK
+        for (auto backend : backends) {
+            backend->printBenchProgress();
+        }
+#       endif
     }
 
 
@@ -536,6 +553,8 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 
     mutex.unlock();
 
+    d_ptr->active = true;
+
     if (ready) {
         d_ptr->handleJobChange();
     }
@@ -573,8 +592,12 @@ void xmrig::Miner::onTimer(const Timer *)
     double maxHashrate          = 0.0;
     const auto healthPrintTime  = d_ptr->controller->config()->healthPrintTime();
 
+    bool stopMiner = false;
+
     for (IBackend *backend : d_ptr->backends) {
-        backend->tick(d_ptr->ticks);
+        if (!backend->tick(d_ptr->ticks)) {
+            stopMiner = true;
+        }
 
         if (healthPrintTime && d_ptr->ticks && (d_ptr->ticks % (healthPrintTime * 2)) == 0 && backend->isEnabled()) {
             backend->printHealth();
@@ -606,6 +629,10 @@ void xmrig::Miner::onTimer(const Timer *)
             d_ptr->battery_power = false;
             setEnabled(true);
         }
+    }
+
+    if (stopMiner) {
+        stop();
     }
 }
 
