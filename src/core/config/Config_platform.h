@@ -98,6 +98,11 @@ static const option options[] = {
     { "title",                 1, nullptr, IConfig::TitleKey              },
     { "no-title",              0, nullptr, IConfig::NoTitleKey            },
     { "pause-on-battery",      0, nullptr, IConfig::PauseOnBatteryKey     },
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    { "stress",                0, nullptr, IConfig::StressKey             },
+    { "bench",                 1, nullptr, IConfig::BenchKey              },
+    { "benchmark",             1, nullptr, IConfig::BenchKey              },
+#   endif
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },
     { "tls-fingerprint",       1, nullptr, IConfig::FingerprintKey        },

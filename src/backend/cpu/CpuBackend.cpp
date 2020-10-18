@@ -55,6 +55,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
+#   include "backend/common/Benchmark.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -304,9 +309,9 @@ void xmrig::CpuBackend::printHashrate(bool details)
          Log::print("| %8zu | %8" PRId64 " | %7s | %7s | %7s |",
                     i,
                     data.affinity,
-                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval),  num,         sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
+                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::ShortInterval),  num,         sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::MediumInterval), num + 8,     sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
                     );
 
          i++;
@@ -335,7 +340,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
     const CpuConfig &cpu = d_ptr->controller->config()->cpu();
 
-    std::vector<CpuLaunchData> threads = cpu.get(d_ptr->controller->miner(), job.algorithm());
+    std::vector<CpuLaunchData> threads = cpu.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->controller->config()->pools().benchSize());
     if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }
@@ -387,9 +392,9 @@ void xmrig::CpuBackend::stop()
 }
 
 
-void xmrig::CpuBackend::tick(uint64_t ticks)
+bool xmrig::CpuBackend::tick(uint64_t ticks)
 {
-    d_ptr->workers.tick(ticks);
+    return d_ptr->workers.tick(ticks);
 }
 
 
@@ -456,6 +461,23 @@ void xmrig::CpuBackend::handleRequest(IApiRequest &request)
 {
     if (request.type() == IApiRequest::REQ_SUMMARY) {
         request.reply().AddMember("hugepages", d_ptr->hugePages(request.version(), request.doc()), request.doc().GetAllocator());
+    }
+}
+#endif
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+xmrig::Benchmark *xmrig::CpuBackend::benchmark() const
+{
+    return d_ptr->workers.benchmark();
+}
+
+
+void xmrig::CpuBackend::printBenchProgress() const
+{
+    auto benchmark = d_ptr->workers.benchmark();
+    if (benchmark) {
+        benchmark->printProgress();
     }
 }
 #endif

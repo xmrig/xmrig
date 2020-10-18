@@ -144,6 +144,18 @@ void xmrig::Pools::load(const IJsonReader &reader)
 }
 
 
+uint32_t xmrig::Pools::benchSize() const
+{
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (m_data.size() == 1 && m_data.front().mode() == Pool::MODE_BENCHMARK) {
+        return m_data.front().benchSize();
+    }
+#   endif
+
+    return 0;
+}
+
+
 void xmrig::Pools::print() const
 {
     size_t i = 1;

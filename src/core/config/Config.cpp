@@ -53,11 +53,6 @@
 
 namespace xmrig {
 
-static const char *kCPU     = "cpu";
-
-#ifdef XMRIG_ALGO_RANDOMX
-static const char *kRandomX = "randomx";
-#endif
 
 #ifdef XMRIG_FEATURE_OPENCL
 static const char *kOcl     = "opencl";
@@ -182,10 +177,10 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    d_ptr->cpu.read(reader.getValue(kCPU));
+    d_ptr->cpu.read(reader.getValue(CpuConfig::kField));
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (!d_ptr->rx.read(reader.getValue(kRandomX))) {
+    if (!d_ptr->rx.read(reader.getValue(RxConfig::kField))) {
         m_upgrade = true;
     }
 #   endif
@@ -230,10 +225,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kTitle),                    title().toJSON(), allocator);
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    doc.AddMember(StringRef(kRandomX),                  rx().toJSON(doc), allocator);
+    doc.AddMember(StringRef(RxConfig::kField),          rx().toJSON(doc), allocator);
 #   endif
 
-    doc.AddMember(StringRef(kCPU),                      cpu().toJSON(doc), allocator);
+    doc.AddMember(StringRef(CpuConfig::kField),         cpu().toJSON(doc), allocator);
 
 #   ifdef XMRIG_FEATURE_OPENCL
     doc.AddMember(StringRef(kOcl),                      cl().toJSON(doc), allocator);

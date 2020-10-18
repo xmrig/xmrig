@@ -105,8 +105,6 @@ static AlgoName const algorithm_names[] = {
     { "RandomX",                   "rx",               Algorithm::RX_0            },
     { "randomx/wow",               "rx/wow",           Algorithm::RX_WOW          },
     { "RandomWOW",                 nullptr,            Algorithm::RX_WOW          },
-    { "randomx/loki",              "rx/loki",          Algorithm::RX_LOKI         },
-    { "RandomXL",                  nullptr,            Algorithm::RX_LOKI         },
     { "randomx/arq",               "rx/arq",           Algorithm::RX_ARQ          },
     { "RandomARQ",                 nullptr,            Algorithm::RX_ARQ          },
     { "randomx/sfx",               "rx/sfx",           Algorithm::RX_SFX          },
@@ -121,6 +119,8 @@ static AlgoName const algorithm_names[] = {
 #   ifdef XMRIG_ALGO_ARGON2
     { "argon2/chukwa",             nullptr,            Algorithm::AR2_CHUKWA      },
     { "chukwa",                    nullptr,            Algorithm::AR2_CHUKWA      },
+    { "argon2/chukwav2",           nullptr,            Algorithm::AR2_CHUKWA_V2   },
+    { "chukwav2",                  nullptr,            Algorithm::AR2_CHUKWA_V2   },
     { "argon2/wrkz",               nullptr,            Algorithm::AR2_WRKZ        },
 #   endif
 #   ifdef XMRIG_ALGO_ASTROBWT
@@ -168,7 +168,6 @@ size_t xmrig::Algorithm::l2() const
 #   ifdef XMRIG_ALGO_RANDOMX
     switch (m_id) {
     case RX_0:
-    case RX_LOKI:
     case RX_SFX:
         return 0x40000;
 
@@ -218,7 +217,6 @@ size_t xmrig::Algorithm::l3() const
     if (f == RANDOM_X) {
         switch (m_id) {
         case RX_0:
-        case RX_LOKI:
         case RX_SFX:
             return oneMiB * 2;
 
@@ -242,6 +240,9 @@ size_t xmrig::Algorithm::l3() const
         switch (m_id) {
         case AR2_CHUKWA:
             return oneMiB / 2;
+
+        case AR2_CHUKWA_V2:
+            return oneMiB;
 
         case AR2_WRKZ:
             return oneMiB / 4;
@@ -352,7 +353,6 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 #   ifdef XMRIG_ALGO_RANDOMX
     case RX_0:
     case RX_WOW:
-    case RX_LOKI:
     case RX_ARQ:
     case RX_SFX:
     case RX_KEVA:
@@ -363,6 +363,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 
 #   ifdef XMRIG_ALGO_ARGON2
     case AR2_CHUKWA:
+    case AR2_CHUKWA_V2:
     case AR2_WRKZ:
         return ARGON2;
 #   endif

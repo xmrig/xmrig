@@ -40,6 +40,9 @@ inline void single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t 
     if (ALGO == Algorithm::AR2_CHUKWA) {
         argon2id_hash_raw_ex(3, 512, 1, input, size, input, 16, output, 32, ctx[0]->memory);
     }
+    else if (ALGO == Algorithm::AR2_CHUKWA_V2) {
+        argon2id_hash_raw_ex(4, 1024, 1, input, size, input, 16, output, 32, ctx[0]->memory);
+    }
     else if (ALGO == Algorithm::AR2_WRKZ) {
         argon2id_hash_raw_ex(4, 256, 1, input, size, input, 16, output, 32, ctx[0]->memory);
     }

@@ -34,25 +34,27 @@
 
 namespace xmrig {
 
-static const char *kEnabled             = "enabled";
-static const char *kHugePages           = "huge-pages";
-static const char *kHwAes               = "hw-aes";
-static const char *kMaxThreadsHint      = "max-threads-hint";
-static const char *kMemoryPool          = "memory-pool";
-static const char *kPriority            = "priority";
-static const char *kYield               = "yield";
+const char *CpuConfig::kEnabled             = "enabled";
+const char *CpuConfig::kField               = "cpu";
+const char *CpuConfig::kHugePages           = "huge-pages";
+const char *CpuConfig::kHugePagesJit        = "huge-pages-jit";
+const char *CpuConfig::kHwAes               = "hw-aes";
+const char *CpuConfig::kMaxThreadsHint      = "max-threads-hint";
+const char *CpuConfig::kMemoryPool          = "memory-pool";
+const char *CpuConfig::kPriority            = "priority";
+const char *CpuConfig::kYield               = "yield";
 
 #ifdef XMRIG_FEATURE_ASM
-static const char *kAsm = "asm";
+const char *CpuConfig::kAsm                 = "asm";
 #endif
 
 #ifdef XMRIG_ALGO_ARGON2
-static const char *kArgon2Impl = "argon2-impl";
+const char *CpuConfig::kArgon2Impl          = "argon2-impl";
 #endif
 
 #ifdef XMRIG_ALGO_ASTROBWT
-static const char* kAstroBWTMaxSize = "astrobwt-max-size";
-static const char* kAstroBWTAVX2    = "astrobwt-avx2";
+const char *CpuConfig::kAstroBWTMaxSize     = "astrobwt-max-size";
+const char *CpuConfig::kAstroBWTAVX2        = "astrobwt-avx2";
 #endif
 
 
@@ -76,6 +78,7 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 
     obj.AddMember(StringRef(kEnabled),      m_enabled, allocator);
     obj.AddMember(StringRef(kHugePages),    m_hugePages, allocator);
+    obj.AddMember(StringRef(kHugePagesJit), m_hugePagesJit, allocator);
     obj.AddMember(StringRef(kHwAes),        m_aes == AES_AUTO ? Value(kNullType) : Value(m_aes == AES_HW), allocator);
     obj.AddMember(StringRef(kPriority),     priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
     obj.AddMember(StringRef(kMemoryPool),   m_memoryPool < 1 ? Value(m_memoryPool < 0) : Value(m_memoryPool), allocator);
@@ -110,7 +113,7 @@ size_t xmrig::CpuConfig::memPoolSize() const
 }
 
 
-std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, const Algorithm &algorithm) const
+std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, const Algorithm &algorithm, uint32_t benchSize) const
 {
     std::vector<CpuLaunchData> out;
     const CpuThreads &threads = m_threads.get(algorithm);
@@ -122,7 +125,7 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
     out.reserve(threads.count());
 
     for (const CpuThread &thread : threads.data()) {
-        out.emplace_back(miner, algorithm, *this, thread);
+        out.emplace_back(miner, algorithm, *this, thread, benchSize);
     }
 
     return out;
@@ -132,10 +135,11 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
 void xmrig::CpuConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
-        m_enabled    = Json::getBool(value, kEnabled, m_enabled);
-        m_hugePages  = Json::getBool(value, kHugePages, m_hugePages);
-        m_limit      = Json::getUint(value, kMaxThreadsHint, m_limit);
-        m_yield      = Json::getBool(value, kYield, m_yield);
+        m_enabled      = Json::getBool(value, kEnabled, m_enabled);
+        m_hugePages    = Json::getBool(value, kHugePages, m_hugePages);
+        m_hugePagesJit = Json::getBool(value, kHugePagesJit, m_hugePagesJit);
+        m_limit        = Json::getUint(value, kMaxThreadsHint, m_limit);
+        m_yield        = Json::getBool(value, kYield, m_yield);
 
         setAesMode(Json::getValue(value, kHwAes));
         setPriority(Json::getInt(value,  kPriority, -1));

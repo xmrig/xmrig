@@ -20,16 +20,15 @@
 #define ALGO_CN_GPU         19
 #define ALGO_RX_0           20
 #define ALGO_RX_WOW         21
-#define ALGO_RX_LOKI        22
-#define ALGO_RX_ARQ         23
-#define ALGO_RX_SFX         24
-#define ALGO_RX_KEVA        25
+#define ALGO_RX_ARQ         22
+#define ALGO_RX_SFX         23
+#define ALGO_RX_KEVA        24
+#define ALGO_AR2_CHUKWA     25
 #define ALGO_AR2_CHUKWA     26
 #define ALGO_AR2_WRKZ       27
 #define ALGO_ASTROBWT_DERO  28
 #define ALGO_KAWPOW_RVN     29
-#define ALGO_RX_DEFYX       30
-#define ALGO_RX_XLA         31
+#define ALGO_RX_XLA         30
 
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1

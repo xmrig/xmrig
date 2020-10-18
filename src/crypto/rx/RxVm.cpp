@@ -64,7 +64,7 @@ randomx_vm* xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool so
     rx_blake2b_use_sse41 = Cpu::info()->has(ICpuInfo::FLAG_SSE41) ? 1 : 0;
 #   endif
 
-    return randomx_create_vm(static_cast<randomx_flags>(flags), dataset->cache() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad, node);
+    return randomx_create_vm(static_cast<randomx_flags>(flags), !dataset->get() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad, node);
 }
 
 

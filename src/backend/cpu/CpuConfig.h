@@ -44,16 +44,40 @@ public:
         AES_SOFT
     };
 
+    static const char *kEnabled;
+    static const char *kField;
+    static const char *kHugePages;
+    static const char *kHugePagesJit;
+    static const char *kHwAes;
+    static const char *kMaxThreadsHint;
+    static const char *kMemoryPool;
+    static const char *kPriority;
+    static const char *kYield;
+
+#   ifdef XMRIG_FEATURE_ASM
+    static const char *kAsm;
+#   endif
+
+#   ifdef XMRIG_ALGO_ARGON2
+    static const char *kArgon2Impl;
+#   endif
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    static const char *kAstroBWTMaxSize;
+    static const char *kAstroBWTAVX2;
+#   endif
+
     CpuConfig() = default;
 
     bool isHwAES() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t memPoolSize() const;
-    std::vector<CpuLaunchData> get(const Miner *miner, const Algorithm &algorithm) const;
+    std::vector<CpuLaunchData> get(const Miner *miner, const Algorithm &algorithm, uint32_t benchSize) const;
     void read(const rapidjson::Value &value);
 
     inline bool isEnabled() const                       { return m_enabled; }
     inline bool isHugePages() const                     { return m_hugePages; }
+    inline bool isHugePagesJit() const                  { return m_hugePagesJit; }
     inline bool isShouldSave() const                    { return m_shouldSave; }
     inline bool isYield() const                         { return m_yield; }
     inline const Assembly &assembly() const             { return m_assembly; }
@@ -76,6 +100,7 @@ private:
     bool m_astrobwtAVX2     = false;
     bool m_enabled          = true;
     bool m_hugePages        = true;
+    bool m_hugePagesJit     = false;
     bool m_shouldSave       = false;
     bool m_yield            = true;
     int m_astrobwtMaxSize   = 550;

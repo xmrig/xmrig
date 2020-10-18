@@ -27,6 +27,7 @@
 #define XMRIG_OCLWORKER_H
 
 
+#include "backend/common/HashrateInterpolator.h"
 #include "backend/common/Worker.h"
 #include "backend/common/WorkerJob.h"
 #include "backend/opencl/OclLaunchData.h"
@@ -50,6 +51,7 @@ public:
 
     ~OclWorker() override;
 
+    uint64_t rawHashes() const override;
     void jobEarlyNotification(const Job&) override;
 
     static std::atomic<bool> ready;
@@ -65,11 +67,12 @@ private:
 
     const Algorithm m_algorithm;
     const Miner *m_miner;
-    const uint32_t m_intensity;
     IOclRunner *m_runner = nullptr;
     OclSharedData &m_sharedData;
     WorkerJob<1> m_job;
     uint32_t m_deviceIndex;
+
+    HashrateInterpolator m_hashrateData;
 };
 
 

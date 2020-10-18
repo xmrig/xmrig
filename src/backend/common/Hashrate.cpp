@@ -48,13 +48,13 @@ inline static const char *format(double h, char *buf, size_t size)
 
 
 xmrig::Hashrate::Hashrate(size_t threads) :
-    m_threads(threads)
+    m_threads(threads + 1)
 {
-    m_counts     = new uint64_t*[threads];
-    m_timestamps = new uint64_t*[threads];
-    m_top        = new uint32_t[threads];
+    m_counts     = new uint64_t*[m_threads];
+    m_timestamps = new uint64_t*[m_threads];
+    m_top        = new uint32_t[m_threads];
 
-    for (size_t i = 0; i < threads; i++) {
+    for (size_t i = 0; i < m_threads; i++) {
         m_counts[i]     = new uint64_t[kBucketSize]();
         m_timestamps[i] = new uint64_t[kBucketSize]();
         m_top[i]        = 0;
@@ -77,17 +77,8 @@ xmrig::Hashrate::~Hashrate()
 
 double xmrig::Hashrate::calc(size_t ms) const
 {
-    double result = 0.0;
-    double data;
-
-    for (size_t i = 0; i < m_threads; ++i) {
-        data = calc(i, ms);
-        if (std::isnormal(data)) {
-            result += data;
-        }
-    }
-
-    return result;
+    const double data = calc(0, ms);
+    return std::isnormal(data) ? data : 0.0;
 }
 
 
@@ -102,7 +93,7 @@ double xmrig::Hashrate::calc(size_t threadId, size_t ms) const
     uint64_t earliestStamp     = 0;
     bool haveFullSet           = false;
 
-    const uint64_t timeStampLimit = xmrig::Chrono::highResolutionMSecs() - ms;
+    const uint64_t timeStampLimit = xmrig::Chrono::steadyMSecs() - ms;
     uint64_t* timestamps = m_timestamps[threadId];
     uint64_t* counts = m_counts[threadId];
 
@@ -183,9 +174,9 @@ rapidjson::Value xmrig::Hashrate::toJSON(size_t threadId, rapidjson::Document &d
     auto &allocator = doc.GetAllocator();
 
     Value out(kArrayType);
-    out.PushBack(normalize(calc(threadId, ShortInterval)),  allocator);
-    out.PushBack(normalize(calc(threadId, MediumInterval)), allocator);
-    out.PushBack(normalize(calc(threadId, LargeInterval)),  allocator);
+    out.PushBack(normalize(calc(threadId + 1, ShortInterval)),  allocator);
+    out.PushBack(normalize(calc(threadId + 1, MediumInterval)), allocator);
+    out.PushBack(normalize(calc(threadId + 1, LargeInterval)),  allocator);
 
     return out;
 }

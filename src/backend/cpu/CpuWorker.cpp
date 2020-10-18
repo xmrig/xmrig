@@ -29,6 +29,7 @@
 
 
 #include "backend/cpu/CpuWorker.h"
+#include "base/tools/Chrono.h"
 #include "core/Miner.h"
 #include "crypto/cn/CnCtx.h"
 #include "crypto/cn/CryptoNight_test.h"
@@ -57,9 +58,9 @@ static constexpr uint32_t kReserveCount = 32768;
 
 
 template<size_t N>
-inline bool nextRound(WorkerJob<N> &job)
+inline bool nextRound(WorkerJob<N> &job, uint32_t benchSize)
 {
-    if (!job.nextRound(kReserveCount, 1)) {
+    if (!job.nextRound(benchSize ? 1 : kReserveCount, 1)) {
         JobResults::done(job.currentJob());
 
         return false;
@@ -84,6 +85,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_av(data.av()),
     m_astrobwtMaxSize(data.astrobwtMaxSize * 1000),
     m_miner(data.miner),
+    m_benchSize(data.benchSize),
     m_ctx()
 {
     m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, m_node);
@@ -191,6 +193,7 @@ bool xmrig::CpuWorker<N>::selfTest()
 #   ifdef XMRIG_ALGO_ARGON2
     if (m_algorithm.family() == Algorithm::ARGON2) {
         return verify(Algorithm::AR2_CHUKWA, argon2_chukwa_test_out) &&
+               verify(Algorithm::AR2_CHUKWA_V2, argon2_chukwa_v2_test_out) &&
                verify(Algorithm::AR2_WRKZ, argon2_wrkz_test_out);
     }
 #   endif
@@ -222,23 +225,12 @@ void xmrig::CpuWorker<N>::start()
             consumeJob();
         }
 
-        uint64_t storeStatsMask = 7;
-
 #       ifdef XMRIG_ALGO_RANDOMX
         bool first = true;
-        uint64_t tempHash[8] = {};
-
-        // RandomX is faster, we don't need to store stats so often
-        if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
-            storeStatsMask = 63;
-        }
+        alignas(16) uint64_t tempHash[8] = {};
 #       endif
 
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
-            if ((m_count & storeStatsMask) == 0) {
-                storeStats();
-            }
-
             const Job &job = m_job.currentJob();
 
             if (job.algorithm().l3() != m_algorithm.l3()) {
@@ -260,7 +252,7 @@ void xmrig::CpuWorker<N>::start()
                     randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size(), job.algorithm());
                 }
 
-                if (!nextRound(m_job)) {
+                if (!nextRound(m_job, m_benchSize)) {
                     break;
                 }
 
@@ -280,14 +272,28 @@ void xmrig::CpuWorker<N>::start()
                     fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
                 }
 
-                if (!nextRound(m_job)) {
+                if (!nextRound(m_job, m_benchSize)) {
                     break;
                 };
             }
 
             if (valid) {
                 for (size_t i = 0; i < N; ++i) {
-                    if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
+                    const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
+
+#                   ifdef XMRIG_FEATURE_BENCHMARK
+                    if (m_benchSize) {
+                        if (current_job_nonces[i] < m_benchSize) {
+                            m_benchData ^= value;
+                        }
+                        else {
+                            m_benchDoneTime = Chrono::steadyMSecs();
+                            return;
+                        }
+                    }
+                    else
+#                   endif
+                    if (value < job.target()) {
                         JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
                     }
                 }
@@ -384,7 +390,7 @@ void xmrig::CpuWorker<N>::consumeJob()
         return;
     }
 
-    m_job.add(m_miner->job(), kReserveCount, Nonce::CPU);
+    m_job.add(m_miner->job(), m_benchSize ? 1 : kReserveCount, Nonce::CPU);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {

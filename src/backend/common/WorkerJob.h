@@ -68,7 +68,7 @@ public:
     {
         m_rounds[index()]++;
 
-        if ((m_rounds[index()] % rounds) == 0) {
+        if ((m_rounds[index()] & (rounds - 1)) == 0) {
             for (size_t i = 0; i < N; ++i) {
                 if (!Nonce::next(index(), nonce(i), rounds * roundSize, nonceMask())) {
                     return false;
@@ -130,7 +130,7 @@ inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
 
     uint32_t* n = nonce();
 
-    if ((m_rounds[index()] % rounds) == 0) {
+    if ((m_rounds[index()] & (rounds - 1)) == 0) {
         if (!Nonce::next(index(), n, rounds * roundSize, nonceMask())) {
             return false;
         }

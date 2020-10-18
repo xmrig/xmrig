@@ -44,19 +44,31 @@ public:
 
     inline const VirtualMemory *memory() const override   { return nullptr; }
     inline size_t id() const override                     { return m_id; }
-    inline uint64_t hashCount() const override            { return m_hashCount.load(std::memory_order_relaxed); }
-    inline uint64_t timestamp() const override            { return m_timestamp.load(std::memory_order_relaxed); }
+    inline uint64_t rawHashes() const override            { return m_count; }
     inline void jobEarlyNotification(const Job&) override {}
+
+    void getHashrateData(uint64_t& hashCount, uint64_t& timeStamp) const override;
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    inline uint64_t benchData() const override            { return m_benchData; }
+    inline uint64_t benchDoneTime() const override        { return m_benchDoneTime; }
+#   endif
 
 protected:
     void storeStats();
 
     const int64_t m_affinity;
     const size_t m_id;
-    std::atomic<uint64_t> m_hashCount;
-    std::atomic<uint64_t> m_timestamp;
-    uint32_t m_node     = 0;
-    uint64_t m_count    = 0;
+    std::atomic<uint32_t> m_index   = {};
+    uint32_t m_node                 = 0;
+    uint64_t m_count                = 0;
+    uint64_t m_hashCount[2]         = {};
+    uint64_t m_timestamp[2]         = {};
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    uint64_t m_benchData            = 0;
+    uint64_t m_benchDoneTime        = 0;
+#   endif
 };
 
 

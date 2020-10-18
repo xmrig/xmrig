@@ -27,6 +27,7 @@ option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 option(WITH_BENCHMARK       "Enable Benchmark module and algo-perf feature (for MoneroOcean)" ON)
 option(WITH_PROFILING       "Enable profiling for developers" OFF)
 option(WITH_SSE4_1          "Enable SSE 4.1 for Blake2" ON)
+option(WITH_BENCHMARK       "Enable builtin RandomX benchmark and stress test" ON)
 
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)

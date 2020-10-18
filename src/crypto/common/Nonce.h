@@ -43,8 +43,6 @@ public:
     };
 
 
-    Nonce();
-
     static inline bool isOutdated(Backend backend, uint64_t sequence)   { return m_sequence[backend].load(std::memory_order_relaxed) != sequence; }
     static inline bool isPaused()                                       { return m_paused.load(std::memory_order_relaxed); }
     static inline uint64_t sequence(Backend backend)                    { return m_sequence[backend].load(std::memory_order_relaxed); }

@@ -22,38 +22,36 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_VERSION_H
-#define XMRIG_VERSION_H
+#ifndef XMRIG_HASHRATE_INTERPOLATOR_H
+#define XMRIG_HASHRATE_INTERPOLATOR_H
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig miner"
-#define APP_VERSION   "6.4.0-mo1"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2020 xmrig.com"
-#define APP_KIND      "miner"
 
-#define APP_VER_MAJOR  6
-#define APP_VER_MINOR  4
-#define APP_VER_PATCH  0
+#include <mutex>
+#include <deque>
+#include <utility>
 
-#ifdef _MSC_VER
-#   if (_MSC_VER >= 1920)
-#       define MSVC_VERSION 2019
-#   elif (_MSC_VER >= 1910 && _MSC_VER < 1920)
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
 
-#endif /* XMRIG_VERSION_H */
+namespace xmrig {
+
+
+class HashrateInterpolator
+{
+public:
+    enum {
+        LagMS = 4000,
+    };
+
+    uint64_t interpolate(uint64_t timeStamp) const;
+    void addDataPoint(uint64_t count, uint64_t timeStamp);
+
+private:
+    // Buffer of hashrate counters, used for linear interpolation of past data
+    mutable std::mutex m_lock;
+    std::deque<std::pair<uint64_t, uint64_t>> m_data;
+};
+
+
+} // namespace xmrig
+
+
+#endif /* XMRIG_HASHRATE_INTERPOLATOR_H */

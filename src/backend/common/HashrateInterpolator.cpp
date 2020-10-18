@@ -22,38 +22,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_VERSION_H
-#define XMRIG_VERSION_H
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig miner"
-#define APP_VERSION   "6.4.0-mo1"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2020 xmrig.com"
-#define APP_KIND      "miner"
+#include "backend/common/HashrateInterpolator.h"
 
-#define APP_VER_MAJOR  6
-#define APP_VER_MINOR  4
-#define APP_VER_PATCH  0
 
-#ifdef _MSC_VER
-#   if (_MSC_VER >= 1920)
-#       define MSVC_VERSION 2019
-#   elif (_MSC_VER >= 1910 && _MSC_VER < 1920)
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
+uint64_t xmrig::HashrateInterpolator::interpolate(uint64_t timeStamp) const
+{
+    timeStamp -= LagMS;
 
-#endif /* XMRIG_VERSION_H */
+    std::lock_guard<std::mutex> l(m_lock);
+
+    const size_t N = m_data.size();
+
+    if (N < 2) {
+        return 0;
+    }
+
+    for (size_t i = 0; i < N - 1; ++i) {
+        const auto& a = m_data[i];
+        const auto& b = m_data[i + 1];
+
+        if (a.second <= timeStamp && timeStamp <= b.second) {
+            return a.first + static_cast<int64_t>(b.first - a.first) * (timeStamp - a.second) / (b.second - a.second);
+        }
+    }
+
+    return 0;
+}
+
+void xmrig::HashrateInterpolator::addDataPoint(uint64_t count, uint64_t timeStamp)
+{
+    std::lock_guard<std::mutex> l(m_lock);
+
+    // Clean up old data
+    while (!m_data.empty() && (timeStamp - m_data.front().second > LagMS * 2)) {
+        m_data.pop_front();
+    }
+
+    m_data.emplace_back(count, timeStamp);
+}

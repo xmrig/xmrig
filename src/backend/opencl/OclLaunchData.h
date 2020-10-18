@@ -67,6 +67,7 @@ public:
     const OclDevice device;
     const OclPlatform platform;
     const OclThread thread;
+    const uint32_t benchSize = 0;
 };
 
 

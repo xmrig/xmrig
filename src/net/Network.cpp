@@ -124,9 +124,25 @@ void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
         return;
     }
 
+    const auto &pool = client->pool();
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (pool.mode() == Pool::MODE_BENCHMARK) {
+        m_benchSize = pool.benchSize();
+
+        LOG_NOTICE("%s " MAGENTA_BOLD("start benchmark ") "hashes " CYAN_BOLD("%" PRIu64 "M") " algo " WHITE_BOLD("%s") " print_time " CYAN_BOLD("%us"),
+                   Tags::bench(),
+                   pool.benchSize() / 1000000,
+                   client->job().algorithm().shortName(),
+                   m_controller->config()->printTime());
+
+        return;
+    }
+#   endif
+
     const char *tlsVersion = client->tlsVersion();
     LOG_INFO("%s " WHITE_BOLD("use %s ") CYAN_BOLD("%s:%d ") GREEN_BOLD("%s") " " BLACK_BOLD("%s"),
-             Tags::network(), client->mode(), client->pool().host().data(), client->pool().port(), tlsVersion ? tlsVersion : "", client->ip().data());
+             Tags::network(), client->mode(), pool.host().data(), pool.port(), tlsVersion ? tlsVersion : "", client->ip().data());
 
     const char *fingerprint = client->tlsFingerprint();
     if (fingerprint != nullptr) {
@@ -265,13 +281,18 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
     uint64_t diff     = job.diff();;
     const char *scale = NetworkState::scaleDiff(diff);
 
-    if (job.height()) {
-        LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
-                 Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName(), job.height());
-    }
-    else {
-        LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s"),
-                 Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName());
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (!m_benchSize)
+#   endif
+    {
+        if (job.height()) {
+            LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
+                     Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName(), job.height());
+        }
+        else {
+            LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s"),
+                     Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName());
+        }
     }
 
     if (!donate && m_donate) {

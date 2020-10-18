@@ -68,6 +68,10 @@ if (WITH_RANDOMX)
             )
         # cheat because cmake and ccache hate each other
         set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
+    else()
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/jit_compiler_fallback.cpp
+            )
     endif()
 
     if (WITH_SSE4_1)
