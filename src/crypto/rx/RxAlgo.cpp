@@ -52,9 +52,6 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_KEVA:
         return &RandomX_KevaConfig;
 
-    case Algorithm::RX_DEFYX:
-        return &RandomX_ScalaConfig;
-
     case Algorithm::RX_XLA:
         return &RandomX_Scala2Config;
 

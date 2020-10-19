@@ -111,8 +111,6 @@ static AlgoName const algorithm_names[] = {
     { "RandomSFX",                 nullptr,            Algorithm::RX_SFX          },
     { "randomx/keva",              "rx/keva",          Algorithm::RX_KEVA         },
     { "RandomKEVA",                nullptr,            Algorithm::RX_KEVA         },
-    { "defyx",                     "defyx",            Algorithm::RX_DEFYX        },
-    { "DefyX",                     nullptr,            Algorithm::RX_DEFYX        },
     { "panthera",                  "panthera",         Algorithm::RX_XLA        },
     { "Panthera",                  "panthera",         Algorithm::RX_XLA        },
 #   endif
