@@ -124,8 +124,8 @@ static AlgoName const algorithm_names[] = {
     { "astrobwt/dero",             nullptr,            Algorithm::ASTROBWT_DERO   },
 #   endif
 #   ifdef XMRIG_ALGO_KAWPOW
-    { "kawpow",                    nullptr,            Algorithm::KAWPOW_RVN      },
-    { "kawpow/rvn",                nullptr,            Algorithm::KAWPOW_RVN      },
+    { "kawpow",                    "kawpow",           Algorithm::KAWPOW_RVN      },
+    { "kawpow/rvn",                "kawpow",           Algorithm::KAWPOW_RVN      },
 #   endif
     { "cryptonight/ccx",           "cn/ccx",           Algorithm::CN_CCX          },
     { "cryptonight/conceal",       "cn/conceal",       Algorithm::CN_CCX          },
