@@ -235,9 +235,6 @@ protected:
 
 
 private:
-    static void onResult(uv_async_t *handle) { static_cast<JobResultsPrivate*>(handle->data)->submit(); }
-
-
 #   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
     inline void submit()
     {
