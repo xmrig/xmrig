@@ -4,6 +4,7 @@ set(HEADERS_BASE
     src/base/crypto/Coin.h
     src/base/crypto/keccak.h
     src/base/crypto/sha3.h
+    src/base/io/Async.h
     src/base/io/Console.h
     src/base/io/Env.h
     src/base/io/json/Json.h
@@ -21,6 +22,7 @@ set(HEADERS_BASE
     src/base/kernel/config/BaseTransform.h
     src/base/kernel/config/Title.h
     src/base/kernel/Entry.h
+    src/base/kernel/interfaces/IAsyncListener.h
     src/base/kernel/interfaces/IBaseListener.h
     src/base/kernel/interfaces/IClient.h
     src/base/kernel/interfaces/IClientListener.h
@@ -73,6 +75,7 @@ set(SOURCES_BASE
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp
     src/base/crypto/sha3.cpp
+    src/base/io/Async.cpp
     src/base/io/Console.cpp
     src/base/io/Env.cpp
     src/base/io/json/Json.cpp
@@ -127,7 +130,6 @@ elseif (APPLE)
         )
 else()
     set(SOURCES_OS
-        src/base/io/Async.cpp
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_unix.cpp
         )

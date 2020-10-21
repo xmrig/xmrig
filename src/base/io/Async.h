@@ -22,7 +22,7 @@
 #define XMRIG_ASYNC_H
 
 
-#include <uv.h>
+#include "base/tools/Object.h"
 
 
 // since 2019.05.16, Version 1.29.0 (Stable)
@@ -47,6 +47,31 @@ extern int uv_async_send(uv_async_t *async);
 
 } // namespace xmrig
 #endif
+
+
+namespace xmrig {
+
+
+class AsyncPrivate;
+class IAsyncListener;
+
+
+class Async
+{
+public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Async)
+
+    Async(IAsyncListener *listener);
+    ~Async();
+
+    void send();
+
+private:
+    AsyncPrivate *d_ptr;
+};
+
+
+} // namespace xmrig
 
 
 #endif /* XMRIG_ASYNC_H */
