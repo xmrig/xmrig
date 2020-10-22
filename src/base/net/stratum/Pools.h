@@ -85,6 +85,10 @@ private:
     int m_retryPause            = 5;
     ProxyDonate m_proxyDonate   = PROXY_DONATE_AUTO;
     std::vector<Pool> m_data;
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    std::shared_ptr<BenchConfig> m_benchmark;
+#   endif
 };
 
 

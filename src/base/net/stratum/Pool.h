@@ -29,6 +29,7 @@
 
 #include <bitset>
 #include <vector>
+#include <memory>
 
 
 #include "3rdparty/rapidjson/fwd.h"
@@ -39,6 +40,7 @@
 namespace xmrig {
 
 
+class BenchConfig;
 class IClient;
 class IClientListener;
 
@@ -76,10 +78,6 @@ public:
     static const char *kUser;
     static const char *kNicehashHost;
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    static const char *kBenchmark;
-#   endif
-
     constexpr static int kKeepAliveTimeout         = 60;
     constexpr static uint16_t kDefaultPort         = 3333;
     constexpr static uint64_t kDefaultPollInterval = 1000;
@@ -88,6 +86,13 @@ public:
     Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls, Mode mode);
     Pool(const char *url);
     Pool(const rapidjson::Value &object);
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    Pool(const std::shared_ptr<BenchConfig> &benchmark);
+
+    BenchConfig *benchmark() const;
+    uint32_t benchSize() const;
+#   endif
 
     inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS) || m_url.isTLS(); }
@@ -111,10 +116,6 @@ public:
     inline void setProxy(const ProxyUrl &proxy)         { m_proxy = proxy; }
     inline void setRigId(const String &rigId)           { m_rigId = rigId; }
     inline void setUser(const String &user)             { m_user = user; }
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    inline uint32_t benchSize() const                   { return m_benchSize; }
-#   endif
 
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
     inline bool operator==(const Pool &other) const     { return isEqual(other); }
@@ -157,9 +158,7 @@ private:
     Url m_url;
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    bool setBenchSize(const char *benchmark);
-
-    uint32_t m_benchSize            = 0;
+    std::shared_ptr<BenchConfig> m_benchmark;
 #   endif
 };
 

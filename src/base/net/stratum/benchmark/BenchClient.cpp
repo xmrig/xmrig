@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,15 +16,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/net/stratum/NullClient.h"
+#include "base/net/stratum/benchmark/BenchClient.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/kernel/interfaces/IClientListener.h"
+#include "base/net/stratum/benchmark/BenchConfig.h"
 
 
-xmrig::NullClient::NullClient(IClientListener* listener) :
+xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener) :
     m_listener(listener)
 {
-    m_job.setAlgorithm(Algorithm::RX_0);
+    m_job.setAlgorithm(benchmark->algorithm());
 
     std::vector<char> blob(112 * 2 + 1, '0');
 
@@ -41,7 +42,7 @@ xmrig::NullClient::NullClient(IClientListener* listener) :
 }
 
 
-void xmrig::NullClient::connect()
+void xmrig::BenchClient::connect()
 {
     m_listener->onLoginSuccess(this);
 
@@ -50,13 +51,7 @@ void xmrig::NullClient::connect()
 }
 
 
-void xmrig::NullClient::setPool(const Pool& pool)
+void xmrig::BenchClient::setPool(const Pool &pool)
 {
     m_pool = pool;
-
-    if (!m_pool.algorithm().isValid()) {
-        m_pool.setAlgo(Algorithm::RX_0);
-    }
-
-    m_job.setAlgorithm(m_pool.algorithm().id());
 }

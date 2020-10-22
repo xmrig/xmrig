@@ -51,7 +51,8 @@
 
 
 #ifdef XMRIG_FEATURE_BENCHMARK
-#   include "base/net/stratum/NullClient.h"
+#   include "base/net/stratum/benchmark/BenchClient.h"
+#   include "base/net/stratum/benchmark/BenchConfig.h"
 #endif
 
 
@@ -83,10 +84,6 @@ const char *Pool::kTls                    = "tls";
 const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
 const char *Pool::kNicehashHost           = "nicehash.com";
-
-#ifdef XMRIG_FEATURE_BENCHMARK
-const char *Pool::kBenchmark              = "benchmark";
-#endif
 
 
 }
@@ -139,14 +136,6 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
     setKeepAlive(Json::getValue(object, kKeepalive));
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    if (setBenchSize(Json::getString(object, kBenchmark, nullptr))) {
-        m_mode = MODE_BENCHMARK;
-
-        return;
-    }
-#   endif
-
     if (m_daemon.isValid()) {
         m_mode = MODE_SELF_SELECT;
     }
@@ -154,6 +143,31 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
         m_mode = MODE_DAEMON;
     }
 }
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+xmrig::Pool::Pool(const std::shared_ptr<BenchConfig> &benchmark) :
+    m_mode(MODE_BENCHMARK),
+    m_flags(1 << FLAG_ENABLED),
+    m_url(BenchConfig::kBenchmark),
+    m_benchmark(benchmark)
+{
+}
+
+
+xmrig::BenchConfig *xmrig::Pool::benchmark() const
+{
+    assert(m_mode == MODE_BENCHMARK && m_benchmark);
+
+    return m_benchmark.get();
+}
+
+
+uint32_t xmrig::Pool::benchSize() const
+{
+    return benchmark()->size();
+}
+#endif
 
 
 bool xmrig::Pool::isEnabled() const
@@ -233,7 +247,7 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
 #   endif
 #   ifdef XMRIG_FEATURE_BENCHMARK
     else if (m_mode == MODE_BENCHMARK) {
-        client = new NullClient(listener);
+        client = new BenchClient(m_benchmark, listener);
     }
 #   endif
 
@@ -337,23 +351,3 @@ void xmrig::Pool::setKeepAlive(const rapidjson::Value &value)
         setKeepAlive(value.GetBool());
     }
 }
-
-
-#ifdef XMRIG_FEATURE_BENCHMARK
-bool xmrig::Pool::setBenchSize(const char *benchmark)
-{
-    if (!benchmark) {
-        return false;
-    }
-
-    const auto size = strtoul(benchmark, nullptr, 10);
-    if (size < 1 || size > 10) {
-        return false;
-    }
-
-    const std::string s = std::to_string(size) + "M";
-    m_benchSize = strcasecmp(benchmark, s.c_str()) == 0 ? size * 1000000 : 0;
-
-    return m_benchSize > 0;
-}
-#endif

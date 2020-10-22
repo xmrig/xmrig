@@ -237,8 +237,15 @@ endif()
 if (WITH_RANDOMX AND WITH_BENCHMARK)
     add_definitions(/DXMRIG_FEATURE_BENCHMARK)
 
-    list(APPEND HEADERS_BASE src/base/net/stratum/NullClient.h)
-    list(APPEND SOURCES_BASE src/base/net/stratum/NullClient.cpp)
+    list(APPEND HEADERS_BASE
+        src/base/net/stratum/benchmark/BenchClient.h
+        src/base/net/stratum/benchmark/BenchConfig.h
+        )
+
+    list(APPEND SOURCES_BASE
+        src/base/net/stratum/benchmark/BenchClient.cpp
+        src/base/net/stratum/benchmark/BenchConfig.cpp
+        )
 else()
     remove_definitions(/DXMRIG_FEATURE_BENCHMARK)
 endif()
