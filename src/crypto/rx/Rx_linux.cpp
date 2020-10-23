@@ -151,7 +151,7 @@ static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value, uint64_t mask, T&& c
 
 static bool wrmsr_modprobe()
 {
-    if (system("/sbin/modprobe msr > /dev/null 2>&1") != 0) {
+    if (system("/sbin/modprobe msr allow_writes=on > /dev/null 2>&1") != 0) {
         LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "msr kernel module is not available", tag);
 
         return false;
