@@ -50,6 +50,11 @@ xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson
     if (!m_algorithm.isValid() || m_algorithm.family() != Algorithm::RANDOM_X) {
         m_algorithm = Algorithm::RX_0;
     }
+
+    const char *hash = Json::getString(object, kHash);
+    if (hash) {
+        m_hash = strtoull(hash, nullptr, 16);
+    }
 }
 
 

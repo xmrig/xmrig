@@ -21,12 +21,13 @@
 
 
 #include "base/net/stratum/Client.h"
+#include "base/kernel/interfaces/IHttpListener.h"
 
 
 namespace xmrig {
 
 
-class BenchClient : public IClient
+class BenchClient : public IClient, public IHttpListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(BenchClient)
@@ -63,12 +64,24 @@ public:
     void connect() override;
     void setPool(const Pool &pool) override;
 
+protected:
+    void onHttpData(const HttpData &data) override;
+
 private:
+    enum Mode : uint32_t {
+        STATIC_BENCH,
+        ONLINE_BENCH,
+        STATIC_VERIFY,
+        ONLINE_VERIFY
+    };
+
     IClientListener* m_listener;
     Job m_job;
     Pool m_pool;
     std::shared_ptr<BenchConfig> m_benchmark;
+    std::shared_ptr<IHttpListener> m_httpListener;
     String m_ip;
+    Mode m_mode = STATIC_BENCH;
 };
 
 

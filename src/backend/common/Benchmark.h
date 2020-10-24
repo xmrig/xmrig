@@ -20,14 +20,17 @@
 #define XMRIG_BENCHMARK_H
 
 
-#include "base/tools/Object.h"
 #include "base/crypto/Algorithm.h"
+#include "base/tools/Object.h"
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
+class IBackend;
 class IWorker;
+class Job;
 
 
 class Benchmark
@@ -35,7 +38,7 @@ class Benchmark
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Benchmark)
 
-    Benchmark(uint32_t end, const Algorithm &algo, size_t workers) : m_algo(algo), m_workers(workers), m_end(end) {}
+    Benchmark(const Job &job, size_t workers, const IBackend *backend);
     ~Benchmark() = default;
 
     bool finish(uint64_t totalHashCount);
@@ -44,10 +47,15 @@ public:
     void tick(IWorker *worker);
 
 private:
+    uint64_t referenceHash() const;
+
     bool m_reset                = false;
-    const Algorithm m_algo      = Algorithm::RX_0;
-    const size_t m_workers      = 0;
-    const uint64_t m_end        = 0;
+    const Algorithm m_algo;
+    const IBackend *m_backend;
+    const size_t m_workers;
+    const String m_token;
+    const uint64_t m_end;
+    const uint64_t m_hash;
     uint32_t m_done             = 0;
     uint64_t m_current          = 0;
     uint64_t m_data             = 0;

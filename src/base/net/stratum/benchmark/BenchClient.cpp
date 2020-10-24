@@ -19,39 +19,67 @@
 #include "base/net/stratum/benchmark/BenchClient.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/kernel/interfaces/IClientListener.h"
+#include "base/net/http/HttpListener.h"
 #include "base/net/stratum/benchmark/BenchConfig.h"
 
 
 xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener) :
-    m_listener(listener)
+    m_listener(listener),
+    m_benchmark(benchmark)
 {
-    m_job.setAlgorithm(benchmark->algorithm());
+    m_httpListener = std::make_shared<HttpListener>(this);
 
     std::vector<char> blob(112 * 2 + 1, '0');
-
     blob.back() = '\0';
+
     m_job.setBlob(blob.data());
+    m_job.setAlgorithm(m_benchmark->algorithm());
+    m_job.setDiff(std::numeric_limits<uint64_t>::max());
+    m_job.setHeight(1);
+    m_job.setBenchSize(m_benchmark->size());
+    m_job.setBenchHash(m_benchmark->hash());
+
+    if (m_benchmark->isSubmit()) {
+        m_mode = ONLINE_BENCH;
+
+        return;
+    }
+
+    if (!m_benchmark->id().isEmpty()) {
+        m_job.setId(m_benchmark->id());
+        m_mode = ONLINE_VERIFY;
+
+        return;
+    }
+
+    m_job.setId("00000000");
+
+    if (m_job.benchHash() && m_job.setSeedHash(m_benchmark->seed())) {
+        m_mode = STATIC_VERIFY;
+
+        return;
+    }
 
     blob[Job::kMaxSeedSize * 2] = '\0';
     m_job.setSeedHash(blob.data());
-
-    m_job.setDiff(uint64_t(-1));
-    m_job.setHeight(1);
-
-    m_job.setId("00000000");
 }
 
 
 void xmrig::BenchClient::connect()
 {
-    m_listener->onLoginSuccess(this);
-
-    rapidjson::Value params;
-    m_listener->onJobReceived(this, m_job, params);
+    if (m_mode == STATIC_BENCH || m_mode == STATIC_VERIFY) {
+        m_listener->onLoginSuccess(this);
+        m_listener->onJobReceived(this, m_job, rapidjson::Value());
+    }
 }
 
 
 void xmrig::BenchClient::setPool(const Pool &pool)
 {
     m_pool = pool;
+}
+
+
+void xmrig::BenchClient::onHttpData(const HttpData &data)
+{
 }

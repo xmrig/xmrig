@@ -34,6 +34,7 @@
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/http/Fetch.h"
 #include "base/net/http/HttpData.h"
+#include "base/net/http/HttpListener.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Timer.h"

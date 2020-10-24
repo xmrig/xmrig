@@ -21,6 +21,7 @@
 #include "backend/common/interfaces/IWorker.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
+#include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
 
 
@@ -39,6 +40,17 @@ static uint64_t hashCheck[2][10] = {
 } // namespace xmrig
 
 
+xmrig::Benchmark::Benchmark(const Job &job, size_t workers, const IBackend *backend) :
+    m_algo(job.algorithm()),
+    m_backend(backend),
+    m_workers(workers),
+    m_token(job.benchToken()),
+    m_end(job.benchSize()),
+    m_hash(job.benchHash())
+{
+}
+
+
 bool xmrig::Benchmark::finish(uint64_t totalHashCount)
 {
     m_reset   = true;
@@ -48,13 +60,8 @@ bool xmrig::Benchmark::finish(uint64_t totalHashCount)
         return false;
     }
 
-    const double dt    = (m_doneTime - m_startTime) / 1000.0;
-    uint64_t checkData = 0;
-    const uint32_t N   = (m_end / 1000000) - 1;
-
-    if (((m_algo == Algorithm::RX_0) || (m_algo == Algorithm::RX_WOW)) && ((m_end % 1000000) == 0) && (N < 10)) {
-        checkData = hashCheck[(m_algo == Algorithm::RX_0) ? 0 : 1][N];
-    }
+    const double dt    = static_cast<double>(m_doneTime - m_startTime) / 1000.0;
+    uint64_t checkData = referenceHash();
 
     const char *color = checkData ? ((m_data == checkData) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
 
@@ -77,7 +84,7 @@ void xmrig::Benchmark::printProgress() const
         return;
     }
 
-    const double dt = (Chrono::steadyMSecs() - m_startTime) / 1000.0;
+    const double dt      = static_cast<double>(Chrono::steadyMSecs() - m_startTime) / 1000.0;
     const double percent = static_cast<double>(m_current) / m_end * 100.0;
 
     LOG_NOTICE("%s " MAGENTA_BOLD("%5.2f%% ") CYAN_BOLD("%" PRIu64) CYAN("/%" PRIu64) BLACK_BOLD(" (%.3fs)"), Tags::bench(), percent, m_current, m_end, dt);
@@ -100,4 +107,19 @@ void xmrig::Benchmark::tick(IWorker *worker)
     ++m_done;
     m_data ^= worker->benchData();
     m_doneTime = std::max(doneTime, m_doneTime);
+}
+
+
+uint64_t xmrig::Benchmark::referenceHash() const
+{
+    if (m_hash) {
+        return m_hash;
+    }
+
+    const uint32_t N = (m_end / 1000000) - 1;
+    if (((m_algo == Algorithm::RX_0) || (m_algo == Algorithm::RX_WOW)) && ((m_end % 1000000) == 0) && (N < 10)) {
+        return hashCheck[(m_algo == Algorithm::RX_0) ? 0 : 1][N];
+    }
+
+    return 0;
 }
