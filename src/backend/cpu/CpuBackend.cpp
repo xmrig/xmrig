@@ -346,7 +346,13 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
     const auto &cpu = d_ptr->controller->config()->cpu();
 
-    std::vector<CpuLaunchData> threads = cpu.get(d_ptr->controller->miner(), job.algorithm(), d_ptr->controller->config()->pools().benchSize());
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    uint32_t benchSize = job.benchSize();
+#   else
+    constexpr uint32_t benchSize = 0;
+#   endif
+
+    auto threads = cpu.get(d_ptr->controller->miner(), job.algorithm(), benchSize);
     if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
         return;
     }
@@ -363,7 +369,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
     stop();
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    if (job.benchSize()) {
+    if (benchSize) {
         d_ptr->benchmark = std::make_shared<Benchmark>(job, threads.size(), this);
     }
 #   endif

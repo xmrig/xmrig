@@ -31,12 +31,23 @@ class BenchConfig
 {
 public:
     static const char *kAlgo;
+    static const char *kApiHost;
     static const char *kBenchmark;
     static const char *kHash;
+    static const char *kId;
     static const char *kSeed;
     static const char *kSize;
     static const char *kSubmit;
+    static const char *kToken;
     static const char *kVerify;
+
+#   ifndef XMRIG_DEBUG_BENCHMARK_API
+    static constexpr bool kApiTLS               = true;
+    static constexpr const uint16_t kApiPort    = 443;
+#   else
+    static constexpr bool kApiTLS               = false;
+    static constexpr const uint16_t kApiPort    = 18805;
+#   endif
 
     BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object);
 

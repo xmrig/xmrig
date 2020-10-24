@@ -53,6 +53,7 @@ private:
     const Algorithm m_algo;
     const IBackend *m_backend;
     const size_t m_workers;
+    const String m_id;
     const String m_token;
     const uint64_t m_end;
     const uint64_t m_hash;

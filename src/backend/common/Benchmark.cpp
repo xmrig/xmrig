@@ -44,6 +44,7 @@ xmrig::Benchmark::Benchmark(const Job &job, size_t workers, const IBackend *back
     m_algo(job.algorithm()),
     m_backend(backend),
     m_workers(workers),
+    m_id(job.id()),
     m_token(job.benchToken()),
     m_end(job.benchSize()),
     m_hash(job.benchHash())
@@ -114,6 +115,10 @@ uint64_t xmrig::Benchmark::referenceHash() const
 {
     if (m_hash) {
         return m_hash;
+    }
+
+    if (!m_token.isEmpty()) {
+        return 0;
     }
 
     const uint32_t N = (m_end / 1000000) - 1;

@@ -75,6 +75,13 @@ private:
         ONLINE_VERIFY
     };
 
+    void createBench();
+    void getBench();
+    void setError(const char *message);
+    void start();
+    void startBench(const rapidjson::Value &value);
+    void startVerify(const rapidjson::Value &value);
+
     IClientListener* m_listener;
     Job m_job;
     Pool m_pool;

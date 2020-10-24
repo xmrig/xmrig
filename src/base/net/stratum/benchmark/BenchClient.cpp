@@ -18,16 +18,22 @@
 
 #include "base/net/stratum/benchmark/BenchClient.h"
 #include "3rdparty/rapidjson/document.h"
+#include "base/io/json/Json.h"
+#include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IClientListener.h"
+#include "base/net/http/Fetch.h"
+#include "base/net/http/HttpData.h"
 #include "base/net/http/HttpListener.h"
 #include "base/net/stratum/benchmark/BenchConfig.h"
+#include "version.h"
 
 
 xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener) :
     m_listener(listener),
     m_benchmark(benchmark)
 {
-    m_httpListener = std::make_shared<HttpListener>(this);
+    m_httpListener = std::make_shared<HttpListener>(this, Tags::bench());
 
     std::vector<char> blob(112 * 2 + 1, '0');
     blob.back() = '\0';
@@ -66,10 +72,17 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
 
 void xmrig::BenchClient::connect()
-{
-    if (m_mode == STATIC_BENCH || m_mode == STATIC_VERIFY) {
-        m_listener->onLoginSuccess(this);
-        m_listener->onJobReceived(this, m_job, rapidjson::Value());
+{    
+    switch (m_mode) {
+    case STATIC_BENCH:
+    case STATIC_VERIFY:
+        return start();
+
+    case ONLINE_BENCH:
+        return createBench();
+
+    case ONLINE_VERIFY:
+        return getBench();
     }
 }
 
@@ -82,4 +95,85 @@ void xmrig::BenchClient::setPool(const Pool &pool)
 
 void xmrig::BenchClient::onHttpData(const HttpData &data)
 {
+    rapidjson::Document doc;
+
+    try {
+        doc = data.json();
+    } catch (const std::exception &ex) {
+        return setError(ex.what());
+    }
+
+    if (data.status != 200) {
+        return setError(data.statusName());
+    }
+
+    if (m_mode == ONLINE_BENCH) {
+        startBench(doc);
+    }
+    else {
+        startVerify(doc);
+    }
+}
+
+
+void xmrig::BenchClient::createBench()
+{
+    using namespace rapidjson;
+
+    Document doc(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    doc.AddMember(StringRef(BenchConfig::kSize), m_benchmark->size(), allocator);
+    doc.AddMember(StringRef(BenchConfig::kAlgo), m_benchmark->algorithm().toJSON(), allocator);
+    doc.AddMember("version",                     APP_VERSION, allocator);
+
+    FetchRequest req(HTTP_POST, BenchConfig::kApiHost, BenchConfig::kApiPort, "/1/benchmark", doc, BenchConfig::kApiTLS, true);
+    fetch(std::move(req), m_httpListener);
+}
+
+
+void xmrig::BenchClient::getBench()
+{
+    const auto path = std::string("/1/benchmark/") + m_job.id().data();
+
+    FetchRequest req(HTTP_GET, BenchConfig::kApiHost, BenchConfig::kApiPort, path.c_str(), BenchConfig::kApiTLS, true);
+    fetch(std::move(req), m_httpListener);
+}
+
+
+void xmrig::BenchClient::setError(const char *message)
+{
+    LOG_ERR("%s " RED("benchmark failed ") RED_BOLD("\"%s\""), Tags::bench(), message);
+}
+
+
+void xmrig::BenchClient::start()
+{
+    m_listener->onLoginSuccess(this);
+    m_listener->onJobReceived(this, m_job, rapidjson::Value());
+}
+
+
+void xmrig::BenchClient::startBench(const rapidjson::Value &value)
+{
+    m_job.setId(Json::getString(value, BenchConfig::kId));
+    m_job.setSeedHash(Json::getString(value, BenchConfig::kSeed));
+    m_job.setBenchToken(Json::getString(value, BenchConfig::kToken));
+
+    start();
+}
+
+
+void xmrig::BenchClient::startVerify(const rapidjson::Value &value)
+{
+    const char *hash = Json::getString(value, BenchConfig::kHash);
+    if (hash) {
+        m_job.setBenchHash(strtoull(hash, nullptr, 16));
+    }
+
+    m_job.setAlgorithm(Json::getString(value, BenchConfig::kAlgo));
+    m_job.setSeedHash(Json::getString(value, BenchConfig::kSeed));
+    m_job.setBenchSize(Json::getUint(value, BenchConfig::kSize));
+
+    start();
 }

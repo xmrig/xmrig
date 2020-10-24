@@ -30,11 +30,18 @@ namespace xmrig {
 const char *BenchConfig::kAlgo      = "algo";
 const char *BenchConfig::kBenchmark = "benchmark";
 const char *BenchConfig::kHash      = "hash";
+const char *BenchConfig::kId        = "id";
 const char *BenchConfig::kSeed      = "seed";
 const char *BenchConfig::kSize      = "size";
 const char *BenchConfig::kSubmit    = "submit";
+const char *BenchConfig::kToken     = "token";
 const char *BenchConfig::kVerify    = "verify";
 
+#ifndef XMRIG_DEBUG_BENCHMARK_API
+const char *BenchConfig::kApiHost   = "api.xmrig.com";
+#else
+const char *BenchConfig::kApiHost   = "127.0.0.1";
+#endif
 
 } // namespace xmrig
 
