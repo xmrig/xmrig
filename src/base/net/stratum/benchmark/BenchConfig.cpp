@@ -17,6 +17,7 @@
  */
 
 #include "base/net/stratum/benchmark/BenchConfig.h"
+#include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
 
@@ -93,6 +94,5 @@ uint32_t xmrig::BenchConfig::getSize(const char *benchmark)
         return false;
     }
 
-    const std::string s = std::to_string(size) + "M";
-    return strcasecmp(benchmark, s.c_str()) == 0 ? size * 1000000 : 0;
+    return strcasecmp(benchmark, fmt::format("{}M", size).c_str()) == 0 ? size * 1000000 : 0;
 }

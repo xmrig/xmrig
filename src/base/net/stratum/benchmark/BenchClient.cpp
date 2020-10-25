@@ -17,7 +17,9 @@
  */
 
 #include "base/net/stratum/benchmark/BenchClient.h"
+#include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
+#include "backend/cpu/Cpu.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
@@ -126,6 +128,7 @@ void xmrig::BenchClient::createBench()
     doc.AddMember(StringRef(BenchConfig::kSize), m_benchmark->size(), allocator);
     doc.AddMember(StringRef(BenchConfig::kAlgo), m_benchmark->algorithm().toJSON(), allocator);
     doc.AddMember("version",                     APP_VERSION, allocator);
+    doc.AddMember("cpu",                         Cpu::toJSON(doc), allocator);
 
     FetchRequest req(HTTP_POST, BenchConfig::kApiHost, BenchConfig::kApiPort, "/1/benchmark", doc, BenchConfig::kApiTLS, true);
     fetch(std::move(req), m_httpListener);
@@ -134,9 +137,7 @@ void xmrig::BenchClient::createBench()
 
 void xmrig::BenchClient::getBench()
 {
-    const auto path = std::string("/1/benchmark/") + m_job.id().data();
-
-    FetchRequest req(HTTP_GET, BenchConfig::kApiHost, BenchConfig::kApiPort, path.c_str(), BenchConfig::kApiTLS, true);
+    FetchRequest req(HTTP_GET, BenchConfig::kApiHost, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_job.id()).c_str(), BenchConfig::kApiTLS, true);
     fetch(std::move(req), m_httpListener);
 }
 

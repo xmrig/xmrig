@@ -1,4 +1,5 @@
 set(HEADERS_BASE
+    src/3rdparty/fmt/format.cc
     src/base/api/interfaces/IApiListener.h
     src/base/crypto/Algorithm.h
     src/base/crypto/Coin.h

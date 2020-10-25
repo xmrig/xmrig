@@ -21,8 +21,12 @@
 
 
 #include "base/crypto/Algorithm.h"
+#include "base/kernel/interfaces/IHttpListener.h"
 #include "base/tools/Object.h"
 #include "base/tools/String.h"
+
+
+#include <memory>
 
 
 namespace xmrig {
@@ -33,21 +37,26 @@ class IWorker;
 class Job;
 
 
-class Benchmark
+class Benchmark : public IHttpListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Benchmark)
 
     Benchmark(const Job &job, size_t workers, const IBackend *backend);
-    ~Benchmark() = default;
+    ~Benchmark() override = default;
 
     bool finish(uint64_t totalHashCount);
     void printProgress() const;
     void start();
     void tick(IWorker *worker);
 
+protected:
+    void onHttpData(const HttpData &data) override;
+
 private:
     uint64_t referenceHash() const;
+    void send(const rapidjson::Value &body);
+    void setError(const char *message);
 
     bool m_reset                = false;
     const Algorithm m_algo;
@@ -57,6 +66,7 @@ private:
     const String m_token;
     const uint64_t m_end;
     const uint64_t m_hash;
+    std::shared_ptr<IHttpListener> m_httpListener;
     uint32_t m_done             = 0;
     uint64_t m_current          = 0;
     uint64_t m_data             = 0;
