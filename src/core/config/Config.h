@@ -33,7 +33,7 @@
 #include "backend/cpu/CpuConfig.h"
 #include "base/kernel/config/BaseConfig.h"
 #include "base/tools/Object.h"
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef XMRIG_FEATURE_MO_BENCHMARK
 #include "core/MoBenchmark.h"
 #endif
 
