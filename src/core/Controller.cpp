@@ -59,7 +59,7 @@ int xmrig::Controller::init()
     return 0;
 }
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef XMRIG_FEATURE_MO_BENCHMARK
 void xmrig::Controller::pre_start()
 {
     m_miner = new Miner(this);

@@ -57,7 +57,7 @@ public:
     static const char *opencl();
 #   endif
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     static const char *benchmark();
 #   endif
 

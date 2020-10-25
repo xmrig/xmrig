@@ -210,7 +210,7 @@ void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &
 
     params.AddMember("algo", algo, allocator);
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     Value algo_perf(kObjectType);
 
     for (const auto &a : algorithms) {

@@ -113,7 +113,7 @@ const char *xmrig::Tags::opencl()
 #endif
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef XMRIG_FEATURE_MO_BENCHMARK
 const char *xmrig::Tags::benchmark()
 {
     static const char *tag = BRIGHT_BLACK_BG(CYAN_BOLD_S " benchmk ");

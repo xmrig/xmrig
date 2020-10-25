@@ -52,7 +52,7 @@
 namespace xmrig {
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef XMRIG_FEATURE_MO_BENCHMARK
 const char *BaseConfig::kAlgoPerf       = "algo-perf";
 #endif
 const char *BaseConfig::kApi            = "api";
@@ -60,7 +60,7 @@ const char *BaseConfig::kApiId          = "id";
 const char *BaseConfig::kApiWorkerId    = "worker-id";
 const char *BaseConfig::kAutosave       = "autosave";
 const char *BaseConfig::kBackground     = "background";
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef XMRIG_FEATURE_MO_BENCHMARK
 const char *BaseConfig::kBenchAlgoTime  = "bench-algo-time";
 #endif
 const char *BaseConfig::kColors         = "colors";
@@ -69,16 +69,13 @@ const char *BaseConfig::kHttp           = "http";
 const char *BaseConfig::kLogFile        = "log-file";
 const char *BaseConfig::kPauseOnBattery = "pause-on-battery";
 const char *BaseConfig::kPrintTime      = "print-time";
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef XMRIG_FEATURE_MO_BENCHMARK
 const char *BaseConfig::kRebenchAlgo    = "rebench-algo";
 #endif
 const char *BaseConfig::kSyslog         = "syslog";
 const char *BaseConfig::kTitle          = "title";
 const char *BaseConfig::kUserAgent      = "user-agent";
 const char *BaseConfig::kVerbose        = "verbose";
-#ifdef XMRIG_FEATURE_BENCHMARK
-const char *BaseConfig::kVersion        = "version";
-#endif
 const char *BaseConfig::kWatch          = "watch";
 
 
@@ -101,7 +98,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_autoSave          = reader.getBool(kAutosave, m_autoSave);
     m_background        = reader.getBool(kBackground, m_background);
     m_dryRun            = reader.getBool(kDryRun, m_dryRun);
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     m_rebenchAlgo  = reader.getBool(kRebenchAlgo, m_rebenchAlgo);
 #   endif
     m_syslog            = reader.getBool(kSyslog, m_syslog);
@@ -117,8 +114,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
 #   endif
 
     Log::setColors(reader.getBool(kColors, Log::isColors()));
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    m_version       = reader.getUint(kVersion);
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     m_benchAlgoTime = reader.getInt(kBenchAlgoTime, m_benchAlgoTime);
 #   endif
     setVerbose(reader.getValue(kVerbose));

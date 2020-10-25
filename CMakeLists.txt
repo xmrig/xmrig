@@ -24,7 +24,7 @@ option(WITH_NVML            "Enable NVML (NVIDIA Management Library) support (on
 option(WITH_ADL             "Enable ADL (AMD Display Library) or sysfs support (only if OpenCL backend enabled)" ON)
 option(WITH_STRICT_CACHE    "Enable strict checks for OpenCL cache" ON)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
-option(WITH_BENCHMARK       "Enable Benchmark module and algo-perf feature (for MoneroOcean)" ON)
+option(WITH_MO_BENCHMARK    "Enable Benchmark module and algo-perf feature (for MoneroOcean)" ON)
 option(WITH_PROFILING       "Enable profiling for developers" OFF)
 option(WITH_SSE4_1          "Enable SSE 4.1 for Blake2" ON)
 option(WITH_BENCHMARK       "Enable builtin RandomX benchmark and stress test" ON)
@@ -124,11 +124,11 @@ set(SOURCES_CRYPTO
     src/crypto/common/VirtualMemory.cpp
    )
 
-if (WITH_BENCHMARK)
+if (WITH_MO_BENCHMARK)
     list(APPEND SOURCES
         src/core/MoBenchmark.cpp
         )
-    add_definitions(/DXMRIG_FEATURE_BENCHMARK)
+    add_definitions(/DXMRIG_FEATURE_MO_BENCHMARK)
 endif()
 
 if (WITH_HWLOC)

@@ -89,7 +89,7 @@ int xmrig::App::exec()
         return 0;
     }
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     m_controller->pre_start();
     m_controller->config()->benchmark().set_controller(m_controller);
 

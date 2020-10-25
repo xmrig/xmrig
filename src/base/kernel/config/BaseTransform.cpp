@@ -253,7 +253,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 #   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
 #   endif
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
 #   endif
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
@@ -271,7 +271,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::DaemonKey:      /* --daemon */
 #   endif
     case IConfig::VerboseKey:     /* --verbose */
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     case IConfig::RebenchAlgoKey: /* --rebench-algo */
 #   endif
     case IConfig::PauseOnBatteryKey: /* --pause-on-battery */
@@ -333,7 +333,7 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::NoTitleKey: /* --no-title */
         return set(doc, BaseConfig::kTitle, enable);
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     case IConfig::RebenchAlgoKey: /* --rebench-algo */
         return set(doc, BaseConfig::kRebenchAlgo, enable);
 #   endif
@@ -374,7 +374,7 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
         return add(doc, Pools::kPools, Pool::kDaemonPollInterval, arg);
 #   endif
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
         return set(doc, BaseConfig::kBenchAlgoTime, arg);
 #   endif

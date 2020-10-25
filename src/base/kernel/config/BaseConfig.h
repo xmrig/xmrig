@@ -46,7 +46,7 @@ class IJsonReader;
 class BaseConfig : public IConfig
 {
 public:
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     static const char *kAlgoPerf;
 #   endif
     static const char *kApi;
@@ -54,7 +54,7 @@ public:
     static const char *kApiWorkerId;
     static const char *kAutosave;
     static const char *kBackground;
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     static const char *kBenchAlgoTime;
 #   endif
     static const char *kColors;
@@ -63,16 +63,13 @@ public:
     static const char *kLogFile;
     static const char *kPauseOnBattery;
     static const char *kPrintTime;
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     static const char *kRebenchAlgo;
 #   endif
     static const char *kSyslog;
     static const char *kTitle;
     static const char *kUserAgent;
     static const char *kVerbose;
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    static const char *kVersion;
-#   endif
     static const char *kWatch;
 
 #   ifdef XMRIG_FEATURE_TLS
@@ -95,7 +92,7 @@ public:
     inline const Title &title() const                       { return m_title; }
     inline uint32_t printTime() const                       { return m_printTime; }
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     inline bool isRebenchAlgo() const                       { return m_rebenchAlgo; }
     inline int  benchAlgoTime() const                       { return m_benchAlgoTime; }
 #   endif
@@ -131,8 +128,7 @@ protected:
     Title m_title;
     uint32_t m_printTime = 60;
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    uint32_t m_version   = 0;
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
     bool m_rebenchAlgo   = false;
     int  m_benchAlgoTime = 10;
 #   endif
