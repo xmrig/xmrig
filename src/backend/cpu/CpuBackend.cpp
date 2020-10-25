@@ -430,6 +430,7 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("profile",    profileName().toJSON(), allocator);
     out.AddMember("hw-aes",     cpu.isHwAES(), allocator);
     out.AddMember("priority",   cpu.priority(), allocator);
+    out.AddMember("msr",        Rx::isMSR(), allocator);
 
 #   ifdef XMRIG_FEATURE_ASM
     const Assembly assembly = Cpu::assembly(cpu.assembly());
