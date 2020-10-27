@@ -56,5 +56,5 @@ namespace randomx {
 	};
 
 	void generateSuperscalar(SuperscalarProgram& prog, Blake2Generator& gen);
-	void executeSuperscalar(uint64_t(&r)[8], SuperscalarProgram& prog, std::vector<uint64_t> *reciprocals = nullptr);
+	void executeSuperscalar(uint64_t(&r)[8], SuperscalarProgram& prog);
 }

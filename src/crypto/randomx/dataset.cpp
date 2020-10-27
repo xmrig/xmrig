@@ -92,24 +92,15 @@ namespace randomx {
 
 		argon2_ctx_mem(&context, Argon2_d, cache->memory, RandomX_CurrentConfig.ArgonMemory * 1024);
 
-		cache->reciprocalCache.clear();
 		randomx::Blake2Generator gen(key, keySize);
 		for (uint32_t i = 0; i < RandomX_CurrentConfig.CacheAccesses; ++i) {
 			randomx::generateSuperscalar(cache->programs[i], gen);
-			for (unsigned j = 0; j < cache->programs[i].getSize(); ++j) {
-				auto& instr = cache->programs[i](j);
-				if ((SuperscalarInstructionType)instr.opcode == SuperscalarInstructionType::IMUL_RCP) {
-					auto rcp = randomx_reciprocal(instr.getImm32());
-					instr.setImm32(cache->reciprocalCache.size());
-					cache->reciprocalCache.push_back(rcp);
-				}
-			}
 		}
 	}
 
 	void initCacheCompile(randomx_cache* cache, const void* key, size_t keySize) {
 		initCache(cache, key, keySize);
-		cache->jit->generateSuperscalarHash(cache->programs, cache->reciprocalCache);
+		cache->jit->generateSuperscalarHash(cache->programs);
 		cache->jit->generateDatasetInitCode();
 	}
 
@@ -144,7 +135,7 @@ namespace randomx {
 			rx_prefetch_nta(mixBlock);
 			SuperscalarProgram& prog = cache->programs[i];
 
-			executeSuperscalar(rl, prog, &cache->reciprocalCache);
+			executeSuperscalar(rl, prog);
 
 			for (unsigned q = 0; q < 8; ++q)
 				rl[q] ^= load64_native(mixBlock + 8 * q);

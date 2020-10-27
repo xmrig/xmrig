@@ -117,7 +117,7 @@ static HANDLE wrmsr_install_driver()
         return nullptr;
     }
 
-    for (auto it = dir.end(); it != dir.begin(); --it) {
+    for (auto it = dir.end() - 1; it != dir.begin(); --it) {
         if ((*it == L'\\') || (*it == L'/')) {
             ++it;
             *it = L'\0';

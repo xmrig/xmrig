@@ -53,7 +53,7 @@ namespace randomx {
 		void generateProgram(Program&, ProgramConfiguration&, uint32_t);
 		void generateProgramLight(Program&, ProgramConfiguration&, uint32_t);
 		template<size_t N>
-		void generateSuperscalarHash(SuperscalarProgram (&programs)[N], std::vector<uint64_t> &);
+		void generateSuperscalarHash(SuperscalarProgram (&programs)[N]);
 		void generateDatasetInitCode();
 		ProgramFunc* getProgramFunc() {
 			return (ProgramFunc*)code;
@@ -92,7 +92,7 @@ namespace randomx {
 		static void genAddressImm(const Instruction&, uint8_t* code, uint32_t& codePos);
 		static void genSIB(int scale, int index, int base, uint8_t* code, uint32_t& codePos);
 
-		void generateSuperscalarCode(Instruction &, std::vector<uint64_t> &);
+		void generateSuperscalarCode(Instruction &);
 
 		static void emitByte(uint8_t val, uint8_t* code, uint32_t& codePos) {
 			code[codePos] = val;

@@ -36,7 +36,7 @@ namespace randomx {
 	void CompiledLightVm<softAes>::setCache(randomx_cache* cache) {
 		cachePtr = cache;
 		mem.memory = cache->memory;
-		compiler.generateSuperscalarHash(cache->programs, cache->reciprocalCache);
+		compiler.generateSuperscalarHash(cache->programs);
 	}
 
 	template<int softAes>
