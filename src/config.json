@@ -47,14 +47,16 @@
         "platform": "AMD",
         "adl": true,
         "cn/0": false,
-        "cn-lite/0": false
+        "cn-lite/0": false,
+        "panthera": false
     },
     "cuda": {
         "enabled": false,
         "loader": null,
         "nvml": true,
         "cn/0": false,
-        "cn-lite/0": false
+        "cn-lite/0": false,
+        "panthera": false
     },
     "donate-level": 1,
     "donate-over-proxy": 1,
