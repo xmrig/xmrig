@@ -96,7 +96,7 @@ namespace randomx {
 
 	*/
 
-#	if defined(_MSC_VER) && defined(_DEBUG)
+#	if defined(_MSC_VER) && (defined(_DEBUG) || defined (RELWITHDEBINFO))
 	#define ADDR(x) ((((uint8_t*)&x)[0] == 0xE9) ? (((uint8_t*)&x) + *(const int32_t*)(((uint8_t*)&x) + 1) + 5) : ((uint8_t*)&x))
 #	else
 	#define ADDR(x) ((uint8_t*)&x)
