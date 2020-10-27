@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace randomx {
 
 	class Program;
-	class ProgramConfiguration;
+	struct ProgramConfiguration;
 	class SuperscalarProgram;
 	class Instruction;
 
@@ -54,7 +54,7 @@ namespace randomx {
 		void generateProgramLight(Program&, ProgramConfiguration&, uint32_t);
 
 		template<size_t N>
-		void generateSuperscalarHash(SuperscalarProgram(&programs)[N], std::vector<uint64_t> &);
+		void generateSuperscalarHash(SuperscalarProgram(&programs)[N]);
 
 		void generateDatasetInitCode() {}
 
