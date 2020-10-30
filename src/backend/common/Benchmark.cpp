@@ -55,7 +55,9 @@ xmrig::Benchmark::Benchmark(const Job &job, size_t workers, const IBackend *back
     m_end(job.benchSize()),
     m_hash(job.benchHash())
 {
-    m_httpListener = std::make_shared<HttpListener>(this, Tags::bench());
+    if (!m_token.isEmpty()) {
+        m_httpListener = std::make_shared<HttpListener>(this, Tags::bench());
+    }
 }
 
 
@@ -73,7 +75,6 @@ bool xmrig::Benchmark::finish(uint64_t totalHashCount)
     const char *color  = checkData ? ((m_data == checkData) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
 
     LOG_NOTICE("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR, Tags::bench(), dt, color, m_data);
-    LOG_INFO("%s " WHITE_BOLD("press ") MAGENTA_BOLD("Ctrl+C") WHITE_BOLD(" to exit"), Tags::bench());
 
     if (!m_token.isEmpty()) {
         using namespace rapidjson;
@@ -86,6 +87,9 @@ bool xmrig::Benchmark::finish(uint64_t totalHashCount)
         doc.AddMember("backend",                        m_backend->toJSON(doc), allocator);
 
         send(doc);
+    }
+    else {
+        printExit();
     }
 
     return true;
@@ -152,6 +156,11 @@ void xmrig::Benchmark::onHttpData(const HttpData &data)
     if (data.status != 200) {
         return setError(data.statusName());
     }
+
+    if (m_doneTime) {
+        LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmrig.com/benchmark/%s"), Tags::bench(), m_id.data());
+        printExit();
+    }
 }
 
 
@@ -171,6 +180,12 @@ uint64_t xmrig::Benchmark::referenceHash() const
     }
 
     return 0;
+}
+
+
+void xmrig::Benchmark::printExit()
+{
+    LOG_INFO("%s " WHITE_BOLD("press ") MAGENTA_BOLD("Ctrl+C") WHITE_BOLD(" to exit"), Tags::bench());
 }
 
 

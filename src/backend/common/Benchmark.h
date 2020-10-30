@@ -55,6 +55,7 @@ protected:
 
 private:
     uint64_t referenceHash() const;
+    void printExit();
     void send(const rapidjson::Value &body);
     void setError(const char *message);
 
