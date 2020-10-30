@@ -27,8 +27,8 @@
 #define XMRIG_DAEMONCLIENT_H
 
 
+#include "base/kernel/interfaces/IHttpListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
-#include "base/net/http/HttpListener.h"
 #include "base/net/stratum/BaseClient.h"
 #include "base/tools/Object.h"
 

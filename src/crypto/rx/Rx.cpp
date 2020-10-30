@@ -42,6 +42,7 @@ class RxPrivate;
 
 static bool osInitialized   = false;
 static bool msrInitialized  = false;
+static bool msrEnabled      = false;
 static RxPrivate *d_ptr     = nullptr;
 
 
@@ -93,7 +94,8 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
     if (seed.algorithm().family() != Algorithm::RANDOM_X) {
         if (msrInitialized) {
             msrDestroy();
-            msrInitialized = false;
+            msrInitialized  = false;
+            msrEnabled      = false;
         }
 
         return true;
@@ -107,8 +109,8 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
     }
 
     if (!msrInitialized) {
-        msrInit(config, cpu.threads().get(seed.algorithm()).data());
-        msrInitialized = true;
+        msrEnabled      = msrInit(config, cpu.threads().get(seed.algorithm()).data());
+        msrInitialized  = true;
     }
 
     if (!osInitialized) {
@@ -132,9 +134,15 @@ bool xmrig::Rx::isReady(const T &seed)
 }
 
 
-#ifndef XMRIG_FEATURE_MSR
-void xmrig::Rx::msrInit(const RxConfig &, const std::vector<CpuThread> &)
+#ifdef XMRIG_FEATURE_MSR
+bool xmrig::Rx::isMSR()
 {
+    return msrEnabled;
+}
+#else
+bool xmrig::Rx::msrInit(const RxConfig &, const std::vector<CpuThread> &)
+{
+    return false;
 }
 
 

@@ -341,9 +341,9 @@ public:
     Algorithm algorithm;
     Algorithms algorithms;
     bool active         = false;
+    bool battery_power  = false;
     bool enabled        = true;
     bool reset          = true;
-    bool battery_power  = false;
     Controller *controller;
     Job job;
     mutable std::map<Algorithm::Id, double> maxHashrate;
