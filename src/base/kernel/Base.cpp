@@ -136,6 +136,18 @@ private:
         if (read(chain, config)) {
             return config.release();
         }
+        
+        chain.addFile(Process::location(Process::HomeLocation, ".xmrig.json"));
+
+        if (read(chain, config)) {
+            return config.release();
+        }
+        
+        chain.addFile(Process::location(Process::HomeLocation, ".config/xmrig.json"));
+
+        if (read(chain, config)) {
+            return config.release();
+        }
 
 #       ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
         chain.addRaw(default_config);
