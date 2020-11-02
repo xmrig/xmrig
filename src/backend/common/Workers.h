@@ -59,17 +59,23 @@ public:
     Workers();
     ~Workers();
 
-    Benchmark *benchmark() const;
+    inline void start(const std::vector<T> &data)   { start(data, true); }
+
     bool tick(uint64_t ticks);
     const Hashrate *hashrate() const;
     void jobEarlyNotification(const Job&);
     void setBackend(IBackend *backend);
-    void start(const std::vector<T> &data);
     void stop();
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    void start(const std::vector<T> &data, const std::shared_ptr<Benchmark> &benchmark);
+#   endif
 
 private:
     static IWorker *create(Thread<T> *handle);
     static void onReady(void *arg);
+
+    void start(const std::vector<T> &data, bool sleep);
 
     std::vector<Thread<T> *> m_workers;
     WorkersPrivate *d_ptr;

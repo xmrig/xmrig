@@ -1,9 +1,11 @@
 set(HEADERS_BASE
+    src/3rdparty/fmt/format.cc
     src/base/api/interfaces/IApiListener.h
     src/base/crypto/Algorithm.h
     src/base/crypto/Coin.h
     src/base/crypto/keccak.h
     src/base/crypto/sha3.h
+    src/base/io/Async.h
     src/base/io/Console.h
     src/base/io/Env.h
     src/base/io/json/Json.h
@@ -21,6 +23,7 @@ set(HEADERS_BASE
     src/base/kernel/config/BaseTransform.h
     src/base/kernel/config/Title.h
     src/base/kernel/Entry.h
+    src/base/kernel/interfaces/IAsyncListener.h
     src/base/kernel/interfaces/IBaseListener.h
     src/base/kernel/interfaces/IClient.h
     src/base/kernel/interfaces/IClientListener.h
@@ -73,6 +76,7 @@ set(SOURCES_BASE
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp
     src/base/crypto/sha3.cpp
+    src/base/io/Async.cpp
     src/base/io/Console.cpp
     src/base/io/Env.cpp
     src/base/io/json/Json.cpp
@@ -119,17 +123,19 @@ if (WIN32)
     set(SOURCES_OS
         src/base/io/json/Json_win.cpp
         src/base/kernel/Platform_win.cpp
+        src/base/kernel/Process_win.cpp
         )
 elseif (APPLE)
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_mac.cpp
+        src/base/kernel/Process_unix.cpp
         )
 else()
     set(SOURCES_OS
-        src/base/io/Async.cpp
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_unix.cpp
+        src/base/kernel/Process_unix.cpp
         )
 endif()
 
@@ -235,8 +241,15 @@ endif()
 if (WITH_RANDOMX AND WITH_BENCHMARK)
     add_definitions(/DXMRIG_FEATURE_BENCHMARK)
 
-    list(APPEND HEADERS_BASE src/base/net/stratum/NullClient.h)
-    list(APPEND SOURCES_BASE src/base/net/stratum/NullClient.cpp)
+    list(APPEND HEADERS_BASE
+        src/base/net/stratum/benchmark/BenchClient.h
+        src/base/net/stratum/benchmark/BenchConfig.h
+        )
+
+    list(APPEND SOURCES_BASE
+        src/base/net/stratum/benchmark/BenchClient.cpp
+        src/base/net/stratum/benchmark/BenchConfig.cpp
+        )
 else()
     remove_definitions(/DXMRIG_FEATURE_BENCHMARK)
 endif()

@@ -128,14 +128,6 @@ void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     if (pool.mode() == Pool::MODE_BENCHMARK) {
-        m_benchSize = pool.benchSize();
-
-        LOG_NOTICE("%s " MAGENTA_BOLD("start benchmark ") "hashes " CYAN_BOLD("%" PRIu64 "M") " algo " WHITE_BOLD("%s") " print_time " CYAN_BOLD("%us"),
-                   Tags::bench(),
-                   pool.benchSize() / 1000000,
-                   client->job().algorithm().shortName(),
-                   m_controller->config()->printTime());
-
         return;
     }
 #   endif
@@ -282,17 +274,20 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
     const char *scale = NetworkState::scaleDiff(diff);
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    if (!m_benchSize)
+    if (job.benchSize()) {
+        LOG_NOTICE("%s " MAGENTA_BOLD("start benchmark ") "hashes " CYAN_BOLD("%" PRIu64 "M") " algo " WHITE_BOLD("%s") " print_time " CYAN_BOLD("%us"),
+                   Tags::bench(),
+                   job.benchSize() / 1000000,
+                   job.algorithm().shortName(),
+                   m_controller->config()->printTime());
+
+        LOG_NOTICE("%s " WHITE_BOLD("seed ") BLACK_BOLD("%s"), Tags::bench(), job.seed().toHex().data());
+    }
+    else
 #   endif
     {
-        if (job.height()) {
-            LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
-                     Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName(), job.height());
-        }
-        else {
-            LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s"),
-                     Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName());
-        }
+        LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
+                 Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName(), job.height());
     }
 
     if (!donate && m_donate) {

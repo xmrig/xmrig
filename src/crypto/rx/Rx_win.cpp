@@ -117,7 +117,7 @@ static HANDLE wrmsr_install_driver()
         return nullptr;
     }
 
-    for (auto it = dir.end(); it != dir.begin(); --it) {
+    for (auto it = dir.end() - 1; it != dir.begin(); --it) {
         if ((*it == L'\\') || (*it == L'/')) {
             ++it;
             *it = L'\0';
@@ -395,21 +395,24 @@ void Rx::setMainLoopBounds(const std::pair<const void*, const void*>& bounds)
 } // namespace xmrig
 
 
-void xmrig::Rx::msrInit(const RxConfig &config, const std::vector<CpuThread>& threads)
+bool xmrig::Rx::msrInit(const RxConfig &config, const std::vector<CpuThread>& threads)
 {
     const auto &preset = config.msrPreset();
     if (preset.empty()) {
-        return;
+        return false;
     }
 
     const uint64_t ts = Chrono::steadyMSecs();
 
     if (wrmsr(preset, threads, config.cacheQoS(), config.rdmsr())) {
         LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
+
+        return true;
     }
-    else {
-        LOG_ERR(CLEAR "%s" RED_BOLD_S "FAILED TO APPLY MSR MOD, HASHRATE WILL BE LOW", tag);
-    }
+
+    LOG_ERR(CLEAR "%s" RED_BOLD_S "FAILED TO APPLY MSR MOD, HASHRATE WILL BE LOW", tag);
+
+    return false;
 }
 
 

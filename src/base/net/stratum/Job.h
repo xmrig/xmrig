@@ -82,7 +82,7 @@ public:
     inline uint32_t backend() const                     { return m_backend; }
     inline uint64_t diff() const                        { return m_diff; }
     inline uint64_t height() const                      { return m_height; }
-    inline uint64_t nonceMask() const                   { return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (-1ull  >> (extraNonce().size() * 4)): 0xFFFFFFFFULL); }
+    inline uint64_t nonceMask() const                   { return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (-1ULL  >> (extraNonce().size() * 4)): 0xFFFFFFFFULL); }
     inline uint64_t target() const                      { return m_target; }
     inline uint8_t *blob()                              { return m_blob; }
     inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
@@ -98,18 +98,27 @@ public:
     inline void setPoolWallet(const String &poolWallet) { m_poolWallet = poolWallet; }
 
 #   ifdef XMRIG_PROXY_PROJECT
-    inline char *rawBlob()                            { return m_rawBlob; }
-    inline const char *rawBlob() const                { return m_rawBlob; }
-    inline const char *rawTarget() const              { return m_rawTarget; }
-    inline const String &rawSeedHash() const          { return m_rawSeedHash; }
+    inline char *rawBlob()                              { return m_rawBlob; }
+    inline const char *rawBlob() const                  { return m_rawBlob; }
+    inline const char *rawTarget() const                { return m_rawTarget; }
+    inline const String &rawSeedHash() const            { return m_rawSeedHash; }
 #   endif
 
-    static inline uint64_t toDiff(uint64_t target) { return target ? (0xFFFFFFFFFFFFFFFFULL / target) : 0; }
+    static inline uint64_t toDiff(uint64_t target)      { return target ? (0xFFFFFFFFFFFFFFFFULL / target) : 0; }
 
-    inline bool operator!=(const Job &other) const { return !isEqual(other); }
-    inline bool operator==(const Job &other) const { return isEqual(other); }
-    inline Job &operator=(const Job &other)        { copy(other); return *this; }
-    inline Job &operator=(Job &&other) noexcept    { move(std::move(other)); return *this; }
+    inline bool operator!=(const Job &other) const      { return !isEqual(other); }
+    inline bool operator==(const Job &other) const      { return isEqual(other); }
+    inline Job &operator=(const Job &other)             { copy(other); return *this; }
+    inline Job &operator=(Job &&other) noexcept         { move(std::move(other)); return *this; }
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    inline const String &benchToken() const             { return m_benchToken; }
+    inline uint32_t benchSize() const                   { return m_benchSize; }
+    inline uint64_t benchHash() const                   { return m_benchHash; }
+    inline void setBenchHash(uint64_t benchHash)        { m_benchHash = benchHash; }
+    inline void setBenchSize(uint32_t size)             { m_benchSize = size; }
+    inline void setBenchToken(const String &token)      { m_benchToken = token; }
+#   endif
 
 private:
     void copy(const Job &other);
@@ -134,6 +143,12 @@ private:
     char m_rawBlob[kMaxBlobSize * 2 + 8]{};
     char m_rawTarget[24]{};
     String m_rawSeedHash;
+#   endif
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    String m_benchToken;
+    uint32_t m_benchSize = 0;
+    uint64_t m_benchHash = 0;
 #   endif
 };
 

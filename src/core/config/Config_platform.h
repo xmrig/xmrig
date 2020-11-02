@@ -104,6 +104,10 @@ static const option options[] = {
     { "stress",                0, nullptr, IConfig::StressKey             },
     { "bench",                 1, nullptr, IConfig::BenchKey              },
     { "benchmark",             1, nullptr, IConfig::BenchKey              },
+    { "submit",                0, nullptr, IConfig::BenchSubmitKey        },
+    { "verify",                1, nullptr, IConfig::BenchVerifyKey        },
+    { "seed",                  1, nullptr, IConfig::BenchSeedKey          },
+    { "hash",                  1, nullptr, IConfig::BenchHashKey          },
 #   endif
 #   ifdef XMRIG_FEATURE_TLS
     { "tls",                   0, nullptr, IConfig::TlsKey                },

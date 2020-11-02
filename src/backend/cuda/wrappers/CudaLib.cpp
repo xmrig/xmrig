@@ -61,7 +61,6 @@ static const char *kAstroBWTHash                        = "astroBWTHash";
 static const char *kAstroBWTPrepare                     = "astroBWTPrepare";
 static const char *kCnHash                              = "cnHash";
 static const char *kDeviceCount                         = "deviceCount";
-static const char *kDeviceInfo                          = "deviceInfo";
 static const char *kDeviceInfo_v2                       = "deviceInfo_v2";
 static const char *kDeviceInit                          = "deviceInit";
 static const char *kDeviceInt                           = "deviceInt";
@@ -77,7 +76,6 @@ static const char *kRxPrepare                           = "rxPrepare";
 static const char *kKawPowHash                          = "kawPowHash";
 static const char *kKawPowPrepare_v2                    = "kawPowPrepare_v2";
 static const char *kKawPowStopHash                      = "kawPowStopHash";
-static const char *kSetJob                              = "setJob";
 static const char *kSetJob_v2                           = "setJob_v2";
 static const char *kVersion                             = "version";
 
@@ -87,7 +85,6 @@ using astroBWTHash_t                                    = bool (*)(nvid_ctx *, u
 using astroBWTPrepare_t                                 = bool (*)(nvid_ctx *, uint32_t);
 using cnHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint64_t, uint32_t *, uint32_t *);
 using deviceCount_t                                     = uint32_t (*)();
-using deviceInfo_t                                      = int32_t (*)(nvid_ctx *, int32_t, int32_t, int32_t, int32_t);
 using deviceInfo_v2_t                                   = bool (*)(nvid_ctx *, int32_t, int32_t, const char *, int32_t);
 using deviceInit_t                                      = bool (*)(nvid_ctx *);
 using deviceInt_t                                       = int32_t (*)(nvid_ctx *, CudaLib::DeviceProperty);
@@ -103,7 +100,6 @@ using rxPrepare_t                                       = bool (*)(nvid_ctx *, c
 using kawPowHash_t                                      = bool (*)(nvid_ctx *, uint8_t*, uint64_t, uint32_t *, uint32_t *, uint32_t *);
 using kawPowPrepare_v2_t                                = bool (*)(nvid_ctx *, const void *, size_t, const void *, size_t, uint32_t, const uint64_t*);
 using kawPowStopHash_t                                  = bool (*)(nvid_ctx *);
-using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, int32_t);
 using setJob_v2_t                                       = bool (*)(nvid_ctx *, const void *, size_t, const char *);
 using version_t                                         = uint32_t (*)(Version);
 
@@ -113,7 +109,6 @@ static astroBWTHash_t pAstroBWTHash                     = nullptr;
 static astroBWTPrepare_t pAstroBWTPrepare               = nullptr;
 static cnHash_t pCnHash                                 = nullptr;
 static deviceCount_t pDeviceCount                       = nullptr;
-static deviceInfo_t pDeviceInfo                         = nullptr;
 static deviceInfo_v2_t pDeviceInfo_v2                   = nullptr;
 static deviceInit_t pDeviceInit                         = nullptr;
 static deviceInt_t pDeviceInt                           = nullptr;
@@ -129,7 +124,6 @@ static rxPrepare_t pRxPrepare                           = nullptr;
 static kawPowHash_t pKawPowHash                         = nullptr;
 static kawPowPrepare_v2_t pKawPowPrepare_v2             = nullptr;
 static kawPowStopHash_t pKawPowStopHash                 = nullptr;
-static setJob_t pSetJob                                 = nullptr;
 static setJob_v2_t pSetJob_v2                           = nullptr;
 static version_t pVersion                               = nullptr;
 
@@ -205,11 +199,7 @@ bool xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, 
 {
     const Algorithm algo = RxAlgo::id(algorithm);
 
-    if (pDeviceInfo_v2) {
-        return pDeviceInfo_v2(ctx, blocks, threads, algo.isValid() ? algo.shortName() : nullptr, dataset_host);
-    }
-
-    return pDeviceInfo(ctx, blocks, threads, algo, dataset_host) == 0;
+    return pDeviceInfo_v2(ctx, blocks, threads, algo.isValid() ? algo.shortName() : nullptr, dataset_host);
 }
 
 
@@ -252,11 +242,8 @@ bool xmrig::CudaLib::kawPowStopHash(nvid_ctx *ctx) noexcept
 bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept
 {
     const Algorithm algo = RxAlgo::id(algorithm);
-    if (pSetJob_v2) {
-        return pSetJob_v2(ctx, data, size, algo.shortName());
-    }
 
-    return pSetJob(ctx, data, size, algo);
+    return pSetJob_v2(ctx, data, size, algo.shortName());
 }
 
 
@@ -421,16 +408,8 @@ void xmrig::CudaLib::load()
     DLSYM(KawPowHash);
     DLSYM(KawPowPrepare_v2);
     DLSYM(KawPowStopHash);
-
-    uv_dlsym(&cudaLib, kDeviceInfo_v2, reinterpret_cast<void**>(&pDeviceInfo_v2));
-    if (!pDeviceInfo_v2) {
-        DLSYM(DeviceInfo);
-    }
-
-    uv_dlsym(&cudaLib, kSetJob_v2, reinterpret_cast<void**>(&pSetJob_v2));
-    if (!pSetJob_v2) {
-        DLSYM(SetJob);
-    }
+    DLSYM(DeviceInfo_v2);
+    DLSYM(SetJob_v2);
 
     pInit();
 }

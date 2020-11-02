@@ -230,7 +230,7 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 }
 
 template<size_t N>
-void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N], std::vector<uint64_t> &reciprocalCache)
+void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 {
 	uint32_t codePos = CodeSize;
 
@@ -263,7 +263,7 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N], s
 		{
 			const Instruction& instr = prog(j);
 			if (static_cast<SuperscalarInstructionType>(instr.opcode) == randomx::SuperscalarInstructionType::IMUL_RCP)
-				emit64(reciprocalCache[instr.getImm32()], code, codePos);
+				emit64(randomx_reciprocal(instr.getImm32()), code, codePos);
 		}
 
 		// Jump over literal pool
@@ -345,7 +345,7 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N], s
 	clear_code_cache(reinterpret_cast<char*>(code + CodeSize), reinterpret_cast<char*>(code + codePos));
 }
 
-template void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[RANDOMX_CACHE_MAX_ACCESSES], std::vector<uint64_t> &reciprocalCache);
+template void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[RANDOMX_CACHE_MAX_ACCESSES]);
 
 DatasetInitFunc* JitCompilerA64::getDatasetInitFunc()
 {

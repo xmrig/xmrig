@@ -151,7 +151,7 @@ static bool wrmsr_on_all_cpus(uint32_t reg, uint64_t value, uint64_t mask, T&& c
 
 static bool wrmsr_modprobe()
 {
-    if (system("/sbin/modprobe msr > /dev/null 2>&1") != 0) {
+    if (system("/sbin/modprobe msr allow_writes=on > /dev/null 2>&1") != 0) {
         LOG_WARN(CLEAR "%s" YELLOW_BOLD_S "msr kernel module is not available", tag);
 
         return false;
@@ -272,21 +272,25 @@ void Rx::setMainLoopBounds(const std::pair<const void*, const void*>& bounds)
 } // namespace xmrig
 
 
-void xmrig::Rx::msrInit(const RxConfig &config, const std::vector<CpuThread>& threads)
+bool xmrig::Rx::msrInit(const RxConfig &config, const std::vector<CpuThread> &threads)
 {
     const auto &preset = config.msrPreset();
     if (preset.empty()) {
-        return;
+        return false;
     }
 
     const uint64_t ts = Chrono::steadyMSecs();
 
     if (wrmsr(preset, threads, config.cacheQoS(), config.rdmsr())) {
         LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
+
+        return true;
     }
-    else {
-        LOG_ERR(CLEAR "%s" RED_BOLD_S "FAILED TO APPLY MSR MOD, HASHRATE WILL BE LOW", tag);
-    }
+
+
+    LOG_ERR(CLEAR "%s" RED_BOLD_S "FAILED TO APPLY MSR MOD, HASHRATE WILL BE LOW", tag);
+
+    return false;
 }
 
 

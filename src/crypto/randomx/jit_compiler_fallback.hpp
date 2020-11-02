@@ -52,7 +52,7 @@ namespace randomx {
 
 		}
 		template<size_t N>
-		void generateSuperscalarHash(SuperscalarProgram(&programs)[N], std::vector<uint64_t> &) {
+		void generateSuperscalarHash(SuperscalarProgram(&programs)[N]) {
 
 		}
 		void generateDatasetInitCode() {

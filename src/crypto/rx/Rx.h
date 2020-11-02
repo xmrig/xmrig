@@ -63,8 +63,14 @@ public:
     static void setMainLoopBounds(const std::pair<const void*, const void*>& bounds);
 #   endif
 
+#   ifdef XMRIG_FEATURE_MSR
+    static bool isMSR();
+#   else
+    static constexpr bool isMSR()   { return false; }
+#   endif
+
 private:
-    static void msrInit(const RxConfig &config, const std::vector<CpuThread>& threads);
+    static bool msrInit(const RxConfig &config, const std::vector<CpuThread>& threads);
     static void msrDestroy();
     static void setupMainLoopExceptionFrame();
 };

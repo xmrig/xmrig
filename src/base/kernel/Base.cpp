@@ -41,6 +41,7 @@
 #include "base/net/tools/NetBuffer.h"
 #include "core/config/Config.h"
 #include "core/config/ConfigTransform.h"
+#include "version.h"
 
 
 #ifdef HAVE_SYSLOG_H
@@ -132,7 +133,16 @@ private:
         }
 
         chain.addFile(Process::location(Process::DataLocation, "config.json"));
-
+        if (read(chain, config)) {
+            return config.release();
+        }
+        
+        chain.addFile(Process::location(Process::HomeLocation,  "." APP_ID ".json"));
+        if (read(chain, config)) {
+            return config.release();
+        }
+        
+        chain.addFile(Process::location(Process::HomeLocation, ".config" XMRIG_DIR_SEPARATOR APP_ID ".json"));
         if (read(chain, config)) {
             return config.release();
         }

@@ -88,13 +88,6 @@ xmrig::Workers<T>::~Workers()
 
 
 template<class T>
-xmrig::Benchmark *xmrig::Workers<T>::benchmark() const
-{
-    return d_ptr->benchmark.get();
-}
-
-
-template<class T>
 static void getHashrateData(xmrig::IWorker* worker, uint64_t& hashCount, uint64_t& timeStamp)
 {
     worker->getHashrateData(hashCount, timeStamp);
@@ -169,41 +162,6 @@ void xmrig::Workers<T>::setBackend(IBackend *backend)
 
 
 template<class T>
-void xmrig::Workers<T>::start(const std::vector<T> &data)
-{
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    if (!data.empty() && data.front().benchSize) {
-        d_ptr->benchmark = std::make_shared<Benchmark>(data.front().benchSize, data.front().algorithm, data.size());
-    }
-#   endif
-
-    for (const T &item : data) {
-        m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
-    }
-
-    d_ptr->hashrate = std::make_shared<Hashrate>(m_workers.size());
-    Nonce::touch(T::backend());
-
-    for (Thread<T> *worker : m_workers) {
-        worker->start(Workers<T>::onReady);
-
-#       ifdef XMRIG_FEATURE_BENCHMARK
-        if (!d_ptr->benchmark)
-#       endif
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        }
-    }
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    if (d_ptr->benchmark) {
-        d_ptr->benchmark->start();
-    }
-#   endif
-}
-
-
-template<class T>
 void xmrig::Workers<T>::stop()
 {
     Nonce::stop(T::backend());
@@ -217,6 +175,22 @@ void xmrig::Workers<T>::stop()
 
     d_ptr->hashrate.reset();
 }
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+template<class T>
+void xmrig::Workers<T>::start(const std::vector<T> &data, const std::shared_ptr<Benchmark> &benchmark)
+{
+    if (!benchmark) {
+        return start(data, true);
+    }
+
+    start(data, false);
+
+    d_ptr->benchmark = benchmark;
+    d_ptr->benchmark->start();
+}
+#endif
 
 
 template<class T>
@@ -247,6 +221,29 @@ void xmrig::Workers<T>::onReady(void *arg)
 
     handle->setWorker(worker);
     handle->backend()->start(worker, true);
+}
+
+
+template<class T>
+void xmrig::Workers<T>::start(const std::vector<T> &data, bool sleep)
+{
+    for (const auto &item : data) {
+        m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
+    }
+
+    d_ptr->hashrate = std::make_shared<Hashrate>(m_workers.size());
+    Nonce::touch(T::backend());
+
+    for (auto worker : m_workers) {
+        worker->start(Workers<T>::onReady);
+
+        // This sleep is important for optimal caching!
+        // Threads must allocate scratchpads in order so that adjacent cores will use adjacent scratchpads
+        // Sub-optimal caching can result in up to 0.5% hashrate penalty
+        if (sleep) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+    }
 }
 
 
