@@ -1,7 +1,7 @@
 /* XMRig
- * Copyright 2018      Riku Voipio <riku.voipio@iki.fi>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018      Riku Voipio <riku.voipio@iki.fi>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 
 #include "base/tools/String.h"
+#include "3rdparty/fmt/core.h"
 
 
 #include <cstdio>
@@ -289,7 +290,8 @@ static bool arm_cpu_decode(lscpu_desc *desc)
 
         for (size_t i = 0; impl.parts[i].id != -1; ++i) {
             if (impl.parts[i].id == model) {
-                desc->model = impl.parts[i].name;
+                desc->vendor = impl.name;
+                desc->model  = impl.parts[i].name;
 
                 return true;
             }
@@ -304,7 +306,7 @@ String cpu_name_arm()
 {
     lscpu_desc desc;
     if (read_basicinfo(&desc) && arm_cpu_decode(&desc)) {
-        return desc.model;
+        return fmt::format("{} {}", desc.vendor, desc.model).c_str();
     }
 
     return {};

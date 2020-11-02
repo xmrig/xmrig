@@ -96,24 +96,30 @@ namespace randomx {
 
 	*/
 
-	#define codePrefetchScratchpad ((uint8_t*)&randomx_prefetch_scratchpad)
-	#define codePrefetchScratchpadEnd ((uint8_t*)&randomx_prefetch_scratchpad_end)
-	#define codePrologue ((uint8_t*)&randomx_program_prologue)
-	#define codeLoopBegin ((uint8_t*)&randomx_program_loop_begin)
-	#define codeLoopLoad ((uint8_t*)&randomx_program_loop_load)
-	#define codeLoopLoadXOP ((uint8_t*)&randomx_program_loop_load_xop)
-	#define codeProgamStart ((uint8_t*)&randomx_program_start)
-	#define codeReadDatasetLightSshInit ((uint8_t*)&randomx_program_read_dataset_sshash_init)
-	#define codeReadDatasetLightSshFin ((uint8_t*)&randomx_program_read_dataset_sshash_fin)
-	#define codeDatasetInit ((uint8_t*)&randomx_dataset_init)
-	#define codeLoopStore ((uint8_t*)&randomx_program_loop_store)
-	#define codeLoopEnd ((uint8_t*)&randomx_program_loop_end)
-	#define codeEpilogue ((uint8_t*)&randomx_program_epilogue)
-	#define codeProgramEnd ((uint8_t*)&randomx_program_end)
-	#define codeShhLoad ((uint8_t*)&randomx_sshash_load)
-	#define codeShhPrefetch ((uint8_t*)&randomx_sshash_prefetch)
-	#define codeShhEnd ((uint8_t*)&randomx_sshash_end)
-	#define codeShhInit ((uint8_t*)&randomx_sshash_init)
+#	if defined(_MSC_VER) && (defined(_DEBUG) || defined (RELWITHDEBINFO))
+	#define ADDR(x) ((((uint8_t*)&x)[0] == 0xE9) ? (((uint8_t*)&x) + *(const int32_t*)(((uint8_t*)&x) + 1) + 5) : ((uint8_t*)&x))
+#	else
+	#define ADDR(x) ((uint8_t*)&x)
+#	endif
+
+	#define codePrefetchScratchpad ADDR(randomx_prefetch_scratchpad)
+	#define codePrefetchScratchpadEnd ADDR(randomx_prefetch_scratchpad_end)
+	#define codePrologue ADDR(randomx_program_prologue)
+	#define codeLoopBegin ADDR(randomx_program_loop_begin)
+	#define codeLoopLoad ADDR(randomx_program_loop_load)
+	#define codeLoopLoadXOP ADDR(randomx_program_loop_load_xop)
+	#define codeProgamStart ADDR(randomx_program_start)
+	#define codeReadDatasetLightSshInit ADDR(randomx_program_read_dataset_sshash_init)
+	#define codeReadDatasetLightSshFin ADDR(randomx_program_read_dataset_sshash_fin)
+	#define codeDatasetInit ADDR(randomx_dataset_init)
+	#define codeLoopStore ADDR(randomx_program_loop_store)
+	#define codeLoopEnd ADDR(randomx_program_loop_end)
+	#define codeEpilogue ADDR(randomx_program_epilogue)
+	#define codeProgramEnd ADDR(randomx_program_end)
+	#define codeShhLoad ADDR(randomx_sshash_load)
+	#define codeShhPrefetch ADDR(randomx_sshash_prefetch)
+	#define codeShhEnd ADDR(randomx_sshash_end)
+	#define codeShhInit ADDR(randomx_sshash_init)
 
 	#define prefetchScratchpadSize (codePrefetchScratchpadEnd - codePrefetchScratchpad)
 	#define prologueSize (codeLoopBegin - codePrologue)
@@ -264,14 +270,14 @@ namespace randomx {
 	}
 
 	template<size_t N>
-	void JitCompilerX86::generateSuperscalarHash(SuperscalarProgram(&programs)[N], std::vector<uint64_t> &reciprocalCache) {
+	void JitCompilerX86::generateSuperscalarHash(SuperscalarProgram(&programs)[N]) {
 		memcpy(code + superScalarHashOffset, codeShhInit, codeSshInitSize);
 		codePos = superScalarHashOffset + codeSshInitSize;
 		for (unsigned j = 0; j < RandomX_CurrentConfig.CacheAccesses; ++j) {
 			SuperscalarProgram& prog = programs[j];
 			for (unsigned i = 0; i < prog.getSize(); ++i) {
 				Instruction& instr = prog(i);
-				generateSuperscalarCode(instr, reciprocalCache);
+				generateSuperscalarCode(instr);
 			}
 			emit(codeShhLoad, codeSshLoadSize, code, codePos);
 			if (j < RandomX_CurrentConfig.CacheAccesses - 1) {
@@ -284,7 +290,7 @@ namespace randomx {
 	}
 
 	template
-	void JitCompilerX86::generateSuperscalarHash(SuperscalarProgram(&programs)[RANDOMX_CACHE_MAX_ACCESSES], std::vector<uint64_t> &reciprocalCache);
+	void JitCompilerX86::generateSuperscalarHash(SuperscalarProgram(&programs)[RANDOMX_CACHE_MAX_ACCESSES]);
 
 	void JitCompilerX86::generateDatasetInitCode() {
 		memcpy(code, codeDatasetInit, datasetInitSize);
@@ -366,7 +372,7 @@ namespace randomx {
 		emit32(epilogueOffset - codePos - 4, code, codePos);
 	}
 
-	void JitCompilerX86::generateSuperscalarCode(Instruction& instr, std::vector<uint64_t> &reciprocalCache) {
+	void JitCompilerX86::generateSuperscalarCode(Instruction& instr) {
 		static constexpr uint8_t REX_SUB_RR[] = { 0x4d, 0x2b };
 		static constexpr uint8_t REX_MOV_RR64[] = { 0x49, 0x8b };
 		static constexpr uint8_t REX_MOV_R64R[] = { 0x4c, 0x8b };
@@ -452,7 +458,7 @@ namespace randomx {
 			break;
 		case randomx::SuperscalarInstructionType::IMUL_RCP:
 			emit(MOV_RAX_I, code, codePos);
-			emit64(reciprocalCache[instr.getImm32()], code, codePos);
+			emit64(randomx_reciprocal_fast(instr.getImm32()), code, codePos);
 			emit(REX_IMUL_RM, code, codePos);
 			emitByte(0xc0 + 8 * instr.dst, code, codePos);
 			break;

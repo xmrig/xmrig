@@ -847,7 +847,7 @@ namespace randomx {
 		}*/
 	}
 
-	void executeSuperscalar(int_reg_t(&r)[8], SuperscalarProgram& prog, std::vector<uint64_t> *reciprocals) {
+	void executeSuperscalar(int_reg_t(&r)[8], SuperscalarProgram& prog) {
 		for (unsigned j = 0; j < prog.getSize(); ++j) {
 			Instruction& instr = prog(j);
 			switch ((SuperscalarInstructionType)instr.opcode)
@@ -884,10 +884,7 @@ namespace randomx {
 				r[instr.dst] = smulh(r[instr.dst], r[instr.src]);
 				break;
 			case SuperscalarInstructionType::IMUL_RCP:
-				if (reciprocals != nullptr)
-					r[instr.dst] *= (*reciprocals)[instr.getImm32()];
-				else
-					r[instr.dst] *= randomx_reciprocal(instr.getImm32());
+				r[instr.dst] *= randomx_reciprocal(instr.getImm32());
 				break;
 			default:
 				UNREACHABLE;

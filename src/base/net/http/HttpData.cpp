@@ -1,6 +1,7 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,6 +19,14 @@
 
 
 #include "base/net/http/HttpData.h"
+#include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/rapidjson/document.h"
+#include "3rdparty/rapidjson/error/en.h"
+#include "base/io/json/Json.h"
+
+
+#include <uv.h>
+#include <stdexcept>
 
 
 namespace xmrig {
@@ -41,4 +50,47 @@ bool xmrig::HttpData::isJSON() const
     auto &type = headers.at(kContentTypeL);
 
     return type == kApplicationJson || type == kTextPlain;
+}
+
+
+const char *xmrig::HttpData::methodName() const
+{
+    return http_method_str(static_cast<http_method>(method));
+}
+
+
+const char *xmrig::HttpData::statusName() const
+{
+    if (status < 0) {
+        return uv_strerror(status);
+    }
+
+    return http_status_str(static_cast<http_status>(status));
+}
+
+
+rapidjson::Document xmrig::HttpData::json() const
+{
+    if (status < 0) {
+        throw std::runtime_error(statusName());
+    }
+
+    if (!isJSON()) {
+        throw std::runtime_error("the response is not a valid JSON response");
+    }
+
+    using namespace rapidjson;
+    Document doc;
+    if (doc.Parse(body.c_str()).HasParseError()) {
+        throw std::runtime_error(GetParseError_En(doc.GetParseError()));
+    }
+
+    if (doc.IsObject() && !doc.ObjectEmpty()) {
+        const char *error = Json::getString(doc, "error");
+        if (error) {
+            throw std::runtime_error(error);
+        }
+    }
+
+    return doc;
 }

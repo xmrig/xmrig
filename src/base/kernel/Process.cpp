@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,7 +23,21 @@
 
 
 #include "base/kernel/Process.h"
+#include "3rdparty/fmt/core.h"
 #include "base/tools/Chrono.h"
+#include "version.h"
+
+
+#ifdef XMRIG_OS_WIN
+#   ifdef _MSC_VER
+#       include <direct.h>
+#       define MKDIR(path) _mkdir(path.c_str());
+#   else
+#       define MKDIR(path) mkdir((path).c_str());
+#   endif
+#else
+#   define MKDIR(path) mkdir(path.c_str(), 0700);
+#endif
 
 
 namespace xmrig {
@@ -73,7 +81,7 @@ static std::string getPath(Process::Location location)
         }
 
         const auto path = std::string(pathBuf, size);
-        const auto pos  = path.rfind(Process::kDirSeparator);
+        const auto pos  = path.rfind(*XMRIG_DIR_SEPARATOR);
 
         if (pos != std::string::npos) {
             return path.substr(0, pos);
@@ -116,15 +124,17 @@ xmrig::Process::Process(int argc, char **argv) :
     srand(static_cast<unsigned int>(Chrono::currentMSecsSinceEpoch() ^ reinterpret_cast<uintptr_t>(this)));
 
     setDataDir(m_arguments.value("--data-dir", "-d"));
-}
 
+#   ifdef XMRIG_SHARED_DATADIR
+    if (dataDir.empty()) {
+        dataDir = fmt::format("{}" XMRIG_DIR_SEPARATOR ".xmrig" XMRIG_DIR_SEPARATOR, location(HomeLocation));
+        MKDIR(dataDir);
 
-int xmrig::Process::pid()
-{
-#   if UV_VERSION_HEX >= 0x011200
-    return uv_os_getpid();
-#   else
-    return 0;
+        dataDir += APP_KIND;
+        MKDIR(dataDir);
+
+        uv_chdir(dataDir.c_str());
+    }
 #   endif
 }
 
@@ -154,5 +164,5 @@ xmrig::String xmrig::Process::location(Location location, const char *fileName)
         return path.c_str();
     }
 
-    return (path + kDirSeparator + fileName).c_str();
+    return fmt::format("{}" XMRIG_DIR_SEPARATOR "{}", path, fileName).c_str();
 }
