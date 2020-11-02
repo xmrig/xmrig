@@ -2,6 +2,7 @@
 - **Added [online benchmark](https://xmrig.com/benchmark) mode for sharing results.**
   - Added new command line options: `--submit`, `	--verify=ID`, `	--seed=SEED`, `--hash=HASH`.
 - [#1912](https://github.com/xmrig/xmrig/pull/1912) Fixed MSR kernel module warning with new Linux kernels.
+- [#1925](https://github.com/xmrig/xmrig/pull/1925) Add checking for config files in user home directory.
 - Added vendor to ARM CPUs name and added `"arch"` field to API.
 - Removed legacy CUDA plugin API.
 
