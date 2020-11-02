@@ -174,7 +174,8 @@ void xmrig::RxDataset::setRaw(const void *raw)
         return;
     }
 
-    memcpy(randomx_get_dataset_memory(m_dataset), raw, maxSize());
+    volatile size_t N = maxSize();
+    memcpy(randomx_get_dataset_memory(m_dataset), raw, N);
 }
 
 
