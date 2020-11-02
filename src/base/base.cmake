@@ -123,16 +123,19 @@ if (WIN32)
     set(SOURCES_OS
         src/base/io/json/Json_win.cpp
         src/base/kernel/Platform_win.cpp
+        src/base/kernel/Process_win.cpp
         )
 elseif (APPLE)
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_mac.cpp
+        src/base/kernel/Process_unix.cpp
         )
 else()
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_unix.cpp
+        src/base/kernel/Process_unix.cpp
         )
 endif()
 
