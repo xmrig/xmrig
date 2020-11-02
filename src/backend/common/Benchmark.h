@@ -56,8 +56,11 @@ protected:
 private:
     uint64_t referenceHash() const;
     void printExit();
+
+#   ifdef XMRIG_FEATURE_HTTP
     void send(const rapidjson::Value &body);
     void setError(const char *message);
+#   endif
 
     bool m_reset                = false;
     const Algorithm m_algo;

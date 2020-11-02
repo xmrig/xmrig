@@ -75,12 +75,16 @@ private:
         ONLINE_VERIFY
     };
 
+    void start();
+
+#   ifdef XMRIG_FEATURE_HTTP
     void createBench();
+    void createHttpListener();
     void getBench();
     void setError(const char *message);
-    void start();
     void startBench(const rapidjson::Value &value);
     void startVerify(const rapidjson::Value &value);
+#   endif
 
     IClientListener* m_listener;
     Job m_job;
