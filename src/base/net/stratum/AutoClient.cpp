@@ -20,6 +20,7 @@
 #include "base/net/stratum/AutoClient.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
+#include "net/JobResult.h"
 
 
 xmrig::AutoClient::AutoClient(int id, const char *agent, IClientListener *listener) :
