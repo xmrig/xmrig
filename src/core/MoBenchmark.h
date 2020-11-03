@@ -39,6 +39,7 @@ class MoBenchmark : public IJobResultListener {
             CN_CCX,        // "cn/ccx"           Conceal (CCX).
             CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
             AR2_CHUKWA_V2, // "argon2/chukwav2"  Argon2id (Chukwa v2).
+            KAWPOW_RVN,    // "kawpow/rvn"       KawPow (RVN)
             ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero).
             RX_0,          // "rx/0"             RandomX (Monero).
             RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
@@ -59,6 +60,7 @@ class MoBenchmark : public IJobResultListener {
             Algorithm::CN_GPU,
             Algorithm::AR2_CHUKWA_V2,
             Algorithm::ASTROBWT_DERO,
+            Algorithm::KAWPOW_RVN,
             Algorithm::RX_0,
             Algorithm::RX_WOW,
             Algorithm::RX_ARQ,
