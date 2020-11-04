@@ -158,7 +158,7 @@ void MoBenchmark::start(const BenchAlgo bench_algo) {
     // prepare test job for benchmark runs ("benchmark" client id is to make sure we can detect benchmark jobs)
     Job& job = *m_bench_job[bench_algo];
     job.setId(algo.shortName()); // need to set different id so that workers will see job change
-    if (bench_algo == KAWPOW_RVN) {
+    if (bench_algo == BenchAlgo::KAWPOW_RVN) {
       job.setBlob("4c38e8a5f7b2944d1e4274635d828519b97bc64a1f1c7896ecdbb139988aa0e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
       job.setDiff(Job::toDiff(strtoull("000000639c000000", nullptr, 16)));
       job.setHeight(1500000);
@@ -208,9 +208,7 @@ void MoBenchmark::onJobResult(const JobResult& result) {
         double t[3] = { 0.0 };
         for (auto backend : m_controller->miner()->backends()) {
             const Hashrate *hr = backend->hashrate();
-            if (!hr) {
-                continue;
-            }
+            if (!hr) continue;
             t[0] += hr->calc(Hashrate::ShortInterval);
             t[1] += hr->calc(Hashrate::MediumInterval);
             t[2] += hr->calc(Hashrate::LargeInterval);
@@ -220,7 +218,7 @@ void MoBenchmark::onJobResult(const JobResult& result) {
             if (!(hashrate = t[1]))
                 if (!(hashrate = t[0]))
                     hashrate = static_cast<double>(m_hash_count) * result.diff / (now - m_bench_start) * 1000.0f;
-        if (m_bench_algo == KAWPOW_RVN) hashrate /= ((double)0xFFFFFFFFFFFFFFFF) / 0xFF000000;
+        if (m_bench_algo == KAWPOW_RVN) hashrate /= ((double)0xFFFFFFFFFFFFFFFF) / 0xFF000000
         m_bench_algo_perf[m_bench_algo] = hashrate; // store hashrate result
         LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " hashrate: " CYAN_BOLD_S "%f "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).shortName(), hashrate);
         run_next_bench_algo(m_bench_algo);
