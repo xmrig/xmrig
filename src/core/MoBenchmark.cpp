@@ -158,11 +158,17 @@ void MoBenchmark::start(const BenchAlgo bench_algo) {
     // prepare test job for benchmark runs ("benchmark" client id is to make sure we can detect benchmark jobs)
     Job& job = *m_bench_job[bench_algo];
     job.setId(algo.shortName()); // need to set different id so that workers will see job change
-    // 99 here to trigger all future bench_algo versions for auto veriant detection based on block version
-    job.setBlob("9905A0DBD6BF05CF16E503F3A66F78007CBF34144332ECBFC22ED95C8700383B309ACE1923A0964B00000008BA939A62724C0D7581FCE5761E9D8A0E6A1C3F924FDD8493D1115649C05EB601");
-    job.setTarget("FFFFFFFFFFFFFF20"); // set difficulty to 8 cause onJobResult after every 8-th computed hash
-    job.setHeight(1000);
-    job.setSeedHash("0000000000000000000000000000000000000000000000000000000000000001");
+    if (bench_algo == KAWPOW_RVN) {
+      job.setBlob("4c38e8a5f7b2944d1e4274635d828519b97bc64a1f1c7896ecdbb139988aa0e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+      job.setDiff(Job::toDiff(strtoull("000000639c000000", nullptr, 16)));
+      job.setHeight(1500000);
+    } else {
+      // 99 here to trigger all future bench_algo versions for auto veriant detection based on block version
+      job.setBlob("9905A0DBD6BF05CF16E503F3A66F78007CBF34144332ECBFC22ED95C8700383B309ACE1923A0964B00000008BA939A62724C0D7581FCE5761E9D8A0E6A1C3F924FDD8493D1115649C05EB601");
+      job.setTarget("FFFFFFFFFFFFFF20"); // set difficulty to 8 cause onJobResult after every 8-th computed hash
+      job.setHeight(1000);
+      job.setSeedHash("0000000000000000000000000000000000000000000000000000000000000001");
+    }
     m_bench_algo  = bench_algo; // current perf bench_algo
     m_hash_count  = 0;          // number of hashes calculated for current perf bench_algo
     m_time_start  = 0;          // init time of the first result (in ms) during the first onJobResult
@@ -214,6 +220,7 @@ void MoBenchmark::onJobResult(const JobResult& result) {
             if (!(hashrate = t[1]))
                 if (!(hashrate = t[0]))
                     hashrate = static_cast<double>(m_hash_count) * result.diff / (now - m_bench_start) * 1000.0f;
+        if (m_bench_algo == KAWPOW_RVN) hashrate /= ((double)0xFFFFFFFFFFFFFFFF) / 0xFF000000;
         m_bench_algo_perf[m_bench_algo] = hashrate; // store hashrate result
         LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " hashrate: " CYAN_BOLD_S "%f "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).shortName(), hashrate);
         run_next_bench_algo(m_bench_algo);
