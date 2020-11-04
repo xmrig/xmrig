@@ -1,21 +1,30 @@
 # XMRig
 
-[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
-[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
-[![GitHub Release Date](https://img.shields.io/github/release-date/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/releases)
-[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/blob/master/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/network)
+[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](../../releases)
+[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](../../releases/latest)
+[![GitHub Release Date](https://img.shields.io/github/release-date/xmrig/xmrig.svg)](../../releases/latest)
+[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig.svg)](./LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](../../stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig.svg)](../../network)
 
-XMRig is a high performance, open source, cross platform RandomX, KawPow, CryptoNight and AstroBWT unified CPU/GPU miner. Official binaries are available for Windows, Linux, macOS and FreeBSD.
+[XMRig]((../../)) is a high performance, open source, cross platform RandomX, KawPow, CryptoNight and AstroBWT unified CPU/GPU miner. Official binaries are available for Windows, Linux, macOS and FreeBSD.
+
+## Table of Contents
+
+ - [Mining backends](#mining-backends)
+ - [Download](#download)
+ - [Usage](#usage)
+ - [Donations](#donations)
+ - [Developers](#developers)
+ - [Contacts](#contacts)
 
 ## Mining backends
 - **CPU** (x64/ARMv8)
 - **OpenCL** for AMD GPUs.
-- **CUDA** for NVIDIA GPUs via external [CUDA plugin](https://github.com/xmrig/xmrig-cuda).
+- **CUDA** for NVIDIA GPUs via external [CUDA plugin](../../../xmrig-cuda).
 
 ## Download
-* **[Binary releases](https://github.com/xmrig/xmrig/releases)**
+* **[Binary releases](../../releases)**
 * **[Build from source](https://xmrig.com/docs/miner/build)**
 
 ## Usage
