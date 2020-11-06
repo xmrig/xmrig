@@ -327,7 +327,7 @@ inline void generate_512(uint idx, __local ulong* in, __global ulong* out)
 
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn0(__global ulong *input, __global int *Scratchpad, __global ulong *states, uint Threads)
+__kernel void cn0(__global ulong *input, int, __global int *Scratchpad, __global ulong *states, uint Threads)
 {
     const uint gIdx = getIdx();
     __local ulong State_buf[8 * 25];
