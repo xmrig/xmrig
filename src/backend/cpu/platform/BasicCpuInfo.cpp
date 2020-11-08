@@ -195,9 +195,22 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
             cpuid(PROCESSOR_INFO, data);
             const int32_t family = get_masked(data[EAX_Reg], 12, 8) + get_masked(data[EAX_Reg], 28, 20);
 
-            if (family >= 23) {
+            if (family >= 0x17) {
                 m_assembly = Assembly::RYZEN;
-                m_msrMod   = MSR_MOD_RYZEN;
+
+                switch (family) {
+                case 0x17:
+                    m_msrMod = MSR_MOD_RYZEN_17H;
+                    break;
+
+                case 0x19:
+                    m_msrMod = MSR_MOD_RYZEN_19H;
+                    break;
+
+                default:
+                    m_msrMod = MSR_MOD_NONE;
+                    break;
+                }
             }
             else {
                 m_assembly = Assembly::BULLDOZER;
