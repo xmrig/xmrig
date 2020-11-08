@@ -48,7 +48,8 @@ public:
 
     enum MsrMod : uint32_t {
         MSR_MOD_NONE,
-        MSR_MOD_RYZEN,
+        MSR_MOD_RYZEN_17H,
+        MSR_MOD_RYZEN_19H,
         MSR_MOD_INTEL,
         MSR_MOD_CUSTOM,
         MSR_MOD_MAX
