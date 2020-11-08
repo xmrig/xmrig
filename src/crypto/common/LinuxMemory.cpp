@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,19 +16,17 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-//#include <iostream>
-
 #include "crypto/common/LinuxMemory.h"
+#include "3rdparty/fmt/core.h"
+#include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "crypto/common/VirtualMemory.h"
-#include "backend/cpu/Cpu.h"
 
 
 #include <algorithm>
 #include <fstream>
-#include <string>
 #include <mutex>
+#include <string>
 
 
 namespace xmrig {
@@ -47,7 +39,7 @@ constexpr size_t oneGiB = 1024U * 1024U * 1024U;
 
 static inline std::string sysfs_path(uint32_t node, bool oneGbPages, bool nr)
 {
-    return "/sys/devices/system/node/node" + std::to_string(node) + "/hugepages/hugepages-" + (oneGbPages ? "1048576" : "2048") + "kB/" + (nr ? "nr" : "free") + "_hugepages";
+    return fmt::format("/sys/devices/system/node/node{}/hugepages/hugepages-{}kB/{}_hugepages", node, oneGbPages ? "1048576" : "2048", nr ? "nr" : "free");
 }
 
 

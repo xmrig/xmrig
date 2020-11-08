@@ -182,8 +182,10 @@ static inline const std::string &usage()
 #   ifdef XMRIG_FEATURE_BENCHMARK
     u += "      --stress                  run continuous stress test to check system stability\n";
     u += "      --bench=N                 run benchmark, N can be between 1M and 10M\n";
+#   ifdef XMRIG_FEATURE_HTTP
     u += "      --submit                  perform an online benchmark and submit result for sharing\n";
     u += "      --verify=ID               verify submitted benchmark by ID\n";
+#   endif
     u += "      --seed=SEED               custom RandomX seed for benchmark\n";
     u += "      --hash=HASH               compare benchmark result with specified hash\n";
 #   endif
