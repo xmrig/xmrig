@@ -68,7 +68,7 @@ constexpr size_t kMsrArraySize = 4;
 
 static const std::array<MsrItems, kMsrArraySize> msrPresets = {
     MsrItems(),
-    MsrItems{{ 0xC0011020, 0x0 }, { 0xC0011021, 0x40, ~0x20ULL }, { 0xC0011022, 0x510000 }, { 0xC001102b, 0x1808cc16 }},
+    MsrItems{{ 0xC0011020, 0x0004480000000000ULL }, { 0xC0011021, 0x001c000200000040ULL, ~0x20ULL }, { 0xC0011022, 0xc000000401500000ULL }, { 0xC001102b, 0x2000cc14ULL }},
     MsrItems{{ 0x1a4, 0xf }},
     MsrItems()
 };

@@ -55,9 +55,11 @@ xmrig::Benchmark::Benchmark(const Job &job, size_t workers, const IBackend *back
     m_end(job.benchSize()),
     m_hash(job.benchHash())
 {
+#   ifdef XMRIG_FEATURE_HTTP
     if (!m_token.isEmpty()) {
         m_httpListener = std::make_shared<HttpListener>(this, Tags::bench());
     }
+#   endif
 }
 
 
@@ -76,6 +78,7 @@ bool xmrig::Benchmark::finish(uint64_t totalHashCount)
 
     LOG_NOTICE("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR, Tags::bench(), dt, color, m_data);
 
+#   ifdef XMRIG_FEATURE_HTTP
     if (!m_token.isEmpty()) {
         using namespace rapidjson;
 
@@ -84,11 +87,13 @@ bool xmrig::Benchmark::finish(uint64_t totalHashCount)
 
         doc.AddMember("steady_done_ts",                 m_doneTime, allocator);
         doc.AddMember(StringRef(BenchConfig::kHash),    Value(fmt::format("{:016X}", m_data).c_str(), allocator), allocator);
-        doc.AddMember("backend",                        m_backend->toJSON(doc), allocator);
+        doc.AddMember("backend",                        m_backend->toJSON(doc), allocator); // FIXME
 
         send(doc);
     }
-    else {
+    else
+#   endif
+    {
         printExit();
     }
 
@@ -100,6 +105,7 @@ void xmrig::Benchmark::start()
 {
     m_startTime = Chrono::steadyMSecs();
 
+#   ifdef XMRIG_FEATURE_HTTP
     if (!m_token.isEmpty()) {
         using namespace rapidjson;
 
@@ -108,6 +114,7 @@ void xmrig::Benchmark::start()
 
         send(doc);
     }
+#   endif
 }
 
 
@@ -145,6 +152,7 @@ void xmrig::Benchmark::tick(IWorker *worker)
 
 void xmrig::Benchmark::onHttpData(const HttpData &data)
 {
+#   ifdef XMRIG_FEATURE_HTTP
     rapidjson::Document doc;
 
     try {
@@ -161,6 +169,7 @@ void xmrig::Benchmark::onHttpData(const HttpData &data)
         LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmrig.com/benchmark/%s"), Tags::bench(), m_id.data());
         printExit();
     }
+#   endif
 }
 
 
@@ -170,9 +179,11 @@ uint64_t xmrig::Benchmark::referenceHash() const
         return m_hash;
     }
 
+#   ifdef XMRIG_FEATURE_HTTP
     if (!m_token.isEmpty()) {
         return 0;
     }
+#   endif
 
     const uint32_t N = (m_end / 1000000) - 1;
     if (((m_algo == Algorithm::RX_0) || (m_algo == Algorithm::RX_WOW)) && ((m_end % 1000000) == 0) && (N < 10)) {
@@ -189,6 +200,7 @@ void xmrig::Benchmark::printExit()
 }
 
 
+#ifdef XMRIG_FEATURE_HTTP
 void xmrig::Benchmark::send(const rapidjson::Value &body)
 {
     FetchRequest req(HTTP_PATCH, BenchConfig::kApiHost, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_id).c_str(), body, BenchConfig::kApiTLS, true);
@@ -202,3 +214,4 @@ void xmrig::Benchmark::setError(const char *message)
 {
     LOG_ERR("%s " RED("benchmark failed ") RED_BOLD("\"%s\""), Tags::bench(), message);
 }
+#endif

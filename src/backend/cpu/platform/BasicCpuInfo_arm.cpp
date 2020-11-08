@@ -22,6 +22,7 @@
 
 #include <array>
 #include <cstring>
+#include <fstream>
 #include <thread>
 
 
@@ -66,6 +67,8 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     if (!name.isNull()) {
         strncpy(m_brand, name, sizeof(m_brand) - 1);
     }
+
+    m_flags.set(FLAG_PDPE1GB, std::ifstream("/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages").good());
 #   endif
 }
 
