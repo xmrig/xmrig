@@ -189,16 +189,20 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         memcpy(vendor + 4, &data[3], 4);
         memcpy(vendor + 8, &data[2], 4);
 
+        cpuid(PROCESSOR_INFO, data);
+
+        m_procInfo = data[EAX_Reg];
+        m_family = get_masked(m_procInfo, 12, 8) + get_masked(m_procInfo, 28, 20);
+        m_model = (get_masked(m_procInfo, 20, 16) << 4) | get_masked(m_procInfo, 8, 4);
+        m_stepping = get_masked(m_procInfo, 4, 0);
+
         if (memcmp(vendor, "AuthenticAMD", 12) == 0) {
             m_vendor = VENDOR_AMD;
 
-            cpuid(PROCESSOR_INFO, data);
-            const int32_t family = get_masked(data[EAX_Reg], 12, 8) + get_masked(data[EAX_Reg], 28, 20);
-
-            if (family >= 0x17) {
+            if (m_family >= 0x17) {
                 m_assembly = Assembly::RYZEN;
 
-                switch (family) {
+                switch (m_family) {
                 case 0x17:
                     m_msrMod = MSR_MOD_RYZEN_17H;
                     break;
@@ -233,7 +237,6 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
                 unsigned int reserved2 : 4;
             } processor_info;
 
-            cpuid(1, data);
             memcpy(&processor_info, data, sizeof(processor_info));
 
             // Intel JCC erratum mitigation
@@ -327,6 +330,10 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
     Value out(kObjectType);
 
     out.AddMember("brand",      StringRef(brand()), allocator);
+    out.AddMember("family",     m_family, allocator);
+    out.AddMember("model",      m_model, allocator);
+    out.AddMember("stepping",   m_stepping, allocator);
+    out.AddMember("proc_info",  m_procInfo, allocator);
     out.AddMember("aes",        hasAES(), allocator);
     out.AddMember("avx2",       hasAVX2(), allocator);
     out.AddMember("x64",        isX64(), allocator);
