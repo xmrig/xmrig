@@ -57,6 +57,7 @@ public:
     inline const Algorithm &algorithm() const   { return m_algorithm; }
     inline const String &id() const             { return m_id; }
     inline const String &seed() const           { return m_seed; }
+    inline const String &token() const          { return m_token; }
     inline uint32_t size() const                { return m_size; }
     inline uint64_t hash() const                { return m_hash; }
 
@@ -67,6 +68,7 @@ private:
     bool m_submit;
     String m_id;
     String m_seed;
+    String m_token;
     uint32_t m_size;
     uint64_t m_hash;
 };

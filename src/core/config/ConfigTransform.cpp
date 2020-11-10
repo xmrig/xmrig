@@ -257,6 +257,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::StressKey:        /* --stress */
     case IConfig::BenchSubmitKey:   /* --submit */
     case IConfig::BenchVerifyKey:   /* --verify */
+    case IConfig::BenchTokenKey:    /* --token */
     case IConfig::BenchSeedKey:     /* --seed */
     case IConfig::BenchHashKey:     /* --hash */
         return transformBenchmark(doc, key, arg);
@@ -332,6 +333,9 @@ void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int ke
 
     case IConfig::BenchVerifyKey: /* --verify */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kVerify, arg);
+
+    case IConfig::BenchTokenKey: /* --token */
+        return set(doc, BenchConfig::kBenchmark, BenchConfig::kToken, arg);
 
     case IConfig::BenchSeedKey: /* --seed */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kSeed, arg);

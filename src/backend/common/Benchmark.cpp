@@ -87,7 +87,7 @@ bool xmrig::Benchmark::finish(uint64_t totalHashCount)
 
         doc.AddMember("steady_done_ts",                 m_doneTime, allocator);
         doc.AddMember(StringRef(BenchConfig::kHash),    Value(fmt::format("{:016X}", m_data).c_str(), allocator), allocator);
-        doc.AddMember("backend",                        m_backend->toJSON(doc), allocator); // FIXME
+        doc.AddMember("backend",                        m_backend->toJSON(doc), allocator);
 
         send(doc);
     }

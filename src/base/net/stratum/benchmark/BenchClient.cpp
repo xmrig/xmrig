@@ -54,6 +54,7 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
     if (!m_benchmark->id().isEmpty()) {
         m_job.setId(m_benchmark->id());
+        m_job.setBenchToken(m_benchmark->token());
         m_mode = ONLINE_VERIFY;
 
         return;

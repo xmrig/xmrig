@@ -57,6 +57,7 @@ xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson
     m_submit(Json::getBool(object, kSubmit)),
     m_id(id),
     m_seed(Json::getString(object, kSeed)),
+    m_token(Json::getString(object, kToken)),
     m_size(size),
     m_hash(0)
 {
@@ -91,12 +92,12 @@ xmrig::BenchConfig *xmrig::BenchConfig::create(const rapidjson::Value &object)
 uint32_t xmrig::BenchConfig::getSize(const char *benchmark)
 {
     if (!benchmark) {
-        return false;
+        return 0;
     }
 
     const auto size = strtoul(benchmark, nullptr, 10);
     if (size < 1 || size > 10) {
-        return false;
+        return 0;
     }
 
     return strcasecmp(benchmark, fmt::format("{}M", size).c_str()) == 0 ? size * 1000000 : 0;
