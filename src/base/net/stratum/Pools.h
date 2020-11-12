@@ -73,6 +73,7 @@ public:
     uint32_t benchSize() const;
     void load(const IJsonReader &reader);
     void print() const;
+    void toJSON(rapidjson::Value &out, rapidjson::Document &doc) const;
 
 private:
     void setDonateLevel(int level);

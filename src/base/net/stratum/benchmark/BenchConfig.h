@@ -61,6 +61,8 @@ public:
     inline uint32_t size() const                { return m_size; }
     inline uint64_t hash() const                { return m_hash; }
 
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+
 private:
     static uint32_t getSize(const char *benchmark);
 

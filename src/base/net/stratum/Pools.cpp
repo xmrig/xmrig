@@ -194,6 +194,27 @@ void xmrig::Pools::print() const
 }
 
 
+void xmrig::Pools::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (m_benchmark) {
+        out.AddMember(StringRef(BenchConfig::kBenchmark), m_benchmark->toJSON(doc), allocator);
+
+        return;
+    }
+#   endif
+
+    doc.AddMember(StringRef(kDonateLevel),      m_donateLevel, allocator);
+    doc.AddMember(StringRef(kDonateOverProxy),  m_proxyDonate, allocator);
+    out.AddMember(StringRef(kPools),            toJSON(doc), allocator);
+    doc.AddMember(StringRef(kRetries),          retries(), allocator);
+    doc.AddMember(StringRef(kRetryPause),       retryPause(), allocator);
+}
+
+
 void xmrig::Pools::setDonateLevel(int level)
 {
     if (level >= kMinimumDonateLevel && level <= 99) {

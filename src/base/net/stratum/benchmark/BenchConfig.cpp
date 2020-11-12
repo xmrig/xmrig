@@ -89,6 +89,39 @@ xmrig::BenchConfig *xmrig::BenchConfig::create(const rapidjson::Value &object)
 }
 
 
+rapidjson::Value xmrig::BenchConfig::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    Value out(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    if (m_size == 0) {
+        out.AddMember(StringRef(kSize), 0U, allocator);
+    }
+    else if (m_size < 1000000) {
+        out.AddMember(StringRef(kSize), Value(fmt::format("{}K", m_size / 1000).c_str(), allocator), allocator);
+    }
+    else {
+        out.AddMember(StringRef(kSize), Value(fmt::format("{}M", m_size / 1000000).c_str(), allocator), allocator);
+    }
+
+    out.AddMember(StringRef(kAlgo),     m_algorithm.toJSON(), allocator);
+    out.AddMember(StringRef(kSubmit),   m_submit, allocator);
+    out.AddMember(StringRef(kVerify),   m_id.toJSON(), allocator);
+    out.AddMember(StringRef(kToken),    m_token.toJSON(), allocator);
+    out.AddMember(StringRef(kSeed),     m_seed.toJSON(), allocator);
+
+    if (m_hash) {
+        out.AddMember(StringRef(kHash), Value(fmt::format("{:016X}", m_hash).c_str(), allocator), allocator);
+    }
+    else {
+        out.AddMember(StringRef(kHash), kNullType, allocator);
+    }
+
+    return out;
+}
+
+
 uint32_t xmrig::BenchConfig::getSize(const char *benchmark)
 {
     if (!benchmark) {
