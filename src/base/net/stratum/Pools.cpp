@@ -70,6 +70,16 @@ bool xmrig::Pools::isEqual(const Pools &other) const
 }
 
 
+int xmrig::Pools::donateLevel() const
+{
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    return benchSize() || (m_benchmark && !m_benchmark->id().isEmpty()) ? 0 : m_donateLevel;
+#   else
+    return m_donateLevel;
+#   endif
+}
+
+
 xmrig::IStrategy *xmrig::Pools::createStrategy(IStrategyListener *listener) const
 {
     if (active() == 1) {

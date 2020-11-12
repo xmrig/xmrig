@@ -260,14 +260,16 @@ void xmrig::Network::onRequest(IApiRequest &request)
 
 void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 {
-    uint64_t diff     = job.diff();;
-    const char *scale = NetworkState::scaleDiff(diff);
+    uint64_t diff       = job.diff();;
+    const char *scale   = NetworkState::scaleDiff(diff);
+    const uint32_t size = job.benchSize();
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    if (job.benchSize()) {
-        LOG_NOTICE("%s " MAGENTA_BOLD("start benchmark ") "hashes " CYAN_BOLD("%" PRIu64 "M") " algo " WHITE_BOLD("%s") " print_time " CYAN_BOLD("%us"),
+    if (size) {
+        LOG_NOTICE("%s " MAGENTA_BOLD("start benchmark ") "hashes " CYAN_BOLD("%u%s") " algo " WHITE_BOLD("%s") " print_time " CYAN_BOLD("%us"),
                    Tags::bench(),
-                   job.benchSize() / 1000000,
+                   size < 1000000 ? size / 1000 : size / 1000000,
+                   size < 1000000 ? "K" : "M",
                    job.algorithm().shortName(),
                    m_controller->config()->printTime());
 

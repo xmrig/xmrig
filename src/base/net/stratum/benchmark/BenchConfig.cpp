@@ -96,9 +96,13 @@ uint32_t xmrig::BenchConfig::getSize(const char *benchmark)
     }
 
     const auto size = strtoul(benchmark, nullptr, 10);
-    if (size < 1 || size > 10) {
-        return 0;
+    if (size >= 1 && size <= 10) {
+        return strcasecmp(benchmark, fmt::format("{}M", size).c_str()) == 0 ? size * 1000000 : 0;
     }
 
-    return strcasecmp(benchmark, fmt::format("{}M", size).c_str()) == 0 ? size * 1000000 : 0;
+    if (size == 250 || size == 500) {
+        return strcasecmp(benchmark, fmt::format("{}K", size).c_str()) == 0 ? size * 1000 : 0;
+    }
+
+    return 0;
 }
