@@ -135,7 +135,7 @@ static HANDLE wrmsr_install_driver()
         SERVICE_STATUS status;
         const auto rc = QueryServiceStatus(hService, &status);
 
-        if (rc && Log::isVerbose()) {
+        if (rc) {
             DWORD dwBytesNeeded;
 
             QueryServiceConfigA(hService, nullptr, 0, &dwBytesNeeded);

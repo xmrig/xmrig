@@ -57,6 +57,7 @@ xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson
     m_submit(Json::getBool(object, kSubmit)),
     m_id(id),
     m_seed(Json::getString(object, kSeed)),
+    m_token(Json::getString(object, kToken)),
     m_size(size),
     m_hash(0)
 {
@@ -88,16 +89,53 @@ xmrig::BenchConfig *xmrig::BenchConfig::create(const rapidjson::Value &object)
 }
 
 
+rapidjson::Value xmrig::BenchConfig::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    Value out(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    if (m_size == 0) {
+        out.AddMember(StringRef(kSize), 0U, allocator);
+    }
+    else if (m_size < 1000000) {
+        out.AddMember(StringRef(kSize), Value(fmt::format("{}K", m_size / 1000).c_str(), allocator), allocator);
+    }
+    else {
+        out.AddMember(StringRef(kSize), Value(fmt::format("{}M", m_size / 1000000).c_str(), allocator), allocator);
+    }
+
+    out.AddMember(StringRef(kAlgo),     m_algorithm.toJSON(), allocator);
+    out.AddMember(StringRef(kSubmit),   m_submit, allocator);
+    out.AddMember(StringRef(kVerify),   m_id.toJSON(), allocator);
+    out.AddMember(StringRef(kToken),    m_token.toJSON(), allocator);
+    out.AddMember(StringRef(kSeed),     m_seed.toJSON(), allocator);
+
+    if (m_hash) {
+        out.AddMember(StringRef(kHash), Value(fmt::format("{:016X}", m_hash).c_str(), allocator), allocator);
+    }
+    else {
+        out.AddMember(StringRef(kHash), kNullType, allocator);
+    }
+
+    return out;
+}
+
+
 uint32_t xmrig::BenchConfig::getSize(const char *benchmark)
 {
     if (!benchmark) {
-        return false;
+        return 0;
     }
 
     const auto size = strtoul(benchmark, nullptr, 10);
-    if (size < 1 || size > 10) {
-        return false;
+    if (size >= 1 && size <= 10) {
+        return strcasecmp(benchmark, fmt::format("{}M", size).c_str()) == 0 ? size * 1000000 : 0;
     }
 
-    return strcasecmp(benchmark, fmt::format("{}M", size).c_str()) == 0 ? size * 1000000 : 0;
+    if (size == 250 || size == 500) {
+        return strcasecmp(benchmark, fmt::format("{}K", size).c_str()) == 0 ? size * 1000 : 0;
+    }
+
+    return 0;
 }
