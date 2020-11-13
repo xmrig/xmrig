@@ -238,16 +238,14 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kCuda),                     cuda().toJSON(doc), allocator);
 #   endif
 
-    doc.AddMember(StringRef(Pools::kDonateLevel),       m_pools.donateLevel(), allocator);
-    doc.AddMember(StringRef(Pools::kDonateOverProxy),   m_pools.proxyDonate(), allocator);
     doc.AddMember(StringRef(kLogFile),                  m_logFile.toJSON(), allocator);
-    doc.AddMember(StringRef(Pools::kPools),             m_pools.toJSON(doc), allocator);
+
+    m_pools.toJSON(doc, doc);
+
     doc.AddMember(StringRef(kPrintTime),                printTime(), allocator);
 #   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     doc.AddMember(StringRef(kHealthPrintTime),          healthPrintTime(), allocator);
 #   endif
-    doc.AddMember(StringRef(Pools::kRetries),           m_pools.retries(), allocator);
-    doc.AddMember(StringRef(Pools::kRetryPause),        m_pools.retryPause(), allocator);
     doc.AddMember(StringRef(kSyslog),                   isSyslog(), allocator);
 
 #   ifdef XMRIG_FEATURE_TLS

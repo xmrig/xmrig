@@ -71,7 +71,7 @@ uint8_t *xmrig::MemoryPool::get(size_t size, uint32_t)
 {
     assert(!(size % pageSize));
 
-    if (!m_memory || (m_memory->size() - m_offset) < size) {
+    if (!m_memory || (m_memory->size() - m_offset - m_alignOffset) < size) {
         return nullptr;
     }
 

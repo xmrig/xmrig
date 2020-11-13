@@ -107,6 +107,7 @@ static const option options[] = {
 #   ifdef XMRIG_FEATURE_HTTP
     { "submit",                0, nullptr, IConfig::BenchSubmitKey        },
     { "verify",                1, nullptr, IConfig::BenchVerifyKey        },
+    { "token",                 1, nullptr, IConfig::BenchTokenKey         },
 #   endif
     { "seed",                  1, nullptr, IConfig::BenchSeedKey          },
     { "hash",                  1, nullptr, IConfig::BenchHashKey          },

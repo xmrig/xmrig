@@ -70,6 +70,16 @@ bool xmrig::Pools::isEqual(const Pools &other) const
 }
 
 
+int xmrig::Pools::donateLevel() const
+{
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    return benchSize() || (m_benchmark && !m_benchmark->id().isEmpty()) ? 0 : m_donateLevel;
+#   else
+    return m_donateLevel;
+#   endif
+}
+
+
 xmrig::IStrategy *xmrig::Pools::createStrategy(IStrategyListener *listener) const
 {
     if (active() == 1) {
@@ -184,6 +194,27 @@ void xmrig::Pools::print() const
     }
     LOG_NOTICE("--------------------------------------------------------------------------");
 #   endif
+}
+
+
+void xmrig::Pools::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    if (m_benchmark) {
+        out.AddMember(StringRef(BenchConfig::kBenchmark), m_benchmark->toJSON(doc), allocator);
+
+        return;
+    }
+#   endif
+
+    doc.AddMember(StringRef(kDonateLevel),      m_donateLevel, allocator);
+    doc.AddMember(StringRef(kDonateOverProxy),  m_proxyDonate, allocator);
+    out.AddMember(StringRef(kPools),            toJSON(doc), allocator);
+    doc.AddMember(StringRef(kRetries),          retries(), allocator);
+    doc.AddMember(StringRef(kRetryPause),       retryPause(), allocator);
 }
 
 

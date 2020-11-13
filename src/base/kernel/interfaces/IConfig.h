@@ -83,6 +83,7 @@ public:
         BenchVerifyKey       = 1045,
         BenchSeedKey         = 1046,
         BenchHashKey         = 1047,
+        BenchTokenKey        = 1048,
 
         // xmrig common
         CPUPriorityKey       = 1021,
