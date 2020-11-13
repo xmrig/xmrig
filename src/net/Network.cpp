@@ -262,9 +262,9 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 {
     uint64_t diff       = job.diff();;
     const char *scale   = NetworkState::scaleDiff(diff);
-    const uint32_t size = job.benchSize();
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
+    const uint32_t size = job.benchSize();
     if (size) {
         LOG_NOTICE("%s " MAGENTA_BOLD("start benchmark ") "hashes " CYAN_BOLD("%u%s") " algo " WHITE_BOLD("%s") " print_time " CYAN_BOLD("%us"),
                    Tags::bench(),
