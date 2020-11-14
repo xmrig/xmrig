@@ -74,7 +74,7 @@ static const std::array<MsrItems, kMsrArraySize> msrPresets = {
     MsrItems()
 };
 
-static const std::array<const char *, kMsrArraySize> modNames = { "none", "ryzen_17h", "ryzen_19h", "intel", "custom" };
+static const std::array<const char *, kMsrArraySize> modNames = { MSR_NAMES_LIST };
 
 static_assert (kMsrArraySize == ICpuInfo::MSR_MOD_MAX, "kMsrArraySize and MSR_MOD_MAX mismatch");
 #endif
