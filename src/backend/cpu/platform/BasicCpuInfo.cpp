@@ -52,8 +52,16 @@
 namespace xmrig {
 
 
-static const std::array<const char *, ICpuInfo::FLAG_MAX> flagNames     = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "sse4.1", "xop", "popcnt", "cat_l3" };
-static const std::array<const char *, ICpuInfo::MSR_MOD_MAX> msrNames   = { "none", "ryzen", "intel", "custom" };
+constexpr size_t kCpuFlagsSize                                  = 12;
+static const std::array<const char *, kCpuFlagsSize> flagNames  = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "sse4.1", "xop", "popcnt", "cat_l3" };
+static_assert(kCpuFlagsSize == ICpuInfo::FLAG_MAX, "kCpuFlagsSize and FLAG_MAX mismatch");
+
+
+#ifdef XMRIG_FEATURE_MSR
+constexpr size_t kMsrArraySize                                  = 5;
+static const std::array<const char *, kMsrArraySize> msrNames   = { MSR_NAMES_LIST };
+static_assert(kMsrArraySize == ICpuInfo::MSR_MOD_MAX, "kMsrArraySize and MSR_MOD_MAX mismatch");
+#endif
 
 
 static inline void cpuid(uint32_t level, int32_t output[4])
@@ -353,7 +361,12 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
     out.AddMember("packages",   static_cast<uint64_t>(packages()), allocator);
     out.AddMember("nodes",      static_cast<uint64_t>(nodes()), allocator);
     out.AddMember("backend",    StringRef(backend()), allocator);
+
+#   ifdef XMRIG_FEATURE_MSR
     out.AddMember("msr",        StringRef(msrNames[msrMod()]), allocator);
+#   else
+    out.AddMember("msr",        "none", allocator);
+#   endif
 
 #   ifdef XMRIG_FEATURE_ASM
     out.AddMember("assembly",   StringRef(Assembly(assembly()).toString()), allocator);
