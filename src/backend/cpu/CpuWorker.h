@@ -43,6 +43,7 @@ namespace xmrig {
 
 
 class RxVm;
+class Config;
 
 
 template<size_t N>
@@ -56,7 +57,7 @@ public:
 
 protected:
     bool selfTest() override;
-    void start() override;
+    void start(Config*) override;
 
     inline const VirtualMemory *memory() const override { return m_memory; }
     inline size_t intensity() const override            { return N; }

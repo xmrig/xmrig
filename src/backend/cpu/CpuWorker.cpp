@@ -30,6 +30,7 @@
 
 #include "backend/cpu/CpuWorker.h"
 #include "base/tools/Chrono.h"
+#include "core/config/Config.h"
 #include "core/Miner.h"
 #include "crypto/cn/CnCtx.h"
 #include "crypto/cn/CryptoNight_test.h"
@@ -198,7 +199,7 @@ bool xmrig::CpuWorker<N>::selfTest()
 
 
 template<size_t N>
-void xmrig::CpuWorker<N>::start()
+void xmrig::CpuWorker<N>::start(xmrig::Config* config)
 {
     while (Nonce::sequence(Nonce::CPU) > 0) {
         if (Nonce::isPaused()) {
@@ -219,6 +220,10 @@ void xmrig::CpuWorker<N>::start()
         alignas(16) uint64_t tempHash[8] = {};
 #       endif
 
+#       ifdef XMRIG_FEATURE_BENCHMARK
+        const size_t benchThreads = config->cpu().threads().get(m_job.currentJob().algorithm()).count();
+#       endif
+
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
             const Job &job = m_job.currentJob();
 
@@ -230,6 +235,29 @@ void xmrig::CpuWorker<N>::start()
             for (size_t i = 0; i < N; ++i) {
                 current_job_nonces[i] = *m_job.nonce(i);
             }
+
+#           ifdef XMRIG_FEATURE_BENCHMARK
+            if (m_benchSize) {
+                bool done = true;
+                for (size_t i = 0; i < N; ++i) {
+                    if (current_job_nonces[i] < m_benchSize) {
+                        done = false;
+                        break;
+                    }
+                }
+
+                // Stop benchmark when all hashes have been counted
+                if (done) {
+                    m_benchDoneTime = Chrono::steadyMSecs();
+                    return;
+                }
+
+                // Make each hash dependent on the previous one in single thread benchmark to prevent cheating with multiple threads
+                if (benchThreads == 1) {
+                    *(uint64_t*)(m_job.blob()) ^= m_benchData;
+                }
+            }
+#           endif
 
             bool valid = true;
 
@@ -273,10 +301,6 @@ void xmrig::CpuWorker<N>::start()
                     if (m_benchSize) {
                         if (current_job_nonces[i] < m_benchSize) {
                             m_benchData ^= value;
-                        }
-                        else {
-                            m_benchDoneTime = Chrono::steadyMSecs();
-                            return;
                         }
                     }
                     else

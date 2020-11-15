@@ -145,7 +145,7 @@ size_t xmrig::CudaWorker::intensity() const
 }
 
 
-void xmrig::CudaWorker::start()
+void xmrig::CudaWorker::start(xmrig::Config*)
 {
     while (Nonce::sequence(Nonce::CUDA) > 0) {
         if (!isReady()) {

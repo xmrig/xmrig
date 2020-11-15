@@ -40,6 +40,7 @@ namespace xmrig {
 
 class IOclRunner;
 class Job;
+class Config;
 
 
 class OclWorker : public Worker
@@ -59,7 +60,7 @@ public:
 protected:
     bool selfTest() override;
     size_t intensity() const override;
-    void start() override;
+    void start(Config*) override;
 
 private:
     bool consumeJob();

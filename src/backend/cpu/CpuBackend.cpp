@@ -390,7 +390,7 @@ void xmrig::CpuBackend::start(IWorker *worker, bool ready)
     mutex.unlock();
 
     if (ready) {
-        worker->start();
+        worker->start(d_ptr->controller->config());
     }
 }
 
