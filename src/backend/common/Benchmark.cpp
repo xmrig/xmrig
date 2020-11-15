@@ -69,6 +69,38 @@ static const std::map<int, std::map<uint32_t, uint64_t> > hashCheck = {
 };
 
 
+static const std::map<int, std::map<uint32_t, uint64_t> > hashCheck1T = {
+    { Algorithm::RX_0, {
+        {   250000U, 0x90A15B799486F3EBULL },
+        {   500000U, 0xAA83118FEE570F9AULL },
+        {  1000000U, 0x3DF47B0A427C93D9ULL },
+        {  2000000U, 0xED4D639B0AEB85C6ULL },
+        {  3000000U, 0x2D4F9B4275A713C3ULL },
+        {  4000000U, 0xA9EBE4888377F8D3ULL },
+        {  5000000U, 0xB92F81851E180454ULL },
+        {  6000000U, 0xFB9F98F63C2F1B7DULL },
+        {  7000000U, 0x2CC3D7A779D5AB35ULL },
+        {  8000000U, 0x2EEF833EA462F4B1ULL },
+        {  9000000U, 0xC6D39EF59213A07CULL },
+        { 10000000U, 0x95E6BAE68DD779CDULL }
+    }},
+    { Algorithm::RX_WOW, {
+        {   250000U, 0x7B409F096C863207ULL },
+        {   500000U, 0x70B7B80D15654216ULL },
+        {  1000000U, 0x31301CC550306A59ULL },
+        {  2000000U, 0x92F65E9E31116361ULL },
+        {  3000000U, 0x7FE8DF6F43BA5285ULL },
+        {  4000000U, 0xD6CDA54FE4D9BBF7ULL },
+        {  5000000U, 0x73AF673E1A38E2B4ULL },
+        {  6000000U, 0x81FDC5C4B45D84E4ULL },
+        {  7000000U, 0xAA08CA57666DC874ULL },
+        {  8000000U, 0x9DCEFB833FC875BCULL },
+        {  9000000U, 0x862F051352CFCA1FULL },
+        { 10000000U, 0xC403F220189E8430ULL }
+    }}
+};
+
+
 } // namespace xmrig
 
 
@@ -214,7 +246,8 @@ uint64_t xmrig::Benchmark::referenceHash() const
     uint64_t hash = 0;
 
     try {
-        hash = hashCheck.at(m_algo).at(m_end);
+        const auto& h = (m_workers == 1) ? hashCheck1T : hashCheck;
+        hash = h.at(m_algo).at(m_end);
     } catch (const std::exception &ex) {}
 
     return hash;
