@@ -47,6 +47,7 @@ if (WITH_HWLOC)
         src/backend/cpu/platform/HwlocCpuInfo.h
         )
 elseif (WITH_LIBCPUID)
+    message(WARNING, "libcpuid support is deprecated and will be removed in future versions.")
     set(WITH_HWLOC OFF)
 
     add_subdirectory(src/3rdparty/libcpuid)

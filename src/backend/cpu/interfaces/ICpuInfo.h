@@ -55,6 +55,8 @@ public:
         MSR_MOD_MAX
     };
 
+#   define MSR_NAMES_LIST "none", "ryzen_17h", "ryzen_19h", "intel", "custom"
+
     enum Flag : uint32_t {
         FLAG_AES,
         FLAG_AVX2,
