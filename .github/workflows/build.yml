@@ -1,0 +1,103 @@
+name: Build XMRig
+
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master, dev ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: get dependencies
+        run: sudo apt-get install git build-essential cmake automake libtool autoconf
+      - name: use cache
+        uses: actions/cache@v2.1.3
+        id: cache
+        with:
+          path: scripts/deps
+          key: ${{ runner.os }}-${{ hashFiles('scripts/build**.sh') }}
+      - name: build dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir build && cd scripts
+          ./build_deps.sh
+      - name: build xmrig
+        run: |
+          if [ ! -d "build" ]; then
+            mkdir build
+          fi
+          cd build
+          cmake .. -DXMRIG_DEPS=scripts/deps
+          make -j2
+      - name: upload linux artifact
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          name: xmrig-linux
+          path: ${{ github.workspace }}/build/xmrig
+
+  build-osx:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: get dependencies
+        run: brew install cmake wget automake libtool autoconf
+      - name: use cache
+        uses: actions/cache@v2.1.3
+        id: cache
+        with:
+          path: scripts/deps
+          key: ${{ runner.os }}-${{ hashFiles('scripts/build**.sh') }}
+      - name: build dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir build && cd scripts
+          ./build_deps.sh
+      - name: build xmrig
+        run: |
+          if [ ! -d "build" ]; then
+            mkdir build
+          fi
+          cd build
+          cmake .. -DXMRIG_DEPS=scripts/deps
+          make -j2
+      - name: upload macos artifact
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          name: xmrig-osx
+          path: ${{ github.workspace }}/build/xmrig
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: check cache
+        id: deps
+        run: |
+          $head = Invoke-Expression 'git ls-remote https://github.com/xmrig/xmrig-deps | select -first 1'
+          Write-Host ::set-output name=id::($head.Split("`t"))[0]
+      - name: use cache
+        uses: actions/cache@v2.1.3
+        id: cache
+        with:
+          path: c:\xmrig-deps\
+          key: ${{ runner.os }}-${{ steps.deps.outputs.id }}
+      - name: get dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir c:\xmrig-deps
+          Invoke-WebRequest -Uri https://github.com/xmrig/xmrig-deps/archive/master.zip -OutFile master.zip
+          Expand-Archive -Path master.zip -DestinationPath c:\xmrig-deps\
+      - name: build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 16 2019" -A x64 -DXMRIG_DEPS=c:\xmrig-deps\xmrig-deps-master\msvc2019\x64
+          cmake --build . --config Release
+      - name: upload windows artifact
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          name: xmrig-windows
+          path: ${{ github.workspace }}/build/xmrig.exe
