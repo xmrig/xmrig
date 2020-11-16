@@ -26,6 +26,9 @@
 #define XMRIG_IWORKER_H
 
 
+#include "base/tools/Object.h"
+
+
 #include <cstdint>
 #include <cstddef>
 
@@ -40,7 +43,10 @@ class Job;
 class IWorker
 {
 public:
-    virtual ~IWorker() = default;
+    XMRIG_DISABLE_COPY_MOVE(IWorker)
+
+    IWorker()           = default;
+    virtual ~IWorker()  = default;
 
     virtual bool selfTest()                                   = 0;
     virtual const VirtualMemory *memory() const               = 0;
@@ -50,11 +56,6 @@ public:
     virtual void getHashrateData(uint64_t&, uint64_t&) const  = 0;
     virtual void start()                                      = 0;
     virtual void jobEarlyNotification(const Job&)             = 0;
-
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    virtual uint64_t benchData() const                        = 0;
-    virtual uint64_t benchDoneTime() const                    = 0;
-#   endif
 };
 
 

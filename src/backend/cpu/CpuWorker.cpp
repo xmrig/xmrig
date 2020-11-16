@@ -53,6 +53,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
+#   include "backend/common/benchmark/BenchState.h"
+#endif
+
+
 namespace xmrig {
 
 static constexpr uint32_t kReserveCount = 32768;
@@ -245,8 +250,7 @@ void xmrig::CpuWorker<N>::start()
 
                 // Stop benchmark when all hashes have been counted
                 if (done) {
-                    m_benchDoneTime = Chrono::steadyMSecs();
-                    return;
+                    return BenchState::done(m_benchData, Chrono::steadyMSecs());;
                 }
 
                 // Make each hash dependent on the previous one in single thread benchmark to prevent cheating with multiple threads

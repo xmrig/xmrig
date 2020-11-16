@@ -91,6 +91,10 @@ private:
 #   ifdef XMRIG_ALGO_RANDOMX
     randomx_vm *m_vm = nullptr;
 #   endif
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    uint64_t m_benchData    = 0;
+#   endif
 };
 
 

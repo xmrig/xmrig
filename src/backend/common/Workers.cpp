@@ -47,7 +47,7 @@
 
 
 #ifdef XMRIG_FEATURE_BENCHMARK
-#   include "backend/common/Benchmark.h"
+#   include "backend/common/benchmark/Benchmark.h"
 #endif
 
 
@@ -124,12 +124,6 @@ bool xmrig::Workers<T>::tick(uint64_t)
                 totalAvailable = false;
             }
             totalHashCount += n;
-
-#           ifdef XMRIG_FEATURE_BENCHMARK
-            if (d_ptr->benchmark) {
-                d_ptr->benchmark->tick(worker);
-            }
-#           endif
         }
     }
 

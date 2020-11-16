@@ -56,7 +56,7 @@
 
 
 #ifdef XMRIG_FEATURE_BENCHMARK
-#   include "backend/common/Benchmark.h"
+#   include "backend/common/benchmark/Benchmark.h"
 #endif
 
 
