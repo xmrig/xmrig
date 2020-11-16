@@ -46,9 +46,9 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     m_job.setAlgorithm(m_benchmark->algorithm());
     m_job.setDiff(std::numeric_limits<uint64_t>::max());
     m_job.setHeight(1);
-    m_job.setBenchSize(m_benchmark->size());
 
     BenchState::setListener(this);
+    BenchState::setSize(m_benchmark->size());
 
 #   ifdef XMRIG_FEATURE_HTTP
     if (m_benchmark->isSubmit()) {
@@ -221,7 +221,7 @@ uint64_t xmrig::BenchClient::referenceHash() const
         return m_hash;
     }
 
-    return BenchState::referenceHash(m_job.algorithm(), m_job.benchSize(), m_threads);
+    return BenchState::referenceHash(m_job.algorithm(), BenchState::size(), m_threads);
 }
 
 
@@ -303,7 +303,8 @@ void xmrig::BenchClient::startVerify(const rapidjson::Value &value)
 
     m_job.setAlgorithm(Json::getString(value, BenchConfig::kAlgo));
     m_job.setSeedHash(Json::getString(value, BenchConfig::kSeed));
-    m_job.setBenchSize(Json::getUint(value, BenchConfig::kSize));
+
+    BenchState::setSize(Json::getUint(value, BenchConfig::kSize));
 
     start();
 }

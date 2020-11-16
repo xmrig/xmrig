@@ -41,10 +41,13 @@ public:
     static void destroy();
     static void done(uint64_t data, uint64_t ts);
 
+    inline static uint32_t size()                               { return m_size; }
     inline static void setListener(IBenchListener *listener)    { m_listener = listener; }
+    inline static void setSize(uint32_t size)                   { m_size = size; }
 
 private:
     static IBenchListener *m_listener;
+    static uint32_t m_size;
 };
 
 

@@ -27,7 +27,6 @@ namespace xmrig {
 
 
 class IBackend;
-class Job;
 
 
 class Benchmark
@@ -35,7 +34,7 @@ class Benchmark
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Benchmark)
 
-    Benchmark(const Job &job, size_t workers, const IBackend *backend);
+    Benchmark(size_t workers, const IBackend *backend);
     ~Benchmark() = default;
 
     bool finish(uint64_t totalHashCount);
@@ -45,7 +44,6 @@ public:
 private:
     const IBackend *m_backend;
     const size_t m_workers;
-    const uint64_t m_end;
     uint64_t m_current          = 0;
     uint64_t m_startTime        = 0;
 };

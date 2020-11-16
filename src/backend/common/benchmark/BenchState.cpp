@@ -42,6 +42,7 @@ static uint64_t result                  = 0;
 
 
 IBenchListener *BenchState::m_listener  = nullptr;
+uint32_t BenchState::m_size             = 0;
 
 
 } // namespace xmrig
