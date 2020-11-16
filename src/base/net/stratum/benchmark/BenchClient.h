@@ -21,6 +21,7 @@
 
 
 #include "backend/common/interfaces/IBenchListener.h"
+#include "base/kernel/interfaces/IDnsListener.h"
 #include "base/kernel/interfaces/IHttpListener.h"
 #include "base/net/stratum/Client.h"
 
@@ -28,7 +29,7 @@
 namespace xmrig {
 
 
-class BenchClient : public IClient, public IHttpListener, public IBenchListener
+class BenchClient : public IClient, public IHttpListener, public IBenchListener, public IDnsListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(BenchClient)
@@ -41,7 +42,6 @@ public:
     inline bool isEnabled() const override                                          { return true; }
     inline bool isTLS() const override                                              { return false; }
     inline const char *mode() const override                                        { return "benchmark"; }
-    inline const char *tag() const override                                         { return "null"; }
     inline const char *tlsFingerprint() const override                              { return nullptr; }
     inline const char *tlsVersion() const override                                  { return nullptr; }
     inline const Job &job() const override                                          { return m_job; }
@@ -62,6 +62,7 @@ public:
     inline void setRetryPause(uint64_t ms) override                                 {}
     inline void tick(uint64_t now) override                                         {}
 
+    const char *tag() const override;
     void connect() override;
     void setPool(const Pool &pool) override;
 
@@ -69,6 +70,7 @@ protected:
     void onBenchDone(uint64_t result, uint64_t ts) override;
     void onBenchStart(uint64_t ts, uint32_t threads, const IBackend *backend) override;
     void onHttpData(const HttpData &data) override;
+    void onResolved(const Dns &dns, int status) override;
 
 private:
     enum Mode : uint32_t {
@@ -84,9 +86,9 @@ private:
 
 #   ifdef XMRIG_FEATURE_HTTP
     void createBench();
-    void createHttpListener();
     void getBench();
-    void setError(const char *message);
+    void resolve();
+    void setError(const char *message, const char *label = nullptr);
     void startBench(const rapidjson::Value &value);
     void startVerify(const rapidjson::Value &value);
     void update(const rapidjson::Value &body);
@@ -98,6 +100,7 @@ private:
     Mode m_mode                 = STATIC_BENCH;
     Pool m_pool;
     std::shared_ptr<BenchConfig> m_benchmark;
+    std::shared_ptr<Dns> m_dns;
     std::shared_ptr<IHttpListener> m_httpListener;
     String m_ip;
     String m_token;

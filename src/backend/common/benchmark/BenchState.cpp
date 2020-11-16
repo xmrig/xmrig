@@ -88,6 +88,7 @@ uint64_t xmrig::BenchState::start(size_t threads, const IBackend *backend)
 
 void xmrig::BenchState::destroy()
 {
+    xmrig::done = true;
     async.reset();
 }
 

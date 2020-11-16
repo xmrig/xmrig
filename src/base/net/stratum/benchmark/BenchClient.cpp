@@ -26,6 +26,7 @@
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IClientListener.h"
+#include "base/net/dns/Dns.h"
 #include "base/net/http/Fetch.h"
 #include "base/net/http/HttpData.h"
 #include "base/net/http/HttpListener.h"
@@ -84,23 +85,21 @@ xmrig::BenchClient::~BenchClient()
 }
 
 
+const char *xmrig::BenchClient::tag() const
+{
+    return Tags::bench();
+}
+
+
 void xmrig::BenchClient::connect()
 {
 #   ifdef XMRIG_FEATURE_HTTP
-    switch (m_mode) {
-    case STATIC_BENCH:
-    case STATIC_VERIFY:
-        return start();
-
-    case ONLINE_BENCH:
-        return createBench();
-
-    case ONLINE_VERIFY:
-        return getBench();
+    if (m_mode == ONLINE_BENCH || m_mode == ONLINE_VERIFY) {
+        return resolve();
     }
-#   else
-    start();
 #   endif
+
+    start();
 }
 
 
@@ -130,7 +129,7 @@ void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t ts)
     const uint64_t ref = referenceHash();
     const char *color  = ref ? ((result == ref) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
 
-    LOG_NOTICE("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR, Tags::bench(), static_cast<double>(ts - m_startTime) / 1000.0, color, result);
+    LOG_NOTICE("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR, tag(), static_cast<double>(ts - m_startTime) / 1000.0, color, result);
 
     if (m_mode != ONLINE_BENCH) {
         printExit();
@@ -174,7 +173,7 @@ void xmrig::BenchClient::onHttpData(const HttpData &data)
     }
 
     if (m_doneTime) {
-        LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmrig.com/benchmark/%s"), Tags::bench(), m_job.id().data());
+        LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmrig.com/benchmark/%s"), tag(), m_job.id().data());
         printExit();
 
         return;
@@ -194,6 +193,28 @@ void xmrig::BenchClient::onHttpData(const HttpData &data)
 }
 
 
+void xmrig::BenchClient::onResolved(const Dns &dns, int status)
+{
+#   ifdef XMRIG_FEATURE_HTTP
+    assert(!m_httpListener);
+
+    if (status < 0) {
+        return setError(dns.error(), "DNS error");
+    }
+
+    m_ip            = dns.get().ip();
+    m_httpListener  = std::make_shared<HttpListener>(this, tag());
+
+    if (m_mode == ONLINE_BENCH) {
+        createBench();
+    }
+    else {
+        getBench();
+    }
+#   endif
+}
+
+
 uint64_t xmrig::BenchClient::referenceHash() const
 {
     if (m_hash || m_mode == ONLINE_BENCH) {
@@ -206,7 +227,7 @@ uint64_t xmrig::BenchClient::referenceHash() const
 
 void xmrig::BenchClient::printExit()
 {
-    LOG_INFO("%s " WHITE_BOLD("press ") MAGENTA_BOLD("Ctrl+C") WHITE_BOLD(" to exit"), Tags::bench());
+    LOG_INFO("%s " WHITE_BOLD("press ") MAGENTA_BOLD("Ctrl+C") WHITE_BOLD(" to exit"), tag());
 }
 
 
@@ -221,8 +242,6 @@ void xmrig::BenchClient::start()
 #ifdef XMRIG_FEATURE_HTTP
 void xmrig::BenchClient::createBench()
 {
-    createHttpListener();
-
     using namespace rapidjson;
 
     Document doc(kObjectType);
@@ -233,31 +252,34 @@ void xmrig::BenchClient::createBench()
     doc.AddMember("version",                     APP_VERSION, allocator);
     doc.AddMember("cpu",                         Cpu::toJSON(doc), allocator);
 
-    FetchRequest req(HTTP_POST, BenchConfig::kApiHost, BenchConfig::kApiPort, "/1/benchmark", doc, BenchConfig::kApiTLS, true);
+    FetchRequest req(HTTP_POST, m_ip, BenchConfig::kApiPort, "/1/benchmark", doc, BenchConfig::kApiTLS, true);
     fetch(std::move(req), m_httpListener);
-}
-
-
-void xmrig::BenchClient::createHttpListener()
-{
-    if (!m_httpListener) {
-        m_httpListener = std::make_shared<HttpListener>(this, Tags::bench());
-    }
 }
 
 
 void xmrig::BenchClient::getBench()
 {
-    createHttpListener();
-
-    FetchRequest req(HTTP_GET, BenchConfig::kApiHost, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_job.id()).c_str(), BenchConfig::kApiTLS, true);
+    FetchRequest req(HTTP_GET, m_ip, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_job.id()).c_str(), BenchConfig::kApiTLS, true);
     fetch(std::move(req), m_httpListener);
 }
 
 
-void xmrig::BenchClient::setError(const char *message)
+void xmrig::BenchClient::resolve()
 {
-    LOG_ERR("%s " RED("benchmark failed ") RED_BOLD("\"%s\""), Tags::bench(), message);
+    m_dns = std::make_shared<Dns>(this);
+
+    if (!m_dns->resolve(BenchConfig::kApiHost)) {
+        setError(m_dns->error(), "getaddrinfo error");
+    }
+}
+
+
+void xmrig::BenchClient::setError(const char *message, const char *label)
+{
+    LOG_ERR("%s " RED("%s: ") RED_BOLD("\"%s\""), tag(), label ? label : "benchmark failed", message);
+    printExit();
+
+    BenchState::destroy();
 }
 
 
@@ -291,7 +313,7 @@ void xmrig::BenchClient::update(const rapidjson::Value &body)
 {
     assert(!m_token.isEmpty());
 
-    FetchRequest req(HTTP_PATCH, BenchConfig::kApiHost, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_job.id()).c_str(), body, BenchConfig::kApiTLS, true);
+    FetchRequest req(HTTP_PATCH, m_ip, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_job.id()).c_str(), body, BenchConfig::kApiTLS, true);
     req.headers.insert({ "Authorization", fmt::format("Bearer {}", m_token)});
 
     fetch(std::move(req), m_httpListener);
