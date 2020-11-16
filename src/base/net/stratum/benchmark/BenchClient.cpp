@@ -113,7 +113,7 @@ void xmrig::BenchClient::setPool(const Pool &pool)
 void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t ts)
 {
 #   ifdef XMRIG_FEATURE_HTTP
-    if (m_mode == ONLINE_BENCH) {
+    if (!m_token.isEmpty()) {
         m_doneTime = ts;
 
         rapidjson::Document doc(rapidjson::kObjectType);
@@ -173,20 +173,23 @@ void xmrig::BenchClient::onHttpData(const HttpData &data)
         return setError(data.statusName());
     }
 
-    if (m_mode == ONLINE_BENCH) {
-        if (!m_startTime) {
-            return startBench(doc);
-        }
-
-        if (m_doneTime) {
-            LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmrig.com/benchmark/%s"), Tags::bench(), m_job.id().data());
-            printExit();
-        }
+    if (m_doneTime) {
+        LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmrig.com/benchmark/%s"), Tags::bench(), m_job.id().data());
+        printExit();
 
         return;
     }
 
-    startVerify(doc);
+    if (m_startTime) {
+        return;
+    }
+
+    if (m_mode == ONLINE_BENCH) {
+        startBench(doc);
+    }
+    else {
+        startVerify(doc);
+    }
 #   endif
 }
 
