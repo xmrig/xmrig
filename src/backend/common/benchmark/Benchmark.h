@@ -20,61 +20,33 @@
 #define XMRIG_BENCHMARK_H
 
 
-#include "base/crypto/Algorithm.h"
-#include "base/kernel/interfaces/IHttpListener.h"
 #include "base/tools/Object.h"
-#include "base/tools/String.h"
-
-
-#include <memory>
 
 
 namespace xmrig {
 
 
 class IBackend;
-class IWorker;
 class Job;
 
 
-class Benchmark : public IHttpListener
+class Benchmark
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Benchmark)
 
     Benchmark(const Job &job, size_t workers, const IBackend *backend);
-    ~Benchmark() override = default;
+    ~Benchmark() = default;
 
     bool finish(uint64_t totalHashCount);
     void printProgress() const;
     void start();
-    void tick(IWorker *worker);
-
-protected:
-    void onHttpData(const HttpData &data) override;
 
 private:
-    uint64_t referenceHash() const;
-    void printExit();
-
-#   ifdef XMRIG_FEATURE_HTTP
-    void send(const rapidjson::Value &body);
-    void setError(const char *message);
-#   endif
-
-    bool m_reset                = false;
-    const Algorithm m_algo;
     const IBackend *m_backend;
     const size_t m_workers;
-    const String m_id;
-    const String m_token;
     const uint64_t m_end;
-    const uint64_t m_hash;
-    std::shared_ptr<IHttpListener> m_httpListener;
-    uint32_t m_done             = 0;
     uint64_t m_current          = 0;
-    uint64_t m_data             = 0;
-    uint64_t m_doneTime         = 0;
     uint64_t m_startTime        = 0;
 };
 

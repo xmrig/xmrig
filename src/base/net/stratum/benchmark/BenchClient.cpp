@@ -19,6 +19,8 @@
 #include "base/net/stratum/benchmark/BenchClient.h"
 #include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
+#include "backend/common/benchmark/BenchState.h"
+#include "backend/common/interfaces/IBackend.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
@@ -33,7 +35,8 @@
 
 xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener) :
     m_listener(listener),
-    m_benchmark(benchmark)
+    m_benchmark(benchmark),
+    m_hash(benchmark->hash())
 {
     std::vector<char> blob(112 * 2 + 1, '0');
     blob.back() = '\0';
@@ -43,7 +46,8 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     m_job.setDiff(std::numeric_limits<uint64_t>::max());
     m_job.setHeight(1);
     m_job.setBenchSize(m_benchmark->size());
-    m_job.setBenchHash(m_benchmark->hash());
+
+    BenchState::setListener(this);
 
 #   ifdef XMRIG_FEATURE_HTTP
     if (m_benchmark->isSubmit()) {
@@ -54,8 +58,8 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
     if (!m_benchmark->id().isEmpty()) {
         m_job.setId(m_benchmark->id());
-        m_job.setBenchToken(m_benchmark->token());
-        m_mode = ONLINE_VERIFY;
+        m_token = m_benchmark->token();
+        m_mode  = ONLINE_VERIFY;
 
         return;
     }
@@ -63,7 +67,7 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
     m_job.setId("00000000");
 
-    if (m_job.benchHash() && m_job.setSeedHash(m_benchmark->seed())) {
+    if (m_hash && m_job.setSeedHash(m_benchmark->seed())) {
         m_mode = STATIC_VERIFY;
 
         return;
@@ -71,6 +75,12 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
     blob[Job::kMaxSeedSize * 2] = '\0';
     m_job.setSeedHash(blob.data());
+}
+
+
+xmrig::BenchClient::~BenchClient()
+{
+    BenchState::destroy();
 }
 
 
@@ -100,6 +110,54 @@ void xmrig::BenchClient::setPool(const Pool &pool)
 }
 
 
+void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t ts)
+{
+#   ifdef XMRIG_FEATURE_HTTP
+    if (m_mode == ONLINE_BENCH) {
+        m_doneTime = ts;
+
+        rapidjson::Document doc(rapidjson::kObjectType);
+        auto &allocator = doc.GetAllocator();
+
+        doc.AddMember("steady_done_ts", m_doneTime, allocator);
+        doc.AddMember("hash",           rapidjson::Value(fmt::format("{:016X}", result).c_str(), allocator), allocator);
+        doc.AddMember("backend",        m_backend->toJSON(doc), allocator);
+
+        update(doc);
+    }
+#   endif
+
+    const uint64_t ref = referenceHash();
+    const char *color  = ref ? ((result == ref) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
+
+    LOG_NOTICE("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR, Tags::bench(), static_cast<double>(ts - m_startTime) / 1000.0, color, result);
+
+    if (m_mode != ONLINE_BENCH) {
+        printExit();
+    }
+}
+
+
+void xmrig::BenchClient::onBenchStart(uint64_t ts, uint32_t threads, const IBackend *backend)
+{
+    m_startTime = ts;
+    m_threads   = threads;
+    m_backend   = backend;
+
+#   ifdef XMRIG_FEATURE_HTTP
+    if (m_mode == ONLINE_BENCH) {
+        rapidjson::Document doc(rapidjson::kObjectType);
+        auto &allocator = doc.GetAllocator();
+
+        doc.AddMember("threads",            threads, allocator);
+        doc.AddMember("steady_start_ts",    m_startTime, allocator);
+
+        update(doc);
+    }
+#   endif
+}
+
+
 void xmrig::BenchClient::onHttpData(const HttpData &data)
 {
 #   ifdef XMRIG_FEATURE_HTTP
@@ -116,12 +174,36 @@ void xmrig::BenchClient::onHttpData(const HttpData &data)
     }
 
     if (m_mode == ONLINE_BENCH) {
-        startBench(doc);
+        if (!m_startTime) {
+            return startBench(doc);
+        }
+
+        if (m_doneTime) {
+            LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmrig.com/benchmark/%s"), Tags::bench(), m_job.id().data());
+            printExit();
+        }
+
+        return;
     }
-    else {
-        startVerify(doc);
-    }
+
+    startVerify(doc);
 #   endif
+}
+
+
+uint64_t xmrig::BenchClient::referenceHash() const
+{
+    if (m_hash || m_mode == ONLINE_BENCH) {
+        return m_hash;
+    }
+
+    return BenchState::referenceHash(m_job.algorithm(), m_job.benchSize(), m_threads);
+}
+
+
+void xmrig::BenchClient::printExit()
+{
+    LOG_INFO("%s " WHITE_BOLD("press ") MAGENTA_BOLD("Ctrl+C") WHITE_BOLD(" to exit"), Tags::bench());
 }
 
 
@@ -180,7 +262,8 @@ void xmrig::BenchClient::startBench(const rapidjson::Value &value)
 {
     m_job.setId(Json::getString(value, BenchConfig::kId));
     m_job.setSeedHash(Json::getString(value, BenchConfig::kSeed));
-    m_job.setBenchToken(Json::getString(value, BenchConfig::kToken));
+
+    m_token = Json::getString(value, BenchConfig::kToken);
 
     start();
 }
@@ -190,7 +273,7 @@ void xmrig::BenchClient::startVerify(const rapidjson::Value &value)
 {
     const char *hash = Json::getString(value, BenchConfig::kHash);
     if (hash) {
-        m_job.setBenchHash(strtoull(hash, nullptr, 16));
+        m_hash = strtoull(hash, nullptr, 16);
     }
 
     m_job.setAlgorithm(Json::getString(value, BenchConfig::kAlgo));
@@ -198,5 +281,16 @@ void xmrig::BenchClient::startVerify(const rapidjson::Value &value)
     m_job.setBenchSize(Json::getUint(value, BenchConfig::kSize));
 
     start();
+}
+
+
+void xmrig::BenchClient::update(const rapidjson::Value &body)
+{
+    assert(!m_token.isEmpty());
+
+    FetchRequest req(HTTP_PATCH, BenchConfig::kApiHost, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_job.id()).c_str(), body, BenchConfig::kApiTLS, true);
+    req.headers.insert({ "Authorization", fmt::format("Bearer {}", m_token)});
+
+    fetch(std::move(req), m_httpListener);
 }
 #endif

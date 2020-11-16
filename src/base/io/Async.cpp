@@ -119,12 +119,23 @@ namespace xmrig {
 class AsyncPrivate
 {
 public:
+    Async::Callback callback;
     IAsyncListener *listener    = nullptr;
     uv_async_t *async           = nullptr;
 };
 
 
 } // namespace xmrig
+
+
+xmrig::Async::Async(Callback callback) : d_ptr(new AsyncPrivate())
+{
+    d_ptr->callback     = std::move(callback);
+    d_ptr->async        = new uv_async_t;
+    d_ptr->async->data  = this;
+
+    uv_async_init(uv_default_loop(), d_ptr->async, [](uv_async_t *handle) { static_cast<Async *>(handle->data)->d_ptr->callback(); });
+}
 
 
 xmrig::Async::Async(IAsyncListener *listener) : d_ptr(new AsyncPrivate())

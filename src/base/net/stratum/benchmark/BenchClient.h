@@ -20,20 +20,21 @@
 #define XMRIG_BENCHCLIENT_H
 
 
-#include "base/net/stratum/Client.h"
+#include "backend/common/interfaces/IBenchListener.h"
 #include "base/kernel/interfaces/IHttpListener.h"
+#include "base/net/stratum/Client.h"
 
 
 namespace xmrig {
 
 
-class BenchClient : public IClient, public IHttpListener
+class BenchClient : public IClient, public IHttpListener, public IBenchListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(BenchClient)
 
     BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener);
-    ~BenchClient() override = default;
+    ~BenchClient() override;
 
     inline bool disconnect() override                                               { return true; }
     inline bool hasExtension(Extension) const noexcept override                     { return false; }
@@ -52,7 +53,7 @@ public:
     inline int64_t sequence() const override                                        { return 0; }
     inline int64_t submit(const JobResult &) override                               { return 0; }
     inline void connect(const Pool &pool) override                                  { setPool(pool); }
-    inline void deleteLater() override                                              {}
+    inline void deleteLater() override                                              { delete this; }
     inline void setAlgo(const Algorithm &algo) override                             {}
     inline void setEnabled(bool enabled) override                                   {}
     inline void setProxy(const ProxyUrl &proxy) override                            {}
@@ -65,6 +66,8 @@ public:
     void setPool(const Pool &pool) override;
 
 protected:
+    void onBenchDone(uint64_t result, uint64_t ts) override;
+    void onBenchStart(uint64_t ts, uint32_t threads, const IBackend *backend) override;
     void onHttpData(const HttpData &data) override;
 
 private:
@@ -75,6 +78,8 @@ private:
         ONLINE_VERIFY
     };
 
+    uint64_t referenceHash() const;
+    void printExit();
     void start();
 
 #   ifdef XMRIG_FEATURE_HTTP
@@ -84,15 +89,22 @@ private:
     void setError(const char *message);
     void startBench(const rapidjson::Value &value);
     void startVerify(const rapidjson::Value &value);
+    void update(const rapidjson::Value &body);
 #   endif
 
+    const IBackend *m_backend   = nullptr;
     IClientListener* m_listener;
     Job m_job;
+    Mode m_mode                 = STATIC_BENCH;
     Pool m_pool;
     std::shared_ptr<BenchConfig> m_benchmark;
     std::shared_ptr<IHttpListener> m_httpListener;
     String m_ip;
-    Mode m_mode = STATIC_BENCH;
+    String m_token;
+    uint32_t m_threads          = 0;
+    uint64_t m_doneTime         = 0;
+    uint64_t m_hash             = 0;
+    uint64_t m_startTime        = 0;
 };
 
 

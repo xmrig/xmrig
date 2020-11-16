@@ -297,7 +297,7 @@ namespace randomx {
 	}
 
 	void JitCompilerX86::generateProgramPrologue(Program& prog, ProgramConfiguration& pcfg) {
-		codePos = ((uint8_t*)randomx_program_prologue_first_load) - ((uint8_t*)randomx_program_prologue);
+		codePos = ADDR(randomx_program_prologue_first_load) - ADDR(randomx_program_prologue);
 		code[codePos + 2] = 0xc0 + pcfg.readReg0;
 		code[codePos + 5] = 0xc0 + pcfg.readReg1;
 		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;

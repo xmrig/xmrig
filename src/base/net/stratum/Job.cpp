@@ -176,9 +176,7 @@ void xmrig::Job::copy(const Job &other)
 #   endif
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    m_benchSize  = other.m_benchSize;
-    m_benchHash  = other.m_benchHash;
-    m_benchToken = other.m_benchToken;
+    m_benchSize = other.m_benchSize;
 #   endif
 }
 
@@ -213,8 +211,6 @@ void xmrig::Job::move(Job &&other)
 #   endif
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    m_benchSize  = other.m_benchSize;
-    m_benchHash  = other.m_benchHash;
-    m_benchToken = std::move(other.m_benchToken);
+    m_benchSize = other.m_benchSize;
 #   endif
 }

@@ -137,5 +137,9 @@ uint32_t xmrig::BenchConfig::getSize(const char *benchmark)
         return strcasecmp(benchmark, fmt::format("{}K", size).c_str()) == 0 ? size * 1000 : 0;
     }
 
+#   ifndef NDEBUG
+    return size >= 10000 ? size : 0;
+#   else
     return 0;
+#   endif
 }

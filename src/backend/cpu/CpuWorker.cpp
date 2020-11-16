@@ -30,6 +30,7 @@
 
 #include "backend/cpu/CpuWorker.h"
 #include "base/tools/Chrono.h"
+#include "core/config/Config.h"
 #include "core/Miner.h"
 #include "crypto/cn/CnCtx.h"
 #include "crypto/cn/CryptoNight_test.h"
@@ -49,6 +50,11 @@
 
 #ifdef XMRIG_ALGO_ASTROBWT
 #   include "crypto/astrobwt/AstroBWT.h"
+#endif
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+#   include "backend/common/benchmark/BenchState.h"
 #endif
 
 
@@ -85,6 +91,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_av(data.av()),
     m_astrobwtMaxSize(data.astrobwtMaxSize * 1000),
     m_miner(data.miner),
+    m_threads(data.threads),
     m_benchSize(data.benchSize),
     m_ctx()
 {
@@ -231,6 +238,28 @@ void xmrig::CpuWorker<N>::start()
                 current_job_nonces[i] = *m_job.nonce(i);
             }
 
+#           ifdef XMRIG_FEATURE_BENCHMARK
+            if (m_benchSize) {
+                bool done = true;
+                for (size_t i = 0; i < N; ++i) {
+                    if (current_job_nonces[i] < m_benchSize) {
+                        done = false;
+                        break;
+                    }
+                }
+
+                // Stop benchmark when all hashes have been counted
+                if (done) {
+                    return BenchState::done(m_benchData, Chrono::steadyMSecs());;
+                }
+
+                // Make each hash dependent on the previous one in single thread benchmark to prevent cheating with multiple threads
+                if (m_threads == 1) {
+                    *(uint64_t*)(m_job.blob()) ^= m_benchData;
+                }
+            }
+#           endif
+
             bool valid = true;
 
 #           ifdef XMRIG_ALGO_RANDOMX
@@ -273,10 +302,6 @@ void xmrig::CpuWorker<N>::start()
                     if (m_benchSize) {
                         if (current_job_nonces[i] < m_benchSize) {
                             m_benchData ^= value;
-                        }
-                        else {
-                            m_benchDoneTime = Chrono::steadyMSecs();
-                            return;
                         }
                     }
                     else
