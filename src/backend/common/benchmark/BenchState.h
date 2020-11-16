@@ -20,6 +20,7 @@
 #define XMRIG_BENCHSTATE_H
 
 
+#include <cstddef>
 #include <cstdint>
 
 
