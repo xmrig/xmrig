@@ -39,7 +39,6 @@ namespace xmrig {
 
 
 class ICudaRunner;
-class Config;
 
 
 class CudaWorker : public Worker
@@ -59,7 +58,7 @@ public:
 protected:
     bool selfTest() override;
     size_t intensity() const override;
-    void start(Config*) override;
+    void start() override;
 
 private:
     bool consumeJob();

@@ -463,7 +463,7 @@ void xmrig::OclBackend::start(IWorker *worker, bool ready)
     mutex.unlock();
 
     if (ready) {
-        worker->start(d_ptr->controller->config());
+        worker->start();
     }
 }
 

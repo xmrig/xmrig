@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ namespace xmrig {
 
 class VirtualMemory;
 class Job;
-class Config;
 
 
 class IWorker
@@ -49,7 +48,7 @@ public:
     virtual size_t intensity() const                          = 0;
     virtual uint64_t rawHashes() const                        = 0;
     virtual void getHashrateData(uint64_t&, uint64_t&) const  = 0;
-    virtual void start(Config*)                               = 0;
+    virtual void start()                                      = 0;
     virtual void jobEarlyNotification(const Job&)             = 0;
 
 #   ifdef XMRIG_FEATURE_BENCHMARK

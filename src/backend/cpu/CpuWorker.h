@@ -43,7 +43,6 @@ namespace xmrig {
 
 
 class RxVm;
-class Config;
 
 
 template<size_t N>
@@ -57,7 +56,7 @@ public:
 
 protected:
     bool selfTest() override;
-    void start(Config*) override;
+    void start() override;
 
     inline const VirtualMemory *memory() const override { return m_memory; }
     inline size_t intensity() const override            { return N; }
@@ -83,6 +82,7 @@ private:
     const CnHash::AlgoVariant m_av;
     const int m_astrobwtMaxSize;
     const Miner *m_miner;
+    const size_t m_threads;
     const uint32_t m_benchSize;
     cryptonight_ctx *m_ctx[N];
     VirtualMemory *m_memory = nullptr;

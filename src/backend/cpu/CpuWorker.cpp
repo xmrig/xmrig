@@ -86,6 +86,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_av(data.av()),
     m_astrobwtMaxSize(data.astrobwtMaxSize * 1000),
     m_miner(data.miner),
+    m_threads(data.threads),
     m_benchSize(data.benchSize),
     m_ctx()
 {
@@ -199,7 +200,7 @@ bool xmrig::CpuWorker<N>::selfTest()
 
 
 template<size_t N>
-void xmrig::CpuWorker<N>::start(xmrig::Config* config)
+void xmrig::CpuWorker<N>::start()
 {
     while (Nonce::sequence(Nonce::CPU) > 0) {
         if (Nonce::isPaused()) {
@@ -218,10 +219,6 @@ void xmrig::CpuWorker<N>::start(xmrig::Config* config)
 #       ifdef XMRIG_ALGO_RANDOMX
         bool first = true;
         alignas(16) uint64_t tempHash[8] = {};
-#       endif
-
-#       ifdef XMRIG_FEATURE_BENCHMARK
-        const size_t benchThreads = config->cpu().threads().get(m_job.currentJob().algorithm()).count();
 #       endif
 
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
@@ -253,7 +250,7 @@ void xmrig::CpuWorker<N>::start(xmrig::Config* config)
                 }
 
                 // Make each hash dependent on the previous one in single thread benchmark to prevent cheating with multiple threads
-                if (benchThreads == 1) {
+                if (m_threads == 1) {
                     *(uint64_t*)(m_job.blob()) ^= m_benchData;
                 }
             }

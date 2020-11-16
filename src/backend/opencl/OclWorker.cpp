@@ -163,7 +163,7 @@ size_t xmrig::OclWorker::intensity() const
 }
 
 
-void xmrig::OclWorker::start(xmrig::Config*)
+void xmrig::OclWorker::start()
 {
     cl_uint results[0x100];
 
