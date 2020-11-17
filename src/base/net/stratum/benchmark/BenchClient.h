@@ -67,7 +67,7 @@ public:
     void setPool(const Pool &pool) override;
 
 protected:
-    void onBenchDone(uint64_t result, uint64_t ts) override;
+    void onBenchDone(uint64_t result, uint64_t diff, uint64_t ts) override;
     void onBenchStart(uint64_t ts, uint32_t threads, const IBackend *backend) override;
     void onHttpData(const HttpData &data) override;
     void onResolved(const Dns &dns, int status) override;

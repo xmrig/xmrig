@@ -109,7 +109,7 @@ void xmrig::BenchClient::setPool(const Pool &pool)
 }
 
 
-void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t ts)
+void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t diff, uint64_t ts)
 {
 #   ifdef XMRIG_FEATURE_HTTP
     if (!m_token.isEmpty()) {
@@ -120,6 +120,7 @@ void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t ts)
 
         doc.AddMember("steady_done_ts", m_doneTime, allocator);
         doc.AddMember("hash",           rapidjson::Value(fmt::format("{:016X}", result).c_str(), allocator), allocator);
+        doc.AddMember("diff",           diff, allocator);
         doc.AddMember("backend",        m_backend->toJSON(doc), allocator);
 
         update(doc);

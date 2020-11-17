@@ -39,7 +39,7 @@ public:
     static uint64_t referenceHash(const Algorithm &algo, uint32_t size, uint32_t threads);
     static uint64_t start(size_t threads, const IBackend *backend);
     static void destroy();
-    static void done(uint64_t data, uint64_t ts);
+    static void done(uint64_t data, uint64_t diff, uint64_t ts);
 
     inline static uint32_t size()                               { return m_size; }
     inline static void setListener(IBenchListener *listener)    { m_listener = listener; }

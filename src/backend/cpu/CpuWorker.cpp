@@ -240,17 +240,8 @@ void xmrig::CpuWorker<N>::start()
 
 #           ifdef XMRIG_FEATURE_BENCHMARK
             if (m_benchSize) {
-                bool done = true;
-                for (size_t i = 0; i < N; ++i) {
-                    if (current_job_nonces[i] < m_benchSize) {
-                        done = false;
-                        break;
-                    }
-                }
-
-                // Stop benchmark when all hashes have been counted
-                if (done) {
-                    return BenchState::done(m_benchData, Chrono::steadyMSecs());;
+                if (current_job_nonces[0] >= m_benchSize) {
+                    return BenchState::done(m_benchData, m_benchDiff, Chrono::steadyMSecs());;
                 }
 
                 // Make each hash dependent on the previous one in single thread benchmark to prevent cheating with multiple threads
@@ -302,6 +293,7 @@ void xmrig::CpuWorker<N>::start()
                     if (m_benchSize) {
                         if (current_job_nonces[i] < m_benchSize) {
                             m_benchData ^= value;
+                            m_benchDiff = std::max(m_benchDiff, Job::toDiff(value));
                         }
                     }
                     else

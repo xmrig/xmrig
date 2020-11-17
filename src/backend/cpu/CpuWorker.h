@@ -94,6 +94,7 @@ private:
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     uint64_t m_benchData    = 0;
+    uint64_t m_benchDiff    = 0;
 #   endif
 };
 

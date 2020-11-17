@@ -39,6 +39,7 @@ static std::shared_ptr<Async> async;
 static uint32_t remaining               = 0;
 static uint64_t doneTime                = 0;
 static uint64_t result                  = 0;
+static uint64_t topDiff                 = 0;
 
 
 IBenchListener *BenchState::m_listener  = nullptr;
@@ -75,7 +76,7 @@ uint64_t xmrig::BenchState::start(size_t threads, const IBackend *backend)
     remaining = static_cast<uint32_t>(threads);
 
     async = std::make_shared<Async>([] {
-        m_listener->onBenchDone(result, doneTime);
+        m_listener->onBenchDone(result, topDiff, doneTime);
         async.reset();
         xmrig::done = true;
     });
@@ -94,7 +95,7 @@ void xmrig::BenchState::destroy()
 }
 
 
-void xmrig::BenchState::done(uint64_t data, uint64_t ts)
+void xmrig::BenchState::done(uint64_t data, uint64_t diff, uint64_t ts)
 {
     assert(async && remaining > 0);
 
@@ -102,6 +103,7 @@ void xmrig::BenchState::done(uint64_t data, uint64_t ts)
 
     result ^= data;
     doneTime = std::max(doneTime, ts);
+    topDiff  = std::max(topDiff, diff);
     --remaining;
 
     if (remaining == 0) {

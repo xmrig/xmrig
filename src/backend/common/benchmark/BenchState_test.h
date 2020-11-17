@@ -33,6 +33,7 @@ static const std::map<int, std::map<uint32_t, uint64_t> > hashCheck = {
     { Algorithm::RX_0, {
 #       ifndef NDEBUG
         {    10000U, 0x4A597463865ACF0EULL },
+        {    20000U, 0xC82B490C757DA738ULL },
 #       endif
         {   250000U, 0x7D6054757BB08A63ULL },
         {   500000U, 0x96607546DE1F5ECCULL },
@@ -50,6 +51,7 @@ static const std::map<int, std::map<uint32_t, uint64_t> > hashCheck = {
     { Algorithm::RX_WOW, {
 #       ifndef NDEBUG
         {    10000U, 0x6B0918757100B338ULL },
+        {    20000U, 0x0B55785C1837F41BULL },
 #       endif
         {   250000U, 0xC7F712C9603E2603ULL },
         {   500000U, 0x21A0E5AAE6DA7D8DULL },
@@ -71,6 +73,7 @@ static const std::map<int, std::map<uint32_t, uint64_t> > hashCheck1T = {
     { Algorithm::RX_0, {
 #       ifndef NDEBUG
         {    10000U, 0xADFC3A66F79BFE7FULL },
+        {    20000U, 0x8ED578A60D55C0DBULL },
 #       endif
         {   250000U, 0x90A15B799486F3EBULL },
         {   500000U, 0xAA83118FEE570F9AULL },
@@ -88,6 +91,7 @@ static const std::map<int, std::map<uint32_t, uint64_t> > hashCheck1T = {
     { Algorithm::RX_WOW, {
 #       ifndef NDEBUG
         {    10000U, 0x9EC1B9B8C8C7F082ULL },
+        {    20000U, 0xF1DA44FA2A20D730ULL },
 #       endif
         {   250000U, 0x7B409F096C863207ULL },
         {   500000U, 0x70B7B80D15654216ULL },

@@ -37,7 +37,7 @@ public:
     IBenchListener()            = default;
     virtual ~IBenchListener()   = default;
 
-    virtual void onBenchDone(uint64_t result, uint64_t ts)                              = 0;
+    virtual void onBenchDone(uint64_t result, uint64_t diff, uint64_t ts)               = 0;
     virtual void onBenchStart(uint64_t ts, uint32_t threads, const IBackend *backend)   = 0;
 };
 
