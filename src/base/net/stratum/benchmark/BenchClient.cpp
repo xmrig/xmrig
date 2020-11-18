@@ -132,7 +132,7 @@ void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t diff, uint64_t ts
 
     LOG_NOTICE("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR, tag(), static_cast<double>(ts - m_startTime) / 1000.0, color, result);
 
-    if (m_mode != ONLINE_BENCH) {
+    if (m_token.isEmpty()) {
         printExit();
     }
 }
