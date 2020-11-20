@@ -82,7 +82,7 @@ uint64_t xmrig::BenchState::start(size_t threads, const IBackend *backend)
     });
 
     const uint64_t ts = Chrono::steadyMSecs();
-    m_listener->onBenchStart(ts, remaining, backend);
+    m_listener->onBenchReady(ts, remaining, backend);
 
     return ts;
 }

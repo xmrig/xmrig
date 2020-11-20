@@ -68,7 +68,7 @@ public:
 
 protected:
     void onBenchDone(uint64_t result, uint64_t diff, uint64_t ts) override;
-    void onBenchStart(uint64_t ts, uint32_t threads, const IBackend *backend) override;
+    void onBenchReady(uint64_t ts, uint32_t threads, const IBackend *backend) override;
     void onHttpData(const HttpData &data) override;
     void onResolved(const Dns &dns, int status) override;
 
@@ -80,17 +80,26 @@ private:
         ONLINE_VERIFY
     };
 
+    enum Request : uint32_t {
+        NO_REQUEST,
+        GET_BENCH,
+        CREATE_BENCH,
+        START_BENCH,
+        DONE_BENCH
+    };
+
+    bool setSeed(const char *seed);
     uint64_t referenceHash() const;
     void printExit();
     void start();
 
 #   ifdef XMRIG_FEATURE_HTTP
-    void createBench();
-    void getBench();
+    void onCreateReply(const rapidjson::Value &value);
+    void onDoneReply(const rapidjson::Value &value);
+    void onGetReply(const rapidjson::Value &value);
     void resolve();
+    void send(Request request);
     void setError(const char *message, const char *label = nullptr);
-    void startBench(const rapidjson::Value &value);
-    void startVerify(const rapidjson::Value &value);
     void update(const rapidjson::Value &body);
 #   endif
 
@@ -99,14 +108,18 @@ private:
     Job m_job;
     Mode m_mode                 = STATIC_BENCH;
     Pool m_pool;
+    Request m_request           = NO_REQUEST;
     std::shared_ptr<BenchConfig> m_benchmark;
     std::shared_ptr<Dns> m_dns;
     std::shared_ptr<IHttpListener> m_httpListener;
     String m_ip;
     String m_token;
     uint32_t m_threads          = 0;
+    uint64_t m_diff             = 0;
     uint64_t m_doneTime         = 0;
     uint64_t m_hash             = 0;
+    uint64_t m_readyTime        = 0;
+    uint64_t m_result           = 0;
     uint64_t m_startTime        = 0;
 };
 

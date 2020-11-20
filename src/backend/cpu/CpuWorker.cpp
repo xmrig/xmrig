@@ -397,6 +397,10 @@ void xmrig::CpuWorker<N>::consumeJob()
 
     m_job.add(m_miner->job(), m_benchSize ? 1 : kReserveCount, Nonce::CPU);
 
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    m_benchData = 0;
+#   endif
+
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
         allocateRandomX_VM();
